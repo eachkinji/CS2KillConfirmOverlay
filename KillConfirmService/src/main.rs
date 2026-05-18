@@ -8,6 +8,7 @@ use axum::{
     Router,
     routing::{get, post},
 };
+use serde::Deserialize;
 use std::{
     env,
     fs::{self, OpenOptions},
@@ -43,6 +44,7 @@ const DEFAULT_LOG_LEVEL: LevelFilter = if cfg!(debug_assertions) {
 } else {
     LevelFilter::INFO
 };
+const PACKAGE_FAMILY_NAME: &str = "KillConfirmGameBar.Overlay_5jgcw66eyez0m";
 
 #[tokio::main]
 async fn main() {
@@ -92,6 +94,11 @@ async fn run() -> Result<()> {
 
     if args.open_settings_launcher {
         launch_settings_launcher().context("failed to launch settings helper")?;
+        return Ok(());
+    }
+
+    if args.run_pending_update {
+        run_pending_update().context("failed to run pending update")?;
         return Ok(());
     }
 
@@ -283,6 +290,104 @@ fn open_runtime_log_folder() {
     }
 }
 
+#[derive(Deserialize)]
+struct PendingUpdate {
+    version: String,
+    download_url: String,
+    asset_name: String,
+}
+
+fn run_pending_update() -> Result<()> {
+    let pending_path = pending_update_path();
+    let payload = fs::read_to_string(&pending_path)
+        .with_context(|| format!("failed to read pending update file {}", pending_path.display()))?;
+    let pending: PendingUpdate =
+        serde_json::from_str(&payload).context("failed to parse pending update file")?;
+
+    let file_name = Path::new(&pending.asset_name)
+        .file_name()
+        .and_then(|value| value.to_str())
+        .filter(|value| !value.trim().is_empty())
+        .unwrap_or("KillConfirmGameBar_Update.exe");
+    let update_dir = local_state_dir().join("updates");
+    fs::create_dir_all(&update_dir)
+        .with_context(|| format!("failed to create update dir {}", update_dir.display()))?;
+    let installer_path = update_dir.join(file_name);
+
+    service_log(&format!(
+        "pending update requested. version={} asset={} url={}",
+        pending.version, file_name, pending.download_url
+    ));
+
+    if installer_path.exists() {
+        let _ = fs::remove_file(&installer_path);
+    }
+
+    download_update_installer(&pending.download_url, &installer_path)?;
+
+    let _ = fs::remove_file(&pending_path);
+    Command::new(&installer_path)
+        .spawn()
+        .with_context(|| format!("failed to launch installer {}", installer_path.display()))?;
+    service_log(&format!(
+        "pending update installer launched: {}",
+        installer_path.display()
+    ));
+    Ok(())
+}
+
+fn download_update_installer(url: &str, installer_path: &Path) -> Result<()> {
+    service_log(&format!(
+        "downloading update via curl -> {}",
+        installer_path.display()
+    ));
+    match Command::new("curl.exe")
+        .args(["-L", "--fail", "--silent", "--show-error", "-o"])
+        .arg(installer_path)
+        .arg(url)
+        .status()
+    {
+        Ok(status) if status.success() => {
+            service_log("update download via curl succeeded");
+            return Ok(());
+        }
+        Ok(status) => {
+            service_log(&format!(
+                "update download via curl failed with code {:?}, falling back to PowerShell",
+                status.code()
+            ));
+        }
+        Err(error) => {
+            service_log(&format!(
+                "update download via curl unavailable: {error}. falling back to PowerShell"
+            ));
+        }
+    }
+
+    let command = format!(
+        "$ProgressPreference='SilentlyContinue'; Invoke-WebRequest -Uri '{}' -OutFile '{}'",
+        escape_powershell_single_quoted(url),
+        escape_powershell_single_quoted(&installer_path.display().to_string())
+    );
+    let status = Command::new("powershell.exe")
+        .args(["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", &command])
+        .status()
+        .context("failed to launch PowerShell for update download")?;
+    if !status.success() {
+        anyhow::bail!(
+            "update download failed via PowerShell with exit code {:?}",
+            status.code()
+        );
+    }
+
+    service_log("update download via PowerShell succeeded");
+    Ok(())
+}
+
+fn escape_powershell_single_quoted(value: &str) -> String {
+    value.replace('\'', "''")
+}
+
 fn launch_settings_launcher() -> Result<()> {
     let exe_dir = env::current_exe()
         .context("failed to get current executable path")?
@@ -303,6 +408,24 @@ fn launch_settings_launcher() -> Result<()> {
         child.id()
     ));
     Ok(())
+}
+
+fn pending_update_path() -> PathBuf {
+    local_state_dir().join("pending_update.json")
+}
+
+fn local_state_dir() -> PathBuf {
+    if let Ok(local_app_data) = env::var("LOCALAPPDATA") {
+        return PathBuf::from(local_app_data)
+            .join("Packages")
+            .join(PACKAGE_FAMILY_NAME)
+            .join("LocalState");
+    }
+
+    env::current_exe()
+        .ok()
+        .and_then(|path| path.parent().map(Path::to_path_buf))
+        .unwrap_or_else(|| PathBuf::from("."))
 }
 
 fn free_local_port(port: u16) -> Result<()> {

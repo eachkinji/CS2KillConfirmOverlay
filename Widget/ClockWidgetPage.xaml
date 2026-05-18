@@ -233,15 +233,14 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="232" />
+                        <ColumnDefinition Width="252" />
                         <ColumnDefinition Width="136" />
-                        <ColumnDefinition Width="56" />
                     </Grid.ColumnDefinitions>
 
                     <Border
                         x:Name="StatusHintBox"
                         Grid.RowSpan="2"
-                        Width="232"
+                        Width="252"
                         MinHeight="42"
                         VerticalAlignment="Center"
                         Padding="8,5"
@@ -382,7 +381,6 @@
                     <Grid
                         Grid.Row="1"
                         Grid.Column="1"
-                        Grid.ColumnSpan="2"
                         HorizontalAlignment="Stretch"
                         ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
@@ -735,8 +733,8 @@
                                     HorizontalContentAlignment="Center"
                                     SelectedIndex="0"
                                     SelectionChanged="OnKillFxSelectionChanged">
-                                    <ComboBoxItem x:Name="KillFxOffItem" Tag="0">OFF</ComboBoxItem>
                                     <ComboBoxItem x:Name="KillFxPackItem" Tag="1">AUTO</ComboBoxItem>
+                                    <ComboBoxItem x:Name="KillFxOffItem" Tag="0">OFF</ComboBoxItem>
                                     <ComboBoxItem x:Name="KillFxOriginalItem" Tag="2">ORIG</ComboBoxItem>
                                 </ComboBox>
 
@@ -830,6 +828,7 @@
                             </ComboBox>
 
                             <PathIcon
+                                x:Name="TestPresetIcon"
                                 Grid.Column="2"
                                 Style="{StaticResource FluentTinyPathIconStyle}"
                                 Data="M6.25 5C5.00736 5 4 6.00736 4 7.25V16.75C4 17.9926 5.00736 19 6.25 19H17.75C18.9926 19 20 17.9926 20 16.75V7.25C20 6.00736 18.9926 5 17.75 5H6.25ZM8 9.25C8 8.83579 8.33579 8.5 8.75 8.5H15.25C15.6642 8.5 16 8.83579 16 9.25C16 9.66421 15.6642 10 15.25 10H8.75C8.33579 10 8 9.66421 8 9.25ZM8.75 12C8.33579 12 8 12.3358 8 12.75C8 13.1642 8.33579 13.5 8.75 13.5H12.25C12.6642 13.5 13 13.1642 13 12.75C13 12.3358 12.6642 12 12.25 12H8.75Z"
@@ -1091,6 +1090,7 @@
                     </ComboBox>
 
                     <TextBlock
+                        x:Name="PlaybackFpsLabel"
                         Grid.Column="4"
                         VerticalAlignment="Center"
                         FontSize="9"

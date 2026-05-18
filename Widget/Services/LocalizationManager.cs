@@ -146,6 +146,19 @@ namespace TestXboxGameBar.Services
             ["OpenGuideTitle"] = "Advanced settings",
             ["OpenGuideTooltip"] = "Open advanced settings",
             ["OpenGuideFailed"] = "Open Advanced Settings from the Start menu",
+            ["UpdateTitle"] = "Update",
+            ["UpdateCheckingTooltip"] = "Checking for updates...",
+            ["UpdateLatestTooltip"] = "You are using the latest version.",
+            ["UpdateAvailableTooltip"] = "New version available: {0}",
+            ["UpdateUnavailableTooltip"] = "Could not check for updates.",
+            ["UpdatePromptTitle"] = "Update available",
+            ["UpdatePromptBody"] = "A new version {0} is available. Download and install it now?",
+            ["UpdateNow"] = "Update",
+            ["UpdateAlreadyLatestHint"] = "You are already using the latest version.",
+            ["UpdateCheckFailedHint"] = "Could not check for updates.",
+            ["UpdateNoInstallerHint"] = "No installer was found for the latest release.",
+            ["UpdateStartingHint"] = "Starting update installer...",
+            ["UpdateLaunchFailed"] = "Could not start the update installer.",
             ["OpenLogsTitle"] = "Logs",
             ["FreePortTitle"] = "Free port",
             ["ServiceStatusTitle"] = "Service status",
@@ -263,7 +276,9 @@ namespace TestXboxGameBar.Services
             ["IconPackLabel"] = "Icon pack",
             ["EliteOverlayLabel"] = "Elite overlay",
             ["WeaponBadgeLabel"] = "Weapon badge",
-            ["MainAnimationLabel"] = "Main icon animation"
+            ["MainAnimationLabel"] = "Main icon animation",
+            ["PlaybackFpsTitle"] = "Playback FPS",
+            ["PlaybackFpsTooltip"] = "Adjust animation playback FPS."
         };
 
         private static readonly Dictionary<string, string> Chinese = new Dictionary<string, string>
@@ -396,6 +411,19 @@ namespace TestXboxGameBar.Services
             ["OpenGuideTitle"] = "\u9ad8\u7ea7\u8bbe\u7f6e",
             ["OpenGuideTooltip"] = "\u6253\u5f00\u9ad8\u7ea7\u8bbe\u7f6e",
             ["OpenGuideFailed"] = "\u8bf7\u4ece\u5f00\u59cb\u83dc\u5355\u6253\u5f00\u9ad8\u7ea7\u8bbe\u7f6e",
+            ["UpdateTitle"] = "\u66f4\u65b0",
+            ["UpdateCheckingTooltip"] = "\u6b63\u5728\u68c0\u67e5\u66f4\u65b0...",
+            ["UpdateLatestTooltip"] = "\u5f53\u524d\u5df2\u662f\u6700\u65b0\u7248\u672c\u3002",
+            ["UpdateAvailableTooltip"] = "\u53d1\u73b0\u65b0\u7248\u672c\uff1a{0}",
+            ["UpdateUnavailableTooltip"] = "\u6682\u65f6\u65e0\u6cd5\u68c0\u67e5\u66f4\u65b0\u3002",
+            ["UpdatePromptTitle"] = "\u53d1\u73b0\u66f4\u65b0",
+            ["UpdatePromptBody"] = "\u53d1\u73b0\u65b0\u7248\u672c {0}\u3002\u73b0\u5728\u4e0b\u8f7d\u5e76\u5b89\u88c5\u5417\uff1f",
+            ["UpdateNow"] = "\u66f4\u65b0",
+            ["UpdateAlreadyLatestHint"] = "\u5f53\u524d\u5df2\u662f\u6700\u65b0\u7248\u672c\u3002",
+            ["UpdateCheckFailedHint"] = "\u6682\u65f6\u65e0\u6cd5\u68c0\u67e5\u66f4\u65b0\u3002",
+            ["UpdateNoInstallerHint"] = "\u6700\u65b0 release \u6ca1\u6709\u627e\u5230\u5b89\u88c5\u5668\u3002",
+            ["UpdateStartingHint"] = "\u6b63\u5728\u542f\u52a8\u66f4\u65b0\u5b89\u88c5\u5668...",
+            ["UpdateLaunchFailed"] = "\u65e0\u6cd5\u542f\u52a8\u66f4\u65b0\u5b89\u88c5\u5668\u3002",
             ["OpenLogsTitle"] = "\u65e5\u5fd7",
             ["FreePortTitle"] = "\u91ca\u653e\u7aef\u53e3",
             ["ServiceStatusTitle"] = "\u670d\u52a1\u72b6\u6001",
@@ -513,7 +541,9 @@ namespace TestXboxGameBar.Services
             ["MainAnimationLabel"] = "\u4e3b\u56fe\u52a8\u753b",
             ["EliteOverlayTooltip"] = "\u9009\u62e9\u7cbe\u82f1\u7279\u6548\u7b49\u7ea7\u3002",
             ["WeaponBadgeTooltip"] = "\u5f00\u5173\u9644\u52a0\u6b66\u5668\u56fe\u6807\u53e0\u5c42\u3002",
-            ["MainAnimationTooltip"] = "\u9009\u62e9\u4e3b\u56fe\u52a8\u753b\u6837\u5f0f\u3002"
+            ["MainAnimationTooltip"] = "\u9009\u62e9\u4e3b\u56fe\u52a8\u753b\u6837\u5f0f\u3002",
+            ["PlaybackFpsTitle"] = "\u64ad\u653e FPS",
+            ["PlaybackFpsTooltip"] = "\u8c03\u6574\u52a8\u753b\u64ad\u653e FPS\u3002"
         };
 
         public static UiLanguage Current => _current;

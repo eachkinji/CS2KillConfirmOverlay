@@ -253,6 +253,8 @@ namespace TestXboxGameBar.Services
             // Dropdown Items
             ["Off"] = "OFF",
             ["On"] = "ON",
+            ["Auto"] = "AUTO",
+            ["Original"] = "ORIGINAL",
             ["EliteLevel"] = "Elite {0}",
             ["AnimationStyle"] = "Style {0}",
             
@@ -498,6 +500,8 @@ namespace TestXboxGameBar.Services
             // Dropdown Items
             ["Off"] = "\u5173\u95ed",
             ["On"] = "\u5f00\u542f",
+            ["Auto"] = "\u81ea\u52a8",
+            ["Original"] = "\u539f\u7248",
             ["EliteLevel"] = "\u7cbe\u82f1\u7b49\u7ea7 {0}",
             ["AnimationStyle"] = "\u52a8\u753b {0}",
             

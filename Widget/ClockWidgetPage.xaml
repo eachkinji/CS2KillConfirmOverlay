@@ -176,14 +176,11 @@
             <Setter Property="Padding" Value="7,0,12,0" />
         </Style>
 
-        <Style x:Key="CardTitleChipStyle" TargetType="Border">
-            <Setter Property="Background" Value="#FF2A3037" />
-            <Setter Property="BorderBrush" Value="#39414A" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="6" />
-            <Setter Property="Padding" Value="8,1,8,2" />
-            <Setter Property="HorizontalAlignment" Value="Left" />
-            <Setter Property="VerticalAlignment" Value="Top" />
+        <Style x:Key="SectionHeaderTextStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="8.5" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="CharacterSpacing" Value="50" />
+            <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
     </Page.Resources>
 
@@ -481,6 +478,7 @@
                 </Grid>
 
                 <StackPanel
+                    x:Name="StatusDetailRow"
                     Grid.Row="1"
                     Spacing="4">
                     <Grid
@@ -603,208 +601,193 @@
 
                 <Grid Grid.Row="2" Margin="0,5,0,0">
                     <Border
-                        Padding="4,8,4,4"
+                        Padding="0"
                         Background="#1A2026"
                         BorderBrush="#2F3338"
                         BorderThickness="1"
                         CornerRadius="7">
-                        <StackPanel Spacing="4">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="18" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <Border
+                                Grid.Row="0"
+                                Background="#24323C"
+                                BorderBrush="#355065"
+                                BorderThickness="0,0,0,1"
+                                CornerRadius="7,7,0,0"
+                                Padding="9,0,9,0">
+                                <TextBlock
+                                    Style="{StaticResource SectionHeaderTextStyle}"
+                                    Foreground="#DCEEFF"
+                                    Text="PACK / TEST" />
+                            </Border>
+
+                        <StackPanel
+                            Grid.Row="1"
+                            Margin="4,4,4,4"
+                            Spacing="4">
                             <Grid
                                 HorizontalAlignment="Center"
-                                ColumnSpacing="6">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="148" />
-                                    <ColumnDefinition Width="124" />
-                                    <ColumnDefinition Width="96" />
-                                </Grid.ColumnDefinitions>
-
-                                <Grid Grid.Column="0" Width="148">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
-
-                                    <PathIcon
-                                        x:Name="VoicePackIcon"
-                                        Grid.Column="0"
-                                        Margin="0,0,4,0"
-                                        Style="{StaticResource FluentTinyPathIconStyle}"
-                                        Data="M12 3C12.4142 3 12.75 3.33579 12.75 3.75V10.25C12.75 10.6642 12.4142 11 12 11C11.5858 11 11.25 10.6642 11.25 10.25V3.75C11.25 3.33579 11.5858 3 12 3ZM8.5 6.75C8.91421 6.75 9.25 7.08579 9.25 7.5V10C9.25 11.5188 10.4812 12.75 12 12.75C13.5188 12.75 14.75 11.5188 14.75 10V7.5C14.75 7.08579 15.0858 6.75 15.5 6.75C15.9142 6.75 16.25 7.08579 16.25 7.5V10C16.25 12.1054 14.6054 13.833 12.5332 13.9659V16.25H14.75C15.1642 16.25 15.5 16.5858 15.5 17C15.5 17.4142 15.1642 17.75 14.75 17.75H9.25C8.83579 17.75 8.5 17.4142 8.5 17C8.5 16.5858 8.83579 16.25 9.25 16.25H11.0332V13.9659C8.96096 13.833 7.31641 12.1054 7.31641 10V7.5C7.31641 7.08579 7.6522 6.75 8.06641 6.75H8.5Z" />
-
-                                    <ComboBox
-                                        x:Name="VoicePackSelector"
-                                        Grid.Column="1"
-                                        Width="122"
-                                        Style="{StaticResource NarrowComboBoxStyle}"
-                                        HorizontalAlignment="Stretch"
-                                        HorizontalContentAlignment="Center"
-                                        SelectedIndex="0"
-                                        SelectionChanged="OnVoicePackSelectionChanged"
-                                        ToolTipService.ToolTip="Select voice pack">
-                                        <ComboBoxItem x:Name="CrossfireSwatGrVoiceItem" Tag="crossfire_swat_gr">swat GR</ComboBoxItem>
-                                        <ComboBoxItem x:Name="CrossfireSwatBlVoiceItem" Tag="crossfire_swat_bl">swat BL</ComboBoxItem>
-                                        <ComboBoxItem x:Name="CrossfireFlyingTigerGrVoiceItem" Tag="crossfire_flying_tiger_gr">tiger GR</ComboBoxItem>
-                                        <ComboBoxItem x:Name="CrossfireFlyingTigerBlVoiceItem" Tag="crossfire_flying_tiger_bl">tiger BL</ComboBoxItem>
-                                        <ComboBoxItem Tag="crossfire_v_sex">cfsex</ComboBoxItem>
-                                        <ComboBoxItem x:Name="CrossfireWomenGrVoiceItem" Tag="crossfire_women_gr">women GR</ComboBoxItem>
-                                        <ComboBoxItem x:Name="CrossfireWomenBlVoiceItem" Tag="crossfire_women_bl">women BL</ComboBoxItem>
-                                    </ComboBox>
-                                </Grid>
-
-                                <Grid Grid.Column="1" Width="124">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
-
-                                    <PathIcon
-                                        x:Name="IconPackIcon"
-                                        Grid.Column="0"
-                                        Margin="0,0,4,0"
-                                        Style="{StaticResource FluentTinyPathIconStyle}"
-                                        Data="M6.75 4C5.7835 4 5 4.7835 5 5.75V18.25C5 19.2165 5.7835 20 6.75 20H17.25C18.2165 20 19 19.2165 19 18.25V5.75C19 4.7835 18.2165 4 17.25 4H6.75ZM8.75 8.5C8.75 8.08579 9.08579 7.75 9.5 7.75H14.5C14.9142 7.75 15.25 8.08579 15.25 8.5C15.25 8.91421 14.9142 9.25 14.5 9.25H9.5C9.08579 9.25 8.75 8.91421 8.75 8.5ZM8.75 12C8.75 11.5858 9.08579 11.25 9.5 11.25H14.5C14.9142 11.25 15.25 11.5858 15.25 12C15.25 12.4142 14.9142 12.75 14.5 12.75H9.5C9.08579 12.75 8.75 12.4142 8.75 12ZM9.5 14.75C9.08579 14.75 8.75 15.0858 8.75 15.5C8.75 15.9142 9.08579 16.25 9.5 16.25H12.5C12.9142 16.25 13.25 15.9142 13.25 15.5C13.25 15.0858 12.9142 14.75 12.5 14.75H9.5Z" />
-
-                                    <ComboBox
-                                        x:Name="IconPackSelector"
-                                        Grid.Column="1"
-                                        Width="94"
-                                        Style="{StaticResource OverlayComboBoxStyle}"
-                                        HorizontalContentAlignment="Center"
-                                        SelectedIndex="0"
-                                        SelectionChanged="OnIconPackSelectionChanged">
-                                        <ComboBoxItem x:Name="DefaultIconPackItem" Tag="default" Foreground="#FFF8FAFC">Default</ComboBoxItem>
-                                        <ComboBoxItem x:Name="VipIconPackItem" Tag="vip" Foreground="#FFF8FAFC">VIP</ComboBoxItem>
-                                        <ComboBoxItem x:Name="LegacyIconPackItem" Tag="legacy" Foreground="#FFF8FAFC">Legacy</ComboBoxItem>
-                                        <ComboBoxItem x:Name="CustomIconPackItem" Tag="angelic_beast" Foreground="#FFF8FAFC">Custom</ComboBoxItem>
-                                    </ComboBox>
-                                </Grid>
-
-                                <Grid Grid.Column="2" Width="112">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
-
-                                    <PathIcon
-                                        x:Name="MainAnimationIcon"
-                                        Grid.Column="0"
-                                        Margin="0,0,4,0"
-                                        Style="{StaticResource FluentTinyPathIconStyle}"
-                                        Data="M4 4.75C4 4.33579 4.33579 4 4.75 4H9.25C9.66421 4 10 4.33579 10 4.75V19.25C10 19.6642 9.66421 20 9.25 20H4.75C4.33579 20 4 19.6642 4 19.25V4.75ZM14 7.75C14 7.33579 14.3358 7 14.75 7H19.25C19.6642 7 20 7.33579 20 7.75V16.25C20 16.6642 19.6642 17 19.25 17H14.75C14.3358 17 14 16.6642 14 16.25V7.75Z" />
-
-                                    <ComboBox
-                                        x:Name="MainAnimationStyleSelector"
-                                        Grid.Column="1"
-                                        Width="86"
-                                        MinWidth="86"
-                                        Style="{StaticResource NarrowComboBoxStyle}"
-                                        HorizontalContentAlignment="Center"
-                                        SelectedIndex="0"
-                                        SelectionChanged="OnMainAnimationStyleSelectionChanged">
-                                        <ComboBoxItem x:Name="AnimationStyle1Item" Tag="1">Style 1</ComboBoxItem>
-                                        <ComboBoxItem x:Name="AnimationStyle2Item" Tag="2">Style 2</ComboBoxItem>
-                                    </ComboBox>
-                                </Grid>
-                            </Grid>
-
-                            <Grid
-                                HorizontalAlignment="Center"
-                                ColumnSpacing="6">
+                                ColumnSpacing="4">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="90" />
                                     <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="90" />
                                     <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="90" />
                                 </Grid.ColumnDefinitions>
 
-                                <!-- Kill FX -->
-                                <Grid Grid.Column="0" Width="96">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
-                                    <PathIcon
-                                        x:Name="KillFxIcon"
-                                        Grid.Column="0"
-                                        Margin="0,0,4,0"
-                                        Style="{StaticResource FluentTinyPathIconStyle}"
-                                        Data="M13 2L4.5 13.5H11L10 22L19.5 10.5H13L13 2Z" />
-                                     <ComboBox
-                                         x:Name="KillFxSelector"
-                                         Grid.Column="1"
-                                         Width="92"
-                                         Style="{StaticResource NarrowComboBoxStyle}"
-                                         HorizontalContentAlignment="Center"
-                                         SelectedIndex="0"
-                                         SelectionChanged="OnKillFxSelectionChanged">
-                                         <ComboBoxItem x:Name="KillFxOffItem" Tag="0">OFF</ComboBoxItem>
-                                         <ComboBoxItem x:Name="KillFxPackItem" Tag="1">AUTO</ComboBoxItem>
-                                         <ComboBoxItem x:Name="KillFxOriginalItem" Tag="2">ORIG</ComboBoxItem>
-                                     </ComboBox>
-                                 </Grid>
+                                <PathIcon
+                                    x:Name="VoicePackIcon"
+                                    Grid.Column="0"
+                                    Margin="0,0,2,0"
+                                    Style="{StaticResource FluentTinyPathIconStyle}"
+                                    Data="M12 3C12.4142 3 12.75 3.33579 12.75 3.75V10.25C12.75 10.6642 12.4142 11 12 11C11.5858 11 11.25 10.6642 11.25 10.25V3.75C11.25 3.33579 11.5858 3 12 3ZM8.5 6.75C8.91421 6.75 9.25 7.08579 9.25 7.5V10C9.25 11.5188 10.4812 12.75 12 12.75C13.5188 12.75 14.75 11.5188 14.75 10V7.5C14.75 7.08579 15.0858 6.75 15.5 6.75C15.9142 6.75 16.25 7.08579 16.25 7.5V10C16.25 12.1054 14.6054 13.833 12.5332 13.9659V16.25H14.75C15.1642 16.25 15.5 16.5858 15.5 17C15.5 17.4142 15.1642 17.75 14.75 17.75H9.25C8.83579 17.75 8.5 17.4142 8.5 17C8.5 16.5858 8.83579 16.25 9.25 16.25H11.0332V13.9659C8.96096 13.833 7.31641 12.1054 7.31641 10V7.5C7.31641 7.08579 7.6522 6.75 8.06641 6.75H8.5Z" />
 
-                                <!-- Elite Overlay -->
-                                <Grid Grid.Column="1" Width="96">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
+                                <ComboBox
+                                    x:Name="VoicePackSelector"
+                                    Grid.Column="1"
+                                    Width="90"
+                                    Style="{StaticResource NarrowComboBoxStyle}"
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Center"
+                                    SelectedIndex="0"
+                                    SelectionChanged="OnVoicePackSelectionChanged"
+                                    ToolTipService.ToolTip="Select voice pack">
+                                    <ComboBoxItem x:Name="CrossfireSwatGrVoiceItem" Tag="crossfire_swat_gr">swat GR</ComboBoxItem>
+                                    <ComboBoxItem x:Name="CrossfireSwatBlVoiceItem" Tag="crossfire_swat_bl">swat BL</ComboBoxItem>
+                                    <ComboBoxItem x:Name="CrossfireFlyingTigerGrVoiceItem" Tag="crossfire_flying_tiger_gr">tiger GR</ComboBoxItem>
+                                    <ComboBoxItem x:Name="CrossfireFlyingTigerBlVoiceItem" Tag="crossfire_flying_tiger_bl">tiger BL</ComboBoxItem>
+                                    <ComboBoxItem Tag="crossfire_v_sex">cfsex</ComboBoxItem>
+                                    <ComboBoxItem x:Name="CrossfireWomenGrVoiceItem" Tag="crossfire_women_gr">women GR</ComboBoxItem>
+                                    <ComboBoxItem x:Name="CrossfireWomenBlVoiceItem" Tag="crossfire_women_bl">women BL</ComboBoxItem>
+                                </ComboBox>
 
-                                    <PathIcon
-                                        x:Name="EliteOverlayIcon"
-                                        Grid.Column="0"
-                                        Margin="0,0,4,0"
-                                        Style="{StaticResource FluentTinyPathIconStyle}"
-                                        Data="M12 2L14.83 7.17L20 8L16 12L17 17L12 14.5L7 17L8 12L4 8L9.17 7.17L12 2Z" />
-                                    <ComboBox
-                                        x:Name="EliteEffectSelector"
-                                        Grid.Column="1"
-                                        Width="70"
-                                        Style="{StaticResource NarrowComboBoxStyle}"
-                                        HorizontalContentAlignment="Center"
-                                        SelectedIndex="0"
-                                        SelectionChanged="OnEliteEffectSelectionChanged">
-                                        <ComboBoxItem x:Name="EliteLevelOffItem" Tag="0">OFF</ComboBoxItem>
-                                        <ComboBoxItem x:Name="EliteLevel1Item" Tag="1">Elite 1</ComboBoxItem>
-                                        <ComboBoxItem x:Name="EliteLevel2Item" Tag="2">Elite 2</ComboBoxItem>
-                                        <ComboBoxItem x:Name="EliteLevel3Item" Tag="3">Elite 3</ComboBoxItem>
-                                    </ComboBox>
-                                </Grid>
+                                <PathIcon
+                                    x:Name="IconPackIcon"
+                                    Grid.Column="2"
+                                    Margin="0,0,2,0"
+                                    Style="{StaticResource FluentTinyPathIconStyle}"
+                                    Data="M6.75 4C5.7835 4 5 4.7835 5 5.75V18.25C5 19.2165 5.7835 20 6.75 20H17.25C18.2165 20 19 19.2165 19 18.25V5.75C19 4.7835 18.2165 4 17.25 4H6.75ZM8.75 8.5C8.75 8.08579 9.08579 7.75 9.5 7.75H14.5C14.9142 7.75 15.25 8.08579 15.25 8.5C15.25 8.91421 14.9142 9.25 14.5 9.25H9.5C9.08579 9.25 8.75 8.91421 8.75 8.5ZM8.75 12C8.75 11.5858 9.08579 11.25 9.5 11.25H14.5C14.9142 11.25 15.25 11.5858 15.25 12C15.25 12.4142 14.9142 12.75 14.5 12.75H9.5C9.08579 12.75 8.75 12.4142 8.75 12ZM9.5 14.75C9.08579 14.75 8.75 15.0858 8.75 15.5C8.75 15.9142 9.08579 16.25 9.5 16.25H12.5C12.9142 16.25 13.25 15.9142 13.25 15.5C13.25 15.0858 12.9142 14.75 12.5 14.75H9.5Z" />
 
-                                <!-- Weapon Badge -->
-                                <Grid Grid.Column="2" Width="96">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
-                                    <PathIcon
-                                        x:Name="WeaponBadgeIcon"
-                                        Grid.Column="0"
-                                        Margin="0,0,4,0"
-                                        Style="{StaticResource FluentTinyPathIconStyle}"
-                                        Data="M7 5.5C7 4.11929 8.11929 3 9.5 3H14.5C15.8807 3 17 4.11929 17 5.5V6H18.5C19.8807 6 21 7.11929 21 8.5V17.5C21 18.8807 19.8807 20 18.5 20H5.5C4.11929 20 3 18.8807 3 17.5V8.5C3 7.11929 4.11929 6 5.5 6H7V5.5ZM8.5 6H15.5V5.5C15.5 4.94772 15.0523 4.5 14.5 4.5H9.5C8.94772 4.5 8.5 4.94772 8.5 5.5V6ZM5.5 7.5C4.94772 7.5 4.5 7.94772 4.5 8.5V17.5C4.5 18.0523 4.94772 18.5 5.5 18.5H18.5C19.0523 18.5 19.5 18.0523 19.5 17.5V8.5C19.5 7.94772 19.0523 7.5 18.5 7.5H5.5Z" />
-                                    <ComboBox
-                                        x:Name="WeaponBadgeSelector"
-                                        Grid.Column="1"
-                                        Width="70"
-                                        Style="{StaticResource NarrowComboBoxStyle}"
-                                        HorizontalContentAlignment="Center"
-                                        SelectedIndex="0"
-                                        SelectionChanged="OnWeaponBadgeSelectionChanged">
-                                        <ComboBoxItem x:Name="WeaponBadgeOffItem" Tag="0">OFF</ComboBoxItem>
-                                        <ComboBoxItem x:Name="WeaponBadgeOnItem" Tag="1">ON</ComboBoxItem>
-                                    </ComboBox>
-                                </Grid>
+                                <ComboBox
+                                    x:Name="IconPackSelector"
+                                    Grid.Column="3"
+                                    Width="90"
+                                    Style="{StaticResource OverlayComboBoxStyle}"
+                                    HorizontalContentAlignment="Center"
+                                    SelectedIndex="0"
+                                    SelectionChanged="OnIconPackSelectionChanged">
+                                    <ComboBoxItem x:Name="DefaultIconPackItem" Tag="default" Foreground="#FFF8FAFC">Default</ComboBoxItem>
+                                    <ComboBoxItem x:Name="VipIconPackItem" Tag="vip" Foreground="#FFF8FAFC">VIP</ComboBoxItem>
+                                    <ComboBoxItem x:Name="LegacyIconPackItem" Tag="legacy" Foreground="#FFF8FAFC">Legacy</ComboBoxItem>
+                                    <ComboBoxItem x:Name="CustomIconPackItem" Tag="angelic_beast" Foreground="#FFF8FAFC">Custom</ComboBoxItem>
+                                </ComboBox>
 
+                                <PathIcon
+                                    x:Name="MainAnimationIcon"
+                                    Grid.Column="4"
+                                    Margin="0,0,2,0"
+                                    Style="{StaticResource FluentTinyPathIconStyle}"
+                                    Data="M4 4.75C4 4.33579 4.33579 4 4.75 4H9.25C9.66421 4 10 4.33579 10 4.75V19.25C10 19.6642 9.66421 20 9.25 20H4.75C4.33579 20 4 19.6642 4 19.25V4.75ZM14 7.75C14 7.33579 14.3358 7 14.75 7H19.25C19.6642 7 20 7.33579 20 7.75V16.25C20 16.6642 19.6642 17 19.25 17H14.75C14.3358 17 14 16.6642 14 16.25V7.75Z" />
+
+                                <ComboBox
+                                    x:Name="MainAnimationStyleSelector"
+                                    Grid.Column="5"
+                                    Width="90"
+                                    MinWidth="90"
+                                    Style="{StaticResource NarrowComboBoxStyle}"
+                                    HorizontalContentAlignment="Center"
+                                    SelectedIndex="0"
+                                    SelectionChanged="OnMainAnimationStyleSelectionChanged">
+                                    <ComboBoxItem x:Name="AnimationStyle1Item" Tag="1">Style 1</ComboBoxItem>
+                                    <ComboBoxItem x:Name="AnimationStyle2Item" Tag="2">Style 2</ComboBoxItem>
+                                </ComboBox>
                             </Grid>
 
                             <Grid
                                 HorizontalAlignment="Center"
                                 ColumnSpacing="4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="80" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="80" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="80" />
+                                </Grid.ColumnDefinitions>
+
+                                <PathIcon
+                                    x:Name="KillFxIcon"
+                                    Grid.Column="0"
+                                    Margin="0,0,2,0"
+                                    Style="{StaticResource FluentTinyPathIconStyle}"
+                                    Data="M13 2L4.5 13.5H11L10 22L19.5 10.5H13L13 2Z" />
+                                <ComboBox
+                                    x:Name="KillFxSelector"
+                                    Grid.Column="1"
+                                    Width="80"
+                                    Style="{StaticResource NarrowComboBoxStyle}"
+                                    HorizontalContentAlignment="Center"
+                                    SelectedIndex="0"
+                                    SelectionChanged="OnKillFxSelectionChanged">
+                                    <ComboBoxItem x:Name="KillFxOffItem" Tag="0">OFF</ComboBoxItem>
+                                    <ComboBoxItem x:Name="KillFxPackItem" Tag="1">AUTO</ComboBoxItem>
+                                    <ComboBoxItem x:Name="KillFxOriginalItem" Tag="2">ORIG</ComboBoxItem>
+                                </ComboBox>
+
+                                <PathIcon
+                                    x:Name="EliteOverlayIcon"
+                                    Grid.Column="2"
+                                    Margin="0,0,2,0"
+                                    Style="{StaticResource FluentTinyPathIconStyle}"
+                                    Data="M12 2L14.83 7.17L20 8L16 12L17 17L12 14.5L7 17L8 12L4 8L9.17 7.17L12 2Z" />
+                                <ComboBox
+                                    x:Name="EliteEffectSelector"
+                                    Grid.Column="3"
+                                    Width="80"
+                                    Style="{StaticResource NarrowComboBoxStyle}"
+                                    HorizontalContentAlignment="Center"
+                                    SelectedIndex="0"
+                                    SelectionChanged="OnEliteEffectSelectionChanged">
+                                    <ComboBoxItem x:Name="EliteLevelOffItem" Tag="0">OFF</ComboBoxItem>
+                                    <ComboBoxItem x:Name="EliteLevel1Item" Tag="1">Elite 1</ComboBoxItem>
+                                    <ComboBoxItem x:Name="EliteLevel2Item" Tag="2">Elite 2</ComboBoxItem>
+                                    <ComboBoxItem x:Name="EliteLevel3Item" Tag="3">Elite 3</ComboBoxItem>
+                                </ComboBox>
+
+                                <PathIcon
+                                    x:Name="WeaponBadgeIcon"
+                                    Grid.Column="4"
+                                    Margin="0,0,2,0"
+                                    Style="{StaticResource FluentTinyPathIconStyle}"
+                                    Data="M7 5.5C7 4.11929 8.11929 3 9.5 3H14.5C15.8807 3 17 4.11929 17 5.5V6H18.5C19.8807 6 21 7.11929 21 8.5V17.5C21 18.8807 19.8807 20 18.5 20H5.5C4.11929 20 3 18.8807 3 17.5V8.5C3 7.11929 4.11929 6 5.5 6H7V5.5ZM8.5 6H15.5V5.5C15.5 4.94772 15.0523 4.5 14.5 4.5H9.5C8.94772 4.5 8.5 4.94772 8.5 5.5V6ZM5.5 7.5C4.94772 7.5 4.5 7.94772 4.5 8.5V17.5C4.5 18.0523 4.94772 18.5 5.5 18.5H18.5C19.0523 18.5 19.5 18.0523 19.5 17.5V8.5C19.5 7.94772 19.0523 7.5 18.5 7.5H5.5Z" />
+                                <ComboBox
+                                    x:Name="WeaponBadgeSelector"
+                                    Grid.Column="5"
+                                    Width="80"
+                                    Style="{StaticResource NarrowComboBoxStyle}"
+                                    HorizontalContentAlignment="Center"
+                                    SelectedIndex="0"
+                                    SelectionChanged="OnWeaponBadgeSelectionChanged">
+                                    <ComboBoxItem x:Name="WeaponBadgeOffItem" Tag="0">OFF</ComboBoxItem>
+                                    <ComboBoxItem x:Name="WeaponBadgeOnItem" Tag="1">ON</ComboBoxItem>
+                                </ComboBox>
+
+                            </Grid>
+
+                            <Grid
+                                HorizontalAlignment="Center"
+                                ColumnSpacing="3">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="72" />
+                                <ColumnDefinition Width="70" />
                                 <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="76" />
+                                <ColumnDefinition Width="70" />
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
@@ -819,7 +802,7 @@
                             <ComboBox
                                 x:Name="AudioVolumeSelector"
                                 Grid.Column="1"
-                                Width="72"
+                                Width="70"
                                 Style="{StaticResource NarrowComboBoxStyle}"
                                 SelectionChanged="OnAudioVolumeSelectionChanged"
                                 ToolTipService.ToolTip="Overlay volume">
@@ -855,9 +838,9 @@
                             <ComboBox
                                 x:Name="TestPresetSelector"
                                 Grid.Column="3"
-                                Width="76"
+                                Width="70"
                                 Style="{StaticResource OverlayComboBoxStyle}"
-                                MinWidth="76"
+                                MinWidth="70"
                                 SelectedIndex="0"
                                 ToolTipService.ToolTip="Select test preset">
                                 <ComboBoxItem Tag="one">1</ComboBoxItem>
@@ -906,35 +889,45 @@
                             </Button>
                             </Grid>
                         </StackPanel>
-                    </Border>
-
-                    <Border
-                        Margin="12,-5,0,0"
-                        Style="{StaticResource CardTitleChipStyle}">
-                        <TextBlock
-                            FontSize="9"
-                            FontWeight="SemiBold"
-                            Foreground="#D5DCE5"
-                            Text="PACK / TEST" />
+                        </Grid>
                     </Border>
 
                 </Grid>
 
                 <Grid Grid.Row="3" Margin="0,5,0,0">
                     <Border
-                        Padding="4,8,4,4"
+                        Padding="0"
                         Background="#1A2026"
                         BorderBrush="#2F3338"
                         BorderThickness="1"
                         CornerRadius="7">
-                        <StackPanel Spacing="4">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="18" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <Border
+                                Grid.Row="0"
+                                Background="#25352E"
+                                BorderBrush="#49695D"
+                                BorderThickness="0,0,0,1"
+                                CornerRadius="7,7,0,0"
+                                Padding="9,0,9,0">
+                                <TextBlock
+                                    Style="{StaticResource SectionHeaderTextStyle}"
+                                    Foreground="#E3F8EA"
+                                    Text="VISUAL" />
+                            </Border>
+
+                        <StackPanel
+                            Grid.Row="1"
+                            Margin="4,4,4,4"
+                            Spacing="4">
                             <Grid
                                 HorizontalAlignment="Center"
-                                ColumnSpacing="3">
+                                ColumnSpacing="6">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
@@ -1059,7 +1052,7 @@
                     <ComboBox
                         x:Name="BrightnessSelector"
                         Grid.Column="1"
-                        Width="88"
+                        Width="70"
                         Style="{StaticResource NarrowComboBoxStyle}"
                         SelectionChanged="OnBrightnessSelectionChanged"
                         ToolTipService.ToolTip="Animation brightness">
@@ -1083,7 +1076,7 @@
                     <ComboBox
                         x:Name="ContrastSelector"
                         Grid.Column="3"
-                        Width="88"
+                        Width="70"
                         Style="{StaticResource NarrowComboBoxStyle}"
                         SelectionChanged="OnContrastSelectionChanged"
                         ToolTipService.ToolTip="Animation contrast">
@@ -1106,11 +1099,11 @@
                         Text="FPS"
                         ToolTipService.ToolTip="Animation playback FPS" />
 
-                    <ComboBox
-                        x:Name="PlaybackFpsSelector"
-                        Grid.Column="5"
-                        Width="82"
-                        MinWidth="82"
+                        <ComboBox
+                            x:Name="PlaybackFpsSelector"
+                            Grid.Column="5"
+                        Width="70"
+                        MinWidth="70"
                         Style="{StaticResource NarrowComboBoxStyle}"
                         SelectionChanged="OnPlaybackFpsSelectionChanged"
                         ToolTipService.ToolTip="Animation playback FPS">
@@ -1125,17 +1118,9 @@
                     </ComboBox>
                             </Grid>
                         </StackPanel>
+                        </Grid>
                     </Border>
 
-                    <Border
-                        Margin="12,-5,0,0"
-                        Style="{StaticResource CardTitleChipStyle}">
-                        <TextBlock
-                            FontSize="9"
-                            FontWeight="SemiBold"
-                            Foreground="#D5DCE5"
-                            Text="VISUAL" />
-                    </Border>
                 </Grid>
             </Grid>
         </Border>

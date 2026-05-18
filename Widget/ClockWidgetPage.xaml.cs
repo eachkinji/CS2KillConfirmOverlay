@@ -1145,6 +1145,7 @@ namespace TestXboxGameBar
             ServiceDiagnosticText.Text = hint;
             ServiceDiagnosticRow.Visibility = Visibility.Visible;
             ToolTipService.SetToolTip(ServiceDiagnosticText, hint);
+            UpdateStatusDetailRowVisibility();
             App.Log("Service diagnostic shown: " + hint);
         }
 
@@ -1152,6 +1153,7 @@ namespace TestXboxGameBar
         {
             ServiceDiagnosticRow.Visibility = Visibility.Collapsed;
             ToolTipService.SetToolTip(ServiceDiagnosticText, null);
+            UpdateStatusDetailRowVisibility();
         }
 
         private static async Task<string> ResolveServiceFailureHintAsync()
@@ -2469,6 +2471,7 @@ namespace TestXboxGameBar
             CfgInstallButton.Visibility = state == CfgDetectionState.Missing
                 ? Visibility.Visible
                 : Visibility.Collapsed;
+            UpdateStatusDetailRowVisibility();
 
             switch (state)
             {
@@ -2495,6 +2498,22 @@ namespace TestXboxGameBar
             }
 
             RefreshStatusHint(false);
+        }
+
+        private void UpdateStatusDetailRowVisibility()
+        {
+            if (StatusDetailRow == null)
+            {
+                return;
+            }
+
+            bool hasVisibleContent =
+                ServiceDiagnosticRow?.Visibility == Visibility.Visible ||
+                CfgActionRow?.Visibility == Visibility.Visible;
+
+            StatusDetailRow.Visibility = hasVisibleContent
+                ? Visibility.Visible
+                : Visibility.Collapsed;
         }
 
         private void UpdateGsiStatus(bool serviceReachable, bool recentlySeen, double posts, double? ageMs)

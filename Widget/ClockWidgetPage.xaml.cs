@@ -28,9 +28,9 @@ namespace TestXboxGameBar
 {
     public sealed partial class ClockWidgetPage : Page
     {
-        private static readonly Size DefaultWidgetSize = new Size(350, 500);
-        private static readonly Size MinWidgetSize = new Size(160, 120);
-        private static readonly Size MaxWidgetSize = new Size(720, 720);
+        private static readonly Size DefaultWidgetSize = new Size(400, 600);
+        private static readonly Size MinWidgetSize = new Size(50, 50);
+        private static readonly Size MaxWidgetSize = new Size(900, 900);
         private const double AnimationOffsetStep = 12.0;
         private const double MaxAnimationOffsetRatio = 0.45;
         private const double BottomFifthAnimationOffsetRatio = 0.30;
@@ -106,7 +106,10 @@ namespace TestXboxGameBar
         private const string FreeServicePortParameterGroupId = "FreeServicePort";
         private const string OpenRuntimeLogsParameterGroupId = "OpenRuntimeLogs";
         private const string OpenSettingsWindowParameterGroupId = "OpenSettingsWindow";
+        private const string RunPendingUpdateParameterGroupId = "RunPendingUpdate";
+        private const string PendingUpdateFileName = "pending_update.json";
         private static readonly SemaphoreSlim ServiceStartupGate = new SemaphoreSlim(1, 1);
+        private static readonly Uri LatestReleaseUri = new Uri("https://api.github.com/repos/eachkinji/CS2KillConfirmOverlay/releases/latest");
         private static readonly IReadOnlyDictionary<string, TestPreset> TestPresets =
             new Dictionary<string, TestPreset>(StringComparer.OrdinalIgnoreCase)
             {
@@ -157,8 +160,14 @@ namespace TestXboxGameBar
         private bool _animationCacheReady;
         private bool _animationCacheFailed;
         private bool _shutdownRequested;
+        private bool _updateCheckInProgress;
         private int _statusHintIndex;
         private DateTimeOffset _lastGsiStatusCheck = DateTimeOffset.MinValue;
+        private UpdateAvailabilityState _updateAvailabilityState = UpdateAvailabilityState.Unknown;
+        private string _latestReleaseVersion = string.Empty;
+        private string _latestReleaseDownloadUrl = string.Empty;
+        private string _latestReleaseAssetName = string.Empty;
+        private string _latestReleasePageUrl = string.Empty;
         private readonly DispatcherTimer _controlPanelStateTimer;
         private readonly DispatcherTimer _statusHintTimer;
 
@@ -171,6 +180,7 @@ namespace TestXboxGameBar
             ToolTipService.SetToolTip(VersionText, GetDisplayVersion());
             LoadLanguageSelector();
             ApplyLanguage();
+            UpdateUpdateButtonVisualState();
 
             _controlPanelStateTimer = new DispatcherTimer
             {
@@ -207,6 +217,7 @@ namespace TestXboxGameBar
             ConfigureWidgetCapabilities();
             _ = EnsureServiceAvailableAsync();
             _ = LoadSavedCsFolderAsync();
+            _ = CheckForUpdatesAsync(false);
             UpdateControlPanelVisibility();
             base.OnNavigatedTo(e);
         }
@@ -426,6 +437,293 @@ namespace TestXboxGameBar
         {
             string hint = LocalizationManager.Text("OpenGuideFailed");
             ShowStatusHint(hint, Color.FromArgb(255, 251, 191, 36));
+        }
+
+        private async void OnUpdateClick(object sender, RoutedEventArgs e)
+        {
+            if (_updateCheckInProgress)
+            {
+                return;
+            }
+
+            await CheckForUpdatesAsync(true);
+        }
+
+        private async Task CheckForUpdatesAsync(bool interactive)
+        {
+            if (_updateCheckInProgress)
+            {
+                return;
+            }
+
+            _updateCheckInProgress = true;
+            UpdateUpdateButtonVisualState();
+
+            try
+            {
+                using (HttpClient client = new HttpClient())
+                {
+                    client.DefaultRequestHeaders.TryAppendWithoutValidation("User-Agent", "KillConfirmOverlayUpdater/1.0");
+                    string payload = await client.GetStringAsync(LatestReleaseUri);
+                    App.Log("Update check payload received from GitHub.");
+
+                    if (TryParseLatestRelease(payload, out Version latestVersion, out string latestVersionText, out string downloadUrl, out string assetName, out string pageUrl))
+                    {
+                        Version currentVersion = GetCurrentPackageVersion();
+                        _latestReleaseVersion = latestVersionText;
+                        _latestReleaseDownloadUrl = downloadUrl ?? string.Empty;
+                        _latestReleaseAssetName = assetName ?? string.Empty;
+                        _latestReleasePageUrl = pageUrl ?? string.Empty;
+
+                        if (currentVersion < latestVersion && !string.IsNullOrWhiteSpace(_latestReleaseDownloadUrl))
+                        {
+                            _updateAvailabilityState = UpdateAvailabilityState.UpdateAvailable;
+                        }
+                        else
+                        {
+                            _updateAvailabilityState = UpdateAvailabilityState.UpToDate;
+                        }
+                    }
+                    else
+                    {
+                        ClearLatestReleaseInfo();
+                        _updateAvailabilityState = UpdateAvailabilityState.Unavailable;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                App.Log("Update check failed: " + ex);
+                ClearLatestReleaseInfo();
+                _updateAvailabilityState = UpdateAvailabilityState.Unavailable;
+            }
+            finally
+            {
+                _updateCheckInProgress = false;
+                UpdateUpdateButtonVisualState();
+            }
+
+            if (!interactive)
+            {
+                return;
+            }
+
+            switch (_updateAvailabilityState)
+            {
+                case UpdateAvailabilityState.UpdateAvailable:
+                    await PromptForUpdateAsync();
+                    break;
+                case UpdateAvailabilityState.UpToDate:
+                    ShowStatusHint(LocalizationManager.Text("UpdateAlreadyLatestHint"), Color.FromArgb(255, 52, 211, 153));
+                    break;
+                default:
+                    ShowStatusHint(LocalizationManager.Text("UpdateCheckFailedHint"), Color.FromArgb(255, 107, 114, 128));
+                    break;
+            }
+        }
+
+        private async Task PromptForUpdateAsync()
+        {
+            if (string.IsNullOrWhiteSpace(_latestReleaseDownloadUrl) || string.IsNullOrWhiteSpace(_latestReleaseAssetName))
+            {
+                ShowStatusHint(LocalizationManager.Text("UpdateNoInstallerHint"), Color.FromArgb(255, 107, 114, 128));
+                return;
+            }
+
+            string title = LocalizationManager.Text("UpdatePromptTitle");
+            string message = string.Format(LocalizationManager.Text("UpdatePromptBody"), _latestReleaseVersion);
+            MessageDialog dialog = new MessageDialog(message, title);
+            UICommand confirmCommand = new UICommand(LocalizationManager.Text("UpdateNow"));
+            dialog.Commands.Add(confirmCommand);
+            dialog.Commands.Add(new UICommand(LocalizationManager.Text("Cancel")));
+            dialog.DefaultCommandIndex = 0;
+            dialog.CancelCommandIndex = 1;
+
+            IUICommand selected = await dialog.ShowAsync();
+            if (!ReferenceEquals(selected, confirmCommand))
+            {
+                return;
+            }
+
+            bool launched = await LaunchPendingUpdateAsync();
+            ShowStatusHint(
+                launched
+                    ? LocalizationManager.Text("UpdateStartingHint")
+                    : LocalizationManager.Text("UpdateLaunchFailed"),
+                launched
+                    ? Color.FromArgb(255, 251, 191, 36)
+                    : Color.FromArgb(255, 248, 113, 113));
+        }
+
+        private async Task<bool> LaunchPendingUpdateAsync()
+        {
+            try
+            {
+                StorageFile pendingFile = await ApplicationData.Current.LocalFolder.CreateFileAsync(
+                    PendingUpdateFileName,
+                    CreationCollisionOption.ReplaceExisting);
+
+                JsonObject payload = new JsonObject
+                {
+                    ["version"] = JsonValue.CreateStringValue(_latestReleaseVersion),
+                    ["download_url"] = JsonValue.CreateStringValue(_latestReleaseDownloadUrl),
+                    ["asset_name"] = JsonValue.CreateStringValue(_latestReleaseAssetName)
+                };
+                await FileIO.WriteTextAsync(pendingFile, payload.Stringify());
+
+                return await TryLaunchFullTrustHelperAsync(RunPendingUpdateParameterGroupId);
+            }
+            catch (Exception ex)
+            {
+                App.Log("Failed to prepare pending update: " + ex);
+                return false;
+            }
+        }
+
+        private void UpdateUpdateButtonVisualState()
+        {
+        }
+
+        private Color GetUpdateIndicatorColor()
+        {
+            if (_updateCheckInProgress)
+            {
+                return Color.FromArgb(255, 107, 114, 128);
+            }
+
+            switch (_updateAvailabilityState)
+            {
+                case UpdateAvailabilityState.UpToDate:
+                    return Color.FromArgb(255, 52, 211, 153);
+                case UpdateAvailabilityState.UpdateAvailable:
+                    return Color.FromArgb(255, 251, 191, 36);
+                default:
+                    return Color.FromArgb(255, 107, 114, 128);
+            }
+        }
+
+        private string ResolveUpdateTooltipBody()
+        {
+            if (_updateCheckInProgress)
+            {
+                return LocalizationManager.Text("UpdateCheckingTooltip");
+            }
+
+            switch (_updateAvailabilityState)
+            {
+                case UpdateAvailabilityState.UpToDate:
+                    return LocalizationManager.Text("UpdateLatestTooltip");
+                case UpdateAvailabilityState.UpdateAvailable:
+                    return string.Format(LocalizationManager.Text("UpdateAvailableTooltip"), _latestReleaseVersion);
+                default:
+                    return LocalizationManager.Text("UpdateUnavailableTooltip");
+            }
+        }
+
+        private void ClearLatestReleaseInfo()
+        {
+            _latestReleaseVersion = string.Empty;
+            _latestReleaseDownloadUrl = string.Empty;
+            _latestReleaseAssetName = string.Empty;
+            _latestReleasePageUrl = string.Empty;
+        }
+
+        private static Version GetCurrentPackageVersion()
+        {
+            PackageVersion version = Package.Current.Id.Version;
+            return new Version(version.Major, version.Minor, version.Build, version.Revision);
+        }
+
+        private static bool TryParseLatestRelease(
+            string payload,
+            out Version latestVersion,
+            out string latestVersionText,
+            out string downloadUrl,
+            out string assetName,
+            out string pageUrl)
+        {
+            latestVersion = new Version(0, 0, 0, 0);
+            latestVersionText = string.Empty;
+            downloadUrl = string.Empty;
+            assetName = string.Empty;
+            pageUrl = string.Empty;
+
+            JsonObject root = JsonObject.Parse(payload);
+            string tagName = root.ContainsKey("tag_name")
+                ? root.GetNamedString("tag_name")
+                : string.Empty;
+            string releaseName = root.ContainsKey("name")
+                ? root.GetNamedString("name")
+                : string.Empty;
+            pageUrl = root.ContainsKey("html_url")
+                ? root.GetNamedString("html_url")
+                : string.Empty;
+
+            string versionText = !string.IsNullOrWhiteSpace(tagName) ? tagName : releaseName;
+            if (!TryParseVersion(versionText, out latestVersion))
+            {
+                return false;
+            }
+
+            latestVersionText = NormalizeVersionText(versionText);
+
+            if (!root.ContainsKey("assets"))
+            {
+                return false;
+            }
+
+            JsonArray assets = root.GetNamedArray("assets");
+            foreach (IJsonValue assetValue in assets)
+            {
+                if (assetValue.ValueType != JsonValueType.Object)
+                {
+                    continue;
+                }
+
+                JsonObject asset = assetValue.GetObject();
+                string name = asset.ContainsKey("name") ? asset.GetNamedString("name") : string.Empty;
+                string browserDownloadUrl = asset.ContainsKey("browser_download_url")
+                    ? asset.GetNamedString("browser_download_url")
+                    : string.Empty;
+
+                if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(browserDownloadUrl))
+                {
+                    continue;
+                }
+
+                if (name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)
+                    && name.StartsWith("KillConfirmGameBar_Setup_", StringComparison.OrdinalIgnoreCase))
+                {
+                    assetName = name;
+                    downloadUrl = browserDownloadUrl;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool TryParseVersion(string text, out Version version)
+        {
+            version = null;
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return false;
+            }
+
+            string normalized = NormalizeVersionText(text);
+            return Version.TryParse(normalized, out version);
+        }
+
+        private static string NormalizeVersionText(string text)
+        {
+            string normalized = (text ?? string.Empty).Trim();
+            if (normalized.StartsWith("v", StringComparison.OrdinalIgnoreCase))
+            {
+                normalized = normalized.Substring(1);
+            }
+
+            return normalized;
         }
 
         private async void OnOpenLogsClick(object sender, RoutedEventArgs e)
@@ -828,6 +1126,7 @@ namespace TestXboxGameBar
             CfgInstallButton.Content = LocalizationManager.Text("Add");
             SetNamedToolTip(CfgInstallButton, LocalizationManager.Text("AddMissingCfgTitle"), LocalizationManager.Text("AddMissingCfgTooltip"));
 
+            SetNamedToolTip(TestPresetIcon, LocalizationManager.Text("TestPresetTitle"), LocalizationManager.Text("TestPresetTooltip"));
             SetNamedToolTip(TestPresetSelector, LocalizationManager.Text("TestPresetTitle"), LocalizationManager.Text("TestPresetTooltip"));
             SetNamedToolTip(SendTestButton, LocalizationManager.Text("SendTestTitle"), LocalizationManager.Text("SendTestTooltip"));
             SetNamedToolTip(ReloadAudioButton, LocalizationManager.Text("ReloadAudioTitle"), LocalizationManager.Text("ReloadAudioTooltip"));
@@ -844,6 +1143,8 @@ namespace TestXboxGameBar
             SetNamedToolTip(BrightnessSelector, LocalizationManager.Text("BrightnessTitle"), LocalizationManager.Text("BrightnessTooltip"));
             SetNamedToolTip(ContrastIcon, LocalizationManager.Text("ContrastTitle"), LocalizationManager.Text("ContrastTooltip"));
             SetNamedToolTip(ContrastSelector, LocalizationManager.Text("ContrastTitle"), LocalizationManager.Text("ContrastTooltip"));
+            SetNamedToolTip(PlaybackFpsLabel, LocalizationManager.Text("PlaybackFpsTitle"), LocalizationManager.Text("PlaybackFpsTooltip"));
+            SetNamedToolTip(PlaybackFpsSelector, LocalizationManager.Text("PlaybackFpsTitle"), LocalizationManager.Text("PlaybackFpsTooltip"));
             SetNamedToolTip(VolumeIcon, LocalizationManager.Text("AudioVolumeTitle"), LocalizationManager.Text("AudioVolumeTooltip"));
             SetNamedToolTip(AudioVolumeSelector, LocalizationManager.Text("AudioVolumeTitle"), LocalizationManager.Text("AudioVolumeTooltip"));
             SetNamedToolTip(ResetVisualButton, LocalizationManager.Text("ResetTitle"), LocalizationManager.Text("ResetTooltip"));
@@ -876,6 +1177,7 @@ namespace TestXboxGameBar
             UpdateConnectionState(_serviceConnectionState);
             UpdateCfgStatus(_cfgDetectionState, null, _cfgStatusDetail);
             UpdateGsiStatus(true, _gsiRecentlySeen, _gsiRecentlySeen ? 1 : 0, null);
+            UpdateUpdateButtonVisualState();
         }
 
         private void ConfigureWidgetCapabilities()
@@ -3052,7 +3354,7 @@ namespace TestXboxGameBar
             try
             {
                 PackageVersion version = Package.Current.Id.Version;
-                return $"v{version.Major}.{version.Minor}";
+                return $"v{version.Major}.{version.Minor}.{version.Build}";
             }
             catch (Exception)
             {
@@ -3062,6 +3364,14 @@ namespace TestXboxGameBar
 
         private void UpdateVisualAdjustmentLabels(double brightness, double contrast)
         {
+        }
+
+        private enum UpdateAvailabilityState
+        {
+            Unknown,
+            UpToDate,
+            UpdateAvailable,
+            Unavailable
         }
 
         private enum AnimationPlacementMode

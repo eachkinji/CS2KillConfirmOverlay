@@ -37,6 +37,10 @@ pub struct Args {
     /// launch the packaged external settings helper, then exit
     #[arg(long, default_value = "false")]
     pub open_settings_launcher: bool,
+
+    /// download and launch the pending update installer, then exit
+    #[arg(long, default_value = "false")]
+    pub run_pending_update: bool,
 }
 
 impl Args {

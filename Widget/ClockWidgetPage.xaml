@@ -216,8 +216,8 @@
             Padding="4"
             HorizontalAlignment="Center"
             VerticalAlignment="Top"
-            Width="392"
-            MaxWidth="392"
+            Width="400"
+            MaxWidth="400"
             Background="#F022252A"
             BorderBrush="#2F3338"
             BorderThickness="1"
@@ -679,7 +679,7 @@
                                     </ComboBox>
                                 </Grid>
 
-                                <Grid Grid.Column="2" Width="96">
+                                <Grid Grid.Column="2" Width="112">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="*" />
@@ -695,8 +695,8 @@
                                     <ComboBox
                                         x:Name="MainAnimationStyleSelector"
                                         Grid.Column="1"
-                                        Width="70"
-                                        MinWidth="70"
+                                        Width="86"
+                                        MinWidth="86"
                                         Style="{StaticResource NarrowComboBoxStyle}"
                                         HorizontalContentAlignment="Center"
                                         SelectedIndex="0"
@@ -728,18 +728,19 @@
                                         Margin="0,0,4,0"
                                         Style="{StaticResource FluentTinyPathIconStyle}"
                                         Data="M13 2L4.5 13.5H11L10 22L19.5 10.5H13L13 2Z" />
-                                    <ComboBox
-                                        x:Name="KillFxSelector"
-                                        Grid.Column="1"
-                                        Width="70"
-                                        Style="{StaticResource NarrowComboBoxStyle}"
-                                        HorizontalContentAlignment="Center"
-                                        SelectedIndex="0"
-                                        SelectionChanged="OnKillFxSelectionChanged">
-                                        <ComboBoxItem x:Name="KillFxOffItem" Tag="0">OFF</ComboBoxItem>
-                                        <ComboBoxItem x:Name="KillFxOnItem" Tag="1">ON</ComboBoxItem>
-                                    </ComboBox>
-                                </Grid>
+                                     <ComboBox
+                                         x:Name="KillFxSelector"
+                                         Grid.Column="1"
+                                         Width="92"
+                                         Style="{StaticResource NarrowComboBoxStyle}"
+                                         HorizontalContentAlignment="Center"
+                                         SelectedIndex="0"
+                                         SelectionChanged="OnKillFxSelectionChanged">
+                                         <ComboBoxItem x:Name="KillFxOffItem" Tag="0">OFF</ComboBoxItem>
+                                         <ComboBoxItem x:Name="KillFxPackItem" Tag="1">AUTO</ComboBoxItem>
+                                         <ComboBoxItem x:Name="KillFxOriginalItem" Tag="2">ORIG</ComboBoxItem>
+                                     </ComboBox>
+                                 </Grid>
 
                                 <!-- Elite Overlay -->
                                 <Grid Grid.Column="1" Width="96">

@@ -57,7 +57,7 @@ namespace TestXboxGameBar.Controls
         private static bool _customPackHasKillFx;
         private static bool _customPackHasEliteOverlay;
         private static bool _customPackHasWeaponBadgeOverlay;
-        private static bool _killFxEnabled = true; // default ON
+        private static KillFxMode _killFxMode = KillFxMode.Pack;
 
         private static readonly Dictionary<string, SpriteMetadata> MetadataCache = new Dictionary<string, SpriteMetadata>();
         private static readonly Dictionary<string, IReadOnlyList<SpriteSheetSegment>> SheetCache = new Dictionary<string, IReadOnlyList<SpriteSheetSegment>>();
@@ -268,10 +268,15 @@ namespace TestXboxGameBar.Controls
         public static bool GetCustomPackHasEliteOverlay() => _customPackHasEliteOverlay;
         public static bool GetCustomPackHasWeaponBadgeOverlay() => _customPackHasWeaponBadgeOverlay;
 
-        public static void ConfigureKillFxEnabled(bool enabled)
+        public static void ConfigureKillFxMode(int mode)
         {
-            if (_killFxEnabled == enabled) return;
-            _killFxEnabled = enabled;
+            KillFxMode normalized = NormalizeKillFxMode(mode);
+            if (_killFxMode == normalized)
+            {
+                return;
+            }
+
+            _killFxMode = normalized;
             CodeKillCache.Clear();
         }
 
@@ -559,7 +564,7 @@ namespace TestXboxGameBar.Controls
                 throw new FileNotFoundException("Unsupported code kill asset: " + assetName);
             }
 
-            string cacheKey = _iconPack + ":" + normalizedAssetName + ":" + normalizedWeaponBadgeKey;
+            string cacheKey = _iconPack + ":" + normalizedAssetName + ":" + normalizedWeaponBadgeKey + ":" + _killFxMode;
             if (!CodeKillCache.TryGetValue(cacheKey, out Code2KillAsset asset))
             {
                 string effectiveMainFileName = GetEffectiveMainFileName(normalizedAssetName, mainFileName);
@@ -570,9 +575,9 @@ namespace TestXboxGameBar.Controls
                     mainFolder,
                     alternatePackFolder);
                 progress?.Report(50);
-                CanvasBitmap fx = string.IsNullOrWhiteSpace(fxFileName) || !SupportsKillFxOverlay()
+                CanvasBitmap fx = string.IsNullOrWhiteSpace(fxFileName)
                     ? null
-                    : await LoadOptionalOverlayBitmapAsync(fxFileName, fxFolder);
+                    : await LoadKillFxOverlayBitmapAsync(fxFileName, fxFolder);
                 CanvasBitmap eliteOverlay = await LoadEliteOverlayBitmapAsync(normalizedAssetName);
                 CanvasBitmap weaponBadgeOverlay = await LoadWeaponBadgeOverlayBitmapAsync(normalizedAssetName, normalizedWeaponBadgeKey);
                 asset = new Code2KillAsset(main, fx, eliteOverlay, weaponBadgeOverlay);
@@ -796,6 +801,29 @@ namespace TestXboxGameBar.Controls
             return await LoadCodeKillBitmapAsync(fileName, folder, null, false);
         }
 
+        private static async Task<CanvasBitmap> LoadKillFxOverlayBitmapAsync(string fileName, string folder)
+        {
+            switch (_killFxMode)
+            {
+                case KillFxMode.Off:
+                    return null;
+                case KillFxMode.Original:
+                    return await LoadCodeKillBitmapAsync(fileName, folder, null, false);
+                case KillFxMode.Pack:
+                default:
+                    if (PackCatalogService.IsImportedIconPackKey(_iconPack))
+                    {
+                        CanvasBitmap imported = await TryLoadImportedIconBitmapAsync(fileName);
+                        if (imported != null)
+                        {
+                            return imported;
+                        }
+                    }
+
+                    return await LoadCodeKillBitmapAsync(fileName, folder, null, false);
+            }
+        }
+
         private static async Task<CanvasBitmap> LoadEliteOverlayBitmapAsync(string assetName)
         {
             if (_eliteEffectLevel <= 0 || !SupportsEliteOverlay())
@@ -892,17 +920,23 @@ namespace TestXboxGameBar.Controls
                 || (PackCatalogService.IsImportedIconPackKey(_iconPack) && _customPackHasWeaponBadgeOverlay);
         }
 
-        private static bool SupportsKillFxOverlay()
-        {
-            if (!_killFxEnabled) return false;
-            return string.Equals(_iconPack, "default", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(_iconPack, "vip", StringComparison.OrdinalIgnoreCase)
-                || (PackCatalogService.IsImportedIconPackKey(_iconPack) && _customPackHasKillFx);
-        }
-
         private static string GetWeaponBadgeVariantSuffix()
         {
             return Math.Max(1, Math.Min(3, _eliteEffectLevel)).ToString();
+        }
+
+        private static KillFxMode NormalizeKillFxMode(int mode)
+        {
+            switch (mode)
+            {
+                case 0:
+                    return KillFxMode.Off;
+                case 2:
+                    return KillFxMode.Original;
+                case 1:
+                default:
+                    return KillFxMode.Pack;
+            }
         }
 
         private static string NormalizeWeaponBadgeKey(string weaponBadgeKey)
@@ -1542,6 +1576,13 @@ namespace TestXboxGameBar.Controls
             public CanvasBitmap Fx { get; }
             public CanvasBitmap Overlay { get; }
             public CanvasBitmap WeaponBadge { get; }
+        }
+
+        private enum KillFxMode
+        {
+            Off = 0,
+            Pack = 1,
+            Original = 2
         }
 
         private readonly struct TransformKey

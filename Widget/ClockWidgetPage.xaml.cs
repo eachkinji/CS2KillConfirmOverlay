@@ -860,6 +860,11 @@ namespace TestXboxGameBar
             EliteLevel2Item.Content = string.Format(LocalizationManager.Text("EliteLevel"), "2");
             EliteLevel3Item.Content = string.Format(LocalizationManager.Text("EliteLevel"), "3");
 
+            // Kill FX Dropdown Items
+            KillFxOffItem.Content = LocalizationManager.Text("Off");
+            KillFxPackItem.Content = LocalizationManager.Text("Auto");
+            KillFxOriginalItem.Content = LocalizationManager.Text("Original");
+
             // Weapon Badge Dropdown Items
             WeaponBadgeOffItem.Content = LocalizationManager.Text("Off");
             WeaponBadgeOnItem.Content = LocalizationManager.Text("On");
@@ -1342,6 +1347,7 @@ namespace TestXboxGameBar
             {
                 // Built-in pack — FX handled by built-in logic, no override needed
                 Controls.KillConfirmAnimation.ConfigureCustomPackOverlayCapabilities(false, false, false);
+                LoadKillFxSetting();
                 return;
             }
 
@@ -1370,6 +1376,7 @@ namespace TestXboxGameBar
                 Controls.KillConfirmAnimation.ConfigureEliteEffectLevel(1);
             }
 
+            LoadKillFxSetting();
             UpdateEliteEffectSelectorState();
             UpdateKillFxSelectorState();
             UpdateWeaponBadgeSelectorState();
@@ -1394,9 +1401,9 @@ namespace TestXboxGameBar
                 return;
             }
 
-            bool enabled = IsKillFxEnabled();
-            ApplicationData.Current.LocalSettings.Values[KillFxSettingKey] = enabled;
-            Controls.KillConfirmAnimation.ConfigureKillFxEnabled(enabled);
+            int mode = GetSelectedKillFxMode();
+            ApplicationData.Current.LocalSettings.Values[KillFxSettingKey] = mode;
+            Controls.KillConfirmAnimation.ConfigureKillFxMode(mode);
         }
 
         private void OnWeaponBadgeSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -1460,19 +1467,30 @@ namespace TestXboxGameBar
 
         private void LoadKillFxSetting()
         {
+            int mode = GetDefaultKillFxModeForSelectedPack();
             object stored = ApplicationData.Current.LocalSettings.Values[KillFxSettingKey];
-            bool enabled = true; // default ON for built-in packs
-            if (stored is bool boolValue)
+            if (stored is int intValue)
             {
-                enabled = boolValue;
+                mode = NormalizeKillFxMode(intValue);
             }
-            else if (stored is string text && bool.TryParse(text, out bool parsed))
+            else if (stored is bool boolValue)
             {
-                enabled = parsed;
+                mode = boolValue ? 1 : 0;
+            }
+            else if (stored is string text)
+            {
+                if (int.TryParse(text, out int parsedMode))
+                {
+                    mode = NormalizeKillFxMode(parsedMode);
+                }
+                else if (bool.TryParse(text, out bool parsedBool))
+                {
+                    mode = parsedBool ? 1 : 0;
+                }
             }
 
-            SelectKillFxEnabled(enabled);
-            Controls.KillConfirmAnimation.ConfigureKillFxEnabled(enabled);
+            SelectKillFxMode(mode);
+            Controls.KillConfirmAnimation.ConfigureKillFxMode(mode);
             UpdateKillFxSelectorState();
         }
 
@@ -1555,12 +1573,7 @@ namespace TestXboxGameBar
                 return true;
             }
 
-            if (PackCatalogService.IsImportedIconPackKey(iconPack))
-            {
-                return Controls.KillConfirmAnimation.GetCustomPackHasKillFx();
-            }
-
-            return false;
+            return PackCatalogService.IsImportedIconPackKey(iconPack);
         }
 
         private bool SupportsWeaponBadgeForSelectedIconPack()
@@ -1614,12 +1627,17 @@ namespace TestXboxGameBar
             return false;
         }
 
-        private bool IsKillFxEnabled()
+        private int GetSelectedKillFxMode()
         {
-            if (KillFxSelector == null) return true;
-            return KillFxSelector.SelectedItem is ComboBoxItem item
+            if (KillFxSelector == null) return 1;
+            if (KillFxSelector.SelectedItem is ComboBoxItem item
                 && item.Tag is string tag
-                && tag == "1";
+                && int.TryParse(tag, out int mode))
+            {
+                return NormalizeKillFxMode(mode);
+            }
+
+            return 1;
         }
 
         private int GetSelectedMainAnimationStyle()
@@ -1693,13 +1711,13 @@ namespace TestXboxGameBar
             }
         }
 
-        private void SelectKillFxEnabled(bool enabled)
+        private void SelectKillFxMode(int mode)
         {
             if (KillFxSelector == null) return;
             _suppressKillFxEvents = true;
             try
             {
-                string target = enabled ? "1" : "0";
+                string target = NormalizeKillFxMode(mode).ToString();
                 foreach (object option in KillFxSelector.Items)
                 {
                     if (option is ComboBoxItem item
@@ -1801,6 +1819,30 @@ namespace TestXboxGameBar
             bool supportsKillFx = SupportsKillFxForSelectedIconPack();
             KillFxSelector.IsEnabled = supportsKillFx;
             KillFxSelector.Opacity = supportsKillFx ? 1.0 : 0.55;
+        }
+
+        private int GetDefaultKillFxModeForSelectedPack()
+        {
+            string iconPack = GetSelectedIconPack();
+            if (PackCatalogService.IsImportedIconPackKey(iconPack))
+            {
+                return Controls.KillConfirmAnimation.GetCustomPackHasKillFx() ? 1 : 0;
+            }
+
+            return 1;
+        }
+
+        private static int NormalizeKillFxMode(int mode)
+        {
+            switch (mode)
+            {
+                case 0:
+                case 1:
+                case 2:
+                    return mode;
+                default:
+                    return 1;
+            }
         }
 
         private void LoadVoicePackSetting()
@@ -2991,7 +3033,7 @@ namespace TestXboxGameBar
             try
             {
                 PackageVersion version = Package.Current.Id.Version;
-                return $"v{version.Revision}";
+                return $"v{version.Major}.{version.Minor}";
             }
             catch (Exception)
             {

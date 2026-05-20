@@ -1160,6 +1160,9 @@ namespace TestXboxGameBar
             EliteLevel1Item.Content = string.Format(LocalizationManager.Text("EliteLevel"), "1");
             EliteLevel2Item.Content = string.Format(LocalizationManager.Text("EliteLevel"), "2");
             EliteLevel3Item.Content = string.Format(LocalizationManager.Text("EliteLevel"), "3");
+            EliteOriginal1Item.Content = LocalizationManager.Text("Original") + " 1";
+            EliteOriginal2Item.Content = LocalizationManager.Text("Original") + " 2";
+            EliteOriginal3Item.Content = LocalizationManager.Text("Original") + " 3";
 
             // Kill FX Dropdown Items
             KillFxOffItem.Content = LocalizationManager.Text("Off");
@@ -1168,7 +1171,8 @@ namespace TestXboxGameBar
 
             // Weapon Badge Dropdown Items
             WeaponBadgeOffItem.Content = LocalizationManager.Text("Off");
-            WeaponBadgeOnItem.Content = LocalizationManager.Text("On");
+            WeaponBadgeOnItem.Content = LocalizationManager.Text("Auto");
+            WeaponBadgeOriginalItem.Content = LocalizationManager.Text("Original");
 
             // Animation Style Dropdown Items
             AnimationStyle1Item.Content = string.Format(LocalizationManager.Text("AnimationStyle"), "1");
@@ -1664,9 +1668,9 @@ namespace TestXboxGameBar
                 hasEliteOverlay,
                 hasWeaponBadgeOverlay);
 
-            // Auto-set elite effect only when the custom pack actually ships elite assets.
+            // Custom packs default to off when optional overlay assets are missing, but users can still choose Original.
             int currentElite = GetSelectedEliteEffectLevel();
-            if (!hasEliteOverlay && currentElite > 0)
+            if (!hasEliteOverlay && currentElite >= 1 && currentElite <= 3)
             {
                 SelectEliteEffectLevel(0);
                 ApplicationData.Current.LocalSettings.Values[EliteEffectSettingKey] = 0;
@@ -1678,6 +1682,20 @@ namespace TestXboxGameBar
                 SelectEliteEffectLevel(1);
                 ApplicationData.Current.LocalSettings.Values[EliteEffectSettingKey] = 1;
                 Controls.KillConfirmAnimation.ConfigureEliteEffectLevel(1);
+            }
+
+            int currentWeaponBadgeMode = GetSelectedWeaponBadgeMode();
+            if (!hasWeaponBadgeOverlay && currentWeaponBadgeMode == 1)
+            {
+                SelectWeaponBadgeMode(0);
+                ApplicationData.Current.LocalSettings.Values[WeaponBadgeSettingKey] = 0;
+                Controls.KillConfirmAnimation.ConfigureWeaponBadgeMode(0);
+            }
+            else if (hasWeaponBadgeOverlay && currentWeaponBadgeMode == 0)
+            {
+                SelectWeaponBadgeMode(1);
+                ApplicationData.Current.LocalSettings.Values[WeaponBadgeSettingKey] = 1;
+                Controls.KillConfirmAnimation.ConfigureWeaponBadgeMode(1);
             }
 
             LoadKillFxSetting();
@@ -1717,9 +1735,9 @@ namespace TestXboxGameBar
                 return;
             }
 
-            bool enabled = IsWeaponBadgeEnabled();
-            ApplicationData.Current.LocalSettings.Values[WeaponBadgeSettingKey] = enabled;
-            Controls.KillConfirmAnimation.ConfigureWeaponBadgeEnabled(enabled);
+            int mode = GetSelectedWeaponBadgeMode();
+            ApplicationData.Current.LocalSettings.Values[WeaponBadgeSettingKey] = mode;
+            Controls.KillConfirmAnimation.ConfigureWeaponBadgeMode(mode);
         }
 
         private void OnMainAnimationStyleSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -1763,7 +1781,7 @@ namespace TestXboxGameBar
                 eliteLevel = parsed;
             }
 
-            eliteLevel = Math.Max(0, Math.Min(3, eliteLevel));
+            eliteLevel = NormalizeEliteEffectMode(eliteLevel);
             SelectEliteEffectLevel(eliteLevel);
             Controls.KillConfirmAnimation.ConfigureEliteEffectLevel(eliteLevel);
             UpdateEliteEffectSelectorState();
@@ -1801,18 +1819,29 @@ namespace TestXboxGameBar
         private void LoadWeaponBadgeSetting()
         {
             object stored = ApplicationData.Current.LocalSettings.Values[WeaponBadgeSettingKey];
-            bool enabled = false;
+            int mode = GetDefaultWeaponBadgeModeForSelectedPack();
             if (stored is bool boolValue)
             {
-                enabled = boolValue;
+                mode = boolValue ? 1 : 0;
             }
-            else if (stored is string text && bool.TryParse(text, out bool parsed))
+            else if (stored is int intValue)
             {
-                enabled = parsed;
+                mode = NormalizeWeaponBadgeMode(intValue);
+            }
+            else if (stored is string text)
+            {
+                if (int.TryParse(text, out int parsedMode))
+                {
+                    mode = NormalizeWeaponBadgeMode(parsedMode);
+                }
+                else if (bool.TryParse(text, out bool parsedBool))
+                {
+                    mode = parsedBool ? 1 : 0;
+                }
             }
 
-            SelectWeaponBadgeEnabled(enabled);
-            Controls.KillConfirmAnimation.ConfigureWeaponBadgeEnabled(enabled);
+            SelectWeaponBadgeMode(mode);
+            Controls.KillConfirmAnimation.ConfigureWeaponBadgeMode(mode);
             UpdateWeaponBadgeSelectorState();
         }
 
@@ -1862,7 +1891,7 @@ namespace TestXboxGameBar
 
             if (PackCatalogService.IsImportedIconPackKey(iconPack))
             {
-                return Controls.KillConfirmAnimation.GetCustomPackHasEliteOverlay();
+                return true;
             }
 
             return false;
@@ -1891,7 +1920,7 @@ namespace TestXboxGameBar
 
             if (PackCatalogService.IsImportedIconPackKey(iconPack))
             {
-                return Controls.KillConfirmAnimation.GetCustomPackHasWeaponBadgeOverlay();
+                return true;
             }
 
             return false;
@@ -1908,27 +1937,27 @@ namespace TestXboxGameBar
                 && item.Tag is string tag
                 && int.TryParse(tag, out int level))
             {
-                return Math.Max(0, Math.Min(3, level));
+                return NormalizeEliteEffectMode(level);
             }
 
             return 0;
         }
 
-        private bool IsWeaponBadgeEnabled()
+        private int GetSelectedWeaponBadgeMode()
         {
             if (WeaponBadgeSelector == null)
             {
-                return false;
+                return 0;
             }
 
             if (WeaponBadgeSelector.SelectedItem is ComboBoxItem item
                 && item.Tag is string tag
-                && tag == "1")
+                && int.TryParse(tag, out int mode))
             {
-                return true;
+                return NormalizeWeaponBadgeMode(mode);
             }
 
-            return false;
+            return 0;
         }
 
         private int GetSelectedKillFxMode()
@@ -1995,7 +2024,7 @@ namespace TestXboxGameBar
             _suppressEliteEffectEvents = true;
             try
             {
-                string target = Math.Max(0, Math.Min(3, eliteLevel)).ToString();
+                string target = NormalizeEliteEffectMode(eliteLevel).ToString();
                 foreach (object option in EliteEffectSelector.Items)
                 {
                     if (option is ComboBoxItem item
@@ -2040,7 +2069,7 @@ namespace TestXboxGameBar
             }
         }
 
-        private void SelectWeaponBadgeEnabled(bool enabled)
+        private void SelectWeaponBadgeMode(int mode)
         {
             if (WeaponBadgeSelector == null)
             {
@@ -2050,7 +2079,7 @@ namespace TestXboxGameBar
             _suppressWeaponBadgeEvents = true;
             try
             {
-                string target = enabled ? "1" : "0";
+                string target = NormalizeWeaponBadgeMode(mode).ToString();
                 foreach (object option in WeaponBadgeSelector.Items)
                 {
                     if (option is ComboBoxItem item
@@ -2134,6 +2163,40 @@ namespace TestXboxGameBar
             }
 
             return 1;
+        }
+
+        private int GetDefaultWeaponBadgeModeForSelectedPack()
+        {
+            string iconPack = GetSelectedIconPack();
+            if (PackCatalogService.IsImportedIconPackKey(iconPack))
+            {
+                return Controls.KillConfirmAnimation.GetCustomPackHasWeaponBadgeOverlay() ? 1 : 0;
+            }
+
+            return 0;
+        }
+
+        private static int NormalizeEliteEffectMode(int mode)
+        {
+            if (mode == 0 || (mode >= 1 && mode <= 3) || (mode >= 11 && mode <= 13))
+            {
+                return mode;
+            }
+
+            return 0;
+        }
+
+        private static int NormalizeWeaponBadgeMode(int mode)
+        {
+            switch (mode)
+            {
+                case 0:
+                case 1:
+                case 2:
+                    return mode;
+                default:
+                    return 0;
+            }
         }
 
         private static int NormalizeKillFxMode(int mode)

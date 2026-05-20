@@ -84,8 +84,20 @@ namespace TestXboxGameBar
             Unloaded += OnUnloaded;
         }
 
+        private bool _isInitializing = false;
         private async void OnLoaded(object sender, RoutedEventArgs e)
         {
+            _isInitializing = true;
+            try
+            {
+                DebugGsiLoggingToggle.IsOn = await LoadDebugSettingsAsync();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("Failed to load debug settings: " + ex.Message);
+            }
+            _isInitializing = false;
+
             PackCatalogService.CatalogChanged += OnCatalogChanged;
             await ReloadPackListsAsync();
         }
@@ -1197,6 +1209,52 @@ namespace TestXboxGameBar
             
             TipsTitleText.Text = LocalizationManager.Text("TipsTitle");
             TipsBodyText.Text = LocalizationManager.Text("TipsBody");
+
+            DebugSectionTitleText.Text = LocalizationManager.Text("DebugSectionTitle");
+            DebugGsiLoggingHintText.Text = LocalizationManager.Text("DebugGsiLoggingHint");
+            DebugGsiLoggingToggle.OnContent = LocalizationManager.Text("On");
+            DebugGsiLoggingToggle.OffContent = LocalizationManager.Text("Off");
+        }
+
+        private async void OnDebugGsiLoggingToggled(object sender, RoutedEventArgs e)
+        {
+            if (_isInitializing) return;
+            if (sender is ToggleSwitch ts)
+            {
+                await SaveDebugSettingsAsync(ts.IsOn);
+            }
+        }
+
+        private async Task SaveDebugSettingsAsync(bool isEnabled)
+        {
+            try
+            {
+                StorageFolder localFolder = ApplicationData.Current.LocalFolder;
+                StorageFile file = await localFolder.CreateFileAsync("debug_settings.json", CreationCollisionOption.ReplaceExisting);
+                var obj = new Windows.Data.Json.JsonObject();
+                obj.SetNamedValue("debug_gsi_logging", Windows.Data.Json.JsonValue.CreateBooleanValue(isEnabled));
+                await FileIO.WriteTextAsync(file, obj.Stringify());
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("Failed to save debug settings: " + ex.Message);
+            }
+        }
+
+        private async Task<bool> LoadDebugSettingsAsync()
+        {
+            try
+            {
+                StorageFolder localFolder = ApplicationData.Current.LocalFolder;
+                StorageFile file = await localFolder.GetFileAsync("debug_settings.json");
+                string jsonText = await FileIO.ReadTextAsync(file);
+                var obj = Windows.Data.Json.JsonObject.Parse(jsonText);
+                return obj.GetNamedBoolean("debug_gsi_logging", false);
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }

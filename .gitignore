@@ -1,6 +1,8 @@
 # Build outputs
-bin/
-obj/
+Widget/bin/
+Widget/obj/
+Package/bin/
+Package/obj/
 target/
 Output/
 Package/AppPackages/

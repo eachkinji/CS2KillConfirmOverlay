@@ -1,7 +1,9 @@
 param(
     [string]$Configuration = "Debug",
     [string]$Platform = "x64",
-    [string]$MsBuildPath = ""
+    [string]$MsBuildPath = "",
+    [string]$VcInstallPath = "",
+    [switch]$DisableSigning
 )
 
 $ErrorActionPreference = "Stop"
@@ -47,7 +49,19 @@ $KillConfirmProcessNames = @(
 
 Get-Process -Name $KillConfirmProcessNames -ErrorAction SilentlyContinue | Stop-Process -Force
 
-& (Join-Path $Root "Build-IntegratedPackage.ps1") -Configuration $Configuration -Platform $Platform -MsBuildPath $MsBuildPath
+$buildIntegratedArgs = @{
+    Configuration = $Configuration
+    Platform = $Platform
+    MsBuildPath = $MsBuildPath
+}
+if ($VcInstallPath) {
+    $buildIntegratedArgs.VcInstallPath = $VcInstallPath
+}
+if ($DisableSigning) {
+    $buildIntegratedArgs.DisableSigning = $true
+}
+
+& (Join-Path $Root "Build-IntegratedPackage.ps1") @buildIntegratedArgs
 
 if (-not (Test-Path (Join-Path $PackageSourceRoot $PackageFileName))) {
     $ProducedPackage = Get-ChildItem -LiteralPath $AppPackagesRoot -Filter "*.msix" -Recurse -ErrorAction SilentlyContinue |
@@ -107,9 +121,10 @@ $ErrorActionPreference = "Stop"
 
 $ScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $OverlayRoot = Join-Path $ScriptRoot "OverlayPackage"
-$PackageFamilyName = "KillConfirmGameBar.Overlay_5jgcw66eyez0m"
+$PackageName = "KillConfirmGameBar.Overlay"
+$PackageFamilyName = $null
 $LogPath = Join-Path $env:TEMP "KillConfirmGameBar_Install.log"
-$RuntimeLogRoot = Join-Path $env:LOCALAPPDATA "Packages\$PackageFamilyName\LocalState"
+$RuntimeLogRoot = $null
 
 function Write-InstallLog {
     param([string]$Message)
@@ -216,6 +231,46 @@ function Write-AppxFailureDetails {
     }
 }
 
+function Get-InstalledOverlayPackage {
+    $package = Get-AppxPackage -Name $PackageName -ErrorAction SilentlyContinue |
+        Sort-Object Version -Descending |
+        Select-Object -First 1
+
+    if (-not $package) {
+        throw "MSIX install finished, but $PackageName is not registered for this user."
+    }
+
+    return $package
+}
+
+function Update-InstalledPackageContext {
+    $package = Get-InstalledOverlayPackage
+    $script:PackageFamilyName = $package.PackageFamilyName
+    $script:RuntimeLogRoot = Join-Path $env:LOCALAPPDATA "Packages\$PackageFamilyName\LocalState"
+    return $package
+}
+
+function Import-PackageCertificate {
+    param([string]$CertificatePath)
+
+    $storeLocations = @(
+        "Cert:\CurrentUser\TrustedPeople",
+        "Cert:\CurrentUser\Root",
+        "Cert:\LocalMachine\TrustedPeople",
+        "Cert:\LocalMachine\Root"
+    )
+
+    foreach ($storeLocation in $storeLocations) {
+        try {
+            $cert = Import-Certificate -FilePath $CertificatePath -CertStoreLocation $storeLocation -ErrorAction Stop
+            Write-InstallLog "Certificate imported: $storeLocation $($cert.Thumbprint)"
+        }
+        catch {
+            Write-InstallLog "Certificate import skipped for ${storeLocation}: $($_.Exception.Message)"
+        }
+    }
+}
+
 function Add-AppxPackageCompat {
     param(
         [string]$PackagePath,
@@ -252,7 +307,6 @@ function Add-AppxPackageCompat {
 function Install-OverlayPackage {
     Write-InstallLog "Install script root: $ScriptRoot"
     Write-InstallLog "Overlay root: $OverlayRoot"
-    Write-InstallLog "Runtime log folder after launch: $RuntimeLogRoot"
     Write-InstallLog "PowerShell: $($PSVersionTable.PSVersion)"
     Write-InstallLog "OS: $([System.Environment]::OSVersion.VersionString)"
     Write-InstallLog "Process bitness: Is64BitProcess=$([System.Environment]::Is64BitProcess); Is64BitOS=$([System.Environment]::Is64BitOperatingSystem)"
@@ -288,9 +342,7 @@ function Install-OverlayPackage {
     $cert = Get-ChildItem -LiteralPath $OverlayRoot -Filter "*.cer" -File | Select-Object -First 1
     if ($cert) {
         Write-InstallLog "Installing package certificate: $($cert.FullName)"
-        $trustedPeopleCert = Import-Certificate -FilePath $cert.FullName -CertStoreLocation "Cert:\LocalMachine\TrustedPeople"
-        $rootCert = Import-Certificate -FilePath $cert.FullName -CertStoreLocation "Cert:\LocalMachine\Root"
-        Write-InstallLog "Certificate thumbprints: TrustedPeople=$($trustedPeopleCert.Thumbprint); Root=$($rootCert.Thumbprint)"
+        Import-PackageCertificate -CertificatePath $cert.FullName
     }
     else {
         Write-InstallLog "No package certificate found beside MSIX."
@@ -328,10 +380,7 @@ function Install-OverlayPackage {
 }
 
 function Test-OverlayPackageInstalled {
-    $package = Get-AppxPackage -Name "KillConfirmGameBar.Overlay" -ErrorAction SilentlyContinue
-    if (-not $package) {
-        throw "MSIX install finished, but KillConfirmGameBar.Overlay is not registered for this user."
-    }
+    $package = Update-InstalledPackageContext
 
     Write-InstallLog "MSIX package registered: $($package.PackageFamilyName)"
     Write-InstallLog "Package full name: $($package.PackageFullName)"
@@ -449,6 +498,13 @@ function Install-Cs2GsiConfig {
     if (-not $installed) {
         Write-Warning "CS2 cfg folder was not found. If kill events do not trigger, install gamestate_integration_killconfirm.cfg manually."
     }
+
+    $runningCs2 = @(Get-Process -Name "cs2" -ErrorAction SilentlyContinue)
+    if ($runningCs2.Count -gt 0) {
+        $message = "CS2 is currently running. Close and reopen CS2 so it reloads gamestate_integration_killconfirm.cfg."
+        Write-InstallLog $message
+        Write-Warning $message
+    }
 }
 
 try {
@@ -464,6 +520,9 @@ try {
     }
 
     if (-not $SkipLoopback) {
+        if (-not $PackageFamilyName) {
+            Update-InstalledPackageContext | Out-Null
+        }
         Write-InstallLog "Adding loopback exemption for $PackageFamilyName..."
         & CheckNetIsolation.exe LoopbackExempt -a "-n=$PackageFamilyName"
         if ($LASTEXITCODE -ne 0) {

@@ -756,6 +756,9 @@
                                     <ComboBoxItem x:Name="EliteLevel1Item" Tag="1">Elite 1</ComboBoxItem>
                                     <ComboBoxItem x:Name="EliteLevel2Item" Tag="2">Elite 2</ComboBoxItem>
                                     <ComboBoxItem x:Name="EliteLevel3Item" Tag="3">Elite 3</ComboBoxItem>
+                                    <ComboBoxItem x:Name="EliteOriginal1Item" Tag="11">Orig 1</ComboBoxItem>
+                                    <ComboBoxItem x:Name="EliteOriginal2Item" Tag="12">Orig 2</ComboBoxItem>
+                                    <ComboBoxItem x:Name="EliteOriginal3Item" Tag="13">Orig 3</ComboBoxItem>
                                 </ComboBox>
 
                                 <PathIcon
@@ -773,7 +776,8 @@
                                     SelectedIndex="0"
                                     SelectionChanged="OnWeaponBadgeSelectionChanged">
                                     <ComboBoxItem x:Name="WeaponBadgeOffItem" Tag="0">OFF</ComboBoxItem>
-                                    <ComboBoxItem x:Name="WeaponBadgeOnItem" Tag="1">ON</ComboBoxItem>
+                                    <ComboBoxItem x:Name="WeaponBadgeOnItem" Tag="1">AUTO</ComboBoxItem>
+                                    <ComboBoxItem x:Name="WeaponBadgeOriginalItem" Tag="2">ORIG</ComboBoxItem>
                                 </ComboBox>
 
                             </Grid>

@@ -191,12 +191,12 @@ if (-not (Test-Path $ServiceExe)) {
 
 Copy-Item -LiteralPath $ServiceExe -Destination (Join-Path $PackagedServiceRoot "cskillconfirm.exe") -Force
 
-$SettingsLauncherExe = Join-Path $ServiceRoot ("target\release\" + $SettingsLauncherExeName)
-if (-not (Test-Path $SettingsLauncherExe)) {
-    throw "Expected settings launcher executable was not produced: $SettingsLauncherExe"
-}
-
-Copy-Item -LiteralPath $SettingsLauncherExe -Destination (Join-Path $PackagedServiceRoot $SettingsLauncherExeName) -Force
+# $SettingsLauncherExe = Join-Path $ServiceRoot ("target\release\" + $SettingsLauncherExeName)
+# if (-not (Test-Path $SettingsLauncherExe)) {
+#     throw "Expected settings launcher executable was not produced: $SettingsLauncherExe"
+# }
+# 
+# Copy-Item -LiteralPath $SettingsLauncherExe -Destination (Join-Path $PackagedServiceRoot $SettingsLauncherExeName) -Force
 
 $resolvedServiceRoot = [System.IO.Path]::GetFullPath($PackagedServiceRoot)
 $resolvedSoundsRoot = [System.IO.Path]::GetFullPath($PackagedSoundsRoot)

@@ -28,7 +28,7 @@ namespace TestXboxGameBar
 {
     public sealed partial class ClockWidgetPage : Page
     {
-        private static readonly Size DefaultWidgetSize = new Size(400, 600);
+        private static readonly Size DefaultWidgetSize = new Size(550, 600);
         private static readonly Size MinWidgetSize = new Size(50, 50);
         private static readonly Size MaxWidgetSize = new Size(900, 900);
         private const double AnimationOffsetStep = 12.0;
@@ -37,8 +37,8 @@ namespace TestXboxGameBar
         private const double ScaleUpFactor = 1.1;
         private const double ScaleDownFactor = 0.9;
         private const int StartupPreloadDelayMs = 250;
-        private const double DefaultBrightnessValue = 70;
-        private const double DefaultContrastValue = 80;
+        private const double DefaultBrightnessValue = 0;
+        private const double DefaultContrastValue = 0;
         private const double DefaultAudioVolumeValue = 100;
         private const double DefaultPlaybackFpsValue = 60;
         private const string FirstKillAssetKey = "firstkill";

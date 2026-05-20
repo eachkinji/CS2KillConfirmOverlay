@@ -12,7 +12,7 @@ use thiserror::Error;
 use tracing::{error, info, warn};
 
 use crate::soundpack::sound::play_audio;
-use crate::util::logging::service_log;
+use crate::util::logging::{service_log, is_debug_logging_enabled};
 
 use super::state::{AppState, KillEvent, PendingLastKill, TrackedRoundPhase};
 
@@ -49,6 +49,12 @@ pub async fn update(
     app_state
         .last_gsi_post_unix_ms
         .store(unix_time_ms(), Ordering::Relaxed);
+
+    if is_debug_logging_enabled() {
+        if let Ok(body_str) = std::str::from_utf8(&body) {
+            service_log(&format!("GSI Raw Payload: {body_str}"));
+        }
+    }
 
     let data: Body = match parse_gsi_body(&body) {
         Ok(data) => data,
@@ -94,6 +100,16 @@ pub async fn update(
     let current_round_phase = round
         .map(|value| map_round_phase(&value.phase))
         .or_else(|| infer_round_phase_from_kills(ply_state.round_kills));
+
+    if is_debug_logging_enabled() {
+        service_log(&format!(
+            "GSI State: player={} kills={} hs={} round_phase={:?}",
+            ply.name.as_deref().unwrap_or(""),
+            ply_state.round_kills,
+            ply_state.round_killhs,
+            current_round_phase
+        ));
+    }
     let current_active_weapon_is_knife = ply
         .weapons
         .values()
@@ -163,11 +179,22 @@ pub async fn update(
 
     if is_initialized && can_emit_kill {
         let is_headshot = current_hs_kills > origin_hs_kills;
-        // Do not use the current frame here: players often switch to knife right after a gun kill.
         let is_knife_kill = recent_weapon_is_knife;
-        let weapon_badge_key = recent_weapon_badge_key.clone();
+        let weapon_badge_key = current_active_weapon_badge_key
+            .clone()
+            .or_else(|| recent_weapon_badge_key.clone());
         let is_last_kill = phase_transition_to_over;
         let is_first_kill = !is_last_kill && !first_kill_already_seen;
+
+        service_log(&format!(
+            "Kill Confirmed: count={} hs={} knife={} first={} last={} badge={:?}",
+            current_kills,
+            is_headshot,
+            is_knife_kill,
+            is_first_kill,
+            is_last_kill,
+            weapon_badge_key
+        ));
 
         if is_last_kill {
             pending_last_kill_for_next = None;

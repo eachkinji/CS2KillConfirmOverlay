@@ -2,7 +2,9 @@ param(
     [string]$Configuration = "Debug",
     [string]$Platform = "x64",
     [string]$MsBuildPath = "",
-    [string]$InnoCompilerPath = ""
+    [string]$VcInstallPath = "",
+    [string]$InnoCompilerPath = "",
+    [switch]$DisableSigning
 )
 
 $ErrorActionPreference = "Stop"
@@ -28,7 +30,19 @@ if (-not $Version) {
 
 $TransferRoot = Join-Path $WorkspaceRoot ("KillConfirmGameBar_Transfer_{0}" -f $Version)
 
-& (Join-Path $Root "Build-TransferPackage.ps1") -Configuration $Configuration -Platform $Platform -MsBuildPath $MsBuildPath
+$buildTransferArgs = @{
+    Configuration = $Configuration
+    Platform = $Platform
+    MsBuildPath = $MsBuildPath
+}
+if ($VcInstallPath) {
+    $buildTransferArgs.VcInstallPath = $VcInstallPath
+}
+if ($DisableSigning) {
+    $buildTransferArgs.DisableSigning = $true
+}
+
+& (Join-Path $Root "Build-TransferPackage.ps1") @buildTransferArgs
 
 if (-not (Test-Path $TransferRoot)) {
     throw "Expected transfer folder was not produced: $TransferRoot"

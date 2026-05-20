@@ -44,7 +44,33 @@ const DEFAULT_LOG_LEVEL: LevelFilter = if cfg!(debug_assertions) {
 } else {
     LevelFilter::INFO
 };
-const PACKAGE_FAMILY_NAME: &str = "KillConfirmGameBar.Overlay_5jgcw66eyez0m";
+#[link(name = "kernel32")]
+unsafe extern "system" {
+    fn GetCurrentPackageFamilyName(
+        packageFamilyNameLength: *mut u32,
+        packageFamilyName: *mut u16,
+    ) -> i32;
+}
+
+fn current_package_family_name() -> String {
+    unsafe {
+        let mut length = 0u32;
+        let rc = GetCurrentPackageFamilyName(&mut length, std::ptr::null_mut());
+        if rc == 122 {
+            let mut buf = vec![0u16; length as usize];
+            let rc = GetCurrentPackageFamilyName(&mut length, buf.as_mut_ptr());
+            if rc == 0 {
+                if let Some(pos) = buf.iter().position(|&x| x == 0) {
+                    buf.truncate(pos);
+                }
+                if let Ok(name) = String::from_utf16(&buf) {
+                    return name;
+                }
+            }
+        }
+    }
+    "KillConfirmGameBar.Overlay_4t2qzenbgqd14".to_string()
+}
 
 #[tokio::main]
 async fn main() {
@@ -418,7 +444,7 @@ fn local_state_dir() -> PathBuf {
     if let Ok(local_app_data) = env::var("LOCALAPPDATA") {
         return PathBuf::from(local_app_data)
             .join("Packages")
-            .join(PACKAGE_FAMILY_NAME)
+            .join(current_package_family_name())
             .join("LocalState");
     }
 
@@ -549,12 +575,10 @@ fn trace_log_path(file_name: &str) -> Option<PathBuf> {
 }
 
 fn runtime_log_dir() -> PathBuf {
-    const PACKAGE_FAMILY_NAME: &str = "KillConfirmGameBar.Overlay_5jgcw66eyez0m";
-
     if let Ok(local_app_data) = env::var("LOCALAPPDATA") {
         return PathBuf::from(local_app_data)
             .join("Packages")
-            .join(PACKAGE_FAMILY_NAME)
+            .join(current_package_family_name())
             .join("LocalState");
     }
 

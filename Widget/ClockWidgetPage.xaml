@@ -785,7 +785,7 @@
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="70" />
                                 <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="70" />
+                                <ColumnDefinition Width="96" />
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
@@ -837,28 +837,28 @@
                             <ComboBox
                                 x:Name="TestPresetSelector"
                                 Grid.Column="3"
-                                Width="70"
+                                Width="96"
                                 Style="{StaticResource OverlayComboBoxStyle}"
-                                MinWidth="70"
+                                MinWidth="96"
                                 SelectedIndex="0"
                                 ToolTipService.ToolTip="Select test preset">
-                                <ComboBoxItem Tag="one">1</ComboBoxItem>
-                                <ComboBoxItem Tag="one_hs">1 HS</ComboBoxItem>
-                                <ComboBoxItem Tag="one_knife">1 K</ComboBoxItem>
-                                <ComboBoxItem Tag="one_first">1 F</ComboBoxItem>
-                                <ComboBoxItem Tag="one_last">1 L</ComboBoxItem>
-                                <ComboBoxItem Tag="gold_first">GF</ComboBoxItem>
-                                <ComboBoxItem Tag="gold_last">GL</ComboBoxItem>
-                                <ComboBoxItem Tag="two">2</ComboBoxItem>
-                                <ComboBoxItem Tag="three">3</ComboBoxItem>
-                                <ComboBoxItem Tag="four">4</ComboBoxItem>
-                                <ComboBoxItem Tag="five">5</ComboBoxItem>
-                                <ComboBoxItem Tag="six">6</ComboBoxItem>
-                                <ComboBoxItem Tag="seven">7</ComboBoxItem>
-                                <ComboBoxItem Tag="eight">8</ComboBoxItem>
-                                <ComboBoxItem Tag="nine">9</ComboBoxItem>
-                                <ComboBoxItem Tag="badge_first">FK</ComboBoxItem>
-                                <ComboBoxItem Tag="badge_last">LK</ComboBoxItem>
+                                <ComboBoxItem Tag="one">1杀</ComboBoxItem>
+                                <ComboBoxItem Tag="one_hs">1杀爆头</ComboBoxItem>
+                                <ComboBoxItem Tag="one_knife">1杀刀杀</ComboBoxItem>
+                                <ComboBoxItem Tag="one_first">1杀首杀</ComboBoxItem>
+                                <ComboBoxItem Tag="one_last">1杀尾杀</ComboBoxItem>
+                                <ComboBoxItem Tag="gold_first">金首杀</ComboBoxItem>
+                                <ComboBoxItem Tag="gold_last">金尾杀</ComboBoxItem>
+                                <ComboBoxItem Tag="two">2杀</ComboBoxItem>
+                                <ComboBoxItem Tag="three">3杀</ComboBoxItem>
+                                <ComboBoxItem Tag="four">4杀</ComboBoxItem>
+                                <ComboBoxItem Tag="five">5杀</ComboBoxItem>
+                                <ComboBoxItem Tag="six">6杀</ComboBoxItem>
+                                <ComboBoxItem Tag="seven">7杀</ComboBoxItem>
+                                <ComboBoxItem Tag="eight">8杀</ComboBoxItem>
+                                <ComboBoxItem Tag="nine">9杀</ComboBoxItem>
+                                <ComboBoxItem Tag="badge_first">首杀徽章</ComboBoxItem>
+                                <ComboBoxItem Tag="badge_last">尾杀徽章</ComboBoxItem>
                             </ComboBox>
 
                             <Button
@@ -1056,6 +1056,9 @@
                         SelectionChanged="OnBrightnessSelectionChanged"
                         ToolTipService.ToolTip="Animation brightness">
                         <ComboBoxItem Tag="0">OFF</ComboBoxItem>
+                        <ComboBoxItem Tag="10">10%</ComboBoxItem>
+                        <ComboBoxItem Tag="20">20%</ComboBoxItem>
+                        <ComboBoxItem Tag="30">30%</ComboBoxItem>
                         <ComboBoxItem Tag="40">40%</ComboBoxItem>
                         <ComboBoxItem Tag="50">50%</ComboBoxItem>
                         <ComboBoxItem Tag="60">60%</ComboBoxItem>
@@ -1080,6 +1083,9 @@
                         SelectionChanged="OnContrastSelectionChanged"
                         ToolTipService.ToolTip="Animation contrast">
                         <ComboBoxItem Tag="0">OFF</ComboBoxItem>
+                        <ComboBoxItem Tag="10">10%</ComboBoxItem>
+                        <ComboBoxItem Tag="20">20%</ComboBoxItem>
+                        <ComboBoxItem Tag="30">30%</ComboBoxItem>
                         <ComboBoxItem Tag="40">40%</ComboBoxItem>
                         <ComboBoxItem Tag="50">50%</ComboBoxItem>
                         <ComboBoxItem Tag="60">60%</ComboBoxItem>

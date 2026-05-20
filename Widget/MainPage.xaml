@@ -241,6 +241,23 @@
                                 Style="{StaticResource SettingsCaptionTextStyle}" />
                         </StackPanel>
                     </Border>
+
+                    <Border Style="{StaticResource SettingsSectionCardStyle}">
+                        <StackPanel Spacing="10">
+                            <TextBlock
+                                x:Name="DebugSectionTitleText"
+                                Style="{StaticResource SettingsSectionTitleTextStyle}"
+                                FontSize="18" />
+                            <TextBlock
+                                x:Name="DebugGsiLoggingHintText"
+                                Style="{StaticResource SettingsCaptionTextStyle}" />
+                            <ToggleSwitch
+                                x:Name="DebugGsiLoggingToggle"
+                                Header=""
+                                Toggled="OnDebugGsiLoggingToggled"
+                                Margin="0,6,0,0" />
+                        </StackPanel>
+                    </Border>
                 </StackPanel>
             </Grid>
         </Grid>

@@ -278,7 +278,10 @@ namespace TestXboxGameBar.Services
             ["WeaponBadgeLabel"] = "Weapon badge",
             ["MainAnimationLabel"] = "Main icon animation",
             ["PlaybackFpsTitle"] = "Playback FPS",
-            ["PlaybackFpsTooltip"] = "Adjust animation playback FPS."
+            ["PlaybackFpsTooltip"] = "Adjust animation playback FPS.",
+            ["DebugSectionTitle"] = "Debug Settings",
+            ["DebugGsiLoggingLabel"] = "Enable Full Logging",
+            ["DebugGsiLoggingHint"] = "Record all received CS2 event data and GSI payloads into service.log for debugging purposes."
         };
 
         private static readonly Dictionary<string, string> Chinese = new Dictionary<string, string>
@@ -543,7 +546,10 @@ namespace TestXboxGameBar.Services
             ["WeaponBadgeTooltip"] = "\u5f00\u5173\u9644\u52a0\u6b66\u5668\u56fe\u6807\u53e0\u5c42\u3002",
             ["MainAnimationTooltip"] = "\u9009\u62e9\u4e3b\u56fe\u52a8\u753b\u6837\u5f0f\u3002",
             ["PlaybackFpsTitle"] = "\u64ad\u653e FPS",
-            ["PlaybackFpsTooltip"] = "\u8c03\u6574\u52a8\u753b\u64ad\u653e FPS\u3002"
+            ["PlaybackFpsTooltip"] = "\u8c03\u6574\u52a8\u753b\u64ad\u653e FPS\u3002",
+            ["DebugSectionTitle"] = "调试设置",
+            ["DebugGsiLoggingLabel"] = "启用完整日志记录",
+            ["DebugGsiLoggingHint"] = "记录所有接收到的 CS2 事件数据和原始 GSI Payload 到 service.log 文件中，用于调试排查。"
         };
 
         public static UiLanguage Current => _current;

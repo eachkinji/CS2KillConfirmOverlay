@@ -11,7 +11,7 @@
   <Identity
     Name="KillConfirmGameBar.Overlay"
     Publisher="CN=TestXboxGameBar"
-    Version="2.0.12.0" />
+    Version="2.0.19.0" />
 
   <mp:PhoneIdentity PhoneProductId="8f70c4bd-4270-4a4f-a7d1-91ae48dbe9f4" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
 
@@ -60,8 +60,8 @@
                 <Window>
                   <AllowForegroundTransparency>true</AllowForegroundTransparency>
                   <Size>
-                    <Height>180</Height>
-                    <Width>520</Width>
+                    <Height>600</Height>
+                    <Width>550</Width>
                     <MinHeight>120</MinHeight>
                     <MinWidth>160</MinWidth>
                     <MaxHeight>720</MaxHeight>

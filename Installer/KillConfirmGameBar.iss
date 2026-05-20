@@ -34,13 +34,13 @@ Name: "chinesesimplified"; MessagesFile: "ChineseSimplified.isl"
 
 [CustomMessages]
 english.OpenXboxGameBar=Open Xbox Game Bar
-chinesesimplified.OpenXboxGameBar=打开 Xbox Game Bar
+chinesesimplified.OpenXboxGameBar=Open Xbox Game Bar
 english.InstallingOverlay=Installing Kill Confirm Overlay...
-chinesesimplified.InstallingOverlay=正在安装击杀确认悬浮窗...
+chinesesimplified.InstallingOverlay=Installing Kill Confirm Overlay...
 english.InstallScriptLaunchFailed=Could not start the installer script.
-chinesesimplified.InstallScriptLaunchFailed=无法启动安装脚本。
+chinesesimplified.InstallScriptLaunchFailed=Could not start the installer script.
 english.InstallScriptFailed=Install script failed. See %TEMP%\KillConfirmGameBar_Install.log. Exit code:
-chinesesimplified.InstallScriptFailed=安装脚本失败。请查看 %TEMP%\KillConfirmGameBar_Install.log。退出代码：
+chinesesimplified.InstallScriptFailed=Install script failed. See %TEMP%\KillConfirmGameBar_Install.log. Exit code:
 
 [InstallDelete]
 Type: filesandordirs; Name: "{app}\Payload"
@@ -52,7 +52,7 @@ Source: "{#TransferRoot}\*"; DestDir: "{app}\Payload"; Flags: ignoreversion recu
 Name: "{group}\{cm:OpenXboxGameBar}"; Filename: "explorer.exe"; Parameters: "ms-gamebar:"
 
 [UninstallRun]
-Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -Command ""Get-Process -Name cskillconfirm,TestXboxGameBar,KillConfirmOverlay,KillConfirmGameBar,GameBar,GameBarFTServer,GameBarPresenceWriter -ErrorAction SilentlyContinue | Stop-Process -Force; Start-Sleep -Milliseconds 800; Get-AppxPackage KillConfirmGameBar.Overlay | Remove-AppxPackage -ErrorAction SilentlyContinue; CheckNetIsolation.exe LoopbackExempt -d -n=\""KillConfirmGameBar.Overlay_5jgcw66eyez0m\"" 2>$null"""; Flags: runhidden waituntilterminated; RunOnceId: "RemoveAppxPackage"
+Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -Command ""Get-Process -Name cskillconfirm,TestXboxGameBar,KillConfirmOverlay,KillConfirmGameBar,GameBar,GameBarFTServer,GameBarPresenceWriter -ErrorAction SilentlyContinue | Stop-Process -Force; Start-Sleep -Milliseconds 800; $p = Get-AppxPackage -Name KillConfirmGameBar.Overlay -ErrorAction SilentlyContinue | Sort-Object Version -Descending | Select-Object -First 1; if ($p) {{ CheckNetIsolation.exe LoopbackExempt -d \""-n=$($p.PackageFamilyName)\"" 2>$null; $p | Remove-AppxPackage -ErrorAction SilentlyContinue }"""; Flags: runhidden waituntilterminated; RunOnceId: "RemoveAppxPackage"
 
 [Code]
 procedure CurStepChanged(CurStep: TSetupStep);

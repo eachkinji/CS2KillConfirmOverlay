@@ -1,5 +1,5 @@
 -- sound.lua for crossfire_bunny_bl
--- Has: 2.wav through 8.wav, headshot.wav, knife.wav, grenade.wav
+-- Has: common.wav, 2.wav through 8.wav, headshot.wav, knife.wav, grenade.wav
 -- grenade.wav has priority for first kill and last kill.
 
 function get_sounds(ctx)
@@ -18,6 +18,8 @@ function get_sounds(ctx)
         table.insert(sounds, base .. "knife.wav")
     elseif ctx.is_headshot then
         table.insert(sounds, base .. "headshot.wav")
+    elseif ctx.play_main_audio and ctx.kill_count == 1 then
+        table.insert(sounds, base .. "common.wav")
     end
 
     return sounds

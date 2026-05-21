@@ -14,6 +14,7 @@ pub struct Mutable {
     pub steamid: String,
     pub ply_kills: u16,
     pub ply_hs_kills: u64,
+    pub ply_assists: u16,
     pub last_active_weapon_is_knife: bool,
     pub last_active_weapon_badge_key: Option<String>,
     pub last_active_weapon_seen_at: Option<Instant>,
@@ -30,6 +31,7 @@ pub struct KillEvent {
     pub is_knife_kill: bool,
     pub is_first_kill: bool,
     pub is_last_kill: bool,
+    pub is_assist: bool,
     pub play_main_animation: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub animation_key: Option<String>,

@@ -5,6 +5,11 @@ function get_sounds(ctx)
     local sounds = {}
     local base = "sounds/" .. ctx.preset_name .. "/"
 
+    if ctx.is_first_kill or ctx.is_last_kill then
+        table.insert(sounds, base .. "firstandlast.wav")
+        return sounds
+    end
+
     if ctx.play_main_audio then
         table.insert(sounds, base .. "common.wav")
 
@@ -20,10 +25,6 @@ function get_sounds(ctx)
 
     if ctx.kill_count == 1 and ctx.is_knife_kill then
         table.insert(sounds, base .. "knife.wav")
-    end
-
-    if ctx.is_first_kill or ctx.is_last_kill then
-        table.insert(sounds, base .. "firstandlast.wav")
     end
 
     return sounds

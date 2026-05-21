@@ -2558,6 +2558,13 @@ namespace TestXboxGameBar
 
             bool useLegacyAnimationPack = IsLegacyIconPackSelected();
 
+            if (killEvent.IsAssist
+                || string.Equals(killEvent.AnimationKey, "assist", StringComparison.OrdinalIgnoreCase))
+            {
+                BadgeKillAnimation.PlayCodeKill("assist");
+                return;
+            }
+
             if (killEvent.IsLastKill)
             {
                 if (useLegacyAnimationPack)

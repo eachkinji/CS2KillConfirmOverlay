@@ -22,6 +22,7 @@ namespace TestXboxGameBar.Services
         public bool IsKnifeKill { get; set; }
         public bool IsFirstKill { get; set; }
         public bool IsLastKill { get; set; }
+        public bool IsAssist { get; set; }
         public bool PlayMainAnimation { get; set; }
         public string AnimationKey { get; set; }
         public string WeaponBadgeKey { get; set; }
@@ -125,6 +126,7 @@ namespace TestXboxGameBar.Services
                     IsKnifeKill = json.GetNamedBoolean("is_knife_kill", false),
                     IsFirstKill = json.GetNamedBoolean("is_first_kill", false),
                     IsLastKill = json.GetNamedBoolean("is_last_kill", false),
+                    IsAssist = json.GetNamedBoolean("is_assist", false),
                     PlayMainAnimation = json.GetNamedBoolean("play_main_animation", true),
                     AnimationKey = json.GetNamedString("animation_key", string.Empty),
                     WeaponBadgeKey = json.GetNamedString("weapon_badge_key", string.Empty),

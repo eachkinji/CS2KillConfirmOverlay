@@ -695,6 +695,13 @@ namespace TestXboxGameBar.Controls
                     fxFileName = null;
                     fxFolder = null;
                     return true;
+                case "assist":
+                    mainFileName = "badge_Assist.png";
+                    mainFolder = DefaultCodeFolder;
+                    alternatePackFolder = DefaultCodeFolder;
+                    fxFileName = null;
+                    fxFolder = null;
+                    return true;
                 case "headshot_vvip":
                     mainFileName = "badge_headshot_vvip.png";
                     mainFolder = null;

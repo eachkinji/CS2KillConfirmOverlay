@@ -115,6 +115,22 @@ const SOUND_PACK_OPTIONS: &[SoundPackOption] = &[
         preset: "crossfire_women_bl",
         display_name: "women BL",
     },
+    SoundPackOption {
+        preset: "crossfire_bunny_gr",
+        display_name: "Bunny GR",
+    },
+    SoundPackOption {
+        preset: "crossfire_bunny_bl",
+        display_name: "Bunny BL",
+    },
+    SoundPackOption {
+        preset: "crossfire_heart_judge_gr",
+        display_name: "Heart Judge GR",
+    },
+    SoundPackOption {
+        preset: "crossfire_heart_judge_bl",
+        display_name: "Heart Judge BL",
+    },
 ];
 
 pub async fn health() -> Json<HealthResponse> {
@@ -254,6 +270,7 @@ pub async fn test_event(
         is_knife_kill: query.knife.unwrap_or(false),
         is_first_kill: query.first.unwrap_or(false),
         is_last_kill: query.last.unwrap_or(false),
+        is_assist: false,
         play_main_animation: query.main.unwrap_or(true),
         animation_key: query.animation.filter(|value| !value.trim().is_empty()),
         weapon_badge_key: query.weapon_badge.filter(|value| !value.trim().is_empty()),
@@ -314,6 +331,14 @@ fn resolve_soundpack_alias(value: &str) -> Option<&'static str> {
         }
         "cwbl" | "women_bl" | "crossfire_women_bl" | "kkbl" | "knifebl" | "knifekill_bl" => {
             Some("crossfire_women_bl")
+        }
+        "bunnygr" | "bunny_gr" | "crossfire_bunny_gr" => Some("crossfire_bunny_gr"),
+        "bunnybl" | "bunny_bl" | "crossfire_bunny_bl" => Some("crossfire_bunny_bl"),
+        "heartjudgegr" | "heart_judge_gr" | "judge_gr" | "crossfire_heart_judge_gr" => {
+            Some("crossfire_heart_judge_gr")
+        }
+        "heartjudgebl" | "heart_judge_bl" | "judge_bl" | "crossfire_heart_judge_bl" => {
+            Some("crossfire_heart_judge_bl")
         }
         _ => None,
     }

@@ -124,6 +124,9 @@ fn build_generated_voice_lua(folder_path: &str) -> String {
          \tif ctx.is_first_kill or ctx.is_last_kill then\n\
          \t\tadd_if_present(\"firstandlast\")\n\
          \t\tadd_common_overlay_if_present()\n\
+         \t\tif #sounds > 0 then\n\
+         \t\t\treturn sounds\n\
+         \t\tend\n\
          \tend\n\n\
          \tif ctx.play_main_audio and ctx.kill_count >= 2 then\n\
          \t\tlocal voiced_kill_count = math.min(ctx.kill_count, 8)\n\

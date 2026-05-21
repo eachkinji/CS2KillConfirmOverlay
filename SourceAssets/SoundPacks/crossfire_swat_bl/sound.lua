@@ -1,6 +1,6 @@
 -- sound.lua for crossfire_swat_bl
 -- Has: common.wav, 2.wav through 8.wav, headshot.wav, knife.wav, grenade.wav
--- grenade.wav is layered for first kill and last kill.
+-- grenade.wav has priority for first kill and last kill.
 -- Main event priority: streak > knife > headshot > common.
 
 function get_sounds(ctx)
@@ -9,6 +9,7 @@ function get_sounds(ctx)
 
     if ctx.is_first_kill or ctx.is_last_kill then
         table.insert(sounds, base .. "grenade.wav")
+        return sounds
     end
 
     if ctx.play_main_audio and ctx.kill_count >= 2 then

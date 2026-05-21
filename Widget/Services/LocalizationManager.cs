@@ -109,6 +109,10 @@ namespace TestXboxGameBar.Services
             ["crossfire_v_sex"] = "cfsex",
             ["crossfire_women_gr"] = "women GR",
             ["crossfire_women_bl"] = "women BL",
+            ["crossfire_bunny_gr"] = "Bunny GR",
+            ["crossfire_bunny_bl"] = "Bunny BL",
+            ["crossfire_heart_judge_gr"] = "Heart Judge GR",
+            ["crossfire_heart_judge_bl"] = "Heart Judge BL",
 
             // Built-in Icon Names
             ["default"] = "Default",
@@ -377,6 +381,10 @@ namespace TestXboxGameBar.Services
             ["crossfire_v_sex"] = "\u65af\u6c83\u7279\u5973",
             ["crossfire_women_gr"] = "\u6f58\u591a\u62c9 \u4fdd\u536b\u8005",
             ["crossfire_women_bl"] = "\u6f58\u591a\u62c9 \u6f5c\u4f0f\u8005",
+            ["crossfire_bunny_gr"] = "\u5154\u56e1\u56e1 \u4fdd\u536b\u8005",
+            ["crossfire_bunny_bl"] = "\u5154\u56e1\u56e1 \u6f5c\u4f0f\u8005",
+            ["crossfire_heart_judge_gr"] = "\u82b3\u5fc3\u5ba1\u5224\u8005 \u4fdd\u536b\u8005",
+            ["crossfire_heart_judge_bl"] = "\u82b3\u5fc3\u5ba1\u5224\u8005 \u6f5c\u4f0f\u8005",
 
             // Built-in Icon Names
             ["default"] = "\u539f\u7248",

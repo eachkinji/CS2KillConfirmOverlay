@@ -504,7 +504,11 @@ namespace TestXboxGameBar.Services
                     CreateBuiltInVoice("crossfire_flying_tiger_bl", "tiger BL", true),
                     CreateBuiltInVoice("crossfire_v_sex", "cfsex", true),
                     CreateBuiltInVoice("crossfire_women_gr", "women GR", true),
-                    CreateBuiltInVoice("crossfire_women_bl", "women BL", true)
+                    CreateBuiltInVoice("crossfire_women_bl", "women BL", true),
+                    CreateBuiltInVoice("crossfire_bunny_gr", "Bunny GR", true),
+                    CreateBuiltInVoice("crossfire_bunny_bl", "Bunny BL", true),
+                    CreateBuiltInVoice("crossfire_heart_judge_gr", "Heart Judge GR", true),
+                    CreateBuiltInVoice("crossfire_heart_judge_bl", "Heart Judge BL", true)
                 },
                 IconPacks = new List<IconPackItem>
                 {

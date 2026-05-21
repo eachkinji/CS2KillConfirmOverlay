@@ -178,6 +178,7 @@ async fn run() -> Result<()> {
             steamid: "".into(),
             ply_kills: 0,
             ply_hs_kills: 0,
+            ply_assists: 0,
             last_active_weapon_is_knife: false,
             last_active_weapon_badge_key: None,
             last_active_weapon_seen_at: None,

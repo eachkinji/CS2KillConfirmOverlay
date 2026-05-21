@@ -129,6 +129,12 @@ pub async fn update(
 
     let current_hs_kills = ply_state.round_killhs;
     let origin_hs_kills = binding.ply_hs_kills;
+    let current_assists = ply
+        .match_stats
+        .as_ref()
+        .map(|stats| stats.assists)
+        .unwrap_or(0);
+    let original_assists = binding.ply_assists;
 
     let is_initialized = binding.initialized;
     let original_steamid = binding.steamid.clone();
@@ -162,6 +168,8 @@ pub async fn update(
         && current_round_phase == Some(TrackedRoundPhase::Over);
     let can_emit_kill = current_kills > original_kills
         && (steamid == original_steamid || original_steamid.is_empty());
+    let can_emit_assist = current_assists > original_assists
+        && (steamid == original_steamid || original_steamid.is_empty());
     let first_kill_already_seen = if round_reset {
         false
     } else {
@@ -176,6 +184,7 @@ pub async fn update(
     };
     let mut kill_event_to_send = None;
     let mut badge_only_event_to_send = None;
+    let mut assist_event_to_send = None;
 
     if is_initialized && can_emit_kill {
         let is_headshot = current_hs_kills > origin_hs_kills;
@@ -214,6 +223,7 @@ pub async fn update(
             is_knife_kill,
             is_first_kill,
             is_last_kill,
+            is_assist: false,
             play_main_animation: true,
             animation_key: None,
             weapon_badge_key: weapon_badge_key.clone(),
@@ -259,6 +269,7 @@ pub async fn update(
                     is_knife_kill: pending_last_kill.is_knife_kill,
                     is_first_kill: false,
                     is_last_kill: true,
+                    is_assist: false,
                     play_main_animation: pending_last_kill.kill_count == 1
                         && pending_last_kill.is_headshot,
                     animation_key: None,
@@ -295,6 +306,25 @@ pub async fn update(
             pending_last_kill_for_next = None;
         }
     }
+    if is_initialized && can_emit_assist {
+        service_log(&format!(
+            "Assist Confirmed: assists={} previous={}",
+            current_assists, original_assists
+        ));
+        assist_event_to_send = Some(KillEvent {
+            kill_count: 0,
+            is_headshot: false,
+            is_knife_kill: false,
+            is_first_kill: false,
+            is_last_kill: false,
+            is_assist: true,
+            play_main_animation: false,
+            animation_key: Some("assist".to_string()),
+            weapon_badge_key: None,
+            player_name: player_name.clone(),
+            steamid: steamid.to_string(),
+        });
+    }
 
     let mut binding = app_state.mutable.write().await;
 
@@ -304,6 +334,7 @@ pub async fn update(
 
     binding.ply_kills = current_kills;
     binding.ply_hs_kills = current_hs_kills;
+    binding.ply_assists = current_assists;
     binding.steamid = steamid.to_string();
     binding.current_round = current_round;
     binding.last_round_phase = current_round_phase;
@@ -324,6 +355,9 @@ pub async fn update(
 
     if let Some(badge_only_event) = badge_only_event_to_send {
         let _ = app_state.event_tx.send(badge_only_event);
+    }
+    if let Some(assist_event) = assist_event_to_send {
+        let _ = app_state.event_tx.send(assist_event);
     }
 
     Ok(StatusCode::OK)

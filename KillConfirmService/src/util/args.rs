@@ -41,6 +41,10 @@ pub struct Args {
     /// download and launch the pending update installer, then exit
     #[arg(long, default_value = "false")]
     pub run_pending_update: bool,
+
+    /// open the Quark backup download page, then exit
+    #[arg(long, default_value = "false")]
+    pub open_quark_update: bool,
 }
 
 impl Args {

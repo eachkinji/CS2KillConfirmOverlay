@@ -11,7 +11,7 @@
   <Identity
     Name="KillConfirmGameBar.Overlay"
     Publisher="CN=TestXboxGameBar"
-    Version="2.0.42.0" />
+    Version="2.0.43.0" />
 
   <mp:PhoneIdentity PhoneProductId="8f70c4bd-4270-4a4f-a7d1-91ae48dbe9f4" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
 
@@ -86,6 +86,7 @@
             <desktop:ParameterGroup GroupId="OpenRuntimeLogs" Parameters="--open-logs" />
             <desktop:ParameterGroup GroupId="OpenSettingsWindow" Parameters="--open-settings-launcher" />
             <desktop:ParameterGroup GroupId="RunPendingUpdate" Parameters="--run-pending-update" />
+            <desktop:ParameterGroup GroupId="OpenQuarkUpdate" Parameters="--open-quark-update" />
           </desktop:FullTrustProcess>
         </desktop:Extension>
       </Extensions>

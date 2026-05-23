@@ -64,12 +64,3 @@ pub fn service_log(message: &str) {
     }
 }
 
-pub fn is_debug_logging_enabled() -> bool {
-    let config_path = local_state_dir().join("debug_settings.json");
-    if let Ok(content) = fs::read_to_string(&config_path) {
-        if let Ok(val) = serde_json::from_str::<serde_json::Value>(&content) {
-            return val["debug_gsi_logging"].as_bool().unwrap_or(false);
-        }
-    }
-    false
-}

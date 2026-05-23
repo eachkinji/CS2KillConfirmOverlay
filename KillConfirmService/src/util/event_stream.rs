@@ -247,6 +247,8 @@ pub async fn set_soundpack(
         *current = preset;
     }
 
+    service_log(&format!("sound pack set to '{preset_name}' ({display_name})"));
+
     Ok(Json(soundpack_response(preset_name, &display_name)))
 }
 
@@ -264,6 +266,16 @@ pub async fn test_event(
     Query(query): Query<TestEventQuery>,
     State(app_state): State<Arc<AppState>>,
 ) -> Json<KillEvent> {
+    service_log(&format!(
+        "test event requested: kills={kill_count}, audio={}, headshot={}, knife={}, first={}, last={}, main={}",
+        query.audio.unwrap_or(false),
+        query.headshot.unwrap_or(false),
+        query.knife.unwrap_or(false),
+        query.first.unwrap_or(false),
+        query.last.unwrap_or(false),
+        query.main.unwrap_or(true)
+    ));
+
     let event = KillEvent {
         kill_count,
         is_headshot: query.headshot.unwrap_or(false),
@@ -299,6 +311,7 @@ pub async fn test_event(
 
             if let Err(error) = result {
                 error!("failed to play test audio: {error}");
+                service_log(&format!("failed to play test audio: {error}"));
             }
         });
     }

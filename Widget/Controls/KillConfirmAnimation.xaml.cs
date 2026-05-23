@@ -7,6 +7,7 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.UI.Xaml;
+using TestXboxGameBar.Helpers;
 using TestXboxGameBar.Services;
 using Windows.Data.Json;
 using Windows.Foundation;
@@ -40,6 +41,14 @@ namespace TestXboxGameBar.Controls
         private const string CommonFxCodeFolder = "CommonFx";
         private const string EliteUpgradeCodeFolder = "EliteUpgrade";
         private const string WeaponBadgeCodeFolder = "WeaponBadge";
+        private static readonly string[] ImportedIconImageExtensions =
+        {
+            ".png",
+            ".jpg",
+            ".jpeg",
+            ".webp",
+            ".tga"
+        };
         private const int FrameSequenceFps = 60;
         private const double TargetPlaybackFrames = 77.0;
         private const int LoadingIndicatorDelayMs = 250;
@@ -778,8 +787,59 @@ namespace TestXboxGameBar.Controls
                     return null;
                 }
 
-                StorageFile file = await folder.GetFileAsync(fileName);
+                StorageFile file = await TryGetImportedIconFileAsync(folder, fileName);
+                if (file == null)
+                {
+                    return null;
+                }
+
                 return await LoadBitmapFromStorageFileAsync(file);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static async Task<StorageFile> TryGetImportedIconFileAsync(StorageFolder folder, string canonicalFileName)
+        {
+            foreach (string extension in ImportedIconImageExtensions)
+            {
+                StorageFile file = await TryGetImportedIconFileExactAsync(
+                    folder,
+                    Path.ChangeExtension(canonicalFileName, extension));
+                if (file != null)
+                {
+                    return file;
+                }
+            }
+
+            try
+            {
+                StorageFolder badgeex = await folder.GetFolderAsync("badgeex");
+                foreach (string extension in ImportedIconImageExtensions)
+                {
+                    StorageFile file = await TryGetImportedIconFileExactAsync(
+                        badgeex,
+                        Path.ChangeExtension(canonicalFileName, extension));
+                    if (file != null)
+                    {
+                        return file;
+                    }
+                }
+            }
+            catch
+            {
+            }
+
+            return null;
+        }
+
+        private static async Task<StorageFile> TryGetImportedIconFileExactAsync(StorageFolder folder, string fileName)
+        {
+            try
+            {
+                return await folder.GetFileAsync(fileName);
             }
             catch
             {
@@ -847,11 +907,7 @@ namespace TestXboxGameBar.Controls
                 default:
                     if (PackCatalogService.IsImportedIconPackKey(_iconPack))
                     {
-                        CanvasBitmap imported = await TryLoadImportedIconBitmapAsync(fileName);
-                        if (imported != null)
-                        {
-                            return imported;
-                        }
+                        return await TryLoadImportedIconBitmapAsync(fileName);
                     }
 
                     return await LoadCodeKillBitmapAsync(fileName, folder, null, false);
@@ -916,7 +972,7 @@ namespace TestXboxGameBar.Controls
                 fileName,
                 WeaponBadgeCodeFolder,
                 _weaponBadgeMode == 2,
-                true);
+                _weaponBadgeMode == 2);
         }
 
         private static bool SupportsWeaponBadgeForAsset(string assetName)
@@ -1060,6 +1116,14 @@ namespace TestXboxGameBar.Controls
 
         private static async Task<CanvasBitmap> LoadBitmapFromStorageFileAsync(StorageFile file)
         {
+            if (file.FileType.Equals(".tga", StringComparison.OrdinalIgnoreCase))
+            {
+                SoftwareBitmap softwareBitmap = await TgaDecoder.GetSoftwareBitmapAsync(file);
+                return softwareBitmap == null
+                    ? null
+                    : CanvasBitmap.CreateFromSoftwareBitmap(CanvasDevice.GetSharedDevice(), softwareBitmap);
+            }
+
             using (IRandomAccessStream stream = await file.OpenReadAsync())
             {
                 BitmapDecoder decoder = await BitmapDecoder.CreateAsync(stream);

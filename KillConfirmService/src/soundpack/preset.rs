@@ -73,30 +73,34 @@ impl Preset {
 }
 
 fn build_generated_voice_lua(folder_path: &str) -> String {
-    let known_files = [
-        ("common_overlay.wav", "common_overlay"),
-        ("common.wav", "common"),
-        ("2.wav", "2"),
-        ("3.wav", "3"),
-        ("4.wav", "4"),
-        ("5.wav", "5"),
-        ("6.wav", "6"),
-        ("7.wav", "7"),
-        ("8.wav", "8"),
-        ("headshot.wav", "headshot"),
-        ("knife.wav", "knife"),
-        ("firstandlast.wav", "firstandlast"),
+    let known_names = [
+        "common_overlay",
+        "common",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "headshot",
+        "knife",
+        "firstandlast",
     ];
+    let audio_extensions = ["wav", "mp3", "m4a"];
 
-    let available_entries = known_files
+    let available_entries = known_names
         .iter()
-        .filter_map(|(file_name, key)| {
-            let path = Path::new(folder_path).join(file_name);
-            if path.exists() {
-                Some(format!("[\"{key}\"] = true"))
-            } else {
-                None
-            }
+        .filter_map(|key| {
+            audio_extensions.iter().find_map(|extension| {
+                let file_name = format!("{key}.{extension}");
+                let path = Path::new(folder_path).join(&file_name);
+                if path.exists() {
+                    Some(format!("[\"{key}\"] = \"{file_name}\""))
+                } else {
+                    None
+                }
+            })
         })
         .collect::<Vec<_>>()
         .join(",\n    ");
@@ -109,7 +113,7 @@ fn build_generated_voice_lua(folder_path: &str) -> String {
          \tlocal common_overlay_played = false\n\n\
          \tlocal function add_if_present(name)\n\
          \t\tif available[name] then\n\
-         \t\t\ttable.insert(sounds, base .. name .. \".wav\")\n\
+         \t\t\ttable.insert(sounds, base .. available[name])\n\
          \t\tend\n\
          \tend\n\n\
          \tlocal function add_common_overlay_if_present()\n\
@@ -118,7 +122,7 @@ fn build_generated_voice_lua(folder_path: &str) -> String {
          \t\tend\n\
          \t\tif available[\"common_overlay\"] then\n\
          \t\t\tcommon_overlay_played = true\n\
-         \t\t\ttable.insert(sounds, base .. \"common_overlay.wav\")\n\
+         \t\t\ttable.insert(sounds, base .. available[\"common_overlay\"])\n\
          \t\tend\n\
          \tend\n\n\
          \tif ctx.is_first_kill or ctx.is_last_kill then\n\

@@ -24,6 +24,8 @@ const SEX_STREAK_8_SOUND_GAIN: f32 = 7.32;
 const FLYING_TIGER_SOUND_GAIN: f32 = 1.8;
 const WOMEN_SPECIAL_SOUND_GAIN: f32 = 1.6;
 const WOMEN_GR_GRENADE_SOUND_GAIN: f32 = 2.1;
+const QUIET_VOICE_PACK_SOUND_GAIN: f32 = 3.6;
+const GLOBAL_SOUND_GAIN: f32 = 0.25;
 const MAX_STREAK_EVENT_GAIN: f32 = 1.5;
 
 async fn add_file_to_mixer(
@@ -32,14 +34,15 @@ async fn add_file_to_mixer(
     event_gain: f32,
     master_volume: f32,
 ) -> Result<()> {
-    service_log(&format!("audio opening file: {file_name}"));
     let file = TokioFile::open(file_name)
         .await
         .with_context(|| format!("failed to open file: {file_name}"))?;
     let sync_file = file.into_std().await;
     let source = rodio::Decoder::new(BufReader::new(sync_file))
         .with_context(|| format!("failed to decode file: {file_name:?}"))?;
-    mixer.add(source.amplify(resolve_sound_gain(file_name, event_gain) * master_volume));
+    mixer.add(source.amplify(
+        resolve_sound_gain(file_name, event_gain) * GLOBAL_SOUND_GAIN * master_volume,
+    ));
     service_log(&format!("audio queued file: {file_name}"));
     Ok(())
 }
@@ -54,10 +57,6 @@ pub async fn play_audio(
     play_main_audio: bool,
 ) -> Result<()> {
     let volume = app_state_clone.volume_percent.load(Ordering::Relaxed) as f32 / 100.0;
-
-    service_log(&format!(
-        "audio request: kills={kill_count}, headshot={is_headshot}, knife={is_knife_kill}, first={is_first_kill}, last={is_last_kill}, main={play_main_audio}, volume={volume}"
-    ));
 
     let mixer = {
         let stream_handle = app_state_clone.stream_handle.read().await;
@@ -98,7 +97,6 @@ pub async fn play_audio(
         sound_files.len(),
         sound_files
     ));
-
     if sound_files.is_empty() {
         service_log("audio skipped: no sound files for this event");
         return Ok(());
@@ -120,8 +118,8 @@ pub async fn play_audio(
     let mut first_error = None;
     results.iter().for_each(|result| {
         if let Err(e) = result {
-            service_log(&format!("audio failed to add file to mixer: {e}"));
             error!("Failed to add file to mixer: {}", e);
+            service_log(&format!("failed to add file to mixer: {e}"));
             if first_error.is_none() {
                 first_error = Some(e.to_string());
             }
@@ -131,8 +129,6 @@ pub async fn play_audio(
     if let Some(error) = first_error {
         anyhow::bail!(error);
     }
-
-    service_log("audio request queued successfully");
 
     Ok(())
 }
@@ -144,13 +140,22 @@ fn resolve_sound_gain(file_name: &str, event_gain: f32) -> f32 {
         || normalized.contains("/crossfire_flying_tiger_bl/");
     let is_women_pack =
         normalized.contains("/crossfire_women_gr/") || normalized.contains("/crossfire_women_bl/");
+    let is_quiet_cf_pack = normalized.contains("/crossfire_bunny_gr/")
+        || normalized.contains("/crossfire_bunny_bl/")
+        || normalized.contains("/crossfire_heart_judge_gr/")
+        || normalized.contains("/crossfire_heart_judge_bl/");
+    let is_custom_pack = !normalized.starts_with("sounds/") && !normalized.contains("/sounds/");
 
-    if normalized.ends_with("/common.wav") {
+    if is_audio_file_named(&normalized, "common") || is_audio_file_named(&normalized, "common_overlay") {
         return COMMON_SOUND_GAIN * event_gain;
     }
 
+    if is_quiet_cf_pack || is_custom_pack {
+        return QUIET_VOICE_PACK_SOUND_GAIN * event_gain;
+    }
+
     if is_sex_pack
-        && (normalized.ends_with("/knife.wav") || normalized.ends_with("/firstandlast.wav"))
+        && (is_audio_file_named(&normalized, "knife") || is_audio_file_named(&normalized, "firstandlast"))
     {
         return SEX_SPECIAL_SOUND_GAIN * event_gain;
     }
@@ -159,7 +164,7 @@ fn resolve_sound_gain(file_name: &str, event_gain: f32) -> f32 {
         return resolve_sex_sound_gain(&normalized) * event_gain;
     }
 
-    if normalized.ends_with("/headshot.wav") {
+    if is_audio_file_named(&normalized, "headshot") {
         let pack_gain = if is_flying_tiger_pack {
             FLYING_TIGER_SOUND_GAIN
         } else if is_women_pack {
@@ -175,10 +180,10 @@ fn resolve_sound_gain(file_name: &str, event_gain: f32) -> f32 {
         return FLYING_TIGER_SOUND_GAIN * event_gain;
     }
 
-    if is_women_pack && (normalized.ends_with("/knife.wav") || normalized.ends_with("/grenade.wav"))
+    if is_women_pack && (is_audio_file_named(&normalized, "knife") || is_audio_file_named(&normalized, "grenade"))
     {
         let pack_gain = if normalized.contains("/crossfire_women_gr/")
-            && normalized.ends_with("/grenade.wav")
+            && is_audio_file_named(&normalized, "grenade")
         {
             WOMEN_GR_GRENADE_SOUND_GAIN
         } else {
@@ -191,36 +196,42 @@ fn resolve_sound_gain(file_name: &str, event_gain: f32) -> f32 {
     event_gain
 }
 
+fn is_audio_file_named(normalized_file_name: &str, stem: &str) -> bool {
+    [".wav", ".mp3", ".m4a"]
+        .iter()
+        .any(|extension| normalized_file_name.ends_with(&format!("/{stem}{extension}")))
+}
+
 fn resolve_sex_sound_gain(normalized_file_name: &str) -> f32 {
-    if normalized_file_name.ends_with("/headshot.wav") {
+    if is_audio_file_named(normalized_file_name, "headshot") {
         return SEX_HEADSHOT_SOUND_GAIN;
     }
 
-    if normalized_file_name.ends_with("/2.wav") {
+    if is_audio_file_named(normalized_file_name, "2") {
         return SEX_STREAK_2_SOUND_GAIN;
     }
 
-    if normalized_file_name.ends_with("/3.wav") {
+    if is_audio_file_named(normalized_file_name, "3") {
         return SEX_STREAK_3_SOUND_GAIN;
     }
 
-    if normalized_file_name.ends_with("/4.wav") {
+    if is_audio_file_named(normalized_file_name, "4") {
         return SEX_STREAK_4_SOUND_GAIN;
     }
 
-    if normalized_file_name.ends_with("/5.wav") {
+    if is_audio_file_named(normalized_file_name, "5") {
         return SEX_STREAK_5_SOUND_GAIN;
     }
 
-    if normalized_file_name.ends_with("/6.wav") {
+    if is_audio_file_named(normalized_file_name, "6") {
         return SEX_STREAK_6_SOUND_GAIN;
     }
 
-    if normalized_file_name.ends_with("/7.wav") {
+    if is_audio_file_named(normalized_file_name, "7") {
         return SEX_STREAK_7_SOUND_GAIN;
     }
 
-    if normalized_file_name.ends_with("/8.wav") {
+    if is_audio_file_named(normalized_file_name, "8") {
         return SEX_STREAK_8_SOUND_GAIN;
     }
 

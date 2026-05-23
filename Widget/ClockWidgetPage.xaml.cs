@@ -120,6 +120,9 @@ namespace TestXboxGameBar
         private const string FreeServicePortParameterGroupId = "FreeServicePort";
         private const string OpenRuntimeLogsParameterGroupId = "OpenRuntimeLogs";
         private const string OpenSettingsWindowParameterGroupId = "OpenSettingsWindow";
+        private const string RunPendingUpdateParameterGroupId = "RunPendingUpdate";
+        private const string OpenQuarkUpdateParameterGroupId = "OpenQuarkUpdate";
+        private const string PendingUpdateFileName = "pending_update.json";
         private const string QuarkUpdateUrl = "https://pan.quark.cn/s/1f3cfbcf8d5f?pwd=7Twv";
         private const string QuarkUpdateCode = "7Twv";
         private static readonly SemaphoreSlim ServiceStartupGate = new SemaphoreSlim(1, 1);
@@ -756,7 +759,19 @@ namespace TestXboxGameBar
 
         private async void OnOpenQuarkUpdateClick(object sender, RoutedEventArgs e)
         {
-            await Launcher.LaunchUriAsync(new Uri(QuarkUpdateUrl));
+            bool launched = await TryLaunchFullTrustHelperAsync(OpenQuarkUpdateParameterGroupId);
+            if (!launched)
+            {
+                launched = await Launcher.LaunchUriAsync(new Uri(QuarkUpdateUrl));
+            }
+
+            ShowStatusHint(
+                launched
+                    ? LocalizationManager.Text("UpdateOpenQuarkStarting")
+                    : LocalizationManager.Text("UpdateOpenQuarkFailed"),
+                launched
+                    ? Color.FromArgb(255, 180, 90, 0)
+                    : Color.FromArgb(255, 185, 28, 28));
         }
 
         private async void OnDownloadUpdateClick(object sender, RoutedEventArgs e)
@@ -795,7 +810,8 @@ namespace TestXboxGameBar
                 UpdateDownloadProgress.Value = 100;
                 UpdateDownloadStatusText.Text = LocalizationManager.Text("UpdateDownloadedLaunching");
 
-                bool launched = await Launcher.LaunchFileAsync(installerFile);
+                await WritePendingUpdateFileAsync(installerFile);
+                bool launched = await TryLaunchFullTrustHelperAsync(RunPendingUpdateParameterGroupId);
                 ShowStatusHint(
                     launched
                         ? LocalizationManager.Text("UpdateStartingHint")
@@ -823,6 +839,22 @@ namespace TestXboxGameBar
                 UpdateCloseButton.IsEnabled = true;
                 UpdateCancelButton.IsEnabled = true;
             }
+        }
+
+        private async Task WritePendingUpdateFileAsync(StorageFile installerFile)
+        {
+            JsonObject payload = new JsonObject
+            {
+                ["version"] = JsonValue.CreateStringValue(_latestReleaseVersion ?? string.Empty),
+                ["download_url"] = JsonValue.CreateStringValue(_latestReleaseDownloadUrl ?? string.Empty),
+                ["asset_name"] = JsonValue.CreateStringValue(_latestReleaseAssetName ?? installerFile.Name),
+                ["installer_path"] = JsonValue.CreateStringValue(installerFile.Path ?? string.Empty)
+            };
+
+            StorageFile pendingFile = await ApplicationData.Current.LocalFolder.CreateFileAsync(
+                PendingUpdateFileName,
+                CreationCollisionOption.ReplaceExisting);
+            await FileIO.WriteTextAsync(pendingFile, payload.Stringify());
         }
 
         private async Task<StorageFile> DownloadUpdateInstallerAsync(Uri downloadUri, string assetName)

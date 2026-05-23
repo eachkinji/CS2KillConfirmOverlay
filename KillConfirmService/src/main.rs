@@ -44,6 +44,7 @@ const DEFAULT_LOG_LEVEL: LevelFilter = if cfg!(debug_assertions) {
 } else {
     LevelFilter::INFO
 };
+const QUARK_UPDATE_URL: &str = "https://pan.quark.cn/s/1f3cfbcf8d5f?pwd=7Twv";
 #[link(name = "kernel32")]
 unsafe extern "system" {
     fn GetCurrentPackageFamilyName(
@@ -125,6 +126,11 @@ async fn run() -> Result<()> {
 
     if args.run_pending_update {
         run_pending_update().context("failed to run pending update")?;
+        return Ok(());
+    }
+
+    if args.open_quark_update {
+        open_url(QUARK_UPDATE_URL).context("failed to open Quark update URL")?;
         return Ok(());
     }
 
@@ -322,6 +328,7 @@ struct PendingUpdate {
     version: String,
     download_url: String,
     asset_name: String,
+    installer_path: Option<String>,
 }
 
 fn run_pending_update() -> Result<()> {
@@ -346,11 +353,22 @@ fn run_pending_update() -> Result<()> {
         pending.version, file_name, pending.download_url
     ));
 
-    if installer_path.exists() {
-        let _ = fs::remove_file(&installer_path);
-    }
+    let installer_path = pending
+        .installer_path
+        .as_deref()
+        .filter(|value| !value.trim().is_empty())
+        .map(PathBuf::from)
+        .filter(|path| path.exists())
+        .unwrap_or_else(|| installer_path);
 
-    download_update_installer(&pending.download_url, &installer_path)?;
+    if !installer_path.exists() {
+        download_update_installer(&pending.download_url, &installer_path)?;
+    } else {
+        service_log(&format!(
+            "using existing downloaded installer: {}",
+            installer_path.display()
+        ));
+    }
 
     let _ = fs::remove_file(&pending_path);
     Command::new(&installer_path)
@@ -360,6 +378,15 @@ fn run_pending_update() -> Result<()> {
         "pending update installer launched: {}",
         installer_path.display()
     ));
+    Ok(())
+}
+
+fn open_url(url: &str) -> Result<()> {
+    service_log(&format!("opening external URL: {url}"));
+    Command::new("explorer.exe")
+        .arg(url)
+        .spawn()
+        .with_context(|| format!("failed to open URL with explorer.exe: {url}"))?;
     Ok(())
 }
 

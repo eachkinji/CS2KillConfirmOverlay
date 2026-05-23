@@ -680,7 +680,7 @@
                                     Width="150"
                                     Style="{StaticResource NarrowComboBoxStyle}"
                                     HorizontalAlignment="Stretch"
-                                    HorizontalContentAlignment="Center"
+                                    HorizontalContentAlignment="Left"
                                     SelectedIndex="0"
                                     SelectionChanged="OnVoicePackSelectionChanged"
                                     ToolTipService.ToolTip="Select voice pack">
@@ -689,8 +689,8 @@
                                     <ComboBoxItem x:Name="CrossfireFlyingTigerGrVoiceItem" Tag="crossfire_flying_tiger_gr">tiger GR</ComboBoxItem>
                                     <ComboBoxItem x:Name="CrossfireFlyingTigerBlVoiceItem" Tag="crossfire_flying_tiger_bl">tiger BL</ComboBoxItem>
                                     <ComboBoxItem Tag="crossfire_v_sex">cfsex</ComboBoxItem>
-                                    <ComboBoxItem x:Name="CrossfireWomenGrVoiceItem" Tag="crossfire_women_gr">women GR</ComboBoxItem>
-                                    <ComboBoxItem x:Name="CrossfireWomenBlVoiceItem" Tag="crossfire_women_bl">women BL</ComboBoxItem>
+                                    <ComboBoxItem x:Name="CrossfireWomenGrVoiceItem" Tag="crossfire_women_gr">American Girl GR</ComboBoxItem>
+                                    <ComboBoxItem x:Name="CrossfireWomenBlVoiceItem" Tag="crossfire_women_bl">American Girl BL</ComboBoxItem>
                                 </ComboBox>
 
                                 <PathIcon
@@ -705,7 +705,7 @@
                                     Grid.Column="3"
                                     Width="150"
                                     Style="{StaticResource NarrowComboBoxStyle}"
-                                    HorizontalContentAlignment="Center"
+                                    HorizontalContentAlignment="Left"
                                     SelectedIndex="0"
                                     SelectionChanged="OnIconPackSelectionChanged">
                                     <ComboBoxItem x:Name="DefaultIconPackItem" Tag="default" Foreground="#1B1F31">Default</ComboBoxItem>
@@ -1166,5 +1166,165 @@
                 </Grid>
             </Grid>
         </Border>
+
+        <Grid
+            x:Name="UpdateOverlay"
+            Background="#99000000"
+            Visibility="Collapsed">
+            <Border
+                Width="408"
+                Padding="22"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Background="#FFFAF7F0"
+                BorderBrush="#E2DDD3"
+                BorderThickness="1"
+                CornerRadius="24">
+                <Grid RowSpacing="14">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Spacing="4">
+                            <TextBlock
+                                x:Name="UpdateDialogTitleText"
+                                FontSize="24"
+                                FontWeight="Bold"
+                                Foreground="#1B1F31"
+                                Text="发现更新" />
+                            <TextBlock
+                                x:Name="UpdateDialogVersionText"
+                                FontSize="13"
+                                FontWeight="SemiBold"
+                                Foreground="#8A6A36"
+                                Text="v..." />
+                        </StackPanel>
+                        <Button
+                            x:Name="UpdateCloseButton"
+                            Grid.Column="1"
+                            Width="30"
+                            Height="30"
+                            MinWidth="30"
+                            Padding="0"
+                            Background="#FFFDFC"
+                            BorderBrush="#D5D0C4"
+                            BorderThickness="1"
+                            Click="OnCloseUpdateOverlayClick"
+                            Content="×"
+                            CornerRadius="15"
+                            FontSize="18"
+                            Foreground="#1B1F31" />
+                    </Grid>
+
+                    <TextBlock
+                        x:Name="UpdateDialogBodyText"
+                        Grid.Row="1"
+                        FontSize="13"
+                        Foreground="#4B5563"
+                        LineHeight="20"
+                        TextWrapping="WrapWholeWords" />
+
+                    <Border
+                        Grid.Row="2"
+                        Padding="12"
+                        Background="#FFFFF7EA"
+                        BorderBrush="#F7BE6A"
+                        BorderThickness="1"
+                        CornerRadius="16">
+                        <StackPanel Spacing="6">
+                            <TextBlock
+                                x:Name="UpdateQuarkHintText"
+                                FontSize="12"
+                                FontWeight="SemiBold"
+                                Foreground="#8A4B00"
+                                TextWrapping="WrapWholeWords" />
+                            <TextBlock
+                                x:Name="UpdateQuarkCodeText"
+                                FontSize="12"
+                                FontWeight="Bold"
+                                Foreground="#1B1F31" />
+                            <Button
+                                x:Name="UpdateOpenQuarkButton"
+                                Width="150"
+                                Height="30"
+                                MinWidth="150"
+                                HorizontalAlignment="Left"
+                                Background="#FFFDFC"
+                                BorderBrush="#F7BE6A"
+                                BorderThickness="1"
+                                Click="OnOpenQuarkUpdateClick"
+                                Content="打开夸克备用下载"
+                                CornerRadius="10"
+                                FontSize="12"
+                                Foreground="#8A4B00" />
+                        </StackPanel>
+                    </Border>
+
+                    <StackPanel
+                        Grid.Row="3"
+                        Spacing="8">
+                        <TextBlock
+                            x:Name="UpdateDownloadStatusText"
+                            FontSize="12"
+                            FontWeight="SemiBold"
+                            Foreground="#2D3748"
+                            Text="等待下载" />
+                        <ProgressBar
+                            x:Name="UpdateDownloadProgress"
+                            Height="8"
+                            Background="#E7E1D6"
+                            Foreground="#2E88B8"
+                            IsIndeterminate="False"
+                            Maximum="100"
+                            Minimum="0"
+                            Value="0" />
+                    </StackPanel>
+
+                    <Grid
+                        Grid.Row="4"
+                        ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Button
+                            x:Name="UpdateDownloadButton"
+                            Grid.Column="0"
+                            Height="38"
+                            Background="#2E88B8"
+                            BorderBrush="#45A3D3"
+                            BorderThickness="1"
+                            Click="OnDownloadUpdateClick"
+                            Content="下载并安装"
+                            CornerRadius="14"
+                            FontSize="15"
+                            FontWeight="SemiBold"
+                            Foreground="White" />
+                        <Button
+                            x:Name="UpdateCancelButton"
+                            Grid.Column="1"
+                            Height="38"
+                            Background="#FFFDFC"
+                            BorderBrush="#D5D0C4"
+                            BorderThickness="1"
+                            Click="OnCloseUpdateOverlayClick"
+                            Content="稍后"
+                            CornerRadius="14"
+                            FontSize="15"
+                            FontWeight="SemiBold"
+                            Foreground="#1B1F31" />
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
     </Grid>
 </Page>

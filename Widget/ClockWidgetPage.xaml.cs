@@ -120,8 +120,8 @@ namespace TestXboxGameBar
         private const string FreeServicePortParameterGroupId = "FreeServicePort";
         private const string OpenRuntimeLogsParameterGroupId = "OpenRuntimeLogs";
         private const string OpenSettingsWindowParameterGroupId = "OpenSettingsWindow";
-        private const string RunPendingUpdateParameterGroupId = "RunPendingUpdate";
-        private const string PendingUpdateFileName = "pending_update.json";
+        private const string QuarkUpdateUrl = "https://pan.quark.cn/s/1f3cfbcf8d5f?pwd=7Twv";
+        private const string QuarkUpdateCode = "7Twv";
         private static readonly SemaphoreSlim ServiceStartupGate = new SemaphoreSlim(1, 1);
         private static readonly Uri LatestReleaseUri = new Uri("https://api.github.com/repos/eachkinji/CS2KillConfirmOverlay/releases/latest");
         private static readonly IReadOnlyDictionary<string, TestPreset> TestPresets =
@@ -175,6 +175,7 @@ namespace TestXboxGameBar
         private bool _animationCacheFailed;
         private bool _shutdownRequested;
         private bool _updateCheckInProgress;
+        private bool _updateDownloadInProgress;
         private int _statusHintIndex;
         private DateTimeOffset _lastGsiStatusCheck = DateTimeOffset.MinValue;
         private UpdateAvailabilityState _updateAvailabilityState = UpdateAvailabilityState.Unknown;
@@ -715,54 +716,183 @@ namespace TestXboxGameBar
                 return;
             }
 
-            string title = LocalizationManager.Text("UpdatePromptTitle");
-            string message = string.Format(LocalizationManager.Text("UpdatePromptBody"), _latestReleaseVersion);
-            MessageDialog dialog = new MessageDialog(message, title);
-            UICommand confirmCommand = new UICommand(LocalizationManager.Text("UpdateNow"));
-            dialog.Commands.Add(confirmCommand);
-            dialog.Commands.Add(new UICommand(LocalizationManager.Text("Cancel")));
-            dialog.DefaultCommandIndex = 0;
-            dialog.CancelCommandIndex = 1;
+            ShowUpdateOverlay();
+            await Task.CompletedTask;
+        }
 
-            IUICommand selected = await dialog.ShowAsync();
-            if (!ReferenceEquals(selected, confirmCommand))
+        private void ShowUpdateOverlay()
+        {
+            UpdateDialogTitleText.Text = LocalizationManager.Text("UpdatePromptTitle");
+            UpdateDialogVersionText.Text = _latestReleaseVersion;
+            UpdateDialogBodyText.Text = string.Format(LocalizationManager.Text("UpdatePromptBody"), _latestReleaseVersion);
+            UpdateQuarkHintText.Text = LocalizationManager.Text("UpdateQuarkHint");
+            UpdateQuarkCodeText.Text = string.Format(LocalizationManager.Text("UpdateQuarkCode"), QuarkUpdateCode);
+            UpdateOpenQuarkButton.Content = LocalizationManager.Text("UpdateOpenQuark");
+            UpdateDownloadButton.Content = LocalizationManager.Text("UpdateDownloadAndInstall");
+            UpdateCancelButton.Content = LocalizationManager.Text("Later");
+            UpdateDownloadStatusText.Text = LocalizationManager.Text("UpdateReadyToDownload");
+            UpdateDownloadProgress.Value = 0;
+            UpdateDownloadProgress.IsIndeterminate = false;
+            UpdateDownloadButton.IsEnabled = !_updateDownloadInProgress;
+            UpdateCloseButton.IsEnabled = !_updateDownloadInProgress;
+            UpdateCancelButton.IsEnabled = !_updateDownloadInProgress;
+            UpdateOverlay.Visibility = Visibility.Visible;
+        }
+
+        private void HideUpdateOverlay()
+        {
+            if (_updateDownloadInProgress)
             {
                 return;
             }
 
-            bool launched = await LaunchPendingUpdateAsync();
-            ShowStatusHint(
-                launched
-                    ? LocalizationManager.Text("UpdateStartingHint")
-                    : LocalizationManager.Text("UpdateLaunchFailed"),
-                launched
-                    ? Color.FromArgb(255, 180, 90, 0)
-                    : Color.FromArgb(255, 185, 28, 28));
+            UpdateOverlay.Visibility = Visibility.Collapsed;
         }
 
-        private async Task<bool> LaunchPendingUpdateAsync()
+        private void OnCloseUpdateOverlayClick(object sender, RoutedEventArgs e)
         {
+            HideUpdateOverlay();
+        }
+
+        private async void OnOpenQuarkUpdateClick(object sender, RoutedEventArgs e)
+        {
+            await Launcher.LaunchUriAsync(new Uri(QuarkUpdateUrl));
+        }
+
+        private async void OnDownloadUpdateClick(object sender, RoutedEventArgs e)
+        {
+            if (_updateDownloadInProgress)
+            {
+                return;
+            }
+
+            await DownloadAndLaunchUpdateAsync();
+        }
+
+        private async Task DownloadAndLaunchUpdateAsync()
+        {
+            if (string.IsNullOrWhiteSpace(_latestReleaseDownloadUrl) || string.IsNullOrWhiteSpace(_latestReleaseAssetName))
+            {
+                ShowStatusHint(LocalizationManager.Text("UpdateNoInstallerHint"), Color.FromArgb(255, 75, 85, 99));
+                return;
+            }
+
+            _updateDownloadInProgress = true;
+            UpdateDownloadButton.IsEnabled = false;
+            UpdateCloseButton.IsEnabled = false;
+            UpdateCancelButton.IsEnabled = false;
+            UpdateDownloadProgress.Value = 0;
+            UpdateDownloadProgress.IsIndeterminate = false;
+            UpdateDownloadStatusText.Text = LocalizationManager.Text("UpdateDownloading");
+
             try
             {
-                StorageFile pendingFile = await ApplicationData.Current.LocalFolder.CreateFileAsync(
-                    PendingUpdateFileName,
-                    CreationCollisionOption.ReplaceExisting);
+                StorageFile installerFile = await DownloadUpdateInstallerAsync(
+                    new Uri(_latestReleaseDownloadUrl),
+                    _latestReleaseAssetName);
 
-                JsonObject payload = new JsonObject
+                UpdateDownloadProgress.IsIndeterminate = false;
+                UpdateDownloadProgress.Value = 100;
+                UpdateDownloadStatusText.Text = LocalizationManager.Text("UpdateDownloadedLaunching");
+
+                bool launched = await Launcher.LaunchFileAsync(installerFile);
+                ShowStatusHint(
+                    launched
+                        ? LocalizationManager.Text("UpdateStartingHint")
+                        : LocalizationManager.Text("UpdateLaunchFailed"),
+                    launched
+                        ? Color.FromArgb(255, 180, 90, 0)
+                        : Color.FromArgb(255, 185, 28, 28));
+
+                if (launched)
                 {
-                    ["version"] = JsonValue.CreateStringValue(_latestReleaseVersion),
-                    ["download_url"] = JsonValue.CreateStringValue(_latestReleaseDownloadUrl),
-                    ["asset_name"] = JsonValue.CreateStringValue(_latestReleaseAssetName)
-                };
-                await FileIO.WriteTextAsync(pendingFile, payload.Stringify());
-
-                return await TryLaunchFullTrustHelperAsync(RunPendingUpdateParameterGroupId);
+                    UpdateOverlay.Visibility = Visibility.Collapsed;
+                }
             }
             catch (Exception ex)
             {
-                App.Log("Failed to prepare pending update: " + ex);
-                return false;
+                App.Log("Update download failed: " + ex);
+                UpdateDownloadProgress.IsIndeterminate = false;
+                UpdateDownloadStatusText.Text = LocalizationManager.Text("UpdateDownloadFailed");
+                ShowStatusHint(LocalizationManager.Text("UpdateDownloadFailed"), Color.FromArgb(255, 185, 28, 28));
             }
+            finally
+            {
+                _updateDownloadInProgress = false;
+                UpdateDownloadButton.IsEnabled = true;
+                UpdateCloseButton.IsEnabled = true;
+                UpdateCancelButton.IsEnabled = true;
+            }
+        }
+
+        private async Task<StorageFile> DownloadUpdateInstallerAsync(Uri downloadUri, string assetName)
+        {
+            string safeAssetName = PathSafeFileName(assetName, "KillConfirmGameBar_Update.exe");
+            StorageFolder updateFolder = await ApplicationData.Current.LocalFolder.CreateFolderAsync(
+                "updates",
+                CreationCollisionOption.OpenIfExists);
+            StorageFile installerFile = await updateFolder.CreateFileAsync(
+                safeAssetName,
+                CreationCollisionOption.ReplaceExisting);
+
+            using (HttpClient client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.TryAppendWithoutValidation("User-Agent", "KillConfirmOverlayUpdater/1.0");
+                HttpResponseMessage response = await client.GetAsync(downloadUri, HttpCompletionOption.ResponseHeadersRead);
+                response.EnsureSuccessStatusCode();
+
+                ulong? totalBytes = response.Content.Headers.ContentLength;
+                using (IInputStream input = await response.Content.ReadAsInputStreamAsync())
+                using (IRandomAccessStream output = await installerFile.OpenAsync(FileAccessMode.ReadWrite))
+                {
+                    ulong downloadedBytes = 0;
+                    const uint bufferSize = 1024 * 128;
+                    while (true)
+                    {
+                        IBuffer buffer = new Windows.Storage.Streams.Buffer(bufferSize);
+                        IBuffer readBuffer = await input.ReadAsync(buffer, bufferSize, InputStreamOptions.None);
+                        if (readBuffer.Length == 0)
+                        {
+                            break;
+                        }
+
+                        await output.WriteAsync(readBuffer);
+                        downloadedBytes += readBuffer.Length;
+                        UpdateDownloadProgressUi(downloadedBytes, totalBytes);
+                    }
+
+                    await output.FlushAsync();
+                }
+            }
+
+            return installerFile;
+        }
+
+        private void UpdateDownloadProgressUi(ulong downloadedBytes, ulong? totalBytes)
+        {
+            if (totalBytes.HasValue && totalBytes.Value > 0)
+            {
+                double percent = Math.Min(100.0, downloadedBytes * 100.0 / totalBytes.Value);
+                UpdateDownloadProgress.IsIndeterminate = false;
+                UpdateDownloadProgress.Value = percent;
+                UpdateDownloadStatusText.Text = string.Format(LocalizationManager.Text("UpdateDownloadProgress"), percent);
+            }
+            else
+            {
+                UpdateDownloadProgress.IsIndeterminate = true;
+                UpdateDownloadStatusText.Text = LocalizationManager.Text("UpdateDownloading");
+            }
+        }
+
+        private static string PathSafeFileName(string value, string fallback)
+        {
+            string name = string.IsNullOrWhiteSpace(value) ? fallback : value;
+            foreach (char invalidChar in System.IO.Path.GetInvalidFileNameChars())
+            {
+                name = name.Replace(invalidChar, '_');
+            }
+
+            return string.IsNullOrWhiteSpace(name) ? fallback : name;
         }
 
         private void UpdateUpdateButtonVisualState()
@@ -1317,6 +1447,10 @@ namespace TestXboxGameBar
             SetNamedToolTip(OpenGuideButton, LocalizationManager.Text("OpenGuideTitle"), LocalizationManager.Text("OpenGuideTooltip"));
             SetNamedToolTip(OpenLogsButton, LocalizationManager.Text("OpenLogsTitle"), LocalizationManager.Text("OpenLogsTooltip"));
             SetNamedToolTip(FreePortButton, LocalizationManager.Text("FreePortTitle"), LocalizationManager.Text("FreePortTooltip"));
+            SetNamedToolTip(UpdateButton, LocalizationManager.Text("UpdateTitle"), LocalizationManager.Text("UpdateUnavailableTooltip"));
+            UpdateOpenQuarkButton.Content = LocalizationManager.Text("UpdateOpenQuark");
+            UpdateDownloadButton.Content = LocalizationManager.Text("UpdateDownloadAndInstall");
+            UpdateCancelButton.Content = LocalizationManager.Text("Later");
             SetNamedToolTip(ConnectionStatusBadge, LocalizationManager.Text("ServiceStatusTitle"), LocalizationManager.Text("ServiceStatusTooltip"));
             SetNamedToolTip(CfgStatusBadge, LocalizationManager.Text("CfgStatusTitle"), LocalizationManager.Text("CfgStatusTooltip"));
             SetNamedToolTip(GsiStatusBadge, LocalizationManager.Text("GsiStatusTitle"), LocalizationManager.Text("GsiStatusTooltip"));

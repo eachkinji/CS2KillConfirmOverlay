@@ -6,6 +6,7 @@ function get_sounds(ctx)
     local base = "sounds/" .. ctx.preset_name .. "/"
 
     if ctx.is_first_kill or ctx.is_last_kill then
+        table.insert(sounds, base .. "common.wav")
         table.insert(sounds, base .. "firstandlast.wav")
         return sounds
     end

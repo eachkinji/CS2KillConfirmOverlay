@@ -1,14 +1,13 @@
 -- sound.lua for crossfire_women_bl
 -- Has: common.wav, 2.wav through 8.wav, headshot.wav, knife.wav, grenade.wav
--- first/last layers grenade.wav over common.wav.
--- Main event priority: common + first/last > streak > knife > headshot.
+-- grenade.wav has priority for first kill and last kill.
+-- Main event priority: streak > knife > headshot > common.
 
 function get_sounds(ctx)
     local sounds = {}
     local base = "sounds/" .. ctx.preset_name .. "/"
 
     if ctx.is_first_kill or ctx.is_last_kill then
-        table.insert(sounds, base .. "common.wav")
         table.insert(sounds, base .. "grenade.wav")
         return sounds
     end

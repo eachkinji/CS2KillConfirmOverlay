@@ -221,7 +221,6 @@ ReadyMemoGroup=开始菜单文件夹：
 ReadyMemoTasks=附加任务：
 
 ; *** TExtractionWizardPage 向导页面与 ExtractArchive
-ExtractionLabel=正在解压文件...
 ButtonStopExtraction=停止解压(&S)
 StopExtraction=您确定要停止解压吗？
 ErrorExtractionAborted=解压已中止
@@ -230,16 +229,32 @@ ErrorExtractionFailed=解压失败：%1
 ; *** 压缩文件解压失败详情
 
 ; *** TDownloadWizardPage 向导页面和 DownloadTemporaryFile
-DownloadingLabel=正在下载文件...
 ButtonStopDownload=停止下载(&S)
 StopDownload=您确定要停止下载吗？
 ErrorDownloadAborted=下载已中止
 ErrorDownloadFailed=下载失败：%1 %2
 ErrorDownloadSizeFailed=获取下载大小失败：%1 %2
-ErrorFileHash1=文件哈希校验失败：%1
-ErrorFileHash2=文件哈希无效：预期 %1，实际 %2
 ErrorProgress=无效的进度：%1 / %2
 ErrorFileSize=文件大小错误：预期 %1，实际 %2
+ArchiveIncorrectPassword=压缩包密码不正确。
+ArchiveIsCorrupted=压缩包已损坏。
+ArchiveUnsupportedFormat=不支持此压缩包格式。
+DownloadingLabel2=正在下载文件...
+ErrorDownloading=下载文件时出错。
+ErrorExtracting=解压文件时出错。
+ExtractingLabel=正在解压文件...
+RetryCancelCancel=取消
+RetryCancelRetry=重试
+RetryCancelSelectAction=选择操作
+SourceVerificationFailed=源文件校验失败。
+StatusDownloadFiles=正在下载文件...
+VerificationFileHashIncorrect=文件哈希不正确。
+VerificationFileNameIncorrect=文件名不正确。
+VerificationFileSizeIncorrect=文件大小不正确。
+VerificationFileTagIncorrect=文件标签不正确。
+VerificationKeyNotFound=找不到校验密钥。
+VerificationSignatureDoesntExist=校验签名不存在。
+VerificationSignatureInvalid=校验签名无效。
 
 ; *** “正在准备安装”向导页
 WizardPreparing=正在准备安装

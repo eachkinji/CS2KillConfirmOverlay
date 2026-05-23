@@ -22,6 +22,7 @@ using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Imaging;
+using Windows.UI.Xaml.Media.Animation;
 using Windows.UI.Xaml.Navigation;
 using Windows.Web.Http;
 using Windows.System;
@@ -101,7 +102,7 @@ namespace TestXboxGameBar
             " }\r\n" +
             "}\r\n";
         private const int ControlPanelStateRefreshMs = 250;
-        private const int StatusHintRotationMs = 2000;
+        private const int StatusHintRotationMs = 3000;
         private const string PackagedServiceParameterGroupId = "CrossfirePreset";
         private const string FullTrustProcessLauncherRuntimeClass = "Windows.ApplicationModel.FullTrustProcessLauncher";
         private static readonly System.Guid FullTrustProcessLauncherStaticsGuid =
@@ -180,6 +181,7 @@ namespace TestXboxGameBar
         private bool _updateCheckInProgress;
         private bool _updateDownloadInProgress;
         private int _statusHintIndex;
+        private string _currentStatusHintText = string.Empty;
         private DateTimeOffset _lastGsiStatusCheck = DateTimeOffset.MinValue;
         private UpdateAvailabilityState _updateAvailabilityState = UpdateAvailabilityState.Unknown;
         private string _latestReleaseVersion = string.Empty;
@@ -3391,10 +3393,53 @@ namespace TestXboxGameBar
 
         private void ShowStatusHint(string text, Color color, int index = 0, int total = 1)
         {
+            bool changed = !string.Equals(_currentStatusHintText, text, StringComparison.Ordinal);
+            _currentStatusHintText = text;
             PinHintText.Text = text;
             PinHintText.Foreground = new SolidColorBrush(color);
+            StatusHintProgressFill.Background = new SolidColorBrush(color);
             StatusHintPagerText.Text = total > 0 ? $"{index + 1}/{total}" : string.Empty;
+            UpdateStatusHintProgress(index, total);
+            if (changed)
+            {
+                AnimateStatusHintChange();
+            }
             ToolTipService.SetToolTip(StatusHintBox, text);
+        }
+
+        private void UpdateStatusHintProgress(int index, int total)
+        {
+            if (StatusHintProgressScale == null)
+            {
+                return;
+            }
+
+            double progress = total > 0
+                ? Math.Max(0.0, Math.Min(1.0, (index + 1.0) / total))
+                : 0.0;
+            StatusHintProgressScale.ScaleX = progress;
+        }
+
+        private void AnimateStatusHintChange()
+        {
+            if (PinHintText == null)
+            {
+                return;
+            }
+
+            var storyboard = new Storyboard();
+            var fade = new DoubleAnimation
+            {
+                From = 0.15,
+                To = 1.0,
+                Duration = new Duration(TimeSpan.FromMilliseconds(220)),
+                EnableDependentAnimation = true
+            };
+
+            Storyboard.SetTarget(fade, PinHintText);
+            Storyboard.SetTargetProperty(fade, "Opacity");
+            storyboard.Children.Add(fade);
+            storyboard.Begin();
         }
 
         private static void SetNamedToolTip(DependencyObject target, string title, string description)
@@ -3811,11 +3856,11 @@ namespace TestXboxGameBar
             try
             {
                 PackageVersion version = Package.Current.Id.Version;
-                return $"v{version.Major}.{version.Minor}.{version.Build}.{version.Revision}";
+                return $"{version.Major}.{version.Minor}.{version.Build}";
             }
             catch (Exception)
             {
-                return "v?";
+                return "?";
             }
         }
 
@@ -3824,11 +3869,11 @@ namespace TestXboxGameBar
             try
             {
                 PackageVersion version = Package.Current.Id.Version;
-                return $"v{version.Major}.{version.Minor}.{version.Build}";
+                return $"{version.Major}.{version.Minor}.{version.Build}";
             }
             catch (Exception)
             {
-                return "v?";
+                return "?";
             }
         }
 

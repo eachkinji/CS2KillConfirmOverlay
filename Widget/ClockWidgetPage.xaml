@@ -254,38 +254,61 @@
                         x:Name="StatusHintBox"
                         Grid.RowSpan="2"
                         Width="258"
-                        MinHeight="36"
+                        Height="36"
                         VerticalAlignment="Center"
-                        Padding="8,4"
+                        Padding="8,3,8,2"
                         Background="#FFFDFC"
                         BorderBrush="#E2DDD3"
                         BorderThickness="1"
                         CornerRadius="14"
                         ToolTipService.ToolTip="Click the pin button in Xbox Game Bar's top-right corner.">
-                        <Grid ColumnSpacing="6">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <TextBlock
-                                x:Name="PinHintText"
-                                VerticalAlignment="Center"
-                                FontSize="10"
-                                FontWeight="Bold"
-                                Foreground="#B45A00"
-                                MaxLines="2"
-                                Text="Pin the widget in the top-right to keep the icon on screen."
-                                TextTrimming="CharacterEllipsis"
-                                TextWrapping="WrapWholeWords" />
-                            <TextBlock
-                                x:Name="StatusHintPagerText"
-                                Grid.Column="1"
-                                VerticalAlignment="Bottom"
-                                Margin="2,0,0,0"
-                                FontSize="8"
-                                FontWeight="Bold"
-                                Foreground="#4B5563"
-                                Text="1/1" />
+                        <Grid RowSpacing="2">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="3" />
+                            </Grid.RowDefinitions>
+                            <Grid ColumnSpacing="6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock
+                                    x:Name="PinHintText"
+                                    VerticalAlignment="Center"
+                                    FontSize="10"
+                                    FontWeight="Bold"
+                                    Foreground="#B45A00"
+                                    MaxLines="2"
+                                    Opacity="1"
+                                    Text="Pin the widget in the top-right to keep the icon on screen."
+                                    TextTrimming="CharacterEllipsis"
+                                    TextWrapping="WrapWholeWords" />
+                                <TextBlock
+                                    x:Name="StatusHintPagerText"
+                                    Grid.Column="1"
+                                    VerticalAlignment="Center"
+                                    Margin="2,0,0,0"
+                                    FontSize="8"
+                                    FontWeight="Bold"
+                                    Foreground="#4B5563"
+                                    Text="1/1" />
+                            </Grid>
+                            <Border
+                                Grid.Row="1"
+                                Height="3"
+                                Background="#EEE8DE"
+                                CornerRadius="2">
+                                <Border
+                                    x:Name="StatusHintProgressFill"
+                                    HorizontalAlignment="Stretch"
+                                    Background="#F59E0B"
+                                    CornerRadius="2"
+                                    RenderTransformOrigin="0,0.5">
+                                    <Border.RenderTransform>
+                                        <ScaleTransform x:Name="StatusHintProgressScale" ScaleX="1" />
+                                    </Border.RenderTransform>
+                                </Border>
+                            </Border>
                         </Grid>
                     </Border>
 
@@ -293,7 +316,7 @@
                         Grid.Row="0"
                         Grid.Column="1"
                         HorizontalAlignment="Left"
-                        ColumnSpacing="4">
+                        ColumnSpacing="6">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="55" />
                             <ColumnDefinition Width="24" />
@@ -359,6 +382,8 @@
                             x:Name="OpenGuideButton"
                             Grid.Column="1"
                             Style="{StaticResource ToolbarIconButtonStyle}"
+                            Background="#F59E0B"
+                            BorderBrush="#C56A00"
                             Click="OnOpenGuideClick"
                             ToolTipService.ToolTip="Open settings">
                             <FontIcon
@@ -367,7 +392,7 @@
                                 Glyph="&#xE713;"
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center"
-                                Foreground="#1B1F31" />
+                                Foreground="#FFFFFF" />
                         </Button>
 
                         <Button
@@ -410,14 +435,22 @@
                     <Grid
                         Grid.Row="1"
                         Grid.Column="1"
-                        HorizontalAlignment="Stretch"
-                        ColumnSpacing="8">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
+                        Width="170"
+                        Height="24"
+                        HorizontalAlignment="Left"
+                        Background="Transparent">
+                        <Border
+                            Background="#FFFDFC"
+                            BorderBrush="#E2DDD3"
+                            BorderThickness="1"
+                            CornerRadius="13" />
+                        <Grid Margin="9,0" ColumnSpacing="11">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
 
                         <StackPanel
                             x:Name="ConnectionStatusBadge"
@@ -501,6 +534,7 @@
                                 Foreground="#1B1F31"
                                 Text="ANI" />
                         </StackPanel>
+                        </Grid>
                     </Grid>
                 </Grid>
 

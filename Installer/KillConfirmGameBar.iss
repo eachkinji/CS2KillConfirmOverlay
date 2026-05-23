@@ -30,17 +30,12 @@ UninstallDisplayName={#MyAppName}
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
-Name: "chinesesimplified"; MessagesFile: "ChineseSimplified.isl"
 
 [CustomMessages]
 english.OpenXboxGameBar=Open Xbox Game Bar
-chinesesimplified.OpenXboxGameBar=Open Xbox Game Bar
 english.InstallingOverlay=Installing Kill Confirm Overlay...
-chinesesimplified.InstallingOverlay=Installing Kill Confirm Overlay...
 english.InstallScriptLaunchFailed=Could not start the installer script.
-chinesesimplified.InstallScriptLaunchFailed=Could not start the installer script.
 english.InstallScriptFailed=Install script failed. See %TEMP%\KillConfirmGameBar_Install.log. Exit code:
-chinesesimplified.InstallScriptFailed=Install script failed. See %TEMP%\KillConfirmGameBar_Install.log. Exit code:
 
 [InstallDelete]
 Type: filesandordirs; Name: "{app}\Payload"

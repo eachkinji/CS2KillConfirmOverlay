@@ -152,6 +152,9 @@
     <Content Include="Assets\FluentIcons\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Assets\PackIcons\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="GameBar\Square44x44Logo.png" />
     <Content Include="KillConfirmService\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

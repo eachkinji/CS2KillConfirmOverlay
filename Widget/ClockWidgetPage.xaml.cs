@@ -1,6 +1,7 @@
-using Microsoft.Gaming.XboxGameBar;
+﻿using Microsoft.Gaming.XboxGameBar;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,6 +21,7 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
 using Windows.UI.Xaml.Media;
+using Windows.UI.Xaml.Media.Imaging;
 using Windows.UI.Xaml.Navigation;
 using Windows.Web.Http;
 using Windows.System;
@@ -39,6 +41,18 @@ namespace TestXboxGameBar
         private const int StartupPreloadDelayMs = 250;
         private const double DefaultBrightnessValue = 0;
         private const double DefaultContrastValue = 0;
+        private static readonly string[] VoicePackHeadImageNames =
+        {
+            "pack_head.png",
+            "pack_head.jpg",
+            "pack_head.jpeg",
+            "pack_head.webp"
+        };
+        private static readonly string[] IconPackHeadImageNames =
+        {
+            "badge_headshot.png",
+            "badgeex\\badge_headshot.png"
+        };
         private const double DefaultAudioVolumeValue = 100;
         private const double DefaultPlaybackFpsValue = 60;
         private const string FirstKillAssetKey = "firstkill";
@@ -177,7 +191,7 @@ namespace TestXboxGameBar
             AnimationLayer.SizeChanged += OnAnimationLayerSizeChanged;
             PackCatalogService.CatalogChanged += OnPackCatalogChanged;
             VersionText.Text = GetCompactDisplayVersion();
-            ToolTipService.SetToolTip(VersionText, GetDisplayVersion());
+            ToolTipService.SetToolTip(UpdateButton, GetDisplayVersion());
             LoadLanguageSelector();
             ApplyLanguage();
             UpdateUpdateButtonVisualState();
@@ -277,20 +291,15 @@ namespace TestXboxGameBar
             VoicePackSelector.Items.Clear();
             foreach (VoicePackItem pack in visiblePacks)
             {
-                VoicePackSelector.Items.Add(new ComboBoxItem
-                {
-                    Content = PackCatalogService.GetVoicePackDisplayName(pack),
-                    Tag = pack.Key
-                });
+                VoicePackSelector.Items.Add(await CreateVoicePackComboBoxItemAsync(pack));
             }
 
             if (VoicePackSelector.Items.Count == 0)
             {
-                VoicePackSelector.Items.Add(new ComboBoxItem
-                {
-                    Content = "swat GR",
-                    Tag = "crossfire_swat_gr"
-                });
+                VoicePackSelector.Items.Add(CreatePackComboBoxItem(
+                    "swat GR",
+                    "crossfire_swat_gr",
+                    GetVoicePackIconUri("crossfire_swat_gr")));
             }
 
             SelectVoicePackPreset(preferredPreset);
@@ -308,25 +317,201 @@ namespace TestXboxGameBar
             IconPackSelector.Items.Clear();
             foreach (IconPackItem pack in visiblePacks)
             {
-                IconPackSelector.Items.Add(new ComboBoxItem
-                {
-                    Content = pack.DisplayName,
-                    Tag = pack.Key,
-                    Foreground = new SolidColorBrush(Colors.White)
-                });
+                IconPackSelector.Items.Add(await CreateIconPackComboBoxItemAsync(pack));
             }
 
             if (IconPackSelector.Items.Count == 0)
             {
-                IconPackSelector.Items.Add(new ComboBoxItem
-                {
-                    Content = "\u539f\u7248",
-                    Tag = "default",
-                    Foreground = new SolidColorBrush(Colors.White)
-                });
+                IconPackSelector.Items.Add(CreatePackComboBoxItem(
+                    "\u539f\u7248",
+                    "default",
+                    GetIconPackIconUri("default")));
             }
 
             SelectIconPack(preferredIconPack);
+        }
+
+        private async Task<ComboBoxItem> CreateVoicePackComboBoxItemAsync(VoicePackItem pack)
+        {
+            string key = pack?.Key ?? string.Empty;
+            ComboBoxItem item = CreatePackComboBoxItem(
+                PackCatalogService.GetVoicePackDisplayName(pack),
+                key,
+                GetVoicePackIconUri(key));
+
+            if (pack != null && !pack.IsBuiltIn)
+            {
+                Image image = item.Tag as string != null ? FindPackItemImage(item) : null;
+                await TryApplyPackFolderImageAsync(image, pack.FolderPath, VoicePackHeadImageNames);
+            }
+
+            return item;
+        }
+
+        private async Task<ComboBoxItem> CreateIconPackComboBoxItemAsync(IconPackItem pack)
+        {
+            string key = pack?.Key ?? string.Empty;
+            ComboBoxItem item = CreatePackComboBoxItem(
+                PackCatalogService.GetIconPackDisplayName(pack),
+                key,
+                GetIconPackIconUri(key));
+
+            if (pack != null && !pack.IsBuiltIn)
+            {
+                Image image = FindPackItemImage(item);
+                await TryApplyPackFolderImageAsync(image, pack.FolderPath, IconPackHeadImageNames);
+            }
+
+            return item;
+        }
+
+        private static ComboBoxItem CreatePackComboBoxItem(string text, string tag, string iconUri)
+        {
+            var image = new Image
+            {
+                Width = 12,
+                Height = 12,
+                Stretch = Stretch.Uniform,
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(0, 0, 5, 0)
+            };
+
+            if (!string.IsNullOrWhiteSpace(iconUri))
+            {
+                image.Source = new BitmapImage(new Uri(iconUri));
+            }
+
+            var label = new TextBlock
+            {
+                Text = text ?? string.Empty,
+                FontSize = 9,
+                Foreground = new SolidColorBrush(Color.FromArgb(255, 27, 31, 49)),
+                TextTrimming = TextTrimming.CharacterEllipsis,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+
+            var panel = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            panel.Children.Add(image);
+            panel.Children.Add(label);
+
+            return new ComboBoxItem
+            {
+                Content = panel,
+                Tag = tag,
+                Foreground = new SolidColorBrush(Color.FromArgb(255, 27, 31, 49))
+            };
+        }
+
+        private static Image FindPackItemImage(ComboBoxItem item)
+        {
+            if (item?.Content is StackPanel panel)
+            {
+                return panel.Children.OfType<Image>().FirstOrDefault();
+            }
+
+            return null;
+        }
+
+        private static async Task TryApplyPackFolderImageAsync(Image image, string folderPath, IReadOnlyList<string> candidateNames)
+        {
+            if (image == null || string.IsNullOrWhiteSpace(folderPath) || candidateNames == null)
+            {
+                return;
+            }
+
+            try
+            {
+                StorageFolder folder = await StorageFolder.GetFolderFromPathAsync(folderPath);
+                foreach (string candidateName in candidateNames)
+                {
+                    StorageFile file = await TryGetNestedFileAsync(folder, candidateName);
+                    if (file == null)
+                    {
+                        continue;
+                    }
+
+                    var bitmap = new BitmapImage();
+                    using (IRandomAccessStream stream = await file.OpenReadAsync())
+                    {
+                        await bitmap.SetSourceAsync(stream);
+                    }
+
+                    image.Source = bitmap;
+                    return;
+                }
+            }
+            catch
+            {
+            }
+        }
+
+        private static async Task<StorageFile> TryGetNestedFileAsync(StorageFolder root, string relativePath)
+        {
+            if (root == null || string.IsNullOrWhiteSpace(relativePath))
+            {
+                return null;
+            }
+
+            try
+            {
+                string[] parts = relativePath.Split(new[] { '\\', '/' }, StringSplitOptions.RemoveEmptyEntries);
+                StorageFolder folder = root;
+                for (int i = 0; i < parts.Length - 1; i++)
+                {
+                    folder = await folder.GetFolderAsync(parts[i]);
+                }
+
+                return await folder.GetFileAsync(parts[parts.Length - 1]);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static string GetVoicePackIconUri(string key)
+        {
+            switch ((key ?? string.Empty).Trim().ToLowerInvariant())
+            {
+                case "crossfire_swat_gr":
+                case "crossfire_swat_bl":
+                    return "ms-appx:///Assets/PackIcons/swat.png";
+                case "crossfire_flying_tiger_gr":
+                case "crossfire_flying_tiger_bl":
+                    return "ms-appx:///Assets/PackIcons/flying_tiger.png";
+                case "crossfire_women_gr":
+                case "crossfire_women_bl":
+                    return "ms-appx:///Assets/PackIcons/women.png";
+                case "crossfire_v_sex":
+                    return "ms-appx:///Assets/PackIcons/cfsex.png";
+                case "crossfire_bunny_gr":
+                case "crossfire_bunny_bl":
+                    return "ms-appx:///Assets/PackIcons/bunny.png";
+                case "crossfire_heart_judge_gr":
+                case "crossfire_heart_judge_bl":
+                    return "ms-appx:///Assets/PackIcons/heart_judge.png";
+                default:
+                    return "ms-appx:///Assets/KillConfirmCode/Original/badge_headshot.PNG";
+            }
+        }
+
+        private static string GetIconPackIconUri(string key)
+        {
+            switch ((key ?? string.Empty).Trim().ToLowerInvariant())
+            {
+                case "vip":
+                    return "ms-appx:///Assets/KillConfirmCode/Vip/badge_headshot.png";
+                case "angelic_beast":
+                    return "ms-appx:///Assets/KillConfirmCode/AngelicBeast/badge_headshot.png";
+                case "legacy":
+                case "default":
+                default:
+                    return "ms-appx:///Assets/KillConfirmCode/Original/badge_headshot.PNG";
+            }
         }
 
         private void OnKillReceived(object sender, KillEvent e)
@@ -436,7 +621,7 @@ namespace TestXboxGameBar
         private void ShowGuideOpenFailedHint()
         {
             string hint = LocalizationManager.Text("OpenGuideFailed");
-            ShowStatusHint(hint, Color.FromArgb(255, 251, 191, 36));
+            ShowStatusHint(hint, Color.FromArgb(255, 180, 90, 0));
         }
 
         private async void OnUpdateClick(object sender, RoutedEventArgs e)
@@ -517,7 +702,7 @@ namespace TestXboxGameBar
                     ShowStatusHint(LocalizationManager.Text("UpdateAlreadyLatestHint"), Color.FromArgb(255, 52, 211, 153));
                     break;
                 default:
-                    ShowStatusHint(LocalizationManager.Text("UpdateCheckFailedHint"), Color.FromArgb(255, 107, 114, 128));
+                    ShowStatusHint(LocalizationManager.Text("UpdateCheckFailedHint"), Color.FromArgb(255, 75, 85, 99));
                     break;
             }
         }
@@ -526,7 +711,7 @@ namespace TestXboxGameBar
         {
             if (string.IsNullOrWhiteSpace(_latestReleaseDownloadUrl) || string.IsNullOrWhiteSpace(_latestReleaseAssetName))
             {
-                ShowStatusHint(LocalizationManager.Text("UpdateNoInstallerHint"), Color.FromArgb(255, 107, 114, 128));
+                ShowStatusHint(LocalizationManager.Text("UpdateNoInstallerHint"), Color.FromArgb(255, 75, 85, 99));
                 return;
             }
 
@@ -551,8 +736,8 @@ namespace TestXboxGameBar
                     ? LocalizationManager.Text("UpdateStartingHint")
                     : LocalizationManager.Text("UpdateLaunchFailed"),
                 launched
-                    ? Color.FromArgb(255, 251, 191, 36)
-                    : Color.FromArgb(255, 248, 113, 113));
+                    ? Color.FromArgb(255, 180, 90, 0)
+                    : Color.FromArgb(255, 185, 28, 28));
         }
 
         private async Task<bool> LaunchPendingUpdateAsync()
@@ -582,13 +767,55 @@ namespace TestXboxGameBar
 
         private void UpdateUpdateButtonVisualState()
         {
+            if (UpdateButton == null || VersionText == null || UpdateIndicatorDot == null)
+            {
+                return;
+            }
+
+            VersionText.Text = GetCompactDisplayVersion();
+
+            Color background = Color.FromArgb(255, 255, 253, 252);
+            Color border = Color.FromArgb(255, 226, 221, 211);
+            Color foreground = Color.FromArgb(255, 138, 106, 54);
+            Color dot = GetUpdateIndicatorColor();
+
+            if (_updateCheckInProgress)
+            {
+                background = Color.FromArgb(255, 236, 247, 252);
+                border = Color.FromArgb(255, 185, 220, 236);
+                foreground = Color.FromArgb(255, 46, 136, 184);
+            }
+            else if (_updateAvailabilityState == UpdateAvailabilityState.UpdateAvailable)
+            {
+                background = Color.FromArgb(255, 255, 246, 230);
+                border = Color.FromArgb(255, 245, 158, 11);
+                foreground = Color.FromArgb(255, 180, 90, 0);
+            }
+            else if (_updateAvailabilityState == UpdateAvailabilityState.UpToDate)
+            {
+                background = Color.FromArgb(255, 235, 253, 245);
+                border = Color.FromArgb(255, 52, 211, 153);
+                foreground = Color.FromArgb(255, 5, 122, 85);
+            }
+
+            UpdateButton.Background = new SolidColorBrush(background);
+            UpdateButton.BorderBrush = new SolidColorBrush(border);
+            VersionText.Foreground = new SolidColorBrush(foreground);
+            UpdateIndicatorDot.Fill = new SolidColorBrush(dot);
+
+            string tooltipBody = ResolveUpdateTooltipBody();
+            ToolTipService.SetToolTip(
+                UpdateButton,
+                string.IsNullOrWhiteSpace(tooltipBody)
+                    ? GetDisplayVersion()
+                    : GetDisplayVersion() + "\n" + tooltipBody);
         }
 
         private Color GetUpdateIndicatorColor()
         {
             if (_updateCheckInProgress)
             {
-                return Color.FromArgb(255, 107, 114, 128);
+                return Color.FromArgb(255, 46, 136, 184);
             }
 
             switch (_updateAvailabilityState)
@@ -596,9 +823,9 @@ namespace TestXboxGameBar
                 case UpdateAvailabilityState.UpToDate:
                     return Color.FromArgb(255, 52, 211, 153);
                 case UpdateAvailabilityState.UpdateAvailable:
-                    return Color.FromArgb(255, 251, 191, 36);
+                    return Color.FromArgb(255, 180, 90, 0);
                 default:
-                    return Color.FromArgb(255, 107, 114, 128);
+                    return Color.FromArgb(255, 75, 85, 99);
             }
         }
 
@@ -1058,17 +1285,17 @@ namespace TestXboxGameBar
                 bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
                 LanguageEnglishChip.Background = isChinese
                     ? new SolidColorBrush(Color.FromArgb(0, 0, 0, 0))
-                    : new SolidColorBrush(Color.FromArgb(255, 74, 85, 99));
+                    : new SolidColorBrush(Color.FromArgb(255, 46, 136, 184));
                 LanguageChineseChip.Background = isChinese
-                    ? new SolidColorBrush(Color.FromArgb(255, 74, 85, 99))
+                    ? new SolidColorBrush(Color.FromArgb(255, 46, 136, 184))
                     : new SolidColorBrush(Color.FromArgb(0, 0, 0, 0));
 
                 LanguageEnglishText.Foreground = isChinese
-                    ? new SolidColorBrush(Color.FromArgb(255, 183, 192, 203))
-                    : new SolidColorBrush(Color.FromArgb(255, 17, 21, 26));
+                    ? new SolidColorBrush(Color.FromArgb(255, 95, 102, 115))
+                    : new SolidColorBrush(Colors.White);
                 LanguageChineseText.Foreground = isChinese
-                    ? new SolidColorBrush(Color.FromArgb(255, 17, 21, 26))
-                    : new SolidColorBrush(Color.FromArgb(255, 183, 192, 203));
+                    ? new SolidColorBrush(Colors.White)
+                    : new SolidColorBrush(Color.FromArgb(255, 95, 102, 115));
             }
             finally
             {
@@ -1098,6 +1325,8 @@ namespace TestXboxGameBar
             ServiceBadgeText.Text = "SVC";
             CfgBadgeText.Text = "CFG";
             GsiBadgeText.Text = "GSI";
+            PackTestHeaderText.Text = LocalizationManager.Text("PackTestHeader");
+            VisualHeaderText.Text = LocalizationManager.Text("VisualHeader");
             CfgLabelText.Text = LocalizationManager.Text("CfgLabel");
             
             // Built-in Voice Items
@@ -1653,7 +1882,7 @@ namespace TestXboxGameBar
         {
             if (!PackCatalogService.IsImportedIconPackKey(iconPack))
             {
-                // Built-in pack — FX handled by built-in logic, no override needed
+                // Built-in pack 鈥?FX handled by built-in logic, no override needed
                 Controls.KillConfirmAnimation.ConfigureCustomPackOverlayCapabilities(false, false, false);
                 LoadKillFxSetting();
                 return;
@@ -1685,13 +1914,7 @@ namespace TestXboxGameBar
             }
 
             int currentWeaponBadgeMode = GetSelectedWeaponBadgeMode();
-            if (!hasWeaponBadgeOverlay && currentWeaponBadgeMode == 1)
-            {
-                SelectWeaponBadgeMode(0);
-                ApplicationData.Current.LocalSettings.Values[WeaponBadgeSettingKey] = 0;
-                Controls.KillConfirmAnimation.ConfigureWeaponBadgeMode(0);
-            }
-            else if (hasWeaponBadgeOverlay && currentWeaponBadgeMode == 0)
+            if (currentWeaponBadgeMode == 0)
             {
                 SelectWeaponBadgeMode(1);
                 ApplicationData.Current.LocalSettings.Values[WeaponBadgeSettingKey] = 1;
@@ -2133,6 +2356,17 @@ namespace TestXboxGameBar
         {
             if (EliteEffectSelector == null) return;
             bool supportsEliteOverlay = SupportsEliteOverlayForSelectedIconPack();
+            bool showOriginalOptions = PackCatalogService.IsImportedIconPackKey(GetSelectedIconPack());
+            EliteOriginal1Item.Visibility = showOriginalOptions ? Visibility.Visible : Visibility.Collapsed;
+            EliteOriginal2Item.Visibility = showOriginalOptions ? Visibility.Visible : Visibility.Collapsed;
+            EliteOriginal3Item.Visibility = showOriginalOptions ? Visibility.Visible : Visibility.Collapsed;
+
+            int currentElite = GetSelectedEliteEffectLevel();
+            if (!showOriginalOptions && currentElite >= 11 && currentElite <= 13)
+            {
+                SelectEliteEffectLevel(currentElite - 10);
+            }
+
             EliteEffectSelector.IsEnabled = supportsEliteOverlay;
             EliteEffectSelector.Opacity = supportsEliteOverlay ? 1.0 : 0.55;
         }
@@ -2147,7 +2381,7 @@ namespace TestXboxGameBar
 
         private void UpdateKillFxSelectorState()
         {
-            // Kill FX selector is always enabled — all packs can opt in or out
+            // Kill FX selector is always enabled 鈥?all packs can opt in or out
             if (KillFxSelector == null) return;
             bool supportsKillFx = SupportsKillFxForSelectedIconPack();
             KillFxSelector.IsEnabled = supportsKillFx;
@@ -2170,7 +2404,7 @@ namespace TestXboxGameBar
             string iconPack = GetSelectedIconPack();
             if (PackCatalogService.IsImportedIconPackKey(iconPack))
             {
-                return Controls.KillConfirmAnimation.GetCustomPackHasWeaponBadgeOverlay() ? 1 : 0;
+                return 1;
             }
 
             return 0;
@@ -2410,9 +2644,9 @@ namespace TestXboxGameBar
             }
 
             AnimationCacheDot.Visibility = Visibility.Visible;
-            AnimationCacheDot.Background = new SolidColorBrush(Color.FromArgb(255, 251, 191, 36));
+            AnimationCacheDot.Background = new SolidColorBrush(Color.FromArgb(255, 180, 90, 0));
             AnimationCacheBadgeText.Text = value <= 0 ? "ANI" : value + "%";
-            AnimationCacheBadgeText.Foreground = new SolidColorBrush(Color.FromArgb(255, 251, 191, 36));
+            AnimationCacheBadgeText.Foreground = new SolidColorBrush(Color.FromArgb(255, 180, 90, 0));
             SetNamedToolTip(AnimationCacheStatusBadge, LocalizationManager.Text("AnimationCacheTitle"), LocalizationManager.Text("AnimationCacheLoading") + value + "%");
             RefreshStatusHint(false);
         }
@@ -2425,7 +2659,7 @@ namespace TestXboxGameBar
             AnimationCacheDot.Visibility = Visibility.Visible;
             AnimationCacheDot.Background = new SolidColorBrush(Color.FromArgb(255, 52, 211, 153));
             AnimationCacheBadgeText.Text = "ANI";
-            AnimationCacheBadgeText.Foreground = new SolidColorBrush(Color.FromArgb(255, 191, 208, 227));
+            AnimationCacheBadgeText.Foreground = new SolidColorBrush(Color.FromArgb(255, 27, 31, 49));
             SetNamedToolTip(AnimationCacheStatusBadge, LocalizationManager.Text("AnimationCacheTitle"), LocalizationManager.Text("AnimationCacheReady"));
             RefreshStatusHint(false);
         }
@@ -2435,9 +2669,9 @@ namespace TestXboxGameBar
             _animationCacheReady = false;
             _animationCacheFailed = true;
             AnimationCacheDot.Visibility = Visibility.Visible;
-            AnimationCacheDot.Background = new SolidColorBrush(Color.FromArgb(255, 248, 113, 113));
+            AnimationCacheDot.Background = new SolidColorBrush(Color.FromArgb(255, 185, 28, 28));
             AnimationCacheBadgeText.Text = "ANI";
-            AnimationCacheBadgeText.Foreground = new SolidColorBrush(Color.FromArgb(255, 191, 208, 227));
+            AnimationCacheBadgeText.Foreground = new SolidColorBrush(Color.FromArgb(255, 185, 28, 28));
             SetNamedToolTip(AnimationCacheStatusBadge, LocalizationManager.Text("AnimationCacheTitle"), LocalizationManager.Text("AnimationCacheFailed"));
             RefreshStatusHint(false);
         }
@@ -2631,7 +2865,7 @@ namespace TestXboxGameBar
         private async Task ReloadAudioOutputAsync()
         {
             App.Log("Reload audio output requested.");
-            ShowStatusHint(LocalizationManager.Text("ReloadAudioRunning"), Color.FromArgb(255, 251, 191, 36));
+            ShowStatusHint(LocalizationManager.Text("ReloadAudioRunning"), Color.FromArgb(255, 180, 90, 0));
 
             try
             {
@@ -2643,7 +2877,7 @@ namespace TestXboxGameBar
                 {
                     if (response.IsSuccessStatusCode)
                     {
-                        ShowStatusHint(LocalizationManager.Text("ReloadAudioReady"), Color.FromArgb(255, 167, 243, 208));
+                        ShowStatusHint(LocalizationManager.Text("ReloadAudioReady"), Color.FromArgb(255, 5, 122, 85));
                         App.Log("Reload audio output succeeded.");
                         return;
                     }
@@ -2656,7 +2890,7 @@ namespace TestXboxGameBar
                 App.Log("Reload audio output failed: " + ex);
             }
 
-            ShowStatusHint(LocalizationManager.Text("ReloadAudioFailed"), Color.FromArgb(255, 251, 191, 36));
+            ShowStatusHint(LocalizationManager.Text("ReloadAudioFailed"), Color.FromArgb(255, 180, 90, 0));
         }
 
         private static string BuildTestEventUri(TestPreset preset)
@@ -2819,11 +3053,11 @@ namespace TestXboxGameBar
                     HideServiceDiagnostic();
                     break;
                 case KillEventConnectionState.Connecting:
-                    ConnectionDot.Background = new SolidColorBrush(Color.FromArgb(255, 251, 191, 36));
+                    ConnectionDot.Background = new SolidColorBrush(Color.FromArgb(255, 180, 90, 0));
                     SetNamedToolTip(ConnectionStatusBadge, LocalizationManager.Text("ServiceStatusTitle"), LocalizationManager.Text("ServiceStarting"));
                     break;
                 default:
-                    ConnectionDot.Background = new SolidColorBrush(Color.FromArgb(255, 248, 113, 113));
+                    ConnectionDot.Background = new SolidColorBrush(Color.FromArgb(255, 185, 28, 28));
                     SetNamedToolTip(ConnectionStatusBadge, LocalizationManager.Text("ServiceStatusTitle"), LocalizationManager.Text("ServiceOffline"));
                     break;
             }
@@ -2852,19 +3086,19 @@ namespace TestXboxGameBar
                     SetNamedToolTip(CfgStatusBadge, LocalizationManager.Text("CfgStatusTitle"), LocalizationManager.Text("CfgReadyTooltip") + _cfgStatusDetail);
                     break;
                 case CfgDetectionState.Checking:
-                    CfgDot.Background = new SolidColorBrush(Color.FromArgb(255, 251, 191, 36));
+                    CfgDot.Background = new SolidColorBrush(Color.FromArgb(255, 180, 90, 0));
                     SetNamedToolTip(CfgStatusBadge, LocalizationManager.Text("CfgStatusTitle"), LocalizationManager.Text("CheckingCfgTooltip"));
                     break;
                 case CfgDetectionState.Missing:
-                    CfgDot.Background = new SolidColorBrush(Color.FromArgb(255, 251, 191, 36));
+                    CfgDot.Background = new SolidColorBrush(Color.FromArgb(255, 180, 90, 0));
                     SetNamedToolTip(CfgStatusBadge, LocalizationManager.Text("CfgStatusTitle"), LocalizationManager.Text("CfgMissingTooltip") + _cfgStatusDetail);
                     break;
                 case CfgDetectionState.Error:
-                    CfgDot.Background = new SolidColorBrush(Color.FromArgb(255, 248, 113, 113));
+                    CfgDot.Background = new SolidColorBrush(Color.FromArgb(255, 185, 28, 28));
                     SetNamedToolTip(CfgStatusBadge, LocalizationManager.Text("CfgStatusTitle"), _cfgStatusDetail);
                     break;
                 default:
-                    CfgDot.Background = new SolidColorBrush(Color.FromArgb(255, 107, 114, 128));
+                    CfgDot.Background = new SolidColorBrush(Color.FromArgb(255, 75, 85, 99));
                     SetNamedToolTip(CfgStatusBadge, LocalizationManager.Text("CfgStatusTitle"), LocalizationManager.Text("SelectCsRootTooltip"));
                     break;
             }
@@ -2899,17 +3133,17 @@ namespace TestXboxGameBar
             }
             else if (serviceReachable && posts > 0)
             {
-                GsiDot.Background = new SolidColorBrush(Color.FromArgb(255, 251, 191, 36));
+                GsiDot.Background = new SolidColorBrush(Color.FromArgb(255, 180, 90, 0));
                 SetNamedToolTip(GsiStatusBadge, LocalizationManager.Text("GsiStatusTitle"), LocalizationManager.Text("GsiStaleTooltip"));
             }
             else if (serviceReachable)
             {
-                GsiDot.Background = new SolidColorBrush(Color.FromArgb(255, 107, 114, 128));
+                GsiDot.Background = new SolidColorBrush(Color.FromArgb(255, 75, 85, 99));
                 SetNamedToolTip(GsiStatusBadge, LocalizationManager.Text("GsiStatusTitle"), LocalizationManager.Text("GsiWaitingTooltip"));
             }
             else
             {
-                GsiDot.Background = new SolidColorBrush(Color.FromArgb(255, 248, 113, 113));
+                GsiDot.Background = new SolidColorBrush(Color.FromArgb(255, 185, 28, 28));
                 SetNamedToolTip(GsiStatusBadge, LocalizationManager.Text("GsiStatusTitle"), LocalizationManager.Text("ServiceOffline"));
             }
 
@@ -2954,13 +3188,13 @@ namespace TestXboxGameBar
 
             if (ShouldPrioritizePinHint())
             {
-                hints.Add(new StatusHint(LocalizationManager.Text("PinHint"), Color.FromArgb(255, 251, 191, 36)));
+                hints.Add(new StatusHint(LocalizationManager.Text("PinHint"), Color.FromArgb(255, 180, 90, 0)));
             }
 
-            hints.Add(new StatusHint(LocalizationManager.Text("DisableClickThroughHint"), Color.FromArgb(255, 251, 191, 36)));
-            hints.Add(new StatusHint(LocalizationManager.Text("DisableFullscreenOptimizationsHint"), Color.FromArgb(255, 251, 191, 36)));
-            hints.Add(new StatusHint(LocalizationManager.Text("CustomIconSettingsHint"), Color.FromArgb(255, 251, 191, 36)));
-            hints.Add(new StatusHint(LocalizationManager.Text("ProxyPortHint"), Color.FromArgb(255, 251, 191, 36)));
+            hints.Add(new StatusHint(LocalizationManager.Text("DisableClickThroughHint"), Color.FromArgb(255, 180, 90, 0)));
+            hints.Add(new StatusHint(LocalizationManager.Text("DisableFullscreenOptimizationsHint"), Color.FromArgb(255, 180, 90, 0)));
+            hints.Add(new StatusHint(LocalizationManager.Text("CustomIconSettingsHint"), Color.FromArgb(255, 180, 90, 0)));
+            hints.Add(new StatusHint(LocalizationManager.Text("ProxyPortHint"), Color.FromArgb(255, 180, 90, 0)));
 
             bool serviceReady = _serviceConnectionState == KillEventConnectionState.Connected;
             bool cfgReady = _cfgDetectionState == CfgDetectionState.Ready;
@@ -2968,7 +3202,7 @@ namespace TestXboxGameBar
 
             if (serviceReady && cfgReady && _gsiRecentlySeen && animationReady)
             {
-                hints.Add(new StatusHint(LocalizationManager.Text("ReadyAllSignals"), Color.FromArgb(255, 167, 243, 208)));
+                hints.Add(new StatusHint(LocalizationManager.Text("ReadyAllSignals"), Color.FromArgb(255, 5, 122, 85)));
             }
 
             hints.Add(new StatusHint(GetServiceStatusHint(), GetServiceHintColor()));
@@ -3042,11 +3276,11 @@ namespace TestXboxGameBar
             switch (_serviceConnectionState)
             {
                 case KillEventConnectionState.Connected:
-                    return Color.FromArgb(255, 167, 243, 208);
+                    return Color.FromArgb(255, 5, 122, 85);
                 case KillEventConnectionState.Connecting:
-                    return Color.FromArgb(255, 251, 191, 36);
+                    return Color.FromArgb(255, 180, 90, 0);
                 default:
-                    return Color.FromArgb(255, 248, 113, 113);
+                    return Color.FromArgb(255, 185, 28, 28);
             }
         }
 
@@ -3072,11 +3306,11 @@ namespace TestXboxGameBar
             switch (_cfgDetectionState)
             {
                 case CfgDetectionState.Ready:
-                    return Color.FromArgb(255, 167, 243, 208);
+                    return Color.FromArgb(255, 5, 122, 85);
                 case CfgDetectionState.Error:
-                    return Color.FromArgb(255, 248, 113, 113);
+                    return Color.FromArgb(255, 185, 28, 28);
                 default:
-                    return Color.FromArgb(255, 251, 191, 36);
+                    return Color.FromArgb(255, 180, 90, 0);
             }
         }
 
@@ -3099,12 +3333,12 @@ namespace TestXboxGameBar
         {
             if (_gsiRecentlySeen)
             {
-                return Color.FromArgb(255, 167, 243, 208);
+                return Color.FromArgb(255, 5, 122, 85);
             }
 
             return _serviceConnectionState == KillEventConnectionState.Connected
-                ? Color.FromArgb(255, 251, 191, 36)
-                : Color.FromArgb(255, 107, 114, 128);
+                ? Color.FromArgb(255, 180, 90, 0)
+                : Color.FromArgb(255, 75, 85, 99);
         }
 
         private string GetAnimationStatusHint()
@@ -3126,15 +3360,15 @@ namespace TestXboxGameBar
         {
             if (_animationCacheReady)
             {
-                return Color.FromArgb(255, 167, 243, 208);
+                return Color.FromArgb(255, 5, 122, 85);
             }
 
             if (_animationCacheFailed)
             {
-                return Color.FromArgb(255, 248, 113, 113);
+                return Color.FromArgb(255, 185, 28, 28);
             }
 
-            return Color.FromArgb(255, 251, 191, 36);
+            return Color.FromArgb(255, 180, 90, 0);
         }
 
         private static string ResolveCfgStatusLabel(CfgDetectionState state)
@@ -3517,3 +3751,6 @@ namespace TestXboxGameBar
         }
     }
 }
+
+
+

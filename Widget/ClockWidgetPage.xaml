@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
+    RequestedTheme="Light"
     Background="Transparent">
 
     <Page.Resources>
@@ -28,7 +29,7 @@
             <Setter Property="Height" Value="22" />
             <Setter Property="HorizontalAlignment" Value="Center" />
             <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="Foreground" Value="#FFF8FAFC" />
+            <Setter Property="Foreground" Value="#1B1F31" />
             <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
             <Setter Property="RenderTransform">
                 <Setter.Value>
@@ -54,11 +55,11 @@
             <Setter Property="Padding" Value="0" />
             <Setter Property="HorizontalContentAlignment" Value="Center" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
-            <Setter Property="Background" Value="#343941" />
-            <Setter Property="Foreground" Value="#FFF8FAFC" />
-            <Setter Property="BorderBrush" Value="#4C5560" />
+            <Setter Property="Background" Value="#FFFDFC" />
+            <Setter Property="Foreground" Value="#1B1F31" />
+            <Setter Property="BorderBrush" Value="#D5D0C4" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="9" />
+            <Setter Property="CornerRadius" Value="12" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
@@ -78,14 +79,14 @@
                                     <VisualState x:Name="PointerOver">
                                         <Storyboard>
                                             <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Root" Storyboard.TargetProperty="Background">
-                                                <DiscreteObjectKeyFrame KeyTime="0" Value="#3D444D" />
+                                                <DiscreteObjectKeyFrame KeyTime="0" Value="#ECF7FC" />
                                             </ObjectAnimationUsingKeyFrames>
                                         </Storyboard>
                                     </VisualState>
                                     <VisualState x:Name="Pressed">
                                         <Storyboard>
                                             <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Root" Storyboard.TargetProperty="Background">
-                                                <DiscreteObjectKeyFrame KeyTime="0" Value="#2A2F36" />
+                                                <DiscreteObjectKeyFrame KeyTime="0" Value="#DCEFF7" />
                                             </ObjectAnimationUsingKeyFrames>
                                         </Storyboard>
                                     </VisualState>
@@ -105,11 +106,11 @@
             <Setter Property="Padding" Value="0" />
             <Setter Property="HorizontalContentAlignment" Value="Center" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
-            <Setter Property="Background" Value="#343941" />
-            <Setter Property="Foreground" Value="#FFF8FAFC" />
-            <Setter Property="BorderBrush" Value="#4C5560" />
+            <Setter Property="Background" Value="#FFFDFC" />
+            <Setter Property="Foreground" Value="#1B1F31" />
+            <Setter Property="BorderBrush" Value="#D5D0C4" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="CornerRadius" Value="12" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
@@ -129,14 +130,14 @@
                                     <VisualState x:Name="PointerOver">
                                         <Storyboard>
                                             <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Root" Storyboard.TargetProperty="Background">
-                                                <DiscreteObjectKeyFrame KeyTime="0" Value="#3D444D" />
+                                                <DiscreteObjectKeyFrame KeyTime="0" Value="#ECF7FC" />
                                             </ObjectAnimationUsingKeyFrames>
                                         </Storyboard>
                                     </VisualState>
                                     <VisualState x:Name="Pressed">
                                         <Storyboard>
                                             <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Root" Storyboard.TargetProperty="Background">
-                                                <DiscreteObjectKeyFrame KeyTime="0" Value="#2A2F36" />
+                                                <DiscreteObjectKeyFrame KeyTime="0" Value="#DCEFF7" />
                                             </ObjectAnimationUsingKeyFrames>
                                         </Storyboard>
                                     </VisualState>
@@ -154,13 +155,25 @@
             <Setter Property="MinWidth" Value="64" />
             <Setter Property="Padding" Value="8,0,10,0" />
             <Setter Property="FontSize" Value="9" />
-            <Setter Property="Foreground" Value="#FFF8FAFC" />
-            <Setter Property="Background" Value="#343941" />
-            <Setter Property="BorderBrush" Value="#77818E" />
+            <Setter Property="RequestedTheme" Value="Light" />
+            <Setter Property="Foreground" Value="#1B1F31" />
+            <Setter Property="Background" Value="#FFFDFC" />
+            <Setter Property="BorderBrush" Value="#D5D0C4" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="CornerRadius" Value="13" />
             <Setter Property="HorizontalContentAlignment" Value="Left" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+
+        <Style TargetType="ComboBoxItem">
+            <Setter Property="RequestedTheme" Value="Light" />
+            <Setter Property="Foreground" Value="#1B1F31" />
+            <Setter Property="Background" Value="#FFFDFC" />
+            <Setter Property="BorderBrush" Value="#E2DDD3" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="14,8,14,8" />
+            <Setter Property="MinHeight" Value="34" />
+            <Setter Property="FontSize" Value="13" />
         </Style>
 
         <Style x:Key="CompactComboBoxStyle" TargetType="ComboBox" BasedOn="{StaticResource OverlayComboBoxStyle}">
@@ -178,7 +191,7 @@
 
         <Style x:Key="SectionHeaderTextStyle" TargetType="TextBlock">
             <Setter Property="FontSize" Value="8.5" />
-            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="FontWeight" Value="Bold" />
             <Setter Property="CharacterSpacing" Value="50" />
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
@@ -213,12 +226,12 @@
             Padding="4"
             HorizontalAlignment="Center"
             VerticalAlignment="Top"
-            Width="400"
-            MaxWidth="400"
-            Background="#F022252A"
-            BorderBrush="#2F3338"
+            Width="440"
+            MaxWidth="440"
+            Background="#F4FAFAF7"
+            BorderBrush="#E2DDD3"
             BorderThickness="1"
-            CornerRadius="8">
+            CornerRadius="18">
             <Grid RowSpacing="3">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -233,21 +246,21 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="252" />
-                        <ColumnDefinition Width="136" />
+                        <ColumnDefinition Width="258" />
+                        <ColumnDefinition Width="170" />
                     </Grid.ColumnDefinitions>
 
                     <Border
                         x:Name="StatusHintBox"
                         Grid.RowSpan="2"
-                        Width="252"
-                        MinHeight="42"
+                        Width="258"
+                        MinHeight="36"
                         VerticalAlignment="Center"
-                        Padding="8,5"
-                        Background="#303640"
-                        BorderBrush="#4D5660"
+                        Padding="8,4"
+                        Background="#FFFDFC"
+                        BorderBrush="#E2DDD3"
                         BorderThickness="1"
-                        CornerRadius="10"
+                        CornerRadius="14"
                         ToolTipService.ToolTip="Click the pin button in Xbox Game Bar's top-right corner.">
                         <Grid ColumnSpacing="6">
                             <Grid.ColumnDefinitions>
@@ -257,9 +270,9 @@
                             <TextBlock
                                 x:Name="PinHintText"
                                 VerticalAlignment="Center"
-                                FontSize="9"
-                                FontWeight="SemiBold"
-                                Foreground="#FFFFD54A"
+                                FontSize="10"
+                                FontWeight="Bold"
+                                Foreground="#B45A00"
                                 MaxLines="2"
                                 Text="Pin the widget in the top-right to keep the icon on screen."
                                 TextTrimming="CharacterEllipsis"
@@ -270,8 +283,8 @@
                                 VerticalAlignment="Bottom"
                                 Margin="2,0,0,0"
                                 FontSize="8"
-                                FontWeight="SemiBold"
-                                Foreground="#FFAEB4BD"
+                                FontWeight="Bold"
+                                Foreground="#4B5563"
                                 Text="1/1" />
                         </Grid>
                     </Border>
@@ -284,7 +297,7 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="55" />
                             <ColumnDefinition Width="24" />
-                            <ColumnDefinition Width="40" />
+                            <ColumnDefinition Width="78" />
                         </Grid.ColumnDefinitions>
 
                         <Button
@@ -293,11 +306,11 @@
                             Width="55"
                             Height="24"
                             Padding="0"
-                            Background="#343941"
-                            Foreground="#FFF8FAFC"
-                            BorderBrush="#77818E"
+                            Background="#FFFDFC"
+                            Foreground="#1B1F31"
+                            BorderBrush="#D5D0C4"
                             BorderThickness="1"
-                            CornerRadius="10"
+                            CornerRadius="13"
                             Click="OnLanguageToggleClick"
                             ToolTipService.ToolTip="Language">
                             <Grid Margin="2">
@@ -311,7 +324,7 @@
                                     Grid.Column="0"
                                     Margin="0,0,1,0"
                                     Padding="0,1"
-                                    Background="#FF4A5563"
+                                    Background="#2E88B8"
                                     CornerRadius="8">
                                     <TextBlock
                                         x:Name="LanguageEnglishText"
@@ -319,7 +332,7 @@
                                         VerticalAlignment="Center"
                                         FontSize="8"
                                         FontWeight="SemiBold"
-                                        Foreground="#FF11151A"
+                                        Foreground="#FFFFFF"
                                         Text="EN" />
                                 </Border>
 
@@ -336,7 +349,7 @@
                                         VerticalAlignment="Center"
                                         FontSize="8"
                                         FontWeight="SemiBold"
-                                        Foreground="#FFB7C0CB"
+                                        Foreground="#5F6673"
                                         Text="中文" />
                                 </Border>
                             </Grid>
@@ -354,28 +367,44 @@
                                 Glyph="&#xE713;"
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center"
-                                Foreground="#FFF8FAFC" />
+                                Foreground="#1B1F31" />
                         </Button>
 
-                        <Border
+                        <Button
+                            x:Name="UpdateButton"
                             Grid.Column="2"
-                            Width="40"
-                            Padding="2,0"
-                            Height="22"
+                            Width="78"
+                            Height="24"
+                            Padding="0"
                             VerticalAlignment="Center"
-                            Background="#303640"
-                            BorderBrush="#4D5660"
+                            Background="#FFFDFC"
+                            BorderBrush="#E2DDD3"
                             BorderThickness="1"
-                            CornerRadius="10">
-                            <TextBlock
-                                x:Name="VersionText"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                FontSize="9"
-                                FontWeight="SemiBold"
-                                Foreground="#FFE8EAED"
-                                Text="v..." />
-                        </Border>
+                            CornerRadius="13"
+                            Click="OnUpdateClick"
+                            ToolTipService.ToolTip="Update">
+                            <Grid ColumnSpacing="4" Padding="6,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Ellipse
+                                    x:Name="UpdateIndicatorDot"
+                                    Width="6"
+                                    Height="6"
+                                    VerticalAlignment="Center"
+                                    Fill="#4B5563" />
+                                <TextBlock
+                                    x:Name="VersionText"
+                                    Grid.Column="1"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    FontSize="9"
+                                    FontWeight="Bold"
+                                    Foreground="#8A6A36"
+                                    Text="v..." />
+                            </Grid>
+                        </Button>
                     </Grid>
 
                     <Grid
@@ -406,7 +435,7 @@
                                 VerticalAlignment="Center"
                                 FontSize="9"
                                 FontWeight="SemiBold"
-                                Foreground="#FFE8EAED"
+                                Foreground="#1B1F31"
                                 Text="SVC" />
                         </StackPanel>
 
@@ -427,7 +456,7 @@
                                 VerticalAlignment="Center"
                                 FontSize="9"
                                 FontWeight="SemiBold"
-                                Foreground="#FFE8EAED"
+                                Foreground="#1B1F31"
                                 Text="CFG" />
                         </StackPanel>
 
@@ -448,7 +477,7 @@
                                 VerticalAlignment="Center"
                                 FontSize="9"
                                 FontWeight="SemiBold"
-                                Foreground="#FFE8EAED"
+                                Foreground="#1B1F31"
                                 Text="GSI" />
                         </StackPanel>
 
@@ -469,7 +498,7 @@
                                 VerticalAlignment="Center"
                                 FontSize="9"
                                 FontWeight="SemiBold"
-                                Foreground="#FFE8EAED"
+                                Foreground="#1B1F31"
                                 Text="ANI" />
                         </StackPanel>
                     </Grid>
@@ -534,17 +563,17 @@
                     <Border
                         Width="42"
                         Height="24"
-                        Background="#303640"
-                        BorderBrush="#4D5660"
+                        Background="#FFFDFC"
+                        BorderBrush="#E2DDD3"
                         BorderThickness="1"
-                        CornerRadius="11">
+                        CornerRadius="14">
                         <TextBlock
                             x:Name="CfgLabelText"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"
                             FontSize="10"
                             FontWeight="SemiBold"
-                            Foreground="#FFE8EAED"
+                            Foreground="#1B1F31"
                             Text="CFG" />
                     </Border>
 
@@ -567,13 +596,13 @@
                             x:Name="CfgStatusText"
                             FontSize="10"
                             FontWeight="SemiBold"
-                            Foreground="#FFE8EAED"
+                            Foreground="#1B1F31"
                             Text="CFG not checked"
                             TextTrimming="CharacterEllipsis" />
                         <TextBlock
                             x:Name="CfgHintText"
                             FontSize="10"
-                            Foreground="#FFAEB4BD"
+                            Foreground="#6B7280"
                             Text="Pick CS2 root folder"
                             TextTrimming="CharacterEllipsis" />
                     </StackPanel>
@@ -584,14 +613,14 @@
                         MinWidth="36"
                         Height="24"
                         Padding="7,0"
-                        Background="#343941"
-                        BorderBrush="#4D5660"
+                        Background="#2E88B8"
+                        BorderBrush="#3A9CCF"
                         BorderThickness="1"
                         Click="OnInstallCfgClick"
                         Content="Add"
-                        CornerRadius="10"
+                        CornerRadius="14"
                         FontSize="10"
-                        Foreground="#FFF8FAFC"
+                        Foreground="#FFFFFF"
                         ToolTipService.ToolTip="Add missing CFG"
                         Visibility="Collapsed" />
                     </Grid>
@@ -600,10 +629,10 @@
                 <Grid Grid.Row="2" Margin="0,5,0,0">
                     <Border
                         Padding="0"
-                        Background="#1A2026"
-                        BorderBrush="#2F3338"
+                        Background="#FAFAF7"
+                        BorderBrush="#E2DDD3"
                         BorderThickness="1"
-                        CornerRadius="7">
+                        CornerRadius="16">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="18" />
@@ -612,14 +641,15 @@
 
                             <Border
                                 Grid.Row="0"
-                                Background="#24323C"
-                                BorderBrush="#355065"
+                                Background="#F29A17"
+                                BorderBrush="#D87800"
                                 BorderThickness="0,0,0,1"
-                                CornerRadius="7,7,0,0"
+                                CornerRadius="16,16,0,0"
                                 Padding="9,0,9,0">
                                 <TextBlock
+                                    x:Name="PackTestHeaderText"
                                     Style="{StaticResource SectionHeaderTextStyle}"
-                                    Foreground="#DCEEFF"
+                                    Foreground="#FFFFFF"
                                     Text="PACK / TEST" />
                             </Border>
 
@@ -632,11 +662,9 @@
                                 ColumnSpacing="4">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="90" />
+                                    <ColumnDefinition Width="150" />
                                     <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="90" />
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="90" />
+                                    <ColumnDefinition Width="150" />
                                 </Grid.ColumnDefinitions>
 
                                 <PathIcon
@@ -649,7 +677,7 @@
                                 <ComboBox
                                     x:Name="VoicePackSelector"
                                     Grid.Column="1"
-                                    Width="90"
+                                    Width="150"
                                     Style="{StaticResource NarrowComboBoxStyle}"
                                     HorizontalAlignment="Stretch"
                                     HorizontalContentAlignment="Center"
@@ -675,36 +703,17 @@
                                 <ComboBox
                                     x:Name="IconPackSelector"
                                     Grid.Column="3"
-                                    Width="90"
-                                    Style="{StaticResource OverlayComboBoxStyle}"
-                                    HorizontalContentAlignment="Center"
-                                    SelectedIndex="0"
-                                    SelectionChanged="OnIconPackSelectionChanged">
-                                    <ComboBoxItem x:Name="DefaultIconPackItem" Tag="default" Foreground="#FFF8FAFC">Default</ComboBoxItem>
-                                    <ComboBoxItem x:Name="VipIconPackItem" Tag="vip" Foreground="#FFF8FAFC">VIP</ComboBoxItem>
-                                    <ComboBoxItem x:Name="LegacyIconPackItem" Tag="legacy" Foreground="#FFF8FAFC">Legacy</ComboBoxItem>
-                                    <ComboBoxItem x:Name="CustomIconPackItem" Tag="angelic_beast" Foreground="#FFF8FAFC">Custom</ComboBoxItem>
-                                </ComboBox>
-
-                                <PathIcon
-                                    x:Name="MainAnimationIcon"
-                                    Grid.Column="4"
-                                    Margin="0,0,2,0"
-                                    Style="{StaticResource FluentTinyPathIconStyle}"
-                                    Data="M4 4.75C4 4.33579 4.33579 4 4.75 4H9.25C9.66421 4 10 4.33579 10 4.75V19.25C10 19.6642 9.66421 20 9.25 20H4.75C4.33579 20 4 19.6642 4 19.25V4.75ZM14 7.75C14 7.33579 14.3358 7 14.75 7H19.25C19.6642 7 20 7.33579 20 7.75V16.25C20 16.6642 19.6642 17 19.25 17H14.75C14.3358 17 14 16.6642 14 16.25V7.75Z" />
-
-                                <ComboBox
-                                    x:Name="MainAnimationStyleSelector"
-                                    Grid.Column="5"
-                                    Width="90"
-                                    MinWidth="90"
+                                    Width="150"
                                     Style="{StaticResource NarrowComboBoxStyle}"
                                     HorizontalContentAlignment="Center"
                                     SelectedIndex="0"
-                                    SelectionChanged="OnMainAnimationStyleSelectionChanged">
-                                    <ComboBoxItem x:Name="AnimationStyle1Item" Tag="1">Style 1</ComboBoxItem>
-                                    <ComboBoxItem x:Name="AnimationStyle2Item" Tag="2">Style 2</ComboBoxItem>
+                                    SelectionChanged="OnIconPackSelectionChanged">
+                                    <ComboBoxItem x:Name="DefaultIconPackItem" Tag="default" Foreground="#1B1F31">Default</ComboBoxItem>
+                                    <ComboBoxItem x:Name="VipIconPackItem" Tag="vip" Foreground="#1B1F31">VIP</ComboBoxItem>
+                                    <ComboBoxItem x:Name="LegacyIconPackItem" Tag="legacy" Foreground="#1B1F31">Legacy</ComboBoxItem>
+                                    <ComboBoxItem x:Name="CustomIconPackItem" Tag="angelic_beast" Foreground="#1B1F31">Custom</ComboBoxItem>
                                 </ComboBox>
+
                             </Grid>
 
                             <Grid
@@ -712,11 +721,13 @@
                                 ColumnSpacing="4">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="80" />
+                                    <ColumnDefinition Width="70" />
                                     <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="80" />
+                                    <ColumnDefinition Width="75" />
                                     <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="80" />
+                                    <ColumnDefinition Width="70" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="75" />
                                 </Grid.ColumnDefinitions>
 
                                 <PathIcon
@@ -728,7 +739,7 @@
                                 <ComboBox
                                     x:Name="KillFxSelector"
                                     Grid.Column="1"
-                                    Width="80"
+                                    Width="70"
                                     Style="{StaticResource NarrowComboBoxStyle}"
                                     HorizontalContentAlignment="Center"
                                     SelectedIndex="0"
@@ -747,7 +758,7 @@
                                 <ComboBox
                                     x:Name="EliteEffectSelector"
                                     Grid.Column="3"
-                                    Width="80"
+                                    Width="75"
                                     Style="{StaticResource NarrowComboBoxStyle}"
                                     HorizontalContentAlignment="Center"
                                     SelectedIndex="0"
@@ -770,14 +781,34 @@
                                 <ComboBox
                                     x:Name="WeaponBadgeSelector"
                                     Grid.Column="5"
-                                    Width="80"
+                                    Width="70"
                                     Style="{StaticResource NarrowComboBoxStyle}"
                                     HorizontalContentAlignment="Center"
                                     SelectedIndex="0"
                                     SelectionChanged="OnWeaponBadgeSelectionChanged">
-                                    <ComboBoxItem x:Name="WeaponBadgeOffItem" Tag="0">OFF</ComboBoxItem>
                                     <ComboBoxItem x:Name="WeaponBadgeOnItem" Tag="1">AUTO</ComboBoxItem>
+                                    <ComboBoxItem x:Name="WeaponBadgeOffItem" Tag="0">OFF</ComboBoxItem>
                                     <ComboBoxItem x:Name="WeaponBadgeOriginalItem" Tag="2">ORIG</ComboBoxItem>
+                                </ComboBox>
+
+                                <PathIcon
+                                    x:Name="MainAnimationIcon"
+                                    Grid.Column="6"
+                                    Margin="0,0,2,0"
+                                    Style="{StaticResource FluentTinyPathIconStyle}"
+                                    Data="M4 4.75C4 4.33579 4.33579 4 4.75 4H9.25C9.66421 4 10 4.33579 10 4.75V19.25C10 19.6642 9.66421 20 9.25 20H4.75C4.33579 20 4 19.6642 4 19.25V4.75ZM14 7.75C14 7.33579 14.3358 7 14.75 7H19.25C19.6642 7 20 7.33579 20 7.75V16.25C20 16.6642 19.6642 17 19.25 17H14.75C14.3358 17 14 16.6642 14 16.25V7.75Z" />
+
+                                <ComboBox
+                                    x:Name="MainAnimationStyleSelector"
+                                    Grid.Column="7"
+                                    Width="75"
+                                    MinWidth="75"
+                                    Style="{StaticResource NarrowComboBoxStyle}"
+                                    HorizontalContentAlignment="Center"
+                                    SelectedIndex="0"
+                                    SelectionChanged="OnMainAnimationStyleSelectionChanged">
+                                    <ComboBoxItem x:Name="AnimationStyle1Item" Tag="1">Style 1</ComboBoxItem>
+                                    <ComboBoxItem x:Name="AnimationStyle2Item" Tag="2">Style 2</ComboBoxItem>
                                 </ComboBox>
 
                             </Grid>
@@ -787,7 +818,7 @@
                                 ColumnSpacing="3">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="70" />
+                                <ColumnDefinition Width="82" />
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="96" />
                                 <ColumnDefinition Width="Auto" />
@@ -804,7 +835,7 @@
                             <ComboBox
                                 x:Name="AudioVolumeSelector"
                                 Grid.Column="1"
-                                Width="70"
+                                Width="82"
                                 Style="{StaticResource NarrowComboBoxStyle}"
                                 SelectionChanged="OnAudioVolumeSelectionChanged"
                                 ToolTipService.ToolTip="Overlay volume">
@@ -842,7 +873,7 @@
                                 x:Name="TestPresetSelector"
                                 Grid.Column="3"
                                 Width="96"
-                                Style="{StaticResource OverlayComboBoxStyle}"
+                                Style="{StaticResource NarrowComboBoxStyle}"
                                 MinWidth="96"
                                 SelectedIndex="0"
                                 ToolTipService.ToolTip="Select test preset">
@@ -888,7 +919,7 @@
                                     Glyph="&#xE72C;"
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center"
-                                    Foreground="#FFF8FAFC" />
+                                    Foreground="#1B1F31" />
                             </Button>
                             </Grid>
                         </StackPanel>
@@ -900,10 +931,10 @@
                 <Grid Grid.Row="3" Margin="0,5,0,0">
                     <Border
                         Padding="0"
-                        Background="#1A2026"
-                        BorderBrush="#2F3338"
+                        Background="#FAFAF7"
+                        BorderBrush="#E2DDD3"
                         BorderThickness="1"
-                        CornerRadius="7">
+                        CornerRadius="16">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="18" />
@@ -912,14 +943,15 @@
 
                             <Border
                                 Grid.Row="0"
-                                Background="#25352E"
-                                BorderBrush="#49695D"
+                                Background="#2E88B8"
+                                BorderBrush="#256F98"
                                 BorderThickness="0,0,0,1"
-                                CornerRadius="7,7,0,0"
+                                CornerRadius="16,16,0,0"
                                 Padding="9,0,9,0">
                                 <TextBlock
+                                    x:Name="VisualHeaderText"
                                     Style="{StaticResource SectionHeaderTextStyle}"
-                                    Foreground="#E3F8EA"
+                                    Foreground="#FFFFFF"
                                     Text="VISUAL" />
                             </Border>
 
@@ -1105,7 +1137,7 @@
                         VerticalAlignment="Center"
                         FontSize="9"
                         FontWeight="SemiBold"
-                        Foreground="#D8E4F4"
+                        Foreground="#2D3748"
                         Text="FPS"
                         ToolTipService.ToolTip="Animation playback FPS" />
 

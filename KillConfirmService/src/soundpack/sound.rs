@@ -25,7 +25,7 @@ const FLYING_TIGER_SOUND_GAIN: f32 = 1.8;
 const WOMEN_SPECIAL_SOUND_GAIN: f32 = 1.6;
 const WOMEN_GR_GRENADE_SOUND_GAIN: f32 = 2.1;
 const QUIET_VOICE_PACK_SOUND_GAIN: f32 = 3.6;
-const GLOBAL_SOUND_GAIN: f32 = 0.25;
+const GLOBAL_SOUND_GAIN: f32 = 0.1;
 const MAX_STREAK_EVENT_GAIN: f32 = 1.5;
 
 async fn add_file_to_mixer(

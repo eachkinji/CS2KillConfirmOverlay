@@ -342,7 +342,7 @@
                         <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="55" />
                                     <ColumnDefinition Width="24" />
-                                    <ColumnDefinition Width="102" />
+                                    <ColumnDefinition Width="98" />
                         </Grid.ColumnDefinitions>
 
                         <Button
@@ -420,7 +420,7 @@
                         <Button
                             x:Name="UpdateButton"
                             Grid.Column="2"
-                            Width="102"
+                            Width="98"
                             Height="24"
                             Padding="0"
                             VerticalAlignment="Center"
@@ -446,9 +446,9 @@
                                     Grid.Column="1"
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center"
-                                    Margin="0,0,4,0"
+                                    FontFamily="Segoe UI"
                                     FontSize="9"
-                                    FontWeight="Bold"
+                                    FontWeight="SemiBold"
                                     Foreground="#8A6A36"
                                     Text="作者 Zac" />
                             </Grid>
@@ -1334,9 +1334,9 @@
                                     <TextBlock
                                         x:Name="UpdateAboutText"
                                         VerticalAlignment="Center"
-                                        Margin="0,0,5,0"
+                                        FontFamily="Segoe UI"
                                         FontSize="13"
-                                        FontWeight="Bold"
+                                        FontWeight="SemiBold"
                                         Foreground="#1B1F31"
                                         LineHeight="17"
                                         Text="作者：Zac" />
@@ -1361,7 +1361,7 @@
                                         <Image
                                             Width="14"
                                             Height="14"
-                                            Source="ms-appx:///Assets/GitHub.svg"
+                                            Source="ms-appx:///Assets/GitHub.png"
                                             Stretch="Uniform" />
                                         <TextBlock
                                             x:Name="UpdateAuthorGitHubText"
@@ -1389,7 +1389,7 @@
                                         <Image
                                             Width="17"
                                             Height="14"
-                                            Source="ms-appx:///Assets/bilibili.svg"
+                                            Source="ms-appx:///Assets/bilibili.png"
                                             Stretch="Uniform" />
                                         <TextBlock
                                             x:Name="UpdateAuthorBilibiliText"

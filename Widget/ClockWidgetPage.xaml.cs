@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using TestXboxGameBar.Services;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Core;
+using Windows.ApplicationModel.DataTransfer;
 using Windows.Data.Json;
 using Windows.Foundation;
 using Windows.Foundation.Metadata;
@@ -123,6 +124,7 @@ namespace TestXboxGameBar
         private const string OpenSettingsWindowParameterGroupId = "OpenSettingsWindow";
         private const string RunPendingUpdateParameterGroupId = "RunPendingUpdate";
         private const string OpenQuarkUpdateParameterGroupId = "OpenQuarkUpdate";
+        private const string OpenUpdateFolderParameterGroupId = "OpenUpdateFolder";
         private const string PendingUpdateFileName = "pending_update.json";
         private const string QuarkUpdateUrl = "https://pan.quark.cn/s/1f3cfbcf8d5f?pwd=7Twv";
         private const string QuarkUpdateCode = "7Twv";
@@ -188,6 +190,7 @@ namespace TestXboxGameBar
         private string _latestReleaseDownloadUrl = string.Empty;
         private string _latestReleaseAssetName = string.Empty;
         private string _latestReleasePageUrl = string.Empty;
+        private StorageFile _downloadedUpdateInstaller;
         private readonly DispatcherTimer _controlPanelStateTimer;
         private readonly DispatcherTimer _statusHintTimer;
 
@@ -733,12 +736,18 @@ namespace TestXboxGameBar
             UpdateQuarkHintText.Text = LocalizationManager.Text("UpdateQuarkHint");
             UpdateQuarkCodeText.Text = string.Format(LocalizationManager.Text("UpdateQuarkCode"), QuarkUpdateCode);
             UpdateOpenQuarkButton.Content = LocalizationManager.Text("UpdateOpenQuark");
-            UpdateDownloadButton.Content = LocalizationManager.Text("UpdateDownloadAndInstall");
+            UpdateCopyQuarkButton.Content = LocalizationManager.Text("UpdateCopyQuark");
+            UpdateDownloadButton.Content = LocalizationManager.Text("UpdateDownloadInstaller");
+            UpdateInstallButton.Content = LocalizationManager.Text("UpdateInstallNow");
+            UpdateOpenFolderButton.Content = LocalizationManager.Text("UpdateOpenDownloadFolder");
             UpdateCancelButton.Content = LocalizationManager.Text("Later");
             UpdateDownloadStatusText.Text = LocalizationManager.Text("UpdateReadyToDownload");
             UpdateDownloadProgress.Value = 0;
             UpdateDownloadProgress.IsIndeterminate = false;
+            _downloadedUpdateInstaller = null;
             UpdateDownloadButton.IsEnabled = !_updateDownloadInProgress;
+            UpdateInstallButton.IsEnabled = false;
+            UpdateOpenFolderButton.IsEnabled = true;
             UpdateCloseButton.IsEnabled = !_updateDownloadInProgress;
             UpdateCancelButton.IsEnabled = !_updateDownloadInProgress;
             UpdateOverlay.Visibility = Visibility.Visible;
@@ -776,6 +785,14 @@ namespace TestXboxGameBar
                     : Color.FromArgb(255, 185, 28, 28));
         }
 
+        private void OnCopyQuarkUpdateClick(object sender, RoutedEventArgs e)
+        {
+            var package = new DataPackage();
+            package.SetText(QuarkUpdateUrl + Environment.NewLine + LocalizationManager.Text("UpdateQuarkCodePlain") + QuarkUpdateCode);
+            Clipboard.SetContent(package);
+            ShowStatusHint(LocalizationManager.Text("UpdateQuarkCopied"), Color.FromArgb(255, 5, 122, 85));
+        }
+
         private async void OnDownloadUpdateClick(object sender, RoutedEventArgs e)
         {
             if (_updateDownloadInProgress)
@@ -796,6 +813,7 @@ namespace TestXboxGameBar
 
             _updateDownloadInProgress = true;
             UpdateDownloadButton.IsEnabled = false;
+            UpdateInstallButton.IsEnabled = false;
             UpdateCloseButton.IsEnabled = false;
             UpdateCancelButton.IsEnabled = false;
             UpdateDownloadProgress.Value = 0;
@@ -810,22 +828,11 @@ namespace TestXboxGameBar
 
                 UpdateDownloadProgress.IsIndeterminate = false;
                 UpdateDownloadProgress.Value = 100;
-                UpdateDownloadStatusText.Text = LocalizationManager.Text("UpdateDownloadedLaunching");
-
-                await WritePendingUpdateFileAsync(installerFile);
-                bool launched = await TryLaunchFullTrustHelperAsync(RunPendingUpdateParameterGroupId);
-                ShowStatusHint(
-                    launched
-                        ? LocalizationManager.Text("UpdateStartingHint")
-                        : LocalizationManager.Text("UpdateLaunchFailed"),
-                    launched
-                        ? Color.FromArgb(255, 180, 90, 0)
-                        : Color.FromArgb(255, 185, 28, 28));
-
-                if (launched)
-                {
-                    UpdateOverlay.Visibility = Visibility.Collapsed;
-                }
+                _downloadedUpdateInstaller = installerFile;
+                UpdateDownloadStatusText.Text = LocalizationManager.Text("UpdateDownloadedReady");
+                UpdateInstallButton.IsEnabled = true;
+                UpdateOpenFolderButton.IsEnabled = true;
+                ShowStatusHint(LocalizationManager.Text("UpdateDownloadedReady"), Color.FromArgb(255, 5, 122, 85));
             }
             catch (Exception ex)
             {
@@ -838,8 +845,65 @@ namespace TestXboxGameBar
             {
                 _updateDownloadInProgress = false;
                 UpdateDownloadButton.IsEnabled = true;
+                UpdateInstallButton.IsEnabled = _downloadedUpdateInstaller != null;
+                UpdateOpenFolderButton.IsEnabled = true;
                 UpdateCloseButton.IsEnabled = true;
                 UpdateCancelButton.IsEnabled = true;
+            }
+        }
+
+        private async void OnInstallUpdateClick(object sender, RoutedEventArgs e)
+        {
+            if (_downloadedUpdateInstaller == null)
+            {
+                ShowStatusHint(LocalizationManager.Text("UpdateInstallNoFile"), Color.FromArgb(255, 75, 85, 99));
+                return;
+            }
+
+            try
+            {
+                await WritePendingUpdateFileAsync(_downloadedUpdateInstaller);
+                bool launched = await TryLaunchFullTrustHelperAsync(RunPendingUpdateParameterGroupId);
+                ShowStatusHint(
+                    launched
+                        ? LocalizationManager.Text("UpdateStartingHint")
+                        : LocalizationManager.Text("UpdateLaunchFailed"),
+                    launched
+                        ? Color.FromArgb(255, 180, 90, 0)
+                        : Color.FromArgb(255, 185, 28, 28));
+            }
+            catch (Exception ex)
+            {
+                App.Log("Update installer launch failed: " + ex);
+                ShowStatusHint(LocalizationManager.Text("UpdateLaunchFailed"), Color.FromArgb(255, 185, 28, 28));
+            }
+        }
+
+        private async void OnOpenUpdateFolderClick(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                bool launched = await TryLaunchFullTrustHelperAsync(OpenUpdateFolderParameterGroupId);
+                if (!launched)
+                {
+                    StorageFolder updateFolder = await ApplicationData.Current.LocalFolder.CreateFolderAsync(
+                        "updates",
+                        CreationCollisionOption.OpenIfExists);
+                    launched = await Launcher.LaunchFolderAsync(updateFolder);
+                }
+
+                ShowStatusHint(
+                    launched
+                        ? LocalizationManager.Text("UpdateFolderOpening")
+                        : LocalizationManager.Text("UpdateFolderOpenFailed"),
+                    launched
+                        ? Color.FromArgb(255, 180, 90, 0)
+                        : Color.FromArgb(255, 185, 28, 28));
+            }
+            catch (Exception ex)
+            {
+                App.Log("Open update folder failed: " + ex);
+                ShowStatusHint(LocalizationManager.Text("UpdateFolderOpenFailed"), Color.FromArgb(255, 185, 28, 28));
             }
         }
 
@@ -1447,6 +1511,9 @@ namespace TestXboxGameBar
             try
             {
                 bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+                LanguageEnglishText.Text = "EN";
+                LanguageChineseText.Text = "\u4e2d\u6587";
+
                 LanguageEnglishChip.Background = isChinese
                     ? new SolidColorBrush(Color.FromArgb(0, 0, 0, 0))
                     : new SolidColorBrush(Color.FromArgb(255, 46, 136, 184));
@@ -1483,7 +1550,10 @@ namespace TestXboxGameBar
             SetNamedToolTip(FreePortButton, LocalizationManager.Text("FreePortTitle"), LocalizationManager.Text("FreePortTooltip"));
             SetNamedToolTip(UpdateButton, LocalizationManager.Text("UpdateTitle"), LocalizationManager.Text("UpdateUnavailableTooltip"));
             UpdateOpenQuarkButton.Content = LocalizationManager.Text("UpdateOpenQuark");
-            UpdateDownloadButton.Content = LocalizationManager.Text("UpdateDownloadAndInstall");
+            UpdateCopyQuarkButton.Content = LocalizationManager.Text("UpdateCopyQuark");
+            UpdateDownloadButton.Content = LocalizationManager.Text("UpdateDownloadInstaller");
+            UpdateInstallButton.Content = LocalizationManager.Text("UpdateInstallNow");
+            UpdateOpenFolderButton.Content = LocalizationManager.Text("UpdateOpenDownloadFolder");
             UpdateCancelButton.Content = LocalizationManager.Text("Later");
             SetNamedToolTip(ConnectionStatusBadge, LocalizationManager.Text("ServiceStatusTitle"), LocalizationManager.Text("ServiceStatusTooltip"));
             SetNamedToolTip(CfgStatusBadge, LocalizationManager.Text("CfgStatusTitle"), LocalizationManager.Text("CfgStatusTooltip"));
@@ -1574,11 +1644,81 @@ namespace TestXboxGameBar
             // Animation Style Dropdown Items
             AnimationStyle1Item.Content = string.Format(LocalizationManager.Text("AnimationStyle"), "1");
             AnimationStyle2Item.Content = string.Format(LocalizationManager.Text("AnimationStyle"), "2");
+            ApplyTestPresetLabels();
 
             UpdateConnectionState(_serviceConnectionState);
             UpdateCfgStatus(_cfgDetectionState, null, _cfgStatusDetail);
             UpdateGsiStatus(true, _gsiRecentlySeen, _gsiRecentlySeen ? 1 : 0, null);
             UpdateUpdateButtonVisualState();
+        }
+
+        private void ApplyTestPresetLabels()
+        {
+            if (TestPresetSelector == null)
+            {
+                return;
+            }
+
+            bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            foreach (object option in TestPresetSelector.Items)
+            {
+                if (!(option is ComboBoxItem item) || !(item.Tag is string tag))
+                {
+                    continue;
+                }
+
+                item.Content = GetTestPresetLabel(tag, isChinese);
+            }
+        }
+
+        private static string GetTestPresetLabel(string tag, bool isChinese)
+        {
+            if (!isChinese)
+            {
+                switch (tag)
+                {
+                    case "one": return "1 kill";
+                    case "one_hs": return "1 kill HS";
+                    case "one_knife": return "1 kill knife";
+                    case "one_first": return "1 kill first";
+                    case "one_last": return "1 kill last";
+                    case "gold_first": return "Gold first";
+                    case "gold_last": return "Gold last";
+                    case "two": return "2 kills";
+                    case "three": return "3 kills";
+                    case "four": return "4 kills";
+                    case "five": return "5 kills";
+                    case "six": return "6 kills";
+                    case "seven": return "7 kills";
+                    case "eight": return "8 kills";
+                    case "nine": return "9 kills";
+                    case "badge_first": return "First badge";
+                    case "badge_last": return "Last badge";
+                    default: return tag;
+                }
+            }
+
+            switch (tag)
+            {
+                case "one": return "1\u6740";
+                case "one_hs": return "1\u6740\u7206\u5934";
+                case "one_knife": return "1\u6740\u5200\u6740";
+                case "one_first": return "1\u6740\u9996\u6740";
+                case "one_last": return "1\u6740\u5c3e\u6740";
+                case "gold_first": return "\u9ec4\u91d1\u9996\u6740";
+                case "gold_last": return "\u9ec4\u91d1\u5c3e\u6740";
+                case "two": return "2\u6740";
+                case "three": return "3\u6740";
+                case "four": return "4\u6740";
+                case "five": return "5\u6740";
+                case "six": return "6\u6740";
+                case "seven": return "7\u6740";
+                case "eight": return "8\u6740";
+                case "nine": return "9\u6740";
+                case "badge_first": return "\u9996\u6740\u5fbd\u7ae0";
+                case "badge_last": return "\u5c3e\u6740\u5fbd\u7ae0";
+                default: return tag;
+            }
         }
 
         private void ConfigureWidgetCapabilities()

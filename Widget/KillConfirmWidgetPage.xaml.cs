@@ -130,6 +130,7 @@ namespace KillConfirmGameBar
         private const string UpdateDownloadResultFileName = "update_download_result.json";
         private const string QuarkUpdateUrl = "https://pan.quark.cn/s/1f3cfbcf8d5f?pwd=7Twv";
         private const string QuarkUpdateCode = "7Twv";
+        private const string ProjectGitHubUrl = "https://github.com/eachkinji/CS2KillConfirmOverlay";
         private static readonly SemaphoreSlim ServiceStartupGate = new SemaphoreSlim(1, 1);
         private static readonly Uri LatestReleaseUri = new Uri("https://api.github.com/repos/eachkinji/CS2KillConfirmOverlay/releases/latest");
         private static readonly IReadOnlyDictionary<string, TestPreset> TestPresets =
@@ -192,6 +193,8 @@ namespace KillConfirmGameBar
         private string _latestReleaseDownloadUrl = string.Empty;
         private string _latestReleaseAssetName = string.Empty;
         private string _latestReleasePageUrl = string.Empty;
+        private string _latestReleaseNotes = string.Empty;
+        private DateTimeOffset? _latestReleasePublishedAt;
         private bool _updateInstallerReady;
         private readonly DispatcherTimer _controlPanelStateTimer;
         private readonly DispatcherTimer _statusHintTimer;
@@ -663,13 +666,15 @@ namespace KillConfirmGameBar
                     string payload = await client.GetStringAsync(LatestReleaseUri);
                     App.Log("Update check payload received from GitHub.");
 
-                    if (TryParseLatestRelease(payload, out Version latestVersion, out string latestVersionText, out string downloadUrl, out string assetName, out string pageUrl))
+                    if (TryParseLatestRelease(payload, out Version latestVersion, out string latestVersionText, out string downloadUrl, out string assetName, out string pageUrl, out string releaseNotes, out DateTimeOffset? publishedAt))
                     {
                         Version currentVersion = GetCurrentPackageVersion();
                         _latestReleaseVersion = latestVersionText;
                         _latestReleaseDownloadUrl = downloadUrl ?? string.Empty;
                         _latestReleaseAssetName = assetName ?? string.Empty;
                         _latestReleasePageUrl = pageUrl ?? string.Empty;
+                        _latestReleaseNotes = releaseNotes ?? string.Empty;
+                        _latestReleasePublishedAt = publishedAt;
 
                         if (currentVersion < latestVersion && !string.IsNullOrWhiteSpace(_latestReleaseDownloadUrl))
                         {
@@ -710,7 +715,7 @@ namespace KillConfirmGameBar
                     await PromptForUpdateAsync();
                     break;
                 case UpdateAvailabilityState.UpToDate:
-                    ShowStatusHint(LocalizationManager.Text("UpdateAlreadyLatestHint"), Color.FromArgb(255, 52, 211, 153));
+                    await PromptForUpdateAsync();
                     break;
                 default:
                     ShowStatusHint(LocalizationManager.Text("UpdateCheckFailedHint"), Color.FromArgb(255, 75, 85, 99));
@@ -720,10 +725,9 @@ namespace KillConfirmGameBar
 
         private async Task PromptForUpdateAsync()
         {
-            if (string.IsNullOrWhiteSpace(_latestReleaseDownloadUrl) || string.IsNullOrWhiteSpace(_latestReleaseAssetName))
+            if (string.IsNullOrWhiteSpace(_latestReleaseVersion))
             {
-                ShowStatusHint(LocalizationManager.Text("UpdateNoInstallerHint"), Color.FromArgb(255, 75, 85, 99));
-                return;
+                _latestReleaseVersion = GetDisplayVersion();
             }
 
             ShowUpdateOverlay();
@@ -732,9 +736,21 @@ namespace KillConfirmGameBar
 
         private void ShowUpdateOverlay()
         {
-            UpdateDialogTitleText.Text = LocalizationManager.Text("UpdatePromptTitle");
+            bool updateAvailable = _updateAvailabilityState == UpdateAvailabilityState.UpdateAvailable;
+            bool hasInstaller = !string.IsNullOrWhiteSpace(_latestReleaseDownloadUrl)
+                && !string.IsNullOrWhiteSpace(_latestReleaseAssetName);
+
+            UpdateDialogTitleText.Text = updateAvailable
+                ? LocalizationManager.Text("UpdatePromptTitle")
+                : LocalizationManager.Text("VersionAboutTitle");
             UpdateDialogVersionText.Text = _latestReleaseVersion;
-            UpdateDialogBodyText.Text = string.Format(LocalizationManager.Text("UpdatePromptBody"), _latestReleaseVersion);
+            UpdateDialogBodyText.Text = updateAvailable
+                ? string.Format(LocalizationManager.Text("UpdatePromptBody"), _latestReleaseVersion)
+                : string.Format(LocalizationManager.Text("UpdateAlreadyLatestBody"), GetDisplayVersion());
+            UpdateAboutText.Text = LocalizationManager.Text("VersionAboutBody");
+            UpdateReleaseInfoText.Text = BuildReleaseInfoText();
+            UpdateOpenGitHubButton.Content = LocalizationManager.Text("OpenGitHub");
+            UpdateOpenReleaseButton.Content = LocalizationManager.Text("OpenReleasePage");
             UpdateQuarkHintText.Text = LocalizationManager.Text("UpdateQuarkHint");
             UpdateQuarkCodeText.Text = string.Format(LocalizationManager.Text("UpdateQuarkCode"), QuarkUpdateCode);
             UpdateOpenQuarkButton.Content = LocalizationManager.Text("UpdateOpenQuark");
@@ -742,17 +758,28 @@ namespace KillConfirmGameBar
             UpdateDownloadButton.Content = LocalizationManager.Text("UpdateDownloadInstaller");
             UpdateInstallButton.Content = LocalizationManager.Text("UpdateInstallNow");
             UpdateOpenFolderButton.Content = LocalizationManager.Text("UpdateOpenDownloadFolder");
-            UpdateCancelButton.Content = LocalizationManager.Text("Later");
-            UpdateDownloadStatusText.Text = LocalizationManager.Text("UpdateReadyToDownload");
+            UpdateDownloadStatusText.Text = hasInstaller
+                ? LocalizationManager.Text("UpdateReadyToDownload")
+                : LocalizationManager.Text("UpdateNoInstallerHint");
             UpdateDownloadProgress.Value = 0;
             UpdateDownloadProgress.IsIndeterminate = false;
             _updateInstallerReady = false;
-            UpdateDownloadButton.IsEnabled = !_updateDownloadInProgress;
+            UpdateDownloadButton.IsEnabled = !_updateDownloadInProgress && hasInstaller;
             UpdateInstallButton.IsEnabled = false;
             UpdateOpenFolderButton.IsEnabled = true;
             UpdateCloseButton.IsEnabled = !_updateDownloadInProgress;
-            UpdateCancelButton.IsEnabled = !_updateDownloadInProgress;
             UpdateOverlay.Visibility = Visibility.Visible;
+        }
+
+        private string BuildReleaseInfoText()
+        {
+            string published = _latestReleasePublishedAt.HasValue
+                ? _latestReleasePublishedAt.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm")
+                : LocalizationManager.Text("UnknownReleaseTime");
+            string notes = string.IsNullOrWhiteSpace(_latestReleaseNotes)
+                ? LocalizationManager.Text("NoReleaseNotes")
+                : _latestReleaseNotes.Trim();
+            return string.Format(LocalizationManager.Text("ReleaseInfoBody"), published, notes);
         }
 
         private void HideUpdateOverlay()
@@ -787,6 +814,25 @@ namespace KillConfirmGameBar
                     : Color.FromArgb(255, 185, 28, 28));
         }
 
+        private async void OnOpenGitHubClick(object sender, RoutedEventArgs e)
+        {
+            bool launched = await Launcher.LaunchUriAsync(new Uri(ProjectGitHubUrl));
+            ShowStatusHint(
+                launched ? LocalizationManager.Text("OpenGitHubStarting") : LocalizationManager.Text("OpenGitHubFailed"),
+                launched ? Color.FromArgb(255, 180, 90, 0) : Color.FromArgb(255, 185, 28, 28));
+        }
+
+        private async void OnOpenReleaseClick(object sender, RoutedEventArgs e)
+        {
+            string url = string.IsNullOrWhiteSpace(_latestReleasePageUrl)
+                ? ProjectGitHubUrl + "/releases"
+                : _latestReleasePageUrl;
+            bool launched = await Launcher.LaunchUriAsync(new Uri(url));
+            ShowStatusHint(
+                launched ? LocalizationManager.Text("OpenReleaseStarting") : LocalizationManager.Text("OpenGitHubFailed"),
+                launched ? Color.FromArgb(255, 180, 90, 0) : Color.FromArgb(255, 185, 28, 28));
+        }
+
         private void OnCopyQuarkUpdateClick(object sender, RoutedEventArgs e)
         {
             var package = new DataPackage();
@@ -817,7 +863,6 @@ namespace KillConfirmGameBar
             UpdateDownloadButton.IsEnabled = false;
             UpdateInstallButton.IsEnabled = false;
             UpdateCloseButton.IsEnabled = false;
-            UpdateCancelButton.IsEnabled = false;
             UpdateDownloadProgress.Value = 0;
             UpdateDownloadProgress.IsIndeterminate = false;
             UpdateDownloadStatusText.Text = LocalizationManager.Text("UpdateDownloading");
@@ -865,7 +910,6 @@ namespace KillConfirmGameBar
                 UpdateInstallButton.IsEnabled = _updateInstallerReady;
                 UpdateOpenFolderButton.IsEnabled = true;
                 UpdateCloseButton.IsEnabled = true;
-                UpdateCancelButton.IsEnabled = true;
             }
         }
 
@@ -965,7 +1009,13 @@ namespace KillConfirmGameBar
                 if (item is StorageFile file)
                 {
                     string text = await FileIO.ReadTextAsync(file);
-                    return ParseUpdateDownloadResult(text);
+                    UpdateDownloadResult result = ParseUpdateDownloadResult(text);
+                    if (result.Completed)
+                    {
+                        return result;
+                    }
+
+                    UpdateDownloadProgressUi(result.Percent);
                 }
 
                 await Task.Delay(500);
@@ -988,6 +1038,13 @@ namespace KillConfirmGameBar
             bool success = json.TryGetValue("success", out IJsonValue successValue)
                 && successValue.ValueType == JsonValueType.Boolean
                 && successValue.GetBoolean();
+            bool completed = json.TryGetValue("completed", out IJsonValue completedValue)
+                && completedValue.ValueType == JsonValueType.Boolean
+                && completedValue.GetBoolean();
+            double? percent = json.TryGetValue("percent", out IJsonValue percentValue)
+                && percentValue.ValueType == JsonValueType.Number
+                    ? percentValue.GetNumber()
+                    : (double?)null;
             string installerPath = json.TryGetValue("installer_path", out IJsonValue installerPathValue)
                 && installerPathValue.ValueType == JsonValueType.String
                     ? installerPathValue.GetString()
@@ -1000,9 +1057,27 @@ namespace KillConfirmGameBar
             return new UpdateDownloadResult
             {
                 Success = success,
+                Completed = completed,
+                Percent = percent,
                 InstallerPath = installerPath,
                 Error = error
             };
+        }
+
+        private void UpdateDownloadProgressUi(double? percent)
+        {
+            if (percent.HasValue)
+            {
+                double safePercent = Math.Max(0.0, Math.Min(100.0, percent.Value));
+                UpdateDownloadProgress.IsIndeterminate = false;
+                UpdateDownloadProgress.Value = safePercent;
+                UpdateDownloadStatusText.Text = string.Format(LocalizationManager.Text("UpdateDownloadProgress"), safePercent);
+            }
+            else
+            {
+                UpdateDownloadProgress.IsIndeterminate = true;
+                UpdateDownloadStatusText.Text = LocalizationManager.Text("UpdateDownloading");
+            }
         }
 
         private async Task<StorageFile> DownloadUpdateInstallerAsync(Uri downloadUri, string assetName)
@@ -1169,6 +1244,8 @@ namespace KillConfirmGameBar
             _latestReleaseDownloadUrl = string.Empty;
             _latestReleaseAssetName = string.Empty;
             _latestReleasePageUrl = string.Empty;
+            _latestReleaseNotes = string.Empty;
+            _latestReleasePublishedAt = null;
         }
 
         private static Version GetCurrentPackageVersion()
@@ -1183,13 +1260,17 @@ namespace KillConfirmGameBar
             out string latestVersionText,
             out string downloadUrl,
             out string assetName,
-            out string pageUrl)
+            out string pageUrl,
+            out string releaseNotes,
+            out DateTimeOffset? publishedAt)
         {
             latestVersion = new Version(0, 0, 0, 0);
             latestVersionText = string.Empty;
             downloadUrl = string.Empty;
             assetName = string.Empty;
             pageUrl = string.Empty;
+            releaseNotes = string.Empty;
+            publishedAt = null;
 
             JsonObject root = JsonObject.Parse(payload);
             string tagName = root.ContainsKey("tag_name")
@@ -1201,6 +1282,14 @@ namespace KillConfirmGameBar
             pageUrl = root.ContainsKey("html_url")
                 ? root.GetNamedString("html_url")
                 : string.Empty;
+            releaseNotes = root.ContainsKey("body")
+                ? root.GetNamedString("body")
+                : string.Empty;
+            if (root.ContainsKey("published_at")
+                && DateTimeOffset.TryParse(root.GetNamedString("published_at"), out DateTimeOffset parsedPublishedAt))
+            {
+                publishedAt = parsedPublishedAt;
+            }
 
             string versionText = !string.IsNullOrWhiteSpace(tagName) ? tagName : releaseName;
             if (!TryParseVersion(versionText, out latestVersion))
@@ -1642,7 +1731,6 @@ namespace KillConfirmGameBar
             UpdateDownloadButton.Content = LocalizationManager.Text("UpdateDownloadInstaller");
             UpdateInstallButton.Content = LocalizationManager.Text("UpdateInstallNow");
             UpdateOpenFolderButton.Content = LocalizationManager.Text("UpdateOpenDownloadFolder");
-            UpdateCancelButton.Content = LocalizationManager.Text("Later");
             SetNamedToolTip(ConnectionStatusBadge, LocalizationManager.Text("ServiceStatusTitle"), LocalizationManager.Text("ServiceStatusTooltip"));
             SetNamedToolTip(CfgStatusBadge, LocalizationManager.Text("CfgStatusTitle"), LocalizationManager.Text("CfgStatusTooltip"));
             SetNamedToolTip(GsiStatusBadge, LocalizationManager.Text("GsiStatusTitle"), LocalizationManager.Text("GsiStatusTooltip"));
@@ -4115,6 +4203,8 @@ namespace KillConfirmGameBar
         private sealed class UpdateDownloadResult
         {
             public bool Success { get; set; }
+            public bool Completed { get; set; }
+            public double? Percent { get; set; }
             public string InstallerPath { get; set; }
             public string Error { get; set; }
         }

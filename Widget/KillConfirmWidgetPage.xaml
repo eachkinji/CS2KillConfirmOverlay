@@ -1243,6 +1243,7 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
                     <Grid>
@@ -1301,6 +1302,58 @@
                     <Border
                         Grid.Row="2"
                         Padding="12"
+                        Background="#FFFDFC"
+                        BorderBrush="#E2DDD3"
+                        BorderThickness="1"
+                        CornerRadius="16">
+                        <StackPanel Spacing="7">
+                            <TextBlock
+                                x:Name="UpdateAboutText"
+                                FontSize="12"
+                                FontWeight="SemiBold"
+                                Foreground="#1B1F31"
+                                TextWrapping="WrapWholeWords" />
+                            <TextBlock
+                                x:Name="UpdateReleaseInfoText"
+                                FontSize="11"
+                                Foreground="#4B5563"
+                                MaxLines="4"
+                                TextTrimming="CharacterEllipsis"
+                                TextWrapping="WrapWholeWords" />
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Button
+                                    x:Name="UpdateOpenGitHubButton"
+                                    Width="126"
+                                    Height="28"
+                                    MinWidth="126"
+                                    Background="#FFFDFC"
+                                    BorderBrush="#D5D0C4"
+                                    BorderThickness="1"
+                                    Click="OnOpenGitHubClick"
+                                    Content="GitHub"
+                                    CornerRadius="10"
+                                    FontSize="12"
+                                    Foreground="#1B1F31" />
+                                <Button
+                                    x:Name="UpdateOpenReleaseButton"
+                                    Width="126"
+                                    Height="28"
+                                    MinWidth="126"
+                                    Background="#FFFDFC"
+                                    BorderBrush="#D5D0C4"
+                                    BorderThickness="1"
+                                    Click="OnOpenReleaseClick"
+                                    Content="Release"
+                                    CornerRadius="10"
+                                    FontSize="12"
+                                    Foreground="#1B1F31" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <Border
+                        Grid.Row="3"
+                        Padding="12"
                         Background="#FFFFF7EA"
                         BorderBrush="#F7BE6A"
                         BorderThickness="1"
@@ -1350,7 +1403,7 @@
                     </Border>
 
                     <StackPanel
-                        Grid.Row="3"
+                        Grid.Row="4"
                         Spacing="8">
                         <TextBlock
                             x:Name="UpdateDownloadStatusText"
@@ -1370,10 +1423,9 @@
                     </StackPanel>
 
                     <Grid
-                        Grid.Row="4"
-                        ColumnSpacing="10">
+                        Grid.Row="5"
+                        ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
@@ -1381,53 +1433,40 @@
                         <Button
                             x:Name="UpdateDownloadButton"
                             Grid.Column="0"
-                            Height="38"
+                            Height="34"
                             Background="#2E88B8"
                             BorderBrush="#45A3D3"
                             BorderThickness="1"
                             Click="OnDownloadUpdateClick"
                             Content="涓嬭浇"
-                            CornerRadius="14"
-                            FontSize="13"
+                            CornerRadius="12"
+                            FontSize="12"
                             FontWeight="SemiBold"
                             Foreground="White" />
                         <Button
                             x:Name="UpdateInstallButton"
                             Grid.Column="1"
-                            Height="38"
+                            Height="34"
                             Background="#FFFDFC"
                             BorderBrush="#D5D0C4"
                             BorderThickness="1"
                             Click="OnInstallUpdateClick"
                             Content="Install"
-                            CornerRadius="14"
-                            FontSize="13"
+                            CornerRadius="12"
+                            FontSize="12"
                             FontWeight="SemiBold"
                             Foreground="#1B1F31" />
                         <Button
                             x:Name="UpdateOpenFolderButton"
                             Grid.Column="2"
-                            Height="38"
+                            Height="34"
                             Background="#FFFDFC"
                             BorderBrush="#D5D0C4"
                             BorderThickness="1"
                             Click="OnOpenUpdateFolderClick"
                             Content="Folder"
-                            CornerRadius="14"
-                            FontSize="13"
-                            FontWeight="SemiBold"
-                            Foreground="#1B1F31" />
-                        <Button
-                            x:Name="UpdateCancelButton"
-                            Grid.Column="3"
-                            Height="38"
-                            Background="#FFFDFC"
-                            BorderBrush="#D5D0C4"
-                            BorderThickness="1"
-                            Click="OnCloseUpdateOverlayClick"
-                            Content="绋嶅悗"
-                            CornerRadius="14"
-                            FontSize="13"
+                            CornerRadius="12"
+                            FontSize="12"
                             FontWeight="SemiBold"
                             Foreground="#1B1F31" />
                     </Grid>

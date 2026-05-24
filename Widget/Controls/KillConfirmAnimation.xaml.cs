@@ -256,9 +256,9 @@ namespace KillConfirmGameBar.Controls
             string normalized = string.IsNullOrWhiteSpace(iconPack)
                 ? "default"
                 : iconPack.Trim().ToLowerInvariant();
-            if (normalized != "angelic_beast"
-                && normalized != "legacy"
+            if (normalized != "legacy"
                 && normalized != "vip"
+                && GetIconPackFolder(normalized) == null
                 && !PackCatalogService.IsImportedIconPackKey(normalized))
             {
                 normalized = "default";
@@ -1056,12 +1056,39 @@ namespace KillConfirmGameBar.Controls
 
         private static string GetIconPackFolder()
         {
-            switch ((_iconPack ?? string.Empty).Trim().ToLowerInvariant())
+            return GetIconPackFolder(_iconPack);
+        }
+
+        private static string GetIconPackFolder(string iconPack)
+        {
+            switch ((iconPack ?? string.Empty).Trim().ToLowerInvariant())
             {
                 case "vip":
                     return VipCodeFolder;
                 case "angelic_beast":
                     return AngelicBeastCodeFolder;
+                case "anniversary_10":
+                    return "Anniversary10";
+                case "anniversary_15":
+                    return "Anniversary15";
+                case "cfpl":
+                    return "CFPL";
+                case "rankmach_2019_1":
+                    return "Rankmach2019_1";
+                case "rankmach_2019_2":
+                    return "Rankmach2019_2";
+                case "rankmach_2022_1":
+                    return "Rankmach2022_1";
+                case "rankmach_2022_2":
+                    return "Rankmach2022_2";
+                case "rankmach_2023_1":
+                    return "Rankmach2023_1";
+                case "rankmach_2023_2":
+                    return "Rankmach2023_2";
+                case "rankmach_2024_1":
+                    return "Rankmach2024_1";
+                case "rankmach_2024_2":
+                    return "Rankmach2024_2";
                 default:
                     return null;
             }

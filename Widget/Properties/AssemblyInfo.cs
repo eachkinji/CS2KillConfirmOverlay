@@ -1,11 +1,11 @@
-using System.Reflection;
+﻿using System.Reflection;
 using System.Runtime.InteropServices;
 
-[assembly: AssemblyTitle("TestXboxGameBar")]
-[assembly: AssemblyDescription("Xbox Game Bar clock widget")]
+[assembly: AssemblyTitle("KillConfirmGameBar")]
+[assembly: AssemblyDescription("Xbox Game Bar kill confirmation overlay")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("TestXboxGameBar")]
+[assembly: AssemblyProduct("KillConfirmGameBar")]
 [assembly: AssemblyCopyright("Copyright (c) 2026")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

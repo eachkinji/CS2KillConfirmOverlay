@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 using Windows.ApplicationModel;
 using Windows.Storage;
 using Windows.Storage.AccessCache;
-using TestXboxGameBar.Helpers;
+using KillConfirmGameBar.Helpers;
 
-namespace TestXboxGameBar.Services
+namespace KillConfirmGameBar.Services
 {
     [DataContract]
     public sealed class PackCatalog
@@ -709,10 +709,10 @@ end
                 },
                 IconPacks = new List<IconPackItem>
                 {
-                    CreateBuiltInIcon("default", "原版", true),
+                    CreateBuiltInIcon("default", "鍘熺増", true),
                     CreateBuiltInIcon("vip", "VIP", true),
-                    CreateBuiltInIcon("legacy", "老版", false),
-                    CreateBuiltInIcon("angelic_beast", "示例", false)
+                    CreateBuiltInIcon("legacy", "鑰佺増", false),
+                    CreateBuiltInIcon("angelic_beast", "绀轰緥", false)
                 }
             };
         }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices.WindowsRuntime;
@@ -7,7 +7,7 @@ using Windows.Graphics.Imaging;
 using Windows.Storage;
 using Windows.Storage.Streams;
 
-namespace TestXboxGameBar.Helpers
+namespace KillConfirmGameBar.Helpers
 {
     public static class TgaDecoder
     {

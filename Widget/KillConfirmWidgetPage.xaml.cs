@@ -5,7 +5,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using TestXboxGameBar.Services;
+using KillConfirmGameBar.Services;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Core;
 using Windows.ApplicationModel.DataTransfer;
@@ -28,9 +28,9 @@ using Windows.UI.Xaml.Navigation;
 using Windows.Web.Http;
 using Windows.System;
 
-namespace TestXboxGameBar
+namespace KillConfirmGameBar
 {
-    public sealed partial class ClockWidgetPage : Page
+    public sealed partial class KillConfirmWidgetPage : Page
     {
         private static readonly Size DefaultWidgetSize = new Size(550, 600);
         private static readonly Size MinWidgetSize = new Size(50, 50);
@@ -194,7 +194,7 @@ namespace TestXboxGameBar
         private readonly DispatcherTimer _controlPanelStateTimer;
         private readonly DispatcherTimer _statusHintTimer;
 
-        public ClockWidgetPage()
+        public KillConfirmWidgetPage()
         {
             InitializeComponent();
             AnimationLayer.SizeChanged += OnAnimationLayerSizeChanged;

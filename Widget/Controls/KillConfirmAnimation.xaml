@@ -1,5 +1,5 @@
-<UserControl
-    x:Class="TestXboxGameBar.Controls.KillConfirmAnimation"
+﻿<UserControl
+    x:Class="KillConfirmGameBar.Controls.KillConfirmAnimation"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:canvas="using:Microsoft.Graphics.Canvas.UI.Xaml"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using Windows.Data.Json;
 using Windows.Networking.Sockets;
@@ -6,7 +6,7 @@ using Windows.Storage.Streams;
 using Windows.System.Threading;
 using Windows.UI.Core;
 
-namespace TestXboxGameBar.Services
+namespace KillConfirmGameBar.Services
 {
     public enum KillEventConnectionState
     {

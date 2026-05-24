@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="'$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '15.0'">
     <VisualStudioVersion>15.0</VisualStudioVersion>
@@ -29,7 +29,7 @@
     <AppxPackageSigningEnabled>true</AppxPackageSigningEnabled>
     <PackageCertificateThumbprint>C00A9CB110C12787AD185DF8F6D631908F07526E</PackageCertificateThumbprint>
     <NoWarn>$(NoWarn);NU1702</NoWarn>
-    <EntryPointProjectUniqueName>..\Widget\TestXboxGameBar.csproj</EntryPointProjectUniqueName>
+    <EntryPointProjectUniqueName>..\Widget\KillConfirmGameBar.csproj</EntryPointProjectUniqueName>
   </PropertyGroup>
 
   <ItemGroup>
@@ -41,7 +41,7 @@
   <Import Project="$(WapProjPath)\Microsoft.DesktopBridge.targets" />
 
   <ItemGroup>
-    <ProjectReference Include="..\Widget\TestXboxGameBar.csproj">
+    <ProjectReference Include="..\Widget\KillConfirmGameBar.csproj">
       <UseLowTrustEntryPoint>true</UseLowTrustEntryPoint>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
       <PublishProfile>Properties\PublishProfiles\win-$(Platform).pubxml</PublishProfile>

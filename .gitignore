@@ -23,6 +23,9 @@ Widget/Assets/KillConfirm/
 Widget/KillConfirmService/
 KillConfirmService/sounds/
 
+# Local raw resource drop folder, not published to GitHub
+资源/
+
 # Local signing/test certificates
 *.pfx
 *.snk

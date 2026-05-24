@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -7,8 +7,8 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.UI.Xaml;
-using TestXboxGameBar.Helpers;
-using TestXboxGameBar.Services;
+using KillConfirmGameBar.Helpers;
+using KillConfirmGameBar.Services;
 using Windows.Data.Json;
 using Windows.Foundation;
 using Windows.Graphics.Imaging;
@@ -18,7 +18,7 @@ using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
-namespace TestXboxGameBar.Controls
+namespace KillConfirmGameBar.Controls
 {
     public sealed partial class KillConfirmAnimation : UserControl
     {

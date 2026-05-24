@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using Microsoft.Gaming.XboxGameBar;
 using Windows.ApplicationModel;
@@ -12,7 +12,7 @@ using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 using Windows.UI.ViewManagement;
 
-namespace TestXboxGameBar
+namespace KillConfirmGameBar
 {
     sealed partial class App : Application
     {
@@ -22,7 +22,7 @@ namespace TestXboxGameBar
         private const long MaxRuntimeLogBytes = 512 * 1024;
         private static int? _guideViewId;
 
-        private XboxGameBarWidget _clockWidget;
+        private XboxGameBarWidget _gameBarWidget;
 
         public App()
         {
@@ -113,10 +113,10 @@ namespace TestXboxGameBar
                 var rootFrame = CreateRootFrame();
                 Window.Current.Content = rootFrame;
 
-                _clockWidget = new XboxGameBarWidget(widgetArgs, Window.Current.CoreWindow, rootFrame);
+                _gameBarWidget = new XboxGameBarWidget(widgetArgs, Window.Current.CoreWindow, rootFrame);
                 Window.Current.Closed += OnWidgetWindowClosed;
 
-                rootFrame.Navigate(typeof(ClockWidgetPage), _clockWidget);
+                rootFrame.Navigate(typeof(KillConfirmWidgetPage), _gameBarWidget);
                 Window.Current.Activate();
                 Log("Widget window activated.");
             }
@@ -215,7 +215,7 @@ namespace TestXboxGameBar
         {
             Window.Current.Closed -= OnWidgetWindowClosed;
             ShutdownCompanionFromCurrentFrame();
-            _clockWidget = null;
+            _gameBarWidget = null;
             Log("Widget window closed.");
         }
 
@@ -225,7 +225,7 @@ namespace TestXboxGameBar
             try
             {
                 await ShutdownCompanionFromCurrentFrameAsync();
-                _clockWidget = null;
+                _gameBarWidget = null;
                 Log("App suspending.");
             }
             finally
@@ -243,13 +243,13 @@ namespace TestXboxGameBar
         {
             try
             {
-                if (Window.Current.Content is Frame frame && frame.Content is ClockWidgetPage page)
+                if (Window.Current.Content is Frame frame && frame.Content is KillConfirmWidgetPage page)
                 {
                     await page.ShutdownCompanionAsync();
                     return;
                 }
 
-                await ClockWidgetPage.RequestServiceShutdownAsync();
+                await KillConfirmWidgetPage.RequestServiceShutdownAsync();
             }
             catch (Exception ex)
             {

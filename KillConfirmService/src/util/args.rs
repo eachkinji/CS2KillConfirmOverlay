@@ -45,6 +45,10 @@ pub struct Args {
     /// open the Quark backup download page, then exit
     #[arg(long, default_value = "false")]
     pub open_quark_update: bool,
+
+    /// open the downloaded update installer folder, then exit
+    #[arg(long, default_value = "false")]
+    pub open_update_folder: bool,
 }
 
 impl Args {

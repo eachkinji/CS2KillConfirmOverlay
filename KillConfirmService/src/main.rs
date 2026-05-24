@@ -11,8 +11,10 @@ use axum::{
 use serde::Deserialize;
 use std::{
     env,
+    ffi::OsStr,
     fs::{self, OpenOptions},
     io::Write,
+    os::windows::ffi::OsStrExt,
     path::{Path, PathBuf},
     process::Command,
     sync::Arc,
@@ -38,6 +40,8 @@ use util::event_stream::{
     audio_reload, audio_volume, cs2_root, events_ws, gsi_status, health, shutdown, test_event,
 };
 use util::handler::update;
+use windows_sys::Win32::UI::Shell::ShellExecuteW;
+use windows_sys::Win32::UI::WindowsAndMessaging::SW_SHOWNORMAL;
 
 const DEFAULT_LOG_LEVEL: LevelFilter = if cfg!(debug_assertions) {
     LevelFilter::DEBUG
@@ -131,6 +135,11 @@ async fn run() -> Result<()> {
 
     if args.open_quark_update {
         open_url(QUARK_UPDATE_URL).context("failed to open Quark update URL")?;
+        return Ok(());
+    }
+
+    if args.open_update_folder {
+        open_update_folder();
         return Ok(());
     }
 
@@ -331,6 +340,22 @@ struct PendingUpdate {
     installer_path: Option<String>,
 }
 
+fn open_update_folder() {
+    let folder = local_state_dir().join("updates");
+    if let Err(error) = fs::create_dir_all(&folder) {
+        service_log(&format!(
+            "open update folder failed to create folder {}: {error}",
+            folder.display()
+        ));
+        return;
+    }
+
+    service_log(&format!("opening update folder: {}", folder.display()));
+    if let Err(error) = Command::new("explorer.exe").arg(&folder).spawn() {
+        service_log(&format!("failed to open update folder: {error}"));
+    }
+}
+
 fn run_pending_update() -> Result<()> {
     let pending_path = pending_update_path();
     let payload = fs::read_to_string(&pending_path)
@@ -371,8 +396,7 @@ fn run_pending_update() -> Result<()> {
     }
 
     let _ = fs::remove_file(&pending_path);
-    Command::new(&installer_path)
-        .spawn()
+    shell_execute_path("runas", &installer_path)
         .with_context(|| format!("failed to launch installer {}", installer_path.display()))?;
     service_log(&format!(
         "pending update installer launched: {}",
@@ -383,11 +407,48 @@ fn run_pending_update() -> Result<()> {
 
 fn open_url(url: &str) -> Result<()> {
     service_log(&format!("opening external URL: {url}"));
-    Command::new("explorer.exe")
-        .arg(url)
-        .spawn()
-        .with_context(|| format!("failed to open URL with explorer.exe: {url}"))?;
+    shell_execute_text("open", url, None)
+        .with_context(|| format!("failed to open URL via ShellExecuteW: {url}"))?;
     Ok(())
+}
+
+fn shell_execute_path(verb: &str, path: &Path) -> Result<()> {
+    shell_execute_text(verb, &path.display().to_string(), path.parent())
+}
+
+fn shell_execute_text(verb: &str, target: &str, working_dir: Option<&Path>) -> Result<()> {
+    let verb_w = wide_null(verb);
+    let target_w = wide_null(target);
+    let working_dir_string = working_dir.map(|path| path.display().to_string());
+    let working_dir_w = working_dir_string.as_deref().map(wide_null);
+    let working_dir_ptr = working_dir_w
+        .as_ref()
+        .map(|value| value.as_ptr())
+        .unwrap_or(std::ptr::null());
+
+    let result = unsafe {
+        ShellExecuteW(
+            std::ptr::null_mut(),
+            verb_w.as_ptr(),
+            target_w.as_ptr(),
+            std::ptr::null(),
+            working_dir_ptr,
+            SW_SHOWNORMAL,
+        )
+    } as isize;
+
+    if result <= 32 {
+        anyhow::bail!("ShellExecuteW failed with code {result}");
+    }
+
+    Ok(())
+}
+
+fn wide_null(value: &str) -> Vec<u16> {
+    OsStr::new(value)
+        .encode_wide()
+        .chain(std::iter::once(0))
+        .collect()
 }
 
 fn download_update_installer(url: &str, installer_path: &Path) -> Result<()> {

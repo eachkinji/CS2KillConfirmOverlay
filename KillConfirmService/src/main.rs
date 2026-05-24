@@ -341,7 +341,7 @@ struct PendingUpdate {
 }
 
 fn open_update_folder() {
-    let folder = local_state_dir().join("updates");
+    let folder = external_update_dir();
     if let Err(error) = fs::create_dir_all(&folder) {
         service_log(&format!(
             "open update folder failed to create folder {}: {error}",
@@ -378,7 +378,7 @@ fn run_pending_update() -> Result<()> {
         pending.version, file_name, pending.download_url
     ));
 
-    let installer_path = pending
+    let downloaded_installer_path = pending
         .installer_path
         .as_deref()
         .filter(|value| !value.trim().is_empty())
@@ -386,23 +386,62 @@ fn run_pending_update() -> Result<()> {
         .filter(|path| path.exists())
         .unwrap_or_else(|| installer_path);
 
-    if !installer_path.exists() {
-        download_update_installer(&pending.download_url, &installer_path)?;
+    if !downloaded_installer_path.exists() {
+        download_update_installer(&pending.download_url, &downloaded_installer_path)?;
     } else {
         service_log(&format!(
             "using existing downloaded installer: {}",
-            installer_path.display()
+            downloaded_installer_path.display()
         ));
     }
 
+    let launch_installer_path = prepare_installer_for_launch(&downloaded_installer_path, file_name)?;
     let _ = fs::remove_file(&pending_path);
-    shell_execute_path("runas", &installer_path)
-        .with_context(|| format!("failed to launch installer {}", installer_path.display()))?;
+    shell_execute_path("runas", &launch_installer_path)
+        .with_context(|| format!("failed to launch installer {}", launch_installer_path.display()))?;
     service_log(&format!(
         "pending update installer launched: {}",
-        installer_path.display()
+        launch_installer_path.display()
     ));
     Ok(())
+}
+
+fn prepare_installer_for_launch(source_path: &Path, file_name: &str) -> Result<PathBuf> {
+    let external_dir = external_update_dir();
+    fs::create_dir_all(&external_dir).with_context(|| {
+        format!(
+            "failed to create external update dir {}",
+            external_dir.display()
+        )
+    })?;
+
+    let target_path = external_dir.join(file_name);
+    if source_path == target_path {
+        return Ok(target_path);
+    }
+
+    if target_path.exists() {
+        fs::remove_file(&target_path).with_context(|| {
+            format!(
+                "failed to replace existing external installer {}",
+                target_path.display()
+            )
+        })?;
+    }
+
+    service_log(&format!(
+        "copying installer to external launch folder: {} -> {}",
+        source_path.display(),
+        target_path.display()
+    ));
+    fs::copy(source_path, &target_path).with_context(|| {
+        format!(
+            "failed to copy installer to external launch folder {}",
+            target_path.display()
+        )
+    })?;
+
+    Ok(target_path)
 }
 
 fn open_url(url: &str) -> Result<()> {
@@ -541,6 +580,16 @@ fn local_state_dir() -> PathBuf {
         .ok()
         .and_then(|path| path.parent().map(Path::to_path_buf))
         .unwrap_or_else(|| PathBuf::from("."))
+}
+
+fn external_update_dir() -> PathBuf {
+    if let Ok(local_app_data) = env::var("LOCALAPPDATA") {
+        return PathBuf::from(local_app_data)
+            .join("KillConfirmGameBar")
+            .join("updates");
+    }
+
+    env::temp_dir().join("KillConfirmGameBar").join("updates")
 }
 
 fn free_local_port(port: u16) -> Result<()> {

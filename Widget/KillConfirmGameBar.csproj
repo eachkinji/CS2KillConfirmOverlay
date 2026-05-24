@@ -140,6 +140,9 @@
     <Content Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png" />
     <Content Include="Assets\StoreLogo.png" />
     <Content Include="Assets\Wide310x150Logo.scale-200.png" />
+    <Content Include="Assets\DeveloperAvatar.jpg" />
+    <Content Include="Assets\GitHub.svg" />
+    <Content Include="Assets\bilibili.svg" />
     <Content Include="Assets\KillConfirmSheets\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

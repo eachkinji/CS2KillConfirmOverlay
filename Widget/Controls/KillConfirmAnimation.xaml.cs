@@ -138,10 +138,20 @@ namespace KillConfirmGameBar.Controls
         {
             if (_startupPreloadTask == null)
             {
-                _startupPreloadTask = PreloadGameplayAnimationsAsync(null);
+                _startupPreloadTask = PreloadCurrentPackAnimationsAsync(null);
             }
 
             return _startupPreloadTask;
+        }
+
+        public Task PreloadCurrentPackAnimationsAsync(IProgress<int> progress)
+        {
+            if (string.Equals(_iconPack, "legacy", StringComparison.OrdinalIgnoreCase))
+            {
+                return PreloadGameplayAnimationsAsync(progress);
+            }
+
+            return PreloadCodeKillAnimationsAsync(progress);
         }
 
         public Task PreloadGameplayAnimationsAsync(IProgress<int> progress)
@@ -162,6 +172,56 @@ namespace KillConfirmGameBar.Controls
                     LastKillAssetKey
                 },
                 progress);
+        }
+
+        private async Task PreloadCodeKillAnimationsAsync(IProgress<int> progress)
+        {
+            var requests = new List<Tuple<string, string>>
+            {
+                Tuple.Create("multi1", (string)null),
+                Tuple.Create("multi2", (string)null),
+                Tuple.Create("multi3", (string)null),
+                Tuple.Create("multi4", (string)null),
+                Tuple.Create("multi5", (string)null),
+                Tuple.Create("multi6", (string)null),
+                Tuple.Create("headshot", (string)null),
+                Tuple.Create("headshot_gold", (string)null),
+                Tuple.Create("knife", (string)null),
+                Tuple.Create("firstkill", (string)null),
+                Tuple.Create("lastkill", (string)null),
+                Tuple.Create("assist", (string)null)
+            };
+
+            if (_weaponBadgeMode > 0 && SupportsWeaponBadgeOverlay())
+            {
+                string[] weaponBadges = { "assault", "elite", "scout", "sniper", "knife" };
+                for (int killCount = 1; killCount <= 6; killCount++)
+                {
+                    foreach (string weaponBadge in weaponBadges)
+                    {
+                        requests.Add(Tuple.Create("multi" + killCount, weaponBadge));
+                    }
+                }
+            }
+
+            int loaded = 0;
+            progress?.Report(0);
+            foreach (Tuple<string, string> request in requests)
+            {
+                try
+                {
+                    await LoadCodeKillAssetAsync(request.Item1, request.Item2, null);
+                }
+                catch
+                {
+                }
+
+                loaded++;
+                int percent = requests.Count == 0
+                    ? 100
+                    : (int)Math.Round(loaded * 100.0 / requests.Count);
+                progress?.Report(Math.Max(1, Math.Min(100, percent)));
+            }
         }
 
         public static void ConfigureRenderSettings(double brightnessBoost, double contrastBoost)
@@ -567,7 +627,6 @@ namespace KillConfirmGameBar.Controls
         private async Task<AnimationAsset> LoadCodeKillAssetAsync(string assetName, string weaponBadgeKey, IProgress<int> progress = null)
         {
             string normalizedAssetName = assetName.Trim().ToLowerInvariant();
-            string normalizedWeaponBadgeKey = NormalizeWeaponBadgeKey(weaponBadgeKey);
             if (!TryGetCodeKillFiles(
                 normalizedAssetName,
                 out string mainFileName,
@@ -579,6 +638,9 @@ namespace KillConfirmGameBar.Controls
                 throw new FileNotFoundException("Unsupported code kill asset: " + assetName);
             }
 
+            string normalizedWeaponBadgeKey = SupportsWeaponBadgeForAsset(normalizedAssetName)
+                ? NormalizeWeaponBadgeKey(weaponBadgeKey)
+                : string.Empty;
             string cacheKey = _iconPack
                 + ":" + normalizedAssetName
                 + ":" + normalizedWeaponBadgeKey

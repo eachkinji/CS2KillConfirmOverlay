@@ -50,6 +50,18 @@ pub struct Args {
     #[arg(long, default_value = "false")]
     pub open_quark_update: bool,
 
+    /// open the project GitHub page, then exit
+    #[arg(long, default_value = "false")]
+    pub open_project_github: bool,
+
+    /// open the author's GitHub page, then exit
+    #[arg(long, default_value = "false")]
+    pub open_author_github: bool,
+
+    /// open the author's Bilibili page, then exit
+    #[arg(long, default_value = "false")]
+    pub open_author_bilibili: bool,
+
     /// open the downloaded update installer folder, then exit
     #[arg(long, default_value = "false")]
     pub open_update_folder: bool,

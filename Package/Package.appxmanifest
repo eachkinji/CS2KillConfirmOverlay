@@ -11,7 +11,7 @@
   <Identity
     Name="KillConfirmGameBar.Overlay"
     Publisher="CN=TestXboxGameBar"
-    Version="2.0.53.0" />
+    Version="2.0.54.0" />
 
   <mp:PhoneIdentity PhoneProductId="8f70c4bd-4270-4a4f-a7d1-91ae48dbe9f4" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
 
@@ -88,6 +88,9 @@
             <desktop:ParameterGroup GroupId="DownloadPendingUpdate" Parameters="--download-pending-update" />
             <desktop:ParameterGroup GroupId="RunPendingUpdate" Parameters="--run-pending-update" />
             <desktop:ParameterGroup GroupId="OpenQuarkUpdate" Parameters="--open-quark-update" />
+            <desktop:ParameterGroup GroupId="OpenProjectGitHub" Parameters="--open-project-github" />
+            <desktop:ParameterGroup GroupId="OpenAuthorGitHub" Parameters="--open-author-github" />
+            <desktop:ParameterGroup GroupId="OpenAuthorBilibili" Parameters="--open-author-bilibili" />
             <desktop:ParameterGroup GroupId="OpenUpdateFolder" Parameters="--open-update-folder" />
           </desktop:FullTrustProcess>
         </desktop:Extension>

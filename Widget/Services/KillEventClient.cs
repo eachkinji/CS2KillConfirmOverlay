@@ -140,7 +140,7 @@ namespace KillConfirmGameBar.Services
                     return;
                 }
 
-                await _dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+                await _dispatcher.RunAsync(CoreDispatcherPriority.High, () =>
                 {
                     KillReceived?.Invoke(this, killEvent);
                 });

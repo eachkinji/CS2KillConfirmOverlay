@@ -247,8 +247,8 @@
             Padding="4"
             HorizontalAlignment="Center"
             VerticalAlignment="Top"
-            Width="440"
-            MaxWidth="440"
+            Width="452"
+            MaxWidth="452"
             Background="#F4FAFAF7"
             BorderBrush="#E2DDD3"
             BorderThickness="1"
@@ -267,14 +267,14 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="258" />
-                        <ColumnDefinition Width="164" />
+                        <ColumnDefinition Width="240" />
+                        <ColumnDefinition Width="190" />
                     </Grid.ColumnDefinitions>
 
                     <Border
                         x:Name="StatusHintBox"
                         Grid.RowSpan="2"
-                        Width="258"
+                        Width="240"
                         Height="46"
                         VerticalAlignment="Center"
                         Padding="8,4,8,3"
@@ -340,9 +340,9 @@
                         HorizontalAlignment="Left"
                         ColumnSpacing="6">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="55" />
-                            <ColumnDefinition Width="24" />
-                            <ColumnDefinition Width="72" />
+                                    <ColumnDefinition Width="55" />
+                                    <ColumnDefinition Width="24" />
+                                    <ColumnDefinition Width="102" />
                         </Grid.ColumnDefinitions>
 
                         <Button
@@ -420,7 +420,7 @@
                         <Button
                             x:Name="UpdateButton"
                             Grid.Column="2"
-                            Width="72"
+                            Width="102"
                             Height="24"
                             Padding="0"
                             VerticalAlignment="Center"
@@ -446,10 +446,11 @@
                                     Grid.Column="1"
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center"
+                                    Margin="0,0,4,0"
                                     FontSize="9"
                                     FontWeight="Bold"
                                     Foreground="#8A6A36"
-                                    Text="v..." />
+                                    Text="作者 Zac" />
                             </Grid>
                         </Button>
                     </Grid>
@@ -457,7 +458,7 @@
                     <Grid
                         Grid.Row="1"
                         Grid.Column="1"
-                        Width="164"
+                        Width="190"
                         Height="24"
                         HorizontalAlignment="Left"
                         Background="Transparent">
@@ -466,7 +467,7 @@
                             BorderBrush="#E2DDD3"
                             BorderThickness="1"
                             CornerRadius="13" />
-                        <Grid Margin="9,0" ColumnSpacing="11">
+                        <Grid Margin="10,0" ColumnSpacing="15">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
@@ -1307,53 +1308,169 @@
                         BorderThickness="1"
                         CornerRadius="16">
                         <StackPanel Spacing="7">
-                            <TextBlock
-                                x:Name="UpdateAboutText"
-                                FontSize="12"
-                                FontWeight="SemiBold"
-                                Foreground="#1B1F31"
-                                TextWrapping="WrapWholeWords" />
-                            <TextBlock
-                                x:Name="UpdateReleaseInfoText"
-                                FontSize="11"
-                                Foreground="#4B5563"
-                                MaxLines="4"
-                                TextTrimming="CharacterEllipsis"
-                                TextWrapping="WrapWholeWords" />
-                            <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Grid ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel
+                                    VerticalAlignment="Center"
+                                    Orientation="Horizontal"
+                                    Spacing="8">
+                                    <Border
+                                        Width="30"
+                                        Height="30"
+                                        Background="#F3F8FB"
+                                        BorderBrush="#D5D0C4"
+                                        BorderThickness="1"
+                                        CornerRadius="15">
+                                        <Image
+                                            Width="28"
+                                            Height="28"
+                                            Source="ms-appx:///Assets/DeveloperAvatar.jpg"
+                                            Stretch="UniformToFill" />
+                                    </Border>
+                                    <TextBlock
+                                        x:Name="UpdateAboutText"
+                                        VerticalAlignment="Center"
+                                        Margin="0,0,5,0"
+                                        FontSize="13"
+                                        FontWeight="Bold"
+                                        Foreground="#1B1F31"
+                                        LineHeight="17"
+                                        Text="作者：Zac" />
+                                </StackPanel>
                                 <Button
-                                    x:Name="UpdateOpenGitHubButton"
-                                    Width="126"
+                                    x:Name="UpdateAuthorGitHubButton"
+                                    Grid.Column="1"
+                                    Width="104"
                                     Height="28"
-                                    MinWidth="126"
+                                    MinWidth="104"
                                     Background="#FFFDFC"
                                     BorderBrush="#D5D0C4"
                                     BorderThickness="1"
-                                    Click="OnOpenGitHubClick"
-                                    Content="GitHub"
+                                    Click="OnOpenAuthorGitHubClick"
                                     CornerRadius="10"
                                     FontSize="12"
-                                    Foreground="#1B1F31" />
+                                    Foreground="#1B1F31">
+                                    <StackPanel
+                                        HorizontalAlignment="Center"
+                                        Orientation="Horizontal"
+                                        Spacing="5">
+                                        <Image
+                                            Width="14"
+                                            Height="14"
+                                            Source="ms-appx:///Assets/GitHub.svg"
+                                            Stretch="Uniform" />
+                                        <TextBlock
+                                            x:Name="UpdateAuthorGitHubText"
+                                            VerticalAlignment="Center"
+                                            Text="GitHub" />
+                                    </StackPanel>
+                                </Button>
                                 <Button
-                                    x:Name="UpdateOpenReleaseButton"
-                                    Width="126"
+                                    x:Name="UpdateAuthorBilibiliButton"
+                                    Grid.Column="2"
+                                    Width="116"
                                     Height="28"
-                                    MinWidth="126"
+                                    MinWidth="116"
                                     Background="#FFFDFC"
                                     BorderBrush="#D5D0C4"
                                     BorderThickness="1"
-                                    Click="OnOpenReleaseClick"
-                                    Content="Release"
+                                    Click="OnOpenBilibiliClick"
                                     CornerRadius="10"
                                     FontSize="12"
+                                    Foreground="#1B1F31">
+                                    <StackPanel
+                                        HorizontalAlignment="Center"
+                                        Orientation="Horizontal"
+                                        Spacing="5">
+                                        <Image
+                                            Width="17"
+                                            Height="14"
+                                            Source="ms-appx:///Assets/bilibili.svg"
+                                            Stretch="Uniform" />
+                                        <TextBlock
+                                            x:Name="UpdateAuthorBilibiliText"
+                                            VerticalAlignment="Center"
+                                            Text="B站" />
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
+                            <Button
+                                x:Name="UpdateOpenGitHubButton"
+                                Height="28"
+                                HorizontalAlignment="Stretch"
+                                Background="#F3F8FB"
+                                BorderBrush="#B9DCEC"
+                                BorderThickness="1"
+                                Click="OnOpenGitHubClick"
+                                CornerRadius="10"
+                                Foreground="#1B1F31">
+                                <StackPanel
+                                    HorizontalAlignment="Center"
+                                    Orientation="Horizontal"
+                                    Spacing="7">
+                                    <Image
+                                        Width="18"
+                                        Height="18"
+                                        Source="ms-appx:///Assets/Square44x44Logo.scale-200.png"
+                                        Stretch="Uniform" />
+                                    <TextBlock
+                                        x:Name="UpdateProjectHomeText"
+                                        VerticalAlignment="Center"
+                                        FontSize="12"
+                                        FontWeight="SemiBold"
+                                        Text="GitHub 项目主页" />
+                                </StackPanel>
+                            </Button>
+                            <Grid Margin="0,2,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock
+                                    x:Name="UpdateReleaseTitleText"
+                                    VerticalAlignment="Center"
+                                    FontSize="12"
+                                    FontWeight="Bold"
+                                    Foreground="#1B1F31"
+                                    Text="最新版本说明" />
+                                <Button
+                                    x:Name="UpdateReleaseToggleButton"
+                                    Grid.Column="1"
+                                    Width="56"
+                                    Height="24"
+                                    MinWidth="56"
+                                    Padding="0"
+                                    Background="#FFFDFC"
+                                    BorderBrush="#D5D0C4"
+                                    BorderThickness="1"
+                                    Click="OnToggleReleaseNotesClick"
+                                    Content="展开"
+                                    CornerRadius="8"
+                                    FontSize="11"
                                     Foreground="#1B1F31" />
-                            </StackPanel>
+                            </Grid>
+                            <ScrollViewer
+                                x:Name="UpdateReleaseScrollViewer"
+                                MaxHeight="0"
+                                VerticalScrollBarVisibility="Auto"
+                                HorizontalScrollBarVisibility="Disabled">
+                                <TextBlock
+                                    x:Name="UpdateReleaseInfoText"
+                                    FontSize="11"
+                                    Foreground="#4B5563"
+                                    LineHeight="17"
+                                    TextWrapping="WrapWholeWords" />
+                            </ScrollViewer>
                         </StackPanel>
                     </Border>
 
                     <Border
                         Grid.Row="3"
-                        Padding="12"
+                        Padding="10"
                         Background="#FFFFF7EA"
                         BorderBrush="#F7BE6A"
                         BorderThickness="1"
@@ -1365,18 +1482,24 @@
                                 FontWeight="SemiBold"
                                 Foreground="#8A4B00"
                                 TextWrapping="WrapWholeWords" />
-                            <TextBlock
-                                x:Name="UpdateQuarkCodeText"
-                                FontSize="12"
-                                FontWeight="Bold"
-                                Foreground="#1B1F31" />
-                            <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Grid ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock
+                                    x:Name="UpdateQuarkCodeText"
+                                    VerticalAlignment="Center"
+                                    FontSize="12"
+                                    FontWeight="Bold"
+                                    Foreground="#1B1F31" />
                             <Button
                                 x:Name="UpdateOpenQuarkButton"
-                                Width="150"
+                                Grid.Column="1"
                                 Height="30"
-                                MinWidth="150"
-                                HorizontalAlignment="Left"
+                                MinWidth="0"
+                                HorizontalAlignment="Stretch"
                                 Background="#FFFDFC"
                                 BorderBrush="#F7BE6A"
                                 BorderThickness="1"
@@ -1387,9 +1510,10 @@
                                 Foreground="#8A4B00" />
                             <Button
                                 x:Name="UpdateCopyQuarkButton"
-                                Width="112"
+                                Grid.Column="2"
                                 Height="30"
-                                MinWidth="112"
+                                MinWidth="0"
+                                HorizontalAlignment="Stretch"
                                 Background="#FFFDFC"
                                 BorderBrush="#F7BE6A"
                                 BorderThickness="1"
@@ -1398,7 +1522,7 @@
                                 CornerRadius="10"
                                 FontSize="12"
                                 Foreground="#8A4B00" />
-                            </StackPanel>
+                            </Grid>
                         </StackPanel>
                     </Border>
 
@@ -1424,7 +1548,7 @@
 
                     <Grid
                         Grid.Row="5"
-                        ColumnSpacing="8">
+                        ColumnSpacing="4">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />

@@ -995,8 +995,9 @@ namespace TestXboxGameBar
                         Text = LocalizationManager.Text("SingleKillVoiceSlotHint"),
                         FontSize = 9,
                         Foreground = new SolidColorBrush(Color.FromArgb(255, 106, 110, 122)),
-                        TextTrimming = TextTrimming.CharacterEllipsis,
-                        MaxLines = 1
+                        LineHeight = 11,
+                        MaxLines = 2,
+                        TextWrapping = TextWrapping.WrapWholeWords
                     });
                 }
                 Grid.SetColumn(fileInfoPanel, 1);

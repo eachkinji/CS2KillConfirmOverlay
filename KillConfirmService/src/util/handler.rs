@@ -9,7 +9,7 @@ use gsi_cs2::Body;
 use gsi_cs2::round::RoundPhase;
 use gsi_cs2::weapon::{WeaponState, WeaponType};
 use thiserror::Error;
-use tracing::{error, info, warn};
+use tracing::{debug, error, warn};
 
 use crate::soundpack::sound::play_audio;
 use super::state::{AppState, KillEvent, PendingLastKill, TrackedRoundPhase};
@@ -218,7 +218,7 @@ pub async fn update(
                 error!("Failed to play audio: {}", e);
             }
         });
-        info!(
+        debug!(
             "player: {}, kills: {}, headshot: {}, knife: {}, first: {}, last: {}",
             ply.name.as_deref().unwrap_or(""),
             current_kills,
@@ -246,7 +246,7 @@ pub async fn update(
                     player_name: player_name.clone(),
                     steamid: steamid.to_string(),
                 });
-                info!(
+                debug!(
                     "player: {}, resolved delayed final kill for round kill {}",
                     ply.name.as_deref().unwrap_or(""),
                     pending_last_kill.kill_count

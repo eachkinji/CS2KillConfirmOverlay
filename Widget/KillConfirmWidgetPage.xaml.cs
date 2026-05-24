@@ -83,10 +83,10 @@ namespace KillConfirmGameBar
             "\"KillConfirmGameBar\"\r\n" +
             "{\r\n" +
             " \"uri\" \"http://127.0.0.1:3000/\"\r\n" +
-            " \"timeout\" \"5.0\"\r\n" +
-            " \"buffer\"  \"0.1\"\r\n" +
-            " \"throttle\" \"0.1\"\r\n" +
-            " \"heartbeat\" \"30.0\"\r\n" +
+            " \"timeout\" \"0.5\"\r\n" +
+            " \"buffer\"  \"0.05\"\r\n" +
+            " \"throttle\" \"0.05\"\r\n" +
+            " \"heartbeat\" \"15.0\"\r\n" +
             " \"auth\"\r\n" +
             " {\r\n" +
             "   \"token\" \"killconfirm\"\r\n" +
@@ -125,12 +125,17 @@ namespace KillConfirmGameBar
         private const string DownloadPendingUpdateParameterGroupId = "DownloadPendingUpdate";
         private const string RunPendingUpdateParameterGroupId = "RunPendingUpdate";
         private const string OpenQuarkUpdateParameterGroupId = "OpenQuarkUpdate";
+        private const string OpenProjectGitHubParameterGroupId = "OpenProjectGitHub";
+        private const string OpenAuthorGitHubParameterGroupId = "OpenAuthorGitHub";
+        private const string OpenAuthorBilibiliParameterGroupId = "OpenAuthorBilibili";
         private const string OpenUpdateFolderParameterGroupId = "OpenUpdateFolder";
         private const string PendingUpdateFileName = "pending_update.json";
         private const string UpdateDownloadResultFileName = "update_download_result.json";
         private const string QuarkUpdateUrl = "https://pan.quark.cn/s/1f3cfbcf8d5f?pwd=7Twv";
         private const string QuarkUpdateCode = "7Twv";
         private const string ProjectGitHubUrl = "https://github.com/eachkinji/CS2KillConfirmOverlay";
+        private const string AuthorGitHubUrl = "https://github.com/eachkinji";
+        private const string AuthorBilibiliUrl = "https://space.bilibili.com/18017622";
         private static readonly SemaphoreSlim ServiceStartupGate = new SemaphoreSlim(1, 1);
         private static readonly Uri LatestReleaseUri = new Uri("https://api.github.com/repos/eachkinji/CS2KillConfirmOverlay/releases/latest");
         private static readonly IReadOnlyDictionary<string, TestPreset> TestPresets =
@@ -196,6 +201,7 @@ namespace KillConfirmGameBar
         private string _latestReleaseNotes = string.Empty;
         private DateTimeOffset? _latestReleasePublishedAt;
         private bool _updateInstallerReady;
+        private bool _releaseNotesExpanded;
         private readonly DispatcherTimer _controlPanelStateTimer;
         private readonly DispatcherTimer _statusHintTimer;
 
@@ -204,7 +210,7 @@ namespace KillConfirmGameBar
             InitializeComponent();
             AnimationLayer.SizeChanged += OnAnimationLayerSizeChanged;
             PackCatalogService.CatalogChanged += OnPackCatalogChanged;
-            VersionText.Text = GetCompactDisplayVersion();
+            VersionText.Text = GetUpdateButtonLabel();
             ToolTipService.SetToolTip(UpdateButton, GetDisplayVersion());
             LoadLanguageSelector();
             ApplyLanguage();
@@ -718,6 +724,7 @@ namespace KillConfirmGameBar
                     await PromptForUpdateAsync();
                     break;
                 default:
+                    await PromptForUpdateAsync();
                     ShowStatusHint(LocalizationManager.Text("UpdateCheckFailedHint"), Color.FromArgb(255, 75, 85, 99));
                     break;
             }
@@ -744,13 +751,26 @@ namespace KillConfirmGameBar
                 ? LocalizationManager.Text("UpdatePromptTitle")
                 : LocalizationManager.Text("VersionAboutTitle");
             UpdateDialogVersionText.Text = _latestReleaseVersion;
-            UpdateDialogBodyText.Text = updateAvailable
-                ? string.Format(LocalizationManager.Text("UpdatePromptBody"), _latestReleaseVersion)
-                : string.Format(LocalizationManager.Text("UpdateAlreadyLatestBody"), GetDisplayVersion());
+            if (updateAvailable)
+            {
+                UpdateDialogBodyText.Text = string.Format(LocalizationManager.Text("UpdatePromptBody"), _latestReleaseVersion);
+            }
+            else if (_updateAvailabilityState == UpdateAvailabilityState.Unavailable)
+            {
+                UpdateDialogBodyText.Text = string.Format(LocalizationManager.Text("UpdateUnavailableBody"), GetDisplayVersion());
+            }
+            else
+            {
+                UpdateDialogBodyText.Text = string.Format(LocalizationManager.Text("UpdateAlreadyLatestBody"), GetDisplayVersion());
+            }
             UpdateAboutText.Text = LocalizationManager.Text("VersionAboutBody");
             UpdateReleaseInfoText.Text = BuildReleaseInfoText();
-            UpdateOpenGitHubButton.Content = LocalizationManager.Text("OpenGitHub");
-            UpdateOpenReleaseButton.Content = LocalizationManager.Text("OpenReleasePage");
+            UpdateAuthorGitHubText.Text = LocalizationManager.Text("AuthorGitHub");
+            UpdateAuthorBilibiliText.Text = LocalizationManager.Text("AuthorBilibili");
+            UpdateProjectHomeText.Text = LocalizationManager.Text("OpenProjectHome");
+            UpdateReleaseTitleText.Text = LocalizationManager.Text("OpenReleasePage");
+            _releaseNotesExpanded = false;
+            UpdateReleaseNotesVisualState();
             UpdateQuarkHintText.Text = LocalizationManager.Text("UpdateQuarkHint");
             UpdateQuarkCodeText.Text = string.Format(LocalizationManager.Text("UpdateQuarkCode"), QuarkUpdateCode);
             UpdateOpenQuarkButton.Content = LocalizationManager.Text("UpdateOpenQuark");
@@ -816,10 +836,61 @@ namespace KillConfirmGameBar
 
         private async void OnOpenGitHubClick(object sender, RoutedEventArgs e)
         {
-            bool launched = await Launcher.LaunchUriAsync(new Uri(ProjectGitHubUrl));
+            bool launched = await TryLaunchFullTrustHelperAsync(OpenProjectGitHubParameterGroupId);
+            if (!launched)
+            {
+                launched = await Launcher.LaunchUriAsync(new Uri(ProjectGitHubUrl));
+            }
+
             ShowStatusHint(
                 launched ? LocalizationManager.Text("OpenGitHubStarting") : LocalizationManager.Text("OpenGitHubFailed"),
                 launched ? Color.FromArgb(255, 180, 90, 0) : Color.FromArgb(255, 185, 28, 28));
+        }
+
+        private async void OnOpenAuthorGitHubClick(object sender, RoutedEventArgs e)
+        {
+            bool launched = await TryLaunchFullTrustHelperAsync(OpenAuthorGitHubParameterGroupId);
+            if (!launched)
+            {
+                launched = await Launcher.LaunchUriAsync(new Uri(AuthorGitHubUrl));
+            }
+
+            ShowStatusHint(
+                launched ? LocalizationManager.Text("OpenGitHubStarting") : LocalizationManager.Text("OpenGitHubFailed"),
+                launched ? Color.FromArgb(255, 180, 90, 0) : Color.FromArgb(255, 185, 28, 28));
+        }
+
+        private async void OnOpenBilibiliClick(object sender, RoutedEventArgs e)
+        {
+            bool launched = await TryLaunchFullTrustHelperAsync(OpenAuthorBilibiliParameterGroupId);
+            if (!launched)
+            {
+                launched = await Launcher.LaunchUriAsync(new Uri(AuthorBilibiliUrl));
+            }
+
+            ShowStatusHint(
+                launched ? LocalizationManager.Text("OpenBilibiliStarting") : LocalizationManager.Text("OpenBilibiliFailed"),
+                launched ? Color.FromArgb(255, 180, 90, 0) : Color.FromArgb(255, 185, 28, 28));
+        }
+
+        private void OnToggleReleaseNotesClick(object sender, RoutedEventArgs e)
+        {
+            _releaseNotesExpanded = !_releaseNotesExpanded;
+            UpdateReleaseNotesVisualState();
+        }
+
+        private void UpdateReleaseNotesVisualState()
+        {
+            if (UpdateReleaseScrollViewer == null || UpdateReleaseToggleButton == null)
+            {
+                return;
+            }
+
+            UpdateReleaseScrollViewer.MaxHeight = _releaseNotesExpanded ? 120 : 0;
+            UpdateReleaseScrollViewer.Visibility = _releaseNotesExpanded ? Visibility.Visible : Visibility.Collapsed;
+            UpdateReleaseToggleButton.Content = _releaseNotesExpanded
+                ? LocalizationManager.Text("CollapseReleaseNotes")
+                : LocalizationManager.Text("ExpandReleaseNotes");
         }
 
         private async void OnOpenReleaseClick(object sender, RoutedEventArgs e)
@@ -1163,7 +1234,7 @@ namespace KillConfirmGameBar
                 return;
             }
 
-            VersionText.Text = GetCompactDisplayVersion();
+            VersionText.Text = GetUpdateButtonLabel();
 
             Color background = Color.FromArgb(255, 255, 253, 252);
             Color border = Color.FromArgb(255, 226, 221, 211);
@@ -1754,6 +1825,7 @@ namespace KillConfirmGameBar
             // ToolTips for Icons (Separated)
             SetNamedToolTip(VoicePackIcon, LocalizationManager.Text("VoicePackLabel"), LocalizationManager.Text("VoiceTooltip"));
             SetNamedToolTip(IconPackIcon, LocalizationManager.Text("IconPackLabel"), LocalizationManager.Text("IconPackTooltip"));
+            SetNamedToolTip(KillFxIcon, LocalizationManager.Text("KillFxLabel"), LocalizationManager.Text("KillFxTooltip"));
             SetNamedToolTip(EliteOverlayIcon, LocalizationManager.Text("EliteOverlayLabel"), LocalizationManager.Text("EliteOverlayTooltip"));
             SetNamedToolTip(WeaponBadgeIcon, LocalizationManager.Text("WeaponBadgeLabel"), LocalizationManager.Text("WeaponBadgeTooltip"));
             SetNamedToolTip(MainAnimationIcon, LocalizationManager.Text("MainAnimationLabel"), LocalizationManager.Text("MainAnimationTooltip"));
@@ -1761,6 +1833,7 @@ namespace KillConfirmGameBar
             // Selectors
             SetNamedToolTip(VoicePackSelector, LocalizationManager.Text("VoicePackLabel"), LocalizationManager.Text("VoiceTooltip"));
             SetNamedToolTip(IconPackSelector, LocalizationManager.Text("IconPackLabel"), LocalizationManager.Text("IconPackTooltip"));
+            SetNamedToolTip(KillFxSelector, LocalizationManager.Text("KillFxLabel"), LocalizationManager.Text("KillFxTooltip"));
             SetNamedToolTip(EliteEffectSelector, LocalizationManager.Text("EliteOverlayLabel"), LocalizationManager.Text("EliteOverlayTooltip"));
             SetNamedToolTip(WeaponBadgeSelector, LocalizationManager.Text("WeaponBadgeLabel"), LocalizationManager.Text("WeaponBadgeTooltip"));
             SetNamedToolTip(MainAnimationStyleSelector, LocalizationManager.Text("MainAnimationLabel"), LocalizationManager.Text("MainAnimationTooltip"));
@@ -2352,13 +2425,9 @@ namespace KillConfirmGameBar
             UpdateKillFxSelectorState();
             UpdateWeaponBadgeSelectorState();
 
-            if (_isPageActive && string.Equals(iconPack, "legacy", StringComparison.OrdinalIgnoreCase))
+            if (_isPageActive)
             {
                 _ = WarmStartupAnimationCacheAsync();
-            }
-            else
-            {
-                UpdateAnimationCacheReady();
             }
         }
 
@@ -2409,6 +2478,10 @@ namespace KillConfirmGameBar
             UpdateEliteEffectSelectorState();
             UpdateKillFxSelectorState();
             UpdateWeaponBadgeSelectorState();
+            if (_isPageActive)
+            {
+                _ = WarmStartupAnimationCacheAsync();
+            }
         }
 
         private void OnEliteEffectSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -3097,7 +3170,7 @@ namespace KillConfirmGameBar
                     }
                 });
 
-                await PrimaryKillAnimation.PreloadGameplayAnimationsAsync(progress);
+                await PrimaryKillAnimation.PreloadCurrentPackAnimationsAsync(progress);
 
                 if (_isPageActive && token == _animationPreloadToken)
                 {
@@ -4010,14 +4083,7 @@ namespace KillConfirmGameBar
             if (_isPageActive)
             {
                 string iconPack = GetSelectedIconPack();
-                if (string.Equals(iconPack, "legacy", StringComparison.OrdinalIgnoreCase))
-                {
-                    _ = WarmStartupAnimationCacheAsync();
-                }
-                else
-                {
-                    UpdateAnimationCacheReady();
-                }
+                _ = WarmStartupAnimationCacheAsync();
             }
         }
 
@@ -4181,6 +4247,11 @@ namespace KillConfirmGameBar
             {
                 return "?";
             }
+        }
+
+        private static string GetUpdateButtonLabel()
+        {
+            return $"{GetCompactDisplayVersion()} 作者 Zac";
         }
 
         private static string GetCompactDisplayVersion()

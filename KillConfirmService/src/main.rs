@@ -23,7 +23,7 @@ use std::{
 };
 use tokio::sync::{RwLock, broadcast};
 use tokio::time::sleep;
-use tower_http::{timeout::TimeoutLayer, trace::TraceLayer};
+use tower_http::timeout::TimeoutLayer;
 use tracing::info;
 use tracing::level_filters::LevelFilter;
 use tracing_subscriber::EnvFilter;
@@ -36,6 +36,7 @@ use util::playback::{default_output_device_name, get_output_stream_with_name, li
 
 use anyhow::{Context, Result};
 use soundpack::Preset;
+use soundpack::sound::warm_audio_cache;
 use util::event_stream::{
     audio_reload, audio_volume, cs2_root, events_ws, gsi_status, health, shutdown, test_event,
 };
@@ -49,6 +50,9 @@ const DEFAULT_LOG_LEVEL: LevelFilter = if cfg!(debug_assertions) {
     LevelFilter::INFO
 };
 const QUARK_UPDATE_URL: &str = "https://pan.quark.cn/s/1f3cfbcf8d5f?pwd=7Twv";
+const PROJECT_GITHUB_URL: &str = "https://github.com/eachkinji/CS2KillConfirmOverlay";
+const AUTHOR_GITHUB_URL: &str = "https://github.com/eachkinji";
+const AUTHOR_BILIBILI_URL: &str = "https://space.bilibili.com/18017622";
 #[link(name = "kernel32")]
 unsafe extern "system" {
     fn GetCurrentPackageFamilyName(
@@ -143,6 +147,21 @@ async fn run() -> Result<()> {
         return Ok(());
     }
 
+    if args.open_project_github {
+        open_url(PROJECT_GITHUB_URL).context("failed to open project GitHub URL")?;
+        return Ok(());
+    }
+
+    if args.open_author_github {
+        open_url(AUTHOR_GITHUB_URL).context("failed to open author GitHub URL")?;
+        return Ok(());
+    }
+
+    if args.open_author_bilibili {
+        open_url(AUTHOR_BILIBILI_URL).context("failed to open author Bilibili URL")?;
+        return Ok(());
+    }
+
     if args.open_update_folder {
         open_update_folder();
         return Ok(());
@@ -229,6 +248,13 @@ async fn run() -> Result<()> {
         });
     }
 
+    {
+        let cache_state = app_state.clone();
+        tokio::spawn(async move {
+            warm_audio_cache(cache_state).await;
+        });
+    }
+
     let app = Router::new()
         .route("/", post(update))
         .route("/events", get(events_ws))
@@ -244,11 +270,10 @@ async fn run() -> Result<()> {
         )
         .route("/test/{kill_count}", get(test_event).post(test_event))
         .with_state(app_state)
-        .layer((
-            TraceLayer::new_for_http(),
-            // Graceful shutdown will wait for outstanding requests to complete. Add a timeout so
-            // requests don't hang forever.
-            TimeoutLayer::with_status_code(StatusCode::REQUEST_TIMEOUT, Duration::from_secs(10)),
+        // Keep the GSI hot path lean: avoid per-request tracing and only retain timeout protection.
+        .layer(TimeoutLayer::with_status_code(
+            StatusCode::REQUEST_TIMEOUT,
+            Duration::from_secs(10),
         ));
 
     // run our app with hyper, listening globally on port 3000

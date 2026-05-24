@@ -1,10 +1,15 @@
-use std::{io::BufReader, sync::Arc, sync::atomic::Ordering};
+use std::{
+    collections::HashMap,
+    io::{BufReader, Cursor},
+    path::Path,
+    sync::{Arc, OnceLock, RwLock},
+    sync::atomic::Ordering,
+};
 
 use anyhow::{Context, Result};
 use rodio::{Source, mixer};
-use tokio::fs::File as TokioFile;
 use tokio::task::JoinSet;
-use tracing::{error, info};
+use tracing::{debug, error};
 
 use crate::soundpack::SoundContext;
 use crate::util::logging::service_log;
@@ -27,6 +32,67 @@ const WOMEN_GR_GRENADE_SOUND_GAIN: f32 = 2.1;
 const QUIET_VOICE_PACK_SOUND_GAIN: f32 = 3.6;
 const GLOBAL_SOUND_GAIN: f32 = 0.1;
 const MAX_STREAK_EVENT_GAIN: f32 = 1.5;
+const AUDIO_CACHE_EXTENSIONS: [&str; 3] = ["wav", "mp3", "m4a"];
+
+static AUDIO_BYTES_CACHE: OnceLock<RwLock<HashMap<String, Arc<[u8]>>>> = OnceLock::new();
+
+fn audio_bytes_cache() -> &'static RwLock<HashMap<String, Arc<[u8]>>> {
+    AUDIO_BYTES_CACHE.get_or_init(|| RwLock::new(HashMap::new()))
+}
+
+fn normalize_audio_cache_key(file_name: &str) -> String {
+    file_name.replace('\\', "/").to_ascii_lowercase()
+}
+
+async fn read_audio_bytes(file_name: &str) -> Result<Arc<[u8]>> {
+    let cache_key = normalize_audio_cache_key(file_name);
+    if let Ok(cache) = audio_bytes_cache().read() {
+        if let Some(bytes) = cache.get(&cache_key) {
+            return Ok(bytes.clone());
+        }
+    }
+
+    let data = tokio::fs::read(file_name)
+        .await
+        .with_context(|| format!("failed to read audio file: {file_name}"))?;
+    let bytes: Arc<[u8]> = Arc::from(data.into_boxed_slice());
+    if let Ok(mut cache) = audio_bytes_cache().write() {
+        cache.insert(cache_key, bytes.clone());
+    }
+
+    Ok(bytes)
+}
+
+pub async fn warm_audio_cache(app_state: Arc<AppState>) {
+    let base_dir = {
+        let preset = app_state.preset.read().await;
+        preset.base_dir.clone()
+    };
+
+    if let Ok(mut entries) = tokio::fs::read_dir(&base_dir).await {
+        while let Ok(Some(entry)) = entries.next_entry().await {
+            let path = entry.path();
+            if !is_supported_audio_path(&path) {
+                continue;
+            }
+
+            if let Some(path_text) = path.to_str() {
+                let _ = read_audio_bytes(path_text).await;
+            }
+        }
+    }
+}
+
+fn is_supported_audio_path(path: &Path) -> bool {
+    path.extension()
+        .and_then(|value| value.to_str())
+        .map(|extension| {
+            AUDIO_CACHE_EXTENSIONS
+                .iter()
+                .any(|supported| extension.eq_ignore_ascii_case(supported))
+        })
+        .unwrap_or(false)
+}
 
 async fn add_file_to_mixer(
     file_name: &str,
@@ -34,16 +100,12 @@ async fn add_file_to_mixer(
     event_gain: f32,
     master_volume: f32,
 ) -> Result<()> {
-    let file = TokioFile::open(file_name)
-        .await
-        .with_context(|| format!("failed to open file: {file_name}"))?;
-    let sync_file = file.into_std().await;
-    let source = rodio::Decoder::new(BufReader::new(sync_file))
+    let bytes = read_audio_bytes(file_name).await?;
+    let source = rodio::Decoder::new(BufReader::new(Cursor::new(bytes)))
         .with_context(|| format!("failed to decode file: {file_name:?}"))?;
     mixer.add(source.amplify(
         resolve_sound_gain(file_name, event_gain) * GLOBAL_SOUND_GAIN * master_volume,
     ));
-    service_log(&format!("audio queued file: {file_name}"));
     Ok(())
 }
 
@@ -87,18 +149,12 @@ pub async fn play_audio(
             .with_context(|| "failed to get sounds from Lua script".to_string())?
     };
 
-    info!(
+    debug!(
         "Lua returned {} sound files: {:?}",
         sound_files.len(),
         sound_files
     );
-    service_log(&format!(
-        "audio lua returned {} files: {:?}",
-        sound_files.len(),
-        sound_files
-    ));
     if sound_files.is_empty() {
-        service_log("audio skipped: no sound files for this event");
         return Ok(());
     }
 

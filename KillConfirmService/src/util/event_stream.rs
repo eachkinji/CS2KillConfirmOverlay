@@ -20,7 +20,7 @@ use tokio::sync::broadcast;
 use tracing::{debug, error, warn};
 
 use crate::soundpack::Preset;
-use crate::soundpack::sound::play_audio;
+use crate::soundpack::sound::{play_audio, warm_audio_cache};
 use crate::util::logging::service_log;
 use crate::util::playback::get_output_stream_with_name;
 
@@ -248,6 +248,12 @@ pub async fn set_soundpack(
     }
 
     service_log(&format!("sound pack set to '{preset_name}' ({display_name})"));
+    {
+        let cache_state = app_state.clone();
+        tokio::spawn(async move {
+            warm_audio_cache(cache_state).await;
+        });
+    }
 
     Ok(Json(soundpack_response(preset_name, &display_name)))
 }

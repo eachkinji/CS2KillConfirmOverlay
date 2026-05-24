@@ -86,7 +86,7 @@ namespace KillConfirmGameBar.Services
     {
         private const string CatalogFileName = "pack-catalog.json";
         private const string VisibilityDefaultsVersionKey = "PackCatalogVisibilityDefaultsVersion";
-        private const int CurrentVisibilityDefaultsVersion = 2;
+        private const int CurrentVisibilityDefaultsVersion = 3;
         private const string DefaultVoiceKey = "crossfire_swat_gr";
         private const string DefaultIconKey = "default";
         private static readonly string[] SupportedAudioExtensions = { ".wav", ".mp3", ".m4a" };
@@ -716,14 +716,8 @@ end
                     CreateBuiltInIcon("anniversary_10", "10周年庆", false),
                     CreateBuiltInIcon("anniversary_15", "15周年庆", false),
                     CreateBuiltInIcon("cfpl", "CFPL", false),
-                    CreateBuiltInIcon("rankmach_2019_1", "排位赛2019-1", false),
-                    CreateBuiltInIcon("rankmach_2019_2", "排位赛2019-2", false),
-                    CreateBuiltInIcon("rankmach_2022_1", "排位赛2022-1", false),
-                    CreateBuiltInIcon("rankmach_2022_2", "排位赛2022-2", false),
-                    CreateBuiltInIcon("rankmach_2023_1", "排位赛2023-1", false),
-                    CreateBuiltInIcon("rankmach_2023_2", "排位赛2023-2", false),
-                    CreateBuiltInIcon("rankmach_2024_1", "排位赛2024-1", false),
-                    CreateBuiltInIcon("rankmach_2024_2", "排位赛2024-2", false)
+                    CreateBuiltInIcon("rankmach_2019_1", "排位赛-1", false),
+                    CreateBuiltInIcon("rankmach_2019_2", "排位赛-2", false)
                 }
             };
         }
@@ -803,7 +797,12 @@ end
                 }
 
                 item.IsVisibleInWidget = string.Equals(item.Key, "default", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(item.Key, "vip", StringComparison.OrdinalIgnoreCase);
+                    || string.Equals(item.Key, "vip", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(item.Key, "anniversary_10", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(item.Key, "anniversary_15", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(item.Key, "cfpl", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(item.Key, "rankmach_2019_1", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(item.Key, "rankmach_2019_2", StringComparison.OrdinalIgnoreCase);
             }
 
             localSettings.Values[VisibilityDefaultsVersionKey] = CurrentVisibilityDefaultsVersion;

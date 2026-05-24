@@ -748,21 +748,21 @@ namespace KillConfirmGameBar.Controls
                 case "knife":
                     mainFileName = "badge_knife.png";
                     mainFolder = KnifeCodeFolder;
-                    alternatePackFolder = null;
+                    alternatePackFolder = KnifeCodeFolder;
                     fxFileName = null;
                     fxFolder = null;
                     return true;
                 case "firstkill":
                     mainFileName = "FIRSTKILL.png";
                     mainFolder = FirstLastCodeFolder;
-                    alternatePackFolder = null;
+                    alternatePackFolder = FirstLastCodeFolder;
                     fxFileName = null;
                     fxFolder = null;
                     return true;
                 case "lastkill":
                     mainFileName = "LASTKILL.png";
                     mainFolder = FirstLastCodeFolder;
-                    alternatePackFolder = null;
+                    alternatePackFolder = FirstLastCodeFolder;
                     fxFileName = null;
                     fxFolder = null;
                     return true;
@@ -1077,34 +1077,26 @@ namespace KillConfirmGameBar.Controls
                     return "Rankmach2019_1";
                 case "rankmach_2019_2":
                     return "Rankmach2019_2";
-                case "rankmach_2022_1":
-                    return "Rankmach2022_1";
-                case "rankmach_2022_2":
-                    return "Rankmach2022_2";
-                case "rankmach_2023_1":
-                    return "Rankmach2023_1";
-                case "rankmach_2023_2":
-                    return "Rankmach2023_2";
-                case "rankmach_2024_1":
-                    return "Rankmach2024_1";
-                case "rankmach_2024_2":
-                    return "Rankmach2024_2";
                 default:
                     return null;
             }
         }
 
-        private static bool SupportsEliteOverlay()
+        private static bool IsBuiltInCodeIconPack()
         {
             return string.Equals(_iconPack, "default", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(_iconPack, "vip", StringComparison.OrdinalIgnoreCase)
+                || GetIconPackFolder() != null;
+        }
+
+        private static bool SupportsEliteOverlay()
+        {
+            return IsBuiltInCodeIconPack()
                 || PackCatalogService.IsImportedIconPackKey(_iconPack);
         }
 
         private static bool SupportsWeaponBadgeOverlay()
         {
-            return string.Equals(_iconPack, "default", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(_iconPack, "vip", StringComparison.OrdinalIgnoreCase)
+            return IsBuiltInCodeIconPack()
                 || PackCatalogService.IsImportedIconPackKey(_iconPack);
         }
 

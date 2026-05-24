@@ -537,18 +537,6 @@ namespace KillConfirmGameBar
                     return "ms-appx:///Assets/KillConfirmCode/Rankmach2019_1/badge_headshot.png";
                 case "rankmach_2019_2":
                     return "ms-appx:///Assets/KillConfirmCode/Rankmach2019_2/badge_headshot.png";
-                case "rankmach_2022_1":
-                    return "ms-appx:///Assets/KillConfirmCode/Rankmach2022_1/badge_headshot.png";
-                case "rankmach_2022_2":
-                    return "ms-appx:///Assets/KillConfirmCode/Rankmach2022_2/badge_headshot.png";
-                case "rankmach_2023_1":
-                    return "ms-appx:///Assets/KillConfirmCode/Rankmach2023_1/badge_headshot.png";
-                case "rankmach_2023_2":
-                    return "ms-appx:///Assets/KillConfirmCode/Rankmach2023_2/badge_headshot.png";
-                case "rankmach_2024_1":
-                    return "ms-appx:///Assets/KillConfirmCode/Rankmach2024_1/badge_headshot.png";
-                case "rankmach_2024_2":
-                    return "ms-appx:///Assets/KillConfirmCode/Rankmach2024_2/badge_headshot.png";
                 case "legacy":
                 case "default":
                 default:
@@ -2685,8 +2673,7 @@ namespace KillConfirmGameBar
         private bool SupportsEliteOverlayForSelectedIconPack()
         {
             string iconPack = GetSelectedIconPack();
-            if (string.Equals(iconPack, "default", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(iconPack, "vip", StringComparison.OrdinalIgnoreCase))
+            if (SupportsBuiltInCodeIconPack(iconPack))
             {
                 return true;
             }
@@ -2702,8 +2689,7 @@ namespace KillConfirmGameBar
         private bool SupportsKillFxForSelectedIconPack()
         {
             string iconPack = GetSelectedIconPack();
-            if (string.Equals(iconPack, "default", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(iconPack, "vip", StringComparison.OrdinalIgnoreCase))
+            if (SupportsBuiltInCodeIconPack(iconPack))
             {
                 return true;
             }
@@ -2714,8 +2700,7 @@ namespace KillConfirmGameBar
         private bool SupportsWeaponBadgeForSelectedIconPack()
         {
             string iconPack = GetSelectedIconPack();
-            if (string.Equals(iconPack, "default", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(iconPack, "vip", StringComparison.OrdinalIgnoreCase))
+            if (SupportsBuiltInCodeIconPack(iconPack))
             {
                 return true;
             }
@@ -2726,6 +2711,24 @@ namespace KillConfirmGameBar
             }
 
             return false;
+        }
+
+        private static bool SupportsBuiltInCodeIconPack(string iconPack)
+        {
+            switch ((iconPack ?? string.Empty).Trim().ToLowerInvariant())
+            {
+                case "default":
+                case "vip":
+                case "angelic_beast":
+                case "anniversary_10":
+                case "anniversary_15":
+                case "cfpl":
+                case "rankmach_2019_1":
+                case "rankmach_2019_2":
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         private int GetSelectedEliteEffectLevel()

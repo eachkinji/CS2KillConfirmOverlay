@@ -712,7 +712,18 @@ end
                     CreateBuiltInIcon("default", "鍘熺増", true),
                     CreateBuiltInIcon("vip", "VIP", true),
                     CreateBuiltInIcon("legacy", "鑰佺増", false),
-                    CreateBuiltInIcon("angelic_beast", "绀轰緥", false)
+                    CreateBuiltInIcon("angelic_beast", "绀轰緥", false),
+                    CreateBuiltInIcon("anniversary_10", "10周年庆", false),
+                    CreateBuiltInIcon("anniversary_15", "15周年庆", false),
+                    CreateBuiltInIcon("cfpl", "CFPL", false),
+                    CreateBuiltInIcon("rankmach_2019_1", "排位赛2019-1", false),
+                    CreateBuiltInIcon("rankmach_2019_2", "排位赛2019-2", false),
+                    CreateBuiltInIcon("rankmach_2022_1", "排位赛2022-1", false),
+                    CreateBuiltInIcon("rankmach_2022_2", "排位赛2022-2", false),
+                    CreateBuiltInIcon("rankmach_2023_1", "排位赛2023-1", false),
+                    CreateBuiltInIcon("rankmach_2023_2", "排位赛2023-2", false),
+                    CreateBuiltInIcon("rankmach_2024_1", "排位赛2024-1", false),
+                    CreateBuiltInIcon("rankmach_2024_2", "排位赛2024-2", false)
                 }
             };
         }

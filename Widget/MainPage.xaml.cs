@@ -531,6 +531,28 @@ namespace KillConfirmGameBar
                     return "ms-appx:///Assets/KillConfirmCode/Vip/badge_headshot.png";
                 case "angelic_beast":
                     return "ms-appx:///Assets/KillConfirmCode/AngelicBeast/badge_headshot.png";
+                case "anniversary_10":
+                    return "ms-appx:///Assets/KillConfirmCode/Anniversary10/badge_headshot.png";
+                case "anniversary_15":
+                    return "ms-appx:///Assets/KillConfirmCode/Anniversary15/badge_headshot.png";
+                case "cfpl":
+                    return "ms-appx:///Assets/KillConfirmCode/CFPL/badge_headshot.png";
+                case "rankmach_2019_1":
+                    return "ms-appx:///Assets/KillConfirmCode/Rankmach2019_1/badge_headshot.png";
+                case "rankmach_2019_2":
+                    return "ms-appx:///Assets/KillConfirmCode/Rankmach2019_2/badge_headshot.png";
+                case "rankmach_2022_1":
+                    return "ms-appx:///Assets/KillConfirmCode/Rankmach2022_1/badge_headshot.png";
+                case "rankmach_2022_2":
+                    return "ms-appx:///Assets/KillConfirmCode/Rankmach2022_2/badge_headshot.png";
+                case "rankmach_2023_1":
+                    return "ms-appx:///Assets/KillConfirmCode/Rankmach2023_1/badge_headshot.png";
+                case "rankmach_2023_2":
+                    return "ms-appx:///Assets/KillConfirmCode/Rankmach2023_2/badge_headshot.png";
+                case "rankmach_2024_1":
+                    return "ms-appx:///Assets/KillConfirmCode/Rankmach2024_1/badge_headshot.png";
+                case "rankmach_2024_2":
+                    return "ms-appx:///Assets/KillConfirmCode/Rankmach2024_2/badge_headshot.png";
                 case "legacy":
                     return "ms-appx:///Assets/KillConfirmCode/Original/badge_headshot.PNG";
                 case "default":

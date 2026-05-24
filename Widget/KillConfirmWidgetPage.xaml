@@ -436,7 +436,7 @@
                     <Grid
                         Grid.Row="1"
                         Grid.Column="1"
-                        Width="156"
+                        Width="164"
                         Height="24"
                         HorizontalAlignment="Left"
                         Background="Transparent">

@@ -38,6 +38,10 @@ pub struct Args {
     #[arg(long, default_value = "false")]
     pub open_settings_launcher: bool,
 
+    /// download the pending update installer, then exit
+    #[arg(long, default_value = "false")]
+    pub download_pending_update: bool,
+
     /// download and launch the pending update installer, then exit
     #[arg(long, default_value = "false")]
     pub run_pending_update: bool,

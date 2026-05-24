@@ -8,7 +8,7 @@ use axum::{
     Router,
     routing::{get, post},
 };
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::{
     env,
     ffi::OsStr,
@@ -125,6 +125,11 @@ async fn run() -> Result<()> {
 
     if args.open_settings_launcher {
         launch_settings_launcher().context("failed to launch settings helper")?;
+        return Ok(());
+    }
+
+    if args.download_pending_update {
+        download_pending_update().context("failed to download pending update")?;
         return Ok(());
     }
 
@@ -337,7 +342,13 @@ struct PendingUpdate {
     version: String,
     download_url: String,
     asset_name: String,
+}
+
+#[derive(Serialize)]
+struct UpdateDownloadResult {
+    success: bool,
     installer_path: Option<String>,
+    error: Option<String>,
 }
 
 fn open_update_folder() {
@@ -356,53 +367,142 @@ fn open_update_folder() {
     }
 }
 
+fn download_pending_update() -> Result<()> {
+    match download_pending_update_inner() {
+        Ok(installer_path) => {
+            write_update_download_result(&UpdateDownloadResult {
+                success: true,
+                installer_path: Some(installer_path.display().to_string()),
+                error: None,
+            });
+            Ok(())
+        }
+        Err(error) => {
+            let message = error.to_string();
+            service_log(&format!("pending update download failed: {message}"));
+            write_update_download_result(&UpdateDownloadResult {
+                success: false,
+                installer_path: None,
+                error: Some(message.clone()),
+            });
+            anyhow::bail!(message);
+        }
+    }
+}
+
+fn download_pending_update_inner() -> Result<PathBuf> {
+    let pending = read_pending_update()?;
+    let installer_path = pending_update_installer_path(&pending)?;
+
+    if installer_path.exists() {
+        fs::remove_file(&installer_path).with_context(|| {
+            format!(
+                "failed to replace existing installer {}",
+                installer_path.display()
+            )
+        })?;
+    }
+
+    service_log(&format!(
+        "pending update download requested. version={} asset={} url={} -> {}",
+        pending.version,
+        pending_update_file_name(&pending),
+        pending.download_url,
+        installer_path.display()
+    ));
+    download_update_installer(&pending.download_url, &installer_path)?;
+    service_log(&format!(
+        "pending update downloaded: {}",
+        installer_path.display()
+    ));
+
+    Ok(installer_path)
+}
+
 fn run_pending_update() -> Result<()> {
     let pending_path = pending_update_path();
-    let payload = fs::read_to_string(&pending_path)
-        .with_context(|| format!("failed to read pending update file {}", pending_path.display()))?;
-    let pending: PendingUpdate =
-        serde_json::from_str(&payload).context("failed to parse pending update file")?;
-
-    let file_name = Path::new(&pending.asset_name)
-        .file_name()
-        .and_then(|value| value.to_str())
-        .filter(|value| !value.trim().is_empty())
-        .unwrap_or("KillConfirmGameBar_Update.exe");
-    let update_dir = external_update_dir();
-    fs::create_dir_all(&update_dir)
-        .with_context(|| format!("failed to create update dir {}", update_dir.display()))?;
-    let installer_path = update_dir.join(file_name);
+    let pending = read_pending_update()?;
+    let installer_path = pending_update_installer_path(&pending)?;
 
     service_log(&format!(
         "pending update requested. version={} asset={} url={}",
-        pending.version, file_name, pending.download_url
+        pending.version,
+        pending_update_file_name(&pending),
+        pending.download_url
     ));
 
-    let downloaded_installer_path = pending
-        .installer_path
-        .as_deref()
-        .filter(|value| !value.trim().is_empty())
-        .map(PathBuf::from)
-        .filter(|path| path.exists())
-        .unwrap_or_else(|| installer_path);
-
-    if !downloaded_installer_path.exists() {
-        download_update_installer(&pending.download_url, &downloaded_installer_path)?;
+    if !installer_path.exists() {
+        download_update_installer(&pending.download_url, &installer_path)?;
     } else {
         service_log(&format!(
             "using existing downloaded installer: {}",
-            downloaded_installer_path.display()
+            installer_path.display()
         ));
     }
 
     let _ = fs::remove_file(&pending_path);
-    shell_execute_path("runas", &downloaded_installer_path)
-        .with_context(|| format!("failed to launch installer {}", downloaded_installer_path.display()))?;
+    shell_execute_path("runas", &installer_path)
+        .with_context(|| format!("failed to launch installer {}", installer_path.display()))?;
     service_log(&format!(
         "pending update installer launched: {}",
-        downloaded_installer_path.display()
+        installer_path.display()
     ));
     Ok(())
+}
+
+fn read_pending_update() -> Result<PendingUpdate> {
+    let pending_path = pending_update_path();
+    let payload = fs::read_to_string(&pending_path).with_context(|| {
+        format!(
+            "failed to read pending update file {}",
+            pending_path.display()
+        )
+    })?;
+    serde_json::from_str(&payload).context("failed to parse pending update file")
+}
+
+fn pending_update_file_name(pending: &PendingUpdate) -> &str {
+    Path::new(&pending.asset_name)
+        .file_name()
+        .and_then(|value| value.to_str())
+        .filter(|value| !value.trim().is_empty())
+        .unwrap_or("KillConfirmGameBar_Update.exe")
+}
+
+fn pending_update_installer_path(pending: &PendingUpdate) -> Result<PathBuf> {
+    let update_dir = external_update_dir();
+    fs::create_dir_all(&update_dir)
+        .with_context(|| format!("failed to create update dir {}", update_dir.display()))?;
+    Ok(update_dir.join(pending_update_file_name(pending)))
+}
+
+fn write_update_download_result(result: &UpdateDownloadResult) {
+    let result_path = update_download_result_path();
+    if let Some(parent) = result_path.parent() {
+        if let Err(error) = fs::create_dir_all(parent) {
+            service_log(&format!(
+                "failed to create update result folder {}: {error}",
+                parent.display()
+            ));
+            return;
+        }
+    }
+
+    match serde_json::to_string(result) {
+        Ok(payload) => {
+            if let Err(error) = fs::write(&result_path, payload) {
+                service_log(&format!(
+                    "failed to write update download result {}: {error}",
+                    result_path.display()
+                ));
+            }
+        }
+        Err(error) => {
+            service_log(&format!(
+                "failed to serialize update download result: {error}"
+            ));
+        }
+    }
 }
 
 fn open_url(url: &str) -> Result<()> {
@@ -527,6 +627,10 @@ fn launch_settings_launcher() -> Result<()> {
 
 fn pending_update_path() -> PathBuf {
     local_state_dir().join("pending_update.json")
+}
+
+fn update_download_result_path() -> PathBuf {
+    local_state_dir().join("update_download_result.json")
 }
 
 fn local_state_dir() -> PathBuf {

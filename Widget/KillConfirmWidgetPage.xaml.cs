@@ -122,10 +122,12 @@ namespace KillConfirmGameBar
         private const string FreeServicePortParameterGroupId = "FreeServicePort";
         private const string OpenRuntimeLogsParameterGroupId = "OpenRuntimeLogs";
         private const string OpenSettingsWindowParameterGroupId = "OpenSettingsWindow";
+        private const string DownloadPendingUpdateParameterGroupId = "DownloadPendingUpdate";
         private const string RunPendingUpdateParameterGroupId = "RunPendingUpdate";
         private const string OpenQuarkUpdateParameterGroupId = "OpenQuarkUpdate";
         private const string OpenUpdateFolderParameterGroupId = "OpenUpdateFolder";
         private const string PendingUpdateFileName = "pending_update.json";
+        private const string UpdateDownloadResultFileName = "update_download_result.json";
         private const string QuarkUpdateUrl = "https://pan.quark.cn/s/1f3cfbcf8d5f?pwd=7Twv";
         private const string QuarkUpdateCode = "7Twv";
         private static readonly SemaphoreSlim ServiceStartupGate = new SemaphoreSlim(1, 1);
@@ -190,7 +192,7 @@ namespace KillConfirmGameBar
         private string _latestReleaseDownloadUrl = string.Empty;
         private string _latestReleaseAssetName = string.Empty;
         private string _latestReleasePageUrl = string.Empty;
-        private StorageFile _downloadedUpdateInstaller;
+        private bool _updateInstallerReady;
         private readonly DispatcherTimer _controlPanelStateTimer;
         private readonly DispatcherTimer _statusHintTimer;
 
@@ -744,7 +746,7 @@ namespace KillConfirmGameBar
             UpdateDownloadStatusText.Text = LocalizationManager.Text("UpdateReadyToDownload");
             UpdateDownloadProgress.Value = 0;
             UpdateDownloadProgress.IsIndeterminate = false;
-            _downloadedUpdateInstaller = null;
+            _updateInstallerReady = false;
             UpdateDownloadButton.IsEnabled = !_updateDownloadInProgress;
             UpdateInstallButton.IsEnabled = false;
             UpdateOpenFolderButton.IsEnabled = true;
@@ -822,13 +824,27 @@ namespace KillConfirmGameBar
 
             try
             {
-                StorageFile installerFile = await DownloadUpdateInstallerAsync(
-                    new Uri(_latestReleaseDownloadUrl),
-                    _latestReleaseAssetName);
+                _updateInstallerReady = false;
+                await WritePendingUpdateFileAsync();
+                await DeleteUpdateDownloadResultAsync();
+                bool launched = await TryLaunchFullTrustHelperAsync(DownloadPendingUpdateParameterGroupId);
+                if (!launched)
+                {
+                    throw new InvalidOperationException("Full-trust update downloader did not launch.");
+                }
+
+                UpdateDownloadProgress.IsIndeterminate = true;
+                UpdateDownloadResult downloadResult = await WaitForUpdateDownloadResultAsync();
+                if (!downloadResult.Success)
+                {
+                    throw new InvalidOperationException(string.IsNullOrWhiteSpace(downloadResult.Error)
+                        ? "Full-trust update downloader failed."
+                        : downloadResult.Error);
+                }
 
                 UpdateDownloadProgress.IsIndeterminate = false;
                 UpdateDownloadProgress.Value = 100;
-                _downloadedUpdateInstaller = installerFile;
+                _updateInstallerReady = true;
                 UpdateDownloadStatusText.Text = LocalizationManager.Text("UpdateDownloadedReady");
                 UpdateInstallButton.IsEnabled = true;
                 UpdateOpenFolderButton.IsEnabled = true;
@@ -838,6 +854,7 @@ namespace KillConfirmGameBar
             {
                 App.Log("Update download failed: " + ex);
                 UpdateDownloadProgress.IsIndeterminate = false;
+                _updateInstallerReady = false;
                 UpdateDownloadStatusText.Text = LocalizationManager.Text("UpdateDownloadFailed");
                 ShowStatusHint(LocalizationManager.Text("UpdateDownloadFailed"), Color.FromArgb(255, 185, 28, 28));
             }
@@ -845,7 +862,7 @@ namespace KillConfirmGameBar
             {
                 _updateDownloadInProgress = false;
                 UpdateDownloadButton.IsEnabled = true;
-                UpdateInstallButton.IsEnabled = _downloadedUpdateInstaller != null;
+                UpdateInstallButton.IsEnabled = _updateInstallerReady;
                 UpdateOpenFolderButton.IsEnabled = true;
                 UpdateCloseButton.IsEnabled = true;
                 UpdateCancelButton.IsEnabled = true;
@@ -854,7 +871,7 @@ namespace KillConfirmGameBar
 
         private async void OnInstallUpdateClick(object sender, RoutedEventArgs e)
         {
-            if (_downloadedUpdateInstaller == null)
+            if (!_updateInstallerReady)
             {
                 ShowStatusHint(LocalizationManager.Text("UpdateInstallNoFile"), Color.FromArgb(255, 75, 85, 99));
                 return;
@@ -862,7 +879,7 @@ namespace KillConfirmGameBar
 
             try
             {
-                await WritePendingUpdateFileAsync(_downloadedUpdateInstaller);
+                await WritePendingUpdateFileAsync();
                 bool launched = await TryLaunchFullTrustHelperAsync(RunPendingUpdateParameterGroupId);
                 ShowStatusHint(
                     launched
@@ -907,20 +924,85 @@ namespace KillConfirmGameBar
             }
         }
 
-        private async Task WritePendingUpdateFileAsync(StorageFile installerFile)
+        private async Task WritePendingUpdateFileAsync()
         {
             JsonObject payload = new JsonObject
             {
                 ["version"] = JsonValue.CreateStringValue(_latestReleaseVersion ?? string.Empty),
                 ["download_url"] = JsonValue.CreateStringValue(_latestReleaseDownloadUrl ?? string.Empty),
-                ["asset_name"] = JsonValue.CreateStringValue(_latestReleaseAssetName ?? installerFile.Name),
-                ["installer_path"] = JsonValue.CreateStringValue(installerFile.Path ?? string.Empty)
+                ["asset_name"] = JsonValue.CreateStringValue(_latestReleaseAssetName ?? "KillConfirmGameBar_Update.exe"),
+                ["installer_path"] = JsonValue.CreateStringValue(string.Empty)
             };
 
             StorageFile pendingFile = await ApplicationData.Current.LocalFolder.CreateFileAsync(
                 PendingUpdateFileName,
                 CreationCollisionOption.ReplaceExisting);
             await FileIO.WriteTextAsync(pendingFile, payload.Stringify());
+        }
+
+        private async Task DeleteUpdateDownloadResultAsync()
+        {
+            try
+            {
+                IStorageItem item = await ApplicationData.Current.LocalFolder.TryGetItemAsync(UpdateDownloadResultFileName);
+                if (item is StorageFile file)
+                {
+                    await file.DeleteAsync(StorageDeleteOption.PermanentDelete);
+                }
+            }
+            catch (Exception ex)
+            {
+                App.Log("Delete update download result failed: " + ex);
+            }
+        }
+
+        private async Task<UpdateDownloadResult> WaitForUpdateDownloadResultAsync()
+        {
+            DateTimeOffset deadline = DateTimeOffset.Now.AddMinutes(10);
+            while (DateTimeOffset.Now < deadline)
+            {
+                IStorageItem item = await ApplicationData.Current.LocalFolder.TryGetItemAsync(UpdateDownloadResultFileName);
+                if (item is StorageFile file)
+                {
+                    string text = await FileIO.ReadTextAsync(file);
+                    return ParseUpdateDownloadResult(text);
+                }
+
+                await Task.Delay(500);
+            }
+
+            return new UpdateDownloadResult
+            {
+                Success = false,
+                Error = LocalizationManager.Text("UpdateDownloadFailed")
+            };
+        }
+
+        private static UpdateDownloadResult ParseUpdateDownloadResult(string text)
+        {
+            if (!JsonObject.TryParse(text, out JsonObject json))
+            {
+                return new UpdateDownloadResult { Success = false, Error = "Invalid update download result." };
+            }
+
+            bool success = json.TryGetValue("success", out IJsonValue successValue)
+                && successValue.ValueType == JsonValueType.Boolean
+                && successValue.GetBoolean();
+            string installerPath = json.TryGetValue("installer_path", out IJsonValue installerPathValue)
+                && installerPathValue.ValueType == JsonValueType.String
+                    ? installerPathValue.GetString()
+                    : string.Empty;
+            string error = json.TryGetValue("error", out IJsonValue errorValue)
+                && errorValue.ValueType == JsonValueType.String
+                    ? errorValue.GetString()
+                    : string.Empty;
+
+            return new UpdateDownloadResult
+            {
+                Success = success,
+                InstallerPath = installerPath,
+                Error = error
+            };
         }
 
         private async Task<StorageFile> DownloadUpdateInstallerAsync(Uri downloadUri, string assetName)
@@ -4025,6 +4107,13 @@ namespace KillConfirmGameBar
 
         private void UpdateVisualAdjustmentLabels(double brightness, double contrast)
         {
+        }
+
+        private sealed class UpdateDownloadResult
+        {
+            public bool Success { get; set; }
+            public string InstallerPath { get; set; }
+            public string Error { get; set; }
         }
 
         private enum UpdateAvailabilityState

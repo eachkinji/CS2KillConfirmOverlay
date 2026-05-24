@@ -926,9 +926,7 @@ namespace KillConfirmGameBar
         private async Task<StorageFile> DownloadUpdateInstallerAsync(Uri downloadUri, string assetName)
         {
             string safeAssetName = PathSafeFileName(assetName, "KillConfirmGameBar_Update.exe");
-            StorageFolder updateFolder = await ApplicationData.Current.LocalFolder.CreateFolderAsync(
-                "updates",
-                CreationCollisionOption.OpenIfExists);
+            StorageFolder updateFolder = await GetExternalUpdateFolderAsync();
             StorageFile installerFile = await updateFolder.CreateFileAsync(
                 safeAssetName,
                 CreationCollisionOption.ReplaceExisting);
@@ -964,6 +962,14 @@ namespace KillConfirmGameBar
             }
 
             return installerFile;
+        }
+
+        private static async Task<StorageFolder> GetExternalUpdateFolderAsync()
+        {
+            string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            string updateFolderPath = System.IO.Path.Combine(localAppData, "KillConfirmGameBar", "updates");
+            System.IO.Directory.CreateDirectory(updateFolderPath);
+            return await StorageFolder.GetFolderFromPathAsync(updateFolderPath);
         }
 
         private void UpdateDownloadProgressUi(ulong downloadedBytes, ulong? totalBytes)

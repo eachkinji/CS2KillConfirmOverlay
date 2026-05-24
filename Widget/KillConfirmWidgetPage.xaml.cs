@@ -3582,6 +3582,9 @@ namespace KillConfirmGameBar
         {
             var hints = new List<StatusHint>();
 
+            hints.Add(new StatusHint(LocalizationManager.Text("StatusAllLightsRequiredHint"), Color.FromArgb(255, 5, 122, 85)));
+            hints.Add(new StatusHint(LocalizationManager.Text("UpdateButtonStatusHint"), Color.FromArgb(255, 180, 90, 0)));
+
             if (ShouldPrioritizePinHint())
             {
                 hints.Add(new StatusHint(LocalizationManager.Text("PinHint"), Color.FromArgb(255, 180, 90, 0)));

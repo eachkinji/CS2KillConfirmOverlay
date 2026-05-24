@@ -39,8 +39,12 @@ english.InstallingOverlay=Installing Kill Confirm Overlay...
 chinesesimplified.InstallingOverlay=Installing Kill Confirm Overlay...
 english.InstallScriptLaunchFailed=Could not start the installer script.
 chinesesimplified.InstallScriptLaunchFailed=Could not start the installer script.
-english.InstallScriptFailed=Install script failed. See %TEMP%\KillConfirmGameBar_Install.log. Exit code:
-chinesesimplified.InstallScriptFailed=Install script failed. See %TEMP%\KillConfirmGameBar_Install.log. Exit code:
+english.InstallScriptFailed=Install failed. The detailed log has been opened for you. Exit code:
+chinesesimplified.InstallScriptFailed=安装失败。详细日志已经为你打开。退出码：
+english.InstallLogOpened=If the log did not open, check %TEMP%\KillConfirmGameBar_Install.log.
+chinesesimplified.InstallLogOpened=如果日志没有自动打开，请查看 %TEMP%\KillConfirmGameBar_Install.log。
+english.SameOrNewerVersionBlocked=This computer already has the same or a newer version installed. Please uninstall the current Kill Confirm Overlay first, then run this installer again.
+chinesesimplified.SameOrNewerVersionBlocked=当前电脑已经安装了相同版本或更新版本。请先卸载现有的 Kill Confirm Overlay，再运行这个安装包。
 
 [InstallDelete]
 Type: filesandordirs; Name: "{app}\Payload"
@@ -55,10 +59,32 @@ Name: "{group}\{cm:OpenXboxGameBar}"; Filename: "explorer.exe"; Parameters: "ms-
 Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -Command ""Get-Process -Name cskillconfirm,TestXboxGameBar,KillConfirmOverlay,KillConfirmGameBar,GameBar,GameBarFTServer,GameBarPresenceWriter -ErrorAction SilentlyContinue | Stop-Process -Force; Start-Sleep -Milliseconds 800; $p = Get-AppxPackage -Name KillConfirmGameBar.Overlay -ErrorAction SilentlyContinue | Sort-Object Version -Descending | Select-Object -First 1; if ($p) {{ CheckNetIsolation.exe LoopbackExempt -d \""-n=$($p.PackageFamilyName)\"" 2>$null; $p | Remove-AppxPackage -ErrorAction SilentlyContinue }"""; Flags: runhidden waituntilterminated; RunOnceId: "RemoveAppxPackage"
 
 [Code]
-procedure CurStepChanged(CurStep: TSetupStep);
+function InitializeSetup(): Boolean;
 var
   ResultCode: Integer;
   Params: String;
+begin
+  Result := True;
+  Params := '-NoProfile -ExecutionPolicy Bypass -Command "$target=[version]''' + '{#MyAppVersion}' + '''; ' +
+    '$p=Get-AppxPackage -Name KillConfirmGameBar.Overlay -ErrorAction SilentlyContinue | Sort-Object Version -Descending | Select-Object -First 1; ' +
+    'if ($p -and ([version]$p.Version -ge $target)) { exit 42 }; exit 0"';
+
+  if Exec('powershell.exe', Params, '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
+  begin
+    if ResultCode = 42 then
+    begin
+      MsgBox(ExpandConstant('{cm:SameOrNewerVersionBlocked}'), mbInformation, MB_OK);
+      Result := False;
+    end;
+  end;
+end;
+
+procedure CurStepChanged(CurStep: TSetupStep);
+var
+  ResultCode: Integer;
+  OpenResult: Integer;
+  Params: String;
+  LogPath: String;
 begin
   if CurStep = ssPostInstall then
   begin
@@ -73,7 +99,12 @@ begin
 
     if ResultCode <> 0 then
     begin
-      MsgBox(ExpandConstant('{cm:InstallScriptFailed}') + ' ' + IntToStr(ResultCode), mbError, MB_OK);
+      LogPath := ExpandConstant('{tmp}\KillConfirmGameBar_Install.log');
+      ShellExec('', LogPath, '', '', SW_SHOWNORMAL, ewNoWait, OpenResult);
+      MsgBox(
+        ExpandConstant('{cm:InstallScriptFailed}') + ' ' + IntToStr(ResultCode) + #13#10 + ExpandConstant('{cm:InstallLogOpened}'),
+        mbError,
+        MB_OK);
       Abort;
     end;
   end;

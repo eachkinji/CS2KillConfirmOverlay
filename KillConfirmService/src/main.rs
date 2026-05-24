@@ -13,7 +13,7 @@ use std::{
     env,
     ffi::OsStr,
     fs::{self, OpenOptions},
-    io::Write,
+    io::{Read, Write},
     os::windows::ffi::OsStrExt,
     path::{Path, PathBuf},
     process::Command,
@@ -347,6 +347,10 @@ struct PendingUpdate {
 #[derive(Serialize)]
 struct UpdateDownloadResult {
     success: bool,
+    completed: bool,
+    percent: Option<f64>,
+    downloaded_bytes: Option<u64>,
+    total_bytes: Option<u64>,
     installer_path: Option<String>,
     error: Option<String>,
 }
@@ -372,6 +376,10 @@ fn download_pending_update() -> Result<()> {
         Ok(installer_path) => {
             write_update_download_result(&UpdateDownloadResult {
                 success: true,
+                completed: true,
+                percent: Some(100.0),
+                downloaded_bytes: None,
+                total_bytes: None,
                 installer_path: Some(installer_path.display().to_string()),
                 error: None,
             });
@@ -382,6 +390,10 @@ fn download_pending_update() -> Result<()> {
             service_log(&format!("pending update download failed: {message}"));
             write_update_download_result(&UpdateDownloadResult {
                 success: false,
+                completed: true,
+                percent: None,
+                downloaded_bytes: None,
+                total_bytes: None,
                 installer_path: None,
                 error: Some(message.clone()),
             });
@@ -553,54 +565,84 @@ fn wide_null(value: &str) -> Vec<u16> {
 
 fn download_update_installer(url: &str, installer_path: &Path) -> Result<()> {
     service_log(&format!(
-        "downloading update via curl -> {}",
+        "downloading update internally -> {}",
         installer_path.display()
     ));
-    match Command::new("curl.exe")
-        .args(["-L", "--fail", "--silent", "--show-error", "-o"])
-        .arg(installer_path)
-        .arg(url)
-        .status()
-    {
-        Ok(status) if status.success() => {
-            service_log("update download via curl succeeded");
-            return Ok(());
+
+    let client = reqwest::blocking::Client::builder()
+        .user_agent("KillConfirmOverlayUpdater/1.0")
+        .build()
+        .context("failed to build update downloader")?;
+    let mut response = client
+        .get(url)
+        .send()
+        .context("failed to request update installer")?
+        .error_for_status()
+        .context("GitHub returned an error for update installer")?;
+    let total_bytes = response.content_length();
+
+    let mut file = fs::File::create(installer_path).with_context(|| {
+        format!(
+            "failed to create installer file {}",
+            installer_path.display()
+        )
+    })?;
+    let mut downloaded_bytes = 0u64;
+    let mut last_reported_percent = -1i32;
+    let mut buffer = [0u8; 128 * 1024];
+
+    write_update_download_progress(installer_path, downloaded_bytes, total_bytes);
+    loop {
+        let read = response
+            .read(&mut buffer)
+            .context("failed to read update installer stream")?;
+        if read == 0 {
+            break;
         }
-        Ok(status) => {
-            service_log(&format!(
-                "update download via curl failed with code {:?}, falling back to PowerShell",
-                status.code()
-            ));
-        }
-        Err(error) => {
-            service_log(&format!(
-                "update download via curl unavailable: {error}. falling back to PowerShell"
-            ));
+
+        file.write_all(&buffer[..read])
+            .context("failed to write update installer file")?;
+        downloaded_bytes += read as u64;
+
+        let current_percent = progress_percent(downloaded_bytes, total_bytes)
+            .map(|value| value.floor() as i32)
+            .unwrap_or(-1);
+        if current_percent != last_reported_percent {
+            last_reported_percent = current_percent;
+            write_update_download_progress(installer_path, downloaded_bytes, total_bytes);
         }
     }
 
-    let command = format!(
-        "$ProgressPreference='SilentlyContinue'; Invoke-WebRequest -Uri '{}' -OutFile '{}'",
-        escape_powershell_single_quoted(url),
-        escape_powershell_single_quoted(&installer_path.display().to_string())
-    );
-    let status = Command::new("powershell.exe")
-        .args(["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", &command])
-        .status()
-        .context("failed to launch PowerShell for update download")?;
-    if !status.success() {
-        anyhow::bail!(
-            "update download failed via PowerShell with exit code {:?}",
-            status.code()
-        );
-    }
-
-    service_log("update download via PowerShell succeeded");
+    file.flush()
+        .context("failed to flush update installer file")?;
+    write_update_download_progress(installer_path, downloaded_bytes, total_bytes);
+    service_log("update download completed internally");
     Ok(())
 }
 
-fn escape_powershell_single_quoted(value: &str) -> String {
-    value.replace('\'', "''")
+fn write_update_download_progress(
+    installer_path: &Path,
+    downloaded_bytes: u64,
+    total_bytes: Option<u64>,
+) {
+    write_update_download_result(&UpdateDownloadResult {
+        success: false,
+        completed: false,
+        percent: progress_percent(downloaded_bytes, total_bytes),
+        downloaded_bytes: Some(downloaded_bytes),
+        total_bytes,
+        installer_path: Some(installer_path.display().to_string()),
+        error: None,
+    });
+}
+
+fn progress_percent(downloaded_bytes: u64, total_bytes: Option<u64>) -> Option<f64> {
+    let total = total_bytes?;
+    if total == 0 {
+        return None;
+    }
+
+    Some(((downloaded_bytes as f64 / total as f64) * 100.0).clamp(0.0, 100.0))
 }
 
 fn launch_settings_launcher() -> Result<()> {

@@ -368,7 +368,7 @@ fn run_pending_update() -> Result<()> {
         .and_then(|value| value.to_str())
         .filter(|value| !value.trim().is_empty())
         .unwrap_or("KillConfirmGameBar_Update.exe");
-    let update_dir = local_state_dir().join("updates");
+    let update_dir = external_update_dir();
     fs::create_dir_all(&update_dir)
         .with_context(|| format!("failed to create update dir {}", update_dir.display()))?;
     let installer_path = update_dir.join(file_name);
@@ -395,53 +395,14 @@ fn run_pending_update() -> Result<()> {
         ));
     }
 
-    let launch_installer_path = prepare_installer_for_launch(&downloaded_installer_path, file_name)?;
     let _ = fs::remove_file(&pending_path);
-    shell_execute_path("runas", &launch_installer_path)
-        .with_context(|| format!("failed to launch installer {}", launch_installer_path.display()))?;
+    shell_execute_path("runas", &downloaded_installer_path)
+        .with_context(|| format!("failed to launch installer {}", downloaded_installer_path.display()))?;
     service_log(&format!(
         "pending update installer launched: {}",
-        launch_installer_path.display()
+        downloaded_installer_path.display()
     ));
     Ok(())
-}
-
-fn prepare_installer_for_launch(source_path: &Path, file_name: &str) -> Result<PathBuf> {
-    let external_dir = external_update_dir();
-    fs::create_dir_all(&external_dir).with_context(|| {
-        format!(
-            "failed to create external update dir {}",
-            external_dir.display()
-        )
-    })?;
-
-    let target_path = external_dir.join(file_name);
-    if source_path == target_path {
-        return Ok(target_path);
-    }
-
-    if target_path.exists() {
-        fs::remove_file(&target_path).with_context(|| {
-            format!(
-                "failed to replace existing external installer {}",
-                target_path.display()
-            )
-        })?;
-    }
-
-    service_log(&format!(
-        "copying installer to external launch folder: {} -> {}",
-        source_path.display(),
-        target_path.display()
-    ));
-    fs::copy(source_path, &target_path).with_context(|| {
-        format!(
-            "failed to copy installer to external launch folder {}",
-            target_path.display()
-        )
-    })?;
-
-    Ok(target_path)
 }
 
 fn open_url(url: &str) -> Result<()> {

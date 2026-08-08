@@ -1,0 +1,25 @@
+<UserControl
+    x:Class="KillConfirmGameBar.Controls.GameStyles.ValorantStylePanel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Border
+        Padding="10"
+        Background="#101826"
+        BorderBrush="#FF4655"
+        BorderThickness="1"
+        CornerRadius="12">
+        <StackPanel Spacing="3">
+            <TextBlock
+                FontSize="12"
+                FontWeight="Bold"
+                Foreground="#FFFFFF"
+                Text="Valorant 独立面板" />
+            <TextBlock
+                FontSize="10"
+                Foreground="#D8E5EF"
+                Text="VAL 使用 Valorant 资源包和击杀动画文件，不参与 CF 的武器徽章和精英图标逻辑。"
+                TextWrapping="WrapWholeWords" />
+        </StackPanel>
+    </Border>
+</UserControl>

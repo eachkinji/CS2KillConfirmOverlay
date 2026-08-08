@@ -1,0 +1,28 @@
+<UserControl
+    x:Class="KillConfirmGameBar.Controls.GameStyles.Battlefield2042StylePanel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Border
+        x:Name="Card"
+        Padding="10"
+        Background="#0B222D"
+        BorderBrush="#1EDDDD"
+        BorderThickness="1"
+        CornerRadius="12">
+        <StackPanel Spacing="3">
+            <TextBlock
+                x:Name="TitleText"
+                FontSize="12"
+                FontWeight="Bold"
+                Foreground="#ECFFFF"
+                Text="Battlefield 2042 Panel" />
+            <TextBlock
+                x:Name="BodyText"
+                FontSize="10"
+                Foreground="#B5E2E5"
+                Text="2042 uses isolated skull assets, kill-feed styling, money rewards, and its own sound pack."
+                TextWrapping="WrapWholeWords" />
+        </StackPanel>
+    </Border>
+</UserControl>

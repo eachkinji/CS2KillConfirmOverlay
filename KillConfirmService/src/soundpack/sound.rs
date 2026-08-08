@@ -2,13 +2,16 @@ use std::{
     collections::HashMap,
     io::{BufReader, Cursor},
     path::Path,
-    sync::{Arc, OnceLock, RwLock},
     sync::atomic::Ordering,
+    sync::{Arc, OnceLock, RwLock},
 };
 
 use anyhow::{Context, Result};
 use rodio::{Source, mixer};
-use tokio::task::JoinSet;
+use tokio::{
+    task::JoinSet,
+    time::{Duration, sleep},
+};
 use tracing::{debug, error};
 
 use crate::soundpack::SoundContext;
@@ -32,6 +35,7 @@ const WOMEN_GR_GRENADE_SOUND_GAIN: f32 = 2.1;
 const QUIET_VOICE_PACK_SOUND_GAIN: f32 = 3.6;
 const GLOBAL_SOUND_GAIN: f32 = 0.5;
 const MAX_STREAK_EVENT_GAIN: f32 = 1.5;
+const BATTLEFIELD_2042_KILL_AUDIO_DELAY_MS: u64 = 100;
 const AUDIO_CACHE_EXTENSIONS: [&str; 3] = ["wav", "mp3", "m4a"];
 
 static AUDIO_BYTES_CACHE: OnceLock<RwLock<HashMap<String, Arc<[u8]>>>> = OnceLock::new();
@@ -103,9 +107,10 @@ async fn add_file_to_mixer(
     let bytes = read_audio_bytes(file_name).await?;
     let source = rodio::Decoder::new(BufReader::new(Cursor::new(bytes)))
         .with_context(|| format!("failed to decode file: {file_name:?}"))?;
-    mixer.add(source.amplify(
-        resolve_sound_gain(file_name, event_gain) * GLOBAL_SOUND_GAIN * master_volume,
-    ));
+    mixer
+        .add(source.amplify(
+            resolve_sound_gain(file_name, event_gain) * GLOBAL_SOUND_GAIN * master_volume,
+        ));
     Ok(())
 }
 
@@ -116,6 +121,9 @@ pub async fn play_audio(
     is_first_kill: bool,
     is_knife_kill: bool,
     is_last_kill: bool,
+    is_assist: bool,
+    money_reward: u16,
+    event_kind: Option<String>,
     play_main_audio: bool,
 ) -> Result<()> {
     let volume = app_state_clone.volume_percent.load(Ordering::Relaxed) as f32 / 100.0;
@@ -127,15 +135,40 @@ pub async fn play_audio(
 
     let sound_files = {
         let preset = app_state_clone.preset.read().await;
+        let use_crossfire_audio_settings = app_state_clone
+            .crossfire_mode_active
+            .load(Ordering::Relaxed)
+            && uses_crossfire_audio_rules(&preset.preset_name);
+        let effective_first_kill = resolve_special_kill_audio_flag(
+            is_first_kill,
+            use_crossfire_audio_settings,
+            app_state_clone
+                .crossfire_first_kill_special_audio
+                .load(Ordering::Relaxed),
+        );
+        let effective_last_kill = resolve_special_kill_audio_flag(
+            is_last_kill,
+            use_crossfire_audio_settings,
+            app_state_clone
+                .crossfire_last_kill_special_audio
+                .load(Ordering::Relaxed),
+        );
 
         // Create context for Lua script
         let ctx = SoundContext {
             kill_count,
             is_headshot,
-            is_first_kill,
+            is_first_kill: effective_first_kill,
             is_knife_kill,
-            is_last_kill,
+            is_last_kill: effective_last_kill,
+            is_assist,
+            is_destroy_vehicle: event_kind
+                .as_deref()
+                .map(|value| value.eq_ignore_ascii_case("destroy_vehicle"))
+                .unwrap_or(false),
             play_main_audio,
+            money_reward,
+            event_kind,
             preset_name: preset.preset_name.clone(),
             master_name: preset.master_name.clone(),
             variant: preset.variant.clone(),
@@ -164,8 +197,17 @@ pub async fn play_audio(
 
     for file_path in sound_files {
         let mixer_clone = mixer.clone();
+        let uses_battlefield2042_rules = uses_battlefield2042_audio_rules(&file_path);
+        let file_event_gain = if uses_battlefield2042_rules {
+            1.0
+        } else {
+            event_gain
+        };
         tasks.spawn(async move {
-            add_file_to_mixer(&file_path, &mixer_clone, event_gain, volume).await
+            if uses_battlefield2042_rules {
+                sleep(Duration::from_millis(BATTLEFIELD_2042_KILL_AUDIO_DELAY_MS)).await;
+            }
+            add_file_to_mixer(&file_path, &mixer_clone, file_event_gain, volume).await
         });
     }
 
@@ -189,6 +231,26 @@ pub async fn play_audio(
     Ok(())
 }
 
+fn uses_crossfire_audio_rules(preset_name: &str) -> bool {
+    let normalized = preset_name.trim().to_ascii_lowercase();
+    normalized.starts_with("crossfire_") || normalized.starts_with("custom_voice_")
+}
+
+fn resolve_special_kill_audio_flag(
+    event_flag: bool,
+    use_crossfire_audio_settings: bool,
+    special_audio_enabled: bool,
+) -> bool {
+    event_flag && (!use_crossfire_audio_settings || special_audio_enabled)
+}
+
+fn uses_battlefield2042_audio_rules(file_name: &str) -> bool {
+    file_name
+        .replace('\\', "/")
+        .to_ascii_lowercase()
+        .contains("/battlefield2042/")
+}
+
 fn resolve_sound_gain(file_name: &str, event_gain: f32) -> f32 {
     let normalized = file_name.replace('\\', "/").to_ascii_lowercase();
     let is_sex_pack = normalized.contains("/crossfire_v_sex/");
@@ -202,7 +264,13 @@ fn resolve_sound_gain(file_name: &str, event_gain: f32) -> f32 {
         || normalized.contains("/crossfire_heart_judge_bl/");
     let is_custom_pack = !normalized.starts_with("sounds/") && !normalized.contains("/sounds/");
 
-    if is_audio_file_named(&normalized, "common") || is_audio_file_named(&normalized, "common_overlay") {
+    if uses_battlefield2042_audio_rules(&normalized) {
+        return event_gain;
+    }
+
+    if is_audio_file_named(&normalized, "common")
+        || is_audio_file_named(&normalized, "common_overlay")
+    {
         return COMMON_SOUND_GAIN * event_gain;
     }
 
@@ -211,7 +279,8 @@ fn resolve_sound_gain(file_name: &str, event_gain: f32) -> f32 {
     }
 
     if is_sex_pack
-        && (is_audio_file_named(&normalized, "knife") || is_audio_file_named(&normalized, "firstandlast"))
+        && (is_audio_file_named(&normalized, "knife")
+            || is_audio_file_named(&normalized, "firstandlast"))
     {
         return SEX_SPECIAL_SOUND_GAIN * event_gain;
     }
@@ -236,7 +305,9 @@ fn resolve_sound_gain(file_name: &str, event_gain: f32) -> f32 {
         return FLYING_TIGER_SOUND_GAIN * event_gain;
     }
 
-    if is_women_pack && (is_audio_file_named(&normalized, "knife") || is_audio_file_named(&normalized, "grenade"))
+    if is_women_pack
+        && (is_audio_file_named(&normalized, "knife")
+            || is_audio_file_named(&normalized, "grenade"))
     {
         let pack_gain = if normalized.contains("/crossfire_women_gr/")
             && is_audio_file_named(&normalized, "grenade")
@@ -301,4 +372,39 @@ fn resolve_event_gain(kill_count: u16, play_main_audio: bool) -> f32 {
 
     let streak_bonus = ((kill_count - 1) as f32) * 0.07;
     (1.0 + streak_bonus).min(MAX_STREAK_EVENT_GAIN)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{
+        resolve_special_kill_audio_flag, uses_battlefield2042_audio_rules,
+        uses_crossfire_audio_rules,
+    };
+
+    #[test]
+    fn detects_the_battlefield2042_builtin_sound_pack() {
+        assert!(uses_battlefield2042_audio_rules(
+            "sounds/battlefield2042/headshot.wav"
+        ));
+        assert!(!uses_battlefield2042_audio_rules("sounds/bf5/headshot.wav"));
+    }
+
+    #[test]
+    fn crossfire_can_fall_back_to_original_kill_audio() {
+        assert!(!resolve_special_kill_audio_flag(true, true, false));
+        assert!(resolve_special_kill_audio_flag(true, true, true));
+    }
+
+    #[test]
+    fn non_crossfire_presets_keep_their_existing_special_audio_behavior() {
+        assert!(resolve_special_kill_audio_flag(true, false, false));
+        assert!(!resolve_special_kill_audio_flag(false, false, true));
+    }
+
+    #[test]
+    fn detects_builtin_and_custom_crossfire_voice_packs() {
+        assert!(uses_crossfire_audio_rules("crossfire_swat_gr"));
+        assert!(uses_crossfire_audio_rules("custom_voice_012345"));
+        assert!(!uses_crossfire_audio_rules("bf1"));
+    }
 }

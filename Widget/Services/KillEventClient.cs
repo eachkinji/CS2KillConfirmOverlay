@@ -25,8 +25,14 @@ namespace KillConfirmGameBar.Services
         public bool IsAssist { get; set; }
         public bool PlayMainAnimation { get; set; }
         public string AnimationKey { get; set; }
+        public string EventKind { get; set; }
         public string WeaponBadgeKey { get; set; }
+        public string WeaponName { get; set; }
+        public int MoneyReward { get; set; }
+        public int RoundNumber { get; set; }
+        public int MoneyEpoch { get; set; }
         public string PlayerName { get; set; }
+        public string TargetName { get; set; }
         public string SteamId { get; set; }
     }
 
@@ -91,6 +97,7 @@ namespace KillConfirmGameBar.Services
 
             try
             {
+                await LocalServiceAuth.AuthenticateWebSocketAsync(socket);
                 await socket.ConnectAsync(EventsUri);
                 SetConnectionState(KillEventConnectionState.Connected);
             }
@@ -129,8 +136,14 @@ namespace KillConfirmGameBar.Services
                     IsAssist = json.GetNamedBoolean("is_assist", false),
                     PlayMainAnimation = json.GetNamedBoolean("play_main_animation", true),
                     AnimationKey = json.GetNamedString("animation_key", string.Empty),
+                    EventKind = json.GetNamedString("event_kind", string.Empty),
                     WeaponBadgeKey = json.GetNamedString("weapon_badge_key", string.Empty),
+                    WeaponName = json.GetNamedString("weapon_name", string.Empty),
+                    MoneyReward = (int)json.GetNamedNumber("money_reward", 0),
+                    RoundNumber = (int)json.GetNamedNumber("round_number", 0),
+                    MoneyEpoch = (int)json.GetNamedNumber("money_epoch", 0),
                     PlayerName = json.GetNamedString("player_name", string.Empty),
+                    TargetName = json.GetNamedString("target_name", string.Empty),
                     SteamId = json.GetNamedString("steamid", string.Empty)
                 };
 
@@ -179,15 +192,36 @@ namespace KillConfirmGameBar.Services
 
         private void CleanupSocket()
         {
-            if (_socket == null)
+            MessageWebSocket socket = _socket;
+            if (socket == null)
             {
                 return;
             }
 
-            _socket.MessageReceived -= OnMessageReceived;
-            _socket.Closed -= OnClosed;
-            _socket.Dispose();
             _socket = null;
+            try
+            {
+                socket.MessageReceived -= OnMessageReceived;
+            }
+            catch
+            {
+            }
+
+            try
+            {
+                socket.Closed -= OnClosed;
+            }
+            catch
+            {
+            }
+
+            try
+            {
+                socket.Dispose();
+            }
+            catch
+            {
+            }
         }
 
         private void SetConnectionState(KillEventConnectionState state)

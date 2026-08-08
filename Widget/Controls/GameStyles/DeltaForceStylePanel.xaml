@@ -1,0 +1,28 @@
+<UserControl
+    x:Class="KillConfirmGameBar.Controls.GameStyles.DeltaForceStylePanel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Border
+        x:Name="Card"
+        Padding="10"
+        Background="#142A24"
+        BorderBrush="#FFAE4B"
+        BorderThickness="1"
+        CornerRadius="12">
+        <StackPanel Spacing="3">
+            <TextBlock
+                x:Name="TitleText"
+                FontSize="12"
+                FontWeight="Bold"
+                Foreground="#F1FFF6"
+                Text="Delta Force Panel" />
+            <TextBlock
+                x:Name="BodyText"
+                FontSize="10"
+                Foreground="#C5E2CD"
+                Text="Delta Force uses its own scrolling icons, score waterfall, and deltaforce resource folder."
+                TextWrapping="WrapWholeWords" />
+        </StackPanel>
+    </Border>
+</UserControl>

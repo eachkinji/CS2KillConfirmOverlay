@@ -1,0 +1,136 @@
+<UserControl
+    x:Class="KillConfirmGameBar.Controls.GameStyles.CrossfireStylePanel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Border
+        Padding="10"
+        Background="#FFFDFC"
+        BorderBrush="#D5D0C4"
+        BorderThickness="1"
+        CornerRadius="12">
+        <StackPanel Spacing="8">
+            <TextBlock
+                FontSize="12"
+                FontWeight="Bold"
+                Foreground="#1B1F31"
+                Text="CrossFire" />
+
+            <Grid RowSpacing="8" ColumnSpacing="8">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="120" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="120" />
+                </Grid.ColumnDefinitions>
+
+                <PathIcon
+                    x:Name="KillFxIcon"
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    Width="22"
+                    Height="22"
+                    Margin="0,0,2,0"
+                    Foreground="#1B1F31"
+                    Data="M13 2L4.5 13.5H11L10 22L19.5 10.5H13L13 2Z" />
+                <ComboBox
+                    x:Name="KillFxSelector"
+                    Grid.Row="0"
+                    Grid.Column="1"
+                    Width="120"
+                    Height="26"
+                    MinWidth="120"
+                    Padding="7,0,12,0"
+                    FontSize="9"
+                    HorizontalContentAlignment="Center"
+                    SelectedIndex="0">
+                    <ComboBoxItem x:Name="KillFxPackItem" Tag="1">AUTO</ComboBoxItem>
+                    <ComboBoxItem x:Name="KillFxOffItem" Tag="0">OFF</ComboBoxItem>
+                    <ComboBoxItem x:Name="KillFxOriginalItem" Tag="2">ORIG</ComboBoxItem>
+                </ComboBox>
+
+                <PathIcon
+                    x:Name="EliteOverlayIcon"
+                    Grid.Row="0"
+                    Grid.Column="2"
+                    Width="22"
+                    Height="22"
+                    Margin="0,0,2,0"
+                    Foreground="#1B1F31"
+                    Data="M12 2L14.83 7.17L20 8L16 12L17 17L12 14.5L7 17L8 12L4 8L9.17 7.17L12 2Z" />
+                <ComboBox
+                    x:Name="EliteEffectSelector"
+                    Grid.Row="0"
+                    Grid.Column="3"
+                    Width="120"
+                    Height="26"
+                    MinWidth="120"
+                    Padding="7,0,12,0"
+                    FontSize="9"
+                    HorizontalContentAlignment="Center"
+                    SelectedIndex="0">
+                    <ComboBoxItem x:Name="EliteLevelOffItem" Tag="0">OFF</ComboBoxItem>
+                    <ComboBoxItem x:Name="EliteLevel1Item" Tag="1">Elite 1</ComboBoxItem>
+                    <ComboBoxItem x:Name="EliteLevel2Item" Tag="2">Elite 2</ComboBoxItem>
+                    <ComboBoxItem x:Name="EliteLevel3Item" Tag="3">Elite 3</ComboBoxItem>
+                    <ComboBoxItem x:Name="EliteOriginal1Item" Tag="11">Orig 1</ComboBoxItem>
+                    <ComboBoxItem x:Name="EliteOriginal2Item" Tag="12">Orig 2</ComboBoxItem>
+                    <ComboBoxItem x:Name="EliteOriginal3Item" Tag="13">Orig 3</ComboBoxItem>
+                </ComboBox>
+
+                <PathIcon
+                    x:Name="WeaponBadgeIcon"
+                    Grid.Row="1"
+                    Grid.Column="0"
+                    Width="22"
+                    Height="22"
+                    Margin="0,0,2,0"
+                    Foreground="#1B1F31"
+                    Data="M7 5.5C7 4.11929 8.11929 3 9.5 3H14.5C15.8807 3 17 4.11929 17 5.5V6H18.5C19.8807 6 21 7.11929 21 8.5V17.5C21 18.8807 19.8807 20 18.5 20H5.5C4.11929 20 3 18.8807 3 17.5V8.5C3 7.11929 4.11929 6 5.5 6H7V5.5ZM8.5 6H15.5V5.5C15.5 4.94772 15.0523 4.5 14.5 4.5H9.5C8.94772 4.5 8.5 4.94772 8.5 5.5V6ZM5.5 7.5C4.94772 7.5 4.5 7.94772 4.5 8.5V17.5C4.5 18.0523 4.94772 18.5 5.5 18.5H18.5C19.0523 18.5 19.5 18.0523 19.5 17.5V8.5C19.5 7.94772 19.0523 7.5 18.5 7.5H5.5Z" />
+                <ComboBox
+                    x:Name="WeaponBadgeSelector"
+                    Grid.Row="1"
+                    Grid.Column="1"
+                    Width="120"
+                    Height="26"
+                    MinWidth="120"
+                    Padding="7,0,12,0"
+                    FontSize="9"
+                    HorizontalContentAlignment="Center"
+                    SelectedIndex="0">
+                    <ComboBoxItem x:Name="WeaponBadgeOnItem" Tag="1">AUTO</ComboBoxItem>
+                    <ComboBoxItem x:Name="WeaponBadgeOffItem" Tag="0">OFF</ComboBoxItem>
+                    <ComboBoxItem x:Name="WeaponBadgeOriginalItem" Tag="2">ORIG</ComboBoxItem>
+                </ComboBox>
+
+                <PathIcon
+                    x:Name="MainAnimationIcon"
+                    Grid.Row="1"
+                    Grid.Column="2"
+                    Width="22"
+                    Height="22"
+                    Margin="0,0,2,0"
+                    Foreground="#1B1F31"
+                    Data="M4 4.75C4 4.33579 4.33579 4 4.75 4H9.25C9.66421 4 10 4.33579 10 4.75V19.25C10 19.6642 9.66421 20 9.25 20H4.75C4.33579 20 4 19.6642 4 19.25V4.75ZM14 7.75C14 7.33579 14.3358 7 14.75 7H19.25C19.6642 7 20 7.33579 20 7.75V16.25C20 16.6642 19.6642 17 19.25 17H14.75C14.3358 17 14 16.6642 14 16.25V7.75Z" />
+                <ComboBox
+                    x:Name="MainAnimationStyleSelector"
+                    Grid.Row="1"
+                    Grid.Column="3"
+                    Width="120"
+                    Height="26"
+                    MinWidth="120"
+                    Padding="7,0,12,0"
+                    FontSize="9"
+                    HorizontalContentAlignment="Center"
+                    SelectedIndex="0">
+                    <ComboBoxItem x:Name="AnimationStyle1Item" Tag="1">Style 1</ComboBoxItem>
+                    <ComboBoxItem x:Name="AnimationStyle2Item" Tag="2">Style 2</ComboBoxItem>
+                </ComboBox>
+            </Grid>
+        </StackPanel>
+    </Border>
+</UserControl>

@@ -1,0 +1,28 @@
+<UserControl
+    x:Class="KillConfirmGameBar.Controls.GameStyles.Battlefield5StylePanel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Border
+        x:Name="Card"
+        Padding="10"
+        Background="#0C2B42"
+        BorderBrush="#54D8ED"
+        BorderThickness="1"
+        CornerRadius="12">
+        <StackPanel Spacing="3">
+            <TextBlock
+                x:Name="TitleText"
+                FontSize="12"
+                FontWeight="Bold"
+                Foreground="#EBFCFF"
+                Text="Battlefield 5 &#x72EC;&#x7ACB;&#x9762;&#x677F;" />
+            <TextBlock
+                x:Name="BodyText"
+                FontSize="10"
+                Foreground="#B9E5EE"
+                Text="BF5 &#x4F7F;&#x7528;&#x72EC;&#x7ACB;&#x7684;&#x6218;&#x5730;&#x4E94;&#x56FE;&#x6807;&#x961F;&#x5217;&#x3001;&#x97F3;&#x6548;&#x5305;&#x548C; bf5 &#x8D44;&#x6E90;&#x76EE;&#x5F55;&#xFF0C;&#x4E0D;&#x5141;&#x8BB8;&#x5728;&#x6B64;&#x9875;&#x5BFC;&#x5165;&#x5916;&#x90E8;&#x6587;&#x4EF6;&#x3002;"
+                TextWrapping="WrapWholeWords" />
+        </StackPanel>
+    </Border>
+</UserControl>

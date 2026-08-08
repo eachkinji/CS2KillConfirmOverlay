@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 use std::collections::HashMap;
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use super::lua_script::LuaScript;
 
@@ -19,9 +19,11 @@ impl Preset {
     /// Load a preset from the sounds directory
     /// For variants like "crossfire_v_sex", loads Lua from master "crossfire"
     pub fn load(preset_name: &str) -> Result<Self> {
-        // Check if this is a variant (format: master_v_variant)
+        // Only the old CrossFire packs use master_v_variant. Valorant pack IDs can contain
+        // "_v1/_v2/_v3" as part of their actual folder name and must not be split.
         let parts: Vec<&str> = preset_name.split("_v_").collect();
-        let (master_name, variant) = if parts.len() > 1 {
+        let is_crossfire_variant = preset_name.starts_with("crossfire_") && parts.len() > 1;
+        let (master_name, variant) = if is_crossfire_variant {
             (parts[0], Some(parts[1..].join("_v_")))
         } else {
             (preset_name, None)
@@ -29,15 +31,20 @@ impl Preset {
 
         // Load Lua script from the selected soundpack when present. Variants may still fall back
         // to the master pack for older packages that only shipped one shared script.
-        let own_script_path = format!("sounds/{preset_name}/sound.lua");
-        let master_script_path = format!("sounds/{master_name}/sound.lua");
+        let sounds_root = sounds_root();
+        let own_script_path = sounds_root.join(preset_name).join("sound.lua");
+        let master_script_path = sounds_root.join(master_name).join("sound.lua");
         let script_path = if fs::metadata(&own_script_path).is_ok() {
             own_script_path
         } else {
             master_script_path
         };
-        let lua_script = LuaScript::load(&script_path)
-            .with_context(|| format!("failed to load Lua script for preset '{preset_name}'"))?;
+        let script_path_text = script_path.to_string_lossy().to_string();
+        let lua_script = LuaScript::load(&script_path_text).with_context(|| {
+            format!(
+                "failed to load Lua script for preset '{preset_name}' from '{script_path_text}'"
+            )
+        })?;
 
         Ok(Self {
             lua_script,
@@ -45,15 +52,19 @@ impl Preset {
             display_name: preset_name.to_string(),
             master_name: master_name.to_string(),
             variant: variant.map(|s| s.to_string()),
-            base_dir: format!("sounds/{preset_name}"),
+            base_dir: sounds_root
+                .join(preset_name)
+                .to_string_lossy()
+                .replace('\\', "/"),
         })
     }
 
     pub fn load_custom(preset_name: &str, display_name: &str, folder_path: &str) -> Result<Self> {
         let script_path = format!("{folder_path}/sound.lua");
         let lua_script = if Path::new(&script_path).exists() {
-            LuaScript::load(&script_path)
-                .with_context(|| format!("failed to load Lua script for custom preset '{display_name}'"))?
+            LuaScript::load(&script_path).with_context(|| {
+                format!("failed to load Lua script for custom preset '{display_name}'")
+            })?
         } else {
             let generated_script = build_generated_voice_lua(folder_path);
             LuaScript::from_source(&generated_script, &script_path).with_context(|| {
@@ -70,6 +81,24 @@ impl Preset {
             base_dir: folder_path.replace('\\', "/"),
         })
     }
+}
+
+fn sounds_root() -> PathBuf {
+    let cwd_sounds = PathBuf::from("sounds");
+    if cwd_sounds.is_dir() {
+        return cwd_sounds;
+    }
+
+    if let Ok(exe_path) = std::env::current_exe() {
+        if let Some(exe_dir) = exe_path.parent() {
+            let exe_sounds = exe_dir.join("sounds");
+            if exe_sounds.is_dir() {
+                return exe_sounds;
+            }
+        }
+    }
+
+    cwd_sounds
 }
 
 fn build_generated_voice_lua(folder_path: &str) -> String {

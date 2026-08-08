@@ -1,0 +1,31 @@
+<UserControl
+    x:Class="KillConfirmGameBar.Controls.GameStyles.Battlefield2042AdvancedEffectsPanel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:KillConfirmGameBar.Controls.GameStyles">
+
+    <StackPanel Spacing="8">
+        <TextBlock
+            x:Name="TitleText"
+            FontSize="13"
+            FontWeight="Bold"
+            Text="2042 Effects" />
+        <TextBlock
+            x:Name="HintText"
+            FontSize="10"
+            Text="Battlefield 2042 kill display, money waterfall, and 2042 sound pack are isolated here."
+            TextWrapping="WrapWholeWords" />
+        <local:Battlefield2042StylePanel x:Name="StylePanel" />
+        <Border
+            x:Name="ImportLockedNotice"
+            Padding="8"
+            BorderThickness="1"
+            CornerRadius="10">
+            <TextBlock
+                x:Name="ImportLockedText"
+                FontSize="10"
+                Text="Built-in Battlefield 2042 resources only. File import is disabled for this page."
+                TextWrapping="WrapWholeWords" />
+        </Border>
+    </StackPanel>
+</UserControl>

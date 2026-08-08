@@ -1,8 +1,11 @@
 mod args;
 pub use args::Args;
+pub mod auth;
 pub mod event_stream;
 pub mod handler;
 pub mod logging;
+pub mod money_delta;
+pub mod money_rules;
 pub mod playback;
 pub mod signal;
 pub mod state;

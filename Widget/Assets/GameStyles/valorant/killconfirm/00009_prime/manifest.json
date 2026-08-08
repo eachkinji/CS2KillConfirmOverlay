@@ -1,0 +1,24 @@
+﻿{
+    "id":  "00009",
+    "name":  "Prime",
+    "folder":  "00009_prime",
+    "soundPrefix":  "valorant_primekill_",
+    "textures":  [
+                     "killicon_valorant_bar.png",
+                     "killicon_valorant_base_ring.png",
+                     "killicon_valorant_headshot.png",
+                     "killicon_valorant_particle_base_t1.png",
+                     "killicon_valorant_particle_hero_flame.png",
+                     "killicon_valorant_particle_large_sparks.png",
+                     "killicon_valorant_particle_x_sparks.png",
+                     "killicon_valorant_prime_emblem.png",
+                     "killicon_valorant_prime_frame.png"
+                 ],
+    "sounds":  [
+                   "valorant_primekill_1.ogg",
+                   "valorant_primekill_2.ogg",
+                   "valorant_primekill_3.ogg",
+                   "valorant_primekill_4.ogg",
+                   "valorant_primekill_5.ogg"
+               ]
+}

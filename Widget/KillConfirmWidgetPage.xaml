@@ -10,212 +10,11 @@
     Background="Transparent">
 
     <Page.Resources>
-        <Style x:Key="IconHostStyle" TargetType="Grid">
-            <Setter Property="Width" Value="22" />
-            <Setter Property="Height" Value="22" />
-            <Setter Property="HorizontalAlignment" Value="Center" />
-            <Setter Property="VerticalAlignment" Value="Center" />
-        </Style>
-
-        <Style x:Key="CompactIconHostStyle" TargetType="Grid">
-            <Setter Property="Width" Value="22" />
-            <Setter Property="Height" Value="22" />
-            <Setter Property="HorizontalAlignment" Value="Center" />
-            <Setter Property="VerticalAlignment" Value="Center" />
-        </Style>
-
-        <Style x:Key="FluentPathIconStyle" TargetType="PathIcon">
-            <Setter Property="Width" Value="22" />
-            <Setter Property="Height" Value="22" />
-            <Setter Property="HorizontalAlignment" Value="Center" />
-            <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="Foreground" Value="#1B1F31" />
-            <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
-            <Setter Property="RenderTransform">
-                <Setter.Value>
-                    <ScaleTransform ScaleX="0.56" ScaleY="0.56" />
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style x:Key="FluentTinyPathIconStyle" TargetType="PathIcon" BasedOn="{StaticResource FluentPathIconStyle}">
-            <Setter Property="Width" Value="22" />
-            <Setter Property="Height" Value="22" />
-            <Setter Property="RenderTransform">
-                <Setter.Value>
-                    <ScaleTransform ScaleX="0.52" ScaleY="0.52" />
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style x:Key="ToolbarIconButtonStyle" TargetType="Button">
-            <Setter Property="Width" Value="22" />
-            <Setter Property="Height" Value="22" />
-            <Setter Property="MinWidth" Value="22" />
-            <Setter Property="Padding" Value="0" />
-            <Setter Property="HorizontalContentAlignment" Value="Center" />
-            <Setter Property="VerticalContentAlignment" Value="Center" />
-            <Setter Property="Background" Value="#FFFDFC" />
-            <Setter Property="Foreground" Value="#1B1F31" />
-            <Setter Property="BorderBrush" Value="#D5D0C4" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="12" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border
-                            x:Name="Root"
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="{TemplateBinding CornerRadius}">
-                            <ContentPresenter
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                Content="{TemplateBinding Content}" />
-                            <VisualStateManager.VisualStateGroups>
-                                <VisualStateGroup x:Name="CommonStates">
-                                    <VisualState x:Name="Normal" />
-                                    <VisualState x:Name="PointerOver">
-                                        <Storyboard>
-                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Root" Storyboard.TargetProperty="Background">
-                                                <DiscreteObjectKeyFrame KeyTime="0" Value="#ECF7FC" />
-                                            </ObjectAnimationUsingKeyFrames>
-                                        </Storyboard>
-                                    </VisualState>
-                                    <VisualState x:Name="Pressed">
-                                        <Storyboard>
-                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Root" Storyboard.TargetProperty="Background">
-                                                <DiscreteObjectKeyFrame KeyTime="0" Value="#DCEFF7" />
-                                            </ObjectAnimationUsingKeyFrames>
-                                        </Storyboard>
-                                    </VisualState>
-                                    <VisualState x:Name="Disabled" />
-                                </VisualStateGroup>
-                            </VisualStateManager.VisualStateGroups>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style x:Key="CompactIconButtonStyle" TargetType="Button">
-            <Setter Property="Width" Value="22" />
-            <Setter Property="Height" Value="22" />
-            <Setter Property="MinWidth" Value="22" />
-            <Setter Property="Padding" Value="0" />
-            <Setter Property="HorizontalContentAlignment" Value="Center" />
-            <Setter Property="VerticalContentAlignment" Value="Center" />
-            <Setter Property="Background" Value="#FFFDFC" />
-            <Setter Property="Foreground" Value="#1B1F31" />
-            <Setter Property="BorderBrush" Value="#D5D0C4" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="12" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border
-                            x:Name="Root"
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="{TemplateBinding CornerRadius}">
-                            <ContentPresenter
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                Content="{TemplateBinding Content}" />
-                            <VisualStateManager.VisualStateGroups>
-                                <VisualStateGroup x:Name="CommonStates">
-                                    <VisualState x:Name="Normal" />
-                                    <VisualState x:Name="PointerOver">
-                                        <Storyboard>
-                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Root" Storyboard.TargetProperty="Background">
-                                                <DiscreteObjectKeyFrame KeyTime="0" Value="#ECF7FC" />
-                                            </ObjectAnimationUsingKeyFrames>
-                                        </Storyboard>
-                                    </VisualState>
-                                    <VisualState x:Name="Pressed">
-                                        <Storyboard>
-                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Root" Storyboard.TargetProperty="Background">
-                                                <DiscreteObjectKeyFrame KeyTime="0" Value="#DCEFF7" />
-                                            </ObjectAnimationUsingKeyFrames>
-                                        </Storyboard>
-                                    </VisualState>
-                                    <VisualState x:Name="Disabled" />
-                                </VisualStateGroup>
-                            </VisualStateManager.VisualStateGroups>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style x:Key="OverlayComboBoxStyle" TargetType="ComboBox">
-            <Setter Property="Height" Value="26" />
-            <Setter Property="MinWidth" Value="64" />
-            <Setter Property="Padding" Value="8,0,10,0" />
-            <Setter Property="FontSize" Value="9" />
-            <Setter Property="RequestedTheme" Value="Light" />
-            <Setter Property="Foreground" Value="#1B1F31" />
-            <Setter Property="Background" Value="#FFFDFC" />
-            <Setter Property="BorderBrush" Value="#D5D0C4" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="13" />
-            <Setter Property="HorizontalContentAlignment" Value="Left" />
-            <Setter Property="VerticalContentAlignment" Value="Center" />
-        </Style>
-
-        <Style TargetType="ComboBoxItem">
-            <Setter Property="RequestedTheme" Value="Light" />
-            <Setter Property="Foreground" Value="#1B1F31" />
-            <Setter Property="Background" Value="#FFFDFC" />
-            <Setter Property="BorderBrush" Value="#E2DDD3" />
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Padding" Value="14,8,14,8" />
-            <Setter Property="MinHeight" Value="34" />
-            <Setter Property="FontSize" Value="13" />
-        </Style>
-
-        <Style x:Key="CompactComboBoxStyle" TargetType="ComboBox" BasedOn="{StaticResource OverlayComboBoxStyle}">
-            <Setter Property="Height" Value="26" />
-            <Setter Property="MinWidth" Value="60" />
-            <Setter Property="FontSize" Value="9" />
-            <Setter Property="Padding" Value="7,0,9,0" />
-            <Setter Property="CornerRadius" Value="9" />
-        </Style>
-
-        <Style x:Key="NarrowComboBoxStyle" TargetType="ComboBox" BasedOn="{StaticResource CompactComboBoxStyle}">
-            <Setter Property="FontSize" Value="9" />
-            <Setter Property="Padding" Value="7,0,12,0" />
-        </Style>
-
-        <Style x:Key="PackAccentComboBoxStyle" TargetType="ComboBox" BasedOn="{StaticResource NarrowComboBoxStyle}">
-            <Setter Property="Background" Value="#FFF4DD" />
-            <Setter Property="BorderBrush" Value="#F59E0B" />
-            <Setter Property="BorderThickness" Value="1.5" />
-            <Setter Property="Foreground" Value="#1B1F31" />
-        </Style>
-
-        <Style x:Key="PackImportantIconButtonStyle" TargetType="Button" BasedOn="{StaticResource ToolbarIconButtonStyle}">
-            <Setter Property="Background" Value="#F59E0B" />
-            <Setter Property="BorderBrush" Value="#C56A00" />
-            <Setter Property="BorderThickness" Value="1.5" />
-            <Setter Property="Foreground" Value="#FFFFFF" />
-        </Style>
-
-        <Style x:Key="VisualImportantIconButtonStyle" TargetType="Button" BasedOn="{StaticResource CompactIconButtonStyle}">
-            <Setter Property="Background" Value="#E8F6FE" />
-            <Setter Property="BorderBrush" Value="#2E88B8" />
-            <Setter Property="BorderThickness" Value="1.5" />
-            <Setter Property="Foreground" Value="#1B5F82" />
-        </Style>
-
-        <Style x:Key="SectionHeaderTextStyle" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="8.5" />
-            <Setter Property="FontWeight" Value="Bold" />
-            <Setter Property="CharacterSpacing" Value="50" />
-            <Setter Property="VerticalAlignment" Value="Center" />
-        </Style>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="KillConfirmWidgetPage.Styles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
     </Page.Resources>
 
     <Grid Background="Transparent">
@@ -267,14 +66,14 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="240" />
-                        <ColumnDefinition Width="190" />
+                        <ColumnDefinition Width="212" />
+                        <ColumnDefinition Width="228" />
                     </Grid.ColumnDefinitions>
 
                     <Border
                         x:Name="StatusHintBox"
                         Grid.RowSpan="2"
-                        Width="240"
+                        Width="212"
                         Height="46"
                         VerticalAlignment="Center"
                         Padding="8,4,8,3"
@@ -337,12 +136,13 @@
                     <Grid
                         Grid.Row="0"
                         Grid.Column="1"
+                        Width="228"
                         HorizontalAlignment="Left"
-                        ColumnSpacing="6">
+                        ColumnSpacing="4">
                         <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="55" />
-                                    <ColumnDefinition Width="24" />
-                                    <ColumnDefinition Width="98" />
+                            <ColumnDefinition Width="55" />
+                            <ColumnDefinition Width="24" />
+                            <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
 
                         <Button
@@ -420,9 +220,10 @@
                         <Button
                             x:Name="UpdateButton"
                             Grid.Column="2"
-                            Width="98"
+                            Width="132"
                             Height="24"
                             Padding="0"
+                            HorizontalAlignment="Left"
                             VerticalAlignment="Center"
                             Background="#FFFDFC"
                             BorderBrush="#E2DDD3"
@@ -450,7 +251,7 @@
                                     FontSize="9"
                                     FontWeight="SemiBold"
                                     Foreground="#8A6A36"
-                                    Text="作者 Zac" />
+                                    Text="版本：作者 Zac" />
                             </Grid>
                         </Button>
                     </Grid>
@@ -458,16 +259,24 @@
                     <Grid
                         Grid.Row="1"
                         Grid.Column="1"
-                        Width="190"
-                        Height="24"
+                        Width="228"
+                        Height="26"
                         HorizontalAlignment="Left"
                         Background="Transparent">
+                        <Grid ColumnSpacing="4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="148" />
+                                <ColumnDefinition Width="72" />
+                            </Grid.ColumnDefinitions>
+
                         <Border
+                            x:Name="StatusLightsBox"
+                            Grid.Column="0"
                             Background="#FFFDFC"
                             BorderBrush="#E2DDD3"
                             BorderThickness="1"
                             CornerRadius="13" />
-                        <Grid Margin="10,0" ColumnSpacing="15">
+                        <Grid Grid.Column="0" Margin="7,0" ColumnSpacing="6">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
@@ -557,6 +366,27 @@
                                 Foreground="#1B1F31"
                                 Text="ANI" />
                         </StackPanel>
+                        </Grid>
+                        <ComboBox
+                            x:Name="GameStyleSelector"
+                            Grid.Column="1"
+                            Width="72"
+                            MinWidth="72"
+                            Padding="4,0,8,0"
+                            Style="{StaticResource NarrowComboBoxStyle}"
+                            HorizontalContentAlignment="Center"
+                            SelectedIndex="0"
+                            SelectionChanged="OnGameStyleSelectionChanged"
+                            ToolTipService.ToolTip="Game UI style">
+                            <ComboBoxItem x:Name="CrossfireStyleItem" Tag="crossfire">CF</ComboBoxItem>
+                            <ComboBoxItem x:Name="ValorantStyleItem" Tag="valorant">VAL</ComboBoxItem>
+                            <ComboBoxItem x:Name="Battlefield1StyleItem" Tag="battlefield1">BF1</ComboBoxItem>
+                            <ComboBoxItem x:Name="Battlefield5StyleItem" Tag="battlefield5">BF5</ComboBoxItem>
+                            <ComboBoxItem x:Name="Battlefield4StyleItem" Tag="battlefield4">BF4</ComboBoxItem>
+                            <ComboBoxItem x:Name="Battlefield2042StyleItem" Tag="battlefield2042">2042</ComboBoxItem>
+                            <ComboBoxItem x:Name="PubgStyleItem" Tag="pubg">PUBG</ComboBoxItem>
+                            <ComboBoxItem x:Name="DeltaForceStyleItem" Tag="deltaforce">DF</ComboBoxItem>
+                        </ComboBox>
                         </Grid>
                     </Grid>
                 </Grid>
@@ -683,8 +513,9 @@
                     </Grid>
                 </StackPanel>
 
-                <Grid Grid.Row="2" Margin="0,5,0,0">
+                <Grid x:Name="PackTestSection" Grid.Row="2" Margin="0,5,0,0">
                     <Border
+                        x:Name="PackTestCard"
                         Padding="0"
                         Background="#FAFAF7"
                         BorderBrush="#E2DDD3"
@@ -697,6 +528,7 @@
                             </Grid.RowDefinitions>
 
                             <Border
+                                x:Name="PackTestHeaderBorder"
                                 Grid.Row="0"
                                 Background="#F29A17"
                                 BorderBrush="#D87800"
@@ -722,6 +554,7 @@
                                     <ColumnDefinition Width="150" />
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="150" />
+                                    <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
 
                                 <PathIcon
@@ -771,102 +604,38 @@
                                     <ComboBoxItem x:Name="CustomIconPackItem" Tag="angelic_beast" Foreground="#1B1F31">Custom</ComboBoxItem>
                                 </ComboBox>
 
-                            </Grid>
-
-                            <Grid
-                                HorizontalAlignment="Center"
-                                ColumnSpacing="4">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="70" />
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="75" />
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="70" />
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="75" />
-                                </Grid.ColumnDefinitions>
-
-                                <PathIcon
-                                    x:Name="KillFxIcon"
-                                    Grid.Column="0"
-                                    Margin="0,0,2,0"
-                                    Style="{StaticResource FluentTinyPathIconStyle}"
-                                    Data="M13 2L4.5 13.5H11L10 22L19.5 10.5H13L13 2Z" />
-                                <ComboBox
-                                    x:Name="KillFxSelector"
-                                    Grid.Column="1"
-                                    Width="70"
-                                    Style="{StaticResource NarrowComboBoxStyle}"
-                                    HorizontalContentAlignment="Center"
-                                    SelectedIndex="0"
-                                    SelectionChanged="OnKillFxSelectionChanged">
-                                    <ComboBoxItem x:Name="KillFxPackItem" Tag="1">AUTO</ComboBoxItem>
-                                    <ComboBoxItem x:Name="KillFxOffItem" Tag="0">OFF</ComboBoxItem>
-                                    <ComboBoxItem x:Name="KillFxOriginalItem" Tag="2">ORIG</ComboBoxItem>
-                                </ComboBox>
-
-                                <PathIcon
-                                    x:Name="EliteOverlayIcon"
-                                    Grid.Column="2"
-                                    Margin="0,0,2,0"
-                                    Style="{StaticResource FluentTinyPathIconStyle}"
-                                    Data="M12 2L14.83 7.17L20 8L16 12L17 17L12 14.5L7 17L8 12L4 8L9.17 7.17L12 2Z" />
-                                <ComboBox
-                                    x:Name="EliteEffectSelector"
-                                    Grid.Column="3"
-                                    Width="75"
-                                    Style="{StaticResource NarrowComboBoxStyle}"
-                                    HorizontalContentAlignment="Center"
-                                    SelectedIndex="0"
-                                    SelectionChanged="OnEliteEffectSelectionChanged">
-                                    <ComboBoxItem x:Name="EliteLevelOffItem" Tag="0">OFF</ComboBoxItem>
-                                    <ComboBoxItem x:Name="EliteLevel1Item" Tag="1">Elite 1</ComboBoxItem>
-                                    <ComboBoxItem x:Name="EliteLevel2Item" Tag="2">Elite 2</ComboBoxItem>
-                                    <ComboBoxItem x:Name="EliteLevel3Item" Tag="3">Elite 3</ComboBoxItem>
-                                    <ComboBoxItem x:Name="EliteOriginal1Item" Tag="11">Orig 1</ComboBoxItem>
-                                    <ComboBoxItem x:Name="EliteOriginal2Item" Tag="12">Orig 2</ComboBoxItem>
-                                    <ComboBoxItem x:Name="EliteOriginal3Item" Tag="13">Orig 3</ComboBoxItem>
-                                </ComboBox>
-
-                                <PathIcon
-                                    x:Name="WeaponBadgeIcon"
+                                <Button
+                                    x:Name="AdvancedEffectsButton"
                                     Grid.Column="4"
-                                    Margin="0,0,2,0"
-                                    Style="{StaticResource FluentTinyPathIconStyle}"
-                                    Data="M7 5.5C7 4.11929 8.11929 3 9.5 3H14.5C15.8807 3 17 4.11929 17 5.5V6H18.5C19.8807 6 21 7.11929 21 8.5V17.5C21 18.8807 19.8807 20 18.5 20H5.5C4.11929 20 3 18.8807 3 17.5V8.5C3 7.11929 4.11929 6 5.5 6H7V5.5ZM8.5 6H15.5V5.5C15.5 4.94772 15.0523 4.5 14.5 4.5H9.5C8.94772 4.5 8.5 4.94772 8.5 5.5V6ZM5.5 7.5C4.94772 7.5 4.5 7.94772 4.5 8.5V17.5C4.5 18.0523 4.94772 18.5 5.5 18.5H18.5C19.0523 18.5 19.5 18.0523 19.5 17.5V8.5C19.5 7.94772 19.0523 7.5 18.5 7.5H5.5Z" />
-                                <ComboBox
-                                    x:Name="WeaponBadgeSelector"
-                                    Grid.Column="5"
-                                    Width="70"
-                                    Style="{StaticResource NarrowComboBoxStyle}"
-                                    HorizontalContentAlignment="Center"
-                                    SelectedIndex="0"
-                                    SelectionChanged="OnWeaponBadgeSelectionChanged">
-                                    <ComboBoxItem x:Name="WeaponBadgeOnItem" Tag="1">AUTO</ComboBoxItem>
-                                    <ComboBoxItem x:Name="WeaponBadgeOffItem" Tag="0">OFF</ComboBoxItem>
-                                    <ComboBoxItem x:Name="WeaponBadgeOriginalItem" Tag="2">ORIG</ComboBoxItem>
-                                </ComboBox>
-
-                                <PathIcon
-                                    x:Name="MainAnimationIcon"
-                                    Grid.Column="6"
-                                    Margin="0,0,2,0"
-                                    Style="{StaticResource FluentTinyPathIconStyle}"
-                                    Data="M4 4.75C4 4.33579 4.33579 4 4.75 4H9.25C9.66421 4 10 4.33579 10 4.75V19.25C10 19.6642 9.66421 20 9.25 20H4.75C4.33579 20 4 19.6642 4 19.25V4.75ZM14 7.75C14 7.33579 14.3358 7 14.75 7H19.25C19.6642 7 20 7.33579 20 7.75V16.25C20 16.6642 19.6642 17 19.25 17H14.75C14.3358 17 14 16.6642 14 16.25V7.75Z" />
-
-                                <ComboBox
-                                    x:Name="MainAnimationStyleSelector"
-                                    Grid.Column="7"
-                                    Width="75"
-                                    MinWidth="75"
-                                    Style="{StaticResource NarrowComboBoxStyle}"
-                                    HorizontalContentAlignment="Center"
-                                    SelectedIndex="0"
-                                    SelectionChanged="OnMainAnimationStyleSelectionChanged">
-                                    <ComboBoxItem x:Name="AnimationStyle1Item" Tag="1">Style 1</ComboBoxItem>
-                                    <ComboBoxItem x:Name="AnimationStyle2Item" Tag="2">Style 2</ComboBoxItem>
-                                </ComboBox>
+                                    Width="28"
+                                    Height="26"
+                                    Margin="2,0,0,0"
+                                    Style="{StaticResource PackImportantIconButtonStyle}"
+                                    ToolTipService.ToolTip="Advanced effects">
+                                    <Button.Flyout>
+                                        <Flyout x:Name="AdvancedEffectsFlyout" Placement="Bottom">
+                                            <Border
+                                                x:Name="AdvancedEffectsFlyoutCard"
+                                                Width="360"
+                                                Padding="12"
+                                                Background="#FAFAF7"
+                                                BorderBrush="#E2DDD3"
+                                                BorderThickness="1"
+                                                CornerRadius="16">
+                                                <ContentControl x:Name="AdvancedEffectsPanelHost" />
+                                            </Border>
+                                        </Flyout>
+                                    </Button.Flyout>
+                                    <Grid Style="{StaticResource IconHostStyle}">
+                                        <FontIcon
+                                            FontFamily="Segoe MDL2 Assets"
+                                            FontSize="12"
+                                            Glyph="&#xE7C1;"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            Foreground="#FFFFFF" />
+                                    </Grid>
+                                </Button>
 
                             </Grid>
 
@@ -939,6 +708,7 @@
                                 <ComboBoxItem Tag="one_knife">1鏉€鍒€鏉€</ComboBoxItem>
                                 <ComboBoxItem Tag="one_first">1鏉€棣栨潃</ComboBoxItem>
                                 <ComboBoxItem Tag="one_last">1鏉€灏炬潃</ComboBoxItem>
+                                <ComboBoxItem Tag="assist">Assist</ComboBoxItem>
                                 <ComboBoxItem Tag="gold_first">閲戦鏉€</ComboBoxItem>
                                 <ComboBoxItem Tag="gold_last">閲戝熬鏉€</ComboBoxItem>
                                 <ComboBoxItem Tag="two">2鏉€</ComboBoxItem>
@@ -985,8 +755,9 @@
 
                 </Grid>
 
-                <Grid Grid.Row="3" Margin="0,5,0,0">
+                <Grid x:Name="VisualSection" Grid.Row="3" Margin="0,5,0,0">
                     <Border
+                        x:Name="VisualCard"
                         Padding="0"
                         Background="#FAFAF7"
                         BorderBrush="#E2DDD3"
@@ -999,6 +770,7 @@
                             </Grid.RowDefinitions>
 
                             <Border
+                                x:Name="VisualHeaderBorder"
                                 Grid.Row="0"
                                 Background="#2E88B8"
                                 BorderBrush="#256F98"
@@ -1055,7 +827,7 @@
                     <Button
                         x:Name="LowerThirdButton"
                         Grid.Column="2"
-                        Style="{StaticResource CompactIconButtonStyle}"
+                        Style="{StaticResource VisualImportantIconButtonStyle}"
                         Click="OnLowerThirdClick"
                         ToolTipService.ToolTip="Place icon at bottom">
                         <Grid Style="{StaticResource CompactIconHostStyle}">
@@ -1224,378 +996,6 @@
             </Grid>
         </Border>
 
-        <Grid
-            x:Name="UpdateOverlay"
-            Background="#99000000"
-            Visibility="Collapsed">
-            <Border
-                Width="408"
-                Padding="22"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                Background="#FFFAF7F0"
-                BorderBrush="#E2DDD3"
-                BorderThickness="1"
-                CornerRadius="24">
-                <Grid RowSpacing="14">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Spacing="4">
-                            <TextBlock
-                                x:Name="UpdateDialogTitleText"
-                                FontSize="24"
-                                FontWeight="Bold"
-                                Foreground="#1B1F31"
-                                Text="鍙戠幇鏇存柊" />
-                            <TextBlock
-                                x:Name="UpdateDialogVersionText"
-                                FontSize="13"
-                                FontWeight="SemiBold"
-                                Foreground="#8A6A36"
-                                Text="v..." />
-                        </StackPanel>
-                        <Button
-                            x:Name="UpdateCloseButton"
-                            Grid.Column="1"
-                            Width="30"
-                            Height="30"
-                            MinWidth="30"
-                            Padding="0"
-                            Background="#FFFDFC"
-                            BorderBrush="#D5D0C4"
-                            BorderThickness="1"
-                            Click="OnCloseUpdateOverlayClick"
-                            CornerRadius="15"
-                            FontSize="13"
-                            HorizontalContentAlignment="Center"
-                            VerticalContentAlignment="Center"
-                            Foreground="#1B1F31">
-                            <FontIcon
-                                FontFamily="Segoe MDL2 Assets"
-                                FontSize="12"
-                                Glyph="&#xE711;"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                Foreground="#1B1F31" />
-                        </Button>
-                    </Grid>
-
-                    <TextBlock
-                        x:Name="UpdateDialogBodyText"
-                        Grid.Row="1"
-                        FontSize="13"
-                        Foreground="#4B5563"
-                        LineHeight="20"
-                        TextWrapping="WrapWholeWords" />
-
-                    <Border
-                        Grid.Row="2"
-                        Padding="12"
-                        Background="#FFFDFC"
-                        BorderBrush="#E2DDD3"
-                        BorderThickness="1"
-                        CornerRadius="16">
-                        <StackPanel Spacing="7">
-                            <Grid ColumnSpacing="8">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <StackPanel
-                                    VerticalAlignment="Center"
-                                    Orientation="Horizontal"
-                                    Spacing="8">
-                                    <Border
-                                        Width="30"
-                                        Height="30"
-                                        Background="#F3F8FB"
-                                        BorderBrush="#D5D0C4"
-                                        BorderThickness="1"
-                                        CornerRadius="15">
-                                        <Image
-                                            Width="28"
-                                            Height="28"
-                                            Source="ms-appx:///Assets/DeveloperAvatar.jpg"
-                                            Stretch="UniformToFill" />
-                                    </Border>
-                                    <TextBlock
-                                        x:Name="UpdateAboutText"
-                                        VerticalAlignment="Center"
-                                        FontFamily="Segoe UI"
-                                        FontSize="13"
-                                        FontWeight="SemiBold"
-                                        Foreground="#1B1F31"
-                                        LineHeight="17"
-                                        Text="作者：Zac" />
-                                </StackPanel>
-                                <Button
-                                    x:Name="UpdateAuthorGitHubButton"
-                                    Grid.Column="1"
-                                    Width="104"
-                                    Height="28"
-                                    MinWidth="104"
-                                    Background="#FFFDFC"
-                                    BorderBrush="#D5D0C4"
-                                    BorderThickness="1"
-                                    Click="OnOpenAuthorGitHubClick"
-                                    CornerRadius="10"
-                                    FontSize="12"
-                                    Foreground="#1B1F31">
-                                    <StackPanel
-                                        HorizontalAlignment="Center"
-                                        Orientation="Horizontal"
-                                        Spacing="5">
-                                        <Image
-                                            Width="14"
-                                            Height="14"
-                                            Source="ms-appx:///Assets/GitHub.png"
-                                            Stretch="Uniform" />
-                                        <TextBlock
-                                            x:Name="UpdateAuthorGitHubText"
-                                            VerticalAlignment="Center"
-                                            Text="GitHub" />
-                                    </StackPanel>
-                                </Button>
-                                <Button
-                                    x:Name="UpdateAuthorBilibiliButton"
-                                    Grid.Column="2"
-                                    Width="116"
-                                    Height="28"
-                                    MinWidth="116"
-                                    Background="#FFFDFC"
-                                    BorderBrush="#D5D0C4"
-                                    BorderThickness="1"
-                                    Click="OnOpenBilibiliClick"
-                                    CornerRadius="10"
-                                    FontSize="12"
-                                    Foreground="#1B1F31">
-                                    <StackPanel
-                                        HorizontalAlignment="Center"
-                                        Orientation="Horizontal"
-                                        Spacing="5">
-                                        <Image
-                                            Width="17"
-                                            Height="14"
-                                            Source="ms-appx:///Assets/bilibili.png"
-                                            Stretch="Uniform" />
-                                        <TextBlock
-                                            x:Name="UpdateAuthorBilibiliText"
-                                            VerticalAlignment="Center"
-                                            Text="B站" />
-                                    </StackPanel>
-                                </Button>
-                            </Grid>
-                            <Button
-                                x:Name="UpdateOpenGitHubButton"
-                                Height="28"
-                                HorizontalAlignment="Stretch"
-                                Background="#F3F8FB"
-                                BorderBrush="#B9DCEC"
-                                BorderThickness="1"
-                                Click="OnOpenGitHubClick"
-                                CornerRadius="10"
-                                Foreground="#1B1F31">
-                                <StackPanel
-                                    HorizontalAlignment="Center"
-                                    Orientation="Horizontal"
-                                    Spacing="7">
-                                    <Image
-                                        Width="18"
-                                        Height="18"
-                                        Source="ms-appx:///Assets/Square44x44Logo.scale-200.png"
-                                        Stretch="Uniform" />
-                                    <TextBlock
-                                        x:Name="UpdateProjectHomeText"
-                                        VerticalAlignment="Center"
-                                        FontSize="12"
-                                        FontWeight="SemiBold"
-                                        Text="GitHub 项目主页" />
-                                </StackPanel>
-                            </Button>
-                            <Grid Margin="0,2,0,0">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <TextBlock
-                                    x:Name="UpdateReleaseTitleText"
-                                    VerticalAlignment="Center"
-                                    FontSize="12"
-                                    FontWeight="Bold"
-                                    Foreground="#1B1F31"
-                                    Text="最新版本说明" />
-                                <Button
-                                    x:Name="UpdateReleaseToggleButton"
-                                    Grid.Column="1"
-                                    Width="56"
-                                    Height="24"
-                                    MinWidth="56"
-                                    Padding="0"
-                                    Background="#FFFDFC"
-                                    BorderBrush="#D5D0C4"
-                                    BorderThickness="1"
-                                    Click="OnToggleReleaseNotesClick"
-                                    Content="展开"
-                                    CornerRadius="8"
-                                    FontSize="11"
-                                    Foreground="#1B1F31" />
-                            </Grid>
-                            <ScrollViewer
-                                x:Name="UpdateReleaseScrollViewer"
-                                MaxHeight="0"
-                                VerticalScrollBarVisibility="Auto"
-                                HorizontalScrollBarVisibility="Disabled">
-                                <TextBlock
-                                    x:Name="UpdateReleaseInfoText"
-                                    FontSize="11"
-                                    Foreground="#4B5563"
-                                    LineHeight="17"
-                                    TextWrapping="WrapWholeWords" />
-                            </ScrollViewer>
-                        </StackPanel>
-                    </Border>
-
-                    <Border
-                        Grid.Row="3"
-                        Padding="10"
-                        Background="#FFFFF7EA"
-                        BorderBrush="#F7BE6A"
-                        BorderThickness="1"
-                        CornerRadius="16">
-                        <StackPanel Spacing="6">
-                            <TextBlock
-                                x:Name="UpdateQuarkHintText"
-                                FontSize="12"
-                                FontWeight="SemiBold"
-                                Foreground="#8A4B00"
-                                TextWrapping="WrapWholeWords" />
-                            <Grid ColumnSpacing="8">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <TextBlock
-                                    x:Name="UpdateQuarkCodeText"
-                                    VerticalAlignment="Center"
-                                    FontSize="12"
-                                    FontWeight="Bold"
-                                    Foreground="#1B1F31" />
-                            <Button
-                                x:Name="UpdateOpenQuarkButton"
-                                Grid.Column="1"
-                                Height="30"
-                                MinWidth="0"
-                                HorizontalAlignment="Stretch"
-                                Background="#FFFDFC"
-                                BorderBrush="#F7BE6A"
-                                BorderThickness="1"
-                                Click="OnOpenQuarkUpdateClick"
-                                Content="鎵撳紑澶稿厠澶囩敤涓嬭浇"
-                                CornerRadius="10"
-                                FontSize="12"
-                                Foreground="#8A4B00" />
-                            <Button
-                                x:Name="UpdateCopyQuarkButton"
-                                Grid.Column="2"
-                                Height="30"
-                                MinWidth="0"
-                                HorizontalAlignment="Stretch"
-                                Background="#FFFDFC"
-                                BorderBrush="#F7BE6A"
-                                BorderThickness="1"
-                                Click="OnCopyQuarkUpdateClick"
-                                Content="婢跺秴鍩楅柧鐐复"
-                                CornerRadius="10"
-                                FontSize="12"
-                                Foreground="#8A4B00" />
-                            </Grid>
-                        </StackPanel>
-                    </Border>
-
-                    <StackPanel
-                        Grid.Row="4"
-                        Spacing="8">
-                        <TextBlock
-                            x:Name="UpdateDownloadStatusText"
-                            FontSize="12"
-                            FontWeight="SemiBold"
-                            Foreground="#2D3748"
-                            Text="绛夊緟涓嬭浇" />
-                        <ProgressBar
-                            x:Name="UpdateDownloadProgress"
-                            Height="8"
-                            Background="#E7E1D6"
-                            Foreground="#2E88B8"
-                            IsIndeterminate="False"
-                            Maximum="100"
-                            Minimum="0"
-                            Value="0" />
-                    </StackPanel>
-
-                    <Grid
-                        Grid.Row="5"
-                        ColumnSpacing="4">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Button
-                            x:Name="UpdateDownloadButton"
-                            Grid.Column="0"
-                            Height="34"
-                            Background="#2E88B8"
-                            BorderBrush="#45A3D3"
-                            BorderThickness="1"
-                            Click="OnDownloadUpdateClick"
-                            Content="涓嬭浇"
-                            CornerRadius="12"
-                            FontSize="12"
-                            FontWeight="SemiBold"
-                            Foreground="White" />
-                        <Button
-                            x:Name="UpdateInstallButton"
-                            Grid.Column="1"
-                            Height="34"
-                            Background="#FFFDFC"
-                            BorderBrush="#D5D0C4"
-                            BorderThickness="1"
-                            Click="OnInstallUpdateClick"
-                            Content="Install"
-                            CornerRadius="12"
-                            FontSize="12"
-                            FontWeight="SemiBold"
-                            Foreground="#1B1F31" />
-                        <Button
-                            x:Name="UpdateOpenFolderButton"
-                            Grid.Column="2"
-                            Height="34"
-                            Background="#FFFDFC"
-                            BorderBrush="#D5D0C4"
-                            BorderThickness="1"
-                            Click="OnOpenUpdateFolderClick"
-                            Content="Folder"
-                            CornerRadius="12"
-                            FontSize="12"
-                            FontWeight="SemiBold"
-                            Foreground="#1B1F31" />
-                    </Grid>
-                </Grid>
-            </Border>
-        </Grid>
+        <controls:UpdateOverlayView x:Name="UpdateOverlay" Visibility="Collapsed" />
     </Grid>
 </Page>

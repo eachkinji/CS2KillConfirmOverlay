@@ -74,14 +74,22 @@ namespace KillConfirmGameBar.Controls
         private readonly Stopwatch _playbackClock = new Stopwatch();
 
         private SpriteMetadata _currentMetadata;
+        private double _logicalFrameWidth = MaxCachedFrameWidth;
+        private double _logicalFrameHeight = MaxCachedFrameHeight;
+        private double _renderResolutionScale = 1.0;
+        private bool _contentSizedViewport;
         private IReadOnlyList<SpriteSheetSegment> _currentSheets;
         private SpriteSheetSegment _currentSheet;
         private Code2KillAsset _currentCodeAsset;
+        private ValorantKillAsset _currentValorantAsset;
+        private BattlefieldKillAsset _currentBattlefieldAsset;
         private static readonly Dictionary<string, Code2KillAsset> CodeKillCache = new Dictionary<string, Code2KillAsset>();
         private static Task _startupPreloadTask;
         private static Task _preloadTask;
         private int _currentFrame;
         private int _playToken;
+        private bool _isBattlefieldTextOverlayActive;
+        private double _battlefieldPrimaryStartTimeMs;
 
         public KillConfirmAnimation()
         {
@@ -124,6 +132,29 @@ namespace KillConfirmGameBar.Controls
             PlayInternal(progress => LoadCodeKillAssetAsync(assetName, weaponBadgeKey, progress));
         }
 
+        public void PlayValorantKill(string packKey, int killCount, bool isHeadshot)
+        {
+            string normalizedPackKey = ValorantPackService.IsValorantPackKey(packKey)
+                ? packKey
+                : ValorantPackService.DefaultKey;
+            int normalizedKillCount = Math.Max(1, Math.Min(6, killCount));
+            PlayInternal(progress => LoadValorantKillAssetAsync(normalizedPackKey, normalizedKillCount, isHeadshot, progress));
+        }
+
+        public void PlayBattlefield1Kill(int killCount, bool isHeadshot, bool isKnifeKill, bool isAssist, string playerName, string weaponLabel, int moneyReward, string eventKind, int roundNumber, int moneyEpoch)
+        {
+            PlayBattlefield1CompositeKill(killCount, isHeadshot, isKnifeKill, isAssist, playerName, weaponLabel, moneyReward, eventKind, roundNumber, moneyEpoch);
+        }
+
+        public void PlayBattlefield5Kill(int killCount, bool isHeadshot, bool isKnifeKill, bool isAssist, string playerName, string weaponLabel, int moneyReward, string eventKind, int roundNumber, int moneyEpoch)
+        {
+            _playToken++;
+            _contentSizedViewport = false;
+            _isBattlefield1CompactLayoutActive = false;
+            _isBattlefieldTextOverlayActive = false;
+            QueueBattlefield5ScrollingKill(killCount, isHeadshot, isKnifeKill, isAssist, playerName, weaponLabel, moneyReward, eventKind, roundNumber, moneyEpoch);
+        }
+
         public Task PreloadCommonAnimationsAsync()
         {
             if (_preloadTask == null)
@@ -146,12 +177,60 @@ namespace KillConfirmGameBar.Controls
 
         public Task PreloadCurrentPackAnimationsAsync(IProgress<int> progress)
         {
+            if (GameStyleService.IsBattlefield1Key(_iconPack))
+            {
+                return PreloadBattlefieldAnimationsAsync("bf1", progress);
+            }
+
+            if (GameStyleService.IsBattlefield5Key(_iconPack))
+            {
+                return PreloadBattlefieldAnimationsAsync("bf5", progress);
+            }
+
+            if (GameStyleService.IsBattlefield4Key(_iconPack))
+            {
+                return PreloadBattlefield4AnimationsAsync(progress);
+            }
+
+            if (GameStyleService.IsBattlefield2042Key(_iconPack))
+            {
+                return PreloadBattlefield2042AnimationsAsync(progress);
+            }
+
+            if (GameStyleService.IsPubgKey(_iconPack))
+            {
+                return PreloadPubgAnimationsAsync(progress);
+            }
+
+            if (GameStyleService.IsDeltaForceKey(_iconPack))
+            {
+                return PreloadDeltaForceAnimationsAsync(progress);
+            }
+
+            if (ValorantPackService.IsValorantPackKey(_iconPack))
+            {
+                return PreloadValorantAnimationsAsync(progress);
+            }
+
             if (string.Equals(_iconPack, "legacy", StringComparison.OrdinalIgnoreCase))
             {
                 return PreloadGameplayAnimationsAsync(progress);
             }
 
             return PreloadCodeKillAnimationsAsync(progress);
+        }
+
+        public void SetRenderResolutionScale(double scale)
+        {
+            double normalized = Math.Max(1.0, Math.Min(4.0, scale));
+            if (Math.Abs(_renderResolutionScale - normalized) < 0.01)
+            {
+                return;
+            }
+
+            _renderResolutionScale = normalized;
+            ApplyViewportSize(_logicalFrameWidth, _logicalFrameHeight);
+            SpriteCanvas.Invalidate();
         }
 
         public Task PreloadGameplayAnimationsAsync(IProgress<int> progress)
@@ -224,6 +303,42 @@ namespace KillConfirmGameBar.Controls
             }
         }
 
+        private async Task PreloadValorantAnimationsAsync(IProgress<int> progress)
+        {
+            string packKey = ValorantPackService.IsValorantPackKey(_iconPack)
+                ? _iconPack
+                : ValorantPackService.DefaultKey;
+            var requests = new List<Tuple<int, bool>>();
+            for (int killCount = 1; killCount <= 6; killCount++)
+            {
+                requests.Add(Tuple.Create(killCount, false));
+            }
+
+            for (int killCount = 1; killCount <= 6; killCount++)
+            {
+                requests.Add(Tuple.Create(killCount, true));
+            }
+
+            int loaded = 0;
+            progress?.Report(0);
+            foreach (Tuple<int, bool> request in requests)
+            {
+                try
+                {
+                    await LoadValorantKillAssetAsync(packKey, request.Item1, request.Item2, null);
+                }
+                catch
+                {
+                }
+
+                loaded++;
+                int percent = requests.Count == 0
+                    ? 100
+                    : (int)Math.Round(loaded * 100.0 / requests.Count);
+                progress?.Report(Math.Max(1, Math.Min(100, percent)));
+            }
+        }
+
         public static void ConfigureRenderSettings(double brightnessBoost, double contrastBoost)
         {
             double normalizedBrightness = Math.Max(0.0, Math.Min(1.0, brightnessBoost));
@@ -238,6 +353,11 @@ namespace KillConfirmGameBar.Controls
             _brightnessBoost = normalizedBrightness;
             _contrastBoost = normalizedContrast;
             CodeKillCache.Clear();
+            ClearBattlefieldIconCache();
+            ClearBattlefield4IconCache();
+            ClearBattlefield2042IconCache();
+            ClearPubgIconCache();
+            ClearDeltaForceIconCache();
             if (string.Equals(_iconPack, "legacy", StringComparison.OrdinalIgnoreCase))
             {
                 SheetCache.Clear();
@@ -259,6 +379,13 @@ namespace KillConfirmGameBar.Controls
             if (normalized != "legacy"
                 && normalized != "vip"
                 && GetIconPackFolder(normalized) == null
+                && !ValorantPackService.IsValorantPackKey(normalized)
+                && !GameStyleService.IsBattlefield1Key(normalized)
+                && !GameStyleService.IsBattlefield5Key(normalized)
+                && !GameStyleService.IsBattlefield4Key(normalized)
+                && !GameStyleService.IsBattlefield2042Key(normalized)
+                && !GameStyleService.IsPubgKey(normalized)
+                && !GameStyleService.IsDeltaForceKey(normalized)
                 && !PackCatalogService.IsImportedIconPackKey(normalized))
             {
                 normalized = "default";
@@ -273,11 +400,11 @@ namespace KillConfirmGameBar.Controls
                 || string.Equals(normalized, "legacy", StringComparison.OrdinalIgnoreCase);
             _iconPack = normalized;
             CodeKillCache.Clear();
+            _startupPreloadTask = null;
+            _preloadTask = null;
             if (legacyTransition)
             {
                 SheetCache.Clear();
-                _startupPreloadTask = null;
-                _preloadTask = null;
             }
         }
 
@@ -358,6 +485,13 @@ namespace KillConfirmGameBar.Controls
 
         private async void PlayInternal(Func<IProgress<int>, Task<AnimationAsset>> assetLoader)
         {
+            _contentSizedViewport = false;
+            _isBattlefield1CompactLayoutActive = false;
+            ResetBattlefield5ScrollingState();
+            ResetBattlefield4HudState();
+            ResetBattlefield2042HudState();
+            ResetPubgHudState();
+            ResetDeltaForceHudState();
             int token = ++_playToken;
             bool isLoading = true;
             var progress = new Progress<int>(value =>
@@ -383,15 +517,12 @@ namespace KillConfirmGameBar.Controls
                 _currentMetadata = asset.Metadata;
                 _currentSheets = asset.Sheets;
                 _currentCodeAsset = asset.CodeAsset;
+                _currentValorantAsset = asset.ValorantAsset;
+                _currentBattlefieldAsset = asset.BattlefieldAsset;
                 _currentSheet = null;
                 _currentFrame = 0;
 
-                Viewport.Width = asset.Metadata.FrameWidth;
-                Viewport.Height = asset.Metadata.FrameHeight;
-                ViewportClip.Rect = new Rect(0, 0, asset.Metadata.FrameWidth, asset.Metadata.FrameHeight);
-
-                SpriteCanvas.Width = asset.Metadata.FrameWidth;
-                SpriteCanvas.Height = asset.Metadata.FrameHeight;
+                ApplyViewportSize(asset.Metadata.FrameWidth, asset.Metadata.FrameHeight);
 
                 HideLoadingProgress();
                 Visibility = Visibility.Visible;
@@ -624,822 +755,7 @@ namespace KillConfirmGameBar.Controls
             }
         }
 
-        private async Task<AnimationAsset> LoadCodeKillAssetAsync(string assetName, string weaponBadgeKey, IProgress<int> progress = null)
-        {
-            string normalizedAssetName = assetName.Trim().ToLowerInvariant();
-            if (!TryGetCodeKillFiles(
-                normalizedAssetName,
-                out string mainFileName,
-                out string mainFolder,
-                out string alternatePackFolder,
-                out string fxFileName,
-                out string fxFolder))
-            {
-                throw new FileNotFoundException("Unsupported code kill asset: " + assetName);
-            }
 
-            string normalizedWeaponBadgeKey = SupportsWeaponBadgeForAsset(normalizedAssetName)
-                ? NormalizeWeaponBadgeKey(weaponBadgeKey)
-                : string.Empty;
-            string cacheKey = _iconPack
-                + ":" + normalizedAssetName
-                + ":" + normalizedWeaponBadgeKey
-                + ":" + _killFxMode
-                + ":elite" + _eliteEffectLevel
-                + ":weapon" + _weaponBadgeMode;
-            if (!CodeKillCache.TryGetValue(cacheKey, out Code2KillAsset asset))
-            {
-                string effectiveMainFileName = GetEffectiveMainFileName(normalizedAssetName, mainFileName);
-                CanvasBitmap main = await LoadMainCodeKillBitmapAsync(
-                    normalizedAssetName,
-                    mainFileName,
-                    effectiveMainFileName,
-                    mainFolder,
-                    alternatePackFolder);
-                progress?.Report(50);
-                CanvasBitmap fx = string.IsNullOrWhiteSpace(fxFileName)
-                    ? null
-                    : await LoadKillFxOverlayBitmapAsync(fxFileName, fxFolder);
-                CanvasBitmap eliteOverlay = await LoadEliteOverlayBitmapAsync(normalizedAssetName);
-                CanvasBitmap weaponBadgeOverlay = await LoadWeaponBadgeOverlayBitmapAsync(normalizedAssetName, normalizedWeaponBadgeKey);
-                asset = new Code2KillAsset(main, fx, eliteOverlay, weaponBadgeOverlay);
-                CodeKillCache[cacheKey] = asset;
-            }
-
-            progress?.Report(100);
-            return new AnimationAsset(
-                new SpriteMetadata
-                {
-                    FrameWidth = (int)CodeKillFrameWidth,
-                    FrameHeight = (int)CodeKillFrameHeight,
-                    Frames = 77,
-                    Fps = FrameSequenceFps
-                },
-                asset);
-        }
-
-        private static bool TryGetCodeKillFiles(
-            string assetName,
-            out string mainFileName,
-            out string mainFolder,
-            out string alternatePackFolder,
-            out string fxFileName,
-            out string fxFolder)
-        {
-            switch (assetName)
-            {
-                case "multi1":
-                    mainFileName = "badge_multi1.png";
-                    mainFolder = DefaultCodeFolder;
-                    alternatePackFolder = AngelicBeastCodeFolder;
-                    fxFileName = null;
-                    fxFolder = null;
-                    return true;
-                case "multi2":
-                case "code2kill":
-                    mainFileName = "badge_multi2.png";
-                    mainFolder = DefaultCodeFolder;
-                    alternatePackFolder = AngelicBeastCodeFolder;
-                    fxFileName = "multi2_fx.png";
-                    fxFolder = CommonFxCodeFolder;
-                    return true;
-                case "multi3":
-                    mainFileName = "badge_multi3.png";
-                    mainFolder = DefaultCodeFolder;
-                    alternatePackFolder = AngelicBeastCodeFolder;
-                    fxFileName = "multi3_fx.png";
-                    fxFolder = CommonFxCodeFolder;
-                    return true;
-                case "multi4":
-                    mainFileName = "badge_multi4.png";
-                    mainFolder = DefaultCodeFolder;
-                    alternatePackFolder = AngelicBeastCodeFolder;
-                    fxFileName = "multi4_fx.png";
-                    fxFolder = CommonFxCodeFolder;
-                    return true;
-                case "multi5":
-                    mainFileName = "badge_multi5.png";
-                    mainFolder = DefaultCodeFolder;
-                    alternatePackFolder = AngelicBeastCodeFolder;
-                    fxFileName = "multi5_fx.png";
-                    fxFolder = CommonFxCodeFolder;
-                    return true;
-                case "multi6":
-                    mainFileName = "badge_multi6.png";
-                    mainFolder = DefaultCodeFolder;
-                    alternatePackFolder = AngelicBeastCodeFolder;
-                    fxFileName = "multi6_fx.png";
-                    fxFolder = CommonFxCodeFolder;
-                    return true;
-                case "headshot":
-                    mainFileName = "badge_headshot.png";
-                    mainFolder = DefaultCodeFolder;
-                    alternatePackFolder = AngelicBeastCodeFolder;
-                    fxFileName = null;
-                    fxFolder = null;
-                    return true;
-                case "headshot_gold":
-                    mainFileName = "badge_headshot_gold.png";
-                    mainFolder = DefaultCodeFolder;
-                    alternatePackFolder = AngelicBeastCodeFolder;
-                    fxFileName = null;
-                    fxFolder = null;
-                    return true;
-                case "knife":
-                    mainFileName = "badge_knife.png";
-                    mainFolder = KnifeCodeFolder;
-                    alternatePackFolder = KnifeCodeFolder;
-                    fxFileName = null;
-                    fxFolder = null;
-                    return true;
-                case "firstkill":
-                    mainFileName = "FIRSTKILL.png";
-                    mainFolder = FirstLastCodeFolder;
-                    alternatePackFolder = FirstLastCodeFolder;
-                    fxFileName = null;
-                    fxFolder = null;
-                    return true;
-                case "lastkill":
-                    mainFileName = "LASTKILL.png";
-                    mainFolder = FirstLastCodeFolder;
-                    alternatePackFolder = FirstLastCodeFolder;
-                    fxFileName = null;
-                    fxFolder = null;
-                    return true;
-                case "assist":
-                    mainFileName = "badge_Assist.png";
-                    mainFolder = DefaultCodeFolder;
-                    alternatePackFolder = DefaultCodeFolder;
-                    fxFileName = null;
-                    fxFolder = null;
-                    return true;
-                case "headshot_vvip":
-                    mainFileName = "badge_headshot_vvip.png";
-                    mainFolder = null;
-                    alternatePackFolder = null;
-                    fxFileName = null;
-                    fxFolder = null;
-                    return true;
-                case "headshot_gold_vvip":
-                    mainFileName = "badge_headshot_gold_vvip.png";
-                    mainFolder = null;
-                    alternatePackFolder = null;
-                    fxFileName = null;
-                    fxFolder = null;
-                    return true;
-                default:
-                    mainFileName = null;
-                    mainFolder = null;
-                    alternatePackFolder = null;
-                    fxFileName = null;
-                    fxFolder = null;
-                    return false;
-            }
-        }
-
-        private static async Task<CanvasBitmap> LoadCodeKillBitmapAsync(
-            string fileName,
-            string folder,
-            string alternatePackFolder,
-            bool allowDefaultFallback,
-            bool preferImported = true)
-        {
-            if (preferImported && PackCatalogService.IsImportedIconPackKey(_iconPack))
-            {
-                CanvasBitmap imported = await TryLoadImportedIconBitmapAsync(fileName);
-                if (imported != null)
-                {
-                    return imported;
-                }
-            }
-
-            string iconPackFolder = GetIconPackFolder();
-            if (!string.IsNullOrWhiteSpace(alternatePackFolder)
-                && !string.IsNullOrWhiteSpace(iconPackFolder))
-            {
-                try
-                {
-                    return await LoadBitmapFromApplicationUriAsync(
-                        $"ms-appx:///Assets/KillConfirmCode/{iconPackFolder}/{fileName}");
-                }
-                catch
-                {
-                    if (!allowDefaultFallback)
-                    {
-                        throw;
-                    }
-                }
-            }
-
-            if (!string.IsNullOrWhiteSpace(folder))
-            {
-                return await LoadBitmapFromApplicationUriAsync($"ms-appx:///Assets/KillConfirmCode/{folder}/{fileName}");
-            }
-
-            return await LoadBitmapFromApplicationUriAsync($"ms-appx:///Assets/KillConfirmCode/{fileName}");
-        }
-
-        private static async Task<CanvasBitmap> TryLoadImportedIconBitmapAsync(string fileName)
-        {
-            try
-            {
-                StorageFolder folder = await PackCatalogService.GetImportedIconFolderAsync(_iconPack);
-                if (folder == null)
-                {
-                    return null;
-                }
-
-                StorageFile file = await TryGetImportedIconFileAsync(folder, fileName);
-                if (file == null)
-                {
-                    return null;
-                }
-
-                return await LoadBitmapFromStorageFileAsync(file);
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
-        private static async Task<StorageFile> TryGetImportedIconFileAsync(StorageFolder folder, string canonicalFileName)
-        {
-            foreach (string extension in ImportedIconImageExtensions)
-            {
-                StorageFile file = await TryGetImportedIconFileExactAsync(
-                    folder,
-                    Path.ChangeExtension(canonicalFileName, extension));
-                if (file != null)
-                {
-                    return file;
-                }
-            }
-
-            try
-            {
-                StorageFolder badgeex = await folder.GetFolderAsync("badgeex");
-                foreach (string extension in ImportedIconImageExtensions)
-                {
-                    StorageFile file = await TryGetImportedIconFileExactAsync(
-                        badgeex,
-                        Path.ChangeExtension(canonicalFileName, extension));
-                    if (file != null)
-                    {
-                        return file;
-                    }
-                }
-            }
-            catch
-            {
-            }
-
-            return null;
-        }
-
-        private static async Task<StorageFile> TryGetImportedIconFileExactAsync(StorageFolder folder, string fileName)
-        {
-            try
-            {
-                return await folder.GetFileAsync(fileName);
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
-        private static async Task<CanvasBitmap> LoadMainCodeKillBitmapAsync(
-            string assetName,
-            string defaultMainFileName,
-            string effectiveMainFileName,
-            string mainFolder,
-            string alternatePackFolder)
-        {
-            if (PackCatalogService.IsImportedIconPackKey(_iconPack)
-                && string.Equals(assetName, "knife", StringComparison.OrdinalIgnoreCase)
-                && !string.Equals(defaultMainFileName, effectiveMainFileName, StringComparison.OrdinalIgnoreCase))
-            {
-                CanvasBitmap importedEliteKnife = await TryLoadImportedIconBitmapAsync(effectiveMainFileName);
-                if (importedEliteKnife != null)
-                {
-                    return importedEliteKnife;
-                }
-
-                return await LoadCodeKillBitmapAsync(defaultMainFileName, mainFolder, alternatePackFolder, true);
-            }
-
-            return await LoadCodeKillBitmapAsync(effectiveMainFileName, mainFolder, alternatePackFolder, true);
-        }
-
-        private static async Task<CanvasBitmap> LoadOptionalOverlayBitmapAsync(
-            string fileName,
-            string folder,
-            bool forceOriginal = false,
-            bool allowOriginalFallback = false)
-        {
-            if (PackCatalogService.IsImportedIconPackKey(_iconPack))
-            {
-                if (!forceOriginal)
-                {
-                    CanvasBitmap imported = await TryLoadImportedIconBitmapAsync(fileName);
-                    if (imported != null)
-                    {
-                        return imported;
-                    }
-                }
-
-                return allowOriginalFallback
-                    ? await LoadCodeKillBitmapAsync(fileName, folder, null, false, false)
-                    : null;
-            }
-
-            return await LoadCodeKillBitmapAsync(fileName, folder, null, false);
-        }
-
-        private static async Task<CanvasBitmap> LoadKillFxOverlayBitmapAsync(string fileName, string folder)
-        {
-            switch (_killFxMode)
-            {
-                case KillFxMode.Off:
-                    return null;
-                case KillFxMode.Original:
-                    return await LoadCodeKillBitmapAsync(fileName, folder, null, false, false);
-                case KillFxMode.Pack:
-                default:
-                    if (PackCatalogService.IsImportedIconPackKey(_iconPack))
-                    {
-                        return await TryLoadImportedIconBitmapAsync(fileName);
-                    }
-
-                    return await LoadCodeKillBitmapAsync(fileName, folder, null, false);
-            }
-        }
-
-        private static async Task<CanvasBitmap> LoadEliteOverlayBitmapAsync(string assetName)
-        {
-            int eliteLevel = GetEffectiveEliteEffectLevel();
-            if (eliteLevel <= 0 || !SupportsEliteOverlay())
-            {
-                return null;
-            }
-
-            if (!assetName.StartsWith("multi", StringComparison.OrdinalIgnoreCase))
-            {
-                return null;
-            }
-
-            string fileName = $"KillMark_Upgrade{eliteLevel}.png";
-            return await LoadOptionalOverlayBitmapAsync(
-                fileName,
-                EliteUpgradeCodeFolder,
-                IsEliteOriginalMode(),
-                true);
-        }
-
-        private static async Task<CanvasBitmap> LoadWeaponBadgeOverlayBitmapAsync(string assetName, string weaponBadgeKey)
-        {
-            if (_weaponBadgeMode <= 0
-                || !SupportsWeaponBadgeOverlay()
-                || !SupportsWeaponBadgeForAsset(assetName)
-                || string.IsNullOrWhiteSpace(weaponBadgeKey))
-            {
-                return null;
-            }
-
-            string suffix = GetWeaponBadgeVariantSuffix();
-            string fileName;
-            switch (weaponBadgeKey)
-            {
-                case "assault":
-                    fileName = $"badge_Assault{suffix}.png";
-                    break;
-                case "elite":
-                    fileName = $"badge_Elite{suffix}.png";
-                    break;
-                case "scout":
-                    fileName = $"badge_Scout{suffix}.png";
-                    break;
-                case "sniper":
-                    fileName = $"badge_Sniper{suffix}.png";
-                    break;
-                case "knife":
-                    fileName = $"badge_Knife{suffix}.png";
-                    break;
-                default:
-                    return null;
-            }
-
-            return await LoadOptionalOverlayBitmapAsync(
-                fileName,
-                WeaponBadgeCodeFolder,
-                _weaponBadgeMode == 2,
-                _weaponBadgeMode == 2);
-        }
-
-        private static bool SupportsWeaponBadgeForAsset(string assetName)
-        {
-            return assetName.StartsWith("multi", StringComparison.OrdinalIgnoreCase);
-        }
-
-        private static string GetEffectiveMainFileName(string assetName, string defaultMainFileName)
-        {
-            if (string.Equals(assetName, "knife", StringComparison.OrdinalIgnoreCase)
-                && SupportsEliteOverlay()
-                && GetEffectiveEliteEffectLevel() > 0)
-            {
-                return $"badge_knife_{GetEffectiveEliteEffectLevel()}.png";
-            }
-
-            return defaultMainFileName;
-        }
-
-        private static string GetIconPackFolder()
-        {
-            return GetIconPackFolder(_iconPack);
-        }
-
-        private static string GetIconPackFolder(string iconPack)
-        {
-            switch ((iconPack ?? string.Empty).Trim().ToLowerInvariant())
-            {
-                case "vip":
-                    return VipCodeFolder;
-                case "angelic_beast":
-                    return AngelicBeastCodeFolder;
-                case "anniversary_10":
-                    return "Anniversary10";
-                case "anniversary_15":
-                    return "Anniversary15";
-                case "cfpl":
-                    return "CFPL";
-                case "rankmach_2019_1":
-                    return "Rankmach2019_1";
-                case "rankmach_2019_2":
-                    return "Rankmach2019_2";
-                default:
-                    return null;
-            }
-        }
-
-        private static bool IsBuiltInCodeIconPack()
-        {
-            return string.Equals(_iconPack, "default", StringComparison.OrdinalIgnoreCase)
-                || GetIconPackFolder() != null;
-        }
-
-        private static bool SupportsEliteOverlay()
-        {
-            return IsBuiltInCodeIconPack()
-                || PackCatalogService.IsImportedIconPackKey(_iconPack);
-        }
-
-        private static bool SupportsWeaponBadgeOverlay()
-        {
-            return IsBuiltInCodeIconPack()
-                || PackCatalogService.IsImportedIconPackKey(_iconPack);
-        }
-
-        private static string GetWeaponBadgeVariantSuffix()
-        {
-            return Math.Max(1, GetEffectiveEliteEffectLevel()).ToString();
-        }
-
-        private static int GetEffectiveEliteEffectLevel()
-        {
-            if (_eliteEffectLevel >= 11 && _eliteEffectLevel <= 13)
-            {
-                return _eliteEffectLevel - 10;
-            }
-
-            return Math.Max(0, Math.Min(3, _eliteEffectLevel));
-        }
-
-        private static bool IsEliteOriginalMode()
-        {
-            return _eliteEffectLevel >= 11 && _eliteEffectLevel <= 13;
-        }
-
-        private static KillFxMode NormalizeKillFxMode(int mode)
-        {
-            switch (mode)
-            {
-                case 0:
-                    return KillFxMode.Off;
-                case 2:
-                    return KillFxMode.Original;
-                case 1:
-                default:
-                    return KillFxMode.Pack;
-            }
-        }
-
-        private static int NormalizeEliteEffectMode(int mode)
-        {
-            if (mode == 0 || (mode >= 1 && mode <= 3) || (mode >= 11 && mode <= 13))
-            {
-                return mode;
-            }
-
-            return 0;
-        }
-
-        private static int NormalizeWeaponBadgeMode(int mode)
-        {
-            switch (mode)
-            {
-                case 0:
-                case 1:
-                case 2:
-                    return mode;
-                default:
-                    return 0;
-            }
-        }
-
-        private static string NormalizeWeaponBadgeKey(string weaponBadgeKey)
-        {
-            if (string.IsNullOrWhiteSpace(weaponBadgeKey))
-            {
-                return string.Empty;
-            }
-
-            switch (weaponBadgeKey.Trim().ToLowerInvariant())
-            {
-                case "assault":
-                case "elite":
-                case "scout":
-                case "sniper":
-                case "knife":
-                    return weaponBadgeKey.Trim().ToLowerInvariant();
-                default:
-                    return string.Empty;
-            }
-        }
-
-        private static void ClearSheetCache()
-        {
-            SheetCache.Clear();
-            CodeKillCache.Clear();
-        }
-
-        private static async Task<CanvasBitmap> LoadSheetBitmapAsync(string fileName)
-        {
-            return await LoadBitmapFromApplicationUriAsync($"ms-appx:///Assets/KillConfirmSheets/{fileName}");
-        }
-
-        private static async Task<CanvasBitmap> LoadBitmapFromApplicationUriAsync(string uriText)
-        {
-            var uri = new Uri(uriText);
-            StorageFile file = await StorageFile.GetFileFromApplicationUriAsync(uri);
-            return await LoadBitmapFromStorageFileAsync(file);
-        }
-
-        private static async Task<CanvasBitmap> LoadBitmapFromStorageFileAsync(StorageFile file)
-        {
-            if (file.FileType.Equals(".tga", StringComparison.OrdinalIgnoreCase))
-            {
-                SoftwareBitmap softwareBitmap = await TgaDecoder.GetSoftwareBitmapAsync(file);
-                return softwareBitmap == null
-                    ? null
-                    : CanvasBitmap.CreateFromSoftwareBitmap(CanvasDevice.GetSharedDevice(), softwareBitmap);
-            }
-
-            using (IRandomAccessStream stream = await file.OpenReadAsync())
-            {
-                BitmapDecoder decoder = await BitmapDecoder.CreateAsync(stream);
-                PixelDataProvider pixels = await decoder.GetPixelDataAsync(
-                    BitmapPixelFormat.Bgra8,
-                    BitmapAlphaMode.Premultiplied,
-                    new BitmapTransform(),
-                    ExifOrientationMode.IgnoreExifOrientation,
-                    ColorManagementMode.DoNotColorManage);
-
-                byte[] data = pixels.DetachPixelData();
-                ApplyColorBoost(data);
-                return CanvasBitmap.CreateFromBytes(
-                    CanvasDevice.GetSharedDevice(),
-                    data,
-                    (int)decoder.PixelWidth,
-                    (int)decoder.PixelHeight,
-                    Windows.Graphics.DirectX.DirectXPixelFormat.B8G8R8A8UIntNormalized);
-            }
-        }
-
-        private void OnSpriteCanvasDraw(CanvasControl sender, CanvasDrawEventArgs args)
-        {
-            args.DrawingSession.Clear(Colors.Transparent);
-
-            if (_currentCodeAsset != null)
-            {
-                DrawCode2KillFrame(args.DrawingSession, _currentFrame);
-                return;
-            }
-
-            if (_currentMetadata == null || _currentSheet == null || _currentSheet.Image == null)
-            {
-                return;
-            }
-
-            int localFrame = _currentFrame - _currentSheet.StartFrame;
-            if (localFrame < 0 || localFrame >= _currentSheet.Frames)
-            {
-                return;
-            }
-
-            int col = localFrame % _currentSheet.Cols;
-            int row = localFrame / _currentSheet.Cols;
-            var sourceRect = new Rect(
-                col * _currentMetadata.FrameWidth,
-                row * _currentMetadata.FrameHeight,
-                _currentMetadata.FrameWidth,
-                _currentMetadata.FrameHeight);
-            var targetRect = new Rect(0, 0, _currentMetadata.FrameWidth, _currentMetadata.FrameHeight);
-
-            args.DrawingSession.DrawImage(
-                _currentSheet.Image,
-                targetRect,
-                sourceRect,
-                1.0f,
-                CanvasImageInterpolation.NearestNeighbor);
-        }
-
-        private void DrawCode2KillFrame(CanvasDrawingSession drawingSession, int frame)
-        {
-            if (_currentCodeAsset == null)
-            {
-                return;
-            }
-
-            double timeSec = frame / (double)FrameSequenceFps;
-            double mainProgress = Clamp01(timeSec / 1.2833);
-            double fxProgress = Clamp01(timeSec / 0.48);
-
-            TransformSample main = SampleMainTrack(frame, mainProgress);
-
-            TransformSample fxTrack = SampleTrack(new[]
-            {
-                new TransformKey(0.0000, 0, 0, 4.55, 0.94),
-                new TransformKey(0.0222, 0, 0, 2.95, 1.00),
-                new TransformKey(0.0444, 0, 0, 2.62, 1.00),
-                new TransformKey(0.0667, 0, 0, 2.42, 1.00),
-                new TransformKey(0.0889, 0, 0, 2.08, 0.98),
-                new TransformKey(0.1111, 0, 0, 1.94, 0.96),
-                new TransformKey(0.1333, 0, 0, 1.66, 0.92),
-                new TransformKey(0.1556, 0, 0, 1.56, 0.88),
-                new TransformKey(0.1778, 0, 0, 1.32, 0.82),
-                new TransformKey(0.2000, 0, 0, 1.28, 0.78),
-                new TransformKey(0.2222, 0, 0, 1.12, 0.74),
-                new TransformKey(0.2444, 0, 0, 1.12, 0.70),
-                new TransformKey(0.2667, 0, 0, 1.04, 0.68),
-                new TransformKey(0.2889, 0, 0, 1.00, 0.66),
-                new TransformKey(0.3500, 0, 0, 1.00, 0.66),
-                new TransformKey(0.7000, 0, 0, 1.00, 0.62),
-                new TransformKey(0.8600, 0, 0, 1.00, 0.24),
-                new TransformKey(1.0000, 0, 0, 1.12, 0.00)
-            }, fxProgress);
-
-            if (_mainAnimationStyle == 1 || frame >= 5)
-            {
-                ApplyCode2KillFramePatch(frame, ref main);
-            }
-
-            double fillWindow = Math.Max(0, 1 - Math.Abs(fxProgress - 0.24) / 0.14);
-            TransformSample fx = new TransformSample(
-                main.X + 70,
-                main.Y + 70,
-                fxTrack.Scale * (1 + 0.28 * fillWindow),
-                fxTrack.Opacity);
-
-            if ((_mainAnimationStyle == 1 || frame >= 5) && frame >= 5 && frame <= 15)
-            {
-                main.Scale = 1.0;
-            }
-
-            if ((_mainAnimationStyle == 1 || frame >= 5) && frame >= 16)
-            {
-                main.X = -180;
-                main.Y = -180;
-                main.Scale = 1.0;
-                fx.X = -110;
-                fx.Y = -110;
-                fx.Scale = 1.0;
-            }
-
-            double fxStackScale = 1.0;
-            int fxVisibleLayers = 1;
-            double extraAlpha1 = 0;
-            double extraAlpha2 = 0;
-            double fxOpacityMultiplier = 1.0;
-
-            if (frame >= 0 && frame <= 15)
-            {
-                double growT = Clamp01(frame / 15.0);
-                fxVisibleLayers = frame <= 6 ? 1 : 3;
-                fxStackScale = Lerp(1.0, 1.30, growT);
-                if (frame >= 7)
-                {
-                    extraAlpha1 = 0.92;
-                    extraAlpha2 = 0.78;
-                }
-            }
-            else if (frame >= 16)
-            {
-                if (frame <= 35)
-                {
-                    double settleT = Clamp01((frame - 16) / 19.0);
-                    fxVisibleLayers = 3;
-                    fxStackScale = Lerp(1.30, 1.0, settleT);
-                    extraAlpha1 = 0.92;
-                    extraAlpha2 = 0.78;
-                    fx.Opacity = 0.66;
-                    fxOpacityMultiplier = 1.0 - settleT;
-                }
-                else
-                {
-                    fxVisibleLayers = 0;
-                    fxStackScale = 1.0;
-                    fx.Opacity = 0;
-                    fxOpacityMultiplier = 0;
-                }
-            }
-
-            DrawCenteredScaledImage(
-                drawingSession,
-                _currentCodeAsset.Main,
-                main.X,
-                main.Y,
-                360,
-                360,
-                main.Scale,
-                main.Opacity);
-
-            DrawCenteredScaledImage(
-                drawingSession,
-                _currentCodeAsset.Overlay,
-                main.X,
-                main.Y,
-                360,
-                360,
-                main.Scale,
-                main.Opacity);
-
-            DrawCenteredScaledImage(
-                drawingSession,
-                _currentCodeAsset.WeaponBadge,
-                main.X,
-                main.Y,
-                360,
-                360,
-                main.Scale,
-                main.Opacity);
-
-            CanvasBlend previousBlend = drawingSession.Blend;
-            drawingSession.Blend = CanvasBlend.Add;
-
-            double[] layerOpacityMultipliers = { 1, extraAlpha1, extraAlpha2 };
-            for (int i = 0; i < 3; i++)
-            {
-                if (i >= fxVisibleLayers)
-                {
-                    continue;
-                }
-
-                DrawCenteredScaledImage(
-                    drawingSession,
-                    _currentCodeAsset.Fx,
-                    fx.X,
-                    fx.Y,
-                    220,
-                    220,
-                    fx.Scale * fxStackScale,
-                    fx.Opacity * layerOpacityMultipliers[i] * fxOpacityMultiplier);
-            }
-
-            drawingSession.Blend = previousBlend;
-        }
-
-        private void ShowSheetFrame(int frame)
-        {
-            if (_currentSheets == null)
-            {
-                return;
-            }
-
-            SpriteSheetSegment sheet = _currentSheets.FirstOrDefault(value =>
-                frame >= value.StartFrame && frame < value.StartFrame + value.Frames);
-            if (sheet == null)
-            {
-                return;
-            }
-
-            if (!ReferenceEquals(_currentSheet, sheet))
-            {
-                _currentSheet = sheet;
-            }
-
-            SpriteCanvas.Invalidate();
-        }
 
         private sealed class SpriteSheetSegment
         {
@@ -1452,310 +768,6 @@ namespace KillConfirmGameBar.Controls
             public int Height { get; set; }
         }
 
-        private void ShowLoadingProgress(int percent)
-        {
-            percent = Math.Max(0, Math.Min(100, percent));
-            _timer.Stop();
-            _playbackClock.Stop();
-            _currentSheet = null;
-            SpriteCanvas.Invalidate();
-            Viewport.Width = MaxCachedFrameWidth;
-            Viewport.Height = MaxCachedFrameHeight;
-            SpriteCanvas.Width = MaxCachedFrameWidth;
-            SpriteCanvas.Height = MaxCachedFrameHeight;
-            ViewportClip.Rect = new Rect(0, 0, MaxCachedFrameWidth, MaxCachedFrameHeight);
-            LoadingText.Text = $"Loading {percent}%";
-            LoadingRing.IsActive = true;
-            LoadingOverlay.Visibility = Visibility.Visible;
-            Visibility = Visibility.Visible;
-        }
-
-        private void HideLoadingProgress()
-        {
-            LoadingRing.IsActive = false;
-            LoadingOverlay.Visibility = Visibility.Collapsed;
-        }
-
-        private void OnTick(object sender, object e)
-        {
-            if (_currentMetadata == null || (_currentSheets == null && _currentCodeAsset == null))
-            {
-                _timer.Stop();
-                _playbackClock.Stop();
-                Visibility = Visibility.Collapsed;
-                return;
-            }
-
-            double targetDurationSeconds = TargetPlaybackFrames / Math.Max(1.0, _targetPlaybackFps);
-            double playbackProgress = _playbackClock.Elapsed.TotalSeconds / targetDurationSeconds;
-            int elapsedFrame = (int)Math.Floor(playbackProgress * _currentMetadata.Frames);
-            if (elapsedFrame <= _currentFrame)
-            {
-                return;
-            }
-
-            if (elapsedFrame >= _currentMetadata.Frames)
-            {
-                _timer.Stop();
-                _playbackClock.Stop();
-                Visibility = Visibility.Collapsed;
-                return;
-            }
-
-            _currentFrame = elapsedFrame;
-            ShowFrame(_currentFrame);
-        }
-
-        private void ShowFrame(int frame)
-        {
-            if (frame < 0)
-            {
-                return;
-            }
-
-            if (_currentCodeAsset != null)
-            {
-                SpriteCanvas.Invalidate();
-                return;
-            }
-
-            ShowSheetFrame(frame);
-        }
-
-        private static void DrawCenteredScaledImage(
-            CanvasDrawingSession drawingSession,
-            CanvasBitmap image,
-            double x,
-            double y,
-            double width,
-            double height,
-            double scale,
-            double opacity)
-        {
-            if (image == null || opacity <= 0 || scale <= 0)
-            {
-                return;
-            }
-
-            double imageWidth = image.SizeInPixels.Width;
-            double imageHeight = image.SizeInPixels.Height;
-            if (imageWidth <= 0 || imageHeight <= 0)
-            {
-                return;
-            }
-
-            double fitScale = Math.Min(width / imageWidth, height / imageHeight);
-            double scaledWidth = imageWidth * fitScale * scale;
-            double scaledHeight = imageHeight * fitScale * scale;
-            double anchoredX = (CodeKillFrameWidth / 2.0) + x;
-            double anchoredY = (CodeKillFrameHeight / 2.0) + y;
-            var target = new Rect(
-                anchoredX + (width - scaledWidth) / 2.0,
-                anchoredY + (height - scaledHeight) / 2.0,
-                scaledWidth,
-                scaledHeight);
-
-            var source = new Rect(0, 0, image.SizeInPixels.Width, image.SizeInPixels.Height);
-            drawingSession.DrawImage(image, target, source, (float)Math.Max(0.0, Math.Min(1.0, opacity)));
-        }
-
-        private static void ApplyCode2KillFramePatch(int frame, ref TransformSample main)
-        {
-            switch (frame)
-            {
-                case 0:
-                    main.Y += 160;
-                    main.Scale *= 0.94;
-                    break;
-                case 1:
-                    main.Scale *= 0.78;
-                    break;
-                case 2:
-                    main.X += 48;
-                    main.Y += 83;
-                    main.Scale *= 0.69;
-                    break;
-                case 3:
-                    main.Y += 28;
-                    main.Scale *= 0.55;
-                    break;
-                case 4:
-                    main.Scale *= 0.55;
-                    break;
-                case 5:
-                    main.X += 6;
-                    main.Y += 38;
-                    main.Scale *= 0.63;
-                    break;
-                case 6:
-                    main.X += 25;
-                    main.Y += 28;
-                    main.Scale *= 0.69;
-                    break;
-                case 7:
-                    main.X += 23;
-                    main.Y += 33;
-                    main.Scale *= 0.77;
-                    break;
-                case 8:
-                    main.X -= 20;
-                    main.Y += 20;
-                    main.Scale *= 0.87;
-                    break;
-                case 9:
-                    main.X += 6;
-                    main.Y += 29;
-                    main.Scale *= 0.93;
-                    break;
-                case 10:
-                    main.X -= 6;
-                    main.Y += 25;
-                    break;
-                case 11:
-                    main.X -= 18;
-                    main.Y += 20;
-                    break;
-            }
-        }
-
-        private static TransformSample SampleTrack(IReadOnlyList<TransformKey> keys, double progress)
-        {
-            if (progress <= keys[0].Progress)
-            {
-                return keys[0].ToSample();
-            }
-
-            for (int i = 1; i < keys.Count; i++)
-            {
-                TransformKey previous = keys[i - 1];
-                TransformKey next = keys[i];
-                if (progress <= next.Progress)
-                {
-                    double local = (progress - previous.Progress) / Math.Max(0.0001, next.Progress - previous.Progress);
-                    return new TransformSample(
-                        Lerp(previous.X, next.X, local),
-                        Lerp(previous.Y, next.Y, local),
-                        Lerp(previous.Scale, next.Scale, local),
-                        Lerp(previous.Opacity, next.Opacity, local));
-                }
-            }
-
-            return keys[keys.Count - 1].ToSample();
-        }
-
-        private static TransformSample SampleMainTrack(int frame, double progress)
-        {
-            if (_mainAnimationStyle == 2 && frame <= 4)
-            {
-                return SampleTrack(new[]
-                {
-                    new TransformKey(0.0000, -180, -180, 0.16, 0.00),
-                    new TransformKey(0.0180, -180, -180, 0.34, 0.35),
-                    new TransformKey(0.0360, -180, -180, 0.58, 0.68),
-                    new TransformKey(0.0540, -180, -180, 0.82, 0.90),
-                    new TransformKey(0.0720, -180, -180, 1.00, 1.00),
-                    new TransformKey(1.0000, -180, -180, 1.00, 1.00)
-                }, progress);
-            }
-
-            return SampleTrack(new[]
-            {
-                new TransformKey(0.0000, -180, 96, 4.80, 1.00),
-                new TransformKey(0.0222, -180, -180, 2.75, 1.00),
-                new TransformKey(0.0444, -164, -196, 2.28, 1.00),
-                new TransformKey(0.0667, -159, -202, 2.02, 1.00),
-                new TransformKey(0.0889, -167, -194, 1.80, 1.00),
-                new TransformKey(0.1111, -162, -198, 1.62, 1.00),
-                new TransformKey(0.1333, -170, -191, 1.46, 1.00),
-                new TransformKey(0.1556, -166, -194, 1.32, 1.00),
-                new TransformKey(0.1778, -172, -188, 1.22, 1.00),
-                new TransformKey(0.2000, -169, -190, 1.15, 1.00),
-                new TransformKey(0.2222, -174, -186, 1.10, 1.00),
-                new TransformKey(0.2444, -172, -187, 1.06, 1.00),
-                new TransformKey(0.2667, -176, -184, 1.03, 1.00),
-                new TransformKey(0.2889, -175, -184, 1.01, 1.00),
-                new TransformKey(0.3111, -179, -181, 1.00, 1.00),
-                new TransformKey(0.3500, -180, -180, 1.00, 1.00),
-                new TransformKey(0.7143, -180, -180, 1.00, 1.00),
-                new TransformKey(0.8571, -180, -180, 1.00, 0.55),
-                new TransformKey(1.0000, -180, -180, 1.00, 0.00)
-            }, progress);
-        }
-
-        private static double Clamp01(double value)
-        {
-            return Math.Max(0.0, Math.Min(1.0, value));
-        }
-
-        private static double Lerp(double a, double b, double t)
-        {
-            return a + (b - a) * t;
-        }
-
-        private static void ApplyColorBoost(byte[] pixelData)
-        {
-            if (pixelData == null || pixelData.Length < 4)
-            {
-                return;
-            }
-
-            double brightnessBoost = _brightnessBoost;
-            double contrastBoost = _contrastBoost;
-            if (brightnessBoost <= 0 && contrastBoost <= 0)
-            {
-                return;
-            }
-
-            for (int index = 0; index <= pixelData.Length - 4; index += 4)
-            {
-                byte alpha = pixelData[index + 3];
-                if (alpha == 0)
-                {
-                    continue;
-                }
-
-                pixelData[index] = AdjustChannel(pixelData[index], alpha, brightnessBoost, contrastBoost);
-                pixelData[index + 1] = AdjustChannel(pixelData[index + 1], alpha, brightnessBoost, contrastBoost);
-                pixelData[index + 2] = AdjustChannel(pixelData[index + 2], alpha, brightnessBoost, contrastBoost);
-            }
-        }
-
-        private static byte AdjustChannel(byte premultipliedChannel, byte alpha, double brightnessBoost, double contrastBoost)
-        {
-            double normalizedAlpha = alpha / 255.0;
-            if (normalizedAlpha <= 0)
-            {
-                return 0;
-            }
-
-            double unpremultiplied = Math.Min(1.0, premultipliedChannel / (255.0 * normalizedAlpha));
-            if (brightnessBoost > 0)
-            {
-                double gamma = 1.0 - (brightnessBoost * 0.4);
-                unpremultiplied = Math.Pow(unpremultiplied, gamma);
-            }
-
-            if (contrastBoost > 0)
-            {
-                double contrastFactor = 1.0 + (contrastBoost * 1.35);
-                unpremultiplied = ((unpremultiplied - 0.5) * contrastFactor) + 0.5;
-            }
-
-            unpremultiplied = Math.Max(0.0, Math.Min(1.0, unpremultiplied));
-            double repremultiplied = unpremultiplied * normalizedAlpha * 255.0;
-
-            if (repremultiplied <= 0)
-            {
-                return 0;
-            }
-
-            if (repremultiplied >= alpha)
-            {
-                return alpha;
-            }
-
-            return (byte)Math.Round(repremultiplied);
-        }
 
         private sealed class SpriteMetadata
         {
@@ -1783,9 +795,25 @@ namespace KillConfirmGameBar.Controls
                 CodeAsset = codeAsset;
             }
 
+            public AnimationAsset(SpriteMetadata metadata, ValorantKillAsset valorantAsset)
+            {
+                Metadata = metadata;
+                Sheets = null;
+                ValorantAsset = valorantAsset;
+            }
+
+            public AnimationAsset(SpriteMetadata metadata, BattlefieldKillAsset battlefieldAsset)
+            {
+                Metadata = metadata;
+                Sheets = null;
+                BattlefieldAsset = battlefieldAsset;
+            }
+
             public SpriteMetadata Metadata { get; }
             public IReadOnlyList<SpriteSheetSegment> Sheets { get; }
             public Code2KillAsset CodeAsset { get; }
+            public ValorantKillAsset ValorantAsset { get; }
+            public BattlefieldKillAsset BattlefieldAsset { get; }
         }
 
         private sealed class Code2KillAsset
@@ -1802,6 +830,46 @@ namespace KillConfirmGameBar.Controls
             public CanvasBitmap Fx { get; }
             public CanvasBitmap Overlay { get; }
             public CanvasBitmap WeaponBadge { get; }
+        }
+
+        private sealed class ValorantKillAsset
+        {
+            public string PackKey { get; set; }
+            public int KillCount { get; set; }
+            public bool IsHeadshot { get; set; }
+            public Color Accent { get; set; } = Color.FromArgb(255, 255, 70, 85);
+            public float Brightness { get; set; } = 1.0f;
+            public float Contrast { get; set; } = 1.0f;
+            public int SpinDirection { get; set; } = 1;
+            public CanvasBitmap Frame { get; set; }
+            public CanvasBitmap Emblem { get; set; }
+            public CanvasBitmap Bar { get; set; }
+            public CanvasBitmap Blade { get; set; }
+            public CanvasBitmap Headshot { get; set; }
+            public CanvasBitmap BaseParticle { get; set; }
+            public CanvasBitmap HeroFlame { get; set; }
+            public CanvasBitmap LargeSparks { get; set; }
+            public CanvasBitmap XSparks { get; set; }
+            public ValorantDemoProfile DemoProfile { get; set; }
+        }
+
+        private sealed class BattlefieldKillAsset
+        {
+            public string StyleKey { get; set; }
+            public int KillCount { get; set; }
+            public bool IsHeadshot { get; set; }
+            public bool IsAssist { get; set; }
+            public bool IsCrit { get; set; }
+            public bool IsDestroyVehicle { get; set; }
+            public bool IsTextOnly { get; set; }
+            public string EventKind { get; set; }
+            public int RoundNumber { get; set; }
+            public int MoneyEpoch { get; set; }
+            public string PlayerName { get; set; }
+            public string WeaponLabel { get; set; }
+            public string HealthText { get; set; }
+            public int MoneyReward { get; set; }
+            public CanvasBitmap Icon { get; set; }
         }
 
         private enum KillFxMode

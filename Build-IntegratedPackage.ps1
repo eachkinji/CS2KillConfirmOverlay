@@ -19,8 +19,14 @@ $SourceAssetsRoot = $SourceAssetsCandidates | Where-Object { Test-Path $_ } | Se
 if (-not $SourceAssetsRoot) {
     $SourceAssetsRoot = Join-Path $Root "SourceAssets"
 }
-$AnimationSourceRoot = Join-Path $SourceAssetsRoot "Animations"
-$SoundPackSourceRoot = Join-Path $SourceAssetsRoot "SoundPacks"
+$GameStyleSourceRoot = Join-Path $SourceAssetsRoot "GameStyles"
+$AnimationSourceRoot = Join-Path $GameStyleSourceRoot "crossfire\animations"
+$SoundPackSourceRoots = @()
+if (Test-Path $GameStyleSourceRoot) {
+    $SoundPackSourceRoots = Get-ChildItem -LiteralPath $GameStyleSourceRoot -Directory |
+        ForEach-Object { Join-Path $_.FullName "soundpacks" } |
+        Where-Object { Test-Path $_ }
+}
 $ServiceRoot = Join-Path $Root "KillConfirmService"
 $WidgetRoot = Join-Path $Root "Widget"
 $PackageRoot = Join-Path $Root "Package"
@@ -60,21 +66,36 @@ else {
     $CargoPath = (Get-Command cargo).Source
 }
 
+$VsWhere = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\Installer\vswhere.exe"
+$PortableVisualStudioRoots = Get-PSDrive -PSProvider FileSystem |
+    ForEach-Object { Join-Path $_.Root "VSC" } |
+    Where-Object { Test-Path $_ }
+
 if (-not $MsBuildPath) {
     $MsBuildCommand = Get-Command msbuild -ErrorAction SilentlyContinue
     if ($MsBuildCommand) {
         $MsBuildPath = $MsBuildCommand.Source
     }
-    else {
+    elseif (Test-Path $VsWhere) {
+        $VsInstallPath = & $VsWhere -latest -products * -requires Microsoft.Component.MSBuild -property installationPath
+        if ($VsInstallPath) {
+            $MsBuildPath = @(
+                (Join-Path $VsInstallPath "MSBuild\Current\Bin\amd64\MSBuild.exe"),
+                (Join-Path $VsInstallPath "MSBuild\Current\Bin\MSBuild.exe")
+            ) | Where-Object { Test-Path $_ } | Select-Object -First 1
+        }
+    }
+
+    if (-not $MsBuildPath) {
         $MsBuildCandidates = @(
-            "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\amd64\MSBuild.exe",
-            "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe",
-            "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin\MSBuild.exe",
-            "C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe",
-            "C:\Program Files\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin\MSBuild.exe",
-            "F:\VSC\MSBuild\Current\Bin\MSBuild.exe",
-            "F:\VSC\MSBuild\Current\Bin\amd64\MSBuild.exe"
-        )
+            (Join-Path $env:ProgramFiles "Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin\amd64\MSBuild.exe"),
+            (Join-Path $env:ProgramFiles "Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\amd64\MSBuild.exe"),
+            (Join-Path $env:ProgramFiles "Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin\amd64\MSBuild.exe")
+        ) + @($PortableVisualStudioRoots | ForEach-Object {
+            Join-Path $_ "MSBuild\Current\Bin\amd64\MSBuild.exe"
+        }) + @($PortableVisualStudioRoots | ForEach-Object {
+            Join-Path $_ "MSBuild\Current\Bin\MSBuild.exe"
+        })
         $MsBuildPath = $MsBuildCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
     }
 }
@@ -87,8 +108,12 @@ if (-not (Test-Path $PackageProjectPath)) {
     throw "Packaging project was not found at $PackageProjectPath"
 }
 
-if (-not (Test-Path $SoundPackSourceRoot)) {
-    throw "Sound pack source folder was not found at $SoundPackSourceRoot"
+if (-not (Test-Path $AnimationSourceRoot)) {
+    throw "Animation source folder was not found at $AnimationSourceRoot"
+}
+
+if (-not $SoundPackSourceRoots -or $SoundPackSourceRoots.Count -eq 0) {
+    throw "No game style sound pack source folders were found under $GameStyleSourceRoot"
 }
 
 New-Item -ItemType Directory -Force -Path $WidgetKillAssetRoot | Out-Null
@@ -110,7 +135,11 @@ if (-not $resolvedServiceSoundsRoot.StartsWith($resolvedServiceRootForSounds, [S
 if (Test-Path $ServiceSoundsRoot) {
     Remove-Item -LiteralPath $ServiceSoundsRoot -Recurse -Force
 }
-Copy-Item -LiteralPath $SoundPackSourceRoot -Destination $ServiceSoundsRoot -Recurse -Force
+New-Item -ItemType Directory -Force -Path $ServiceSoundsRoot | Out-Null
+foreach ($soundPackRoot in $SoundPackSourceRoots) {
+    Get-ChildItem -LiteralPath $soundPackRoot -Directory |
+        Copy-Item -Destination $ServiceSoundsRoot -Recurse -Force
+}
 
 foreach ($asset in $FrameSequenceAssets) {
     $targetAssetRoot = Join-Path $WidgetKillAssetRoot $asset.Target
@@ -143,19 +172,16 @@ foreach ($targetName in $ObsoleteFrameSequenceTargets) {
     }
 }
 
-$VsWhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
 if (-not $VcInstallPath -and (Test-Path $VsWhere)) {
-    $VcInstallPath = & $VsWhere -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath | Select-Object -First 1
+    $VcInstallPath = & $VsWhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath | Select-Object -First 1
 }
 
 if (-not $VcInstallPath) {
     $VcInstallCandidates = @(
-        "F:\VSC",
-        "C:\Program Files\Microsoft Visual Studio\2022\BuildTools",
-        "C:\Program Files\Microsoft Visual Studio\2022\Community",
-        "C:\Program Files\Microsoft Visual Studio\2022\Enterprise",
-        "C:\Program Files\Microsoft Visual Studio\18\Community"
-    )
+        (Join-Path $env:ProgramFiles "Microsoft Visual Studio\2022\BuildTools"),
+        (Join-Path $env:ProgramFiles "Microsoft Visual Studio\2022\Community"),
+        (Join-Path $env:ProgramFiles "Microsoft Visual Studio\2022\Enterprise")
+    ) + @($PortableVisualStudioRoots)
     $VcInstallPath = $VcInstallCandidates |
         Where-Object { Test-Path (Join-Path $_ "Common7\Tools\VsDevCmd.bat") } |
         Select-Object -First 1

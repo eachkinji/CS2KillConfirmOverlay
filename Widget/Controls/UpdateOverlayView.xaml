@@ -1,0 +1,412 @@
+﻿<UserControl
+    x:Class="KillConfirmGameBar.Controls.UpdateOverlayView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+        <Grid
+            x:Name="Root"
+            x:FieldModifier="public"
+            Background="#99000000">
+            <Border
+                x:Name="DialogCard"
+                x:FieldModifier="public"
+                Width="408"
+                Padding="22"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Background="#FFFAF7F0"
+                BorderBrush="#E2DDD3"
+                BorderThickness="1"
+                CornerRadius="24">
+                <Grid RowSpacing="14">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Spacing="4">
+                            <TextBlock
+                                x:Name="UpdateDialogTitleText"
+                                x:FieldModifier="public"
+                                FontSize="24"
+                                FontWeight="Bold"
+                                Foreground="#1B1F31"
+                                Text="鍙戠幇鏇存柊" />
+                            <TextBlock
+                                x:Name="UpdateDialogVersionText"
+                                x:FieldModifier="public"
+                                FontSize="13"
+                                FontWeight="SemiBold"
+                                Foreground="#8A6A36"
+                                Text="v..." />
+                        </StackPanel>
+                        <Button
+                            x:Name="UpdateCloseButton"
+                            x:FieldModifier="public"
+                            Grid.Column="1"
+                            Width="30"
+                            Height="30"
+                            MinWidth="30"
+                            Padding="0"
+                            Background="#FFFDFC"
+                            BorderBrush="#D5D0C4"
+                            BorderThickness="1"
+                            Click="OnCloseUpdateOverlayClick"
+                            CornerRadius="15"
+                            FontSize="13"
+                            HorizontalContentAlignment="Center"
+                            VerticalContentAlignment="Center"
+                            Foreground="#1B1F31">
+                            <FontIcon
+                                FontFamily="Segoe MDL2 Assets"
+                                FontSize="12"
+                                Glyph="&#xE711;"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Foreground="#1B1F31" />
+                        </Button>
+                    </Grid>
+
+                    <TextBlock
+                        x:Name="UpdateDialogBodyText"
+                        x:FieldModifier="public"
+                        Grid.Row="1"
+                        FontSize="13"
+                        Foreground="#4B5563"
+                        LineHeight="20"
+                        TextWrapping="WrapWholeWords" />
+
+                    <Border
+                        x:Name="AboutCard"
+                        x:FieldModifier="public"
+                        Grid.Row="2"
+                        Padding="12"
+                        Background="#FFFDFC"
+                        BorderBrush="#E2DDD3"
+                        BorderThickness="1"
+                        CornerRadius="16">
+                        <StackPanel Spacing="7">
+                            <Grid ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel
+                                    VerticalAlignment="Center"
+                                    Orientation="Horizontal"
+                                    Spacing="8">
+                                    <Border
+                                        x:Name="AuthorAvatarFrame"
+                                        x:FieldModifier="public"
+                                        Width="30"
+                                        Height="30"
+                                        Background="#F3F8FB"
+                                        BorderBrush="#D5D0C4"
+                                        BorderThickness="1"
+                                        CornerRadius="15">
+                                        <Image
+                                            Width="28"
+                                            Height="28"
+                                            Source="ms-appx:///Assets/DeveloperAvatar.jpg"
+                                            Stretch="UniformToFill" />
+                                    </Border>
+                                    <TextBlock
+                                        x:Name="UpdateAboutText"
+                                        x:FieldModifier="public"
+                                        VerticalAlignment="Center"
+                                        FontFamily="Segoe UI"
+                                        FontSize="13"
+                                        FontWeight="SemiBold"
+                                        Foreground="#1B1F31"
+                                        LineHeight="17"
+                                        Text="作者：Zac" />
+                                </StackPanel>
+                                <Button
+                                    x:Name="UpdateAuthorGitHubButton"
+                                    x:FieldModifier="public"
+                                    Grid.Column="1"
+                                    Width="104"
+                                    Height="28"
+                                    MinWidth="104"
+                                    Background="#FFFDFC"
+                                    BorderBrush="#D5D0C4"
+                                    BorderThickness="1"
+                                    Click="OnOpenAuthorGitHubClick"
+                                    CornerRadius="10"
+                                    FontSize="12"
+                                    Foreground="#1B1F31">
+                                    <StackPanel
+                                        HorizontalAlignment="Center"
+                                        Orientation="Horizontal"
+                                        Spacing="5">
+                                        <Image
+                                            Width="14"
+                                            Height="14"
+                                            Source="ms-appx:///Assets/GitHub.png"
+                                            Stretch="Uniform" />
+                                        <TextBlock
+                                            x:Name="UpdateAuthorGitHubText"
+                                            x:FieldModifier="public"
+                                            VerticalAlignment="Center"
+                                            Text="GitHub" />
+                                    </StackPanel>
+                                </Button>
+                                <Button
+                                    x:Name="UpdateAuthorBilibiliButton"
+                                    x:FieldModifier="public"
+                                    Grid.Column="2"
+                                    Width="116"
+                                    Height="28"
+                                    MinWidth="116"
+                                    Background="#FFFDFC"
+                                    BorderBrush="#D5D0C4"
+                                    BorderThickness="1"
+                                    Click="OnOpenBilibiliClick"
+                                    CornerRadius="10"
+                                    FontSize="12"
+                                    Foreground="#1B1F31">
+                                    <StackPanel
+                                        HorizontalAlignment="Center"
+                                        Orientation="Horizontal"
+                                        Spacing="5">
+                                        <Image
+                                            Width="17"
+                                            Height="14"
+                                            Source="ms-appx:///Assets/bilibili.png"
+                                            Stretch="Uniform" />
+                                        <TextBlock
+                                            x:Name="UpdateAuthorBilibiliText"
+                                            x:FieldModifier="public"
+                                            VerticalAlignment="Center"
+                                            Text="B站" />
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
+                            <Button
+                                x:Name="UpdateOpenGitHubButton"
+                                x:FieldModifier="public"
+                                Height="28"
+                                HorizontalAlignment="Stretch"
+                                Background="#F3F8FB"
+                                BorderBrush="#B9DCEC"
+                                BorderThickness="1"
+                                Click="OnOpenGitHubClick"
+                                CornerRadius="10"
+                                Foreground="#1B1F31">
+                                <StackPanel
+                                    HorizontalAlignment="Center"
+                                    Orientation="Horizontal"
+                                    Spacing="7">
+                                    <Image
+                                        Width="18"
+                                        Height="18"
+                                        Source="ms-appx:///Assets/Square44x44Logo.scale-200.png"
+                                        Stretch="Uniform" />
+                                    <TextBlock
+                                        x:Name="UpdateProjectHomeText"
+                                        x:FieldModifier="public"
+                                        VerticalAlignment="Center"
+                                        FontSize="12"
+                                        FontWeight="SemiBold"
+                                        Text="GitHub 项目主页" />
+                                </StackPanel>
+                            </Button>
+                            <Grid Margin="0,2,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock
+                                    x:Name="UpdateReleaseTitleText"
+                                    x:FieldModifier="public"
+                                    VerticalAlignment="Center"
+                                    FontSize="12"
+                                    FontWeight="Bold"
+                                    Foreground="#1B1F31"
+                                    Text="最新版本说明" />
+                                <Button
+                                    x:Name="UpdateReleaseToggleButton"
+                                    x:FieldModifier="public"
+                                    Grid.Column="1"
+                                    Width="56"
+                                    Height="24"
+                                    MinWidth="56"
+                                    Padding="0"
+                                    Background="#FFFDFC"
+                                    BorderBrush="#D5D0C4"
+                                    BorderThickness="1"
+                                    Click="OnToggleReleaseNotesClick"
+                                    Content="展开"
+                                    CornerRadius="8"
+                                    FontSize="11"
+                                    Foreground="#1B1F31" />
+                            </Grid>
+                            <ScrollViewer
+                                x:Name="UpdateReleaseScrollViewer"
+                                x:FieldModifier="public"
+                                MaxHeight="0"
+                                VerticalScrollBarVisibility="Auto"
+                                HorizontalScrollBarVisibility="Disabled">
+                                <TextBlock
+                                    x:Name="UpdateReleaseInfoText"
+                                    x:FieldModifier="public"
+                                    FontSize="11"
+                                    Foreground="#4B5563"
+                                    LineHeight="17"
+                                    TextWrapping="WrapWholeWords" />
+                            </ScrollViewer>
+                        </StackPanel>
+                    </Border>
+
+                    <Border
+                        x:Name="QuarkCard"
+                        x:FieldModifier="public"
+                        Grid.Row="3"
+                        Padding="10"
+                        Background="#FFFFF7EA"
+                        BorderBrush="#F7BE6A"
+                        BorderThickness="1"
+                        CornerRadius="16">
+                        <StackPanel Spacing="6">
+                            <TextBlock
+                                x:Name="UpdateQuarkHintText"
+                                x:FieldModifier="public"
+                                FontSize="12"
+                                FontWeight="SemiBold"
+                                Foreground="#8A4B00"
+                                TextWrapping="WrapWholeWords" />
+                            <Grid ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock
+                                    x:Name="UpdateQuarkCodeText"
+                                    x:FieldModifier="public"
+                                    VerticalAlignment="Center"
+                                    FontSize="12"
+                                    FontWeight="Bold"
+                                    Foreground="#1B1F31" />
+                            <Button
+                                x:Name="UpdateOpenQuarkButton"
+                                x:FieldModifier="public"
+                                Grid.Column="1"
+                                Height="30"
+                                MinWidth="0"
+                                HorizontalAlignment="Stretch"
+                                Background="#FFFDFC"
+                                BorderBrush="#F7BE6A"
+                                BorderThickness="1"
+                                Click="OnOpenQuarkUpdateClick"
+                                Content="鎵撳紑澶稿厠澶囩敤涓嬭浇"
+                                CornerRadius="10"
+                                FontSize="12"
+                                Foreground="#8A4B00" />
+                            <Button
+                                x:Name="UpdateCopyQuarkButton"
+                                x:FieldModifier="public"
+                                Grid.Column="2"
+                                Height="30"
+                                MinWidth="0"
+                                HorizontalAlignment="Stretch"
+                                Background="#FFFDFC"
+                                BorderBrush="#F7BE6A"
+                                BorderThickness="1"
+                                Click="OnCopyQuarkUpdateClick"
+                                Content="婢跺秴鍩楅柧鐐复"
+                                CornerRadius="10"
+                                FontSize="12"
+                                Foreground="#8A4B00" />
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <StackPanel
+                        x:Name="DownloadArea"
+                        x:FieldModifier="public"
+                        Grid.Row="4"
+                        Spacing="8">
+                        <TextBlock
+                            x:Name="UpdateDownloadStatusText"
+                            x:FieldModifier="public"
+                            FontSize="12"
+                            FontWeight="SemiBold"
+                            Foreground="#2D3748"
+                            Text="绛夊緟涓嬭浇" />
+                        <ProgressBar
+                            x:Name="UpdateDownloadProgress"
+                            x:FieldModifier="public"
+                            Height="8"
+                            Background="#E7E1D6"
+                            Foreground="#2E88B8"
+                            IsIndeterminate="False"
+                            Maximum="100"
+                            Minimum="0"
+                            Value="0" />
+                    </StackPanel>
+
+                    <Grid
+                        Grid.Row="5"
+                        ColumnSpacing="4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Button
+                            x:Name="UpdateDownloadButton"
+                            x:FieldModifier="public"
+                            Grid.Column="0"
+                            Height="34"
+                            Background="#2E88B8"
+                            BorderBrush="#45A3D3"
+                            BorderThickness="1"
+                            Click="OnDownloadUpdateClick"
+                            Content="涓嬭浇"
+                            CornerRadius="12"
+                            FontSize="12"
+                            FontWeight="SemiBold"
+                            Foreground="White" />
+                        <Button
+                            x:Name="UpdateInstallButton"
+                            x:FieldModifier="public"
+                            Grid.Column="1"
+                            Height="34"
+                            Background="#FFFDFC"
+                            BorderBrush="#D5D0C4"
+                            BorderThickness="1"
+                            Click="OnInstallUpdateClick"
+                            Content="Install"
+                            CornerRadius="12"
+                            FontSize="12"
+                            FontWeight="SemiBold"
+                            Foreground="#1B1F31" />
+                        <Button
+                            x:Name="UpdateOpenFolderButton"
+                            x:FieldModifier="public"
+                            Grid.Column="2"
+                            Height="34"
+                            Background="#FFFDFC"
+                            BorderBrush="#D5D0C4"
+                            BorderThickness="1"
+                            Click="OnOpenUpdateFolderClick"
+                            Content="Folder"
+                            CornerRadius="12"
+                            FontSize="12"
+                            FontWeight="SemiBold"
+                            Foreground="#1B1F31" />
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+</UserControl>

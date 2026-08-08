@@ -32,7 +32,7 @@ fn current_package_family_name() -> String {
     "KillConfirmGameBar.Overlay_4t2qzenbgqd14".to_string()
 }
 
-fn local_state_dir() -> PathBuf {
+pub(crate) fn local_state_dir() -> PathBuf {
     if let Ok(local_app_data) = env::var("LOCALAPPDATA") {
         return PathBuf::from(local_app_data)
             .join("Packages")
@@ -63,4 +63,3 @@ pub fn service_log(message: &str) {
         let _ = file.write_all(line.as_bytes());
     }
 }
-

@@ -1,0 +1,24 @@
+﻿{
+    "id":  "00015",
+    "name":  "Gaia\u0027s Vengeance V1",
+    "folder":  "00015_gaia_s_vengeance_v1",
+    "soundPrefix":  "valorant_gaiavengeancekill_",
+    "textures":  [
+                     "killicon_valorant_base_ring.png",
+                     "killicon_valorant_gaia_v1_bar.png",
+                     "killicon_valorant_gaia_v1_emblem.png",
+                     "killicon_valorant_gaia_v1_frame.png",
+                     "killicon_valorant_headshot.png",
+                     "killicon_valorant_particle_base_t1.png",
+                     "killicon_valorant_particle_hero_flame.png",
+                     "killicon_valorant_particle_large_sparks.png",
+                     "killicon_valorant_particle_x_sparks.png"
+                 ],
+    "sounds":  [
+                   "valorant_gaiavengeancekill_1.ogg",
+                   "valorant_gaiavengeancekill_2.ogg",
+                   "valorant_gaiavengeancekill_3.ogg",
+                   "valorant_gaiavengeancekill_4.ogg",
+                   "valorant_gaiavengeancekill_5.ogg"
+               ]
+}

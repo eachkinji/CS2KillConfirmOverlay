@@ -1,0 +1,28 @@
+<UserControl
+    x:Class="KillConfirmGameBar.Controls.GameStyles.Battlefield4StylePanel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Border
+        x:Name="Card"
+        Padding="10"
+        Background="#14273A"
+        BorderBrush="#4D9ED6"
+        BorderThickness="1"
+        CornerRadius="12">
+        <StackPanel Spacing="3">
+            <TextBlock
+                x:Name="TitleText"
+                FontSize="12"
+                FontWeight="Bold"
+                Foreground="#EAF5FC"
+                Text="Battlefield 4 Panel" />
+            <TextBlock
+                x:Name="BodyText"
+                FontSize="10"
+                Foreground="#B9D3E2"
+                Text="BF4 uses its own Battlefield 4 text HUD, score rewards, and bf4 resource folder."
+                TextWrapping="WrapWholeWords" />
+        </StackPanel>
+    </Border>
+</UserControl>

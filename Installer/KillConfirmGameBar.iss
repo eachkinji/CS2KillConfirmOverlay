@@ -37,6 +37,8 @@ english.OpenXboxGameBar=Open Xbox Game Bar
 chinesesimplified.OpenXboxGameBar=Open Xbox Game Bar
 english.InstallingOverlay=Installing Kill Confirm Overlay...
 chinesesimplified.InstallingOverlay=Installing Kill Confirm Overlay...
+english.CheckingPrerequisites=Checking required VCLibs and Xbox Game Bar components...
+chinesesimplified.CheckingPrerequisites=正在检测必需的 VCLibs 和 Xbox Game Bar 组件...
 english.InstallScriptLaunchFailed=Could not start the installer script.
 chinesesimplified.InstallScriptLaunchFailed=Could not start the installer script.
 english.InstallScriptFailed=Install failed. The detailed log has been opened for you. Exit code:
@@ -88,7 +90,7 @@ var
 begin
   if CurStep = ssPostInstall then
   begin
-    WizardForm.StatusLabel.Caption := ExpandConstant('{cm:InstallingOverlay}');
+    WizardForm.StatusLabel.Caption := ExpandConstant('{cm:CheckingPrerequisites}');
     Params := '-NoProfile -ExecutionPolicy Bypass -File "' + ExpandConstant('{app}\Payload\Install-KillConfirm.ps1') + '"';
 
     if not Exec('powershell.exe', Params, ExpandConstant('{app}\Payload'), SW_HIDE, ewWaitUntilTerminated, ResultCode) then

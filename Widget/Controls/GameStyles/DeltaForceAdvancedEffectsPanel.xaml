@@ -1,0 +1,31 @@
+<UserControl
+    x:Class="KillConfirmGameBar.Controls.GameStyles.DeltaForceAdvancedEffectsPanel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:KillConfirmGameBar.Controls.GameStyles">
+
+    <StackPanel Spacing="8">
+        <TextBlock
+            x:Name="TitleText"
+            FontSize="13"
+            FontWeight="Bold"
+            Text="Delta Force Effects" />
+        <TextBlock
+            x:Name="HintText"
+            FontSize="10"
+            Text="Delta Force scrolling icons, score waterfall, and Delta Force assets are isolated here."
+            TextWrapping="WrapWholeWords" />
+        <local:DeltaForceStylePanel x:Name="StylePanel" />
+        <Border
+            x:Name="ImportLockedNotice"
+            Padding="8"
+            BorderThickness="1"
+            CornerRadius="10">
+            <TextBlock
+                x:Name="ImportLockedText"
+                FontSize="10"
+                Text="Built-in Delta Force resources only. File import is disabled for this page."
+                TextWrapping="WrapWholeWords" />
+        </Border>
+    </StackPanel>
+</UserControl>

@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Runtime.InteropServices;
 
 [assembly: AssemblyTitle("KillConfirmGameBar")]
@@ -11,5 +11,5 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyCulture("")]
 [assembly: ComVisible(false)]
 [assembly: Guid("5d6c34b8-3b89-4090-a814-f6bf3ddc5054")]
-[assembly: AssemblyVersion("2.0.59.0")]
-[assembly: AssemblyFileVersion("2.0.59.0")]
+[assembly: AssemblyVersion("2.0.117.0")]
+[assembly: AssemblyFileVersion("2.0.117.0")]

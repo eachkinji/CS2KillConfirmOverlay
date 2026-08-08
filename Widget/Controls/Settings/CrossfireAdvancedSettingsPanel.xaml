@@ -1,0 +1,67 @@
+<UserControl
+    x:Class="KillConfirmGameBar.Controls.Settings.CrossfireAdvancedSettingsPanel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Border
+        x:Name="Card"
+        Padding="22"
+        Background="#FAFAF7"
+        BorderBrush="#E2DDD3"
+        BorderThickness="1"
+        CornerRadius="24">
+        <StackPanel Spacing="10">
+            <TextBlock
+                x:Name="TitleText"
+                FontSize="20"
+                FontWeight="Bold"
+                Text="CrossFire advanced settings" />
+            <TextBlock
+                x:Name="BodyText"
+                FontSize="13"
+                LineHeight="18"
+                Text="Choose whether CF streaks last until death or expire after 15 seconds, and whether first/last kills use special or original kill audio."
+                TextWrapping="WrapWholeWords" />
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Border x:Name="VoiceTag" Padding="8,4" BorderThickness="1" CornerRadius="12">
+                    <TextBlock x:Name="VoiceTagText" FontSize="11" FontWeight="SemiBold" Text="CF voices" />
+                </Border>
+                <Border x:Name="IconTag" Padding="8,4" BorderThickness="1" CornerRadius="12">
+                    <TextBlock x:Name="IconTagText" FontSize="11" FontWeight="SemiBold" Text="CF icons" />
+                </Border>
+            </StackPanel>
+
+            <Grid Margin="0,8,0,0" RowSpacing="10" ColumnSpacing="12">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="150" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock x:Name="StreakModeLabel" VerticalAlignment="Center" Text="Kill streak" />
+                <ComboBox x:Name="StreakModeSelector" Grid.Column="1" SelectionChanged="OnGameplaySettingChanged">
+                    <ComboBoxItem x:Name="StreakLifeItem" Tag="life">Until death</ComboBoxItem>
+                    <ComboBoxItem x:Name="StreakTimed5Item" Tag="timed_5">5-second window</ComboBoxItem>
+                    <ComboBoxItem x:Name="StreakTimed10Item" Tag="timed_10">10-second window</ComboBoxItem>
+                    <ComboBoxItem x:Name="StreakTimed15Item" Tag="timed_15">15-second window</ComboBoxItem>
+                </ComboBox>
+
+                <TextBlock x:Name="FirstKillAudioLabel" Grid.Row="1" VerticalAlignment="Center" Text="First-kill audio" />
+                <ComboBox x:Name="FirstKillAudioSelector" Grid.Row="1" Grid.Column="1" SelectionChanged="OnGameplaySettingChanged">
+                    <ComboBoxItem x:Name="FirstKillSpecialItem" Tag="special">Special audio</ComboBoxItem>
+                    <ComboBoxItem x:Name="FirstKillOriginalItem" Tag="original">Original kill audio</ComboBoxItem>
+                </ComboBox>
+
+                <TextBlock x:Name="LastKillAudioLabel" Grid.Row="2" VerticalAlignment="Center" Text="Last-kill audio" />
+                <ComboBox x:Name="LastKillAudioSelector" Grid.Row="2" Grid.Column="1" SelectionChanged="OnGameplaySettingChanged">
+                    <ComboBoxItem x:Name="LastKillSpecialItem" Tag="special">Special audio</ComboBoxItem>
+                    <ComboBoxItem x:Name="LastKillOriginalItem" Tag="original">Original kill audio</ComboBoxItem>
+                </ComboBox>
+            </Grid>
+        </StackPanel>
+    </Border>
+</UserControl>

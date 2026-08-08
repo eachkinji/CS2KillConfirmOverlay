@@ -2,6 +2,7 @@
     x:Class="KillConfirmGameBar.MainPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:settings="using:KillConfirmGameBar.Controls.Settings"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
@@ -125,39 +126,39 @@
         </Style>
     </Page.Resources>
 
-    <Grid Background="{StaticResource MainBackgroundGradient}">
+    <Grid x:Name="SettingsRootGrid" Background="{StaticResource MainBackgroundGradient}">
         <Canvas IsHitTestVisible="False">
-            <Rectangle Width="620" Height="1200" Fill="{StaticResource OrangeSlashGradient}" Opacity="0.95" Canvas.Left="720" Canvas.Top="-160">
+            <Rectangle x:Name="HeroSlash" Width="620" Height="1200" Fill="{StaticResource OrangeSlashGradient}" Opacity="0.95" Canvas.Left="720" Canvas.Top="-160">
                 <Rectangle.RenderTransform>
                     <SkewTransform AngleX="-18" />
                 </Rectangle.RenderTransform>
             </Rectangle>
-            <Rectangle Width="24" Height="1200" Fill="#FFF0D5" Opacity="0.9" Canvas.Left="815" Canvas.Top="-120">
+            <Rectangle x:Name="HeroSlashLight" Width="24" Height="1200" Fill="#FFF0D5" Opacity="0.9" Canvas.Left="815" Canvas.Top="-120">
                 <Rectangle.RenderTransform>
                     <SkewTransform AngleX="-18" />
                 </Rectangle.RenderTransform>
             </Rectangle>
-            <Rectangle Width="260" Height="520" Stroke="#C4C4C4" StrokeThickness="3" Opacity="0.45" Canvas.Left="80" Canvas.Top="70">
+            <Rectangle x:Name="FrameStripeOne" Width="260" Height="520" Stroke="#C4C4C4" StrokeThickness="3" Opacity="0.45" Canvas.Left="80" Canvas.Top="70">
                 <Rectangle.RenderTransform>
                     <SkewTransform AngleX="-18" />
                 </Rectangle.RenderTransform>
             </Rectangle>
-            <Rectangle Width="260" Height="520" Stroke="#C4C4C4" StrokeThickness="3" Opacity="0.32" Canvas.Left="420" Canvas.Top="110">
+            <Rectangle x:Name="FrameStripeTwo" Width="260" Height="520" Stroke="#C4C4C4" StrokeThickness="3" Opacity="0.32" Canvas.Left="420" Canvas.Top="110">
                 <Rectangle.RenderTransform>
                     <SkewTransform AngleX="-18" />
                 </Rectangle.RenderTransform>
             </Rectangle>
-            <Rectangle Width="190" Height="2" Fill="#CF6B00" Opacity="0.35" Canvas.Left="910" Canvas.Top="150">
+            <Rectangle x:Name="AccentLineOne" Width="190" Height="2" Fill="#CF6B00" Opacity="0.35" Canvas.Left="910" Canvas.Top="150">
                 <Rectangle.RenderTransform>
                     <SkewTransform AngleX="-18" />
                 </Rectangle.RenderTransform>
             </Rectangle>
-            <Rectangle Width="260" Height="2" Fill="#CF6B00" Opacity="0.35" Canvas.Left="910" Canvas.Top="165">
+            <Rectangle x:Name="AccentLineTwo" Width="260" Height="2" Fill="#CF6B00" Opacity="0.35" Canvas.Left="910" Canvas.Top="165">
                 <Rectangle.RenderTransform>
                     <SkewTransform AngleX="-18" />
                 </Rectangle.RenderTransform>
             </Rectangle>
-            <Rectangle Width="220" Height="2" Fill="#CF6B00" Opacity="0.35" Canvas.Left="910" Canvas.Top="180">
+            <Rectangle x:Name="AccentLineThree" Width="220" Height="2" Fill="#CF6B00" Opacity="0.35" Canvas.Left="910" Canvas.Top="180">
                 <Rectangle.RenderTransform>
                     <SkewTransform AngleX="-18" />
                 </Rectangle.RenderTransform>
@@ -204,7 +205,9 @@
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Spacing="14">
-                    <Border Style="{StaticResource SettingsSectionCardStyle}">
+                    <ContentControl x:Name="GameAdvancedSettingsPanelHost" />
+
+                    <Border x:Name="VoicePackCollectionsCard" Style="{StaticResource SettingsSectionCardStyle}">
                         <StackPanel Spacing="14">
                             <Grid RowSpacing="12">
                                 <Grid.ColumnDefinitions>
@@ -257,7 +260,7 @@
                         </StackPanel>
                     </Border>
 
-                    <Border Style="{StaticResource SettingsSectionCardStyle}">
+                    <Border x:Name="IconPackCollectionsCard" Style="{StaticResource SettingsSectionCardStyle}">
                         <StackPanel Spacing="14">
                             <Grid RowSpacing="12">
                                 <Grid.ColumnDefinitions>
@@ -314,7 +317,7 @@
                 <StackPanel
                     Grid.Column="1"
                     Spacing="14">
-                    <Border Style="{StaticResource SettingsSectionCardStyle}">
+                    <Border x:Name="VoiceCollectionsCard" Style="{StaticResource SettingsSectionCardStyle}">
                         <StackPanel Spacing="12">
                             <TextBlock
                                 x:Name="StructureTitleText"
@@ -400,7 +403,7 @@
                         </StackPanel>
                     </Border>
 
-                    <Border Style="{StaticResource SettingsSectionCardStyle}">
+                    <Border x:Name="IconCollectionsCard" Style="{StaticResource SettingsSectionCardStyle}">
                         <StackPanel Spacing="8">
                             <TextBlock
                                 x:Name="TipsTitleText"

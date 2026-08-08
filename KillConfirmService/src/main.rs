@@ -5,7 +5,7 @@ mod util;
 
 use axum::http::StatusCode;
 use axum::{
-    Router,
+    Router, middleware,
     routing::{get, post},
 };
 use serde::{Deserialize, Serialize};
@@ -18,7 +18,7 @@ use std::{
     path::{Path, PathBuf},
     process::Command,
     sync::Arc,
-    sync::atomic::{AtomicU32, AtomicU64},
+    sync::atomic::{AtomicBool, AtomicU8, AtomicU32, AtomicU64},
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 use tokio::sync::{RwLock, broadcast};
@@ -28,8 +28,9 @@ use tracing::info;
 use tracing::level_filters::LevelFilter;
 use tracing_subscriber::EnvFilter;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+use util::auth::{load_or_create_control_token, require_control_token};
 use util::signal::shutdown_signal;
-use util::state::{AppState, Mutable};
+use util::state::{AppState, CrossfireStreakMode, MoneyRewardMode, Mutable};
 
 use util::Args;
 use util::playback::{default_output_device_name, get_output_stream_with_name, list_host_devices};
@@ -38,7 +39,9 @@ use anyhow::{Context, Result};
 use soundpack::Preset;
 use soundpack::sound::warm_audio_cache;
 use util::event_stream::{
-    audio_reload, audio_volume, cs2_root, events_ws, gsi_status, health, shutdown, test_event,
+    audio_reload, audio_volume, crossfire_settings, cs2_root, events_ws, gsi_status, health,
+    money_mode, set_crossfire_settings, set_money_mode, set_streak_settings, shutdown,
+    streak_settings, test_event,
 };
 use util::handler::update;
 use windows_sys::Win32::UI::Shell::ShellExecuteW;
@@ -208,6 +211,10 @@ async fn run() -> Result<()> {
     info!("variant: {}", args.variant.as_deref().unwrap_or("none"));
     service_log(&format!("preset '{preset_name}' loaded"));
 
+    let control_token = load_or_create_control_token()
+        .context("failed to initialize local control authentication")?;
+    service_log("local control authentication ready");
+
     let (event_tx, _) = broadcast::channel(64);
     let (shutdown_tx, shutdown_rx) = broadcast::channel(1);
 
@@ -218,19 +225,38 @@ async fn run() -> Result<()> {
             ply_kills: 0,
             ply_hs_kills: 0,
             ply_assists: 0,
+            ply_deaths: 0,
+            ply_score: 0,
+            last_player_health: 0,
             last_active_weapon_is_knife: false,
             last_active_weapon_badge_key: None,
+            last_active_weapon_name: None,
+            last_active_weapon_money_reward: 300,
             last_active_weapon_seen_at: None,
+            last_player_money: None,
+            money_epoch: 0,
+            last_bomb_state: None,
+            last_bomb_player: None,
+            crossfire_streak_kills: 0,
+            last_crossfire_kill_at: None,
             current_round: 0,
             last_round_phase: None,
             has_first_kill_in_round: false,
             pending_last_kill: None,
         }),
+        control_token,
         stream_handle: RwLock::new(output_stream),
         current_output_device_name: RwLock::new(output_device_name.clone()),
         args,
         preset: RwLock::new(preset),
         volume_percent: AtomicU32::new(initial_volume_percent),
+        money_reward_mode: AtomicU8::new(MoneyRewardMode::DEFAULT.as_u8()),
+        crossfire_streak_mode: AtomicU8::new(CrossfireStreakMode::DEFAULT.as_u8()),
+        crossfire_mode_active: AtomicBool::new(true),
+        shared_streak_mode: AtomicU8::new(CrossfireStreakMode::DEFAULT.as_u8()),
+        shared_streak_mode_active: AtomicBool::new(false),
+        crossfire_first_kill_special_audio: AtomicBool::new(true),
+        crossfire_last_kill_special_audio: AtomicBool::new(true),
         event_tx,
         shutdown_tx,
         gsi_posts: AtomicU64::new(0),
@@ -263,17 +289,30 @@ async fn run() -> Result<()> {
         .route("/cs2-root", get(cs2_root))
         .route("/audio/reload", post(audio_reload))
         .route("/audio/volume", post(audio_volume))
+        .route("/money/mode", get(money_mode).post(set_money_mode))
+        .route(
+            "/crossfire/settings",
+            get(crossfire_settings).post(set_crossfire_settings),
+        )
+        .route(
+            "/streak/settings",
+            get(streak_settings).post(set_streak_settings),
+        )
         .route("/shutdown", post(shutdown))
         .route(
             "/soundpack",
             get(util::event_stream::soundpack).post(util::event_stream::set_soundpack),
         )
         .route("/test/{kill_count}", get(test_event).post(test_event))
-        .with_state(app_state)
+        .with_state(app_state.clone())
         // Keep the GSI hot path lean: avoid per-request tracing and only retain timeout protection.
         .layer(TimeoutLayer::with_status_code(
             StatusCode::REQUEST_TIMEOUT,
             Duration::from_secs(10),
+        ))
+        .layer(middleware::from_fn_with_state(
+            app_state,
+            require_control_token,
         ));
 
     // run our app with hyper, listening globally on port 3000
@@ -299,7 +338,9 @@ async fn monitor_default_output_device(app_state: Arc<AppState>) {
         let detected_name = match default_output_device_name() {
             Ok(name) => name,
             Err(error) => {
-                service_log(&format!("default audio watcher failed to read device: {error}"));
+                service_log(&format!(
+                    "default audio watcher failed to read device: {error}"
+                ));
                 continue;
             }
         };
@@ -334,9 +375,7 @@ async fn monitor_default_output_device(app_state: Arc<AppState>) {
                 ));
             }
             Err(error) => {
-                service_log(&format!(
-                    "default audio device hot reload failed: {error}"
-                ));
+                service_log(&format!("default audio device hot reload failed: {error}"));
             }
         }
     }

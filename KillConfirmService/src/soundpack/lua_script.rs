@@ -11,7 +11,11 @@ pub struct SoundContext {
     pub is_first_kill: bool,
     pub is_knife_kill: bool,
     pub is_last_kill: bool,
+    pub is_assist: bool,
+    pub is_destroy_vehicle: bool,
     pub play_main_audio: bool,
+    pub money_reward: u16,
+    pub event_kind: Option<String>,
     pub preset_name: String,
     pub master_name: String,
     pub variant: Option<String>,
@@ -29,8 +33,9 @@ impl LuaScript {
     pub fn load(script_path: &str) -> Result<Self> {
         let script_content = fs::read_to_string(script_path)
             .with_context(|| format!("failed to read Lua script: {script_path}"))?;
+        let script_content = script_content.trim_start_matches('\u{feff}');
 
-        Self::from_source(&script_content, script_path)
+        Self::from_source(script_content, script_path)
     }
 
     pub fn from_source(script_content: &str, script_path: &str) -> Result<Self> {

@@ -1,0 +1,24 @@
+﻿{
+    "id":  "00012",
+    "name":  "Singularity V2",
+    "folder":  "00012_singularity_v2",
+    "soundPrefix":  "valorant_singularitykill_",
+    "textures":  [
+                     "killicon_valorant_base_frame.png",
+                     "killicon_valorant_base_ring.png",
+                     "killicon_valorant_headshot.png",
+                     "killicon_valorant_particle_base_t1.png",
+                     "killicon_valorant_particle_hero_flame.png",
+                     "killicon_valorant_particle_large_sparks.png",
+                     "killicon_valorant_particle_x_sparks.png",
+                     "killicon_valorant_singularity_v2_bar.png",
+                     "killicon_valorant_singularity_v2_emblem.png"
+                 ],
+    "sounds":  [
+                   "valorant_singularitykill_1.ogg",
+                   "valorant_singularitykill_2.ogg",
+                   "valorant_singularitykill_3.ogg",
+                   "valorant_singularitykill_4.ogg",
+                   "valorant_singularitykill_5.ogg"
+               ]
+}

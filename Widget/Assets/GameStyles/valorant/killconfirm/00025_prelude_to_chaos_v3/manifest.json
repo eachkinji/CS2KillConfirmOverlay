@@ -1,0 +1,24 @@
+﻿{
+    "id":  "00025",
+    "name":  "Prelude to Chaos V3",
+    "folder":  "00025_prelude_to_chaos_v3",
+    "soundPrefix":  "valorant_preludetochaoskill_",
+    "textures":  [
+                     "killicon_valorant_base_frame.png",
+                     "killicon_valorant_base_ring.png",
+                     "killicon_valorant_headshot.png",
+                     "killicon_valorant_particle_base_t1.png",
+                     "killicon_valorant_particle_hero_flame.png",
+                     "killicon_valorant_particle_large_sparks.png",
+                     "killicon_valorant_particle_x_sparks.png",
+                     "killicon_valorant_prelude_to_chaos_v3_bar.png",
+                     "killicon_valorant_prelude_to_chaos_v3_emblem.png"
+                 ],
+    "sounds":  [
+                   "valorant_preludetochaoskill_1.ogg",
+                   "valorant_preludetochaoskill_2.ogg",
+                   "valorant_preludetochaoskill_3.ogg",
+                   "valorant_preludetochaoskill_4.ogg",
+                   "valorant_preludetochaoskill_5.ogg"
+               ]
+}

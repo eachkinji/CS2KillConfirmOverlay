@@ -56,10 +56,8 @@ if (-not $InnoCompilerPath) {
     else {
         $Candidates = @(
             (Join-Path $env:LOCALAPPDATA "Programs\Inno Setup 6\ISCC.exe"),
-            "C:\Program Files (x86)\Inno Setup 6\ISCC.exe",
-            "C:\Program Files\Inno Setup 6\ISCC.exe",
-            "F:\Antigravity\resources\app\node_modules\innosetup\bin\ISCC.exe",
-            "F:\Antigravity\_\resources\app\node_modules\innosetup\bin\ISCC.exe"
+            (Join-Path ${env:ProgramFiles(x86)} "Inno Setup 6\ISCC.exe"),
+            (Join-Path $env:ProgramFiles "Inno Setup 6\ISCC.exe")
         )
         $InnoCompilerPath = $Candidates | Where-Object { Test-Path $_ } | Select-Object -First 1
     }

@@ -1,0 +1,31 @@
+<UserControl
+    x:Class="KillConfirmGameBar.Controls.GameStyles.Battlefield4AdvancedEffectsPanel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:KillConfirmGameBar.Controls.GameStyles">
+
+    <StackPanel Spacing="8">
+        <TextBlock
+            x:Name="TitleText"
+            FontSize="13"
+            FontWeight="Bold"
+            Text="BF4 Effects" />
+        <TextBlock
+            x:Name="HintText"
+            FontSize="10"
+            Text="BF4 text HUD, score accumulation, and Battlefield 4 assets are isolated here."
+            TextWrapping="WrapWholeWords" />
+        <local:Battlefield4StylePanel x:Name="StylePanel" />
+        <Border
+            x:Name="ImportLockedNotice"
+            Padding="8"
+            BorderThickness="1"
+            CornerRadius="10">
+            <TextBlock
+                x:Name="ImportLockedText"
+                FontSize="10"
+                Text="Built-in Battlefield 4 resources only. File import is disabled for this page."
+                TextWrapping="WrapWholeWords" />
+        </Border>
+    </StackPanel>
+</UserControl>

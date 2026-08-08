@@ -9,7 +9,9 @@
     Visibility="Collapsed"
     mc:Ignorable="d">
 
-    <Viewbox Stretch="Uniform">
+    <Viewbox
+        x:Name="PlaybackViewbox"
+        Stretch="Uniform">
         <Grid
             x:Name="Viewport"
             Width="400"

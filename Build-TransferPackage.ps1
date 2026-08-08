@@ -30,6 +30,19 @@ $AppPackagesRoot = Join-Path $Root "Package\AppPackages"
 $TransferRoot = Join-Path $WorkspaceRoot ("KillConfirmGameBar_Transfer_{0}" -f $Version)
 $TransferZip = "{0}.zip" -f $TransferRoot
 $ExpectedPackageFamilyName = "KillConfirmGameBar.Overlay_5jgcw66eyez0m"
+$PrerequisiteSourceRoot = Join-Path $WorkspaceRoot "Vclibs"
+$PrerequisiteFileNames = @(
+    "vclibs.appx",
+    "vclibs2.appx",
+    "gamebar.AppxBundle"
+)
+
+foreach ($prerequisiteFileName in $PrerequisiteFileNames) {
+    $prerequisiteSourcePath = Join-Path $PrerequisiteSourceRoot $prerequisiteFileName
+    if (-not (Test-Path -LiteralPath $prerequisiteSourcePath -PathType Leaf)) {
+        throw "Required prerequisite package was not found: $prerequisiteSourcePath"
+    }
+}
 
 $resolvedWorkspaceRoot = [System.IO.Path]::GetFullPath($WorkspaceRoot)
 $resolvedTransferRoot = [System.IO.Path]::GetFullPath($TransferRoot)
@@ -92,8 +105,14 @@ if (Test-Path $TransferZip) {
 }
 
 $OverlayTransferRoot = Join-Path $TransferRoot "OverlayPackage"
+$PrerequisiteTransferRoot = Join-Path $TransferRoot "Prerequisites"
 
 New-Item -ItemType Directory -Force -Path $OverlayTransferRoot | Out-Null
+New-Item -ItemType Directory -Force -Path $PrerequisiteTransferRoot | Out-Null
+
+foreach ($prerequisiteFileName in $PrerequisiteFileNames) {
+    Copy-Item -LiteralPath (Join-Path $PrerequisiteSourceRoot $prerequisiteFileName) -Destination $PrerequisiteTransferRoot -Force
+}
 
 Copy-Item -LiteralPath (Join-Path $PackageSourceRoot $PackageFileName) -Destination $OverlayTransferRoot -Force
 
@@ -121,10 +140,46 @@ $ErrorActionPreference = "Stop"
 
 $ScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $OverlayRoot = Join-Path $ScriptRoot "OverlayPackage"
+$PrerequisiteRoot = Join-Path $ScriptRoot "Prerequisites"
 $PackageName = "KillConfirmGameBar.Overlay"
 $PackageFamilyName = $null
 $LogPath = Join-Path $env:TEMP "KillConfirmGameBar_Install.log"
 $RuntimeLogRoot = $null
+
+function ConvertFrom-Utf8Base64 {
+    param([string]$Value)
+    return [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($Value))
+}
+
+$Prerequisites = @(
+    [pscustomobject]@{
+        Order = 1
+        DisplayName = "Microsoft Visual C++ UWP Desktop Runtime (x64)"
+        ChineseDisplayName = (ConvertFrom-Utf8Base64 -Value "TWljcm9zb2Z0IFZpc3VhbCBDKysgVVdQIERlc2t0b3Ag6L+Q6KGM5bqTICh4NjQp")
+        PackageName = "Microsoft.VCLibs.140.00.UWPDesktop"
+        Architecture = "X64"
+        MinimumVersion = [version]"14.0.33728.0"
+        FileName = "vclibs.appx"
+    },
+    [pscustomobject]@{
+        Order = 2
+        DisplayName = "Microsoft Visual C++ UWP Runtime (x64)"
+        ChineseDisplayName = (ConvertFrom-Utf8Base64 -Value "TWljcm9zb2Z0IFZpc3VhbCBDKysgVVdQIOi/kOihjOW6kyAoeDY0KQ==")
+        PackageName = "Microsoft.VCLibs.140.00"
+        Architecture = "X64"
+        MinimumVersion = [version]"14.0.33519.0"
+        FileName = "vclibs2.appx"
+    },
+    [pscustomobject]@{
+        Order = 3
+        DisplayName = "Xbox Game Bar"
+        ChineseDisplayName = "Xbox Game Bar"
+        PackageName = "Microsoft.XboxGamingOverlay"
+        Architecture = "X64"
+        MinimumVersion = [version]"7.326.6011.0"
+        FileName = "gamebar.AppxBundle"
+    }
+)
 
 function Write-InstallLog {
     param([string]$Message)
@@ -302,6 +357,144 @@ function Add-AppxPackageCompat {
         Write-AppxFailureDetails -ErrorRecord $_
         throw
     }
+}
+
+function Get-InstalledPrerequisitePackage {
+    param([pscustomobject]$Prerequisite)
+
+    return Get-AppxPackage -Name $Prerequisite.PackageName -ErrorAction SilentlyContinue |
+        Where-Object { $null -eq $_.Architecture -or ([string]$_.Architecture -eq $Prerequisite.Architecture) } |
+        Sort-Object { [version]$_.Version } -Descending |
+        Select-Object -First 1
+}
+
+function Test-PrerequisiteInstalled {
+    param([pscustomobject]$Prerequisite)
+
+    $installed = Get-InstalledPrerequisitePackage -Prerequisite $Prerequisite
+    if (-not $installed) {
+        return $false
+    }
+
+    try {
+        return ([version]$installed.Version -ge $Prerequisite.MinimumVersion)
+    }
+    catch {
+        return $false
+    }
+}
+
+function Confirm-PrerequisiteInstall {
+    param([object[]]$MissingPrerequisites)
+
+    $isChinese = [System.Globalization.CultureInfo]::CurrentUICulture.Name -like "zh-*"
+    if ($isChinese) {
+        $missingLines = $MissingPrerequisites | ForEach-Object {
+            "  {0}. {1}" -f $_.Order, $_.ChineseDisplayName
+        }
+        $title = ConvertFrom-Utf8Base64 -Value "S2lsbCBDb25maXJtIE92ZXJsYXkgLSDlv4XpnIDnu4Tku7Y="
+        $message = @(
+            (ConvertFrom-Utf8Base64 -Value "5qOA5rWL5Yiw5Lul5LiL5b+F6ZyA57uE5Lu25pyq5a6J6KOF5oiW54mI5pys6L+H5pen77ya"),
+            "",
+            ($missingLines -join [Environment]::NewLine),
+            "",
+            (ConvertFrom-Utf8Base64 -Value "5a6J6KOF56iL5bqP5bCG5oyJ6aG65bqP5a6J6KOF57y65aSx57uE5Lu277yM54S25ZCO5YaN5a6J6KOFIEtpbGwgQ29uZmlybSBPdmVybGF544CC"),
+            (ConvertFrom-Utf8Base64 -Value "6L+Z5Lqb57uE5Lu25p2l6Ieq5a6J6KOF5YyF5YaF6ZmE55qEIE1pY3Jvc29mdCDnprvnur/lronoo4Xmlofku7bjgII="),
+            (ConvertFrom-Utf8Base64 -Value "5aaC5p6c6YCJ5oup5ZCm77yM5LuN5Lya57un57ut5a6J6KOF5pys5L2T77yM5L2G57y65bCR6L+Z5Lqb57uE5Lu25pe26L2v5Lu25bCG5peg5rOV5q2j5bi46L+Q6KGM44CC"),
+            "",
+            (ConvertFrom-Utf8Base64 -Value "5piv5ZCm546w5Zyo5a6J6KOF77yf")
+        ) -join [Environment]::NewLine
+    }
+    else {
+        $missingLines = $MissingPrerequisites | ForEach-Object {
+            "  {0}. {1}" -f $_.Order, $_.DisplayName
+        }
+        $title = "Kill Confirm Overlay - Required components"
+        $message = @(
+            "The following required components are missing or outdated:",
+            "",
+            ($missingLines -join [Environment]::NewLine),
+            "",
+            "Setup will install the missing components in order before installing Kill Confirm Overlay.",
+            "These components use the bundled Microsoft offline packages.",
+            "If you choose No, setup will continue, but the software will not work correctly without these components.",
+            "",
+            "Install them now?"
+        ) -join [Environment]::NewLine
+    }
+
+    Add-Type -AssemblyName System.Windows.Forms -ErrorAction Stop
+    $result = [System.Windows.Forms.MessageBox]::Show(
+        $message,
+        $title,
+        [System.Windows.Forms.MessageBoxButtons]::YesNo,
+        [System.Windows.Forms.MessageBoxIcon]::Warning,
+        [System.Windows.Forms.MessageBoxDefaultButton]::Button1)
+    return ($result -eq [System.Windows.Forms.DialogResult]::Yes)
+}
+
+function Install-RequiredComponents {
+    Write-InstallLog "Checking required VCLibs and Xbox Game Bar packages..."
+    if (-not (Test-Path -LiteralPath $PrerequisiteRoot -PathType Container)) {
+        throw "Prerequisites folder was not found under $ScriptRoot"
+    }
+
+    $missingPrerequisites = @($Prerequisites |
+        Sort-Object Order |
+        Where-Object { -not (Test-PrerequisiteInstalled -Prerequisite $_) })
+
+    foreach ($prerequisite in ($Prerequisites | Sort-Object Order)) {
+        $installed = Get-InstalledPrerequisitePackage -Prerequisite $prerequisite
+        if ($installed) {
+            Write-InstallLog ("Prerequisite detected: {0} {1} ({2})" -f $prerequisite.PackageName, $installed.Version, $installed.Architecture)
+        }
+        else {
+            Write-InstallLog ("Prerequisite missing: {0}" -f $prerequisite.PackageName)
+        }
+    }
+
+    if ($missingPrerequisites.Count -eq 0) {
+        Write-InstallLog "All required VCLibs and Xbox Game Bar packages are already installed."
+        return
+    }
+
+    if (-not (Confirm-PrerequisiteInstall -MissingPrerequisites $missingPrerequisites)) {
+        Write-InstallLog "The user declined installation of required components. Continuing overlay installation with a compatibility warning."
+        return
+    }
+
+    $gameBarProcesses = @(
+        Get-Process -Name "GameBar", "GameBarFTServer", "GameBarPresenceWriter" -ErrorAction SilentlyContinue
+    )
+    if ($gameBarProcesses.Count -gt 0) {
+        Write-InstallLog ("Stopping Xbox Game Bar processes before prerequisite installation: {0}" -f (($gameBarProcesses | ForEach-Object { "$($_.ProcessName)#$($_.Id)" }) -join ", "))
+        $gameBarProcesses | Stop-Process -Force
+        Start-Sleep -Milliseconds 800
+    }
+
+    foreach ($prerequisite in ($Prerequisites | Sort-Object Order)) {
+        if (Test-PrerequisiteInstalled -Prerequisite $prerequisite) {
+            Write-InstallLog ("Prerequisite already satisfies requirement: {0}" -f $prerequisite.PackageName)
+            continue
+        }
+
+        $packagePath = Join-Path $PrerequisiteRoot $prerequisite.FileName
+        if (-not (Test-Path -LiteralPath $packagePath -PathType Leaf)) {
+            throw "Required prerequisite file was not found: $packagePath"
+        }
+
+        Write-InstallLog ("Installing prerequisite {0}/3: {1} (minimum {2})" -f $prerequisite.Order, $prerequisite.PackageName, $prerequisite.MinimumVersion)
+        Add-AppxPackageCompat -PackagePath $packagePath -ForceUpdate
+
+        if (-not (Test-PrerequisiteInstalled -Prerequisite $prerequisite)) {
+            throw "Prerequisite installation finished but validation failed: $($prerequisite.PackageName)"
+        }
+
+        $installed = Get-InstalledPrerequisitePackage -Prerequisite $prerequisite
+        Write-InstallLog ("Prerequisite validated: {0} {1}" -f $prerequisite.PackageName, $installed.Version)
+    }
+
+    Write-InstallLog "All required components were installed and validated."
 }
 
 function Install-OverlayPackage {
@@ -512,6 +705,7 @@ try {
         Remove-Item -LiteralPath $LogPath -Force
     }
 
+    Install-RequiredComponents
     Install-OverlayPackage
     Test-OverlayPackageInstalled
 
@@ -557,6 +751,7 @@ KillConfirmGameBar transfer package
 
 What is inside:
 - OverlayPackage: the Xbox Game Bar MSIX package and its dependencies
+- Prerequisites: offline Microsoft VCLibs and Xbox Game Bar packages
 - Install-KillConfirm.ps1: one-click install script
 
 Use on another PC:
@@ -566,6 +761,7 @@ Use on another PC:
 4. Use the panel power button or Check button if you want to verify status
 
 Notes:
+- Before installing the overlay, the install script detects the two required x64 VCLibs packages and Xbox Game Bar. Missing or outdated components are shown to the user and installed in the required order after approval.
 - The companion service is embedded inside the MSIX package.
 - The widget starts its packaged companion service directly from the installed app.
 - The install script installs the MSIX package directly instead of requiring Visual Studio developer scripts.

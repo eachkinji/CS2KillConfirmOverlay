@@ -1,0 +1,28 @@
+<UserControl
+    x:Class="KillConfirmGameBar.Controls.GameStyles.PubgStylePanel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Border
+        x:Name="Card"
+        Padding="10"
+        Background="#2B271B"
+        BorderBrush="#E0A13A"
+        BorderThickness="1"
+        CornerRadius="12">
+        <StackPanel Spacing="3">
+            <TextBlock
+                x:Name="TitleText"
+                FontSize="12"
+                FontWeight="Bold"
+                Foreground="#F8F4E5"
+                Text="PUBG Panel" />
+            <TextBlock
+                x:Name="BodyText"
+                FontSize="10"
+                Foreground="#DBCEAB"
+                Text="PUBG uses its own elimination captions, streak text, and pubg resource folder."
+                TextWrapping="WrapWholeWords" />
+        </StackPanel>
+    </Border>
+</UserControl>

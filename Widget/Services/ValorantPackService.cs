@@ -1,0 +1,82 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace KillConfirmGameBar.Services
+{
+    internal sealed class ValorantPackInfo
+    {
+        public string Key { get; set; }
+        public string Folder { get; set; }
+        public string DisplayName { get; set; }
+    }
+
+    internal static class ValorantPackService
+    {
+        public const string DefaultKey = "valorant_00009_prime";
+
+        private static readonly ValorantPackInfo[] Packs =
+        {
+            Pack("00009_prime", "Prime"),
+            Pack("00010_glitchpop", "Glitchpop"),
+            Pack("00011_singularity_v1", "Singularity V1"),
+            Pack("00012_singularity_v2", "Singularity V2"),
+            Pack("00013_singularity_v3", "Singularity V3"),
+            Pack("00014_gaia_s_vengeance", "Gaia's Vengeance"),
+            Pack("00015_gaia_s_vengeance_v1", "Gaia's Vengeance V1"),
+            Pack("00016_gaia_s_vengeance_v2", "Gaia's Vengeance V2"),
+            Pack("00017_gaia_s_vengeance_v3", "Gaia's Vengeance V3"),
+            Pack("00018_bubblegum_deathwish", "Bubblegum Deathwish"),
+            Pack("00019_bubblegum_deathwish_v1", "Bubblegum Deathwish V1"),
+            Pack("00020_bubblegum_deathwish_v2", "Bubblegum Deathwish V2"),
+            Pack("00021_bubblegum_deathwish_v3", "Bubblegum Deathwish V3"),
+            Pack("00022_champions_2021", "Champions 2021"),
+            Pack("00023_prelude_to_chaos_v1", "Prelude to Chaos V1"),
+            Pack("00024_prelude_to_chaos_v2", "Prelude to Chaos V2"),
+            Pack("00025_prelude_to_chaos_v3", "Prelude to Chaos V3"),
+            Pack("00026_primordium", "Primordium"),
+            Pack("00027_primordium_v1", "Primordium V1"),
+            Pack("00028_primordium_v2", "Primordium V2"),
+            Pack("00029_primordium_v3", "Primordium V3"),
+            Pack("00030_radiant_crisis_001", "Radiant Crisis 001"),
+            Pack("00031_rgx_11z_pro", "RGX 11z Pro"),
+            Pack("00032_rgx_11z_pro_v1", "RGX 11z Pro V1"),
+            Pack("00033_rgx_11z_pro_v2", "RGX 11z Pro V2"),
+            Pack("00034_rgx_11z_pro_v3", "RGX 11z Pro V3")
+        };
+
+        public static IReadOnlyList<ValorantPackInfo> All => Packs;
+
+        public static bool IsValorantPackKey(string key)
+        {
+            return !string.IsNullOrWhiteSpace(key)
+                && key.Trim().StartsWith("valorant_", StringComparison.OrdinalIgnoreCase);
+        }
+
+        public static ValorantPackInfo Find(string key)
+        {
+            return Packs.FirstOrDefault(pack =>
+                string.Equals(pack.Key, key, StringComparison.OrdinalIgnoreCase));
+        }
+
+        public static string GetFolder(string key)
+        {
+            return Find(key)?.Folder;
+        }
+
+        public static string GetDisplayName(string key)
+        {
+            return Find(key)?.DisplayName ?? key;
+        }
+
+        private static ValorantPackInfo Pack(string folder, string displayName)
+        {
+            return new ValorantPackInfo
+            {
+                Key = "valorant_" + folder,
+                Folder = folder,
+                DisplayName = displayName
+            };
+        }
+    }
+}

@@ -1,0 +1,24 @@
+﻿{
+    "id":  "00010",
+    "name":  "Glitchpop",
+    "folder":  "00010_glitchpop",
+    "soundPrefix":  "valorant_glitchpopkill_",
+    "textures":  [
+                     "killicon_valorant_glitchpop_bar.png",
+                     "killicon_valorant_glitchpop_emblem.png",
+                     "killicon_valorant_glitchpop_frame.png",
+                     "killicon_valorant_glitchpop_ring.png",
+                     "killicon_valorant_headshot.png",
+                     "killicon_valorant_particle_base_t1.png",
+                     "killicon_valorant_particle_hero_flame.png",
+                     "killicon_valorant_particle_large_sparks.png",
+                     "killicon_valorant_particle_x_sparks.png"
+                 ],
+    "sounds":  [
+                   "valorant_glitchpopkill_1.ogg",
+                   "valorant_glitchpopkill_2.ogg",
+                   "valorant_glitchpopkill_3.ogg",
+                   "valorant_glitchpopkill_4.ogg",
+                   "valorant_glitchpopkill_5.ogg"
+               ]
+}

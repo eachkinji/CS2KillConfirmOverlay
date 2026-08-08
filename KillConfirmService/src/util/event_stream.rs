@@ -24,19 +24,26 @@ use crate::soundpack::sound::{play_audio, warm_audio_cache};
 use crate::util::logging::service_log;
 use crate::util::playback::get_output_stream_with_name;
 
-use super::state::{AppState, KillEvent};
+use super::state::{AppState, CrossfireStreakMode, KillEvent, MoneyRewardMode};
 
 #[derive(Debug, Deserialize)]
 pub struct TestEventQuery {
     pub headshot: Option<bool>,
     pub knife: Option<bool>,
+    pub assist: Option<bool>,
     pub first: Option<bool>,
     pub last: Option<bool>,
     pub main: Option<bool>,
     pub audio: Option<bool>,
     pub animation: Option<String>,
+    pub event_kind: Option<String>,
     pub weapon_badge: Option<String>,
+    pub weapon_name: Option<String>,
+    pub money_reward: Option<u16>,
+    pub round_number: Option<u8>,
+    pub money_epoch: Option<u32>,
     pub player_name: Option<String>,
+    pub target_name: Option<String>,
     pub steamid: Option<String>,
 }
 
@@ -67,11 +74,50 @@ pub struct VolumeRequest {
     pub percent: u32,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct MoneyModeRequest {
+    pub mode: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct CrossfireSettingsRequest {
+    pub active: bool,
+    pub streak_mode: String,
+    pub first_kill_special_audio: bool,
+    pub last_kill_special_audio: bool,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct StreakSettingsRequest {
+    pub active: bool,
+    pub streak_mode: String,
+}
+
 #[derive(Debug, Serialize)]
 pub struct SoundPackResponse {
     pub preset: String,
     pub display_name: String,
     pub available: Vec<SoundPackOption>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct MoneyModeResponse {
+    pub mode: &'static str,
+    pub available: Vec<MoneyModeOption>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct CrossfireSettingsResponse {
+    pub active: bool,
+    pub streak_mode: &'static str,
+    pub first_kill_special_audio: bool,
+    pub last_kill_special_audio: bool,
+}
+
+#[derive(Debug, Serialize)]
+pub struct StreakSettingsResponse {
+    pub active: bool,
+    pub streak_mode: &'static str,
 }
 
 #[derive(Debug, Serialize)]
@@ -83,6 +129,12 @@ pub struct Cs2RootResponse {
 #[derive(Clone, Copy, Debug, Serialize)]
 pub struct SoundPackOption {
     pub preset: &'static str,
+    pub display_name: &'static str,
+}
+
+#[derive(Clone, Copy, Debug, Serialize)]
+pub struct MoneyModeOption {
+    pub mode: &'static str,
     pub display_name: &'static str,
 }
 
@@ -131,6 +183,145 @@ const SOUND_PACK_OPTIONS: &[SoundPackOption] = &[
         preset: "crossfire_heart_judge_bl",
         display_name: "Heart Judge BL",
     },
+    SoundPackOption {
+        preset: "bf1",
+        display_name: "Battlefield 1",
+    },
+    SoundPackOption {
+        preset: "bf5",
+        display_name: "Battlefield 5",
+    },
+    SoundPackOption {
+        preset: "bf4",
+        display_name: "Battlefield 4",
+    },
+    SoundPackOption {
+        preset: "battlefield2042",
+        display_name: "Battlefield 2042",
+    },
+    SoundPackOption {
+        preset: "pubg",
+        display_name: "PUBG",
+    },
+    SoundPackOption {
+        preset: "deltaforce",
+        display_name: "Delta Force",
+    },
+    SoundPackOption {
+        preset: "valorant_00009_prime",
+        display_name: "Prime",
+    },
+    SoundPackOption {
+        preset: "valorant_00010_glitchpop",
+        display_name: "Glitchpop",
+    },
+    SoundPackOption {
+        preset: "valorant_00011_singularity_v1",
+        display_name: "Singularity V1",
+    },
+    SoundPackOption {
+        preset: "valorant_00012_singularity_v2",
+        display_name: "Singularity V2",
+    },
+    SoundPackOption {
+        preset: "valorant_00013_singularity_v3",
+        display_name: "Singularity V3",
+    },
+    SoundPackOption {
+        preset: "valorant_00014_gaia_s_vengeance",
+        display_name: "Gaia's Vengeance",
+    },
+    SoundPackOption {
+        preset: "valorant_00015_gaia_s_vengeance_v1",
+        display_name: "Gaia's Vengeance V1",
+    },
+    SoundPackOption {
+        preset: "valorant_00016_gaia_s_vengeance_v2",
+        display_name: "Gaia's Vengeance V2",
+    },
+    SoundPackOption {
+        preset: "valorant_00017_gaia_s_vengeance_v3",
+        display_name: "Gaia's Vengeance V3",
+    },
+    SoundPackOption {
+        preset: "valorant_00018_bubblegum_deathwish",
+        display_name: "Bubblegum Deathwish",
+    },
+    SoundPackOption {
+        preset: "valorant_00019_bubblegum_deathwish_v1",
+        display_name: "Bubblegum Deathwish V1",
+    },
+    SoundPackOption {
+        preset: "valorant_00020_bubblegum_deathwish_v2",
+        display_name: "Bubblegum Deathwish V2",
+    },
+    SoundPackOption {
+        preset: "valorant_00021_bubblegum_deathwish_v3",
+        display_name: "Bubblegum Deathwish V3",
+    },
+    SoundPackOption {
+        preset: "valorant_00022_champions_2021",
+        display_name: "Champions 2021",
+    },
+    SoundPackOption {
+        preset: "valorant_00023_prelude_to_chaos_v1",
+        display_name: "Prelude to Chaos V1",
+    },
+    SoundPackOption {
+        preset: "valorant_00024_prelude_to_chaos_v2",
+        display_name: "Prelude to Chaos V2",
+    },
+    SoundPackOption {
+        preset: "valorant_00025_prelude_to_chaos_v3",
+        display_name: "Prelude to Chaos V3",
+    },
+    SoundPackOption {
+        preset: "valorant_00026_primordium",
+        display_name: "Primordium",
+    },
+    SoundPackOption {
+        preset: "valorant_00027_primordium_v1",
+        display_name: "Primordium V1",
+    },
+    SoundPackOption {
+        preset: "valorant_00028_primordium_v2",
+        display_name: "Primordium V2",
+    },
+    SoundPackOption {
+        preset: "valorant_00029_primordium_v3",
+        display_name: "Primordium V3",
+    },
+    SoundPackOption {
+        preset: "valorant_00030_radiant_crisis_001",
+        display_name: "Radiant Crisis 001",
+    },
+    SoundPackOption {
+        preset: "valorant_00031_rgx_11z_pro",
+        display_name: "RGX 11z Pro",
+    },
+    SoundPackOption {
+        preset: "valorant_00032_rgx_11z_pro_v1",
+        display_name: "RGX 11z Pro V1",
+    },
+    SoundPackOption {
+        preset: "valorant_00033_rgx_11z_pro_v2",
+        display_name: "RGX 11z Pro V2",
+    },
+    SoundPackOption {
+        preset: "valorant_00034_rgx_11z_pro_v3",
+        display_name: "RGX 11z Pro V3",
+    },
+];
+
+const MONEY_MODE_OPTIONS: &[MoneyModeOption] = &[
+    MoneyModeOption {
+        mode: "delta",
+        display_name: "GSI Delta Validation (Experimental)",
+    },
+    MoneyModeOption {
+        mode: "rules",
+        display_name: "Kill Reward Rules (Recommended)",
+    },
 ];
 
 pub async fn health() -> Json<HealthResponse> {
@@ -176,12 +367,13 @@ pub async fn audio_reload(
     State(app_state): State<Arc<AppState>>,
 ) -> Result<Json<HealthResponse>, (axum::http::StatusCode, String)> {
     service_log("audio reload requested");
-    let (output_stream, device_name) = get_output_stream_with_name(&app_state.args.device).map_err(|error| {
-        (
-            axum::http::StatusCode::INTERNAL_SERVER_ERROR,
-            error.to_string(),
-        )
-    })?;
+    let (output_stream, device_name) = get_output_stream_with_name(&app_state.args.device)
+        .map_err(|error| {
+            (
+                axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+                error.to_string(),
+            )
+        })?;
 
     {
         let mut stream_handle = app_state.stream_handle.write().await;
@@ -213,22 +405,164 @@ pub async fn audio_volume(
     })
 }
 
+pub async fn money_mode(State(app_state): State<Arc<AppState>>) -> Json<MoneyModeResponse> {
+    Json(money_mode_response(MoneyRewardMode::from_u8(
+        app_state.money_reward_mode.load(Ordering::Relaxed),
+    )))
+}
+
+pub async fn set_money_mode(
+    State(app_state): State<Arc<AppState>>,
+    Json(request): Json<MoneyModeRequest>,
+) -> Result<Json<MoneyModeResponse>, (axum::http::StatusCode, String)> {
+    let mode = MoneyRewardMode::from_str(&request.mode).ok_or_else(|| {
+        (
+            axum::http::StatusCode::BAD_REQUEST,
+            "unsupported money reward mode".to_string(),
+        )
+    })?;
+
+    app_state
+        .money_reward_mode
+        .store(mode.as_u8(), Ordering::Relaxed);
+    service_log(&format!("money reward mode set to '{}'", mode.as_str()));
+
+    Ok(Json(money_mode_response(mode)))
+}
+
+pub async fn crossfire_settings(
+    State(app_state): State<Arc<AppState>>,
+) -> Json<CrossfireSettingsResponse> {
+    Json(crossfire_settings_response(&app_state))
+}
+
+pub async fn set_crossfire_settings(
+    State(app_state): State<Arc<AppState>>,
+    Json(request): Json<CrossfireSettingsRequest>,
+) -> Result<Json<CrossfireSettingsResponse>, (axum::http::StatusCode, String)> {
+    let streak_mode = CrossfireStreakMode::from_str(&request.streak_mode).ok_or_else(|| {
+        (
+            axum::http::StatusCode::BAD_REQUEST,
+            "unsupported CrossFire streak mode".to_string(),
+        )
+    })?;
+
+    let previous_mode = app_state
+        .crossfire_streak_mode
+        .swap(streak_mode.as_u8(), Ordering::Relaxed);
+    let previous_active = app_state
+        .crossfire_mode_active
+        .swap(request.active, Ordering::Relaxed);
+    let previous_shared_active = if request.active {
+        app_state
+            .shared_streak_mode_active
+            .swap(false, Ordering::Relaxed)
+    } else {
+        app_state.shared_streak_mode_active.load(Ordering::Relaxed)
+    };
+    app_state
+        .crossfire_first_kill_special_audio
+        .store(request.first_kill_special_audio, Ordering::Relaxed);
+    app_state
+        .crossfire_last_kill_special_audio
+        .store(request.last_kill_special_audio, Ordering::Relaxed);
+
+    if previous_mode != streak_mode.as_u8()
+        || previous_active != request.active
+        || (request.active && previous_shared_active)
+    {
+        let mut mutable = app_state.mutable.write().await;
+        mutable.crossfire_streak_kills = 0;
+        mutable.last_crossfire_kill_at = None;
+    }
+
+    service_log(&format!(
+        "CrossFire settings: active={}, streak={}, first_special={}, last_special={}",
+        request.active,
+        streak_mode.as_str(),
+        request.first_kill_special_audio,
+        request.last_kill_special_audio
+    ));
+
+    Ok(Json(crossfire_settings_response(&app_state)))
+}
+
+pub async fn streak_settings(
+    State(app_state): State<Arc<AppState>>,
+) -> Json<StreakSettingsResponse> {
+    Json(streak_settings_response(&app_state))
+}
+
+pub async fn set_streak_settings(
+    State(app_state): State<Arc<AppState>>,
+    Json(request): Json<StreakSettingsRequest>,
+) -> Result<Json<StreakSettingsResponse>, (axum::http::StatusCode, String)> {
+    let streak_mode = CrossfireStreakMode::from_str(&request.streak_mode).ok_or_else(|| {
+        (
+            axum::http::StatusCode::BAD_REQUEST,
+            "unsupported kill streak mode".to_string(),
+        )
+    })?;
+
+    let previous_mode = app_state
+        .shared_streak_mode
+        .swap(streak_mode.as_u8(), Ordering::Relaxed);
+    let previous_active = app_state
+        .shared_streak_mode_active
+        .swap(request.active, Ordering::Relaxed);
+    let previous_crossfire_active = if request.active {
+        app_state
+            .crossfire_mode_active
+            .swap(false, Ordering::Relaxed)
+    } else {
+        app_state.crossfire_mode_active.load(Ordering::Relaxed)
+    };
+
+    if previous_mode != streak_mode.as_u8()
+        || previous_active != request.active
+        || (request.active && previous_crossfire_active)
+    {
+        let mut mutable = app_state.mutable.write().await;
+        mutable.crossfire_streak_kills = 0;
+        mutable.last_crossfire_kill_at = None;
+    }
+
+    service_log(&format!(
+        "shared streak settings: active={}, streak={}",
+        request.active,
+        streak_mode.as_str()
+    ));
+
+    Ok(Json(streak_settings_response(&app_state)))
+}
+
 pub async fn soundpack(State(app_state): State<Arc<AppState>>) -> Json<SoundPackResponse> {
     let preset = app_state.preset.read().await;
-    Json(soundpack_response(&preset.preset_name, &preset.display_name))
+    Json(soundpack_response(
+        &preset.preset_name,
+        &preset.display_name,
+    ))
 }
 
 pub async fn set_soundpack(
     State(app_state): State<Arc<AppState>>,
     Json(request): Json<SoundPackRequest>,
 ) -> Result<Json<SoundPackResponse>, (axum::http::StatusCode, String)> {
-    let (preset_name, preset, display_name) = if let Some(custom_path) = request.custom_path.as_deref() {
+    let (preset_name, preset, display_name) = if let Some(custom_path) =
+        request.custom_path.as_deref()
+    {
         let display_name = request
             .display_name
             .clone()
             .unwrap_or_else(|| request.preset.clone());
-        let preset = Preset::load_custom(&request.preset, &display_name, custom_path)
-            .map_err(|error| (axum::http::StatusCode::BAD_REQUEST, error.to_string()))?;
+        let preset =
+            Preset::load_custom(&request.preset, &display_name, custom_path).map_err(|error| {
+                service_log(&format!(
+                    "failed to load custom sound pack '{}': {error:?}",
+                    request.preset
+                ));
+                (axum::http::StatusCode::BAD_REQUEST, format!("{error:?}"))
+            })?;
         (request.preset.as_str(), preset, display_name)
     } else {
         let preset_name = resolve_soundpack_alias(&request.preset).ok_or_else(|| {
@@ -237,9 +571,17 @@ pub async fn set_soundpack(
                 "unsupported sound pack".to_string(),
             )
         })?;
-        let preset = Preset::load(preset_name)
-            .map_err(|error| (axum::http::StatusCode::BAD_REQUEST, error.to_string()))?;
-        (preset_name, preset, soundpack_display_name(preset_name).to_string())
+        let preset = Preset::load(preset_name).map_err(|error| {
+            service_log(&format!(
+                "failed to load sound pack '{preset_name}': {error:?}"
+            ));
+            (axum::http::StatusCode::BAD_REQUEST, format!("{error:?}"))
+        })?;
+        (
+            preset_name,
+            preset,
+            soundpack_display_name(preset_name).to_string(),
+        )
     };
 
     {
@@ -247,7 +589,9 @@ pub async fn set_soundpack(
         *current = preset;
     }
 
-    service_log(&format!("sound pack set to '{preset_name}' ({display_name})"));
+    service_log(&format!(
+        "sound pack set to '{preset_name}' ({display_name})"
+    ));
     {
         let cache_state = app_state.clone();
         tokio::spawn(async move {
@@ -273,10 +617,11 @@ pub async fn test_event(
     State(app_state): State<Arc<AppState>>,
 ) -> Json<KillEvent> {
     service_log(&format!(
-        "test event requested: kills={kill_count}, audio={}, headshot={}, knife={}, first={}, last={}, main={}",
+        "test event requested: kills={kill_count}, audio={}, headshot={}, knife={}, assist={}, first={}, last={}, main={}",
         query.audio.unwrap_or(false),
         query.headshot.unwrap_or(false),
         query.knife.unwrap_or(false),
+        query.assist.unwrap_or(false),
         query.first.unwrap_or(false),
         query.last.unwrap_or(false),
         query.main.unwrap_or(true)
@@ -288,13 +633,34 @@ pub async fn test_event(
         is_knife_kill: query.knife.unwrap_or(false),
         is_first_kill: query.first.unwrap_or(false),
         is_last_kill: query.last.unwrap_or(false),
-        is_assist: false,
+        is_assist: query.assist.unwrap_or(false),
         play_main_animation: query.main.unwrap_or(true),
         animation_key: query.animation.filter(|value| !value.trim().is_empty()),
+        event_kind: query.event_kind.filter(|value| !value.trim().is_empty()),
         weapon_badge_key: query.weapon_badge.filter(|value| !value.trim().is_empty()),
+        weapon_name: query
+            .weapon_name
+            .filter(|value| !value.trim().is_empty())
+            .or_else(|| Some("AK-47".to_string())),
+        money_reward: query.money_reward.unwrap_or_else(|| {
+            if query.assist.unwrap_or(false) {
+                0
+            } else if query.knife.unwrap_or(false) {
+                1500
+            } else {
+                300
+            }
+        }),
+        round_number: query.round_number.unwrap_or(0),
+        money_epoch: query
+            .money_epoch
+            .unwrap_or_else(|| query.round_number.unwrap_or(0) as u32),
         player_name: query
             .player_name
-            .unwrap_or_else(|| "Test Player".to_string()),
+            .unwrap_or_else(|| "\u{73a9}\u{5bb6}".to_string()),
+        target_name: query
+            .target_name
+            .or_else(|| Some("\u{6050}\u{6016}\u{5206}\u{5b50}".to_string())),
         steamid: query.steamid.unwrap_or_else(|| "test".to_string()),
     };
 
@@ -311,6 +677,9 @@ pub async fn test_event(
                 event_clone.is_first_kill,
                 event_clone.is_knife_kill,
                 event_clone.is_last_kill,
+                event_clone.is_assist,
+                event_clone.money_reward,
+                event_clone.event_kind.clone(),
                 event_clone.play_main_animation,
             )
             .await;
@@ -327,6 +696,13 @@ pub async fn test_event(
 
 fn resolve_soundpack_alias(value: &str) -> Option<&'static str> {
     let normalized = value.trim().to_ascii_lowercase();
+    if let Some(option) = SOUND_PACK_OPTIONS
+        .iter()
+        .find(|option| option.preset.eq_ignore_ascii_case(&normalized))
+    {
+        return Some(option.preset);
+    }
+
     match normalized.as_str() {
         "cf" | "crossfire" | "swatgr" | "swat_gr" | "crossfire_swat_gr" => {
             Some("crossfire_swat_gr")
@@ -359,6 +735,12 @@ fn resolve_soundpack_alias(value: &str) -> Option<&'static str> {
         "heartjudgebl" | "heart_judge_bl" | "judge_bl" | "crossfire_heart_judge_bl" => {
             Some("crossfire_heart_judge_bl")
         }
+        "bf1" | "battlefield1" | "battlefield_1" => Some("bf1"),
+        "bf5" | "battlefield5" | "battlefield_5" => Some("bf5"),
+        "bf4" | "battlefield4" | "battlefield_4" => Some("bf4"),
+        "bf2042" | "battlefield2042" | "battlefield_2042" | "2042" => Some("battlefield2042"),
+        "pubg" | "pubg_elimination" | "pubg_subtitle" => Some("pubg"),
+        "delta" | "df" | "deltaforce" | "delta_force" => Some("deltaforce"),
         _ => None,
     }
 }
@@ -368,6 +750,39 @@ fn soundpack_response(preset_name: &str, display_name: &str) -> SoundPackRespons
         preset: preset_name.to_string(),
         display_name: display_name.to_string(),
         available: SOUND_PACK_OPTIONS.to_vec(),
+    }
+}
+
+fn money_mode_response(mode: MoneyRewardMode) -> MoneyModeResponse {
+    MoneyModeResponse {
+        mode: mode.as_str(),
+        available: MONEY_MODE_OPTIONS.to_vec(),
+    }
+}
+
+fn crossfire_settings_response(app_state: &AppState) -> CrossfireSettingsResponse {
+    CrossfireSettingsResponse {
+        active: app_state.crossfire_mode_active.load(Ordering::Relaxed),
+        streak_mode: CrossfireStreakMode::from_u8(
+            app_state.crossfire_streak_mode.load(Ordering::Relaxed),
+        )
+        .as_str(),
+        first_kill_special_audio: app_state
+            .crossfire_first_kill_special_audio
+            .load(Ordering::Relaxed),
+        last_kill_special_audio: app_state
+            .crossfire_last_kill_special_audio
+            .load(Ordering::Relaxed),
+    }
+}
+
+fn streak_settings_response(app_state: &AppState) -> StreakSettingsResponse {
+    StreakSettingsResponse {
+        active: app_state.shared_streak_mode_active.load(Ordering::Relaxed),
+        streak_mode: CrossfireStreakMode::from_u8(
+            app_state.shared_streak_mode.load(Ordering::Relaxed),
+        )
+        .as_str(),
     }
 }
 

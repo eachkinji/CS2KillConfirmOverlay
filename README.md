@@ -134,13 +134,13 @@ Generated package-ready files are refreshed from `SourceAssets` during the build
 The Rust service is based on the open-source `cskillconfirm` project by st0nie:
 
 ```text
-[https://github.com/st0nie/cskillconfirm](https://github.com/st0nie/cskillconfirm)
+[https://github.com/st0nie/cskillconfirm]
 ```
 
 This project also uses `gsi-cs2-rs`:
 
 ```text
-[https://github.com/st0nie/gsi-cs2-rs](https://github.com/st0nie/gsi-cs2-rs)
+[https://github.com/st0nie/gsi-cs2-rs]
 ```
 
 Additionally, this project incorporates resources and inspiration from the following works:
@@ -148,13 +148,13 @@ Additionally, this project incorporates resources and inspiration from the follo
 **gd656killicon** by MinecraftGD656:
 
 ```text
-[https://github.com/MinecraftGD656/gd656killicon](https://github.com/MinecraftGD656/gd656killicon)
+[https://github.com/MinecraftGD656/gd656killicon]
 ```
 
 **Steam Workshop Item (ID: 2721562982)**:
 
 ```text
-[https://steamcommunity.com/sharedfiles/filedetails/?id=2721562982](https://steamcommunity.com/sharedfiles/filedetails/?id=2721562982)
+[https://steamcommunity.com/sharedfiles/filedetails/?id=2721562982]
 ```
 
 ## License

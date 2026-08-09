@@ -1,4 +1,4 @@
-﻿<Page
+<Page
     x:Class="KillConfirmGameBar.MainPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -166,37 +166,60 @@
         </Canvas>
 
         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Background="Transparent">
-        <Grid Padding="40,30,40,40" RowSpacing="24">
+        <Grid Padding="28,18,28,24" RowSpacing="16">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <StackPanel MaxWidth="1100" HorizontalAlignment="Center" Spacing="10">
-                <TextBlock
-                    x:Name="TitleText"
-                    FontSize="38"
-                    FontWeight="Black"
-                    Foreground="#1B1F31"
-                    CharacterSpacing="60"
-                    TextWrapping="WrapWholeWords"
-                    Text="Kill Confirm Overlay Advanced Settings" />
-                <TextBlock
-                    x:Name="InstructionText"
-                    Style="{StaticResource SettingsCaptionTextStyle}"
-                    FontSize="16"
-                    Foreground="#474B57" />
-                <TextBlock
-                    x:Name="ShortcutText"
-                    Style="{StaticResource SettingsCaptionTextStyle}"
-                    FontSize="14"
-                    TextWrapping="WrapWholeWords"
-                    Foreground="#71737A" />
-            </StackPanel>
+            <!-- Sleek Top Header Bar for 16:9 Widescreen -->
+            <Grid MaxWidth="1160" HorizontalAlignment="Stretch" Padding="4,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="10">
+                    <TextBlock
+                        x:Name="TitleText"
+                        FontSize="22"
+                        FontWeight="Bold"
+                        Foreground="#1B1F31"
+                        Text="Kill Confirm Overlay 控制面板" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Spacing="10">
+                    <TextBlock
+                        x:Name="GameStyleLabelText"
+                        VerticalAlignment="Center"
+                        FontSize="13"
+                        FontWeight="SemiBold"
+                        Foreground="#1B1F31"
+                        Text="当前游戏模式:" />
+                    <ComboBox
+                        x:Name="GameStyleSelector"
+                        Width="210"
+                        Height="32"
+                        Padding="10,2"
+                        FontSize="12"
+                        FontWeight="SemiBold"
+                        CornerRadius="8"
+                        SelectionChanged="OnGameStyleSelectionChanged">
+                        <ComboBoxItem x:Name="CrossfireStyleItem" Tag="crossfire">CrossFire (穿越火线)</ComboBoxItem>
+                        <ComboBoxItem x:Name="ValorantStyleItem" Tag="valorant">Valorant (无畏契约)</ComboBoxItem>
+                        <ComboBoxItem x:Name="Battlefield1StyleItem" Tag="battlefield1">Battlefield 1 (战地1)</ComboBoxItem>
+                        <ComboBoxItem x:Name="Battlefield5StyleItem" Tag="battlefield5">Battlefield V (战地5)</ComboBoxItem>
+                        <ComboBoxItem x:Name="Battlefield4StyleItem" Tag="battlefield4">Battlefield 4 (战地4)</ComboBoxItem>
+                        <ComboBoxItem x:Name="Battlefield2042StyleItem" Tag="battlefield2042">Battlefield 2042 (战地2042)</ComboBoxItem>
+                        <ComboBoxItem x:Name="PubgStyleItem" Tag="pubg">PUBG (绝地求生)</ComboBoxItem>
+                        <ComboBoxItem x:Name="DeltaForceStyleItem" Tag="deltaforce">Delta Force (三角洲行动)</ComboBoxItem>
+                    </ComboBox>
+                </StackPanel>
+            </Grid>
 
             <Grid
                 Grid.Row="1"
-                MaxWidth="1040"
+                MaxWidth="1160"
                 HorizontalAlignment="Center"
                 ColumnSpacing="18">
                 <Grid.ColumnDefinitions>
@@ -206,6 +229,39 @@
 
                 <StackPanel Spacing="14">
                     <ContentControl x:Name="GameAdvancedSettingsPanelHost" />
+
+                    <Border x:Name="GeneralSettingsCard" Style="{StaticResource SettingsSectionCardStyle}">
+                        <StackPanel Spacing="12">
+                            <TextBlock
+                                x:Name="GeneralSettingsTitleText"
+                                Style="{StaticResource SettingsSectionTitleTextStyle}"
+                                FontSize="18"
+                                Text="通用设置" />
+                            <Grid ColumnSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="140" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock
+                                    x:Name="CloseBehaviorLabelText"
+                                    VerticalAlignment="Center"
+                                    FontSize="13"
+                                    FontWeight="SemiBold"
+                                    Text="关闭主窗口时:" />
+                                <ComboBox
+                                    x:Name="CloseBehaviorSelector"
+                                    Grid.Column="1"
+                                    Height="32"
+                                    Padding="10,2"
+                                    FontSize="12"
+                                    CornerRadius="8"
+                                    SelectionChanged="OnCloseBehaviorSelectionChanged">
+                                    <ComboBoxItem x:Name="CloseWindowTrayItem" Tag="tray">缩小到系统托盘 / 后台运行</ComboBoxItem>
+                                    <ComboBoxItem x:Name="CloseWindowExitItem" Tag="exit">直接退出程序</ComboBoxItem>
+                                </ComboBox>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
 
                     <Border x:Name="VoicePackCollectionsCard" Style="{StaticResource SettingsSectionCardStyle}">
                         <StackPanel Spacing="14">

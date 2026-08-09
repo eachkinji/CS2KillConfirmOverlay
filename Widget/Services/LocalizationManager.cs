@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Windows.Globalization;
 using Windows.Storage;
@@ -18,7 +18,7 @@ namespace KillConfirmGameBar.Services
 
         private static readonly Dictionary<string, string> English = new Dictionary<string, string>
         {
-            ["MainTitle"] = "Kill Confirm Overlay Advanced Settings",
+            ["MainTitle"] = "Kill Confirm Overlay 控制面板",
             ["MainInstruction"] = "Use this advanced settings page to set up the Xbox Game Bar widget before playing.",
             ["MainShortcut"] = "Tip: press Win+G to open Xbox Game Bar. Open Kill Confirm Overlay from the widget menu.",
             ["GuideSetupTitle"] = "Quick setup",
@@ -43,7 +43,7 @@ namespace KillConfirmGameBar.Services
             ["AdvancedEffectsTitle"] = "Advanced Effects",
             ["AdvancedEffectsHint"] = "Kill FX, elite icons, weapon badges, and animation style are here.",
             ["ValorantEffectsTitle"] = "VAL Effects",
-            ["ValorantEffectsHint"] = "VAL effects follow the selected icon pack. CF elite, weapon, and animation options do not apply.",
+            ["ValorantEffectsHint"] = "",
             ["ProxyPortHint"] = "No sound? Check port conflicts and turn off Clash or other system proxies.",
             ["NeedBothLights"] = "Need both green lights before playing",
             ["ReadyBothLights"] = "Ready: service + CFG are green",
@@ -373,7 +373,7 @@ namespace KillConfirmGameBar.Services
 
         private static readonly Dictionary<string, string> Chinese = new Dictionary<string, string>
         {
-            ["MainTitle"] = "\u51fb\u6740\u786e\u8ba4\u60ac\u6d6e\u7a97\u9ad8\u7ea7\u8bbe\u7f6e",
+            ["MainTitle"] = "Kill Confirm Overlay 控制面板",
             ["MainInstruction"] = "\u5f00\u59cb\u6e38\u620f\u524d\uff0c\u5728\u8fd9\u4e2a\u9ad8\u7ea7\u8bbe\u7f6e\u9875\u91cc\u5b8c\u6210 Xbox Game Bar \u5c0f\u7ec4\u4ef6\u914d\u7f6e\u3002",
             ["MainShortcut"] = "\u63d0\u793a\uff1a\u6309 Win+G \u6253\u5f00 Xbox Game Bar\uff0c\u7136\u540e\u4ece\u5c0f\u7ec4\u4ef6\u83dc\u5355\u6253\u5f00 Kill Confirm Overlay\u3002",
             ["GuideSetupTitle"] = "\u5feb\u901f\u8bbe\u7f6e",
@@ -398,7 +398,7 @@ namespace KillConfirmGameBar.Services
             ["AdvancedEffectsTitle"] = "\u9ad8\u7ea7\u7279\u6548",
             ["AdvancedEffectsHint"] = "\u51fb\u6740\u7279\u6548\u3001\u7cbe\u82f1\u56fe\u6807\u3001\u6b66\u5668\u5fbd\u7ae0\u548c\u52a8\u753b\u6837\u5f0f\u96c6\u4e2d\u5728\u8fd9\u91cc\u3002",
             ["ValorantEffectsTitle"] = "VAL \u7279\u6548",
-            ["ValorantEffectsHint"] = "VAL \u7279\u6548\u7531\u5f53\u524d\u56fe\u6807\u5305\u51b3\u5b9a\uff0cCF \u7684\u7cbe\u82f1\u3001\u6b66\u5668\u548c\u52a8\u753b\u9009\u9879\u4e0d\u53c2\u4e0e\u3002",
+            ["ValorantEffectsHint"] = "",
             ["ProxyPortHint"] = "\u5982\u679c\u6ca1\u6709\u58f0\u97f3\uff0c\u53ef\u80fd\u662f\u7aef\u53e3\u51b2\u7a81\uff0c\u8bf7\u6ce8\u610f Clash \u7b49\u4ee3\u7406\u8f6f\u4ef6\u3002",
             ["NeedBothLights"] = "\u5f00\u59cb\u6e38\u620f\u524d\u9700\u8981\u4e24\u76cf\u706f\u90fd\u53d8\u7eff",
             ["ReadyBothLights"] = "\u5df2\u5c31\u7eea\uff1a\u670d\u52a1\u548c CFG \u90fd\u662f\u7eff\u8272",

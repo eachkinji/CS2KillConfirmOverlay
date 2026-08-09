@@ -20,19 +20,9 @@
                 x:Name="BodyText"
                 FontSize="13"
                 LineHeight="18"
-                Text="PUBG uses a separate pubg sound pack, elimination text renderer, and pubg-only resource folder."
+                Visibility="Collapsed"
                 TextWrapping="WrapWholeWords" />
-            <StackPanel Orientation="Horizontal" Spacing="8">
-                <Border x:Name="AssetTag" Padding="8,4" BorderThickness="1" CornerRadius="12">
-                    <TextBlock x:Name="AssetTagText" FontSize="11" FontWeight="SemiBold" Text="pubg assets" />
-                </Border>
-                <Border x:Name="HudTag" Padding="8,4" BorderThickness="1" CornerRadius="12">
-                    <TextBlock x:Name="HudTagText" FontSize="11" FontWeight="SemiBold" Text="Elimination text" />
-                </Border>
-                <Border x:Name="ImportLockTag" Padding="8,4" BorderThickness="1" CornerRadius="12">
-                    <TextBlock x:Name="ImportLockTagText" FontSize="11" FontWeight="SemiBold" Text="No file import" />
-                </Border>
-            </StackPanel>
+
             <Grid Margin="0,8,0,0" ColumnSpacing="12">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="150" />

@@ -55,6 +55,8 @@ Type: filesandordirs; Name: "{app}\Payload"
 Source: "{#TransferRoot}\*"; DestDir: "{app}\Payload"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
+Name: "{autodesktop}\Kill Confirm Overlay 控制面板"; Filename: "explorer.exe"; Parameters: "shell:AppsFolder\KillConfirmGameBar.Overlay_4t2qzenbgqd14!App"
+Name: "{group}\Kill Confirm Overlay 控制面板"; Filename: "explorer.exe"; Parameters: "shell:AppsFolder\KillConfirmGameBar.Overlay_4t2qzenbgqd14!App"
 Name: "{group}\{cm:OpenXboxGameBar}"; Filename: "explorer.exe"; Parameters: "ms-gamebar:"
 
 [UninstallRun]

@@ -9,6 +9,7 @@
         Background="#1E2C36"
         BorderBrush="#F28F32"
         BorderThickness="1"
+        Visibility="Collapsed"
         CornerRadius="12">
         <StackPanel Spacing="3">
             <TextBlock

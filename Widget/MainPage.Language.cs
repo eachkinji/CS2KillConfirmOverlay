@@ -8,8 +8,6 @@ namespace KillConfirmGameBar
         private void ApplyLanguage()
         {
             TitleText.Text = LocalizationManager.Text("MainTitle");
-            InstructionText.Text = LocalizationManager.Text("MainInstruction");
-            ShortcutText.Text = LocalizationManager.Text("MainShortcut");
 
             VoiceCollectionsTitleText.Text = LocalizationManager.Text("VoiceCollectionsTitle");
             VoiceCollectionsHintText.Text = LocalizationManager.Text("VoiceCollectionsHint");

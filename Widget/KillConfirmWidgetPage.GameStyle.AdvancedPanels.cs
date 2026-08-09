@@ -20,16 +20,12 @@ namespace KillConfirmGameBar
         {
             get
             {
-                if (AdvancedEffectsPanelHost?.Content == _battlefield1AdvancedEffectsPanel)
-                {
-                    return _battlefield1AdvancedEffectsPanel?.MoneyRewardModeSelectorControl;
-                }
-
-                if (AdvancedEffectsPanelHost?.Content == _battlefield5AdvancedEffectsPanel)
-                {
-                    return _battlefield5AdvancedEffectsPanel?.MoneyRewardModeSelectorControl;
-                }
-
+                if (AdvancedEffectsPanelHost?.Content == _battlefield1AdvancedEffectsPanel) return _battlefield1AdvancedEffectsPanel?.MoneyRewardModeSelectorControl;
+                if (AdvancedEffectsPanelHost?.Content == _battlefield5AdvancedEffectsPanel) return _battlefield5AdvancedEffectsPanel?.MoneyRewardModeSelectorControl;
+                if (AdvancedEffectsPanelHost?.Content == _battlefield4AdvancedEffectsPanel) return _battlefield4AdvancedEffectsPanel?.MoneyRewardModeSelectorControl;
+                if (AdvancedEffectsPanelHost?.Content == _battlefield2042AdvancedEffectsPanel) return _battlefield2042AdvancedEffectsPanel?.MoneyRewardModeSelectorControl;
+                if (AdvancedEffectsPanelHost?.Content == _deltaForceAdvancedEffectsPanel) return _deltaForceAdvancedEffectsPanel?.MoneyRewardModeSelectorControl;
+                if (AdvancedEffectsPanelHost?.Content == _pubgAdvancedEffectsPanel) return _pubgAdvancedEffectsPanel?.MoneyRewardModeSelectorControl;
                 return null;
             }
         }
@@ -38,16 +34,12 @@ namespace KillConfirmGameBar
         {
             get
             {
-                if (AdvancedEffectsPanelHost?.Content == _battlefield1AdvancedEffectsPanel)
-                {
-                    return _battlefield1AdvancedEffectsPanel?.MoneyRewardModeLabelControl;
-                }
-
-                if (AdvancedEffectsPanelHost?.Content == _battlefield5AdvancedEffectsPanel)
-                {
-                    return _battlefield5AdvancedEffectsPanel?.MoneyRewardModeLabelControl;
-                }
-
+                if (AdvancedEffectsPanelHost?.Content == _battlefield1AdvancedEffectsPanel) return _battlefield1AdvancedEffectsPanel?.MoneyRewardModeLabelControl;
+                if (AdvancedEffectsPanelHost?.Content == _battlefield5AdvancedEffectsPanel) return _battlefield5AdvancedEffectsPanel?.MoneyRewardModeLabelControl;
+                if (AdvancedEffectsPanelHost?.Content == _battlefield4AdvancedEffectsPanel) return _battlefield4AdvancedEffectsPanel?.MoneyRewardModeLabelControl;
+                if (AdvancedEffectsPanelHost?.Content == _battlefield2042AdvancedEffectsPanel) return _battlefield2042AdvancedEffectsPanel?.MoneyRewardModeLabelControl;
+                if (AdvancedEffectsPanelHost?.Content == _deltaForceAdvancedEffectsPanel) return _deltaForceAdvancedEffectsPanel?.MoneyRewardModeLabelControl;
+                if (AdvancedEffectsPanelHost?.Content == _pubgAdvancedEffectsPanel) return _pubgAdvancedEffectsPanel?.MoneyRewardModeLabelControl;
                 return null;
             }
         }
@@ -56,16 +48,12 @@ namespace KillConfirmGameBar
         {
             get
             {
-                if (AdvancedEffectsPanelHost?.Content == _battlefield1AdvancedEffectsPanel)
-                {
-                    return _battlefield1AdvancedEffectsPanel?.MoneyRewardDeltaItemControl;
-                }
-
-                if (AdvancedEffectsPanelHost?.Content == _battlefield5AdvancedEffectsPanel)
-                {
-                    return _battlefield5AdvancedEffectsPanel?.MoneyRewardDeltaItemControl;
-                }
-
+                if (AdvancedEffectsPanelHost?.Content == _battlefield1AdvancedEffectsPanel) return _battlefield1AdvancedEffectsPanel?.MoneyRewardDeltaItemControl;
+                if (AdvancedEffectsPanelHost?.Content == _battlefield5AdvancedEffectsPanel) return _battlefield5AdvancedEffectsPanel?.MoneyRewardDeltaItemControl;
+                if (AdvancedEffectsPanelHost?.Content == _battlefield4AdvancedEffectsPanel) return _battlefield4AdvancedEffectsPanel?.MoneyRewardDeltaItemControl;
+                if (AdvancedEffectsPanelHost?.Content == _battlefield2042AdvancedEffectsPanel) return _battlefield2042AdvancedEffectsPanel?.MoneyRewardDeltaItemControl;
+                if (AdvancedEffectsPanelHost?.Content == _deltaForceAdvancedEffectsPanel) return _deltaForceAdvancedEffectsPanel?.MoneyRewardDeltaItemControl;
+                if (AdvancedEffectsPanelHost?.Content == _pubgAdvancedEffectsPanel) return _pubgAdvancedEffectsPanel?.MoneyRewardDeltaItemControl;
                 return null;
             }
         }
@@ -74,16 +62,12 @@ namespace KillConfirmGameBar
         {
             get
             {
-                if (AdvancedEffectsPanelHost?.Content == _battlefield1AdvancedEffectsPanel)
-                {
-                    return _battlefield1AdvancedEffectsPanel?.MoneyRewardRulesItemControl;
-                }
-
-                if (AdvancedEffectsPanelHost?.Content == _battlefield5AdvancedEffectsPanel)
-                {
-                    return _battlefield5AdvancedEffectsPanel?.MoneyRewardRulesItemControl;
-                }
-
+                if (AdvancedEffectsPanelHost?.Content == _battlefield1AdvancedEffectsPanel) return _battlefield1AdvancedEffectsPanel?.MoneyRewardRulesItemControl;
+                if (AdvancedEffectsPanelHost?.Content == _battlefield5AdvancedEffectsPanel) return _battlefield5AdvancedEffectsPanel?.MoneyRewardRulesItemControl;
+                if (AdvancedEffectsPanelHost?.Content == _battlefield4AdvancedEffectsPanel) return _battlefield4AdvancedEffectsPanel?.MoneyRewardRulesItemControl;
+                if (AdvancedEffectsPanelHost?.Content == _battlefield2042AdvancedEffectsPanel) return _battlefield2042AdvancedEffectsPanel?.MoneyRewardRulesItemControl;
+                if (AdvancedEffectsPanelHost?.Content == _deltaForceAdvancedEffectsPanel) return _deltaForceAdvancedEffectsPanel?.MoneyRewardRulesItemControl;
+                if (AdvancedEffectsPanelHost?.Content == _pubgAdvancedEffectsPanel) return _pubgAdvancedEffectsPanel?.MoneyRewardRulesItemControl;
                 return null;
             }
         }

@@ -20,16 +20,9 @@
                 x:Name="BodyText"
                 FontSize="13"
                 LineHeight="18"
-                Text="VAL uses Valorant resource packs and Valorant animation files only. CF elite/weapon settings and Battlefield money reward modes are excluded."
+                Visibility="Collapsed"
                 TextWrapping="WrapWholeWords" />
-            <StackPanel Orientation="Horizontal" Spacing="8">
-                <Border x:Name="PackTag" Padding="8,4" BorderThickness="1" CornerRadius="12">
-                    <TextBlock x:Name="PackTagText" FontSize="11" FontWeight="SemiBold" Text="VAL packs" />
-                </Border>
-                <Border x:Name="NoMoneyTag" Padding="8,4" BorderThickness="1" CornerRadius="12">
-                    <TextBlock x:Name="NoMoneyTagText" FontSize="11" FontWeight="SemiBold" Text="No money mode" />
-                </Border>
-            </StackPanel>
+
             <Grid Margin="0,8,0,0" ColumnSpacing="12">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="150" />

@@ -17,13 +17,13 @@ namespace KillConfirmGameBar.Controls.GameStyles
         public ComboBoxItem MoneyRewardDeltaItemControl => MoneyRewardDeltaItem;
         public ComboBoxItem MoneyRewardRulesItemControl => MoneyRewardRulesItem;
         public TextBlock MoneyRewardModeLabelControl => MoneyRewardModeLabel;
-        public ComboBox StreakModeSelectorControl => StreakModeSelector;
+        public ComboBox StreakModeSelectorControl => StreakEditor.SelectorControl;
 
         internal void ApplyTheme(GameThemePalette theme)
         {
             AdvancedEffectsPanelSupport.ApplyHeader(TitleText, HintText, theme);
             AdvancedEffectsPanelSupport.ApplyMoneyRow(MoneyRewardModeLabel, MoneyRewardModeSelector, theme);
-            AdvancedEffectsPanelSupport.ApplyMoneyRow(StreakModeLabel, StreakModeSelector, theme);
+            StreakEditor.ApplyTheme(theme);
             AdvancedEffectsPanelSupport.ApplyNotice(ImportLockedNotice, ImportLockedText, theme);
             StylePanel.ApplyTheme(theme);
         }
@@ -34,13 +34,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
             MoneyRewardModeLabel.Text = isChinese ? "奖励算法" : "Money";
             MoneyRewardDeltaItem.Content = isChinese ? "GSI 差值校验（实验）" : "GSI delta validation (experimental)";
             MoneyRewardRulesItem.Content = isChinese ? "击杀奖励规则（推荐）" : "Kill reward rules (recommended)";
-            SharedStreakSettingsStore.ApplyLanguage(
-                StreakModeLabel,
-                StreakLifeItem,
-                StreakTimed5Item,
-                StreakTimed10Item,
-                StreakTimed15Item,
-                isChinese);
+            StreakEditor.ApplyLanguage(isChinese);
             StylePanel.ApplyLanguage(isChinese);
         }
 
@@ -56,12 +50,12 @@ namespace KillConfirmGameBar.Controls.GameStyles
 
         public string GetSelectedStreakMode(string fallback)
         {
-            return SharedStreakSettingsStore.Read(StreakModeSelector, fallback);
+            return StreakEditor.GetValue(fallback);
         }
 
         public void SelectStreakMode(string value)
         {
-            SharedStreakSettingsStore.Select(StreakModeSelector, value);
+            StreakEditor.SelectValue(value);
         }
 
         private void OnMoneyRewardModeSelectionChanged(object sender, SelectionChangedEventArgs e)

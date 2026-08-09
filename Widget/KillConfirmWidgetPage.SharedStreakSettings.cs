@@ -18,13 +18,14 @@ namespace KillConfirmGameBar
             }
 
             GameStyleMode style = GameStyleService.Current;
-            ComboBox selector = GetSharedStreakModeSelector(style);
-            if (!SharedStreakSettingsStore.IsSupported(style) || selector == null)
+            if (!SharedStreakSettingsStore.IsSupported(style))
             {
                 return;
             }
 
-            SharedStreakSettingsStore.Save(style, SharedStreakSettingsStore.Read(selector));
+            SharedStreakSettingsStore.Save(
+                style,
+                ReadSharedStreakMode(style, SharedStreakSettingsStore.LifeMode));
             try
             {
                 await EnsureServiceAvailableAsync();
@@ -35,9 +36,9 @@ namespace KillConfirmGameBar
             }
         }
 
-        private void LoadSharedStreakMode(GameStyleMode style, ComboBox selector)
+        private void LoadSharedStreakMode(GameStyleMode style)
         {
-            if (selector == null)
+            if (!SharedStreakSettingsStore.IsSupported(style))
             {
                 return;
             }
@@ -45,7 +46,7 @@ namespace KillConfirmGameBar
             _suppressSharedStreakModeEvents = true;
             try
             {
-                SharedStreakSettingsStore.Select(selector, SharedStreakSettingsStore.Load(style));
+                SelectSharedStreakMode(style, SharedStreakSettingsStore.Load(style));
             }
             finally
             {
@@ -53,18 +54,54 @@ namespace KillConfirmGameBar
             }
         }
 
-        private ComboBox GetSharedStreakModeSelector(GameStyleMode style)
+        private string ReadSharedStreakMode(GameStyleMode style, string fallback)
         {
             switch (style)
             {
-                case GameStyleMode.Battlefield1:
-                    return _battlefield1AdvancedEffectsPanel?.StreakModeSelectorControl;
-                case GameStyleMode.Pubg:
-                    return _pubgAdvancedEffectsPanel?.StreakModeSelectorControl;
                 case GameStyleMode.Valorant:
-                    return _valorantAdvancedEffectsPanel?.StreakModeSelectorControl;
+                    return _valorantAdvancedEffectsPanel?.GetSelectedStreakMode(fallback) ?? fallback;
+                case GameStyleMode.Battlefield1:
+                    return _battlefield1AdvancedEffectsPanel?.GetSelectedStreakMode(fallback) ?? fallback;
+                case GameStyleMode.Battlefield5:
+                    return _battlefield5AdvancedEffectsPanel?.GetSelectedStreakMode(fallback) ?? fallback;
+                case GameStyleMode.Battlefield4:
+                    return _battlefield4AdvancedEffectsPanel?.GetSelectedStreakMode(fallback) ?? fallback;
+                case GameStyleMode.Battlefield2042:
+                    return _battlefield2042AdvancedEffectsPanel?.GetSelectedStreakMode(fallback) ?? fallback;
+                case GameStyleMode.Pubg:
+                    return _pubgAdvancedEffectsPanel?.GetSelectedStreakMode(fallback) ?? fallback;
+                case GameStyleMode.DeltaForce:
+                    return _deltaForceAdvancedEffectsPanel?.GetSelectedStreakMode(fallback) ?? fallback;
                 default:
-                    return null;
+                    return fallback;
+            }
+        }
+
+        private void SelectSharedStreakMode(GameStyleMode style, string value)
+        {
+            switch (style)
+            {
+                case GameStyleMode.Valorant:
+                    _valorantAdvancedEffectsPanel?.SelectStreakMode(value);
+                    break;
+                case GameStyleMode.Battlefield1:
+                    _battlefield1AdvancedEffectsPanel?.SelectStreakMode(value);
+                    break;
+                case GameStyleMode.Battlefield5:
+                    _battlefield5AdvancedEffectsPanel?.SelectStreakMode(value);
+                    break;
+                case GameStyleMode.Battlefield4:
+                    _battlefield4AdvancedEffectsPanel?.SelectStreakMode(value);
+                    break;
+                case GameStyleMode.Battlefield2042:
+                    _battlefield2042AdvancedEffectsPanel?.SelectStreakMode(value);
+                    break;
+                case GameStyleMode.Pubg:
+                    _pubgAdvancedEffectsPanel?.SelectStreakMode(value);
+                    break;
+                case GameStyleMode.DeltaForce:
+                    _deltaForceAdvancedEffectsPanel?.SelectStreakMode(value);
+                    break;
             }
         }
 
@@ -72,11 +109,12 @@ namespace KillConfirmGameBar
         {
             GameStyleMode style = GameStyleService.Current;
             bool active = SharedStreakSettingsStore.IsSupported(style);
-            string mode = active ? SharedStreakSettingsStore.Load(style) : SharedStreakSettingsStore.LifeMode;
-            ComboBox selector = active ? GetSharedStreakModeSelector(style) : null;
-            if (selector != null)
+            string mode = active
+                ? SharedStreakSettingsStore.Load(style)
+                : SharedStreakSettingsStore.LifeMode;
+            if (active)
             {
-                mode = SharedStreakSettingsStore.Read(selector, mode);
+                mode = ReadSharedStreakMode(style, mode);
                 SharedStreakSettingsStore.Save(style, mode);
             }
 

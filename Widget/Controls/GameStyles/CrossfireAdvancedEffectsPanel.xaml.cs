@@ -15,7 +15,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
         public event SelectionChangedEventHandler FirstKillAudioSelectionChanged;
         public event SelectionChangedEventHandler LastKillAudioSelectionChanged;
 
-        public ComboBox StreakModeSelectorControl => StreakModeSelector;
+        public ComboBox StreakModeSelectorControl => StreakEditor.SelectorControl;
         public ComboBox FirstKillAudioSelectorControl => FirstKillAudioSelector;
         public ComboBox LastKillAudioSelectorControl => LastKillAudioSelector;
 
@@ -27,7 +27,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
         internal void ApplyTheme(GameThemePalette theme)
         {
             AdvancedEffectsPanelSupport.ApplyHeader(TitleText, HintText, theme);
-            AdvancedEffectsPanelSupport.ApplyMoneyRow(StreakModeLabel, StreakModeSelector, theme);
+            StreakEditor.ApplyTheme(theme);
             AdvancedEffectsPanelSupport.ApplyMoneyRow(FirstKillAudioLabel, FirstKillAudioSelector, theme);
             AdvancedEffectsPanelSupport.ApplyMoneyRow(LastKillAudioLabel, LastKillAudioSelector, theme);
         }
@@ -38,11 +38,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
             HintText.Text = isChinese
                 ? "CF \u7684\u8fde\u6740\u8ba1\u6570\u3001\u9996\u5c3e\u6740\u8bed\u97f3\u548c\u51fb\u6740\u7279\u6548\u90fd\u5728\u8fd9\u91cc\u5355\u72ec\u8bbe\u7f6e\u3002"
                 : "CrossFire kill streaks, first/last-kill audio, and kill effects are configured here.";
-            StreakModeLabel.Text = isChinese ? "\u8fde\u6740\u8ba1\u7b97" : "Kill streak";
-            StreakLifeItem.Content = isChinese ? "\u6b7b\u4ea1\u524d\u6301\u7eed\u7d2f\u8ba1" : "Until death";
-            StreakTimed5Item.Content = isChinese ? "5 \u79d2\u8fde\u6740\u7a97\u53e3" : "5-second window";
-            StreakTimed10Item.Content = isChinese ? "10 \u79d2\u8fde\u6740\u7a97\u53e3" : "10-second window";
-            StreakTimed15Item.Content = isChinese ? "15 \u79d2\u8fde\u6740\u7a97\u53e3" : "15-second window";
+            StreakEditor.ApplyLanguage(isChinese);
             FirstKillAudioLabel.Text = isChinese ? "\u9996\u6740\u8bed\u97f3" : "First-kill audio";
             LastKillAudioLabel.Text = isChinese ? "\u5c3e\u6740\u8bed\u97f3" : "Last-kill audio";
             FirstKillSpecialItem.Content = isChinese ? "\u7279\u6b8a\u97f3\u6548" : "Special audio";
@@ -53,7 +49,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
 
         public string GetSelectedStreakMode(string fallback)
         {
-            return ReadTaggedItem(StreakModeSelector, fallback);
+            return StreakEditor.GetValue(fallback);
         }
 
         public bool GetFirstKillSpecialAudio(bool fallback)
@@ -68,7 +64,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
 
         public void SelectSettings(string streakMode, bool firstSpecial, bool lastSpecial)
         {
-            SelectTaggedItem(StreakModeSelector, streakMode, "life");
+            StreakEditor.SelectValue(streakMode);
             SelectTaggedItem(FirstKillAudioSelector, firstSpecial ? "special" : "original", "special");
             SelectTaggedItem(LastKillAudioSelector, lastSpecial ? "special" : "original", "special");
         }

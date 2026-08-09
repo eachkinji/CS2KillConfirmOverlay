@@ -24,7 +24,10 @@ use crate::soundpack::sound::{play_audio, warm_audio_cache};
 use crate::util::logging::service_log;
 use crate::util::playback::get_output_stream_with_name;
 
-use super::state::{AppState, CrossfireStreakMode, KillEvent, MoneyRewardMode};
+use super::state::{
+    AppState, CrossfireStreakMode, KillEvent, MoneyRewardMode, format_streak_setting,
+    parse_streak_setting,
+};
 
 #[derive(Debug, Deserialize)]
 pub struct TestEventQuery {
@@ -109,7 +112,7 @@ pub struct MoneyModeResponse {
 #[derive(Debug, Serialize)]
 pub struct CrossfireSettingsResponse {
     pub active: bool,
-    pub streak_mode: &'static str,
+    pub streak_mode: String,
     pub first_kill_special_audio: bool,
     pub last_kill_special_audio: bool,
 }
@@ -117,7 +120,7 @@ pub struct CrossfireSettingsResponse {
 #[derive(Debug, Serialize)]
 pub struct StreakSettingsResponse {
     pub active: bool,
-    pub streak_mode: &'static str,
+    pub streak_mode: String,
 }
 
 #[derive(Debug, Serialize)]
@@ -440,16 +443,20 @@ pub async fn set_crossfire_settings(
     State(app_state): State<Arc<AppState>>,
     Json(request): Json<CrossfireSettingsRequest>,
 ) -> Result<Json<CrossfireSettingsResponse>, (axum::http::StatusCode, String)> {
-    let streak_mode = CrossfireStreakMode::from_str(&request.streak_mode).ok_or_else(|| {
-        (
-            axum::http::StatusCode::BAD_REQUEST,
-            "unsupported CrossFire streak mode".to_string(),
-        )
-    })?;
+    let (streak_mode, streak_window_ms) =
+        parse_streak_setting(&request.streak_mode).ok_or_else(|| {
+            (
+                axum::http::StatusCode::BAD_REQUEST,
+                "unsupported CrossFire streak mode".to_string(),
+            )
+        })?;
 
     let previous_mode = app_state
         .crossfire_streak_mode
         .swap(streak_mode.as_u8(), Ordering::Relaxed);
+    let previous_window_ms = app_state
+        .crossfire_streak_window_ms
+        .swap(streak_window_ms, Ordering::Relaxed);
     let previous_active = app_state
         .crossfire_mode_active
         .swap(request.active, Ordering::Relaxed);
@@ -468,6 +475,7 @@ pub async fn set_crossfire_settings(
         .store(request.last_kill_special_audio, Ordering::Relaxed);
 
     if previous_mode != streak_mode.as_u8()
+        || previous_window_ms != streak_window_ms
         || previous_active != request.active
         || (request.active && previous_shared_active)
     {
@@ -479,7 +487,7 @@ pub async fn set_crossfire_settings(
     service_log(&format!(
         "CrossFire settings: active={}, streak={}, first_special={}, last_special={}",
         request.active,
-        streak_mode.as_str(),
+        format_streak_setting(streak_mode, streak_window_ms),
         request.first_kill_special_audio,
         request.last_kill_special_audio
     ));
@@ -497,16 +505,20 @@ pub async fn set_streak_settings(
     State(app_state): State<Arc<AppState>>,
     Json(request): Json<StreakSettingsRequest>,
 ) -> Result<Json<StreakSettingsResponse>, (axum::http::StatusCode, String)> {
-    let streak_mode = CrossfireStreakMode::from_str(&request.streak_mode).ok_or_else(|| {
-        (
-            axum::http::StatusCode::BAD_REQUEST,
-            "unsupported kill streak mode".to_string(),
-        )
-    })?;
+    let (streak_mode, streak_window_ms) =
+        parse_streak_setting(&request.streak_mode).ok_or_else(|| {
+            (
+                axum::http::StatusCode::BAD_REQUEST,
+                "unsupported kill streak mode".to_string(),
+            )
+        })?;
 
     let previous_mode = app_state
         .shared_streak_mode
         .swap(streak_mode.as_u8(), Ordering::Relaxed);
+    let previous_window_ms = app_state
+        .shared_streak_window_ms
+        .swap(streak_window_ms, Ordering::Relaxed);
     let previous_active = app_state
         .shared_streak_mode_active
         .swap(request.active, Ordering::Relaxed);
@@ -519,6 +531,7 @@ pub async fn set_streak_settings(
     };
 
     if previous_mode != streak_mode.as_u8()
+        || previous_window_ms != streak_window_ms
         || previous_active != request.active
         || (request.active && previous_crossfire_active)
     {
@@ -530,7 +543,7 @@ pub async fn set_streak_settings(
     service_log(&format!(
         "shared streak settings: active={}, streak={}",
         request.active,
-        streak_mode.as_str()
+        format_streak_setting(streak_mode, streak_window_ms)
     ));
 
     Ok(Json(streak_settings_response(&app_state)))
@@ -761,12 +774,14 @@ fn money_mode_response(mode: MoneyRewardMode) -> MoneyModeResponse {
 }
 
 fn crossfire_settings_response(app_state: &AppState) -> CrossfireSettingsResponse {
+    let mode =
+        CrossfireStreakMode::from_u8(app_state.crossfire_streak_mode.load(Ordering::Relaxed));
     CrossfireSettingsResponse {
         active: app_state.crossfire_mode_active.load(Ordering::Relaxed),
-        streak_mode: CrossfireStreakMode::from_u8(
-            app_state.crossfire_streak_mode.load(Ordering::Relaxed),
-        )
-        .as_str(),
+        streak_mode: format_streak_setting(
+            mode,
+            app_state.crossfire_streak_window_ms.load(Ordering::Relaxed),
+        ),
         first_kill_special_audio: app_state
             .crossfire_first_kill_special_audio
             .load(Ordering::Relaxed),
@@ -777,12 +792,13 @@ fn crossfire_settings_response(app_state: &AppState) -> CrossfireSettingsRespons
 }
 
 fn streak_settings_response(app_state: &AppState) -> StreakSettingsResponse {
+    let mode = CrossfireStreakMode::from_u8(app_state.shared_streak_mode.load(Ordering::Relaxed));
     StreakSettingsResponse {
         active: app_state.shared_streak_mode_active.load(Ordering::Relaxed),
-        streak_mode: CrossfireStreakMode::from_u8(
-            app_state.shared_streak_mode.load(Ordering::Relaxed),
-        )
-        .as_str(),
+        streak_mode: format_streak_setting(
+            mode,
+            app_state.shared_streak_window_ms.load(Ordering::Relaxed),
+        ),
     }
 }
 

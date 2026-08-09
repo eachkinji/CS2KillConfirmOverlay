@@ -309,14 +309,21 @@ pub async fn update(
         MoneyRewardMode::from_u8(app_state.money_reward_mode.load(Ordering::Relaxed));
     let crossfire_streak_mode =
         CrossfireStreakMode::from_u8(app_state.crossfire_streak_mode.load(Ordering::Relaxed));
+    let crossfire_streak_window_ms = app_state.crossfire_streak_window_ms.load(Ordering::Relaxed);
     let crossfire_mode_active = app_state.crossfire_mode_active.load(Ordering::Relaxed);
     let shared_streak_mode =
         CrossfireStreakMode::from_u8(app_state.shared_streak_mode.load(Ordering::Relaxed));
+    let shared_streak_window_ms = app_state.shared_streak_window_ms.load(Ordering::Relaxed);
     let shared_streak_mode_active = app_state.shared_streak_mode_active.load(Ordering::Relaxed);
     let active_streak_mode = if shared_streak_mode_active {
         shared_streak_mode
     } else {
         crossfire_streak_mode
+    };
+    let active_streak_window_ms = if shared_streak_mode_active {
+        shared_streak_window_ms
+    } else {
+        crossfire_streak_window_ms
     };
     let streak_mode_active = crossfire_mode_active || shared_streak_mode_active;
 
@@ -372,6 +379,7 @@ pub async fn update(
         previous_crossfire_streak_kills,
         crossfire_elapsed,
         active_streak_mode,
+        active_streak_window_ms,
         round_reset || !player_identity_matches,
         crossfire_kill_delta,
     );
@@ -868,11 +876,17 @@ fn resolve_crossfire_streak_count(
     previous_count: u16,
     elapsed_since_last_kill: Option<Duration>,
     mode: CrossfireStreakMode,
+    custom_window_ms: u64,
     reset_before_kill: bool,
     kill_delta: u16,
 ) -> u16 {
+    if mode == CrossfireStreakMode::None {
+        return kill_delta;
+    }
+
     let timeout = match mode {
-        CrossfireStreakMode::Life => None,
+        CrossfireStreakMode::None | CrossfireStreakMode::Life => None,
+        CrossfireStreakMode::Custom => Some(Duration::from_millis(custom_window_ms)),
         CrossfireStreakMode::Timed5 => Some(Duration::from_secs(5)),
         CrossfireStreakMode::Timed10 => Some(Duration::from_secs(10)),
         CrossfireStreakMode::Timed15 => Some(Duration::from_secs(15)),
@@ -895,9 +909,7 @@ fn resolve_crossfire_streak_count(
 
 #[cfg(test)]
 mod tests {
-    use super::{
-        CrossfireStreakMode, opponent_team_display_name, resolve_crossfire_streak_count,
-    };
+    use super::{CrossfireStreakMode, opponent_team_display_name, resolve_crossfire_streak_count};
     use gsi_cs2::team::TeamClass;
     use std::time::Duration;
 
@@ -908,6 +920,7 @@ mod tests {
                 1,
                 Some(Duration::from_secs(120)),
                 CrossfireStreakMode::Life,
+                1_000,
                 false,
                 1,
             ),
@@ -927,6 +940,7 @@ mod tests {
                     1,
                     Some(Duration::from_secs(seconds)),
                     mode,
+                    1_000,
                     false,
                     1,
                 ),
@@ -948,6 +962,7 @@ mod tests {
                     1,
                     Some(Duration::from_secs(seconds - 1)),
                     mode,
+                    1_000,
                     false,
                     1,
                 ),
@@ -958,12 +973,54 @@ mod tests {
     }
 
     #[test]
+    fn custom_subsecond_window_resets_after_the_configured_delay() {
+        assert_eq!(
+            resolve_crossfire_streak_count(
+                2,
+                Some(Duration::from_millis(500)),
+                CrossfireStreakMode::Custom,
+                400,
+                false,
+                1,
+            ),
+            1
+        );
+        assert_eq!(
+            resolve_crossfire_streak_count(
+                2,
+                Some(Duration::from_millis(399)),
+                CrossfireStreakMode::Custom,
+                400,
+                false,
+                1,
+            ),
+            3
+        );
+    }
+
+    #[test]
+    fn no_window_never_combines_separate_kills() {
+        assert_eq!(
+            resolve_crossfire_streak_count(
+                6,
+                Some(Duration::from_millis(1)),
+                CrossfireStreakMode::None,
+                1_000,
+                false,
+                1,
+            ),
+            1
+        );
+    }
+
+    #[test]
     fn scope_reset_starts_a_new_streak() {
         assert_eq!(
             resolve_crossfire_streak_count(
                 4,
                 Some(Duration::from_secs(1)),
                 CrossfireStreakMode::Life,
+                1_000,
                 true,
                 1,
             ),

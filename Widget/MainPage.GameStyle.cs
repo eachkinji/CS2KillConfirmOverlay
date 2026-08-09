@@ -1,12 +1,17 @@
+using System;
 using KillConfirmGameBar.Services;
 using KillConfirmGameBar.Controls.Settings;
 using KillConfirmGameBar.Controls.GameStyles;
+using System.Threading.Tasks;
+using Windows.Data.Json;
 using Windows.Storage;
+using Windows.Storage.Streams;
 using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Shapes;
+using Windows.Web.Http;
 
 namespace KillConfirmGameBar
 {
@@ -205,7 +210,7 @@ namespace KillConfirmGameBar
                 _valorantAdvancedEffectsPanel = new ValorantAdvancedEffectsPanel();
                 _valorantAdvancedEffectsPanel.StreakModeSelectionChanged += OnStreakModeSelectionChanged;
             }
-            string streak = ApplicationData.Current.LocalSettings.Values["SharedStreakMode"] as string;
+            string streak = SharedStreakSettingsStore.Load(GameStyleMode.Valorant);
             _valorantAdvancedEffectsPanel.SelectStreakMode(streak);
             return _valorantAdvancedEffectsPanel;
         }
@@ -219,7 +224,7 @@ namespace KillConfirmGameBar
                 _battlefield1AdvancedEffectsPanel.StreakModeSelectionChanged += OnStreakModeSelectionChanged;
             }
             string money = ApplicationData.Current.LocalSettings.Values["MoneyRewardMode"] as string;
-            string streak = ApplicationData.Current.LocalSettings.Values["SharedStreakMode"] as string;
+            string streak = SharedStreakSettingsStore.Load(GameStyleMode.Battlefield1);
             _battlefield1AdvancedEffectsPanel.SelectMoneyRewardMode(money, "rules");
             _battlefield1AdvancedEffectsPanel.SelectStreakMode(streak);
             return _battlefield1AdvancedEffectsPanel;
@@ -231,9 +236,12 @@ namespace KillConfirmGameBar
             {
                 _battlefield5AdvancedEffectsPanel = new Battlefield5AdvancedEffectsPanel();
                 _battlefield5AdvancedEffectsPanel.MoneyRewardModeSelectionChanged += OnMoneyRewardModeSelectionChanged;
+                _battlefield5AdvancedEffectsPanel.StreakModeSelectionChanged += OnStreakModeSelectionChanged;
             }
             string money = ApplicationData.Current.LocalSettings.Values["MoneyRewardMode"] as string;
+            string streak = SharedStreakSettingsStore.Load(GameStyleMode.Battlefield5);
             _battlefield5AdvancedEffectsPanel.SelectMoneyRewardMode(money, "rules");
+            _battlefield5AdvancedEffectsPanel.SelectStreakMode(streak);
             return _battlefield5AdvancedEffectsPanel;
         }
 
@@ -246,7 +254,7 @@ namespace KillConfirmGameBar
                 _battlefield4AdvancedEffectsPanel.StreakModeSelectionChanged += OnStreakModeSelectionChanged;
             }
             string money = ApplicationData.Current.LocalSettings.Values["MoneyRewardMode"] as string;
-            string streak = ApplicationData.Current.LocalSettings.Values["SharedStreakMode"] as string;
+            string streak = SharedStreakSettingsStore.Load(GameStyleMode.Battlefield4);
             _battlefield4AdvancedEffectsPanel.SelectMoneyRewardMode(money, "rules");
             _battlefield4AdvancedEffectsPanel.SelectStreakMode(streak);
             return _battlefield4AdvancedEffectsPanel;
@@ -261,7 +269,7 @@ namespace KillConfirmGameBar
                 _battlefield2042AdvancedEffectsPanel.StreakModeSelectionChanged += OnStreakModeSelectionChanged;
             }
             string money = ApplicationData.Current.LocalSettings.Values["MoneyRewardMode"] as string;
-            string streak = ApplicationData.Current.LocalSettings.Values["SharedStreakMode"] as string;
+            string streak = SharedStreakSettingsStore.Load(GameStyleMode.Battlefield2042);
             _battlefield2042AdvancedEffectsPanel.SelectMoneyRewardMode(money, "rules");
             _battlefield2042AdvancedEffectsPanel.SelectStreakMode(streak);
             return _battlefield2042AdvancedEffectsPanel;
@@ -276,7 +284,7 @@ namespace KillConfirmGameBar
                 _pubgAdvancedEffectsPanel.StreakModeSelectionChanged += OnStreakModeSelectionChanged;
             }
             string money = ApplicationData.Current.LocalSettings.Values["MoneyRewardMode"] as string;
-            string streak = ApplicationData.Current.LocalSettings.Values["SharedStreakMode"] as string;
+            string streak = SharedStreakSettingsStore.Load(GameStyleMode.Pubg);
             _pubgAdvancedEffectsPanel.SelectMoneyRewardMode(money, "rules");
             _pubgAdvancedEffectsPanel.SelectStreakMode(streak);
             return _pubgAdvancedEffectsPanel;
@@ -291,7 +299,7 @@ namespace KillConfirmGameBar
                 _deltaForceAdvancedEffectsPanel.StreakModeSelectionChanged += OnStreakModeSelectionChanged;
             }
             string money = ApplicationData.Current.LocalSettings.Values["MoneyRewardMode"] as string;
-            string streak = ApplicationData.Current.LocalSettings.Values["SharedStreakMode"] as string;
+            string streak = SharedStreakSettingsStore.Load(GameStyleMode.DeltaForce);
             _deltaForceAdvancedEffectsPanel.SelectMoneyRewardMode(money, "rules");
             _deltaForceAdvancedEffectsPanel.SelectStreakMode(streak);
             return _deltaForceAdvancedEffectsPanel;
@@ -310,17 +318,48 @@ namespace KillConfirmGameBar
             ApplicationData.Current.LocalSettings.Values["MoneyRewardMode"] = mode;
         }
 
-        private void OnStreakModeSelectionChanged(object sender, SelectionChangedEventArgs e)
+        private async void OnStreakModeSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            string mode = "life";
-            if (sender is Battlefield1AdvancedEffectsPanel p1) mode = p1.GetSelectedStreakMode("life");
-            else if (sender is Battlefield4AdvancedEffectsPanel p4) mode = p4.GetSelectedStreakMode("life");
-            else if (sender is Battlefield2042AdvancedEffectsPanel p2042) mode = p2042.GetSelectedStreakMode("life");
-            else if (sender is DeltaForceAdvancedEffectsPanel pDF) mode = pDF.GetSelectedStreakMode("life");
-            else if (sender is PubgAdvancedEffectsPanel pPubg) mode = pPubg.GetSelectedStreakMode("life");
-            else if (sender is ValorantAdvancedEffectsPanel pVal) mode = pVal.GetSelectedStreakMode("life");
+            GameStyleMode style = GameStyleService.Current;
+            string mode = SharedStreakSettingsStore.LifeMode;
+            if (sender is Battlefield1AdvancedEffectsPanel p1) mode = p1.GetSelectedStreakMode(mode);
+            else if (sender is Battlefield5AdvancedEffectsPanel p5) mode = p5.GetSelectedStreakMode(mode);
+            else if (sender is Battlefield4AdvancedEffectsPanel p4) mode = p4.GetSelectedStreakMode(mode);
+            else if (sender is Battlefield2042AdvancedEffectsPanel p2042) mode = p2042.GetSelectedStreakMode(mode);
+            else if (sender is DeltaForceAdvancedEffectsPanel pDF) mode = pDF.GetSelectedStreakMode(mode);
+            else if (sender is PubgAdvancedEffectsPanel pPubg) mode = pPubg.GetSelectedStreakMode(mode);
+            else if (sender is ValorantAdvancedEffectsPanel pVal) mode = pVal.GetSelectedStreakMode(mode);
 
-            ApplicationData.Current.LocalSettings.Values["SharedStreakMode"] = mode;
+            SharedStreakSettingsStore.Save(style, mode);
+            await TrySyncSharedStreakSettingsAsync(style, mode);
+        }
+
+        private static async Task TrySyncSharedStreakSettingsAsync(GameStyleMode style, string mode)
+        {
+            try
+            {
+                var request = new JsonObject
+                {
+                    ["active"] = JsonValue.CreateBooleanValue(
+                        SharedStreakSettingsStore.IsSupported(style)),
+                    ["streak_mode"] = JsonValue.CreateStringValue(mode)
+                };
+
+                using (var client = await LocalServiceAuth.CreateHttpClientAsync())
+                using (var content = new HttpStringContent(
+                    request.Stringify(),
+                    UnicodeEncoding.Utf8,
+                    "application/json"))
+                {
+                    await client.PostAsync(
+                        new System.Uri("http://127.0.0.1:3000/streak/settings"),
+                        content);
+                }
+            }
+            catch (System.Exception ex)
+            {
+                App.Log("Sync shared streak settings from desktop failed: " + ex.Message);
+            }
         }
 
         private void ApplyGameAdvancedSettingsPanelTheme()

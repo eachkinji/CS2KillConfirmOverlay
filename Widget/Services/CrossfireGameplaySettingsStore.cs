@@ -47,22 +47,7 @@ namespace KillConfirmGameBar.Services
 
         public static string NormalizeStreakMode(string value)
         {
-            if (string.Equals(value, Timed5StreakMode, StringComparison.OrdinalIgnoreCase))
-            {
-                return Timed5StreakMode;
-            }
-
-            if (string.Equals(value, Timed10StreakMode, StringComparison.OrdinalIgnoreCase))
-            {
-                return Timed10StreakMode;
-            }
-
-            if (string.Equals(value, Timed15StreakMode, StringComparison.OrdinalIgnoreCase))
-            {
-                return Timed15StreakMode;
-            }
-
-            return LifeStreakMode;
+            return SharedStreakSettingsStore.Normalize(value);
         }
 
         private static bool ReadBoolean(object value, bool fallback)

@@ -9,17 +9,28 @@ This project incorporates AI-generated code.
 ----
 
 目前收集到的反馈有需要：
+
 战争前线
+
 OverWatch
+
 塔可夫
+
 CODOL
+
 卡拉彼丘
+
 COD16/19
+
 Apex
+
 The finals
+
 CSOL
-混搭
-不一定都做，需要看情况
+
+混搭音效
+
+这些游戏和功能不一定都做，需要看情况
 
 ----
 

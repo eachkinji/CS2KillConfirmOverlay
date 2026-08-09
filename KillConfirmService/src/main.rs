@@ -30,7 +30,9 @@ use tracing_subscriber::EnvFilter;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use util::auth::{load_or_create_control_token, require_control_token};
 use util::signal::shutdown_signal;
-use util::state::{AppState, CrossfireStreakMode, MoneyRewardMode, Mutable};
+use util::state::{
+    AppState, CrossfireStreakMode, DEFAULT_CUSTOM_STREAK_WINDOW_MS, MoneyRewardMode, Mutable,
+};
 
 use util::Args;
 use util::playback::{default_output_device_name, get_output_stream_with_name, list_host_devices};
@@ -252,8 +254,10 @@ async fn run() -> Result<()> {
         volume_percent: AtomicU32::new(initial_volume_percent),
         money_reward_mode: AtomicU8::new(MoneyRewardMode::DEFAULT.as_u8()),
         crossfire_streak_mode: AtomicU8::new(CrossfireStreakMode::DEFAULT.as_u8()),
+        crossfire_streak_window_ms: AtomicU64::new(DEFAULT_CUSTOM_STREAK_WINDOW_MS),
         crossfire_mode_active: AtomicBool::new(true),
         shared_streak_mode: AtomicU8::new(CrossfireStreakMode::DEFAULT.as_u8()),
+        shared_streak_window_ms: AtomicU64::new(DEFAULT_CUSTOM_STREAK_WINDOW_MS),
         shared_streak_mode_active: AtomicBool::new(false),
         crossfire_first_kill_special_audio: AtomicBool::new(true),
         crossfire_last_kill_special_audio: AtomicBool::new(true),

@@ -164,6 +164,9 @@
     <Compile Include="Controls\KillConfirmAnimation.Valorant.cs" />
     <Compile Include="Controls\KillConfirmAnimation.Valorant.Motion.cs" />
     <Compile Include="Controls\GameStyles\AdvancedEffectsPanelSupport.cs" />
+    <Compile Include="Controls\GameStyles\StreakWindowEditor.xaml.cs">
+      <DependentUpon>StreakWindowEditor.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\GameStyles\Battlefield1AdvancedEffectsPanel.xaml.cs">
       <DependentUpon>Battlefield1AdvancedEffectsPanel.xaml</DependentUpon>
     </Compile>
@@ -321,6 +324,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Controls\KillConfirmAnimation.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\GameStyles\StreakWindowEditor.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

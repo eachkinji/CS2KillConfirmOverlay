@@ -12,7 +12,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
 
         public event SelectionChangedEventHandler StreakModeSelectionChanged;
 
-        public ComboBox StreakModeSelectorControl => StreakModeSelector;
+        public ComboBox StreakModeSelectorControl => StreakEditor.SelectorControl;
 
         public void SetStylePanel(ValorantStylePanel panel)
         {
@@ -22,7 +22,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
         internal void ApplyTheme(GameThemePalette theme)
         {
             AdvancedEffectsPanelSupport.ApplyHeader(TitleText, HintText, theme);
-            AdvancedEffectsPanelSupport.ApplyMoneyRow(StreakModeLabel, StreakModeSelector, theme);
+            StreakEditor.ApplyTheme(theme);
         }
 
         public void ApplyLanguage(bool isChinese)
@@ -30,23 +30,17 @@ namespace KillConfirmGameBar.Controls.GameStyles
             TitleText.Text = isChinese ? "VAL \u9ad8\u7ea7\u7279\u6548" : "VAL Effects";
             HintText.Text = string.Empty;
             HintText.Visibility = Windows.UI.Xaml.Visibility.Collapsed;
-            SharedStreakSettingsStore.ApplyLanguage(
-                StreakModeLabel,
-                StreakLifeItem,
-                StreakTimed5Item,
-                StreakTimed10Item,
-                StreakTimed15Item,
-                isChinese);
+            StreakEditor.ApplyLanguage(isChinese);
         }
 
         public string GetSelectedStreakMode(string fallback)
         {
-            return SharedStreakSettingsStore.Read(StreakModeSelector, fallback);
+            return StreakEditor.GetValue(fallback);
         }
 
         public void SelectStreakMode(string value)
         {
-            SharedStreakSettingsStore.Select(StreakModeSelector, value);
+            StreakEditor.SelectValue(value);
         }
 
         private void OnStreakModeSelectionChanged(object sender, SelectionChangedEventArgs e)

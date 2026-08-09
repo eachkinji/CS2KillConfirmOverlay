@@ -1,7 +1,8 @@
 <UserControl
     x:Class="KillConfirmGameBar.Controls.Settings.CrossfireAdvancedSettingsPanel"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:gameStyles="using:KillConfirmGameBar.Controls.GameStyles">
 
     <Border
         x:Name="Card"
@@ -41,14 +42,10 @@
                     <ColumnDefinition Width="150" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-
-                <TextBlock x:Name="StreakModeLabel" VerticalAlignment="Center" Text="Kill streak" />
-                <ComboBox x:Name="StreakModeSelector" Grid.Column="1" SelectionChanged="OnGameplaySettingChanged">
-                    <ComboBoxItem x:Name="StreakLifeItem" Tag="life">Until death</ComboBoxItem>
-                    <ComboBoxItem x:Name="StreakTimed5Item" Tag="timed_5">5-second window</ComboBoxItem>
-                    <ComboBoxItem x:Name="StreakTimed10Item" Tag="timed_10">10-second window</ComboBoxItem>
-                    <ComboBoxItem x:Name="StreakTimed15Item" Tag="timed_15">15-second window</ComboBoxItem>
-                </ComboBox>
+                <gameStyles:StreakWindowEditor
+                    x:Name="StreakEditor"
+                    Grid.ColumnSpan="2"
+                    SettingsChanged="OnGameplaySettingChanged" />
 
                 <TextBlock x:Name="FirstKillAudioLabel" Grid.Row="1" VerticalAlignment="Center" Text="First-kill audio" />
                 <ComboBox x:Name="FirstKillAudioSelector" Grid.Row="1" Grid.Column="1" SelectionChanged="OnGameplaySettingChanged">

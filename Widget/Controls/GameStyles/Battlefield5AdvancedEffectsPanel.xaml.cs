@@ -13,8 +13,10 @@ namespace KillConfirmGameBar.Controls.GameStyles
         }
 
         public event SelectionChangedEventHandler MoneyRewardModeSelectionChanged;
+        public event SelectionChangedEventHandler StreakModeSelectionChanged;
 
         public ComboBox MoneyRewardModeSelectorControl => MoneyRewardModeSelector;
+        public ComboBox StreakModeSelectorControl => StreakEditor.SelectorControl;
         public ComboBoxItem MoneyRewardDeltaItemControl => MoneyRewardDeltaItem;
         public ComboBoxItem MoneyRewardRulesItemControl => MoneyRewardRulesItem;
         public TextBlock MoneyRewardModeLabelControl => MoneyRewardModeLabel;
@@ -23,6 +25,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
         {
             AdvancedEffectsPanelSupport.ApplyHeader(TitleText, HintText, theme);
             AdvancedEffectsPanelSupport.ApplyMoneyRow(MoneyRewardModeLabel, MoneyRewardModeSelector, theme);
+            StreakEditor.ApplyTheme(theme);
             AdvancedEffectsPanelSupport.ApplyNotice(ImportLockedNotice, ImportLockedText, theme);
             StylePanel.ApplyTheme(theme);
         }
@@ -36,6 +39,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
             MoneyRewardModeLabel.Text = isChinese ? "\u5956\u52b1\u7b97\u6cd5" : "Money";
             MoneyRewardDeltaItem.Content = isChinese ? "GSI \u5dee\u503c\u6821\u9a8c\uff08\u5b9e\u9a8c\uff09" : "GSI delta validation (experimental)";
             MoneyRewardRulesItem.Content = isChinese ? "\u51fb\u6740\u5956\u52b1\u89c4\u5219\uff08\u63a8\u8350\uff09" : "Kill reward rules (recommended)";
+            StreakEditor.ApplyLanguage(isChinese);
             ImportLockedText.Text = isChinese
                 ? "\u4ec5\u4f7f\u7528\u5185\u7f6e Battlefield 5 \u8d44\u6e90\u3002\u6b64\u9875\u4e0d\u5141\u8bb8\u5bfc\u5165\u6587\u4ef6\u3002"
                 : "Built-in Battlefield 5 resources only. File import is disabled for this page.";
@@ -51,9 +55,24 @@ namespace KillConfirmGameBar.Controls.GameStyles
             SelectTaggedComboBoxItem(MoneyRewardModeSelector, value, fallback);
         }
 
+        public string GetSelectedStreakMode(string fallback)
+        {
+            return StreakEditor.GetValue(fallback);
+        }
+
+        public void SelectStreakMode(string value)
+        {
+            StreakEditor.SelectValue(value);
+        }
+
         private void OnMoneyRewardModeSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             MoneyRewardModeSelectionChanged?.Invoke(this, e);
+        }
+
+        private void OnStreakModeSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            StreakModeSelectionChanged?.Invoke(this, e);
         }
 
         private static string ReadTaggedComboBoxItem(ComboBox selector, string fallback)

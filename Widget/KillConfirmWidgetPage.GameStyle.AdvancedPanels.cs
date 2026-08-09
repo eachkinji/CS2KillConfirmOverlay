@@ -117,7 +117,7 @@ namespace KillConfirmGameBar
             ApplyAdvancedEffectsPanelLanguage();
             ApplyAdvancedEffectsPanelTheme();
             SelectCurrentBattlefieldMoneyRewardMode();
-            LoadSharedStreakMode(GameStyleService.Current, GetSharedStreakModeSelector(GameStyleService.Current));
+            LoadSharedStreakMode(GameStyleService.Current);
         }
 
         private CrossfireAdvancedEffectsPanel EnsureCrossfireAdvancedEffectsPanel()
@@ -142,9 +142,7 @@ namespace KillConfirmGameBar
                 _valorantAdvancedEffectsPanel = new ValorantAdvancedEffectsPanel();
                 _valorantAdvancedEffectsPanel.SetStylePanel(new ValorantStylePanel());
                 _valorantAdvancedEffectsPanel.StreakModeSelectionChanged += OnSharedStreakModeSelectionChanged;
-                LoadSharedStreakMode(
-                    GameStyleMode.Valorant,
-                    _valorantAdvancedEffectsPanel.StreakModeSelectorControl);
+                LoadSharedStreakMode(GameStyleMode.Valorant);
             }
 
             return _valorantAdvancedEffectsPanel;
@@ -157,9 +155,7 @@ namespace KillConfirmGameBar
                 _battlefield1AdvancedEffectsPanel = new Battlefield1AdvancedEffectsPanel();
                 _battlefield1AdvancedEffectsPanel.MoneyRewardModeSelectionChanged += OnMoneyRewardModeSelectionChanged;
                 _battlefield1AdvancedEffectsPanel.StreakModeSelectionChanged += OnSharedStreakModeSelectionChanged;
-                LoadSharedStreakMode(
-                    GameStyleMode.Battlefield1,
-                    _battlefield1AdvancedEffectsPanel.StreakModeSelectorControl);
+                LoadSharedStreakMode(GameStyleMode.Battlefield1);
             }
 
             return _battlefield1AdvancedEffectsPanel;
@@ -171,6 +167,8 @@ namespace KillConfirmGameBar
             {
                 _battlefield5AdvancedEffectsPanel = new Battlefield5AdvancedEffectsPanel();
                 _battlefield5AdvancedEffectsPanel.MoneyRewardModeSelectionChanged += OnMoneyRewardModeSelectionChanged;
+                _battlefield5AdvancedEffectsPanel.StreakModeSelectionChanged += OnSharedStreakModeSelectionChanged;
+                LoadSharedStreakMode(GameStyleMode.Battlefield5);
             }
 
             return _battlefield5AdvancedEffectsPanel;
@@ -181,6 +179,8 @@ namespace KillConfirmGameBar
             if (_battlefield4AdvancedEffectsPanel == null)
             {
                 _battlefield4AdvancedEffectsPanel = new Battlefield4AdvancedEffectsPanel();
+                _battlefield4AdvancedEffectsPanel.StreakModeSelectionChanged += OnSharedStreakModeSelectionChanged;
+                LoadSharedStreakMode(GameStyleMode.Battlefield4);
             }
 
             return _battlefield4AdvancedEffectsPanel;
@@ -191,6 +191,8 @@ namespace KillConfirmGameBar
             if (_battlefield2042AdvancedEffectsPanel == null)
             {
                 _battlefield2042AdvancedEffectsPanel = new Battlefield2042AdvancedEffectsPanel();
+                _battlefield2042AdvancedEffectsPanel.StreakModeSelectionChanged += OnSharedStreakModeSelectionChanged;
+                LoadSharedStreakMode(GameStyleMode.Battlefield2042);
             }
 
             return _battlefield2042AdvancedEffectsPanel;
@@ -202,9 +204,7 @@ namespace KillConfirmGameBar
             {
                 _pubgAdvancedEffectsPanel = new PubgAdvancedEffectsPanel();
                 _pubgAdvancedEffectsPanel.StreakModeSelectionChanged += OnSharedStreakModeSelectionChanged;
-                LoadSharedStreakMode(
-                    GameStyleMode.Pubg,
-                    _pubgAdvancedEffectsPanel.StreakModeSelectorControl);
+                LoadSharedStreakMode(GameStyleMode.Pubg);
             }
 
             return _pubgAdvancedEffectsPanel;
@@ -215,6 +215,8 @@ namespace KillConfirmGameBar
             if (_deltaForceAdvancedEffectsPanel == null)
             {
                 _deltaForceAdvancedEffectsPanel = new DeltaForceAdvancedEffectsPanel();
+                _deltaForceAdvancedEffectsPanel.StreakModeSelectionChanged += OnSharedStreakModeSelectionChanged;
+                LoadSharedStreakMode(GameStyleMode.DeltaForce);
             }
 
             return _deltaForceAdvancedEffectsPanel;

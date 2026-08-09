@@ -31,6 +31,22 @@ namespace KillConfirmGameBar.Controls.GameStyles
             ApplyCombo(selector, theme.Text, theme.Field, theme.Border);
         }
 
+        public static void ApplyTextInput(TextBox input, TextBlock hint, GameThemePalette theme)
+        {
+            if (input != null)
+            {
+                input.Foreground = Brush(theme.Text);
+                input.Background = Brush(theme.Field);
+                input.BorderBrush = Brush(theme.Border);
+                input.RequestedTheme = IsDark(theme.Field) ? ElementTheme.Dark : ElementTheme.Light;
+            }
+
+            if (hint != null)
+            {
+                hint.Foreground = Brush(theme.MutedText);
+            }
+        }
+
         public static void ApplyNotice(Border notice, TextBlock text, GameThemePalette theme)
         {
             if (notice != null)

@@ -1,0 +1,60 @@
+<UserControl
+    x:Class="KillConfirmGameBar.Controls.GameStyles.StreakWindowEditor"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Grid ColumnSpacing="8">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="110" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <TextBlock
+            x:Name="StreakModeLabel"
+            VerticalAlignment="Center"
+            FontSize="10"
+            FontWeight="SemiBold"
+            Text="Kill streak" />
+
+        <StackPanel Grid.Column="1" Spacing="6">
+            <ComboBox
+                x:Name="StreakModeSelector"
+                Height="28"
+                Padding="7,0,12,0"
+                FontSize="10"
+                SelectionChanged="OnStreakModeSelectionChanged">
+                <ComboBoxItem x:Name="StreakNoneItem" Tag="none">No streak window</ComboBoxItem>
+                <ComboBoxItem x:Name="StreakLifeItem" Tag="life">Until death</ComboBoxItem>
+                <ComboBoxItem x:Name="StreakCustomItem" Tag="custom">Custom window</ComboBoxItem>
+                <ComboBoxItem x:Name="StreakTimed5Item" Tag="timed_5">5-second window</ComboBoxItem>
+                <ComboBoxItem x:Name="StreakTimed10Item" Tag="timed_10">10-second window</ComboBoxItem>
+                <ComboBoxItem x:Name="StreakTimed15Item" Tag="timed_15">15-second window</ComboBoxItem>
+            </ComboBox>
+
+            <Grid
+                x:Name="CustomSecondsEditor"
+                ColumnSpacing="6"
+                Visibility="Collapsed">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBox
+                    x:Name="CustomSecondsBox"
+                    Height="28"
+                    MaxLength="7"
+                    Padding="7,0"
+                    FontSize="10"
+                    InputScope="Number"
+                    LostFocus="OnCustomSecondsLostFocus"
+                    PlaceholderText="1.0" />
+                <TextBlock
+                    x:Name="CustomSecondsHint"
+                    Grid.Column="1"
+                    VerticalAlignment="Center"
+                    FontSize="10"
+                    Text="seconds (0.1?300)" />
+            </Grid>
+        </StackPanel>
+    </Grid>
+</UserControl>

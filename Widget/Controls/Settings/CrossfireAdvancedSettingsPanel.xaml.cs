@@ -23,7 +23,7 @@ namespace KillConfirmGameBar.Controls.Settings
             SettingsPanelSupport.ApplyPanel(Card, TitleText, BodyText, theme);
             SettingsPanelSupport.ApplyTag(VoiceTag, VoiceTagText, theme);
             SettingsPanelSupport.ApplyTag(IconTag, IconTagText, theme);
-            SettingsPanelSupport.ApplySettingRow(StreakModeLabel, StreakModeSelector, theme);
+            StreakEditor.ApplyTheme(theme);
             SettingsPanelSupport.ApplySettingRow(FirstKillAudioLabel, FirstKillAudioSelector, theme);
             SettingsPanelSupport.ApplySettingRow(LastKillAudioLabel, LastKillAudioSelector, theme);
         }
@@ -32,15 +32,11 @@ namespace KillConfirmGameBar.Controls.Settings
         {
             TitleText.Text = isChinese ? "\u7a7f\u8d8a\u706b\u7ebf\u9ad8\u7ea7\u8bbe\u7f6e" : "CrossFire advanced settings";
             BodyText.Text = isChinese
-                ? "\u53ef\u9009\u62e9 CF \u8fde\u6740\u5728\u6b7b\u4ea1\u524d\u6301\u7eed\u7d2f\u8ba1\uff0c\u6216\u5728\u95f4\u9694 5\u300110\u300115 \u79d2\u540e\u4e2d\u65ad\uff1b\u4e5f\u53ef\u5206\u522b\u8bbe\u7f6e\u9996\u6740\u548c\u5c3e\u6740\u4f7f\u7528\u7279\u6b8a\u8fd8\u662f\u539f\u51fb\u6740\u97f3\u6548\u3002"
-                : "Choose whether CF streaks last until death or expire after 5, 10, or 15 seconds, and whether first/last kills use special or original kill audio.";
+                ? "CF \u8fde\u6740\u53ef\u8bbe\u4e3a\u65e0\u7a97\u53e3\u3001\u6b7b\u4ea1\u524d\u7d2f\u8ba1\u3001\u56fa\u5b9a\u79d2\u6570\u6216 0.1\u2013300 \u79d2\u81ea\u5b9a\u4e49\u7a97\u53e3\uff1b\u9996\u6740\u548c\u5c3e\u6740\u97f3\u6548\u4ecd\u53ef\u5206\u522b\u8bbe\u7f6e\u3002"
+                : "Choose no streak window, until-death counting, a fixed window, or a custom 0.1?300 second window; first/last-kill audio remains configurable.";
             VoiceTagText.Text = isChinese ? "CF \u8bed\u97f3" : "CF voices";
             IconTagText.Text = isChinese ? "CF \u56fe\u6807" : "CF icons";
-            StreakModeLabel.Text = isChinese ? "\u8fde\u6740\u8ba1\u7b97" : "Kill streak";
-            StreakLifeItem.Content = isChinese ? "\u6b7b\u4ea1\u524d\u6301\u7eed\u7d2f\u8ba1" : "Until death";
-            StreakTimed5Item.Content = isChinese ? "5 \u79d2\u8fde\u6740\u7a97\u53e3" : "5-second window";
-            StreakTimed10Item.Content = isChinese ? "10 \u79d2\u8fde\u6740\u7a97\u53e3" : "10-second window";
-            StreakTimed15Item.Content = isChinese ? "15 \u79d2\u8fde\u6740\u7a97\u53e3" : "15-second window";
+            StreakEditor.ApplyLanguage(isChinese);
             FirstKillAudioLabel.Text = isChinese ? "\u9996\u6740\u8bed\u97f3" : "First-kill audio";
             LastKillAudioLabel.Text = isChinese ? "\u5c3e\u6740\u8bed\u97f3" : "Last-kill audio";
             FirstKillSpecialItem.Content = isChinese ? "\u7279\u6b8a\u97f3\u6548" : "Special audio";
@@ -55,7 +51,7 @@ namespace KillConfirmGameBar.Controls.Settings
             _suppressSettingEvents = true;
             try
             {
-                SelectTaggedItem(StreakModeSelector, settings.StreakMode, "life");
+                StreakEditor.SelectValue(settings.StreakMode);
                 SelectTaggedItem(FirstKillAudioSelector, settings.FirstKillSpecialAudio ? "special" : "original", "special");
                 SelectTaggedItem(LastKillAudioSelector, settings.LastKillSpecialAudio ? "special" : "original", "special");
             }
@@ -76,7 +72,7 @@ namespace KillConfirmGameBar.Controls.Settings
 
             var settings = new CrossfireGameplaySettingsValues
             {
-                StreakMode = ReadTaggedItem(StreakModeSelector, "life"),
+                StreakMode = StreakEditor.GetValue(SharedStreakSettingsStore.LifeMode),
                 FirstKillSpecialAudio = ReadTaggedItem(FirstKillAudioSelector, "special") == "special",
                 LastKillSpecialAudio = ReadTaggedItem(LastKillAudioSelector, "special") == "special"
             };

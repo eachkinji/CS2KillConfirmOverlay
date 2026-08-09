@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using Microsoft.Gaming.XboxGameBar;
 using Windows.ApplicationModel;
@@ -17,7 +17,7 @@ namespace KillConfirmGameBar
     sealed partial class App : Application
     {
         private const string WidgetId = "KillConfirmWidget";
-        private const string SettingsWindowTitle = "Kill Confirm Overlay Advanced Settings";
+        private const string SettingsWindowTitle = "Kill Confirm Overlay 控制面板";
         private const string RuntimeLogFileName = "gamebar-widget.log";
         private const long MaxRuntimeLogBytes = 512 * 1024;
         private static int? _guideViewId;

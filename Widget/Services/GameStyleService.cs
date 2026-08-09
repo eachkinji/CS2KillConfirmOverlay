@@ -17,6 +17,7 @@ namespace KillConfirmGameBar.Services
     internal static class GameStyleService
     {
         public const string SettingKey = "GameStyleMode";
+        public static event System.EventHandler<GameStyleMode> Changed;
 
         public static GameStyleMode Current
         {
@@ -46,7 +47,13 @@ namespace KillConfirmGameBar.Services
             }
             set
             {
-                ApplicationData.Current.LocalSettings.Values[SettingKey] = ToStorageValue(value);
+                string newValueStr = ToStorageValue(value);
+                string oldValueStr = ApplicationData.Current.LocalSettings.Values[SettingKey] as string;
+                if (!string.Equals(oldValueStr, newValueStr, System.StringComparison.OrdinalIgnoreCase))
+                {
+                    ApplicationData.Current.LocalSettings.Values[SettingKey] = newValueStr;
+                    Changed?.Invoke(null, value);
+                }
             }
         }
 

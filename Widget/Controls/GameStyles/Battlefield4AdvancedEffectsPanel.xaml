@@ -13,13 +13,67 @@
         <TextBlock
             x:Name="HintText"
             FontSize="10"
-            Text="BF4 text HUD, score accumulation, and Battlefield 4 assets are isolated here."
+            Visibility="Collapsed"
             TextWrapping="WrapWholeWords" />
+
+        <Grid ColumnSpacing="8" RowSpacing="8">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock
+                x:Name="MoneyRewardModeLabel"
+                VerticalAlignment="Center"
+                FontSize="10"
+                FontWeight="SemiBold"
+                Text="Money" />
+
+            <ComboBox
+                x:Name="MoneyRewardModeSelector"
+                Grid.Column="1"
+                Height="28"
+                Padding="7,0,12,0"
+                FontSize="10"
+                SelectionChanged="OnMoneyRewardModeSelectionChanged"
+                ToolTipService.ToolTip="Money reward calculation">
+                <ComboBoxItem x:Name="MoneyRewardDeltaItem" Tag="delta">GSI delta validation (experimental)</ComboBoxItem>
+                <ComboBoxItem x:Name="MoneyRewardRulesItem" Tag="rules">Kill reward rules (recommended)</ComboBoxItem>
+            </ComboBox>
+
+            <TextBlock
+                x:Name="StreakModeLabel"
+                Grid.Row="1"
+                VerticalAlignment="Center"
+                FontSize="10"
+                FontWeight="SemiBold"
+                Text="Kill streak" />
+
+            <ComboBox
+                x:Name="StreakModeSelector"
+                Grid.Row="1"
+                Grid.Column="1"
+                Height="28"
+                Padding="7,0,12,0"
+                FontSize="10"
+                SelectionChanged="OnStreakModeSelectionChanged">
+                <ComboBoxItem x:Name="StreakLifeItem" Tag="life">Until death</ComboBoxItem>
+                <ComboBoxItem x:Name="StreakTimed5Item" Tag="timed_5">5-second window</ComboBoxItem>
+                <ComboBoxItem x:Name="StreakTimed10Item" Tag="timed_10">10-second window</ComboBoxItem>
+                <ComboBoxItem x:Name="StreakTimed15Item" Tag="timed_15">15-second window</ComboBoxItem>
+            </ComboBox>
+        </Grid>
+
         <local:Battlefield4StylePanel x:Name="StylePanel" />
         <Border
             x:Name="ImportLockedNotice"
             Padding="8"
             BorderThickness="1"
+            Visibility="Collapsed"
             CornerRadius="10">
             <TextBlock
                 x:Name="ImportLockedText"

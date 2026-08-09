@@ -20,19 +20,9 @@
                 x:Name="BodyText"
                 FontSize="13"
                 LineHeight="18"
-                Text="BF1 uses the Battlefield 1 resource folder, BF1 card animation files, and BF1/BF5-only money reward modes. CF and VAL settings stay out of this module."
+                Visibility="Collapsed"
                 TextWrapping="WrapWholeWords" />
-            <StackPanel Orientation="Horizontal" Spacing="8">
-                <Border x:Name="AssetTag" Padding="8,4" BorderThickness="1" CornerRadius="12">
-                    <TextBlock x:Name="AssetTagText" FontSize="11" FontWeight="SemiBold" Text="battlefield1 assets" />
-                </Border>
-                <Border x:Name="MoneyTag" Padding="8,4" BorderThickness="1" CornerRadius="12">
-                    <TextBlock x:Name="MoneyTagText" FontSize="11" FontWeight="SemiBold" Text="Money mode" />
-                </Border>
-                <Border x:Name="ImportLockTag" Padding="8,4" BorderThickness="1" CornerRadius="12">
-                    <TextBlock x:Name="ImportLockTagText" FontSize="11" FontWeight="SemiBold" Text="No file import" />
-                </Border>
-            </StackPanel>
+
             <Grid Margin="0,8,0,0" ColumnSpacing="12">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="150" />

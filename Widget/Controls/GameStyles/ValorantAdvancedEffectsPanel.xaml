@@ -13,7 +13,7 @@
             <TextBlock
                 x:Name="HintText"
                 FontSize="10"
-                Text="VAL uses Valorant packs and animation files only. CS money reward logic is not shown here."
+                Visibility="Collapsed"
                 TextWrapping="WrapWholeWords" />
         </StackPanel>
 

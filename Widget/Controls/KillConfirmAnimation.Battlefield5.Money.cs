@@ -65,7 +65,7 @@ namespace KillConfirmGameBar.Controls
         {
             return _battlefield5ScrollState.MoneyLastEventTimeMs >= 0
                 && currentTimeMs >= _battlefield5ScrollState.MoneyLastEventTimeMs
-                && currentTimeMs - _battlefield5ScrollState.MoneyLastEventTimeMs <= Battlefield5ScoreDisplayMs + Battlefield5TextFadeOutMs;
+                && currentTimeMs - _battlefield5ScrollState.MoneyLastEventTimeMs <= Battlefield5KillFeedDisplayMs + Battlefield5TextFadeOutMs;
         }
 
         private double ResolveBattlefield5MoneyAlpha(double currentTimeMs)
@@ -80,9 +80,9 @@ namespace KillConfirmGameBar.Controls
                 ? Clamp01(firstElapsedMs / Battlefield5ScoreFadeInMs)
                 : 1.0;
             double sinceLastEventMs = currentTimeMs - _battlefield5ScrollState.MoneyLastEventTimeMs;
-            if (sinceLastEventMs > Battlefield5ScoreDisplayMs)
+            if (sinceLastEventMs > Battlefield5KillFeedDisplayMs)
             {
-                alpha *= Clamp01(1.0 - ((sinceLastEventMs - Battlefield5ScoreDisplayMs) / Battlefield5TextFadeOutMs));
+                alpha *= Clamp01(1.0 - ((sinceLastEventMs - Battlefield5KillFeedDisplayMs) / Battlefield5TextFadeOutMs));
             }
 
             return alpha;

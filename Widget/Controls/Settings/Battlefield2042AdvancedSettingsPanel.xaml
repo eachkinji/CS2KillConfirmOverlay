@@ -20,19 +20,9 @@
                 x:Name="BodyText"
                 FontSize="13"
                 LineHeight="18"
-                Text="2042 uses a separate HUD file set, battlefield2042 sound pack, and 2042-only UI. Imported files are disabled for this built-in module."
+                Visibility="Collapsed"
                 TextWrapping="WrapWholeWords" />
-            <StackPanel Orientation="Horizontal" Spacing="8">
-                <Border x:Name="AssetTag" Padding="8,4" BorderThickness="1" CornerRadius="12">
-                    <TextBlock x:Name="AssetTagText" FontSize="11" FontWeight="SemiBold" Text="2042 assets" />
-                </Border>
-                <Border x:Name="MoneyTag" Padding="8,4" BorderThickness="1" CornerRadius="12">
-                    <TextBlock x:Name="MoneyTagText" FontSize="11" FontWeight="SemiBold" Text="Money waterfall" />
-                </Border>
-                <Border x:Name="ImportLockTag" Padding="8,4" BorderThickness="1" CornerRadius="12">
-                    <TextBlock x:Name="ImportLockTagText" FontSize="11" FontWeight="SemiBold" Text="No file import" />
-                </Border>
-            </StackPanel>
+
         </StackPanel>
     </Border>
 </UserControl>

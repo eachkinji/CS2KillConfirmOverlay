@@ -1,5 +1,7 @@
 using KillConfirmGameBar.Services;
 using KillConfirmGameBar.Controls.Settings;
+using KillConfirmGameBar.Controls.GameStyles;
+using Windows.Storage;
 using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -11,29 +13,33 @@ namespace KillConfirmGameBar
     public sealed partial class MainPage
     {
         private CrossfireAdvancedSettingsPanel _crossfireAdvancedSettingsPanel;
-        private ValorantAdvancedSettingsPanel _valorantAdvancedSettingsPanel;
-        private Battlefield1AdvancedSettingsPanel _battlefield1AdvancedSettingsPanel;
-        private Battlefield5AdvancedSettingsPanel _battlefield5AdvancedSettingsPanel;
-        private Battlefield4AdvancedSettingsPanel _battlefield4AdvancedSettingsPanel;
-        private Battlefield2042AdvancedSettingsPanel _battlefield2042AdvancedSettingsPanel;
-        private PubgAdvancedSettingsPanel _pubgAdvancedSettingsPanel;
-        private DeltaForceAdvancedSettingsPanel _deltaForceAdvancedSettingsPanel;
+        private ValorantAdvancedEffectsPanel _valorantAdvancedEffectsPanel;
+        private Battlefield1AdvancedEffectsPanel _battlefield1AdvancedEffectsPanel;
+        private Battlefield5AdvancedEffectsPanel _battlefield5AdvancedEffectsPanel;
+        private Battlefield4AdvancedEffectsPanel _battlefield4AdvancedEffectsPanel;
+        private Battlefield2042AdvancedEffectsPanel _battlefield2042AdvancedEffectsPanel;
+        private PubgAdvancedEffectsPanel _pubgAdvancedEffectsPanel;
+        private DeltaForceAdvancedEffectsPanel _deltaForceAdvancedEffectsPanel;
+
+        private bool _suppressGameStyleEvents;
 
         private void ApplyGameStyleUi()
         {
             GameStyleMode mode = GameStyleService.Current;
+            SyncGameStyleSelector();
             bool valorant = mode == GameStyleMode.Valorant;
             bool battlefield = mode == GameStyleMode.Battlefield1 || mode == GameStyleMode.Battlefield5;
             bool battlefield1 = mode == GameStyleMode.Battlefield1;
             bool battlefield5 = mode == GameStyleMode.Battlefield5;
             bool battlefield2042 = mode == GameStyleMode.Battlefield2042;
             bool fixedPreset = GameStyleService.IsModPresetGameKey(GameStyleService.ToStorageValue(mode));
+            bool hideCfPacks = valorant || fixedPreset;
             GameThemePalette theme = GameThemePalette.Current;
             MountGameAdvancedSettingsPanel();
-            VoicePackCollectionsCard.Visibility = fixedPreset ? Visibility.Collapsed : Visibility.Visible;
-            IconPackCollectionsCard.Visibility = fixedPreset ? Visibility.Collapsed : Visibility.Visible;
-            VoiceCollectionsCard.Visibility = (valorant || fixedPreset) ? Visibility.Collapsed : Visibility.Visible;
-            IconCollectionsCard.Visibility = (valorant || fixedPreset) ? Visibility.Collapsed : Visibility.Visible;
+            VoicePackCollectionsCard.Visibility = hideCfPacks ? Visibility.Collapsed : Visibility.Visible;
+            IconPackCollectionsCard.Visibility = hideCfPacks ? Visibility.Collapsed : Visibility.Visible;
+            VoiceCollectionsCard.Visibility = hideCfPacks ? Visibility.Collapsed : Visibility.Visible;
+            IconCollectionsCard.Visibility = hideCfPacks ? Visibility.Collapsed : Visibility.Visible;
 
             SettingsRootGrid.Background = CreateSettingsBackground(mode);
             HeroSlash.Fill = CreateHeroSlashBrush(mode);
@@ -45,8 +51,9 @@ namespace KillConfirmGameBar
             AccentLineThree.Fill = AccentLineOne.Fill;
 
             SetText(TitleText, theme.Text);
-            SetText(InstructionText, theme.MutedText);
-            SetText(ShortcutText, theme.SubtleText);
+            SetText(GameStyleLabelText, theme.Text);
+            SetText(GeneralSettingsTitleText, theme.Text);
+            SetText(CloseBehaviorLabelText, theme.MutedText);
             SetText(VoiceCollectionsTitleText, theme.Text);
             SetText(VoiceCollectionsHintText, theme.MutedText);
             SetText(IconCollectionsTitleText, theme.Text);
@@ -70,6 +77,12 @@ namespace KillConfirmGameBar
             SetText(TipsTitleText, theme.Text);
             SetText(TipsBodyText, theme.MutedText);
 
+            ApplyCardTheme(GeneralSettingsCard, theme);
+            ApplyCardTheme(VoicePackCollectionsCard, theme);
+            ApplyCardTheme(IconPackCollectionsCard, theme);
+            ApplyCardTheme(VoiceCollectionsCard, theme);
+            ApplyCardTheme(IconCollectionsCard, theme);
+
             ApplyButtonTheme(ImportVoicePackButton, theme, false);
             ApplyButtonTheme(ImportVoiceZipButton, theme, false);
             ApplyButtonTheme(CreateVoicePackButton, theme, true);
@@ -80,6 +93,59 @@ namespace KillConfirmGameBar
             ApplyPackCardTheme(VoicePackListPanel, theme);
             ApplyPackCardTheme(IconPackListPanel, theme);
             ApplyGameAdvancedSettingsPanelTheme();
+        }
+
+        private static void ApplyCardTheme(Border card, GameThemePalette theme)
+        {
+            if (card != null)
+            {
+                card.Background = new SolidColorBrush(theme.Card);
+                card.BorderBrush = new SolidColorBrush(theme.SoftBorder);
+            }
+        }
+
+        private void SyncGameStyleSelector()
+        {
+            if (GameStyleSelector == null)
+            {
+                return;
+            }
+
+            _suppressGameStyleEvents = true;
+            try
+            {
+                string key = GameStyleService.ToStorageValue(GameStyleService.Current);
+                foreach (object item in GameStyleSelector.Items)
+                {
+                    if (item is ComboBoxItem comboItem && comboItem.Tag is string tag && string.Equals(tag, key, System.StringComparison.OrdinalIgnoreCase))
+                    {
+                        GameStyleSelector.SelectedItem = comboItem;
+                        break;
+                    }
+                }
+            }
+            finally
+            {
+                _suppressGameStyleEvents = false;
+            }
+        }
+
+        private void OnGameStyleSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_suppressGameStyleEvents)
+            {
+                return;
+            }
+
+            if (GameStyleSelector?.SelectedItem is ComboBoxItem selected && selected.Tag is string key)
+            {
+                GameStyleMode newMode = GameStyleService.FromKey(key);
+                if (GameStyleService.Current != newMode)
+                {
+                    GameStyleService.Current = newMode;
+                    ApplyGameStyleUi();
+                }
+            }
         }
 
         private void MountGameAdvancedSettingsPanel()
@@ -132,127 +198,155 @@ namespace KillConfirmGameBar
             return _crossfireAdvancedSettingsPanel ?? (_crossfireAdvancedSettingsPanel = new CrossfireAdvancedSettingsPanel());
         }
 
-        private ValorantAdvancedSettingsPanel EnsureValorantAdvancedSettingsPanel()
+        private ValorantAdvancedEffectsPanel EnsureValorantAdvancedSettingsPanel()
         {
-            return _valorantAdvancedSettingsPanel ?? (_valorantAdvancedSettingsPanel = new ValorantAdvancedSettingsPanel());
+            if (_valorantAdvancedEffectsPanel == null)
+            {
+                _valorantAdvancedEffectsPanel = new ValorantAdvancedEffectsPanel();
+                _valorantAdvancedEffectsPanel.StreakModeSelectionChanged += OnStreakModeSelectionChanged;
+            }
+            string streak = ApplicationData.Current.LocalSettings.Values["SharedStreakMode"] as string;
+            _valorantAdvancedEffectsPanel.SelectStreakMode(streak);
+            return _valorantAdvancedEffectsPanel;
         }
 
-        private Battlefield1AdvancedSettingsPanel EnsureBattlefield1AdvancedSettingsPanel()
+        private Battlefield1AdvancedEffectsPanel EnsureBattlefield1AdvancedSettingsPanel()
         {
-            return _battlefield1AdvancedSettingsPanel ?? (_battlefield1AdvancedSettingsPanel = new Battlefield1AdvancedSettingsPanel());
+            if (_battlefield1AdvancedEffectsPanel == null)
+            {
+                _battlefield1AdvancedEffectsPanel = new Battlefield1AdvancedEffectsPanel();
+                _battlefield1AdvancedEffectsPanel.MoneyRewardModeSelectionChanged += OnMoneyRewardModeSelectionChanged;
+                _battlefield1AdvancedEffectsPanel.StreakModeSelectionChanged += OnStreakModeSelectionChanged;
+            }
+            string money = ApplicationData.Current.LocalSettings.Values["MoneyRewardMode"] as string;
+            string streak = ApplicationData.Current.LocalSettings.Values["SharedStreakMode"] as string;
+            _battlefield1AdvancedEffectsPanel.SelectMoneyRewardMode(money, "rules");
+            _battlefield1AdvancedEffectsPanel.SelectStreakMode(streak);
+            return _battlefield1AdvancedEffectsPanel;
         }
 
-        private Battlefield5AdvancedSettingsPanel EnsureBattlefield5AdvancedSettingsPanel()
+        private Battlefield5AdvancedEffectsPanel EnsureBattlefield5AdvancedSettingsPanel()
         {
-            return _battlefield5AdvancedSettingsPanel ?? (_battlefield5AdvancedSettingsPanel = new Battlefield5AdvancedSettingsPanel());
+            if (_battlefield5AdvancedEffectsPanel == null)
+            {
+                _battlefield5AdvancedEffectsPanel = new Battlefield5AdvancedEffectsPanel();
+                _battlefield5AdvancedEffectsPanel.MoneyRewardModeSelectionChanged += OnMoneyRewardModeSelectionChanged;
+            }
+            string money = ApplicationData.Current.LocalSettings.Values["MoneyRewardMode"] as string;
+            _battlefield5AdvancedEffectsPanel.SelectMoneyRewardMode(money, "rules");
+            return _battlefield5AdvancedEffectsPanel;
         }
 
-        private Battlefield4AdvancedSettingsPanel EnsureBattlefield4AdvancedSettingsPanel()
+        private Battlefield4AdvancedEffectsPanel EnsureBattlefield4AdvancedSettingsPanel()
         {
-            return _battlefield4AdvancedSettingsPanel ?? (_battlefield4AdvancedSettingsPanel = new Battlefield4AdvancedSettingsPanel());
+            if (_battlefield4AdvancedEffectsPanel == null)
+            {
+                _battlefield4AdvancedEffectsPanel = new Battlefield4AdvancedEffectsPanel();
+                _battlefield4AdvancedEffectsPanel.MoneyRewardModeSelectionChanged += OnMoneyRewardModeSelectionChanged;
+                _battlefield4AdvancedEffectsPanel.StreakModeSelectionChanged += OnStreakModeSelectionChanged;
+            }
+            string money = ApplicationData.Current.LocalSettings.Values["MoneyRewardMode"] as string;
+            string streak = ApplicationData.Current.LocalSettings.Values["SharedStreakMode"] as string;
+            _battlefield4AdvancedEffectsPanel.SelectMoneyRewardMode(money, "rules");
+            _battlefield4AdvancedEffectsPanel.SelectStreakMode(streak);
+            return _battlefield4AdvancedEffectsPanel;
         }
 
-        private Battlefield2042AdvancedSettingsPanel EnsureBattlefield2042AdvancedSettingsPanel()
+        private Battlefield2042AdvancedEffectsPanel EnsureBattlefield2042AdvancedSettingsPanel()
         {
-            return _battlefield2042AdvancedSettingsPanel ?? (_battlefield2042AdvancedSettingsPanel = new Battlefield2042AdvancedSettingsPanel());
+            if (_battlefield2042AdvancedEffectsPanel == null)
+            {
+                _battlefield2042AdvancedEffectsPanel = new Battlefield2042AdvancedEffectsPanel();
+                _battlefield2042AdvancedEffectsPanel.MoneyRewardModeSelectionChanged += OnMoneyRewardModeSelectionChanged;
+                _battlefield2042AdvancedEffectsPanel.StreakModeSelectionChanged += OnStreakModeSelectionChanged;
+            }
+            string money = ApplicationData.Current.LocalSettings.Values["MoneyRewardMode"] as string;
+            string streak = ApplicationData.Current.LocalSettings.Values["SharedStreakMode"] as string;
+            _battlefield2042AdvancedEffectsPanel.SelectMoneyRewardMode(money, "rules");
+            _battlefield2042AdvancedEffectsPanel.SelectStreakMode(streak);
+            return _battlefield2042AdvancedEffectsPanel;
         }
 
-        private PubgAdvancedSettingsPanel EnsurePubgAdvancedSettingsPanel()
+        private PubgAdvancedEffectsPanel EnsurePubgAdvancedSettingsPanel()
         {
-            return _pubgAdvancedSettingsPanel ?? (_pubgAdvancedSettingsPanel = new PubgAdvancedSettingsPanel());
+            if (_pubgAdvancedEffectsPanel == null)
+            {
+                _pubgAdvancedEffectsPanel = new PubgAdvancedEffectsPanel();
+                _pubgAdvancedEffectsPanel.MoneyRewardModeSelectionChanged += OnMoneyRewardModeSelectionChanged;
+                _pubgAdvancedEffectsPanel.StreakModeSelectionChanged += OnStreakModeSelectionChanged;
+            }
+            string money = ApplicationData.Current.LocalSettings.Values["MoneyRewardMode"] as string;
+            string streak = ApplicationData.Current.LocalSettings.Values["SharedStreakMode"] as string;
+            _pubgAdvancedEffectsPanel.SelectMoneyRewardMode(money, "rules");
+            _pubgAdvancedEffectsPanel.SelectStreakMode(streak);
+            return _pubgAdvancedEffectsPanel;
         }
 
-        private DeltaForceAdvancedSettingsPanel EnsureDeltaForceAdvancedSettingsPanel()
+        private DeltaForceAdvancedEffectsPanel EnsureDeltaForceAdvancedSettingsPanel()
         {
-            return _deltaForceAdvancedSettingsPanel ?? (_deltaForceAdvancedSettingsPanel = new DeltaForceAdvancedSettingsPanel());
+            if (_deltaForceAdvancedEffectsPanel == null)
+            {
+                _deltaForceAdvancedEffectsPanel = new DeltaForceAdvancedEffectsPanel();
+                _deltaForceAdvancedEffectsPanel.MoneyRewardModeSelectionChanged += OnMoneyRewardModeSelectionChanged;
+                _deltaForceAdvancedEffectsPanel.StreakModeSelectionChanged += OnStreakModeSelectionChanged;
+            }
+            string money = ApplicationData.Current.LocalSettings.Values["MoneyRewardMode"] as string;
+            string streak = ApplicationData.Current.LocalSettings.Values["SharedStreakMode"] as string;
+            _deltaForceAdvancedEffectsPanel.SelectMoneyRewardMode(money, "rules");
+            _deltaForceAdvancedEffectsPanel.SelectStreakMode(streak);
+            return _deltaForceAdvancedEffectsPanel;
+        }
+
+        private void OnMoneyRewardModeSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            string mode = "rules";
+            if (sender is Battlefield1AdvancedEffectsPanel p1) mode = p1.GetSelectedMoneyRewardMode("rules");
+            else if (sender is Battlefield5AdvancedEffectsPanel p5) mode = p5.GetSelectedMoneyRewardMode("rules");
+            else if (sender is Battlefield4AdvancedEffectsPanel p4) mode = p4.GetSelectedMoneyRewardMode("rules");
+            else if (sender is Battlefield2042AdvancedEffectsPanel p2042) mode = p2042.GetSelectedMoneyRewardMode("rules");
+            else if (sender is DeltaForceAdvancedEffectsPanel pDF) mode = pDF.GetSelectedMoneyRewardMode("rules");
+            else if (sender is PubgAdvancedEffectsPanel pPubg) mode = pPubg.GetSelectedMoneyRewardMode("rules");
+
+            ApplicationData.Current.LocalSettings.Values["MoneyRewardMode"] = mode;
+        }
+
+        private void OnStreakModeSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            string mode = "life";
+            if (sender is Battlefield1AdvancedEffectsPanel p1) mode = p1.GetSelectedStreakMode("life");
+            else if (sender is Battlefield4AdvancedEffectsPanel p4) mode = p4.GetSelectedStreakMode("life");
+            else if (sender is Battlefield2042AdvancedEffectsPanel p2042) mode = p2042.GetSelectedStreakMode("life");
+            else if (sender is DeltaForceAdvancedEffectsPanel pDF) mode = pDF.GetSelectedStreakMode("life");
+            else if (sender is PubgAdvancedEffectsPanel pPubg) mode = pPubg.GetSelectedStreakMode("life");
+            else if (sender is ValorantAdvancedEffectsPanel pVal) mode = pVal.GetSelectedStreakMode("life");
+
+            ApplicationData.Current.LocalSettings.Values["SharedStreakMode"] = mode;
         }
 
         private void ApplyGameAdvancedSettingsPanelTheme()
         {
             GameThemePalette theme = GameThemePalette.Current;
-            if (_crossfireAdvancedSettingsPanel != null)
-            {
-                _crossfireAdvancedSettingsPanel.ApplyTheme(theme);
-            }
-
-            if (_valorantAdvancedSettingsPanel != null)
-            {
-                _valorantAdvancedSettingsPanel.ApplyTheme(theme);
-            }
-
-            if (_battlefield1AdvancedSettingsPanel != null)
-            {
-                _battlefield1AdvancedSettingsPanel.ApplyTheme(theme);
-            }
-
-            if (_battlefield5AdvancedSettingsPanel != null)
-            {
-                _battlefield5AdvancedSettingsPanel.ApplyTheme(theme);
-            }
-
-            if (_battlefield4AdvancedSettingsPanel != null)
-            {
-                _battlefield4AdvancedSettingsPanel.ApplyTheme(theme);
-            }
-
-            if (_battlefield2042AdvancedSettingsPanel != null)
-            {
-                _battlefield2042AdvancedSettingsPanel.ApplyTheme(theme);
-            }
-
-            if (_pubgAdvancedSettingsPanel != null)
-            {
-                _pubgAdvancedSettingsPanel.ApplyTheme(theme);
-            }
-
-            if (_deltaForceAdvancedSettingsPanel != null)
-            {
-                _deltaForceAdvancedSettingsPanel.ApplyTheme(theme);
-            }
+            if (_crossfireAdvancedSettingsPanel != null) _crossfireAdvancedSettingsPanel.ApplyTheme(theme);
+            if (_valorantAdvancedEffectsPanel != null) _valorantAdvancedEffectsPanel.ApplyTheme(theme);
+            if (_battlefield1AdvancedEffectsPanel != null) _battlefield1AdvancedEffectsPanel.ApplyTheme(theme);
+            if (_battlefield5AdvancedEffectsPanel != null) _battlefield5AdvancedEffectsPanel.ApplyTheme(theme);
+            if (_battlefield4AdvancedEffectsPanel != null) _battlefield4AdvancedEffectsPanel.ApplyTheme(theme);
+            if (_battlefield2042AdvancedEffectsPanel != null) _battlefield2042AdvancedEffectsPanel.ApplyTheme(theme);
+            if (_pubgAdvancedEffectsPanel != null) _pubgAdvancedEffectsPanel.ApplyTheme(theme);
+            if (_deltaForceAdvancedEffectsPanel != null) _deltaForceAdvancedEffectsPanel.ApplyTheme(theme);
         }
 
         private void ApplyGameAdvancedSettingsPanelLanguage()
         {
             bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
-            if (_crossfireAdvancedSettingsPanel != null)
-            {
-                _crossfireAdvancedSettingsPanel.ApplyLanguage(isChinese);
-            }
-
-            if (_valorantAdvancedSettingsPanel != null)
-            {
-                _valorantAdvancedSettingsPanel.ApplyLanguage(isChinese);
-            }
-
-            if (_battlefield1AdvancedSettingsPanel != null)
-            {
-                _battlefield1AdvancedSettingsPanel.ApplyLanguage(isChinese);
-            }
-
-            if (_battlefield5AdvancedSettingsPanel != null)
-            {
-                _battlefield5AdvancedSettingsPanel.ApplyLanguage(isChinese);
-            }
-
-            if (_battlefield4AdvancedSettingsPanel != null)
-            {
-                _battlefield4AdvancedSettingsPanel.ApplyLanguage(isChinese);
-            }
-
-            if (_battlefield2042AdvancedSettingsPanel != null)
-            {
-                _battlefield2042AdvancedSettingsPanel.ApplyLanguage(isChinese);
-            }
-
-            if (_pubgAdvancedSettingsPanel != null)
-            {
-                _pubgAdvancedSettingsPanel.ApplyLanguage(isChinese);
-            }
-
-            if (_deltaForceAdvancedSettingsPanel != null)
-            {
-                _deltaForceAdvancedSettingsPanel.ApplyLanguage(isChinese);
-            }
+            if (_crossfireAdvancedSettingsPanel != null) _crossfireAdvancedSettingsPanel.ApplyLanguage(isChinese);
+            if (_valorantAdvancedEffectsPanel != null) _valorantAdvancedEffectsPanel.ApplyLanguage(isChinese);
+            if (_battlefield1AdvancedEffectsPanel != null) _battlefield1AdvancedEffectsPanel.ApplyLanguage(isChinese);
+            if (_battlefield5AdvancedEffectsPanel != null) _battlefield5AdvancedEffectsPanel.ApplyLanguage(isChinese);
+            if (_battlefield4AdvancedEffectsPanel != null) _battlefield4AdvancedEffectsPanel.ApplyLanguage(isChinese);
+            if (_battlefield2042AdvancedEffectsPanel != null) _battlefield2042AdvancedEffectsPanel.ApplyLanguage(isChinese);
+            if (_pubgAdvancedEffectsPanel != null) _pubgAdvancedEffectsPanel.ApplyLanguage(isChinese);
+            if (_deltaForceAdvancedEffectsPanel != null) _deltaForceAdvancedEffectsPanel.ApplyLanguage(isChinese);
         }
 
         private static Brush CreateSettingsBackground(GameStyleMode mode)

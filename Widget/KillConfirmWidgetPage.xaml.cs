@@ -1,4 +1,4 @@
-﻿using Microsoft.Gaming.XboxGameBar;
+using Microsoft.Gaming.XboxGameBar;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -224,6 +224,7 @@ namespace KillConfirmGameBar
             WireUpdateOverlayEvents();
             AnimationLayer.SizeChanged += OnAnimationLayerSizeChanged;
             PackCatalogService.CatalogChanged += OnPackCatalogChanged;
+            GameStyleService.Changed += OnGameStyleServiceChanged;
             VersionText.Text = GetUpdateButtonLabel();
             ToolTipService.SetToolTip(UpdateButton, GetDisplayVersion());
             LoadGameStyleSelector();
@@ -291,6 +292,17 @@ namespace KillConfirmGameBar
             base.OnNavigatedFrom(e);
         }
 
+        private void OnGameStyleServiceChanged(object sender, GameStyleMode mode)
+        {
+            _ = Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+            {
+                _suppressGameStyleEvents = true;
+                SelectGameStyleItem(mode);
+                _suppressGameStyleEvents = false;
+                ApplyGameStyleUi();
+                _ = InitializePackSelectorsAsync();
+            });
+        }
 
         private void OnKillReceived(object sender, KillEvent e)
         {
@@ -313,25 +325,12 @@ namespace KillConfirmGameBar
             }
         }
 
-        private async void OnCenterClick(object sender, RoutedEventArgs e)
+        private void OnCenterClick(object sender, RoutedEventArgs e)
         {
             _animationOffset = 0;
-            _animationPlacement = AnimationPlacementMode.Bottom;
+            _animationPlacement = AnimationPlacementMode.Center;
             ApplyAnimationOffset();
             SaveAnimationPlacementSettings();
-
-            if (_widget == null)
-            {
-                return;
-            }
-
-            try
-            {
-                await _widget.CenterWindowAsync();
-            }
-            catch (Exception)
-            {
-            }
         }
 
         private void OnLowerThirdClick(object sender, RoutedEventArgs e)

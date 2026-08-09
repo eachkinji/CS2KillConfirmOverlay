@@ -10,13 +10,19 @@ namespace KillConfirmGameBar.Controls.GameStyles
             InitializeComponent();
         }
 
+        public event SelectionChangedEventHandler MoneyRewardModeSelectionChanged;
         public event SelectionChangedEventHandler StreakModeSelectionChanged;
 
+        public ComboBox MoneyRewardModeSelectorControl => MoneyRewardModeSelector;
+        public ComboBoxItem MoneyRewardDeltaItemControl => MoneyRewardDeltaItem;
+        public ComboBoxItem MoneyRewardRulesItemControl => MoneyRewardRulesItem;
+        public TextBlock MoneyRewardModeLabelControl => MoneyRewardModeLabel;
         public ComboBox StreakModeSelectorControl => StreakModeSelector;
 
         internal void ApplyTheme(GameThemePalette theme)
         {
             AdvancedEffectsPanelSupport.ApplyHeader(TitleText, HintText, theme);
+            AdvancedEffectsPanelSupport.ApplyMoneyRow(MoneyRewardModeLabel, MoneyRewardModeSelector, theme);
             AdvancedEffectsPanelSupport.ApplyMoneyRow(StreakModeLabel, StreakModeSelector, theme);
             AdvancedEffectsPanelSupport.ApplyNotice(ImportLockedNotice, ImportLockedText, theme);
             StylePanel.ApplyTheme(theme);
@@ -24,10 +30,10 @@ namespace KillConfirmGameBar.Controls.GameStyles
 
         public void ApplyLanguage(bool isChinese)
         {
-            TitleText.Text = isChinese ? "PUBG \u9ad8\u7ea7\u7279\u6548" : "PUBG Effects";
-            HintText.Text = isChinese
-                ? "PUBG \u7684\u6dd8\u6c70\u5b57\u5e55\u3001\u8fde\u6740\u5b57\u5e55\u548c PUBG \u8d44\u6e90\u5728\u8fd9\u91cc\u5355\u72ec\u8bbe\u7f6e\u3002"
-                : "PUBG elimination text, streak captions, and PUBG assets are isolated here.";
+            TitleText.Text = isChinese ? "PUBG 高级特效" : "PUBG Effects";
+            MoneyRewardModeLabel.Text = isChinese ? "奖励算法" : "Money";
+            MoneyRewardDeltaItem.Content = isChinese ? "GSI 差值校验（实验）" : "GSI delta validation (experimental)";
+            MoneyRewardRulesItem.Content = isChinese ? "击杀奖励规则（推荐）" : "Kill reward rules (recommended)";
             SharedStreakSettingsStore.ApplyLanguage(
                 StreakModeLabel,
                 StreakLifeItem,
@@ -35,10 +41,17 @@ namespace KillConfirmGameBar.Controls.GameStyles
                 StreakTimed10Item,
                 StreakTimed15Item,
                 isChinese);
-            ImportLockedText.Text = isChinese
-                ? "\u4ec5\u4f7f\u7528\u5185\u7f6e PUBG \u8d44\u6e90\u3002\u6b64\u9875\u4e0d\u5141\u8bb8\u5bfc\u5165\u6587\u4ef6\u3002"
-                : "Built-in PUBG resources only. File import is disabled for this page.";
             StylePanel.ApplyLanguage(isChinese);
+        }
+
+        public string GetSelectedMoneyRewardMode(string fallback)
+        {
+            return ReadTaggedComboBoxItem(MoneyRewardModeSelector, fallback);
+        }
+
+        public void SelectMoneyRewardMode(string value, string fallback)
+        {
+            SelectTaggedComboBoxItem(MoneyRewardModeSelector, value, fallback);
         }
 
         public string GetSelectedStreakMode(string fallback)
@@ -51,9 +64,48 @@ namespace KillConfirmGameBar.Controls.GameStyles
             SharedStreakSettingsStore.Select(StreakModeSelector, value);
         }
 
+        private void OnMoneyRewardModeSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            MoneyRewardModeSelectionChanged?.Invoke(this, e);
+        }
+
         private void OnStreakModeSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             StreakModeSelectionChanged?.Invoke(this, e);
+        }
+
+        private static string ReadTaggedComboBoxItem(ComboBox selector, string fallback)
+        {
+            if (selector?.SelectedItem is ComboBoxItem item
+                && item.Tag is string tag
+                && !string.IsNullOrWhiteSpace(tag))
+            {
+                return tag;
+            }
+
+            return fallback;
+        }
+
+        private static void SelectTaggedComboBoxItem(ComboBox selector, string value, string fallback)
+        {
+            if (selector == null)
+            {
+                return;
+            }
+
+            string target = string.IsNullOrWhiteSpace(value) ? fallback : value;
+            foreach (object option in selector.Items)
+            {
+                if (option is ComboBoxItem item
+                    && item.Tag is string tag
+                    && string.Equals(tag, target, System.StringComparison.OrdinalIgnoreCase))
+                {
+                    selector.SelectedItem = item;
+                    return;
+                }
+            }
+
+            selector.SelectedIndex = 0;
         }
     }
 }

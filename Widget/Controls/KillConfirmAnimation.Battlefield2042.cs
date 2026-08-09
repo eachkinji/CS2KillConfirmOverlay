@@ -44,7 +44,7 @@ namespace KillConfirmGameBar.Controls
             Battlefield2042KillIconCenterY + Battlefield2042KillIconSize / 2.0
             + Battlefield2042IconFeedVisualGap + Battlefield2042FeedCursorHalfHeight
             - Battlefield2042FeedObjectHeight / 2.0;
-        private const double Battlefield2042MoneyTotalY = Battlefield2042KillIconCenterY - 4;
+        private const double Battlefield2042MoneyTotalY = Battlefield2042KillIconCenterY + 24;
         private const double Battlefield2042FeedLineSpacing = 20;
         private const int Battlefield2042MaxFeedLines = 5;
         private const int Battlefield2042MaxKillIcons = 10;

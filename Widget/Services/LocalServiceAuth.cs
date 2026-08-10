@@ -39,6 +39,11 @@ namespace KillConfirmGameBar.Services
             socket.SetRequestHeader(HeaderName, await GetTokenAsync());
         }
 
+        public static void InvalidateCachedToken()
+        {
+            Interlocked.Exchange(ref _cachedToken, null);
+        }
+
         private static async Task<string> GetTokenAsync()
         {
             if (IsValidToken(_cachedToken))

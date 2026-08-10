@@ -41,9 +41,9 @@ use anyhow::{Context, Result};
 use soundpack::Preset;
 use soundpack::sound::warm_audio_cache;
 use util::event_stream::{
-    audio_reload, audio_volume, crossfire_settings, cs2_root, events_ws, gsi_status, health,
-    money_mode, set_crossfire_settings, set_money_mode, set_streak_settings, shutdown,
-    streak_settings, test_event,
+    audio_devices, audio_reload, audio_volume, crossfire_settings, cs2_root, events_ws, gsi_status,
+    health, money_mode, set_audio_device, set_crossfire_settings, set_money_mode,
+    set_streak_settings, shutdown, streak_settings, test_event,
 };
 use util::handler::update;
 use windows_sys::Win32::UI::Shell::ShellExecuteW;
@@ -104,9 +104,15 @@ async fn main() {
     ));
 
     if let Err(error) = run().await {
-        bootstrap_log(&format!("fatal error before exit: {error:?}"));
-        service_log(&format!("fatal error: {error:?}"));
-        eprintln!("{error:?}");
+        let error_detail = format!("{error:?}");
+        bootstrap_log(&format!("fatal error before exit: {error_detail}"));
+        service_log(&format!("fatal error: {error_detail}"));
+        if error_detail.contains("os error 10048")
+            || error_detail.contains("address already in use")
+        {
+            log_local_port_owners(10087);
+        }
+        eprintln!("{error_detail}");
         std::process::exit(1);
     }
 }
@@ -222,33 +228,14 @@ async fn run() -> Result<()> {
 
     let app_state = Arc::new(AppState {
         mutable: RwLock::new(Mutable {
-            initialized: false,
-            steamid: "".into(),
-            ply_kills: 0,
-            ply_hs_kills: 0,
-            ply_assists: 0,
-            ply_deaths: 0,
-            ply_score: 0,
-            last_player_health: 0,
-            last_active_weapon_is_knife: false,
-            last_active_weapon_badge_key: None,
-            last_active_weapon_name: None,
-            last_active_weapon_money_reward: 300,
-            last_active_weapon_seen_at: None,
-            last_player_money: None,
-            money_epoch: 0,
+            players: Default::default(),
             last_bomb_state: None,
             last_bomb_player: None,
-            crossfire_streak_kills: 0,
-            last_crossfire_kill_at: None,
-            current_round: 0,
-            last_round_phase: None,
-            has_first_kill_in_round: false,
-            pending_last_kill: None,
         }),
         control_token,
         stream_handle: RwLock::new(output_stream),
         current_output_device_name: RwLock::new(output_device_name.clone()),
+        selected_output_device_name: RwLock::new(args.device.clone()),
         args,
         preset: RwLock::new(preset),
         volume_percent: AtomicU32::new(initial_volume_percent),
@@ -259,8 +246,12 @@ async fn run() -> Result<()> {
         shared_streak_mode: AtomicU8::new(CrossfireStreakMode::DEFAULT.as_u8()),
         shared_streak_window_ms: AtomicU64::new(DEFAULT_CUSTOM_STREAK_WINDOW_MS),
         shared_streak_mode_active: AtomicBool::new(false),
-        crossfire_first_kill_special_audio: AtomicBool::new(true),
-        crossfire_last_kill_special_audio: AtomicBool::new(true),
+        crossfire_first_kill_special_audio: AtomicBool::new(false),
+        crossfire_last_kill_special_audio: AtomicBool::new(false),
+        crossfire_headshot_special_audio_priority: AtomicBool::new(false),
+        crossfire_knife_special_audio_priority: AtomicBool::new(true),
+        assist_audio_enabled: AtomicBool::new(false),
+        assist_audio_setting_active: AtomicBool::new(true),
         event_tx,
         shutdown_tx,
         gsi_posts: AtomicU64::new(0),
@@ -271,12 +262,10 @@ async fn run() -> Result<()> {
 
     service_log(&format!("active audio device: {}", output_device_name));
 
-    if app_state.args.device.eq_ignore_ascii_case("default") {
-        let watcher_state = app_state.clone();
-        tokio::spawn(async move {
-            monitor_default_output_device(watcher_state).await;
-        });
-    }
+    let watcher_state = app_state.clone();
+    tokio::spawn(async move {
+        monitor_default_output_device(watcher_state).await;
+    });
 
     {
         let cache_state = app_state.clone();
@@ -292,6 +281,8 @@ async fn run() -> Result<()> {
         .route("/gsi-status", get(gsi_status))
         .route("/cs2-root", get(cs2_root))
         .route("/audio/reload", post(audio_reload))
+        .route("/audio/devices", get(audio_devices))
+        .route("/audio/device", post(set_audio_device))
         .route("/audio/volume", post(audio_volume))
         .route("/money/mode", get(money_mode).post(set_money_mode))
         .route(
@@ -319,9 +310,9 @@ async fn run() -> Result<()> {
             require_control_token,
         ));
 
-    // run our app with hyper, listening globally on port 3000
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:3000").await?;
-    service_log("listening on 127.0.0.1:3000");
+    // run our app with hyper, listening globally on port 10087
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:10087").await?;
+    service_log("listening on 127.0.0.1:10087");
     axum::serve(listener, app)
         .with_graceful_shutdown(shutdown_signal(shutdown_rx))
         .await?;
@@ -337,6 +328,11 @@ async fn monitor_default_output_device(app_state: Arc<AppState>) {
 
         if app_state.shutdown_tx.receiver_count() == 0 {
             break;
+        }
+
+        let selected_device = app_state.selected_output_device_name.read().await.clone();
+        if !selected_device.eq_ignore_ascii_case("default") {
+            continue;
         }
 
         let detected_name = match default_output_device_name() {
@@ -765,6 +761,51 @@ fn external_update_dir() -> PathBuf {
     }
 
     env::temp_dir().join("KillConfirmGameBar").join("updates")
+}
+
+fn log_local_port_owners(port: u16) {
+    match find_local_port_pids(port) {
+        Ok(pids) if pids.is_empty() => {
+            service_log(&format!(
+                "port {port} owner: process disappeared before inspection"
+            ));
+        }
+        Ok(pids) => {
+            for pid in pids {
+                let image =
+                    process_image_name(pid).unwrap_or_else(|| "unknown process".to_string());
+                service_log(&format!("port {port} owner: {image} (PID {pid})"));
+            }
+        }
+        Err(error) => service_log(&format!("port {port} owner lookup failed: {error}")),
+    }
+}
+
+fn process_image_name(pid: u32) -> Option<String> {
+    let filter = format!("PID eq {pid}");
+    let output = Command::new("tasklist")
+        .args(["/FI", &filter, "/FO", "CSV", "/NH"])
+        .output()
+        .ok()?;
+    if !output.status.success() {
+        return None;
+    }
+
+    let line = String::from_utf8_lossy(&output.stdout)
+        .lines()
+        .find(|line| !line.trim().is_empty())?
+        .trim()
+        .to_string();
+    if !line.starts_with('"') {
+        return None;
+    }
+
+    line.trim_matches('"')
+        .split("\",\"")
+        .next()
+        .map(str::trim)
+        .filter(|name| !name.is_empty())
+        .map(str::to_string)
 }
 
 fn free_local_port(port: u16) -> Result<()> {

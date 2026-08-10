@@ -6,7 +6,7 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use axum::{extract::State, http::StatusCode, response::IntoResponse};
 use gsi_cs2::Body;
-use gsi_cs2::round::RoundPhase;
+use gsi_cs2::round::{BombState, RoundPhase};
 use gsi_cs2::team::{TeamClass, TeamInfo};
 use gsi_cs2::weapon::{WeaponName, WeaponState, WeaponType};
 use thiserror::Error;
@@ -33,6 +33,42 @@ fn map_weapon_badge_key(weapon_type: WeaponType) -> Option<&'static str> {
         WeaponType::Pistol => None,
         _ => None,
     }
+}
+
+fn is_knife_weapon(weapon_type: Option<&WeaponType>, weapon_name: &WeaponName) -> bool {
+    matches!(weapon_type, Some(WeaponType::Knife))
+        || matches!(
+            weapon_name,
+            WeaponName::KnifeCT
+                | WeaponName::KnifeT
+                | WeaponName::KnifeBayonet
+                | WeaponName::KnifeBowie
+                | WeaponName::KnifeButterfly
+                | WeaponName::KnifeClassic
+                | WeaponName::KnifeFalchion
+                | WeaponName::KnifeFlip
+                | WeaponName::KnifeGut
+                | WeaponName::KnifeHuntsman
+                | WeaponName::KnifeKarambit
+                | WeaponName::KnifeKukri
+                | WeaponName::KnifeM9Bayonet
+                | WeaponName::KnifeNavaja
+                | WeaponName::KnifeNomad
+                | WeaponName::KnifeParacord
+                | WeaponName::KnifeShadowDaggers
+                | WeaponName::KnifeSkeleton
+                | WeaponName::KnifeStiletto
+                | WeaponName::KnifeSurvival
+                | WeaponName::KnifeTalon
+                | WeaponName::KnifeUrsus
+        )
+}
+
+fn resolve_knife_kill(
+    current_active_weapon_is_knife: Option<bool>,
+    recent_weapon_is_knife: bool,
+) -> bool {
+    current_active_weapon_is_knife.unwrap_or(false) || recent_weapon_is_knife
 }
 
 fn map_weapon_name(weapon_name: &WeaponName) -> &'static str {
@@ -196,11 +232,15 @@ pub async fn update(
     }
 
     if let Some(whitelist) = &app_state.args.steamid {
-        let steamid = player_data
+        let steamid = data
+            .provider
             .as_ref()
-            .unwrap()
-            .steam_id
-            .as_deref()
+            .map(|provider| provider.steam_id.as_str())
+            .or_else(|| {
+                player_data
+                    .as_ref()
+                    .and_then(|player| player.steam_id.as_deref())
+            })
             .unwrap_or("");
         if steamid != whitelist {
             return Ok(StatusCode::OK);
@@ -234,8 +274,8 @@ pub async fn update(
         .weapons
         .values()
         .find(|weapon| matches!(weapon.state, WeaponState::Active));
-    let current_active_weapon_is_knife = current_active_weapon
-        .map(|weapon| matches!(weapon.r#type.as_ref(), Some(WeaponType::Knife)));
+    let current_active_weapon_is_knife =
+        current_active_weapon.map(|weapon| is_knife_weapon(weapon.r#type.as_ref(), &weapon.name));
     let current_active_weapon_badge_key = current_active_weapon
         .and_then(|weapon| weapon.r#type.clone())
         .and_then(map_weapon_badge_key)
@@ -245,64 +285,78 @@ pub async fn update(
     let current_active_weapon_money_reward = current_active_weapon
         .map(|weapon| money_rules::weapon_kill_reward(&weapon.name, current_mode));
 
-    let binding = app_state.mutable.read().await;
-    let current_kills = ply_state.round_kills;
-    let original_kills = binding.ply_kills;
+    let player_name = ply.name.as_deref().unwrap_or("").to_string();
+    let steamid = resolve_observed_player_id(
+        ply.spectarget.as_deref(),
+        ply.steam_id.as_deref(),
+        data.provider
+            .as_ref()
+            .map(|provider| provider.steam_id.as_str()),
+        &player_name,
+    );
 
+    let binding = app_state.mutable.read().await;
+    let tracked_player = binding.players.get(&steamid).cloned().unwrap_or_default();
+    let current_kills = ply_state.round_kills;
+    let original_kills = tracked_player.ply_kills;
     let current_hs_kills = ply_state.round_killhs;
-    let origin_hs_kills = binding.ply_hs_kills;
+    let origin_hs_kills = tracked_player.ply_hs_kills;
     let current_assists = ply
         .match_stats
         .as_ref()
         .map(|stats| stats.assists)
         .unwrap_or(0);
-    let original_assists = binding.ply_assists;
+    let original_assists = tracked_player.ply_assists;
     let current_deaths = ply
         .match_stats
         .as_ref()
         .map(|stats| stats.deaths)
         .unwrap_or(0);
-    let original_deaths = binding.ply_deaths;
+    let original_deaths = tracked_player.ply_deaths;
     let current_score = ply
         .match_stats
         .as_ref()
         .map(|stats| stats.score)
         .unwrap_or(0);
-    let previous_player_health = binding.last_player_health;
-
-    let is_initialized = binding.initialized;
-    let original_steamid = binding.steamid.clone();
-    let previous_round = binding.current_round;
-    let previous_round_phase = binding.last_round_phase;
-    let had_first_kill_in_round = binding.has_first_kill_in_round;
-    let pending_last_kill = binding.pending_last_kill.clone();
-    let previous_player_money = binding.last_player_money;
-    let previous_money_epoch = binding.money_epoch;
+    let previous_player_health = tracked_player.last_player_health;
+    let is_initialized = tracked_player.initialized;
+    let previous_round = tracked_player.current_round;
+    let previous_round_phase = tracked_player.last_round_phase;
+    let had_first_kill_in_round = tracked_player.has_first_kill_in_round;
+    let pending_last_kill = tracked_player.pending_last_kill.clone();
+    let previous_player_money = tracked_player.last_player_money;
+    let previous_money_epoch = tracked_player.money_epoch;
     let previous_bomb_state = binding.last_bomb_state.clone();
     let previous_bomb_player = binding.last_bomb_player.clone();
-    let previous_crossfire_streak_kills = binding.crossfire_streak_kills;
-    let previous_crossfire_kill_at = binding.last_crossfire_kill_at;
-    let recent_weapon_is_knife = binding.last_active_weapon_is_knife
-        && binding
+    let previous_crossfire_streak_kills = tracked_player.crossfire_streak_kills;
+    let previous_crossfire_kill_at = tracked_player.last_crossfire_kill_at;
+    let recent_weapon_is_knife = tracked_player.last_active_weapon_is_knife
+        && tracked_player
             .last_active_weapon_seen_at
             .map(|seen_at| now.saturating_duration_since(seen_at) <= KNIFE_KILL_GRACE_WINDOW)
             .unwrap_or(false);
-    let recent_weapon_badge_key = binding.last_active_weapon_badge_key.clone().filter(|_| {
-        binding
+    let recent_weapon_badge_key =
+        tracked_player
+            .last_active_weapon_badge_key
+            .clone()
+            .filter(|_| {
+                tracked_player
+                    .last_active_weapon_seen_at
+                    .map(|seen_at| {
+                        now.saturating_duration_since(seen_at) <= KNIFE_KILL_GRACE_WINDOW
+                    })
+                    .unwrap_or(false)
+            });
+    let recent_weapon_name = tracked_player.last_active_weapon_name.clone().filter(|_| {
+        tracked_player
             .last_active_weapon_seen_at
             .map(|seen_at| now.saturating_duration_since(seen_at) <= KNIFE_KILL_GRACE_WINDOW)
             .unwrap_or(false)
     });
-    let recent_weapon_name = binding.last_active_weapon_name.clone().filter(|_| {
-        binding
-            .last_active_weapon_seen_at
-            .map(|seen_at| now.saturating_duration_since(seen_at) <= KNIFE_KILL_GRACE_WINDOW)
-            .unwrap_or(false)
-    });
-    let recent_weapon_money_reward = binding
+    let recent_weapon_money_reward = tracked_player
         .last_active_weapon_seen_at
         .filter(|seen_at| now.saturating_duration_since(*seen_at) <= KNIFE_KILL_GRACE_WINDOW)
-        .map(|_| binding.last_active_weapon_money_reward);
+        .map(|_| tracked_player.last_active_weapon_money_reward);
     drop(binding);
 
     let money_reward_mode =
@@ -327,8 +381,11 @@ pub async fn update(
     };
     let streak_mode_active = crossfire_mode_active || shared_streak_mode_active;
 
-    let steamid = ply.steam_id.as_deref().unwrap_or("");
-    let player_name = ply.name.as_deref().unwrap_or("").to_string();
+    let bomb_exploded = round
+        .and_then(|round_data| round_data.bomb.as_ref())
+        .map(|bomb| matches!(bomb, BombState::Exploded))
+        .unwrap_or(false)
+        || current_bomb_state.as_deref() == Some("exploded");
     let player_team = ply.team.as_ref();
     let target_name = opponent_team_display_name(player_team);
 
@@ -344,12 +401,8 @@ pub async fn update(
         .map(|(_, outcome)| outcome.as_str());
     let is_hostage_rescue_round =
         latest_round_outcome == Some("ct_win_rescue") && matches!(player_team, Some(TeamClass::CT));
-    let player_identity_matches = steamid == original_steamid || original_steamid.is_empty();
-    let death_count_reset = current_deaths > original_deaths && player_identity_matches;
-    let health_death_reset = is_initialized
-        && previous_player_health > 0
-        && ply_state.health == 0
-        && player_identity_matches;
+    let death_count_reset = is_initialized && current_deaths > original_deaths;
+    let health_death_reset = is_initialized && previous_player_health > 0 && ply_state.health == 0;
     let death_reset = death_count_reset || health_death_reset;
     let freeze_phase_started = previous_round_phase != Some(TrackedRoundPhase::FreezeTime)
         && current_round_phase == Some(TrackedRoundPhase::FreezeTime);
@@ -364,8 +417,9 @@ pub async fn update(
     } else {
         previous_player_money
     };
-    let can_emit_kill = current_kills > original_kills && player_identity_matches;
-    let can_emit_assist = current_assists > original_assists && player_identity_matches;
+    let can_emit_kill =
+        should_emit_player_kill(is_initialized, current_kills, original_kills, bomb_exploded);
+    let can_emit_assist = is_initialized && current_assists > original_assists;
     let crossfire_kill_delta = if !is_initialized {
         current_kills
     } else if can_emit_kill {
@@ -373,6 +427,12 @@ pub async fn update(
     } else {
         0
     };
+    let round_ending_kill = detect_round_ending_kill(
+        crossfire_kill_delta,
+        current_round_phase,
+        round_changed,
+        freeze_phase_started,
+    );
     let crossfire_elapsed =
         previous_crossfire_kill_at.map(|last_kill_at| now.saturating_duration_since(last_kill_at));
     let crossfire_streak_kills = resolve_crossfire_streak_count(
@@ -380,7 +440,7 @@ pub async fn update(
         crossfire_elapsed,
         active_streak_mode,
         active_streak_window_ms,
-        round_reset || !player_identity_matches,
+        round_reset && !round_ending_kill,
         crossfire_kill_delta,
     );
     let event_kill_count = if streak_mode_active {
@@ -407,16 +467,16 @@ pub async fn update(
     let mut hostage_objective_event_to_send = None;
     let mut round_bonus_event_to_send = None;
 
-    if is_initialized && !steamid.is_empty() && player_identity_matches {
+    if is_initialized && !steamid.is_empty() {
         let completed_bomb_action = match (
             previous_bomb_state.as_deref(),
             current_bomb_state.as_deref(),
             previous_bomb_player.as_deref(),
         ) {
-            (Some("planting"), Some("planted"), Some(actor)) if actor == steamid => {
+            (Some("planting"), Some("planted"), Some(actor)) if actor == steamid.as_str() => {
                 Some("bomb_plant")
             }
-            (Some("defusing"), Some("defused"), Some(actor)) if actor == steamid => {
+            (Some("defusing"), Some("defused"), Some(actor)) if actor == steamid.as_str() => {
                 Some("bomb_defuse")
             }
             _ => None,
@@ -447,7 +507,8 @@ pub async fn update(
 
     if is_initialized && can_emit_kill {
         let is_headshot = current_hs_kills > origin_hs_kills;
-        let is_knife_kill = recent_weapon_is_knife;
+        let is_knife_kill =
+            resolve_knife_kill(current_active_weapon_is_knife, recent_weapon_is_knife);
         let weapon_badge_key = current_active_weapon_badge_key
             .clone()
             .or_else(|| recent_weapon_badge_key.clone());
@@ -465,7 +526,7 @@ pub async fn update(
             ),
             MoneyRewardMode::Rules => rule_money_reward,
         };
-        let is_last_kill = phase_transition_to_over;
+        let is_last_kill = round_ending_kill;
         let is_first_kill = !is_last_kill && !first_kill_already_seen;
 
         if is_last_kill {
@@ -533,67 +594,73 @@ pub async fn update(
             is_last_kill
         );
     } else if is_initialized && phase_transition_to_over {
-        if let Some(pending_last_kill) = pending_last_kill {
-            if now.saturating_duration_since(pending_last_kill.recorded_at)
-                <= FINAL_KILL_GRACE_WINDOW
-            {
-                badge_only_event_to_send = Some(KillEvent {
-                    kill_count: pending_last_kill.kill_count,
-                    is_headshot: pending_last_kill.is_headshot,
-                    is_knife_kill: pending_last_kill.is_knife_kill,
-                    is_first_kill: false,
-                    is_last_kill: true,
-                    is_assist: false,
-                    play_main_animation: pending_last_kill.kill_count == 1
-                        && pending_last_kill.is_headshot,
-                    animation_key: None,
-                    event_kind: Some("kill".to_string()),
-                    weapon_badge_key: pending_last_kill.weapon_badge_key.clone(),
-                    weapon_name: pending_last_kill.weapon_name.clone(),
-                    money_reward: pending_last_kill.money_reward,
-                    round_number: current_round,
-                    money_epoch: current_money_epoch,
-                    player_name: player_name.clone(),
-                    target_name: target_name.clone(),
-                    steamid: steamid.to_string(),
-                });
-                debug!(
-                    "player: {}, resolved delayed final kill for round kill {}",
-                    ply.name.as_deref().unwrap_or(""),
-                    pending_last_kill.kill_count
-                );
-
-                let should_play_delayed_last_audio = !crossfire_mode_active
-                    || app_state
-                        .crossfire_last_kill_special_audio
-                        .load(Ordering::Relaxed);
-                if should_play_delayed_last_audio {
-                    let app_state_clone = app_state.clone();
-                    let kill_count = pending_last_kill.kill_count;
-                    tokio::spawn(async move {
-                        let result = play_audio(
-                            app_state_clone,
-                            kill_count,
-                            pending_last_kill.is_headshot,
-                            false,
-                            pending_last_kill.is_knife_kill,
-                            true,
-                            false,
-                            0,
-                            Some("kill".to_string()),
-                            false,
-                        )
-                        .await;
-
-                        if let Err(e) = result {
-                            error!("Failed to play audio: {}", e);
-                        }
+        if round_end_allows_delayed_last_kill(
+            round.and_then(|round_data| round_data.bomb.as_ref()),
+            current_bomb_state.as_deref(),
+            latest_round_outcome,
+        ) {
+            if let Some(pending_last_kill) = pending_last_kill {
+                if now.saturating_duration_since(pending_last_kill.recorded_at)
+                    <= FINAL_KILL_GRACE_WINDOW
+                {
+                    badge_only_event_to_send = Some(KillEvent {
+                        kill_count: pending_last_kill.kill_count,
+                        is_headshot: pending_last_kill.is_headshot,
+                        is_knife_kill: pending_last_kill.is_knife_kill,
+                        is_first_kill: false,
+                        is_last_kill: true,
+                        is_assist: false,
+                        play_main_animation: pending_last_kill.kill_count == 1
+                            && pending_last_kill.is_headshot,
+                        animation_key: None,
+                        event_kind: Some("kill".to_string()),
+                        weapon_badge_key: pending_last_kill.weapon_badge_key.clone(),
+                        weapon_name: pending_last_kill.weapon_name.clone(),
+                        money_reward: pending_last_kill.money_reward,
+                        round_number: current_round,
+                        money_epoch: current_money_epoch,
+                        player_name: player_name.clone(),
+                        target_name: target_name.clone(),
+                        steamid: steamid.to_string(),
                     });
+                    debug!(
+                        "player: {}, resolved delayed final kill for round kill {}",
+                        ply.name.as_deref().unwrap_or(""),
+                        pending_last_kill.kill_count
+                    );
+
+                    let should_play_delayed_last_audio = !crossfire_mode_active
+                        || app_state
+                            .crossfire_last_kill_special_audio
+                            .load(Ordering::Relaxed);
+                    if should_play_delayed_last_audio {
+                        let app_state_clone = app_state.clone();
+                        let kill_count = pending_last_kill.kill_count;
+                        tokio::spawn(async move {
+                            let result = play_audio(
+                                app_state_clone,
+                                kill_count,
+                                pending_last_kill.is_headshot,
+                                false,
+                                pending_last_kill.is_knife_kill,
+                                true,
+                                false,
+                                0,
+                                Some("kill".to_string()),
+                                false,
+                            )
+                            .await;
+
+                            if let Err(e) = result {
+                                error!("Failed to play audio: {}", e);
+                            }
+                        });
+                    }
                 }
             }
-
-            pending_last_kill_for_next = None;
         }
+
+        pending_last_kill_for_next = None;
     }
     if is_initialized && can_emit_assist {
         assist_event_to_send = Some(KillEvent {
@@ -692,7 +759,6 @@ pub async fn update(
     }
 
     if is_initialized
-        && player_identity_matches
         && !can_emit_kill
         && !can_emit_assist
         && money_rules::is_hostage_map(&map_data.name)
@@ -752,30 +818,27 @@ pub async fn update(
     }
 
     let mut binding = app_state.mutable.write().await;
-
-    if !binding.initialized {
-        binding.initialized = true;
-    }
-
-    binding.ply_kills = current_kills;
-    binding.ply_hs_kills = current_hs_kills;
-    binding.ply_assists = current_assists;
-    binding.ply_deaths = current_deaths;
-    binding.ply_score = current_score;
-    binding.last_player_health = ply_state.health;
-    binding.steamid = steamid.to_string();
-    binding.current_round = current_round;
-    binding.last_round_phase = current_round_phase;
-    binding.last_player_money = Some(current_player_money);
-    binding.money_epoch = current_money_epoch;
     binding.last_bomb_state = current_bomb_state;
     binding.last_bomb_player = current_bomb_player;
-    if round_reset || !player_identity_matches || death_reset {
-        binding.crossfire_streak_kills = 0;
-        binding.last_crossfire_kill_at = None;
+
+    let tracked_player = binding.players.entry(steamid.clone()).or_default();
+    tracked_player.initialized = true;
+    tracked_player.ply_kills = current_kills;
+    tracked_player.ply_hs_kills = current_hs_kills;
+    tracked_player.ply_assists = current_assists;
+    tracked_player.ply_deaths = current_deaths;
+    tracked_player.ply_score = current_score;
+    tracked_player.last_player_health = ply_state.health;
+    tracked_player.current_round = current_round;
+    tracked_player.last_round_phase = current_round_phase;
+    tracked_player.last_player_money = Some(current_player_money);
+    tracked_player.money_epoch = current_money_epoch;
+    if round_reset || death_reset {
+        tracked_player.crossfire_streak_kills = 0;
+        tracked_player.last_crossfire_kill_at = None;
     } else {
-        binding.crossfire_streak_kills = crossfire_streak_kills;
-        binding.last_crossfire_kill_at = if crossfire_kill_delta > 0 {
+        tracked_player.crossfire_streak_kills = crossfire_streak_kills;
+        tracked_player.last_crossfire_kill_at = if crossfire_kill_delta > 0 {
             Some(now)
         } else if crossfire_streak_kills == 0 {
             None
@@ -783,17 +846,17 @@ pub async fn update(
             previous_crossfire_kill_at
         };
     }
-    binding.has_first_kill_in_round =
+    tracked_player.has_first_kill_in_round =
         current_kills > 0 || (!round_reset && had_first_kill_in_round) || can_emit_kill;
-    binding.pending_last_kill = pending_last_kill_for_next;
+    tracked_player.pending_last_kill = pending_last_kill_for_next;
     if let Some(is_knife) = current_active_weapon_is_knife {
-        binding.last_active_weapon_is_knife = is_knife;
-        binding.last_active_weapon_seen_at = Some(now);
+        tracked_player.last_active_weapon_is_knife = is_knife;
+        tracked_player.last_active_weapon_seen_at = Some(now);
     }
-    binding.last_active_weapon_badge_key = current_active_weapon_badge_key;
-    binding.last_active_weapon_name = current_active_weapon_name;
+    tracked_player.last_active_weapon_badge_key = current_active_weapon_badge_key;
+    tracked_player.last_active_weapon_name = current_active_weapon_name;
     if let Some(money_reward) = current_active_weapon_money_reward {
-        binding.last_active_weapon_money_reward = money_reward;
+        tracked_player.last_active_weapon_money_reward = money_reward;
     }
 
     drop(binding);
@@ -872,6 +935,57 @@ fn parse_gsi_body(body: &[u8]) -> Result<Body, GsiBodyError> {
     Ok(serde_json::from_value(value)?)
 }
 
+fn round_end_allows_delayed_last_kill(
+    bomb_state: Option<&BombState>,
+    raw_bomb_state: Option<&str>,
+    round_outcome: Option<&str>,
+) -> bool {
+    let ended_by_bomb_objective =
+        matches!(bomb_state, Some(BombState::Defused | BombState::Exploded))
+            || matches!(raw_bomb_state, Some("defused" | "exploded"));
+    let ended_by_non_kill_outcome = matches!(
+        round_outcome,
+        Some("ct_win_defuse" | "t_win_bomb" | "ct_win_time" | "t_win_time" | "ct_win_rescue")
+    );
+
+    !ended_by_bomb_objective && !ended_by_non_kill_outcome
+}
+
+fn resolve_observed_player_id(
+    spectarget: Option<&str>,
+    player_steamid: Option<&str>,
+    provider_steamid: Option<&str>,
+    player_name: &str,
+) -> String {
+    spectarget
+        .filter(|value| !value.is_empty())
+        .or_else(|| player_steamid.filter(|value| !value.is_empty()))
+        .or_else(|| provider_steamid.filter(|value| !value.is_empty()))
+        .map(str::to_string)
+        .unwrap_or_else(|| format!("name:{player_name}"))
+}
+
+fn should_emit_player_kill(
+    initialized: bool,
+    current_kills: u16,
+    previous_kills: u16,
+    bomb_exploded: bool,
+) -> bool {
+    initialized && current_kills > previous_kills && !bomb_exploded
+}
+
+fn detect_round_ending_kill(
+    kill_delta: u16,
+    current_round_phase: Option<TrackedRoundPhase>,
+    round_changed: bool,
+    freeze_phase_started: bool,
+) -> bool {
+    kill_delta > 0
+        && (matches!(current_round_phase, Some(TrackedRoundPhase::Over))
+            || round_changed
+            || freeze_phase_started)
+}
+
 fn resolve_crossfire_streak_count(
     previous_count: u16,
     elapsed_since_last_kill: Option<Duration>,
@@ -909,9 +1023,107 @@ fn resolve_crossfire_streak_count(
 
 #[cfg(test)]
 mod tests {
-    use super::{CrossfireStreakMode, opponent_team_display_name, resolve_crossfire_streak_count};
+    use super::{
+        CrossfireStreakMode, TrackedRoundPhase, detect_round_ending_kill, is_knife_weapon,
+        opponent_team_display_name, resolve_crossfire_streak_count, resolve_knife_kill,
+        resolve_observed_player_id, round_end_allows_delayed_last_kill, should_emit_player_kill,
+    };
+    use gsi_cs2::round::BombState;
     use gsi_cs2::team::TeamClass;
+    use gsi_cs2::weapon::{WeaponName, WeaponType};
     use std::time::Duration;
+
+    #[test]
+    fn knife_kill_uses_the_current_gsi_weapon_and_all_knife_names() {
+        assert!(resolve_knife_kill(Some(true), false));
+        assert!(resolve_knife_kill(Some(false), true));
+        assert!(!resolve_knife_kill(Some(false), false));
+        assert!(is_knife_weapon(None, &WeaponName::KnifeKarambit));
+        assert!(is_knife_weapon(Some(&WeaponType::Knife), &WeaponName::AK47));
+        assert!(!is_knife_weapon(None, &WeaponName::AK47));
+    }
+
+    #[test]
+    fn final_kill_keeps_the_existing_streak_before_the_next_round_reset() {
+        let round_ending_kill =
+            detect_round_ending_kill(1, Some(TrackedRoundPhase::Over), false, false);
+        assert!(round_ending_kill);
+        assert_eq!(
+            resolve_crossfire_streak_count(
+                3,
+                None,
+                CrossfireStreakMode::Life,
+                1_000,
+                !round_ending_kill,
+                1
+            ),
+            4
+        );
+
+        assert!(detect_round_ending_kill(
+            1,
+            Some(TrackedRoundPhase::FreezeTime),
+            false,
+            true
+        ));
+        assert!(detect_round_ending_kill(
+            1,
+            Some(TrackedRoundPhase::Live),
+            true,
+            false
+        ));
+        assert!(!detect_round_ending_kill(
+            0,
+            Some(TrackedRoundPhase::Over),
+            false,
+            false
+        ));
+    }
+
+    #[test]
+    fn objective_round_end_does_not_replay_a_pending_kill_as_the_last_kill() {
+        assert!(!round_end_allows_delayed_last_kill(
+            Some(&BombState::Defused),
+            Some("defused"),
+            Some("ct_win_defuse")
+        ));
+        assert!(!round_end_allows_delayed_last_kill(
+            Some(&BombState::Exploded),
+            Some("exploded"),
+            Some("t_win_bomb")
+        ));
+        assert!(!round_end_allows_delayed_last_kill(
+            None,
+            None,
+            Some("ct_win_rescue")
+        ));
+        assert!(round_end_allows_delayed_last_kill(
+            None,
+            None,
+            Some("ct_win_elimination")
+        ));
+    }
+
+    #[test]
+    fn spectated_player_identity_takes_priority_and_first_sample_is_only_a_baseline() {
+        assert_eq!(
+            resolve_observed_player_id(
+                Some("spectated-teammate"),
+                Some("local-player"),
+                Some("provider-local-player"),
+                "teammate"
+            ),
+            "spectated-teammate"
+        );
+        assert!(!should_emit_player_kill(false, 3, 0, false));
+        assert!(should_emit_player_kill(true, 4, 3, false));
+    }
+
+    #[test]
+    fn bomb_explosion_kill_deltas_do_not_emit_player_kill_audio() {
+        assert!(!should_emit_player_kill(true, 2, 1, true));
+        assert!(should_emit_player_kill(true, 2, 1, false));
+    }
 
     #[test]
     fn life_mode_keeps_count_without_a_time_limit() {

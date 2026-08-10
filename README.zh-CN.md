@@ -70,7 +70,7 @@ KillConfirmGameBar 是一个用于 Counter-Strike 2 的击杀确认 Xbox Game Ba
 CS2 需要一个 GSI 配置，地址指向：
 
 ```text
-http://127.0.0.1:3000/
+http://127.0.0.1:10087/
 ```
 
 安装器会尝试自动创建这个配置。如果击杀事件没有触发，可以手动把 `KillConfirmService/gsi/gamestate_integration_killconfirm.cfg` 放到 CS2 的 cfg 目录：

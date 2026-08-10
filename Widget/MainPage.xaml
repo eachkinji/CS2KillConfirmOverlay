@@ -229,6 +229,7 @@
 
                 <StackPanel Spacing="14">
                     <ContentControl x:Name="GameAdvancedSettingsPanelHost" />
+                    <settings:RuntimeMaintenancePanel />
 
                     <Border x:Name="GeneralSettingsCard" Style="{StaticResource SettingsSectionCardStyle}">
                         <StackPanel Spacing="12">

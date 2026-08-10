@@ -22,7 +22,7 @@ use tracing::{debug, error, warn};
 use crate::soundpack::Preset;
 use crate::soundpack::sound::{play_audio, warm_audio_cache};
 use crate::util::logging::service_log;
-use crate::util::playback::get_output_stream_with_name;
+use crate::util::playback::{get_output_stream_with_name, output_device_names};
 
 use super::state::{
     AppState, CrossfireStreakMode, KillEvent, MoneyRewardMode, format_streak_setting,
@@ -82,18 +82,32 @@ pub struct MoneyModeRequest {
     pub mode: String,
 }
 
+fn default_true() -> bool {
+    true
+}
+
 #[derive(Debug, Deserialize)]
 pub struct CrossfireSettingsRequest {
     pub active: bool,
     pub streak_mode: String,
     pub first_kill_special_audio: bool,
     pub last_kill_special_audio: bool,
+    #[serde(default)]
+    pub headshot_special_audio_priority: bool,
+    #[serde(default = "default_true")]
+    pub knife_special_audio_priority: bool,
+    #[serde(default)]
+    pub assist_audio_enabled: bool,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct StreakSettingsRequest {
     pub active: bool,
     pub streak_mode: String,
+    #[serde(default)]
+    pub assist_audio_enabled: bool,
+    #[serde(default)]
+    pub assist_audio_setting_active: bool,
 }
 
 #[derive(Debug, Serialize)]
@@ -115,12 +129,16 @@ pub struct CrossfireSettingsResponse {
     pub streak_mode: String,
     pub first_kill_special_audio: bool,
     pub last_kill_special_audio: bool,
+    pub headshot_special_audio_priority: bool,
+    pub knife_special_audio_priority: bool,
+    pub assist_audio_enabled: bool,
 }
 
 #[derive(Debug, Serialize)]
 pub struct StreakSettingsResponse {
     pub active: bool,
     pub streak_mode: String,
+    pub assist_audio_enabled: bool,
 }
 
 #[derive(Debug, Serialize)]
@@ -319,11 +337,11 @@ const SOUND_PACK_OPTIONS: &[SoundPackOption] = &[
 const MONEY_MODE_OPTIONS: &[MoneyModeOption] = &[
     MoneyModeOption {
         mode: "delta",
-        display_name: "GSI Delta Validation (Experimental)",
+        display_name: "GSI Delta (Default)",
     },
     MoneyModeOption {
         mode: "rules",
-        display_name: "Kill Reward Rules (Recommended)",
+        display_name: "Kill Reward Rules",
     },
 ];
 
@@ -366,17 +384,79 @@ pub async fn shutdown(State(app_state): State<Arc<AppState>>) -> Json<HealthResp
     })
 }
 
+#[derive(Debug, Deserialize)]
+pub struct AudioDeviceRequest {
+    pub device: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct AudioDevicesResponse {
+    pub devices: Vec<String>,
+    pub selected: String,
+    pub active: String,
+}
+
+pub async fn audio_devices(
+    State(app_state): State<Arc<AppState>>,
+) -> Result<Json<AudioDevicesResponse>, (axum::http::StatusCode, String)> {
+    let devices = output_device_names().map_err(internal_server_error)?;
+    let selected = app_state.selected_output_device_name.read().await.clone();
+    let active = app_state.current_output_device_name.read().await.clone();
+    Ok(Json(AudioDevicesResponse {
+        devices,
+        selected,
+        active,
+    }))
+}
+
+pub async fn set_audio_device(
+    State(app_state): State<Arc<AppState>>,
+    Json(request): Json<AudioDeviceRequest>,
+) -> Result<Json<AudioDevicesResponse>, (axum::http::StatusCode, String)> {
+    let requested = if request.device.trim().is_empty() {
+        "default".to_string()
+    } else {
+        request.device.trim().to_string()
+    };
+    let (output_stream, active) =
+        get_output_stream_with_name(&requested).map_err(internal_server_error)?;
+    {
+        let mut stream = app_state.stream_handle.write().await;
+        *stream = output_stream;
+    }
+    {
+        let mut selected = app_state.selected_output_device_name.write().await;
+        *selected = requested.clone();
+    }
+    {
+        let mut current = app_state.current_output_device_name.write().await;
+        *current = active.clone();
+    }
+    service_log(&format!(
+        "audio output device selected: {requested} -> {active}"
+    ));
+    let devices = output_device_names().map_err(internal_server_error)?;
+    Ok(Json(AudioDevicesResponse {
+        devices,
+        selected: requested,
+        active,
+    }))
+}
+
+fn internal_server_error(error: anyhow::Error) -> (axum::http::StatusCode, String) {
+    (
+        axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+        error.to_string(),
+    )
+}
+
 pub async fn audio_reload(
     State(app_state): State<Arc<AppState>>,
 ) -> Result<Json<HealthResponse>, (axum::http::StatusCode, String)> {
     service_log("audio reload requested");
-    let (output_stream, device_name) = get_output_stream_with_name(&app_state.args.device)
-        .map_err(|error| {
-            (
-                axum::http::StatusCode::INTERNAL_SERVER_ERROR,
-                error.to_string(),
-            )
-        })?;
+    let requested_device = app_state.selected_output_device_name.read().await.clone();
+    let (output_stream, device_name) =
+        get_output_stream_with_name(&requested_device).map_err(internal_server_error)?;
 
     {
         let mut stream_handle = app_state.stream_handle.write().await;
@@ -473,6 +553,20 @@ pub async fn set_crossfire_settings(
     app_state
         .crossfire_last_kill_special_audio
         .store(request.last_kill_special_audio, Ordering::Relaxed);
+    app_state
+        .crossfire_headshot_special_audio_priority
+        .store(request.headshot_special_audio_priority, Ordering::Relaxed);
+    app_state
+        .crossfire_knife_special_audio_priority
+        .store(request.knife_special_audio_priority, Ordering::Relaxed);
+    if request.active {
+        app_state
+            .assist_audio_enabled
+            .store(request.assist_audio_enabled, Ordering::Relaxed);
+        app_state
+            .assist_audio_setting_active
+            .store(true, Ordering::Relaxed);
+    }
 
     if previous_mode != streak_mode.as_u8()
         || previous_window_ms != streak_window_ms
@@ -480,16 +574,21 @@ pub async fn set_crossfire_settings(
         || (request.active && previous_shared_active)
     {
         let mut mutable = app_state.mutable.write().await;
-        mutable.crossfire_streak_kills = 0;
-        mutable.last_crossfire_kill_at = None;
+        for player in mutable.players.values_mut() {
+            player.crossfire_streak_kills = 0;
+            player.last_crossfire_kill_at = None;
+        }
     }
 
     service_log(&format!(
-        "CrossFire settings: active={}, streak={}, first_special={}, last_special={}",
+        "CrossFire settings: active={}, streak={}, first_special={}, last_special={}, headshot_priority={}, knife_priority={}, assist_audio={}",
         request.active,
         format_streak_setting(streak_mode, streak_window_ms),
         request.first_kill_special_audio,
-        request.last_kill_special_audio
+        request.last_kill_special_audio,
+        request.headshot_special_audio_priority,
+        request.knife_special_audio_priority,
+        request.assist_audio_enabled
     ));
 
     Ok(Json(crossfire_settings_response(&app_state)))
@@ -530,20 +629,33 @@ pub async fn set_streak_settings(
         app_state.crossfire_mode_active.load(Ordering::Relaxed)
     };
 
+    if request.active {
+        app_state
+            .assist_audio_enabled
+            .store(request.assist_audio_enabled, Ordering::Relaxed);
+        app_state
+            .assist_audio_setting_active
+            .store(request.assist_audio_setting_active, Ordering::Relaxed);
+    }
+
     if previous_mode != streak_mode.as_u8()
         || previous_window_ms != streak_window_ms
         || previous_active != request.active
         || (request.active && previous_crossfire_active)
     {
         let mut mutable = app_state.mutable.write().await;
-        mutable.crossfire_streak_kills = 0;
-        mutable.last_crossfire_kill_at = None;
+        for player in mutable.players.values_mut() {
+            player.crossfire_streak_kills = 0;
+            player.last_crossfire_kill_at = None;
+        }
     }
 
     service_log(&format!(
-        "shared streak settings: active={}, streak={}",
+        "shared streak settings: active={}, streak={}, assist_audio={}, assist_audio_controlled={}",
         request.active,
-        format_streak_setting(streak_mode, streak_window_ms)
+        format_streak_setting(streak_mode, streak_window_ms),
+        request.assist_audio_enabled,
+        request.assist_audio_setting_active
     ));
 
     Ok(Json(streak_settings_response(&app_state)))
@@ -788,6 +900,13 @@ fn crossfire_settings_response(app_state: &AppState) -> CrossfireSettingsRespons
         last_kill_special_audio: app_state
             .crossfire_last_kill_special_audio
             .load(Ordering::Relaxed),
+        headshot_special_audio_priority: app_state
+            .crossfire_headshot_special_audio_priority
+            .load(Ordering::Relaxed),
+        knife_special_audio_priority: app_state
+            .crossfire_knife_special_audio_priority
+            .load(Ordering::Relaxed),
+        assist_audio_enabled: app_state.assist_audio_enabled.load(Ordering::Relaxed),
     }
 }
 
@@ -799,6 +918,7 @@ fn streak_settings_response(app_state: &AppState) -> StreakSettingsResponse {
             mode,
             app_state.shared_streak_window_ms.load(Ordering::Relaxed),
         ),
+        assist_audio_enabled: app_state.assist_audio_enabled.load(Ordering::Relaxed),
     }
 }
 

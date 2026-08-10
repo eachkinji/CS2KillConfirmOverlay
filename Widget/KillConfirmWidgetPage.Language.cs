@@ -66,6 +66,8 @@ namespace KillConfirmGameBar
             SetNamedToolTip(OpenGuideButton, LocalizationManager.Text("OpenGuideTitle"), LocalizationManager.Text("OpenGuideTooltip"));
             SetNamedToolTip(OpenLogsButton, LocalizationManager.Text("OpenLogsTitle"), LocalizationManager.Text("OpenLogsTooltip"));
             SetNamedToolTip(FreePortButton, LocalizationManager.Text("FreePortTitle"), LocalizationManager.Text("FreePortTooltip"));
+            SetNamedToolTip(RetryServiceButton, LocalizationManager.Text("RetryServiceTitle"), LocalizationManager.Text("RetryServiceTooltip"));
+            SetNamedToolTip(CopyServiceDiagnosticButton, LocalizationManager.Text("CopyDiagnosticTitle"), LocalizationManager.Text("CopyDiagnosticTooltip"));
             SetNamedToolTip(UpdateButton, LocalizationManager.Text("UpdateTitle"), LocalizationManager.Text("UpdateUnavailableTooltip"));
             UpdateOpenQuarkButton.Content = LocalizationManager.Text("UpdateOpenQuark");
             UpdateCopyQuarkButton.Content = LocalizationManager.Text("UpdateCopyQuark");
@@ -134,6 +136,8 @@ namespace KillConfirmGameBar
             SetNamedToolTip(LowerThirdButton, LocalizationManager.Text("LowerThirdTitle"), LocalizationManager.Text("LowerThirdTooltip"));
             SetNamedToolTip(MoveUpButton, LocalizationManager.Text("MoveUpTitle"), LocalizationManager.Text("MoveUpTooltip"));
             SetNamedToolTip(MoveDownButton, LocalizationManager.Text("MoveDownTitle"), LocalizationManager.Text("MoveDownTooltip"));
+            SetNamedToolTip(MoveLeftButton, LocalizationManager.Text("MoveLeftTitle"), LocalizationManager.Text("MoveLeftTooltip"));
+            SetNamedToolTip(MoveRightButton, LocalizationManager.Text("MoveRightTitle"), LocalizationManager.Text("MoveRightTooltip"));
             SetNamedToolTip(ScaleDownButton, LocalizationManager.Text("ShrinkTitle"), LocalizationManager.Text("ShrinkTooltip"));
             SetNamedToolTip(ScaleUpButton, LocalizationManager.Text("EnlargeTitle"), LocalizationManager.Text("EnlargeTooltip"));
 
@@ -172,6 +176,10 @@ namespace KillConfirmGameBar
             AnimationStyle2Item.Content = string.Format(LocalizationManager.Text("AnimationStyle"), "2");
             ApplyTestPresetLabels();
 
+            if (_currentServiceDiagnostic != null)
+            {
+                ShowServiceDiagnostic(_currentServiceDiagnostic);
+            }
             UpdateConnectionState(_serviceConnectionState);
             UpdateCfgStatus(_cfgDetectionState, null, _cfgStatusDetail);
             UpdateGsiStatus(true, _gsiRecentlySeen, _gsiRecentlySeen ? 1 : 0, null);

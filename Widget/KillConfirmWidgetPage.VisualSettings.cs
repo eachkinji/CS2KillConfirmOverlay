@@ -210,6 +210,11 @@ namespace KillConfirmGameBar
             }
 
             _animationOffset = ReadStyleDoubleSetting(localSettings, AnimationOffsetSettingKey, crossfire, 0);
+            _animationHorizontalOffset = ReadStyleDoubleSetting(
+                localSettings,
+                AnimationHorizontalOffsetSettingKey,
+                crossfire,
+                0);
             _animationScale = Math.Max(0.35, Math.Min(3.0, ReadStyleDoubleSetting(localSettings, AnimationScaleSettingKey, crossfire, 1.0)));
             ApplyAnimationTransform();
         }
@@ -219,6 +224,8 @@ namespace KillConfirmGameBar
             ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
             localSettings.Values[GetAnimationStyleSettingKey(AnimationPlacementSettingKey)] = _animationPlacement.ToString();
             localSettings.Values[GetAnimationStyleSettingKey(AnimationOffsetSettingKey)] = _animationOffset;
+            localSettings.Values[GetAnimationStyleSettingKey(AnimationHorizontalOffsetSettingKey)] =
+                _animationHorizontalOffset;
             localSettings.Values[GetAnimationStyleSettingKey(AnimationScaleSettingKey)] = _animationScale;
         }
 

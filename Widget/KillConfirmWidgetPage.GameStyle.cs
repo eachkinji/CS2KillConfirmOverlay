@@ -158,6 +158,8 @@ namespace KillConfirmGameBar
             SetButtonTheme(LowerThirdButton, visualImportantField, secondary, visualImportantText);
             SetButtonTheme(MoveUpButton, visualButtonField, darkStyle ? secondary : theme.SoftBorder, visualButtonText);
             SetButtonTheme(MoveDownButton, visualButtonField, darkStyle ? secondary : theme.SoftBorder, visualButtonText);
+            SetButtonTheme(MoveLeftButton, visualButtonField, darkStyle ? secondary : theme.SoftBorder, visualButtonText);
+            SetButtonTheme(MoveRightButton, visualButtonField, darkStyle ? secondary : theme.SoftBorder, visualButtonText);
             SetButtonTheme(ScaleDownButton, visualButtonField, darkStyle ? secondary : theme.SoftBorder, visualButtonText);
             SetButtonTheme(ScaleUpButton, visualButtonField, darkStyle ? secondary : theme.SoftBorder, visualButtonText);
             SetButtonTheme(ResetVisualButton, visualButtonField, darkStyle ? secondary : theme.SoftBorder, visualButtonText);

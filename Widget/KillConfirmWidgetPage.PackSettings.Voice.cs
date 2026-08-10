@@ -62,20 +62,20 @@ namespace KillConfirmGameBar
                     "application/json"))
                 using (HttpResponseMessage response = await client.PostAsync(SoundPackUri, content))
                 {
-                    UpdateConnectionState(response.IsSuccessStatusCode
-                        ? KillEventConnectionState.Connected
-                        : KillEventConnectionState.Disconnected);
-
                     if (response.IsSuccessStatusCode)
                     {
                         string responseText = await response.Content.ReadAsStringAsync();
                         ApplyVoicePackResponse(responseText);
                     }
+                    else
+                    {
+                        App.Log("Voice pack sync failed: HTTP " + (int)response.StatusCode);
+                    }
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                UpdateConnectionState(KillEventConnectionState.Disconnected);
+                App.Log("Voice pack sync failed without changing SVC health: " + ex);
             }
         }
 

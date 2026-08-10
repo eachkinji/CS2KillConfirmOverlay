@@ -19,6 +19,22 @@ pub fn list_host_devices() -> Result<()> {
     Ok(())
 }
 
+pub fn output_device_names() -> Result<Vec<String>> {
+    let host = cpal::default_host();
+    let devices = host
+        .output_devices()
+        .context("unable to get output devices")?;
+    let mut names = Vec::new();
+    for device in devices {
+        let name = device.name().unwrap_or_default();
+        if !name.is_empty() && !names.iter().any(|existing| existing == &name) {
+            names.push(name);
+        }
+    }
+    names.sort_by_key(|name| name.to_ascii_lowercase());
+    Ok(names)
+}
+
 pub fn default_output_device_name() -> Result<String> {
     let host = cpal::default_host();
     let device = host

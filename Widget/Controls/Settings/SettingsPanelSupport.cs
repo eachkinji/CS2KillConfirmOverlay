@@ -52,6 +52,15 @@ namespace KillConfirmGameBar.Controls.Settings
             }
         }
 
+        public static void ApplyToggleRow(TextBlock label, ToggleSwitch toggle, GameThemePalette theme)
+        {
+            ApplyText(label, theme.Text);
+            if (toggle != null)
+            {
+                toggle.Foreground = new SolidColorBrush(theme.Text);
+            }
+        }
+
         private static void ApplyText(TextBlock textBlock, Color color)
         {
             if (textBlock != null)

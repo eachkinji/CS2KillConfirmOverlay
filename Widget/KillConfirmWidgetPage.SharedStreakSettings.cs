@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using KillConfirmGameBar.Services;
 using Windows.Data.Json;
 using Windows.Storage.Streams;
+using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.Web.Http;
 
@@ -33,6 +34,26 @@ namespace KillConfirmGameBar
             catch (Exception ex)
             {
                 App.Log("Set shared streak mode failed: " + ex);
+            }
+        }
+
+        private async void OnValorantAssistAudioToggled(object sender, RoutedEventArgs e)
+        {
+            if (_suppressSharedStreakModeEvents)
+            {
+                return;
+            }
+
+            bool enabled = _valorantAdvancedEffectsPanel?.GetAssistAudioEnabled(
+                AssistAudioSettingsStore.Load(GameStyleMode.Valorant)) ?? false;
+            AssistAudioSettingsStore.Save(GameStyleMode.Valorant, enabled);
+            try
+            {
+                await EnsureServiceAvailableAsync();
+            }
+            catch (Exception ex)
+            {
+                App.Log("Set VAL assist audio failed: " + ex);
             }
         }
 
@@ -112,10 +133,18 @@ namespace KillConfirmGameBar
             string mode = active
                 ? SharedStreakSettingsStore.Load(style)
                 : SharedStreakSettingsStore.LifeMode;
+            bool assistAudioEnabled = false;
             if (active)
             {
                 mode = ReadSharedStreakMode(style, mode);
                 SharedStreakSettingsStore.Save(style, mode);
+                if (style == GameStyleMode.Valorant)
+                {
+                    assistAudioEnabled = _valorantAdvancedEffectsPanel?.GetAssistAudioEnabled(
+                        AssistAudioSettingsStore.Load(style))
+                        ?? AssistAudioSettingsStore.Load(style);
+                    AssistAudioSettingsStore.Save(style, assistAudioEnabled);
+                }
             }
 
             try
@@ -123,7 +152,10 @@ namespace KillConfirmGameBar
                 var request = new JsonObject
                 {
                     ["active"] = JsonValue.CreateBooleanValue(active),
-                    ["streak_mode"] = JsonValue.CreateStringValue(mode)
+                    ["streak_mode"] = JsonValue.CreateStringValue(mode),
+                    ["assist_audio_enabled"] = JsonValue.CreateBooleanValue(assistAudioEnabled),
+                    ["assist_audio_setting_active"] = JsonValue.CreateBooleanValue(
+                        style == GameStyleMode.Valorant)
                 };
 
                 using (var client = await LocalServiceAuth.CreateHttpClientAsync())

@@ -23,12 +23,12 @@
                 Padding="7,0,12,0"
                 FontSize="10"
                 SelectionChanged="OnStreakModeSelectionChanged">
-                <ComboBoxItem x:Name="StreakNoneItem" Tag="none">No streak window</ComboBoxItem>
                 <ComboBoxItem x:Name="StreakLifeItem" Tag="life">Until death</ComboBoxItem>
-                <ComboBoxItem x:Name="StreakCustomItem" Tag="custom">Custom window</ComboBoxItem>
                 <ComboBoxItem x:Name="StreakTimed5Item" Tag="timed_5">5-second window</ComboBoxItem>
                 <ComboBoxItem x:Name="StreakTimed10Item" Tag="timed_10">10-second window</ComboBoxItem>
                 <ComboBoxItem x:Name="StreakTimed15Item" Tag="timed_15">15-second window</ComboBoxItem>
+                <ComboBoxItem x:Name="StreakNoneItem" Tag="none">No streak window</ComboBoxItem>
+                <ComboBoxItem x:Name="StreakCustomItem" Tag="custom">Custom window</ComboBoxItem>
             </ComboBox>
 
             <Grid

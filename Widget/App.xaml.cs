@@ -3,7 +3,6 @@ using System.IO;
 using Microsoft.Gaming.XboxGameBar;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
-using Windows.ApplicationModel.Core;
 using Windows.Storage;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
@@ -17,10 +16,9 @@ namespace KillConfirmGameBar
     sealed partial class App : Application
     {
         private const string WidgetId = "KillConfirmWidget";
-        private const string SettingsWindowTitle = "Kill Confirm Overlay 控制面板";
+        private const string SettingsWindowTitle = "Kill Confirm Overlay Advanced Settings";
         private const string RuntimeLogFileName = "gamebar-widget.log";
         private const long MaxRuntimeLogBytes = 512 * 1024;
-        private static int? _guideViewId;
 
         private XboxGameBarWidget _gameBarWidget;
 
@@ -142,67 +140,6 @@ namespace KillConfirmGameBar
             catch (Exception ex)
             {
                 Log("Failed to apply settings window title: " + ex.Message);
-            }
-        }
-
-        internal static async System.Threading.Tasks.Task<bool> TryShowGuideWindowAsync()
-        {
-            try
-            {
-                if (_guideViewId.HasValue)
-                {
-                    bool shownExisting = await ApplicationViewSwitcher.TryShowAsStandaloneAsync(_guideViewId.Value);
-                    Log("TryShowGuideWindowAsync existing view shown=" + shownExisting);
-                    if (shownExisting)
-                    {
-                        return true;
-                    }
-
-                    _guideViewId = null;
-                }
-
-                int newViewId = 0;
-                CoreApplicationView newView = CoreApplication.CreateNewView();
-                await newView.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
-                {
-                    Frame guideFrame = new Frame();
-                    guideFrame.NavigationFailed += Current_NavigationFailed;
-                    guideFrame.Navigate(typeof(MainPage));
-                    Window.Current.Content = guideFrame;
-                    Window.Current.Activate();
-
-                    ApplicationView view = ApplicationView.GetForCurrentView();
-                    view.Title = SettingsWindowTitle;
-                    view.Consolidated += OnGuideViewConsolidated;
-                    newViewId = view.Id;
-                });
-
-                bool shown = await ApplicationViewSwitcher.TryShowAsStandaloneAsync(newViewId);
-                Log("TryShowGuideWindowAsync new view shown=" + shown + ", viewId=" + newViewId);
-                if (shown)
-                {
-                    _guideViewId = newViewId;
-                }
-
-                return shown;
-            }
-            catch (Exception ex)
-            {
-                Log("TryShowGuideWindowAsync failed: " + ex);
-                return false;
-            }
-        }
-
-        private static void Current_NavigationFailed(object sender, NavigationFailedEventArgs e)
-        {
-            throw new InvalidOperationException("Failed to load page " + e.SourcePageType.FullName, e.Exception);
-        }
-
-        private static void OnGuideViewConsolidated(ApplicationView sender, ApplicationViewConsolidatedEventArgs args)
-        {
-            if (_guideViewId == sender.Id)
-            {
-                _guideViewId = null;
             }
         }
 

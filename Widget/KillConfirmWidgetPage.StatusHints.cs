@@ -176,7 +176,9 @@ namespace KillConfirmGameBar
                 case KillEventConnectionState.Connecting:
                     return LocalizationManager.Text("StatusSvcStarting");
                 default:
-                    return LocalizationManager.Text("StatusSvcOffline");
+                    return _currentServiceDiagnostic == null
+                        ? LocalizationManager.Text("StatusSvcOffline")
+                        : FormatServiceDiagnostic(_currentServiceDiagnostic);
             }
         }
 
@@ -203,6 +205,8 @@ namespace KillConfirmGameBar
                     return LocalizationManager.Text("StatusCfgChecking");
                 case CfgDetectionState.Missing:
                     return LocalizationManager.Text("StatusCfgMissing");
+                case CfgDetectionState.Outdated:
+                    return LocalizationManager.Text("StatusCfgOutdated");
                 case CfgDetectionState.Error:
                     return LocalizationManager.Text("StatusCfgError");
                 default:
@@ -216,6 +220,7 @@ namespace KillConfirmGameBar
             {
                 case CfgDetectionState.Ready:
                     return Color.FromArgb(255, 5, 122, 85);
+                case CfgDetectionState.Outdated:
                 case CfgDetectionState.Error:
                     return Color.FromArgb(255, 185, 28, 28);
                 default:

@@ -109,7 +109,7 @@ The overlay uses a small local companion service. The installer sets up the pack
 CS2 needs a GSI config that points to:
 
 ```text
-http://127.0.0.1:3000/
+http://127.0.0.1:10087/
 ```
 
 The installer tries to create this config automatically. If kill events do not trigger, place `KillConfirmService/gsi/gamestate_integration_killconfirm.cfg` in the CS2 cfg folder manually:

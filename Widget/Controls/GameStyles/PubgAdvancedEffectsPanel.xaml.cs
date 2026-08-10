@@ -32,8 +32,8 @@ namespace KillConfirmGameBar.Controls.GameStyles
         {
             TitleText.Text = isChinese ? "PUBG 高级特效" : "PUBG Effects";
             MoneyRewardModeLabel.Text = isChinese ? "奖励算法" : "Money";
-            MoneyRewardDeltaItem.Content = isChinese ? "GSI 差值校验（实验）" : "GSI delta validation (experimental)";
-            MoneyRewardRulesItem.Content = isChinese ? "击杀奖励规则（推荐）" : "Kill reward rules (recommended)";
+            MoneyRewardDeltaItem.Content = isChinese ? "GSI \u5dee\u503c\uff08\u9ed8\u8ba4\uff09" : "GSI delta (default)";
+            MoneyRewardRulesItem.Content = isChinese ? "\u51fb\u6740\u5956\u52b1\u89c4\u5219" : "Kill reward rules";
             StreakEditor.ApplyLanguage(isChinese);
             StylePanel.ApplyLanguage(isChinese);
         }

@@ -16,6 +16,21 @@ namespace KillConfirmGameBar
 {
     public sealed partial class KillConfirmWidgetPage
     {
+        private sealed class ServiceDiagnosticInfo
+        {
+            public string Code { get; set; }
+            public string MessageKey { get; set; }
+            public string TechnicalDetail { get; set; }
+            public bool CanFreePort { get; set; }
+        }
+
+        private sealed class ServiceHealthCheckResult
+        {
+            public bool IsHealthy { get; set; }
+            public ServiceDiagnosticInfo Diagnostic { get; set; }
+        }
+
+        private ServiceDiagnosticInfo _currentServiceDiagnostic;
         private void ConfigureWidgetCapabilities()
         {
             if (_widget == null)
@@ -45,6 +60,7 @@ namespace KillConfirmGameBar
             _eventClient = new KillEventClient(Dispatcher);
             _eventClient.KillReceived += OnKillReceived;
             _eventClient.ConnectionStateChanged += OnConnectionStateChanged;
+            _eventClient.ConnectionFailure += OnServiceConnectionFailure;
             _eventClient.Start();
         }
 
@@ -57,19 +73,12 @@ namespace KillConfirmGameBar
                 return;
             }
 
-            bool initialHealth = await IsServiceHealthyAsync();
-            App.Log("EnsureServiceAvailableAsync: initial health=" + initialHealth);
-            if (initialHealth)
+            ServiceHealthCheckResult initialHealth = await CheckServiceHealthAsync();
+            App.Log("EnsureServiceAvailableAsync: initial health=" + initialHealth.IsHealthy);
+            if (initialHealth.IsHealthy)
             {
-                if (_isPageActive)
-                {
-                    UpdateConnectionState(KillEventConnectionState.Connected);
-                }
-
-                await SyncSelectedVoicePackAsync();
-                await SyncMoneyRewardModeAsync();
-                await SyncCrossfireGameplaySettingsAsync();
-                await SyncSharedStreakSettingsAsync();
+                UpdateConnectionState(KillEventConnectionState.Connected);
+                await SyncServiceSettingsAsync();
                 return;
             }
 
@@ -83,15 +92,19 @@ namespace KillConfirmGameBar
                     return;
                 }
 
-                bool gatedHealth = await IsServiceHealthyAsync();
-                App.Log("EnsureServiceAvailableAsync: gated health=" + gatedHealth);
-                if (gatedHealth)
+                ServiceHealthCheckResult gatedHealth = await CheckServiceHealthAsync();
+                App.Log("EnsureServiceAvailableAsync: gated health=" + gatedHealth.IsHealthy);
+                if (gatedHealth.IsHealthy)
                 {
                     UpdateConnectionState(KillEventConnectionState.Connected);
-                    await SyncSelectedVoicePackAsync();
-                    await SyncMoneyRewardModeAsync();
-                    await SyncCrossfireGameplaySettingsAsync();
-                    await SyncSharedStreakSettingsAsync();
+                    await SyncServiceSettingsAsync();
+                    return;
+                }
+
+                if (gatedHealth.Diagnostic?.Code == "SVC-05")
+                {
+                    UpdateConnectionState(KillEventConnectionState.Disconnected);
+                    ShowServiceDiagnostic(gatedHealth.Diagnostic);
                     return;
                 }
 
@@ -103,30 +116,27 @@ namespace KillConfirmGameBar
                 if (!launched)
                 {
                     UpdateConnectionState(KillEventConnectionState.Disconnected);
-                    await ShowServiceStartupFailureAsync();
+                    await ShowServiceStartupFailureAsync(CreateServiceDiagnostic("SVC-03", "ServiceDiagLaunchFailed"));
                     return;
                 }
 
-                bool ready = await WaitForServiceReadyAsync();
-                App.Log("EnsureServiceAvailableAsync: service ready after launch=" + ready);
+                ServiceHealthCheckResult ready = await WaitForServiceReadyAsync();
+                App.Log("EnsureServiceAvailableAsync: service ready after launch=" + ready.IsHealthy);
                 if (_isPageActive)
                 {
-                    UpdateConnectionState(ready
+                    UpdateConnectionState(ready.IsHealthy
                         ? KillEventConnectionState.Connected
                         : KillEventConnectionState.Disconnected);
                 }
 
-                if (ready)
+                if (ready.IsHealthy)
                 {
-                    HideServiceDiagnostic();
-                    await SyncSelectedVoicePackAsync();
-                    await SyncMoneyRewardModeAsync();
-                    await SyncCrossfireGameplaySettingsAsync();
-                    await SyncSharedStreakSettingsAsync();
+                    await SyncServiceSettingsAsync();
                 }
                 else
                 {
-                    await ShowServiceStartupFailureAsync();
+                    await ShowServiceStartupFailureAsync(
+                        ready.Diagnostic ?? CreateServiceDiagnostic("SVC-04", "ServiceDiagStartupTimeout"));
                 }
             }
             finally
@@ -136,28 +146,33 @@ namespace KillConfirmGameBar
             }
         }
 
+        private async Task SyncServiceSettingsAsync()
+        {
+            await SyncSelectedVoicePackAsync();
+            await SyncMoneyRewardModeAsync();
+            await SyncCrossfireGameplaySettingsAsync();
+            await SyncSharedStreakSettingsAsync();
+        }
+
         private async Task CheckServerHealthAsync()
         {
             App.Log("CheckServerHealthAsync: manual health check requested.");
             UpdateConnectionState(KillEventConnectionState.Connecting);
 
-            bool isHealthy = await IsServiceHealthyAsync();
-            App.Log("CheckServerHealthAsync: health result=" + isHealthy);
-            UpdateConnectionState(isHealthy
+            ServiceHealthCheckResult health = await CheckServiceHealthAsync();
+            App.Log("CheckServerHealthAsync: health result=" + health.IsHealthy);
+            UpdateConnectionState(health.IsHealthy
                 ? KillEventConnectionState.Connected
                 : KillEventConnectionState.Disconnected);
 
-            if (isHealthy)
+            if (health.IsHealthy)
             {
-                HideServiceDiagnostic();
-                await SyncSelectedVoicePackAsync();
-                await SyncMoneyRewardModeAsync();
-                await SyncCrossfireGameplaySettingsAsync();
-                await SyncSharedStreakSettingsAsync();
+                await SyncServiceSettingsAsync();
             }
             else
             {
-                await ShowServiceStartupFailureAsync();
+                await ShowServiceStartupFailureAsync(
+                    health.Diagnostic ?? CreateServiceDiagnostic("SVC-07", "ServiceDiagConnectionFailed"));
             }
         }
 
@@ -269,65 +284,184 @@ namespace KillConfirmGameBar
                 [MarshalAs(UnmanagedType.HString)] string parameterGroupId);
         }
 
-        private static async Task<bool> WaitForServiceReadyAsync()
+        private static async Task<ServiceHealthCheckResult> WaitForServiceReadyAsync()
         {
             App.Log("WaitForServiceReadyAsync: polling for service health.");
             DateTimeOffset deadline = DateTimeOffset.UtcNow + ServiceStartupTimeout;
+            ServiceHealthCheckResult latest = null;
             while (DateTimeOffset.UtcNow < deadline)
             {
-                if (await IsServiceHealthyAsync())
+                latest = await CheckServiceHealthAsync();
+                if (latest.IsHealthy)
                 {
                     App.Log("WaitForServiceReadyAsync: service became healthy.");
-                    return true;
+                    return latest;
                 }
 
                 await Task.Delay(ServiceStartupPollInterval);
             }
 
-            bool finalHealth = await IsServiceHealthyAsync();
-            App.Log("WaitForServiceReadyAsync: timeout reached. final health=" + finalHealth);
-            return finalHealth;
+            latest = await CheckServiceHealthAsync();
+            App.Log("WaitForServiceReadyAsync: timeout reached. final health=" + latest.IsHealthy);
+            if (!latest.IsHealthy && latest.Diagnostic?.Code == "SVC-07")
+            {
+                latest.Diagnostic = CreateServiceDiagnostic("SVC-04", "ServiceDiagStartupTimeout", latest.Diagnostic.TechnicalDetail);
+            }
+            return latest;
         }
 
-        private async Task ShowServiceStartupFailureAsync()
+        private async Task ShowServiceStartupFailureAsync(ServiceDiagnosticInfo fallback)
         {
-            string hint = await ResolveServiceFailureHintAsync();
-            ServiceDiagnosticText.Text = hint;
+            ServiceDiagnosticInfo diagnostic = await ResolveServiceFailureAsync(fallback);
+            ShowServiceDiagnostic(diagnostic);
+        }
+
+        private void ShowServiceDiagnostic(ServiceDiagnosticInfo diagnostic)
+        {
+            _currentServiceDiagnostic = diagnostic ?? CreateServiceDiagnostic("SVC-07", "ServiceDiagConnectionFailed");
+            string text = FormatServiceDiagnostic(_currentServiceDiagnostic);
+            ServiceDiagnosticText.Text = text;
             ServiceDiagnosticRow.Visibility = Visibility.Visible;
-            ToolTipService.SetToolTip(ServiceDiagnosticText, hint);
+            FreePortButton.Visibility = _currentServiceDiagnostic.CanFreePort ? Visibility.Visible : Visibility.Collapsed;
+            ToolTipService.SetToolTip(ServiceDiagnosticText, text);
+            SetNamedToolTip(ConnectionStatusBadge, LocalizationManager.Text("ServiceStatusTitle"), text);
             UpdateStatusDetailRowVisibility();
-            App.Log("Service diagnostic shown: " + hint);
+            RefreshStatusHint(false);
+            App.Log("Service diagnostic shown: " + text);
         }
 
         private void HideServiceDiagnostic()
         {
+            _currentServiceDiagnostic = null;
             ServiceDiagnosticRow.Visibility = Visibility.Collapsed;
+            FreePortButton.Visibility = Visibility.Collapsed;
             ToolTipService.SetToolTip(ServiceDiagnosticText, null);
             UpdateStatusDetailRowVisibility();
         }
 
-        private static async Task<string> ResolveServiceFailureHintAsync()
+        private static ServiceDiagnosticInfo CreateServiceDiagnostic(
+            string code,
+            string messageKey,
+            string technicalDetail = null,
+            bool canFreePort = false)
         {
-            string serviceLog = await TryReadLocalLogAsync("service.log");
-            string bootstrapLog = await TryReadLocalLogAsync("bootstrap.log");
-            string combined = (serviceLog + "\n" + bootstrapLog).ToLowerInvariant();
-
-            if (combined.Contains("os error 10048"))
+            return new ServiceDiagnosticInfo
             {
-                return LocalizationManager.Text("ServicePortInUseHint");
+                Code = code,
+                MessageKey = messageKey,
+                TechnicalDetail = SanitizeDiagnosticDetail(technicalDetail),
+                CanFreePort = canFreePort
+            };
+        }
+
+        private static string FormatServiceDiagnostic(ServiceDiagnosticInfo diagnostic)
+        {
+            if (diagnostic == null)
+            {
+                return LocalizationManager.Text("ServiceOffline");
             }
 
-            if (combined.Contains("os error 10013"))
+            string message = LocalizationManager.Text(diagnostic.MessageKey);
+            return string.IsNullOrWhiteSpace(diagnostic.TechnicalDetail)
+                ? diagnostic.Code + ": " + message
+                : diagnostic.Code + ": " + message + " (" + diagnostic.TechnicalDetail + ")";
+        }
+
+        private static async Task<ServiceDiagnosticInfo> ResolveServiceFailureAsync(ServiceDiagnosticInfo fallback)
+        {
+            string serviceLog = GetCurrentLogSession(
+                await TryReadLocalLogAsync("service.log"),
+                "service starting");
+            string bootstrapLog = GetCurrentLogSession(
+                await TryReadLocalLogAsync("bootstrap.log"),
+                "process entry");
+            string combined = (serviceLog + "\n" + bootstrapLog).ToLowerInvariant();
+            string lastError = FindLastErrorLine(serviceLog + "\n" + bootstrapLog);
+
+            if (combined.Contains("os error 10048") || combined.Contains("address already in use"))
             {
-                return LocalizationManager.Text("ServicePortBlockedHint");
+                string portOwner = FindTaggedLogDetail(
+                    serviceLog + "\n" + bootstrapLog,
+                    "port 10087 owner: ");
+                return CreateServiceDiagnostic("SVC-01", "ServiceDiagPortInUse", portOwner ?? lastError, true);
+            }
+
+            if (combined.Contains("os error 10013") || combined.Contains("access forbidden"))
+            {
+                return CreateServiceDiagnostic("SVC-02", "ServiceDiagPortBlocked", lastError);
+            }
+
+            if (combined.Contains("control authentication") || combined.Contains("control-token"))
+            {
+                return CreateServiceDiagnostic("SVC-05", "ServiceDiagAuthFailed", lastError);
             }
 
             if (combined.Contains("fatal error"))
             {
-                return LocalizationManager.Text("ServiceFailedSeeLogs");
+                return CreateServiceDiagnostic("SVC-06", "ServiceDiagCrashed", lastError);
             }
 
-            return LocalizationManager.Text("ServiceFailedGeneric");
+            return fallback ?? CreateServiceDiagnostic("SVC-07", "ServiceDiagConnectionFailed");
+        }
+
+        private static string GetCurrentLogSession(string log, string marker)
+        {
+            if (string.IsNullOrEmpty(log))
+            {
+                return string.Empty;
+            }
+
+            int index = log.LastIndexOf(marker, StringComparison.OrdinalIgnoreCase);
+            return index >= 0 ? log.Substring(index) : log;
+        }
+
+        private static string FindTaggedLogDetail(string log, string tag)
+        {
+            if (string.IsNullOrWhiteSpace(log) || string.IsNullOrWhiteSpace(tag))
+            {
+                return null;
+            }
+
+            int index = log.LastIndexOf(tag, StringComparison.OrdinalIgnoreCase);
+            if (index < 0)
+            {
+                return null;
+            }
+
+            int start = index + tag.Length;
+            int end = log.IndexOfAny(new[] { '\r', '\n' }, start);
+            return end >= 0 ? log.Substring(start, end - start).Trim() : log.Substring(start).Trim();
+        }
+
+        private static string FindLastErrorLine(string log)
+        {
+            if (string.IsNullOrWhiteSpace(log))
+            {
+                return null;
+            }
+
+            string[] lines = log.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            for (int index = lines.Length - 1; index >= 0; index--)
+            {
+                string lower = lines[index].ToLowerInvariant();
+                if (lower.Contains("fatal") || lower.Contains("error") || lower.Contains("failed"))
+                {
+                    return lines[index];
+                }
+            }
+
+            return null;
+        }
+
+        private static string SanitizeDiagnosticDetail(string detail)
+        {
+            if (string.IsNullOrWhiteSpace(detail))
+            {
+                return null;
+            }
+
+            string compact = detail.Replace("\r", " ").Replace("\n", " ").Trim();
+            return compact.Length <= 180 ? compact : compact.Substring(0, 177) + "...";
         }
 
         private static async Task<string> TryReadLocalLogAsync(string fileName)
@@ -343,19 +477,50 @@ namespace KillConfirmGameBar
             }
         }
 
-        private static async Task<bool> IsServiceHealthyAsync()
+        private static async Task<ServiceHealthCheckResult> CheckServiceHealthAsync(bool retryAuthentication = true)
         {
             try
             {
                 using (var client = await LocalServiceAuth.CreateHttpClientAsync())
                 using (HttpResponseMessage response = await client.GetAsync(ServiceHealthUri))
                 {
-                    return response.IsSuccessStatusCode;
+                    if (response.IsSuccessStatusCode)
+                    {
+                        return new ServiceHealthCheckResult { IsHealthy = true };
+                    }
+
+                    int statusCode = (int)response.StatusCode;
+                    if (statusCode == 401 || statusCode == 403)
+                    {
+                        if (retryAuthentication)
+                        {
+                            LocalServiceAuth.InvalidateCachedToken();
+                            return await CheckServiceHealthAsync(false);
+                        }
+
+                        return new ServiceHealthCheckResult
+                        {
+                            Diagnostic = CreateServiceDiagnostic("SVC-05", "ServiceDiagAuthFailed", "HTTP " + statusCode)
+                        };
+                    }
+
+                    return new ServiceHealthCheckResult
+                    {
+                        Diagnostic = CreateServiceDiagnostic("SVC-07", "ServiceDiagConnectionFailed", "HTTP " + statusCode)
+                    };
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return false;
+                string detail = ex.GetType().Name + " 0x" + ex.HResult.ToString("X8") + ": " + ex.Message;
+                bool authenticationFailure = ex.Message?.IndexOf("authentication", StringComparison.OrdinalIgnoreCase) >= 0
+                    || ex.Message?.IndexOf("token", StringComparison.OrdinalIgnoreCase) >= 0;
+                return new ServiceHealthCheckResult
+                {
+                    Diagnostic = authenticationFailure
+                        ? CreateServiceDiagnostic("SVC-05", "ServiceDiagAuthFailed", detail)
+                        : CreateServiceDiagnostic("SVC-07", "ServiceDiagConnectionFailed", detail)
+                };
             }
         }
 
@@ -418,6 +583,56 @@ namespace KillConfirmGameBar
             await RequestServiceShutdownAsync();
         }
 
+        private async void OnServiceConnectionFailure(object sender, ServiceConnectionFailureEventArgs failure)
+        {
+            if (!_isPageActive || failure == null)
+            {
+                return;
+            }
+
+            App.Log(
+                "Service event connection failure: kind=" + failure.Kind
+                + ", hresult=0x" + failure.HResult.ToString("X8")
+                + ", close=" + failure.CloseCode
+                + ", detail=" + failure.Detail);
+
+            await Task.Delay(300);
+            if (_serviceConnectionState == KillEventConnectionState.Connected)
+            {
+                return;
+            }
+
+            ServiceHealthCheckResult health = await CheckServiceHealthAsync();
+            ServiceDiagnosticInfo fallback;
+            if (failure.Kind == ServiceConnectionFailureKind.ConnectionClosed)
+            {
+                string closeDetail = failure.CloseCode > 0
+                    ? "WebSocket " + failure.CloseCode + (string.IsNullOrWhiteSpace(failure.Detail) ? string.Empty : ": " + failure.Detail)
+                    : failure.Detail;
+                fallback = failure.CloseCode == 1008
+                    ? CreateServiceDiagnostic("SVC-05", "ServiceDiagAuthFailed", closeDetail)
+                    : CreateServiceDiagnostic("SVC-07", "ServiceDiagConnectionClosed", closeDetail);
+            }
+            else if (failure.Kind == ServiceConnectionFailureKind.MessageReadFailed)
+            {
+                fallback = CreateServiceDiagnostic("SVC-07", "ServiceDiagEventDataInvalid", failure.Detail);
+            }
+            else
+            {
+                string detail = "0x" + failure.HResult.ToString("X8")
+                    + (string.IsNullOrWhiteSpace(failure.Detail) ? string.Empty : ": " + failure.Detail);
+                fallback = CreateServiceDiagnostic("SVC-07", "ServiceDiagConnectionFailed", detail);
+            }
+
+            ServiceDiagnosticInfo diagnostic = health.IsHealthy
+                ? fallback
+                : await ResolveServiceFailureAsync(health.Diagnostic ?? fallback);
+            if (_serviceConnectionState != KillEventConnectionState.Connected)
+            {
+                ShowServiceDiagnostic(diagnostic);
+            }
+        }
+
         private void StopKillEventClient()
         {
             if (_eventClient == null)
@@ -427,6 +642,7 @@ namespace KillConfirmGameBar
 
             _eventClient.KillReceived -= OnKillReceived;
             _eventClient.ConnectionStateChanged -= OnConnectionStateChanged;
+            _eventClient.ConnectionFailure -= OnServiceConnectionFailure;
             _eventClient.Dispose();
             _eventClient = null;
         }

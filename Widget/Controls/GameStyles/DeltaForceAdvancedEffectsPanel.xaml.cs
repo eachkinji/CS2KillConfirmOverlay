@@ -32,8 +32,8 @@ namespace KillConfirmGameBar.Controls.GameStyles
         {
             TitleText.Text = isChinese ? "\u4e09\u89d2\u6d32\u884c\u52a8 \u9ad8\u7ea7\u7279\u6548" : "Delta Force Effects";
             MoneyRewardModeLabel.Text = isChinese ? "\u5956\u52b1\u7b97\u6cd5" : "Money";
-            MoneyRewardDeltaItem.Content = isChinese ? "GSI \u5dee\u503c\u6821\u9a8c\uff08\u5b9e\u9a8c\uff09" : "GSI delta validation (experimental)";
-            MoneyRewardRulesItem.Content = isChinese ? "\u51fb\u6740\u5956\u52b1\u89c4\u5219\uff08\u63a8\u8350\uff09" : "Kill reward rules (recommended)";
+            MoneyRewardDeltaItem.Content = isChinese ? "GSI \u5dee\u503c\uff08\u9ed8\u8ba4\uff09" : "GSI delta (default)";
+            MoneyRewardRulesItem.Content = isChinese ? "\u51fb\u6740\u5956\u52b1\u89c4\u5219" : "Kill reward rules";
             StreakEditor.ApplyLanguage(isChinese);
             StylePanel.ApplyLanguage(isChinese);
         }

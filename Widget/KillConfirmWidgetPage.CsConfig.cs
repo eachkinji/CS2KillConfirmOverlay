@@ -2,6 +2,8 @@ using System;
 using System.Threading.Tasks;
 using KillConfirmGameBar.Services;
 using Windows.Data.Json;
+using Windows.Security.Cryptography;
+using Windows.Security.Cryptography.Core;
 using Windows.Storage;
 using Windows.Storage.AccessCache;
 using Windows.Storage.Pickers;
@@ -49,10 +51,11 @@ namespace KillConfirmGameBar
                 return;
             }
 
+            bool isRequiredUpdate = _cfgDetectionState == CfgDetectionState.Outdated;
             var dialog = new MessageDialog(
-                LocalizationManager.Text("AddCfgQuestion"),
-                LocalizationManager.Text("AddCfgTitle"));
-            string addText = LocalizationManager.Text("Add");
+                LocalizationManager.Text(isRequiredUpdate ? "UpdateCfgQuestion" : "AddCfgQuestion"),
+                LocalizationManager.Text(isRequiredUpdate ? "UpdateCfgTitle" : "AddCfgTitle"));
+            string addText = LocalizationManager.Text(isRequiredUpdate ? "UpdateCfgAction" : "Add");
             dialog.Commands.Add(new UICommand(addText));
             dialog.Commands.Add(new UICommand(LocalizationManager.Text("Cancel")));
             dialog.DefaultCommandIndex = 0;
@@ -171,22 +174,13 @@ namespace KillConfirmGameBar
             try
             {
                 StorageFile cfgFile = await cfgFolder.GetFileAsync(GsiConfigFileName);
-                string configText = await FileIO.ReadTextAsync(cfgFile);
-                if (configText.IndexOf("\"bomb\"", StringComparison.OrdinalIgnoreCase) < 0)
+                string actualMd5 = ComputeCfgMd5(await FileIO.ReadTextAsync(cfgFile));
+                string expectedMd5 = ComputeCfgMd5(GsiConfigText);
+                if (!string.Equals(actualMd5, expectedMd5, StringComparison.OrdinalIgnoreCase))
                 {
-                    int roundIndex = configText.IndexOf("\"round\"", StringComparison.OrdinalIgnoreCase);
-                    if (roundIndex < 0)
-                    {
-                        UpdateCfgStatus(CfgDetectionState.Missing, null, GetCsFolderDisplayText());
-                        return;
-                    }
-
-                    int lineEnd = configText.IndexOf('\n', roundIndex);
-                    string newLine = configText.Contains("\r\n") ? "\r\n" : "\n";
-                    int insertAt = lineEnd >= 0 ? lineEnd + 1 : configText.Length;
-                    string bombLine = "   \"bomb\"               \"1\"" + newLine;
-                    configText = configText.Insert(insertAt, bombLine);
-                    await FileIO.WriteTextAsync(cfgFile, configText, UnicodeEncoding.Utf8);
+                    App.Log("CFG MD5 mismatch: expected=" + expectedMd5 + ", actual=" + actualMd5);
+                    UpdateCfgStatus(CfgDetectionState.Outdated, null, LocalizationManager.Text("CfgOutdatedHint"));
+                    return;
                 }
 
                 UpdateCfgStatus(CfgDetectionState.Ready, null, GetCsFolderDisplayText());
@@ -209,7 +203,16 @@ namespace KillConfirmGameBar
                 UpdateCfgStatus(CfgDetectionState.Checking, LocalizationManager.Text("CfgAdding"), GetCsFolderDisplayText());
                 StorageFolder cfgFolder = await GetOrCreateCfgFolderAsync(_csInstallFolder);
                 StorageFile cfgFile = await cfgFolder.CreateFileAsync(GsiConfigFileName, CreationCollisionOption.ReplaceExisting);
-                await FileIO.WriteTextAsync(cfgFile, GsiConfigText, UnicodeEncoding.Utf8);
+                await FileIO.WriteBufferAsync(cfgFile, GetExpectedCfgBuffer());
+
+                string installedMd5 = ComputeCfgMd5(await FileIO.ReadTextAsync(cfgFile));
+                string expectedMd5 = ComputeCfgMd5(GsiConfigText);
+                if (!string.Equals(installedMd5, expectedMd5, StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new InvalidOperationException("CFG MD5 verification failed after writing.");
+                }
+
+                App.Log("CFG installed and MD5 verified: " + installedMd5);
                 UpdateCfgStatus(CfgDetectionState.Ready, null, GetCsFolderDisplayText());
             }
             catch (Exception ex)
@@ -218,6 +221,22 @@ namespace KillConfirmGameBar
                 UpdateCfgStatus(CfgDetectionState.Error, LocalizationManager.Text("CfgAddFailed"), GetCsFolderDisplayText());
                 await ShowCfgMessageAsync(LocalizationManager.Text("CfgWriteFailed"));
             }
+        }
+
+        private static IBuffer GetExpectedCfgBuffer()
+        {
+            return CryptographicBuffer.ConvertStringToBinary(GsiConfigText, BinaryStringEncoding.Utf8);
+        }
+
+        private static string ComputeCfgMd5(string configText)
+        {
+            string normalized = (configText ?? string.Empty)
+                .Replace("\r\n", "\n")
+                .Replace("\r", "\n")
+                .Replace("\n", "\r\n");
+            IBuffer buffer = CryptographicBuffer.ConvertStringToBinary(normalized, BinaryStringEncoding.Utf8);
+            HashAlgorithmProvider provider = HashAlgorithmProvider.OpenAlgorithm(HashAlgorithmNames.Md5);
+            return CryptographicBuffer.EncodeToHexString(provider.HashData(buffer)).ToUpperInvariant();
         }
 
         private string GetCsFolderDisplayText()

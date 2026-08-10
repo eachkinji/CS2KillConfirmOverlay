@@ -38,8 +38,8 @@ namespace KillConfirmGameBar.Controls.GameStyles
                 ? "\u4ec5\u4f7f\u7528\u5185\u7f6e Battlefield 2042 \u8d44\u6e90\u3002\u6b64\u9875\u4e0d\u5141\u8bb8\u5bfc\u5165\u6587\u4ef6\u3002"
                 : "Built-in Battlefield 2042 resources only. File import is disabled for this page.";
             MoneyRewardModeLabel.Text = isChinese ? "\u5956\u52b1\u7b97\u6cd5" : "Money";
-            MoneyRewardDeltaItem.Content = isChinese ? "GSI \u5dee\u503c\u6821\u9a8c\uff08\u5b9e\u9a8c\uff09" : "GSI delta validation (experimental)";
-            MoneyRewardRulesItem.Content = isChinese ? "\u51fb\u6740\u5956\u52b1\u89c4\u5219\uff08\u63a8\u8350\uff09" : "Kill reward rules (recommended)";
+            MoneyRewardDeltaItem.Content = isChinese ? "GSI \u5dee\u503c\uff08\u9ed8\u8ba4\uff09" : "GSI delta (default)";
+            MoneyRewardRulesItem.Content = isChinese ? "\u51fb\u6740\u5956\u52b1\u89c4\u5219" : "Kill reward rules";
             StreakEditor.ApplyLanguage(isChinese);
             StylePanel.ApplyLanguage(isChinese);
         }

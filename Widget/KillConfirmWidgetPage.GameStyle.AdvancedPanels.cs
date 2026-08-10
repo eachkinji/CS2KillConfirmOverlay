@@ -127,8 +127,15 @@ namespace KillConfirmGameBar
                 _crossfireAdvancedEffectsPanel = new CrossfireAdvancedEffectsPanel();
                 _crossfireAdvancedEffectsPanel.SetStylePanel(EnsureCrossfireStylePanel());
                 _crossfireAdvancedEffectsPanel.StreakModeSelectionChanged += OnCrossfireGameplaySettingChanged;
+                _crossfireAdvancedEffectsPanel.HeadshotAudioPrioritySelectionChanged += OnCrossfireGameplaySettingChanged;
+                _crossfireAdvancedEffectsPanel.KnifeAudioPrioritySelectionChanged += OnCrossfireGameplaySettingChanged;
+                _crossfireAdvancedEffectsPanel.HeadshotIconPrioritySelectionChanged += OnCrossfireGameplaySettingChanged;
+                _crossfireAdvancedEffectsPanel.KnifeIconPrioritySelectionChanged += OnCrossfireGameplaySettingChanged;
                 _crossfireAdvancedEffectsPanel.FirstKillAudioSelectionChanged += OnCrossfireGameplaySettingChanged;
                 _crossfireAdvancedEffectsPanel.LastKillAudioSelectionChanged += OnCrossfireGameplaySettingChanged;
+                _crossfireAdvancedEffectsPanel.FirstKillEffectToggled += OnCrossfireGameplaySettingChanged;
+                _crossfireAdvancedEffectsPanel.LastKillEffectToggled += OnCrossfireGameplaySettingChanged;
+                _crossfireAdvancedEffectsPanel.AssistAudioToggled += OnCrossfireGameplaySettingChanged;
                 LoadCrossfireGameplaySettings(_crossfireAdvancedEffectsPanel);
             }
 
@@ -141,7 +148,10 @@ namespace KillConfirmGameBar
             {
                 _valorantAdvancedEffectsPanel = new ValorantAdvancedEffectsPanel();
                 _valorantAdvancedEffectsPanel.SetStylePanel(new ValorantStylePanel());
+                _valorantAdvancedEffectsPanel.SelectAssistAudio(
+                    AssistAudioSettingsStore.Load(GameStyleMode.Valorant));
                 _valorantAdvancedEffectsPanel.StreakModeSelectionChanged += OnSharedStreakModeSelectionChanged;
+                _valorantAdvancedEffectsPanel.AssistAudioToggled += OnValorantAssistAudioToggled;
                 LoadSharedStreakMode(GameStyleMode.Valorant);
             }
 

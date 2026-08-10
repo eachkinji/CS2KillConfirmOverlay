@@ -215,6 +215,9 @@
     <Compile Include="Controls\GameStyles\ValorantStylePanel.xaml.cs">
       <DependentUpon>ValorantStylePanel.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\Settings\RuntimeMaintenancePanel.xaml.cs">
+      <DependentUpon>RuntimeMaintenancePanel.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\Settings\SettingsPanelSupport.cs" />
     <Compile Include="Controls\Settings\SharedStreakSettingsPanelSupport.cs" />
     <Compile Include="Controls\Settings\Battlefield1AdvancedSettingsPanel.xaml.cs">
@@ -247,6 +250,7 @@
     <Compile Include="Controls\UpdateOverlayView.Theme.cs" />
     <Compile Include="Services\KillEventClient.cs" />
     <Compile Include="Services\LocalServiceAuth.cs" />
+    <Compile Include="Services\AssistAudioSettingsStore.cs" />
     <Compile Include="Services\CrossfireGameplaySettingsStore.cs" />
     <Compile Include="Services\SharedStreakSettingsStore.cs" />
     <Compile Include="Services\GameStyleService.cs" />
@@ -416,6 +420,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Controls\Settings\DeltaForceAdvancedSettingsPanel.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\Settings\RuntimeMaintenancePanel.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

@@ -62,7 +62,12 @@ namespace KillConfirmGameBar
                     break;
                 default:
                     ConnectionDot.Background = new SolidColorBrush(Color.FromArgb(255, 185, 28, 28));
-                    SetNamedToolTip(ConnectionStatusBadge, LocalizationManager.Text("ServiceStatusTitle"), LocalizationManager.Text("ServiceOffline"));
+                    SetNamedToolTip(
+                        ConnectionStatusBadge,
+                        LocalizationManager.Text("ServiceStatusTitle"),
+                        _currentServiceDiagnostic == null
+                            ? LocalizationManager.Text("ServiceOffline")
+                            : FormatServiceDiagnostic(_currentServiceDiagnostic));
                     break;
             }
 
@@ -78,9 +83,13 @@ namespace KillConfirmGameBar
             CfgActionRow.Visibility = state == CfgDetectionState.Ready
                 ? Visibility.Collapsed
                 : Visibility.Visible;
-            CfgInstallButton.Visibility = state == CfgDetectionState.Missing
+            CfgInstallButton.Visibility = state == CfgDetectionState.Missing || state == CfgDetectionState.Outdated
                 ? Visibility.Visible
                 : Visibility.Collapsed;
+            SetNamedToolTip(
+                CfgInstallButton,
+                LocalizationManager.Text(state == CfgDetectionState.Outdated ? "UpdateCfgTitle" : "AddMissingCfgTitle"),
+                LocalizationManager.Text(state == CfgDetectionState.Outdated ? "UpdateCfgTooltip" : "AddMissingCfgTooltip"));
             UpdateStatusDetailRowVisibility();
 
             switch (state)
@@ -96,6 +105,10 @@ namespace KillConfirmGameBar
                 case CfgDetectionState.Missing:
                     CfgDot.Background = new SolidColorBrush(Color.FromArgb(255, 180, 90, 0));
                     SetNamedToolTip(CfgStatusBadge, LocalizationManager.Text("CfgStatusTitle"), LocalizationManager.Text("CfgMissingTooltip") + _cfgStatusDetail);
+                    break;
+                case CfgDetectionState.Outdated:
+                    CfgDot.Background = new SolidColorBrush(Color.FromArgb(255, 185, 28, 28));
+                    SetNamedToolTip(CfgStatusBadge, LocalizationManager.Text("CfgStatusTitle"), LocalizationManager.Text("CfgOutdatedHint"));
                     break;
                 case CfgDetectionState.Error:
                     CfgDot.Background = new SolidColorBrush(Color.FromArgb(255, 185, 28, 28));
@@ -164,6 +177,8 @@ namespace KillConfirmGameBar
                     return LocalizationManager.Text("CfgReady");
                 case CfgDetectionState.Missing:
                     return LocalizationManager.Text("CfgMissing");
+                case CfgDetectionState.Outdated:
+                    return LocalizationManager.Text("CfgOutdated");
                 case CfgDetectionState.Error:
                     return LocalizationManager.Text("CfgCheckFailed");
                 default:
@@ -176,6 +191,11 @@ namespace KillConfirmGameBar
             if (state == CfgDetectionState.NotSelected)
             {
                 return LocalizationManager.Text("CfgSelectRootHint");
+            }
+
+            if (state == CfgDetectionState.Outdated)
+            {
+                return LocalizationManager.Text("CfgOutdatedHint");
             }
 
             if (state == CfgDetectionState.Error)

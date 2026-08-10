@@ -18,7 +18,11 @@
                 TextWrapping="WrapWholeWords" />
         </StackPanel>
 
-        <Grid ColumnSpacing="8">
+        <Grid RowSpacing="8" ColumnSpacing="8">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="110" />
                 <ColumnDefinition Width="*" />
@@ -27,6 +31,16 @@
                 x:Name="StreakEditor"
                 Grid.ColumnSpan="2"
                 SettingsChanged="OnStreakModeSelectionChanged" />
+
+            <TextBlock x:Name="AssistAudioLabel" Grid.Row="1" VerticalAlignment="Center" FontSize="10" FontWeight="SemiBold" Text="Assist audio" />
+            <ToggleSwitch
+                x:Name="AssistAudioToggle"
+                Grid.Row="1"
+                Grid.Column="1"
+                IsOn="False"
+                OffContent="Muted (default)"
+                OnContent="Sound (common)"
+                Toggled="OnAssistAudioToggled" />
         </Grid>
 
         <ContentControl x:Name="StylePanelHost" />

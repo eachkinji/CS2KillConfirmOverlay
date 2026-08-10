@@ -126,6 +126,21 @@ pub async fn play_audio(
     event_kind: Option<String>,
     play_main_audio: bool,
 ) -> Result<()> {
+    let assist_audio_enabled = app_state_clone.assist_audio_enabled.load(Ordering::Relaxed);
+    let assist_audio_setting_active = app_state_clone
+        .assist_audio_setting_active
+        .load(Ordering::Relaxed);
+    let Some((audio_kill_count, audio_play_main)) = resolve_assist_audio_routing(
+        kill_count,
+        play_main_audio,
+        is_assist,
+        assist_audio_setting_active,
+        assist_audio_enabled,
+    ) else {
+        debug!("assist audio suppressed by user setting");
+        return Ok(());
+    };
+
     let volume = app_state_clone.volume_percent.load(Ordering::Relaxed) as f32 / 100.0;
 
     let mixer = {
@@ -139,6 +154,18 @@ pub async fn play_audio(
             .crossfire_mode_active
             .load(Ordering::Relaxed)
             && uses_crossfire_audio_rules(&preset.preset_name);
+        let routing_kill_count = resolve_crossfire_audio_kill_count(
+            audio_kill_count,
+            is_headshot,
+            is_knife_kill,
+            use_crossfire_audio_settings,
+            app_state_clone
+                .crossfire_headshot_special_audio_priority
+                .load(Ordering::Relaxed),
+            app_state_clone
+                .crossfire_knife_special_audio_priority
+                .load(Ordering::Relaxed),
+        );
         let effective_first_kill = resolve_special_kill_audio_flag(
             is_first_kill,
             use_crossfire_audio_settings,
@@ -156,7 +183,7 @@ pub async fn play_audio(
 
         // Create context for Lua script
         let ctx = SoundContext {
-            kill_count,
+            kill_count: routing_kill_count,
             is_headshot,
             is_first_kill: effective_first_kill,
             is_knife_kill,
@@ -166,7 +193,7 @@ pub async fn play_audio(
                 .as_deref()
                 .map(|value| value.eq_ignore_ascii_case("destroy_vehicle"))
                 .unwrap_or(false),
-            play_main_audio,
+            play_main_audio: audio_play_main,
             money_reward,
             event_kind,
             preset_name: preset.preset_name.clone(),
@@ -191,7 +218,7 @@ pub async fn play_audio(
         return Ok(());
     }
 
-    let event_gain = resolve_event_gain(kill_count, play_main_audio);
+    let event_gain = resolve_event_gain(audio_kill_count, audio_play_main);
 
     let mut tasks = JoinSet::new();
 
@@ -229,6 +256,37 @@ pub async fn play_audio(
     }
 
     Ok(())
+}
+
+fn resolve_assist_audio_routing(
+    kill_count: u16,
+    play_main_audio: bool,
+    is_assist: bool,
+    assist_audio_setting_active: bool,
+    assist_audio_enabled: bool,
+) -> Option<(u16, bool)> {
+    if !is_assist || !assist_audio_setting_active {
+        return Some((kill_count, play_main_audio));
+    }
+
+    assist_audio_enabled.then_some((1, true))
+}
+
+fn resolve_crossfire_audio_kill_count(
+    kill_count: u16,
+    is_headshot: bool,
+    is_knife_kill: bool,
+    use_crossfire_audio_settings: bool,
+    headshot_special_audio_priority: bool,
+    knife_special_audio_priority: bool,
+) -> u16 {
+    let special_audio_wins = (is_headshot && headshot_special_audio_priority)
+        || (is_knife_kill && knife_special_audio_priority);
+    if use_crossfire_audio_settings && kill_count >= 2 && special_audio_wins {
+        1
+    } else {
+        kill_count
+    }
 }
 
 fn uses_crossfire_audio_rules(preset_name: &str) -> bool {
@@ -377,9 +435,30 @@ fn resolve_event_gain(kill_count: u16, play_main_audio: bool) -> f32 {
 #[cfg(test)]
 mod tests {
     use super::{
+        resolve_assist_audio_routing, resolve_crossfire_audio_kill_count,
         resolve_special_kill_audio_flag, uses_battlefield2042_audio_rules,
         uses_crossfire_audio_rules,
     };
+
+    #[test]
+    fn assist_audio_is_muted_by_default_and_routes_to_common_when_enabled() {
+        assert_eq!(
+            resolve_assist_audio_routing(0, false, true, true, false),
+            None
+        );
+        assert_eq!(
+            resolve_assist_audio_routing(0, false, true, true, true),
+            Some((1, true))
+        );
+        assert_eq!(
+            resolve_assist_audio_routing(0, false, true, false, false),
+            Some((0, false))
+        );
+        assert_eq!(
+            resolve_assist_audio_routing(4, true, false, true, false),
+            Some((4, true))
+        );
+    }
 
     #[test]
     fn detects_the_battlefield2042_builtin_sound_pack() {
@@ -399,6 +478,30 @@ mod tests {
     fn non_crossfire_presets_keep_their_existing_special_audio_behavior() {
         assert!(resolve_special_kill_audio_flag(true, false, false));
         assert!(!resolve_special_kill_audio_flag(false, false, true));
+    }
+
+    #[test]
+    fn crossfire_special_audio_priority_can_override_or_keep_streak_audio() {
+        assert_eq!(
+            resolve_crossfire_audio_kill_count(4, true, false, true, true, true),
+            1
+        );
+        assert_eq!(
+            resolve_crossfire_audio_kill_count(4, true, false, true, false, true),
+            4
+        );
+        assert_eq!(
+            resolve_crossfire_audio_kill_count(3, false, true, true, true, true),
+            1
+        );
+        assert_eq!(
+            resolve_crossfire_audio_kill_count(3, false, true, true, true, false),
+            3
+        );
+        assert_eq!(
+            resolve_crossfire_audio_kill_count(4, true, true, false, true, true),
+            4
+        );
     }
 
     #[test]

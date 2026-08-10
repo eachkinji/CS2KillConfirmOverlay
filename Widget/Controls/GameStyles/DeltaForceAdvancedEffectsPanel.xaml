@@ -41,8 +41,8 @@
                 FontSize="10"
                 SelectionChanged="OnMoneyRewardModeSelectionChanged"
                 ToolTipService.ToolTip="Money reward calculation">
-                <ComboBoxItem x:Name="MoneyRewardDeltaItem" Tag="delta">GSI delta validation (experimental)</ComboBoxItem>
-                <ComboBoxItem x:Name="MoneyRewardRulesItem" Tag="rules">Kill reward rules (recommended)</ComboBoxItem>
+                <ComboBoxItem x:Name="MoneyRewardDeltaItem" Tag="delta">GSI delta (default)</ComboBoxItem>
+                <ComboBoxItem x:Name="MoneyRewardRulesItem" Tag="rules">Kill reward rules</ComboBoxItem>
             </ComboBox>
             <local:StreakWindowEditor
                 x:Name="StreakEditor"

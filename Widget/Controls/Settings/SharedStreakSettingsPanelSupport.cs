@@ -10,7 +10,7 @@ namespace KillConfirmGameBar.Controls.Settings
 {
     internal static class SharedStreakSettingsPanelSupport
     {
-        private static readonly Uri SettingsUri = new Uri("http://127.0.0.1:3000/streak/settings");
+        private static readonly Uri SettingsUri = new Uri("http://127.0.0.1:10087/streak/settings");
 
         public static void Load(GameStyleMode style, ComboBox selector)
         {
@@ -27,7 +27,12 @@ namespace KillConfirmGameBar.Controls.Settings
                 var request = new JsonObject
                 {
                     ["active"] = JsonValue.CreateBooleanValue(GameStyleService.Current == style),
-                    ["streak_mode"] = JsonValue.CreateStringValue(mode)
+                    ["streak_mode"] = JsonValue.CreateStringValue(mode),
+                    ["assist_audio_enabled"] = JsonValue.CreateBooleanValue(
+                        style == GameStyleMode.Valorant
+                        && AssistAudioSettingsStore.Load(style)),
+                    ["assist_audio_setting_active"] = JsonValue.CreateBooleanValue(
+                        style == GameStyleMode.Valorant)
                 };
 
                 using (var client = await LocalServiceAuth.CreateHttpClientAsync())

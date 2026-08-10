@@ -653,7 +653,7 @@ function Install-Cs2GsiConfig {
     $configLines = @(
         '"KillConfirmGameBar"',
         '{',
-        ' "uri" "http://127.0.0.1:3000/"',
+        ' "uri" "http://127.0.0.1:10087/"',
         ' "timeout" "0.5"',
         ' "buffer"  "0.05"',
         ' "throttle" "0.05"',
@@ -667,6 +667,7 @@ function Install-Cs2GsiConfig {
         '   "provider"           "1"',
         '   "map"                "1"',
         '   "round"              "1"',
+        '   "bomb"               "1"',
         '   "player_id"          "1"',
         '   "player_state"       "1"',
         '   "player_weapons"     "1"',

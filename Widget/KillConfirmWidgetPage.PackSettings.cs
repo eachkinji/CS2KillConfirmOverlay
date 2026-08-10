@@ -36,8 +36,7 @@ namespace KillConfirmGameBar
             }
             catch (Exception ex)
             {
-                App.Log("Voice pack selection failed: " + ex);
-                UpdateConnectionState(KillEventConnectionState.Disconnected);
+                App.Log("Voice pack selection failed without changing SVC health: " + ex);
             }
         }
 

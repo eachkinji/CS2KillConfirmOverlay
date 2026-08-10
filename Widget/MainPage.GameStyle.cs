@@ -208,10 +208,15 @@ namespace KillConfirmGameBar
             if (_valorantAdvancedEffectsPanel == null)
             {
                 _valorantAdvancedEffectsPanel = new ValorantAdvancedEffectsPanel();
+                _valorantAdvancedEffectsPanel.SelectAssistAudio(
+                    AssistAudioSettingsStore.Load(GameStyleMode.Valorant));
                 _valorantAdvancedEffectsPanel.StreakModeSelectionChanged += OnStreakModeSelectionChanged;
+                _valorantAdvancedEffectsPanel.AssistAudioToggled += OnValorantAssistAudioToggled;
             }
             string streak = SharedStreakSettingsStore.Load(GameStyleMode.Valorant);
             _valorantAdvancedEffectsPanel.SelectStreakMode(streak);
+            _valorantAdvancedEffectsPanel.SelectAssistAudio(
+                AssistAudioSettingsStore.Load(GameStyleMode.Valorant));
             return _valorantAdvancedEffectsPanel;
         }
 
@@ -225,7 +230,7 @@ namespace KillConfirmGameBar
             }
             string money = ApplicationData.Current.LocalSettings.Values["MoneyRewardMode"] as string;
             string streak = SharedStreakSettingsStore.Load(GameStyleMode.Battlefield1);
-            _battlefield1AdvancedEffectsPanel.SelectMoneyRewardMode(money, "rules");
+            _battlefield1AdvancedEffectsPanel.SelectMoneyRewardMode(money, "delta");
             _battlefield1AdvancedEffectsPanel.SelectStreakMode(streak);
             return _battlefield1AdvancedEffectsPanel;
         }
@@ -240,7 +245,7 @@ namespace KillConfirmGameBar
             }
             string money = ApplicationData.Current.LocalSettings.Values["MoneyRewardMode"] as string;
             string streak = SharedStreakSettingsStore.Load(GameStyleMode.Battlefield5);
-            _battlefield5AdvancedEffectsPanel.SelectMoneyRewardMode(money, "rules");
+            _battlefield5AdvancedEffectsPanel.SelectMoneyRewardMode(money, "delta");
             _battlefield5AdvancedEffectsPanel.SelectStreakMode(streak);
             return _battlefield5AdvancedEffectsPanel;
         }
@@ -255,7 +260,7 @@ namespace KillConfirmGameBar
             }
             string money = ApplicationData.Current.LocalSettings.Values["MoneyRewardMode"] as string;
             string streak = SharedStreakSettingsStore.Load(GameStyleMode.Battlefield4);
-            _battlefield4AdvancedEffectsPanel.SelectMoneyRewardMode(money, "rules");
+            _battlefield4AdvancedEffectsPanel.SelectMoneyRewardMode(money, "delta");
             _battlefield4AdvancedEffectsPanel.SelectStreakMode(streak);
             return _battlefield4AdvancedEffectsPanel;
         }
@@ -270,7 +275,7 @@ namespace KillConfirmGameBar
             }
             string money = ApplicationData.Current.LocalSettings.Values["MoneyRewardMode"] as string;
             string streak = SharedStreakSettingsStore.Load(GameStyleMode.Battlefield2042);
-            _battlefield2042AdvancedEffectsPanel.SelectMoneyRewardMode(money, "rules");
+            _battlefield2042AdvancedEffectsPanel.SelectMoneyRewardMode(money, "delta");
             _battlefield2042AdvancedEffectsPanel.SelectStreakMode(streak);
             return _battlefield2042AdvancedEffectsPanel;
         }
@@ -285,7 +290,7 @@ namespace KillConfirmGameBar
             }
             string money = ApplicationData.Current.LocalSettings.Values["MoneyRewardMode"] as string;
             string streak = SharedStreakSettingsStore.Load(GameStyleMode.Pubg);
-            _pubgAdvancedEffectsPanel.SelectMoneyRewardMode(money, "rules");
+            _pubgAdvancedEffectsPanel.SelectMoneyRewardMode(money, "delta");
             _pubgAdvancedEffectsPanel.SelectStreakMode(streak);
             return _pubgAdvancedEffectsPanel;
         }
@@ -300,22 +305,36 @@ namespace KillConfirmGameBar
             }
             string money = ApplicationData.Current.LocalSettings.Values["MoneyRewardMode"] as string;
             string streak = SharedStreakSettingsStore.Load(GameStyleMode.DeltaForce);
-            _deltaForceAdvancedEffectsPanel.SelectMoneyRewardMode(money, "rules");
+            _deltaForceAdvancedEffectsPanel.SelectMoneyRewardMode(money, "delta");
             _deltaForceAdvancedEffectsPanel.SelectStreakMode(streak);
             return _deltaForceAdvancedEffectsPanel;
         }
 
         private void OnMoneyRewardModeSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            string mode = "rules";
-            if (sender is Battlefield1AdvancedEffectsPanel p1) mode = p1.GetSelectedMoneyRewardMode("rules");
-            else if (sender is Battlefield5AdvancedEffectsPanel p5) mode = p5.GetSelectedMoneyRewardMode("rules");
-            else if (sender is Battlefield4AdvancedEffectsPanel p4) mode = p4.GetSelectedMoneyRewardMode("rules");
-            else if (sender is Battlefield2042AdvancedEffectsPanel p2042) mode = p2042.GetSelectedMoneyRewardMode("rules");
-            else if (sender is DeltaForceAdvancedEffectsPanel pDF) mode = pDF.GetSelectedMoneyRewardMode("rules");
-            else if (sender is PubgAdvancedEffectsPanel pPubg) mode = pPubg.GetSelectedMoneyRewardMode("rules");
+            string mode = "delta";
+            if (sender is Battlefield1AdvancedEffectsPanel p1) mode = p1.GetSelectedMoneyRewardMode("delta");
+            else if (sender is Battlefield5AdvancedEffectsPanel p5) mode = p5.GetSelectedMoneyRewardMode("delta");
+            else if (sender is Battlefield4AdvancedEffectsPanel p4) mode = p4.GetSelectedMoneyRewardMode("delta");
+            else if (sender is Battlefield2042AdvancedEffectsPanel p2042) mode = p2042.GetSelectedMoneyRewardMode("delta");
+            else if (sender is DeltaForceAdvancedEffectsPanel pDF) mode = pDF.GetSelectedMoneyRewardMode("delta");
+            else if (sender is PubgAdvancedEffectsPanel pPubg) mode = pPubg.GetSelectedMoneyRewardMode("delta");
 
             ApplicationData.Current.LocalSettings.Values["MoneyRewardMode"] = mode;
+        }
+
+        private async void OnValorantAssistAudioToggled(object sender, RoutedEventArgs e)
+        {
+            if (!(sender is ValorantAdvancedEffectsPanel panel))
+            {
+                return;
+            }
+
+            bool enabled = panel.GetAssistAudioEnabled(false);
+            AssistAudioSettingsStore.Save(GameStyleMode.Valorant, enabled);
+            await TrySyncSharedStreakSettingsAsync(
+                GameStyleMode.Valorant,
+                SharedStreakSettingsStore.Load(GameStyleMode.Valorant));
         }
 
         private async void OnStreakModeSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -342,7 +361,12 @@ namespace KillConfirmGameBar
                 {
                     ["active"] = JsonValue.CreateBooleanValue(
                         SharedStreakSettingsStore.IsSupported(style)),
-                    ["streak_mode"] = JsonValue.CreateStringValue(mode)
+                    ["streak_mode"] = JsonValue.CreateStringValue(mode),
+                    ["assist_audio_enabled"] = JsonValue.CreateBooleanValue(
+                        style == GameStyleMode.Valorant
+                        && AssistAudioSettingsStore.Load(style)),
+                    ["assist_audio_setting_active"] = JsonValue.CreateBooleanValue(
+                        style == GameStyleMode.Valorant)
                 };
 
                 using (var client = await LocalServiceAuth.CreateHttpClientAsync())
@@ -352,7 +376,7 @@ namespace KillConfirmGameBar
                     "application/json"))
                 {
                     await client.PostAsync(
-                        new System.Uri("http://127.0.0.1:3000/streak/settings"),
+                        new System.Uri("http://127.0.0.1:10087/streak/settings"),
                         content);
                 }
             }

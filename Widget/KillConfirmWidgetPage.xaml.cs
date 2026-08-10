@@ -73,10 +73,11 @@ namespace KillConfirmGameBar
         private const string MainAnimationStyleSettingKey = "MainAnimationStyle";
         private const string AnimationPlacementSettingKey = "AnimationPlacement";
         private const string AnimationOffsetSettingKey = "AnimationOffset";
+        private const string AnimationHorizontalOffsetSettingKey = "AnimationHorizontalOffset";
         private const string AnimationScaleSettingKey = "AnimationScale";
         private const string VoicePackSettingKey = "VoicePack";
         private const string MoneyRewardModeSettingKey = "MoneyRewardMode";
-        private const string DefaultMoneyRewardMode = "rules";
+        private const string DefaultMoneyRewardMode = "delta";
         private const string CsInstallFolderAccessToken = "CsInstallFolder";
         private const string CsInstallFolderTokenSettingKey = "CsInstallFolderToken";
         private const string CsInstallFolderPathSettingKey = "CsInstallFolderPath";
@@ -84,7 +85,7 @@ namespace KillConfirmGameBar
         private const string GsiConfigText =
             "\"KillConfirmGameBar\"\r\n" +
             "{\r\n" +
-            " \"uri\" \"http://127.0.0.1:3000/\"\r\n" +
+            " \"uri\" \"http://127.0.0.1:10087/\"\r\n" +
             " \"timeout\" \"0.5\"\r\n" +
             " \"buffer\"  \"0.05\"\r\n" +
             " \"throttle\" \"0.05\"\r\n" +
@@ -113,16 +114,16 @@ namespace KillConfirmGameBar
             new System.Guid("D784837F-1100-3C6B-A455-F6262CC331B6");
         private const int GsiStatusRefreshMs = 10000;
         private const double RecentGsiAgeMs = 120000;
-        private static readonly Uri ServiceHealthUri = new Uri("http://127.0.0.1:3000/health");
-        private static readonly Uri GsiStatusUri = new Uri("http://127.0.0.1:3000/gsi-status");
-        private static readonly Uri ServiceShutdownUri = new Uri("http://127.0.0.1:3000/shutdown");
-        private static readonly Uri SoundPackUri = new Uri("http://127.0.0.1:3000/soundpack");
-        private static readonly Uri AudioReloadUri = new Uri("http://127.0.0.1:3000/audio/reload");
-        private static readonly Uri AudioVolumeUri = new Uri("http://127.0.0.1:3000/audio/volume");
-        private static readonly Uri MoneyRewardModeUri = new Uri("http://127.0.0.1:3000/money/mode");
-        private static readonly Uri CrossfireSettingsUri = new Uri("http://127.0.0.1:3000/crossfire/settings");
-        private static readonly Uri SharedStreakSettingsUri = new Uri("http://127.0.0.1:3000/streak/settings");
-        private static readonly Uri Cs2RootUri = new Uri("http://127.0.0.1:3000/cs2-root");
+        private static readonly Uri ServiceHealthUri = new Uri("http://127.0.0.1:10087/health");
+        private static readonly Uri GsiStatusUri = new Uri("http://127.0.0.1:10087/gsi-status");
+        private static readonly Uri ServiceShutdownUri = new Uri("http://127.0.0.1:10087/shutdown");
+        private static readonly Uri SoundPackUri = new Uri("http://127.0.0.1:10087/soundpack");
+        private static readonly Uri AudioReloadUri = new Uri("http://127.0.0.1:10087/audio/reload");
+        private static readonly Uri AudioVolumeUri = new Uri("http://127.0.0.1:10087/audio/volume");
+        private static readonly Uri MoneyRewardModeUri = new Uri("http://127.0.0.1:10087/money/mode");
+        private static readonly Uri CrossfireSettingsUri = new Uri("http://127.0.0.1:10087/crossfire/settings");
+        private static readonly Uri SharedStreakSettingsUri = new Uri("http://127.0.0.1:10087/streak/settings");
+        private static readonly Uri Cs2RootUri = new Uri("http://127.0.0.1:10087/cs2-root");
         private static readonly TimeSpan ServiceStartupTimeout = TimeSpan.FromSeconds(6);
         private static readonly TimeSpan ServiceStartupPollInterval = TimeSpan.FromMilliseconds(250);
         private const string FreeServicePortParameterGroupId = "FreeServicePort";
@@ -170,6 +171,7 @@ namespace KillConfirmGameBar
         private XboxGameBarWidget _widget;
         private KillEventClient _eventClient;
         private double _animationOffset;
+        private double _animationHorizontalOffset;
         private double _animationScale = 1.0;
         private AnimationPlacementMode _animationPlacement = AnimationPlacementMode.Center;
         private bool _isWidgetVisible = true;
@@ -325,12 +327,21 @@ namespace KillConfirmGameBar
             }
         }
 
-        private void OnCenterClick(object sender, RoutedEventArgs e)
+        private async void OnCenterClick(object sender, RoutedEventArgs e)
         {
-            _animationOffset = 0;
-            _animationPlacement = AnimationPlacementMode.Center;
-            ApplyAnimationOffset();
-            SaveAnimationPlacementSettings();
+            if (_widget == null)
+            {
+                return;
+            }
+
+            try
+            {
+                await _widget.CenterWindowAsync();
+            }
+            catch (Exception ex)
+            {
+                App.Log("Center widget window failed: " + ex.Message);
+            }
         }
 
         private void OnLowerThirdClick(object sender, RoutedEventArgs e)
@@ -348,6 +359,16 @@ namespace KillConfirmGameBar
         private void OnMoveDownClick(object sender, RoutedEventArgs e)
         {
             NudgeAnimation(AnimationOffsetStep);
+        }
+
+        private void OnMoveLeftClick(object sender, RoutedEventArgs e)
+        {
+            NudgeAnimationHorizontal(-AnimationOffsetStep);
+        }
+
+        private void OnMoveRightClick(object sender, RoutedEventArgs e)
+        {
+            NudgeAnimationHorizontal(AnimationOffsetStep);
         }
 
         private void OnScaleUpClick(object sender, RoutedEventArgs e)
@@ -395,6 +416,7 @@ namespace KillConfirmGameBar
 
         private async void OnOpenGuideClick(object sender, RoutedEventArgs e)
         {
+            OpenGuideButton.IsEnabled = false;
             try
             {
                 bool launched = await TryLaunchFullTrustHelperAsync(OpenSettingsWindowParameterGroupId);
@@ -408,6 +430,10 @@ namespace KillConfirmGameBar
             {
                 App.Log("Failed to open guide: " + ex);
             }
+            finally
+            {
+                OpenGuideButton.IsEnabled = true;
+            }
 
             ShowGuideOpenFailedHint();
         }
@@ -418,6 +444,55 @@ namespace KillConfirmGameBar
             ShowStatusHint(hint, Color.FromArgb(255, 180, 90, 0));
         }
 
+
+        private async void OnRetryServiceClick(object sender, RoutedEventArgs e)
+        {
+            RetryServiceButton.IsEnabled = false;
+            try
+            {
+                ShowStatusHint(LocalizationManager.Text("RetryServiceRunning"), Color.FromArgb(255, 180, 90, 0));
+                await EnsureServiceAvailableAsync();
+            }
+            catch (Exception ex)
+            {
+                App.Log("Retry service failed: " + ex);
+                ShowServiceDiagnostic(CreateServiceDiagnostic(
+                    "SVC-03",
+                    "ServiceDiagLaunchFailed",
+                    ex.GetType().Name + " 0x" + ex.HResult.ToString("X8") + ": " + ex.Message));
+            }
+            finally
+            {
+                RetryServiceButton.IsEnabled = true;
+            }
+        }
+
+        private void OnCopyServiceDiagnosticClick(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                PackageVersion version = Package.Current.Id.Version;
+                string versionText = version.Major + "." + version.Minor + "." + version.Build + "." + version.Revision;
+                string diagnostic = _currentServiceDiagnostic == null
+                    ? LocalizationManager.Text("ServiceRunning")
+                    : FormatServiceDiagnostic(_currentServiceDiagnostic);
+                string report = "KillConfirm " + versionText
+                    + "\r\nTime: " + DateTimeOffset.Now.ToString("u")
+                    + "\r\nState: " + _serviceConnectionState
+                    + "\r\n" + diagnostic;
+
+                var data = new DataPackage();
+                data.SetText(report);
+                Clipboard.SetContent(data);
+                Clipboard.Flush();
+                ShowStatusHint(LocalizationManager.Text("DiagnosticCopied"), Color.FromArgb(255, 5, 122, 85));
+            }
+            catch (Exception ex)
+            {
+                App.Log("Copy service diagnostic failed: " + ex);
+                ShowStatusHint(LocalizationManager.Text("DiagnosticCopyFailed"), Color.FromArgb(255, 185, 28, 28));
+            }
+        }
 
         private async void OnOpenLogsClick(object sender, RoutedEventArgs e)
         {
@@ -505,6 +580,7 @@ namespace KillConfirmGameBar
             Checking,
             Ready,
             Missing,
+            Outdated,
             Error
         }
 

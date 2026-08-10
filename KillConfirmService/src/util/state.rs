@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, AtomicU8, AtomicU32, AtomicU64};
 use std::time::Instant;
 
@@ -10,8 +11,14 @@ use crate::soundpack::Preset;
 use super::Args;
 
 pub struct Mutable {
+    pub players: HashMap<String, TrackedPlayerState>,
+    pub last_bomb_state: Option<String>,
+    pub last_bomb_player: Option<String>,
+}
+
+#[derive(Clone)]
+pub struct TrackedPlayerState {
     pub initialized: bool,
-    pub steamid: String,
     pub ply_kills: u16,
     pub ply_hs_kills: u64,
     pub ply_assists: u16,
@@ -25,14 +32,39 @@ pub struct Mutable {
     pub last_active_weapon_seen_at: Option<Instant>,
     pub last_player_money: Option<u32>,
     pub money_epoch: u32,
-    pub last_bomb_state: Option<String>,
-    pub last_bomb_player: Option<String>,
     pub crossfire_streak_kills: u16,
     pub last_crossfire_kill_at: Option<Instant>,
     pub current_round: u8,
     pub last_round_phase: Option<TrackedRoundPhase>,
     pub has_first_kill_in_round: bool,
     pub pending_last_kill: Option<PendingLastKill>,
+}
+
+impl Default for TrackedPlayerState {
+    fn default() -> Self {
+        Self {
+            initialized: false,
+            ply_kills: 0,
+            ply_hs_kills: 0,
+            ply_assists: 0,
+            ply_deaths: 0,
+            ply_score: 0,
+            last_player_health: 0,
+            last_active_weapon_is_knife: false,
+            last_active_weapon_badge_key: None,
+            last_active_weapon_name: None,
+            last_active_weapon_money_reward: 300,
+            last_active_weapon_seen_at: None,
+            last_player_money: None,
+            money_epoch: 0,
+            crossfire_streak_kills: 0,
+            last_crossfire_kill_at: None,
+            current_round: 0,
+            last_round_phase: None,
+            has_first_kill_in_round: false,
+            pending_last_kill: None,
+        }
+    }
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -182,7 +214,7 @@ pub fn format_streak_setting(mode: CrossfireStreakMode, custom_window_ms: u64) -
 }
 
 impl MoneyRewardMode {
-    pub const DEFAULT: Self = Self::Rules;
+    pub const DEFAULT: Self = Self::Delta;
 
     pub fn as_u8(self) -> u8 {
         match self {
@@ -230,6 +262,7 @@ pub struct AppState {
     pub control_token: String,
     pub stream_handle: RwLock<OutputStream>,
     pub current_output_device_name: RwLock<String>,
+    pub selected_output_device_name: RwLock<String>,
     pub args: Args,
     pub preset: RwLock<Preset>,
     pub volume_percent: AtomicU32,
@@ -242,6 +275,10 @@ pub struct AppState {
     pub shared_streak_mode_active: AtomicBool,
     pub crossfire_first_kill_special_audio: AtomicBool,
     pub crossfire_last_kill_special_audio: AtomicBool,
+    pub crossfire_headshot_special_audio_priority: AtomicBool,
+    pub crossfire_knife_special_audio_priority: AtomicBool,
+    pub assist_audio_enabled: AtomicBool,
+    pub assist_audio_setting_active: AtomicBool,
     pub event_tx: broadcast::Sender<KillEvent>,
     pub shutdown_tx: broadcast::Sender<()>,
     pub gsi_posts: AtomicU64,

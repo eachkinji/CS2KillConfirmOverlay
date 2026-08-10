@@ -36,8 +36,8 @@ namespace KillConfirmGameBar.Controls.GameStyles
                 ? "BF1 \u7684\u6587\u5b57\u3001\u5361\u7247\u3001\u5956\u91d1\u7b97\u6cd5\u548c\u6218\u5730\u4e00\u8d44\u6e90\u90fd\u5728\u8fd9\u91cc\u5355\u72ec\u8bbe\u7f6e\u3002"
                 : "BF1 text, card, money reward calculation, and Battlefield 1 assets are isolated here.";
             MoneyRewardModeLabel.Text = isChinese ? "\u5956\u52b1\u7b97\u6cd5" : "Money";
-            MoneyRewardDeltaItem.Content = isChinese ? "GSI \u5dee\u503c\u6821\u9a8c\uff08\u5b9e\u9a8c\uff09" : "GSI delta validation (experimental)";
-            MoneyRewardRulesItem.Content = isChinese ? "\u51fb\u6740\u5956\u52b1\u89c4\u5219\uff08\u63a8\u8350\uff09" : "Kill reward rules (recommended)";
+            MoneyRewardDeltaItem.Content = isChinese ? "GSI \u5dee\u503c\uff08\u9ed8\u8ba4\uff09" : "GSI delta (default)";
+            MoneyRewardRulesItem.Content = isChinese ? "\u51fb\u6740\u5956\u52b1\u89c4\u5219" : "Kill reward rules";
             StreakEditor.ApplyLanguage(isChinese);
             ImportLockedText.Text = isChinese
                 ? "\u4ec5\u4f7f\u7528\u5185\u7f6e Battlefield 1 \u8d44\u6e90\u3002\u6b64\u9875\u4e0d\u5141\u8bb8\u5bfc\u5165\u6587\u4ef6\u3002"

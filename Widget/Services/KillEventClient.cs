@@ -15,6 +15,21 @@ namespace KillConfirmGameBar.Services
         Connected
     }
 
+    public enum ServiceConnectionFailureKind
+    {
+        ConnectFailed,
+        ConnectionClosed,
+        MessageReadFailed
+    }
+
+    public sealed class ServiceConnectionFailureEventArgs : EventArgs
+    {
+        public ServiceConnectionFailureKind Kind { get; set; }
+        public int HResult { get; set; }
+        public ushort CloseCode { get; set; }
+        public string Detail { get; set; }
+    }
+
     public sealed class KillEvent
     {
         public int KillCount { get; set; }
@@ -38,7 +53,7 @@ namespace KillConfirmGameBar.Services
 
     public sealed class KillEventClient : IDisposable
     {
-        private static readonly Uri EventsUri = new Uri("ws://127.0.0.1:3000/events");
+        private static readonly Uri EventsUri = new Uri("ws://127.0.0.1:10087/events");
 
         private readonly CoreDispatcher _dispatcher;
         private MessageWebSocket _socket;
@@ -55,6 +70,7 @@ namespace KillConfirmGameBar.Services
 
         public event EventHandler<KillEvent> KillReceived;
         public event EventHandler<KillEventConnectionState> ConnectionStateChanged;
+        public event EventHandler<ServiceConnectionFailureEventArgs> ConnectionFailure;
 
         public KillEventConnectionState ConnectionState => _connectionState;
 
@@ -101,8 +117,14 @@ namespace KillConfirmGameBar.Services
                 await socket.ConnectAsync(EventsUri);
                 SetConnectionState(KillEventConnectionState.Connected);
             }
-            catch
+            catch (Exception ex)
             {
+                ReportConnectionFailure(new ServiceConnectionFailureEventArgs
+                {
+                    Kind = ServiceConnectionFailureKind.ConnectFailed,
+                    HResult = ex.HResult,
+                    Detail = ex.Message
+                });
                 CleanupSocket();
                 SetConnectionState(KillEventConnectionState.Disconnected);
                 ScheduleReconnect();
@@ -158,8 +180,14 @@ namespace KillConfirmGameBar.Services
                     KillReceived?.Invoke(this, killEvent);
                 });
             }
-            catch
+            catch (Exception ex)
             {
+                ReportConnectionFailure(new ServiceConnectionFailureEventArgs
+                {
+                    Kind = ServiceConnectionFailureKind.MessageReadFailed,
+                    HResult = ex.HResult,
+                    Detail = ex.Message
+                });
                 CleanupSocket();
                 SetConnectionState(KillEventConnectionState.Disconnected);
                 ScheduleReconnect();
@@ -168,6 +196,12 @@ namespace KillConfirmGameBar.Services
 
         private void OnClosed(IWebSocket sender, WebSocketClosedEventArgs args)
         {
+            ReportConnectionFailure(new ServiceConnectionFailureEventArgs
+            {
+                Kind = ServiceConnectionFailureKind.ConnectionClosed,
+                CloseCode = args.Code,
+                Detail = args.Reason
+            });
             CleanupSocket();
             if (!_connecting)
             {
@@ -222,6 +256,25 @@ namespace KillConfirmGameBar.Services
             catch
             {
             }
+        }
+
+        private void ReportConnectionFailure(ServiceConnectionFailureEventArgs failure)
+        {
+            if (_disposed || failure == null)
+            {
+                return;
+            }
+
+            if (_dispatcher == null || _dispatcher.HasThreadAccess)
+            {
+                ConnectionFailure?.Invoke(this, failure);
+                return;
+            }
+
+            var ignored = _dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+            {
+                ConnectionFailure?.Invoke(this, failure);
+            });
         }
 
         private void SetConnectionState(KillEventConnectionState state)

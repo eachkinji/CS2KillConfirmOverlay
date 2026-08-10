@@ -336,6 +336,7 @@ namespace KillConfirmGameBar
         private void PlayCrossfirePrimaryAnimation(KillEvent killEvent)
         {
             bool useLegacyAnimationPack = IsLegacyIconPackSelected();
+            CrossfireGameplaySettingsValues settings = CrossfireGameplaySettingsStore.Load();
 
             if (string.Equals(killEvent.AnimationKey, "code2kill", StringComparison.OrdinalIgnoreCase))
             {
@@ -350,58 +351,44 @@ namespace KillConfirmGameBar
                 return;
             }
 
-            if (killEvent.KillCount == 1)
+            bool knifeIconWins = killEvent.IsKnifeKill
+                && (killEvent.KillCount < 2 || settings.KnifeSpecialIconPriority);
+            if (knifeIconWins)
             {
-                if (killEvent.IsKnifeKill)
+                if (useLegacyAnimationPack)
                 {
-                    if (useLegacyAnimationPack)
-                    {
-                        PrimaryKillAnimation.PlayNamed(KnifeKillAssetKey);
-                    }
-                    else
-                    {
-                        PrimaryKillAnimation.PlayCodeKill("knife", killEvent.WeaponBadgeKey);
-                    }
-                    return;
+                    PrimaryKillAnimation.PlayNamed(KnifeKillAssetKey);
                 }
-
-                if (killEvent.IsHeadshot)
+                else
                 {
-                    if (killEvent.IsFirstKill || killEvent.IsLastKill)
-                    {
-                        if (useLegacyAnimationPack)
-                        {
-                            PrimaryKillAnimation.PlayNamed(GoldHeadshotAssetKey);
-                        }
-                        else
-                        {
-                            PrimaryKillAnimation.PlayCodeKill("headshot_gold", killEvent.WeaponBadgeKey);
-                        }
-                        return;
-                    }
-
-                    if (useLegacyAnimationPack)
-                    {
-                        PrimaryKillAnimation.PlayNamed(HeadshotAssetKey);
-                    }
-                    else
-                    {
-                        PrimaryKillAnimation.PlayCodeKill("headshot", killEvent.WeaponBadgeKey);
-                    }
-                    return;
+                    PrimaryKillAnimation.PlayCodeKill("knife", killEvent.WeaponBadgeKey);
                 }
+                return;
+            }
 
-                if (!useLegacyAnimationPack)
+            bool headshotIconWins = killEvent.IsHeadshot
+                && (killEvent.KillCount < 2 || settings.HeadshotSpecialIconPriority);
+            if (headshotIconWins)
+            {
+                bool useFirstOrLastEffect = (killEvent.IsFirstKill && settings.FirstKillEffectEnabled)
+                    || (killEvent.IsLastKill && settings.LastKillEffectEnabled);
+                if (useLegacyAnimationPack)
                 {
-                    if (string.Equals(GetSelectedIconPack(), "angelic_beast", StringComparison.OrdinalIgnoreCase))
-                    {
-                        PrimaryKillAnimation.PlayCodeKill("multi1", killEvent.WeaponBadgeKey);
-                        return;
-                    }
-
-                    PrimaryKillAnimation.PlayCodeKill("multi1", killEvent.WeaponBadgeKey);
-                    return;
+                    PrimaryKillAnimation.PlayNamed(useFirstOrLastEffect ? GoldHeadshotAssetKey : HeadshotAssetKey);
                 }
+                else
+                {
+                    PrimaryKillAnimation.PlayCodeKill(
+                        useFirstOrLastEffect ? "headshot_gold" : "headshot",
+                        killEvent.WeaponBadgeKey);
+                }
+                return;
+            }
+
+            if (killEvent.KillCount == 1 && !useLegacyAnimationPack)
+            {
+                PrimaryKillAnimation.PlayCodeKill("multi1", killEvent.WeaponBadgeKey);
+                return;
             }
 
             if (killEvent.KillCount >= 2)
@@ -433,6 +420,7 @@ namespace KillConfirmGameBar
             }
 
             bool useLegacyAnimationPack = IsLegacyIconPackSelected();
+            CrossfireGameplaySettingsValues settings = CrossfireGameplaySettingsStore.Load();
 
             if (killEvent.IsAssist
                 || string.Equals(killEvent.AnimationKey, "assist", StringComparison.OrdinalIgnoreCase))
@@ -443,6 +431,11 @@ namespace KillConfirmGameBar
 
             if (killEvent.IsLastKill)
             {
+                if (!settings.LastKillEffectEnabled)
+                {
+                    return;
+                }
+
                 if (useLegacyAnimationPack)
                 {
                     BadgeKillAnimation.PlayNamed(LastKillAssetKey);
@@ -456,6 +449,11 @@ namespace KillConfirmGameBar
 
             if (killEvent.IsFirstKill)
             {
+                if (!settings.FirstKillEffectEnabled)
+                {
+                    return;
+                }
+
                 if (useLegacyAnimationPack)
                 {
                     BadgeKillAnimation.PlayNamed(FirstKillAssetKey);
@@ -486,8 +484,6 @@ namespace KillConfirmGameBar
                 return;
             }
 
-            UpdateConnectionState(KillEventConnectionState.Connecting);
-
             try
             {
                 await SyncSelectedVoicePackAsync();
@@ -495,14 +491,15 @@ namespace KillConfirmGameBar
                 using (var client = await LocalServiceAuth.CreateHttpClientAsync())
                 using (HttpResponseMessage response = await client.GetAsync(new Uri(BuildTestEventUri(preset))))
                 {
-                    UpdateConnectionState(response.IsSuccessStatusCode
-                        ? KillEventConnectionState.Connected
-                        : KillEventConnectionState.Disconnected);
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        App.Log("Send test event failed: HTTP " + (int)response.StatusCode);
+                    }
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                UpdateConnectionState(KillEventConnectionState.Disconnected);
+                App.Log("Send test event failed without changing SVC health: " + ex);
             }
         }
 
@@ -583,7 +580,7 @@ namespace KillConfirmGameBar
             query.Add("money_reward=" + testMoneyReward);
             query.Add("audio=true");
             string suffix = query.Count > 0 ? "?" + string.Join("&", query) : string.Empty;
-            return $"http://127.0.0.1:3000/test/{preset.KillCount}{suffix}";
+            return $"http://127.0.0.1:10087/test/{preset.KillCount}{suffix}";
         }
 
         private void NudgeAnimation(double delta)
@@ -602,6 +599,16 @@ namespace KillConfirmGameBar
             ApplyAnimationTransform();
         }
 
+        private void NudgeAnimationHorizontal(double delta)
+        {
+            double maxOffset = GetMaxAnimationHorizontalOffset();
+            _animationHorizontalOffset = Math.Max(
+                -maxOffset,
+                Math.Min(maxOffset, _animationHorizontalOffset + delta));
+            ApplyAnimationTransform();
+            SaveAnimationPlacementSettings();
+        }
+
         private void ScaleAnimation(double factor)
         {
             _animationScale = Math.Max(0.35, Math.Min(3.0, _animationScale * factor));
@@ -616,6 +623,7 @@ namespace KillConfirmGameBar
             BadgeKillAnimation.SetRenderResolutionScale(renderScale);
             AnimationTransform.ScaleX = _animationScale;
             AnimationTransform.ScaleY = _animationScale;
+            AnimationTransform.TranslateX = _animationHorizontalOffset;
             AnimationTransform.TranslateY = GetResolvedAnimationOffset();
         }
 
@@ -650,6 +658,17 @@ namespace KillConfirmGameBar
             }
 
             return Math.Max(AnimationOffsetStep, layerHeight * BottomQuarterAnimationOffsetRatio);
+        }
+
+        private double GetMaxAnimationHorizontalOffset()
+        {
+            double layerWidth = AnimationLayer.ActualWidth;
+            if (layerWidth <= 0)
+            {
+                layerWidth = DefaultWidgetSize.Width;
+            }
+
+            return Math.Max(AnimationOffsetStep, layerWidth * MaxAnimationOffsetRatio);
         }
 
         private double GetMaxAnimationOffset()

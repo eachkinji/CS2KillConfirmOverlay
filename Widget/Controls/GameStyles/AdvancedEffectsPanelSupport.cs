@@ -31,6 +31,20 @@ namespace KillConfirmGameBar.Controls.GameStyles
             ApplyCombo(selector, theme.Text, theme.Field, theme.Border);
         }
 
+        public static void ApplyToggleRow(TextBlock label, ToggleSwitch toggle, GameThemePalette theme)
+        {
+            if (label != null)
+            {
+                label.Foreground = Brush(theme.Text);
+            }
+
+            if (toggle != null)
+            {
+                toggle.Foreground = Brush(theme.Text);
+                toggle.RequestedTheme = IsDark(theme.Field) ? ElementTheme.Dark : ElementTheme.Light;
+            }
+        }
+
         public static void ApplyTextInput(TextBox input, TextBlock hint, GameThemePalette theme)
         {
             if (input != null)

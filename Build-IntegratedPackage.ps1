@@ -1,5 +1,5 @@
 param(
-    [string]$Configuration = "Debug",
+    [string]$Configuration = "Release",
     [string]$Platform = "x64",
     [string]$MsBuildPath = "",
     [string]$VcInstallPath = "",

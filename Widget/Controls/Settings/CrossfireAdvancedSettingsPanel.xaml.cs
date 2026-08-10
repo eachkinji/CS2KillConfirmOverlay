@@ -11,7 +11,7 @@ namespace KillConfirmGameBar.Controls.Settings
 {
     public sealed partial class CrossfireAdvancedSettingsPanel : UserControl
     {
-        private bool _suppressSettingEvents;
+        private bool _suppressSettingEvents = true;
 
         public CrossfireAdvancedSettingsPanel()
         {
@@ -101,7 +101,7 @@ namespace KillConfirmGameBar.Controls.Settings
 
         private async void OnGameplaySettingChanged(object sender, RoutedEventArgs e)
         {
-            if (_suppressSettingEvents)
+            if (_suppressSettingEvents || !AreGameplayControlsReady())
             {
                 return;
             }
@@ -153,6 +153,20 @@ namespace KillConfirmGameBar.Controls.Settings
             }
         }
 
+        private bool AreGameplayControlsReady()
+        {
+            return StreakEditor != null
+                && HeadshotAudioPrioritySelector != null
+                && KnifeAudioPrioritySelector != null
+                && HeadshotIconPrioritySelector != null
+                && KnifeIconPrioritySelector != null
+                && FirstKillAudioSelector != null
+                && LastKillAudioSelector != null
+                && FirstKillEffectToggle != null
+                && LastKillEffectToggle != null
+                && AssistAudioToggle != null;
+        }
+
         private static string ReadTaggedItem(ComboBox selector, string fallback)
         {
             if (selector?.SelectedItem is ComboBoxItem item
@@ -167,6 +181,11 @@ namespace KillConfirmGameBar.Controls.Settings
 
         private static void SelectTaggedItem(ComboBox selector, string value, string fallback)
         {
+            if (selector == null)
+            {
+                return;
+            }
+
             string target = string.IsNullOrWhiteSpace(value) ? fallback : value;
             foreach (object option in selector.Items)
             {

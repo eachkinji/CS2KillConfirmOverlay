@@ -75,7 +75,7 @@ namespace KillConfirmGameBar
             string token = ApplicationData.Current.LocalSettings.Values[CsInstallFolderTokenSettingKey] as string;
             if (string.IsNullOrWhiteSpace(token))
             {
-                UpdateCfgStatus(CfgDetectionState.NotSelected, null, LocalizationManager.Text("CfgSelectRootHint"));
+                await TryAutoDetectCsFolderAsync();
                 return;
             }
 
@@ -88,7 +88,7 @@ namespace KillConfirmGameBar
             {
                 App.Log("Failed to restore CS folder access: " + ex);
                 _csInstallFolder = null;
-                UpdateCfgStatus(CfgDetectionState.NotSelected, null, LocalizationManager.Text("CfgSelectRootHint"));
+                await TryAutoDetectCsFolderAsync();
             }
         }
 
@@ -105,12 +105,18 @@ namespace KillConfirmGameBar
             {
                 await EnsureServiceAvailableAsync();
 
+                if (_serviceConnectionState != KillEventConnectionState.Connected)
+                {
+                    UpdateCfgStatus(CfgDetectionState.NotSelected, null, LocalizationManager.Text("CfgDetectServiceUnavailable"));
+                    return;
+                }
+
                 using (var client = await LocalServiceAuth.CreateHttpClientAsync())
                 using (HttpResponseMessage response = await client.GetAsync(Cs2RootUri))
                 {
                     if (!response.IsSuccessStatusCode)
                     {
-                        UpdateCfgStatus(CfgDetectionState.NotSelected, null, LocalizationManager.Text("CfgSelectRootHint"));
+                        UpdateCfgStatus(CfgDetectionState.NotSelected, null, LocalizationManager.Text("CfgDetectServiceUnavailable"));
                         return;
                     }
 
@@ -142,7 +148,7 @@ namespace KillConfirmGameBar
             catch (Exception ex)
             {
                 App.Log("Failed to auto-detect CS folder: " + ex);
-                UpdateCfgStatus(CfgDetectionState.NotSelected, null, LocalizationManager.Text("CfgSelectRootHint"));
+                UpdateCfgStatus(CfgDetectionState.NotSelected, null, LocalizationManager.Text("CfgDetectServiceUnavailable"));
             }
         }
 

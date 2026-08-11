@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="'$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '15.0'">
     <VisualStudioVersion>15.0</VisualStudioVersion>
@@ -29,7 +29,7 @@
     <AppxPackageSigningEnabled>true</AppxPackageSigningEnabled>
     <PackageCertificateKeyFile>..\Widget\KillConfirmGameBar_TemporaryKey.pfx</PackageCertificateKeyFile>
     <PackageCertificatePassword>test</PackageCertificatePassword>
-    <PackageCertificateThumbprint>C00A9CB110C12787AD185DF8F6D631908F07526E</PackageCertificateThumbprint>
+    <PackageCertificateThumbprint>00D21787573A1FDBA09B758E456DFF8E86CD0175</PackageCertificateThumbprint>
     <NoWarn>$(NoWarn);NU1702</NoWarn>
     <EntryPointProjectUniqueName>..\Widget\KillConfirmGameBar.csproj</EntryPointProjectUniqueName>
   </PropertyGroup>

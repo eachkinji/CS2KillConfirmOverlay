@@ -211,12 +211,17 @@ namespace KillConfirmGameBar
                 _valorantAdvancedEffectsPanel.SelectAssistAudio(
                     AssistAudioSettingsStore.Load(GameStyleMode.Valorant));
                 _valorantAdvancedEffectsPanel.StreakModeSelectionChanged += OnStreakModeSelectionChanged;
+                _valorantAdvancedEffectsPanel.DmOptimizeChanged += OnValorantDmOptimizeChanged;
                 _valorantAdvancedEffectsPanel.AssistAudioToggled += OnValorantAssistAudioToggled;
             }
             string streak = SharedStreakSettingsStore.Load(GameStyleMode.Valorant);
             _valorantAdvancedEffectsPanel.SelectStreakMode(streak);
             _valorantAdvancedEffectsPanel.SelectAssistAudio(
                 AssistAudioSettingsStore.Load(GameStyleMode.Valorant));
+            _valorantAdvancedEffectsPanel.SelectDmOptimize(
+                SharedStreakSettingsStore.LoadDmOptimize(GameStyleMode.Valorant));
+            _valorantAdvancedEffectsPanel.SelectDmWindowSeconds(
+                SharedStreakSettingsStore.LoadDmWindowSeconds(GameStyleMode.Valorant));
             return _valorantAdvancedEffectsPanel;
         }
 
@@ -337,6 +342,23 @@ namespace KillConfirmGameBar
                 SharedStreakSettingsStore.Load(GameStyleMode.Valorant));
         }
 
+        private async void OnValorantDmOptimizeChanged(object sender, RoutedEventArgs e)
+        {
+            if (!(sender is ValorantAdvancedEffectsPanel panel)
+                || GameStyleService.Current != GameStyleMode.Valorant)
+            {
+                return;
+            }
+
+            bool enabled = panel.GetDmOptimizeEnabled(false);
+            int seconds = panel.GetDmWindowSeconds(SharedStreakSettingsStore.DefaultDmWindowSeconds);
+            SharedStreakSettingsStore.SaveDmOptimize(GameStyleMode.Valorant, enabled);
+            SharedStreakSettingsStore.SaveDmWindowSeconds(GameStyleMode.Valorant, seconds);
+            await TrySyncSharedStreakSettingsAsync(
+                GameStyleMode.Valorant,
+                SharedStreakSettingsStore.Load(GameStyleMode.Valorant));
+        }
+
         private async void OnStreakModeSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             GameStyleMode style = GameStyleService.Current;
@@ -362,6 +384,11 @@ namespace KillConfirmGameBar
                     ["active"] = JsonValue.CreateBooleanValue(
                         SharedStreakSettingsStore.IsSupported(style)),
                     ["streak_mode"] = JsonValue.CreateStringValue(mode),
+                    ["dm_optimize"] = JsonValue.CreateBooleanValue(
+                        style == GameStyleMode.Valorant
+                        && SharedStreakSettingsStore.LoadDmOptimize(style)),
+                    ["dm_window_ms"] = JsonValue.CreateNumberValue(
+                        SharedStreakSettingsStore.LoadDmWindowSeconds(style) * 1000L),
                     ["assist_audio_enabled"] = JsonValue.CreateBooleanValue(
                         style == GameStyleMode.Valorant
                         && AssistAudioSettingsStore.Load(style)),

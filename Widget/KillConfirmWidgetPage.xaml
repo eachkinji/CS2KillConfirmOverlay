@@ -1,4 +1,4 @@
-﻿<Page
+<Page
     x:Class="KillConfirmGameBar.KillConfirmWidgetPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -7,8 +7,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    RequestedTheme="Light"
-    Background="Transparent">
+    RequestedTheme="Light">
 
     <Page.Resources>
         <ResourceDictionary>
@@ -18,7 +17,8 @@
         </ResourceDictionary>
     </Page.Resources>
 
-    <Grid Background="Transparent">
+    <!-- 根容器不设背景、不参与命中测试，透明区域点击可穿透到游戏；仅交互面板命中 -->
+    <Grid>
         <Grid
             x:Name="AnimationLayer"
             HorizontalAlignment="Stretch"
@@ -470,8 +470,8 @@
                         ColumnSpacing="6">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
@@ -492,19 +492,8 @@
                             Text="CFG" />
                     </Border>
 
-                    <Button
-                        x:Name="SelectCsFolderButton"
-                        Grid.Column="1"
-                        Style="{StaticResource ToolbarIconButtonStyle}"
-                        Click="OnSelectCsFolderClick"
-                        ToolTipService.ToolTip="Select CS2 root folder">
-                        <Grid Style="{StaticResource IconHostStyle}">
-                            <PathIcon Style="{StaticResource FluentPathIconStyle}" Data="M3.5 6.25V8H8.12868C8.32759 8 8.51836 7.92098 8.65901 7.78033L10.1893 6.25L8.65901 4.71967C8.51836 4.57902 8.32759 4.5 8.12868 4.5H5.25C4.2835 4.5 3.5 5.2835 3.5 6.25ZM2 6.25C2 4.45507 3.45507 3 5.25 3H8.12868C8.72542 3 9.29771 3.23705 9.71967 3.65901L11.5607 5.5H18.75C20.5449 5.5 22 6.95507 22 8.75V17.75C22 19.5449 20.5449 21 18.75 21H5.25C3.45507 21 2 19.5449 2 17.75V6.25ZM3.5 9.5V17.75C3.5 18.7165 4.2835 19.5 5.25 19.5H18.75C19.7165 19.5 20.5 18.7165 20.5 17.75V8.75C20.5 7.7835 19.7165 7 18.75 7H11.5607L9.71967 8.84099C9.29771 9.26295 8.72542 9.5 8.12868 9.5H3.5Z" />
-                        </Grid>
-                    </Button>
-
                     <StackPanel
-                        Grid.Column="2"
+                        Grid.Column="1"
                         VerticalAlignment="Center"
                         Spacing="1">
                         <TextBlock
@@ -518,9 +507,20 @@
                             x:Name="CfgHintText"
                             FontSize="10"
                             Foreground="#6B7280"
-                            Text="Pick CS2 root folder"
+                            Text="Finding CS2"
                             TextTrimming="CharacterEllipsis" />
                     </StackPanel>
+
+                    <Button
+                        x:Name="SelectCsFolderButton"
+                        Grid.Column="2"
+                        Style="{StaticResource ToolbarIconButtonStyle}"
+                        Click="OnSelectCsFolderClick"
+                        ToolTipService.ToolTip="Select CS2 root folder">
+                        <Grid Style="{StaticResource IconHostStyle}">
+                            <PathIcon Style="{StaticResource FluentPathIconStyle}" Data="M3.5 6.25V8H8.12868C8.32759 8 8.51836 7.92098 8.65901 7.78033L10.1893 6.25L8.65901 4.71967C8.51836 4.57902 8.32759 4.5 8.12868 4.5H5.25C4.2835 4.5 3.5 5.2835 3.5 6.25ZM2 6.25C2 4.45507 3.45507 3 5.25 3H8.12868C8.72542 3 9.29771 3.23705 9.71967 3.65901L11.5607 5.5H18.75C20.5449 5.5 22 6.95507 22 8.75V17.75C22 19.5449 20.5449 21 18.75 21H5.25C4.45507 21 2 19.5449 2 17.75V6.25ZM3.5 9.5V17.75C3.5 18.7165 4.2835 19.5 5.25 19.5H18.75C19.7165 19.5 20.5 18.7165 20.5 17.75V8.75C20.5 7.7835 19.7165 7 18.75 7H11.5607L9.71967 8.84099C9.29771 9.26295 8.72542 9.5 8.12868 9.5H3.5Z" />
+                        </Grid>
+                    </Button>
 
                     <Button
                         x:Name="CfgInstallButton"

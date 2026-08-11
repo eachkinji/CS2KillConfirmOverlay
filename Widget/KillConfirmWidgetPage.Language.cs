@@ -122,9 +122,9 @@ namespace KillConfirmGameBar
                 SetNamedToolTip(MoneyRewardModeSelector, MoneyRewardModeLabel.Text, isChinese ? "\u51fb\u6740\u5956\u91d1\u6570\u5b57\u7684\u8ba1\u7b97\u65b9\u5f0f" : "Money reward calculation mode");
             }
 
-            SetNamedToolTip(SelectCsFolderButton, LocalizationManager.Text("SelectCsFolderTitle"), LocalizationManager.Text("SelectCsFolderTooltip"));
             CfgInstallButton.Content = LocalizationManager.Text("Add");
             SetNamedToolTip(CfgInstallButton, LocalizationManager.Text("AddMissingCfgTitle"), LocalizationManager.Text("AddMissingCfgTooltip"));
+            SetNamedToolTip(SelectCsFolderButton, LocalizationManager.Text("SelectCsFolderTitle"), LocalizationManager.Text("SelectCsFolderTooltip"));
 
             SetNamedToolTip(TestPresetIcon, LocalizationManager.Text("TestPresetTitle"), LocalizationManager.Text("TestPresetTooltip"));
             SetNamedToolTip(TestPresetSelector, LocalizationManager.Text("TestPresetTitle"), LocalizationManager.Text("TestPresetTooltip"));

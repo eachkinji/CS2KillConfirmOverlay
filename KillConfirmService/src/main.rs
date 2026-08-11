@@ -41,9 +41,9 @@ use anyhow::{Context, Result};
 use soundpack::Preset;
 use soundpack::sound::warm_audio_cache;
 use util::event_stream::{
-    audio_devices, audio_reload, audio_volume, crossfire_settings, cs2_root, events_ws, gsi_status,
-    health, money_mode, set_audio_device, set_crossfire_settings, set_money_mode,
-    set_streak_settings, shutdown, streak_settings, test_event,
+    audio_devices, audio_reload, audio_volume, crossfire_settings, cs2_root,
+    events_ws, gsi_status, health, money_mode, set_audio_device, set_crossfire_settings,
+    set_money_mode, set_streak_settings, shutdown, streak_settings, test_event,
 };
 use util::handler::update;
 use windows_sys::Win32::UI::Shell::ShellExecuteW;
@@ -246,6 +246,8 @@ async fn run() -> Result<()> {
         shared_streak_mode: AtomicU8::new(CrossfireStreakMode::DEFAULT.as_u8()),
         shared_streak_window_ms: AtomicU64::new(DEFAULT_CUSTOM_STREAK_WINDOW_MS),
         shared_streak_mode_active: AtomicBool::new(false),
+        shared_dm_optimize: AtomicBool::new(false),
+        shared_dm_window_ms: AtomicU64::new(5_000),
         crossfire_first_kill_special_audio: AtomicBool::new(false),
         crossfire_last_kill_special_audio: AtomicBool::new(false),
         crossfire_headshot_special_audio_priority: AtomicBool::new(false),

@@ -20,6 +20,7 @@ DefaultGroupName=Kill Confirm Overlay
 DisableProgramGroupPage=yes
 OutputDir=..\Output
 OutputBaseFilename=KillConfirmGameBar_Setup_{#MyAppVersion}
+SetupIconFile=KillConfirmOverlay.ico
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern

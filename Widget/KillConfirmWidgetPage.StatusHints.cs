@@ -56,7 +56,14 @@ namespace KillConfirmGameBar
                 hints.Add(new StatusHint(LocalizationManager.Text("PinHint"), Color.FromArgb(255, 180, 90, 0)));
             }
 
-            hints.Add(new StatusHint(LocalizationManager.Text("DisableClickThroughHint"), Color.FromArgb(255, 180, 90, 0)));
+            if (_clickThroughEnabled)
+            {
+                hints.Add(new StatusHint(LocalizationManager.Text("ClickThroughEnabledHint"), Color.FromArgb(255, 5, 122, 85)));
+            }
+            else if (_isPinned)
+            {
+                hints.Add(new StatusHint(LocalizationManager.Text("PinnedClickThroughHint"), Color.FromArgb(255, 180, 90, 0)));
+            }
             hints.Add(new StatusHint(LocalizationManager.Text("DisableFullscreenOptimizationsHint"), Color.FromArgb(255, 180, 90, 0)));
             hints.Add(new StatusHint(LocalizationManager.Text("CustomIconSettingsHint"), Color.FromArgb(255, 180, 90, 0)));
             hints.Add(new StatusHint(LocalizationManager.Text("ProxyPortHint"), Color.FromArgb(255, 180, 90, 0)));

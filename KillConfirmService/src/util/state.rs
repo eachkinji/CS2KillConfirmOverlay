@@ -273,6 +273,8 @@ pub struct AppState {
     pub shared_streak_mode: AtomicU8,
     pub shared_streak_window_ms: AtomicU64,
     pub shared_streak_mode_active: AtomicBool,
+    pub shared_dm_optimize: AtomicBool,
+    pub shared_dm_window_ms: AtomicU64,
     pub crossfire_first_kill_special_audio: AtomicBool,
     pub crossfire_last_kill_special_audio: AtomicBool,
     pub crossfire_headshot_special_audio_priority: AtomicBool,

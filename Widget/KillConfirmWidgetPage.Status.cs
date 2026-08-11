@@ -37,6 +37,8 @@ namespace KillConfirmGameBar
                 _isWidgetVisible = _widget.Visible;
                 _displayMode = _widget.GameBarDisplayMode;
                 _windowState = _widget.WindowState;
+                _isPinned = _widget.Pinned;
+                _clickThroughEnabled = _widget.ClickThroughEnabled;
             }
             catch (Exception)
             {

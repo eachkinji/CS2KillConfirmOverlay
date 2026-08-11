@@ -369,6 +369,8 @@ pub async fn update(
         CrossfireStreakMode::from_u8(app_state.shared_streak_mode.load(Ordering::Relaxed));
     let shared_streak_window_ms = app_state.shared_streak_window_ms.load(Ordering::Relaxed);
     let shared_streak_mode_active = app_state.shared_streak_mode_active.load(Ordering::Relaxed);
+    let shared_dm_optimize = app_state.shared_dm_optimize.load(Ordering::Relaxed);
+    let shared_dm_window_ms = app_state.shared_dm_window_ms.load(Ordering::Relaxed);
     let active_streak_mode = if shared_streak_mode_active {
         shared_streak_mode
     } else {
@@ -378,6 +380,20 @@ pub async fn update(
         shared_streak_window_ms
     } else {
         crossfire_streak_window_ms
+    };
+    // 死斗优化：仅作用于 Life 模式，叠加时间窗口 + 死亡重置双重判断。
+    // 开启后每次击杀都会刷新 last_crossfire_kill_at，因此窗口随新击杀自动重置。
+    let dm_optimize_active =
+        shared_streak_mode_active && shared_dm_optimize && active_streak_mode == CrossfireStreakMode::Life;
+    let effective_streak_mode = if dm_optimize_active {
+        CrossfireStreakMode::Custom
+    } else {
+        active_streak_mode
+    };
+    let effective_streak_window_ms = if dm_optimize_active {
+        shared_dm_window_ms
+    } else {
+        active_streak_window_ms
     };
     let streak_mode_active = crossfire_mode_active || shared_streak_mode_active;
 
@@ -438,11 +454,18 @@ pub async fn update(
     let crossfire_streak_kills = resolve_crossfire_streak_count(
         previous_crossfire_streak_kills,
         crossfire_elapsed,
-        active_streak_mode,
-        active_streak_window_ms,
+        effective_streak_mode,
+        effective_streak_window_ms,
         round_reset && !round_ending_kill,
         crossfire_kill_delta,
     );
+    // 死斗优化：死亡也触发连杀清零（Life 模式的默认语义就是"直到死亡"，
+    // 但死斗中复活极快，必须显式按死亡重置，避免连杀跨命累计）。
+    let crossfire_streak_kills = if dm_optimize_active && death_reset {
+        0
+    } else {
+        crossfire_streak_kills
+    };
     let event_kill_count = if streak_mode_active {
         crossfire_streak_kills
     } else {

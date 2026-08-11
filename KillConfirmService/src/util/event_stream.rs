@@ -105,6 +105,10 @@ pub struct StreakSettingsRequest {
     pub active: bool,
     pub streak_mode: String,
     #[serde(default)]
+    pub dm_optimize: bool,
+    #[serde(default)]
+    pub dm_window_ms: u64,
+    #[serde(default)]
     pub assist_audio_enabled: bool,
     #[serde(default)]
     pub assist_audio_setting_active: bool,
@@ -138,6 +142,8 @@ pub struct CrossfireSettingsResponse {
 pub struct StreakSettingsResponse {
     pub active: bool,
     pub streak_mode: String,
+    pub dm_optimize: bool,
+    pub dm_window_ms: u64,
     pub assist_audio_enabled: bool,
 }
 
@@ -621,6 +627,17 @@ pub async fn set_streak_settings(
     let previous_active = app_state
         .shared_streak_mode_active
         .swap(request.active, Ordering::Relaxed);
+    // 死斗优化窗口同样限制在合法范围内，防止客户端传入 0 或异常值导致判定失效。
+    let dm_window_ms = request.dm_window_ms.clamp(
+        crate::util::state::MIN_CUSTOM_STREAK_WINDOW_MS,
+        crate::util::state::MAX_CUSTOM_STREAK_WINDOW_MS,
+    );
+    let previous_dm_optimize = app_state
+        .shared_dm_optimize
+        .swap(request.dm_optimize, Ordering::Relaxed);
+    let previous_dm_window_ms = app_state
+        .shared_dm_window_ms
+        .swap(dm_window_ms, Ordering::Relaxed);
     let previous_crossfire_active = if request.active {
         app_state
             .crossfire_mode_active
@@ -641,6 +658,8 @@ pub async fn set_streak_settings(
     if previous_mode != streak_mode.as_u8()
         || previous_window_ms != streak_window_ms
         || previous_active != request.active
+        || previous_dm_optimize != request.dm_optimize
+        || previous_dm_window_ms != dm_window_ms
         || (request.active && previous_crossfire_active)
     {
         let mut mutable = app_state.mutable.write().await;
@@ -651,9 +670,11 @@ pub async fn set_streak_settings(
     }
 
     service_log(&format!(
-        "shared streak settings: active={}, streak={}, assist_audio={}, assist_audio_controlled={}",
+        "shared streak settings: active={}, streak={}, dm_optimize={}, dm_window_ms={}, assist_audio={}, assist_audio_controlled={}",
         request.active,
         format_streak_setting(streak_mode, streak_window_ms),
+        request.dm_optimize,
+        dm_window_ms,
         request.assist_audio_enabled,
         request.assist_audio_setting_active
     ));
@@ -918,6 +939,8 @@ fn streak_settings_response(app_state: &AppState) -> StreakSettingsResponse {
             mode,
             app_state.shared_streak_window_ms.load(Ordering::Relaxed),
         ),
+        dm_optimize: app_state.shared_dm_optimize.load(Ordering::Relaxed),
+        dm_window_ms: app_state.shared_dm_window_ms.load(Ordering::Relaxed),
         assist_audio_enabled: app_state.assist_audio_enabled.load(Ordering::Relaxed),
     }
 }

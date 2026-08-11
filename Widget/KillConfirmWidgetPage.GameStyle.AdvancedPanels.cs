@@ -151,6 +151,7 @@ namespace KillConfirmGameBar
                 _valorantAdvancedEffectsPanel.SelectAssistAudio(
                     AssistAudioSettingsStore.Load(GameStyleMode.Valorant));
                 _valorantAdvancedEffectsPanel.StreakModeSelectionChanged += OnSharedStreakModeSelectionChanged;
+                _valorantAdvancedEffectsPanel.DmOptimizeChanged += OnValorantDmOptimizeChanged;
                 _valorantAdvancedEffectsPanel.AssistAudioToggled += OnValorantAssistAudioToggled;
                 LoadSharedStreakMode(GameStyleMode.Valorant);
             }

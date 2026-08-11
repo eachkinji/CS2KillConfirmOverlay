@@ -37,6 +37,43 @@ namespace KillConfirmGameBar
             }
         }
 
+        private async void OnValorantDmOptimizeChanged(object sender, RoutedEventArgs e)
+        {
+            if (_suppressSharedStreakModeEvents)
+            {
+                return;
+            }
+
+            if (GameStyleService.Current != GameStyleMode.Valorant)
+            {
+                return;
+            }
+
+            SyncDmOptimizeSettings(GameStyleMode.Valorant);
+            try
+            {
+                await EnsureServiceAvailableAsync();
+            }
+            catch (Exception ex)
+            {
+                App.Log("Set VAL deathmatch optimization failed: " + ex);
+            }
+        }
+
+        private void SyncDmOptimizeSettings(GameStyleMode style)
+        {
+            if (_valorantAdvancedEffectsPanel == null)
+            {
+                return;
+            }
+
+            bool enabled = _valorantAdvancedEffectsPanel.GetDmOptimizeEnabled(false);
+            int seconds = _valorantAdvancedEffectsPanel.GetDmWindowSeconds(
+                SharedStreakSettingsStore.DefaultDmWindowSeconds);
+            SharedStreakSettingsStore.SaveDmOptimize(style, enabled);
+            SharedStreakSettingsStore.SaveDmWindowSeconds(style, seconds);
+        }
+
         private async void OnValorantAssistAudioToggled(object sender, RoutedEventArgs e)
         {
             if (_suppressSharedStreakModeEvents)
@@ -68,6 +105,13 @@ namespace KillConfirmGameBar
             try
             {
                 SelectSharedStreakMode(style, SharedStreakSettingsStore.Load(style));
+                if (style == GameStyleMode.Valorant && _valorantAdvancedEffectsPanel != null)
+                {
+                    _valorantAdvancedEffectsPanel.SelectDmOptimize(
+                        SharedStreakSettingsStore.LoadDmOptimize(style));
+                    _valorantAdvancedEffectsPanel.SelectDmWindowSeconds(
+                        SharedStreakSettingsStore.LoadDmWindowSeconds(style));
+                }
             }
             finally
             {
@@ -153,6 +197,11 @@ namespace KillConfirmGameBar
                 {
                     ["active"] = JsonValue.CreateBooleanValue(active),
                     ["streak_mode"] = JsonValue.CreateStringValue(mode),
+                    ["dm_optimize"] = JsonValue.CreateBooleanValue(
+                        style == GameStyleMode.Valorant
+                        && SharedStreakSettingsStore.LoadDmOptimize(style)),
+                    ["dm_window_ms"] = JsonValue.CreateNumberValue(
+                        SharedStreakSettingsStore.LoadDmWindowSeconds(style) * 1000L),
                     ["assist_audio_enabled"] = JsonValue.CreateBooleanValue(assistAudioEnabled),
                     ["assist_audio_setting_active"] = JsonValue.CreateBooleanValue(
                         style == GameStyleMode.Valorant)

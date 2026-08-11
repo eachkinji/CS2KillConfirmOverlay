@@ -22,6 +22,10 @@ namespace KillConfirmGameBar.Services
         private const string CustomModePrefix = "custom:";
         private const string SettingPrefix = "KillStreakMode_";
         private const string LegacySharedSettingKey = "SharedStreakMode";
+        private const string DmOptimizePrefix = "KillStreakDmOptimize_";
+        private const string DmWindowPrefix = "KillStreakDmWindow_";
+
+        public const int DefaultDmWindowSeconds = 5;
 
         public static bool IsSupported(GameStyleMode style)
         {
@@ -270,6 +274,78 @@ namespace KillConfirmGameBar.Services
         private static string SettingKey(GameStyleMode style)
         {
             return SettingPrefix + GameStyleService.ToStorageValue(style);
+        }
+
+        private static string DmOptimizeKey(GameStyleMode style)
+        {
+            return DmOptimizePrefix + GameStyleService.ToStorageValue(style);
+        }
+
+        private static string DmWindowKey(GameStyleMode style)
+        {
+            return DmWindowPrefix + GameStyleService.ToStorageValue(style);
+        }
+
+        public static bool LoadDmOptimize(GameStyleMode style)
+        {
+            if (!IsSupported(style))
+            {
+                return false;
+            }
+
+            object value = ApplicationData.Current.LocalSettings.Values[DmOptimizeKey(style)];
+            if (value is bool boolValue)
+            {
+                return boolValue;
+            }
+
+            if (value is string text && bool.TryParse(text, out bool parsed))
+            {
+                return parsed;
+            }
+
+            return false;
+        }
+
+        public static void SaveDmOptimize(GameStyleMode style, bool enabled)
+        {
+            if (!IsSupported(style))
+            {
+                return;
+            }
+
+            ApplicationData.Current.LocalSettings.Values[DmOptimizeKey(style)] = enabled;
+        }
+
+        public static int LoadDmWindowSeconds(GameStyleMode style)
+        {
+            if (!IsSupported(style))
+            {
+                return DefaultDmWindowSeconds;
+            }
+
+            object value = ApplicationData.Current.LocalSettings.Values[DmWindowKey(style)];
+            if (value is int intValue)
+            {
+                return intValue;
+            }
+
+            if (value is string text && int.TryParse(text, out int parsed))
+            {
+                return parsed;
+            }
+
+            return DefaultDmWindowSeconds;
+        }
+
+        public static void SaveDmWindowSeconds(GameStyleMode style, int seconds)
+        {
+            if (!IsSupported(style))
+            {
+                return;
+            }
+
+            ApplicationData.Current.LocalSettings.Values[DmWindowKey(style)] = seconds;
         }
     }
 }

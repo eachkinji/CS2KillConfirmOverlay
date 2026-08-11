@@ -36,7 +36,7 @@ namespace KillConfirmGameBar.Controls
             IProgress<int> progress = null)
         {
             string normalizedStyle = string.Equals(styleKey, "bf5", StringComparison.OrdinalIgnoreCase) ? "bf5" : "bf1";
-            string iconFileName = GetBattlefieldIconFileName(normalizedStyle, isHeadshot, isAssist, isKnifeKill, false);
+            string iconFileName = GetBattlefieldIconFileName(normalizedStyle, isHeadshot, isAssist, isKnifeKill);
             progress?.Report(35);
 
             bool isTextOnly = IsBattlefieldTextOnlyEvent(isAssist, eventKind);
@@ -79,15 +79,13 @@ namespace KillConfirmGameBar.Controls
                 ? new[]
                 {
                     "killicon_battlefield5_default.png",
-                    "killicon_battlefield5_headshot.png",
-                    "killicon_battlefield5_destroyvehicle.png"
+                    "killicon_battlefield5_headshot.png"
                 }
                 : new[]
                 {
                     "killicon_battlefield1_default.png",
                     "killicon_battlefield1_headshot.png",
                     "killicon_battlefield1_crit.png",
-                    "killicon_battlefield1_destroyvehicle.png",
                     "killicon_battlefield1_explosion.png"
                 };
 
@@ -281,7 +279,7 @@ namespace KillConfirmGameBar.Controls
                 : "battlefield1";
         }
 
-        private static string GetBattlefieldIconFileName(string styleKey, bool isHeadshot, bool isAssist, bool isCrit, bool isDestroyVehicle)
+        private static string GetBattlefieldIconFileName(string styleKey, bool isHeadshot, bool isAssist, bool isCrit)
         {
             if (string.Equals(styleKey, "bf5", StringComparison.OrdinalIgnoreCase))
             {
@@ -295,11 +293,6 @@ namespace KillConfirmGameBar.Controls
                     return "killicon_battlefield5_assist.png";
                 }
 
-                if (isDestroyVehicle)
-                {
-                    return "killicon_battlefield5_destroyvehicle.png";
-                }
-
                 return "killicon_battlefield5_default.png";
             }
 
@@ -308,17 +301,12 @@ namespace KillConfirmGameBar.Controls
                 return "killicon_battlefield1_headshot.png";
             }
 
-            if (isDestroyVehicle)
-            {
-                return "killicon_battlefield1_destroyvehicle.png";
-            }
-
             return isCrit
                 ? "killicon_battlefield1_crit.png"
                 : "killicon_battlefield1_default.png";
         }
 
-        private static int ResolveBattlefieldKillType(bool isHeadshot, bool isCrit, bool isAssist, bool isDestroyVehicle)
+        private static int ResolveBattlefieldKillType(bool isHeadshot, bool isCrit, bool isAssist)
         {
             if (isHeadshot)
             {
@@ -328,11 +316,6 @@ namespace KillConfirmGameBar.Controls
             if (isAssist)
             {
                 return BattlefieldKillTypeAssist;
-            }
-
-            if (isDestroyVehicle)
-            {
-                return BattlefieldKillTypeDestroyVehicle;
             }
 
             if (isCrit)
@@ -569,7 +552,5 @@ namespace KillConfirmGameBar.Controls
         private const int BattlefieldKillTypeHeadshot = 1;
         private const int BattlefieldKillTypeCrit = 2;
         private const int BattlefieldKillTypeAssist = 3;
-        private const int BattlefieldKillTypeDestroyVehicle = 4;
-
     }
 }

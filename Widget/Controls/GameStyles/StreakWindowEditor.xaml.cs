@@ -53,7 +53,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
             StreakTimed5Item.Content = isChinese ? "5 \u79d2\u8fde\u6740\u7a97\u53e3" : "5-second window";
             StreakTimed10Item.Content = isChinese ? "10 \u79d2\u8fde\u6740\u7a97\u53e3" : "10-second window";
             StreakTimed15Item.Content = isChinese ? "15 \u79d2\u8fde\u6740\u7a97\u53e3" : "15-second window";
-            CustomSecondsHint.Text = isChinese ? "\u79d2\uff080.1\u2013300\uff09" : "seconds (0.1?300)";
+            CustomSecondsHint.Text = isChinese ? "\u79d2\uff080.1\u2013300\uff09" : "seconds (0.1-300)";
         }
 
         internal void ApplyTheme(GameThemePalette theme)

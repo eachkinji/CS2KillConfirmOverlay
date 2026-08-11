@@ -1,5 +1,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod csgo_legacy;
 mod soundpack;
 mod util;
 
@@ -11,10 +12,10 @@ use axum::{
 use serde::{Deserialize, Serialize};
 use std::{
     env,
-    ffi::OsStr,
+    ffi::{OsStr, OsString},
     fs::{self, OpenOptions},
     io::{Read, Write},
-    os::windows::ffi::OsStrExt,
+    os::windows::ffi::{OsStrExt, OsStringExt},
     path::{Path, PathBuf},
     process::Command,
     sync::Arc,
@@ -27,11 +28,13 @@ use tower_http::timeout::TimeoutLayer;
 use tracing::info;
 use tracing::level_filters::LevelFilter;
 use tracing_subscriber::EnvFilter;
+use tracing_subscriber::filter::filter_fn;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use util::auth::{load_or_create_control_token, require_control_token};
 use util::signal::shutdown_signal;
 use util::state::{
-    AppState, CrossfireStreakMode, DEFAULT_CUSTOM_STREAK_WINDOW_MS, MoneyRewardMode, Mutable,
+    AppState, CrossfireStreakMode, DEFAULT_CUSTOM_STREAK_WINDOW_MS, EventJournal, GsiGameVersion,
+    MoneyRewardMode, Mutable,
 };
 
 use util::Args;
@@ -41,12 +44,18 @@ use anyhow::{Context, Result};
 use soundpack::Preset;
 use soundpack::sound::warm_audio_cache;
 use util::event_stream::{
-    audio_devices, audio_reload, audio_volume, crossfire_settings, cs2_root,
-    events_ws, gsi_status, health, money_mode, set_audio_device, set_crossfire_settings,
-    set_money_mode, set_streak_settings, shutdown, streak_settings, test_event,
+    audio_devices, audio_reload, audio_volume, counter_strike_root, crossfire_settings, cs2_root,
+    developer_settings, events_poll, gsi_game_settings, gsi_status, health, money_mode,
+    set_audio_device, set_crossfire_settings, set_developer_settings, set_gsi_game_settings,
+    set_money_mode, set_spectator_settings, set_streak_settings, shutdown, spectator_settings,
+    streak_settings, test_event,
 };
 use util::handler::update;
-use windows_sys::Win32::UI::Shell::ShellExecuteW;
+use util::logging::{developer_logging_enabled, set_developer_logging_enabled};
+use windows_sys::Win32::System::Com::CoTaskMemFree;
+use windows_sys::Win32::UI::Shell::{
+    FOLDERID_Downloads, KF_FLAG_CREATE, SHGetKnownFolderPath, ShellExecuteW,
+};
 use windows_sys::Win32::UI::WindowsAndMessaging::SW_SHOWNORMAL;
 
 const DEFAULT_LOG_LEVEL: LevelFilter = if cfg!(debug_assertions) {
@@ -88,6 +97,12 @@ fn current_package_family_name() -> String {
 
 #[tokio::main]
 async fn main() {
+    let startup_args = Args::sanitized_runtime_args();
+    set_developer_logging_enabled(
+        startup_args
+            .iter()
+            .any(|arg| arg.to_string_lossy() == "--developer-mode"),
+    );
     bootstrap_log("process entry");
     bootstrap_log(&format!("args: {:?}", env::args_os().collect::<Vec<_>>()));
     bootstrap_log(&format!(
@@ -126,6 +141,7 @@ async fn run() -> Result<()> {
                 .with_default_directive(DEFAULT_LOG_LEVEL.into())
                 .from_env_lossy(),
         )
+        .with(filter_fn(|_| developer_logging_enabled()))
         .with(tracing_subscriber::fmt::layer().without_time())
         .init();
 
@@ -174,7 +190,7 @@ async fn run() -> Result<()> {
     }
 
     if args.open_update_folder {
-        open_update_folder();
+        open_update_folder().context("failed to open update folder")?;
         return Ok(());
     }
 
@@ -223,12 +239,12 @@ async fn run() -> Result<()> {
         .context("failed to initialize local control authentication")?;
     service_log("local control authentication ready");
 
-    let (event_tx, _) = broadcast::channel(64);
     let (shutdown_tx, shutdown_rx) = broadcast::channel(1);
 
     let app_state = Arc::new(AppState {
         mutable: RwLock::new(Mutable {
-            players: Default::default(),
+            active_player: Default::default(),
+            active_observed_player_id: None,
             last_bomb_state: None,
             last_bomb_player: None,
         }),
@@ -246,15 +262,15 @@ async fn run() -> Result<()> {
         shared_streak_mode: AtomicU8::new(CrossfireStreakMode::DEFAULT.as_u8()),
         shared_streak_window_ms: AtomicU64::new(DEFAULT_CUSTOM_STREAK_WINDOW_MS),
         shared_streak_mode_active: AtomicBool::new(false),
-        shared_dm_optimize: AtomicBool::new(false),
-        shared_dm_window_ms: AtomicU64::new(5_000),
         crossfire_first_kill_special_audio: AtomicBool::new(false),
         crossfire_last_kill_special_audio: AtomicBool::new(false),
         crossfire_headshot_special_audio_priority: AtomicBool::new(false),
         crossfire_knife_special_audio_priority: AtomicBool::new(true),
         assist_audio_enabled: AtomicBool::new(false),
         assist_audio_setting_active: AtomicBool::new(true),
-        event_tx,
+        spectated_kill_effects_enabled: AtomicBool::new(true),
+        gsi_game_version: AtomicU8::new(GsiGameVersion::DEFAULT.as_u8()),
+        events: EventJournal::default(),
         shutdown_tx,
         gsi_posts: AtomicU64::new(0),
         gsi_parse_errors: AtomicU64::new(0),
@@ -278,10 +294,15 @@ async fn run() -> Result<()> {
 
     let app = Router::new()
         .route("/", post(update))
-        .route("/events", get(events_ws))
+        .route("/events", get(events_poll))
         .route("/health", get(health))
         .route("/gsi-status", get(gsi_status))
+        .route(
+            "/gsi-game/settings",
+            get(gsi_game_settings).post(set_gsi_game_settings),
+        )
         .route("/cs2-root", get(cs2_root))
+        .route("/counter-strike/root", get(counter_strike_root))
         .route("/audio/reload", post(audio_reload))
         .route("/audio/devices", get(audio_devices))
         .route("/audio/device", post(set_audio_device))
@@ -294,6 +315,14 @@ async fn run() -> Result<()> {
         .route(
             "/streak/settings",
             get(streak_settings).post(set_streak_settings),
+        )
+        .route(
+            "/spectator/settings",
+            get(spectator_settings).post(set_spectator_settings),
+        )
+        .route(
+            "/developer/settings",
+            get(developer_settings).post(set_developer_settings),
         )
         .route("/shutdown", post(shutdown))
         .route(
@@ -421,20 +450,14 @@ struct UpdateDownloadResult {
     error: Option<String>,
 }
 
-fn open_update_folder() {
+fn open_update_folder() -> Result<()> {
     let folder = external_update_dir();
-    if let Err(error) = fs::create_dir_all(&folder) {
-        service_log(&format!(
-            "open update folder failed to create folder {}: {error}",
-            folder.display()
-        ));
-        return;
-    }
+    fs::create_dir_all(&folder)
+        .with_context(|| format!("failed to create update folder {}", folder.display()))?;
 
     service_log(&format!("opening update folder: {}", folder.display()));
-    if let Err(error) = Command::new("explorer.exe").arg(&folder).spawn() {
-        service_log(&format!("failed to open update folder: {error}"));
-    }
+    shell_execute_path("open", &folder)
+        .with_context(|| format!("failed to open update folder {}", folder.display()))
 }
 
 fn download_pending_update() -> Result<()> {
@@ -518,9 +541,9 @@ fn run_pending_update() -> Result<()> {
         ));
     }
 
-    let _ = fs::remove_file(&pending_path);
     shell_execute_path("runas", &installer_path)
         .with_context(|| format!("failed to launch installer {}", installer_path.display()))?;
+    let _ = fs::remove_file(&pending_path);
     service_log(&format!(
         "pending update installer launched: {}",
         installer_path.display()
@@ -723,7 +746,11 @@ fn launch_settings_launcher() -> Result<()> {
         launcher_path.display()
     ));
 
-    let child = Command::new(&launcher_path)
+    let mut command = Command::new(&launcher_path);
+    if developer_logging_enabled() {
+        command.arg("--developer-mode");
+    }
+    let child = command
         .spawn()
         .with_context(|| format!("failed to spawn {}", launcher_path.display()))?;
     service_log(&format!(
@@ -756,13 +783,43 @@ fn local_state_dir() -> PathBuf {
 }
 
 fn external_update_dir() -> PathBuf {
-    if let Ok(local_app_data) = env::var("LOCALAPPDATA") {
-        return PathBuf::from(local_app_data)
-            .join("KillConfirmGameBar")
-            .join("updates");
+    if let Some(downloads) = known_downloads_dir() {
+        return downloads.join("KillConfirmGameBar");
     }
 
-    env::temp_dir().join("KillConfirmGameBar").join("updates")
+    if let Ok(user_profile) = env::var("USERPROFILE") {
+        return PathBuf::from(user_profile)
+            .join("Downloads")
+            .join("KillConfirmGameBar");
+    }
+
+    local_state_dir().join("updates")
+}
+
+fn known_downloads_dir() -> Option<PathBuf> {
+    unsafe {
+        let mut raw_path = std::ptr::null_mut();
+        let result = SHGetKnownFolderPath(
+            &FOLDERID_Downloads,
+            KF_FLAG_CREATE as u32,
+            std::ptr::null_mut(),
+            &mut raw_path,
+        );
+        if result < 0 || raw_path.is_null() {
+            return None;
+        }
+
+        let mut len = 0usize;
+        while *raw_path.add(len) != 0 {
+            len += 1;
+        }
+
+        let path = PathBuf::from(OsString::from_wide(std::slice::from_raw_parts(
+            raw_path, len,
+        )));
+        CoTaskMemFree(raw_path.cast());
+        Some(path)
+    }
 }
 
 fn log_local_port_owners(port: u16) {
@@ -904,6 +961,10 @@ fn bootstrap_log(message: &str) {
 }
 
 fn append_trace_log(file_name: &str, message: &str) {
+    if !developer_logging_enabled() {
+        return;
+    }
+
     let Some(log_path) = trace_log_path(file_name) else {
         return;
     };

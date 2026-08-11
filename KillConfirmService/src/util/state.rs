@@ -1,17 +1,18 @@
-use std::collections::HashMap;
-use std::sync::atomic::{AtomicBool, AtomicU8, AtomicU32, AtomicU64};
-use std::time::Instant;
+use std::collections::VecDeque;
+use std::sync::atomic::{AtomicBool, AtomicU8, AtomicU32, AtomicU64, Ordering};
+use std::time::{Duration, Instant};
 
 use rodio::OutputStream;
 use serde::{Deserialize, Serialize};
-use tokio::sync::{RwLock, broadcast};
+use tokio::sync::{Mutex, Notify, RwLock, broadcast};
 
 use crate::soundpack::Preset;
 
 use super::Args;
 
 pub struct Mutable {
-    pub players: HashMap<String, TrackedPlayerState>,
+    pub active_player: TrackedPlayerState,
+    pub active_observed_player_id: Option<String>,
     pub last_bomb_state: Option<String>,
     pub last_bomb_player: Option<String>,
 }
@@ -69,6 +70,7 @@ impl Default for TrackedPlayerState {
 
 #[derive(Clone, Debug, Serialize)]
 pub struct KillEvent {
+    pub event_channel: EventChannel,
     pub kill_count: u16,
     pub is_headshot: bool,
     pub is_knife_kill: bool,
@@ -93,11 +95,163 @@ pub struct KillEvent {
     pub steamid: String,
 }
 
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum EventChannel {
+    /// Player combat facts consumed by every style: kills, kill modifiers, and assists.
+    Combat,
+    /// CS economy/objective facts consumed only by score-oriented presentation styles.
+    Economy,
+}
+
+impl EventChannel {
+    pub fn for_event_kind(event_kind: Option<&str>, is_assist: bool) -> Self {
+        if is_assist {
+            return Self::Combat;
+        }
+
+        match event_kind
+            .unwrap_or_default()
+            .trim()
+            .to_ascii_lowercase()
+            .as_str()
+        {
+            "round_win" | "round_loss" | "bomb_plant" | "bomb_defuse" | "hostage_interact"
+            | "hostage_rescue" => Self::Economy,
+            _ => Self::Combat,
+        }
+    }
+}
+
+const EVENT_QUEUE_CAPACITY: usize = 128;
+
+#[derive(Clone, Debug, Serialize)]
+pub struct SequencedKillEvent {
+    pub id: u64,
+    #[serde(flatten)]
+    pub event: KillEvent,
+}
+
+#[derive(Debug, Serialize)]
+pub struct EventBatch {
+    pub cursor: u64,
+    pub dropped: u64,
+    pub events: Vec<SequencedKillEvent>,
+}
+
+pub struct EventJournal {
+    next_id: AtomicU64,
+    queue: Mutex<VecDeque<SequencedKillEvent>>,
+    notify: Notify,
+}
+
+impl Default for EventJournal {
+    fn default() -> Self {
+        Self {
+            next_id: AtomicU64::new(0),
+            queue: Mutex::new(VecDeque::with_capacity(EVENT_QUEUE_CAPACITY)),
+            notify: Notify::new(),
+        }
+    }
+}
+
+impl EventJournal {
+    pub fn latest_cursor(&self) -> u64 {
+        self.next_id.load(Ordering::Acquire)
+    }
+
+    pub async fn publish(&self, event: KillEvent) -> u64 {
+        let mut queue = self.queue.lock().await;
+        let id = self.next_id.fetch_add(1, Ordering::AcqRel) + 1;
+        queue.push_back(SequencedKillEvent { id, event });
+        while queue.len() > EVENT_QUEUE_CAPACITY {
+            queue.pop_front();
+        }
+        drop(queue);
+        self.notify.notify_waiters();
+        id
+    }
+
+    pub async fn wait_for_events(&self, after: u64, wait: Duration) -> Option<EventBatch> {
+        let deadline = Instant::now() + wait;
+        loop {
+            let notified = self.notify.notified();
+            if let Some(batch) = self.events_after(after).await {
+                return Some(batch);
+            }
+
+            let remaining = deadline.saturating_duration_since(Instant::now());
+            if remaining.is_zero() || tokio::time::timeout(remaining, notified).await.is_err() {
+                return None;
+            }
+        }
+    }
+
+    async fn events_after(&self, after: u64) -> Option<EventBatch> {
+        let latest = self.next_id.load(Ordering::Acquire);
+        let effective_after = if after > latest { 0 } else { after };
+        let queue = self.queue.lock().await;
+        let oldest_id = queue.front().map(|event| event.id).unwrap_or(0);
+        let events = queue
+            .iter()
+            .filter(|event| event.id > effective_after)
+            .cloned()
+            .collect::<Vec<_>>();
+        let cursor = events.last()?.id;
+        let dropped = oldest_id.saturating_sub(effective_after.saturating_add(1));
+        Some(EventBatch {
+            cursor,
+            dropped,
+            events,
+        })
+    }
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum TrackedRoundPhase {
     FreezeTime,
     Live,
     Over,
+}
+
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum GsiGameVersion {
+    Cs2,
+    CsgoLegacy,
+}
+
+impl GsiGameVersion {
+    pub const DEFAULT: Self = Self::Cs2;
+
+    pub fn as_u8(self) -> u8 {
+        match self {
+            Self::Cs2 => 0,
+            Self::CsgoLegacy => 1,
+        }
+    }
+
+    pub fn from_u8(value: u8) -> Self {
+        match value {
+            1 => Self::CsgoLegacy,
+            _ => Self::Cs2,
+        }
+    }
+
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Cs2 => "cs2",
+            Self::CsgoLegacy => "csgo_legacy",
+        }
+    }
+
+    pub fn from_str(value: &str) -> Option<Self> {
+        match value.trim().to_ascii_lowercase().as_str() {
+            "cs2" => Some(Self::Cs2),
+            "csgo_legacy" | "csgo" | "legacy" => Some(Self::CsgoLegacy),
+            _ => None,
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -273,15 +427,15 @@ pub struct AppState {
     pub shared_streak_mode: AtomicU8,
     pub shared_streak_window_ms: AtomicU64,
     pub shared_streak_mode_active: AtomicBool,
-    pub shared_dm_optimize: AtomicBool,
-    pub shared_dm_window_ms: AtomicU64,
     pub crossfire_first_kill_special_audio: AtomicBool,
     pub crossfire_last_kill_special_audio: AtomicBool,
     pub crossfire_headshot_special_audio_priority: AtomicBool,
     pub crossfire_knife_special_audio_priority: AtomicBool,
     pub assist_audio_enabled: AtomicBool,
     pub assist_audio_setting_active: AtomicBool,
-    pub event_tx: broadcast::Sender<KillEvent>,
+    pub spectated_kill_effects_enabled: AtomicBool,
+    pub gsi_game_version: AtomicU8,
+    pub events: EventJournal,
     pub shutdown_tx: broadcast::Sender<()>,
     pub gsi_posts: AtomicU64,
     pub gsi_parse_errors: AtomicU64,
@@ -291,7 +445,98 @@ pub struct AppState {
 
 #[cfg(test)]
 mod tests {
-    use super::{CrossfireStreakMode, format_streak_setting, parse_streak_setting};
+    use std::time::Duration;
+
+    use super::{
+        CrossfireStreakMode, EventChannel, EventJournal, KillEvent, format_streak_setting,
+        parse_streak_setting,
+    };
+
+    fn test_event(kill_count: u16) -> KillEvent {
+        KillEvent {
+            event_channel: EventChannel::Combat,
+            kill_count,
+            is_headshot: false,
+            is_knife_kill: false,
+            is_first_kill: false,
+            is_last_kill: false,
+            is_assist: false,
+            play_main_animation: true,
+            animation_key: None,
+            event_kind: None,
+            weapon_badge_key: None,
+            weapon_name: None,
+            money_reward: 300,
+            round_number: 0,
+            money_epoch: 0,
+            player_name: "player".to_string(),
+            target_name: None,
+            steamid: "test".to_string(),
+        }
+    }
+
+    #[test]
+    fn event_channels_keep_combat_and_economy_kinds_separate() {
+        assert_eq!(
+            EventChannel::for_event_kind(Some("kill"), false),
+            EventChannel::Combat
+        );
+        assert_eq!(
+            EventChannel::for_event_kind(Some("assist"), true),
+            EventChannel::Combat
+        );
+        for event_kind in [
+            "round_win",
+            "round_loss",
+            "bomb_plant",
+            "bomb_defuse",
+            "hostage_interact",
+            "hostage_rescue",
+        ] {
+            assert_eq!(
+                EventChannel::for_event_kind(Some(event_kind), false),
+                EventChannel::Economy
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn event_journal_orders_and_resumes_events() {
+        let journal = EventJournal::default();
+        journal.publish(test_event(1)).await;
+        journal.publish(test_event(2)).await;
+        assert_eq!(journal.latest_cursor(), 2);
+
+        let batch = journal
+            .wait_for_events(0, Duration::from_millis(1))
+            .await
+            .expect("initial event batch");
+        assert_eq!(batch.cursor, 2);
+        assert_eq!(batch.dropped, 0);
+        assert_eq!(batch.events.len(), 2);
+        assert_eq!(batch.events[0].id, 1);
+        assert_eq!(batch.events[1].id, 2);
+
+        let resumed = journal
+            .wait_for_events(1, Duration::from_millis(1))
+            .await
+            .expect("resumed event batch");
+        assert_eq!(resumed.events.len(), 1);
+        assert_eq!(resumed.events[0].id, 2);
+    }
+
+    #[tokio::test]
+    async fn event_journal_recovers_from_a_service_restart_cursor() {
+        let journal = EventJournal::default();
+        journal.publish(test_event(1)).await;
+
+        let batch = journal
+            .wait_for_events(999, Duration::from_millis(1))
+            .await
+            .expect("reset event batch");
+        assert_eq!(batch.cursor, 1);
+        assert_eq!(batch.events[0].id, 1);
+    }
 
     #[test]
     fn parses_and_formats_subsecond_custom_windows() {

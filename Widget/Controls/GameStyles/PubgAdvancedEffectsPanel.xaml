@@ -15,38 +15,26 @@
             FontSize="10"
             Visibility="Collapsed"
             TextWrapping="WrapWholeWords" />
-        <Grid ColumnSpacing="8" RowSpacing="8">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
+        <Grid ColumnSpacing="8">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="110" />
+                <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-
-            <TextBlock
-                x:Name="MoneyRewardModeLabel"
-                VerticalAlignment="Center"
-                FontSize="10"
-                FontWeight="SemiBold"
-                Text="Money" />
-
-            <ComboBox
-                x:Name="MoneyRewardModeSelector"
-                Grid.Column="1"
-                Height="28"
-                Padding="7,0,12,0"
-                FontSize="10"
-                SelectionChanged="OnMoneyRewardModeSelectionChanged"
-                ToolTipService.ToolTip="Money reward calculation">
-                <ComboBoxItem x:Name="MoneyRewardDeltaItem" Tag="delta">GSI delta (default)</ComboBoxItem>
-                <ComboBoxItem x:Name="MoneyRewardRulesItem" Tag="rules">Kill reward rules</ComboBoxItem>
-            </ComboBox>
+            <Border Style="{StaticResource CompactChoiceCardStyle}">
+                <StackPanel Spacing="6">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <Border Style="{StaticResource CompactCircleIconStyle}"><FontIcon FontSize="13" Foreground="White" Glyph="&#xE8C7;" /></Border>
+                        <TextBlock x:Name="MoneyRewardModeLabel" Style="{StaticResource CompactChoiceLabelStyle}" VerticalAlignment="Center" Text="Money" />
+                    </StackPanel>
+                    <ComboBox x:Name="MoneyRewardModeSelector" SelectedIndex="0" Style="{StaticResource CompactSettingsComboBoxStyle}" SelectionChanged="OnMoneyRewardModeSelectionChanged" ToolTipService.ToolTip="Money reward calculation">
+                        <ComboBoxItem x:Name="MoneyRewardDeltaItem" Tag="delta">GSI delta (default)</ComboBoxItem>
+                        <ComboBoxItem x:Name="MoneyRewardRulesItem" Tag="rules">Kill reward rules</ComboBoxItem>
+                    </ComboBox>
+                </StackPanel>
+            </Border>
             <local:StreakWindowEditor
                 x:Name="StreakEditor"
-                Grid.Row="1"
-                Grid.ColumnSpan="2"
+                Grid.Column="1"
                 SettingsChanged="OnStreakModeSelectionChanged" />
         </Grid>
         <local:PubgStylePanel x:Name="StylePanel" />

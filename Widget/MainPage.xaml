@@ -124,6 +124,46 @@
             <Setter Property="FontSize" Value="11" />
             <Setter Property="FontWeight" Value="SemiBold" />
         </Style>
+
+        <Style x:Key="GameModeSidebarItemStyle" TargetType="ListViewItem">
+            <Setter Property="Width" Value="48" />
+            <Setter Property="Height" Value="48" />
+            <Setter Property="Margin" Value="0,2" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="UseSystemFocusVisuals" Value="False" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListViewItem">
+                        <Border
+                            Width="{TemplateBinding Width}"
+                            Height="{TemplateBinding Height}"
+                            Background="{TemplateBinding Background}">
+                            <ContentPresenter
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Content="{TemplateBinding Content}" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="GameModeLogoTileStyle" TargetType="Border">
+            <Setter Property="Width" Value="44" />
+            <Setter Property="Height" Value="44" />
+            <Setter Property="Padding" Value="6" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Background" Value="#F4FAFAF7" />
+            <Setter Property="BorderBrush" Value="#D5D0C4" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="14" />
+        </Style>
     </Page.Resources>
 
     <Grid x:Name="SettingsRootGrid" Background="{StaticResource MainBackgroundGradient}">
@@ -165,21 +205,107 @@
             </Rectangle>
         </Canvas>
 
-        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Background="Transparent">
-        <Grid Padding="28,18,28,24" RowSpacing="16">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="72" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Border
+                x:Name="GameModeSidebar"
+                Grid.Column="0"
+                Width="62"
+                Margin="5,18,5,18"
+                Padding="5,10"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Top"
+                Background="{StaticResource CardBackgroundAcrylic}"
+                BorderBrush="#D5D0C4"
+                BorderThickness="1"
+                CornerRadius="20">
+                <Grid RowSpacing="8">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock
+                        x:Name="GameStyleSidebarTitleText"
+                        HorizontalAlignment="Center"
+                        FontSize="10"
+                        FontWeight="Bold"
+                        Foreground="#555966"
+                        Text="GAME"
+                        TextTrimming="CharacterEllipsis" />
+
+                    <ListView
+                        x:Name="GameStyleSidebarSelector"
+                        Grid.Row="1"
+                        Width="50"
+                        Padding="0"
+                        HorizontalAlignment="Center"
+                        HorizontalContentAlignment="Center"
+                        ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                        ScrollViewer.VerticalScrollBarVisibility="Hidden"
+                        SelectionChanged="OnGameStyleSidebarSelectionChanged"
+                        SelectionMode="Single">
+                        <ListView.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel
+                                    HorizontalAlignment="Center"
+                                    Orientation="Vertical" />
+                            </ItemsPanelTemplate>
+                        </ListView.ItemsPanel>
+                        <ListView.Resources>
+                            <SolidColorBrush x:Key="ListViewItemBackgroundPointerOver" Color="Transparent" />
+                            <SolidColorBrush x:Key="ListViewItemBackgroundPressed" Color="Transparent" />
+                            <SolidColorBrush x:Key="ListViewItemBackgroundSelected" Color="Transparent" />
+                            <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPointerOver" Color="Transparent" />
+                            <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPressed" Color="Transparent" />
+                        </ListView.Resources>
+                            <ListViewItem Tag="crossfire" Style="{StaticResource GameModeSidebarItemStyle}" ToolTipService.ToolTip="CrossFire">
+                                <Border Style="{StaticResource GameModeLogoTileStyle}"><Image Source="ms-appx:///Assets/GameLogos/crossfire.png" Stretch="Uniform" /></Border>
+                            </ListViewItem>
+                            <ListViewItem Tag="valorant" Style="{StaticResource GameModeSidebarItemStyle}" ToolTipService.ToolTip="Valorant">
+                                <Border Style="{StaticResource GameModeLogoTileStyle}"><Image Source="ms-appx:///Assets/GameLogos/valorant.png" Stretch="Uniform" /></Border>
+                            </ListViewItem>
+                            <ListViewItem Tag="battlefield1" Style="{StaticResource GameModeSidebarItemStyle}" ToolTipService.ToolTip="Battlefield 1">
+                                <Border Style="{StaticResource GameModeLogoTileStyle}"><Image Source="ms-appx:///Assets/GameLogos/battlefield1.png" Stretch="Uniform" /></Border>
+                            </ListViewItem>
+                            <ListViewItem Tag="battlefield5" Style="{StaticResource GameModeSidebarItemStyle}" ToolTipService.ToolTip="Battlefield V">
+                                <Border Style="{StaticResource GameModeLogoTileStyle}"><Image Source="ms-appx:///Assets/GameLogos/battlefield5.png" Stretch="Uniform" /></Border>
+                            </ListViewItem>
+                            <ListViewItem Tag="battlefield4" Style="{StaticResource GameModeSidebarItemStyle}" ToolTipService.ToolTip="Battlefield 4">
+                                <Border Style="{StaticResource GameModeLogoTileStyle}"><Image Source="ms-appx:///Assets/GameLogos/battlefield4.png" Stretch="Uniform" /></Border>
+                            </ListViewItem>
+                            <ListViewItem Tag="battlefield2042" Style="{StaticResource GameModeSidebarItemStyle}" ToolTipService.ToolTip="Battlefield 2042">
+                                <Border Style="{StaticResource GameModeLogoTileStyle}"><Image Source="ms-appx:///Assets/GameLogos/battlefield2042.png" Stretch="Uniform" /></Border>
+                            </ListViewItem>
+                            <ListViewItem Tag="pubg" Style="{StaticResource GameModeSidebarItemStyle}" ToolTipService.ToolTip="PUBG">
+                                <Border Style="{StaticResource GameModeLogoTileStyle}"><Image Source="ms-appx:///Assets/GameLogos/pubg.png" Stretch="Uniform" /></Border>
+                            </ListViewItem>
+                            <ListViewItem Tag="deltaforce" Style="{StaticResource GameModeSidebarItemStyle}" ToolTipService.ToolTip="Delta Force">
+                                <Border Style="{StaticResource GameModeLogoTileStyle}"><Image Source="ms-appx:///Assets/GameLogos/deltaforce.png" Stretch="Uniform" /></Border>
+                            </ListViewItem>
+                    </ListView>
+                </Grid>
+            </Border>
+
+        <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Background="Transparent">
+        <Grid Padding="18,18,22,24" RowSpacing="16">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
             <!-- Sleek Top Header Bar for 16:9 Widescreen -->
-            <Grid MaxWidth="1160" HorizontalAlignment="Stretch" Padding="4,0">
+            <Grid MaxWidth="1480" HorizontalAlignment="Stretch" Padding="4,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="10">
+                <StackPanel Grid.ColumnSpan="2" HorizontalAlignment="Center" Orientation="Horizontal" VerticalAlignment="Center" Spacing="10">
                     <TextBlock
                         x:Name="TitleText"
                         FontSize="22"
@@ -188,7 +314,7 @@
                         Text="Kill Confirm Overlay 控制面板" />
                 </StackPanel>
 
-                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Spacing="10">
+                <StackPanel Grid.Column="1" Visibility="Collapsed" Orientation="Horizontal" VerticalAlignment="Center" Spacing="10">
                     <TextBlock
                         x:Name="GameStyleLabelText"
                         VerticalAlignment="Center"
@@ -219,17 +345,28 @@
 
             <Grid
                 Grid.Row="1"
-                MaxWidth="1160"
-                HorizontalAlignment="Center"
+                MaxWidth="1480"
+                HorizontalAlignment="Stretch"
                 ColumnSpacing="18">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="1.15*" />
-                    <ColumnDefinition Width="0.85*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Spacing="14">
-                    <ContentControl x:Name="GameAdvancedSettingsPanelHost" />
-                    <settings:RuntimeMaintenancePanel />
+                    <Border x:Name="GameEffectsCard" Style="{StaticResource SettingsSectionCardStyle}">
+                        <StackPanel Spacing="14">
+                            <TextBlock
+                                x:Name="GameEffectsTitleText"
+                                Style="{StaticResource SettingsSectionTitleTextStyle}"
+                                FontSize="18"
+                                Text="Game effects" />
+                            <ContentControl
+                                x:Name="GameAdvancedSettingsPanelHost"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Stretch" />
+                        </StackPanel>
+                    </Border>
 
                     <Border x:Name="GeneralSettingsCard" Style="{StaticResource SettingsSectionCardStyle}">
                         <StackPanel Spacing="12">
@@ -238,29 +375,7 @@
                                 Style="{StaticResource SettingsSectionTitleTextStyle}"
                                 FontSize="18"
                                 Text="通用设置" />
-                            <Grid ColumnSpacing="12">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="140" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <TextBlock
-                                    x:Name="CloseBehaviorLabelText"
-                                    VerticalAlignment="Center"
-                                    FontSize="13"
-                                    FontWeight="SemiBold"
-                                    Text="关闭主窗口时:" />
-                                <ComboBox
-                                    x:Name="CloseBehaviorSelector"
-                                    Grid.Column="1"
-                                    Height="32"
-                                    Padding="10,2"
-                                    FontSize="12"
-                                    CornerRadius="8"
-                                    SelectionChanged="OnCloseBehaviorSelectionChanged">
-                                    <ComboBoxItem x:Name="CloseWindowTrayItem" Tag="tray">缩小到系统托盘 / 后台运行</ComboBoxItem>
-                                    <ComboBoxItem x:Name="CloseWindowExitItem" Tag="exit">直接退出程序</ComboBoxItem>
-                                </ComboBox>
-                            </Grid>
+                            <settings:GeneralSettingsOptionsPanel x:Name="GeneralSettingsOptionsPanel" />
                         </StackPanel>
                     </Border>
 
@@ -476,5 +591,6 @@
             </Grid>
         </Grid>
     </ScrollViewer>
+        </Grid>
     </Grid>
 </Page>

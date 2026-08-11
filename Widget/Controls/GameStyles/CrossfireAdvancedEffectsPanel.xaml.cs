@@ -49,6 +49,10 @@ namespace KillConfirmGameBar.Controls.GameStyles
             AdvancedEffectsPanelSupport.ApplyToggleRow(FirstKillEffectLabel, FirstKillEffectToggle, theme);
             AdvancedEffectsPanelSupport.ApplyToggleRow(LastKillEffectLabel, LastKillEffectToggle, theme);
             AdvancedEffectsPanelSupport.ApplyToggleRow(AssistAudioLabel, AssistAudioToggle, theme);
+            if (StylePanelHost.Content is CrossfireStylePanel stylePanel)
+            {
+                stylePanel.ApplyTheme(theme);
+            }
         }
 
         public void ApplyLanguage(bool isChinese)
@@ -85,6 +89,10 @@ namespace KillConfirmGameBar.Controls.GameStyles
             AssistAudioLabel.Text = isChinese ? "\u52a9\u653b\u97f3\u6548" : "Assist audio";
             AssistAudioToggle.OnContent = isChinese ? "\u6709\u58f0\u97f3\uff08common\uff09" : "Sound (common)";
             AssistAudioToggle.OffContent = isChinese ? "\u65e0\u58f0\u97f3\uff08\u9ed8\u8ba4\uff09" : "Muted (default)";
+            if (StylePanelHost.Content is CrossfireStylePanel stylePanel)
+            {
+                stylePanel.ApplyLanguage(isChinese);
+            }
         }
 
         public string GetSelectedStreakMode(string fallback)

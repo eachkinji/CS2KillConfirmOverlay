@@ -860,7 +860,6 @@ namespace KillConfirmGameBar.Controls
             public bool IsHeadshot { get; set; }
             public bool IsAssist { get; set; }
             public bool IsCrit { get; set; }
-            public bool IsDestroyVehicle { get; set; }
             public bool IsTextOnly { get; set; }
             public string EventKind { get; set; }
             public int RoundNumber { get; set; }

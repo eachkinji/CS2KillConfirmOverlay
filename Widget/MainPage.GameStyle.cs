@@ -17,7 +17,8 @@ namespace KillConfirmGameBar
 {
     public sealed partial class MainPage
     {
-        private CrossfireAdvancedSettingsPanel _crossfireAdvancedSettingsPanel;
+        private CrossfireAdvancedEffectsPanel _crossfireAdvancedEffectsPanel;
+        private CrossfireStylePanel _crossfireStylePanel;
         private ValorantAdvancedEffectsPanel _valorantAdvancedEffectsPanel;
         private Battlefield1AdvancedEffectsPanel _battlefield1AdvancedEffectsPanel;
         private Battlefield5AdvancedEffectsPanel _battlefield5AdvancedEffectsPanel;
@@ -27,6 +28,7 @@ namespace KillConfirmGameBar
         private DeltaForceAdvancedEffectsPanel _deltaForceAdvancedEffectsPanel;
 
         private bool _suppressGameStyleEvents;
+        private bool _suppressCrossfireSettingEvents;
 
         private void ApplyGameStyleUi()
         {
@@ -57,8 +59,9 @@ namespace KillConfirmGameBar
 
             SetText(TitleText, theme.Text);
             SetText(GameStyleLabelText, theme.Text);
+            SetText(GameStyleSidebarTitleText, theme.MutedText);
+            SetText(GameEffectsTitleText, theme.Text);
             SetText(GeneralSettingsTitleText, theme.Text);
-            SetText(CloseBehaviorLabelText, theme.MutedText);
             SetText(VoiceCollectionsTitleText, theme.Text);
             SetText(VoiceCollectionsHintText, theme.MutedText);
             SetText(IconCollectionsTitleText, theme.Text);
@@ -82,7 +85,8 @@ namespace KillConfirmGameBar
             SetText(TipsTitleText, theme.Text);
             SetText(TipsBodyText, theme.MutedText);
 
-            ApplyCardTheme(GeneralSettingsCard, theme);
+            ApplySectionTheme(GameEffectsCard, theme);
+            ApplySectionTheme(GeneralSettingsCard, theme);
             ApplyCardTheme(VoicePackCollectionsCard, theme);
             ApplyCardTheme(IconPackCollectionsCard, theme);
             ApplyCardTheme(VoiceCollectionsCard, theme);
@@ -97,7 +101,23 @@ namespace KillConfirmGameBar
             ApplyButtonTheme(IconSpecToggleButton, theme, false);
             ApplyPackCardTheme(VoicePackListPanel, theme);
             ApplyPackCardTheme(IconPackListPanel, theme);
+            AdvancedEffectsPanelSupport.ApplyCombo(
+                GameStyleSelector,
+                theme.Text,
+                theme.SubtleField,
+                theme.SoftBorder);
+            ApplyGameStyleSidebarTheme(theme);
+            GeneralSettingsOptionsPanel.ApplyTheme(theme);
             ApplyGameAdvancedSettingsPanelTheme();
+        }
+
+        private static void ApplySectionTheme(Border card, GameThemePalette theme)
+        {
+            if (card != null)
+            {
+                card.Background = new SolidColorBrush(theme.Panel);
+                card.BorderBrush = new SolidColorBrush(theme.Border);
+            }
         }
 
         private static void ApplyCardTheme(Border card, GameThemePalette theme)
@@ -111,7 +131,7 @@ namespace KillConfirmGameBar
 
         private void SyncGameStyleSelector()
         {
-            if (GameStyleSelector == null)
+            if (GameStyleSelector == null && GameStyleSidebarSelector == null)
             {
                 return;
             }
@@ -120,12 +140,27 @@ namespace KillConfirmGameBar
             try
             {
                 string key = GameStyleService.ToStorageValue(GameStyleService.Current);
-                foreach (object item in GameStyleSelector.Items)
+                if (GameStyleSelector != null)
                 {
-                    if (item is ComboBoxItem comboItem && comboItem.Tag is string tag && string.Equals(tag, key, System.StringComparison.OrdinalIgnoreCase))
+                    foreach (object item in GameStyleSelector.Items)
                     {
-                        GameStyleSelector.SelectedItem = comboItem;
-                        break;
+                        if (item is ComboBoxItem comboItem && comboItem.Tag is string tag && string.Equals(tag, key, System.StringComparison.OrdinalIgnoreCase))
+                        {
+                            GameStyleSelector.SelectedItem = comboItem;
+                            break;
+                        }
+                    }
+                }
+
+                if (GameStyleSidebarSelector != null)
+                {
+                    foreach (object item in GameStyleSidebarSelector.Items)
+                    {
+                        if (item is ListViewItem sidebarItem && sidebarItem.Tag is string tag && string.Equals(tag, key, System.StringComparison.OrdinalIgnoreCase))
+                        {
+                            GameStyleSidebarSelector.SelectedItem = sidebarItem;
+                            break;
+                        }
                     }
                 }
             }
@@ -144,12 +179,63 @@ namespace KillConfirmGameBar
 
             if (GameStyleSelector?.SelectedItem is ComboBoxItem selected && selected.Tag is string key)
             {
-                GameStyleMode newMode = GameStyleService.FromKey(key);
-                if (GameStyleService.Current != newMode)
+                SelectGameStyle(key);
+            }
+        }
+
+        private void OnGameStyleSidebarSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_suppressGameStyleEvents)
+            {
+                return;
+            }
+
+            if (GameStyleSidebarSelector?.SelectedItem is ListViewItem selected && selected.Tag is string key)
+            {
+                SelectGameStyle(key);
+            }
+        }
+
+        private void SelectGameStyle(string key)
+        {
+            GameStyleMode newMode = GameStyleService.FromKey(key);
+            if (GameStyleService.Current != newMode)
+            {
+                GameStyleService.Current = newMode;
+                ApplyGameStyleUi();
+                return;
+            }
+
+            SyncGameStyleSelector();
+            ApplyGameStyleSidebarTheme(GameThemePalette.Current);
+        }
+
+        private void ApplyGameStyleSidebarTheme(GameThemePalette theme)
+        {
+            if (GameModeSidebar != null)
+            {
+                GameModeSidebar.Background = new SolidColorBrush(theme.Panel);
+                GameModeSidebar.BorderBrush = new SolidColorBrush(theme.Border);
+            }
+
+            if (GameStyleSidebarSelector == null)
+            {
+                return;
+            }
+
+            foreach (object entry in GameStyleSidebarSelector.Items)
+            {
+                if (!(entry is ListViewItem item) || !(item.Content is Border tile))
                 {
-                    GameStyleService.Current = newMode;
-                    ApplyGameStyleUi();
+                    continue;
                 }
+
+                bool selected = item.IsSelected;
+                item.Background = new SolidColorBrush(Colors.Transparent);
+                tile.Background = new SolidColorBrush(selected ? theme.AccentSoft : theme.SubtleField);
+                tile.BorderBrush = new SolidColorBrush(selected ? theme.Accent : theme.SoftBorder);
+                tile.BorderThickness = new Thickness(selected ? 2 : 1);
+                tile.Opacity = selected ? 1.0 : 0.78;
             }
         }
 
@@ -198,9 +284,113 @@ namespace KillConfirmGameBar
             ApplyGameAdvancedSettingsPanelLanguage();
         }
 
-        private CrossfireAdvancedSettingsPanel EnsureCrossfireAdvancedSettingsPanel()
+        private CrossfireAdvancedEffectsPanel EnsureCrossfireAdvancedSettingsPanel()
         {
-            return _crossfireAdvancedSettingsPanel ?? (_crossfireAdvancedSettingsPanel = new CrossfireAdvancedSettingsPanel());
+            if (_crossfireAdvancedEffectsPanel == null)
+            {
+                _crossfireAdvancedEffectsPanel = new CrossfireAdvancedEffectsPanel();
+                _crossfireStylePanel = new CrossfireStylePanel();
+                _crossfireStylePanel.EnableStandaloneSettings();
+                _crossfireAdvancedEffectsPanel.SetStylePanel(_crossfireStylePanel);
+                _crossfireAdvancedEffectsPanel.StreakModeSelectionChanged += OnCrossfireGameplaySettingChanged;
+                _crossfireAdvancedEffectsPanel.HeadshotAudioPrioritySelectionChanged += OnCrossfireGameplaySettingChanged;
+                _crossfireAdvancedEffectsPanel.KnifeAudioPrioritySelectionChanged += OnCrossfireGameplaySettingChanged;
+                _crossfireAdvancedEffectsPanel.HeadshotIconPrioritySelectionChanged += OnCrossfireGameplaySettingChanged;
+                _crossfireAdvancedEffectsPanel.KnifeIconPrioritySelectionChanged += OnCrossfireGameplaySettingChanged;
+                _crossfireAdvancedEffectsPanel.FirstKillAudioSelectionChanged += OnCrossfireGameplaySettingChanged;
+                _crossfireAdvancedEffectsPanel.LastKillAudioSelectionChanged += OnCrossfireGameplaySettingChanged;
+                _crossfireAdvancedEffectsPanel.FirstKillEffectToggled += OnCrossfireGameplaySettingChanged;
+                _crossfireAdvancedEffectsPanel.LastKillEffectToggled += OnCrossfireGameplaySettingChanged;
+                _crossfireAdvancedEffectsPanel.AssistAudioToggled += OnCrossfireGameplaySettingChanged;
+            }
+
+            RefreshCrossfireAdvancedSettingsPanel();
+            return _crossfireAdvancedEffectsPanel;
+        }
+
+        private void RefreshCrossfireAdvancedSettingsPanel()
+        {
+            if (_crossfireAdvancedEffectsPanel == null)
+            {
+                return;
+            }
+
+            CrossfireGameplaySettingsValues settings = CrossfireGameplaySettingsStore.Load();
+            _suppressCrossfireSettingEvents = true;
+            try
+            {
+                _crossfireAdvancedEffectsPanel.SelectSettings(
+                    settings.StreakMode,
+                    settings.HeadshotSpecialAudioPriority,
+                    settings.KnifeSpecialAudioPriority,
+                    settings.HeadshotSpecialIconPriority,
+                    settings.KnifeSpecialIconPriority,
+                    settings.FirstKillSpecialAudio,
+                    settings.LastKillSpecialAudio,
+                    settings.FirstKillEffectEnabled,
+                    settings.LastKillEffectEnabled,
+                    settings.AssistAudioEnabled);
+            }
+            finally
+            {
+                _suppressCrossfireSettingEvents = false;
+            }
+            _crossfireStylePanel?.RefreshStandaloneSettings();
+        }
+
+        private async void OnCrossfireGameplaySettingChanged(object sender, RoutedEventArgs e)
+        {
+            if (_suppressCrossfireSettingEvents || _crossfireAdvancedEffectsPanel == null)
+            {
+                return;
+            }
+
+            CrossfireGameplaySettingsValues fallback = CrossfireGameplaySettingsStore.Load();
+            var settings = new CrossfireGameplaySettingsValues
+            {
+                StreakMode = _crossfireAdvancedEffectsPanel.GetSelectedStreakMode(fallback.StreakMode),
+                HeadshotSpecialAudioPriority = _crossfireAdvancedEffectsPanel.GetHeadshotSpecialAudioPriority(fallback.HeadshotSpecialAudioPriority),
+                KnifeSpecialAudioPriority = _crossfireAdvancedEffectsPanel.GetKnifeSpecialAudioPriority(fallback.KnifeSpecialAudioPriority),
+                HeadshotSpecialIconPriority = _crossfireAdvancedEffectsPanel.GetHeadshotSpecialIconPriority(fallback.HeadshotSpecialIconPriority),
+                KnifeSpecialIconPriority = _crossfireAdvancedEffectsPanel.GetKnifeSpecialIconPriority(fallback.KnifeSpecialIconPriority),
+                FirstKillSpecialAudio = _crossfireAdvancedEffectsPanel.GetFirstKillSpecialAudio(fallback.FirstKillSpecialAudio),
+                LastKillSpecialAudio = _crossfireAdvancedEffectsPanel.GetLastKillSpecialAudio(fallback.LastKillSpecialAudio),
+                FirstKillEffectEnabled = _crossfireAdvancedEffectsPanel.GetFirstKillEffectEnabled(fallback.FirstKillEffectEnabled),
+                LastKillEffectEnabled = _crossfireAdvancedEffectsPanel.GetLastKillEffectEnabled(fallback.LastKillEffectEnabled),
+                AssistAudioEnabled = _crossfireAdvancedEffectsPanel.GetAssistAudioEnabled(fallback.AssistAudioEnabled)
+            };
+            CrossfireGameplaySettingsStore.Save(settings);
+            await TrySyncCrossfireSettingsAsync(settings);
+        }
+
+        private static async Task TrySyncCrossfireSettingsAsync(CrossfireGameplaySettingsValues settings)
+        {
+            try
+            {
+                var request = new JsonObject
+                {
+                    ["active"] = JsonValue.CreateBooleanValue(true),
+                    ["streak_mode"] = JsonValue.CreateStringValue(settings.StreakMode),
+                    ["first_kill_special_audio"] = JsonValue.CreateBooleanValue(settings.FirstKillSpecialAudio),
+                    ["last_kill_special_audio"] = JsonValue.CreateBooleanValue(settings.LastKillSpecialAudio),
+                    ["headshot_special_audio_priority"] = JsonValue.CreateBooleanValue(settings.HeadshotSpecialAudioPriority),
+                    ["knife_special_audio_priority"] = JsonValue.CreateBooleanValue(settings.KnifeSpecialAudioPriority),
+                    ["assist_audio_enabled"] = JsonValue.CreateBooleanValue(settings.AssistAudioEnabled)
+                };
+
+                using (var client = await LocalServiceAuth.CreateHttpClientAsync())
+                using (var content = new HttpStringContent(
+                    request.Stringify(),
+                    UnicodeEncoding.Utf8,
+                    "application/json"))
+                {
+                    await client.PostAsync(new Uri("http://127.0.0.1:10087/crossfire/settings"), content);
+                }
+            }
+            catch (Exception ex)
+            {
+                App.Log("Sync CrossFire settings from desktop failed: " + ex.Message);
+            }
         }
 
         private ValorantAdvancedEffectsPanel EnsureValorantAdvancedSettingsPanel()
@@ -211,17 +401,12 @@ namespace KillConfirmGameBar
                 _valorantAdvancedEffectsPanel.SelectAssistAudio(
                     AssistAudioSettingsStore.Load(GameStyleMode.Valorant));
                 _valorantAdvancedEffectsPanel.StreakModeSelectionChanged += OnStreakModeSelectionChanged;
-                _valorantAdvancedEffectsPanel.DmOptimizeChanged += OnValorantDmOptimizeChanged;
                 _valorantAdvancedEffectsPanel.AssistAudioToggled += OnValorantAssistAudioToggled;
             }
             string streak = SharedStreakSettingsStore.Load(GameStyleMode.Valorant);
             _valorantAdvancedEffectsPanel.SelectStreakMode(streak);
             _valorantAdvancedEffectsPanel.SelectAssistAudio(
                 AssistAudioSettingsStore.Load(GameStyleMode.Valorant));
-            _valorantAdvancedEffectsPanel.SelectDmOptimize(
-                SharedStreakSettingsStore.LoadDmOptimize(GameStyleMode.Valorant));
-            _valorantAdvancedEffectsPanel.SelectDmWindowSeconds(
-                SharedStreakSettingsStore.LoadDmWindowSeconds(GameStyleMode.Valorant));
             return _valorantAdvancedEffectsPanel;
         }
 
@@ -342,23 +527,6 @@ namespace KillConfirmGameBar
                 SharedStreakSettingsStore.Load(GameStyleMode.Valorant));
         }
 
-        private async void OnValorantDmOptimizeChanged(object sender, RoutedEventArgs e)
-        {
-            if (!(sender is ValorantAdvancedEffectsPanel panel)
-                || GameStyleService.Current != GameStyleMode.Valorant)
-            {
-                return;
-            }
-
-            bool enabled = panel.GetDmOptimizeEnabled(false);
-            int seconds = panel.GetDmWindowSeconds(SharedStreakSettingsStore.DefaultDmWindowSeconds);
-            SharedStreakSettingsStore.SaveDmOptimize(GameStyleMode.Valorant, enabled);
-            SharedStreakSettingsStore.SaveDmWindowSeconds(GameStyleMode.Valorant, seconds);
-            await TrySyncSharedStreakSettingsAsync(
-                GameStyleMode.Valorant,
-                SharedStreakSettingsStore.Load(GameStyleMode.Valorant));
-        }
-
         private async void OnStreakModeSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             GameStyleMode style = GameStyleService.Current;
@@ -384,11 +552,6 @@ namespace KillConfirmGameBar
                     ["active"] = JsonValue.CreateBooleanValue(
                         SharedStreakSettingsStore.IsSupported(style)),
                     ["streak_mode"] = JsonValue.CreateStringValue(mode),
-                    ["dm_optimize"] = JsonValue.CreateBooleanValue(
-                        style == GameStyleMode.Valorant
-                        && SharedStreakSettingsStore.LoadDmOptimize(style)),
-                    ["dm_window_ms"] = JsonValue.CreateNumberValue(
-                        SharedStreakSettingsStore.LoadDmWindowSeconds(style) * 1000L),
                     ["assist_audio_enabled"] = JsonValue.CreateBooleanValue(
                         style == GameStyleMode.Valorant
                         && AssistAudioSettingsStore.Load(style)),
@@ -416,7 +579,7 @@ namespace KillConfirmGameBar
         private void ApplyGameAdvancedSettingsPanelTheme()
         {
             GameThemePalette theme = GameThemePalette.Current;
-            if (_crossfireAdvancedSettingsPanel != null) _crossfireAdvancedSettingsPanel.ApplyTheme(theme);
+            if (_crossfireAdvancedEffectsPanel != null) _crossfireAdvancedEffectsPanel.ApplyTheme(theme);
             if (_valorantAdvancedEffectsPanel != null) _valorantAdvancedEffectsPanel.ApplyTheme(theme);
             if (_battlefield1AdvancedEffectsPanel != null) _battlefield1AdvancedEffectsPanel.ApplyTheme(theme);
             if (_battlefield5AdvancedEffectsPanel != null) _battlefield5AdvancedEffectsPanel.ApplyTheme(theme);
@@ -424,12 +587,21 @@ namespace KillConfirmGameBar
             if (_battlefield2042AdvancedEffectsPanel != null) _battlefield2042AdvancedEffectsPanel.ApplyTheme(theme);
             if (_pubgAdvancedEffectsPanel != null) _pubgAdvancedEffectsPanel.ApplyTheme(theme);
             if (_deltaForceAdvancedEffectsPanel != null) _deltaForceAdvancedEffectsPanel.ApplyTheme(theme);
+            AdvancedEffectsPanelSupport.ApplySoftenedTree(GameAdvancedSettingsPanelHost, theme);
+            AdvancedEffectsPanelSupport.ApplySoftenedTree(
+                GameAdvancedSettingsPanelHost.Content as DependencyObject,
+                theme);
+        }
+
+        private static bool IsDarkColor(Color color)
+        {
+            return (color.R * 0.299 + color.G * 0.587 + color.B * 0.114) < 128;
         }
 
         private void ApplyGameAdvancedSettingsPanelLanguage()
         {
             bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
-            if (_crossfireAdvancedSettingsPanel != null) _crossfireAdvancedSettingsPanel.ApplyLanguage(isChinese);
+            if (_crossfireAdvancedEffectsPanel != null) _crossfireAdvancedEffectsPanel.ApplyLanguage(isChinese);
             if (_valorantAdvancedEffectsPanel != null) _valorantAdvancedEffectsPanel.ApplyLanguage(isChinese);
             if (_battlefield1AdvancedEffectsPanel != null) _battlefield1AdvancedEffectsPanel.ApplyLanguage(isChinese);
             if (_battlefield5AdvancedEffectsPanel != null) _battlefield5AdvancedEffectsPanel.ApplyLanguage(isChinese);

@@ -34,6 +34,10 @@ pub struct Args {
     #[arg(long, default_value = "false")]
     pub open_logs: bool,
 
+    /// enable diagnostic file logs and tracing
+    #[arg(long, default_value = "false")]
+    pub developer_mode: bool,
+
     /// launch the packaged external settings helper, then exit
     #[arg(long, default_value = "false")]
     pub open_settings_launcher: bool,

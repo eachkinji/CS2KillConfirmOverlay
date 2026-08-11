@@ -104,11 +104,6 @@ namespace KillConfirmGameBar.Controls
                 return "\u66b4\u51fb\u51fb\u8d25" + rewardSuffix;
             }
 
-            if (icon.KillType == BattlefieldKillTypeDestroyVehicle)
-            {
-                return "\u8f7d\u5177\u5df2\u6467\u6bc1" + rewardSuffix;
-            }
-
             return "\u51fb\u6740" + rewardSuffix;
         }
         private static string ResolveBattlefield5TargetName(string playerName)

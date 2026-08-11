@@ -16,6 +16,7 @@ namespace KillConfirmGameBar
         private async void OnLoaded(object sender, RoutedEventArgs e)
         {
             PackCatalogService.CatalogChanged += OnCatalogChanged;
+            GeneralSettingsOptionsPanel.RefreshSettings();
             await ReloadPackListsAsync();
         }
 

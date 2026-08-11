@@ -1,11 +1,14 @@
 using System;
 using System.Threading.Tasks;
+using KillConfirmGameBar.Controls.GameStyles;
+using KillConfirmGameBar.Services;
 using Windows.ApplicationModel.Core;
 using Windows.Data.Json;
 using Windows.Storage;
 using Windows.Storage.AccessCache;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Media;
 using Windows.Web.Http;
 
 namespace KillConfirmGameBar.Controls.Settings
@@ -17,25 +20,94 @@ namespace KillConfirmGameBar.Controls.Settings
         private static readonly Uri AudioDeviceUri = new Uri("http://127.0.0.1:10087/audio/device");
         private static readonly Uri ShutdownUri = new Uri("http://127.0.0.1:10087/shutdown");
         private bool _suppressAudioEvents;
+        private bool _suppressDeveloperEvents;
 
         public RuntimeMaintenancePanel()
         {
             InitializeComponent();
             Loaded += OnLoaded;
+            Unloaded += OnUnloaded;
             ApplyLanguage();
         }
 
         private async void OnLoaded(object sender, RoutedEventArgs e)
         {
+            ApplyTheme(GameThemePalette.Current);
+            Services.DeveloperModeSettingsStore.Changed -= OnDeveloperModeChanged;
+            Services.DeveloperModeSettingsStore.Changed += OnDeveloperModeChanged;
+            SelectDeveloperMode(Services.DeveloperModeSettingsStore.IsEnabled);
             await LoadAudioDevicesAsync();
         }
 
-        private void ApplyLanguage()
+        private void OnUnloaded(object sender, RoutedEventArgs e)
+        {
+            Services.DeveloperModeSettingsStore.Changed -= OnDeveloperModeChanged;
+        }
+
+        internal void ApplyLanguage()
         {
             TitleText.Text = Services.LocalizationManager.Text("RuntimeTitle");
             DescriptionText.Text = Services.LocalizationManager.Text("RuntimeDescription");
             AudioDeviceLabel.Text = Services.LocalizationManager.Text("AudioOutputLabel");
+            DeveloperModeLabel.Text = Services.LocalizationManager.Text("DeveloperModeLabel");
+            DeveloperModeHint.Text = Services.LocalizationManager.Text("DeveloperModeHint");
+            DeveloperModeToggle.OffContent = Services.LocalizationManager.Text("Off");
+            DeveloperModeToggle.OnContent = Services.LocalizationManager.Text("On");
             ResetPluginButton.Content = Services.LocalizationManager.Text("ResetPluginData");
+        }
+
+        internal void ApplyTheme(GameThemePalette theme)
+        {
+            if (theme == null)
+            {
+                return;
+            }
+
+            Card.Background = new SolidColorBrush(theme.SubtleField);
+            Card.BorderBrush = new SolidColorBrush(theme.SoftBorder);
+            TitleText.Foreground = new SolidColorBrush(theme.Text);
+            DescriptionText.Foreground = new SolidColorBrush(theme.MutedText);
+            StatusText.Foreground = new SolidColorBrush(theme.MutedText);
+            DeveloperModeHint.Foreground = new SolidColorBrush(theme.MutedText);
+            ResetPluginButton.Background = new SolidColorBrush(theme.WarningField);
+            ResetPluginButton.BorderBrush = new SolidColorBrush(theme.WarningBorder);
+            ResetPluginButton.Foreground = new SolidColorBrush(theme.WarningText);
+            ResetPluginButton.CornerRadius = new CornerRadius(14);
+            AdvancedEffectsPanelSupport.ApplySoftenedTree(this, theme);
+        }
+
+        private void SelectDeveloperMode(bool enabled)
+        {
+            _suppressDeveloperEvents = true;
+            DeveloperModeToggle.IsOn = enabled;
+            _suppressDeveloperEvents = false;
+        }
+
+        private void OnDeveloperModeChanged(object sender, bool enabled)
+        {
+            SelectDeveloperMode(enabled);
+        }
+
+        private async void OnDeveloperModeToggled(object sender, RoutedEventArgs e)
+        {
+            if (_suppressDeveloperEvents)
+            {
+                return;
+            }
+
+            bool enabled = DeveloperModeToggle.IsOn;
+            Services.DeveloperModeSettingsStore.Save(enabled);
+            try
+            {
+                await Services.DeveloperModeSettingsStore.SyncToServiceAsync();
+                StatusText.Text = Services.LocalizationManager.Text(
+                    enabled ? "DeveloperModeEnabledStatus" : "DeveloperModeDisabledStatus");
+            }
+            catch (Exception ex)
+            {
+                App.Log("Failed to sync developer mode: " + ex);
+                StatusText.Text = Services.LocalizationManager.Text("DeveloperModeSyncFailed");
+            }
         }
 
         private async Task LoadAudioDevicesAsync()

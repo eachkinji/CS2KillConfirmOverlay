@@ -5,7 +5,6 @@ using Windows.ApplicationModel;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Data.Json;
 using Windows.Storage;
-using Windows.Storage.Streams;
 using Windows.System;
 using Windows.UI;
 using Windows.UI.Xaml;
@@ -156,9 +155,8 @@ namespace KillConfirmGameBar
                 : LocalizationManager.Text("UpdateNoInstallerHint");
             UpdateDownloadProgress.Value = 0;
             UpdateDownloadProgress.IsIndeterminate = false;
-            _updateInstallerReady = false;
             UpdateDownloadButton.IsEnabled = !_updateDownloadInProgress && hasInstaller;
-            UpdateInstallButton.IsEnabled = false;
+            UpdateInstallButton.IsEnabled = !_updateDownloadInProgress && hasInstaller;
             UpdateOpenFolderButton.IsEnabled = true;
             UpdateCloseButton.IsEnabled = !_updateDownloadInProgress;
             UpdateOverlay.Visibility = Visibility.Visible;
@@ -313,7 +311,7 @@ namespace KillConfirmGameBar
 
             try
             {
-                _updateInstallerReady = false;
+                _updateInstallerPath = string.Empty;
                 await WritePendingUpdateFileAsync();
                 await DeleteUpdateDownloadResultAsync();
                 bool launched = await TryLaunchFullTrustHelperAsync(DownloadPendingUpdateParameterGroupId);
@@ -333,7 +331,7 @@ namespace KillConfirmGameBar
 
                 UpdateDownloadProgress.IsIndeterminate = false;
                 UpdateDownloadProgress.Value = 100;
-                _updateInstallerReady = true;
+                _updateInstallerPath = downloadResult.InstallerPath ?? string.Empty;
                 UpdateDownloadStatusText.Text = LocalizationManager.Text("UpdateDownloadedReady");
                 UpdateInstallButton.IsEnabled = true;
                 UpdateOpenFolderButton.IsEnabled = true;
@@ -343,7 +341,7 @@ namespace KillConfirmGameBar
             {
                 App.Log("Update download failed: " + ex);
                 UpdateDownloadProgress.IsIndeterminate = false;
-                _updateInstallerReady = false;
+                _updateInstallerPath = string.Empty;
                 UpdateDownloadStatusText.Text = LocalizationManager.Text("UpdateDownloadFailed");
                 ShowStatusHint(LocalizationManager.Text("UpdateDownloadFailed"), Color.FromArgb(255, 185, 28, 28));
             }
@@ -351,7 +349,8 @@ namespace KillConfirmGameBar
             {
                 _updateDownloadInProgress = false;
                 UpdateDownloadButton.IsEnabled = true;
-                UpdateInstallButton.IsEnabled = _updateInstallerReady;
+                UpdateInstallButton.IsEnabled = !string.IsNullOrWhiteSpace(_latestReleaseDownloadUrl)
+                    && !string.IsNullOrWhiteSpace(_latestReleaseAssetName);
                 UpdateOpenFolderButton.IsEnabled = true;
                 UpdateCloseButton.IsEnabled = true;
             }
@@ -359,7 +358,8 @@ namespace KillConfirmGameBar
 
         private async void OnInstallUpdateClick(object sender, RoutedEventArgs e)
         {
-            if (!_updateInstallerReady)
+            if (string.IsNullOrWhiteSpace(_latestReleaseDownloadUrl)
+                || string.IsNullOrWhiteSpace(_latestReleaseAssetName))
             {
                 ShowStatusHint(LocalizationManager.Text("UpdateInstallNoFile"), Color.FromArgb(255, 75, 85, 99));
                 return;
@@ -389,14 +389,6 @@ namespace KillConfirmGameBar
             try
             {
                 bool launched = await TryLaunchFullTrustHelperAsync(OpenUpdateFolderParameterGroupId);
-                if (!launched)
-                {
-                    StorageFolder updateFolder = await ApplicationData.Current.LocalFolder.CreateFolderAsync(
-                        "updates",
-                        CreationCollisionOption.OpenIfExists);
-                    launched = await Launcher.LaunchFolderAsync(updateFolder);
-                }
-
                 ShowStatusHint(
                     launched
                         ? LocalizationManager.Text("UpdateFolderOpening")
@@ -419,7 +411,7 @@ namespace KillConfirmGameBar
                 ["version"] = JsonValue.CreateStringValue(_latestReleaseVersion ?? string.Empty),
                 ["download_url"] = JsonValue.CreateStringValue(_latestReleaseDownloadUrl ?? string.Empty),
                 ["asset_name"] = JsonValue.CreateStringValue(_latestReleaseAssetName ?? "KillConfirmGameBar_Update.exe"),
-                ["installer_path"] = JsonValue.CreateStringValue(string.Empty)
+                ["installer_path"] = JsonValue.CreateStringValue(_updateInstallerPath ?? string.Empty)
             };
 
             StorageFile pendingFile = await ApplicationData.Current.LocalFolder.CreateFileAsync(
@@ -522,82 +514,6 @@ namespace KillConfirmGameBar
                 UpdateDownloadProgress.IsIndeterminate = true;
                 UpdateDownloadStatusText.Text = LocalizationManager.Text("UpdateDownloading");
             }
-        }
-
-        private async Task<StorageFile> DownloadUpdateInstallerAsync(Uri downloadUri, string assetName)
-        {
-            string safeAssetName = PathSafeFileName(assetName, "KillConfirmGameBar_Update.exe");
-            StorageFolder updateFolder = await GetExternalUpdateFolderAsync();
-            StorageFile installerFile = await updateFolder.CreateFileAsync(
-                safeAssetName,
-                CreationCollisionOption.ReplaceExisting);
-
-            using (HttpClient client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.TryAppendWithoutValidation("User-Agent", "KillConfirmOverlayUpdater/1.0");
-                HttpResponseMessage response = await client.GetAsync(downloadUri, HttpCompletionOption.ResponseHeadersRead);
-                response.EnsureSuccessStatusCode();
-
-                ulong? totalBytes = response.Content.Headers.ContentLength;
-                using (IInputStream input = await response.Content.ReadAsInputStreamAsync())
-                using (IRandomAccessStream output = await installerFile.OpenAsync(FileAccessMode.ReadWrite))
-                {
-                    ulong downloadedBytes = 0;
-                    const uint bufferSize = 1024 * 128;
-                    while (true)
-                    {
-                        IBuffer buffer = new Windows.Storage.Streams.Buffer(bufferSize);
-                        IBuffer readBuffer = await input.ReadAsync(buffer, bufferSize, InputStreamOptions.None);
-                        if (readBuffer.Length == 0)
-                        {
-                            break;
-                        }
-
-                        await output.WriteAsync(readBuffer);
-                        downloadedBytes += readBuffer.Length;
-                        UpdateDownloadProgressUi(downloadedBytes, totalBytes);
-                    }
-
-                    await output.FlushAsync();
-                }
-            }
-
-            return installerFile;
-        }
-
-        private static async Task<StorageFolder> GetExternalUpdateFolderAsync()
-        {
-            string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            string updateFolderPath = System.IO.Path.Combine(localAppData, "KillConfirmGameBar", "updates");
-            System.IO.Directory.CreateDirectory(updateFolderPath);
-            return await StorageFolder.GetFolderFromPathAsync(updateFolderPath);
-        }
-
-        private void UpdateDownloadProgressUi(ulong downloadedBytes, ulong? totalBytes)
-        {
-            if (totalBytes.HasValue && totalBytes.Value > 0)
-            {
-                double percent = Math.Min(100.0, downloadedBytes * 100.0 / totalBytes.Value);
-                UpdateDownloadProgress.IsIndeterminate = false;
-                UpdateDownloadProgress.Value = percent;
-                UpdateDownloadStatusText.Text = string.Format(LocalizationManager.Text("UpdateDownloadProgress"), percent);
-            }
-            else
-            {
-                UpdateDownloadProgress.IsIndeterminate = true;
-                UpdateDownloadStatusText.Text = LocalizationManager.Text("UpdateDownloading");
-            }
-        }
-
-        private static string PathSafeFileName(string value, string fallback)
-        {
-            string name = string.IsNullOrWhiteSpace(value) ? fallback : value;
-            foreach (char invalidChar in System.IO.Path.GetInvalidFileNameChars())
-            {
-                name = name.Replace(invalidChar, '_');
-            }
-
-            return string.IsNullOrWhiteSpace(name) ? fallback : name;
         }
 
         private void UpdateUpdateButtonVisualState()

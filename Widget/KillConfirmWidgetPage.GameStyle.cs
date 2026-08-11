@@ -137,10 +137,10 @@ namespace KillConfirmGameBar
 
             VoicePackIcon.Foreground = Brush(text);
             IconPackIcon.Foreground = Brush(text);
-            KillFxIcon.Foreground = Brush(text);
-            EliteOverlayIcon.Foreground = Brush(text);
-            WeaponBadgeIcon.Foreground = Brush(text);
-            MainAnimationIcon.Foreground = Brush(text);
+            KillFxIcon.Foreground = Brush(Colors.White);
+            EliteOverlayIcon.Foreground = Brush(Colors.White);
+            WeaponBadgeIcon.Foreground = Brush(Colors.White);
+            MainAnimationIcon.Foreground = Brush(Colors.White);
             VolumeIcon.Foreground = Brush(text);
             TestPresetIcon.Foreground = Brush(text);
             BrightnessIcon.Foreground = Brush(text);

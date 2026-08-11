@@ -123,19 +123,14 @@ namespace KillConfirmGameBar
 
         private void HandleKillEvent(KillEvent killEvent)
         {
-            if (killEvent == null)
+            GameStyleMode style = GameStyleService.Current;
+            if (!CanStyleConsumeEvent(style, killEvent))
             {
                 return;
             }
 
-            bool shouldPlayPrimaryAnimation = killEvent.PlayMainAnimation
-                || ((GameStyleService.Current == GameStyleMode.Battlefield1
-                    || GameStyleService.Current == GameStyleMode.Battlefield5
-                    || GameStyleService.Current == GameStyleMode.Battlefield4
-                    || GameStyleService.Current == GameStyleMode.Battlefield2042
-                    || GameStyleService.Current == GameStyleMode.Pubg
-                    || GameStyleService.Current == GameStyleMode.DeltaForce)
-                    && IsBattlefieldTextEvent(killEvent));
+            bool shouldPlayPrimaryAnimation = (killEvent.IsCombatEvent && killEvent.PlayMainAnimation)
+                || (IsEconomyPresentationStyle(style) && IsBattlefieldTextEvent(killEvent));
             if (shouldPlayPrimaryAnimation)
             {
                 PlayPrimaryAnimation(killEvent);
@@ -146,7 +141,8 @@ namespace KillConfirmGameBar
 
         private void PlayPrimaryAnimation(KillEvent killEvent)
         {
-            if (killEvent == null || (killEvent.KillCount <= 0 && !IsBattlefieldTextEvent(killEvent)))
+            if (!CanStyleConsumeEvent(GameStyleService.Current, killEvent)
+                || (killEvent.KillCount <= 0 && !IsBattlefieldTextEvent(killEvent)))
             {
                 return;
             }
@@ -298,11 +294,41 @@ namespace KillConfirmGameBar
             }
 
             string eventKind = GetBattlefieldEventKind(killEvent);
-            return killEvent.IsAssist
-                || string.Equals(eventKind, "assist", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(eventKind, "round_win", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(eventKind, "round_loss", StringComparison.OrdinalIgnoreCase)
-                || IsBattlefieldObjectiveEvent(eventKind);
+            if (killEvent.IsCombatEvent)
+            {
+                return killEvent.IsAssist
+                    || string.Equals(eventKind, "assist", StringComparison.OrdinalIgnoreCase);
+            }
+
+            return killEvent.IsEconomyEvent
+                && (string.Equals(eventKind, "round_win", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(eventKind, "round_loss", StringComparison.OrdinalIgnoreCase)
+                    || IsBattlefieldObjectiveEvent(eventKind));
+        }
+
+        private static bool IsEconomyPresentationStyle(GameStyleMode style)
+        {
+            return style == GameStyleMode.Battlefield1
+                || style == GameStyleMode.Battlefield5
+                || style == GameStyleMode.Battlefield4
+                || style == GameStyleMode.Battlefield2042
+                || style == GameStyleMode.Pubg
+                || style == GameStyleMode.DeltaForce;
+        }
+
+        private static bool CanStyleConsumeEvent(GameStyleMode style, KillEvent killEvent)
+        {
+            if (killEvent == null)
+            {
+                return false;
+            }
+
+            if (killEvent.IsCombatEvent)
+            {
+                return true;
+            }
+
+            return killEvent.IsEconomyEvent && IsEconomyPresentationStyle(style);
         }
 
         private static bool IsBattlefieldObjectiveEvent(string eventKind)
@@ -320,7 +346,7 @@ namespace KillConfirmGameBar
                 return killEvent.EventKind;
             }
 
-            return killEvent?.AnimationKey;
+            return killEvent?.IsAssist == true ? "assist" : "kill";
         }
 
         private static string GetBattlefieldWeaponLabel(KillEvent killEvent)
@@ -409,7 +435,7 @@ namespace KillConfirmGameBar
 
         private void PlayBadgeAnimation(KillEvent killEvent)
         {
-            if (killEvent == null)
+            if (killEvent == null || !killEvent.IsCombatEvent)
             {
                 return;
             }
@@ -551,6 +577,8 @@ namespace KillConfirmGameBar
             {
                 query.Add("assist=true");
             }
+
+            query.Add("event_kind=" + (preset.IsAssist ? "assist" : "kill"));
 
             if (preset.IsFirstKill)
             {

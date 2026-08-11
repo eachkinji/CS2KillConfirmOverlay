@@ -14,14 +14,18 @@ use tracing::{debug, error, warn};
 
 use super::auth::has_valid_gsi_token;
 use super::state::{
-    AppState, CrossfireStreakMode, KillEvent, MoneyRewardMode, PendingLastKill, TrackedRoundPhase,
+    AppState, CrossfireStreakMode, EventChannel, GsiGameVersion, KillEvent, MoneyRewardMode,
+    PendingLastKill, TrackedRoundPhase,
 };
 use super::{money_delta, money_rules};
 use crate::soundpack::sound::play_audio;
 
-// GSI is throttled to 100ms, so knife kills need a short history window.
-const KNIFE_KILL_GRACE_WINDOW: Duration = Duration::from_millis(750);
-const FINAL_KILL_GRACE_WINDOW: Duration = Duration::from_millis(1500);
+// GSI is throttled to 100ms. Keep only a very short weapon history so a weapon
+// switch cannot leak the previous weapon's knife/badge/reward into a later kill.
+const WEAPON_KILL_GRACE_WINDOW: Duration = Duration::from_millis(250);
+// Round outcome normally follows the final kill in the next few GSI samples.
+// Anything older is too ambiguous to upgrade into a last-kill effect.
+const FINAL_KILL_GRACE_WINDOW: Duration = Duration::from_millis(350);
 
 fn map_weapon_badge_key(weapon_type: WeaponType) -> Option<&'static str> {
     match weapon_type {
@@ -69,6 +73,21 @@ fn resolve_knife_kill(
     recent_weapon_is_knife: bool,
 ) -> bool {
     current_active_weapon_is_knife.unwrap_or(false) || recent_weapon_is_knife
+}
+
+fn is_recent_weapon_context(seen_at: Instant, now: Instant) -> bool {
+    now.saturating_duration_since(seen_at) <= WEAPON_KILL_GRACE_WINDOW
+}
+
+fn is_recent_final_kill(recorded_at: Instant, now: Instant) -> bool {
+    now.saturating_duration_since(recorded_at) <= FINAL_KILL_GRACE_WINDOW
+}
+
+fn can_read_observed_combat_events(
+    observed_player_is_local: bool,
+    spectated_effects_enabled: bool,
+) -> bool {
+    observed_player_is_local || spectated_effects_enabled
 }
 
 fn map_weapon_name(weapon_name: &WeaponName) -> &'static str {
@@ -205,7 +224,9 @@ pub async fn update(
         .last_gsi_post_unix_ms
         .store(unix_time_ms(), Ordering::Relaxed);
 
-    let data: Body = match parse_gsi_body(&body) {
+    let gsi_game_version =
+        GsiGameVersion::from_u8(app_state.gsi_game_version.load(Ordering::Relaxed));
+    let data: Body = match parse_gsi_body(&body, gsi_game_version) {
         Ok(data) => data,
         Err(error) => {
             app_state.gsi_parse_errors.fetch_add(1, Ordering::Relaxed);
@@ -286,17 +307,22 @@ pub async fn update(
         .map(|weapon| money_rules::weapon_kill_reward(&weapon.name, current_mode));
 
     let player_name = ply.name.as_deref().unwrap_or("").to_string();
-    let steamid = resolve_observed_player_id(
-        ply.spectarget.as_deref(),
-        ply.steam_id.as_deref(),
-        data.provider
-            .as_ref()
-            .map(|provider| provider.steam_id.as_str()),
-        &player_name,
-    );
+    let spectarget = ply.spectarget.as_deref().filter(|value| !value.is_empty());
+    let player_steamid = ply.steam_id.as_deref().filter(|value| !value.is_empty());
+    let provider_steamid = data
+        .provider
+        .as_ref()
+        .map(|provider| provider.steam_id.as_str())
+        .filter(|value| !value.is_empty());
+    let steamid =
+        resolve_observed_player_id(spectarget, player_steamid, provider_steamid, &player_name);
+    let observed_player_is_local =
+        is_local_observed_player(spectarget, player_steamid, provider_steamid);
 
     let binding = app_state.mutable.read().await;
-    let tracked_player = binding.players.get(&steamid).cloned().unwrap_or_default();
+    let tracked_player = binding.active_player.clone();
+    let observed_player_changed =
+        has_observed_player_changed(binding.active_observed_player_id.as_deref(), &steamid);
     let current_kills = ply_state.round_kills;
     let original_kills = tracked_player.ply_kills;
     let current_hs_kills = ply_state.round_killhs;
@@ -319,7 +345,10 @@ pub async fn update(
         .map(|stats| stats.score)
         .unwrap_or(0);
     let previous_player_health = tracked_player.last_player_health;
-    let is_initialized = tracked_player.initialized;
+    let was_initialized = tracked_player.initialized;
+    // V2 semantics: only one player is tracked. A target switch replaces that
+    // state and the first sample is always a baseline.
+    let is_initialized = was_initialized && !observed_player_changed;
     let previous_round = tracked_player.current_round;
     let previous_round_phase = tracked_player.last_round_phase;
     let had_first_kill_in_round = tracked_player.has_first_kill_in_round;
@@ -333,7 +362,7 @@ pub async fn update(
     let recent_weapon_is_knife = tracked_player.last_active_weapon_is_knife
         && tracked_player
             .last_active_weapon_seen_at
-            .map(|seen_at| now.saturating_duration_since(seen_at) <= KNIFE_KILL_GRACE_WINDOW)
+            .map(|seen_at| is_recent_weapon_context(seen_at, now))
             .unwrap_or(false);
     let recent_weapon_badge_key =
         tracked_player
@@ -342,20 +371,18 @@ pub async fn update(
             .filter(|_| {
                 tracked_player
                     .last_active_weapon_seen_at
-                    .map(|seen_at| {
-                        now.saturating_duration_since(seen_at) <= KNIFE_KILL_GRACE_WINDOW
-                    })
+                    .map(|seen_at| is_recent_weapon_context(seen_at, now))
                     .unwrap_or(false)
             });
     let recent_weapon_name = tracked_player.last_active_weapon_name.clone().filter(|_| {
         tracked_player
             .last_active_weapon_seen_at
-            .map(|seen_at| now.saturating_duration_since(seen_at) <= KNIFE_KILL_GRACE_WINDOW)
+            .map(|seen_at| is_recent_weapon_context(seen_at, now))
             .unwrap_or(false)
     });
     let recent_weapon_money_reward = tracked_player
         .last_active_weapon_seen_at
-        .filter(|seen_at| now.saturating_duration_since(*seen_at) <= KNIFE_KILL_GRACE_WINDOW)
+        .filter(|seen_at| is_recent_weapon_context(*seen_at, now))
         .map(|_| tracked_player.last_active_weapon_money_reward);
     drop(binding);
 
@@ -369,8 +396,9 @@ pub async fn update(
         CrossfireStreakMode::from_u8(app_state.shared_streak_mode.load(Ordering::Relaxed));
     let shared_streak_window_ms = app_state.shared_streak_window_ms.load(Ordering::Relaxed);
     let shared_streak_mode_active = app_state.shared_streak_mode_active.load(Ordering::Relaxed);
-    let shared_dm_optimize = app_state.shared_dm_optimize.load(Ordering::Relaxed);
-    let shared_dm_window_ms = app_state.shared_dm_window_ms.load(Ordering::Relaxed);
+    let spectated_kill_effects_enabled = app_state
+        .spectated_kill_effects_enabled
+        .load(Ordering::Relaxed);
     let active_streak_mode = if shared_streak_mode_active {
         shared_streak_mode
     } else {
@@ -380,20 +408,6 @@ pub async fn update(
         shared_streak_window_ms
     } else {
         crossfire_streak_window_ms
-    };
-    // 死斗优化：仅作用于 Life 模式，叠加时间窗口 + 死亡重置双重判断。
-    // 开启后每次击杀都会刷新 last_crossfire_kill_at，因此窗口随新击杀自动重置。
-    let dm_optimize_active =
-        shared_streak_mode_active && shared_dm_optimize && active_streak_mode == CrossfireStreakMode::Life;
-    let effective_streak_mode = if dm_optimize_active {
-        CrossfireStreakMode::Custom
-    } else {
-        active_streak_mode
-    };
-    let effective_streak_window_ms = if dm_optimize_active {
-        shared_dm_window_ms
-    } else {
-        active_streak_window_ms
     };
     let streak_mode_active = crossfire_mode_active || shared_streak_mode_active;
 
@@ -433,40 +447,34 @@ pub async fn update(
     } else {
         previous_player_money
     };
-    let can_emit_kill =
-        should_emit_player_kill(is_initialized, current_kills, original_kills, bomb_exploded);
-    let can_emit_assist = is_initialized && current_assists > original_assists;
-    let crossfire_kill_delta = if !is_initialized {
-        current_kills
-    } else if can_emit_kill {
-        current_kills.saturating_sub(original_kills).max(1)
-    } else {
-        0
-    };
-    let round_ending_kill = detect_round_ending_kill(
-        crossfire_kill_delta,
-        current_round_phase,
-        round_changed,
-        freeze_phase_started,
+    let can_emit_observed_combat_events =
+        can_read_observed_combat_events(observed_player_is_local, spectated_kill_effects_enabled);
+    let can_emit_kill = can_emit_observed_combat_events
+        && should_emit_player_kill(is_initialized, current_kills, original_kills, bomb_exploded);
+    // Spectator mode follows the observed player's complete normal combat feed,
+    // including assists. Kill modifiers are emitted with the kill event below.
+    let can_emit_assist =
+        can_emit_observed_combat_events && is_initialized && current_assists > original_assists;
+    let crossfire_kill_delta = resolve_player_kill_delta(
+        was_initialized,
+        can_emit_kill,
+        current_kills,
+        original_kills,
     );
     let crossfire_elapsed =
         previous_crossfire_kill_at.map(|last_kill_at| now.saturating_duration_since(last_kill_at));
     let crossfire_streak_kills = resolve_crossfire_streak_count(
         previous_crossfire_streak_kills,
         crossfire_elapsed,
-        effective_streak_mode,
-        effective_streak_window_ms,
-        round_reset && !round_ending_kill,
+        active_streak_mode,
+        active_streak_window_ms,
+        (round_reset && !phase_transition_to_over) || observed_player_changed,
         crossfire_kill_delta,
     );
-    // 死斗优化：死亡也触发连杀清零（Life 模式的默认语义就是"直到死亡"，
-    // 但死斗中复活极快，必须显式按死亡重置，避免连杀跨命累计）。
-    let crossfire_streak_kills = if dm_optimize_active && death_reset {
-        0
-    } else {
-        crossfire_streak_kills
-    };
+    // Death resets the stored value below, after this sample's kill event has
+    // consumed the V2-style streak count.
     let event_kill_count = if streak_mode_active {
+        // Preserve a simultaneous kill before resetting the next-life state.
         crossfire_streak_kills
     } else {
         current_kills
@@ -507,6 +515,7 @@ pub async fn update(
 
         if let Some(event_kind) = completed_bomb_action {
             bomb_objective_event_to_send = Some(KillEvent {
+                event_channel: EventChannel::Economy,
                 kill_count: 0,
                 is_headshot: false,
                 is_knife_kill: false,
@@ -549,7 +558,7 @@ pub async fn update(
             ),
             MoneyRewardMode::Rules => rule_money_reward,
         };
-        let is_last_kill = round_ending_kill;
+        let is_last_kill = phase_transition_to_over;
         let is_first_kill = !is_last_kill && !first_kill_already_seen;
 
         if is_last_kill {
@@ -567,6 +576,7 @@ pub async fn update(
         }
 
         kill_event_to_send = Some(KillEvent {
+            event_channel: EventChannel::Combat,
             kill_count: event_kill_count,
             is_headshot,
             is_knife_kill,
@@ -599,6 +609,7 @@ pub async fn update(
                 false,
                 money_reward,
                 Some("kill".to_string()),
+                EventChannel::Combat,
                 true,
             )
             .await;
@@ -616,77 +627,90 @@ pub async fn update(
             is_first_kill,
             is_last_kill
         );
-    } else if is_initialized && phase_transition_to_over {
-        if round_end_allows_delayed_last_kill(
+    } else if is_initialized
+        && matches!(current_round_phase, Some(TrackedRoundPhase::Over))
+        && can_emit_observed_combat_events
+    {
+        let delayed_last_kill_decision = classify_delayed_last_kill(
             round.and_then(|round_data| round_data.bomb.as_ref()),
             current_bomb_state.as_deref(),
             latest_round_outcome,
-        ) {
+        );
+        let pending_last_kill_is_recent = pending_last_kill
+            .as_ref()
+            .map(|pending| is_recent_final_kill(pending.recorded_at, now))
+            .unwrap_or(false);
+        if delayed_last_kill_decision == DelayedLastKillDecision::Allow
+            && pending_last_kill_is_recent
+        {
             if let Some(pending_last_kill) = pending_last_kill {
-                if now.saturating_duration_since(pending_last_kill.recorded_at)
-                    <= FINAL_KILL_GRACE_WINDOW
-                {
-                    badge_only_event_to_send = Some(KillEvent {
-                        kill_count: pending_last_kill.kill_count,
-                        is_headshot: pending_last_kill.is_headshot,
-                        is_knife_kill: pending_last_kill.is_knife_kill,
-                        is_first_kill: false,
-                        is_last_kill: true,
-                        is_assist: false,
-                        play_main_animation: pending_last_kill.kill_count == 1
-                            && pending_last_kill.is_headshot,
-                        animation_key: None,
-                        event_kind: Some("kill".to_string()),
-                        weapon_badge_key: pending_last_kill.weapon_badge_key.clone(),
-                        weapon_name: pending_last_kill.weapon_name.clone(),
-                        money_reward: pending_last_kill.money_reward,
-                        round_number: current_round,
-                        money_epoch: current_money_epoch,
-                        player_name: player_name.clone(),
-                        target_name: target_name.clone(),
-                        steamid: steamid.to_string(),
+                badge_only_event_to_send = Some(KillEvent {
+                    event_channel: EventChannel::Combat,
+                    kill_count: pending_last_kill.kill_count,
+                    is_headshot: pending_last_kill.is_headshot,
+                    is_knife_kill: pending_last_kill.is_knife_kill,
+                    is_first_kill: false,
+                    is_last_kill: true,
+                    is_assist: false,
+                    play_main_animation: pending_last_kill.kill_count == 1
+                        && pending_last_kill.is_headshot,
+                    animation_key: None,
+                    event_kind: Some("kill".to_string()),
+                    weapon_badge_key: pending_last_kill.weapon_badge_key.clone(),
+                    weapon_name: pending_last_kill.weapon_name.clone(),
+                    money_reward: pending_last_kill.money_reward,
+                    round_number: current_round,
+                    money_epoch: current_money_epoch,
+                    player_name: player_name.clone(),
+                    target_name: target_name.clone(),
+                    steamid: steamid.to_string(),
+                });
+                debug!(
+                    "player: {}, resolved delayed final kill for round kill {}",
+                    ply.name.as_deref().unwrap_or(""),
+                    pending_last_kill.kill_count
+                );
+
+                let should_play_delayed_last_audio = !crossfire_mode_active
+                    || app_state
+                        .crossfire_last_kill_special_audio
+                        .load(Ordering::Relaxed);
+                if should_play_delayed_last_audio {
+                    let app_state_clone = app_state.clone();
+                    let kill_count = pending_last_kill.kill_count;
+                    tokio::spawn(async move {
+                        let result = play_audio(
+                            app_state_clone,
+                            kill_count,
+                            pending_last_kill.is_headshot,
+                            false,
+                            pending_last_kill.is_knife_kill,
+                            true,
+                            false,
+                            0,
+                            Some("kill".to_string()),
+                            EventChannel::Combat,
+                            false,
+                        )
+                        .await;
+
+                        if let Err(e) = result {
+                            error!("Failed to play audio: {}", e);
+                        }
                     });
-                    debug!(
-                        "player: {}, resolved delayed final kill for round kill {}",
-                        ply.name.as_deref().unwrap_or(""),
-                        pending_last_kill.kill_count
-                    );
-
-                    let should_play_delayed_last_audio = !crossfire_mode_active
-                        || app_state
-                            .crossfire_last_kill_special_audio
-                            .load(Ordering::Relaxed);
-                    if should_play_delayed_last_audio {
-                        let app_state_clone = app_state.clone();
-                        let kill_count = pending_last_kill.kill_count;
-                        tokio::spawn(async move {
-                            let result = play_audio(
-                                app_state_clone,
-                                kill_count,
-                                pending_last_kill.is_headshot,
-                                false,
-                                pending_last_kill.is_knife_kill,
-                                true,
-                                false,
-                                0,
-                                Some("kill".to_string()),
-                                false,
-                            )
-                            .await;
-
-                            if let Err(e) = result {
-                                error!("Failed to play audio: {}", e);
-                            }
-                        });
-                    }
                 }
             }
         }
 
-        pending_last_kill_for_next = None;
+        if delayed_last_kill_decision != DelayedLastKillDecision::Wait
+            || !pending_last_kill_is_recent
+        {
+            pending_last_kill_for_next = None;
+        }
     }
     if is_initialized && can_emit_assist {
         assist_event_to_send = Some(KillEvent {
+            event_channel: EventChannel::Combat,
             kill_count: 0,
             is_headshot: false,
             is_knife_kill: false,
@@ -752,6 +776,7 @@ pub async fn update(
                 MoneyRewardMode::Rules => rule_money_reward,
             };
             round_bonus_event_to_send = Some(KillEvent {
+                event_channel: EventChannel::Economy,
                 kill_count: 0,
                 is_headshot: false,
                 is_knife_kill: false,
@@ -818,6 +843,7 @@ pub async fn update(
                 is_hostage_rescue_round,
             ) {
                 hostage_objective_event_to_send = Some(KillEvent {
+                    event_channel: EventChannel::Economy,
                     kill_count: 0,
                     is_headshot: false,
                     is_knife_kill: false,
@@ -843,8 +869,9 @@ pub async fn update(
     let mut binding = app_state.mutable.write().await;
     binding.last_bomb_state = current_bomb_state;
     binding.last_bomb_player = current_bomb_player;
+    binding.active_observed_player_id = Some(steamid.clone());
 
-    let tracked_player = binding.players.entry(steamid.clone()).or_default();
+    let tracked_player = &mut binding.active_player;
     tracked_player.initialized = true;
     tracked_player.ply_kills = current_kills;
     tracked_player.ply_hs_kills = current_hs_kills;
@@ -856,7 +883,7 @@ pub async fn update(
     tracked_player.last_round_phase = current_round_phase;
     tracked_player.last_player_money = Some(current_player_money);
     tracked_player.money_epoch = current_money_epoch;
-    if round_reset || death_reset {
+    if should_reset_stored_streak(round_reset, observed_player_changed, death_reset) {
         tracked_player.crossfire_streak_kills = 0;
         tracked_player.last_crossfire_kill_at = None;
     } else {
@@ -871,7 +898,11 @@ pub async fn update(
     }
     tracked_player.has_first_kill_in_round =
         current_kills > 0 || (!round_reset && had_first_kill_in_round) || can_emit_kill;
-    tracked_player.pending_last_kill = pending_last_kill_for_next;
+    tracked_player.pending_last_kill = if observed_player_changed {
+        None
+    } else {
+        pending_last_kill_for_next
+    };
     if let Some(is_knife) = current_active_weapon_is_knife {
         tracked_player.last_active_weapon_is_knife = is_knife;
         tracked_player.last_active_weapon_seen_at = Some(now);
@@ -885,21 +916,21 @@ pub async fn update(
     drop(binding);
 
     if let Some(kill_event) = kill_event_to_send {
-        let _ = app_state.event_tx.send(kill_event);
+        app_state.events.publish(kill_event).await;
     }
 
     if let Some(badge_only_event) = badge_only_event_to_send {
-        let _ = app_state.event_tx.send(badge_only_event);
+        app_state.events.publish(badge_only_event).await;
     }
     if let Some(bomb_objective_event) = bomb_objective_event_to_send {
-        let _ = app_state.event_tx.send(bomb_objective_event);
+        app_state.events.publish(bomb_objective_event).await;
     }
     if let Some(hostage_objective_event) = hostage_objective_event_to_send {
-        let _ = app_state.event_tx.send(hostage_objective_event);
+        app_state.events.publish(hostage_objective_event).await;
     }
     if let Some(assist_event) = assist_event_to_send {
         let audio_event = assist_event.clone();
-        let _ = app_state.event_tx.send(assist_event);
+        app_state.events.publish(assist_event).await;
         let app_state_clone = app_state.clone();
         tokio::spawn(async move {
             let result = play_audio(
@@ -912,6 +943,7 @@ pub async fn update(
                 audio_event.is_assist,
                 audio_event.money_reward,
                 audio_event.event_kind.clone(),
+                audio_event.event_channel,
                 audio_event.play_main_animation,
             )
             .await;
@@ -923,7 +955,7 @@ pub async fn update(
     }
     if let Some(round_bonus_event) = round_bonus_event_to_send {
         let audio_event = round_bonus_event.clone();
-        let _ = app_state.event_tx.send(round_bonus_event);
+        app_state.events.publish(round_bonus_event).await;
         let app_state_clone = app_state.clone();
         tokio::spawn(async move {
             let result = play_audio(
@@ -936,6 +968,7 @@ pub async fn update(
                 audio_event.is_assist,
                 audio_event.money_reward,
                 audio_event.event_kind.clone(),
+                audio_event.event_channel,
                 audio_event.play_main_animation,
             )
             .await;
@@ -949,29 +982,67 @@ pub async fn update(
     Ok(StatusCode::OK)
 }
 
-fn parse_gsi_body(body: &[u8]) -> Result<Body, GsiBodyError> {
+fn parse_gsi_body(body: &[u8], game_version: GsiGameVersion) -> Result<Body, GsiBodyError> {
     let value: serde_json::Value = serde_json::from_slice(body)?;
-    if !has_valid_gsi_token(&value) {
+    let valid_auth = match game_version {
+        GsiGameVersion::Cs2 => has_valid_gsi_token(&value),
+        GsiGameVersion::CsgoLegacy => crate::csgo_legacy::has_valid_auth(&value),
+    };
+    if !valid_auth {
         return Err(GsiBodyError::Unauthorized);
     }
 
-    Ok(serde_json::from_value(value)?)
+    match game_version {
+        GsiGameVersion::Cs2 => Ok(serde_json::from_value(value)?),
+        GsiGameVersion::CsgoLegacy => Ok(crate::csgo_legacy::parse_body(value)?),
+    }
 }
 
-fn round_end_allows_delayed_last_kill(
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum DelayedLastKillDecision {
+    Allow,
+    Reject,
+    Wait,
+}
+
+fn classify_delayed_last_kill(
     bomb_state: Option<&BombState>,
     raw_bomb_state: Option<&str>,
     round_outcome: Option<&str>,
-) -> bool {
+) -> DelayedLastKillDecision {
     let ended_by_bomb_objective =
         matches!(bomb_state, Some(BombState::Defused | BombState::Exploded))
             || matches!(raw_bomb_state, Some("defused" | "exploded"));
-    let ended_by_non_kill_outcome = matches!(
-        round_outcome,
-        Some("ct_win_defuse" | "t_win_bomb" | "ct_win_time" | "t_win_time" | "ct_win_rescue")
-    );
+    if ended_by_bomb_objective {
+        return DelayedLastKillDecision::Reject;
+    }
 
-    !ended_by_bomb_objective && !ended_by_non_kill_outcome
+    match round_outcome {
+        Some("ct_win_elimination" | "t_win_elimination") => DelayedLastKillDecision::Allow,
+        Some(_) => DelayedLastKillDecision::Reject,
+        None => DelayedLastKillDecision::Wait,
+    }
+}
+
+fn has_observed_player_changed(previous_player_id: Option<&str>, current_player_id: &str) -> bool {
+    previous_player_id != Some(current_player_id)
+}
+
+fn is_local_observed_player(
+    spectarget: Option<&str>,
+    player_steamid: Option<&str>,
+    provider_steamid: Option<&str>,
+) -> bool {
+    if let Some(target) = spectarget {
+        return provider_steamid == Some(target);
+    }
+
+    match (player_steamid, provider_steamid) {
+        (Some(player), Some(provider)) => player == provider,
+        // Some games omit one of these fields for the local player. Without an
+        // explicit spectarget, preserve the existing local-player behaviour.
+        _ => true,
+    }
 }
 
 fn resolve_observed_player_id(
@@ -997,16 +1068,27 @@ fn should_emit_player_kill(
     initialized && current_kills > previous_kills && !bomb_exploded
 }
 
-fn detect_round_ending_kill(
-    kill_delta: u16,
-    current_round_phase: Option<TrackedRoundPhase>,
-    round_changed: bool,
-    freeze_phase_started: bool,
+fn resolve_player_kill_delta(
+    was_initialized: bool,
+    can_emit_kill: bool,
+    current_kills: u16,
+    previous_kills: u16,
+) -> u16 {
+    if !was_initialized {
+        current_kills
+    } else if can_emit_kill {
+        current_kills.saturating_sub(previous_kills).max(1)
+    } else {
+        0
+    }
+}
+
+fn should_reset_stored_streak(
+    round_reset: bool,
+    observed_player_changed: bool,
+    death_reset: bool,
 ) -> bool {
-    kill_delta > 0
-        && (matches!(current_round_phase, Some(TrackedRoundPhase::Over))
-            || round_changed
-            || freeze_phase_started)
+    round_reset || observed_player_changed || death_reset
 }
 
 fn resolve_crossfire_streak_count(
@@ -1047,14 +1129,17 @@ fn resolve_crossfire_streak_count(
 #[cfg(test)]
 mod tests {
     use super::{
-        CrossfireStreakMode, TrackedRoundPhase, detect_round_ending_kill, is_knife_weapon,
+        CrossfireStreakMode, DelayedLastKillDecision, can_read_observed_combat_events,
+        classify_delayed_last_kill, has_observed_player_changed, is_knife_weapon,
+        is_local_observed_player, is_recent_final_kill, is_recent_weapon_context,
         opponent_team_display_name, resolve_crossfire_streak_count, resolve_knife_kill,
-        resolve_observed_player_id, round_end_allows_delayed_last_kill, should_emit_player_kill,
+        resolve_observed_player_id, resolve_player_kill_delta, should_emit_player_kill,
+        should_reset_stored_streak,
     };
     use gsi_cs2::round::BombState;
     use gsi_cs2::team::TeamClass;
     use gsi_cs2::weapon::{WeaponName, WeaponType};
-    use std::time::Duration;
+    use std::time::{Duration, Instant};
 
     #[test]
     fn knife_kill_uses_the_current_gsi_weapon_and_all_knife_names() {
@@ -1067,64 +1152,79 @@ mod tests {
     }
 
     #[test]
-    fn final_kill_keeps_the_existing_streak_before_the_next_round_reset() {
-        let round_ending_kill =
-            detect_round_ending_kill(1, Some(TrackedRoundPhase::Over), false, false);
-        assert!(round_ending_kill);
-        assert_eq!(
-            resolve_crossfire_streak_count(
-                3,
-                None,
-                CrossfireStreakMode::Life,
-                1_000,
-                !round_ending_kill,
-                1
-            ),
-            4
-        );
-
-        assert!(detect_round_ending_kill(
-            1,
-            Some(TrackedRoundPhase::FreezeTime),
-            false,
-            true
+    fn weapon_and_final_kill_history_use_narrow_grace_windows() {
+        let now = Instant::now();
+        assert!(is_recent_weapon_context(
+            now.checked_sub(Duration::from_millis(250)).unwrap(),
+            now
         ));
-        assert!(detect_round_ending_kill(
-            1,
-            Some(TrackedRoundPhase::Live),
-            true,
-            false
+        assert!(!is_recent_weapon_context(
+            now.checked_sub(Duration::from_millis(251)).unwrap(),
+            now
         ));
-        assert!(!detect_round_ending_kill(
-            0,
-            Some(TrackedRoundPhase::Over),
-            false,
-            false
+        assert!(is_recent_final_kill(
+            now.checked_sub(Duration::from_millis(350)).unwrap(),
+            now
+        ));
+        assert!(!is_recent_final_kill(
+            now.checked_sub(Duration::from_millis(351)).unwrap(),
+            now
         ));
     }
 
     #[test]
+    fn spectator_toggle_controls_the_complete_observed_combat_feed() {
+        assert!(can_read_observed_combat_events(true, false));
+        assert!(!can_read_observed_combat_events(false, false));
+        assert!(can_read_observed_combat_events(false, true));
+    }
+
+    #[test]
+    fn final_kill_keeps_the_existing_streak_before_the_next_round_reset() {
+        assert_eq!(
+            resolve_crossfire_streak_count(3, None, CrossfireStreakMode::Life, 1_000, false, 1),
+            4
+        );
+    }
+
+    #[test]
     fn objective_round_end_does_not_replay_a_pending_kill_as_the_last_kill() {
-        assert!(!round_end_allows_delayed_last_kill(
-            Some(&BombState::Defused),
-            Some("defused"),
-            Some("ct_win_defuse")
-        ));
-        assert!(!round_end_allows_delayed_last_kill(
-            Some(&BombState::Exploded),
-            Some("exploded"),
-            Some("t_win_bomb")
-        ));
-        assert!(!round_end_allows_delayed_last_kill(
-            None,
-            None,
-            Some("ct_win_rescue")
-        ));
-        assert!(round_end_allows_delayed_last_kill(
-            None,
-            None,
-            Some("ct_win_elimination")
-        ));
+        assert_eq!(
+            classify_delayed_last_kill(
+                Some(&BombState::Defused),
+                Some("defused"),
+                Some("ct_win_defuse")
+            ),
+            DelayedLastKillDecision::Reject
+        );
+        assert_eq!(
+            classify_delayed_last_kill(
+                Some(&BombState::Exploded),
+                Some("exploded"),
+                Some("t_win_bomb")
+            ),
+            DelayedLastKillDecision::Reject
+        );
+        assert_eq!(
+            classify_delayed_last_kill(None, None, Some("ct_win_rescue")),
+            DelayedLastKillDecision::Reject
+        );
+        assert_eq!(
+            classify_delayed_last_kill(None, None, Some("ct_win_elimination")),
+            DelayedLastKillDecision::Allow
+        );
+        assert_eq!(
+            classify_delayed_last_kill(None, None, Some("t_win_elimination")),
+            DelayedLastKillDecision::Allow
+        );
+        assert_eq!(
+            classify_delayed_last_kill(None, None, None),
+            DelayedLastKillDecision::Wait
+        );
+        assert_eq!(
+            classify_delayed_last_kill(None, None, Some("ct_win_time")),
+            DelayedLastKillDecision::Reject
+        );
     }
 
     #[test]
@@ -1140,6 +1240,58 @@ mod tests {
         );
         assert!(!should_emit_player_kill(false, 3, 0, false));
         assert!(should_emit_player_kill(true, 4, 3, false));
+        assert!(has_observed_player_changed(None, "spectated-teammate"));
+        assert!(has_observed_player_changed(
+            Some("local-player"),
+            "spectated-teammate"
+        ));
+        assert!(!has_observed_player_changed(
+            Some("spectated-teammate"),
+            "spectated-teammate"
+        ));
+        assert!(is_local_observed_player(
+            None,
+            Some("local-player"),
+            Some("local-player")
+        ));
+        assert!(!is_local_observed_player(
+            Some("spectated-teammate"),
+            Some("local-player"),
+            Some("local-player")
+        ));
+    }
+
+    #[test]
+    fn switching_observed_player_discards_the_previous_players_streak() {
+        let kill_delta = resolve_player_kill_delta(true, false, 5, 2);
+        assert_eq!(kill_delta, 0);
+        assert_eq!(
+            resolve_crossfire_streak_count(
+                3,
+                None,
+                CrossfireStreakMode::Life,
+                1_000,
+                true,
+                kill_delta,
+            ),
+            0
+        );
+        assert!(should_reset_stored_streak(false, true, false));
+    }
+
+    #[test]
+    fn kill_and_death_in_one_sample_keeps_the_event_then_resets_the_next_life() {
+        let kill_delta = resolve_player_kill_delta(true, true, 4, 3);
+        let event_streak = resolve_crossfire_streak_count(
+            3,
+            Some(Duration::from_millis(100)),
+            CrossfireStreakMode::Custom,
+            5_000,
+            false,
+            kill_delta,
+        );
+        assert_eq!(event_streak, 4);
+        assert!(should_reset_stored_streak(false, false, true));
     }
 
     #[test]

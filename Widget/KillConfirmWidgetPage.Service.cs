@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using KillConfirmGameBar.Services;
@@ -64,6 +64,23 @@ namespace KillConfirmGameBar
             _eventClient.Start();
         }
 
+        private void UpdateConnectionStateFromHealth(bool serviceHealthy)
+        {
+            if (!serviceHealthy)
+            {
+                UpdateConnectionState(KillEventConnectionState.Disconnected);
+                return;
+            }
+
+            // A successful /health request proves only that the service process is alive.
+            // The SVC indicator must follow the event poll, otherwise a hung /events request
+            // can remain green while no kill effects are reaching the widget.
+            UpdateConnectionState(
+                _eventClient == null
+                    ? KillEventConnectionState.Connecting
+                    : _eventClient.ConnectionState);
+        }
+
         private async Task EnsureServiceAvailableAsync()
         {
             App.Log("EnsureServiceAvailableAsync: entered. pageActive=" + _isPageActive);
@@ -77,7 +94,7 @@ namespace KillConfirmGameBar
             App.Log("EnsureServiceAvailableAsync: initial health=" + initialHealth.IsHealthy);
             if (initialHealth.IsHealthy)
             {
-                UpdateConnectionState(KillEventConnectionState.Connected);
+                UpdateConnectionStateFromHealth(true);
                 await SyncServiceSettingsAsync();
                 return;
             }
@@ -96,7 +113,7 @@ namespace KillConfirmGameBar
                 App.Log("EnsureServiceAvailableAsync: gated health=" + gatedHealth.IsHealthy);
                 if (gatedHealth.IsHealthy)
                 {
-                    UpdateConnectionState(KillEventConnectionState.Connected);
+                    UpdateConnectionStateFromHealth(true);
                     await SyncServiceSettingsAsync();
                     return;
                 }
@@ -124,9 +141,7 @@ namespace KillConfirmGameBar
                 App.Log("EnsureServiceAvailableAsync: service ready after launch=" + ready.IsHealthy);
                 if (_isPageActive)
                 {
-                    UpdateConnectionState(ready.IsHealthy
-                        ? KillEventConnectionState.Connected
-                        : KillEventConnectionState.Disconnected);
+                    UpdateConnectionStateFromHealth(ready.IsHealthy);
                 }
 
                 if (ready.IsHealthy)
@@ -148,10 +163,25 @@ namespace KillConfirmGameBar
 
         private async Task SyncServiceSettingsAsync()
         {
+            await SyncDeveloperModeAsync();
             await SyncSelectedVoicePackAsync();
             await SyncMoneyRewardModeAsync();
             await SyncCrossfireGameplaySettingsAsync();
             await SyncSharedStreakSettingsAsync();
+            await SyncSpectatedKillEffectsAsync();
+            await SyncGsiGameVersionAsync();
+        }
+
+        private async Task SyncGsiGameVersionAsync()
+        {
+            try
+            {
+                await GsiGameVersionSettingsStore.SyncAsync();
+            }
+            catch (Exception ex)
+            {
+                App.Log("Set GSI game version failed: " + ex);
+            }
         }
 
         private async Task CheckServerHealthAsync()
@@ -161,9 +191,7 @@ namespace KillConfirmGameBar
 
             ServiceHealthCheckResult health = await CheckServiceHealthAsync();
             App.Log("CheckServerHealthAsync: health result=" + health.IsHealthy);
-            UpdateConnectionState(health.IsHealthy
-                ? KillEventConnectionState.Connected
-                : KillEventConnectionState.Disconnected);
+            UpdateConnectionStateFromHealth(health.IsHealthy);
 
             if (health.IsHealthy)
             {
@@ -178,7 +206,22 @@ namespace KillConfirmGameBar
 
         private static async Task<bool> TryLaunchPackagedServiceAsync()
         {
-            return await TryLaunchFullTrustHelperAsync(PackagedServiceParameterGroupId);
+            string parameterGroupId = DeveloperModeSettingsStore.IsEnabled
+                ? PackagedServiceDeveloperParameterGroupId
+                : PackagedServiceParameterGroupId;
+            return await TryLaunchFullTrustHelperAsync(parameterGroupId);
+        }
+
+        private static async Task SyncDeveloperModeAsync()
+        {
+            try
+            {
+                await DeveloperModeSettingsStore.SyncToServiceAsync();
+            }
+            catch (Exception ex)
+            {
+                App.Log("Failed to sync developer mode: " + ex);
+            }
         }
 
         private static async Task<bool> TryLaunchFullTrustHelperAsync(string parameterGroupId)
@@ -593,7 +636,6 @@ namespace KillConfirmGameBar
             App.Log(
                 "Service event connection failure: kind=" + failure.Kind
                 + ", hresult=0x" + failure.HResult.ToString("X8")
-                + ", close=" + failure.CloseCode
                 + ", detail=" + failure.Detail);
 
             await Task.Delay(300);
@@ -604,14 +646,13 @@ namespace KillConfirmGameBar
 
             ServiceHealthCheckResult health = await CheckServiceHealthAsync();
             ServiceDiagnosticInfo fallback;
-            if (failure.Kind == ServiceConnectionFailureKind.ConnectionClosed)
+            if (failure.Kind == ServiceConnectionFailureKind.AuthenticationFailed)
             {
-                string closeDetail = failure.CloseCode > 0
-                    ? "WebSocket " + failure.CloseCode + (string.IsNullOrWhiteSpace(failure.Detail) ? string.Empty : ": " + failure.Detail)
-                    : failure.Detail;
-                fallback = failure.CloseCode == 1008
-                    ? CreateServiceDiagnostic("SVC-05", "ServiceDiagAuthFailed", closeDetail)
-                    : CreateServiceDiagnostic("SVC-07", "ServiceDiagConnectionClosed", closeDetail);
+                fallback = CreateServiceDiagnostic("SVC-05", "ServiceDiagAuthFailed", failure.Detail);
+            }
+            else if (failure.Kind == ServiceConnectionFailureKind.ConnectionClosed)
+            {
+                fallback = CreateServiceDiagnostic("SVC-07", "ServiceDiagConnectionClosed", failure.Detail);
             }
             else if (failure.Kind == ServiceConnectionFailureKind.MessageReadFailed)
             {

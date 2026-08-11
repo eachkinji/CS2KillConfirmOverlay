@@ -12,8 +12,6 @@ function get_sounds(ctx)
 
     if ctx.is_assist then
         table.insert(sounds, base .. "assist.wav")
-    elseif ctx.is_destroy_vehicle then
-        table.insert(sounds, base .. "vehicle.wav")
     elseif ctx.is_headshot then
         table.insert(sounds, base .. "hit.wav")
         table.insert(sounds, base .. "headshot.wav")

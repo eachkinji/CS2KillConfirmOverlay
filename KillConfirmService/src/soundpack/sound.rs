@@ -16,7 +16,7 @@ use tracing::{debug, error};
 
 use crate::soundpack::SoundContext;
 use crate::util::logging::service_log;
-use crate::util::state::AppState;
+use crate::util::state::{AppState, EventChannel};
 
 const HEADSHOT_SOUND_GAIN: f32 = 1.8;
 const COMMON_SOUND_GAIN: f32 = 4.5;
@@ -124,8 +124,20 @@ pub async fn play_audio(
     is_assist: bool,
     money_reward: u16,
     event_kind: Option<String>,
+    event_channel: EventChannel,
     play_main_audio: bool,
 ) -> Result<()> {
+    if event_channel == EventChannel::Economy {
+        let preset = app_state_clone.preset.read().await;
+        if !supports_economy_audio_events(&preset.preset_name) {
+            debug!(
+                "economy audio ignored by combat-only sound pack: {}",
+                preset.preset_name
+            );
+            return Ok(());
+        }
+    }
+
     let assist_audio_enabled = app_state_clone.assist_audio_enabled.load(Ordering::Relaxed);
     let assist_audio_setting_active = app_state_clone
         .assist_audio_setting_active
@@ -189,13 +201,10 @@ pub async fn play_audio(
             is_knife_kill,
             is_last_kill: effective_last_kill,
             is_assist,
-            is_destroy_vehicle: event_kind
-                .as_deref()
-                .map(|value| value.eq_ignore_ascii_case("destroy_vehicle"))
-                .unwrap_or(false),
             play_main_audio: audio_play_main,
             money_reward,
             event_kind,
+            event_channel,
             preset_name: preset.preset_name.clone(),
             master_name: preset.master_name.clone(),
             variant: preset.variant.clone(),
@@ -292,6 +301,13 @@ fn resolve_crossfire_audio_kill_count(
 fn uses_crossfire_audio_rules(preset_name: &str) -> bool {
     let normalized = preset_name.trim().to_ascii_lowercase();
     normalized.starts_with("crossfire_") || normalized.starts_with("custom_voice_")
+}
+
+fn supports_economy_audio_events(preset_name: &str) -> bool {
+    matches!(
+        preset_name.trim().to_ascii_lowercase().as_str(),
+        "bf1" | "bf5" | "bf4" | "battlefield2042" | "pubg" | "deltaforce"
+    )
 }
 
 fn resolve_special_kill_audio_flag(
@@ -436,8 +452,8 @@ fn resolve_event_gain(kill_count: u16, play_main_audio: bool) -> f32 {
 mod tests {
     use super::{
         resolve_assist_audio_routing, resolve_crossfire_audio_kill_count,
-        resolve_special_kill_audio_flag, uses_battlefield2042_audio_rules,
-        uses_crossfire_audio_rules,
+        resolve_special_kill_audio_flag, supports_economy_audio_events,
+        uses_battlefield2042_audio_rules, uses_crossfire_audio_rules,
     };
 
     #[test]
@@ -509,5 +525,15 @@ mod tests {
         assert!(uses_crossfire_audio_rules("crossfire_swat_gr"));
         assert!(uses_crossfire_audio_rules("custom_voice_012345"));
         assert!(!uses_crossfire_audio_rules("bf1"));
+    }
+
+    #[test]
+    fn economy_audio_is_limited_to_economy_style_sound_packs() {
+        for preset in ["bf1", "bf5", "bf4", "battlefield2042", "pubg", "deltaforce"] {
+            assert!(supports_economy_audio_events(preset));
+        }
+        assert!(!supports_economy_audio_events("crossfire_swat_gr"));
+        assert!(!supports_economy_audio_events("valorant_00009_prime"));
+        assert!(!supports_economy_audio_events("custom_voice_012345"));
     }
 }

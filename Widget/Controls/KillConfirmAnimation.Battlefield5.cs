@@ -61,7 +61,7 @@ namespace KillConfirmGameBar.Controls
             int moneyEpoch)
         {
             int generation = _battlefield5Generation;
-            int killType = ResolveBattlefieldKillType(isHeadshot, isKnifeKill, isAssist, false);
+            int killType = ResolveBattlefieldKillType(isHeadshot, isKnifeKill, isAssist);
             string normalizedEventKind = NormalizeBattlefieldEventKind(isAssist, eventKind);
             if (IsBattlefieldTextOnlyEvent(isAssist, normalizedEventKind))
             {
@@ -81,7 +81,7 @@ namespace KillConfirmGameBar.Controls
                 return;
             }
 
-            string iconFileName = GetBattlefieldIconFileName("bf5", isHeadshot, isAssist, isKnifeKill, false);
+            string iconFileName = GetBattlefieldIconFileName("bf5", isHeadshot, isAssist, isKnifeKill);
 
             CanvasBitmap icon;
             try
@@ -340,7 +340,7 @@ namespace KillConfirmGameBar.Controls
         {
             double currentTimeMs = frame * (1000.0 / FrameSequenceFps);
             var icon = new Battlefield5ScrollIcon(
-                ResolveBattlefieldKillType(asset.IsHeadshot, asset.IsCrit, asset.IsAssist, asset.IsDestroyVehicle),
+                ResolveBattlefieldKillType(asset.IsHeadshot, asset.IsCrit, asset.IsAssist),
                 asset.Icon,
                 Battlefield5DisplaySeconds * 1000,
                 asset.KillCount,

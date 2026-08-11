@@ -78,9 +78,12 @@ namespace KillConfirmGameBar
         private const string VoicePackSettingKey = "VoicePack";
         private const string MoneyRewardModeSettingKey = "MoneyRewardMode";
         private const string DefaultMoneyRewardMode = "delta";
-        private const string CsInstallFolderAccessToken = "CsInstallFolder";
-        private const string CsInstallFolderTokenSettingKey = "CsInstallFolderToken";
-        private const string CsInstallFolderPathSettingKey = "CsInstallFolderPath";
+        private const string Cs2InstallFolderAccessToken = "CsInstallFolder";
+        private const string Cs2InstallFolderTokenSettingKey = "CsInstallFolderToken";
+        private const string Cs2InstallFolderPathSettingKey = "CsInstallFolderPath";
+        private const string CsgoLegacyInstallFolderAccessToken = "CsgoLegacyInstallFolder";
+        private const string CsgoLegacyInstallFolderTokenSettingKey = "CsgoLegacyInstallFolderToken";
+        private const string CsgoLegacyInstallFolderPathSettingKey = "CsgoLegacyInstallFolderPath";
         private const string GsiConfigFileName = "gamestate_integration_killconfirm.cfg";
         private const string GsiConfigText =
             "\"KillConfirmGameBar\"\r\n" +
@@ -109,6 +112,7 @@ namespace KillConfirmGameBar
         private const int ControlPanelStateRefreshMs = 250;
         private const int StatusHintRotationMs = 3000;
         private const string PackagedServiceParameterGroupId = "CrossfirePreset";
+        private const string PackagedServiceDeveloperParameterGroupId = "CrossfirePresetDeveloper";
         private const string FullTrustProcessLauncherRuntimeClass = "Windows.ApplicationModel.FullTrustProcessLauncher";
         private static readonly System.Guid FullTrustProcessLauncherStaticsGuid =
             new System.Guid("D784837F-1100-3C6B-A455-F6262CC331B6");
@@ -123,12 +127,13 @@ namespace KillConfirmGameBar
         private static readonly Uri MoneyRewardModeUri = new Uri("http://127.0.0.1:10087/money/mode");
         private static readonly Uri CrossfireSettingsUri = new Uri("http://127.0.0.1:10087/crossfire/settings");
         private static readonly Uri SharedStreakSettingsUri = new Uri("http://127.0.0.1:10087/streak/settings");
-        private static readonly Uri Cs2RootUri = new Uri("http://127.0.0.1:10087/cs2-root");
+        private const string CounterStrikeRootUri = "http://127.0.0.1:10087/counter-strike/root";
         private static readonly TimeSpan ServiceStartupTimeout = TimeSpan.FromSeconds(6);
         private static readonly TimeSpan ServiceStartupPollInterval = TimeSpan.FromMilliseconds(250);
         private const string FreeServicePortParameterGroupId = "FreeServicePort";
         private const string OpenRuntimeLogsParameterGroupId = "OpenRuntimeLogs";
         private const string OpenSettingsWindowParameterGroupId = "OpenSettingsWindow";
+        private const string OpenSettingsWindowDeveloperParameterGroupId = "OpenSettingsWindowDeveloper";
         private const string DownloadPendingUpdateParameterGroupId = "DownloadPendingUpdate";
         private const string RunPendingUpdateParameterGroupId = "RunPendingUpdate";
         private const string OpenQuarkUpdateParameterGroupId = "OpenQuarkUpdate";
@@ -193,6 +198,7 @@ namespace KillConfirmGameBar
         private bool _suppressLanguageEvents = true;
         private bool _isPageActive;
         private StorageFolder _csInstallFolder;
+        private string _loadedCsGameVersion = GsiGameVersionSettingsStore.Cs2;
         private CfgDetectionState _cfgDetectionState = CfgDetectionState.NotSelected;
         private string _cfgStatusDetail = string.Empty;
         private KillEventConnectionState _serviceConnectionState = KillEventConnectionState.Disconnected;
@@ -215,7 +221,7 @@ namespace KillConfirmGameBar
         private string _latestReleasePageUrl = string.Empty;
         private string _latestReleaseNotes = string.Empty;
         private DateTimeOffset? _latestReleasePublishedAt;
-        private bool _updateInstallerReady;
+        private string _updateInstallerPath = string.Empty;
         private bool _releaseNotesExpanded;
         private readonly DispatcherTimer _controlPanelStateTimer;
         private readonly DispatcherTimer _statusHintTimer;
@@ -253,6 +259,7 @@ namespace KillConfirmGameBar
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             _isPageActive = true;
+            GsiGameVersionSettingsStore.VersionChanged += OnGsiGameVersionChanged;
             _widget = e.Parameter as XboxGameBarWidget;
             if (_widget != null)
             {
@@ -282,6 +289,7 @@ namespace KillConfirmGameBar
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
             _isPageActive = false;
+            GsiGameVersionSettingsStore.VersionChanged -= OnGsiGameVersionChanged;
             if (_widget != null)
             {
                 _widget.VisibleChanged -= OnWidgetVisibleChanged;
@@ -423,7 +431,10 @@ namespace KillConfirmGameBar
             OpenGuideButton.IsEnabled = false;
             try
             {
-                bool launched = await TryLaunchFullTrustHelperAsync(OpenSettingsWindowParameterGroupId);
+                string parameterGroupId = DeveloperModeSettingsStore.IsEnabled
+                    ? OpenSettingsWindowDeveloperParameterGroupId
+                    : OpenSettingsWindowParameterGroupId;
+                bool launched = await TryLaunchFullTrustHelperAsync(parameterGroupId);
                 App.Log("Open settings: external launcher result=" + launched);
                 if (launched)
                 {
@@ -565,6 +576,13 @@ namespace KillConfirmGameBar
         private void OnControlPanelStateTimerTick(object sender, object e)
         {
             SyncWidgetPresentationState();
+            if (!string.Equals(
+                    _loadedCsGameVersion,
+                    GsiGameVersionSettingsStore.Load(),
+                    StringComparison.Ordinal))
+            {
+                _ = LoadSavedCsFolderAsync();
+            }
             if (IsControlPanelVisible()
                 && !_gsiStatusCheckPending
                 && DateTimeOffset.Now - _lastGsiStatusCheck > TimeSpan.FromMilliseconds(GsiStatusRefreshMs))
@@ -628,6 +646,7 @@ namespace KillConfirmGameBar
             {
                 return new KillEvent
                 {
+                    EventChannel = KillEventChannels.Combat,
                     KillCount = KillCount,
                     IsHeadshot = IsHeadshot,
                     IsKnifeKill = IsKnifeKill,
@@ -636,6 +655,7 @@ namespace KillConfirmGameBar
                     IsLastKill = IsLastKill,
                     PlayMainAnimation = PlayMainAnimation,
                     AnimationKey = AnimationKey,
+                    EventKind = IsAssist ? "assist" : "kill",
                     MoneyReward = IsAssist ? 0 : (IsKnifeKill ? 1500 : 300)
                 };
             }

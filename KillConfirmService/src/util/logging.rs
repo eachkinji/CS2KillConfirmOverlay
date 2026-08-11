@@ -2,7 +2,18 @@ use std::env;
 use std::fs::{self, OpenOptions};
 use std::io::Write;
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
+
+static DEVELOPER_LOGGING_ENABLED: AtomicBool = AtomicBool::new(false);
+
+pub fn set_developer_logging_enabled(enabled: bool) {
+    DEVELOPER_LOGGING_ENABLED.store(enabled, Ordering::Release);
+}
+
+pub fn developer_logging_enabled() -> bool {
+    DEVELOPER_LOGGING_ENABLED.load(Ordering::Acquire)
+}
 
 #[link(name = "kernel32")]
 unsafe extern "system" {
@@ -46,6 +57,10 @@ pub(crate) fn local_state_dir() -> PathBuf {
 }
 
 pub fn service_log(message: &str) {
+    if !developer_logging_enabled() {
+        return;
+    }
+
     let log_path = local_state_dir().join("service.log");
 
     if let Some(parent) = log_path.parent() {

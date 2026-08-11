@@ -20,21 +20,78 @@
                 Opacity="0.72"
                 Text="Choose an audio output device or restore all plugin data."
                 TextWrapping="WrapWholeWords" />
-            <Grid ColumnSpacing="10">
+            <Grid ColumnSpacing="8">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="120" />
+                    <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <TextBlock
-                    x:Name="AudioDeviceLabel"
-                    VerticalAlignment="Center"
-                    Text="Audio output" />
-                <ComboBox
-                    x:Name="AudioDeviceSelector"
-                    Grid.Column="1"
-                    MinWidth="180"
-                    HorizontalAlignment="Stretch"
-                    SelectionChanged="OnAudioDeviceSelectionChanged" />
+                <Border Style="{StaticResource CompactChoiceCardStyle}">
+                    <StackPanel Spacing="6">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Border Style="{StaticResource CompactCircleIconStyle}">
+                                <FontIcon
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    FontFamily="Segoe MDL2 Assets"
+                                    FontSize="12"
+                                    Foreground="White"
+                                    Glyph="&#xE95D;" />
+                            </Border>
+                            <TextBlock
+                                x:Name="AudioDeviceLabel"
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource CompactChoiceLabelStyle}"
+                                Text="Audio output" />
+                        </Grid>
+                        <ComboBox
+                            x:Name="AudioDeviceSelector"
+                            Style="{StaticResource CompactSettingsComboBoxStyle}"
+                            SelectionChanged="OnAudioDeviceSelectionChanged" />
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="1" Style="{StaticResource CompactChoiceCardStyle}">
+                    <StackPanel Spacing="6">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Border Style="{StaticResource CompactCircleIconStyle}">
+                                <FontIcon
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    FontFamily="Segoe MDL2 Assets"
+                                    FontSize="12"
+                                    Foreground="White"
+                                    Glyph="&#xE943;" />
+                            </Border>
+                            <TextBlock
+                                x:Name="DeveloperModeLabel"
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource CompactChoiceLabelStyle}"
+                                Text="Developer mode" />
+                        </Grid>
+                        <ToggleSwitch
+                            x:Name="DeveloperModeToggle"
+                            HorizontalAlignment="Left"
+                            MinWidth="0"
+                            OffContent="Off"
+                            OnContent="On"
+                            Toggled="OnDeveloperModeToggled" />
+                        <TextBlock
+                            x:Name="DeveloperModeHint"
+                            FontSize="10"
+                            Text="Enable all diagnostic logs"
+                            TextWrapping="WrapWholeWords" />
+                    </StackPanel>
+                </Border>
             </Grid>
             <TextBlock
                 x:Name="StatusText"

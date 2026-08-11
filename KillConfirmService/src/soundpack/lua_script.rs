@@ -3,6 +3,8 @@ use mlua::{Lua, LuaSerdeExt, Value};
 use serde::Serialize;
 use std::fs;
 
+use crate::util::state::EventChannel;
+
 /// Context passed to Lua script for sound selection
 #[derive(Serialize, Clone, Debug)]
 pub struct SoundContext {
@@ -12,10 +14,10 @@ pub struct SoundContext {
     pub is_knife_kill: bool,
     pub is_last_kill: bool,
     pub is_assist: bool,
-    pub is_destroy_vehicle: bool,
     pub play_main_audio: bool,
     pub money_reward: u16,
     pub event_kind: Option<String>,
+    pub event_channel: EventChannel,
     pub preset_name: String,
     pub master_name: String,
     pub variant: Option<String>,

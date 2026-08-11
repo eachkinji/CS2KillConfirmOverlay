@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:KillConfirmGameBar.Controls"
     xmlns:settings="using:KillConfirmGameBar.Controls.Settings"
+    xmlns:primitives="using:Windows.UI.Xaml.Controls.Primitives"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
@@ -639,24 +640,57 @@
                                     Height="26"
                                     Margin="2,0,0,0"
                                     Style="{StaticResource PackImportantIconButtonStyle}"
+                                    Click="OnAdvancedEffectsButtonClick"
                                     ToolTipService.ToolTip="Advanced effects">
-                                    <Button.Flyout>
+                                    <primitives:FlyoutBase.AttachedFlyout>
                                         <Flyout x:Name="AdvancedEffectsFlyout" Placement="Bottom">
                                             <Border
                                                 x:Name="AdvancedEffectsFlyoutCard"
-                                                Width="360"
+                                                Width="440"
+                                                MaxHeight="720"
                                                 Padding="12"
                                                 Background="#FAFAF7"
                                                 BorderBrush="#E2DDD3"
                                                 BorderThickness="1"
                                                 CornerRadius="16">
-                                                <StackPanel Spacing="10">
-                                                    <ContentControl x:Name="AdvancedEffectsPanelHost" />
-                                                    <settings:RuntimeMaintenancePanel />
-                                                </StackPanel>
+                                                <ScrollViewer
+                                                    VerticalScrollBarVisibility="Auto"
+                                                    VerticalScrollMode="Auto"
+                                                    ZoomMode="Disabled">
+                                                    <StackPanel Spacing="10">
+                                                        <Border
+                                                            x:Name="AdvancedEffectsGameCard"
+                                                            Padding="12"
+                                                            BorderThickness="1"
+                                                            CornerRadius="18">
+                                                            <StackPanel Spacing="10">
+                                                                <TextBlock
+                                                                    x:Name="AdvancedEffectsGameTitleText"
+                                                                    FontSize="16"
+                                                                    FontWeight="Bold"
+                                                                    Text="Game effects" />
+                                                                <ContentControl x:Name="AdvancedEffectsPanelHost" />
+                                                            </StackPanel>
+                                                        </Border>
+                                                        <Border
+                                                            x:Name="AdvancedEffectsGeneralCard"
+                                                            Padding="12"
+                                                            BorderThickness="1"
+                                                            CornerRadius="18">
+                                                            <StackPanel Spacing="10">
+                                                                <TextBlock
+                                                                    x:Name="AdvancedEffectsGeneralTitleText"
+                                                                    FontSize="16"
+                                                                    FontWeight="Bold"
+                                                                    Text="General settings" />
+                                                                <settings:GeneralSettingsOptionsPanel x:Name="AdvancedEffectsGeneralSettingsPanel" />
+                                                            </StackPanel>
+                                                        </Border>
+                                                    </StackPanel>
+                                                </ScrollViewer>
                                             </Border>
                                         </Flyout>
-                                    </Button.Flyout>
+                                    </primitives:FlyoutBase.AttachedFlyout>
                                     <Grid Style="{StaticResource IconHostStyle}">
                                         <FontIcon
                                             FontFamily="Segoe MDL2 Assets"

@@ -18,18 +18,13 @@
                 TextWrapping="WrapWholeWords" />
         </StackPanel>
 
-        <Border
-            Padding="10"
-            BorderBrush="#D5D0C4"
-            BorderThickness="1"
-            CornerRadius="12">
-            <Grid RowSpacing="8" ColumnSpacing="8">
+        <ContentControl
+            x:Name="StylePanelHost"
+            HorizontalAlignment="Stretch"
+            HorizontalContentAlignment="Stretch" />
+
+        <Grid RowSpacing="8" ColumnSpacing="8">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
@@ -37,68 +32,69 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="110" />
+                    <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <local:StreakWindowEditor
                     x:Name="StreakEditor"
-                    Grid.ColumnSpan="2"
                     SettingsChanged="OnStreakModeSelectionChanged" />
 
-                <TextBlock x:Name="HeadshotAudioPriorityLabel" Grid.Row="1" VerticalAlignment="Center" FontSize="10" FontWeight="SemiBold" Text="Headshot audio" />
-                <ComboBox x:Name="HeadshotAudioPrioritySelector" Grid.Row="1" Grid.Column="1" Height="28" Padding="7,0,12,0" FontSize="10" SelectionChanged="OnHeadshotAudioPrioritySelectionChanged">
-                    <ComboBoxItem x:Name="HeadshotSpecialPriorityItem" Tag="special">Headshot priority</ComboBoxItem>
-                    <ComboBoxItem x:Name="HeadshotStreakPriorityItem" Tag="streak">Kill-streak priority</ComboBoxItem>
-                </ComboBox>
+                <Border Grid.Column="1" Style="{StaticResource CompactChoiceCardStyle}">
+                    <StackPanel Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <Border Style="{StaticResource CompactCircleIconStyle}"><FontIcon FontSize="13" Foreground="White" Glyph="&#xE8D6;" /></Border>
+                            <TextBlock x:Name="AssistAudioLabel" Style="{StaticResource CompactChoiceLabelStyle}" VerticalAlignment="Center" Text="Assist audio" />
+                        </StackPanel>
+                        <ToggleSwitch x:Name="AssistAudioToggle" MinWidth="0" IsOn="False" OffContent="Muted (default)" OnContent="Sound (common)" Toggled="OnAssistAudioToggled" />
+                    </StackPanel>
+                </Border>
 
-                <TextBlock x:Name="KnifeAudioPriorityLabel" Grid.Row="2" VerticalAlignment="Center" FontSize="10" FontWeight="SemiBold" Text="Knife-kill audio" />
-                <ComboBox x:Name="KnifeAudioPrioritySelector" Grid.Row="2" Grid.Column="1" Height="28" Padding="7,0,12,0" FontSize="10" SelectionChanged="OnKnifeAudioPrioritySelectionChanged">
-                    <ComboBoxItem x:Name="KnifeSpecialPriorityItem" Tag="special">Knife-kill priority</ComboBoxItem>
-                    <ComboBoxItem x:Name="KnifeStreakPriorityItem" Tag="streak">Kill-streak priority</ComboBoxItem>
-                </ComboBox>
+                <Border Grid.Row="1" Style="{StaticResource CompactChoiceCardStyle}">
+                    <StackPanel Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="6"><Border Style="{StaticResource CompactCircleIconStyle}"><FontIcon FontSize="13" Foreground="White" Glyph="&#xE8D6;" /></Border><TextBlock x:Name="HeadshotAudioPriorityLabel" Style="{StaticResource CompactChoiceLabelStyle}" VerticalAlignment="Center" Text="Headshot audio" /></StackPanel>
+                        <ComboBox x:Name="HeadshotAudioPrioritySelector" Style="{StaticResource CompactSettingsComboBoxStyle}" SelectionChanged="OnHeadshotAudioPrioritySelectionChanged"><ComboBoxItem x:Name="HeadshotSpecialPriorityItem" Tag="special">Headshot priority</ComboBoxItem><ComboBoxItem x:Name="HeadshotStreakPriorityItem" Tag="streak">Kill-streak priority</ComboBoxItem></ComboBox>
+                    </StackPanel>
+                </Border>
+                <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource CompactChoiceCardStyle}">
+                    <StackPanel Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="6"><Border Style="{StaticResource CompactCircleIconStyle}"><FontIcon FontSize="13" Foreground="White" Glyph="&#xE767;" /></Border><TextBlock x:Name="KnifeAudioPriorityLabel" Style="{StaticResource CompactChoiceLabelStyle}" VerticalAlignment="Center" Text="Knife-kill audio" /></StackPanel>
+                        <ComboBox x:Name="KnifeAudioPrioritySelector" Style="{StaticResource CompactSettingsComboBoxStyle}" SelectionChanged="OnKnifeAudioPrioritySelectionChanged"><ComboBoxItem x:Name="KnifeSpecialPriorityItem" Tag="special">Knife-kill priority</ComboBoxItem><ComboBoxItem x:Name="KnifeStreakPriorityItem" Tag="streak">Kill-streak priority</ComboBoxItem></ComboBox>
+                    </StackPanel>
+                </Border>
 
-                <TextBlock x:Name="HeadshotIconPriorityLabel" Grid.Row="3" VerticalAlignment="Center" FontSize="10" FontWeight="SemiBold" Text="Headshot icon" />
-                <ComboBox x:Name="HeadshotIconPrioritySelector" Grid.Row="3" Grid.Column="1" Height="28" Padding="7,0,12,0" FontSize="10" SelectionChanged="OnHeadshotIconPrioritySelectionChanged">
-                    <ComboBoxItem x:Name="HeadshotIconSpecialPriorityItem" Tag="special">Headshot priority</ComboBoxItem>
-                    <ComboBoxItem x:Name="HeadshotIconStreakPriorityItem" Tag="streak">Kill-streak priority</ComboBoxItem>
-                </ComboBox>
+                <Border Grid.Row="2" Style="{StaticResource CompactChoiceCardStyle}">
+                    <StackPanel Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="6"><Border Style="{StaticResource CompactCircleIconStyle}"><FontIcon FontSize="13" Foreground="White" Glyph="&#xE91F;" /></Border><TextBlock x:Name="HeadshotIconPriorityLabel" Style="{StaticResource CompactChoiceLabelStyle}" VerticalAlignment="Center" Text="Headshot icon" /></StackPanel>
+                        <ComboBox x:Name="HeadshotIconPrioritySelector" Style="{StaticResource CompactSettingsComboBoxStyle}" SelectionChanged="OnHeadshotIconPrioritySelectionChanged"><ComboBoxItem x:Name="HeadshotIconSpecialPriorityItem" Tag="special">Headshot priority</ComboBoxItem><ComboBoxItem x:Name="HeadshotIconStreakPriorityItem" Tag="streak">Kill-streak priority</ComboBoxItem></ComboBox>
+                    </StackPanel>
+                </Border>
+                <Border Grid.Row="2" Grid.Column="1" Style="{StaticResource CompactChoiceCardStyle}">
+                    <StackPanel Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="6"><Border Style="{StaticResource CompactCircleIconStyle}"><FontIcon FontSize="13" Foreground="White" Glyph="&#xE7F4;" /></Border><TextBlock x:Name="KnifeIconPriorityLabel" Style="{StaticResource CompactChoiceLabelStyle}" VerticalAlignment="Center" Text="Knife-kill icon" /></StackPanel>
+                        <ComboBox x:Name="KnifeIconPrioritySelector" Style="{StaticResource CompactSettingsComboBoxStyle}" SelectionChanged="OnKnifeIconPrioritySelectionChanged"><ComboBoxItem x:Name="KnifeIconSpecialPriorityItem" Tag="special">Knife-kill priority</ComboBoxItem><ComboBoxItem x:Name="KnifeIconStreakPriorityItem" Tag="streak">Kill-streak priority</ComboBoxItem></ComboBox>
+                    </StackPanel>
+                </Border>
 
-                <TextBlock x:Name="KnifeIconPriorityLabel" Grid.Row="4" VerticalAlignment="Center" FontSize="10" FontWeight="SemiBold" Text="Knife-kill icon" />
-                <ComboBox x:Name="KnifeIconPrioritySelector" Grid.Row="4" Grid.Column="1" Height="28" Padding="7,0,12,0" FontSize="10" SelectionChanged="OnKnifeIconPrioritySelectionChanged">
-                    <ComboBoxItem x:Name="KnifeIconSpecialPriorityItem" Tag="special">Knife-kill priority</ComboBoxItem>
-                    <ComboBoxItem x:Name="KnifeIconStreakPriorityItem" Tag="streak">Kill-streak priority</ComboBoxItem>
-                </ComboBox>
+                <Border Grid.Row="3" Style="{StaticResource CompactChoiceCardStyle}">
+                    <StackPanel Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="6"><Border Style="{StaticResource CompactCircleIconStyle}"><FontIcon FontSize="13" Foreground="White" Glyph="&#xE8D6;" /></Border><TextBlock x:Name="FirstKillAudioLabel" Style="{StaticResource CompactChoiceLabelStyle}" VerticalAlignment="Center" Text="First-kill audio" /></StackPanel>
+                        <ComboBox x:Name="FirstKillAudioSelector" Style="{StaticResource CompactSettingsComboBoxStyle}" SelectionChanged="OnFirstKillAudioSelectionChanged"><ComboBoxItem x:Name="FirstKillSpecialItem" Tag="special">Special audio</ComboBoxItem><ComboBoxItem x:Name="FirstKillOriginalItem" Tag="original">Original kill audio</ComboBoxItem></ComboBox>
+                    </StackPanel>
+                </Border>
+                <Border Grid.Row="3" Grid.Column="1" Style="{StaticResource CompactChoiceCardStyle}">
+                    <StackPanel Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="6"><Border Style="{StaticResource CompactCircleIconStyle}"><FontIcon FontSize="13" Foreground="White" Glyph="&#xE8D6;" /></Border><TextBlock x:Name="LastKillAudioLabel" Style="{StaticResource CompactChoiceLabelStyle}" VerticalAlignment="Center" Text="Last-kill audio" /></StackPanel>
+                        <ComboBox x:Name="LastKillAudioSelector" Style="{StaticResource CompactSettingsComboBoxStyle}" SelectionChanged="OnLastKillAudioSelectionChanged"><ComboBoxItem x:Name="LastKillSpecialItem" Tag="special">Special audio</ComboBoxItem><ComboBoxItem x:Name="LastKillOriginalItem" Tag="original">Original kill audio</ComboBoxItem></ComboBox>
+                    </StackPanel>
+                </Border>
 
-                <TextBlock x:Name="FirstKillAudioLabel" Grid.Row="5" VerticalAlignment="Center" FontSize="10" FontWeight="SemiBold" Text="First-kill audio" />
-                <ComboBox x:Name="FirstKillAudioSelector" Grid.Row="5" Grid.Column="1" Height="28" Padding="7,0,12,0" FontSize="10" SelectionChanged="OnFirstKillAudioSelectionChanged">
-                    <ComboBoxItem x:Name="FirstKillSpecialItem" Tag="special">Special audio</ComboBoxItem>
-                    <ComboBoxItem x:Name="FirstKillOriginalItem" Tag="original">Original kill audio</ComboBoxItem>
-                </ComboBox>
+                <Border Grid.Row="4" Style="{StaticResource CompactChoiceCardStyle}">
+                    <StackPanel Spacing="6"><StackPanel Orientation="Horizontal" Spacing="6"><Border Style="{StaticResource CompactCircleIconStyle}"><FontIcon FontSize="13" Foreground="White" Glyph="&#xE945;" /></Border><TextBlock x:Name="FirstKillEffectLabel" Style="{StaticResource CompactChoiceLabelStyle}" VerticalAlignment="Center" Text="First-kill effect" /></StackPanel><ToggleSwitch x:Name="FirstKillEffectToggle" MinWidth="0" IsOn="True" OffContent="Off" OnContent="On (default)" Toggled="OnFirstKillEffectToggled" /></StackPanel>
+                </Border>
+                <Border Grid.Row="4" Grid.Column="1" Style="{StaticResource CompactChoiceCardStyle}">
+                    <StackPanel Spacing="6"><StackPanel Orientation="Horizontal" Spacing="6"><Border Style="{StaticResource CompactCircleIconStyle}"><FontIcon FontSize="13" Foreground="White" Glyph="&#xE945;" /></Border><TextBlock x:Name="LastKillEffectLabel" Style="{StaticResource CompactChoiceLabelStyle}" VerticalAlignment="Center" Text="Last-kill effect" /></StackPanel><ToggleSwitch x:Name="LastKillEffectToggle" MinWidth="0" IsOn="True" OffContent="Off" OnContent="On (default)" Toggled="OnLastKillEffectToggled" /></StackPanel>
+                </Border>
+        </Grid>
 
-                <TextBlock x:Name="LastKillAudioLabel" Grid.Row="6" VerticalAlignment="Center" FontSize="10" FontWeight="SemiBold" Text="Last-kill audio" />
-                <ComboBox x:Name="LastKillAudioSelector" Grid.Row="6" Grid.Column="1" Height="28" Padding="7,0,12,0" FontSize="10" SelectionChanged="OnLastKillAudioSelectionChanged">
-                    <ComboBoxItem x:Name="LastKillSpecialItem" Tag="special">Special audio</ComboBoxItem>
-                    <ComboBoxItem x:Name="LastKillOriginalItem" Tag="original">Original kill audio</ComboBoxItem>
-                </ComboBox>
-
-                <TextBlock x:Name="FirstKillEffectLabel" Grid.Row="7" VerticalAlignment="Center" FontSize="10" FontWeight="SemiBold" Text="First-kill effect" />
-                <ToggleSwitch x:Name="FirstKillEffectToggle" Grid.Row="7" Grid.Column="1" IsOn="True" OffContent="Off" OnContent="On (default)" Toggled="OnFirstKillEffectToggled" />
-
-                <TextBlock x:Name="LastKillEffectLabel" Grid.Row="8" VerticalAlignment="Center" FontSize="10" FontWeight="SemiBold" Text="Last-kill effect" />
-                <ToggleSwitch x:Name="LastKillEffectToggle" Grid.Row="8" Grid.Column="1" IsOn="True" OffContent="Off" OnContent="On (default)" Toggled="OnLastKillEffectToggled" />
-
-                <TextBlock x:Name="AssistAudioLabel" Grid.Row="9" VerticalAlignment="Center" FontSize="10" FontWeight="SemiBold" Text="Assist audio" />
-                <ToggleSwitch
-                    x:Name="AssistAudioToggle"
-                    Grid.Row="9"
-                    Grid.Column="1"
-                    IsOn="False"
-                    OffContent="Muted (default)"
-                    OnContent="Sound (common)"
-                    Toggled="OnAssistAudioToggled" />
-            </Grid>
-        </Border>
-
-        <ContentControl x:Name="StylePanelHost" />
     </StackPanel>
 </UserControl>

@@ -8,6 +8,11 @@ namespace KillConfirmGameBar
         private void ApplyLanguage()
         {
             TitleText.Text = LocalizationManager.Text("MainTitle");
+            GameStyleSidebarTitleText.Text = LocalizationManager.Text("GameStyleTitle");
+
+            GameEffectsTitleText.Text = LocalizationManager.Text("GameEffectsTitle");
+            GeneralSettingsTitleText.Text = LocalizationManager.Text("GeneralSettingsTitle");
+            GeneralSettingsOptionsPanel.ApplyLanguage();
 
             VoiceCollectionsTitleText.Text = LocalizationManager.Text("VoiceCollectionsTitle");
             VoiceCollectionsHintText.Text = LocalizationManager.Text("VoiceCollectionsHint");

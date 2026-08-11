@@ -85,6 +85,8 @@ namespace KillConfirmGameBar.Controls.GameStyles
             comboBox.Foreground = Brush(text);
             comboBox.Background = Brush(field);
             comboBox.BorderBrush = Brush(border);
+            comboBox.BorderThickness = new Thickness(1);
+            comboBox.CornerRadius = new CornerRadius(14);
             comboBox.RequestedTheme = IsDark(field) ? ElementTheme.Dark : ElementTheme.Light;
 
             foreach (object item in comboBox.Items)
@@ -94,6 +96,78 @@ namespace KillConfirmGameBar.Controls.GameStyles
                     comboItem.Foreground = Brush(text);
                     comboItem.Background = Brush(field);
                 }
+            }
+        }
+
+        public static void ApplySoftenedTree(DependencyObject root, GameThemePalette theme)
+        {
+            if (root == null || theme == null)
+            {
+                return;
+            }
+
+            ApplySoftenedTreeCore(root, theme);
+
+            // ContentControl children may not have a visual tree during the first theme pass.
+            // Reapply once the root is loaded so cards never keep the light fallback with light text.
+            if (root is FrameworkElement element && !element.IsLoaded)
+            {
+                RoutedEventHandler loadedHandler = null;
+                loadedHandler = (sender, args) =>
+                {
+                    element.Loaded -= loadedHandler;
+                    ApplySoftenedTreeCore(element, GameThemePalette.Current);
+                };
+                element.Loaded += loadedHandler;
+            }
+        }
+
+        private static void ApplySoftenedTreeCore(DependencyObject root, GameThemePalette theme)
+        {
+            if (root == null || theme == null)
+            {
+                return;
+            }
+
+            if (root is Border border && border.Tag is string borderTag)
+            {
+                if (borderTag == "SoftChoiceCard")
+                {
+                    border.Background = Brush(theme.SubtleField);
+                    border.BorderBrush = Brush(theme.SoftBorder);
+                    border.BorderThickness = new Thickness(1);
+                }
+                else if (borderTag == "CircleChoiceIcon")
+                {
+                    border.Background = Brush(theme.Accent);
+                    border.BorderBrush = Brush(theme.Accent);
+                }
+            }
+            else if (root is ComboBox comboBox)
+            {
+                ApplyCombo(comboBox, theme.Text, theme.SubtleField, theme.SoftBorder);
+            }
+            else if (root is TextBlock textBlock
+                && textBlock.Tag is string textTag
+                && textTag == "SoftChoiceLabel")
+            {
+                textBlock.Foreground = Brush(theme.Text);
+            }
+            else if (root is ToggleSwitch toggleSwitch)
+            {
+                toggleSwitch.Foreground = Brush(theme.Text);
+                toggleSwitch.RequestedTheme = IsDark(theme.Field) ? ElementTheme.Dark : ElementTheme.Light;
+            }
+            else if (root is CheckBox checkBox)
+            {
+                checkBox.Foreground = Brush(theme.Text);
+                checkBox.RequestedTheme = IsDark(theme.Field) ? ElementTheme.Dark : ElementTheme.Light;
+            }
+
+            int childCount = VisualTreeHelper.GetChildrenCount(root);
+            for (int index = 0; index < childCount; index++)
+            {
+                ApplySoftenedTreeCore(VisualTreeHelper.GetChild(root, index), theme);
             }
         }
 

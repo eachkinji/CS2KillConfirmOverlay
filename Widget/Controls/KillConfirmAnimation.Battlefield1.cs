@@ -217,7 +217,7 @@ namespace KillConfirmGameBar.Controls
             double currentTimeMs)
         {
             var textEvent = new Battlefield5ScrollIcon(
-                ResolveBattlefieldKillType(isHeadshot, isKnifeKill, isAssist, false),
+                ResolveBattlefieldKillType(isHeadshot, isKnifeKill, isAssist),
                 null,
                 Battlefield5DisplaySeconds * 1000,
                 Math.Max(0, killCount),
@@ -589,7 +589,6 @@ namespace KillConfirmGameBar.Controls
             using (CanvasTextFormat textFormat = CreateBattlefieldTextFormat())
             {
                 Battlefield1CardLayout layout = CreateBattlefield1CardLayout(asset, textFormat);
-                string destroyText = "Vehicle Destroyed";
                 double cardCenterX = layout.CardBounds.X + (layout.CardBounds.Width / 2.0);
                 double cardCenterY = layout.CardBounds.Y + (layout.CardBounds.Height / 2.0);
                 double translateX = Math.Round(BattlefieldFrameWidth / 2.0);
@@ -648,15 +647,8 @@ namespace KillConfirmGameBar.Controls
                         contentAlpha);
 
                     byte textAlpha = (byte)Math.Max(0, Math.Min(255, Math.Round(contentAlpha * 255)));
-                    if (asset.IsDestroyVehicle)
-                    {
-                        DrawBattlefieldText(drawingSession, destroyText, layout.DestroyX, layout.DestroyY, Battlefield1VictimScale, Color.FromArgb(textAlpha, 255, 255, 255), textFormat);
-                    }
-                    else
-                    {
-                        DrawBattlefieldText(drawingSession, weaponName, layout.WeaponX, layout.WeaponY, Battlefield1WeaponScale, Color.FromArgb(textAlpha, 255, 255, 255), textFormat);
-                        DrawBattlefieldText(drawingSession, victimName, layout.VictimX, layout.VictimY, Battlefield1VictimScale, Color.FromArgb(textAlpha, 255, 0, 0), textFormat);
-                    }
+                    DrawBattlefieldText(drawingSession, weaponName, layout.WeaponX, layout.WeaponY, Battlefield1WeaponScale, Color.FromArgb(textAlpha, 255, 255, 255), textFormat);
+                    DrawBattlefieldText(drawingSession, victimName, layout.VictimX, layout.VictimY, Battlefield1VictimScale, Color.FromArgb(textAlpha, 255, 0, 0), textFormat);
 
                     DrawBattlefieldText(drawingSession, healthText, layout.HealthX, layout.HealthY, Battlefield1HealthScale, Color.FromArgb(textAlpha, 255, 255, 255), textFormat);
                 }

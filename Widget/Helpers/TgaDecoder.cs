@@ -185,7 +185,10 @@ namespace KillConfirmGameBar.Helpers
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"TGA Conversion failed: {ex.Message}");
+                if (KillConfirmGameBar.Services.DeveloperModeSettingsStore.IsEnabled)
+                {
+                    Debug.WriteLine($"TGA Conversion failed: {ex.Message}");
+                }
                 return null;
             }
         }

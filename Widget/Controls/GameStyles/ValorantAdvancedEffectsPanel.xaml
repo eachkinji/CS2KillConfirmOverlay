@@ -18,73 +18,25 @@
                 TextWrapping="WrapWholeWords" />
         </StackPanel>
 
-        <Grid RowSpacing="8" ColumnSpacing="8">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
+        <Grid ColumnSpacing="8">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="110" />
+                <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
             <local:StreakWindowEditor
                 x:Name="StreakEditor"
-                Grid.ColumnSpan="2"
                 SettingsChanged="OnStreakModeSelectionChanged" />
 
-            <TextBlock x:Name="AssistAudioLabel" Grid.Row="1" VerticalAlignment="Center" FontSize="10" FontWeight="SemiBold" Text="Assist audio" />
-            <ToggleSwitch
-                x:Name="AssistAudioToggle"
-                Grid.Row="1"
-                Grid.Column="1"
-                IsOn="False"
-                OffContent="Muted (default)"
-                OnContent="Sound (common)"
-                Toggled="OnAssistAudioToggled" />
+            <Border Grid.Column="1" Style="{StaticResource CompactChoiceCardStyle}">
+                <StackPanel Spacing="6">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <Border Style="{StaticResource CompactCircleIconStyle}"><FontIcon FontSize="13" Foreground="White" Glyph="&#xE8D6;" /></Border>
+                        <TextBlock x:Name="AssistAudioLabel" Style="{StaticResource CompactChoiceLabelStyle}" VerticalAlignment="Center" Text="Assist audio" />
+                    </StackPanel>
+                    <ToggleSwitch x:Name="AssistAudioToggle" MinWidth="0" IsOn="False" OffContent="Muted (default)" OnContent="Sound (common)" Toggled="OnAssistAudioToggled" />
+                </StackPanel>
+            </Border>
 
-            <StackPanel
-                x:Name="DmOptimizeRow"
-                Grid.Row="2"
-                Grid.ColumnSpan="2"
-                Spacing="6"
-                Visibility="Collapsed">
-                <Grid ColumnSpacing="8">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <CheckBox
-                        x:Name="DmOptimizeCheckbox"
-                        VerticalAlignment="Center"
-                        FontSize="11"
-                        Content="Deathmatch optimization"
-                        Checked="OnDmOptimizeToggled"
-                        Unchecked="OnDmOptimizeToggled" />
-                    <ComboBox
-                        x:Name="DmWindowSelector"
-                        Grid.Column="1"
-                        Height="28"
-                        Padding="7,0,12,0"
-                        FontSize="10"
-                        SelectionChanged="OnDmWindowSelectionChanged">
-                        <ComboBoxItem x:Name="DmWindow1sItem" Tag="1">1s</ComboBoxItem>
-                        <ComboBoxItem x:Name="DmWindow2sItem" Tag="2">2s</ComboBoxItem>
-                        <ComboBoxItem x:Name="DmWindow3sItem" Tag="3">3s</ComboBoxItem>
-                        <ComboBoxItem x:Name="DmWindow5sItem" Tag="5">5s</ComboBoxItem>
-                        <ComboBoxItem x:Name="DmWindow10sItem" Tag="10">10s</ComboBoxItem>
-                        <ComboBoxItem x:Name="DmWindow15sItem" Tag="15">15s</ComboBoxItem>
-                        <ComboBoxItem x:Name="DmWindow30sItem" Tag="30">30s</ComboBoxItem>
-                        <ComboBoxItem x:Name="DmWindow60sItem" Tag="60">60s</ComboBoxItem>
-                    </ComboBox>
-                </Grid>
-                <TextBlock
-                    x:Name="DmOptimizeHint"
-                    FontSize="10"
-                    Opacity="0.7"
-                    LineHeight="14"
-                    TextWrapping="WrapWholeWords" />
-            </StackPanel>
         </Grid>
 
         <ContentControl x:Name="StylePanelHost" />

@@ -3,8 +3,6 @@ function get_sounds(ctx)
     local base = ctx.base_dir .. "/"
     if ctx.is_headshot then
         table.insert(sounds, base .. "headshot.wav")
-    elseif ctx.is_destroy_vehicle then
-        table.insert(sounds, base .. "vehicle.wav")
     elseif ctx.play_main_audio then
         table.insert(sounds, base .. "common.wav")
     end

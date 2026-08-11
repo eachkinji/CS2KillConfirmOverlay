@@ -1,7 +1,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Windows.Networking.Sockets;
 using Windows.Storage;
 using Windows.Web.Http;
 
@@ -29,15 +28,6 @@ namespace KillConfirmGameBar.Services
             return client;
         }
 
-        public static async Task AuthenticateWebSocketAsync(MessageWebSocket socket)
-        {
-            if (socket == null)
-            {
-                throw new ArgumentNullException(nameof(socket));
-            }
-
-            socket.SetRequestHeader(HeaderName, await GetTokenAsync());
-        }
 
         public static void InvalidateCachedToken()
         {

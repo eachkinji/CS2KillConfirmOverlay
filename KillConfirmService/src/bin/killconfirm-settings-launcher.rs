@@ -177,6 +177,10 @@ fn bring_window_to_front(hwnd: HWND) {
 }
 
 fn log(message: &str) {
+    if !env::args_os().any(|arg| arg == "--developer-mode") {
+        return;
+    }
+
     let Some(log_path) = trace_log_path("settings-launcher.log") else {
         return;
     };

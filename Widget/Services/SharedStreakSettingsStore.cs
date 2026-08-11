@@ -1,8 +1,12 @@
 using System;
 using System.Globalization;
+using System.Threading.Tasks;
+using Windows.Data.Json;
 using Windows.Storage;
+using Windows.Storage.Streams;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.Web.Http;
 
 namespace KillConfirmGameBar.Services
 {
@@ -22,14 +26,52 @@ namespace KillConfirmGameBar.Services
         private const string CustomModePrefix = "custom:";
         private const string SettingPrefix = "KillStreakMode_";
         private const string LegacySharedSettingKey = "SharedStreakMode";
-        private const string DmOptimizePrefix = "KillStreakDmOptimize_";
-        private const string DmWindowPrefix = "KillStreakDmWindow_";
-
-        public const int DefaultDmWindowSeconds = 5;
+        private const string SpectatedKillEffectsSettingKey = "SpectatedKillEffectsEnabled";
+        private static readonly Uri SpectatorSettingsUri =
+            new Uri("http://127.0.0.1:10087/spectator/settings");
 
         public static bool IsSupported(GameStyleMode style)
         {
             return style != GameStyleMode.Crossfire;
+        }
+
+        public static bool LoadSpectatedKillEffects()
+        {
+            object value = ApplicationData.Current.LocalSettings.Values[SpectatedKillEffectsSettingKey];
+            if (value is bool enabled)
+            {
+                return enabled;
+            }
+
+            if (value is string text && bool.TryParse(text, out bool parsed))
+            {
+                return parsed;
+            }
+
+            return true;
+        }
+
+        public static void SaveSpectatedKillEffects(bool enabled)
+        {
+            ApplicationData.Current.LocalSettings.Values[SpectatedKillEffectsSettingKey] = enabled;
+        }
+
+        public static async Task SyncSpectatedKillEffectsAsync()
+        {
+            var request = new JsonObject
+            {
+                ["enabled"] = JsonValue.CreateBooleanValue(LoadSpectatedKillEffects())
+            };
+
+            using (var client = await LocalServiceAuth.CreateHttpClientAsync())
+            using (var content = new HttpStringContent(
+                request.Stringify(),
+                UnicodeEncoding.Utf8,
+                "application/json"))
+            using (HttpResponseMessage response = await client.PostAsync(SpectatorSettingsUri, content))
+            {
+                response.EnsureSuccessStatusCode();
+            }
         }
 
         public static string Load(GameStyleMode style)
@@ -276,76 +318,5 @@ namespace KillConfirmGameBar.Services
             return SettingPrefix + GameStyleService.ToStorageValue(style);
         }
 
-        private static string DmOptimizeKey(GameStyleMode style)
-        {
-            return DmOptimizePrefix + GameStyleService.ToStorageValue(style);
-        }
-
-        private static string DmWindowKey(GameStyleMode style)
-        {
-            return DmWindowPrefix + GameStyleService.ToStorageValue(style);
-        }
-
-        public static bool LoadDmOptimize(GameStyleMode style)
-        {
-            if (!IsSupported(style))
-            {
-                return false;
-            }
-
-            object value = ApplicationData.Current.LocalSettings.Values[DmOptimizeKey(style)];
-            if (value is bool boolValue)
-            {
-                return boolValue;
-            }
-
-            if (value is string text && bool.TryParse(text, out bool parsed))
-            {
-                return parsed;
-            }
-
-            return false;
-        }
-
-        public static void SaveDmOptimize(GameStyleMode style, bool enabled)
-        {
-            if (!IsSupported(style))
-            {
-                return;
-            }
-
-            ApplicationData.Current.LocalSettings.Values[DmOptimizeKey(style)] = enabled;
-        }
-
-        public static int LoadDmWindowSeconds(GameStyleMode style)
-        {
-            if (!IsSupported(style))
-            {
-                return DefaultDmWindowSeconds;
-            }
-
-            object value = ApplicationData.Current.LocalSettings.Values[DmWindowKey(style)];
-            if (value is int intValue)
-            {
-                return intValue;
-            }
-
-            if (value is string text && int.TryParse(text, out int parsed))
-            {
-                return parsed;
-            }
-
-            return DefaultDmWindowSeconds;
-        }
-
-        public static void SaveDmWindowSeconds(GameStyleMode style, int seconds)
-        {
-            if (!IsSupported(style))
-            {
-                return;
-            }
-
-            ApplicationData.Current.LocalSettings.Values[DmWindowKey(style)] = seconds;
-        }
     }
 }

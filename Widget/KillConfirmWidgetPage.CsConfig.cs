@@ -16,6 +16,31 @@ namespace KillConfirmGameBar
 {
     public sealed partial class KillConfirmWidgetPage
     {
+        private bool IsCsgoLegacyCfgMode =>
+            string.Equals(
+                _loadedCsGameVersion,
+                GsiGameVersionSettingsStore.CsgoLegacy,
+                StringComparison.Ordinal);
+
+        private string CurrentCsInstallFolderAccessToken => IsCsgoLegacyCfgMode
+            ? CsgoLegacyInstallFolderAccessToken
+            : Cs2InstallFolderAccessToken;
+
+        private string CurrentCsInstallFolderTokenSettingKey => IsCsgoLegacyCfgMode
+            ? CsgoLegacyInstallFolderTokenSettingKey
+            : Cs2InstallFolderTokenSettingKey;
+
+        private string CurrentCsInstallFolderPathSettingKey => IsCsgoLegacyCfgMode
+            ? CsgoLegacyInstallFolderPathSettingKey
+            : Cs2InstallFolderPathSettingKey;
+
+        private void OnGsiGameVersionChanged(object sender, EventArgs e)
+        {
+            _ = Dispatcher.RunAsync(
+                Windows.UI.Core.CoreDispatcherPriority.Normal,
+                () => { _ = LoadSavedCsFolderAsync(); });
+        }
+
         private async void OnSelectCsFolderClick(object sender, RoutedEventArgs e)
         {
             var picker = new FolderPicker
@@ -72,7 +97,9 @@ namespace KillConfirmGameBar
 
         private async Task LoadSavedCsFolderAsync()
         {
-            string token = ApplicationData.Current.LocalSettings.Values[CsInstallFolderTokenSettingKey] as string;
+            _loadedCsGameVersion = GsiGameVersionSettingsStore.Load();
+            _csInstallFolder = null;
+            string token = ApplicationData.Current.LocalSettings.Values[CurrentCsInstallFolderTokenSettingKey] as string;
             if (string.IsNullOrWhiteSpace(token))
             {
                 await TryAutoDetectCsFolderAsync();
@@ -111,8 +138,12 @@ namespace KillConfirmGameBar
                     return;
                 }
 
+                var rootUri = new Uri(
+                    CounterStrikeRootUri
+                    + "?version="
+                    + Uri.EscapeDataString(_loadedCsGameVersion));
                 using (var client = await LocalServiceAuth.CreateHttpClientAsync())
-                using (HttpResponseMessage response = await client.GetAsync(Cs2RootUri))
+                using (HttpResponseMessage response = await client.GetAsync(rootUri))
                 {
                     if (!response.IsSuccessStatusCode)
                     {
@@ -140,7 +171,7 @@ namespace KillConfirmGameBar
                     catch (Exception ex)
                     {
                         App.Log("Auto-detected CS folder, but folder access failed: " + ex);
-                        ApplicationData.Current.LocalSettings.Values[CsInstallFolderPathSettingKey] = path;
+                        ApplicationData.Current.LocalSettings.Values[CurrentCsInstallFolderPathSettingKey] = path;
                         UpdateCfgStatus(CfgDetectionState.NotSelected, null, LocalizationManager.Text("CfgDetectedNeedConfirm") + path);
                     }
                 }
@@ -154,9 +185,9 @@ namespace KillConfirmGameBar
 
         private void SaveCsFolder(StorageFolder folder)
         {
-            StorageApplicationPermissions.FutureAccessList.AddOrReplace(CsInstallFolderAccessToken, folder);
-            ApplicationData.Current.LocalSettings.Values[CsInstallFolderTokenSettingKey] = CsInstallFolderAccessToken;
-            ApplicationData.Current.LocalSettings.Values[CsInstallFolderPathSettingKey] = folder.Path;
+            StorageApplicationPermissions.FutureAccessList.AddOrReplace(CurrentCsInstallFolderAccessToken, folder);
+            ApplicationData.Current.LocalSettings.Values[CurrentCsInstallFolderTokenSettingKey] = CurrentCsInstallFolderAccessToken;
+            ApplicationData.Current.LocalSettings.Values[CurrentCsInstallFolderPathSettingKey] = folder.Path;
             _csInstallFolder = folder;
         }
 
@@ -247,7 +278,7 @@ namespace KillConfirmGameBar
 
         private string GetCsFolderDisplayText()
         {
-            string savedPath = ApplicationData.Current.LocalSettings.Values[CsInstallFolderPathSettingKey] as string;
+            string savedPath = ApplicationData.Current.LocalSettings.Values[CurrentCsInstallFolderPathSettingKey] as string;
             if (!string.IsNullOrWhiteSpace(savedPath))
             {
                 return savedPath;
@@ -256,12 +287,21 @@ namespace KillConfirmGameBar
             return _csInstallFolder?.Path ?? _csInstallFolder?.Name ?? "Counter-Strike Global Offensive";
         }
 
-        private static async Task<StorageFolder> TryGetCfgFolderAsync(StorageFolder root)
+        private async Task<StorageFolder> TryGetCfgFolderAsync(StorageFolder root)
         {
             try
             {
-                StorageFolder gameFolder = await root.GetFolderAsync("game");
-                StorageFolder csgoFolder = await gameFolder.GetFolderAsync("csgo");
+                StorageFolder csgoFolder;
+                if (IsCsgoLegacyCfgMode)
+                {
+                    await root.GetFileAsync("csgo.exe");
+                    csgoFolder = await root.GetFolderAsync("csgo");
+                }
+                else
+                {
+                    StorageFolder gameFolder = await root.GetFolderAsync("game");
+                    csgoFolder = await gameFolder.GetFolderAsync("csgo");
+                }
                 return await csgoFolder.GetFolderAsync("cfg");
             }
             catch
@@ -270,10 +310,19 @@ namespace KillConfirmGameBar
             }
         }
 
-        private static async Task<StorageFolder> GetOrCreateCfgFolderAsync(StorageFolder root)
+        private async Task<StorageFolder> GetOrCreateCfgFolderAsync(StorageFolder root)
         {
-            StorageFolder gameFolder = await root.CreateFolderAsync("game", CreationCollisionOption.OpenIfExists);
-            StorageFolder csgoFolder = await gameFolder.CreateFolderAsync("csgo", CreationCollisionOption.OpenIfExists);
+            StorageFolder csgoFolder;
+            if (IsCsgoLegacyCfgMode)
+            {
+                await root.GetFileAsync("csgo.exe");
+                csgoFolder = await root.GetFolderAsync("csgo");
+            }
+            else
+            {
+                StorageFolder gameFolder = await root.GetFolderAsync("game");
+                csgoFolder = await gameFolder.GetFolderAsync("csgo");
+            }
             return await csgoFolder.CreateFolderAsync("cfg", CreationCollisionOption.OpenIfExists);
         }
 

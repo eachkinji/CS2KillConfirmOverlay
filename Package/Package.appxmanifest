@@ -11,12 +11,12 @@
   <Identity
     Name="KillConfirmGameBar.Overlay"
     Publisher="CN=TestXboxGameBar"
-    Version="3.0.4.0" />
+    Version="3.1.14.0" />
 
   <mp:PhoneIdentity PhoneProductId="8f70c4bd-4270-4a4f-a7d1-91ae48dbe9f4" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
 
   <Properties>
-    <DisplayName>Kill Confirm Overlay</DisplayName>
+    <DisplayName>ms-resource:PackageDisplayName</DisplayName>
     <PublisherDisplayName>KillConfirmGameBar</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
@@ -34,10 +34,10 @@
       Executable="$targetnametoken$.exe"
       EntryPoint="KillConfirmGameBar.App">
       <uap:VisualElements
-        DisplayName="Kill Confirm Overlay Setting"
+        DisplayName="ms-resource:AppDisplayName"
         Square150x150Logo="Assets\Square150x150Logo.png"
         Square44x44Logo="Assets\Square44x44Logo.png"
-        Description="Shows kill confirmation animations in Xbox Game Bar"
+        Description="ms-resource:AppDescription"
         BackgroundColor="transparent">
         <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" />
         <uap:SplashScreen Image="Assets\SplashScreen.png" />
@@ -48,8 +48,8 @@
           <uap3:AppExtension
             Name="microsoft.gameBarUIExtension"
             Id="KillConfirmWidget"
-            DisplayName="Kill Confirm Overlay"
-            Description="Shows kill confirmation animations in Xbox Game Bar"
+            DisplayName="ms-resource:GameBarDisplayName"
+            Description="ms-resource:AppDescription"
             PublicFolder="GameBar">
             <uap3:Properties>
               <GameBarWidget Type="Standard">
@@ -82,9 +82,11 @@
         <desktop:Extension Category="windows.fullTrustProcess" Executable="KillConfirmService\cskillconfirm.exe">
           <desktop:FullTrustProcess>
             <desktop:ParameterGroup GroupId="CrossfirePreset" Parameters="--preset crossfire_swat_gr" />
+            <desktop:ParameterGroup GroupId="CrossfirePresetDeveloper" Parameters="--preset crossfire_swat_gr --developer-mode" />
             <desktop:ParameterGroup GroupId="FreeServicePort" Parameters="--free-port 10087" />
             <desktop:ParameterGroup GroupId="OpenRuntimeLogs" Parameters="--open-logs" />
             <desktop:ParameterGroup GroupId="OpenSettingsWindow" Parameters="--open-settings-launcher" />
+            <desktop:ParameterGroup GroupId="OpenSettingsWindowDeveloper" Parameters="--open-settings-launcher --developer-mode" />
             <desktop:ParameterGroup GroupId="DownloadPendingUpdate" Parameters="--download-pending-update" />
             <desktop:ParameterGroup GroupId="RunPendingUpdate" Parameters="--run-pending-update" />
             <desktop:ParameterGroup GroupId="OpenQuarkUpdate" Parameters="--open-quark-update" />

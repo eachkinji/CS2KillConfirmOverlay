@@ -161,7 +161,20 @@ namespace KillConfirmGameBar
             var deferral = e.SuspendingOperation.GetDeferral();
             try
             {
-                await ShutdownCompanionFromCurrentFrameAsync();
+                bool settingsWindow =
+                    Window.Current.Content is Frame frame && frame.Content is MainPage;
+                bool keepRunning = settingsWindow
+                    && Services.CloseBehaviorSettingsStore.KeepRunningAfterSettingsClose;
+                if (keepRunning)
+                {
+                    // The settings window may close, but its full-trust companion keeps
+                    // serving the widget and game integrations in the background.
+                    Log("Settings window suspended; companion left running by close behavior.");
+                }
+                else
+                {
+                    await ShutdownCompanionFromCurrentFrameAsync();
+                }
                 _gameBarWidget = null;
                 Log("App suspending.");
             }
@@ -241,6 +254,11 @@ namespace KillConfirmGameBar
 
         internal static void Log(string message)
         {
+            if (!Services.DeveloperModeSettingsStore.IsEnabled)
+            {
+                return;
+            }
+
             try
             {
                 string folderPath = ApplicationData.Current.LocalFolder.Path;

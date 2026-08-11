@@ -1,32 +1,35 @@
 use std::{
+    ffi::OsStr,
     fs,
+    os::windows::ffi::OsStrExt,
     path::PathBuf,
-    process::Command,
+    ptr,
     sync::Arc,
     sync::atomic::Ordering,
-    time::{SystemTime, UNIX_EPOCH},
+    time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
 use axum::{
     Json,
-    extract::{
-        Path, Query, State,
-        ws::{Message, WebSocket, WebSocketUpgrade},
-    },
-    response::IntoResponse,
+    extract::{Path, Query, State},
+    http::{HeaderValue, StatusCode, header::CACHE_CONTROL},
+    response::{IntoResponse, Response},
 };
 use serde::{Deserialize, Serialize};
-use tokio::sync::broadcast;
-use tracing::{debug, error, warn};
+use tracing::error;
+use windows_sys::Win32::Foundation::ERROR_SUCCESS;
+use windows_sys::Win32::System::Registry::{
+    HKEY, HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE, RRF_RT_REG_EXPAND_SZ, RRF_RT_REG_SZ, RegGetValueW,
+};
 
 use crate::soundpack::Preset;
 use crate::soundpack::sound::{play_audio, warm_audio_cache};
-use crate::util::logging::service_log;
+use crate::util::logging::{developer_logging_enabled, service_log, set_developer_logging_enabled};
 use crate::util::playback::{get_output_stream_with_name, output_device_names};
 
 use super::state::{
-    AppState, CrossfireStreakMode, KillEvent, MoneyRewardMode, format_streak_setting,
-    parse_streak_setting,
+    AppState, CrossfireStreakMode, EventBatch, EventChannel, GsiGameVersion, KillEvent,
+    MoneyRewardMode, format_streak_setting, parse_streak_setting,
 };
 
 #[derive(Debug, Deserialize)]
@@ -49,6 +52,15 @@ pub struct TestEventQuery {
     pub target_name: Option<String>,
     pub steamid: Option<String>,
 }
+
+#[derive(Debug, Deserialize)]
+pub struct EventsPollQuery {
+    pub after: Option<u64>,
+    pub wait_ms: Option<u64>,
+    pub skip_backlog: Option<bool>,
+}
+
+const MAX_EVENT_POLL_WAIT_MS: u64 = 8_000;
 
 #[derive(Debug, Serialize)]
 pub struct HealthResponse {
@@ -105,13 +117,24 @@ pub struct StreakSettingsRequest {
     pub active: bool,
     pub streak_mode: String,
     #[serde(default)]
-    pub dm_optimize: bool,
-    #[serde(default)]
-    pub dm_window_ms: u64,
-    #[serde(default)]
     pub assist_audio_enabled: bool,
     #[serde(default)]
     pub assist_audio_setting_active: bool,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct SpectatorSettingsRequest {
+    pub enabled: bool,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct GsiGameSettingsRequest {
+    pub version: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct DeveloperSettingsRequest {
+    pub enabled: bool,
 }
 
 #[derive(Debug, Serialize)]
@@ -142,15 +165,33 @@ pub struct CrossfireSettingsResponse {
 pub struct StreakSettingsResponse {
     pub active: bool,
     pub streak_mode: String,
-    pub dm_optimize: bool,
-    pub dm_window_ms: u64,
     pub assist_audio_enabled: bool,
+}
+
+#[derive(Debug, Serialize)]
+pub struct SpectatorSettingsResponse {
+    pub enabled: bool,
+}
+
+#[derive(Debug, Serialize)]
+pub struct GsiGameSettingsResponse {
+    pub version: &'static str,
+}
+
+#[derive(Debug, Serialize)]
+pub struct DeveloperSettingsResponse {
+    pub enabled: bool,
 }
 
 #[derive(Debug, Serialize)]
 pub struct Cs2RootResponse {
     pub found: bool,
     pub path: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct CounterStrikeRootQuery {
+    pub version: Option<String>,
 }
 
 #[derive(Clone, Copy, Debug, Serialize)]
@@ -382,6 +423,25 @@ pub async fn cs2_root() -> Json<Cs2RootResponse> {
     })
 }
 
+pub async fn counter_strike_root(
+    Query(query): Query<CounterStrikeRootQuery>,
+) -> Result<Json<Cs2RootResponse>, (StatusCode, String)> {
+    let version = match query.version.as_deref() {
+        Some(value) => GsiGameVersion::from_str(value).ok_or_else(|| {
+            (
+                StatusCode::BAD_REQUEST,
+                "version must be 'cs2' or 'csgo_legacy'".to_string(),
+            )
+        })?,
+        None => GsiGameVersion::DEFAULT,
+    };
+    let path = detect_counter_strike_root(version);
+    Ok(Json(Cs2RootResponse {
+        found: path.is_some(),
+        path: path.map(|value| value.display().to_string()),
+    }))
+}
+
 pub async fn shutdown(State(app_state): State<Arc<AppState>>) -> Json<HealthResponse> {
     let _ = app_state.shutdown_tx.send(());
     Json(HealthResponse {
@@ -580,10 +640,8 @@ pub async fn set_crossfire_settings(
         || (request.active && previous_shared_active)
     {
         let mut mutable = app_state.mutable.write().await;
-        for player in mutable.players.values_mut() {
-            player.crossfire_streak_kills = 0;
-            player.last_crossfire_kill_at = None;
-        }
+        mutable.active_player.crossfire_streak_kills = 0;
+        mutable.active_player.last_crossfire_kill_at = None;
     }
 
     service_log(&format!(
@@ -627,17 +685,6 @@ pub async fn set_streak_settings(
     let previous_active = app_state
         .shared_streak_mode_active
         .swap(request.active, Ordering::Relaxed);
-    // 死斗优化窗口同样限制在合法范围内，防止客户端传入 0 或异常值导致判定失效。
-    let dm_window_ms = request.dm_window_ms.clamp(
-        crate::util::state::MIN_CUSTOM_STREAK_WINDOW_MS,
-        crate::util::state::MAX_CUSTOM_STREAK_WINDOW_MS,
-    );
-    let previous_dm_optimize = app_state
-        .shared_dm_optimize
-        .swap(request.dm_optimize, Ordering::Relaxed);
-    let previous_dm_window_ms = app_state
-        .shared_dm_window_ms
-        .swap(dm_window_ms, Ordering::Relaxed);
     let previous_crossfire_active = if request.active {
         app_state
             .crossfire_mode_active
@@ -658,28 +705,101 @@ pub async fn set_streak_settings(
     if previous_mode != streak_mode.as_u8()
         || previous_window_ms != streak_window_ms
         || previous_active != request.active
-        || previous_dm_optimize != request.dm_optimize
-        || previous_dm_window_ms != dm_window_ms
         || (request.active && previous_crossfire_active)
     {
         let mut mutable = app_state.mutable.write().await;
-        for player in mutable.players.values_mut() {
-            player.crossfire_streak_kills = 0;
-            player.last_crossfire_kill_at = None;
-        }
+        mutable.active_player.crossfire_streak_kills = 0;
+        mutable.active_player.last_crossfire_kill_at = None;
     }
 
     service_log(&format!(
-        "shared streak settings: active={}, streak={}, dm_optimize={}, dm_window_ms={}, assist_audio={}, assist_audio_controlled={}",
+        "shared streak settings: active={}, streak={}, assist_audio={}, assist_audio_controlled={}",
         request.active,
         format_streak_setting(streak_mode, streak_window_ms),
-        request.dm_optimize,
-        dm_window_ms,
         request.assist_audio_enabled,
         request.assist_audio_setting_active
     ));
 
     Ok(Json(streak_settings_response(&app_state)))
+}
+
+pub async fn spectator_settings(
+    State(app_state): State<Arc<AppState>>,
+) -> Json<SpectatorSettingsResponse> {
+    Json(spectator_settings_response(&app_state))
+}
+
+pub async fn set_spectator_settings(
+    State(app_state): State<Arc<AppState>>,
+    Json(request): Json<SpectatorSettingsRequest>,
+) -> Json<SpectatorSettingsResponse> {
+    let previous = app_state
+        .spectated_kill_effects_enabled
+        .swap(request.enabled, Ordering::Relaxed);
+
+    if previous != request.enabled {
+        // Treat the next GSI sample as a baseline so enabling this setting cannot
+        // replay kills that happened before the user changed it.
+        let mut mutable = app_state.mutable.write().await;
+        mutable.active_observed_player_id = None;
+        mutable.active_player.pending_last_kill = None;
+    }
+
+    service_log(&format!(
+        "spectated player kill effects enabled: {}",
+        request.enabled
+    ));
+    Json(spectator_settings_response(&app_state))
+}
+
+pub async fn gsi_game_settings(
+    State(app_state): State<Arc<AppState>>,
+) -> Json<GsiGameSettingsResponse> {
+    Json(gsi_game_settings_response(&app_state))
+}
+
+pub async fn set_gsi_game_settings(
+    State(app_state): State<Arc<AppState>>,
+    Json(request): Json<GsiGameSettingsRequest>,
+) -> Result<Json<GsiGameSettingsResponse>, (StatusCode, String)> {
+    let Some(version) = GsiGameVersion::from_str(&request.version) else {
+        return Err((
+            StatusCode::BAD_REQUEST,
+            "version must be 'cs2' or 'csgo_legacy'".to_string(),
+        ));
+    };
+
+    let previous = app_state
+        .gsi_game_version
+        .swap(version.as_u8(), Ordering::Relaxed);
+    if previous != version.as_u8() {
+        // A parser switch starts a new baseline. Never compare a Legacy sample
+        // against counters captured by the CS2 parser (or vice versa).
+        let mut mutable = app_state.mutable.write().await;
+        mutable.active_player = Default::default();
+        mutable.active_observed_player_id = None;
+        mutable.last_bomb_state = None;
+        mutable.last_bomb_player = None;
+    }
+
+    service_log(&format!("GSI game version: {}", version.as_str()));
+    Ok(Json(gsi_game_settings_response(&app_state)))
+}
+
+pub async fn developer_settings() -> Json<DeveloperSettingsResponse> {
+    Json(DeveloperSettingsResponse {
+        enabled: developer_logging_enabled(),
+    })
+}
+
+pub async fn set_developer_settings(
+    Json(request): Json<DeveloperSettingsRequest>,
+) -> Json<DeveloperSettingsResponse> {
+    set_developer_logging_enabled(request.enabled);
+    service_log("developer logging enabled");
+    Json(DeveloperSettingsResponse {
+        enabled: request.enabled,
+    })
 }
 
 pub async fn soundpack(State(app_state): State<Arc<AppState>>) -> Json<SoundPackResponse> {
@@ -748,13 +868,40 @@ pub async fn set_soundpack(
     Ok(Json(soundpack_response(preset_name, &display_name)))
 }
 
-pub async fn events_ws(
-    ws: WebSocketUpgrade,
+pub async fn events_poll(
+    Query(query): Query<EventsPollQuery>,
     State(app_state): State<Arc<AppState>>,
-) -> impl IntoResponse {
-    let rx = app_state.event_tx.subscribe();
-    let shutdown_rx = app_state.shutdown_tx.subscribe();
-    ws.on_upgrade(move |socket| send_events(socket, rx, shutdown_rx))
+) -> Response {
+    if query.skip_backlog.unwrap_or(false) {
+        let mut response = Json(EventBatch {
+            cursor: app_state.events.latest_cursor(),
+            dropped: 0,
+            events: Vec::new(),
+        })
+        .into_response();
+        response
+            .headers_mut()
+            .insert(CACHE_CONTROL, HeaderValue::from_static("no-store"));
+        return response;
+    }
+
+    let after = query.after.unwrap_or(0);
+    let wait_ms = query
+        .wait_ms
+        .unwrap_or(MAX_EVENT_POLL_WAIT_MS)
+        .clamp(250, MAX_EVENT_POLL_WAIT_MS);
+    let mut response = match app_state
+        .events
+        .wait_for_events(after, Duration::from_millis(wait_ms))
+        .await
+    {
+        Some(batch) => Json(batch).into_response(),
+        None => StatusCode::NO_CONTENT.into_response(),
+    };
+    response
+        .headers_mut()
+        .insert(CACHE_CONTROL, HeaderValue::from_static("no-store"));
+    response
 }
 
 pub async fn test_event(
@@ -774,6 +921,10 @@ pub async fn test_event(
     ));
 
     let event = KillEvent {
+        event_channel: EventChannel::for_event_kind(
+            query.event_kind.as_deref(),
+            query.assist.unwrap_or(false),
+        ),
         kill_count,
         is_headshot: query.headshot.unwrap_or(false),
         is_knife_kill: query.knife.unwrap_or(false),
@@ -810,7 +961,8 @@ pub async fn test_event(
         steamid: query.steamid.unwrap_or_else(|| "test".to_string()),
     };
 
-    let _ = app_state.event_tx.send(event.clone());
+    let event_id = app_state.events.publish(event.clone()).await;
+    service_log(&format!("test event published: id={event_id}"));
 
     if query.audio.unwrap_or(false) {
         let app_state_clone = app_state.clone();
@@ -826,6 +978,7 @@ pub async fn test_event(
                 event_clone.is_assist,
                 event_clone.money_reward,
                 event_clone.event_kind.clone(),
+                event_clone.event_channel,
                 event_clone.play_main_animation,
             )
             .await;
@@ -939,9 +1092,22 @@ fn streak_settings_response(app_state: &AppState) -> StreakSettingsResponse {
             mode,
             app_state.shared_streak_window_ms.load(Ordering::Relaxed),
         ),
-        dm_optimize: app_state.shared_dm_optimize.load(Ordering::Relaxed),
-        dm_window_ms: app_state.shared_dm_window_ms.load(Ordering::Relaxed),
         assist_audio_enabled: app_state.assist_audio_enabled.load(Ordering::Relaxed),
+    }
+}
+
+fn spectator_settings_response(app_state: &AppState) -> SpectatorSettingsResponse {
+    SpectatorSettingsResponse {
+        enabled: app_state
+            .spectated_kill_effects_enabled
+            .load(Ordering::Relaxed),
+    }
+}
+
+fn gsi_game_settings_response(app_state: &AppState) -> GsiGameSettingsResponse {
+    GsiGameSettingsResponse {
+        version: GsiGameVersion::from_u8(app_state.gsi_game_version.load(Ordering::Relaxed))
+            .as_str(),
     }
 }
 
@@ -954,13 +1120,24 @@ fn soundpack_display_name(preset_name: &str) -> &'static str {
 }
 
 fn detect_cs2_root() -> Option<PathBuf> {
+    detect_counter_strike_root(GsiGameVersion::Cs2)
+}
+
+fn detect_counter_strike_root(version: GsiGameVersion) -> Option<PathBuf> {
     for library_root in steam_library_roots() {
-        let cs2_root = library_root
+        let install_root = library_root
             .join("steamapps")
             .join("common")
             .join("Counter-Strike Global Offensive");
-        if cs2_root.join("game").join("csgo").join("cfg").is_dir() {
-            return Some(cs2_root);
+        let installation_matches = match version {
+            GsiGameVersion::Cs2 => install_root.join("game").join("csgo").join("cfg").is_dir(),
+            GsiGameVersion::CsgoLegacy => {
+                install_root.join("csgo.exe").is_file()
+                    && install_root.join("csgo").join("cfg").is_dir()
+            }
+        };
+        if installation_matches {
+            return Some(install_root);
         }
     }
 
@@ -1007,31 +1184,67 @@ fn steam_roots() -> Vec<PathBuf> {
 }
 
 fn query_registry_string(key: &str, value_name: &str) -> Option<String> {
-    let output = Command::new("reg")
-        .args(["query", key, "/v", value_name])
-        .output()
-        .ok()?;
+    let (root, subkey) = split_registry_key(key)?;
+    let subkey = null_terminated_wide(subkey);
+    let value_name = null_terminated_wide(value_name);
+    let flags = RRF_RT_REG_SZ | RRF_RT_REG_EXPAND_SZ;
+    let mut byte_len = 0u32;
 
-    if !output.status.success() {
+    // Querying the required size first avoids a fixed buffer and keeps this
+    // lookup entirely in-process. No console application is launched.
+    let status = unsafe {
+        RegGetValueW(
+            root,
+            subkey.as_ptr(),
+            value_name.as_ptr(),
+            flags,
+            ptr::null_mut(),
+            ptr::null_mut(),
+            &mut byte_len,
+        )
+    };
+    if status != ERROR_SUCCESS || byte_len < 2 {
         return None;
     }
 
-    let text = String::from_utf8_lossy(&output.stdout);
-    for line in text.lines() {
-        let trimmed = line.trim();
-        if !trimmed.starts_with(value_name) {
-            continue;
-        }
-
-        if let Some(index) = trimmed.find("REG_SZ") {
-            let value = trimmed[index + "REG_SZ".len()..].trim();
-            if !value.is_empty() {
-                return Some(value.to_string());
-            }
-        }
+    let mut buffer = vec![0u16; (byte_len as usize).div_ceil(2)];
+    let status = unsafe {
+        RegGetValueW(
+            root,
+            subkey.as_ptr(),
+            value_name.as_ptr(),
+            flags,
+            ptr::null_mut(),
+            buffer.as_mut_ptr().cast(),
+            &mut byte_len,
+        )
+    };
+    if status != ERROR_SUCCESS {
+        return None;
     }
 
-    None
+    let length = buffer
+        .iter()
+        .position(|value| *value == 0)
+        .unwrap_or(buffer.len());
+    let value = String::from_utf16_lossy(&buffer[..length])
+        .trim()
+        .to_string();
+    (!value.is_empty()).then_some(value)
+}
+
+fn split_registry_key(key: &str) -> Option<(HKEY, &str)> {
+    if let Some(subkey) = key.strip_prefix(r"HKCU\") {
+        Some((HKEY_CURRENT_USER, subkey))
+    } else if let Some(subkey) = key.strip_prefix(r"HKLM\") {
+        Some((HKEY_LOCAL_MACHINE, subkey))
+    } else {
+        None
+    }
+}
+
+fn null_terminated_wide(value: &str) -> Vec<u16> {
+    OsStr::new(value).encode_wide().chain(Some(0)).collect()
 }
 
 fn parse_steam_library_paths(text: &str) -> Vec<PathBuf> {
@@ -1088,40 +1301,4 @@ fn unix_time_ms() -> u64 {
 
 fn zero_to_none(value: u64) -> Option<u64> {
     if value == 0 { None } else { Some(value) }
-}
-
-async fn send_events(
-    mut socket: WebSocket,
-    mut rx: broadcast::Receiver<KillEvent>,
-    mut shutdown_rx: broadcast::Receiver<()>,
-) {
-    debug!("kill event websocket connected");
-
-    loop {
-        let event = tokio::select! {
-            event = rx.recv() => match event {
-                Ok(event) => event,
-                Err(broadcast::error::RecvError::Lagged(skipped)) => {
-                    warn!("kill event websocket skipped {skipped} stale events");
-                    continue;
-                }
-                Err(broadcast::error::RecvError::Closed) => break,
-            },
-            _ = shutdown_rx.recv() => break,
-        };
-
-        let payload = match serde_json::to_string(&event) {
-            Ok(payload) => payload,
-            Err(error) => {
-                warn!("failed to serialize kill event: {error}");
-                continue;
-            }
-        };
-
-        if socket.send(Message::Text(payload.into())).await.is_err() {
-            break;
-        }
-    }
-
-    debug!("kill event websocket disconnected");
 }

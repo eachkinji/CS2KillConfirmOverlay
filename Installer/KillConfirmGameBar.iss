@@ -1,4 +1,3 @@
-#define MyAppName "Kill Confirm Overlay"
 #define MyAppPublisher "KillConfirmGameBar"
 #define MyAppExeName "Install-KillConfirm.ps1"
 
@@ -12,7 +11,7 @@
 
 [Setup]
 AppId={{E0DF6407-CB2E-43D0-8B51-8C8924F50AA1}
-AppName={#MyAppName}
+AppName={cm:InstallerDisplayName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
 DefaultDirName={autopf}\Kill Confirm Overlay
@@ -27,15 +26,17 @@ WizardStyle=modern
 PrivilegesRequired=admin
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
-UninstallDisplayName={#MyAppName}
+UninstallDisplayName={cm:InstallerDisplayName}
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "chinesesimplified"; MessagesFile: "ChineseSimplified.isl"
 
 [CustomMessages]
-english.OpenXboxGameBar=Open Xbox Game Bar
-chinesesimplified.OpenXboxGameBar=Open Xbox Game Bar
+english.InstallerDisplayName=Kill Confirm Overlay Setup Manager
+chinesesimplified.InstallerDisplayName=Kill Confirm Overlay 安装管理器
+english.ControlPanelShortcutName=Kill Confirm Overlay Control Panel
+chinesesimplified.ControlPanelShortcutName=Kill Confirm Overlay 控制面板
 english.InstallingOverlay=Installing Kill Confirm Overlay...
 chinesesimplified.InstallingOverlay=Installing Kill Confirm Overlay...
 english.CheckingPrerequisites=Checking required VCLibs and Xbox Game Bar components...
@@ -51,14 +52,14 @@ chinesesimplified.SameOrNewerVersionBlocked=当前电脑已经安装了相同版
 
 [InstallDelete]
 Type: filesandordirs; Name: "{app}\Payload"
+Type: files; Name: "{group}\{cm:ControlPanelShortcutName}.lnk"
+Type: files; Name: "{group}\Open Xbox Game Bar.lnk"
+Type: dirifempty; Name: "{group}"
+Type: files; Name: "{autodesktop}\{cm:ControlPanelShortcutName}.lnk"
 
 [Files]
 Source: "{#TransferRoot}\*"; DestDir: "{app}\Payload"; Flags: ignoreversion recursesubdirs createallsubdirs
-
-[Icons]
-Name: "{autodesktop}\Kill Confirm Overlay 控制面板"; Filename: "explorer.exe"; Parameters: "shell:AppsFolder\KillConfirmGameBar.Overlay_4t2qzenbgqd14!App"
-Name: "{group}\Kill Confirm Overlay 控制面板"; Filename: "explorer.exe"; Parameters: "shell:AppsFolder\KillConfirmGameBar.Overlay_4t2qzenbgqd14!App"
-Name: "{group}\{cm:OpenXboxGameBar}"; Filename: "explorer.exe"; Parameters: "ms-gamebar:"
+Source: "KillConfirmOverlay.ico"; DestDir: "{app}"; Flags: ignoreversion
 
 [UninstallRun]
 Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -Command ""Get-Process -Name cskillconfirm,TestXboxGameBar,KillConfirmOverlay,KillConfirmGameBar,GameBar,GameBarFTServer,GameBarPresenceWriter -ErrorAction SilentlyContinue | Stop-Process -Force; Start-Sleep -Milliseconds 800; $p = Get-AppxPackage -Name KillConfirmGameBar.Overlay -ErrorAction SilentlyContinue | Sort-Object Version -Descending | Select-Object -First 1; if ($p) {{ CheckNetIsolation.exe LoopbackExempt -d \""-n=$($p.PackageFamilyName)\"" 2>$null; $p | Remove-AppxPackage -ErrorAction SilentlyContinue }"""; Flags: runhidden waituntilterminated; RunOnceId: "RemoveAppxPackage"

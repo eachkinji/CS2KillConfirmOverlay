@@ -68,7 +68,6 @@ namespace KillConfirmGameBar.Controls
             {
                 "killicon_df_default.png",
                 "killicon_df_headshot.png",
-                "killicon_df_destroyvehicle.png",
                 "killicon_scrolling_assist.png",
                 "killicon_df_capture.png"
             };
@@ -172,12 +171,10 @@ namespace KillConfirmGameBar.Controls
                 return;
             }
 
-            bool isDestroyVehicle = string.Equals(eventKind, "destroy_vehicle", StringComparison.OrdinalIgnoreCase);
             bool isObjective = IsObjectiveBonusEvent(eventKind);
             string iconFileName = GetDeltaForceIconFileName(
                 isHeadshot,
                 isAssist,
-                isDestroyVehicle,
                 isObjective);
 
             try
@@ -224,17 +221,11 @@ namespace KillConfirmGameBar.Controls
         private static string GetDeltaForceIconFileName(
             bool isHeadshot,
             bool isAssist,
-            bool isDestroyVehicle,
             bool isObjective)
         {
             if (isHeadshot)
             {
                 return "killicon_df_headshot.png";
-            }
-
-            if (isDestroyVehicle)
-            {
-                return "killicon_df_destroyvehicle.png";
             }
 
             if (isAssist)
@@ -279,11 +270,6 @@ namespace KillConfirmGameBar.Controls
             if (isKnifeKill)
             {
                 return "背刺";
-            }
-
-            if (string.Equals(eventKind, "destroy_vehicle", StringComparison.OrdinalIgnoreCase))
-            {
-                return "摧毁装甲";
             }
 
             return "击杀";

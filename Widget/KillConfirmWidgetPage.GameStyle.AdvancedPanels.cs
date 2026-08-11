@@ -1,7 +1,10 @@
 using KillConfirmGameBar.Controls.GameStyles;
 using KillConfirmGameBar.Services;
 using Windows.Storage;
+using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Controls.Primitives;
+using Windows.UI.Xaml.Media;
 
 namespace KillConfirmGameBar
 {
@@ -118,6 +121,22 @@ namespace KillConfirmGameBar
             ApplyAdvancedEffectsPanelTheme();
             SelectCurrentBattlefieldMoneyRewardMode();
             LoadSharedStreakMode(GameStyleService.Current);
+            if (GameStyleService.Current == GameStyleMode.Crossfire
+                && _crossfireAdvancedEffectsPanel != null)
+            {
+                LoadCrossfireGameplaySettings(_crossfireAdvancedEffectsPanel);
+                LoadEliteEffectSetting();
+                LoadKillFxSetting();
+                LoadWeaponBadgeSetting();
+                LoadMainAnimationStyleSetting();
+            }
+        }
+
+        private void OnAdvancedEffectsButtonClick(object sender, RoutedEventArgs e)
+        {
+            MountAdvancedEffectsPanel();
+            AdvancedEffectsGeneralSettingsPanel.RefreshSettings();
+            FlyoutBase.ShowAttachedFlyout(AdvancedEffectsButton);
         }
 
         private CrossfireAdvancedEffectsPanel EnsureCrossfireAdvancedEffectsPanel()
@@ -136,7 +155,6 @@ namespace KillConfirmGameBar
                 _crossfireAdvancedEffectsPanel.FirstKillEffectToggled += OnCrossfireGameplaySettingChanged;
                 _crossfireAdvancedEffectsPanel.LastKillEffectToggled += OnCrossfireGameplaySettingChanged;
                 _crossfireAdvancedEffectsPanel.AssistAudioToggled += OnCrossfireGameplaySettingChanged;
-                LoadCrossfireGameplaySettings(_crossfireAdvancedEffectsPanel);
             }
 
             return _crossfireAdvancedEffectsPanel;
@@ -151,7 +169,6 @@ namespace KillConfirmGameBar
                 _valorantAdvancedEffectsPanel.SelectAssistAudio(
                     AssistAudioSettingsStore.Load(GameStyleMode.Valorant));
                 _valorantAdvancedEffectsPanel.StreakModeSelectionChanged += OnSharedStreakModeSelectionChanged;
-                _valorantAdvancedEffectsPanel.DmOptimizeChanged += OnValorantDmOptimizeChanged;
                 _valorantAdvancedEffectsPanel.AssistAudioToggled += OnValorantAssistAudioToggled;
                 LoadSharedStreakMode(GameStyleMode.Valorant);
             }
@@ -190,6 +207,7 @@ namespace KillConfirmGameBar
             if (_battlefield4AdvancedEffectsPanel == null)
             {
                 _battlefield4AdvancedEffectsPanel = new Battlefield4AdvancedEffectsPanel();
+                _battlefield4AdvancedEffectsPanel.MoneyRewardModeSelectionChanged += OnMoneyRewardModeSelectionChanged;
                 _battlefield4AdvancedEffectsPanel.StreakModeSelectionChanged += OnSharedStreakModeSelectionChanged;
                 LoadSharedStreakMode(GameStyleMode.Battlefield4);
             }
@@ -202,6 +220,7 @@ namespace KillConfirmGameBar
             if (_battlefield2042AdvancedEffectsPanel == null)
             {
                 _battlefield2042AdvancedEffectsPanel = new Battlefield2042AdvancedEffectsPanel();
+                _battlefield2042AdvancedEffectsPanel.MoneyRewardModeSelectionChanged += OnMoneyRewardModeSelectionChanged;
                 _battlefield2042AdvancedEffectsPanel.StreakModeSelectionChanged += OnSharedStreakModeSelectionChanged;
                 LoadSharedStreakMode(GameStyleMode.Battlefield2042);
             }
@@ -214,6 +233,7 @@ namespace KillConfirmGameBar
             if (_pubgAdvancedEffectsPanel == null)
             {
                 _pubgAdvancedEffectsPanel = new PubgAdvancedEffectsPanel();
+                _pubgAdvancedEffectsPanel.MoneyRewardModeSelectionChanged += OnMoneyRewardModeSelectionChanged;
                 _pubgAdvancedEffectsPanel.StreakModeSelectionChanged += OnSharedStreakModeSelectionChanged;
                 LoadSharedStreakMode(GameStyleMode.Pubg);
             }
@@ -226,6 +246,7 @@ namespace KillConfirmGameBar
             if (_deltaForceAdvancedEffectsPanel == null)
             {
                 _deltaForceAdvancedEffectsPanel = new DeltaForceAdvancedEffectsPanel();
+                _deltaForceAdvancedEffectsPanel.MoneyRewardModeSelectionChanged += OnMoneyRewardModeSelectionChanged;
                 _deltaForceAdvancedEffectsPanel.StreakModeSelectionChanged += OnSharedStreakModeSelectionChanged;
                 LoadSharedStreakMode(GameStyleMode.DeltaForce);
             }
@@ -236,6 +257,15 @@ namespace KillConfirmGameBar
         private void ApplyAdvancedEffectsPanelTheme()
         {
             GameThemePalette theme = GameThemePalette.Current;
+            AdvancedEffectsFlyoutCard.Background = new SolidColorBrush(theme.Shell);
+            AdvancedEffectsFlyoutCard.BorderBrush = new SolidColorBrush(theme.SoftBorder);
+            AdvancedEffectsGameCard.Background = new SolidColorBrush(theme.Panel);
+            AdvancedEffectsGameCard.BorderBrush = new SolidColorBrush(theme.Border);
+            AdvancedEffectsGeneralCard.Background = new SolidColorBrush(theme.Panel);
+            AdvancedEffectsGeneralCard.BorderBrush = new SolidColorBrush(theme.Border);
+            AdvancedEffectsGameTitleText.Foreground = new SolidColorBrush(theme.Text);
+            AdvancedEffectsGeneralTitleText.Foreground = new SolidColorBrush(theme.Text);
+            AdvancedEffectsGeneralSettingsPanel.ApplyTheme(theme);
             if (_crossfireAdvancedEffectsPanel != null)
             {
                 _crossfireAdvancedEffectsPanel.ApplyTheme(theme);
@@ -275,11 +305,19 @@ namespace KillConfirmGameBar
             {
                 _deltaForceAdvancedEffectsPanel.ApplyTheme(theme);
             }
+
+            AdvancedEffectsPanelSupport.ApplySoftenedTree(AdvancedEffectsPanelHost, theme);
+            AdvancedEffectsPanelSupport.ApplySoftenedTree(
+                AdvancedEffectsPanelHost.Content as DependencyObject,
+                theme);
         }
 
         private void ApplyAdvancedEffectsPanelLanguage()
         {
             bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            AdvancedEffectsGameTitleText.Text = LocalizationManager.Text("GameEffectsTitle");
+            AdvancedEffectsGeneralTitleText.Text = LocalizationManager.Text("GeneralSettingsTitle");
+            AdvancedEffectsGeneralSettingsPanel.ApplyLanguage();
             if (_crossfireAdvancedEffectsPanel != null)
             {
                 _crossfireAdvancedEffectsPanel.ApplyLanguage(isChinese);
@@ -337,6 +375,22 @@ namespace KillConfirmGameBar
             else if (AdvancedEffectsPanelHost?.Content == _battlefield5AdvancedEffectsPanel)
             {
                 _battlefield5AdvancedEffectsPanel.SelectMoneyRewardMode(mode, DefaultMoneyRewardMode);
+            }
+            else if (AdvancedEffectsPanelHost?.Content == _battlefield4AdvancedEffectsPanel)
+            {
+                _battlefield4AdvancedEffectsPanel.SelectMoneyRewardMode(mode, DefaultMoneyRewardMode);
+            }
+            else if (AdvancedEffectsPanelHost?.Content == _battlefield2042AdvancedEffectsPanel)
+            {
+                _battlefield2042AdvancedEffectsPanel.SelectMoneyRewardMode(mode, DefaultMoneyRewardMode);
+            }
+            else if (AdvancedEffectsPanelHost?.Content == _pubgAdvancedEffectsPanel)
+            {
+                _pubgAdvancedEffectsPanel.SelectMoneyRewardMode(mode, DefaultMoneyRewardMode);
+            }
+            else if (AdvancedEffectsPanelHost?.Content == _deltaForceAdvancedEffectsPanel)
+            {
+                _deltaForceAdvancedEffectsPanel.SelectMoneyRewardMode(mode, DefaultMoneyRewardMode);
             }
 
             _suppressMoneyRewardModeEvents = false;

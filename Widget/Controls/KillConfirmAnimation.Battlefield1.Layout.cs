@@ -27,8 +27,6 @@ namespace KillConfirmGameBar.Controls
             public double VictimY;
             public double HealthX;
             public double HealthY;
-            public double DestroyX;
-            public double DestroyY;
         }
 
         private static Battlefield1CardLayout CreateBattlefield1CardLayout(BattlefieldKillAsset asset, CanvasTextFormat textFormat)
@@ -48,23 +46,10 @@ namespace KillConfirmGameBar.Controls
             double effHealthW = healthW * Battlefield1HealthScale;
             double effHealthH = BattlefieldTextLineHeight * Battlefield1HealthScale;
 
-            string destroyText = "Vehicle Destroyed";
-            double destroyW = 0;
-            double destroyH = 0;
-            if (asset.IsDestroyVehicle)
-            {
-                destroyW = MeasureBattlefieldTextWidth(destroyText, textFormat) * Battlefield1VictimScale;
-                destroyH = BattlefieldTextLineHeight * Battlefield1VictimScale;
-            }
-
             double stackGap = Battlefield1TextStackGap;
             double textStackHeight = effVictimH + stackGap + effWeaponH;
-            double middleContentWidth = asset.IsDestroyVehicle
-                ? destroyW
-                : Math.Max(effVictimW, effWeaponW);
-            double middleContentHeight = asset.IsDestroyVehicle
-                ? destroyH
-                : textStackHeight;
+            double middleContentWidth = Math.Max(effVictimW, effWeaponW);
+            double middleContentHeight = textStackHeight;
             double panelContentHeight = Math.Max(middleContentHeight, effHealthH);
             double panelHeight = Math.Ceiling(Math.Max(
                 Battlefield1IconSegmentMinWidth,
@@ -92,13 +77,11 @@ namespace KillConfirmGameBar.Controls
             double victimY = -textStackHeight / 2.0;
             double weaponY = victimY + effVictimH + stackGap;
             double healthY = -effHealthH / 2.0;
-            double destroyY = -destroyH / 2.0;
 
             double middleTextRight = middleLeft + middleWidth - Battlefield1MiddleHorizontalPadding;
             double weaponX = middleTextRight - effWeaponW;
             double victimX = middleTextRight - effVictimW;
             double healthX = rightLeft + ((rightWidth - effHealthW) / 2.0);
-            double destroyX = middleTextRight - destroyW;
 
             return new Battlefield1CardLayout
             {
@@ -113,9 +96,7 @@ namespace KillConfirmGameBar.Controls
                 VictimX = victimX,
                 VictimY = victimY,
                 HealthX = healthX,
-                HealthY = healthY,
-                DestroyX = destroyX,
-                DestroyY = destroyY
+                HealthY = healthY
             };
         }
 

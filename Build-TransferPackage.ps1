@@ -30,7 +30,11 @@ $AppPackagesRoot = Join-Path $Root "Package\AppPackages"
 $TransferRoot = Join-Path $WorkspaceRoot ("KillConfirmGameBar_Transfer_{0}" -f $Version)
 $TransferZip = "{0}.zip" -f $TransferRoot
 $ExpectedPackageFamilyName = "KillConfirmGameBar.Overlay_5jgcw66eyez0m"
-$PrerequisiteSourceRoot = Join-Path $WorkspaceRoot "Vclibs"
+# 优先使用仓库内的 Vclibs（CI 构建时可用），否则回退到工作区外的本地资源目录。
+$PrerequisiteSourceRoot = Join-Path $Root "Vclibs"
+if (-not (Test-Path (Join-Path $PrerequisiteSourceRoot "gamebar.AppxBundle"))) {
+    $PrerequisiteSourceRoot = Join-Path $WorkspaceRoot "Vclibs"
+}
 $PrerequisiteFileNames = @(
     "vclibs.appx",
     "vclibs2.appx",

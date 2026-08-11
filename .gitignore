@@ -14,6 +14,9 @@ KillConfirmGameBar_Transfer_*.zip
 *.msixbundle
 *.appx
 *.appxbundle
+# Vclibs prerequisites are committed so CI can build the transfer package.
+!Vclibs/*.appx
+!Vclibs/*.appxbundle
 *.appxsym
 *.exe
 *.pdb
@@ -31,7 +34,8 @@ KillConfirmService/sounds/
 *.snk
 *.key
 *.pem
-*_TemporaryKey.pfx
+# Keep the development test signing certificate tracked so CI can sign the MSIX.
+!Widget/KillConfirmGameBar_TemporaryKey.pfx
 
 # Visual Studio and local user state
 .vs/

@@ -1,0 +1,66 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: choco install innosetup --no-progress -y
+
+      - name: Ensure UWP / Desktop Bridge build workload
+        shell: pwsh
+        run: |
+          $vswhere = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\Installer\vswhere.exe"
+          if (-not (Test-Path $vswhere)) { throw "vswhere not found" }
+          $vsPath = & $vswhere -latest -products * -property installationPath
+          if (-not $vsPath) { throw "Visual Studio installation not found" }
+          $props = Join-Path $vsPath "MSBuild\Microsoft\DesktopBridge\Microsoft.DesktopBridge.props"
+          Write-Host "VS install: $vsPath"
+          Write-Host "DesktopBridge props exists: $(Test-Path $props)"
+          if (-not (Test-Path $props)) {
+            $installer = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\Installer\vs_installer.exe"
+            if (-not (Test-Path $installer)) { throw "vs_installer.exe not found at $installer" }
+            & $installer modify --installPath $vsPath --add Microsoft.VisualStudio.Workload.Universal --quiet --norestart
+            if ($LASTEXITCODE -ne 0) { throw "Failed to install UWP workload (exit $LASTEXITCODE)" }
+          }
+
+      - name: Build full installer package
+        shell: pwsh
+        run: .\Build-Installer.ps1
+
+      - name: Stage release artifacts
+        shell: pwsh
+        run: |
+          $zipRoot = Split-Path $env:GITHUB_WORKSPACE -Parent
+          $zips = Get-ChildItem (Join-Path $zipRoot "KillConfirmGameBar_Transfer_*.zip") -ErrorAction SilentlyContinue
+          $output = Join-Path $env:GITHUB_WORKSPACE "Output"
+          New-Item -ItemType Directory -Force -Path $output | Out-Null
+          foreach ($zip in $zips) {
+            Copy-Item -LiteralPath $zip.FullName -Destination $output -Force
+            Write-Host "Staged: $($zip.Name)"
+          }
+          Get-ChildItem $output | ForEach-Object { Write-Host "Artifact: $($_.Name) ($($_.Length) bytes)" }
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: version.md
+          draft: false
+          files: |
+            Output/*.exe
+            Output/*.zip

@@ -5,3 +5,4 @@ AppPackages/
 *.user
 *.suo
 *.pfx
+!KillConfirmGameBar_TemporaryKey.pfx

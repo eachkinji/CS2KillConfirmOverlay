@@ -961,10 +961,6 @@ fn bootstrap_log(message: &str) {
 }
 
 fn append_trace_log(file_name: &str, message: &str) {
-    if !developer_logging_enabled() {
-        return;
-    }
-
     let Some(log_path) = trace_log_path(file_name) else {
         return;
     };

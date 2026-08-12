@@ -124,6 +124,8 @@ namespace KillConfirmGameBar
         private static readonly Uri SoundPackUri = new Uri("http://127.0.0.1:10087/soundpack");
         private static readonly Uri AudioReloadUri = new Uri("http://127.0.0.1:10087/audio/reload");
         private static readonly Uri AudioVolumeUri = new Uri("http://127.0.0.1:10087/audio/volume");
+        private static readonly Uri AudioDeviceUri = new Uri("http://127.0.0.1:10087/audio/device");
+        private const string AudioDeviceSettingKey = "AudioOutputDevice";
         private static readonly Uri MoneyRewardModeUri = new Uri("http://127.0.0.1:10087/money/mode");
         private static readonly Uri CrossfireSettingsUri = new Uri("http://127.0.0.1:10087/crossfire/settings");
         private static readonly Uri SharedStreakSettingsUri = new Uri("http://127.0.0.1:10087/streak/settings");

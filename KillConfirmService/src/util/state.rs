@@ -123,7 +123,10 @@ impl EventChannel {
     }
 }
 
-const EVENT_QUEUE_CAPACITY: usize = 128;
+// A Game Bar widget that is hidden or suspended can stall its poller for a long
+// time; keep a large enough buffer that a brief stall does not drop kills. Drops
+// still occur and are surfaced via EventBatch.dropped.
+const EVENT_QUEUE_CAPACITY: usize = 1024;
 
 #[derive(Clone, Debug, Serialize)]
 pub struct SequencedKillEvent {

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using KillConfirmGameBar.Services;
 using Windows.Data.Json;
@@ -16,6 +17,43 @@ namespace KillConfirmGameBar
 {
     public sealed partial class KillConfirmWidgetPage
     {
+        private const string SteamFolderName = "steam";
+        private const string SteamAppsFolderName = "steamapps";
+        private const string CommonFolderName = "common";
+        private const string InstallRootFolderName = "Counter-Strike Global Offensive";
+        private const string GameFolderName = "game";
+        private const string CsgoFolderName = "csgo";
+        private const string CfgFolderName = "cfg";
+
+        // Ordered path segments that lead from a picked folder down to the
+        // CS2/CSGO cfg folder. Each segment only branches when the folder
+        // actually exists, so the walk stays on the real install path.
+        private static readonly string[] Cs2CfgResolveSpineNames =
+        {
+            SteamFolderName,
+            SteamAppsFolderName,
+            CommonFolderName,
+            InstallRootFolderName,
+            GameFolderName,
+            CsgoFolderName,
+        };
+
+        // Legacy CS:GO has no game/ folder — its cfg lives at <root>/csgo/cfg.
+        // Excluding "game" here keeps a CS2-only install (game/csgo) from being
+        // mistaken for a legacy install when the user is in CS:GO mode.
+        private static readonly string[] LegacyCfgResolveSpineNames =
+        {
+            SteamFolderName,
+            SteamAppsFolderName,
+            CommonFolderName,
+            InstallRootFolderName,
+            CsgoFolderName,
+        };
+
+        private string[] CfgResolveSpineNames => IsCsgoLegacyCfgMode
+            ? LegacyCfgResolveSpineNames
+            : Cs2CfgResolveSpineNames;
+
         private bool IsCsgoLegacyCfgMode =>
             string.Equals(
                 _loadedCsGameVersion,
@@ -287,22 +325,112 @@ namespace KillConfirmGameBar
             return _csInstallFolder?.Path ?? _csInstallFolder?.Name ?? "Counter-Strike Global Offensive";
         }
 
+        private const int MaxCfgResolveDepth = 10;
+
+        // Resolve the CS2/CSGO cfg folder no matter which level of the install
+        // path the user picked (steam, steamapps, common, the game root, game,
+        // csgo, or cfg itself). The widget only has access to the picked folder's
+        // subtree, so the search walks downward through known path segments and
+        // never tries to reach a parent folder.
         private async Task<StorageFolder> TryGetCfgFolderAsync(StorageFolder root)
+        {
+            if (string.Equals(root.Name, CfgFolderName, StringComparison.OrdinalIgnoreCase))
+            {
+                return root;
+            }
+
+            StorageFolder csgo = await TryResolveCsgoFolderAsync(root, 0);
+            if (csgo == null)
+            {
+                return null;
+            }
+            return await TryGetSubfolderAsync(csgo, CfgFolderName);
+        }
+
+        private async Task<StorageFolder> GetOrCreateCfgFolderAsync(StorageFolder root)
+        {
+            if (string.Equals(root.Name, CfgFolderName, StringComparison.OrdinalIgnoreCase))
+            {
+                return root;
+            }
+
+            StorageFolder csgo = await TryResolveCsgoFolderAsync(root, 0);
+            if (csgo == null)
+            {
+                return null;
+            }
+            return await csgo.CreateFolderAsync(CfgFolderName, CreationCollisionOption.OpenIfExists);
+        }
+
+        // Find the csgo folder below the picked folder. The folder names on the
+        // path are matched case-insensitively; each segment only branches when it
+        // actually exists, so this is a short walk along the real install path
+        // rather than a directory scan.
+        private async Task<StorageFolder> TryResolveCsgoFolderAsync(StorageFolder folder, int depth)
+        {
+            if (string.Equals(folder.Name, CsgoFolderName, StringComparison.OrdinalIgnoreCase))
+            {
+                return folder;
+            }
+
+            StorageFolder fromRoot = await TryCsgoSubfolderOfInstallRootAsync(folder);
+            if (fromRoot != null)
+            {
+                return fromRoot;
+            }
+
+            if (depth >= MaxCfgResolveDepth)
+            {
+                return null;
+            }
+
+            foreach (string name in CfgResolveSpineNames)
+            {
+                StorageFolder child = await TryGetSubfolderAsync(folder, name);
+                if (child == null)
+                {
+                    continue;
+                }
+                StorageFolder result = await TryResolveCsgoFolderAsync(child, depth + 1);
+                if (result != null)
+                {
+                    return result;
+                }
+            }
+
+            // Fallback for a renamed install folder: at the "common" library level,
+            // scan children for one that has the install structure.
+            if (string.Equals(folder.Name, CommonFolderName, StringComparison.OrdinalIgnoreCase))
+            {
+                foreach (StorageFolder child in await TryListSubfoldersAsync(folder, 200))
+                {
+                    StorageFolder fromChild = await TryCsgoSubfolderOfInstallRootAsync(child);
+                    if (fromChild != null)
+                    {
+                        return fromChild;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        // Return the csgo subfolder when folder is the install root of the current
+        // game version: CS2 is <root>/game/csgo, legacy CSGO is <root>/csgo with
+        // csgo.exe present. Keeps the original validation so an unrelated directory
+        // cannot silently become the cfg target.
+        private async Task<StorageFolder> TryCsgoSubfolderOfInstallRootAsync(StorageFolder folder)
         {
             try
             {
-                StorageFolder csgoFolder;
                 if (IsCsgoLegacyCfgMode)
                 {
-                    await root.GetFileAsync("csgo.exe");
-                    csgoFolder = await root.GetFolderAsync("csgo");
+                    await folder.GetFileAsync("csgo.exe");
+                    return await folder.GetFolderAsync(CsgoFolderName);
                 }
-                else
-                {
-                    StorageFolder gameFolder = await root.GetFolderAsync("game");
-                    csgoFolder = await gameFolder.GetFolderAsync("csgo");
-                }
-                return await csgoFolder.GetFolderAsync("cfg");
+
+                StorageFolder game = await folder.GetFolderAsync(GameFolderName);
+                return await game.GetFolderAsync(CsgoFolderName);
             }
             catch
             {
@@ -310,20 +438,37 @@ namespace KillConfirmGameBar
             }
         }
 
-        private async Task<StorageFolder> GetOrCreateCfgFolderAsync(StorageFolder root)
+        private async Task<StorageFolder> TryGetSubfolderAsync(StorageFolder folder, string name)
         {
-            StorageFolder csgoFolder;
-            if (IsCsgoLegacyCfgMode)
+            try
             {
-                await root.GetFileAsync("csgo.exe");
-                csgoFolder = await root.GetFolderAsync("csgo");
+                return await folder.GetFolderAsync(name);
             }
-            else
+            catch
             {
-                StorageFolder gameFolder = await root.GetFolderAsync("game");
-                csgoFolder = await gameFolder.GetFolderAsync("csgo");
+                return null;
             }
-            return await csgoFolder.CreateFolderAsync("cfg", CreationCollisionOption.OpenIfExists);
+        }
+
+        private async Task<List<StorageFolder>> TryListSubfoldersAsync(StorageFolder folder, int limit)
+        {
+            try
+            {
+                var folders = new List<StorageFolder>();
+                foreach (StorageFolder child in await folder.GetFoldersAsync())
+                {
+                    folders.Add(child);
+                    if (folders.Count >= limit)
+                    {
+                        break;
+                    }
+                }
+                return folders;
+            }
+            catch
+            {
+                return new List<StorageFolder>();
+            }
         }
 
         private async Task ShowCfgMessageAsync(string message)

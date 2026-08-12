@@ -22,6 +22,12 @@ Path to the .sig bundle. Defaults to "<ArtifactPath>.sig".
 Path to an existing cosign binary. If omitted, an installed cosign is used,
 otherwise cosign is downloaded to %TEMP%\sigstore on demand.
 
+.PARAMETER CertificateIdentity
+The Fulcio certificate identity the signature must match. Defaults to the
+workflow identity bound to release tags. Releases that were backfilled by
+running the workflow manually on main carry a certificate bound to
+refs/heads/main instead; pass that identity explicitly for those.
+
 .EXAMPLE
 .\verify-release.ps1 -ArtifactPath .\KillConfirmGameBar_Setup_3.1.14.0.exe
 #>
@@ -31,7 +37,9 @@ param(
 
     [string]$SignaturePath = "",
 
-    [string]$CosignPath = ""
+    [string]$CosignPath = "",
+
+    [string]$CertificateIdentity = "https://github.com/eachkinji/CS2KillConfirmOverlay/.github/workflows/sigstore-sign.yml@refs/tags/*"
 )
 
 $ErrorActionPreference = "Stop"
@@ -48,7 +56,6 @@ if (-not (Test-Path -LiteralPath $SignaturePath -PathType Leaf)) {
     throw "Signature bundle not found: $SignaturePath"
 }
 
-$Identity = "https://github.com/eachkinji/CS2KillConfirmOverlay/.github/workflows/sigstore-sign.yml@refs/tags/*"
 $OidcIssuer = "https://token.actions.githubusercontent.com"
 
 function Get-CosignBinary {
@@ -88,7 +95,7 @@ Write-Host "Verifying $ArtifactPath against $SignaturePath ..."
 
 & $cosign verify-blob `
     --bundle $SignaturePath `
-    --certificate-identity $Identity `
+    --certificate-identity $CertificateIdentity `
     --certificate-oidc-issuer $OidcIssuer `
     $ArtifactPath
 

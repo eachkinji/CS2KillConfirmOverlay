@@ -121,7 +121,14 @@ cosign verify-blob \
 On Windows, the repository includes a helper that downloads cosign for you:
 
 ```powershell
-.\verify-release.ps1 -ArtifactPath .\KillConfirmGameBar_Setup_3.1.14.0.exe
+.\verify-release.ps1 -ArtifactPath .\KillConfirmGameBar_Setup_3.1.15.0.exe
+```
+
+Releases published from now on are signed by the `release: published` trigger, so their certificates are bound to the release tag and the command above works as-is. The v3.1.14.0 release was backfilled by running the workflow manually from `main`, so its certificate is bound to `refs/heads/main` instead:
+
+```powershell
+.\verify-release.ps1 -ArtifactPath .\KillConfirmGameBar_Setup_3.1.14.0.exe `
+  -CertificateIdentity "https://github.com/eachkinji/CS2KillConfirmOverlay/.github/workflows/sigstore-sign.yml@refs/heads/main"
 ```
 
 If an artifact is added to a release after it was published, re-run the [Sign release artifacts with Sigstore](https://github.com/eachkinji/CS2KillConfirmOverlay/actions/workflows/sigstore-sign.yml) workflow manually to sign it.

@@ -82,7 +82,14 @@ cosign verify-blob \
 Windows 用户也可以直接使用仓库里的校验脚本，脚本会自动下载 cosign：
 
 ```powershell
-.\verify-release.ps1 -ArtifactPath .\KillConfirmGameBar_Setup_3.1.14.0.exe
+.\verify-release.ps1 -ArtifactPath .\KillConfirmGameBar_Setup_3.1.15.0.exe
+```
+
+以后通过 `release: published` 触发的发布，证书会绑定到 release 的 tag，上面的命令直接可用。`v3.1.14.0` 这个 release 是手动从 `main` 分支补签的，证书绑定的是 `refs/heads/main`，校验时要显式指定身份：
+
+```powershell
+.\verify-release.ps1 -ArtifactPath .\KillConfirmGameBar_Setup_3.1.14.0.exe `
+  -CertificateIdentity "https://github.com/eachkinji/CS2KillConfirmOverlay/.github/workflows/sigstore-sign.yml@refs/heads/main"
 ```
 
 如果发布后又在 release 里补加了产物，需要手动重新运行 [Sign release artifacts with Sigstore](https://github.com/eachkinji/CS2KillConfirmOverlay/actions/workflows/sigstore-sign.yml) 这个 workflow 来补签。

@@ -65,35 +65,6 @@ KillConfirmGameBar 是一个用于 Counter-Strike 2 的击杀确认 Xbox Game Ba
 
 这个项目会使用一个本地 companion service。安装器会帮你安装应用包，并设置 Xbox Game Bar 小组件需要的本地连接。
 
-## Release 签名（Sigstore）
-
-每个已发布的 release 都会使用 [Sigstore](https://www.sigstore.dev/) 的 keyless 签名（Fulcio 签发证书、Rekor 记录日志）。每个 release 产物 `FILE` 旁边会附带对应的 `FILE.sig` 签名包。校验签名包可以证明：这个文件确实来自本仓库的发布，且传输过程中没有被篡改。它**不能**让 Windows SmartScreen/杀毒软件信任该文件（那需要单独的 Authenticode 代码签名证书）。
-
-下载产物后，先安装 [cosign](https://docs.sigstore.dev/cosign/installation/)，然后运行：
-
-```bash
-cosign verify-blob \
-  --bundle FILE.sig \
-  --certificate-identity "https://github.com/eachkinji/CS2KillConfirmOverlay/.github/workflows/sigstore-sign.yml@refs/tags/*" \
-  --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
-  FILE
-```
-
-Windows 用户也可以直接使用仓库里的校验脚本，脚本会自动下载 cosign：
-
-```powershell
-.\verify-release.ps1 -ArtifactPath .\KillConfirmGameBar_Setup_3.1.15.0.exe
-```
-
-以后通过 `release: published` 触发的发布，证书会绑定到 release 的 tag，上面的命令直接可用。`v3.1.14.0` 这个 release 是手动从 `main` 分支补签的，证书绑定的是 `refs/heads/main`，校验时要显式指定身份：
-
-```powershell
-.\verify-release.ps1 -ArtifactPath .\KillConfirmGameBar_Setup_3.1.14.0.exe `
-  -CertificateIdentity "https://github.com/eachkinji/CS2KillConfirmOverlay/.github/workflows/sigstore-sign.yml@refs/heads/main"
-```
-
-如果发布后又在 release 里补加了产物，需要手动重新运行 [Sign release artifacts with Sigstore](https://github.com/eachkinji/CS2KillConfirmOverlay/actions/workflows/sigstore-sign.yml) 这个 workflow 来补签。
-
 ## CS2 Game State Integration
 
 CS2 需要一个 GSI 配置，地址指向：
@@ -149,7 +120,7 @@ https://github.com/st0nie/gsi-cs2-rs/blob/main/gsi_cfg/gamestate_integration_fas
 - 应用只和本机 `127.0.0.1` 上的本地服务通信。
 - 每个语音包里的 `sound.lua` 控制语音播放逻辑。
 - 请只安装你信任来源的语音包。
-- 测试签名文件只用于开发构建。正式发布已使用 Sigstore keyless 签名，详见「[Release 签名（Sigstore）](#release-签名sigstore)」。
+- 测试签名文件只用于开发构建。正式发布建议使用正式证书或可信签名服务。
 
 ## 致谢
 

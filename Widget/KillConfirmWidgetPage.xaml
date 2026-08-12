@@ -467,6 +467,17 @@
                     </Grid>
 
                     <Grid
+                        x:Name="GsiCountRow"
+                        Visibility="Collapsed">
+                        <TextBlock
+                            x:Name="GsiCountText"
+                            FontSize="10"
+                            Foreground="#6B7280"
+                            Text="GSI received"
+                            TextTrimming="CharacterEllipsis" />
+                    </Grid>
+
+                    <Grid
                         x:Name="CfgActionRow"
                         ColumnSpacing="6">
                     <Grid.ColumnDefinitions>

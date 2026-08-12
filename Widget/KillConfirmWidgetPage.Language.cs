@@ -182,7 +182,7 @@ namespace KillConfirmGameBar
             }
             UpdateConnectionState(_serviceConnectionState);
             UpdateCfgStatus(_cfgDetectionState, null, _cfgStatusDetail);
-            UpdateGsiStatus(true, _gsiRecentlySeen, _gsiRecentlySeen ? 1 : 0, null);
+            UpdateGsiStatus(true, _gsiRecentlySeen, _lastGsiPosts, null, _lastGsiParseErrors);
             ApplyGameStyleUi();
             UpdateUpdateButtonVisualState();
         }

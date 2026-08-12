@@ -618,21 +618,24 @@ namespace KillConfirmGameBar
                 {
                     if (!response.IsSuccessStatusCode)
                     {
-                        UpdateGsiStatus(false, false, 0, null);
+                        UpdateGsiStatus(false, false, 0, null, 0);
                         return;
                     }
 
                     string responseText = await response.Content.ReadAsStringAsync();
                     JsonObject json = JsonObject.Parse(responseText);
                     double posts = json.GetNamedNumber("posts", 0);
+                    double parseErrors = json.GetNamedNumber("parse_errors", 0);
                     double? ageMs = TryGetJsonNumber(json, "last_post_age_ms");
                     bool recentlySeen = posts > 0 && ageMs.HasValue && ageMs.Value <= RecentGsiAgeMs;
-                    UpdateGsiStatus(true, recentlySeen, posts, ageMs);
+                    _lastGsiPosts = posts;
+                    _lastGsiParseErrors = parseErrors;
+                    UpdateGsiStatus(true, recentlySeen, posts, ageMs, parseErrors);
                 }
             }
             catch (Exception)
             {
-                UpdateGsiStatus(false, false, 0, null);
+                UpdateGsiStatus(false, false, 0, null, 0);
             }
             finally
             {

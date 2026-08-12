@@ -56,16 +56,19 @@ pub(crate) fn local_state_dir() -> PathBuf {
         .unwrap_or_else(|| PathBuf::from("."))
 }
 
-pub fn service_log(message: &str) {
-    if !developer_logging_enabled() {
-        return;
-    }
+const MAX_SERVICE_LOG_BYTES: u64 = 512 * 1024;
 
+pub fn service_log(message: &str) {
+    // Always write the service log: the widget's startup diagnostics read
+    // service.log to detect port-in-use / auth / crash failures. Developer mode
+    // only gates the verbose tracing output, not these file logs.
     let log_path = local_state_dir().join("service.log");
 
     if let Some(parent) = log_path.parent() {
         let _ = fs::create_dir_all(parent);
     }
+
+    rotate_if_needed(&log_path);
 
     let timestamp_ms = SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -77,4 +80,17 @@ pub fn service_log(message: &str) {
     if let Ok(mut file) = OpenOptions::new().create(true).append(true).open(&log_path) {
         let _ = file.write_all(line.as_bytes());
     }
+}
+
+fn rotate_if_needed(log_path: &Path) {
+    let Ok(metadata) = fs::metadata(log_path) else {
+        return;
+    };
+    if metadata.len() <= MAX_SERVICE_LOG_BYTES {
+        return;
+    }
+
+    let old_path = log_path.with_extension("log.old");
+    let _ = fs::remove_file(&old_path);
+    let _ = fs::rename(log_path, old_path);
 }

@@ -632,6 +632,16 @@ pub async fn set_crossfire_settings(
         app_state
             .assist_audio_setting_active
             .store(true, Ordering::Relaxed);
+    } else if previous_active {
+        // CrossFire and the shared streak mode share these two atomics. When this
+        // mode stops being active, relinquish them so the disabled mode's value
+        // cannot leak into the other mode (or linger when no mode is active).
+        app_state
+            .assist_audio_enabled
+            .store(false, Ordering::Relaxed);
+        app_state
+            .assist_audio_setting_active
+            .store(false, Ordering::Relaxed);
     }
 
     if previous_mode != streak_mode.as_u8()
@@ -700,6 +710,13 @@ pub async fn set_streak_settings(
         app_state
             .assist_audio_setting_active
             .store(request.assist_audio_setting_active, Ordering::Relaxed);
+    } else if previous_active {
+        app_state
+            .assist_audio_enabled
+            .store(false, Ordering::Relaxed);
+        app_state
+            .assist_audio_setting_active
+            .store(false, Ordering::Relaxed);
     }
 
     if previous_mode != streak_mode.as_u8()

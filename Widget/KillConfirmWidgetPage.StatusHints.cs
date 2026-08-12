@@ -112,6 +112,18 @@ namespace KillConfirmGameBar
             ToolTipService.SetToolTip(StatusHintBox, text);
         }
 
+        // Show a one-off hint immediately. The 3-second status-hint rotation
+        // overwrites it on the next tick, so this reads as a brief flash.
+        private void ShowTransientStatusHint(string text, Color color)
+        {
+            if (PinHintText == null)
+            {
+                return;
+            }
+
+            ShowStatusHint(text, color, 0, 1);
+        }
+
         private void UpdateStatusHintProgress(int index, int total)
         {
             if (StatusHintProgressScale == null)

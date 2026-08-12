@@ -30,6 +30,16 @@ namespace KillConfirmGameBar.Services
         public string Detail { get; set; }
     }
 
+    public sealed class EventsDroppedEventArgs : EventArgs
+    {
+        public EventsDroppedEventArgs(ulong dropped)
+        {
+            Dropped = dropped;
+        }
+
+        public ulong Dropped { get; }
+    }
+
     public sealed class KillEvent
     {
         public string EventChannel { get; set; }
@@ -105,6 +115,7 @@ namespace KillConfirmGameBar.Services
         private CancellationTokenSource _runCancellation;
         private ulong _cursor;
         private bool _skipBacklog = true;
+        private DateTimeOffset _lastDroppedNotice = DateTimeOffset.MinValue;
         private long _pollSequence;
         private bool _started;
         private bool _disposed;
@@ -118,6 +129,7 @@ namespace KillConfirmGameBar.Services
         public event EventHandler<KillEvent> KillReceived;
         public event EventHandler<KillEventConnectionState> ConnectionStateChanged;
         public event EventHandler<ServiceConnectionFailureEventArgs> ConnectionFailure;
+        public event EventHandler<EventsDroppedEventArgs> EventsDropped;
 
         public KillEventConnectionState ConnectionState => _connectionState;
 
@@ -293,6 +305,12 @@ namespace KillConfirmGameBar.Services
                 _cursor = 0;
             }
 
+            ulong dropped = ToUInt64(batch.GetNamedNumber("dropped", 0));
+            if (dropped > 0)
+            {
+                ReportDroppedEvents(dropped);
+            }
+
             JsonArray events = batch.GetNamedArray("events", new JsonArray());
             int delivered = 0;
             foreach (IJsonValue value in events)
@@ -326,6 +344,17 @@ namespace KillConfirmGameBar.Services
             }
 
             return delivered;
+        }
+
+        private void ReportDroppedEvents(ulong dropped)
+        {
+            App.Log(
+                "HTTP event poll dropped " + dropped + " event(s): queue overflowed while the widget was not polling.");
+            if (DateTimeOffset.Now - _lastDroppedNotice > TimeSpan.FromSeconds(15))
+            {
+                _lastDroppedNotice = DateTimeOffset.Now;
+                EventsDropped?.Invoke(this, new EventsDroppedEventArgs(dropped));
+            }
         }
 
         private static KillEvent ParseKillEvent(JsonObject json)

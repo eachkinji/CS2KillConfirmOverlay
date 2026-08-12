@@ -61,6 +61,7 @@ namespace KillConfirmGameBar
             _eventClient.KillReceived += OnKillReceived;
             _eventClient.ConnectionStateChanged += OnConnectionStateChanged;
             _eventClient.ConnectionFailure += OnServiceConnectionFailure;
+            _eventClient.EventsDropped += OnEventsDropped;
             _eventClient.Start();
         }
 
@@ -166,10 +167,48 @@ namespace KillConfirmGameBar
             await SyncDeveloperModeAsync();
             await SyncSelectedVoicePackAsync();
             await SyncMoneyRewardModeAsync();
+            await SyncAudioDeviceAsync();
             await SyncCrossfireGameplaySettingsAsync();
             await SyncSharedStreakSettingsAsync();
             await SyncSpectatedKillEffectsAsync();
             await SyncGsiGameVersionAsync();
+        }
+
+        // The service always starts on the system default device, so re-apply the
+        // user's saved device whenever the widget (re)connects; otherwise the
+        // 2-second default-device watcher silently drops their selection.
+        private async Task SyncAudioDeviceAsync()
+        {
+            string saved = ApplicationData.Current.LocalSettings.Values[AudioDeviceSettingKey] as string;
+            if (string.IsNullOrWhiteSpace(saved)
+                || string.Equals(saved, "default", StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            try
+            {
+                var request = new JsonObject
+                {
+                    ["device"] = JsonValue.CreateStringValue(saved)
+                };
+                using (var client = await LocalServiceAuth.CreateHttpClientAsync())
+                using (var content = new HttpStringContent(
+                    request.Stringify(),
+                    UnicodeEncoding.Utf8,
+                    "application/json"))
+                using (HttpResponseMessage response = await client.PostAsync(AudioDeviceUri, content))
+                {
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        App.Log("Set audio device failed: status=" + response.StatusCode);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                App.Log("Set audio device failed: " + ex);
+            }
         }
 
         private async Task SyncGsiGameVersionAsync()
@@ -674,6 +713,15 @@ namespace KillConfirmGameBar
             }
         }
 
+        private void OnEventsDropped(object sender, EventsDroppedEventArgs e)
+        {
+            _ = Dispatcher.RunAsync(
+                Windows.UI.Core.CoreDispatcherPriority.Normal,
+                () => ShowTransientStatusHint(
+                    LocalizationManager.Text("EventsDroppedHint"),
+                    Windows.UI.Color.FromArgb(255, 180, 90, 0)));
+        }
+
         private void StopKillEventClient()
         {
             if (_eventClient == null)
@@ -684,6 +732,7 @@ namespace KillConfirmGameBar
             _eventClient.KillReceived -= OnKillReceived;
             _eventClient.ConnectionStateChanged -= OnConnectionStateChanged;
             _eventClient.ConnectionFailure -= OnServiceConnectionFailure;
+            _eventClient.EventsDropped -= OnEventsDropped;
             _eventClient.Dispose();
             _eventClient = null;
         }

@@ -219,11 +219,6 @@ pub async fn update(
     State(app_state): State<Arc<AppState>>,
     body: Bytes,
 ) -> Result<StatusCode, ApiError> {
-    app_state.gsi_posts.fetch_add(1, Ordering::Relaxed);
-    app_state
-        .last_gsi_post_unix_ms
-        .store(unix_time_ms(), Ordering::Relaxed);
-
     let gsi_game_version =
         GsiGameVersion::from_u8(app_state.gsi_game_version.load(Ordering::Relaxed));
     let data: Body = match parse_gsi_body(&body, gsi_game_version) {
@@ -242,6 +237,14 @@ pub async fn update(
             return Ok(status);
         }
     };
+
+    // Only count posts the service could authenticate and decode. A wrong GSI
+    // token still sends a payload every ~100ms; counting it would light up the
+    // "receiving" indicator while zero kills are processed.
+    app_state.gsi_posts.fetch_add(1, Ordering::Relaxed);
+    app_state
+        .last_gsi_post_unix_ms
+        .store(unix_time_ms(), Ordering::Relaxed);
 
     let map = data.map.as_ref();
     let player_data = data.player.as_ref();

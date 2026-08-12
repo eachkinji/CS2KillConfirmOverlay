@@ -75,6 +75,8 @@ jobs:
             signed=$((signed + 1))
           done
           echo "Signed ${signed} artifact(s)"
+        env:
+          COSIGN_YES: "true"
 
       - name: Upload signatures to release
         run: |

@@ -69,7 +69,6 @@ jobs:
             [ -f "$f" ] || continue
             echo "==> Signing $f"
             cosign sign-blob \
-              --keyless \
               --tlog-upload=true \
               --bundle "${f}.sig" \
               "$f"

@@ -6,6 +6,7 @@ using Windows.ApplicationModel.Core;
 using Windows.Data.Json;
 using Windows.Storage;
 using Windows.Storage.AccessCache;
+using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
@@ -85,7 +86,13 @@ namespace KillConfirmGameBar.Controls.Settings
 
         private void OnDeveloperModeChanged(object sender, bool enabled)
         {
-            SelectDeveloperMode(enabled);
+            // The Changed event can fire while the store is saved from a handler
+            // on any thread, and writing IsOn re-enters the ToggleSwitch through
+            // the XAML COM layer. Always marshal the UI update to this panel's
+            // dispatcher so it runs on the UI thread after the current handler.
+            _ = Dispatcher.RunAsync(
+                CoreDispatcherPriority.Normal,
+                () => SelectDeveloperMode(enabled));
         }
 
         private async void OnDeveloperModeToggled(object sender, RoutedEventArgs e)

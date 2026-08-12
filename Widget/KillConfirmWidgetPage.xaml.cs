@@ -205,6 +205,8 @@ namespace KillConfirmGameBar
         private string _cfgStatusDetail = string.Empty;
         private KillEventConnectionState _serviceConnectionState = KillEventConnectionState.Disconnected;
         private bool _gsiRecentlySeen;
+        private double _lastGsiPosts;
+        private double _lastGsiParseErrors;
         private bool _gsiStatusCheckPending;
         private int _animationPreloadToken;
         private int _animationCacheProgress;

@@ -13,6 +13,7 @@ use thiserror::Error;
 use tracing::{debug, error, warn};
 
 use super::auth::has_valid_gsi_token;
+use super::logging::service_log;
 use super::state::{
     AppState, CrossfireStreakMode, EventChannel, GsiGameVersion, KillEvent, MoneyRewardMode,
     PendingLastKill, TrackedRoundPhase,
@@ -224,10 +225,20 @@ pub async fn update(
     let data: Body = match parse_gsi_body(&body, gsi_game_version) {
         Ok(data) => data,
         Err(error) => {
-            app_state.gsi_parse_errors.fetch_add(1, Ordering::Relaxed);
+            let errors = app_state.gsi_parse_errors.fetch_add(1, Ordering::Relaxed) + 1;
             app_state
                 .last_gsi_parse_error_unix_ms
                 .store(unix_time_ms(), Ordering::Relaxed);
+            // Rejections only reach tracing/stdout, which a windowed service
+            // discards; surface them in service.log so a wrong token or game
+            // version is visible in a submitted log. Throttle to first few +
+            // every 100th so a persistently broken feed cannot flood the file.
+            if errors <= 3 || errors % 100 == 0 {
+                let posts = app_state.gsi_posts.load(Ordering::Relaxed);
+                service_log(&format!(
+                    "GSI payload rejected: {error} (posts={posts}, errors={errors})"
+                ));
+            }
             warn!("failed to parse GSI payload: {error}");
             let status = if matches!(&error, GsiBodyError::Unauthorized) {
                 StatusCode::UNAUTHORIZED
@@ -241,10 +252,16 @@ pub async fn update(
     // Only count posts the service could authenticate and decode. A wrong GSI
     // token still sends a payload every ~100ms; counting it would light up the
     // "receiving" indicator while zero kills are processed.
-    app_state.gsi_posts.fetch_add(1, Ordering::Relaxed);
+    let posts = app_state.gsi_posts.fetch_add(1, Ordering::Relaxed) + 1;
     app_state
         .last_gsi_post_unix_ms
         .store(unix_time_ms(), Ordering::Relaxed);
+    if posts % 100 == 0 {
+        let errors = app_state.gsi_parse_errors.load(Ordering::Relaxed);
+        service_log(&format!(
+            "GSI receiving: posts={posts}, parse_errors={errors}"
+        ));
+    }
 
     let map = data.map.as_ref();
     let player_data = data.player.as_ref();

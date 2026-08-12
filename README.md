@@ -104,35 +104,6 @@ After installing:
 
 The overlay uses a small local companion service. The installer sets up the package and the local connection needed by the Xbox Game Bar widget.
 
-## Release Signatures (Sigstore)
-
-Every published release is signed with keyless [Sigstore](https://www.sigstore.dev/) signing (Fulcio + Rekor). Each release asset `FILE` has a matching `FILE.sig` bundle attached. Verifying a bundle proves that the file was released from this repository and was not modified in transit — it does not grant Windows SmartScreen/Antivirus trust (that would require a separate Authenticode certificate).
-
-To verify a downloaded artifact, install [cosign](https://docs.sigstore.dev/cosign/installation/) and run:
-
-```bash
-cosign verify-blob \
-  --bundle FILE.sig \
-  --certificate-identity "https://github.com/eachkinji/CS2KillConfirmOverlay/.github/workflows/sigstore-sign.yml@refs/tags/*" \
-  --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
-  FILE
-```
-
-On Windows, the repository includes a helper that downloads cosign for you:
-
-```powershell
-.\verify-release.ps1 -ArtifactPath .\KillConfirmGameBar_Setup_3.1.15.0.exe
-```
-
-Releases published from now on are signed by the `release: published` trigger, so their certificates are bound to the release tag and the command above works as-is. The v3.1.14.0 release was backfilled by running the workflow manually from `main`, so its certificate is bound to `refs/heads/main` instead:
-
-```powershell
-.\verify-release.ps1 -ArtifactPath .\KillConfirmGameBar_Setup_3.1.14.0.exe `
-  -CertificateIdentity "https://github.com/eachkinji/CS2KillConfirmOverlay/.github/workflows/sigstore-sign.yml@refs/heads/main"
-```
-
-If an artifact is added to a release after it was published, re-run the [Sign release artifacts with Sigstore](https://github.com/eachkinji/CS2KillConfirmOverlay/actions/workflows/sigstore-sign.yml) workflow manually to sign it.
-
 ## CS2 Game State Integration
 
 CS2 needs a GSI config that points to:
@@ -188,7 +159,7 @@ Generated package-ready files are refreshed from `SourceAssets` during the build
 - The app communicates only with a local service on `127.0.0.1`.
 - Voice-pack behavior is controlled by `sound.lua` files inside each sound pack.
 - Only install sound packs from sources you trust.
-- Test signing files are for development builds only. Public releases are signed with keyless Sigstore signing; see [Release Signatures](#release-signatures-sigstore).
+- Test signing files are for development builds only. Public releases should be signed with a proper release certificate or trusted signing service.
 
 ## Credits
 

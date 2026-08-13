@@ -17,45 +17,87 @@ namespace KillConfirmGameBar.Services
                 return _cache;
             }
 
-            StorageFolder localFolder = ApplicationData.Current.LocalFolder;
+            await CatalogIoLock.WaitAsync();
             try
             {
-                StorageFile file = await localFolder.GetFileAsync(CatalogFileName);
-                using (var stream = await file.OpenStreamForReadAsync())
+                if (_cache != null)
                 {
-                    var serializer = new DataContractJsonSerializer(typeof(PackCatalog));
-                    _cache = (PackCatalog)serializer.ReadObject(stream);
+                    return _cache;
                 }
-            }
-            catch
-            {
-                _cache = CreateDefaultCatalog();
-                await SaveAsync(_cache);
-            }
 
-            MergeMissingBuiltIns(_cache);
-            ApplyBuiltInVisibilityDefaultsIfNeeded(_cache);
-            EnsureAtLeastOneVisibleVoice(_cache);
-            EnsureAtLeastOneVisibleIcon(_cache);
-            return _cache;
+                bool mustSave = false;
+                StorageFolder localFolder = ApplicationData.Current.LocalFolder;
+                try
+                {
+                    StorageFile file = await localFolder.GetFileAsync(CatalogFileName);
+                    using (var stream = await file.OpenStreamForReadAsync())
+                    {
+                        var serializer = new DataContractJsonSerializer(typeof(PackCatalog));
+                        _cache = (PackCatalog)serializer.ReadObject(stream);
+                    }
+                }
+                catch
+                {
+                    _cache = CreateDefaultCatalog();
+                    mustSave = true;
+                }
+
+                MergeMissingBuiltIns(_cache);
+                mustSave |= ApplyBuiltInVisibilityDefaultsIfNeeded(_cache);
+                ApplyVisibilityOverrides(_cache);
+                EnsureAtLeastOneVisibleVoice(_cache);
+                EnsureAtLeastOneVisibleIcon(_cache);
+                if (mustSave)
+                {
+                    await SaveCoreAsync(_cache, notify: false);
+                }
+
+                return _cache;
+            }
+            finally
+            {
+                CatalogIoLock.Release();
+            }
         }
 
         private static async Task SaveAsync(PackCatalog catalog)
         {
-            _cache = catalog;
+            await CatalogIoLock.WaitAsync();
+            try
+            {
+                _cache = catalog;
+                await SaveCoreAsync(catalog, notify: true);
+            }
+            finally
+            {
+                CatalogIoLock.Release();
+            }
+        }
+
+        private static async Task SaveCoreAsync(PackCatalog catalog, bool notify)
+        {
             try
             {
                 StorageFolder localFolder = ApplicationData.Current.LocalFolder;
-                StorageFile file = await localFolder.CreateFileAsync(CatalogFileName, CreationCollisionOption.ReplaceExisting);
+                StorageFile file = await localFolder.CreateFileAsync(
+                    CatalogFileName,
+                    CreationCollisionOption.ReplaceExisting);
                 using (var stream = await file.OpenStreamForWriteAsync())
                 {
                     var serializer = new DataContractJsonSerializer(typeof(PackCatalog));
                     serializer.WriteObject(stream, catalog);
+                    await stream.FlushAsync();
                 }
 
-                CatalogChanged?.Invoke(null, EventArgs.Empty);
+                if (notify)
+                {
+                    CatalogChanged?.Invoke(null, EventArgs.Empty);
+                }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                App.Log("Pack catalog save failed: " + ex);
+            }
         }
 
         private static PackCatalog CreateDefaultCatalog()
@@ -89,11 +131,11 @@ namespace KillConfirmGameBar.Services
                     CreateBuiltInIcon("vip", "VIP", true),
                     CreateBuiltInIcon("legacy", "鑰佺増", false),
                     CreateBuiltInIcon("angelic_beast", "绀轰緥", true),
-                    CreateBuiltInIcon("anniversary_10", "10周年庆", false),
-                    CreateBuiltInIcon("anniversary_15", "15周年庆", false),
-                    CreateBuiltInIcon("cfpl", "CFPL", false),
-                    CreateBuiltInIcon("rankmach_2019_1", "排位赛-1", false),
-                    CreateBuiltInIcon("rankmach_2019_2", "排位赛-2", false),
+                    CreateBuiltInIcon("anniversary_10", "10周年庆", true),
+                    CreateBuiltInIcon("anniversary_15", "15周年庆", true),
+                    CreateBuiltInIcon("cfpl", "CFPL", true),
+                    CreateBuiltInIcon("rankmach_2019_1", "排位赛-1", true),
+                    CreateBuiltInIcon("rankmach_2019_2", "排位赛-2", true),
                     CreateBuiltInIcon("csol4", "CSOL 10杀", true),
                     CreateBuiltInIcon("bf1", "Battlefield 1", true),
                     CreateBuiltInIcon("bf5", "Battlefield 5", true),
@@ -163,13 +205,13 @@ namespace KillConfirmGameBar.Services
             }
         }
 
-        private static void ApplyBuiltInVisibilityDefaultsIfNeeded(PackCatalog catalog)
+        private static bool ApplyBuiltInVisibilityDefaultsIfNeeded(PackCatalog catalog)
         {
             ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
             object rawVersion = localSettings.Values[VisibilityDefaultsVersionKey];
             if (rawVersion is int version && version >= CurrentVisibilityDefaultsVersion)
             {
-                return;
+                return false;
             }
 
             foreach (VoicePackItem item in catalog.VoicePacks)
@@ -187,20 +229,46 @@ namespace KillConfirmGameBar.Services
                     continue;
                 }
 
-                item.IsVisibleInWidget = string.Equals(item.Key, "default", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(item.Key, "vip", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(item.Key, "angelic_beast", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(item.Key, "anniversary_10", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(item.Key, "anniversary_15", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(item.Key, "cfpl", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(item.Key, "rankmach_2019_1", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(item.Key, "rankmach_2019_2", StringComparison.OrdinalIgnoreCase)
-                    || GameStyleService.IsCsolKey(item.Key)
-                    || GameStyleService.IsModPresetGameKey(item.Key)
-                    || ValorantPackService.IsValorantPackKey(item.Key);
+                item.IsVisibleInWidget = !string.Equals(
+                    item.Key,
+                    "legacy",
+                    StringComparison.OrdinalIgnoreCase);
             }
 
             localSettings.Values[VisibilityDefaultsVersionKey] = CurrentVisibilityDefaultsVersion;
+            return true;
+        }
+
+        private static void ApplyVisibilityOverrides(PackCatalog catalog)
+        {
+            ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
+            foreach (VoicePackItem item in catalog.VoicePacks)
+            {
+                object stored = localSettings.Values[GetVisibilitySettingKey("voice", item.Key)];
+                if (stored is bool isVisible)
+                {
+                    item.IsVisibleInWidget = isVisible;
+                }
+            }
+
+            foreach (IconPackItem item in catalog.IconPacks)
+            {
+                object stored = localSettings.Values[GetVisibilitySettingKey("icon", item.Key)];
+                if (stored is bool isVisible)
+                {
+                    item.IsVisibleInWidget = isVisible;
+                }
+            }
+        }
+
+        private static void SaveVisibilityOverride(string kind, string key, bool isVisible)
+        {
+            ApplicationData.Current.LocalSettings.Values[GetVisibilitySettingKey(kind, key)] = isVisible;
+        }
+
+        private static string GetVisibilitySettingKey(string kind, string key)
+        {
+            return "PackVisibility." + kind + "." + (key ?? string.Empty).Trim().ToLowerInvariant();
         }
 
         private static void EnsureAtLeastOneVisibleVoice(PackCatalog catalog)

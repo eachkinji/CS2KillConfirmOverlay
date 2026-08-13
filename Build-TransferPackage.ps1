@@ -3,7 +3,11 @@ param(
     [string]$Platform = "x64",
     [string]$MsBuildPath = "",
     [string]$VcInstallPath = "",
-    [switch]$DisableSigning
+    [switch]$DisableSigning,
+    [string]$CertificatePfxPath = "",
+    [string]$CertificatePassword = "",
+    [string]$CertificateThumbprint = "",
+    [string]$CertificateCerPath = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -29,6 +33,8 @@ $PackageSourceRoot = Join-Path $Root ("Package\AppPackages\{0}\{1}" -f $PackageO
 $AppPackagesRoot = Join-Path $Root "Package\AppPackages"
 $TransferRoot = Join-Path $WorkspaceRoot ("KillConfirmGameBar_Transfer_{0}" -f $Version)
 $TransferZip = "{0}.zip" -f $TransferRoot
+$NoDependenciesTransferRoot = Join-Path $WorkspaceRoot ("KillConfirmGameBar_Transfer_{0}_NoDependencies" -f $Version)
+$NoDependenciesTransferZip = "{0}.zip" -f $NoDependenciesTransferRoot
 $ExpectedPackageFamilyName = "KillConfirmGameBar.Overlay_5jgcw66eyez0m"
 $PrerequisiteSourceRoot = Join-Path $WorkspaceRoot "Vclibs"
 $PrerequisiteFileNames = @(
@@ -46,8 +52,11 @@ foreach ($prerequisiteFileName in $PrerequisiteFileNames) {
 
 $resolvedWorkspaceRoot = [System.IO.Path]::GetFullPath($WorkspaceRoot)
 $resolvedTransferRoot = [System.IO.Path]::GetFullPath($TransferRoot)
-if (-not $resolvedTransferRoot.StartsWith($resolvedWorkspaceRoot, [System.StringComparison]::OrdinalIgnoreCase)) {
-    throw "Refusing to write outside the workspace root: $resolvedTransferRoot"
+$resolvedNoDependenciesTransferRoot = [System.IO.Path]::GetFullPath($NoDependenciesTransferRoot)
+foreach ($resolvedOutputRoot in @($resolvedTransferRoot, $resolvedNoDependenciesTransferRoot)) {
+    if (-not $resolvedOutputRoot.StartsWith($resolvedWorkspaceRoot, [System.StringComparison]::OrdinalIgnoreCase)) {
+        throw "Refusing to write outside the workspace root: $resolvedOutputRoot"
+    }
 }
 
 $KillConfirmProcessNames = @(
@@ -72,6 +81,15 @@ if ($VcInstallPath) {
 }
 if ($DisableSigning) {
     $buildIntegratedArgs.DisableSigning = $true
+}
+if ($CertificatePfxPath) {
+    $buildIntegratedArgs.CertificatePfxPath = $CertificatePfxPath
+}
+if ($CertificatePassword) {
+    $buildIntegratedArgs.CertificatePassword = $CertificatePassword
+}
+if ($CertificateThumbprint) {
+    $buildIntegratedArgs.CertificateThumbprint = $CertificateThumbprint
 }
 
 & (Join-Path $Root "Build-IntegratedPackage.ps1") @buildIntegratedArgs
@@ -104,6 +122,14 @@ if (Test-Path $TransferZip) {
     Remove-Item -LiteralPath $TransferZip -Force
 }
 
+if (Test-Path $NoDependenciesTransferRoot) {
+    Remove-Item -LiteralPath $NoDependenciesTransferRoot -Recurse -Force
+}
+
+if (Test-Path $NoDependenciesTransferZip) {
+    Remove-Item -LiteralPath $NoDependenciesTransferZip -Force
+}
+
 $OverlayTransferRoot = Join-Path $TransferRoot "OverlayPackage"
 $PrerequisiteTransferRoot = Join-Path $TransferRoot "Prerequisites"
 
@@ -119,6 +145,9 @@ Copy-Item -LiteralPath (Join-Path $PackageSourceRoot $PackageFileName) -Destinat
 $PackageCertificate = Get-ChildItem -LiteralPath $PackageSourceRoot -Filter "*.cer" -File -ErrorAction SilentlyContinue | Select-Object -First 1
 if ($PackageCertificate) {
     Copy-Item -LiteralPath $PackageCertificate.FullName -Destination $OverlayTransferRoot -Force
+}
+elseif ($CertificateCerPath) {
+    Copy-Item -LiteralPath $CertificateCerPath -Destination $OverlayTransferRoot -Force
 }
 
 $DependencySourceRoot = Join-Path $PackageSourceRoot "Dependencies\$Platform"
@@ -137,6 +166,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+$InstallPrerequisites = __INSTALL_PREREQUISITES__
 
 $ScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $OverlayRoot = Join-Path $ScriptRoot "OverlayPackage"
@@ -764,7 +794,12 @@ try {
         Remove-Item -LiteralPath $LogPath -Force
     }
 
-    Install-RequiredComponents
+    if ($InstallPrerequisites) {
+        Install-RequiredComponents
+    }
+    else {
+        Write-InstallLog "Dependency-free installer selected. Prerequisite detection and installation are disabled."
+    }
     Install-OverlayPackage
     Test-OverlayPackageInstalled
 
@@ -838,10 +873,37 @@ KillConfirmGameBar transfer package - Chinese quick guide
 4. If the status is not green, use the panel Check button and the CFG check area.
 '@
 
-Set-Content -LiteralPath (Join-Path $TransferRoot "Install-KillConfirm.ps1") -Value $InstallScript -Encoding UTF8
+$InstallScriptWithDependencies = $InstallScript.Replace("__INSTALL_PREREQUISITES__", '$true')
+$InstallScriptWithoutDependencies = $InstallScript.Replace("__INSTALL_PREREQUISITES__", '$false')
+
+Set-Content -LiteralPath (Join-Path $TransferRoot "Install-KillConfirm.ps1") -Value $InstallScriptWithDependencies -Encoding UTF8
 Set-Content -LiteralPath (Join-Path $TransferRoot "README.txt") -Value $Readme -Encoding UTF8
 
 Compress-Archive -Path (Join-Path $TransferRoot "*") -DestinationPath $TransferZip -Force
+
+New-Item -ItemType Directory -Force -Path $NoDependenciesTransferRoot | Out-Null
+Get-ChildItem -LiteralPath $TransferRoot -Force | Copy-Item -Destination $NoDependenciesTransferRoot -Recurse -Force
+
+$NoDependenciesPrerequisiteRoot = Join-Path $NoDependenciesTransferRoot "Prerequisites"
+if (Test-Path -LiteralPath $NoDependenciesPrerequisiteRoot) {
+    Remove-Item -LiteralPath $NoDependenciesPrerequisiteRoot -Recurse -Force
+}
+
+$NoDependenciesMsixDependencyRoot = Join-Path $NoDependenciesTransferRoot "OverlayPackage\Dependencies"
+if (Test-Path -LiteralPath $NoDependenciesMsixDependencyRoot) {
+    Remove-Item -LiteralPath $NoDependenciesMsixDependencyRoot -Recurse -Force
+}
+
+Set-Content -LiteralPath (Join-Path $NoDependenciesTransferRoot "Install-KillConfirm.ps1") -Value $InstallScriptWithoutDependencies -Encoding UTF8
+$NoDependenciesReadme = $Readme + @'
+
+Dependency-free edition:
+- Microsoft VCLibs and Xbox Game Bar packages are not included.
+- The installer does not detect, prompt for, or install prerequisites.
+- Use this edition only when the required components are already installed.
+'@
+Set-Content -LiteralPath (Join-Path $NoDependenciesTransferRoot "README.txt") -Value $NoDependenciesReadme -Encoding UTF8
+Compress-Archive -Path (Join-Path $NoDependenciesTransferRoot "*") -DestinationPath $NoDependenciesTransferZip -Force
 
 $resolvedAppPackagesRoot = [System.IO.Path]::GetFullPath($AppPackagesRoot)
 if ($resolvedAppPackagesRoot.StartsWith($resolvedWorkspaceRoot, [System.StringComparison]::OrdinalIgnoreCase) -and (Test-Path $AppPackagesRoot)) {
@@ -853,5 +915,7 @@ if ($resolvedAppPackagesRoot.StartsWith($resolvedWorkspaceRoot, [System.StringCo
 Write-Host ""
 Write-Host ("Transfer folder: {0}" -f $TransferRoot)
 Write-Host ("Transfer zip:    {0}" -f $TransferZip)
+Write-Host ("No-deps folder:  {0}" -f $NoDependenciesTransferRoot)
+Write-Host ("No-deps zip:     {0}" -f $NoDependenciesTransferZip)
 Write-Host ("MSIX package:    {0}" -f (Join-Path $OverlayTransferRoot $PackageFileName))
 Write-Host ("Package family:  {0}" -f $ExpectedPackageFamilyName)

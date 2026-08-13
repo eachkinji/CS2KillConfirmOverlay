@@ -135,6 +135,7 @@
     <Compile Include="KillConfirmWidgetPage.Service.cs" />
     <Compile Include="KillConfirmWidgetPage.PackSelectors.cs" />
     <Compile Include="KillConfirmWidgetPage.PackSettings.cs" />
+    <Compile Include="KillConfirmWidgetPage.PackSettings.Persistence.cs" />
     <Compile Include="KillConfirmWidgetPage.PackSettings.Crossfire.cs" />
     <Compile Include="KillConfirmWidgetPage.PackSettings.Valorant.cs" />
     <Compile Include="KillConfirmWidgetPage.PackSettings.Battlefield.cs" />

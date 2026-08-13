@@ -1,0 +1,107 @@
+name: Build
+
+on:
+  workflow_call:
+    inputs:
+      uploadToRelease:
+        type: boolean
+        required: false
+        default: false
+      releaseTag:
+        type: string
+        required: false
+        default: ''
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust (MSVC)
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: KillConfirmService
+
+      - name: Cache Inno Setup
+        id: cache-innosetup
+        uses: actions/cache@v4
+        with:
+          path: 'C:\Program Files (x86)\Inno Setup 6'
+          key: ${{ runner.os }}-innosetup-v6
+
+      - name: Install Inno Setup 6
+        if: steps.cache-innosetup.outputs.cache-hit != 'true'
+        run: choco install innosetup --no-progress -y
+
+      - name: Add Inno Setup to PATH
+        run: echo "C:\Program Files (x86)\Inno Setup 6" >> $env:GITHUB_PATH
+
+      - name: Cache Prereq Zip
+        id: cache-prereq
+        uses: actions/cache@v4
+        with:
+          path: D:\a\prerequisites.zip
+          key: ${{ runner.os }}-prereq-v1
+
+      - name: Download offline prerequisite packages
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $VclibsRoot = Join-Path (Split-Path $env:GITHUB_WORKSPACE -Parent) "Vclibs"
+          New-Item -ItemType Directory -Force -Path $VclibsRoot | Out-Null
+          $prereqZip = "D:\a\prerequisites.zip"
+          if (-not (Test-Path $prereqZip)) {
+            Invoke-WebRequest -Uri "https://github.com/st0nie/CS2KillConfirmOverlay/releases/download/prereq-v1/prerequisites.zip" -OutFile $prereqZip
+          }
+          Expand-Archive -Path $prereqZip -DestinationPath $VclibsRoot -Force
+          Get-ChildItem -LiteralPath $VclibsRoot | ForEach-Object { Write-Host ("{0} {1}" -f $_.Name, $_.Length) }
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.wapproj', '**/*.props') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Sync package version to release tag
+        if: inputs.releaseTag != ''
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $manifestPath = Join-Path $env:GITHUB_WORKSPACE "Package\Package.appxmanifest"
+          [xml]$manifest = Get-Content $manifestPath
+          $tag = "${{ inputs.releaseTag }}".TrimStart('v')
+          if ($tag -notmatch '^\d+\.\d+\.\d+\.\d+$') {
+              throw "Release tag is not a valid 4-part version (x.y.z.w): $tag"
+          }
+          $manifest.Package.Identity.Version = $tag
+          $manifest.Save($manifestPath)
+          Write-Host "Package version synced to $tag"
+
+      - name: Build installer
+        shell: pwsh
+        run: .\Build-Installer.ps1 -DisableSigning
+
+      - name: Upload assets to release
+        if: inputs.uploadToRelease
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          $ver = ([xml](Get-Content Package/Package.appxmanifest)).Package.Identity.Version
+          $exe = Join-Path $env:GITHUB_WORKSPACE ("Output\KillConfirmGameBar_Setup_{0}.exe" -f $ver)
+          if (-not (Test-Path $exe)) { throw "Missing $exe" }
+          gh release upload "${{ inputs.releaseTag }}" $exe --clobber
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: kill-confirm-build
+          path: Output/
+          retention-days: 3

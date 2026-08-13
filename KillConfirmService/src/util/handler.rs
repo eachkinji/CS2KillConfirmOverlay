@@ -69,11 +69,19 @@ fn is_knife_weapon(weapon_type: Option<&WeaponType>, weapon_name: &WeaponName) -
         )
 }
 
-fn resolve_knife_kill(
-    current_active_weapon_is_knife: Option<bool>,
-    recent_weapon_is_knife: bool,
-) -> bool {
-    current_active_weapon_is_knife.unwrap_or(false) || recent_weapon_is_knife
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct WeaponKillContext {
+    is_knife: bool,
+    badge_key: Option<String>,
+    name: String,
+    money_reward: u16,
+}
+
+fn resolve_weapon_kill_context<'a>(
+    current: Option<&'a WeaponKillContext>,
+    recent: Option<&'a WeaponKillContext>,
+) -> Option<&'a WeaponKillContext> {
+    current.or(recent)
 }
 
 fn is_recent_weapon_context(seen_at: Instant, now: Instant) -> bool {
@@ -315,16 +323,16 @@ pub async fn update(
         .weapons
         .values()
         .find(|weapon| matches!(weapon.state, WeaponState::Active));
-    let current_active_weapon_is_knife =
-        current_active_weapon.map(|weapon| is_knife_weapon(weapon.r#type.as_ref(), &weapon.name));
-    let current_active_weapon_badge_key = current_active_weapon
-        .and_then(|weapon| weapon.r#type.clone())
-        .and_then(map_weapon_badge_key)
-        .map(str::to_string);
-    let current_active_weapon_name =
-        current_active_weapon.map(|weapon| map_weapon_name(&weapon.name).to_string());
-    let current_active_weapon_money_reward = current_active_weapon
-        .map(|weapon| money_rules::weapon_kill_reward(&weapon.name, current_mode));
+    let current_weapon_context = current_active_weapon.map(|weapon| WeaponKillContext {
+        is_knife: is_knife_weapon(weapon.r#type.as_ref(), &weapon.name),
+        badge_key: weapon
+            .r#type
+            .clone()
+            .and_then(map_weapon_badge_key)
+            .map(str::to_string),
+        name: map_weapon_name(&weapon.name).to_string(),
+        money_reward: money_rules::weapon_kill_reward(&weapon.name, current_mode),
+    });
 
     let player_name = ply.name.as_deref().unwrap_or("").to_string();
     let spectarget = ply.spectarget.as_deref().filter(|value| !value.is_empty());
@@ -379,31 +387,20 @@ pub async fn update(
     let previous_bomb_player = binding.last_bomb_player.clone();
     let previous_crossfire_streak_kills = tracked_player.crossfire_streak_kills;
     let previous_crossfire_kill_at = tracked_player.last_crossfire_kill_at;
-    let recent_weapon_is_knife = tracked_player.last_active_weapon_is_knife
-        && tracked_player
-            .last_active_weapon_seen_at
-            .map(|seen_at| is_recent_weapon_context(seen_at, now))
-            .unwrap_or(false);
-    let recent_weapon_badge_key =
-        tracked_player
-            .last_active_weapon_badge_key
-            .clone()
-            .filter(|_| {
-                tracked_player
-                    .last_active_weapon_seen_at
-                    .map(|seen_at| is_recent_weapon_context(seen_at, now))
-                    .unwrap_or(false)
-            });
-    let recent_weapon_name = tracked_player.last_active_weapon_name.clone().filter(|_| {
-        tracked_player
-            .last_active_weapon_seen_at
-            .map(|seen_at| is_recent_weapon_context(seen_at, now))
-            .unwrap_or(false)
-    });
-    let recent_weapon_money_reward = tracked_player
+    let recent_weapon_context = tracked_player
         .last_active_weapon_seen_at
         .filter(|seen_at| is_recent_weapon_context(*seen_at, now))
-        .map(|_| tracked_player.last_active_weapon_money_reward);
+        .and_then(|_| {
+            tracked_player
+                .last_active_weapon_name
+                .as_ref()
+                .map(|name| WeaponKillContext {
+                    is_knife: tracked_player.last_active_weapon_is_knife,
+                    badge_key: tracked_player.last_active_weapon_badge_key.clone(),
+                    name: name.clone(),
+                    money_reward: tracked_player.last_active_weapon_money_reward,
+                })
+        });
     drop(binding);
 
     let money_reward_mode =
@@ -559,16 +556,17 @@ pub async fn update(
 
     if is_initialized && can_emit_kill {
         let is_headshot = current_hs_kills > origin_hs_kills;
-        let is_knife_kill =
-            resolve_knife_kill(current_active_weapon_is_knife, recent_weapon_is_knife);
-        let weapon_badge_key = current_active_weapon_badge_key
-            .clone()
-            .or_else(|| recent_weapon_badge_key.clone());
-        let weapon_name = current_active_weapon_name
-            .clone()
-            .or_else(|| recent_weapon_name.clone());
-        let rule_money_reward = current_active_weapon_money_reward
-            .or(recent_weapon_money_reward)
+        let weapon_context = resolve_weapon_kill_context(
+            current_weapon_context.as_ref(),
+            recent_weapon_context.as_ref(),
+        );
+        let is_knife_kill = weapon_context
+            .map(|weapon| weapon.is_knife)
+            .unwrap_or(false);
+        let weapon_badge_key = weapon_context.and_then(|weapon| weapon.badge_key.clone());
+        let weapon_name = weapon_context.map(|weapon| weapon.name.clone());
+        let rule_money_reward = weapon_context
+            .map(|weapon| weapon.money_reward)
             .unwrap_or(300);
         let money_reward = match money_reward_mode {
             MoneyRewardMode::Delta => money_delta::kill_reward(
@@ -741,7 +739,9 @@ pub async fn update(
             animation_key: Some("assist".to_string()),
             event_kind: Some("assist".to_string()),
             weapon_badge_key: None,
-            weapon_name: current_active_weapon_name.clone(),
+            weapon_name: current_weapon_context
+                .as_ref()
+                .map(|weapon| weapon.name.clone()),
             money_reward: 0,
             round_number: current_round,
             money_epoch: current_money_epoch,
@@ -923,14 +923,12 @@ pub async fn update(
     } else {
         pending_last_kill_for_next
     };
-    if let Some(is_knife) = current_active_weapon_is_knife {
-        tracked_player.last_active_weapon_is_knife = is_knife;
+    if let Some(weapon) = current_weapon_context {
+        tracked_player.last_active_weapon_is_knife = weapon.is_knife;
+        tracked_player.last_active_weapon_badge_key = weapon.badge_key;
+        tracked_player.last_active_weapon_name = Some(weapon.name);
+        tracked_player.last_active_weapon_money_reward = weapon.money_reward;
         tracked_player.last_active_weapon_seen_at = Some(now);
-    }
-    tracked_player.last_active_weapon_badge_key = current_active_weapon_badge_key;
-    tracked_player.last_active_weapon_name = current_active_weapon_name;
-    if let Some(money_reward) = current_active_weapon_money_reward {
-        tracked_player.last_active_weapon_money_reward = money_reward;
     }
 
     drop(binding);
@@ -1149,11 +1147,11 @@ fn resolve_crossfire_streak_count(
 #[cfg(test)]
 mod tests {
     use super::{
-        CrossfireStreakMode, DelayedLastKillDecision, can_read_observed_combat_events,
-        classify_delayed_last_kill, has_observed_player_changed, is_knife_weapon,
-        is_local_observed_player, is_recent_final_kill, is_recent_weapon_context,
-        opponent_team_display_name, resolve_crossfire_streak_count, resolve_knife_kill,
-        resolve_observed_player_id, resolve_player_kill_delta, should_emit_player_kill,
+        CrossfireStreakMode, DelayedLastKillDecision, WeaponKillContext,
+        can_read_observed_combat_events, classify_delayed_last_kill, has_observed_player_changed,
+        is_knife_weapon, is_local_observed_player, is_recent_final_kill, is_recent_weapon_context,
+        opponent_team_display_name, resolve_crossfire_streak_count, resolve_observed_player_id,
+        resolve_player_kill_delta, resolve_weapon_kill_context, should_emit_player_kill,
         should_reset_stored_streak,
     };
     use gsi_cs2::round::BombState;
@@ -1162,10 +1160,29 @@ mod tests {
     use std::time::{Duration, Instant};
 
     #[test]
-    fn knife_kill_uses_the_current_gsi_weapon_and_all_knife_names() {
-        assert!(resolve_knife_kill(Some(true), false));
-        assert!(resolve_knife_kill(Some(false), true));
-        assert!(!resolve_knife_kill(Some(false), false));
+    fn weapon_kill_context_keeps_knife_and_weapon_metadata_together() {
+        let gun = WeaponKillContext {
+            is_knife: false,
+            badge_key: Some("assault".to_string()),
+            name: "ak47".to_string(),
+            money_reward: 300,
+        };
+        let knife = WeaponKillContext {
+            is_knife: true,
+            badge_key: Some("knife".to_string()),
+            name: "knife_karambit".to_string(),
+            money_reward: 1500,
+        };
+
+        assert_eq!(
+            resolve_weapon_kill_context(Some(&gun), Some(&knife)),
+            Some(&gun)
+        );
+        assert_eq!(
+            resolve_weapon_kill_context(None, Some(&knife)),
+            Some(&knife)
+        );
+        assert_eq!(resolve_weapon_kill_context(None, None), None);
         assert!(is_knife_weapon(None, &WeaponName::KnifeKarambit));
         assert!(is_knife_weapon(Some(&WeaponType::Knife), &WeaponName::AK47));
         assert!(!is_knife_weapon(None, &WeaponName::AK47));

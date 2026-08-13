@@ -14,12 +14,10 @@ namespace KillConfirmGameBar
         private void LoadVoicePackSetting()
         {
             GameStyleMode style = GameStyleService.Current;
-            string preset = ApplicationData.Current.LocalSettings.Values[VoicePackSettingKey] as string;
-            if (string.IsNullOrWhiteSpace(preset)
-                || GameStyleService.GetStyleForPackKey(preset) != style)
-            {
-                preset = GameStyleService.DefaultVoicePackKey(style);
-            }
+            string preset = LoadPackSettingForStyle(
+                VoicePackSettingKey,
+                style,
+                GameStyleService.DefaultVoicePackKey(style));
 
             if (!TryApplyValorantVoicePackLoadOverride(ref preset)
                 && GameStyleService.GetStyleForPackKey(preset) != style)
@@ -28,7 +26,7 @@ namespace KillConfirmGameBar
             }
 
             preset = NormalizeVoicePackPreset(preset);
-            ApplicationData.Current.LocalSettings.Values[VoicePackSettingKey] = preset;
+            SavePackSettingForStyle(VoicePackSettingKey, style, preset);
             SelectVoicePackPreset(preset);
         }
 
@@ -107,6 +105,7 @@ namespace KillConfirmGameBar
         private void SelectVoicePackPreset(string preset)
         {
             preset = NormalizeVoicePackPreset(preset);
+            bool previousSuppression = _suppressVoicePackEvents;
             _suppressVoicePackEvents = true;
             try
             {
@@ -125,7 +124,7 @@ namespace KillConfirmGameBar
             }
             finally
             {
-                _suppressVoicePackEvents = false;
+                _suppressVoicePackEvents = previousSuppression;
             }
         }
 
@@ -141,7 +140,7 @@ namespace KillConfirmGameBar
                     preset = GameStyleService.DefaultVoicePackKey(GameStyleService.Current);
                 }
 
-                ApplicationData.Current.LocalSettings.Values[VoicePackSettingKey] = preset;
+                SavePackSettingForStyle(VoicePackSettingKey, GameStyleService.Current, preset);
                 SelectVoicePackPreset(preset);
             }
             catch (Exception)

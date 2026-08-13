@@ -3,7 +3,11 @@ param(
     [string]$Platform = "x64",
     [string]$MsBuildPath = "",
     [string]$VcInstallPath = "",
-    [switch]$DisableSigning
+    [switch]$DisableSigning,
+    [string]$CertificatePfxPath = "",
+    [string]$CertificatePassword = "",
+    [string]$CertificateThumbprint = "",
+    [string]$CertificateCerPath = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -73,6 +77,15 @@ if ($VcInstallPath) {
 if ($DisableSigning) {
     $buildIntegratedArgs.DisableSigning = $true
 }
+if ($CertificatePfxPath) {
+    $buildIntegratedArgs.CertificatePfxPath = $CertificatePfxPath
+}
+if ($CertificatePassword) {
+    $buildIntegratedArgs.CertificatePassword = $CertificatePassword
+}
+if ($CertificateThumbprint) {
+    $buildIntegratedArgs.CertificateThumbprint = $CertificateThumbprint
+}
 
 & (Join-Path $Root "Build-IntegratedPackage.ps1") @buildIntegratedArgs
 
@@ -119,6 +132,9 @@ Copy-Item -LiteralPath (Join-Path $PackageSourceRoot $PackageFileName) -Destinat
 $PackageCertificate = Get-ChildItem -LiteralPath $PackageSourceRoot -Filter "*.cer" -File -ErrorAction SilentlyContinue | Select-Object -First 1
 if ($PackageCertificate) {
     Copy-Item -LiteralPath $PackageCertificate.FullName -Destination $OverlayTransferRoot -Force
+}
+elseif ($CertificateCerPath) {
+    Copy-Item -LiteralPath $CertificateCerPath -Destination $OverlayTransferRoot -Force
 }
 
 $DependencySourceRoot = Join-Path $PackageSourceRoot "Dependencies\$Platform"

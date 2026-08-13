@@ -1,0 +1,16 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    uses: ./.github/workflows/build.yml
+    with:
+      uploadToRelease: true
+      releaseTag: ${{ github.event.release.tag_name }}
+    secrets: inherit

@@ -6,6 +6,7 @@ using Windows.ApplicationModel.Core;
 using Windows.Data.Json;
 using Windows.Storage;
 using Windows.Storage.AccessCache;
+using Windows.System;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -54,6 +55,7 @@ namespace KillConfirmGameBar.Controls.Settings
             DeveloperModeHint.Text = Services.LocalizationManager.Text("DeveloperModeHint");
             DeveloperModeToggle.OffContent = Services.LocalizationManager.Text("Off");
             DeveloperModeToggle.OnContent = Services.LocalizationManager.Text("On");
+            OpenLogPathButton.Content = Services.LocalizationManager.Text("OpenLogPath");
             ResetPluginButton.Content = Services.LocalizationManager.Text("ResetPluginData");
         }
 
@@ -70,6 +72,10 @@ namespace KillConfirmGameBar.Controls.Settings
             DescriptionText.Foreground = new SolidColorBrush(theme.MutedText);
             StatusText.Foreground = new SolidColorBrush(theme.MutedText);
             DeveloperModeHint.Foreground = new SolidColorBrush(theme.MutedText);
+            OpenLogPathButton.Background = new SolidColorBrush(theme.SubtleField);
+            OpenLogPathButton.BorderBrush = new SolidColorBrush(theme.SoftBorder);
+            OpenLogPathButton.Foreground = new SolidColorBrush(theme.Text);
+            OpenLogPathButton.CornerRadius = new CornerRadius(14);
             ResetPluginButton.Background = new SolidColorBrush(theme.WarningField);
             ResetPluginButton.BorderBrush = new SolidColorBrush(theme.WarningBorder);
             ResetPluginButton.Foreground = new SolidColorBrush(theme.WarningText);
@@ -114,6 +120,24 @@ namespace KillConfirmGameBar.Controls.Settings
             {
                 App.Log("Failed to sync developer mode: " + ex);
                 StatusText.Text = Services.LocalizationManager.Text("DeveloperModeSyncFailed");
+            }
+        }
+
+        private async void OnOpenLogPathClick(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                bool launched = await KillConfirmWidgetPage.TryLaunchFullTrustHelperAsync(
+                    KillConfirmWidgetPage.OpenRuntimeLogsParameterGroupId);
+                if (!launched)
+                {
+                    await Launcher.LaunchFolderAsync(ApplicationData.Current.LocalFolder);
+                }
+            }
+            catch (Exception ex)
+            {
+                App.Log("Failed to open log folder: " + ex);
+                StatusText.Text = Services.LocalizationManager.Text("OpenLogPathFailed");
             }
         }
 

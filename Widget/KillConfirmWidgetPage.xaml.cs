@@ -2,7 +2,6 @@ using Microsoft.Gaming.XboxGameBar;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using KillConfirmGameBar.Services;
@@ -10,6 +9,7 @@ using Windows.ApplicationModel;
 using Windows.ApplicationModel.Core;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Data.Json;
+using Windows.Devices.Input;
 using Windows.Foundation;
 using Windows.Foundation.Metadata;
 using Windows.Storage.AccessCache;
@@ -21,6 +21,7 @@ using Windows.UI.Popups;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
+using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Imaging;
 using Windows.UI.Xaml.Media.Animation;
@@ -34,7 +35,7 @@ namespace KillConfirmGameBar
     {
         private static readonly Size DefaultWidgetSize = new Size(550, 600);
         private static readonly Size MinWidgetSize = new Size(50, 50);
-        private static readonly Size MaxWidgetSize = new Size(900, 900);
+        private static readonly Size MaxWidgetSize = new Size(3840, 2160);
         private const double AnimationOffsetStep = 12.0;
         private const double MaxAnimationOffsetRatio = 0.45;
         private const double BottomQuarterAnimationOffsetRatio = 0.25;
@@ -118,6 +119,9 @@ namespace KillConfirmGameBar
             new System.Guid("D784837F-1100-3C6B-A455-F6262CC331B6");
         private const int GsiStatusRefreshMs = 10000;
         private const double RecentGsiAgeMs = 120000;
+        private const string PanelOffsetXSettingKey = "PanelOffsetX";
+        private const string PanelOffsetYSettingKey = "PanelOffsetY";
+        private const string PanelCollapsedSettingKey = "PanelCollapsed";
         private static readonly Uri ServiceHealthUri = new Uri("http://127.0.0.1:10087/health");
         private static readonly Uri GsiStatusUri = new Uri("http://127.0.0.1:10087/gsi-status");
         private static readonly Uri ServiceShutdownUri = new Uri("http://127.0.0.1:10087/shutdown");
@@ -128,12 +132,13 @@ namespace KillConfirmGameBar
         private const string AudioDeviceSettingKey = "AudioOutputDevice";
         private static readonly Uri MoneyRewardModeUri = new Uri("http://127.0.0.1:10087/money/mode");
         private static readonly Uri CrossfireSettingsUri = new Uri("http://127.0.0.1:10087/crossfire/settings");
+        private static readonly Uri CsolSettingsUri = new Uri("http://127.0.0.1:10087/csol/settings");
         private static readonly Uri SharedStreakSettingsUri = new Uri("http://127.0.0.1:10087/streak/settings");
         private const string CounterStrikeRootUri = "http://127.0.0.1:10087/counter-strike/root";
         private static readonly TimeSpan ServiceStartupTimeout = TimeSpan.FromSeconds(6);
         private static readonly TimeSpan ServiceStartupPollInterval = TimeSpan.FromMilliseconds(250);
         private const string FreeServicePortParameterGroupId = "FreeServicePort";
-        private const string OpenRuntimeLogsParameterGroupId = "OpenRuntimeLogs";
+        internal const string OpenRuntimeLogsParameterGroupId = "OpenRuntimeLogs";
         private const string OpenSettingsWindowParameterGroupId = "OpenSettingsWindow";
         private const string OpenSettingsWindowDeveloperParameterGroupId = "OpenSettingsWindowDeveloper";
         private const string DownloadPendingUpdateParameterGroupId = "DownloadPendingUpdate";
@@ -207,6 +212,15 @@ namespace KillConfirmGameBar
         private bool _gsiRecentlySeen;
         private double _lastGsiPosts;
         private double _lastGsiParseErrors;
+        private bool _isDraggingPanel;
+        private uint _dragPointerId;
+        private Point _dragPointerStart;
+        private double _panelDragStartX;
+        private double _panelDragStartY;
+        private double _panelOffsetX;
+        private double _panelOffsetY;
+        private TranslateTransform _panelDragTransform;
+        private bool _panelCollapsed;
         private bool _gsiStatusCheckPending;
         private int _animationPreloadToken;
         private int _animationCacheProgress;
@@ -235,6 +249,10 @@ namespace KillConfirmGameBar
             _suppressGameStyleEvents = true;
             InitializeComponent();
             _suppressGameStyleEvents = false;
+            WireMoveWindowEvents();
+            LoadPanelOffset();
+            object collapsed = ApplicationData.Current.LocalSettings.Values[PanelCollapsedSettingKey];
+            SetPanelCollapsed(collapsed is bool collapsedValue && collapsedValue);
             WireUpdateOverlayEvents();
             AnimationLayer.SizeChanged += OnAnimationLayerSizeChanged;
             PackCatalogService.CatalogChanged += OnPackCatalogChanged;
@@ -397,6 +415,236 @@ namespace KillConfirmGameBar
             ScaleAnimation(ScaleDownFactor);
         }
 
+        private void WireMoveWindowEvents()
+        {
+            // Drag the status hint card (the non-interactive background of the top
+            // strip) to move the control panel, like dragging a window title bar.
+            WireDragElement(StatusHintBox);
+            // The collapsed mini panel is also draggable from its empty background.
+            WireDragElement(MiniPanel);
+        }
+
+        private void WireDragElement(UIElement element)
+        {
+            if (element == null)
+            {
+                return;
+            }
+
+            element.AddHandler(
+                UIElement.PointerPressedEvent,
+                new PointerEventHandler(OnMoveWindowPointerPressed),
+                true);
+            element.AddHandler(
+                UIElement.PointerMovedEvent,
+                new PointerEventHandler(OnMoveWindowPointerMoved),
+                true);
+            element.AddHandler(
+                UIElement.PointerReleasedEvent,
+                new PointerEventHandler(OnMoveWindowPointerReleased),
+                true);
+            element.AddHandler(
+                UIElement.PointerCanceledEvent,
+                new PointerEventHandler(OnMoveWindowPointerCanceled),
+                true);
+            element.AddHandler(
+                UIElement.PointerCaptureLostEvent,
+                new PointerEventHandler(OnMoveWindowPointerCaptureLost),
+                true);
+        }
+
+        private void OnMoveWindowPointerPressed(object sender, PointerRoutedEventArgs e)
+        {
+            App.Log("PanelDrag pressed. device=" + e.Pointer.PointerDeviceType);
+
+            if (IsInteractiveControl(e.OriginalSource)
+                || (e.Pointer.PointerDeviceType != PointerDeviceType.Mouse
+                    && e.Pointer.PointerDeviceType != PointerDeviceType.Touch))
+            {
+                return;
+            }
+
+            _isDraggingPanel = true;
+            _dragPointerId = e.Pointer.PointerId;
+            _dragPointerStart = e.GetCurrentPoint(Window.Current.Content).Position;
+            _panelDragStartX = _panelOffsetX;
+            _panelDragStartY = _panelOffsetY;
+            if (sender is UIElement element)
+            {
+                element.CapturePointer(e.Pointer);
+            }
+            App.Log("PanelDrag started. offset=" + _panelOffsetX + "," + _panelOffsetY);
+            e.Handled = true;
+        }
+
+        private void OnMoveWindowPointerMoved(object sender, PointerRoutedEventArgs e)
+        {
+            if (!_isDraggingPanel || e.Pointer.PointerId != _dragPointerId)
+            {
+                return;
+            }
+
+            Point current = e.GetCurrentPoint(Window.Current.Content).Position;
+            double dx = current.X - _dragPointerStart.X;
+            double dy = current.Y - _dragPointerStart.Y;
+            SetPanelOffset(_panelDragStartX + dx, _panelDragStartY + dy);
+            e.Handled = true;
+        }
+
+        private void OnMoveWindowPointerReleased(object sender, PointerRoutedEventArgs e)
+        {
+            if (e.Pointer.PointerId != _dragPointerId)
+            {
+                return;
+            }
+
+            if (sender is UIElement element)
+            {
+                element.ReleasePointerCapture(e.Pointer);
+            }
+            EndPanelDrag();
+            e.Handled = true;
+        }
+
+        private void OnMoveWindowPointerCaptureLost(object sender, PointerRoutedEventArgs e)
+        {
+            EndPanelDrag();
+        }
+
+        private void OnMoveWindowPointerCanceled(object sender, PointerRoutedEventArgs e)
+        {
+            EndPanelDrag();
+            e.Handled = true;
+        }
+
+        private void EndPanelDrag()
+        {
+            if (!_isDraggingPanel)
+            {
+                return;
+            }
+
+            _isDraggingPanel = false;
+            _dragPointerId = 0;
+            SavePanelOffset();
+        }
+
+        private static bool IsInteractiveControl(object originalSource)
+        {
+            DependencyObject current = originalSource as DependencyObject;
+            while (current != null)
+            {
+                if (current is Button
+                    || current is ComboBox
+                    || current is ToggleSwitch
+                    || current is TextBox
+                    || current is CheckBox
+                    || current is ListViewItem
+                    || current is Slider)
+                {
+                    return true;
+                }
+                current = VisualTreeHelper.GetParent(current);
+            }
+            return false;
+        }
+
+        private void OnCollapsePanelToggle(object sender, RoutedEventArgs e)
+        {
+            SetPanelCollapsed(!_panelCollapsed);
+        }
+
+        private void SetPanelCollapsed(bool collapsed)
+        {
+            _panelCollapsed = collapsed;
+            if (MainPanelContent != null)
+            {
+                MainPanelContent.Visibility = collapsed ? Visibility.Collapsed : Visibility.Visible;
+            }
+            if (MiniPanel != null)
+            {
+                MiniPanel.Visibility = collapsed ? Visibility.Visible : Visibility.Collapsed;
+            }
+            if (ControlPanel != null)
+            {
+                ControlPanel.Width = collapsed ? double.NaN : 452;
+            }
+            ApplicationData.Current.LocalSettings.Values[PanelCollapsedSettingKey] = collapsed;
+        }
+
+        private void SetPanelOffset(double x, double y)
+        {
+            Point clamped = ClampPanelOffset(x, y);
+            _panelOffsetX = clamped.X;
+            _panelOffsetY = clamped.Y;
+            ApplyPanelTransform();
+        }
+
+        private Point ClampPanelOffset(double x, double y)
+        {
+            double panelWidth = ControlPanel.ActualWidth > 0 ? ControlPanel.ActualWidth : DefaultWidgetSize.Width;
+            double panelHeight = ControlPanel.ActualHeight > 0 ? ControlPanel.ActualHeight : DefaultWidgetSize.Height;
+            double windowWidth = ActualWidth > 0 ? ActualWidth : DefaultWidgetSize.Width;
+            double windowHeight = ActualHeight > 0 ? ActualHeight : DefaultWidgetSize.Height;
+
+            // The panel is centered horizontally and top-aligned (Margin 5) at rest.
+            double restLeft = (windowWidth - panelWidth) / 2.0;
+            double minX = -restLeft;
+            double maxX = windowWidth - panelWidth - restLeft;
+            double minY = -5.0;
+            double maxY = windowHeight - panelHeight - 5.0;
+
+            return new Point(
+                Math.Max(minX, Math.Min(maxX, x)),
+                Math.Max(minY, Math.Min(maxY, y)));
+        }
+
+        private void ApplyPanelTransform()
+        {
+            if (_panelDragTransform == null)
+            {
+                _panelDragTransform = new TranslateTransform { X = _panelOffsetX, Y = _panelOffsetY };
+                ControlPanel.RenderTransform = _panelDragTransform;
+                ControlPanel.RenderTransformOrigin = new Point(0, 0);
+            }
+            else
+            {
+                _panelDragTransform.X = _panelOffsetX;
+                _panelDragTransform.Y = _panelOffsetY;
+            }
+        }
+
+        private void LoadPanelOffset()
+        {
+            _panelOffsetX = ReadDoubleSetting(PanelOffsetXSettingKey, 0);
+            _panelOffsetY = ReadDoubleSetting(PanelOffsetYSettingKey, 0);
+            ApplyPanelTransform();
+        }
+
+        private void SavePanelOffset()
+        {
+            ApplicationData.Current.LocalSettings.Values[PanelOffsetXSettingKey] = _panelOffsetX;
+            ApplicationData.Current.LocalSettings.Values[PanelOffsetYSettingKey] = _panelOffsetY;
+        }
+
+        private static double ReadDoubleSetting(string key, double fallback)
+        {
+            object stored = ApplicationData.Current.LocalSettings.Values[key];
+            if (stored is double number)
+            {
+                return number;
+            }
+            if (stored is int integer)
+            {
+                return integer;
+            }
+            if (stored is long longValue)
+            {
+                return longValue;
+            }
+            return fallback;
+        }
+
         private async void OnTestEventClick(object sender, RoutedEventArgs e)
         {
             TestPreset preset = GetSelectedTestPreset();
@@ -426,6 +674,7 @@ namespace KillConfirmGameBar
             await InitializePackSelectorsAsync();
             await SyncSelectedVoicePackAsync();
             await SyncCrossfireGameplaySettingsAsync();
+            await SyncCsolGameplaySettingsAsync();
             await SyncSharedStreakSettingsAsync();
             _ = WarmStartupAnimationCacheAsync(0);
         }

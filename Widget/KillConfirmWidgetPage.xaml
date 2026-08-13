@@ -54,7 +54,8 @@
             BorderBrush="#E2DDD3"
             BorderThickness="1"
             CornerRadius="18">
-            <Grid RowSpacing="3">
+            <Grid>
+                <Grid x:Name="MainPanelContent" RowSpacing="3">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
@@ -381,6 +382,7 @@
                             SelectionChanged="OnGameStyleSelectionChanged"
                             ToolTipService.ToolTip="Game UI style">
                             <ComboBoxItem x:Name="CrossfireStyleItem" Tag="crossfire">CF</ComboBoxItem>
+                            <ComboBoxItem x:Name="CsolStyleItem" Tag="csol">CSOL</ComboBoxItem>
                             <ComboBoxItem x:Name="ValorantStyleItem" Tag="valorant">VAL</ComboBoxItem>
                             <ComboBoxItem x:Name="Battlefield1StyleItem" Tag="battlefield1">BF1</ComboBoxItem>
                             <ComboBoxItem x:Name="Battlefield5StyleItem" Tag="battlefield5">BF5</ComboBoxItem>
@@ -464,17 +466,6 @@
                                 <PathIcon Style="{StaticResource FluentPathIconStyle}" Data="M3.50014 6.25C3.50014 5.2835 4.28364 4.5 5.25014 4.5H8.12882C8.32773 4.5 8.5185 4.57902 8.65915 4.71967L10.7198 6.78033C10.8605 6.92098 11.0512 7 11.2501 7H16.7501C17.7166 7 18.5001 7.7835 18.5001 8.75C18.5001 8.83602 18.5146 8.91866 18.5413 8.99561L8.71867 8.99561C7.37893 8.99561 6.14095 9.71035 5.47108 10.8706L3.50014 14.2844V6.25ZM2.00036 17.7883C2.02089 19.5656 3.468 21 5.25014 21H11.0001C11.0292 21 11.058 20.9983 11.0862 20.9951H16.2812C17.6209 20.9951 18.8589 20.2804 19.5288 19.1201L22.5596 13.8706C23.7748 11.7657 22.3337 9.14964 19.9567 9.00214C19.9848 8.92334 20.0001 8.83846 20.0001 8.75C20.0001 6.95507 18.5451 5.5 16.7501 5.5H11.5608L9.71981 3.65901C9.29786 3.23705 8.72556 3 8.12882 3H5.25014C3.45522 3 2.00014 4.45507 2.00014 6.25V17.71C1.9999 17.7362 1.99997 17.7623 2.00036 17.7883ZM8.71867 10.4956L19.745 10.4956C21.0921 10.4956 21.9341 11.9539 21.2605 13.1206L18.2297 18.3701C17.8278 19.0663 17.085 19.4951 16.2812 19.4951H5.25485C3.9077 19.4951 3.06573 18.0368 3.7393 16.8701L6.77011 11.6206C7.17204 10.9245 7.91482 10.4956 8.71867 10.4956Z" />
                             </Grid>
                         </Button>
-                    </Grid>
-
-                    <Grid
-                        x:Name="GsiCountRow"
-                        Visibility="Collapsed">
-                        <TextBlock
-                            x:Name="GsiCountText"
-                            FontSize="10"
-                            Foreground="#6B7280"
-                            Text="GSI received"
-                            TextTrimming="CharacterEllipsis" />
                     </Grid>
 
                     <Grid
@@ -725,6 +716,7 @@
                                 <ColumnDefinition Width="96" />
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
 
                             <PathIcon
@@ -811,8 +803,19 @@
                             </Button>
 
                             <Button
-                                x:Name="ReloadAudioButton"
+                                x:Name="CollapsePanelButton"
                                 Grid.Column="5"
+                                Style="{StaticResource ToolbarIconButtonStyle}"
+                                Click="OnCollapsePanelToggle"
+                                ToolTipService.ToolTip="Collapse panel">
+                                <Grid Style="{StaticResource IconHostStyle}">
+                                    <PathIcon Style="{StaticResource FluentPathIconStyle}" Data="M4 5H20V7H4V5ZM4 11H20V13H4V11ZM4 17H20V19H4V17Z" />
+                                </Grid>
+                            </Button>
+
+                            <Button
+                                x:Name="ReloadAudioButton"
+                                Grid.Column="6"
                                 Style="{StaticResource ToolbarIconButtonStyle}"
                                 Click="OnReloadAudioClick"
                                 ToolTipService.ToolTip="Reload audio output">
@@ -1094,7 +1097,41 @@
 
                 </Grid>
             </Grid>
-        </Border>
+            <Border
+                x:Name="MiniPanel"
+                MinWidth="92"
+                Padding="8,6"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Top"
+                Margin="8,6,8,0"
+                Background="#F4FAFAF7"
+                BorderBrush="#E2DDD3"
+                BorderThickness="1"
+                CornerRadius="14"
+                Visibility="Collapsed">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button
+                        x:Name="MiniSendTestButton"
+                        Style="{StaticResource PackImportantIconButtonStyle}"
+                        Click="OnTestEventClick"
+                        ToolTipService.ToolTip="Send selected test event">
+                        <Grid Style="{StaticResource IconHostStyle}">
+                            <PathIcon Foreground="#FFFFFF" Style="{StaticResource FluentPathIconStyle}" Data="M15 4.24951C15 3.17089 13.7255 2.59866 12.9195 3.31534L8.42794 7.30861C8.29065 7.43067 8.11333 7.4981 7.92961 7.4981H4.25C3.00736 7.4981 2 8.50546 2 9.7481V14.246C2 15.4886 3.00736 16.496 4.25 16.496H7.92956C8.11329 16.496 8.29063 16.5634 8.42793 16.6855L12.9194 20.6792C13.7255 21.396 15 20.8238 15 19.7451V4.24951Z" />
+                        </Grid>
+                    </Button>
+                    <Button
+                        x:Name="MiniCollapsePanelButton"
+                        Style="{StaticResource ToolbarIconButtonStyle}"
+                        Click="OnCollapsePanelToggle"
+                        ToolTipService.ToolTip="Restore panel">
+                        <Grid Style="{StaticResource IconHostStyle}">
+                            <PathIcon Style="{StaticResource FluentPathIconStyle}" Data="M4 5H20V7H4V5ZM4 11H20V13H4V11ZM4 17H20V19H4V17Z" />
+                        </Grid>
+                    </Button>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Border>
 
         <controls:UpdateOverlayView x:Name="UpdateOverlay" Visibility="Collapsed" />
     </Grid>

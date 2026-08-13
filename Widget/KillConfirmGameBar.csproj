@@ -140,6 +140,7 @@
     <Compile Include="KillConfirmWidgetPage.Animation.cs" />
     <Compile Include="KillConfirmWidgetPage.CrossfireStyle.cs" />
     <Compile Include="KillConfirmWidgetPage.CrossfireGameplaySettings.cs" />
+    <Compile Include="KillConfirmWidgetPage.CsolGameplaySettings.cs" />
     <Compile Include="KillConfirmWidgetPage.SharedStreakSettings.cs" />
     <Compile Include="KillConfirmWidgetPage.Status.cs" />
     <Compile Include="KillConfirmWidgetPage.VisualSettings.cs" />
@@ -209,6 +210,9 @@
     <Compile Include="Controls\GameStyles\CrossfireStylePanel.xaml.cs">
       <DependentUpon>CrossfireStylePanel.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\GameStyles\CsolAdvancedEffectsPanel.xaml.cs">
+      <DependentUpon>CsolAdvancedEffectsPanel.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\GameStyles\ValorantAdvancedEffectsPanel.xaml.cs">
       <DependentUpon>ValorantAdvancedEffectsPanel.xaml</DependentUpon>
     </Compile>
@@ -255,6 +259,7 @@
     <Compile Include="Services\LocalServiceAuth.cs" />
     <Compile Include="Services\AssistAudioSettingsStore.cs" />
     <Compile Include="Services\CrossfireGameplaySettingsStore.cs" />
+    <Compile Include="Services\CsolVoiceSettingsStore.cs" />
     <Compile Include="Services\SharedStreakSettingsStore.cs" />
     <Compile Include="Services\DeveloperModeSettingsStore.cs" />
     <Compile Include="Services\GsiGameVersionSettingsStore.cs" />
@@ -399,6 +404,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Controls\GameStyles\CrossfireStylePanel.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\GameStyles\CsolAdvancedEffectsPanel.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

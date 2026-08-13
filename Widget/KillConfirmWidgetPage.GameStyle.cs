@@ -64,7 +64,8 @@ namespace KillConfirmGameBar
                 return;
             }
 
-            bool crossfire = GameStyleService.Current == GameStyleMode.Crossfire;
+            bool crossfire = GameStyleService.Current == GameStyleMode.Crossfire
+                || GameStyleService.Current == GameStyleMode.Csol;
             GameThemePalette theme = GameThemePalette.Current;
             bool darkStyle = IsDark(theme.Field);
             PackTestSection.Visibility = Visibility.Visible;
@@ -147,6 +148,7 @@ namespace KillConfirmGameBar
             ContrastIcon.Foreground = Brush(text);
             PlaybackFpsLabel.Foreground = Brush(text);
             SetButtonTheme(SendTestButton, theme.Accent, crossfire ? Color.FromArgb(255, 197, 106, 0) : theme.AccentText, Color.FromArgb(255, 255, 255, 255));
+            SetButtonTheme(MiniSendTestButton, theme.Accent, crossfire ? Color.FromArgb(255, 197, 106, 0) : theme.AccentText, Color.FromArgb(255, 255, 255, 255));
             SetButtonTheme(ReloadAudioButton, field, theme.SoftBorder, text);
 
             Color visualButtonField = darkStyle ? theme.SubtleField : Color.FromArgb(255, 255, 253, 252);

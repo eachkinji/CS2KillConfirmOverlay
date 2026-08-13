@@ -19,6 +19,7 @@ namespace KillConfirmGameBar
     {
         private CrossfireAdvancedEffectsPanel _crossfireAdvancedEffectsPanel;
         private CrossfireStylePanel _crossfireStylePanel;
+        private CsolAdvancedEffectsPanel _csolAdvancedEffectsPanel;
         private ValorantAdvancedEffectsPanel _valorantAdvancedEffectsPanel;
         private Battlefield1AdvancedEffectsPanel _battlefield1AdvancedEffectsPanel;
         private Battlefield5AdvancedEffectsPanel _battlefield5AdvancedEffectsPanel;
@@ -270,6 +271,9 @@ namespace KillConfirmGameBar
                 case GameStyleMode.DeltaForce:
                     panel = EnsureDeltaForceAdvancedSettingsPanel();
                     break;
+                case GameStyleMode.Csol:
+                    panel = EnsureCsolAdvancedSettingsPanel();
+                    break;
                 case GameStyleMode.Crossfire:
                 default:
                     panel = EnsureCrossfireAdvancedSettingsPanel();
@@ -390,6 +394,106 @@ namespace KillConfirmGameBar
             catch (Exception ex)
             {
                 App.Log("Sync CrossFire settings from desktop failed: " + ex.Message);
+            }
+        }
+
+        private CsolAdvancedEffectsPanel EnsureCsolAdvancedSettingsPanel()
+        {
+            if (_csolAdvancedEffectsPanel == null)
+            {
+                _csolAdvancedEffectsPanel = new CsolAdvancedEffectsPanel();
+                _csolAdvancedEffectsPanel.VoiceSettingChanged += OnCsolGameplaySettingChanged;
+            }
+
+            RefreshCsolAdvancedSettingsPanel();
+            return _csolAdvancedEffectsPanel;
+        }
+
+        private void RefreshCsolAdvancedSettingsPanel()
+        {
+            if (_csolAdvancedEffectsPanel == null)
+            {
+                return;
+            }
+
+            CsolVoiceSettingsValues settings = CsolVoiceSettingsStore.Load();
+            string streakMode = SharedStreakSettingsStore.Load(GameStyleMode.Csol);
+            _suppressCrossfireSettingEvents = true;
+            try
+            {
+                _csolAdvancedEffectsPanel.SelectSettings(
+                    streakMode,
+                    settings.SpecialVoicePriority,
+                    settings.FirstLastIcon,
+                    settings.VoicePicks);
+            }
+            finally
+            {
+                _suppressCrossfireSettingEvents = false;
+            }
+            SharedStreakSettingsStore.Save(GameStyleMode.Csol, streakMode);
+        }
+
+        private async void OnCsolGameplaySettingChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_suppressCrossfireSettingEvents || _csolAdvancedEffectsPanel == null)
+            {
+                return;
+            }
+
+            CsolVoiceSettingsValues fallback = CsolVoiceSettingsStore.Load();
+            string streakMode = SharedStreakSettingsStore.Normalize(
+                _csolAdvancedEffectsPanel.GetSelectedStreakMode(SharedStreakSettingsStore.LifeMode));
+            SharedStreakSettingsStore.Save(GameStyleMode.Csol, streakMode);
+            CsolVoiceSettingsStore.Save(new CsolVoiceSettingsValues
+            {
+                VoicePicks = _csolAdvancedEffectsPanel.GetVoicePicks(),
+                FirstLastIcon = _csolAdvancedEffectsPanel.GetFirstLastIcon(fallback.FirstLastIcon),
+                SpecialVoicePriority = _csolAdvancedEffectsPanel.GetSpecialVoicePriority(fallback.SpecialVoicePriority)
+            });
+            await TrySyncCsolSettingsAsync();
+        }
+
+        private async Task TrySyncCsolSettingsAsync()
+        {
+            try
+            {
+                CsolVoiceSettingsValues settings = CsolVoiceSettingsStore.Load();
+                var picks = new JsonObject();
+                foreach (var pair in settings.VoicePicks)
+                {
+                    picks[pair.Key] = JsonValue.CreateStringValue(pair.Value);
+                }
+
+                var request = new JsonObject
+                {
+                    ["voice_picks"] = picks,
+                    ["special_voice_priority"] = JsonValue.CreateBooleanValue(settings.SpecialVoicePriority)
+                };
+
+                using (var client = await LocalServiceAuth.CreateHttpClientAsync())
+                using (var content = new HttpStringContent(
+                    request.Stringify(),
+                    UnicodeEncoding.Utf8,
+                    "application/json"))
+                {
+                    await client.PostAsync(new Uri("http://127.0.0.1:10087/csol/settings"), content);
+                }
+            }
+            catch (Exception ex)
+            {
+                App.Log("Sync CSOL settings from desktop failed: " + ex.Message);
+            }
+
+            try
+            {
+                await TrySyncSharedStreakSettingsAsync(
+                    GameStyleMode.Csol,
+                    SharedStreakSettingsStore.Load(GameStyleMode.Csol));
+            }
+            catch (Exception ex)
+            {
+                App.Log("Sync CSOL streak from desktop failed: " + ex.Message);
             }
         }
 
@@ -580,6 +684,7 @@ namespace KillConfirmGameBar
         {
             GameThemePalette theme = GameThemePalette.Current;
             if (_crossfireAdvancedEffectsPanel != null) _crossfireAdvancedEffectsPanel.ApplyTheme(theme);
+            if (_csolAdvancedEffectsPanel != null) _csolAdvancedEffectsPanel.ApplyTheme(theme);
             if (_valorantAdvancedEffectsPanel != null) _valorantAdvancedEffectsPanel.ApplyTheme(theme);
             if (_battlefield1AdvancedEffectsPanel != null) _battlefield1AdvancedEffectsPanel.ApplyTheme(theme);
             if (_battlefield5AdvancedEffectsPanel != null) _battlefield5AdvancedEffectsPanel.ApplyTheme(theme);
@@ -602,6 +707,7 @@ namespace KillConfirmGameBar
         {
             bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
             if (_crossfireAdvancedEffectsPanel != null) _crossfireAdvancedEffectsPanel.ApplyLanguage(isChinese);
+            if (_csolAdvancedEffectsPanel != null) _csolAdvancedEffectsPanel.ApplyLanguage(isChinese);
             if (_valorantAdvancedEffectsPanel != null) _valorantAdvancedEffectsPanel.ApplyLanguage(isChinese);
             if (_battlefield1AdvancedEffectsPanel != null) _battlefield1AdvancedEffectsPanel.ApplyLanguage(isChinese);
             if (_battlefield5AdvancedEffectsPanel != null) _battlefield5AdvancedEffectsPanel.ApplyLanguage(isChinese);

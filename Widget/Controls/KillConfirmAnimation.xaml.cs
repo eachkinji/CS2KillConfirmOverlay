@@ -34,6 +34,11 @@ namespace KillConfirmGameBar.Controls
         private const string KnifeKillAssetKey = "knife_kill";
         private const string LastKillAssetKey = "last_kill";
         private const string DefaultCodeFolder = "Original";
+        private const string Csol4CodeFolder = "Csol4";
+        private const double CsolHoldSeconds = 3.0;
+        private const double CsolFadeSeconds = 0.3;
+        private const double CsolFrameWidth = 520;
+        private const double CsolFrameHeight = 300;
         private const string VipCodeFolder = "Vip";
         private const string AngelicBeastCodeFolder = "AngelicBeast";
         private const string KnifeCodeFolder = "Knife";
@@ -83,7 +88,9 @@ namespace KillConfirmGameBar.Controls
         private Code2KillAsset _currentCodeAsset;
         private ValorantKillAsset _currentValorantAsset;
         private BattlefieldKillAsset _currentBattlefieldAsset;
+        private CsolKillAsset _currentCsolAsset;
         private static readonly Dictionary<string, Code2KillAsset> CodeKillCache = new Dictionary<string, Code2KillAsset>();
+        private static readonly Dictionary<string, CsolKillAsset> CsolKillCache = new Dictionary<string, CsolKillAsset>();
         private static Task _startupPreloadTask;
         private static Task _preloadTask;
         private int _currentFrame;
@@ -130,6 +137,11 @@ namespace KillConfirmGameBar.Controls
             }
 
             PlayInternal(progress => LoadCodeKillAssetAsync(assetName, weaponBadgeKey, progress));
+        }
+
+        public void PlayCsolKill(int killCount, string specialIconKey)
+        {
+            PlayInternal(progress => LoadCsolKillAssetAsync(killCount, specialIconKey, progress));
         }
 
         public void PlayValorantKill(string packKey, int killCount, bool isHeadshot)
@@ -519,6 +531,7 @@ namespace KillConfirmGameBar.Controls
                 _currentCodeAsset = asset.CodeAsset;
                 _currentValorantAsset = asset.ValorantAsset;
                 _currentBattlefieldAsset = asset.BattlefieldAsset;
+                _currentCsolAsset = asset.CsolAsset;
                 _currentSheet = null;
                 _currentFrame = 0;
 
@@ -809,11 +822,19 @@ namespace KillConfirmGameBar.Controls
                 BattlefieldAsset = battlefieldAsset;
             }
 
+            public AnimationAsset(SpriteMetadata metadata, CsolKillAsset csolAsset)
+            {
+                Metadata = metadata;
+                Sheets = null;
+                CsolAsset = csolAsset;
+            }
+
             public SpriteMetadata Metadata { get; }
             public IReadOnlyList<SpriteSheetSegment> Sheets { get; }
             public Code2KillAsset CodeAsset { get; }
             public ValorantKillAsset ValorantAsset { get; }
             public BattlefieldKillAsset BattlefieldAsset { get; }
+            public CsolKillAsset CsolAsset { get; }
         }
 
         private sealed class Code2KillAsset
@@ -830,6 +851,20 @@ namespace KillConfirmGameBar.Controls
             public CanvasBitmap Fx { get; }
             public CanvasBitmap Overlay { get; }
             public CanvasBitmap WeaponBadge { get; }
+        }
+
+        private sealed class CsolKillAsset
+        {
+            // Top row: kill-streak icons indexed by killCount - 1 (1..4).
+            public CanvasBitmap[] Streak { get; set; }
+            // Bottom row: special icons; SpecialKey selects which one to draw.
+            public CanvasBitmap Headshot { get; set; }
+            public CanvasBitmap Melee { get; set; }
+            public CanvasBitmap Revenge { get; set; }
+            public CanvasBitmap FirstKill { get; set; }
+            public CanvasBitmap Assist { get; set; }
+            public int KillCount { get; set; }
+            public string SpecialKey { get; set; }
         }
 
         private sealed class ValorantKillAsset

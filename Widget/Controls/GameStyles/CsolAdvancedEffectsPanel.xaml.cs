@@ -1,0 +1,206 @@
+using System;
+using System.Collections.Generic;
+using KillConfirmGameBar.Services;
+using Windows.UI.Xaml;
+using Windows.UI.Xaml.Controls;
+
+namespace KillConfirmGameBar.Controls.GameStyles
+{
+    public sealed partial class CsolAdvancedEffectsPanel : UserControl
+    {
+        public CsolAdvancedEffectsPanel()
+        {
+            InitializeComponent();
+            PopulateVariantSelectors();
+        }
+
+        public event SelectionChangedEventHandler VoiceSettingChanged;
+
+        public ComboBox StreakModeSelectorControl => StreakEditor.SelectorControl;
+
+        private static (ComboBox Selector, string KillType)[] GetVoiceSelectors(CsolAdvancedEffectsPanel panel)
+        {
+            return new[]
+            {
+                (panel.OneKillVoiceSelector, "1"),
+                (panel.FourKillVoiceSelector, "4"),
+                (panel.KnifeVoiceSelector, "knife"),
+                (panel.FirstLastVoiceSelector, "revenge")
+            };
+        }
+
+        private void PopulateVariantSelectors()
+        {
+            foreach ((ComboBox selector, string killType) in GetVoiceSelectors(this))
+            {
+                if (CsolVoiceSettingsStore.VoiceVariants.TryGetValue(killType, out string[] variants))
+                {
+                    foreach (string variant in variants)
+                    {
+                        selector.Items.Add(CreateVariantItem(variant));
+                    }
+                }
+            }
+        }
+
+        private static ComboBoxItem CreateVariantItem(string fileName)
+        {
+            string display = fileName;
+            int dot = display.LastIndexOf('.');
+            if (dot > 0)
+            {
+                display = display.Substring(0, dot);
+            }
+
+            return new ComboBoxItem
+            {
+                Tag = fileName,
+                Content = display
+            };
+        }
+
+        internal void ApplyTheme(GameThemePalette theme)
+        {
+            AdvancedEffectsPanelSupport.ApplyHeader(TitleText, HintText, theme);
+            StreakEditor.ApplyTheme(theme);
+            AdvancedEffectsPanelSupport.ApplyMoneyRow(PriorityLabel, PrioritySelector, theme);
+            AdvancedEffectsPanelSupport.ApplyMoneyRow(OneKillLabel, OneKillVoiceSelector, theme);
+            AdvancedEffectsPanelSupport.ApplyMoneyRow(FourKillLabel, FourKillVoiceSelector, theme);
+            AdvancedEffectsPanelSupport.ApplyMoneyRow(KnifeLabel, KnifeVoiceSelector, theme);
+            AdvancedEffectsPanelSupport.ApplyMoneyRow(FirstLastVoiceLabel, FirstLastVoiceSelector, theme);
+            AdvancedEffectsPanelSupport.ApplyMoneyRow(FirstLastIconLabel, FirstLastIconSelector, theme);
+        }
+
+        public void ApplyLanguage(bool isChinese)
+        {
+            TitleText.Text = isChinese ? "CSOL 高级特效" : "CSOL Effects";
+            HintText.Text = isChinese
+                ? "CSOL 的连杀图标行、每类击杀语音选择（随机/指定）、首尾杀语音与图标、语音优先级都在这里设置。"
+                : "CSOL kill-streak rows, per-kill voice picks (random or a specific file), first/last-kill voice+icon, and voice priority are configured here.";
+            StreakEditor.ApplyLanguage(isChinese);
+            PriorityLabel.Text = isChinese ? "语音优先级" : "Voice priority";
+            PrioritySpecialItem.Content = isChinese ? "特殊优先" : "Special first";
+            PriorityStreakItem.Content = isChinese ? "连杀优先" : "Kill-streak first";
+            OneKillLabel.Text = isChinese ? "1杀语音" : "1-kill voice";
+            FourKillLabel.Text = isChinese ? "4杀语音" : "4-kill voice";
+            KnifeLabel.Text = isChinese ? "刀杀语音" : "Knife-kill voice";
+            FirstLastVoiceLabel.Text = isChinese ? "首尾杀语音" : "First/last-kill voice";
+            FirstLastIconLabel.Text = isChinese ? "首尾杀图标" : "First/last-kill icon";
+            FirstLastIconRevengeItem.Content = isChinese ? "复仇" : "Revenge";
+            FirstLastIconFirstKillItem.Content = isChinese ? "首杀" : "First kill";
+
+            foreach ((ComboBox selector, string _) in GetVoiceSelectors(this))
+            {
+                foreach (object option in selector.Items)
+                {
+                    if (option is ComboBoxItem item
+                        && item.Tag is string tag
+                        && string.Equals(tag, CsolVoiceSettingsStore.RandomPick, StringComparison.OrdinalIgnoreCase))
+                    {
+                        item.Content = isChinese ? "随机" : "Random";
+                    }
+                }
+            }
+        }
+
+        public string GetSelectedStreakMode(string fallback)
+        {
+            return StreakEditor.GetValue(fallback);
+        }
+
+        public void SelectStreakMode(string value)
+        {
+            StreakEditor.SelectValue(value);
+        }
+
+        public bool GetSpecialVoicePriority(bool fallback)
+        {
+            return ReadTaggedItem(PrioritySelector, fallback ? "special" : "streak") == "special";
+        }
+
+        public string GetFirstLastIcon(string fallback)
+        {
+            string value = ReadTaggedItem(FirstLastIconSelector, fallback);
+            return string.Equals(value, CsolVoiceSettingsStore.FirstKillIcon, StringComparison.OrdinalIgnoreCase)
+                ? CsolVoiceSettingsStore.FirstKillIcon
+                : CsolVoiceSettingsStore.RevengeIcon;
+        }
+
+        public Dictionary<string, string> GetVoicePicks()
+        {
+            var picks = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach ((ComboBox selector, string killType) in GetVoiceSelectors(this))
+            {
+                string value = ReadTaggedItem(selector, CsolVoiceSettingsStore.RandomPick);
+                picks[killType] = CsolVoiceSettingsStore.RandomPick.Equals(value, StringComparison.OrdinalIgnoreCase)
+                    ? CsolVoiceSettingsStore.RandomPick
+                    : value;
+            }
+
+            return picks;
+        }
+
+        public void SelectSettings(
+            string streakMode,
+            bool specialVoicePriority,
+            string firstLastIcon,
+            IReadOnlyDictionary<string, string> voicePicks)
+        {
+            StreakEditor.SelectValue(streakMode);
+            SelectTaggedItem(PrioritySelector, specialVoicePriority ? "special" : "streak", "special");
+            SelectTaggedItem(
+                FirstLastIconSelector,
+                string.Equals(firstLastIcon, CsolVoiceSettingsStore.FirstKillIcon, StringComparison.OrdinalIgnoreCase)
+                    ? CsolVoiceSettingsStore.FirstKillIcon
+                    : CsolVoiceSettingsStore.RevengeIcon,
+                CsolVoiceSettingsStore.RevengeIcon);
+
+            foreach ((ComboBox selector, string killType) in GetVoiceSelectors(this))
+            {
+                string pick = voicePicks != null && voicePicks.TryGetValue(killType, out string stored)
+                    ? stored
+                    : CsolVoiceSettingsStore.RandomPick;
+                SelectTaggedItem(selector, pick, CsolVoiceSettingsStore.RandomPick);
+            }
+        }
+
+        private void OnVoiceSettingChanged(object sender, SelectionChangedEventArgs e)
+        {
+            VoiceSettingChanged?.Invoke(this, e);
+        }
+
+        private static string ReadTaggedItem(ComboBox selector, string fallback)
+        {
+            if (selector?.SelectedItem is ComboBoxItem item
+                && item.Tag is string tag
+                && !string.IsNullOrWhiteSpace(tag))
+            {
+                return tag;
+            }
+
+            return fallback;
+        }
+
+        private static void SelectTaggedItem(ComboBox selector, string value, string fallback)
+        {
+            if (selector == null)
+            {
+                return;
+            }
+
+            string target = string.IsNullOrWhiteSpace(value) ? fallback : value;
+            foreach (object option in selector.Items)
+            {
+                if (option is ComboBoxItem item
+                    && item.Tag is string tag
+                    && string.Equals(tag, target, StringComparison.OrdinalIgnoreCase))
+                {
+                    selector.SelectedItem = item;
+                    return;
+                }
+            }
+
+            selector.SelectedIndex = 0;
+        }
+    }
+}

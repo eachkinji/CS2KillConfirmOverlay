@@ -131,6 +131,7 @@ namespace KillConfirmGameBar.Controls
             _currentCodeAsset = null;
             _currentValorantAsset = null;
             _currentBattlefieldAsset = null;
+            _currentCsolAsset = null;
             _currentSheets = null;
             _currentSheet = null;
             _currentMetadata = new SpriteMetadata

@@ -75,6 +75,7 @@ namespace KillConfirmGameBar.Services
                     CreateBuiltInVoice("crossfire_bunny_bl", "Bunny BL", true),
                     CreateBuiltInVoice("crossfire_heart_judge_gr", "Heart Judge GR", true),
                     CreateBuiltInVoice("crossfire_heart_judge_bl", "Heart Judge BL", true),
+                    CreateBuiltInVoice("csol4", "CSOL 4杀", true),
                     CreateBuiltInVoice("bf1", "Battlefield 1", true),
                     CreateBuiltInVoice("bf5", "Battlefield 5", true),
                     CreateBuiltInVoice("bf4", "Battlefield 4", true),
@@ -87,12 +88,13 @@ namespace KillConfirmGameBar.Services
                     CreateBuiltInIcon("default", "鍘熺増", true),
                     CreateBuiltInIcon("vip", "VIP", true),
                     CreateBuiltInIcon("legacy", "鑰佺増", false),
-                    CreateBuiltInIcon("angelic_beast", "绀轰緥", false),
+                    CreateBuiltInIcon("angelic_beast", "绀轰緥", true),
                     CreateBuiltInIcon("anniversary_10", "10周年庆", false),
                     CreateBuiltInIcon("anniversary_15", "15周年庆", false),
                     CreateBuiltInIcon("cfpl", "CFPL", false),
                     CreateBuiltInIcon("rankmach_2019_1", "排位赛-1", false),
                     CreateBuiltInIcon("rankmach_2019_2", "排位赛-2", false),
+                    CreateBuiltInIcon("csol4", "CSOL 4杀", true),
                     CreateBuiltInIcon("bf1", "Battlefield 1", true),
                     CreateBuiltInIcon("bf5", "Battlefield 5", true),
                     CreateBuiltInIcon("bf4", "Battlefield 4", true),
@@ -187,11 +189,13 @@ namespace KillConfirmGameBar.Services
 
                 item.IsVisibleInWidget = string.Equals(item.Key, "default", StringComparison.OrdinalIgnoreCase)
                     || string.Equals(item.Key, "vip", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(item.Key, "angelic_beast", StringComparison.OrdinalIgnoreCase)
                     || string.Equals(item.Key, "anniversary_10", StringComparison.OrdinalIgnoreCase)
                     || string.Equals(item.Key, "anniversary_15", StringComparison.OrdinalIgnoreCase)
                     || string.Equals(item.Key, "cfpl", StringComparison.OrdinalIgnoreCase)
                     || string.Equals(item.Key, "rankmach_2019_1", StringComparison.OrdinalIgnoreCase)
                     || string.Equals(item.Key, "rankmach_2019_2", StringComparison.OrdinalIgnoreCase)
+                    || GameStyleService.IsCsolKey(item.Key)
                     || GameStyleService.IsModPresetGameKey(item.Key)
                     || ValorantPackService.IsValorantPackKey(item.Key);
             }

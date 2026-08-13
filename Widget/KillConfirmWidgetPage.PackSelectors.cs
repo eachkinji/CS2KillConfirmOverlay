@@ -286,6 +286,8 @@ namespace KillConfirmGameBar
                     return "ms-appx:///Assets/GameStyles/pubg/killconfirm/textures/killicon_scrolling_headshot.png";
                 case "deltaforce":
                     return "ms-appx:///Assets/GameStyles/deltaforce/killconfirm/textures/killicon_df_headshot.png";
+                case "csol4":
+                    return "ms-appx:///Assets/GameLogos/csol.png";
                 default:
                     return "ms-appx:///Assets/KillConfirmCode/Original/badge_headshot.PNG";
             }
@@ -326,6 +328,8 @@ namespace KillConfirmGameBar
                     return "ms-appx:///Assets/GameStyles/pubg/killconfirm/textures/killicon_scrolling_headshot.png";
                 case "deltaforce":
                     return "ms-appx:///Assets/GameStyles/deltaforce/killconfirm/textures/killicon_df_headshot.png";
+                case "csol4":
+                    return "ms-appx:///Assets/GameLogos/csol.png";
                 case "legacy":
                 case "default":
                 default:
@@ -351,6 +355,8 @@ namespace KillConfirmGameBar
                     return "Delta Force";
                 case "crossfire_swat_gr":
                     return "swat GR";
+                case "csol4":
+                    return "CSOL 4杀";
                 default:
                     return ValorantPackService.IsValorantPackKey(key)
                         ? ValorantPackService.GetDisplayName(key)
@@ -376,6 +382,8 @@ namespace KillConfirmGameBar
                     return "Delta Force";
                 case "default":
                     return "\u539f\u7248";
+                case "csol4":
+                    return "CSOL 4\u6740";
                 default:
                     return ValorantPackService.IsValorantPackKey(key)
                         ? ValorantPackService.GetDisplayName(key)

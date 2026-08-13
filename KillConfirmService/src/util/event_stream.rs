@@ -1,4 +1,5 @@
 use std::{
+    collections::HashMap,
     ffi::OsStr,
     fs,
     os::windows::ffi::OsStrExt,
@@ -17,9 +18,15 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 use tracing::error;
-use windows_sys::Win32::Foundation::ERROR_SUCCESS;
+use windows_sys::Win32::Foundation::{
+    CloseHandle, ERROR_INSUFFICIENT_BUFFER, ERROR_SUCCESS, GetLastError,
+};
+use windows_sys::Win32::System::ProcessStatus::K32EnumProcesses;
 use windows_sys::Win32::System::Registry::{
     HKEY, HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE, RRF_RT_REG_EXPAND_SZ, RRF_RT_REG_SZ, RegGetValueW,
+};
+use windows_sys::Win32::System::Threading::{
+    OpenProcess, PROCESS_QUERY_LIMITED_INFORMATION, QueryFullProcessImageNameW,
 };
 
 use crate::soundpack::Preset;
@@ -159,6 +166,21 @@ pub struct CrossfireSettingsResponse {
     pub headshot_special_audio_priority: bool,
     pub knife_special_audio_priority: bool,
     pub assist_audio_enabled: bool,
+}
+
+#[derive(Debug, Deserialize, Default)]
+pub struct CsolSettingsRequest {
+    #[serde(default)]
+    pub voice_picks: HashMap<String, String>,
+    #[serde(default = "default_true")]
+    pub special_voice_priority: bool,
+}
+
+#[derive(Debug, Serialize)]
+pub struct CsolSettingsResponse {
+    pub active: bool,
+    pub voice_picks: HashMap<String, String>,
+    pub special_voice_priority: bool,
 }
 
 #[derive(Debug, Serialize)]
@@ -668,6 +690,33 @@ pub async fn set_crossfire_settings(
     Ok(Json(crossfire_settings_response(&app_state)))
 }
 
+pub async fn csol_settings(
+    State(app_state): State<Arc<AppState>>,
+) -> Json<CsolSettingsResponse> {
+    Json(csol_settings_response(&app_state).await)
+}
+
+pub async fn set_csol_settings(
+    State(app_state): State<Arc<AppState>>,
+    Json(request): Json<CsolSettingsRequest>,
+) -> Result<Json<CsolSettingsResponse>, (axum::http::StatusCode, String)> {
+    service_log(&format!(
+        "CSOL settings: voice_picks={:?}, special_voice_priority={}",
+        request.voice_picks, request.special_voice_priority
+    ));
+
+    {
+        let mut picks = app_state.csol_voice_picks.write().await;
+        picks.clear();
+        picks.extend(request.voice_picks);
+    }
+    app_state
+        .csol_special_voice_priority
+        .store(request.special_voice_priority, Ordering::Relaxed);
+
+    Ok(Json(csol_settings_response(&app_state).await))
+}
+
 pub async fn streak_settings(
     State(app_state): State<Arc<AppState>>,
 ) -> Json<StreakSettingsResponse> {
@@ -1101,6 +1150,16 @@ fn crossfire_settings_response(app_state: &AppState) -> CrossfireSettingsRespons
     }
 }
 
+async fn csol_settings_response(app_state: &AppState) -> CsolSettingsResponse {
+    CsolSettingsResponse {
+        active: app_state.crossfire_mode_active.load(Ordering::Relaxed),
+        voice_picks: app_state.csol_voice_picks.read().await.clone(),
+        special_voice_priority: app_state
+            .csol_special_voice_priority
+            .load(Ordering::Relaxed),
+    }
+}
+
 fn streak_settings_response(app_state: &AppState) -> StreakSettingsResponse {
     let mode = CrossfireStreakMode::from_u8(app_state.shared_streak_mode.load(Ordering::Relaxed));
     StreakSettingsResponse {
@@ -1197,7 +1256,87 @@ fn steam_roots() -> Vec<PathBuf> {
         push_unique_path(&mut roots, PathBuf::from(program_files_x86).join("Steam"));
     }
 
+    // Last-resort fallback: if the registry lookup misses (portable Steam,
+    // corrupted install), resolve the running steam.exe image path directly.
+    if let Some(running_root) = running_steam_root() {
+        service_log(&format!(
+            "running steam.exe resolved: {}",
+            running_root.display()
+        ));
+        push_unique_path(&mut roots, running_root);
+    }
+
     roots
+}
+
+fn running_steam_root() -> Option<PathBuf> {
+    let mut process_ids = vec![0u32; 1024];
+    loop {
+        let mut bytes_needed = 0u32;
+        let capacity_bytes = (process_ids.len() * std::mem::size_of::<u32>()) as u32;
+        let ok = unsafe {
+            K32EnumProcesses(process_ids.as_mut_ptr(), capacity_bytes, &mut bytes_needed)
+        };
+        if ok == 0 {
+            if bytes_needed > capacity_bytes {
+                process_ids.resize((bytes_needed as usize / std::mem::size_of::<u32>()) + 16, 0);
+                continue;
+            }
+            return None;
+        }
+
+        let count = (bytes_needed as usize / std::mem::size_of::<u32>()).min(process_ids.len());
+        for &process_id in &process_ids[..count] {
+            if let Some(image_path) = process_image_path(process_id) {
+                if image_path
+                    .file_name()
+                    .map(|name| name.eq_ignore_ascii_case("steam.exe"))
+                    .unwrap_or(false)
+                {
+                    return image_path.parent().map(|parent| parent.to_path_buf());
+                }
+            }
+        }
+        return None;
+    }
+}
+
+fn process_image_path(process_id: u32) -> Option<PathBuf> {
+    let handle = unsafe { OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, 0, process_id) };
+    if handle.is_null() {
+        return None;
+    }
+
+    let mut size = 260u32;
+    let mut buffer = vec![0u16; size as usize];
+    loop {
+        let mut actual_size = size;
+        let ok = unsafe {
+            QueryFullProcessImageNameW(
+                handle,
+                0,
+                buffer.as_mut_ptr(),
+                &mut actual_size,
+            )
+        };
+        if ok != 0 {
+            let length = buffer[..actual_size as usize]
+                .iter()
+                .position(|value| *value == 0)
+                .unwrap_or(actual_size as usize);
+            let value = String::from_utf16_lossy(&buffer[..length]);
+            unsafe { CloseHandle(handle) };
+            return (!value.is_empty()).then(|| PathBuf::from(value));
+        }
+
+        if unsafe { GetLastError() } == ERROR_INSUFFICIENT_BUFFER {
+            size = actual_size.max(260) * 2;
+            buffer.resize(size as usize, 0);
+            continue;
+        }
+        unsafe { CloseHandle(handle) };
+        return None;
+    }
 }
 
 fn query_registry_string(key: &str, value_name: &str) -> Option<String> {
@@ -1318,4 +1457,25 @@ fn unix_time_ms() -> u64 {
 
 fn zero_to_none(value: u64) -> Option<u64> {
     if value == 0 { None } else { Some(value) }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::CsolSettingsRequest;
+
+    #[test]
+    fn csol_settings_request_defaults_priority_to_special_first() {
+        let request: CsolSettingsRequest = serde_json::from_str("{}").unwrap();
+        assert!(request.voice_picks.is_empty());
+        assert!(request.special_voice_priority);
+    }
+
+    #[test]
+    fn csol_settings_request_parses_voice_picks() {
+        let json = r#"{"voice_picks":{"1":"Crazy.wav","knife":"random"},"special_voice_priority":false}"#;
+        let request: CsolSettingsRequest = serde_json::from_str(json).unwrap();
+        assert_eq!(request.voice_picks.get("1").map(String::as_str), Some("Crazy.wav"));
+        assert_eq!(request.voice_picks.get("knife").map(String::as_str), Some("random"));
+        assert!(!request.special_voice_priority);
+    }
 }

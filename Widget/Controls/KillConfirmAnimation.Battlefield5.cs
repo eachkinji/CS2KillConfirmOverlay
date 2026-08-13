@@ -138,6 +138,7 @@ namespace KillConfirmGameBar.Controls
             _currentCodeAsset = null;
             _currentValorantAsset = null;
             _currentBattlefieldAsset = null;
+            _currentCsolAsset = null;
             _currentFrame = 0;
 
             ApplyViewportSize(BattlefieldFrameWidth, BattlefieldFrameHeight);

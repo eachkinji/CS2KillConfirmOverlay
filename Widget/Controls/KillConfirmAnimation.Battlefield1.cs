@@ -86,6 +86,7 @@ namespace KillConfirmGameBar.Controls
             if (isTextOnly)
             {
                 _currentBattlefieldAsset = null;
+                _currentCsolAsset = null;
                 _currentFrame = 0;
                 ApplyBattlefield1TextOnlyViewport();
                 SpriteCanvas.Invalidate();
@@ -175,6 +176,7 @@ namespace KillConfirmGameBar.Controls
 
             _currentCodeAsset = null;
             _currentValorantAsset = null;
+            _currentCsolAsset = null;
             _currentSheets = null;
             _currentSheet = null;
             _currentMetadata = new SpriteMetadata
@@ -244,6 +246,7 @@ namespace KillConfirmGameBar.Controls
                 if (elapsedFrame >= _currentMetadata.Frames)
                 {
                     _currentBattlefieldAsset = null;
+                    _currentCsolAsset = null;
                 }
                 else
                 {

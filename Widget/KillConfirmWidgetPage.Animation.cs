@@ -130,7 +130,8 @@ namespace KillConfirmGameBar
             }
 
             bool shouldPlayPrimaryAnimation = (killEvent.IsCombatEvent && killEvent.PlayMainAnimation)
-                || (IsEconomyPresentationStyle(style) && IsBattlefieldTextEvent(killEvent));
+                || (IsEconomyPresentationStyle(style) && IsBattlefieldTextEvent(killEvent))
+                || (style == GameStyleMode.Csol && killEvent.IsCombatEvent);
             if (shouldPlayPrimaryAnimation)
             {
                 PlayPrimaryAnimation(killEvent);
@@ -141,8 +142,11 @@ namespace KillConfirmGameBar
 
         private void PlayPrimaryAnimation(KillEvent killEvent)
         {
+            bool isCsolAssist = GameStyleService.Current == GameStyleMode.Csol
+                && killEvent != null
+                && killEvent.IsAssist;
             if (!CanStyleConsumeEvent(GameStyleService.Current, killEvent)
-                || (killEvent.KillCount <= 0 && !IsBattlefieldTextEvent(killEvent)))
+                || (killEvent.KillCount <= 0 && !IsBattlefieldTextEvent(killEvent) && !isCsolAssist))
             {
                 return;
             }
@@ -151,6 +155,9 @@ namespace KillConfirmGameBar
             {
                 case GameStyleMode.Valorant:
                     PlayValorantPrimaryAnimation(killEvent);
+                    return;
+                case GameStyleMode.Csol:
+                    PlayCsolPrimaryAnimation(killEvent);
                     return;
                 case GameStyleMode.Battlefield1:
                     PlayBattlefield1PrimaryAnimation(killEvent);
@@ -357,6 +364,35 @@ namespace KillConfirmGameBar
             }
 
             return killEvent?.WeaponBadgeKey;
+        }
+
+        private void PlayCsolPrimaryAnimation(KillEvent killEvent)
+        {
+            string specialKey = null;
+            if (killEvent.IsFirstKill || killEvent.IsLastKill)
+            {
+                CsolVoiceSettingsValues settings = CsolVoiceSettingsStore.Load();
+                specialKey = string.Equals(
+                    settings.FirstLastIcon,
+                    CsolVoiceSettingsStore.FirstKillIcon,
+                    StringComparison.OrdinalIgnoreCase)
+                    ? "firstkill"
+                    : "revenge";
+            }
+            else if (killEvent.IsAssist)
+            {
+                specialKey = "assist";
+            }
+            else if (killEvent.IsKnifeKill)
+            {
+                specialKey = "melee";
+            }
+            else if (killEvent.IsHeadshot)
+            {
+                specialKey = "headshot";
+            }
+
+            PrimaryKillAnimation.PlayCsolKill(killEvent.KillCount, specialKey);
         }
 
         private void PlayCrossfirePrimaryAnimation(KillEvent killEvent)

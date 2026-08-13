@@ -13,7 +13,7 @@ namespace KillConfirmGameBar.Services
 
     internal static class ValorantPackService
     {
-        public const string DefaultKey = "valorant_00009_prime";
+        public const string DefaultKey = "valorant_00011_singularity_v1";
 
         private static readonly ValorantPackInfo[] Packs =
         {

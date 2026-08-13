@@ -3,7 +3,10 @@ param(
     [string]$Platform = "x64",
     [string]$MsBuildPath = "",
     [string]$VcInstallPath = "",
-    [switch]$DisableSigning
+    [switch]$DisableSigning,
+    [string]$CertificatePfxPath = "",
+    [string]$CertificatePassword = "",
+    [string]$CertificateThumbprint = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -250,6 +253,14 @@ try {
     )
     if ($DisableSigning) {
         $MsBuildArgs += "/p:AppxPackageSigningEnabled=false"
+    }
+    elseif ($CertificatePfxPath -and $CertificatePassword) {
+        $MsBuildArgs += "/p:AppxPackageSigningEnabled=true"
+        $MsBuildArgs += "/p:PackageCertificateKeyFile=$CertificatePfxPath"
+        $MsBuildArgs += "/p:PackageCertificatePassword=$CertificatePassword"
+        if ($CertificateThumbprint) {
+            $MsBuildArgs += "/p:PackageCertificateThumbprint=$CertificateThumbprint"
+        }
     }
     & $MsBuildPath @MsBuildArgs
 }

@@ -313,6 +313,7 @@ namespace KillConfirmGameBar
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
+            PersistCurrentPackSelections();
             _isPageActive = false;
             _animationPreloadToken++;
             PrimaryKillAnimation?.ReleaseAnimationResourcesForPackChange();

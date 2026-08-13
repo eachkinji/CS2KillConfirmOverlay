@@ -81,6 +81,7 @@ namespace KillConfirmGameBar.Services
             if (item != null)
             {
                 item.IsVisibleInWidget = isVisible;
+                SaveVisibilityOverride("voice", item.Key, isVisible);
                 await SaveAsync(catalog);
             }
         }

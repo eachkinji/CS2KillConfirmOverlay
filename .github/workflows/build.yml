@@ -83,21 +83,27 @@ jobs:
           $manifest.Save($manifestPath)
           Write-Host "Package version synced to $tag"
 
-      - name: Generate self-signed certificate
+      - name: Decode signing certificate
         shell: pwsh
+        env:
+          SIGNING_PFX: ${{ secrets.SIGNING_PFX }}
+          SIGNING_CER: ${{ secrets.SIGNING_CER }}
+          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
         run: |
           $ErrorActionPreference = "Stop"
-          $cert = New-SelfSignedCertificate -Type CodeSigningCert -Subject "CN=KillConfirmGameBar" -CertStoreLocation Cert:\CurrentUser\My -KeyExportPolicy Exportable
+          if (-not $env:SIGNING_PFX -or -not $env:SIGNING_CER -or -not $env:SIGNING_PASSWORD) {
+              throw "Missing SIGNING_PFX/SIGNING_CER/SIGNING_PASSWORD secrets"
+          }
           $pfx = Join-Path $env:RUNNER_TEMP "KillConfirmGameBar.pfx"
           $cer = Join-Path $env:RUNNER_TEMP "KillConfirmGameBar.cer"
-          $pass = [guid]::NewGuid().ToString()
-          Export-PfxCertificate -Cert $cert -FilePath $pfx -Password (ConvertTo-SecureString -String $pass -AsPlainText -Force) -Force | Out-Null
-          Export-Certificate -Cert $cert -FilePath $cer -Force | Out-Null
+          [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:SIGNING_PFX))
+          [IO.File]::WriteAllBytes($cer, [Convert]::FromBase64String($env:SIGNING_CER))
+          $cert = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($pfx, $env:SIGNING_PASSWORD)
           "CERT_PFX=$pfx" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           "CERT_CER=$cer" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-          "CERT_PASSWORD=$pass" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "CERT_PASSWORD=$env:SIGNING_PASSWORD" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           "CERT_THUMBPRINT=$($cert.Thumbprint)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-          Write-Host "Self-signed cert: $($cert.Subject), thumbprint $($cert.Thumbprint)"
+          Write-Host "Signing cert: $($cert.Subject), thumbprint $($cert.Thumbprint), valid to $($cert.NotAfter)"
 
       - name: Build installer
         shell: pwsh

@@ -78,11 +78,12 @@ namespace KillConfirmGameBar
                 style,
                 GameStyleService.DefaultIconPackKey(style));
 
-            SavePackSettingForStyle(IconPackSettingKey, style, iconPack);
             TryApplyValorantLoadedIconPack(iconPack);
             SelectIconPack(iconPack);
-            ConfigureAnimationIconPack(GetSelectedIconPack());
-            _ = ApplyCustomPackOverlaySupportAsync(GetSelectedIconPack());
+            iconPack = GetSelectedIconPack();
+            SavePackSettingForStyle(IconPackSettingKey, style, iconPack);
+            ConfigureAnimationIconPack(iconPack);
+            _ = ApplyCustomPackOverlaySupportAsync(iconPack);
             UpdateEliteEffectSelectorState();
             UpdateKillFxSelectorState();
             UpdateWeaponBadgeSelectorState();

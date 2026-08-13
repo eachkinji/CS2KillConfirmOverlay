@@ -702,7 +702,6 @@ namespace KillConfirmGameBar
                 || _animationPlacement == AnimationPlacementMode.Top)
             {
                 ApplyAnimationOffset();
-                SaveAnimationPlacementSettings();
             }
         }
 

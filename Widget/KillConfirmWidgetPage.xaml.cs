@@ -218,7 +218,9 @@ namespace KillConfirmGameBar
         private double _panelDragStartY;
         private double _panelOffsetX;
         private double _panelOffsetY;
-        private TranslateTransform _panelDragTransform;
+        private CompositeTransform _panelDragTransform;
+        private string _loadedControlPanelScaleMode = string.Empty;
+        private double _controlPanelScale = 1.0;
         private bool _panelCollapsed;
         private bool _isDraggingAnimation;
         private uint _animationDragPointerId;
@@ -254,6 +256,7 @@ namespace KillConfirmGameBar
             LoadPanelOffset();
             object collapsed = ApplicationData.Current.LocalSettings.Values[PanelCollapsedSettingKey];
             SetPanelCollapsed(collapsed is bool collapsedValue && collapsedValue);
+            RefreshControlPanelScale(resizeWindow: false, forceResize: false);
             WireUpdateOverlayEvents();
             AnimationLayer.SizeChanged += OnAnimationLayerSizeChanged;
             PackCatalogService.CatalogChanged += OnPackCatalogChanged;
@@ -291,6 +294,7 @@ namespace KillConfirmGameBar
                 _widget.WindowStateChanged += OnWidgetWindowStateChanged;
                 _widget.ClickThroughEnabledChanged += OnClickThroughEnabledChanged;
                 SyncWidgetPresentationState();
+                RefreshControlPanelScale(resizeWindow: true, forceResize: false);
             }
 
             LoadVisualAdjustmentSettings();
@@ -298,11 +302,9 @@ namespace KillConfirmGameBar
             LoadAnimationPlacementSettings();
             _controlPanelStateTimer.Start();
             _statusHintTimer.Start();
-            _ = InitializePackSelectorsAsync();
-
             StartKillEventClient();
             ConfigureWidgetCapabilities();
-            _ = EnsureServiceAvailableAsync();
+            _ = InitializePackSelectorsAndServiceAsync();
             _ = LoadSavedCsFolderAsync();
             _ = CheckForUpdatesAsync(false);
             UpdateControlPanelVisibility();
@@ -373,7 +375,7 @@ namespace KillConfirmGameBar
 
             try
             {
-                await _widget.TryResizeWindowAsync(DefaultWidgetSize);
+                await _widget.TryResizeWindowAsync(GetScaledDefaultWidgetSize());
             }
             catch (Exception)
             {
@@ -471,7 +473,7 @@ namespace KillConfirmGameBar
             }
 
             bottomOffset = ActualHeight
-                - ControlPanel.ActualHeight
+                - (ControlPanel.ActualHeight * _controlPanelScale)
                 - ControlPanel.Margin.Top
                 - ControlPanel.Margin.Bottom;
             return true;
@@ -525,11 +527,11 @@ namespace KillConfirmGameBar
         {
             double availableWidth = AnimationLayer?.ActualWidth > 0 ? AnimationLayer.ActualWidth : DefaultWidgetSize.Width;
             double availableHeight = AnimationLayer?.ActualHeight > 0 ? AnimationLayer.ActualHeight : DefaultWidgetSize.Height;
-            double logicalWidth = Math.Max(1, PrimaryKillAnimation?.LogicalViewportWidth ?? 400);
-            double logicalHeight = Math.Max(1, PrimaryKillAnimation?.LogicalViewportHeight ?? 300);
-            double fit = Math.Min(availableWidth / logicalWidth, availableHeight / logicalHeight);
-            AnimationDragOutline.Width = Math.Max(40, logicalWidth * fit);
-            AnimationDragOutline.Height = Math.Max(40, logicalHeight * fit);
+            double displayWidth = Math.Max(1, PrimaryKillAnimation?.DisplayViewportWidth ?? 550);
+            double displayHeight = Math.Max(1, PrimaryKillAnimation?.DisplayViewportHeight ?? 412.5);
+            double fit = Math.Min(1.0, Math.Min(availableWidth / displayWidth, availableHeight / displayHeight));
+            AnimationDragOutline.Width = Math.Max(40, displayWidth * fit);
+            AnimationDragOutline.Height = Math.Max(40, displayHeight * fit);
         }
 
         private void OnAnimationFramePointerPressed(object sender, PointerRoutedEventArgs e)
@@ -763,8 +765,10 @@ namespace KillConfirmGameBar
 
         private Point ClampPanelOffset(double x, double y)
         {
-            double panelWidth = ControlPanel.ActualWidth > 0 ? ControlPanel.ActualWidth : DefaultWidgetSize.Width;
-            double panelHeight = ControlPanel.ActualHeight > 0 ? ControlPanel.ActualHeight : DefaultWidgetSize.Height;
+            double panelWidth = (ControlPanel.ActualWidth > 0 ? ControlPanel.ActualWidth : DefaultWidgetSize.Width)
+                * _controlPanelScale;
+            double panelHeight = (ControlPanel.ActualHeight > 0 ? ControlPanel.ActualHeight : DefaultWidgetSize.Height)
+                * _controlPanelScale;
             double windowWidth = ActualWidth > 0 ? ActualWidth : DefaultWidgetSize.Width;
             double windowHeight = ActualHeight > 0 ? ActualHeight : DefaultWidgetSize.Height;
 
@@ -789,14 +793,78 @@ namespace KillConfirmGameBar
         {
             if (_panelDragTransform == null)
             {
-                _panelDragTransform = new TranslateTransform { X = _panelOffsetX, Y = _panelOffsetY };
+                _panelDragTransform = new CompositeTransform
+                {
+                    ScaleX = _controlPanelScale,
+                    ScaleY = _controlPanelScale,
+                    TranslateX = _panelOffsetX,
+                    TranslateY = _panelOffsetY
+                };
                 ControlPanel.RenderTransform = _panelDragTransform;
-                ControlPanel.RenderTransformOrigin = new Point(0, 0);
+                ControlPanel.RenderTransformOrigin = new Point(0.5, 0);
             }
             else
             {
-                _panelDragTransform.X = _panelOffsetX;
-                _panelDragTransform.Y = _panelOffsetY;
+                _panelDragTransform.ScaleX = _controlPanelScale;
+                _panelDragTransform.ScaleY = _controlPanelScale;
+                _panelDragTransform.TranslateX = _panelOffsetX;
+                _panelDragTransform.TranslateY = _panelOffsetY;
+            }
+        }
+
+        private void RefreshControlPanelScale(bool resizeWindow, bool forceResize)
+        {
+            string mode = ControlPanelScaleSettingsStore.Load();
+            double scale = ControlPanelScaleSettingsStore.ResolveScaleForCurrentView(mode);
+
+            _loadedControlPanelScaleMode = mode;
+            _controlPanelScale = scale;
+            ApplyPanelTransform();
+            Point clamped = ClampPanelOffset(_panelOffsetX, _panelOffsetY);
+            _panelOffsetX = clamped.X;
+            _panelOffsetY = clamped.Y;
+            ApplyPanelTransform();
+
+            if (resizeWindow)
+            {
+                _ = ResizeWidgetForControlPanelScaleAsync(forceResize);
+            }
+        }
+
+        private Size GetScaledDefaultWidgetSize()
+        {
+            return new Size(
+                Math.Min(MaxWidgetSize.Width, DefaultWidgetSize.Width * _controlPanelScale),
+                Math.Min(MaxWidgetSize.Height, DefaultWidgetSize.Height * _controlPanelScale));
+        }
+
+        private async Task ResizeWidgetForControlPanelScaleAsync(bool forceResize)
+        {
+            if (_widget == null)
+            {
+                return;
+            }
+
+            if (!forceResize && _controlPanelScale <= 1.001)
+            {
+                return;
+            }
+
+            Size desired = GetScaledDefaultWidgetSize();
+            if (!forceResize
+                && ActualWidth >= desired.Width - 1
+                && ActualHeight >= desired.Height - 1)
+            {
+                return;
+            }
+
+            try
+            {
+                await _widget.TryResizeWindowAsync(desired);
+            }
+            catch (Exception ex)
+            {
+                App.Log("Resize widget for control panel scale failed: " + ex.Message);
             }
         }
 
@@ -1007,6 +1075,13 @@ namespace KillConfirmGameBar
         private void OnControlPanelStateTimerTick(object sender, object e)
         {
             SyncWidgetPresentationState();
+            string scaleMode = ControlPanelScaleSettingsStore.Load();
+            double resolvedScale = ControlPanelScaleSettingsStore.ResolveScaleForCurrentView(scaleMode);
+            if (!string.Equals(_loadedControlPanelScaleMode, scaleMode, StringComparison.Ordinal)
+                || Math.Abs(_controlPanelScale - resolvedScale) > 0.001)
+            {
+                RefreshControlPanelScale(resizeWindow: true, forceResize: true);
+            }
             if (!string.Equals(
                     _loadedCsGameVersion,
                     GsiGameVersionSettingsStore.Load(),

@@ -263,6 +263,16 @@
                             <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPointerOver" Color="Transparent" />
                             <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPressed" Color="Transparent" />
                         </ListView.Resources>
+                            <ListViewItem x:Name="HomeSidebarItem" Tag="home" Style="{StaticResource GameModeSidebarItemStyle}" ToolTipService.ToolTip="Home">
+                                <Border Style="{StaticResource GameModeLogoTileStyle}">
+                                    <FontIcon
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        FontFamily="Segoe MDL2 Assets"
+                                        FontSize="20"
+                                        Glyph="&#xE80F;" />
+                                </Border>
+                            </ListViewItem>
                             <ListViewItem Tag="crossfire" Style="{StaticResource GameModeSidebarItemStyle}" ToolTipService.ToolTip="CrossFire">
                                 <Border Style="{StaticResource GameModeLogoTileStyle}"><Image Source="ms-appx:///Assets/GameLogos/crossfire.png" Stretch="Uniform" /></Border>
                             </ListViewItem>
@@ -348,6 +358,41 @@
             </Grid>
 
             <Grid
+                x:Name="HomePageContent"
+                Grid.Row="1"
+                MaxWidth="1000"
+                HorizontalAlignment="Stretch">
+                <StackPanel Spacing="14">
+                    <Border x:Name="GeneralSettingsCard" Style="{StaticResource SettingsSectionCardStyle}">
+                        <StackPanel Spacing="12">
+                            <TextBlock
+                                x:Name="GeneralSettingsTitleText"
+                                Style="{StaticResource SettingsSectionTitleTextStyle}"
+                                FontSize="18"
+                                Text="通用设置" />
+                            <settings:GeneralSettingsOptionsPanel x:Name="GeneralSettingsOptionsPanel" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border x:Name="DisplayScalingCard" Style="{StaticResource SettingsSectionCardStyle}">
+                        <StackPanel Spacing="12">
+                            <TextBlock
+                                x:Name="DisplayScalingTitleText"
+                                Style="{StaticResource SettingsSectionTitleTextStyle}"
+                                FontSize="18"
+                                Text="4K display settings" />
+                            <TextBlock
+                                x:Name="DisplayScalingDescriptionText"
+                                Style="{StaticResource SettingsCaptionTextStyle}"
+                                Text="Improve control panel readability on high-resolution displays." />
+                            <settings:DisplayScalingSettingsPanel x:Name="DisplayScalingSettingsPanel" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Grid>
+
+            <Grid
+                x:Name="GamePageContent"
                 Grid.Row="1"
                 MaxWidth="1480"
                 HorizontalAlignment="Stretch"
@@ -369,17 +414,6 @@
                                 x:Name="GameAdvancedSettingsPanelHost"
                                 HorizontalAlignment="Stretch"
                                 HorizontalContentAlignment="Stretch" />
-                        </StackPanel>
-                    </Border>
-
-                    <Border x:Name="GeneralSettingsCard" Style="{StaticResource SettingsSectionCardStyle}">
-                        <StackPanel Spacing="12">
-                            <TextBlock
-                                x:Name="GeneralSettingsTitleText"
-                                Style="{StaticResource SettingsSectionTitleTextStyle}"
-                                FontSize="18"
-                                Text="通用设置" />
-                            <settings:GeneralSettingsOptionsPanel x:Name="GeneralSettingsOptionsPanel" />
                         </StackPanel>
                     </Border>
 

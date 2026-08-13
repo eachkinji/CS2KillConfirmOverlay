@@ -16,7 +16,7 @@ use tracing::{debug, error};
 
 use crate::soundpack::SoundContext;
 use crate::util::logging::service_log;
-use crate::util::state::{AppState, EventChannel};
+use crate::util::state::{AppState, EventChannel, EventSoundMode};
 
 const HEADSHOT_SOUND_GAIN: f32 = 1.8;
 const COMMON_SOUND_GAIN: f32 = 4.5;
@@ -193,15 +193,46 @@ pub async fn play_audio(
                 .load(Ordering::Relaxed),
         );
 
-        // Create context for Lua script
+        let event_sound_route = if event_channel == EventChannel::Combat
+            && supports_event_sound_routing(&preset.preset_name)
+        {
+            let settings = app_state_clone.event_sound_settings.read().await;
+            settings
+                .active
+                .then(|| settings.route_for(is_headshot, is_knife_kill, is_assist).clone())
+        } else {
+            None
+        };
+        let effective_event_sound_mode = event_sound_route
+            .as_ref()
+            .map(|route| route.mode)
+            .filter(|mode| {
+                *mode != EventSoundMode::Custom
+                    || event_sound_route
+                        .as_ref()
+                        .and_then(|route| route.custom_path.as_deref())
+                        .is_some_and(|path| !path.trim().is_empty())
+            })
+            .unwrap_or(EventSoundMode::Default);
+        let route_to_common = effective_event_sound_mode == EventSoundMode::Common;
+        let route_to_custom = effective_event_sound_mode == EventSoundMode::Custom;
+
+        // Only the audio context is rerouted. The published event keeps its original
+        // headshot/knife/assist flags, so visuals and text remain unchanged.
         let ctx = SoundContext {
-            kill_count: routing_kill_count,
-            is_headshot,
-            is_first_kill: effective_first_kill,
-            is_knife_kill,
-            is_last_kill: effective_last_kill,
-            is_assist,
-            play_main_audio: audio_play_main,
+            kill_count: if route_to_common { 1 } else { routing_kill_count },
+            is_headshot: is_headshot && !route_to_common && !route_to_custom,
+            is_first_kill: effective_first_kill && !route_to_common && !route_to_custom,
+            is_knife_kill: is_knife_kill && !route_to_common && !route_to_custom,
+            is_last_kill: effective_last_kill && !route_to_common && !route_to_custom,
+            is_assist: is_assist && !route_to_common && !route_to_custom,
+            play_main_audio: if route_to_common {
+                true
+            } else if route_to_custom {
+                false
+            } else {
+                audio_play_main
+            },
             money_reward,
             event_kind,
             event_channel,
@@ -216,10 +247,19 @@ pub async fn play_audio(
         };
 
         // Get sound files from Lua script
-        preset
+        let mut files = preset
             .lua_script
             .get_sounds(&ctx)
-            .with_context(|| "failed to get sounds from Lua script".to_string())?
+            .with_context(|| "failed to get sounds from Lua script".to_string())?;
+        if route_to_custom {
+            if let Some(custom_path) = event_sound_route
+                .and_then(|route| route.custom_path)
+                .filter(|path| !path.trim().is_empty())
+            {
+                files.push(custom_path);
+            }
+        }
+        files
     };
 
     debug!(
@@ -311,6 +351,13 @@ fn supports_economy_audio_events(preset_name: &str) -> bool {
     matches!(
         preset_name.trim().to_ascii_lowercase().as_str(),
         "bf1" | "bf5" | "bf4" | "battlefield2042" | "pubg" | "deltaforce"
+    )
+}
+
+fn supports_event_sound_routing(preset_name: &str) -> bool {
+    matches!(
+        preset_name.trim().to_ascii_lowercase().as_str(),
+        "bf1" | "bf5" | "bf4" | "battlefield2042" | "deltaforce"
     )
 }
 
@@ -457,6 +504,7 @@ mod tests {
     use super::{
         resolve_assist_audio_routing, resolve_crossfire_audio_kill_count,
         resolve_special_kill_audio_flag, supports_economy_audio_events,
+        supports_event_sound_routing,
         uses_battlefield2042_audio_rules, uses_crossfire_audio_rules,
     };
 
@@ -512,15 +560,23 @@ mod tests {
         let sounds = script.get_sounds(&make_ctx(2, true, false, false, false, false)).unwrap();
         assert!(sounds[0].ends_with("Headshot.wav"), "{}", sounds[0]);
 
-        // Plain streaks route to the numbered voice (capped at 4).
+        // Plain streaks route to the numbered voice (capped at 10).
         let sounds = script.get_sounds(&make_ctx(2, false, false, false, false, false)).unwrap();
         assert!(sounds[0].ends_with("Doublekill.wav"), "{}", sounds[0]);
-        let sounds = script.get_sounds(&make_ctx(5, false, false, false, false, false)).unwrap();
+        let sounds = script.get_sounds(&make_ctx(4, false, false, false, false, false)).unwrap();
         assert!(
             sounds[0].ends_with("Multikill.wav") || sounds[0].ends_with("Multikill_ch.wav"),
             "{}",
             sounds[0]
         );
+        let sounds = script.get_sounds(&make_ctx(5, false, false, false, false, false)).unwrap();
+        assert!(sounds[0].ends_with("Megakill.wav"), "{}", sounds[0]);
+        let sounds = script.get_sounds(&make_ctx(9, false, false, false, false, false)).unwrap();
+        assert!(sounds[0].ends_with("Outofworld.wav"), "{}", sounds[0]);
+        let sounds = script.get_sounds(&make_ctx(10, false, false, false, false, false)).unwrap();
+        assert!(sounds[0].ends_with("Ohgod.wav"), "{}", sounds[0]);
+        let sounds = script.get_sounds(&make_ctx(12, false, false, false, false, false)).unwrap();
+        assert!(sounds[0].ends_with("Ohgod.wav"), "{}", sounds[0]);
     }
 
     #[test]
@@ -635,5 +691,15 @@ mod tests {
         assert!(!supports_economy_audio_events("crossfire_swat_gr"));
         assert!(!supports_economy_audio_events("valorant_00009_prime"));
         assert!(!supports_economy_audio_events("custom_voice_012345"));
+    }
+
+    #[test]
+    fn event_sound_routing_is_limited_to_battlefield_and_delta_force() {
+        for preset in ["bf1", "bf5", "bf4", "battlefield2042", "deltaforce"] {
+            assert!(supports_event_sound_routing(preset));
+        }
+        assert!(!supports_event_sound_routing("pubg"));
+        assert!(!supports_event_sound_routing("crossfire_swat_gr"));
+        assert!(!supports_event_sound_routing("valorant_00009_prime"));
     }
 }

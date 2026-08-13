@@ -1,4 +1,4 @@
--- sound.lua for csol4 (CSOL 4-kill voice pack)
+-- sound.lua for csol4 (CSOL 10-kill voice pack)
 -- Voice files follow the CSOL native names:
 --   1-kill group: Cantbelive / Crazy / Excellent / Firstkill / Incredible
 --   2-10 kill:    Doublekill ... Outofworld
@@ -11,6 +11,12 @@ local variants = {
     ["2"] = { "Doublekill.wav" },
     ["3"] = { "Triplekill.wav" },
     ["4"] = { "Multikill.wav", "Multikill_ch.wav" },
+    ["5"] = { "Megakill.wav" },
+    ["6"] = { "Rampage.wav" },
+    ["7"] = { "Monsterkill.wav" },
+    ["8"] = { "Godlike.wav" },
+    ["9"] = { "Outofworld.wav" },
+    ["10"] = { "Ohgod.wav" },
     ["headshot"] = { "Headshot.wav" },
     ["knife"] = { "Humililation.wav", "Ohno.wav" },
     ["revenge"] = { "Revenge.wav" },
@@ -74,7 +80,7 @@ function get_sounds(ctx)
     end
 
     if ctx.play_main_audio and ctx.kill_count >= 1 then
-        local voiced = math.min(ctx.kill_count, 4)
+        local voiced = math.min(ctx.kill_count, 10)
         add(tostring(voiced))
         return sounds
     end

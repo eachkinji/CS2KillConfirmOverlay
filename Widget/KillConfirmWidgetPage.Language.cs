@@ -106,7 +106,13 @@ namespace KillConfirmGameBar
 
             SetNamedToolTip(VoicePackIcon, LocalizationManager.Text("VoicePackLabel"), LocalizationManager.Text("VoiceTooltip"));
             SetNamedToolTip(IconPackIcon, LocalizationManager.Text("IconPackLabel"), LocalizationManager.Text("IconPackTooltip"));
-            SetNamedToolTip(AdvancedEffectsButton, LocalizationManager.Text("AdvancedEffectsTitle"), LocalizationManager.Text("AdvancedEffectsHint"));
+            SetNamedToolTip(
+                AdvancedEffectsButton,
+                LocalizationManager.Text("AdvancedEffectsTitle"),
+                LocalizationManager.Text(
+                    GameStyleService.Current == GameStyleMode.Csol
+                        ? "AdvancedEffectsCsolHint"
+                        : "AdvancedEffectsHint"));
             SetNamedToolTip(KillFxIcon, LocalizationManager.Text("KillFxLabel"), LocalizationManager.Text("KillFxTooltip"));
             SetNamedToolTip(EliteOverlayIcon, LocalizationManager.Text("EliteOverlayLabel"), LocalizationManager.Text("EliteOverlayTooltip"));
             SetNamedToolTip(WeaponBadgeIcon, LocalizationManager.Text("WeaponBadgeLabel"), LocalizationManager.Text("WeaponBadgeTooltip"));
@@ -137,7 +143,10 @@ namespace KillConfirmGameBar
 
             SetNamedToolTip(DefaultSizeButton, LocalizationManager.Text("DefaultSizeTitle"), LocalizationManager.Text("DefaultSizeTooltip"));
             SetNamedToolTip(CenterButton, LocalizationManager.Text("CenterWindowTitle"), LocalizationManager.Text("CenterWindowTooltip"));
+            SetNamedToolTip(WindowTopButton, LocalizationManager.Text("WindowTopTitle"), LocalizationManager.Text("WindowTopTooltip"));
+            SetNamedToolTip(WindowBottomButton, LocalizationManager.Text("WindowBottomTitle"), LocalizationManager.Text("WindowBottomTooltip"));
             SetNamedToolTip(LowerThirdButton, LocalizationManager.Text("LowerThirdTitle"), LocalizationManager.Text("LowerThirdTooltip"));
+            SetNamedToolTip(HighPositionButton, LocalizationManager.Text("HighPositionTitle"), LocalizationManager.Text("HighPositionTooltip"));
             SetNamedToolTip(MoveUpButton, LocalizationManager.Text("MoveUpTitle"), LocalizationManager.Text("MoveUpTooltip"));
             SetNamedToolTip(MoveDownButton, LocalizationManager.Text("MoveDownTitle"), LocalizationManager.Text("MoveDownTooltip"));
             SetNamedToolTip(MoveLeftButton, LocalizationManager.Text("MoveLeftTitle"), LocalizationManager.Text("MoveLeftTooltip"));

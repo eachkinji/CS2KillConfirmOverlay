@@ -36,6 +36,7 @@ namespace KillConfirmGameBar
             GameStyleMode mode = GameStyleService.Current;
             SyncGameStyleSelector();
             bool valorant = mode == GameStyleMode.Valorant;
+            bool csol = mode == GameStyleMode.Csol;
             bool battlefield = mode == GameStyleMode.Battlefield1 || mode == GameStyleMode.Battlefield5;
             bool battlefield1 = mode == GameStyleMode.Battlefield1;
             bool battlefield5 = mode == GameStyleMode.Battlefield5;
@@ -51,10 +52,10 @@ namespace KillConfirmGameBar
 
             SettingsRootGrid.Background = CreateSettingsBackground(mode);
             HeroSlash.Fill = CreateHeroSlashBrush(mode);
-            HeroSlashLight.Fill = new SolidColorBrush(battlefield5 ? Color.FromArgb(255, 119, 243, 255) : battlefield2042 ? Color.FromArgb(255, 109, 255, 255) : battlefield1 ? Color.FromArgb(255, 255, 218, 166) : valorant ? Color.FromArgb(255, 255, 170, 178) : Color.FromArgb(255, 255, 240, 213));
-            FrameStripeOne.Stroke = new SolidColorBrush(battlefield5 ? Color.FromArgb(255, 58, 137, 166) : battlefield2042 ? Color.FromArgb(255, 60, 128, 146) : battlefield1 ? Color.FromArgb(255, 88, 110, 126) : valorant ? Color.FromArgb(255, 59, 78, 102) : Color.FromArgb(255, 196, 196, 196));
+            HeroSlashLight.Fill = new SolidColorBrush(battlefield5 ? Color.FromArgb(255, 119, 243, 255) : battlefield2042 ? Color.FromArgb(255, 109, 255, 255) : battlefield1 ? Color.FromArgb(255, 255, 218, 166) : valorant ? Color.FromArgb(255, 255, 170, 178) : csol ? Color.FromArgb(255, 255, 168, 150) : Color.FromArgb(255, 255, 240, 213));
+            FrameStripeOne.Stroke = new SolidColorBrush(battlefield5 ? Color.FromArgb(255, 58, 137, 166) : battlefield2042 ? Color.FromArgb(255, 60, 128, 146) : battlefield1 ? Color.FromArgb(255, 88, 110, 126) : valorant ? Color.FromArgb(255, 59, 78, 102) : csol ? Color.FromArgb(255, 120, 37, 42) : Color.FromArgb(255, 196, 196, 196));
             FrameStripeTwo.Stroke = FrameStripeOne.Stroke;
-            AccentLineOne.Fill = new SolidColorBrush(fixedPreset ? theme.Accent : valorant ? theme.Secondary : Color.FromArgb(255, 207, 107, 0));
+            AccentLineOne.Fill = new SolidColorBrush(fixedPreset || csol ? theme.Accent : valorant ? theme.Secondary : Color.FromArgb(255, 207, 107, 0));
             AccentLineTwo.Fill = AccentLineOne.Fill;
             AccentLineThree.Fill = AccentLineOne.Fill;
 
@@ -67,8 +68,8 @@ namespace KillConfirmGameBar
             SetText(VoiceCollectionsHintText, theme.MutedText);
             SetText(IconCollectionsTitleText, theme.Text);
             SetText(IconCollectionsHintText, theme.MutedText);
-            SetText(VoiceVisibleCountText, valorant ? theme.Secondary : Color.FromArgb(255, 46, 136, 184));
-            SetText(IconVisibleCountText, valorant ? theme.Secondary : Color.FromArgb(255, 46, 136, 184));
+            SetText(VoiceVisibleCountText, valorant || csol ? theme.Secondary : Color.FromArgb(255, 46, 136, 184));
+            SetText(IconVisibleCountText, valorant || csol ? theme.Secondary : Color.FromArgb(255, 46, 136, 184));
             SetText(StructureTitleText, theme.Text);
             SetText(StructureBodyText, theme.MutedText);
             SetText(StructureImportFolderTitleText, theme.Text);
@@ -526,6 +527,7 @@ namespace KillConfirmGameBar
             string streak = SharedStreakSettingsStore.Load(GameStyleMode.Battlefield1);
             _battlefield1AdvancedEffectsPanel.SelectMoneyRewardMode(money, "delta");
             _battlefield1AdvancedEffectsPanel.SelectStreakMode(streak);
+            _battlefield1AdvancedEffectsPanel.ReloadEventSoundSettings();
             return _battlefield1AdvancedEffectsPanel;
         }
 
@@ -541,6 +543,7 @@ namespace KillConfirmGameBar
             string streak = SharedStreakSettingsStore.Load(GameStyleMode.Battlefield5);
             _battlefield5AdvancedEffectsPanel.SelectMoneyRewardMode(money, "delta");
             _battlefield5AdvancedEffectsPanel.SelectStreakMode(streak);
+            _battlefield5AdvancedEffectsPanel.ReloadEventSoundSettings();
             return _battlefield5AdvancedEffectsPanel;
         }
 
@@ -556,6 +559,7 @@ namespace KillConfirmGameBar
             string streak = SharedStreakSettingsStore.Load(GameStyleMode.Battlefield4);
             _battlefield4AdvancedEffectsPanel.SelectMoneyRewardMode(money, "delta");
             _battlefield4AdvancedEffectsPanel.SelectStreakMode(streak);
+            _battlefield4AdvancedEffectsPanel.ReloadEventSoundSettings();
             return _battlefield4AdvancedEffectsPanel;
         }
 
@@ -571,6 +575,7 @@ namespace KillConfirmGameBar
             string streak = SharedStreakSettingsStore.Load(GameStyleMode.Battlefield2042);
             _battlefield2042AdvancedEffectsPanel.SelectMoneyRewardMode(money, "delta");
             _battlefield2042AdvancedEffectsPanel.SelectStreakMode(streak);
+            _battlefield2042AdvancedEffectsPanel.ReloadEventSoundSettings();
             return _battlefield2042AdvancedEffectsPanel;
         }
 
@@ -601,6 +606,7 @@ namespace KillConfirmGameBar
             string streak = SharedStreakSettingsStore.Load(GameStyleMode.DeltaForce);
             _deltaForceAdvancedEffectsPanel.SelectMoneyRewardMode(money, "delta");
             _deltaForceAdvancedEffectsPanel.SelectStreakMode(streak);
+            _deltaForceAdvancedEffectsPanel.ReloadEventSoundSettings();
             return _deltaForceAdvancedEffectsPanel;
         }
 
@@ -756,6 +762,12 @@ namespace KillConfirmGameBar
                 brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 9, 21, 19), Offset = 0 });
                 brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 37, 69, 47), Offset = 1 });
             }
+            else if (mode == GameStyleMode.Csol)
+            {
+                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 247, 248, 249), Offset = 0 });
+                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 229, 232, 235), Offset = 0.72 });
+                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 248, 224, 225), Offset = 1 });
+            }
             else
             {
                 brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 242, 243, 242), Offset = 0 });
@@ -809,6 +821,12 @@ namespace KillConfirmGameBar
                 brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 102, 214, 134), Offset = 0 });
                 brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 255, 135, 40), Offset = 0.58 });
                 brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 24, 58, 43), Offset = 1 });
+            }
+            else if (mode == GameStyleMode.Csol)
+            {
+                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 194, 32, 40), Offset = 0 });
+                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 229, 68, 38), Offset = 0.58 });
+                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 74, 80, 88), Offset = 1 });
             }
             else
             {

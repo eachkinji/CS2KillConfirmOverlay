@@ -142,6 +142,7 @@
     <Compile Include="KillConfirmWidgetPage.CrossfireGameplaySettings.cs" />
     <Compile Include="KillConfirmWidgetPage.CsolGameplaySettings.cs" />
     <Compile Include="KillConfirmWidgetPage.SharedStreakSettings.cs" />
+    <Compile Include="KillConfirmWidgetPage.EventSoundSettings.cs" />
     <Compile Include="KillConfirmWidgetPage.Status.cs" />
     <Compile Include="KillConfirmWidgetPage.VisualSettings.cs" />
     <Compile Include="KillConfirmWidgetPage.MoneySettings.cs" />
@@ -149,6 +150,7 @@
       <DependentUpon>KillConfirmAnimation.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\KillConfirmAnimation.Assets.cs" />
+    <Compile Include="Controls\KillConfirmAnimation.Csol.cs" />
     <Compile Include="Controls\KillConfirmAnimation.Render.cs" />
     <Compile Include="Controls\KillConfirmAnimation.Battlefield.cs" />
     <Compile Include="Controls\KillConfirmAnimation.Battlefield1.cs" />
@@ -165,6 +167,9 @@
     <Compile Include="Controls\KillConfirmAnimation.Valorant.cs" />
     <Compile Include="Controls\KillConfirmAnimation.Valorant.Motion.cs" />
     <Compile Include="Controls\GameStyles\AdvancedEffectsPanelSupport.cs" />
+    <Compile Include="Controls\GameStyles\EventSoundRoutingPanel.xaml.cs">
+      <DependentUpon>EventSoundRoutingPanel.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\GameStyles\StreakWindowEditor.xaml.cs">
       <DependentUpon>StreakWindowEditor.xaml</DependentUpon>
     </Compile>
@@ -258,6 +263,7 @@
     <Compile Include="Services\KillEventClient.cs" />
     <Compile Include="Services\LocalServiceAuth.cs" />
     <Compile Include="Services\AssistAudioSettingsStore.cs" />
+    <Compile Include="Services\CombatEventSoundSettingsStore.cs" />
     <Compile Include="Services\CrossfireGameplaySettingsStore.cs" />
     <Compile Include="Services\CsolVoiceSettingsStore.cs" />
     <Compile Include="Services\SharedStreakSettingsStore.cs" />
@@ -348,6 +354,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Controls\GameStyles\StreakWindowEditor.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\GameStyles\EventSoundRoutingPanel.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

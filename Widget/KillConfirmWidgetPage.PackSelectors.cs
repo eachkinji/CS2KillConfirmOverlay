@@ -356,7 +356,7 @@ namespace KillConfirmGameBar
                 case "crossfire_swat_gr":
                     return "swat GR";
                 case "csol4":
-                    return "CSOL 4杀";
+                    return "CSOL 10杀";
                 default:
                     return ValorantPackService.IsValorantPackKey(key)
                         ? ValorantPackService.GetDisplayName(key)
@@ -383,7 +383,7 @@ namespace KillConfirmGameBar
                 case "default":
                     return "\u539f\u7248";
                 case "csol4":
-                    return "CSOL 4\u6740";
+                    return "CSOL 10\u6740";
                 default:
                     return ValorantPackService.IsValorantPackKey(key)
                         ? ValorantPackService.GetDisplayName(key)

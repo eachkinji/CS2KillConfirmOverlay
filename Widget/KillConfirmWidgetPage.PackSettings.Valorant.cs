@@ -16,7 +16,7 @@ namespace KillConfirmGameBar
 
             ApplicationData.Current.LocalSettings.Values[IconPackSettingKey] = preset;
             SelectIconPack(preset);
-            Controls.KillConfirmAnimation.ConfigureIconPack(preset);
+            ConfigureAnimationIconPack(preset);
             WarmStartupAnimationCacheIfActive();
             return true;
         }
@@ -93,7 +93,7 @@ namespace KillConfirmGameBar
 
             ApplicationData.Current.LocalSettings.Values[IconPackSettingKey] = preset;
             SelectIconPack(preset);
-            Controls.KillConfirmAnimation.ConfigureIconPack(preset);
+            ConfigureAnimationIconPack(preset);
             return true;
         }
     }

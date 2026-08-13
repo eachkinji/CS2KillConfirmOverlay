@@ -36,7 +36,8 @@ use crate::util::playback::{get_output_stream_with_name, output_device_names};
 
 use super::state::{
     AppState, CrossfireStreakMode, EventBatch, EventChannel, GsiGameVersion, KillEvent,
-    MoneyRewardMode, format_streak_setting, parse_streak_setting,
+    EventSoundMode, EventSoundRoute, EventSoundSettings, MoneyRewardMode, format_streak_setting,
+    parse_streak_setting,
 };
 
 #[derive(Debug, Deserialize)]
@@ -129,6 +130,22 @@ pub struct StreakSettingsRequest {
     pub assist_audio_setting_active: bool,
 }
 
+#[derive(Clone, Debug, Deserialize)]
+pub struct EventSoundRouteRequest {
+    pub mode: String,
+    #[serde(default)]
+    pub custom_path: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct EventSoundSettingsRequest {
+    pub active: bool,
+    pub normal: EventSoundRouteRequest,
+    pub headshot: EventSoundRouteRequest,
+    pub knife: EventSoundRouteRequest,
+    pub assist: EventSoundRouteRequest,
+}
+
 #[derive(Debug, Deserialize)]
 pub struct SpectatorSettingsRequest {
     pub enabled: bool,
@@ -188,6 +205,21 @@ pub struct StreakSettingsResponse {
     pub active: bool,
     pub streak_mode: String,
     pub assist_audio_enabled: bool,
+}
+
+#[derive(Debug, Serialize)]
+pub struct EventSoundRouteResponse {
+    pub mode: &'static str,
+    pub custom_path: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct EventSoundSettingsResponse {
+    pub active: bool,
+    pub normal: EventSoundRouteResponse,
+    pub headshot: EventSoundRouteResponse,
+    pub knife: EventSoundRouteResponse,
+    pub assist: EventSoundRouteResponse,
 }
 
 #[derive(Debug, Serialize)]
@@ -296,6 +328,10 @@ const SOUND_PACK_OPTIONS: &[SoundPackOption] = &[
     SoundPackOption {
         preset: "deltaforce",
         display_name: "Delta Force",
+    },
+    SoundPackOption {
+        preset: "csol4",
+        display_name: "CSOL 10杀",
     },
     SoundPackOption {
         preset: "valorant_00009_prime",
@@ -789,6 +825,55 @@ pub async fn set_streak_settings(
     Ok(Json(streak_settings_response(&app_state)))
 }
 
+pub async fn event_sound_settings(
+    State(app_state): State<Arc<AppState>>,
+) -> Json<EventSoundSettingsResponse> {
+    let settings = app_state.event_sound_settings.read().await;
+    Json(event_sound_settings_response(&settings))
+}
+
+pub async fn set_event_sound_settings(
+    State(app_state): State<Arc<AppState>>,
+    Json(request): Json<EventSoundSettingsRequest>,
+) -> Result<Json<EventSoundSettingsResponse>, (axum::http::StatusCode, String)> {
+    let settings = EventSoundSettings {
+        active: request.active,
+        normal: parse_event_sound_route(request.normal)?,
+        headshot: parse_event_sound_route(request.headshot)?,
+        knife: parse_event_sound_route(request.knife)?,
+        assist: parse_event_sound_route(request.assist)?,
+    };
+
+    service_log(&format!(
+        "event sound settings: active={}, normal={}, headshot={}, knife={}, assist={}",
+        settings.active,
+        settings.normal.mode.as_str(),
+        settings.headshot.mode.as_str(),
+        settings.knife.mode.as_str(),
+        settings.assist.mode.as_str()
+    ));
+
+    let response = event_sound_settings_response(&settings);
+    *app_state.event_sound_settings.write().await = settings;
+    Ok(Json(response))
+}
+
+fn parse_event_sound_route(
+    request: EventSoundRouteRequest,
+) -> Result<EventSoundRoute, (axum::http::StatusCode, String)> {
+    let mode = EventSoundMode::from_str(&request.mode).ok_or_else(|| {
+        (
+            axum::http::StatusCode::BAD_REQUEST,
+            format!("unsupported event sound mode: {}", request.mode),
+        )
+    })?;
+    let custom_path = request.custom_path.trim();
+    Ok(EventSoundRoute {
+        mode,
+        custom_path: (!custom_path.is_empty()).then(|| custom_path.to_string()),
+    })
+}
+
 pub async fn spectator_settings(
     State(app_state): State<Arc<AppState>>,
 ) -> Json<SpectatorSettingsResponse> {
@@ -1106,6 +1191,7 @@ fn resolve_soundpack_alias(value: &str) -> Option<&'static str> {
         "bf2042" | "battlefield2042" | "battlefield_2042" | "2042" => Some("battlefield2042"),
         "pubg" | "pubg_elimination" | "pubg_subtitle" => Some("pubg"),
         "delta" | "df" | "deltaforce" | "delta_force" => Some("deltaforce"),
+        "csol4" | "csol" => Some("csol4"),
         _ => None,
     }
 }
@@ -1169,6 +1255,23 @@ fn streak_settings_response(app_state: &AppState) -> StreakSettingsResponse {
             app_state.shared_streak_window_ms.load(Ordering::Relaxed),
         ),
         assist_audio_enabled: app_state.assist_audio_enabled.load(Ordering::Relaxed),
+    }
+}
+
+fn event_sound_settings_response(settings: &EventSoundSettings) -> EventSoundSettingsResponse {
+    EventSoundSettingsResponse {
+        active: settings.active,
+        normal: event_sound_route_response(&settings.normal),
+        headshot: event_sound_route_response(&settings.headshot),
+        knife: event_sound_route_response(&settings.knife),
+        assist: event_sound_route_response(&settings.assist),
+    }
+}
+
+fn event_sound_route_response(route: &EventSoundRoute) -> EventSoundRouteResponse {
+    EventSoundRouteResponse {
+        mode: route.mode.as_str(),
+        custom_path: route.custom_path.clone().unwrap_or_default(),
     }
 }
 
@@ -1477,5 +1580,14 @@ mod tests {
         assert_eq!(request.voice_picks.get("1").map(String::as_str), Some("Crazy.wav"));
         assert_eq!(request.voice_picks.get("knife").map(String::as_str), Some("random"));
         assert!(!request.special_voice_priority);
+    }
+
+    #[test]
+    fn soundpack_alias_resolves_csol4() {
+        assert_eq!(super::resolve_soundpack_alias("csol4"), Some("csol4"));
+        assert_eq!(super::resolve_soundpack_alias("csol"), Some("csol4"));
+        assert_eq!(super::resolve_soundpack_alias("CSOL4"), Some("csol4"));
+        assert_eq!(super::resolve_soundpack_alias("crossfire_swat_gr"), Some("crossfire_swat_gr"));
+        assert_eq!(super::resolve_soundpack_alias("unsupported_pack"), None);
     }
 }

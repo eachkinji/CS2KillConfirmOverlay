@@ -14,7 +14,7 @@ namespace KillConfirmGameBar
                 return false;
             }
 
-            ApplicationData.Current.LocalSettings.Values[IconPackSettingKey] = preset;
+            SavePackSettingForStyle(IconPackSettingKey, GameStyleService.Current, preset);
             SelectIconPack(preset);
             ConfigureAnimationIconPack(preset);
             WarmStartupAnimationCacheIfActive();
@@ -29,7 +29,7 @@ namespace KillConfirmGameBar
                 return false;
             }
 
-            ApplicationData.Current.LocalSettings.Values[VoicePackSettingKey] = iconPack;
+            SavePackSettingForStyle(VoicePackSettingKey, GameStyleService.Current, iconPack);
             SelectVoicePackPreset(iconPack);
             return true;
         }
@@ -41,7 +41,7 @@ namespace KillConfirmGameBar
                 return false;
             }
 
-            ApplicationData.Current.LocalSettings.Values[VoicePackSettingKey] = iconPack;
+            SavePackSettingForStyle(VoicePackSettingKey, GameStyleService.Current, iconPack);
             return true;
         }
 
@@ -91,7 +91,7 @@ namespace KillConfirmGameBar
                 preset = effective;
             }
 
-            ApplicationData.Current.LocalSettings.Values[IconPackSettingKey] = preset;
+            SavePackSettingForStyle(IconPackSettingKey, GameStyleService.Current, preset);
             SelectIconPack(preset);
             ConfigureAnimationIconPack(preset);
             return true;

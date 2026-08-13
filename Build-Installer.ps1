@@ -4,7 +4,11 @@ param(
     [string]$MsBuildPath = "",
     [string]$VcInstallPath = "",
     [string]$InnoCompilerPath = "",
-    [switch]$DisableSigning
+    [switch]$DisableSigning,
+    [string]$CertificatePfxPath = "",
+    [string]$CertificatePassword = "",
+    [string]$CertificateThumbprint = "",
+    [string]$CertificateCerPath = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -29,6 +33,7 @@ if (-not $Version) {
 }
 
 $TransferRoot = Join-Path $WorkspaceRoot ("KillConfirmGameBar_Transfer_{0}" -f $Version)
+$NoDependenciesTransferRoot = Join-Path $WorkspaceRoot ("KillConfirmGameBar_Transfer_{0}_NoDependencies" -f $Version)
 
 $buildTransferArgs = @{
     Configuration = $Configuration
@@ -41,11 +46,27 @@ if ($VcInstallPath) {
 if ($DisableSigning) {
     $buildTransferArgs.DisableSigning = $true
 }
+if ($CertificatePfxPath) {
+    $buildTransferArgs.CertificatePfxPath = $CertificatePfxPath
+}
+if ($CertificatePassword) {
+    $buildTransferArgs.CertificatePassword = $CertificatePassword
+}
+if ($CertificateThumbprint) {
+    $buildTransferArgs.CertificateThumbprint = $CertificateThumbprint
+}
+if ($CertificateCerPath) {
+    $buildTransferArgs.CertificateCerPath = $CertificateCerPath
+}
 
 & (Join-Path $Root "Build-TransferPackage.ps1") @buildTransferArgs
 
 if (-not (Test-Path $TransferRoot)) {
     throw "Expected transfer folder was not produced: $TransferRoot"
+}
+
+if (-not (Test-Path $NoDependenciesTransferRoot)) {
+    throw "Expected dependency-free transfer folder was not produced: $NoDependenciesTransferRoot"
 }
 
 if (-not $InnoCompilerPath) {
@@ -69,22 +90,38 @@ if (-not $InnoCompilerPath -or -not (Test-Path $InnoCompilerPath)) {
 
 New-Item -ItemType Directory -Force -Path (Join-Path $Root "Output") | Out-Null
 
-$innoArgs = @(
-    ("/DMyAppVersion={0}" -f $Version),
-    ("/DTransferRoot={0}" -f $TransferRoot)
-)
-$innoArgs += $InstallerScript
+function Invoke-InstallerCompile {
+    param(
+        [string]$TransferPath,
+        [string]$OutputSuffix,
+        [bool]$SkipPrerequisites
+    )
 
-& $InnoCompilerPath @innoArgs
+    $innoArgs = @(
+        ("/DMyAppVersion={0}" -f $Version),
+        ("/DTransferRoot={0}" -f $TransferPath),
+        ("/DInstallerOutputSuffix={0}" -f $OutputSuffix),
+        ("/DSkipPrerequisites={0}" -f $(if ($SkipPrerequisites) { 1 } else { 0 }))
+    )
+    $innoArgs += $InstallerScript
 
-if ($LASTEXITCODE -ne 0) {
-    throw "Inno Setup failed with exit code $LASTEXITCODE"
+    & $InnoCompilerPath @innoArgs
+    if ($LASTEXITCODE -ne 0) {
+        throw "Inno Setup failed with exit code $LASTEXITCODE"
+    }
 }
 
-$SetupPath = Join-Path $Root ("Output\KillConfirmGameBar_Setup_{0}.exe" -f $Version)
-if (-not (Test-Path $SetupPath)) {
-    throw "Expected installer was not produced: $SetupPath"
+Invoke-InstallerCompile -TransferPath $TransferRoot -OutputSuffix "_WithDependencies" -SkipPrerequisites $false
+Invoke-InstallerCompile -TransferPath $NoDependenciesTransferRoot -OutputSuffix "_NoDependencies" -SkipPrerequisites $true
+
+$SetupWithDependenciesPath = Join-Path $Root ("Output\KillConfirmGameBar_Setup_{0}_WithDependencies.exe" -f $Version)
+$SetupNoDependenciesPath = Join-Path $Root ("Output\KillConfirmGameBar_Setup_{0}_NoDependencies.exe" -f $Version)
+foreach ($setupPath in @($SetupWithDependenciesPath, $SetupNoDependenciesPath)) {
+    if (-not (Test-Path $setupPath)) {
+        throw "Expected installer was not produced: $setupPath"
+    }
 }
 
 Write-Host ""
-Write-Host ("Installer: {0}" -f $SetupPath)
+Write-Host ("Installer with dependencies: {0}" -f $SetupWithDependenciesPath)
+Write-Host ("Installer without dependencies: {0}" -f $SetupNoDependenciesPath)

@@ -190,6 +190,7 @@ namespace KillConfirmGameBar
         private bool _suppressVisualAdjustmentEvents;
         private bool _suppressVoicePackEvents;
         private bool _suppressIconPackEvents;
+        private readonly SemaphoreSlim _packSelectorInitializationLock = new SemaphoreSlim(1, 1);
         private bool _suppressEliteEffectEvents;
         private bool _suppressKillFxEvents;
         private bool _suppressWeaponBadgeEvents;

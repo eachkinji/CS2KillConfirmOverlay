@@ -1,0 +1,152 @@
+name: Build
+
+on:
+  workflow_call:
+    inputs:
+      uploadToRelease:
+        type: boolean
+        required: false
+        default: false
+      releaseTag:
+        type: string
+        required: false
+        default: ''
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust (MSVC)
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: KillConfirmService
+
+      - name: Cache Inno Setup
+        id: cache-innosetup
+        uses: actions/cache@v4
+        with:
+          path: 'C:\Program Files (x86)\Inno Setup 6'
+          key: ${{ runner.os }}-innosetup-v6
+
+      - name: Install Inno Setup 6
+        if: steps.cache-innosetup.outputs.cache-hit != 'true'
+        run: choco install innosetup --no-progress -y
+
+      - name: Add Inno Setup to PATH
+        run: echo "C:\Program Files (x86)\Inno Setup 6" >> $env:GITHUB_PATH
+
+      - name: Cache Prereq Zip
+        id: cache-prereq
+        uses: actions/cache@v4
+        with:
+          path: D:\a\prerequisites.zip
+          key: ${{ runner.os }}-prereq-v1
+
+      - name: Download offline prerequisite packages
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $VclibsRoot = Join-Path (Split-Path $env:GITHUB_WORKSPACE -Parent) "Vclibs"
+          New-Item -ItemType Directory -Force -Path $VclibsRoot | Out-Null
+          $prereqZip = "D:\a\prerequisites.zip"
+          if (-not (Test-Path $prereqZip)) {
+            Invoke-WebRequest -Uri "https://github.com/st0nie/CS2KillConfirmOverlay/releases/download/prereq-v1/prerequisites.zip" -OutFile $prereqZip
+          }
+          Expand-Archive -Path $prereqZip -DestinationPath $VclibsRoot -Force
+          Get-ChildItem -LiteralPath $VclibsRoot | ForEach-Object { Write-Host ("{0} {1}" -f $_.Name, $_.Length) }
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.wapproj', '**/*.props') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Sync package version to release tag
+        if: inputs.releaseTag != ''
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $tag = "${{ inputs.releaseTag }}".TrimStart('v')
+          if ($tag -notmatch '^\d+\.\d+\.\d+\.\d+$') {
+              throw "Release tag is not a valid 4-part version (x.y.z.w): $tag"
+          }
+          foreach ($relativePath in @("Package\Package.appxmanifest", "Widget\Package.appxmanifest")) {
+              $manifestPath = Join-Path $env:GITHUB_WORKSPACE $relativePath
+              [xml]$manifest = Get-Content $manifestPath
+              $manifest.Package.Identity.Version = $tag
+              $manifest.Save($manifestPath)
+              Write-Host "$relativePath version synced to $tag"
+          }
+
+      - name: Decode signing certificate
+        shell: pwsh
+        env:
+          SIGNING_PFX: ${{ secrets.SIGNING_PFX }}
+          SIGNING_CER: ${{ secrets.SIGNING_CER }}
+          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          if (-not $env:SIGNING_PFX -or -not $env:SIGNING_CER -or -not $env:SIGNING_PASSWORD) {
+              throw "Missing SIGNING_PFX/SIGNING_CER/SIGNING_PASSWORD secrets"
+          }
+          $pfx = Join-Path $env:RUNNER_TEMP "KillConfirmGameBar.pfx"
+          $cer = Join-Path $env:RUNNER_TEMP "KillConfirmGameBar.cer"
+          $pfxBase64 = $env:SIGNING_PFX -replace '\s', ''
+          $cerBase64 = $env:SIGNING_CER -replace '\s', ''
+          [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($pfxBase64))
+          [IO.File]::WriteAllBytes($cer, [Convert]::FromBase64String($cerBase64))
+          $cert = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new(
+              $pfx,
+              $env:SIGNING_PASSWORD,
+              [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::EphemeralKeySet)
+          $publicCert = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($cer)
+          if (-not $cert.HasPrivateKey) {
+              throw "SIGNING_PFX does not contain a private key"
+          }
+          if ($cert.Subject -ne "CN=TestXboxGameBar") {
+              throw "Signing certificate subject must be CN=TestXboxGameBar, but was $($cert.Subject)"
+          }
+          if ($cert.Thumbprint -ne $publicCert.Thumbprint) {
+              throw "SIGNING_PFX and SIGNING_CER do not contain the same certificate"
+          }
+          if ($cert.NotAfter -le (Get-Date).AddDays(30)) {
+              throw "Signing certificate expires too soon: $($cert.NotAfter)"
+          }
+          "CERT_PFX=$pfx" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "CERT_CER=$cer" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "CERT_PASSWORD=$env:SIGNING_PASSWORD" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "CERT_THUMBPRINT=$($cert.Thumbprint)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          Write-Host "Signing cert: $($cert.Subject), thumbprint $($cert.Thumbprint), valid to $($cert.NotAfter)"
+
+      - name: Build installer
+        shell: pwsh
+        run: .\Build-Installer.ps1 -CertificatePfxPath $env:CERT_PFX -CertificatePassword $env:CERT_PASSWORD -CertificateCerPath $env:CERT_CER -CertificateThumbprint $env:CERT_THUMBPRINT
+
+      - name: Upload assets to release
+        if: inputs.uploadToRelease
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          $ver = ([xml](Get-Content Package/Package.appxmanifest)).Package.Identity.Version
+          $withDependencies = Join-Path $env:GITHUB_WORKSPACE ("Output\KillConfirmGameBar_Setup_{0}_WithDependencies.exe" -f $ver)
+          $noDependencies = Join-Path $env:GITHUB_WORKSPACE ("Output\KillConfirmGameBar_Setup_{0}_NoDependencies.exe" -f $ver)
+          foreach ($exe in @($withDependencies, $noDependencies)) {
+              if (-not (Test-Path $exe)) { throw "Missing $exe" }
+          }
+          gh release upload "${{ inputs.releaseTag }}" $withDependencies $noDependencies --clobber
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: kill-confirm-build
+          path: Output/
+          retention-days: 3

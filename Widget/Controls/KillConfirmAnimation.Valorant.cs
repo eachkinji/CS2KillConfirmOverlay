@@ -25,6 +25,8 @@ namespace KillConfirmGameBar.Controls
         private static CancellationTokenSource _valorantTextureLoadCancellation;
         private static readonly Random ValorantSpinRandom = new Random();
         private static readonly object ValorantSpinRandomLock = new object();
+        private ShadowEffect _valorantShadowEffect;
+        private ColorMatrixEffect _valorantColorMatrixEffect;
 
         private async Task<AnimationAsset> LoadValorantKillAssetAsync(
             string packKey,
@@ -181,6 +183,7 @@ namespace KillConfirmGameBar.Controls
                 textures.LargeSparks = await LoadValorantTextureAsync(root, "killicon_valorant_particle_large_sparks.png", cancellationToken);
                 progress?.Report(92);
                 textures.XSparks = await LoadValorantTextureAsync(root, "killicon_valorant_particle_x_sparks.png", cancellationToken);
+                textures.Halo = CreateValorantHaloTexture(textures.Frame.Device, profile.Accent, profile.HaloRadius);
                 progress?.Report(100);
                 return textures;
             }
@@ -305,7 +308,7 @@ namespace KillConfirmGameBar.Controls
                 null,
                 0,
                 0);
-            DrawValorantHalo(drawingSession, asset.Accent, cx, cy, elapsedMs, opacity, profile.HaloRadius);
+            DrawValorantHalo(drawingSession, asset.Halo, cx, cy, opacity);
 
             DrawValorantBars(drawingSession, asset, cx, cy, elapsedMs, opacity);
             DrawCenteredImageWithShadowAt(
@@ -387,7 +390,7 @@ namespace KillConfirmGameBar.Controls
             }
         }
 
-        private static void DrawValorantBars(CanvasDrawingSession drawingSession, ValorantKillAsset asset, double cx, double cy, double elapsedMs, double opacity)
+        private void DrawValorantBars(CanvasDrawingSession drawingSession, ValorantKillAsset asset, double cx, double cy, double elapsedMs, double opacity)
         {
             if (asset.Bar == null)
             {
@@ -411,7 +414,7 @@ namespace KillConfirmGameBar.Controls
             }
         }
 
-        private static void DrawValorantParticleCss(
+        private void DrawValorantParticleCss(
             CanvasDrawingSession drawingSession,
             CanvasBitmap image,
             int frameCount,
@@ -468,38 +471,60 @@ namespace KillConfirmGameBar.Controls
             drawingSession.Blend = previousBlend;
         }
 
-        private static void DrawValorantHalo(CanvasDrawingSession drawingSession, Color accent, double cx, double cy, double elapsedMs, double opacity, double radius)
+        private static CanvasRenderTarget CreateValorantHaloTexture(CanvasDevice device, Color accent, double radius)
         {
             const int Segments = 72;
             double scaledRadius = radius * ValorantDemoVfxScale;
             double ringWidth = 2.2 * ValorantDemoVfxScale;
-            double rotation = (elapsedMs % 2200.0) / 2200.0 * Math.PI * 2.0;
-            double minY = cy - scaledRadius;
-            double maxY = cy + scaledRadius;
+            double padding = Math.Ceiling(ringWidth * 2.0 + 2.0);
+            float size = (float)Math.Ceiling((scaledRadius + padding) * 2.0);
+            double center = size / 2.0;
+            double minY = center - scaledRadius;
+            double maxY = center + scaledRadius;
             double yRange = Math.Max(0.001, maxY - minY);
-
-            for (int i = 0; i < Segments; i++)
+            var target = new CanvasRenderTarget(device, size, size, 96);
+            using (CanvasDrawingSession drawingSession = target.CreateDrawingSession())
             {
-                double a0 = (Math.PI * 2.0 * i / Segments) + rotation;
-                double a1 = (Math.PI * 2.0 * (i + 1) / Segments) + rotation;
-                double y0 = cy + Math.Sin(a0) * scaledRadius;
-                double y1 = cy + Math.Sin(a1) * scaledRadius;
-                double alphaFactor = Clamp01((maxY - ((y0 + y1) * 0.5)) / yRange);
-                byte alpha = (byte)Math.Max(0, Math.Min(255, Math.Round(opacity * alphaFactor * 255.0)));
-                if (alpha <= 2)
+                drawingSession.Clear(Colors.Transparent);
+                for (int i = 0; i < Segments; i++)
                 {
-                    continue;
-                }
+                    double a0 = Math.PI * 2.0 * i / Segments;
+                    double a1 = Math.PI * 2.0 * (i + 1) / Segments;
+                    double y0 = center + Math.Sin(a0) * scaledRadius;
+                    double y1 = center + Math.Sin(a1) * scaledRadius;
+                    double alphaFactor = Clamp01((maxY - ((y0 + y1) * 0.5)) / yRange);
+                    byte alpha = (byte)Math.Max(0, Math.Min(255, Math.Round(alphaFactor * 255.0)));
+                    if (alpha <= 2)
+                    {
+                        continue;
+                    }
 
-                Color color = Color.FromArgb(alpha, accent.R, accent.G, accent.B);
-                drawingSession.DrawLine(
-                    (float)(cx + Math.Cos(a0) * scaledRadius),
-                    (float)(cy + Math.Sin(a0) * scaledRadius),
-                    (float)(cx + Math.Cos(a1) * scaledRadius),
-                    (float)(cy + Math.Sin(a1) * scaledRadius),
-                    color,
-                    (float)ringWidth);
+                    Color color = Color.FromArgb(alpha, accent.R, accent.G, accent.B);
+                    drawingSession.DrawLine(
+                        (float)(center + Math.Cos(a0) * scaledRadius),
+                        (float)(center + Math.Sin(a0) * scaledRadius),
+                        (float)(center + Math.Cos(a1) * scaledRadius),
+                        (float)(center + Math.Sin(a1) * scaledRadius),
+                        color,
+                        (float)ringWidth);
+                }
             }
+
+            return target;
+        }
+
+        private static void DrawValorantHalo(CanvasDrawingSession drawingSession, CanvasRenderTarget halo, double cx, double cy, double opacity)
+        {
+            if (halo == null || opacity <= 0)
+            {
+                return;
+            }
+
+            double width = halo.SizeInPixels.Width;
+            double height = halo.SizeInPixels.Height;
+            var target = new Rect(cx - width / 2.0, cy - height / 2.0, width, height);
+            var source = new Rect(0, 0, width, height);
+            drawingSession.DrawImage(halo, target, source, (float)Clamp01(opacity), CanvasImageInterpolation.Linear);
         }
 
         private static void DrawCenteredImageAt(CanvasDrawingSession drawingSession, CanvasBitmap image, double cx, double cy, double width, double height, double scale, double opacity)
@@ -514,7 +539,7 @@ namespace KillConfirmGameBar.Controls
             drawingSession.DrawImage(image, target, source, (float)Math.Max(0.0, Math.Min(1.0, opacity)), CanvasImageInterpolation.Linear);
         }
 
-        private static void DrawCenteredImageWithShadowAt(
+        private void DrawCenteredImageWithShadowAt(
             CanvasDrawingSession drawingSession,
             CanvasBitmap image,
             double cx,
@@ -553,7 +578,7 @@ namespace KillConfirmGameBar.Controls
                 contrast);
         }
 
-        private static void DrawRotatedCenteredImageWithShadowAt(
+        private void DrawRotatedCenteredImageWithShadowAt(
             CanvasDrawingSession drawingSession,
             CanvasBitmap image,
             double cx,
@@ -577,7 +602,7 @@ namespace KillConfirmGameBar.Controls
             drawingSession.Transform = previous;
         }
 
-        private static void DrawCenteredFlashImageAt(
+        private void DrawCenteredFlashImageAt(
             CanvasDrawingSession drawingSession,
             CanvasBitmap image,
             double cx,
@@ -609,7 +634,7 @@ namespace KillConfirmGameBar.Controls
             return new Rect(cx - w / 2.0, cy - h / 2.0, w, h);
         }
 
-        private static void DrawImageWithOptionalGlow(
+        private void DrawImageWithOptionalGlow(
             CanvasDrawingSession drawingSession,
             CanvasBitmap image,
             Rect target,
@@ -634,7 +659,7 @@ namespace KillConfirmGameBar.Controls
             drawingSession.DrawImage(image, target, source, (float)Math.Max(0.0, Math.Min(1.0, opacity)), CanvasImageInterpolation.Linear);
         }
 
-        private static void DrawImageWithSoftShadow(
+        private void DrawImageWithSoftShadow(
             CanvasDrawingSession drawingSession,
             CanvasBitmap image,
             Rect target,
@@ -663,7 +688,7 @@ namespace KillConfirmGameBar.Controls
             drawingSession.DrawImage(image, target, source, (float)Math.Max(0.0, Math.Min(1.0, opacity)), CanvasImageInterpolation.Linear);
         }
 
-        private static void DrawSoftSilhouette(
+        private void DrawSoftSilhouette(
             CanvasDrawingSession drawingSession,
             CanvasBitmap image,
             Rect target,
@@ -686,84 +711,79 @@ namespace KillConfirmGameBar.Controls
                 drawingSession.Blend = CanvasBlend.Add;
             }
 
-            Rect baseTarget = OffsetRect(target, offsetX * ValorantDemoVfxScale, offsetY * ValorantDemoVfxScale);
-            double blurScale = blur * ValorantDemoVfxScale;
-            double[] radii = { 0.0, blurScale * 0.26, blurScale * 0.52 };
-            double[] opacityFactors = { 0.34, 0.28, 0.18 };
-            using (var tintEffect = new ColorMatrixEffect
-            {
-                Source = image,
-                ColorMatrix = CreateAlphaTintMatrix(color)
-            })
-            {
-                for (int layer = 0; layer < radii.Length; layer++)
-                {
-                    double radius = radii[layer];
-                    double layerOpacity = opacity * opacityFactors[layer];
-                    if (radius <= 0.01)
-                    {
-                        DrawAlphaTintEffect(drawingSession, tintEffect, baseTarget, source, layerOpacity);
-                        continue;
-                    }
-
-                    DrawAlphaTintEffect(drawingSession, tintEffect, OffsetRect(baseTarget, radius, 0), source, layerOpacity);
-                    DrawAlphaTintEffect(drawingSession, tintEffect, OffsetRect(baseTarget, -radius, 0), source, layerOpacity);
-                    DrawAlphaTintEffect(drawingSession, tintEffect, OffsetRect(baseTarget, 0, radius), source, layerOpacity);
-                    DrawAlphaTintEffect(drawingSession, tintEffect, OffsetRect(baseTarget, 0, -radius), source, layerOpacity);
-                    DrawAlphaTintEffect(drawingSession, tintEffect, OffsetRect(baseTarget, radius * 0.707, radius * 0.707), source, layerOpacity * 0.7);
-                    DrawAlphaTintEffect(drawingSession, tintEffect, OffsetRect(baseTarget, -radius * 0.707, radius * 0.707), source, layerOpacity * 0.7);
-                    DrawAlphaTintEffect(drawingSession, tintEffect, OffsetRect(baseTarget, radius * 0.707, -radius * 0.707), source, layerOpacity * 0.7);
-                    DrawAlphaTintEffect(drawingSession, tintEffect, OffsetRect(baseTarget, -radius * 0.707, -radius * 0.707), source, layerOpacity * 0.7);
-                }
-            }
+            EnsureValorantEffects();
+            double blurScale = Math.Max(0.01, blur * ValorantDemoVfxScale);
+            double sourceUnitsPerTargetUnit = Math.Max(
+                source.Width / Math.Max(1.0, target.Width),
+                source.Height / Math.Max(1.0, target.Height));
+            double sourceBlur = blurScale * sourceUnitsPerTargetUnit;
+            double targetPadding = blurScale * 3.0;
+            double sourcePadding = sourceBlur * 3.0;
+            Rect shadowTarget = new Rect(
+                target.X + (offsetX * ValorantDemoVfxScale) - targetPadding,
+                target.Y + (offsetY * ValorantDemoVfxScale) - targetPadding,
+                target.Width + targetPadding * 2.0,
+                target.Height + targetPadding * 2.0);
+            Rect shadowSource = new Rect(
+                source.X - sourcePadding,
+                source.Y - sourcePadding,
+                source.Width + sourcePadding * 2.0,
+                source.Height + sourcePadding * 2.0);
+            _valorantShadowEffect.Source = image;
+            _valorantShadowEffect.ShadowColor = Color.FromArgb(255, color.R, color.G, color.B);
+            _valorantShadowEffect.BlurAmount = (float)Math.Min(250.0, sourceBlur);
+            drawingSession.DrawImage(
+                _valorantShadowEffect,
+                shadowTarget,
+                shadowSource,
+                (float)Clamp01(opacity),
+                CanvasImageInterpolation.Linear);
 
             drawingSession.Blend = previousBlend;
         }
 
-        private static Rect OffsetRect(Rect rect, double offsetX, double offsetY)
+        private void EnsureValorantEffects()
         {
-            return new Rect(rect.X + offsetX, rect.Y + offsetY, rect.Width, rect.Height);
-        }
-
-        private static void DrawAlphaTintEffect(CanvasDrawingSession drawingSession, ColorMatrixEffect tintEffect, Rect target, Rect source, double opacity)
-        {
-            float clampedOpacity = (float)Math.Max(0.0, Math.Min(1.0, opacity));
-            drawingSession.DrawImage(tintEffect, target, source, clampedOpacity, CanvasImageInterpolation.Linear);
-        }
-
-        private static void DrawBrightnessContrastImage(CanvasDrawingSession drawingSession, CanvasBitmap image, Rect target, Rect source, double opacity, float brightness, float contrast = 1.0f)
-        {
-            using (var brightnessEffect = new ColorMatrixEffect
+            if (_valorantShadowEffect == null)
             {
-                Source = image,
-                ColorMatrix = CreateBrightnessContrastMatrix(brightness, contrast)
-            })
+                _valorantShadowEffect = new ShadowEffect
+                {
+                    Optimization = EffectOptimization.Speed,
+                    CacheOutput = false
+                };
+            }
+
+            if (_valorantColorMatrixEffect == null)
             {
-                drawingSession.DrawImage(brightnessEffect, target, source, (float)Math.Max(0.0, Math.Min(1.0, opacity)), CanvasImageInterpolation.Linear);
+                _valorantColorMatrixEffect = new ColorMatrixEffect
+                {
+                    CacheOutput = false
+                };
             }
         }
 
-        private static void DrawMultiplyTintImage(CanvasDrawingSession drawingSession, CanvasBitmap image, Rect target, Rect source, Color tint, double opacity)
+        private void ReleaseValorantEffects()
         {
-            using (var tintEffect = new ColorMatrixEffect
-            {
-                Source = image,
-                ColorMatrix = CreateMultiplyTintMatrix(tint)
-            })
-            {
-                drawingSession.DrawImage(tintEffect, target, source, (float)Math.Max(0.0, Math.Min(1.0, opacity)), CanvasImageInterpolation.Linear);
-            }
+            _valorantShadowEffect?.Dispose();
+            _valorantShadowEffect = null;
+            _valorantColorMatrixEffect?.Dispose();
+            _valorantColorMatrixEffect = null;
         }
 
-        private static Matrix5x4 CreateAlphaTintMatrix(Color tint)
+        private void DrawBrightnessContrastImage(CanvasDrawingSession drawingSession, CanvasBitmap image, Rect target, Rect source, double opacity, float brightness, float contrast = 1.0f)
         {
-            return new Matrix5x4
-            {
-                M41 = tint.R / 255.0f,
-                M42 = tint.G / 255.0f,
-                M43 = tint.B / 255.0f,
-                M44 = 1.0f
-            };
+            EnsureValorantEffects();
+            _valorantColorMatrixEffect.Source = image;
+            _valorantColorMatrixEffect.ColorMatrix = CreateBrightnessContrastMatrix(brightness, contrast);
+            drawingSession.DrawImage(_valorantColorMatrixEffect, target, source, (float)Clamp01(opacity), CanvasImageInterpolation.Linear);
+        }
+
+        private void DrawMultiplyTintImage(CanvasDrawingSession drawingSession, CanvasBitmap image, Rect target, Rect source, Color tint, double opacity)
+        {
+            EnsureValorantEffects();
+            _valorantColorMatrixEffect.Source = image;
+            _valorantColorMatrixEffect.ColorMatrix = CreateMultiplyTintMatrix(tint);
+            drawingSession.DrawImage(_valorantColorMatrixEffect, target, source, (float)Clamp01(opacity), CanvasImageInterpolation.Linear);
         }
 
         private static Matrix5x4 CreateBrightnessContrastMatrix(float brightness, float contrast)

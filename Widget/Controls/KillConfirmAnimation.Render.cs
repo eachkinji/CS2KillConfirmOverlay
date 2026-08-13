@@ -5,6 +5,7 @@ using System.Numerics;
 using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.UI.Xaml;
 using Windows.Foundation;
+using Windows.Graphics.Display;
 using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Media;
@@ -13,6 +14,10 @@ namespace KillConfirmGameBar.Controls
 {
     public sealed partial class KillConfirmAnimation
     {
+        private const double MaxCanvasPixelWidth = 2048;
+        private const double MaxCanvasPixelHeight = 1536;
+        private const double MaxCanvasPixelArea = 2097152;
+
         private void OnSpriteCanvasDraw(CanvasControl sender, CanvasDrawEventArgs args)
         {
             args.DrawingSession.Clear(Colors.Transparent);
@@ -422,7 +427,27 @@ namespace KillConfirmGameBar.Controls
 
         private double GetRenderResolutionScale()
         {
-            return Math.Max(1.0, Math.Min(4.0, _renderResolutionScale));
+            double requestedScale = Math.Max(1.0, Math.Min(4.0, _renderResolutionScale));
+            double dpiScale = GetDisplayDpiScale();
+            double pixelWidthAtScaleOne = Math.Max(1.0, _logicalFrameWidth * dpiScale);
+            double pixelHeightAtScaleOne = Math.Max(1.0, _logicalFrameHeight * dpiScale);
+            double maxScaleByWidth = MaxCanvasPixelWidth / pixelWidthAtScaleOne;
+            double maxScaleByHeight = MaxCanvasPixelHeight / pixelHeightAtScaleOne;
+            double maxScaleByArea = Math.Sqrt(
+                MaxCanvasPixelArea / Math.Max(1.0, pixelWidthAtScaleOne * pixelHeightAtScaleOne));
+            return Math.Max(0.1, Math.Min(requestedScale, Math.Min(maxScaleByArea, Math.Min(maxScaleByWidth, maxScaleByHeight))));
+        }
+
+        private static double GetDisplayDpiScale()
+        {
+            try
+            {
+                return Math.Max(1.0, DisplayInformation.GetForCurrentView().LogicalDpi / 96.0);
+            }
+            catch
+            {
+                return 1.0;
+            }
         }
 
         private void ApplyViewportSize(double logicalWidth, double logicalHeight)
@@ -431,6 +456,15 @@ namespace KillConfirmGameBar.Controls
                 || Math.Abs(_logicalFrameHeight - logicalHeight) > 0.5;
             _logicalFrameWidth = Math.Max(1.0, logicalWidth);
             _logicalFrameHeight = Math.Max(1.0, logicalHeight);
+            double displayFit = _contentSizedViewport
+                ? 1.0
+                : Math.Min(ReferenceDisplayWidth / _logicalFrameWidth, ReferenceDisplayHeight / _logicalFrameHeight);
+            double displayWidth = Math.Max(1.0, _logicalFrameWidth * displayFit);
+            double displayHeight = Math.Max(1.0, _logicalFrameHeight * displayFit);
+            bool displaySizeChanged = Math.Abs(_displayViewportWidth - displayWidth) > 0.5
+                || Math.Abs(_displayViewportHeight - displayHeight) > 0.5;
+            _displayViewportWidth = displayWidth;
+            _displayViewportHeight = displayHeight;
             double renderScale = GetRenderResolutionScale();
             double renderWidth = Math.Ceiling(_logicalFrameWidth * renderScale);
             double renderHeight = Math.Ceiling(_logicalFrameHeight * renderScale);
@@ -444,20 +478,12 @@ namespace KillConfirmGameBar.Controls
             if (PlaybackViewbox != null)
             {
                 PlaybackViewbox.Stretch = Stretch.Uniform;
-                if (_contentSizedViewport)
-                {
-                    PlaybackViewbox.HorizontalAlignment = HorizontalAlignment.Center;
-                    PlaybackViewbox.VerticalAlignment = VerticalAlignment.Center;
-                    PlaybackViewbox.Width = _logicalFrameWidth;
-                    PlaybackViewbox.Height = _logicalFrameHeight;
-                }
-                else
-                {
-                    PlaybackViewbox.HorizontalAlignment = HorizontalAlignment.Stretch;
-                    PlaybackViewbox.VerticalAlignment = VerticalAlignment.Stretch;
-                    PlaybackViewbox.Width = double.NaN;
-                    PlaybackViewbox.Height = double.NaN;
-                }
+                PlaybackViewbox.HorizontalAlignment = HorizontalAlignment.Stretch;
+                PlaybackViewbox.VerticalAlignment = VerticalAlignment.Stretch;
+                PlaybackViewbox.Width = double.NaN;
+                PlaybackViewbox.Height = double.NaN;
+                PlaybackViewbox.MaxWidth = _displayViewportWidth;
+                PlaybackViewbox.MaxHeight = _displayViewportHeight;
             }
 
             if (LoadingOverlay != null)
@@ -477,7 +503,7 @@ namespace KillConfirmGameBar.Controls
                 LoadingText.FontSize = 15 * renderScale;
             }
 
-            if (logicalSizeChanged)
+            if (logicalSizeChanged || displaySizeChanged)
             {
                 LogicalViewportSizeChanged?.Invoke(this, EventArgs.Empty);
             }

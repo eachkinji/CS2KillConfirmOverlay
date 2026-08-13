@@ -55,6 +55,8 @@ namespace KillConfirmGameBar.Controls
         private const int LoadingIndicatorDelayMs = 250;
         private const int MaxCachedFrameWidth = 400;
         private const int MaxCachedFrameHeight = 300;
+        private const double ReferenceDisplayWidth = 550;
+        private const double ReferenceDisplayHeight = 600;
         private const double CodeKillFrameWidth = 607;
         private const double CodeKillFrameHeight = 436;
         private static double _brightnessBoost;
@@ -77,6 +79,8 @@ namespace KillConfirmGameBar.Controls
         private SpriteMetadata _currentMetadata;
         private double _logicalFrameWidth = MaxCachedFrameWidth;
         private double _logicalFrameHeight = MaxCachedFrameHeight;
+        private double _displayViewportWidth = ReferenceDisplayWidth;
+        private double _displayViewportHeight = MaxCachedFrameHeight * (ReferenceDisplayWidth / MaxCachedFrameWidth);
         private double _renderResolutionScale = 1.0;
         private bool _contentSizedViewport;
         private IReadOnlyList<SpriteSheetSegment> _currentSheets;
@@ -106,6 +110,8 @@ namespace KillConfirmGameBar.Controls
 
         public double LogicalViewportWidth => _logicalFrameWidth;
         public double LogicalViewportHeight => _logicalFrameHeight;
+        public double DisplayViewportWidth => _displayViewportWidth;
+        public double DisplayViewportHeight => _displayViewportHeight;
 
         public void Play(int killCount, bool isHeadshot = false)
         {
@@ -441,6 +447,7 @@ namespace KillConfirmGameBar.Controls
                 Visibility = Visibility.Collapsed;
             }
 
+            ReleaseValorantEffects();
             ReleaseValorantTextureCache();
             SpriteCanvas?.Invalidate();
         }
@@ -465,6 +472,7 @@ namespace KillConfirmGameBar.Controls
             ResetPubgHudState();
             ResetDeltaForceHudState();
             Visibility = Visibility.Collapsed;
+            ReleaseValorantEffects();
             ReleaseAllAnimationResourceCaches();
             SpriteCanvas?.Invalidate();
         }
@@ -1000,6 +1008,7 @@ namespace KillConfirmGameBar.Controls
             public CanvasBitmap HeroFlame => Textures?.HeroFlame;
             public CanvasBitmap LargeSparks => Textures?.LargeSparks;
             public CanvasBitmap XSparks => Textures?.XSparks;
+            public CanvasRenderTarget Halo => Textures?.Halo;
             public ValorantDemoProfile DemoProfile { get; set; }
         }
 
@@ -1017,6 +1026,7 @@ namespace KillConfirmGameBar.Controls
             public CanvasBitmap HeroFlame { get; set; }
             public CanvasBitmap LargeSparks { get; set; }
             public CanvasBitmap XSparks { get; set; }
+            public CanvasRenderTarget Halo { get; set; }
 
             public void Dispose()
             {
@@ -1035,6 +1045,7 @@ namespace KillConfirmGameBar.Controls
                 HeroFlame?.Dispose();
                 LargeSparks?.Dispose();
                 XSparks?.Dispose();
+                Halo?.Dispose();
                 Frame = null;
                 Emblem = null;
                 Bar = null;
@@ -1044,6 +1055,7 @@ namespace KillConfirmGameBar.Controls
                 HeroFlame = null;
                 LargeSparks = null;
                 XSparks = null;
+                Halo = null;
             }
         }
 

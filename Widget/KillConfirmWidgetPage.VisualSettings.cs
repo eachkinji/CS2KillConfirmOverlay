@@ -70,7 +70,13 @@ namespace KillConfirmGameBar
             double brightness = ReadSelectedPercentage(BrightnessSelector, DefaultBrightnessValue);
             double contrast = ReadSelectedPercentage(ContrastSelector, DefaultContrastValue);
 
-            Controls.KillConfirmAnimation.ConfigureRenderSettings(brightness / 100.0, contrast / 100.0);
+            bool renderSettingsChanged = Controls.KillConfirmAnimation.ConfigureRenderSettings(
+                brightness / 100.0,
+                contrast / 100.0);
+            if (renderSettingsChanged && GameStyleService.Current == GameStyleMode.Valorant)
+            {
+                PrimaryKillAnimation?.ReleaseValorantResources();
+            }
 
             ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
             localSettings.Values[BrightnessSettingKey] = brightness;
@@ -200,6 +206,10 @@ namespace KillConfirmGameBar
             {
                 _animationPlacement = AnimationPlacementMode.Bottom;
             }
+            else if (string.Equals(placement, nameof(AnimationPlacementMode.Top), StringComparison.OrdinalIgnoreCase))
+            {
+                _animationPlacement = AnimationPlacementMode.Top;
+            }
             else if (string.Equals(placement, nameof(AnimationPlacementMode.Manual), StringComparison.OrdinalIgnoreCase))
             {
                 _animationPlacement = AnimationPlacementMode.Manual;
@@ -305,7 +315,8 @@ namespace KillConfirmGameBar
         {
             Center,
             Manual,
-            Bottom
+            Bottom,
+            Top
         }
     }
 }

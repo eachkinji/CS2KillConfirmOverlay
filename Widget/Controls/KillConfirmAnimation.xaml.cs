@@ -34,11 +34,6 @@ namespace KillConfirmGameBar.Controls
         private const string KnifeKillAssetKey = "knife_kill";
         private const string LastKillAssetKey = "last_kill";
         private const string DefaultCodeFolder = "Original";
-        private const string Csol4CodeFolder = "Csol4";
-        private const double CsolHoldSeconds = 3.0;
-        private const double CsolFadeSeconds = 0.3;
-        private const double CsolFrameWidth = 520;
-        private const double CsolFrameHeight = 300;
         private const string VipCodeFolder = "Vip";
         private const string AngelicBeastCodeFolder = "AngelicBeast";
         private const string KnifeCodeFolder = "Knife";
@@ -88,9 +83,7 @@ namespace KillConfirmGameBar.Controls
         private Code2KillAsset _currentCodeAsset;
         private ValorantKillAsset _currentValorantAsset;
         private BattlefieldKillAsset _currentBattlefieldAsset;
-        private CsolKillAsset _currentCsolAsset;
         private static readonly Dictionary<string, Code2KillAsset> CodeKillCache = new Dictionary<string, Code2KillAsset>();
-        private static readonly Dictionary<string, CsolKillAsset> CsolKillCache = new Dictionary<string, CsolKillAsset>();
         private static Task _startupPreloadTask;
         private static Task _preloadTask;
         private int _currentFrame;
@@ -137,11 +130,6 @@ namespace KillConfirmGameBar.Controls
             }
 
             PlayInternal(progress => LoadCodeKillAssetAsync(assetName, weaponBadgeKey, progress));
-        }
-
-        public void PlayCsolKill(int killCount, string specialIconKey)
-        {
-            PlayInternal(progress => LoadCsolKillAssetAsync(killCount, specialIconKey, progress));
         }
 
         public void PlayValorantKill(string packKey, int killCount, bool isHeadshot)
@@ -320,38 +308,13 @@ namespace KillConfirmGameBar.Controls
             string packKey = ValorantPackService.IsValorantPackKey(_iconPack)
                 ? _iconPack
                 : ValorantPackService.DefaultKey;
-            var requests = new List<Tuple<int, bool>>();
-            for (int killCount = 1; killCount <= 6; killCount++)
-            {
-                requests.Add(Tuple.Create(killCount, false));
-            }
-
-            for (int killCount = 1; killCount <= 6; killCount++)
-            {
-                requests.Add(Tuple.Create(killCount, true));
-            }
-
-            int loaded = 0;
             progress?.Report(0);
-            foreach (Tuple<int, bool> request in requests)
-            {
-                try
-                {
-                    await LoadValorantKillAssetAsync(packKey, request.Item1, request.Item2, null);
-                }
-                catch
-                {
-                }
-
-                loaded++;
-                int percent = requests.Count == 0
-                    ? 100
-                    : (int)Math.Round(loaded * 100.0 / requests.Count);
-                progress?.Report(Math.Max(1, Math.Min(100, percent)));
-            }
+            ValorantDemoProfile profile = GetValorantDemoProfile(packKey);
+            await GetOrLoadValorantTextureSetAsync(packKey, profile, progress);
+            progress?.Report(100);
         }
 
-        public static void ConfigureRenderSettings(double brightnessBoost, double contrastBoost)
+        public static bool ConfigureRenderSettings(double brightnessBoost, double contrastBoost)
         {
             double normalizedBrightness = Math.Max(0.0, Math.Min(1.0, brightnessBoost));
             double normalizedContrast = Math.Max(0.0, Math.Min(1.0, contrastBoost));
@@ -359,7 +322,7 @@ namespace KillConfirmGameBar.Controls
             if (Math.Abs(_brightnessBoost - normalizedBrightness) < 0.0001
                 && Math.Abs(_contrastBoost - normalizedContrast) < 0.0001)
             {
-                return;
+                return false;
             }
 
             _brightnessBoost = normalizedBrightness;
@@ -376,6 +339,8 @@ namespace KillConfirmGameBar.Controls
                 _startupPreloadTask = null;
                 _preloadTask = null;
             }
+
+            return true;
         }
 
         public static void ConfigurePlaybackFps(double playbackFps)
@@ -418,6 +383,33 @@ namespace KillConfirmGameBar.Controls
             {
                 SheetCache.Clear();
             }
+        }
+
+        public static bool IsIconPackConfigured(string iconPack)
+        {
+            string normalized = string.IsNullOrWhiteSpace(iconPack)
+                ? "default"
+                : iconPack.Trim().ToLowerInvariant();
+            return string.Equals(_iconPack, normalized, StringComparison.OrdinalIgnoreCase);
+        }
+
+        public void ReleaseValorantResources()
+        {
+            _playToken++;
+            _timer.Stop();
+            _playbackClock.Stop();
+            _currentValorantAsset = null;
+            if (_currentCodeAsset == null
+                && _currentBattlefieldAsset == null
+                && _currentCsolAsset == null
+                && _currentSheets == null)
+            {
+                _currentMetadata = null;
+                Visibility = Visibility.Collapsed;
+            }
+
+            ReleaseValorantTextureCache();
+            SpriteCanvas?.Invalidate();
         }
 
         public static void ConfigureEliteEffectLevel(int eliteLevel)
@@ -853,20 +845,6 @@ namespace KillConfirmGameBar.Controls
             public CanvasBitmap WeaponBadge { get; }
         }
 
-        private sealed class CsolKillAsset
-        {
-            // Top row: kill-streak icons indexed by killCount - 1 (1..4).
-            public CanvasBitmap[] Streak { get; set; }
-            // Bottom row: special icons; SpecialKey selects which one to draw.
-            public CanvasBitmap Headshot { get; set; }
-            public CanvasBitmap Melee { get; set; }
-            public CanvasBitmap Revenge { get; set; }
-            public CanvasBitmap FirstKill { get; set; }
-            public CanvasBitmap Assist { get; set; }
-            public int KillCount { get; set; }
-            public string SpecialKey { get; set; }
-        }
-
         private sealed class ValorantKillAsset
         {
             public string PackKey { get; set; }
@@ -876,6 +854,24 @@ namespace KillConfirmGameBar.Controls
             public float Brightness { get; set; } = 1.0f;
             public float Contrast { get; set; } = 1.0f;
             public int SpinDirection { get; set; } = 1;
+            public ValorantTextureSet Textures { get; set; }
+            public CanvasBitmap Frame => Textures?.Frame;
+            public CanvasBitmap Emblem => Textures?.Emblem;
+            public CanvasBitmap Bar => Textures?.Bar;
+            public CanvasBitmap Blade => Textures?.Blade;
+            public CanvasBitmap Headshot => Textures?.Headshot;
+            public CanvasBitmap BaseParticle => Textures?.BaseParticle;
+            public CanvasBitmap HeroFlame => Textures?.HeroFlame;
+            public CanvasBitmap LargeSparks => Textures?.LargeSparks;
+            public CanvasBitmap XSparks => Textures?.XSparks;
+            public ValorantDemoProfile DemoProfile { get; set; }
+        }
+
+        private sealed class ValorantTextureSet : IDisposable
+        {
+            private bool _disposed;
+
+            public string PackKey { get; set; }
             public CanvasBitmap Frame { get; set; }
             public CanvasBitmap Emblem { get; set; }
             public CanvasBitmap Bar { get; set; }
@@ -885,7 +881,34 @@ namespace KillConfirmGameBar.Controls
             public CanvasBitmap HeroFlame { get; set; }
             public CanvasBitmap LargeSparks { get; set; }
             public CanvasBitmap XSparks { get; set; }
-            public ValorantDemoProfile DemoProfile { get; set; }
+
+            public void Dispose()
+            {
+                if (_disposed)
+                {
+                    return;
+                }
+
+                _disposed = true;
+                Frame?.Dispose();
+                Emblem?.Dispose();
+                Bar?.Dispose();
+                Blade?.Dispose();
+                Headshot?.Dispose();
+                BaseParticle?.Dispose();
+                HeroFlame?.Dispose();
+                LargeSparks?.Dispose();
+                XSparks?.Dispose();
+                Frame = null;
+                Emblem = null;
+                Bar = null;
+                Blade = null;
+                Headshot = null;
+                BaseParticle = null;
+                HeroFlame = null;
+                LargeSparks = null;
+                XSparks = null;
+            }
         }
 
         private sealed class BattlefieldKillAsset

@@ -8,6 +8,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
         public Battlefield4AdvancedEffectsPanel()
         {
             InitializeComponent();
+            EventSoundPanel.Configure(GameStyleMode.Battlefield4);
         }
 
         public event SelectionChangedEventHandler MoneyRewardModeSelectionChanged;
@@ -24,6 +25,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
             AdvancedEffectsPanelSupport.ApplyHeader(TitleText, HintText, theme);
             AdvancedEffectsPanelSupport.ApplyMoneyRow(MoneyRewardModeLabel, MoneyRewardModeSelector, theme);
             StreakEditor.ApplyTheme(theme);
+            EventSoundPanel.ApplyTheme(theme);
             AdvancedEffectsPanelSupport.ApplyNotice(ImportLockedNotice, ImportLockedText, theme);
             StylePanel.ApplyTheme(theme);
         }
@@ -35,6 +37,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
             MoneyRewardDeltaItem.Content = isChinese ? "GSI \u5dee\u503c\uff08\u9ed8\u8ba4\uff09" : "GSI delta (default)";
             MoneyRewardRulesItem.Content = isChinese ? "\u51fb\u6740\u5956\u52b1\u89c4\u5219" : "Kill reward rules";
             StreakEditor.ApplyLanguage(isChinese);
+            EventSoundPanel.ApplyLanguage(isChinese);
             StylePanel.ApplyLanguage(isChinese);
         }
 
@@ -56,6 +59,11 @@ namespace KillConfirmGameBar.Controls.GameStyles
         public void SelectStreakMode(string value)
         {
             StreakEditor.SelectValue(value);
+        }
+
+        public void ReloadEventSoundSettings()
+        {
+            EventSoundPanel.Reload();
         }
 
         private void OnMoneyRewardModeSelectionChanged(object sender, SelectionChangedEventArgs e)

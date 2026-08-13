@@ -39,6 +39,7 @@
                 SettingsChanged="OnStreakModeSelectionChanged" />
         </Grid>
 
+        <local:EventSoundRoutingPanel x:Name="EventSoundPanel" />
         <local:Battlefield2042StylePanel x:Name="StylePanel" />
         <Border
             x:Name="ImportLockedNotice"
@@ -49,7 +50,7 @@
             <TextBlock
                 x:Name="ImportLockedText"
                 FontSize="10"
-                Text="Built-in Battlefield 2042 resources only. File import is disabled for this page."
+                Text="Battlefield 2042 visuals stay built in; event sounds can be customized above."
                 TextWrapping="WrapWholeWords" />
         </Border>
     </StackPanel>

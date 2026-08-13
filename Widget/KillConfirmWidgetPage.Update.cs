@@ -733,8 +733,15 @@ namespace KillConfirmGameBar
             }
         }
 
-        private static string GetUpdateButtonLabel()
+        private string GetUpdateButtonLabel()
         {
+            if (_updateAvailabilityState == UpdateAvailabilityState.UpdateAvailable)
+            {
+                return LocalizationManager.Current == UiLanguage.SimplifiedChinese
+                    ? $"版本：{GetCompactDisplayVersion()} 点击更新"
+                    : $"Version:{GetCompactDisplayVersion()} Click to update";
+            }
+
             return LocalizationManager.Current == UiLanguage.SimplifiedChinese
                 ? $"版本：{GetCompactDisplayVersion()} 作者 Zac"
                 : $"Version:{GetCompactDisplayVersion()} Author Zac";

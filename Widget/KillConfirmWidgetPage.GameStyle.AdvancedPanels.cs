@@ -208,6 +208,7 @@ namespace KillConfirmGameBar
                 LoadSharedStreakMode(GameStyleMode.Battlefield1);
             }
 
+            _battlefield1AdvancedEffectsPanel.ReloadEventSoundSettings();
             return _battlefield1AdvancedEffectsPanel;
         }
 
@@ -221,6 +222,7 @@ namespace KillConfirmGameBar
                 LoadSharedStreakMode(GameStyleMode.Battlefield5);
             }
 
+            _battlefield5AdvancedEffectsPanel.ReloadEventSoundSettings();
             return _battlefield5AdvancedEffectsPanel;
         }
 
@@ -234,6 +236,7 @@ namespace KillConfirmGameBar
                 LoadSharedStreakMode(GameStyleMode.Battlefield4);
             }
 
+            _battlefield4AdvancedEffectsPanel.ReloadEventSoundSettings();
             return _battlefield4AdvancedEffectsPanel;
         }
 
@@ -247,6 +250,7 @@ namespace KillConfirmGameBar
                 LoadSharedStreakMode(GameStyleMode.Battlefield2042);
             }
 
+            _battlefield2042AdvancedEffectsPanel.ReloadEventSoundSettings();
             return _battlefield2042AdvancedEffectsPanel;
         }
 
@@ -273,6 +277,7 @@ namespace KillConfirmGameBar
                 LoadSharedStreakMode(GameStyleMode.DeltaForce);
             }
 
+            _deltaForceAdvancedEffectsPanel.ReloadEventSoundSettings();
             return _deltaForceAdvancedEffectsPanel;
         }
 

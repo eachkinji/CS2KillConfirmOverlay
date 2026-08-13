@@ -42,6 +42,8 @@
                 SettingsChanged="OnStreakModeSelectionChanged" />
         </Grid>
 
+        <local:EventSoundRoutingPanel x:Name="EventSoundPanel" />
+
         <Border
             x:Name="ImportLockedNotice"
             Padding="9,6"
@@ -52,7 +54,7 @@
                 x:Name="ImportLockedText"
                 FontSize="10"
                 FontWeight="SemiBold"
-                Text="Built-in Battlefield 5 resources only. File import is disabled for this page."
+                Text="Battlefield 5 visuals stay built in; event sounds can be customized above."
                 TextWrapping="WrapWholeWords" />
         </Border>
 

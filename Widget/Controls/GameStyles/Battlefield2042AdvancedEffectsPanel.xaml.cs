@@ -8,6 +8,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
         public Battlefield2042AdvancedEffectsPanel()
         {
             InitializeComponent();
+            EventSoundPanel.Configure(GameStyleMode.Battlefield2042);
         }
 
         public event SelectionChangedEventHandler MoneyRewardModeSelectionChanged;
@@ -24,6 +25,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
             AdvancedEffectsPanelSupport.ApplyHeader(TitleText, HintText, theme);
             AdvancedEffectsPanelSupport.ApplyMoneyRow(MoneyRewardModeLabel, MoneyRewardModeSelector, theme);
             StreakEditor.ApplyTheme(theme);
+            EventSoundPanel.ApplyTheme(theme);
             AdvancedEffectsPanelSupport.ApplyNotice(ImportLockedNotice, ImportLockedText, theme);
             StylePanel.ApplyTheme(theme);
         }
@@ -35,12 +37,13 @@ namespace KillConfirmGameBar.Controls.GameStyles
                 ? "Battlefield 2042 \u51fb\u6740\u5c55\u793a\u3001\u94b1\u7011\u5e03\u548c 2042 \u58f0\u97f3\u5305\u5728\u8fd9\u91cc\u5355\u72ec\u8bbe\u7f6e\u3002"
                 : "Battlefield 2042 kill display, money waterfall, and 2042 sound pack are isolated here.";
             ImportLockedText.Text = isChinese
-                ? "\u4ec5\u4f7f\u7528\u5185\u7f6e Battlefield 2042 \u8d44\u6e90\u3002\u6b64\u9875\u4e0d\u5141\u8bb8\u5bfc\u5165\u6587\u4ef6\u3002"
-                : "Built-in Battlefield 2042 resources only. File import is disabled for this page.";
+                ? "Battlefield 2042 \u89c6\u89c9\u8d44\u6e90\u4fdd\u6301\u5185\u7f6e\uff0c\u4e8b\u4ef6\u58f0\u97f3\u53ef\u5728\u4e0a\u65b9\u5355\u72ec\u81ea\u5b9a\u4e49\u3002"
+                : "Battlefield 2042 visuals stay built in; event sounds can be customized above.";
             MoneyRewardModeLabel.Text = isChinese ? "\u5956\u52b1\u7b97\u6cd5" : "Money";
             MoneyRewardDeltaItem.Content = isChinese ? "GSI \u5dee\u503c\uff08\u9ed8\u8ba4\uff09" : "GSI delta (default)";
             MoneyRewardRulesItem.Content = isChinese ? "\u51fb\u6740\u5956\u52b1\u89c4\u5219" : "Kill reward rules";
             StreakEditor.ApplyLanguage(isChinese);
+            EventSoundPanel.ApplyLanguage(isChinese);
             StylePanel.ApplyLanguage(isChinese);
         }
 
@@ -62,6 +65,11 @@ namespace KillConfirmGameBar.Controls.GameStyles
         public void SelectStreakMode(string value)
         {
             StreakEditor.SelectValue(value);
+        }
+
+        public void ReloadEventSoundSettings()
+        {
+            EventSoundPanel.Reload();
         }
 
         private void OnMoneyRewardModeSelectionChanged(object sender, SelectionChangedEventArgs e)

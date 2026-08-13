@@ -47,7 +47,7 @@ english.InstallScriptFailed=Install failed. The detailed log has been opened for
 chinesesimplified.InstallScriptFailed=安装失败。详细日志已经为你打开。退出码：
 english.InstallLogOpened=If the log did not open, check %TEMP%\KillConfirmGameBar_Install.log.
 chinesesimplified.InstallLogOpened=如果日志没有自动打开，请查看 %TEMP%\KillConfirmGameBar_Install.log。
-english.SameOrNewerVersionBlocked=This computer already has the same or a newer version installed. Please uninstall the current Kill Confirm Overlay first, then run this installer again.
+english.SameOrNewerVersionBlocked=This computer already has a newer version installed. Please uninstall the newer Kill Confirm Overlay first, then run this installer again.
 chinesesimplified.SameOrNewerVersionBlocked=当前电脑已经安装了相同版本或更新版本。请先卸载现有的 Kill Confirm Overlay，再运行这个安装包。
 
 [InstallDelete]
@@ -73,7 +73,7 @@ begin
   Result := True;
   Params := '-NoProfile -ExecutionPolicy Bypass -Command "$target=[version]''' + '{#MyAppVersion}' + '''; ' +
     '$p=Get-AppxPackage -Name KillConfirmGameBar.Overlay -ErrorAction SilentlyContinue | Sort-Object Version -Descending | Select-Object -First 1; ' +
-    'if ($p -and ([version]$p.Version -ge $target)) { exit 42 }; exit 0"';
+    'if ($p -and ([version]$p.Version -gt $target)) { exit 42 }; exit 0"';
 
   if Exec('powershell.exe', Params, '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
   begin

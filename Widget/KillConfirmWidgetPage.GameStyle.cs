@@ -64,10 +64,8 @@ namespace KillConfirmGameBar
                 return;
             }
 
-            bool crossfire = GameStyleService.Current == GameStyleMode.Crossfire
-                || GameStyleService.Current == GameStyleMode.Csol;
+            bool crossfire = GameStyleService.Current == GameStyleMode.Crossfire;
             GameThemePalette theme = GameThemePalette.Current;
-            bool darkStyle = IsDark(theme.Field);
             PackTestSection.Visibility = Visibility.Visible;
 
             MountAdvancedEffectsPanel();
@@ -96,6 +94,13 @@ namespace KillConfirmGameBar
             OpenGuideButton.Background = Brush(theme.Accent);
             OpenGuideButton.BorderBrush = Brush(crossfire ? Color.FromArgb(255, 197, 106, 0) : theme.AccentText);
             SetButtonTheme(AdvancedEffectsButton, theme.Accent, crossfire ? Color.FromArgb(255, 197, 106, 0) : theme.AccentText, Color.FromArgb(255, 255, 255, 255));
+            SetNamedToolTip(
+                AdvancedEffectsButton,
+                LocalizationManager.Text("AdvancedEffectsTitle"),
+                LocalizationManager.Text(
+                    GameStyleService.Current == GameStyleMode.Csol
+                        ? "AdvancedEffectsCsolHint"
+                        : "AdvancedEffectsHint"));
             SetComboTheme(GameStyleSelector, text, field, border);
 
             ServiceBadgeText.Foreground = Brush(text);
@@ -151,20 +156,21 @@ namespace KillConfirmGameBar
             SetButtonTheme(MiniSendTestButton, theme.Accent, crossfire ? Color.FromArgb(255, 197, 106, 0) : theme.AccentText, Color.FromArgb(255, 255, 255, 255));
             SetButtonTheme(ReloadAudioButton, field, theme.SoftBorder, text);
 
-            Color visualButtonField = darkStyle ? theme.SubtleField : Color.FromArgb(255, 255, 253, 252);
-            Color visualImportantField = darkStyle ? theme.SubtleField : Color.FromArgb(255, 232, 246, 254);
-            Color visualButtonText = darkStyle ? text : Color.FromArgb(255, 27, 31, 49);
-            Color visualImportantText = darkStyle ? text : Color.FromArgb(255, 27, 95, 130);
-            SetButtonTheme(DefaultSizeButton, visualImportantField, secondary, visualImportantText);
-            SetButtonTheme(CenterButton, visualImportantField, secondary, visualImportantText);
-            SetButtonTheme(LowerThirdButton, visualImportantField, secondary, visualImportantText);
-            SetButtonTheme(MoveUpButton, visualButtonField, darkStyle ? secondary : theme.SoftBorder, visualButtonText);
-            SetButtonTheme(MoveDownButton, visualButtonField, darkStyle ? secondary : theme.SoftBorder, visualButtonText);
-            SetButtonTheme(MoveLeftButton, visualButtonField, darkStyle ? secondary : theme.SoftBorder, visualButtonText);
-            SetButtonTheme(MoveRightButton, visualButtonField, darkStyle ? secondary : theme.SoftBorder, visualButtonText);
-            SetButtonTheme(ScaleDownButton, visualButtonField, darkStyle ? secondary : theme.SoftBorder, visualButtonText);
-            SetButtonTheme(ScaleUpButton, visualButtonField, darkStyle ? secondary : theme.SoftBorder, visualButtonText);
-            SetButtonTheme(ResetVisualButton, visualButtonField, darkStyle ? secondary : theme.SoftBorder, visualButtonText);
+            // Window buttons (default size / center / top / bottom): accent-tinted.
+            SetButtonTheme(DefaultSizeButton, theme.AccentSoft, theme.Accent, theme.AccentText);
+            SetButtonTheme(CenterButton, theme.AccentSoft, theme.Accent, theme.AccentText);
+            SetButtonTheme(WindowTopButton, theme.AccentSoft, theme.Accent, theme.AccentText);
+            SetButtonTheme(WindowBottomButton, theme.AccentSoft, theme.Accent, theme.AccentText);
+            // Icon adjustment buttons (placement / move / scale / reset): neutral field.
+            SetButtonTheme(LowerThirdButton, theme.Field, theme.SoftBorder, theme.Text);
+            SetButtonTheme(HighPositionButton, theme.Field, theme.SoftBorder, theme.Text);
+            SetButtonTheme(MoveUpButton, theme.Field, theme.SoftBorder, theme.Text);
+            SetButtonTheme(MoveDownButton, theme.Field, theme.SoftBorder, theme.Text);
+            SetButtonTheme(MoveLeftButton, theme.Field, theme.SoftBorder, theme.Text);
+            SetButtonTheme(MoveRightButton, theme.Field, theme.SoftBorder, theme.Text);
+            SetButtonTheme(ScaleDownButton, theme.Field, theme.SoftBorder, theme.Text);
+            SetButtonTheme(ScaleUpButton, theme.Field, theme.SoftBorder, theme.Text);
+            SetButtonTheme(ResetVisualButton, theme.Field, theme.SoftBorder, theme.Text);
             UpdateOverlay.ApplyTheme(theme);
         }
 

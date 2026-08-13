@@ -330,7 +330,8 @@ function Add-AppxPackageCompat {
     param(
         [string]$PackagePath,
         [switch]$ForceUpdate,
-        [switch]$DeferWhenInUse
+        [switch]$DeferWhenInUse,
+        [switch]$UseSystemVolume
     )
 
     $command = Get-Command Add-AppxPackage -ErrorAction Stop
@@ -345,10 +346,22 @@ function Add-AppxPackageCompat {
     if ($DeferWhenInUse -and $command.Parameters.ContainsKey("DeferRegistrationWhenPackagesAreInUse")) {
         $addPackageParams.DeferRegistrationWhenPackagesAreInUse = $true
     }
+    if ($UseSystemVolume -and $command.Parameters.ContainsKey("Volume")) {
+        $systemVolume = Get-AppxVolume -ErrorAction Stop |
+            Where-Object { $_.IsSystemVolume -and -not $_.IsOffline } |
+            Select-Object -First 1
+        if (-not $systemVolume) {
+            throw "The trusted system AppX volume could not be found."
+        }
+
+        $addPackageParams.Volume = $systemVolume
+        Write-InstallLog "Using trusted system AppX volume: $($systemVolume.PackageStorePath)"
+    }
     Write-InstallLog "Add-AppxPackage path: $PackagePath"
-    Write-InstallLog ("Add-AppxPackage switches: ForceUpdateFromAnyVersion={0}; DeferRegistrationWhenPackagesAreInUse={1}" -f `
+    Write-InstallLog ("Add-AppxPackage switches: ForceUpdateFromAnyVersion={0}; DeferRegistrationWhenPackagesAreInUse={1}; SystemVolume={2}" -f `
         $addPackageParams.ContainsKey("ForceUpdateFromAnyVersion"), `
-        $addPackageParams.ContainsKey("DeferRegistrationWhenPackagesAreInUse"))
+        $addPackageParams.ContainsKey("DeferRegistrationWhenPackagesAreInUse"), `
+        $addPackageParams.ContainsKey("Volume"))
     try {
         Add-AppxPackage @addPackageParams
         Write-InstallLog "Add-AppxPackage succeeded: $(Split-Path -Leaf $PackagePath)"
@@ -568,8 +581,21 @@ function Install-OverlayPackage {
     $msixIdentity = Get-AppxIdentityFromPackageFile -PackagePath $msix.FullName
     if ($msixIdentity) {
         Write-InstallLog "MSIX identity: $($msixIdentity.Name) $($msixIdentity.Version)"
+
+        $installedMsix = Get-AppxPackage -Name $msixIdentity.Name -ErrorAction SilentlyContinue |
+            Sort-Object Version -Descending |
+            Select-Object -First 1
+        if ($installedMsix) {
+            $installedVersion = [version]$installedMsix.Version
+            $installedStatus = [string]$installedMsix.Status
+            Write-InstallLog "Installed MSIX detected: $installedVersion; Status=$installedStatus; Location=$($installedMsix.InstallLocation)"
+            if ($installedVersion -eq $msixIdentity.Version -and $installedStatus -eq "Ok") {
+                Write-InstallLog "The same healthy MSIX version is already registered. Skipping package replacement and continuing repair steps."
+                return
+            }
+        }
     }
-    Add-AppxPackageCompat -PackagePath $msix.FullName -ForceUpdate -DeferWhenInUse
+    Add-AppxPackageCompat -PackagePath $msix.FullName -ForceUpdate -DeferWhenInUse -UseSystemVolume
 }
 
 function Test-OverlayPackageInstalled {

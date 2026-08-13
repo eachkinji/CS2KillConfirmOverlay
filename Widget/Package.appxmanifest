@@ -60,10 +60,10 @@
                   <Size>
                     <Height>600</Height>
                     <Width>550</Width>
-                    <MinHeight>120</MinHeight>
-                    <MinWidth>160</MinWidth>
-                    <MaxHeight>720</MaxHeight>
-                    <MaxWidth>720</MaxWidth>
+                    <MinHeight>80</MinHeight>
+                    <MinWidth>120</MinWidth>
+                    <MaxHeight>2160</MaxHeight>
+                    <MaxWidth>3840</MaxWidth>
                   </Size>
                   <ResizeSupported>
                     <Horizontal>true</Horizontal>

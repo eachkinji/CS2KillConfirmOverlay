@@ -10,6 +10,10 @@ Package/AppPackages/
 # Generated transfer/install packages
 KillConfirmGameBar_Transfer_*/
 KillConfirmGameBar_Transfer_*.zip
+Widget/BundleArtifacts/
+
+# Release upload logs
+.release-upload-*.log
 *.msix
 *.msixbundle
 *.appx

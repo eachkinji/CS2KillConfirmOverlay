@@ -266,6 +266,9 @@
                             <ListViewItem Tag="crossfire" Style="{StaticResource GameModeSidebarItemStyle}" ToolTipService.ToolTip="CrossFire">
                                 <Border Style="{StaticResource GameModeLogoTileStyle}"><Image Source="ms-appx:///Assets/GameLogos/crossfire.png" Stretch="Uniform" /></Border>
                             </ListViewItem>
+                            <ListViewItem Tag="csol" Style="{StaticResource GameModeSidebarItemStyle}" ToolTipService.ToolTip="CSOL">
+                                <Border Style="{StaticResource GameModeLogoTileStyle}"><Image Source="ms-appx:///Assets/GameLogos/csol.png" Stretch="Uniform" /></Border>
+                            </ListViewItem>
                             <ListViewItem Tag="valorant" Style="{StaticResource GameModeSidebarItemStyle}" ToolTipService.ToolTip="Valorant">
                                 <Border Style="{StaticResource GameModeLogoTileStyle}"><Image Source="ms-appx:///Assets/GameLogos/valorant.png" Stretch="Uniform" /></Border>
                             </ListViewItem>
@@ -332,6 +335,7 @@
                         CornerRadius="8"
                         SelectionChanged="OnGameStyleSelectionChanged">
                         <ComboBoxItem x:Name="CrossfireStyleItem" Tag="crossfire">CrossFire (穿越火线)</ComboBoxItem>
+                        <ComboBoxItem x:Name="CsolStyleItem" Tag="csol">CSOL (反恐精英Online)</ComboBoxItem>
                         <ComboBoxItem x:Name="ValorantStyleItem" Tag="valorant">Valorant (无畏契约)</ComboBoxItem>
                         <ComboBoxItem x:Name="Battlefield1StyleItem" Tag="battlefield1">Battlefield 1 (战地1)</ComboBoxItem>
                         <ComboBoxItem x:Name="Battlefield5StyleItem" Tag="battlefield5">Battlefield V (战地5)</ComboBoxItem>

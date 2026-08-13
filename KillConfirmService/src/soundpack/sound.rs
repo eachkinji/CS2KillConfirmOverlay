@@ -209,6 +209,10 @@ pub async fn play_audio(
             master_name: preset.master_name.clone(),
             variant: preset.variant.clone(),
             base_dir: preset.base_dir.clone(),
+            voice_picks: app_state_clone.csol_voice_picks.read().await.clone(),
+            special_voice_priority: app_state_clone
+                .csol_special_voice_priority
+                .load(Ordering::Relaxed),
         };
 
         // Get sound files from Lua script
@@ -455,6 +459,102 @@ mod tests {
         resolve_special_kill_audio_flag, supports_economy_audio_events,
         uses_battlefield2042_audio_rules, uses_crossfire_audio_rules,
     };
+
+    #[test]
+    fn csol4_sound_lua_routes_kill_types() {
+        use crate::soundpack::lua_script::{LuaScript, SoundContext};
+        use crate::util::state::EventChannel;
+        use std::collections::HashMap;
+
+        let script = LuaScript::load("sounds/csol4/sound.lua").expect("load csol4 sound.lua");
+        let make_ctx = |kill_count, is_headshot, is_knife, is_first, is_last, is_assist| SoundContext {
+            kill_count,
+            is_headshot,
+            is_first_kill: is_first,
+            is_knife_kill: is_knife,
+            is_last_kill: is_last,
+            is_assist,
+            play_main_audio: true,
+            money_reward: 0,
+            event_kind: None,
+            event_channel: EventChannel::Combat,
+            preset_name: "csol4".to_string(),
+            master_name: "csol4".to_string(),
+            variant: None,
+            base_dir: "sounds/csol4".to_string(),
+            voice_picks: HashMap::new(),
+            special_voice_priority: true,
+        };
+
+        // First/last kill -> Revenge voice.
+        for ctx in [
+            make_ctx(1, false, false, true, false, false),
+            make_ctx(3, false, false, false, true, false),
+        ] {
+            let sounds = script.get_sounds(&ctx).unwrap();
+            assert_eq!(sounds.len(), 1);
+            assert!(sounds[0].ends_with("Revenge.wav"), "{}", sounds[0]);
+        }
+
+        // Assist -> Assist voice.
+        let sounds = script.get_sounds(&make_ctx(0, false, false, false, false, true)).unwrap();
+        assert!(sounds[0].ends_with("Assist.wav"), "{}", sounds[0]);
+
+        // Special-first: knife beats the streak voice.
+        let sounds = script.get_sounds(&make_ctx(3, false, true, false, false, false)).unwrap();
+        assert!(
+            sounds[0].ends_with("Humililation.wav") || sounds[0].ends_with("Ohno.wav"),
+            "{}",
+            sounds[0]
+        );
+
+        // Special-first: headshot beats the streak voice.
+        let sounds = script.get_sounds(&make_ctx(2, true, false, false, false, false)).unwrap();
+        assert!(sounds[0].ends_with("Headshot.wav"), "{}", sounds[0]);
+
+        // Plain streaks route to the numbered voice (capped at 4).
+        let sounds = script.get_sounds(&make_ctx(2, false, false, false, false, false)).unwrap();
+        assert!(sounds[0].ends_with("Doublekill.wav"), "{}", sounds[0]);
+        let sounds = script.get_sounds(&make_ctx(5, false, false, false, false, false)).unwrap();
+        assert!(
+            sounds[0].ends_with("Multikill.wav") || sounds[0].ends_with("Multikill_ch.wav"),
+            "{}",
+            sounds[0]
+        );
+    }
+
+    #[test]
+    fn csol4_sound_lua_honors_specific_voice_picks() {
+        use crate::soundpack::lua_script::{LuaScript, SoundContext};
+        use crate::util::state::EventChannel;
+        use std::collections::HashMap;
+
+        let script = LuaScript::load("sounds/csol4/sound.lua").expect("load csol4 sound.lua");
+        let mut voice_picks = HashMap::new();
+        voice_picks.insert("4".to_string(), "Multikill_ch.wav".to_string());
+
+        let ctx = SoundContext {
+            kill_count: 4,
+            is_headshot: false,
+            is_first_kill: false,
+            is_knife_kill: false,
+            is_last_kill: false,
+            is_assist: false,
+            play_main_audio: true,
+            money_reward: 0,
+            event_kind: None,
+            event_channel: EventChannel::Combat,
+            preset_name: "csol4".to_string(),
+            master_name: "csol4".to_string(),
+            variant: None,
+            base_dir: "sounds/csol4".to_string(),
+            voice_picks,
+            special_voice_priority: true,
+        };
+
+        let sounds = script.get_sounds(&ctx).unwrap();
+        assert!(sounds[0].ends_with("Multikill_ch.wav"), "{}", sounds[0]);
+    }
 
     #[test]
     fn assist_audio_is_muted_by_default_and_routes_to_common_when_enabled() {

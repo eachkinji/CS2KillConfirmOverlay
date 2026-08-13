@@ -90,6 +90,12 @@
                             FontSize="10"
                             Text="Enable all diagnostic logs"
                             TextWrapping="WrapWholeWords" />
+                        <Button
+                            x:Name="OpenLogPathButton"
+                            Padding="10,4"
+                            HorizontalAlignment="Left"
+                            Click="OnOpenLogPathClick"
+                            Content="Open log path" />
                     </StackPanel>
                 </Border>
             </Grid>

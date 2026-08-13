@@ -11,6 +11,7 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 use std::{
+    collections::HashMap,
     env,
     ffi::{OsStr, OsString},
     fs::{self, OpenOptions},
@@ -45,10 +46,10 @@ use soundpack::Preset;
 use soundpack::sound::warm_audio_cache;
 use util::event_stream::{
     audio_devices, audio_reload, audio_volume, counter_strike_root, crossfire_settings, cs2_root,
-    developer_settings, events_poll, gsi_game_settings, gsi_status, health, money_mode,
-    set_audio_device, set_crossfire_settings, set_developer_settings, set_gsi_game_settings,
-    set_money_mode, set_spectator_settings, set_streak_settings, shutdown, spectator_settings,
-    streak_settings, test_event,
+    csol_settings, developer_settings, events_poll, gsi_game_settings, gsi_status, health, money_mode,
+    set_audio_device, set_crossfire_settings, set_csol_settings, set_developer_settings,
+    set_gsi_game_settings, set_money_mode, set_spectator_settings, set_streak_settings, shutdown,
+    spectator_settings, streak_settings, test_event,
 };
 use util::handler::update;
 use util::logging::{developer_logging_enabled, set_developer_logging_enabled};
@@ -268,6 +269,8 @@ async fn run() -> Result<()> {
         crossfire_knife_special_audio_priority: AtomicBool::new(true),
         assist_audio_enabled: AtomicBool::new(false),
         assist_audio_setting_active: AtomicBool::new(true),
+        csol_voice_picks: RwLock::new(HashMap::new()),
+        csol_special_voice_priority: AtomicBool::new(true),
         spectated_kill_effects_enabled: AtomicBool::new(true),
         gsi_game_version: AtomicU8::new(GsiGameVersion::DEFAULT.as_u8()),
         events: EventJournal::default(),
@@ -311,6 +314,10 @@ async fn run() -> Result<()> {
         .route(
             "/crossfire/settings",
             get(crossfire_settings).post(set_crossfire_settings),
+        )
+        .route(
+            "/csol/settings",
+            get(csol_settings).post(set_csol_settings),
         )
         .route(
             "/streak/settings",

@@ -1,4 +1,4 @@
-use std::collections::VecDeque;
+use std::collections::{HashMap, VecDeque};
 use std::sync::atomic::{AtomicBool, AtomicU8, AtomicU32, AtomicU64, Ordering};
 use std::time::{Duration, Instant};
 
@@ -436,6 +436,8 @@ pub struct AppState {
     pub crossfire_knife_special_audio_priority: AtomicBool,
     pub assist_audio_enabled: AtomicBool,
     pub assist_audio_setting_active: AtomicBool,
+    pub csol_voice_picks: RwLock<HashMap<String, String>>,
+    pub csol_special_voice_priority: AtomicBool,
     pub spectated_kill_effects_enabled: AtomicBool,
     pub gsi_game_version: AtomicU8,
     pub events: EventJournal,

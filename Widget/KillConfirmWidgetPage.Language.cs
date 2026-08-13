@@ -84,6 +84,7 @@ namespace KillConfirmGameBar
             CfgBadgeText.Text = "CFG";
             GsiBadgeText.Text = "GSI";
             SetGameStyleItemContent(CrossfireStyleItem, LocalizationManager.Text("GameStyleCrossfireShort"), "ms-appx:///Assets/GameLogos/crossfire.png");
+            SetGameStyleItemContent(CsolStyleItem, LocalizationManager.Text("GameStyleCsolShort"), "ms-appx:///Assets/GameLogos/csol.png");
             SetGameStyleItemContent(ValorantStyleItem, LocalizationManager.Text("GameStyleValorantShort"), "ms-appx:///Assets/GameLogos/valorant.png");
             SetGameStyleItemContent(Battlefield1StyleItem, "BF1", "ms-appx:///Assets/GameLogos/battlefield1.png");
             SetGameStyleItemContent(Battlefield5StyleItem, "BF5", "ms-appx:///Assets/GameLogos/battlefield5.png");
@@ -129,6 +130,9 @@ namespace KillConfirmGameBar
             SetNamedToolTip(TestPresetIcon, LocalizationManager.Text("TestPresetTitle"), LocalizationManager.Text("TestPresetTooltip"));
             SetNamedToolTip(TestPresetSelector, LocalizationManager.Text("TestPresetTitle"), LocalizationManager.Text("TestPresetTooltip"));
             SetNamedToolTip(SendTestButton, LocalizationManager.Text("SendTestTitle"), LocalizationManager.Text("SendTestTooltip"));
+            SetNamedToolTip(MiniSendTestButton, LocalizationManager.Text("SendTestTitle"), LocalizationManager.Text("SendTestTooltip"));
+            SetNamedToolTip(CollapsePanelButton, LocalizationManager.Text("CollapsePanelTooltip"), LocalizationManager.Text("CollapsePanelTooltip"));
+            SetNamedToolTip(MiniCollapsePanelButton, LocalizationManager.Text("ExpandPanelTooltip"), LocalizationManager.Text("ExpandPanelTooltip"));
             SetNamedToolTip(ReloadAudioButton, LocalizationManager.Text("ReloadAudioTitle"), LocalizationManager.Text("ReloadAudioTooltip"));
 
             SetNamedToolTip(DefaultSizeButton, LocalizationManager.Text("DefaultSizeTitle"), LocalizationManager.Text("DefaultSizeTooltip"));

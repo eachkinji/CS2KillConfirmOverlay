@@ -108,7 +108,7 @@ namespace KillConfirmGameBar
 
         private async void OnInstallCfgClick(object sender, RoutedEventArgs e)
         {
-            if (_csInstallFolder == null)
+            if (_csInstallFolder == null && string.IsNullOrWhiteSpace(_serviceDetectedCsRootPath))
             {
                 await ShowCfgMessageAsync(LocalizationManager.Text("SelectCsFirst"));
                 return;
@@ -137,6 +137,8 @@ namespace KillConfirmGameBar
         {
             _loadedCsGameVersion = GsiGameVersionSettingsStore.Load();
             _csInstallFolder = null;
+            _serviceDetectedCsRootPath = string.Empty;
+            _serviceDetectedCfgStatus = string.Empty;
             string token = ApplicationData.Current.LocalSettings.Values[CurrentCsInstallFolderTokenSettingKey] as string;
             if (string.IsNullOrWhiteSpace(token))
             {
@@ -193,12 +195,17 @@ namespace KillConfirmGameBar
                     JsonObject json = JsonObject.Parse(responseText);
                     bool found = json.GetNamedBoolean("found", false);
                     string path = json.GetNamedString("path", string.Empty);
+                    string cfgStatus = json.GetNamedString("cfg_status", string.Empty);
 
                     if (!found || string.IsNullOrWhiteSpace(path))
                     {
                         UpdateCfgStatus(CfgDetectionState.NotSelected, null, LocalizationManager.Text("CfgSelectRootHint"));
                         return;
                     }
+
+                    _serviceDetectedCsRootPath = path;
+                    _serviceDetectedCfgStatus = cfgStatus;
+                    ApplicationData.Current.LocalSettings.Values[CurrentCsInstallFolderPathSettingKey] = path;
 
                     try
                     {
@@ -209,8 +216,7 @@ namespace KillConfirmGameBar
                     catch (Exception ex)
                     {
                         App.Log("Auto-detected CS folder, but folder access failed: " + ex);
-                        ApplicationData.Current.LocalSettings.Values[CurrentCsInstallFolderPathSettingKey] = path;
-                        UpdateCfgStatus(CfgDetectionState.NotSelected, null, LocalizationManager.Text("CfgDetectedNeedConfirm") + path);
+                        ApplyServiceDetectedCfgStatus(path, cfgStatus);
                     }
                 }
             }
@@ -273,6 +279,12 @@ namespace KillConfirmGameBar
 
         private async Task InstallCfgAsync()
         {
+            if (_csInstallFolder == null && !string.IsNullOrWhiteSpace(_serviceDetectedCsRootPath))
+            {
+                await InstallCfgThroughServiceAsync();
+                return;
+            }
+
             try
             {
                 UpdateCfgStatus(CfgDetectionState.Checking, LocalizationManager.Text("CfgAdding"), GetCsFolderDisplayText());
@@ -295,6 +307,56 @@ namespace KillConfirmGameBar
                 App.Log("Failed to install cfg file: " + ex);
                 UpdateCfgStatus(CfgDetectionState.Error, LocalizationManager.Text("CfgAddFailed"), GetCsFolderDisplayText());
                 await ShowCfgMessageAsync(LocalizationManager.Text("CfgWriteFailed"));
+            }
+        }
+
+        private async Task InstallCfgThroughServiceAsync()
+        {
+            try
+            {
+                UpdateCfgStatus(CfgDetectionState.Checking, LocalizationManager.Text("CfgAdding"), _serviceDetectedCsRootPath);
+                var uri = new Uri(
+                    CounterStrikeCfgUri
+                    + "?version="
+                    + Uri.EscapeDataString(_loadedCsGameVersion));
+                using (var client = await LocalServiceAuth.CreateHttpClientAsync())
+                using (HttpResponseMessage response = await client.PostAsync(uri, null))
+                {
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        throw new InvalidOperationException("CFG service install failed: " + response.StatusCode);
+                    }
+
+                    string responseText = await response.Content.ReadAsStringAsync();
+                    JsonObject json = JsonObject.Parse(responseText);
+                    _serviceDetectedCfgStatus = json.GetNamedString("cfg_status", "ready");
+                    ApplyServiceDetectedCfgStatus(_serviceDetectedCsRootPath, _serviceDetectedCfgStatus);
+                }
+            }
+            catch (Exception ex)
+            {
+                App.Log("Failed to install cfg through local service: " + ex);
+                UpdateCfgStatus(CfgDetectionState.Error, LocalizationManager.Text("CfgAddFailed"), _serviceDetectedCsRootPath);
+                await ShowCfgMessageAsync(LocalizationManager.Text("CfgWriteFailed"));
+            }
+        }
+
+        private void ApplyServiceDetectedCfgStatus(string path, string cfgStatus)
+        {
+            switch ((cfgStatus ?? string.Empty).Trim().ToLowerInvariant())
+            {
+                case "ready":
+                    UpdateCfgStatus(CfgDetectionState.Ready, null, path);
+                    break;
+                case "outdated":
+                    UpdateCfgStatus(CfgDetectionState.Outdated, null, LocalizationManager.Text("CfgOutdatedHint") + " " + path);
+                    break;
+                case "missing":
+                    UpdateCfgStatus(CfgDetectionState.Missing, null, path);
+                    break;
+                default:
+                    UpdateCfgStatus(CfgDetectionState.NotSelected, null, LocalizationManager.Text("CfgDetectedNeedConfirm") + path);
+                    break;
             }
         }
 

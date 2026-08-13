@@ -149,7 +149,8 @@ namespace KillConfirmGameBar
         {
             if (!Controls.KillConfirmAnimation.IsIconPackConfigured(iconPack))
             {
-                PrimaryKillAnimation?.ReleaseValorantResources();
+                PrimaryKillAnimation?.ReleaseAnimationResourcesForPackChange();
+                BadgeKillAnimation?.ReleaseAnimationResourcesForPackChange();
             }
 
             Controls.KillConfirmAnimation.ConfigureIconPack(iconPack);

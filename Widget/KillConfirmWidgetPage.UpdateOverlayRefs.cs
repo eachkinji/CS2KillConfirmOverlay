@@ -10,34 +10,23 @@ namespace KillConfirmGameBar
         private TextBlock UpdateAboutText => UpdateOverlay.UpdateAboutText;
         private TextBlock UpdateAuthorGitHubText => UpdateOverlay.UpdateAuthorGitHubText;
         private TextBlock UpdateAuthorBilibiliText => UpdateOverlay.UpdateAuthorBilibiliText;
-        private TextBlock UpdateProjectHomeText => UpdateOverlay.UpdateProjectHomeText;
+        private TextBlock UpdateDownloadLinkText => UpdateOverlay.UpdateDownloadLinkText;
         private TextBlock UpdateReleaseTitleText => UpdateOverlay.UpdateReleaseTitleText;
         private TextBlock UpdateReleaseInfoText => UpdateOverlay.UpdateReleaseInfoText;
-        private TextBlock UpdateQuarkHintText => UpdateOverlay.UpdateQuarkHintText;
         private TextBlock UpdateQuarkCodeText => UpdateOverlay.UpdateQuarkCodeText;
-        private TextBlock UpdateDownloadStatusText => UpdateOverlay.UpdateDownloadStatusText;
         private ScrollViewer UpdateReleaseScrollViewer => UpdateOverlay.UpdateReleaseScrollViewer;
         private Button UpdateReleaseToggleButton => UpdateOverlay.UpdateReleaseToggleButton;
-        private Button UpdateOpenQuarkButton => UpdateOverlay.UpdateOpenQuarkButton;
         private Button UpdateCopyQuarkButton => UpdateOverlay.UpdateCopyQuarkButton;
-        private Button UpdateDownloadButton => UpdateOverlay.UpdateDownloadButton;
-        private Button UpdateInstallButton => UpdateOverlay.UpdateInstallButton;
-        private Button UpdateOpenFolderButton => UpdateOverlay.UpdateOpenFolderButton;
         private Button UpdateCloseButton => UpdateOverlay.UpdateCloseButton;
-        private ProgressBar UpdateDownloadProgress => UpdateOverlay.UpdateDownloadProgress;
 
         private void WireUpdateOverlayEvents()
         {
             UpdateOverlay.CloseClicked += OnCloseUpdateOverlayClick;
             UpdateOverlay.OpenAuthorGitHubClicked += OnOpenAuthorGitHubClick;
             UpdateOverlay.OpenBilibiliClicked += OnOpenBilibiliClick;
-            UpdateOverlay.OpenGitHubClicked += OnOpenGitHubClick;
+            UpdateOverlay.OpenDownloadLinkClicked += OnOpenDownloadLinkClick;
             UpdateOverlay.ToggleReleaseNotesClicked += OnToggleReleaseNotesClick;
-            UpdateOverlay.OpenQuarkClicked += OnOpenQuarkUpdateClick;
             UpdateOverlay.CopyQuarkClicked += OnCopyQuarkUpdateClick;
-            UpdateOverlay.DownloadClicked += OnDownloadUpdateClick;
-            UpdateOverlay.InstallClicked += OnInstallUpdateClick;
-            UpdateOverlay.OpenFolderClicked += OnOpenUpdateFolderClick;
         }
     }
 }

@@ -22,9 +22,6 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
                     <Grid>
@@ -192,14 +189,14 @@
                                 </Button>
                             </Grid>
                             <Button
-                                x:Name="UpdateOpenGitHubButton"
+                                x:Name="UpdateDownloadLinkButton"
                                 x:FieldModifier="public"
                                 Height="28"
                                 HorizontalAlignment="Stretch"
                                 Background="#F3F8FB"
                                 BorderBrush="#B9DCEC"
                                 BorderThickness="1"
-                                Click="OnOpenGitHubClick"
+                                Click="OnOpenDownloadLinkClick"
                                 CornerRadius="10"
                                 Foreground="#1B1F31">
                                 <StackPanel
@@ -212,14 +209,41 @@
                                         Source="ms-appx:///Assets/Square44x44Logo.scale-200.png"
                                         Stretch="Uniform" />
                                     <TextBlock
-                                        x:Name="UpdateProjectHomeText"
+                                        x:Name="UpdateDownloadLinkText"
                                         x:FieldModifier="public"
                                         VerticalAlignment="Center"
                                         FontSize="12"
                                         FontWeight="SemiBold"
-                                        Text="GitHub 项目主页" />
+                                        Text="项目下载更新链接" />
                                 </StackPanel>
                             </Button>
+                            <Grid ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock
+                                    x:Name="UpdateQuarkCodeText"
+                                    x:FieldModifier="public"
+                                    VerticalAlignment="Center"
+                                    FontSize="12"
+                                    FontWeight="Bold"
+                                    Foreground="#1B1F31" />
+                                <Button
+                                    x:Name="UpdateCopyQuarkButton"
+                                    x:FieldModifier="public"
+                                    Grid.Column="1"
+                                    Height="28"
+                                    MinWidth="112"
+                                    Background="#FFFDFC"
+                                    BorderBrush="#B9DCEC"
+                                    BorderThickness="1"
+                                    Click="OnCopyQuarkUpdateClick"
+                                    Content="复制网盘链接"
+                                    CornerRadius="10"
+                                    FontSize="12"
+                                    Foreground="#1B1F31" />
+                            </Grid>
                             <Grid Margin="0,2,0,0">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
@@ -267,145 +291,6 @@
                         </StackPanel>
                     </Border>
 
-                    <Border
-                        x:Name="QuarkCard"
-                        x:FieldModifier="public"
-                        Grid.Row="3"
-                        Padding="10"
-                        Background="#FFFFF7EA"
-                        BorderBrush="#F7BE6A"
-                        BorderThickness="1"
-                        CornerRadius="16">
-                        <StackPanel Spacing="6">
-                            <TextBlock
-                                x:Name="UpdateQuarkHintText"
-                                x:FieldModifier="public"
-                                FontSize="12"
-                                FontWeight="SemiBold"
-                                Foreground="#8A4B00"
-                                TextWrapping="WrapWholeWords" />
-                            <Grid ColumnSpacing="8">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <TextBlock
-                                    x:Name="UpdateQuarkCodeText"
-                                    x:FieldModifier="public"
-                                    VerticalAlignment="Center"
-                                    FontSize="12"
-                                    FontWeight="Bold"
-                                    Foreground="#1B1F31" />
-                            <Button
-                                x:Name="UpdateOpenQuarkButton"
-                                x:FieldModifier="public"
-                                Grid.Column="1"
-                                Height="30"
-                                MinWidth="0"
-                                HorizontalAlignment="Stretch"
-                                Background="#FFFDFC"
-                                BorderBrush="#F7BE6A"
-                                BorderThickness="1"
-                                Click="OnOpenQuarkUpdateClick"
-                                Content="鎵撳紑澶稿厠澶囩敤涓嬭浇"
-                                CornerRadius="10"
-                                FontSize="12"
-                                Foreground="#8A4B00" />
-                            <Button
-                                x:Name="UpdateCopyQuarkButton"
-                                x:FieldModifier="public"
-                                Grid.Column="2"
-                                Height="30"
-                                MinWidth="0"
-                                HorizontalAlignment="Stretch"
-                                Background="#FFFDFC"
-                                BorderBrush="#F7BE6A"
-                                BorderThickness="1"
-                                Click="OnCopyQuarkUpdateClick"
-                                Content="婢跺秴鍩楅柧鐐复"
-                                CornerRadius="10"
-                                FontSize="12"
-                                Foreground="#8A4B00" />
-                            </Grid>
-                        </StackPanel>
-                    </Border>
-
-                    <StackPanel
-                        x:Name="DownloadArea"
-                        x:FieldModifier="public"
-                        Grid.Row="4"
-                        Spacing="8">
-                        <TextBlock
-                            x:Name="UpdateDownloadStatusText"
-                            x:FieldModifier="public"
-                            FontSize="12"
-                            FontWeight="SemiBold"
-                            Foreground="#2D3748"
-                            Text="绛夊緟涓嬭浇" />
-                        <ProgressBar
-                            x:Name="UpdateDownloadProgress"
-                            x:FieldModifier="public"
-                            Height="8"
-                            Background="#E7E1D6"
-                            Foreground="#2E88B8"
-                            IsIndeterminate="False"
-                            Maximum="100"
-                            Minimum="0"
-                            Value="0" />
-                    </StackPanel>
-
-                    <Grid
-                        Grid.Row="5"
-                        ColumnSpacing="4">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Button
-                            x:Name="UpdateDownloadButton"
-                            x:FieldModifier="public"
-                            Grid.Column="0"
-                            Height="34"
-                            Background="#2E88B8"
-                            BorderBrush="#45A3D3"
-                            BorderThickness="1"
-                            Click="OnDownloadUpdateClick"
-                            Content="涓嬭浇"
-                            CornerRadius="12"
-                            FontSize="12"
-                            FontWeight="SemiBold"
-                            Foreground="White" />
-                        <Button
-                            x:Name="UpdateInstallButton"
-                            x:FieldModifier="public"
-                            Grid.Column="1"
-                            Height="34"
-                            Background="#FFFDFC"
-                            BorderBrush="#D5D0C4"
-                            BorderThickness="1"
-                            Click="OnInstallUpdateClick"
-                            Content="Install"
-                            CornerRadius="12"
-                            FontSize="12"
-                            FontWeight="SemiBold"
-                            Foreground="#1B1F31" />
-                        <Button
-                            x:Name="UpdateOpenFolderButton"
-                            x:FieldModifier="public"
-                            Grid.Column="2"
-                            Height="34"
-                            Background="#FFFDFC"
-                            BorderBrush="#D5D0C4"
-                            BorderThickness="1"
-                            Click="OnOpenUpdateFolderClick"
-                            Content="Folder"
-                            CornerRadius="12"
-                            FontSize="12"
-                            FontWeight="SemiBold"
-                            Foreground="#1B1F31" />
-                    </Grid>
                 </Grid>
             </Border>
         </Grid>

@@ -22,8 +22,6 @@ namespace KillConfirmGameBar.Controls
             AboutCard.BorderBrush = theme.Brush(theme.SoftBorder);
             AuthorAvatarFrame.Background = theme.Brush(theme.SubtleField);
             AuthorAvatarFrame.BorderBrush = theme.Brush(theme.SoftBorder);
-            QuarkCard.Background = theme.Brush(theme.WarningField);
-            QuarkCard.BorderBrush = theme.Brush(theme.WarningBorder);
 
             SetText(UpdateDialogTitleText, theme.Text);
             SetText(UpdateDialogVersionText, theme.AccentText);
@@ -31,26 +29,17 @@ namespace KillConfirmGameBar.Controls
             SetText(UpdateAboutText, theme.Text);
             SetText(UpdateAuthorGitHubText, theme.Text);
             SetText(UpdateAuthorBilibiliText, theme.Text);
-            SetText(UpdateProjectHomeText, theme.Text);
+            SetText(UpdateDownloadLinkText, theme.Text);
             SetText(UpdateReleaseTitleText, theme.Text);
             SetText(UpdateReleaseInfoText, theme.MutedText);
-            SetText(UpdateQuarkHintText, theme.WarningText);
             SetText(UpdateQuarkCodeText, theme.Text);
-            SetText(UpdateDownloadStatusText, theme.MutedText);
 
             SetButton(UpdateCloseButton, theme.Field, theme.SoftBorder, theme.Text);
             SetButton(UpdateAuthorGitHubButton, theme.Field, theme.SoftBorder, theme.Text);
             SetButton(UpdateAuthorBilibiliButton, theme.Field, theme.SoftBorder, theme.Text);
-            SetButton(UpdateOpenGitHubButton, theme.SubtleField, theme.Secondary, theme.Text);
+            SetButton(UpdateDownloadLinkButton, theme.SubtleField, theme.Secondary, theme.Text);
             SetButton(UpdateReleaseToggleButton, theme.Field, theme.SoftBorder, theme.Text);
-            SetButton(UpdateOpenQuarkButton, theme.Field, theme.WarningBorder, theme.WarningText);
-            SetButton(UpdateCopyQuarkButton, theme.Field, theme.WarningBorder, theme.WarningText);
-            SetButton(UpdateDownloadButton, theme.Accent, theme.AccentText, Colors.White);
-            SetButton(UpdateInstallButton, theme.Field, theme.SoftBorder, theme.Text);
-            SetButton(UpdateOpenFolderButton, theme.Field, theme.SoftBorder, theme.Text);
-
-            UpdateDownloadProgress.Background = theme.Brush(theme.SubtleField);
-            UpdateDownloadProgress.Foreground = theme.Brush(theme.Secondary);
+            SetButton(UpdateCopyQuarkButton, theme.Field, theme.Secondary, theme.Text);
         }
 
         private static void SetText(TextBlock textBlock, Color color)

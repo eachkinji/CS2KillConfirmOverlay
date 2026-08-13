@@ -38,6 +38,7 @@ $NoDependenciesTransferZip = "{0}.zip" -f $NoDependenciesTransferRoot
 $ExpectedPackageFamilyName = "KillConfirmGameBar.Overlay_5jgcw66eyez0m"
 $PrerequisiteSourceRoot = Join-Path $WorkspaceRoot "Vclibs"
 $PrerequisiteFileNames = @(
+    "Microsoft.UI.Xaml.Appx",
     "vclibs.appx",
     "vclibs2.appx",
     "gamebar.AppxBundle"
@@ -184,6 +185,15 @@ function ConvertFrom-Utf8Base64 {
 $Prerequisites = @(
     [pscustomobject]@{
         Order = 1
+        DisplayName = "Microsoft UI XAML Framework 2.8 (x64)"
+        ChineseDisplayName = (ConvertFrom-Utf8Base64 -Value "TWljcm9zb2Z0IFVJIFhBTUwgMi44IOahhuaetiAoeDY0KQ==")
+        PackageName = "Microsoft.UI.Xaml.2.8"
+        Architecture = "X64"
+        MinimumVersion = [version]"8.2310.30001.0"
+        FileName = "Microsoft.UI.Xaml.Appx"
+    },
+    [pscustomobject]@{
+        Order = 2
         DisplayName = "Microsoft Visual C++ UWP Desktop Runtime (x64)"
         ChineseDisplayName = (ConvertFrom-Utf8Base64 -Value "TWljcm9zb2Z0IFZpc3VhbCBDKysgVVdQIERlc2t0b3Ag6L+Q6KGM5bqTICh4NjQp")
         PackageName = "Microsoft.VCLibs.140.00.UWPDesktop"
@@ -192,7 +202,7 @@ $Prerequisites = @(
         FileName = "vclibs.appx"
     },
     [pscustomobject]@{
-        Order = 2
+        Order = 3
         DisplayName = "Microsoft Visual C++ UWP Runtime (x64)"
         ChineseDisplayName = (ConvertFrom-Utf8Base64 -Value "TWljcm9zb2Z0IFZpc3VhbCBDKysgVVdQIOi/kOihjOW6kyAoeDY0KQ==")
         PackageName = "Microsoft.VCLibs.140.00"
@@ -201,7 +211,7 @@ $Prerequisites = @(
         FileName = "vclibs2.appx"
     },
     [pscustomobject]@{
-        Order = 3
+        Order = 4
         DisplayName = "Xbox Game Bar"
         ChineseDisplayName = "Xbox Game Bar"
         PackageName = "Microsoft.XboxGamingOverlay"
@@ -477,7 +487,7 @@ function Confirm-PrerequisiteInstall {
 }
 
 function Install-RequiredComponents {
-    Write-InstallLog "Checking required VCLibs and Xbox Game Bar packages..."
+    Write-InstallLog "Checking required Microsoft UI XAML, VCLibs, and Xbox Game Bar packages..."
     if (-not (Test-Path -LiteralPath $PrerequisiteRoot -PathType Container)) {
         throw "Prerequisites folder was not found under $ScriptRoot"
     }
@@ -497,7 +507,7 @@ function Install-RequiredComponents {
     }
 
     if ($missingPrerequisites.Count -eq 0) {
-        Write-InstallLog "All required VCLibs and Xbox Game Bar packages are already installed."
+        Write-InstallLog "All required Microsoft UI XAML, VCLibs, and Xbox Game Bar packages are already installed."
         return
     }
 
@@ -526,7 +536,7 @@ function Install-RequiredComponents {
             throw "Required prerequisite file was not found: $packagePath"
         }
 
-        Write-InstallLog ("Installing prerequisite {0}/3: {1} (minimum {2})" -f $prerequisite.Order, $prerequisite.PackageName, $prerequisite.MinimumVersion)
+        Write-InstallLog ("Installing prerequisite {0}/{1}: {2} (minimum {3})" -f $prerequisite.Order, $Prerequisites.Count, $prerequisite.PackageName, $prerequisite.MinimumVersion)
         Add-AppxPackageCompat -PackagePath $packagePath -ForceUpdate
 
         if (-not (Test-PrerequisiteInstalled -Prerequisite $prerequisite)) {
@@ -845,7 +855,7 @@ KillConfirmGameBar transfer package
 
 What is inside:
 - OverlayPackage: the Xbox Game Bar MSIX package and its dependencies
-- Prerequisites: offline Microsoft VCLibs and Xbox Game Bar packages
+- Prerequisites: offline Microsoft UI XAML, VCLibs, and Xbox Game Bar packages
 - Install-KillConfirm.ps1: one-click install script
 
 Use on another PC:
@@ -855,7 +865,7 @@ Use on another PC:
 4. Use the panel power button or Check button if you want to verify status
 
 Notes:
-- Before installing the overlay, the install script detects the two required x64 VCLibs packages and Xbox Game Bar. Missing or outdated components are shown to the user and installed in the required order after approval.
+- Before installing the overlay, the install script detects Microsoft UI XAML 2.8, the two required x64 VCLibs packages, and Xbox Game Bar. Missing or outdated components are shown to the user and installed in the required order after approval.
 - The companion service is embedded inside the MSIX package.
 - The widget starts its packaged companion service directly from the installed app.
 - The install script installs the MSIX package directly instead of requiring Visual Studio developer scripts.
@@ -898,7 +908,7 @@ Set-Content -LiteralPath (Join-Path $NoDependenciesTransferRoot "Install-KillCon
 $NoDependenciesReadme = $Readme + @'
 
 Dependency-free edition:
-- Microsoft VCLibs and Xbox Game Bar packages are not included.
+- Microsoft UI XAML, VCLibs, and Xbox Game Bar packages are not included.
 - The installer does not detect, prompt for, or install prerequisites.
 - Use this edition only when the required components are already installed.
 '@

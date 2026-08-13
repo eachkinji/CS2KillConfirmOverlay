@@ -17,6 +17,7 @@ namespace KillConfirmGameBar
         {
             PackCatalogService.CatalogChanged += OnCatalogChanged;
             GeneralSettingsOptionsPanel.RefreshSettings();
+            DisplayScalingSettingsPanel.RefreshSettings();
             await ReloadPackListsAsync();
         }
 

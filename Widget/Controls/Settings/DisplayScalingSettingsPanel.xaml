@@ -1,0 +1,56 @@
+<UserControl
+    x:Class="KillConfirmGameBar.Controls.Settings.DisplayScalingSettingsPanel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Border Style="{StaticResource CompactChoiceCardStyle}">
+        <Grid ColumnSpacing="18">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="300" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Spacing="7">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                    <Border Style="{StaticResource CompactCircleIconStyle}">
+                        <FontIcon
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            FontFamily="Segoe MDL2 Assets"
+                            FontSize="12"
+                            Foreground="White"
+                            Glyph="&#xE7F4;" />
+                    </Border>
+                    <TextBlock
+                        x:Name="ScaleLabelText"
+                        VerticalAlignment="Center"
+                        Style="{StaticResource CompactChoiceLabelStyle}"
+                        Text="Game Bar control panel scale" />
+                </StackPanel>
+                <TextBlock
+                    x:Name="ScaleHintText"
+                    FontSize="11"
+                    TextWrapping="WrapWholeWords" />
+                <TextBlock
+                    x:Name="ScaleRecommendationText"
+                    FontSize="11"
+                    FontWeight="SemiBold"
+                    TextWrapping="WrapWholeWords" />
+            </StackPanel>
+
+            <ComboBox
+                x:Name="ScaleSelector"
+                Grid.Column="1"
+                VerticalAlignment="Center"
+                Style="{StaticResource CompactSettingsComboBoxStyle}"
+                SelectionChanged="OnScaleSelectionChanged">
+                <ComboBoxItem x:Name="AutoScaleItem" Tag="auto">Auto</ComboBoxItem>
+                <ComboBoxItem Tag="100">100%</ComboBoxItem>
+                <ComboBoxItem Tag="125">125%</ComboBoxItem>
+                <ComboBoxItem Tag="150">150%</ComboBoxItem>
+                <ComboBoxItem Tag="175">175%</ComboBoxItem>
+                <ComboBoxItem Tag="200">200%</ComboBoxItem>
+            </ComboBox>
+        </Grid>
+    </Border>
+</UserControl>

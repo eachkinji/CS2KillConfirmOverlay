@@ -26,14 +26,16 @@ namespace KillConfirmGameBar
             }
 
             preset = NormalizeVoicePackPreset(preset);
-            SavePackSettingForStyle(VoicePackSettingKey, style, preset);
             SelectVoicePackPreset(preset);
+            preset = GetSelectedVoicePackPreset();
+            SavePackSettingForStyle(VoicePackSettingKey, style, preset);
         }
 
         private async Task SyncSelectedVoicePackAsync()
         {
             try
             {
+                GameStyleMode requestStyle = GameStyleService.Current;
                 string preset = GetEffectiveSelectedVoicePackPreset();
                 if (string.IsNullOrWhiteSpace(preset))
                 {
@@ -63,7 +65,7 @@ namespace KillConfirmGameBar
                     if (response.IsSuccessStatusCode)
                     {
                         string responseText = await response.Content.ReadAsStringAsync();
-                        ApplyVoicePackResponse(responseText);
+                        ApplyVoicePackResponse(responseText, requestStyle, preset);
                     }
                     else
                     {
@@ -85,7 +87,11 @@ namespace KillConfirmGameBar
                 return tag;
             }
 
-            return GameStyleService.DefaultVoicePackKey(GameStyleService.Current);
+            GameStyleMode style = GameStyleService.Current;
+            return LoadPackSettingForStyle(
+                VoicePackSettingKey,
+                style,
+                GameStyleService.DefaultVoicePackKey(style));
         }
 
         private string GetEffectiveSelectedVoicePackPreset()
@@ -128,19 +134,36 @@ namespace KillConfirmGameBar
             }
         }
 
-        private void ApplyVoicePackResponse(string responseText)
+        private void ApplyVoicePackResponse(string responseText, GameStyleMode requestStyle, string requestedPreset)
         {
             try
             {
+                if (GameStyleService.Current != requestStyle)
+                {
+                    return;
+                }
+
+                string currentSavedPreset = NormalizeVoicePackPreset(LoadPackSettingForStyle(
+                    VoicePackSettingKey,
+                    requestStyle,
+                    GameStyleService.DefaultVoicePackKey(requestStyle)));
+                if (!string.Equals(
+                        currentSavedPreset,
+                        NormalizeVoicePackPreset(requestedPreset),
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    return;
+                }
+
                 JsonObject json = JsonObject.Parse(responseText);
                 string preset = NormalizeVoicePackPreset(json.GetNamedString("preset", GetSelectedVoicePackPreset()));
                 if (!TryApplyValorantVoicePackResponse(ref preset)
-                    && GameStyleService.GetStyleForPackKey(preset) != GameStyleService.Current)
+                    && GameStyleService.GetStyleForPackKey(preset) != requestStyle)
                 {
-                    preset = GameStyleService.DefaultVoicePackKey(GameStyleService.Current);
+                    preset = GameStyleService.DefaultVoicePackKey(requestStyle);
                 }
 
-                SavePackSettingForStyle(VoicePackSettingKey, GameStyleService.Current, preset);
+                SavePackSettingForStyle(VoicePackSettingKey, requestStyle, preset);
                 SelectVoicePackPreset(preset);
             }
             catch (Exception)

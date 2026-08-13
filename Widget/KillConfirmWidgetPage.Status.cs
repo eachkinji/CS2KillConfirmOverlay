@@ -16,6 +16,8 @@ namespace KillConfirmGameBar
             ControlPanel.Visibility = showControlPanel ? Visibility.Visible : Visibility.Collapsed;
             ControlPanel.IsHitTestVisible = showControlPanel;
             ControlPanel.Opacity = showControlPanel ? 1.0 : 0.0;
+            AnimationDragOutline.Visibility = showControlPanel ? Visibility.Visible : Visibility.Collapsed;
+            AnimationDragOutline.IsHitTestVisible = showControlPanel;
         }
 
         private bool IsControlPanelVisible()

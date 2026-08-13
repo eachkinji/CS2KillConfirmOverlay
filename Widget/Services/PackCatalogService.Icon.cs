@@ -31,9 +31,14 @@ namespace KillConfirmGameBar.Services
         public static async Task<IReadOnlyList<IconPackItem>> GetVisibleIconPacksAsync()
         {
             var catalog = await LoadAsync();
-            return catalog.IconPacks
+            IEnumerable<IconPackItem> visible = catalog.IconPacks
                 .Where(p => p.IsVisibleInWidget && GameStyleService.IsVisibleForCurrentStyle(p.Key))
                 .ToList();
+            if (GameStyleService.Current == GameStyleMode.Valorant)
+            {
+                visible = visible.OrderBy(p => ValorantPackService.GetDisplayOrder(p.Key));
+            }
+            return visible.ToList();
         }
 
         public static async Task<IReadOnlyList<IconPackItem>> GetAllIconPacksAsync()

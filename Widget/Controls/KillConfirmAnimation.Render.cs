@@ -427,6 +427,8 @@ namespace KillConfirmGameBar.Controls
 
         private void ApplyViewportSize(double logicalWidth, double logicalHeight)
         {
+            bool logicalSizeChanged = Math.Abs(_logicalFrameWidth - logicalWidth) > 0.5
+                || Math.Abs(_logicalFrameHeight - logicalHeight) > 0.5;
             _logicalFrameWidth = Math.Max(1.0, logicalWidth);
             _logicalFrameHeight = Math.Max(1.0, logicalHeight);
             double renderScale = GetRenderResolutionScale();
@@ -473,6 +475,11 @@ namespace KillConfirmGameBar.Controls
             if (LoadingText != null)
             {
                 LoadingText.FontSize = 15 * renderScale;
+            }
+
+            if (logicalSizeChanged)
+            {
+                LogicalViewportSizeChanged?.Invoke(this, EventArgs.Empty);
             }
         }
 

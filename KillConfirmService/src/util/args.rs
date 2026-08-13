@@ -42,21 +42,9 @@ pub struct Args {
     #[arg(long, default_value = "false")]
     pub open_settings_launcher: bool,
 
-    /// download the pending update installer, then exit
-    #[arg(long, default_value = "false")]
-    pub download_pending_update: bool,
-
-    /// download and launch the pending update installer, then exit
-    #[arg(long, default_value = "false")]
-    pub run_pending_update: bool,
-
-    /// open the Quark backup download page, then exit
+    /// open the project download and update page, then exit
     #[arg(long, default_value = "false")]
     pub open_quark_update: bool,
-
-    /// open the project GitHub page, then exit
-    #[arg(long, default_value = "false")]
-    pub open_project_github: bool,
 
     /// open the author's GitHub page, then exit
     #[arg(long, default_value = "false")]
@@ -66,9 +54,6 @@ pub struct Args {
     #[arg(long, default_value = "false")]
     pub open_author_bilibili: bool,
 
-    /// open the downloaded update installer folder, then exit
-    #[arg(long, default_value = "false")]
-    pub open_update_folder: bool,
 }
 
 impl Args {

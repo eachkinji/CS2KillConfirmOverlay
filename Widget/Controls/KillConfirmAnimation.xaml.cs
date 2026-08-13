@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.UI.Xaml;
@@ -84,6 +85,8 @@ namespace KillConfirmGameBar.Controls
         private ValorantKillAsset _currentValorantAsset;
         private BattlefieldKillAsset _currentBattlefieldAsset;
         private static readonly Dictionary<string, Code2KillAsset> CodeKillCache = new Dictionary<string, Code2KillAsset>();
+        private static readonly SemaphoreSlim PreloadGate = new SemaphoreSlim(1, 1);
+        private static int _resourceGeneration;
         private static Task _startupPreloadTask;
         private static Task _preloadTask;
         private int _currentFrame;
@@ -98,6 +101,11 @@ namespace KillConfirmGameBar.Controls
             _timer = new DispatcherTimer();
             _timer.Tick += OnTick;
         }
+
+        public event EventHandler LogicalViewportSizeChanged;
+
+        public double LogicalViewportWidth => _logicalFrameWidth;
+        public double LogicalViewportHeight => _logicalFrameHeight;
 
         public void Play(int killCount, bool isHeadshot = false)
         {
@@ -175,8 +183,40 @@ namespace KillConfirmGameBar.Controls
             return _startupPreloadTask;
         }
 
-        public Task PreloadCurrentPackAnimationsAsync(IProgress<int> progress)
+        public async Task PreloadCurrentPackAnimationsAsync(IProgress<int> progress)
         {
+            int generation = _resourceGeneration;
+            await PreloadGate.WaitAsync();
+            try
+            {
+                if (generation != _resourceGeneration)
+                {
+                    return;
+                }
+
+                await PreloadCurrentPackAnimationsCoreAsync(progress);
+            }
+            finally
+            {
+                // A pack can change while an old asynchronous bitmap load is in
+                // flight. Purge anything that stale load appended before allowing
+                // the new pack's preload to begin.
+                if (generation != _resourceGeneration)
+                {
+                    ReleaseAllAnimationResourceCaches();
+                }
+                PreloadGate.Release();
+            }
+        }
+
+        private Task PreloadCurrentPackAnimationsCoreAsync(IProgress<int> progress)
+        {
+            if (GameStyleService.IsCsolKey(_iconPack)
+                || GameStyleService.Current == GameStyleMode.Csol)
+            {
+                return PreloadCsolAnimationsAsync(progress);
+            }
+
             if (GameStyleService.IsBattlefield1Key(_iconPack))
             {
                 return PreloadBattlefieldAnimationsAsync("bf1", progress);
@@ -373,16 +413,9 @@ namespace KillConfirmGameBar.Controls
                 return;
             }
 
-            bool legacyTransition = string.Equals(_iconPack, "legacy", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(normalized, "legacy", StringComparison.OrdinalIgnoreCase);
+            _resourceGeneration++;
+            ReleaseAllAnimationResourceCaches();
             _iconPack = normalized;
-            CodeKillCache.Clear();
-            _startupPreloadTask = null;
-            _preloadTask = null;
-            if (legacyTransition)
-            {
-                SheetCache.Clear();
-            }
         }
 
         public static bool IsIconPackConfigured(string iconPack)
@@ -410,6 +443,91 @@ namespace KillConfirmGameBar.Controls
 
             ReleaseValorantTextureCache();
             SpriteCanvas?.Invalidate();
+        }
+
+        public void ReleaseAnimationResourcesForPackChange()
+        {
+            _resourceGeneration++;
+            _playToken++;
+            _timer.Stop();
+            _playbackClock.Stop();
+            HideLoadingProgress();
+            _currentMetadata = null;
+            _currentSheets = null;
+            _currentSheet = null;
+            _currentCodeAsset = null;
+            _currentValorantAsset = null;
+            _currentBattlefieldAsset = null;
+            _currentCsolAsset = null;
+            ResetBattlefield5ScrollingState();
+            ResetBattlefield4HudState();
+            ResetBattlefield2042HudState();
+            ResetPubgHudState();
+            ResetDeltaForceHudState();
+            Visibility = Visibility.Collapsed;
+            ReleaseAllAnimationResourceCaches();
+            SpriteCanvas?.Invalidate();
+        }
+
+        private static void ReleaseAllAnimationResourceCaches()
+        {
+            var bitmaps = new HashSet<CanvasBitmap>();
+            foreach (IReadOnlyList<SpriteSheetSegment> segments in SheetCache.Values)
+            {
+                if (segments == null)
+                {
+                    continue;
+                }
+                foreach (SpriteSheetSegment segment in segments)
+                {
+                    if (segment?.Image != null)
+                    {
+                        bitmaps.Add(segment.Image);
+                    }
+                }
+            }
+            foreach (Code2KillAsset asset in CodeKillCache.Values)
+            {
+                if (asset?.Main != null) bitmaps.Add(asset.Main);
+                if (asset?.Fx != null) bitmaps.Add(asset.Fx);
+                if (asset?.Overlay != null) bitmaps.Add(asset.Overlay);
+                if (asset?.WeaponBadge != null) bitmaps.Add(asset.WeaponBadge);
+            }
+            foreach (CsolKillAsset asset in CsolKillCache.Values)
+            {
+                if (asset?.Streak != null)
+                {
+                    foreach (CanvasBitmap bitmap in asset.Streak)
+                    {
+                        if (bitmap != null) bitmaps.Add(bitmap);
+                    }
+                }
+                if (asset?.Headshot != null) bitmaps.Add(asset.Headshot);
+                if (asset?.Melee != null) bitmaps.Add(asset.Melee);
+                if (asset?.Revenge != null) bitmaps.Add(asset.Revenge);
+                if (asset?.FirstKill != null) bitmaps.Add(asset.FirstKill);
+                if (asset?.Assist != null) bitmaps.Add(asset.Assist);
+            }
+            foreach (CanvasBitmap bitmap in BattlefieldIconCache.Values) bitmaps.Add(bitmap);
+            foreach (CanvasBitmap bitmap in Battlefield2042IconCache.Values) bitmaps.Add(bitmap);
+            foreach (CanvasBitmap bitmap in DeltaForceIconCache.Values) bitmaps.Add(bitmap);
+
+            MetadataCache.Clear();
+            SheetCache.Clear();
+            CodeKillCache.Clear();
+            CsolKillCache.Clear();
+            ClearBattlefieldIconCache();
+            ClearBattlefield4IconCache();
+            ClearBattlefield2042IconCache();
+            ClearPubgIconCache();
+            ClearDeltaForceIconCache();
+            foreach (CanvasBitmap bitmap in bitmaps)
+            {
+                bitmap?.Dispose();
+            }
+            ReleaseValorantTextureCache();
+            _startupPreloadTask = null;
+            _preloadTask = null;
         }
 
         public static void ConfigureEliteEffectLevel(int eliteLevel)
@@ -489,6 +607,7 @@ namespace KillConfirmGameBar.Controls
 
         private async void PlayInternal(Func<IProgress<int>, Task<AnimationAsset>> assetLoader)
         {
+            int resourceGeneration = _resourceGeneration;
             _contentSizedViewport = false;
             _isBattlefield1CompactLayoutActive = false;
             ResetBattlefield5ScrollingState();
@@ -509,9 +628,26 @@ namespace KillConfirmGameBar.Controls
             try
             {
                 _ = ShowLoadingProgressIfStillLoadingAsync(token, progress);
-                AnimationAsset asset = await assetLoader(progress);
+                AnimationAsset asset;
+                await PreloadGate.WaitAsync();
+                try
+                {
+                    if (resourceGeneration != _resourceGeneration)
+                    {
+                        return;
+                    }
+                    asset = await assetLoader(progress);
+                }
+                finally
+                {
+                    if (resourceGeneration != _resourceGeneration)
+                    {
+                        ReleaseAllAnimationResourceCaches();
+                    }
+                    PreloadGate.Release();
+                }
 
-                if (token != _playToken)
+                if (token != _playToken || resourceGeneration != _resourceGeneration)
                 {
                     return;
                 }

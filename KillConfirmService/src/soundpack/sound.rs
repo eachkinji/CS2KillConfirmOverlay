@@ -20,6 +20,9 @@ use crate::util::state::{AppState, EventChannel, EventSoundMode};
 
 const HEADSHOT_SOUND_GAIN: f32 = 1.8;
 const COMMON_SOUND_GAIN: f32 = 4.5;
+// common_headshot.wav is about 0.84 dB louder at source than common.wav.
+// 4.1 compensates for that difference and produces nearly identical RMS.
+const BF1_HEADSHOT_SOUND_GAIN: f32 = 4.1;
 const SEX_HEADSHOT_SOUND_GAIN: f32 = 7.4;
 const SEX_SPECIAL_SOUND_GAIN: f32 = 0.79;
 const SEX_STREAK_2_SOUND_GAIN: f32 = 5.47;
@@ -393,6 +396,12 @@ fn resolve_sound_gain(file_name: &str, event_gain: f32) -> f32 {
         return event_gain;
     }
 
+    if normalized.contains("/bf1/")
+        && is_audio_file_named(&normalized, "common_headshot")
+    {
+        return BF1_HEADSHOT_SOUND_GAIN * event_gain;
+    }
+
     if is_audio_file_named(&normalized, "common")
         || is_audio_file_named(&normalized, "common_overlay")
     {
@@ -503,7 +512,7 @@ fn resolve_event_gain(kill_count: u16, play_main_audio: bool) -> f32 {
 mod tests {
     use super::{
         resolve_assist_audio_routing, resolve_crossfire_audio_kill_count,
-        resolve_special_kill_audio_flag, supports_economy_audio_events,
+        resolve_sound_gain, resolve_special_kill_audio_flag, supports_economy_audio_events,
         supports_event_sound_routing,
         uses_battlefield2042_audio_rules, uses_crossfire_audio_rules,
     };
@@ -638,6 +647,14 @@ mod tests {
             "sounds/battlefield2042/headshot.wav"
         ));
         assert!(!uses_battlefield2042_audio_rules("sounds/bf5/headshot.wav"));
+    }
+
+    #[test]
+    fn battlefield1_headshot_gain_matches_common_loudness() {
+        let common_gain = resolve_sound_gain("sounds/bf1/common.wav", 1.0);
+        let headshot_gain = resolve_sound_gain("sounds/bf1/common_headshot.wav", 1.0);
+        assert!((common_gain - 4.5).abs() < f32::EPSILON);
+        assert!((headshot_gain - 4.1).abs() < f32::EPSILON);
     }
 
     #[test]

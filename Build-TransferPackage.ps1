@@ -607,21 +607,26 @@ function Test-OverlayPackageInstalled {
     Write-InstallLog "Runtime logs: $RuntimeLogRoot"
 }
 
-function Get-SteamLibraryRoots {
-    $roots = New-Object System.Collections.Generic.List[string]
-
-    $registryPaths = @(
-        "HKCU:\Software\Valve\Steam",
+function Get-CounterStrikeInstallRoot {
+    # Follow steamlocate-rs: locate Steam, enumerate its libraries, then
+    # resolve app 730 from appmanifest_730.acf instead of guessing a localized
+    # or user-selected game folder name. If registry data is missing, try only
+    # safe Steam roots: standard install folders and a running steam.exe.
+    $steamRoots = New-Object System.Collections.Generic.List[string]
+    foreach ($registryPath in @(
         "HKLM:\Software\WOW6432Node\Valve\Steam",
-        "HKLM:\Software\Valve\Steam"
-    )
-
-    foreach ($registryPath in $registryPaths) {
+        "HKLM:\Software\Valve\Steam",
+        "HKCU:\Software\Valve\Steam"
+    )) {
         try {
             $steam = Get-ItemProperty -Path $registryPath -ErrorAction Stop
-            foreach ($property in @("SteamPath", "InstallPath")) {
-                if ($steam.$property) {
-                    $roots.Add(($steam.$property -replace "/", "\"))
+            foreach ($property in @("InstallPath", "SteamPath")) {
+                $candidate = $steam.$property
+                if ($candidate -and (Test-Path -LiteralPath $candidate -PathType Container)) {
+                    $fullPath = [System.IO.Path]::GetFullPath(($candidate -replace "/", "\"))
+                    if (-not $steamRoots.Contains($fullPath)) {
+                        $steamRoots.Add($fullPath)
+                    }
                 }
             }
         }
@@ -629,50 +634,78 @@ function Get-SteamLibraryRoots {
         }
     }
 
-    $programFilesX86 = ${env:ProgramFiles(x86)}
-    if ($programFilesX86) {
-        $roots.Add((Join-Path $programFilesX86 "Steam"))
-    }
-
-    $allRoots = New-Object System.Collections.Generic.List[string]
-    foreach ($root in $roots) {
-        if (-not $root -or -not (Test-Path $root)) {
-            continue
-        }
-
-        $fullRoot = [System.IO.Path]::GetFullPath($root)
-        if (-not $allRoots.Contains($fullRoot)) {
-            $allRoots.Add($fullRoot)
-        }
-
-        $libraryFolders = Join-Path $fullRoot "steamapps\libraryfolders.vdf"
-        if (-not (Test-Path $libraryFolders)) {
-            continue
-        }
-
-        foreach ($line in Get-Content -LiteralPath $libraryFolders -ErrorAction SilentlyContinue) {
-            if ($line -match '^\s*"\d+"\s+"([^"]+)"') {
-                $path = $matches[1] -replace "\\\\", "\"
-                if (Test-Path $path) {
-                    $fullPath = [System.IO.Path]::GetFullPath($path)
-                    if (-not $allRoots.Contains($fullPath)) {
-                        $allRoots.Add($fullPath)
-                    }
-                }
-            }
-            elseif ($line -match '^\s*"path"\s+"([^"]+)"') {
-                $path = $matches[1] -replace "\\\\", "\"
-                if (Test-Path $path) {
-                    $fullPath = [System.IO.Path]::GetFullPath($path)
-                    if (-not $allRoots.Contains($fullPath)) {
-                        $allRoots.Add($fullPath)
-                    }
-                }
+    foreach ($candidate in @(
+        $(if (${env:ProgramFiles(x86)}) { Join-Path ${env:ProgramFiles(x86)} "Steam" }),
+        $(if ($env:ProgramFiles) { Join-Path $env:ProgramFiles "Steam" }),
+        $(if ($env:LOCALAPPDATA) { Join-Path $env:LOCALAPPDATA "Programs\Steam" })
+    )) {
+        if ($candidate -and (Test-Path -LiteralPath $candidate -PathType Container)) {
+            $fullPath = [System.IO.Path]::GetFullPath($candidate)
+            if (-not $steamRoots.Contains($fullPath)) {
+                $steamRoots.Add($fullPath)
             }
         }
     }
 
-    return $allRoots
+    try {
+        $runningSteam = Get-Process -Name steam -ErrorAction Stop | Select-Object -First 1
+        if ($runningSteam.Path) {
+            $candidate = Split-Path -Parent $runningSteam.Path
+            $fullPath = [System.IO.Path]::GetFullPath($candidate)
+            if ((Test-Path -LiteralPath $fullPath -PathType Container) -and -not $steamRoots.Contains($fullPath)) {
+                $steamRoots.Add($fullPath)
+                Write-InstallLog "Running steam.exe fallback root: $fullPath"
+            }
+        }
+    }
+    catch {
+    }
+
+    if ($steamRoots.Count -eq 0) {
+        Write-InstallLog "Steam was not found in the registry, standard folders, or a running steam.exe process."
+        return $null
+    }
+
+    $libraries = New-Object System.Collections.Generic.List[string]
+    foreach ($steamRoot in $steamRoots) {
+        if (-not $libraries.Contains($steamRoot)) {
+            $libraries.Add($steamRoot)
+        }
+        $libraryFolders = Join-Path $steamRoot "steamapps\libraryfolders.vdf"
+        if (Test-Path -LiteralPath $libraryFolders -PathType Leaf) {
+            foreach ($line in Get-Content -LiteralPath $libraryFolders -ErrorAction SilentlyContinue) {
+                if ($line -match '^\s*"path"\s+"([^"]+)"') {
+                    $candidate = $matches[1] -replace "\\\\", "\"
+                    if (Test-Path -LiteralPath $candidate -PathType Container) {
+                        $fullPath = [System.IO.Path]::GetFullPath($candidate)
+                        if (-not $libraries.Contains($fullPath)) {
+                            $libraries.Add($fullPath)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    foreach ($library in $libraries) {
+        $manifestPath = Join-Path $library "steamapps\appmanifest_730.acf"
+        if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) {
+            continue
+        }
+
+        $manifestText = Get-Content -LiteralPath $manifestPath -Raw -ErrorAction SilentlyContinue
+        if ($manifestText -and $manifestText -match '(?im)^\s*"installdir"\s+"([^"]+)"') {
+            $installRoot = Join-Path $library ("steamapps\common\{0}" -f $matches[1])
+            if (Test-Path -LiteralPath $installRoot -PathType Container) {
+                $resolved = [System.IO.Path]::GetFullPath($installRoot)
+                Write-InstallLog "steamlocate-style app 730 root: $resolved"
+                return $resolved
+            }
+        }
+    }
+
+    Write-InstallLog "steamlocate-style lookup did not find appmanifest_730.acf in any Steam library."
+    return $null
 }
 
 function Install-Cs2GsiConfig {
@@ -703,16 +736,15 @@ function Install-Cs2GsiConfig {
     )
 
     $installed = $false
-    foreach ($libraryRoot in Get-SteamLibraryRoots) {
-        $cfgRoot = Join-Path $libraryRoot "steamapps\common\Counter-Strike Global Offensive\game\csgo\cfg"
-        if (-not (Test-Path $cfgRoot)) {
-            continue
-        }
-
+    $installRoot = Get-CounterStrikeInstallRoot
+    if ($installRoot) {
+        $cfgRoot = Join-Path $installRoot "game\csgo\cfg"
+        if (Test-Path -LiteralPath $cfgRoot -PathType Container) {
         $cfgPath = Join-Path $cfgRoot "gamestate_integration_killconfirm.cfg"
         Set-Content -LiteralPath $cfgPath -Value $configLines -Encoding ASCII
-        Write-Host "CS2 GSI config installed: $cfgPath"
+        Write-InstallLog "CS2 GSI config installed: $cfgPath"
         $installed = $true
+        }
     }
 
     if (-not $installed) {

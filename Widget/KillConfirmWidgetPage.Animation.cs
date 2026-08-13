@@ -369,7 +369,11 @@ namespace KillConfirmGameBar
         private void PlayCsolPrimaryAnimation(KillEvent killEvent)
         {
             string specialKey = null;
-            if (killEvent.IsFirstKill || killEvent.IsLastKill)
+            if (killEvent.IsFirstKill)
+            {
+                specialKey = "firstkill";
+            }
+            else if (killEvent.IsLastKill)
             {
                 CsolVoiceSettingsValues settings = CsolVoiceSettingsStore.Load();
                 specialKey = string.Equals(
@@ -693,7 +697,8 @@ namespace KillConfirmGameBar
 
         private void OnAnimationLayerSizeChanged(object sender, SizeChangedEventArgs e)
         {
-            if (_animationPlacement == AnimationPlacementMode.Bottom)
+            if (_animationPlacement == AnimationPlacementMode.Bottom
+                || _animationPlacement == AnimationPlacementMode.Top)
             {
                 ApplyAnimationOffset();
                 SaveAnimationPlacementSettings();
@@ -706,11 +711,24 @@ namespace KillConfirmGameBar
             {
                 case AnimationPlacementMode.Bottom:
                     return GetBottomOffset();
+                case AnimationPlacementMode.Top:
+                    return GetTopOffset();
                 case AnimationPlacementMode.Center:
                     return 0;
                 default:
                     return _animationOffset;
             }
+        }
+
+        private double GetTopOffset()
+        {
+            double layerHeight = AnimationLayer.ActualHeight;
+            if (layerHeight <= 0)
+            {
+                layerHeight = DefaultWidgetSize.Height;
+            }
+
+            return -Math.Max(AnimationOffsetStep, layerHeight * BottomQuarterAnimationOffsetRatio);
         }
 
         private double GetBottomOffset()

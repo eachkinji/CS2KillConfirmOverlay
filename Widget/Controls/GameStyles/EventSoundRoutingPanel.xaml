@@ -1,0 +1,91 @@
+<UserControl
+    x:Class="KillConfirmGameBar.Controls.GameStyles.EventSoundRoutingPanel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <StackPanel Spacing="8">
+        <StackPanel Spacing="2">
+            <TextBlock
+                x:Name="TitleText"
+                FontSize="13"
+                FontWeight="Bold"
+                Text="Event sounds" />
+            <TextBlock
+                x:Name="HintText"
+                FontSize="10"
+                Text="Keep the built-in sound, use the normal kill sound, or choose a custom audio file for each event."
+                TextWrapping="WrapWholeWords" />
+        </StackPanel>
+
+        <Grid ColumnSpacing="8" RowSpacing="8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Border Style="{StaticResource CompactChoiceCardStyle}">
+                <StackPanel Spacing="6">
+                    <TextBlock x:Name="NormalLabel" Style="{StaticResource CompactChoiceLabelStyle}" Text="Normal kill" />
+                    <ComboBox x:Name="NormalSelector" Tag="normal" SelectedIndex="0" Style="{StaticResource CompactSettingsComboBoxStyle}" SelectionChanged="OnRouteSelectionChanged">
+                        <ComboBoxItem Tag="default">Built-in default</ComboBoxItem>
+                        <ComboBoxItem Tag="common">Normal kill sound</ComboBoxItem>
+                        <ComboBoxItem Tag="custom">Custom audio</ComboBoxItem>
+                    </ComboBox>
+                    <StackPanel x:Name="NormalCustomPanel" Visibility="Collapsed" Spacing="4">
+                        <Button x:Name="NormalPickButton" Tag="normal" HorizontalAlignment="Stretch" Click="OnPickCustomSoundClick" Content="Choose audio file" />
+                        <TextBlock x:Name="NormalFileText" FontSize="9" Opacity="0.75" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="1" Style="{StaticResource CompactChoiceCardStyle}">
+                <StackPanel Spacing="6">
+                    <TextBlock x:Name="HeadshotLabel" Style="{StaticResource CompactChoiceLabelStyle}" Text="Headshot" />
+                    <ComboBox x:Name="HeadshotSelector" Tag="headshot" SelectedIndex="0" Style="{StaticResource CompactSettingsComboBoxStyle}" SelectionChanged="OnRouteSelectionChanged">
+                        <ComboBoxItem Tag="default">Built-in default</ComboBoxItem>
+                        <ComboBoxItem Tag="common">Normal kill sound</ComboBoxItem>
+                        <ComboBoxItem Tag="custom">Custom audio</ComboBoxItem>
+                    </ComboBox>
+                    <StackPanel x:Name="HeadshotCustomPanel" Visibility="Collapsed" Spacing="4">
+                        <Button x:Name="HeadshotPickButton" Tag="headshot" HorizontalAlignment="Stretch" Click="OnPickCustomSoundClick" Content="Choose audio file" />
+                        <TextBlock x:Name="HeadshotFileText" FontSize="9" Opacity="0.75" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Row="1" Style="{StaticResource CompactChoiceCardStyle}">
+                <StackPanel Spacing="6">
+                    <TextBlock x:Name="KnifeLabel" Style="{StaticResource CompactChoiceLabelStyle}" Text="Knife kill" />
+                    <ComboBox x:Name="KnifeSelector" Tag="knife" SelectedIndex="0" Style="{StaticResource CompactSettingsComboBoxStyle}" SelectionChanged="OnRouteSelectionChanged">
+                        <ComboBoxItem Tag="default">Built-in default</ComboBoxItem>
+                        <ComboBoxItem Tag="common">Normal kill sound</ComboBoxItem>
+                        <ComboBoxItem Tag="custom">Custom audio</ComboBoxItem>
+                    </ComboBox>
+                    <StackPanel x:Name="KnifeCustomPanel" Visibility="Collapsed" Spacing="4">
+                        <Button x:Name="KnifePickButton" Tag="knife" HorizontalAlignment="Stretch" Click="OnPickCustomSoundClick" Content="Choose audio file" />
+                        <TextBlock x:Name="KnifeFileText" FontSize="9" Opacity="0.75" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource CompactChoiceCardStyle}">
+                <StackPanel Spacing="6">
+                    <TextBlock x:Name="AssistLabel" Style="{StaticResource CompactChoiceLabelStyle}" Text="Assist" />
+                    <ComboBox x:Name="AssistSelector" Tag="assist" SelectedIndex="0" Style="{StaticResource CompactSettingsComboBoxStyle}" SelectionChanged="OnRouteSelectionChanged">
+                        <ComboBoxItem Tag="default">Built-in default</ComboBoxItem>
+                        <ComboBoxItem Tag="common">Normal kill sound</ComboBoxItem>
+                        <ComboBoxItem Tag="custom">Custom audio</ComboBoxItem>
+                    </ComboBox>
+                    <StackPanel x:Name="AssistCustomPanel" Visibility="Collapsed" Spacing="4">
+                        <Button x:Name="AssistPickButton" Tag="assist" HorizontalAlignment="Stretch" Click="OnPickCustomSoundClick" Content="Choose audio file" />
+                        <TextBlock x:Name="AssistFileText" FontSize="9" Opacity="0.75" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </StackPanel>
+</UserControl>

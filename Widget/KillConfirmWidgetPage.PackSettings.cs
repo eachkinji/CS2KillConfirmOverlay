@@ -55,7 +55,7 @@ namespace KillConfirmGameBar
                 _ = SyncSelectedVoicePackAsync();
             }
 
-            Controls.KillConfirmAnimation.ConfigureIconPack(iconPack);
+            ConfigureAnimationIconPack(iconPack);
 
             // For custom packs, detect each overlay capability independently.
             _ = ApplyCustomPackOverlaySupportAsync(iconPack);
@@ -83,7 +83,7 @@ namespace KillConfirmGameBar
             ApplicationData.Current.LocalSettings.Values[IconPackSettingKey] = iconPack;
             TryApplyValorantLoadedIconPack(iconPack);
             SelectIconPack(iconPack);
-            Controls.KillConfirmAnimation.ConfigureIconPack(GetSelectedIconPack());
+            ConfigureAnimationIconPack(GetSelectedIconPack());
             _ = ApplyCustomPackOverlaySupportAsync(GetSelectedIconPack());
             UpdateEliteEffectSelectorState();
             UpdateKillFxSelectorState();
@@ -143,6 +143,16 @@ namespace KillConfirmGameBar
             {
                 _ = WarmStartupAnimationCacheAsync(0);
             }
+        }
+
+        private void ConfigureAnimationIconPack(string iconPack)
+        {
+            if (!Controls.KillConfirmAnimation.IsIconPackConfigured(iconPack))
+            {
+                PrimaryKillAnimation?.ReleaseValorantResources();
+            }
+
+            Controls.KillConfirmAnimation.ConfigureIconPack(iconPack);
         }
     }
 }

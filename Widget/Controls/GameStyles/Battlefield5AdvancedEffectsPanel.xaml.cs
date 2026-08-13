@@ -10,6 +10,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
         public Battlefield5AdvancedEffectsPanel()
         {
             InitializeComponent();
+            EventSoundPanel.Configure(GameStyleMode.Battlefield5);
         }
 
         public event SelectionChangedEventHandler MoneyRewardModeSelectionChanged;
@@ -26,6 +27,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
             AdvancedEffectsPanelSupport.ApplyHeader(TitleText, HintText, theme);
             AdvancedEffectsPanelSupport.ApplyMoneyRow(MoneyRewardModeLabel, MoneyRewardModeSelector, theme);
             StreakEditor.ApplyTheme(theme);
+            EventSoundPanel.ApplyTheme(theme);
             AdvancedEffectsPanelSupport.ApplyNotice(ImportLockedNotice, ImportLockedText, theme);
             StylePanel.ApplyTheme(theme);
         }
@@ -40,9 +42,10 @@ namespace KillConfirmGameBar.Controls.GameStyles
             MoneyRewardDeltaItem.Content = isChinese ? "GSI \u5dee\u503c\uff08\u9ed8\u8ba4\uff09" : "GSI delta (default)";
             MoneyRewardRulesItem.Content = isChinese ? "\u51fb\u6740\u5956\u52b1\u89c4\u5219" : "Kill reward rules";
             StreakEditor.ApplyLanguage(isChinese);
+            EventSoundPanel.ApplyLanguage(isChinese);
             ImportLockedText.Text = isChinese
-                ? "\u4ec5\u4f7f\u7528\u5185\u7f6e Battlefield 5 \u8d44\u6e90\u3002\u6b64\u9875\u4e0d\u5141\u8bb8\u5bfc\u5165\u6587\u4ef6\u3002"
-                : "Built-in Battlefield 5 resources only. File import is disabled for this page.";
+                ? "Battlefield 5 \u89c6\u89c9\u8d44\u6e90\u4fdd\u6301\u5185\u7f6e\uff0c\u4e8b\u4ef6\u58f0\u97f3\u53ef\u5728\u4e0a\u65b9\u5355\u72ec\u81ea\u5b9a\u4e49\u3002"
+                : "Battlefield 5 visuals stay built in; event sounds can be customized above.";
         }
 
         public string GetSelectedMoneyRewardMode(string fallback)
@@ -63,6 +66,11 @@ namespace KillConfirmGameBar.Controls.GameStyles
         public void SelectStreakMode(string value)
         {
             StreakEditor.SelectValue(value);
+        }
+
+        public void ReloadEventSoundSettings()
+        {
+            EventSoundPanel.Reload();
         }
 
         private void OnMoneyRewardModeSelectionChanged(object sender, SelectionChangedEventArgs e)

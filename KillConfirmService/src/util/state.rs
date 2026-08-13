@@ -104,6 +104,67 @@ pub enum EventChannel {
     Economy,
 }
 
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub enum EventSoundMode {
+    #[default]
+    Default,
+    Common,
+    Custom,
+}
+
+impl EventSoundMode {
+    pub fn from_str(value: &str) -> Option<Self> {
+        match value.trim().to_ascii_lowercase().as_str() {
+            "default" => Some(Self::Default),
+            "common" => Some(Self::Common),
+            "custom" => Some(Self::Custom),
+            _ => None,
+        }
+    }
+
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Default => "default",
+            Self::Common => "common",
+            Self::Custom => "custom",
+        }
+    }
+}
+
+#[derive(Clone, Debug, Default)]
+pub struct EventSoundRoute {
+    pub mode: EventSoundMode,
+    pub custom_path: Option<String>,
+}
+
+#[derive(Clone, Debug, Default)]
+pub struct EventSoundSettings {
+    pub active: bool,
+    pub normal: EventSoundRoute,
+    pub headshot: EventSoundRoute,
+    pub knife: EventSoundRoute,
+    pub assist: EventSoundRoute,
+}
+
+impl EventSoundSettings {
+    pub fn route_for(
+        &self,
+        is_headshot: bool,
+        is_knife_kill: bool,
+        is_assist: bool,
+    ) -> &EventSoundRoute {
+        if is_assist {
+            &self.assist
+        } else if is_headshot {
+            &self.headshot
+        } else if is_knife_kill {
+            &self.knife
+        } else {
+            &self.normal
+        }
+    }
+}
+
 impl EventChannel {
     pub fn for_event_kind(event_kind: Option<&str>, is_assist: bool) -> Self {
         if is_assist {
@@ -436,6 +497,7 @@ pub struct AppState {
     pub crossfire_knife_special_audio_priority: AtomicBool,
     pub assist_audio_enabled: AtomicBool,
     pub assist_audio_setting_active: AtomicBool,
+    pub event_sound_settings: RwLock<EventSoundSettings>,
     pub csol_voice_picks: RwLock<HashMap<String, String>>,
     pub csol_special_voice_priority: AtomicBool,
     pub spectated_kill_effects_enabled: AtomicBool,
@@ -453,8 +515,8 @@ mod tests {
     use std::time::Duration;
 
     use super::{
-        CrossfireStreakMode, EventChannel, EventJournal, KillEvent, format_streak_setting,
-        parse_streak_setting,
+        CrossfireStreakMode, EventChannel, EventJournal, EventSoundMode, EventSoundRoute,
+        EventSoundSettings, KillEvent, format_streak_setting, parse_streak_setting,
     };
 
     fn test_event(kill_count: u16) -> KillEvent {
@@ -503,6 +565,36 @@ mod tests {
                 EventChannel::Economy
             );
         }
+    }
+
+    #[test]
+    fn event_sound_settings_choose_the_most_specific_combat_route() {
+        let settings = EventSoundSettings {
+            normal: EventSoundRoute {
+                mode: EventSoundMode::Common,
+                custom_path: None,
+            },
+            headshot: EventSoundRoute {
+                mode: EventSoundMode::Custom,
+                custom_path: Some("headshot.wav".to_string()),
+            },
+            knife: EventSoundRoute {
+                mode: EventSoundMode::Default,
+                custom_path: None,
+            },
+            assist: EventSoundRoute {
+                mode: EventSoundMode::Custom,
+                custom_path: Some("assist.wav".to_string()),
+            },
+            ..Default::default()
+        };
+
+        assert_eq!(settings.route_for(false, false, false).mode, EventSoundMode::Common);
+        assert_eq!(settings.route_for(true, false, false).mode, EventSoundMode::Custom);
+        assert_eq!(settings.route_for(false, true, false).mode, EventSoundMode::Default);
+        assert_eq!(settings.route_for(true, true, true).custom_path.as_deref(), Some("assist.wav"));
+        assert_eq!(EventSoundMode::from_str("COMMON"), Some(EventSoundMode::Common));
+        assert_eq!(EventSoundMode::from_str("unknown"), None);
     }
 
     #[tokio::test]

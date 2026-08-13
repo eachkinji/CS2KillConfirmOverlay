@@ -34,8 +34,8 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use util::auth::{load_or_create_control_token, require_control_token};
 use util::signal::shutdown_signal;
 use util::state::{
-    AppState, CrossfireStreakMode, DEFAULT_CUSTOM_STREAK_WINDOW_MS, EventJournal, GsiGameVersion,
-    MoneyRewardMode, Mutable,
+    AppState, CrossfireStreakMode, DEFAULT_CUSTOM_STREAK_WINDOW_MS, EventJournal,
+    EventSoundSettings, GsiGameVersion, MoneyRewardMode, Mutable,
 };
 
 use util::Args;
@@ -46,10 +46,11 @@ use soundpack::Preset;
 use soundpack::sound::warm_audio_cache;
 use util::event_stream::{
     audio_devices, audio_reload, audio_volume, counter_strike_root, crossfire_settings, cs2_root,
-    csol_settings, developer_settings, events_poll, gsi_game_settings, gsi_status, health, money_mode,
-    set_audio_device, set_crossfire_settings, set_csol_settings, set_developer_settings,
-    set_gsi_game_settings, set_money_mode, set_spectator_settings, set_streak_settings, shutdown,
-    spectator_settings, streak_settings, test_event,
+    csol_settings, developer_settings, event_sound_settings, events_poll, gsi_game_settings,
+    gsi_status, health, money_mode, set_audio_device, set_crossfire_settings, set_csol_settings,
+    set_developer_settings, set_event_sound_settings, set_gsi_game_settings, set_money_mode,
+    set_spectator_settings, set_streak_settings, shutdown, spectator_settings, streak_settings,
+    test_event,
 };
 use util::handler::update;
 use util::logging::{developer_logging_enabled, set_developer_logging_enabled};
@@ -269,6 +270,7 @@ async fn run() -> Result<()> {
         crossfire_knife_special_audio_priority: AtomicBool::new(true),
         assist_audio_enabled: AtomicBool::new(false),
         assist_audio_setting_active: AtomicBool::new(true),
+        event_sound_settings: RwLock::new(EventSoundSettings::default()),
         csol_voice_picks: RwLock::new(HashMap::new()),
         csol_special_voice_priority: AtomicBool::new(true),
         spectated_kill_effects_enabled: AtomicBool::new(true),
@@ -322,6 +324,10 @@ async fn run() -> Result<()> {
         .route(
             "/streak/settings",
             get(streak_settings).post(set_streak_settings),
+        )
+        .route(
+            "/event-sound/settings",
+            get(event_sound_settings).post(set_event_sound_settings),
         )
         .route(
             "/spectator/settings",

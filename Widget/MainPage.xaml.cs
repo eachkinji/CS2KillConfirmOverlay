@@ -34,9 +34,17 @@ namespace KillConfirmGameBar
 
         private void OnGameStyleServiceChanged(object sender, GameStyleMode mode)
         {
-            _ = Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+            _ = Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, async () =>
             {
                 ApplyGameStyleUi();
+                try
+                {
+                    await CombatEventSoundSettingsStore.SyncAsync(mode);
+                }
+                catch (System.Exception ex)
+                {
+                    App.Log("Sync event sounds after style change failed: " + ex.Message);
+                }
             });
         }
     }

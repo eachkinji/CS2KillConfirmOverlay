@@ -171,6 +171,7 @@ namespace KillConfirmGameBar
             await SyncCrossfireGameplaySettingsAsync();
             await SyncCsolGameplaySettingsAsync();
             await SyncSharedStreakSettingsAsync();
+            await SyncCombatEventSoundSettingsAsync();
             await SyncSpectatedKillEffectsAsync();
             await SyncGsiGameVersionAsync();
         }

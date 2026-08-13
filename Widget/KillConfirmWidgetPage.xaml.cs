@@ -2,6 +2,7 @@ using Microsoft.Gaming.XboxGameBar;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using KillConfirmGameBar.Services;
@@ -17,6 +18,7 @@ using Windows.Storage.Pickers;
 using Windows.Storage;
 using Windows.Storage.Streams;
 using Windows.UI;
+using Windows.UI.Core;
 using Windows.UI.Popups;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -311,6 +313,8 @@ namespace KillConfirmGameBar
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
             _isPageActive = false;
+            _animationPreloadToken++;
+            PrimaryKillAnimation?.ReleaseValorantResources();
             GsiGameVersionSettingsStore.VersionChanged -= OnGsiGameVersionChanged;
             if (_widget != null)
             {
@@ -328,15 +332,28 @@ namespace KillConfirmGameBar
             base.OnNavigatedFrom(e);
         }
 
-        private void OnGameStyleServiceChanged(object sender, GameStyleMode mode)
+        private async void OnGameStyleServiceChanged(object sender, GameStyleMode mode)
         {
-            _ = Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+            await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, async () =>
             {
+                if (!_isPageActive)
+                {
+                    return;
+                }
+
+                _animationPreloadToken++;
+                PrimaryKillAnimation?.ReleaseValorantResources();
                 _suppressGameStyleEvents = true;
                 SelectGameStyleItem(mode);
                 _suppressGameStyleEvents = false;
+                LoadAnimationPlacementSettings();
                 ApplyGameStyleUi();
-                _ = InitializePackSelectorsAsync();
+                await InitializePackSelectorsAsync();
+                await SyncSelectedVoicePackAsync();
+                await SyncCrossfireGameplaySettingsAsync();
+                await SyncCsolGameplaySettingsAsync();
+                await SyncSharedStreakSettingsAsync();
+                await SyncCombatEventSoundSettingsAsync();
             });
         }
 
@@ -383,6 +400,141 @@ namespace KillConfirmGameBar
             _animationPlacement = AnimationPlacementMode.Bottom;
             ApplyAnimationOffset();
             SaveAnimationPlacementSettings();
+        }
+
+        private void OnHighPositionClick(object sender, RoutedEventArgs e)
+        {
+            _animationPlacement = AnimationPlacementMode.Top;
+            ApplyAnimationOffset();
+            SaveAnimationPlacementSettings();
+        }
+
+        private void OnWindowTopClick(object sender, RoutedEventArgs e)
+        {
+            MoveWidgetWindowToEdge(toTop: true);
+        }
+
+        private void OnWindowBottomClick(object sender, RoutedEventArgs e)
+        {
+            MoveWidgetWindowToEdge(toTop: false);
+        }
+
+        private void MoveWidgetWindowToEdge(bool toTop)
+        {
+            if (_widget == null)
+            {
+                return;
+            }
+
+            try
+            {
+                IntPtr hwnd = FindWindowForCurrentThread();
+                if (hwnd == IntPtr.Zero)
+                {
+                    return;
+                }
+
+                if (!GetWindowRect(hwnd, out RECT windowRect))
+                {
+                    return;
+                }
+
+                IntPtr monitor = MonitorFromWindow(hwnd, MonitorDefaultToNearest);
+                var monitorInfo = new MONITORINFO { cbSize = (uint)Marshal.SizeOf(typeof(MONITORINFO)) };
+                if (!GetMonitorInfo(monitor, ref monitorInfo))
+                {
+                    return;
+                }
+
+                int width = windowRect.Right - windowRect.Left;
+                int height = windowRect.Bottom - windowRect.Top;
+                int x = (monitorInfo.rcWork.Left + monitorInfo.rcWork.Right - width) / 2;
+                int y = toTop
+                    ? monitorInfo.rcWork.Top
+                    : monitorInfo.rcWork.Bottom - height;
+
+                SetWindowPos(
+                    hwnd,
+                    IntPtr.Zero,
+                    x,
+                    y,
+                    width,
+                    height,
+                    SetWindowPosNoZOrder | SetWindowPosNoActivate);
+            }
+            catch (Exception ex)
+            {
+                App.Log("Move widget window to edge failed: " + ex.Message);
+            }
+        }
+
+        private static IntPtr FindWindowForCurrentThread()
+        {
+            uint threadId = GetCurrentThreadId();
+            IntPtr found = IntPtr.Zero;
+            EnumWindows((hwnd, lParam) =>
+            {
+                if (GetWindowThreadProcessId(hwnd, out _) == threadId)
+                {
+                    found = hwnd;
+                    return false;
+                }
+
+                return true;
+            }, IntPtr.Zero);
+            return found;
+        }
+
+        private const uint MonitorDefaultToNearest = 0x00000002;
+        private const uint SetWindowPosNoZOrder = 0x0004;
+        private const uint SetWindowPosNoActivate = 0x0010;
+
+        private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+
+        [DllImport("user32.dll")]
+        private static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
+
+        [DllImport("user32.dll")]
+        private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+
+        [DllImport("kernel32.dll")]
+        private static extern uint GetCurrentThreadId();
+
+        [DllImport("user32.dll")]
+        private static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr MonitorFromWindow(IntPtr hwnd, uint dwFlags);
+
+        [DllImport("user32.dll")]
+        private static extern bool GetMonitorInfo(IntPtr hMonitor, ref MONITORINFO lpmi);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern bool SetWindowPos(
+            IntPtr hWnd,
+            IntPtr hWndInsertAfter,
+            int X,
+            int Y,
+            int cx,
+            int cy,
+            uint uFlags);
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct RECT
+        {
+            public int Left;
+            public int Top;
+            public int Right;
+            public int Bottom;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct MONITORINFO
+        {
+            public uint cbSize;
+            public RECT rcMonitor;
+            public RECT rcWork;
+            public uint dwFlags;
         }
 
         private void OnMoveUpClick(object sender, RoutedEventArgs e)
@@ -568,6 +720,9 @@ namespace KillConfirmGameBar
             if (ControlPanel != null)
             {
                 ControlPanel.Width = collapsed ? double.NaN : 452;
+                ControlPanel.Padding = collapsed
+                    ? new Thickness(8, 6, 8, 6)
+                    : new Thickness(4);
             }
             ApplicationData.Current.LocalSettings.Values[PanelCollapsedSettingKey] = collapsed;
         }
@@ -661,7 +816,7 @@ namespace KillConfirmGameBar
             await ReloadAudioOutputAsync();
         }
 
-        private async void OnGameStyleSelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void OnGameStyleSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_suppressGameStyleEvents)
             {
@@ -669,14 +824,6 @@ namespace KillConfirmGameBar
             }
 
             GameStyleService.Current = GetSelectedGameStyle();
-            LoadAnimationPlacementSettings();
-            ApplyGameStyleUi();
-            await InitializePackSelectorsAsync();
-            await SyncSelectedVoicePackAsync();
-            await SyncCrossfireGameplaySettingsAsync();
-            await SyncCsolGameplaySettingsAsync();
-            await SyncSharedStreakSettingsAsync();
-            _ = WarmStartupAnimationCacheAsync(0);
         }
 
         private async void OnOpenGuideClick(object sender, RoutedEventArgs e)

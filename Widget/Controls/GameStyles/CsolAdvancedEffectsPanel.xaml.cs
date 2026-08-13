@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using KillConfirmGameBar.Services;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Media;
 
 namespace KillConfirmGameBar.Controls.GameStyles
 {
     public sealed partial class CsolAdvancedEffectsPanel : UserControl
     {
+        private bool _suppressSelectionChanged;
+
         public CsolAdvancedEffectsPanel()
         {
             InitializeComponent();
@@ -62,6 +65,14 @@ namespace KillConfirmGameBar.Controls.GameStyles
         internal void ApplyTheme(GameThemePalette theme)
         {
             AdvancedEffectsPanelSupport.ApplyHeader(TitleText, HintText, theme);
+            TitleAccent.Background = new SolidColorBrush(theme.Accent);
+            CoverageNotice.Background = new SolidColorBrush(theme.AccentSoft);
+            CoverageNotice.BorderBrush = new SolidColorBrush(theme.SoftBorder);
+            CoverageIcon.Foreground = new SolidColorBrush(theme.AccentText);
+            CoverageText.Foreground = new SolidColorBrush(theme.AccentText);
+            ResetButton.Background = new SolidColorBrush(theme.Accent);
+            ResetButton.BorderBrush = new SolidColorBrush(theme.Accent);
+            ResetButton.Foreground = new SolidColorBrush(Windows.UI.Colors.White);
             StreakEditor.ApplyTheme(theme);
             AdvancedEffectsPanelSupport.ApplyMoneyRow(PriorityLabel, PrioritySelector, theme);
             AdvancedEffectsPanelSupport.ApplyMoneyRow(OneKillLabel, OneKillVoiceSelector, theme);
@@ -75,8 +86,13 @@ namespace KillConfirmGameBar.Controls.GameStyles
         {
             TitleText.Text = isChinese ? "CSOL 高级特效" : "CSOL Effects";
             HintText.Text = isChinese
-                ? "CSOL 的连杀图标行、每类击杀语音选择（随机/指定）、首尾杀语音与图标、语音优先级都在这里设置。"
-                : "CSOL kill-streak rows, per-kill voice picks (random or a specific file), first/last-kill voice+icon, and voice priority are configured here.";
+                ? "集中设置连杀时间、语音变体、特殊击杀优先级，以及首杀/终结击杀图标。"
+                : "Configure kill-streak timing, voice variants, special-event priority and first/last-kill icons.";
+            CoverageText.Text = isChinese
+                ? "CSOL 语音包现已完整覆盖 1～10 杀连杀语音。"
+                : "The CSOL pack now plays distinct streak voices from 1 through 10 kills.";
+            ResetButtonText.Text = isChinese ? "恢复默认" : "Reset";
+            ToolTipService.SetToolTip(ResetButton, isChinese ? "恢复 CSOL 默认设置" : "Restore CSOL defaults");
             StreakEditor.ApplyLanguage(isChinese);
             PriorityLabel.Text = isChinese ? "语音优先级" : "Voice priority";
             PrioritySpecialItem.Content = isChinese ? "特殊优先" : "Special first";
@@ -146,27 +162,61 @@ namespace KillConfirmGameBar.Controls.GameStyles
             string firstLastIcon,
             IReadOnlyDictionary<string, string> voicePicks)
         {
-            StreakEditor.SelectValue(streakMode);
-            SelectTaggedItem(PrioritySelector, specialVoicePriority ? "special" : "streak", "special");
-            SelectTaggedItem(
-                FirstLastIconSelector,
-                string.Equals(firstLastIcon, CsolVoiceSettingsStore.FirstKillIcon, StringComparison.OrdinalIgnoreCase)
-                    ? CsolVoiceSettingsStore.FirstKillIcon
-                    : CsolVoiceSettingsStore.RevengeIcon,
-                CsolVoiceSettingsStore.RevengeIcon);
-
-            foreach ((ComboBox selector, string killType) in GetVoiceSelectors(this))
+            _suppressSelectionChanged = true;
+            try
             {
-                string pick = voicePicks != null && voicePicks.TryGetValue(killType, out string stored)
-                    ? stored
-                    : CsolVoiceSettingsStore.RandomPick;
-                SelectTaggedItem(selector, pick, CsolVoiceSettingsStore.RandomPick);
+                StreakEditor.SelectValue(streakMode);
+                SelectTaggedItem(PrioritySelector, specialVoicePriority ? "special" : "streak", "special");
+                SelectTaggedItem(
+                    FirstLastIconSelector,
+                    string.Equals(firstLastIcon, CsolVoiceSettingsStore.FirstKillIcon, StringComparison.OrdinalIgnoreCase)
+                        ? CsolVoiceSettingsStore.FirstKillIcon
+                        : CsolVoiceSettingsStore.RevengeIcon,
+                    CsolVoiceSettingsStore.RevengeIcon);
+
+                foreach ((ComboBox selector, string killType) in GetVoiceSelectors(this))
+                {
+                    string pick = voicePicks != null && voicePicks.TryGetValue(killType, out string stored)
+                        ? stored
+                        : CsolVoiceSettingsStore.RandomPick;
+                    SelectTaggedItem(selector, pick, CsolVoiceSettingsStore.RandomPick);
+                }
+            }
+            finally
+            {
+                _suppressSelectionChanged = false;
             }
         }
 
         private void OnVoiceSettingChanged(object sender, SelectionChangedEventArgs e)
         {
+            if (_suppressSelectionChanged)
+            {
+                return;
+            }
+
             VoiceSettingChanged?.Invoke(this, e);
+        }
+
+        private void OnResetButtonClick(object sender, RoutedEventArgs e)
+        {
+            _suppressSelectionChanged = true;
+            try
+            {
+                StreakEditor.SelectValue(SharedStreakSettingsStore.LifeMode);
+                SelectTaggedItem(PrioritySelector, "special", "special");
+                SelectTaggedItem(FirstLastIconSelector, CsolVoiceSettingsStore.RevengeIcon, CsolVoiceSettingsStore.RevengeIcon);
+                foreach ((ComboBox selector, string _) in GetVoiceSelectors(this))
+                {
+                    SelectTaggedItem(selector, CsolVoiceSettingsStore.RandomPick, CsolVoiceSettingsStore.RandomPick);
+                }
+            }
+            finally
+            {
+                _suppressSelectionChanged = false;
+            }
+
+            VoiceSettingChanged?.Invoke(this, null);
         }
 
         private static string ReadTaggedItem(ComboBox selector, string fallback)

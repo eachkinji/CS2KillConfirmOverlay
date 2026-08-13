@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Threading;
 using System.Threading.Tasks;
 using KillConfirmGameBar.Services;
 using Microsoft.Graphics.Canvas;
@@ -17,7 +18,11 @@ namespace KillConfirmGameBar.Controls
         private const int ValorantFrameCount = 156;
         private const float ValorantGaiaBrightness = 1.3f;
         private const float ValorantGaiaContrast = 1.1f;
-        private static readonly Dictionary<string, ValorantKillAsset> ValorantCache = new Dictionary<string, ValorantKillAsset>();
+        private static readonly object ValorantTextureCacheLock = new object();
+        private static ValorantTextureSet _valorantCachedTextures;
+        private static string _valorantLoadingPackKey = string.Empty;
+        private static Task<ValorantTextureSet> _valorantTextureLoadTask;
+        private static CancellationTokenSource _valorantTextureLoadCancellation;
         private static readonly Random ValorantSpinRandom = new Random();
         private static readonly object ValorantSpinRandomLock = new object();
 
@@ -30,14 +35,21 @@ namespace KillConfirmGameBar.Controls
             string normalizedKey = ValorantPackService.IsValorantPackKey(packKey)
                 ? packKey.Trim().ToLowerInvariant()
                 : ValorantPackService.DefaultKey;
-            string cacheKey = normalizedKey + ":" + Math.Max(1, Math.Min(6, killCount)) + ":" + isHeadshot;
-            if (!ValorantCache.TryGetValue(cacheKey, out ValorantKillAsset asset))
+            ValorantDemoProfile profile = GetValorantDemoProfile(normalizedKey);
+            ValorantTextureSet textures = await GetOrLoadValorantTextureSetAsync(normalizedKey, profile, progress);
+            var asset = new ValorantKillAsset
             {
-                asset = await LoadValorantKillAssetCoreAsync(normalizedKey, killCount, isHeadshot, progress);
-                ValorantCache[cacheKey] = asset;
-            }
+                PackKey = normalizedKey,
+                KillCount = Math.Max(1, Math.Min(6, killCount)),
+                IsHeadshot = isHeadshot,
+                Accent = profile.Accent,
+                Brightness = profile.IsGaia ? ValorantGaiaBrightness : 1.0f,
+                Contrast = profile.IsGaia ? ValorantGaiaContrast : 1.0f,
+                SpinDirection = NextValorantSpinDirection(),
+                DemoProfile = profile,
+                Textures = textures
+            };
 
-            asset.SpinDirection = NextValorantSpinDirection();
             progress?.Report(100);
             return new AnimationAsset(
                 new SpriteMetadata
@@ -50,62 +62,207 @@ namespace KillConfirmGameBar.Controls
                 asset);
         }
 
-        private async Task<ValorantKillAsset> LoadValorantKillAssetCoreAsync(
+        private static Task<ValorantTextureSet> GetOrLoadValorantTextureSetAsync(
             string packKey,
-            int killCount,
-            bool isHeadshot,
+            ValorantDemoProfile profile,
             IProgress<int> progress)
+        {
+            lock (ValorantTextureCacheLock)
+            {
+                if (_valorantCachedTextures != null
+                    && string.Equals(_valorantCachedTextures.PackKey, packKey, StringComparison.OrdinalIgnoreCase))
+                {
+                    progress?.Report(100);
+                    return Task.FromResult(_valorantCachedTextures);
+                }
+
+                if (_valorantTextureLoadTask != null
+                    && string.Equals(_valorantLoadingPackKey, packKey, StringComparison.OrdinalIgnoreCase))
+                {
+                    return _valorantTextureLoadTask;
+                }
+
+                CancelValorantTextureLoadLocked();
+                DisposeValorantTextureSetLocked();
+
+                var cancellation = new CancellationTokenSource();
+                _valorantTextureLoadCancellation = cancellation;
+                _valorantLoadingPackKey = packKey;
+                _valorantTextureLoadTask = LoadAndPublishValorantTextureSetAsync(
+                    packKey,
+                    profile,
+                    progress,
+                    cancellation);
+                return _valorantTextureLoadTask;
+            }
+        }
+
+        private static async Task<ValorantTextureSet> LoadAndPublishValorantTextureSetAsync(
+            string packKey,
+            ValorantDemoProfile profile,
+            IProgress<int> progress,
+            CancellationTokenSource cancellation)
+        {
+            ValorantTextureSet loaded = null;
+            try
+            {
+                loaded = await LoadValorantTextureSetCoreAsync(
+                    packKey,
+                    profile,
+                    progress,
+                    cancellation.Token);
+                cancellation.Token.ThrowIfCancellationRequested();
+
+                lock (ValorantTextureCacheLock)
+                {
+                    if (!ReferenceEquals(_valorantTextureLoadCancellation, cancellation))
+                    {
+                        throw new OperationCanceledException();
+                    }
+
+                    _valorantCachedTextures = loaded;
+                    loaded = null;
+                    _valorantTextureLoadTask = null;
+                    _valorantTextureLoadCancellation = null;
+                    _valorantLoadingPackKey = string.Empty;
+                    return _valorantCachedTextures;
+                }
+            }
+            finally
+            {
+                loaded?.Dispose();
+                lock (ValorantTextureCacheLock)
+                {
+                    if (ReferenceEquals(_valorantTextureLoadCancellation, cancellation))
+                    {
+                        _valorantTextureLoadTask = null;
+                        _valorantTextureLoadCancellation = null;
+                        _valorantLoadingPackKey = string.Empty;
+                    }
+                }
+
+                cancellation.Dispose();
+            }
+        }
+
+        private static async Task<ValorantTextureSet> LoadValorantTextureSetCoreAsync(
+            string packKey,
+            ValorantDemoProfile profile,
+            IProgress<int> progress,
+            CancellationToken cancellationToken)
         {
             string folder = ValorantPackService.GetFolder(packKey) ?? ValorantPackService.GetFolder(ValorantPackService.DefaultKey);
             string root = $"ms-appx:///Assets/GameStyles/valorant/killconfirm/{folder}";
-            ValorantDemoProfile profile = GetValorantDemoProfile(packKey);
-
-            progress?.Report(20);
-            var asset = new ValorantKillAsset
+            var textures = new ValorantTextureSet
             {
-                PackKey = packKey,
-                KillCount = Math.Max(1, Math.Min(6, killCount)),
-                IsHeadshot = isHeadshot,
-                Accent = profile.Accent,
-                Brightness = profile.IsGaia ? ValorantGaiaBrightness : 1.0f,
-                Contrast = profile.IsGaia ? ValorantGaiaContrast : 1.0f,
-                SpinDirection = NextValorantSpinDirection(),
-                DemoProfile = profile,
-                Frame = await LoadValorantTextureAsync(root, profile.Frame),
-                Emblem = await LoadValorantTextureAsync(root, profile.Emblem),
-                Bar = await LoadValorantTextureAsync(root, profile.Bar),
-                Blade = string.IsNullOrWhiteSpace(profile.Blade) ? null : await LoadValorantTextureAsync(root, profile.Blade),
-                Headshot = await LoadValorantTextureAsync(root, "killicon_valorant_headshot.png")
+                PackKey = packKey
             };
 
-            progress?.Report(60);
-            asset.BaseParticle = await LoadValorantTextureAsync(root, "killicon_valorant_particle_base_t1.png");
-            asset.HeroFlame = await TryLoadValorantTextureAsync(root, "killicon_valorant_particle_hero_flame.png");
-            asset.LargeSparks = await LoadValorantTextureAsync(root, "killicon_valorant_particle_large_sparks.png");
-            asset.XSparks = await LoadValorantTextureAsync(root, "killicon_valorant_particle_x_sparks.png");
-            return asset;
+            try
+            {
+                progress?.Report(5);
+                textures.Frame = await LoadValorantTextureAsync(root, profile.Frame, cancellationToken);
+                progress?.Report(15);
+                textures.Emblem = await LoadValorantTextureAsync(root, profile.Emblem, cancellationToken);
+                progress?.Report(25);
+                textures.Bar = await LoadValorantTextureAsync(root, profile.Bar, cancellationToken);
+                if (!string.IsNullOrWhiteSpace(profile.Blade))
+                {
+                    textures.Blade = await LoadValorantTextureAsync(root, profile.Blade, cancellationToken);
+                }
+
+                progress?.Report(35);
+                textures.Headshot = await LoadValorantTextureAsync(root, "killicon_valorant_headshot.png", cancellationToken);
+                progress?.Report(45);
+                textures.BaseParticle = await LoadValorantTextureAsync(root, "killicon_valorant_particle_base_t1.png", cancellationToken);
+                progress?.Report(65);
+                textures.HeroFlame = await TryLoadValorantTextureAsync(root, "killicon_valorant_particle_hero_flame.png", cancellationToken);
+                progress?.Report(78);
+                textures.LargeSparks = await LoadValorantTextureAsync(root, "killicon_valorant_particle_large_sparks.png", cancellationToken);
+                progress?.Report(92);
+                textures.XSparks = await LoadValorantTextureAsync(root, "killicon_valorant_particle_x_sparks.png", cancellationToken);
+                progress?.Report(100);
+                return textures;
+            }
+            catch
+            {
+                textures.Dispose();
+                throw;
+            }
         }
 
-        private static async Task<CanvasBitmap> LoadValorantTextureAsync(string root, string fileName)
+        private static async Task<CanvasBitmap> LoadValorantTextureAsync(
+            string root,
+            string fileName,
+            CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(fileName))
             {
                 throw new InvalidOperationException("Missing Valorant texture.");
             }
 
-            return await LoadBitmapFromApplicationUriAsync(root + "/textures/" + fileName);
+            cancellationToken.ThrowIfCancellationRequested();
+            CanvasBitmap bitmap = await LoadBitmapFromApplicationUriAsync(root + "/textures/" + fileName);
+            if (cancellationToken.IsCancellationRequested)
+            {
+                bitmap?.Dispose();
+                cancellationToken.ThrowIfCancellationRequested();
+            }
+
+            return bitmap;
         }
 
-        private static async Task<CanvasBitmap> TryLoadValorantTextureAsync(string root, string fileName)
+        private static async Task<CanvasBitmap> TryLoadValorantTextureAsync(
+            string root,
+            string fileName,
+            CancellationToken cancellationToken)
         {
             try
             {
-                return await LoadValorantTextureAsync(root, fileName);
+                return await LoadValorantTextureAsync(root, fileName, cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch
             {
                 return null;
             }
+        }
+
+        private static void ReleaseValorantTextureCache()
+        {
+            CancellationTokenSource cancellation;
+            ValorantTextureSet cached;
+            lock (ValorantTextureCacheLock)
+            {
+                cancellation = _valorantTextureLoadCancellation;
+                _valorantTextureLoadCancellation = null;
+                _valorantTextureLoadTask = null;
+                _valorantLoadingPackKey = string.Empty;
+                cached = _valorantCachedTextures;
+                _valorantCachedTextures = null;
+            }
+
+            cancellation?.Cancel();
+            cached?.Dispose();
+        }
+
+        private static void CancelValorantTextureLoadLocked()
+        {
+            CancellationTokenSource cancellation = _valorantTextureLoadCancellation;
+            _valorantTextureLoadCancellation = null;
+            _valorantTextureLoadTask = null;
+            _valorantLoadingPackKey = string.Empty;
+            cancellation?.Cancel();
+        }
+
+        private static void DisposeValorantTextureSetLocked()
+        {
+            ValorantTextureSet cached = _valorantCachedTextures;
+            _valorantCachedTextures = null;
+            cached?.Dispose();
         }
 
         private void DrawValorantKillFrame(CanvasDrawingSession drawingSession, int frame)
@@ -533,25 +690,31 @@ namespace KillConfirmGameBar.Controls
             double blurScale = blur * ValorantDemoVfxScale;
             double[] radii = { 0.0, blurScale * 0.26, blurScale * 0.52 };
             double[] opacityFactors = { 0.34, 0.28, 0.18 };
-
-            for (int layer = 0; layer < radii.Length; layer++)
+            using (var tintEffect = new ColorMatrixEffect
             {
-                double radius = radii[layer];
-                double layerOpacity = opacity * opacityFactors[layer];
-                if (radius <= 0.01)
+                Source = image,
+                ColorMatrix = CreateAlphaTintMatrix(color)
+            })
+            {
+                for (int layer = 0; layer < radii.Length; layer++)
                 {
-                    DrawAlphaTintImage(drawingSession, image, baseTarget, source, color, layerOpacity);
-                    continue;
-                }
+                    double radius = radii[layer];
+                    double layerOpacity = opacity * opacityFactors[layer];
+                    if (radius <= 0.01)
+                    {
+                        DrawAlphaTintEffect(drawingSession, tintEffect, baseTarget, source, layerOpacity);
+                        continue;
+                    }
 
-                DrawAlphaTintImage(drawingSession, image, OffsetRect(baseTarget, radius, 0), source, color, layerOpacity);
-                DrawAlphaTintImage(drawingSession, image, OffsetRect(baseTarget, -radius, 0), source, color, layerOpacity);
-                DrawAlphaTintImage(drawingSession, image, OffsetRect(baseTarget, 0, radius), source, color, layerOpacity);
-                DrawAlphaTintImage(drawingSession, image, OffsetRect(baseTarget, 0, -radius), source, color, layerOpacity);
-                DrawAlphaTintImage(drawingSession, image, OffsetRect(baseTarget, radius * 0.707, radius * 0.707), source, color, layerOpacity * 0.7);
-                DrawAlphaTintImage(drawingSession, image, OffsetRect(baseTarget, -radius * 0.707, radius * 0.707), source, color, layerOpacity * 0.7);
-                DrawAlphaTintImage(drawingSession, image, OffsetRect(baseTarget, radius * 0.707, -radius * 0.707), source, color, layerOpacity * 0.7);
-                DrawAlphaTintImage(drawingSession, image, OffsetRect(baseTarget, -radius * 0.707, -radius * 0.707), source, color, layerOpacity * 0.7);
+                    DrawAlphaTintEffect(drawingSession, tintEffect, OffsetRect(baseTarget, radius, 0), source, layerOpacity);
+                    DrawAlphaTintEffect(drawingSession, tintEffect, OffsetRect(baseTarget, -radius, 0), source, layerOpacity);
+                    DrawAlphaTintEffect(drawingSession, tintEffect, OffsetRect(baseTarget, 0, radius), source, layerOpacity);
+                    DrawAlphaTintEffect(drawingSession, tintEffect, OffsetRect(baseTarget, 0, -radius), source, layerOpacity);
+                    DrawAlphaTintEffect(drawingSession, tintEffect, OffsetRect(baseTarget, radius * 0.707, radius * 0.707), source, layerOpacity * 0.7);
+                    DrawAlphaTintEffect(drawingSession, tintEffect, OffsetRect(baseTarget, -radius * 0.707, radius * 0.707), source, layerOpacity * 0.7);
+                    DrawAlphaTintEffect(drawingSession, tintEffect, OffsetRect(baseTarget, radius * 0.707, -radius * 0.707), source, layerOpacity * 0.7);
+                    DrawAlphaTintEffect(drawingSession, tintEffect, OffsetRect(baseTarget, -radius * 0.707, -radius * 0.707), source, layerOpacity * 0.7);
+                }
             }
 
             drawingSession.Blend = previousBlend;
@@ -562,38 +725,34 @@ namespace KillConfirmGameBar.Controls
             return new Rect(rect.X + offsetX, rect.Y + offsetY, rect.Width, rect.Height);
         }
 
-        private static void DrawAlphaTintImage(CanvasDrawingSession drawingSession, CanvasBitmap image, Rect target, Rect source, Color tint, double opacity)
+        private static void DrawAlphaTintEffect(CanvasDrawingSession drawingSession, ColorMatrixEffect tintEffect, Rect target, Rect source, double opacity)
         {
             float clampedOpacity = (float)Math.Max(0.0, Math.Min(1.0, opacity));
-            var tintEffect = new ColorMatrixEffect
-            {
-                Source = image,
-                ColorMatrix = CreateAlphaTintMatrix(tint)
-            };
-
             drawingSession.DrawImage(tintEffect, target, source, clampedOpacity, CanvasImageInterpolation.Linear);
         }
 
         private static void DrawBrightnessContrastImage(CanvasDrawingSession drawingSession, CanvasBitmap image, Rect target, Rect source, double opacity, float brightness, float contrast = 1.0f)
         {
-            var brightnessEffect = new ColorMatrixEffect
+            using (var brightnessEffect = new ColorMatrixEffect
             {
                 Source = image,
                 ColorMatrix = CreateBrightnessContrastMatrix(brightness, contrast)
-            };
-
-            drawingSession.DrawImage(brightnessEffect, target, source, (float)Math.Max(0.0, Math.Min(1.0, opacity)), CanvasImageInterpolation.Linear);
+            })
+            {
+                drawingSession.DrawImage(brightnessEffect, target, source, (float)Math.Max(0.0, Math.Min(1.0, opacity)), CanvasImageInterpolation.Linear);
+            }
         }
 
         private static void DrawMultiplyTintImage(CanvasDrawingSession drawingSession, CanvasBitmap image, Rect target, Rect source, Color tint, double opacity)
         {
-            var tintEffect = new ColorMatrixEffect
+            using (var tintEffect = new ColorMatrixEffect
             {
                 Source = image,
                 ColorMatrix = CreateMultiplyTintMatrix(tint)
-            };
-
-            drawingSession.DrawImage(tintEffect, target, source, (float)Math.Max(0.0, Math.Min(1.0, opacity)), CanvasImageInterpolation.Linear);
+            })
+            {
+                drawingSession.DrawImage(tintEffect, target, source, (float)Math.Max(0.0, Math.Min(1.0, opacity)), CanvasImageInterpolation.Linear);
+            }
         }
 
         private static Matrix5x4 CreateAlphaTintMatrix(Color tint)

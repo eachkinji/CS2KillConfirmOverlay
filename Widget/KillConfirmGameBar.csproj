@@ -234,6 +234,9 @@
     <Compile Include="Controls\Settings\GeneralSettingsOptionsPanel.xaml.cs">
       <DependentUpon>GeneralSettingsOptionsPanel.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\Settings\DisplayScalingSettingsPanel.xaml.cs">
+      <DependentUpon>DisplayScalingSettingsPanel.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\Settings\SettingsPanelSupport.cs" />
     <Compile Include="Controls\Settings\SharedStreakSettingsPanelSupport.cs" />
     <Compile Include="Controls\Settings\Battlefield1AdvancedSettingsPanel.xaml.cs">
@@ -274,6 +277,7 @@
     <Compile Include="Services\DeveloperModeSettingsStore.cs" />
     <Compile Include="Services\GsiGameVersionSettingsStore.cs" />
     <Compile Include="Services\CloseBehaviorSettingsStore.cs" />
+    <Compile Include="Services\ControlPanelScaleSettingsStore.cs" />
     <Compile Include="Services\GameStyleService.cs" />
     <Compile Include="Services\GameThemePalette.cs" />
     <Compile Include="Services\ValorantPackService.cs" />
@@ -462,6 +466,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Controls\Settings\GeneralSettingsOptionsPanel.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\Settings\DisplayScalingSettingsPanel.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

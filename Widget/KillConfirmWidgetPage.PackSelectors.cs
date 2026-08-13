@@ -59,6 +59,23 @@ namespace KillConfirmGameBar
             }
         }
 
+        private async Task InitializePackSelectorsAndServiceAsync()
+        {
+            try
+            {
+                await InitializePackSelectorsAsync();
+            }
+            catch (Exception ex)
+            {
+                App.Log("Initialize pack selectors before service sync failed: " + ex);
+            }
+
+            if (_isPageActive)
+            {
+                await EnsureServiceAvailableAsync();
+            }
+        }
+
         private async Task PopulateVoicePackSelectorAsync()
         {
             GameStyleMode style = GameStyleService.Current;
@@ -67,7 +84,36 @@ namespace KillConfirmGameBar
                 style,
                 GameStyleService.DefaultVoicePackKey(style));
 
-            var visiblePacks = await PackCatalogService.GetVisibleVoicePacksAsync();
+            var visiblePacks = (await PackCatalogService.GetVisibleVoicePacksAsync()).ToList();
+            if (!visiblePacks.Any(pack => string.Equals(pack.Key, preferredPreset, StringComparison.OrdinalIgnoreCase)))
+            {
+                VoicePackItem preferredPack = await PackCatalogService.GetVoicePackAsync(preferredPreset);
+                if (preferredPack != null && GameStyleService.GetStyleForPackKey(preferredPack.Key) == style)
+                {
+                    visiblePacks.Insert(0, preferredPack);
+                }
+                else
+                {
+                    string fallback = GameStyleService.DefaultVoicePackKey(style);
+                    preferredPreset = fallback;
+                    VoicePackItem fallbackPack = visiblePacks.FirstOrDefault(
+                        pack => string.Equals(pack.Key, fallback, StringComparison.OrdinalIgnoreCase));
+                    if (fallbackPack == null)
+                    {
+                        fallbackPack = await PackCatalogService.GetVoicePackAsync(fallback);
+                    }
+                    else
+                    {
+                        visiblePacks.Remove(fallbackPack);
+                    }
+
+                    if (fallbackPack != null)
+                    {
+                        visiblePacks.Insert(0, fallbackPack);
+                    }
+                }
+            }
+
             VoicePackSelector.Items.Clear();
             foreach (VoicePackItem pack in visiblePacks)
             {
@@ -94,7 +140,36 @@ namespace KillConfirmGameBar
                 style,
                 GameStyleService.DefaultIconPackKey(style));
 
-            var visiblePacks = await PackCatalogService.GetVisibleIconPacksAsync();
+            var visiblePacks = (await PackCatalogService.GetVisibleIconPacksAsync()).ToList();
+            if (!visiblePacks.Any(pack => string.Equals(pack.Key, preferredIconPack, StringComparison.OrdinalIgnoreCase)))
+            {
+                IconPackItem preferredPack = await PackCatalogService.GetIconPackAsync(preferredIconPack);
+                if (preferredPack != null && GameStyleService.GetStyleForPackKey(preferredPack.Key) == style)
+                {
+                    visiblePacks.Insert(0, preferredPack);
+                }
+                else
+                {
+                    string fallback = GameStyleService.DefaultIconPackKey(style);
+                    preferredIconPack = fallback;
+                    IconPackItem fallbackPack = visiblePacks.FirstOrDefault(
+                        pack => string.Equals(pack.Key, fallback, StringComparison.OrdinalIgnoreCase));
+                    if (fallbackPack == null)
+                    {
+                        fallbackPack = await PackCatalogService.GetIconPackAsync(fallback);
+                    }
+                    else
+                    {
+                        visiblePacks.Remove(fallbackPack);
+                    }
+
+                    if (fallbackPack != null)
+                    {
+                        visiblePacks.Insert(0, fallbackPack);
+                    }
+                }
+            }
+
             IconPackSelector.Items.Clear();
             foreach (IconPackItem pack in visiblePacks)
             {

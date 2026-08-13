@@ -30,6 +30,7 @@ namespace KillConfirmGameBar
 
         private bool _suppressGameStyleEvents;
         private bool _suppressCrossfireSettingEvents;
+        private bool _isHomePageSelected = true;
 
         private void ApplyGameStyleUi()
         {
@@ -45,6 +46,7 @@ namespace KillConfirmGameBar
             bool hideCfPacks = valorant || fixedPreset;
             GameThemePalette theme = GameThemePalette.Current;
             MountGameAdvancedSettingsPanel();
+            UpdateSettingsPageVisibility();
             VoicePackCollectionsCard.Visibility = hideCfPacks ? Visibility.Collapsed : Visibility.Visible;
             IconPackCollectionsCard.Visibility = hideCfPacks ? Visibility.Collapsed : Visibility.Visible;
             VoiceCollectionsCard.Visibility = hideCfPacks ? Visibility.Collapsed : Visibility.Visible;
@@ -64,6 +66,8 @@ namespace KillConfirmGameBar
             SetText(GameStyleSidebarTitleText, theme.MutedText);
             SetText(GameEffectsTitleText, theme.Text);
             SetText(GeneralSettingsTitleText, theme.Text);
+            SetText(DisplayScalingTitleText, theme.Text);
+            SetText(DisplayScalingDescriptionText, theme.MutedText);
             SetText(VoiceCollectionsTitleText, theme.Text);
             SetText(VoiceCollectionsHintText, theme.MutedText);
             SetText(IconCollectionsTitleText, theme.Text);
@@ -89,6 +93,7 @@ namespace KillConfirmGameBar
 
             ApplySectionTheme(GameEffectsCard, theme);
             ApplySectionTheme(GeneralSettingsCard, theme);
+            ApplySectionTheme(DisplayScalingCard, theme);
             ApplyCardTheme(VoicePackCollectionsCard, theme);
             ApplyCardTheme(IconPackCollectionsCard, theme);
             ApplyCardTheme(VoiceCollectionsCard, theme);
@@ -110,6 +115,7 @@ namespace KillConfirmGameBar
                 theme.SoftBorder);
             ApplyGameStyleSidebarTheme(theme);
             GeneralSettingsOptionsPanel.ApplyTheme(theme);
+            DisplayScalingSettingsPanel.ApplyTheme(theme);
             ApplyGameAdvancedSettingsPanelTheme();
         }
 
@@ -156,9 +162,10 @@ namespace KillConfirmGameBar
 
                 if (GameStyleSidebarSelector != null)
                 {
+                    string sidebarKey = _isHomePageSelected ? "home" : key;
                     foreach (object item in GameStyleSidebarSelector.Items)
                     {
-                        if (item is ListViewItem sidebarItem && sidebarItem.Tag is string tag && string.Equals(tag, key, System.StringComparison.OrdinalIgnoreCase))
+                        if (item is ListViewItem sidebarItem && sidebarItem.Tag is string tag && string.Equals(tag, sidebarKey, System.StringComparison.OrdinalIgnoreCase))
                         {
                             GameStyleSidebarSelector.SelectedItem = sidebarItem;
                             break;
@@ -194,7 +201,33 @@ namespace KillConfirmGameBar
 
             if (GameStyleSidebarSelector?.SelectedItem is ListViewItem selected && selected.Tag is string key)
             {
+                if (string.Equals(key, "home", StringComparison.OrdinalIgnoreCase))
+                {
+                    _isHomePageSelected = true;
+                    UpdateSettingsPageVisibility();
+                    ApplyGameStyleSidebarTheme(GameThemePalette.Current);
+                    return;
+                }
+
+                _isHomePageSelected = false;
                 SelectGameStyle(key);
+            }
+        }
+
+        private void UpdateSettingsPageVisibility()
+        {
+            if (HomePageContent != null)
+            {
+                HomePageContent.Visibility = _isHomePageSelected
+                    ? Visibility.Visible
+                    : Visibility.Collapsed;
+            }
+
+            if (GamePageContent != null)
+            {
+                GamePageContent.Visibility = _isHomePageSelected
+                    ? Visibility.Collapsed
+                    : Visibility.Visible;
             }
         }
 

@@ -44,8 +44,10 @@ jobs:
         id: cache-prereq
         uses: actions/cache@v4
         with:
-          path: D:\a\prerequisites.zip
-          key: ${{ runner.os }}-prereq-v1
+          path: |
+            D:\a\prerequisites.zip
+            D:\a\Microsoft.UI.Xaml.2.8.6.nupkg
+          key: ${{ runner.os }}-prereq-v2
 
       - name: Download offline prerequisite packages
         shell: pwsh
@@ -58,6 +60,27 @@ jobs:
             Invoke-WebRequest -Uri "https://github.com/st0nie/CS2KillConfirmOverlay/releases/download/prereq-v1/prerequisites.zip" -OutFile $prereqZip
           }
           Expand-Archive -Path $prereqZip -DestinationPath $VclibsRoot -Force
+
+          $uiXamlNuget = "D:\a\Microsoft.UI.Xaml.2.8.6.nupkg"
+          if (-not (Test-Path $uiXamlNuget)) {
+            Invoke-WebRequest -Uri "https://www.nuget.org/api/v2/package/Microsoft.UI.Xaml/2.8.6" -OutFile $uiXamlNuget
+          }
+
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $archive = [System.IO.Compression.ZipFile]::OpenRead($uiXamlNuget)
+          try {
+            $entry = $archive.GetEntry("tools/AppX/x64/Release/Microsoft.UI.Xaml.2.8.appx")
+            if (-not $entry) {
+              throw "Microsoft.UI.Xaml x64 Appx was not found in $uiXamlNuget"
+            }
+            [System.IO.Compression.ZipFileExtensions]::ExtractToFile(
+              $entry,
+              (Join-Path $VclibsRoot "Microsoft.UI.Xaml.Appx"),
+              $true)
+          }
+          finally {
+            $archive.Dispose()
+          }
           Get-ChildItem -LiteralPath $VclibsRoot | ForEach-Object { Write-Host ("{0} {1}" -f $_.Name, $_.Length) }
 
       - name: Cache NuGet packages

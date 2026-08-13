@@ -45,6 +45,8 @@ namespace KillConfirmGameBar.Services
                     return Pubg;
                 case GameStyleMode.DeltaForce:
                     return DeltaForce;
+                case GameStyleMode.Csol:
+                    return Csol;
                 case GameStyleMode.Crossfire:
                 default:
                     return Crossfire;
@@ -69,6 +71,27 @@ namespace KillConfirmGameBar.Services
             Secondary = Color.FromArgb(255, 46, 136, 184),
             WarningField = Color.FromArgb(255, 255, 247, 234),
             WarningBorder = Color.FromArgb(255, 247, 190, 106),
+            WarningText = Color.FromArgb(255, 138, 75, 0)
+        };
+
+        public static readonly GameThemePalette Csol = new GameThemePalette
+        {
+            Shell = Color.FromArgb(255, 244, 245, 243),
+            Panel = Color.FromArgb(244, 250, 250, 248),
+            Card = Color.FromArgb(255, 251, 251, 249),
+            Field = Color.FromArgb(255, 255, 254, 253),
+            SubtleField = Color.FromArgb(255, 244, 248, 250),
+            Border = Color.FromArgb(255, 224, 220, 210),
+            SoftBorder = Color.FromArgb(255, 212, 207, 195),
+            Text = Color.FromArgb(255, 26, 30, 47),
+            MutedText = Color.FromArgb(255, 74, 84, 97),
+            SubtleText = Color.FromArgb(255, 112, 114, 120),
+            Accent = Color.FromArgb(255, 235, 152, 26),
+            AccentSoft = Color.FromArgb(255, 255, 246, 233),
+            AccentText = Color.FromArgb(255, 133, 72, 0),
+            Secondary = Color.FromArgb(255, 219, 68, 55),
+            WarningField = Color.FromArgb(255, 255, 247, 234),
+            WarningBorder = Color.FromArgb(255, 246, 188, 103),
             WarningText = Color.FromArgb(255, 138, 75, 0)
         };
 

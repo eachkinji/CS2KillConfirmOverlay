@@ -70,6 +70,84 @@ namespace KillConfirmGameBar.Controls
                 asset);
         }
 
+        private static string GetCsolSpecialFileName(string specialKey)
+        {
+            switch ((specialKey ?? string.Empty).Trim().ToLowerInvariant())
+            {
+                case "headshot":
+                    return "headshot_kill.png";
+                case "melee":
+                    return "melee_kill.png";
+                case "revenge":
+                    return "revenge.png";
+                case "firstkill":
+                    return "firstkill.png";
+                case "assist":
+                    return "assist.png";
+                default:
+                    return null;
+            }
+        }
+
+        private async Task<AnimationAsset> LoadCsolKillAssetAsync(int killCount, string specialKey, IProgress<int> progress = null)
+        {
+            string normalizedSpecialKey = (specialKey ?? string.Empty).Trim().ToLowerInvariant();
+            string cacheKey = _iconPack + ":csol4";
+            if (!CsolKillCache.TryGetValue(cacheKey, out CsolKillAsset baseAsset))
+            {
+                string folder = "Assets/KillConfirmCode/" + Csol4CodeFolder + "/";
+                var streak = new CanvasBitmap[4];
+                for (int i = 0; i < 4; i++)
+                {
+                    streak[i] = await LoadBitmapFromApplicationUriAsync(
+                        "ms-appx:///" + folder + (i + 1) + "kill.png");
+                }
+
+                progress?.Report(40);
+                baseAsset = new CsolKillAsset
+                {
+                    Streak = streak,
+                    Headshot = await LoadBitmapFromApplicationUriAsync(
+                        "ms-appx:///" + folder + "headshot_kill.png"),
+                    Melee = await LoadBitmapFromApplicationUriAsync(
+                        "ms-appx:///" + folder + "melee_kill.png"),
+                    Revenge = await LoadBitmapFromApplicationUriAsync(
+                        "ms-appx:///" + folder + "revenge.png"),
+                    FirstKill = await LoadBitmapFromApplicationUriAsync(
+                        "ms-appx:///" + folder + "firstkill.png"),
+                    Assist = await LoadBitmapFromApplicationUriAsync(
+                        "ms-appx:///" + folder + "assist.png")
+                };
+                CsolKillCache[cacheKey] = baseAsset;
+            }
+
+            progress?.Report(90);
+            var playAsset = new CsolKillAsset
+            {
+                Streak = baseAsset.Streak,
+                Headshot = baseAsset.Headshot,
+                Melee = baseAsset.Melee,
+                Revenge = baseAsset.Revenge,
+                FirstKill = baseAsset.FirstKill,
+                Assist = baseAsset.Assist,
+                KillCount = Math.Max(0, Math.Min(4, killCount)),
+                SpecialKey = GetCsolSpecialFileName(normalizedSpecialKey) == null
+                    ? string.Empty
+                    : normalizedSpecialKey
+            };
+
+            progress?.Report(100);
+            return new AnimationAsset(
+                new SpriteMetadata
+                {
+                    FrameWidth = (int)CsolFrameWidth,
+                    FrameHeight = (int)CsolFrameHeight,
+                    Frames = (int)Math.Ceiling((CsolHoldSeconds + CsolFadeSeconds) * FrameSequenceFps),
+                    Fps = FrameSequenceFps
+                },
+                playAsset);
+        }
+
         private static bool TryGetCodeKillFiles(
             string assetName,
             out string mainFileName,
@@ -469,6 +547,8 @@ namespace KillConfirmGameBar.Controls
                     return "Rankmach2019_1";
                 case "rankmach_2019_2":
                     return "Rankmach2019_2";
+                case "csol4":
+                    return "Csol4";
                 default:
                     return null;
             }

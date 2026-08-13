@@ -134,7 +134,6 @@ namespace KillConfirmGameBar
 
             bool hasVisibleContent =
                 ServiceDiagnosticRow?.Visibility == Visibility.Visible ||
-                GsiCountRow?.Visibility == Visibility.Visible ||
                 CfgActionRow?.Visibility == Visibility.Visible;
 
             StatusDetailRow.Visibility = hasVisibleContent
@@ -165,22 +164,6 @@ namespace KillConfirmGameBar
             {
                 GsiDot.Background = new SolidColorBrush(Color.FromArgb(255, 185, 28, 28));
                 SetNamedToolTip(GsiStatusBadge, LocalizationManager.Text("GsiStatusTitle"), LocalizationManager.Text("ServiceOffline"));
-            }
-
-            if (GsiCountRow != null)
-            {
-                if (serviceReachable)
-                {
-                    GsiCountRow.Visibility = Visibility.Visible;
-                    GsiCountText.Text = string.Format(
-                        LocalizationManager.Text("GsiCountFormat"),
-                        posts,
-                        parseErrors);
-                }
-                else
-                {
-                    GsiCountRow.Visibility = Visibility.Collapsed;
-                }
             }
 
             UpdateStatusDetailRowVisibility();

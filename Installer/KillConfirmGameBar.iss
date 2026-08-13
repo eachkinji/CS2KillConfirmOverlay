@@ -105,7 +105,7 @@ begin
 
     if ResultCode <> 0 then
     begin
-      LogPath := ExpandConstant('{tmp}\KillConfirmGameBar_Install.log');
+      LogPath := ExpandConstant('{%TEMP}\KillConfirmGameBar_Install.log');
       ShellExec('', LogPath, '', '', SW_SHOWNORMAL, ewNoWait, OpenResult);
       MsgBox(
         ExpandConstant('{cm:InstallScriptFailed}') + ' ' + IntToStr(ResultCode) + #13#10 + ExpandConstant('{cm:InstallLogOpened}'),

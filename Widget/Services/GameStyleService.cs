@@ -5,6 +5,7 @@ namespace KillConfirmGameBar.Services
     internal enum GameStyleMode
     {
         Crossfire,
+        Csol,
         Valorant,
         Battlefield1,
         Battlefield5,
@@ -40,6 +41,8 @@ namespace KillConfirmGameBar.Services
                         return GameStyleMode.Pubg;
                     case "deltaforce":
                         return GameStyleMode.DeltaForce;
+                    case "csol":
+                        return GameStyleMode.Csol;
                     case "crossfire":
                     default:
                         return GameStyleMode.Crossfire;
@@ -75,6 +78,8 @@ namespace KillConfirmGameBar.Services
                     return "pubg";
                 case GameStyleMode.DeltaForce:
                     return "deltaforce";
+                case GameStyleMode.Csol:
+                    return "csol";
                 case GameStyleMode.Crossfire:
                 default:
                     return "crossfire";
@@ -106,6 +111,8 @@ namespace KillConfirmGameBar.Services
                 case "delta":
                 case "df":
                     return GameStyleMode.DeltaForce;
+                case "csol":
+                    return GameStyleMode.Csol;
                 case "crossfire":
                 default:
                     return GameStyleMode.Crossfire;
@@ -164,6 +171,12 @@ namespace KillConfirmGameBar.Services
                 || string.Equals(value, "df", System.StringComparison.OrdinalIgnoreCase);
         }
 
+        public static bool IsCsolKey(string key)
+        {
+            return !string.IsNullOrWhiteSpace(key)
+                && key.Trim().StartsWith("csol", System.StringComparison.OrdinalIgnoreCase);
+        }
+
         public static bool IsModPresetGameKey(string key)
         {
             return IsBattlefield1Key(key)
@@ -179,6 +192,11 @@ namespace KillConfirmGameBar.Services
             if (IsValorantKey(key))
             {
                 return GameStyleMode.Valorant;
+            }
+
+            if (IsCsolKey(key))
+            {
+                return GameStyleMode.Csol;
             }
 
             if (IsBattlefield1Key(key))
@@ -237,6 +255,8 @@ namespace KillConfirmGameBar.Services
                     return "pubg";
                 case GameStyleMode.DeltaForce:
                     return "deltaforce";
+                case GameStyleMode.Csol:
+                    return "csol4";
                 case GameStyleMode.Crossfire:
                 default:
                     return "crossfire_swat_gr";
@@ -261,6 +281,8 @@ namespace KillConfirmGameBar.Services
                     return "pubg";
                 case GameStyleMode.DeltaForce:
                     return "deltaforce";
+                case GameStyleMode.Csol:
+                    return "csol4";
                 case GameStyleMode.Crossfire:
                 default:
                     return "default";

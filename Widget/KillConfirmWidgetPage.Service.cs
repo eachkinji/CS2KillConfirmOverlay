@@ -169,6 +169,7 @@ namespace KillConfirmGameBar
             await SyncMoneyRewardModeAsync();
             await SyncAudioDeviceAsync();
             await SyncCrossfireGameplaySettingsAsync();
+            await SyncCsolGameplaySettingsAsync();
             await SyncSharedStreakSettingsAsync();
             await SyncSpectatedKillEffectsAsync();
             await SyncGsiGameVersionAsync();
@@ -263,7 +264,7 @@ namespace KillConfirmGameBar
             }
         }
 
-        private static async Task<bool> TryLaunchFullTrustHelperAsync(string parameterGroupId)
+        internal static async Task<bool> TryLaunchFullTrustHelperAsync(string parameterGroupId)
         {
             try
             {

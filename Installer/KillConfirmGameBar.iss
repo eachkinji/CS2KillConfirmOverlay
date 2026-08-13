@@ -9,6 +9,14 @@
   #define TransferRoot "..\..\KillConfirmGameBar_Transfer_1.0.0.0"
 #endif
 
+#ifndef InstallerOutputSuffix
+  #define InstallerOutputSuffix "_WithDependencies"
+#endif
+
+#ifndef SkipPrerequisites
+  #define SkipPrerequisites 0
+#endif
+
 [Setup]
 AppId={{E0DF6407-CB2E-43D0-8B51-8C8924F50AA1}
 AppName={cm:InstallerDisplayName}
@@ -18,7 +26,7 @@ DefaultDirName={autopf}\Kill Confirm Overlay
 DefaultGroupName=Kill Confirm Overlay
 DisableProgramGroupPage=yes
 OutputDir=..\Output
-OutputBaseFilename=KillConfirmGameBar_Setup_{#MyAppVersion}
+OutputBaseFilename=KillConfirmGameBar_Setup_{#MyAppVersion}{#InstallerOutputSuffix}
 SetupIconFile=KillConfirmOverlay.ico
 Compression=lzma2
 SolidCompression=yes
@@ -94,7 +102,11 @@ var
 begin
   if CurStep = ssPostInstall then
   begin
+#if SkipPrerequisites
+    WizardForm.StatusLabel.Caption := ExpandConstant('{cm:InstallingOverlay}');
+#else
     WizardForm.StatusLabel.Caption := ExpandConstant('{cm:CheckingPrerequisites}');
+#endif
     Params := '-NoProfile -ExecutionPolicy Bypass -File "' + ExpandConstant('{app}\Payload\Install-KillConfirm.ps1') + '"';
 
     if not Exec(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'), Params, ExpandConstant('{app}\Payload'), SW_HIDE, ewWaitUntilTerminated, ResultCode) then

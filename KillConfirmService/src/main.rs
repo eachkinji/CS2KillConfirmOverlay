@@ -9,14 +9,13 @@ use axum::{
     Router, middleware,
     routing::{get, post},
 };
-use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
     env,
-    ffi::{OsStr, OsString},
+    ffi::OsStr,
     fs::{self, OpenOptions},
-    io::{Read, Write},
-    os::windows::ffi::{OsStrExt, OsStringExt},
+    io::Write,
+    os::windows::ffi::OsStrExt,
     path::{Path, PathBuf},
     process::Command,
     sync::Arc,
@@ -48,16 +47,13 @@ use util::event_stream::{
     audio_devices, audio_reload, audio_volume, counter_strike_root, crossfire_settings, cs2_root,
     csol_settings, developer_settings, event_sound_settings, events_poll, gsi_game_settings,
     gsi_status, health, money_mode, set_audio_device, set_crossfire_settings, set_csol_settings,
-    set_developer_settings, set_event_sound_settings, set_gsi_game_settings, set_money_mode,
+    install_counter_strike_cfg, set_developer_settings, set_event_sound_settings, set_gsi_game_settings, set_money_mode,
     set_spectator_settings, set_streak_settings, shutdown, spectator_settings, streak_settings,
     test_event,
 };
 use util::handler::update;
 use util::logging::{developer_logging_enabled, set_developer_logging_enabled};
-use windows_sys::Win32::System::Com::CoTaskMemFree;
-use windows_sys::Win32::UI::Shell::{
-    FOLDERID_Downloads, KF_FLAG_CREATE, SHGetKnownFolderPath, ShellExecuteW,
-};
+use windows_sys::Win32::UI::Shell::ShellExecuteW;
 use windows_sys::Win32::UI::WindowsAndMessaging::SW_SHOWNORMAL;
 
 const DEFAULT_LOG_LEVEL: LevelFilter = if cfg!(debug_assertions) {
@@ -66,7 +62,6 @@ const DEFAULT_LOG_LEVEL: LevelFilter = if cfg!(debug_assertions) {
     LevelFilter::INFO
 };
 const QUARK_UPDATE_URL: &str = "https://pan.quark.cn/s/1f3cfbcf8d5f?pwd=7Twv";
-const PROJECT_GITHUB_URL: &str = "https://github.com/eachkinji/CS2KillConfirmOverlay";
 const AUTHOR_GITHUB_URL: &str = "https://github.com/eachkinji";
 const AUTHOR_BILIBILI_URL: &str = "https://space.bilibili.com/18017622";
 #[link(name = "kernel32")]
@@ -161,23 +156,8 @@ async fn run() -> Result<()> {
         return Ok(());
     }
 
-    if args.download_pending_update {
-        download_pending_update().context("failed to download pending update")?;
-        return Ok(());
-    }
-
-    if args.run_pending_update {
-        run_pending_update().context("failed to run pending update")?;
-        return Ok(());
-    }
-
     if args.open_quark_update {
-        open_url(QUARK_UPDATE_URL).context("failed to open Quark update URL")?;
-        return Ok(());
-    }
-
-    if args.open_project_github {
-        open_url(PROJECT_GITHUB_URL).context("failed to open project GitHub URL")?;
+        open_url(QUARK_UPDATE_URL).context("failed to open project download URL")?;
         return Ok(());
     }
 
@@ -188,11 +168,6 @@ async fn run() -> Result<()> {
 
     if args.open_author_bilibili {
         open_url(AUTHOR_BILIBILI_URL).context("failed to open author Bilibili URL")?;
-        return Ok(());
-    }
-
-    if args.open_update_folder {
-        open_update_folder().context("failed to open update folder")?;
         return Ok(());
     }
 
@@ -308,6 +283,7 @@ async fn run() -> Result<()> {
         )
         .route("/cs2-root", get(cs2_root))
         .route("/counter-strike/root", get(counter_strike_root))
+        .route("/counter-strike/cfg", post(install_counter_strike_cfg))
         .route("/audio/reload", post(audio_reload))
         .route("/audio/devices", get(audio_devices))
         .route("/audio/device", post(set_audio_device))
@@ -445,189 +421,11 @@ fn open_runtime_log_folder() {
     }
 }
 
-#[derive(Deserialize)]
-struct PendingUpdate {
-    version: String,
-    download_url: String,
-    asset_name: String,
-}
-
-#[derive(Serialize)]
-struct UpdateDownloadResult {
-    success: bool,
-    completed: bool,
-    percent: Option<f64>,
-    downloaded_bytes: Option<u64>,
-    total_bytes: Option<u64>,
-    installer_path: Option<String>,
-    error: Option<String>,
-}
-
-fn open_update_folder() -> Result<()> {
-    let folder = external_update_dir();
-    fs::create_dir_all(&folder)
-        .with_context(|| format!("failed to create update folder {}", folder.display()))?;
-
-    service_log(&format!("opening update folder: {}", folder.display()));
-    shell_execute_path("open", &folder)
-        .with_context(|| format!("failed to open update folder {}", folder.display()))
-}
-
-fn download_pending_update() -> Result<()> {
-    match download_pending_update_inner() {
-        Ok(installer_path) => {
-            write_update_download_result(&UpdateDownloadResult {
-                success: true,
-                completed: true,
-                percent: Some(100.0),
-                downloaded_bytes: None,
-                total_bytes: None,
-                installer_path: Some(installer_path.display().to_string()),
-                error: None,
-            });
-            Ok(())
-        }
-        Err(error) => {
-            let message = error.to_string();
-            service_log(&format!("pending update download failed: {message}"));
-            write_update_download_result(&UpdateDownloadResult {
-                success: false,
-                completed: true,
-                percent: None,
-                downloaded_bytes: None,
-                total_bytes: None,
-                installer_path: None,
-                error: Some(message.clone()),
-            });
-            anyhow::bail!(message);
-        }
-    }
-}
-
-fn download_pending_update_inner() -> Result<PathBuf> {
-    let pending = read_pending_update()?;
-    let installer_path = pending_update_installer_path(&pending)?;
-
-    if installer_path.exists() {
-        fs::remove_file(&installer_path).with_context(|| {
-            format!(
-                "failed to replace existing installer {}",
-                installer_path.display()
-            )
-        })?;
-    }
-
-    service_log(&format!(
-        "pending update download requested. version={} asset={} url={} -> {}",
-        pending.version,
-        pending_update_file_name(&pending),
-        pending.download_url,
-        installer_path.display()
-    ));
-    download_update_installer(&pending.download_url, &installer_path)?;
-    service_log(&format!(
-        "pending update downloaded: {}",
-        installer_path.display()
-    ));
-
-    Ok(installer_path)
-}
-
-fn run_pending_update() -> Result<()> {
-    let pending_path = pending_update_path();
-    let pending = read_pending_update()?;
-    let installer_path = pending_update_installer_path(&pending)?;
-
-    service_log(&format!(
-        "pending update requested. version={} asset={} url={}",
-        pending.version,
-        pending_update_file_name(&pending),
-        pending.download_url
-    ));
-
-    if !installer_path.exists() {
-        download_update_installer(&pending.download_url, &installer_path)?;
-    } else {
-        service_log(&format!(
-            "using existing downloaded installer: {}",
-            installer_path.display()
-        ));
-    }
-
-    shell_execute_path("runas", &installer_path)
-        .with_context(|| format!("failed to launch installer {}", installer_path.display()))?;
-    let _ = fs::remove_file(&pending_path);
-    service_log(&format!(
-        "pending update installer launched: {}",
-        installer_path.display()
-    ));
-    Ok(())
-}
-
-fn read_pending_update() -> Result<PendingUpdate> {
-    let pending_path = pending_update_path();
-    let payload = fs::read_to_string(&pending_path).with_context(|| {
-        format!(
-            "failed to read pending update file {}",
-            pending_path.display()
-        )
-    })?;
-    serde_json::from_str(&payload).context("failed to parse pending update file")
-}
-
-fn pending_update_file_name(pending: &PendingUpdate) -> &str {
-    Path::new(&pending.asset_name)
-        .file_name()
-        .and_then(|value| value.to_str())
-        .filter(|value| !value.trim().is_empty())
-        .unwrap_or("KillConfirmGameBar_Update.exe")
-}
-
-fn pending_update_installer_path(pending: &PendingUpdate) -> Result<PathBuf> {
-    let update_dir = external_update_dir();
-    fs::create_dir_all(&update_dir)
-        .with_context(|| format!("failed to create update dir {}", update_dir.display()))?;
-    Ok(update_dir.join(pending_update_file_name(pending)))
-}
-
-fn write_update_download_result(result: &UpdateDownloadResult) {
-    let result_path = update_download_result_path();
-    if let Some(parent) = result_path.parent() {
-        if let Err(error) = fs::create_dir_all(parent) {
-            service_log(&format!(
-                "failed to create update result folder {}: {error}",
-                parent.display()
-            ));
-            return;
-        }
-    }
-
-    match serde_json::to_string(result) {
-        Ok(payload) => {
-            if let Err(error) = fs::write(&result_path, payload) {
-                service_log(&format!(
-                    "failed to write update download result {}: {error}",
-                    result_path.display()
-                ));
-            }
-        }
-        Err(error) => {
-            service_log(&format!(
-                "failed to serialize update download result: {error}"
-            ));
-        }
-    }
-}
-
 fn open_url(url: &str) -> Result<()> {
     service_log(&format!("opening external URL: {url}"));
     shell_execute_text("open", url, None)
         .with_context(|| format!("failed to open URL via ShellExecuteW: {url}"))?;
     Ok(())
-}
-
-fn shell_execute_path(verb: &str, path: &Path) -> Result<()> {
-    shell_execute_text(verb, &path.display().to_string(), path.parent())
 }
 
 fn shell_execute_text(verb: &str, target: &str, working_dir: Option<&Path>) -> Result<()> {
@@ -665,88 +463,6 @@ fn wide_null(value: &str) -> Vec<u16> {
         .collect()
 }
 
-fn download_update_installer(url: &str, installer_path: &Path) -> Result<()> {
-    service_log(&format!(
-        "downloading update internally -> {}",
-        installer_path.display()
-    ));
-
-    let client = reqwest::blocking::Client::builder()
-        .user_agent("KillConfirmOverlayUpdater/1.0")
-        .build()
-        .context("failed to build update downloader")?;
-    let mut response = client
-        .get(url)
-        .send()
-        .context("failed to request update installer")?
-        .error_for_status()
-        .context("GitHub returned an error for update installer")?;
-    let total_bytes = response.content_length();
-
-    let mut file = fs::File::create(installer_path).with_context(|| {
-        format!(
-            "failed to create installer file {}",
-            installer_path.display()
-        )
-    })?;
-    let mut downloaded_bytes = 0u64;
-    let mut last_reported_percent = -1i32;
-    let mut buffer = [0u8; 128 * 1024];
-
-    write_update_download_progress(installer_path, downloaded_bytes, total_bytes);
-    loop {
-        let read = response
-            .read(&mut buffer)
-            .context("failed to read update installer stream")?;
-        if read == 0 {
-            break;
-        }
-
-        file.write_all(&buffer[..read])
-            .context("failed to write update installer file")?;
-        downloaded_bytes += read as u64;
-
-        let current_percent = progress_percent(downloaded_bytes, total_bytes)
-            .map(|value| value.floor() as i32)
-            .unwrap_or(-1);
-        if current_percent != last_reported_percent {
-            last_reported_percent = current_percent;
-            write_update_download_progress(installer_path, downloaded_bytes, total_bytes);
-        }
-    }
-
-    file.flush()
-        .context("failed to flush update installer file")?;
-    write_update_download_progress(installer_path, downloaded_bytes, total_bytes);
-    service_log("update download completed internally");
-    Ok(())
-}
-
-fn write_update_download_progress(
-    installer_path: &Path,
-    downloaded_bytes: u64,
-    total_bytes: Option<u64>,
-) {
-    write_update_download_result(&UpdateDownloadResult {
-        success: false,
-        completed: false,
-        percent: progress_percent(downloaded_bytes, total_bytes),
-        downloaded_bytes: Some(downloaded_bytes),
-        total_bytes,
-        installer_path: Some(installer_path.display().to_string()),
-        error: None,
-    });
-}
-
-fn progress_percent(downloaded_bytes: u64, total_bytes: Option<u64>) -> Option<f64> {
-    let total = total_bytes?;
-    if total == 0 {
-        return None;
-    }
-
-    Some(((downloaded_bytes as f64 / total as f64) * 100.0).clamp(0.0, 100.0))
-}
-
 fn launch_settings_launcher() -> Result<()> {
     let exe_dir = env::current_exe()
         .context("failed to get current executable path")?
@@ -771,68 +487,6 @@ fn launch_settings_launcher() -> Result<()> {
         child.id()
     ));
     Ok(())
-}
-
-fn pending_update_path() -> PathBuf {
-    local_state_dir().join("pending_update.json")
-}
-
-fn update_download_result_path() -> PathBuf {
-    local_state_dir().join("update_download_result.json")
-}
-
-fn local_state_dir() -> PathBuf {
-    if let Ok(local_app_data) = env::var("LOCALAPPDATA") {
-        return PathBuf::from(local_app_data)
-            .join("Packages")
-            .join(current_package_family_name())
-            .join("LocalState");
-    }
-
-    env::current_exe()
-        .ok()
-        .and_then(|path| path.parent().map(Path::to_path_buf))
-        .unwrap_or_else(|| PathBuf::from("."))
-}
-
-fn external_update_dir() -> PathBuf {
-    if let Some(downloads) = known_downloads_dir() {
-        return downloads.join("KillConfirmGameBar");
-    }
-
-    if let Ok(user_profile) = env::var("USERPROFILE") {
-        return PathBuf::from(user_profile)
-            .join("Downloads")
-            .join("KillConfirmGameBar");
-    }
-
-    local_state_dir().join("updates")
-}
-
-fn known_downloads_dir() -> Option<PathBuf> {
-    unsafe {
-        let mut raw_path = std::ptr::null_mut();
-        let result = SHGetKnownFolderPath(
-            &FOLDERID_Downloads,
-            KF_FLAG_CREATE as u32,
-            std::ptr::null_mut(),
-            &mut raw_path,
-        );
-        if result < 0 || raw_path.is_null() {
-            return None;
-        }
-
-        let mut len = 0usize;
-        while *raw_path.add(len) != 0 {
-            len += 1;
-        }
-
-        let path = PathBuf::from(OsString::from_wide(std::slice::from_raw_parts(
-            raw_path, len,
-        )));
-        CoTaskMemFree(raw_path.cast());
-        Some(path)
-    }
 }
 
 fn log_local_port_owners(port: u16) {

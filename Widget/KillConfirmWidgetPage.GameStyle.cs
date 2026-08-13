@@ -156,14 +156,21 @@ namespace KillConfirmGameBar
             SetButtonTheme(MiniSendTestButton, theme.Accent, crossfire ? Color.FromArgb(255, 197, 106, 0) : theme.AccentText, Color.FromArgb(255, 255, 255, 255));
             SetButtonTheme(ReloadAudioButton, field, theme.SoftBorder, text);
 
-            // Window buttons (default size / center / top / bottom): accent-tinted.
+            // Three visual-placement groups use distinct theme-aware colors so
+            // window, control-panel and icon actions remain easy to distinguish.
             SetButtonTheme(DefaultSizeButton, theme.AccentSoft, theme.Accent, theme.AccentText);
             SetButtonTheme(CenterButton, theme.AccentSoft, theme.Accent, theme.AccentText);
-            SetButtonTheme(WindowTopButton, theme.AccentSoft, theme.Accent, theme.AccentText);
-            SetButtonTheme(WindowBottomButton, theme.AccentSoft, theme.Accent, theme.AccentText);
-            // Icon adjustment buttons (placement / move / scale / reset): neutral field.
-            SetButtonTheme(LowerThirdButton, theme.Field, theme.SoftBorder, theme.Text);
-            SetButtonTheme(HighPositionButton, theme.Field, theme.SoftBorder, theme.Text);
+
+            Color panelButtonBackground = BlendColor(theme.Card, theme.Secondary, 0.18);
+            SetButtonTheme(WindowTopButton, panelButtonBackground, theme.Secondary, theme.Secondary);
+            SetButtonTheme(ControlPanelCenterButton, panelButtonBackground, theme.Secondary, theme.Secondary);
+            SetButtonTheme(WindowBottomButton, panelButtonBackground, theme.Secondary, theme.Secondary);
+
+            SetButtonTheme(LowerThirdButton, theme.WarningField, theme.WarningBorder, theme.WarningText);
+            SetButtonTheme(HighPositionButton, theme.WarningField, theme.WarningBorder, theme.WarningText);
+            SetButtonTheme(IconCenterButton, theme.WarningField, theme.WarningBorder, theme.WarningText);
+
+            // Fine adjustments and reset stay neutral on the second row.
             SetButtonTheme(MoveUpButton, theme.Field, theme.SoftBorder, theme.Text);
             SetButtonTheme(MoveDownButton, theme.Field, theme.SoftBorder, theme.Text);
             SetButtonTheme(MoveLeftButton, theme.Field, theme.SoftBorder, theme.Text);
@@ -236,6 +243,14 @@ namespace KillConfirmGameBar
         {
             double luminance = (0.2126 * color.R) + (0.7152 * color.G) + (0.0722 * color.B);
             return luminance < 128;
+        }
+
+        private static Color BlendColor(Color background, Color foreground, double foregroundRatio)
+        {
+            double ratio = Math.Max(0, Math.Min(1, foregroundRatio));
+            byte Blend(byte back, byte front) =>
+                (byte)Math.Round((back * (1 - ratio)) + (front * ratio));
+            return Color.FromArgb(255, Blend(background.R, foreground.R), Blend(background.G, foreground.G), Blend(background.B, foreground.B));
         }
 
         private static void SetButtonTheme(Button button, Color background, Color border, Color foreground)

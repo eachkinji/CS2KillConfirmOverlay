@@ -107,7 +107,10 @@ namespace KillConfirmGameBar
 
             int style = GetSelectedMainAnimationStyle();
             ApplicationData.Current.LocalSettings.Values[MainAnimationStyleSettingKey] = style;
+            PrimaryKillAnimation?.ReleaseAnimationResourcesForPackChange();
+            BadgeKillAnimation?.ReleaseAnimationResourcesForPackChange();
             Controls.KillConfirmAnimation.ConfigureMainAnimationStyle(style);
+            WarmStartupAnimationCacheIfActive();
         }
 
         private void LoadEliteEffectSetting()

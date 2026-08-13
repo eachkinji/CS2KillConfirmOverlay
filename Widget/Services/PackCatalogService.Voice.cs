@@ -37,9 +37,14 @@ namespace KillConfirmGameBar.Services
         public static async Task<IReadOnlyList<VoicePackItem>> GetVisibleVoicePacksAsync()
         {
             var catalog = await LoadAsync();
-            return catalog.VoicePacks
+            IEnumerable<VoicePackItem> visible = catalog.VoicePacks
                 .Where(p => p.IsVisibleInWidget && GameStyleService.IsVisibleForCurrentStyle(p.Key))
                 .ToList();
+            if (GameStyleService.Current == GameStyleMode.Valorant)
+            {
+                visible = visible.OrderBy(p => ValorantPackService.GetDisplayOrder(p.Key));
+            }
+            return visible.ToList();
         }
 
         public static async Task<IReadOnlyList<VoicePackItem>> GetAllVoicePacksAsync()

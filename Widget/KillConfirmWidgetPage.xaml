@@ -23,7 +23,6 @@
         <Grid
             x:Name="AnimationLayer"
             HorizontalAlignment="Stretch"
-            IsHitTestVisible="False"
             VerticalAlignment="Stretch"
             RenderTransformOrigin="0.5,0.5">
             <Grid.RenderTransform>
@@ -40,6 +39,25 @@
                 Margin="0,-128,0,0"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch" />
+
+            <Border
+                x:Name="AnimationDragOutline"
+                Width="400"
+                Height="300"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Background="Transparent"
+                BorderBrush="#E53935"
+                BorderThickness="2"
+                CornerRadius="4"
+                Opacity="1"
+                Visibility="Collapsed"
+                PointerPressed="OnAnimationFramePointerPressed"
+                PointerMoved="OnAnimationFramePointerMoved"
+                PointerReleased="OnAnimationFramePointerReleased"
+                PointerCanceled="OnAnimationFramePointerCanceled"
+                PointerCaptureLost="OnAnimationFramePointerCaptureLost"
+                ToolTipService.ToolTip="Drag to move icon" />
         </Grid>
 
         <Border
@@ -880,11 +898,6 @@
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
                     <Button
@@ -922,7 +935,7 @@
 
                     <Button
                         x:Name="WindowBottomButton"
-                        Grid.Column="3"
+                        Grid.Column="4"
                         Style="{StaticResource VisualImportantIconButtonStyle}"
                         Click="OnWindowBottomClick"
                         ToolTipService.ToolTip="Place window at bottom">
@@ -932,8 +945,19 @@
                     </Button>
 
                     <Button
+                        x:Name="ControlPanelCenterButton"
+                        Grid.Column="3"
+                        Style="{StaticResource CompactIconButtonStyle}"
+                        Click="OnControlPanelCenterClick"
+                        ToolTipService.ToolTip="Center control panel">
+                        <Grid Style="{StaticResource CompactIconHostStyle}">
+                            <PathIcon Style="{StaticResource FluentTinyPathIconStyle}" Data="M5 3H19C20.1 3 21 3.9 21 5V19C21 20.1 20.1 21 19 21H5C3.9 21 3 20.1 3 19V5C3 3.9 3.9 3 5 3ZM5 4.5C4.72 4.5 4.5 4.72 4.5 5V19C4.5 19.28 4.72 19.5 5 19.5H19C19.28 19.5 19.5 19.28 19.5 19V5C19.5 4.72 19.28 4.5 19 4.5H5ZM7 9H17V15H7V9Z" />
+                        </Grid>
+                    </Button>
+
+                    <Button
                         x:Name="LowerThirdButton"
-                        Grid.Column="4"
+                        Grid.Column="5"
                         Style="{StaticResource CompactIconButtonStyle}"
                         Click="OnLowerThirdClick"
                         ToolTipService.ToolTip="Place icon at bottom">
@@ -944,7 +968,7 @@
 
                     <Button
                         x:Name="HighPositionButton"
-                        Grid.Column="5"
+                        Grid.Column="6"
                         Style="{StaticResource CompactIconButtonStyle}"
                         Click="OnHighPositionClick"
                         ToolTipService.ToolTip="Place icon at top">
@@ -954,8 +978,34 @@
                     </Button>
 
                     <Button
+                        x:Name="IconCenterButton"
+                        Grid.Column="7"
+                        Style="{StaticResource CompactIconButtonStyle}"
+                        Click="OnIconCenterClick"
+                        ToolTipService.ToolTip="Center icon">
+                        <Grid Style="{StaticResource CompactIconHostStyle}">
+                            <PathIcon Style="{StaticResource FluentTinyPathIconStyle}" Data="M11.25 3H12.75V5.05C15.95 5.39 18.61 8.05 18.95 11.25H21V12.75H18.95C18.61 15.95 15.95 18.61 12.75 18.95V21H11.25V18.95C8.05 18.61 5.39 15.95 5.05 12.75H3V11.25H5.05C5.39 8.05 8.05 5.39 11.25 5.05V3ZM12 6.5C8.96 6.5 6.5 8.96 6.5 12C6.5 15.04 8.96 17.5 12 17.5C15.04 17.5 17.5 15.04 17.5 12C17.5 8.96 15.04 6.5 12 6.5ZM12 10C13.1 10 14 10.9 14 12C14 13.1 13.1 14 12 14C10.9 14 10 13.1 10 12C10 10.9 10.9 10 12 10Z" />
+                        </Grid>
+                    </Button>
+
+                        </Grid>
+
+                        <Grid
+                            HorizontalAlignment="Center"
+                            ColumnSpacing="6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                    <Button
                         x:Name="MoveUpButton"
-                        Grid.Column="6"
+                        Grid.Column="0"
                         Style="{StaticResource CompactIconButtonStyle}"
                         Click="OnMoveUpClick"
                         ToolTipService.ToolTip="Move icon up">
@@ -966,7 +1016,7 @@
 
                     <Button
                         x:Name="MoveDownButton"
-                        Grid.Column="7"
+                        Grid.Column="1"
                         Style="{StaticResource CompactIconButtonStyle}"
                         Click="OnMoveDownClick"
                         ToolTipService.ToolTip="Move icon down">
@@ -977,7 +1027,7 @@
 
                     <Button
                         x:Name="MoveLeftButton"
-                        Grid.Column="8"
+                        Grid.Column="2"
                         Style="{StaticResource CompactIconButtonStyle}"
                         Click="OnMoveLeftClick"
                         ToolTipService.ToolTip="Move icon left">
@@ -988,7 +1038,7 @@
 
                     <Button
                         x:Name="MoveRightButton"
-                        Grid.Column="9"
+                        Grid.Column="3"
                         Style="{StaticResource CompactIconButtonStyle}"
                         Click="OnMoveRightClick"
                         ToolTipService.ToolTip="Move icon right">
@@ -999,7 +1049,7 @@
 
                     <Button
                         x:Name="ScaleDownButton"
-                        Grid.Column="10"
+                        Grid.Column="4"
                         Style="{StaticResource CompactIconButtonStyle}"
                         Click="OnScaleDownClick"
                         ToolTipService.ToolTip="Shrink icon">
@@ -1010,7 +1060,7 @@
 
                     <Button
                         x:Name="ScaleUpButton"
-                        Grid.Column="11"
+                        Grid.Column="5"
                         Style="{StaticResource CompactIconButtonStyle}"
                         Click="OnScaleUpClick"
                         ToolTipService.ToolTip="Enlarge icon">
@@ -1021,7 +1071,7 @@
 
                     <Button
                         x:Name="ResetVisualButton"
-                        Grid.Column="12"
+                        Grid.Column="6"
                         Style="{StaticResource CompactIconButtonStyle}"
                         Click="OnResetVisualAdjustmentsClick"
                         ToolTipService.ToolTip="Reset visual adjustments">
@@ -1036,8 +1086,6 @@
                             HorizontalAlignment="Center"
                             ColumnSpacing="4">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
@@ -1137,8 +1185,10 @@
             <Grid
                 x:Name="MiniPanel"
                 MinWidth="92"
+                MinHeight="46"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
+                Background="Transparent"
                 Visibility="Collapsed">
                 <StackPanel
                     HorizontalAlignment="Center"

@@ -4,7 +4,11 @@ param(
     [string]$MsBuildPath = "",
     [string]$VcInstallPath = "",
     [string]$InnoCompilerPath = "",
-    [switch]$DisableSigning
+    [switch]$DisableSigning,
+    [string]$CertificatePfxPath = "",
+    [string]$CertificatePassword = "",
+    [string]$CertificateThumbprint = "",
+    [string]$CertificateCerPath = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -40,6 +44,18 @@ if ($VcInstallPath) {
 }
 if ($DisableSigning) {
     $buildTransferArgs.DisableSigning = $true
+}
+if ($CertificatePfxPath) {
+    $buildTransferArgs.CertificatePfxPath = $CertificatePfxPath
+}
+if ($CertificatePassword) {
+    $buildTransferArgs.CertificatePassword = $CertificatePassword
+}
+if ($CertificateThumbprint) {
+    $buildTransferArgs.CertificateThumbprint = $CertificateThumbprint
+}
+if ($CertificateCerPath) {
+    $buildTransferArgs.CertificateCerPath = $CertificateCerPath
 }
 
 & (Join-Path $Root "Build-TransferPackage.ps1") @buildTransferArgs

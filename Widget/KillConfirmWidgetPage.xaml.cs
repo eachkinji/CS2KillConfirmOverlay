@@ -2,7 +2,6 @@ using Microsoft.Gaming.XboxGameBar;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using KillConfirmGameBar.Services;
@@ -137,24 +136,19 @@ namespace KillConfirmGameBar
         private static readonly Uri CsolSettingsUri = new Uri("http://127.0.0.1:10087/csol/settings");
         private static readonly Uri SharedStreakSettingsUri = new Uri("http://127.0.0.1:10087/streak/settings");
         private const string CounterStrikeRootUri = "http://127.0.0.1:10087/counter-strike/root";
+        private const string CounterStrikeCfgUri = "http://127.0.0.1:10087/counter-strike/cfg";
         private static readonly TimeSpan ServiceStartupTimeout = TimeSpan.FromSeconds(6);
         private static readonly TimeSpan ServiceStartupPollInterval = TimeSpan.FromMilliseconds(250);
         private const string FreeServicePortParameterGroupId = "FreeServicePort";
         internal const string OpenRuntimeLogsParameterGroupId = "OpenRuntimeLogs";
         private const string OpenSettingsWindowParameterGroupId = "OpenSettingsWindow";
         private const string OpenSettingsWindowDeveloperParameterGroupId = "OpenSettingsWindowDeveloper";
-        private const string DownloadPendingUpdateParameterGroupId = "DownloadPendingUpdate";
-        private const string RunPendingUpdateParameterGroupId = "RunPendingUpdate";
         private const string OpenQuarkUpdateParameterGroupId = "OpenQuarkUpdate";
-        private const string OpenProjectGitHubParameterGroupId = "OpenProjectGitHub";
         private const string OpenAuthorGitHubParameterGroupId = "OpenAuthorGitHub";
         private const string OpenAuthorBilibiliParameterGroupId = "OpenAuthorBilibili";
-        private const string OpenUpdateFolderParameterGroupId = "OpenUpdateFolder";
-        private const string PendingUpdateFileName = "pending_update.json";
-        private const string UpdateDownloadResultFileName = "update_download_result.json";
         private const string QuarkUpdateUrl = "https://pan.quark.cn/s/1f3cfbcf8d5f?pwd=7Twv";
         private const string QuarkUpdateCode = "7Twv";
-        private const string ProjectGitHubUrl = "https://github.com/eachkinji/CS2KillConfirmOverlay";
+        private const string LatestReleasePageFallbackUrl = "https://github.com/eachkinji/CS2KillConfirmOverlay/releases";
         private const string AuthorGitHubUrl = "https://github.com/eachkinji";
         private const string AuthorBilibiliUrl = "https://space.bilibili.com/18017622";
         private static readonly SemaphoreSlim ServiceStartupGate = new SemaphoreSlim(1, 1);
@@ -207,6 +201,8 @@ namespace KillConfirmGameBar
         private bool _suppressLanguageEvents = true;
         private bool _isPageActive;
         private StorageFolder _csInstallFolder;
+        private string _serviceDetectedCsRootPath = string.Empty;
+        private string _serviceDetectedCfgStatus = string.Empty;
         private string _loadedCsGameVersion = GsiGameVersionSettingsStore.Cs2;
         private CfgDetectionState _cfgDetectionState = CfgDetectionState.NotSelected;
         private string _cfgStatusDetail = string.Empty;
@@ -223,6 +219,11 @@ namespace KillConfirmGameBar
         private double _panelOffsetY;
         private TranslateTransform _panelDragTransform;
         private bool _panelCollapsed;
+        private bool _isDraggingAnimation;
+        private uint _animationDragPointerId;
+        private Point _animationDragPointerStart;
+        private double _animationDragStartX;
+        private double _animationDragStartY;
         private bool _gsiStatusCheckPending;
         private int _animationPreloadToken;
         private int _animationCacheProgress;
@@ -230,18 +231,14 @@ namespace KillConfirmGameBar
         private bool _animationCacheFailed;
         private bool _shutdownRequested;
         private bool _updateCheckInProgress;
-        private bool _updateDownloadInProgress;
         private int _statusHintIndex;
         private string _currentStatusHintText = string.Empty;
         private DateTimeOffset _lastGsiStatusCheck = DateTimeOffset.MinValue;
         private UpdateAvailabilityState _updateAvailabilityState = UpdateAvailabilityState.Unknown;
         private string _latestReleaseVersion = string.Empty;
-        private string _latestReleaseDownloadUrl = string.Empty;
-        private string _latestReleaseAssetName = string.Empty;
         private string _latestReleasePageUrl = string.Empty;
         private string _latestReleaseNotes = string.Empty;
         private DateTimeOffset? _latestReleasePublishedAt;
-        private string _updateInstallerPath = string.Empty;
         private bool _releaseNotesExpanded;
         private readonly DispatcherTimer _controlPanelStateTimer;
         private readonly DispatcherTimer _statusHintTimer;
@@ -252,6 +249,7 @@ namespace KillConfirmGameBar
             InitializeComponent();
             _suppressGameStyleEvents = false;
             WireMoveWindowEvents();
+            PrimaryKillAnimation.LogicalViewportSizeChanged += OnAnimationLogicalViewportSizeChanged;
             LoadPanelOffset();
             object collapsed = ApplicationData.Current.LocalSettings.Values[PanelCollapsedSettingKey];
             SetPanelCollapsed(collapsed is bool collapsedValue && collapsedValue);
@@ -314,7 +312,8 @@ namespace KillConfirmGameBar
         {
             _isPageActive = false;
             _animationPreloadToken++;
-            PrimaryKillAnimation?.ReleaseValorantResources();
+            PrimaryKillAnimation?.ReleaseAnimationResourcesForPackChange();
+            BadgeKillAnimation?.ReleaseAnimationResourcesForPackChange();
             GsiGameVersionSettingsStore.VersionChanged -= OnGsiGameVersionChanged;
             if (_widget != null)
             {
@@ -342,7 +341,8 @@ namespace KillConfirmGameBar
                 }
 
                 _animationPreloadToken++;
-                PrimaryKillAnimation?.ReleaseValorantResources();
+                PrimaryKillAnimation?.ReleaseAnimationResourcesForPackChange();
+                BadgeKillAnimation?.ReleaseAnimationResourcesForPackChange();
                 _suppressGameStyleEvents = true;
                 SelectGameStyleItem(mode);
                 _suppressGameStyleEvents = false;
@@ -354,6 +354,7 @@ namespace KillConfirmGameBar
                 await SyncCsolGameplaySettingsAsync();
                 await SyncSharedStreakSettingsAsync();
                 await SyncCombatEventSoundSettingsAsync();
+                await WarmStartupAnimationCacheAsync(0);
             });
         }
 
@@ -409,132 +410,70 @@ namespace KillConfirmGameBar
             SaveAnimationPlacementSettings();
         }
 
+        private void OnIconCenterClick(object sender, RoutedEventArgs e)
+        {
+            _animationPlacement = AnimationPlacementMode.Center;
+            _animationOffset = 0;
+            _animationHorizontalOffset = 0;
+            ApplyAnimationTransform();
+            SaveAnimationPlacementSettings();
+        }
+
         private void OnWindowTopClick(object sender, RoutedEventArgs e)
         {
-            MoveWidgetWindowToEdge(toTop: true);
+            MoveControlPanelToEdge(toTop: true);
         }
 
         private void OnWindowBottomClick(object sender, RoutedEventArgs e)
         {
-            MoveWidgetWindowToEdge(toTop: false);
+            MoveControlPanelToEdge(toTop: false);
         }
 
-        private void MoveWidgetWindowToEdge(bool toTop)
+        private void OnControlPanelCenterClick(object sender, RoutedEventArgs e)
         {
-            if (_widget == null)
+            if (!TryGetControlPanelVerticalRange(out _, out double bottomOffset))
             {
                 return;
             }
 
-            try
+            SetPanelOffset(0, bottomOffset / 2.0);
+            SavePanelOffset();
+        }
+
+        private void MoveControlPanelToEdge(bool toTop)
+        {
+            if (ControlPanel == null)
             {
-                IntPtr hwnd = FindWindowForCurrentThread();
-                if (hwnd == IntPtr.Zero)
-                {
-                    return;
-                }
-
-                if (!GetWindowRect(hwnd, out RECT windowRect))
-                {
-                    return;
-                }
-
-                IntPtr monitor = MonitorFromWindow(hwnd, MonitorDefaultToNearest);
-                var monitorInfo = new MONITORINFO { cbSize = (uint)Marshal.SizeOf(typeof(MONITORINFO)) };
-                if (!GetMonitorInfo(monitor, ref monitorInfo))
-                {
-                    return;
-                }
-
-                int width = windowRect.Right - windowRect.Left;
-                int height = windowRect.Bottom - windowRect.Top;
-                int x = (monitorInfo.rcWork.Left + monitorInfo.rcWork.Right - width) / 2;
-                int y = toTop
-                    ? monitorInfo.rcWork.Top
-                    : monitorInfo.rcWork.Bottom - height;
-
-                SetWindowPos(
-                    hwnd,
-                    IntPtr.Zero,
-                    x,
-                    y,
-                    width,
-                    height,
-                    SetWindowPosNoZOrder | SetWindowPosNoActivate);
+                return;
             }
-            catch (Exception ex)
+
+            if (!TryGetControlPanelVerticalRange(out _, out double bottomOffset))
             {
-                App.Log("Move widget window to edge failed: " + ex.Message);
+                return;
             }
+
+            // ControlPanel is top-aligned with a 5 px margin. Its render transform
+            // is already used by the drag-to-move feature, so the preset buttons
+            // use that same lightweight path instead of moving the Game Bar host.
+            double targetY = toTop ? 0 : bottomOffset;
+            SetPanelOffset(_panelOffsetX, targetY);
+            SavePanelOffset();
         }
 
-        private static IntPtr FindWindowForCurrentThread()
+        private bool TryGetControlPanelVerticalRange(out double topOffset, out double bottomOffset)
         {
-            uint threadId = GetCurrentThreadId();
-            IntPtr found = IntPtr.Zero;
-            EnumWindows((hwnd, lParam) =>
+            topOffset = 0;
+            bottomOffset = 0;
+            if (ControlPanel == null || ControlPanel.ActualHeight <= 0 || ActualHeight <= 0)
             {
-                if (GetWindowThreadProcessId(hwnd, out _) == threadId)
-                {
-                    found = hwnd;
-                    return false;
-                }
+                return false;
+            }
 
-                return true;
-            }, IntPtr.Zero);
-            return found;
-        }
-
-        private const uint MonitorDefaultToNearest = 0x00000002;
-        private const uint SetWindowPosNoZOrder = 0x0004;
-        private const uint SetWindowPosNoActivate = 0x0010;
-
-        private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
-
-        [DllImport("user32.dll")]
-        private static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
-
-        [DllImport("user32.dll")]
-        private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
-
-        [DllImport("kernel32.dll")]
-        private static extern uint GetCurrentThreadId();
-
-        [DllImport("user32.dll")]
-        private static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
-
-        [DllImport("user32.dll")]
-        private static extern IntPtr MonitorFromWindow(IntPtr hwnd, uint dwFlags);
-
-        [DllImport("user32.dll")]
-        private static extern bool GetMonitorInfo(IntPtr hMonitor, ref MONITORINFO lpmi);
-
-        [DllImport("user32.dll", SetLastError = true)]
-        private static extern bool SetWindowPos(
-            IntPtr hWnd,
-            IntPtr hWndInsertAfter,
-            int X,
-            int Y,
-            int cx,
-            int cy,
-            uint uFlags);
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct RECT
-        {
-            public int Left;
-            public int Top;
-            public int Right;
-            public int Bottom;
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct MONITORINFO
-        {
-            public uint cbSize;
-            public RECT rcMonitor;
-            public RECT rcWork;
-            public uint dwFlags;
+            bottomOffset = ActualHeight
+                - ControlPanel.ActualHeight
+                - ControlPanel.Margin.Top
+                - ControlPanel.Margin.Bottom;
+            return true;
         }
 
         private void OnMoveUpClick(object sender, RoutedEventArgs e)
@@ -574,6 +513,92 @@ namespace KillConfirmGameBar
             WireDragElement(StatusHintBox);
             // The collapsed mini panel is also draggable from its empty background.
             WireDragElement(MiniPanel);
+        }
+
+        private void OnAnimationLogicalViewportSizeChanged(object sender, EventArgs e)
+        {
+            UpdateAnimationDragOutlineSize();
+        }
+
+        private void UpdateAnimationDragOutlineSize()
+        {
+            double availableWidth = AnimationLayer?.ActualWidth > 0 ? AnimationLayer.ActualWidth : DefaultWidgetSize.Width;
+            double availableHeight = AnimationLayer?.ActualHeight > 0 ? AnimationLayer.ActualHeight : DefaultWidgetSize.Height;
+            double logicalWidth = Math.Max(1, PrimaryKillAnimation?.LogicalViewportWidth ?? 400);
+            double logicalHeight = Math.Max(1, PrimaryKillAnimation?.LogicalViewportHeight ?? 300);
+            double fit = Math.Min(availableWidth / logicalWidth, availableHeight / logicalHeight);
+            AnimationDragOutline.Width = Math.Max(40, logicalWidth * fit);
+            AnimationDragOutline.Height = Math.Max(40, logicalHeight * fit);
+        }
+
+        private void OnAnimationFramePointerPressed(object sender, PointerRoutedEventArgs e)
+        {
+            if (e.Pointer.PointerDeviceType != PointerDeviceType.Mouse
+                && e.Pointer.PointerDeviceType != PointerDeviceType.Touch)
+            {
+                return;
+            }
+
+            _isDraggingAnimation = true;
+            _animationDragPointerId = e.Pointer.PointerId;
+            _animationDragPointerStart = e.GetCurrentPoint(Window.Current.Content).Position;
+            _animationDragStartX = _animationHorizontalOffset;
+            _animationDragStartY = GetResolvedAnimationOffset();
+            _animationPlacement = AnimationPlacementMode.Manual;
+            AnimationDragOutline.CapturePointer(e.Pointer);
+            e.Handled = true;
+        }
+
+        private void OnAnimationFramePointerMoved(object sender, PointerRoutedEventArgs e)
+        {
+            if (!_isDraggingAnimation || e.Pointer.PointerId != _animationDragPointerId)
+            {
+                return;
+            }
+
+            Point current = e.GetCurrentPoint(Window.Current.Content).Position;
+            double scale = Math.Max(0.35, _animationScale);
+            _animationHorizontalOffset = Math.Max(-GetMaxAnimationHorizontalOffset(), Math.Min(
+                GetMaxAnimationHorizontalOffset(),
+                _animationDragStartX + ((current.X - _animationDragPointerStart.X) / scale)));
+            _animationOffset = Math.Max(-GetMaxAnimationOffset(), Math.Min(
+                GetMaxAnimationOffset(),
+                _animationDragStartY + ((current.Y - _animationDragPointerStart.Y) / scale)));
+            ApplyAnimationTransform();
+            e.Handled = true;
+        }
+
+        private void OnAnimationFramePointerReleased(object sender, PointerRoutedEventArgs e)
+        {
+            if (e.Pointer.PointerId != _animationDragPointerId)
+            {
+                return;
+            }
+            AnimationDragOutline.ReleasePointerCapture(e.Pointer);
+            EndAnimationDrag();
+            e.Handled = true;
+        }
+
+        private void OnAnimationFramePointerCanceled(object sender, PointerRoutedEventArgs e)
+        {
+            EndAnimationDrag();
+            e.Handled = true;
+        }
+
+        private void OnAnimationFramePointerCaptureLost(object sender, PointerRoutedEventArgs e)
+        {
+            EndAnimationDrag();
+        }
+
+        private void EndAnimationDrag()
+        {
+            if (!_isDraggingAnimation)
+            {
+                return;
+            }
+            _isDraggingAnimation = false;
+            _animationDragPointerId = 0;
+            SaveAnimationPlacementSettings();
         }
 
         private void WireDragElement(UIElement element)
@@ -746,8 +771,13 @@ namespace KillConfirmGameBar
             double restLeft = (windowWidth - panelWidth) / 2.0;
             double minX = -restLeft;
             double maxX = windowWidth - panelWidth - restLeft;
-            double minY = -5.0;
-            double maxY = windowHeight - panelHeight - 5.0;
+            double topOffset = 0;
+            double bottomOffset = windowHeight
+                - panelHeight
+                - ControlPanel.Margin.Top
+                - ControlPanel.Margin.Bottom;
+            double minY = Math.Min(topOffset, bottomOffset);
+            double maxY = Math.Max(topOffset, bottomOffset);
 
             return new Point(
                 Math.Max(minX, Math.Min(maxX, x)),

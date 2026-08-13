@@ -17,8 +17,6 @@ namespace KillConfirmGameBar.Services
 
         private static readonly ValorantPackInfo[] Packs =
         {
-            Pack("00009_prime", "Prime"),
-            Pack("00010_glitchpop", "Glitchpop"),
             Pack("00011_singularity_v1", "Singularity V1"),
             Pack("00012_singularity_v2", "Singularity V2"),
             Pack("00013_singularity_v3", "Singularity V3"),
@@ -42,7 +40,9 @@ namespace KillConfirmGameBar.Services
             Pack("00031_rgx_11z_pro", "RGX 11z Pro"),
             Pack("00032_rgx_11z_pro_v1", "RGX 11z Pro V1"),
             Pack("00033_rgx_11z_pro_v2", "RGX 11z Pro V2"),
-            Pack("00034_rgx_11z_pro_v3", "RGX 11z Pro V3")
+            Pack("00034_rgx_11z_pro_v3", "RGX 11z Pro V3"),
+            Pack("00009_prime", "Prime"),
+            Pack("00010_glitchpop", "Glitchpop")
         };
 
         public static IReadOnlyList<ValorantPackInfo> All => Packs;
@@ -67,6 +67,13 @@ namespace KillConfirmGameBar.Services
         public static string GetDisplayName(string key)
         {
             return Find(key)?.DisplayName ?? key;
+        }
+
+        public static int GetDisplayOrder(string key)
+        {
+            int index = Array.FindIndex(Packs, pack =>
+                string.Equals(pack.Key, key, StringComparison.OrdinalIgnoreCase));
+            return index < 0 ? int.MaxValue : index;
         }
 
         private static ValorantPackInfo Pack(string folder, string displayName)

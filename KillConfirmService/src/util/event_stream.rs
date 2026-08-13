@@ -1,10 +1,7 @@
 use std::{
     collections::HashMap,
-    ffi::OsStr,
     fs,
-    os::windows::ffi::OsStrExt,
     path::PathBuf,
-    ptr,
     sync::Arc,
     sync::atomic::Ordering,
     time::{Duration, SystemTime, UNIX_EPOCH},
@@ -18,13 +15,8 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 use tracing::error;
-use windows_sys::Win32::Foundation::{
-    CloseHandle, ERROR_INSUFFICIENT_BUFFER, ERROR_SUCCESS, GetLastError,
-};
+use windows_sys::Win32::Foundation::{CloseHandle, ERROR_INSUFFICIENT_BUFFER, GetLastError};
 use windows_sys::Win32::System::ProcessStatus::K32EnumProcesses;
-use windows_sys::Win32::System::Registry::{
-    HKEY, HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE, RRF_RT_REG_EXPAND_SZ, RRF_RT_REG_SZ, RegGetValueW,
-};
 use windows_sys::Win32::System::Threading::{
     OpenProcess, PROCESS_QUERY_LIMITED_INFORMATION, QueryFullProcessImageNameW,
 };
@@ -241,12 +233,16 @@ pub struct DeveloperSettingsResponse {
 pub struct Cs2RootResponse {
     pub found: bool,
     pub path: Option<String>,
+    pub cfg_status: &'static str,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct CounterStrikeRootQuery {
     pub version: Option<String>,
 }
+
+const GSI_CONFIG_FILE_NAME: &str = "gamestate_integration_killconfirm.cfg";
+const GSI_CONFIG_TEXT: &str = "\"KillConfirmGameBar\"\r\n{\r\n \"uri\" \"http://127.0.0.1:10087/\"\r\n \"timeout\" \"0.5\"\r\n \"buffer\"  \"0.05\"\r\n \"throttle\" \"0.05\"\r\n \"heartbeat\" \"15.0\"\r\n \"auth\"\r\n {\r\n   \"token\" \"killconfirm\"\r\n }\r\n \"data\"\r\n {\r\n   \"provider\"           \"1\"\r\n   \"map\"                \"1\"\r\n   \"round\"              \"1\"\r\n   \"bomb\"               \"1\"\r\n   \"player_id\"          \"1\"\r\n   \"player_state\"       \"1\"\r\n   \"player_weapons\"     \"1\"\r\n   \"player_match_stats\" \"1\"\r\n }\r\n}\r\n";
 
 #[derive(Clone, Copy, Debug, Serialize)]
 pub struct SoundPackOption {
@@ -475,9 +471,14 @@ pub async fn gsi_status(State(app_state): State<Arc<AppState>>) -> Json<GsiStatu
 
 pub async fn cs2_root() -> Json<Cs2RootResponse> {
     let path = detect_cs2_root();
+    let cfg_status = path
+        .as_ref()
+        .map(|value| counter_strike_cfg_status(value, GsiGameVersion::Cs2))
+        .unwrap_or("not_found");
     Json(Cs2RootResponse {
         found: path.is_some(),
         path: path.map(|value| value.display().to_string()),
+        cfg_status,
     })
 }
 
@@ -494,10 +495,76 @@ pub async fn counter_strike_root(
         None => GsiGameVersion::DEFAULT,
     };
     let path = detect_counter_strike_root(version);
+    let cfg_status = path
+        .as_ref()
+        .map(|value| counter_strike_cfg_status(value, version))
+        .unwrap_or("not_found");
     Ok(Json(Cs2RootResponse {
         found: path.is_some(),
         path: path.map(|value| value.display().to_string()),
+        cfg_status,
     }))
+}
+
+pub async fn install_counter_strike_cfg(
+    Query(query): Query<CounterStrikeRootQuery>,
+) -> Result<Json<Cs2RootResponse>, (StatusCode, String)> {
+    let version = match query.version.as_deref() {
+        Some(value) => GsiGameVersion::from_str(value).ok_or_else(|| {
+            (
+                StatusCode::BAD_REQUEST,
+                "version must be 'cs2' or 'csgo_legacy'".to_string(),
+            )
+        })?,
+        None => GsiGameVersion::DEFAULT,
+    };
+    let root = detect_counter_strike_root(version).ok_or_else(|| {
+        (
+            StatusCode::NOT_FOUND,
+            "Counter-Strike installation was not found".to_string(),
+        )
+    })?;
+    let cfg_folder = counter_strike_cfg_folder(&root, version);
+    fs::create_dir_all(&cfg_folder).map_err(|error| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            format!("failed to create cfg folder {}: {error}", cfg_folder.display()),
+        )
+    })?;
+    let cfg_path = cfg_folder.join(GSI_CONFIG_FILE_NAME);
+    fs::write(&cfg_path, GSI_CONFIG_TEXT.as_bytes()).map_err(|error| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            format!("failed to write cfg {}: {error}", cfg_path.display()),
+        )
+    })?;
+    service_log(&format!("installed GSI cfg through service: {}", cfg_path.display()));
+
+    Ok(Json(Cs2RootResponse {
+        found: true,
+        path: Some(root.display().to_string()),
+        cfg_status: counter_strike_cfg_status(&root, version),
+    }))
+}
+
+fn counter_strike_cfg_folder(root: &std::path::Path, version: GsiGameVersion) -> PathBuf {
+    match version {
+        GsiGameVersion::Cs2 => root.join("game").join("csgo").join("cfg"),
+        GsiGameVersion::CsgoLegacy => root.join("csgo").join("cfg"),
+    }
+}
+
+fn counter_strike_cfg_status(root: &std::path::Path, version: GsiGameVersion) -> &'static str {
+    let cfg_path = counter_strike_cfg_folder(root, version).join(GSI_CONFIG_FILE_NAME);
+    let Ok(actual) = fs::read_to_string(cfg_path) else {
+        return "missing";
+    };
+    let normalize = |value: &str| value.trim_start_matches('\u{feff}').replace("\r\n", "\n").replace('\r', "\n");
+    if normalize(&actual) == normalize(GSI_CONFIG_TEXT) {
+        "ready"
+    } else {
+        "outdated"
+    }
 }
 
 pub async fn shutdown(State(app_state): State<Arc<AppState>>) -> Json<HealthResponse> {
@@ -1303,11 +1370,21 @@ fn detect_cs2_root() -> Option<PathBuf> {
 }
 
 fn detect_counter_strike_root(version: GsiGameVersion) -> Option<PathBuf> {
-    for library_root in steam_library_roots() {
-        let install_root = library_root
-            .join("steamapps")
-            .join("common")
-            .join("Counter-Strike Global Offensive");
+    const COUNTER_STRIKE_APP_ID: u32 = 730;
+
+    for steam_dir in steam_dir_candidates() {
+        let (app, library) = match steam_dir.find_app(COUNTER_STRIKE_APP_ID) {
+            Ok(Some(value)) => value,
+            Ok(None) => continue,
+            Err(error) => {
+                service_log(&format!(
+                    "steamlocate failed to inspect app 730 under {}: {error}",
+                    steam_dir.path().display()
+                ));
+                continue;
+            }
+        };
+        let install_root = library.resolve_app_dir(&app);
         let installation_matches = match version {
             GsiGameVersion::Cs2 => install_root.join("game").join("csgo").join("cfg").is_dir(),
             GsiGameVersion::CsgoLegacy => {
@@ -1316,92 +1393,102 @@ fn detect_counter_strike_root(version: GsiGameVersion) -> Option<PathBuf> {
             }
         };
         if installation_matches {
+            service_log(&format!(
+                "steamlocate resolved app 730: {}",
+                install_root.display()
+            ));
             return Some(install_root);
         }
+        service_log(&format!(
+            "steamlocate resolved app 730, but the selected cfg layout is missing: {}",
+            install_root.display()
+        ));
     }
 
+    service_log("steamlocate and fallback Steam roots did not find a usable app 730 install");
     None
 }
 
-fn steam_library_roots() -> Vec<PathBuf> {
-    let mut roots = Vec::new();
-
-    for root in steam_roots() {
-        push_unique_path(&mut roots, root.clone());
-
-        let library_folders = root.join("steamapps").join("libraryfolders.vdf");
-        if let Ok(text) = fs::read_to_string(library_folders) {
-            for path in parse_steam_library_paths(&text) {
-                push_unique_path(&mut roots, path);
-            }
-        }
-    }
-
-    roots
-}
-
-fn steam_roots() -> Vec<PathBuf> {
-    let mut roots = Vec::new();
-
-    for value_name in ["SteamPath", "InstallPath"] {
-        for key in [
-            r"HKCU\Software\Valve\Steam",
-            r"HKLM\Software\WOW6432Node\Valve\Steam",
-            r"HKLM\Software\Valve\Steam",
-        ] {
-            if let Some(path) = query_registry_string(key, value_name) {
-                push_unique_path(&mut roots, PathBuf::from(path.replace('/', "\\")));
-            }
-        }
+fn steam_dir_candidates() -> Vec<steamlocate::SteamDir> {
+    let mut paths = Vec::new();
+    match steamlocate::locate() {
+        Ok(steam_dir) => push_unique_steam_path(&mut paths, steam_dir.path().to_path_buf()),
+        Err(error) => service_log(&format!(
+            "steamlocate registry lookup failed; trying safe fallbacks: {error}"
+        )),
     }
 
     if let Some(program_files_x86) = std::env::var_os("ProgramFiles(x86)") {
-        push_unique_path(&mut roots, PathBuf::from(program_files_x86).join("Steam"));
+        push_unique_steam_path(&mut paths, PathBuf::from(program_files_x86).join("Steam"));
     }
-
-    // Last-resort fallback: if the registry lookup misses (portable Steam,
-    // corrupted install), resolve the running steam.exe image path directly.
+    if let Some(program_files) = std::env::var_os("ProgramFiles") {
+        push_unique_steam_path(&mut paths, PathBuf::from(program_files).join("Steam"));
+    }
+    if let Some(local_app_data) = std::env::var_os("LOCALAPPDATA") {
+        push_unique_steam_path(
+            &mut paths,
+            PathBuf::from(local_app_data).join("Programs").join("Steam"),
+        );
+    }
     if let Some(running_root) = running_steam_root() {
         service_log(&format!(
-            "running steam.exe resolved: {}",
+            "running steam.exe fallback resolved: {}",
             running_root.display()
         ));
-        push_unique_path(&mut roots, running_root);
+        push_unique_steam_path(&mut paths, running_root);
     }
 
-    roots
+    paths
+        .into_iter()
+        .filter_map(|path| match steamlocate::SteamDir::from_dir(&path) {
+            Ok(steam_dir) => Some(steam_dir),
+            Err(error) => {
+                service_log(&format!(
+                    "Steam fallback root was invalid ({}): {error}",
+                    path.display()
+                ));
+                None
+            }
+        })
+        .collect()
+}
+
+fn push_unique_steam_path(paths: &mut Vec<PathBuf>, path: PathBuf) {
+    if !path.is_dir() {
+        return;
+    }
+    let normalized = path.to_string_lossy();
+    if paths
+        .iter()
+        .any(|existing| existing.to_string_lossy().eq_ignore_ascii_case(&normalized))
+    {
+        return;
+    }
+    paths.push(path);
 }
 
 fn running_steam_root() -> Option<PathBuf> {
     let mut process_ids = vec![0u32; 1024];
-    loop {
-        let mut bytes_needed = 0u32;
-        let capacity_bytes = (process_ids.len() * std::mem::size_of::<u32>()) as u32;
-        let ok = unsafe {
-            K32EnumProcesses(process_ids.as_mut_ptr(), capacity_bytes, &mut bytes_needed)
-        };
-        if ok == 0 {
-            if bytes_needed > capacity_bytes {
-                process_ids.resize((bytes_needed as usize / std::mem::size_of::<u32>()) + 16, 0);
-                continue;
-            }
-            return None;
-        }
-
-        let count = (bytes_needed as usize / std::mem::size_of::<u32>()).min(process_ids.len());
-        for &process_id in &process_ids[..count] {
-            if let Some(image_path) = process_image_path(process_id) {
-                if image_path
-                    .file_name()
-                    .map(|name| name.eq_ignore_ascii_case("steam.exe"))
-                    .unwrap_or(false)
-                {
-                    return image_path.parent().map(|parent| parent.to_path_buf());
-                }
-            }
-        }
+    let mut bytes_needed = 0u32;
+    let capacity_bytes = (process_ids.len() * std::mem::size_of::<u32>()) as u32;
+    if unsafe { K32EnumProcesses(process_ids.as_mut_ptr(), capacity_bytes, &mut bytes_needed) } == 0
+    {
         return None;
     }
+
+    let count = (bytes_needed as usize / std::mem::size_of::<u32>()).min(process_ids.len());
+    for &process_id in &process_ids[..count] {
+        if let Some(image_path) = process_image_path(process_id) {
+            if image_path
+                .file_name()
+                .map(|name| name.eq_ignore_ascii_case("steam.exe"))
+                .unwrap_or(false)
+            {
+                return image_path.parent().map(|parent| parent.to_path_buf());
+            }
+        }
+    }
+    None
 }
 
 fn process_image_path(process_id: u32) -> Option<PathBuf> {
@@ -1414,140 +1501,21 @@ fn process_image_path(process_id: u32) -> Option<PathBuf> {
     let mut buffer = vec![0u16; size as usize];
     loop {
         let mut actual_size = size;
-        let ok = unsafe {
-            QueryFullProcessImageNameW(
-                handle,
-                0,
-                buffer.as_mut_ptr(),
-                &mut actual_size,
-            )
-        };
-        if ok != 0 {
-            let length = buffer[..actual_size as usize]
-                .iter()
-                .position(|value| *value == 0)
-                .unwrap_or(actual_size as usize);
-            let value = String::from_utf16_lossy(&buffer[..length]);
+        if unsafe {
+            QueryFullProcessImageNameW(handle, 0, buffer.as_mut_ptr(), &mut actual_size)
+        } != 0
+        {
+            let value = String::from_utf16_lossy(&buffer[..actual_size as usize]);
             unsafe { CloseHandle(handle) };
             return (!value.is_empty()).then(|| PathBuf::from(value));
         }
 
-        if unsafe { GetLastError() } == ERROR_INSUFFICIENT_BUFFER {
-            size = actual_size.max(260) * 2;
-            buffer.resize(size as usize, 0);
-            continue;
+        if unsafe { GetLastError() } != ERROR_INSUFFICIENT_BUFFER {
+            unsafe { CloseHandle(handle) };
+            return None;
         }
-        unsafe { CloseHandle(handle) };
-        return None;
-    }
-}
-
-fn query_registry_string(key: &str, value_name: &str) -> Option<String> {
-    let (root, subkey) = split_registry_key(key)?;
-    let subkey = null_terminated_wide(subkey);
-    let value_name = null_terminated_wide(value_name);
-    let flags = RRF_RT_REG_SZ | RRF_RT_REG_EXPAND_SZ;
-    let mut byte_len = 0u32;
-
-    // Querying the required size first avoids a fixed buffer and keeps this
-    // lookup entirely in-process. No console application is launched.
-    let status = unsafe {
-        RegGetValueW(
-            root,
-            subkey.as_ptr(),
-            value_name.as_ptr(),
-            flags,
-            ptr::null_mut(),
-            ptr::null_mut(),
-            &mut byte_len,
-        )
-    };
-    if status != ERROR_SUCCESS || byte_len < 2 {
-        return None;
-    }
-
-    let mut buffer = vec![0u16; (byte_len as usize).div_ceil(2)];
-    let status = unsafe {
-        RegGetValueW(
-            root,
-            subkey.as_ptr(),
-            value_name.as_ptr(),
-            flags,
-            ptr::null_mut(),
-            buffer.as_mut_ptr().cast(),
-            &mut byte_len,
-        )
-    };
-    if status != ERROR_SUCCESS {
-        return None;
-    }
-
-    let length = buffer
-        .iter()
-        .position(|value| *value == 0)
-        .unwrap_or(buffer.len());
-    let value = String::from_utf16_lossy(&buffer[..length])
-        .trim()
-        .to_string();
-    (!value.is_empty()).then_some(value)
-}
-
-fn split_registry_key(key: &str) -> Option<(HKEY, &str)> {
-    if let Some(subkey) = key.strip_prefix(r"HKCU\") {
-        Some((HKEY_CURRENT_USER, subkey))
-    } else if let Some(subkey) = key.strip_prefix(r"HKLM\") {
-        Some((HKEY_LOCAL_MACHINE, subkey))
-    } else {
-        None
-    }
-}
-
-fn null_terminated_wide(value: &str) -> Vec<u16> {
-    OsStr::new(value).encode_wide().chain(Some(0)).collect()
-}
-
-fn parse_steam_library_paths(text: &str) -> Vec<PathBuf> {
-    let mut paths = Vec::new();
-
-    for line in text.lines() {
-        let trimmed = line.trim();
-        if !(trimmed.starts_with("\"path\"") || starts_with_quoted_number(trimmed)) {
-            continue;
-        }
-
-        let quoted: Vec<&str> = trimmed.split('"').collect();
-        if quoted.len() >= 4 {
-            let value = quoted[3].replace("\\\\", "\\");
-            if !value.is_empty() {
-                paths.push(PathBuf::from(value));
-            }
-        }
-    }
-
-    paths
-}
-
-fn starts_with_quoted_number(value: &str) -> bool {
-    let Some(rest) = value.strip_prefix('"') else {
-        return false;
-    };
-    let Some((number, _)) = rest.split_once('"') else {
-        return false;
-    };
-    !number.is_empty() && number.chars().all(|ch| ch.is_ascii_digit())
-}
-
-fn push_unique_path(paths: &mut Vec<PathBuf>, path: PathBuf) {
-    if !path.exists() {
-        return;
-    }
-
-    let normalized = path.to_string_lossy();
-    if !paths
-        .iter()
-        .any(|existing| existing.to_string_lossy().eq_ignore_ascii_case(&normalized))
-    {
-        paths.push(path);
+        size *= 2;
+        buffer.resize(size as usize, 0);
     }
 }
 

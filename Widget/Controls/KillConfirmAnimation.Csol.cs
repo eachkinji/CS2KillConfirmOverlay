@@ -26,6 +26,13 @@ namespace KillConfirmGameBar.Controls
             PlayInternal(progress => LoadCsolKillAssetAsync(killCount, specialIconKey, progress));
         }
 
+        private async Task PreloadCsolAnimationsAsync(IProgress<int> progress)
+        {
+            progress?.Report(0);
+            await LoadCsolKillAssetAsync(1, null, progress);
+            progress?.Report(100);
+        }
+
         private static string GetCsolSpecialFileName(string specialKey)
         {
             switch ((specialKey ?? string.Empty).Trim().ToLowerInvariant())

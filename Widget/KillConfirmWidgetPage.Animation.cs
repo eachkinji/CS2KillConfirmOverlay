@@ -697,6 +697,7 @@ namespace KillConfirmGameBar
 
         private void OnAnimationLayerSizeChanged(object sender, SizeChangedEventArgs e)
         {
+            UpdateAnimationDragOutlineSize();
             if (_animationPlacement == AnimationPlacementMode.Bottom
                 || _animationPlacement == AnimationPlacementMode.Top)
             {

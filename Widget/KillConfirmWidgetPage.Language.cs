@@ -69,11 +69,7 @@ namespace KillConfirmGameBar
             SetNamedToolTip(RetryServiceButton, LocalizationManager.Text("RetryServiceTitle"), LocalizationManager.Text("RetryServiceTooltip"));
             SetNamedToolTip(CopyServiceDiagnosticButton, LocalizationManager.Text("CopyDiagnosticTitle"), LocalizationManager.Text("CopyDiagnosticTooltip"));
             SetNamedToolTip(UpdateButton, LocalizationManager.Text("UpdateTitle"), LocalizationManager.Text("UpdateUnavailableTooltip"));
-            UpdateOpenQuarkButton.Content = LocalizationManager.Text("UpdateOpenQuark");
             UpdateCopyQuarkButton.Content = LocalizationManager.Text("UpdateCopyQuark");
-            UpdateDownloadButton.Content = LocalizationManager.Text("UpdateDownloadInstaller");
-            UpdateInstallButton.Content = LocalizationManager.Text("UpdateInstallNow");
-            UpdateOpenFolderButton.Content = LocalizationManager.Text("UpdateOpenDownloadFolder");
             SetNamedToolTip(ConnectionStatusBadge, LocalizationManager.Text("ServiceStatusTitle"), LocalizationManager.Text("ServiceStatusTooltip"));
             SetNamedToolTip(CfgStatusBadge, LocalizationManager.Text("CfgStatusTitle"), LocalizationManager.Text("CfgStatusTooltip"));
             SetNamedToolTip(GsiStatusBadge, LocalizationManager.Text("GsiStatusTitle"), LocalizationManager.Text("GsiStatusTooltip"));
@@ -144,9 +140,12 @@ namespace KillConfirmGameBar
             SetNamedToolTip(DefaultSizeButton, LocalizationManager.Text("DefaultSizeTitle"), LocalizationManager.Text("DefaultSizeTooltip"));
             SetNamedToolTip(CenterButton, LocalizationManager.Text("CenterWindowTitle"), LocalizationManager.Text("CenterWindowTooltip"));
             SetNamedToolTip(WindowTopButton, LocalizationManager.Text("WindowTopTitle"), LocalizationManager.Text("WindowTopTooltip"));
+            SetNamedToolTip(ControlPanelCenterButton, LocalizationManager.Text("ControlPanelCenterTitle"), LocalizationManager.Text("ControlPanelCenterTooltip"));
             SetNamedToolTip(WindowBottomButton, LocalizationManager.Text("WindowBottomTitle"), LocalizationManager.Text("WindowBottomTooltip"));
             SetNamedToolTip(LowerThirdButton, LocalizationManager.Text("LowerThirdTitle"), LocalizationManager.Text("LowerThirdTooltip"));
             SetNamedToolTip(HighPositionButton, LocalizationManager.Text("HighPositionTitle"), LocalizationManager.Text("HighPositionTooltip"));
+            SetNamedToolTip(IconCenterButton, LocalizationManager.Text("IconCenterTitle"), LocalizationManager.Text("IconCenterTooltip"));
+            SetNamedToolTip(AnimationDragOutline, LocalizationManager.Text("IconDragTitle"), LocalizationManager.Text("IconDragTooltip"));
             SetNamedToolTip(MoveUpButton, LocalizationManager.Text("MoveUpTitle"), LocalizationManager.Text("MoveUpTooltip"));
             SetNamedToolTip(MoveDownButton, LocalizationManager.Text("MoveDownTitle"), LocalizationManager.Text("MoveDownTooltip"));
             SetNamedToolTip(MoveLeftButton, LocalizationManager.Text("MoveLeftTitle"), LocalizationManager.Text("MoveLeftTooltip"));

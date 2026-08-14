@@ -123,6 +123,16 @@ namespace KillConfirmGameBar
 
         private void HandleKillEvent(KillEvent killEvent)
         {
+            if (killEvent.PublishedUnixMs > 0)
+            {
+                ulong nowMs = (ulong)DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                ulong totalMs = nowMs > killEvent.PublishedUnixMs
+                    ? nowMs - killEvent.PublishedUnixMs
+                    : 0;
+                App.Log("[perf] publish_to_animation_ms=" + totalMs
+                    + ", kills=" + killEvent.KillCount
+                    + ", channel=" + killEvent.EventChannel);
+            }
             GameStyleMode style = GameStyleService.Current;
             if (!CanStyleConsumeEvent(style, killEvent))
             {

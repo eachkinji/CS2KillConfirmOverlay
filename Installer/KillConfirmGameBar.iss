@@ -10,7 +10,7 @@
 #endif
 
 #ifndef InstallerOutputSuffix
-  #define InstallerOutputSuffix "_WithDependencies"
+  #define InstallerOutputSuffix "_有依赖-新人用"
 #endif
 
 #ifndef SkipPrerequisites

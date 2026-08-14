@@ -31,9 +31,9 @@ $PackageFileName = "KillConfirmGameBar.Package_{0}_{1}_{2}.msix" -f $Version, $P
 $PackageOutputFolder = "Integrated_{0}_Package" -f $Configuration
 $PackageSourceRoot = Join-Path $Root ("Package\AppPackages\{0}\{1}" -f $PackageOutputFolder, $PackageFolderName)
 $AppPackagesRoot = Join-Path $Root "Package\AppPackages"
-$TransferRoot = Join-Path $WorkspaceRoot ("KillConfirmGameBar_Transfer_{0}" -f $Version)
+$TransferRoot = Join-Path $WorkspaceRoot ("KillConfirmGameBar_Transfer_{0}_有依赖-新人用" -f $Version)
 $TransferZip = "{0}.zip" -f $TransferRoot
-$NoDependenciesTransferRoot = Join-Path $WorkspaceRoot ("KillConfirmGameBar_Transfer_{0}_NoDependencies" -f $Version)
+$NoDependenciesTransferRoot = Join-Path $WorkspaceRoot ("KillConfirmGameBar_Transfer_{0}_无依赖-更新用" -f $Version)
 $NoDependenciesTransferZip = "{0}.zip" -f $NoDependenciesTransferRoot
 $ExpectedPackageFamilyName = "KillConfirmGameBar.Overlay_5jgcw66eyez0m"
 $PrerequisiteSourceRoot = Join-Path $WorkspaceRoot "Vclibs"
@@ -226,119 +226,6 @@ function Write-InstallLog {
     $line = "[{0}] {1}" -f (Get-Date -Format "yyyy-MM-dd HH:mm:ss"), $Message
     Add-Content -LiteralPath $LogPath -Value $line -Encoding UTF8
     Write-Host $Message
-}
-
-function Get-WindowsBuildNumber {
-    try {
-        $currentVersion = Get-ItemProperty -LiteralPath "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion" -ErrorAction Stop
-        return [int]$currentVersion.CurrentBuildNumber
-    }
-    catch {
-        Write-InstallLog "Could not determine the Windows build number: $($_.Exception.Message)"
-        return 0
-    }
-}
-
-function Export-RegistryKeyIfPresent {
-    param(
-        [string]$RegistryKey,
-        [string]$Destination
-    )
-
-    & reg.exe query $RegistryKey *> $null
-    if ($LASTEXITCODE -ne 0) {
-        Write-InstallLog "Registry backup skipped because the key does not exist: $RegistryKey"
-        return
-    }
-
-    & reg.exe export $RegistryKey $Destination /y *> $null
-    if ($LASTEXITCODE -eq 0) {
-        Write-InstallLog "Registry key backed up: $RegistryKey -> $Destination"
-    }
-    else {
-        Write-InstallLog "Registry backup failed for ${RegistryKey}; continuing with Game Bar repair."
-    }
-}
-
-function Set-RegistryDword {
-    param(
-        [string]$RegistryKey,
-        [string]$ValueName,
-        [int]$Value
-    )
-
-    & reg.exe add $RegistryKey /v $ValueName /t REG_DWORD /d $Value /f *> $null
-    if ($LASTEXITCODE -ne 0) {
-        throw "Failed to set registry value ${RegistryKey}\${ValueName}."
-    }
-
-    Write-InstallLog "Registry value set: ${RegistryKey}\${ValueName}=$Value"
-}
-
-function Repair-XboxGameBar {
-    $buildNumber = Get-WindowsBuildNumber
-    if ($buildNumber -le 0) {
-        Write-InstallLog "Xbox Game Bar policy repair skipped because the Windows build could not be identified."
-        return
-    }
-
-    Write-InstallLog "Windows build $buildNumber detected. Repairing Xbox Game Bar policy and service settings..."
-    $backupRoot = Join-Path $env:ProgramData "Kill Confirm Overlay\GameBar_Registry_Backup"
-    $backupDirectory = Join-Path $backupRoot (Get-Date -Format "yyyyMMdd-HHmmss")
-    New-Item -ItemType Directory -Path $backupDirectory -Force -ErrorAction Stop | Out-Null
-
-    Export-RegistryKeyIfPresent `
-        -RegistryKey "HKLM\SOFTWARE\Policies\Microsoft\Windows\GameDVR" `
-        -Destination (Join-Path $backupDirectory "HKLM-GameDVR-Policy.reg")
-    Export-RegistryKeyIfPresent `
-        -RegistryKey "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\GameDVR" `
-        -Destination (Join-Path $backupDirectory "HKCU-GameDVR.reg")
-    Export-RegistryKeyIfPresent `
-        -RegistryKey "HKCU\System\GameConfigStore" `
-        -Destination (Join-Path $backupDirectory "HKCU-GameConfigStore.reg")
-
-    Set-RegistryDword `
-        -RegistryKey "HKLM\SOFTWARE\Policies\Microsoft\Windows\GameDVR" `
-        -ValueName "AllowGameDVR" `
-        -Value 1
-    Set-RegistryDword `
-        -RegistryKey "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\GameDVR" `
-        -ValueName "AppCaptureEnabled" `
-        -Value 1
-    Set-RegistryDword `
-        -RegistryKey "HKCU\System\GameConfigStore" `
-        -ValueName "GameDVR_Enabled" `
-        -Value 1
-
-    try {
-        Set-RegistryDword `
-            -RegistryKey "HKLM\SYSTEM\CurrentControlSet\Services\BcastDVRUserService" `
-            -ValueName "Start" `
-            -Value 3
-    }
-    catch {
-        Write-InstallLog "Base BcastDVRUserService repair warning: $($_.Exception.Message)"
-    }
-
-    try {
-        $serviceInstances = Get-ChildItem -LiteralPath "HKLM:\SYSTEM\CurrentControlSet\Services" -ErrorAction Stop |
-            Where-Object { $_.PSChildName -like "BcastDVRUserService_*" }
-        foreach ($serviceInstance in $serviceInstances) {
-            try {
-                Set-ItemProperty -LiteralPath $serviceInstance.PSPath -Name "Start" -Value 3 -Force -ErrorAction Stop
-                Write-InstallLog "Game DVR user service restored to Manual/Trigger Start: $($serviceInstance.PSChildName)"
-            }
-            catch {
-                Write-InstallLog "Game DVR user service instance repair warning for $($serviceInstance.PSChildName): $($_.Exception.Message)"
-            }
-        }
-    }
-    catch {
-        Write-InstallLog "Could not enumerate Game DVR user service instances: $($_.Exception.Message)"
-    }
-
-    Write-InstallLog "Xbox Game Bar repair completed. Registry backups: $backupDirectory"
-    Write-InstallLog "If these values are reverted after restart or gpupdate, a domain policy, MDM policy, or third-party optimizer is enforcing them."
 }
 
 function Test-XboxGameBarAvailable {
@@ -942,8 +829,6 @@ try {
     if (Test-Path $LogPath) {
         Remove-Item -LiteralPath $LogPath -Force
     }
-
-    Repair-XboxGameBar
     if ($InstallPrerequisites) {
         Install-RequiredComponents
     }
@@ -1006,7 +891,6 @@ Use on another PC:
 4. Use the panel power button or Check button if you want to verify status
 
 Notes:
-- On Windows 10 and Windows 11, the installer backs up and repairs the Game DVR policy, current-user Game Bar switches, and BcastDVRUserService startup settings before installing the overlay.
 - Before installing the overlay, the install script detects Microsoft UI XAML 2.8, the two required x64 VCLibs packages, and Xbox Game Bar. Missing or outdated components are shown to the user and installed in the required order after approval.
 - If Xbox Game Bar is still missing after offline prerequisite handling, the installer opens its Microsoft Store page and asks the user to run setup again after installation.
 - The companion service is embedded inside the MSIX package.

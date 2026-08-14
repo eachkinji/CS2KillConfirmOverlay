@@ -32,8 +32,8 @@ if (-not $Version) {
     throw "Could not read package version from $ManifestPath"
 }
 
-$TransferRoot = Join-Path $WorkspaceRoot ("KillConfirmGameBar_Transfer_{0}" -f $Version)
-$NoDependenciesTransferRoot = Join-Path $WorkspaceRoot ("KillConfirmGameBar_Transfer_{0}_NoDependencies" -f $Version)
+$TransferRoot = Join-Path $WorkspaceRoot ("KillConfirmGameBar_Transfer_{0}_有依赖-新人用" -f $Version)
+$NoDependenciesTransferRoot = Join-Path $WorkspaceRoot ("KillConfirmGameBar_Transfer_{0}_无依赖-更新用" -f $Version)
 
 $buildTransferArgs = @{
     Configuration = $Configuration
@@ -111,11 +111,11 @@ function Invoke-InstallerCompile {
     }
 }
 
-Invoke-InstallerCompile -TransferPath $TransferRoot -OutputSuffix "_WithDependencies" -SkipPrerequisites $false
-Invoke-InstallerCompile -TransferPath $NoDependenciesTransferRoot -OutputSuffix "_NoDependencies" -SkipPrerequisites $true
+Invoke-InstallerCompile -TransferPath $TransferRoot -OutputSuffix "_有依赖-新人用" -SkipPrerequisites $false
+Invoke-InstallerCompile -TransferPath $NoDependenciesTransferRoot -OutputSuffix "_无依赖-更新用" -SkipPrerequisites $true
 
-$SetupWithDependenciesPath = Join-Path $Root ("Output\KillConfirmGameBar_Setup_{0}_WithDependencies.exe" -f $Version)
-$SetupNoDependenciesPath = Join-Path $Root ("Output\KillConfirmGameBar_Setup_{0}_NoDependencies.exe" -f $Version)
+$SetupWithDependenciesPath = Join-Path $Root ("Output\KillConfirmGameBar_Setup_{0}_有依赖-新人用.exe" -f $Version)
+$SetupNoDependenciesPath = Join-Path $Root ("Output\KillConfirmGameBar_Setup_{0}_无依赖-更新用.exe" -f $Version)
 foreach ($setupPath in @($SetupWithDependenciesPath, $SetupNoDependenciesPath)) {
     if (-not (Test-Path $setupPath)) {
         throw "Expected installer was not produced: $setupPath"

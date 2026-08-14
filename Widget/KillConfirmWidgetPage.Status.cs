@@ -34,6 +34,7 @@ namespace KillConfirmGameBar
                 return;
             }
 
+            bool wasControlPanelVisible = IsControlPanelVisible();
             try
             {
                 _isWidgetVisible = _widget.Visible;
@@ -47,6 +48,10 @@ namespace KillConfirmGameBar
             }
 
             UpdateControlPanelVisibility();
+            if (wasControlPanelVisible != IsControlPanelVisible())
+            {
+                RequestWidgetResize(forceResize: true);
+            }
         }
 
         private void UpdateConnectionState(KillEventConnectionState state)

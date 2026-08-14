@@ -265,6 +265,12 @@ namespace KillConfirmGameBar
                 case GameStyleMode.DeltaForce:
                     suffix = "DeltaForce";
                     break;
+                case GameStyleMode.Doubao:
+                    suffix = "Doubao";
+                    break;
+                case GameStyleMode.Dagoujiao:
+                    suffix = "Dagoujiao";
+                    break;
                 case GameStyleMode.Csol:
                     suffix = "Csol";
                     break;

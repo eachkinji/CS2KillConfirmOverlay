@@ -25,7 +25,7 @@ pub struct SoundContext {
     pub base_dir: String,
     /// CSOL: per kill-type voice pick ("random" or a specific file name).
     pub voice_picks: HashMap<String, String>,
-    /// CSOL: true (default) when a special voice (headshot/knife) beats the streak voice.
+    /// CSOL: true when a special voice (headshot/knife) beats the streak voice.
     pub special_voice_priority: bool,
 }
 

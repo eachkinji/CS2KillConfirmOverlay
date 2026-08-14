@@ -217,6 +217,8 @@ namespace KillConfirmGameBar
         private double _panelOffsetX;
         private double _panelOffsetY;
         private CompositeTransform _panelDragTransform;
+        private readonly Dictionary<Popup, Point> _comboBoxPopupAdjustments =
+            new Dictionary<Popup, Point>();
         private string _loadedControlPanelScaleMode = string.Empty;
         private double _controlPanelScale = 1.0;
         private bool _panelCollapsed;
@@ -254,6 +256,10 @@ namespace KillConfirmGameBar
             _suppressVoicePackEvents = false;
             _suppressIconPackEvents = false;
             WireMoveWindowEvents();
+            ControlPanel.AddHandler(
+                UIElement.PointerReleasedEvent,
+                new PointerEventHandler(OnControlPanelComboBoxPointerReleased),
+                true);
             PrimaryKillAnimation.LogicalViewportSizeChanged += OnAnimationLogicalViewportSizeChanged;
             LoadPanelOffset();
             object collapsed = ApplicationData.Current.LocalSettings.Values[PanelCollapsedSettingKey];
@@ -261,8 +267,6 @@ namespace KillConfirmGameBar
             RefreshControlPanelScale(resizeWindow: false, forceResize: false);
             WireUpdateOverlayEvents();
             AnimationLayer.SizeChanged += OnAnimationLayerSizeChanged;
-            PackCatalogService.CatalogChanged += OnPackCatalogChanged;
-            GameStyleService.Changed += OnGameStyleServiceChanged;
             VersionText.Text = GetUpdateButtonLabel();
             ToolTipService.SetToolTip(UpdateButton, GetDisplayVersion());
             LoadGameStyleSelector();
@@ -287,6 +291,14 @@ namespace KillConfirmGameBar
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             _isPageActive = true;
+            // These service events are static, so their subscriptions must
+            // follow the page lifetime. Otherwise an old page remains alive
+            // after its XAML COM objects have been released and a later event
+            // crashes while trying to access that page's Dispatcher.
+            GameStyleService.Changed -= OnGameStyleServiceChanged;
+            GameStyleService.Changed += OnGameStyleServiceChanged;
+            PackCatalogService.CatalogChanged -= OnPackCatalogChanged;
+            PackCatalogService.CatalogChanged += OnPackCatalogChanged;
             GsiGameVersionSettingsStore.VersionChanged += OnGsiGameVersionChanged;
             _widget = e.Parameter as XboxGameBarWidget;
             if (_widget != null)
@@ -316,6 +328,8 @@ namespace KillConfirmGameBar
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
             _isPageActive = false;
+            GameStyleService.Changed -= OnGameStyleServiceChanged;
+            PackCatalogService.CatalogChanged -= OnPackCatalogChanged;
             _animationPreloadToken++;
             PrimaryKillAnimation?.ReleaseAnimationResourcesForPackChange();
             BadgeKillAnimation?.ReleaseAnimationResourcesForPackChange();
@@ -338,44 +352,63 @@ namespace KillConfirmGameBar
 
         private async void OnGameStyleServiceChanged(object sender, GameStyleMode mode)
         {
-            await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, async () =>
+            if (!_isPageActive)
             {
-                if (!_isPageActive)
-                {
-                    return;
-                }
+                return;
+            }
 
-                try
+            try
+            {
+                await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, async () =>
                 {
-                    _animationPreloadToken++;
-                    PrimaryKillAnimation?.ReleaseAnimationResourcesForPackChange();
-                    BadgeKillAnimation?.ReleaseAnimationResourcesForPackChange();
-                    _suppressGameStyleEvents = true;
+                    if (!_isPageActive)
+                    {
+                        return;
+                    }
+
                     try
                     {
-                        SelectGameStyleItem(mode);
-                    }
-                    finally
-                    {
-                        _suppressGameStyleEvents = false;
-                    }
+                        _animationPreloadToken++;
+                        PrimaryKillAnimation?.ReleaseAnimationResourcesForPackChange();
+                        BadgeKillAnimation?.ReleaseAnimationResourcesForPackChange();
+                        _suppressGameStyleEvents = true;
+                        try
+                        {
+                            SelectGameStyleItem(mode);
+                        }
+                        finally
+                        {
+                            _suppressGameStyleEvents = false;
+                        }
 
-                    LoadAnimationPlacementSettings();
-                    ApplyGameStyleUi();
-                    await InitializePackSelectorsAsync();
-                    await SyncSelectedVoicePackAsync();
-                    await SyncCrossfireGameplaySettingsAsync();
-                    await SyncCsolGameplaySettingsAsync();
-                    await SyncSharedStreakSettingsAsync();
-                    await SyncCombatEventSoundSettingsAsync();
-                    await WarmStartupAnimationCacheAsync(0);
+                        LoadAnimationPlacementSettings();
+                        ApplyGameStyleUi();
+                        await InitializePackSelectorsAsync();
+                        await SyncSelectedVoicePackAsync();
+                        await SyncCrossfireGameplaySettingsAsync();
+                        await SyncCsolGameplaySettingsAsync();
+                        await SyncDagoujiaoSettingsAsync();
+                        await SyncSharedStreakSettingsAsync();
+                        await SyncCombatEventSoundSettingsAsync();
+                        await WarmStartupAnimationCacheAsync(0);
+                    }
+                    catch (Exception ex)
+                    {
+                        App.LogCrash("Game style switch failed: " + ex);
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                // Dispatcher itself can become unavailable while Game Bar is
+                // tearing the page down. Do not let that lifecycle race escape
+                // an async-void event handler and terminate the widget process.
+                if (_isPageActive)
+                {
+                    App.LogCrash("Game style dispatch failed: " + ex);
                 }
-               catch (Exception ex)
-               {
-                    App.LogCrash("Game style switch failed: " + ex);
-               }
-           });
-       }
+            }
+        }
 
         private void OnKillReceived(object sender, KillEvent e)
         {
@@ -543,9 +576,12 @@ namespace KillConfirmGameBar
         {
             double availableWidth = AnimationLayer?.ActualWidth > 0 ? AnimationLayer.ActualWidth : DefaultWidgetSize.Width;
             double availableHeight = AnimationLayer?.ActualHeight > 0 ? AnimationLayer.ActualHeight : DefaultWidgetSize.Height;
-            double displayWidth = Math.Max(1, PrimaryKillAnimation?.DisplayViewportWidth ?? 550);
-            double displayHeight = Math.Max(1, PrimaryKillAnimation?.DisplayViewportHeight ?? 412.5);
-            double fit = Math.Min(1.0, Math.Min(availableWidth / displayWidth, availableHeight / displayHeight));
+            double displayWidth = Math.Max(1, PrimaryKillAnimation?.InteractionViewportWidth ?? 550);
+            double displayHeight = Math.Max(1, PrimaryKillAnimation?.InteractionViewportHeight ?? 412.5);
+            bool directValorantPresentation = Controls.KillConfirmAnimation.IsValorantPresentationConfigured;
+            double fit = directValorantPresentation
+                ? 1.0
+                : Math.Min(1.0, Math.Min(availableWidth / displayWidth, availableHeight / displayHeight));
             AnimationDragOutline.Width = Math.Max(40, displayWidth * fit);
             AnimationDragOutline.Height = Math.Max(40, displayHeight * fit);
         }
@@ -576,7 +612,9 @@ namespace KillConfirmGameBar
             }
 
             Point current = e.GetCurrentPoint(Window.Current.Content).Position;
-            double scale = Math.Max(0.35, _animationScale);
+            double scale = Controls.KillConfirmAnimation.IsValorantPresentationConfigured
+                ? 1.0
+                : Math.Max(0.35, _animationScale);
             _animationHorizontalOffset = Math.Max(-GetMaxAnimationHorizontalOffset(), Math.Min(
                 GetMaxAnimationHorizontalOffset(),
                 _animationDragStartX + ((current.X - _animationDragPointerStart.X) / scale)));
@@ -826,6 +864,109 @@ namespace KillConfirmGameBar
                 _panelDragTransform.TranslateX = _panelOffsetX;
                 _panelDragTransform.TranslateY = _panelOffsetY;
             }
+        }
+
+        private async void OnControlPanelComboBoxPointerReleased(object sender, PointerRoutedEventArgs e)
+        {
+            ComboBox comboBox = FindAncestorComboBox(e.OriginalSource as DependencyObject);
+            if (comboBox == null)
+            {
+                return;
+            }
+
+            await Dispatcher.RunAsync(CoreDispatcherPriority.Low, () => AlignOpenComboBoxPopup(comboBox));
+        }
+
+        private static ComboBox FindAncestorComboBox(DependencyObject source)
+        {
+            DependencyObject current = source;
+            while (current != null)
+            {
+                if (current is ComboBox comboBox)
+                {
+                    return comboBox;
+                }
+                current = VisualTreeHelper.GetParent(current);
+            }
+            return null;
+        }
+
+        private void AlignOpenComboBoxPopup(ComboBox comboBox)
+        {
+            if (comboBox == null || !comboBox.IsDropDownOpen || Window.Current?.Content == null)
+            {
+                return;
+            }
+
+            IReadOnlyList<Popup> openPopups = VisualTreeHelper.GetOpenPopups(Window.Current);
+            Popup target = openPopups.FirstOrDefault(popup =>
+                popup.IsOpen && PopupContainsComboBoxItem(popup.Child, comboBox));
+            if (target == null && openPopups.Count == 1)
+            {
+                target = openPopups[0];
+            }
+            if (target?.Child == null)
+            {
+                return;
+            }
+
+            if (_comboBoxPopupAdjustments.TryGetValue(target, out Point previous))
+            {
+                target.HorizontalOffset -= previous.X;
+                target.VerticalOffset -= previous.Y;
+            }
+
+            var root = Window.Current.Content as UIElement;
+            if (root == null || Math.Abs(_controlPanelScale - 1.0) < 0.001)
+            {
+                _comboBoxPopupAdjustments[target] = new Point(0, 0);
+                return;
+            }
+
+            Point popupPoint = target.Child.TransformToVisual(root).TransformPoint(new Point(0, 0));
+            Point panelVisualPoint = ControlPanel.TransformToVisual(root).TransformPoint(new Point(0, 0));
+            Point origin = new Point(
+                ControlPanel.ActualWidth * ControlPanel.RenderTransformOrigin.X,
+                ControlPanel.ActualHeight * ControlPanel.RenderTransformOrigin.Y);
+            double translateX = _panelDragTransform?.TranslateX ?? 0;
+            double translateY = _panelDragTransform?.TranslateY ?? 0;
+            Point panelLayoutPoint = new Point(
+                panelVisualPoint.X - origin.X * (1.0 - _controlPanelScale) - translateX,
+                panelVisualPoint.Y - origin.Y * (1.0 - _controlPanelScale) - translateY);
+            Point desiredPopupPoint = new Point(
+                panelLayoutPoint.X + origin.X
+                    + (popupPoint.X - panelLayoutPoint.X - origin.X) * _controlPanelScale
+                    + translateX,
+                panelLayoutPoint.Y + origin.Y
+                    + (popupPoint.Y - panelLayoutPoint.Y - origin.Y) * _controlPanelScale
+                    + translateY);
+            var adjustment = new Point(
+                desiredPopupPoint.X - popupPoint.X,
+                desiredPopupPoint.Y - popupPoint.Y);
+            target.HorizontalOffset += adjustment.X;
+            target.VerticalOffset += adjustment.Y;
+            _comboBoxPopupAdjustments[target] = adjustment;
+        }
+
+        private static bool PopupContainsComboBoxItem(DependencyObject root, ComboBox comboBox)
+        {
+            if (root == null || comboBox == null)
+            {
+                return false;
+            }
+            if (root is ComboBoxItem item && comboBox.Items.Contains(item))
+            {
+                return true;
+            }
+            int count = VisualTreeHelper.GetChildrenCount(root);
+            for (int index = 0; index < count; index++)
+            {
+                if (PopupContainsComboBoxItem(VisualTreeHelper.GetChild(root, index), comboBox))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         private void RefreshControlPanelScale(bool resizeWindow, bool forceResize)

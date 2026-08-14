@@ -88,6 +88,8 @@ namespace KillConfirmGameBar
             SetGameStyleItemContent(Battlefield2042StyleItem, "2042", "ms-appx:///Assets/GameLogos/battlefield2042.png");
             SetGameStyleItemContent(PubgStyleItem, "PUBG", "ms-appx:///Assets/GameLogos/pubg.png");
             SetGameStyleItemContent(DeltaForceStyleItem, "Delta", "ms-appx:///Assets/GameLogos/deltaforce.png");
+            SetGameStyleItemContent(DoubaoStyleItem, "豆包", "ms-appx:///Assets/GameLogos/doubao.png");
+            SetGameStyleItemContent(DagoujiaoStyleItem, "大狗叫", "ms-appx:///Assets/GameLogos/dagoujiao.jpg");
             PackTestHeaderText.Text = LocalizationManager.Text("PackTestHeader");
             VisualHeaderText.Text = LocalizationManager.Text("VisualHeader");
             ApplyAdvancedEffectsPanelLanguage();

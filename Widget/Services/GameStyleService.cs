@@ -12,7 +12,9 @@ namespace KillConfirmGameBar.Services
         Battlefield4,
         Battlefield2042,
         Pubg,
-        DeltaForce
+        DeltaForce,
+        Doubao,
+        Dagoujiao
     }
 
     internal static class GameStyleService
@@ -41,6 +43,10 @@ namespace KillConfirmGameBar.Services
                         return GameStyleMode.Pubg;
                     case "deltaforce":
                         return GameStyleMode.DeltaForce;
+                    case "doubao":
+                        return GameStyleMode.Doubao;
+                    case "dagoujiao":
+                        return GameStyleMode.Dagoujiao;
                     case "csol":
                         return GameStyleMode.Csol;
                     case "crossfire":
@@ -78,6 +84,10 @@ namespace KillConfirmGameBar.Services
                     return "pubg";
                 case GameStyleMode.DeltaForce:
                     return "deltaforce";
+                case GameStyleMode.Doubao:
+                    return "doubao";
+                case GameStyleMode.Dagoujiao:
+                    return "dagoujiao";
                 case GameStyleMode.Csol:
                     return "csol";
                 case GameStyleMode.Crossfire:
@@ -111,6 +121,12 @@ namespace KillConfirmGameBar.Services
                 case "delta":
                 case "df":
                     return GameStyleMode.DeltaForce;
+                case "doubao":
+                case "豆包":
+                    return GameStyleMode.Doubao;
+                case "dagoujiao":
+                case "大狗叫":
+                    return GameStyleMode.Dagoujiao;
                 case "csol":
                     return GameStyleMode.Csol;
                 case "crossfire":
@@ -171,6 +187,19 @@ namespace KillConfirmGameBar.Services
                 || string.Equals(value, "df", System.StringComparison.OrdinalIgnoreCase);
         }
 
+        public static bool IsDoubaoKey(string key)
+        {
+            return string.Equals((key ?? string.Empty).Trim(), "doubao", System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals((key ?? string.Empty).Trim(), "豆包", System.StringComparison.OrdinalIgnoreCase);
+        }
+
+        public static bool IsDagoujiaoKey(string key)
+        {
+            string value = (key ?? string.Empty).Trim();
+            return string.Equals(value, "dagoujiao", System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "大狗叫", System.StringComparison.OrdinalIgnoreCase);
+        }
+
         public static bool IsCsolKey(string key)
         {
             return !string.IsNullOrWhiteSpace(key)
@@ -184,7 +213,9 @@ namespace KillConfirmGameBar.Services
                 || IsBattlefield4Key(key)
                 || IsBattlefield2042Key(key)
                 || IsPubgKey(key)
-                || IsDeltaForceKey(key);
+                || IsDeltaForceKey(key)
+                || IsDoubaoKey(key)
+                || IsDagoujiaoKey(key);
         }
 
         public static GameStyleMode GetStyleForPackKey(string key)
@@ -229,6 +260,16 @@ namespace KillConfirmGameBar.Services
                 return GameStyleMode.DeltaForce;
             }
 
+            if (IsDoubaoKey(key))
+            {
+                return GameStyleMode.Doubao;
+            }
+
+            if (IsDagoujiaoKey(key))
+            {
+                return GameStyleMode.Dagoujiao;
+            }
+
             return GameStyleMode.Crossfire;
         }
 
@@ -255,6 +296,10 @@ namespace KillConfirmGameBar.Services
                     return "pubg";
                 case GameStyleMode.DeltaForce:
                     return "deltaforce";
+                case GameStyleMode.Doubao:
+                    return "doubao";
+                case GameStyleMode.Dagoujiao:
+                    return "dagoujiao";
                 case GameStyleMode.Csol:
                     return "csol4";
                 case GameStyleMode.Crossfire:
@@ -281,6 +326,10 @@ namespace KillConfirmGameBar.Services
                     return "pubg";
                 case GameStyleMode.DeltaForce:
                     return "deltaforce";
+                case GameStyleMode.Doubao:
+                    return "doubao";
+                case GameStyleMode.Dagoujiao:
+                    return "dagoujiao";
                 case GameStyleMode.Csol:
                     return "csol4";
                 case GameStyleMode.Crossfire:

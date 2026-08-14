@@ -45,6 +45,10 @@ namespace KillConfirmGameBar.Services
                     return Pubg;
                 case GameStyleMode.DeltaForce:
                     return DeltaForce;
+                case GameStyleMode.Doubao:
+                    return Doubao;
+                case GameStyleMode.Dagoujiao:
+                    return Dagoujiao;
                 case GameStyleMode.Csol:
                     return Csol;
                 case GameStyleMode.Crossfire:
@@ -240,6 +244,48 @@ namespace KillConfirmGameBar.Services
             WarningField = Color.FromArgb(255, 62, 39, 24),
             WarningBorder = Color.FromArgb(255, 255, 126, 75),
             WarningText = Color.FromArgb(255, 255, 210, 177)
+        };
+
+        public static readonly GameThemePalette Doubao = new GameThemePalette
+        {
+            Shell = Color.FromArgb(255, 24, 16, 8),
+            Panel = Color.FromArgb(246, 38, 25, 12),
+            Card = Color.FromArgb(255, 55, 36, 17),
+            Field = Color.FromArgb(255, 31, 20, 10),
+            SubtleField = Color.FromArgb(255, 78, 50, 20),
+            Border = Color.FromArgb(255, 255, 194, 78),
+            SoftBorder = Color.FromArgb(255, 139, 98, 47),
+            Text = Color.FromArgb(255, 255, 248, 225),
+            MutedText = Color.FromArgb(255, 226, 204, 157),
+            SubtleText = Color.FromArgb(255, 177, 145, 91),
+            Accent = Color.FromArgb(255, 255, 184, 47),
+            AccentSoft = Color.FromArgb(255, 82, 52, 12),
+            AccentText = Color.FromArgb(255, 255, 237, 178),
+            Secondary = Color.FromArgb(255, 255, 111, 46),
+            WarningField = Color.FromArgb(255, 79, 37, 16),
+            WarningBorder = Color.FromArgb(255, 255, 126, 46),
+            WarningText = Color.FromArgb(255, 255, 214, 145)
+        };
+
+        public static readonly GameThemePalette Dagoujiao = new GameThemePalette
+        {
+            Shell = Color.FromArgb(255, 18, 21, 16),
+            Panel = Color.FromArgb(246, 29, 34, 24),
+            Card = Color.FromArgb(255, 43, 50, 34),
+            Field = Color.FromArgb(255, 23, 28, 19),
+            SubtleField = Color.FromArgb(255, 62, 73, 48),
+            Border = Color.FromArgb(255, 181, 220, 83),
+            SoftBorder = Color.FromArgb(255, 92, 112, 67),
+            Text = Color.FromArgb(255, 247, 250, 235),
+            MutedText = Color.FromArgb(255, 202, 214, 176),
+            SubtleText = Color.FromArgb(255, 151, 166, 125),
+            Accent = Color.FromArgb(255, 156, 205, 58),
+            AccentSoft = Color.FromArgb(255, 48, 65, 25),
+            AccentText = Color.FromArgb(255, 225, 245, 165),
+            Secondary = Color.FromArgb(255, 238, 143, 48),
+            WarningField = Color.FromArgb(255, 75, 47, 20),
+            WarningBorder = Color.FromArgb(255, 239, 149, 56),
+            WarningText = Color.FromArgb(255, 255, 218, 159)
         };
     }
 }

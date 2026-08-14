@@ -142,6 +142,10 @@ namespace KillConfirmGameBar
                     return "ms-appx:///Assets/GameStyles/pubg/killconfirm/textures/killicon_scrolling_headshot.png";
                 case "deltaforce":
                     return "ms-appx:///Assets/GameStyles/deltaforce/killconfirm/textures/killicon_df_headshot.png";
+                case "doubao":
+                    return "ms-appx:///Assets/GameLogos/doubao.png";
+                case "dagoujiao":
+                    return "ms-appx:///Assets/GameLogos/dagoujiao.jpg";
                 default:
                     return "ms-appx:///Assets/KillConfirmCode/Original/badge_headshot.PNG";
             }
@@ -177,6 +181,10 @@ namespace KillConfirmGameBar
                     return "ms-appx:///Assets/GameStyles/pubg/killconfirm/textures/killicon_scrolling_headshot.png";
                 case "deltaforce":
                     return "ms-appx:///Assets/GameStyles/deltaforce/killconfirm/textures/killicon_df_headshot.png";
+                case "doubao":
+                    return "ms-appx:///Assets/GameLogos/doubao.png";
+                case "dagoujiao":
+                    return "ms-appx:///Assets/GameLogos/dagoujiao.jpg";
                 case "default":
                 default:
                     return "ms-appx:///Assets/KillConfirmCode/Original/badge_headshot.PNG";

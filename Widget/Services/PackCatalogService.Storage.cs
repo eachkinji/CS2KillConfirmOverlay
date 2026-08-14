@@ -124,7 +124,9 @@ namespace KillConfirmGameBar.Services
                     CreateBuiltInVoice("bf4", "Battlefield 4", true),
                     CreateBuiltInVoice("battlefield2042", "Battlefield 2042", true),
                     CreateBuiltInVoice("pubg", "PUBG", true),
-                    CreateBuiltInVoice("deltaforce", "Delta Force", true)
+                    CreateBuiltInVoice("deltaforce", "Delta Force", true),
+                    CreateBuiltInVoice("doubao", "豆包", true),
+                    CreateBuiltInVoice("dagoujiao", "大狗叫", true)
                 },
                 IconPacks = new List<IconPackItem>
                 {
@@ -142,7 +144,9 @@ namespace KillConfirmGameBar.Services
                     CreateBuiltInIcon("bf4", "Battlefield 4", true),
                     CreateBuiltInIcon("battlefield2042", "Battlefield 2042", true),
                     CreateBuiltInIcon("pubg", "PUBG", true),
-                    CreateBuiltInIcon("deltaforce", "Delta Force", true)
+                    CreateBuiltInIcon("deltaforce", "Delta Force", true),
+                    CreateBuiltInIcon("doubao", "豆包", true),
+                    CreateBuiltInIcon("dagoujiao", "大狗叫", true)
                 }
             };
 

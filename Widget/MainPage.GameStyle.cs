@@ -27,6 +27,8 @@ namespace KillConfirmGameBar
         private Battlefield2042AdvancedEffectsPanel _battlefield2042AdvancedEffectsPanel;
         private PubgAdvancedEffectsPanel _pubgAdvancedEffectsPanel;
         private DeltaForceAdvancedEffectsPanel _deltaForceAdvancedEffectsPanel;
+        private DoubaoAdvancedEffectsPanel _doubaoAdvancedEffectsPanel;
+        private DagoujiaoAdvancedEffectsPanel _dagoujiaoAdvancedEffectsPanel;
 
         private bool _suppressGameStyleEvents;
         private bool _suppressCrossfireSettingEvents;
@@ -339,6 +341,12 @@ namespace KillConfirmGameBar
                     break;
                 case GameStyleMode.DeltaForce:
                     panel = EnsureDeltaForceAdvancedSettingsPanel();
+                    break;
+                case GameStyleMode.Doubao:
+                    panel = EnsureDoubaoAdvancedSettingsPanel();
+                    break;
+                case GameStyleMode.Dagoujiao:
+                    panel = EnsureDagoujiaoAdvancedSettingsPanel();
                     break;
                 case GameStyleMode.Csol:
                     panel = EnsureCsolAdvancedSettingsPanel();
@@ -680,6 +688,45 @@ namespace KillConfirmGameBar
             return _deltaForceAdvancedEffectsPanel;
         }
 
+        private DoubaoAdvancedEffectsPanel EnsureDoubaoAdvancedSettingsPanel()
+        {
+            if (_doubaoAdvancedEffectsPanel == null)
+            {
+                _doubaoAdvancedEffectsPanel = new DoubaoAdvancedEffectsPanel();
+                _doubaoAdvancedEffectsPanel.StreakModeSelectionChanged += OnStreakModeSelectionChanged;
+            }
+
+            _doubaoAdvancedEffectsPanel.SelectStreakMode(
+                SharedStreakSettingsStore.Load(GameStyleMode.Doubao));
+            return _doubaoAdvancedEffectsPanel;
+        }
+
+        private DagoujiaoAdvancedEffectsPanel EnsureDagoujiaoAdvancedSettingsPanel()
+        {
+            if (_dagoujiaoAdvancedEffectsPanel == null)
+            {
+                _dagoujiaoAdvancedEffectsPanel = new DagoujiaoAdvancedEffectsPanel();
+                _dagoujiaoAdvancedEffectsPanel.StreakModeSelectionChanged += OnStreakModeSelectionChanged;
+                _dagoujiaoAdvancedEffectsPanel.DagoujiaoSettingsChanged += OnDagoujiaoSettingsChanged;
+            }
+            _dagoujiaoAdvancedEffectsPanel.SelectStreakMode(
+                SharedStreakSettingsStore.Load(GameStyleMode.Dagoujiao));
+            _ = _dagoujiaoAdvancedEffectsPanel.RefreshSettingsAsync();
+            return _dagoujiaoAdvancedEffectsPanel;
+        }
+
+        private async void OnDagoujiaoSettingsChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                await DagoujiaoSettingsStore.SyncServiceAsync();
+            }
+            catch (Exception ex)
+            {
+                App.Log("Sync Dagoujiao settings from desktop failed: " + ex.Message);
+            }
+        }
+
         private void OnMoneyRewardModeSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             string mode = "delta";
@@ -718,6 +765,8 @@ namespace KillConfirmGameBar
             else if (sender is DeltaForceAdvancedEffectsPanel pDF) mode = pDF.GetSelectedStreakMode(mode);
             else if (sender is PubgAdvancedEffectsPanel pPubg) mode = pPubg.GetSelectedStreakMode(mode);
             else if (sender is ValorantAdvancedEffectsPanel pVal) mode = pVal.GetSelectedStreakMode(mode);
+            else if (sender is DoubaoAdvancedEffectsPanel pDoubao) mode = pDoubao.GetSelectedStreakMode(mode);
+            else if (sender is DagoujiaoAdvancedEffectsPanel pDagoujiao) mode = pDagoujiao.GetSelectedStreakMode(mode);
 
             SharedStreakSettingsStore.Save(style, mode);
             await TrySyncSharedStreakSettingsAsync(style, mode);
@@ -768,6 +817,8 @@ namespace KillConfirmGameBar
             if (_battlefield2042AdvancedEffectsPanel != null) _battlefield2042AdvancedEffectsPanel.ApplyTheme(theme);
             if (_pubgAdvancedEffectsPanel != null) _pubgAdvancedEffectsPanel.ApplyTheme(theme);
             if (_deltaForceAdvancedEffectsPanel != null) _deltaForceAdvancedEffectsPanel.ApplyTheme(theme);
+            if (_doubaoAdvancedEffectsPanel != null) _doubaoAdvancedEffectsPanel.ApplyTheme(theme);
+            if (_dagoujiaoAdvancedEffectsPanel != null) _dagoujiaoAdvancedEffectsPanel.ApplyTheme(theme);
             AdvancedEffectsPanelSupport.ApplySoftenedTree(GameAdvancedSettingsPanelHost, theme);
             AdvancedEffectsPanelSupport.ApplySoftenedTree(
                 GameAdvancedSettingsPanelHost.Content as DependencyObject,
@@ -791,6 +842,8 @@ namespace KillConfirmGameBar
             if (_battlefield2042AdvancedEffectsPanel != null) _battlefield2042AdvancedEffectsPanel.ApplyLanguage(isChinese);
             if (_pubgAdvancedEffectsPanel != null) _pubgAdvancedEffectsPanel.ApplyLanguage(isChinese);
             if (_deltaForceAdvancedEffectsPanel != null) _deltaForceAdvancedEffectsPanel.ApplyLanguage(isChinese);
+            if (_doubaoAdvancedEffectsPanel != null) _doubaoAdvancedEffectsPanel.ApplyLanguage(isChinese);
+            if (_dagoujiaoAdvancedEffectsPanel != null) _dagoujiaoAdvancedEffectsPanel.ApplyLanguage(isChinese);
         }
 
         private static Brush CreateSettingsBackground(GameStyleMode mode)
@@ -831,6 +884,18 @@ namespace KillConfirmGameBar
             {
                 brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 9, 21, 19), Offset = 0 });
                 brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 37, 69, 47), Offset = 1 });
+            }
+            else if (mode == GameStyleMode.Doubao)
+            {
+                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 24, 16, 8), Offset = 0 });
+                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 86, 49, 15), Offset = 0.68 });
+                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 45, 20, 8), Offset = 1 });
+            }
+            else if (mode == GameStyleMode.Dagoujiao)
+            {
+                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 17, 23, 13), Offset = 0 });
+                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 55, 75, 30), Offset = 0.68 });
+                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 30, 38, 19), Offset = 1 });
             }
             else if (mode == GameStyleMode.Csol)
             {
@@ -891,6 +956,18 @@ namespace KillConfirmGameBar
                 brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 102, 214, 134), Offset = 0 });
                 brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 255, 135, 40), Offset = 0.58 });
                 brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 24, 58, 43), Offset = 1 });
+            }
+            else if (mode == GameStyleMode.Doubao)
+            {
+                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 255, 232, 150), Offset = 0 });
+                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 255, 176, 43), Offset = 0.55 });
+                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 152, 56, 15), Offset = 1 });
+            }
+            else if (mode == GameStyleMode.Dagoujiao)
+            {
+                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 223, 244, 160), Offset = 0 });
+                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 154, 205, 57), Offset = 0.55 });
+                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 67, 91, 34), Offset = 1 });
             }
             else if (mode == GameStyleMode.Csol)
             {

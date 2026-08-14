@@ -15,6 +15,7 @@ namespace KillConfirmGameBar.Services
         public const string NoneMode = "none";
         public const string LifeMode = "life";
         public const string CustomModeTag = "custom";
+        public const string LoopModeTag = "loop";
         public const string Timed5Mode = "timed_5";
         public const string Timed10Mode = "timed_10";
         public const string Timed15Mode = "timed_15";
@@ -22,8 +23,12 @@ namespace KillConfirmGameBar.Services
         public const double DefaultCustomSeconds = 1.0;
         public const double MinCustomSeconds = 0.1;
         public const double MaxCustomSeconds = 300.0;
+        public const int DefaultLoopKillCount = 5;
+        public const int MinLoopKillCount = 2;
+        public const int MaxLoopKillCount = 50;
 
         private const string CustomModePrefix = "custom:";
+        private const string LoopModePrefix = "loop:";
         private const string SettingPrefix = "KillStreakMode_";
         private const string LegacySharedSettingKey = "SharedStreakMode";
         private const string SpectatedKillEffectsSettingKey = "SpectatedKillEffectsEnabled";
@@ -114,6 +119,15 @@ namespace KillConfirmGameBar.Services
             TextBox customSecondsEditor,
             string fallback = LifeMode)
         {
+            return Read(selector, customSecondsEditor, null, fallback);
+        }
+
+        public static string Read(
+            ComboBox selector,
+            TextBox customSecondsEditor,
+            ComboBox loopKillCountSelector,
+            string fallback = LifeMode)
+        {
             if (selector?.SelectedItem is ComboBoxItem item
                 && item.Tag is string tag
                 && !string.IsNullOrWhiteSpace(tag))
@@ -121,6 +135,11 @@ namespace KillConfirmGameBar.Services
                 if (string.Equals(tag, CustomModeTag, StringComparison.OrdinalIgnoreCase))
                 {
                     return BuildCustomMode(ReadCustomSeconds(customSecondsEditor?.Text, fallback));
+                }
+
+                if (string.Equals(tag, LoopModeTag, StringComparison.OrdinalIgnoreCase))
+                {
+                    return BuildLoopMode(ReadLoopKillCount(loopKillCountSelector, fallback));
                 }
 
                 return Normalize(tag);
@@ -136,17 +155,29 @@ namespace KillConfirmGameBar.Services
 
         public static void Select(ComboBox selector, TextBox customSecondsEditor, string value)
         {
+            Select(selector, customSecondsEditor, null, value);
+        }
+
+        public static void Select(
+            ComboBox selector,
+            TextBox customSecondsEditor,
+            ComboBox loopKillCountSelector,
+            string value)
+        {
             if (selector == null)
             {
                 return;
             }
 
             string normalized = Normalize(value);
-            string target = IsCustomMode(normalized) ? CustomModeTag : normalized;
+            string target = IsCustomMode(normalized)
+                ? CustomModeTag
+                : IsLoopMode(normalized) ? LoopModeTag : normalized;
             if (customSecondsEditor != null)
             {
                 customSecondsEditor.Text = FormatSeconds(ReadCustomSeconds(null, normalized));
             }
+            SelectLoopKillCount(loopKillCountSelector, ReadLoopKillCount(null, normalized));
 
             foreach (object option in selector.Items)
             {
@@ -177,6 +208,23 @@ namespace KillConfirmGameBar.Services
                     CustomModeTag,
                     StringComparison.OrdinalIgnoreCase);
             customEditor.Visibility = isCustom ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        public static void UpdateLoopEditorVisibility(
+            ComboBox selector,
+            FrameworkElement loopEditor)
+        {
+            if (loopEditor == null)
+            {
+                return;
+            }
+
+            bool isLoop = selector?.SelectedItem is ComboBoxItem item
+                && string.Equals(
+                    item.Tag as string,
+                    LoopModeTag,
+                    StringComparison.OrdinalIgnoreCase);
+            loopEditor.Visibility = isLoop ? Visibility.Visible : Visibility.Collapsed;
         }
 
         public static void NormalizeCustomSecondsEditor(TextBox editor, string fallback)
@@ -247,6 +295,12 @@ namespace KillConfirmGameBar.Services
                 return BuildCustomMode(ReadCustomSeconds(null, value));
             }
 
+            if (string.Equals(value, LoopModeTag, StringComparison.OrdinalIgnoreCase)
+                || IsLoopMode(value))
+            {
+                return BuildLoopMode(ReadLoopKillCount(null, value));
+            }
+
             return LifeMode;
         }
 
@@ -256,9 +310,75 @@ namespace KillConfirmGameBar.Services
                 && value.Trim().StartsWith(CustomModePrefix, StringComparison.OrdinalIgnoreCase);
         }
 
+        public static bool IsLoopMode(string value)
+        {
+            return !string.IsNullOrWhiteSpace(value)
+                && value.Trim().StartsWith(LoopModePrefix, StringComparison.OrdinalIgnoreCase);
+        }
+
+        public static int ReadLoopKillCount(ComboBox selector, int fallback)
+        {
+            if (selector?.SelectedItem is ComboBoxItem item)
+            {
+                if (item.Tag is int count)
+                {
+                    return ClampLoopKillCount(count);
+                }
+
+                if (int.TryParse(item.Tag?.ToString(), out count))
+                {
+                    return ClampLoopKillCount(count);
+                }
+            }
+
+            return ClampLoopKillCount(fallback);
+        }
+
+        public static void SelectLoopKillCount(ComboBox selector, int count)
+        {
+            if (selector == null)
+            {
+                return;
+            }
+
+            int target = ClampLoopKillCount(count);
+            foreach (object option in selector.Items)
+            {
+                if (option is ComboBoxItem item
+                    && int.TryParse(item.Tag?.ToString(), out int itemCount)
+                    && itemCount == target)
+                {
+                    selector.SelectedItem = item;
+                    return;
+                }
+            }
+
+            selector.SelectedIndex = 0;
+        }
+
         private static string BuildCustomMode(double seconds)
         {
             return CustomModePrefix + FormatSeconds(seconds);
+        }
+
+        private static string BuildLoopMode(int kills)
+        {
+            return LoopModePrefix + ClampLoopKillCount(kills).ToString(CultureInfo.InvariantCulture);
+        }
+
+        private static int ReadLoopKillCount(ComboBox selector, string fallback)
+        {
+            int fallbackCount = DefaultLoopKillCount;
+            if (IsLoopMode(fallback))
+            {
+                string countText = fallback.Trim().Substring(LoopModePrefix.Length);
+                if (int.TryParse(countText, NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsed))
+                {
+                    fallbackCount = parsed;
+                }
+            }
+
+            return ReadLoopKillCount(selector, fallbackCount);
         }
 
         private static double ReadCustomSeconds(string text, string fallback)
@@ -306,6 +426,11 @@ namespace KillConfirmGameBar.Services
         private static double ClampSeconds(double seconds)
         {
             return Math.Max(MinCustomSeconds, Math.Min(MaxCustomSeconds, seconds));
+        }
+
+        private static int ClampLoopKillCount(int kills)
+        {
+            return Math.Max(MinLoopKillCount, Math.Min(MaxLoopKillCount, kills));
         }
 
         private static string FormatSeconds(double seconds)

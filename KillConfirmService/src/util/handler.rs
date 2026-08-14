@@ -19,7 +19,10 @@ use super::state::{
     PendingLastKill, TrackedRoundPhase,
 };
 use super::{money_delta, money_rules};
-use crate::soundpack::sound::play_audio;
+use crate::soundpack::sound::{
+    play_audio, play_bomb_defused_audio, play_bomb_exploded_audio, start_bomb_timer_audio,
+    stop_bomb_audio,
+};
 
 // GSI is throttled to 100ms. Keep only a very short weapon history so a weapon
 // switch cannot leak the previous weapon's knife/badge/reward into a later kill.
@@ -27,6 +30,14 @@ const WEAPON_KILL_GRACE_WINDOW: Duration = Duration::from_millis(250);
 // Round outcome normally follows the final kill in the next few GSI samples.
 // Anything older is too ambiguous to upgrade into a last-kill effect.
 const FINAL_KILL_GRACE_WINDOW: Duration = Duration::from_millis(350);
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum BombAudioTransition {
+    StartTimer,
+    Defused,
+    Exploded,
+    Stop,
+}
 
 fn map_weapon_badge_key(weapon_type: WeaponType) -> Option<&'static str> {
     match weapon_type {
@@ -316,6 +327,14 @@ pub async fn update(
         .as_ref()
         .and_then(|bomb| bomb.player.as_deref())
         .map(str::to_string);
+    let current_round_bomb_state = round
+        .and_then(|value| value.bomb.as_ref())
+        .map(|bomb| match bomb {
+            BombState::Planted => "planted",
+            BombState::Defused => "defused",
+            BombState::Exploded => "exploded",
+        })
+        .map(str::to_string);
     let current_round_phase = round
         .map(|value| map_round_phase(&value.phase))
         .or_else(|| infer_round_phase_from_kills(ply_state.round_kills));
@@ -386,6 +405,7 @@ pub async fn update(
     let previous_money_epoch = tracked_player.money_epoch;
     let previous_bomb_state = binding.last_bomb_state.clone();
     let previous_bomb_player = binding.last_bomb_player.clone();
+    let previous_round_bomb_state = binding.last_round_bomb_state.clone();
     let previous_crossfire_streak_kills = tracked_player.crossfire_streak_kills;
     let previous_crossfire_kill_at = tracked_player.last_crossfire_kill_at;
     let recent_weapon_context = tracked_player
@@ -440,6 +460,11 @@ pub async fn update(
     let round_changed = previous_round != current_round;
     let round_reset =
         round_changed || matches!(current_round_phase, Some(TrackedRoundPhase::FreezeTime));
+    let bomb_audio_transition = resolve_bomb_audio_transition(
+        previous_round_bomb_state.as_deref(),
+        current_round_bomb_state.as_deref(),
+        round_reset,
+    );
     let phase_transition_to_over = previous_round_phase == Some(TrackedRoundPhase::Live)
         && current_round_phase == Some(TrackedRoundPhase::Over);
     let latest_round_outcome = map_data
@@ -890,6 +915,7 @@ pub async fn update(
     let mut binding = app_state.mutable.write().await;
     binding.last_bomb_state = current_bomb_state;
     binding.last_bomb_player = current_bomb_player;
+    binding.last_round_bomb_state = current_round_bomb_state;
     binding.active_observed_player_id = Some(steamid.clone());
 
     let tracked_player = &mut binding.active_player;
@@ -933,6 +959,14 @@ pub async fn update(
     }
 
     drop(binding);
+
+    match bomb_audio_transition {
+        Some(BombAudioTransition::StartTimer) => start_bomb_timer_audio(app_state.clone()),
+        Some(BombAudioTransition::Defused) => play_bomb_defused_audio(app_state.clone()),
+        Some(BombAudioTransition::Exploded) => play_bomb_exploded_audio(app_state.clone()),
+        Some(BombAudioTransition::Stop) => stop_bomb_audio(&app_state),
+        None => {}
+    }
 
     if let Some(kill_event) = kill_event_to_send {
         let gsi_total_ms = gsi_start.elapsed().as_millis();
@@ -1001,6 +1035,23 @@ pub async fn update(
     }
 
     Ok(StatusCode::OK)
+}
+
+fn resolve_bomb_audio_transition(
+    previous: Option<&str>,
+    current: Option<&str>,
+    round_reset: bool,
+) -> Option<BombAudioTransition> {
+    match (previous, current) {
+        (Some("planted"), Some("defused")) => return Some(BombAudioTransition::Defused),
+        (Some("planted"), Some("exploded")) => return Some(BombAudioTransition::Exploded),
+        (_, Some("planted")) if previous != Some("planted") => {
+            return Some(BombAudioTransition::StartTimer);
+        }
+        _ => {}
+    }
+
+    round_reset.then_some(BombAudioTransition::Stop)
 }
 
 fn parse_gsi_body(body: &[u8], game_version: GsiGameVersion) -> Result<Body, GsiBodyError> {
@@ -1166,7 +1217,7 @@ fn resolve_crossfire_streak_count(
     }
 
     let timeout = match mode {
-        CrossfireStreakMode::None | CrossfireStreakMode::Life => None,
+        CrossfireStreakMode::None | CrossfireStreakMode::Life | CrossfireStreakMode::Loop => None,
         CrossfireStreakMode::Custom => Some(Duration::from_millis(custom_window_ms)),
         CrossfireStreakMode::Timed5 => Some(Duration::from_secs(5)),
         CrossfireStreakMode::Timed10 => Some(Duration::from_secs(10)),
@@ -1185,7 +1236,13 @@ fn resolve_crossfire_streak_count(
         previous_count
     };
 
-    base.saturating_add(kill_delta)
+    let total = base.saturating_add(kill_delta);
+    if mode != CrossfireStreakMode::Loop || total == 0 {
+        return total;
+    }
+
+    let loop_limit = custom_window_ms.clamp(2, 50) as u16;
+    ((total - 1) % loop_limit) + 1
 }
 
 #[cfg(test)]
@@ -1424,6 +1481,43 @@ mod tests {
     }
 
     #[test]
+    fn loop_mode_restarts_after_the_selected_kill_count() {
+        assert_eq!(
+            resolve_crossfire_streak_count(
+                4,
+                Some(Duration::from_secs(120)),
+                CrossfireStreakMode::Loop,
+                5,
+                false,
+                1,
+            ),
+            5
+        );
+        assert_eq!(
+            resolve_crossfire_streak_count(
+                5,
+                Some(Duration::from_secs(120)),
+                CrossfireStreakMode::Loop,
+                5,
+                false,
+                1,
+            ),
+            1
+        );
+        assert_eq!(
+            resolve_crossfire_streak_count(
+                4,
+                None,
+                CrossfireStreakMode::Loop,
+                5,
+                true,
+                1,
+            ),
+            1
+        );
+    }
+
+    #[test]
     fn timed_modes_reset_at_the_selected_interval() {
         for (mode, seconds) in [
             (CrossfireStreakMode::Timed5, 5),
@@ -1558,4 +1652,32 @@ fn infer_round_phase_from_kills(current_kills: u16) -> Option<TrackedRoundPhase>
     }
 
     None
+}
+#[cfg(test)]
+#[test]
+fn bomb_audio_only_reacts_to_planted_edges_and_terminal_outcomes() {
+    assert_eq!(
+        resolve_bomb_audio_transition(None, Some("planted"), false),
+        Some(BombAudioTransition::StartTimer)
+    );
+    assert_eq!(
+        resolve_bomb_audio_transition(Some("planted"), Some("planted"), false),
+        None
+    );
+    assert_eq!(
+        resolve_bomb_audio_transition(Some("planted"), Some("defused"), false),
+        Some(BombAudioTransition::Defused)
+    );
+    assert_eq!(
+        resolve_bomb_audio_transition(Some("planted"), Some("exploded"), false),
+        Some(BombAudioTransition::Exploded)
+    );
+    assert_eq!(
+        resolve_bomb_audio_transition(Some("defused"), None, true),
+        Some(BombAudioTransition::Stop)
+    );
+    assert_eq!(
+        resolve_bomb_audio_transition(None, Some("defused"), false),
+        None
+    );
 }

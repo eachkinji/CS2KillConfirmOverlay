@@ -170,10 +170,24 @@ namespace KillConfirmGameBar
             await SyncAudioDeviceAsync();
             await SyncCrossfireGameplaySettingsAsync();
             await SyncCsolGameplaySettingsAsync();
+            await SyncDagoujiaoSettingsAsync();
+            await SyncBombAudioSettingsAsync();
             await SyncSharedStreakSettingsAsync();
             await SyncCombatEventSoundSettingsAsync();
             await SyncSpectatedKillEffectsAsync();
             await SyncGsiGameVersionAsync();
+        }
+
+        private static async Task SyncBombAudioSettingsAsync()
+        {
+            try
+            {
+                await BombAudioSettingsStore.SyncAsync();
+            }
+            catch (Exception ex)
+            {
+                App.Log("Set bomb audio settings failed: " + ex);
+            }
         }
 
         // The service always starts on the system default device, so re-apply the

@@ -187,6 +187,12 @@ namespace KillConfirmGameBar
                 case GameStyleMode.DeltaForce:
                     PlayDeltaForcePrimaryAnimation(killEvent);
                     return;
+                case GameStyleMode.Doubao:
+                    PlayDoubaoPrimaryAnimation(killEvent);
+                    return;
+                case GameStyleMode.Dagoujiao:
+                    PlayDagoujiaoPrimaryAnimation(killEvent);
+                    return;
                 case GameStyleMode.Crossfire:
                 default:
                     PlayCrossfirePrimaryAnimation(killEvent);
@@ -301,6 +307,16 @@ namespace KillConfirmGameBar
                 GetBattlefieldEventKind(killEvent),
                 killEvent.RoundNumber,
                 killEvent.MoneyEpoch);
+        }
+
+        private void PlayDoubaoPrimaryAnimation(KillEvent killEvent)
+        {
+            PrimaryKillAnimation.PlayDoubaoKill(killEvent.KillCount);
+        }
+
+        private void PlayDagoujiaoPrimaryAnimation(KillEvent killEvent)
+        {
+            PrimaryKillAnimation.PlayDagoujiaoKill(killEvent.KillCount, killEvent.IsHeadshot);
         }
 
         private static bool IsBattlefieldTextEvent(KillEvent killEvent)
@@ -656,13 +672,19 @@ namespace KillConfirmGameBar
 
         private void ApplyAnimationTransform()
         {
-            double renderScale = Math.Max(1.0, Math.Min(4.0, _animationScale));
+            bool directValorantPresentation = Controls.KillConfirmAnimation.IsValorantPresentationConfigured;
+            double renderScale = directValorantPresentation
+                ? 1.0
+                : Math.Max(1.0, Math.Min(4.0, _animationScale));
+            PrimaryKillAnimation.SetPresentationScale(_animationScale);
+            BadgeKillAnimation.SetPresentationScale(_animationScale);
             PrimaryKillAnimation.SetRenderResolutionScale(renderScale);
             BadgeKillAnimation.SetRenderResolutionScale(renderScale);
-            AnimationTransform.ScaleX = _animationScale;
-            AnimationTransform.ScaleY = _animationScale;
+            AnimationTransform.ScaleX = directValorantPresentation ? 1.0 : _animationScale;
+            AnimationTransform.ScaleY = directValorantPresentation ? 1.0 : _animationScale;
             AnimationTransform.TranslateX = _animationHorizontalOffset;
             AnimationTransform.TranslateY = GetResolvedAnimationOffset();
+            UpdateAnimationDragOutlineSize();
         }
 
         private void OnAnimationLayerSizeChanged(object sender, SizeChangedEventArgs e)

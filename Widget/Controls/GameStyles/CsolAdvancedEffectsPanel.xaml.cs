@@ -191,7 +191,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
             try
             {
                 StreakEditor.SelectValue(streakMode);
-                SelectTaggedItem(PrioritySelector, specialVoicePriority ? "special" : "streak", "special");
+                SelectTaggedItem(PrioritySelector, specialVoicePriority ? "special" : "streak", "streak");
                 SelectTaggedItem(
                     FirstKillIconSelector,
                     NormalizeIcon(firstKillIcon, CsolVoiceSettingsStore.FirstKillIcon),
@@ -231,7 +231,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
             try
             {
                 StreakEditor.SelectValue(SharedStreakSettingsStore.LifeMode);
-                SelectTaggedItem(PrioritySelector, "special", "special");
+                SelectTaggedItem(PrioritySelector, "streak", "streak");
                 SelectTaggedItem(FirstKillIconSelector, CsolVoiceSettingsStore.FirstKillIcon, CsolVoiceSettingsStore.FirstKillIcon);
                 SelectTaggedItem(LastKillIconSelector, CsolVoiceSettingsStore.RevengeIcon, CsolVoiceSettingsStore.RevengeIcon);
                 foreach ((ComboBox selector, string _) in GetVoiceSelectors(this))

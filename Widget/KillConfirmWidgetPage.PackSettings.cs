@@ -157,6 +157,9 @@ namespace KillConfirmGameBar
             }
 
             Controls.KillConfirmAnimation.ConfigureIconPack(iconPack);
+            PrimaryKillAnimation?.RefreshPresentationLayout();
+            BadgeKillAnimation?.RefreshPresentationLayout();
+            ApplyAnimationTransform();
         }
     }
 }

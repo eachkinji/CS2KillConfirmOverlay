@@ -22,10 +22,23 @@ namespace KillConfirmGameBar
                 return;
             }
 
-            await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, async () =>
+            try
             {
-                await InitializePackSelectorsAsync();
-            });
+                await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, async () =>
+                {
+                    if (_isPageActive)
+                    {
+                        await InitializePackSelectorsAsync();
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                if (_isPageActive)
+                {
+                    App.LogCrash("Pack catalog dispatch failed: " + ex);
+                }
+            }
         }
 
         private async Task InitializePackSelectorsAsync()
@@ -373,6 +386,10 @@ namespace KillConfirmGameBar
                     return "ms-appx:///Assets/GameStyles/pubg/killconfirm/textures/killicon_scrolling_headshot.png";
                 case "deltaforce":
                     return "ms-appx:///Assets/GameStyles/deltaforce/killconfirm/textures/killicon_df_headshot.png";
+                case "doubao":
+                    return "ms-appx:///Assets/GameLogos/doubao.png";
+                case "dagoujiao":
+                    return "ms-appx:///Assets/GameLogos/dagoujiao.jpg";
                 case "csol4":
                     return "ms-appx:///Assets/GameLogos/csol.png";
                 default:
@@ -415,6 +432,10 @@ namespace KillConfirmGameBar
                     return "ms-appx:///Assets/GameStyles/pubg/killconfirm/textures/killicon_scrolling_headshot.png";
                 case "deltaforce":
                     return "ms-appx:///Assets/GameStyles/deltaforce/killconfirm/textures/killicon_df_headshot.png";
+                case "doubao":
+                    return "ms-appx:///Assets/GameLogos/doubao.png";
+                case "dagoujiao":
+                    return "ms-appx:///Assets/GameLogos/dagoujiao.jpg";
                 case "csol4":
                     return "ms-appx:///Assets/GameLogos/csol.png";
                 case "default":
@@ -439,6 +460,10 @@ namespace KillConfirmGameBar
                     return "PUBG";
                 case "deltaforce":
                     return "Delta Force";
+                case "doubao":
+                    return "豆包";
+                case "dagoujiao":
+                    return "大狗叫";
                 case "crossfire_swat_gr":
                     return "swat GR";
                 case "csol4":
@@ -466,6 +491,10 @@ namespace KillConfirmGameBar
                     return "PUBG";
                 case "deltaforce":
                     return "Delta Force";
+                case "doubao":
+                    return "豆包";
+                case "dagoujiao":
+                    return "大狗叫";
                 case "default":
                     return "\u539f\u7248";
                 case "csol4":

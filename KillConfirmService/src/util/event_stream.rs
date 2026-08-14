@@ -22,14 +22,18 @@ use windows_sys::Win32::System::Threading::{
 };
 
 use crate::soundpack::Preset;
-use crate::soundpack::sound::{play_audio, warm_audio_cache};
-use crate::util::logging::{developer_logging_enabled, perf_trace, service_log, set_developer_logging_enabled};
+use crate::soundpack::sound::{
+    play_audio, refresh_bomb_audio_volume, stop_bomb_audio, warm_audio_cache,
+};
+use crate::util::logging::{
+    developer_logging_enabled, perf_trace, service_log, set_developer_logging_enabled,
+};
 use crate::util::playback::{get_output_stream_with_name, output_device_names};
 
 use super::state::{
-    AppState, CrossfireStreakMode, EventBatch, EventChannel, GsiGameVersion, KillEvent,
-    EventSoundMode, EventSoundRoute, EventSoundSettings, MoneyRewardMode, format_streak_setting,
-    parse_streak_setting,
+    AppState, CrossfireStreakMode, DEFAULT_BOMB_AUDIO_SPEED_PERCENTS, EventBatch, EventChannel,
+    EventSoundMode, EventSoundRoute, EventSoundSettings, GsiGameVersion, KillEvent,
+    MoneyRewardMode, format_streak_setting, parse_streak_setting,
 };
 
 #[derive(Debug, Deserialize)]
@@ -90,12 +94,44 @@ pub struct VolumeRequest {
 }
 
 #[derive(Debug, Deserialize)]
+pub struct BombAudioSettingsRequest {
+    pub enabled: bool,
+    pub volume_percent: u32,
+    #[serde(default = "default_bomb_audio_speed_percents")]
+    pub speed_percents: [u32; 8],
+}
+
+fn default_bomb_audio_speed_percents() -> [u32; 8] {
+    DEFAULT_BOMB_AUDIO_SPEED_PERCENTS
+}
+
+#[derive(Debug, Deserialize)]
 pub struct MoneyModeRequest {
     pub mode: String,
 }
 
 fn default_true() -> bool {
     true
+}
+
+fn default_dagoujiao_common_audio_path() -> String {
+    "builtin:common.wav".to_string()
+}
+
+fn default_dagoujiao_epic_audio_path() -> String {
+    "builtin:epic.wav".to_string()
+}
+
+fn default_dagoujiao_headshot_audio_path() -> String {
+    "builtin:jiaojiaojiao.wav".to_string()
+}
+
+fn default_dagoujiao_initial_playback_speed() -> f32 {
+    0.5
+}
+
+fn default_dagoujiao_maximum_playback_speed() -> f32 {
+    2.0
 }
 
 #[derive(Debug, Deserialize)]
@@ -181,7 +217,7 @@ pub struct CrossfireSettingsResponse {
 pub struct CsolSettingsRequest {
     #[serde(default)]
     pub voice_picks: HashMap<String, String>,
-    #[serde(default = "default_true")]
+    #[serde(default)]
     pub special_voice_priority: bool,
 }
 
@@ -190,6 +226,30 @@ pub struct CsolSettingsResponse {
     pub active: bool,
     pub voice_picks: HashMap<String, String>,
     pub special_voice_priority: bool,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct DagoujiaoSettingsRequest {
+    pub epic_kill_count: u32,
+    pub headshot_priority: bool,
+    #[serde(default = "default_dagoujiao_initial_playback_speed")]
+    pub initial_playback_speed: f32,
+    #[serde(default = "default_dagoujiao_maximum_playback_speed")]
+    pub maximum_playback_speed: f32,
+    #[serde(default = "default_dagoujiao_common_audio_path")]
+    pub common_audio_path: String,
+    #[serde(default = "default_dagoujiao_epic_audio_path")]
+    pub epic_audio_path: String,
+    #[serde(default = "default_dagoujiao_headshot_audio_path")]
+    pub headshot_audio_path: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct DagoujiaoSettingsResponse {
+    pub epic_kill_count: u32,
+    pub headshot_priority: bool,
+    pub initial_playback_speed: f32,
+    pub maximum_playback_speed: f32,
 }
 
 #[derive(Debug, Serialize)]
@@ -222,6 +282,13 @@ pub struct SpectatorSettingsResponse {
 #[derive(Debug, Serialize)]
 pub struct GsiGameSettingsResponse {
     pub version: &'static str,
+}
+
+#[derive(Debug, Serialize)]
+pub struct BombAudioSettingsResponse {
+    pub enabled: bool,
+    pub volume_percent: u32,
+    pub speed_percents: [u32; 8],
 }
 
 #[derive(Debug, Serialize)]
@@ -324,6 +391,14 @@ const SOUND_PACK_OPTIONS: &[SoundPackOption] = &[
     SoundPackOption {
         preset: "deltaforce",
         display_name: "Delta Force",
+    },
+    SoundPackOption {
+        preset: "dagoujiao",
+        display_name: "大狗叫",
+    },
+    SoundPackOption {
+        preset: "doubao",
+        display_name: "豆包",
     },
     SoundPackOption {
         preset: "csol4",
@@ -528,7 +603,10 @@ pub async fn install_counter_strike_cfg(
     fs::create_dir_all(&cfg_folder).map_err(|error| {
         (
             StatusCode::INTERNAL_SERVER_ERROR,
-            format!("failed to create cfg folder {}: {error}", cfg_folder.display()),
+            format!(
+                "failed to create cfg folder {}: {error}",
+                cfg_folder.display()
+            ),
         )
     })?;
     let cfg_path = cfg_folder.join(GSI_CONFIG_FILE_NAME);
@@ -538,7 +616,10 @@ pub async fn install_counter_strike_cfg(
             format!("failed to write cfg {}: {error}", cfg_path.display()),
         )
     })?;
-    service_log(&format!("installed GSI cfg through service: {}", cfg_path.display()));
+    service_log(&format!(
+        "installed GSI cfg through service: {}",
+        cfg_path.display()
+    ));
 
     Ok(Json(Cs2RootResponse {
         found: true,
@@ -559,7 +640,12 @@ fn counter_strike_cfg_status(root: &std::path::Path, version: GsiGameVersion) ->
     let Ok(actual) = fs::read_to_string(cfg_path) else {
         return "missing";
     };
-    let normalize = |value: &str| value.trim_start_matches('\u{feff}').replace("\r\n", "\n").replace('\r', "\n");
+    let normalize = |value: &str| {
+        value
+            .trim_start_matches('\u{feff}')
+            .replace("\r\n", "\n")
+            .replace('\r', "\n")
+    };
     if normalize(&actual) == normalize(GSI_CONFIG_TEXT) {
         "ready"
     } else {
@@ -671,12 +757,49 @@ pub async fn audio_volume(
 ) -> Json<HealthResponse> {
     let percent = request.percent.min(200);
     app_state.volume_percent.store(percent, Ordering::Relaxed);
+    refresh_bomb_audio_volume(&app_state);
     service_log(&format!("audio volume set to {percent}%"));
 
     Json(HealthResponse {
         ok: true,
         service: "kill-confirm-gamebar",
     })
+}
+
+pub async fn bomb_audio_settings(
+    State(app_state): State<Arc<AppState>>,
+) -> Json<BombAudioSettingsResponse> {
+    Json(bomb_audio_settings_response(&app_state))
+}
+
+pub async fn set_bomb_audio_settings(
+    State(app_state): State<Arc<AppState>>,
+    Json(request): Json<BombAudioSettingsRequest>,
+) -> Json<BombAudioSettingsResponse> {
+    let volume_percent = request.volume_percent.min(100);
+    app_state
+        .bomb_audio_volume_percent
+        .store(volume_percent, Ordering::Relaxed);
+    app_state
+        .bomb_audio_enabled
+        .store(request.enabled, Ordering::Relaxed);
+    for (target, requested) in app_state
+        .bomb_audio_speed_percents
+        .iter()
+        .zip(request.speed_percents.iter().copied())
+    {
+        target.store(requested.clamp(25, 400), Ordering::Relaxed);
+    }
+    if request.enabled {
+        refresh_bomb_audio_volume(&app_state);
+    } else {
+        stop_bomb_audio(&app_state);
+    }
+    service_log(&format!(
+        "bomb audio settings: enabled={}, volume={volume_percent}%, speeds={:?}",
+        request.enabled, request.speed_percents
+    ));
+    Json(bomb_audio_settings_response(&app_state))
 }
 
 pub async fn money_mode(State(app_state): State<Arc<AppState>>) -> Json<MoneyModeResponse> {
@@ -793,9 +916,7 @@ pub async fn set_crossfire_settings(
     Ok(Json(crossfire_settings_response(&app_state)))
 }
 
-pub async fn csol_settings(
-    State(app_state): State<Arc<AppState>>,
-) -> Json<CsolSettingsResponse> {
+pub async fn csol_settings(State(app_state): State<Arc<AppState>>) -> Json<CsolSettingsResponse> {
     Json(csol_settings_response(&app_state).await)
 }
 
@@ -818,6 +939,57 @@ pub async fn set_csol_settings(
         .store(request.special_voice_priority, Ordering::Relaxed);
 
     Ok(Json(csol_settings_response(&app_state).await))
+}
+
+pub async fn dagoujiao_settings(
+    State(app_state): State<Arc<AppState>>,
+) -> Json<DagoujiaoSettingsResponse> {
+    Json(dagoujiao_settings_response(&app_state))
+}
+
+pub async fn set_dagoujiao_settings(
+    State(app_state): State<Arc<AppState>>,
+    Json(request): Json<DagoujiaoSettingsRequest>,
+) -> Json<DagoujiaoSettingsResponse> {
+    let epic_kill_count = request.epic_kill_count.clamp(3, 50);
+    app_state
+        .dagoujiao_epic_kill_count
+        .store(epic_kill_count, Ordering::Relaxed);
+    app_state
+        .dagoujiao_headshot_priority
+        .store(request.headshot_priority, Ordering::Relaxed);
+    let initial_playback_speed = request.initial_playback_speed.clamp(0.25, 4.0);
+    let maximum_playback_speed = request.maximum_playback_speed.clamp(0.25, 4.0);
+    app_state.dagoujiao_initial_playback_speed_percent.store(
+        (initial_playback_speed * 100.0).round() as u32,
+        Ordering::Relaxed,
+    );
+    app_state.dagoujiao_maximum_playback_speed_percent.store(
+        (maximum_playback_speed * 100.0).round() as u32,
+        Ordering::Relaxed,
+    );
+    {
+        let mut paths = app_state.dagoujiao_audio_paths.write().await;
+        paths.insert("common".to_string(), request.common_audio_path.clone());
+        paths.insert("epic".to_string(), request.epic_audio_path.clone());
+        paths.insert("headshot".to_string(), request.headshot_audio_path.clone());
+    }
+    service_log(&format!(
+        "Dagoujiao settings: epic_kill_count={}, headshot_priority={}, playback_speed={:.2}x->{:.2}x, custom_audio={}",
+        epic_kill_count,
+        request.headshot_priority,
+        initial_playback_speed,
+        maximum_playback_speed,
+        [
+            &request.common_audio_path,
+            &request.epic_audio_path,
+            &request.headshot_audio_path
+        ]
+        .iter()
+        .filter(|path| !path.is_empty() && !path.starts_with("builtin:"))
+        .count()
+    ));
+    Json(dagoujiao_settings_response(&app_state))
 }
 
 pub async fn streak_settings(
@@ -998,6 +1170,7 @@ pub async fn set_gsi_game_settings(
         mutable.active_observed_player_id = None;
         mutable.last_bomb_state = None;
         mutable.last_bomb_player = None;
+        mutable.last_round_bomb_state = None;
     }
 
     service_log(&format!("GSI game version: {}", version.as_str()));
@@ -1271,6 +1444,8 @@ fn resolve_soundpack_alias(value: &str) -> Option<&'static str> {
         "bf2042" | "battlefield2042" | "battlefield_2042" | "2042" => Some("battlefield2042"),
         "pubg" | "pubg_elimination" | "pubg_subtitle" => Some("pubg"),
         "delta" | "df" | "deltaforce" | "delta_force" => Some("deltaforce"),
+        "dagoujiao" | "da_gou_jiao" => Some("dagoujiao"),
+        "doubao" | "dou_bao" => Some("doubao"),
         "csol4" | "csol" => Some("csol4"),
         _ => None,
     }
@@ -1326,6 +1501,23 @@ async fn csol_settings_response(app_state: &AppState) -> CsolSettingsResponse {
     }
 }
 
+fn dagoujiao_settings_response(app_state: &AppState) -> DagoujiaoSettingsResponse {
+    DagoujiaoSettingsResponse {
+        epic_kill_count: app_state.dagoujiao_epic_kill_count.load(Ordering::Relaxed),
+        headshot_priority: app_state
+            .dagoujiao_headshot_priority
+            .load(Ordering::Relaxed),
+        initial_playback_speed: app_state
+            .dagoujiao_initial_playback_speed_percent
+            .load(Ordering::Relaxed) as f32
+            / 100.0,
+        maximum_playback_speed: app_state
+            .dagoujiao_maximum_playback_speed_percent
+            .load(Ordering::Relaxed) as f32
+            / 100.0,
+    }
+}
+
 fn streak_settings_response(app_state: &AppState) -> StreakSettingsResponse {
     let mode = CrossfireStreakMode::from_u8(app_state.shared_streak_mode.load(Ordering::Relaxed));
     StreakSettingsResponse {
@@ -1367,6 +1559,21 @@ fn gsi_game_settings_response(app_state: &AppState) -> GsiGameSettingsResponse {
     GsiGameSettingsResponse {
         version: GsiGameVersion::from_u8(app_state.gsi_game_version.load(Ordering::Relaxed))
             .as_str(),
+    }
+}
+
+fn bomb_audio_settings_response(app_state: &AppState) -> BombAudioSettingsResponse {
+    BombAudioSettingsResponse {
+        enabled: app_state.bomb_audio_enabled.load(Ordering::Relaxed),
+        volume_percent: app_state
+            .bomb_audio_volume_percent
+            .load(Ordering::Relaxed)
+            .min(100),
+        speed_percents: std::array::from_fn(|index| {
+            app_state.bomb_audio_speed_percents[index]
+                .load(Ordering::Relaxed)
+                .clamp(25, 400)
+        }),
     }
 }
 
@@ -1514,9 +1721,8 @@ fn process_image_path(process_id: u32) -> Option<PathBuf> {
     let mut buffer = vec![0u16; size as usize];
     loop {
         let mut actual_size = size;
-        if unsafe {
-            QueryFullProcessImageNameW(handle, 0, buffer.as_mut_ptr(), &mut actual_size)
-        } != 0
+        if unsafe { QueryFullProcessImageNameW(handle, 0, buffer.as_mut_ptr(), &mut actual_size) }
+            != 0
         {
             let value = String::from_utf16_lossy(&buffer[..actual_size as usize]);
             unsafe { CloseHandle(handle) };
@@ -1545,30 +1751,63 @@ fn zero_to_none(value: u64) -> Option<u64> {
 
 #[cfg(test)]
 mod tests {
-    use super::CsolSettingsRequest;
+    use super::{BombAudioSettingsRequest, CsolSettingsRequest, DagoujiaoSettingsRequest};
 
     #[test]
-    fn csol_settings_request_defaults_priority_to_special_first() {
+    fn csol_settings_request_defaults_priority_to_streak_first() {
         let request: CsolSettingsRequest = serde_json::from_str("{}").unwrap();
         assert!(request.voice_picks.is_empty());
-        assert!(request.special_voice_priority);
-    }
-
-    #[test]
-    fn csol_settings_request_parses_voice_picks() {
-        let json = r#"{"voice_picks":{"1":"Crazy.wav","knife":"random"},"special_voice_priority":false}"#;
-        let request: CsolSettingsRequest = serde_json::from_str(json).unwrap();
-        assert_eq!(request.voice_picks.get("1").map(String::as_str), Some("Crazy.wav"));
-        assert_eq!(request.voice_picks.get("knife").map(String::as_str), Some("random"));
         assert!(!request.special_voice_priority);
     }
 
     #[test]
-    fn soundpack_alias_resolves_csol4() {
+    fn bomb_audio_settings_request_uses_new_default_speed_segments() {
+        let request: BombAudioSettingsRequest =
+            serde_json::from_str(r#"{"enabled":false,"volume_percent":50}"#).unwrap();
+        assert_eq!(
+            request.speed_percents,
+            [50, 70, 80, 100, 110, 120, 130, 150]
+        );
+    }
+
+    #[test]
+    fn csol_settings_request_parses_voice_picks() {
+        let json =
+            r#"{"voice_picks":{"1":"Crazy.wav","knife":"random"},"special_voice_priority":false}"#;
+        let request: CsolSettingsRequest = serde_json::from_str(json).unwrap();
+        assert_eq!(
+            request.voice_picks.get("1").map(String::as_str),
+            Some("Crazy.wav")
+        );
+        assert_eq!(
+            request.voice_picks.get("knife").map(String::as_str),
+            Some("random")
+        );
+        assert!(!request.special_voice_priority);
+    }
+
+    #[test]
+    fn dagoujiao_old_settings_request_gets_new_audio_defaults() {
+        let request: DagoujiaoSettingsRequest =
+            serde_json::from_str(r#"{"epic_kill_count":5,"headshot_priority":true}"#).unwrap();
+        assert_eq!(request.common_audio_path, "builtin:common.wav");
+        assert_eq!(request.epic_audio_path, "builtin:epic.wav");
+        assert_eq!(request.headshot_audio_path, "builtin:jiaojiaojiao.wav");
+        assert!((request.initial_playback_speed - 0.5).abs() < f32::EPSILON);
+        assert!((request.maximum_playback_speed - 2.0).abs() < f32::EPSILON);
+    }
+
+    #[test]
+    fn soundpack_alias_resolves_csol4_and_doubao() {
         assert_eq!(super::resolve_soundpack_alias("csol4"), Some("csol4"));
         assert_eq!(super::resolve_soundpack_alias("csol"), Some("csol4"));
         assert_eq!(super::resolve_soundpack_alias("CSOL4"), Some("csol4"));
-        assert_eq!(super::resolve_soundpack_alias("crossfire_swat_gr"), Some("crossfire_swat_gr"));
+        assert_eq!(
+            super::resolve_soundpack_alias("crossfire_swat_gr"),
+            Some("crossfire_swat_gr")
+        );
+        assert_eq!(super::resolve_soundpack_alias("doubao"), Some("doubao"));
+        assert_eq!(super::resolve_soundpack_alias("DOU_BAO"), Some("doubao"));
         assert_eq!(super::resolve_soundpack_alias("unsupported_pack"), None);
     }
 }

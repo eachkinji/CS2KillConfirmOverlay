@@ -8,7 +8,8 @@ param(
     [string]$CertificatePfxPath = "",
     [string]$CertificatePassword = "",
     [string]$CertificateThumbprint = "",
-    [string]$CertificateCerPath = ""
+    [string]$CertificateCerPath = "",
+    [switch]$SkipWithDependencies
 )
 
 $ErrorActionPreference = "Stop"
@@ -104,7 +105,33 @@ function Invoke-InstallerCompile {
     }
 }
 
+$SkipWith = $false
+if ($SkipWithDependencies) {
+    $SkipWith = $true
+    Write-Host "SkipWithDependencies: only building the dependency-free installer."
+}
+else {
+    Write-Host "Building both installers (with and without dependencies)."
+}
+
+if (-not $SkipWith) {
+    $TransferRoot = Join-Path $WorkspaceRoot ("KillConfirmGameBar_Transfer_{0}_有依赖-新人用" -f $Version)
+    if (-not (Test-Path $TransferRoot)) {
+        throw "Expected transfer folder was not produced: $TransferRoot"
+    }
+    Invoke-InstallerCompile -TransferPath $TransferRoot -OutputSuffix "_有依赖-新人用" -SkipPrerequisites $false
+}
+
 Invoke-InstallerCompile -TransferPath $NoDependenciesTransferRoot -OutputSuffix "_无依赖-更新用" -SkipPrerequisites $true
+
+if (-not $SkipWith) {
+    $SetupWithDependenciesPath = Join-Path $Root ("Output\KillConfirmGameBar_Setup_{0}_有依赖-新人用.exe" -f $Version)
+    if (-not (Test-Path $SetupWithDependenciesPath)) {
+        throw "Expected installer was not produced: $SetupWithDependenciesPath"
+    }
+    Write-Host ""
+    Write-Host ("Installer with dependencies: {0}" -f $SetupWithDependenciesPath)
+}
 
 $SetupNoDependenciesPath = Join-Path $Root ("Output\KillConfirmGameBar_Setup_{0}_无依赖-更新用.exe" -f $Version)
 if (-not (Test-Path $SetupNoDependenciesPath)) {

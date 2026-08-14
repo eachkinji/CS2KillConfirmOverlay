@@ -1004,7 +1004,7 @@ pub async fn update(
 }
 
 fn parse_gsi_body(body: &[u8], game_version: GsiGameVersion) -> Result<Body, GsiBodyError> {
-    let value: serde_json::Value = serde_json::from_slice(body)?;
+    let mut value: serde_json::Value = serde_json::from_slice(body)?;
     let valid_auth = match game_version {
         GsiGameVersion::Cs2 => has_valid_gsi_token(&value),
         GsiGameVersion::CsgoLegacy => crate::csgo_legacy::has_valid_auth(&value),
@@ -1014,8 +1014,49 @@ fn parse_gsi_body(body: &[u8], game_version: GsiGameVersion) -> Result<Body, Gsi
     }
 
     match game_version {
-        GsiGameVersion::Cs2 => Ok(serde_json::from_value(value)?),
+        GsiGameVersion::Cs2 => {
+            normalize_cs2_map_mode(&mut value);
+            Ok(serde_json::from_value(value)?)
+        }
         GsiGameVersion::CsgoLegacy => Ok(crate::csgo_legacy::parse_body(value)?),
+    }
+}
+
+// gsi-cs2 models map.mode as a closed enum. CS2 has added modes such as
+// "retakes", and rejecting an unfamiliar mode would otherwise discard the
+// entire GSI update (including kills). Preserve modes understood by the
+// dependency and treat all other string values as custom gameplay.
+fn normalize_cs2_map_mode(value: &mut serde_json::Value) {
+    const SUPPORTED_MODES: &[&str] = &[
+        "gungameprogressive",
+        "competitive",
+        "casual",
+        "custom",
+        "deathmatch",
+        "gungametrbomb",
+        "survival",
+        "training",
+        "scrimcomp2v2",
+    ];
+
+    let Some(mode_value) = value
+        .get_mut("map")
+        .and_then(serde_json::Value::as_object_mut)
+        .and_then(|map| map.get_mut("mode"))
+    else {
+        return;
+    };
+    let Some(raw_mode) = mode_value.as_str() else {
+        return;
+    };
+
+    let normalized = raw_mode.trim().to_ascii_lowercase();
+    if SUPPORTED_MODES.contains(&normalized.as_str()) {
+        if normalized != raw_mode {
+            *mode_value = serde_json::Value::String(normalized);
+        }
+    } else {
+        *mode_value = serde_json::Value::String("custom".to_string());
     }
 }
 
@@ -1153,14 +1194,41 @@ mod tests {
         CrossfireStreakMode, DelayedLastKillDecision, WeaponKillContext,
         can_read_observed_combat_events, classify_delayed_last_kill, has_observed_player_changed,
         is_knife_weapon, is_local_observed_player, is_recent_final_kill, is_recent_weapon_context,
-        opponent_team_display_name, resolve_crossfire_streak_count, resolve_observed_player_id,
-        resolve_player_kill_delta, resolve_weapon_kill_context, should_emit_player_kill,
-        should_reset_stored_streak,
+        normalize_cs2_map_mode, opponent_team_display_name, resolve_crossfire_streak_count,
+        resolve_observed_player_id, resolve_player_kill_delta, resolve_weapon_kill_context,
+        should_emit_player_kill, should_reset_stored_streak,
     };
     use gsi_cs2::round::BombState;
     use gsi_cs2::team::TeamClass;
     use gsi_cs2::weapon::{WeaponName, WeaponType};
     use std::time::{Duration, Instant};
+
+    #[test]
+    fn retakes_map_mode_is_accepted_as_custom_gameplay() {
+        let mut payload = serde_json::json!({ "map": { "mode": "retakes" } });
+
+        normalize_cs2_map_mode(&mut payload);
+
+        assert_eq!(payload["map"]["mode"], "custom");
+    }
+
+    #[test]
+    fn future_unknown_map_modes_do_not_invalidate_gsi_payloads() {
+        let mut payload = serde_json::json!({ "map": { "mode": "new_mode_from_cs2" } });
+
+        normalize_cs2_map_mode(&mut payload);
+
+        assert_eq!(payload["map"]["mode"], "custom");
+    }
+
+    #[test]
+    fn known_map_modes_are_preserved_and_case_normalized() {
+        let mut payload = serde_json::json!({ "map": { "mode": " Competitive " } });
+
+        normalize_cs2_map_mode(&mut payload);
+
+        assert_eq!(payload["map"]["mode"], "competitive");
+    }
 
     #[test]
     fn weapon_kill_context_keeps_knife_and_weapon_metadata_together() {

@@ -14,7 +14,7 @@ namespace KillConfirmGameBar
     {
         private async void OnVoicePackSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (_suppressVoicePackEvents)
+            if (_suppressVoicePackEvents || !_packSelectorsInitialized)
             {
                 return;
             }
@@ -42,7 +42,7 @@ namespace KillConfirmGameBar
 
         private void OnIconPackSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (_suppressIconPackEvents)
+            if (_suppressIconPackEvents || !_packSelectorsInitialized)
             {
                 return;
             }
@@ -81,7 +81,11 @@ namespace KillConfirmGameBar
             TryApplyValorantLoadedIconPack(iconPack);
             SelectIconPack(iconPack);
             iconPack = GetSelectedIconPack();
-            SavePackSettingForStyle(IconPackSettingKey, style, iconPack);
+            // Do not write the resolved value here. If the stored pack is
+            // temporarily unavailable or was retired, SelectIconPack falls back
+            // to the first visible item. Persisting that fallback would silently
+            // overwrite the user's saved choice, so leave it untouched until the
+            // user explicitly selects another pack.
             ConfigureAnimationIconPack(iconPack);
             _ = ApplyCustomPackOverlaySupportAsync(iconPack);
             UpdateEliteEffectSelectorState();
@@ -109,11 +113,6 @@ namespace KillConfirmGameBar
             }
 
             return GameStyleService.DefaultIconPackKey(GameStyleService.Current);
-        }
-
-        private bool IsLegacyIconPackSelected()
-        {
-            return string.Equals(GetSelectedIconPack(), "legacy", StringComparison.OrdinalIgnoreCase);
         }
 
         private void SelectIconPack(string iconPack)

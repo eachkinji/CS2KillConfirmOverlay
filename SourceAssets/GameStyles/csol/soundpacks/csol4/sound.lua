@@ -19,7 +19,8 @@ local variants = {
     ["10"] = { "Ohgod.wav" },
     ["headshot"] = { "Headshot.wav" },
     ["knife"] = { "Humililation.wav", "Ohno.wav" },
-    ["revenge"] = { "Revenge.wav" },
+    ["first"] = { "Firstkill.wav" },
+    ["last"] = { "Revenge.wav" },
     ["assist"] = { "Assist.wav" },
 }
 
@@ -53,8 +54,13 @@ function get_sounds(ctx)
         end
     end
 
-    if ctx.is_first_kill or ctx.is_last_kill then
-        add("revenge")
+    if ctx.is_first_kill then
+        add("first")
+        return sounds
+    end
+
+    if ctx.is_last_kill then
+        add("last")
         return sounds
     end
 

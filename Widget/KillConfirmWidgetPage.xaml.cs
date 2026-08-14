@@ -59,11 +59,6 @@ namespace KillConfirmGameBar
         };
         private const double DefaultAudioVolumeValue = 100;
         private const double DefaultPlaybackFpsValue = 60;
-        private const string FirstKillAssetKey = "firstkill";
-        private const string GoldHeadshotAssetKey = "goldheadshot";
-        private const string HeadshotAssetKey = "headshot_silver";
-        private const string KnifeKillAssetKey = "knife_kill";
-        private const string LastKillAssetKey = "last_kill";
         private const string BrightnessSettingKey = "AnimationBrightness";
         private const string ContrastSettingKey = "AnimationContrast";
         private const string AudioVolumeSettingKey = "AudioVolume";
@@ -187,9 +182,12 @@ namespace KillConfirmGameBar
         private XboxGameBarWidgetWindowState _windowState = XboxGameBarWidgetWindowState.Restored;
         private bool _isPinned;
         private bool _clickThroughEnabled;
+        private readonly SemaphoreSlim _widgetResizeGate = new SemaphoreSlim(1, 1);
+        private int _widgetResizeRequestVersion;
         private bool _suppressVisualAdjustmentEvents;
         private bool _suppressVoicePackEvents;
         private bool _suppressIconPackEvents;
+        private bool _packSelectorsInitialized;
         private readonly SemaphoreSlim _packSelectorInitializationLock = new SemaphoreSlim(1, 1);
         private bool _suppressEliteEffectEvents;
         private bool _suppressKillFxEvents;
@@ -249,8 +247,12 @@ namespace KillConfirmGameBar
         public KillConfirmWidgetPage()
         {
             _suppressGameStyleEvents = true;
+            _suppressVoicePackEvents = true;
+            _suppressIconPackEvents = true;
             InitializeComponent();
             _suppressGameStyleEvents = false;
+            _suppressVoicePackEvents = false;
+            _suppressIconPackEvents = false;
             WireMoveWindowEvents();
             PrimaryKillAnimation.LogicalViewportSizeChanged += OnAnimationLogicalViewportSizeChanged;
             LoadPanelOffset();
@@ -313,7 +315,6 @@ namespace KillConfirmGameBar
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
-            PersistCurrentPackSelections();
             _isPageActive = false;
             _animationPreloadToken++;
             PrimaryKillAnimation?.ReleaseAnimationResourcesForPackChange();
@@ -344,23 +345,37 @@ namespace KillConfirmGameBar
                     return;
                 }
 
-                _animationPreloadToken++;
-                PrimaryKillAnimation?.ReleaseAnimationResourcesForPackChange();
-                BadgeKillAnimation?.ReleaseAnimationResourcesForPackChange();
-                _suppressGameStyleEvents = true;
-                SelectGameStyleItem(mode);
-                _suppressGameStyleEvents = false;
-                LoadAnimationPlacementSettings();
-                ApplyGameStyleUi();
-                await InitializePackSelectorsAsync();
-                await SyncSelectedVoicePackAsync();
-                await SyncCrossfireGameplaySettingsAsync();
-                await SyncCsolGameplaySettingsAsync();
-                await SyncSharedStreakSettingsAsync();
-                await SyncCombatEventSoundSettingsAsync();
-                await WarmStartupAnimationCacheAsync(0);
-            });
-        }
+                try
+                {
+                    _animationPreloadToken++;
+                    PrimaryKillAnimation?.ReleaseAnimationResourcesForPackChange();
+                    BadgeKillAnimation?.ReleaseAnimationResourcesForPackChange();
+                    _suppressGameStyleEvents = true;
+                    try
+                    {
+                        SelectGameStyleItem(mode);
+                    }
+                    finally
+                    {
+                        _suppressGameStyleEvents = false;
+                    }
+
+                    LoadAnimationPlacementSettings();
+                    ApplyGameStyleUi();
+                    await InitializePackSelectorsAsync();
+                    await SyncSelectedVoicePackAsync();
+                    await SyncCrossfireGameplaySettingsAsync();
+                    await SyncCsolGameplaySettingsAsync();
+                    await SyncSharedStreakSettingsAsync();
+                    await SyncCombatEventSoundSettingsAsync();
+                    await WarmStartupAnimationCacheAsync(0);
+                }
+               catch (Exception ex)
+               {
+                    App.LogCrash("Game style switch failed: " + ex);
+               }
+           });
+       }
 
         private void OnKillReceived(object sender, KillEvent e)
         {
@@ -376,7 +391,7 @@ namespace KillConfirmGameBar
 
             try
             {
-                await _widget.TryResizeWindowAsync(GetScaledDefaultWidgetSize());
+                await _widget.TryResizeWindowAsync(GetDesiredWidgetSizeForPresentation());
             }
             catch (Exception)
             {
@@ -828,7 +843,7 @@ namespace KillConfirmGameBar
 
             if (resizeWindow)
             {
-                _ = ResizeWidgetForControlPanelScaleAsync(forceResize);
+                RequestWidgetResize(forceResize);
             }
         }
 
@@ -839,33 +854,51 @@ namespace KillConfirmGameBar
                 Math.Min(MaxWidgetSize.Height, DefaultWidgetSize.Height * _controlPanelScale));
         }
 
-        private async Task ResizeWidgetForControlPanelScaleAsync(bool forceResize)
+        private Size GetDesiredWidgetSizeForPresentation()
+        {
+            return IsControlPanelVisible()
+                ? GetScaledDefaultWidgetSize()
+                : DefaultWidgetSize;
+        }
+
+        private void RequestWidgetResize(bool forceResize)
         {
             if (_widget == null)
             {
                 return;
             }
 
-            if (!forceResize && _controlPanelScale <= 1.001)
-            {
-                return;
-            }
+            int requestVersion = Interlocked.Increment(ref _widgetResizeRequestVersion);
+            _ = ResizeWidgetForControlPanelScaleAsync(forceResize, requestVersion);
+        }
 
-            Size desired = GetScaledDefaultWidgetSize();
-            if (!forceResize
-                && ActualWidth >= desired.Width - 1
-                && ActualHeight >= desired.Height - 1)
-            {
-                return;
-            }
-
+        private async Task ResizeWidgetForControlPanelScaleAsync(bool forceResize, int requestVersion)
+        {
+            await _widgetResizeGate.WaitAsync();
             try
             {
+                if (_widget == null || requestVersion != _widgetResizeRequestVersion)
+                {
+                    return;
+                }
+
+                Size desired = GetDesiredWidgetSizeForPresentation();
+                if (!forceResize
+                    && Math.Abs(ActualWidth - desired.Width) < 1
+                    && Math.Abs(ActualHeight - desired.Height) < 1)
+                {
+                    return;
+                }
+
                 await _widget.TryResizeWindowAsync(desired);
             }
             catch (Exception ex)
             {
                 App.Log("Resize widget for control panel scale failed: " + ex.Message);
+            }
+            finally
+            {
+                _widgetResizeGate.Release();
             }
         }
 

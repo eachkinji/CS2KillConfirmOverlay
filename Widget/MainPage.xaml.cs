@@ -22,29 +22,51 @@ namespace KillConfirmGameBar
     {
         private readonly MediaPlayer _previewPlayer = new MediaPlayer();
         private bool _iconSpecExpanded;
+        private bool _isSettingsPageLoaded;
 
         public MainPage()
         {
             InitializeComponent();
             ApplyLanguage();
-            GameStyleService.Changed += OnGameStyleServiceChanged;
             Loaded += OnLoaded;
             Unloaded += OnUnloaded;
         }
 
         private void OnGameStyleServiceChanged(object sender, GameStyleMode mode)
         {
+            if (!_isSettingsPageLoaded)
+            {
+                return;
+            }
+
+            int navigationRevision = System.Threading.Volatile.Read(ref _gameStyleNavigationRevision);
             _ = Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, async () =>
             {
-                ApplyGameStyleUi();
+                if (!_isSettingsPageLoaded
+                    || _isHomePageSelected
+                    || navigationRevision != System.Threading.Volatile.Read(ref _gameStyleNavigationRevision)
+                    || GameStyleService.Current != mode)
+                {
+                    return;
+                }
+
                 try
                 {
-                    await CombatEventSoundSettingsStore.SyncAsync(mode);
-                }
-                catch (System.Exception ex)
-                {
-                    App.Log("Sync event sounds after style change failed: " + ex.Message);
-                }
+                    ApplyGameStyleUi();
+                    await ReloadPackListsAsync(mode);
+                    try
+                    {
+                        await CombatEventSoundSettingsStore.SyncAsync(mode);
+                    }
+                   catch (System.Exception ex)
+                   {
+                        App.LogCrash("Sync event sounds after style change failed: " + ex.Message);
+                   }
+               }
+               catch (System.Exception ex)
+               {
+                    App.LogCrash("Game style switch failed in settings page: " + ex);
+               }
             });
         }
     }

@@ -177,8 +177,6 @@ namespace KillConfirmGameBar
                     return "ms-appx:///Assets/GameStyles/pubg/killconfirm/textures/killicon_scrolling_headshot.png";
                 case "deltaforce":
                     return "ms-appx:///Assets/GameStyles/deltaforce/killconfirm/textures/killicon_df_headshot.png";
-                case "legacy":
-                    return "ms-appx:///Assets/KillConfirmCode/Original/badge_headshot.PNG";
                 case "default":
                 default:
                     return "ms-appx:///Assets/KillConfirmCode/Original/badge_headshot.PNG";

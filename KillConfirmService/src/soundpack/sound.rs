@@ -543,15 +543,18 @@ mod tests {
             special_voice_priority: true,
         };
 
-        // First/last kill -> Revenge voice.
-        for ctx in [
-            make_ctx(1, false, false, true, false, false),
-            make_ctx(3, false, false, false, true, false),
-        ] {
-            let sounds = script.get_sounds(&ctx).unwrap();
-            assert_eq!(sounds.len(), 1);
-            assert!(sounds[0].ends_with("Revenge.wav"), "{}", sounds[0]);
-        }
+        // First and last kills have independent voices.
+        let sounds = script
+            .get_sounds(&make_ctx(1, false, false, true, false, false))
+            .unwrap();
+        assert_eq!(sounds.len(), 1);
+        assert!(sounds[0].ends_with("Firstkill.wav"), "{}", sounds[0]);
+
+        let sounds = script
+            .get_sounds(&make_ctx(3, false, false, false, true, false))
+            .unwrap();
+        assert_eq!(sounds.len(), 1);
+        assert!(sounds[0].ends_with("Revenge.wav"), "{}", sounds[0]);
 
         // Assist -> Assist voice.
         let sounds = script.get_sounds(&make_ctx(0, false, false, false, false, true)).unwrap();
@@ -619,6 +622,39 @@ mod tests {
 
         let sounds = script.get_sounds(&ctx).unwrap();
         assert!(sounds[0].ends_with("Multikill_ch.wav"), "{}", sounds[0]);
+    }
+
+    #[test]
+    fn csol4_sound_lua_routes_first_and_last_kills_separately() {
+        use crate::soundpack::lua_script::{LuaScript, SoundContext};
+        use crate::util::state::EventChannel;
+        use std::collections::HashMap;
+
+        let script = LuaScript::load("sounds/csol4/sound.lua").expect("load csol4 sound.lua");
+        let make_ctx = |is_first_kill, is_last_kill| SoundContext {
+            kill_count: 1,
+            is_headshot: false,
+            is_first_kill,
+            is_knife_kill: false,
+            is_last_kill,
+            is_assist: false,
+            play_main_audio: true,
+            money_reward: 0,
+            event_kind: None,
+            event_channel: EventChannel::Combat,
+            preset_name: "csol4".to_string(),
+            master_name: "csol4".to_string(),
+            variant: None,
+            base_dir: "sounds/csol4".to_string(),
+            voice_picks: HashMap::new(),
+            special_voice_priority: true,
+        };
+
+        let first = script.get_sounds(&make_ctx(true, false)).unwrap();
+        assert!(first[0].ends_with("Firstkill.wav"), "{}", first[0]);
+
+        let last = script.get_sounds(&make_ctx(false, true)).unwrap();
+        assert!(last[0].ends_with("Revenge.wav"), "{}", last[0]);
     }
 
     #[test]

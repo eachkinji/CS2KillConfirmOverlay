@@ -381,17 +381,13 @@ namespace KillConfirmGameBar
             string specialKey = null;
             if (killEvent.IsFirstKill)
             {
-                specialKey = "firstkill";
+                CsolVoiceSettingsValues settings = CsolVoiceSettingsStore.Load();
+                specialKey = settings.FirstKillIcon;
             }
             else if (killEvent.IsLastKill)
             {
                 CsolVoiceSettingsValues settings = CsolVoiceSettingsStore.Load();
-                specialKey = string.Equals(
-                    settings.FirstLastIcon,
-                    CsolVoiceSettingsStore.FirstKillIcon,
-                    StringComparison.OrdinalIgnoreCase)
-                    ? "firstkill"
-                    : "revenge";
+                specialKey = settings.LastKillIcon;
             }
             else if (killEvent.IsAssist)
             {
@@ -411,7 +407,6 @@ namespace KillConfirmGameBar
 
         private void PlayCrossfirePrimaryAnimation(KillEvent killEvent)
         {
-            bool useLegacyAnimationPack = IsLegacyIconPackSelected();
             CrossfireGameplaySettingsValues settings = CrossfireGameplaySettingsStore.Load();
 
             if (string.Equals(killEvent.AnimationKey, "code2kill", StringComparison.OrdinalIgnoreCase))
@@ -431,14 +426,7 @@ namespace KillConfirmGameBar
                 && (killEvent.KillCount < 2 || settings.KnifeSpecialIconPriority);
             if (knifeIconWins)
             {
-                if (useLegacyAnimationPack)
-                {
-                    PrimaryKillAnimation.PlayNamed(KnifeKillAssetKey);
-                }
-                else
-                {
-                    PrimaryKillAnimation.PlayCodeKill("knife", killEvent.WeaponBadgeKey);
-                }
+                PrimaryKillAnimation.PlayCodeKill("knife", killEvent.WeaponBadgeKey);
                 return;
             }
 
@@ -448,20 +436,13 @@ namespace KillConfirmGameBar
             {
                 bool useFirstOrLastEffect = (killEvent.IsFirstKill && settings.FirstKillEffectEnabled)
                     || (killEvent.IsLastKill && settings.LastKillEffectEnabled);
-                if (useLegacyAnimationPack)
-                {
-                    PrimaryKillAnimation.PlayNamed(useFirstOrLastEffect ? GoldHeadshotAssetKey : HeadshotAssetKey);
-                }
-                else
-                {
-                    PrimaryKillAnimation.PlayCodeKill(
-                        useFirstOrLastEffect ? "headshot_gold" : "headshot",
-                        killEvent.WeaponBadgeKey);
-                }
+                PrimaryKillAnimation.PlayCodeKill(
+                    useFirstOrLastEffect ? "headshot_gold" : "headshot",
+                    killEvent.WeaponBadgeKey);
                 return;
             }
 
-            if (killEvent.KillCount == 1 && !useLegacyAnimationPack)
+            if (killEvent.KillCount == 1)
             {
                 PrimaryKillAnimation.PlayCodeKill("multi1", killEvent.WeaponBadgeKey);
                 return;
@@ -469,18 +450,12 @@ namespace KillConfirmGameBar
 
             if (killEvent.KillCount >= 2)
             {
-                if (useLegacyAnimationPack)
-                {
-                    PrimaryKillAnimation.Play(killEvent.KillCount);
-                    return;
-                }
-
                 int codeKillCount = Math.Max(2, Math.Min(6, killEvent.KillCount));
                 PrimaryKillAnimation.PlayCodeKill("multi" + codeKillCount, killEvent.WeaponBadgeKey);
                 return;
             }
 
-            PrimaryKillAnimation.Play(killEvent.KillCount);
+            PrimaryKillAnimation.PlayCodeKill("multi1", killEvent.WeaponBadgeKey);
         }
 
         private void PlayBadgeAnimation(KillEvent killEvent)
@@ -495,7 +470,6 @@ namespace KillConfirmGameBar
                 return;
             }
 
-            bool useLegacyAnimationPack = IsLegacyIconPackSelected();
             CrossfireGameplaySettingsValues settings = CrossfireGameplaySettingsStore.Load();
 
             if (killEvent.IsAssist
@@ -512,14 +486,7 @@ namespace KillConfirmGameBar
                     return;
                 }
 
-                if (useLegacyAnimationPack)
-                {
-                    BadgeKillAnimation.PlayNamed(LastKillAssetKey);
-                }
-                else
-                {
-                    BadgeKillAnimation.PlayCodeKill("lastkill");
-                }
+                BadgeKillAnimation.PlayCodeKill("lastkill");
                 return;
             }
 
@@ -530,14 +497,7 @@ namespace KillConfirmGameBar
                     return;
                 }
 
-                if (useLegacyAnimationPack)
-                {
-                    BadgeKillAnimation.PlayNamed(FirstKillAssetKey);
-                }
-                else
-                {
-                    BadgeKillAnimation.PlayCodeKill("firstkill");
-                }
+                BadgeKillAnimation.PlayCodeKill("firstkill");
             }
         }
 

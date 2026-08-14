@@ -209,18 +209,18 @@ namespace KillConfirmGameBar
             }
         }
 
-        private void OnUnhandledException(object sender, Windows.UI.Xaml.UnhandledExceptionEventArgs e)
-        {
-            Log("Unhandled exception: " + e.Exception);
-            ShowFallback("Unhandled exception", e.Exception);
-            e.Handled = true;
-        }
+       private void OnUnhandledException(object sender, Windows.UI.Xaml.UnhandledExceptionEventArgs e)
+       {
+            LogCrash("Unhandled exception: " + e.Exception);
+           ShowFallback("Unhandled exception", e.Exception);
+           e.Handled = true;
+       }
 
-        private void ShowFallback(string title, Exception ex)
-        {
-            Log(title + ": " + ex);
+       private void ShowFallback(string title, Exception ex)
+       {
+            LogCrash(title + ": " + ex);
 
-            var panel = new StackPanel
+           var panel = new StackPanel
             {
                 Margin = new Thickness(24),
                 VerticalAlignment = VerticalAlignment.Center
@@ -254,13 +254,25 @@ namespace KillConfirmGameBar
             Window.Current.Activate();
         }
 
-        internal static void Log(string message)
-        {
-            if (!Services.DeveloperModeSettingsStore.IsEnabled)
-            {
-                return;
-            }
+       internal static void Log(string message)
+       {
+           if (!Services.DeveloperModeSettingsStore.IsEnabled)
+           {
+               return;
+           }
 
+            WriteLog(message);
+        }
+
+        // Crash and fatal-activation diagnostics must always be captured so users
+        // can report them, regardless of developer mode. Routine logs stay gated.
+        internal static void LogCrash(string message)
+        {
+            WriteLog(message);
+        }
+
+        private static void WriteLog(string message)
+        {
             try
             {
                 string folderPath = ApplicationData.Current.LocalFolder.Path;

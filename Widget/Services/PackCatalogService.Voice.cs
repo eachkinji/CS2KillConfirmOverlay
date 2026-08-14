@@ -56,7 +56,8 @@ namespace KillConfirmGameBar.Services
         public static async Task<VoicePackItem> GetVoicePackAsync(string key)
         {
             var catalog = await LoadAsync();
-            return catalog.VoicePacks.FirstOrDefault(p => p.Key == key);
+            return catalog.VoicePacks.FirstOrDefault(p =>
+                string.Equals(p.Key, key, StringComparison.OrdinalIgnoreCase));
         }
 
         public static async Task ImportVoicePackAsync(StorageFolder folder)

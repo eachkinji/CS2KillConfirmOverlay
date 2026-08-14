@@ -28,7 +28,8 @@ namespace KillConfirmGameBar.Controls.GameStyles
                 (panel.OneKillVoiceSelector, "1"),
                 (panel.FourKillVoiceSelector, "4"),
                 (panel.KnifeVoiceSelector, "knife"),
-                (panel.FirstLastVoiceSelector, "revenge")
+                (panel.FirstKillVoiceSelector, "first"),
+                (panel.LastKillVoiceSelector, "last")
             };
         }
 
@@ -78,16 +79,18 @@ namespace KillConfirmGameBar.Controls.GameStyles
             AdvancedEffectsPanelSupport.ApplyMoneyRow(OneKillLabel, OneKillVoiceSelector, theme);
             AdvancedEffectsPanelSupport.ApplyMoneyRow(FourKillLabel, FourKillVoiceSelector, theme);
             AdvancedEffectsPanelSupport.ApplyMoneyRow(KnifeLabel, KnifeVoiceSelector, theme);
-            AdvancedEffectsPanelSupport.ApplyMoneyRow(FirstLastVoiceLabel, FirstLastVoiceSelector, theme);
-            AdvancedEffectsPanelSupport.ApplyMoneyRow(FirstLastIconLabel, FirstLastIconSelector, theme);
+            AdvancedEffectsPanelSupport.ApplyMoneyRow(FirstKillVoiceLabel, FirstKillVoiceSelector, theme);
+            AdvancedEffectsPanelSupport.ApplyMoneyRow(LastKillVoiceLabel, LastKillVoiceSelector, theme);
+            AdvancedEffectsPanelSupport.ApplyMoneyRow(FirstKillIconLabel, FirstKillIconSelector, theme);
+            AdvancedEffectsPanelSupport.ApplyMoneyRow(LastKillIconLabel, LastKillIconSelector, theme);
         }
 
         public void ApplyLanguage(bool isChinese)
         {
             TitleText.Text = isChinese ? "CSOL 高级特效" : "CSOL Effects";
             HintText.Text = isChinese
-                ? "集中设置连杀时间、语音变体、特殊击杀优先级，以及首杀/终结击杀图标。"
-                : "Configure kill-streak timing, voice variants, special-event priority and first/last-kill icons.";
+                ? "集中设置连杀时间、语音变体、特殊击杀优先级，以及独立的首杀和尾杀效果。"
+                : "Configure kill-streak timing, voice variants, special-event priority and separate first/last-kill effects.";
             CoverageText.Text = isChinese
                 ? "CSOL 语音包现已完整覆盖 1～10 杀连杀语音。"
                 : "The CSOL pack now plays distinct streak voices from 1 through 10 kills.";
@@ -100,10 +103,14 @@ namespace KillConfirmGameBar.Controls.GameStyles
             OneKillLabel.Text = isChinese ? "1杀语音" : "1-kill voice";
             FourKillLabel.Text = isChinese ? "4杀语音" : "4-kill voice";
             KnifeLabel.Text = isChinese ? "刀杀语音" : "Knife-kill voice";
-            FirstLastVoiceLabel.Text = isChinese ? "首尾杀语音" : "First/last-kill voice";
-            FirstLastIconLabel.Text = isChinese ? "首尾杀图标" : "First/last-kill icon";
-            FirstLastIconRevengeItem.Content = isChinese ? "复仇" : "Revenge";
-            FirstLastIconFirstKillItem.Content = isChinese ? "首杀" : "First kill";
+            FirstKillVoiceLabel.Text = isChinese ? "首杀语音" : "First-kill voice";
+            LastKillVoiceLabel.Text = isChinese ? "尾杀语音" : "Last-kill voice";
+            FirstKillIconLabel.Text = isChinese ? "首杀图标" : "First-kill icon";
+            LastKillIconLabel.Text = isChinese ? "尾杀图标" : "Last-kill icon";
+            FirstKillIconRevengeItem.Content = isChinese ? "复仇" : "Revenge";
+            FirstKillIconFirstKillItem.Content = isChinese ? "首杀" : "First kill";
+            LastKillIconRevengeItem.Content = isChinese ? "复仇" : "Revenge";
+            LastKillIconFirstKillItem.Content = isChinese ? "首杀" : "First kill";
 
             foreach ((ComboBox selector, string _) in GetVoiceSelectors(this))
             {
@@ -134,12 +141,29 @@ namespace KillConfirmGameBar.Controls.GameStyles
             return ReadTaggedItem(PrioritySelector, fallback ? "special" : "streak") == "special";
         }
 
-        public string GetFirstLastIcon(string fallback)
+        public string GetFirstKillIcon(string fallback)
         {
-            string value = ReadTaggedItem(FirstLastIconSelector, fallback);
-            return string.Equals(value, CsolVoiceSettingsStore.FirstKillIcon, StringComparison.OrdinalIgnoreCase)
-                ? CsolVoiceSettingsStore.FirstKillIcon
-                : CsolVoiceSettingsStore.RevengeIcon;
+            return NormalizeIcon(ReadTaggedItem(FirstKillIconSelector, fallback), fallback);
+        }
+
+        public string GetLastKillIcon(string fallback)
+        {
+            return NormalizeIcon(ReadTaggedItem(LastKillIconSelector, fallback), fallback);
+        }
+
+        private static string NormalizeIcon(string value, string fallback)
+        {
+            if (string.Equals(value, CsolVoiceSettingsStore.FirstKillIcon, StringComparison.OrdinalIgnoreCase))
+            {
+                return CsolVoiceSettingsStore.FirstKillIcon;
+            }
+
+            if (string.Equals(value, CsolVoiceSettingsStore.RevengeIcon, StringComparison.OrdinalIgnoreCase))
+            {
+                return CsolVoiceSettingsStore.RevengeIcon;
+            }
+
+            return fallback;
         }
 
         public Dictionary<string, string> GetVoicePicks()
@@ -159,7 +183,8 @@ namespace KillConfirmGameBar.Controls.GameStyles
         public void SelectSettings(
             string streakMode,
             bool specialVoicePriority,
-            string firstLastIcon,
+            string firstKillIcon,
+            string lastKillIcon,
             IReadOnlyDictionary<string, string> voicePicks)
         {
             _suppressSelectionChanged = true;
@@ -168,10 +193,12 @@ namespace KillConfirmGameBar.Controls.GameStyles
                 StreakEditor.SelectValue(streakMode);
                 SelectTaggedItem(PrioritySelector, specialVoicePriority ? "special" : "streak", "special");
                 SelectTaggedItem(
-                    FirstLastIconSelector,
-                    string.Equals(firstLastIcon, CsolVoiceSettingsStore.FirstKillIcon, StringComparison.OrdinalIgnoreCase)
-                        ? CsolVoiceSettingsStore.FirstKillIcon
-                        : CsolVoiceSettingsStore.RevengeIcon,
+                    FirstKillIconSelector,
+                    NormalizeIcon(firstKillIcon, CsolVoiceSettingsStore.FirstKillIcon),
+                    CsolVoiceSettingsStore.FirstKillIcon);
+                SelectTaggedItem(
+                    LastKillIconSelector,
+                    NormalizeIcon(lastKillIcon, CsolVoiceSettingsStore.RevengeIcon),
                     CsolVoiceSettingsStore.RevengeIcon);
 
                 foreach ((ComboBox selector, string killType) in GetVoiceSelectors(this))
@@ -205,7 +232,8 @@ namespace KillConfirmGameBar.Controls.GameStyles
             {
                 StreakEditor.SelectValue(SharedStreakSettingsStore.LifeMode);
                 SelectTaggedItem(PrioritySelector, "special", "special");
-                SelectTaggedItem(FirstLastIconSelector, CsolVoiceSettingsStore.RevengeIcon, CsolVoiceSettingsStore.RevengeIcon);
+                SelectTaggedItem(FirstKillIconSelector, CsolVoiceSettingsStore.FirstKillIcon, CsolVoiceSettingsStore.FirstKillIcon);
+                SelectTaggedItem(LastKillIconSelector, CsolVoiceSettingsStore.RevengeIcon, CsolVoiceSettingsStore.RevengeIcon);
                 foreach ((ComboBox selector, string _) in GetVoiceSelectors(this))
                 {
                     SelectTaggedItem(selector, CsolVoiceSettingsStore.RandomPick, CsolVoiceSettingsStore.RandomPick);

@@ -50,7 +50,8 @@ namespace KillConfirmGameBar.Services
         public static async Task<IconPackItem> GetIconPackAsync(string key)
         {
             var catalog = await LoadAsync();
-            return catalog.IconPacks.FirstOrDefault(p => p.Key == key);
+            return catalog.IconPacks.FirstOrDefault(p =>
+                string.Equals(p.Key, key, StringComparison.OrdinalIgnoreCase));
         }
 
         public static bool IsImportedIconPackKey(string key)

@@ -98,7 +98,8 @@ namespace KillConfirmGameBar.Controls.Settings
                 return;
             }
 
-            int percent = (int)Math.Round(ControlPanelScaleSettingsStore.ResolveScaleForCurrentView() * 100.0);
+            int percent = (int)Math.Round(
+                ControlPanelScaleSettingsStore.ResolveAutomaticScaleForCurrentView() * 100.0);
             bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
             ScaleRecommendationText.Text = isChinese
                 ? $"当前显示环境自动建议：{percent}%"

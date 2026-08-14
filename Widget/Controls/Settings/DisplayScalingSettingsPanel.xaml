@@ -50,6 +50,10 @@
                 <ComboBoxItem Tag="150">150%</ComboBoxItem>
                 <ComboBoxItem Tag="175">175%</ComboBoxItem>
                 <ComboBoxItem Tag="200">200%</ComboBoxItem>
+                <ComboBoxItem Tag="225">225%</ComboBoxItem>
+                <ComboBoxItem Tag="250">250%</ComboBoxItem>
+                <ComboBoxItem Tag="275">275%</ComboBoxItem>
+                <ComboBoxItem Tag="300">300%</ComboBoxItem>
             </ComboBox>
         </Grid>
     </Border>

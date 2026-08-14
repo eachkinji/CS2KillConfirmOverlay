@@ -165,7 +165,6 @@ namespace KillConfirmGameBar
 
             DefaultIconPackItem.Content = LocalizationManager.Text("default");
             VipIconPackItem.Content = LocalizationManager.Text("vip");
-            LegacyIconPackItem.Content = LocalizationManager.Text("legacy");
             CustomIconPackItem.Content = LocalizationManager.Text("Custom");
 
             EliteLevelOffItem.Content = LocalizationManager.Text("Off");

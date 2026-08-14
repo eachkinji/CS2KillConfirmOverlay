@@ -171,7 +171,6 @@ namespace KillConfirmGameBar.Services
             // Built-in Icon Names
             ["default"] = "Default",
             ["vip"] = "VIP",
-            ["legacy"] = "Legacy",
             ["angelic_beast"] = "Angelic Beast",
             ["anniversary_10"] = "10th Anniversary",
             ["anniversary_15"] = "15th Anniversary",
@@ -587,7 +586,6 @@ namespace KillConfirmGameBar.Services
             // Built-in Icon Names
             ["default"] = "\u539f\u7248",
             ["vip"] = "VIP",
-            ["legacy"] = "\u8001\u7248",
             ["angelic_beast"] = "\u793a\u4f8b",
             ["anniversary_10"] = "10\u5468\u5e74\u5e86",
             ["anniversary_15"] = "15\u5468\u5e74\u5e86",

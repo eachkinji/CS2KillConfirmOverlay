@@ -17,18 +17,22 @@ namespace KillConfirmGameBar
         {
             ApplicationDataContainer settings = ApplicationData.Current.LocalSettings;
             string scopedSettingKey = GetPackSettingKey(legacySettingKey, style);
-            string value = ReadPackSelectionFile(legacySettingKey, style);
+            string value = settings.Values[scopedSettingKey] as string;
+            if (IsPackSettingValidForStyle(value, style))
+            {
+                settings.Values[legacySettingKey] = value;
+                WritePackSelectionFile(legacySettingKey, style, value);
+                return value;
+            }
+
+            // The text file is only a recovery/migration fallback. LocalSettings
+            // is the authoritative value so a stale backup can never overwrite a
+            // newer user selection during the next widget startup.
+            value = ReadPackSelectionFile(legacySettingKey, style);
             if (IsPackSettingValidForStyle(value, style))
             {
                 settings.Values[scopedSettingKey] = value;
                 settings.Values[legacySettingKey] = value;
-                return value;
-            }
-
-            value = settings.Values[scopedSettingKey] as string;
-            if (IsPackSettingValidForStyle(value, style))
-            {
-                WritePackSelectionFile(legacySettingKey, style, value);
                 return value;
             }
 
@@ -54,6 +58,7 @@ namespace KillConfirmGameBar
                 return;
             }
 
+            value = value.Trim();
             ApplicationDataContainer settings = ApplicationData.Current.LocalSettings;
             settings.Values[GetPackSettingKey(legacySettingKey, style)] = value;
 
@@ -132,11 +137,5 @@ namespace KillConfirmGameBar
             return Path.Combine(ApplicationData.Current.LocalFolder.Path, fileName);
         }
 
-        private void PersistCurrentPackSelections()
-        {
-            GameStyleMode style = GameStyleService.Current;
-            SavePackSettingForStyle(VoicePackSettingKey, style, GetSelectedVoicePackPreset());
-            SavePackSettingForStyle(IconPackSettingKey, style, GetSelectedIconPack());
-        }
     }
 }

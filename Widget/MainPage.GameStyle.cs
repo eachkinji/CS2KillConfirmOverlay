@@ -31,6 +31,7 @@ namespace KillConfirmGameBar
         private bool _suppressGameStyleEvents;
         private bool _suppressCrossfireSettingEvents;
         private bool _isHomePageSelected = true;
+        private int _gameStyleNavigationRevision;
 
         private void ApplyGameStyleUi()
         {
@@ -45,8 +46,18 @@ namespace KillConfirmGameBar
             bool fixedPreset = GameStyleService.IsModPresetGameKey(GameStyleService.ToStorageValue(mode));
             bool hideCfPacks = valorant || fixedPreset;
             GameThemePalette theme = GameThemePalette.Current;
-            MountGameAdvancedSettingsPanel();
             UpdateSettingsPageVisibility();
+            if (_isHomePageSelected)
+            {
+                if (GameAdvancedSettingsPanelHost != null)
+                {
+                    GameAdvancedSettingsPanelHost.Content = null;
+                }
+            }
+            else
+            {
+                MountGameAdvancedSettingsPanel();
+            }
             VoicePackCollectionsCard.Visibility = hideCfPacks ? Visibility.Collapsed : Visibility.Visible;
             IconPackCollectionsCard.Visibility = hideCfPacks ? Visibility.Collapsed : Visibility.Visible;
             VoiceCollectionsCard.Visibility = hideCfPacks ? Visibility.Collapsed : Visibility.Visible;
@@ -204,7 +215,7 @@ namespace KillConfirmGameBar
                 if (string.Equals(key, "home", StringComparison.OrdinalIgnoreCase))
                 {
                     _isHomePageSelected = true;
-                    UpdateSettingsPageVisibility();
+                    BeginGameStyleTransition();
                     ApplyGameStyleSidebarTheme(GameThemePalette.Current);
                     return;
                 }
@@ -234,15 +245,39 @@ namespace KillConfirmGameBar
         private void SelectGameStyle(string key)
         {
             GameStyleMode newMode = GameStyleService.FromKey(key);
+            BeginGameStyleTransition();
             if (GameStyleService.Current != newMode)
             {
                 GameStyleService.Current = newMode;
-                ApplyGameStyleUi();
                 return;
             }
 
-            SyncGameStyleSelector();
-            ApplyGameStyleSidebarTheme(GameThemePalette.Current);
+            // Setting the same mode does not raise GameStyleService.Changed.
+            // Route it through the same guarded refresh path as a real mode change.
+            OnGameStyleServiceChanged(null, newMode);
+        }
+
+        private void BeginGameStyleTransition()
+        {
+            System.Threading.Interlocked.Increment(ref _gameStyleNavigationRevision);
+            System.Threading.Interlocked.Increment(ref _packListReloadVersion);
+            UpdateSettingsPageVisibility();
+
+            if (GameAdvancedSettingsPanelHost != null)
+            {
+                GameAdvancedSettingsPanelHost.Content = null;
+            }
+
+            VoicePackListPanel?.Children.Clear();
+            IconPackListPanel?.Children.Clear();
+            if (VoiceVisibleCountText != null)
+            {
+                VoiceVisibleCountText.Text = string.Empty;
+            }
+            if (IconVisibleCountText != null)
+            {
+                IconVisibleCountText.Text = string.Empty;
+            }
         }
 
         private void ApplyGameStyleSidebarTheme(GameThemePalette theme)
@@ -458,7 +493,8 @@ namespace KillConfirmGameBar
                 _csolAdvancedEffectsPanel.SelectSettings(
                     streakMode,
                     settings.SpecialVoicePriority,
-                    settings.FirstLastIcon,
+                    settings.FirstKillIcon,
+                    settings.LastKillIcon,
                     settings.VoicePicks);
             }
             finally
@@ -482,7 +518,8 @@ namespace KillConfirmGameBar
             CsolVoiceSettingsStore.Save(new CsolVoiceSettingsValues
             {
                 VoicePicks = _csolAdvancedEffectsPanel.GetVoicePicks(),
-                FirstLastIcon = _csolAdvancedEffectsPanel.GetFirstLastIcon(fallback.FirstLastIcon),
+                FirstKillIcon = _csolAdvancedEffectsPanel.GetFirstKillIcon(fallback.FirstKillIcon),
+                LastKillIcon = _csolAdvancedEffectsPanel.GetLastKillIcon(fallback.LastKillIcon),
                 SpecialVoicePriority = _csolAdvancedEffectsPanel.GetSpecialVoicePriority(fallback.SpecialVoicePriority)
             });
             await TrySyncCsolSettingsAsync();

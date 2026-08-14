@@ -14,7 +14,7 @@ namespace KillConfirmGameBar
     {
         private async void OnVoicePackSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (_suppressVoicePackEvents)
+            if (_suppressVoicePackEvents || !_packSelectorsInitialized)
             {
                 return;
             }
@@ -42,7 +42,7 @@ namespace KillConfirmGameBar
 
         private void OnIconPackSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (_suppressIconPackEvents)
+            if (_suppressIconPackEvents || !_packSelectorsInitialized)
             {
                 return;
             }
@@ -109,11 +109,6 @@ namespace KillConfirmGameBar
             }
 
             return GameStyleService.DefaultIconPackKey(GameStyleService.Current);
-        }
-
-        private bool IsLegacyIconPackSelected()
-        {
-            return string.Equals(GetSelectedIconPack(), "legacy", StringComparison.OrdinalIgnoreCase);
         }
 
         private void SelectIconPack(string iconPack)

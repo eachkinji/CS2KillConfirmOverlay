@@ -59,11 +59,6 @@ namespace KillConfirmGameBar
         };
         private const double DefaultAudioVolumeValue = 100;
         private const double DefaultPlaybackFpsValue = 60;
-        private const string FirstKillAssetKey = "firstkill";
-        private const string GoldHeadshotAssetKey = "goldheadshot";
-        private const string HeadshotAssetKey = "headshot_silver";
-        private const string KnifeKillAssetKey = "knife_kill";
-        private const string LastKillAssetKey = "last_kill";
         private const string BrightnessSettingKey = "AnimationBrightness";
         private const string ContrastSettingKey = "AnimationContrast";
         private const string AudioVolumeSettingKey = "AudioVolume";
@@ -192,6 +187,7 @@ namespace KillConfirmGameBar
         private bool _suppressVisualAdjustmentEvents;
         private bool _suppressVoicePackEvents;
         private bool _suppressIconPackEvents;
+        private bool _packSelectorsInitialized;
         private readonly SemaphoreSlim _packSelectorInitializationLock = new SemaphoreSlim(1, 1);
         private bool _suppressEliteEffectEvents;
         private bool _suppressKillFxEvents;
@@ -251,8 +247,12 @@ namespace KillConfirmGameBar
         public KillConfirmWidgetPage()
         {
             _suppressGameStyleEvents = true;
+            _suppressVoicePackEvents = true;
+            _suppressIconPackEvents = true;
             InitializeComponent();
             _suppressGameStyleEvents = false;
+            _suppressVoicePackEvents = false;
+            _suppressIconPackEvents = false;
             WireMoveWindowEvents();
             PrimaryKillAnimation.LogicalViewportSizeChanged += OnAnimationLogicalViewportSizeChanged;
             LoadPanelOffset();

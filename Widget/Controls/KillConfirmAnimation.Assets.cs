@@ -571,17 +571,6 @@ namespace KillConfirmGameBar.Controls
             }
         }
 
-        private static void ClearSheetCache()
-        {
-            SheetCache.Clear();
-            CodeKillCache.Clear();
-        }
-
-        private static async Task<CanvasBitmap> LoadSheetBitmapAsync(string fileName)
-        {
-            return await LoadBitmapFromApplicationUriAsync($"ms-appx:///Assets/KillConfirmSheets/{fileName}");
-        }
-
         private static async Task<CanvasBitmap> LoadBitmapFromApplicationUriAsync(string uriText)
         {
             var uri = new Uri(uriText);

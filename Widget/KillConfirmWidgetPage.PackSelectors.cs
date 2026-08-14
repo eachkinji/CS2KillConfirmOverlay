@@ -33,6 +33,7 @@ namespace KillConfirmGameBar
             await _packSelectorInitializationLock.WaitAsync();
             bool previousVoiceSuppression = _suppressVoicePackEvents;
             bool previousIconSuppression = _suppressIconPackEvents;
+            _packSelectorsInitialized = false;
             _suppressVoicePackEvents = true;
             _suppressIconPackEvents = true;
             try
@@ -46,6 +47,7 @@ namespace KillConfirmGameBar
                 LoadMainAnimationStyleSetting();
                 LoadVoicePackSetting();
                 ApplyGameStyleUi();
+                _packSelectorsInitialized = true;
                 if (_isPageActive)
                 {
                     _ = WarmStartupAnimationCacheAsync(0);
@@ -415,7 +417,6 @@ namespace KillConfirmGameBar
                     return "ms-appx:///Assets/GameStyles/deltaforce/killconfirm/textures/killicon_df_headshot.png";
                 case "csol4":
                     return "ms-appx:///Assets/GameLogos/csol.png";
-                case "legacy":
                 case "default":
                 default:
                     return "ms-appx:///Assets/KillConfirmCode/Original/badge_headshot.PNG";

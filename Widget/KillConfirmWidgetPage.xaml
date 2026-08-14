@@ -621,7 +621,6 @@
                                     Style="{StaticResource PackAccentComboBoxStyle}"
                                     HorizontalAlignment="Stretch"
                                     HorizontalContentAlignment="Left"
-                                    SelectedIndex="0"
                                     SelectionChanged="OnVoicePackSelectionChanged"
                                     ToolTipService.ToolTip="Select voice pack">
                                     <ComboBoxItem x:Name="CrossfireSwatGrVoiceItem" Tag="crossfire_swat_gr">swat GR</ComboBoxItem>
@@ -646,11 +645,9 @@
                                     Width="150"
                                     Style="{StaticResource PackAccentComboBoxStyle}"
                                     HorizontalContentAlignment="Left"
-                                    SelectedIndex="0"
                                     SelectionChanged="OnIconPackSelectionChanged">
                                     <ComboBoxItem x:Name="DefaultIconPackItem" Tag="default" Foreground="#1B1F31">Default</ComboBoxItem>
                                     <ComboBoxItem x:Name="VipIconPackItem" Tag="vip" Foreground="#1B1F31">VIP</ComboBoxItem>
-                                    <ComboBoxItem x:Name="LegacyIconPackItem" Tag="legacy" Foreground="#1B1F31">Legacy</ComboBoxItem>
                                     <ComboBoxItem x:Name="CustomIconPackItem" Tag="angelic_beast" Foreground="#1B1F31">Custom</ComboBoxItem>
                                 </ComboBox>
 

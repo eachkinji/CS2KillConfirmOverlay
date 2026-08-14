@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,7 +9,6 @@ using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.UI.Xaml;
 using KillConfirmGameBar.Helpers;
 using KillConfirmGameBar.Services;
-using Windows.Data.Json;
 using Windows.Foundation;
 using Windows.Graphics.Imaging;
 using Windows.Storage;
@@ -23,17 +21,6 @@ namespace KillConfirmGameBar.Controls
 {
     public sealed partial class KillConfirmAnimation : UserControl
     {
-        private const string HeadshotAssetKey = "headshot_silver";
-        private const string OneKillRemasterAssetKey = "1killre";
-        private const string TwoKillRemasterAssetKey = "2killre";
-        private const string ThreeKillRemasterAssetKey = "3killre";
-        private const string FourKillRemasterAssetKey = "4killre";
-        private const string FiveKillRemasterAssetKey = "5killre";
-        private const string SixKillRemasterAssetKey = "6killre";
-        private const string FirstKillAssetKey = "firstkill";
-        private const string GoldHeadshotAssetKey = "goldheadshot";
-        private const string KnifeKillAssetKey = "knife_kill";
-        private const string LastKillAssetKey = "last_kill";
         private const string DefaultCodeFolder = "Original";
         private const string VipCodeFolder = "Vip";
         private const string AngelicBeastCodeFolder = "AngelicBeast";
@@ -71,8 +58,6 @@ namespace KillConfirmGameBar.Controls
         private static bool _customPackHasWeaponBadgeOverlay;
         private static KillFxMode _killFxMode = KillFxMode.Pack;
 
-        private static readonly Dictionary<string, SpriteMetadata> MetadataCache = new Dictionary<string, SpriteMetadata>();
-        private static readonly Dictionary<string, IReadOnlyList<SpriteSheetSegment>> SheetCache = new Dictionary<string, IReadOnlyList<SpriteSheetSegment>>();
         private readonly DispatcherTimer _timer;
         private readonly Stopwatch _playbackClock = new Stopwatch();
 
@@ -83,8 +68,6 @@ namespace KillConfirmGameBar.Controls
         private double _displayViewportHeight = MaxCachedFrameHeight * (ReferenceDisplayWidth / MaxCachedFrameWidth);
         private double _renderResolutionScale = 1.0;
         private bool _contentSizedViewport;
-        private IReadOnlyList<SpriteSheetSegment> _currentSheets;
-        private SpriteSheetSegment _currentSheet;
         private Code2KillAsset _currentCodeAsset;
         private ValorantKillAsset _currentValorantAsset;
         private BattlefieldKillAsset _currentBattlefieldAsset;
@@ -92,7 +75,6 @@ namespace KillConfirmGameBar.Controls
         private static readonly SemaphoreSlim PreloadGate = new SemaphoreSlim(1, 1);
         private static int _resourceGeneration;
         private static Task _startupPreloadTask;
-        private static Task _preloadTask;
         private int _currentFrame;
         private int _playToken;
         private bool _isBattlefieldTextOverlayActive;
@@ -112,23 +94,6 @@ namespace KillConfirmGameBar.Controls
         public double LogicalViewportHeight => _logicalFrameHeight;
         public double DisplayViewportWidth => _displayViewportWidth;
         public double DisplayViewportHeight => _displayViewportHeight;
-
-        public void Play(int killCount, bool isHeadshot = false)
-        {
-            int normalizedKillCount = Math.Max(1, killCount);
-            PlayInternal(progress => LoadPreferredAssetAsync(normalizedKillCount, isHeadshot, progress));
-        }
-
-        public void PlayNamed(string assetKey)
-        {
-            if (string.IsNullOrWhiteSpace(assetKey))
-            {
-                Visibility = Visibility.Collapsed;
-                return;
-            }
-
-            PlayInternal(progress => LoadNamedAssetAsync(assetKey, progress));
-        }
 
         public void PlayCode2Kill()
         {
@@ -167,16 +132,6 @@ namespace KillConfirmGameBar.Controls
             _isBattlefield1CompactLayoutActive = false;
             _isBattlefieldTextOverlayActive = false;
             QueueBattlefield5ScrollingKill(killCount, isHeadshot, isKnifeKill, isAssist, playerName, weaponLabel, moneyReward, eventKind, roundNumber, moneyEpoch);
-        }
-
-        public Task PreloadCommonAnimationsAsync()
-        {
-            if (_preloadTask == null)
-            {
-                _preloadTask = PreloadCommonAnimationsCoreAsync();
-            }
-
-            return _preloadTask;
         }
 
         public Task PreloadStartupAnimationsAsync()
@@ -258,11 +213,6 @@ namespace KillConfirmGameBar.Controls
                 return PreloadValorantAnimationsAsync(progress);
             }
 
-            if (string.Equals(_iconPack, "legacy", StringComparison.OrdinalIgnoreCase))
-            {
-                return PreloadGameplayAnimationsAsync(progress);
-            }
-
             return PreloadCodeKillAnimationsAsync(progress);
         }
 
@@ -277,26 +227,6 @@ namespace KillConfirmGameBar.Controls
             _renderResolutionScale = normalized;
             ApplyViewportSize(_logicalFrameWidth, _logicalFrameHeight);
             SpriteCanvas.Invalidate();
-        }
-
-        public Task PreloadGameplayAnimationsAsync(IProgress<int> progress)
-        {
-            return PreloadSelectedAnimationsAsync(
-                new[]
-                {
-                    OneKillRemasterAssetKey,
-                    TwoKillRemasterAssetKey,
-                    ThreeKillRemasterAssetKey,
-                    FourKillRemasterAssetKey,
-                    FiveKillRemasterAssetKey,
-                    SixKillRemasterAssetKey,
-                    HeadshotAssetKey,
-                    GoldHeadshotAssetKey,
-                    FirstKillAssetKey,
-                    KnifeKillAssetKey,
-                    LastKillAssetKey
-                },
-                progress);
         }
 
         private async Task PreloadCodeKillAnimationsAsync(IProgress<int> progress)
@@ -379,13 +309,6 @@ namespace KillConfirmGameBar.Controls
             ClearBattlefield2042IconCache();
             ClearPubgIconCache();
             ClearDeltaForceIconCache();
-            if (string.Equals(_iconPack, "legacy", StringComparison.OrdinalIgnoreCase))
-            {
-                SheetCache.Clear();
-                _startupPreloadTask = null;
-                _preloadTask = null;
-            }
-
             return true;
         }
 
@@ -399,8 +322,7 @@ namespace KillConfirmGameBar.Controls
             string normalized = string.IsNullOrWhiteSpace(iconPack)
                 ? "default"
                 : iconPack.Trim().ToLowerInvariant();
-            if (normalized != "legacy"
-                && normalized != "vip"
+            if (normalized != "vip"
                 && GetIconPackFolder(normalized) == null
                 && !ValorantPackService.IsValorantPackKey(normalized)
                 && !GameStyleService.IsBattlefield1Key(normalized)
@@ -440,8 +362,7 @@ namespace KillConfirmGameBar.Controls
             _currentValorantAsset = null;
             if (_currentCodeAsset == null
                 && _currentBattlefieldAsset == null
-                && _currentCsolAsset == null
-                && _currentSheets == null)
+                && _currentCsolAsset == null)
             {
                 _currentMetadata = null;
                 Visibility = Visibility.Collapsed;
@@ -460,8 +381,6 @@ namespace KillConfirmGameBar.Controls
             _playbackClock.Stop();
             HideLoadingProgress();
             _currentMetadata = null;
-            _currentSheets = null;
-            _currentSheet = null;
             _currentCodeAsset = null;
             _currentValorantAsset = null;
             _currentBattlefieldAsset = null;
@@ -480,20 +399,6 @@ namespace KillConfirmGameBar.Controls
         private static void ReleaseAllAnimationResourceCaches()
         {
             var bitmaps = new HashSet<CanvasBitmap>();
-            foreach (IReadOnlyList<SpriteSheetSegment> segments in SheetCache.Values)
-            {
-                if (segments == null)
-                {
-                    continue;
-                }
-                foreach (SpriteSheetSegment segment in segments)
-                {
-                    if (segment?.Image != null)
-                    {
-                        bitmaps.Add(segment.Image);
-                    }
-                }
-            }
             foreach (Code2KillAsset asset in CodeKillCache.Values)
             {
                 if (asset?.Main != null) bitmaps.Add(asset.Main);
@@ -520,8 +425,6 @@ namespace KillConfirmGameBar.Controls
             foreach (CanvasBitmap bitmap in Battlefield2042IconCache.Values) bitmaps.Add(bitmap);
             foreach (CanvasBitmap bitmap in DeltaForceIconCache.Values) bitmaps.Add(bitmap);
 
-            MetadataCache.Clear();
-            SheetCache.Clear();
             CodeKillCache.Clear();
             CsolKillCache.Clear();
             ClearBattlefieldIconCache();
@@ -535,7 +438,6 @@ namespace KillConfirmGameBar.Controls
             }
             ReleaseValorantTextureCache();
             _startupPreloadTask = null;
-            _preloadTask = null;
         }
 
         public static void ConfigureEliteEffectLevel(int eliteLevel)
@@ -663,12 +565,10 @@ namespace KillConfirmGameBar.Controls
                 isLoading = false;
                 _timer.Stop();
                 _currentMetadata = asset.Metadata;
-                _currentSheets = asset.Sheets;
                 _currentCodeAsset = asset.CodeAsset;
                 _currentValorantAsset = asset.ValorantAsset;
                 _currentBattlefieldAsset = asset.BattlefieldAsset;
                 _currentCsolAsset = asset.CsolAsset;
-                _currentSheet = null;
                 _currentFrame = 0;
 
                 ApplyViewportSize(asset.Metadata.FrameWidth, asset.Metadata.FrameHeight);
@@ -688,213 +588,6 @@ namespace KillConfirmGameBar.Controls
             }
         }
 
-        private async Task<AnimationAsset> LoadPreferredAssetAsync(int spriteNumber, bool isHeadshot, IProgress<int> progress)
-        {
-            if (isHeadshot)
-            {
-                try
-                {
-                    return await LoadNamedAssetAsync(HeadshotAssetKey, progress);
-                }
-                catch
-                {
-                }
-            }
-
-            string remasteredAssetKey = GetRemasteredKillAssetKey(spriteNumber);
-            if (!string.IsNullOrWhiteSpace(remasteredAssetKey))
-            {
-                try
-                {
-                    return await LoadNamedAssetAsync(remasteredAssetKey, progress);
-                }
-                catch
-                {
-                }
-            }
-
-            throw new FileNotFoundException("No animation asset was found for kill count " + spriteNumber);
-        }
-
-        private static string GetRemasteredKillAssetKey(int killCount)
-        {
-            switch (Math.Max(1, Math.Min(9, killCount)))
-            {
-                case 1:
-                    return OneKillRemasterAssetKey;
-                case 2:
-                    return TwoKillRemasterAssetKey;
-                case 3:
-                    return ThreeKillRemasterAssetKey;
-                case 4:
-                    return FourKillRemasterAssetKey;
-                case 5:
-                    return FiveKillRemasterAssetKey;
-                case 6:
-                case 7:
-                case 8:
-                case 9:
-                default:
-                    return SixKillRemasterAssetKey;
-            }
-        }
-
-        private async Task PreloadCommonAnimationsCoreAsync()
-        {
-            string[] extraAssets =
-            {
-                OneKillRemasterAssetKey,
-                TwoKillRemasterAssetKey,
-                ThreeKillRemasterAssetKey,
-                FourKillRemasterAssetKey,
-                FiveKillRemasterAssetKey,
-                SixKillRemasterAssetKey,
-                GoldHeadshotAssetKey,
-                HeadshotAssetKey
-            };
-
-            foreach (string assetKey in extraAssets)
-            {
-                try
-                {
-                    await LoadNamedAssetAsync(assetKey, null);
-                }
-                catch
-                {
-                }
-            }
-        }
-
-        private async Task PreloadSelectedAnimationsAsync(IEnumerable<string> assetKeys, IProgress<int> progress = null)
-        {
-            string[] keys = assetKeys.ToArray();
-            int loaded = 0;
-            progress?.Report(0);
-
-            foreach (string assetKey in keys)
-            {
-                try
-                {
-                    await LoadNamedAssetAsync(assetKey, null);
-                }
-                catch
-                {
-                }
-
-                loaded++;
-                int percent = keys.Length == 0
-                    ? 100
-                    : (int)Math.Round(loaded * 100.0 / keys.Length);
-                progress?.Report(Math.Max(1, Math.Min(100, percent)));
-            }
-        }
-
-        private async Task<AnimationAsset> LoadNamedAssetAsync(string assetKey, IProgress<int> progress = null)
-        {
-            switch (assetKey)
-            {
-                case HeadshotAssetKey:
-                    return await LoadTiledSpriteSheetAssetAsync(HeadshotAssetKey, progress);
-                case OneKillRemasterAssetKey:
-                    return await LoadTiledSpriteSheetAssetAsync(OneKillRemasterAssetKey, progress);
-                case TwoKillRemasterAssetKey:
-                    return await LoadTiledSpriteSheetAssetAsync(TwoKillRemasterAssetKey, progress);
-                case ThreeKillRemasterAssetKey:
-                    return await LoadTiledSpriteSheetAssetAsync(ThreeKillRemasterAssetKey, progress);
-                case FourKillRemasterAssetKey:
-                    return await LoadTiledSpriteSheetAssetAsync(FourKillRemasterAssetKey, progress);
-                case FiveKillRemasterAssetKey:
-                    return await LoadTiledSpriteSheetAssetAsync(FiveKillRemasterAssetKey, progress);
-                case SixKillRemasterAssetKey:
-                    return await LoadTiledSpriteSheetAssetAsync(SixKillRemasterAssetKey, progress);
-                case FirstKillAssetKey:
-                    return await LoadTiledSpriteSheetAssetAsync(FirstKillAssetKey, progress);
-                case GoldHeadshotAssetKey:
-                    return await LoadTiledSpriteSheetAssetAsync(GoldHeadshotAssetKey, progress);
-                case KnifeKillAssetKey:
-                    return await LoadTiledSpriteSheetAssetAsync(KnifeKillAssetKey, progress);
-                case LastKillAssetKey:
-                    return await LoadTiledSpriteSheetAssetAsync(LastKillAssetKey, progress);
-                default:
-                    throw new FileNotFoundException("Unsupported animation asset: " + assetKey);
-            }
-        }
-
-        private async Task<AnimationAsset> LoadTiledSpriteSheetAssetAsync(string assetName, IProgress<int> progress = null)
-        {
-            SpriteMetadata metadata = await LoadTiledSpriteSheetMetadataAsync(assetName);
-            IReadOnlyList<SpriteSheetSegment> sheets = await LoadTiledSpriteSheetSegmentsAsync(assetName, metadata, progress);
-            return new AnimationAsset(metadata, sheets);
-        }
-
-        private async Task<SpriteMetadata> LoadTiledSpriteSheetMetadataAsync(string assetName)
-        {
-            string cacheKey = "tiled-sheet:" + assetName;
-            if (MetadataCache.TryGetValue(cacheKey, out SpriteMetadata cached))
-            {
-                return cached;
-            }
-
-            var uri = new Uri($"ms-appx:///Assets/KillConfirmSheets/{assetName}.json");
-            StorageFile file = await StorageFile.GetFileFromApplicationUriAsync(uri);
-            string jsonText = await FileIO.ReadTextAsync(file);
-            JsonObject json = JsonObject.Parse(jsonText);
-
-            var metadata = new SpriteMetadata
-            {
-                FrameWidth = (int)json.GetNamedNumber("frame_width", 400),
-                FrameHeight = (int)json.GetNamedNumber("frame_height", 300),
-                Frames = (int)json.GetNamedNumber("frames", 1),
-                Fps = Math.Max(1, (int)json.GetNamedNumber("fps", FrameSequenceFps)),
-                SheetSegments = json.GetNamedArray("sheets", new JsonArray())
-            };
-
-            MetadataCache[cacheKey] = metadata;
-            return metadata;
-        }
-
-        private async Task<IReadOnlyList<SpriteSheetSegment>> LoadTiledSpriteSheetSegmentsAsync(string assetName, SpriteMetadata metadata, IProgress<int> progress)
-        {
-            string cacheKey = "tiled-sheet:" + assetName;
-            if (SheetCache.TryGetValue(cacheKey, out IReadOnlyList<SpriteSheetSegment> cached))
-            {
-                progress?.Report(100);
-                return cached;
-            }
-
-            var segments = new List<SpriteSheetSegment>();
-            JsonArray sheetArray = metadata.SheetSegments ?? new JsonArray();
-            for (uint index = 0; index < sheetArray.Count; index++)
-            {
-                JsonObject item = sheetArray.GetObjectAt(index);
-                string fileName = item.GetNamedString("file", string.Empty);
-                if (string.IsNullOrWhiteSpace(fileName))
-                {
-                    continue;
-                }
-
-                CanvasBitmap bitmap = await LoadSheetBitmapAsync(fileName);
-                segments.Add(new SpriteSheetSegment
-                {
-                    Image = bitmap,
-                    StartFrame = (int)item.GetNamedNumber("start_frame", 0),
-                    Frames = (int)item.GetNamedNumber("frames", 0),
-                    Cols = Math.Max(1, (int)item.GetNamedNumber("cols", 1)),
-                    Rows = Math.Max(1, (int)item.GetNamedNumber("rows", 1)),
-                    Width = (int)item.GetNamedNumber("width", bitmap.SizeInPixels.Width),
-                    Height = (int)item.GetNamedNumber("height", bitmap.SizeInPixels.Height)
-                });
-
-                int percent = sheetArray.Count == 0
-                    ? 100
-                    : (int)Math.Round(((index + 1) * 100.0) / sheetArray.Count);
-                progress?.Report(Math.Max(1, Math.Min(100, percent)));
-            }
-
-            SheetCache[cacheKey] = segments;
-            return segments;
-        }
-
         private async Task ShowLoadingProgressIfStillLoadingAsync(int token, IProgress<int> progress)
         {
             await Task.Delay(LoadingIndicatorDelayMs);
@@ -906,67 +599,41 @@ namespace KillConfirmGameBar.Controls
 
 
 
-        private sealed class SpriteSheetSegment
-        {
-            public CanvasBitmap Image { get; set; }
-            public int StartFrame { get; set; }
-            public int Frames { get; set; }
-            public int Cols { get; set; }
-            public int Rows { get; set; }
-            public int Width { get; set; }
-            public int Height { get; set; }
-        }
-
-
         private sealed class SpriteMetadata
         {
             public int FrameWidth { get; set; }
             public int FrameHeight { get; set; }
             public int Frames { get; set; }
-            public int Cols { get; set; }
-            public int Rows { get; set; }
             public int Fps { get; set; }
-            public JsonArray SheetSegments { get; set; }
         }
 
         private sealed class AnimationAsset
         {
-            public AnimationAsset(SpriteMetadata metadata, IReadOnlyList<SpriteSheetSegment> sheets)
-            {
-                Metadata = metadata;
-                Sheets = sheets;
-            }
-
             public AnimationAsset(SpriteMetadata metadata, Code2KillAsset codeAsset)
             {
                 Metadata = metadata;
-                Sheets = null;
                 CodeAsset = codeAsset;
             }
 
             public AnimationAsset(SpriteMetadata metadata, ValorantKillAsset valorantAsset)
             {
                 Metadata = metadata;
-                Sheets = null;
                 ValorantAsset = valorantAsset;
             }
 
             public AnimationAsset(SpriteMetadata metadata, BattlefieldKillAsset battlefieldAsset)
             {
                 Metadata = metadata;
-                Sheets = null;
                 BattlefieldAsset = battlefieldAsset;
             }
 
             public AnimationAsset(SpriteMetadata metadata, CsolKillAsset csolAsset)
             {
                 Metadata = metadata;
-                Sheets = null;
                 CsolAsset = csolAsset;
             }
 
             public SpriteMetadata Metadata { get; }
-            public IReadOnlyList<SpriteSheetSegment> Sheets { get; }
             public Code2KillAsset CodeAsset { get; }
             public ValorantKillAsset ValorantAsset { get; }
             public BattlefieldKillAsset BattlefieldAsset { get; }

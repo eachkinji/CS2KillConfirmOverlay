@@ -43,6 +43,7 @@ namespace KillConfirmGameBar.Services
                 }
 
                 MergeMissingBuiltIns(_cache);
+                mustSave |= RemoveRetiredBuiltIns(_cache);
                 mustSave |= ApplyBuiltInVisibilityDefaultsIfNeeded(_cache);
                 ApplyVisibilityOverrides(_cache);
                 EnsureAtLeastOneVisibleVoice(_cache);
@@ -129,7 +130,6 @@ namespace KillConfirmGameBar.Services
                 {
                     CreateBuiltInIcon("default", "鍘熺増", true),
                     CreateBuiltInIcon("vip", "VIP", true),
-                    CreateBuiltInIcon("legacy", "鑰佺増", false),
                     CreateBuiltInIcon("angelic_beast", "绀轰緥", true),
                     CreateBuiltInIcon("anniversary_10", "10周年庆", true),
                     CreateBuiltInIcon("anniversary_15", "15周年庆", true),
@@ -205,6 +205,14 @@ namespace KillConfirmGameBar.Services
             }
         }
 
+        private static bool RemoveRetiredBuiltIns(PackCatalog catalog)
+        {
+            int removed = catalog.IconPacks.RemoveAll(item =>
+                item.IsBuiltIn
+                && string.Equals(item.Key, "legacy", StringComparison.OrdinalIgnoreCase));
+            return removed > 0;
+        }
+
         private static bool ApplyBuiltInVisibilityDefaultsIfNeeded(PackCatalog catalog)
         {
             ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
@@ -229,10 +237,7 @@ namespace KillConfirmGameBar.Services
                     continue;
                 }
 
-                item.IsVisibleInWidget = !string.Equals(
-                    item.Key,
-                    "legacy",
-                    StringComparison.OrdinalIgnoreCase);
+                item.IsVisibleInWidget = true;
             }
 
             localSettings.Values[VisibilityDefaultsVersionKey] = CurrentVisibilityDefaultsVersion;

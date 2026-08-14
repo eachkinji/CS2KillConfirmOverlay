@@ -9,8 +9,9 @@ namespace KillConfirmGameBar.Services
         /// <summary>Per kill-type voice pick: "random" or a specific file name.</summary>
         public Dictionary<string, string> VoicePicks { get; set; } = new Dictionary<string, string>();
 
-        /// <summary>Icon shown for first/last kills: "revenge" or "firstkill".</summary>
-        public string FirstLastIcon { get; set; } = "revenge";
+        public string FirstKillIcon { get; set; } = "firstkill";
+
+        public string LastKillIcon { get; set; } = "revenge";
 
         /// <summary>true = special voice (headshot/knife) beats the streak voice.</summary>
         public bool SpecialVoicePriority { get; set; } = true;
@@ -22,7 +23,9 @@ namespace KillConfirmGameBar.Services
         public const string RevengeIcon = "revenge";
         public const string FirstKillIcon = "firstkill";
 
-        private const string FirstLastIconSettingKey = "CsolFirstLastIcon";
+        private const string FirstKillIconSettingKey = "CsolFirstKillIcon";
+        private const string LastKillIconSettingKey = "CsolLastKillIcon";
+        private const string LegacyFirstLastIconSettingKey = "CsolFirstLastIcon";
         private const string SpecialVoicePrioritySettingKey = "CsolSpecialVoicePriority";
         private const string VoicePickPrefix = "CsolVoicePick_";
 
@@ -45,7 +48,8 @@ namespace KillConfirmGameBar.Services
                 ["10"] = new[] { "Ohgod.wav" },
                 ["headshot"] = new[] { "Headshot.wav" },
                 ["knife"] = new[] { "Humililation.wav", "Ohno.wav" },
-                ["revenge"] = new[] { "Revenge.wav" },
+                ["first"] = new[] { "Firstkill.wav" },
+                ["last"] = new[] { "Revenge.wav" },
                 ["assist"] = new[] { "Assist.wav" }
             };
 
@@ -56,13 +60,22 @@ namespace KillConfirmGameBar.Services
             foreach (string killType in VoiceVariants.Keys)
             {
                 string stored = values[VoicePickPrefix + killType] as string;
+                if (stored == null && string.Equals(killType, "last", StringComparison.OrdinalIgnoreCase))
+                {
+                    stored = values[VoicePickPrefix + "revenge"] as string;
+                }
                 picks[killType] = NormalizePick(stored, killType);
             }
 
             return new CsolVoiceSettingsValues
             {
                 VoicePicks = picks,
-                FirstLastIcon = ReadFirstLastIcon(values[FirstLastIconSettingKey]),
+                FirstKillIcon = values.ContainsKey(FirstKillIconSettingKey)
+                    ? NormalizeIcon(values[FirstKillIconSettingKey] as string, CsolVoiceSettingsStore.FirstKillIcon)
+                    : CsolVoiceSettingsStore.FirstKillIcon,
+                LastKillIcon = values.ContainsKey(LastKillIconSettingKey)
+                    ? NormalizeIcon(values[LastKillIconSettingKey] as string, RevengeIcon)
+                    : NormalizeIcon(values[LegacyFirstLastIconSettingKey] as string, RevengeIcon),
                 SpecialVoicePriority = ReadBoolean(values[SpecialVoicePrioritySettingKey], true)
             };
         }
@@ -83,7 +96,8 @@ namespace KillConfirmGameBar.Services
                 values[VoicePickPrefix + killType] = NormalizePick(pick, killType);
             }
 
-            values[FirstLastIconSettingKey] = NormalizeFirstLastIcon(settings.FirstLastIcon);
+            values[FirstKillIconSettingKey] = NormalizeIcon(settings.FirstKillIcon, FirstKillIcon);
+            values[LastKillIconSettingKey] = NormalizeIcon(settings.LastKillIcon, RevengeIcon);
             values[SpecialVoicePrioritySettingKey] = settings.SpecialVoicePriority;
         }
 
@@ -115,22 +129,19 @@ namespace KillConfirmGameBar.Services
             return RandomPick;
         }
 
-        private static string ReadFirstLastIcon(object value)
+        private static string NormalizeIcon(string value, string fallback)
         {
-            if (value is string text
-                && string.Equals(text, FirstKillIcon, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(value, FirstKillIcon, StringComparison.OrdinalIgnoreCase))
             {
                 return FirstKillIcon;
             }
 
-            return RevengeIcon;
-        }
+            if (string.Equals(value, RevengeIcon, StringComparison.OrdinalIgnoreCase))
+            {
+                return RevengeIcon;
+            }
 
-        private static string NormalizeFirstLastIcon(string value)
-        {
-            return string.Equals(value, FirstKillIcon, StringComparison.OrdinalIgnoreCase)
-                ? FirstKillIcon
-                : RevengeIcon;
+            return fallback;
         }
 
         private static bool ReadBoolean(object value, bool fallback)

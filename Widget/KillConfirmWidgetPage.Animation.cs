@@ -371,17 +371,13 @@ namespace KillConfirmGameBar
             string specialKey = null;
             if (killEvent.IsFirstKill)
             {
-                specialKey = "firstkill";
+                CsolVoiceSettingsValues settings = CsolVoiceSettingsStore.Load();
+                specialKey = settings.FirstKillIcon;
             }
             else if (killEvent.IsLastKill)
             {
                 CsolVoiceSettingsValues settings = CsolVoiceSettingsStore.Load();
-                specialKey = string.Equals(
-                    settings.FirstLastIcon,
-                    CsolVoiceSettingsStore.FirstKillIcon,
-                    StringComparison.OrdinalIgnoreCase)
-                    ? "firstkill"
-                    : "revenge";
+                specialKey = settings.LastKillIcon;
             }
             else if (killEvent.IsAssist)
             {

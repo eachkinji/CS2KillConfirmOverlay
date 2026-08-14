@@ -1,4 +1,4 @@
-#define MyAppPublisher "KillConfirmGameBar"
+#define MyAppPublisher "KillConfirmOverlay-TestVersion"
 #define MyAppExeName "Install-KillConfirm.ps1"
 
 #ifndef MyAppVersion
@@ -115,7 +115,7 @@ var
 begin
   if not ShellExec(
     'open',
-    'https://www.bilibili.com/video/BV1naum6FEW6',
+    'https://www.bilibili.com/video/BV1t3uo6eEXo/',
     '',
     '',
     SW_SHOWNORMAL,

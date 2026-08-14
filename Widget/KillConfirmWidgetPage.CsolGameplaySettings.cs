@@ -47,7 +47,8 @@ namespace KillConfirmGameBar
                 panel.SelectSettings(
                     streakMode,
                     settings.SpecialVoicePriority,
-                    settings.FirstLastIcon,
+                    settings.FirstKillIcon,
+                    settings.LastKillIcon,
                     settings.VoicePicks);
             }
             finally
@@ -74,7 +75,8 @@ namespace KillConfirmGameBar
             CsolVoiceSettingsStore.Save(new CsolVoiceSettingsValues
             {
                 VoicePicks = panel.GetVoicePicks(),
-                FirstLastIcon = panel.GetFirstLastIcon(fallback.FirstLastIcon),
+                FirstKillIcon = panel.GetFirstKillIcon(fallback.FirstKillIcon),
+                LastKillIcon = panel.GetLastKillIcon(fallback.LastKillIcon),
                 SpecialVoicePriority = panel.GetSpecialVoicePriority(fallback.SpecialVoicePriority)
             });
         }

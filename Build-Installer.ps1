@@ -59,6 +59,8 @@ if ($CertificateCerPath) {
     $buildTransferArgs.CertificateCerPath = $CertificateCerPath
 }
 
+& (Join-Path $Root "Build-TransferPackage.ps1") @buildTransferArgs
+
 if (-not (Test-Path $NoDependenciesTransferRoot)) {
     throw "Expected dependency-free transfer folder was not produced: $NoDependenciesTransferRoot"
 }

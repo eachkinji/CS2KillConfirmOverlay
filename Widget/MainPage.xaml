@@ -300,6 +300,12 @@
                             <ListViewItem Tag="deltaforce" Style="{StaticResource GameModeSidebarItemStyle}" ToolTipService.ToolTip="Delta Force">
                                 <Border Style="{StaticResource GameModeLogoTileStyle}"><Image Source="ms-appx:///Assets/GameLogos/deltaforce.png" Stretch="Uniform" /></Border>
                             </ListViewItem>
+                            <ListViewItem Tag="doubao" Style="{StaticResource GameModeSidebarItemStyle}" ToolTipService.ToolTip="豆包">
+                                <Border Style="{StaticResource GameModeLogoTileStyle}"><Image Source="ms-appx:///Assets/GameLogos/doubao.png" Stretch="Uniform" /></Border>
+                            </ListViewItem>
+                            <ListViewItem Tag="dagoujiao" Style="{StaticResource GameModeSidebarItemStyle}" ToolTipService.ToolTip="大狗叫">
+                                <Border Style="{StaticResource GameModeLogoTileStyle}"><Image Source="ms-appx:///Assets/GameLogos/dagoujiao.jpg" Stretch="Uniform" /></Border>
+                            </ListViewItem>
                     </ListView>
                 </Grid>
             </Border>
@@ -353,6 +359,8 @@
                         <ComboBoxItem x:Name="Battlefield2042StyleItem" Tag="battlefield2042">Battlefield 2042 (战地2042)</ComboBoxItem>
                         <ComboBoxItem x:Name="PubgStyleItem" Tag="pubg">PUBG (绝地求生)</ComboBoxItem>
                         <ComboBoxItem x:Name="DeltaForceStyleItem" Tag="deltaforce">Delta Force (三角洲行动)</ComboBoxItem>
+                        <ComboBoxItem x:Name="DoubaoStyleItem" Tag="doubao">Doubao (豆包)</ComboBoxItem>
+                        <ComboBoxItem x:Name="DagoujiaoStyleItem" Tag="dagoujiao">Big Dog Bark (大狗叫)</ComboBoxItem>
                     </ComboBox>
                 </StackPanel>
             </Grid>

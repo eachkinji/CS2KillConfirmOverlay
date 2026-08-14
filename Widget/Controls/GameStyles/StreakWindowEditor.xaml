@@ -36,6 +36,7 @@
                 <ComboBoxItem x:Name="StreakTimed15Item" Tag="timed_15">15-second window</ComboBoxItem>
                 <ComboBoxItem x:Name="StreakNoneItem" Tag="none">No streak window</ComboBoxItem>
                 <ComboBoxItem x:Name="StreakCustomItem" Tag="custom">Custom window</ComboBoxItem>
+                <ComboBoxItem x:Name="StreakLoopItem" Tag="loop">Loop streak window</ComboBoxItem>
             </ComboBox>
 
             <Grid
@@ -61,6 +62,28 @@
                     VerticalAlignment="Center"
                     FontSize="10"
                     Text="seconds (0.1-300)" />
+            </Grid>
+
+            <Grid
+                x:Name="LoopKillEditor"
+                ColumnSpacing="6"
+                Visibility="Collapsed">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <ComboBox
+                    x:Name="LoopKillCountSelector"
+                    Height="28"
+                    MinWidth="90"
+                    Style="{StaticResource CompactSettingsComboBoxStyle}"
+                    SelectionChanged="OnLoopKillCountSelectionChanged" />
+                <TextBlock
+                    x:Name="LoopKillCountHint"
+                    Grid.Column="1"
+                    VerticalAlignment="Center"
+                    FontSize="10"
+                    Text="then restart at 1" />
             </Grid>
         </StackPanel>
     </Border>

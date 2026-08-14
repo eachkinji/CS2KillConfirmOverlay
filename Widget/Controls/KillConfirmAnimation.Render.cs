@@ -17,6 +17,9 @@ namespace KillConfirmGameBar.Controls
         private const double MaxCanvasPixelWidth = 2048;
         private const double MaxCanvasPixelHeight = 1536;
         private const double MaxCanvasPixelArea = 2097152;
+        private const double ValorantMaxCanvasPixelWidth = 4096;
+        private const double ValorantMaxCanvasPixelHeight = 3072;
+        private const double ValorantMaxCanvasPixelArea = 12000000;
 
         private void OnSpriteCanvasDraw(CanvasControl sender, CanvasDrawEventArgs args)
         {
@@ -28,6 +31,18 @@ namespace KillConfirmGameBar.Controls
 
             try
             {
+                if (_isDoubaoActive)
+                {
+                    DrawDoubaoFrame(args.DrawingSession);
+                    return;
+                }
+
+                if (_isDagoujiaoActive)
+                {
+                    DrawDagoujiaoFrame(args.DrawingSession);
+                    return;
+                }
+
                 if (_currentCodeAsset != null)
                 {
                     DrawCode2KillFrame(args.DrawingSession, _currentFrame);
@@ -276,6 +291,18 @@ namespace KillConfirmGameBar.Controls
 
         private void OnTick(object sender, object e)
         {
+            if (_isDoubaoActive)
+            {
+                UpdateDoubaoFrame();
+                return;
+            }
+
+            if (_isDagoujiaoActive)
+            {
+                UpdateDagoujiaoFrame();
+                return;
+            }
+
             if (_isBattlefieldTextOverlayActive)
             {
                 UpdateBattlefield1CompositeFrame();
@@ -380,15 +407,44 @@ namespace KillConfirmGameBar.Controls
 
         private double GetRenderResolutionScale()
         {
-            double requestedScale = Math.Max(1.0, Math.Min(4.0, _renderResolutionScale));
+            bool isValorant = IsValorantPresentationConfigured;
+            double requestedScale = isValorant
+                ? GetBaseDisplayFit() * _presentationScale
+                : Math.Max(1.0, Math.Min(4.0, _renderResolutionScale));
             double dpiScale = GetDisplayDpiScale();
             double pixelWidthAtScaleOne = Math.Max(1.0, _logicalFrameWidth * dpiScale);
             double pixelHeightAtScaleOne = Math.Max(1.0, _logicalFrameHeight * dpiScale);
-            double maxScaleByWidth = MaxCanvasPixelWidth / pixelWidthAtScaleOne;
-            double maxScaleByHeight = MaxCanvasPixelHeight / pixelHeightAtScaleOne;
+            double maxPixelWidth = isValorant ? ValorantMaxCanvasPixelWidth : MaxCanvasPixelWidth;
+            double maxPixelHeight = isValorant ? ValorantMaxCanvasPixelHeight : MaxCanvasPixelHeight;
+            double maxPixelArea = isValorant ? ValorantMaxCanvasPixelArea : MaxCanvasPixelArea;
+            double maxScaleByWidth = maxPixelWidth / pixelWidthAtScaleOne;
+            double maxScaleByHeight = maxPixelHeight / pixelHeightAtScaleOne;
             double maxScaleByArea = Math.Sqrt(
-                MaxCanvasPixelArea / Math.Max(1.0, pixelWidthAtScaleOne * pixelHeightAtScaleOne));
+                maxPixelArea / Math.Max(1.0, pixelWidthAtScaleOne * pixelHeightAtScaleOne));
             return Math.Max(0.1, Math.Min(requestedScale, Math.Min(maxScaleByArea, Math.Min(maxScaleByWidth, maxScaleByHeight))));
+        }
+
+        private double GetBaseDisplayFit()
+        {
+            return _contentSizedViewport
+                ? 1.0
+                : Math.Min(ReferenceDisplayWidth / _logicalFrameWidth, ReferenceDisplayHeight / _logicalFrameHeight);
+        }
+
+        private double GetInteractionViewportWidth()
+        {
+            const double ValorantInteractionLogicalWidth = 202.0;
+            return IsValorantPresentationConfigured
+                ? ValorantInteractionLogicalWidth * GetBaseDisplayFit() * _presentationScale
+                : _displayViewportWidth;
+        }
+
+        private double GetInteractionViewportHeight()
+        {
+            const double ValorantInteractionLogicalHeight = 190.0;
+            return IsValorantPresentationConfigured
+                ? ValorantInteractionLogicalHeight * GetBaseDisplayFit() * _presentationScale
+                : _displayViewportHeight;
         }
 
         private static double GetDisplayDpiScale()
@@ -409,9 +465,7 @@ namespace KillConfirmGameBar.Controls
                 || Math.Abs(_logicalFrameHeight - logicalHeight) > 0.5;
             _logicalFrameWidth = Math.Max(1.0, logicalWidth);
             _logicalFrameHeight = Math.Max(1.0, logicalHeight);
-            double displayFit = _contentSizedViewport
-                ? 1.0
-                : Math.Min(ReferenceDisplayWidth / _logicalFrameWidth, ReferenceDisplayHeight / _logicalFrameHeight);
+            double displayFit = GetBaseDisplayFit();
             double displayWidth = Math.Max(1.0, _logicalFrameWidth * displayFit);
             double displayHeight = Math.Max(1.0, _logicalFrameHeight * displayFit);
             bool displaySizeChanged = Math.Abs(_displayViewportWidth - displayWidth) > 0.5
@@ -421,6 +475,16 @@ namespace KillConfirmGameBar.Controls
             double renderScale = GetRenderResolutionScale();
             double renderWidth = Math.Ceiling(_logicalFrameWidth * renderScale);
             double renderHeight = Math.Ceiling(_logicalFrameHeight * renderScale);
+            bool directValorantPresentation = IsValorantPresentationConfigured;
+
+            Width = directValorantPresentation ? renderWidth : double.NaN;
+            Height = directValorantPresentation ? renderHeight : double.NaN;
+            HorizontalAlignment = directValorantPresentation
+                ? HorizontalAlignment.Center
+                : HorizontalAlignment.Stretch;
+            VerticalAlignment = directValorantPresentation
+                ? VerticalAlignment.Center
+                : VerticalAlignment.Stretch;
 
             Viewport.Width = renderWidth;
             Viewport.Height = renderHeight;
@@ -435,8 +499,8 @@ namespace KillConfirmGameBar.Controls
                 PlaybackViewbox.VerticalAlignment = VerticalAlignment.Stretch;
                 PlaybackViewbox.Width = double.NaN;
                 PlaybackViewbox.Height = double.NaN;
-                PlaybackViewbox.MaxWidth = _displayViewportWidth;
-                PlaybackViewbox.MaxHeight = _displayViewportHeight;
+                PlaybackViewbox.MaxWidth = directValorantPresentation ? renderWidth : _displayViewportWidth;
+                PlaybackViewbox.MaxHeight = directValorantPresentation ? renderHeight : _displayViewportHeight;
             }
 
             if (LoadingOverlay != null)

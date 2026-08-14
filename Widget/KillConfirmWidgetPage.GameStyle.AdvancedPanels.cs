@@ -19,6 +19,8 @@ namespace KillConfirmGameBar
         private Battlefield2042AdvancedEffectsPanel _battlefield2042AdvancedEffectsPanel;
         private PubgAdvancedEffectsPanel _pubgAdvancedEffectsPanel;
         private DeltaForceAdvancedEffectsPanel _deltaForceAdvancedEffectsPanel;
+        private DoubaoAdvancedEffectsPanel _doubaoAdvancedEffectsPanel;
+        private DagoujiaoAdvancedEffectsPanel _dagoujiaoAdvancedEffectsPanel;
 
         private ComboBox MoneyRewardModeSelector
         {
@@ -106,6 +108,12 @@ namespace KillConfirmGameBar
                     break;
                 case GameStyleMode.DeltaForce:
                     panel = EnsureDeltaForceAdvancedEffectsPanel();
+                    break;
+                case GameStyleMode.Doubao:
+                    panel = EnsureDoubaoAdvancedEffectsPanel();
+                    break;
+                case GameStyleMode.Dagoujiao:
+                    panel = EnsureDagoujiaoAdvancedEffectsPanel();
                     break;
                 case GameStyleMode.Csol:
                     panel = EnsureCsolAdvancedEffectsPanel();
@@ -281,6 +289,30 @@ namespace KillConfirmGameBar
             return _deltaForceAdvancedEffectsPanel;
         }
 
+        private DoubaoAdvancedEffectsPanel EnsureDoubaoAdvancedEffectsPanel()
+        {
+            if (_doubaoAdvancedEffectsPanel == null)
+            {
+                _doubaoAdvancedEffectsPanel = new DoubaoAdvancedEffectsPanel();
+                _doubaoAdvancedEffectsPanel.StreakModeSelectionChanged += OnSharedStreakModeSelectionChanged;
+                LoadSharedStreakMode(GameStyleMode.Doubao);
+            }
+
+            return _doubaoAdvancedEffectsPanel;
+        }
+
+        private DagoujiaoAdvancedEffectsPanel EnsureDagoujiaoAdvancedEffectsPanel()
+        {
+            if (_dagoujiaoAdvancedEffectsPanel == null)
+            {
+                _dagoujiaoAdvancedEffectsPanel = new DagoujiaoAdvancedEffectsPanel();
+                _dagoujiaoAdvancedEffectsPanel.StreakModeSelectionChanged += OnSharedStreakModeSelectionChanged;
+                _dagoujiaoAdvancedEffectsPanel.DagoujiaoSettingsChanged += OnDagoujiaoSettingsChanged;
+                LoadSharedStreakMode(GameStyleMode.Dagoujiao);
+            }
+            return _dagoujiaoAdvancedEffectsPanel;
+        }
+
         private void ApplyAdvancedEffectsPanelTheme()
         {
             GameThemePalette theme = GameThemePalette.Current;
@@ -338,6 +370,16 @@ namespace KillConfirmGameBar
                 _deltaForceAdvancedEffectsPanel.ApplyTheme(theme);
             }
 
+            if (_doubaoAdvancedEffectsPanel != null)
+            {
+                _doubaoAdvancedEffectsPanel.ApplyTheme(theme);
+            }
+
+            if (_dagoujiaoAdvancedEffectsPanel != null)
+            {
+                _dagoujiaoAdvancedEffectsPanel.ApplyTheme(theme);
+            }
+
             AdvancedEffectsPanelSupport.ApplySoftenedTree(AdvancedEffectsPanelHost, theme);
             AdvancedEffectsPanelSupport.ApplySoftenedTree(
                 AdvancedEffectsPanelHost.Content as DependencyObject,
@@ -393,6 +435,16 @@ namespace KillConfirmGameBar
             if (_deltaForceAdvancedEffectsPanel != null)
             {
                 _deltaForceAdvancedEffectsPanel.ApplyLanguage(isChinese);
+            }
+
+            if (_doubaoAdvancedEffectsPanel != null)
+            {
+                _doubaoAdvancedEffectsPanel.ApplyLanguage(isChinese);
+            }
+
+            if (_dagoujiaoAdvancedEffectsPanel != null)
+            {
+                _dagoujiaoAdvancedEffectsPanel.ApplyLanguage(isChinese);
             }
         }
 

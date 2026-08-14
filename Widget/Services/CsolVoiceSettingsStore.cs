@@ -14,7 +14,7 @@ namespace KillConfirmGameBar.Services
         public string LastKillIcon { get; set; } = "revenge";
 
         /// <summary>true = special voice (headshot/knife) beats the streak voice.</summary>
-        public bool SpecialVoicePriority { get; set; } = true;
+        public bool SpecialVoicePriority { get; set; }
     }
 
     internal static class CsolVoiceSettingsStore
@@ -76,7 +76,7 @@ namespace KillConfirmGameBar.Services
                 LastKillIcon = values.ContainsKey(LastKillIconSettingKey)
                     ? NormalizeIcon(values[LastKillIconSettingKey] as string, RevengeIcon)
                     : NormalizeIcon(values[LegacyFirstLastIconSettingKey] as string, RevengeIcon),
-                SpecialVoicePriority = ReadBoolean(values[SpecialVoicePrioritySettingKey], true)
+                SpecialVoicePriority = ReadBoolean(values[SpecialVoicePrioritySettingKey], false)
             };
         }
 

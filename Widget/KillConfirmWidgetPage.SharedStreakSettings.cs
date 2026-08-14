@@ -93,6 +93,10 @@ namespace KillConfirmGameBar
                     return _pubgAdvancedEffectsPanel?.GetSelectedStreakMode(fallback) ?? fallback;
                 case GameStyleMode.DeltaForce:
                     return _deltaForceAdvancedEffectsPanel?.GetSelectedStreakMode(fallback) ?? fallback;
+                case GameStyleMode.Doubao:
+                    return _doubaoAdvancedEffectsPanel?.GetSelectedStreakMode(fallback) ?? fallback;
+                case GameStyleMode.Dagoujiao:
+                    return _dagoujiaoAdvancedEffectsPanel?.GetSelectedStreakMode(fallback) ?? fallback;
                 case GameStyleMode.Csol:
                     return _csolAdvancedEffectsPanel?.GetSelectedStreakMode(fallback) ?? fallback;
                 default:
@@ -124,6 +128,12 @@ namespace KillConfirmGameBar
                     break;
                 case GameStyleMode.DeltaForce:
                     _deltaForceAdvancedEffectsPanel?.SelectStreakMode(value);
+                    break;
+                case GameStyleMode.Doubao:
+                    _doubaoAdvancedEffectsPanel?.SelectStreakMode(value);
+                    break;
+                case GameStyleMode.Dagoujiao:
+                    _dagoujiaoAdvancedEffectsPanel?.SelectStreakMode(value);
                     break;
                 case GameStyleMode.Csol:
                     _csolAdvancedEffectsPanel?.SelectStreakMode(value);

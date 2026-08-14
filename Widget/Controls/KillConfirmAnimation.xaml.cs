@@ -67,6 +67,7 @@ namespace KillConfirmGameBar.Controls
         private double _displayViewportWidth = ReferenceDisplayWidth;
         private double _displayViewportHeight = MaxCachedFrameHeight * (ReferenceDisplayWidth / MaxCachedFrameWidth);
         private double _renderResolutionScale = 1.0;
+        private double _presentationScale = 1.0;
         private bool _contentSizedViewport;
         private Code2KillAsset _currentCodeAsset;
         private ValorantKillAsset _currentValorantAsset;
@@ -94,6 +95,9 @@ namespace KillConfirmGameBar.Controls
         public double LogicalViewportHeight => _logicalFrameHeight;
         public double DisplayViewportWidth => _displayViewportWidth;
         public double DisplayViewportHeight => _displayViewportHeight;
+        public double InteractionViewportWidth => GetInteractionViewportWidth();
+        public double InteractionViewportHeight => GetInteractionViewportHeight();
+        public static bool IsValorantPresentationConfigured => ValorantPackService.IsValorantPackKey(_iconPack);
 
         public void PlayCode2Kill()
         {
@@ -208,6 +212,16 @@ namespace KillConfirmGameBar.Controls
                 return PreloadDeltaForceAnimationsAsync(progress);
             }
 
+            if (GameStyleService.IsDoubaoKey(_iconPack))
+            {
+                return PreloadDoubaoAnimationsAsync(progress);
+            }
+
+            if (GameStyleService.IsDagoujiaoKey(_iconPack))
+            {
+                return PreloadDagoujiaoAnimationsAsync(progress);
+            }
+
             if (ValorantPackService.IsValorantPackKey(_iconPack))
             {
                 return PreloadValorantAnimationsAsync(progress);
@@ -225,6 +239,28 @@ namespace KillConfirmGameBar.Controls
             }
 
             _renderResolutionScale = normalized;
+            ApplyViewportSize(_logicalFrameWidth, _logicalFrameHeight);
+            SpriteCanvas.Invalidate();
+        }
+
+        public void SetPresentationScale(double scale)
+        {
+            double normalized = Math.Max(0.35, Math.Min(3.0, scale));
+            if (Math.Abs(_presentationScale - normalized) < 0.001)
+            {
+                return;
+            }
+
+            _presentationScale = normalized;
+            if (IsValorantPresentationConfigured)
+            {
+                ApplyViewportSize(_logicalFrameWidth, _logicalFrameHeight);
+                SpriteCanvas.Invalidate();
+            }
+        }
+
+        public void RefreshPresentationLayout()
+        {
             ApplyViewportSize(_logicalFrameWidth, _logicalFrameHeight);
             SpriteCanvas.Invalidate();
         }
@@ -309,6 +345,8 @@ namespace KillConfirmGameBar.Controls
             ClearBattlefield2042IconCache();
             ClearPubgIconCache();
             ClearDeltaForceIconCache();
+            ClearDoubaoIconCache();
+            ClearDagoujiaoImageCache();
             return true;
         }
 
@@ -331,6 +369,8 @@ namespace KillConfirmGameBar.Controls
                 && !GameStyleService.IsBattlefield2042Key(normalized)
                 && !GameStyleService.IsPubgKey(normalized)
                 && !GameStyleService.IsDeltaForceKey(normalized)
+                && !GameStyleService.IsDoubaoKey(normalized)
+                && !GameStyleService.IsDagoujiaoKey(normalized)
                 && !PackCatalogService.IsImportedIconPackKey(normalized))
             {
                 normalized = "default";
@@ -393,6 +433,8 @@ namespace KillConfirmGameBar.Controls
             ResetBattlefield2042HudState();
             ResetPubgHudState();
             ResetDeltaForceHudState();
+            ResetDoubaoState();
+            ResetDagoujiaoState();
             Visibility = Visibility.Collapsed;
             ReleaseValorantEffects();
             ReleaseAllAnimationResourceCaches();
@@ -427,6 +469,14 @@ namespace KillConfirmGameBar.Controls
             foreach (CanvasBitmap bitmap in BattlefieldIconCache.Values) bitmaps.Add(bitmap);
             foreach (CanvasBitmap bitmap in Battlefield2042IconCache.Values) bitmaps.Add(bitmap);
             foreach (CanvasBitmap bitmap in DeltaForceIconCache.Values) bitmaps.Add(bitmap);
+            lock (DoubaoKillCache)
+            {
+                foreach (CanvasBitmap bitmap in DoubaoKillCache.Values) bitmaps.Add(bitmap);
+            }
+            lock (DagoujiaoImageCache)
+            {
+                foreach (CanvasBitmap bitmap in DagoujiaoImageCache.Values) bitmaps.Add(bitmap);
+            }
 
             CodeKillCache.Clear();
             CsolKillCache.Clear();
@@ -435,6 +485,8 @@ namespace KillConfirmGameBar.Controls
             ClearBattlefield2042IconCache();
             ClearPubgIconCache();
             ClearDeltaForceIconCache();
+            ClearDoubaoIconCache();
+            ClearDagoujiaoImageCache();
             foreach (CanvasBitmap bitmap in bitmaps)
             {
                 bitmap?.Dispose();
@@ -528,6 +580,8 @@ namespace KillConfirmGameBar.Controls
             ResetBattlefield2042HudState();
             ResetPubgHudState();
             ResetDeltaForceHudState();
+            ResetDoubaoState();
+            ResetDagoujiaoState();
             int token = ++_playToken;
             bool isLoading = true;
             var progress = new Progress<int>(value =>
@@ -681,7 +735,6 @@ namespace KillConfirmGameBar.Controls
             public CanvasBitmap HeroFlame => Textures?.HeroFlame;
             public CanvasBitmap LargeSparks => Textures?.LargeSparks;
             public CanvasBitmap XSparks => Textures?.XSparks;
-            public CanvasRenderTarget Halo => Textures?.Halo;
             public ValorantDemoProfile DemoProfile { get; set; }
         }
 
@@ -699,7 +752,6 @@ namespace KillConfirmGameBar.Controls
             public CanvasBitmap HeroFlame { get; set; }
             public CanvasBitmap LargeSparks { get; set; }
             public CanvasBitmap XSparks { get; set; }
-            public CanvasRenderTarget Halo { get; set; }
 
             public void Dispose()
             {
@@ -718,7 +770,6 @@ namespace KillConfirmGameBar.Controls
                 HeroFlame?.Dispose();
                 LargeSparks?.Dispose();
                 XSparks?.Dispose();
-                Halo?.Dispose();
                 Frame = null;
                 Emblem = null;
                 Bar = null;
@@ -728,7 +779,6 @@ namespace KillConfirmGameBar.Controls
                 HeroFlame = null;
                 LargeSparks = null;
                 XSparks = null;
-                Halo = null;
             }
         }
 

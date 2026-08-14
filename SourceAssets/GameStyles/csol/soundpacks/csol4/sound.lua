@@ -4,7 +4,7 @@
 --   2-10 kill:    Doublekill ... Outofworld
 --   specials:     Headshot, Humililation / Ohno (knife), Revenge, Assist
 -- ctx.voice_picks[name] = "random" or a specific file name (widget advanced settings).
--- ctx.special_voice_priority = true (default) -> headshot/knife voice beats the streak voice.
+-- ctx.special_voice_priority = false (default) -> streak voice beats headshot/knife voice.
 
 local variants = {
     ["1"] = { "Cantbelive.wav", "Crazy.wav", "Excellent.wav", "Firstkill.wav", "Incredible.wav" },
@@ -71,7 +71,7 @@ function get_sounds(ctx)
 
     local special_first = ctx.special_voice_priority
     if special_first == nil then
-        special_first = true
+        special_first = false
     end
 
     if special_first then

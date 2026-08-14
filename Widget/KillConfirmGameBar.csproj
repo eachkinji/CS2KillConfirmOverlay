@@ -142,6 +142,7 @@
     <Compile Include="KillConfirmWidgetPage.CrossfireStyle.cs" />
     <Compile Include="KillConfirmWidgetPage.CrossfireGameplaySettings.cs" />
     <Compile Include="KillConfirmWidgetPage.CsolGameplaySettings.cs" />
+    <Compile Include="KillConfirmWidgetPage.DagoujiaoSettings.cs" />
     <Compile Include="KillConfirmWidgetPage.SharedStreakSettings.cs" />
     <Compile Include="KillConfirmWidgetPage.EventSoundSettings.cs" />
     <Compile Include="KillConfirmWidgetPage.Status.cs" />
@@ -164,6 +165,8 @@
     <Compile Include="Controls\KillConfirmAnimation.Battlefield2042.cs" />
     <Compile Include="Controls\KillConfirmAnimation.Pubg.cs" />
     <Compile Include="Controls\KillConfirmAnimation.DeltaForce.cs" />
+    <Compile Include="Controls\KillConfirmAnimation.Doubao.cs" />
+    <Compile Include="Controls\KillConfirmAnimation.Dagoujiao.cs" />
     <Compile Include="Controls\KillConfirmAnimation.ValorantDemo.cs" />
     <Compile Include="Controls\KillConfirmAnimation.Valorant.cs" />
     <Compile Include="Controls\KillConfirmAnimation.Valorant.Motion.cs" />
@@ -206,6 +209,12 @@
     </Compile>
     <Compile Include="Controls\GameStyles\DeltaForceAdvancedEffectsPanel.xaml.cs">
       <DependentUpon>DeltaForceAdvancedEffectsPanel.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\GameStyles\DoubaoAdvancedEffectsPanel.xaml.cs">
+      <DependentUpon>DoubaoAdvancedEffectsPanel.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\GameStyles\DagoujiaoAdvancedEffectsPanel.xaml.cs">
+      <DependentUpon>DagoujiaoAdvancedEffectsPanel.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\GameStyles\DeltaForceStylePanel.xaml.cs">
       <DependentUpon>DeltaForceStylePanel.xaml</DependentUpon>
@@ -270,6 +279,8 @@
     <Compile Include="Services\CombatEventSoundSettingsStore.cs" />
     <Compile Include="Services\CrossfireGameplaySettingsStore.cs" />
     <Compile Include="Services\CsolVoiceSettingsStore.cs" />
+    <Compile Include="Services\DagoujiaoSettingsStore.cs" />
+    <Compile Include="Services\BombAudioSettingsStore.cs" />
     <Compile Include="Services\SharedStreakSettingsStore.cs" />
     <Compile Include="Services\DeveloperModeSettingsStore.cs" />
     <Compile Include="Services\GsiGameVersionSettingsStore.cs" />
@@ -405,6 +416,14 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Controls\GameStyles\DeltaForceAdvancedEffectsPanel.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\GameStyles\DoubaoAdvancedEffectsPanel.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\GameStyles\DagoujiaoAdvancedEffectsPanel.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

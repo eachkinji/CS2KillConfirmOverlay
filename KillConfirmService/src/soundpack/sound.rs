@@ -7,16 +7,18 @@ use std::{
 };
 
 use anyhow::{Context, Result};
-use rodio::{Source, mixer};
+use rodio::{Sink, Source, mixer};
 use tokio::{
     task::JoinSet,
-    time::{Duration, sleep},
+    time::{Duration, Instant, sleep, sleep_until},
 };
 use tracing::{debug, error};
 
 use crate::soundpack::SoundContext;
 use crate::util::logging::service_log;
-use crate::util::state::{AppState, EventChannel, EventSoundMode};
+use crate::util::state::{
+    AppState, DEFAULT_BOMB_AUDIO_SPEED_PERCENTS, EventChannel, EventSoundMode,
+};
 
 const HEADSHOT_SOUND_GAIN: f32 = 1.8;
 const COMMON_SOUND_GAIN: f32 = 4.5;
@@ -39,9 +41,24 @@ const QUIET_VOICE_PACK_SOUND_GAIN: f32 = 3.6;
 const GLOBAL_SOUND_GAIN: f32 = 0.5;
 const MAX_STREAK_EVENT_GAIN: f32 = 1.5;
 const BATTLEFIELD_2042_KILL_AUDIO_DELAY_MS: u64 = 100;
+const BOMB_TIMER_AUDIO_FILE: &str = "sounds/dagoujiao/common.wav";
+const BOMB_EXPLODED_AUDIO_FILE: &str = "sounds/dagoujiao/epic.wav";
+const BOMB_DEFUSED_AUDIO_FILE: &str = "sounds/dagoujiao/jiaojiaojiao.wav";
+const BOMB_TIMER_SECONDS: u64 = 40;
+const BOMB_TIMER_STEP_SECONDS: u64 = 5;
 const AUDIO_CACHE_EXTENSIONS: [&str; 3] = ["wav", "mp3", "m4a"];
 
 static AUDIO_BYTES_CACHE: OnceLock<RwLock<HashMap<String, Arc<[u8]>>>> = OnceLock::new();
+
+fn bomb_timer_speed_at_elapsed(elapsed: Duration, speed_percents: &[u32; 8]) -> Option<f32> {
+    if elapsed >= Duration::from_secs(BOMB_TIMER_SECONDS) {
+        return None;
+    }
+    let index = (elapsed.as_secs() / BOMB_TIMER_STEP_SECONDS) as usize;
+    speed_percents
+        .get(index)
+        .map(|speed_percent| (*speed_percent).clamp(25, 400) as f32 / 100.0)
+}
 
 fn audio_bytes_cache() -> &'static RwLock<HashMap<String, Arc<[u8]>>> {
     AUDIO_BYTES_CACHE.get_or_init(|| RwLock::new(HashMap::new()))
@@ -90,6 +107,183 @@ pub async fn warm_audio_cache(app_state: Arc<AppState>) {
     }
 }
 
+pub fn start_bomb_timer_audio(app_state: Arc<AppState>) {
+    if !app_state.bomb_audio_enabled.load(Ordering::Relaxed) {
+        return;
+    }
+
+    let generation = begin_bomb_audio_session(&app_state);
+    tokio::spawn(async move {
+        if let Err(error) = run_bomb_timer_audio(app_state, generation).await {
+            error!("Failed to play bomb timer audio: {error}");
+            service_log(&format!("failed to play bomb timer audio: {error}"));
+        }
+    });
+}
+
+pub fn play_bomb_exploded_audio(app_state: Arc<AppState>) {
+    start_bomb_outcome_audio(app_state, BOMB_EXPLODED_AUDIO_FILE, "exploded");
+}
+
+pub fn play_bomb_defused_audio(app_state: Arc<AppState>) {
+    start_bomb_outcome_audio(app_state, BOMB_DEFUSED_AUDIO_FILE, "defused");
+}
+
+pub fn stop_bomb_audio(app_state: &AppState) {
+    app_state
+        .bomb_audio_generation
+        .fetch_add(1, Ordering::SeqCst);
+    stop_current_bomb_sink(app_state);
+}
+
+pub fn refresh_bomb_audio_volume(app_state: &AppState) {
+    if let Ok(active) = app_state.bomb_audio_sink.lock() {
+        if let Some(sink) = active.as_ref() {
+            sink.set_volume(resolve_bomb_audio_volume(app_state));
+        }
+    }
+}
+
+async fn run_bomb_timer_audio(app_state: Arc<AppState>, generation: u64) -> Result<()> {
+    let bytes = read_audio_bytes(BOMB_TIMER_AUDIO_FILE).await?;
+    let source = rodio::Decoder::new(BufReader::new(Cursor::new(bytes)))
+        .with_context(|| format!("failed to decode file: {BOMB_TIMER_AUDIO_FILE:?}"))?;
+    let mixer = {
+        let stream_handle = app_state.stream_handle.read().await;
+        stream_handle.mixer().to_owned()
+    };
+    let sink = Arc::new(Sink::connect_new(&mixer));
+    sink.set_volume(resolve_bomb_audio_volume(&app_state));
+    let initial_speed_percents = std::array::from_fn(|index| {
+        app_state.bomb_audio_speed_percents[index].load(Ordering::Relaxed)
+    });
+    sink.set_speed(
+        bomb_timer_speed_at_elapsed(Duration::ZERO, &initial_speed_percents).unwrap_or(1.0),
+    );
+    sink.append(source.repeat_infinite());
+
+    if !install_bomb_sink(&app_state, generation, sink.clone()) {
+        sink.stop();
+        return Ok(());
+    }
+
+    let started_at = Instant::now();
+    service_log("bomb audio timer started: 40s");
+    for index in 1..DEFAULT_BOMB_AUDIO_SPEED_PERCENTS.len() {
+        sleep_until(started_at + Duration::from_secs(index as u64 * BOMB_TIMER_STEP_SECONDS)).await;
+        if !bomb_audio_session_is_active(&app_state, generation) {
+            sink.stop();
+            return Ok(());
+        }
+        let speed_percent = app_state.bomb_audio_speed_percents[index]
+            .load(Ordering::Relaxed)
+            .clamp(25, 400);
+        sink.set_speed(speed_percent as f32 / 100.0);
+    }
+
+    sleep_until(started_at + Duration::from_secs(BOMB_TIMER_SECONDS)).await;
+    if bomb_audio_session_is_active(&app_state, generation) {
+        sink.stop();
+        clear_bomb_sink_if_current(&app_state, &sink);
+        service_log("bomb audio timer reached 0s");
+    }
+    Ok(())
+}
+
+fn start_bomb_outcome_audio(
+    app_state: Arc<AppState>,
+    file_name: &'static str,
+    outcome: &'static str,
+) {
+    if !app_state.bomb_audio_enabled.load(Ordering::Relaxed) {
+        stop_bomb_audio(&app_state);
+        return;
+    }
+
+    let generation = begin_bomb_audio_session(&app_state);
+    tokio::spawn(async move {
+        let result = async {
+            let bytes = read_audio_bytes(file_name).await?;
+            let source = rodio::Decoder::new(BufReader::new(Cursor::new(bytes)))
+                .with_context(|| format!("failed to decode file: {file_name:?}"))?;
+            let mixer = {
+                let stream_handle = app_state.stream_handle.read().await;
+                stream_handle.mixer().to_owned()
+            };
+            let sink = Arc::new(Sink::connect_new(&mixer));
+            sink.set_volume(resolve_bomb_audio_volume(&app_state));
+            sink.append(source);
+            if !install_bomb_sink(&app_state, generation, sink.clone()) {
+                sink.stop();
+                return Ok::<(), anyhow::Error>(());
+            }
+            service_log(&format!("bomb audio outcome played: {outcome}"));
+            Ok(())
+        }
+        .await;
+
+        if let Err(error) = result {
+            error!("Failed to play bomb {outcome} audio: {error}");
+            service_log(&format!("failed to play bomb {outcome} audio: {error}"));
+        }
+    });
+}
+
+fn begin_bomb_audio_session(app_state: &AppState) -> u64 {
+    let generation = app_state
+        .bomb_audio_generation
+        .fetch_add(1, Ordering::SeqCst)
+        .wrapping_add(1);
+    stop_current_bomb_sink(app_state);
+    generation
+}
+
+fn stop_current_bomb_sink(app_state: &AppState) {
+    if let Ok(mut active) = app_state.bomb_audio_sink.lock() {
+        if let Some(sink) = active.take() {
+            sink.stop();
+        }
+    }
+}
+
+fn install_bomb_sink(app_state: &AppState, generation: u64, sink: Arc<Sink>) -> bool {
+    let Ok(mut active) = app_state.bomb_audio_sink.lock() else {
+        return false;
+    };
+    if !bomb_audio_session_is_active(app_state, generation) {
+        return false;
+    }
+    if let Some(previous) = active.replace(sink) {
+        previous.stop();
+    }
+    true
+}
+
+fn clear_bomb_sink_if_current(app_state: &AppState, sink: &Arc<Sink>) {
+    if let Ok(mut active) = app_state.bomb_audio_sink.lock()
+        && active
+            .as_ref()
+            .is_some_and(|current| Arc::ptr_eq(current, sink))
+    {
+        active.take();
+    }
+}
+
+fn bomb_audio_session_is_active(app_state: &AppState, generation: u64) -> bool {
+    app_state.bomb_audio_enabled.load(Ordering::Relaxed)
+        && app_state.bomb_audio_generation.load(Ordering::SeqCst) == generation
+}
+
+fn resolve_bomb_audio_volume(app_state: &AppState) -> f32 {
+    let master = app_state.volume_percent.load(Ordering::Relaxed) as f32 / 100.0;
+    let bomb = app_state
+        .bomb_audio_volume_percent
+        .load(Ordering::Relaxed)
+        .min(100) as f32
+        / 100.0;
+    (master * bomb).clamp(0.0, 2.0)
+}
+
 fn is_supported_audio_path(path: &Path) -> bool {
     path.extension()
         .and_then(|value| value.to_str())
@@ -106,14 +300,16 @@ async fn add_file_to_mixer(
     mixer: &mixer::Mixer,
     event_gain: f32,
     master_volume: f32,
+    playback_speed: f32,
 ) -> Result<()> {
     let bytes = read_audio_bytes(file_name).await?;
     let source = rodio::Decoder::new(BufReader::new(Cursor::new(bytes)))
         .with_context(|| format!("failed to decode file: {file_name:?}"))?;
-    mixer
-        .add(source.amplify(
-            resolve_sound_gain(file_name, event_gain) * GLOBAL_SOUND_GAIN * master_volume,
-        ));
+    mixer.add(
+        source
+            .speed(playback_speed.clamp(0.25, 4.0))
+            .amplify(resolve_sound_gain(file_name, event_gain) * GLOBAL_SOUND_GAIN * master_volume),
+    );
     Ok(())
 }
 
@@ -163,7 +359,7 @@ pub async fn play_audio(
         stream_handle.mixer().to_owned()
     };
 
-    let sound_files = {
+    let (sound_files, dagoujiao_playback_speed) = {
         let preset = app_state_clone.preset.read().await;
         let use_crossfire_audio_settings = app_state_clone
             .crossfire_mode_active
@@ -200,9 +396,11 @@ pub async fn play_audio(
             && supports_event_sound_routing(&preset.preset_name)
         {
             let settings = app_state_clone.event_sound_settings.read().await;
-            settings
-                .active
-                .then(|| settings.route_for(is_headshot, is_knife_kill, is_assist).clone())
+            settings.active.then(|| {
+                settings
+                    .route_for(is_headshot, is_knife_kill, is_assist)
+                    .clone()
+            })
         } else {
             None
         };
@@ -223,7 +421,11 @@ pub async fn play_audio(
         // Only the audio context is rerouted. The published event keeps its original
         // headshot/knife/assist flags, so visuals and text remain unchanged.
         let ctx = SoundContext {
-            kill_count: if route_to_common { 1 } else { routing_kill_count },
+            kill_count: if route_to_common {
+                1
+            } else {
+                routing_kill_count
+            },
             is_headshot: is_headshot && !route_to_common && !route_to_custom,
             is_first_kill: effective_first_kill && !route_to_common && !route_to_custom,
             is_knife_kill: is_knife_kill && !route_to_common && !route_to_custom,
@@ -249,20 +451,69 @@ pub async fn play_audio(
                 .load(Ordering::Relaxed),
         };
 
-        // Get sound files from Lua script
-        let mut files = preset
-            .lua_script
-            .get_sounds(&ctx)
-            .with_context(|| "failed to get sounds from Lua script".to_string())?;
+        let is_dagoujiao = preset.preset_name.eq_ignore_ascii_case("dagoujiao");
+        let epic_kill_count = app_state_clone
+            .dagoujiao_epic_kill_count
+            .load(Ordering::Relaxed)
+            .clamp(2, 50) as u16;
+        let (mut files, mut dagoujiao_speed) = if is_dagoujiao {
+            let sound_name = resolve_dagoujiao_sound_name(
+                audio_kill_count,
+                is_headshot,
+                epic_kill_count,
+                app_state_clone
+                    .dagoujiao_headshot_priority
+                    .load(Ordering::Relaxed),
+            );
+            if let Some(name) = sound_name.filter(|_| audio_play_main) {
+                let event_key = name.trim_end_matches(".wav");
+                let configured_path = app_state_clone
+                    .dagoujiao_audio_paths
+                    .read()
+                    .await
+                    .get(event_key)
+                    .cloned()
+                    .unwrap_or_default();
+                let path = resolve_dagoujiao_audio_path(&preset.base_dir, name, &configured_path);
+                let speed = if name == "common.wav" {
+                    resolve_dagoujiao_playback_speed(
+                        audio_kill_count,
+                        epic_kill_count,
+                        app_state_clone
+                            .dagoujiao_initial_playback_speed_percent
+                            .load(Ordering::Relaxed) as f32
+                            / 100.0,
+                        app_state_clone
+                            .dagoujiao_maximum_playback_speed_percent
+                            .load(Ordering::Relaxed) as f32
+                            / 100.0,
+                    )
+                } else {
+                    1.0
+                };
+                (vec![path], speed)
+            } else {
+                (Vec::new(), 1.0)
+            }
+        } else {
+            (
+                preset
+                    .lua_script
+                    .get_sounds(&ctx)
+                    .with_context(|| "failed to get sounds from Lua script".to_string())?,
+                1.0,
+            )
+        };
         if route_to_custom {
             if let Some(custom_path) = event_sound_route
                 .and_then(|route| route.custom_path)
                 .filter(|path| !path.trim().is_empty())
             {
                 files.push(custom_path);
+                dagoujiao_speed = 1.0;
             }
         }
-        files
+        (files, dagoujiao_speed)
     };
 
     debug!(
@@ -290,7 +541,14 @@ pub async fn play_audio(
             if uses_battlefield2042_rules {
                 sleep(Duration::from_millis(BATTLEFIELD_2042_KILL_AUDIO_DELAY_MS)).await;
             }
-            add_file_to_mixer(&file_path, &mixer_clone, file_event_gain, volume).await
+            add_file_to_mixer(
+                &file_path,
+                &mixer_clone,
+                file_event_gain,
+                volume,
+                dagoujiao_playback_speed,
+            )
+            .await
         });
     }
 
@@ -312,6 +570,63 @@ pub async fn play_audio(
     }
 
     Ok(())
+}
+
+fn resolve_dagoujiao_sound_name(
+    kill_count: u16,
+    is_headshot: bool,
+    epic_kill_count: u16,
+    headshot_priority: bool,
+) -> Option<&'static str> {
+    if kill_count == 0 {
+        return None;
+    }
+
+    let epic = epic_kill_count.clamp(3, 50);
+    if is_headshot && headshot_priority {
+        return Some("headshot.wav");
+    }
+    if kill_count >= epic {
+        return Some("epic.wav");
+    }
+    Some("common.wav")
+}
+
+fn resolve_dagoujiao_playback_speed(
+    kill_count: u16,
+    epic_kill_count: u16,
+    initial_speed: f32,
+    maximum_speed: f32,
+) -> f32 {
+    let epic = epic_kill_count.clamp(3, 50);
+    let common_kill = kill_count.clamp(1, epic.saturating_sub(1));
+    let progress = (common_kill.saturating_sub(1)) as f32 / (epic - 2) as f32;
+    let start = initial_speed.clamp(0.25, 4.0);
+    let end = maximum_speed.clamp(0.25, 4.0);
+    start + progress * (end - start)
+}
+
+fn resolve_dagoujiao_audio_path(
+    base_dir: &str,
+    default_name: &str,
+    configured_path: &str,
+) -> String {
+    let configured = configured_path.trim();
+    if let Some(file_name) = configured.strip_prefix("builtin:") {
+        let safe_name = match file_name.to_ascii_lowercase().as_str() {
+            "common.wav" => "common.wav",
+            "epic.wav" => "epic.wav",
+            "headshot.wav" => "headshot.wav",
+            "jiaojiaojiao.wav" => "jiaojiaojiao.wav",
+            _ => default_name,
+        };
+        return format!("{base_dir}/{safe_name}");
+    }
+    if configured.is_empty() {
+        format!("{base_dir}/{default_name}")
+    } else {
+        configured.to_string()
+    }
 }
 
 fn resolve_assist_audio_routing(
@@ -396,9 +711,7 @@ fn resolve_sound_gain(file_name: &str, event_gain: f32) -> f32 {
         return event_gain;
     }
 
-    if normalized.contains("/bf1/")
-        && is_audio_file_named(&normalized, "common_headshot")
-    {
+    if normalized.contains("/bf1/") && is_audio_file_named(&normalized, "common_headshot") {
         return BF1_HEADSHOT_SOUND_GAIN * event_gain;
     }
 
@@ -512,10 +825,107 @@ fn resolve_event_gain(kill_count: u16, play_main_audio: bool) -> f32 {
 mod tests {
     use super::{
         resolve_assist_audio_routing, resolve_crossfire_audio_kill_count,
-        resolve_sound_gain, resolve_special_kill_audio_flag, supports_economy_audio_events,
-        supports_event_sound_routing,
+        resolve_dagoujiao_audio_path, resolve_dagoujiao_playback_speed,
+        resolve_dagoujiao_sound_name, resolve_sound_gain, resolve_special_kill_audio_flag,
+        supports_economy_audio_events, supports_event_sound_routing,
         uses_battlefield2042_audio_rules, uses_crossfire_audio_rules,
     };
+
+    #[test]
+    fn dagoujiao_interpolates_common_audio_between_configured_endpoints() {
+        let expected_for_five = [0.50, 1.00, 1.50, 2.00];
+        for (index, expected) in expected_for_five.iter().enumerate() {
+            let actual = resolve_dagoujiao_playback_speed((index + 1) as u16, 5, 0.5, 2.0);
+            assert!((actual - expected).abs() < 0.001, "{actual} != {expected}");
+        }
+
+        assert!((resolve_dagoujiao_playback_speed(1, 20, 0.25, 4.0) - 0.25).abs() < 0.001);
+        assert!((resolve_dagoujiao_playback_speed(19, 20, 0.25, 4.0) - 4.0).abs() < 0.001);
+        let middle = resolve_dagoujiao_playback_speed(10, 20, 0.25, 4.0);
+        assert!(middle > 0.25 && middle < 4.0);
+    }
+
+    #[test]
+    fn dagoujiao_routes_epic_and_headshot_by_user_priority() {
+        assert_eq!(
+            resolve_dagoujiao_sound_name(1, false, 5, true),
+            Some("common.wav")
+        );
+        assert_eq!(
+            resolve_dagoujiao_sound_name(5, false, 5, true),
+            Some("epic.wav")
+        );
+        assert_eq!(
+            resolve_dagoujiao_sound_name(8, false, 5, true),
+            Some("epic.wav")
+        );
+        assert_eq!(
+            resolve_dagoujiao_sound_name(5, true, 5, true),
+            Some("headshot.wav")
+        );
+        assert_eq!(
+            resolve_dagoujiao_sound_name(5, true, 5, false),
+            Some("epic.wav")
+        );
+        assert_eq!(
+            resolve_dagoujiao_sound_name(3, true, 5, false),
+            Some("common.wav")
+        );
+        assert_eq!(resolve_dagoujiao_sound_name(0, false, 5, true), None);
+    }
+
+    #[test]
+    fn dagoujiao_resolves_builtin_and_imported_event_audio() {
+        assert_eq!(
+            resolve_dagoujiao_audio_path("sounds/dagoujiao", "headshot.wav", "builtin:epic.wav"),
+            "sounds/dagoujiao/epic.wav"
+        );
+        assert_eq!(
+            resolve_dagoujiao_audio_path("sounds/dagoujiao", "common.wav", "C:/audio/custom.mp3"),
+            "C:/audio/custom.mp3"
+        );
+        assert_eq!(
+            resolve_dagoujiao_audio_path("sounds/dagoujiao", "common.wav", "builtin:../bad.wav"),
+            "sounds/dagoujiao/common.wav"
+        );
+    }
+
+    #[test]
+    fn doubao_sound_lua_routes_five_independent_kill_voices() {
+        use crate::soundpack::lua_script::{LuaScript, SoundContext};
+        use crate::util::state::EventChannel;
+        use std::collections::HashMap;
+
+        let script = LuaScript::load("sounds/doubao/sound.lua").expect("load doubao sound.lua");
+        let make_ctx = |kill_count, play_main_audio| SoundContext {
+            kill_count,
+            is_headshot: false,
+            is_first_kill: false,
+            is_knife_kill: false,
+            is_last_kill: false,
+            is_assist: false,
+            play_main_audio,
+            money_reward: 0,
+            event_kind: None,
+            event_channel: EventChannel::Combat,
+            preset_name: "doubao".to_string(),
+            master_name: "doubao".to_string(),
+            variant: None,
+            base_dir: "sounds/doubao".to_string(),
+            voice_picks: HashMap::new(),
+            special_voice_priority: true,
+        };
+
+        for kill_count in 1..=5 {
+            let sounds = script.get_sounds(&make_ctx(kill_count, true)).unwrap();
+            assert_eq!(sounds, vec![format!("sounds/doubao/{kill_count}kill.wav")]);
+        }
+
+        let capped = script.get_sounds(&make_ctx(8, true)).unwrap();
+        assert_eq!(capped, vec!["sounds/doubao/5kill.wav"]);
+        assert!(script.get_sounds(&make_ctx(0, true)).unwrap().is_empty());
+        assert!(script.get_sounds(&make_ctx(3, false)).unwrap().is_empty());
+    }
 
     #[test]
     fn csol4_sound_lua_routes_kill_types() {
@@ -524,24 +934,25 @@ mod tests {
         use std::collections::HashMap;
 
         let script = LuaScript::load("sounds/csol4/sound.lua").expect("load csol4 sound.lua");
-        let make_ctx = |kill_count, is_headshot, is_knife, is_first, is_last, is_assist| SoundContext {
-            kill_count,
-            is_headshot,
-            is_first_kill: is_first,
-            is_knife_kill: is_knife,
-            is_last_kill: is_last,
-            is_assist,
-            play_main_audio: true,
-            money_reward: 0,
-            event_kind: None,
-            event_channel: EventChannel::Combat,
-            preset_name: "csol4".to_string(),
-            master_name: "csol4".to_string(),
-            variant: None,
-            base_dir: "sounds/csol4".to_string(),
-            voice_picks: HashMap::new(),
-            special_voice_priority: true,
-        };
+        let make_ctx =
+            |kill_count, is_headshot, is_knife, is_first, is_last, is_assist| SoundContext {
+                kill_count,
+                is_headshot,
+                is_first_kill: is_first,
+                is_knife_kill: is_knife,
+                is_last_kill: is_last,
+                is_assist,
+                play_main_audio: true,
+                money_reward: 0,
+                event_kind: None,
+                event_channel: EventChannel::Combat,
+                preset_name: "csol4".to_string(),
+                master_name: "csol4".to_string(),
+                variant: None,
+                base_dir: "sounds/csol4".to_string(),
+                voice_picks: HashMap::new(),
+                special_voice_priority: true,
+            };
 
         // First and last kills have independent voices.
         let sounds = script
@@ -557,11 +968,15 @@ mod tests {
         assert!(sounds[0].ends_with("Revenge.wav"), "{}", sounds[0]);
 
         // Assist -> Assist voice.
-        let sounds = script.get_sounds(&make_ctx(0, false, false, false, false, true)).unwrap();
+        let sounds = script
+            .get_sounds(&make_ctx(0, false, false, false, false, true))
+            .unwrap();
         assert!(sounds[0].ends_with("Assist.wav"), "{}", sounds[0]);
 
         // Special-first: knife beats the streak voice.
-        let sounds = script.get_sounds(&make_ctx(3, false, true, false, false, false)).unwrap();
+        let sounds = script
+            .get_sounds(&make_ctx(3, false, true, false, false, false))
+            .unwrap();
         assert!(
             sounds[0].ends_with("Humililation.wav") || sounds[0].ends_with("Ohno.wav"),
             "{}",
@@ -569,25 +984,39 @@ mod tests {
         );
 
         // Special-first: headshot beats the streak voice.
-        let sounds = script.get_sounds(&make_ctx(2, true, false, false, false, false)).unwrap();
+        let sounds = script
+            .get_sounds(&make_ctx(2, true, false, false, false, false))
+            .unwrap();
         assert!(sounds[0].ends_with("Headshot.wav"), "{}", sounds[0]);
 
         // Plain streaks route to the numbered voice (capped at 10).
-        let sounds = script.get_sounds(&make_ctx(2, false, false, false, false, false)).unwrap();
+        let sounds = script
+            .get_sounds(&make_ctx(2, false, false, false, false, false))
+            .unwrap();
         assert!(sounds[0].ends_with("Doublekill.wav"), "{}", sounds[0]);
-        let sounds = script.get_sounds(&make_ctx(4, false, false, false, false, false)).unwrap();
+        let sounds = script
+            .get_sounds(&make_ctx(4, false, false, false, false, false))
+            .unwrap();
         assert!(
             sounds[0].ends_with("Multikill.wav") || sounds[0].ends_with("Multikill_ch.wav"),
             "{}",
             sounds[0]
         );
-        let sounds = script.get_sounds(&make_ctx(5, false, false, false, false, false)).unwrap();
+        let sounds = script
+            .get_sounds(&make_ctx(5, false, false, false, false, false))
+            .unwrap();
         assert!(sounds[0].ends_with("Megakill.wav"), "{}", sounds[0]);
-        let sounds = script.get_sounds(&make_ctx(9, false, false, false, false, false)).unwrap();
+        let sounds = script
+            .get_sounds(&make_ctx(9, false, false, false, false, false))
+            .unwrap();
         assert!(sounds[0].ends_with("Outofworld.wav"), "{}", sounds[0]);
-        let sounds = script.get_sounds(&make_ctx(10, false, false, false, false, false)).unwrap();
+        let sounds = script
+            .get_sounds(&make_ctx(10, false, false, false, false, false))
+            .unwrap();
         assert!(sounds[0].ends_with("Ohgod.wav"), "{}", sounds[0]);
-        let sounds = script.get_sounds(&make_ctx(12, false, false, false, false, false)).unwrap();
+        let sounds = script
+            .get_sounds(&make_ctx(12, false, false, false, false, false))
+            .unwrap();
         assert!(sounds[0].ends_with("Ohgod.wav"), "{}", sounds[0]);
     }
 
@@ -755,4 +1184,27 @@ mod tests {
         assert!(!supports_event_sound_routing("crossfire_swat_gr"));
         assert!(!supports_event_sound_routing("valorant_00009_prime"));
     }
+}
+#[cfg(test)]
+#[test]
+fn bomb_timer_uses_the_requested_five_second_speed_steps() {
+    let expected = [0.5, 0.7, 0.8, 1.0, 1.1, 1.2, 1.3, 1.5];
+    for (index, speed) in expected.iter().copied().enumerate() {
+        let start = Duration::from_secs(index as u64 * 5);
+        assert_eq!(
+            bomb_timer_speed_at_elapsed(start, &DEFAULT_BOMB_AUDIO_SPEED_PERCENTS),
+            Some(speed)
+        );
+        assert_eq!(
+            bomb_timer_speed_at_elapsed(
+                start + Duration::from_millis(4_999),
+                &DEFAULT_BOMB_AUDIO_SPEED_PERCENTS,
+            ),
+            Some(speed)
+        );
+    }
+    assert_eq!(
+        bomb_timer_speed_at_elapsed(Duration::from_secs(40), &DEFAULT_BOMB_AUDIO_SPEED_PERCENTS),
+        None
+    );
 }

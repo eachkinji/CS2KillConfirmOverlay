@@ -33,8 +33,9 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use util::auth::{load_or_create_control_token, require_control_token};
 use util::signal::shutdown_signal;
 use util::state::{
-    AppState, CrossfireStreakMode, DEFAULT_CUSTOM_STREAK_WINDOW_MS, EventJournal,
-    EventSoundSettings, GsiGameVersion, MoneyRewardMode, Mutable,
+    AppState, CrossfireStreakMode, DEFAULT_BOMB_AUDIO_SPEED_PERCENTS,
+    DEFAULT_CUSTOM_STREAK_WINDOW_MS, EventJournal, EventSoundSettings, GsiGameVersion,
+    MoneyRewardMode, Mutable,
 };
 
 use util::Args;
@@ -44,12 +45,13 @@ use anyhow::{Context, Result};
 use soundpack::Preset;
 use soundpack::sound::warm_audio_cache;
 use util::event_stream::{
-    audio_devices, audio_reload, audio_volume, counter_strike_root, crossfire_settings, cs2_root,
-    csol_settings, developer_settings, event_sound_settings, events_poll, gsi_game_settings,
-    gsi_status, health, money_mode, set_audio_device, set_crossfire_settings, set_csol_settings,
-    install_counter_strike_cfg, set_developer_settings, set_event_sound_settings, set_gsi_game_settings, set_money_mode,
-    set_spectator_settings, set_streak_settings, shutdown, spectator_settings, streak_settings,
-    test_event,
+    audio_devices, audio_reload, audio_volume, bomb_audio_settings, counter_strike_root,
+    crossfire_settings, cs2_root, csol_settings, dagoujiao_settings, developer_settings,
+    event_sound_settings, events_poll, gsi_game_settings, gsi_status, health,
+    install_counter_strike_cfg, money_mode, set_audio_device, set_bomb_audio_settings,
+    set_crossfire_settings, set_csol_settings, set_dagoujiao_settings, set_developer_settings,
+    set_event_sound_settings, set_gsi_game_settings, set_money_mode, set_spectator_settings,
+    set_streak_settings, shutdown, spectator_settings, streak_settings, test_event,
 };
 use util::handler::update;
 use util::logging::{developer_logging_enabled, set_developer_logging_enabled};
@@ -272,6 +274,7 @@ async fn run() -> Result<()> {
             active_observed_player_id: None,
             last_bomb_state: None,
             last_bomb_player: None,
+            last_round_bomb_state: None,
         }),
         control_token,
         stream_handle: RwLock::new(output_stream),
@@ -295,7 +298,26 @@ async fn run() -> Result<()> {
         assist_audio_setting_active: AtomicBool::new(true),
         event_sound_settings: RwLock::new(EventSoundSettings::default()),
         csol_voice_picks: RwLock::new(HashMap::new()),
-        csol_special_voice_priority: AtomicBool::new(true),
+        csol_special_voice_priority: AtomicBool::new(false),
+        dagoujiao_epic_kill_count: AtomicU32::new(5),
+        dagoujiao_headshot_priority: AtomicBool::new(false),
+        dagoujiao_initial_playback_speed_percent: AtomicU32::new(50),
+        dagoujiao_maximum_playback_speed_percent: AtomicU32::new(200),
+        dagoujiao_audio_paths: RwLock::new(HashMap::from([
+            ("common".to_string(), "builtin:common.wav".to_string()),
+            ("epic".to_string(), "builtin:epic.wav".to_string()),
+            (
+                "headshot".to_string(),
+                "builtin:jiaojiaojiao.wav".to_string(),
+            ),
+        ])),
+        bomb_audio_enabled: AtomicBool::new(false),
+        bomb_audio_volume_percent: AtomicU32::new(50),
+        bomb_audio_speed_percents: std::array::from_fn(|index| {
+            AtomicU32::new(DEFAULT_BOMB_AUDIO_SPEED_PERCENTS[index])
+        }),
+        bomb_audio_generation: AtomicU64::new(0),
+        bomb_audio_sink: std::sync::Mutex::new(None),
         spectated_kill_effects_enabled: AtomicBool::new(true),
         gsi_game_version: AtomicU8::new(GsiGameVersion::DEFAULT.as_u8()),
         events: EventJournal::default(),
@@ -336,14 +358,19 @@ async fn run() -> Result<()> {
         .route("/audio/devices", get(audio_devices))
         .route("/audio/device", post(set_audio_device))
         .route("/audio/volume", post(audio_volume))
+        .route(
+            "/bomb-audio/settings",
+            get(bomb_audio_settings).post(set_bomb_audio_settings),
+        )
         .route("/money/mode", get(money_mode).post(set_money_mode))
         .route(
             "/crossfire/settings",
             get(crossfire_settings).post(set_crossfire_settings),
         )
+        .route("/csol/settings", get(csol_settings).post(set_csol_settings))
         .route(
-            "/csol/settings",
-            get(csol_settings).post(set_csol_settings),
+            "/dagoujiao/settings",
+            get(dagoujiao_settings).post(set_dagoujiao_settings),
         )
         .route(
             "/streak/settings",

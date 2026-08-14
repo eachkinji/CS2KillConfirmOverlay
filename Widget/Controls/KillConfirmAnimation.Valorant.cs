@@ -16,6 +16,8 @@ namespace KillConfirmGameBar.Controls
         private const double ValorantFrameWidth = 607;
         private const double ValorantFrameHeight = 436;
         private const int ValorantFrameCount = 156;
+        private const CanvasImageInterpolation ValorantDownscaleInterpolation = CanvasImageInterpolation.HighQualityCubic;
+        private const CanvasImageInterpolation ValorantUpscaleInterpolation = CanvasImageInterpolation.Cubic;
         private const float ValorantGaiaBrightness = 1.3f;
         private const float ValorantGaiaContrast = 1.1f;
         private static readonly object ValorantTextureCacheLock = new object();
@@ -183,7 +185,6 @@ namespace KillConfirmGameBar.Controls
                 textures.LargeSparks = await LoadValorantTextureAsync(root, "killicon_valorant_particle_large_sparks.png", cancellationToken);
                 progress?.Report(92);
                 textures.XSparks = await LoadValorantTextureAsync(root, "killicon_valorant_particle_x_sparks.png", cancellationToken);
-                textures.Halo = CreateValorantHaloTexture(textures.Frame.Device, profile.Accent, profile.HaloRadius);
                 progress?.Report(100);
                 return textures;
             }
@@ -277,12 +278,6 @@ namespace KillConfirmGameBar.Controls
             }
 
             double elapsedMs = frame * (1000.0 / FrameSequenceFps);
-            double opacity = GetValorantDemoLifeOpacity(asset.KillCount, elapsedMs);
-            if (opacity <= 0)
-            {
-                return;
-            }
-
             double cx = ValorantFrameWidth / 2.0;
             double cy = ValorantFrameHeight / 2.0;
             ValorantDemoProfile profile = asset.DemoProfile ?? GetValorantDemoProfile(asset.PackKey);
@@ -301,17 +296,14 @@ namespace KillConfirmGameBar.Controls
                 206.0 / 256.0,
                 0,
                 profile.BaseParticleYOffset,
-                opacity,
                 true,
                 false,
-                asset.Accent,
-                null,
-                0,
-                0);
-            DrawValorantHalo(drawingSession, asset.Halo, cx, cy, opacity);
+                asset.Accent);
 
-            DrawValorantBars(drawingSession, asset, cx, cy, elapsedMs, opacity);
-            DrawCenteredImageWithShadowAt(
+            DrawValorantHalo(drawingSession, cx, cy, asset.Accent, profile.HaloRadius, elapsedMs, 1);
+
+            DrawValorantBars(drawingSession, asset, cx, cy, elapsedMs);
+            DrawCenteredImageAt(
                 drawingSession,
                 asset.Frame,
                 cx,
@@ -319,46 +311,20 @@ namespace KillConfirmGameBar.Controls
                 ValorantDemoFrameCssWidth * profile.FrameWidthScale * ValorantDemoVfxScale,
                 ValorantDemoFrameCssHeight * ValorantDemoVfxScale,
                 1,
-                opacity,
-                Color.FromArgb(255, 0, 0, 0),
-                12,
-                0,
-                0,
-                0.62,
-                asset.Brightness,
-                asset.Contrast);
+                1);
             if (asset.Blade != null)
             {
                 double bladeSpin = ResolveValorantBladeRotation(profile, asset.SpinDirection, elapsedMs);
-                DrawRotatedCenteredImageWithShadowAt(drawingSession, asset.Blade, cx, cy, ValorantDemoBladeCssSize * ValorantDemoVfxScale, ValorantDemoBladeCssSize * ValorantDemoVfxScale, 1, bladeSpin, opacity, Color.FromArgb(255, 0, 0, 0), 12, 0, 0, 0.62, asset.Brightness, asset.Contrast);
+                DrawRotatedCenteredImageAt(drawingSession, asset.Blade, cx, cy, ValorantDemoBladeCssSize * ValorantDemoVfxScale, ValorantDemoBladeCssSize * ValorantDemoVfxScale, 1, bladeSpin, 1);
             }
 
             double emblemY = cy + (GetValorantDemoEmblemYOffset(elapsedMs) * ValorantDemoVfxScale);
-            DrawCenteredImageWithShadowAt(drawingSession, asset.Emblem, cx, emblemY, ValorantDemoEmblemCssSize * profile.EmblemScale * ValorantDemoVfxScale, ValorantDemoEmblemCssSize * profile.EmblemScale * ValorantDemoVfxScale, 1, opacity, Color.FromArgb(255, 0, 0, 0), 12, 0, 0, 0.62, asset.Brightness, asset.Contrast);
-            double flashOpacity = GetValorantDemoFlashOpacity(elapsedMs) * opacity;
-            if (flashOpacity > 0)
-            {
-                DrawCenteredFlashImageAt(
-                    drawingSession,
-                    asset.Emblem,
-                    cx,
-                    cy,
-                    ValorantDemoEmblemCssSize * profile.EmblemScale * ValorantDemoVfxScale,
-                    ValorantDemoEmblemCssSize * profile.EmblemScale * ValorantDemoVfxScale,
-                    1,
-                    flashOpacity,
-                    ValorantDemoFlashColor,
-                    asset.Brightness,
-                    asset.Contrast);
-            }
+            DrawCenteredImageAt(drawingSession, asset.Emblem, cx, emblemY, ValorantDemoEmblemCssSize * profile.EmblemScale * ValorantDemoVfxScale, ValorantDemoEmblemCssSize * profile.EmblemScale * ValorantDemoVfxScale, 1, 1);
 
             if (asset.IsHeadshot)
             {
                 double headshotScale = Lerp(1.8, 1.0, CubicBezierEase(Clamp01(elapsedMs / 250.0), 0.22, 0.9, 0.28, 1));
-                Color headshotGlow = elapsedMs <= 250.0
-                    ? LerpColor(Colors.White, ValorantDemoFlashColor, Clamp01(elapsedMs / 250.0))
-                    : ValorantDemoFlashColor;
-                DrawCenteredImageWithShadowAt(
+                DrawCenteredTintedImageAt(
                     drawingSession,
                     asset.Headshot,
                     cx + (profile.HeadshotX * ValorantDemoVfxScale),
@@ -366,31 +332,27 @@ namespace KillConfirmGameBar.Controls
                     ValorantDemoHeadshotCssSize * ValorantDemoVfxScale,
                     ValorantDemoHeadshotCssSize * ValorantDemoVfxScale,
                     headshotScale,
-                    opacity,
-                    headshotGlow,
-                    8,
-                    0,
-                    0,
-                    0.9);
+                    ValorantDemoFlashColor,
+                    1);
             }
 
             if (asset.HeroFlame != null && profile.HeroFlame)
             {
-                DrawValorantParticleCss(drawingSession, asset.HeroFlame, 20, 29, elapsedMs, cx, cy, 96, 108, 0.4934375, 0.49079242, 0, -30, 0.7 * opacity, false, false, asset.Accent, null, 0, 0);
+                DrawValorantParticleCss(drawingSession, asset.HeroFlame, 20, 29, elapsedMs, cx, cy, 96, 108, 0.4934375, 0.49079242, 0, -30, false, false, asset.Accent);
             }
 
             if (asset.KillCount >= 5)
             {
-                DrawValorantParticleCss(drawingSession, asset.LargeSparks, 52, 25, elapsedMs, cx, cy, 105 * profile.LargeSparksScale, 105 * profile.LargeSparksScale, 0.49052733, 0.5185547, 0, 2, 0.82 * opacity, false, true, asset.Accent, null, 0, 0);
+                DrawValorantParticleCss(drawingSession, asset.LargeSparks, 52, 25, elapsedMs, cx, cy, 105 * profile.LargeSparksScale, 105 * profile.LargeSparksScale, 0.49052733, 0.5185547, 0, 2, false, true, asset.Accent);
             }
 
             if (asset.IsHeadshot)
             {
-                DrawValorantParticleCss(drawingSession, asset.XSparks, 29, 25, elapsedMs, cx, cy, 56, 170, 0.48015872, 0.56722003, 0, -8, 0.9 * opacity, false, false, ValorantDemoFlashColor, null, 0, 0);
+                DrawValorantParticleCss(drawingSession, asset.XSparks, 29, 25, elapsedMs, cx, cy, 56, 170, 0.48015872, 0.56722003, 0, -8, false, false, ValorantDemoFlashColor);
             }
         }
 
-        private void DrawValorantBars(CanvasDrawingSession drawingSession, ValorantKillAsset asset, double cx, double cy, double elapsedMs, double opacity)
+        private void DrawValorantBars(CanvasDrawingSession drawingSession, ValorantKillAsset asset, double cx, double cy, double elapsedMs)
         {
             if (asset.Bar == null)
             {
@@ -410,7 +372,7 @@ namespace KillConfirmGameBar.Controls
                 double radians = (angle + spin) * Math.PI / 180.0;
                 double x = cx + (Math.Sin(radians) * distance);
                 double y = cy - (Math.Cos(radians) * distance);
-                DrawRotatedCenteredImageWithShadowAt(drawingSession, asset.Bar, x, y, 32 * ValorantDemoVfxScale, 32 * ValorantDemoVfxScale, scale, angle + spin, opacity, asset.Accent, 5, 0, 0, 0.75, asset.Brightness, asset.Contrast);
+                DrawRotatedCenteredImageAt(drawingSession, asset.Bar, x, y, 32 * ValorantDemoVfxScale, 32 * ValorantDemoVfxScale, scale, angle + spin, 1);
             }
         }
 
@@ -428,23 +390,13 @@ namespace KillConfirmGameBar.Controls
             double anchorY,
             double offsetX,
             double offsetY,
-            double opacity,
             bool mirrored,
             bool additive,
-            Color? tintColor,
-            Color? glowColor,
-            double glowBlur,
-            double glowOpacity)
+            Color tintColor)
         {
-            if (image == null || opacity <= 0)
+            if (image == null)
             {
                 return;
-            }
-
-            CanvasBlend previousBlend = drawingSession.Blend;
-            if (additive)
-            {
-                drawingSession.Blend = CanvasBlend.Add;
             }
 
             int frame = intervalMs <= 0 ? 0 : (int)Math.Floor(elapsedMs / intervalMs);
@@ -455,88 +407,116 @@ namespace KillConfirmGameBar.Controls
             double scaledHeight = height * ValorantDemoVfxScale;
             double left = cx + (offsetX * ValorantDemoVfxScale) - (anchorX * scaledWidth);
             double top = cy + (offsetY * ValorantDemoVfxScale) - (anchorY * scaledHeight);
-            var target = new Rect(left, top, scaledWidth, scaledHeight);
+            Rect target = SnapValorantRectToPhysicalPixels(new Rect(left, top, scaledWidth, scaledHeight));
             if (mirrored)
             {
-                DrawImageWithOptionalGlow(drawingSession, image, target, source, opacity, tintColor, glowColor, glowBlur, glowOpacity);
+                DrawValorantTintedImage(drawingSession, image, target, source, tintColor, additive);
                 Matrix3x2 previous = drawingSession.Transform;
                 drawingSession.Transform = Matrix3x2.CreateScale(-1, 1, new Vector2((float)cx, (float)cy)) * previous;
-                DrawImageWithOptionalGlow(drawingSession, image, target, source, opacity, tintColor, glowColor, glowBlur, glowOpacity);
+                DrawValorantTintedImage(drawingSession, image, target, source, tintColor, additive);
                 drawingSession.Transform = previous;
-                drawingSession.Blend = previousBlend;
                 return;
             }
 
-            DrawImageWithOptionalGlow(drawingSession, image, target, source, opacity, tintColor, glowColor, glowBlur, glowOpacity);
+            DrawValorantTintedImage(drawingSession, image, target, source, tintColor, additive);
+        }
+
+        private void DrawValorantTintedImage(
+            CanvasDrawingSession drawingSession,
+            CanvasBitmap image,
+            Rect target,
+            Rect source,
+            Color tintColor,
+            bool additive)
+        {
+            CanvasBlend previousBlend = drawingSession.Blend;
+            if (additive)
+            {
+                drawingSession.Blend = CanvasBlend.Add;
+            }
+
+            DrawMultiplyTintImage(drawingSession, image, target, source, tintColor, 1);
             drawingSession.Blend = previousBlend;
         }
 
-        private static CanvasRenderTarget CreateValorantHaloTexture(CanvasDevice device, Color accent, double radius)
+        private static void DrawValorantHalo(
+            CanvasDrawingSession drawingSession,
+            double cx,
+            double cy,
+            Color accent,
+            double radius,
+            double elapsedMs,
+            double opacity)
         {
-            const int Segments = 72;
-            double scaledRadius = radius * ValorantDemoVfxScale;
-            double ringWidth = 2.2 * ValorantDemoVfxScale;
-            double padding = Math.Ceiling(ringWidth * 2.0 + 2.0);
-            float size = (float)Math.Ceiling((scaledRadius + padding) * 2.0);
-            double center = size / 2.0;
-            double minY = center - scaledRadius;
-            double maxY = center + scaledRadius;
-            double yRange = Math.Max(0.001, maxY - minY);
-            var target = new CanvasRenderTarget(device, size, size, 96);
-            using (CanvasDrawingSession drawingSession = target.CreateDrawingSession())
-            {
-                drawingSession.Clear(Colors.Transparent);
-                for (int i = 0; i < Segments; i++)
-                {
-                    double a0 = Math.PI * 2.0 * i / Segments;
-                    double a1 = Math.PI * 2.0 * (i + 1) / Segments;
-                    double y0 = center + Math.Sin(a0) * scaledRadius;
-                    double y1 = center + Math.Sin(a1) * scaledRadius;
-                    double alphaFactor = Clamp01((maxY - ((y0 + y1) * 0.5)) / yRange);
-                    byte alpha = (byte)Math.Max(0, Math.Min(255, Math.Round(alphaFactor * 255.0)));
-                    if (alpha <= 2)
-                    {
-                        continue;
-                    }
-
-                    Color color = Color.FromArgb(alpha, accent.R, accent.G, accent.B);
-                    drawingSession.DrawLine(
-                        (float)(center + Math.Cos(a0) * scaledRadius),
-                        (float)(center + Math.Sin(a0) * scaledRadius),
-                        (float)(center + Math.Cos(a1) * scaledRadius),
-                        (float)(center + Math.Sin(a1) * scaledRadius),
-                        color,
-                        (float)ringWidth);
-                }
-            }
-
-            return target;
-        }
-
-        private static void DrawValorantHalo(CanvasDrawingSession drawingSession, CanvasRenderTarget halo, double cx, double cy, double opacity)
-        {
-            if (halo == null || opacity <= 0)
+            if (opacity <= 0)
             {
                 return;
             }
 
-            double width = halo.SizeInPixels.Width;
-            double height = halo.SizeInPixels.Height;
-            var target = new Rect(cx - width / 2.0, cy - height / 2.0, width, height);
-            var source = new Rect(0, 0, width, height);
-            drawingSession.DrawImage(halo, target, source, (float)Clamp01(opacity), CanvasImageInterpolation.Linear);
+            const int Segments = 72;
+            double scaledRadius = radius * ValorantDemoVfxScale;
+            double ringWidth = 1.5 * ValorantDemoVfxScale;
+            double minY = cy - scaledRadius;
+            double maxY = cy + scaledRadius;
+            double yRange = Math.Max(0.001, maxY - minY);
+            double angleOffset = (elapsedMs % 2200.0) / 2200.0 * Math.PI * 2.0;
+            double clampedOpacity = Clamp01(opacity);
+
+            for (int i = 0; i < Segments; i++)
+            {
+                double a0 = angleOffset + Math.PI * 2.0 * i / Segments;
+                double a1 = angleOffset + Math.PI * 2.0 * (i + 1) / Segments;
+                double y0 = cy + Math.Sin(a0) * scaledRadius;
+                double y1 = cy + Math.Sin(a1) * scaledRadius;
+                double alphaFactor = Clamp01((maxY - ((y0 + y1) * 0.5)) / yRange) * clampedOpacity;
+                byte alpha = (byte)Math.Max(0, Math.Min(255, Math.Round(alphaFactor * 255.0)));
+                if (alpha <= 2)
+                {
+                    continue;
+                }
+
+                drawingSession.DrawLine(
+                    (float)(cx + Math.Cos(a0) * scaledRadius),
+                    (float)y0,
+                    (float)(cx + Math.Cos(a1) * scaledRadius),
+                    (float)y1,
+                    Color.FromArgb(alpha, accent.R, accent.G, accent.B),
+                    (float)ringWidth);
+            }
         }
 
-        private static void DrawCenteredImageAt(CanvasDrawingSession drawingSession, CanvasBitmap image, double cx, double cy, double width, double height, double scale, double opacity)
+        private void DrawCenteredImageAt(CanvasDrawingSession drawingSession, CanvasBitmap image, double cx, double cy, double width, double height, double scale, double opacity)
         {
             if (image == null || opacity <= 0 || scale <= 0)
             {
                 return;
             }
 
-            var target = BuildCenteredImageRect(image, cx, cy, width, height, scale);
+            Rect target = SnapValorantRectToPhysicalPixels(BuildCenteredImageRect(image, cx, cy, width, height, scale));
             var source = new Rect(0, 0, image.SizeInPixels.Width, image.SizeInPixels.Height);
-            drawingSession.DrawImage(image, target, source, (float)Math.Max(0.0, Math.Min(1.0, opacity)), CanvasImageInterpolation.Linear);
+            drawingSession.DrawImage(image, target, source, 1.0f, GetValorantImageInterpolation(target, source));
+        }
+
+        private void DrawCenteredTintedImageAt(
+            CanvasDrawingSession drawingSession,
+            CanvasBitmap image,
+            double cx,
+            double cy,
+            double width,
+            double height,
+            double scale,
+            Color tint,
+            double opacity)
+        {
+            if (image == null || opacity <= 0 || scale <= 0)
+            {
+                return;
+            }
+
+            Rect target = SnapValorantRectToPhysicalPixels(
+                BuildCenteredImageRect(image, cx, cy, width, height, scale));
+            var source = new Rect(0, 0, image.SizeInPixels.Width, image.SizeInPixels.Height);
+            DrawMultiplyTintImage(drawingSession, image, target, source, tint, opacity);
         }
 
         private void DrawCenteredImageWithShadowAt(
@@ -632,6 +612,37 @@ namespace KillConfirmGameBar.Controls
             double w = image.SizeInPixels.Width * fitScale;
             double h = image.SizeInPixels.Height * fitScale;
             return new Rect(cx - w / 2.0, cy - h / 2.0, w, h);
+        }
+
+        private Rect SnapValorantRectToPhysicalPixels(Rect rect)
+        {
+            double physicalScale = Math.Max(0.1, GetRenderResolutionScale() * GetDisplayDpiScale());
+            double left = Math.Round(rect.Left * physicalScale) / physicalScale;
+            double top = Math.Round(rect.Top * physicalScale) / physicalScale;
+            double right = Math.Round(rect.Right * physicalScale) / physicalScale;
+            double bottom = Math.Round(rect.Bottom * physicalScale) / physicalScale;
+            double minimumSize = 1.0 / physicalScale;
+            return new Rect(
+                left,
+                top,
+                Math.Max(minimumSize, right - left),
+                Math.Max(minimumSize, bottom - top));
+        }
+
+        private double SnapValorantCoordinateToPhysicalPixel(double coordinate)
+        {
+            double physicalScale = Math.Max(0.1, GetRenderResolutionScale() * GetDisplayDpiScale());
+            return Math.Round(coordinate * physicalScale) / physicalScale;
+        }
+
+        private CanvasImageInterpolation GetValorantImageInterpolation(Rect target, Rect source)
+        {
+            double physicalScale = Math.Max(0.1, GetRenderResolutionScale() * GetDisplayDpiScale());
+            bool isUpscaling = target.Width * physicalScale > source.Width + 0.5
+                || target.Height * physicalScale > source.Height + 0.5;
+            return isUpscaling
+                ? ValorantUpscaleInterpolation
+                : ValorantDownscaleInterpolation;
         }
 
         private void DrawImageWithOptionalGlow(
@@ -775,7 +786,7 @@ namespace KillConfirmGameBar.Controls
             EnsureValorantEffects();
             _valorantColorMatrixEffect.Source = image;
             _valorantColorMatrixEffect.ColorMatrix = CreateBrightnessContrastMatrix(brightness, contrast);
-            drawingSession.DrawImage(_valorantColorMatrixEffect, target, source, (float)Clamp01(opacity), CanvasImageInterpolation.Linear);
+            drawingSession.DrawImage(_valorantColorMatrixEffect, target, source, (float)Clamp01(opacity), GetValorantImageInterpolation(target, source));
         }
 
         private void DrawMultiplyTintImage(CanvasDrawingSession drawingSession, CanvasBitmap image, Rect target, Rect source, Color tint, double opacity)
@@ -783,7 +794,7 @@ namespace KillConfirmGameBar.Controls
             EnsureValorantEffects();
             _valorantColorMatrixEffect.Source = image;
             _valorantColorMatrixEffect.ColorMatrix = CreateMultiplyTintMatrix(tint);
-            drawingSession.DrawImage(_valorantColorMatrixEffect, target, source, (float)Clamp01(opacity), CanvasImageInterpolation.Linear);
+            drawingSession.DrawImage(_valorantColorMatrixEffect, target, source, (float)Clamp01(opacity), GetValorantImageInterpolation(target, source));
         }
 
         private static Matrix5x4 CreateBrightnessContrastMatrix(float brightness, float contrast)
@@ -825,8 +836,10 @@ namespace KillConfirmGameBar.Controls
                 (byte)Math.Round(Lerp(from.B, to.B, amount)));
         }
 
-        private static void DrawRotatedCenteredImageAt(CanvasDrawingSession drawingSession, CanvasBitmap image, double cx, double cy, double width, double height, double scale, double degrees, double opacity)
+        private void DrawRotatedCenteredImageAt(CanvasDrawingSession drawingSession, CanvasBitmap image, double cx, double cy, double width, double height, double scale, double degrees, double opacity)
         {
+            cx = SnapValorantCoordinateToPhysicalPixel(cx);
+            cy = SnapValorantCoordinateToPhysicalPixel(cy);
             Matrix3x2 previous = drawingSession.Transform;
             drawingSession.Transform = Matrix3x2.CreateRotation((float)(degrees * Math.PI / 180.0), new Vector2((float)cx, (float)cy)) * previous;
             DrawCenteredImageAt(drawingSession, image, cx, cy, width, height, scale, opacity);

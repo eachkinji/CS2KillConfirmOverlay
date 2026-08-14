@@ -1,0 +1,33 @@
+<UserControl
+    x:Class="KillConfirmGameBar.Controls.GameStyles.DoubaoAdvancedEffectsPanel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:KillConfirmGameBar.Controls.GameStyles">
+
+    <StackPanel Spacing="8">
+        <TextBlock
+            x:Name="TitleText"
+            FontSize="13"
+            FontWeight="Bold"
+            Text="Doubao Effects" />
+        <TextBlock
+            x:Name="HintText"
+            FontSize="10"
+            Text="Five independent kill cards with impact flash animation."
+            TextWrapping="WrapWholeWords" />
+        <local:StreakWindowEditor
+            x:Name="StreakEditor"
+            SettingsChanged="OnStreakModeSelectionChanged" />
+        <Border
+            x:Name="IsolationNotice"
+            Padding="8"
+            BorderThickness="1"
+            CornerRadius="10">
+            <TextBlock
+                x:Name="IsolationText"
+                FontSize="10"
+                Text="Doubao uses its own images, audio, cache, animation state, and settings keys."
+                TextWrapping="WrapWholeWords" />
+        </Border>
+    </StackPanel>
+</UserControl>

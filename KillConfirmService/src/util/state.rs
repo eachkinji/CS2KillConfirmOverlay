@@ -1,4 +1,5 @@
 use std::collections::{HashMap, VecDeque};
+use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicU8, AtomicU32, AtomicU64, Ordering};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
@@ -15,6 +16,7 @@ pub struct Mutable {
     pub active_observed_player_id: Option<String>,
     pub last_bomb_state: Option<String>,
     pub last_bomb_player: Option<String>,
+    pub last_round_bomb_state: Option<String>,
 }
 
 #[derive(Clone)]
@@ -241,7 +243,11 @@ impl EventJournal {
         let published_unix_ms = unix_time_ms();
         let mut queue = self.queue.lock().await;
         let id = self.next_id.fetch_add(1, Ordering::AcqRel) + 1;
-        queue.push_back(SequencedKillEvent { id, event, published_unix_ms });
+        queue.push_back(SequencedKillEvent {
+            id,
+            event,
+            published_unix_ms,
+        });
         while queue.len() > EVENT_QUEUE_CAPACITY {
             queue.pop_front();
         }
@@ -345,14 +351,19 @@ pub enum CrossfireStreakMode {
     None,
     Life,
     Custom,
+    Loop,
     Timed5,
     Timed10,
     Timed15,
 }
 
 pub const DEFAULT_CUSTOM_STREAK_WINDOW_MS: u64 = 1_000;
+pub const DEFAULT_LOOP_STREAK_KILLS: u64 = 5;
+pub const DEFAULT_BOMB_AUDIO_SPEED_PERCENTS: [u32; 8] = [50, 70, 80, 100, 110, 120, 130, 150];
 pub const MIN_CUSTOM_STREAK_WINDOW_MS: u64 = 100;
 pub const MAX_CUSTOM_STREAK_WINDOW_MS: u64 = 300_000;
+pub const MIN_LOOP_STREAK_KILLS: u64 = 2;
+pub const MAX_LOOP_STREAK_KILLS: u64 = 50;
 
 impl CrossfireStreakMode {
     pub const DEFAULT: Self = Self::Life;
@@ -365,6 +376,7 @@ impl CrossfireStreakMode {
             Self::Timed10 => 3,
             Self::None => 4,
             Self::Custom => 5,
+            Self::Loop => 6,
         }
     }
 
@@ -375,6 +387,7 @@ impl CrossfireStreakMode {
             3 => Self::Timed10,
             4 => Self::None,
             5 => Self::Custom,
+            6 => Self::Loop,
             _ => Self::Life,
         }
     }
@@ -384,6 +397,7 @@ impl CrossfireStreakMode {
             Self::None => "none",
             Self::Life => "life",
             Self::Custom => "custom",
+            Self::Loop => "loop",
             Self::Timed5 => "timed_5",
             Self::Timed10 => "timed_10",
             Self::Timed15 => "timed_15",
@@ -395,6 +409,7 @@ impl CrossfireStreakMode {
             "none" | "off" | "disabled" | "no_window" => Some(Self::None),
             "life" | "until_death" | "death" => Some(Self::Life),
             "custom" => Some(Self::Custom),
+            "loop" | "cycle" => Some(Self::Loop),
             "timed_5" | "5s" => Some(Self::Timed5),
             "timed_10" | "10s" => Some(Self::Timed10),
             "timed_15" | "timed" | "15s" | "timeout" => Some(Self::Timed15),
@@ -407,6 +422,10 @@ pub fn parse_streak_setting(value: &str) -> Option<(CrossfireStreakMode, u64)> {
     let normalized = value.trim().to_ascii_lowercase();
     if normalized == "custom" {
         return Some((CrossfireStreakMode::Custom, DEFAULT_CUSTOM_STREAK_WINDOW_MS));
+    }
+
+    if normalized == "loop" || normalized == "cycle" {
+        return Some((CrossfireStreakMode::Loop, DEFAULT_LOOP_STREAK_KILLS));
     }
 
     if let Some(seconds_text) = normalized
@@ -426,10 +445,27 @@ pub fn parse_streak_setting(value: &str) -> Option<(CrossfireStreakMode, u64)> {
         return Some((CrossfireStreakMode::Custom, millis));
     }
 
+    if let Some(kills_text) = normalized
+        .strip_prefix("loop:")
+        .or_else(|| normalized.strip_prefix("loop_"))
+    {
+        let kills = kills_text.trim().parse::<u64>().ok()?;
+        if !(MIN_LOOP_STREAK_KILLS..=MAX_LOOP_STREAK_KILLS).contains(&kills) {
+            return None;
+        }
+
+        return Some((CrossfireStreakMode::Loop, kills));
+    }
+
     CrossfireStreakMode::from_str(&normalized).map(|mode| (mode, DEFAULT_CUSTOM_STREAK_WINDOW_MS))
 }
 
 pub fn format_streak_setting(mode: CrossfireStreakMode, custom_window_ms: u64) -> String {
+    if mode == CrossfireStreakMode::Loop {
+        let kills = custom_window_ms.clamp(MIN_LOOP_STREAK_KILLS, MAX_LOOP_STREAK_KILLS);
+        return format!("loop:{kills}");
+    }
+
     if mode != CrossfireStreakMode::Custom {
         return mode.as_str().to_string();
     }
@@ -514,6 +550,16 @@ pub struct AppState {
     pub event_sound_settings: RwLock<EventSoundSettings>,
     pub csol_voice_picks: RwLock<HashMap<String, String>>,
     pub csol_special_voice_priority: AtomicBool,
+    pub dagoujiao_epic_kill_count: AtomicU32,
+    pub dagoujiao_headshot_priority: AtomicBool,
+    pub dagoujiao_initial_playback_speed_percent: AtomicU32,
+    pub dagoujiao_maximum_playback_speed_percent: AtomicU32,
+    pub dagoujiao_audio_paths: RwLock<HashMap<String, String>>,
+    pub bomb_audio_enabled: AtomicBool,
+    pub bomb_audio_volume_percent: AtomicU32,
+    pub bomb_audio_speed_percents: [AtomicU32; 8],
+    pub bomb_audio_generation: AtomicU64,
+    pub bomb_audio_sink: std::sync::Mutex<Option<Arc<rodio::Sink>>>,
     pub spectated_kill_effects_enabled: AtomicBool,
     pub gsi_game_version: AtomicU8,
     pub events: EventJournal,
@@ -603,11 +649,26 @@ mod tests {
             ..Default::default()
         };
 
-        assert_eq!(settings.route_for(false, false, false).mode, EventSoundMode::Common);
-        assert_eq!(settings.route_for(true, false, false).mode, EventSoundMode::Custom);
-        assert_eq!(settings.route_for(false, true, false).mode, EventSoundMode::Default);
-        assert_eq!(settings.route_for(true, true, true).custom_path.as_deref(), Some("assist.wav"));
-        assert_eq!(EventSoundMode::from_str("COMMON"), Some(EventSoundMode::Common));
+        assert_eq!(
+            settings.route_for(false, false, false).mode,
+            EventSoundMode::Common
+        );
+        assert_eq!(
+            settings.route_for(true, false, false).mode,
+            EventSoundMode::Custom
+        );
+        assert_eq!(
+            settings.route_for(false, true, false).mode,
+            EventSoundMode::Default
+        );
+        assert_eq!(
+            settings.route_for(true, true, true).custom_path.as_deref(),
+            Some("assist.wav")
+        );
+        assert_eq!(
+            EventSoundMode::from_str("COMMON"),
+            Some(EventSoundMode::Common)
+        );
         assert_eq!(EventSoundMode::from_str("unknown"), None);
     }
 
@@ -669,5 +730,19 @@ mod tests {
         );
         assert_eq!(parse_streak_setting("custom:0.09"), None);
         assert_eq!(parse_streak_setting("custom:300.1"), None);
+    }
+
+    #[test]
+    fn parses_and_formats_loop_streak_limits() {
+        assert_eq!(
+            parse_streak_setting("loop:5"),
+            Some((CrossfireStreakMode::Loop, 5))
+        );
+        assert_eq!(
+            format_streak_setting(CrossfireStreakMode::Loop, 5),
+            "loop:5"
+        );
+        assert_eq!(parse_streak_setting("loop:1"), None);
+        assert_eq!(parse_streak_setting("loop:51"), None);
     }
 }

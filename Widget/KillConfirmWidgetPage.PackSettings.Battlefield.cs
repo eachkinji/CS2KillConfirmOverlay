@@ -49,6 +49,12 @@ namespace KillConfirmGameBar
                 case "delta":
                 case "df":
                     return "deltaforce";
+                case "doubao":
+                case "豆包":
+                    return "doubao";
+                case "dagoujiao":
+                case "大狗叫":
+                    return "dagoujiao";
                 default:
                     return null;
             }
@@ -61,7 +67,9 @@ namespace KillConfirmGameBar
                 || (GameStyleService.Current == GameStyleMode.Battlefield4 && GameStyleService.IsBattlefield4Key(packKey))
                 || (GameStyleService.Current == GameStyleMode.Battlefield2042 && GameStyleService.IsBattlefield2042Key(packKey))
                 || (GameStyleService.Current == GameStyleMode.Pubg && GameStyleService.IsPubgKey(packKey))
-                || (GameStyleService.Current == GameStyleMode.DeltaForce && GameStyleService.IsDeltaForceKey(packKey));
+                || (GameStyleService.Current == GameStyleMode.DeltaForce && GameStyleService.IsDeltaForceKey(packKey))
+                || (GameStyleService.Current == GameStyleMode.Doubao && GameStyleService.IsDoubaoKey(packKey))
+                || (GameStyleService.Current == GameStyleMode.Dagoujiao && GameStyleService.IsDagoujiaoKey(packKey));
         }
     }
 }

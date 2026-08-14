@@ -133,8 +133,8 @@ jobs:
           if (-not $cert.HasPrivateKey) {
               throw "SIGNING_PFX does not contain a private key"
           }
-          if ($cert.Subject -ne "CN=TestXboxGameBar") {
-              throw "Signing certificate subject must be CN=TestXboxGameBar, but was $($cert.Subject)"
+          if ($cert.Subject -ne "CN=KillConfirmOverlay-TestVersion") {
+              throw "Signing certificate subject must be CN=KillConfirmOverlay-TestVersion, but was $($cert.Subject)"
           }
           if ($cert.Thumbprint -ne $publicCert.Thumbprint) {
               throw "SIGNING_PFX and SIGNING_CER do not contain the same certificate"
@@ -160,8 +160,8 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           $ver = ([xml](Get-Content Package/Package.appxmanifest)).Package.Identity.Version
-          $withDependencies = Join-Path $env:GITHUB_WORKSPACE ("Output\KillConfirmGameBar_Setup_{0}_WithDependencies.exe" -f $ver)
-          $noDependencies = Join-Path $env:GITHUB_WORKSPACE ("Output\KillConfirmGameBar_Setup_{0}_NoDependencies.exe" -f $ver)
+          $withDependencies = Join-Path $env:GITHUB_WORKSPACE ("Output\KillConfirmGameBar_Setup_{0}_有依赖-新人用.exe" -f $ver)
+          $noDependencies = Join-Path $env:GITHUB_WORKSPACE ("Output\KillConfirmGameBar_Setup_{0}_无依赖-更新用.exe" -f $ver)
           foreach ($exe in @($withDependencies, $noDependencies)) {
               if (-not (Test-Path $exe)) { throw "Missing $exe" }
           }

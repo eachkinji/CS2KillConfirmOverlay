@@ -1,6 +1,6 @@
 use std::collections::{HashMap, VecDeque};
 use std::sync::atomic::{AtomicBool, AtomicU8, AtomicU32, AtomicU64, Ordering};
-use std::time::{Duration, Instant};
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use rodio::OutputStream;
 use serde::{Deserialize, Serialize};
@@ -194,6 +194,19 @@ pub struct SequencedKillEvent {
     pub id: u64,
     #[serde(flatten)]
     pub event: KillEvent,
+    #[serde(skip_serializing_if = "is_zero_u64")]
+    pub published_unix_ms: u64,
+}
+
+fn is_zero_u64(value: &u64) -> bool {
+    *value == 0
+}
+
+fn unix_time_ms() -> u64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|value| value.as_millis() as u64)
+        .unwrap_or(0)
 }
 
 #[derive(Debug, Serialize)]
@@ -225,9 +238,10 @@ impl EventJournal {
     }
 
     pub async fn publish(&self, event: KillEvent) -> u64 {
+        let published_unix_ms = unix_time_ms();
         let mut queue = self.queue.lock().await;
         let id = self.next_id.fetch_add(1, Ordering::AcqRel) + 1;
-        queue.push_back(SequencedKillEvent { id, event });
+        queue.push_back(SequencedKillEvent { id, event, published_unix_ms });
         while queue.len() > EVENT_QUEUE_CAPACITY {
             queue.pop_front();
         }

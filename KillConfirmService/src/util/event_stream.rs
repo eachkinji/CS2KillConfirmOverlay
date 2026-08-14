@@ -23,7 +23,7 @@ use windows_sys::Win32::System::Threading::{
 
 use crate::soundpack::Preset;
 use crate::soundpack::sound::{play_audio, warm_audio_cache};
-use crate::util::logging::{developer_logging_enabled, service_log, set_developer_logging_enabled};
+use crate::util::logging::{developer_logging_enabled, perf_trace, service_log, set_developer_logging_enabled};
 use crate::util::playback::{get_output_stream_with_name, output_device_names};
 
 use super::state::{
@@ -1113,7 +1113,20 @@ pub async fn events_poll(
         .wait_for_events(after, Duration::from_millis(wait_ms))
         .await
     {
-        Some(batch) => Json(batch).into_response(),
+        Some(batch) => {
+            if !batch.events.is_empty() {
+                let now = unix_time_ms();
+                if let Some(latest) = batch.events.last() {
+                    let stale_ms = now.saturating_sub(latest.published_unix_ms);
+                    perf_trace(&format!(
+                        "events_poll delivered: count={}, cursor={}, stale_ms={stale_ms}",
+                        batch.events.len(),
+                        batch.cursor
+                    ));
+                }
+            }
+            Json(batch).into_response()
+        }
         None => StatusCode::NO_CONTENT.into_response(),
     };
     response

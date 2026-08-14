@@ -14,7 +14,7 @@ if errorlevel 1 (
 
 echo [3/3] Running installer with loopback and CS2 GSI fixes...
 for /f %%V in ('powershell -NoProfile -Command "[xml]$m=Get-Content ''Package\Package.appxmanifest''; $m.Package.Identity.Version"') do set VERSION=%%V
-set INSTALL_SCRIPT=..\KillConfirmGameBar_Transfer_%VERSION%\Install-KillConfirm.ps1
+set INSTALL_SCRIPT=..\KillConfirmGameBar_Transfer_%VERSION%_有依赖-新人用\Install-KillConfirm.ps1
 if exist "%INSTALL_SCRIPT%" (
     echo [SUCCESS] Found version %VERSION%.
     powershell -ExecutionPolicy Bypass -File "%INSTALL_SCRIPT%"

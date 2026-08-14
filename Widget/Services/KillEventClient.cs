@@ -60,6 +60,7 @@ namespace KillConfirmGameBar.Services
         public string PlayerName { get; set; }
         public string TargetName { get; set; }
         public string SteamId { get; set; }
+        public ulong PublishedUnixMs { get; set; }
 
         public bool IsCombatEvent
         {
@@ -328,6 +329,16 @@ namespace KillConfirmGameBar.Services
                 }
 
                 KillEvent killEvent = ParseKillEvent(json);
+                if (killEvent.PublishedUnixMs > 0)
+                {
+                    ulong nowMs = (ulong)DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                    ulong latencyMs = nowMs > killEvent.PublishedUnixMs
+                        ? nowMs - killEvent.PublishedUnixMs
+                        : 0;
+                    App.Log("[perf] publish_to_widget_ms=" + latencyMs
+                        + ", event_id=" + eventId
+                        + ", channel=" + killEvent.EventChannel);
+                }
                 await DispatchKillEventAsync(killEvent);
                 _cursor = eventId;
                 delivered++;
@@ -385,7 +396,8 @@ namespace KillConfirmGameBar.Services
                 MoneyEpoch = (int)json.GetNamedNumber("money_epoch", 0),
                 PlayerName = json.GetNamedString("player_name", string.Empty),
                 TargetName = json.GetNamedString("target_name", string.Empty),
-                SteamId = json.GetNamedString("steamid", string.Empty)
+                SteamId = json.GetNamedString("steamid", string.Empty),
+                PublishedUnixMs = ToUInt64(json.GetNamedNumber("published_unix_ms", 0))
             };
         }
 

@@ -82,6 +82,12 @@ pub fn service_log(message: &str) {
     }
 }
 
+pub fn perf_trace(message: &str) {
+    if developer_logging_enabled() {
+        service_log(&format!("[perf] {message}"));
+    }
+}
+
 fn rotate_if_needed(log_path: &Path) {
     let Ok(metadata) = fs::metadata(log_path) else {
         return;

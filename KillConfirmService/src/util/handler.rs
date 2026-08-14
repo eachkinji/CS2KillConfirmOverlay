@@ -13,7 +13,7 @@ use thiserror::Error;
 use tracing::{debug, error, warn};
 
 use super::auth::has_valid_gsi_token;
-use super::logging::service_log;
+use super::logging::{perf_trace, service_log};
 use super::state::{
     AppState, CrossfireStreakMode, EventChannel, GsiGameVersion, KillEvent, MoneyRewardMode,
     PendingLastKill, TrackedRoundPhase,
@@ -228,6 +228,7 @@ pub async fn update(
     State(app_state): State<Arc<AppState>>,
     body: Bytes,
 ) -> Result<StatusCode, ApiError> {
+    let gsi_start = Instant::now();
     let gsi_game_version =
         GsiGameVersion::from_u8(app_state.gsi_game_version.load(Ordering::Relaxed));
     let data: Body = match parse_gsi_body(&body, gsi_game_version) {
@@ -934,6 +935,8 @@ pub async fn update(
     drop(binding);
 
     if let Some(kill_event) = kill_event_to_send {
+        let gsi_total_ms = gsi_start.elapsed().as_millis();
+        perf_trace(&format!("GSI kill_event: handler_ms={gsi_total_ms}"));
         app_state.events.publish(kill_event).await;
     }
 

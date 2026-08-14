@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.UI.Xaml;
@@ -93,32 +92,6 @@ namespace KillConfirmGameBar.Controls
                     return;
                 }
 
-                if (_currentMetadata == null || _currentSheet == null || _currentSheet.Image == null)
-                {
-                    return;
-                }
-
-                int localFrame = _currentFrame - _currentSheet.StartFrame;
-                if (localFrame < 0 || localFrame >= _currentSheet.Frames)
-                {
-                    return;
-                }
-
-                int col = localFrame % _currentSheet.Cols;
-                int row = localFrame / _currentSheet.Cols;
-                var sourceRect = new Rect(
-                    col * _currentMetadata.FrameWidth,
-                    row * _currentMetadata.FrameHeight,
-                    _currentMetadata.FrameWidth,
-                    _currentMetadata.FrameHeight);
-                var targetRect = new Rect(0, 0, _currentMetadata.FrameWidth, _currentMetadata.FrameHeight);
-
-                args.DrawingSession.DrawImage(
-                    _currentSheet.Image,
-                    targetRect,
-                    sourceRect,
-                    1.0f,
-                    CanvasImageInterpolation.NearestNeighbor);
             }
             finally
             {
@@ -281,34 +254,11 @@ namespace KillConfirmGameBar.Controls
             drawingSession.Blend = previousBlend;
         }
 
-        private void ShowSheetFrame(int frame)
-        {
-            if (_currentSheets == null)
-            {
-                return;
-            }
-
-            SpriteSheetSegment sheet = _currentSheets.FirstOrDefault(value =>
-                frame >= value.StartFrame && frame < value.StartFrame + value.Frames);
-            if (sheet == null)
-            {
-                return;
-            }
-
-            if (!ReferenceEquals(_currentSheet, sheet))
-            {
-                _currentSheet = sheet;
-            }
-
-            SpriteCanvas.Invalidate();
-        }
-
         private void ShowLoadingProgress(int percent)
         {
             percent = Math.Max(0, Math.Min(100, percent));
             _timer.Stop();
             _playbackClock.Stop();
-            _currentSheet = null;
             SpriteCanvas.Invalidate();
             ApplyViewportSize(MaxCachedFrameWidth, MaxCachedFrameHeight);
             LoadingText.Text = $"Loading {percent}%";
@@ -361,7 +311,7 @@ namespace KillConfirmGameBar.Controls
                 return;
             }
 
-            if (_currentMetadata == null || (_currentSheets == null && _currentCodeAsset == null && _currentValorantAsset == null && _currentBattlefieldAsset == null && _currentCsolAsset == null))
+            if (_currentMetadata == null || (_currentCodeAsset == null && _currentValorantAsset == null && _currentBattlefieldAsset == null && _currentCsolAsset == null))
             {
                 _timer.Stop();
                 _playbackClock.Stop();
@@ -422,7 +372,7 @@ namespace KillConfirmGameBar.Controls
                 return;
             }
 
-            ShowSheetFrame(frame);
+            SpriteCanvas.Invalidate();
         }
 
         private double GetRenderResolutionScale()

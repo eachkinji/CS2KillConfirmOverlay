@@ -316,9 +316,6 @@
     <Content Include="Assets\bilibili.svg" />
     <Content Include="Assets\GitHub.png" />
     <Content Include="Assets\bilibili.png" />
-    <Content Include="Assets\KillConfirmSheets\*">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="Assets\KillConfirmCode\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

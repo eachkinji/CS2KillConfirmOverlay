@@ -133,8 +133,6 @@ namespace KillConfirmGameBar.Controls
                 Frames = Battlefield5FrameCount,
                 Fps = FrameSequenceFps
             };
-            _currentSheets = null;
-            _currentSheet = null;
             _currentCodeAsset = null;
             _currentValorantAsset = null;
             _currentBattlefieldAsset = null;

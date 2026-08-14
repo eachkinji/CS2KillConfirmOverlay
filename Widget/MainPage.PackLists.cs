@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using KillConfirmGameBar.Services;
 using Windows.Storage;
@@ -13,17 +14,24 @@ namespace KillConfirmGameBar
 {
     public sealed partial class MainPage
     {
+        private int _packListReloadVersion;
+
         private async void OnLoaded(object sender, RoutedEventArgs e)
         {
+            _isSettingsPageLoaded = true;
+            GameStyleService.Changed += OnGameStyleServiceChanged;
             PackCatalogService.CatalogChanged += OnCatalogChanged;
             GeneralSettingsOptionsPanel.RefreshSettings();
             DisplayScalingSettingsPanel.RefreshSettings();
-            await ReloadPackListsAsync();
+            await ReloadPackListsAsync(GameStyleService.Current);
         }
 
         private void OnUnloaded(object sender, RoutedEventArgs e)
         {
+            _isSettingsPageLoaded = false;
+            GameStyleService.Changed -= OnGameStyleServiceChanged;
             PackCatalogService.CatalogChanged -= OnCatalogChanged;
+            Interlocked.Increment(ref _packListReloadVersion);
             _previewPlayer.Pause();
         }
 
@@ -31,43 +39,60 @@ namespace KillConfirmGameBar
         {
             await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, async () =>
             {
-                await ReloadPackListsAsync();
+                await ReloadPackListsAsync(GameStyleService.Current);
             });
         }
 
-        private async Task ReloadPackListsAsync()
+        private async Task ReloadPackListsAsync(GameStyleMode style)
         {
-            await RebuildVoicePackListAsync();
-            await RebuildIconPackListAsync();
-            ApplyLanguage();
-        }
+            int reloadVersion = Interlocked.Increment(ref _packListReloadVersion);
+            if (GameStyleService.Current != style)
+            {
+                return;
+            }
 
-        private async Task RebuildVoicePackListAsync()
-        {
-            var items = (await PackCatalogService.GetAllVoicePacksAsync())
-                .Where(item => GameStyleService.IsVisibleForCurrentStyle(item.Key))
-                .ToList();
-            VoiceVisibleCountText.Text = string.Format(LocalizationManager.Text("VisibleCount"), CountVisible(items));
-
+            // Never leave another game's rows visible while the new list is
+            // loading. Rows are built off-screen and committed together below.
             VoicePackListPanel.Children.Clear();
-            foreach (VoicePackItem item in items)
-            {
-                VoicePackListPanel.Children.Add(await BuildVoicePackRowAsync(item));
-            }
-        }
-
-        private async Task RebuildIconPackListAsync()
-        {
-            var items = (await PackCatalogService.GetAllIconPacksAsync())
-                .Where(item => GameStyleService.IsVisibleForCurrentStyle(item.Key))
-                .ToList();
-            IconVisibleCountText.Text = string.Format(LocalizationManager.Text("VisibleCount"), CountVisible(items));
-
             IconPackListPanel.Children.Clear();
-            foreach (IconPackItem item in items)
+            VoiceVisibleCountText.Text = string.Empty;
+            IconVisibleCountText.Text = string.Empty;
+
+            IReadOnlyList<VoicePackItem> voiceItems = (await PackCatalogService.GetAllVoicePacksAsync())
+                .Where(item => GameStyleService.GetStyleForPackKey(item.Key) == style)
+                .ToList();
+            var voiceRows = new List<UIElement>();
+            foreach (VoicePackItem item in voiceItems)
             {
-                IconPackListPanel.Children.Add(await BuildIconPackRowAsync(item));
+                voiceRows.Add(await BuildVoicePackRowAsync(item));
             }
+
+            IReadOnlyList<IconPackItem> iconItems = (await PackCatalogService.GetAllIconPacksAsync())
+                .Where(item => GameStyleService.GetStyleForPackKey(item.Key) == style)
+                .ToList();
+            var iconRows = new List<UIElement>();
+            foreach (IconPackItem item in iconItems)
+            {
+                iconRows.Add(await BuildIconPackRowAsync(item));
+            }
+
+            if (reloadVersion != Volatile.Read(ref _packListReloadVersion)
+                || GameStyleService.Current != style)
+            {
+                return;
+            }
+
+            foreach (UIElement row in voiceRows)
+            {
+                VoicePackListPanel.Children.Add(row);
+            }
+            foreach (UIElement row in iconRows)
+            {
+                IconPackListPanel.Children.Add(row);
+            }
+            VoiceVisibleCountText.Text = string.Format(LocalizationManager.Text("VisibleCount"), CountVisible(voiceItems));
+            IconVisibleCountText.Text = string.Format(LocalizationManager.Text("VisibleCount"), CountVisible(iconItems));
+            ApplyLanguage();
         }
 
         private static int CountVisible<T>(IEnumerable<T> items)

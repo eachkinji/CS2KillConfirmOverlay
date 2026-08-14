@@ -39,9 +39,13 @@ namespace KillConfirmGameBar
                 return;
             }
 
+            int navigationRevision = System.Threading.Volatile.Read(ref _gameStyleNavigationRevision);
             _ = Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, async () =>
             {
-                if (!_isSettingsPageLoaded || GameStyleService.Current != mode)
+                if (!_isSettingsPageLoaded
+                    || _isHomePageSelected
+                    || navigationRevision != System.Threading.Volatile.Read(ref _gameStyleNavigationRevision)
+                    || GameStyleService.Current != mode)
                 {
                     return;
                 }

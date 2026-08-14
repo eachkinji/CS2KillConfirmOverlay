@@ -187,6 +187,8 @@ namespace KillConfirmGameBar
         private XboxGameBarWidgetWindowState _windowState = XboxGameBarWidgetWindowState.Restored;
         private bool _isPinned;
         private bool _clickThroughEnabled;
+        private readonly SemaphoreSlim _widgetResizeGate = new SemaphoreSlim(1, 1);
+        private int _widgetResizeRequestVersion;
         private bool _suppressVisualAdjustmentEvents;
         private bool _suppressVoicePackEvents;
         private bool _suppressIconPackEvents;
@@ -376,7 +378,7 @@ namespace KillConfirmGameBar
 
             try
             {
-                await _widget.TryResizeWindowAsync(GetScaledDefaultWidgetSize());
+                await _widget.TryResizeWindowAsync(GetDesiredWidgetSizeForPresentation());
             }
             catch (Exception)
             {
@@ -828,7 +830,7 @@ namespace KillConfirmGameBar
 
             if (resizeWindow)
             {
-                _ = ResizeWidgetForControlPanelScaleAsync(forceResize);
+                RequestWidgetResize(forceResize);
             }
         }
 
@@ -839,33 +841,51 @@ namespace KillConfirmGameBar
                 Math.Min(MaxWidgetSize.Height, DefaultWidgetSize.Height * _controlPanelScale));
         }
 
-        private async Task ResizeWidgetForControlPanelScaleAsync(bool forceResize)
+        private Size GetDesiredWidgetSizeForPresentation()
+        {
+            return IsControlPanelVisible()
+                ? GetScaledDefaultWidgetSize()
+                : DefaultWidgetSize;
+        }
+
+        private void RequestWidgetResize(bool forceResize)
         {
             if (_widget == null)
             {
                 return;
             }
 
-            if (!forceResize && _controlPanelScale <= 1.001)
-            {
-                return;
-            }
+            int requestVersion = Interlocked.Increment(ref _widgetResizeRequestVersion);
+            _ = ResizeWidgetForControlPanelScaleAsync(forceResize, requestVersion);
+        }
 
-            Size desired = GetScaledDefaultWidgetSize();
-            if (!forceResize
-                && ActualWidth >= desired.Width - 1
-                && ActualHeight >= desired.Height - 1)
-            {
-                return;
-            }
-
+        private async Task ResizeWidgetForControlPanelScaleAsync(bool forceResize, int requestVersion)
+        {
+            await _widgetResizeGate.WaitAsync();
             try
             {
+                if (_widget == null || requestVersion != _widgetResizeRequestVersion)
+                {
+                    return;
+                }
+
+                Size desired = GetDesiredWidgetSizeForPresentation();
+                if (!forceResize
+                    && Math.Abs(ActualWidth - desired.Width) < 1
+                    && Math.Abs(ActualHeight - desired.Height) < 1)
+                {
+                    return;
+                }
+
                 await _widget.TryResizeWindowAsync(desired);
             }
             catch (Exception ex)
             {
                 App.Log("Resize widget for control panel scale failed: " + ex.Message);
+            }
+            finally
+            {
+                _widgetResizeGate.Release();
             }
         }
 

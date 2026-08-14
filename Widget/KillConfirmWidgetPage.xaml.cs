@@ -315,7 +315,6 @@ namespace KillConfirmGameBar
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
-            PersistCurrentPackSelections();
             _isPageActive = false;
             _animationPreloadToken++;
             PrimaryKillAnimation?.ReleaseAnimationResourcesForPackChange();
@@ -346,23 +345,37 @@ namespace KillConfirmGameBar
                     return;
                 }
 
-                _animationPreloadToken++;
-                PrimaryKillAnimation?.ReleaseAnimationResourcesForPackChange();
-                BadgeKillAnimation?.ReleaseAnimationResourcesForPackChange();
-                _suppressGameStyleEvents = true;
-                SelectGameStyleItem(mode);
-                _suppressGameStyleEvents = false;
-                LoadAnimationPlacementSettings();
-                ApplyGameStyleUi();
-                await InitializePackSelectorsAsync();
-                await SyncSelectedVoicePackAsync();
-                await SyncCrossfireGameplaySettingsAsync();
-                await SyncCsolGameplaySettingsAsync();
-                await SyncSharedStreakSettingsAsync();
-                await SyncCombatEventSoundSettingsAsync();
-                await WarmStartupAnimationCacheAsync(0);
-            });
-        }
+                try
+                {
+                    _animationPreloadToken++;
+                    PrimaryKillAnimation?.ReleaseAnimationResourcesForPackChange();
+                    BadgeKillAnimation?.ReleaseAnimationResourcesForPackChange();
+                    _suppressGameStyleEvents = true;
+                    try
+                    {
+                        SelectGameStyleItem(mode);
+                    }
+                    finally
+                    {
+                        _suppressGameStyleEvents = false;
+                    }
+
+                    LoadAnimationPlacementSettings();
+                    ApplyGameStyleUi();
+                    await InitializePackSelectorsAsync();
+                    await SyncSelectedVoicePackAsync();
+                    await SyncCrossfireGameplaySettingsAsync();
+                    await SyncCsolGameplaySettingsAsync();
+                    await SyncSharedStreakSettingsAsync();
+                    await SyncCombatEventSoundSettingsAsync();
+                    await WarmStartupAnimationCacheAsync(0);
+                }
+               catch (Exception ex)
+               {
+                    App.LogCrash("Game style switch failed: " + ex);
+               }
+           });
+       }
 
         private void OnKillReceived(object sender, KillEvent e)
         {

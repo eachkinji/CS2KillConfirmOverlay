@@ -137,16 +137,5 @@ namespace KillConfirmGameBar
             return Path.Combine(ApplicationData.Current.LocalFolder.Path, fileName);
         }
 
-        private void PersistCurrentPackSelections()
-        {
-            if (!_packSelectorsInitialized)
-            {
-                return;
-            }
-
-            GameStyleMode style = GameStyleService.Current;
-            SavePackSettingForStyle(VoicePackSettingKey, style, GetSelectedVoicePackPreset());
-            SavePackSettingForStyle(IconPackSettingKey, style, GetSelectedIconPack());
-        }
     }
 }

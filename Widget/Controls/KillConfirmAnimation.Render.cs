@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using KillConfirmGameBar.Helpers;
 using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.UI.Xaml;
 using Windows.Foundation;
@@ -366,10 +367,11 @@ namespace KillConfirmGameBar.Controls
                 _timer.Stop();
                 _playbackClock.Stop();
                 Visibility = Visibility.Collapsed;
+                ProcessPriorityBoost.ExitAnimation();
                 return;
             }
 
-            double targetDurationSeconds = _currentValorantAsset != null || _currentBattlefieldAsset != null || _currentCsolAsset != null
+           double targetDurationSeconds = _currentValorantAsset != null || _currentBattlefieldAsset != null || _currentCsolAsset != null
                 ? _currentMetadata.Frames / (double)Math.Max(1, _currentMetadata.Fps)
                 : TargetPlaybackFrames / Math.Max(1.0, _targetPlaybackFps);
             double playbackProgress = _playbackClock.Elapsed.TotalSeconds / targetDurationSeconds;
@@ -384,6 +386,7 @@ namespace KillConfirmGameBar.Controls
                 _timer.Stop();
                 _playbackClock.Stop();
                 Visibility = Visibility.Collapsed;
+                ProcessPriorityBoost.ExitAnimation();
                 return;
             }
 

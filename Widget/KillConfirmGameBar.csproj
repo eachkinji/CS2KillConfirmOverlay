@@ -284,6 +284,7 @@
     <Compile Include="Services\PackCatalogService.Icon.cs" />
     <Compile Include="Services\PackCatalogService.Storage.cs" />
     <Compile Include="Services\PackCatalogService.Voice.cs" />
+    <Compile Include="Helpers\ProcessPriorityBoost.cs" />
     <Compile Include="Helpers\TgaDecoder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

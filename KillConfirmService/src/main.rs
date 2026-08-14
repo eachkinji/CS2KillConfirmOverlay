@@ -72,6 +72,52 @@ unsafe extern "system" {
     ) -> i32;
 }
 
+/// Win32 types and constants for process priority + power throttling control.
+const HIGH_PRIORITY_CLASS: u32 = 0x00000080;
+const PROCESS_POWER_THROTTLING: u32 = 11;
+const PROCESS_POWER_THROTTLING_EXECUTION_SPEED: u32 = 0x00000001;
+
+#[repr(C)]
+struct ProcessPowerThrottlingState {
+    version: u32,
+    control_mask: u32,
+    state_mask: u32,
+}
+
+#[link(name = "kernel32")]
+unsafe extern "system" {
+    fn SetPriorityClass(process: *mut std::ffi::c_void, priority_class: u32) -> i32;
+    fn GetCurrentProcess() -> *mut std::ffi::c_void;
+    fn SetProcessInformation(
+        process: *mut std::ffi::c_void,
+        process_information_class: u32,
+        process_information: *mut ProcessPowerThrottlingState,
+        process_information_size: u32,
+    ) -> i32;
+}
+
+fn boost_process_priority() {
+    unsafe {
+        let process = GetCurrentProcess();
+        if SetPriorityClass(process, HIGH_PRIORITY_CLASS) != 0 {
+            service_log("service process priority raised to High");
+        } else {
+            service_log("SetPriorityClass failed");
+        }
+        let state = ProcessPowerThrottlingState {
+            version: 1,
+            control_mask: PROCESS_POWER_THROTTLING_EXECUTION_SPEED,
+            state_mask: 0,
+        };
+        let size = std::mem::size_of::<ProcessPowerThrottlingState>() as u32;
+        if SetProcessInformation(process, PROCESS_POWER_THROTTLING, &state as *const _ as *mut _, size) != 0 {
+            service_log("service power throttling disabled");
+        } else {
+            service_log("SetProcessInformation(PowerThrottling) failed");
+        }
+    }
+}
+
 fn current_package_family_name() -> String {
     unsafe {
         let mut length = 0u32;
@@ -131,6 +177,8 @@ async fn main() {
 
 async fn run() -> Result<()> {
     service_log("service starting");
+
+    boost_process_priority();
 
     tracing_subscriber::registry()
         .with(

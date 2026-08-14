@@ -21,9 +21,6 @@ jobs:
       - name: Install Rust (MSVC)
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@v2
-
       - name: Cache cargo
         uses: Swatinem/rust-cache@v2
         with:
@@ -155,11 +152,20 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
+          $vswhere = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\Installer\vswhere.exe"
+          $vsInstall = & $vswhere -latest -products * -requires Microsoft.Component.MSBuild -property installationPath
+          $msbuild = Join-Path $vsInstall "MSBuild\Current\Bin\amd64\MSBuild.exe"
+          if (-not (Test-Path $msbuild)) {
+              $msbuild = Join-Path $vsInstall "MSBuild\Current\Bin\MSBuild.exe"
+          }
+          if (-not (Test-Path $msbuild)) { throw "MSBuild not found via vswhere at $vsInstall" }
+          Write-Host "MSBuild: $msbuild"
           $args = @(
               '-CertificatePfxPath', $env:CERT_PFX,
               '-CertificatePassword', $env:CERT_PASSWORD,
               '-CertificateCerPath', $env:CERT_CER,
-              '-CertificateThumbprint', $env:CERT_THUMBPRINT
+              '-CertificateThumbprint', $env:CERT_THUMBPRINT,
+              '-MsBuildPath', $msbuild
           )
           if ('${{ github.repository }}' -like '*-dev') {
               $args += '-SkipWithDependencies'

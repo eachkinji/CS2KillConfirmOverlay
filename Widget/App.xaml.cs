@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using KillConfirmGameBar.Helpers;
 using Microsoft.Gaming.XboxGameBar;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
@@ -27,6 +28,7 @@ namespace KillConfirmGameBar
             InitializeComponent();
             UnhandledException += OnUnhandledException;
             Suspending += OnSuspending;
+            ProcessPriorityBoost.EnsureProcessBoosted();
             Log("App constructed.");
         }
 

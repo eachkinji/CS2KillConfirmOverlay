@@ -359,6 +359,7 @@ namespace KillConfirmGameBar.Controls
             _playToken++;
             _timer.Stop();
             _playbackClock.Stop();
+            ProcessPriorityBoost.ExitAnimation();
             _currentValorantAsset = null;
             if (_currentCodeAsset == null
                 && _currentBattlefieldAsset == null
@@ -379,6 +380,7 @@ namespace KillConfirmGameBar.Controls
             _playToken++;
             _timer.Stop();
             _playbackClock.Stop();
+            ProcessPriorityBoost.ExitAnimation();
             HideLoadingProgress();
             _currentMetadata = null;
             _currentCodeAsset = null;
@@ -578,6 +580,8 @@ namespace KillConfirmGameBar.Controls
                 _timer.Interval = TimeSpan.FromMilliseconds(1000.0 / FrameSequenceFps);
                 ShowFrame(0);
                 _playbackClock.Restart();
+                ProcessPriorityBoost.ExitAnimation();
+                ProcessPriorityBoost.EnterAnimation();
                 _timer.Start();
             }
             catch
@@ -585,6 +589,7 @@ namespace KillConfirmGameBar.Controls
                 isLoading = false;
                 HideLoadingProgress();
                 Visibility = Visibility.Collapsed;
+                ProcessPriorityBoost.ExitAnimation();
             }
         }
 

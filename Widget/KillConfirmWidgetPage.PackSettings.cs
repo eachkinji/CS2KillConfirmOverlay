@@ -81,7 +81,11 @@ namespace KillConfirmGameBar
             TryApplyValorantLoadedIconPack(iconPack);
             SelectIconPack(iconPack);
             iconPack = GetSelectedIconPack();
-            SavePackSettingForStyle(IconPackSettingKey, style, iconPack);
+            // Do not write the resolved value here. If the stored pack is
+            // temporarily unavailable or was retired, SelectIconPack falls back
+            // to the first visible item. Persisting that fallback would silently
+            // overwrite the user's saved choice, so leave it untouched until the
+            // user explicitly selects another pack.
             ConfigureAnimationIconPack(iconPack);
             _ = ApplyCustomPackOverlaySupportAsync(iconPack);
             UpdateEliteEffectSelectorState();

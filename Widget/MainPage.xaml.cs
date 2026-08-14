@@ -22,21 +22,32 @@ namespace KillConfirmGameBar
     {
         private readonly MediaPlayer _previewPlayer = new MediaPlayer();
         private bool _iconSpecExpanded;
+        private bool _isSettingsPageLoaded;
 
         public MainPage()
         {
             InitializeComponent();
             ApplyLanguage();
-            GameStyleService.Changed += OnGameStyleServiceChanged;
             Loaded += OnLoaded;
             Unloaded += OnUnloaded;
         }
 
         private void OnGameStyleServiceChanged(object sender, GameStyleMode mode)
         {
+            if (!_isSettingsPageLoaded)
+            {
+                return;
+            }
+
             _ = Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, async () =>
             {
+                if (!_isSettingsPageLoaded || GameStyleService.Current != mode)
+                {
+                    return;
+                }
+
                 ApplyGameStyleUi();
+                await ReloadPackListsAsync(mode);
                 try
                 {
                     await CombatEventSoundSettingsStore.SyncAsync(mode);

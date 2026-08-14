@@ -150,7 +150,22 @@ jobs:
 
       - name: Build installer
         shell: pwsh
-        run: .\Build-Installer.ps1 -CertificatePfxPath $env:CERT_PFX -CertificatePassword $env:CERT_PASSWORD -CertificateCerPath $env:CERT_CER -CertificateThumbprint $env:CERT_THUMBPRINT
+        run: |
+          $ErrorActionPreference = "Stop"
+          $args = @(
+              '-CertificatePfxPath', $env:CERT_PFX,
+              '-CertificatePassword', $env:CERT_PASSWORD,
+              '-CertificateCerPath', $env:CERT_CER,
+              '-CertificateThumbprint', $env:CERT_THUMBPRINT
+          )
+          if ('${{ github.repository }}' -like '*-dev') {
+              $args += '-SkipWithDependencies'
+              Write-Host "Dev repository detected: building dependency-free installer only."
+          }
+          else {
+              Write-Host "Production repository: building both installers."
+          }
+          .\Build-Installer.ps1 @args
 
       - name: Upload assets to release
         if: inputs.uploadToRelease
@@ -162,7 +177,13 @@ jobs:
           $ver = ([xml](Get-Content Package/Package.appxmanifest)).Package.Identity.Version
           $noDependencies = Join-Path $env:GITHUB_WORKSPACE ("Output\KillConfirmGameBar_Setup_{0}_无依赖-更新用.exe" -f $ver)
           if (-not (Test-Path $noDependencies)) { throw "Missing $noDependencies" }
-          gh release upload "${{ inputs.releaseTag }}" $noDependencies --clobber
+          $assets = @($noDependencies)
+          if ('${{ github.repository }}' -notlike '*-dev') {
+              $withDependencies = Join-Path $env:GITHUB_WORKSPACE ("Output\KillConfirmGameBar_Setup_{0}_有依赖-新人用.exe" -f $ver)
+              if (-not (Test-Path $withDependencies)) { throw "Missing $withDependencies" }
+              $assets += $withDependencies
+          }
+          gh release upload "${{ inputs.releaseTag }}" @assets --clobber
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4

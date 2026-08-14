@@ -160,12 +160,9 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           $ver = ([xml](Get-Content Package/Package.appxmanifest)).Package.Identity.Version
-          $withDependencies = Join-Path $env:GITHUB_WORKSPACE ("Output\KillConfirmGameBar_Setup_{0}_有依赖-新人用.exe" -f $ver)
           $noDependencies = Join-Path $env:GITHUB_WORKSPACE ("Output\KillConfirmGameBar_Setup_{0}_无依赖-更新用.exe" -f $ver)
-          foreach ($exe in @($withDependencies, $noDependencies)) {
-              if (-not (Test-Path $exe)) { throw "Missing $exe" }
-          }
-          gh release upload "${{ inputs.releaseTag }}" $withDependencies $noDependencies --clobber
+          if (-not (Test-Path $noDependencies)) { throw "Missing $noDependencies" }
+          gh release upload "${{ inputs.releaseTag }}" $noDependencies --clobber
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4

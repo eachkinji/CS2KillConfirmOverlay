@@ -1,91 +1,133 @@
-# KillConfirmGameBar 中文说明
+<div align="center">
+  <img src="Widget/Assets/Square150x150Logo.scale-200.png" width="112" alt="Kill Confirm Overlay 图标" />
 
-## 路线图
+# Kill Confirm Overlay
 
-目前已经实现：
+**为 Xbox Game Bar 打造的可自定义 CS2 击杀确认体验。**
 
-- 击杀语音。
-- 击杀图标和击杀动画显示。
+<p>
+  <a href="README.md">English</a> · <strong>简体中文</strong>
+</p>
 
-后续计划：
+<a href="https://pan.quark.cn/s/1f3cfbcf8d5f?pwd=7Twv"><img src="https://img.shields.io/badge/下载-夸克网盘-6C5CE7?style=for-the-badge" alt="从夸克网盘下载" /></a>
 
-- 实现单纯由代码驱动的击杀特效，用来适配各种击杀图标。目前仍然是动画帧形式。
-- 适配更多角色语音。
-- 实现更完整的设置功能，比如更精细地调节动画帧数等。
-- 实现更多对局内可用语音，比如 C4、回合开始语音、回合结束语音等。
+**提取码：`7Twv`**
 
-## 注意事项
+<p>
+  <a href="https://github.com/eachkinji/CS2KillConfirmOverlay/releases"><img src="https://img.shields.io/github/v/release/eachkinji/CS2KillConfirmOverlay?display_name=tag&style=flat-square" alt="最新版本" /></a>
+  <img src="https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4?style=flat-square&logo=windows" alt="Windows 10 和 11" />
+  <img src="https://img.shields.io/badge/Xbox-Game%20Bar-107C10?style=flat-square&logo=xbox" alt="Xbox Game Bar" />
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/eachkinji/CS2KillConfirmOverlay?style=flat-square" alt="许可证" /></a>
+</p>
+</div>
 
-- 插件会监听本地端口来接收 CS2 Game State Integration 事件。开启系统代理可能会导致本地服务收不到事件，表现为组件已启动，但进游戏击杀后没有语音和图标。
-- 如果使用类似 Clash 的系统代理工具，游玩前建议关闭系统代理。
+## 项目简介
 
-[English](README.md) | [简体中文](README.zh-CN.md)
+Kill Confirm Overlay 通过 Counter-Strike 2 Game State Integration 接收对局事件，根据事件播放对应语音，并在 Xbox Game Bar 中显示击杀动画。它不读取或注入 CS2 游戏进程，同时可以作为悬浮窗保持在游戏画面上方。
 
-KillConfirmGameBar 是一个用于 Counter-Strike 2 的击杀确认 Xbox Game Bar 悬浮窗。
+项目已经从简单的击杀确认音效工具，发展为支持独立游戏风格、自定义媒体、连杀逻辑、事件优先级和高分辨率渲染的可配置展示系统。
 
-它通过 CS2 Game State Integration 接收击杀事件，然后播放语音并显示击杀动画。悬浮窗运行在 Xbox Game Bar 里，游戏中可以用 `Win + G` 打开。
+> [!NOTE]
+> 文中其他游戏的名称表示受对应游戏启发的展示风格。当前实际通过 GSI 提供实时对局事件的游戏仍然是 CS2。
 
-## 功能
+## 开源基础与社区联动
 
-- CS2 击杀确认音效。
-- Xbox Game Bar 悬浮窗。
-- 支持普通击杀、爆头、刀杀、首杀、最后一杀等动画效果。
-- 可以在控制面板里切换语音包。
-- 支持小范围分发用的 Windows 安装包。
+<table>
+  <tr>
+    <td align="center" width="120">
+      <a href="https://github.com/st0nie">
+        <img src="https://avatars.githubusercontent.com/u/42872734?v=4&s=160" width="80" alt="st0nie 头像" /><br />
+        <strong>ston · st0nie</strong>
+      </a>
+    </td>
+    <td>
+      <strong>感谢 cskillconfirm 原项目开发者</strong><br /><br />
+      特别感谢 <a href="https://github.com/st0nie">ston（st0nie）</a> 提供的开发思路，以及开源项目 <a href="https://github.com/st0nie/cskillconfirm"><code>cskillconfirm</code></a> 的基础代码。其 CS2 击杀确认方案为本项目提供了重要基础。本项目也使用了 <a href="https://github.com/st0nie/gsi-cs2-rs"><code>gsi-cs2-rs</code></a> 的相关思路与集成成果。
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="120">
+      <a href="https://github.com/gufan0000">
+        <img src="https://avatars.githubusercontent.com/u/113977586?v=4&s=160" width="80" alt="gufan0000 头像" /><br />
+        <strong>gufan0000</strong>
+      </a>
+    </td>
+    <td>
+      <strong>更多 CS2 自定义需求：CS2 Customizer</strong><br /><br />
+      如果你需要更丰富的个性化修改，包括准心、击杀音效与图标、HUD 配色、局内视角和道具瞄点，请访问 <a href="https://github.com/gufan0000/cs2-customizer"><code>gufan0000/cs2-customizer</code></a>。本项目与其深度联动，可以配合形成更完整的 CS2 自定义体验。
+    </td>
+  </tr>
+</table>
 
-当前语音包：
+## 功能亮点
 
-- `swat GR / swat BL`
-- `tiger GR / tiger BL`
-- `cfsex`
-- `women GR / women BL`
+- **Xbox Game Bar 悬浮窗**：使用 `Win + G` 打开、定位、缩放并固定组件。
+- **击杀事件识别**：支持普通击杀、爆头、刀杀、首杀、最后一杀、助攻、连杀和观察队友等事件。
+- **11 种内置展示风格**：穿越火线、CSOL、VALORANT、战地 1、战地 5、战地 4、战地 2042、PUBG、三角洲行动、豆包和大狗叫。
+- **灵活的连杀逻辑**：支持按生命、按回合和循环连杀窗口；循环点可在 2–50 杀之间设置。
+- **自定义图片与语音**：可使用内置素材，也可为支持的事件和风格导入图片、语音资源。
+- **高级音频控制**：支持独立风格优先级、音量、事件音效以及可配置的播放速度与音调变化。
+- **炸弹音效时间线**：可选安放、拆除、爆炸和回合重置音效，并可单独调整每个 5 秒区间的播放速度。
+- **高分辨率视觉优化**：针对高 DPI 显示器和 4:3 全屏分辨率优化渲染、定位与缩放。
+- **独立配置保存**：游戏风格、素材包、动画和高级设置分别持久化，减少不同风格之间的互相影响。
+- **双语界面与更新检测**：支持英文、简体中文界面，并在组件打开时检测最新正式 GitHub Release。
+
+## 工作原理
+
+```text
+CS2 Game State Integration
+            ↓
+127.0.0.1:10087 上的本地 Rust 服务
+            ↓
+事件分类与音频播放
+            ↓
+Xbox Game Bar 动画悬浮窗
+```
+
+本地服务接收 GSI 数据，小组件再根据当前风格和事件优先级，选择对应的动画、图片与音频。
 
 ## 使用要求
 
-- Windows 10/11
+- Windows 10 或 Windows 11
 - 已启用 Xbox Game Bar
 - Counter-Strike 2
 
-如果你要从源码构建，还需要：
-
-- Rust 工具链
-- Visual Studio 或 Visual Studio Build Tools，并安装 Windows/UWP/MSIX 相关工具
-- Inno Setup 6，仅在需要构建 `.exe` 安装器时使用
-
 ## 安装
 
-普通用户请下载 release 包，然后运行里面的安装器或安装脚本。
-
-安装后：
-
-1. 按 `Win + G` 打开 Xbox Game Bar。
-2. 打开 Kill Confirm Overlay 小组件。
-3. 启动 CS2。
-4. 安装器会尝试自动配置 CS2 Game State Integration。
-
-这个项目会使用一个本地 companion service。安装器会帮你安装应用包，并设置 Xbox Game Bar 小组件需要的本地连接。
+1. 从[夸克网盘](https://pan.quark.cn/s/1f3cfbcf8d5f?pwd=7Twv)下载，提取码为 `7Twv`；也可以访问 [GitHub Releases](https://github.com/eachkinji/CS2KillConfirmOverlay/releases)。
+2. 根据当前环境选择安装包：
+   - **有依赖版——推荐新用户使用**：包含首次安装所需依赖。
+   - **无依赖版——推荐更新使用**：适合已经能够正常运行旧版本的系统。
+3. 运行安装程序。
+4. 按 `Win + G` 打开 Xbox Game Bar，找到 Kill Confirm Overlay，并根据需要固定组件。
+5. 启动 CS2。安装程序会尝试自动配置 Game State Integration。
 
 ## CS2 Game State Integration
 
-CS2 需要一个 GSI 配置，地址指向：
+悬浮窗监听地址：
 
 ```text
 http://127.0.0.1:10087/
 ```
 
-安装器会尝试自动创建这个配置。如果击杀事件没有触发，可以手动把 `KillConfirmService/gsi/gamestate_integration_killconfirm.cfg` 放到 CS2 的 cfg 目录：
+安装程序会尝试自动创建所需的 GSI 配置。如果事件没有触发，请将 `KillConfirmService/gsi/gamestate_integration_killconfirm.cfg` 复制到：
 
 ```text
 C:\Program Files (x86)\Steam\steamapps\common\Counter-Strike Global Offensive\game\csgo\cfg\
 ```
 
-上游参考 GSI 配置在这里：
+上游参考配置可在 [`gsi-cs2-rs`](https://github.com/st0nie/gsi-cs2-rs/blob/main/gsi_cfg/gamestate_integration_fast.cfg) 中查看。
 
-```text
-https://github.com/st0nie/gsi-cs2-rs/blob/main/gsi_cfg/gamestate_integration_fast.cfg
-```
+## 常见问题
+
+- **击杀后没有语音或动画**：检查本地服务是否运行，以及 GSI 文件是否位于正确的 CS2 `cfg` 目录。
+- **正在使用 Clash 或其他系统代理**：请关闭系统代理，或排除 `127.0.0.1`。部分代理配置会拦截本地流量，导致服务无法收到 GSI 事件。
+- **更新已有安装**：只有在旧版本及其依赖已经正常运行时，才建议使用无依赖安装包。
+- **导入自定义内容**：请只使用来源可信的素材包和语音包。
 
 ## 从源码构建
+
+源码构建需要 Rust 工具链、安装了 Windows/UWP/MSIX 工具的 Visual Studio 或 Visual Studio Build Tools；如需生成 `.exe` 安装器，还需要 Inno Setup 6。
 
 在仓库根目录运行：
 
@@ -99,7 +141,7 @@ https://github.com/st0nie/gsi-cs2-rs/blob/main/gsi_cfg/gamestate_integration_fas
 .\Build-TransferPackage.ps1
 ```
 
-创建可选的安装器：
+创建安装器：
 
 ```powershell
 .\Build-Installer.ps1
@@ -107,37 +149,31 @@ https://github.com/st0nie/gsi-cs2-rs/blob/main/gsi_cfg/gamestate_integration_fas
 
 ## 项目结构
 
-- `KillConfirmService`：Rust 本地服务，负责接收 CS2 GSI 和播放音频。
-- `Widget`：Xbox Game Bar 小组件。
+- `KillConfirmService`：负责 GSI 事件处理和音频播放的 Rust 本地服务。
+- `Widget`：Xbox Game Bar 界面、设置与视觉效果。
 - `Package`：Windows 打包项目。
-- `Installer`：安装器相关文件。
-- `SourceAssets`：源动画、音频、图标和语音包。
+- `Installer`：安装器定义和相关文件。
+- `SourceAssets`：源动画、图片、音频、图标和内置风格素材。
 
-构建时会从 `SourceAssets` 刷新生成最终打包用的资源文件。
+构建时会从 `SourceAssets` 刷新最终打包所需的资源。
 
-## 说明
+## 其他致谢
 
-- 应用只和本机 `127.0.0.1` 上的本地服务通信。
-- 每个语音包里的 `sound.lua` 控制语音播放逻辑。
-- 请只安装你信任来源的语音包。
-- 测试签名文件只用于开发构建。正式发布建议使用正式证书或可信签名服务。
+- MinecraftGD656 的 [`gd656killicon`](https://github.com/MinecraftGD656/gd656killicon)。
+- [Steam 创意工坊项目 2721562982](https://steamcommunity.com/sharedfiles/filedetails/?id=2721562982)。
 
-## 致谢
+本项目包含由 AI 生成的代码。
 
-Rust 服务基于 st0nie 的开源项目 `cskillconfirm`：
+## 许可证与免责声明
 
-```text
-https://github.com/st0nie/cskillconfirm
-```
+本项目使用 [GNU Affero General Public License v3.0](LICENSE) 开源。
 
-本项目也使用了 `gsi-cs2-rs`：
+本项目与 Valve、Microsoft、Xbox、CrossFire、Riot Games、Electronic Arts、Krafton、Tencent、ByteDance 或其他游戏发行商不存在官方关联。文中涉及的产品名称和商标均归各自所有者所有。
 
-```text
-https://github.com/st0nie/gsi-cs2-rs
-```
+## Star 趋势
 
-## 许可证
-
-本项目使用 GNU Affero General Public License v3.0。详见 `LICENSE`。
-
-本项目与 Valve、Microsoft、Xbox、CrossFire、Valorant、Battlefield 或其他游戏发行商无官方关联。
+<div align="center">
+  <a href="https://star-history.com/#eachkinji/CS2KillConfirmOverlay&Date">
+    <img src="https://api.star-history.com/svg?repos=eachkinji/CS2KillConfirmOverlay&type=Date" alt="Star History Chart" />
+  </a>
+</div>

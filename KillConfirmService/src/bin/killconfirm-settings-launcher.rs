@@ -43,7 +43,7 @@ fn current_package_family_name() -> String {
         }
     }
     // Fallback to currently installed package family name
-    "KillConfirmGameBar.Overlay_w6b18m8p2b434".to_string()
+    "KillConfirmGameBar.Overlay_5jgcw66eyez0m".to_string()
 }
 
 const SETTINGS_WINDOW_TITLE: &str = "Kill Confirm Overlay Advanced Settings";

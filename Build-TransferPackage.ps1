@@ -35,7 +35,7 @@ $TransferRoot = Join-Path $WorkspaceRoot ("KillConfirmGameBar_Transfer_{0}_有�
 $TransferZip = "{0}.zip" -f $TransferRoot
 $NoDependenciesTransferRoot = Join-Path $WorkspaceRoot ("KillConfirmGameBar_Transfer_{0}_无依赖-更新用" -f $Version)
 $NoDependenciesTransferZip = "{0}.zip" -f $NoDependenciesTransferRoot
-$ExpectedPackageFamilyName = "KillConfirmGameBar.Overlay_w6b18m8p2b434"
+$ExpectedPackageFamilyName = "KillConfirmGameBar.Overlay_5jgcw66eyez0m"
 $PrerequisiteSourceRoot = Join-Path $WorkspaceRoot "Vclibs"
 $PrerequisiteFileNames = @(
     "Microsoft.UI.Xaml.Appx",
@@ -900,7 +900,7 @@ Notes:
 - The widget talks to 127.0.0.1 internally, so the install script adds the required loopback exemption.
 - If Xbox Game Bar was open during install, close it and open it again.
 - The installer does not auto-open the widget URI because some Windows installs do not register ms-gamebarwidget links.
-- Package family name for loopback: KillConfirmGameBar.Overlay_w6b18m8p2b434
+- Package family name for loopback: KillConfirmGameBar.Overlay_5jgcw66eyez0m
 
 KillConfirmGameBar transfer package - Chinese quick guide
 

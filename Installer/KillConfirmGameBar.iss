@@ -1,4 +1,4 @@
-#define MyAppPublisher "KillConfirmOverlay-TestVersion"
+#define MyAppPublisher "KillConfirmGameBar"
 #define MyAppExeName "Install-KillConfirm.ps1"
 
 #ifndef MyAppVersion

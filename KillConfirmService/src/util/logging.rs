@@ -40,7 +40,7 @@ fn current_package_family_name() -> String {
             }
         }
     }
-    "KillConfirmGameBar.Overlay_w6b18m8p2b434".to_string()
+    "KillConfirmGameBar.Overlay_5jgcw66eyez0m".to_string()
 }
 
 pub(crate) fn local_state_dir() -> PathBuf {

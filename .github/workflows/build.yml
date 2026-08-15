@@ -133,8 +133,8 @@ jobs:
           if (-not $cert.HasPrivateKey) {
               throw "SIGNING_PFX does not contain a private key"
           }
-          if ($cert.Subject -ne "CN=KillConfirmOverlay-TestVersion") {
-              throw "Signing certificate subject must be CN=KillConfirmOverlay-TestVersion, but was $($cert.Subject)"
+          if ($cert.Subject -ne "CN=TestXboxGameBar") {
+              throw "Signing certificate subject must be CN=TestXboxGameBar, but was $($cert.Subject)"
           }
           if ($cert.Thumbprint -ne $publicCert.Thumbprint) {
               throw "SIGNING_PFX and SIGNING_CER do not contain the same certificate"

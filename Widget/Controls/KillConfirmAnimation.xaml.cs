@@ -353,7 +353,7 @@ namespace KillConfirmGameBar.Controls
 
         public static void ConfigurePlaybackFps(double playbackFps)
         {
-            _targetPlaybackFps = Math.Max(1.0, Math.Min(240.0, playbackFps));
+            _targetPlaybackFps = Math.Max(30.0, Math.Min(60.0, playbackFps));
         }
 
         public static void ConfigureIconPack(string iconPack)

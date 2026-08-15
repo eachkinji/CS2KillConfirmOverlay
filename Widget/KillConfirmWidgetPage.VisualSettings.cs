@@ -45,7 +45,7 @@ namespace KillConfirmGameBar
             double brightness = ReadSetting(localSettings, BrightnessSettingKey);
             double contrast = ReadSetting(localSettings, ContrastSettingKey);
             double audioVolume = ReadSetting(localSettings, AudioVolumeSettingKey);
-            double playbackFps = ReadSetting(localSettings, PlaybackFpsSettingKey);
+            double playbackFps = NormalizePlaybackFps(ReadSetting(localSettings, PlaybackFpsSettingKey));
 
             _suppressVisualAdjustmentEvents = true;
             SelectPercentageOption(BrightnessSelector, brightness);
@@ -97,9 +97,20 @@ namespace KillConfirmGameBar
                 return;
             }
 
-            double playbackFps = ReadSelectedPercentage(PlaybackFpsSelector, DefaultPlaybackFpsValue);
+            double playbackFps = NormalizePlaybackFps(
+                ReadSelectedPercentage(PlaybackFpsSelector, DefaultPlaybackFpsValue));
             ApplicationData.Current.LocalSettings.Values[PlaybackFpsSettingKey] = playbackFps;
             Controls.KillConfirmAnimation.ConfigurePlaybackFps(playbackFps);
+        }
+
+        private static double NormalizePlaybackFps(double playbackFps)
+        {
+            if (double.IsNaN(playbackFps) || double.IsInfinity(playbackFps))
+            {
+                return DefaultPlaybackFpsValue;
+            }
+
+            return Math.Max(MinimumPlaybackFpsValue, Math.Min(MaximumPlaybackFpsValue, playbackFps));
         }
 
         private async Task ApplyAndSaveAudioVolumeAsync()

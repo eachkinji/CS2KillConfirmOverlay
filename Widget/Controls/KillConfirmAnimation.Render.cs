@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
-using KillConfirmGameBar.Helpers;
 using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.UI.Xaml;
 using Windows.Foundation;
@@ -344,7 +343,6 @@ namespace KillConfirmGameBar.Controls
                 _timer.Stop();
                 _playbackClock.Stop();
                 Visibility = Visibility.Collapsed;
-                ProcessPriorityBoost.ExitAnimation();
                 return;
             }
 
@@ -363,7 +361,6 @@ namespace KillConfirmGameBar.Controls
                 _timer.Stop();
                 _playbackClock.Stop();
                 Visibility = Visibility.Collapsed;
-                ProcessPriorityBoost.ExitAnimation();
                 return;
             }
 

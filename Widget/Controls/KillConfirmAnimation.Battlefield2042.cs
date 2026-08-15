@@ -48,6 +48,8 @@ namespace KillConfirmGameBar.Controls
         private const double Battlefield2042FeedLineSpacing = 20;
         private const int Battlefield2042MaxFeedLines = 5;
         private const int Battlefield2042MaxKillIcons = 10;
+        private const double Battlefield2042GlowCachePadding = 24;
+        private const double Battlefield2042FeedTextScale = 1.02;
         private static readonly Color Battlefield2042EnemyColor = Color.FromArgb(255, 255, 20, 24);
         private static readonly Color Battlefield2042HeadshotColor = Color.FromArgb(248, 255, 31, 1);
         private static readonly Color Battlefield2042HeadshotHaloColor = Color.FromArgb(255, 255, 84, 61);
@@ -69,6 +71,12 @@ namespace KillConfirmGameBar.Controls
         };
         private static readonly Dictionary<string, CanvasBitmap> Battlefield2042IconCache =
             new Dictionary<string, CanvasBitmap>(StringComparer.OrdinalIgnoreCase);
+        private readonly CanvasTextFormat _battlefield2042TextFormat = new CanvasTextFormat
+        {
+            FontFamily = "Bahnschrift",
+            FontSize = 12,
+            FontWeight = FontWeights.SemiBold
+        };
 
         private static readonly Battlefield2042CurveKey[] Battlefield2042AnimSkullAlphaCurve =
         {
@@ -306,6 +314,8 @@ namespace KillConfirmGameBar.Controls
             new Battlefield2042GlitchBar(-69.3, -1.221, 72.689, 2.42)
         };
         private readonly Battlefield2042HudState _battlefield2042HudState = new Battlefield2042HudState();
+        private readonly Dictionary<string, Battlefield2042KillIconRenderCache> _battlefield2042KillIconRenderCaches =
+            new Dictionary<string, Battlefield2042KillIconRenderCache>(StringComparer.OrdinalIgnoreCase);
         private bool _isBattlefield2042HudActive;
 
         public void PlayBattlefield2042Kill(
@@ -476,21 +486,23 @@ namespace KillConfirmGameBar.Controls
                     }
                 }
 
-                AddBattlefield2042FeedItem(new Battlefield2042FeedItem(
+                var feedItem = new Battlefield2042FeedItem(
                     targetName,
                     isAssist ? string.Empty : weaponName,
                     isAssist,
                     reward,
-                    feedRevealTimeMs),
-                    now);
+                    feedRevealTimeMs);
+                PrepareBattlefield2042FeedItemCache(feedItem);
+                AddBattlefield2042FeedItem(feedItem, now);
             }
 
             if (reward > 0)
             {
-                AddBattlefield2042MoneyItem(new Battlefield2042MoneyItem(
+                var moneyItem = new Battlefield2042MoneyItem(
                     reward,
-                    feedRevealTimeMs),
-                    now);
+                    feedRevealTimeMs);
+                PrepareBattlefield2042MoneyItemCache(moneyItem);
+                AddBattlefield2042MoneyItem(moneyItem, now);
             }
 
             Battlefield2042KillIconItem killIconItem = null;
@@ -537,6 +549,7 @@ namespace KillConfirmGameBar.Controls
                 && _battlefield2042HudState.KillIconItems.Contains(killIconItem))
             {
                 killIconItem.Icon = icon;
+                PrepareBattlefield2042KillIconCache(killIconItem);
             }
 
             SpriteCanvas.Invalidate();
@@ -641,6 +654,7 @@ namespace KillConfirmGameBar.Controls
                 if (item.IsExiting
                     && now >= item.ExitStartTimeMs + Battlefield2042FeedExitDurationMs)
                 {
+                    item.DisposeCachedResources();
                     _battlefield2042HudState.FeedItems.RemoveAt(i);
                 }
             }
@@ -651,6 +665,7 @@ namespace KillConfirmGameBar.Controls
                 if (item.IsExiting
                     && now >= item.ExitStartTimeMs + Battlefield2042FeedExitDurationMs)
                 {
+                    item.DisposeCachedResources();
                     _battlefield2042HudState.MoneyItems.RemoveAt(i);
                 }
             }
@@ -701,20 +716,11 @@ namespace KillConfirmGameBar.Controls
         private void DrawBattlefield2042HudFrame(CanvasDrawingSession drawingSession)
         {
             double now = _playbackClock.Elapsed.TotalMilliseconds;
-            using (CanvasTextFormat textFormat = new CanvasTextFormat
-            {
-                FontFamily = "Bahnschrift",
-                FontSize = 12,
-                FontWeight = FontWeights.SemiBold
-            })
-            {
-
-                DrawBattlefield2042KillIcons(drawingSession, now);
-                DrawBattlefield2042Feed(drawingSession, textFormat, now);
-                DrawBattlefield2042MoneyFeed(drawingSession, textFormat, now);
-                DrawBattlefield2042MoneyTotal(drawingSession, textFormat, now);
-                DrawBattlefield2042KilllogExitGlitch(drawingSession, now);
-            }
+            DrawBattlefield2042KillIcons(drawingSession, now);
+            DrawBattlefield2042Feed(drawingSession, _battlefield2042TextFormat, now);
+            DrawBattlefield2042MoneyFeed(drawingSession, _battlefield2042TextFormat, now);
+            DrawBattlefield2042MoneyTotal(drawingSession, _battlefield2042TextFormat, now);
+            DrawBattlefield2042KilllogExitGlitch(drawingSession, now);
         }
 
         private void DrawBattlefield2042KillIcons(CanvasDrawingSession drawingSession, double now)
@@ -786,31 +792,42 @@ namespace KillConfirmGameBar.Controls
                 }
             }
 
-            CanvasBitmap shadow = GetCachedBattlefield2042Icon("SmoothCircle.png");
-            if (shadow != null)
+            if (item.RenderCache != null)
             {
-                DrawBattlefield2042TintedImage(
+                DrawBattlefield2042CachedKillIcon(
                     drawingSession,
-                    shadow,
-                    new Rect(centerX - 20, centerY - 20, 40, 40),
-                    Color.FromArgb(255, 0, 0, 0),
-                    0.27058825);
+                    item.RenderCache,
+                    centerX,
+                    centerY);
             }
+            else
+            {
+                CanvasBitmap shadow = GetCachedBattlefield2042Icon("SmoothCircle.png");
+                if (shadow != null)
+                {
+                    DrawBattlefield2042TintedImage(
+                        drawingSession,
+                        shadow,
+                        new Rect(centerX - 20, centerY - 20, 40, 40),
+                        Color.FromArgb(255, 0, 0, 0),
+                        0.27058825);
+                }
 
-            Color skullColor = item.IsHeadshot ? Battlefield2042HeadshotColor : Colors.White;
-            double skullOpacity = item.IsHeadshot ? Battlefield2042HeadshotColor.A / 255.0 : 1.0;
-            var skullRect = new Rect(
-                centerX - Battlefield2042KillIconSize / 2.0,
-                centerY - Battlefield2042KillIconSize / 2.0,
-                Battlefield2042KillIconSize,
-                Battlefield2042KillIconSize);
-            DrawBattlefield2042TintedImageWithBloom(
-                drawingSession,
-                item.Icon,
-                skullRect,
-                skullColor,
-                skullOpacity,
-                item.IsHeadshot ? 0.55 : 0.42);
+                Color skullColor = item.IsHeadshot ? Battlefield2042HeadshotColor : Colors.White;
+                double skullOpacity = item.IsHeadshot ? Battlefield2042HeadshotColor.A / 255.0 : 1.0;
+                var skullRect = new Rect(
+                    centerX - Battlefield2042KillIconSize / 2.0,
+                    centerY - Battlefield2042KillIconSize / 2.0,
+                    Battlefield2042KillIconSize,
+                    Battlefield2042KillIconSize);
+                DrawBattlefield2042TintedImageWithBloom(
+                    drawingSession,
+                    item.Icon,
+                    skullRect,
+                    skullColor,
+                    skullOpacity,
+                    item.IsHeadshot ? 0.55 : 0.42);
+            }
 
             if (elapsed <= Battlefield2042KillstreakEntryMs)
             {
@@ -965,6 +982,139 @@ namespace KillConfirmGameBar.Controls
             }
         }
 
+        private void PrepareBattlefield2042KillIconCache(Battlefield2042KillIconItem item)
+        {
+            if (item?.Icon == null || item.RenderCache != null)
+            {
+                return;
+            }
+
+            const double cacheSize = 64;
+            const double cacheCenter = cacheSize / 2.0;
+            float cacheDpi = GetBattlefield2042GlowCacheDpi();
+            string cacheKey = item.IconFileName + "|" + item.IsHeadshot + "|" + cacheDpi.ToString("F2", CultureInfo.InvariantCulture);
+            if (_battlefield2042KillIconRenderCaches.TryGetValue(cacheKey, out Battlefield2042KillIconRenderCache cached))
+            {
+                item.RenderCache = cached;
+                return;
+            }
+
+            CanvasRenderTarget baseSurface = null;
+            CanvasRenderTarget bloomSurface = null;
+            try
+            {
+                baseSurface = new CanvasRenderTarget(
+                    CanvasDevice.GetSharedDevice(),
+                    (float)cacheSize,
+                    (float)cacheSize,
+                    cacheDpi);
+                bloomSurface = new CanvasRenderTarget(
+                    CanvasDevice.GetSharedDevice(),
+                    (float)cacheSize,
+                    (float)cacheSize,
+                    cacheDpi);
+
+                Color skullColor = item.IsHeadshot ? Battlefield2042HeadshotColor : Colors.White;
+                double skullOpacity = item.IsHeadshot ? Battlefield2042HeadshotColor.A / 255.0 : 1.0;
+                Rect skullRect = new Rect(
+                    cacheCenter - Battlefield2042KillIconSize / 2.0,
+                    cacheCenter - Battlefield2042KillIconSize / 2.0,
+                    Battlefield2042KillIconSize,
+                    Battlefield2042KillIconSize);
+
+                using (CanvasDrawingSession baseSession = baseSurface.CreateDrawingSession())
+                {
+                    baseSession.Clear(Colors.Transparent);
+                    CanvasBitmap shadow = GetCachedBattlefield2042Icon("SmoothCircle.png");
+                    if (shadow != null)
+                    {
+                        DrawBattlefield2042TintedImage(
+                            baseSession,
+                            shadow,
+                            new Rect(cacheCenter - 20, cacheCenter - 20, 40, 40),
+                            Color.FromArgb(255, 0, 0, 0),
+                            0.27058825);
+                    }
+
+                    DrawBattlefield2042TintedImage(
+                        baseSession,
+                        item.Icon,
+                        skullRect,
+                        skullColor,
+                        skullOpacity);
+                }
+
+                using (CanvasDrawingSession bloomSession = bloomSurface.CreateDrawingSession())
+                using (var tintEffect = new ColorMatrixEffect
+                {
+                    Source = item.Icon,
+                    ColorMatrix = CreateBattlefield2042AlphaTintMatrix(skullColor)
+                })
+                {
+                    bloomSession.Clear(Colors.Transparent);
+                    DrawBattlefield2042TintedImageBloomOnly(
+                        bloomSession,
+                        tintEffect,
+                        item.Icon,
+                        skullRect,
+                        skullOpacity,
+                        item.IsHeadshot ? 0.55 : 0.42);
+                }
+
+                item.RenderCache = new Battlefield2042KillIconRenderCache(
+                    baseSurface,
+                    bloomSurface,
+                    cacheCenter);
+                _battlefield2042KillIconRenderCaches[cacheKey] = item.RenderCache;
+            }
+            catch
+            {
+                baseSurface?.Dispose();
+                bloomSurface?.Dispose();
+            }
+        }
+
+        private static void DrawBattlefield2042CachedKillIcon(
+            CanvasDrawingSession drawingSession,
+            Battlefield2042KillIconRenderCache cache,
+            double centerX,
+            double centerY)
+        {
+            if (cache?.BaseSurface == null || cache.BloomSurface == null)
+            {
+                return;
+            }
+
+            Rect source = cache.BaseSurface.Bounds;
+            Rect target = new Rect(
+                centerX - cache.CenterOffset,
+                centerY - cache.CenterOffset,
+                cache.BaseSurface.Size.Width,
+                cache.BaseSurface.Size.Height);
+            CanvasBlend previousBlend = drawingSession.Blend;
+            try
+            {
+                drawingSession.Blend = CanvasBlend.Add;
+                drawingSession.DrawImage(
+                    cache.BloomSurface,
+                    target,
+                    source,
+                    1.0f,
+                    CanvasImageInterpolation.Linear);
+            }
+            finally
+            {
+                drawingSession.Blend = previousBlend;
+            }
+
+            drawingSession.DrawImage(
+                cache.BaseSurface,
+                target,
+                source,
+                1.0f,
+                CanvasImageInterpolation.Linear);
+        }
+
         private static void DrawBattlefield2042TintedImage(
             CanvasDrawingSession drawingSession,
             CanvasBitmap image,
@@ -977,18 +1127,20 @@ namespace KillConfirmGameBar.Controls
                 return;
             }
 
-            var tintEffect = new ColorMatrixEffect
+            using (var tintEffect = new ColorMatrixEffect
             {
                 Source = image,
                 ColorMatrix = CreateBattlefield2042AlphaTintMatrix(tint)
-            };
-            var source = new Rect(0, 0, image.SizeInPixels.Width, image.SizeInPixels.Height);
-            drawingSession.DrawImage(
-                tintEffect,
-                target,
-                source,
-                (float)Clamp01(opacity),
-                CanvasImageInterpolation.Linear);
+            })
+            {
+                var source = new Rect(0, 0, image.SizeInPixels.Width, image.SizeInPixels.Height);
+                drawingSession.DrawImage(
+                    tintEffect,
+                    target,
+                    source,
+                    (float)Clamp01(opacity),
+                    CanvasImageInterpolation.Linear);
+            }
         }
 
         private static void DrawBattlefield2042TintedImageWithBloom(
@@ -1004,11 +1156,37 @@ namespace KillConfirmGameBar.Controls
                 return;
             }
 
-            var tintEffect = new ColorMatrixEffect
+            using (var tintEffect = new ColorMatrixEffect
             {
                 Source = image,
                 ColorMatrix = CreateBattlefield2042AlphaTintMatrix(tint)
-            };
+            })
+            {
+                DrawBattlefield2042TintedImageBloomOnly(
+                    drawingSession,
+                    tintEffect,
+                    image,
+                    target,
+                    opacity,
+                    bloomStrength);
+                var source = new Rect(0, 0, image.SizeInPixels.Width, image.SizeInPixels.Height);
+                drawingSession.DrawImage(
+                    tintEffect,
+                    target,
+                    source,
+                    (float)Clamp01(opacity),
+                    CanvasImageInterpolation.Linear);
+            }
+        }
+
+        private static void DrawBattlefield2042TintedImageBloomOnly(
+            CanvasDrawingSession drawingSession,
+            ColorMatrixEffect tintEffect,
+            CanvasBitmap image,
+            Rect target,
+            double opacity,
+            double bloomStrength)
+        {
             var source = new Rect(0, 0, image.SizeInPixels.Width, image.SizeInPixels.Height);
             CanvasBlend previousBlend = drawingSession.Blend;
             try
@@ -1051,13 +1229,6 @@ namespace KillConfirmGameBar.Controls
             {
                 drawingSession.Blend = previousBlend;
             }
-
-            drawingSession.DrawImage(
-                tintEffect,
-                target,
-                source,
-                (float)Clamp01(opacity),
-                CanvasImageInterpolation.Linear);
         }
 
         private static Matrix5x4 CreateBattlefield2042AlphaTintMatrix(Color tint)
@@ -1093,30 +1264,28 @@ namespace KillConfirmGameBar.Controls
                 int visualRow = Math.Min(row, Battlefield2042MaxFeedLines - 1);
                 double exitProgress = ResolveBattlefield2042ExitProgress(item.ExitStartTimeMs, now);
                 double exitEase = EaseOutCubic(exitProgress);
-                const double textScale = 1.02;
-                string weaponText = item.IsAssist || string.IsNullOrWhiteSpace(item.WeaponName)
-                    ? string.Empty
-                    : "[" + item.WeaponName + "] ";
+                if (!item.IsCachePrepared)
+                {
+                    PrepareBattlefield2042FeedItemCache(item);
+                }
+
+                string weaponText = item.WeaponText;
                 string targetText = item.TargetName;
-                string fullText = weaponText + targetText;
-                string moneyText = item.MoneyReward > 0
-                    ? "+" + FormatBattlefieldMoney(item.MoneyReward)
-                    : string.Empty;
-                Rect textBounds = MeasureBattlefieldTextBounds(fullText, textFormat);
-                double weaponAdvance = MeasureBattlefieldTextAdvance(weaponText, textFormat);
-                double moneyTextWidth = MeasureBattlefieldTextWidth(moneyText, textFormat) * textScale;
+                Rect textBounds = item.TextBounds;
+                double weaponAdvance = item.WeaponAdvance;
+                double moneyTextWidth = item.MoneyTextWidth;
                 double moneyX = ResolveBattlefield2042MoneyFeedX(moneyTextWidth, 0);
                 double rightX = moneyX - Battlefield2042FeedMoneyGap + (42 * exitEase);
                 double centerY = Battlefield2042FeedBaseY
                     + visualRow * Battlefield2042FeedLineSpacing
                     + Battlefield2042FeedObjectHeight / 2.0
                     + (7 * exitEase);
-                double originX = rightX - ((textBounds.X + textBounds.Width) * textScale);
+                double originX = rightX - ((textBounds.X + textBounds.Width) * Battlefield2042FeedTextScale);
                 double originY = centerY
-                    - ((textBounds.Y + (textBounds.Height / 2.0)) * textScale);
-                double x = originX + (textBounds.X * textScale);
-                double totalWidth = textBounds.Width * textScale;
-                double weaponWidth = weaponAdvance * textScale;
+                    - ((textBounds.Y + (textBounds.Height / 2.0)) * Battlefield2042FeedTextScale);
+                double x = originX + (textBounds.X * Battlefield2042FeedTextScale);
+                double totalWidth = textBounds.Width * Battlefield2042FeedTextScale;
+                double weaponWidth = weaponAdvance * Battlefield2042FeedTextScale;
                 double targetWidth = Math.Max(0, totalWidth - weaponWidth);
                 double feedLeft = x - 3.5;
                 double rowTextRight = item.MoneyReward > 0
@@ -1141,7 +1310,7 @@ namespace KillConfirmGameBar.Controls
                             elapsed));
                         if (weaponWidth > 0.1)
                         {
-                            DrawBattlefield2042GlowingRectangle(
+                            DrawBattlefield2042CachedGlowingRectangle(
                                 drawingSession,
                                 new Rect(
                                     x - 3.5,
@@ -1150,12 +1319,13 @@ namespace KillConfirmGameBar.Controls
                                     12),
                                 Color.FromArgb(255, 245, 249, 249),
                                 backgroundAlpha,
-                                0.58);
+                                0.58,
+                                item.WeaponBackgroundGlow);
                         }
 
                         if (targetWidth > 0.1)
                         {
-                            DrawBattlefield2042GlowingRectangle(
+                            DrawBattlefield2042CachedGlowingRectangle(
                                 drawingSession,
                                 new Rect(
                                     x + weaponWidth - 0.5,
@@ -1164,35 +1334,38 @@ namespace KillConfirmGameBar.Controls
                                     12),
                                 Battlefield2042EnemyColor,
                                 backgroundAlpha,
-                                0.84);
+                                0.84,
+                                item.TargetBackgroundGlow);
                         }
 
                         double textAlpha = Clamp01(EvaluateBattlefield2042LegacyCurve(
                             Battlefield2042FeedTextAlphaCurve,
                             elapsed));
                         byte alpha = (byte)Math.Max(0, Math.Min(255, textAlpha * 255));
-                        DrawBattlefield2042GlowingTextAtLayoutOrigin(
+                        DrawBattlefield2042CachedGlowingTextAtLayoutOrigin(
                             drawingSession,
                             weaponText,
                             originX,
                             originY,
-                            textScale,
+                            Battlefield2042FeedTextScale,
                             Color.FromArgb(alpha, 245, 249, 249),
                             0.72,
-                            textFormat);
-                        DrawBattlefield2042GlowingTextAtLayoutOrigin(
+                            textFormat,
+                            item.WeaponTextGlow);
+                        DrawBattlefield2042CachedGlowingTextAtLayoutOrigin(
                             drawingSession,
                             targetText,
-                            originX + (weaponAdvance * textScale),
+                            originX + (weaponAdvance * Battlefield2042FeedTextScale),
                             originY,
-                            textScale,
+                            Battlefield2042FeedTextScale,
                             Color.FromArgb(
                                 alpha,
                                 Battlefield2042EnemyColor.R,
                                 Battlefield2042EnemyColor.G,
-                                Battlefield2042EnemyColor.B),
+                            Battlefield2042EnemyColor.B),
                             1.0,
-                            textFormat);
+                            textFormat,
+                            item.TargetTextGlow);
                         DrawBattlefield2042FeedGlitches(
                             drawingSession,
                             elapsed,
@@ -1288,18 +1461,22 @@ namespace KillConfirmGameBar.Controls
                 int visualRow = Math.Min(row, Battlefield2042MaxFeedLines - 1);
                 double exitProgress = ResolveBattlefield2042ExitProgress(item.ExitStartTimeMs, now);
                 double exitEase = EaseOutCubic(exitProgress);
-                const double textScale = 1.02;
-                string text = "+" + FormatBattlefieldMoney(item.MoneyReward);
-                Rect textBounds = MeasureBattlefieldTextBounds(text, textFormat);
-                double textWidth = textBounds.Width * textScale;
+                if (!item.IsCachePrepared)
+                {
+                    PrepareBattlefield2042MoneyItemCache(item);
+                }
+
+                string text = item.Text;
+                Rect textBounds = item.TextBounds;
+                double textWidth = item.TextWidth;
                 double x = ResolveBattlefield2042MoneyFeedX(textWidth, exitEase);
                 double centerY = Battlefield2042FeedBaseY
                     + visualRow * Battlefield2042FeedLineSpacing
                     + Battlefield2042FeedObjectHeight / 2.0
                     + (7 * exitEase);
-                double originX = x - (textBounds.X * textScale);
+                double originX = x - (textBounds.X * Battlefield2042FeedTextScale);
                 double originY = centerY
-                    - ((textBounds.Y + (textBounds.Height / 2.0)) * textScale);
+                    - ((textBounds.Y + (textBounds.Height / 2.0)) * Battlefield2042FeedTextScale);
                 double cursorStopX = x + textWidth + Battlefield2042MoneyCursorGap;
                 double rootAlpha = Clamp01(EvaluateBattlefield2042LegacyCurve(
                     Battlefield2042FeedRootAlphaCurve,
@@ -1316,26 +1493,28 @@ namespace KillConfirmGameBar.Controls
                         double backgroundAlpha = Clamp01(EvaluateBattlefield2042LegacyCurve(
                             Battlefield2042FeedBackgroundAlphaCurve,
                             elapsed));
-                        DrawBattlefield2042GlowingRectangle(
+                        DrawBattlefield2042CachedGlowingRectangle(
                             drawingSession,
                             new Rect(x - 4, centerY - 6, textWidth + 8, 12),
                             Colors.White,
                             backgroundAlpha,
-                            0.52);
+                            0.52,
+                            item.BackgroundGlow);
 
                         double textAlpha = Clamp01(EvaluateBattlefield2042LegacyCurve(
                             Battlefield2042FeedTextAlphaCurve,
                             elapsed));
                         byte alpha = (byte)Math.Max(0, Math.Min(255, textAlpha * 255));
-                        DrawBattlefield2042GlowingTextAtLayoutOrigin(
+                        DrawBattlefield2042CachedGlowingTextAtLayoutOrigin(
                             drawingSession,
                             text,
                             originX,
                             originY,
-                            textScale,
+                            Battlefield2042FeedTextScale,
                             Color.FromArgb(alpha, 245, 249, 249),
                             0.78,
-                            textFormat);
+                            textFormat,
+                            item.TextGlow);
                         if (elapsed <= Battlefield2042FeedEffectDurationMs)
                         {
                             double cursorAlpha = Clamp01(EvaluateBattlefield2042LegacyCurve(
@@ -1554,6 +1733,359 @@ namespace KillConfirmGameBar.Controls
             }
         }
 
+        private void PrepareBattlefield2042FeedItemCache(Battlefield2042FeedItem item)
+        {
+            if (item == null || item.IsCachePrepared)
+            {
+                return;
+            }
+
+            item.WeaponText = item.IsAssist || string.IsNullOrWhiteSpace(item.WeaponName)
+                ? string.Empty
+                : "[" + item.WeaponName + "] ";
+            item.FullText = item.WeaponText + item.TargetName;
+            item.MoneyText = item.MoneyReward > 0
+                ? "+" + FormatBattlefieldMoney(item.MoneyReward)
+                : string.Empty;
+            item.TextBounds = MeasureBattlefieldTextBounds(item.FullText, _battlefield2042TextFormat);
+            item.WeaponAdvance = MeasureBattlefieldTextAdvance(item.WeaponText, _battlefield2042TextFormat);
+            item.MoneyTextWidth = MeasureBattlefieldTextWidth(item.MoneyText, _battlefield2042TextFormat)
+                * Battlefield2042FeedTextScale;
+
+            double totalWidth = item.TextBounds.Width * Battlefield2042FeedTextScale;
+            double weaponWidth = item.WeaponAdvance * Battlefield2042FeedTextScale;
+            double targetWidth = Math.Max(0, totalWidth - weaponWidth);
+            try
+            {
+                item.WeaponTextGlow = CreateBattlefield2042TextGlowCache(
+                    item.WeaponText,
+                    Battlefield2042FeedTextScale,
+                    Color.FromArgb(255, 245, 249, 249),
+                    0.72,
+                    _battlefield2042TextFormat);
+                item.TargetTextGlow = CreateBattlefield2042TextGlowCache(
+                    item.TargetName,
+                    Battlefield2042FeedTextScale,
+                    Battlefield2042EnemyColor,
+                    1.0,
+                    _battlefield2042TextFormat);
+                if (weaponWidth > 0.1)
+                {
+                    item.WeaponBackgroundGlow = CreateBattlefield2042RectangleGlowCache(
+                        weaponWidth + 4.5,
+                        12,
+                        Color.FromArgb(255, 245, 249, 249),
+                        0.58);
+                }
+
+                if (targetWidth > 0.1)
+                {
+                    item.TargetBackgroundGlow = CreateBattlefield2042RectangleGlowCache(
+                        targetWidth + 5,
+                        12,
+                        Battlefield2042EnemyColor,
+                        0.84);
+                }
+            }
+            catch
+            {
+                item.DisposeCachedResources();
+            }
+            finally
+            {
+                item.IsCachePrepared = true;
+            }
+        }
+
+        private void PrepareBattlefield2042MoneyItemCache(Battlefield2042MoneyItem item)
+        {
+            if (item == null || item.IsCachePrepared)
+            {
+                return;
+            }
+
+            item.Text = "+" + FormatBattlefieldMoney(item.MoneyReward);
+            item.TextBounds = MeasureBattlefieldTextBounds(item.Text, _battlefield2042TextFormat);
+            item.TextWidth = item.TextBounds.Width * Battlefield2042FeedTextScale;
+            try
+            {
+                item.TextGlow = CreateBattlefield2042TextGlowCache(
+                    item.Text,
+                    Battlefield2042FeedTextScale,
+                    Color.FromArgb(255, 245, 249, 249),
+                    0.78,
+                    _battlefield2042TextFormat);
+                item.BackgroundGlow = CreateBattlefield2042RectangleGlowCache(
+                    item.TextWidth + 8,
+                    12,
+                    Colors.White,
+                    0.52);
+            }
+            catch
+            {
+                item.DisposeCachedResources();
+            }
+            finally
+            {
+                item.IsCachePrepared = true;
+            }
+        }
+
+        private Battlefield2042GlowCache CreateBattlefield2042TextGlowCache(
+            string text,
+            double scale,
+            Color color,
+            double glowStrength,
+            CanvasTextFormat format)
+        {
+            if (string.IsNullOrEmpty(text) || scale <= 0 || color.A == 0)
+            {
+                return null;
+            }
+
+            glowStrength = Clamp01(glowStrength);
+            Rect bounds = MeasureBattlefieldTextBounds(text, format);
+            double minX = Math.Min(0, bounds.X * scale) - Battlefield2042GlowCachePadding;
+            double minY = Math.Min(0, bounds.Y * scale) - Battlefield2042GlowCachePadding;
+            double maxX = Math.Max(1, (bounds.X + bounds.Width) * scale) + Battlefield2042GlowCachePadding;
+            double maxY = Math.Max(1, (bounds.Y + bounds.Height) * scale) + Battlefield2042GlowCachePadding;
+            float width = (float)Math.Ceiling(maxX - minX);
+            float height = (float)Math.Ceiling(maxY - minY);
+            float cacheDpi = GetBattlefield2042GlowCacheDpi();
+            CanvasRenderTarget surface = new CanvasRenderTarget(
+                CanvasDevice.GetSharedDevice(),
+                Math.Max(1, width),
+                Math.Max(1, height),
+                cacheDpi);
+
+            try
+            {
+                using (CanvasDrawingSession cacheSession = surface.CreateDrawingSession())
+                using (CanvasCommandList glowSource = new CanvasCommandList(surface))
+                {
+                    cacheSession.Clear(Colors.Transparent);
+                    using (CanvasDrawingSession glowSession = glowSource.CreateDrawingSession())
+                    {
+                        glowSession.Transform =
+                            Matrix3x2.CreateScale((float)scale)
+                            * Matrix3x2.CreateTranslation((float)-minX, (float)-minY);
+                        byte glowAlpha = (byte)Math.Max(
+                            0,
+                            Math.Min(255, Math.Round(255 * (0.34 + glowStrength * 0.34))));
+                        using (CanvasSolidColorBrush glowBrush = new CanvasSolidColorBrush(
+                            glowSession,
+                            Color.FromArgb(glowAlpha, color.R, color.G, color.B)))
+                        {
+                            glowSession.DrawText(text, 0, 0, glowBrush, format);
+                        }
+                    }
+
+                    DrawBattlefield2042BlurredSource(
+                        cacheSession,
+                        glowSource,
+                        (float)(3.2 + glowStrength * 1.4));
+                    DrawBattlefield2042BlurredSource(
+                        cacheSession,
+                        glowSource,
+                        (float)(0.9 + glowStrength * 0.75));
+                }
+
+                return new Battlefield2042GlowCache(surface, minX, minY);
+            }
+            catch
+            {
+                surface.Dispose();
+                throw;
+            }
+        }
+
+        private Battlefield2042GlowCache CreateBattlefield2042RectangleGlowCache(
+            double width,
+            double height,
+            Color color,
+            double bloomStrength)
+        {
+            if (width <= 0 || height <= 0)
+            {
+                return null;
+            }
+
+            bloomStrength = Clamp01(bloomStrength);
+            float surfaceWidth = (float)Math.Ceiling(width + Battlefield2042GlowCachePadding * 2);
+            float surfaceHeight = (float)Math.Ceiling(height + Battlefield2042GlowCachePadding * 2);
+            float cacheDpi = GetBattlefield2042GlowCacheDpi();
+            CanvasRenderTarget surface = new CanvasRenderTarget(
+                CanvasDevice.GetSharedDevice(),
+                Math.Max(1, surfaceWidth),
+                Math.Max(1, surfaceHeight),
+                cacheDpi);
+
+            try
+            {
+                using (CanvasDrawingSession cacheSession = surface.CreateDrawingSession())
+                using (CanvasCommandList glowSource = new CanvasCommandList(surface))
+                {
+                    cacheSession.Clear(Colors.Transparent);
+                    using (CanvasDrawingSession glowSession = glowSource.CreateDrawingSession())
+                    {
+                        byte glowAlpha = (byte)Math.Max(
+                            0,
+                            Math.Min(255, Math.Round((0.34 + bloomStrength * 0.26) * 255)));
+                        glowSession.FillRectangle(
+                            new Rect(
+                                Battlefield2042GlowCachePadding,
+                                Battlefield2042GlowCachePadding,
+                                width,
+                                height),
+                            Color.FromArgb(glowAlpha, color.R, color.G, color.B));
+                    }
+
+                    DrawBattlefield2042BlurredSource(
+                        cacheSession,
+                        glowSource,
+                        (float)(4.8 + bloomStrength * 2.4));
+                    DrawBattlefield2042BlurredSource(
+                        cacheSession,
+                        glowSource,
+                        (float)(1.25 + bloomStrength * 1.3));
+                }
+
+                return new Battlefield2042GlowCache(
+                    surface,
+                    -Battlefield2042GlowCachePadding,
+                    -Battlefield2042GlowCachePadding);
+            }
+            catch
+            {
+                surface.Dispose();
+                throw;
+            }
+        }
+
+        private float GetBattlefield2042GlowCacheDpi()
+        {
+            double physicalScale = Math.Max(
+                1.0,
+                GetRenderResolutionScale() * GetDisplayDpiScale());
+            return (float)Math.Min(384.0, 96.0 * physicalScale);
+        }
+
+        private static void DrawBattlefield2042CachedGlow(
+            CanvasDrawingSession drawingSession,
+            Battlefield2042GlowCache cache,
+            double x,
+            double y,
+            double opacity)
+        {
+            if (cache?.Surface == null || opacity <= 0)
+            {
+                return;
+            }
+
+            Rect source = new Rect(0, 0, cache.Surface.Size.Width, cache.Surface.Size.Height);
+            Rect target = new Rect(
+                x + cache.OffsetX,
+                y + cache.OffsetY,
+                source.Width,
+                source.Height);
+            CanvasBlend previousBlend = drawingSession.Blend;
+            try
+            {
+                drawingSession.Blend = CanvasBlend.Add;
+                drawingSession.DrawImage(
+                    cache.Surface,
+                    target,
+                    source,
+                    (float)Clamp01(opacity),
+                    CanvasImageInterpolation.Linear);
+            }
+            finally
+            {
+                drawingSession.Blend = previousBlend;
+            }
+        }
+
+        private static void DrawBattlefield2042CachedGlowingTextAtLayoutOrigin(
+            CanvasDrawingSession drawingSession,
+            string text,
+            double originX,
+            double originY,
+            double scale,
+            Color color,
+            double glowStrength,
+            CanvasTextFormat format,
+            Battlefield2042GlowCache cache)
+        {
+            if (string.IsNullOrEmpty(text) || scale <= 0 || color.A == 0)
+            {
+                return;
+            }
+
+            if (cache != null)
+            {
+                DrawBattlefield2042CachedGlow(
+                    drawingSession,
+                    cache,
+                    Math.Round(originX),
+                    Math.Round(originY),
+                    color.A / 255.0);
+                DrawBattlefieldTextAtLayoutOrigin(
+                    drawingSession,
+                    text,
+                    originX,
+                    originY,
+                    scale,
+                    color,
+                    format);
+                return;
+            }
+
+            DrawBattlefield2042GlowingTextAtLayoutOrigin(
+                drawingSession,
+                text,
+                originX,
+                originY,
+                scale,
+                color,
+                glowStrength,
+                format);
+        }
+
+        private static void DrawBattlefield2042CachedGlowingRectangle(
+            CanvasDrawingSession drawingSession,
+            Rect rect,
+            Color color,
+            double opacity,
+            double bloomStrength,
+            Battlefield2042GlowCache cache)
+        {
+            opacity = Clamp01(opacity);
+            bloomStrength = Clamp01(bloomStrength);
+            if (opacity <= 0 || rect.Width <= 0 || rect.Height <= 0)
+            {
+                return;
+            }
+
+            if (cache == null)
+            {
+                DrawBattlefield2042GlowingRectangle(
+                    drawingSession,
+                    rect,
+                    color,
+                    opacity,
+                    bloomStrength);
+                return;
+            }
+
+            DrawBattlefield2042CachedGlow(drawingSession, cache, rect.X, rect.Y, opacity);
+            byte coreAlpha = (byte)Math.Max(
+                0,
+                Math.Min(255, Math.Round(opacity * (0.12 + bloomStrength * 0.08) * 255)));
+            drawingSession.FillRectangle(
+                rect,
+                Color.FromArgb(coreAlpha, color.R, color.G, color.B));
+        }
+
         private static void DrawBattlefield2042GlowingTextAtLayoutOrigin(
             CanvasDrawingSession drawingSession,
             string text,
@@ -1752,6 +2284,12 @@ namespace KillConfirmGameBar.Controls
         {
             _isBattlefield2042HudActive = false;
             _battlefield2042HudState.Clear();
+            foreach (Battlefield2042KillIconRenderCache cache in _battlefield2042KillIconRenderCaches.Values)
+            {
+                cache?.Dispose();
+            }
+
+            _battlefield2042KillIconRenderCaches.Clear();
         }
 
         private sealed class Battlefield2042HudState
@@ -1788,6 +2326,16 @@ namespace KillConfirmGameBar.Controls
 
             public void ClearKillLog()
             {
+                for (int i = 0; i < FeedItems.Count; i++)
+                {
+                    FeedItems[i].DisposeCachedResources();
+                }
+
+                for (int i = 0; i < MoneyItems.Count; i++)
+                {
+                    MoneyItems[i].DisposeCachedResources();
+                }
+
                 FeedItems.Clear();
                 MoneyItems.Clear();
                 CompleteExitSequence();
@@ -1877,6 +2425,7 @@ namespace KillConfirmGameBar.Controls
             public bool IsAssist { get; }
             public double RevealTimeMs { get; }
             public CanvasBitmap Icon { get; set; }
+            public Battlefield2042KillIconRenderCache RenderCache { get; set; }
         }
 
         private sealed class Battlefield2042FeedItem
@@ -1902,6 +2451,17 @@ namespace KillConfirmGameBar.Controls
             public double RevealTimeMs { get; }
             public double ExitStartTimeMs { get; private set; } = -1;
             public bool IsExiting => ExitStartTimeMs >= 0;
+            public bool IsCachePrepared { get; set; }
+            public string WeaponText { get; set; }
+            public string FullText { get; set; }
+            public string MoneyText { get; set; }
+            public Rect TextBounds { get; set; }
+            public double WeaponAdvance { get; set; }
+            public double MoneyTextWidth { get; set; }
+            public Battlefield2042GlowCache WeaponTextGlow { get; set; }
+            public Battlefield2042GlowCache TargetTextGlow { get; set; }
+            public Battlefield2042GlowCache WeaponBackgroundGlow { get; set; }
+            public Battlefield2042GlowCache TargetBackgroundGlow { get; set; }
 
             public void StartExit(double startTimeMs)
             {
@@ -1909,6 +2469,18 @@ namespace KillConfirmGameBar.Controls
                 {
                     ExitStartTimeMs = startTimeMs;
                 }
+            }
+
+            public void DisposeCachedResources()
+            {
+                WeaponTextGlow?.Dispose();
+                WeaponTextGlow = null;
+                TargetTextGlow?.Dispose();
+                TargetTextGlow = null;
+                WeaponBackgroundGlow?.Dispose();
+                WeaponBackgroundGlow = null;
+                TargetBackgroundGlow?.Dispose();
+                TargetBackgroundGlow = null;
             }
         }
         private sealed class Battlefield2042MoneyItem
@@ -1923,6 +2495,12 @@ namespace KillConfirmGameBar.Controls
             public double RevealTimeMs { get; }
             public double ExitStartTimeMs { get; private set; } = -1;
             public bool IsExiting => ExitStartTimeMs >= 0;
+            public bool IsCachePrepared { get; set; }
+            public string Text { get; set; }
+            public Rect TextBounds { get; set; }
+            public double TextWidth { get; set; }
+            public Battlefield2042GlowCache TextGlow { get; set; }
+            public Battlefield2042GlowCache BackgroundGlow { get; set; }
 
             public void StartExit(double startTimeMs)
             {
@@ -1930,6 +2508,59 @@ namespace KillConfirmGameBar.Controls
                 {
                     ExitStartTimeMs = startTimeMs;
                 }
+            }
+
+            public void DisposeCachedResources()
+            {
+                TextGlow?.Dispose();
+                TextGlow = null;
+                BackgroundGlow?.Dispose();
+                BackgroundGlow = null;
+            }
+        }
+
+        private sealed class Battlefield2042GlowCache : IDisposable
+        {
+            public Battlefield2042GlowCache(CanvasRenderTarget surface, double offsetX, double offsetY)
+            {
+                Surface = surface;
+                OffsetX = offsetX;
+                OffsetY = offsetY;
+            }
+
+            public CanvasRenderTarget Surface { get; private set; }
+            public double OffsetX { get; }
+            public double OffsetY { get; }
+
+            public void Dispose()
+            {
+                Surface?.Dispose();
+                Surface = null;
+            }
+        }
+
+        private sealed class Battlefield2042KillIconRenderCache : IDisposable
+        {
+            public Battlefield2042KillIconRenderCache(
+                CanvasRenderTarget baseSurface,
+                CanvasRenderTarget bloomSurface,
+                double centerOffset)
+            {
+                BaseSurface = baseSurface;
+                BloomSurface = bloomSurface;
+                CenterOffset = centerOffset;
+            }
+
+            public CanvasRenderTarget BaseSurface { get; private set; }
+            public CanvasRenderTarget BloomSurface { get; private set; }
+            public double CenterOffset { get; }
+
+            public void Dispose()
+            {
+                BaseSurface?.Dispose();
+                BaseSurface = null;
+                BloomSurface?.Dispose();
+                BloomSurface = null;
             }
         }
     }

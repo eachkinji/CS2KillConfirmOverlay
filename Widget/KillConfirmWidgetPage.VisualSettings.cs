@@ -225,7 +225,16 @@ namespace KillConfirmGameBar
                 AnimationHorizontalOffsetSettingKey,
                 crossfire,
                 0);
-            _animationScale = Math.Max(0.35, Math.Min(3.0, ReadStyleDoubleSetting(localSettings, AnimationScaleSettingKey, crossfire, 1.0)));
+            double savedAnimationScale = ReadStyleDoubleSetting(
+                localSettings,
+                AnimationScaleSettingKey,
+                crossfire,
+                1.0);
+            _animationScale = double.IsNaN(savedAnimationScale)
+                || double.IsInfinity(savedAnimationScale)
+                || savedAnimationScale <= 0
+                    ? 1.0
+                    : savedAnimationScale;
             ApplyAnimationTransform();
         }
 

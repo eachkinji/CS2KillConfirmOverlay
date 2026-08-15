@@ -620,7 +620,7 @@ namespace KillConfirmGameBar
             Point current = e.GetCurrentPoint(Window.Current.Content).Position;
             double scale = Controls.KillConfirmAnimation.IsValorantPresentationConfigured
                 ? 1.0
-                : Math.Max(0.35, _animationScale);
+                : (_animationScale > 0 ? _animationScale : 1.0);
             _animationHorizontalOffset = Math.Max(-GetMaxAnimationHorizontalOffset(), Math.Min(
                 GetMaxAnimationHorizontalOffset(),
                 _animationDragStartX + ((current.X - _animationDragPointerStart.X) / scale)));

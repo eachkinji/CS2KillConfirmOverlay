@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using KillConfirmGameBar.Helpers;
 using Microsoft.Graphics.Canvas;
 using Windows.Foundation;
 using Windows.UI;
@@ -64,7 +63,6 @@ namespace KillConfirmGameBar.Controls
                 {
                     ResetDoubaoState();
                     Visibility = Visibility.Collapsed;
-                    ProcessPriorityBoost.ExitAnimation();
                 }
             }
         }
@@ -151,8 +149,6 @@ namespace KillConfirmGameBar.Controls
             Visibility = Visibility.Visible;
             _timer.Interval = TimeSpan.FromMilliseconds(1000.0 / FrameSequenceFps);
             _playbackClock.Restart();
-            ProcessPriorityBoost.ExitAnimation();
-            ProcessPriorityBoost.EnterAnimation();
             SpriteCanvas.Invalidate();
             _timer.Start();
         }
@@ -171,7 +167,6 @@ namespace KillConfirmGameBar.Controls
                 _playbackClock.Stop();
                 ResetDoubaoState();
                 Visibility = Visibility.Collapsed;
-                ProcessPriorityBoost.ExitAnimation();
                 return;
             }
 

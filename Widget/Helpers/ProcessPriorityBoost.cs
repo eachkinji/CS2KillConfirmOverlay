@@ -6,17 +6,12 @@ namespace KillConfirmGameBar.Helpers
     internal static class ProcessPriorityBoost
     {
         private const uint HighPriorityClass = 0x00000080;
-        private const int ThreadPriorityTimeCritical = 15;
-        private const int ThreadPriorityNormal = 0;
-        private const int ThreadPriorityAboveNormal = 1;
 
         private const int ProcessPowerThrottling = 11;
         private const uint ProcessPowerThrottlingExecutionSpeed = 0x00000001;
 
         private static readonly object Sync = new object();
         private static bool _processBoosted;
-        private static int _animationThreadBoosts;
-        private static bool _threadBoostLogged;
 
         [DllImport("kernel32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
@@ -24,13 +19,6 @@ namespace KillConfirmGameBar.Helpers
 
         [DllImport("kernel32.dll")]
         private static extern IntPtr GetCurrentProcess();
-
-        [DllImport("kernel32.dll", SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool SetThreadPriority(IntPtr thread, int priority);
-
-        [DllImport("kernel32.dll")]
-        private static extern IntPtr GetCurrentThread();
 
         [StructLayout(LayoutKind.Sequential)]
         private struct ProcessPowerThrottlingState
@@ -60,38 +48,6 @@ namespace KillConfirmGameBar.Helpers
                 _processBoosted = true;
                 TrySetProcessPriority(HighPriorityClass);
                 DisablePowerThrottling();
-            }
-        }
-
-        public static void EnterAnimation()
-        {
-            lock (Sync)
-            {
-                _animationThreadBoosts++;
-                if (_animationThreadBoosts > 1)
-                {
-                    return;
-                }
-
-                TrySetThreadPriority(ThreadPriorityAboveNormal);
-            }
-        }
-
-        public static void ExitAnimation()
-        {
-            lock (Sync)
-            {
-                if (_animationThreadBoosts > 0)
-                {
-                    _animationThreadBoosts--;
-                }
-
-                if (_animationThreadBoosts != 0)
-                {
-                    return;
-                }
-
-                TrySetThreadPriority(ThreadPriorityNormal);
             }
         }
 
@@ -144,29 +100,5 @@ namespace KillConfirmGameBar.Helpers
             }
         }
 
-        private static void TrySetThreadPriority(int priority)
-        {
-            try
-            {
-                if (SetThreadPriority(GetCurrentThread(), priority))
-                {
-                    return;
-                }
-
-                if (!_threadBoostLogged)
-                {
-                    _threadBoostLogged = true;
-                    App.Log("SetThreadPriority failed: " + Marshal.GetLastWin32Error());
-                }
-            }
-            catch (Exception ex)
-            {
-                if (!_threadBoostLogged)
-                {
-                    _threadBoostLogged = true;
-                    App.Log("SetThreadPriority unavailable: " + ex.Message);
-                }
-            }
-        }
     }
 }

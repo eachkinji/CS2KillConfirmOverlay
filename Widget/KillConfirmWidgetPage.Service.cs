@@ -176,6 +176,19 @@ namespace KillConfirmGameBar
             await SyncCombatEventSoundSettingsAsync();
             await SyncSpectatedKillEffectsAsync();
             await SyncGsiGameVersionAsync();
+            await SyncProcessPrioritySettingsAsync();
+        }
+
+        private static async Task SyncProcessPrioritySettingsAsync()
+        {
+            try
+            {
+                await ProcessPrioritySettingsStore.ApplyPersistedAsync();
+            }
+            catch (Exception ex)
+            {
+                App.Log("Apply persisted process priorities failed: " + ex);
+            }
         }
 
         private static async Task SyncBombAudioSettingsAsync()

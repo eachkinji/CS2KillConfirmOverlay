@@ -12,6 +12,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
@@ -235,6 +236,121 @@
                         </Grid>
                     </StackPanel>
                 </Grid>
+            </Border>
+
+            <Border Grid.Row="3" Grid.ColumnSpan="2" Style="{StaticResource CompactChoiceCardStyle}">
+                <StackPanel Spacing="7">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Border Style="{StaticResource CompactCircleIconStyle}">
+                            <FontIcon
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                FontFamily="Segoe MDL2 Assets"
+                                FontSize="12"
+                                Foreground="White"
+                                Glyph="&#xE945;" />
+                        </Border>
+                        <TextBlock
+                            x:Name="ProcessPriorityTitleText"
+                            Grid.Column="1"
+                            VerticalAlignment="Center"
+                            Style="{StaticResource CompactChoiceLabelStyle}"
+                            Text="Xbox Game Bar process priority" />
+                        <Button
+                            x:Name="ProcessPriorityRefreshButton"
+                            Grid.Column="2"
+                            MinWidth="60"
+                            Padding="10,3"
+                            Click="OnProcessPriorityRefreshClick"
+                            Content="Refresh" />
+                    </Grid>
+
+                    <TextBlock
+                        x:Name="ProcessPriorityHintText"
+                        FontSize="10"
+                        Text="Read and change the actual Windows priority of the three overlay processes."
+                        TextWrapping="WrapWholeWords" />
+
+                    <Grid ColumnSpacing="8" RowSpacing="5">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="138" />
+                            <ColumnDefinition Width="145" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock VerticalAlignment="Center" FontSize="11" Text="GameBar.exe" />
+                        <ComboBox
+                            x:Name="GameBarPrioritySelector"
+                            Grid.Column="1"
+                            MinWidth="140"
+                            Style="{StaticResource CompactSettingsComboBoxStyle}"
+                            SelectionChanged="OnProcessPrioritySelectionChanged" />
+                        <TextBlock
+                            x:Name="GameBarPriorityStatusText"
+                            Grid.Column="2"
+                            VerticalAlignment="Center"
+                            FontSize="10"
+                            Text="Reading..."
+                            TextWrapping="WrapWholeWords" />
+
+                        <TextBlock Grid.Row="1" VerticalAlignment="Center" FontSize="11" Text="GameBarFTServer.exe" />
+                        <ComboBox
+                            x:Name="GameBarFtServerPrioritySelector"
+                            Grid.Row="1"
+                            Grid.Column="1"
+                            MinWidth="140"
+                            Style="{StaticResource CompactSettingsComboBoxStyle}"
+                            SelectionChanged="OnProcessPrioritySelectionChanged" />
+                        <TextBlock
+                            x:Name="GameBarFtServerPriorityStatusText"
+                            Grid.Row="1"
+                            Grid.Column="2"
+                            VerticalAlignment="Center"
+                            FontSize="10"
+                            Text="Reading..."
+                            TextWrapping="WrapWholeWords" />
+
+                        <TextBlock Grid.Row="2" VerticalAlignment="Center" FontSize="11" Text="KillConfirmGameBar.exe" />
+                        <ComboBox
+                            x:Name="KillConfirmWidgetPrioritySelector"
+                            Grid.Row="2"
+                            Grid.Column="1"
+                            MinWidth="140"
+                            Style="{StaticResource CompactSettingsComboBoxStyle}"
+                            SelectionChanged="OnProcessPrioritySelectionChanged" />
+                        <TextBlock
+                            x:Name="KillConfirmWidgetPriorityStatusText"
+                            Grid.Row="2"
+                            Grid.Column="2"
+                            VerticalAlignment="Center"
+                            FontSize="10"
+                            Text="Reading..."
+                            TextWrapping="WrapWholeWords" />
+                    </Grid>
+
+                    <ToggleSwitch
+                        x:Name="ProcessPriorityPersistenceToggle"
+                        HorizontalAlignment="Left"
+                        MinWidth="0"
+                        OffContent="Off"
+                        OnContent="On"
+                        Toggled="OnProcessPriorityPersistenceToggled" />
+                    <TextBlock
+                        x:Name="ProcessPriorityPersistenceHintText"
+                        FontSize="10"
+                        Text="When enabled, the saved priorities are checked and reapplied every time the software starts."
+                        TextWrapping="WrapWholeWords" />
+                </StackPanel>
             </Border>
         </Grid>
     </StackPanel>

@@ -20,6 +20,7 @@ namespace KillConfirmGameBar.Controls.Settings
         public GeneralSettingsOptionsPanel()
         {
             InitializeComponent();
+            InitializeProcessPrioritySettings();
             _bombAudioSyncTimer.Interval = TimeSpan.FromMilliseconds(250);
             _bombAudioSyncTimer.Tick += OnBombAudioSyncTimerTick;
             ApplyLanguage();
@@ -27,10 +28,11 @@ namespace KillConfirmGameBar.Controls.Settings
             Loaded += OnLoaded;
         }
 
-        private void OnLoaded(object sender, RoutedEventArgs e)
+        private async void OnLoaded(object sender, RoutedEventArgs e)
         {
             RefreshSettings();
             ApplyTheme(GameThemePalette.Current);
+            await RefreshProcessPriorityStateAsync();
         }
 
         internal void ApplyLanguage()
@@ -60,6 +62,7 @@ namespace KillConfirmGameBar.Controls.Settings
                 LocalizationManager.Text("BombAudioFinalSpeedLabel");
             BombAudioToggle.OffContent = LocalizationManager.Text("Off");
             BombAudioToggle.OnContent = LocalizationManager.Text("On");
+            ApplyProcessPriorityLanguage();
         }
 
         internal void ApplyTheme(GameThemePalette theme)
@@ -73,6 +76,11 @@ namespace KillConfirmGameBar.Controls.Settings
             GsiGameVersionHintText.Foreground = new SolidColorBrush(theme.MutedText);
             SpectatedKillEffectsHintText.Foreground = new SolidColorBrush(theme.MutedText);
             BombAudioHintText.Foreground = new SolidColorBrush(theme.MutedText);
+            ProcessPriorityHintText.Foreground = new SolidColorBrush(theme.MutedText);
+            ProcessPriorityPersistenceHintText.Foreground = new SolidColorBrush(theme.MutedText);
+            GameBarPriorityStatusText.Foreground = new SolidColorBrush(theme.MutedText);
+            GameBarFtServerPriorityStatusText.Foreground = new SolidColorBrush(theme.MutedText);
+            KillConfirmWidgetPriorityStatusText.Foreground = new SolidColorBrush(theme.MutedText);
             AdvancedEffectsPanelSupport.ApplySoftenedTree(this, theme);
         }
 
@@ -82,6 +90,7 @@ namespace KillConfirmGameBar.Controls.Settings
             SelectGsiGameVersion();
             SelectSpectatedKillEffects();
             SelectBombAudioSettings();
+            SelectProcessPrioritySettings();
         }
 
         private void SelectGsiGameVersion()
@@ -226,13 +235,18 @@ namespace KillConfirmGameBar.Controls.Settings
 
         private void OnBombAudioSpeedChanged(object sender, Windows.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
         {
+            // Setting Slider.Minimum during XAML construction can raise ValueChanged
+            // before the sibling speed slider has been created.
+            if (_suppressBombAudioEvents
+                || BombAudioInitialSpeedSlider == null
+                || BombAudioFinalSpeedSlider == null)
+            {
+                return;
+            }
+
             if (BombAudioFinalSpeedSlider.Value < BombAudioInitialSpeedSlider.Value)
             {
                 BombAudioFinalSpeedSlider.Value = BombAudioInitialSpeedSlider.Value;
-            }
-            if (_suppressBombAudioEvents)
-            {
-                return;
             }
 
             UpdateBombAudioSpeedTexts();

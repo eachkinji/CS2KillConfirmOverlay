@@ -48,10 +48,11 @@ use util::event_stream::{
     audio_devices, audio_reload, audio_volume, bomb_audio_settings, counter_strike_root,
     crossfire_settings, cs2_root, csol_settings, dagoujiao_settings, developer_settings,
     event_sound_settings, events_poll, gsi_game_settings, gsi_status, health,
-    install_counter_strike_cfg, money_mode, set_audio_device, set_bomb_audio_settings,
-    set_crossfire_settings, set_csol_settings, set_dagoujiao_settings, set_developer_settings,
-    set_event_sound_settings, set_gsi_game_settings, set_money_mode, set_spectator_settings,
-    set_streak_settings, shutdown, spectator_settings, streak_settings, test_event,
+    install_counter_strike_cfg, money_mode, process_priorities, set_audio_device,
+    set_bomb_audio_settings, set_crossfire_settings, set_csol_settings, set_dagoujiao_settings,
+    set_developer_settings, set_event_sound_settings, set_gsi_game_settings, set_money_mode,
+    set_process_priority, set_spectator_settings, set_streak_settings, shutdown,
+    spectator_settings, streak_settings, test_event,
 };
 use util::handler::update;
 use util::logging::{developer_logging_enabled, set_developer_logging_enabled};
@@ -386,6 +387,10 @@ async fn run() -> Result<()> {
         .route(
             "/developer/settings",
             get(developer_settings).post(set_developer_settings),
+        )
+        .route(
+            "/process-priority",
+            get(process_priorities).post(set_process_priority),
         )
         .route("/shutdown", post(shutdown))
         .route(

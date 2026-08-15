@@ -227,6 +227,8 @@ function Show-InstallSummary {
     }
 
     $summaryLines = @(
+        $title,
+        "",
         "安装流程已经执行完毕，不会因为单项失败而跳过后续安装。",
         "成功 $successCount 项，提示 $warningCount 项，失败 $errorCount 项。",
         ""
@@ -255,63 +257,25 @@ function Show-InstallSummary {
         $logText = "日志读取失败：$($_.Exception.Message)"
     }
 
+    $reportPath = Join-Path $env:TEMP "KillConfirmGameBar_Install_Result.txt"
+    $reportText = (($summaryLines -join [Environment]::NewLine) +
+        [Environment]::NewLine + [Environment]::NewLine +
+        "================ 详细日志 ================" +
+        [Environment]::NewLine + $logText)
+
     try {
-        Add-Type -AssemblyName System.Windows.Forms -ErrorAction Stop
-        Add-Type -AssemblyName System.Drawing -ErrorAction Stop
-        $form = New-Object System.Windows.Forms.Form
-        $form.Text = $title
-        $form.StartPosition = "CenterScreen"
-        $form.Size = New-Object System.Drawing.Size(820, 680)
-        $form.MinimumSize = New-Object System.Drawing.Size(680, 520)
-        $form.TopMost = $true
-
-        $textBox = New-Object System.Windows.Forms.TextBox
-        $textBox.Multiline = $true
-        $textBox.ReadOnly = $true
-        $textBox.ScrollBars = "Both"
-        $textBox.WordWrap = $false
-        $textBox.Dock = "Fill"
-        $textBox.Font = New-Object System.Drawing.Font("Segoe UI", 10)
-        $textBox.Text = (($summaryLines -join [Environment]::NewLine) +
-            [Environment]::NewLine + [Environment]::NewLine +
-            "================ 详细日志 ================" +
-            [Environment]::NewLine + $logText)
-
-        $buttonPanel = New-Object System.Windows.Forms.FlowLayoutPanel
-        $buttonPanel.Dock = "Bottom"
-        $buttonPanel.Height = 48
-        $buttonPanel.FlowDirection = "RightToLeft"
-        $buttonPanel.Padding = New-Object System.Windows.Forms.Padding(8)
-
-        $closeButton = New-Object System.Windows.Forms.Button
-        $closeButton.Text = "关闭"
-        $closeButton.Width = 100
-        $closeButton.Add_Click({ $form.Close() })
-
-        $copyButton = New-Object System.Windows.Forms.Button
-        $copyButton.Text = "复制诊断信息"
-        $copyButton.Width = 130
-        $copyButton.Add_Click({
-            try { [System.Windows.Forms.Clipboard]::SetText($textBox.Text) } catch {}
-        })
-
-        $openLogButton = New-Object System.Windows.Forms.Button
-        $openLogButton.Text = "打开日志文件"
-        $openLogButton.Width = 130
-        $openLogButton.Add_Click({
-            try { Start-Process notepad.exe -ArgumentList ('"{0}"' -f $LogPath) | Out-Null } catch {}
-        })
-
-        $buttonPanel.Controls.Add($closeButton)
-        $buttonPanel.Controls.Add($copyButton)
-        $buttonPanel.Controls.Add($openLogButton)
-        $form.Controls.Add($textBox)
-        $form.Controls.Add($buttonPanel)
-        $form.AcceptButton = $closeButton
-        [void]$form.ShowDialog()
+        # A modal WinForms dialog launched from a hidden PowerShell process can
+        # become an invisible task-switcher window and keep Inno Setup waiting.
+        # Write the same user-friendly report to a normal text window instead.
+        # Notepad is launched asynchronously, so setup can finish immediately.
+        $utf8Bom = New-Object System.Text.UTF8Encoding($true)
+        [System.IO.File]::WriteAllText($reportPath, $reportText, $utf8Bom)
+        Write-InstallLog "Installation result report: $reportPath"
+        Start-Process notepad.exe -ArgumentList ('"{0}"' -f $reportPath) -WindowStyle Normal | Out-Null
     }
     catch {
-        Write-Host ($summaryLines -join [Environment]::NewLine)
+        Write-InstallLog "Failed to open the installation result report: $($_.Exception.Message)"
+        Write-Host $reportText
     }
 }
 

@@ -1286,11 +1286,23 @@ catch {
     Add-InstallResult -Status Error -Item "安装器未预期错误" -Detail (Get-ErrorReason $_)
 }
 finally {
-    if ($InstallResults.Count -eq 0) {
-        Add-InstallResult -Status Error -Item "安装器" -Detail "没有生成任何安装结果，请查看详细日志"
+    try {
+        if ($InstallResults.Count -eq 0) {
+            Add-InstallResult -Status Error -Item "安装器" -Detail "没有生成任何安装结果，请查看详细日志"
+        }
+        Show-InstallSummary
     }
-    Show-InstallSummary
+    catch {
+        Write-InstallLog "Failed to show the installation summary: $($_.Exception.Message)"
+        Write-Host "安装流程已经执行完毕，但诊断窗口显示失败。完整日志：$LogPath"
+    }
 }
+
+# Every installation stage reports its own Success/Warning/Error result and is
+# intentionally non-blocking. Do not leak a stale native-command exit code
+# (reg.exe, gpresult.exe, CheckNetIsolation.exe) back to the Inno Setup host.
+$global:LASTEXITCODE = 0
+exit 0
 '@
 
 $Readme = @'

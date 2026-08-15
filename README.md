@@ -172,8 +172,12 @@ This project is not affiliated with Valve, Microsoft, Xbox, CrossFire, Riot Game
 
 ## Star history
 
-<div align="center">
-  <a href="https://star-history.com/#eachkinji/CS2KillConfirmOverlay&Date">
-    <img src="https://api.star-history.com/svg?repos=eachkinji/CS2KillConfirmOverlay&type=Date" alt="Star History Chart" />
-  </a>
-</div>
+## Star History
+
+<a href="https://www.star-history.com/?repos=eachkinji%2FCS2KillConfirmOverlay&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=eachkinji/CS2KillConfirmOverlay&type=date&theme=dark&legend=top-left&sealed_token=h14p8Daxv7z793bAlZPP_xcy-2SfQzit57_QKp1CIDyUiRpKdDYeatoUoGr3P65j-0F_24GIvkRDmXv79WOffQwuxurzGiDaGYxA6ZDI8l1fwrvi2PKpv5L8C5ujaoZ47FA" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=eachkinji/CS2KillConfirmOverlay&type=date&legend=top-left&sealed_token=h14p8Daxv7z793bAlZPP_xcy-2SfQzit57_QKp1CIDyUiRpKdDYeatoUoGr3P65j-0F_24GIvkRDmXv79WOffQwuxurzGiDaGYxA6ZDI8l1fwrvi2PKpv5L8C5ujaoZ47FA" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=eachkinji/CS2KillConfirmOverlay&type=date&legend=top-left&sealed_token=h14p8Daxv7z793bAlZPP_xcy-2SfQzit57_QKp1CIDyUiRpKdDYeatoUoGr3P65j-0F_24GIvkRDmXv79WOffQwuxurzGiDaGYxA6ZDI8l1fwrvi2PKpv5L8C5ujaoZ47FA" />
+ </picture>
+</a>

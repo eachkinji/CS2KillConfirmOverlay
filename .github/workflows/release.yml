@@ -4,8 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       releaseTag:
-        description: Existing draft release tag to receive the two installer EXE files
-        required: true
+        description: Optional release tag; blank uses the package version (for example v3.3.1.0)
+        required: false
+        default: ''
         type: string
 
 permissions:
@@ -15,6 +16,6 @@ jobs:
   build:
     uses: ./.github/workflows/build.yml
     with:
-      uploadToRelease: true
+      createDraftRelease: true
       releaseTag: ${{ inputs.releaseTag }}
     secrets: inherit

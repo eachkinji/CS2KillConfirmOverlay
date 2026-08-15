@@ -7,6 +7,10 @@ on:
         type: boolean
         required: false
         default: false
+      createDraftRelease:
+        type: boolean
+        required: false
+        default: false
       releaseTag:
         type: string
         required: false
@@ -176,14 +180,23 @@ jobs:
           }
           .\Build-Installer.ps1 @buildArgs
 
-      - name: Upload assets to release
-        if: inputs.uploadToRelease
+      - name: Create or update draft release
+        if: inputs.createDraftRelease || inputs.uploadToRelease
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = "Stop"
           $ver = ([xml](Get-Content Package/Package.appxmanifest)).Package.Identity.Version
+          $requestedTag = "${{ inputs.releaseTag }}".Trim()
+          $tag = $requestedTag
+          if (-not $tag) {
+              $tag = "v$ver"
+          }
+          if ($requestedTag -and $tag.TrimStart('v') -ne $ver) {
+              throw "Requested release tag $tag does not match the built package version $ver"
+          }
+
           $noDependencies = Join-Path $env:GITHUB_WORKSPACE ("Output\KillConfirmGameBar_Setup_{0}_无依赖-更新用.exe" -f $ver)
           if (-not (Test-Path $noDependencies)) { throw "Missing $noDependencies" }
           $assets = @($noDependencies)
@@ -192,9 +205,47 @@ jobs:
               if (-not (Test-Path $withDependencies)) { throw "Missing $withDependencies" }
               $assets += $withDependencies
           }
-          gh release upload "${{ inputs.releaseTag }}" @assets --clobber
+
+          $releaseJson = gh release view $tag --json isDraft,url 2>$null
+          if ($LASTEXITCODE -eq 0) {
+              $release = $releaseJson | ConvertFrom-Json
+              if (-not $release.isDraft) {
+                  if ($requestedTag) {
+                      throw "Requested release $tag is already published. Increase the package version or choose a new tag."
+                  }
+                  $tag = "v$ver-build"
+                  Write-Host "Version v$ver is already published; using rolling CI draft tag $tag."
+                  $releaseJson = gh release view $tag --json isDraft,url 2>$null
+              }
+          }
+
+          if ($LASTEXITCODE -ne 0) {
+              Write-Host "Creating draft release $tag after a successful build."
+              gh release create $tag `
+                  --draft `
+                  --title "Kill Confirm Overlay $tag" `
+                  --generate-notes `
+                  --target "${{ github.sha }}"
+              if ($LASTEXITCODE -ne 0) {
+                  throw "Failed to create draft release $tag"
+              }
+          }
+          else {
+              $release = $releaseJson | ConvertFrom-Json
+              if (-not $release.isDraft) {
+                  throw "Release $tag is already published. Increase the package version before publishing another build."
+              }
+              Write-Host "Updating existing draft release: $($release.url)"
+          }
+
+          gh release upload $tag @assets --clobber
+          if ($LASTEXITCODE -ne 0) {
+              throw "Failed to upload installer EXE files to draft release $tag"
+          }
+          Write-Host "Draft release $tag now contains $($assets.Count) installer EXE file(s)."
 
       - name: Upload build artifacts
+        if: ${{ !inputs.createDraftRelease && !inputs.uploadToRelease }}
         uses: actions/upload-artifact@v4
         with:
           name: kill-confirm-build

@@ -177,6 +177,19 @@ namespace KillConfirmGameBar
             await SyncSpectatedKillEffectsAsync();
             await SyncGsiGameVersionAsync();
             await SyncProcessPrioritySettingsAsync();
+            await SyncInterruptPreviousKillAudioAsync();
+        }
+
+        private static async Task SyncInterruptPreviousKillAudioAsync()
+        {
+            try
+            {
+                await InterruptPreviousKillAudioSettingsStore.SyncAsync();
+            }
+            catch (Exception ex)
+            {
+                App.Log("Sync interrupt previous kill audio failed: " + ex);
+            }
         }
 
         private static async Task SyncProcessPrioritySettingsAsync()

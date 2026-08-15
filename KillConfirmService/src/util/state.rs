@@ -3,7 +3,7 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicU8, AtomicU32, AtomicU64, Ordering};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
-use rodio::OutputStream;
+use rodio::{OutputStream, Sink};
 use serde::{Deserialize, Serialize};
 use tokio::sync::{Mutex, Notify, RwLock, broadcast};
 
@@ -562,6 +562,8 @@ pub struct AppState {
     pub bomb_audio_final_speed_percent: AtomicU32,
     pub bomb_audio_generation: AtomicU64,
     pub bomb_audio_sink: std::sync::Mutex<Option<Arc<rodio::Sink>>>,
+    pub stop_previous_kill_audio: AtomicBool,
+    pub kill_audio_sink: std::sync::Mutex<Option<Arc<Sink>>>,
     pub spectated_kill_effects_enabled: AtomicBool,
     pub gsi_game_version: AtomicU8,
     pub events: EventJournal,

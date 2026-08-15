@@ -332,6 +332,47 @@ async fn add_file_to_mixer(
     Ok(())
 }
 
+async fn add_file_to_sink(
+    file_name: &str,
+    sink: &Arc<Sink>,
+    event_gain: f32,
+    master_volume: f32,
+    playback_speed: f32,
+) -> Result<()> {
+    let bytes = read_audio_bytes(file_name).await?;
+    let source = rodio::Decoder::new(BufReader::new(Cursor::new(bytes)))
+        .with_context(|| format!("failed to decode file: {file_name:?}"))?;
+    sink.append(
+        source
+            .speed(playback_speed.clamp(0.25, 4.0))
+            .amplify(resolve_sound_gain(file_name, event_gain) * GLOBAL_SOUND_GAIN * master_volume),
+    );
+    Ok(())
+}
+
+// Creates a fresh kill sink, stops and replaces any previously tracked one,
+// and remembers the new sink in app_state so a future kill can interrupt it.
+// All sound files for this kill are appended to the same sink so they are
+// stopped together as a single voice "unit".
+fn install_kill_sink(
+    app_state: &AppState,
+    mixer: &mixer::Mixer,
+) -> Result<Arc<Sink>> {
+    let sink = Arc::new(Sink::connect_new(mixer));
+    if let Ok(mut active) = app_state.kill_audio_sink.lock() {
+        if let Some(previous) = active.replace(sink.clone()) {
+            previous.stop();
+        }
+    } else {
+        // If the mutex is poisoned (shouldn't happen) we still play, we just
+        // can't interrupt a prior voice. Drop the sink so the next install
+        // attempt isn't blocked.
+        sink.stop();
+        anyhow::bail!("kill_audio_sink mutex poisoned");
+    }
+    Ok(sink)
+}
+
 pub async fn play_audio(
     app_state_clone: Arc<AppState>,
     kill_count: u16,
@@ -546,10 +587,32 @@ pub async fn play_audio(
 
     let event_gain = resolve_event_gain(audio_kill_count, audio_play_main);
 
+    let interrupt_previous = app_state_clone
+        .stop_previous_kill_audio
+        .load(Ordering::Relaxed);
+
+    // When the "interrupt previous kill audio" toggle is on, route this kill's
+    // files through a single per-kill Sink so a new kill can stop the prior
+    // voice as a unit. Otherwise keep the legacy mixer.add path so kill
+    // voices can overlap (e.g. headshot + multi-kill playing together).
+    let kill_sink = if interrupt_previous {
+        match install_kill_sink(&app_state_clone, &mixer) {
+            Ok(sink) => Some(sink),
+            Err(error) => {
+                error!("Failed to install kill sink, falling back to mixer: {error}");
+                service_log(&format!("kill sink install failed, falling back to mixer: {error}"));
+                None
+            }
+        }
+    } else {
+        None
+    };
+
     let mut tasks = JoinSet::new();
 
     for file_path in sound_files {
         let mixer_clone = mixer.clone();
+        let kill_sink_clone = kill_sink.clone();
         let uses_battlefield2042_rules = uses_battlefield2042_audio_rules(&file_path);
         let file_event_gain = if uses_battlefield2042_rules {
             1.0
@@ -560,14 +623,25 @@ pub async fn play_audio(
             if uses_battlefield2042_rules {
                 sleep(Duration::from_millis(BATTLEFIELD_2042_KILL_AUDIO_DELAY_MS)).await;
             }
-            add_file_to_mixer(
-                &file_path,
-                &mixer_clone,
-                file_event_gain,
-                volume,
-                dagoujiao_playback_speed,
-            )
-            .await
+            if let Some(sink) = kill_sink_clone {
+                add_file_to_sink(
+                    &file_path,
+                    &sink,
+                    file_event_gain,
+                    volume,
+                    dagoujiao_playback_speed,
+                )
+                .await
+            } else {
+                add_file_to_mixer(
+                    &file_path,
+                    &mixer_clone,
+                    file_event_gain,
+                    volume,
+                    dagoujiao_playback_speed,
+                )
+                .await
+            }
         });
     }
 

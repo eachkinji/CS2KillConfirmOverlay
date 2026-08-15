@@ -13,6 +13,8 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
@@ -349,6 +351,82 @@
                         x:Name="ProcessPriorityPersistenceHintText"
                         FontSize="10"
                         Text="When enabled, the saved priorities are checked and reapplied every time the software starts."
+                        TextWrapping="WrapWholeWords" />
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Row="4" Grid.ColumnSpan="2" Style="{StaticResource CompactChoiceCardStyle}">
+                <StackPanel Spacing="6">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Border Style="{StaticResource CompactCircleIconStyle}">
+                            <FontIcon
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                FontFamily="Segoe MDL2 Assets"
+                                FontSize="12"
+                                Foreground="White"
+                                Glyph="&#xE73E;" />
+                        </Border>
+                        <TextBlock
+                            x:Name="AutoCloseOnGameExitLabelText"
+                            Grid.Column="1"
+                            VerticalAlignment="Center"
+                            Style="{StaticResource CompactChoiceLabelStyle}"
+                            Text="Auto-close after the game exits"
+                            TextWrapping="WrapWholeWords" />
+                    </Grid>
+                    <ToggleSwitch
+                        x:Name="AutoCloseOnGameExitToggle"
+                        HorizontalAlignment="Left"
+                        MinWidth="0"
+                        OffContent="Off"
+                        OnContent="On"
+                        Toggled="OnAutoCloseOnGameExitToggled" />
+                    <TextBlock
+                        x:Name="AutoCloseOnGameExitHintText"
+                        FontSize="10"
+                        TextWrapping="WrapWholeWords" />
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Row="5" Grid.ColumnSpan="2" Style="{StaticResource CompactChoiceCardStyle}">
+                <StackPanel Spacing="6">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Border Style="{StaticResource CompactCircleIconStyle}">
+                            <FontIcon
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                FontFamily="Segoe MDL2 Assets"
+                                FontSize="12"
+                                Foreground="White"
+                                Glyph="&#xE74D;" />
+                        </Border>
+                        <TextBlock
+                            x:Name="InterruptPreviousKillAudioLabelText"
+                            Grid.Column="1"
+                            VerticalAlignment="Center"
+                            Style="{StaticResource CompactChoiceLabelStyle}"
+                            Text="Interrupt previous kill voice"
+                            TextWrapping="WrapWholeWords" />
+                    </Grid>
+                    <ToggleSwitch
+                        x:Name="InterruptPreviousKillAudioToggle"
+                        HorizontalAlignment="Left"
+                        MinWidth="0"
+                        OffContent="Off"
+                        OnContent="On"
+                        Toggled="OnInterruptPreviousKillAudioToggled" />
+                    <TextBlock
+                        x:Name="InterruptPreviousKillAudioHintText"
+                        FontSize="10"
                         TextWrapping="WrapWholeWords" />
                 </StackPanel>
             </Border>

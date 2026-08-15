@@ -340,6 +340,10 @@ namespace KillConfirmGameBar.Controls
             if (asset.IsHeadshot)
             {
                 double headshotScale = Lerp(1.8, 1.0, CubicBezierEase(Clamp01(elapsedMs / 250.0), 0.22, 0.9, 0.28, 1));
+                double flicker = GetValorantDemoHeadshotFlickerAmount(elapsedMs);
+                Windows.UI.Color headshotTint = flicker > 0
+                    ? LerpValorantColor(ValorantDemoFlashColor, Windows.UI.Colors.White, flicker)
+                    : ValorantDemoFlashColor;
                 DrawCenteredTintedImageAt(
                     drawingSession,
                     asset.Headshot,
@@ -348,7 +352,7 @@ namespace KillConfirmGameBar.Controls
                     ValorantDemoHeadshotCssSize * ValorantDemoVfxScale,
                     ValorantDemoHeadshotCssSize * ValorantDemoVfxScale,
                     headshotScale,
-                    ValorantDemoFlashColor,
+                    headshotTint,
                     1);
             }
 
@@ -618,8 +622,12 @@ namespace KillConfirmGameBar.Controls
 
             var target = BuildCenteredImageRect(image, cx, cy, width, height, scale);
             var source = new Rect(0, 0, image.SizeInPixels.Width, image.SizeInPixels.Height);
-            DrawSoftSilhouette(drawingSession, image, target, source, flashColor, 12, 0, 0, opacity * 0.9, true);
-            DrawBrightnessContrastImage(drawingSession, image, target, source, opacity, 1.8f * brightness, contrast);
+            // Reference's icon_flash is a red flash, not a white flash. Earlier we
+            // boosted the emblem to 1.8x brightness which produced a near-white
+            // pulse and let the red wash out. Keep a tighter, more opaque red
+            // glow and only mildly brighten the emblem so the red dominates.
+            DrawSoftSilhouette(drawingSession, image, target, source, flashColor, 4, 0, 0, opacity, true);
+            DrawBrightnessContrastImage(drawingSession, image, target, source, opacity, 1.25f * brightness, contrast);
         }
 
         private static Rect BuildCenteredImageRect(CanvasBitmap image, double cx, double cy, double width, double height, double scale)

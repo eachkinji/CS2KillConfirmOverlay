@@ -49,10 +49,10 @@ english.InstallingOverlay=Installing Kill Confirm Overlay...
 chinesesimplified.InstallingOverlay=Installing Kill Confirm Overlay...
 english.CheckingPrerequisites=Checking required Microsoft UI XAML, VCLibs, and Xbox Game Bar components...
 chinesesimplified.CheckingPrerequisites=正在检测必需的 Microsoft UI XAML、VCLibs 和 Xbox Game Bar 组件...
-english.InstallScriptLaunchFailed=Could not start the installer script.
-chinesesimplified.InstallScriptLaunchFailed=Could not start the installer script.
-english.InstallScriptFailed=Install failed. The detailed log has been opened for you. Exit code:
-chinesesimplified.InstallScriptFailed=安装失败。详细日志已经为你打开。退出码：
+english.InstallScriptLaunchFailed=Could not start the installer script. Setup will remain open so you can review this problem.
+chinesesimplified.InstallScriptLaunchFailed=无法启动安装脚本。安装管理器不会中止，请记录此问题后继续查看完成页面。
+english.InstallScriptFailed=The installer script reported an unexpected exit code. Setup will not abort. Exit code:
+chinesesimplified.InstallScriptFailed=安装脚本返回了异常退出码，但安装管理器不会中止。退出码：
 english.InstallLogOpened=If the log did not open, check %TEMP%\KillConfirmGameBar_Install.log.
 chinesesimplified.InstallLogOpened=如果日志没有自动打开，请查看 %TEMP%\KillConfirmGameBar_Install.log。
 english.SameOrNewerVersionBlocked=This computer already has a newer version installed. Please uninstall the newer Kill Confirm Overlay first, then run this installer again.
@@ -77,8 +77,8 @@ english.AcknowledgedButtonText=Understood
 chinesesimplified.AcknowledgedButtonText=已确认
 english.AcknowledgeRequiredText=Please click "I understand" before starting the installation.
 chinesesimplified.AcknowledgeRequiredText=请先点击“我清楚了”，然后才能开始安装。
-english.FinishedGameBarText=Installation is complete. Press Win+G to open Xbox Game Bar and use this plugin.
-chinesesimplified.FinishedGameBarText=安装已完成。请使用 Win+G 打开 Game Bar 使用本插件。
+english.FinishedGameBarText=The installation pass is complete. Use the diagnostic window as the final result. If the main app is marked successful, press Win+G to use it.
+chinesesimplified.FinishedGameBarText=安装流程已执行完毕，请以诊断窗口为最终结果。主程序显示 ✅ 后，可按 Win+G 使用插件。
 english.FinishedTutorialText=Need help? Click here to view the tutorial.
 chinesesimplified.FinishedTutorialText=如有不懂，请点击这里查看教程。
 english.FinishedPinWarningText=Important: turn off click-through mode and pin the widget window before use.
@@ -299,6 +299,7 @@ var
 begin
   if CurStep = ssPostInstall then
   begin
+    ResultCode := 0;
 #if SkipPrerequisites
     WizardForm.StatusLabel.Caption := ExpandConstant('{cm:InstallingOverlay}');
 #else
@@ -309,7 +310,6 @@ begin
     if not Exec(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'), Params, ExpandConstant('{app}\Payload'), SW_HIDE, ewWaitUntilTerminated, ResultCode) then
     begin
       MsgBox(ExpandConstant('{cm:InstallScriptLaunchFailed}'), mbError, MB_OK);
-      Abort;
     end;
 
     if ResultCode <> 0 then
@@ -320,7 +320,6 @@ begin
         ExpandConstant('{cm:InstallScriptFailed}') + ' ' + IntToStr(ResultCode) + #13#10 + ExpandConstant('{cm:InstallLogOpened}'),
         mbError,
         MB_OK);
-      Abort;
     end;
   end;
 end;

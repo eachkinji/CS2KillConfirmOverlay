@@ -1067,6 +1067,7 @@ fn parse_gsi_body(body: &[u8], game_version: GsiGameVersion) -> Result<Body, Gsi
     match game_version {
         GsiGameVersion::Cs2 => {
             normalize_cs2_map_mode(&mut value);
+            sanitize_cs2_numeric_fields(&mut value);
             Ok(serde_json::from_value(value)?)
         }
         GsiGameVersion::CsgoLegacy => Ok(crate::csgo_legacy::parse_body(value)?),
@@ -1108,6 +1109,159 @@ fn normalize_cs2_map_mode(value: &mut serde_json::Value) {
         }
     } else {
         *mode_value = serde_json::Value::String("custom".to_string());
+    }
+}
+
+// gsi-cs2 models several counters as u8/u16 (player state effects, team
+// score, map round, round_wins keys, ...) and serde rejects the entire
+// payload when CS2 reports a value outside the range (observed in the wild:
+// "invalid value: integer `500`, expected u8"). One oversized counter would
+// otherwise discard the whole GSI update, including kills. Clamp those
+// fields into the dependency's range before deserializing.
+fn sanitize_cs2_numeric_fields(value: &mut serde_json::Value) {
+    use std::collections::HashSet;
+    use std::sync::{Mutex, OnceLock};
+
+    let Some(root) = value.as_object_mut() else {
+        return;
+    };
+    let mut fixes: Vec<String> = Vec::new();
+
+    if let Some(map) = root.get_mut("map").and_then(serde_json::Value::as_object_mut) {
+        if let Some(round_wins) = map
+            .get_mut("round_wins")
+            .and_then(serde_json::Value::as_object_mut)
+        {
+            let before = round_wins.len();
+            round_wins.retain(|key, _| key.parse::<u8>().is_ok());
+            if round_wins.len() != before {
+                fixes.push("map.round_wins".to_string());
+            }
+        }
+        clamp_json_int_fields(
+            map,
+            &["round", "num_matches_to_win_series"],
+            u8::MAX as u64,
+            "map",
+            &mut fixes,
+        );
+        for team_key in ["team_ct", "team_t"] {
+            if let Some(team) = map.get_mut(team_key).and_then(serde_json::Value::as_object_mut) {
+                clamp_json_int_fields(
+                    team,
+                    &[
+                        "score",
+                        "consecutive_round_losses",
+                        "timeouts_remaining",
+                        "matches_won_this_series",
+                    ],
+                    u8::MAX as u64,
+                    &format!("map.{team_key}"),
+                    &mut fixes,
+                );
+            }
+        }
+    }
+
+    if let Some(player) = root.get_mut("player").and_then(serde_json::Value::as_object_mut) {
+        sanitize_cs2_player_fields(player, "player", &mut fixes);
+    }
+    if let Some(allplayers) = root
+        .get_mut("allplayers")
+        .and_then(serde_json::Value::as_object_mut)
+    {
+        for player in allplayers.values_mut() {
+            if let Some(player) = player.as_object_mut() {
+                sanitize_cs2_player_fields(player, "allplayers", &mut fixes);
+            }
+        }
+    }
+
+    if fixes.is_empty() {
+        return;
+    }
+    // Log each distinct clamped field once so the offending counter stays
+    // visible in a submitted service.log without flooding it per payload.
+    static LOGGED: OnceLock<Mutex<HashSet<String>>> = OnceLock::new();
+    let logged = LOGGED.get_or_init(|| Mutex::new(HashSet::new()));
+    if let Ok(mut logged) = logged.lock() {
+        for fix in fixes {
+            if logged.insert(fix.clone()) {
+                service_log(&format!("GSI field clamped into gsi-cs2 range: {fix}"));
+            }
+        }
+    }
+}
+
+fn sanitize_cs2_player_fields(
+    player: &mut serde_json::Map<String, serde_json::Value>,
+    prefix: &str,
+    fixes: &mut Vec<String>,
+) {
+    clamp_json_int_fields(
+        player,
+        &["observer_slot", "xpoverload"],
+        u8::MAX as u64,
+        prefix,
+        fixes,
+    );
+    if let Some(state) = player
+        .get_mut("state")
+        .and_then(serde_json::Value::as_object_mut)
+    {
+        clamp_json_int_fields(
+            state,
+            &["health", "armor", "flashed", "smoked", "burning"],
+            u8::MAX as u64,
+            &format!("{prefix}.state"),
+            fixes,
+        );
+        clamp_json_int_fields(
+            state,
+            &["equip_value"],
+            u16::MAX as u64,
+            &format!("{prefix}.state"),
+            fixes,
+        );
+    }
+    if let Some(match_stats) = player
+        .get_mut("match_stats")
+        .and_then(serde_json::Value::as_object_mut)
+    {
+        clamp_json_int_fields(
+            match_stats,
+            &["mvps"],
+            u8::MAX as u64,
+            &format!("{prefix}.match_stats"),
+            fixes,
+        );
+        clamp_json_int_fields(
+            match_stats,
+            &["kills", "assists", "deaths", "score"],
+            u16::MAX as u64,
+            &format!("{prefix}.match_stats"),
+            fixes,
+        );
+    }
+}
+
+fn clamp_json_int_fields(
+    object: &mut serde_json::Map<String, serde_json::Value>,
+    fields: &[&str],
+    max: u64,
+    prefix: &str,
+    fixes: &mut Vec<String>,
+) {
+    for field in fields {
+        let Some(value) = object.get_mut(*field) else {
+            continue;
+        };
+        if let Some(number) = value.as_u64() {
+            if number > max {
+                *value = serde_json::Value::from(max);
+                fixes.push(format!("{prefix}.{field}"));
+            }
+        }
     }
 }
 
@@ -1653,6 +1807,109 @@ fn infer_round_phase_from_kills(current_kills: u16) -> Option<TrackedRoundPhase>
 
     None
 }
+
+#[cfg(test)]
+mod gsi_sanitizer_tests {
+    use super::{parse_gsi_body, sanitize_cs2_numeric_fields, GsiGameVersion};
+
+    fn sample_payload() -> serde_json::Value {
+        serde_json::json!({
+            "auth": { "token": "t" },
+            "map": {
+                "mode": "deathmatch",
+                "name": "de_dust2",
+                "phase": "live",
+                "round": 300,
+                "round_wins": { "1": "ct_win", "500": "t_win" },
+                "team_ct": {
+                    "score": 500,
+                    "consecutive_round_losses": 0,
+                    "timeouts_remaining": 1,
+                    "matches_won_this_series": 0
+                },
+                "team_t": {
+                    "score": 12,
+                    "consecutive_round_losses": 2,
+                    "timeouts_remaining": 1,
+                    "matches_won_this_series": 0
+                },
+                "num_matches_to_win_series": 0
+            },
+            "player": {
+                "steamid": "76561198000000000",
+                "state": {
+                    "health": 100,
+                    "armor": 500,
+                    "helmet": true,
+                    "flashed": 0,
+                    "smoked": 0,
+                    "burning": 0,
+                    "money": 16000,
+                    "round_kills": 0,
+                    "round_killhs": 0,
+                    "equip_value": 4500,
+                    "defusekit": false
+                },
+                "match_stats": {
+                    "kills": 7,
+                    "assists": 1,
+                    "deaths": 3,
+                    "mvps": 2,
+                    "score": 40
+                }
+            }
+        })
+    }
+
+    #[test]
+    fn oversized_counters_are_clamped_not_rejected() {
+        let mut value = sample_payload();
+        sanitize_cs2_numeric_fields(&mut value);
+        let map = value.get("map").unwrap();
+        assert_eq!(map.get("round"), Some(&serde_json::json!(255)));
+        assert_eq!(
+            map.pointer("/team_ct/score"),
+            Some(&serde_json::json!(255))
+        );
+        // Round-win keys beyond u8 are dropped so the map key stays parseable.
+        assert!(map
+            .get("round_wins")
+            .unwrap()
+            .as_object()
+            .unwrap()
+            .contains_key("1"));
+        assert!(!map
+            .get("round_wins")
+            .unwrap()
+            .as_object()
+            .unwrap()
+            .contains_key("500"));
+        assert_eq!(
+            value.pointer("/player/state/armor"),
+            Some(&serde_json::json!(255))
+        );
+        // In-range values pass through untouched.
+        assert_eq!(
+            value.pointer("/map/team_t/score"),
+            Some(&serde_json::json!(12))
+        );
+    }
+
+    #[test]
+    fn oversized_u8_field_no_longer_fails_cs2_parse() {
+        // Regression for the field report "invalid value: integer `500`,
+        // expected u8" that made the service drop every GSI payload.
+        let mut value = sample_payload();
+        value["auth"] = serde_json::json!({ "token": "killconfirm" });
+        let body =
+            serde_json::to_vec(&value).expect("serialize sample payload");
+        let parsed = parse_gsi_body(&body, GsiGameVersion::Cs2);
+        assert!(parsed.is_ok(), "expected payload to parse: {:?}", parsed.err());
+        let parsed = parsed.unwrap();
+        assert_eq!(parsed.player.unwrap().state.unwrap().armor, 255);
+    }
+}
+
 #[cfg(test)]
 #[test]
 fn bomb_audio_only_reacts_to_planted_edges_and_terminal_outcomes() {

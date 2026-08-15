@@ -75,6 +75,36 @@ namespace KillConfirmGameBar.Controls
             return 0;
         }
 
+        // Mirrors the reference's headshot overlay: lerp the headshot color
+        // toward white using (1-t)^2 * sin(18Hz * t). The squared decay makes
+        // the flicker intense at impact and fade out, while the 18Hz sine gives
+        // a rapid strobe while it lasts.
+        private const double ValorantDemoHeadshotFlickerDurationMs = 700.0;
+        private const double ValorantDemoHeadshotFlickerFrequencyHz = 18.0;
+
+        private static double GetValorantDemoHeadshotFlickerAmount(double elapsedMs)
+        {
+            if (elapsedMs <= 0 || elapsedMs >= ValorantDemoHeadshotFlickerDurationMs)
+            {
+                return 0;
+            }
+
+            double t = Clamp01(elapsedMs / ValorantDemoHeadshotFlickerDurationMs);
+            double envelope = (1.0 - t) * (1.0 - t);
+            double sine = Math.Sin(elapsedMs * ValorantDemoHeadshotFlickerFrequencyHz * 2.0 * Math.PI / 1000.0);
+            return Clamp01(envelope * sine);
+        }
+
+        private static Windows.UI.Color LerpValorantColor(Windows.UI.Color a, Windows.UI.Color b, double t)
+        {
+            t = Clamp01(t);
+            return Windows.UI.Color.FromArgb(
+                (byte)(a.A + (b.A - a.A) * t),
+                (byte)(a.R + (b.R - a.R) * t),
+                (byte)(a.G + (b.G - a.G) * t),
+                (byte)(a.B + (b.B - a.B) * t));
+        }
+
         private static double GetValorantDemoBarDistance(double elapsedMs, double baseDistance)
         {
             const double Duration = 620.0;

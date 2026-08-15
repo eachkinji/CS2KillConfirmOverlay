@@ -491,10 +491,15 @@ function Repair-XboxGameBarEnvironment {
     }
 
     try {
-        $scancodeMap = Get-ItemPropertyValue `
+        # 属性不存在时 Get-ItemPropertyValue 会抛 E_INVALIDARG (0x80070057)，
+        # 即使带 -ErrorAction SilentlyContinue 也会被 catch 成 Warning。
+        # 用 Get-ItemProperty 检查属性是否存在，缺失即"未检测到"（正常）。
+        $layoutKey = Get-ItemProperty `
             -LiteralPath "HKLM:\SYSTEM\CurrentControlSet\Control\Keyboard Layout" `
-            -Name "Scancode Map" -ErrorAction SilentlyContinue
-        if ($null -ne $scancodeMap) {
+            -ErrorAction SilentlyContinue
+        $hasScancodeMap = $null -ne $layoutKey -and `
+            $null -ne $layoutKey.PSObject.Properties["Scancode Map"]
+        if ($hasScancodeMap) {
             Add-InstallResult -Status Warning -Item "键盘按键映射" -Detail "检测到系统 Scancode Map；它可能禁用了 Windows 键，安装器不会自动删除该自定义映射"
         }
         else {

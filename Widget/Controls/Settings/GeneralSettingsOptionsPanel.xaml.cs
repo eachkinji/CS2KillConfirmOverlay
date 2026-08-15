@@ -15,6 +15,8 @@ namespace KillConfirmGameBar.Controls.Settings
         private bool _suppressSpectatedKillEffectsEvents;
         private bool _suppressGsiGameVersionEvents;
         private bool _suppressBombAudioEvents = true;
+        private bool _suppressAutoCloseOnGameExitEvents;
+        private bool _suppressInterruptPreviousKillAudioEvents;
         private readonly DispatcherTimer _bombAudioSyncTimer = new DispatcherTimer();
 
         public GeneralSettingsOptionsPanel()
@@ -62,6 +64,18 @@ namespace KillConfirmGameBar.Controls.Settings
                 LocalizationManager.Text("BombAudioFinalSpeedLabel");
             BombAudioToggle.OffContent = LocalizationManager.Text("Off");
             BombAudioToggle.OnContent = LocalizationManager.Text("On");
+            AutoCloseOnGameExitLabelText.Text =
+                LocalizationManager.Text("AutoCloseOnGameExitLabel");
+            AutoCloseOnGameExitHintText.Text =
+                LocalizationManager.Text("AutoCloseOnGameExitHint");
+            AutoCloseOnGameExitToggle.OffContent = LocalizationManager.Text("Off");
+            AutoCloseOnGameExitToggle.OnContent = LocalizationManager.Text("On");
+            InterruptPreviousKillAudioLabelText.Text =
+                LocalizationManager.Text("InterruptPreviousKillAudioLabel");
+            InterruptPreviousKillAudioHintText.Text =
+                LocalizationManager.Text("InterruptPreviousKillAudioHint");
+            InterruptPreviousKillAudioToggle.OffContent = LocalizationManager.Text("Off");
+            InterruptPreviousKillAudioToggle.OnContent = LocalizationManager.Text("On");
             ApplyProcessPriorityLanguage();
         }
 
@@ -76,6 +90,8 @@ namespace KillConfirmGameBar.Controls.Settings
             GsiGameVersionHintText.Foreground = new SolidColorBrush(theme.MutedText);
             SpectatedKillEffectsHintText.Foreground = new SolidColorBrush(theme.MutedText);
             BombAudioHintText.Foreground = new SolidColorBrush(theme.MutedText);
+            AutoCloseOnGameExitHintText.Foreground = new SolidColorBrush(theme.MutedText);
+            InterruptPreviousKillAudioHintText.Foreground = new SolidColorBrush(theme.MutedText);
             ProcessPriorityHintText.Foreground = new SolidColorBrush(theme.MutedText);
             ProcessPriorityPersistenceHintText.Foreground = new SolidColorBrush(theme.MutedText);
             GameBarPriorityStatusText.Foreground = new SolidColorBrush(theme.MutedText);
@@ -91,6 +107,8 @@ namespace KillConfirmGameBar.Controls.Settings
             SelectSpectatedKillEffects();
             SelectBombAudioSettings();
             SelectProcessPrioritySettings();
+            SelectAutoCloseOnGameExit();
+            SelectInterruptPreviousKillAudio();
         }
 
         private void SelectGsiGameVersion()
@@ -185,6 +203,61 @@ namespace KillConfirmGameBar.Controls.Settings
             {
                 // The local value is authoritative and will be synchronized at service startup.
                 App.Log("Set spectated player kill effects failed: " + ex);
+            }
+        }
+
+        private void SelectAutoCloseOnGameExit()
+        {
+            _suppressAutoCloseOnGameExitEvents = true;
+            try
+            {
+                AutoCloseOnGameExitToggle.IsOn = AutoCloseOnGameExitSettingsStore.Load();
+            }
+            finally
+            {
+                _suppressAutoCloseOnGameExitEvents = false;
+            }
+        }
+
+        private void OnAutoCloseOnGameExitToggled(object sender, RoutedEventArgs e)
+        {
+            if (_suppressAutoCloseOnGameExitEvents)
+            {
+                return;
+            }
+
+            AutoCloseOnGameExitSettingsStore.Save(AutoCloseOnGameExitToggle.IsOn);
+        }
+
+        private void SelectInterruptPreviousKillAudio()
+        {
+            _suppressInterruptPreviousKillAudioEvents = true;
+            try
+            {
+                InterruptPreviousKillAudioToggle.IsOn = InterruptPreviousKillAudioSettingsStore.Load();
+            }
+            finally
+            {
+                _suppressInterruptPreviousKillAudioEvents = false;
+            }
+        }
+
+        private async void OnInterruptPreviousKillAudioToggled(object sender, RoutedEventArgs e)
+        {
+            if (_suppressInterruptPreviousKillAudioEvents)
+            {
+                return;
+            }
+
+            InterruptPreviousKillAudioSettingsStore.Save(InterruptPreviousKillAudioToggle.IsOn);
+            try
+            {
+                await InterruptPreviousKillAudioSettingsStore.SyncAsync();
+            }
+            catch (Exception ex)
+            {
+                // The local value is authoritative and will be synchronized at service startup.
+                App.Log("Set interrupt previous kill audio failed: " + ex);
             }
         }
 

@@ -324,6 +324,7 @@ namespace KillConfirmGameBar
             _controlPanelStateTimer.Start();
             _statusHintTimer.Start();
             StartKillEventClient();
+            StartAutoCloseGameExitMonitoring();
             ConfigureWidgetCapabilities();
             _ = InitializePackSelectorsAndServiceAsync();
             _ = LoadSavedCsFolderAsync();
@@ -352,6 +353,7 @@ namespace KillConfirmGameBar
 
             _controlPanelStateTimer.Stop();
             _statusHintTimer.Stop();
+            StopAutoCloseGameExitMonitoring();
             _widget = null;
             _ = ShutdownCompanionAsync();
 

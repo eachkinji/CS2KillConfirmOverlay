@@ -148,6 +148,7 @@
     <Compile Include="KillConfirmWidgetPage.DagoujiaoSettings.cs" />
     <Compile Include="KillConfirmWidgetPage.SharedStreakSettings.cs" />
     <Compile Include="KillConfirmWidgetPage.EventSoundSettings.cs" />
+    <Compile Include="KillConfirmWidgetPage.AutoCloseGameExit.cs" />
     <Compile Include="KillConfirmWidgetPage.Status.cs" />
     <Compile Include="KillConfirmWidgetPage.VisualSettings.cs" />
     <Compile Include="KillConfirmWidgetPage.MoneySettings.cs" />
@@ -290,6 +291,8 @@
     <Compile Include="Services\DeveloperModeSettingsStore.cs" />
     <Compile Include="Services\GsiGameVersionSettingsStore.cs" />
     <Compile Include="Services\CloseBehaviorSettingsStore.cs" />
+    <Compile Include="Services\AutoCloseOnGameExitSettingsStore.cs" />
+    <Compile Include="Services\InterruptPreviousKillAudioSettingsStore.cs" />
     <Compile Include="Services\ControlPanelScaleSettingsStore.cs" />
     <Compile Include="Services\GameStyleService.cs" />
     <Compile Include="Services\GameThemePalette.cs" />

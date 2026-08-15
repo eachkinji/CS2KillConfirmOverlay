@@ -197,6 +197,11 @@ pub struct SpectatorSettingsRequest {
 }
 
 #[derive(Debug, Deserialize)]
+pub struct InterruptPreviousKillAudioRequest {
+    pub enabled: bool,
+}
+
+#[derive(Debug, Deserialize)]
 pub struct GsiGameSettingsRequest {
     pub version: String,
 }
@@ -299,6 +304,11 @@ pub struct EventSoundSettingsResponse {
 
 #[derive(Debug, Serialize)]
 pub struct SpectatorSettingsResponse {
+    pub enabled: bool,
+}
+
+#[derive(Debug, Serialize)]
+pub struct InterruptPreviousKillAudioResponse {
     pub enabled: bool,
 }
 
@@ -1179,6 +1189,42 @@ pub async fn set_spectator_settings(
         request.enabled
     ));
     Json(spectator_settings_response(&app_state))
+}
+
+pub async fn interrupt_previous_kill_audio_settings(
+    State(app_state): State<Arc<AppState>>,
+) -> Json<InterruptPreviousKillAudioResponse> {
+    Json(InterruptPreviousKillAudioResponse {
+        enabled: app_state
+            .stop_previous_kill_audio
+            .load(Ordering::Relaxed),
+    })
+}
+
+pub async fn set_interrupt_previous_kill_audio_settings(
+    State(app_state): State<Arc<AppState>>,
+    Json(request): Json<InterruptPreviousKillAudioRequest>,
+) -> Json<InterruptPreviousKillAudioResponse> {
+    let previous = app_state
+        .stop_previous_kill_audio
+        .swap(request.enabled, Ordering::Relaxed);
+
+    if previous && !request.enabled {
+        // The user just turned the setting off: drop any held kill sink so the
+        // next play_audio() call doesn't accidentally stop a still-playing voice.
+        if let Ok(mut active) = app_state.kill_audio_sink.lock() {
+            active.take();
+        }
+    }
+
+    service_log(&format!(
+        "stop previous kill audio on new kill: {}",
+        request.enabled
+    ));
+
+    Json(InterruptPreviousKillAudioResponse {
+        enabled: request.enabled,
+    })
 }
 
 pub async fn gsi_game_settings(

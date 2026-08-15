@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.UI.Xaml;
-using KillConfirmGameBar.Helpers;
 using KillConfirmGameBar.Services;
 using Windows.Foundation;
 using Windows.Graphics.Imaging;
@@ -245,7 +244,9 @@ namespace KillConfirmGameBar.Controls
 
         public void SetPresentationScale(double scale)
         {
-            double normalized = Math.Max(0.35, Math.Min(3.0, scale));
+            double normalized = double.IsNaN(scale) || double.IsInfinity(scale) || scale <= 0
+                ? 1.0
+                : scale;
             if (Math.Abs(_presentationScale - normalized) < 0.001)
             {
                 return;
@@ -399,9 +400,7 @@ namespace KillConfirmGameBar.Controls
             _playToken++;
             _timer.Stop();
             _playbackClock.Stop();
-            ProcessPriorityBoost.ExitAnimation();
             _currentValorantAsset = null;
-            ProcessPriorityBoost.ExitAnimation();
             if (_currentCodeAsset == null
                 && _currentBattlefieldAsset == null
                 && _currentCsolAsset == null)
@@ -421,7 +420,6 @@ namespace KillConfirmGameBar.Controls
             _playToken++;
             _timer.Stop();
             _playbackClock.Stop();
-            ProcessPriorityBoost.ExitAnimation();
             HideLoadingProgress();
             _currentMetadata = null;
             _currentCodeAsset = null;
@@ -635,8 +633,6 @@ namespace KillConfirmGameBar.Controls
                 _timer.Interval = TimeSpan.FromMilliseconds(1000.0 / FrameSequenceFps);
                 ShowFrame(0);
                 _playbackClock.Restart();
-                ProcessPriorityBoost.ExitAnimation();
-                ProcessPriorityBoost.EnterAnimation();
                 _timer.Start();
             }
             catch
@@ -644,7 +640,6 @@ namespace KillConfirmGameBar.Controls
                 isLoading = false;
                 HideLoadingProgress();
                 Visibility = Visibility.Collapsed;
-                ProcessPriorityBoost.ExitAnimation();
             }
         }
 

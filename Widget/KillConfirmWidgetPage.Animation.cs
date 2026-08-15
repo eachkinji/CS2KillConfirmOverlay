@@ -665,7 +665,13 @@ namespace KillConfirmGameBar
 
         private void ScaleAnimation(double factor)
         {
-            _animationScale = Math.Max(0.35, Math.Min(3.0, _animationScale * factor));
+            double candidate = _animationScale * factor;
+            if (double.IsNaN(candidate) || double.IsInfinity(candidate) || candidate <= 0)
+            {
+                return;
+            }
+
+            _animationScale = candidate;
             ApplyAnimationTransform();
             SaveAnimationPlacementSettings();
         }

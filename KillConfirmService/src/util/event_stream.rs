@@ -1,7 +1,7 @@
 use std::{
     collections::HashMap,
     fs,
-    path::PathBuf,
+    path::{Path as FilePath, PathBuf},
     sync::Arc,
     sync::atomic::Ordering,
     time::{Duration, SystemTime, UNIX_EPOCH},
@@ -18,7 +18,8 @@ use tracing::error;
 use windows_sys::Win32::Foundation::{CloseHandle, ERROR_INSUFFICIENT_BUFFER, GetLastError};
 use windows_sys::Win32::System::ProcessStatus::K32EnumProcesses;
 use windows_sys::Win32::System::Threading::{
-    OpenProcess, PROCESS_QUERY_LIMITED_INFORMATION, QueryFullProcessImageNameW,
+    GetPriorityClass, OpenProcess, PROCESS_QUERY_LIMITED_INFORMATION, PROCESS_SET_INFORMATION,
+    QueryFullProcessImageNameW, SetPriorityClass,
 };
 
 use crate::soundpack::Preset;
@@ -205,6 +206,12 @@ pub struct DeveloperSettingsRequest {
     pub enabled: bool,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct ProcessPriorityRequest {
+    pub target: String,
+    pub priority: String,
+}
+
 #[derive(Debug, Serialize)]
 pub struct SoundPackResponse {
     pub preset: String,
@@ -311,6 +318,21 @@ pub struct BombAudioSettingsResponse {
 #[derive(Debug, Serialize)]
 pub struct DeveloperSettingsResponse {
     pub enabled: bool,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ProcessPriorityStatus {
+    pub target: &'static str,
+    pub process_name: &'static str,
+    pub running: bool,
+    pub instances: usize,
+    pub priority: String,
+    pub error: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ProcessPriorityResponse {
+    pub processes: Vec<ProcessPriorityStatus>,
 }
 
 #[derive(Debug, Serialize)]
@@ -1210,6 +1232,37 @@ pub async fn set_developer_settings(
     })
 }
 
+pub async fn process_priorities() -> Json<ProcessPriorityResponse> {
+    Json(ProcessPriorityResponse {
+        processes: PROCESS_PRIORITY_TARGETS
+            .iter()
+            .map(|target| read_process_priority_status(target, None))
+            .collect(),
+    })
+}
+
+pub async fn set_process_priority(
+    Json(request): Json<ProcessPriorityRequest>,
+) -> Result<Json<ProcessPriorityStatus>, (StatusCode, String)> {
+    let Some(target) = PROCESS_PRIORITY_TARGETS
+        .iter()
+        .find(|target| target.key.eq_ignore_ascii_case(request.target.trim()))
+    else {
+        return Err((
+            StatusCode::BAD_REQUEST,
+            "unsupported process target".to_string(),
+        ));
+    };
+    let Some(priority) = ProcessPriority::from_str(&request.priority) else {
+        return Err((
+            StatusCode::BAD_REQUEST,
+            "unsupported process priority".to_string(),
+        ));
+    };
+
+    Ok(Json(read_process_priority_status(target, Some(priority))))
+}
+
 pub async fn soundpack(State(app_state): State<Arc<AppState>>) -> Json<SoundPackResponse> {
     let preset = app_state.preset.read().await;
     Json(soundpack_response(
@@ -1707,17 +1760,203 @@ fn push_unique_steam_path(paths: &mut Vec<PathBuf>, path: PathBuf) {
     paths.push(path);
 }
 
-fn running_steam_root() -> Option<PathBuf> {
-    let mut process_ids = vec![0u32; 1024];
-    let mut bytes_needed = 0u32;
-    let capacity_bytes = (process_ids.len() * std::mem::size_of::<u32>()) as u32;
-    if unsafe { K32EnumProcesses(process_ids.as_mut_ptr(), capacity_bytes, &mut bytes_needed) } == 0
-    {
-        return None;
+const IDLE_PRIORITY_CLASS: u32 = 0x00000040;
+const BELOW_NORMAL_PRIORITY_CLASS: u32 = 0x00004000;
+const NORMAL_PRIORITY_CLASS: u32 = 0x00000020;
+const ABOVE_NORMAL_PRIORITY_CLASS: u32 = 0x00008000;
+const HIGH_PRIORITY_CLASS: u32 = 0x00000080;
+const REALTIME_PRIORITY_CLASS: u32 = 0x00000100;
+
+#[derive(Clone, Copy)]
+struct ProcessPriorityTarget {
+    key: &'static str,
+    process_name: &'static str,
+    required_path_marker: &'static str,
+}
+
+const PROCESS_PRIORITY_TARGETS: [ProcessPriorityTarget; 3] = [
+    ProcessPriorityTarget {
+        key: "gamebar",
+        process_name: "GameBar.exe",
+        required_path_marker: "\\windowsapps\\microsoft.xboxgamingoverlay_",
+    },
+    ProcessPriorityTarget {
+        key: "gamebar_ft_server",
+        process_name: "GameBarFTServer.exe",
+        required_path_marker: "\\windowsapps\\microsoft.xboxgamingoverlay_",
+    },
+    ProcessPriorityTarget {
+        key: "killconfirm_widget",
+        process_name: "KillConfirmGameBar.exe",
+        required_path_marker: "\\windowsapps\\killconfirmgamebar.overlay_",
+    },
+];
+
+#[derive(Clone, Copy)]
+enum ProcessPriority {
+    Realtime,
+    High,
+    AboveNormal,
+    Normal,
+    BelowNormal,
+    Idle,
+}
+
+impl ProcessPriority {
+    fn from_str(value: &str) -> Option<Self> {
+        match value.trim().to_ascii_lowercase().as_str() {
+            "realtime" => Some(Self::Realtime),
+            "high" => Some(Self::High),
+            "above_normal" => Some(Self::AboveNormal),
+            "normal" => Some(Self::Normal),
+            "below_normal" => Some(Self::BelowNormal),
+            "idle" => Some(Self::Idle),
+            _ => None,
+        }
     }
 
-    let count = (bytes_needed as usize / std::mem::size_of::<u32>()).min(process_ids.len());
-    for &process_id in &process_ids[..count] {
+    fn class(self) -> u32 {
+        match self {
+            Self::Realtime => REALTIME_PRIORITY_CLASS,
+            Self::High => HIGH_PRIORITY_CLASS,
+            Self::AboveNormal => ABOVE_NORMAL_PRIORITY_CLASS,
+            Self::Normal => NORMAL_PRIORITY_CLASS,
+            Self::BelowNormal => BELOW_NORMAL_PRIORITY_CLASS,
+            Self::Idle => IDLE_PRIORITY_CLASS,
+        }
+    }
+}
+
+fn priority_name(priority_class: u32) -> &'static str {
+    match priority_class {
+        REALTIME_PRIORITY_CLASS => "realtime",
+        HIGH_PRIORITY_CLASS => "high",
+        ABOVE_NORMAL_PRIORITY_CLASS => "above_normal",
+        NORMAL_PRIORITY_CLASS => "normal",
+        BELOW_NORMAL_PRIORITY_CLASS => "below_normal",
+        IDLE_PRIORITY_CLASS => "idle",
+        _ => "unknown",
+    }
+}
+
+fn system_process_ids() -> Vec<u32> {
+    let mut capacity = 1024usize;
+    loop {
+        let mut process_ids = vec![0u32; capacity];
+        let mut bytes_needed = 0u32;
+        let capacity_bytes = (process_ids.len() * std::mem::size_of::<u32>()) as u32;
+        if unsafe { K32EnumProcesses(process_ids.as_mut_ptr(), capacity_bytes, &mut bytes_needed) }
+            == 0
+        {
+            return Vec::new();
+        }
+
+        if bytes_needed < capacity_bytes {
+            let count = bytes_needed as usize / std::mem::size_of::<u32>();
+            process_ids.truncate(count);
+            return process_ids;
+        }
+        capacity *= 2;
+    }
+}
+
+fn is_expected_process_path(target: &ProcessPriorityTarget, path: &FilePath) -> bool {
+    let matches_name = path
+        .file_name()
+        .map(|name| name.eq_ignore_ascii_case(target.process_name))
+        .unwrap_or(false);
+    matches_name
+        && path
+            .to_string_lossy()
+            .to_ascii_lowercase()
+            .contains(target.required_path_marker)
+}
+
+fn read_process_priority_status(
+    target: &ProcessPriorityTarget,
+    requested_priority: Option<ProcessPriority>,
+) -> ProcessPriorityStatus {
+    let mut instances = 0usize;
+    let mut observed_priority: Option<&'static str> = None;
+    let mut mixed = false;
+    let mut errors = Vec::new();
+
+    for process_id in system_process_ids() {
+        let Some(path) = process_image_path(process_id) else {
+            continue;
+        };
+        if !is_expected_process_path(target, &path) {
+            continue;
+        }
+
+        instances += 1;
+        let access = PROCESS_QUERY_LIMITED_INFORMATION
+            | if requested_priority.is_some() {
+                PROCESS_SET_INFORMATION
+            } else {
+                0
+            };
+        let handle = unsafe { OpenProcess(access, 0, process_id) };
+        if handle.is_null() {
+            errors.push(format!(
+                "PID {process_id}: OpenProcess failed ({})",
+                unsafe { GetLastError() }
+            ));
+            continue;
+        }
+
+        let priority_before_change = unsafe { GetPriorityClass(handle) };
+        if priority_before_change == 0 {
+            errors.push(format!(
+                "PID {process_id}: GetPriorityClass failed ({})",
+                unsafe { GetLastError() }
+            ));
+        }
+
+        if let Some(priority) = requested_priority {
+            if priority_before_change != priority.class()
+                && unsafe { SetPriorityClass(handle, priority.class()) } == 0
+            {
+                errors.push(format!(
+                    "PID {process_id}: SetPriorityClass failed ({})",
+                    unsafe { GetLastError() }
+                ));
+            }
+        }
+
+        let actual_class = unsafe { GetPriorityClass(handle) };
+        if actual_class == 0 {
+            errors.push(format!(
+                "PID {process_id}: GetPriorityClass failed ({})",
+                unsafe { GetLastError() }
+            ));
+        } else {
+            let actual_name = priority_name(actual_class);
+            if let Some(previous) = observed_priority {
+                mixed |= previous != actual_name;
+            } else {
+                observed_priority = Some(actual_name);
+            }
+        }
+        unsafe { CloseHandle(handle) };
+    }
+
+    ProcessPriorityStatus {
+        target: target.key,
+        process_name: target.process_name,
+        running: instances > 0,
+        instances,
+        priority: if mixed {
+            "mixed".to_string()
+        } else {
+            observed_priority.unwrap_or_default().to_string()
+        },
+        error: errors.join("; "),
+    }
+}
+
+fn running_steam_root() -> Option<PathBuf> {
+    for process_id in system_process_ids() {
         if let Some(image_path) = process_image_path(process_id) {
             if image_path
                 .file_name()
@@ -1773,8 +2012,33 @@ fn zero_to_none(value: u64) -> Option<u64> {
 mod tests {
     use super::{
         BombAudioSettingsRequest, CsolSettingsRequest, DagoujiaoSettingsRequest,
-        resolve_bomb_audio_speed_range,
+        HIGH_PRIORITY_CLASS, PROCESS_PRIORITY_TARGETS, ProcessPriority, is_expected_process_path,
+        priority_name, resolve_bomb_audio_speed_range,
     };
+    use std::path::Path;
+
+    #[test]
+    fn process_priority_values_map_to_windows_priority_classes() {
+        let high = ProcessPriority::from_str("high").unwrap();
+        assert_eq!(high.class(), HIGH_PRIORITY_CLASS);
+        assert_eq!(priority_name(high.class()), "high");
+        assert!(ProcessPriority::from_str("unsupported").is_none());
+    }
+
+    #[test]
+    fn process_priority_targets_reject_same_named_executables_outside_expected_packages() {
+        let game_bar = &PROCESS_PRIORITY_TARGETS[0];
+        assert!(is_expected_process_path(
+            game_bar,
+            Path::new(
+                r"C:\Program Files\WindowsApps\Microsoft.XboxGamingOverlay_1.0_x64__8wekyb3d8bbwe\GameBar.exe"
+            )
+        ));
+        assert!(!is_expected_process_path(
+            game_bar,
+            Path::new(r"C:\Temp\GameBar.exe")
+        ));
+    }
 
     #[test]
     fn csol_settings_request_defaults_priority_to_streak_first() {

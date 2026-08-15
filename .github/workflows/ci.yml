@@ -3,7 +3,16 @@ name: CI
 on:
   push:
 
+permissions:
+  contents: write
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     uses: ./.github/workflows/build.yml
+    with:
+      createDraftRelease: ${{ github.ref == 'refs/heads/main' }}
     secrets: inherit

@@ -176,6 +176,144 @@ $PackageName = "KillConfirmGameBar.Overlay"
 $PackageFamilyName = $null
 $LogPath = Join-Path $env:TEMP "KillConfirmGameBar_Install.log"
 $RuntimeLogRoot = $null
+$InstallResults = New-Object System.Collections.Generic.List[object]
+
+function Add-InstallResult {
+    param(
+        [ValidateSet("Success", "Warning", "Error")][string]$Status,
+        [string]$Item,
+        [string]$Detail = ""
+    )
+
+    $symbol = switch ($Status) {
+        "Success" { "✅" }
+        "Warning" { "⚠️" }
+        default { "❌" }
+    }
+    $script:InstallResults.Add([pscustomobject]@{
+        Status = $Status
+        Item = $Item
+        Detail = $Detail
+    })
+    Write-InstallLog ("{0} {1}{2}" -f $symbol, $Item, $(if ($Detail) { " - $Detail" } else { "" }))
+}
+
+function Get-ErrorReason {
+    param([System.Management.Automation.ErrorRecord]$ErrorRecord)
+
+    if (-not $ErrorRecord) {
+        return "未知错误"
+    }
+    $message = $ErrorRecord.Exception.Message
+    $hresult = $ErrorRecord.Exception.HResult
+    if ($hresult) {
+        return ("{0} (HRESULT 0x{1:X8})" -f $message, ($hresult -band 0xffffffffL))
+    }
+    return $message
+}
+
+function Show-InstallSummary {
+    $errorCount = @($InstallResults | Where-Object Status -eq "Error").Count
+    $warningCount = @($InstallResults | Where-Object Status -eq "Warning").Count
+    $successCount = @($InstallResults | Where-Object Status -eq "Success").Count
+    $title = if ($errorCount -gt 0) {
+        "Kill Confirm 安装诊断 - 有问题需要处理"
+    }
+    elseif ($warningCount -gt 0) {
+        "Kill Confirm 安装诊断 - 已完成但有提示"
+    }
+    else {
+        "Kill Confirm 安装诊断 - 全部成功"
+    }
+
+    $summaryLines = @(
+        "安装流程已经执行完毕，不会因为单项失败而跳过后续安装。",
+        "成功 $successCount 项，提示 $warningCount 项，失败 $errorCount 项。",
+        ""
+    )
+    foreach ($result in $InstallResults) {
+        $symbol = switch ($result.Status) {
+            "Success" { "✅" }
+            "Warning" { "⚠️" }
+            default { "❌" }
+        }
+        $summaryLines += ("{0} {1}" -f $symbol, $result.Item)
+        if ($result.Detail) {
+            $summaryLines += ("    原因/说明：{0}" -f $result.Detail)
+        }
+    }
+    $summaryLines += ""
+    $summaryLines += "完整日志：$LogPath"
+
+    $logText = ""
+    try {
+        if (Test-Path -LiteralPath $LogPath) {
+            $logText = Get-Content -LiteralPath $LogPath -Raw -ErrorAction Stop
+        }
+    }
+    catch {
+        $logText = "日志读取失败：$($_.Exception.Message)"
+    }
+
+    try {
+        Add-Type -AssemblyName System.Windows.Forms -ErrorAction Stop
+        Add-Type -AssemblyName System.Drawing -ErrorAction Stop
+        $form = New-Object System.Windows.Forms.Form
+        $form.Text = $title
+        $form.StartPosition = "CenterScreen"
+        $form.Size = New-Object System.Drawing.Size(820, 680)
+        $form.MinimumSize = New-Object System.Drawing.Size(680, 520)
+        $form.TopMost = $true
+
+        $textBox = New-Object System.Windows.Forms.TextBox
+        $textBox.Multiline = $true
+        $textBox.ReadOnly = $true
+        $textBox.ScrollBars = "Both"
+        $textBox.WordWrap = $false
+        $textBox.Dock = "Fill"
+        $textBox.Font = New-Object System.Drawing.Font("Segoe UI", 10)
+        $textBox.Text = (($summaryLines -join [Environment]::NewLine) +
+            [Environment]::NewLine + [Environment]::NewLine +
+            "================ 详细日志 ================" +
+            [Environment]::NewLine + $logText)
+
+        $buttonPanel = New-Object System.Windows.Forms.FlowLayoutPanel
+        $buttonPanel.Dock = "Bottom"
+        $buttonPanel.Height = 48
+        $buttonPanel.FlowDirection = "RightToLeft"
+        $buttonPanel.Padding = New-Object System.Windows.Forms.Padding(8)
+
+        $closeButton = New-Object System.Windows.Forms.Button
+        $closeButton.Text = "关闭"
+        $closeButton.Width = 100
+        $closeButton.Add_Click({ $form.Close() })
+
+        $copyButton = New-Object System.Windows.Forms.Button
+        $copyButton.Text = "复制诊断信息"
+        $copyButton.Width = 130
+        $copyButton.Add_Click({
+            try { [System.Windows.Forms.Clipboard]::SetText($textBox.Text) } catch {}
+        })
+
+        $openLogButton = New-Object System.Windows.Forms.Button
+        $openLogButton.Text = "打开日志文件"
+        $openLogButton.Width = 130
+        $openLogButton.Add_Click({
+            try { Start-Process notepad.exe -ArgumentList ('"{0}"' -f $LogPath) | Out-Null } catch {}
+        })
+
+        $buttonPanel.Controls.Add($closeButton)
+        $buttonPanel.Controls.Add($copyButton)
+        $buttonPanel.Controls.Add($openLogButton)
+        $form.Controls.Add($textBox)
+        $form.Controls.Add($buttonPanel)
+        $form.AcceptButton = $closeButton
+        [void]$form.ShowDialog()
+    }
+    catch {
+        Write-Host ($summaryLines -join [Environment]::NewLine)
+    }
+}
 
 function ConvertFrom-Utf8Base64 {
     param([string]$Value)
@@ -224,7 +362,12 @@ $Prerequisites = @(
 function Write-InstallLog {
     param([string]$Message)
     $line = "[{0}] {1}" -f (Get-Date -Format "yyyy-MM-dd HH:mm:ss"), $Message
-    Add-Content -LiteralPath $LogPath -Value $line -Encoding UTF8
+    try {
+        Add-Content -LiteralPath $LogPath -Value $line -Encoding UTF8 -ErrorAction Stop
+    }
+    catch {
+        Write-Host "[Log write failed: $($_.Exception.Message)]"
+    }
     Write-Host $Message
 }
 
@@ -252,6 +395,165 @@ function Confirm-XboxGameBarAvailable {
     }
 
     throw "Xbox Game Bar is not installed. Install it from Microsoft Store, then run this installer again."
+}
+
+function Set-RegistryDwordAndReport {
+    param(
+        [string]$Path,
+        [string]$Name,
+        [int]$Value,
+        [string]$Item,
+        [string]$SuccessDetail
+    )
+
+    try {
+        if (-not (Test-Path -LiteralPath $Path)) {
+            New-Item -Path $Path -Force -ErrorAction Stop | Out-Null
+        }
+        New-ItemProperty -LiteralPath $Path -Name $Name -PropertyType DWord -Value $Value -Force -ErrorAction Stop | Out-Null
+        $actual = [int](Get-ItemPropertyValue -LiteralPath $Path -Name $Name -ErrorAction Stop)
+        if ($actual -ne $Value) {
+            throw "写入后验证失败：期望 $Value，实际 $actual"
+        }
+        Add-InstallResult -Status Success -Item $Item -Detail $SuccessDetail
+    }
+    catch {
+        Add-InstallResult -Status Error -Item $Item -Detail ((Get-ErrorReason $_) + "；已继续后续安装")
+    }
+}
+
+function Backup-GameBarRegistry {
+    $backupRoot = Join-Path $env:TEMP ("KillConfirmGameBar_Registry_Backup_{0}" -f (Get-Date -Format "yyyyMMdd_HHmmss"))
+    try {
+        New-Item -ItemType Directory -Path $backupRoot -Force -ErrorAction Stop | Out-Null
+        $exports = @(
+            @{ Key = "HKLM\SOFTWARE\Policies\Microsoft\Windows\GameDVR"; File = "HKLM-GameDVR-Policy.reg" },
+            @{ Key = "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\GameDVR"; File = "HKCU-GameDVR.reg" },
+            @{ Key = "HKCU\System\GameConfigStore"; File = "HKCU-GameConfigStore.reg" },
+            @{ Key = "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer"; File = "HKCU-Explorer-Policy.reg" }
+        )
+        $exportedCount = 0
+        foreach ($export in $exports) {
+            & reg.exe export $export.Key (Join-Path $backupRoot $export.File) /y 2>$null | Out-Null
+            if ($LASTEXITCODE -eq 0) {
+                $exportedCount++
+            }
+        }
+        Add-InstallResult -Status Success -Item "Game Bar 注册表备份" -Detail ("已备份 {0} 项到：{1}" -f $exportedCount, $backupRoot)
+    }
+    catch {
+        Add-InstallResult -Status Warning -Item "Game Bar 注册表备份" -Detail ((Get-ErrorReason $_) + "；修复仍会继续")
+    }
+    return $backupRoot
+}
+
+function Repair-XboxGameBarEnvironment {
+    Write-InstallLog "Repairing Xbox Game Bar policy, user settings, shortcut, and service state..."
+    $backupRoot = Backup-GameBarRegistry
+
+    Set-RegistryDwordAndReport `
+        -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\GameDVR" `
+        -Name "AllowGameDVR" -Value 1 `
+        -Item "Game DVR 计算机策略" `
+        -SuccessDetail "AllowGameDVR=1，已允许游戏录制和广播"
+
+    Set-RegistryDwordAndReport `
+        -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\GameDVR" `
+        -Name "AppCaptureEnabled" -Value 1 `
+        -Item "当前用户 Game Bar 开关" `
+        -SuccessDetail "AppCaptureEnabled=1"
+
+    Set-RegistryDwordAndReport `
+        -Path "HKCU:\System\GameConfigStore" `
+        -Name "GameDVR_Enabled" -Value 1 `
+        -Item "当前用户 Game DVR 开关" `
+        -SuccessDetail "GameDVR_Enabled=1"
+
+    Set-RegistryDwordAndReport `
+        -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\GameDVR" `
+        -Name "VKMToggleGameBar" -Value 1 `
+        -Item "Game Bar 快捷键开关" `
+        -SuccessDetail "VKMToggleGameBar=1"
+
+    Set-RegistryDwordAndReport `
+        -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\GameDVR" `
+        -Name "VKToggleGameBar" -Value 71 `
+        -Item "Game Bar 快捷键按键" `
+        -SuccessDetail "VKToggleGameBar=71（G 键）"
+
+    Set-RegistryDwordAndReport `
+        -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" `
+        -Name "NoWinKeys" -Value 0 `
+        -Item "Windows 组合键策略" `
+        -SuccessDetail "NoWinKeys=0；Win+G/Win+R/Win+E 未被该策略禁止"
+
+    try {
+        $serviceKeys = @(Get-ChildItem -LiteralPath "HKLM:\SYSTEM\CurrentControlSet\Services" -ErrorAction Stop |
+            Where-Object { $_.PSChildName -eq "BcastDVRUserService" -or $_.PSChildName -like "BcastDVRUserService_*" })
+        if ($serviceKeys.Count -eq 0) {
+            Add-InstallResult -Status Warning -Item "Game DVR 用户服务" -Detail "没有找到 BcastDVRUserService 服务项；没有创建不完整的新服务项"
+        }
+        else {
+            $serviceFailures = New-Object System.Collections.Generic.List[string]
+            foreach ($serviceKey in $serviceKeys) {
+                try {
+                    New-ItemProperty -LiteralPath $serviceKey.PSPath -Name "Start" -PropertyType DWord -Value 3 -Force -ErrorAction Stop | Out-Null
+                    $actual = [int](Get-ItemPropertyValue -LiteralPath $serviceKey.PSPath -Name "Start" -ErrorAction Stop)
+                    if ($actual -ne 3) {
+                        throw "Start 写入后为 $actual"
+                    }
+                }
+                catch {
+                    $serviceFailures.Add(("{0}: {1}" -f $serviceKey.PSChildName, (Get-ErrorReason $_)))
+                }
+            }
+            if ($serviceFailures.Count -eq 0) {
+                Add-InstallResult -Status Success -Item "Game DVR 用户服务" -Detail ("{0} 个服务项已恢复为手动/触发启动" -f $serviceKeys.Count)
+            }
+            else {
+                Add-InstallResult -Status Error -Item "Game DVR 用户服务" -Detail (($serviceFailures -join "；") + "；已继续后续安装")
+            }
+        }
+    }
+    catch {
+        Add-InstallResult -Status Error -Item "Game DVR 用户服务" -Detail ((Get-ErrorReason $_) + "；已继续后续安装")
+    }
+
+    if (Test-Path -LiteralPath "Registry::HKEY_CLASSES_ROOT\ms-gamebar") {
+        Add-InstallResult -Status Success -Item "ms-gamebar 启动协议" -Detail "协议已注册"
+    }
+    else {
+        Add-InstallResult -Status Error -Item "ms-gamebar 启动协议" -Detail "协议未注册；Win+G 和 URI 启动可能无响应"
+    }
+
+    try {
+        $scancodeMap = Get-ItemPropertyValue `
+            -LiteralPath "HKLM:\SYSTEM\CurrentControlSet\Control\Keyboard Layout" `
+            -Name "Scancode Map" -ErrorAction SilentlyContinue
+        if ($null -ne $scancodeMap) {
+            Add-InstallResult -Status Warning -Item "键盘按键映射" -Detail "检测到系统 Scancode Map；它可能禁用了 Windows 键，安装器不会自动删除该自定义映射"
+        }
+        else {
+            Add-InstallResult -Status Success -Item "键盘按键映射" -Detail "未检测到系统 Scancode Map"
+        }
+    }
+    catch {
+        Add-InstallResult -Status Warning -Item "键盘按键映射" -Detail (Get-ErrorReason $_)
+    }
+
+    try {
+        $policyReportPath = Join-Path $backupRoot "Applied-Group-Policy.html"
+        & gpresult.exe /h $policyReportPath /f 2>$null | Out-Null
+        if ($LASTEXITCODE -eq 0 -and (Test-Path -LiteralPath $policyReportPath -PathType Leaf)) {
+            Add-InstallResult -Status Success -Item "实际生效组策略报告" -Detail "已保存：$policyReportPath"
+        }
+        else {
+            Add-InstallResult -Status Warning -Item "实际生效组策略报告" -Detail "gpresult 返回退出码 $LASTEXITCODE；不影响继续安装"
+        }
+    }
+    catch {
+        Add-InstallResult -Status Warning -Item "实际生效组策略报告" -Detail ((Get-ErrorReason $_) + "；不影响继续安装")
+    }
 }
 
 function Get-AppxIdentityFromPackageFile {
@@ -381,15 +683,20 @@ function Import-PackageCertificate {
         "Cert:\LocalMachine\Root"
     )
 
+    $importedCount = 0
+    $lastFailure = ""
     foreach ($storeLocation in $storeLocations) {
         try {
             $cert = Import-Certificate -FilePath $CertificatePath -CertStoreLocation $storeLocation -ErrorAction Stop
             Write-InstallLog "Certificate imported: $storeLocation $($cert.Thumbprint)"
+            $importedCount++
         }
         catch {
+            $lastFailure = $_.Exception.Message
             Write-InstallLog "Certificate import skipped for ${storeLocation}: $($_.Exception.Message)"
         }
     }
+    return [pscustomobject]@{ ImportedCount = $importedCount; LastFailure = $lastFailure }
 }
 
 function Add-AppxPackageCompat {
@@ -515,7 +822,8 @@ function Confirm-PrerequisiteInstall {
 function Install-RequiredComponents {
     Write-InstallLog "Checking required Microsoft UI XAML, VCLibs, and Xbox Game Bar packages..."
     if (-not (Test-Path -LiteralPath $PrerequisiteRoot -PathType Container)) {
-        throw "Prerequisites folder was not found under $ScriptRoot"
+        Add-InstallResult -Status Error -Item "离线依赖目录" -Detail "未找到：$PrerequisiteRoot"
+        return
     }
 
     $missingPrerequisites = @($Prerequisites |
@@ -534,11 +842,25 @@ function Install-RequiredComponents {
 
     if ($missingPrerequisites.Count -eq 0) {
         Write-InstallLog "All required Microsoft UI XAML, VCLibs, and Xbox Game Bar packages are already installed."
+        foreach ($prerequisite in ($Prerequisites | Sort-Object Order)) {
+            $installed = Get-InstalledPrerequisitePackage -Prerequisite $prerequisite
+            Add-InstallResult -Status Success -Item $prerequisite.ChineseDisplayName -Detail ("已安装，版本 {0}" -f $installed.Version)
+        }
         return
     }
 
-    if (-not (Confirm-PrerequisiteInstall -MissingPrerequisites $missingPrerequisites)) {
+    try {
+        $confirmed = Confirm-PrerequisiteInstall -MissingPrerequisites $missingPrerequisites
+    }
+    catch {
+        Add-InstallResult -Status Error -Item "依赖安装确认窗口" -Detail (Get-ErrorReason $_)
+        $confirmed = $false
+    }
+    if (-not $confirmed) {
         Write-InstallLog "The user declined installation of required components. Continuing overlay installation with a compatibility warning."
+        foreach ($prerequisite in $missingPrerequisites) {
+            Add-InstallResult -Status Warning -Item $prerequisite.ChineseDisplayName -Detail "未安装或版本过低；用户未确认安装，已继续后续流程"
+        }
         return
     }
 
@@ -546,34 +868,48 @@ function Install-RequiredComponents {
         Get-Process -Name "GameBar", "GameBarFTServer", "GameBarPresenceWriter" -ErrorAction SilentlyContinue
     )
     if ($gameBarProcesses.Count -gt 0) {
-        Write-InstallLog ("Stopping Xbox Game Bar processes before prerequisite installation: {0}" -f (($gameBarProcesses | ForEach-Object { "$($_.ProcessName)#$($_.Id)" }) -join ", "))
-        $gameBarProcesses | Stop-Process -Force
-        Start-Sleep -Milliseconds 800
+        try {
+            Write-InstallLog ("Stopping Xbox Game Bar processes before prerequisite installation: {0}" -f (($gameBarProcesses | ForEach-Object { "$($_.ProcessName)#$($_.Id)" }) -join ", "))
+            $gameBarProcesses | Stop-Process -Force
+            Start-Sleep -Milliseconds 800
+        }
+        catch {
+            Add-InstallResult -Status Warning -Item "关闭 Xbox Game Bar" -Detail ((Get-ErrorReason $_) + "；仍会继续安装依赖")
+        }
     }
 
     foreach ($prerequisite in ($Prerequisites | Sort-Object Order)) {
         if (Test-PrerequisiteInstalled -Prerequisite $prerequisite) {
             Write-InstallLog ("Prerequisite already satisfies requirement: {0}" -f $prerequisite.PackageName)
+            $installed = Get-InstalledPrerequisitePackage -Prerequisite $prerequisite
+            Add-InstallResult -Status Success -Item $prerequisite.ChineseDisplayName -Detail ("已安装，版本 {0}" -f $installed.Version)
             continue
         }
 
         $packagePath = Join-Path $PrerequisiteRoot $prerequisite.FileName
         if (-not (Test-Path -LiteralPath $packagePath -PathType Leaf)) {
-            throw "Required prerequisite file was not found: $packagePath"
+            Add-InstallResult -Status Error -Item $prerequisite.ChineseDisplayName -Detail "离线安装包不存在：$packagePath"
+            continue
         }
 
-        Write-InstallLog ("Installing prerequisite {0}/{1}: {2} (minimum {3})" -f $prerequisite.Order, $Prerequisites.Count, $prerequisite.PackageName, $prerequisite.MinimumVersion)
-        Add-AppxPackageCompat -PackagePath $packagePath -ForceUpdate
+        try {
+            Write-InstallLog ("Installing prerequisite {0}/{1}: {2} (minimum {3})" -f $prerequisite.Order, $Prerequisites.Count, $prerequisite.PackageName, $prerequisite.MinimumVersion)
+            Add-AppxPackageCompat -PackagePath $packagePath -ForceUpdate
 
-        if (-not (Test-PrerequisiteInstalled -Prerequisite $prerequisite)) {
-            throw "Prerequisite installation finished but validation failed: $($prerequisite.PackageName)"
+            if (-not (Test-PrerequisiteInstalled -Prerequisite $prerequisite)) {
+                throw "安装命令执行完成，但没有检测到满足最低版本 $($prerequisite.MinimumVersion) 的组件"
+            }
+
+            $installed = Get-InstalledPrerequisitePackage -Prerequisite $prerequisite
+            Write-InstallLog ("Prerequisite validated: {0} {1}" -f $prerequisite.PackageName, $installed.Version)
+            Add-InstallResult -Status Success -Item $prerequisite.ChineseDisplayName -Detail ("安装成功，版本 {0}" -f $installed.Version)
         }
-
-        $installed = Get-InstalledPrerequisitePackage -Prerequisite $prerequisite
-        Write-InstallLog ("Prerequisite validated: {0} {1}" -f $prerequisite.PackageName, $installed.Version)
+        catch {
+            Add-InstallResult -Status Error -Item $prerequisite.ChineseDisplayName -Detail ((Get-ErrorReason $_) + "；已继续安装下一个组件")
+        }
     }
 
-    Write-InstallLog "All required components were installed and validated."
+    Write-InstallLog "Required component pass finished. Any individual failures were preserved and the installer continued."
 }
 
 function Install-OverlayPackage {
@@ -598,8 +934,13 @@ function Install-OverlayPackage {
     )
     $runningProcesses = @(Get-Process -Name $processNames -ErrorAction SilentlyContinue)
     if ($runningProcesses.Count -gt 0) {
-        Write-InstallLog ("Stopping running processes: {0}" -f (($runningProcesses | ForEach-Object { "$($_.ProcessName)#$($_.Id)" }) -join ", "))
-        $runningProcesses | Stop-Process -Force
+        try {
+            Write-InstallLog ("Stopping running processes: {0}" -f (($runningProcesses | ForEach-Object { "$($_.ProcessName)#$($_.Id)" }) -join ", "))
+            $runningProcesses | Stop-Process -Force
+        }
+        catch {
+            Add-InstallResult -Status Warning -Item "关闭正在运行的旧程序" -Detail ((Get-ErrorReason $_) + "；仍会继续安装")
+        }
     }
     else {
         Write-InstallLog "No Kill Confirm/Game Bar processes needed stopping."
@@ -614,10 +955,17 @@ function Install-OverlayPackage {
     $cert = Get-ChildItem -LiteralPath $OverlayRoot -Filter "*.cer" -File | Select-Object -First 1
     if ($cert) {
         Write-InstallLog "Installing package certificate: $($cert.FullName)"
-        Import-PackageCertificate -CertificatePath $cert.FullName
+        $certificateResult = Import-PackageCertificate -CertificatePath $cert.FullName
+        if ($certificateResult.ImportedCount -gt 0) {
+            Add-InstallResult -Status Success -Item "Kill Confirm 包签名证书" -Detail ("已写入 {0} 个证书库" -f $certificateResult.ImportedCount)
+        }
+        else {
+            Add-InstallResult -Status Error -Item "Kill Confirm 包签名证书" -Detail ("所有证书库均导入失败：{0}" -f $certificateResult.LastFailure)
+        }
     }
     else {
         Write-InstallLog "No package certificate found beside MSIX."
+        Add-InstallResult -Status Error -Item "Kill Confirm 包签名证书" -Detail "主程序旁边没有找到 .cer 证书文件"
     }
 
     $dependencies = @()
@@ -636,11 +984,21 @@ function Install-OverlayPackage {
         }
         if (Test-AppxPackageInstalled -PackagePath $dependency) {
             Write-InstallLog "Dependency already installed: $dependencyName"
+            Add-InstallResult -Status Success -Item ("主程序依赖：{0}" -f $dependencyName) -Detail "已安装且版本满足要求"
             continue
         }
 
-        Write-InstallLog "Installing dependency: $dependencyName"
-        Add-AppxPackageCompat -PackagePath $dependency
+        try {
+            Write-InstallLog "Installing dependency: $dependencyName"
+            Add-AppxPackageCompat -PackagePath $dependency
+            if (-not (Test-AppxPackageInstalled -PackagePath $dependency)) {
+                throw "安装命令完成后验证失败"
+            }
+            Add-InstallResult -Status Success -Item ("主程序依赖：{0}" -f $dependencyName) -Detail "安装并验证成功"
+        }
+        catch {
+            Add-InstallResult -Status Error -Item ("主程序依赖：{0}" -f $dependencyName) -Detail ((Get-ErrorReason $_) + "；已继续安装其他依赖和主程序")
+        }
     }
 
     Write-InstallLog "Installing MSIX package: $($msix.Name)"
@@ -657,11 +1015,14 @@ function Install-OverlayPackage {
             Write-InstallLog "Installed MSIX detected: $installedVersion; Status=$installedStatus; Location=$($installedMsix.InstallLocation)"
             if ($installedVersion -eq $msixIdentity.Version -and $installedStatus -eq "Ok") {
                 Write-InstallLog "The same healthy MSIX version is already registered. Skipping package replacement and continuing repair steps."
+                Add-InstallResult -Status Success -Item "Kill Confirm Overlay 主程序" -Detail ("版本 {0} 已安装且状态正常；继续执行修复步骤" -f $installedVersion)
                 return
             }
         }
     }
     Add-AppxPackageCompat -PackagePath $msix.FullName -ForceUpdate -DeferWhenInUse -UseSystemVolume
+    $installedPackage = Get-InstalledOverlayPackage
+    Add-InstallResult -Status Success -Item "Kill Confirm Overlay 主程序" -Detail ("安装成功，版本 {0}" -f $installedPackage.Version)
 }
 
 function Test-OverlayPackageInstalled {
@@ -809,12 +1170,14 @@ function Install-Cs2GsiConfig {
         $cfgPath = Join-Path $cfgRoot "gamestate_integration_killconfirm.cfg"
         Set-Content -LiteralPath $cfgPath -Value $configLines -Encoding ASCII
         Write-InstallLog "CS2 GSI config installed: $cfgPath"
+        Add-InstallResult -Status Success -Item "CS2 GSI 配置" -Detail "已写入：$cfgPath"
         $installed = $true
         }
     }
 
     if (-not $installed) {
         Write-Warning "CS2 cfg folder was not found. If kill events do not trigger, install gamestate_integration_killconfirm.cfg manually."
+        Add-InstallResult -Status Warning -Item "CS2 GSI 配置" -Detail "没有找到 CS2 的 game\csgo\cfg 目录；可在插件内稍后配置"
     }
 
     $runningCs2 = @(Get-Process -Name "cs2" -ErrorAction SilentlyContinue)
@@ -826,53 +1189,107 @@ function Install-Cs2GsiConfig {
 }
 
 try {
-    if (Test-Path $LogPath) {
-        Remove-Item -LiteralPath $LogPath -Force
+    try {
+        if (Test-Path $LogPath) {
+            Remove-Item -LiteralPath $LogPath -Force
+        }
     }
+    catch {
+        # Continue even if an older log is locked. Add-Content will report any later write problem.
+    }
+
     if ($InstallPrerequisites) {
-        Install-RequiredComponents
+        try {
+            Install-RequiredComponents
+        }
+        catch {
+            Add-InstallResult -Status Error -Item "外部前置依赖检查" -Detail ((Get-ErrorReason $_) + "；已继续安装 Game Bar 检查、主程序和后续配置")
+        }
     }
     else {
         Write-InstallLog "Dependency-free installer selected. Prerequisite detection and installation are disabled."
+        Add-InstallResult -Status Warning -Item "外部前置依赖" -Detail "无依赖更新版按设计跳过检测与离线安装"
     }
-    Confirm-XboxGameBarAvailable
-    Install-OverlayPackage
-    Test-OverlayPackageInstalled
+
+    try {
+        Confirm-XboxGameBarAvailable
+        Add-InstallResult -Status Success -Item "Xbox Game Bar 可用性" -Detail "已检测到 Xbox Game Bar"
+    }
+    catch {
+        Add-InstallResult -Status Error -Item "Xbox Game Bar 可用性" -Detail ((Get-ErrorReason $_) + "；已打开商店页面，并继续尝试安装主程序")
+    }
+
+    try {
+        Repair-XboxGameBarEnvironment
+    }
+    catch {
+        Add-InstallResult -Status Error -Item "Game Bar 环境修复" -Detail ((Get-ErrorReason $_) + "；已继续安装 Kill Confirm 主程序")
+    }
+
+    try {
+        Install-OverlayPackage
+        Test-OverlayPackageInstalled
+    }
+    catch {
+        $mainAlreadyReported = @($InstallResults | Where-Object { $_.Item -eq "Kill Confirm Overlay 主程序" -and $_.Status -eq "Error" }).Count -gt 0
+        if (-not $mainAlreadyReported) {
+            Add-InstallResult -Status Error -Item "Kill Confirm Overlay 主程序" -Detail ((Get-ErrorReason $_) + "；后续 CFG 和回环配置仍会继续执行")
+        }
+    }
 
     if (-not $SkipGsiConfig) {
-        Install-Cs2GsiConfig
+        try {
+            Install-Cs2GsiConfig
+        }
+        catch {
+            Add-InstallResult -Status Error -Item "CS2 GSI 配置" -Detail ((Get-ErrorReason $_) + "；不影响继续处理回环配置")
+        }
+    }
+    else {
+        Add-InstallResult -Status Warning -Item "CS2 GSI 配置" -Detail "已通过命令行参数跳过"
     }
 
     if (-not $SkipLoopback) {
-        if (-not $PackageFamilyName) {
-            Update-InstalledPackageContext | Out-Null
+        try {
+            if (-not $PackageFamilyName) {
+                Update-InstalledPackageContext | Out-Null
+            }
+            Write-InstallLog "Adding loopback exemption for $PackageFamilyName..."
+            & CheckNetIsolation.exe LoopbackExempt -a "-n=$PackageFamilyName"
+            if ($LASTEXITCODE -ne 0) {
+                throw "CheckNetIsolation 返回退出码 $LASTEXITCODE"
+            }
+            Add-InstallResult -Status Success -Item "本机回环通信权限" -Detail "Widget 可以访问 127.0.0.1 上的伴随服务"
         }
-        Write-InstallLog "Adding loopback exemption for $PackageFamilyName..."
-        & CheckNetIsolation.exe LoopbackExempt -a "-n=$PackageFamilyName"
-        if ($LASTEXITCODE -ne 0) {
-            throw "Failed to add loopback exemption for $PackageFamilyName"
+        catch {
+            Add-InstallResult -Status Error -Item "本机回环通信权限" -Detail (Get-ErrorReason $_)
         }
+    }
+    else {
+        Add-InstallResult -Status Warning -Item "本机回环通信权限" -Detail "已通过命令行参数跳过"
     }
 
     if ($OpenGameBar) {
-        Start-Sleep -Milliseconds 800
         try {
+            Start-Sleep -Milliseconds 800
             Start-Process "ms-gamebar:" | Out-Null
+            Add-InstallResult -Status Success -Item "打开 Xbox Game Bar" -Detail "已发送启动请求"
         }
         catch {
+            Add-InstallResult -Status Warning -Item "打开 Xbox Game Bar" -Detail (Get-ErrorReason $_)
         }
     }
 
-    Write-InstallLog "Kill Confirm installed."
-    Write-Host ""
-    Write-Host "Kill Confirm installed."
-    Write-Host "Press Win+G and launch Kill Confirm Overlay."
-    Write-Host "The packaged background service starts from inside the app."
+    Write-InstallLog "Kill Confirm installation pass finished."
 }
 catch {
-    Write-InstallLog "Install failed: $($_.Exception.Message)"
-    Write-InstallLog "Log: $LogPath"
-    throw
+    Add-InstallResult -Status Error -Item "安装器未预期错误" -Detail (Get-ErrorReason $_)
+}
+finally {
+    if ($InstallResults.Count -eq 0) {
+        Add-InstallResult -Status Error -Item "安装器" -Detail "没有生成任何安装结果，请查看详细日志"
+    }
+    Show-InstallSummary
 }
 '@
 

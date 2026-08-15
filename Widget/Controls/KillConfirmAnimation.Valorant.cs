@@ -320,6 +320,22 @@ namespace KillConfirmGameBar.Controls
 
             double emblemY = cy + (GetValorantDemoEmblemYOffset(elapsedMs) * ValorantDemoVfxScale);
             DrawCenteredImageAt(drawingSession, asset.Emblem, cx, emblemY, ValorantDemoEmblemCssSize * profile.EmblemScale * ValorantDemoVfxScale, ValorantDemoEmblemCssSize * profile.EmblemScale * ValorantDemoVfxScale, 1, 1);
+            double flashOpacity = GetValorantDemoFlashOpacity(elapsedMs);
+            if (flashOpacity > 0)
+            {
+                DrawCenteredFlashImageAt(
+                    drawingSession,
+                    asset.Emblem,
+                    cx,
+                    cy,
+                    ValorantDemoEmblemCssSize * profile.EmblemScale * ValorantDemoVfxScale,
+                    ValorantDemoEmblemCssSize * profile.EmblemScale * ValorantDemoVfxScale,
+                    1,
+                    flashOpacity,
+                    ValorantDemoFlashColor,
+                    asset.Brightness,
+                    asset.Contrast);
+            }
 
             if (asset.IsHeadshot)
             {

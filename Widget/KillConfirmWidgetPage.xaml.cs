@@ -59,6 +59,8 @@ namespace KillConfirmGameBar
         };
         private const double DefaultAudioVolumeValue = 100;
         private const double DefaultPlaybackFpsValue = 60;
+        private const double MinimumPlaybackFpsValue = 30;
+        private const double MaximumPlaybackFpsValue = 60;
         private const string BrightnessSettingKey = "AnimationBrightness";
         private const string ContrastSettingKey = "AnimationContrast";
         private const string AudioVolumeSettingKey = "AudioVolume";

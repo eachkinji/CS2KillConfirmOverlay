@@ -1170,10 +1170,6 @@
                         <ComboBoxItem Tag="40">40</ComboBoxItem>
                         <ComboBoxItem Tag="50">50</ComboBoxItem>
                         <ComboBoxItem Tag="60">60</ComboBoxItem>
-                        <ComboBoxItem Tag="70">70</ComboBoxItem>
-                        <ComboBoxItem Tag="80">80</ComboBoxItem>
-                        <ComboBoxItem Tag="90">90</ComboBoxItem>
-                        <ComboBoxItem Tag="120">120</ComboBoxItem>
                     </ComboBox>
                             </Grid>
                         </StackPanel>

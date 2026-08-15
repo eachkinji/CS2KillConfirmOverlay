@@ -1,8 +1,12 @@
 name: Release
 
 on:
-  release:
-    types: [published]
+  workflow_dispatch:
+    inputs:
+      releaseTag:
+        description: Existing draft release tag to receive the two installer EXE files
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -12,5 +16,5 @@ jobs:
     uses: ./.github/workflows/build.yml
     with:
       uploadToRelease: true
-      releaseTag: ${{ github.event.release.tag_name }}
+      releaseTag: ${{ inputs.releaseTag }}
     secrets: inherit

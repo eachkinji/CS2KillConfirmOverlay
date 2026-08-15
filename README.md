@@ -1,130 +1,133 @@
-链接：https://pan.quark.cn/s/1f3cfbcf8d5f?pwd=7Twv
+<div align="center">
+  <img src="Widget/Assets/Square150x150Logo.scale-200.png" width="112" alt="Kill Confirm Overlay logo" />
 
-提取码：7Twv
+# Kill Confirm Overlay
 
-本项目使用了AI生成的代码
+**A customizable CS2 kill-confirm experience built for Xbox Game Bar.**
 
-This project incorporates AI-generated code.
+<p>
+  <strong>English</strong> · <a href="README.zh-CN.md">简体中文</a>
+</p>
 
-----
+<a href="https://pan.quark.cn/s/1f3cfbcf8d5f?pwd=7Twv"><img src="https://img.shields.io/badge/Download-Quark%20Drive-6C5CE7?style=for-the-badge" alt="Download from Quark Drive" /></a>
 
-目前收集到的反馈有需要：
+**Access code: `7Twv`**
 
-战争前线
+<p>
+  <a href="https://github.com/eachkinji/CS2KillConfirmOverlay/releases"><img src="https://img.shields.io/github/v/release/eachkinji/CS2KillConfirmOverlay?display_name=tag&style=flat-square" alt="Latest release" /></a>
+  <img src="https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4?style=flat-square&logo=windows" alt="Windows 10 and 11" />
+  <img src="https://img.shields.io/badge/Xbox-Game%20Bar-107C10?style=flat-square&logo=xbox" alt="Xbox Game Bar" />
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/eachkinji/CS2KillConfirmOverlay?style=flat-square" alt="License" /></a>
+</p>
+</div>
 
-OverWatch
+## Overview
 
-塔可夫
+Kill Confirm Overlay listens to Counter-Strike 2 Game State Integration events, plays contextual voice lines, and renders animated kill effects inside Xbox Game Bar. It stays visible over the game without reading from or injecting into the CS2 process.
 
-CODOL
+The project has grown from a simple kill-confirm sound tool into a configurable presentation system with independent game-inspired styles, custom media, streak logic, event priorities, and high-resolution rendering.
 
-卡拉彼丘
+> [!NOTE]
+> The names of other games identify presentation styles inspired by those games. CS2 remains the game that provides the live events through GSI.
 
-COD16/19
+## Open-source foundation and community collaboration
 
-Apex
+<table>
+  <tr>
+    <td align="center" width="120">
+      <a href="https://github.com/st0nie">
+        <img src="https://avatars.githubusercontent.com/u/42872734?v=4&s=160" width="80" alt="st0nie avatar" /><br />
+        <strong>ston · st0nie</strong>
+      </a>
+    </td>
+    <td>
+      <strong>Thanks to the original cskillconfirm developer</strong><br /><br />
+      Special thanks to <a href="https://github.com/st0nie">ston (st0nie)</a> for the original idea and foundational code provided by <a href="https://github.com/st0nie/cskillconfirm"><code>cskillconfirm</code></a>. Its CS2 kill-confirm approach made this project possible. This project also uses ideas and integration work from <a href="https://github.com/st0nie/gsi-cs2-rs"><code>gsi-cs2-rs</code></a>.
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="120">
+      <a href="https://github.com/gufan0000">
+        <img src="https://avatars.githubusercontent.com/u/113977586?v=4&s=160" width="80" alt="gufan0000 avatar" /><br />
+        <strong>gufan0000</strong>
+      </a>
+    </td>
+    <td>
+      <strong>More CS2 customization: CS2 Customizer</strong><br /><br />
+      If you want more extensive customization—including crosshairs, kill sounds and icons, HUD colors, in-game view settings, and utility lineups—visit <a href="https://github.com/gufan0000/cs2-customizer"><code>gufan0000/cs2-customizer</code></a>. The two projects work in close coordination and are deeply integrated with each other's customization workflow.
+    </td>
+  </tr>
+</table>
 
-The finals
+## Highlights
 
-CSOL
+- **Xbox Game Bar overlay** — open, position, scale, and pin the widget with `Win + G`.
+- **Context-aware kill events** — normal kills, headshots, knife kills, first kills, final kills, assists, streaks, and spectated-teammate events.
+- **Eleven built-in presentation styles** — CrossFire, CSOL, VALORANT, Battlefield 1, Battlefield V, Battlefield 4, Battlefield 2042, PUBG, Delta Force, Doubao, and Dagoujiao.
+- **Flexible streak logic** — life-based, round-based, and looped streak windows with a configurable loop point from 2 to 50 kills.
+- **Custom images and audio** — choose bundled assets or import supported images and voice lines for individual events and styles.
+- **Advanced audio control** — per-style priorities, volume controls, event-specific sounds, and configurable playback speed/pitch behavior.
+- **Bomb audio timeline** — optional sounds for plant, defuse, explosion, and round reset, with independently adjustable speed for each five-second segment.
+- **High-resolution visuals** — optimized rendering, positioning, and scaling for high-DPI displays and 4:3 fullscreen resolutions.
+- **Independent profiles** — style, asset-pack, animation, and advanced settings are persisted separately to reduce cross-style interference.
+- **Bilingual interface and update checks** — English/Simplified Chinese UI plus a check against the latest published GitHub Release when the widget opens.
 
-战地6
+## How it works
 
-R6
+```text
+CS2 Game State Integration
+            ↓
+Local Rust service on 127.0.0.1:10087
+            ↓
+Event classification and audio playback
+            ↓
+Xbox Game Bar animated overlay
+```
 
-混搭音效
-
-这些游戏和功能不一定都做，需要看情况
-
-----
-
-[English](README.md) | [简体中文](README.zh-CN.md)
-
-# KillConfirmGameBar
-KillConfirmGameBar is a Counter-Strike 2 kill-confirm overlay for Xbox Game Bar.
-
-It plays voice lines and shows animated effects when CS2 reports kills through Game State Integration. The overlay runs inside Xbox Game Bar, so it can stay on top while you play.
-
-## Roadmap
-
-Implemented today:
-
-- Kill voice lines for CS2 kill events.
-- Kill confirmation icons and animated overlay effects.
-
-Planned work:
-
-- Code-driven kill effects for broader icon compatibility. The current overlay still uses animation frame assets.
-- More character voice packs.
-- A more complete settings panel, including finer animation frame-rate controls.
-- More in-match voice events, such as C4 events, round-start voice lines, and round-end voice lines.
-
-## Important Notes
-
-- The overlay listens on a local port for CS2 Game State Integration events. System-wide proxy tools can prevent the local service from receiving events. If the widget starts but kills do not trigger any sound or icon, turn off the system proxy before playing.
-- This is especially relevant for proxy clients such as Clash-style tools. Add this note to video descriptions and setup guides so users know to disable the system proxy when troubleshooting.
-
-## Features
-
-- CS2 kill-confirm sound effects.
-- Xbox Game Bar overlay widget.
-- Animated effects for normal kills, headshots, knife kills, first kills, and last kills.
-- Voice-pack switching from the control panel.
-- Small-group Windows installer support.
-
-Current voice packs:
-
-- `swat GR / swat BL`
-- `tiger GR / tiger BL`
-- `cfsex`
-- `women GR / women BL`
+The companion service receives GSI data locally. The widget then selects the appropriate animation, image, and audio based on the active style and event priority.
 
 ## Requirements
 
-- Windows 10/11
+- Windows 10 or Windows 11
 - Xbox Game Bar enabled
 - Counter-Strike 2
 
-If you want to build from source, you also need:
+## Installation
 
-- Rust toolchain
-- Visual Studio or Visual Studio Build Tools with Windows/UWP/MSIX tooling
-- Inno Setup 6, only for building the optional `.exe` installer
-
-## Install
-
-For normal use, download a release package and run the installer or install script included with that release.
-
-After installing:
-
-1. Open Xbox Game Bar with `Win + G`.
-2. Open the Kill Confirm Overlay widget.
-3. Start CS2.
-4. The installer will try to configure CS2 Game State Integration automatically.
-
-The overlay uses a small local companion service. The installer sets up the package and the local connection needed by the Xbox Game Bar widget.
+1. Download the package from [Quark Drive](https://pan.quark.cn/s/1f3cfbcf8d5f?pwd=7Twv) using access code `7Twv`, or use the [GitHub Releases](https://github.com/eachkinji/CS2KillConfirmOverlay/releases) page.
+2. Choose the installer that fits your system:
+   - **With dependencies — recommended for new users:** includes prerequisites required for first-time installation.
+   - **Dependency-free — recommended for updates:** intended for systems where an earlier version already works correctly.
+3. Run the installer.
+4. Press `Win + G`, open Kill Confirm Overlay, and pin it if desired.
+5. Start CS2. The installer will attempt to configure Game State Integration automatically.
 
 ## CS2 Game State Integration
 
-CS2 needs a GSI config that points to:
+The overlay listens at:
 
 ```text
 http://127.0.0.1:10087/
 ```
 
-The installer tries to create this config automatically. If kill events do not trigger, place `KillConfirmService/gsi/gamestate_integration_killconfirm.cfg` in the CS2 cfg folder manually:
+The installer attempts to create the required GSI configuration automatically. If events do not trigger, copy `KillConfirmService/gsi/gamestate_integration_killconfirm.cfg` into:
 
 ```text
 C:\Program Files (x86)\Steam\steamapps\common\Counter-Strike Global Offensive\game\csgo\cfg\
 ```
 
-The upstream GSI reference config is available here:
+The upstream reference configuration is available in [`gsi-cs2-rs`](https://github.com/st0nie/gsi-cs2-rs/blob/main/gsi_cfg/gamestate_integration_fast.cfg).
 
-```text
-https://github.com/st0nie/gsi-cs2-rs/blob/main/gsi_cfg/gamestate_integration_fast.cfg
-```
+## Troubleshooting
 
-## Build From Source
+- **No sound or animation after a kill:** confirm that the local service is running and the GSI file is in the correct CS2 `cfg` directory.
+- **Using Clash or another system-wide proxy:** disable the system proxy or exclude `127.0.0.1`. Some proxy configurations intercept local traffic and prevent the service from receiving GSI events.
+- **Updating an existing installation:** use the dependency-free installer only if the previous version and its prerequisites already work correctly.
+- **Custom content:** only import asset and voice packs from sources you trust.
+
+## Build from source
+
+Source builds require the Rust toolchain, Visual Studio or Visual Studio Build Tools with Windows/UWP/MSIX tooling, and Inno Setup 6 when building the optional `.exe` installers.
 
 From the repository root:
 
@@ -132,65 +135,45 @@ From the repository root:
 .\Build-IntegratedPackage.ps1
 ```
 
-To create a transferable install package:
+Create the transferable packages:
 
 ```powershell
 .\Build-TransferPackage.ps1
 ```
 
-To create the optional installer:
+Create the installers:
 
 ```powershell
 .\Build-Installer.ps1
 ```
 
-## Project Layout
+## Project layout
 
-- `KillConfirmService`: Rust local service for CS2 Game State Integration and audio playback.
-- `Widget`: Xbox Game Bar widget.
-- `Package`: Windows packaging project.
-- `Installer`: installer wrapper files.
-- `SourceAssets`: source animations, audio, icons, and voice packs.
+- `KillConfirmService` — Rust local service for GSI event processing and audio playback.
+- `Widget` — Xbox Game Bar interface, settings, and visual effects.
+- `Package` — Windows packaging project.
+- `Installer` — installer definitions and supporting files.
+- `SourceAssets` — source animations, images, audio, icons, and built-in style packs.
 
-Generated package-ready files are refreshed from `SourceAssets` during the build.
+Package-ready resources are refreshed from `SourceAssets` during the build.
 
-## Notes
+## Additional credits
 
-- The app communicates only with a local service on `127.0.0.1`.
-- Voice-pack behavior is controlled by `sound.lua` files inside each sound pack.
-- Only install sound packs from sources you trust.
-- Test signing files are for development builds only. Public releases should be signed with a proper release certificate or trusted signing service.
+- [`gd656killicon`](https://github.com/MinecraftGD656/gd656killicon) by MinecraftGD656.
+- [Steam Workshop item 2721562982](https://steamcommunity.com/sharedfiles/filedetails/?id=2721562982).
 
-## Credits
+This project incorporates AI-generated code.
 
-The Rust service is based on the open-source `cskillconfirm` project by st0nie:
+## License and disclaimer
 
-```text
-[https://github.com/st0nie/cskillconfirm]
-```
+Licensed under the [GNU Affero General Public License v3.0](LICENSE).
 
-This project also uses `gsi-cs2-rs`:
+This project is not affiliated with Valve, Microsoft, Xbox, CrossFire, Riot Games, Electronic Arts, Krafton, Tencent, ByteDance, or any other game publisher. All referenced product names and trademarks belong to their respective owners.
 
-```text
-[https://github.com/st0nie/gsi-cs2-rs]
-```
+## Star history
 
-Additionally, this project incorporates resources and inspiration from the following works:
-
-**gd656killicon** by MinecraftGD656:
-
-```text
-[https://github.com/MinecraftGD656/gd656killicon]
-```
-
-**Steam Workshop Item (ID: 2721562982)**:
-
-```text
-[https://steamcommunity.com/sharedfiles/filedetails/?id=2721562982]
-```
-
-## License
-
-This project is licensed under the GNU Affero General Public License v3.0. See `LICENSE`.
-
-This project is not affiliated with Valve, Microsoft, Xbox, CrossFire, Valorant, Battlefield, or any other game publisher.
+<div align="center">
+  <a href="https://star-history.com/#eachkinji/CS2KillConfirmOverlay&Date">
+    <img src="https://api.star-history.com/svg?repos=eachkinji/CS2KillConfirmOverlay&type=Date" alt="Star History Chart" />
+  </a>
+</div>

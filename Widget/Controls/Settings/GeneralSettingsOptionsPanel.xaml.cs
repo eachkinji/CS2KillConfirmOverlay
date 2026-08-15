@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using KillConfirmGameBar.Controls.GameStyles;
 using KillConfirmGameBar.Services;
@@ -55,6 +54,10 @@ namespace KillConfirmGameBar.Controls.Settings
             BombAudioHintText.Text = LocalizationManager.Text("BombAudioHint");
             BombAudioVolumeLabelText.Text = LocalizationManager.Text("BombAudioVolumeLabel");
             BombAudioSpeedLabelText.Text = LocalizationManager.Text("BombAudioSpeedLabel");
+            BombAudioInitialSpeedLabelText.Text =
+                LocalizationManager.Text("BombAudioInitialSpeedLabel");
+            BombAudioFinalSpeedLabelText.Text =
+                LocalizationManager.Text("BombAudioFinalSpeedLabel");
             BombAudioToggle.OffContent = LocalizationManager.Text("Off");
             BombAudioToggle.OnContent = LocalizationManager.Text("On");
         }
@@ -184,14 +187,8 @@ namespace KillConfirmGameBar.Controls.Settings
                 BombAudioSettingsValues settings = BombAudioSettingsStore.Load();
                 BombAudioToggle.IsOn = settings.Enabled;
                 BombAudioVolumeSlider.Value = settings.VolumePercent;
-                Slider[] speedSliders = GetBombAudioSpeedSliders();
-                int[] speedPercents = settings.SpeedPercents ?? BombAudioSettingsStore.CreateDefaultSpeedPercents();
-                for (int index = 0; index < speedSliders.Length; index++)
-                {
-                    speedSliders[index].Value = index < speedPercents.Length
-                        ? speedPercents[index]
-                        : BombAudioSettingsStore.CreateDefaultSpeedPercents()[index];
-                }
+                BombAudioInitialSpeedSlider.Value = settings.InitialSpeedPercent;
+                BombAudioFinalSpeedSlider.Value = settings.FinalSpeedPercent;
                 SetBombAudioControlsEnabled(settings.Enabled);
                 UpdateBombAudioVolumeText(settings.VolumePercent);
                 UpdateBombAudioSpeedTexts();
@@ -229,6 +226,10 @@ namespace KillConfirmGameBar.Controls.Settings
 
         private void OnBombAudioSpeedChanged(object sender, Windows.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
         {
+            if (BombAudioFinalSpeedSlider.Value < BombAudioInitialSpeedSlider.Value)
+            {
+                BombAudioFinalSpeedSlider.Value = BombAudioInitialSpeedSlider.Value;
+            }
             if (_suppressBombAudioEvents)
             {
                 return;
@@ -251,7 +252,8 @@ namespace KillConfirmGameBar.Controls.Settings
             BombAudioSettingsStore.Save(
                 BombAudioToggle.IsOn,
                 BombAudioVolumeSlider.Value,
-                GetBombAudioSpeedSliders().Select(slider => slider.Value));
+                BombAudioInitialSpeedSlider.Value,
+                BombAudioFinalSpeedSlider.Value);
         }
 
         private void UpdateBombAudioVolumeText(double value)
@@ -261,57 +263,19 @@ namespace KillConfirmGameBar.Controls.Settings
 
         private void UpdateBombAudioSpeedTexts()
         {
-            Slider[] sliders = GetBombAudioSpeedSliders();
-            TextBlock[] labels = GetBombAudioSpeedLabels();
-            for (int index = 0; index < sliders.Length; index++)
-            {
-                int upperSeconds = 40 - index * 5;
-                int lowerSeconds = upperSeconds - 5;
-                labels[index].Text = string.Format(
-                    "{0}–{1}s  {2:0.00}×",
-                    upperSeconds,
-                    lowerSeconds,
-                    sliders[index].Value / 100.0);
-            }
+            BombAudioInitialSpeedValueText.Text = string.Format(
+                "{0:0.00}×",
+                BombAudioInitialSpeedSlider.Value / 100.0);
+            BombAudioFinalSpeedValueText.Text = string.Format(
+                "{0:0.00}×",
+                BombAudioFinalSpeedSlider.Value / 100.0);
         }
 
         private void SetBombAudioControlsEnabled(bool enabled)
         {
             BombAudioVolumeSlider.IsEnabled = enabled;
-            foreach (Slider slider in GetBombAudioSpeedSliders())
-            {
-                slider.IsEnabled = enabled;
-            }
-        }
-
-        private Slider[] GetBombAudioSpeedSliders()
-        {
-            return new[]
-            {
-                BombAudioSpeed0Slider,
-                BombAudioSpeed1Slider,
-                BombAudioSpeed2Slider,
-                BombAudioSpeed3Slider,
-                BombAudioSpeed4Slider,
-                BombAudioSpeed5Slider,
-                BombAudioSpeed6Slider,
-                BombAudioSpeed7Slider
-            };
-        }
-
-        private TextBlock[] GetBombAudioSpeedLabels()
-        {
-            return new[]
-            {
-                BombAudioSpeed0Text,
-                BombAudioSpeed1Text,
-                BombAudioSpeed2Text,
-                BombAudioSpeed3Text,
-                BombAudioSpeed4Text,
-                BombAudioSpeed5Text,
-                BombAudioSpeed6Text,
-                BombAudioSpeed7Text
-            };
+            BombAudioInitialSpeedSlider.IsEnabled = enabled;
+            BombAudioFinalSpeedSlider.IsEnabled = enabled;
         }
 
         private static async Task SyncBombAudioSettingsAsync()

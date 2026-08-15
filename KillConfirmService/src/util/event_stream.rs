@@ -31,9 +31,10 @@ use crate::util::logging::{
 use crate::util::playback::{get_output_stream_with_name, output_device_names};
 
 use super::state::{
-    AppState, CrossfireStreakMode, DEFAULT_BOMB_AUDIO_SPEED_PERCENTS, EventBatch, EventChannel,
-    EventSoundMode, EventSoundRoute, EventSoundSettings, GsiGameVersion, KillEvent,
-    MoneyRewardMode, format_streak_setting, parse_streak_setting,
+    AppState, CrossfireStreakMode, DEFAULT_BOMB_AUDIO_FINAL_SPEED_PERCENT,
+    DEFAULT_BOMB_AUDIO_INITIAL_SPEED_PERCENT, EventBatch, EventChannel, EventSoundMode,
+    EventSoundRoute, EventSoundSettings, GsiGameVersion, KillEvent, MoneyRewardMode,
+    format_streak_setting, parse_streak_setting,
 };
 
 #[derive(Debug, Deserialize)]
@@ -97,12 +98,27 @@ pub struct VolumeRequest {
 pub struct BombAudioSettingsRequest {
     pub enabled: bool,
     pub volume_percent: u32,
-    #[serde(default = "default_bomb_audio_speed_percents")]
-    pub speed_percents: [u32; 8],
+    #[serde(default)]
+    pub initial_speed_percent: Option<u32>,
+    #[serde(default)]
+    pub final_speed_percent: Option<u32>,
+    #[serde(default)]
+    pub speed_percents: Option<[u32; 8]>,
 }
 
-fn default_bomb_audio_speed_percents() -> [u32; 8] {
-    DEFAULT_BOMB_AUDIO_SPEED_PERCENTS
+fn resolve_bomb_audio_speed_range(request: &BombAudioSettingsRequest) -> (u32, u32) {
+    let initial = request
+        .initial_speed_percent
+        .or_else(|| request.speed_percents.map(|speeds| speeds[0]))
+        .unwrap_or(DEFAULT_BOMB_AUDIO_INITIAL_SPEED_PERCENT)
+        .clamp(25, 400);
+    let final_speed = request
+        .final_speed_percent
+        .or_else(|| request.speed_percents.map(|speeds| speeds[7]))
+        .unwrap_or(DEFAULT_BOMB_AUDIO_FINAL_SPEED_PERCENT)
+        .clamp(25, 400)
+        .max(initial);
+    (initial, final_speed)
 }
 
 #[derive(Debug, Deserialize)]
@@ -288,7 +304,8 @@ pub struct GsiGameSettingsResponse {
 pub struct BombAudioSettingsResponse {
     pub enabled: bool,
     pub volume_percent: u32,
-    pub speed_percents: [u32; 8],
+    pub initial_speed_percent: u32,
+    pub final_speed_percent: u32,
 }
 
 #[derive(Debug, Serialize)]
@@ -777,27 +794,27 @@ pub async fn set_bomb_audio_settings(
     Json(request): Json<BombAudioSettingsRequest>,
 ) -> Json<BombAudioSettingsResponse> {
     let volume_percent = request.volume_percent.min(100);
+    let (initial_speed_percent, final_speed_percent) = resolve_bomb_audio_speed_range(&request);
     app_state
         .bomb_audio_volume_percent
         .store(volume_percent, Ordering::Relaxed);
     app_state
         .bomb_audio_enabled
         .store(request.enabled, Ordering::Relaxed);
-    for (target, requested) in app_state
-        .bomb_audio_speed_percents
-        .iter()
-        .zip(request.speed_percents.iter().copied())
-    {
-        target.store(requested.clamp(25, 400), Ordering::Relaxed);
-    }
+    app_state
+        .bomb_audio_initial_speed_percent
+        .store(initial_speed_percent, Ordering::Relaxed);
+    app_state
+        .bomb_audio_final_speed_percent
+        .store(final_speed_percent, Ordering::Relaxed);
     if request.enabled {
         refresh_bomb_audio_volume(&app_state);
     } else {
         stop_bomb_audio(&app_state);
     }
     service_log(&format!(
-        "bomb audio settings: enabled={}, volume={volume_percent}%, speeds={:?}",
-        request.enabled, request.speed_percents
+        "bomb audio settings: enabled={}, volume={volume_percent}%, speed={initial_speed_percent}%->{final_speed_percent}%",
+        request.enabled
     ));
     Json(bomb_audio_settings_response(&app_state))
 }
@@ -1569,11 +1586,14 @@ fn bomb_audio_settings_response(app_state: &AppState) -> BombAudioSettingsRespon
             .bomb_audio_volume_percent
             .load(Ordering::Relaxed)
             .min(100),
-        speed_percents: std::array::from_fn(|index| {
-            app_state.bomb_audio_speed_percents[index]
-                .load(Ordering::Relaxed)
-                .clamp(25, 400)
-        }),
+        initial_speed_percent: app_state
+            .bomb_audio_initial_speed_percent
+            .load(Ordering::Relaxed)
+            .clamp(25, 400),
+        final_speed_percent: app_state
+            .bomb_audio_final_speed_percent
+            .load(Ordering::Relaxed)
+            .clamp(25, 400),
     }
 }
 
@@ -1751,7 +1771,10 @@ fn zero_to_none(value: u64) -> Option<u64> {
 
 #[cfg(test)]
 mod tests {
-    use super::{BombAudioSettingsRequest, CsolSettingsRequest, DagoujiaoSettingsRequest};
+    use super::{
+        BombAudioSettingsRequest, CsolSettingsRequest, DagoujiaoSettingsRequest,
+        resolve_bomb_audio_speed_range,
+    };
 
     #[test]
     fn csol_settings_request_defaults_priority_to_streak_first() {
@@ -1761,13 +1784,28 @@ mod tests {
     }
 
     #[test]
-    fn bomb_audio_settings_request_uses_new_default_speed_segments() {
+    fn bomb_audio_settings_request_uses_default_speed_range() {
         let request: BombAudioSettingsRequest =
             serde_json::from_str(r#"{"enabled":false,"volume_percent":50}"#).unwrap();
-        assert_eq!(
-            request.speed_percents,
-            [50, 70, 80, 100, 110, 120, 130, 150]
-        );
+        assert_eq!(resolve_bomb_audio_speed_range(&request), (50, 150));
+    }
+
+    #[test]
+    fn bomb_audio_settings_request_migrates_legacy_speed_segments() {
+        let request: BombAudioSettingsRequest = serde_json::from_str(
+            r#"{"enabled":true,"volume_percent":50,"speed_percents":[60,70,80,90,100,110,120,180]}"#,
+        )
+        .unwrap();
+        assert_eq!(resolve_bomb_audio_speed_range(&request), (60, 180));
+    }
+
+    #[test]
+    fn bomb_audio_final_speed_never_falls_below_initial_speed() {
+        let request: BombAudioSettingsRequest = serde_json::from_str(
+            r#"{"enabled":true,"volume_percent":50,"initial_speed_percent":200,"final_speed_percent":100}"#,
+        )
+        .unwrap();
+        assert_eq!(resolve_bomb_audio_speed_range(&request), (200, 200));
     }
 
     #[test]

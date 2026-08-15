@@ -33,9 +33,9 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use util::auth::{load_or_create_control_token, require_control_token};
 use util::signal::shutdown_signal;
 use util::state::{
-    AppState, CrossfireStreakMode, DEFAULT_BOMB_AUDIO_SPEED_PERCENTS,
-    DEFAULT_CUSTOM_STREAK_WINDOW_MS, EventJournal, EventSoundSettings, GsiGameVersion,
-    MoneyRewardMode, Mutable,
+    AppState, CrossfireStreakMode, DEFAULT_BOMB_AUDIO_FINAL_SPEED_PERCENT,
+    DEFAULT_BOMB_AUDIO_INITIAL_SPEED_PERCENT, DEFAULT_CUSTOM_STREAK_WINDOW_MS, EventJournal,
+    EventSoundSettings, GsiGameVersion, MoneyRewardMode, Mutable,
 };
 
 use util::Args;
@@ -313,12 +313,11 @@ async fn run() -> Result<()> {
         ])),
         bomb_audio_enabled: AtomicBool::new(false),
         bomb_audio_volume_percent: AtomicU32::new(50),
-        bomb_audio_speed_percents: std::array::from_fn(|index| {
-            AtomicU32::new(DEFAULT_BOMB_AUDIO_SPEED_PERCENTS[index])
-        }),
+        bomb_audio_initial_speed_percent: AtomicU32::new(DEFAULT_BOMB_AUDIO_INITIAL_SPEED_PERCENT),
+        bomb_audio_final_speed_percent: AtomicU32::new(DEFAULT_BOMB_AUDIO_FINAL_SPEED_PERCENT),
         bomb_audio_generation: AtomicU64::new(0),
         bomb_audio_sink: std::sync::Mutex::new(None),
-        spectated_kill_effects_enabled: AtomicBool::new(true),
+        spectated_kill_effects_enabled: AtomicBool::new(false),
         gsi_game_version: AtomicU8::new(GsiGameVersion::DEFAULT.as_u8()),
         events: EventJournal::default(),
         shutdown_tx,

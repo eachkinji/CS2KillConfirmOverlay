@@ -204,50 +204,33 @@
                         <TextBlock
                             x:Name="BombAudioSpeedLabelText"
                             Style="{StaticResource CompactChoiceLabelStyle}"
-                            Text="Timer segment speeds" />
-                        <Grid ColumnSpacing="8" RowSpacing="5">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                            </Grid.RowDefinitions>
+                            Text="Initial and final timer speed" />
+                        <Grid ColumnSpacing="12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-
                             <StackPanel Spacing="1">
-                                <TextBlock x:Name="BombAudioSpeed0Text" FontSize="10" />
-                                <Slider x:Name="BombAudioSpeed0Slider" Minimum="25" Maximum="400" StepFrequency="5" ValueChanged="OnBombAudioSpeedChanged" />
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock x:Name="BombAudioInitialSpeedLabelText" FontSize="10" Text="Initial speed" />
+                                    <TextBlock x:Name="BombAudioInitialSpeedValueText" Grid.Column="1" FontSize="10" FontWeight="SemiBold" Text="0.50×" />
+                                </Grid>
+                                <Slider x:Name="BombAudioInitialSpeedSlider" Minimum="25" Maximum="400" StepFrequency="5" ValueChanged="OnBombAudioSpeedChanged" />
                             </StackPanel>
                             <StackPanel Grid.Column="1" Spacing="1">
-                                <TextBlock x:Name="BombAudioSpeed1Text" FontSize="10" />
-                                <Slider x:Name="BombAudioSpeed1Slider" Minimum="25" Maximum="400" StepFrequency="5" ValueChanged="OnBombAudioSpeedChanged" />
-                            </StackPanel>
-                            <StackPanel Grid.Column="2" Spacing="1">
-                                <TextBlock x:Name="BombAudioSpeed2Text" FontSize="10" />
-                                <Slider x:Name="BombAudioSpeed2Slider" Minimum="25" Maximum="400" StepFrequency="5" ValueChanged="OnBombAudioSpeedChanged" />
-                            </StackPanel>
-                            <StackPanel Grid.Column="3" Spacing="1">
-                                <TextBlock x:Name="BombAudioSpeed3Text" FontSize="10" />
-                                <Slider x:Name="BombAudioSpeed3Slider" Minimum="25" Maximum="400" StepFrequency="5" ValueChanged="OnBombAudioSpeedChanged" />
-                            </StackPanel>
-                            <StackPanel Grid.Row="1" Spacing="1">
-                                <TextBlock x:Name="BombAudioSpeed4Text" FontSize="10" />
-                                <Slider x:Name="BombAudioSpeed4Slider" Minimum="25" Maximum="400" StepFrequency="5" ValueChanged="OnBombAudioSpeedChanged" />
-                            </StackPanel>
-                            <StackPanel Grid.Row="1" Grid.Column="1" Spacing="1">
-                                <TextBlock x:Name="BombAudioSpeed5Text" FontSize="10" />
-                                <Slider x:Name="BombAudioSpeed5Slider" Minimum="25" Maximum="400" StepFrequency="5" ValueChanged="OnBombAudioSpeedChanged" />
-                            </StackPanel>
-                            <StackPanel Grid.Row="1" Grid.Column="2" Spacing="1">
-                                <TextBlock x:Name="BombAudioSpeed6Text" FontSize="10" />
-                                <Slider x:Name="BombAudioSpeed6Slider" Minimum="25" Maximum="400" StepFrequency="5" ValueChanged="OnBombAudioSpeedChanged" />
-                            </StackPanel>
-                            <StackPanel Grid.Row="1" Grid.Column="3" Spacing="1">
-                                <TextBlock x:Name="BombAudioSpeed7Text" FontSize="10" />
-                                <Slider x:Name="BombAudioSpeed7Slider" Minimum="25" Maximum="400" StepFrequency="5" ValueChanged="OnBombAudioSpeedChanged" />
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock x:Name="BombAudioFinalSpeedLabelText" FontSize="10" Text="Final speed" />
+                                    <TextBlock x:Name="BombAudioFinalSpeedValueText" Grid.Column="1" FontSize="10" FontWeight="SemiBold" Text="1.50×" />
+                                </Grid>
+                                <Slider x:Name="BombAudioFinalSpeedSlider" Minimum="25" Maximum="400" StepFrequency="5" ValueChanged="OnBombAudioSpeedChanged" />
                             </StackPanel>
                         </Grid>
                     </StackPanel>

@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Windows.Data.Json;
 using Windows.Storage;
@@ -13,47 +11,55 @@ namespace KillConfirmGameBar.Services
     {
         public bool Enabled { get; set; }
         public int VolumePercent { get; set; } = 50;
-        public int[] SpeedPercents { get; set; } = BombAudioSettingsStore.CreateDefaultSpeedPercents();
+        public int InitialSpeedPercent { get; set; } = BombAudioSettingsStore.DefaultInitialSpeedPercent;
+        public int FinalSpeedPercent { get; set; } = BombAudioSettingsStore.DefaultFinalSpeedPercent;
     }
 
     internal static class BombAudioSettingsStore
     {
         private const string EnabledSettingKey = "BombAudio.Enabled";
         private const string VolumeSettingKey = "BombAudio.VolumePercent";
-        private const string SpeedSettingPrefix = "BombAudio.SpeedPercent.";
-        private static readonly int[] DefaultSpeedPercents = { 50, 70, 80, 100, 110, 120, 130, 150 };
+        private const string InitialSpeedSettingKey = "BombAudio.InitialSpeedPercent";
+        private const string FinalSpeedSettingKey = "BombAudio.FinalSpeedPercent";
+        private const string LegacySpeedSettingPrefix = "BombAudio.SpeedPercent.";
+        internal const int DefaultInitialSpeedPercent = 50;
+        internal const int DefaultFinalSpeedPercent = 150;
         private static readonly Uri SettingsUri =
             new Uri("http://127.0.0.1:10087/bomb-audio/settings");
 
         public static BombAudioSettingsValues Load()
         {
             var values = ApplicationData.Current.LocalSettings.Values;
-            int[] speedPercents = CreateDefaultSpeedPercents();
-            for (int index = 0; index < speedPercents.Length; index++)
-            {
-                speedPercents[index] = ClampSpeedPercent(ReadInt(
-                    values[SpeedSettingPrefix + index],
-                    speedPercents[index]));
-            }
+            int initialSpeedPercent = ClampSpeedPercent(ReadInt(
+                values[InitialSpeedSettingKey],
+                ReadInt(values[LegacySpeedSettingPrefix + 0], DefaultInitialSpeedPercent)));
+            int finalSpeedPercent = Math.Max(initialSpeedPercent, ClampSpeedPercent(ReadInt(
+                values[FinalSpeedSettingKey],
+                ReadInt(values[LegacySpeedSettingPrefix + 7], DefaultFinalSpeedPercent))));
             return new BombAudioSettingsValues
             {
                 Enabled = ReadBool(values[EnabledSettingKey], false),
                 VolumePercent = Math.Max(0, Math.Min(100, ReadInt(values[VolumeSettingKey], 50))),
-                SpeedPercents = speedPercents
+                InitialSpeedPercent = initialSpeedPercent,
+                FinalSpeedPercent = finalSpeedPercent
             };
         }
 
-        public static void Save(bool enabled, double volumePercent, IEnumerable<double> speedPercents)
+        public static void Save(
+            bool enabled,
+            double volumePercent,
+            double initialSpeedPercent,
+            double finalSpeedPercent)
         {
             var values = ApplicationData.Current.LocalSettings.Values;
             values[EnabledSettingKey] = enabled;
             values[VolumeSettingKey] = Math.Max(0, Math.Min(100, (int)Math.Round(volumePercent)));
-            double[] speeds = speedPercents?.Take(DefaultSpeedPercents.Length).ToArray() ?? Array.Empty<double>();
-            for (int index = 0; index < DefaultSpeedPercents.Length; index++)
-            {
-                double speed = index < speeds.Length ? speeds[index] : DefaultSpeedPercents[index];
-                values[SpeedSettingPrefix + index] = ClampSpeedPercent((int)Math.Round(speed));
-            }
+            int normalizedInitial = ClampSpeedPercent((int)Math.Round(initialSpeedPercent));
+            int normalizedFinal = Math.Max(
+                normalizedInitial,
+                ClampSpeedPercent((int)Math.Round(finalSpeedPercent)));
+            values[InitialSpeedSettingKey] = normalizedInitial;
+            values[FinalSpeedSettingKey] = normalizedFinal;
         }
 
         public static async Task SyncAsync()
@@ -62,14 +68,12 @@ namespace KillConfirmGameBar.Services
             var request = new JsonObject
             {
                 ["enabled"] = JsonValue.CreateBooleanValue(settings.Enabled),
-                ["volume_percent"] = JsonValue.CreateNumberValue(settings.VolumePercent)
+                ["volume_percent"] = JsonValue.CreateNumberValue(settings.VolumePercent),
+                ["initial_speed_percent"] =
+                    JsonValue.CreateNumberValue(settings.InitialSpeedPercent),
+                ["final_speed_percent"] =
+                    JsonValue.CreateNumberValue(settings.FinalSpeedPercent)
             };
-            var speedArray = new JsonArray();
-            foreach (int speedPercent in settings.SpeedPercents)
-            {
-                speedArray.Add(JsonValue.CreateNumberValue(speedPercent));
-            }
-            request["speed_percents"] = speedArray;
 
             using (HttpClient client = await LocalServiceAuth.CreateHttpClientAsync())
             using (var content = new HttpStringContent(
@@ -80,11 +84,6 @@ namespace KillConfirmGameBar.Services
             {
                 response.EnsureSuccessStatusCode();
             }
-        }
-
-        public static int[] CreateDefaultSpeedPercents()
-        {
-            return (int[])DefaultSpeedPercents.Clone();
         }
 
         private static int ClampSpeedPercent(int value)

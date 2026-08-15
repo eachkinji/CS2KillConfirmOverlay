@@ -359,7 +359,8 @@ pub enum CrossfireStreakMode {
 
 pub const DEFAULT_CUSTOM_STREAK_WINDOW_MS: u64 = 1_000;
 pub const DEFAULT_LOOP_STREAK_KILLS: u64 = 5;
-pub const DEFAULT_BOMB_AUDIO_SPEED_PERCENTS: [u32; 8] = [50, 70, 80, 100, 110, 120, 130, 150];
+pub const DEFAULT_BOMB_AUDIO_INITIAL_SPEED_PERCENT: u32 = 50;
+pub const DEFAULT_BOMB_AUDIO_FINAL_SPEED_PERCENT: u32 = 150;
 pub const MIN_CUSTOM_STREAK_WINDOW_MS: u64 = 100;
 pub const MAX_CUSTOM_STREAK_WINDOW_MS: u64 = 300_000;
 pub const MIN_LOOP_STREAK_KILLS: u64 = 2;
@@ -557,7 +558,8 @@ pub struct AppState {
     pub dagoujiao_audio_paths: RwLock<HashMap<String, String>>,
     pub bomb_audio_enabled: AtomicBool,
     pub bomb_audio_volume_percent: AtomicU32,
-    pub bomb_audio_speed_percents: [AtomicU32; 8],
+    pub bomb_audio_initial_speed_percent: AtomicU32,
+    pub bomb_audio_final_speed_percent: AtomicU32,
     pub bomb_audio_generation: AtomicU64,
     pub bomb_audio_sink: std::sync::Mutex<Option<Arc<rodio::Sink>>>,
     pub spectated_kill_effects_enabled: AtomicBool,

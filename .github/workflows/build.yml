@@ -199,11 +199,20 @@ jobs:
 
           $noDependencies = Join-Path $env:GITHUB_WORKSPACE ("Output\KillConfirmGameBar_Setup_{0}_无依赖-更新用.exe" -f $ver)
           if (-not (Test-Path $noDependencies)) { throw "Missing $noDependencies" }
-          $assets = @($noDependencies)
+          # Release asset names must be ASCII and unique. GitHub's upload path can
+          # strip the Chinese suffixes, which made both installers resolve to the
+          # same name and caused the second upload to fail with HTTP 404.
+          $releaseAssetRoot = Join-Path $env:RUNNER_TEMP "kill-confirm-release-assets"
+          New-Item -ItemType Directory -Path $releaseAssetRoot -Force | Out-Null
+          $releaseNoDependencies = Join-Path $releaseAssetRoot ("KillConfirmGameBar_Setup_{0}_NoDependencies.exe" -f $ver)
+          Copy-Item -LiteralPath $noDependencies -Destination $releaseNoDependencies -Force
+          $assets = @($releaseNoDependencies)
           if ('${{ github.repository }}' -notlike '*-dev') {
               $withDependencies = Join-Path $env:GITHUB_WORKSPACE ("Output\KillConfirmGameBar_Setup_{0}_有依赖-新人用.exe" -f $ver)
               if (-not (Test-Path $withDependencies)) { throw "Missing $withDependencies" }
-              $assets += $withDependencies
+              $releaseWithDependencies = Join-Path $releaseAssetRoot ("KillConfirmGameBar_Setup_{0}_WithDependencies.exe" -f $ver)
+              Copy-Item -LiteralPath $withDependencies -Destination $releaseWithDependencies -Force
+              $assets += $releaseWithDependencies
           }
 
           $releaseJson = gh release view $tag --json isDraft,url 2>$null

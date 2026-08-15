@@ -217,8 +217,12 @@ namespace KillConfirmGameBar
         private double _panelOffsetX;
         private double _panelOffsetY;
         private CompositeTransform _panelDragTransform;
-        private readonly Dictionary<Popup, Point> _comboBoxPopupAdjustments =
-            new Dictionary<Popup, Point>();
+        private readonly HashSet<ComboBox> _wiredControlPanelComboBoxes =
+            new HashSet<ComboBox>();
+        private readonly Dictionary<ComboBox, Popup> _activeComboBoxPopups =
+            new Dictionary<ComboBox, Popup>();
+        private readonly Dictionary<Popup, ComboBoxPopupTransformState> _comboBoxPopupTransforms =
+            new Dictionary<Popup, ComboBoxPopupTransformState>();
         private string _loadedControlPanelScaleMode = string.Empty;
         private double _controlPanelScale = 1.0;
         private bool _panelCollapsed;
@@ -260,6 +264,7 @@ namespace KillConfirmGameBar
                 UIElement.PointerReleasedEvent,
                 new PointerEventHandler(OnControlPanelComboBoxPointerReleased),
                 true);
+            ControlPanel.Loaded += OnControlPanelLoaded;
             PrimaryKillAnimation.LogicalViewportSizeChanged += OnAnimationLogicalViewportSizeChanged;
             LoadPanelOffset();
             object collapsed = ApplicationData.Current.LocalSettings.Values[PanelCollapsedSettingKey];
@@ -328,6 +333,7 @@ namespace KillConfirmGameBar
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
             _isPageActive = false;
+            RestoreAllComboBoxPopups();
             GameStyleService.Changed -= OnGameStyleServiceChanged;
             PackCatalogService.CatalogChanged -= OnPackCatalogChanged;
             _animationPreloadToken++;
@@ -866,6 +872,52 @@ namespace KillConfirmGameBar
             }
         }
 
+        private void OnControlPanelLoaded(object sender, RoutedEventArgs e)
+        {
+            WireComboBoxPopupEvents(ControlPanel);
+        }
+
+        private void WireComboBoxPopupEvents(DependencyObject root)
+        {
+            if (root == null)
+            {
+                return;
+            }
+
+            if (root is ComboBox comboBox && _wiredControlPanelComboBoxes.Add(comboBox))
+            {
+                comboBox.DropDownOpened += OnControlPanelComboBoxDropDownOpened;
+                comboBox.DropDownClosed += OnControlPanelComboBoxDropDownClosed;
+                return;
+            }
+
+            int childCount = VisualTreeHelper.GetChildrenCount(root);
+            for (int index = 0; index < childCount; index++)
+            {
+                WireComboBoxPopupEvents(VisualTreeHelper.GetChild(root, index));
+            }
+        }
+
+        private async void OnControlPanelComboBoxDropDownOpened(object sender, object e)
+        {
+            if (!(sender is ComboBox comboBox))
+            {
+                return;
+            }
+
+            await Dispatcher.RunAsync(
+                CoreDispatcherPriority.Low,
+                () => AlignOpenComboBoxPopup(comboBox));
+        }
+
+        private void OnControlPanelComboBoxDropDownClosed(object sender, object e)
+        {
+            if (sender is ComboBox comboBox)
+            {
+                RestoreComboBoxPopup(comboBox);
+            }
+        }
+
         private async void OnControlPanelComboBoxPointerReleased(object sender, PointerRoutedEventArgs e)
         {
             ComboBox comboBox = FindAncestorComboBox(e.OriginalSource as DependencyObject);
@@ -874,7 +926,10 @@ namespace KillConfirmGameBar
                 return;
             }
 
-            await Dispatcher.RunAsync(CoreDispatcherPriority.Low, () => AlignOpenComboBoxPopup(comboBox));
+            WireComboBoxPopupEvents(comboBox);
+            await Dispatcher.RunAsync(
+                CoreDispatcherPriority.Low,
+                () => AlignOpenComboBoxPopup(comboBox));
         }
 
         private static ComboBox FindAncestorComboBox(DependencyObject source)
@@ -898,6 +953,7 @@ namespace KillConfirmGameBar
                 return;
             }
 
+            RestoreComboBoxPopup(comboBox);
             IReadOnlyList<Popup> openPopups = VisualTreeHelper.GetOpenPopups(Window.Current);
             Popup target = openPopups.FirstOrDefault(popup =>
                 popup.IsOpen && PopupContainsComboBoxItem(popup.Child, comboBox));
@@ -910,19 +966,13 @@ namespace KillConfirmGameBar
                 return;
             }
 
-            if (_comboBoxPopupAdjustments.TryGetValue(target, out Point previous))
-            {
-                target.HorizontalOffset -= previous.X;
-                target.VerticalOffset -= previous.Y;
-            }
-
             var root = Window.Current.Content as UIElement;
             if (root == null || Math.Abs(_controlPanelScale - 1.0) < 0.001)
             {
-                _comboBoxPopupAdjustments[target] = new Point(0, 0);
                 return;
             }
 
+            target.Child.UpdateLayout();
             Point popupPoint = target.Child.TransformToVisual(root).TransformPoint(new Point(0, 0));
             Point panelVisualPoint = ControlPanel.TransformToVisual(root).TransformPoint(new Point(0, 0));
             Point origin = new Point(
@@ -940,12 +990,71 @@ namespace KillConfirmGameBar
                 panelLayoutPoint.Y + origin.Y
                     + (popupPoint.Y - panelLayoutPoint.Y - origin.Y) * _controlPanelScale
                     + translateY);
-            var adjustment = new Point(
-                desiredPopupPoint.X - popupPoint.X,
-                desiredPopupPoint.Y - popupPoint.Y);
-            target.HorizontalOffset += adjustment.X;
-            target.VerticalOffset += adjustment.Y;
-            _comboBoxPopupAdjustments[target] = adjustment;
+
+            UIElement popupChild = target.Child;
+            Transform originalTransform = popupChild.RenderTransform;
+            Point originalTransformOrigin = popupChild.RenderTransformOrigin;
+            var popupTransform = new CompositeTransform
+            {
+                ScaleX = _controlPanelScale,
+                ScaleY = _controlPanelScale
+            };
+            var transformGroup = new TransformGroup();
+            popupChild.RenderTransform = null;
+            if (originalTransform != null)
+            {
+                transformGroup.Children.Add(originalTransform);
+            }
+            transformGroup.Children.Add(popupTransform);
+            popupChild.RenderTransformOrigin = new Point(0, 0);
+            popupChild.RenderTransform = transformGroup;
+
+            Point scaledPopupPoint = popupChild.TransformToVisual(root).TransformPoint(new Point(0, 0));
+            popupTransform.TranslateX = desiredPopupPoint.X - scaledPopupPoint.X;
+            popupTransform.TranslateY = desiredPopupPoint.Y - scaledPopupPoint.Y;
+
+            _comboBoxPopupTransforms[target] = new ComboBoxPopupTransformState(
+                popupChild,
+                originalTransform,
+                originalTransformOrigin,
+                transformGroup);
+            _activeComboBoxPopups[comboBox] = target;
+        }
+
+        private void RestoreComboBoxPopup(ComboBox comboBox)
+        {
+            if (comboBox == null || !_activeComboBoxPopups.TryGetValue(comboBox, out Popup popup))
+            {
+                return;
+            }
+
+            RestoreComboBoxPopupTransform(popup);
+            _activeComboBoxPopups.Remove(comboBox);
+        }
+
+        private void RestoreComboBoxPopupTransform(Popup popup)
+        {
+            if (popup == null || !_comboBoxPopupTransforms.TryGetValue(
+                    popup,
+                    out ComboBoxPopupTransformState state))
+            {
+                return;
+            }
+
+            state.Child.RenderTransform = null;
+            state.AppliedTransform.Children.Clear();
+            state.Child.RenderTransformOrigin = state.OriginalRenderTransformOrigin;
+            state.Child.RenderTransform = state.OriginalRenderTransform;
+            _comboBoxPopupTransforms.Remove(popup);
+        }
+
+        private void RestoreAllComboBoxPopups()
+        {
+            foreach (Popup popup in _comboBoxPopupTransforms.Keys.ToList())
+            {
+                RestoreComboBoxPopupTransform(popup);
+            }
+            _activeComboBoxPopups.Clear();
         }
 
         private static bool PopupContainsComboBoxItem(DependencyObject root, ComboBox comboBox)
@@ -954,9 +1063,16 @@ namespace KillConfirmGameBar
             {
                 return false;
             }
-            if (root is ComboBoxItem item && comboBox.Items.Contains(item))
+            if (root is ComboBoxItem item)
             {
-                return true;
+                foreach (object entry in comboBox.Items)
+                {
+                    if (ReferenceEquals(entry, item)
+                        || ReferenceEquals(comboBox.ContainerFromItem(entry), item))
+                    {
+                        return true;
+                    }
+                }
             }
             int count = VisualTreeHelper.GetChildrenCount(root);
             for (int index = 0; index < count; index++)
@@ -1280,6 +1396,26 @@ namespace KillConfirmGameBar
         private void OnConnectionStateChanged(object sender, KillEventConnectionState state)
         {
             UpdateConnectionState(state);
+        }
+
+        private sealed class ComboBoxPopupTransformState
+        {
+            public ComboBoxPopupTransformState(
+                UIElement child,
+                Transform originalRenderTransform,
+                Point originalRenderTransformOrigin,
+                TransformGroup appliedTransform)
+            {
+                Child = child;
+                OriginalRenderTransform = originalRenderTransform;
+                OriginalRenderTransformOrigin = originalRenderTransformOrigin;
+                AppliedTransform = appliedTransform;
+            }
+
+            public UIElement Child { get; }
+            public Transform OriginalRenderTransform { get; }
+            public Point OriginalRenderTransformOrigin { get; }
+            public TransformGroup AppliedTransform { get; }
         }
 
         private enum CfgDetectionState

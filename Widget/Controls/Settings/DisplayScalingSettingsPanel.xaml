@@ -31,11 +31,6 @@
                     x:Name="ScaleHintText"
                     FontSize="11"
                     TextWrapping="WrapWholeWords" />
-                <TextBlock
-                    x:Name="ScaleRecommendationText"
-                    FontSize="11"
-                    FontWeight="SemiBold"
-                    TextWrapping="WrapWholeWords" />
             </StackPanel>
 
             <ComboBox
@@ -44,7 +39,6 @@
                 VerticalAlignment="Center"
                 Style="{StaticResource CompactSettingsComboBoxStyle}"
                 SelectionChanged="OnScaleSelectionChanged">
-                <ComboBoxItem x:Name="AutoScaleItem" Tag="auto">Auto</ComboBoxItem>
                 <ComboBoxItem Tag="100">100%</ComboBoxItem>
                 <ComboBoxItem Tag="125">125%</ComboBoxItem>
                 <ComboBoxItem Tag="150">150%</ComboBoxItem>

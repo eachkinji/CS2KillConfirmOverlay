@@ -16,9 +16,7 @@ use tracing::{debug, error};
 
 use crate::soundpack::SoundContext;
 use crate::util::logging::service_log;
-use crate::util::state::{
-    AppState, DEFAULT_BOMB_AUDIO_SPEED_PERCENTS, EventChannel, EventSoundMode,
-};
+use crate::util::state::{AppState, EventChannel, EventSoundMode};
 
 const HEADSHOT_SOUND_GAIN: f32 = 1.8;
 const COMMON_SOUND_GAIN: f32 = 4.5;
@@ -45,19 +43,23 @@ const BOMB_TIMER_AUDIO_FILE: &str = "sounds/dagoujiao/common.wav";
 const BOMB_EXPLODED_AUDIO_FILE: &str = "sounds/dagoujiao/epic.wav";
 const BOMB_DEFUSED_AUDIO_FILE: &str = "sounds/dagoujiao/jiaojiaojiao.wav";
 const BOMB_TIMER_SECONDS: u64 = 40;
-const BOMB_TIMER_STEP_SECONDS: u64 = 5;
+const BOMB_TIMER_SPEED_REFRESH_MS: u64 = 50;
 const AUDIO_CACHE_EXTENSIONS: [&str; 3] = ["wav", "mp3", "m4a"];
 
 static AUDIO_BYTES_CACHE: OnceLock<RwLock<HashMap<String, Arc<[u8]>>>> = OnceLock::new();
 
-fn bomb_timer_speed_at_elapsed(elapsed: Duration, speed_percents: &[u32; 8]) -> Option<f32> {
+fn bomb_timer_speed_at_elapsed(
+    elapsed: Duration,
+    initial_speed_percent: u32,
+    final_speed_percent: u32,
+) -> Option<f32> {
     if elapsed >= Duration::from_secs(BOMB_TIMER_SECONDS) {
         return None;
     }
-    let index = (elapsed.as_secs() / BOMB_TIMER_STEP_SECONDS) as usize;
-    speed_percents
-        .get(index)
-        .map(|speed_percent| (*speed_percent).clamp(25, 400) as f32 / 100.0)
+    let progress = elapsed.as_secs_f32() / BOMB_TIMER_SECONDS as f32;
+    let initial = initial_speed_percent.clamp(25, 400) as f32 / 100.0;
+    let final_speed = final_speed_percent.clamp(25, 400) as f32 / 100.0;
+    Some(initial + (final_speed - initial) * progress.clamp(0.0, 1.0))
 }
 
 fn audio_bytes_cache() -> &'static RwLock<HashMap<String, Arc<[u8]>>> {
@@ -104,6 +106,14 @@ pub async fn warm_audio_cache(app_state: Arc<AppState>) {
                 let _ = read_audio_bytes(path_text).await;
             }
         }
+    }
+
+    for file_name in [
+        BOMB_TIMER_AUDIO_FILE,
+        BOMB_EXPLODED_AUDIO_FILE,
+        BOMB_DEFUSED_AUDIO_FILE,
+    ] {
+        let _ = read_audio_bytes(file_name).await;
     }
 }
 
@@ -154,12 +164,10 @@ async fn run_bomb_timer_audio(app_state: Arc<AppState>, generation: u64) -> Resu
     };
     let sink = Arc::new(Sink::connect_new(&mixer));
     sink.set_volume(resolve_bomb_audio_volume(&app_state));
-    let initial_speed_percents = std::array::from_fn(|index| {
-        app_state.bomb_audio_speed_percents[index].load(Ordering::Relaxed)
-    });
-    sink.set_speed(
-        bomb_timer_speed_at_elapsed(Duration::ZERO, &initial_speed_percents).unwrap_or(1.0),
-    );
+    let initial_speed_percent = app_state
+        .bomb_audio_initial_speed_percent
+        .load(Ordering::Relaxed);
+    sink.set_speed(initial_speed_percent.clamp(25, 400) as f32 / 100.0);
     sink.append(source.repeat_infinite());
 
     if !install_bomb_sink(&app_state, generation, sink.clone()) {
@@ -169,19 +177,30 @@ async fn run_bomb_timer_audio(app_state: Arc<AppState>, generation: u64) -> Resu
 
     let started_at = Instant::now();
     service_log("bomb audio timer started: 40s");
-    for index in 1..DEFAULT_BOMB_AUDIO_SPEED_PERCENTS.len() {
-        sleep_until(started_at + Duration::from_secs(index as u64 * BOMB_TIMER_STEP_SECONDS)).await;
+    let mut update_index = 1u64;
+    loop {
+        sleep_until(started_at + Duration::from_millis(update_index * BOMB_TIMER_SPEED_REFRESH_MS))
+            .await;
         if !bomb_audio_session_is_active(&app_state, generation) {
             sink.stop();
             return Ok(());
         }
-        let speed_percent = app_state.bomb_audio_speed_percents[index]
-            .load(Ordering::Relaxed)
-            .clamp(25, 400);
-        sink.set_speed(speed_percent as f32 / 100.0);
+        let elapsed = started_at.elapsed();
+        let initial_speed_percent = app_state
+            .bomb_audio_initial_speed_percent
+            .load(Ordering::Relaxed);
+        let final_speed_percent = app_state
+            .bomb_audio_final_speed_percent
+            .load(Ordering::Relaxed);
+        let Some(speed) =
+            bomb_timer_speed_at_elapsed(elapsed, initial_speed_percent, final_speed_percent)
+        else {
+            break;
+        };
+        sink.set_speed(speed);
+        update_index = update_index.wrapping_add(1);
     }
 
-    sleep_until(started_at + Duration::from_secs(BOMB_TIMER_SECONDS)).await;
     if bomb_audio_session_is_active(&app_state, generation) {
         sink.stop();
         clear_bomb_sink_if_current(&app_state, &sink);
@@ -1187,24 +1206,15 @@ mod tests {
 }
 #[cfg(test)]
 #[test]
-fn bomb_timer_uses_the_requested_five_second_speed_steps() {
-    let expected = [0.5, 0.7, 0.8, 1.0, 1.1, 1.2, 1.3, 1.5];
-    for (index, speed) in expected.iter().copied().enumerate() {
-        let start = Duration::from_secs(index as u64 * 5);
-        assert_eq!(
-            bomb_timer_speed_at_elapsed(start, &DEFAULT_BOMB_AUDIO_SPEED_PERCENTS),
-            Some(speed)
-        );
-        assert_eq!(
-            bomb_timer_speed_at_elapsed(
-                start + Duration::from_millis(4_999),
-                &DEFAULT_BOMB_AUDIO_SPEED_PERCENTS,
-            ),
-            Some(speed)
-        );
+fn bomb_timer_interpolates_smoothly_between_initial_and_final_speed() {
+    let cases = [(0, 0.5), (10, 0.75), (20, 1.0), (30, 1.25)];
+    for (seconds, expected) in cases {
+        let actual = bomb_timer_speed_at_elapsed(Duration::from_secs(seconds), 50, 150)
+            .expect("speed should exist before 40 seconds");
+        assert!((actual - expected).abs() < 0.001);
     }
     assert_eq!(
-        bomb_timer_speed_at_elapsed(Duration::from_secs(40), &DEFAULT_BOMB_AUDIO_SPEED_PERCENTS),
+        bomb_timer_speed_at_elapsed(Duration::from_secs(40), 50, 150),
         None
     );
 }

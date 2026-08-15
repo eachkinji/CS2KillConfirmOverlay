@@ -67,7 +67,7 @@ The project has grown from a simple kill-confirm sound tool into a configurable 
 - **Flexible streak logic** — life-based, round-based, and looped streak windows with a configurable loop point from 2 to 50 kills.
 - **Custom images and audio** — choose bundled assets or import supported images and voice lines for individual events and styles.
 - **Advanced audio control** — per-style priorities, volume controls, event-specific sounds, and configurable playback speed/pitch behavior.
-- **Bomb audio timeline** — optional sounds for plant, defuse, explosion, and round reset, with independently adjustable speed for each five-second segment.
+- **Bomb audio timeline** — optional sounds for plant, defuse, explosion, and new-round reset, with a smooth 40-second acceleration between configurable initial and final speeds.
 - **High-resolution visuals** — optimized rendering, positioning, and scaling for high-DPI displays and 4:3 fullscreen resolutions.
 - **Independent profiles** — style, asset-pack, animation, and advanced settings are persisted separately to reduce cross-style interference.
 - **Bilingual interface and update checks** — English/Simplified Chinese UI plus a check against the latest published GitHub Release when the widget opens.

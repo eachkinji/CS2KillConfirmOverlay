@@ -458,12 +458,14 @@ pub async fn update(
     let target_name = opponent_team_display_name(player_team);
 
     let round_changed = previous_round != current_round;
+    let freeze_phase_started = previous_round_phase != Some(TrackedRoundPhase::FreezeTime)
+        && current_round_phase == Some(TrackedRoundPhase::FreezeTime);
     let round_reset =
         round_changed || matches!(current_round_phase, Some(TrackedRoundPhase::FreezeTime));
     let bomb_audio_transition = resolve_bomb_audio_transition(
         previous_round_bomb_state.as_deref(),
         current_round_bomb_state.as_deref(),
-        round_reset,
+        freeze_phase_started,
     );
     let phase_transition_to_over = previous_round_phase == Some(TrackedRoundPhase::Live)
         && current_round_phase == Some(TrackedRoundPhase::Over);
@@ -477,8 +479,6 @@ pub async fn update(
     let death_count_reset = is_initialized && current_deaths > original_deaths;
     let health_death_reset = is_initialized && previous_player_health > 0 && ply_state.health == 0;
     let death_reset = death_count_reset || health_death_reset;
-    let freeze_phase_started = previous_round_phase != Some(TrackedRoundPhase::FreezeTime)
-        && current_round_phase == Some(TrackedRoundPhase::FreezeTime);
     let money_scope_reset = round_changed || freeze_phase_started || death_reset;
     let current_money_epoch = if money_scope_reset {
         previous_money_epoch.wrapping_add(1)
@@ -1040,7 +1040,7 @@ pub async fn update(
 fn resolve_bomb_audio_transition(
     previous: Option<&str>,
     current: Option<&str>,
-    round_reset: bool,
+    new_round_started: bool,
 ) -> Option<BombAudioTransition> {
     match (previous, current) {
         (Some("planted"), Some("defused")) => return Some(BombAudioTransition::Defused),
@@ -1051,7 +1051,7 @@ fn resolve_bomb_audio_transition(
         _ => {}
     }
 
-    round_reset.then_some(BombAudioTransition::Stop)
+    new_round_started.then_some(BombAudioTransition::Stop)
 }
 
 fn parse_gsi_body(body: &[u8], game_version: GsiGameVersion) -> Result<Body, GsiBodyError> {
@@ -1673,7 +1673,11 @@ fn bomb_audio_only_reacts_to_planted_edges_and_terminal_outcomes() {
         Some(BombAudioTransition::Exploded)
     );
     assert_eq!(
-        resolve_bomb_audio_transition(Some("defused"), None, true),
+        resolve_bomb_audio_transition(Some("planted"), None, false),
+        None
+    );
+    assert_eq!(
+        resolve_bomb_audio_transition(Some("planted"), None, true),
         Some(BombAudioTransition::Stop)
     );
     assert_eq!(

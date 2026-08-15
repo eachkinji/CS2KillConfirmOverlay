@@ -53,7 +53,7 @@ namespace KillConfirmGameBar.Services
                 return parsed;
             }
 
-            return true;
+            return false;
         }
 
         public static void SaveSpectatedKillEffects(bool enabled)

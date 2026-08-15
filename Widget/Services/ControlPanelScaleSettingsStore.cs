@@ -1,12 +1,9 @@
-using System;
-using Windows.Graphics.Display;
 using Windows.Storage;
 
 namespace KillConfirmGameBar.Services
 {
     internal static class ControlPanelScaleSettingsStore
     {
-        internal const string Auto = "auto";
         internal const string Scale100 = "100";
         internal const string Scale125 = "125";
         internal const string Scale150 = "150";
@@ -53,71 +50,8 @@ namespace KillConfirmGameBar.Services
                 case Scale100:
                     return 1.0;
                 default:
-                    return ResolveAutomaticScaleForCurrentView();
+                    return 1.0;
             }
-        }
-
-        internal static double ResolveAutomaticScaleForCurrentView()
-        {
-            try
-            {
-                DisplayInformation display = DisplayInformation.GetForCurrentView();
-                double viewPixelRatio = Math.Max(1.0, display.RawPixelsPerViewPixel);
-                double rawWidth = display.ScreenWidthInRawPixels;
-                double rawHeight = display.ScreenHeightInRawPixels;
-                double effectiveWidth = display.ScreenWidthInRawPixels / viewPixelRatio;
-                double effectiveHeight = display.ScreenHeightInRawPixels / viewPixelRatio;
-                bool is4K = (rawWidth >= 3800 && rawHeight >= 2100)
-                    || (rawWidth >= 2100 && rawHeight >= 3800);
-
-                // A 4K panel still needs extra UI enlargement when Windows itself is
-                // running at a low scale. Effective resolution alone cannot distinguish
-                // 4K at 200% from 1080p at 100%, so consider both raw resolution and DPI.
-                if (is4K)
-                {
-                    if (viewPixelRatio <= 1.125)
-                    {
-                        return 2.5;
-                    }
-
-                    if (viewPixelRatio <= 1.375)
-                    {
-                        return 2.25;
-                    }
-
-                    if (viewPixelRatio <= 1.625)
-                    {
-                        return 2.0;
-                    }
-
-                    if (viewPixelRatio <= 1.875)
-                    {
-                        return 1.5;
-                    }
-
-                    return 1.25;
-                }
-
-                if (effectiveWidth >= 3400 || effectiveHeight >= 1900)
-                {
-                    return 1.75;
-                }
-
-                if (effectiveWidth >= 2800 || effectiveHeight >= 1600)
-                {
-                    return 1.5;
-                }
-
-                if (effectiveWidth >= 2300 || effectiveHeight >= 1300)
-                {
-                    return 1.25;
-                }
-            }
-            catch
-            {
-            }
-
-            return 1.0;
         }
 
         private static string Normalize(string value)
@@ -135,7 +69,7 @@ namespace KillConfirmGameBar.Services
                 case Scale300:
                     return value.Trim();
                 default:
-                    return Auto;
+                    return Scale100;
             }
         }
     }

@@ -30,10 +30,8 @@ namespace KillConfirmGameBar.Controls.Settings
             bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
             ScaleLabelText.Text = isChinese ? "Game Bar 控制面板缩放" : "Game Bar control panel scale";
             ScaleHintText.Text = isChinese
-                ? "只放大控制面板、文字和点击区域，不改变击杀图标大小。选择自动后，会根据游戏栏窗口所在显示器的分辨率与系统缩放动态调整。"
-                : "Scales only the control panel, text, and hit targets. Kill icons keep their configured size. Auto adapts to the display resolution and Windows scaling.";
-            AutoScaleItem.Content = isChinese ? "自动（推荐）" : "Auto (recommended)";
-            UpdateRecommendationText();
+                ? "只放大控制面板、文字和点击区域，不改变击杀图标大小。所有显示环境默认均为 100%，请按需要手动选择。"
+                : "Scales only the control panel, text, and hit targets. Kill icons keep their configured size. Every display defaults to 100%; choose the scale manually.";
         }
 
         internal void ApplyTheme(GameThemePalette theme)
@@ -44,7 +42,6 @@ namespace KillConfirmGameBar.Controls.Settings
             }
 
             ScaleHintText.Foreground = new SolidColorBrush(theme.MutedText);
-            ScaleRecommendationText.Foreground = new SolidColorBrush(theme.Accent);
             AdvancedEffectsPanelSupport.ApplySoftenedTree(this, theme);
         }
 
@@ -73,8 +70,6 @@ namespace KillConfirmGameBar.Controls.Settings
             {
                 _suppressSelectionEvents = false;
             }
-
-            UpdateRecommendationText();
         }
 
         private void OnScaleSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -87,23 +82,7 @@ namespace KillConfirmGameBar.Controls.Settings
             if (ScaleSelector.SelectedItem is ComboBoxItem item && item.Tag is string mode)
             {
                 ControlPanelScaleSettingsStore.Save(mode);
-                UpdateRecommendationText();
             }
-        }
-
-        private void UpdateRecommendationText()
-        {
-            if (ScaleRecommendationText == null)
-            {
-                return;
-            }
-
-            int percent = (int)Math.Round(
-                ControlPanelScaleSettingsStore.ResolveAutomaticScaleForCurrentView() * 100.0);
-            bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
-            ScaleRecommendationText.Text = isChinese
-                ? $"当前显示环境自动建议：{percent}%"
-                : $"Automatic recommendation for this display: {percent}%";
         }
     }
 }

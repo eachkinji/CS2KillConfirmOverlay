@@ -1342,7 +1342,22 @@ KillConfirmGameBar transfer package - Chinese quick guide
 $InstallScriptWithDependencies = $InstallScript.Replace("__INSTALL_PREREQUISITES__", '$true')
 $InstallScriptWithoutDependencies = $InstallScript.Replace("__INSTALL_PREREQUISITES__", '$false')
 
-Set-Content -LiteralPath (Join-Path $TransferRoot "Install-KillConfirm.ps1") -Value $InstallScriptWithDependencies -Encoding UTF8
+function Write-Utf8BomTextFile {
+    param(
+        [Parameter(Mandatory = $true)][string]$Path,
+        [Parameter(Mandatory = $true)][string]$Value
+    )
+
+    # Windows PowerShell 5.1 treats UTF-8 without a BOM as the active ANSI
+    # code page. The generated installer script contains Chinese diagnostics,
+    # so a missing BOM can corrupt quoted strings and make the script fail to
+    # parse before it is able to create its log.
+    $utf8Bom = New-Object System.Text.UTF8Encoding($true)
+    [System.IO.File]::WriteAllText($Path, $Value, $utf8Bom)
+}
+
+$WithDependenciesInstallScriptPath = Join-Path $TransferRoot "Install-KillConfirm.ps1"
+Write-Utf8BomTextFile -Path $WithDependenciesInstallScriptPath -Value $InstallScriptWithDependencies
 Set-Content -LiteralPath (Join-Path $TransferRoot "README.txt") -Value $Readme -Encoding UTF8
 
 Compress-Archive -Path (Join-Path $TransferRoot "*") -DestinationPath $TransferZip -Force
@@ -1360,7 +1375,27 @@ if (Test-Path -LiteralPath $NoDependenciesMsixDependencyRoot) {
     Remove-Item -LiteralPath $NoDependenciesMsixDependencyRoot -Recurse -Force
 }
 
-Set-Content -LiteralPath (Join-Path $NoDependenciesTransferRoot "Install-KillConfirm.ps1") -Value $InstallScriptWithoutDependencies -Encoding UTF8
+$WithoutDependenciesInstallScriptPath = Join-Path $NoDependenciesTransferRoot "Install-KillConfirm.ps1"
+Write-Utf8BomTextFile -Path $WithoutDependenciesInstallScriptPath -Value $InstallScriptWithoutDependencies
+
+foreach ($generatedInstallScriptPath in @($WithDependenciesInstallScriptPath, $WithoutDependenciesInstallScriptPath)) {
+    $scriptBytes = [System.IO.File]::ReadAllBytes($generatedInstallScriptPath)
+    if ($scriptBytes.Length -lt 3 -or $scriptBytes[0] -ne 0xEF -or $scriptBytes[1] -ne 0xBB -or $scriptBytes[2] -ne 0xBF) {
+        throw "Generated PowerShell install script is missing its UTF-8 BOM: $generatedInstallScriptPath"
+    }
+
+    $parseTokens = $null
+    $parseErrors = $null
+    [System.Management.Automation.Language.Parser]::ParseFile(
+        $generatedInstallScriptPath,
+        [ref]$parseTokens,
+        [ref]$parseErrors) | Out-Null
+    if ($parseErrors.Count -gt 0) {
+        $parseSummary = ($parseErrors | ForEach-Object { "line $($_.Extent.StartLineNumber): $($_.Message)" }) -join "; "
+        throw "Generated PowerShell install script failed validation: $generatedInstallScriptPath ($parseSummary)"
+    }
+}
+
 $NoDependenciesReadme = $Readme + @'
 
 Dependency-free edition:

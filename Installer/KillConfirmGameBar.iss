@@ -55,6 +55,8 @@ english.InstallScriptFailed=The installer script reported an unexpected exit cod
 chinesesimplified.InstallScriptFailed=安装脚本返回了异常退出码，但安装管理器不会中止。退出码：
 english.InstallLogOpened=If the log did not open, check %TEMP%\KillConfirmGameBar_Install.log.
 chinesesimplified.InstallLogOpened=如果日志没有自动打开，请查看 %TEMP%\KillConfirmGameBar_Install.log。
+english.InstallLogMissing=The script stopped before it could create a new log. This usually indicates a PowerShell launch or parsing failure.
+chinesesimplified.InstallLogMissing=安装脚本在生成新日志前就已停止，通常表示 PowerShell 启动或脚本解析失败。
 english.SameOrNewerVersionBlocked=This computer already has a newer version installed. Please uninstall the newer Kill Confirm Overlay first, then run this installer again.
 chinesesimplified.SameOrNewerVersionBlocked=当前电脑已经安装了相同版本或更新版本。请先卸载现有的 Kill Confirm Overlay，再运行这个安装包。
 english.ConfirmPageTitle=Before you install
@@ -300,6 +302,8 @@ begin
   if CurStep = ssPostInstall then
   begin
     ResultCode := 0;
+    LogPath := ExpandConstant('{%TEMP}\KillConfirmGameBar_Install.log');
+    DeleteFile(LogPath);
 #if SkipPrerequisites
     WizardForm.StatusLabel.Caption := ExpandConstant('{cm:InstallingOverlay}');
 #else
@@ -310,16 +314,26 @@ begin
     if not Exec(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'), Params, ExpandConstant('{app}\Payload'), SW_HIDE, ewWaitUntilTerminated, ResultCode) then
     begin
       MsgBox(ExpandConstant('{cm:InstallScriptLaunchFailed}'), mbError, MB_OK);
+      Exit;
     end;
 
     if ResultCode <> 0 then
     begin
-      LogPath := ExpandConstant('{%TEMP}\KillConfirmGameBar_Install.log');
-      ShellExec('', LogPath, '', '', SW_SHOWNORMAL, ewNoWait, OpenResult);
-      MsgBox(
-        ExpandConstant('{cm:InstallScriptFailed}') + ' ' + IntToStr(ResultCode) + #13#10 + ExpandConstant('{cm:InstallLogOpened}'),
-        mbError,
-        MB_OK);
+      if FileExists(LogPath) then
+      begin
+        ShellExec('', LogPath, '', '', SW_SHOWNORMAL, ewNoWait, OpenResult);
+        MsgBox(
+          ExpandConstant('{cm:InstallScriptFailed}') + ' ' + IntToStr(ResultCode) + #13#10 + ExpandConstant('{cm:InstallLogOpened}'),
+          mbError,
+          MB_OK);
+      end
+      else
+      begin
+        MsgBox(
+          ExpandConstant('{cm:InstallScriptFailed}') + ' ' + IntToStr(ResultCode) + #13#10 + ExpandConstant('{cm:InstallLogMissing}'),
+          mbError,
+          MB_OK);
+      end;
     end;
   end;
 end;

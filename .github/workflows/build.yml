@@ -160,21 +160,21 @@ jobs:
           }
           if (-not (Test-Path $msbuild)) { throw "MSBuild not found via vswhere at $vsInstall" }
           Write-Host "MSBuild: $msbuild"
-          $args = @(
-              '-CertificatePfxPath', $env:CERT_PFX,
-              '-CertificatePassword', $env:CERT_PASSWORD,
-              '-CertificateCerPath', $env:CERT_CER,
-              '-CertificateThumbprint', $env:CERT_THUMBPRINT,
-              '-MsBuildPath', $msbuild
-          )
+          $buildArgs = @{
+              CertificatePfxPath = $env:CERT_PFX
+              CertificatePassword = $env:CERT_PASSWORD
+              CertificateCerPath = $env:CERT_CER
+              CertificateThumbprint = $env:CERT_THUMBPRINT
+              MsBuildPath = $msbuild
+          }
           if ('${{ github.repository }}' -like '*-dev') {
-              $args += '-SkipWithDependencies'
+              $buildArgs.SkipWithDependencies = $true
               Write-Host "Dev repository detected: building dependency-free installer only."
           }
           else {
               Write-Host "Production repository: building both installers."
           }
-          .\Build-Installer.ps1 @args
+          .\Build-Installer.ps1 @buildArgs
 
       - name: Upload assets to release
         if: inputs.uploadToRelease

@@ -4,6 +4,7 @@
 # Kill Confirm Overlay / 击杀确认覆盖层
 
 **A customizable CS2 kill-confirm experience built for Xbox Game Bar.**
+
 **为 Xbox Game Bar 打造的可自定义 CS2 击杀确认体验。**
 
 <p>

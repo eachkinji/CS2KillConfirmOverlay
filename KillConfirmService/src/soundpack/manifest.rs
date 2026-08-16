@@ -28,6 +28,8 @@ pub struct AudioConfig {
     pub slots: HashMap<String, String>,
     #[serde(default)]
     pub slot_gains: HashMap<String, f32>,
+    #[serde(default)]
+    pub overlay_slots: Option<Vec<String>>,
 }
 
 fn default_base_gain() -> f32 {
@@ -122,6 +124,7 @@ impl PackManifest {
                 base_gain: 1.0,
                 slots,
                 slot_gains: HashMap::new(),
+                overlay_slots: None,
             }),
             icons: None,
         })
@@ -162,10 +165,20 @@ impl PackManifest {
             }
         };
 
+        let push_overlay_if_enabled = |entries: &mut Vec<SoundEntry>, current_slot: &str| {
+            let enabled = match &audio.overlay_slots {
+                Some(list) => list.iter().any(|s| s.eq_ignore_ascii_case(current_slot)),
+                None => true,
+            };
+            if enabled {
+                push_slot(entries, "common_overlay");
+            }
+        };
+
         // 1. First Kill / Last Kill check
         if ctx.is_first_kill || ctx.is_last_kill {
             if push_slot(&mut entries, "first_and_last") {
-                push_slot(&mut entries, "common_overlay");
+                push_overlay_if_enabled(&mut entries, "first_and_last");
                 return entries;
             }
         }
@@ -182,20 +195,20 @@ impl PackManifest {
                 // Fallback to highest available streak or kill_1
                 push_slot(&mut entries, "kill_1");
             }
-            push_slot(&mut entries, "common_overlay");
+            push_overlay_if_enabled(&mut entries, &slot);
         } else if play_knife {
             if !push_slot(&mut entries, "knife") {
                 push_slot(&mut entries, "kill_1");
             }
-            push_slot(&mut entries, "common_overlay");
+            push_overlay_if_enabled(&mut entries, "knife");
         } else if play_headshot {
             if !push_slot(&mut entries, "headshot") {
                 push_slot(&mut entries, "kill_1");
             }
-            push_slot(&mut entries, "common_overlay");
+            push_overlay_if_enabled(&mut entries, "headshot");
         } else if ctx.play_main_audio && ctx.kill_count == 1 {
             push_slot(&mut entries, "kill_1");
-            push_slot(&mut entries, "common_overlay");
+            push_overlay_if_enabled(&mut entries, "kill_1");
         }
 
         entries

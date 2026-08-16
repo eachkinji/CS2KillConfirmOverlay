@@ -283,6 +283,9 @@
     <Compile Include="Controls\UpdateOverlayView.Theme.cs" />
     <Compile Include="Services\KillEventClient.cs" />
     <Compile Include="Services\LocalServiceAuth.cs" />
+    <Compile Include="Services\LocalServiceEndpoints.cs" />
+    <Compile Include="Services\PortSettingsStore.cs" />
+    <Compile Include="Services\ServiceLauncher.cs" />
     <Compile Include="Services\AssistAudioSettingsStore.cs" />
     <Compile Include="Services\CombatEventSoundSettingsStore.cs" />
     <Compile Include="Services\CrossfireGameplaySettingsStore.cs" />

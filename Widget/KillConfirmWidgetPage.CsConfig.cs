@@ -432,7 +432,19 @@ namespace KillConfirmGameBar
         {
             if (string.Equals(folder.Name, CsgoFolderName, StringComparison.OrdinalIgnoreCase))
             {
-                return folder;
+                // CS2 mode requires the csgo folder to live under a parent named
+                // "game" (i.e. <root>/game/csgo). Reject a bare <root>/csgo
+                // selection — that would be the legacy CSGO layout, not CS2.
+                if (IsCsgoLegacyCfgMode)
+                {
+                    return folder;
+                }
+                string parentPath = System.IO.Path.GetDirectoryName(folder.Path);
+                if (!string.IsNullOrEmpty(parentPath)
+                    && string.Equals(System.IO.Path.GetFileName(parentPath), GameFolderName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return folder;
+                }
             }
 
             StorageFolder fromRoot = await TryCsgoSubfolderOfInstallRootAsync(folder);

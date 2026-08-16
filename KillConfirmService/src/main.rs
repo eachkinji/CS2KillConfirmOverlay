@@ -175,6 +175,14 @@ async fn main() {
             bootstrap_log("port file missing or unreadable; keeping default");
         }
     }
+    if !args.auto_search_port {
+        if let Some(enabled) = read_port_search_from_file() {
+            if enabled {
+                args.auto_search_port = true;
+                bootstrap_log("auto-search-port resolved from widget file: enabled");
+            }
+        }
+    }
     let active_port = args.port;
 
     if let Err(error) = run(args).await {
@@ -191,7 +199,61 @@ async fn main() {
     }
 }
 
-async fn run(args: Args) -> Result<()> {
+async fn bind_with_fallback(args: &mut Args) -> Result<tokio::net::TcpListener> {
+    const MAX_PORT_SCAN: u16 = 100;
+    let target = args.port;
+    let bind_target = format!("127.0.0.1:{target}");
+
+    match tokio::net::TcpListener::bind(&bind_target).await {
+        Ok(listener) => {
+            service_log(&format!("listening on {bind_target}"));
+            return Ok(listener);
+        }
+        Err(primary_error) => {
+            if !args.auto_search_port {
+                return Err(primary_error).with_context(|| format!("failed to bind {bind_target}"));
+            }
+            service_log(&format!(
+                "primary port {target} unavailable ({primary_error}); scanning for a free port"
+            ));
+        }
+    }
+
+    let mut last_error = None;
+    for offset in 1..=MAX_PORT_SCAN {
+        let candidate = target.saturating_add(offset);
+        if candidate == target {
+            break;
+        }
+        let candidate_target = format!("127.0.0.1:{candidate}");
+        match tokio::net::TcpListener::bind(&candidate_target).await {
+            Ok(listener) => {
+                service_log(&format!(
+                    "port search bound to fallback {candidate_target} (skipped {offset} busy port(s))"
+                ));
+                write_port_to_file(candidate);
+                args.port = candidate;
+                bootstrap_log(&format!("effective port updated to {} after fallback", candidate));
+                return Ok(listener);
+            }
+            Err(error) => {
+                last_error = Some(error);
+                continue;
+            }
+        }
+    }
+
+    let last = last_error
+        .map(|error| format!("{error}"))
+        .unwrap_or_else(|| "no candidates".to_string());
+    Err(anyhow::anyhow!(
+        "no free port found in range {target}..={}",
+        target.saturating_add(MAX_PORT_SCAN)
+    ))
+    .with_context(|| format!("last bind error: {last}"))
+}
+
+async fn run(mut args: Args) -> Result<()> {
     service_log("service starting");
 
     boost_process_priority();
@@ -279,6 +341,8 @@ async fn run(args: Args) -> Result<()> {
     let control_token = load_or_create_control_token()
         .context("failed to initialize local control authentication")?;
     service_log("local control authentication ready");
+
+    let listener = bind_with_fallback(&mut args).await?;
 
     let (shutdown_tx, shutdown_rx) = broadcast::channel(1);
 
@@ -436,10 +500,8 @@ async fn run(args: Args) -> Result<()> {
             require_control_token,
         ));
 
-    let bind_target = format!("127.0.0.1:{}", args.port);
-    // run our app with hyper, listening globally on the user-selected port
-    let listener = tokio::net::TcpListener::bind(&bind_target).await?;
-    service_log(&format!("listening on {bind_target}"));
+    // listener was already bound by bind_with_fallback above; axum::serve takes
+    // over from here until graceful shutdown.
     axum::serve(listener, app)
         .with_graceful_shutdown(shutdown_signal(shutdown_rx))
         .await?;
@@ -779,6 +841,10 @@ fn widget_port_file() -> PathBuf {
     runtime_log_dir().join("widget_port.txt")
 }
 
+fn widget_port_search_file() -> PathBuf {
+    runtime_log_dir().join("port_search.txt")
+}
+
 fn read_port_from_file() -> Option<u16> {
     let path = widget_port_file();
     let text = fs::read_to_string(&path).ok()?;
@@ -788,6 +854,27 @@ fn read_port_from_file() -> Option<u16> {
         return None;
     }
     Some(value)
+}
+
+fn read_port_search_from_file() -> Option<bool> {
+    let path = widget_port_search_file();
+    let text = fs::read_to_string(&path).ok()?;
+    let trimmed = text.trim();
+    match trimmed {
+        "1" | "true" | "yes" | "on" => Some(true),
+        "0" | "false" | "no" | "off" | "" => Some(false),
+        _ => None,
+    }
+}
+
+fn write_port_to_file(port: u16) {
+    let path = widget_port_file();
+    if let Some(parent) = path.parent() {
+        let _ = fs::create_dir_all(parent);
+    }
+    if let Ok(mut file) = OpenOptions::new().create(true).truncate(true).write(true).open(&path) {
+        let _ = file.write_all(port.to_string().as_bytes());
+    }
 }
 
 fn rotate_trace_log_if_needed(log_path: &Path) {

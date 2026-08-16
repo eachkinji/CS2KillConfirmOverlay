@@ -1,0 +1,25 @@
+﻿{
+    "id":  "crossfire_heart_judge_bl",
+    "name":  "审判者 (潜伏者)",
+    "game_style":  "crossfire",
+    "version":  "1.0",
+    "audio":  {
+                  "base_gain":  1.35,
+                  "slots":  {
+                                "knife":  "knife.wav",
+                                "headshot":  "headshot.wav",
+                                "first_and_last":  "grenade.wav",
+                                "kill_2":  "2.wav",
+                                "kill_1":  "common.wav",
+                                "kill_4":  "4.wav",
+                                "kill_3":  "3.wav",
+                                "kill_6":  "6.wav",
+                                "kill_5":  "5.wav",
+                                "kill_8":  "8.wav",
+                                "kill_7":  "7.wav"
+                            },
+                  "slot_gains":  {
+                                     "headshot":  1.62
+                                 }
+              }
+}

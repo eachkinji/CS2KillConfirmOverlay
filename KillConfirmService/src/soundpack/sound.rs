@@ -14,7 +14,7 @@ use tokio::{
 };
 use tracing::{debug, error};
 
-use crate::soundpack::SoundContext;
+use crate::soundpack::{SoundContext, SoundEntry};
 use crate::util::logging::service_log;
 use crate::util::state::{AppState, EventChannel, EventSoundMode};
 
@@ -449,24 +449,12 @@ pub async fn play_audio(
         stream_handle.mixer().to_owned()
     };
 
-    let (sound_files, dagoujiao_playback_speed) = {
+    let (sound_entries, dagoujiao_playback_speed) = {
         let preset = app_state_clone.preset.read().await;
         let use_crossfire_audio_settings = app_state_clone
             .crossfire_mode_active
             .load(Ordering::Relaxed)
             && uses_crossfire_audio_rules(&preset.preset_name);
-        let routing_kill_count = resolve_crossfire_audio_kill_count(
-            audio_kill_count,
-            is_headshot,
-            is_knife_kill,
-            use_crossfire_audio_settings,
-            app_state_clone
-                .crossfire_headshot_special_audio_priority
-                .load(Ordering::Relaxed),
-            app_state_clone
-                .crossfire_knife_special_audio_priority
-                .load(Ordering::Relaxed),
-        );
         let effective_first_kill = resolve_special_kill_audio_flag(
             is_first_kill,
             use_crossfire_audio_settings,
@@ -514,7 +502,7 @@ pub async fn play_audio(
             kill_count: if route_to_common {
                 1
             } else {
-                routing_kill_count
+                audio_kill_count
             },
             is_headshot: is_headshot && !route_to_common && !route_to_custom,
             is_first_kill: effective_first_kill && !route_to_common && !route_to_custom,
@@ -539,6 +527,12 @@ pub async fn play_audio(
             special_voice_priority: app_state_clone
                 .csol_special_voice_priority
                 .load(Ordering::Relaxed),
+            headshot_priority: app_state_clone
+                .crossfire_headshot_special_audio_priority
+                .load(Ordering::Relaxed),
+            knife_priority: app_state_clone
+                .crossfire_knife_special_audio_priority
+                .load(Ordering::Relaxed),
         };
 
         let is_dagoujiao = preset.preset_name.eq_ignore_ascii_case("dagoujiao");
@@ -547,7 +541,7 @@ pub async fn play_audio(
             .dagoujiao_epic_kill_count
             .load(Ordering::Relaxed)
             .clamp(2, 50) as u16;
-        let (mut files, mut dagoujiao_speed) = if is_dagoujiao {
+        let (mut sound_entries, mut dagoujiao_speed) = if is_dagoujiao {
             let sound_name = resolve_dagoujiao_sound_name(
                 audio_kill_count,
                 is_headshot,
@@ -582,7 +576,7 @@ pub async fn play_audio(
                 } else {
                     1.0
                 };
-                (vec![path], speed)
+                (vec![SoundEntry { path, gain: 1.0 }], speed)
             } else {
                 (Vec::new(), 1.0)
             }
@@ -598,37 +592,43 @@ pub async fn play_audio(
                 .unwrap_or_default();
             let path = resolve_doubao_audio_path(&preset.base_dir, &default_name, &configured_path);
             if audio_play_main {
-                (vec![path], 1.0)
+                (vec![SoundEntry { path, gain: 1.0 }], 1.0)
             } else {
                 (Vec::new(), 1.0)
             }
-        } else {
+        } else if let Some(manifest) = &preset.manifest {
             (
-                preset
-                    .lua_script
-                    .get_sounds(&ctx)
+                manifest.resolve_audio(&ctx, &preset.base_dir),
+                1.0,
+            )
+        } else if let Some(lua_script) = &preset.lua_script {
+            (
+                lua_script
+                    .get_sound_entries(&ctx)
                     .with_context(|| "failed to get sounds from Lua script".to_string())?,
                 1.0,
             )
+        } else {
+            (Vec::new(), 1.0)
         };
         if route_to_custom {
             if let Some(custom_path) = event_sound_route
                 .and_then(|route| route.custom_path)
                 .filter(|path| !path.trim().is_empty())
             {
-                files.push(custom_path);
+                sound_entries.push(SoundEntry { path: custom_path, gain: 1.0 });
                 dagoujiao_speed = 1.0;
             }
         }
-        (files, dagoujiao_speed)
+        (sound_entries, dagoujiao_speed)
     };
 
     debug!(
-        "Lua returned {} sound files: {:?}",
-        sound_files.len(),
-        sound_files
+        "Lua returned {} sound entries: {:?}",
+        sound_entries.len(),
+        sound_entries
     );
-    if sound_files.is_empty() {
+    if sound_entries.is_empty() {
         return Ok(());
     }
 
@@ -657,14 +657,19 @@ pub async fn play_audio(
 
     let mut tasks = JoinSet::new();
 
-    for file_path in sound_files {
+    for entry in sound_entries {
+        let file_path = entry.path;
+        let entry_gain = entry.gain;
         let mixer_clone = mixer.clone();
         let kill_sink_clone = kill_sink.clone();
         let uses_battlefield2042_rules = uses_battlefield2042_audio_rules(&file_path);
+        let base_sound_gain = resolve_sound_gain(&file_path, event_gain);
         let file_event_gain = if uses_battlefield2042_rules {
             1.0
+        } else if (entry_gain - 1.0).abs() > f32::EPSILON {
+            event_gain * entry_gain
         } else {
-            event_gain
+            base_sound_gain
         };
         tasks.spawn(async move {
             if uses_battlefield2042_rules {
@@ -803,22 +808,6 @@ fn resolve_assist_audio_routing(
     assist_audio_enabled.then_some((1, true))
 }
 
-fn resolve_crossfire_audio_kill_count(
-    kill_count: u16,
-    is_headshot: bool,
-    is_knife_kill: bool,
-    use_crossfire_audio_settings: bool,
-    headshot_special_audio_priority: bool,
-    knife_special_audio_priority: bool,
-) -> u16 {
-    let special_audio_wins = (is_headshot && headshot_special_audio_priority)
-        || (is_knife_kill && knife_special_audio_priority);
-    if use_crossfire_audio_settings && kill_count >= 2 && special_audio_wins {
-        1
-    } else {
-        kill_count
-    }
-}
 
 fn uses_crossfire_audio_rules(preset_name: &str) -> bool {
     let normalized = preset_name.trim().to_ascii_lowercase();
@@ -984,11 +973,11 @@ fn resolve_event_gain(kill_count: u16, play_main_audio: bool) -> f32 {
 #[cfg(test)]
 mod tests {
     use super::{
-        resolve_assist_audio_routing, resolve_crossfire_audio_kill_count,
-        resolve_dagoujiao_audio_path, resolve_dagoujiao_playback_speed,
-        resolve_dagoujiao_sound_name, resolve_sound_gain, resolve_special_kill_audio_flag,
-        supports_economy_audio_events, supports_event_sound_routing,
-        uses_battlefield2042_audio_rules, uses_crossfire_audio_rules,
+        resolve_assist_audio_routing, resolve_dagoujiao_audio_path,
+        resolve_dagoujiao_playback_speed, resolve_dagoujiao_sound_name, resolve_sound_gain,
+        resolve_special_kill_audio_flag, supports_economy_audio_events,
+        supports_event_sound_routing, uses_battlefield2042_audio_rules,
+        uses_crossfire_audio_rules,
     };
 
     #[test]
@@ -1074,6 +1063,8 @@ mod tests {
             base_dir: "sounds/doubao".to_string(),
             voice_picks: HashMap::new(),
             special_voice_priority: true,
+            headshot_priority: false,
+            knife_priority: false,
         };
 
         for kill_count in 1..=5 {
@@ -1112,6 +1103,8 @@ mod tests {
                 base_dir: "sounds/csol4".to_string(),
                 voice_picks: HashMap::new(),
                 special_voice_priority: true,
+                headshot_priority: false,
+                knife_priority: false,
             };
 
         // First and last kills have independent voices.
@@ -1207,6 +1200,8 @@ mod tests {
             base_dir: "sounds/csol4".to_string(),
             voice_picks,
             special_voice_priority: true,
+            headshot_priority: false,
+            knife_priority: false,
         };
 
         let sounds = script.get_sounds(&ctx).unwrap();
@@ -1237,6 +1232,8 @@ mod tests {
             base_dir: "sounds/csol4".to_string(),
             voice_picks: HashMap::new(),
             special_voice_priority: true,
+            headshot_priority: false,
+            knife_priority: false,
         };
 
         let first = script.get_sounds(&make_ctx(true, false)).unwrap();
@@ -1244,6 +1241,242 @@ mod tests {
 
         let last = script.get_sounds(&make_ctx(false, true)).unwrap();
         assert!(last[0].ends_with("Revenge.wav"), "{}", last[0]);
+    }
+
+    #[test]
+    fn crossfire_swat_gr_manifest_routes_streak_and_priorities() {
+        use crate::soundpack::lua_script::SoundContext;
+        use crate::soundpack::manifest::PackManifest;
+        use crate::util::state::EventChannel;
+        use std::collections::HashMap;
+        use std::path::Path;
+
+        let manifest = PackManifest::load_from_dir(Path::new("sounds/crossfire_swat_gr"))
+            .expect("load swat_gr manifest");
+        let make_ctx = |kill_count,
+                        is_headshot,
+                        is_knife,
+                        is_first,
+                        is_last,
+                        headshot_priority,
+                        knife_priority| SoundContext {
+            kill_count,
+            is_headshot,
+            is_first_kill: is_first,
+            is_knife_kill: is_knife,
+            is_last_kill: is_last,
+            is_assist: false,
+            play_main_audio: true,
+            money_reward: 0,
+            event_kind: None,
+            event_channel: EventChannel::Combat,
+            preset_name: "crossfire_swat_gr".to_string(),
+            master_name: "crossfire_swat_gr".to_string(),
+            variant: None,
+            base_dir: "sounds/crossfire_swat_gr".to_string(),
+            voice_picks: HashMap::new(),
+            special_voice_priority: false,
+            headshot_priority,
+            knife_priority,
+        };
+
+        // 1. Single kill -> common.wav
+        let sounds: Vec<String> = manifest
+            .resolve_audio(
+                &make_ctx(1, false, false, false, false, false, false),
+                "sounds/crossfire_swat_gr",
+            )
+            .into_iter()
+            .map(|e| e.path)
+            .collect();
+        assert_eq!(sounds, vec!["sounds/crossfire_swat_gr/common.wav"]);
+
+        // 2. 4-kill streak (no special) -> 4.wav
+        let sounds: Vec<String> = manifest
+            .resolve_audio(
+                &make_ctx(4, false, false, false, false, false, false),
+                "sounds/crossfire_swat_gr",
+            )
+            .into_iter()
+            .map(|e| e.path)
+            .collect();
+        assert_eq!(sounds, vec!["sounds/crossfire_swat_gr/4.wav"]);
+
+        // 3. 4-kill with headshot, headshot_priority = true -> headshot.wav
+        let sounds: Vec<String> = manifest
+            .resolve_audio(
+                &make_ctx(4, true, false, false, false, true, false),
+                "sounds/crossfire_swat_gr",
+            )
+            .into_iter()
+            .map(|e| e.path)
+            .collect();
+        assert_eq!(sounds, vec!["sounds/crossfire_swat_gr/headshot.wav"]);
+
+        // 4. 4-kill with headshot, headshot_priority = false -> 4.wav (streak wins!)
+        let sounds: Vec<String> = manifest
+            .resolve_audio(
+                &make_ctx(4, true, false, false, false, false, false),
+                "sounds/crossfire_swat_gr",
+            )
+            .into_iter()
+            .map(|e| e.path)
+            .collect();
+        assert_eq!(sounds, vec!["sounds/crossfire_swat_gr/4.wav"]);
+
+        // 5. 3-kill with knife, knife_priority = true -> knife.wav
+        let sounds: Vec<String> = manifest
+            .resolve_audio(
+                &make_ctx(3, false, true, false, false, false, true),
+                "sounds/crossfire_swat_gr",
+            )
+            .into_iter()
+            .map(|e| e.path)
+            .collect();
+        assert_eq!(sounds, vec!["sounds/crossfire_swat_gr/knife.wav"]);
+
+        // 6. 3-kill with knife, knife_priority = false -> 3.wav (streak wins!)
+        let sounds: Vec<String> = manifest
+            .resolve_audio(
+                &make_ctx(3, false, true, false, false, false, false),
+                "sounds/crossfire_swat_gr",
+            )
+            .into_iter()
+            .map(|e| e.path)
+            .collect();
+        assert_eq!(sounds, vec!["sounds/crossfire_swat_gr/3.wav"]);
+
+        // 7. First kill -> grenade.wav
+        let sounds: Vec<String> = manifest
+            .resolve_audio(
+                &make_ctx(1, false, false, true, false, false, false),
+                "sounds/crossfire_swat_gr",
+            )
+            .into_iter()
+            .map(|e| e.path)
+            .collect();
+        assert_eq!(sounds, vec!["sounds/crossfire_swat_gr/grenade.wav"]);
+    }
+
+    #[test]
+    fn crossfire_women_gr_manifest_returns_accurate_gains() {
+        use crate::soundpack::lua_script::{SoundContext, SoundEntry};
+        use crate::soundpack::manifest::PackManifest;
+        use crate::util::state::EventChannel;
+        use std::collections::HashMap;
+        use std::path::Path;
+
+        let manifest = PackManifest::load_from_dir(Path::new("sounds/crossfire_women_gr"))
+            .expect("load women_gr manifest");
+        let make_ctx = |kill_count,
+                        is_headshot,
+                        is_knife,
+                        is_first,
+                        is_last,
+                        headshot_priority,
+                        knife_priority| SoundContext {
+            kill_count,
+            is_headshot,
+            is_first_kill: is_first,
+            is_knife_kill: is_knife,
+            is_last_kill: is_last,
+            is_assist: false,
+            play_main_audio: true,
+            money_reward: 0,
+            event_kind: None,
+            event_channel: EventChannel::Combat,
+            preset_name: "crossfire_women_gr".to_string(),
+            master_name: "crossfire_women_gr".to_string(),
+            variant: None,
+            base_dir: "sounds/crossfire_women_gr".to_string(),
+            voice_picks: HashMap::new(),
+            special_voice_priority: false,
+            headshot_priority,
+            knife_priority,
+        };
+
+        // First kill -> grenade with gain 1.25
+        let entries = manifest.resolve_audio(
+            &make_ctx(1, false, false, true, false, false, false),
+            "sounds/crossfire_women_gr",
+        );
+        assert_eq!(
+            entries,
+            vec![SoundEntry {
+                path: "sounds/crossfire_women_gr/grenade.wav".to_string(),
+                gain: 1.25,
+            }]
+        );
+
+        // Headshot with priority -> headshot with gain 1.8
+        let entries = manifest.resolve_audio(
+            &make_ctx(1, true, false, false, false, true, false),
+            "sounds/crossfire_women_gr",
+        );
+        assert_eq!(
+            entries,
+            vec![SoundEntry {
+                path: "sounds/crossfire_women_gr/headshot.wav".to_string(),
+                gain: 1.8,
+            }]
+        );
+    }
+
+    #[test]
+    fn crossfire_v_sex_manifest_returns_layer_and_gains() {
+        use crate::soundpack::lua_script::{SoundContext, SoundEntry};
+        use crate::soundpack::manifest::PackManifest;
+        use crate::util::state::EventChannel;
+        use std::collections::HashMap;
+        use std::path::Path;
+
+        let manifest = PackManifest::load_from_dir(Path::new("sounds/crossfire_v_sex"))
+            .expect("load v_sex manifest");
+        let make_ctx = |kill_count,
+                        is_headshot,
+                        is_knife,
+                        is_first,
+                        is_last,
+                        headshot_priority,
+                        knife_priority| SoundContext {
+            kill_count,
+            is_headshot,
+            is_first_kill: is_first,
+            is_knife_kill: is_knife,
+            is_last_kill: is_last,
+            is_assist: false,
+            play_main_audio: true,
+            money_reward: 0,
+            event_kind: None,
+            event_channel: EventChannel::Combat,
+            preset_name: "crossfire_v_sex".to_string(),
+            master_name: "crossfire_v_sex".to_string(),
+            variant: None,
+            base_dir: "sounds/crossfire_v_sex".to_string(),
+            voice_picks: HashMap::new(),
+            special_voice_priority: false,
+            headshot_priority,
+            knife_priority,
+        };
+
+        // 2-kill streak -> 2.wav (1.3) + common.wav (1.0)
+        let entries = manifest.resolve_audio(
+            &make_ctx(2, false, false, false, false, false, false),
+            "sounds/crossfire_v_sex",
+        );
+        assert_eq!(
+            entries,
+            vec![
+                SoundEntry {
+                    path: "sounds/crossfire_v_sex/2.wav".to_string(),
+                    gain: 1.3,
+                },
+                SoundEntry {
+                    path: "sounds/crossfire_v_sex/common.wav".to_string(),
+                    gain: 1.0,
+                },
+            ]
+        );
     }
 
     #[test]
@@ -1294,29 +1527,6 @@ mod tests {
         assert!(!resolve_special_kill_audio_flag(false, false, true));
     }
 
-    #[test]
-    fn crossfire_special_audio_priority_can_override_or_keep_streak_audio() {
-        assert_eq!(
-            resolve_crossfire_audio_kill_count(4, true, false, true, true, true),
-            1
-        );
-        assert_eq!(
-            resolve_crossfire_audio_kill_count(4, true, false, true, false, true),
-            4
-        );
-        assert_eq!(
-            resolve_crossfire_audio_kill_count(3, false, true, true, true, true),
-            1
-        );
-        assert_eq!(
-            resolve_crossfire_audio_kill_count(3, false, true, true, true, false),
-            3
-        );
-        assert_eq!(
-            resolve_crossfire_audio_kill_count(4, true, true, false, true, true),
-            4
-        );
-    }
 
     #[test]
     fn detects_builtin_and_custom_crossfire_voice_packs() {

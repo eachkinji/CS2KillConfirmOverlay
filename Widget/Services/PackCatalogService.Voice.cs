@@ -186,7 +186,7 @@ namespace KillConfirmGameBar.Services
                     NameCollisionOption.ReplaceExisting);
             }
 
-            await WriteGeneratedVoiceLuaAsync(packFolder, options.CommonOverlayEnabled);
+            await WriteGeneratedVoiceManifestAsync(packFolder, displayName, options.CommonOverlayEnabled);
 
             var catalog = await LoadAsync();
             catalog.VoicePacks.Add(new VoicePackItem
@@ -201,108 +201,60 @@ namespace KillConfirmGameBar.Services
             await SaveAsync(catalog);
         }
 
-        private static async Task WriteGeneratedVoiceLuaAsync(
+        private static async Task WriteGeneratedVoiceManifestAsync(
             StorageFolder packFolder,
+            string displayName,
             IReadOnlyDictionary<string, bool> commonOverlayEnabled)
         {
-            var knownFiles = new[]
+            var slotMapping = new Dictionary<string, string>
             {
-                "common_overlay",
-                "common",
-                "2",
-                "3",
-                "4",
-                "5",
-                "6",
-                "7",
-                "8",
-                "headshot",
-                "knife",
-                "firstandlast"
+                { "common", "kill_1" },
+                { "2", "kill_2" },
+                { "3", "kill_3" },
+                { "4", "kill_4" },
+                { "5", "kill_5" },
+                { "6", "kill_6" },
+                { "7", "kill_7" },
+                { "8", "kill_8" },
+                { "headshot", "headshot" },
+                { "knife", "knife" },
+                { "firstandlast", "first_and_last" }
             };
 
-            var available = new List<string>();
-            foreach (string baseName in knownFiles)
+            var slotsObj = new Windows.Data.Json.JsonObject();
+            foreach (var pair in slotMapping)
             {
-                string fileName = await FindAudioFileNameAsync(packFolder, baseName);
+                string fileName = await FindAudioFileNameAsync(packFolder, pair.Key);
                 if (!string.IsNullOrWhiteSpace(fileName))
                 {
-                    available.Add($"[\"{baseName}\"] = \"{fileName}\"");
+                    slotsObj[pair.Value] = Windows.Data.Json.JsonValue.CreateStringValue(fileName);
                 }
             }
 
-            var overlayEntries = new List<string>();
-            if (commonOverlayEnabled != null)
+            string commonOverlayFile = await FindAudioFileNameAsync(packFolder, "common_overlay");
+            if (!string.IsNullOrWhiteSpace(commonOverlayFile))
             {
-                foreach (var pair in commonOverlayEnabled)
-                {
-                    string key = Path.GetFileNameWithoutExtension(pair.Key);
-                    if (pair.Value && !string.IsNullOrWhiteSpace(key))
-                    {
-                        overlayEntries.Add($"[\"{key}\"] = true");
-                    }
-                }
+                slotsObj["common_overlay"] = Windows.Data.Json.JsonValue.CreateStringValue(commonOverlayFile);
             }
 
-            string script =
-$@"function get_sounds(ctx)
-	local sounds = {{}}
-	local base = ctx.base_dir .. ""/""
-	local available = {{
-    {string.Join(",\n    ", available)}
-	}}
-	local overlay_enabled = {{
-    {string.Join(",\n    ", overlayEntries)}
-	}}
+            var audioObj = new Windows.Data.Json.JsonObject
+            {
+                ["base_gain"] = Windows.Data.Json.JsonValue.CreateNumberValue(1.0),
+                ["slots"] = slotsObj,
+                ["slot_gains"] = new Windows.Data.Json.JsonObject()
+            };
 
-	local common_overlay_played = false
+            var manifestObj = new Windows.Data.Json.JsonObject
+            {
+                ["id"] = Windows.Data.Json.JsonValue.CreateStringValue(packFolder.Name),
+                ["name"] = Windows.Data.Json.JsonValue.CreateStringValue(displayName),
+                ["game_style"] = Windows.Data.Json.JsonValue.CreateStringValue("crossfire"),
+                ["version"] = Windows.Data.Json.JsonValue.CreateStringValue("1.0"),
+                ["audio"] = audioObj
+            };
 
-	local function add_if_present(name)
-		if available[name] then
-			table.insert(sounds, base .. available[name])
-		end
-	end
-
-	local function add_common_overlay_if_enabled(name)
-		if common_overlay_played then
-			return
-		end
-		if available[""common_overlay""] and overlay_enabled[name] then
-			common_overlay_played = true
-			table.insert(sounds, base .. available[""common_overlay""])
-		end
-	end
-
-	if ctx.is_first_kill or ctx.is_last_kill then
-		add_if_present(""firstandlast"")
-		add_common_overlay_if_enabled(""firstandlast"")
-		if #sounds > 0 then
-			return sounds
-		end
-	end
-
-	if ctx.play_main_audio and ctx.kill_count >= 2 then
-		local voiced_kill_count = math.min(ctx.kill_count, 8)
-		local name = tostring(voiced_kill_count)
-		add_if_present(name)
-		add_common_overlay_if_enabled(name)
-	elseif ctx.is_knife_kill then
-		add_if_present(""knife"")
-		add_common_overlay_if_enabled(""knife"")
-	elseif ctx.is_headshot then
-		add_if_present(""headshot"")
-		add_common_overlay_if_enabled(""headshot"")
-	elseif ctx.play_main_audio and ctx.kill_count == 1 then
-		add_if_present(""common"")
-		add_common_overlay_if_enabled(""common"")
-	end
-
-	return sounds
-end
-";
-
-            StorageFile luaFile = await packFolder.CreateFileAsync("sound.lua", CreationCollisionOption.ReplaceExisting);
-            await FileIO.WriteTextAsync(luaFile, script);
+            StorageFile manifestFile = await packFolder.CreateFileAsync("manifest.json", CreationCollisionOption.ReplaceExisting);
+            await FileIO.WriteTextAsync(manifestFile, manifestObj.Stringify());
         }
 
         private static string GetAudioTargetFileName(string canonicalFileName, StorageFile sourceFile)

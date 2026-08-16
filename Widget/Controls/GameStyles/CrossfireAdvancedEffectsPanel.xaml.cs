@@ -2,6 +2,7 @@ using System;
 using KillConfirmGameBar.Services;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Media;
 
 namespace KillConfirmGameBar.Controls.GameStyles
 {
@@ -39,6 +40,11 @@ namespace KillConfirmGameBar.Controls.GameStyles
         internal void ApplyTheme(GameThemePalette theme)
         {
             AdvancedEffectsPanelSupport.ApplyHeader(TitleText, HintText, theme);
+            if (VisualEffectsGroupLabel != null) VisualEffectsGroupLabel.Foreground = new SolidColorBrush(theme.Text);
+            if (StreakTriggerGroupLabel != null) StreakTriggerGroupLabel.Foreground = new SolidColorBrush(theme.Text);
+            if (PrioritiesGroupLabel != null) PrioritiesGroupLabel.Foreground = new SolidColorBrush(theme.Text);
+            if (SpecialKillsGroupLabel != null) SpecialKillsGroupLabel.Foreground = new SolidColorBrush(theme.Text);
+
             StreakEditor.ApplyTheme(theme);
             AdvancedEffectsPanelSupport.ApplyMoneyRow(HeadshotAudioPriorityLabel, HeadshotAudioPrioritySelector, theme);
             AdvancedEffectsPanelSupport.ApplyMoneyRow(KnifeAudioPriorityLabel, KnifeAudioPrioritySelector, theme);
@@ -57,38 +63,48 @@ namespace KillConfirmGameBar.Controls.GameStyles
 
         public void ApplyLanguage(bool isChinese)
         {
-            TitleText.Text = isChinese ? "\u7a7f\u8d8a\u706b\u7ebf\u9ad8\u7ea7\u7279\u6548" : "CrossFire Effects";
+            TitleText.Text = isChinese ? "CF (穿越火线) 专属战斗与特效控制台" : "CrossFire Combat & Effects Control";
             HintText.Text = isChinese
-                ? "CF \u7684\u8fde\u6740\u8ba1\u6570\u3001\u7206\u5934/\u5200\u6740\u4e0e\u8fde\u6740\u97f3\u6548\u4f18\u5148\u7ea7\u3001\u9996\u5c3e\u6740\u8bed\u97f3\u548c\u51fb\u6740\u7279\u6548\u90fd\u5728\u8fd9\u91cc\u5355\u72ec\u8bbe\u7f6e\u3002"
-                : "CrossFire streaks, headshot/knife audio priorities, first/last-kill audio, and kill effects are configured here.";
+                ? "集中管理 CF 连杀触发机制、声音与图标优先权决议、首末杀特权以及画面光效与徽章增强。"
+                : "Centralized control for CrossFire streak triggers, priority resolutions, first/last kills, and visual FX.";
+
+            if (VisualEffectsGroupLabel != null)
+                VisualEffectsGroupLabel.Text = isChinese ? "画面光效与徽章增强" : "Visual FX & Badges";
+            if (StreakTriggerGroupLabel != null)
+                StreakTriggerGroupLabel.Text = isChinese ? "连杀机制与助攻触发" : "Streak & Assist Triggers";
+            if (PrioritiesGroupLabel != null)
+                PrioritiesGroupLabel.Text = isChinese ? "优先权决议策略（声音与图标）" : "Priority Policies (Audio & Icon)";
+            if (SpecialKillsGroupLabel != null)
+                SpecialKillsGroupLabel.Text = isChinese ? "首杀与末杀特权配置" : "Special & First/Last Kills";
+
             StreakEditor.ApplyLanguage(isChinese);
-            HeadshotAudioPriorityLabel.Text = isChinese ? "\u7206\u5934\u97f3\u6548" : "Headshot audio";
-            KnifeAudioPriorityLabel.Text = isChinese ? "\u5200\u6740\u97f3\u6548" : "Knife-kill audio";
-            HeadshotSpecialPriorityItem.Content = isChinese ? "\u7206\u5934\u4f18\u5148" : "Headshot priority";
-            KnifeSpecialPriorityItem.Content = isChinese ? "\u5200\u6740\u4f18\u5148" : "Knife-kill priority";
-            HeadshotStreakPriorityItem.Content = isChinese ? "\u8fde\u6740\u4f18\u5148" : "Kill-streak priority";
+            HeadshotAudioPriorityLabel.Text = isChinese ? "爆头声音" : "Headshot audio";
+            KnifeAudioPriorityLabel.Text = isChinese ? "刀杀声音" : "Knife-kill audio";
+            HeadshotSpecialPriorityItem.Content = isChinese ? "爆头优先" : "Headshot priority";
+            KnifeSpecialPriorityItem.Content = isChinese ? "刀杀优先" : "Knife-kill priority";
+            HeadshotStreakPriorityItem.Content = isChinese ? "连杀优先" : "Kill-streak priority";
             KnifeStreakPriorityItem.Content = HeadshotStreakPriorityItem.Content;
-            HeadshotIconPriorityLabel.Text = isChinese ? "\u7206\u5934\u56fe\u6807" : "Headshot icon";
-            KnifeIconPriorityLabel.Text = isChinese ? "\u5200\u6740\u56fe\u6807" : "Knife-kill icon";
+            HeadshotIconPriorityLabel.Text = isChinese ? "爆头图标" : "Headshot icon";
+            KnifeIconPriorityLabel.Text = isChinese ? "刀杀图标" : "Knife-kill icon";
             HeadshotIconSpecialPriorityItem.Content = HeadshotSpecialPriorityItem.Content;
             KnifeIconSpecialPriorityItem.Content = KnifeSpecialPriorityItem.Content;
             HeadshotIconStreakPriorityItem.Content = HeadshotStreakPriorityItem.Content;
             KnifeIconStreakPriorityItem.Content = HeadshotStreakPriorityItem.Content;
-            FirstKillAudioLabel.Text = isChinese ? "\u9996\u6740\u8bed\u97f3" : "First-kill audio";
-            LastKillAudioLabel.Text = isChinese ? "\u5c3e\u6740\u8bed\u97f3" : "Last-kill audio";
-            FirstKillSpecialItem.Content = isChinese ? "\u7279\u6b8a\u97f3\u6548" : "Special audio";
+            FirstKillAudioLabel.Text = isChinese ? "首杀语音" : "First-kill audio";
+            LastKillAudioLabel.Text = isChinese ? "尾杀语音" : "Last-kill audio";
+            FirstKillSpecialItem.Content = isChinese ? "特殊音效（手雷）" : "Special audio (grenade)";
             LastKillSpecialItem.Content = FirstKillSpecialItem.Content;
-            FirstKillOriginalItem.Content = isChinese ? "\u539f\u51fb\u6740\u97f3\u6548" : "Original kill audio";
+            FirstKillOriginalItem.Content = isChinese ? "原击杀音效" : "Original kill audio";
             LastKillOriginalItem.Content = FirstKillOriginalItem.Content;
-            FirstKillEffectLabel.Text = isChinese ? "\u9996\u6740\u7279\u6548" : "First-kill effect";
-            LastKillEffectLabel.Text = isChinese ? "\u5c3e\u6740\u7279\u6548" : "Last-kill effect";
-            FirstKillEffectToggle.OnContent = isChinese ? "\u5f00\u542f\uff08\u9ed8\u8ba4\uff09" : "On (default)";
+            FirstKillEffectLabel.Text = isChinese ? "首杀专属特效" : "First-kill effect";
+            LastKillEffectLabel.Text = isChinese ? "尾杀专属特效" : "Last-kill effect";
+            FirstKillEffectToggle.OnContent = isChinese ? "开启（默认）" : "On (default)";
             LastKillEffectToggle.OnContent = FirstKillEffectToggle.OnContent;
-            FirstKillEffectToggle.OffContent = isChinese ? "\u5173\u95ed" : "Off";
+            FirstKillEffectToggle.OffContent = isChinese ? "关闭" : "Off";
             LastKillEffectToggle.OffContent = FirstKillEffectToggle.OffContent;
-            AssistAudioLabel.Text = isChinese ? "\u52a9\u653b\u97f3\u6548" : "Assist audio";
-            AssistAudioToggle.OnContent = isChinese ? "\u6709\u58f0\u97f3\uff08common\uff09" : "Sound (common)";
-            AssistAudioToggle.OffContent = isChinese ? "\u65e0\u58f0\u97f3\uff08\u9ed8\u8ba4\uff09" : "Muted (default)";
+            AssistAudioLabel.Text = isChinese ? "助攻音效" : "Assist audio";
+            AssistAudioToggle.OnContent = isChinese ? "有声音（common）" : "Sound (common)";
+            AssistAudioToggle.OffContent = isChinese ? "无声音（默认）" : "Muted (default)";
             if (StylePanelHost.Content is CrossfireStylePanel stylePanel)
             {
                 stylePanel.ApplyLanguage(isChinese);

@@ -146,7 +146,7 @@ namespace KillConfirmGameBar.Services
                     var task = probe.ConnectAsync("127.0.0.1", port);
                     if (task.Wait(150))
                     {
-                        return task.Result;
+                        return true;
                     }
                 }
             }

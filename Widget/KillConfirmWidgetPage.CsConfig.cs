@@ -360,7 +360,7 @@ namespace KillConfirmGameBar
             }
         }
 
-        private static IBuffer GetExpectedCfgBuffer()
+        private IBuffer GetExpectedCfgBuffer()
         {
             return CryptographicBuffer.ConvertStringToBinary(GsiConfigText, BinaryStringEncoding.Utf8);
         }

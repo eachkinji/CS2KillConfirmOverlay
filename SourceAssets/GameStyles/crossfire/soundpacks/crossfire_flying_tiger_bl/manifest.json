@@ -1,4 +1,4 @@
-﻿{
+{
     "id":  "crossfire_flying_tiger_bl",
     "name":  "飞虎队 (潜伏者)",
     "game_style":  "crossfire",
@@ -7,6 +7,7 @@
                   "base_gain":  1.5,
                   "slots":  {
                                 "knife":  "knife.wav",
+                                "common_overlay":  "common.wav",
                                 "headshot":  "headshot.wav",
                                 "first_and_last":  "grenade.wav",
                                 "kill_2":  "2.wav",

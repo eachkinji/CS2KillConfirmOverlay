@@ -51,7 +51,7 @@ jobs:
           path: |
             D:\a\prerequisites.zip
             D:\a\Microsoft.UI.Xaml.2.8.6.nupkg
-          key: ${{ runner.os }}-prereq-v2
+          key: ${{ runner.os }}-prereq-v3
 
       - name: Download offline prerequisite packages
         shell: pwsh
@@ -61,7 +61,7 @@ jobs:
           New-Item -ItemType Directory -Force -Path $VclibsRoot | Out-Null
           $prereqZip = "D:\a\prerequisites.zip"
           if (-not (Test-Path $prereqZip)) {
-            Invoke-WebRequest -Uri "https://github.com/st0nie/CS2KillConfirmOverlay/releases/download/prereq-v1/prerequisites.zip" -OutFile $prereqZip
+            Invoke-WebRequest -Uri "https://github.com/eachkinji/CS2KillConfirmOverlay/releases/download/prereq-v1/prerequisites.zip" -OutFile $prereqZip
           }
           Expand-Archive -Path $prereqZip -DestinationPath $VclibsRoot -Force
 

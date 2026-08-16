@@ -8,45 +8,29 @@
     mc:Ignorable="d">
 
     <UserControl.Resources>
-        <!-- Lab / control-room palette: dark teal, cyan accent, grid background. -->
-        <LinearGradientBrush x:Key="HubBackgroundGradient" StartPoint="0,0" EndPoint="0,1">
-            <GradientStop Color="#0F1A24" Offset="0.0" />
-            <GradientStop Color="#132230" Offset="0.5" />
-            <GradientStop Color="#0B1620" Offset="1.0" />
-        </LinearGradientBrush>
-
-        <LinearGradientBrush x:Key="HubCardGradient" StartPoint="0,0" EndPoint="0,1">
-            <GradientStop Color="#1B2C3D" Offset="0.0" />
-            <GradientStop Color="#14222F" Offset="1.0" />
-        </LinearGradientBrush>
-
-        <LinearGradientBrush x:Key="HubAccentGradient" StartPoint="0,0" EndPoint="1,0">
-            <GradientStop Color="#3BD3F0" Offset="0.0" />
-            <GradientStop Color="#1A8FBF" Offset="1.0" />
-        </LinearGradientBrush>
-
-        <SolidColorBrush x:Key="HubCardBorder" Color="#1F3A52" />
-        <SolidColorBrush x:Key="HubDivider" Color="#1F3A52" />
-        <SolidColorBrush x:Key="HubTitleText" Color="#E6F4FA" />
-        <SolidColorBrush x:Key="HubBodyText" Color="#9FB5C5" />
-        <SolidColorBrush x:Key="HubMutedText" Color="#5E7384" />
-        <SolidColorBrush x:Key="HubAccentText" Color="#3BD3F0" />
-        <SolidColorBrush x:Key="HubPanelBackground" Color="#0E1A24" />
-        <SolidColorBrush x:Key="HubPanelBorder" Color="#1F3A52" />
+        <SolidColorBrush x:Key="HubCardBackground" Color="#FAFAF7" />
+        <SolidColorBrush x:Key="HubCardBorder" Color="#E2DDD3" />
+        <SolidColorBrush x:Key="HubDivider" Color="#E2DDD3" />
+        <SolidColorBrush x:Key="HubTitleText" Color="#1B1F31" />
+        <SolidColorBrush x:Key="HubBodyText" Color="#555966" />
+        <SolidColorBrush x:Key="HubMutedText" Color="#757575" />
+        <SolidColorBrush x:Key="HubAccentText" Color="#2E88B8" />
+        <SolidColorBrush x:Key="HubPanelBackground" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="HubPanelBorder" Color="#E2DDD3" />
 
         <Style x:Key="HubCardStyle" TargetType="Border">
-            <Setter Property="Padding" Value="20" />
-            <Setter Property="Background" Value="{StaticResource HubCardGradient}" />
+            <Setter Property="Padding" Value="22" />
+            <Setter Property="Background" Value="{StaticResource HubCardBackground}" />
             <Setter Property="BorderBrush" Value="{StaticResource HubCardBorder}" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="20" />
+            <Setter Property="CornerRadius" Value="24" />
         </Style>
 
         <Style x:Key="HubTitleTextStyle" TargetType="TextBlock">
             <Setter Property="FontSize" Value="20" />
             <Setter Property="FontWeight" Value="Bold" />
             <Setter Property="Foreground" Value="{StaticResource HubTitleText}" />
-            <Setter Property="CharacterSpacing" Value="60" />
+            <Setter Property="CharacterSpacing" Value="40" />
         </Style>
 
         <Style x:Key="HubBodyTextStyle" TargetType="TextBlock">
@@ -57,10 +41,10 @@
         </Style>
 
         <Style x:Key="HubSectionLabelTextStyle" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontSize" Value="12" />
             <Setter Property="FontWeight" Value="Bold" />
-            <Setter Property="Foreground" Value="{StaticResource HubAccentText}" />
-            <Setter Property="CharacterSpacing" Value="200" />
+            <Setter Property="Foreground" Value="{StaticResource HubTitleText}" />
+            <Setter Property="CharacterSpacing" Value="100" />
         </Style>
 
         <Style x:Key="HubFieldLabelTextStyle" TargetType="TextBlock">
@@ -77,455 +61,368 @@
         </Style>
 
         <Style x:Key="HubPrimaryButtonStyle" TargetType="Button">
-            <Setter Property="Padding" Value="14,9" />
+            <Setter Property="Padding" Value="14,8" />
             <Setter Property="MinWidth" Value="0" />
-            <Setter Property="Background" Value="{StaticResource HubAccentGradient}" />
-            <Setter Property="BorderBrush" Value="#3BD3F0" />
+            <Setter Property="Background" Value="#2E88B8" />
+            <Setter Property="BorderBrush" Value="#3A9CCF" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="14" />
-            <Setter Property="Foreground" Value="#04141C" />
+            <Setter Property="CornerRadius" Value="16" />
+            <Setter Property="Foreground" Value="White" />
             <Setter Property="FontWeight" Value="Bold" />
             <Setter Property="FontSize" Value="13" />
         </Style>
 
         <Style x:Key="HubSecondaryButtonStyle" TargetType="Button">
-            <Setter Property="Padding" Value="14,9" />
+            <Setter Property="Padding" Value="14,8" />
             <Setter Property="MinWidth" Value="0" />
-            <Setter Property="Background" Value="#15293A" />
-            <Setter Property="BorderBrush" Value="#2A4A65" />
+            <Setter Property="Background" Value="#FFFFFF" />
+            <Setter Property="BorderBrush" Value="#D5D0C4" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="14" />
-            <Setter Property="Foreground" Value="#9FE8FA" />
+            <Setter Property="CornerRadius" Value="16" />
+            <Setter Property="Foreground" Value="#1D2233" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="FontSize" Value="13" />
         </Style>
 
         <Style x:Key="HubTabButtonStyle" TargetType="Button">
-            <Setter Property="Padding" Value="16,9" />
-            <Setter Property="MinWidth" Value="0" />
-            <Setter Property="Background" Value="#13222F" />
-            <Setter Property="Foreground" Value="#9FB5C5" />
-            <Setter Property="BorderBrush" Value="#1F3A52" />
+            <Setter Property="Padding" Value="16,8" />
+            <Setter Property="MinWidth" Value="120" />
+            <Setter Property="Background" Value="#EFEFEA" />
+            <Setter Property="Foreground" Value="#4B5563" />
+            <Setter Property="BorderBrush" Value="#DCD7CC" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="14" />
-            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="CornerRadius" Value="16" />
+            <Setter Property="FontWeight" Value="Bold" />
             <Setter Property="FontSize" Value="13" />
         </Style>
 
         <Style x:Key="HubTabActiveButtonStyle" TargetType="Button" BasedOn="{StaticResource HubTabButtonStyle}">
-            <Setter Property="Background" Value="#1B2C3D" />
-            <Setter Property="Foreground" Value="#3BD3F0" />
-            <Setter Property="BorderBrush" Value="#3BD3F0" />
+            <Setter Property="Background" Value="#2E88B8" />
+            <Setter Property="BorderBrush" Value="#3A9CCF" />
+            <Setter Property="Foreground" Value="White" />
         </Style>
 
         <Style x:Key="HubBadgeBorderStyle" TargetType="Border">
-            <Setter Property="Padding" Value="8,3" />
-            <Setter Property="Background" Value="#0E2A38" />
-            <Setter Property="BorderBrush" Value="#1F3A52" />
+            <Setter Property="Padding" Value="8,4" />
+            <Setter Property="Background" Value="#E6F4FA" />
+            <Setter Property="BorderBrush" Value="#B9DCEC" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="CornerRadius" Value="12" />
         </Style>
 
         <Style x:Key="HubInputStyle" TargetType="TextBox">
-            <Setter Property="Background" Value="#0B1620" />
-            <Setter Property="BorderBrush" Value="#1F3A52" />
+            <Setter Property="Background" Value="#FFFFFF" />
+            <Setter Property="BorderBrush" Value="#D5D0C4" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Foreground" Value="#E6F4FA" />
-            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Foreground" Value="#1B1F31" />
+            <Setter Property="CornerRadius" Value="12" />
             <Setter Property="Padding" Value="10,6" />
         </Style>
 
         <Style x:Key="HubComboBoxStyle" TargetType="ComboBox">
-            <Setter Property="Background" Value="#0B1620" />
-            <Setter Property="BorderBrush" Value="#1F3A52" />
+            <Setter Property="Background" Value="#FFFFFF" />
+            <Setter Property="BorderBrush" Value="#D5D0C4" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Foreground" Value="#E6F4FA" />
-            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Foreground" Value="#1B1F31" />
+            <Setter Property="CornerRadius" Value="12" />
             <Setter Property="Padding" Value="10,6" />
             <Setter Property="MinHeight" Value="32" />
         </Style>
     </UserControl.Resources>
 
-    <Grid Background="{StaticResource HubBackgroundGradient}">
-        <!-- Grid backdrop -->
-        <Canvas IsHitTestVisible="False" Opacity="0.18">
-            <Line X1="0" Y1="60" X2="1480" Y2="60" Stroke="#1F3A52" StrokeThickness="1" />
-            <Line X1="0" Y1="140" X2="1480" Y2="140" Stroke="#1F3A52" StrokeThickness="1" />
-            <Line X1="0" Y1="220" X2="1480" Y2="220" Stroke="#1F3A52" StrokeThickness="1" />
-            <Line X1="0" Y1="300" X2="1480" Y2="300" Stroke="#1F3A52" StrokeThickness="1" />
-            <Line X1="0" Y1="380" X2="1480" Y2="380" Stroke="#1F3A52" StrokeThickness="1" />
-            <Line X1="0" Y1="460" X2="1480" Y2="460" Stroke="#1F3A52" StrokeThickness="1" />
-            <Line X1="120" Y1="0" X2="120" Y2="800" Stroke="#1F3A52" StrokeThickness="1" />
-            <Line X1="320" Y1="0" X2="320" Y2="800" Stroke="#1F3A52" StrokeThickness="1" />
-            <Line X1="520" Y1="0" X2="520" Y2="800" Stroke="#1F3A52" StrokeThickness="1" />
-            <Line X1="720" Y1="0" X2="720" Y2="800" Stroke="#1F3A52" StrokeThickness="1" />
-            <Line X1="920" Y1="0" X2="920" Y2="800" Stroke="#1F3A52" StrokeThickness="1" />
-            <Line X1="1120" Y1="0" X2="1120" Y2="800" Stroke="#1F3A52" StrokeThickness="1" />
-            <Line X1="1320" Y1="0" X2="1320" Y2="800" Stroke="#1F3A52" StrokeThickness="1" />
-        </Canvas>
+    <Grid Background="Transparent">
+        <Grid RowSpacing="16">
+            <!-- Hidden compatibility anchors for code-behind tab buttons if ever invoked internally -->
+            <StackPanel Visibility="Collapsed">
+                <Button x:Name="HubTabGeneralButton" Click="OnHubTabGeneralClick" />
+                <Button x:Name="HubTabPortButton" Click="OnHubTabPortClick" />
+                <Button x:Name="HubTabDisplayButton" Click="OnHubTabDisplayClick" />
+                <Button x:Name="HubTabAboutButton" Click="OnHubTabAboutClick" />
+                <TextBlock x:Name="HubHeaderBadgeText" />
+                <TextBlock x:Name="HubHeaderTitleText" />
+                <TextBlock x:Name="HubHeaderSubtitleText" />
+                <TextBlock x:Name="HubStatusBadgeText" />
+            </StackPanel>
 
-        <!-- Top accent strip -->
-        <Border
-            IsHitTestVisible="False"
-            VerticalAlignment="Top"
-            Height="3"
-            Background="{StaticResource HubAccentGradient}" />
-
-        <Grid Padding="20,18,24,28" RowSpacing="16">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
-
-            <!-- Header -->
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <StackPanel Spacing="4">
-                    <Border Style="{StaticResource HubBadgeBorderStyle}" HorizontalAlignment="Left">
-                        <TextBlock
-                            x:Name="HubHeaderBadgeText"
-                            Foreground="{StaticResource HubAccentText}"
-                            FontSize="10"
-                            FontWeight="Bold"
-                            Text="ADVANCED CONTROL HUB" />
-                    </Border>
-                    <TextBlock
-                        x:Name="HubHeaderTitleText"
-                        Style="{StaticResource HubTitleTextStyle}"
-                        FontSize="26"
-                        Text="Advanced Settings" />
-                    <TextBlock
-                        x:Name="HubHeaderSubtitleText"
-                        Style="{StaticResource HubBodyTextStyle}"
-                        Text="Tune runtime behaviour, network endpoints, and presentation in one place." />
-                </StackPanel>
-
-                <StackPanel
-                    Grid.Column="1"
-                    VerticalAlignment="Center"
-                    Orientation="Horizontal"
-                    Spacing="8">
-                    <Border Style="{StaticResource HubBadgeBorderStyle}">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <Ellipse Width="8" Height="8" Fill="#3BD3F0" />
+            <!-- Tab content views (managed by MainPage HomeWorkspaceTabBar) -->
+            <!-- General tab -->
+            <ScrollViewer
+                x:Name="HubGeneralView"
+                VerticalScrollBarVisibility="Auto"
+                HorizontalScrollBarVisibility="Disabled">
+                <StackPanel Spacing="16" MaxWidth="1480" HorizontalAlignment="Stretch">
+                    <Border Style="{StaticResource HubCardStyle}">
+                        <StackPanel Spacing="14">
                             <TextBlock
-                                x:Name="HubStatusBadgeText"
-                                FontSize="11"
-                                FontWeight="Bold"
-                                Foreground="#9FE8FA"
-                                Text="SERVICE READY" />
+                                x:Name="HubGeneralCardTitle"
+                                Style="{StaticResource HubSectionLabelTextStyle}"
+                                FontSize="18"
+                                Text="RUNTIME &amp; MAINTENANCE" />
+                            <TextBlock
+                                x:Name="HubGeneralCardDescription"
+                                Style="{StaticResource HubBodyTextStyle}" />
+                            <settings:RuntimeMaintenancePanel x:Name="HubRuntimePanel" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource HubCardStyle}">
+                        <StackPanel Spacing="14">
+                            <TextBlock
+                                x:Name="HubGeneralCardSecondaryTitle"
+                                Style="{StaticResource HubSectionLabelTextStyle}"
+                                FontSize="18"
+                                Text="GAME-STATE INTEGRATION" />
+                            <TextBlock
+                                x:Name="HubGeneralCardSecondaryDescription"
+                                Style="{StaticResource HubBodyTextStyle}" />
+                            <settings:GeneralSettingsOptionsPanel x:Name="HubGeneralOptionsPanel" />
                         </StackPanel>
                     </Border>
                 </StackPanel>
-            </Grid>
+            </ScrollViewer>
 
-            <!-- Tab bar -->
-            <Border
-                Grid.Row="1"
-                Padding="6"
-                Background="#13222F"
-                BorderBrush="{StaticResource HubCardBorder}"
-                BorderThickness="1"
-                CornerRadius="16">
-                <StackPanel Orientation="Horizontal" Spacing="4">
-                    <Button
-                        x:Name="HubTabGeneralButton"
-                        Style="{StaticResource HubTabActiveButtonStyle}"
-                        Click="OnHubTabGeneralClick" />
-                    <Button
-                        x:Name="HubTabPortButton"
-                        Style="{StaticResource HubTabButtonStyle}"
-                        Click="OnHubTabPortClick" />
-                    <Button
-                        x:Name="HubTabDisplayButton"
-                        Style="{StaticResource HubTabButtonStyle}"
-                        Click="OnHubTabDisplayClick" />
-                    <Button
-                        x:Name="HubTabAboutButton"
-                        Style="{StaticResource HubTabButtonStyle}"
-                        Click="OnHubTabAboutClick" />
-                </StackPanel>
-            </Border>
-
-            <!-- Tab content -->
-            <Grid Grid.Row="2">
-                <!-- General tab -->
-                <ScrollViewer
-                    x:Name="HubGeneralView"
-                    VerticalScrollBarVisibility="Auto"
-                    HorizontalScrollBarVisibility="Disabled">
-                    <StackPanel Spacing="16" MaxWidth="1100" HorizontalAlignment="Stretch">
-                        <Border Style="{StaticResource HubCardStyle}">
-                            <StackPanel Spacing="14">
-                                <TextBlock
-                                    x:Name="HubGeneralCardTitle"
-                                    Style="{StaticResource HubSectionLabelTextStyle}"
-                                    Text="RUNTIME &amp; MAINTENANCE" />
-                                <TextBlock
-                                    x:Name="HubGeneralCardDescription"
-                                    Style="{StaticResource HubBodyTextStyle}" />
-                                <settings:RuntimeMaintenancePanel x:Name="HubRuntimePanel" />
-                            </StackPanel>
-                        </Border>
-
-                        <Border Style="{StaticResource HubCardStyle}">
-                            <StackPanel Spacing="14">
-                                <TextBlock
-                                    x:Name="HubGeneralCardSecondaryTitle"
-                                    Style="{StaticResource HubSectionLabelTextStyle}"
-                                    Text="GAME-STATE INTEGRATION" />
-                                <TextBlock
-                                    x:Name="HubGeneralCardSecondaryDescription"
-                                    Style="{StaticResource HubBodyTextStyle}" />
-                                <settings:GeneralSettingsOptionsPanel x:Name="HubGeneralOptionsPanel" />
-                            </StackPanel>
-                        </Border>
-                    </StackPanel>
-                </ScrollViewer>
-
-                <!-- Port tab -->
-                <ScrollViewer
-                    x:Name="HubPortView"
-                    VerticalScrollBarVisibility="Auto"
-                    HorizontalScrollBarVisibility="Disabled"
-                    Visibility="Collapsed">
-                    <StackPanel Spacing="16" MaxWidth="1100" HorizontalAlignment="Stretch">
-                        <Border Style="{StaticResource HubCardStyle}">
-                            <StackPanel Spacing="12">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
-                                    <StackPanel Spacing="4">
-                                        <TextBlock
-                                            x:Name="HubPortTitleText"
-                                            Style="{StaticResource HubSectionLabelTextStyle}"
-                                            Text="LOCAL SERVICE PORT" />
-                                        <TextBlock
-                                            x:Name="HubPortDescriptionText"
-                                            Style="{StaticResource HubBodyTextStyle}" />
-                                    </StackPanel>
-                                    <Border
-                                        Grid.Column="1"
-                                        VerticalAlignment="Top"
-                                        Style="{StaticResource HubBadgeBorderStyle}">
-                                        <TextBlock
-                                            x:Name="HubPortCurrentBadgeText"
-                                            Foreground="{StaticResource HubAccentText}"
-                                            FontWeight="Bold"
-                                            FontSize="11" />
-                                    </Border>
-                                </Grid>
-
+            <!-- Port tab -->
+            <ScrollViewer
+                x:Name="HubPortView"
+                VerticalScrollBarVisibility="Auto"
+                HorizontalScrollBarVisibility="Disabled"
+                Visibility="Collapsed">
+                <StackPanel Spacing="16" MaxWidth="1480" HorizontalAlignment="Stretch">
+                    <Border Style="{StaticResource HubCardStyle}">
+                        <StackPanel Spacing="14">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Spacing="4">
+                                    <TextBlock
+                                        x:Name="HubPortTitleText"
+                                        Style="{StaticResource HubSectionLabelTextStyle}"
+                                        FontSize="18"
+                                        Text="LOCAL SERVICE PORT" />
+                                    <TextBlock
+                                        x:Name="HubPortDescriptionText"
+                                        Style="{StaticResource HubBodyTextStyle}" />
+                                </StackPanel>
                                 <Border
-                                    Background="{StaticResource HubPanelBackground}"
-                                    BorderBrush="{StaticResource HubPanelBorder}"
-                                    BorderThickness="1"
-                                    CornerRadius="14"
-                                    Padding="16">
-                                    <StackPanel Spacing="14">
-                                        <StackPanel Spacing="6">
+                                    Grid.Column="1"
+                                    VerticalAlignment="Top"
+                                    Style="{StaticResource HubBadgeBorderStyle}">
+                                    <TextBlock
+                                        x:Name="HubPortCurrentBadgeText"
+                                        Foreground="{StaticResource HubAccentText}"
+                                        FontWeight="Bold"
+                                        FontSize="11" />
+                                </Border>
+                            </Grid>
+
+                            <Border
+                                Background="{StaticResource HubPanelBackground}"
+                                BorderBrush="{StaticResource HubPanelBorder}"
+                                BorderThickness="1"
+                                CornerRadius="16"
+                                Padding="16">
+                                <StackPanel Spacing="14">
+                                    <StackPanel Spacing="6">
+                                        <TextBlock
+                                            x:Name="HubPortCurrentLabel"
+                                            Style="{StaticResource HubFieldLabelTextStyle}" />
+                                        <Grid ColumnSpacing="12">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
                                             <TextBlock
-                                                x:Name="HubPortCurrentLabel"
-                                                Style="{StaticResource HubFieldLabelTextStyle}" />
-                                            <Grid ColumnSpacing="10">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="Auto" />
-                                                    <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="Auto" />
-                                                </Grid.ColumnDefinitions>
-                                                <TextBlock
-                                                    x:Name="HubPortCurrentValue"
-                                                    FontFamily="Consolas"
-                                                    FontSize="22"
-                                                    FontWeight="Bold"
-                                                    Foreground="{StaticResource HubAccentText}"
-                                                    VerticalAlignment="Center" />
-                                                <TextBlock
-                                                    x:Name="HubPortServiceReportedValue"
-                                                    Grid.Column="1"
-                                                    FontFamily="Consolas"
-                                                    FontSize="13"
-                                                    Foreground="{StaticResource HubBodyText}"
-                                                    VerticalAlignment="Center" />
-                                                <Button
-                                                    x:Name="HubPortRefreshButton"
-                                                    Grid.Column="2"
-                                                    Style="{StaticResource HubSecondaryButtonStyle}"
-                                                    Click="OnHubPortRefreshClick" />
-                                            </Grid>
-                                        </StackPanel>
-
-                                        <Rectangle Height="1" Fill="{StaticResource HubDivider}" />
-
-                                        <StackPanel Spacing="6">
+                                                x:Name="HubPortCurrentValue"
+                                                FontFamily="Consolas"
+                                                FontSize="22"
+                                                FontWeight="Bold"
+                                                Foreground="{StaticResource HubAccentText}"
+                                                VerticalAlignment="Center" />
                                             <TextBlock
-                                                x:Name="HubPortBackupLabel"
-                                                Style="{StaticResource HubFieldLabelTextStyle}" />
-                                            <TextBlock
-                                                x:Name="HubPortBackupHint"
-                                                Style="{StaticResource HubHelperTextStyle}" />
-                                            <ItemsControl x:Name="HubPortBackupList">
-                                                <ItemsControl.ItemsPanel>
-                                                    <ItemsPanelTemplate>
-                                                        <WrapGrid Orientation="Horizontal" MaximumRowsOrColumns="6" />
-                                                    </ItemsPanelTemplate>
-                                                </ItemsControl.ItemsPanel>
-                                                <ItemsControl.ItemTemplate>
-                                                    <DataTemplate>
-                                                        <Button
-                                                            Margin="0,0,8,8"
-                                                            Padding="14,8"
-                                                            MinWidth="0"
-                                                            Background="#15293A"
-                                                            BorderBrush="#2A4A65"
-                                                            BorderThickness="1"
-                                                            CornerRadius="12"
-                                                            Foreground="#9FE8FA"
-                                                            FontFamily="Consolas"
-                                                            FontSize="14"
-                                                            FontWeight="Bold"
-                                                            Content="{Binding Label}"
-                                                            Tag="{Binding Port}"
-                                                            Click="OnPortChipClick" />
-                                                    </DataTemplate>
-                                                </ItemsControl.ItemTemplate>
-                                            </ItemsControl>
-                                        </StackPanel>
+                                                x:Name="HubPortServiceReportedValue"
+                                                Grid.Column="1"
+                                                FontFamily="Consolas"
+                                                FontSize="13"
+                                                Foreground="{StaticResource HubBodyText}"
+                                                VerticalAlignment="Center" />
+                                            <Button
+                                                x:Name="HubPortRefreshButton"
+                                                Grid.Column="2"
+                                                Style="{StaticResource HubSecondaryButtonStyle}"
+                                                Click="OnHubPortRefreshClick" />
+                                        </Grid>
+                                    </StackPanel>
 
-                                        <Rectangle Height="1" Fill="{StaticResource HubDivider}" />
+                                    <Rectangle Height="1" Fill="{StaticResource HubDivider}" />
 
-                                        <StackPanel Spacing="6">
-                                            <TextBlock
-                                                x:Name="HubPortCustomLabel"
-                                                Style="{StaticResource HubFieldLabelTextStyle}" />
-                                            <TextBlock
-                                                x:Name="HubPortCustomHint"
-                                                Style="{StaticResource HubHelperTextStyle}" />
-                                            <Grid ColumnSpacing="10">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="Auto" />
-                                                </Grid.ColumnDefinitions>
-                                                <TextBox
-                                                    x:Name="HubPortCustomInput"
-                                                    Style="{StaticResource HubInputStyle}"
-                                                    InputScope="Number"
-                                                    MaxLength="5" />
-                                                <Button
-                                                    x:Name="HubPortCustomApplyButton"
-                                                    Grid.Column="1"
-                                                    Style="{StaticResource HubPrimaryButtonStyle}"
-                                                    Click="OnHubPortCustomApplyClick" />
-                                            </Grid>
-                                        </StackPanel>
+                                    <StackPanel Spacing="6">
+                                        <TextBlock
+                                            x:Name="HubPortBackupLabel"
+                                            Style="{StaticResource HubFieldLabelTextStyle}" />
+                                        <TextBlock
+                                            x:Name="HubPortBackupHint"
+                                            Style="{StaticResource HubHelperTextStyle}" />
+                                        <ItemsControl x:Name="HubPortBackupList">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <WrapGrid Orientation="Horizontal" MaximumRowsOrColumns="6" />
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Button
+                                                        Margin="0,0,8,8"
+                                                        Padding="14,8"
+                                                        MinWidth="0"
+                                                        Background="#F7F8FA"
+                                                        BorderBrush="#D5D0C4"
+                                                        BorderThickness="1"
+                                                        CornerRadius="14"
+                                                        Foreground="#1B1F31"
+                                                        FontFamily="Consolas"
+                                                        FontSize="14"
+                                                        FontWeight="Bold"
+                                                        Content="{Binding Label}"
+                                                        Tag="{Binding Port}"
+                                                        Click="OnPortChipClick" />
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
 
-                                        <Rectangle Height="1" Fill="{StaticResource HubDivider}" />
+                                    <Rectangle Height="1" Fill="{StaticResource HubDivider}" />
 
-                                        <Grid ColumnSpacing="14">
+                                    <StackPanel Spacing="6">
+                                        <TextBlock
+                                            x:Name="HubPortCustomLabel"
+                                            Style="{StaticResource HubFieldLabelTextStyle}" />
+                                        <TextBlock
+                                            x:Name="HubPortCustomHint"
+                                            Style="{StaticResource HubHelperTextStyle}" />
+                                        <Grid ColumnSpacing="10">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*" />
                                                 <ColumnDefinition Width="Auto" />
                                             </Grid.ColumnDefinitions>
-                                            <StackPanel Spacing="4" VerticalAlignment="Center">
-                                                <TextBlock
-                                                    x:Name="HubPortAutoSearchLabel"
-                                                    Style="{StaticResource HubFieldLabelTextStyle}" />
-                                                <TextBlock
-                                                    x:Name="HubPortAutoSearchHint"
-                                                    Style="{StaticResource HubHelperTextStyle}" />
-                                            </StackPanel>
-                                            <ToggleSwitch
-                                                x:Name="HubPortAutoSearchToggle"
+                                            <TextBox
+                                                x:Name="HubPortCustomInput"
+                                                Style="{StaticResource HubInputStyle}"
+                                                InputScope="Number"
+                                                MaxLength="5" />
+                                            <Button
+                                                x:Name="HubPortCustomApplyButton"
                                                 Grid.Column="1"
-                                                VerticalAlignment="Center"
-                                                OnContent=""
-                                                OffContent=""
-                                                Toggled="OnHubPortAutoSearchToggled" />
+                                                Style="{StaticResource HubPrimaryButtonStyle}"
+                                                Click="OnHubPortCustomApplyClick" />
                                         </Grid>
                                     </StackPanel>
-                                </Border>
-                            </StackPanel>
-                        </Border>
 
-                        <Border Style="{StaticResource HubCardStyle}">
-                            <StackPanel Spacing="10">
-                                <TextBlock
-                                    x:Name="HubPortStatusTitle"
-                                    Style="{StaticResource HubSectionLabelTextStyle}"
-                                    Text="CONNECTION STATUS" />
-                                <TextBlock
-                                    x:Name="HubPortStatusBody"
-                                    Style="{StaticResource HubHelperTextStyle}" />
-                                <Border
-                                    Background="{StaticResource HubPanelBackground}"
-                                    BorderBrush="{StaticResource HubPanelBorder}"
-                                    BorderThickness="1"
-                                    CornerRadius="12"
-                                    Padding="14">
-                                    <TextBlock
-                                        x:Name="HubPortStatusMessage"
-                                        FontFamily="Consolas"
-                                        FontSize="12"
-                                        Foreground="{StaticResource HubBodyText}"
-                                        TextWrapping="Wrap" />
-                                </Border>
-                            </StackPanel>
-                        </Border>
-                    </StackPanel>
-                </ScrollViewer>
+                                    <Rectangle Height="1" Fill="{StaticResource HubDivider}" />
 
-                <!-- Display tab -->
-                <ScrollViewer
-                    x:Name="HubDisplayView"
-                    VerticalScrollBarVisibility="Auto"
-                    HorizontalScrollBarVisibility="Disabled"
-                    Visibility="Collapsed">
-                    <StackPanel Spacing="16" MaxWidth="1100" HorizontalAlignment="Stretch">
-                        <Border Style="{StaticResource HubCardStyle}">
-                            <StackPanel Spacing="14">
-                                <TextBlock
-                                    x:Name="HubDisplayCardTitle"
-                                    Style="{StaticResource HubSectionLabelTextStyle}"
-                                    Text="DISPLAY &amp; SCALING" />
-                                <TextBlock
-                                    x:Name="HubDisplayCardDescription"
-                                    Style="{StaticResource HubBodyTextStyle}" />
-                                <settings:DisplayScalingSettingsPanel x:Name="HubDisplayScalingPanel" x:FieldModifier="public" />
-                            </StackPanel>
-                        </Border>
-                    </StackPanel>
-                </ScrollViewer>
+                                    <Grid ColumnSpacing="14">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Spacing="4" VerticalAlignment="Center">
+                                            <TextBlock
+                                                x:Name="HubPortAutoSearchLabel"
+                                                Style="{StaticResource HubFieldLabelTextStyle}" />
+                                            <TextBlock
+                                                x:Name="HubPortAutoSearchHint"
+                                                Style="{StaticResource HubHelperTextStyle}" />
+                                        </StackPanel>
+                                        <ToggleSwitch
+                                            x:Name="HubPortAutoSearchToggle"
+                                            Grid.Column="1"
+                                            VerticalAlignment="Center"
+                                            OnContent=""
+                                            OffContent=""
+                                            Toggled="OnHubPortAutoSearchToggled" />
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Border>
 
-                <!-- About tab -->
-                <ScrollViewer
-                    x:Name="HubAboutView"
-                    VerticalScrollBarVisibility="Auto"
-                    HorizontalScrollBarVisibility="Disabled"
-                    Visibility="Collapsed">
-                    <StackPanel Spacing="16" MaxWidth="1100" HorizontalAlignment="Stretch">
-                        <Border Style="{StaticResource HubCardStyle}">
-                            <StackPanel Spacing="10">
+                    <Border Style="{StaticResource HubCardStyle}">
+                        <StackPanel Spacing="10">
+                            <TextBlock
+                                x:Name="HubPortStatusTitle"
+                                Style="{StaticResource HubSectionLabelTextStyle}"
+                                FontSize="18"
+                                Text="CONNECTION STATUS" />
+                            <TextBlock
+                                x:Name="HubPortStatusBody"
+                                Style="{StaticResource HubHelperTextStyle}" />
+                            <Border
+                                Background="{StaticResource HubPanelBackground}"
+                                BorderBrush="{StaticResource HubPanelBorder}"
+                                BorderThickness="1"
+                                CornerRadius="14"
+                                Padding="14">
                                 <TextBlock
-                                    x:Name="HubAboutTitle"
-                                    Style="{StaticResource HubSectionLabelTextStyle}"
-                                    Text="ABOUT THIS BUILD" />
-                                <TextBlock
-                                    x:Name="HubAboutBody"
-                                    Style="{StaticResource HubBodyTextStyle}" />
-                                <TextBlock
-                                    x:Name="HubAboutVersion"
-                                    Style="{StaticResource HubHelperTextStyle}" />
-                            </StackPanel>
-                        </Border>
-                    </StackPanel>
-                </ScrollViewer>
-            </Grid>
+                                    x:Name="HubPortStatusMessage"
+                                    FontFamily="Consolas"
+                                    FontSize="12"
+                                    Foreground="{StaticResource HubBodyText}"
+                                    TextWrapping="Wrap" />
+                            </Border>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Display tab -->
+            <ScrollViewer
+                x:Name="HubDisplayView"
+                VerticalScrollBarVisibility="Auto"
+                HorizontalScrollBarVisibility="Disabled"
+                Visibility="Collapsed">
+                <StackPanel Spacing="16" MaxWidth="1480" HorizontalAlignment="Stretch">
+                    <Border Style="{StaticResource HubCardStyle}">
+                        <StackPanel Spacing="14">
+                            <TextBlock
+                                x:Name="HubDisplayCardTitle"
+                                Style="{StaticResource HubSectionLabelTextStyle}"
+                                FontSize="18"
+                                Text="DISPLAY &amp; SCALING" />
+                            <TextBlock
+                                x:Name="HubDisplayCardDescription"
+                                Style="{StaticResource HubBodyTextStyle}" />
+                            <settings:DisplayScalingSettingsPanel x:Name="HubDisplayScalingPanel" x:FieldModifier="public" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- About tab -->
+            <ScrollViewer
+                x:Name="HubAboutView"
+                VerticalScrollBarVisibility="Auto"
+                HorizontalScrollBarVisibility="Disabled"
+                Visibility="Collapsed">
+                <StackPanel Spacing="16" MaxWidth="1480" HorizontalAlignment="Stretch">
+                    <Border Style="{StaticResource HubCardStyle}">
+                        <StackPanel Spacing="14">
+                            <TextBlock
+                                x:Name="HubAboutTitle"
+                                Style="{StaticResource HubSectionLabelTextStyle}"
+                                FontSize="18"
+                                Text="ABOUT THIS BUILD" />
+                            <TextBlock
+                                x:Name="HubAboutBody"
+                                Style="{StaticResource HubBodyTextStyle}" />
+                            <TextBlock
+                                x:Name="HubAboutVersion"
+                                Style="{StaticResource HubHelperTextStyle}" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
         </Grid>
     </Grid>
 </UserControl>

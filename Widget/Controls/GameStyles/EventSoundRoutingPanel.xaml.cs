@@ -276,5 +276,17 @@ namespace KillConfirmGameBar.Controls.GameStyles
                 }
             }
         }
+        public async Task ResetToDefaultsAsync()
+        {
+            if (!_isConfigured)
+            {
+                return;
+            }
+
+            _settings = new CombatEventSoundSettings();
+            CombatEventSoundSettingsStore.Save(_style, _settings);
+            Reload();
+            await SaveAndSyncAsync();
+        }
     }
 }

@@ -21,6 +21,18 @@ namespace KillConfirmGameBar.Controls.GameStyles
             }
         }
 
+        public static void ApplyResetButton(Button button, GameThemePalette theme)
+        {
+            if (button == null)
+            {
+                return;
+            }
+
+            button.Background = Brush(theme.Accent);
+            button.BorderBrush = Brush(theme.Accent);
+            button.Foreground = new SolidColorBrush(Windows.UI.Colors.White);
+        }
+
         public static void ApplyMoneyRow(TextBlock label, ComboBox selector, GameThemePalette theme)
         {
             if (label != null)

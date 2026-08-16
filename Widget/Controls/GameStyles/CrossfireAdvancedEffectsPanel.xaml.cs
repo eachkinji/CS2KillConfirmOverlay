@@ -40,6 +40,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
         internal void ApplyTheme(GameThemePalette theme)
         {
             AdvancedEffectsPanelSupport.ApplyHeader(TitleText, HintText, theme);
+            AdvancedEffectsPanelSupport.ApplyResetButton(ResetButton, theme);
             if (VisualEffectsGroupLabel != null) VisualEffectsGroupLabel.Foreground = new SolidColorBrush(theme.Text);
             if (StreakTriggerGroupLabel != null) StreakTriggerGroupLabel.Foreground = new SolidColorBrush(theme.Text);
             if (PrioritiesGroupLabel != null) PrioritiesGroupLabel.Foreground = new SolidColorBrush(theme.Text);
@@ -67,6 +68,8 @@ namespace KillConfirmGameBar.Controls.GameStyles
             HintText.Text = isChinese
                 ? "集中管理 CF 连杀触发机制、声音与图标优先权决议、首末杀特权以及画面光效与徽章增强。"
                 : "Centralized control for CrossFire streak triggers, priority resolutions, first/last kills, and visual FX.";
+            ResetButtonText.Text = isChinese ? "恢复默认" : "Reset";
+            ToolTipService.SetToolTip(ResetButton, isChinese ? "恢复 CF 默认设置" : "Restore CF defaults");
 
             if (VisualEffectsGroupLabel != null)
                 VisualEffectsGroupLabel.Text = isChinese ? "画面光效与徽章增强" : "Visual FX & Badges";
@@ -267,6 +270,31 @@ namespace KillConfirmGameBar.Controls.GameStyles
             }
 
             selector.SelectedIndex = 0;
+        }
+
+        private void OnResetButtonClick(object sender, RoutedEventArgs e)
+        {
+            StreakEditor.SelectValue(SharedStreakSettingsStore.LifeMode);
+            SelectTaggedItem(HeadshotAudioPrioritySelector, "special", "special");
+            SelectTaggedItem(KnifeAudioPrioritySelector, "special", "special");
+            SelectTaggedItem(HeadshotIconPrioritySelector, "special", "special");
+            SelectTaggedItem(KnifeIconPrioritySelector, "special", "special");
+            SelectTaggedItem(FirstKillAudioSelector, "special", "special");
+            SelectTaggedItem(LastKillAudioSelector, "special", "special");
+            FirstKillEffectToggle.IsOn = true;
+            LastKillEffectToggle.IsOn = true;
+            AssistAudioToggle.IsOn = false;
+
+            StreakModeSelectionChanged?.Invoke(StreakEditor.SelectorControl, null);
+            HeadshotAudioPrioritySelectionChanged?.Invoke(HeadshotAudioPrioritySelector, null);
+            KnifeAudioPrioritySelectionChanged?.Invoke(KnifeAudioPrioritySelector, null);
+            HeadshotIconPrioritySelectionChanged?.Invoke(HeadshotIconPrioritySelector, null);
+            KnifeIconPrioritySelectionChanged?.Invoke(KnifeIconPrioritySelector, null);
+            FirstKillAudioSelectionChanged?.Invoke(FirstKillAudioSelector, null);
+            LastKillAudioSelectionChanged?.Invoke(LastKillAudioSelector, null);
+            FirstKillEffectToggled?.Invoke(FirstKillEffectToggle, null);
+            LastKillEffectToggled?.Invoke(LastKillEffectToggle, null);
+            AssistAudioToggled?.Invoke(AssistAudioToggle, null);
         }
     }
 }

@@ -14,54 +14,11 @@ namespace KillConfirmGameBar.Controls.GameStyles
         public CsolAdvancedEffectsPanel()
         {
             InitializeComponent();
-            PopulateVariantSelectors();
         }
 
         public event SelectionChangedEventHandler VoiceSettingChanged;
 
         public ComboBox StreakModeSelectorControl => StreakEditor.SelectorControl;
-
-        private static (ComboBox Selector, string KillType)[] GetVoiceSelectors(CsolAdvancedEffectsPanel panel)
-        {
-            return new[]
-            {
-                (panel.OneKillVoiceSelector, "1"),
-                (panel.FourKillVoiceSelector, "4"),
-                (panel.KnifeVoiceSelector, "knife"),
-                (panel.FirstKillVoiceSelector, "first"),
-                (panel.LastKillVoiceSelector, "last")
-            };
-        }
-
-        private void PopulateVariantSelectors()
-        {
-            foreach ((ComboBox selector, string killType) in GetVoiceSelectors(this))
-            {
-                if (CsolVoiceSettingsStore.VoiceVariants.TryGetValue(killType, out string[] variants))
-                {
-                    foreach (string variant in variants)
-                    {
-                        selector.Items.Add(CreateVariantItem(variant));
-                    }
-                }
-            }
-        }
-
-        private static ComboBoxItem CreateVariantItem(string fileName)
-        {
-            string display = fileName;
-            int dot = display.LastIndexOf('.');
-            if (dot > 0)
-            {
-                display = display.Substring(0, dot);
-            }
-
-            return new ComboBoxItem
-            {
-                Tag = fileName,
-                Content = display
-            };
-        }
 
         internal void ApplyTheme(GameThemePalette theme)
         {
@@ -76,11 +33,6 @@ namespace KillConfirmGameBar.Controls.GameStyles
             ResetButton.Foreground = new SolidColorBrush(Windows.UI.Colors.White);
             StreakEditor.ApplyTheme(theme);
             AdvancedEffectsPanelSupport.ApplyMoneyRow(PriorityLabel, PrioritySelector, theme);
-            AdvancedEffectsPanelSupport.ApplyMoneyRow(OneKillLabel, OneKillVoiceSelector, theme);
-            AdvancedEffectsPanelSupport.ApplyMoneyRow(FourKillLabel, FourKillVoiceSelector, theme);
-            AdvancedEffectsPanelSupport.ApplyMoneyRow(KnifeLabel, KnifeVoiceSelector, theme);
-            AdvancedEffectsPanelSupport.ApplyMoneyRow(FirstKillVoiceLabel, FirstKillVoiceSelector, theme);
-            AdvancedEffectsPanelSupport.ApplyMoneyRow(LastKillVoiceLabel, LastKillVoiceSelector, theme);
             AdvancedEffectsPanelSupport.ApplyMoneyRow(FirstKillIconLabel, FirstKillIconSelector, theme);
             AdvancedEffectsPanelSupport.ApplyMoneyRow(LastKillIconLabel, LastKillIconSelector, theme);
         }
@@ -89,8 +41,8 @@ namespace KillConfirmGameBar.Controls.GameStyles
         {
             TitleText.Text = isChinese ? "CSOL 高级特效" : "CSOL Effects";
             HintText.Text = isChinese
-                ? "集中设置连杀时间、语音变体、特殊击杀优先级，以及独立的首杀和尾杀效果。"
-                : "Configure kill-streak timing, voice variants, special-event priority and separate first/last-kill effects.";
+                ? "集中设置连杀时间、特殊击杀优先级，以及独立的首杀和尾杀效果。"
+                : "Configure kill-streak timing, special-event priority, and separate first/last-kill effects.";
             CoverageText.Text = isChinese
                 ? "CSOL 语音包现已完整覆盖 1～10 杀连杀语音。"
                 : "The CSOL pack now plays distinct streak voices from 1 through 10 kills.";
@@ -100,30 +52,12 @@ namespace KillConfirmGameBar.Controls.GameStyles
             PriorityLabel.Text = isChinese ? "语音优先级" : "Voice priority";
             PrioritySpecialItem.Content = isChinese ? "特殊优先" : "Special first";
             PriorityStreakItem.Content = isChinese ? "连杀优先" : "Kill-streak first";
-            OneKillLabel.Text = isChinese ? "1杀语音" : "1-kill voice";
-            FourKillLabel.Text = isChinese ? "4杀语音" : "4-kill voice";
-            KnifeLabel.Text = isChinese ? "刀杀语音" : "Knife-kill voice";
-            FirstKillVoiceLabel.Text = isChinese ? "首杀语音" : "First-kill voice";
-            LastKillVoiceLabel.Text = isChinese ? "尾杀语音" : "Last-kill voice";
             FirstKillIconLabel.Text = isChinese ? "首杀图标" : "First-kill icon";
             LastKillIconLabel.Text = isChinese ? "尾杀图标" : "Last-kill icon";
             FirstKillIconRevengeItem.Content = isChinese ? "复仇" : "Revenge";
             FirstKillIconFirstKillItem.Content = isChinese ? "首杀" : "First kill";
             LastKillIconRevengeItem.Content = isChinese ? "复仇" : "Revenge";
             LastKillIconFirstKillItem.Content = isChinese ? "首杀" : "First kill";
-
-            foreach ((ComboBox selector, string _) in GetVoiceSelectors(this))
-            {
-                foreach (object option in selector.Items)
-                {
-                    if (option is ComboBoxItem item
-                        && item.Tag is string tag
-                        && string.Equals(tag, CsolVoiceSettingsStore.RandomPick, StringComparison.OrdinalIgnoreCase))
-                    {
-                        item.Content = isChinese ? "随机" : "Random";
-                    }
-                }
-            }
         }
 
         public string GetSelectedStreakMode(string fallback)
@@ -168,16 +102,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
 
         public Dictionary<string, string> GetVoicePicks()
         {
-            var picks = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            foreach ((ComboBox selector, string killType) in GetVoiceSelectors(this))
-            {
-                string value = ReadTaggedItem(selector, CsolVoiceSettingsStore.RandomPick);
-                picks[killType] = CsolVoiceSettingsStore.RandomPick.Equals(value, StringComparison.OrdinalIgnoreCase)
-                    ? CsolVoiceSettingsStore.RandomPick
-                    : value;
-            }
-
-            return picks;
+            return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         }
 
         public void SelectSettings(
@@ -185,7 +110,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
             bool specialVoicePriority,
             string firstKillIcon,
             string lastKillIcon,
-            IReadOnlyDictionary<string, string> voicePicks)
+            IReadOnlyDictionary<string, string> voicePicks = null)
         {
             _suppressSelectionChanged = true;
             try
@@ -200,14 +125,6 @@ namespace KillConfirmGameBar.Controls.GameStyles
                     LastKillIconSelector,
                     NormalizeIcon(lastKillIcon, CsolVoiceSettingsStore.RevengeIcon),
                     CsolVoiceSettingsStore.RevengeIcon);
-
-                foreach ((ComboBox selector, string killType) in GetVoiceSelectors(this))
-                {
-                    string pick = voicePicks != null && voicePicks.TryGetValue(killType, out string stored)
-                        ? stored
-                        : CsolVoiceSettingsStore.RandomPick;
-                    SelectTaggedItem(selector, pick, CsolVoiceSettingsStore.RandomPick);
-                }
             }
             finally
             {
@@ -234,10 +151,6 @@ namespace KillConfirmGameBar.Controls.GameStyles
                 SelectTaggedItem(PrioritySelector, "streak", "streak");
                 SelectTaggedItem(FirstKillIconSelector, CsolVoiceSettingsStore.FirstKillIcon, CsolVoiceSettingsStore.FirstKillIcon);
                 SelectTaggedItem(LastKillIconSelector, CsolVoiceSettingsStore.RevengeIcon, CsolVoiceSettingsStore.RevengeIcon);
-                foreach ((ComboBox selector, string _) in GetVoiceSelectors(this))
-                {
-                    SelectTaggedItem(selector, CsolVoiceSettingsStore.RandomPick, CsolVoiceSettingsStore.RandomPick);
-                }
             }
             finally
             {
@@ -282,3 +195,4 @@ namespace KillConfirmGameBar.Controls.GameStyles
         }
     }
 }
+

@@ -5,7 +5,7 @@
     xmlns:local="using:KillConfirmGameBar.Controls.GameStyles">
 
     <StackPanel Spacing="10">
-        <Grid>
+        <Grid ColumnSpacing="12">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
@@ -25,11 +25,17 @@
             <Button
                 x:Name="ResetButton"
                 Grid.Column="1"
-                MinWidth="60"
-                Padding="8,3"
-                FontSize="11"
-                Click="OnResetClick"
-                Content="Reset" />
+                MinWidth="88"
+                Height="34"
+                Padding="14,0"
+                VerticalAlignment="Top"
+                AutomationProperties.Name="Restore Doubao defaults"
+                Click="OnResetClick">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <FontIcon FontSize="12" Glyph="&#xE777;" />
+                    <TextBlock x:Name="ResetButtonText" Text="Reset" />
+                </StackPanel>
+            </Button>
         </Grid>
 
         <local:StreakWindowEditor

@@ -5,16 +5,38 @@
     xmlns:local="using:KillConfirmGameBar.Controls.GameStyles">
 
     <StackPanel Spacing="8">
-        <TextBlock
-            x:Name="TitleText"
-            FontSize="13"
-            FontWeight="Bold"
-            Text="BF4 Effects" />
-        <TextBlock
-            x:Name="HintText"
-            FontSize="10"
-            Visibility="Collapsed"
-            TextWrapping="WrapWholeWords" />
+        <Grid ColumnSpacing="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Spacing="2">
+                <TextBlock
+                    x:Name="TitleText"
+                    FontSize="13"
+                    FontWeight="Bold"
+                    Text="BF4 Effects" />
+                <TextBlock
+                    x:Name="HintText"
+                    FontSize="10"
+                    Visibility="Collapsed"
+                    TextWrapping="WrapWholeWords" />
+            </StackPanel>
+            <Button
+                x:Name="ResetButton"
+                Grid.Column="1"
+                MinWidth="88"
+                Height="34"
+                Padding="14,0"
+                VerticalAlignment="Top"
+                AutomationProperties.Name="Restore BF4 defaults"
+                Click="OnResetButtonClick">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <FontIcon FontSize="12" Glyph="&#xE777;" />
+                    <TextBlock x:Name="ResetButtonText" Text="Reset" />
+                </StackPanel>
+            </Button>
+        </Grid>
 
         <Grid ColumnSpacing="8">
             <Grid.ColumnDefinitions>

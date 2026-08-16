@@ -5,18 +5,38 @@
     xmlns:local="using:KillConfirmGameBar.Controls.GameStyles">
 
     <StackPanel Spacing="10">
-        <StackPanel Spacing="2">
-            <TextBlock
-                x:Name="TitleText"
-                FontSize="16"
-                FontWeight="Bold"
-                Text="BF5 Effects" />
-            <TextBlock
-                x:Name="HintText"
-                FontSize="10"
-                Visibility="Collapsed"
-                TextWrapping="WrapWholeWords" />
-        </StackPanel>
+        <Grid ColumnSpacing="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Spacing="2">
+                <TextBlock
+                    x:Name="TitleText"
+                    FontSize="16"
+                    FontWeight="Bold"
+                    Text="BF5 Effects" />
+                <TextBlock
+                    x:Name="HintText"
+                    FontSize="10"
+                    Visibility="Collapsed"
+                    TextWrapping="WrapWholeWords" />
+            </StackPanel>
+            <Button
+                x:Name="ResetButton"
+                Grid.Column="1"
+                MinWidth="88"
+                Height="34"
+                Padding="14,0"
+                VerticalAlignment="Top"
+                AutomationProperties.Name="Restore BF5 defaults"
+                Click="OnResetButtonClick">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <FontIcon FontSize="12" Glyph="&#xE777;" />
+                    <TextBlock x:Name="ResetButtonText" Text="Reset" />
+                </StackPanel>
+            </Button>
+        </Grid>
 
         <Grid ColumnSpacing="8">
             <Grid.ColumnDefinitions>
@@ -43,6 +63,7 @@
         </Grid>
 
         <local:EventSoundRoutingPanel x:Name="EventSoundPanel" />
+        <local:Battlefield5StylePanel x:Name="StylePanel" />
 
         <Border
             x:Name="ImportLockedNotice"
@@ -58,6 +79,5 @@
                 TextWrapping="WrapWholeWords" />
         </Border>
 
-        <local:Battlefield5StylePanel x:Name="StylePanel" />
     </StackPanel>
 </UserControl>

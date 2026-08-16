@@ -1,4 +1,5 @@
 using KillConfirmGameBar.Services;
+using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
 namespace KillConfirmGameBar.Controls.GameStyles
@@ -22,6 +23,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
         internal void ApplyTheme(GameThemePalette theme)
         {
             AdvancedEffectsPanelSupport.ApplyHeader(TitleText, HintText, theme);
+            AdvancedEffectsPanelSupport.ApplyResetButton(ResetButton, theme);
             AdvancedEffectsPanelSupport.ApplyMoneyRow(MoneyRewardModeLabel, MoneyRewardModeSelector, theme);
             StreakEditor.ApplyTheme(theme);
             AdvancedEffectsPanelSupport.ApplyNotice(ImportLockedNotice, ImportLockedText, theme);
@@ -31,9 +33,11 @@ namespace KillConfirmGameBar.Controls.GameStyles
         public void ApplyLanguage(bool isChinese)
         {
             TitleText.Text = isChinese ? "PUBG 高级特效" : "PUBG Effects";
+            ResetButtonText.Text = isChinese ? "恢复默认" : "Reset";
+            ToolTipService.SetToolTip(ResetButton, isChinese ? "恢复 PUBG 默认设置" : "Restore PUBG defaults");
             MoneyRewardModeLabel.Text = isChinese ? "奖励算法" : "Money";
-            MoneyRewardDeltaItem.Content = isChinese ? "GSI \u5dee\u503c\uff08\u9ed8\u8ba4\uff09" : "GSI delta (default)";
-            MoneyRewardRulesItem.Content = isChinese ? "\u51fb\u6740\u5956\u52b1\u89c4\u5219" : "Kill reward rules";
+            MoneyRewardDeltaItem.Content = isChinese ? "GSI 差值（默认）" : "GSI delta (default)";
+            MoneyRewardRulesItem.Content = isChinese ? "击杀奖励规则" : "Kill reward rules";
             StreakEditor.ApplyLanguage(isChinese);
             StylePanel.ApplyLanguage(isChinese);
         }
@@ -66,6 +70,14 @@ namespace KillConfirmGameBar.Controls.GameStyles
         private void OnStreakModeSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             StreakModeSelectionChanged?.Invoke(this, e);
+        }
+
+        private void OnResetButtonClick(object sender, RoutedEventArgs e)
+        {
+            SelectTaggedComboBoxItem(MoneyRewardModeSelector, "delta", "delta");
+            StreakEditor.SelectValue(SharedStreakSettingsStore.LifeMode);
+            MoneyRewardModeSelectionChanged?.Invoke(MoneyRewardModeSelector, null);
+            StreakModeSelectionChanged?.Invoke(StreakEditor.SelectorControl, null);
         }
 
         private static string ReadTaggedComboBoxItem(ComboBox selector, string fallback)

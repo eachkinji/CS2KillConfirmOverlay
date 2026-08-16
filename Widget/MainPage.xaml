@@ -373,6 +373,41 @@
                         </StackPanel>
                     </Grid>
 
+                    <!-- Home Dedicated Navigation Tab Bar -->
+                    <Border
+                        x:Name="HomeWorkspaceTabBar"
+                        Grid.Row="1"
+                        MaxWidth="1480"
+                        Padding="4"
+                        HorizontalAlignment="Center"
+                        Background="#EAEAE6"
+                        BorderBrush="#D5D0C4"
+                        BorderThickness="1"
+                        CornerRadius="20">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <Button
+                                x:Name="HomeTabGeneralButton"
+                                Style="{StaticResource StudioTabActiveButtonStyle}"
+                                Content="⚙️ 运行时与常规"
+                                Click="OnHomeTabGeneralClick" />
+                            <Button
+                                x:Name="HomeTabPortButton"
+                                Style="{StaticResource StudioTabButtonStyle}"
+                                Content="🔌 本地服务端口"
+                                Click="OnHomeTabPortClick" />
+                            <Button
+                                x:Name="HomeTabDisplayButton"
+                                Style="{StaticResource StudioTabButtonStyle}"
+                                Content="🖥️ 画面与缩放"
+                                Click="OnHomeTabDisplayClick" />
+                            <Button
+                                x:Name="HomeTabAboutButton"
+                                Style="{StaticResource StudioTabButtonStyle}"
+                                Content="ℹ️ 关于本版本"
+                                Click="OnHomeTabAboutClick" />
+                        </StackPanel>
+                    </Border>
+
                     <!-- CF Studio Dedicated Navigation Tab Bar -->
                     <Border
                         x:Name="CfWorkspaceTabBar"

@@ -98,12 +98,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
             }
             if (KillImagesTitleText != null) KillImagesTitleText.Foreground = new SolidColorBrush(theme.Text);
             if (KillAudioTitleText != null) KillAudioTitleText.Foreground = new SolidColorBrush(theme.Text);
-            if (ResetButton != null)
-            {
-                ResetButton.Background = new SolidColorBrush(theme.Accent);
-                ResetButton.BorderBrush = new SolidColorBrush(theme.Accent);
-                ResetButton.Foreground = new SolidColorBrush(Windows.UI.Colors.White);
-            }
+            AdvancedEffectsPanelSupport.ApplyResetButton(ResetButton, theme);
         }
 
         public void ApplyLanguage(bool isChinese)
@@ -113,7 +108,8 @@ namespace KillConfirmGameBar.Controls.GameStyles
             HintText.Text = isChinese
                 ? "设置连杀模式，并为 1～5 杀自定义独立图片与语音。"
                 : "Configure streak mode and customize images and voice for kills 1 through 5.";
-            ResetButton.Content = isChinese ? "恢复默认" : "Reset";
+            ResetButtonText.Text = isChinese ? "恢复默认" : "Reset";
+            ToolTipService.SetToolTip(ResetButton, isChinese ? "恢复豆包默认设置" : "Restore Doubao defaults");
             KillImagesTitleText.Text = isChinese ? "逐杀图片 (1～5 杀)" : "Per-kill images (1-5 kills)";
             KillAudioTitleText.Text = isChinese ? "逐杀语音 (1～5 杀)" : "Per-kill voice (1-5 kills)";
 

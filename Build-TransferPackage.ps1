@@ -36,7 +36,7 @@ $TransferZip = "{0}.zip" -f $TransferRoot
 $NoDependenciesTransferRoot = Join-Path $WorkspaceRoot ("KillConfirmGameBar_Transfer_{0}_无依赖-更新用" -f $Version)
 $NoDependenciesTransferZip = "{0}.zip" -f $NoDependenciesTransferRoot
 $ExpectedPackageFamilyName = "KillConfirmGameBar.Overlay_5jgcw66eyez0m"
-$PrerequisiteSourceRoot = Join-Path $WorkspaceRoot "Vclibs"
+$PrerequisiteSourceRoot = if (Test-Path (Join-Path $Root "Vclibs")) { Join-Path $Root "Vclibs" } else { Join-Path $WorkspaceRoot "Vclibs" }
 $PrerequisiteFileNames = @(
     "Microsoft.UI.Xaml.Appx",
     "vclibs.appx",

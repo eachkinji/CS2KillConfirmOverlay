@@ -496,7 +496,7 @@
                                 <TextBlock
                                     x:Name="HubDisplayCardDescription"
                                     Style="{StaticResource HubBodyTextStyle}" />
-                                <settings:DisplayScalingSettingsPanel x:Name="HubDisplayScalingPanel" />
+                                <settings:DisplayScalingSettingsPanel x:Name="HubDisplayScalingPanel" x:FieldModifier="public" />
                             </StackPanel>
                         </Border>
                     </StackPanel>

@@ -189,7 +189,8 @@ impl PackManifest {
         let play_streak = ctx.play_main_audio && ctx.kill_count >= 2 && !play_headshot && !play_knife;
 
         if play_streak {
-            let count = ctx.kill_count.clamp(1, 8);
+            let cap = if self.game_style.as_deref() == Some("csol") { 10 } else { 8 };
+            let count = ctx.kill_count.clamp(1, cap);
             let slot = format!("kill_{count}");
             if !push_slot(&mut entries, &slot) {
                 // Fallback to highest available streak or kill_1

@@ -1,10 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
 using KillConfirmGameBar.Services;
-using Windows.Storage;
-using Windows.Storage.Pickers;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
@@ -87,15 +83,6 @@ namespace KillConfirmGameBar.Controls.GameStyles
             AdvancedEffectsPanelSupport.ApplyMoneyRow(LastKillVoiceLabel, LastKillVoiceSelector, theme);
             AdvancedEffectsPanelSupport.ApplyMoneyRow(FirstKillIconLabel, FirstKillIconSelector, theme);
             AdvancedEffectsPanelSupport.ApplyMoneyRow(LastKillIconLabel, LastKillIconSelector, theme);
-            if (PacksManagementCard != null)
-            {
-                PacksManagementCard.Background = new SolidColorBrush(theme.Card);
-                PacksManagementCard.BorderBrush = new SolidColorBrush(theme.SoftBorder);
-            }
-            if (PacksManagementTitle != null)
-            {
-                PacksManagementTitle.Foreground = new SolidColorBrush(theme.Text);
-            }
         }
 
         public void ApplyLanguage(bool isChinese)
@@ -124,11 +111,6 @@ namespace KillConfirmGameBar.Controls.GameStyles
             FirstKillIconFirstKillItem.Content = isChinese ? "首杀" : "First kill";
             LastKillIconRevengeItem.Content = isChinese ? "复仇" : "Revenge";
             LastKillIconFirstKillItem.Content = isChinese ? "首杀" : "First kill";
-            if (PacksManagementTitle != null) PacksManagementTitle.Text = isChinese ? "CSOL 自定义包管理" : "CSOL Custom Packs";
-            if (ImportVoiceFolderBtn != null) ImportVoiceFolderBtn.Content = isChinese ? "导入语音文件夹" : "Import Voice Folder";
-            if (ImportVoiceZipBtn != null) ImportVoiceZipBtn.Content = isChinese ? "导入语音压缩包" : "Import Voice ZIP";
-            if (ImportIconFolderBtn != null) ImportIconFolderBtn.Content = isChinese ? "导入图标文件夹" : "Import Icon Folder";
-            if (ImportIconZipBtn != null) ImportIconZipBtn.Content = isChinese ? "导入图标压缩包" : "Import Icon ZIP";
 
             foreach ((ComboBox selector, string _) in GetVoiceSelectors(this))
             {
@@ -263,94 +245,6 @@ namespace KillConfirmGameBar.Controls.GameStyles
             }
 
             VoiceSettingChanged?.Invoke(this, null);
-        }
-
-        private async void OnImportVoiceFolderClick(object sender, RoutedEventArgs e)
-        {
-            var picker = new FolderPicker();
-            picker.FileTypeFilter.Add("*");
-            StorageFolder folder = await picker.PickSingleFolderAsync();
-            if (folder != null)
-            {
-                try
-                {
-                    await PackCatalogService.ImportCsolVoicePackAsync(folder);
-                }
-                catch (Exception ex)
-                {
-                    App.Log("Import CSOL voice folder failed: " + ex);
-                }
-            }
-        }
-
-        private async void OnImportVoiceZipClick(object sender, RoutedEventArgs e)
-        {
-            var picker = new FileOpenPicker();
-            picker.FileTypeFilter.Add(".zip");
-            StorageFile zipFile = await picker.PickSingleFileAsync();
-            if (zipFile != null)
-            {
-                try
-                {
-                    StorageFolder temp = await ApplicationData.Current.TemporaryFolder.CreateFolderAsync(
-                        "CsolVoiceZip_" + Guid.NewGuid().ToString("N"),
-                        CreationCollisionOption.GenerateUniqueName);
-                    using (var stream = await zipFile.OpenStreamForReadAsync())
-                    using (var archive = new ZipArchive(stream, ZipArchiveMode.Read))
-                    {
-                        archive.ExtractToDirectory(temp.Path);
-                    }
-                    await PackCatalogService.ImportCsolVoicePackAsync(temp);
-                }
-                catch (Exception ex)
-                {
-                    App.Log("Import CSOL voice zip failed: " + ex);
-                }
-            }
-        }
-
-        private async void OnImportIconFolderClick(object sender, RoutedEventArgs e)
-        {
-            var picker = new FolderPicker();
-            picker.FileTypeFilter.Add("*");
-            StorageFolder folder = await picker.PickSingleFolderAsync();
-            if (folder != null)
-            {
-                try
-                {
-                    await PackCatalogService.ImportCsolIconPackAsync(folder);
-                }
-                catch (Exception ex)
-                {
-                    App.Log("Import CSOL icon folder failed: " + ex);
-                }
-            }
-        }
-
-        private async void OnImportIconZipClick(object sender, RoutedEventArgs e)
-        {
-            var picker = new FileOpenPicker();
-            picker.FileTypeFilter.Add(".zip");
-            StorageFile zipFile = await picker.PickSingleFileAsync();
-            if (zipFile != null)
-            {
-                try
-                {
-                    StorageFolder temp = await ApplicationData.Current.TemporaryFolder.CreateFolderAsync(
-                        "CsolIconZip_" + Guid.NewGuid().ToString("N"),
-                        CreationCollisionOption.GenerateUniqueName);
-                    using (var stream = await zipFile.OpenStreamForReadAsync())
-                    using (var archive = new ZipArchive(stream, ZipArchiveMode.Read))
-                    {
-                        archive.ExtractToDirectory(temp.Path);
-                    }
-                    await PackCatalogService.ImportCsolIconPackAsync(temp);
-                }
-                catch (Exception ex)
-                {
-                    App.Log("Import CSOL icon zip failed: " + ex);
-                }
-            }
         }
 
         private static string ReadTaggedItem(ComboBox selector, string fallback)

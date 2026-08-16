@@ -116,6 +116,8 @@
     <Compile Include="MainPage.PackCreation.cs" />
     <Compile Include="MainPage.PackCreation.Voice.cs" />
     <Compile Include="MainPage.PackCreation.Icon.cs" />
+    <Compile Include="MainPage.PackCreation.CsolVoice.cs" />
+    <Compile Include="MainPage.PackCreation.CsolIcon.cs" />
     <Compile Include="MainPage.PackCreation.DialogUi.cs" />
     <Compile Include="MainPage.PackFileNames.cs" />
     <Compile Include="MainPage.PackFiles.cs" />

@@ -438,8 +438,11 @@ pub async fn update(
     let round_changed = previous_round != current_round;
     let freeze_phase_started = previous_round_phase != Some(TrackedRoundPhase::FreezeTime)
         && current_round_phase == Some(TrackedRoundPhase::FreezeTime);
-    let round_reset =
-        round_changed || matches!(current_round_phase, Some(TrackedRoundPhase::FreezeTime));
+    let round_started = previous_round_phase == Some(TrackedRoundPhase::FreezeTime)
+        && current_round_phase == Some(TrackedRoundPhase::Live);
+    let round_reset = round_changed
+        || matches!(current_round_phase, Some(TrackedRoundPhase::FreezeTime))
+        || round_started;
     let bomb_audio_transition = resolve_bomb_audio_transition(
         previous_round_bomb_state.as_deref(),
         current_round_bomb_state.as_deref(),

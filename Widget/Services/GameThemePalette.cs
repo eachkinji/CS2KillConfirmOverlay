@@ -57,6 +57,27 @@ namespace KillConfirmGameBar.Services
             }
         }
 
+        public static readonly GameThemePalette Home = new GameThemePalette
+        {
+            Shell = Color.FromArgb(255, 245, 246, 248),
+            Panel = Color.FromArgb(250, 255, 255, 255),
+            Card = Color.FromArgb(255, 255, 255, 255),
+            Field = Color.FromArgb(255, 248, 250, 252),
+            SubtleField = Color.FromArgb(255, 241, 245, 249),
+            Border = Color.FromArgb(255, 226, 232, 240),
+            SoftBorder = Color.FromArgb(255, 203, 213, 225),
+            Text = Color.FromArgb(255, 15, 23, 42),
+            MutedText = Color.FromArgb(255, 71, 85, 105),
+            SubtleText = Color.FromArgb(255, 100, 116, 139),
+            Accent = Color.FromArgb(255, 37, 99, 235),
+            AccentSoft = Color.FromArgb(255, 239, 246, 255),
+            AccentText = Color.FromArgb(255, 29, 78, 216),
+            Secondary = Color.FromArgb(255, 14, 165, 233),
+            WarningField = Color.FromArgb(255, 254, 243, 199),
+            WarningBorder = Color.FromArgb(255, 245, 158, 11),
+            WarningText = Color.FromArgb(255, 180, 83, 9)
+        };
+
         public static readonly GameThemePalette Crossfire = new GameThemePalette
         {
             Shell = Color.FromArgb(255, 242, 243, 242),

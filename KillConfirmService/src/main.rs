@@ -256,7 +256,11 @@ async fn bind_with_fallback(args: &mut Args) -> Result<tokio::net::TcpListener> 
 async fn run(mut args: Args) -> Result<()> {
     service_log("service starting");
 
-    boost_process_priority();
+    if args.boost_priority {
+        boost_process_priority();
+    } else {
+        service_log("process priority boost skipped (default; pass --boost-priority to opt in)");
+    }
 
     tracing_subscriber::registry()
         .with(

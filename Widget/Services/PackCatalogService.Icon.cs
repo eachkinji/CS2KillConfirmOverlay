@@ -57,7 +57,15 @@ namespace KillConfirmGameBar.Services
         public static bool IsImportedIconPackKey(string key)
         {
             if (string.IsNullOrWhiteSpace(key)) return false;
-            return key.StartsWith("custom_icon_", StringComparison.OrdinalIgnoreCase);
+            return key.StartsWith("custom_icon_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("custom_csol_icon_", StringComparison.OrdinalIgnoreCase);
+        }
+
+        public static bool IsCsolIconPackKey(string key)
+        {
+            if (string.IsNullOrWhiteSpace(key)) return false;
+            return key.StartsWith("custom_csol_icon_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("csol", StringComparison.OrdinalIgnoreCase);
         }
 
         public static async Task<StorageFolder> GetImportedIconFolderAsync(string key)
@@ -129,6 +137,21 @@ namespace KillConfirmGameBar.Services
                 HasKillFxOverlay = capabilities.HasKillFxOverlay,
                 HasEliteOverlay = capabilities.HasEliteOverlay,
                 HasWeaponBadgeOverlay = capabilities.HasWeaponBadgeOverlay
+            });
+            await SaveAsync(catalog);
+        }
+
+        public static async Task ImportCsolIconPackAsync(StorageFolder folder)
+        {
+            var catalog = await LoadAsync();
+            catalog.IconPacks.Add(new IconPackItem
+            {
+                Key = "custom_csol_icon_" + Guid.NewGuid().ToString("N"),
+                DisplayName = folder.DisplayName,
+                FolderPath = folder.Path,
+                IsBuiltIn = false,
+                IsVisibleInWidget = true,
+                OwnsFolder = false
             });
             await SaveAsync(catalog);
         }

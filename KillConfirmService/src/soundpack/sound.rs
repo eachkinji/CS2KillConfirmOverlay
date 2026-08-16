@@ -108,12 +108,23 @@ pub async fn warm_audio_cache(app_state: Arc<AppState>) {
         }
     }
 
+    let bomb_paths = app_state
+        .bomb_audio_paths
+        .lock()
+        .map(|paths| {
+            (
+                paths.timer.clone(),
+                paths.exploded.clone(),
+                paths.defused.clone(),
+            )
+        })
+        .unwrap_or_default();
     for file_name in [
-        BOMB_TIMER_AUDIO_FILE,
-        BOMB_EXPLODED_AUDIO_FILE,
-        BOMB_DEFUSED_AUDIO_FILE,
+        resolve_bomb_audio_path(BOMB_TIMER_AUDIO_FILE, &bomb_paths.0),
+        resolve_bomb_audio_path(BOMB_EXPLODED_AUDIO_FILE, &bomb_paths.1),
+        resolve_bomb_audio_path(BOMB_DEFUSED_AUDIO_FILE, &bomb_paths.2),
     ] {
-        let _ = read_audio_bytes(file_name).await;
+        let _ = read_audio_bytes(&file_name).await;
     }
 }
 
@@ -122,9 +133,16 @@ pub fn start_bomb_timer_audio(app_state: Arc<AppState>) {
         return;
     }
 
+    let configured = app_state
+        .bomb_audio_paths
+        .lock()
+        .map(|paths| paths.timer.clone())
+        .unwrap_or_default();
+    let file_name = resolve_bomb_audio_path(BOMB_TIMER_AUDIO_FILE, &configured);
+
     let generation = begin_bomb_audio_session(&app_state);
     tokio::spawn(async move {
-        if let Err(error) = run_bomb_timer_audio(app_state, generation).await {
+        if let Err(error) = run_bomb_timer_audio(app_state, generation, file_name).await {
             error!("Failed to play bomb timer audio: {error}");
             service_log(&format!("failed to play bomb timer audio: {error}"));
         }
@@ -132,11 +150,23 @@ pub fn start_bomb_timer_audio(app_state: Arc<AppState>) {
 }
 
 pub fn play_bomb_exploded_audio(app_state: Arc<AppState>) {
-    start_bomb_outcome_audio(app_state, BOMB_EXPLODED_AUDIO_FILE, "exploded");
+    let configured = app_state
+        .bomb_audio_paths
+        .lock()
+        .map(|paths| paths.exploded.clone())
+        .unwrap_or_default();
+    let file_name = resolve_bomb_audio_path(BOMB_EXPLODED_AUDIO_FILE, &configured);
+    start_bomb_outcome_audio(app_state, file_name, "exploded");
 }
 
 pub fn play_bomb_defused_audio(app_state: Arc<AppState>) {
-    start_bomb_outcome_audio(app_state, BOMB_DEFUSED_AUDIO_FILE, "defused");
+    let configured = app_state
+        .bomb_audio_paths
+        .lock()
+        .map(|paths| paths.defused.clone())
+        .unwrap_or_default();
+    let file_name = resolve_bomb_audio_path(BOMB_DEFUSED_AUDIO_FILE, &configured);
+    start_bomb_outcome_audio(app_state, file_name, "defused");
 }
 
 pub fn stop_bomb_audio(app_state: &AppState) {
@@ -154,10 +184,10 @@ pub fn refresh_bomb_audio_volume(app_state: &AppState) {
     }
 }
 
-async fn run_bomb_timer_audio(app_state: Arc<AppState>, generation: u64) -> Result<()> {
-    let bytes = read_audio_bytes(BOMB_TIMER_AUDIO_FILE).await?;
+async fn run_bomb_timer_audio(app_state: Arc<AppState>, generation: u64, file_name: String) -> Result<()> {
+    let bytes = read_audio_bytes(&file_name).await?;
     let source = rodio::Decoder::new(BufReader::new(Cursor::new(bytes)))
-        .with_context(|| format!("failed to decode file: {BOMB_TIMER_AUDIO_FILE:?}"))?;
+        .with_context(|| format!("failed to decode file: {file_name:?}"))?;
     let mixer = {
         let stream_handle = app_state.stream_handle.read().await;
         stream_handle.mixer().to_owned()
@@ -211,7 +241,7 @@ async fn run_bomb_timer_audio(app_state: Arc<AppState>, generation: u64) -> Resu
 
 fn start_bomb_outcome_audio(
     app_state: Arc<AppState>,
-    file_name: &'static str,
+    file_name: String,
     outcome: &'static str,
 ) {
     if !app_state.bomb_audio_enabled.load(Ordering::Relaxed) {
@@ -222,7 +252,7 @@ fn start_bomb_outcome_audio(
     let generation = begin_bomb_audio_session(&app_state);
     tokio::spawn(async move {
         let result = async {
-            let bytes = read_audio_bytes(file_name).await?;
+            let bytes = read_audio_bytes(&file_name).await?;
             let source = rodio::Decoder::new(BufReader::new(Cursor::new(bytes)))
                 .with_context(|| format!("failed to decode file: {file_name:?}"))?;
             let mixer = {
@@ -512,6 +542,7 @@ pub async fn play_audio(
         };
 
         let is_dagoujiao = preset.preset_name.eq_ignore_ascii_case("dagoujiao");
+        let is_doubao = preset.preset_name.eq_ignore_ascii_case("doubao");
         let epic_kill_count = app_state_clone
             .dagoujiao_epic_kill_count
             .load(Ordering::Relaxed)
@@ -552,6 +583,22 @@ pub async fn play_audio(
                     1.0
                 };
                 (vec![path], speed)
+            } else {
+                (Vec::new(), 1.0)
+            }
+        } else if is_doubao {
+            let kill_idx = audio_kill_count.clamp(1, 5);
+            let default_name = format!("{kill_idx}kill.wav");
+            let configured_path = app_state_clone
+                .doubao_audio_paths
+                .read()
+                .await
+                .get(&kill_idx.to_string())
+                .cloned()
+                .unwrap_or_default();
+            let path = resolve_doubao_audio_path(&preset.base_dir, &default_name, &configured_path);
+            if audio_play_main {
+                (vec![path], 1.0)
             } else {
                 (Vec::new(), 1.0)
             }
@@ -716,6 +763,26 @@ fn resolve_dagoujiao_audio_path(
         return format!("{base_dir}/{safe_name}");
     }
     if configured.is_empty() {
+        format!("{base_dir}/{default_name}")
+    } else {
+        configured.to_string()
+    }
+}
+
+// Bomb audio accepts a custom absolute path (imported by the widget) or falls
+// back to the built-in sound when the configured path is empty.
+fn resolve_bomb_audio_path(default_file: &str, configured_path: &str) -> String {
+    let configured = configured_path.trim();
+    if configured.is_empty() {
+        default_file.to_string()
+    } else {
+        configured.to_string()
+    }
+}
+
+fn resolve_doubao_audio_path(base_dir: &str, default_name: &str, configured_path: &str) -> String {
+    let configured = configured_path.trim();
+    if configured.is_empty() || configured.starts_with("builtin:") {
         format!("{base_dir}/{default_name}")
     } else {
         configured.to_string()

@@ -13,6 +13,9 @@ namespace KillConfirmGameBar.Services
         public int VolumePercent { get; set; } = 50;
         public int InitialSpeedPercent { get; set; } = BombAudioSettingsStore.DefaultInitialSpeedPercent;
         public int FinalSpeedPercent { get; set; } = BombAudioSettingsStore.DefaultFinalSpeedPercent;
+        public string TimerPath { get; set; } = string.Empty;
+        public string ExplodedPath { get; set; } = string.Empty;
+        public string DefusedPath { get; set; } = string.Empty;
     }
 
     internal static class BombAudioSettingsStore
@@ -21,7 +24,14 @@ namespace KillConfirmGameBar.Services
         private const string VolumeSettingKey = "BombAudio.VolumePercent";
         private const string InitialSpeedSettingKey = "BombAudio.InitialSpeedPercent";
         private const string FinalSpeedSettingKey = "BombAudio.FinalSpeedPercent";
+        private const string TimerPathSettingKey = "BombAudio.TimerPath";
+        private const string ExplodedPathSettingKey = "BombAudio.ExplodedPath";
+        private const string DefusedPathSettingKey = "BombAudio.DefusedPath";
         private const string LegacySpeedSettingPrefix = "BombAudio.SpeedPercent.";
+        internal const string TimerKind = "timer";
+        internal const string ExplodedKind = "exploded";
+        internal const string DefusedKind = "defused";
+        private static readonly string[] SupportedAudioExtensions = { ".wav", ".mp3", ".m4a" };
         internal const int DefaultInitialSpeedPercent = 50;
         internal const int DefaultFinalSpeedPercent = 150;
         private static readonly Uri SettingsUri =
@@ -41,7 +51,10 @@ namespace KillConfirmGameBar.Services
                 Enabled = ReadBool(values[EnabledSettingKey], false),
                 VolumePercent = Math.Max(0, Math.Min(100, ReadInt(values[VolumeSettingKey], 50))),
                 InitialSpeedPercent = initialSpeedPercent,
-                FinalSpeedPercent = finalSpeedPercent
+                FinalSpeedPercent = finalSpeedPercent,
+                TimerPath = ReadString(values[TimerPathSettingKey]),
+                ExplodedPath = ReadString(values[ExplodedPathSettingKey]),
+                DefusedPath = ReadString(values[DefusedPathSettingKey])
             };
         }
 
@@ -62,6 +75,45 @@ namespace KillConfirmGameBar.Services
             values[FinalSpeedSettingKey] = normalizedFinal;
         }
 
+        public static string GetStoredAudioPath(string kind)
+        {
+            var values = ApplicationData.Current.LocalSettings.Values;
+            return ReadString(values[PathKeyFor(kind)]);
+        }
+
+        public static bool HasCustomAudio(string kind)
+        {
+            return !string.IsNullOrWhiteSpace(GetStoredAudioPath(kind));
+        }
+
+        public static void ClearCustomAudio(string kind)
+        {
+            ApplicationData.Current.LocalSettings.Values[PathKeyFor(kind)] = string.Empty;
+        }
+
+        public static async Task<string> ImportCustomAudioAsync(string kind, StorageFile file)
+        {
+            string extension = file.FileType?.ToLowerInvariant();
+            if (string.IsNullOrEmpty(extension)
+                || Array.IndexOf(SupportedAudioExtensions, extension) < 0)
+            {
+                throw new InvalidOperationException(
+                    "Only .wav, .mp3, and .m4a audio files are supported.");
+            }
+
+            string folderName = PathKeyFor(kind).Replace("BombAudio.", string.Empty);
+            StorageFolder folder = await ApplicationData.Current.LocalFolder
+                .CreateFolderAsync("BombAudio", CreationCollisionOption.OpenIfExists);
+            string fileName = string.Format(
+                "{0}_{1}{2}",
+                folderName,
+                Guid.NewGuid().ToString("N"),
+                extension);
+            StorageFile copied = await file.CopyAsync(folder, fileName, NameCollisionOption.ReplaceExisting);
+            ApplicationData.Current.LocalSettings.Values[PathKeyFor(kind)] = copied.Path;
+            return copied.Path;
+        }
+
         public static async Task SyncAsync()
         {
             BombAudioSettingsValues settings = Load();
@@ -72,7 +124,10 @@ namespace KillConfirmGameBar.Services
                 ["initial_speed_percent"] =
                     JsonValue.CreateNumberValue(settings.InitialSpeedPercent),
                 ["final_speed_percent"] =
-                    JsonValue.CreateNumberValue(settings.FinalSpeedPercent)
+                    JsonValue.CreateNumberValue(settings.FinalSpeedPercent),
+                ["timer_path"] = JsonValue.CreateStringValue(settings.TimerPath),
+                ["exploded_path"] = JsonValue.CreateStringValue(settings.ExplodedPath),
+                ["defused_path"] = JsonValue.CreateStringValue(settings.DefusedPath)
             };
 
             using (HttpClient client = await LocalServiceAuth.CreateHttpClientAsync())
@@ -84,6 +139,24 @@ namespace KillConfirmGameBar.Services
             {
                 response.EnsureSuccessStatusCode();
             }
+        }
+
+        private static string PathKeyFor(string kind)
+        {
+            switch (kind)
+            {
+                case TimerKind:
+                    return TimerPathSettingKey;
+                case ExplodedKind:
+                    return ExplodedPathSettingKey;
+                default:
+                    return DefusedPathSettingKey;
+            }
+        }
+
+        private static string ReadString(object value)
+        {
+            return value as string ?? string.Empty;
         }
 
         private static int ClampSpeedPercent(int value)

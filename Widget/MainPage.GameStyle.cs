@@ -694,10 +694,12 @@ namespace KillConfirmGameBar
             {
                 _doubaoAdvancedEffectsPanel = new DoubaoAdvancedEffectsPanel();
                 _doubaoAdvancedEffectsPanel.StreakModeSelectionChanged += OnStreakModeSelectionChanged;
+                _doubaoAdvancedEffectsPanel.DoubaoSettingsChanged += OnDoubaoSettingsChanged;
             }
 
             _doubaoAdvancedEffectsPanel.SelectStreakMode(
                 SharedStreakSettingsStore.Load(GameStyleMode.Doubao));
+            _doubaoAdvancedEffectsPanel.RefreshSettings();
             return _doubaoAdvancedEffectsPanel;
         }
 
@@ -724,6 +726,18 @@ namespace KillConfirmGameBar
             catch (Exception ex)
             {
                 App.Log("Sync Dagoujiao settings from desktop failed: " + ex.Message);
+            }
+        }
+
+        private async void OnDoubaoSettingsChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                await DoubaoSettingsStore.SyncAsync();
+            }
+            catch (Exception ex)
+            {
+                App.Log("Sync Doubao settings from desktop failed: " + ex.Message);
             }
         }
 

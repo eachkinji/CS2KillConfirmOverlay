@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using KillConfirmGameBar.Services;
 using Microsoft.Graphics.Canvas;
 using Windows.Foundation;
+using Windows.Storage;
 using Windows.UI;
 using Windows.UI.Xaml;
 
@@ -16,8 +18,8 @@ namespace KillConfirmGameBar.Controls
         private const double DoubaoSettleEndMs = 620;
         private const double DoubaoFadeStartMs = 1850;
         private const double DoubaoDurationMs = 2480;
-        private static readonly Dictionary<int, CanvasBitmap> DoubaoKillCache =
-            new Dictionary<int, CanvasBitmap>();
+        private static readonly Dictionary<string, CanvasBitmap> DoubaoKillCache =
+            new Dictionary<string, CanvasBitmap>();
 
         private bool _isDoubaoActive;
         private CanvasBitmap _currentDoubaoBitmap;
@@ -87,25 +89,46 @@ namespace KillConfirmGameBar.Controls
         private static async Task<CanvasBitmap> LoadDoubaoKillBitmapAsync(int killCount)
         {
             int normalized = Math.Max(1, Math.Min(5, killCount));
+            DoubaoSettingsValues settings = DoubaoSettingsStore.Load();
+            string key = settings.KillImageKeys.TryGetValue(normalized, out string k) ? k : DoubaoSettingsStore.DefaultImageKey(normalized);
+            string cacheKey = $"{normalized}:{key}";
             lock (DoubaoKillCache)
             {
-                if (DoubaoKillCache.TryGetValue(normalized, out CanvasBitmap cached))
+                if (DoubaoKillCache.TryGetValue(cacheKey, out CanvasBitmap cached))
                 {
                     return cached;
                 }
             }
 
-            CanvasBitmap loaded = await LoadBitmapFromApplicationUriAsync(
-                $"ms-appx:///Assets/GameStyles/doubao/killconfirm/textures/{normalized}kill.png");
+            CanvasBitmap loaded = null;
+            if (string.IsNullOrWhiteSpace(key) || key.StartsWith("builtin:", StringComparison.OrdinalIgnoreCase))
+            {
+                loaded = await LoadBitmapFromApplicationUriAsync(
+                    $"ms-appx:///Assets/GameStyles/doubao/killconfirm/textures/{normalized}kill.png");
+            }
+            else
+            {
+                StorageFile imported = await DoubaoSettingsStore.GetImportedImageFileAsync(key);
+                if (imported != null)
+                {
+                    loaded = await LoadBitmapFromStorageFileAsync(imported);
+                }
+                if (loaded == null)
+                {
+                    loaded = await LoadBitmapFromApplicationUriAsync(
+                        $"ms-appx:///Assets/GameStyles/doubao/killconfirm/textures/{normalized}kill.png");
+                }
+            }
+
             lock (DoubaoKillCache)
             {
-                if (DoubaoKillCache.TryGetValue(normalized, out CanvasBitmap cached))
+                if (DoubaoKillCache.TryGetValue(cacheKey, out CanvasBitmap cached))
                 {
                     loaded?.Dispose();
                     return cached;
                 }
 
-                DoubaoKillCache[normalized] = loaded;
+                DoubaoKillCache[cacheKey] = loaded;
                 return loaded;
             }
         }

@@ -306,6 +306,8 @@ namespace KillConfirmGameBar
             GameStyleService.Changed += OnGameStyleServiceChanged;
             PackCatalogService.CatalogChanged -= OnPackCatalogChanged;
             PackCatalogService.CatalogChanged += OnPackCatalogChanged;
+            PanelColorSettingsStore.Changed -= OnPanelColorChanged;
+            PanelColorSettingsStore.Changed += OnPanelColorChanged;
             GsiGameVersionSettingsStore.VersionChanged += OnGsiGameVersionChanged;
             _widget = e.Parameter as XboxGameBarWidget;
             if (_widget != null)
@@ -339,6 +341,7 @@ namespace KillConfirmGameBar
             RestoreAllComboBoxPopups();
             GameStyleService.Changed -= OnGameStyleServiceChanged;
             PackCatalogService.CatalogChanged -= OnPackCatalogChanged;
+            PanelColorSettingsStore.Changed -= OnPanelColorChanged;
             _animationPreloadToken++;
             PrimaryKillAnimation?.ReleaseAnimationResourcesForPackChange();
             BadgeKillAnimation?.ReleaseAnimationResourcesForPackChange();
@@ -358,6 +361,22 @@ namespace KillConfirmGameBar
             _ = ShutdownCompanionAsync();
 
             base.OnNavigatedFrom(e);
+        }
+
+        private async void OnPanelColorChanged(object sender, EventArgs e)
+        {
+            if (!_isPageActive)
+            {
+                return;
+            }
+
+            await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+            {
+                if (_isPageActive)
+                {
+                    ApplyGameStyleUi();
+                }
+            });
         }
 
         private async void OnGameStyleServiceChanged(object sender, GameStyleMode mode)
@@ -976,32 +995,32 @@ namespace KillConfirmGameBar
                 return;
             }
 
-            target.Child.UpdateLayout();
-            Point popupPoint = target.Child.TransformToVisual(root).TransformPoint(new Point(0, 0));
-            Point panelVisualPoint = ControlPanel.TransformToVisual(root).TransformPoint(new Point(0, 0));
-            Point origin = new Point(
-                ControlPanel.ActualWidth * ControlPanel.RenderTransformOrigin.X,
-                ControlPanel.ActualHeight * ControlPanel.RenderTransformOrigin.Y);
-            double translateX = _panelDragTransform?.TranslateX ?? 0;
-            double translateY = _panelDragTransform?.TranslateY ?? 0;
-            Point panelLayoutPoint = new Point(
-                panelVisualPoint.X - origin.X * (1.0 - _controlPanelScale) - translateX,
-                panelVisualPoint.Y - origin.Y * (1.0 - _controlPanelScale) - translateY);
-            Point desiredPopupPoint = new Point(
-                panelLayoutPoint.X + origin.X
-                    + (popupPoint.X - panelLayoutPoint.X - origin.X) * _controlPanelScale
-                    + translateX,
-                panelLayoutPoint.Y + origin.Y
-                    + (popupPoint.Y - panelLayoutPoint.Y - origin.Y) * _controlPanelScale
-                    + translateY);
-
+            // The ComboBox dropdown is a separate popup window that does not
+            // inherit the panel's scale. Reproduce it here by scaling the popup
+            // content around the SAME pivot the panel uses (its RenderTransformOrigin
+            // top-center, plus any drag offset). Scaling around the popup's own
+            // top-left instead makes the dropdown drift and defeats hit-testing
+            // once the scale reaches 125%+.
             UIElement popupChild = target.Child;
             Transform originalTransform = popupChild.RenderTransform;
             Point originalTransformOrigin = popupChild.RenderTransformOrigin;
+
+            double translateX = _panelDragTransform?.TranslateX ?? 0;
+            double translateY = _panelDragTransform?.TranslateY ?? 0;
+            double pivotRootX =
+                (ControlPanel.ActualWidth * ControlPanel.RenderTransformOrigin.X) + translateX;
+            double pivotRootY =
+                (ControlPanel.ActualHeight * ControlPanel.RenderTransformOrigin.Y) + translateY;
+
+            popupChild.UpdateLayout();
+            Point layoutPos = popupChild.TransformToVisual(root).TransformPoint(new Point(0, 0));
+
             var popupTransform = new CompositeTransform
             {
                 ScaleX = _controlPanelScale,
-                ScaleY = _controlPanelScale
+                ScaleY = _controlPanelScale,
+                CenterX = pivotRootX - layoutPos.X,
+                CenterY = pivotRootY - layoutPos.Y
             };
             var transformGroup = new TransformGroup();
             popupChild.RenderTransform = null;
@@ -1012,10 +1031,6 @@ namespace KillConfirmGameBar
             transformGroup.Children.Add(popupTransform);
             popupChild.RenderTransformOrigin = new Point(0, 0);
             popupChild.RenderTransform = transformGroup;
-
-            Point scaledPopupPoint = popupChild.TransformToVisual(root).TransformPoint(new Point(0, 0));
-            popupTransform.TranslateX = desiredPopupPoint.X - scaledPopupPoint.X;
-            popupTransform.TranslateY = desiredPopupPoint.Y - scaledPopupPoint.Y;
 
             _comboBoxPopupTransforms[target] = new ComboBoxPopupTransformState(
                 popupChild,

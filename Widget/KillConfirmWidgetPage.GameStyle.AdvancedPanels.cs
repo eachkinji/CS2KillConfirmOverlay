@@ -153,7 +153,6 @@ namespace KillConfirmGameBar
         private void OnAdvancedEffectsButtonClick(object sender, RoutedEventArgs e)
         {
             MountAdvancedEffectsPanel();
-            AdvancedEffectsGeneralSettingsPanel.RefreshSettings();
             FlyoutBase.ShowAttachedFlyout(AdvancedEffectsButton);
         }
 
@@ -295,6 +294,7 @@ namespace KillConfirmGameBar
             {
                 _doubaoAdvancedEffectsPanel = new DoubaoAdvancedEffectsPanel();
                 _doubaoAdvancedEffectsPanel.StreakModeSelectionChanged += OnSharedStreakModeSelectionChanged;
+                _doubaoAdvancedEffectsPanel.DoubaoSettingsChanged += OnDoubaoSettingsChanged;
                 LoadSharedStreakMode(GameStyleMode.Doubao);
             }
 
@@ -320,11 +320,7 @@ namespace KillConfirmGameBar
             AdvancedEffectsFlyoutCard.BorderBrush = new SolidColorBrush(theme.SoftBorder);
             AdvancedEffectsGameCard.Background = new SolidColorBrush(theme.Panel);
             AdvancedEffectsGameCard.BorderBrush = new SolidColorBrush(theme.Border);
-            AdvancedEffectsGeneralCard.Background = new SolidColorBrush(theme.Panel);
-            AdvancedEffectsGeneralCard.BorderBrush = new SolidColorBrush(theme.Border);
             AdvancedEffectsGameTitleText.Foreground = new SolidColorBrush(theme.Text);
-            AdvancedEffectsGeneralTitleText.Foreground = new SolidColorBrush(theme.Text);
-            AdvancedEffectsGeneralSettingsPanel.ApplyTheme(theme);
             if (_crossfireAdvancedEffectsPanel != null)
             {
                 _crossfireAdvancedEffectsPanel.ApplyTheme(theme);
@@ -390,8 +386,6 @@ namespace KillConfirmGameBar
         {
             bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
             AdvancedEffectsGameTitleText.Text = LocalizationManager.Text("GameEffectsTitle");
-            AdvancedEffectsGeneralTitleText.Text = LocalizationManager.Text("GeneralSettingsTitle");
-            AdvancedEffectsGeneralSettingsPanel.ApplyLanguage();
             if (_crossfireAdvancedEffectsPanel != null)
             {
                 _crossfireAdvancedEffectsPanel.ApplyLanguage(isChinese);

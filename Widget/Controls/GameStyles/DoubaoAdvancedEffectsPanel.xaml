@@ -4,30 +4,200 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:KillConfirmGameBar.Controls.GameStyles">
 
-    <StackPanel Spacing="8">
-        <TextBlock
-            x:Name="TitleText"
-            FontSize="13"
-            FontWeight="Bold"
-            Text="Doubao Effects" />
-        <TextBlock
-            x:Name="HintText"
-            FontSize="10"
-            Text="Five independent kill cards with impact flash animation."
-            TextWrapping="WrapWholeWords" />
+    <StackPanel Spacing="10">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel VerticalAlignment="Center" Spacing="2">
+                <TextBlock
+                    x:Name="TitleText"
+                    FontSize="13"
+                    FontWeight="Bold"
+                    Text="Doubao Effects" />
+                <TextBlock
+                    x:Name="HintText"
+                    FontSize="10"
+                    Text="Configure streak mode and customize images and voice for kills 1 through 5."
+                    TextWrapping="WrapWholeWords" />
+            </StackPanel>
+            <Button
+                x:Name="ResetButton"
+                Grid.Column="1"
+                MinWidth="60"
+                Padding="8,3"
+                FontSize="11"
+                Click="OnResetClick"
+                Content="Reset" />
+        </Grid>
+
         <local:StreakWindowEditor
             x:Name="StreakEditor"
             SettingsChanged="OnStreakModeSelectionChanged" />
+
         <Border
-            x:Name="IsolationNotice"
-            Padding="8"
+            x:Name="KillImagesCard"
+            Padding="10"
             BorderThickness="1"
-            CornerRadius="10">
-            <TextBlock
-                x:Name="IsolationText"
-                FontSize="10"
-                Text="Doubao uses its own images, audio, cache, animation state, and settings keys."
-                TextWrapping="WrapWholeWords" />
+            CornerRadius="12">
+            <StackPanel Spacing="8">
+                <TextBlock
+                    x:Name="KillImagesTitleText"
+                    FontSize="12"
+                    FontWeight="SemiBold"
+                    Text="Per-kill images (1-5 kills)" />
+                <Grid ColumnSpacing="8" RowSpacing="6">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Row="0" VerticalAlignment="Center">
+                        <TextBlock x:Name="Kill1ImageLabel" FontSize="11" Text="Kill 1 image" />
+                        <TextBlock x:Name="Kill1ImageStatus" FontSize="10" Foreground="#888888" Text="1kill.png" />
+                    </StackPanel>
+                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                        <Button MinWidth="68" Padding="8,3" FontSize="11" Click="OnImportImageClick" Tag="1" Content="Import" />
+                        <Button x:Name="Kill1ImageClearBtn" Padding="6,3" Click="OnClearImageClick" Tag="1" ToolTipService.ToolTip="Reset" Visibility="Collapsed">
+                            <FontIcon FontSize="10" Glyph="&#xE894;" />
+                        </Button>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="1" VerticalAlignment="Center">
+                        <TextBlock x:Name="Kill2ImageLabel" FontSize="11" Text="Kill 2 image" />
+                        <TextBlock x:Name="Kill2ImageStatus" FontSize="10" Foreground="#888888" Text="2kill.png" />
+                    </StackPanel>
+                    <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                        <Button MinWidth="68" Padding="8,3" FontSize="11" Click="OnImportImageClick" Tag="2" Content="Import" />
+                        <Button x:Name="Kill2ImageClearBtn" Padding="6,3" Click="OnClearImageClick" Tag="2" ToolTipService.ToolTip="Reset" Visibility="Collapsed">
+                            <FontIcon FontSize="10" Glyph="&#xE894;" />
+                        </Button>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="2" VerticalAlignment="Center">
+                        <TextBlock x:Name="Kill3ImageLabel" FontSize="11" Text="Kill 3 image" />
+                        <TextBlock x:Name="Kill3ImageStatus" FontSize="10" Foreground="#888888" Text="3kill.png" />
+                    </StackPanel>
+                    <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                        <Button MinWidth="68" Padding="8,3" FontSize="11" Click="OnImportImageClick" Tag="3" Content="Import" />
+                        <Button x:Name="Kill3ImageClearBtn" Padding="6,3" Click="OnClearImageClick" Tag="3" ToolTipService.ToolTip="Reset" Visibility="Collapsed">
+                            <FontIcon FontSize="10" Glyph="&#xE894;" />
+                        </Button>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="3" VerticalAlignment="Center">
+                        <TextBlock x:Name="Kill4ImageLabel" FontSize="11" Text="Kill 4 image" />
+                        <TextBlock x:Name="Kill4ImageStatus" FontSize="10" Foreground="#888888" Text="4kill.png" />
+                    </StackPanel>
+                    <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                        <Button MinWidth="68" Padding="8,3" FontSize="11" Click="OnImportImageClick" Tag="4" Content="Import" />
+                        <Button x:Name="Kill4ImageClearBtn" Padding="6,3" Click="OnClearImageClick" Tag="4" ToolTipService.ToolTip="Reset" Visibility="Collapsed">
+                            <FontIcon FontSize="10" Glyph="&#xE894;" />
+                        </Button>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="4" VerticalAlignment="Center">
+                        <TextBlock x:Name="Kill5ImageLabel" FontSize="11" Text="Kill 5 image" />
+                        <TextBlock x:Name="Kill5ImageStatus" FontSize="10" Foreground="#888888" Text="5kill.png" />
+                    </StackPanel>
+                    <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                        <Button MinWidth="68" Padding="8,3" FontSize="11" Click="OnImportImageClick" Tag="5" Content="Import" />
+                        <Button x:Name="Kill5ImageClearBtn" Padding="6,3" Click="OnClearImageClick" Tag="5" ToolTipService.ToolTip="Reset" Visibility="Collapsed">
+                            <FontIcon FontSize="10" Glyph="&#xE894;" />
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </Border>
+
+        <Border
+            x:Name="KillAudioCard"
+            Padding="10"
+            BorderThickness="1"
+            CornerRadius="12">
+            <StackPanel Spacing="8">
+                <TextBlock
+                    x:Name="KillAudioTitleText"
+                    FontSize="12"
+                    FontWeight="SemiBold"
+                    Text="Per-kill voice (1-5 kills)" />
+                <Grid ColumnSpacing="8" RowSpacing="6">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Row="0" VerticalAlignment="Center">
+                        <TextBlock x:Name="Kill1AudioLabel" FontSize="11" Text="Kill 1 audio" />
+                        <TextBlock x:Name="Kill1AudioStatus" FontSize="10" Foreground="#888888" Text="1kill.wav" />
+                    </StackPanel>
+                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                        <Button MinWidth="68" Padding="8,3" FontSize="11" Click="OnImportAudioClick" Tag="1" Content="Import" />
+                        <Button x:Name="Kill1AudioClearBtn" Padding="6,3" Click="OnClearAudioClick" Tag="1" ToolTipService.ToolTip="Reset" Visibility="Collapsed">
+                            <FontIcon FontSize="10" Glyph="&#xE894;" />
+                        </Button>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="1" VerticalAlignment="Center">
+                        <TextBlock x:Name="Kill2AudioLabel" FontSize="11" Text="Kill 2 audio" />
+                        <TextBlock x:Name="Kill2AudioStatus" FontSize="10" Foreground="#888888" Text="2kill.wav" />
+                    </StackPanel>
+                    <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                        <Button MinWidth="68" Padding="8,3" FontSize="11" Click="OnImportAudioClick" Tag="2" Content="Import" />
+                        <Button x:Name="Kill2AudioClearBtn" Padding="6,3" Click="OnClearAudioClick" Tag="2" ToolTipService.ToolTip="Reset" Visibility="Collapsed">
+                            <FontIcon FontSize="10" Glyph="&#xE894;" />
+                        </Button>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="2" VerticalAlignment="Center">
+                        <TextBlock x:Name="Kill3AudioLabel" FontSize="11" Text="Kill 3 audio" />
+                        <TextBlock x:Name="Kill3AudioStatus" FontSize="10" Foreground="#888888" Text="3kill.wav" />
+                    </StackPanel>
+                    <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                        <Button MinWidth="68" Padding="8,3" FontSize="11" Click="OnImportAudioClick" Tag="3" Content="Import" />
+                        <Button x:Name="Kill3AudioClearBtn" Padding="6,3" Click="OnClearAudioClick" Tag="3" ToolTipService.ToolTip="Reset" Visibility="Collapsed">
+                            <FontIcon FontSize="10" Glyph="&#xE894;" />
+                        </Button>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="3" VerticalAlignment="Center">
+                        <TextBlock x:Name="Kill4AudioLabel" FontSize="11" Text="Kill 4 audio" />
+                        <TextBlock x:Name="Kill4AudioStatus" FontSize="10" Foreground="#888888" Text="4kill.wav" />
+                    </StackPanel>
+                    <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                        <Button MinWidth="68" Padding="8,3" FontSize="11" Click="OnImportAudioClick" Tag="4" Content="Import" />
+                        <Button x:Name="Kill4AudioClearBtn" Padding="6,3" Click="OnClearAudioClick" Tag="4" ToolTipService.ToolTip="Reset" Visibility="Collapsed">
+                            <FontIcon FontSize="10" Glyph="&#xE894;" />
+                        </Button>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="4" VerticalAlignment="Center">
+                        <TextBlock x:Name="Kill5AudioLabel" FontSize="11" Text="Kill 5 audio" />
+                        <TextBlock x:Name="Kill5AudioStatus" FontSize="10" Foreground="#888888" Text="5kill.wav" />
+                    </StackPanel>
+                    <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                        <Button MinWidth="68" Padding="8,3" FontSize="11" Click="OnImportAudioClick" Tag="5" Content="Import" />
+                        <Button x:Name="Kill5AudioClearBtn" Padding="6,3" Click="OnClearAudioClick" Tag="5" ToolTipService.ToolTip="Reset" Visibility="Collapsed">
+                            <FontIcon FontSize="10" Glyph="&#xE894;" />
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
         </Border>
     </StackPanel>
 </UserControl>

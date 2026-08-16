@@ -47,10 +47,11 @@ use soundpack::sound::warm_audio_cache;
 use util::event_stream::{
     audio_devices, audio_reload, audio_volume, bomb_audio_settings, counter_strike_root,
     crossfire_settings, cs2_root, csol_settings, dagoujiao_settings, developer_settings,
-    event_sound_settings, events_poll, gsi_game_settings, gsi_status, health,
+    doubao_settings, event_sound_settings, events_poll, gsi_game_settings, gsi_status, health,
     install_counter_strike_cfg, interrupt_previous_kill_audio_settings, money_mode,
     process_priorities, set_audio_device, set_bomb_audio_settings, set_crossfire_settings,
-    set_csol_settings, set_dagoujiao_settings, set_developer_settings, set_event_sound_settings,
+    set_csol_settings, set_dagoujiao_settings, set_developer_settings, set_doubao_settings,
+    set_event_sound_settings,
     set_gsi_game_settings, set_interrupt_previous_kill_audio_settings, set_money_mode,
     set_process_priority, set_spectator_settings, set_streak_settings, shutdown,
     spectator_settings, streak_settings, test_event,
@@ -313,6 +314,7 @@ async fn run() -> Result<()> {
                 "builtin:jiaojiaojiao.wav".to_string(),
             ),
         ])),
+        doubao_audio_paths: RwLock::new(HashMap::new()),
         bomb_audio_enabled: AtomicBool::new(false),
         bomb_audio_volume_percent: AtomicU32::new(50),
         bomb_audio_initial_speed_percent: AtomicU32::new(DEFAULT_BOMB_AUDIO_INITIAL_SPEED_PERCENT),
@@ -322,6 +324,7 @@ async fn run() -> Result<()> {
         stop_previous_kill_audio: AtomicBool::new(false),
         kill_audio_sink: std::sync::Mutex::new(None),
         spectated_kill_effects_enabled: AtomicBool::new(false),
+        bomb_audio_paths: std::sync::Mutex::new(Default::default()),
         gsi_game_version: AtomicU8::new(GsiGameVersion::DEFAULT.as_u8()),
         events: EventJournal::default(),
         shutdown_tx,
@@ -374,6 +377,10 @@ async fn run() -> Result<()> {
         .route(
             "/dagoujiao/settings",
             get(dagoujiao_settings).post(set_dagoujiao_settings),
+        )
+        .route(
+            "/doubao/settings",
+            get(doubao_settings).post(set_doubao_settings),
         )
         .route(
             "/streak/settings",

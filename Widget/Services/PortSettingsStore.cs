@@ -16,6 +16,8 @@ namespace KillConfirmGameBar.Services
     {
         public const string PortKey = "LocalService.Port";
         private const string PortFileName = "widget_port.txt";
+        public const string PortSearchKey = "LocalService.PortAutoSearch";
+        private const string PortSearchFileName = "port_search.txt";
 
         /// <summary>Default port used since the project was first shipped.</summary>
         public const int DefaultPort = 10087;
@@ -74,6 +76,30 @@ namespace KillConfirmGameBar.Services
         public static void ResetPort()
         {
             ApplicationData.Current.LocalSettings.Values[PortKey] = DefaultPort;
+        }
+
+        public static bool AutoSearchEnabled
+        {
+            get
+            {
+                object raw = ApplicationData.Current.LocalSettings.Values[PortSearchKey];
+                if (raw is bool direct)
+                {
+                    return direct;
+                }
+                if (raw is string text)
+                {
+                    return string.Equals(text, "1", StringComparison.Ordinal)
+                        || string.Equals(text, "true", StringComparison.OrdinalIgnoreCase);
+                }
+                return false;
+            }
+        }
+
+        public static async Task SetAutoSearchAsync(bool enabled)
+        {
+            ApplicationData.Current.LocalSettings.Values[PortSearchKey] = enabled;
+            await WriteAutoSearchFileAsync(enabled);
         }
 
         public static bool TryParsePort(string text, out int port)
@@ -142,6 +168,21 @@ namespace KillConfirmGameBar.Services
             catch (Exception ex)
             {
                 App.Log("Failed to write port file: " + ex.Message);
+            }
+        }
+
+        private static async Task WriteAutoSearchFileAsync(bool enabled)
+        {
+            try
+            {
+                string folder = ApplicationData.Current.LocalFolder.Path;
+                string path = Path.Combine(folder, PortSearchFileName);
+                string body = enabled ? "1" : "0";
+                await Task.Run(() => File.WriteAllText(path, body));
+            }
+            catch (Exception ex)
+            {
+                App.Log("Failed to write port-search file: " + ex.Message);
             }
         }
 

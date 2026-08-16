@@ -237,11 +237,28 @@ namespace KillConfirmGameBar.Services
                 slotsObj["common_overlay"] = Windows.Data.Json.JsonValue.CreateStringValue(commonOverlayFile);
             }
 
+            var overlaySlotsArray = new Windows.Data.Json.JsonArray();
+            if (commonOverlayEnabled != null)
+            {
+                foreach (var pair in commonOverlayEnabled)
+                {
+                    if (pair.Value)
+                    {
+                        string stem = Path.GetFileNameWithoutExtension(pair.Key).ToLowerInvariant();
+                        if (slotMapping.TryGetValue(stem, out string manifestSlot))
+                        {
+                            overlaySlotsArray.Add(Windows.Data.Json.JsonValue.CreateStringValue(manifestSlot));
+                        }
+                    }
+                }
+            }
+
             var audioObj = new Windows.Data.Json.JsonObject
             {
                 ["base_gain"] = Windows.Data.Json.JsonValue.CreateNumberValue(1.0),
                 ["slots"] = slotsObj,
-                ["slot_gains"] = new Windows.Data.Json.JsonObject()
+                ["slot_gains"] = new Windows.Data.Json.JsonObject(),
+                ["overlay_slots"] = overlaySlotsArray
             };
 
             var manifestObj = new Windows.Data.Json.JsonObject

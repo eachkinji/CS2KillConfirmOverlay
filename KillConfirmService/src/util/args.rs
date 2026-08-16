@@ -44,6 +44,13 @@ pub struct Args {
     #[arg(long, default_value = "false")]
     pub port_from_file: bool,
 
+    /// When the requested port is busy (typically because a local proxy or
+    /// another tool already bound it), scan forward for a free port instead
+    /// of exiting with 10048/10013. Off by default; the widget flips it on
+    /// from the advanced settings page when the user opts in.
+    #[arg(long, default_value = "false")]
+    pub auto_search_port: bool,
+
     /// open the package runtime log folder, then exit
     #[arg(long, default_value = "false")]
     pub open_logs: bool,

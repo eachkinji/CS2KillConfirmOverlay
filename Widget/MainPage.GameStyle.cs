@@ -46,7 +46,7 @@ namespace KillConfirmGameBar
             bool battlefield2042 = mode == GameStyleMode.Battlefield2042;
             bool fixedPreset = GameStyleService.IsModPresetGameKey(GameStyleService.ToStorageValue(mode));
             bool isCrossfire = mode == GameStyleMode.Crossfire;
-            GameThemePalette theme = GameThemePalette.Current;
+            GameThemePalette theme = _isHomePageSelected ? GameThemePalette.Home : GameThemePalette.ForMode(mode);
 
             UpdateSettingsPageVisibility();
             if (_isHomePageSelected)
@@ -79,14 +79,45 @@ namespace KillConfirmGameBar
                 if (IconCollectionsCard != null) IconCollectionsCard.Visibility = Visibility.Collapsed;
             }
 
-            SettingsRootGrid.Background = CreateSettingsBackground(mode);
-            HeroSlash.Fill = CreateHeroSlashBrush(mode);
-            HeroSlashLight.Fill = new SolidColorBrush(battlefield5 ? Color.FromArgb(255, 119, 243, 255) : battlefield2042 ? Color.FromArgb(255, 109, 255, 255) : battlefield1 ? Color.FromArgb(255, 255, 218, 166) : valorant ? Color.FromArgb(255, 255, 170, 178) : csol ? Color.FromArgb(255, 255, 168, 150) : Color.FromArgb(255, 255, 240, 213));
-            FrameStripeOne.Stroke = new SolidColorBrush(battlefield5 ? Color.FromArgb(255, 58, 137, 166) : battlefield2042 ? Color.FromArgb(255, 60, 128, 146) : battlefield1 ? Color.FromArgb(255, 88, 110, 126) : valorant ? Color.FromArgb(255, 59, 78, 102) : csol ? Color.FromArgb(255, 120, 37, 42) : Color.FromArgb(255, 196, 196, 196));
-            FrameStripeTwo.Stroke = FrameStripeOne.Stroke;
-            AccentLineOne.Fill = new SolidColorBrush(fixedPreset || csol ? theme.Accent : valorant ? theme.Secondary : Color.FromArgb(255, 207, 107, 0));
-            AccentLineTwo.Fill = AccentLineOne.Fill;
-            AccentLineThree.Fill = AccentLineOne.Fill;
+            if (_isHomePageSelected)
+            {
+                SettingsRootGrid.Background = new LinearGradientBrush
+                {
+                    StartPoint = new Windows.Foundation.Point(0, 0),
+                    EndPoint = new Windows.Foundation.Point(1, 1),
+                    GradientStops =
+                    {
+                        new GradientStop { Color = Color.FromArgb(255, 248, 250, 252), Offset = 0.0 },
+                        new GradientStop { Color = Color.FromArgb(255, 238, 242, 246), Offset = 1.0 }
+                    }
+                };
+                HeroSlash.Visibility = Visibility.Collapsed;
+                HeroSlashLight.Visibility = Visibility.Collapsed;
+                FrameStripeOne.Visibility = Visibility.Collapsed;
+                FrameStripeTwo.Visibility = Visibility.Collapsed;
+                AccentLineOne.Visibility = Visibility.Collapsed;
+                AccentLineTwo.Visibility = Visibility.Collapsed;
+                AccentLineThree.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                SettingsRootGrid.Background = CreateSettingsBackground(mode);
+                HeroSlash.Visibility = Visibility.Visible;
+                HeroSlashLight.Visibility = Visibility.Visible;
+                FrameStripeOne.Visibility = Visibility.Visible;
+                FrameStripeTwo.Visibility = Visibility.Visible;
+                AccentLineOne.Visibility = Visibility.Visible;
+                AccentLineTwo.Visibility = Visibility.Visible;
+                AccentLineThree.Visibility = Visibility.Visible;
+
+                HeroSlash.Fill = CreateHeroSlashBrush(mode);
+                HeroSlashLight.Fill = new SolidColorBrush(battlefield5 ? Color.FromArgb(255, 119, 243, 255) : battlefield2042 ? Color.FromArgb(255, 109, 255, 255) : battlefield1 ? Color.FromArgb(255, 255, 218, 166) : valorant ? Color.FromArgb(255, 255, 170, 178) : csol ? Color.FromArgb(255, 255, 168, 150) : Color.FromArgb(255, 255, 240, 213));
+                FrameStripeOne.Stroke = new SolidColorBrush(battlefield5 ? Color.FromArgb(255, 58, 137, 166) : battlefield2042 ? Color.FromArgb(255, 60, 128, 146) : battlefield1 ? Color.FromArgb(255, 88, 110, 126) : valorant ? Color.FromArgb(255, 59, 78, 102) : csol ? Color.FromArgb(255, 120, 37, 42) : Color.FromArgb(255, 196, 196, 196));
+                FrameStripeTwo.Stroke = FrameStripeOne.Stroke;
+                AccentLineOne.Fill = new SolidColorBrush(fixedPreset || csol ? theme.Accent : valorant ? theme.Secondary : Color.FromArgb(255, 207, 107, 0));
+                AccentLineTwo.Fill = AccentLineOne.Fill;
+                AccentLineThree.Fill = AccentLineOne.Fill;
+            }
 
             SetText(TitleText, theme.Text);
             SetText(GameStyleLabelText, theme.Text);

@@ -4,17 +4,18 @@
 # Kill Confirm Overlay / 击杀确认覆盖层
 
 **A customizable CS2 kill-confirm experience built for Xbox Game Bar.**
+**为 Xbox Game Bar 打造的可自定义 CS2 击杀确认体验。**
 
 <p>
   <strong>English</strong> · <a href="README.zh-CN.md">简体中文</a>
 </p>
 
-<a href="https://pan.quark.cn/s/1f3cfbcf8d5f?pwd=7Twv"><img src="https://img.shields.io/badge/Download-Quark%20Drive-6C5CE7?style=for-the-badge" alt="Download from Quark Drive" /></a>
+<a href="https://pan.quark.cn/s/1f3cfbcf8d5f?pwd=7Twv"><img src="https://img.shields.io/badge/Download_下载-Quark_夸克网盘-6C5CE7?style=for-the-badge" alt="Download from Quark Drive / 从夸克网盘下载" /></a>
 
-**Access code: `7Twv`**
+**Access code / 提取码：`7Twv`**
 
 <p>
-  <a href="https://github.com/eachkinji/CS2KillConfirmOverlay/releases"><img src="https://img.shields.io/github/v/release/eachkinji/CS2KillConfirmOverlay?display_name=tag&style=flat-square" alt="Latest release" /></a>
+  <a href="https://github.com/eachkinji/CS2KillConfirmOverlay/releases"><img src="https://img.shields.io/github/v/release/eachkinji/CS2KillConfirmOverlay?display_name=tag&style=flat-square&label=%E6%9C%80%E6%96%B0%E7%89%88%E6%9C%AC%20Release" alt="Latest release 最新版本" /></a>
   <img src="https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4?style=flat-square&logo=windows" alt="Windows 10 and 11" />
   <img src="https://img.shields.io/badge/Xbox-Game%20Bar-107C10?style=flat-square&logo=xbox" alt="Xbox Game Bar" />
   <a href="LICENSE"><img src="https://img.shields.io/github/license/eachkinji/CS2KillConfirmOverlay?style=flat-square" alt="License" /></a>
@@ -30,9 +31,8 @@ The project has grown from a simple kill-confirm sound tool into a configurable 
 > [!NOTE]
 > The names of other games identify presentation styles inspired by those games. CS2 remains the game that provides the live events through GSI.
 
-<p align="center">
-  <span style="color:#d00; font-weight:bold;">Disclaimer: All game-related resources (sound effects, icons, character likenesses, etc.) included in this project are the property of their respective copyright holders (Riot Games, Electronic Arts, Valve, etc.). This tool is an unofficial community project for learning, exchange, and testing only. It is not affiliated with, endorsed by, or sponsored by any of the aforementioned companies. Do not use this tool for piracy, commercial resale, or any illegal activity.</span>
-</p>
+> [!CAUTION]
+> **Disclaimer:** All game-related resources (sound effects, icons, character likenesses, etc.) included in this project are the property of their respective copyright holders (Riot Games, Electronic Arts, Valve, etc.). This tool is an unofficial community project for learning, exchange, and testing only. It is not affiliated with, endorsed by, or sponsored by any of the aforementioned companies. Do not use this tool for piracy, commercial resale, or any illegal activity.
 
 ## Open-source foundation and community collaboration
 

@@ -23,19 +23,27 @@
 </p>
 </div>
 
-## Overview
+## Overview / 项目简介
 
 Kill Confirm Overlay listens to Counter-Strike 2 Game State Integration events, plays contextual voice lines, and renders animated kill effects inside Xbox Game Bar. It stays visible over the game without reading from or injecting into the CS2 process.
 
+Kill Confirm Overlay 通过 Counter-Strike 2 Game State Integration 接收对局事件，根据事件播放对应语音，并在 Xbox Game Bar 中显示击杀动画。它不读取或注入 CS2 游戏进程，同时可以作为悬浮窗保持在游戏画面上方。
+
 The project has grown from a simple kill-confirm sound tool into a configurable presentation system with independent game-inspired styles, custom media, streak logic, event priorities, and high-resolution rendering.
+
+项目已经从简单的击杀确认音效工具，发展为支持独立游戏风格、自定义媒体、连杀逻辑、事件优先级和高分辨率渲染的可配置展示系统。
 
 > [!NOTE]
 > The names of other games identify presentation styles inspired by those games. CS2 remains the game that provides the live events through GSI.
+>
+> 文中其他游戏的名称表示受对应游戏启发的展示风格。当前实际通过 GSI 提供实时对局事件的游戏仍然是 CS2。
 
 > [!CAUTION]
 > **Disclaimer:** All game-related resources (sound effects, icons, character likenesses, etc.) included in this project are the property of their respective copyright holders (Riot Games, Electronic Arts, Valve, etc.). This tool is an unofficial community project for learning, exchange, and testing only. It is not affiliated with, endorsed by, or sponsored by any of the aforementioned companies. Do not use this tool for piracy, commercial resale, or any illegal activity.
+>
+> **免责声明：** 本项目中包含的所有游戏相关资源（音效、图标、角色形象等）归各自版权方所有（Riot Games、Electronic Arts、Valve 等）。本工具为非官方社区项目，仅供学习、交流、测试使用，与上述公司无任何关联、亦未获其认可或赞助。切勿将本工具用于盗版、商业转售或任何违法活动。
 
-## Open-source foundation and community collaboration
+## Open-source foundation and community collaboration / 开源基础与社区联动
 
 <table>
   <tr>
@@ -48,6 +56,9 @@ The project has grown from a simple kill-confirm sound tool into a configurable 
     <td>
       <strong>Thanks to the original cskillconfirm developer</strong><br /><br />
       Special thanks to <a href="https://github.com/st0nie">ston (st0nie)</a> for the original idea and foundational code provided by <a href="https://github.com/st0nie/cskillconfirm"><code>cskillconfirm</code></a>. Its CS2 kill-confirm approach made this project possible. This project also uses ideas and integration work from <a href="https://github.com/st0nie/gsi-cs2-rs"><code>gsi-cs2-rs</code></a>.
+      <br /><br />
+      <strong>感谢 cskillconfirm 原项目开发者</strong><br /><br />
+      特别感谢 <a href="https://github.com/st0nie">ston（st0nie）</a> 提供的开发思路，以及开源项目 <a href="https://github.com/st0nie/cskillconfirm"><code>cskillconfirm</code></a> 的基础代码。其 CS2 击杀确认方案为本项目提供了重要基础。本项目也使用了 <a href="https://github.com/st0nie/gsi-cs2-rs"><code>gsi-cs2-rs</code></a> 的相关思路与集成成果。
     </td>
   </tr>
   <tr>
@@ -60,6 +71,9 @@ The project has grown from a simple kill-confirm sound tool into a configurable 
     <td>
       <strong>More CS2 customization: CS2 Customizer</strong><br /><br />
       If you want more extensive customization—including crosshairs, kill sounds and icons, HUD colors, in-game view settings, and utility lineups—visit <a href="https://github.com/gufan0000/cs2-customizer"><code>gufan0000/cs2-customizer</code></a>. The two projects work in close coordination and are deeply integrated with each other's customization workflow.
+      <br /><br />
+      <strong>更多 CS2 自定义需求：CS2 Customizer</strong><br /><br />
+      如果你需要更丰富的个性化修改，包括准心、击杀音效与图标、HUD 配色、局内视角和道具瞄点，请访问 <a href="https://github.com/gufan0000/cs2-customizer"><code>gufan0000/cs2-customizer</code></a>。本项目与其深度联动，可以配合形成更完整的 CS2 自定义体验。
     </td>
   </tr>
 </table>

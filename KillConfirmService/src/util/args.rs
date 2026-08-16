@@ -59,6 +59,14 @@ pub struct Args {
     #[arg(long, default_value = "false")]
     pub developer_mode: bool,
 
+    /// raise the service process to HIGH_PRIORITY_CLASS and disable EcoQoS.
+    /// Off by default: the bump can preempt CS2's audio and render threads,
+    /// which manifests as in-game frame drops and dropped team voice chat
+    /// while a kill sound is playing. Opt in only if you observe audio
+    /// latency that the default Windows scheduler tuning can't cover.
+    #[arg(long, default_value = "false")]
+    pub boost_priority: bool,
+
     /// launch the packaged external settings helper, then exit
     #[arg(long, default_value = "false")]
     pub open_settings_launcher: bool,

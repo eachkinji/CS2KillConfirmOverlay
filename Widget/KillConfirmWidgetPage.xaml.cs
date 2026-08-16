@@ -42,6 +42,11 @@ namespace KillConfirmGameBar
         private const double BottomQuarterAnimationOffsetRatio = 0.25;
         private const double ScaleUpFactor = 1.1;
         private const double ScaleDownFactor = 0.9;
+        private const double ClickVsDragThresholdPx = 4.0;
+        private const double DragOutlineUnselectedOpacity = 0.85;
+        private const double DragOutlineSelectedOpacity = 1.0;
+        private const double DragOutlineSelectedThickness = 3.0;
+        private static readonly SolidColorBrush DragOutlineSelectedBrush = new SolidColorBrush(Color.FromArgb(0xFF, 0xFF, 0x17, 0x44));
         private const int StartupPreloadDelayMs = 250;
         private const double DefaultBrightnessValue = 0;
         private const double DefaultContrastValue = 0;
@@ -240,6 +245,7 @@ namespace KillConfirmGameBar
         private double _controlPanelScale = 1.0;
         private bool _panelCollapsed;
         private bool _isDraggingAnimation;
+        private bool _isAnimationFrameSelected;
         private uint _animationDragPointerId;
         private Point _animationDragPointerStart;
         private double _animationDragStartX;
@@ -277,6 +283,13 @@ namespace KillConfirmGameBar
                 UIElement.PointerReleasedEvent,
                 new PointerEventHandler(OnControlPanelComboBoxPointerReleased),
                 true);
+            if (Window.Current?.Content is UIElement windowRoot)
+            {
+                windowRoot.AddHandler(
+                    UIElement.PointerPressedEvent,
+                    new PointerEventHandler(OnWindowPointerPressed),
+                    true);
+            }
             ControlPanel.Loaded += OnControlPanelLoaded;
             PrimaryKillAnimation.LogicalViewportSizeChanged += OnAnimationLogicalViewportSizeChanged;
             LoadPanelOffset();
@@ -366,6 +379,10 @@ namespace KillConfirmGameBar
             _statusHintTimer.Stop();
             StopAutoCloseGameExitMonitoring();
             _widget = null;
+            if (Window.Current?.Content is UIElement windowRoot)
+            {
+                windowRoot.RemoveHandler(UIElement.PointerPressedEvent, (PointerEventHandler)OnWindowPointerPressed);
+            }
             _ = ShutdownCompanionAsync();
 
             base.OnNavigatedFrom(e);
@@ -615,33 +632,53 @@ namespace KillConfirmGameBar
                 return;
             }
 
-            _isDraggingAnimation = true;
             _animationDragPointerId = e.Pointer.PointerId;
             _animationDragPointerStart = e.GetCurrentPoint(Window.Current.Content).Position;
-            _animationDragStartX = _animationHorizontalOffset;
-            _animationDragStartY = GetResolvedAnimationOffset();
-            _animationPlacement = AnimationPlacementMode.Manual;
+            // Mark selected immediately; drag is armed in PointerMoved once the
+            // pointer travels past ClickVsDragThresholdPx. A press without
+            // movement leaves the outline selected so the wheel can resize it.
+            if (!_isAnimationFrameSelected)
+            {
+                _isAnimationFrameSelected = true;
+                UpdateAnimationDragOutlineSelectionVisual();
+            }
             AnimationDragOutline.CapturePointer(e.Pointer);
             e.Handled = true;
         }
 
         private void OnAnimationFramePointerMoved(object sender, PointerRoutedEventArgs e)
         {
-            if (!_isDraggingAnimation || e.Pointer.PointerId != _animationDragPointerId)
+            if (e.Pointer.PointerId != _animationDragPointerId)
             {
                 return;
             }
 
             Point current = e.GetCurrentPoint(Window.Current.Content).Position;
+            double dx = current.X - _animationDragPointerStart.X;
+            double dy = current.Y - _animationDragPointerStart.Y;
+            // Promote a press to a drag only after the cursor moves past the
+            // click threshold. Stays a click below that, ready for wheel resize.
+            if (!_isDraggingAnimation)
+            {
+                if (dx * dx + dy * dy <= ClickVsDragThresholdPx * ClickVsDragThresholdPx)
+                {
+                    return;
+                }
+                _isDraggingAnimation = true;
+                _animationDragStartX = _animationHorizontalOffset;
+                _animationDragStartY = GetResolvedAnimationOffset();
+                _animationPlacement = AnimationPlacementMode.Manual;
+            }
+
             double scale = Controls.KillConfirmAnimation.IsValorantPresentationConfigured
                 ? 1.0
                 : (_animationScale > 0 ? _animationScale : 1.0);
             _animationHorizontalOffset = Math.Max(-GetMaxAnimationHorizontalOffset(), Math.Min(
                 GetMaxAnimationHorizontalOffset(),
-                _animationDragStartX + ((current.X - _animationDragPointerStart.X) / scale)));
+                _animationDragStartX + (dx / scale)));
             _animationOffset = Math.Max(-GetMaxAnimationOffset(), Math.Min(
                 GetMaxAnimationOffset(),
-                _animationDragStartY + ((current.Y - _animationDragPointerStart.Y) / scale)));
+                _animationDragStartY + (dy / scale)));
             ApplyAnimationTransform();
             e.Handled = true;
         }
@@ -666,6 +703,89 @@ namespace KillConfirmGameBar
         private void OnAnimationFramePointerCaptureLost(object sender, PointerRoutedEventArgs e)
         {
             EndAnimationDrag();
+        }
+
+        private void OnAnimationFramePointerWheelChanged(object sender, PointerRoutedEventArgs e)
+        {
+            if (!_isAnimationFrameSelected)
+            {
+                return;
+            }
+            int delta = e.GetCurrentPoint(AnimationDragOutline).Properties.MouseWheelDelta;
+            if (delta > 0)
+            {
+                ScaleAnimation(ScaleUpFactor);
+            }
+            else if (delta < 0)
+            {
+                ScaleAnimation(ScaleDownFactor);
+            }
+            e.Handled = true;
+        }
+
+        private void OnAnimationFramePointerEntered(object sender, PointerRoutedEventArgs e)
+        {
+            if (AnimationDragOutline.Opacity < 1.0)
+            {
+                AnimationDragOutline.Opacity = 1.0;
+            }
+        }
+
+        private void OnAnimationFramePointerExited(object sender, PointerRoutedEventArgs e)
+        {
+            if (!_isAnimationFrameSelected)
+            {
+                AnimationDragOutline.Opacity = DragOutlineUnselectedOpacity;
+            }
+        }
+
+        private void UpdateAnimationDragOutlineSelectionVisual()
+        {
+            if (_isAnimationFrameSelected)
+            {
+                AnimationDragOutline.BorderBrush = DragOutlineSelectedBrush;
+                AnimationDragOutline.BorderThickness = new Thickness(DragOutlineSelectedThickness);
+                AnimationDragOutline.Opacity = DragOutlineSelectedOpacity;
+            }
+            else
+            {
+                AnimationDragOutline.ClearValue(Border.BorderBrushProperty);
+                AnimationDragOutline.ClearValue(Border.BorderThicknessProperty);
+                AnimationDragOutline.Opacity = DragOutlineUnselectedOpacity;
+            }
+        }
+
+        private bool IsPointerOnDragOutline(object originalSource)
+        {
+            if (ReferenceEquals(originalSource, AnimationDragOutline))
+            {
+                return true;
+            }
+            DependencyObject current = originalSource as DependencyObject;
+            while (current != null)
+            {
+                if (ReferenceEquals(current, AnimationDragOutline))
+                {
+                    return true;
+                }
+                current = VisualTreeHelper.GetParent(current);
+            }
+            return false;
+        }
+
+        private void OnWindowPointerPressed(object sender, PointerRoutedEventArgs e)
+        {
+            if (!_isAnimationFrameSelected)
+            {
+                return;
+            }
+            if (IsPointerOnDragOutline(e.OriginalSource))
+            {
+                return;
+            }
+            _isAnimationFrameSelected = false;
+            UpdateAnimationDragOutlineSelectionVisual();
+            e.Handled = true;
         }
 
         private void EndAnimationDrag()

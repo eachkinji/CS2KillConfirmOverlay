@@ -50,13 +50,16 @@
                 BorderBrush="#E53935"
                 BorderThickness="2"
                 CornerRadius="4"
-                Opacity="1"
+                Opacity="0.85"
                 Visibility="Collapsed"
                 PointerPressed="OnAnimationFramePointerPressed"
                 PointerMoved="OnAnimationFramePointerMoved"
                 PointerReleased="OnAnimationFramePointerReleased"
                 PointerCanceled="OnAnimationFramePointerCanceled"
                 PointerCaptureLost="OnAnimationFramePointerCaptureLost"
+                PointerWheelChanged="OnAnimationFramePointerWheelChanged"
+                PointerEntered="OnAnimationFramePointerEntered"
+                PointerExited="OnAnimationFramePointerExited"
                 ToolTipService.ToolTip="Drag to move icon" />
         </Grid>
 

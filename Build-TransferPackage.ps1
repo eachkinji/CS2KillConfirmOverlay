@@ -692,8 +692,7 @@ function Add-AppxPackageCompat {
     param(
         [string]$PackagePath,
         [switch]$ForceUpdate,
-        [switch]$DeferWhenInUse,
-        [switch]$UseSystemVolume
+        [switch]$DeferWhenInUse
     )
 
     $command = Get-Command Add-AppxPackage -ErrorAction Stop
@@ -708,22 +707,10 @@ function Add-AppxPackageCompat {
     if ($DeferWhenInUse -and $command.Parameters.ContainsKey("DeferRegistrationWhenPackagesAreInUse")) {
         $addPackageParams.DeferRegistrationWhenPackagesAreInUse = $true
     }
-    if ($UseSystemVolume -and $command.Parameters.ContainsKey("Volume")) {
-        $systemVolume = Get-AppxVolume -ErrorAction Stop |
-            Where-Object { $_.IsSystemVolume -and -not $_.IsOffline } |
-            Select-Object -First 1
-        if (-not $systemVolume) {
-            throw "The trusted system AppX volume could not be found."
-        }
-
-        $addPackageParams.Volume = $systemVolume
-        Write-InstallLog "Using trusted system AppX volume: $($systemVolume.PackageStorePath)"
-    }
     Write-InstallLog "Add-AppxPackage path: $PackagePath"
-    Write-InstallLog ("Add-AppxPackage switches: ForceUpdateFromAnyVersion={0}; DeferRegistrationWhenPackagesAreInUse={1}; SystemVolume={2}" -f `
+    Write-InstallLog ("Add-AppxPackage switches: ForceUpdateFromAnyVersion={0}; DeferRegistrationWhenPackagesAreInUse={1}" -f `
         $addPackageParams.ContainsKey("ForceUpdateFromAnyVersion"), `
-        $addPackageParams.ContainsKey("DeferRegistrationWhenPackagesAreInUse"), `
-        $addPackageParams.ContainsKey("Volume"))
+        $addPackageParams.ContainsKey("DeferRegistrationWhenPackagesAreInUse"))
     try {
         Add-AppxPackage @addPackageParams
         Write-InstallLog "Add-AppxPackage succeeded: $(Split-Path -Leaf $PackagePath)"
@@ -1009,7 +996,7 @@ function Install-OverlayPackage {
             }
         }
     }
-    Add-AppxPackageCompat -PackagePath $msix.FullName -ForceUpdate -DeferWhenInUse -UseSystemVolume
+    Add-AppxPackageCompat -PackagePath $msix.FullName -ForceUpdate -DeferWhenInUse
     $installedPackage = Get-InstalledOverlayPackage
     Add-InstallResult -Status Success -Item "Kill Confirm Overlay 主程序" -Detail ("安装成功，版本 {0}" -f $installedPackage.Version)
 }

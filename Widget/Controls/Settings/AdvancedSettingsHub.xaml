@@ -80,7 +80,7 @@
             <Setter Property="Padding" Value="14,9" />
             <Setter Property="MinWidth" Value="0" />
             <Setter Property="Background" Value="{StaticResource HubAccentGradient}" />
-            <Setter Property="BorderBrush" Color="#3BD3F0" />
+            <Setter Property="BorderBrush" Value="#3BD3F0" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="14" />
             <Setter Property="Foreground" Value="#04141C" />
@@ -115,20 +115,20 @@
         <Style x:Key="HubTabActiveButtonStyle" TargetType="Button" BasedOn="{StaticResource HubTabButtonStyle}">
             <Setter Property="Background" Value="#1B2C3D" />
             <Setter Property="Foreground" Value="#3BD3F0" />
-            <Setter Property="BorderBrush" Color="#3BD3F0" />
+            <Setter Property="BorderBrush" Value="#3BD3F0" />
         </Style>
 
         <Style x:Key="HubBadgeBorderStyle" TargetType="Border">
             <Setter Property="Padding" Value="8,3" />
-            <Setter Property="Background" Color="#0E2A38" />
-            <Setter Property="BorderBrush" Color="#1F3A52" />
+            <Setter Property="Background" Value="#0E2A38" />
+            <Setter Property="BorderBrush" Value="#1F3A52" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="10" />
         </Style>
 
         <Style x:Key="HubInputStyle" TargetType="TextBox">
             <Setter Property="Background" Value="#0B1620" />
-            <Setter Property="BorderBrush" Color="#1F3A52" />
+            <Setter Property="BorderBrush" Value="#1F3A52" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Foreground" Value="#E6F4FA" />
             <Setter Property="CornerRadius" Value="8" />
@@ -137,7 +137,7 @@
 
         <Style x:Key="HubComboBoxStyle" TargetType="ComboBox">
             <Setter Property="Background" Value="#0B1620" />
-            <Setter Property="BorderBrush" Color="#1F3A52" />
+            <Setter Property="BorderBrush" Value="#1F3A52" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Foreground" Value="#E6F4FA" />
             <Setter Property="CornerRadius" Value="8" />

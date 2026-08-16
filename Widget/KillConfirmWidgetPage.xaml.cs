@@ -89,8 +89,8 @@ namespace KillConfirmGameBar
             "{\r\n" +
             " \"uri\" \"http://127.0.0.1:10087/\"\r\n" +
             " \"timeout\" \"0.5\"\r\n" +
-            " \"buffer\"  \"0.05\"\r\n" +
-            " \"throttle\" \"0.05\"\r\n" +
+            " \"buffer\"  \"0.01\"\r\n" +
+            " \"throttle\" \"0.0\"\r\n" +
             " \"heartbeat\" \"15.0\"\r\n" +
             " \"auth\"\r\n" +
             " {\r\n" +

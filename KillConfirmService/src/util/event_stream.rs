@@ -358,7 +358,7 @@ pub struct CounterStrikeRootQuery {
 }
 
 const GSI_CONFIG_FILE_NAME: &str = "gamestate_integration_killconfirm.cfg";
-const GSI_CONFIG_TEXT: &str = "\"KillConfirmGameBar\"\r\n{\r\n \"uri\" \"http://127.0.0.1:10087/\"\r\n \"timeout\" \"0.5\"\r\n \"buffer\"  \"0.05\"\r\n \"throttle\" \"0.05\"\r\n \"heartbeat\" \"15.0\"\r\n \"auth\"\r\n {\r\n   \"token\" \"killconfirm\"\r\n }\r\n \"data\"\r\n {\r\n   \"provider\"           \"1\"\r\n   \"map\"                \"1\"\r\n   \"round\"              \"1\"\r\n   \"bomb\"               \"1\"\r\n   \"player_id\"          \"1\"\r\n   \"player_state\"       \"1\"\r\n   \"player_weapons\"     \"1\"\r\n   \"player_match_stats\" \"1\"\r\n }\r\n}\r\n";
+const GSI_CONFIG_TEXT: &str = "\"KillConfirmGameBar\"\r\n{\r\n \"uri\" \"http://127.0.0.1:10087/\"\r\n \"timeout\" \"0.5\"\r\n \"buffer\"  \"0.01\"\r\n \"throttle\" \"0.0\"\r\n \"heartbeat\" \"15.0\"\r\n \"auth\"\r\n {\r\n   \"token\" \"killconfirm\"\r\n }\r\n \"data\"\r\n {\r\n   \"provider\"           \"1\"\r\n   \"map\"                \"1\"\r\n   \"round\"              \"1\"\r\n   \"bomb\"               \"1\"\r\n   \"player_id\"          \"1\"\r\n   \"player_state\"       \"1\"\r\n   \"player_weapons\"     \"1\"\r\n   \"player_match_stats\" \"1\"\r\n }\r\n}\r\n";
 
 #[derive(Clone, Copy, Debug, Serialize)]
 pub struct SoundPackOption {
@@ -689,13 +689,11 @@ fn counter_strike_cfg_status(root: &std::path::Path, version: GsiGameVersion) ->
     let Ok(actual) = fs::read_to_string(cfg_path) else {
         return "missing";
     };
-    let normalize = |value: &str| {
-        value
-            .trim_start_matches('\u{feff}')
-            .replace("\r\n", "\n")
-            .replace('\r', "\n")
-    };
-    if normalize(&actual) == normalize(GSI_CONFIG_TEXT) {
+    // MD5-based comparison (mirrors the widget's check in
+    // KillConfirmWidgetPage.CsConfig.cs). Both sides must hash the same
+    // template, so the widget GsiConfigText and service GSI_CONFIG_TEXT
+    // strings have to stay byte-identical.
+    if md5::compute(actual.as_bytes()) == md5::compute(GSI_CONFIG_TEXT.as_bytes()) {
         "ready"
     } else {
         "outdated"

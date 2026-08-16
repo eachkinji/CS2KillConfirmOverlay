@@ -41,13 +41,13 @@ namespace KillConfirmGameBar
             SyncGameStyleSelector();
             bool valorant = mode == GameStyleMode.Valorant;
             bool csol = mode == GameStyleMode.Csol;
-            bool battlefield = mode == GameStyleMode.Battlefield1 || mode == GameStyleMode.Battlefield5;
             bool battlefield1 = mode == GameStyleMode.Battlefield1;
             bool battlefield5 = mode == GameStyleMode.Battlefield5;
             bool battlefield2042 = mode == GameStyleMode.Battlefield2042;
             bool fixedPreset = GameStyleService.IsModPresetGameKey(GameStyleService.ToStorageValue(mode));
-            bool hideCfPacks = valorant || fixedPreset;
+            bool isCrossfire = mode == GameStyleMode.Crossfire;
             GameThemePalette theme = GameThemePalette.Current;
+
             UpdateSettingsPageVisibility();
             if (_isHomePageSelected)
             {
@@ -60,10 +60,24 @@ namespace KillConfirmGameBar
             {
                 MountGameAdvancedSettingsPanel();
             }
-            VoicePackCollectionsCard.Visibility = hideCfPacks ? Visibility.Collapsed : Visibility.Visible;
-            IconPackCollectionsCard.Visibility = hideCfPacks ? Visibility.Collapsed : Visibility.Visible;
-            VoiceCollectionsCard.Visibility = hideCfPacks ? Visibility.Collapsed : Visibility.Visible;
-            IconCollectionsCard.Visibility = hideCfPacks ? Visibility.Collapsed : Visibility.Visible;
+
+            if (CfWorkspaceTabBar != null)
+            {
+                CfWorkspaceTabBar.Visibility = (isCrossfire && !_isHomePageSelected) ? Visibility.Visible : Visibility.Collapsed;
+            }
+
+            if (isCrossfire && !_isHomePageSelected)
+            {
+                ApplyCfActiveTab();
+            }
+            else
+            {
+                if (GameEffectsCard != null) GameEffectsCard.Visibility = Visibility.Visible;
+                if (VoicePackCollectionsCard != null) VoicePackCollectionsCard.Visibility = Visibility.Collapsed;
+                if (IconPackCollectionsCard != null) IconPackCollectionsCard.Visibility = Visibility.Collapsed;
+                if (VoiceCollectionsCard != null) VoiceCollectionsCard.Visibility = Visibility.Collapsed;
+                if (IconCollectionsCard != null) IconCollectionsCard.Visibility = Visibility.Collapsed;
+            }
 
             SettingsRootGrid.Background = CreateSettingsBackground(mode);
             HeroSlash.Fill = CreateHeroSlashBrush(mode);

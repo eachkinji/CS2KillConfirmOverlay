@@ -57,6 +57,24 @@
             <Setter Property="Foreground" Value="White" />
         </Style>
 
+        <Style x:Key="StudioTabButtonStyle" TargetType="Button">
+            <Setter Property="Padding" Value="16,8" />
+            <Setter Property="MinWidth" Value="120" />
+            <Setter Property="Background" Value="#EFEFEA" />
+            <Setter Property="Foreground" Value="#4B5563" />
+            <Setter Property="BorderBrush" Value="#DCD7CC" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="16" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="FontSize" Value="13" />
+        </Style>
+
+        <Style x:Key="StudioTabActiveButtonStyle" TargetType="Button" BasedOn="{StaticResource StudioTabButtonStyle}">
+            <Setter Property="Background" Value="#2E88B8" />
+            <Setter Property="BorderBrush" Value="#3A9CCF" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+
         <Style x:Key="SettingsCaptionTextStyle" TargetType="TextBlock">
             <Setter Property="FontSize" Value="14" />
             <Setter Property="Foreground" Value="#555966" />
@@ -100,17 +118,17 @@
         </Style>
 
         <Style x:Key="MethodStepDetailTitleTextStyle" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontSize" Value="12" />
             <Setter Property="FontWeight" Value="Bold" />
             <Setter Property="Foreground" Value="#1B1F31" />
         </Style>
 
         <Style x:Key="MethodStepMonoTextStyle" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="10.5" />
+            <Setter Property="FontSize" Value="11" />
             <Setter Property="Foreground" Value="#4B5563" />
             <Setter Property="TextWrapping" Value="WrapWholeWords" />
             <Setter Property="FontFamily" Value="Consolas" />
-            <Setter Property="LineHeight" Value="16" />
+            <Setter Property="LineHeight" Value="18" />
         </Style>
 
         <Style x:Key="MethodInlineButtonStyle" TargetType="Button">
@@ -313,8 +331,9 @@
 
             <!-- Main Content Area -->
             <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Background="Transparent">
-                <Grid Padding="18,18,22,24" RowSpacing="16">
+                <Grid Padding="20,18,24,28" RowSpacing="14">
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
@@ -354,10 +373,45 @@
                         </StackPanel>
                     </Grid>
 
+                    <!-- CF Studio Dedicated Navigation Tab Bar -->
+                    <Border
+                        x:Name="CfWorkspaceTabBar"
+                        Grid.Row="1"
+                        MaxWidth="1480"
+                        Padding="4"
+                        HorizontalAlignment="Center"
+                        Background="#EAEAE6"
+                        BorderBrush="#D5D0C4"
+                        BorderThickness="1"
+                        CornerRadius="20">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <Button
+                                x:Name="CfTabCombatButton"
+                                Style="{StaticResource StudioTabActiveButtonStyle}"
+                                Content="🎮 核心战斗与视效"
+                                Click="OnCfTabCombatClick" />
+                            <Button
+                                x:Name="CfTabVoiceButton"
+                                Style="{StaticResource StudioTabButtonStyle}"
+                                Content="🎙️ 角色语音包库"
+                                Click="OnCfTabVoiceClick" />
+                            <Button
+                                x:Name="CfTabIconButton"
+                                Style="{StaticResource StudioTabButtonStyle}"
+                                Content="🏆 击杀图标包库"
+                                Click="OnCfTabIconClick" />
+                            <Button
+                                x:Name="CfTabGuideButton"
+                                Style="{StaticResource StudioTabButtonStyle}"
+                                Content="📋 制作规范与速查"
+                                Click="OnCfTabGuideClick" />
+                        </StackPanel>
+                    </Border>
+
                     <!-- Home View -->
                     <Grid
                         x:Name="HomePageContent"
-                        Grid.Row="1"
+                        Grid.Row="2"
                         MaxWidth="1000"
                         HorizontalAlignment="Stretch">
                         <StackPanel Spacing="14">
@@ -389,214 +443,204 @@
                         </StackPanel>
                     </Grid>
 
-                    <!-- Game Control Page Content (Dedicated CF Workspace) -->
+                    <!-- Game Control Page Content (Full Width Dedicated Views) -->
                     <Grid
                         x:Name="GamePageContent"
-                        Grid.Row="1"
+                        Grid.Row="2"
                         MaxWidth="1480"
-                        HorizontalAlignment="Stretch"
-                        ColumnSpacing="18">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
+                        HorizontalAlignment="Stretch">
 
-                        <!-- Left Column: Combat & Effects Engine Controls -->
-                        <StackPanel Spacing="14">
-                            <Border x:Name="GameEffectsCard" Style="{StaticResource SettingsSectionCardStyle}">
-                                <StackPanel Spacing="12">
-                                    <TextBlock
-                                        x:Name="GameEffectsTitleText"
-                                        Style="{StaticResource SettingsSectionTitleTextStyle}"
-                                        FontSize="18"
-                                        Text="CF 战斗与特效设置" />
-                                    <ContentControl
-                                        x:Name="GameAdvancedSettingsPanelHost"
-                                        HorizontalAlignment="Stretch"
-                                        HorizontalContentAlignment="Stretch" />
-                                </StackPanel>
-                            </Border>
-                        </StackPanel>
+                        <!-- View 1: Combat & Effects Engine Controls (Full Width) -->
+                        <Border x:Name="GameEffectsCard" Style="{StaticResource SettingsSectionCardStyle}">
+                            <StackPanel Spacing="14">
+                                <TextBlock
+                                    x:Name="GameEffectsTitleText"
+                                    Style="{StaticResource SettingsSectionTitleTextStyle}"
+                                    FontSize="18"
+                                    Text="CF 战斗与特效设置" />
+                                <ContentControl
+                                    x:Name="GameAdvancedSettingsPanelHost"
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Stretch" />
+                            </StackPanel>
+                        </Border>
 
-                        <!-- Right Column: Voice & Icon Asset Packs + Lightweight Spec Drawer -->
-                        <StackPanel
-                            Grid.Column="1"
-                            Spacing="14">
+                        <!-- View 2: Voice Packs Hub (Full Width) -->
+                        <Border x:Name="VoicePackCollectionsCard" Style="{StaticResource SettingsSectionCardStyle}" Visibility="Collapsed">
+                            <StackPanel Spacing="16">
+                                <Grid RowSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
 
-                            <!-- Voice Packs Hub -->
-                            <Border x:Name="VoicePackCollectionsCard" Style="{StaticResource SettingsSectionCardStyle}">
-                                <StackPanel Spacing="14">
-                                    <Grid RowSpacing="12">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                        </Grid.ColumnDefinitions>
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="Auto" />
-                                            <RowDefinition Height="Auto" />
-                                        </Grid.RowDefinitions>
-
-                                        <StackPanel Spacing="4">
-                                            <TextBlock
-                                                x:Name="VoiceCollectionsTitleText"
-                                                Style="{StaticResource SettingsSectionTitleTextStyle}" />
-                                            <TextBlock
-                                                x:Name="VoiceCollectionsHintText"
-                                                Style="{StaticResource SettingsCaptionTextStyle}" />
-                                        </StackPanel>
-
-                                        <StackPanel
-                                            Grid.Row="1"
-                                            Orientation="Horizontal"
-                                            Spacing="10">
-                                            <Button
-                                                x:Name="ImportVoicePackButton"
-                                                Style="{StaticResource SettingsHeaderButtonStyle}"
-                                                Click="OnImportVoicePackClick" />
-                                            <Button
-                                                x:Name="ImportVoiceZipButton"
-                                                Style="{StaticResource SettingsHeaderButtonStyle}"
-                                                Click="OnImportVoiceZipClick" />
-                                            <Button
-                                                x:Name="CreateVoicePackButton"
-                                                Style="{StaticResource SettingsPrimaryButtonStyle}"
-                                                Click="OnCreateVoicePackClick" />
-                                        </StackPanel>
-                                    </Grid>
-
-                                    <TextBlock
-                                        x:Name="VoiceVisibleCountText"
-                                        FontSize="13"
-                                        FontWeight="SemiBold"
-                                        Foreground="#2E88B8" />
-
-                                    <VariableSizedWrapGrid
-                                        x:Name="VoicePackListPanel"
-                                        Orientation="Horizontal"
-                                        ItemWidth="250"
-                                        ItemHeight="82" />
-                                </StackPanel>
-                            </Border>
-
-                            <!-- Icon Packs Hub -->
-                            <Border x:Name="IconPackCollectionsCard" Style="{StaticResource SettingsSectionCardStyle}">
-                                <StackPanel Spacing="14">
-                                    <Grid RowSpacing="12">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                        </Grid.ColumnDefinitions>
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="Auto" />
-                                            <RowDefinition Height="Auto" />
-                                        </Grid.RowDefinitions>
-
-                                        <StackPanel Spacing="4">
-                                            <TextBlock
-                                                x:Name="IconCollectionsTitleText"
-                                                Style="{StaticResource SettingsSectionTitleTextStyle}" />
-                                            <TextBlock
-                                                x:Name="IconCollectionsHintText"
-                                                Style="{StaticResource SettingsCaptionTextStyle}" />
-                                        </StackPanel>
-
-                                        <StackPanel
-                                            Grid.Row="1"
-                                            Orientation="Horizontal"
-                                            Spacing="10">
-                                            <Button
-                                                x:Name="ImportIconPackButton"
-                                                Style="{StaticResource SettingsHeaderButtonStyle}"
-                                                Click="OnImportIconPackClick" />
-                                            <Button
-                                                x:Name="ImportIconZipButton"
-                                                Style="{StaticResource SettingsHeaderButtonStyle}"
-                                                Click="OnImportIconZipClick" />
-                                            <Button
-                                                x:Name="CreateIconPackButton"
-                                                Style="{StaticResource SettingsPrimaryButtonStyle}"
-                                                Click="OnCreateIconPackClick" />
-                                        </StackPanel>
-                                    </Grid>
-
-                                    <TextBlock
-                                        x:Name="IconVisibleCountText"
-                                        FontSize="13"
-                                        FontWeight="SemiBold"
-                                        Foreground="#2E88B8" />
-
-                                    <VariableSizedWrapGrid
-                                        x:Name="IconPackListPanel"
-                                        Orientation="Horizontal"
-                                        ItemWidth="250"
-                                        ItemHeight="82" />
-                                </StackPanel>
-                            </Border>
-
-                            <!-- Lightweight Specifications Drawer -->
-                            <Border x:Name="VoiceCollectionsCard" Style="{StaticResource SettingsSectionCardStyle}">
-                                <StackPanel Spacing="10">
-                                    <StackPanel Spacing="3">
+                                    <StackPanel Spacing="4">
                                         <TextBlock
-                                            x:Name="StructureTitleText"
+                                            x:Name="VoiceCollectionsTitleText"
                                             Style="{StaticResource SettingsSectionTitleTextStyle}"
-                                            FontSize="16" />
+                                            Text="角色语音包仓库" />
                                         <TextBlock
-                                            x:Name="StructureBodyText"
-                                            Style="{StaticResource SettingsCaptionTextStyle}" />
+                                            x:Name="VoiceCollectionsHintText"
+                                            Style="{StaticResource SettingsCaptionTextStyle}"
+                                            Text="官方角色与自定义语音包统一管理，可在游戏内悬浮窗随时切换启用。" />
                                     </StackPanel>
 
-                                    <Grid ColumnSpacing="10">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="*" />
-                                        </Grid.ColumnDefinitions>
+                                    <StackPanel
+                                        Grid.Column="1"
+                                        Orientation="Horizontal"
+                                        Spacing="10"
+                                        VerticalAlignment="Center">
+                                        <Button
+                                            x:Name="ImportVoicePackButton"
+                                            Style="{StaticResource SettingsHeaderButtonStyle}"
+                                            Click="OnImportVoicePackClick" />
+                                        <Button
+                                            x:Name="ImportVoiceZipButton"
+                                            Style="{StaticResource SettingsHeaderButtonStyle}"
+                                            Click="OnImportVoiceZipClick" />
+                                        <Button
+                                            x:Name="CreateVoicePackButton"
+                                            Style="{StaticResource SettingsPrimaryButtonStyle}"
+                                            Click="OnCreateVoicePackClick" />
+                                    </StackPanel>
+                                </Grid>
 
-                                        <!-- Audio Slot Spec Box -->
-                                        <Border Padding="10" Background="#F7F8FA" BorderBrush="#E2DDD3" BorderThickness="1" CornerRadius="12">
-                                            <StackPanel Spacing="4">
-                                                <TextBlock x:Name="StructureVoiceSpecTitleText" Style="{StaticResource MethodStepDetailTitleTextStyle}" />
-                                                <TextBlock x:Name="StructureVoiceSpecBodyText" Style="{StaticResource MethodStepMonoTextStyle}" FontSize="10" />
-                                            </StackPanel>
-                                        </Border>
+                                <TextBlock
+                                    x:Name="VoiceVisibleCountText"
+                                    FontSize="13"
+                                    FontWeight="SemiBold"
+                                    Foreground="#2E88B8" />
 
-                                        <!-- Icon Slot Spec Box -->
-                                        <Border Grid.Column="1" Padding="10" Background="#FFF8EB" BorderBrush="#F2C078" BorderThickness="1" CornerRadius="12">
-                                            <StackPanel Spacing="4">
-                                                <TextBlock x:Name="StructureIconSpecTitleText" Style="{StaticResource MethodStepDetailTitleTextStyle}" />
-                                                <TextBlock x:Name="StructureIconSpecSummaryText" Style="{StaticResource MethodStepBodyTextStyle}" FontSize="10" Foreground="#8A4B00" />
-                                                <Button
-                                                    x:Name="IconSpecToggleButton"
-                                                    Style="{StaticResource MethodInlineButtonStyle}"
-                                                    HorizontalAlignment="Left"
-                                                    Click="OnIconSpecToggleClick" />
-                                                <TextBlock
-                                                    x:Name="StructureIconSpecFullText"
-                                                    Style="{StaticResource MethodStepMonoTextStyle}"
-                                                    FontSize="10"
-                                                    Visibility="Collapsed" />
-                                            </StackPanel>
-                                        </Border>
-                                    </Grid>
+                                <VariableSizedWrapGrid
+                                    x:Name="VoicePackListPanel"
+                                    Orientation="Horizontal"
+                                    ItemWidth="255"
+                                    ItemHeight="84" />
+                            </StackPanel>
+                        </Border>
 
-                                    <!-- Hidden compatibility anchors for theme / language code-behind -->
-                                    <TextBlock x:Name="StructureImportFolderTitleText" Visibility="Collapsed" />
-                                    <TextBlock x:Name="StructureImportFolderBodyText" Visibility="Collapsed" />
-                                    <TextBlock x:Name="StructureImportZipTitleText" Visibility="Collapsed" />
-                                    <TextBlock x:Name="StructureImportZipBodyText" Visibility="Collapsed" />
-                                    <TextBlock x:Name="StructureCreatorTitleText" Visibility="Collapsed" />
-                                    <TextBlock x:Name="StructureCreatorBodyText" Visibility="Collapsed" />
-                                    <Border Padding="8" Background="#FFF6E8" BorderBrush="#F2C078" BorderThickness="1" CornerRadius="10">
-                                        <TextBlock x:Name="StructureFileHintText" Style="{StaticResource MethodStepBodyTextStyle}" FontSize="10" Foreground="#8A4B00" />
-                                    </Border>
-                                </StackPanel>
-                            </Border>
+                        <!-- View 3: Icon Packs Hub (Full Width) -->
+                        <Border x:Name="IconPackCollectionsCard" Style="{StaticResource SettingsSectionCardStyle}" Visibility="Collapsed">
+                            <StackPanel Spacing="16">
+                                <Grid RowSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
 
-                            <Border x:Name="IconCollectionsCard" Visibility="Collapsed">
+                                    <StackPanel Spacing="4">
+                                        <TextBlock
+                                            x:Name="IconCollectionsTitleText"
+                                            Style="{StaticResource SettingsSectionTitleTextStyle}"
+                                            Text="击杀图标包仓库" />
+                                        <TextBlock
+                                            x:Name="IconCollectionsHintText"
+                                            Style="{StaticResource SettingsCaptionTextStyle}"
+                                            Text="经典原版、VIP、王者之魄、CFPL 及自定义图标包统一管理。" />
+                                    </StackPanel>
+
+                                    <StackPanel
+                                        Grid.Column="1"
+                                        Orientation="Horizontal"
+                                        Spacing="10"
+                                        VerticalAlignment="Center">
+                                        <Button
+                                            x:Name="ImportIconPackButton"
+                                            Style="{StaticResource SettingsHeaderButtonStyle}"
+                                            Click="OnImportIconPackClick" />
+                                        <Button
+                                            x:Name="ImportIconZipButton"
+                                            Style="{StaticResource SettingsHeaderButtonStyle}"
+                                            Click="OnImportIconZipClick" />
+                                        <Button
+                                            x:Name="CreateIconPackButton"
+                                            Style="{StaticResource SettingsPrimaryButtonStyle}"
+                                            Click="OnCreateIconPackClick" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <TextBlock
+                                    x:Name="IconVisibleCountText"
+                                    FontSize="13"
+                                    FontWeight="SemiBold"
+                                    Foreground="#2E88B8" />
+
+                                <VariableSizedWrapGrid
+                                    x:Name="IconPackListPanel"
+                                    Orientation="Horizontal"
+                                    ItemWidth="255"
+                                    ItemHeight="84" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- View 4: Lightweight Technical Specifications & Guide (Full Width) -->
+                        <Border x:Name="VoiceCollectionsCard" Style="{StaticResource SettingsSectionCardStyle}" Visibility="Collapsed">
+                            <StackPanel Spacing="16">
                                 <StackPanel Spacing="4">
-                                    <TextBlock x:Name="TipsTitleText" />
-                                    <TextBlock x:Name="TipsBodyText" />
+                                    <TextBlock
+                                        x:Name="StructureTitleText"
+                                        Style="{StaticResource SettingsSectionTitleTextStyle}"
+                                        FontSize="18"
+                                        Text="CF 资源包标准规范与制作指南" />
+                                    <TextBlock
+                                        x:Name="StructureBodyText"
+                                        Style="{StaticResource SettingsCaptionTextStyle}"
+                                        Text="所有内置包与自定义包均采用纯 Manifest 数据驱动，无需编写代码，只需放入规范命名的素材即可。" />
                                 </StackPanel>
-                            </Border>
-                        </StackPanel>
+
+                                <Grid ColumnSpacing="16">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Audio Slot Spec Box -->
+                                    <Border Padding="16" Background="#F7F8FA" BorderBrush="#E2DDD3" BorderThickness="1" CornerRadius="16">
+                                        <StackPanel Spacing="8">
+                                            <TextBlock x:Name="StructureVoiceSpecTitleText" Style="{StaticResource MethodStepDetailTitleTextStyle}" FontSize="13" Text="🎵 音频插槽对照表 (Audio Slots)" />
+                                            <TextBlock x:Name="StructureVoiceSpecBodyText" Style="{StaticResource MethodStepMonoTextStyle}" FontSize="11" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Icon Slot Spec Box -->
+                                    <Border Grid.Column="1" Padding="16" Background="#FFF8EB" BorderBrush="#F2C078" BorderThickness="1" CornerRadius="16">
+                                        <StackPanel Spacing="8">
+                                            <TextBlock x:Name="StructureIconSpecTitleText" Style="{StaticResource MethodStepDetailTitleTextStyle}" FontSize="13" Text="🎨 图标与特效序列帧规范 (Visual Slots)" />
+                                            <TextBlock x:Name="StructureIconSpecSummaryText" Style="{StaticResource MethodStepBodyTextStyle}" FontSize="11" Foreground="#8A4B00" />
+                                            <Button
+                                                x:Name="IconSpecToggleButton"
+                                                Style="{StaticResource MethodInlineButtonStyle}"
+                                                HorizontalAlignment="Left"
+                                                Click="OnIconSpecToggleClick" />
+                                            <TextBlock
+                                                x:Name="StructureIconSpecFullText"
+                                                Style="{StaticResource MethodStepMonoTextStyle}"
+                                                FontSize="11"
+                                                Visibility="Collapsed" />
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+
+                                <Border Padding="12" Background="#FFF6E8" BorderBrush="#F2C078" BorderThickness="1" CornerRadius="12">
+                                    <TextBlock x:Name="StructureFileHintText" Style="{StaticResource MethodStepBodyTextStyle}" FontSize="11" Foreground="#8A4B00" />
+                                </Border>
+
+                                <!-- Hidden compatibility anchors for theme / language code-behind -->
+                                <TextBlock x:Name="StructureImportFolderTitleText" Visibility="Collapsed" />
+                                <TextBlock x:Name="StructureImportFolderBodyText" Visibility="Collapsed" />
+                                <TextBlock x:Name="StructureImportZipTitleText" Visibility="Collapsed" />
+                                <TextBlock x:Name="StructureImportZipBodyText" Visibility="Collapsed" />
+                                <TextBlock x:Name="StructureCreatorTitleText" Visibility="Collapsed" />
+                                <TextBlock x:Name="StructureCreatorBodyText" Visibility="Collapsed" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border x:Name="IconCollectionsCard" Visibility="Collapsed">
+                            <StackPanel Spacing="4">
+                                <TextBlock x:Name="TipsTitleText" />
+                                <TextBlock x:Name="TipsBodyText" />
+                            </StackPanel>
+                        </Border>
                     </Grid>
                 </Grid>
             </ScrollViewer>

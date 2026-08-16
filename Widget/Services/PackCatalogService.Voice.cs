@@ -31,7 +31,15 @@ namespace KillConfirmGameBar.Services
         public static bool IsImportedVoicePackKey(string key)
         {
             if (string.IsNullOrWhiteSpace(key)) return false;
-            return key.StartsWith("custom_voice_", StringComparison.OrdinalIgnoreCase);
+            return key.StartsWith("custom_voice_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("custom_csol_voice_", StringComparison.OrdinalIgnoreCase);
+        }
+
+        public static bool IsCsolVoicePackKey(string key)
+        {
+            if (string.IsNullOrWhiteSpace(key)) return false;
+            return key.StartsWith("custom_csol_voice_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("csol", StringComparison.OrdinalIgnoreCase);
         }
 
         public static async Task<IReadOnlyList<VoicePackItem>> GetVisibleVoicePacksAsync()
@@ -66,6 +74,21 @@ namespace KillConfirmGameBar.Services
             catalog.VoicePacks.Add(new VoicePackItem
             {
                 Key = "custom_voice_" + Guid.NewGuid().ToString("N"),
+                DisplayName = folder.DisplayName,
+                FolderPath = folder.Path,
+                IsBuiltIn = false,
+                IsVisibleInWidget = true,
+                OwnsFolder = false
+            });
+            await SaveAsync(catalog);
+        }
+
+        public static async Task ImportCsolVoicePackAsync(StorageFolder folder)
+        {
+            var catalog = await LoadAsync();
+            catalog.VoicePacks.Add(new VoicePackItem
+            {
+                Key = "custom_csol_voice_" + Guid.NewGuid().ToString("N"),
                 DisplayName = folder.DisplayName,
                 FolderPath = folder.Path,
                 IsBuiltIn = false,

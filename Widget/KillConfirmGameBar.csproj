@@ -143,6 +143,7 @@
     <Compile Include="KillConfirmWidgetPage.CrossfireGameplaySettings.cs" />
     <Compile Include="KillConfirmWidgetPage.CsolGameplaySettings.cs" />
     <Compile Include="KillConfirmWidgetPage.DagoujiaoSettings.cs" />
+    <Compile Include="KillConfirmWidgetPage.DoubaoSettings.cs" />
     <Compile Include="KillConfirmWidgetPage.SharedStreakSettings.cs" />
     <Compile Include="KillConfirmWidgetPage.EventSoundSettings.cs" />
     <Compile Include="KillConfirmWidgetPage.AutoCloseGameExit.cs" />
@@ -300,6 +301,8 @@
     <Compile Include="Services\PackCatalogService.Icon.cs" />
     <Compile Include="Services\PackCatalogService.Storage.cs" />
     <Compile Include="Services\PackCatalogService.Voice.cs" />
+    <Compile Include="Services\PanelColorSettingsStore.cs" />
+    <Compile Include="Services\DoubaoSettingsStore.cs" />
     <Compile Include="Helpers\ProcessPriorityBoost.cs" />
     <Compile Include="Helpers\TgaDecoder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

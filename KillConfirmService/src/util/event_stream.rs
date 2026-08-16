@@ -105,6 +105,12 @@ pub struct BombAudioSettingsRequest {
     pub final_speed_percent: Option<u32>,
     #[serde(default)]
     pub speed_percents: Option<[u32; 8]>,
+    #[serde(default)]
+    pub timer_path: Option<String>,
+    #[serde(default)]
+    pub exploded_path: Option<String>,
+    #[serde(default)]
+    pub defused_path: Option<String>,
 }
 
 fn resolve_bomb_audio_speed_range(request: &BombAudioSettingsRequest) -> (u32, u32) {
@@ -194,6 +200,17 @@ pub struct EventSoundSettingsRequest {
 #[derive(Debug, Deserialize)]
 pub struct SpectatorSettingsRequest {
     pub enabled: bool,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct DoubaoSettingsRequest {
+    #[serde(default)]
+    pub audio_paths: HashMap<String, String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct DoubaoSettingsResponse {
+    pub audio_paths: HashMap<String, String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -323,6 +340,9 @@ pub struct BombAudioSettingsResponse {
     pub volume_percent: u32,
     pub initial_speed_percent: u32,
     pub final_speed_percent: u32,
+    pub timer_path: String,
+    pub exploded_path: String,
+    pub defused_path: String,
 }
 
 #[derive(Debug, Serialize)]
@@ -837,6 +857,11 @@ pub async fn set_bomb_audio_settings(
     app_state
         .bomb_audio_final_speed_percent
         .store(final_speed_percent, Ordering::Relaxed);
+    if let Ok(mut paths) = app_state.bomb_audio_paths.lock() {
+        paths.timer = request.timer_path.unwrap_or_default();
+        paths.exploded = request.exploded_path.unwrap_or_default();
+        paths.defused = request.defused_path.unwrap_or_default();
+    }
     if request.enabled {
         refresh_bomb_audio_volume(&app_state);
     } else {
@@ -1037,6 +1062,26 @@ pub async fn set_dagoujiao_settings(
         .count()
     ));
     Json(dagoujiao_settings_response(&app_state))
+}
+
+pub async fn doubao_settings(
+    State(app_state): State<Arc<AppState>>,
+) -> Json<DoubaoSettingsResponse> {
+    let paths = app_state.doubao_audio_paths.read().await.clone();
+    Json(DoubaoSettingsResponse { audio_paths: paths })
+}
+
+pub async fn set_doubao_settings(
+    State(app_state): State<Arc<AppState>>,
+    Json(request): Json<DoubaoSettingsRequest>,
+) -> Json<DoubaoSettingsResponse> {
+    {
+        let mut paths = app_state.doubao_audio_paths.write().await;
+        *paths = request.audio_paths;
+    }
+    service_log("Updated Doubao custom audio settings");
+    let paths = app_state.doubao_audio_paths.read().await.clone();
+    Json(DoubaoSettingsResponse { audio_paths: paths })
 }
 
 pub async fn streak_settings(
@@ -1691,6 +1736,21 @@ fn bomb_audio_settings_response(app_state: &AppState) -> BombAudioSettingsRespon
             .bomb_audio_final_speed_percent
             .load(Ordering::Relaxed)
             .clamp(25, 400),
+        timer_path: app_state
+            .bomb_audio_paths
+            .lock()
+            .map(|paths| paths.timer.clone())
+            .unwrap_or_default(),
+        exploded_path: app_state
+            .bomb_audio_paths
+            .lock()
+            .map(|paths| paths.exploded.clone())
+            .unwrap_or_default(),
+        defused_path: app_state
+            .bomb_audio_paths
+            .lock()
+            .map(|paths| paths.defused.clone())
+            .unwrap_or_default(),
     }
 }
 

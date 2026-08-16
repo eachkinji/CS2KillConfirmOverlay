@@ -516,6 +516,14 @@ pub struct PendingLastKill {
     pub money_reward: u16,
 }
 
+/// Custom bomb audio file paths. Empty strings mean "use the built-in sound".
+#[derive(Clone, Default)]
+pub struct BombAudioPaths {
+    pub timer: String,
+    pub exploded: String,
+    pub defused: String,
+}
+
 pub struct AppState {
     pub mutable: RwLock<Mutable>,
     pub control_token: String,
@@ -546,6 +554,7 @@ pub struct AppState {
     pub dagoujiao_initial_playback_speed_percent: AtomicU32,
     pub dagoujiao_maximum_playback_speed_percent: AtomicU32,
     pub dagoujiao_audio_paths: RwLock<HashMap<String, String>>,
+    pub doubao_audio_paths: RwLock<HashMap<String, String>>,
     pub bomb_audio_enabled: AtomicBool,
     pub bomb_audio_volume_percent: AtomicU32,
     pub bomb_audio_initial_speed_percent: AtomicU32,
@@ -555,6 +564,7 @@ pub struct AppState {
     pub stop_previous_kill_audio: AtomicBool,
     pub kill_audio_sink: std::sync::Mutex<Option<Arc<Sink>>>,
     pub spectated_kill_effects_enabled: AtomicBool,
+    pub bomb_audio_paths: std::sync::Mutex<BombAudioPaths>,
     pub gsi_game_version: AtomicU8,
     pub events: EventJournal,
     pub shutdown_tx: broadcast::Sender<()>,

@@ -665,6 +665,19 @@
                                     ToolTipService.ToolTip="Advanced effects">
                                     <primitives:FlyoutBase.AttachedFlyout>
                                         <Flyout x:Name="AdvancedEffectsFlyout" Placement="Bottom">
+                                            <Flyout.FlyoutPresenterStyle>
+                                                <Style TargetType="FlyoutPresenter">
+                                                    <Setter Property="Padding" Value="0" />
+                                                    <Setter Property="Background" Value="Transparent" />
+                                                    <Setter Property="BorderThickness" Value="0" />
+                                                    <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Disabled" />
+                                                    <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+                                                    <Setter Property="ScrollViewer.VerticalScrollMode" Value="Disabled" />
+                                                    <Setter Property="ScrollViewer.HorizontalScrollMode" Value="Disabled" />
+                                                    <Setter Property="MaxWidth" Value="520" />
+                                                    <Setter Property="MaxHeight" Value="800" />
+                                                </Style>
+                                            </Flyout.FlyoutPresenterStyle>
                                             <Border
                                                 x:Name="AdvancedEffectsFlyoutCard"
                                                 Width="440"
@@ -691,20 +704,6 @@
                                                                     FontWeight="Bold"
                                                                     Text="Game effects" />
                                                                 <ContentControl x:Name="AdvancedEffectsPanelHost" />
-                                                            </StackPanel>
-                                                        </Border>
-                                                        <Border
-                                                            x:Name="AdvancedEffectsGeneralCard"
-                                                            Padding="12"
-                                                            BorderThickness="1"
-                                                            CornerRadius="18">
-                                                            <StackPanel Spacing="10">
-                                                                <TextBlock
-                                                                    x:Name="AdvancedEffectsGeneralTitleText"
-                                                                    FontSize="16"
-                                                                    FontWeight="Bold"
-                                                                    Text="General settings" />
-                                                                <settings:GeneralSettingsOptionsPanel x:Name="AdvancedEffectsGeneralSettingsPanel" />
                                                             </StackPanel>
                                                         </Border>
                                                     </StackPanel>

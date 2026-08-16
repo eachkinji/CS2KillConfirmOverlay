@@ -17,6 +17,7 @@ namespace KillConfirmGameBar.Controls.Settings
         private bool _suppressBombAudioEvents = true;
         private bool _suppressAutoCloseOnGameExitEvents;
         private bool _suppressInterruptPreviousKillAudioEvents;
+        private bool _suppressPanelColorEvents;
         private readonly DispatcherTimer _bombAudioSyncTimer = new DispatcherTimer();
 
         public GeneralSettingsOptionsPanel()
@@ -64,6 +65,13 @@ namespace KillConfirmGameBar.Controls.Settings
                 LocalizationManager.Text("BombAudioFinalSpeedLabel");
             BombAudioToggle.OffContent = LocalizationManager.Text("Off");
             BombAudioToggle.OnContent = LocalizationManager.Text("On");
+            BombAudioCustomLabelText.Text = LocalizationManager.Text("BombAudioCustomLabel");
+            BombTimerAudioLabelText.Text = LocalizationManager.Text("BombTimerAudioLabel");
+            BombExplodedAudioLabelText.Text = LocalizationManager.Text("BombExplodedAudioLabel");
+            BombDefusedAudioLabelText.Text = LocalizationManager.Text("BombDefusedAudioLabel");
+            BombTimerAudioImportButtonText.Text = LocalizationManager.Text("Import");
+            BombExplodedAudioImportButtonText.Text = LocalizationManager.Text("Import");
+            BombDefusedAudioImportButtonText.Text = LocalizationManager.Text("Import");
             AutoCloseOnGameExitLabelText.Text =
                 LocalizationManager.Text("AutoCloseOnGameExitLabel");
             AutoCloseOnGameExitHintText.Text =
@@ -76,6 +84,15 @@ namespace KillConfirmGameBar.Controls.Settings
                 LocalizationManager.Text("InterruptPreviousKillAudioHint");
             InterruptPreviousKillAudioToggle.OffContent = LocalizationManager.Text("Off");
             InterruptPreviousKillAudioToggle.OnContent = LocalizationManager.Text("On");
+            PanelColorTitleText.Text = LocalizationManager.Text("PanelColorTitle");
+            PanelColorHintText.Text = LocalizationManager.Text("PanelColorHint");
+            PanelColorResetButton.Content = LocalizationManager.Text("Reset");
+            PanelColorCustomToggle.OffContent = LocalizationManager.Text("Off");
+            PanelColorCustomToggle.OnContent = LocalizationManager.Text("On");
+            PanelColorPresetLabelText.Text = LocalizationManager.Text("PanelColorPresetLabel");
+            PanelColorBackgroundLabelText.Text = LocalizationManager.Text("PanelColorBackgroundLabel");
+            PanelColorBorderLabelText.Text = LocalizationManager.Text("PanelColorBorderLabel");
+            UpdateBombAudioStatusTexts();
             ApplyProcessPriorityLanguage();
         }
 
@@ -92,6 +109,7 @@ namespace KillConfirmGameBar.Controls.Settings
             BombAudioHintText.Foreground = new SolidColorBrush(theme.MutedText);
             AutoCloseOnGameExitHintText.Foreground = new SolidColorBrush(theme.MutedText);
             InterruptPreviousKillAudioHintText.Foreground = new SolidColorBrush(theme.MutedText);
+            PanelColorHintText.Foreground = new SolidColorBrush(theme.MutedText);
             ProcessPriorityHintText.Foreground = new SolidColorBrush(theme.MutedText);
             ProcessPriorityPersistenceHintText.Foreground = new SolidColorBrush(theme.MutedText);
             GameBarPriorityStatusText.Foreground = new SolidColorBrush(theme.MutedText);
@@ -109,6 +127,8 @@ namespace KillConfirmGameBar.Controls.Settings
             SelectProcessPrioritySettings();
             SelectAutoCloseOnGameExit();
             SelectInterruptPreviousKillAudio();
+            SelectPanelColorSettings();
+            UpdateBombAudioStatusTexts();
         }
 
         private void SelectGsiGameVersion()
@@ -356,6 +376,135 @@ namespace KillConfirmGameBar.Controls.Settings
             BombAudioFinalSpeedValueText.Text = string.Format(
                 "{0:0.00}×",
                 BombAudioFinalSpeedSlider.Value / 100.0);
+        }
+
+        private async void OnBombAudioImportClick(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is string kind)
+            {
+                var picker = new Windows.Storage.Pickers.FileOpenPicker();
+                picker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.MusicLibrary;
+                picker.FileTypeFilter.Add(".wav");
+                picker.FileTypeFilter.Add(".mp3");
+                picker.FileTypeFilter.Add(".m4a");
+                StorageFile file = await picker.PickSingleFileAsync();
+                if (file != null)
+                {
+                    try
+                    {
+                        await BombAudioSettingsStore.ImportCustomAudioAsync(kind, file);
+                        UpdateBombAudioStatusTexts();
+                        await SyncBombAudioSettingsAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        App.Log("Import bomb audio failed: " + ex);
+                    }
+                }
+            }
+        }
+
+        private async void OnBombAudioClearClick(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is string kind)
+            {
+                BombAudioSettingsStore.ClearCustomAudio(kind);
+                UpdateBombAudioStatusTexts();
+                await SyncBombAudioSettingsAsync();
+            }
+        }
+
+        private void UpdateBombAudioStatusTexts()
+        {
+            UpdateSlotStatus(BombAudioSettingsStore.TimerKind, BombTimerAudioStatusText, BombTimerAudioClearButton);
+            UpdateSlotStatus(BombAudioSettingsStore.ExplodedKind, BombExplodedAudioStatusText, BombExplodedAudioClearButton);
+            UpdateSlotStatus(BombAudioSettingsStore.DefusedKind, BombDefusedAudioStatusText, BombDefusedAudioClearButton);
+        }
+
+        private static void UpdateSlotStatus(string kind, TextBlock statusText, Button clearButton)
+        {
+            if (statusText == null) return;
+            if (BombAudioSettingsStore.HasCustomAudio(kind))
+            {
+                string path = BombAudioSettingsStore.GetStoredAudioPath(kind);
+                string fileName = System.IO.Path.GetFileName(path);
+                statusText.Text = string.IsNullOrEmpty(fileName) ? LocalizationManager.Text("Custom") : fileName;
+                statusText.Foreground = new SolidColorBrush(Windows.UI.Colors.CornflowerBlue);
+                if (clearButton != null) clearButton.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                statusText.Text = LocalizationManager.Text("BuiltIn");
+                statusText.Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 136, 136, 136));
+                if (clearButton != null) clearButton.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private void SelectPanelColorSettings()
+        {
+            _suppressPanelColorEvents = true;
+            try
+            {
+                PanelColorSettingsValues settings = PanelColorSettingsStore.Load();
+                PanelColorCustomToggle.IsOn = settings.Enabled;
+                PanelColorCustomSection.Visibility = settings.Enabled ? Visibility.Visible : Visibility.Collapsed;
+                PanelColorBackgroundHexBox.Text = settings.BackgroundColorHex;
+                PanelColorBorderHexBox.Text = settings.BorderColorHex;
+            }
+            finally
+            {
+                _suppressPanelColorEvents = false;
+            }
+        }
+
+        private void OnPanelColorCustomToggled(object sender, RoutedEventArgs e)
+        {
+            if (_suppressPanelColorEvents) return;
+            bool isCustom = PanelColorCustomToggle.IsOn;
+            PanelColorCustomSection.Visibility = isCustom ? Visibility.Visible : Visibility.Collapsed;
+            PanelColorSettingsStore.Save(isCustom, PanelColorBackgroundHexBox.Text, PanelColorBorderHexBox.Text);
+        }
+
+        private void OnPanelColorPresetClick(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is string hex)
+            {
+                _suppressPanelColorEvents = true;
+                try
+                {
+                    PanelColorBackgroundHexBox.Text = hex;
+                }
+                finally
+                {
+                    _suppressPanelColorEvents = false;
+                }
+                PanelColorSettingsStore.Save(PanelColorCustomToggle.IsOn, hex, PanelColorBorderHexBox.Text);
+            }
+        }
+
+        private void OnPanelColorHexChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_suppressPanelColorEvents) return;
+            string bg = PanelColorBackgroundHexBox.Text;
+            string border = PanelColorBorderHexBox.Text;
+            if (PanelColorSettingsStore.TryParseHexColor(bg, out _))
+            {
+                PanelColorSettingsStore.Save(PanelColorCustomToggle.IsOn, bg, border);
+            }
+        }
+
+        private void OnPanelColorResetClick(object sender, RoutedEventArgs e)
+        {
+            _suppressPanelColorEvents = true;
+            try
+            {
+                PanelColorSettingsStore.Reset();
+                SelectPanelColorSettings();
+            }
+            finally
+            {
+                _suppressPanelColorEvents = false;
+            }
         }
 
         private void SetBombAudioControlsEnabled(bool enabled)

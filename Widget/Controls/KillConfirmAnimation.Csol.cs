@@ -1,12 +1,10 @@
-// CSOL-specific animation code (Win2D path), kept in its own partial file so
-// the generic KillConfirmAnimation files stay clean. The CSOL overlay draws a
-// kill-streak banner (1..9 + boss at 10) and a special icon, held in a
-// CsolKillAsset, with a hold-then-fade timeline driven by CsolAlpha.
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using KillConfirmGameBar.Services;
 using Microsoft.Graphics.Canvas;
 using Windows.Foundation;
+using Windows.Storage;
 
 namespace KillConfirmGameBar.Controls
 {
@@ -55,31 +53,49 @@ namespace KillConfirmGameBar.Controls
         private async Task<AnimationAsset> LoadCsolKillAssetAsync(int killCount, string specialKey, IProgress<int> progress = null)
         {
             string normalizedSpecialKey = (specialKey ?? string.Empty).Trim().ToLowerInvariant();
-            string cacheKey = _iconPack + ":csol4";
+            string cacheKey = (_iconPack ?? "csol4") + ":csol4";
             if (!CsolKillCache.TryGetValue(cacheKey, out CsolKillAsset baseAsset))
             {
-                string folder = "Assets/KillConfirmCode/" + Csol4CodeFolder + "/";
+                StorageFolder customFolder = null;
+                if (PackCatalogService.IsImportedIconPackKey(_iconPack))
+                {
+                    customFolder = await PackCatalogService.GetImportedIconFolderAsync(_iconPack);
+                }
+
+                string fallbackFolder = "Assets/KillConfirmCode/" + Csol4CodeFolder + "/";
                 var streak = new CanvasBitmap[10];
                 for (int i = 0; i < 10; i++)
                 {
-                    streak[i] = await LoadBitmapFromApplicationUriAsync(
-                        "ms-appx:///" + folder + (i + 1) + "kill.png");
+                    streak[i] = await LoadCsolBitmapFromFolderOrDefaultAsync(
+                        customFolder,
+                        (i + 1) + "kill.png",
+                        fallbackFolder);
                 }
 
                 progress?.Report(40);
                 baseAsset = new CsolKillAsset
                 {
                     Streak = streak,
-                    Headshot = await LoadBitmapFromApplicationUriAsync(
-                        "ms-appx:///" + folder + "headshot_kill.png"),
-                    Melee = await LoadBitmapFromApplicationUriAsync(
-                        "ms-appx:///" + folder + "melee_kill.png"),
-                    Revenge = await LoadBitmapFromApplicationUriAsync(
-                        "ms-appx:///" + folder + "revenge.png"),
-                    FirstKill = await LoadBitmapFromApplicationUriAsync(
-                        "ms-appx:///" + folder + "firstkill.png"),
-                    Assist = await LoadBitmapFromApplicationUriAsync(
-                        "ms-appx:///" + folder + "assist.png")
+                    Headshot = await LoadCsolBitmapFromFolderOrDefaultAsync(
+                        customFolder,
+                        "headshot_kill.png",
+                        fallbackFolder),
+                    Melee = await LoadCsolBitmapFromFolderOrDefaultAsync(
+                        customFolder,
+                        "melee_kill.png",
+                        fallbackFolder),
+                    Revenge = await LoadCsolBitmapFromFolderOrDefaultAsync(
+                        customFolder,
+                        "revenge.png",
+                        fallbackFolder),
+                    FirstKill = await LoadCsolBitmapFromFolderOrDefaultAsync(
+                        customFolder,
+                        "firstkill.png",
+                        fallbackFolder),
+                    Assist = await LoadCsolBitmapFromFolderOrDefaultAsync(
+                        customFolder,
+                        "assist.png",
+                        fallbackFolder)
                 };
                 CsolKillCache[cacheKey] = baseAsset;
             }
@@ -109,6 +125,26 @@ namespace KillConfirmGameBar.Controls
                     Fps = FrameSequenceFps
                 },
                 playAsset);
+        }
+
+        private static async Task<CanvasBitmap> LoadCsolBitmapFromFolderOrDefaultAsync(StorageFolder folder, string fileName, string fallbackFolder)
+        {
+            if (folder != null)
+            {
+                try
+                {
+                    StorageFile file = await folder.GetFileAsync(fileName);
+                    if (file != null)
+                    {
+                        return await LoadBitmapFromStorageFileAsync(file);
+                    }
+                }
+                catch
+                {
+                }
+            }
+
+            return await LoadBitmapFromApplicationUriAsync("ms-appx:///" + fallbackFolder + fileName);
         }
 
         private void DrawCsolKillFrame(CanvasDrawingSession drawingSession, int frame)

@@ -203,7 +203,8 @@ namespace KillConfirmGameBar.Services
         public static bool IsCsolKey(string key)
         {
             return !string.IsNullOrWhiteSpace(key)
-                && key.Trim().StartsWith("csol", System.StringComparison.OrdinalIgnoreCase);
+                && (key.Trim().StartsWith("csol", System.StringComparison.OrdinalIgnoreCase)
+                    || key.Trim().StartsWith("custom_csol_", System.StringComparison.OrdinalIgnoreCase));
         }
 
         public static bool IsModPresetGameKey(string key)

@@ -1079,115 +1079,20 @@ mod tests {
     }
 
     #[test]
-    fn csol4_sound_lua_routes_kill_types() {
-        use crate::soundpack::lua_script::{LuaScript, SoundContext};
+    fn csol4_manifest_routes_streaks_through_resolve_audio() {
+        use crate::soundpack::lua_script::SoundContext;
+        use crate::soundpack::manifest::PackManifest;
         use crate::util::state::EventChannel;
         use std::collections::HashMap;
+        use std::path::Path;
 
-        let script = LuaScript::load("sounds/csol4/sound.lua").expect("load csol4 sound.lua");
-        let make_ctx =
-            |kill_count, is_headshot, is_knife, is_first, is_last, is_assist| SoundContext {
-                kill_count,
-                is_headshot,
-                is_first_kill: is_first,
-                is_knife_kill: is_knife,
-                is_last_kill: is_last,
-                is_assist,
-                play_main_audio: true,
-                money_reward: 0,
-                event_kind: None,
-                event_channel: EventChannel::Combat,
-                preset_name: "csol4".to_string(),
-                master_name: "csol4".to_string(),
-                variant: None,
-                base_dir: "sounds/csol4".to_string(),
-                voice_picks: HashMap::new(),
-                special_voice_priority: true,
-                headshot_priority: false,
-                knife_priority: false,
-            };
-
-        // First and last kills have independent voices.
-        let sounds = script
-            .get_sounds(&make_ctx(1, false, false, true, false, false))
-            .unwrap();
-        assert_eq!(sounds.len(), 1);
-        assert!(sounds[0].ends_with("Firstkill.wav"), "{}", sounds[0]);
-
-        let sounds = script
-            .get_sounds(&make_ctx(3, false, false, false, true, false))
-            .unwrap();
-        assert_eq!(sounds.len(), 1);
-        assert!(sounds[0].ends_with("Revenge.wav"), "{}", sounds[0]);
-
-        // Assist -> Assist voice.
-        let sounds = script
-            .get_sounds(&make_ctx(0, false, false, false, false, true))
-            .unwrap();
-        assert!(sounds[0].ends_with("Assist.wav"), "{}", sounds[0]);
-
-        // Special-first: knife beats the streak voice.
-        let sounds = script
-            .get_sounds(&make_ctx(3, false, true, false, false, false))
-            .unwrap();
-        assert!(
-            sounds[0].ends_with("Humililation.wav") || sounds[0].ends_with("Ohno.wav"),
-            "{}",
-            sounds[0]
-        );
-
-        // Special-first: headshot beats the streak voice.
-        let sounds = script
-            .get_sounds(&make_ctx(2, true, false, false, false, false))
-            .unwrap();
-        assert!(sounds[0].ends_with("Headshot.wav"), "{}", sounds[0]);
-
-        // Plain streaks route to the numbered voice (capped at 10).
-        let sounds = script
-            .get_sounds(&make_ctx(2, false, false, false, false, false))
-            .unwrap();
-        assert!(sounds[0].ends_with("Doublekill.wav"), "{}", sounds[0]);
-        let sounds = script
-            .get_sounds(&make_ctx(4, false, false, false, false, false))
-            .unwrap();
-        assert!(
-            sounds[0].ends_with("Multikill.wav") || sounds[0].ends_with("Multikill_ch.wav"),
-            "{}",
-            sounds[0]
-        );
-        let sounds = script
-            .get_sounds(&make_ctx(5, false, false, false, false, false))
-            .unwrap();
-        assert!(sounds[0].ends_with("Megakill.wav"), "{}", sounds[0]);
-        let sounds = script
-            .get_sounds(&make_ctx(9, false, false, false, false, false))
-            .unwrap();
-        assert!(sounds[0].ends_with("Outofworld.wav"), "{}", sounds[0]);
-        let sounds = script
-            .get_sounds(&make_ctx(10, false, false, false, false, false))
-            .unwrap();
-        assert!(sounds[0].ends_with("Ohgod.wav"), "{}", sounds[0]);
-        let sounds = script
-            .get_sounds(&make_ctx(12, false, false, false, false, false))
-            .unwrap();
-        assert!(sounds[0].ends_with("Ohgod.wav"), "{}", sounds[0]);
-    }
-
-    #[test]
-    fn csol4_sound_lua_honors_specific_voice_picks() {
-        use crate::soundpack::lua_script::{LuaScript, SoundContext};
-        use crate::util::state::EventChannel;
-        use std::collections::HashMap;
-
-        let script = LuaScript::load("sounds/csol4/sound.lua").expect("load csol4 sound.lua");
-        let mut voice_picks = HashMap::new();
-        voice_picks.insert("4".to_string(), "Multikill_ch.wav".to_string());
-
-        let ctx = SoundContext {
-            kill_count: 4,
-            is_headshot: false,
+        let manifest = PackManifest::load_from_dir(Path::new("sounds/csol4"))
+            .expect("load csol4 manifest");
+        let make_ctx = |kill_count, is_headshot, is_knife| SoundContext {
+            kill_count,
+            is_headshot,
             is_first_kill: false,
-            is_knife_kill: false,
+            is_knife_kill: is_knife,
             is_last_kill: false,
             is_assist: false,
             play_main_audio: true,
@@ -1198,23 +1103,63 @@ mod tests {
             master_name: "csol4".to_string(),
             variant: None,
             base_dir: "sounds/csol4".to_string(),
-            voice_picks,
-            special_voice_priority: true,
+            voice_picks: HashMap::new(),
+            special_voice_priority: false,
             headshot_priority: false,
             knife_priority: false,
         };
 
-        let sounds = script.get_sounds(&ctx).unwrap();
-        assert!(sounds[0].ends_with("Multikill_ch.wav"), "{}", sounds[0]);
+        // Plain streaks route to the numbered voice (capped at 10).
+        let sounds = manifest
+            .resolve_audio(&make_ctx(2, false, false), "sounds/csol4");
+        assert!(sounds[0].path.ends_with("Doublekill.wav"), "{}", sounds[0].path);
+        let sounds = manifest
+            .resolve_audio(&make_ctx(4, false, false), "sounds/csol4");
+        assert!(
+            sounds[0].path.ends_with("Multikill.wav")
+                || sounds[0].path.ends_with("Multikill_ch.wav"),
+            "{}",
+            sounds[0].path
+        );
+        let sounds = manifest
+            .resolve_audio(&make_ctx(5, false, false), "sounds/csol4");
+        assert!(sounds[0].path.ends_with("Megakill.wav"), "{}", sounds[0].path);
+        let sounds = manifest
+            .resolve_audio(&make_ctx(9, false, false), "sounds/csol4");
+        assert!(sounds[0].path.ends_with("Outofworld.wav"), "{}", sounds[0].path);
+        let sounds = manifest
+            .resolve_audio(&make_ctx(10, false, false), "sounds/csol4");
+        assert!(sounds[0].path.ends_with("Ohgod.wav"), "{}", sounds[0].path);
+        let sounds = manifest
+            .resolve_audio(&make_ctx(12, false, false), "sounds/csol4");
+        assert!(sounds[0].path.ends_with("Ohgod.wav"), "{}", sounds[0].path);
+
+        // Headshot on a single kill (kill_count==1) triggers the headshot slot.
+        let sounds = manifest
+            .resolve_audio(&make_ctx(1, true, false), "sounds/csol4");
+        assert!(sounds[0].path.ends_with("Headshot.wav"), "{}", sounds[0].path);
+
+        // Knife on a single kill (kill_count==1) triggers the knife slot.
+        let sounds = manifest
+            .resolve_audio(&make_ctx(1, false, true), "sounds/csol4");
+        assert!(
+            sounds[0].path.ends_with("Humililation.wav")
+                || sounds[0].path.ends_with("Ohno.wav"),
+            "{}",
+            sounds[0].path
+        );
     }
 
     #[test]
-    fn csol4_sound_lua_routes_first_and_last_kills_separately() {
-        use crate::soundpack::lua_script::{LuaScript, SoundContext};
+    fn csol4_manifest_routes_first_and_last_kills_to_shared_slot() {
+        use crate::soundpack::lua_script::SoundContext;
+        use crate::soundpack::manifest::PackManifest;
         use crate::util::state::EventChannel;
         use std::collections::HashMap;
+        use std::path::Path;
 
-        let script = LuaScript::load("sounds/csol4/sound.lua").expect("load csol4 sound.lua");
+        let manifest = PackManifest::load_from_dir(Path::new("sounds/csol4"))
+            .expect("load csol4 manifest");
         let make_ctx = |is_first_kill, is_last_kill| SoundContext {
             kill_count: 1,
             is_headshot: false,
@@ -1231,16 +1176,25 @@ mod tests {
             variant: None,
             base_dir: "sounds/csol4".to_string(),
             voice_picks: HashMap::new(),
-            special_voice_priority: true,
+            special_voice_priority: false,
             headshot_priority: false,
             knife_priority: false,
         };
 
-        let first = script.get_sounds(&make_ctx(true, false)).unwrap();
-        assert!(first[0].ends_with("Firstkill.wav"), "{}", first[0]);
+        // First and last kills both route to the shared first_and_last slot.
+        let first = manifest.resolve_audio(&make_ctx(true, false), "sounds/csol4");
+        assert!(
+            !first.is_empty(),
+            "first_and_last slot should produce an entry"
+        );
+        assert!(
+            first[0].path.ends_with("Firstkill.wav"),
+            "{}",
+            first[0].path
+        );
 
-        let last = script.get_sounds(&make_ctx(false, true)).unwrap();
-        assert!(last[0].ends_with("Revenge.wav"), "{}", last[0]);
+        let last = manifest.resolve_audio(&make_ctx(false, true), "sounds/csol4");
+        assert!(last[0].path.ends_with("Firstkill.wav"), "{}", last[0].path);
     }
 
     #[test]

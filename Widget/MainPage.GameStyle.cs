@@ -66,9 +66,18 @@ namespace KillConfirmGameBar
                 CfWorkspaceTabBar.Visibility = (isCrossfire && !_isHomePageSelected) ? Visibility.Visible : Visibility.Collapsed;
             }
 
+            if (CsolWorkspaceTabBar != null)
+            {
+                CsolWorkspaceTabBar.Visibility = (csol && !_isHomePageSelected) ? Visibility.Visible : Visibility.Collapsed;
+            }
+
             if (isCrossfire && !_isHomePageSelected)
             {
                 ApplyCfActiveTab();
+            }
+            else if (csol && !_isHomePageSelected)
+            {
+                ApplyCsolActiveTab();
             }
             else
             {
@@ -77,6 +86,7 @@ namespace KillConfirmGameBar
                 if (IconPackCollectionsCard != null) IconPackCollectionsCard.Visibility = Visibility.Collapsed;
                 if (VoiceCollectionsCard != null) VoiceCollectionsCard.Visibility = Visibility.Collapsed;
                 if (IconCollectionsCard != null) IconCollectionsCard.Visibility = Visibility.Collapsed;
+                if (CsolGuideCard != null) CsolGuideCard.Visibility = Visibility.Collapsed;
             }
 
             if (_isHomePageSelected)

@@ -309,5 +309,72 @@ namespace KillConfirmGameBar.Services
             });
             await SaveAsync(catalog);
         }
+
+        // CSOL icon packs have a fixed 13-slot layout (no FX / Elite / Weapon
+        // Badge overlays — the CSOL rendering path does not consume them).
+        // The icon keys mirror the CF kill_<n> / headshot / knife / first_and_last
+        // scheme so the existing icon resolver works unchanged.
+        public static readonly IReadOnlyList<string> CsolIconSlotFileNames = new[]
+        {
+            "badge_headshot.png",
+            "badge_knife.png",
+            "badge_firstkill.png",
+            "badge_lastkill.png",
+            "multi2.png",
+            "multi3.png",
+            "multi4.png",
+            "multi5.png",
+            "multi6.png",
+            "multi7.png",
+            "multi8.png",
+            "multi9.png",
+            "multi10.png"
+        };
+
+        public static async Task CreateCsolIconPackAsync(string displayName, IReadOnlyDictionary<string, StorageFile> selectedFiles)
+        {
+            if (selectedFiles == null || selectedFiles.Count == 0)
+            {
+                return;
+            }
+
+            StorageFolder root = await GetOrCreatePackRootAsync("GeneratedCsolIconPacks");
+            StorageFolder packFolder = await root.CreateFolderAsync(
+                SanitizeName(displayName),
+                CreationCollisionOption.GenerateUniqueName);
+
+            foreach (var pair in selectedFiles)
+            {
+                if (pair.Value == null)
+                {
+                    continue;
+                }
+
+                if (pair.Value.FileType.Equals(".tga", StringComparison.OrdinalIgnoreCase))
+                {
+                    await TgaDecoder.ConvertTgaToPngAsync(pair.Value, packFolder, pair.Key);
+                }
+                else
+                {
+                    await pair.Value.CopyAsync(packFolder, pair.Key, NameCollisionOption.ReplaceExisting);
+                }
+            }
+
+            PackCatalog catalog = await LoadAsync();
+            catalog.IconPacks.Add(new IconPackItem
+            {
+                Key = "custom_csol_icon_" + Guid.NewGuid().ToString("N"),
+                DisplayName = displayName,
+                FolderPath = packFolder.Path,
+                IsBuiltIn = false,
+                IsVisibleInWidget = true,
+                OwnsFolder = true,
+                HasFxOverlay = false,
+                HasKillFxOverlay = false,
+                HasEliteOverlay = false,
+                HasWeaponBadgeOverlay = false
+            });
+            await SaveAsync(catalog);
+        }
     }
 }

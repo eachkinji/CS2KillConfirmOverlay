@@ -32,6 +32,17 @@ namespace KillConfirmGameBar
             ImportIconZipButton.Content = LocalizationManager.Text("ImportZip");
             CreateIconPackButton.Content = LocalizationManager.Text("CreateIconPack");
 
+            if (CfTabCombatButton != null) CfTabCombatButton.Content = LocalizationManager.Text("CfTabCombat");
+            if (CfTabVoiceButton != null) CfTabVoiceButton.Content = LocalizationManager.Text("CfTabVoice");
+            if (CfTabIconButton != null) CfTabIconButton.Content = LocalizationManager.Text("CfTabIcon");
+            if (CfTabGuideButton != null) CfTabGuideButton.Content = LocalizationManager.Text("CfTabGuide");
+            if (CsolTabCombatButton != null) CsolTabCombatButton.Content = LocalizationManager.Text("CsolTabCombat");
+            if (CsolTabVoiceButton != null) CsolTabVoiceButton.Content = LocalizationManager.Text("CsolTabVoice");
+            if (CsolTabIconButton != null) CsolTabIconButton.Content = LocalizationManager.Text("CsolTabIcon");
+            if (CsolTabGuideButton != null) CsolTabGuideButton.Content = LocalizationManager.Text("CsolTabGuide");
+
+            ApplyCsolGuideCardLanguage();
+
             StructureTitleText.Text = LocalizationManager.Text("StructureTitle");
             StructureBodyText.Text = LocalizationManager.Text("StructureBody");
             StructureImportFolderTitleText.Text = LocalizationManager.Text("StructureImportFolderTitle");
@@ -70,6 +81,26 @@ namespace KillConfirmGameBar
 
             IconSpecToggleButton.Content = LocalizationManager.Text(
                 _iconSpecExpanded ? "StructureIconSpecCollapse" : "StructureIconSpecExpand");
+        }
+
+        private void ApplyCsolGuideCardLanguage()
+        {
+            if (CsolGuideCard == null)
+            {
+                return;
+            }
+
+            if (CsolStructureTitleText != null) CsolStructureTitleText.Text = LocalizationManager.Text("CsolStructureTitle");
+            if (CsolStructureBodyText != null) CsolStructureBodyText.Text = LocalizationManager.Text("CsolStructureBody");
+            if (CsolStructureVoiceSpecTitle != null) CsolStructureVoiceSpecTitle.Text = LocalizationManager.Text("StructureVoiceSpecTitle");
+            if (CsolStructureVoiceSpecBody != null) CsolStructureVoiceSpecBody.Text = LocalizationManager.Text("CsolStructureVoiceSpecBody");
+            if (CsolStructureIconSpecTitle != null) CsolStructureIconSpecTitle.Text = LocalizationManager.Text("StructureIconSpecTitle");
+            if (CsolStructureIconSpecBody != null) CsolStructureIconSpecBody.Text = LocalizationManager.Text("CsolStructureIconSpecBody");
+            if (CsolStructureImportZipTitle != null) CsolStructureImportZipTitle.Text = LocalizationManager.Text("StructureImportZipTitle");
+            if (CsolStructureImportZipBody != null) CsolStructureImportZipBody.Text = LocalizationManager.Text("CsolStructureImportZipBody");
+            if (CsolStructureCreatorTitle != null) CsolStructureCreatorTitle.Text = LocalizationManager.Text("StructureCreatorTitle");
+            if (CsolStructureCreatorBody != null) CsolStructureCreatorBody.Text = LocalizationManager.Text("CsolStructureCreatorBody");
+            if (CsolStructureFileHint != null) CsolStructureFileHint.Text = LocalizationManager.Text("CsolStructureFileHint");
         }
     }
 }

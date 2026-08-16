@@ -186,7 +186,12 @@ namespace KillConfirmGameBar.Services
                     NameCollisionOption.ReplaceExisting);
             }
 
-            await WriteGeneratedVoiceManifestAsync(packFolder, displayName, options.CommonOverlayEnabled);
+            await WriteGeneratedVoiceManifestAsync(
+                packFolder,
+                displayName,
+                "crossfire",
+                CrossfireSlotMapping,
+                options.CommonOverlayEnabled);
 
             var catalog = await LoadAsync();
             catalog.VoicePacks.Add(new VoicePackItem
@@ -201,12 +206,69 @@ namespace KillConfirmGameBar.Services
             await SaveAsync(catalog);
         }
 
-        private static async Task WriteGeneratedVoiceManifestAsync(
-            StorageFolder packFolder,
-            string displayName,
-            IReadOnlyDictionary<string, bool> commonOverlayEnabled)
+        public static async Task CreateCsolVoicePackAsync(string displayName, VoicePackBuildOptions options)
         {
-            var slotMapping = new Dictionary<string, string>
+            StorageFolder root = await GetOrCreatePackRootAsync("GeneratedCsolVoicePacks");
+            StorageFolder packFolder = await root.CreateFolderAsync(
+                SanitizeName(displayName),
+                CreationCollisionOption.GenerateUniqueName);
+
+            foreach (var pair in options.SelectedFiles)
+            {
+                if (pair.Value != null)
+                {
+                    await pair.Value.CopyAsync(
+                        packFolder,
+                        GetAudioTargetFileName(pair.Key, pair.Value),
+                        NameCollisionOption.ReplaceExisting);
+                }
+            }
+
+            if (options.HeadImageFile != null)
+            {
+                string extension = options.HeadImageFile.FileType;
+                if (string.IsNullOrWhiteSpace(extension))
+                {
+                    extension = ".png";
+                }
+
+                if (extension.Equals(".tga", StringComparison.OrdinalIgnoreCase))
+                {
+                    await TgaDecoder.ConvertTgaToPngAsync(options.HeadImageFile, packFolder, "pack_head.png");
+                }
+                else
+                {
+                    await options.HeadImageFile.CopyAsync(
+                        packFolder,
+                        "pack_head" + extension.ToLowerInvariant(),
+                        NameCollisionOption.ReplaceExisting);
+                }
+            }
+
+            await WriteGeneratedVoiceManifestAsync(
+                packFolder,
+                displayName,
+                "csol",
+                CsolSlotMapping,
+                commonOverlayEnabled: null);
+
+            var catalog = await LoadAsync();
+            catalog.VoicePacks.Add(new VoicePackItem
+            {
+                Key = "custom_csol_voice_" + Guid.NewGuid().ToString("N"),
+                DisplayName = displayName,
+                FolderPath = packFolder.Path,
+                IsBuiltIn = false,
+                IsVisibleInWidget = true,
+                OwnsFolder = true
+            });
+            await SaveAsync(catalog);
+        }
+
+        // Slot mapping used when writing manifests for CF voice packs.
+        // Maps source-stem -> manifest-slot key.
+        public static readonly IReadOnlyDictionary<string, string> CrossfireSlotMapping =
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
                 { "common", "kill_1" },
                 { "2", "kill_2" },
@@ -221,6 +283,36 @@ namespace KillConfirmGameBar.Services
                 { "firstandlast", "first_and_last" }
             };
 
+        // Slot mapping for CSOL voice packs. The CSOL 10-kill voice pack uses
+        // the same kill_<n> / headshot / knife / first_and_last keys as CF; only
+        // the source file names differ (1.wav..10.wav vs common.wav, 2.wav...).
+        public static readonly IReadOnlyDictionary<string, string> CsolSlotMapping =
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "1", "kill_1" },
+                { "2", "kill_2" },
+                { "3", "kill_3" },
+                { "4", "kill_4" },
+                { "5", "kill_5" },
+                { "6", "kill_6" },
+                { "7", "kill_7" },
+                { "8", "kill_8" },
+                { "9", "kill_9" },
+                { "10", "kill_10" },
+                { "headshot", "headshot" },
+                { "knife", "knife" },
+                { "first", "first_and_last" },
+                { "last", "first_and_last" },
+                { "assist", "first_and_last" }
+            };
+
+        private static async Task WriteGeneratedVoiceManifestAsync(
+            StorageFolder packFolder,
+            string displayName,
+            string gameStyle,
+            IReadOnlyDictionary<string, string> slotMapping,
+            IReadOnlyDictionary<string, bool> commonOverlayEnabled)
+        {
             var slotsObj = new Windows.Data.Json.JsonObject();
             foreach (var pair in slotMapping)
             {
@@ -231,14 +323,18 @@ namespace KillConfirmGameBar.Services
                 }
             }
 
-            string commonOverlayFile = await FindAudioFileNameAsync(packFolder, "common_overlay");
-            if (!string.IsNullOrWhiteSpace(commonOverlayFile))
+            if (string.Equals(gameStyle, "crossfire", StringComparison.OrdinalIgnoreCase))
             {
-                slotsObj["common_overlay"] = Windows.Data.Json.JsonValue.CreateStringValue(commonOverlayFile);
+                string commonOverlayFile = await FindAudioFileNameAsync(packFolder, "common_overlay");
+                if (!string.IsNullOrWhiteSpace(commonOverlayFile))
+                {
+                    slotsObj["common_overlay"] = Windows.Data.Json.JsonValue.CreateStringValue(commonOverlayFile);
+                }
             }
 
             var overlaySlotsArray = new Windows.Data.Json.JsonArray();
-            if (commonOverlayEnabled != null)
+            if (string.Equals(gameStyle, "crossfire", StringComparison.OrdinalIgnoreCase)
+                && commonOverlayEnabled != null)
             {
                 foreach (var pair in commonOverlayEnabled)
                 {
@@ -265,7 +361,7 @@ namespace KillConfirmGameBar.Services
             {
                 ["id"] = Windows.Data.Json.JsonValue.CreateStringValue(packFolder.Name),
                 ["name"] = Windows.Data.Json.JsonValue.CreateStringValue(displayName),
-                ["game_style"] = Windows.Data.Json.JsonValue.CreateStringValue("crossfire"),
+                ["game_style"] = Windows.Data.Json.JsonValue.CreateStringValue(gameStyle),
                 ["version"] = Windows.Data.Json.JsonValue.CreateStringValue("1.0"),
                 ["audio"] = audioObj
             };

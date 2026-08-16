@@ -24,6 +24,7 @@ namespace KillConfirmGameBar
         private bool _iconSpecExpanded;
         private bool _isSettingsPageLoaded;
         private string _activeCfTab = "combat";
+        private string _activeCsolTab = "combat";
 
         public MainPage()
         {
@@ -38,10 +39,21 @@ namespace KillConfirmGameBar
         private void OnCfTabIconClick(object sender, RoutedEventArgs e) => SelectCfTab("icon");
         private void OnCfTabGuideClick(object sender, RoutedEventArgs e) => SelectCfTab("guide");
 
+        private void OnCsolTabCombatClick(object sender, RoutedEventArgs e) => SelectCsolTab("combat");
+        private void OnCsolTabVoiceClick(object sender, RoutedEventArgs e) => SelectCsolTab("voice");
+        private void OnCsolTabIconClick(object sender, RoutedEventArgs e) => SelectCsolTab("icon");
+        private void OnCsolTabGuideClick(object sender, RoutedEventArgs e) => SelectCsolTab("guide");
+
         public void SelectCfTab(string tab)
         {
             _activeCfTab = tab;
             ApplyCfActiveTab();
+        }
+
+        public void SelectCsolTab(string tab)
+        {
+            _activeCsolTab = tab;
+            ApplyCsolActiveTab();
         }
 
         private void ApplyCfActiveTab()
@@ -64,6 +76,26 @@ namespace KillConfirmGameBar
             UpdateCfTabButtonsTheme();
         }
 
+        private void ApplyCsolActiveTab()
+        {
+            if (GameStyleService.Current != GameStyleMode.Csol || _isHomePageSelected)
+            {
+                return;
+            }
+
+            bool isCombat = _activeCsolTab == "combat";
+            bool isVoice = _activeCsolTab == "voice";
+            bool isIcon = _activeCsolTab == "icon";
+            bool isGuide = _activeCsolTab == "guide";
+
+            if (GameEffectsCard != null) GameEffectsCard.Visibility = isCombat ? Visibility.Visible : Visibility.Collapsed;
+            if (VoicePackCollectionsCard != null) VoicePackCollectionsCard.Visibility = isVoice ? Visibility.Visible : Visibility.Collapsed;
+            if (IconPackCollectionsCard != null) IconPackCollectionsCard.Visibility = isIcon ? Visibility.Visible : Visibility.Collapsed;
+            if (CsolGuideCard != null) CsolGuideCard.Visibility = isGuide ? Visibility.Visible : Visibility.Collapsed;
+
+            UpdateCsolTabButtonsTheme();
+        }
+
         private void UpdateCfTabButtonsTheme()
         {
             GameThemePalette theme = GameThemePalette.Current;
@@ -71,6 +103,15 @@ namespace KillConfirmGameBar
             UpdateTabBtn(CfTabVoiceButton, _activeCfTab == "voice", theme);
             UpdateTabBtn(CfTabIconButton, _activeCfTab == "icon", theme);
             UpdateTabBtn(CfTabGuideButton, _activeCfTab == "guide", theme);
+        }
+
+        private void UpdateCsolTabButtonsTheme()
+        {
+            GameThemePalette theme = GameThemePalette.Current;
+            UpdateTabBtn(CsolTabCombatButton, _activeCsolTab == "combat", theme);
+            UpdateTabBtn(CsolTabVoiceButton, _activeCsolTab == "voice", theme);
+            UpdateTabBtn(CsolTabIconButton, _activeCsolTab == "icon", theme);
+            UpdateTabBtn(CsolTabGuideButton, _activeCsolTab == "guide", theme);
         }
 
         private static void UpdateTabBtn(Button btn, bool isActive, GameThemePalette theme)

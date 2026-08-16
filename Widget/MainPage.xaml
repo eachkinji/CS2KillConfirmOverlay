@@ -408,6 +408,38 @@
                         </StackPanel>
                     </Border>
 
+                    <!-- CSOL Studio Dedicated Navigation Tab Bar -->
+                    <Border
+                        x:Name="CsolWorkspaceTabBar"
+                        Grid.Row="1"
+                        MaxWidth="1480"
+                        Padding="4"
+                        HorizontalAlignment="Center"
+                        Visibility="Collapsed"
+                        Background="#EAEAE6"
+                        BorderBrush="#D5D0C4"
+                        BorderThickness="1"
+                        CornerRadius="20">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <Button
+                                x:Name="CsolTabCombatButton"
+                                Style="{StaticResource StudioTabActiveButtonStyle}"
+                                Click="OnCsolTabCombatClick" />
+                            <Button
+                                x:Name="CsolTabVoiceButton"
+                                Style="{StaticResource StudioTabButtonStyle}"
+                                Click="OnCsolTabVoiceClick" />
+                            <Button
+                                x:Name="CsolTabIconButton"
+                                Style="{StaticResource StudioTabButtonStyle}"
+                                Click="OnCsolTabIconClick" />
+                            <Button
+                                x:Name="CsolTabGuideButton"
+                                Style="{StaticResource StudioTabButtonStyle}"
+                                Click="OnCsolTabGuideClick" />
+                        </StackPanel>
+                    </Border>
+
                     <!-- Home View -->
                     <Grid
                         x:Name="HomePageContent"
@@ -613,6 +645,30 @@
                             <StackPanel Spacing="4">
                                 <TextBlock x:Name="TipsTitleText" />
                                 <TextBlock x:Name="TipsBodyText" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border x:Name="CsolGuideCard" Style="{StaticResource SettingsSectionCardStyle}" Visibility="Collapsed">
+                            <StackPanel Spacing="12">
+                                <TextBlock x:Name="CsolStructureTitleText" FontSize="20" FontWeight="SemiBold" />
+                                <TextBlock x:Name="CsolStructureBodyText" TextWrapping="WrapWholeWords" />
+                                <Border Background="#FFFAEC" BorderBrush="#F0E2B6" BorderThickness="1" CornerRadius="14" Padding="12">
+                                    <StackPanel Spacing="6">
+                                        <TextBlock x:Name="CsolStructureVoiceSpecTitle" FontWeight="SemiBold" />
+                                        <TextBlock x:Name="CsolStructureVoiceSpecBody" TextWrapping="WrapWholeWords" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Background="#FFFAEC" BorderBrush="#F0E2B6" BorderThickness="1" CornerRadius="14" Padding="12">
+                                    <StackPanel Spacing="6">
+                                        <TextBlock x:Name="CsolStructureIconSpecTitle" FontWeight="SemiBold" />
+                                        <TextBlock x:Name="CsolStructureIconSpecBody" TextWrapping="WrapWholeWords" />
+                                    </StackPanel>
+                                </Border>
+                                <TextBlock x:Name="CsolStructureImportZipTitle" FontWeight="SemiBold" />
+                                <TextBlock x:Name="CsolStructureImportZipBody" TextWrapping="WrapWholeWords" />
+                                <TextBlock x:Name="CsolStructureCreatorTitle" FontWeight="SemiBold" />
+                                <TextBlock x:Name="CsolStructureCreatorBody" TextWrapping="WrapWholeWords" />
+                                <TextBlock x:Name="CsolStructureFileHint" Foreground="#FF8A4A" TextWrapping="WrapWholeWords" />
                             </StackPanel>
                         </Border>
                     </Grid>

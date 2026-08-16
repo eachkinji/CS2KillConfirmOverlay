@@ -14,7 +14,7 @@ namespace KillConfirmGameBar.Services
 
         private const string SettingKey = "GsiGameVersion";
         private static readonly Uri SettingsUri =
-            new Uri("http://127.0.0.1:10087/gsi-game/settings");
+            LocalServiceEndpoints.Build("/gsi-game/settings");
 
         public static event EventHandler VersionChanged;
 

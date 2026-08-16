@@ -11,7 +11,7 @@ namespace KillConfirmGameBar.Services
     {
         private const string SettingKey = "InterruptPreviousKillAudio";
         private static readonly Uri SettingsUri =
-            new Uri("http://127.0.0.1:10087/audio/interrupt-previous");
+            LocalServiceEndpoints.Build("/audio/interrupt-previous");
 
         internal static bool Load()
         {

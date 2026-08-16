@@ -144,7 +144,7 @@ namespace KillConfirmGameBar.Controls.Settings
                     UnicodeEncoding.Utf8,
                     "application/json"))
                 {
-                    await client.PostAsync(new Uri("http://127.0.0.1:10087/crossfire/settings"), content);
+                    await client.PostAsync(LocalServiceEndpoints.Build("/crossfire/settings"), content);
                 }
             }
             catch (Exception ex)

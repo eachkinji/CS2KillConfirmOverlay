@@ -44,7 +44,7 @@ namespace KillConfirmGameBar.Services
         public const string CustomMode = "custom";
 
         private static readonly Uri SettingsUri =
-            new Uri("http://127.0.0.1:10087/event-sound/settings");
+            LocalServiceEndpoints.Build("/event-sound/settings");
 
         public static bool IsSupported(GameStyleMode style)
         {

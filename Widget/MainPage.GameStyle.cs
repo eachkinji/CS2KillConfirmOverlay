@@ -123,9 +123,6 @@ namespace KillConfirmGameBar
             SetText(GameStyleLabelText, theme.Text);
             SetText(GameStyleSidebarTitleText, theme.MutedText);
             SetText(GameEffectsTitleText, theme.Text);
-            SetText(GeneralSettingsTitleText, theme.Text);
-            SetText(DisplayScalingTitleText, theme.Text);
-            SetText(DisplayScalingDescriptionText, theme.MutedText);
             SetText(VoiceCollectionsTitleText, theme.Text);
             SetText(VoiceCollectionsHintText, theme.MutedText);
             SetText(IconCollectionsTitleText, theme.Text);
@@ -150,8 +147,6 @@ namespace KillConfirmGameBar
             SetText(TipsBodyText, theme.MutedText);
 
             ApplySectionTheme(GameEffectsCard, theme);
-            ApplySectionTheme(GeneralSettingsCard, theme);
-            ApplySectionTheme(DisplayScalingCard, theme);
             ApplyCardTheme(VoicePackCollectionsCard, theme);
             ApplyCardTheme(IconPackCollectionsCard, theme);
             ApplyCardTheme(VoiceCollectionsCard, theme);
@@ -172,8 +167,7 @@ namespace KillConfirmGameBar
                 theme.SubtleField,
                 theme.SoftBorder);
             ApplyGameStyleSidebarTheme(theme);
-            GeneralSettingsOptionsPanel.ApplyTheme(theme);
-            DisplayScalingSettingsPanel.ApplyTheme(theme);
+            AdvancedSettingsHubControl.ApplyTheme(theme);
             ApplyGameAdvancedSettingsPanelTheme();
         }
 
@@ -510,7 +504,7 @@ namespace KillConfirmGameBar
                     UnicodeEncoding.Utf8,
                     "application/json"))
                 {
-                    await client.PostAsync(new Uri("http://127.0.0.1:10087/crossfire/settings"), content);
+                    await client.PostAsync(LocalServiceEndpoints.Build("/crossfire/settings"), content);
                 }
             }
             catch (Exception ex)
@@ -601,7 +595,7 @@ namespace KillConfirmGameBar
                     UnicodeEncoding.Utf8,
                     "application/json"))
                 {
-                    await client.PostAsync(new Uri("http://127.0.0.1:10087/csol/settings"), content);
+                    await client.PostAsync(LocalServiceEndpoints.Build("/csol/settings"), content);
                 }
             }
             catch (Exception ex)
@@ -854,7 +848,7 @@ namespace KillConfirmGameBar
                     "application/json"))
                 {
                     await client.PostAsync(
-                        new System.Uri("http://127.0.0.1:10087/streak/settings"),
+                        LocalServiceEndpoints.Build("/streak/settings"),
                         content);
                 }
             }

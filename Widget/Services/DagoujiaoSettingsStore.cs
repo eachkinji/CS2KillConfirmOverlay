@@ -61,7 +61,7 @@ namespace KillConfirmGameBar.Services
             new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase);
         private static readonly SemaphoreSlim ServiceSyncGate = new SemaphoreSlim(1, 1);
         private static readonly Uri ServiceSettingsUri =
-            new Uri("http://127.0.0.1:10087/dagoujiao/settings");
+            LocalServiceEndpoints.Build("/dagoujiao/settings");
 
         public static readonly IReadOnlyList<DagoujiaoImageChoice> BuiltInImages =
             new List<DagoujiaoImageChoice>

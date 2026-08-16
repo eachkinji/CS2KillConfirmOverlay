@@ -49,7 +49,7 @@ use util::event_stream::{
     crossfire_settings, cs2_root, csol_settings, dagoujiao_settings, developer_settings,
     doubao_settings, event_sound_settings, events_poll, gsi_game_settings, gsi_status, health,
     install_counter_strike_cfg, interrupt_previous_kill_audio_settings, money_mode,
-    process_priorities, set_audio_device, set_bomb_audio_settings, set_crossfire_settings,
+    port, process_priorities, set_audio_device, set_bomb_audio_settings, set_crossfire_settings,
     set_csol_settings, set_dagoujiao_settings, set_developer_settings, set_doubao_settings,
     set_event_sound_settings,
     set_gsi_game_settings, set_interrupt_previous_kill_audio_settings, set_money_mode,
@@ -166,21 +166,32 @@ async fn main() {
             .unwrap_or_else(|_| "<unavailable>".to_string())
     ));
 
-    if let Err(error) = run().await {
+    let mut args = Args::parse_runtime();
+    if args.port_from_file {
+        if let Some(resolved) = read_port_from_file() {
+            args.port = resolved;
+            bootstrap_log(&format!("port resolved from widget file: {}", resolved));
+        } else {
+            bootstrap_log("port file missing or unreadable; keeping default");
+        }
+    }
+    let active_port = args.port;
+
+    if let Err(error) = run(args).await {
         let error_detail = format!("{error:?}");
         bootstrap_log(&format!("fatal error before exit: {error_detail}"));
         service_log(&format!("fatal error: {error_detail}"));
         if error_detail.contains("os error 10048")
             || error_detail.contains("address already in use")
         {
-            log_local_port_owners(10087);
+            log_local_port_owners(active_port);
         }
         eprintln!("{error_detail}");
         std::process::exit(1);
     }
 }
 
-async fn run() -> Result<()> {
+async fn run(args: Args) -> Result<()> {
     service_log("service starting");
 
     boost_process_priority();
@@ -197,7 +208,7 @@ async fn run() -> Result<()> {
 
     let sanitized_args = Args::sanitized_runtime_args();
     bootstrap_log(&format!("sanitized args: {:?}", sanitized_args));
-    let args = Args::parse_runtime();
+    bootstrap_log(&format!("effective port: {}", args.port));
 
     if args.open_logs {
         open_runtime_log_folder();
@@ -283,7 +294,7 @@ async fn run() -> Result<()> {
         stream_handle: RwLock::new(output_stream),
         current_output_device_name: RwLock::new(output_device_name.clone()),
         selected_output_device_name: RwLock::new(args.device.clone()),
-        args,
+        args: args.clone(),
         preset: RwLock::new(preset),
         volume_percent: AtomicU32::new(initial_volume_percent),
         money_reward_mode: AtomicU8::new(MoneyRewardMode::DEFAULT.as_u8()),
@@ -352,6 +363,7 @@ async fn run() -> Result<()> {
         .route("/", post(update))
         .route("/events", get(events_poll))
         .route("/health", get(health))
+        .route("/port", get(port))
         .route("/gsi-status", get(gsi_status))
         .route(
             "/gsi-game/settings",
@@ -424,9 +436,10 @@ async fn run() -> Result<()> {
             require_control_token,
         ));
 
-    // run our app with hyper, listening globally on port 10087
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:10087").await?;
-    service_log("listening on 127.0.0.1:10087");
+    let bind_target = format!("127.0.0.1:{}", args.port);
+    // run our app with hyper, listening globally on the user-selected port
+    let listener = tokio::net::TcpListener::bind(&bind_target).await?;
+    service_log(&format!("listening on {bind_target}"));
     axum::serve(listener, app)
         .with_graceful_shutdown(shutdown_signal(shutdown_rx))
         .await?;
@@ -760,6 +773,21 @@ fn runtime_log_dir() -> PathBuf {
         .ok()
         .and_then(|path| path.parent().map(Path::to_path_buf))
         .unwrap_or_else(|| PathBuf::from("."))
+}
+
+fn widget_port_file() -> PathBuf {
+    runtime_log_dir().join("widget_port.txt")
+}
+
+fn read_port_from_file() -> Option<u16> {
+    let path = widget_port_file();
+    let text = fs::read_to_string(&path).ok()?;
+    let trimmed = text.trim();
+    let value: u16 = trimmed.parse().ok()?;
+    if value < 1024 {
+        return None;
+    }
+    Some(value)
 }
 
 fn rotate_trace_log_if_needed(log_path: &Path) {

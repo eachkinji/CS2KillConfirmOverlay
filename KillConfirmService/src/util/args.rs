@@ -30,6 +30,20 @@ pub struct Args {
     #[arg(long)]
     pub free_port: Option<u16>,
 
+    /// TCP port to bind the local HTTP listener on. Defaults to the legacy
+    /// 10087 so existing installs keep working. The widget passes
+    /// `--port <N>` whenever the user picks a different value from the
+    /// advanced settings page; the cfg it installs in the user's CS2 folder
+    /// uses the same port so the round-trip stays self-consistent.
+    #[arg(long, default_value = "10087")]
+    pub port: u16,
+
+    /// Read the TCP port to bind from the widget's persisted port file
+    /// (LocalSettings\port.txt). Used for the custom-port parameter group
+    /// where the static appx manifest cannot encode the value.
+    #[arg(long, default_value = "false")]
+    pub port_from_file: bool,
+
     /// open the package runtime log folder, then exit
     #[arg(long, default_value = "false")]
     pub open_logs: bool,

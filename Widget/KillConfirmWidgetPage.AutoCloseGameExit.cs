@@ -20,7 +20,7 @@ namespace KillConfirmGameBar
         // so a brief GSI hiccup or a menu heartbeat gap cannot close the widget.
         private const int AutoCloseGameExitSustainedChecks = 2;
         private static readonly Uri AutoCloseGsiStatusUri =
-            new Uri("http://127.0.0.1:10087/gsi-status");
+            new Uri(LocalServiceEndpoints.BuildPath("/gsi-status"));
 
         private DispatcherTimer _autoCloseGameExitTimer;
         private bool _autoCloseGameExitActiveDetected;

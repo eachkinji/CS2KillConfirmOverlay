@@ -40,7 +40,7 @@ namespace KillConfirmGameBar.Services
         private static readonly string[] SupportedImageExtensions = { ".png", ".jpg", ".jpeg", ".webp" };
         private static readonly string[] SupportedAudioExtensions = { ".wav", ".mp3", ".m4a" };
         private static readonly SemaphoreSlim ServiceSyncGate = new SemaphoreSlim(1, 1);
-        private static readonly Uri ServiceSettingsUri = new Uri("http://127.0.0.1:10087/doubao/settings");
+        private static readonly Uri ServiceSettingsUri = LocalServiceEndpoints.Build("/doubao/settings");
 
         public static event EventHandler Changed;
 

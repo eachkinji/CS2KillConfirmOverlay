@@ -287,10 +287,8 @@ namespace KillConfirmGameBar
 
         private static async Task<bool> TryLaunchPackagedServiceAsync()
         {
-            string parameterGroupId = DeveloperModeSettingsStore.IsEnabled
-                ? PackagedServiceDeveloperParameterGroupId
-                : PackagedServiceParameterGroupId;
-            return await TryLaunchFullTrustHelperAsync(parameterGroupId);
+            int port = PortSettingsStore.CurrentPort;
+            return await ServiceLauncher.LaunchAsync(port);
         }
 
         private static async Task SyncDeveloperModeAsync()

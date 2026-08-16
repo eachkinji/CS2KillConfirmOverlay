@@ -11,7 +11,7 @@ namespace KillConfirmGameBar.Services
     {
         private const string SettingKey = "DeveloperModeEnabled";
         private static readonly Uri DeveloperSettingsUri =
-            new Uri("http://127.0.0.1:10087/developer/settings");
+            LocalServiceEndpoints.Build("/developer/settings");
         private static bool _isEnabled = ReadStoredValue();
 
         public static event EventHandler<bool> Changed;

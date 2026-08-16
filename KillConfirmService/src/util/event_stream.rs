@@ -75,6 +75,11 @@ pub struct HealthResponse {
 }
 
 #[derive(Debug, Serialize)]
+pub struct PortResponse {
+    pub port: u16,
+}
+
+#[derive(Debug, Serialize)]
 pub struct GsiStatusResponse {
     pub posts: u64,
     pub parse_errors: u64,
@@ -378,6 +383,7 @@ pub struct CounterStrikeRootQuery {
 }
 
 const GSI_CONFIG_FILE_NAME: &str = "gamestate_integration_killconfirm.cfg";
+const GSI_CONFIG_TEXT_TEMPLATE: &str = "\"KillConfirmGameBar\"\r\n{\r\n \"uri\" \"http://127.0.0.1:__KILLCONFIRM_PORT__/\"\r\n \"timeout\" \"0.5\"\r\n \"buffer\"  \"0.01\"\r\n \"throttle\" \"0.0\"\r\n \"heartbeat\" \"15.0\"\r\n \"auth\"\r\n {\r\n   \"token\" \"killconfirm\"\r\n }\r\n \"data\"\r\n {\r\n   \"provider\"           \"1\"\r\n   \"map\"                \"1\"\r\n   \"round\"              \"1\"\r\n   \"bomb\"               \"1\"\r\n   \"player_id\"          \"1\"\r\n   \"player_state\"       \"1\"\r\n   \"player_weapons\"     \"1\"\r\n   \"player_match_stats\" \"1\"\r\n }\r\n}\r\n";
 const GSI_CONFIG_TEXT: &str = "\"KillConfirmGameBar\"\r\n{\r\n \"uri\" \"http://127.0.0.1:10087/\"\r\n \"timeout\" \"0.5\"\r\n \"buffer\"  \"0.01\"\r\n \"throttle\" \"0.0\"\r\n \"heartbeat\" \"15.0\"\r\n \"auth\"\r\n {\r\n   \"token\" \"killconfirm\"\r\n }\r\n \"data\"\r\n {\r\n   \"provider\"           \"1\"\r\n   \"map\"                \"1\"\r\n   \"round\"              \"1\"\r\n   \"bomb\"               \"1\"\r\n   \"player_id\"          \"1\"\r\n   \"player_state\"       \"1\"\r\n   \"player_weapons\"     \"1\"\r\n   \"player_match_stats\" \"1\"\r\n }\r\n}\r\n";
 
 #[derive(Clone, Copy, Debug, Serialize)]
@@ -597,6 +603,12 @@ pub async fn health() -> Json<HealthResponse> {
     })
 }
 
+pub async fn port(State(app_state): State<Arc<AppState>>) -> Json<PortResponse> {
+    Json(PortResponse {
+        port: app_state.args.port,
+    })
+}
+
 pub async fn gsi_status(State(app_state): State<Arc<AppState>>) -> Json<GsiStatusResponse> {
     let now = unix_time_ms();
     let last_post = zero_to_none(app_state.last_gsi_post_unix_ms.load(Ordering::Relaxed));
@@ -613,11 +625,11 @@ pub async fn gsi_status(State(app_state): State<Arc<AppState>>) -> Json<GsiStatu
     })
 }
 
-pub async fn cs2_root() -> Json<Cs2RootResponse> {
+pub async fn cs2_root(State(app_state): State<Arc<AppState>>) -> Json<Cs2RootResponse> {
     let path = detect_cs2_root();
     let cfg_status = path
         .as_ref()
-        .map(|value| counter_strike_cfg_status(value, GsiGameVersion::Cs2))
+        .map(|value| counter_strike_cfg_status(value, GsiGameVersion::Cs2, app_state.args.port))
         .unwrap_or("not_found");
     Json(Cs2RootResponse {
         found: path.is_some(),
@@ -627,6 +639,7 @@ pub async fn cs2_root() -> Json<Cs2RootResponse> {
 }
 
 pub async fn counter_strike_root(
+    State(app_state): State<Arc<AppState>>,
     Query(query): Query<CounterStrikeRootQuery>,
 ) -> Result<Json<Cs2RootResponse>, (StatusCode, String)> {
     let version = match query.version.as_deref() {
@@ -641,7 +654,7 @@ pub async fn counter_strike_root(
     let path = detect_counter_strike_root(version);
     let cfg_status = path
         .as_ref()
-        .map(|value| counter_strike_cfg_status(value, version))
+        .map(|value| counter_strike_cfg_status(value, version, app_state.args.port))
         .unwrap_or("not_found");
     Ok(Json(Cs2RootResponse {
         found: path.is_some(),
@@ -651,6 +664,7 @@ pub async fn counter_strike_root(
 }
 
 pub async fn install_counter_strike_cfg(
+    State(app_state): State<Arc<AppState>>,
     Query(query): Query<CounterStrikeRootQuery>,
 ) -> Result<Json<Cs2RootResponse>, (StatusCode, String)> {
     let version = match query.version.as_deref() {
@@ -679,21 +693,23 @@ pub async fn install_counter_strike_cfg(
         )
     })?;
     let cfg_path = cfg_folder.join(GSI_CONFIG_FILE_NAME);
-    fs::write(&cfg_path, GSI_CONFIG_TEXT.as_bytes()).map_err(|error| {
+    let cfg_text = render_gsi_config_text(app_state.args.port);
+    fs::write(&cfg_path, cfg_text.as_bytes()).map_err(|error| {
         (
             StatusCode::INTERNAL_SERVER_ERROR,
             format!("failed to write cfg {}: {error}", cfg_path.display()),
         )
     })?;
     service_log(&format!(
-        "installed GSI cfg through service: {}",
+        "installed GSI cfg through service (port {}): {}",
+        app_state.args.port,
         cfg_path.display()
     ));
 
     Ok(Json(Cs2RootResponse {
         found: true,
         path: Some(root.display().to_string()),
-        cfg_status: counter_strike_cfg_status(&root, version),
+        cfg_status: counter_strike_cfg_status(&root, version, app_state.args.port),
     }))
 }
 
@@ -704,20 +720,30 @@ fn counter_strike_cfg_folder(root: &std::path::Path, version: GsiGameVersion) ->
     }
 }
 
-fn counter_strike_cfg_status(root: &std::path::Path, version: GsiGameVersion) -> &'static str {
+fn counter_strike_cfg_status(
+    root: &std::path::Path,
+    version: GsiGameVersion,
+    port: u16,
+) -> &'static str {
     let cfg_path = counter_strike_cfg_folder(root, version).join(GSI_CONFIG_FILE_NAME);
     let Ok(actual) = fs::read_to_string(cfg_path) else {
         return "missing";
     };
     // MD5-based comparison (mirrors the widget's check in
-    // KillConfirmWidgetPage.CsConfig.cs). Both sides must hash the same
-    // template, so the widget GsiConfigText and service GSI_CONFIG_TEXT
-    // strings have to stay byte-identical.
-    if md5::compute(actual.as_bytes()) == md5::compute(GSI_CONFIG_TEXT.as_bytes()) {
+    // KillConfirmWidgetPage.CsConfig.cs). The widget and the service render
+    // the template independently, so both sides must agree on the active
+    // port. If either side still uses the legacy 10087 string the hash
+    // differs and the cfg is reported as outdated.
+    let expected = render_gsi_config_text(port);
+    if md5::compute(actual.as_bytes()) == md5::compute(expected.as_bytes()) {
         "ready"
     } else {
         "outdated"
     }
+}
+
+fn render_gsi_config_text(port: u16) -> String {
+    GSI_CONFIG_TEXT_TEMPLATE.replace("__KILLCONFIRM_PORT__", &port.to_string())
 }
 
 pub async fn shutdown(State(app_state): State<Arc<AppState>>) -> Json<HealthResponse> {

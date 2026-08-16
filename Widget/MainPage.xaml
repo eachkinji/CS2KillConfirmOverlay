@@ -412,35 +412,9 @@
                     <Grid
                         x:Name="HomePageContent"
                         Grid.Row="2"
-                        MaxWidth="1000"
+                        MaxWidth="1480"
                         HorizontalAlignment="Stretch">
-                        <StackPanel Spacing="14">
-                            <Border x:Name="GeneralSettingsCard" Style="{StaticResource SettingsSectionCardStyle}">
-                                <StackPanel Spacing="12">
-                                    <TextBlock
-                                        x:Name="GeneralSettingsTitleText"
-                                        Style="{StaticResource SettingsSectionTitleTextStyle}"
-                                        FontSize="18"
-                                        Text="通用设置" />
-                                    <settings:GeneralSettingsOptionsPanel x:Name="GeneralSettingsOptionsPanel" />
-                                </StackPanel>
-                            </Border>
-
-                            <Border x:Name="DisplayScalingCard" Style="{StaticResource SettingsSectionCardStyle}">
-                                <StackPanel Spacing="12">
-                                    <TextBlock
-                                        x:Name="DisplayScalingTitleText"
-                                        Style="{StaticResource SettingsSectionTitleTextStyle}"
-                                        FontSize="18"
-                                        Text="4K display settings" />
-                                    <TextBlock
-                                        x:Name="DisplayScalingDescriptionText"
-                                        Style="{StaticResource SettingsCaptionTextStyle}"
-                                        Text="Improve control panel readability on high-resolution displays." />
-                                    <settings:DisplayScalingSettingsPanel x:Name="DisplayScalingSettingsPanel" />
-                                </StackPanel>
-                            </Border>
-                        </StackPanel>
+                        <settings:AdvancedSettingsHub x:Name="AdvancedSettingsHubControl" />
                     </Grid>
 
                     <!-- Game Control Page Content (Full Width Dedicated Views) -->

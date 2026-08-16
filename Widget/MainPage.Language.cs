@@ -14,13 +14,11 @@ namespace KillConfirmGameBar
             ToolTipService.SetToolTip(HomeSidebarItem, isChinese ? "主页" : "Home");
 
             GameEffectsTitleText.Text = LocalizationManager.Text("GameEffectsTitle");
-            GeneralSettingsTitleText.Text = LocalizationManager.Text("GeneralSettingsTitle");
-            GeneralSettingsOptionsPanel.ApplyLanguage();
-            DisplayScalingTitleText.Text = isChinese ? "4K 特殊设置" : "4K display settings";
-            DisplayScalingDescriptionText.Text = isChinese
-                ? "改善高分辨率、低系统缩放环境下 Game Bar 控制面板过小的问题。"
-                : "Improves Game Bar control panel readability on high-resolution displays with low Windows scaling.";
-            DisplayScalingSettingsPanel.ApplyLanguage();
+            AdvancedSettingsHubControl.ApplyLanguage();
+            if (AdvancedSettingsHubControl.HubDisplayScalingPanel != null)
+            {
+                AdvancedSettingsHubControl.HubDisplayScalingPanel.ApplyLanguage();
+            }
 
             VoiceCollectionsTitleText.Text = LocalizationManager.Text("VoiceCollectionsTitle");
             VoiceCollectionsHintText.Text = LocalizationManager.Text("VoiceCollectionsHint");

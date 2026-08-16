@@ -84,10 +84,10 @@ namespace KillConfirmGameBar
         private const string CsgoLegacyInstallFolderTokenSettingKey = "CsgoLegacyInstallFolderToken";
         private const string CsgoLegacyInstallFolderPathSettingKey = "CsgoLegacyInstallFolderPath";
         private const string GsiConfigFileName = "gamestate_integration_killconfirm.cfg";
-        private const string GsiConfigText =
+        private const string GsiConfigTextTemplate =
             "\"KillConfirmGameBar\"\r\n" +
             "{\r\n" +
-            " \"uri\" \"http://127.0.0.1:10087/\"\r\n" +
+            " \"uri\" \"{0}\"\r\n" +
             " \"timeout\" \"0.5\"\r\n" +
             " \"buffer\"  \"0.01\"\r\n" +
             " \"throttle\" \"0.0\"\r\n" +
@@ -108,6 +108,17 @@ namespace KillConfirmGameBar
             "   \"player_match_stats\" \"1\"\r\n" +
             " }\r\n" +
             "}\r\n";
+
+        /// <summary>
+        /// GSI cfg text rendered with the port the user has currently selected.
+        /// Re-rendered on every read so the same template works after a port change
+        /// without restarting the widget.
+        /// </summary>
+        private string GsiConfigText =>
+            string.Format(
+                System.Globalization.CultureInfo.InvariantCulture,
+                GsiConfigTextTemplate,
+                LocalServiceEndpoints.BaseUri + "/");
         private const int ControlPanelStateRefreshMs = 250;
         private const int StatusHintRotationMs = 3000;
         private const string PackagedServiceParameterGroupId = "CrossfirePreset";
@@ -120,20 +131,20 @@ namespace KillConfirmGameBar
         private const string PanelOffsetXSettingKey = "PanelOffsetX";
         private const string PanelOffsetYSettingKey = "PanelOffsetY";
         private const string PanelCollapsedSettingKey = "PanelCollapsed";
-        private static readonly Uri ServiceHealthUri = new Uri("http://127.0.0.1:10087/health");
-        private static readonly Uri GsiStatusUri = new Uri("http://127.0.0.1:10087/gsi-status");
-        private static readonly Uri ServiceShutdownUri = new Uri("http://127.0.0.1:10087/shutdown");
-        private static readonly Uri SoundPackUri = new Uri("http://127.0.0.1:10087/soundpack");
-        private static readonly Uri AudioReloadUri = new Uri("http://127.0.0.1:10087/audio/reload");
-        private static readonly Uri AudioVolumeUri = new Uri("http://127.0.0.1:10087/audio/volume");
-        private static readonly Uri AudioDeviceUri = new Uri("http://127.0.0.1:10087/audio/device");
+        private static readonly Uri ServiceHealthUri = LocalServiceEndpoints.Build("/health");
+        private static readonly Uri GsiStatusUri = LocalServiceEndpoints.Build("/gsi-status");
+        private static readonly Uri ServiceShutdownUri = LocalServiceEndpoints.Build("/shutdown");
+        private static readonly Uri SoundPackUri = LocalServiceEndpoints.Build("/soundpack");
+        private static readonly Uri AudioReloadUri = LocalServiceEndpoints.Build("/audio/reload");
+        private static readonly Uri AudioVolumeUri = LocalServiceEndpoints.Build("/audio/volume");
+        private static readonly Uri AudioDeviceUri = LocalServiceEndpoints.Build("/audio/device");
         private const string AudioDeviceSettingKey = "AudioOutputDevice";
-        private static readonly Uri MoneyRewardModeUri = new Uri("http://127.0.0.1:10087/money/mode");
-        private static readonly Uri CrossfireSettingsUri = new Uri("http://127.0.0.1:10087/crossfire/settings");
-        private static readonly Uri CsolSettingsUri = new Uri("http://127.0.0.1:10087/csol/settings");
-        private static readonly Uri SharedStreakSettingsUri = new Uri("http://127.0.0.1:10087/streak/settings");
-        private const string CounterStrikeRootUri = "http://127.0.0.1:10087/counter-strike/root";
-        private const string CounterStrikeCfgUri = "http://127.0.0.1:10087/counter-strike/cfg";
+        private static readonly Uri MoneyRewardModeUri = LocalServiceEndpoints.Build("/money/mode");
+        private static readonly Uri CrossfireSettingsUri = LocalServiceEndpoints.Build("/crossfire/settings");
+        private static readonly Uri CsolSettingsUri = LocalServiceEndpoints.Build("/csol/settings");
+        private static readonly Uri SharedStreakSettingsUri = LocalServiceEndpoints.Build("/streak/settings");
+        private static readonly string CounterStrikeRootUri = LocalServiceEndpoints.BuildPath("/counter-strike/root");
+        private static readonly string CounterStrikeCfgUri = LocalServiceEndpoints.BuildPath("/counter-strike/cfg");
         private static readonly TimeSpan ServiceStartupTimeout = TimeSpan.FromSeconds(6);
         private static readonly TimeSpan ServiceStartupPollInterval = TimeSpan.FromMilliseconds(250);
         private const string FreeServicePortParameterGroupId = "FreeServicePort";
@@ -306,8 +317,6 @@ namespace KillConfirmGameBar
             GameStyleService.Changed += OnGameStyleServiceChanged;
             PackCatalogService.CatalogChanged -= OnPackCatalogChanged;
             PackCatalogService.CatalogChanged += OnPackCatalogChanged;
-            PanelColorSettingsStore.Changed -= OnPanelColorChanged;
-            PanelColorSettingsStore.Changed += OnPanelColorChanged;
             GsiGameVersionSettingsStore.VersionChanged += OnGsiGameVersionChanged;
             _widget = e.Parameter as XboxGameBarWidget;
             if (_widget != null)
@@ -341,7 +350,6 @@ namespace KillConfirmGameBar
             RestoreAllComboBoxPopups();
             GameStyleService.Changed -= OnGameStyleServiceChanged;
             PackCatalogService.CatalogChanged -= OnPackCatalogChanged;
-            PanelColorSettingsStore.Changed -= OnPanelColorChanged;
             _animationPreloadToken++;
             PrimaryKillAnimation?.ReleaseAnimationResourcesForPackChange();
             BadgeKillAnimation?.ReleaseAnimationResourcesForPackChange();
@@ -361,22 +369,6 @@ namespace KillConfirmGameBar
             _ = ShutdownCompanionAsync();
 
             base.OnNavigatedFrom(e);
-        }
-
-        private async void OnPanelColorChanged(object sender, EventArgs e)
-        {
-            if (!_isPageActive)
-            {
-                return;
-            }
-
-            await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
-            {
-                if (_isPageActive)
-                {
-                    ApplyGameStyleUi();
-                }
-            });
         }
 
         private async void OnGameStyleServiceChanged(object sender, GameStyleMode mode)

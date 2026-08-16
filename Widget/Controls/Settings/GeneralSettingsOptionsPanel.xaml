@@ -15,7 +15,6 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
@@ -527,82 +526,6 @@
                         x:Name="InterruptPreviousKillAudioHintText"
                         FontSize="10"
                         TextWrapping="WrapWholeWords" />
-                </StackPanel>
-            </Border>
-
-            <Border Grid.Row="6" Grid.ColumnSpan="2" Style="{StaticResource CompactChoiceCardStyle}">
-                <StackPanel Spacing="6">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <Border Style="{StaticResource CompactCircleIconStyle}">
-                            <FontIcon
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                FontFamily="Segoe MDL2 Assets"
-                                FontSize="12"
-                                Foreground="White"
-                                Glyph="&#xE790;" />
-                        </Border>
-                        <TextBlock
-                            x:Name="PanelColorTitleText"
-                            Grid.Column="1"
-                            VerticalAlignment="Center"
-                            Style="{StaticResource CompactChoiceLabelStyle}"
-                            Text="Control panel color" />
-                        <Button
-                            x:Name="PanelColorResetButton"
-                            Grid.Column="2"
-                            MinWidth="50"
-                            Padding="8,2"
-                            FontSize="11"
-                            Click="OnPanelColorResetClick"
-                            Content="Reset" />
-                    </Grid>
-                    <TextBlock
-                        x:Name="PanelColorHintText"
-                        FontSize="10"
-                        Text="Customize the control panel background and border colors."
-                        TextWrapping="WrapWholeWords" />
-                    <ToggleSwitch
-                        x:Name="PanelColorCustomToggle"
-                        HorizontalAlignment="Left"
-                        MinWidth="0"
-                        OffContent="Off"
-                        OnContent="On"
-                        Toggled="OnPanelColorCustomToggled" />
-                    <StackPanel x:Name="PanelColorCustomSection" Spacing="6" Visibility="Collapsed">
-                        <TextBlock
-                            x:Name="PanelColorPresetLabelText"
-                            FontSize="11"
-                            Text="Preset theme colors:" />
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <Button Padding="0" Width="24" Height="24" CornerRadius="12" Background="#1E222D" BorderBrush="#55FFFFFF" BorderThickness="1" Click="OnPanelColorPresetClick" Tag="#E61E222D" ToolTipService.ToolTip="Dark Slate" />
-                            <Button Padding="0" Width="24" Height="24" CornerRadius="12" Background="#0F172A" BorderBrush="#55FFFFFF" BorderThickness="1" Click="OnPanelColorPresetClick" Tag="#E60F172A" ToolTipService.ToolTip="Midnight" />
-                            <Button Padding="0" Width="24" Height="24" CornerRadius="12" Background="#1C1917" BorderBrush="#55FFFFFF" BorderThickness="1" Click="OnPanelColorPresetClick" Tag="#E61C1917" ToolTipService.ToolTip="Obsidian" />
-                            <Button Padding="0" Width="24" Height="24" CornerRadius="12" Background="#14532D" BorderBrush="#55FFFFFF" BorderThickness="1" Click="OnPanelColorPresetClick" Tag="#E614532D" ToolTipService.ToolTip="Deep Forest" />
-                            <Button Padding="0" Width="24" Height="24" CornerRadius="12" Background="#1E1B4B" BorderBrush="#55FFFFFF" BorderThickness="1" Click="OnPanelColorPresetClick" Tag="#E61E1B4B" ToolTipService.ToolTip="Royal Indigo" />
-                            <Button Padding="0" Width="24" Height="24" CornerRadius="12" Background="#4C0519" BorderBrush="#55FFFFFF" BorderThickness="1" Click="OnPanelColorPresetClick" Tag="#E64C0519" ToolTipService.ToolTip="Dark Crimson" />
-                            <Button Padding="0" Width="24" Height="24" CornerRadius="12" Background="#F8FAFC" BorderBrush="#22000000" BorderThickness="1" Click="OnPanelColorPresetClick" Tag="#F2F8FAFC" ToolTipService.ToolTip="Clean Light" />
-                        </StackPanel>
-                        <Grid ColumnSpacing="8" RowSpacing="4" Margin="0,4,0,0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                            </Grid.RowDefinitions>
-                            <TextBlock x:Name="PanelColorBackgroundLabelText" VerticalAlignment="Center" FontSize="11" Text="Background Hex:" />
-                            <TextBox x:Name="PanelColorBackgroundHexBox" Grid.Column="1" Height="28" FontSize="11" TextChanged="OnPanelColorHexChanged" PlaceholderText="#E61E222D" />
-                            <TextBlock x:Name="PanelColorBorderLabelText" Grid.Row="1" VerticalAlignment="Center" FontSize="11" Text="Border Hex:" />
-                            <TextBox x:Name="PanelColorBorderHexBox" Grid.Row="1" Grid.Column="1" Height="28" FontSize="11" TextChanged="OnPanelColorHexChanged" PlaceholderText="#33FFFFFF" />
-                        </Grid>
-                    </StackPanel>
                 </StackPanel>
             </Border>
         </Grid>

@@ -109,7 +109,7 @@ namespace KillConfirmGameBar.Services
         private const int PollWaitMilliseconds = 8000;
         private const int PollTimeoutMilliseconds = 12000;
         private const int ReconnectDelayMilliseconds = 1000;
-        private static readonly Uri EventsBaseUri = new Uri("http://127.0.0.1:10087/events");
+        private static readonly Uri EventsBaseUri = LocalServiceEndpoints.Build("/events");
 
         private readonly CoreDispatcher _dispatcher;
         private HttpClient _httpClient;

@@ -90,6 +90,13 @@
             <desktop:ParameterGroup GroupId="OpenQuarkUpdate" Parameters="--open-quark-update" />
             <desktop:ParameterGroup GroupId="OpenAuthorGitHub" Parameters="--open-author-github" />
             <desktop:ParameterGroup GroupId="OpenAuthorBilibili" Parameters="--open-author-bilibili" />
+            <desktop:ParameterGroup GroupId="ServicePort10087" Parameters="--port 10087" />
+            <desktop:ParameterGroup GroupId="ServicePort10088" Parameters="--port 10088" />
+            <desktop:ParameterGroup GroupId="ServicePort10089" Parameters="--port 10089" />
+            <desktop:ParameterGroup GroupId="ServicePort10090" Parameters="--port 10090" />
+            <desktop:ParameterGroup GroupId="ServicePort10091" Parameters="--port 10091" />
+            <desktop:ParameterGroup GroupId="ServicePort10092" Parameters="--port 10092" />
+            <desktop:ParameterGroup GroupId="ServicePortCustom" Parameters="--port-from-file" />
           </desktop:FullTrustProcess>
         </desktop:Extension>
       </Extensions>

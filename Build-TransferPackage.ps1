@@ -41,6 +41,8 @@ $PrerequisiteFileNames = @(
     "Microsoft.UI.Xaml.Appx",
     "vclibs.appx",
     "vclibs2.appx",
+    "Microsoft.NET.Native.Framework.2.2.x64.appx",
+    "Microsoft.NET.Native.Runtime.2.2.x64.appx",
     "gamebar.AppxBundle"
 )
 
@@ -320,6 +322,24 @@ $Prerequisites = @(
         Architecture = "X64"
         MinimumVersion = [version]"7.326.6011.0"
         FileName = "gamebar.AppxBundle"
+    },
+    [pscustomobject]@{
+        Order = 5
+        DisplayName = "Microsoft .NET Native Framework 2.2 (x64)"
+        ChineseDisplayName = (ConvertFrom-Utf8Base64 -Value "TWljcm9zb2Z0IC5ORVQgTmF0aXZlIOahhuaetiAyLjIgKHg2NCk=")
+        PackageName = "Microsoft.NET.Native.Framework.2.2"
+        Architecture = "X64"
+        MinimumVersion = [version]"2.2.29512.0"
+        FileName = "Microsoft.NET.Native.Framework.2.2.x64.appx"
+    },
+    [pscustomobject]@{
+        Order = 6
+        DisplayName = "Microsoft .NET Native Runtime 2.2 (x64)"
+        ChineseDisplayName = (ConvertFrom-Utf8Base64 -Value "TWljcm9zb2Z0IC5ORVQgTmF0aXZlIOi/kOihjOaXtiAyLjIgKHg2NCk=")
+        PackageName = "Microsoft.NET.Native.Runtime.2.2"
+        Architecture = "X64"
+        MinimumVersion = [version]"2.2.28604.0"
+        FileName = "Microsoft.NET.Native.Runtime.2.2.x64.appx"
     }
 )
 
@@ -789,7 +809,7 @@ function Confirm-PrerequisiteInstall {
 }
 
 function Install-RequiredComponents {
-    Write-InstallLog "Checking required Microsoft UI XAML, VCLibs, and Xbox Game Bar packages..."
+    Write-InstallLog "Checking required Microsoft UI XAML, VCLibs, .NET Native, and Xbox Game Bar packages..."
     if (-not (Test-Path -LiteralPath $PrerequisiteRoot -PathType Container)) {
         Add-InstallResult -Status Error -Item "离线依赖目录" -Detail "未找到：$PrerequisiteRoot"
         return
@@ -810,7 +830,7 @@ function Install-RequiredComponents {
     }
 
     if ($missingPrerequisites.Count -eq 0) {
-        Write-InstallLog "All required Microsoft UI XAML, VCLibs, and Xbox Game Bar packages are already installed."
+        Write-InstallLog "All required Microsoft UI XAML, VCLibs, .NET Native, and Xbox Game Bar packages are already installed."
         foreach ($prerequisite in ($Prerequisites | Sort-Object Order)) {
             $installed = Get-InstalledPrerequisitePackage -Prerequisite $prerequisite
             Add-InstallResult -Status Success -Item $prerequisite.ChineseDisplayName -Detail ("已安装，版本 {0}" -f $installed.Version)
@@ -1289,7 +1309,7 @@ Use on another PC:
 4. Use the panel power button or Check button if you want to verify status
 
 Notes:
-- Before installing the overlay, the install script detects Microsoft UI XAML 2.8, the two required x64 VCLibs packages, and Xbox Game Bar. Missing or outdated components are shown to the user and installed in the required order after approval.
+- Before installing the overlay, the install script detects Microsoft UI XAML 2.8, the two required x64 VCLibs packages, the .NET Native Framework and Runtime 2.2 packages, and Xbox Game Bar. Missing or outdated components are shown to the user and installed in the required order after approval.
 - If Xbox Game Bar is still missing after offline prerequisite handling, the installer opens its Microsoft Store page and asks the user to run setup again after installation.
 - The companion service is embedded inside the MSIX package.
 - The widget starts its packaged companion service directly from the installed app.
@@ -1368,7 +1388,7 @@ foreach ($generatedInstallScriptPath in @($WithDependenciesInstallScriptPath, $W
 $NoDependenciesReadme = $Readme + @'
 
 Dependency-free edition:
-- Microsoft UI XAML, VCLibs, and Xbox Game Bar packages are not included.
+- Microsoft UI XAML, VCLibs, .NET Native, and Xbox Game Bar packages are not included.
 - The installer does not detect, prompt for, or install prerequisites.
 - Use this edition only when the required components are already installed.
 '@

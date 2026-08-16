@@ -1480,6 +1480,77 @@ mod tests {
     }
 
     #[test]
+    fn crossfire_bunny_and_heart_judge_manifest_return_layer() {
+        use crate::soundpack::lua_script::{SoundContext, SoundEntry};
+        use crate::soundpack::manifest::PackManifest;
+        use crate::util::state::EventChannel;
+        use std::{collections::HashMap, path::Path};
+
+        let bunny_manifest = PackManifest::load_from_dir(Path::new(
+            "../SourceAssets/GameStyles/crossfire/soundpacks/crossfire_bunny_gr",
+        ))
+        .expect("load bunny_gr manifest");
+
+        let judge_manifest = PackManifest::load_from_dir(Path::new(
+            "../SourceAssets/GameStyles/crossfire/soundpacks/crossfire_heart_judge_gr",
+        ))
+        .expect("load heart_judge_gr manifest");
+
+        let make_ctx = |preset: &'static str| SoundContext {
+            kill_count: 2,
+            is_headshot: false,
+            is_first_kill: false,
+            is_knife_kill: false,
+            is_last_kill: false,
+            is_assist: false,
+            play_main_audio: true,
+            money_reward: 0,
+            event_kind: None,
+            event_channel: EventChannel::Combat,
+            preset_name: preset.to_string(),
+            master_name: preset.to_string(),
+            variant: None,
+            base_dir: format!("sounds/{preset}"),
+            voice_picks: HashMap::new(),
+            special_voice_priority: false,
+            headshot_priority: false,
+            knife_priority: false,
+        };
+
+        // bunny_gr returns 2.wav (1.35) + common.wav (1.35)
+        let bunny_entries = bunny_manifest.resolve_audio(&make_ctx("crossfire_bunny_gr"), "sounds/crossfire_bunny_gr");
+        assert_eq!(
+            bunny_entries,
+            vec![
+                SoundEntry {
+                    path: "sounds/crossfire_bunny_gr/2.wav".to_string(),
+                    gain: 1.35,
+                },
+                SoundEntry {
+                    path: "sounds/crossfire_bunny_gr/common.wav".to_string(),
+                    gain: 1.35,
+                },
+            ]
+        );
+
+        // heart_judge_gr returns 2.wav (1.35) + common.wav (1.35)
+        let judge_entries = judge_manifest.resolve_audio(&make_ctx("crossfire_heart_judge_gr"), "sounds/crossfire_heart_judge_gr");
+        assert_eq!(
+            judge_entries,
+            vec![
+                SoundEntry {
+                    path: "sounds/crossfire_heart_judge_gr/2.wav".to_string(),
+                    gain: 1.35,
+                },
+                SoundEntry {
+                    path: "sounds/crossfire_heart_judge_gr/common.wav".to_string(),
+                    gain: 1.35,
+                },
+            ]
+        );
+    }
+
+    #[test]
     fn manifest_respects_overlay_slots_configuration() {
         use crate::soundpack::lua_script::{SoundContext, SoundEntry};
         use crate::soundpack::manifest::{AudioConfig, PackManifest};

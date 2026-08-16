@@ -1,5 +1,6 @@
 using System;
 using KillConfirmGameBar.Services;
+using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
 namespace KillConfirmGameBar.Controls.GameStyles
@@ -24,6 +25,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
         internal void ApplyTheme(GameThemePalette theme)
         {
             AdvancedEffectsPanelSupport.ApplyHeader(TitleText, HintText, theme);
+            AdvancedEffectsPanelSupport.ApplyResetButton(ResetButton, theme);
             AdvancedEffectsPanelSupport.ApplyMoneyRow(MoneyRewardModeLabel, MoneyRewardModeSelector, theme);
             StreakEditor.ApplyTheme(theme);
             EventSoundPanel.ApplyTheme(theme);
@@ -33,17 +35,19 @@ namespace KillConfirmGameBar.Controls.GameStyles
 
         public void ApplyLanguage(bool isChinese)
         {
-            TitleText.Text = isChinese ? "BF1 \u9ad8\u7ea7\u7279\u6548" : "BF1 Effects";
+            TitleText.Text = isChinese ? "BF1 高级特效" : "BF1 Effects";
+            ResetButtonText.Text = isChinese ? "恢复默认" : "Reset";
+            ToolTipService.SetToolTip(ResetButton, isChinese ? "恢复 BF1 默认设置" : "Restore BF1 defaults");
             HintText.Text = isChinese
-                ? "BF1 \u7684\u6587\u5b57\u3001\u5361\u7247\u3001\u5956\u91d1\u7b97\u6cd5\u548c\u6218\u5730\u4e00\u8d44\u6e90\u90fd\u5728\u8fd9\u91cc\u5355\u72ec\u8bbe\u7f6e\u3002"
+                ? "BF1 的文字、卡片、奖金算法和战地一资源都在这里单独设置。"
                 : "BF1 text, card, money reward calculation, and Battlefield 1 assets are isolated here.";
-            MoneyRewardModeLabel.Text = isChinese ? "\u5956\u52b1\u7b97\u6cd5" : "Money";
-            MoneyRewardDeltaItem.Content = isChinese ? "GSI \u5dee\u503c\uff08\u9ed8\u8ba4\uff09" : "GSI delta (default)";
-            MoneyRewardRulesItem.Content = isChinese ? "\u51fb\u6740\u5956\u52b1\u89c4\u5219" : "Kill reward rules";
+            MoneyRewardModeLabel.Text = isChinese ? "奖励算法" : "Money";
+            MoneyRewardDeltaItem.Content = isChinese ? "GSI 差值（默认）" : "GSI delta (default)";
+            MoneyRewardRulesItem.Content = isChinese ? "击杀奖励规则" : "Kill reward rules";
             StreakEditor.ApplyLanguage(isChinese);
             EventSoundPanel.ApplyLanguage(isChinese);
             ImportLockedText.Text = isChinese
-                ? "Battlefield 1 \u89c6\u89c9\u8d44\u6e90\u4fdd\u6301\u5185\u7f6e\uff0c\u4e8b\u4ef6\u58f0\u97f3\u53ef\u5728\u4e0a\u65b9\u5355\u72ec\u81ea\u5b9a\u4e49\u3002"
+                ? "Battlefield 1 视觉资源保持内置，事件声音可在上方单独自定义。"
                 : "Battlefield 1 visuals stay built in; event sounds can be customized above.";
         }
 
@@ -80,6 +84,15 @@ namespace KillConfirmGameBar.Controls.GameStyles
         private void OnStreakModeSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             StreakModeSelectionChanged?.Invoke(this, e);
+        }
+
+        private async void OnResetButtonClick(object sender, RoutedEventArgs e)
+        {
+            SelectTaggedComboBoxItem(MoneyRewardModeSelector, "delta", "delta");
+            StreakEditor.SelectValue(SharedStreakSettingsStore.LifeMode);
+            MoneyRewardModeSelectionChanged?.Invoke(MoneyRewardModeSelector, null);
+            StreakModeSelectionChanged?.Invoke(StreakEditor.SelectorControl, null);
+            await EventSoundPanel.ResetToDefaultsAsync();
         }
 
         private static string ReadTaggedComboBoxItem(ComboBox selector, string fallback)

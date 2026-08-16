@@ -1507,14 +1507,14 @@ mod tests {
     #[test]
     fn manifest_respects_overlay_slots_configuration() {
         use crate::soundpack::lua_script::{SoundContext, SoundEntry};
-        use crate::soundpack::manifest::{AudioConfig, PackManifest};
+        use crate::soundpack::manifest::{AudioConfig, PackManifest, SlotFiles};
         use crate::util::state::EventChannel;
         use std::collections::HashMap;
 
         let mut slots = HashMap::new();
-        slots.insert("kill_1".to_string(), "1.wav".to_string());
-        slots.insert("kill_2".to_string(), "2.wav".to_string());
-        slots.insert("common_overlay".to_string(), "overlay.wav".to_string());
+        slots.insert("kill_1".to_string(), SlotFiles::Single("1.wav".to_string()));
+        slots.insert("kill_2".to_string(), SlotFiles::Single("2.wav".to_string()));
+        slots.insert("common_overlay".to_string(), SlotFiles::Single("overlay.wav".to_string()));
 
         let manifest = PackManifest {
             id: Some("custom".to_string()),

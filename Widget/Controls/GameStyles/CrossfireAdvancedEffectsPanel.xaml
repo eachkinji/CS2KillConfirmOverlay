@@ -6,19 +6,39 @@
 
     <StackPanel Spacing="10">
         <!-- Panel Header -->
-        <StackPanel Spacing="2">
-            <TextBlock
-                x:Name="TitleText"
-                FontSize="15"
-                FontWeight="Bold"
-                Text="CF (穿越火线) 特效与战斗控制" />
-            <TextBlock
-                x:Name="HintText"
-                FontSize="10.5"
-                Opacity="0.75"
-                Text="集中管理 CF 连杀机制、优先级决议、首末杀特权与画面光效。"
-                TextWrapping="WrapWholeWords" />
-        </StackPanel>
+        <Grid ColumnSpacing="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Spacing="2">
+                <TextBlock
+                    x:Name="TitleText"
+                    FontSize="15"
+                    FontWeight="Bold"
+                    Text="CF (穿越火线) 特效与战斗控制" />
+                <TextBlock
+                    x:Name="HintText"
+                    FontSize="10.5"
+                    Opacity="0.75"
+                    Text="集中管理 CF 连杀机制、优先级决议、首末杀特权与画面光效。"
+                    TextWrapping="WrapWholeWords" />
+            </StackPanel>
+            <Button
+                x:Name="ResetButton"
+                Grid.Column="1"
+                MinWidth="88"
+                Height="34"
+                Padding="14,0"
+                VerticalAlignment="Top"
+                AutomationProperties.Name="Restore CF defaults"
+                Click="OnResetButtonClick">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <FontIcon FontSize="12" Glyph="&#xE777;" />
+                    <TextBlock x:Name="ResetButtonText" Text="Reset" />
+                </StackPanel>
+            </Button>
+        </Grid>
 
         <!-- Section 1: Visual FX & Badges (Style Panel Host) -->
         <StackPanel Spacing="6">

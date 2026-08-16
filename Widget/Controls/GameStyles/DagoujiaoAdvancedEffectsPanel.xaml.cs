@@ -101,6 +101,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
             {
                 AdvancedEffectsPanelSupport.ApplyCombo(selector, theme.Text, theme.SubtleField, theme.SoftBorder);
             }
+            AdvancedEffectsPanelSupport.ApplyResetButton(ResetButton, theme);
             EpicNotice.Background = new SolidColorBrush(theme.AccentSoft);
             EpicNotice.BorderBrush = new SolidColorBrush(theme.SoftBorder);
             EpicNoticeText.Foreground = new SolidColorBrush(theme.AccentText);
@@ -116,6 +117,8 @@ namespace KillConfirmGameBar.Controls.GameStyles
         {
             _isChinese = isChinese;
             TitleText.Text = isChinese ? "大狗叫高级设置" : "Big Dog Bark Settings";
+            ResetButtonText.Text = isChinese ? "恢复默认" : "Reset";
+            ToolTipService.SetToolTip(ResetButton, isChinese ? "恢复大狗叫默认设置" : "Restore Dagoujiao defaults");
             HintText.Text = isChinese
                 ? "设置 Epic 击杀数、爆头/连杀优先级、变速缩放，以及每一杀的独立图片。"
                 : "Configure the Epic threshold, headshot/streak priority, speed/scale curve, and an image for every kill.";
@@ -140,6 +143,23 @@ namespace KillConfirmGameBar.Controls.GameStyles
                 _dynamicLabels[index].Text = isChinese ? (index + 1) + " 杀图片" : "Kill " + (index + 1) + " image";
             }
             UpdateValueLabels();
+        }
+
+        private async void OnResetButtonClick(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                StreakEditor.SelectValue(SharedStreakSettingsStore.LifeMode);
+                DagoujiaoSettingsValues defaults = new DagoujiaoSettingsValues();
+                DagoujiaoSettingsStore.Save(defaults);
+                await RefreshSettingsAsync();
+                StreakModeSelectionChanged?.Invoke(StreakEditor.SelectorControl, null);
+                DagoujiaoSettingsChanged?.Invoke(this, EventArgs.Empty);
+            }
+            catch (Exception ex)
+            {
+                App.Log("Reset Dagoujiao settings failed: " + ex);
+            }
         }
 
         private async void OnLoaded(object sender, RoutedEventArgs e)

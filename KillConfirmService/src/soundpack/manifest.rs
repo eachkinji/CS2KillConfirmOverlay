@@ -20,12 +20,56 @@ pub struct PackManifest {
     pub icons: Option<IconConfig>,
 }
 
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[serde(untagged)]
+pub enum SlotFiles {
+    Single(String),
+    Multiple(Vec<String>),
+}
+
+impl SlotFiles {
+    pub fn as_slice(&self) -> &[String] {
+        match self {
+            SlotFiles::Single(s) => std::slice::from_ref(s),
+            SlotFiles::Multiple(v) => v.as_slice(),
+        }
+    }
+
+    pub fn pick_audio(&self, preferred_pick: Option<&str>) -> Option<&str> {
+        let list = self.as_slice();
+        if list.is_empty() {
+            return None;
+        }
+
+        if let Some(pick) = preferred_pick {
+            if !pick.eq_ignore_ascii_case("random") && !pick.is_empty() {
+                if let Some(found) = list.iter().find(|item| item.eq_ignore_ascii_case(pick)) {
+                    return Some(found.as_str());
+                }
+            }
+        }
+
+        if list.len() == 1 {
+            return Some(&list[0]);
+        }
+
+        use std::time::{SystemTime, UNIX_EPOCH};
+        let nanos = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .map(|d| d.subsec_nanos())
+            .unwrap_or(0);
+        let mixed = (nanos ^ (nanos >> 16)).wrapping_mul(0x45d9f3b);
+        let index = (mixed as usize) % list.len();
+        Some(&list[index])
+    }
+}
+
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub struct AudioConfig {
     #[serde(default = "default_base_gain")]
     pub base_gain: f32,
     #[serde(default)]
-    pub slots: HashMap<String, String>,
+    pub slots: HashMap<String, SlotFiles>,
     #[serde(default)]
     pub slot_gains: HashMap<String, f32>,
     #[serde(default)]
@@ -86,26 +130,26 @@ impl PackManifest {
         };
 
         if let Some(f) = find_file("common") {
-            slots.insert("kill_1".to_string(), f);
+            slots.insert("kill_1".to_string(), SlotFiles::Single(f));
         }
         for i in 2..=8 {
             if let Some(f) = find_file(&i.to_string()) {
-                slots.insert(format!("kill_{i}"), f);
+                slots.insert(format!("kill_{i}"), SlotFiles::Single(f));
             }
         }
         if let Some(f) = find_file("headshot") {
-            slots.insert("headshot".to_string(), f);
+            slots.insert("headshot".to_string(), SlotFiles::Single(f));
         }
         if let Some(f) = find_file("knife") {
-            slots.insert("knife".to_string(), f);
+            slots.insert("knife".to_string(), SlotFiles::Single(f));
         }
         if let Some(f) = find_file("grenade") {
-            slots.insert("first_and_last".to_string(), f);
+            slots.insert("first_and_last".to_string(), SlotFiles::Single(f));
         } else if let Some(f) = find_file("firstandlast") {
-            slots.insert("first_and_last".to_string(), f);
+            slots.insert("first_and_last".to_string(), SlotFiles::Single(f));
         }
         if let Some(f) = find_file("common_overlay") {
-            slots.insert("common_overlay".to_string(), f);
+            slots.insert("common_overlay".to_string(), SlotFiles::Single(f));
         }
 
         let folder_name = dir_path
@@ -154,15 +198,37 @@ impl PackManifest {
                 .unwrap_or(audio.base_gain)
         };
 
-        let push_slot = |entries: &mut Vec<SoundEntry>, slot: &str| -> bool {
-            if let Some(filename) = audio.slots.get(slot) {
-                let path = format!("{base}{filename}");
-                let gain = get_gain(slot);
-                entries.push(SoundEntry { path, gain });
-                true
-            } else {
-                false
+        let push_slot = |entries: &mut Vec<SoundEntry>, slot: &str, specific_alias: Option<&str>| -> bool {
+            if let Some(slot_files) = audio.slots.get(slot) {
+                let preferred = specific_alias
+                    .and_then(|alias| ctx.voice_picks.get(alias))
+                    .or_else(|| {
+                        let pick_key = match slot {
+                            "kill_1" => "1",
+                            "kill_2" => "2",
+                            "kill_3" => "3",
+                            "kill_4" => "4",
+                            "kill_5" => "5",
+                            "kill_6" => "6",
+                            "kill_7" => "7",
+                            "kill_8" => "8",
+                            "kill_9" => "9",
+                            "kill_10" => "10",
+                            other => other,
+                        };
+                        ctx.voice_picks.get(pick_key)
+                    })
+                    .or_else(|| ctx.voice_picks.get(slot))
+                    .map(String::as_str);
+
+                if let Some(filename) = slot_files.pick_audio(preferred) {
+                    let path = format!("{base}{filename}");
+                    let gain = get_gain(slot);
+                    entries.push(SoundEntry { path, gain });
+                    return true;
+                }
             }
+            false
         };
 
         let push_overlay_if_enabled = |entries: &mut Vec<SoundEntry>, current_slot: &str| {
@@ -171,13 +237,14 @@ impl PackManifest {
                 None => true,
             };
             if enabled {
-                push_slot(entries, "common_overlay");
+                push_slot(entries, "common_overlay", None);
             }
         };
 
         // 1. First Kill / Last Kill check
         if ctx.is_first_kill || ctx.is_last_kill {
-            if push_slot(&mut entries, "first_and_last") {
+            let alias = if ctx.is_first_kill { "first" } else { "last" };
+            if push_slot(&mut entries, "first_and_last", Some(alias)) {
                 push_overlay_if_enabled(&mut entries, "first_and_last");
                 return entries;
             }
@@ -192,26 +259,27 @@ impl PackManifest {
             let cap = if self.game_style.as_deref() == Some("csol") { 10 } else { 8 };
             let count = ctx.kill_count.clamp(1, cap);
             let slot = format!("kill_{count}");
-            if !push_slot(&mut entries, &slot) {
+            if !push_slot(&mut entries, &slot, None) {
                 // Fallback to highest available streak or kill_1
-                push_slot(&mut entries, "kill_1");
+                push_slot(&mut entries, "kill_1", None);
             }
             push_overlay_if_enabled(&mut entries, &slot);
         } else if play_knife {
-            if !push_slot(&mut entries, "knife") {
-                push_slot(&mut entries, "kill_1");
+            if !push_slot(&mut entries, "knife", None) {
+                push_slot(&mut entries, "kill_1", None);
             }
             push_overlay_if_enabled(&mut entries, "knife");
         } else if play_headshot {
-            if !push_slot(&mut entries, "headshot") {
-                push_slot(&mut entries, "kill_1");
+            if !push_slot(&mut entries, "headshot", None) {
+                push_slot(&mut entries, "kill_1", None);
             }
             push_overlay_if_enabled(&mut entries, "headshot");
         } else if ctx.play_main_audio && ctx.kill_count == 1 {
-            push_slot(&mut entries, "kill_1");
+            push_slot(&mut entries, "kill_1", None);
             push_overlay_if_enabled(&mut entries, "kill_1");
         }
 
         entries
     }
 }
+

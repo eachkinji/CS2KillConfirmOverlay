@@ -24,19 +24,22 @@ namespace KillConfirmGameBar.Controls.GameStyles
         internal void ApplyTheme(GameThemePalette theme)
         {
             AdvancedEffectsPanelSupport.ApplyHeader(TitleText, HintText, theme);
+            AdvancedEffectsPanelSupport.ApplyResetButton(ResetButton, theme);
             StreakEditor.ApplyTheme(theme);
             AdvancedEffectsPanelSupport.ApplyToggleRow(AssistAudioLabel, AssistAudioToggle, theme);
         }
 
         public void ApplyLanguage(bool isChinese)
         {
-            TitleText.Text = isChinese ? "VAL \u9ad8\u7ea7\u7279\u6548" : "VAL Effects";
+            TitleText.Text = isChinese ? "VAL 高级特效" : "VAL Effects";
             HintText.Text = string.Empty;
             HintText.Visibility = Windows.UI.Xaml.Visibility.Collapsed;
+            ResetButtonText.Text = isChinese ? "恢复默认" : "Reset";
+            ToolTipService.SetToolTip(ResetButton, isChinese ? "恢复 VAL 默认设置" : "Restore VAL defaults");
             StreakEditor.ApplyLanguage(isChinese);
-            AssistAudioLabel.Text = isChinese ? "\u52a9\u653b\u97f3\u6548" : "Assist audio";
-            AssistAudioToggle.OnContent = isChinese ? "\u6709\u58f0\u97f3\uff08common\uff09" : "Sound (common)";
-            AssistAudioToggle.OffContent = isChinese ? "\u65e0\u58f0\u97f3\uff08\u9ed8\u8ba4\uff09" : "Muted (default)";
+            AssistAudioLabel.Text = isChinese ? "助攻音效" : "Assist audio";
+            AssistAudioToggle.OnContent = isChinese ? "有声音（common）" : "Sound (common)";
+            AssistAudioToggle.OffContent = isChinese ? "无声音（默认）" : "Muted (default)";
         }
 
         public string GetSelectedStreakMode(string fallback)
@@ -69,5 +72,12 @@ namespace KillConfirmGameBar.Controls.GameStyles
             AssistAudioToggled?.Invoke(this, e);
         }
 
+        private void OnResetButtonClick(object sender, RoutedEventArgs e)
+        {
+            StreakEditor.SelectValue(SharedStreakSettingsStore.LifeMode);
+            AssistAudioToggle.IsOn = false;
+            StreakModeSelectionChanged?.Invoke(StreakEditor.SelectorControl, null);
+            AssistAudioToggled?.Invoke(AssistAudioToggle, null);
+        }
     }
 }

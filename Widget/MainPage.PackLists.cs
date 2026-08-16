@@ -148,16 +148,34 @@ namespace KillConfirmGameBar
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(12),
                 Margin = new Thickness(0, 0, 4, 0),
-                Visibility = item.IsBuiltIn ? Visibility.Collapsed : Visibility.Visible
+                Visibility = Visibility.Visible
             };
             editButton.Click += async (_, __) =>
             {
-                var existingFiles = await CollectRecognizedFilesFromFolderAsync(
-                    item.FolderPath,
-                    "common.wav", "2.wav", "3.wav", "4.wav", "5.wav",
-                    "6.wav", "7.wav", "8.wav", "headshot.wav", "knife.wav", "firstandlast.wav");
-                StorageFile existingHeadImage = await TryGetCustomPackHeadImageAsync(item.FolderPath);
-                await ShowCreateVoicePackDialogAsync(item.DisplayName, existingFiles, null, existingHeadImage);
+                StorageFolder packFolder = await GetVoicePackFolderAsync(item);
+                string packName = PackCatalogService.GetVoicePackDisplayName(item);
+                GameStyleMode packStyle = GameStyleService.GetStyleForPackKey(item.Key);
+
+                if (packStyle == GameStyleMode.Csol)
+                {
+                    var existingFiles = await CollectFilesFromPackFolderAsync(
+                        packFolder,
+                        "1.wav", "2.wav", "3.wav", "4.wav", "5.wav",
+                        "6.wav", "7.wav", "8.wav", "9.wav", "10.wav",
+                        "headshot.wav", "knife.wav", "first.wav", "last.wav", "assist.wav");
+                    StorageFile existingHeadImage = packFolder != null ? await TryGetCustomPackHeadImageAsync(packFolder.Path) : null;
+                    await ShowCreateCsolVoicePackDialogAsync(packName, existingFiles, existingHeadImage);
+                }
+                else
+                {
+                    var existingFiles = await CollectFilesFromPackFolderAsync(
+                        packFolder,
+                        "common.wav", "2.wav", "3.wav", "4.wav", "5.wav",
+                        "6.wav", "7.wav", "8.wav", "headshot.wav", "knife.wav", "firstandlast.wav");
+                    StorageFile overlayFile = packFolder != null ? await TryGetFileAsync(packFolder, "common_overlay.wav") : null;
+                    StorageFile existingHeadImage = packFolder != null ? await TryGetCustomPackHeadImageAsync(packFolder.Path) : null;
+                    await ShowCreateVoicePackDialogAsync(packName, existingFiles, overlayFile, existingHeadImage);
+                }
             };
             var deleteButton = new Button
             {
@@ -176,7 +194,7 @@ namespace KillConfirmGameBar
             {
                 Spacing = 1,
                 VerticalAlignment = VerticalAlignment.Top,
-                Margin = new Thickness(0, 2, item.IsBuiltIn ? 0 : 0, item.IsBuiltIn ? 0 : 22)
+                Margin = new Thickness(0, 2, 0, 22)
             };
             content.Children.Add(title);
             content.Children.Add(meta);
@@ -186,7 +204,7 @@ namespace KillConfirmGameBar
                 HorizontalAlignment = HorizontalAlignment.Right,
                 VerticalAlignment = VerticalAlignment.Bottom,
                 Margin = new Thickness(0, 0, 0, -2),
-                Visibility = item.IsBuiltIn ? Visibility.Collapsed : Visibility.Visible
+                Visibility = Visibility.Visible
             };
             buttonPanel.Children.Add(editButton);
             buttonPanel.Children.Add(deleteButton);
@@ -253,25 +271,41 @@ namespace KillConfirmGameBar
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(12),
                 Margin = new Thickness(0, 0, 4, 0),
-                Visibility = item.IsBuiltIn ? Visibility.Collapsed : Visibility.Visible
+                Visibility = Visibility.Visible
             };
             editButton.Click += async (_, __) =>
             {
-                var existingFiles = await CollectRecognizedFilesFromFolderAsync(
-                    item.FolderPath,
-                    "badge_multi1.png", "badge_multi2.png", "badge_multi3.png",
-                    "badge_multi4.png", "badge_multi5.png", "badge_multi6.png",
-                    "badge_headshot.png", "badge_headshot_gold.png", "badge_knife.png",
-                    "FIRSTKILL.png", "LASTKILL.png",
-                    "KillMark_Upgrade1.png", "KillMark_Upgrade2.png", "KillMark_Upgrade3.png",
-                    "multi2_fx.png", "multi3_fx.png", "multi4_fx.png", "multi5_fx.png", "multi6_fx.png",
-                    "badge_knife_1.png", "badge_knife_2.png", "badge_knife_3.png",
-                    "badge_assault1.png", "badge_assault2.png", "badge_assault3.png",
-                    "badge_scout1.png", "badge_scout2.png", "badge_scout3.png",
-                    "badge_sniper1.png", "badge_sniper2.png", "badge_sniper3.png",
-                    "badge_elite1.png", "badge_elite2.png", "badge_elite3.png",
-                    "badge_knife1.png", "badge_knife2.png", "badge_knife3.png");
-                await ShowCreateIconPackDialogAsync(item.DisplayName, existingFiles);
+                StorageFolder packFolder = await GetIconPackFolderAsync(item);
+                string packName = PackCatalogService.GetIconPackDisplayName(item);
+                GameStyleMode packStyle = GameStyleService.GetStyleForPackKey(item.Key);
+
+                if (packStyle == GameStyleMode.Csol)
+                {
+                    var existingFiles = await CollectFilesFromPackFolderAsync(
+                        packFolder,
+                        "badge_headshot.png", "badge_knife.png", "badge_firstkill.png", "badge_lastkill.png",
+                        "multi2.png", "multi3.png", "multi4.png", "multi5.png", "multi6.png",
+                        "multi7.png", "multi8.png", "multi9.png", "multi10.png");
+                    await ShowCreateCsolIconPackDialogAsync(packName, existingFiles);
+                }
+                else
+                {
+                    var existingFiles = await CollectFilesFromPackFolderAsync(
+                        packFolder,
+                        "badge_multi1.png", "badge_multi2.png", "badge_multi3.png",
+                        "badge_multi4.png", "badge_multi5.png", "badge_multi6.png",
+                        "badge_headshot.png", "badge_headshot_gold.png", "badge_knife.png",
+                        "FIRSTKILL.png", "LASTKILL.png",
+                        "KillMark_Upgrade1.png", "KillMark_Upgrade2.png", "KillMark_Upgrade3.png",
+                        "multi2_fx.png", "multi3_fx.png", "multi4_fx.png", "multi5_fx.png", "multi6_fx.png",
+                        "badge_knife_1.png", "badge_knife_2.png", "badge_knife_3.png",
+                        "badge_assault1.png", "badge_assault2.png", "badge_assault3.png",
+                        "badge_scout1.png", "badge_scout2.png", "badge_scout3.png",
+                        "badge_sniper1.png", "badge_sniper2.png", "badge_sniper3.png",
+                        "badge_elite1.png", "badge_elite2.png", "badge_elite3.png",
+                        "badge_knife1.png", "badge_knife2.png", "badge_knife3.png");
+                    await ShowCreateIconPackDialogAsync(packName, existingFiles);
+                }
             };
             var deleteButton = new Button
             {
@@ -290,7 +324,7 @@ namespace KillConfirmGameBar
             {
                 Spacing = 1,
                 VerticalAlignment = VerticalAlignment.Top,
-                Margin = new Thickness(0, 2, item.IsBuiltIn ? 0 : 0, item.IsBuiltIn ? 0 : 22)
+                Margin = new Thickness(0, 2, 0, 22)
             };
             content.Children.Add(title);
             content.Children.Add(meta);
@@ -300,7 +334,7 @@ namespace KillConfirmGameBar
                 HorizontalAlignment = HorizontalAlignment.Right,
                 VerticalAlignment = VerticalAlignment.Bottom,
                 Margin = new Thickness(0, 0, 0, -2),
-                Visibility = item.IsBuiltIn ? Visibility.Collapsed : Visibility.Visible
+                Visibility = Visibility.Visible
             };
             buttonPanel.Children.Add(editButton);
             buttonPanel.Children.Add(deleteButton);

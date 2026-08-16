@@ -1,4 +1,5 @@
 using KillConfirmGameBar.Services;
+using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
 namespace KillConfirmGameBar.Controls.GameStyles
@@ -23,6 +24,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
         internal void ApplyTheme(GameThemePalette theme)
         {
             AdvancedEffectsPanelSupport.ApplyHeader(TitleText, HintText, theme);
+            AdvancedEffectsPanelSupport.ApplyResetButton(ResetButton, theme);
             AdvancedEffectsPanelSupport.ApplyMoneyRow(MoneyRewardModeLabel, MoneyRewardModeSelector, theme);
             StreakEditor.ApplyTheme(theme);
             EventSoundPanel.ApplyTheme(theme);
@@ -32,10 +34,12 @@ namespace KillConfirmGameBar.Controls.GameStyles
 
         public void ApplyLanguage(bool isChinese)
         {
-            TitleText.Text = isChinese ? "\u4e09\u89d2\u6d32\u884c\u52a8 \u9ad8\u7ea7\u7279\u6548" : "Delta Force Effects";
-            MoneyRewardModeLabel.Text = isChinese ? "\u5956\u52b1\u7b97\u6cd5" : "Money";
-            MoneyRewardDeltaItem.Content = isChinese ? "GSI \u5dee\u503c\uff08\u9ed8\u8ba4\uff09" : "GSI delta (default)";
-            MoneyRewardRulesItem.Content = isChinese ? "\u51fb\u6740\u5956\u52b1\u89c4\u5219" : "Kill reward rules";
+            TitleText.Text = isChinese ? "三角洲行动 高级特效" : "Delta Force Effects";
+            ResetButtonText.Text = isChinese ? "恢复默认" : "Reset";
+            ToolTipService.SetToolTip(ResetButton, isChinese ? "恢复三角洲默认设置" : "Restore Delta Force defaults");
+            MoneyRewardModeLabel.Text = isChinese ? "奖励算法" : "Money";
+            MoneyRewardDeltaItem.Content = isChinese ? "GSI 差值（默认）" : "GSI delta (default)";
+            MoneyRewardRulesItem.Content = isChinese ? "击杀奖励规则" : "Kill reward rules";
             StreakEditor.ApplyLanguage(isChinese);
             EventSoundPanel.ApplyLanguage(isChinese);
             StylePanel.ApplyLanguage(isChinese);
@@ -74,6 +78,15 @@ namespace KillConfirmGameBar.Controls.GameStyles
         private void OnStreakModeSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             StreakModeSelectionChanged?.Invoke(this, e);
+        }
+
+        private async void OnResetButtonClick(object sender, RoutedEventArgs e)
+        {
+            SelectTaggedComboBoxItem(MoneyRewardModeSelector, "delta", "delta");
+            StreakEditor.SelectValue(SharedStreakSettingsStore.LifeMode);
+            MoneyRewardModeSelectionChanged?.Invoke(MoneyRewardModeSelector, null);
+            StreakModeSelectionChanged?.Invoke(StreakEditor.SelectorControl, null);
+            await EventSoundPanel.ResetToDefaultsAsync();
         }
 
         private static string ReadTaggedComboBoxItem(ComboBox selector, string fallback)

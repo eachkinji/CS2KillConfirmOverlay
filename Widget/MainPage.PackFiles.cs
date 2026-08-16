@@ -208,6 +208,88 @@ namespace KillConfirmGameBar
             return null;
         }
 
+        public static async Task<StorageFolder> GetVoicePackFolderAsync(VoicePackItem item)
+        {
+            if (item == null)
+            {
+                return null;
+            }
+
+            if (!string.IsNullOrWhiteSpace(item.FolderPath))
+            {
+                try
+                {
+                    return await StorageFolder.GetFolderFromPathAsync(item.FolderPath);
+                }
+                catch { }
+            }
+
+            if (item.IsBuiltIn)
+            {
+                try
+                {
+                    StorageFolder installed = Windows.ApplicationModel.Package.Current.InstalledLocation;
+                    return await installed.GetFolderAsync(@"KillConfirmService\sounds\" + item.Key);
+                }
+                catch { }
+            }
+
+            return null;
+        }
+
+        public static async Task<StorageFolder> GetIconPackFolderAsync(IconPackItem item)
+        {
+            if (item == null)
+            {
+                return null;
+            }
+
+            if (!string.IsNullOrWhiteSpace(item.FolderPath))
+            {
+                try
+                {
+                    return await StorageFolder.GetFolderFromPathAsync(item.FolderPath);
+                }
+                catch { }
+            }
+
+            if (item.IsBuiltIn)
+            {
+                try
+                {
+                    StorageFolder installed = Windows.ApplicationModel.Package.Current.InstalledLocation;
+                    if (string.Equals(item.Key, "csol_original", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return await installed.GetFolderAsync(@"Assets\KillConfirmCode\Csol4");
+                    }
+                    if (string.Equals(item.Key, "original", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return await installed.GetFolderAsync(@"Assets\KillConfirmCode\Original");
+                    }
+                    if (string.Equals(item.Key, "glory", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return await installed.GetFolderAsync(@"Assets\KillConfirmCode\Anniversary10");
+                    }
+                    if (string.Equals(item.Key, "champion", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return await installed.GetFolderAsync(@"Assets\KillConfirmCode\Anniversary15");
+                    }
+                }
+                catch { }
+            }
+
+            return null;
+        }
+
+        public static async Task<IReadOnlyDictionary<string, StorageFile>> CollectFilesFromPackFolderAsync(StorageFolder folder, params string[] fileNames)
+        {
+            if (folder == null)
+            {
+                return new Dictionary<string, StorageFile>(StringComparer.OrdinalIgnoreCase);
+            }
+            return await CollectRecognizedFilesAsync(folder, fileNames);
+        }
+
         private static async Task<IReadOnlyDictionary<string, StorageFile>> CollectRecognizedFilesFromFolderAsync(string folderPath, params string[] fileNames)
         {
             try

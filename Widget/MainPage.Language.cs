@@ -32,6 +32,11 @@ namespace KillConfirmGameBar
             ImportIconZipButton.Content = LocalizationManager.Text("ImportZip");
             CreateIconPackButton.Content = LocalizationManager.Text("CreateIconPack");
 
+            if (HomeTabGeneralButton != null) HomeTabGeneralButton.Content = LocalizationManager.Text("HomeTabGeneral");
+            if (HomeTabPortButton != null) HomeTabPortButton.Content = LocalizationManager.Text("HomeTabPort");
+            if (HomeTabDisplayButton != null) HomeTabDisplayButton.Content = LocalizationManager.Text("HomeTabDisplay");
+            if (HomeTabAboutButton != null) HomeTabAboutButton.Content = LocalizationManager.Text("HomeTabAbout");
+
             if (CfTabCombatButton != null) CfTabCombatButton.Content = LocalizationManager.Text("CfTabCombat");
             if (CfTabVoiceButton != null) CfTabVoiceButton.Content = LocalizationManager.Text("CfTabVoice");
             if (CfTabIconButton != null) CfTabIconButton.Content = LocalizationManager.Text("CfTabIcon");

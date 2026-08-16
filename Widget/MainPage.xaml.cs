@@ -23,6 +23,7 @@ namespace KillConfirmGameBar
         private readonly MediaPlayer _previewPlayer = new MediaPlayer();
         private bool _iconSpecExpanded;
         private bool _isSettingsPageLoaded;
+        private string _activeHomeTab = "general";
         private string _activeCfTab = "combat";
         private string _activeCsolTab = "combat";
 
@@ -34,6 +35,11 @@ namespace KillConfirmGameBar
             Unloaded += OnUnloaded;
         }
 
+        private void OnHomeTabGeneralClick(object sender, RoutedEventArgs e) => SelectHomeTab("general");
+        private void OnHomeTabPortClick(object sender, RoutedEventArgs e) => SelectHomeTab("port");
+        private void OnHomeTabDisplayClick(object sender, RoutedEventArgs e) => SelectHomeTab("display");
+        private void OnHomeTabAboutClick(object sender, RoutedEventArgs e) => SelectHomeTab("about");
+
         private void OnCfTabCombatClick(object sender, RoutedEventArgs e) => SelectCfTab("combat");
         private void OnCfTabVoiceClick(object sender, RoutedEventArgs e) => SelectCfTab("voice");
         private void OnCfTabIconClick(object sender, RoutedEventArgs e) => SelectCfTab("icon");
@@ -43,6 +49,12 @@ namespace KillConfirmGameBar
         private void OnCsolTabVoiceClick(object sender, RoutedEventArgs e) => SelectCsolTab("voice");
         private void OnCsolTabIconClick(object sender, RoutedEventArgs e) => SelectCsolTab("icon");
         private void OnCsolTabGuideClick(object sender, RoutedEventArgs e) => SelectCsolTab("guide");
+
+        public void SelectHomeTab(string tab)
+        {
+            _activeHomeTab = tab;
+            ApplyHomeActiveTab();
+        }
 
         public void SelectCfTab(string tab)
         {
@@ -54,6 +66,21 @@ namespace KillConfirmGameBar
         {
             _activeCsolTab = tab;
             ApplyCsolActiveTab();
+        }
+
+        private void ApplyHomeActiveTab()
+        {
+            if (!_isHomePageSelected)
+            {
+                return;
+            }
+
+            if (AdvancedSettingsHubControl != null)
+            {
+                AdvancedSettingsHubControl.SwitchTab(_activeHomeTab);
+            }
+
+            UpdateHomeTabButtonsTheme();
         }
 
         private void ApplyCfActiveTab()
@@ -94,6 +121,15 @@ namespace KillConfirmGameBar
             if (CsolGuideCard != null) CsolGuideCard.Visibility = isGuide ? Visibility.Visible : Visibility.Collapsed;
 
             UpdateCsolTabButtonsTheme();
+        }
+
+        private void UpdateHomeTabButtonsTheme()
+        {
+            GameThemePalette theme = _isHomePageSelected ? GameThemePalette.Home : GameThemePalette.Current;
+            UpdateTabBtn(HomeTabGeneralButton, _activeHomeTab == "general", theme);
+            UpdateTabBtn(HomeTabPortButton, _activeHomeTab == "port", theme);
+            UpdateTabBtn(HomeTabDisplayButton, _activeHomeTab == "display", theme);
+            UpdateTabBtn(HomeTabAboutButton, _activeHomeTab == "about", theme);
         }
 
         private void UpdateCfTabButtonsTheme()

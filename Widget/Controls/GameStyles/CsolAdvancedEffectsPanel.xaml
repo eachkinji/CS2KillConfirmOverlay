@@ -29,7 +29,7 @@
                     FontSize="10"
                     MaxWidth="320"
                     HorizontalAlignment="Left"
-                    Text="Configure kill-streak timing, voice variants, special-event priority and separate first/last-kill effects."
+                    Text="Configure kill-streak timing, special-event priority, and separate first/last-kill effects."
                     TextWrapping="WrapWholeWords" />
             </StackPanel>
             <Button
@@ -72,9 +72,6 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
@@ -101,64 +98,6 @@
             <Border Grid.Row="1" Style="{StaticResource CompactChoiceCardStyle}">
                 <StackPanel Spacing="6">
                     <StackPanel Orientation="Horizontal" Spacing="6">
-                        <Border Style="{StaticResource CompactCircleIconStyle}"><FontIcon FontSize="13" Foreground="White" Glyph="&#xE8D6;" /></Border>
-                        <TextBlock x:Name="OneKillLabel" Style="{StaticResource CompactChoiceLabelStyle}" VerticalAlignment="Center" Text="1-kill voice" />
-                    </StackPanel>
-                    <ComboBox x:Name="OneKillVoiceSelector" Style="{StaticResource CompactSettingsComboBoxStyle}" SelectionChanged="OnVoiceSettingChanged" ToolTipService.ToolTip="Choose a voice or randomize every 1-kill event">
-                        <ComboBoxItem Tag="random">Random</ComboBoxItem>
-                    </ComboBox>
-                </StackPanel>
-            </Border>
-            <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource CompactChoiceCardStyle}">
-                <StackPanel Spacing="6">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                        <Border Style="{StaticResource CompactCircleIconStyle}"><FontIcon FontSize="13" Foreground="White" Glyph="&#xE8D6;" /></Border>
-                        <TextBlock x:Name="FourKillLabel" Style="{StaticResource CompactChoiceLabelStyle}" VerticalAlignment="Center" Text="4-kill voice" />
-                    </StackPanel>
-                    <ComboBox x:Name="FourKillVoiceSelector" Style="{StaticResource CompactSettingsComboBoxStyle}" SelectionChanged="OnVoiceSettingChanged" ToolTipService.ToolTip="Choose a voice or randomize every 4-kill event">
-                        <ComboBoxItem Tag="random">Random</ComboBoxItem>
-                    </ComboBox>
-                </StackPanel>
-            </Border>
-
-            <Border Grid.Row="2" Style="{StaticResource CompactChoiceCardStyle}">
-                <StackPanel Spacing="6">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                        <Border Style="{StaticResource CompactCircleIconStyle}"><FontIcon FontSize="13" Foreground="White" Glyph="&#xE7F4;" /></Border>
-                        <TextBlock x:Name="KnifeLabel" Style="{StaticResource CompactChoiceLabelStyle}" VerticalAlignment="Center" Text="Knife-kill voice" />
-                    </StackPanel>
-                    <ComboBox x:Name="KnifeVoiceSelector" Style="{StaticResource CompactSettingsComboBoxStyle}" SelectionChanged="OnVoiceSettingChanged" ToolTipService.ToolTip="Choose a voice or randomize every knife kill">
-                        <ComboBoxItem Tag="random">Random</ComboBoxItem>
-                    </ComboBox>
-                </StackPanel>
-            </Border>
-            <Border Grid.Row="2" Grid.Column="1" Style="{StaticResource CompactChoiceCardStyle}">
-                <StackPanel Spacing="6">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                        <Border Style="{StaticResource CompactCircleIconStyle}"><FontIcon FontSize="13" Foreground="White" Glyph="&#xE945;" /></Border>
-                        <TextBlock x:Name="FirstKillVoiceLabel" Style="{StaticResource CompactChoiceLabelStyle}" VerticalAlignment="Center" Text="First-kill voice" />
-                    </StackPanel>
-                    <ComboBox x:Name="FirstKillVoiceSelector" Style="{StaticResource CompactSettingsComboBoxStyle}" SelectionChanged="OnVoiceSettingChanged" ToolTipService.ToolTip="Choose the first-kill voice">
-                        <ComboBoxItem Tag="random">Random</ComboBoxItem>
-                    </ComboBox>
-                </StackPanel>
-            </Border>
-
-            <Border Grid.Row="3" Style="{StaticResource CompactChoiceCardStyle}">
-                <StackPanel Spacing="6">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                        <Border Style="{StaticResource CompactCircleIconStyle}"><FontIcon FontSize="13" Foreground="White" Glyph="&#xE945;" /></Border>
-                        <TextBlock x:Name="LastKillVoiceLabel" Style="{StaticResource CompactChoiceLabelStyle}" VerticalAlignment="Center" Text="Last-kill voice" />
-                    </StackPanel>
-                    <ComboBox x:Name="LastKillVoiceSelector" Style="{StaticResource CompactSettingsComboBoxStyle}" SelectionChanged="OnVoiceSettingChanged" ToolTipService.ToolTip="Choose the last-kill voice">
-                        <ComboBoxItem Tag="random">Random</ComboBoxItem>
-                    </ComboBox>
-                </StackPanel>
-            </Border>
-
-            <Border Grid.Row="4" Style="{StaticResource CompactChoiceCardStyle}">
-                <StackPanel Spacing="6">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
                         <Border Style="{StaticResource CompactCircleIconStyle}"><FontIcon FontSize="13" Foreground="White" Glyph="&#xE91F;" /></Border>
                         <TextBlock x:Name="FirstKillIconLabel" Style="{StaticResource CompactChoiceLabelStyle}" VerticalAlignment="Center" Text="First-kill icon" />
                     </StackPanel>
@@ -169,7 +108,7 @@
                 </StackPanel>
             </Border>
 
-            <Border Grid.Row="4" Grid.Column="1" Style="{StaticResource CompactChoiceCardStyle}">
+            <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource CompactChoiceCardStyle}">
                 <StackPanel Spacing="6">
                     <StackPanel Orientation="Horizontal" Spacing="6">
                         <Border Style="{StaticResource CompactCircleIconStyle}"><FontIcon FontSize="13" Foreground="White" Glyph="&#xE91F;" /></Border>
@@ -185,3 +124,4 @@
 
     </StackPanel>
 </UserControl>
+

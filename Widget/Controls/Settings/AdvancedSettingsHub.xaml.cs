@@ -44,17 +44,17 @@ namespace KillConfirmGameBar.Controls.Settings
         {
             bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
 
-            HubHeaderBadgeText.Text = isChinese ? "高级设置中心" : "ADVANCED CONTROL HUB";
-            HubHeaderTitleText.Text = isChinese ? "高级设置" : "Advanced Settings";
-            HubHeaderSubtitleText.Text = isChinese
+            if (HubHeaderBadgeText != null) HubHeaderBadgeText.Text = isChinese ? "高级设置中心" : "ADVANCED CONTROL HUB";
+            if (HubHeaderTitleText != null) HubHeaderTitleText.Text = isChinese ? "高级设置" : "Advanced Settings";
+            if (HubHeaderSubtitleText != null) HubHeaderSubtitleText.Text = isChinese
                 ? "在一个页面集中调整运行时、网络端口与显示偏好。"
                 : "Tune runtime behaviour, network endpoints, and presentation in one place.";
-            HubStatusBadgeText.Text = isChinese ? "服务就绪" : "SERVICE READY";
+            if (HubStatusBadgeText != null) HubStatusBadgeText.Text = isChinese ? "服务就绪" : "SERVICE READY";
 
-            HubTabGeneralButton.Content = isChinese ? "通用" : "General";
-            HubTabPortButton.Content = isChinese ? "端口" : "Port";
-            HubTabDisplayButton.Content = isChinese ? "显示" : "Display";
-            HubTabAboutButton.Content = isChinese ? "关于" : "About";
+            if (HubTabGeneralButton != null) HubTabGeneralButton.Content = isChinese ? "通用" : "General";
+            if (HubTabPortButton != null) HubTabPortButton.Content = isChinese ? "端口" : "Port";
+            if (HubTabDisplayButton != null) HubTabDisplayButton.Content = isChinese ? "显示" : "Display";
+            if (HubTabAboutButton != null) HubTabAboutButton.Content = isChinese ? "关于" : "About";
 
             HubGeneralCardTitle.Text = isChinese ? "运行时与维护" : "RUNTIME & MAINTENANCE";
             HubGeneralCardDescription.Text = isChinese
@@ -110,9 +110,31 @@ namespace KillConfirmGameBar.Controls.Settings
 
         internal void ApplyTheme(GameThemePalette theme)
         {
-            // The hub uses its own dark lab palette so the parent's light theme
-            // does not bleed through. This is a deliberate departure from
-            // every other settings panel in the app.
+            if (HubGeneralCardTitle != null) HubGeneralCardTitle.Foreground = new SolidColorBrush(theme.Text);
+            if (HubGeneralCardDescription != null) HubGeneralCardDescription.Foreground = new SolidColorBrush(theme.MutedText);
+            if (HubGeneralCardSecondaryTitle != null) HubGeneralCardSecondaryTitle.Foreground = new SolidColorBrush(theme.Text);
+            if (HubGeneralCardSecondaryDescription != null) HubGeneralCardSecondaryDescription.Foreground = new SolidColorBrush(theme.MutedText);
+
+            if (HubPortTitleText != null) HubPortTitleText.Foreground = new SolidColorBrush(theme.Text);
+            if (HubPortDescriptionText != null) HubPortDescriptionText.Foreground = new SolidColorBrush(theme.MutedText);
+            if (HubPortCurrentLabel != null) HubPortCurrentLabel.Foreground = new SolidColorBrush(theme.Text);
+            if (HubPortCurrentValue != null) HubPortCurrentValue.Foreground = new SolidColorBrush(theme.Secondary);
+            if (HubPortBackupLabel != null) HubPortBackupLabel.Foreground = new SolidColorBrush(theme.Text);
+            if (HubPortBackupHint != null) HubPortBackupHint.Foreground = new SolidColorBrush(theme.SubtleText);
+            if (HubPortCustomLabel != null) HubPortCustomLabel.Foreground = new SolidColorBrush(theme.Text);
+            if (HubPortCustomHint != null) HubPortCustomHint.Foreground = new SolidColorBrush(theme.SubtleText);
+            if (HubPortAutoSearchLabel != null) HubPortAutoSearchLabel.Foreground = new SolidColorBrush(theme.Text);
+            if (HubPortAutoSearchHint != null) HubPortAutoSearchHint.Foreground = new SolidColorBrush(theme.SubtleText);
+            if (HubPortStatusTitle != null) HubPortStatusTitle.Foreground = new SolidColorBrush(theme.Text);
+            if (HubPortStatusBody != null) HubPortStatusBody.Foreground = new SolidColorBrush(theme.SubtleText);
+
+            if (HubDisplayCardTitle != null) HubDisplayCardTitle.Foreground = new SolidColorBrush(theme.Text);
+            if (HubDisplayCardDescription != null) HubDisplayCardDescription.Foreground = new SolidColorBrush(theme.MutedText);
+
+            if (HubAboutTitle != null) HubAboutTitle.Foreground = new SolidColorBrush(theme.Text);
+            if (HubAboutBody != null) HubAboutBody.Foreground = new SolidColorBrush(theme.MutedText);
+            if (HubAboutVersion != null) HubAboutVersion.Foreground = new SolidColorBrush(theme.SubtleText);
+
             if (HubRuntimePanel != null)
             {
                 HubRuntimePanel.ApplyTheme(theme);
@@ -132,20 +154,20 @@ namespace KillConfirmGameBar.Controls.Settings
         private void OnHubTabDisplayClick(object sender, RoutedEventArgs e) => SwitchTab(TabDisplay);
         private void OnHubTabAboutClick(object sender, RoutedEventArgs e) => SwitchTab(TabAbout);
 
-        private void SwitchTab(string tab)
+        public void SwitchTab(string tab)
         {
             _activeTab = tab;
             bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
 
-            HubTabGeneralButton.Style = (Style)Resources[tab == TabGeneral ? "HubTabActiveButtonStyle" : "HubTabButtonStyle"];
-            HubTabPortButton.Style = (Style)Resources[tab == TabPort ? "HubTabActiveButtonStyle" : "HubTabButtonStyle"];
-            HubTabDisplayButton.Style = (Style)Resources[tab == TabDisplay ? "HubTabActiveButtonStyle" : "HubTabButtonStyle"];
-            HubTabAboutButton.Style = (Style)Resources[tab == TabAbout ? "HubTabActiveButtonStyle" : "HubTabButtonStyle"];
+            if (HubTabGeneralButton != null) HubTabGeneralButton.Style = (Style)Resources[tab == TabGeneral ? "HubTabActiveButtonStyle" : "HubTabButtonStyle"];
+            if (HubTabPortButton != null) HubTabPortButton.Style = (Style)Resources[tab == TabPort ? "HubTabActiveButtonStyle" : "HubTabButtonStyle"];
+            if (HubTabDisplayButton != null) HubTabDisplayButton.Style = (Style)Resources[tab == TabDisplay ? "HubTabActiveButtonStyle" : "HubTabButtonStyle"];
+            if (HubTabAboutButton != null) HubTabAboutButton.Style = (Style)Resources[tab == TabAbout ? "HubTabActiveButtonStyle" : "HubTabButtonStyle"];
 
-            HubGeneralView.Visibility = tab == TabGeneral ? Visibility.Visible : Visibility.Collapsed;
-            HubPortView.Visibility = tab == TabPort ? Visibility.Visible : Visibility.Collapsed;
-            HubDisplayView.Visibility = tab == TabDisplay ? Visibility.Visible : Visibility.Collapsed;
-            HubAboutView.Visibility = tab == TabAbout ? Visibility.Visible : Visibility.Collapsed;
+            if (HubGeneralView != null) HubGeneralView.Visibility = tab == TabGeneral ? Visibility.Visible : Visibility.Collapsed;
+            if (HubPortView != null) HubPortView.Visibility = tab == TabPort ? Visibility.Visible : Visibility.Collapsed;
+            if (HubDisplayView != null) HubDisplayView.Visibility = tab == TabDisplay ? Visibility.Visible : Visibility.Collapsed;
+            if (HubAboutView != null) HubAboutView.Visibility = tab == TabAbout ? Visibility.Visible : Visibility.Collapsed;
 
             if (tab == TabPort)
             {

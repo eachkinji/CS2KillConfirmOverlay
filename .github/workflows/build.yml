@@ -44,46 +44,13 @@ jobs:
       - name: Add Inno Setup to PATH
         run: echo "C:\Program Files (x86)\Inno Setup 6" >> $env:GITHUB_PATH
 
-      - name: Cache Prereq Zip
-        id: cache-prereq
-        uses: actions/cache@v4
-        with:
-          path: |
-            D:\a\prerequisites.zip
-            D:\a\Microsoft.UI.Xaml.2.8.6.nupkg
-          key: ${{ runner.os }}-prereq-v3
-
-      - name: Download offline prerequisite packages
+      - name: Verify offline prerequisite packages
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
-          $VclibsRoot = Join-Path (Split-Path $env:GITHUB_WORKSPACE -Parent) "Vclibs"
-          New-Item -ItemType Directory -Force -Path $VclibsRoot | Out-Null
-          $prereqZip = "D:\a\prerequisites.zip"
-          if (-not (Test-Path $prereqZip)) {
-            Invoke-WebRequest -Uri "https://github.com/eachkinji/CS2KillConfirmOverlay/releases/download/prereq-v1/prerequisites.zip" -OutFile $prereqZip
-          }
-          Expand-Archive -Path $prereqZip -DestinationPath $VclibsRoot -Force
-
-          $uiXamlNuget = "D:\a\Microsoft.UI.Xaml.2.8.6.nupkg"
-          if (-not (Test-Path $uiXamlNuget)) {
-            Invoke-WebRequest -Uri "https://www.nuget.org/api/v2/package/Microsoft.UI.Xaml/2.8.6" -OutFile $uiXamlNuget
-          }
-
-          Add-Type -AssemblyName System.IO.Compression.FileSystem
-          $archive = [System.IO.Compression.ZipFile]::OpenRead($uiXamlNuget)
-          try {
-            $entry = $archive.GetEntry("tools/AppX/x64/Release/Microsoft.UI.Xaml.2.8.appx")
-            if (-not $entry) {
-              throw "Microsoft.UI.Xaml x64 Appx was not found in $uiXamlNuget"
-            }
-            [System.IO.Compression.ZipFileExtensions]::ExtractToFile(
-              $entry,
-              (Join-Path $VclibsRoot "Microsoft.UI.Xaml.Appx"),
-              $true)
-          }
-          finally {
-            $archive.Dispose()
+          $VclibsRoot = Join-Path $env:GITHUB_WORKSPACE "Vclibs"
+          if (-not (Test-Path $VclibsRoot)) {
+            throw "Vclibs folder was not found at $VclibsRoot"
           }
           Get-ChildItem -LiteralPath $VclibsRoot | ForEach-Object { Write-Host ("{0} {1}" -f $_.Name, $_.Length) }
 

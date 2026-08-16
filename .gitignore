@@ -22,6 +22,10 @@ Widget/BundleArtifacts/
 *.exe
 *.pdb
 
+# Allow offline prerequisite packages in Vclibs
+!Vclibs/
+!Vclibs/*
+
 # Generated copies refreshed from SourceAssets by Build-IntegratedPackage.ps1
 Widget/Assets/KillConfirm/
 Widget/KillConfirmService/

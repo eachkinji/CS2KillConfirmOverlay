@@ -57,7 +57,7 @@ namespace KillConfirmGameBar.Services
         private const string PersistenceEnabledKey = "ProcessPriority.PersistenceEnabled";
         private const string PrioritySettingPrefix = "ProcessPriority.Target.";
         private static readonly Uri ProcessPriorityUri =
-            new Uri("http://127.0.0.1:10087/process-priority");
+            LocalServiceEndpoints.Build("/process-priority");
 
         internal static readonly string[] Targets =
         {

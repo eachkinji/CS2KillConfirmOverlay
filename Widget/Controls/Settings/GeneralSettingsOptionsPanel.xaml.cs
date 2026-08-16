@@ -17,7 +17,6 @@ namespace KillConfirmGameBar.Controls.Settings
         private bool _suppressBombAudioEvents = true;
         private bool _suppressAutoCloseOnGameExitEvents;
         private bool _suppressInterruptPreviousKillAudioEvents;
-        private bool _suppressPanelColorEvents;
         private readonly DispatcherTimer _bombAudioSyncTimer = new DispatcherTimer();
 
         public GeneralSettingsOptionsPanel()
@@ -84,14 +83,6 @@ namespace KillConfirmGameBar.Controls.Settings
                 LocalizationManager.Text("InterruptPreviousKillAudioHint");
             InterruptPreviousKillAudioToggle.OffContent = LocalizationManager.Text("Off");
             InterruptPreviousKillAudioToggle.OnContent = LocalizationManager.Text("On");
-            PanelColorTitleText.Text = LocalizationManager.Text("PanelColorTitle");
-            PanelColorHintText.Text = LocalizationManager.Text("PanelColorHint");
-            PanelColorResetButton.Content = LocalizationManager.Text("Reset");
-            PanelColorCustomToggle.OffContent = LocalizationManager.Text("Off");
-            PanelColorCustomToggle.OnContent = LocalizationManager.Text("On");
-            PanelColorPresetLabelText.Text = LocalizationManager.Text("PanelColorPresetLabel");
-            PanelColorBackgroundLabelText.Text = LocalizationManager.Text("PanelColorBackgroundLabel");
-            PanelColorBorderLabelText.Text = LocalizationManager.Text("PanelColorBorderLabel");
             UpdateBombAudioStatusTexts();
             ApplyProcessPriorityLanguage();
         }
@@ -109,7 +100,6 @@ namespace KillConfirmGameBar.Controls.Settings
             BombAudioHintText.Foreground = new SolidColorBrush(theme.MutedText);
             AutoCloseOnGameExitHintText.Foreground = new SolidColorBrush(theme.MutedText);
             InterruptPreviousKillAudioHintText.Foreground = new SolidColorBrush(theme.MutedText);
-            PanelColorHintText.Foreground = new SolidColorBrush(theme.MutedText);
             ProcessPriorityHintText.Foreground = new SolidColorBrush(theme.MutedText);
             ProcessPriorityPersistenceHintText.Foreground = new SolidColorBrush(theme.MutedText);
             GameBarPriorityStatusText.Foreground = new SolidColorBrush(theme.MutedText);
@@ -127,7 +117,6 @@ namespace KillConfirmGameBar.Controls.Settings
             SelectProcessPrioritySettings();
             SelectAutoCloseOnGameExit();
             SelectInterruptPreviousKillAudio();
-            SelectPanelColorSettings();
             UpdateBombAudioStatusTexts();
         }
 
@@ -437,73 +426,6 @@ namespace KillConfirmGameBar.Controls.Settings
                 statusText.Text = LocalizationManager.Text("BuiltIn");
                 statusText.Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 136, 136, 136));
                 if (clearButton != null) clearButton.Visibility = Visibility.Collapsed;
-            }
-        }
-
-        private void SelectPanelColorSettings()
-        {
-            _suppressPanelColorEvents = true;
-            try
-            {
-                PanelColorSettingsValues settings = PanelColorSettingsStore.Load();
-                PanelColorCustomToggle.IsOn = settings.Enabled;
-                PanelColorCustomSection.Visibility = settings.Enabled ? Visibility.Visible : Visibility.Collapsed;
-                PanelColorBackgroundHexBox.Text = settings.BackgroundColorHex;
-                PanelColorBorderHexBox.Text = settings.BorderColorHex;
-            }
-            finally
-            {
-                _suppressPanelColorEvents = false;
-            }
-        }
-
-        private void OnPanelColorCustomToggled(object sender, RoutedEventArgs e)
-        {
-            if (_suppressPanelColorEvents) return;
-            bool isCustom = PanelColorCustomToggle.IsOn;
-            PanelColorCustomSection.Visibility = isCustom ? Visibility.Visible : Visibility.Collapsed;
-            PanelColorSettingsStore.Save(isCustom, PanelColorBackgroundHexBox.Text, PanelColorBorderHexBox.Text);
-        }
-
-        private void OnPanelColorPresetClick(object sender, RoutedEventArgs e)
-        {
-            if (sender is Button btn && btn.Tag is string hex)
-            {
-                _suppressPanelColorEvents = true;
-                try
-                {
-                    PanelColorBackgroundHexBox.Text = hex;
-                }
-                finally
-                {
-                    _suppressPanelColorEvents = false;
-                }
-                PanelColorSettingsStore.Save(PanelColorCustomToggle.IsOn, hex, PanelColorBorderHexBox.Text);
-            }
-        }
-
-        private void OnPanelColorHexChanged(object sender, TextChangedEventArgs e)
-        {
-            if (_suppressPanelColorEvents) return;
-            string bg = PanelColorBackgroundHexBox.Text;
-            string border = PanelColorBorderHexBox.Text;
-            if (PanelColorSettingsStore.TryParseHexColor(bg, out _))
-            {
-                PanelColorSettingsStore.Save(PanelColorCustomToggle.IsOn, bg, border);
-            }
-        }
-
-        private void OnPanelColorResetClick(object sender, RoutedEventArgs e)
-        {
-            _suppressPanelColorEvents = true;
-            try
-            {
-                PanelColorSettingsStore.Reset();
-                SelectPanelColorSettings();
-            }
-            finally
-            {
-                _suppressPanelColorEvents = false;
             }
         }
 

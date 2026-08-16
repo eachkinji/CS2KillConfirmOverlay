@@ -634,7 +634,7 @@ namespace KillConfirmGameBar
             query.Add("money_reward=" + testMoneyReward);
             query.Add("audio=true");
             string suffix = query.Count > 0 ? "?" + string.Join("&", query) : string.Empty;
-            return $"http://127.0.0.1:10087/test/{preset.KillCount}{suffix}";
+            return $"{LocalServiceEndpoints.BaseUri}/test/{preset.KillCount}{suffix}";
         }
 
         private void NudgeAnimation(double delta)

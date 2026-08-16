@@ -179,19 +179,6 @@ namespace KillConfirmGameBar
             SetButtonTheme(ScaleUpButton, theme.Field, theme.SoftBorder, theme.Text);
             SetButtonTheme(ResetVisualButton, theme.Field, theme.SoftBorder, theme.Text);
             UpdateOverlay.ApplyTheme(theme);
-
-            PanelColorSettingsValues panelColor = PanelColorSettingsStore.Load();
-            if (panelColor.Enabled)
-            {
-                if (PanelColorSettingsStore.TryParseHexColor(panelColor.BackgroundColorHex, out Color customBg))
-                {
-                    ControlPanel.Background = Brush(customBg);
-                }
-                if (PanelColorSettingsStore.TryParseHexColor(panelColor.BorderColorHex, out Color customBorder))
-                {
-                    ControlPanel.BorderBrush = Brush(customBorder);
-                }
-            }
         }
 
         private static void SetGameStyleItemContent(ComboBoxItem item, string text, string logoUri)

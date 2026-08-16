@@ -18,9 +18,9 @@ namespace KillConfirmGameBar.Controls.Settings
     public sealed partial class RuntimeMaintenancePanel : UserControl
     {
         private const string AudioDeviceSettingKey = "AudioOutputDevice";
-        private static readonly Uri AudioDevicesUri = new Uri("http://127.0.0.1:10087/audio/devices");
-        private static readonly Uri AudioDeviceUri = new Uri("http://127.0.0.1:10087/audio/device");
-        private static readonly Uri ShutdownUri = new Uri("http://127.0.0.1:10087/shutdown");
+        private static readonly Uri AudioDevicesUri = LocalServiceEndpoints.Build("/audio/devices");
+        private static readonly Uri AudioDeviceUri = LocalServiceEndpoints.Build("/audio/device");
+        private static readonly Uri ShutdownUri = LocalServiceEndpoints.Build("/shutdown");
         private bool _suppressAudioEvents;
         private bool _suppressDeveloperEvents;
 

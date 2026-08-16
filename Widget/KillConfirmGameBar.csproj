@@ -242,6 +242,9 @@
     <Compile Include="Controls\Settings\RuntimeMaintenancePanel.xaml.cs">
       <DependentUpon>RuntimeMaintenancePanel.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\Settings\AdvancedSettingsHub.xaml.cs">
+      <DependentUpon>AdvancedSettingsHub.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\Settings\GeneralSettingsOptionsPanel.xaml.cs">
       <DependentUpon>GeneralSettingsOptionsPanel.xaml</DependentUpon>
     </Compile>
@@ -304,7 +307,6 @@
     <Compile Include="Services\PackCatalogService.Icon.cs" />
     <Compile Include="Services\PackCatalogService.Storage.cs" />
     <Compile Include="Services\PackCatalogService.Voice.cs" />
-    <Compile Include="Services\PanelColorSettingsStore.cs" />
     <Compile Include="Services\DoubaoSettingsStore.cs" />
     <Compile Include="Helpers\ProcessPriorityBoost.cs" />
     <Compile Include="Helpers\TgaDecoder.cs" />
@@ -487,6 +489,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Controls\Settings\RuntimeMaintenancePanel.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\Settings\AdvancedSettingsHub.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

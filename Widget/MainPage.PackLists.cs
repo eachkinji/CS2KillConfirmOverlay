@@ -21,8 +21,6 @@ namespace KillConfirmGameBar
             _isSettingsPageLoaded = true;
             GameStyleService.Changed += OnGameStyleServiceChanged;
             PackCatalogService.CatalogChanged += OnCatalogChanged;
-            GeneralSettingsOptionsPanel.RefreshSettings();
-            DisplayScalingSettingsPanel.RefreshSettings();
             await ReloadPackListsAsync(GameStyleService.Current);
         }
 

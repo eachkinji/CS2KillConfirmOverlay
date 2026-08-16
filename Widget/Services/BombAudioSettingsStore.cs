@@ -35,7 +35,7 @@ namespace KillConfirmGameBar.Services
         internal const int DefaultInitialSpeedPercent = 50;
         internal const int DefaultFinalSpeedPercent = 150;
         private static readonly Uri SettingsUri =
-            new Uri("http://127.0.0.1:10087/bomb-audio/settings");
+            LocalServiceEndpoints.Build("/bomb-audio/settings");
 
         public static BombAudioSettingsValues Load()
         {

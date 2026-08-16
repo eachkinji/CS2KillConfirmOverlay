@@ -33,7 +33,7 @@ namespace KillConfirmGameBar.Services
         private const string LegacySharedSettingKey = "SharedStreakMode";
         private const string SpectatedKillEffectsSettingKey = "SpectatedKillEffectsEnabled";
         private static readonly Uri SpectatorSettingsUri =
-            new Uri("http://127.0.0.1:10087/spectator/settings");
+            LocalServiceEndpoints.Build("/spectator/settings");
 
         public static bool IsSupported(GameStyleMode style)
         {

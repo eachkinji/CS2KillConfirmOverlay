@@ -1,13 +1,15 @@
-use anyhow::{Context, Result};
+use anyhow::Result;
 use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
 use super::lua_script::LuaScript;
+use super::manifest::PackManifest;
 
-/// Preset holds the loaded Lua script for a soundpack
+/// Preset holds either a declarative PackManifest or a legacy LuaScript
 pub struct Preset {
-    pub lua_script: LuaScript,
+    pub lua_script: Option<LuaScript>,
+    pub manifest: Option<PackManifest>,
     pub preset_name: String,
     pub display_name: String,
     pub master_name: String,
@@ -17,10 +19,7 @@ pub struct Preset {
 
 impl Preset {
     /// Load a preset from the sounds directory
-    /// For variants like "crossfire_v_sex", loads Lua from master "crossfire"
     pub fn load(preset_name: &str) -> Result<Self> {
-        // Only the old CrossFire packs use master_v_variant. Valorant pack IDs can contain
-        // "_v1/_v2/_v3" as part of their actual folder name and must not be split.
         let parts: Vec<&str> = preset_name.split("_v_").collect();
         let is_crossfire_variant = preset_name.starts_with("crossfire_") && parts.len() > 1;
         let (master_name, variant) = if is_crossfire_variant {
@@ -29,56 +28,89 @@ impl Preset {
             (preset_name, None)
         };
 
-        // Load Lua script from the selected soundpack when present. Variants may still fall back
-        // to the master pack for older packages that only shipped one shared script.
         let sounds_root = sounds_root();
-        let own_script_path = sounds_root.join(preset_name).join("sound.lua");
+        let pack_dir = sounds_root.join(preset_name);
+        let base_dir = pack_dir.to_string_lossy().replace('\\', "/");
+
+        // 1. Try loading manifest.json first
+        let manifest_path = pack_dir.join("manifest.json");
+        let manifest = if manifest_path.exists() {
+            Some(PackManifest::load_from_dir(&pack_dir)?)
+        } else {
+            None
+        };
+
+        // 2. Load Lua script if present or if manifest is absent
+        let own_script_path = pack_dir.join("sound.lua");
         let master_script_path = sounds_root.join(master_name).join("sound.lua");
         let script_path = if fs::metadata(&own_script_path).is_ok() {
-            own_script_path
+            Some(own_script_path)
+        } else if fs::metadata(&master_script_path).is_ok() {
+            Some(master_script_path)
         } else {
-            master_script_path
+            None
         };
-        let script_path_text = script_path.to_string_lossy().to_string();
-        let lua_script = LuaScript::load(&script_path_text).with_context(|| {
-            format!(
-                "failed to load Lua script for preset '{preset_name}' from '{script_path_text}'"
-            )
-        })?;
+
+        let lua_script = if let Some(sp) = script_path {
+            let sp_text = sp.to_string_lossy().to_string();
+            LuaScript::load(&sp_text).ok()
+        } else {
+            None
+        };
+
+        // If neither manifest.json nor sound.lua was found, auto-discover manifest from files
+        let manifest = if manifest.is_none() && lua_script.is_none() {
+            PackManifest::auto_discover(&pack_dir).ok()
+        } else {
+            manifest
+        };
 
         Ok(Self {
             lua_script,
+            manifest,
             preset_name: preset_name.to_string(),
             display_name: preset_name.to_string(),
             master_name: master_name.to_string(),
             variant: variant.map(|s| s.to_string()),
-            base_dir: sounds_root
-                .join(preset_name)
-                .to_string_lossy()
-                .replace('\\', "/"),
+            base_dir,
         })
     }
 
     pub fn load_custom(preset_name: &str, display_name: &str, folder_path: &str) -> Result<Self> {
+        let pack_dir = Path::new(folder_path);
+        let base_dir = folder_path.replace('\\', "/");
+
+        // 1. Try loading manifest.json
+        let manifest_path = pack_dir.join("manifest.json");
+        let manifest = if manifest_path.exists() {
+            Some(PackManifest::load_from_dir(pack_dir)?)
+        } else {
+            None
+        };
+
+        // 2. Try loading sound.lua if present
         let script_path = format!("{folder_path}/sound.lua");
         let lua_script = if Path::new(&script_path).exists() {
-            LuaScript::load(&script_path).with_context(|| {
-                format!("failed to load Lua script for custom preset '{display_name}'")
-            })?
+            LuaScript::load(&script_path).ok()
         } else {
-            let generated_script = build_generated_voice_lua(folder_path);
-            LuaScript::from_source(&generated_script, &script_path).with_context(|| {
-                format!("failed to generate Lua script for custom preset '{display_name}'")
-            })?
+            None
+        };
+
+        // 3. Fallback: auto-discover manifest from folder
+        let manifest = if manifest.is_none() && lua_script.is_none() {
+            Some(PackManifest::auto_discover(pack_dir)?)
+        } else {
+            manifest
         };
 
         Ok(Self {
             lua_script,
+            manifest,
             preset_name: preset_name.to_string(),
             display_name: display_name.to_string(),
             master_name: preset_name.to_string(),
             variant: None,
-            base_dir: folder_path.replace('\\', "/"),
+            base_dir,
         })
     }
 }
@@ -99,85 +131,6 @@ fn sounds_root() -> PathBuf {
     }
 
     cwd_sounds
-}
-
-fn build_generated_voice_lua(folder_path: &str) -> String {
-    let known_names = [
-        "common_overlay",
-        "common",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7",
-        "8",
-        "headshot",
-        "knife",
-        "firstandlast",
-    ];
-    let audio_extensions = ["wav", "mp3", "m4a"];
-
-    let available_entries = known_names
-        .iter()
-        .filter_map(|key| {
-            audio_extensions.iter().find_map(|extension| {
-                let file_name = format!("{key}.{extension}");
-                let path = Path::new(folder_path).join(&file_name);
-                if path.exists() {
-                    Some(format!("[\"{key}\"] = \"{file_name}\""))
-                } else {
-                    None
-                }
-            })
-        })
-        .collect::<Vec<_>>()
-        .join(",\n    ");
-
-    format!(
-        "function get_sounds(ctx)\n\
-         \tlocal sounds = {{}}\n\
-         \tlocal base = ctx.base_dir .. \"/\"\n\
-         \tlocal available = {{\n    {available_entries}\n\t}}\n\n\
-         \tlocal common_overlay_played = false\n\n\
-         \tlocal function add_if_present(name)\n\
-         \t\tif available[name] then\n\
-         \t\t\ttable.insert(sounds, base .. available[name])\n\
-         \t\tend\n\
-         \tend\n\n\
-         \tlocal function add_common_overlay_if_present()\n\
-         \t\tif common_overlay_played then\n\
-         \t\t\treturn\n\
-         \t\tend\n\
-         \t\tif available[\"common_overlay\"] then\n\
-         \t\t\tcommon_overlay_played = true\n\
-         \t\t\ttable.insert(sounds, base .. available[\"common_overlay\"])\n\
-         \t\tend\n\
-         \tend\n\n\
-         \tif ctx.is_first_kill or ctx.is_last_kill then\n\
-         \t\tadd_if_present(\"firstandlast\")\n\
-         \t\tadd_common_overlay_if_present()\n\
-         \t\tif #sounds > 0 then\n\
-         \t\t\treturn sounds\n\
-         \t\tend\n\
-         \tend\n\n\
-         \tif ctx.play_main_audio and ctx.kill_count >= 2 then\n\
-         \t\tlocal voiced_kill_count = math.min(ctx.kill_count, 8)\n\
-         \t\tadd_if_present(tostring(voiced_kill_count))\n\
-         \t\tadd_common_overlay_if_present()\n\
-         \telseif ctx.is_knife_kill then\n\
-         \t\tadd_if_present(\"knife\")\n\
-         \t\tadd_common_overlay_if_present()\n\
-         \telseif ctx.is_headshot then\n\
-         \t\tadd_if_present(\"headshot\")\n\
-         \t\tadd_common_overlay_if_present()\n\
-         \telseif ctx.play_main_audio and ctx.kill_count == 1 then\n\
-         \t\tadd_if_present(\"common\")\n\
-         \t\tadd_common_overlay_if_present()\n\
-         \tend\n\n\
-         \treturn sounds\n\
-         end\n"
-    )
 }
 
 pub fn list() -> Result<()> {

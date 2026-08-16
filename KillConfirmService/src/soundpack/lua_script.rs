@@ -27,6 +27,17 @@ pub struct SoundContext {
     pub voice_picks: HashMap<String, String>,
     /// CSOL: true when a special voice (headshot/knife) beats the streak voice.
     pub special_voice_priority: bool,
+    /// CrossFire / Generic: true when user enables headshot audio priority
+    pub headshot_priority: bool,
+    /// CrossFire / Generic: true when user enables knife audio priority
+    pub knife_priority: bool,
+}
+
+/// SoundEntry represents an audio file path with its playback gain.
+#[derive(Clone, Debug, PartialEq)]
+pub struct SoundEntry {
+    pub path: String,
+    pub gain: f32,
 }
 
 /// Holds a compiled Lua script for a soundpack
@@ -58,8 +69,9 @@ impl LuaScript {
         })
     }
 
-    /// Call the get_sounds function in the Lua script with the given context
-    pub fn get_sounds(&self, ctx: &SoundContext) -> Result<Vec<String>> {
+    /// Call the get_sounds function in the Lua script with the given context,
+    /// returning SoundEntry items with audio path and volume gain.
+    pub fn get_sound_entries(&self, ctx: &SoundContext) -> Result<Vec<SoundEntry>> {
         let globals = self.lua.globals();
         let get_sounds: mlua::Function = globals
             .get("get_sounds")
@@ -74,12 +86,26 @@ impl LuaScript {
             .call(ctx_value)
             .with_context(|| format!("failed to call get_sounds in {}", self.script_path))?;
 
-        // Convert Lua table to Vec<String>
         let sounds = match result {
             Value::Table(table) => {
                 let mut sounds = Vec::new();
-                for sound in table.sequence_values::<String>() {
-                    sounds.push(sound.context("invalid sound path in Lua return value")?);
+                for value in table.sequence_values::<Value>() {
+                    match value? {
+                        Value::String(s) => {
+                            sounds.push(SoundEntry {
+                                path: s.to_str()?.to_string(),
+                                gain: 1.0,
+                            });
+                        }
+                        Value::Table(entry_table) => {
+                            let path: String = entry_table
+                                .get("path")
+                                .context("missing 'path' in Lua sound entry table")?;
+                            let gain: f32 = entry_table.get("gain").unwrap_or(1.0);
+                            sounds.push(SoundEntry { path, gain });
+                        }
+                        _ => anyhow::bail!("invalid entry in Lua get_sounds return value"),
+                    }
                 }
                 sounds
             }
@@ -88,5 +114,11 @@ impl LuaScript {
         };
 
         Ok(sounds)
+    }
+
+    /// Call get_sounds returning only paths (convenience / backward compatibility)
+    pub fn get_sounds(&self, ctx: &SoundContext) -> Result<Vec<String>> {
+        let entries = self.get_sound_entries(ctx)?;
+        Ok(entries.into_iter().map(|e| e.path).collect())
     }
 }

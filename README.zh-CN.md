@@ -1,7 +1,7 @@
 <div align="center">
   <img src="Widget/Assets/Square150x150Logo.scale-200.png" width="112" alt="Kill Confirm Overlay 图标" />
 
-# Kill Confirm Overlay
+# 击杀确认覆盖层 / Kill Confirm Overlay
 
 **为 Xbox Game Bar 打造的可自定义 CS2 击杀确认体验。**
 
@@ -29,6 +29,10 @@ Kill Confirm Overlay 通过 Counter-Strike 2 Game State Integration 接收对局
 
 > [!NOTE]
 > 文中其他游戏的名称表示受对应游戏启发的展示风格。当前实际通过 GSI 提供实时对局事件的游戏仍然是 CS2。
+
+<p align="center">
+  <span style="color:#d00; font-weight:bold;">免责声明：本项目中包含的所有游戏相关资源（音效、图标、角色形象等）归各自版权方所有（Riot Games、Electronic Arts、Valve 等）。本工具为非官方社区项目，仅供学习、交流、测试使用，与上述公司无任何关联、亦未获其认可或赞助。切勿将本工具用于盗版、商业转售或任何违法活动。</span>
+</p>
 
 ## 开源基础与社区联动
 

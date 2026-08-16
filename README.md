@@ -1,7 +1,7 @@
 <div align="center">
   <img src="Widget/Assets/Square150x150Logo.scale-200.png" width="112" alt="Kill Confirm Overlay logo" />
 
-# Kill Confirm Overlay
+# Kill Confirm Overlay / 击杀确认覆盖层
 
 **A customizable CS2 kill-confirm experience built for Xbox Game Bar.**
 
@@ -29,6 +29,10 @@ The project has grown from a simple kill-confirm sound tool into a configurable 
 
 > [!NOTE]
 > The names of other games identify presentation styles inspired by those games. CS2 remains the game that provides the live events through GSI.
+
+<p align="center">
+  <span style="color:#d00; font-weight:bold;">Disclaimer: All game-related resources (sound effects, icons, character likenesses, etc.) included in this project are the property of their respective copyright holders (Riot Games, Electronic Arts, Valve, etc.). This tool is an unofficial community project for learning, exchange, and testing only. It is not affiliated with, endorsed by, or sponsored by any of the aforementioned companies. Do not use this tool for piracy, commercial resale, or any illegal activity.</span>
+</p>
 
 ## Open-source foundation and community collaboration
 

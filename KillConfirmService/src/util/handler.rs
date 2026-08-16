@@ -24,9 +24,6 @@ use crate::soundpack::sound::{
     stop_bomb_audio,
 };
 
-// GSI is throttled to 100ms. Keep only a very short weapon history so a weapon
-// switch cannot leak the previous weapon's knife/badge/reward into a later kill.
-const WEAPON_KILL_GRACE_WINDOW: Duration = Duration::from_millis(250);
 // Round outcome normally follows the final kill in the next few GSI samples.
 // Anything older is too ambiguous to upgrade into a last-kill effect.
 const FINAL_KILL_GRACE_WINDOW: Duration = Duration::from_millis(350);
@@ -90,13 +87,8 @@ struct WeaponKillContext {
 
 fn resolve_weapon_kill_context<'a>(
     current: Option<&'a WeaponKillContext>,
-    recent: Option<&'a WeaponKillContext>,
 ) -> Option<&'a WeaponKillContext> {
-    current.or(recent)
-}
-
-fn is_recent_weapon_context(seen_at: Instant, now: Instant) -> bool {
-    now.saturating_duration_since(seen_at) <= WEAPON_KILL_GRACE_WINDOW
+    current
 }
 
 fn is_recent_final_kill(recorded_at: Instant, now: Instant) -> bool {
@@ -408,20 +400,6 @@ pub async fn update(
     let previous_round_bomb_state = binding.last_round_bomb_state.clone();
     let previous_crossfire_streak_kills = tracked_player.crossfire_streak_kills;
     let previous_crossfire_kill_at = tracked_player.last_crossfire_kill_at;
-    let recent_weapon_context = tracked_player
-        .last_active_weapon_seen_at
-        .filter(|seen_at| is_recent_weapon_context(*seen_at, now))
-        .and_then(|_| {
-            tracked_player
-                .last_active_weapon_name
-                .as_ref()
-                .map(|name| WeaponKillContext {
-                    is_knife: tracked_player.last_active_weapon_is_knife,
-                    badge_key: tracked_player.last_active_weapon_badge_key.clone(),
-                    name: name.clone(),
-                    money_reward: tracked_player.last_active_weapon_money_reward,
-                })
-        });
     drop(binding);
 
     let money_reward_mode =
@@ -582,10 +560,7 @@ pub async fn update(
 
     if is_initialized && can_emit_kill {
         let is_headshot = current_hs_kills > origin_hs_kills;
-        let weapon_context = resolve_weapon_kill_context(
-            current_weapon_context.as_ref(),
-            recent_weapon_context.as_ref(),
-        );
+        let weapon_context = resolve_weapon_kill_context(current_weapon_context.as_ref());
         let is_knife_kill = weapon_context
             .map(|weapon| weapon.is_knife)
             .unwrap_or(false);
@@ -950,13 +925,6 @@ pub async fn update(
     } else {
         pending_last_kill_for_next
     };
-    if let Some(weapon) = current_weapon_context {
-        tracked_player.last_active_weapon_is_knife = weapon.is_knife;
-        tracked_player.last_active_weapon_badge_key = weapon.badge_key;
-        tracked_player.last_active_weapon_name = Some(weapon.name);
-        tracked_player.last_active_weapon_money_reward = weapon.money_reward;
-        tracked_player.last_active_weapon_seen_at = Some(now);
-    }
 
     drop(binding);
 
@@ -1404,7 +1372,7 @@ mod tests {
     use super::{
         CrossfireStreakMode, DelayedLastKillDecision, WeaponKillContext,
         can_read_observed_combat_events, classify_delayed_last_kill, has_observed_player_changed,
-        is_knife_weapon, is_local_observed_player, is_recent_final_kill, is_recent_weapon_context,
+        is_knife_weapon, is_local_observed_player, is_recent_final_kill,
         normalize_cs2_map_mode, opponent_team_display_name, resolve_crossfire_streak_count,
         resolve_observed_player_id, resolve_player_kill_delta, resolve_weapon_kill_context,
         should_emit_player_kill, should_reset_stored_streak,
@@ -1456,31 +1424,20 @@ mod tests {
             money_reward: 1500,
         };
 
-        assert_eq!(
-            resolve_weapon_kill_context(Some(&gun), Some(&knife)),
-            Some(&gun)
-        );
-        assert_eq!(
-            resolve_weapon_kill_context(None, Some(&knife)),
-            Some(&knife)
-        );
-        assert_eq!(resolve_weapon_kill_context(None, None), None);
+        // With the GSI frame short enough (buffer 0.01, throttle 0.0) the
+        // active weapon reported in the kill frame is the weapon the kill
+        // was made with; the function simply returns the current context.
+        assert_eq!(resolve_weapon_kill_context(Some(&gun)), Some(&gun));
+        assert_eq!(resolve_weapon_kill_context(Some(&knife)), Some(&knife));
+        assert_eq!(resolve_weapon_kill_context(None), None);
         assert!(is_knife_weapon(None, &WeaponName::KnifeKarambit));
         assert!(is_knife_weapon(Some(&WeaponType::Knife), &WeaponName::AK47));
         assert!(!is_knife_weapon(None, &WeaponName::AK47));
     }
 
     #[test]
-    fn weapon_and_final_kill_history_use_narrow_grace_windows() {
+    fn final_kill_history_uses_grace_window() {
         let now = Instant::now();
-        assert!(is_recent_weapon_context(
-            now.checked_sub(Duration::from_millis(250)).unwrap(),
-            now
-        ));
-        assert!(!is_recent_weapon_context(
-            now.checked_sub(Duration::from_millis(251)).unwrap(),
-            now
-        ));
         assert!(is_recent_final_kill(
             now.checked_sub(Duration::from_millis(350)).unwrap(),
             now

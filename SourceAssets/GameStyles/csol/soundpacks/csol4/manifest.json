@@ -1,0 +1,25 @@
+{
+  "id": "csol4",
+  "name": "CSOL 10杀",
+  "game_style": "csol",
+  "version": "1.0",
+  "audio": {
+    "base_gain": 1.0,
+    "slots": {
+      "kill_1": "Cantbelive.wav",
+      "kill_2": "Doublekill.wav",
+      "kill_3": "Triplekill.wav",
+      "kill_4": "Multikill.wav",
+      "kill_5": "Megakill.wav",
+      "kill_6": "Rampage.wav",
+      "kill_7": "Monsterkill.wav",
+      "kill_8": "Godlike.wav",
+      "kill_9": "Outofworld.wav",
+      "kill_10": "Ohgod.wav",
+      "headshot": "Headshot.wav",
+      "knife": "Humililation.wav",
+      "first_and_last": "Firstkill.wav"
+    },
+    "overlay_slots": []
+  }
+}

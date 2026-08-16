@@ -424,6 +424,30 @@
                                                     Click="OnHubPortCustomApplyClick" />
                                             </Grid>
                                         </StackPanel>
+
+                                        <Rectangle Height="1" Fill="{StaticResource HubDivider}" />
+
+                                        <Grid ColumnSpacing="14">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Spacing="4" VerticalAlignment="Center">
+                                                <TextBlock
+                                                    x:Name="HubPortAutoSearchLabel"
+                                                    Style="{StaticResource HubFieldLabelTextStyle}" />
+                                                <TextBlock
+                                                    x:Name="HubPortAutoSearchHint"
+                                                    Style="{StaticResource HubHelperTextStyle}" />
+                                            </StackPanel>
+                                            <ToggleSwitch
+                                                x:Name="HubPortAutoSearchToggle"
+                                                Grid.Column="1"
+                                                VerticalAlignment="Center"
+                                                OnContent=""
+                                                OffContent=""
+                                                Toggled="OnHubPortAutoSearchToggled" />
+                                        </Grid>
                                     </StackPanel>
                                 </Border>
                             </StackPanel>

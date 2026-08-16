@@ -33,6 +33,10 @@ namespace KillConfirmGameBar.Controls.Settings
         {
             ApplyLanguage();
             ApplyTheme(GameThemePalette.Current);
+            if (HubPortAutoSearchToggle != null)
+            {
+                HubPortAutoSearchToggle.IsOn = PortSettingsStore.AutoSearchEnabled;
+            }
             await RefreshPortStateAsync();
         }
 
@@ -76,6 +80,11 @@ namespace KillConfirmGameBar.Controls.Settings
                 ? "支持 1024-65535，应用后会自动重启服务并更新 cfg 文件。"
                 : "Accepts 1024-65535. Applying will restart the service and refresh the cfg file.";
             HubPortCustomApplyButton.Content = isChinese ? "应用" : "Apply";
+
+            HubPortAutoSearchLabel.Text = isChinese ? "端口冲突时自动切换" : "Auto-search free port";
+            HubPortAutoSearchHint.Text = isChinese
+                ? "默认 10087 被占用时，自动顺延到下一个空闲端口（最多 +100）。"
+                : "If 10087 is held by another program, the service will scan forward to the next free port (up to +100).";
 
             HubPortStatusTitle.Text = isChinese ? "连接状态" : "CONNECTION STATUS";
             HubPortStatusBody.Text = isChinese
@@ -145,6 +154,55 @@ namespace KillConfirmGameBar.Controls.Settings
 
             // Suppress unused warning - the tooltip uses isChinese in case we expand it later.
             _ = isChinese;
+        }
+
+        private async void OnHubPortAutoSearchToggled(object sender, RoutedEventArgs e)
+        {
+            if (HubPortAutoSearchToggle == null)
+            {
+                return;
+            }
+
+            bool enabled = HubPortAutoSearchToggle.IsOn;
+            await PortSettingsStore.SetAutoSearchAsync(enabled);
+
+            bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            HubPortStatusMessage.Text = isChinese
+                ? (enabled
+                    ? "已开启自动切换端口，正在重启服务…"
+                    : "已关闭自动切换端口，正在重启服务…")
+                : (enabled
+                    ? "Auto-search enabled. Restarting service…"
+                    : "Auto-search disabled. Restarting service…");
+
+            bool launched = await ServiceLauncher.LaunchAsync(PortSettingsStore.CurrentPort);
+            if (!launched)
+            {
+                HubPortStatusMessage.Text = isChinese
+                    ? "无法重启服务，请稍后重试。"
+                    : "Failed to restart the service. Please retry.";
+                return;
+            }
+
+            for (int attempt = 0; attempt < 8; attempt++)
+            {
+                await Task.Delay(250);
+                int? reported = await TryGetServicePortAsync();
+                if (reported.HasValue)
+                {
+                    break;
+                }
+            }
+
+            await RefreshPortStateAsync();
+            await TryRefreshCounterStrikeCfgAsync();
+            HubPortStatusMessage.Text = isChinese
+                ? (enabled
+                    ? "自动切换已开启。服务运行后，端口将自动顺延。"
+                    : "自动切换已关闭。")
+                : (enabled
+                    ? "Auto-search on. The service will pick the next free port on bind."
+                    : "Auto-search off.");
         }
 
         private async void OnHubPortRefreshClick(object sender, RoutedEventArgs e)

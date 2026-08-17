@@ -196,7 +196,8 @@ namespace KillConfirmGameBar.Services
         public static bool IsDagoujiaoKey(string key)
         {
             string value = (key ?? string.Empty).Trim();
-            return string.Equals(value, "dagoujiao", System.StringComparison.OrdinalIgnoreCase)
+            return value.StartsWith("dagoujiao", System.StringComparison.OrdinalIgnoreCase)
+                || value.StartsWith("custom_dagoujiao_", System.StringComparison.OrdinalIgnoreCase)
                 || string.Equals(value, "大狗叫", System.StringComparison.OrdinalIgnoreCase);
         }
 
@@ -215,8 +216,7 @@ namespace KillConfirmGameBar.Services
                 || IsBattlefield2042Key(key)
                 || IsPubgKey(key)
                 || IsDeltaForceKey(key)
-                || IsDoubaoKey(key)
-                || IsDagoujiaoKey(key);
+                || IsDoubaoKey(key);
         }
 
         public static GameStyleMode GetStyleForPackKey(string key)
@@ -229,6 +229,11 @@ namespace KillConfirmGameBar.Services
             if (IsCsolKey(key))
             {
                 return GameStyleMode.Csol;
+            }
+
+            if (IsDagoujiaoKey(key))
+            {
+                return GameStyleMode.Dagoujiao;
             }
 
             if (IsBattlefield1Key(key))
@@ -264,11 +269,6 @@ namespace KillConfirmGameBar.Services
             if (IsDoubaoKey(key))
             {
                 return GameStyleMode.Doubao;
-            }
-
-            if (IsDagoujiaoKey(key))
-            {
-                return GameStyleMode.Dagoujiao;
             }
 
             return GameStyleMode.Crossfire;

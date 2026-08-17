@@ -258,11 +258,15 @@ namespace KillConfirmGameBar
                 try
                 {
                     StorageFolder installed = Windows.ApplicationModel.Package.Current.InstalledLocation;
-                    if (string.Equals(item.Key, "csol_original", StringComparison.OrdinalIgnoreCase))
+                    if (string.Equals(item.Key, "dagoujiao", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return await installed.GetFolderAsync(@"Assets\GameStyles\dagoujiao\killconfirm\textures");
+                    }
+                    if (string.Equals(item.Key, "csol4", StringComparison.OrdinalIgnoreCase) || string.Equals(item.Key, "csol_original", StringComparison.OrdinalIgnoreCase))
                     {
                         return await installed.GetFolderAsync(@"Assets\KillConfirmCode\Csol4");
                     }
-                    if (string.Equals(item.Key, "original", StringComparison.OrdinalIgnoreCase))
+                    if (string.Equals(item.Key, "original", StringComparison.OrdinalIgnoreCase) || string.Equals(item.Key, "default", StringComparison.OrdinalIgnoreCase))
                     {
                         return await installed.GetFolderAsync(@"Assets\KillConfirmCode\Original");
                     }

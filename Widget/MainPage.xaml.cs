@@ -26,6 +26,7 @@ namespace KillConfirmGameBar
         private string _activeHomeTab = "general";
         private string _activeCfTab = "combat";
         private string _activeCsolTab = "combat";
+        private string _activeDagoujiaoTab = "combat";
 
         public MainPage()
         {
@@ -50,6 +51,11 @@ namespace KillConfirmGameBar
         private void OnCsolTabIconClick(object sender, RoutedEventArgs e) => SelectCsolTab("icon");
         private void OnCsolTabGuideClick(object sender, RoutedEventArgs e) => SelectCsolTab("guide");
 
+        private void OnDagoujiaoTabCombatClick(object sender, RoutedEventArgs e) => SelectDagoujiaoTab("combat");
+        private void OnDagoujiaoTabVoiceClick(object sender, RoutedEventArgs e) => SelectDagoujiaoTab("voice");
+        private void OnDagoujiaoTabIconButtonClick(object sender, RoutedEventArgs e) => SelectDagoujiaoTab("icon");
+        private void OnDagoujiaoTabGuideClick(object sender, RoutedEventArgs e) => SelectDagoujiaoTab("guide");
+
         public void SelectHomeTab(string tab)
         {
             _activeHomeTab = tab;
@@ -66,6 +72,12 @@ namespace KillConfirmGameBar
         {
             _activeCsolTab = tab;
             ApplyCsolActiveTab();
+        }
+
+        public void SelectDagoujiaoTab(string tab)
+        {
+            _activeDagoujiaoTab = tab;
+            ApplyDagoujiaoActiveTab();
         }
 
         private void ApplyHomeActiveTab()
@@ -123,6 +135,26 @@ namespace KillConfirmGameBar
             UpdateCsolTabButtonsTheme();
         }
 
+        private void ApplyDagoujiaoActiveTab()
+        {
+            if (GameStyleService.Current != GameStyleMode.Dagoujiao || _isHomePageSelected)
+            {
+                return;
+            }
+
+            bool isCombat = _activeDagoujiaoTab == "combat";
+            bool isVoice = _activeDagoujiaoTab == "voice";
+            bool isIcon = _activeDagoujiaoTab == "icon";
+            bool isGuide = _activeDagoujiaoTab == "guide";
+
+            if (GameEffectsCard != null) GameEffectsCard.Visibility = isCombat ? Visibility.Visible : Visibility.Collapsed;
+            if (VoicePackCollectionsCard != null) VoicePackCollectionsCard.Visibility = isVoice ? Visibility.Visible : Visibility.Collapsed;
+            if (IconPackCollectionsCard != null) IconPackCollectionsCard.Visibility = isIcon ? Visibility.Visible : Visibility.Collapsed;
+            if (CsolGuideCard != null) CsolGuideCard.Visibility = isGuide ? Visibility.Visible : Visibility.Collapsed;
+
+            UpdateDagoujiaoTabButtonsTheme();
+        }
+
         private void UpdateHomeTabButtonsTheme()
         {
             GameThemePalette theme = _isHomePageSelected ? GameThemePalette.Home : GameThemePalette.Current;
@@ -148,6 +180,15 @@ namespace KillConfirmGameBar
             UpdateTabBtn(CsolTabVoiceButton, _activeCsolTab == "voice", theme);
             UpdateTabBtn(CsolTabIconButton, _activeCsolTab == "icon", theme);
             UpdateTabBtn(CsolTabGuideButton, _activeCsolTab == "guide", theme);
+        }
+
+        private void UpdateDagoujiaoTabButtonsTheme()
+        {
+            GameThemePalette theme = GameThemePalette.Current;
+            UpdateTabBtn(DagoujiaoTabCombatButton, _activeDagoujiaoTab == "combat", theme);
+            UpdateTabBtn(DagoujiaoTabVoiceButton, _activeDagoujiaoTab == "voice", theme);
+            UpdateTabBtn(DagoujiaoTabIconButton, _activeDagoujiaoTab == "icon", theme);
+            UpdateTabBtn(DagoujiaoTabGuideButton, _activeDagoujiaoTab == "guide", theme);
         }
 
         private static void UpdateTabBtn(Button btn, bool isActive, GameThemePalette theme)

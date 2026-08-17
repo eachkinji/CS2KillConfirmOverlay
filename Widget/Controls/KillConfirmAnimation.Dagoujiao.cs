@@ -53,7 +53,7 @@ namespace KillConfirmGameBar.Controls
                 try
                 {
                     if (generation != _resourceGeneration || token != _playToken) return;
-                    bitmap = await LoadDagoujiaoImageAsync(imageKey);
+                    bitmap = await LoadDagoujiaoImageForKillAsync(settings, killCount, isHeadshot);
                 }
                 finally
                 {
@@ -79,8 +79,8 @@ namespace KillConfirmGameBar.Controls
 
         public static void InvalidateDagoujiaoImageCache()
         {
-            // Imported images use unique file names and setting changes only switch
-            // cache keys, so active bitmaps remain valid and cannot be disposed mid-frame.
+            // Clear image cache when packs or settings change
+            ClearDagoujiaoImageCache();
             _startupPreloadTask = null;
         }
 
@@ -90,7 +90,7 @@ namespace KillConfirmGameBar.Controls
             {
                 DagoujiaoSettingsStore.DefaultCommonImageKey,
                 DagoujiaoSettingsStore.DefaultHeadshotImageKey,
-                DagoujiaoSettingsStore.EpicImageKey
+                DagoujiaoSettingsStore.DefaultEpicImageKey
             };
             progress?.Report(0);
             for (int index = 0; index < defaults.Length; index++)
@@ -99,6 +99,63 @@ namespace KillConfirmGameBar.Controls
                 catch { }
                 progress?.Report((index + 1) * 100 / defaults.Length);
             }
+        }
+
+        private async Task<CanvasBitmap> LoadDagoujiaoImageForKillAsync(DagoujiaoSettingsValues settings, int killCount, bool isHeadshot)
+        {
+            if (PackCatalogService.IsImportedIconPackKey(_iconPack))
+            {
+                StorageFolder customFolder = await PackCatalogService.GetImportedIconFolderAsync(_iconPack);
+                if (customFolder != null)
+                {
+                    string targetFile = null;
+                    if (isHeadshot && (settings?.HeadshotPriority ?? false))
+                    {
+                        targetFile = "headshot.png";
+                    }
+                    else if (killCount >= (settings?.EpicKillCount ?? 5))
+                    {
+                        targetFile = "epic.jpg";
+                    }
+                    else
+                    {
+                        targetFile = $"{killCount}kill.png";
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(targetFile))
+                    {
+                        CanvasBitmap bmp = await TryLoadBitmapFromFolderAsync(customFolder, targetFile);
+                        if (bmp != null) return bmp;
+                        if (targetFile.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase))
+                        {
+                            bmp = await TryLoadBitmapFromFolderAsync(customFolder, "epic.png");
+                            if (bmp != null) return bmp;
+                        }
+                    }
+
+                    // Fallback to common.png in custom folder
+                    CanvasBitmap commonBmp = await TryLoadBitmapFromFolderAsync(customFolder, "common.png");
+                    if (commonBmp != null) return commonBmp;
+                }
+            }
+
+            string imageKey = DagoujiaoSettingsStore.ResolveImageKey(settings, killCount, isHeadshot);
+            return await LoadDagoujiaoImageAsync(imageKey);
+        }
+
+        private static async Task<CanvasBitmap> TryLoadBitmapFromFolderAsync(StorageFolder folder, string fileName)
+        {
+            if (folder == null || string.IsNullOrWhiteSpace(fileName)) return null;
+            try
+            {
+                StorageFile file = await folder.GetFileAsync(fileName);
+                if (file != null)
+                {
+                    return await LoadBitmapFromStorageFileAsync(file);
+                }
+            }
+            catch { }
+            return null;
         }
 
         private static async Task<CanvasBitmap> LoadDagoujiaoImageAsync(string imageKey)

@@ -21,6 +21,7 @@ namespace KillConfirmGameBar.Services
         public double InitialPlaybackSpeed { get; set; } = 0.5;
         public double MaximumPlaybackSpeed { get; set; } = 2.0;
         public string HeadshotImageKey { get; set; } = DagoujiaoSettingsStore.DefaultHeadshotImageKey;
+        public string EpicImageKey { get; set; } = DagoujiaoSettingsStore.DefaultEpicImageKey;
         public Dictionary<int, string> KillImageKeys { get; set; } = new Dictionary<int, string>();
         public string CommonAudioKey { get; set; } = DagoujiaoSettingsStore.DefaultCommonAudioKey;
         public string EpicAudioKey { get; set; } = DagoujiaoSettingsStore.DefaultEpicAudioKey;
@@ -47,7 +48,8 @@ namespace KillConfirmGameBar.Services
         public const int MaximumEpicKillCount = 50;
         public const string DefaultCommonImageKey = "builtin:common.png";
         public const string DefaultHeadshotImageKey = "builtin:headshot.png";
-        public const string EpicImageKey = "builtin:epic.jpg";
+        public const string DefaultEpicImageKey = "builtin:epic.jpg";
+        public const string EpicImageKey = DefaultEpicImageKey;
         public const string DefaultCommonAudioKey = "builtin:common.wav";
         public const string DefaultEpicAudioKey = "builtin:epic.wav";
         public const string JiaojiaojiaoAudioKey = "builtin:jiaojiaojiao.wav";
@@ -127,6 +129,9 @@ namespace KillConfirmGameBar.Services
                 HeadshotImageKey = NormalizeImageKey(
                     values[Prefix + "HeadshotImage"] as string,
                     DefaultHeadshotImageKey),
+                EpicImageKey = NormalizeImageKey(
+                    values[Prefix + "EpicImage"] as string,
+                    DefaultEpicImageKey),
                 KillImageKeys = killImages,
                 CommonAudioKey = NormalizeAudioKey(
                     values[Prefix + "CommonAudio"] as string,
@@ -153,6 +158,7 @@ namespace KillConfirmGameBar.Services
             values[Prefix + "InitialPlaybackSpeedPercent"] = (int)Math.Round(Math.Max(0.25, Math.Min(4.0, settings.InitialPlaybackSpeed)) * 100.0);
             values[Prefix + "MaximumPlaybackSpeedPercent"] = (int)Math.Round(Math.Max(0.25, Math.Min(4.0, settings.MaximumPlaybackSpeed)) * 100.0);
             values[Prefix + "HeadshotImage"] = NormalizeImageKey(settings.HeadshotImageKey, DefaultHeadshotImageKey);
+            values[Prefix + "EpicImage"] = NormalizeImageKey(settings.EpicImageKey, DefaultEpicImageKey);
             values[Prefix + "CommonAudio"] = NormalizeAudioKey(settings.CommonAudioKey, DefaultCommonAudioKey);
             values[Prefix + "EpicAudio"] = NormalizeAudioKey(settings.EpicAudioKey, DefaultEpicAudioKey);
             values[Prefix + "HeadshotAudio"] = NormalizeAudioKey(settings.HeadshotAudioKey, DefaultHeadshotAudioKey);
@@ -177,7 +183,7 @@ namespace KillConfirmGameBar.Services
             }
             if (killCount >= epic)
             {
-                return EpicImageKey;
+                return NormalizeImageKey(settings?.EpicImageKey, DefaultEpicImageKey);
             }
             if (settings?.KillImageKeys != null
                 && settings.KillImageKeys.TryGetValue(Math.Max(1, killCount), out string selected))
@@ -485,8 +491,59 @@ namespace KillConfirmGameBar.Services
             return durationMs;
         }
 
+        public static async Task SyncActiveVoicePackAudioAsync(string voicePackKey)
+        {
+            if (string.IsNullOrWhiteSpace(voicePackKey)) return;
+            if (PackCatalogService.IsDagoujiaoVoicePackKey(voicePackKey))
+            {
+                DagoujiaoSettingsValues settings = Load();
+                if (PackCatalogService.IsImportedVoicePackKey(voicePackKey))
+                {
+                    StorageFolder folder = await PackCatalogService.GetImportedVoiceFolderAsync(voicePackKey);
+                    if (folder != null)
+                    {
+                        StorageFile commonFile = await TryFindAudioFileInFolderAsync(folder, "common");
+                        StorageFile headshotFile = await TryFindAudioFileInFolderAsync(folder, "headshot");
+                        StorageFile epicFile = await TryFindAudioFileInFolderAsync(folder, "epic");
+                        if (commonFile != null) settings.CommonAudioKey = commonFile.Path;
+                        if (headshotFile != null) settings.HeadshotAudioKey = headshotFile.Path;
+                        if (epicFile != null) settings.EpicAudioKey = epicFile.Path;
+                    }
+                }
+                else
+                {
+                    settings.CommonAudioKey = DefaultCommonAudioKey;
+                    settings.HeadshotAudioKey = DefaultHeadshotAudioKey;
+                    settings.EpicAudioKey = DefaultEpicAudioKey;
+                }
+                Save(settings);
+                await SyncServiceAsync();
+            }
+        }
+
+        private static async Task<StorageFile> TryFindAudioFileInFolderAsync(StorageFolder folder, string stem)
+        {
+            if (folder == null) return null;
+            foreach (string ext in new[] { ".wav", ".mp3", ".m4a" })
+            {
+                try
+                {
+                    StorageFile file = await folder.GetFileAsync(stem + ext);
+                    if (file != null) return file;
+                }
+                catch { }
+            }
+            return null;
+        }
+
         private static async Task<string> ResolveServiceAudioPathAsync(string key, string fallback)
         {
+            if (string.IsNullOrWhiteSpace(key)) return fallback;
+            if (key.StartsWith("builtin:", StringComparison.OrdinalIgnoreCase)) return key;
+            if (key.Contains(":") || key.Contains("\\") || key.Contains("/"))
+            {
+                if (System.IO.File.Exists(key)) return key;
+            }
             string normalized = NormalizeAudioKey(key, fallback);
             if (normalized.StartsWith("builtin:", StringComparison.OrdinalIgnoreCase)) return normalized;
             StorageFile imported = await GetImportedAudioFileAsync(normalized);

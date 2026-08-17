@@ -20,10 +20,27 @@ namespace KillConfirmGameBar
                 AdvancedSettingsHubControl.HubDisplayScalingPanel.ApplyLanguage();
             }
 
-            VoiceCollectionsTitleText.Text = LocalizationManager.Text("VoiceCollectionsTitle");
-            VoiceCollectionsHintText.Text = LocalizationManager.Text("VoiceCollectionsHint");
-            IconCollectionsTitleText.Text = LocalizationManager.Text("IconCollectionsTitle");
-            IconCollectionsHintText.Text = LocalizationManager.Text("IconCollectionsHint");
+            if (GameStyleService.Current == GameStyleMode.Dagoujiao)
+            {
+                VoiceCollectionsTitleText.Text = LocalizationManager.Text("DagoujiaoVoiceCollectionsTitle");
+                VoiceCollectionsHintText.Text = LocalizationManager.Text("DagoujiaoVoiceCollectionsHint");
+                IconCollectionsTitleText.Text = LocalizationManager.Text("DagoujiaoIconCollectionsTitle");
+                IconCollectionsHintText.Text = LocalizationManager.Text("DagoujiaoIconCollectionsHint");
+            }
+            else if (GameStyleService.Current == GameStyleMode.Csol)
+            {
+                VoiceCollectionsTitleText.Text = LocalizationManager.Text("CsolVoiceCollectionsTitle");
+                VoiceCollectionsHintText.Text = LocalizationManager.Text("CsolVoiceCollectionsHint");
+                IconCollectionsTitleText.Text = LocalizationManager.Text("CsolIconCollectionsTitle");
+                IconCollectionsHintText.Text = LocalizationManager.Text("CsolIconCollectionsHint");
+            }
+            else
+            {
+                VoiceCollectionsTitleText.Text = LocalizationManager.Text("VoiceCollectionsTitle");
+                VoiceCollectionsHintText.Text = LocalizationManager.Text("VoiceCollectionsHint");
+                IconCollectionsTitleText.Text = LocalizationManager.Text("IconCollectionsTitle");
+                IconCollectionsHintText.Text = LocalizationManager.Text("IconCollectionsHint");
+            }
 
             ImportVoicePackButton.Content = LocalizationManager.Text("ImportVoicePack");
             ImportVoiceZipButton.Content = LocalizationManager.Text("ImportZip");
@@ -45,6 +62,10 @@ namespace KillConfirmGameBar
             if (CsolTabVoiceButton != null) CsolTabVoiceButton.Content = LocalizationManager.Text("CsolTabVoice");
             if (CsolTabIconButton != null) CsolTabIconButton.Content = LocalizationManager.Text("CsolTabIcon");
             if (CsolTabGuideButton != null) CsolTabGuideButton.Content = LocalizationManager.Text("CsolTabGuide");
+            if (DagoujiaoTabCombatButton != null) DagoujiaoTabCombatButton.Content = LocalizationManager.Text("DagoujiaoTabCombat");
+            if (DagoujiaoTabVoiceButton != null) DagoujiaoTabVoiceButton.Content = LocalizationManager.Text("DagoujiaoTabVoice");
+            if (DagoujiaoTabIconButton != null) DagoujiaoTabIconButton.Content = LocalizationManager.Text("DagoujiaoTabIcon");
+            if (DagoujiaoTabGuideButton != null) DagoujiaoTabGuideButton.Content = LocalizationManager.Text("DagoujiaoTabGuide");
 
             ApplyCsolGuideCardLanguage();
 
@@ -95,15 +116,31 @@ namespace KillConfirmGameBar
                 return;
             }
 
+            if (GameStyleService.Current == GameStyleMode.Dagoujiao)
+            {
+                if (CsolStructureTitleText != null) CsolStructureTitleText.Text = LocalizationManager.Text("DagoujiaoStructureTitle");
+                if (CsolStructureBodyText != null) CsolStructureBodyText.Text = LocalizationManager.Text("DagoujiaoStructureBody");
+                if (CsolStructureVoiceSpecTitle != null) CsolStructureVoiceSpecTitle.Text = LocalizationManager.Text("StructureVoiceSpecTitle");
+                if (CsolStructureVoiceSpecBody != null) CsolStructureVoiceSpecBody.Text = LocalizationManager.Text("DagoujiaoStructureVoiceSpecBody");
+                if (CsolStructureIconSpecTitle != null) CsolStructureIconSpecTitle.Text = LocalizationManager.Text("StructureIconSpecTitle");
+                if (CsolStructureIconSpecBody != null) CsolStructureIconSpecBody.Text = LocalizationManager.Text("DagoujiaoStructureIconSpecBody");
+                if (CsolStructureImportZipTitle != null) CsolStructureImportZipTitle.Text = LocalizationManager.Text("StructureImportZipTitle");
+                if (CsolStructureImportZipBody != null) CsolStructureImportZipBody.Text = LocalizationManager.Text("StructureImportZipBody");
+                if (CsolStructureCreatorTitle != null) CsolStructureCreatorTitle.Text = LocalizationManager.Text("StructureCreatorTitle");
+                if (CsolStructureCreatorBody != null) CsolStructureCreatorBody.Text = LocalizationManager.Text("StructureCreatorBody");
+                if (CsolStructureFileHint != null) CsolStructureFileHint.Text = LocalizationManager.Text("DagoujiaoStructureFileHint");
+                return;
+            }
+
             if (CsolStructureTitleText != null) CsolStructureTitleText.Text = LocalizationManager.Text("CsolStructureTitle");
             if (CsolStructureBodyText != null) CsolStructureBodyText.Text = LocalizationManager.Text("CsolStructureBody");
             if (CsolStructureVoiceSpecTitle != null) CsolStructureVoiceSpecTitle.Text = LocalizationManager.Text("StructureVoiceSpecTitle");
             if (CsolStructureVoiceSpecBody != null) CsolStructureVoiceSpecBody.Text = LocalizationManager.Text("CsolStructureVoiceSpecBody");
             if (CsolStructureIconSpecTitle != null) CsolStructureIconSpecTitle.Text = LocalizationManager.Text("StructureIconSpecTitle");
             if (CsolStructureIconSpecBody != null) CsolStructureIconSpecBody.Text = LocalizationManager.Text("CsolStructureIconSpecBody");
-            if (CsolStructureImportZipTitle != null) CsolStructureImportZipTitle.Text = LocalizationManager.Text("StructureImportZipTitle");
+            if (CsolStructureImportZipTitle != null) CsolStructureImportZipTitle.Text = LocalizationManager.Text("CsolStructureImportZipTitle");
             if (CsolStructureImportZipBody != null) CsolStructureImportZipBody.Text = LocalizationManager.Text("CsolStructureImportZipBody");
-            if (CsolStructureCreatorTitle != null) CsolStructureCreatorTitle.Text = LocalizationManager.Text("StructureCreatorTitle");
+            if (CsolStructureCreatorTitle != null) CsolStructureCreatorTitle.Text = LocalizationManager.Text("CsolStructureCreatorTitle");
             if (CsolStructureCreatorBody != null) CsolStructureCreatorBody.Text = LocalizationManager.Text("CsolStructureCreatorBody");
             if (CsolStructureFileHint != null) CsolStructureFileHint.Text = LocalizationManager.Text("CsolStructureFileHint");
         }

@@ -17,6 +17,21 @@ namespace KillConfirmGameBar
             "firstandlast.wav"
         };
 
+        private static readonly string[] CsolVoicePackImportFiles =
+        {
+            "1.wav", "2.wav", "3.wav", "4.wav", "5.wav",
+            "6.wav", "7.wav", "8.wav", "9.wav", "10.wav",
+            "headshot.wav", "knife.wav", "first.wav", "last.wav", "assist.wav"
+        };
+
+        private static readonly string[] DagoujiaoVoicePackImportFiles =
+        {
+            "common.wav",
+            "headshot.wav",
+            "epic.wav",
+            "jiaojiaojiao.wav"
+        };
+
         private static readonly string[] IconPackImportFiles =
         {
             "badge_multi1.png",
@@ -58,6 +73,38 @@ namespace KillConfirmGameBar
             "badge_knife3.png"
         };
 
+        private static readonly string[] CsolIconPackImportFiles =
+        {
+            "badge_headshot.png", "badge_knife.png", "badge_firstkill.png", "badge_lastkill.png",
+            "multi2.png", "multi3.png", "multi4.png", "multi5.png", "multi6.png",
+            "multi7.png", "multi8.png", "multi9.png", "multi10.png"
+        };
+
+        private static readonly string[] DagoujiaoIconPackImportFiles =
+        {
+            "common.png",
+            "headshot.png",
+            "epic.jpg",
+            "1kill.png",
+            "2kill.png",
+            "3kill.png",
+            "4kill.png",
+            "5kill.png",
+            "ice_dog.jpg",
+            "electric_dog.jpg",
+            "red_dog.jpg",
+            "fire_dog.jpg",
+            "sword_dog.jpg",
+            "old_dog.jpg",
+            "old_dog_bark.jpg",
+            "gun_dog.jpg",
+            "earth_dog.jpg",
+            "scary_dog.jpg",
+            "dog_pack.jpg",
+            "no_bark.png",
+            "logo.jpg"
+        };
+
         private static readonly string[] VoicePackHeadImageNames =
         {
             "pack_head.png",
@@ -78,6 +125,13 @@ namespace KillConfirmGameBar
             "badgeex\\badge_headshot.jpeg",
             "badgeex\\badge_headshot.webp",
             "badgeex\\badge_headshot.tga"
+        };
+
+        private static readonly string[] SupportedAudioExtensions =
+        {
+            ".wav",
+            ".mp3",
+            ".m4a"
         };
 
         private static readonly string[] IconImageExtensions =

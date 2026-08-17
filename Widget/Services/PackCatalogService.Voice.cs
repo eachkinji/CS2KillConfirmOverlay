@@ -32,7 +32,8 @@ namespace KillConfirmGameBar.Services
         {
             if (string.IsNullOrWhiteSpace(key)) return false;
             return key.StartsWith("custom_voice_", StringComparison.OrdinalIgnoreCase)
-                || key.StartsWith("custom_csol_voice_", StringComparison.OrdinalIgnoreCase);
+                || key.StartsWith("custom_csol_voice_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("custom_dagoujiao_voice_", StringComparison.OrdinalIgnoreCase);
         }
 
         public static bool IsCsolVoicePackKey(string key)
@@ -40,6 +41,13 @@ namespace KillConfirmGameBar.Services
             if (string.IsNullOrWhiteSpace(key)) return false;
             return key.StartsWith("custom_csol_voice_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("csol", StringComparison.OrdinalIgnoreCase);
+        }
+
+        public static bool IsDagoujiaoVoicePackKey(string key)
+        {
+            if (string.IsNullOrWhiteSpace(key)) return false;
+            return key.StartsWith("custom_dagoujiao_voice_", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(key, "dagoujiao", StringComparison.OrdinalIgnoreCase);
         }
 
         public static async Task<IReadOnlyList<VoicePackItem>> GetVisibleVoicePacksAsync()
@@ -68,6 +76,21 @@ namespace KillConfirmGameBar.Services
                 string.Equals(p.Key, key, StringComparison.OrdinalIgnoreCase));
         }
 
+        public static async Task<StorageFolder> GetImportedVoiceFolderAsync(string key)
+        {
+            var item = await GetVoicePackAsync(key);
+            if (item == null || string.IsNullOrEmpty(item.FolderPath)) return null;
+
+            try
+            {
+                return await StorageFolder.GetFolderFromPathAsync(item.FolderPath);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         public static async Task ImportVoicePackAsync(StorageFolder folder)
         {
             var catalog = await LoadAsync();
@@ -89,6 +112,21 @@ namespace KillConfirmGameBar.Services
             catalog.VoicePacks.Add(new VoicePackItem
             {
                 Key = "custom_csol_voice_" + Guid.NewGuid().ToString("N"),
+                DisplayName = folder.DisplayName,
+                FolderPath = folder.Path,
+                IsBuiltIn = false,
+                IsVisibleInWidget = true,
+                OwnsFolder = false
+            });
+            await SaveAsync(catalog);
+        }
+
+        public static async Task ImportDagoujiaoVoicePackAsync(StorageFolder folder)
+        {
+            var catalog = await LoadAsync();
+            catalog.VoicePacks.Add(new VoicePackItem
+            {
+                Key = "custom_dagoujiao_voice_" + Guid.NewGuid().ToString("N"),
                 DisplayName = folder.DisplayName,
                 FolderPath = folder.Path,
                 IsBuiltIn = false,
@@ -264,6 +302,74 @@ namespace KillConfirmGameBar.Services
             });
             await SaveAsync(catalog);
         }
+
+        public static async Task CreateDagoujiaoVoicePackAsync(string displayName, VoicePackBuildOptions options)
+        {
+            StorageFolder root = await GetOrCreatePackRootAsync("GeneratedDagoujiaoVoicePacks");
+            StorageFolder packFolder = await root.CreateFolderAsync(
+                SanitizeName(displayName),
+                CreationCollisionOption.GenerateUniqueName);
+
+            foreach (var pair in options.SelectedFiles)
+            {
+                if (pair.Value != null)
+                {
+                    await pair.Value.CopyAsync(
+                        packFolder,
+                        GetAudioTargetFileName(pair.Key, pair.Value),
+                        NameCollisionOption.ReplaceExisting);
+                }
+            }
+
+            if (options.HeadImageFile != null)
+            {
+                string extension = options.HeadImageFile.FileType;
+                if (string.IsNullOrWhiteSpace(extension))
+                {
+                    extension = ".png";
+                }
+
+                if (extension.Equals(".tga", StringComparison.OrdinalIgnoreCase))
+                {
+                    await TgaDecoder.ConvertTgaToPngAsync(options.HeadImageFile, packFolder, "pack_head.png");
+                }
+                else
+                {
+                    await options.HeadImageFile.CopyAsync(
+                        packFolder,
+                        "pack_head" + extension.ToLowerInvariant(),
+                        NameCollisionOption.ReplaceExisting);
+                }
+            }
+
+            await WriteGeneratedVoiceManifestAsync(
+                packFolder,
+                displayName,
+                "dagoujiao",
+                DagoujiaoSlotMapping,
+                commonOverlayEnabled: null);
+
+            var catalog = await LoadAsync();
+            catalog.VoicePacks.Add(new VoicePackItem
+            {
+                Key = "custom_dagoujiao_voice_" + Guid.NewGuid().ToString("N"),
+                DisplayName = displayName,
+                FolderPath = packFolder.Path,
+                IsBuiltIn = false,
+                IsVisibleInWidget = true,
+                OwnsFolder = true
+            });
+            await SaveAsync(catalog);
+        }
+
+        public static readonly IReadOnlyDictionary<string, string> DagoujiaoSlotMapping =
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "common", "common" },
+                { "headshot", "headshot" },
+                { "epic", "epic" },
+                { "jiaojiaojiao", "jiaojiaojiao" }
+            };
 
         // Slot mapping used when writing manifests for CF voice packs.
         // Maps source-stem -> manifest-slot key.

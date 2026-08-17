@@ -475,6 +475,38 @@
                         </StackPanel>
                     </Border>
 
+                    <!-- Dagoujiao Studio Dedicated Navigation Tab Bar -->
+                    <Border
+                        x:Name="DagoujiaoWorkspaceTabBar"
+                        Grid.Row="1"
+                        MaxWidth="1480"
+                        Padding="4"
+                        HorizontalAlignment="Center"
+                        Visibility="Collapsed"
+                        Background="#EAEAE6"
+                        BorderBrush="#D5D0C4"
+                        BorderThickness="1"
+                        CornerRadius="20">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <Button
+                                x:Name="DagoujiaoTabCombatButton"
+                                Style="{StaticResource StudioTabActiveButtonStyle}"
+                                Click="OnDagoujiaoTabCombatClick" />
+                            <Button
+                                x:Name="DagoujiaoTabVoiceButton"
+                                Style="{StaticResource StudioTabButtonStyle}"
+                                Click="OnDagoujiaoTabVoiceClick" />
+                            <Button
+                                x:Name="DagoujiaoTabIconButton"
+                                Style="{StaticResource StudioTabButtonStyle}"
+                                Click="OnDagoujiaoTabIconButtonClick" />
+                            <Button
+                                x:Name="DagoujiaoTabGuideButton"
+                                Style="{StaticResource StudioTabButtonStyle}"
+                                Click="OnDagoujiaoTabGuideClick" />
+                        </StackPanel>
+                    </Border>
+
                     <!-- Home View -->
                     <Grid
                         x:Name="HomePageContent"

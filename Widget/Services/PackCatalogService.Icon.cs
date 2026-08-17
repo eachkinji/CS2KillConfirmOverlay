@@ -58,7 +58,8 @@ namespace KillConfirmGameBar.Services
         {
             if (string.IsNullOrWhiteSpace(key)) return false;
             return key.StartsWith("custom_icon_", StringComparison.OrdinalIgnoreCase)
-                || key.StartsWith("custom_csol_icon_", StringComparison.OrdinalIgnoreCase);
+                || key.StartsWith("custom_csol_icon_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("custom_dagoujiao_icon_", StringComparison.OrdinalIgnoreCase);
         }
 
         public static bool IsCsolIconPackKey(string key)
@@ -66,6 +67,13 @@ namespace KillConfirmGameBar.Services
             if (string.IsNullOrWhiteSpace(key)) return false;
             return key.StartsWith("custom_csol_icon_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("csol", StringComparison.OrdinalIgnoreCase);
+        }
+
+        public static bool IsDagoujiaoIconPackKey(string key)
+        {
+            if (string.IsNullOrWhiteSpace(key)) return false;
+            return key.StartsWith("custom_dagoujiao_icon_", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(key, "dagoujiao", StringComparison.OrdinalIgnoreCase);
         }
 
         public static async Task<StorageFolder> GetImportedIconFolderAsync(string key)
@@ -147,6 +155,21 @@ namespace KillConfirmGameBar.Services
             catalog.IconPacks.Add(new IconPackItem
             {
                 Key = "custom_csol_icon_" + Guid.NewGuid().ToString("N"),
+                DisplayName = folder.DisplayName,
+                FolderPath = folder.Path,
+                IsBuiltIn = false,
+                IsVisibleInWidget = true,
+                OwnsFolder = false
+            });
+            await SaveAsync(catalog);
+        }
+
+        public static async Task ImportDagoujiaoIconPackAsync(StorageFolder folder)
+        {
+            var catalog = await LoadAsync();
+            catalog.IconPacks.Add(new IconPackItem
+            {
+                Key = "custom_dagoujiao_icon_" + Guid.NewGuid().ToString("N"),
                 DisplayName = folder.DisplayName,
                 FolderPath = folder.Path,
                 IsBuiltIn = false,
@@ -364,6 +387,64 @@ namespace KillConfirmGameBar.Services
             catalog.IconPacks.Add(new IconPackItem
             {
                 Key = "custom_csol_icon_" + Guid.NewGuid().ToString("N"),
+                DisplayName = displayName,
+                FolderPath = packFolder.Path,
+                IsBuiltIn = false,
+                IsVisibleInWidget = true,
+                OwnsFolder = true,
+                HasFxOverlay = false,
+                HasKillFxOverlay = false,
+                HasEliteOverlay = false,
+                HasWeaponBadgeOverlay = false
+            });
+            await SaveAsync(catalog);
+        }
+
+        public static readonly IReadOnlyList<string> DagoujiaoIconSlotFileNames = new[]
+        {
+            "common.png",
+            "headshot.png",
+            "epic.jpg",
+            "1kill.png",
+            "2kill.png",
+            "3kill.png",
+            "4kill.png",
+            "5kill.png"
+        };
+
+        public static async Task CreateDagoujiaoIconPackAsync(string displayName, IReadOnlyDictionary<string, StorageFile> selectedFiles)
+        {
+            if (selectedFiles == null || selectedFiles.Count == 0)
+            {
+                return;
+            }
+
+            StorageFolder root = await GetOrCreatePackRootAsync("GeneratedDagoujiaoIconPacks");
+            StorageFolder packFolder = await root.CreateFolderAsync(
+                SanitizeName(displayName),
+                CreationCollisionOption.GenerateUniqueName);
+
+            foreach (var pair in selectedFiles)
+            {
+                if (pair.Value == null)
+                {
+                    continue;
+                }
+
+                if (pair.Value.FileType.Equals(".tga", StringComparison.OrdinalIgnoreCase))
+                {
+                    await TgaDecoder.ConvertTgaToPngAsync(pair.Value, packFolder, pair.Key);
+                }
+                else
+                {
+                    await pair.Value.CopyAsync(packFolder, pair.Key, NameCollisionOption.ReplaceExisting);
+                }
+            }
+
+            PackCatalog catalog = await LoadAsync();
+            catalog.IconPacks.Add(new IconPackItem
+            {
+                Key = "custom_dagoujiao_icon_" + Guid.NewGuid().ToString("N"),
                 DisplayName = displayName,
                 FolderPath = packFolder.Path,
                 IsBuiltIn = false,

@@ -1,10 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using KillConfirmGameBar.Services;
-using Windows.Storage;
-using Windows.Storage.Pickers;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
@@ -15,10 +11,6 @@ namespace KillConfirmGameBar.Controls.GameStyles
     {
         private bool _suppressChanges = true;
         private bool _isChinese = true;
-        private IReadOnlyList<DagoujiaoImageChoice> _imageChoices = Array.Empty<DagoujiaoImageChoice>();
-        private IReadOnlyList<DagoujiaoAudioChoice> _audioChoices = Array.Empty<DagoujiaoAudioChoice>();
-        private readonly Dictionary<int, ComboBox> _killImageSelectors = new Dictionary<int, ComboBox>();
-        private readonly List<TextBlock> _dynamicLabels = new List<TextBlock>();
         private GameThemePalette _theme;
 
         public DagoujiaoAdvancedEffectsPanel()
@@ -43,10 +35,8 @@ namespace KillConfirmGameBar.Controls.GameStyles
         public string GetSelectedStreakMode(string fallback) => StreakEditor.GetValue(fallback);
         public void SelectStreakMode(string value) => StreakEditor.SelectValue(value);
 
-        public async Task RefreshSettingsAsync()
+        public Task RefreshSettingsAsync()
         {
-            _imageChoices = await DagoujiaoSettingsStore.GetImageChoicesAsync();
-            _audioChoices = await DagoujiaoSettingsStore.GetAudioChoicesAsync();
             DagoujiaoSettingsValues settings = DagoujiaoSettingsStore.Load();
             _suppressChanges = true;
             try
@@ -58,11 +48,6 @@ namespace KillConfirmGameBar.Controls.GameStyles
                 MaximumScaleSlider.Value = settings.MaximumScale * 100.0;
                 InitialPlaybackSpeedSlider.Value = settings.InitialPlaybackSpeed * 100.0;
                 MaximumPlaybackSpeedSlider.Value = settings.MaximumPlaybackSpeed * 100.0;
-                PopulateAudioSelector(CommonAudioSelector, settings.CommonAudioKey);
-                PopulateAudioSelector(EpicAudioSelector, settings.EpicAudioKey);
-                PopulateAudioSelector(HeadshotAudioSelector, settings.HeadshotAudioKey);
-                PopulateImageSelector(HeadshotImageSelector, settings.HeadshotImageKey);
-                BuildKillImageRows(settings);
                 UpdateValueLabels();
             }
             finally
@@ -71,6 +56,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
             }
             ApplyLanguage(_isChinese);
             if (_theme != null) ApplyTheme(_theme);
+            return Task.CompletedTask;
         }
 
         internal void ApplyTheme(GameThemePalette theme)
@@ -81,23 +67,15 @@ namespace KillConfirmGameBar.Controls.GameStyles
             foreach (TextBlock label in new[]
             {
                 EpicCountLabel, PriorityLabel, OpacityLabel, InitialScaleLabel, ScaleLabel,
-                InitialPlaybackSpeedLabel, MaximumPlaybackSpeedLabel,
-                AudioTitle, CommonAudioLabel, EpicAudioLabel, HeadshotAudioLabel,
-                HeadshotImageLabel, KillImagesTitle
+                InitialPlaybackSpeedLabel, MaximumPlaybackSpeedLabel
             })
             {
                 label.Foreground = new SolidColorBrush(theme.Text);
             }
-            foreach (TextBlock label in _dynamicLabels) label.Foreground = new SolidColorBrush(theme.Text);
             foreach (ComboBox selector in new[]
             {
-                EpicKillCountSelector, PrioritySelector, CommonAudioSelector, EpicAudioSelector,
-                HeadshotAudioSelector, HeadshotImageSelector
+                EpicKillCountSelector, PrioritySelector
             })
-            {
-                AdvancedEffectsPanelSupport.ApplyCombo(selector, theme.Text, theme.SubtleField, theme.SoftBorder);
-            }
-            foreach (ComboBox selector in _killImageSelectors.Values)
             {
                 AdvancedEffectsPanelSupport.ApplyCombo(selector, theme.Text, theme.SubtleField, theme.SoftBorder);
             }
@@ -105,43 +83,25 @@ namespace KillConfirmGameBar.Controls.GameStyles
             EpicNotice.Background = new SolidColorBrush(theme.AccentSoft);
             EpicNotice.BorderBrush = new SolidColorBrush(theme.SoftBorder);
             EpicNoticeText.Foreground = new SolidColorBrush(theme.AccentText);
-            ImportImageButton.Background = new SolidColorBrush(theme.Accent);
-            ImportImageButton.BorderBrush = new SolidColorBrush(theme.Accent);
-            ImportImageButton.Foreground = new SolidColorBrush(Windows.UI.Colors.White);
-            ImportAudioButton.Background = new SolidColorBrush(theme.Accent);
-            ImportAudioButton.BorderBrush = new SolidColorBrush(theme.Accent);
-            ImportAudioButton.Foreground = new SolidColorBrush(Windows.UI.Colors.White);
         }
 
         public void ApplyLanguage(bool isChinese)
         {
             _isChinese = isChinese;
-            TitleText.Text = isChinese ? "大狗叫高级设置" : "Big Dog Bark Settings";
+            TitleText.Text = isChinese ? "大狗叫战斗设置" : "Dagoujiao Combat Settings";
             ResetButtonText.Text = isChinese ? "恢复默认" : "Reset";
             ToolTipService.SetToolTip(ResetButton, isChinese ? "恢复大狗叫默认设置" : "Restore Dagoujiao defaults");
             HintText.Text = isChinese
-                ? "设置 Epic 击杀数、爆头/连杀优先级、变速缩放，以及每一杀的独立图片。"
-                : "Configure the Epic threshold, headshot/streak priority, speed/scale curve, and an image for every kill.";
+                ? "设置 Epic 击杀阈值、优先级、变速与缩放曲线。语音与图标包请在上方标签页中管理。"
+                : "Configure the Epic threshold, headshot/streak priority, speed/scale curve. Voice & icon packs are managed in tabs above.";
             EpicCountLabel.Text = isChinese ? "Epic 击杀数" : "Epic kill count";
             PriorityLabel.Text = isChinese ? "音效优先级" : "Audio priority";
             HeadshotPriorityItem.Content = isChinese ? "爆头优先" : "Headshot first";
             StreakPriorityItem.Content = isChinese ? "连杀优先" : "Streak first";
-            AudioTitle.Text = isChinese ? "事件语音" : "Event audio";
-            CommonAudioLabel.Text = isChinese ? "普通连杀" : "Common streak";
-            EpicAudioLabel.Text = "Epic";
-            HeadshotAudioLabel.Text = isChinese ? "爆头" : "Headshot";
-            ImportAudioButton.Content = isChinese ? "导入语音" : "Import audio";
-            HeadshotImageLabel.Text = isChinese ? "爆头图片" : "Headshot image";
-            KillImagesTitle.Text = isChinese ? "逐杀图片" : "Per-kill images";
-            ImportImageButton.Content = isChinese ? "导入图片" : "Import image";
             EpicNoticeText.Text = isChinese
-                ? "Epic 图固定使用“叫叫叫”；普通连杀语音和图片分别按设定的起止倍率等距变化。"
-                : "The Epic image is locked to 'Bark Bark Bark'. Common audio speed and image scale each interpolate between their selected endpoints.";
+                ? "提示：大狗叫语音包（包含普通连杀、爆头与 Epic 叫叫叫）与图标包（包含 16 款大狗表情包与自定义图片）均由上方“语音包库”与“图标包库”统一管理。"
+                : "Note: Dagoujiao voice packs (common streak, headshot & Epic barks) and icon packs (16 meme dog icons & custom images) are fully managed via the dedicated tabs above.";
             StreakEditor.ApplyLanguage(isChinese);
-            for (int index = 0; index < _dynamicLabels.Count; index++)
-            {
-                _dynamicLabels[index].Text = isChinese ? (index + 1) + " 杀图片" : "Kill " + (index + 1) + " image";
-            }
             UpdateValueLabels();
         }
 
@@ -173,59 +133,17 @@ namespace KillConfirmGameBar.Controls.GameStyles
             if (!_suppressChanges) StreakModeSelectionChanged?.Invoke(this, e);
         }
 
-        private async void OnCoreSettingChanged(object sender, object e)
+        private void OnCoreSettingChanged(object sender, object e)
         {
             if (_suppressChanges) return;
             try
             {
-                bool rebuild = ReferenceEquals(sender, EpicKillCountSelector);
                 SaveCurrentSettings();
-                if (rebuild) await RefreshSettingsAsync();
                 DagoujiaoSettingsChanged?.Invoke(this, EventArgs.Empty);
             }
             catch (Exception ex)
             {
                 App.Log("Save Dagoujiao settings failed: " + ex);
-            }
-        }
-
-        private async void OnImportImageClick(object sender, RoutedEventArgs e)
-        {
-            var picker = new FileOpenPicker { SuggestedStartLocation = PickerLocationId.PicturesLibrary };
-            picker.FileTypeFilter.Add(".png");
-            picker.FileTypeFilter.Add(".jpg");
-            picker.FileTypeFilter.Add(".jpeg");
-            picker.FileTypeFilter.Add(".webp");
-            StorageFile source = await picker.PickSingleFileAsync();
-            if (source == null) return;
-            try
-            {
-                await DagoujiaoSettingsStore.ImportImageAsync(source);
-                KillConfirmAnimation.InvalidateDagoujiaoImageCache();
-                await RefreshSettingsAsync();
-            }
-            catch (Exception ex)
-            {
-                App.Log("Import Dagoujiao image failed: " + ex);
-            }
-        }
-
-        private async void OnImportAudioClick(object sender, RoutedEventArgs e)
-        {
-            var picker = new FileOpenPicker { SuggestedStartLocation = PickerLocationId.MusicLibrary };
-            picker.FileTypeFilter.Add(".wav");
-            picker.FileTypeFilter.Add(".mp3");
-            picker.FileTypeFilter.Add(".m4a");
-            StorageFile source = await picker.PickSingleFileAsync();
-            if (source == null) return;
-            try
-            {
-                await DagoujiaoSettingsStore.ImportAudioAsync(source);
-                await RefreshSettingsAsync();
-            }
-            catch (Exception ex)
-            {
-                App.Log("Import Dagoujiao audio failed: " + ex);
             }
         }
 
@@ -239,62 +157,9 @@ namespace KillConfirmGameBar.Controls.GameStyles
             current.MaximumScale = MaximumScaleSlider.Value / 100.0;
             current.InitialPlaybackSpeed = InitialPlaybackSpeedSlider.Value / 100.0;
             current.MaximumPlaybackSpeed = MaximumPlaybackSpeedSlider.Value / 100.0;
-            current.CommonAudioKey = ReadTaggedItem(CommonAudioSelector, DagoujiaoSettingsStore.DefaultCommonAudioKey);
-            current.EpicAudioKey = ReadTaggedItem(EpicAudioSelector, DagoujiaoSettingsStore.DefaultEpicAudioKey);
-            current.HeadshotAudioKey = ReadTaggedItem(HeadshotAudioSelector, DagoujiaoSettingsStore.DefaultHeadshotAudioKey);
-            current.HeadshotImageKey = ReadTaggedItem(HeadshotImageSelector, DagoujiaoSettingsStore.DefaultHeadshotImageKey);
-            current.KillImageKeys.Clear();
-            foreach (var pair in _killImageSelectors)
-            {
-                current.KillImageKeys[pair.Key] = ReadTaggedItem(pair.Value, DagoujiaoSettingsStore.DefaultCommonImageKey);
-            }
             DagoujiaoSettingsStore.Save(current);
             UpdateValueLabels();
             KillConfirmAnimation.InvalidateDagoujiaoImageCache();
-        }
-
-        private void BuildKillImageRows(DagoujiaoSettingsValues settings)
-        {
-            KillImageRows.Children.Clear();
-            _killImageSelectors.Clear();
-            _dynamicLabels.Clear();
-            for (int kill = 1; kill < settings.EpicKillCount; kill++)
-            {
-                var grid = new Grid { ColumnSpacing = 8 };
-                grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(88) });
-                grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-                var label = new TextBlock { VerticalAlignment = VerticalAlignment.Center, FontSize = 11 };
-                var selector = new ComboBox { MinWidth = 180 };
-                selector.SelectionChanged += OnCoreSettingChanged;
-                settings.KillImageKeys.TryGetValue(kill, out string selected);
-                PopulateImageSelector(selector, selected ?? DagoujiaoSettingsStore.DefaultCommonImageKey);
-                Grid.SetColumn(selector, 1);
-                grid.Children.Add(label);
-                grid.Children.Add(selector);
-                KillImageRows.Children.Add(grid);
-                _dynamicLabels.Add(label);
-                _killImageSelectors[kill] = selector;
-            }
-        }
-
-        private void PopulateImageSelector(ComboBox selector, string selectedKey)
-        {
-            selector.Items.Clear();
-            foreach (DagoujiaoImageChoice choice in _imageChoices)
-            {
-                selector.Items.Add(new ComboBoxItem { Tag = choice.Key, Content = choice.DisplayName });
-            }
-            SelectTaggedItem(selector, selectedKey);
-        }
-
-        private void PopulateAudioSelector(ComboBox selector, string selectedKey)
-        {
-            selector.Items.Clear();
-            foreach (DagoujiaoAudioChoice choice in _audioChoices)
-            {
-                selector.Items.Add(new ComboBoxItem { Tag = choice.Key, Content = choice.DisplayName });
-            }
-            SelectTaggedItem(selector, selectedKey);
         }
 
         private void UpdateValueLabels()

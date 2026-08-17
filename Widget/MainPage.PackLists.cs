@@ -120,7 +120,14 @@ namespace KillConfirmGameBar
                 VerticalAlignment = VerticalAlignment.Center,
                 MinWidth = 36
             };
-            checkBox.Checked += async (_, __) => await PackCatalogService.SetVoicePackVisibilityAsync(item.Key, true);
+            checkBox.Checked += async (_, __) =>
+            {
+                await PackCatalogService.SetVoicePackVisibilityAsync(item.Key, true);
+                if (PackCatalogService.IsDagoujiaoVoicePackKey(item.Key))
+                {
+                    await DagoujiaoSettingsStore.SyncActiveVoicePackAudioAsync(item.Key);
+                }
+            };
             checkBox.Unchecked += async (_, __) => await PackCatalogService.SetVoicePackVisibilityAsync(item.Key, false);
             var title = new TextBlock
             {
@@ -156,7 +163,15 @@ namespace KillConfirmGameBar
                 string packName = PackCatalogService.GetVoicePackDisplayName(item);
                 GameStyleMode packStyle = GameStyleService.GetStyleForPackKey(item.Key);
 
-                if (packStyle == GameStyleMode.Csol)
+                if (packStyle == GameStyleMode.Dagoujiao)
+                {
+                    var existingFiles = await CollectFilesFromPackFolderAsync(
+                        packFolder,
+                        "common.wav", "headshot.wav", "epic.wav", "jiaojiaojiao.wav");
+                    StorageFile existingHeadImage = packFolder != null ? await TryGetCustomPackHeadImageAsync(packFolder.Path) : null;
+                    await ShowCreateDagoujiaoVoicePackDialogAsync(packName, existingFiles, existingHeadImage);
+                }
+                else if (packStyle == GameStyleMode.Csol)
                 {
                     var existingFiles = await CollectFilesFromPackFolderAsync(
                         packFolder,
@@ -279,7 +294,15 @@ namespace KillConfirmGameBar
                 string packName = PackCatalogService.GetIconPackDisplayName(item);
                 GameStyleMode packStyle = GameStyleService.GetStyleForPackKey(item.Key);
 
-                if (packStyle == GameStyleMode.Csol)
+                if (packStyle == GameStyleMode.Dagoujiao)
+                {
+                    var existingFiles = await CollectFilesFromPackFolderAsync(
+                        packFolder,
+                        "common.png", "headshot.png", "epic.jpg",
+                        "1kill.png", "2kill.png", "3kill.png", "4kill.png", "5kill.png");
+                    await ShowCreateDagoujiaoIconPackDialogAsync(packName, existingFiles);
+                }
+                else if (packStyle == GameStyleMode.Csol)
                 {
                     var existingFiles = await CollectFilesFromPackFolderAsync(
                         packFolder,

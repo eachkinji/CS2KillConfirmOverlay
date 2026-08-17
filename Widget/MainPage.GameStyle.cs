@@ -46,6 +46,7 @@ namespace KillConfirmGameBar
             bool battlefield2042 = mode == GameStyleMode.Battlefield2042;
             bool fixedPreset = GameStyleService.IsModPresetGameKey(GameStyleService.ToStorageValue(mode));
             bool isCrossfire = mode == GameStyleMode.Crossfire;
+            bool isDagoujiao = mode == GameStyleMode.Dagoujiao;
             GameThemePalette theme = _isHomePageSelected ? GameThemePalette.Home : GameThemePalette.ForMode(mode);
 
             UpdateSettingsPageVisibility();
@@ -76,6 +77,11 @@ namespace KillConfirmGameBar
                 CsolWorkspaceTabBar.Visibility = (csol && !_isHomePageSelected) ? Visibility.Visible : Visibility.Collapsed;
             }
 
+            if (DagoujiaoWorkspaceTabBar != null)
+            {
+                DagoujiaoWorkspaceTabBar.Visibility = (isDagoujiao && !_isHomePageSelected) ? Visibility.Visible : Visibility.Collapsed;
+            }
+
             if (_isHomePageSelected)
             {
                 ApplyHomeActiveTab();
@@ -87,6 +93,10 @@ namespace KillConfirmGameBar
             else if (csol)
             {
                 ApplyCsolActiveTab();
+            }
+            else if (isDagoujiao)
+            {
+                ApplyDagoujiaoActiveTab();
             }
             else
             {

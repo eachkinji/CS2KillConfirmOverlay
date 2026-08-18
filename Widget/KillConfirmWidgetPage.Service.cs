@@ -44,6 +44,7 @@ namespace KillConfirmGameBar
                 _widget.MaxWindowSize = MaxWidgetSize;
                 _widget.HorizontalResizeSupported = true;
                 _widget.VerticalResizeSupported = true;
+                _widget.PinningSupported = true;
             }
             catch (Exception)
             {

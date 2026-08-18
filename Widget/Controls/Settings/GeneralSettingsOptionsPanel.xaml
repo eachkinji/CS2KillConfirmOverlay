@@ -4,530 +4,726 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:settings="using:KillConfirmGameBar.Controls.Settings">
 
-    <StackPanel Spacing="10">
-        <settings:RuntimeMaintenancePanel x:Name="RuntimePanel" />
+    <UserControl.Resources>
+        <!-- Fluent 2 Palette -->
+        <SolidColorBrush x:Key="FluentCardBackground" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="FluentCardSubBackground" Color="#FBFBFB" />
+        <SolidColorBrush x:Key="FluentCardBorder" Color="#E5E5E5" />
+        <SolidColorBrush x:Key="FluentDivider" Color="#F0F0F0" />
+        <SolidColorBrush x:Key="FluentTitleText" Color="#1B1B1B" />
+        <SolidColorBrush x:Key="FluentBodyText" Color="#424242" />
+        <SolidColorBrush x:Key="FluentMutedText" Color="#6E6E6E" />
+        <SolidColorBrush x:Key="FluentAccent" Color="#0067C0" />
+        <SolidColorBrush x:Key="FluentAccentLight" Color="#EBF3FC" />
 
-        <Grid ColumnSpacing="12" RowSpacing="12">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
+        <!-- Fluent 2 Setting Card Style -->
+        <Style x:Key="FluentCardStyle" TargetType="Border">
+            <Setter Property="Padding" Value="14,10" />
+            <Setter Property="Background" Value="{StaticResource FluentCardBackground}" />
+            <Setter Property="BorderBrush" Value="{StaticResource FluentCardBorder}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+        </Style>
 
-            <Border Grid.ColumnSpan="2" Style="{StaticResource CompactChoiceCardStyle}">
-                <StackPanel Spacing="6">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Border Style="{StaticResource CompactCircleIconStyle}">
-                            <FontIcon
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                FontFamily="Segoe MDL2 Assets"
-                                FontSize="12"
-                                Foreground="White"
-                                Glyph="&#xE7FC;" />
-                        </Border>
-                        <TextBlock
-                            x:Name="GsiGameVersionLabelText"
-                            Grid.Column="1"
-                            VerticalAlignment="Center"
-                            Style="{StaticResource CompactChoiceLabelStyle}"
-                            Text="GSI game version" />
-                    </Grid>
-                    <ComboBox
-                        x:Name="GsiGameVersionSelector"
-                        Style="{StaticResource CompactSettingsComboBoxStyle}"
-                        SelectionChanged="OnGsiGameVersionSelectionChanged">
-                        <ComboBoxItem x:Name="GsiGameVersionCs2Item" Tag="cs2">Counter-Strike 2 (Default)</ComboBoxItem>
-                        <ComboBoxItem x:Name="GsiGameVersionCsgoLegacyItem" Tag="csgo_legacy">CS:GO Legacy</ComboBoxItem>
-                    </ComboBox>
+        <!-- Fluent 2 Icon Box -->
+        <Style x:Key="FluentIconStyle" TargetType="Border">
+            <Setter Property="Width" Value="32" />
+            <Setter Property="Height" Value="32" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Background" Value="#F3F3F3" />
+            <Setter Property="Margin" Value="0,0,12,0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <!-- Fluent 2 Typography -->
+        <Style x:Key="FluentCardTitle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{StaticResource FluentTitleText}" />
+            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+        </Style>
+
+        <Style x:Key="FluentCardHint" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Foreground" Value="{StaticResource FluentMutedText}" />
+            <Setter Property="TextWrapping" Value="WrapWholeWords" />
+            <Setter Property="LineHeight" Value="15" />
+        </Style>
+
+        <!-- Fluent 2 ComboBox -->
+        <Style x:Key="FluentComboBoxStyle" TargetType="ComboBox">
+            <Setter Property="Height" Value="32" />
+            <Setter Property="MinWidth" Value="160" />
+            <Setter Property="Padding" Value="10,0,24,0" />
+            <Setter Property="FontFamily" Value="Segoe UI" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{StaticResource FluentTitleText}" />
+            <Setter Property="Background" Value="#FFFFFF" />
+            <Setter Property="BorderBrush" Value="#D1D1D1" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <!-- Fluent 2 Secondary Action Button -->
+        <Style x:Key="FluentActionBtnStyle" TargetType="Button">
+            <Setter Property="Padding" Value="10,4" />
+            <Setter Property="MinHeight" Value="28" />
+            <Setter Property="MinWidth" Value="60" />
+            <Setter Property="Background" Value="#FFFFFF" />
+            <Setter Property="BorderBrush" Value="#D1D1D1" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Foreground" Value="{StaticResource FluentTitleText}" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="FontSize" Value="11" />
+        </Style>
+
+        <!-- Backward Compatibility Aliases -->
+        <Style x:Key="CompactChoiceCardStyle" TargetType="Border" BasedOn="{StaticResource FluentCardStyle}" />
+        <Style x:Key="CompactCircleIconStyle" TargetType="Border" BasedOn="{StaticResource FluentIconStyle}" />
+        <Style x:Key="CompactChoiceLabelStyle" TargetType="TextBlock" BasedOn="{StaticResource FluentCardTitle}" />
+        <Style x:Key="CompactSettingsComboBoxStyle" TargetType="ComboBox" BasedOn="{StaticResource FluentComboBoxStyle}" />
+    </UserControl.Resources>
+
+    <StackPanel Spacing="8">
+        <!-- Optional Nested Runtime Maintenance Panel (collapsible or integrated) -->
+        <settings:RuntimeMaintenancePanel x:Name="RuntimePanel" Visibility="Collapsed" />
+
+        <!-- 1. GSI Game Version Settings Card -->
+        <Border Style="{StaticResource FluentCardStyle}">
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <Border Style="{StaticResource FluentIconStyle}">
+                    <FontIcon
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        FontFamily="Segoe MDL2 Assets"
+                        FontSize="14"
+                        Foreground="{StaticResource FluentBodyText}"
+                        Glyph="&#xE7FC;" />
+                </Border>
+
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                    <TextBlock
+                        x:Name="GsiGameVersionLabelText"
+                        Style="{StaticResource FluentCardTitle}"
+                        Text="GSI 游戏版本" />
                     <TextBlock
                         x:Name="GsiGameVersionHintText"
-                        FontSize="10"
-                        TextWrapping="WrapWholeWords" />
+                        Style="{StaticResource FluentCardHint}"
+                        Text="选择监听 Counter-Strike 2 或 CS:GO 传统版的游戏状态" />
                 </StackPanel>
-            </Border>
 
-            <Border Grid.Row="1" Style="{StaticResource CompactChoiceCardStyle}">
-                <StackPanel Spacing="6">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Border Style="{StaticResource CompactCircleIconStyle}">
-                            <FontIcon
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                FontFamily="Segoe MDL2 Assets"
-                                FontSize="12"
-                                Foreground="White"
-                                Glyph="&#xE8BB;" />
-                        </Border>
-                        <TextBlock
-                            x:Name="CloseBehaviorLabelText"
-                            Grid.Column="1"
-                            VerticalAlignment="Center"
-                            Style="{StaticResource CompactChoiceLabelStyle}"
-                            Text="When closing the main window" />
-                    </Grid>
-                    <ComboBox
-                        x:Name="CloseBehaviorSelector"
-                        Style="{StaticResource CompactSettingsComboBoxStyle}"
-                        SelectionChanged="OnCloseBehaviorSelectionChanged">
-                        <ComboBoxItem x:Name="CloseWindowTrayItem" Tag="tray">Minimize to system tray / keep running</ComboBoxItem>
-                        <ComboBoxItem x:Name="CloseWindowExitItem" Tag="exit">Exit the application</ComboBoxItem>
-                    </ComboBox>
+                <ComboBox
+                    x:Name="GsiGameVersionSelector"
+                    Grid.Column="2"
+                    Style="{StaticResource FluentComboBoxStyle}"
+                    SelectionChanged="OnGsiGameVersionSelectionChanged">
+                    <ComboBoxItem x:Name="GsiGameVersionCs2Item" Tag="cs2">Counter-Strike 2 (默认)</ComboBoxItem>
+                    <ComboBoxItem x:Name="GsiGameVersionCsgoLegacyItem" Tag="csgo_legacy">CS:GO Legacy</ComboBoxItem>
+                </ComboBox>
+            </Grid>
+        </Border>
+
+        <!-- 2. Close Behavior Settings Card -->
+        <Border Style="{StaticResource FluentCardStyle}">
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <Border Style="{StaticResource FluentIconStyle}">
+                    <FontIcon
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        FontFamily="Segoe MDL2 Assets"
+                        FontSize="14"
+                        Foreground="{StaticResource FluentBodyText}"
+                        Glyph="&#xE8BB;" />
+                </Border>
+
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                    <TextBlock
+                        x:Name="CloseBehaviorLabelText"
+                        Style="{StaticResource FluentCardTitle}"
+                        Text="关闭主窗口时的行为" />
+                    <TextBlock
+                        Style="{StaticResource FluentCardHint}"
+                        Text="设定点击右上角关闭按钮时是最小化托盘还是彻底退出" />
                 </StackPanel>
-            </Border>
 
-            <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource CompactChoiceCardStyle}">
-                <StackPanel Spacing="6">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Border Style="{StaticResource CompactCircleIconStyle}">
-                            <FontIcon
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                FontFamily="Segoe MDL2 Assets"
-                                FontSize="12"
-                                Foreground="White"
-                                Glyph="&#xE7B3;" />
-                        </Border>
-                        <TextBlock
-                            x:Name="SpectatedKillEffectsLabelText"
-                            Grid.Column="1"
-                            VerticalAlignment="Center"
-                            Style="{StaticResource CompactChoiceLabelStyle}"
-                            Text="Spectated player kill effects"
-                            TextWrapping="WrapWholeWords" />
-                    </Grid>
-                    <ToggleSwitch
-                        x:Name="SpectatedKillEffectsToggle"
-                        HorizontalAlignment="Left"
-                        MinWidth="0"
-                        OffContent="Off"
-                        OnContent="On"
-                        Toggled="OnSpectatedKillEffectsToggled" />
+                <ComboBox
+                    x:Name="CloseBehaviorSelector"
+                    Grid.Column="2"
+                    Style="{StaticResource FluentComboBoxStyle}"
+                    SelectionChanged="OnCloseBehaviorSelectionChanged">
+                    <ComboBoxItem x:Name="CloseWindowTrayItem" Tag="tray">最小化到系统托盘 / 保持运行</ComboBoxItem>
+                    <ComboBoxItem x:Name="CloseWindowExitItem" Tag="exit">退出应用程序</ComboBoxItem>
+                </ComboBox>
+            </Grid>
+        </Border>
+
+        <!-- 3. Spectated Player Kill Effects Card -->
+        <Border Style="{StaticResource FluentCardStyle}">
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <Border Style="{StaticResource FluentIconStyle}">
+                    <FontIcon
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        FontFamily="Segoe MDL2 Assets"
+                        FontSize="14"
+                        Foreground="{StaticResource FluentBodyText}"
+                        Glyph="&#xE7B3;" />
+                </Border>
+
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                    <TextBlock
+                        x:Name="SpectatedKillEffectsLabelText"
+                        Style="{StaticResource FluentCardTitle}"
+                        Text="观战玩家击杀特效" />
                     <TextBlock
                         x:Name="SpectatedKillEffectsHintText"
-                        FontSize="10"
-                        TextWrapping="WrapWholeWords" />
+                        Style="{StaticResource FluentCardHint}"
+                        Text="在死亡观战队友或 GOTV 录像时是否同步触发击杀动画" />
                 </StackPanel>
-            </Border>
 
-            <Border Grid.Row="2" Grid.ColumnSpan="2" Style="{StaticResource CompactChoiceCardStyle}">
-                <Grid ColumnSpacing="18" RowSpacing="8">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
+                <ToggleSwitch
+                    x:Name="SpectatedKillEffectsToggle"
+                    Grid.Column="2"
+                    VerticalAlignment="Center"
+                    MinWidth="0"
+                    OffContent="关"
+                    OnContent="开"
+                    Toggled="OnSpectatedKillEffectsToggled" />
+            </Grid>
+        </Border>
+
+        <!-- 4. Auto-Close on Game Exit Card -->
+        <Border Style="{StaticResource FluentCardStyle}">
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <Border Style="{StaticResource FluentIconStyle}">
+                    <FontIcon
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        FontFamily="Segoe MDL2 Assets"
+                        FontSize="14"
+                        Foreground="{StaticResource FluentBodyText}"
+                        Glyph="&#xE73E;" />
+                </Border>
+
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                    <TextBlock
+                        x:Name="AutoCloseOnGameExitLabelText"
+                        Style="{StaticResource FluentCardTitle}"
+                        Text="游戏退出后自动关闭" />
+                    <TextBlock
+                        x:Name="AutoCloseOnGameExitHintText"
+                        Style="{StaticResource FluentCardHint}"
+                        Text="检测到 CS2 或 CS:GO 进程退出后，自动结束伴随服务与小组件" />
+                </StackPanel>
+
+                <ToggleSwitch
+                    x:Name="AutoCloseOnGameExitToggle"
+                    Grid.Column="2"
+                    VerticalAlignment="Center"
+                    MinWidth="0"
+                    OffContent="关"
+                    OnContent="开"
+                    Toggled="OnAutoCloseOnGameExitToggled" />
+            </Grid>
+        </Border>
+
+        <!-- 5. Interrupt Previous Kill Voice Card -->
+        <Border Style="{StaticResource FluentCardStyle}">
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <Border Style="{StaticResource FluentIconStyle}">
+                    <FontIcon
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        FontFamily="Segoe MDL2 Assets"
+                        FontSize="14"
+                        Foreground="{StaticResource FluentBodyText}"
+                        Glyph="&#xE74D;" />
+                </Border>
+
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                    <TextBlock
+                        x:Name="InterruptPreviousKillAudioLabelText"
+                        Style="{StaticResource FluentCardTitle}"
+                        Text="打断上一条击杀语音" />
+                    <TextBlock
+                        x:Name="InterruptPreviousKillAudioHintText"
+                        Style="{StaticResource FluentCardHint}"
+                        Text="连续击杀时立即播放最新击杀语音，防止多段长语音重叠混音" />
+                </StackPanel>
+
+                <ToggleSwitch
+                    x:Name="InterruptPreviousKillAudioToggle"
+                    Grid.Column="2"
+                    VerticalAlignment="Center"
+                    MinWidth="0"
+                    OffContent="关"
+                    OnContent="开"
+                    Toggled="OnInterruptPreviousKillAudioToggled" />
+            </Grid>
+        </Border>
+
+        <!-- 6. Bomb Audio Settings Card (Expander Structure) -->
+        <Border Style="{StaticResource FluentCardStyle}">
+            <StackPanel Spacing="10">
+                <!-- Master Toggle Header -->
+                <Grid ColumnSpacing="12">
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel Spacing="6">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <Border Style="{StaticResource CompactCircleIconStyle}">
-                                <FontIcon
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    FontFamily="Segoe MDL2 Assets"
-                                    FontSize="12"
-                                    Foreground="White"
-                                    Glyph="&#xE7E7;" />
-                            </Border>
-                            <TextBlock
-                                x:Name="BombAudioLabelText"
-                                Grid.Column="1"
-                                VerticalAlignment="Center"
-                                Style="{StaticResource CompactChoiceLabelStyle}"
-                                Text="Bomb audio" />
-                        </Grid>
-                        <ToggleSwitch
-                            x:Name="BombAudioToggle"
-                            HorizontalAlignment="Left"
-                            MinWidth="0"
-                            OffContent="Off"
-                            OnContent="On"
-                            Toggled="OnBombAudioToggled" />
+                    <Border Style="{StaticResource FluentIconStyle}">
+                        <FontIcon
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            FontFamily="Segoe MDL2 Assets"
+                            FontSize="14"
+                            Foreground="{StaticResource FluentBodyText}"
+                            Glyph="&#xE7E7;" />
+                    </Border>
+
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                        <TextBlock
+                            x:Name="BombAudioLabelText"
+                            Style="{StaticResource FluentCardTitle}"
+                            Text="C4 炸弹倒计时与音效" />
                         <TextBlock
                             x:Name="BombAudioHintText"
-                            FontSize="10"
-                            TextWrapping="WrapWholeWords" />
+                            Style="{StaticResource FluentCardHint}"
+                            Text="在 C4 下包后播报倒计时滴答声、爆炸与拆除提示音" />
                     </StackPanel>
 
-                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <TextBlock
-                                x:Name="BombAudioVolumeLabelText"
-                                VerticalAlignment="Center"
-                                Style="{StaticResource CompactChoiceLabelStyle}"
-                                Text="Bomb volume" />
-                            <TextBlock
-                                x:Name="BombAudioVolumeValueText"
-                                Grid.Column="1"
-                                Margin="8,0,0,0"
-                                VerticalAlignment="Center"
-                                FontSize="11"
-                                FontWeight="SemiBold"
-                                Text="50%" />
-                        </Grid>
-                        <Slider
-                            x:Name="BombAudioVolumeSlider"
-                            Minimum="0"
-                            Maximum="100"
-                            StepFrequency="5"
-                            ValueChanged="OnBombAudioVolumeChanged" />
-                    </StackPanel>
+                    <ToggleSwitch
+                        x:Name="BombAudioToggle"
+                        Grid.Column="2"
+                        VerticalAlignment="Center"
+                        MinWidth="0"
+                        OffContent="关"
+                        OnContent="开"
+                        Toggled="OnBombAudioToggled" />
+                </Grid>
 
-                    <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Margin="0,8,0,0" Spacing="4">
-                        <TextBlock
-                            x:Name="BombAudioSpeedLabelText"
-                            Style="{StaticResource CompactChoiceLabelStyle}"
-                            Text="Initial and final timer speed" />
-                        <Grid ColumnSpacing="12">
+                <!-- Detailed Parameters & Sound Importer -->
+                <Border
+                    Background="{StaticResource FluentCardSubBackground}"
+                    BorderBrush="{StaticResource FluentDivider}"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    Padding="14,12">
+                    <StackPanel Spacing="12">
+                        <!-- Volume & Speed Controls -->
+                        <Grid ColumnSpacing="16" RowSpacing="10">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <StackPanel Spacing="1">
+
+                            <!-- Volume Slider -->
+                            <StackPanel Grid.ColumnSpan="2" Spacing="3">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock x:Name="BombAudioInitialSpeedLabelText" FontSize="10" Text="Initial speed" />
-                                    <TextBlock x:Name="BombAudioInitialSpeedValueText" Grid.Column="1" FontSize="10" FontWeight="SemiBold" Text="0.50×" />
+                                    <TextBlock
+                                        x:Name="BombAudioVolumeLabelText"
+                                        Style="{StaticResource FluentCardTitle}"
+                                        FontSize="12"
+                                        Text="炸弹音效音量" />
+                                    <TextBlock
+                                        x:Name="BombAudioVolumeValueText"
+                                        Grid.Column="1"
+                                        FontSize="11"
+                                        FontWeight="SemiBold"
+                                        Foreground="{StaticResource FluentAccent}"
+                                        Text="50%" />
                                 </Grid>
-                                <Slider x:Name="BombAudioInitialSpeedSlider" Minimum="25" Maximum="400" StepFrequency="5" ValueChanged="OnBombAudioSpeedChanged" />
+                                <Slider
+                                    x:Name="BombAudioVolumeSlider"
+                                    Minimum="0"
+                                    Maximum="100"
+                                    StepFrequency="5"
+                                    ValueChanged="OnBombAudioVolumeChanged" />
                             </StackPanel>
-                            <StackPanel Grid.Column="1" Spacing="1">
+
+                            <!-- Initial Speed Slider -->
+                            <StackPanel Grid.Row="1" Grid.Column="0" Spacing="3">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock x:Name="BombAudioFinalSpeedLabelText" FontSize="10" Text="Final speed" />
-                                    <TextBlock x:Name="BombAudioFinalSpeedValueText" Grid.Column="1" FontSize="10" FontWeight="SemiBold" Text="1.50×" />
+                                    <TextBlock
+                                        x:Name="BombAudioInitialSpeedLabelText"
+                                        FontSize="11"
+                                        Foreground="{StaticResource FluentTitleText}"
+                                        Text="初始倒计时速率" />
+                                    <TextBlock
+                                        x:Name="BombAudioInitialSpeedValueText"
+                                        Grid.Column="1"
+                                        FontSize="11"
+                                        FontWeight="SemiBold"
+                                        Foreground="{StaticResource FluentAccent}"
+                                        Text="0.50×" />
                                 </Grid>
-                                <Slider x:Name="BombAudioFinalSpeedSlider" Minimum="25" Maximum="400" StepFrequency="5" ValueChanged="OnBombAudioSpeedChanged" />
+                                <Slider
+                                    x:Name="BombAudioInitialSpeedSlider"
+                                    Minimum="25"
+                                    Maximum="400"
+                                    StepFrequency="5"
+                                    ValueChanged="OnBombAudioSpeedChanged" />
+                            </StackPanel>
+
+                            <!-- Final Speed Slider -->
+                            <StackPanel Grid.Row="1" Grid.Column="1" Spacing="3">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock
+                                        x:Name="BombAudioFinalSpeedLabelText"
+                                        FontSize="11"
+                                        Foreground="{StaticResource FluentTitleText}"
+                                        Text="临近爆炸速率" />
+                                    <TextBlock
+                                        x:Name="BombAudioFinalSpeedValueText"
+                                        Grid.Column="1"
+                                        FontSize="11"
+                                        FontWeight="SemiBold"
+                                        Foreground="{StaticResource FluentAccent}"
+                                        Text="1.50×" />
+                                </Grid>
+                                <Slider
+                                    x:Name="BombAudioFinalSpeedSlider"
+                                    Minimum="25"
+                                    Maximum="400"
+                                    StepFrequency="5"
+                                    ValueChanged="OnBombAudioSpeedChanged" />
                             </StackPanel>
                         </Grid>
+
+                        <!-- Hidden label for localization binding -->
+                        <TextBlock x:Name="BombAudioSpeedLabelText" Visibility="Collapsed" />
+
+                        <Rectangle Height="1" Fill="{StaticResource FluentDivider}" />
+
+                        <!-- Custom Sounds Rows -->
+                        <StackPanel Spacing="8">
+                            <TextBlock
+                                x:Name="BombAudioCustomLabelText"
+                                Style="{StaticResource FluentCardTitle}"
+                                FontSize="12"
+                                Text="自定义炸弹音效文件" />
+
+                            <Grid ColumnSpacing="8" RowSpacing="8">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Timer Sound -->
+                                <StackPanel Grid.Row="0" VerticalAlignment="Center" Spacing="1">
+                                    <TextBlock x:Name="BombTimerAudioLabelText" FontSize="12" FontWeight="SemiBold" Text="倒计时滴答声 (Timer)" />
+                                    <TextBlock x:Name="BombTimerAudioStatusText" FontSize="11" Foreground="{StaticResource FluentMutedText}" Text="内置默认" />
+                                </StackPanel>
+                                <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                                    <Button
+                                        x:Name="BombTimerAudioImportButton"
+                                        Style="{StaticResource FluentActionBtnStyle}"
+                                        Click="OnBombAudioImportClick"
+                                        Tag="timer">
+                                        <StackPanel Orientation="Horizontal" Spacing="4">
+                                            <FontIcon FontFamily="Segoe MDL2 Assets" FontSize="11" Glyph="&#xE8B5;" />
+                                            <TextBlock x:Name="BombTimerAudioImportButtonText" Text="导入" />
+                                        </StackPanel>
+                                    </Button>
+                                    <Button
+                                        x:Name="BombTimerAudioClearButton"
+                                        Style="{StaticResource FluentActionBtnStyle}"
+                                        MinWidth="28"
+                                        Padding="6,4"
+                                        Click="OnBombAudioClearClick"
+                                        Tag="timer"
+                                        ToolTipService.ToolTip="恢复为内置默认"
+                                        Visibility="Collapsed">
+                                        <FontIcon FontFamily="Segoe MDL2 Assets" FontSize="10" Glyph="&#xE894;" />
+                                    </Button>
+                                </StackPanel>
+
+                                <!-- Exploded Sound -->
+                                <StackPanel Grid.Row="1" VerticalAlignment="Center" Spacing="1">
+                                    <TextBlock x:Name="BombExplodedAudioLabelText" FontSize="12" FontWeight="SemiBold" Text="爆炸提示音 (Explosion)" />
+                                    <TextBlock x:Name="BombExplodedAudioStatusText" FontSize="11" Foreground="{StaticResource FluentMutedText}" Text="内置默认" />
+                                </StackPanel>
+                                <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                                    <Button
+                                        x:Name="BombExplodedAudioImportButton"
+                                        Style="{StaticResource FluentActionBtnStyle}"
+                                        Click="OnBombAudioImportClick"
+                                        Tag="exploded">
+                                        <StackPanel Orientation="Horizontal" Spacing="4">
+                                            <FontIcon FontFamily="Segoe MDL2 Assets" FontSize="11" Glyph="&#xE8B5;" />
+                                            <TextBlock x:Name="BombExplodedAudioImportButtonText" Text="导入" />
+                                        </StackPanel>
+                                    </Button>
+                                    <Button
+                                        x:Name="BombExplodedAudioClearButton"
+                                        Style="{StaticResource FluentActionBtnStyle}"
+                                        MinWidth="28"
+                                        Padding="6,4"
+                                        Click="OnBombAudioClearClick"
+                                        Tag="exploded"
+                                        ToolTipService.ToolTip="恢复为内置默认"
+                                        Visibility="Collapsed">
+                                        <FontIcon FontFamily="Segoe MDL2 Assets" FontSize="10" Glyph="&#xE894;" />
+                                    </Button>
+                                </StackPanel>
+
+                                <!-- Defused Sound -->
+                                <StackPanel Grid.Row="2" VerticalAlignment="Center" Spacing="1">
+                                    <TextBlock x:Name="BombDefusedAudioLabelText" FontSize="12" FontWeight="SemiBold" Text="拆除成功提示音 (Defuse)" />
+                                    <TextBlock x:Name="BombDefusedAudioStatusText" FontSize="11" Foreground="{StaticResource FluentMutedText}" Text="内置默认" />
+                                </StackPanel>
+                                <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                                    <Button
+                                        x:Name="BombDefusedAudioImportButton"
+                                        Style="{StaticResource FluentActionBtnStyle}"
+                                        Click="OnBombAudioImportClick"
+                                        Tag="defused">
+                                        <StackPanel Orientation="Horizontal" Spacing="4">
+                                            <FontIcon FontFamily="Segoe MDL2 Assets" FontSize="11" Glyph="&#xE8B5;" />
+                                            <TextBlock x:Name="BombDefusedAudioImportButtonText" Text="导入" />
+                                        </StackPanel>
+                                    </Button>
+                                    <Button
+                                        x:Name="BombDefusedAudioClearButton"
+                                        Style="{StaticResource FluentActionBtnStyle}"
+                                        MinWidth="28"
+                                        Padding="6,4"
+                                        Click="OnBombAudioClearClick"
+                                        Tag="defused"
+                                        ToolTipService.ToolTip="恢复为内置默认"
+                                        Visibility="Collapsed">
+                                        <FontIcon FontFamily="Segoe MDL2 Assets" FontSize="10" Glyph="&#xE894;" />
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </Border>
+
+        <!-- 7. Process Priority Management Card -->
+        <Border Style="{StaticResource FluentCardStyle}">
+            <StackPanel Spacing="10">
+                <!-- Header with Refresh Button -->
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <Border Style="{StaticResource FluentIconStyle}">
+                        <FontIcon
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            FontFamily="Segoe MDL2 Assets"
+                            FontSize="14"
+                            Foreground="{StaticResource FluentBodyText}"
+                            Glyph="&#xE945;" />
+                    </Border>
+
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                        <TextBlock
+                            x:Name="ProcessPriorityTitleText"
+                            Style="{StaticResource FluentCardTitle}"
+                            Text="Xbox Game Bar 进程优先级管理" />
+                        <TextBlock
+                            x:Name="ProcessPriorityHintText"
+                            Style="{StaticResource FluentCardHint}"
+                            Text="读取并优化覆盖层三个关键进程的 Windows 调度优先级" />
                     </StackPanel>
 
-                    <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Margin="0,10,0,0" Spacing="6">
-                        <TextBlock
-                            x:Name="BombAudioCustomLabelText"
-                            Style="{StaticResource CompactChoiceLabelStyle}"
-                            Text="Custom sounds"
-                            TextWrapping="WrapWholeWords" />
-                        <Grid ColumnSpacing="8" RowSpacing="6">
+                    <Button
+                        x:Name="ProcessPriorityRefreshButton"
+                        Grid.Column="2"
+                        Style="{StaticResource FluentActionBtnStyle}"
+                        Click="OnProcessPriorityRefreshClick">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <FontIcon FontFamily="Segoe MDL2 Assets" FontSize="11" Glyph="&#xE72C;" />
+                            <TextBlock Text="刷新状态" />
+                        </StackPanel>
+                    </Button>
+                </Grid>
+
+                <!-- Process Priority Rows Table -->
+                <Border
+                    Background="{StaticResource FluentCardSubBackground}"
+                    BorderBrush="{StaticResource FluentDivider}"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    Padding="14,10">
+                    <StackPanel Spacing="8">
+                        <Grid ColumnSpacing="12" RowSpacing="8">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
                             <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="150" />
+                                <ColumnDefinition Width="150" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Row 1: GameBar.exe -->
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                FontSize="12"
+                                FontWeight="SemiBold"
+                                Foreground="{StaticResource FluentTitleText}"
+                                Text="GameBar.exe" />
+                            <ComboBox
+                                x:Name="GameBarPrioritySelector"
+                                Grid.Column="1"
+                                Style="{StaticResource FluentComboBoxStyle}"
+                                MinWidth="140"
+                                SelectionChanged="OnProcessPrioritySelectionChanged" />
+                            <TextBlock
+                                x:Name="GameBarPriorityStatusText"
+                                Grid.Column="2"
+                                VerticalAlignment="Center"
+                                FontSize="11"
+                                Foreground="{StaticResource FluentMutedText}"
+                                Text="正在检测…" />
+
+                            <!-- Row 2: GameBarFTServer.exe -->
+                            <TextBlock
+                                Grid.Row="1"
+                                VerticalAlignment="Center"
+                                FontSize="12"
+                                FontWeight="SemiBold"
+                                Foreground="{StaticResource FluentTitleText}"
+                                Text="GameBarFTServer.exe" />
+                            <ComboBox
+                                x:Name="GameBarFtServerPrioritySelector"
+                                Grid.Row="1"
+                                Grid.Column="1"
+                                Style="{StaticResource FluentComboBoxStyle}"
+                                MinWidth="140"
+                                SelectionChanged="OnProcessPrioritySelectionChanged" />
+                            <TextBlock
+                                x:Name="GameBarFtServerPriorityStatusText"
+                                Grid.Row="1"
+                                Grid.Column="2"
+                                VerticalAlignment="Center"
+                                FontSize="11"
+                                Foreground="{StaticResource FluentMutedText}"
+                                Text="正在检测…" />
+
+                            <!-- Row 3: KillConfirmGameBar.exe -->
+                            <TextBlock
+                                Grid.Row="2"
+                                VerticalAlignment="Center"
+                                FontSize="12"
+                                FontWeight="SemiBold"
+                                Foreground="{StaticResource FluentTitleText}"
+                                Text="KillConfirmGameBar.exe" />
+                            <ComboBox
+                                x:Name="KillConfirmWidgetPrioritySelector"
+                                Grid.Row="2"
+                                Grid.Column="1"
+                                Style="{StaticResource FluentComboBoxStyle}"
+                                MinWidth="140"
+                                SelectionChanged="OnProcessPrioritySelectionChanged" />
+                            <TextBlock
+                                x:Name="KillConfirmWidgetPriorityStatusText"
+                                Grid.Row="2"
+                                Grid.Column="2"
+                                VerticalAlignment="Center"
+                                FontSize="11"
+                                Foreground="{StaticResource FluentMutedText}"
+                                Text="正在检测…" />
+                        </Grid>
+
+                        <Rectangle Height="1" Fill="{StaticResource FluentDivider}" Margin="0,2" />
+
+                        <!-- Persistence Toggle -->
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Row="0" VerticalAlignment="Center">
-                                <TextBlock x:Name="BombTimerAudioLabelText" FontSize="11" Text="Timer sound" />
-                                <TextBlock x:Name="BombTimerAudioStatusText" FontSize="10" Foreground="#888888" Text="Built-in" />
+
+                            <StackPanel VerticalAlignment="Center" Spacing="2">
+                                <TextBlock
+                                    FontSize="12"
+                                    FontWeight="SemiBold"
+                                    Foreground="{StaticResource FluentTitleText}"
+                                    Text="软件启动时自动恢复并保持上述优先级" />
+                                <TextBlock
+                                    x:Name="ProcessPriorityPersistenceHintText"
+                                    Style="{StaticResource FluentCardHint}"
+                                    Text="启用后，每次伴随服务启动均会自动校验并重新应用设定好的进程优先级" />
                             </StackPanel>
-                            <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="4">
-                                <Button
-                                    x:Name="BombTimerAudioImportButton"
-                                    MinWidth="72"
-                                    Padding="10,4"
-                                    Click="OnBombAudioImportClick"
-                                    Tag="timer">
-                                    <StackPanel Orientation="Horizontal" Spacing="4">
-                                        <FontIcon FontSize="12" Glyph="&#xE8B5;" />
-                                        <TextBlock x:Name="BombTimerAudioImportButtonText" Text="Import" />
-                                    </StackPanel>
-                                </Button>
-                                <Button
-                                    x:Name="BombTimerAudioClearButton"
-                                    Padding="8,4"
-                                    Click="OnBombAudioClearClick"
-                                    Tag="timer"
-                                    ToolTipService.ToolTip="Reset to built-in"
-                                    Visibility="Collapsed">
-                                    <FontIcon FontSize="11" Glyph="&#xE894;" />
-                                </Button>
-                            </StackPanel>
-                            <StackPanel Grid.Row="1" VerticalAlignment="Center">
-                                <TextBlock x:Name="BombExplodedAudioLabelText" FontSize="11" Text="Explosion sound" />
-                                <TextBlock x:Name="BombExplodedAudioStatusText" FontSize="10" Foreground="#888888" Text="Built-in" />
-                            </StackPanel>
-                            <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="4">
-                                <Button
-                                    x:Name="BombExplodedAudioImportButton"
-                                    MinWidth="72"
-                                    Padding="10,4"
-                                    Click="OnBombAudioImportClick"
-                                    Tag="exploded">
-                                    <StackPanel Orientation="Horizontal" Spacing="4">
-                                        <FontIcon FontSize="12" Glyph="&#xE8B5;" />
-                                        <TextBlock x:Name="BombExplodedAudioImportButtonText" Text="Import" />
-                                    </StackPanel>
-                                </Button>
-                                <Button
-                                    x:Name="BombExplodedAudioClearButton"
-                                    Padding="8,4"
-                                    Click="OnBombAudioClearClick"
-                                    Tag="exploded"
-                                    ToolTipService.ToolTip="Reset to built-in"
-                                    Visibility="Collapsed">
-                                    <FontIcon FontSize="11" Glyph="&#xE894;" />
-                                </Button>
-                            </StackPanel>
-                            <StackPanel Grid.Row="2" VerticalAlignment="Center">
-                                <TextBlock x:Name="BombDefusedAudioLabelText" FontSize="11" Text="Defuse sound" />
-                                <TextBlock x:Name="BombDefusedAudioStatusText" FontSize="10" Foreground="#888888" Text="Built-in" />
-                            </StackPanel>
-                            <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Spacing="4">
-                                <Button
-                                    x:Name="BombDefusedAudioImportButton"
-                                    MinWidth="72"
-                                    Padding="10,4"
-                                    Click="OnBombAudioImportClick"
-                                    Tag="defused">
-                                    <StackPanel Orientation="Horizontal" Spacing="4">
-                                        <FontIcon FontSize="12" Glyph="&#xE8B5;" />
-                                        <TextBlock x:Name="BombDefusedAudioImportButtonText" Text="Import" />
-                                    </StackPanel>
-                                </Button>
-                                <Button
-                                    x:Name="BombDefusedAudioClearButton"
-                                    Padding="8,4"
-                                    Click="OnBombAudioClearClick"
-                                    Tag="defused"
-                                    ToolTipService.ToolTip="Reset to built-in"
-                                    Visibility="Collapsed">
-                                    <FontIcon FontSize="11" Glyph="&#xE894;" />
-                                </Button>
-                            </StackPanel>
+
+                            <ToggleSwitch
+                                x:Name="ProcessPriorityPersistenceToggle"
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                MinWidth="0"
+                                OffContent="关"
+                                OnContent="开"
+                                Toggled="OnProcessPriorityPersistenceToggled" />
                         </Grid>
                     </StackPanel>
-                </Grid>
-            </Border>
-
-            <Border Grid.Row="3" Grid.ColumnSpan="2" Style="{StaticResource CompactChoiceCardStyle}">
-                <StackPanel Spacing="7">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <Border Style="{StaticResource CompactCircleIconStyle}">
-                            <FontIcon
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                FontFamily="Segoe MDL2 Assets"
-                                FontSize="12"
-                                Foreground="White"
-                                Glyph="&#xE945;" />
-                        </Border>
-                        <TextBlock
-                            x:Name="ProcessPriorityTitleText"
-                            Grid.Column="1"
-                            VerticalAlignment="Center"
-                            Style="{StaticResource CompactChoiceLabelStyle}"
-                            Text="Xbox Game Bar process priority" />
-                        <Button
-                            x:Name="ProcessPriorityRefreshButton"
-                            Grid.Column="2"
-                            MinWidth="60"
-                            Padding="10,3"
-                            Click="OnProcessPriorityRefreshClick"
-                            Content="Refresh" />
-                    </Grid>
-
-                    <TextBlock
-                        x:Name="ProcessPriorityHintText"
-                        FontSize="10"
-                        Text="Read and change the actual Windows priority of the three overlay processes."
-                        TextWrapping="WrapWholeWords" />
-
-                    <Grid ColumnSpacing="8" RowSpacing="5">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="138" />
-                            <ColumnDefinition Width="145" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-
-                        <TextBlock VerticalAlignment="Center" FontSize="11" Text="GameBar.exe" />
-                        <ComboBox
-                            x:Name="GameBarPrioritySelector"
-                            Grid.Column="1"
-                            MinWidth="140"
-                            Style="{StaticResource CompactSettingsComboBoxStyle}"
-                            SelectionChanged="OnProcessPrioritySelectionChanged" />
-                        <TextBlock
-                            x:Name="GameBarPriorityStatusText"
-                            Grid.Column="2"
-                            VerticalAlignment="Center"
-                            FontSize="10"
-                            Text="Reading..."
-                            TextWrapping="WrapWholeWords" />
-
-                        <TextBlock Grid.Row="1" VerticalAlignment="Center" FontSize="11" Text="GameBarFTServer.exe" />
-                        <ComboBox
-                            x:Name="GameBarFtServerPrioritySelector"
-                            Grid.Row="1"
-                            Grid.Column="1"
-                            MinWidth="140"
-                            Style="{StaticResource CompactSettingsComboBoxStyle}"
-                            SelectionChanged="OnProcessPrioritySelectionChanged" />
-                        <TextBlock
-                            x:Name="GameBarFtServerPriorityStatusText"
-                            Grid.Row="1"
-                            Grid.Column="2"
-                            VerticalAlignment="Center"
-                            FontSize="10"
-                            Text="Reading..."
-                            TextWrapping="WrapWholeWords" />
-
-                        <TextBlock Grid.Row="2" VerticalAlignment="Center" FontSize="11" Text="KillConfirmGameBar.exe" />
-                        <ComboBox
-                            x:Name="KillConfirmWidgetPrioritySelector"
-                            Grid.Row="2"
-                            Grid.Column="1"
-                            MinWidth="140"
-                            Style="{StaticResource CompactSettingsComboBoxStyle}"
-                            SelectionChanged="OnProcessPrioritySelectionChanged" />
-                        <TextBlock
-                            x:Name="KillConfirmWidgetPriorityStatusText"
-                            Grid.Row="2"
-                            Grid.Column="2"
-                            VerticalAlignment="Center"
-                            FontSize="10"
-                            Text="Reading..."
-                            TextWrapping="WrapWholeWords" />
-                    </Grid>
-
-                    <ToggleSwitch
-                        x:Name="ProcessPriorityPersistenceToggle"
-                        HorizontalAlignment="Left"
-                        MinWidth="0"
-                        OffContent="Off"
-                        OnContent="On"
-                        Toggled="OnProcessPriorityPersistenceToggled" />
-                    <TextBlock
-                        x:Name="ProcessPriorityPersistenceHintText"
-                        FontSize="10"
-                        Text="When enabled, the saved priorities are checked and reapplied every time the software starts."
-                        TextWrapping="WrapWholeWords" />
-                </StackPanel>
-            </Border>
-
-            <Border Grid.Row="4" Grid.ColumnSpan="2" Style="{StaticResource CompactChoiceCardStyle}">
-                <StackPanel Spacing="6">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Border Style="{StaticResource CompactCircleIconStyle}">
-                            <FontIcon
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                FontFamily="Segoe MDL2 Assets"
-                                FontSize="12"
-                                Foreground="White"
-                                Glyph="&#xE73E;" />
-                        </Border>
-                        <TextBlock
-                            x:Name="AutoCloseOnGameExitLabelText"
-                            Grid.Column="1"
-                            VerticalAlignment="Center"
-                            Style="{StaticResource CompactChoiceLabelStyle}"
-                            Text="Auto-close after the game exits"
-                            TextWrapping="WrapWholeWords" />
-                    </Grid>
-                    <ToggleSwitch
-                        x:Name="AutoCloseOnGameExitToggle"
-                        HorizontalAlignment="Left"
-                        MinWidth="0"
-                        OffContent="Off"
-                        OnContent="On"
-                        Toggled="OnAutoCloseOnGameExitToggled" />
-                    <TextBlock
-                        x:Name="AutoCloseOnGameExitHintText"
-                        FontSize="10"
-                        TextWrapping="WrapWholeWords" />
-                </StackPanel>
-            </Border>
-
-            <Border Grid.Row="5" Grid.ColumnSpan="2" Style="{StaticResource CompactChoiceCardStyle}">
-                <StackPanel Spacing="6">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Border Style="{StaticResource CompactCircleIconStyle}">
-                            <FontIcon
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                FontFamily="Segoe MDL2 Assets"
-                                FontSize="12"
-                                Foreground="White"
-                                Glyph="&#xE74D;" />
-                        </Border>
-                        <TextBlock
-                            x:Name="InterruptPreviousKillAudioLabelText"
-                            Grid.Column="1"
-                            VerticalAlignment="Center"
-                            Style="{StaticResource CompactChoiceLabelStyle}"
-                            Text="Interrupt previous kill voice"
-                            TextWrapping="WrapWholeWords" />
-                    </Grid>
-                    <ToggleSwitch
-                        x:Name="InterruptPreviousKillAudioToggle"
-                        HorizontalAlignment="Left"
-                        MinWidth="0"
-                        OffContent="Off"
-                        OnContent="On"
-                        Toggled="OnInterruptPreviousKillAudioToggled" />
-                    <TextBlock
-                        x:Name="InterruptPreviousKillAudioHintText"
-                        FontSize="10"
-                        TextWrapping="WrapWholeWords" />
-                </StackPanel>
-            </Border>
-        </Grid>
+                </Border>
+            </StackPanel>
+        </Border>
     </StackPanel>
 </UserControl>

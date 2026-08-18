@@ -2,116 +2,244 @@
     x:Class="KillConfirmGameBar.Controls.Settings.RuntimeMaintenancePanel"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <UserControl.Resources>
+        <!-- Fluent 2 Palette -->
+        <SolidColorBrush x:Key="FluentCardBackground" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="FluentCardSubBackground" Color="#FBFBFB" />
+        <SolidColorBrush x:Key="FluentCardBorder" Color="#E5E5E5" />
+        <SolidColorBrush x:Key="FluentDivider" Color="#F0F0F0" />
+        <SolidColorBrush x:Key="FluentTitleText" Color="#1B1B1B" />
+        <SolidColorBrush x:Key="FluentBodyText" Color="#424242" />
+        <SolidColorBrush x:Key="FluentMutedText" Color="#6E6E6E" />
+        <SolidColorBrush x:Key="FluentAccent" Color="#0067C0" />
+        <SolidColorBrush x:Key="FluentDangerBackground" Color="#FDF3F2" />
+        <SolidColorBrush x:Key="FluentDangerBorder" Color="#F4BDB8" />
+        <SolidColorBrush x:Key="FluentDangerText" Color="#C42B1C" />
+
+        <!-- Fluent 2 Setting Card Style -->
+        <Style x:Key="FluentCardStyle" TargetType="Border">
+            <Setter Property="Padding" Value="14,10" />
+            <Setter Property="Background" Value="{StaticResource FluentCardBackground}" />
+            <Setter Property="BorderBrush" Value="{StaticResource FluentCardBorder}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+        </Style>
+
+        <!-- Fluent 2 Icon Box -->
+        <Style x:Key="FluentIconStyle" TargetType="Border">
+            <Setter Property="Width" Value="32" />
+            <Setter Property="Height" Value="32" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Background" Value="#F3F3F3" />
+            <Setter Property="Margin" Value="0,0,12,0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <!-- Fluent 2 Typography -->
+        <Style x:Key="FluentCardTitle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{StaticResource FluentTitleText}" />
+            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+        </Style>
+
+        <Style x:Key="FluentCardHint" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Foreground" Value="{StaticResource FluentMutedText}" />
+            <Setter Property="TextWrapping" Value="WrapWholeWords" />
+            <Setter Property="LineHeight" Value="15" />
+        </Style>
+
+        <!-- Fluent 2 ComboBox -->
+        <Style x:Key="FluentComboBoxStyle" TargetType="ComboBox">
+            <Setter Property="Height" Value="32" />
+            <Setter Property="MinWidth" Value="180" />
+            <Setter Property="Padding" Value="10,0,24,0" />
+            <Setter Property="FontFamily" Value="Segoe UI" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{StaticResource FluentTitleText}" />
+            <Setter Property="Background" Value="#FFFFFF" />
+            <Setter Property="BorderBrush" Value="#D1D1D1" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <!-- Fluent 2 Secondary Action Button -->
+        <Style x:Key="FluentActionBtnStyle" TargetType="Button">
+            <Setter Property="Padding" Value="10,4" />
+            <Setter Property="MinHeight" Value="28" />
+            <Setter Property="MinWidth" Value="60" />
+            <Setter Property="Background" Value="#FFFFFF" />
+            <Setter Property="BorderBrush" Value="#D1D1D1" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Foreground" Value="{StaticResource FluentTitleText}" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="FontSize" Value="11" />
+        </Style>
+
+        <!-- Backward Compatibility Aliases -->
+        <Style x:Key="CompactChoiceCardStyle" TargetType="Border" BasedOn="{StaticResource FluentCardStyle}" />
+        <Style x:Key="CompactCircleIconStyle" TargetType="Border" BasedOn="{StaticResource FluentIconStyle}" />
+        <Style x:Key="CompactChoiceLabelStyle" TargetType="TextBlock" BasedOn="{StaticResource FluentCardTitle}" />
+        <Style x:Key="CompactSettingsComboBoxStyle" TargetType="ComboBox" BasedOn="{StaticResource FluentComboBoxStyle}" />
+    </UserControl.Resources>
+
+    <!-- Outer Card container (keeps x:Name="Card" for theme code-behind compatibility) -->
     <Border
         x:Name="Card"
-        Padding="12"
-        Background="#FAFAF7"
-        BorderBrush="#E2DDD3"
-        BorderThickness="1"
-        CornerRadius="12">
-        <StackPanel Spacing="10">
-            <TextBlock
-                x:Name="TitleText"
-                FontSize="15"
-                FontWeight="SemiBold"
-                Text="Plugin runtime" />
-            <TextBlock
-                x:Name="DescriptionText"
-                Opacity="0.72"
-                Text="Choose an audio output device or restore all plugin data."
-                TextWrapping="WrapWholeWords" />
-            <Grid ColumnSpacing="8">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <Border Style="{StaticResource CompactChoiceCardStyle}">
-                    <StackPanel Spacing="6">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <Border Style="{StaticResource CompactCircleIconStyle}">
-                                <FontIcon
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    FontFamily="Segoe MDL2 Assets"
-                                    FontSize="12"
-                                    Foreground="White"
-                                    Glyph="&#xE95D;" />
-                            </Border>
-                            <TextBlock
-                                x:Name="AudioDeviceLabel"
-                                Grid.Column="1"
-                                VerticalAlignment="Center"
-                                Style="{StaticResource CompactChoiceLabelStyle}"
-                                Text="Audio output" />
-                        </Grid>
-                        <ComboBox
-                            x:Name="AudioDeviceSelector"
-                            Style="{StaticResource CompactSettingsComboBoxStyle}"
-                            SelectionChanged="OnAudioDeviceSelectionChanged" />
-                    </StackPanel>
-                </Border>
+        Padding="0"
+        Background="Transparent"
+        BorderThickness="0">
+        <StackPanel Spacing="8">
+            <!-- Hidden compatibility anchors for code-behind bindings -->
+            <StackPanel Visibility="Collapsed">
+                <TextBlock x:Name="TitleText" Text="Plugin runtime" />
+                <TextBlock x:Name="DescriptionText" Text="Choose an audio output device or restore all plugin data." />
+            </StackPanel>
 
-                <Border Grid.Column="1" Style="{StaticResource CompactChoiceCardStyle}">
-                    <StackPanel Spacing="6">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <Border Style="{StaticResource CompactCircleIconStyle}">
-                                <FontIcon
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    FontFamily="Segoe MDL2 Assets"
-                                    FontSize="12"
-                                    Foreground="White"
-                                    Glyph="&#xE943;" />
-                            </Border>
-                            <TextBlock
-                                x:Name="DeveloperModeLabel"
-                                Grid.Column="1"
-                                VerticalAlignment="Center"
-                                Style="{StaticResource CompactChoiceLabelStyle}"
-                                Text="Developer mode" />
-                        </Grid>
-                        <ToggleSwitch
-                            x:Name="DeveloperModeToggle"
-                            HorizontalAlignment="Left"
-                            MinWidth="0"
-                            OffContent="Off"
-                            OnContent="On"
-                            Toggled="OnDeveloperModeToggled" />
+            <!-- 1. Audio Output Device Card -->
+            <Border Style="{StaticResource FluentCardStyle}">
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <Border Style="{StaticResource FluentIconStyle}">
+                        <FontIcon
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            FontFamily="Segoe MDL2 Assets"
+                            FontSize="14"
+                            Foreground="{StaticResource FluentBodyText}"
+                            Glyph="&#xE95D;" />
+                    </Border>
+
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                        <TextBlock
+                            x:Name="AudioDeviceLabel"
+                            Style="{StaticResource FluentCardTitle}"
+                            Text="音频输出设备" />
+                        <TextBlock
+                            Style="{StaticResource FluentCardHint}"
+                            Text="选择击杀音效与语音播报的指定声卡输出设备" />
+                    </StackPanel>
+
+                    <ComboBox
+                        x:Name="AudioDeviceSelector"
+                        Grid.Column="2"
+                        Style="{StaticResource FluentComboBoxStyle}"
+                        SelectionChanged="OnAudioDeviceSelectionChanged" />
+                </Grid>
+            </Border>
+
+            <!-- 2. Developer Mode & Diagnostics Card -->
+            <Border Style="{StaticResource FluentCardStyle}">
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <Border Style="{StaticResource FluentIconStyle}">
+                        <FontIcon
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            FontFamily="Segoe MDL2 Assets"
+                            FontSize="14"
+                            Foreground="{StaticResource FluentBodyText}"
+                            Glyph="&#xE943;" />
+                    </Border>
+
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                        <TextBlock
+                            x:Name="DeveloperModeLabel"
+                            Style="{StaticResource FluentCardTitle}"
+                            Text="开发者模式与诊断日志" />
                         <TextBlock
                             x:Name="DeveloperModeHint"
-                            FontSize="10"
-                            Text="Enable all diagnostic logs"
+                            Style="{StaticResource FluentCardHint}"
+                            Text="启用所有诊断日志与详细调试信息" />
+                        <TextBlock
+                            x:Name="StatusText"
+                            FontSize="11"
+                            Foreground="{StaticResource FluentMutedText}"
                             TextWrapping="WrapWholeWords" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                         <Button
                             x:Name="OpenLogPathButton"
-                            Padding="10,4"
-                            HorizontalAlignment="Left"
-                            Click="OnOpenLogPathClick"
-                            Content="Open log path" />
+                            Style="{StaticResource FluentActionBtnStyle}"
+                            Click="OnOpenLogPathClick">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <FontIcon FontFamily="Segoe MDL2 Assets" FontSize="11" Glyph="&#xED25;" />
+                                <TextBlock Text="打开日志目录" />
+                            </StackPanel>
+                        </Button>
+                        <ToggleSwitch
+                            x:Name="DeveloperModeToggle"
+                            VerticalAlignment="Center"
+                            MinWidth="0"
+                            OffContent="关"
+                            OnContent="开"
+                            Toggled="OnDeveloperModeToggled" />
                     </StackPanel>
-                </Border>
-            </Grid>
-            <TextBlock
-                x:Name="StatusText"
-                FontSize="11"
-                Opacity="0.72"
-                TextWrapping="WrapWholeWords" />
-            <Button
-                x:Name="ResetPluginButton"
-                HorizontalAlignment="Stretch"
-                Background="#FFF1F0"
-                BorderBrush="#F2A7A0"
-                Foreground="#A4262C"
-                Click="OnResetPluginClick"
-                Content="Reset all plugin data" />
+                </Grid>
+            </Border>
+
+            <!-- 3. Reset All Plugin Data (Danger Zone) Card -->
+            <Border
+                Style="{StaticResource FluentCardStyle}"
+                Background="{StaticResource FluentDangerBackground}"
+                BorderBrush="{StaticResource FluentDangerBorder}">
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <Border Style="{StaticResource FluentIconStyle}" Background="#FBEAE8">
+                        <FontIcon
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            FontFamily="Segoe MDL2 Assets"
+                            FontSize="14"
+                            Foreground="{StaticResource FluentDangerText}"
+                            Glyph="&#xE7BA;" />
+                    </Border>
+
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                        <TextBlock
+                            Style="{StaticResource FluentCardTitle}"
+                            Foreground="{StaticResource FluentDangerText}"
+                            Text="重置所有插件数据" />
+                        <TextBlock
+                            Style="{StaticResource FluentCardHint}"
+                            Foreground="#8A1B16"
+                            Text="恢复全部音频、特效、端口与偏好设置到出厂初始状态" />
+                    </StackPanel>
+
+                    <Button
+                        x:Name="ResetPluginButton"
+                        Grid.Column="2"
+                        Background="{StaticResource FluentDangerText}"
+                        BorderBrush="{StaticResource FluentDangerText}"
+                        Foreground="White"
+                        FontWeight="SemiBold"
+                        FontSize="11"
+                        Padding="12,5"
+                        CornerRadius="4"
+                        Click="OnResetPluginClick"
+                        Content="重置数据" />
+                </Grid>
+            </Border>
         </StackPanel>
     </Border>
 </UserControl>

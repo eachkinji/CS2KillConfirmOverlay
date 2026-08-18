@@ -9,19 +9,24 @@
     RequestedTheme="Light">
 
     <Page.Resources>
-        <SolidColorBrush x:Key="MainBackgroundSolid" Color="#F9F9F9" />
-        <LinearGradientBrush x:Key="MainBackgroundGradient" StartPoint="0,0" EndPoint="0,1">
-            <GradientStop Color="#F9F9F9" Offset="0.0" />
-            <GradientStop Color="#F3F3F3" Offset="1.0" />
-        </LinearGradientBrush>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="ms-appx:///KillConfirmWidgetPage.Styles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
 
-        <SolidColorBrush x:Key="OrangeSlashGradient" Color="Transparent" />
+            <SolidColorBrush x:Key="MainBackgroundSolid" Color="#F9F9F9" />
+            <LinearGradientBrush x:Key="MainBackgroundGradient" StartPoint="0,0" EndPoint="0,1">
+                <GradientStop Color="#F9F9F9" Offset="0.0" />
+                <GradientStop Color="#F3F3F3" Offset="1.0" />
+            </LinearGradientBrush>
 
-        <AcrylicBrush x:Key="MainBackgroundAcrylic"
-                      BackgroundSource="HostBackdrop"
-                      TintColor="#F3F3F3"
-                      TintOpacity="0.8"
-                      FallbackColor="#F3F3F3" />
+            <SolidColorBrush x:Key="OrangeSlashGradient" Color="Transparent" />
+
+            <AcrylicBrush x:Key="MainBackgroundAcrylic"
+                          BackgroundSource="HostBackdrop"
+                          TintColor="#F3F3F3"
+                          TintOpacity="0.8"
+                          FallbackColor="#F3F3F3" />
 
         <AcrylicBrush x:Key="CardBackgroundAcrylic"
                       BackgroundSource="Backdrop"
@@ -181,6 +186,7 @@
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="6" />
         </Style>
+        </ResourceDictionary>
     </Page.Resources>
 
     <Grid x:Name="SettingsRootGrid" Background="{StaticResource MainBackgroundGradient}">

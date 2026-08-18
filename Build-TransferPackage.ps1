@@ -26,10 +26,55 @@ if (-not $Version) {
     throw "Could not read package version from $ManifestPath"
 }
 
+if (-not $CertificatePfxPath) {
+    $pfxCandidates = @(
+        (Join-Path $WorkspaceRoot "cer\TestXboxGameBar\TestXboxGameBar-CodeSigning.pfx"),
+        (Join-Path $Root "Widget\KillConfirmGameBar_TemporaryKey.pfx")
+    )
+    $CertificatePfxPath = $pfxCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+}
+
+if ($CertificatePfxPath) {
+    $pfxValid = $false
+    if ($CertificatePassword) {
+        try {
+            $testCert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($CertificatePfxPath, $CertificatePassword)
+            $pfxValid = $true
+        } catch {}
+    }
+
+    if (-not $pfxValid) {
+        $pwdFile = Join-Path (Split-Path -Parent $CertificatePfxPath) "SIGNING_PASSWORD.txt"
+        if (Test-Path $pwdFile) {
+            $candidatePwd = (Get-Content -LiteralPath $pwdFile -Raw).Trim()
+            try {
+                $testCert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($CertificatePfxPath, $candidatePwd)
+                $CertificatePassword = $candidatePwd
+                $pfxValid = $true
+            } catch {}
+        }
+    }
+
+    if (-not $pfxValid) {
+        try {
+            $testCert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($CertificatePfxPath, "test")
+            $CertificatePassword = "test"
+            $pfxValid = $true
+        } catch {}
+    }
+
+    if (-not $CertificateCerPath) {
+        $cerCandidate = [System.IO.Path]::ChangeExtension($CertificatePfxPath, ".cer")
+        if (Test-Path $cerCandidate) {
+            $CertificateCerPath = $cerCandidate
+        }
+    }
+}
+
 $PackageFolderName = "KillConfirmGameBar.Package_{0}_{1}_{2}_Test" -f $Version, $Platform, $Configuration
 $PackageFileName = "KillConfirmGameBar.Package_{0}_{1}_{2}.msix" -f $Version, $Platform, $Configuration
 $PackageOutputFolder = "Integrated_{0}_Package" -f $Configuration
-$PackageSourceRoot = Join-Path $Root ("Package\AppPackages\{0}\{1}" -f $PackageOutputFolder, $PackageFolderName)
+$IntegratedOutputDir = Join-Path $Root ("Package\AppPackages\{0}" -f $PackageOutputFolder)
 $AppPackagesRoot = Join-Path $Root "Package\AppPackages"
 $TransferRoot = Join-Path $WorkspaceRoot ("KillConfirmGameBar_Transfer_{0}_有依赖-新人用" -f $Version)
 $TransferZip = "{0}.zip" -f $TransferRoot
@@ -97,25 +142,29 @@ if ($CertificateThumbprint) {
 
 & (Join-Path $Root "Build-IntegratedPackage.ps1") @buildIntegratedArgs
 
-if (-not (Test-Path (Join-Path $PackageSourceRoot $PackageFileName))) {
-    $ProducedPackage = Get-ChildItem -LiteralPath $AppPackagesRoot -Filter "*.msix" -Recurse -ErrorAction SilentlyContinue |
+# Locate the newly produced MSIX package
+$ProducedPackage = $null
+if (Test-Path $IntegratedOutputDir) {
+    $ProducedPackage = Get-ChildItem -LiteralPath $IntegratedOutputDir -Filter "*.msix" -Recurse -File |
         Where-Object { $_.Name -like "*$Version*" -and $_.Name -like "*$Platform*" } |
         Sort-Object LastWriteTime -Descending |
         Select-Object -First 1
-
-    if ($ProducedPackage) {
-        $PackageSourceRoot = $ProducedPackage.DirectoryName
-        $PackageFileName = $ProducedPackage.Name
-    }
 }
 
-if (-not (Test-Path $PackageSourceRoot)) {
-    throw "Expected package folder was not produced: $PackageSourceRoot"
+if (-not $ProducedPackage -and (Test-Path $AppPackagesRoot)) {
+    $ProducedPackage = Get-ChildItem -LiteralPath $AppPackagesRoot -Filter "*.msix" -Recurse -File |
+        Where-Object { $_.Name -like "*$Version*" -and $_.Name -like "*$Platform*" -and $_.FullName -notlike "*obj*" -and ($Configuration -eq "Debug" -or $_.Name -notlike "*Debug*") } |
+        Sort-Object LastWriteTime -Descending |
+        Select-Object -First 1
 }
 
-if (-not (Test-Path (Join-Path $PackageSourceRoot $PackageFileName))) {
-    throw "Expected package file was not produced: $(Join-Path $PackageSourceRoot $PackageFileName)"
+if (-not $ProducedPackage) {
+    throw "Expected package file was not produced in $AppPackagesRoot for version $Version ($Platform, $Configuration)"
 }
+
+$PackageSourceRoot = $ProducedPackage.DirectoryName
+$PackageFileName = $ProducedPackage.Name
+Write-Host "Found produced MSIX package: $($ProducedPackage.FullName)"
 
 if (Test-Path $TransferRoot) {
     Remove-Item -LiteralPath $TransferRoot -Recurse -Force
@@ -143,14 +192,60 @@ foreach ($prerequisiteFileName in $PrerequisiteFileNames) {
     Copy-Item -LiteralPath (Join-Path $PrerequisiteSourceRoot $prerequisiteFileName) -Destination $PrerequisiteTransferRoot -Force
 }
 
-Copy-Item -LiteralPath (Join-Path $PackageSourceRoot $PackageFileName) -Destination $OverlayTransferRoot -Force
+# Locate SignTool and re-sign the MSIX package to guarantee a valid Authenticode signature
+$SignToolCandidates = @(
+    "C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\signtool.exe",
+    "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\signtool.exe",
+    "C:\Program Files (x86)\Windows Kits\10\bin\10.0.19041.0\x64\signtool.exe",
+    (Join-Path ${env:ProgramFiles(x86)} "Windows Kits\10\bin\x64\signtool.exe")
+)
+$SignToolPath = $SignToolCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+if (-not $SignToolPath) {
+    $SignToolCmd = Get-Command signtool -ErrorAction SilentlyContinue
+    if ($SignToolCmd) { $SignToolPath = $SignToolCmd.Source }
+}
 
+if (-not $DisableSigning -and $CertificatePfxPath -and $CertificatePassword -and $SignToolPath) {
+    Write-Host "Explicitly signing MSIX package with signtool ($SignToolPath)..."
+    $resolvedPfx = [System.IO.Path]::GetFullPath($CertificatePfxPath)
+    $resolvedProduced = [System.IO.Path]::GetFullPath($ProducedPackage.FullName)
+    $psi = New-Object System.Diagnostics.ProcessStartInfo
+    $psi.FileName = $SignToolPath
+    $psi.Arguments = "sign /fd SHA256 /f `"$resolvedPfx`" /p `"$CertificatePassword`" `"$resolvedProduced`""
+    $psi.UseShellExecute = $false
+    $psi.RedirectStandardOutput = $true
+    $psi.RedirectStandardError = $true
+    $proc = [System.Diagnostics.Process]::Start($psi)
+    $stdout = $proc.StandardOutput.ReadToEnd()
+    $stderr = $proc.StandardError.ReadToEnd()
+    $proc.WaitForExit()
+    if ($stdout) { Write-Host $stdout.Trim() }
+    if ($stderr) { Write-Host $stderr.Trim() }
+    if ($proc.ExitCode -ne 0) {
+        throw "signtool failed to sign MSIX package with exit code $($proc.ExitCode)"
+    }
+}
+
+$TargetMsixInOverlay = Join-Path $OverlayTransferRoot $PackageFileName
+Copy-Item -LiteralPath $ProducedPackage.FullName -Destination $TargetMsixInOverlay -Force
+
+# Verify MSIX Authenticode signature
+$sig = Get-AuthenticodeSignature $TargetMsixInOverlay
+Write-Host "MSIX Signature Status: $($sig.Status)"
+if (-not $DisableSigning) {
+    if ($sig.Status -ne "Valid") {
+        throw "MSIX package signature validation failed! Status: $($sig.Status), Message: $($sig.StatusMessage). File: $TargetMsixInOverlay"
+    }
+    Write-Host "MSIX digital signature verified: $($sig.SignerCertificate.Subject), Thumbprint: $($sig.SignerCertificate.Thumbprint)"
+}
+
+# Copy matching .cer certificate
+if ($CertificateCerPath -and (Test-Path $CertificateCerPath)) {
+    Copy-Item -LiteralPath $CertificateCerPath -Destination $OverlayTransferRoot -Force
+}
 $PackageCertificate = Get-ChildItem -LiteralPath $PackageSourceRoot -Filter "*.cer" -File -ErrorAction SilentlyContinue | Select-Object -First 1
 if ($PackageCertificate) {
     Copy-Item -LiteralPath $PackageCertificate.FullName -Destination $OverlayTransferRoot -Force
-}
-elseif ($CertificateCerPath) {
-    Copy-Item -LiteralPath $CertificateCerPath -Destination $OverlayTransferRoot -Force
 }
 
 $DependencySourceRoot = Join-Path $PackageSourceRoot "Dependencies\$Platform"

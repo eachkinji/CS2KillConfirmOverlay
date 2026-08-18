@@ -248,21 +248,14 @@ try {
         "/p:Configuration=$Configuration",
         "/p:Platform=$Platform",
         "/p:AppxPackageDir=AppPackages\$PackageOutputFolder\",
+        "/p:AppxPackageSigningEnabled=false",
         "/t:Rebuild",
         "/verbosity:minimal"
     )
-    if ($DisableSigning) {
-        $MsBuildArgs += "/p:AppxPackageSigningEnabled=false"
-    }
-    elseif ($CertificatePfxPath -and $CertificatePassword) {
-        $MsBuildArgs += "/p:AppxPackageSigningEnabled=true"
-        $MsBuildArgs += "/p:PackageCertificateKeyFile=$CertificatePfxPath"
-        $MsBuildArgs += "/p:PackageCertificatePassword=$CertificatePassword"
-        if ($CertificateThumbprint) {
-            $MsBuildArgs += "/p:PackageCertificateThumbprint=$CertificateThumbprint"
-        }
-    }
     & $MsBuildPath @MsBuildArgs
+    if ($LASTEXITCODE -ne 0) {
+        throw "MSBuild package build failed with exit code $LASTEXITCODE"
+    }
 }
 finally {
     Pop-Location

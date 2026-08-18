@@ -5,37 +5,50 @@
 
     <Border
         x:Name="Card"
-        Padding="22"
-        Background="#FAFAF7"
-        BorderBrush="#C98A3E"
+        Padding="18,16"
+        Background="{StaticResource FluentCardBackground}"
+        BorderBrush="{StaticResource FluentCardBorder}"
         BorderThickness="1"
-        CornerRadius="24">
-        <StackPanel Spacing="10">
-            <TextBlock
-                x:Name="TitleText"
-                FontSize="20"
-                FontWeight="Bold"
-                Text="Battlefield 1 advanced settings" />
-            <TextBlock
-                x:Name="BodyText"
-                FontSize="13"
-                LineHeight="18"
-                Visibility="Collapsed"
-                TextWrapping="WrapWholeWords" />
+        CornerRadius="8">
+        <StackPanel Spacing="14">
+            <StackPanel Spacing="4">
+                <TextBlock
+                    x:Name="TitleText"
+                    FontSize="16"
+                    FontWeight="SemiBold"
+                    Foreground="{StaticResource FluentTitleText}"
+                    Text="Battlefield 1 战斗设置" />
+                <TextBlock
+                    x:Name="BodyText"
+                    FontSize="12"
+                    LineHeight="16"
+                    Foreground="{StaticResource FluentMutedText}"
+                    Visibility="Collapsed"
+                    TextWrapping="WrapWholeWords" />
+            </StackPanel>
 
-            <Grid Margin="0,8,0,0" ColumnSpacing="12">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="150" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <TextBlock x:Name="StreakModeLabel" VerticalAlignment="Center" Text="Kill streak" />
-                <ComboBox x:Name="StreakModeSelector" Grid.Column="1" SelectionChanged="OnStreakModeSelectionChanged">
-                    <ComboBoxItem x:Name="StreakLifeItem" Tag="life">Until death</ComboBoxItem>
-                    <ComboBoxItem x:Name="StreakTimed5Item" Tag="timed_5">5-second window</ComboBoxItem>
-                    <ComboBoxItem x:Name="StreakTimed10Item" Tag="timed_10">10-second window</ComboBoxItem>
-                    <ComboBoxItem x:Name="StreakTimed15Item" Tag="timed_15">15-second window</ComboBoxItem>
-                </ComboBox>
-            </Grid>
+            <Border Style="{StaticResource CompactChoiceCardStyle}">
+                <Grid ColumnSpacing="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Border Style="{StaticResource CompactCircleIconStyle}">
+                        <FontIcon FontSize="13" Foreground="White" Glyph="&#xE9D9;" />
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                        <TextBlock x:Name="StreakModeLabel" Style="{StaticResource CompactChoiceLabelStyle}" Text="连杀计算规则" />
+                        <TextBlock FontSize="12" Foreground="{StaticResource FluentMutedText}" Text="设置战地1音效连杀窗口持续时间或按单生命周期计算。" />
+                    </StackPanel>
+                    <ComboBox x:Name="StreakModeSelector" Grid.Column="2" MinWidth="140" Style="{StaticResource CompactSettingsComboBoxStyle}" SelectionChanged="OnStreakModeSelectionChanged">
+                        <ComboBoxItem x:Name="StreakLifeItem" Tag="life">单命持续至死亡</ComboBoxItem>
+                        <ComboBoxItem x:Name="StreakTimed5Item" Tag="timed_5">5秒连杀窗口</ComboBoxItem>
+                        <ComboBoxItem x:Name="StreakTimed10Item" Tag="timed_10">10秒连杀窗口</ComboBoxItem>
+                        <ComboBoxItem x:Name="StreakTimed15Item" Tag="timed_15">15秒连杀窗口</ComboBoxItem>
+                    </ComboBox>
+                </Grid>
+            </Border>
         </StackPanel>
     </Border>
 </UserControl>

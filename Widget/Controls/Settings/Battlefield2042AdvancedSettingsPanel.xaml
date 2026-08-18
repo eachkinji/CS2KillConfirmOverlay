@@ -5,24 +5,27 @@
 
     <Border
         x:Name="Card"
-        Padding="22"
-        Background="#0B222D"
-        BorderBrush="#1EDDDD"
+        Padding="18,16"
+        Background="{StaticResource FluentCardBackground}"
+        BorderBrush="{StaticResource FluentCardBorder}"
         BorderThickness="1"
-        CornerRadius="24">
-        <StackPanel Spacing="10">
-            <TextBlock
-                x:Name="TitleText"
-                FontSize="20"
-                FontWeight="Bold"
-                Text="Battlefield 2042 advanced settings" />
-            <TextBlock
-                x:Name="BodyText"
-                FontSize="13"
-                LineHeight="18"
-                Visibility="Collapsed"
-                TextWrapping="WrapWholeWords" />
-
+        CornerRadius="8">
+        <StackPanel Spacing="14">
+            <StackPanel Spacing="4">
+                <TextBlock
+                    x:Name="TitleText"
+                    FontSize="16"
+                    FontWeight="SemiBold"
+                    Foreground="{StaticResource FluentTitleText}"
+                    Text="Battlefield 2042 战斗设置" />
+                <TextBlock
+                    x:Name="BodyText"
+                    FontSize="12"
+                    LineHeight="16"
+                    Foreground="{StaticResource FluentMutedText}"
+                    Visibility="Collapsed"
+                    TextWrapping="WrapWholeWords" />
+            </StackPanel>
         </StackPanel>
     </Border>
 </UserControl>

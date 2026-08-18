@@ -196,15 +196,17 @@ namespace KillConfirmGameBar
             if (btn == null) return;
             if (isActive)
             {
-                btn.Background = new SolidColorBrush(theme.Accent);
-                btn.Foreground = new SolidColorBrush(Colors.White);
-                btn.BorderBrush = new SolidColorBrush(theme.Accent);
+                btn.Background = new SolidColorBrush(Color.FromArgb(255, 255, 255, 255));
+                btn.Foreground = new SolidColorBrush(Color.FromArgb(255, 27, 27, 27));
+                btn.BorderBrush = new SolidColorBrush(Color.FromArgb(255, 209, 209, 209));
+                btn.BorderThickness = new Thickness(1);
             }
             else
             {
-                btn.Background = new SolidColorBrush(theme.SubtleField);
-                btn.Foreground = new SolidColorBrush(theme.Text);
-                btn.BorderBrush = new SolidColorBrush(theme.SoftBorder);
+                btn.Background = new SolidColorBrush(Colors.Transparent);
+                btn.Foreground = new SolidColorBrush(Color.FromArgb(255, 97, 97, 97));
+                btn.BorderBrush = new SolidColorBrush(Colors.Transparent);
+                btn.BorderThickness = new Thickness(0);
             }
         }
 

@@ -109,48 +109,48 @@ namespace KillConfirmGameBar
             }
 
             SettingsRootGrid.Background = CreateSettingsBackground(_isHomePageSelected ? GameStyleMode.Crossfire : mode);
-            HeroSlash.Visibility = Visibility.Visible;
-            HeroSlashLight.Visibility = Visibility.Visible;
-            FrameStripeOne.Visibility = Visibility.Visible;
-            FrameStripeTwo.Visibility = Visibility.Visible;
-            AccentLineOne.Visibility = Visibility.Visible;
-            AccentLineTwo.Visibility = Visibility.Visible;
-            AccentLineThree.Visibility = Visibility.Visible;
+            HeroSlash.Visibility = Visibility.Collapsed;
+            HeroSlashLight.Visibility = Visibility.Collapsed;
+            FrameStripeOne.Visibility = Visibility.Collapsed;
+            FrameStripeTwo.Visibility = Visibility.Collapsed;
+            AccentLineOne.Visibility = Visibility.Collapsed;
+            AccentLineTwo.Visibility = Visibility.Collapsed;
+            AccentLineThree.Visibility = Visibility.Collapsed;
 
             HeroSlash.Fill = CreateHeroSlashBrush(_isHomePageSelected ? GameStyleMode.Crossfire : mode);
-            HeroSlashLight.Fill = new SolidColorBrush(battlefield5 ? Color.FromArgb(255, 119, 243, 255) : battlefield2042 ? Color.FromArgb(255, 109, 255, 255) : battlefield1 ? Color.FromArgb(255, 255, 218, 166) : valorant ? Color.FromArgb(255, 255, 170, 178) : csol ? Color.FromArgb(255, 255, 168, 150) : Color.FromArgb(255, 255, 240, 213));
-            FrameStripeOne.Stroke = new SolidColorBrush(battlefield5 ? Color.FromArgb(255, 58, 137, 166) : battlefield2042 ? Color.FromArgb(255, 60, 128, 146) : battlefield1 ? Color.FromArgb(255, 88, 110, 126) : valorant ? Color.FromArgb(255, 59, 78, 102) : csol ? Color.FromArgb(255, 120, 37, 42) : Color.FromArgb(255, 196, 196, 196));
+            HeroSlashLight.Fill = new SolidColorBrush(Colors.Transparent);
+            FrameStripeOne.Stroke = new SolidColorBrush(Colors.Transparent);
             FrameStripeTwo.Stroke = FrameStripeOne.Stroke;
-            AccentLineOne.Fill = new SolidColorBrush(fixedPreset || csol ? theme.Accent : valorant ? theme.Secondary : Color.FromArgb(255, 207, 107, 0));
+            AccentLineOne.Fill = new SolidColorBrush(Colors.Transparent);
             AccentLineTwo.Fill = AccentLineOne.Fill;
             AccentLineThree.Fill = AccentLineOne.Fill;
 
-            SetText(TitleText, theme.Text);
+            SetText(TitleText, Color.FromArgb(255, 27, 27, 27));
             SetText(GameStyleLabelText, theme.Text);
-            SetText(GameStyleSidebarTitleText, theme.MutedText);
-            SetText(GameEffectsTitleText, theme.Text);
-            SetText(VoiceCollectionsTitleText, theme.Text);
-            SetText(VoiceCollectionsHintText, theme.MutedText);
-            SetText(IconCollectionsTitleText, theme.Text);
-            SetText(IconCollectionsHintText, theme.MutedText);
-            SetText(VoiceVisibleCountText, valorant || csol ? theme.Secondary : Color.FromArgb(255, 46, 136, 184));
-            SetText(IconVisibleCountText, valorant || csol ? theme.Secondary : Color.FromArgb(255, 46, 136, 184));
-            SetText(StructureTitleText, theme.Text);
-            SetText(StructureBodyText, theme.MutedText);
-            SetText(StructureImportFolderTitleText, theme.Text);
-            SetText(StructureImportFolderBodyText, theme.MutedText);
-            SetText(StructureVoiceSpecTitleText, theme.Text);
-            SetText(StructureVoiceSpecBodyText, theme.MutedText);
-            SetText(StructureIconSpecTitleText, theme.Text);
-            SetText(StructureIconSpecSummaryText, theme.WarningText);
-            SetText(StructureIconSpecFullText, theme.MutedText);
-            SetText(StructureImportZipTitleText, theme.Text);
-            SetText(StructureImportZipBodyText, theme.MutedText);
-            SetText(StructureCreatorTitleText, theme.Text);
-            SetText(StructureCreatorBodyText, theme.MutedText);
-            SetText(StructureFileHintText, theme.WarningText);
-            SetText(TipsTitleText, theme.Text);
-            SetText(TipsBodyText, theme.MutedText);
+            SetText(GameStyleSidebarTitleText, Color.FromArgb(255, 140, 140, 140));
+            SetText(GameEffectsTitleText, Color.FromArgb(255, 27, 27, 27));
+            SetText(VoiceCollectionsTitleText, Color.FromArgb(255, 27, 27, 27));
+            SetText(VoiceCollectionsHintText, Color.FromArgb(255, 97, 97, 97));
+            SetText(IconCollectionsTitleText, Color.FromArgb(255, 27, 27, 27));
+            SetText(IconCollectionsHintText, Color.FromArgb(255, 97, 97, 97));
+            SetText(VoiceVisibleCountText, Color.FromArgb(255, 0, 103, 192));
+            SetText(IconVisibleCountText, Color.FromArgb(255, 0, 103, 192));
+            SetText(StructureTitleText, Color.FromArgb(255, 27, 27, 27));
+            SetText(StructureBodyText, Color.FromArgb(255, 97, 97, 97));
+            SetText(StructureImportFolderTitleText, Color.FromArgb(255, 27, 27, 27));
+            SetText(StructureImportFolderBodyText, Color.FromArgb(255, 97, 97, 97));
+            SetText(StructureVoiceSpecTitleText, Color.FromArgb(255, 27, 27, 27));
+            SetText(StructureVoiceSpecBodyText, Color.FromArgb(255, 66, 66, 66));
+            SetText(StructureIconSpecTitleText, Color.FromArgb(255, 27, 27, 27));
+            SetText(StructureIconSpecSummaryText, Color.FromArgb(255, 0, 103, 192));
+            SetText(StructureIconSpecFullText, Color.FromArgb(255, 66, 66, 66));
+            SetText(StructureImportZipTitleText, Color.FromArgb(255, 27, 27, 27));
+            SetText(StructureImportZipBodyText, Color.FromArgb(255, 97, 97, 97));
+            SetText(StructureCreatorTitleText, Color.FromArgb(255, 27, 27, 27));
+            SetText(StructureCreatorBodyText, Color.FromArgb(255, 97, 97, 97));
+            SetText(StructureFileHintText, Color.FromArgb(255, 66, 66, 66));
+            SetText(TipsTitleText, Color.FromArgb(255, 27, 27, 27));
+            SetText(TipsBodyText, Color.FromArgb(255, 97, 97, 97));
 
             ApplySectionTheme(GameEffectsCard, theme);
             ApplyCardTheme(VoicePackCollectionsCard, theme);
@@ -181,8 +181,8 @@ namespace KillConfirmGameBar
         {
             if (card != null)
             {
-                card.Background = new SolidColorBrush(theme.Panel);
-                card.BorderBrush = new SolidColorBrush(theme.Border);
+                card.Background = new SolidColorBrush(Color.FromArgb(255, 255, 255, 255));
+                card.BorderBrush = new SolidColorBrush(Color.FromArgb(255, 229, 229, 229));
             }
         }
 
@@ -190,8 +190,8 @@ namespace KillConfirmGameBar
         {
             if (card != null)
             {
-                card.Background = new SolidColorBrush(theme.Card);
-                card.BorderBrush = new SolidColorBrush(theme.SoftBorder);
+                card.Background = new SolidColorBrush(Color.FromArgb(255, 255, 255, 255));
+                card.BorderBrush = new SolidColorBrush(Color.FromArgb(255, 229, 229, 229));
             }
         }
 
@@ -907,141 +907,12 @@ namespace KillConfirmGameBar
 
         private static Brush CreateSettingsBackground(GameStyleMode mode)
         {
-            var brush = new LinearGradientBrush { StartPoint = new Windows.Foundation.Point(0, 0), EndPoint = new Windows.Foundation.Point(1, 1) };
-            if (mode == GameStyleMode.Battlefield5)
-            {
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 5, 21, 38), Offset = 0 });
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 16, 62, 92), Offset = 1 });
-            }
-            else if (mode == GameStyleMode.Valorant)
-            {
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 10, 14, 22), Offset = 0 });
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 22, 28, 42), Offset = 1 });
-            }
-            else if (mode == GameStyleMode.Battlefield1)
-            {
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 12, 21, 28), Offset = 0 });
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 44, 59, 69), Offset = 1 });
-            }
-            else if (mode == GameStyleMode.Battlefield4)
-            {
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 9, 20, 31), Offset = 0 });
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 24, 55, 80), Offset = 1 });
-            }
-            else if (mode == GameStyleMode.Battlefield2042)
-            {
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 4, 16, 24), Offset = 0 });
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 20, 68, 82), Offset = 0.58 });
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 61, 16, 35), Offset = 1 });
-            }
-            else if (mode == GameStyleMode.Pubg)
-            {
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 26, 24, 17), Offset = 0 });
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 74, 61, 30), Offset = 1 });
-            }
-            else if (mode == GameStyleMode.DeltaForce)
-            {
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 9, 21, 19), Offset = 0 });
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 37, 69, 47), Offset = 1 });
-            }
-            else if (mode == GameStyleMode.Doubao)
-            {
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 24, 16, 8), Offset = 0 });
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 86, 49, 15), Offset = 0.68 });
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 45, 20, 8), Offset = 1 });
-            }
-            else if (mode == GameStyleMode.Dagoujiao)
-            {
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 17, 23, 13), Offset = 0 });
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 55, 75, 30), Offset = 0.68 });
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 30, 38, 19), Offset = 1 });
-            }
-            else if (mode == GameStyleMode.Csol)
-            {
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 247, 248, 249), Offset = 0 });
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 229, 232, 235), Offset = 0.72 });
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 248, 224, 225), Offset = 1 });
-            }
-            else
-            {
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 242, 243, 242), Offset = 0 });
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 216, 217, 216), Offset = 1 });
-            }
-
-            return brush;
+            return new SolidColorBrush(Color.FromArgb(255, 249, 249, 249));
         }
 
         private static Brush CreateHeroSlashBrush(GameStyleMode mode)
         {
-            var brush = new LinearGradientBrush { StartPoint = new Windows.Foundation.Point(0, 0), EndPoint = new Windows.Foundation.Point(1, 1) };
-            if (mode == GameStyleMode.Battlefield5)
-            {
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 0, 211, 255), Offset = 0 });
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 255, 90, 56), Offset = 0.58 });
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 174, 14, 57), Offset = 1 });
-            }
-            else if (mode == GameStyleMode.Valorant)
-            {
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 255, 70, 85), Offset = 0 });
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 131, 38, 55), Offset = 0.58 });
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 63, 25, 38), Offset = 1 });
-            }
-            else if (mode == GameStyleMode.Battlefield1)
-            {
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 255, 196, 100), Offset = 0 });
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 242, 126, 38), Offset = 0.55 });
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 62, 86, 102), Offset = 1 });
-            }
-            else if (mode == GameStyleMode.Battlefield4)
-            {
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 71, 183, 255), Offset = 0 });
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 255, 138, 45), Offset = 0.58 });
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 33, 70, 104), Offset = 1 });
-            }
-            else if (mode == GameStyleMode.Battlefield2042)
-            {
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 34, 221, 221), Offset = 0 });
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 255, 79, 82), Offset = 0.58 });
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 72, 23, 48), Offset = 1 });
-            }
-            else if (mode == GameStyleMode.Pubg)
-            {
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 245, 182, 66), Offset = 0 });
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 130, 104, 40), Offset = 0.58 });
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 36, 55, 36), Offset = 1 });
-            }
-            else if (mode == GameStyleMode.DeltaForce)
-            {
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 102, 214, 134), Offset = 0 });
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 255, 135, 40), Offset = 0.58 });
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 24, 58, 43), Offset = 1 });
-            }
-            else if (mode == GameStyleMode.Doubao)
-            {
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 255, 232, 150), Offset = 0 });
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 255, 176, 43), Offset = 0.55 });
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 152, 56, 15), Offset = 1 });
-            }
-            else if (mode == GameStyleMode.Dagoujiao)
-            {
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 223, 244, 160), Offset = 0 });
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 154, 205, 57), Offset = 0.55 });
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 67, 91, 34), Offset = 1 });
-            }
-            else if (mode == GameStyleMode.Csol)
-            {
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 194, 32, 40), Offset = 0 });
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 229, 68, 38), Offset = 0.58 });
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 74, 80, 88), Offset = 1 });
-            }
-            else
-            {
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 242, 154, 23), Offset = 0 });
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 234, 127, 5), Offset = 0.58 });
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 219, 105, 0), Offset = 1 });
-            }
-
-            return brush;
+            return new SolidColorBrush(Colors.Transparent);
         }
 
         private static void SetText(TextBlock textBlock, Color color)

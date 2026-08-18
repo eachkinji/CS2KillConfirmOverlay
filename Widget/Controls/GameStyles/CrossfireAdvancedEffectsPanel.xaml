@@ -27,9 +27,7 @@
             <Button
                 x:Name="ResetButton"
                 Grid.Column="1"
-                MinWidth="88"
-                Height="34"
-                Padding="14,0"
+                Style="{StaticResource FluentSecondaryButtonStyle}"
                 VerticalAlignment="Top"
                 AutomationProperties.Name="Restore CF defaults"
                 Click="OnResetButtonClick">

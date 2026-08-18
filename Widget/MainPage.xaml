@@ -9,143 +9,142 @@
     RequestedTheme="Light">
 
     <Page.Resources>
-        <LinearGradientBrush x:Key="MainBackgroundGradient" StartPoint="0,0" EndPoint="1,1">
-            <GradientStop Color="#F2F3F2" Offset="0.0" />
-            <GradientStop Color="#D8D9D8" Offset="1.0" />
+        <SolidColorBrush x:Key="MainBackgroundSolid" Color="#F9F9F9" />
+        <LinearGradientBrush x:Key="MainBackgroundGradient" StartPoint="0,0" EndPoint="0,1">
+            <GradientStop Color="#F9F9F9" Offset="0.0" />
+            <GradientStop Color="#F3F3F3" Offset="1.0" />
         </LinearGradientBrush>
 
-        <LinearGradientBrush x:Key="OrangeSlashGradient" StartPoint="0,0" EndPoint="1,1">
-            <GradientStop Color="#F29A17" Offset="0.0" />
-            <GradientStop Color="#EA7F05" Offset="0.55" />
-            <GradientStop Color="#DB6900" Offset="1.0" />
-        </LinearGradientBrush>
+        <SolidColorBrush x:Key="OrangeSlashGradient" Color="Transparent" />
 
         <AcrylicBrush x:Key="MainBackgroundAcrylic"
                       BackgroundSource="HostBackdrop"
-                      TintColor="#F4F4F1"
-                      TintOpacity="0.55"
-                      FallbackColor="#F4F4F1" />
+                      TintColor="#F3F3F3"
+                      TintOpacity="0.8"
+                      FallbackColor="#F3F3F3" />
 
         <AcrylicBrush x:Key="CardBackgroundAcrylic"
                       BackgroundSource="Backdrop"
-                      TintColor="#FAFAF7"
-                      TintOpacity="0.88"
-                      FallbackColor="#FAFAF7" />
+                      TintColor="#FFFFFF"
+                      TintOpacity="0.95"
+                      FallbackColor="#FFFFFF" />
 
         <Style x:Key="SettingsSectionCardStyle" TargetType="Border">
-            <Setter Property="Padding" Value="22" />
-            <Setter Property="Background" Value="{StaticResource CardBackgroundAcrylic}" />
-            <Setter Property="BorderBrush" Value="#E2DDD3" />
+            <Setter Property="Padding" Value="18,16" />
+            <Setter Property="Background" Value="#FFFFFF" />
+            <Setter Property="BorderBrush" Value="#E5E5E5" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="24" />
+            <Setter Property="CornerRadius" Value="8" />
         </Style>
 
         <Style x:Key="SettingsHeaderButtonStyle" TargetType="Button">
-            <Setter Property="Padding" Value="14,9" />
-            <Setter Property="MinWidth" Value="104" />
+            <Setter Property="Padding" Value="12,5" />
+            <Setter Property="MinWidth" Value="84" />
+            <Setter Property="MinHeight" Value="32" />
             <Setter Property="Background" Value="#FFFFFF" />
-            <Setter Property="Foreground" Value="#1D2233" />
-            <Setter Property="BorderBrush" Value="#D5D0C4" />
+            <Setter Property="Foreground" Value="#1B1B1B" />
+            <Setter Property="BorderBrush" Value="#D1D1D1" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="18" />
+            <Setter Property="CornerRadius" Value="4" />
             <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="FontSize" Value="12" />
         </Style>
 
         <Style x:Key="SettingsPrimaryButtonStyle" TargetType="Button" BasedOn="{StaticResource SettingsHeaderButtonStyle}">
-            <Setter Property="Background" Value="#2E88B8" />
-            <Setter Property="BorderBrush" Value="#3A9CCF" />
+            <Setter Property="Background" Value="#0067C0" />
+            <Setter Property="BorderBrush" Value="#0067C0" />
             <Setter Property="Foreground" Value="White" />
         </Style>
 
         <Style x:Key="StudioTabButtonStyle" TargetType="Button">
-            <Setter Property="Padding" Value="16,8" />
-            <Setter Property="MinWidth" Value="120" />
-            <Setter Property="Background" Value="#EFEFEA" />
-            <Setter Property="Foreground" Value="#4B5563" />
-            <Setter Property="BorderBrush" Value="#DCD7CC" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="16" />
-            <Setter Property="FontWeight" Value="Bold" />
-            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Padding" Value="14,5" />
+            <Setter Property="MinWidth" Value="100" />
+            <Setter Property="MinHeight" Value="30" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#616161" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="FontSize" Value="12" />
         </Style>
 
         <Style x:Key="StudioTabActiveButtonStyle" TargetType="Button" BasedOn="{StaticResource StudioTabButtonStyle}">
-            <Setter Property="Background" Value="#2E88B8" />
-            <Setter Property="BorderBrush" Value="#3A9CCF" />
-            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Background" Value="#FFFFFF" />
+            <Setter Property="BorderBrush" Value="#D1D1D1" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Foreground" Value="#1B1B1B" />
         </Style>
 
         <Style x:Key="SettingsCaptionTextStyle" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="14" />
-            <Setter Property="Foreground" Value="#555966" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="#616161" />
             <Setter Property="TextWrapping" Value="WrapWholeWords" />
-            <Setter Property="LineHeight" Value="20" />
+            <Setter Property="LineHeight" Value="16" />
         </Style>
 
         <Style x:Key="SettingsSectionTitleTextStyle" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="20" />
-            <Setter Property="FontWeight" Value="Bold" />
-            <Setter Property="Foreground" Value="#1B1F31" />
-            <Setter Property="CharacterSpacing" Value="40" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="#1B1B1B" />
         </Style>
 
         <Style x:Key="MethodStepCardStyle" TargetType="Border">
-            <Setter Property="Padding" Value="14" />
-            <Setter Property="Background" Value="#FFFFFC" />
-            <Setter Property="BorderBrush" Value="#E2DDD3" />
+            <Setter Property="Padding" Value="14,12" />
+            <Setter Property="Background" Value="#FAFAFA" />
+            <Setter Property="BorderBrush" Value="#E5E5E5" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="18" />
+            <Setter Property="CornerRadius" Value="6" />
         </Style>
 
         <Style x:Key="MethodStepBadgeStyle" TargetType="Border">
-            <Setter Property="Width" Value="28" />
-            <Setter Property="Height" Value="28" />
-            <Setter Property="Background" Value="#F29A17" />
-            <Setter Property="CornerRadius" Value="14" />
+            <Setter Property="Width" Value="24" />
+            <Setter Property="Height" Value="24" />
+            <Setter Property="Background" Value="#0067C0" />
+            <Setter Property="CornerRadius" Value="12" />
         </Style>
 
         <Style x:Key="MethodStepTitleTextStyle" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="15" />
-            <Setter Property="FontWeight" Value="Bold" />
-            <Setter Property="Foreground" Value="#1B1F31" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="#1B1B1B" />
         </Style>
 
         <Style x:Key="MethodStepBodyTextStyle" TargetType="TextBlock">
             <Setter Property="FontSize" Value="12" />
-            <Setter Property="Foreground" Value="#555966" />
+            <Setter Property="Foreground" Value="#616161" />
             <Setter Property="TextWrapping" Value="WrapWholeWords" />
-            <Setter Property="LineHeight" Value="17" />
+            <Setter Property="LineHeight" Value="16" />
         </Style>
 
         <Style x:Key="MethodStepDetailTitleTextStyle" TargetType="TextBlock">
             <Setter Property="FontSize" Value="12" />
-            <Setter Property="FontWeight" Value="Bold" />
-            <Setter Property="Foreground" Value="#1B1F31" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="#1B1B1B" />
         </Style>
 
         <Style x:Key="MethodStepMonoTextStyle" TargetType="TextBlock">
             <Setter Property="FontSize" Value="11" />
-            <Setter Property="Foreground" Value="#4B5563" />
+            <Setter Property="Foreground" Value="#424242" />
             <Setter Property="TextWrapping" Value="WrapWholeWords" />
             <Setter Property="FontFamily" Value="Consolas" />
-            <Setter Property="LineHeight" Value="18" />
+            <Setter Property="LineHeight" Value="16" />
         </Style>
 
         <Style x:Key="MethodInlineButtonStyle" TargetType="Button">
-            <Setter Property="Padding" Value="10,5" />
+            <Setter Property="Padding" Value="8,4" />
             <Setter Property="MinWidth" Value="0" />
-            <Setter Property="Background" Value="#ECF7FC" />
-            <Setter Property="Foreground" Value="#2E88B8" />
-            <Setter Property="BorderBrush" Value="#B9DCEC" />
+            <Setter Property="Background" Value="#EBF3FC" />
+            <Setter Property="Foreground" Value="#0067C0" />
+            <Setter Property="BorderBrush" Value="#CCE4F7" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="14" />
+            <Setter Property="CornerRadius" Value="4" />
             <Setter Property="FontSize" Value="11" />
             <Setter Property="FontWeight" Value="SemiBold" />
         </Style>
 
         <Style x:Key="GameModeSidebarItemStyle" TargetType="ListViewItem">
-            <Setter Property="Width" Value="48" />
-            <Setter Property="Height" Value="48" />
+            <Setter Property="Width" Value="44" />
+            <Setter Property="Height" Value="44" />
             <Setter Property="Margin" Value="0,2" />
             <Setter Property="Padding" Value="0" />
             <Setter Property="HorizontalAlignment" Value="Center" />
@@ -172,77 +171,49 @@
         </Style>
 
         <Style x:Key="GameModeLogoTileStyle" TargetType="Border">
-            <Setter Property="Width" Value="44" />
-            <Setter Property="Height" Value="44" />
-            <Setter Property="Padding" Value="6" />
+            <Setter Property="Width" Value="38" />
+            <Setter Property="Height" Value="38" />
+            <Setter Property="Padding" Value="5" />
             <Setter Property="HorizontalAlignment" Value="Center" />
             <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="Background" Value="#F4FAFAF7" />
-            <Setter Property="BorderBrush" Value="#D5D0C4" />
+            <Setter Property="Background" Value="#F3F3F3" />
+            <Setter Property="BorderBrush" Value="#E5E5E5" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="14" />
+            <Setter Property="CornerRadius" Value="6" />
         </Style>
     </Page.Resources>
 
     <Grid x:Name="SettingsRootGrid" Background="{StaticResource MainBackgroundGradient}">
-        <Canvas IsHitTestVisible="False">
-            <Rectangle x:Name="HeroSlash" Width="620" Height="1200" Fill="{StaticResource OrangeSlashGradient}" Opacity="0.95" Canvas.Left="720" Canvas.Top="-160">
-                <Rectangle.RenderTransform>
-                    <SkewTransform AngleX="-18" />
-                </Rectangle.RenderTransform>
-            </Rectangle>
-            <Rectangle x:Name="HeroSlashLight" Width="24" Height="1200" Fill="#FFF0D5" Opacity="0.9" Canvas.Left="815" Canvas.Top="-120">
-                <Rectangle.RenderTransform>
-                    <SkewTransform AngleX="-18" />
-                </Rectangle.RenderTransform>
-            </Rectangle>
-            <Rectangle x:Name="FrameStripeOne" Width="260" Height="520" Stroke="#C4C4C4" StrokeThickness="3" Opacity="0.45" Canvas.Left="80" Canvas.Top="70">
-                <Rectangle.RenderTransform>
-                    <SkewTransform AngleX="-18" />
-                </Rectangle.RenderTransform>
-            </Rectangle>
-            <Rectangle x:Name="FrameStripeTwo" Width="260" Height="520" Stroke="#C4C4C4" StrokeThickness="3" Opacity="0.32" Canvas.Left="420" Canvas.Top="110">
-                <Rectangle.RenderTransform>
-                    <SkewTransform AngleX="-18" />
-                </Rectangle.RenderTransform>
-            </Rectangle>
-            <Rectangle x:Name="AccentLineOne" Width="190" Height="2" Fill="#CF6B00" Opacity="0.35" Canvas.Left="910" Canvas.Top="150">
-                <Rectangle.RenderTransform>
-                    <SkewTransform AngleX="-18" />
-                </Rectangle.RenderTransform>
-            </Rectangle>
-            <Rectangle x:Name="AccentLineTwo" Width="260" Height="2" Fill="#CF6B00" Opacity="0.35" Canvas.Left="910" Canvas.Top="165">
-                <Rectangle.RenderTransform>
-                    <SkewTransform AngleX="-18" />
-                </Rectangle.RenderTransform>
-            </Rectangle>
-            <Rectangle x:Name="AccentLineThree" Width="220" Height="2" Fill="#CF6B00" Opacity="0.35" Canvas.Left="910" Canvas.Top="180">
-                <Rectangle.RenderTransform>
-                    <SkewTransform AngleX="-18" />
-                </Rectangle.RenderTransform>
-            </Rectangle>
+        <Canvas IsHitTestVisible="False" Opacity="0" Visibility="Collapsed">
+            <Rectangle x:Name="HeroSlash" Width="620" Height="1200" Fill="{StaticResource OrangeSlashGradient}" Opacity="0" Canvas.Left="720" Canvas.Top="-160" />
+            <Rectangle x:Name="HeroSlashLight" Width="24" Height="1200" Fill="#FFF0D5" Opacity="0" Canvas.Left="815" Canvas.Top="-120" />
+            <Rectangle x:Name="FrameStripeOne" Width="260" Height="520" Stroke="#C4C4C4" StrokeThickness="3" Opacity="0" Canvas.Left="80" Canvas.Top="70" />
+            <Rectangle x:Name="FrameStripeTwo" Width="260" Height="520" Stroke="#C4C4C4" StrokeThickness="3" Opacity="0" Canvas.Left="420" Canvas.Top="110" />
+            <Rectangle x:Name="AccentLineOne" Width="190" Height="2" Fill="#CF6B00" Opacity="0" Canvas.Left="910" Canvas.Top="150" />
+            <Rectangle x:Name="AccentLineTwo" Width="260" Height="2" Fill="#CF6B00" Opacity="0" Canvas.Left="910" Canvas.Top="165" />
+            <Rectangle x:Name="AccentLineThree" Width="220" Height="2" Fill="#CF6B00" Opacity="0" Canvas.Left="910" Canvas.Top="180" />
         </Canvas>
 
         <Grid>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="72" />
+                <ColumnDefinition Width="64" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
-            <!-- Sidebar Navigation -->
+            <!-- Sidebar Navigation (Fluent 2 Vertical Navigation Rail) -->
             <Border
                 x:Name="GameModeSidebar"
                 Grid.Column="0"
-                Width="62"
-                Margin="5,18,5,18"
-                Padding="5,10"
+                Width="54"
+                Margin="5,12,5,12"
+                Padding="4,8"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Top"
-                Background="{StaticResource CardBackgroundAcrylic}"
-                BorderBrush="#D5D0C4"
+                Background="#FFFFFF"
+                BorderBrush="#E5E5E5"
                 BorderThickness="1"
-                CornerRadius="20">
-                <Grid RowSpacing="8">
+                CornerRadius="8">
+                <Grid RowSpacing="6">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
@@ -251,16 +222,16 @@
                     <TextBlock
                         x:Name="GameStyleSidebarTitleText"
                         HorizontalAlignment="Center"
-                        FontSize="10"
-                        FontWeight="Bold"
-                        Foreground="#555966"
-                        Text="GAME"
+                        FontSize="9"
+                        FontWeight="SemiBold"
+                        Foreground="#8C8C8C"
+                        Text="MODE"
                         TextTrimming="CharacterEllipsis" />
 
                     <ListView
                         x:Name="GameStyleSidebarSelector"
                         Grid.Row="1"
-                        Width="50"
+                        Width="44"
                         Padding="0"
                         HorizontalAlignment="Center"
                         HorizontalContentAlignment="Center"
@@ -282,13 +253,14 @@
                             <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPointerOver" Color="Transparent" />
                             <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPressed" Color="Transparent" />
                         </ListView.Resources>
-                        <ListViewItem x:Name="HomeSidebarItem" Tag="home" Style="{StaticResource GameModeSidebarItemStyle}" ToolTipService.ToolTip="Home">
+                        <ListViewItem x:Name="HomeSidebarItem" Tag="home" Style="{StaticResource GameModeSidebarItemStyle}" ToolTipService.ToolTip="系统设置">
                             <Border Style="{StaticResource GameModeLogoTileStyle}">
                                 <FontIcon
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center"
                                     FontFamily="Segoe MDL2 Assets"
-                                    FontSize="20"
+                                    FontSize="18"
+                                    Foreground="{StaticResource FluentAccent}"
                                     Glyph="&#xE80F;" />
                             </Border>
                         </ListViewItem>
@@ -331,7 +303,7 @@
 
             <!-- Main Content Area -->
             <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Background="Transparent">
-                <Grid Padding="20,18,24,28" RowSpacing="14">
+                <Grid Padding="18,14,22,24" RowSpacing="12">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
@@ -339,18 +311,18 @@
                     </Grid.RowDefinitions>
 
                     <!-- Top Header Bar -->
-                    <Grid MaxWidth="1480" HorizontalAlignment="Stretch" Padding="4,0">
+                    <Grid MaxWidth="1480" HorizontalAlignment="Stretch" Padding="2,0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
-                        <StackPanel Grid.ColumnSpan="2" HorizontalAlignment="Center" Orientation="Horizontal" VerticalAlignment="Center" Spacing="10">
+                        <StackPanel Grid.ColumnSpan="2" HorizontalAlignment="Left" Orientation="Horizontal" VerticalAlignment="Center" Spacing="10">
                             <TextBlock
                                 x:Name="TitleText"
-                                FontSize="22"
-                                FontWeight="Bold"
-                                Foreground="#1B1F31"
+                                FontSize="20"
+                                FontWeight="SemiBold"
+                                Foreground="#1B1B1B"
                                 Text="Kill Confirm Overlay 控制面板" />
                         </StackPanel>
 
@@ -373,18 +345,18 @@
                         </StackPanel>
                     </Grid>
 
-                    <!-- Home Dedicated Navigation Tab Bar -->
+                    <!-- Home Dedicated Navigation Tab Bar (Fluent 2 Segmented Control) -->
                     <Border
                         x:Name="HomeWorkspaceTabBar"
                         Grid.Row="1"
                         MaxWidth="1480"
-                        Padding="4"
-                        HorizontalAlignment="Center"
-                        Background="#EAEAE6"
-                        BorderBrush="#D5D0C4"
+                        Padding="3"
+                        HorizontalAlignment="Left"
+                        Background="#EBEBEB"
+                        BorderBrush="#E0E0E0"
                         BorderThickness="1"
-                        CornerRadius="20">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
+                        CornerRadius="6">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
                             <Button
                                 x:Name="HomeTabGeneralButton"
                                 Style="{StaticResource StudioTabActiveButtonStyle}"
@@ -413,13 +385,13 @@
                         x:Name="CfWorkspaceTabBar"
                         Grid.Row="1"
                         MaxWidth="1480"
-                        Padding="4"
-                        HorizontalAlignment="Center"
-                        Background="#EAEAE6"
-                        BorderBrush="#D5D0C4"
+                        Padding="3"
+                        HorizontalAlignment="Left"
+                        Background="#EBEBEB"
+                        BorderBrush="#E0E0E0"
                         BorderThickness="1"
-                        CornerRadius="20">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
+                        CornerRadius="6">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
                             <Button
                                 x:Name="CfTabCombatButton"
                                 Style="{StaticResource StudioTabActiveButtonStyle}"
@@ -448,14 +420,14 @@
                         x:Name="CsolWorkspaceTabBar"
                         Grid.Row="1"
                         MaxWidth="1480"
-                        Padding="4"
-                        HorizontalAlignment="Center"
+                        Padding="3"
+                        HorizontalAlignment="Left"
                         Visibility="Collapsed"
-                        Background="#EAEAE6"
-                        BorderBrush="#D5D0C4"
+                        Background="#EBEBEB"
+                        BorderBrush="#E0E0E0"
                         BorderThickness="1"
-                        CornerRadius="20">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
+                        CornerRadius="6">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
                             <Button
                                 x:Name="CsolTabCombatButton"
                                 Style="{StaticResource StudioTabActiveButtonStyle}"
@@ -480,14 +452,14 @@
                         x:Name="DagoujiaoWorkspaceTabBar"
                         Grid.Row="1"
                         MaxWidth="1480"
-                        Padding="4"
-                        HorizontalAlignment="Center"
+                        Padding="3"
+                        HorizontalAlignment="Left"
                         Visibility="Collapsed"
-                        Background="#EAEAE6"
-                        BorderBrush="#D5D0C4"
+                        Background="#EBEBEB"
+                        BorderBrush="#E0E0E0"
                         BorderThickness="1"
-                        CornerRadius="20">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
+                        CornerRadius="6">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
                             <Button
                                 x:Name="DagoujiaoTabCombatButton"
                                 Style="{StaticResource StudioTabActiveButtonStyle}"
@@ -668,7 +640,7 @@
                                     </Grid.ColumnDefinitions>
 
                                     <!-- Audio Slot Spec Box -->
-                                    <Border Padding="16" Background="#F7F8FA" BorderBrush="#E2DDD3" BorderThickness="1" CornerRadius="16">
+                                    <Border Padding="14,12" Background="#FAFAFA" BorderBrush="#E5E5E5" BorderThickness="1" CornerRadius="6">
                                         <StackPanel Spacing="8">
                                             <TextBlock x:Name="StructureVoiceSpecTitleText" Style="{StaticResource MethodStepDetailTitleTextStyle}" FontSize="13" Text="🎵 音频插槽对照表 (Audio Slots)" />
                                             <TextBlock x:Name="StructureVoiceSpecBodyText" Style="{StaticResource MethodStepMonoTextStyle}" FontSize="11" />
@@ -676,10 +648,10 @@
                                     </Border>
 
                                     <!-- Icon Slot Spec Box -->
-                                    <Border Grid.Column="1" Padding="16" Background="#FFF8EB" BorderBrush="#F2C078" BorderThickness="1" CornerRadius="16">
+                                    <Border Grid.Column="1" Padding="14,12" Background="#FAFAFA" BorderBrush="#E5E5E5" BorderThickness="1" CornerRadius="6">
                                         <StackPanel Spacing="8">
                                             <TextBlock x:Name="StructureIconSpecTitleText" Style="{StaticResource MethodStepDetailTitleTextStyle}" FontSize="13" Text="🎨 图标与特效序列帧规范 (Visual Slots)" />
-                                            <TextBlock x:Name="StructureIconSpecSummaryText" Style="{StaticResource MethodStepBodyTextStyle}" FontSize="11" Foreground="#8A4B00" />
+                                            <TextBlock x:Name="StructureIconSpecSummaryText" Style="{StaticResource MethodStepBodyTextStyle}" FontSize="11" Foreground="#0067C0" />
                                             <Button
                                                 x:Name="IconSpecToggleButton"
                                                 Style="{StaticResource MethodInlineButtonStyle}"
@@ -694,8 +666,8 @@
                                     </Border>
                                 </Grid>
 
-                                <Border Padding="12" Background="#FFF6E8" BorderBrush="#F2C078" BorderThickness="1" CornerRadius="12">
-                                    <TextBlock x:Name="StructureFileHintText" Style="{StaticResource MethodStepBodyTextStyle}" FontSize="11" Foreground="#8A4B00" />
+                                <Border Padding="12,10" Background="#F3F3F3" BorderBrush="#E5E5E5" BorderThickness="1" CornerRadius="6">
+                                    <TextBlock x:Name="StructureFileHintText" Style="{StaticResource MethodStepBodyTextStyle}" FontSize="11" Foreground="#424242" />
                                 </Border>
 
                                 <!-- Hidden compatibility anchors for theme / language code-behind -->
@@ -717,25 +689,25 @@
 
                         <Border x:Name="CsolGuideCard" Style="{StaticResource SettingsSectionCardStyle}" Visibility="Collapsed">
                             <StackPanel Spacing="12">
-                                <TextBlock x:Name="CsolStructureTitleText" FontSize="20" FontWeight="SemiBold" />
-                                <TextBlock x:Name="CsolStructureBodyText" TextWrapping="WrapWholeWords" />
-                                <Border Background="#FFFAEC" BorderBrush="#F0E2B6" BorderThickness="1" CornerRadius="14" Padding="12">
+                                <TextBlock x:Name="CsolStructureTitleText" FontSize="18" FontWeight="SemiBold" Foreground="#1B1B1B" />
+                                <TextBlock x:Name="CsolStructureBodyText" FontSize="12" Foreground="#616161" TextWrapping="WrapWholeWords" />
+                                <Border Background="#FAFAFA" BorderBrush="#E5E5E5" BorderThickness="1" CornerRadius="6" Padding="12">
                                     <StackPanel Spacing="6">
-                                        <TextBlock x:Name="CsolStructureVoiceSpecTitle" FontWeight="SemiBold" />
-                                        <TextBlock x:Name="CsolStructureVoiceSpecBody" TextWrapping="WrapWholeWords" />
+                                        <TextBlock x:Name="CsolStructureVoiceSpecTitle" FontSize="13" FontWeight="SemiBold" Foreground="#1B1B1B" />
+                                        <TextBlock x:Name="CsolStructureVoiceSpecBody" FontSize="11" Foreground="#424242" FontFamily="Consolas" TextWrapping="WrapWholeWords" />
                                     </StackPanel>
                                 </Border>
-                                <Border Background="#FFFAEC" BorderBrush="#F0E2B6" BorderThickness="1" CornerRadius="14" Padding="12">
+                                <Border Background="#FAFAFA" BorderBrush="#E5E5E5" BorderThickness="1" CornerRadius="6" Padding="12">
                                     <StackPanel Spacing="6">
-                                        <TextBlock x:Name="CsolStructureIconSpecTitle" FontWeight="SemiBold" />
-                                        <TextBlock x:Name="CsolStructureIconSpecBody" TextWrapping="WrapWholeWords" />
+                                        <TextBlock x:Name="CsolStructureIconSpecTitle" FontSize="13" FontWeight="SemiBold" Foreground="#1B1B1B" />
+                                        <TextBlock x:Name="CsolStructureIconSpecBody" FontSize="11" Foreground="#424242" FontFamily="Consolas" TextWrapping="WrapWholeWords" />
                                     </StackPanel>
                                 </Border>
-                                <TextBlock x:Name="CsolStructureImportZipTitle" FontWeight="SemiBold" />
-                                <TextBlock x:Name="CsolStructureImportZipBody" TextWrapping="WrapWholeWords" />
-                                <TextBlock x:Name="CsolStructureCreatorTitle" FontWeight="SemiBold" />
-                                <TextBlock x:Name="CsolStructureCreatorBody" TextWrapping="WrapWholeWords" />
-                                <TextBlock x:Name="CsolStructureFileHint" Foreground="#FF8A4A" TextWrapping="WrapWholeWords" />
+                                <TextBlock x:Name="CsolStructureImportZipTitle" FontSize="13" FontWeight="SemiBold" Foreground="#1B1B1B" />
+                                <TextBlock x:Name="CsolStructureImportZipBody" FontSize="12" Foreground="#616161" TextWrapping="WrapWholeWords" />
+                                <TextBlock x:Name="CsolStructureCreatorTitle" FontSize="13" FontWeight="SemiBold" Foreground="#1B1B1B" />
+                                <TextBlock x:Name="CsolStructureCreatorBody" FontSize="12" Foreground="#616161" TextWrapping="WrapWholeWords" />
+                                <TextBlock x:Name="CsolStructureFileHint" FontSize="11" Foreground="#0067C0" TextWrapping="WrapWholeWords" />
                             </StackPanel>
                         </Border>
                     </Grid>

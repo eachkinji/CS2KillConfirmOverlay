@@ -338,6 +338,7 @@ namespace KillConfirmGameBar
                 _widget.GameBarDisplayModeChanged += OnGameBarDisplayModeChanged;
                 _widget.WindowStateChanged += OnWidgetWindowStateChanged;
                 _widget.ClickThroughEnabledChanged += OnClickThroughEnabledChanged;
+                _widget.PinnedChanged += OnWidgetPinnedChanged;
                 SyncWidgetPresentationState();
                 RefreshControlPanelScale(resizeWindow: true, forceResize: false);
             }
@@ -373,6 +374,7 @@ namespace KillConfirmGameBar
                 _widget.GameBarDisplayModeChanged -= OnGameBarDisplayModeChanged;
                 _widget.WindowStateChanged -= OnWidgetWindowStateChanged;
                 _widget.ClickThroughEnabledChanged -= OnClickThroughEnabledChanged;
+                _widget.PinnedChanged -= OnWidgetPinnedChanged;
             }
 
             _controlPanelStateTimer.Stop();
@@ -1490,6 +1492,11 @@ namespace KillConfirmGameBar
         }
 
         private void OnWidgetWindowStateChanged(XboxGameBarWidget sender, object args)
+        {
+            SyncWidgetPresentationState();
+        }
+
+        private void OnWidgetPinnedChanged(XboxGameBarWidget sender, object args)
         {
             SyncWidgetPresentationState();
         }

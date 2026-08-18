@@ -366,22 +366,22 @@
                             <Button
                                 x:Name="HomeTabGeneralButton"
                                 Style="{StaticResource StudioTabActiveButtonStyle}"
-                                Content="⚙️ 运行时与常规"
+                                Content="运行时与常规"
                                 Click="OnHomeTabGeneralClick" />
                             <Button
                                 x:Name="HomeTabPortButton"
                                 Style="{StaticResource StudioTabButtonStyle}"
-                                Content="🔌 本地服务端口"
+                                Content="本地服务端口"
                                 Click="OnHomeTabPortClick" />
                             <Button
                                 x:Name="HomeTabDisplayButton"
                                 Style="{StaticResource StudioTabButtonStyle}"
-                                Content="🖥️ 画面与缩放"
+                                Content="画面与缩放"
                                 Click="OnHomeTabDisplayClick" />
                             <Button
                                 x:Name="HomeTabAboutButton"
                                 Style="{StaticResource StudioTabButtonStyle}"
-                                Content="ℹ️ 关于本版本"
+                                Content="关于本版本"
                                 Click="OnHomeTabAboutClick" />
                         </StackPanel>
                     </Border>
@@ -401,22 +401,22 @@
                             <Button
                                 x:Name="CfTabCombatButton"
                                 Style="{StaticResource StudioTabActiveButtonStyle}"
-                                Content="🎮 核心战斗与视效"
+                                Content="核心战斗与视效"
                                 Click="OnCfTabCombatClick" />
                             <Button
                                 x:Name="CfTabVoiceButton"
                                 Style="{StaticResource StudioTabButtonStyle}"
-                                Content="🎙️ 角色语音包库"
+                                Content="角色语音包库"
                                 Click="OnCfTabVoiceClick" />
                             <Button
                                 x:Name="CfTabIconButton"
                                 Style="{StaticResource StudioTabButtonStyle}"
-                                Content="🏆 击杀图标包库"
+                                Content="击杀图标包库"
                                 Click="OnCfTabIconClick" />
                             <Button
                                 x:Name="CfTabGuideButton"
                                 Style="{StaticResource StudioTabButtonStyle}"
-                                Content="📋 制作规范与速查"
+                                Content="制作规范与速查"
                                 Click="OnCfTabGuideClick" />
                         </StackPanel>
                     </Border>
@@ -648,7 +648,7 @@
                                     <!-- Audio Slot Spec Box -->
                                     <Border Padding="14,12" Background="#FAFAFA" BorderBrush="#E5E5E5" BorderThickness="1" CornerRadius="6">
                                         <StackPanel Spacing="8">
-                                            <TextBlock x:Name="StructureVoiceSpecTitleText" Style="{StaticResource MethodStepDetailTitleTextStyle}" FontSize="13" Text="🎵 音频插槽对照表 (Audio Slots)" />
+                                            <TextBlock x:Name="StructureVoiceSpecTitleText" Style="{StaticResource MethodStepDetailTitleTextStyle}" FontSize="13" Text="音频插槽对照表 (Audio Slots)" />
                                             <TextBlock x:Name="StructureVoiceSpecBodyText" Style="{StaticResource MethodStepMonoTextStyle}" FontSize="11" />
                                         </StackPanel>
                                     </Border>
@@ -656,7 +656,7 @@
                                     <!-- Icon Slot Spec Box -->
                                     <Border Grid.Column="1" Padding="14,12" Background="#FAFAFA" BorderBrush="#E5E5E5" BorderThickness="1" CornerRadius="6">
                                         <StackPanel Spacing="8">
-                                            <TextBlock x:Name="StructureIconSpecTitleText" Style="{StaticResource MethodStepDetailTitleTextStyle}" FontSize="13" Text="🎨 图标与特效序列帧规范 (Visual Slots)" />
+                                            <TextBlock x:Name="StructureIconSpecTitleText" Style="{StaticResource MethodStepDetailTitleTextStyle}" FontSize="13" Text="图标与特效序列帧规范 (Visual Slots)" />
                                             <TextBlock x:Name="StructureIconSpecSummaryText" Style="{StaticResource MethodStepBodyTextStyle}" FontSize="11" Foreground="#0067C0" />
                                             <Button
                                                 x:Name="IconSpecToggleButton"

@@ -188,7 +188,7 @@ namespace KillConfirmGameBar
 
                 ComboBoxItem customItem = new ComboBoxItem
                 {
-                    Content = existingFile != null ? existingFile.Name : "📁 " + LocalizationManager.Text("ChooseFile") + "...",
+                    Content = existingFile != null ? existingFile.Name : LocalizationManager.Text("ChooseFile") + "...",
                     Tag = "custom"
                 };
                 combo.Items.Add(customItem);
@@ -244,7 +244,7 @@ namespace KillConfirmGameBar
                     if (picked != null)
                     {
                         selectedFiles[currentSlotName] = picked;
-                        customItem.Content = "📁 " + picked.Name;
+                        customItem.Content = picked.Name;
                         combo.SelectedItem = customItem;
                     }
                 };

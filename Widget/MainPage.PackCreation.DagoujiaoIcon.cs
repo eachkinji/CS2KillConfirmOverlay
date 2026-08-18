@@ -147,7 +147,7 @@ namespace KillConfirmGameBar
 
                 ComboBoxItem customItem = new ComboBoxItem
                 {
-                    Content = existingFile != null ? existingFile.Name : "📁 " + LocalizationManager.Text("ChooseImage") + "...",
+                    Content = existingFile != null ? existingFile.Name : LocalizationManager.Text("ChooseImage") + "...",
                     Tag = "custom"
                 };
                 combo.Items.Add(customItem);
@@ -190,7 +190,7 @@ namespace KillConfirmGameBar
                     if (picked != null)
                     {
                         selectedFiles[currentSlotName] = picked;
-                        customItem.Content = "📁 " + picked.Name;
+                        customItem.Content = picked.Name;
                         combo.SelectedItem = customItem;
                         await SetPreviewImageAsync(previewImg, picked);
                     }

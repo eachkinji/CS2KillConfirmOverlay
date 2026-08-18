@@ -4,8 +4,8 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <Border Style="{StaticResource CompactChoiceCardStyle}">
-        <StackPanel Spacing="6">
-            <Grid>
+        <StackPanel Spacing="8">
+            <Grid ColumnSpacing="8">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
@@ -15,7 +15,7 @@
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
                         FontFamily="Segoe MDL2 Assets"
-                        FontSize="12"
+                        FontSize="13"
                         Foreground="White"
                         Glyph="&#xE9D9;" />
                 </Border>
@@ -24,24 +24,24 @@
                     Grid.Column="1"
                     VerticalAlignment="Center"
                     Style="{StaticResource CompactChoiceLabelStyle}"
-                    Text="Kill streak" />
+                    Text="击杀连杀窗口规则" />
             </Grid>
             <ComboBox
                 x:Name="StreakModeSelector"
                 Style="{StaticResource CompactSettingsComboBoxStyle}"
                 SelectionChanged="OnStreakModeSelectionChanged">
-                <ComboBoxItem x:Name="StreakLifeItem" Tag="life">Until death</ComboBoxItem>
-                <ComboBoxItem x:Name="StreakTimed5Item" Tag="timed_5">5-second window</ComboBoxItem>
-                <ComboBoxItem x:Name="StreakTimed10Item" Tag="timed_10">10-second window</ComboBoxItem>
-                <ComboBoxItem x:Name="StreakTimed15Item" Tag="timed_15">15-second window</ComboBoxItem>
-                <ComboBoxItem x:Name="StreakNoneItem" Tag="none">No streak window</ComboBoxItem>
-                <ComboBoxItem x:Name="StreakCustomItem" Tag="custom">Custom window</ComboBoxItem>
-                <ComboBoxItem x:Name="StreakLoopItem" Tag="loop">Loop streak window</ComboBoxItem>
+                <ComboBoxItem x:Name="StreakLifeItem" Tag="life">单命持续至死亡 (默认)</ComboBoxItem>
+                <ComboBoxItem x:Name="StreakTimed5Item" Tag="timed_5">5秒连杀窗口</ComboBoxItem>
+                <ComboBoxItem x:Name="StreakTimed10Item" Tag="timed_10">10秒连杀窗口</ComboBoxItem>
+                <ComboBoxItem x:Name="StreakTimed15Item" Tag="timed_15">15秒连杀窗口</ComboBoxItem>
+                <ComboBoxItem x:Name="StreakNoneItem" Tag="none">不计连杀 (仅单杀)</ComboBoxItem>
+                <ComboBoxItem x:Name="StreakCustomItem" Tag="custom">自定义连杀时间</ComboBoxItem>
+                <ComboBoxItem x:Name="StreakLoopItem" Tag="loop">循环连杀计数</ComboBoxItem>
             </ComboBox>
 
             <Grid
                 x:Name="CustomSecondsEditor"
-                ColumnSpacing="6"
+                ColumnSpacing="8"
                 Visibility="Collapsed">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -49,10 +49,9 @@
                 </Grid.ColumnDefinitions>
                 <TextBox
                     x:Name="CustomSecondsBox"
-                    Height="28"
+                    Style="{StaticResource FluentInputStyle}"
                     MaxLength="7"
-                    Padding="7,0"
-                    FontSize="10"
+                    FontSize="12"
                     InputScope="Number"
                     LostFocus="OnCustomSecondsLostFocus"
                     PlaceholderText="1.0" />
@@ -60,13 +59,14 @@
                     x:Name="CustomSecondsHint"
                     Grid.Column="1"
                     VerticalAlignment="Center"
-                    FontSize="10"
-                    Text="seconds (0.1-300)" />
+                    FontSize="12"
+                    Foreground="{StaticResource FluentMutedText}"
+                    Text="秒 (0.1-300)" />
             </Grid>
 
             <Grid
                 x:Name="LoopKillEditor"
-                ColumnSpacing="6"
+                ColumnSpacing="8"
                 Visibility="Collapsed">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -74,7 +74,6 @@
                 </Grid.ColumnDefinitions>
                 <ComboBox
                     x:Name="LoopKillCountSelector"
-                    Height="28"
                     MinWidth="90"
                     Style="{StaticResource CompactSettingsComboBoxStyle}"
                     SelectionChanged="OnLoopKillCountSelectionChanged" />
@@ -82,8 +81,9 @@
                     x:Name="LoopKillCountHint"
                     Grid.Column="1"
                     VerticalAlignment="Center"
-                    FontSize="10"
-                    Text="then restart at 1" />
+                    FontSize="12"
+                    Foreground="{StaticResource FluentMutedText}"
+                    Text="后重新从1杀计算" />
             </Grid>
         </StackPanel>
     </Border>

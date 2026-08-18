@@ -147,13 +147,13 @@ namespace KillConfirmGameBar
             var editButton = new Button
             {
                 Content = LocalizationManager.Text("Edit"),
-                Padding = new Thickness(8, 4, 8, 4),
+                Padding = new Thickness(8, 3, 8, 3),
                 FontSize = 11,
-                Background = new SolidColorBrush(Color.FromArgb(255, 236, 247, 252)),
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 46, 136, 184)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 185, 220, 236)),
+                Background = new SolidColorBrush(Color.FromArgb(255, 235, 243, 252)),
+                Foreground = new SolidColorBrush(Color.FromArgb(255, 0, 103, 192)),
+                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 204, 228, 247)),
                 BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(12),
+                CornerRadius = new CornerRadius(4),
                 Margin = new Thickness(0, 0, 4, 0),
                 Visibility = Visibility.Visible
             };
@@ -195,13 +195,13 @@ namespace KillConfirmGameBar
             var deleteButton = new Button
             {
                 Content = LocalizationManager.Text("Delete"),
-                Padding = new Thickness(8, 4, 8, 4),
+                Padding = new Thickness(8, 3, 8, 3),
                 FontSize = 11,
-                Background = new SolidColorBrush(Color.FromArgb(255, 255, 239, 234)),
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 203, 75, 40)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 240, 196, 182)),
+                Background = new SolidColorBrush(Color.FromArgb(255, 254, 242, 242)),
+                Foreground = new SolidColorBrush(Color.FromArgb(255, 196, 43, 28)),
+                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 252, 209, 209)),
                 BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(12),
+                CornerRadius = new CornerRadius(4),
                 Visibility = item.IsBuiltIn ? Visibility.Collapsed : Visibility.Visible
             };
             deleteButton.Click += async (_, __) => await PackCatalogService.RemoveCustomVoicePackAsync(item.Key);
@@ -241,10 +241,10 @@ namespace KillConfirmGameBar
                 Width = 238,
                 Height = 74,
                 Padding = new Thickness(10, 8, 10, 8),
-                Background = new SolidColorBrush(Color.FromArgb(235, 255, 255, 252)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 226, 221, 211)),
+                Background = new SolidColorBrush(Color.FromArgb(255, 255, 255, 255)),
+                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 229, 229, 229)),
                 BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(20),
+                CornerRadius = new CornerRadius(8),
                 Margin = new Thickness(0, 0, 8, 8),
                 Child = row
             };
@@ -333,13 +333,13 @@ namespace KillConfirmGameBar
             var deleteButton = new Button
             {
                 Content = LocalizationManager.Text("Delete"),
-                Padding = new Thickness(8, 4, 8, 4),
+                Padding = new Thickness(8, 3, 8, 3),
                 FontSize = 11,
-                Background = new SolidColorBrush(Color.FromArgb(255, 255, 239, 234)),
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 203, 75, 40)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 240, 196, 182)),
+                Background = new SolidColorBrush(Color.FromArgb(255, 254, 242, 242)),
+                Foreground = new SolidColorBrush(Color.FromArgb(255, 196, 43, 28)),
+                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 252, 209, 209)),
                 BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(12),
+                CornerRadius = new CornerRadius(4),
                 Visibility = item.IsBuiltIn ? Visibility.Collapsed : Visibility.Visible
             };
             deleteButton.Click += async (_, __) => await PackCatalogService.RemoveCustomIconPackAsync(item.Key);
@@ -379,10 +379,10 @@ namespace KillConfirmGameBar
                 Width = 238,
                 Height = 74,
                 Padding = new Thickness(10, 8, 10, 8),
-                Background = new SolidColorBrush(Color.FromArgb(235, 255, 255, 252)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 226, 221, 211)),
+                Background = new SolidColorBrush(Color.FromArgb(255, 255, 255, 255)),
+                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 229, 229, 229)),
                 BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(20),
+                CornerRadius = new CornerRadius(8),
                 Margin = new Thickness(0, 0, 8, 8),
                 Child = row
             };

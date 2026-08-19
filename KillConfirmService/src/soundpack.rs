@@ -1,3 +1,4 @@
+pub mod gain;
 pub mod lua_script;
 pub mod manifest;
 mod preset;

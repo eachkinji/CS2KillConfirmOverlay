@@ -18,26 +18,11 @@ use crate::soundpack::{SoundContext, SoundEntry};
 use crate::util::logging::service_log;
 use crate::util::state::{AppState, EventChannel, EventSoundMode};
 
-const HEADSHOT_SOUND_GAIN: f32 = 1.8;
-const COMMON_SOUND_GAIN: f32 = 4.5;
-// common_headshot.wav is about 0.84 dB louder at source than common.wav.
-// 4.1 compensates for that difference and produces nearly identical RMS.
-const BF1_HEADSHOT_SOUND_GAIN: f32 = 4.1;
-const SEX_HEADSHOT_SOUND_GAIN: f32 = 7.4;
-const SEX_SPECIAL_SOUND_GAIN: f32 = 0.79;
-const SEX_STREAK_2_SOUND_GAIN: f32 = 5.47;
-const SEX_STREAK_3_SOUND_GAIN: f32 = 6.30;
-const SEX_STREAK_4_SOUND_GAIN: f32 = 6.42;
-const SEX_STREAK_5_SOUND_GAIN: f32 = 6.13;
-const SEX_STREAK_6_SOUND_GAIN: f32 = 6.55;
-const SEX_STREAK_7_SOUND_GAIN: f32 = 6.61;
-const SEX_STREAK_8_SOUND_GAIN: f32 = 7.32;
-const FLYING_TIGER_SOUND_GAIN: f32 = 1.8;
-const WOMEN_SPECIAL_SOUND_GAIN: f32 = 1.6;
-const WOMEN_GR_GRENADE_SOUND_GAIN: f32 = 2.1;
-const QUIET_VOICE_PACK_SOUND_GAIN: f32 = 3.6;
-const GLOBAL_SOUND_GAIN: f32 = 0.5;
-const MAX_STREAK_EVENT_GAIN: f32 = 1.5;
+use crate::soundpack::gain::{
+    compute_final_playback_gain, resolve_bomb_playback_volume,
+    uses_battlefield2042_audio_rules,
+};
+
 const BATTLEFIELD_2042_KILL_AUDIO_DELAY_MS: u64 = 100;
 const BOMB_TIMER_AUDIO_FILE: &str = "sounds/dagoujiao/common.wav";
 const BOMB_EXPLODED_AUDIO_FILE: &str = "sounds/dagoujiao/epic.wav";
@@ -324,13 +309,7 @@ fn bomb_audio_session_is_active(app_state: &AppState, generation: u64) -> bool {
 }
 
 fn resolve_bomb_audio_volume(app_state: &AppState) -> f32 {
-    let master = app_state.volume_percent.load(Ordering::Relaxed) as f32 / 100.0;
-    let bomb = app_state
-        .bomb_audio_volume_percent
-        .load(Ordering::Relaxed)
-        .min(100) as f32
-        / 100.0;
-    (master * bomb).clamp(0.0, 2.0)
+    resolve_bomb_playback_volume(app_state)
 }
 
 fn is_supported_audio_path(path: &Path) -> bool {
@@ -347,8 +326,7 @@ fn is_supported_audio_path(path: &Path) -> bool {
 async fn add_file_to_mixer(
     file_name: &str,
     mixer: &mixer::Mixer,
-    event_gain: f32,
-    master_volume: f32,
+    final_gain: f32,
     playback_speed: f32,
 ) -> Result<()> {
     let bytes = read_audio_bytes(file_name).await?;
@@ -357,7 +335,7 @@ async fn add_file_to_mixer(
     mixer.add(
         source
             .speed(playback_speed.clamp(0.25, 4.0))
-            .amplify(resolve_sound_gain(file_name, event_gain) * GLOBAL_SOUND_GAIN * master_volume),
+            .amplify(final_gain),
     );
     Ok(())
 }
@@ -365,8 +343,7 @@ async fn add_file_to_mixer(
 async fn add_file_to_sink(
     file_name: &str,
     sink: &Arc<Sink>,
-    event_gain: f32,
-    master_volume: f32,
+    final_gain: f32,
     playback_speed: f32,
 ) -> Result<()> {
     let bytes = read_audio_bytes(file_name).await?;
@@ -375,7 +352,7 @@ async fn add_file_to_sink(
     sink.append(
         source
             .speed(playback_speed.clamp(0.25, 4.0))
-            .amplify(resolve_sound_gain(file_name, event_gain) * GLOBAL_SOUND_GAIN * master_volume),
+            .amplify(final_gain),
     );
     Ok(())
 }
@@ -632,8 +609,6 @@ pub async fn play_audio(
         return Ok(());
     }
 
-    let event_gain = resolve_event_gain(audio_kill_count, audio_play_main);
-
     let interrupt_previous = app_state_clone
         .stop_previous_kill_audio
         .load(Ordering::Relaxed);
@@ -663,14 +638,13 @@ pub async fn play_audio(
         let mixer_clone = mixer.clone();
         let kill_sink_clone = kill_sink.clone();
         let uses_battlefield2042_rules = uses_battlefield2042_audio_rules(&file_path);
-        let base_sound_gain = resolve_sound_gain(&file_path, event_gain);
-        let file_event_gain = if uses_battlefield2042_rules {
-            1.0
-        } else if (entry_gain - 1.0).abs() > f32::EPSILON {
-            event_gain * entry_gain
-        } else {
-            base_sound_gain
-        };
+        let final_gain = compute_final_playback_gain(
+            &file_path,
+            entry_gain,
+            audio_kill_count,
+            audio_play_main,
+            volume,
+        );
         tasks.spawn(async move {
             if uses_battlefield2042_rules {
                 sleep(Duration::from_millis(BATTLEFIELD_2042_KILL_AUDIO_DELAY_MS)).await;
@@ -679,8 +653,7 @@ pub async fn play_audio(
                 add_file_to_sink(
                     &file_path,
                     &sink,
-                    file_event_gain,
-                    volume,
+                    final_gain,
                     dagoujiao_playback_speed,
                 )
                 .await
@@ -688,8 +661,7 @@ pub async fn play_audio(
                 add_file_to_mixer(
                     &file_path,
                     &mixer_clone,
-                    file_event_gain,
-                    volume,
+                    final_gain,
                     dagoujiao_playback_speed,
                 )
                 .await
@@ -836,139 +808,7 @@ fn resolve_special_kill_audio_flag(
     event_flag && (!use_crossfire_audio_settings || special_audio_enabled)
 }
 
-fn uses_battlefield2042_audio_rules(file_name: &str) -> bool {
-    file_name
-        .replace('\\', "/")
-        .to_ascii_lowercase()
-        .contains("/battlefield2042/")
-}
 
-fn resolve_sound_gain(file_name: &str, event_gain: f32) -> f32 {
-    let normalized = file_name.replace('\\', "/").to_ascii_lowercase();
-    let is_sex_pack = normalized.contains("/crossfire_v_sex/");
-    let is_flying_tiger_pack = normalized.contains("/crossfire_flying_tiger_gr/")
-        || normalized.contains("/crossfire_flying_tiger_bl/");
-    let is_women_pack =
-        normalized.contains("/crossfire_women_gr/") || normalized.contains("/crossfire_women_bl/");
-    let is_quiet_cf_pack = normalized.contains("/crossfire_bunny_gr/")
-        || normalized.contains("/crossfire_bunny_bl/")
-        || normalized.contains("/crossfire_heart_judge_gr/")
-        || normalized.contains("/crossfire_heart_judge_bl/");
-    let is_custom_pack = !normalized.starts_with("sounds/") && !normalized.contains("/sounds/");
-
-    if uses_battlefield2042_audio_rules(&normalized) {
-        return event_gain;
-    }
-
-    if normalized.contains("/bf1/") && is_audio_file_named(&normalized, "common_headshot") {
-        return BF1_HEADSHOT_SOUND_GAIN * event_gain;
-    }
-
-    if is_audio_file_named(&normalized, "common")
-        || is_audio_file_named(&normalized, "common_overlay")
-    {
-        return COMMON_SOUND_GAIN * event_gain;
-    }
-
-    if is_quiet_cf_pack || is_custom_pack {
-        return QUIET_VOICE_PACK_SOUND_GAIN * event_gain;
-    }
-
-    if is_sex_pack
-        && (is_audio_file_named(&normalized, "knife")
-            || is_audio_file_named(&normalized, "firstandlast"))
-    {
-        return SEX_SPECIAL_SOUND_GAIN * event_gain;
-    }
-
-    if is_sex_pack {
-        return resolve_sex_sound_gain(&normalized) * event_gain;
-    }
-
-    if is_audio_file_named(&normalized, "headshot") {
-        let pack_gain = if is_flying_tiger_pack {
-            FLYING_TIGER_SOUND_GAIN
-        } else if is_women_pack {
-            WOMEN_SPECIAL_SOUND_GAIN
-        } else {
-            1.0
-        };
-
-        return HEADSHOT_SOUND_GAIN * pack_gain * event_gain;
-    }
-
-    if is_flying_tiger_pack {
-        return FLYING_TIGER_SOUND_GAIN * event_gain;
-    }
-
-    if is_women_pack
-        && (is_audio_file_named(&normalized, "knife")
-            || is_audio_file_named(&normalized, "grenade"))
-    {
-        let pack_gain = if normalized.contains("/crossfire_women_gr/")
-            && is_audio_file_named(&normalized, "grenade")
-        {
-            WOMEN_GR_GRENADE_SOUND_GAIN
-        } else {
-            WOMEN_SPECIAL_SOUND_GAIN
-        };
-
-        return pack_gain * event_gain;
-    }
-
-    event_gain
-}
-
-fn is_audio_file_named(normalized_file_name: &str, stem: &str) -> bool {
-    [".wav", ".mp3", ".m4a"]
-        .iter()
-        .any(|extension| normalized_file_name.ends_with(&format!("/{stem}{extension}")))
-}
-
-fn resolve_sex_sound_gain(normalized_file_name: &str) -> f32 {
-    if is_audio_file_named(normalized_file_name, "headshot") {
-        return SEX_HEADSHOT_SOUND_GAIN;
-    }
-
-    if is_audio_file_named(normalized_file_name, "2") {
-        return SEX_STREAK_2_SOUND_GAIN;
-    }
-
-    if is_audio_file_named(normalized_file_name, "3") {
-        return SEX_STREAK_3_SOUND_GAIN;
-    }
-
-    if is_audio_file_named(normalized_file_name, "4") {
-        return SEX_STREAK_4_SOUND_GAIN;
-    }
-
-    if is_audio_file_named(normalized_file_name, "5") {
-        return SEX_STREAK_5_SOUND_GAIN;
-    }
-
-    if is_audio_file_named(normalized_file_name, "6") {
-        return SEX_STREAK_6_SOUND_GAIN;
-    }
-
-    if is_audio_file_named(normalized_file_name, "7") {
-        return SEX_STREAK_7_SOUND_GAIN;
-    }
-
-    if is_audio_file_named(normalized_file_name, "8") {
-        return SEX_STREAK_8_SOUND_GAIN;
-    }
-
-    1.0
-}
-
-fn resolve_event_gain(kill_count: u16, play_main_audio: bool) -> f32 {
-    if !play_main_audio || kill_count <= 1 {
-        return 1.0;
-    }
-
-    let streak_bonus = ((kill_count - 1) as f32) * 0.07;
-    (1.0 + streak_bonus).min(MAX_STREAK_EVENT_GAIN)
-}
 
 #[cfg(test)]
 mod tests {

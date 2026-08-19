@@ -234,10 +234,16 @@ impl PackManifest {
         let push_overlay_if_enabled = |entries: &mut Vec<SoundEntry>, current_slot: &str| {
             let enabled = match &audio.overlay_slots {
                 Some(list) => list.iter().any(|s| s.eq_ignore_ascii_case(current_slot)),
-                None => true,
+                None => !current_slot.eq_ignore_ascii_case("kill_1"),
             };
             if enabled {
-                push_slot(entries, "common_overlay", None);
+                let prev_len = entries.len();
+                if push_slot(entries, "common_overlay", None) && entries.len() > prev_len {
+                    let overlay_path = &entries[prev_len].path;
+                    if entries[..prev_len].iter().any(|e| e.path == *overlay_path) {
+                        entries.pop();
+                    }
+                }
             }
         };
 

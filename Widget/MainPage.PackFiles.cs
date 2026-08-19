@@ -156,6 +156,30 @@ namespace KillConfirmGameBar
         private static async Task<IReadOnlyDictionary<string, StorageFile>> CollectRecognizedFilesAsync(StorageFolder folder, params string[] fileNames)
         {
             var files = new Dictionary<string, StorageFile>(StringComparer.OrdinalIgnoreCase);
+            if (folder == null)
+            {
+                return files;
+            }
+
+            IReadOnlyList<StorageFile> allFolderFiles = null;
+            try
+            {
+                allFolderFiles = await folder.GetFilesAsync();
+            }
+            catch { }
+
+            StorageFolder badgeexFolder = null;
+            IReadOnlyList<StorageFile> allBadgeexFiles = null;
+            try
+            {
+                badgeexFolder = await folder.GetFolderAsync("badgeex");
+                if (badgeexFolder != null)
+                {
+                    allBadgeexFiles = await badgeexFolder.GetFilesAsync();
+                }
+            }
+            catch { }
+
             foreach (string fileName in fileNames)
             {
                 StorageFile file = await TryGetFileAsync(folder, fileName);
@@ -174,14 +198,38 @@ namespace KillConfirmGameBar
                 if (file == null && fileName.EndsWith(".png", StringComparison.OrdinalIgnoreCase))
                 {
                     file = await TryGetIconFileVariantAsync(folder, fileName);
-                    if (file == null)
+                    if (file == null && badgeexFolder != null)
                     {
-                        try
+                        file = await TryGetIconFileVariantAsync(badgeexFolder, fileName);
+                    }
+                }
+
+                // If still not found by direct lookup, scan files list case-insensitively
+                if (file == null && allFolderFiles != null)
+                {
+                    string targetNameWithoutExt = System.IO.Path.GetFileNameWithoutExtension(fileName);
+                    foreach (StorageFile candidate in allFolderFiles)
+                    {
+                        if (string.Equals(candidate.Name, fileName, StringComparison.OrdinalIgnoreCase)
+                            || string.Equals(System.IO.Path.GetFileNameWithoutExtension(candidate.Name), targetNameWithoutExt, StringComparison.OrdinalIgnoreCase))
                         {
-                            StorageFolder badgeex = await folder.GetFolderAsync("badgeex");
-                            file = await TryGetIconFileVariantAsync(badgeex, fileName);
+                            file = candidate;
+                            break;
                         }
-                        catch { }
+                    }
+                }
+
+                if (file == null && allBadgeexFiles != null)
+                {
+                    string targetNameWithoutExt = System.IO.Path.GetFileNameWithoutExtension(fileName);
+                    foreach (StorageFile candidate in allBadgeexFiles)
+                    {
+                        if (string.Equals(candidate.Name, fileName, StringComparison.OrdinalIgnoreCase)
+                            || string.Equals(System.IO.Path.GetFileNameWithoutExtension(candidate.Name), targetNameWithoutExt, StringComparison.OrdinalIgnoreCase))
+                        {
+                            file = candidate;
+                            break;
+                        }
                     }
                 }
 
@@ -196,6 +244,11 @@ namespace KillConfirmGameBar
 
         private static async Task<StorageFile> TryGetIconFileVariantAsync(StorageFolder folder, string canonicalFileName)
         {
+            if (folder == null)
+            {
+                return null;
+            }
+
             foreach (string extension in IconImageExtensions)
             {
                 StorageFile file = await TryGetFileAsync(folder, System.IO.Path.ChangeExtension(canonicalFileName, extension));
@@ -258,25 +311,96 @@ namespace KillConfirmGameBar
                 try
                 {
                     StorageFolder installed = Windows.ApplicationModel.Package.Current.InstalledLocation;
-                    if (string.Equals(item.Key, "dagoujiao", StringComparison.OrdinalIgnoreCase))
+                    string key = item.Key ?? string.Empty;
+
+                    // Dagoujiao
+                    if (string.Equals(key, "dagoujiao", StringComparison.OrdinalIgnoreCase))
                     {
                         return await installed.GetFolderAsync(@"Assets\GameStyles\dagoujiao\killconfirm\textures");
                     }
-                    if (string.Equals(item.Key, "csol4", StringComparison.OrdinalIgnoreCase) || string.Equals(item.Key, "csol_original", StringComparison.OrdinalIgnoreCase))
+
+                    // CSOL
+                    if (string.Equals(key, "csol4", StringComparison.OrdinalIgnoreCase)
+                        || string.Equals(key, "csol_original", StringComparison.OrdinalIgnoreCase))
                     {
                         return await installed.GetFolderAsync(@"Assets\KillConfirmCode\Csol4");
                     }
-                    if (string.Equals(item.Key, "original", StringComparison.OrdinalIgnoreCase) || string.Equals(item.Key, "default", StringComparison.OrdinalIgnoreCase))
+
+                    // CrossFire Built-ins
+                    if (string.Equals(key, "original", StringComparison.OrdinalIgnoreCase)
+                        || string.Equals(key, "default", StringComparison.OrdinalIgnoreCase))
                     {
                         return await installed.GetFolderAsync(@"Assets\KillConfirmCode\Original");
                     }
-                    if (string.Equals(item.Key, "glory", StringComparison.OrdinalIgnoreCase))
+                    if (string.Equals(key, "vip", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return await installed.GetFolderAsync(@"Assets\KillConfirmCode\Vip");
+                    }
+                    if (string.Equals(key, "angelic_beast", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return await installed.GetFolderAsync(@"Assets\KillConfirmCode\AngelicBeast");
+                    }
+                    if (string.Equals(key, "anniversary_10", StringComparison.OrdinalIgnoreCase)
+                        || string.Equals(key, "glory", StringComparison.OrdinalIgnoreCase))
                     {
                         return await installed.GetFolderAsync(@"Assets\KillConfirmCode\Anniversary10");
                     }
-                    if (string.Equals(item.Key, "champion", StringComparison.OrdinalIgnoreCase))
+                    if (string.Equals(key, "anniversary_15", StringComparison.OrdinalIgnoreCase)
+                        || string.Equals(key, "champion", StringComparison.OrdinalIgnoreCase))
                     {
                         return await installed.GetFolderAsync(@"Assets\KillConfirmCode\Anniversary15");
+                    }
+                    if (string.Equals(key, "cfpl", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return await installed.GetFolderAsync(@"Assets\KillConfirmCode\CFPL");
+                    }
+                    if (string.Equals(key, "rankmach_2019_1", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return await installed.GetFolderAsync(@"Assets\KillConfirmCode\Rankmach2019_1");
+                    }
+                    if (string.Equals(key, "rankmach_2019_2", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return await installed.GetFolderAsync(@"Assets\KillConfirmCode\Rankmach2019_2");
+                    }
+
+                    // Other Game Styles
+                    if (string.Equals(key, "battlefield1", StringComparison.OrdinalIgnoreCase)
+                        || string.Equals(key, "bf1", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return await installed.GetFolderAsync(@"Assets\GameStyles\battlefield1\killconfirm\textures");
+                    }
+                    if (string.Equals(key, "battlefield5", StringComparison.OrdinalIgnoreCase)
+                        || string.Equals(key, "bf5", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return await installed.GetFolderAsync(@"Assets\GameStyles\battlefield5\killconfirm\textures");
+                    }
+                    if (string.Equals(key, "battlefield4", StringComparison.OrdinalIgnoreCase)
+                        || string.Equals(key, "bf4", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return await installed.GetFolderAsync(@"Assets\GameStyles\battlefield4\killconfirm\textures");
+                    }
+                    if (string.Equals(key, "battlefield2042", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return await installed.GetFolderAsync(@"Assets\GameStyles\battlefield2042\killconfirm\textures");
+                    }
+                    if (string.Equals(key, "pubg", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return await installed.GetFolderAsync(@"Assets\GameStyles\pubg\killconfirm\textures");
+                    }
+                    if (string.Equals(key, "deltaforce", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return await installed.GetFolderAsync(@"Assets\GameStyles\deltaforce\killconfirm\textures");
+                    }
+                    if (string.Equals(key, "doubao", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return await installed.GetFolderAsync(@"Assets\GameStyles\doubao\killconfirm\textures");
+                    }
+
+                    // Valorant
+                    if (key.StartsWith("valorant_", StringComparison.OrdinalIgnoreCase))
+                    {
+                        string skinKey = key.Substring("valorant_".Length);
+                        return await installed.GetFolderAsync(@"Assets\GameStyles\valorant\killconfirm\" + skinKey + @"\textures");
                     }
                 }
                 catch { }

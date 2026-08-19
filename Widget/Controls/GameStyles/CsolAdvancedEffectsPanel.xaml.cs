@@ -17,6 +17,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
         }
 
         public event SelectionChangedEventHandler VoiceSettingChanged;
+        public event EventHandler ImportVoiceRequested;
 
         public ComboBox StreakModeSelectorControl => StreakEditor.SelectorControl;
 
@@ -35,6 +36,13 @@ namespace KillConfirmGameBar.Controls.GameStyles
             AdvancedEffectsPanelSupport.ApplyMoneyRow(PriorityLabel, PrioritySelector, theme);
             AdvancedEffectsPanelSupport.ApplyMoneyRow(FirstKillIconLabel, FirstKillIconSelector, theme);
             AdvancedEffectsPanelSupport.ApplyMoneyRow(LastKillIconLabel, LastKillIconSelector, theme);
+
+            if (ImportVoiceButton != null)
+            {
+                ImportVoiceButton.Background = new SolidColorBrush(theme.AccentSoft);
+                ImportVoiceButton.BorderBrush = new SolidColorBrush(theme.SoftBorder);
+                ImportVoiceButton.Foreground = new SolidColorBrush(theme.AccentText);
+            }
         }
 
         public void ApplyLanguage(bool isChinese)
@@ -58,6 +66,26 @@ namespace KillConfirmGameBar.Controls.GameStyles
             FirstKillIconFirstKillItem.Content = isChinese ? "首杀" : "First kill";
             LastKillIconRevengeItem.Content = isChinese ? "复仇" : "Revenge";
             LastKillIconFirstKillItem.Content = isChinese ? "首杀" : "First kill";
+
+            VoiceManagerTitleText.Text = isChinese ? "CSOL 语音包事件音效与随机管理" : "CSOL Voice Events & Randomizer";
+            VoiceManagerHintText.Text = isChinese
+                ? "为多音效事件（如 1杀、4杀、刀杀等）指定具体播放音效或设为随机播放。"
+                : "Choose specific voice files or enable random voice picks per kill event.";
+            ImportVoiceButtonText.Text = isChinese ? "导入语音" : "Import Voice";
+
+            Kill1VoiceLabel.Text = isChinese ? "1杀音效" : "1-Kill Voice";
+            Kill4VoiceLabel.Text = isChinese ? "4杀音效" : "4-Kill Voice";
+            KnifeVoiceLabel.Text = isChinese ? "小刀击杀音效" : "Knife Voice";
+            FirstKillVoiceLabel.Text = isChinese ? "首杀专属音效" : "First-Kill Voice";
+            LastKillVoiceLabel.Text = isChinese ? "尾杀/复仇音效" : "Last-Kill Voice";
+            AssistVoiceLabel.Text = isChinese ? "助攻音效" : "Assist Voice";
+
+            Kill1RandomItem.Content = isChinese ? "🎲 随机语音" : "🎲 Random Voice";
+            Kill4RandomItem.Content = isChinese ? "🎲 随机语音" : "🎲 Random Voice";
+            KnifeRandomItem.Content = isChinese ? "🎲 随机语音" : "🎲 Random Voice";
+            FirstKillRandomItem.Content = isChinese ? "🎲 随机语音" : "🎲 Random Voice";
+            LastKillRandomItem.Content = isChinese ? "🎲 随机语音" : "🎲 Random Voice";
+            AssistRandomItem.Content = isChinese ? "🎲 随机语音" : "🎲 Random Voice";
         }
 
         public string GetSelectedStreakMode(string fallback)
@@ -102,7 +130,15 @@ namespace KillConfirmGameBar.Controls.GameStyles
 
         public Dictionary<string, string> GetVoicePicks()
         {
-            return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["1"] = ReadTaggedItem(Kill1VoiceSelector, CsolVoiceSettingsStore.RandomPick),
+                ["4"] = ReadTaggedItem(Kill4VoiceSelector, CsolVoiceSettingsStore.RandomPick),
+                ["knife"] = ReadTaggedItem(KnifeVoiceSelector, CsolVoiceSettingsStore.RandomPick),
+                ["first"] = ReadTaggedItem(FirstKillVoiceSelector, CsolVoiceSettingsStore.RandomPick),
+                ["last"] = ReadTaggedItem(LastKillVoiceSelector, CsolVoiceSettingsStore.RandomPick),
+                ["assist"] = ReadTaggedItem(AssistVoiceSelector, CsolVoiceSettingsStore.RandomPick)
+            };
         }
 
         public void SelectSettings(
@@ -125,6 +161,20 @@ namespace KillConfirmGameBar.Controls.GameStyles
                     LastKillIconSelector,
                     NormalizeIcon(lastKillIcon, CsolVoiceSettingsStore.RevengeIcon),
                     CsolVoiceSettingsStore.RevengeIcon);
+
+                string pick1 = voicePicks != null && voicePicks.TryGetValue("1", out string v1) ? v1 : CsolVoiceSettingsStore.RandomPick;
+                string pick4 = voicePicks != null && voicePicks.TryGetValue("4", out string v4) ? v4 : CsolVoiceSettingsStore.RandomPick;
+                string pickKnife = voicePicks != null && voicePicks.TryGetValue("knife", out string vk) ? vk : CsolVoiceSettingsStore.RandomPick;
+                string pickFirst = voicePicks != null && voicePicks.TryGetValue("first", out string vf) ? vf : CsolVoiceSettingsStore.RandomPick;
+                string pickLast = voicePicks != null && voicePicks.TryGetValue("last", out string vl) ? vl : CsolVoiceSettingsStore.RandomPick;
+                string pickAssist = voicePicks != null && voicePicks.TryGetValue("assist", out string va) ? va : CsolVoiceSettingsStore.RandomPick;
+
+                SelectTaggedItem(Kill1VoiceSelector, pick1, CsolVoiceSettingsStore.RandomPick);
+                SelectTaggedItem(Kill4VoiceSelector, pick4, CsolVoiceSettingsStore.RandomPick);
+                SelectTaggedItem(KnifeVoiceSelector, pickKnife, CsolVoiceSettingsStore.RandomPick);
+                SelectTaggedItem(FirstKillVoiceSelector, pickFirst, CsolVoiceSettingsStore.RandomPick);
+                SelectTaggedItem(LastKillVoiceSelector, pickLast, CsolVoiceSettingsStore.RandomPick);
+                SelectTaggedItem(AssistVoiceSelector, pickAssist, CsolVoiceSettingsStore.RandomPick);
             }
             finally
             {
@@ -142,6 +192,11 @@ namespace KillConfirmGameBar.Controls.GameStyles
             VoiceSettingChanged?.Invoke(this, e);
         }
 
+        private void OnImportVoiceButtonClick(object sender, RoutedEventArgs e)
+        {
+            ImportVoiceRequested?.Invoke(this, EventArgs.Empty);
+        }
+
         private void OnResetButtonClick(object sender, RoutedEventArgs e)
         {
             _suppressSelectionChanged = true;
@@ -151,6 +206,12 @@ namespace KillConfirmGameBar.Controls.GameStyles
                 SelectTaggedItem(PrioritySelector, "streak", "streak");
                 SelectTaggedItem(FirstKillIconSelector, CsolVoiceSettingsStore.FirstKillIcon, CsolVoiceSettingsStore.FirstKillIcon);
                 SelectTaggedItem(LastKillIconSelector, CsolVoiceSettingsStore.RevengeIcon, CsolVoiceSettingsStore.RevengeIcon);
+                SelectTaggedItem(Kill1VoiceSelector, CsolVoiceSettingsStore.RandomPick, CsolVoiceSettingsStore.RandomPick);
+                SelectTaggedItem(Kill4VoiceSelector, CsolVoiceSettingsStore.RandomPick, CsolVoiceSettingsStore.RandomPick);
+                SelectTaggedItem(KnifeVoiceSelector, CsolVoiceSettingsStore.RandomPick, CsolVoiceSettingsStore.RandomPick);
+                SelectTaggedItem(FirstKillVoiceSelector, CsolVoiceSettingsStore.RandomPick, CsolVoiceSettingsStore.RandomPick);
+                SelectTaggedItem(LastKillVoiceSelector, CsolVoiceSettingsStore.RandomPick, CsolVoiceSettingsStore.RandomPick);
+                SelectTaggedItem(AssistVoiceSelector, CsolVoiceSettingsStore.RandomPick, CsolVoiceSettingsStore.RandomPick);
             }
             finally
             {
@@ -195,4 +256,3 @@ namespace KillConfirmGameBar.Controls.GameStyles
         }
     }
 }
-

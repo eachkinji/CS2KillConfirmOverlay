@@ -20,7 +20,11 @@
                 <GradientStop Color="#F3F3F3" Offset="1.0" />
             </LinearGradientBrush>
 
-            <SolidColorBrush x:Key="OrangeSlashGradient" Color="Transparent" />
+            <LinearGradientBrush x:Key="OrangeSlashGradient" StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#F29A17" Offset="0" />
+                <GradientStop Color="#EA7F05" Offset="0.58" />
+                <GradientStop Color="#DB6900" Offset="1" />
+            </LinearGradientBrush>
 
             <AcrylicBrush x:Key="MainBackgroundAcrylic"
                           BackgroundSource="HostBackdrop"
@@ -190,14 +194,42 @@
     </Page.Resources>
 
     <Grid x:Name="SettingsRootGrid" Background="{StaticResource MainBackgroundGradient}">
-        <Canvas IsHitTestVisible="False" Opacity="0" Visibility="Collapsed">
-            <Rectangle x:Name="HeroSlash" Width="620" Height="1200" Fill="{StaticResource OrangeSlashGradient}" Opacity="0" Canvas.Left="720" Canvas.Top="-160" />
-            <Rectangle x:Name="HeroSlashLight" Width="24" Height="1200" Fill="#FFF0D5" Opacity="0" Canvas.Left="815" Canvas.Top="-120" />
-            <Rectangle x:Name="FrameStripeOne" Width="260" Height="520" Stroke="#C4C4C4" StrokeThickness="3" Opacity="0" Canvas.Left="80" Canvas.Top="70" />
-            <Rectangle x:Name="FrameStripeTwo" Width="260" Height="520" Stroke="#C4C4C4" StrokeThickness="3" Opacity="0" Canvas.Left="420" Canvas.Top="110" />
-            <Rectangle x:Name="AccentLineOne" Width="190" Height="2" Fill="#CF6B00" Opacity="0" Canvas.Left="910" Canvas.Top="150" />
-            <Rectangle x:Name="AccentLineTwo" Width="260" Height="2" Fill="#CF6B00" Opacity="0" Canvas.Left="910" Canvas.Top="165" />
-            <Rectangle x:Name="AccentLineThree" Width="220" Height="2" Fill="#CF6B00" Opacity="0" Canvas.Left="910" Canvas.Top="180" />
+        <Canvas IsHitTestVisible="False">
+            <Rectangle x:Name="HeroSlash" Width="620" Height="1200" Fill="{StaticResource OrangeSlashGradient}" Opacity="0.95" Canvas.Left="720" Canvas.Top="-160">
+                <Rectangle.RenderTransform>
+                    <SkewTransform AngleX="-18" />
+                </Rectangle.RenderTransform>
+            </Rectangle>
+            <Rectangle x:Name="HeroSlashLight" Width="24" Height="1200" Fill="#FFF0D5" Opacity="0.9" Canvas.Left="815" Canvas.Top="-120">
+                <Rectangle.RenderTransform>
+                    <SkewTransform AngleX="-18" />
+                </Rectangle.RenderTransform>
+            </Rectangle>
+            <Rectangle x:Name="FrameStripeOne" Width="260" Height="520" Stroke="#C4C4C4" StrokeThickness="3" Opacity="0.45" Canvas.Left="80" Canvas.Top="70">
+                <Rectangle.RenderTransform>
+                    <SkewTransform AngleX="-18" />
+                </Rectangle.RenderTransform>
+            </Rectangle>
+            <Rectangle x:Name="FrameStripeTwo" Width="260" Height="520" Stroke="#C4C4C4" StrokeThickness="3" Opacity="0.32" Canvas.Left="420" Canvas.Top="110">
+                <Rectangle.RenderTransform>
+                    <SkewTransform AngleX="-18" />
+                </Rectangle.RenderTransform>
+            </Rectangle>
+            <Rectangle x:Name="AccentLineOne" Width="190" Height="2" Fill="#CF6B00" Opacity="0.35" Canvas.Left="910" Canvas.Top="150">
+                <Rectangle.RenderTransform>
+                    <SkewTransform AngleX="-18" />
+                </Rectangle.RenderTransform>
+            </Rectangle>
+            <Rectangle x:Name="AccentLineTwo" Width="260" Height="2" Fill="#CF6B00" Opacity="0.35" Canvas.Left="910" Canvas.Top="165">
+                <Rectangle.RenderTransform>
+                    <SkewTransform AngleX="-18" />
+                </Rectangle.RenderTransform>
+            </Rectangle>
+            <Rectangle x:Name="AccentLineThree" Width="220" Height="2" Fill="#CF6B00" Opacity="0.35" Canvas.Left="910" Canvas.Top="180">
+                <Rectangle.RenderTransform>
+                    <SkewTransform AngleX="-18" />
+                </Rectangle.RenderTransform>
+            </Rectangle>
         </Canvas>
 
         <Grid>
@@ -351,15 +383,15 @@
                         </StackPanel>
                     </Grid>
 
-                    <!-- Home Dedicated Navigation Tab Bar (Fluent 2 Segmented Control) -->
+                    <!-- Home Dedicated Navigation Tab Bar (Distinct Fluent 2 Tabs) -->
                     <Border
                         x:Name="HomeWorkspaceTabBar"
                         Grid.Row="1"
                         MaxWidth="1480"
                         Padding="3"
                         HorizontalAlignment="Left"
-                        Background="#EBEBEB"
-                        BorderBrush="#E0E0E0"
+                        Background="#E8F0F8"
+                        BorderBrush="#CFDEEC"
                         BorderThickness="1"
                         CornerRadius="6">
                         <StackPanel Orientation="Horizontal" Spacing="4">
@@ -386,9 +418,9 @@
                         </StackPanel>
                     </Border>
 
-                    <!-- CF Studio Dedicated Navigation Tab Bar -->
+                    <!-- Game Studio Unified Navigation Tab Bar (For ALL games: CF, CSOL, Valorant, BF1, BF5, BF4, BF2042, PUBG, Delta Force, Doubao, Dagoujiao) -->
                     <Border
-                        x:Name="CfWorkspaceTabBar"
+                        x:Name="GameWorkspaceTabBar"
                         Grid.Row="1"
                         MaxWidth="1480"
                         Padding="3"
@@ -399,89 +431,25 @@
                         CornerRadius="6">
                         <StackPanel Orientation="Horizontal" Spacing="4">
                             <Button
-                                x:Name="CfTabCombatButton"
+                                x:Name="GameTabCombatButton"
                                 Style="{StaticResource StudioTabActiveButtonStyle}"
-                                Content="核心战斗与视效"
-                                Click="OnCfTabCombatClick" />
+                                Content="战斗与视效"
+                                Click="OnGameTabCombatClick" />
                             <Button
-                                x:Name="CfTabVoiceButton"
+                                x:Name="GameTabVoiceButton"
                                 Style="{StaticResource StudioTabButtonStyle}"
-                                Content="角色语音包库"
-                                Click="OnCfTabVoiceClick" />
+                                Content="语音包库"
+                                Click="OnGameTabVoiceClick" />
                             <Button
-                                x:Name="CfTabIconButton"
+                                x:Name="GameTabIconButton"
                                 Style="{StaticResource StudioTabButtonStyle}"
-                                Content="击杀图标包库"
-                                Click="OnCfTabIconClick" />
+                                Content="图标包库"
+                                Click="OnGameTabIconClick" />
                             <Button
-                                x:Name="CfTabGuideButton"
+                                x:Name="GameTabGuideButton"
                                 Style="{StaticResource StudioTabButtonStyle}"
-                                Content="制作规范与速查"
-                                Click="OnCfTabGuideClick" />
-                        </StackPanel>
-                    </Border>
-
-                    <!-- CSOL Studio Dedicated Navigation Tab Bar -->
-                    <Border
-                        x:Name="CsolWorkspaceTabBar"
-                        Grid.Row="1"
-                        MaxWidth="1480"
-                        Padding="3"
-                        HorizontalAlignment="Left"
-                        Visibility="Collapsed"
-                        Background="#EBEBEB"
-                        BorderBrush="#E0E0E0"
-                        BorderThickness="1"
-                        CornerRadius="6">
-                        <StackPanel Orientation="Horizontal" Spacing="4">
-                            <Button
-                                x:Name="CsolTabCombatButton"
-                                Style="{StaticResource StudioTabActiveButtonStyle}"
-                                Click="OnCsolTabCombatClick" />
-                            <Button
-                                x:Name="CsolTabVoiceButton"
-                                Style="{StaticResource StudioTabButtonStyle}"
-                                Click="OnCsolTabVoiceClick" />
-                            <Button
-                                x:Name="CsolTabIconButton"
-                                Style="{StaticResource StudioTabButtonStyle}"
-                                Click="OnCsolTabIconClick" />
-                            <Button
-                                x:Name="CsolTabGuideButton"
-                                Style="{StaticResource StudioTabButtonStyle}"
-                                Click="OnCsolTabGuideClick" />
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Dagoujiao Studio Dedicated Navigation Tab Bar -->
-                    <Border
-                        x:Name="DagoujiaoWorkspaceTabBar"
-                        Grid.Row="1"
-                        MaxWidth="1480"
-                        Padding="3"
-                        HorizontalAlignment="Left"
-                        Visibility="Collapsed"
-                        Background="#EBEBEB"
-                        BorderBrush="#E0E0E0"
-                        BorderThickness="1"
-                        CornerRadius="6">
-                        <StackPanel Orientation="Horizontal" Spacing="4">
-                            <Button
-                                x:Name="DagoujiaoTabCombatButton"
-                                Style="{StaticResource StudioTabActiveButtonStyle}"
-                                Click="OnDagoujiaoTabCombatClick" />
-                            <Button
-                                x:Name="DagoujiaoTabVoiceButton"
-                                Style="{StaticResource StudioTabButtonStyle}"
-                                Click="OnDagoujiaoTabVoiceClick" />
-                            <Button
-                                x:Name="DagoujiaoTabIconButton"
-                                Style="{StaticResource StudioTabButtonStyle}"
-                                Click="OnDagoujiaoTabIconButtonClick" />
-                            <Button
-                                x:Name="DagoujiaoTabGuideButton"
-                                Style="{StaticResource StudioTabButtonStyle}"
-                                Click="OnDagoujiaoTabGuideClick" />
+                                Content="自定义规范"
+                                Click="OnGameTabGuideClick" />
                         </StackPanel>
                     </Border>
 
@@ -539,8 +507,12 @@
                                     <StackPanel
                                         Grid.Column="1"
                                         Orientation="Horizontal"
-                                        Spacing="10"
+                                        Spacing="8"
                                         VerticalAlignment="Center">
+                                        <Button
+                                            x:Name="ImportVoiceMaterialButton"
+                                            Style="{StaticResource SettingsHeaderButtonStyle}"
+                                            Click="OnImportVoiceMaterialClick" />
                                         <Button
                                             x:Name="ImportVoicePackButton"
                                             Style="{StaticResource SettingsHeaderButtonStyle}"
@@ -593,8 +565,12 @@
                                     <StackPanel
                                         Grid.Column="1"
                                         Orientation="Horizontal"
-                                        Spacing="10"
+                                        Spacing="8"
                                         VerticalAlignment="Center">
+                                        <Button
+                                            x:Name="ImportIconMaterialButton"
+                                            Style="{StaticResource SettingsHeaderButtonStyle}"
+                                            Click="OnImportIconMaterialClick" />
                                         <Button
                                             x:Name="ImportIconPackButton"
                                             Style="{StaticResource SettingsHeaderButtonStyle}"

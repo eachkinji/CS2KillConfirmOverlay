@@ -292,7 +292,7 @@ namespace KillConfirmGameBar.Services
                 return;
             }
 
-            StorageFolder root = await GetOrCreatePackRootAsync("GeneratedIconPacks");
+            StorageFolder root = await GetGameIconPacksFolderAsync("crossfire");
             StorageFolder packFolder = await root.CreateFolderAsync(
                 SanitizeName(displayName),
                 CreationCollisionOption.GenerateUniqueName);
@@ -361,7 +361,7 @@ namespace KillConfirmGameBar.Services
                 return;
             }
 
-            StorageFolder root = await GetOrCreatePackRootAsync("GeneratedCsolIconPacks");
+            StorageFolder root = await GetGameIconPacksFolderAsync("csol");
             StorageFolder packFolder = await root.CreateFolderAsync(
                 SanitizeName(displayName),
                 CreationCollisionOption.GenerateUniqueName);
@@ -419,7 +419,7 @@ namespace KillConfirmGameBar.Services
                 return;
             }
 
-            StorageFolder root = await GetOrCreatePackRootAsync("GeneratedDagoujiaoIconPacks");
+            StorageFolder root = await GetGameIconPacksFolderAsync("dagoujiao");
             StorageFolder packFolder = await root.CreateFolderAsync(
                 SanitizeName(displayName),
                 CreationCollisionOption.GenerateUniqueName);

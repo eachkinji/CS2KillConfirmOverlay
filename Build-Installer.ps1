@@ -89,14 +89,15 @@ New-Item -ItemType Directory -Force -Path (Join-Path $Root "Output") | Out-Null
 function Invoke-InstallerCompile {
     param(
         [string]$TransferPath,
-        [string]$OutputSuffix,
+        [string]$InternalSuffix,
+        [string]$FinalFileName,
         [bool]$SkipPrerequisites
     )
 
     $innoArgs = @(
         ("/DMyAppVersion={0}" -f $Version),
         ("/DTransferRoot={0}" -f $TransferPath),
-        ("/DInstallerOutputSuffix={0}" -f $OutputSuffix),
+        ("/DInstallerOutputSuffix={0}" -f $InternalSuffix),
         ("/DSkipPrerequisites={0}" -f $(if ($SkipPrerequisites) { 1 } else { 0 }))
     )
     $innoArgs += $InstallerScript
@@ -104,6 +105,17 @@ function Invoke-InstallerCompile {
     & $InnoCompilerPath @innoArgs
     if ($LASTEXITCODE -ne 0) {
         throw "Inno Setup failed with exit code $LASTEXITCODE"
+    }
+
+    $rawFile = Join-Path $Root ("Output\KillConfirmGameBar_Setup_{0}{1}.exe" -f $Version, $InternalSuffix)
+    $finalOutputInOutput = Join-Path $Root ("Output\" + $FinalFileName)
+    $finalOutputInWorkspace = Join-Path $WorkspaceRoot $FinalFileName
+
+    if (Test-Path $rawFile) {
+        Move-Item -LiteralPath $rawFile -Destination $finalOutputInOutput -Force
+    }
+    if (Test-Path $finalOutputInOutput) {
+        Copy-Item -LiteralPath $finalOutputInOutput -Destination $finalOutputInWorkspace -Force
     }
 }
 
@@ -121,13 +133,15 @@ if (-not $SkipWith) {
     if (-not (Test-Path $TransferRoot)) {
         throw "Expected transfer folder was not produced: $TransferRoot"
     }
-    Invoke-InstallerCompile -TransferPath $TransferRoot -OutputSuffix "_有依赖-新人用" -SkipPrerequisites $false
+    $withName = ("KillConfirmGameBar_Setup_{0}_有依赖-新人用.exe" -f $Version)
+    Invoke-InstallerCompile -TransferPath $TransferRoot -InternalSuffix "_WithDeps" -FinalFileName $withName -SkipPrerequisites $false
 }
 
-Invoke-InstallerCompile -TransferPath $NoDependenciesTransferRoot -OutputSuffix "_无依赖-更新用" -SkipPrerequisites $true
+$noName = ("KillConfirmGameBar_Setup_{0}_无依赖-更新用.exe" -f $Version)
+Invoke-InstallerCompile -TransferPath $NoDependenciesTransferRoot -InternalSuffix "_NoDeps" -FinalFileName $noName -SkipPrerequisites $true
 
 if (-not $SkipWith) {
-    $SetupWithDependenciesPath = Join-Path $Root ("Output\KillConfirmGameBar_Setup_{0}_有依赖-新人用.exe" -f $Version)
+    $SetupWithDependenciesPath = Join-Path $WorkspaceRoot ("KillConfirmGameBar_Setup_{0}_有依赖-新人用.exe" -f $Version)
     if (-not (Test-Path $SetupWithDependenciesPath)) {
         throw "Expected installer was not produced: $SetupWithDependenciesPath"
     }
@@ -135,7 +149,7 @@ if (-not $SkipWith) {
     Write-Host ("Installer with dependencies: {0}" -f $SetupWithDependenciesPath)
 }
 
-$SetupNoDependenciesPath = Join-Path $Root ("Output\KillConfirmGameBar_Setup_{0}_无依赖-更新用.exe" -f $Version)
+$SetupNoDependenciesPath = Join-Path $WorkspaceRoot ("KillConfirmGameBar_Setup_{0}_无依赖-更新用.exe" -f $Version)
 if (-not (Test-Path $SetupNoDependenciesPath)) {
     throw "Expected installer was not produced: $SetupNoDependenciesPath"
 }

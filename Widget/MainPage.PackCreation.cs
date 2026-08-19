@@ -18,6 +18,62 @@ namespace KillConfirmGameBar
 {
     public sealed partial class MainPage
     {
+        private async void OnImportVoiceMaterialClick(object sender, RoutedEventArgs e)
+        {
+            var picker = new FileOpenPicker();
+            picker.ViewMode = PickerViewMode.List;
+            picker.SuggestedStartLocation = PickerLocationId.MusicLibrary;
+            picker.FileTypeFilter.Add(".wav");
+            picker.FileTypeFilter.Add(".mp3");
+            picker.FileTypeFilter.Add(".m4a");
+            picker.FileTypeFilter.Add(".ogg");
+            picker.FileTypeFilter.Add(".flac");
+
+            IReadOnlyList<StorageFile> files = await picker.PickMultipleFilesAsync();
+            if (files == null || files.Count == 0)
+            {
+                return;
+            }
+
+            int count = await PackCatalogService.ImportStagedMaterialsAsync(GameStyleService.Current, isAudio: true, files);
+            bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            string gameName = isChinese ? GameStyleService.ToDisplayName(GameStyleService.Current) : GameStyleService.Current.ToString();
+            string msg = isChinese
+                ? $"已成功将 {count} 个语音素材导入到【{gameName}】的临时素材池！\\n\\n在新建或编辑语音包时，插槽选择框将优先展示这些素材供您自由指定。"
+                : $"Successfully imported {count} voice materials to the staging pool for {gameName}!";
+
+            var dialog = new Windows.UI.Popups.MessageDialog(msg, isChinese ? "语音素材导入完成" : "Materials Imported");
+            await dialog.ShowAsync();
+        }
+
+        private async void OnImportIconMaterialClick(object sender, RoutedEventArgs e)
+        {
+            var picker = new FileOpenPicker();
+            picker.ViewMode = PickerViewMode.Thumbnail;
+            picker.SuggestedStartLocation = PickerLocationId.PicturesLibrary;
+            picker.FileTypeFilter.Add(".png");
+            picker.FileTypeFilter.Add(".jpg");
+            picker.FileTypeFilter.Add(".jpeg");
+            picker.FileTypeFilter.Add(".webp");
+            picker.FileTypeFilter.Add(".tga");
+
+            IReadOnlyList<StorageFile> files = await picker.PickMultipleFilesAsync();
+            if (files == null || files.Count == 0)
+            {
+                return;
+            }
+
+            int count = await PackCatalogService.ImportStagedMaterialsAsync(GameStyleService.Current, isAudio: false, files);
+            bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            string gameName = isChinese ? GameStyleService.ToDisplayName(GameStyleService.Current) : GameStyleService.Current.ToString();
+            string msg = isChinese
+                ? $"已成功将 {count} 个图标素材导入到【{gameName}】的临时素材池！\\n\\n在新建或编辑图标包时，插槽选择框将优先展示这些素材供您自由指定。"
+                : $"Successfully imported {count} icon materials to the staging pool for {gameName}!";
+
+            var dialog = new Windows.UI.Popups.MessageDialog(msg, isChinese ? "图标素材导入完成" : "Materials Imported");
+            await dialog.ShowAsync();
+        }
+
         private async void OnImportVoicePackClick(object sender, RoutedEventArgs e)
         {
             var picker = new FolderPicker();

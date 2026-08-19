@@ -5,17 +5,11 @@ namespace KillConfirmGameBar.Helpers
 {
     internal static class ProcessPriorityBoost
     {
-        private const uint HighPriorityClass = 0x00000080;
-
         private const int ProcessPowerThrottling = 11;
         private const uint ProcessPowerThrottlingExecutionSpeed = 0x00000001;
 
         private static readonly object Sync = new object();
         private static bool _processBoosted;
-
-        [DllImport("kernel32.dll", SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool SetPriorityClass(IntPtr process, uint priorityClass);
 
         [DllImport("kernel32.dll")]
         private static extern IntPtr GetCurrentProcess();
@@ -46,27 +40,7 @@ namespace KillConfirmGameBar.Helpers
                 }
 
                 _processBoosted = true;
-                TrySetProcessPriority(HighPriorityClass);
                 DisablePowerThrottling();
-            }
-        }
-
-        private static void TrySetProcessPriority(uint priorityClass)
-        {
-            try
-            {
-                if (SetPriorityClass(GetCurrentProcess(), priorityClass))
-                {
-                    App.Log("Widget process priority raised to High.");
-                }
-                else
-                {
-                    App.Log("SetPriorityClass failed: " + Marshal.GetLastWin32Error());
-                }
-            }
-            catch (Exception ex)
-            {
-                App.Log("SetPriorityClass unavailable: " + ex.Message);
             }
         }
 
@@ -99,6 +73,5 @@ namespace KillConfirmGameBar.Helpers
                 App.Log("SetProcessInformation unavailable: " + ex.Message);
             }
         }
-
     }
 }

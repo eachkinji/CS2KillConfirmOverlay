@@ -170,7 +170,7 @@ namespace KillConfirmGameBar.Services
 
         public static async Task CreateVoicePackAsync(string displayName, VoicePackBuildOptions options)
         {
-            StorageFolder root = await GetOrCreatePackRootAsync("GeneratedVoicePacks");
+            StorageFolder root = await GetGameVoicePacksFolderAsync("crossfire");
             StorageFolder packFolder = await root.CreateFolderAsync(
                 SanitizeName(displayName),
                 CreationCollisionOption.GenerateUniqueName);
@@ -246,7 +246,7 @@ namespace KillConfirmGameBar.Services
 
         public static async Task CreateCsolVoicePackAsync(string displayName, VoicePackBuildOptions options)
         {
-            StorageFolder root = await GetOrCreatePackRootAsync("GeneratedCsolVoicePacks");
+            StorageFolder root = await GetGameVoicePacksFolderAsync("csol");
             StorageFolder packFolder = await root.CreateFolderAsync(
                 SanitizeName(displayName),
                 CreationCollisionOption.GenerateUniqueName);
@@ -305,7 +305,7 @@ namespace KillConfirmGameBar.Services
 
         public static async Task CreateDagoujiaoVoicePackAsync(string displayName, VoicePackBuildOptions options)
         {
-            StorageFolder root = await GetOrCreatePackRootAsync("GeneratedDagoujiaoVoicePacks");
+            StorageFolder root = await GetGameVoicePacksFolderAsync("dagoujiao");
             StorageFolder packFolder = await root.CreateFolderAsync(
                 SanitizeName(displayName),
                 CreationCollisionOption.GenerateUniqueName);

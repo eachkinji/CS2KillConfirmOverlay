@@ -80,7 +80,7 @@ namespace KillConfirmGameBar.Services
                     NormalPriority),
                 KillConfirmWidgetPriority = NormalizePriority(
                     values[PrioritySettingPrefix + KillConfirmWidgetTarget] as string,
-                    HighPriority)
+                    NormalPriority)
             };
         }
 

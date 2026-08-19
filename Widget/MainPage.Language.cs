@@ -20,14 +20,17 @@ namespace KillConfirmGameBar
                 AdvancedSettingsHubControl.HubDisplayScalingPanel.ApplyLanguage();
             }
 
-            if (GameStyleService.Current == GameStyleMode.Dagoujiao)
+            GameStyleMode currentMode = GameStyleService.Current;
+            string gameName = isChinese ? GameStyleService.ToDisplayName(currentMode) : currentMode.ToString();
+
+            if (currentMode == GameStyleMode.Dagoujiao)
             {
                 VoiceCollectionsTitleText.Text = LocalizationManager.Text("DagoujiaoVoiceCollectionsTitle");
                 VoiceCollectionsHintText.Text = LocalizationManager.Text("DagoujiaoVoiceCollectionsHint");
                 IconCollectionsTitleText.Text = LocalizationManager.Text("DagoujiaoIconCollectionsTitle");
                 IconCollectionsHintText.Text = LocalizationManager.Text("DagoujiaoIconCollectionsHint");
             }
-            else if (GameStyleService.Current == GameStyleMode.Csol)
+            else if (currentMode == GameStyleMode.Csol)
             {
                 VoiceCollectionsTitleText.Text = LocalizationManager.Text("CsolVoiceCollectionsTitle");
                 VoiceCollectionsHintText.Text = LocalizationManager.Text("CsolVoiceCollectionsHint");
@@ -36,15 +39,19 @@ namespace KillConfirmGameBar
             }
             else
             {
-                VoiceCollectionsTitleText.Text = LocalizationManager.Text("VoiceCollectionsTitle");
+                VoiceCollectionsTitleText.Text = gameName + " " + LocalizationManager.Text("VoiceCollectionsTitle");
                 VoiceCollectionsHintText.Text = LocalizationManager.Text("VoiceCollectionsHint");
-                IconCollectionsTitleText.Text = LocalizationManager.Text("IconCollectionsTitle");
+                IconCollectionsTitleText.Text = gameName + " " + LocalizationManager.Text("IconCollectionsTitle");
                 IconCollectionsHintText.Text = LocalizationManager.Text("IconCollectionsHint");
             }
+            GameEffectsTitleText.Text = gameName + " " + (isChinese ? "战斗与特效设置" : "Combat & Effects Settings");
+            StructureTitleText.Text = gameName + " " + (isChinese ? "资源包标准规范与制作指南" : "Resource Pack Guide");
 
+            ImportVoiceMaterialButton.Content = isChinese ? "导入语音素材" : "Import Voice Material";
             ImportVoicePackButton.Content = LocalizationManager.Text("ImportVoicePack");
             ImportVoiceZipButton.Content = LocalizationManager.Text("ImportZip");
             CreateVoicePackButton.Content = LocalizationManager.Text("CreateVoicePack");
+            ImportIconMaterialButton.Content = isChinese ? "导入图标素材" : "Import Icon Material";
             ImportIconPackButton.Content = LocalizationManager.Text("ImportIconPack");
             ImportIconZipButton.Content = LocalizationManager.Text("ImportZip");
             CreateIconPackButton.Content = LocalizationManager.Text("CreateIconPack");
@@ -54,18 +61,10 @@ namespace KillConfirmGameBar
             if (HomeTabDisplayButton != null) HomeTabDisplayButton.Content = LocalizationManager.Text("HomeTabDisplay");
             if (HomeTabAboutButton != null) HomeTabAboutButton.Content = LocalizationManager.Text("HomeTabAbout");
 
-            if (CfTabCombatButton != null) CfTabCombatButton.Content = LocalizationManager.Text("CfTabCombat");
-            if (CfTabVoiceButton != null) CfTabVoiceButton.Content = LocalizationManager.Text("CfTabVoice");
-            if (CfTabIconButton != null) CfTabIconButton.Content = LocalizationManager.Text("CfTabIcon");
-            if (CfTabGuideButton != null) CfTabGuideButton.Content = LocalizationManager.Text("CfTabGuide");
-            if (CsolTabCombatButton != null) CsolTabCombatButton.Content = LocalizationManager.Text("CsolTabCombat");
-            if (CsolTabVoiceButton != null) CsolTabVoiceButton.Content = LocalizationManager.Text("CsolTabVoice");
-            if (CsolTabIconButton != null) CsolTabIconButton.Content = LocalizationManager.Text("CsolTabIcon");
-            if (CsolTabGuideButton != null) CsolTabGuideButton.Content = LocalizationManager.Text("CsolTabGuide");
-            if (DagoujiaoTabCombatButton != null) DagoujiaoTabCombatButton.Content = LocalizationManager.Text("DagoujiaoTabCombat");
-            if (DagoujiaoTabVoiceButton != null) DagoujiaoTabVoiceButton.Content = LocalizationManager.Text("DagoujiaoTabVoice");
-            if (DagoujiaoTabIconButton != null) DagoujiaoTabIconButton.Content = LocalizationManager.Text("DagoujiaoTabIcon");
-            if (DagoujiaoTabGuideButton != null) DagoujiaoTabGuideButton.Content = LocalizationManager.Text("DagoujiaoTabGuide");
+            if (GameTabCombatButton != null) GameTabCombatButton.Content = LocalizationManager.Text("CfTabCombat");
+            if (GameTabVoiceButton != null) GameTabVoiceButton.Content = LocalizationManager.Text("CfTabVoice");
+            if (GameTabIconButton != null) GameTabIconButton.Content = LocalizationManager.Text("CfTabIcon");
+            if (GameTabGuideButton != null) GameTabGuideButton.Content = LocalizationManager.Text("CfTabGuide");
 
             ApplyCsolGuideCardLanguage();
 

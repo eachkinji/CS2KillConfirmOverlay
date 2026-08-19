@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -391,7 +391,7 @@ namespace KillConfirmGameBar
                 case "dagoujiao":
                     return "ms-appx:///Assets/GameLogos/dagoujiao.jpg";
                 case "csol4":
-                    return "ms-appx:///Assets/GameLogos/csol.png";
+                    return "ms-appx:///Assets/KillConfirmCode/Csol4/headshot_kill.png";
                 default:
                     return "ms-appx:///Assets/KillConfirmCode/Original/badge_headshot.PNG";
             }
@@ -437,7 +437,7 @@ namespace KillConfirmGameBar
                 case "dagoujiao":
                     return "ms-appx:///Assets/GameLogos/dagoujiao.jpg";
                 case "csol4":
-                    return "ms-appx:///Assets/GameLogos/csol.png";
+                    return "ms-appx:///Assets/KillConfirmCode/Csol4/headshot_kill.png";
                 case "default":
                 default:
                     return "ms-appx:///Assets/KillConfirmCode/Original/badge_headshot.PNG";
@@ -496,9 +496,9 @@ namespace KillConfirmGameBar
                 case "dagoujiao":
                     return "大狗叫";
                 case "default":
-                    return "\u539f\u7248";
+                    return "原版";
                 case "csol4":
-                    return "CSOL 10\u6740";
+                    return "CSOL 10杀";
                 default:
                     return ValorantPackService.IsValorantPackKey(key)
                         ? ValorantPackService.GetDisplayName(key)

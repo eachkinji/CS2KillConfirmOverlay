@@ -427,8 +427,8 @@ namespace KillConfirmGameBar
 
                 var browseButton = new Button
                 {
-                    Content = LocalizationManager.Text("ChooseFile"),
-                    MinWidth = 54,
+                    Content = LocalizationManager.Current == UiLanguage.SimplifiedChinese ? "閫夋嫨鏉愭枡" : "Select Material",
+                    MinWidth = 64,
                     Padding = new Thickness(5, 4, 5, 4),
                     FontSize = 10,
                     Background = new SolidColorBrush(Color.FromArgb(255, 236, 247, 252)),
@@ -438,14 +438,25 @@ namespace KillConfirmGameBar
                 };
                 browseButton.Click += async (_, __) =>
                 {
-                    StorageFile file = await PickSingleFileAsync(new[] { ".wav", ".mp3", ".m4a" });
-                    if (file == null)
-                    {
-                        return;
-                    }
+                    StorageFile file = await ShowMaterialPickerDialogAsync(
+                        isAudio: true,
+                        currentGame: GameStyleService.Current,
+                        stagedFiles: selectedFiles,
+                        slotDisplayName: slot.Item2,
+                        currentSelectedFile: existingFile);
 
-                    selectedFiles[slot.Item1] = file;
-                    fileText.Text = file.Name;
+                    if (file != null)
+                    {
+                        selectedFiles[slot.Item1] = file;
+                        fileText.Text = file.Name;
+                        existingFile = file;
+                    }
+                    else if (file == null && selectedFiles.ContainsKey(slot.Item1))
+                    {
+                        selectedFiles.Remove(slot.Item1);
+                        fileText.Text = LocalizationManager.Text("NotSelected");
+                        existingFile = null;
+                    }
                 };
                 Grid.SetColumn(browseButton, 4);
                 row.Children.Add(browseButton);

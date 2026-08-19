@@ -121,6 +121,7 @@
     <Compile Include="MainPage.PackCreation.DagoujiaoVoice.cs" />
     <Compile Include="MainPage.PackCreation.DagoujiaoIcon.cs" />
     <Compile Include="MainPage.PackCreation.DialogUi.cs" />
+    <Compile Include="MainPage.MaterialPicker.cs" />
     <Compile Include="MainPage.PackFileNames.cs" />
     <Compile Include="MainPage.PackFiles.cs" />
     <Compile Include="MainPage.PackLists.cs" />

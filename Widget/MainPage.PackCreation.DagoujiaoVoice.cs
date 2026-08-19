@@ -207,7 +207,7 @@ namespace KillConfirmGameBar
 
                 var browseBtn = new Button
                 {
-                    Content = LocalizationManager.Text("ChooseFile"),
+                    Content = LocalizationManager.Current == UiLanguage.SimplifiedChinese ? "选择材料" : "Select Material",
                     Padding = new Thickness(8, 4, 8, 4),
                     FontSize = 11,
                     Background = new SolidColorBrush(Color.FromArgb(255, 243, 240, 233)),
@@ -240,7 +240,12 @@ namespace KillConfirmGameBar
                 string currentSlotName = slot.FileName;
                 browseBtn.Click += async (_, __) =>
                 {
-                    StorageFile picked = await PickSingleFileAsync(SupportedAudioExtensions);
+                    StorageFile picked = await ShowMaterialPickerDialogAsync(
+                        isAudio: true,
+                        currentGame: GameStyleMode.Dagoujiao,
+                        stagedFiles: selectedFiles,
+                        slotDisplayName: slot.Label,
+                        currentSelectedFile: existingFile);
                     if (picked != null)
                     {
                         selectedFiles[currentSlotName] = picked;

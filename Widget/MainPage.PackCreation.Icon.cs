@@ -192,8 +192,8 @@ namespace KillConfirmGameBar
 
                 var browseButton = new Button
                 {
-                    Content = LocalizationManager.Text("ChooseFile"),
-                    MinWidth = 54,
+                    Content = LocalizationManager.Current == UiLanguage.SimplifiedChinese ? "閫夋嫨鏉愭枡" : "Select Material",
+                    MinWidth = 64,
                     Padding = new Thickness(5, 4, 5, 4),
                     FontSize = 10,
                     Background = new SolidColorBrush(Color.FromArgb(255, 236, 247, 252)),

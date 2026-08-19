@@ -209,7 +209,7 @@ namespace KillConfirmGameBar
 
                 var browseButton = new Button
                 {
-                    Content = LocalizationManager.Text("ChooseFile"),
+                    Content = LocalizationManager.Current == UiLanguage.SimplifiedChinese ? "閫夋嫨鏉愭枡" : "Select Material",
                     MinWidth = 54,
                     Padding = new Thickness(5, 4, 5, 4),
                     FontSize = 10,
@@ -220,10 +220,25 @@ namespace KillConfirmGameBar
                 };
                 browseButton.Click += async (_, __) =>
                 {
-                    StorageFile file = await PickSingleFileAsync(new[] { ".wav", ".mp3", ".m4a" });
-                    if (file == null) return;
-                    selectedFiles[slot.Item1] = file;
-                    fileText.Text = file.Name;
+                    StorageFile file = await ShowMaterialPickerDialogAsync(
+                        isAudio: true,
+                        currentGame: GameStyleMode.Csol,
+                        stagedFiles: selectedFiles,
+                        slotDisplayName: slot.Item2,
+                        currentSelectedFile: existingFile);
+
+                    if (file != null)
+                    {
+                        selectedFiles[slot.Item1] = file;
+                        fileText.Text = file.Name;
+                        existingFile = file;
+                    }
+                    else if (file == null && selectedFiles.ContainsKey(slot.Item1))
+                    {
+                        selectedFiles.Remove(slot.Item1);
+                        fileText.Text = LocalizationManager.Text("NotSelected");
+                        existingFile = null;
+                    }
                 };
                 Grid.SetColumn(browseButton, 3);
                 row.Children.Add(browseButton);

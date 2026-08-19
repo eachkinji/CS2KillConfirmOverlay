@@ -27,32 +27,7 @@ namespace KillConfirmGameBar.Services
             get
             {
                 string value = ApplicationData.Current.LocalSettings.Values[SettingKey] as string;
-                switch ((value ?? string.Empty).Trim().ToLowerInvariant())
-                {
-                    case "valorant":
-                        return GameStyleMode.Valorant;
-                    case "battlefield1":
-                        return GameStyleMode.Battlefield1;
-                    case "battlefield5":
-                        return GameStyleMode.Battlefield5;
-                    case "battlefield4":
-                        return GameStyleMode.Battlefield4;
-                    case "battlefield2042":
-                        return GameStyleMode.Battlefield2042;
-                    case "pubg":
-                        return GameStyleMode.Pubg;
-                    case "deltaforce":
-                        return GameStyleMode.DeltaForce;
-                    case "doubao":
-                        return GameStyleMode.Doubao;
-                    case "dagoujiao":
-                        return GameStyleMode.Dagoujiao;
-                    case "csol":
-                        return GameStyleMode.Csol;
-                    case "crossfire":
-                    default:
-                        return GameStyleMode.Crossfire;
-                }
+                return FromKey(value);
             }
             set
             {
@@ -93,6 +68,36 @@ namespace KillConfirmGameBar.Services
                 case GameStyleMode.Crossfire:
                 default:
                     return "crossfire";
+            }
+        }
+
+        public static string ToDisplayName(GameStyleMode mode)
+        {
+            switch (mode)
+            {
+                case GameStyleMode.Valorant:
+                    return "无畏契约";
+                case GameStyleMode.Battlefield1:
+                    return "战地1";
+                case GameStyleMode.Battlefield5:
+                    return "战地5";
+                case GameStyleMode.Battlefield4:
+                    return "战地4";
+                case GameStyleMode.Battlefield2042:
+                    return "战地2042";
+                case GameStyleMode.Pubg:
+                    return "PUBG";
+                case GameStyleMode.DeltaForce:
+                    return "三角洲";
+                case GameStyleMode.Doubao:
+                    return "豆包";
+                case GameStyleMode.Dagoujiao:
+                    return "大狗叫";
+                case GameStyleMode.Csol:
+                    return "CSOL";
+                case GameStyleMode.Crossfire:
+                default:
+                    return "CF";
             }
         }
 

@@ -146,6 +146,8 @@ namespace KillConfirmGameBar
                     return "ms-appx:///Assets/GameLogos/doubao.png";
                 case "dagoujiao":
                     return "ms-appx:///Assets/GameLogos/dagoujiao.jpg";
+                case "csol4":
+                    return "ms-appx:///Assets/KillConfirmCode/Csol4/headshot_kill.png";
                 default:
                     return "ms-appx:///Assets/KillConfirmCode/Original/badge_headshot.PNG";
             }
@@ -185,6 +187,8 @@ namespace KillConfirmGameBar
                     return "ms-appx:///Assets/GameLogos/doubao.png";
                 case "dagoujiao":
                     return "ms-appx:///Assets/GameLogos/dagoujiao.jpg";
+                case "csol4":
+                    return "ms-appx:///Assets/KillConfirmCode/Csol4/headshot_kill.png";
                 case "default":
                 default:
                     return "ms-appx:///Assets/KillConfirmCode/Original/badge_headshot.PNG";

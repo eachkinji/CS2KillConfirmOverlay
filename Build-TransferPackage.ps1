@@ -233,8 +233,17 @@ Copy-Item -LiteralPath $ProducedPackage.FullName -Destination $TargetMsixInOverl
 $sig = Get-AuthenticodeSignature $TargetMsixInOverlay
 Write-Host "MSIX Signature Status: $($sig.Status)"
 if (-not $DisableSigning) {
-    if ($sig.Status -ne "Valid") {
+    if (-not $sig.SignerCertificate) {
+        throw "MSIX package is not digitally signed! Status: $($sig.Status), Message: $($sig.StatusMessage). File: $TargetMsixInOverlay"
+    }
+    if ($sig.Status -eq "HashMismatch") {
+        throw "MSIX package signature hash mismatch! File: $TargetMsixInOverlay"
+    }
+    if ($sig.Status -ne "Valid" -and $sig.Status -ne "UnknownError") {
         throw "MSIX package signature validation failed! Status: $($sig.Status), Message: $($sig.StatusMessage). File: $TargetMsixInOverlay"
+    }
+    if ($CertificateThumbprint -and ($sig.SignerCertificate.Thumbprint -replace '\s', '') -ne ($CertificateThumbprint -replace '\s', '')) {
+        throw "MSIX package signer certificate thumbprint mismatch! Expected: $CertificateThumbprint, Actual: $($sig.SignerCertificate.Thumbprint)"
     }
     Write-Host "MSIX digital signature verified: $($sig.SignerCertificate.Subject), Thumbprint: $($sig.SignerCertificate.Thumbprint)"
 }

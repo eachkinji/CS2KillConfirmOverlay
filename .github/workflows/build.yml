@@ -113,6 +113,7 @@ jobs:
           if ($cert.NotAfter -le (Get-Date).AddDays(30)) {
               throw "Signing certificate expires too soon: $($cert.NotAfter)"
           }
+          Import-Certificate -FilePath $cer -CertStoreLocation "Cert:\LocalMachine\Root" | Out-Null
           "CERT_PFX=$pfx" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           "CERT_CER=$cer" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           "CERT_PASSWORD=$env:SIGNING_PASSWORD" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8

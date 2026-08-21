@@ -61,7 +61,7 @@ namespace KillConfirmGameBar
                 LocalizationManager.Text("CreateIconPack"),
                 LocalizationManager.Text("IconPackCreationHint"),
                 slots,
-                new[] { ".png", ".jpg", ".jpeg", ".webp", ".tga" },
+                GameStyleMode.Crossfire,
                 PackCatalogService.CreateIconPackAsync,
                 initialDisplayName,
                 initialFiles);
@@ -71,7 +71,7 @@ namespace KillConfirmGameBar
             string title,
             string description,
             (string FileName, string Label)[] slots,
-            string[] fileFilters,
+            GameStyleMode currentGame,
             Func<string, IReadOnlyDictionary<string, StorageFile>, Task> createHandler,
             string initialDisplayName = null,
             IReadOnlyDictionary<string, StorageFile> initialFiles = null)
@@ -79,39 +79,13 @@ namespace KillConfirmGameBar
             var selectedFiles = initialFiles != null
                 ? new Dictionary<string, StorageFile>(initialFiles, StringComparer.OrdinalIgnoreCase)
                 : new Dictionary<string, StorageFile>(StringComparer.OrdinalIgnoreCase);
-            bool supportsImagePreview = Array.Exists(fileFilters, filter =>
-                string.Equals(filter, ".png", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(filter, ".jpg", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(filter, ".jpeg", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(filter, ".webp", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(filter, ".tga", StringComparison.OrdinalIgnoreCase));
 
-            var nameBox = new TextBox
-            {
-                PlaceholderText = LocalizationManager.Text("IconPackNamePlaceholder"),
-                Text = initialDisplayName ?? string.Empty,
-                Background = new SolidColorBrush(Color.FromArgb(255, 255, 255, 252)),
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 29, 34, 51)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 213, 208, 196)),
-                BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(14)
-            };
-
-            var layout = new StackPanel { Spacing = 12, Width = 420 };
-            layout.Children.Add(new TextBlock
-            {
-                Text = title,
-                FontSize = 24,
-                FontWeight = Windows.UI.Text.FontWeights.Bold,
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 29, 34, 51))
-            });
-            layout.Children.Add(new TextBlock
-            {
-                Text = description,
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 85, 89, 102)),
-                TextWrapping = TextWrapping.WrapWholeWords
-            });
-            layout.Children.Add(nameBox);
+            var layout = CreatePackDialogLayout(
+                title,
+                description,
+                LocalizationManager.Text("IconPackNamePlaceholder"),
+                initialDisplayName,
+                out var nameBox);
 
             var scroll = new ScrollViewer
             {
@@ -129,124 +103,16 @@ namespace KillConfirmGameBar
             foreach (var slot in slots)
             {
                 selectedFiles.TryGetValue(slot.FileName, out StorageFile existingFile);
-                var fileNameText = new TextBlock
-                {
-                    Text = existingFile?.Name ?? LocalizationManager.Text("NotSelected"),
-                    FontSize = 12,
-                    Foreground = new SolidColorBrush(Color.FromArgb(255, 106, 110, 122)),
-                    TextTrimming = TextTrimming.CharacterEllipsis,
-                    VerticalAlignment = VerticalAlignment.Center
-                };
-
-                Image previewImage = null;
-                if (supportsImagePreview)
-                {
-                    previewImage = new Image
-                    {
-                        Width = 30,
-                        Height = 30,
-                        Stretch = Stretch.Uniform,
-                        HorizontalAlignment = HorizontalAlignment.Center,
-                        VerticalAlignment = VerticalAlignment.Center,
-                        Visibility = existingFile != null ? Visibility.Visible : Visibility.Collapsed
-                    };
-
-                    if (existingFile != null)
-                    {
-                        await SetPreviewImageAsync(previewImage, existingFile);
-                    }
-                }
-
-                var row = new Grid
-                {
-                    ColumnSpacing = 5
-                };
-                row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(96) });
-                row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-                if (supportsImagePreview)
-                {
-                    row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(34) });
-                }
-                row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(56) });
-
-                row.Children.Add(new TextBlock
-                {
-                    Text = slot.Label,
-                    VerticalAlignment = VerticalAlignment.Center,
-                    FontWeight = Windows.UI.Text.FontWeights.SemiBold,
-                    Foreground = new SolidColorBrush(Color.FromArgb(255, 29, 34, 51)),
-                    FontSize = 12,
-                    MaxLines = 2,
-                    TextWrapping = TextWrapping.WrapWholeWords,
-                    TextTrimming = TextTrimming.CharacterEllipsis
-                });
-
-                Grid.SetColumn(fileNameText, 1);
-                row.Children.Add(fileNameText);
-
-                if (previewImage != null)
-                {
-                    Grid.SetColumn(previewImage, 2);
-                    row.Children.Add(previewImage);
-                }
-
-                var browseButton = new Button
-                {
-                    Content = LocalizationManager.Current == UiLanguage.SimplifiedChinese ? "閫夋嫨鏉愭枡" : "Select Material",
-                    MinWidth = 64,
-                    Padding = new Thickness(5, 4, 5, 4),
-                    FontSize = 10,
-                    Background = new SolidColorBrush(Color.FromArgb(255, 236, 247, 252)),
-                    Foreground = new SolidColorBrush(Color.FromArgb(255, 46, 136, 184)),
-                    BorderBrush = new SolidColorBrush(Color.FromArgb(255, 185, 220, 236)),
-                    CornerRadius = new CornerRadius(12)
-                };
-                browseButton.Click += async (_, __) =>
-                {
-                    StorageFile file = await PickSingleFileAsync(fileFilters);
-                    if (file == null)
-                    {
-                        return;
-                    }
-
-                    selectedFiles[slot.FileName] = file;
-                    fileNameText.Text = file.Name;
-                    if (previewImage != null)
-                    {
-                        await SetPreviewImageAsync(previewImage, file);
-                    }
-                };
-                Grid.SetColumn(browseButton, supportsImagePreview ? 3 : 2);
-                row.Children.Add(browseButton);
-
-                slotPanel.Children.Add(new Border
-                {
-                    Padding = new Thickness(8, 6, 8, 6),
-                    Background = new SolidColorBrush(Color.FromArgb(255, 255, 255, 252)),
-                    BorderBrush = new SolidColorBrush(Color.FromArgb(255, 226, 221, 211)),
-                    BorderThickness = new Thickness(1),
-                    CornerRadius = new CornerRadius(14),
-                    Child = row
-                });
+                var row = await CreateSlotRowAsync(
+                    slot.FileName, slot.Label, isAudio: false, currentGame,
+                    selectedFiles, existingFile);
+                slotPanel.Children.Add(row);
             }
 
             layout.Children.Add(scroll);
 
-            var shell = CreatePackDialogShell(layout);
-
-            var dialog = new ContentDialog
-            {
-                Content = shell,
-                PrimaryButtonText = LocalizationManager.Text("Create"),
-                CloseButtonText = LocalizationManager.Text("Cancel"),
-                PrimaryButtonStyle = CreateDialogPrimaryButtonStyle(),
-                CloseButtonStyle = CreateDialogCloseButtonStyle(),
-                RequestedTheme = ElementTheme.Light,
-                Background = new SolidColorBrush(Colors.Transparent),
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 29, 34, 51))
-            };
-
-            ContentDialogResult result = await dialog.ShowAsync();
+            ContentDialogResult result = await ShowPackDialogAsync(
+                layout, LocalizationManager.Text("Create"), LocalizationManager.Text("Cancel"));
             if (result != ContentDialogResult.Primary || selectedFiles.Count == 0)
             {
                 return;

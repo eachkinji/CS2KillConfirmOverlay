@@ -194,8 +194,11 @@ namespace KillConfirmGameBar.Services
 
         public static bool IsDoubaoKey(string key)
         {
-            return string.Equals((key ?? string.Empty).Trim(), "doubao", System.StringComparison.OrdinalIgnoreCase)
-                || string.Equals((key ?? string.Empty).Trim(), "豆包", System.StringComparison.OrdinalIgnoreCase);
+            string value = (key ?? string.Empty).Trim();
+            return string.Equals(value, "doubao", System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "豆包", System.StringComparison.OrdinalIgnoreCase)
+                || value.StartsWith("custom_doubao_voice_", System.StringComparison.OrdinalIgnoreCase)
+                || value.StartsWith("custom_doubao_icon_", System.StringComparison.OrdinalIgnoreCase);
         }
 
         public static bool IsDagoujiaoKey(string key)

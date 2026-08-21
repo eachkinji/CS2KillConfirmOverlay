@@ -53,6 +53,12 @@ namespace KillConfirmGameBar.Services
                     await SaveCoreAsync(_cache, notify: false);
                 }
 
+                if (!_legacyMigrationTriggered)
+                {
+                    _legacyMigrationTriggered = true;
+                    _ = Task.Run(async () => await MigrateLegacyDoubaoSettingsAsync());
+                }
+
                 return _cache;
             }
             finally
@@ -386,6 +392,143 @@ namespace KillConfirmGameBar.Services
             }
 
             return string.IsNullOrWhiteSpace(value) ? "NewPack" : value;
+        }
+
+        private const string DoubaoLegacyMigratedKey = "Doubao.LegacyMigrated";
+        private static bool _legacyMigrationTriggered;
+
+        public static async Task MigrateLegacyDoubaoSettingsAsync()
+        {
+            ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
+            if (localSettings.Values.TryGetValue(DoubaoLegacyMigratedKey, out object migrated) && migrated is bool b && b)
+            {
+                return;
+            }
+
+            localSettings.Values[DoubaoLegacyMigratedKey] = true;
+
+            try
+            {
+                DoubaoSettingsValues settings = DoubaoSettingsStore.Load();
+                bool hasCustomImage = false;
+                bool hasCustomAudio = false;
+
+                for (int i = 1; i <= 5; i++)
+                {
+                    if (settings.KillImageKeys.TryGetValue(i, out string imgKey)
+                        && !string.IsNullOrWhiteSpace(imgKey)
+                        && !imgKey.StartsWith("builtin:", StringComparison.OrdinalIgnoreCase))
+                    {
+                        hasCustomImage = true;
+                    }
+
+                    if (settings.KillAudioKeys.TryGetValue(i, out string audKey)
+                        && !string.IsNullOrWhiteSpace(audKey)
+                        && !audKey.StartsWith("builtin:", StringComparison.OrdinalIgnoreCase))
+                    {
+                        hasCustomAudio = true;
+                    }
+                }
+
+                if (hasCustomImage)
+                {
+                    var imageFiles = new Dictionary<string, StorageFile>(StringComparer.OrdinalIgnoreCase);
+                    for (int i = 1; i <= 5; i++)
+                    {
+                        string slotName = $"{i}kill.png";
+                        string imgKey = settings.KillImageKeys.TryGetValue(i, out string k) ? k : null;
+                        StorageFile file = null;
+                        if (!string.IsNullOrWhiteSpace(imgKey) && !imgKey.StartsWith("builtin:", StringComparison.OrdinalIgnoreCase))
+                        {
+                            file = await DoubaoSettingsStore.GetImportedImageFileAsync(imgKey);
+                        }
+
+                        if (file == null)
+                        {
+                            try
+                            {
+                                file = await StorageFile.GetFileFromApplicationUriAsync(
+                                    new Uri($"ms-appx:///Assets/GameStyles/doubao/killconfirm/textures/{slotName}"));
+                            }
+                            catch { }
+                        }
+
+                        if (file != null)
+                        {
+                            imageFiles[slotName] = file;
+                        }
+                    }
+
+                    if (imageFiles.Count > 0)
+                    {
+                        await CreateDoubaoIconPackAsync("豆包旧数据", imageFiles);
+                        PackCatalog cat = await LoadAsync();
+                        IconPackItem pack = cat.IconPacks.LastOrDefault(p => p.DisplayName == "豆包旧数据" && p.Key.StartsWith("custom_doubao_icon_"));
+                        if (pack != null)
+                        {
+                            localSettings.Values["KillIconPack.doubao"] = pack.Key;
+                            localSettings.Values["KillIconPack"] = pack.Key;
+                        }
+                    }
+                }
+
+                if (hasCustomAudio)
+                {
+                    var audioFiles = new Dictionary<string, StorageFile>(StringComparer.OrdinalIgnoreCase);
+                    for (int i = 1; i <= 5; i++)
+                    {
+                        string slotName = $"{i}kill.wav";
+                        string audKey = settings.KillAudioKeys.TryGetValue(i, out string k) ? k : null;
+                        StorageFile file = null;
+                        if (!string.IsNullOrWhiteSpace(audKey) && !audKey.StartsWith("builtin:", StringComparison.OrdinalIgnoreCase))
+                        {
+                            string absPath = await DoubaoSettingsStore.ResolveAudioAbsolutePathAsync(audKey);
+                            if (!string.IsNullOrWhiteSpace(absPath))
+                            {
+                                try
+                                {
+                                    file = await StorageFile.GetFileFromPathAsync(absPath);
+                                }
+                                catch { }
+                            }
+                        }
+
+                        if (file == null)
+                        {
+                            try
+                            {
+                                file = await StorageFile.GetFileFromApplicationUriAsync(
+                                    new Uri($"ms-appx:///KillConfirmService/sounds/doubao/{slotName}"));
+                            }
+                            catch { }
+                        }
+
+                        if (file != null)
+                        {
+                            audioFiles[slotName] = file;
+                        }
+                    }
+
+                    if (audioFiles.Count > 0)
+                    {
+                        await CreateDoubaoVoicePackAsync("豆包旧数据", new VoicePackBuildOptions
+                        {
+                            SelectedFiles = audioFiles
+                        });
+                        PackCatalog cat = await LoadAsync();
+                        VoicePackItem pack = cat.VoicePacks.LastOrDefault(p => p.DisplayName == "豆包旧数据" && p.Key.StartsWith("custom_doubao_voice_"));
+                        if (pack != null)
+                        {
+                            localSettings.Values["VoicePack.doubao"] = pack.Key;
+                            localSettings.Values["VoicePack"] = pack.Key;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                App.Log("MigrateLegacyDoubaoSettingsAsync failed: " + ex);
+            }
         }
     }
 }

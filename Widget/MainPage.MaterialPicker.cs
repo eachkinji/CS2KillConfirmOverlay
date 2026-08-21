@@ -567,6 +567,38 @@ namespace KillConfirmGameBar
                         }
                     }
                     catch {}
+
+                    // Assets\GameStyles\{game}\killconfirm\textures\* —— 豆包/大狗叫/战地/PUBG/三角洲/瓦 的内置图标
+                    try
+                    {
+                        StorageFolder gsRoot = await assetsFolder.GetFolderAsync(@"GameStyles");
+                        foreach (string dirName in GameStyleDirNames(norm))
+                        {
+                            try
+                            {
+                                StorageFolder texFolder = await gsRoot.GetFolderAsync($@"{dirName}\killconfirm\textures");
+                                IReadOnlyList<StorageFile> gsFiles = await texFolder.GetFilesAsync();
+                                foreach (StorageFile file in gsFiles)
+                                {
+                                    if (file.FileType.Equals(".png", StringComparison.OrdinalIgnoreCase)
+                                        || file.FileType.Equals(".tga", StringComparison.OrdinalIgnoreCase)
+                                        || file.FileType.Equals(".jpg", StringComparison.OrdinalIgnoreCase)
+                                        || file.FileType.Equals(".jpeg", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        results.Add(new MaterialItem
+                                        {
+                                            Name = file.Name,
+                                            SourceCategory = dirName,
+                                            File = file,
+                                            IsAudio = false
+                                        });
+                                    }
+                                }
+                            }
+                            catch { }
+                        }
+                    }
+                    catch { }
                 }
             }
             catch
@@ -574,6 +606,35 @@ namespace KillConfirmGameBar
             }
 
             return results;
+        }
+
+        // gameKey → Assets\GameStyles\ 下的目录名（battlefield 为合并项，枚举四个子目录）。
+        // crossfire/csol 在 GameStyles 下无目录，返回空。
+        private static IEnumerable<string> GameStyleDirNames(string gameKey)
+        {
+            string norm = (gameKey ?? string.Empty).Trim().ToLowerInvariant();
+            switch (norm)
+            {
+                case "doubao": yield return "doubao"; break;
+                case "dagoujiao": yield return "dagoujiao"; break;
+                case "valorant": yield return "valorant"; break;
+                case "pubg": yield return "pubg"; break;
+                case "deltaforce": yield return "deltaforce"; break;
+                case "battlefield1":
+                case "bf1": yield return "battlefield1"; break;
+                case "battlefield5":
+                case "bf5": yield return "battlefield5"; break;
+                case "battlefield4":
+                case "bf4": yield return "battlefield4"; break;
+                case "battlefield2042": yield return "battlefield2042"; break;
+                case "battlefield":
+                case "all":
+                    yield return "battlefield1";
+                    yield return "battlefield4";
+                    yield return "battlefield5";
+                    yield return "battlefield2042";
+                    break;
+            }
         }
     }
 }

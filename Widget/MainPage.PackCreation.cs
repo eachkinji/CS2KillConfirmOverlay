@@ -91,6 +91,12 @@ namespace KillConfirmGameBar
                     await CollectRecognizedFilesAsync(folder, DagoujiaoVoicePackImportFiles),
                     await TryGetCustomPackHeadImageAsync(folder.Path));
             }
+            else if (GameStyleService.Current == GameStyleMode.Doubao)
+            {
+                await ShowCreateDoubaoVoicePackDialogAsync(
+                    folder.DisplayName,
+                    await CollectRecognizedFilesAsync(folder, DoubaoVoicePackImportFiles));
+            }
             else if (GameStyleService.Current == GameStyleMode.Csol)
             {
                 await ShowCreateCsolVoicePackDialogAsync(
@@ -120,6 +126,15 @@ namespace KillConfirmGameBar
                             folder.DisplayName,
                             files,
                             await TryGetCustomPackHeadImageAsync(folder.Path));
+                    });
+            }
+            else if (GameStyleService.Current == GameStyleMode.Doubao)
+            {
+                await ImportPackFromZipAsync(
+                    DoubaoVoicePackImportFiles,
+                    async (folder, files) =>
+                    {
+                        await ShowCreateDoubaoVoicePackDialogAsync(folder.DisplayName, files);
                     });
             }
             else if (GameStyleService.Current == GameStyleMode.Csol)
@@ -165,6 +180,12 @@ namespace KillConfirmGameBar
                     folder.DisplayName,
                     await CollectRecognizedFilesAsync(folder, DagoujiaoIconPackImportFiles));
             }
+            else if (GameStyleService.Current == GameStyleMode.Doubao)
+            {
+                await ShowCreateDoubaoIconPackDialogAsync(
+                    folder.DisplayName,
+                    await CollectRecognizedFilesAsync(folder, DoubaoIconPackImportFiles));
+            }
             else if (GameStyleService.Current == GameStyleMode.Csol)
             {
                 await ShowCreateCsolIconPackDialogAsync(
@@ -188,6 +209,15 @@ namespace KillConfirmGameBar
                     async (folder, files) =>
                     {
                         await ShowCreateDagoujiaoIconPackDialogAsync(folder.DisplayName, files);
+                    });
+            }
+            else if (GameStyleService.Current == GameStyleMode.Doubao)
+            {
+                await ImportPackFromZipAsync(
+                    DoubaoIconPackImportFiles,
+                    async (folder, files) =>
+                    {
+                        await ShowCreateDoubaoIconPackDialogAsync(folder.DisplayName, files);
                     });
             }
             else if (GameStyleService.Current == GameStyleMode.Csol)
@@ -216,6 +246,10 @@ namespace KillConfirmGameBar
             {
                 await ShowCreateDagoujiaoVoicePackDialogAsync();
             }
+            else if (GameStyleService.Current == GameStyleMode.Doubao)
+            {
+                await ShowCreateDoubaoVoicePackDialogAsync();
+            }
             else if (GameStyleService.Current == GameStyleMode.Csol)
             {
                 await ShowCreateCsolVoicePackDialogAsync();
@@ -231,6 +265,10 @@ namespace KillConfirmGameBar
             if (GameStyleService.Current == GameStyleMode.Dagoujiao)
             {
                 await ShowCreateDagoujiaoIconPackDialogAsync();
+            }
+            else if (GameStyleService.Current == GameStyleMode.Doubao)
+            {
+                await ShowCreateDoubaoIconPackDialogAsync();
             }
             else if (GameStyleService.Current == GameStyleMode.Csol)
             {

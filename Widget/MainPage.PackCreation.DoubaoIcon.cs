@@ -12,19 +12,16 @@ namespace KillConfirmGameBar
 {
     public sealed partial class MainPage
     {
-        private static readonly (string FileName, string LabelKey, string BuiltInDefault)[] DagoujiaoIconSlots =
+        private static readonly (string FileName, string LabelKey, string BuiltInDefault)[] DoubaoIconSlots =
         {
-            ("common.png", "DagoujiaoIconCommon", "common.png"),
-            ("headshot.png", "DagoujiaoIconHeadshot", "headshot.png"),
-            ("epic.jpg", "DagoujiaoIconEpic", "epic.jpg"),
-            ("1kill.png", "DagoujiaoIconKill1", "common.png"),
-            ("2kill.png", "DagoujiaoIconKill2", "common.png"),
-            ("3kill.png", "DagoujiaoIconKill3", "common.png"),
-            ("4kill.png", "DagoujiaoIconKill4", "common.png"),
-            ("5kill.png", "DagoujiaoIconKill5", "common.png")
+            ("1kill.png", "DoubaoSlotIcon1", "1kill.png"),
+            ("2kill.png", "DoubaoSlotIcon2", "2kill.png"),
+            ("3kill.png", "DoubaoSlotIcon3", "3kill.png"),
+            ("4kill.png", "DoubaoSlotIcon4", "4kill.png"),
+            ("5kill.png", "DoubaoSlotIcon5", "5kill.png")
         };
 
-        private async Task ShowCreateDagoujiaoIconPackDialogAsync(
+        private async Task ShowCreateDoubaoIconPackDialogAsync(
             string initialDisplayName = null,
             IReadOnlyDictionary<string, StorageFile> initialFiles = null)
         {
@@ -34,20 +31,20 @@ namespace KillConfirmGameBar
 
             var layout = CreatePackDialogLayout(
                 LocalizationManager.Text("CreateIconPack"),
-                LocalizationManager.Text("DagoujiaoIconCollectionsHint"),
+                LocalizationManager.Text("DoubaoIconCollectionsHint"),
                 LocalizationManager.Text("IconPackNamePlaceholder"),
                 initialDisplayName,
                 out var nameBox);
 
             var slotContainer = new StackPanel { Spacing = 8 };
-            foreach (var slot in DagoujiaoIconSlots)
+            foreach (var slot in DoubaoIconSlots)
             {
                 selectedFiles.TryGetValue(slot.FileName, out StorageFile existingFile);
                 var row = await CreateSlotRowAsync(
                     slot.FileName, LocalizationManager.Text(slot.LabelKey),
-                    isAudio: false, GameStyleMode.Dagoujiao,
+                    isAudio: false, GameStyleMode.Doubao,
                     selectedFiles, existingFile,
-                    defaultPreviewUri: $"ms-appx:///Assets/GameStyles/dagoujiao/killconfirm/textures/{slot.BuiltInDefault}");
+                    defaultPreviewUri: $"ms-appx:///Assets/GameStyles/doubao/killconfirm/textures/{slot.BuiltInDefault}");
                 slotContainer.Children.Add(row);
             }
 
@@ -68,13 +65,13 @@ namespace KillConfirmGameBar
             }
 
             string packName = string.IsNullOrWhiteSpace(nameBox.Text)
-                ? "大狗叫图标包"
+                ? "豆包图标包"
                 : nameBox.Text.Trim();
 
             await FillBuiltInDefaultsAsync(
-                selectedFiles, DagoujiaoIconSlots, "ms-appx:///Assets/GameStyles/dagoujiao/killconfirm/textures/");
+                selectedFiles, DoubaoIconSlots, "ms-appx:///Assets/GameStyles/doubao/killconfirm/textures/");
 
-            await PackCatalogService.CreateDagoujiaoIconPackAsync(packName, selectedFiles);
+            await PackCatalogService.CreateDoubaoIconPackAsync(packName, selectedFiles);
         }
     }
 }

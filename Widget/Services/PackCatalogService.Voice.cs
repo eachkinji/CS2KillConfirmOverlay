@@ -33,7 +33,8 @@ namespace KillConfirmGameBar.Services
             if (string.IsNullOrWhiteSpace(key)) return false;
             return key.StartsWith("custom_voice_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_csol_voice_", StringComparison.OrdinalIgnoreCase)
-                || key.StartsWith("custom_dagoujiao_voice_", StringComparison.OrdinalIgnoreCase);
+                || key.StartsWith("custom_dagoujiao_voice_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("custom_doubao_voice_", StringComparison.OrdinalIgnoreCase);
         }
 
         public static bool IsCsolVoicePackKey(string key)
@@ -127,6 +128,28 @@ namespace KillConfirmGameBar.Services
             catalog.VoicePacks.Add(new VoicePackItem
             {
                 Key = "custom_dagoujiao_voice_" + Guid.NewGuid().ToString("N"),
+                DisplayName = folder.DisplayName,
+                FolderPath = folder.Path,
+                IsBuiltIn = false,
+                IsVisibleInWidget = true,
+                OwnsFolder = false
+            });
+            await SaveAsync(catalog);
+        }
+
+        public static bool IsDoubaoVoicePackKey(string key)
+        {
+            if (string.IsNullOrWhiteSpace(key)) return false;
+            return key.StartsWith("custom_doubao_voice_", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(key, "doubao", StringComparison.OrdinalIgnoreCase);
+        }
+
+        public static async Task ImportDoubaoVoicePackAsync(StorageFolder folder)
+        {
+            var catalog = await LoadAsync();
+            catalog.VoicePacks.Add(new VoicePackItem
+            {
+                Key = "custom_doubao_voice_" + Guid.NewGuid().ToString("N"),
                 DisplayName = folder.DisplayName,
                 FolderPath = folder.Path,
                 IsBuiltIn = false,
@@ -362,6 +385,65 @@ namespace KillConfirmGameBar.Services
             await SaveAsync(catalog);
         }
 
+        public static async Task CreateDoubaoVoicePackAsync(string displayName, VoicePackBuildOptions options)
+        {
+            StorageFolder root = await GetGameVoicePacksFolderAsync("doubao");
+            StorageFolder packFolder = await root.CreateFolderAsync(
+                SanitizeName(displayName),
+                CreationCollisionOption.GenerateUniqueName);
+
+            foreach (var pair in options.SelectedFiles)
+            {
+                if (pair.Value != null)
+                {
+                    await pair.Value.CopyAsync(
+                        packFolder,
+                        GetAudioTargetFileName(pair.Key, pair.Value),
+                        NameCollisionOption.ReplaceExisting);
+                }
+            }
+
+            if (options.HeadImageFile != null)
+            {
+                string extension = options.HeadImageFile.FileType;
+                if (string.IsNullOrWhiteSpace(extension))
+                {
+                    extension = ".png";
+                }
+
+                if (extension.Equals(".tga", StringComparison.OrdinalIgnoreCase))
+                {
+                    await TgaDecoder.ConvertTgaToPngAsync(options.HeadImageFile, packFolder, "pack_head.png");
+                }
+                else
+                {
+                    await options.HeadImageFile.CopyAsync(
+                        packFolder,
+                        "pack_head" + extension.ToLowerInvariant(),
+                        NameCollisionOption.ReplaceExisting);
+                }
+            }
+
+            await WriteGeneratedVoiceManifestAsync(
+                packFolder,
+                displayName,
+                "doubao",
+                DoubaoSlotMapping,
+                commonOverlayEnabled: null);
+
+            var catalog = await LoadAsync();
+            catalog.VoicePacks.Add(new VoicePackItem
+            {
+                Key = "custom_doubao_voice_" + Guid.NewGuid().ToString("N"),
+                DisplayName = displayName,
+                FolderPath = packFolder.Path,
+                IsBuiltIn = false,
+                IsVisibleInWidget = true,
+                OwnsFolder = true
+            });
+            await SaveAsync(catalog);
+        }
+
         public static readonly IReadOnlyDictionary<string, string> DagoujiaoSlotMapping =
             new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
@@ -369,6 +451,19 @@ namespace KillConfirmGameBar.Services
                 { "headshot", "headshot" },
                 { "epic", "epic" },
                 { "jiaojiaojiao", "jiaojiaojiao" }
+            };
+
+        // Dumboa packs carry 5 independent per-kill voices (1kill.wav..5kill.wav) that
+        // map straight onto the manifest's kill_<n> slots, so the standard
+        // resolve_audio streak path handles them without a service-side special case.
+        public static readonly IReadOnlyDictionary<string, string> DoubaoSlotMapping =
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "1", "kill_1" },
+                { "2", "kill_2" },
+                { "3", "kill_3" },
+                { "4", "kill_4" },
+                { "5", "kill_5" }
             };
 
         // Slot mapping used when writing manifests for CF voice packs.

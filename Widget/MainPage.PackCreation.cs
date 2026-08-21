@@ -192,6 +192,30 @@ namespace KillConfirmGameBar
                     folder.DisplayName,
                     await CollectRecognizedFilesAsync(folder, CsolIconPackImportFiles));
             }
+            else if (GameStyleService.Current == GameStyleMode.Battlefield1)
+            {
+                await ShowCreateBattlefield1IconPackDialogAsync(
+                    folder.DisplayName,
+                    await CollectRecognizedFilesAsync(folder, Battlefield1IconPackImportFiles));
+            }
+            else if (GameStyleService.Current == GameStyleMode.Battlefield5)
+            {
+                await ShowCreateBattlefield5IconPackDialogAsync(
+                    folder.DisplayName,
+                    await CollectRecognizedFilesAsync(folder, Battlefield5IconPackImportFiles));
+            }
+            else if (GameStyleService.Current == GameStyleMode.Battlefield2042)
+            {
+                await ShowCreateBattlefield2042IconPackDialogAsync(
+                    folder.DisplayName,
+                    await CollectRecognizedFilesAsync(folder, Battlefield2042IconPackImportFiles));
+            }
+            else if (GameStyleService.Current == GameStyleMode.DeltaForce)
+            {
+                await ShowCreateDeltaForceIconPackDialogAsync(
+                    folder.DisplayName,
+                    await CollectRecognizedFilesAsync(folder, DeltaForceIconPackImportFiles));
+            }
             else
             {
                 await ShowCreateIconPackDialogAsync(
@@ -227,6 +251,42 @@ namespace KillConfirmGameBar
                     async (folder, files) =>
                     {
                         await ShowCreateCsolIconPackDialogAsync(folder.DisplayName, files);
+                    });
+            }
+            else if (GameStyleService.Current == GameStyleMode.Battlefield1)
+            {
+                await ImportPackFromZipAsync(
+                    Battlefield1IconPackImportFiles,
+                    async (folder, files) =>
+                    {
+                        await ShowCreateBattlefield1IconPackDialogAsync(folder.DisplayName, files);
+                    });
+            }
+            else if (GameStyleService.Current == GameStyleMode.Battlefield5)
+            {
+                await ImportPackFromZipAsync(
+                    Battlefield5IconPackImportFiles,
+                    async (folder, files) =>
+                    {
+                        await ShowCreateBattlefield5IconPackDialogAsync(folder.DisplayName, files);
+                    });
+            }
+            else if (GameStyleService.Current == GameStyleMode.Battlefield2042)
+            {
+                await ImportPackFromZipAsync(
+                    Battlefield2042IconPackImportFiles,
+                    async (folder, files) =>
+                    {
+                        await ShowCreateBattlefield2042IconPackDialogAsync(folder.DisplayName, files);
+                    });
+            }
+            else if (GameStyleService.Current == GameStyleMode.DeltaForce)
+            {
+                await ImportPackFromZipAsync(
+                    DeltaForceIconPackImportFiles,
+                    async (folder, files) =>
+                    {
+                        await ShowCreateDeltaForceIconPackDialogAsync(folder.DisplayName, files);
                     });
             }
             else
@@ -273,6 +333,22 @@ namespace KillConfirmGameBar
             else if (GameStyleService.Current == GameStyleMode.Csol)
             {
                 await ShowCreateCsolIconPackDialogAsync();
+            }
+            else if (GameStyleService.Current == GameStyleMode.Battlefield1)
+            {
+                await ShowCreateBattlefield1IconPackDialogAsync();
+            }
+            else if (GameStyleService.Current == GameStyleMode.Battlefield5)
+            {
+                await ShowCreateBattlefield5IconPackDialogAsync();
+            }
+            else if (GameStyleService.Current == GameStyleMode.Battlefield2042)
+            {
+                await ShowCreateBattlefield2042IconPackDialogAsync();
+            }
+            else if (GameStyleService.Current == GameStyleMode.DeltaForce)
+            {
+                await ShowCreateDeltaForceIconPackDialogAsync();
             }
             else
             {

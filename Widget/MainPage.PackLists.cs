@@ -325,6 +325,39 @@ namespace KillConfirmGameBar
                         "multi7.png", "multi8.png", "multi9.png", "multi10.png");
                     await ShowCreateCsolIconPackDialogAsync(packName, existingFiles);
                 }
+                else if (packStyle == GameStyleMode.Battlefield1)
+                {
+                    var existingFiles = await CollectFilesFromPackFolderAsync(
+                        packFolder,
+                        "killicon_battlefield1_default.png",
+                        "killicon_battlefield1_headshot.png",
+                        "killicon_battlefield1_crit.png");
+                    await ShowCreateBattlefield1IconPackDialogAsync(packName, existingFiles);
+                }
+                else if (packStyle == GameStyleMode.Battlefield5)
+                {
+                    var existingFiles = await CollectFilesFromPackFolderAsync(
+                        packFolder,
+                        "killicon_battlefield5_default.png",
+                        "killicon_battlefield5_headshot.png",
+                        "killicon_battlefield5_assist.png");
+                    await ShowCreateBattlefield5IconPackDialogAsync(packName, existingFiles);
+                }
+                else if (packStyle == GameStyleMode.Battlefield2042)
+                {
+                    var existingFiles = await CollectFilesFromPackFolderAsync(
+                        packFolder,
+                        "NormalSkullSprite.png", "HeadshotSkullSprite.png", "AssistSprite.png");
+                    await ShowCreateBattlefield2042IconPackDialogAsync(packName, existingFiles);
+                }
+                else if (packStyle == GameStyleMode.DeltaForce)
+                {
+                    var existingFiles = await CollectFilesFromPackFolderAsync(
+                        packFolder,
+                        "killicon_df_default.png", "killicon_df_headshot.png",
+                        "killicon_df_capture.png", "killicon_scrolling_assist.png");
+                    await ShowCreateDeltaForceIconPackDialogAsync(packName, existingFiles);
+                }
                 else
                 {
                     var existingFiles = await CollectFilesFromPackFolderAsync(

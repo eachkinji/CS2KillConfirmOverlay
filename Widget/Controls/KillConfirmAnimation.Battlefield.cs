@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Numerics;
 using System.Threading.Tasks;
+using KillConfirmGameBar.Services;
 using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.Brushes;
 using Microsoft.Graphics.Canvas.Text;
 using Windows.Foundation;
+using Windows.Storage;
 using Windows.UI;
 using Windows.UI.Text;
 
@@ -108,7 +110,7 @@ namespace KillConfirmGameBar.Controls
         private static async Task<CanvasBitmap> LoadBattlefieldIconAsync(string styleKey, string iconFileName)
         {
             string normalizedStyle = string.Equals(styleKey, "bf5", StringComparison.OrdinalIgnoreCase) ? "bf5" : "bf1";
-            string cacheKey = normalizedStyle + "/" + iconFileName;
+            string cacheKey = normalizedStyle + "/" + iconFileName + ":" + _iconPack;
             lock (BattlefieldIconCache)
             {
                 if (BattlefieldIconCache.TryGetValue(cacheKey, out CanvasBitmap cached))
@@ -117,19 +119,56 @@ namespace KillConfirmGameBar.Controls
                 }
             }
 
-            CanvasBitmap loaded = await LoadBitmapFromApplicationUriAsync(
-                $"ms-appx:///Assets/GameStyles/{GetBattlefieldAssetFolder(normalizedStyle)}/killconfirm/textures/{iconFileName}");
+            CanvasBitmap loaded = await TryLoadIconFromPackFolderAsync(iconFileName);
+            if (loaded == null)
+            {
+                loaded = await LoadBitmapFromApplicationUriAsync(
+                    $"ms-appx:///Assets/GameStyles/{GetBattlefieldAssetFolder(normalizedStyle)}/killconfirm/textures/{iconFileName}");
+            }
 
             lock (BattlefieldIconCache)
             {
                 if (BattlefieldIconCache.TryGetValue(cacheKey, out CanvasBitmap cached))
                 {
+                    loaded?.Dispose();
                     return cached;
                 }
 
                 BattlefieldIconCache[cacheKey] = loaded;
                 return loaded;
             }
+        }
+
+        // Shared by the Battlefield / Delta Force / Battlefield 2042 icon loaders: when a
+        // custom icon pack is active, try the user's file first; return null to fall back
+        // to the built-in ms-appx texture. Built-in pack keys are not "imported", so the
+        // legacy rendering path is untouched.
+        private static async Task<CanvasBitmap> TryLoadIconFromPackFolderAsync(string iconFileName)
+        {
+            if (!PackCatalogService.IsImportedIconPackKey(_iconPack))
+            {
+                return null;
+            }
+
+            StorageFolder packFolder = await PackCatalogService.GetImportedIconFolderAsync(_iconPack);
+            if (packFolder == null)
+            {
+                return null;
+            }
+
+            try
+            {
+                StorageFile file = await packFolder.GetFileAsync(iconFileName);
+                if (file != null)
+                {
+                    return await LoadBitmapFromStorageFileAsync(file);
+                }
+            }
+            catch
+            {
+            }
+
+            return null;
         }
 
         private static void ClearBattlefieldIconCache()

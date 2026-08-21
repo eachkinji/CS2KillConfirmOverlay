@@ -392,7 +392,7 @@ namespace KillConfirmGameBar.Controls
 
         private static async Task<CanvasBitmap> LoadBattlefield2042IconAsync(string iconFileName)
         {
-            string cacheKey = "battlefield2042/" + iconFileName;
+            string cacheKey = "battlefield2042/" + iconFileName + ":" + _iconPack;
             lock (Battlefield2042IconCache)
             {
                 if (Battlefield2042IconCache.TryGetValue(cacheKey, out CanvasBitmap cached))
@@ -401,13 +401,18 @@ namespace KillConfirmGameBar.Controls
                 }
             }
 
-            CanvasBitmap loaded = await LoadBitmapFromApplicationUriAsync(
-                "ms-appx:///Assets/GameStyles/battlefield2042/killconfirm/textures/" + iconFileName);
+            CanvasBitmap loaded = await TryLoadIconFromPackFolderAsync(iconFileName);
+            if (loaded == null)
+            {
+                loaded = await LoadBitmapFromApplicationUriAsync(
+                    "ms-appx:///Assets/GameStyles/battlefield2042/killconfirm/textures/" + iconFileName);
+            }
 
             lock (Battlefield2042IconCache)
             {
                 if (Battlefield2042IconCache.TryGetValue(cacheKey, out CanvasBitmap cached))
                 {
+                    loaded?.Dispose();
                     return cached;
                 }
 

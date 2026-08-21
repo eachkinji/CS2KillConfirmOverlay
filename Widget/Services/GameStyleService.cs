@@ -229,6 +229,30 @@ namespace KillConfirmGameBar.Services
 
         public static GameStyleMode GetStyleForPackKey(string key)
         {
+            if (string.IsNullOrEmpty(key))
+            {
+                return GameStyleMode.Crossfire;
+            }
+
+            // Custom icon packs for these games use a per-game key prefix that the
+            // built-in Is*Key helpers don't recognize, so map them explicitly.
+            if (key.StartsWith("custom_battlefield1_icon_", System.StringComparison.OrdinalIgnoreCase))
+            {
+                return GameStyleMode.Battlefield1;
+            }
+            if (key.StartsWith("custom_battlefield5_icon_", System.StringComparison.OrdinalIgnoreCase))
+            {
+                return GameStyleMode.Battlefield5;
+            }
+            if (key.StartsWith("custom_battlefield2042_icon_", System.StringComparison.OrdinalIgnoreCase))
+            {
+                return GameStyleMode.Battlefield2042;
+            }
+            if (key.StartsWith("custom_deltaforce_icon_", System.StringComparison.OrdinalIgnoreCase))
+            {
+                return GameStyleMode.DeltaForce;
+            }
+
             if (IsValorantKey(key))
             {
                 return GameStyleMode.Valorant;

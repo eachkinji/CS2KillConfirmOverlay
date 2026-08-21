@@ -1211,6 +1211,15 @@
                             <PathIcon Style="{StaticResource FluentPathIconStyle}" Data="M4 5H20V7H4V5ZM4 11H20V13H4V11ZM4 17H20V19H4V17Z" />
                         </Grid>
                     </Button>
+                    <Button
+                        x:Name="MiniExitButton"
+                        Style="{StaticResource ToolbarIconButtonStyle}"
+                        Click="OnMiniExitClick"
+                        ToolTipService.ToolTip="Exit Kill Confirm Overlay">
+                        <Grid Style="{StaticResource IconHostStyle}">
+                            <PathIcon Style="{StaticResource FluentPathIconStyle}" Data="M6 4L18 4L18 6L13 6L13 18L18 18L18 20L6 20L6 18L11 18L11 6L6 6Z" />
+                        </Grid>
+                    </Button>
                 </StackPanel>
             </Grid>
         </Grid>

@@ -398,7 +398,7 @@
                             <Button
                                 x:Name="HomeTabGeneralButton"
                                 Style="{StaticResource StudioTabActiveButtonStyle}"
-                                Content="运行时与常规"
+                                Content="游戏体验增强"
                                 Click="OnHomeTabGeneralClick" />
                             <Button
                                 x:Name="HomeTabPortButton"
@@ -408,7 +408,7 @@
                             <Button
                                 x:Name="HomeTabDisplayButton"
                                 Style="{StaticResource StudioTabButtonStyle}"
-                                Content="画面与缩放"
+                                Content="进阶设置"
                                 Click="OnHomeTabDisplayClick" />
                             <Button
                                 x:Name="HomeTabAboutButton"

@@ -11,9 +11,7 @@ namespace KillConfirmGameBar.Controls.Settings
 {
     public sealed partial class GeneralSettingsOptionsPanel : UserControl
     {
-        private bool _suppressCloseBehaviorEvents;
         private bool _suppressSpectatedKillEffectsEvents;
-        private bool _suppressGsiGameVersionEvents;
         private bool _suppressBombAudioEvents = true;
         private bool _suppressAutoCloseOnGameExitEvents;
         private bool _suppressInterruptPreviousKillAudioEvents;
@@ -22,7 +20,6 @@ namespace KillConfirmGameBar.Controls.Settings
         public GeneralSettingsOptionsPanel()
         {
             InitializeComponent();
-            InitializeProcessPrioritySettings();
             _bombAudioSyncTimer.Interval = TimeSpan.FromMilliseconds(250);
             _bombAudioSyncTimer.Tick += OnBombAudioSyncTimerTick;
             ApplyLanguage();
@@ -30,24 +27,14 @@ namespace KillConfirmGameBar.Controls.Settings
             Loaded += OnLoaded;
         }
 
-        private async void OnLoaded(object sender, RoutedEventArgs e)
+        private void OnLoaded(object sender, RoutedEventArgs e)
         {
             RefreshSettings();
             ApplyTheme(GameThemePalette.Current);
-            await RefreshProcessPriorityStateAsync();
         }
 
         internal void ApplyLanguage()
         {
-            RuntimePanel.ApplyLanguage();
-            CloseBehaviorLabelText.Text = LocalizationManager.Text("CloseBehaviorLabel");
-            CloseWindowTrayItem.Content = LocalizationManager.Text("CloseWindowTray");
-            CloseWindowExitItem.Content = LocalizationManager.Text("CloseWindowExit");
-            GsiGameVersionLabelText.Text = LocalizationManager.Text("GsiGameVersionLabel");
-            GsiGameVersionHintText.Text = LocalizationManager.Text("GsiGameVersionHint");
-            GsiGameVersionCs2Item.Content = LocalizationManager.Text("GsiGameVersionCs2");
-            GsiGameVersionCsgoLegacyItem.Content =
-                LocalizationManager.Text("GsiGameVersionCsgoLegacy");
             SpectatedKillEffectsLabelText.Text =
                 LocalizationManager.Text("SpectatedKillEffectsLabel");
             SpectatedKillEffectsHintText.Text =
@@ -84,7 +71,6 @@ namespace KillConfirmGameBar.Controls.Settings
             InterruptPreviousKillAudioToggle.OffContent = LocalizationManager.Text("Off");
             InterruptPreviousKillAudioToggle.OnContent = LocalizationManager.Text("On");
             UpdateBombAudioStatusTexts();
-            ApplyProcessPriorityLanguage();
         }
 
         internal void ApplyTheme(GameThemePalette theme)
@@ -94,92 +80,20 @@ namespace KillConfirmGameBar.Controls.Settings
                 return;
             }
 
-            RuntimePanel.ApplyTheme(theme);
-            GsiGameVersionHintText.Foreground = new SolidColorBrush(theme.MutedText);
             SpectatedKillEffectsHintText.Foreground = new SolidColorBrush(theme.MutedText);
             BombAudioHintText.Foreground = new SolidColorBrush(theme.MutedText);
             AutoCloseOnGameExitHintText.Foreground = new SolidColorBrush(theme.MutedText);
             InterruptPreviousKillAudioHintText.Foreground = new SolidColorBrush(theme.MutedText);
-            ProcessPriorityHintText.Foreground = new SolidColorBrush(theme.MutedText);
-            ProcessPriorityPersistenceHintText.Foreground = new SolidColorBrush(theme.MutedText);
-            GameBarPriorityStatusText.Foreground = new SolidColorBrush(theme.MutedText);
-            GameBarFtServerPriorityStatusText.Foreground = new SolidColorBrush(theme.MutedText);
-            KillConfirmWidgetPriorityStatusText.Foreground = new SolidColorBrush(theme.MutedText);
             AdvancedEffectsPanelSupport.ApplySoftenedTree(this, theme);
         }
 
         internal void RefreshSettings()
         {
-            SelectCloseBehavior();
-            SelectGsiGameVersion();
             SelectSpectatedKillEffects();
             SelectBombAudioSettings();
-            SelectProcessPrioritySettings();
             SelectAutoCloseOnGameExit();
             SelectInterruptPreviousKillAudio();
             UpdateBombAudioStatusTexts();
-        }
-
-        private void SelectGsiGameVersion()
-        {
-            _suppressGsiGameVersionEvents = true;
-            try
-            {
-                SelectTaggedItem(GsiGameVersionSelector, GsiGameVersionSettingsStore.Load());
-            }
-            finally
-            {
-                _suppressGsiGameVersionEvents = false;
-            }
-        }
-
-        private async void OnGsiGameVersionSelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (_suppressGsiGameVersionEvents)
-            {
-                return;
-            }
-
-            if (GsiGameVersionSelector.SelectedItem is ComboBoxItem selected
-                && selected.Tag is string version)
-            {
-                GsiGameVersionSettingsStore.Save(version);
-                try
-                {
-                    await GsiGameVersionSettingsStore.SyncAsync();
-                }
-                catch (Exception ex)
-                {
-                    App.Log("Set GSI game version failed: " + ex);
-                }
-            }
-        }
-
-        private void SelectCloseBehavior()
-        {
-            _suppressCloseBehaviorEvents = true;
-            try
-            {
-                SelectTaggedItem(CloseBehaviorSelector, CloseBehaviorSettingsStore.Load());
-            }
-            finally
-            {
-                _suppressCloseBehaviorEvents = false;
-            }
-        }
-
-        private void OnCloseBehaviorSelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (_suppressCloseBehaviorEvents)
-            {
-                return;
-            }
-
-            if (CloseBehaviorSelector.SelectedItem is ComboBoxItem selected
-                && selected.Tag is string mode)
-            {
-                CloseBehaviorSettingsStore.Save(mode);
-            }
         }
 
         private void SelectSpectatedKillEffects()
@@ -446,21 +360,6 @@ namespace KillConfirmGameBar.Controls.Settings
             {
                 App.Log("Set bomb audio settings failed: " + ex);
             }
-        }
-
-        private static void SelectTaggedItem(ComboBox selector, string target)
-        {
-            foreach (object entry in selector.Items)
-            {
-                if (entry is ComboBoxItem item
-                    && string.Equals(item.Tag as string, target, StringComparison.OrdinalIgnoreCase))
-                {
-                    selector.SelectedItem = item;
-                    return;
-                }
-            }
-
-            selector.SelectedIndex = 0;
         }
     }
 }

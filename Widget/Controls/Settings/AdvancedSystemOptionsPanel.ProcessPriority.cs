@@ -7,7 +7,7 @@ using Windows.UI.Xaml.Controls;
 
 namespace KillConfirmGameBar.Controls.Settings
 {
-    public sealed partial class GeneralSettingsOptionsPanel
+    public sealed partial class AdvancedSystemOptionsPanel
     {
         private bool _suppressProcessPriorityEvents = true;
         private bool _processPriorityRequestPending;

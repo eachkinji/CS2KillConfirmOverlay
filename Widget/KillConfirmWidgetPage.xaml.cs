@@ -928,7 +928,20 @@ namespace KillConfirmGameBar
 
         private void OnCollapsePanelToggle(object sender, RoutedEventArgs e)
         {
+            // "关闭主窗口时的行为 = 退出程序" 时直接关进程；
+            // "保持运行 / 最小化" 走原来的折叠成 mini。
+            if (!Services.CloseBehaviorSettingsStore.KeepRunningAfterSettingsClose)
+            {
+                Application.Current.Exit();
+                return;
+            }
             SetPanelCollapsed(!_panelCollapsed);
+        }
+
+        private void OnMiniExitClick(object sender, RoutedEventArgs e)
+        {
+            // mini 面板的彻底退出入口,无视 CloseBehaviorSettingsStore。
+            Application.Current.Exit();
         }
 
         private void SetPanelCollapsed(bool collapsed)
@@ -1121,13 +1134,29 @@ namespace KillConfirmGameBar
 
             double translateX = _panelDragTransform?.TranslateX ?? 0;
             double translateY = _panelDragTransform?.TranslateY ?? 0;
-            double pivotRootX =
-                (ControlPanel.ActualWidth * ControlPanel.RenderTransformOrigin.X) + translateX;
-            double pivotRootY =
-                (ControlPanel.ActualHeight * ControlPanel.RenderTransformOrigin.Y) + translateY;
 
             popupChild.UpdateLayout();
             Point layoutPos = popupChild.TransformToVisual(root).TransformPoint(new Point(0, 0));
+
+            // The pivot must be expressed in window-root coordinates, same as
+            // layoutPos. The panel's own origin (ActualWidth * RenderTransformOrigin)
+            // is panel-local, so it must be offset by the panel's untransformed
+            // position within the window. The rendered origin TransformToVisual
+            // gives already contains the panel's scale/drag transform:
+            // renderedOrigin = panelPos + (1-s)*Origin + translate, from which
+            // panelPos + Origin = renderedOrigin + s*Origin - translate.
+            // The scale pivot must be the transform's fixed point
+            // panelPos + Origin + translate/(1-s), otherwise the dropdown drifts
+            // by (s-1)*panelPos whenever the scaled window is wider than the
+            // unscaled panel (always true above 100%).
+            Point renderedOrigin = ControlPanel.TransformToVisual(root).TransformPoint(new Point(0, 0));
+            double inverseScale = 1.0 - _controlPanelScale;
+            double pivotRootX = renderedOrigin.X
+                + (_controlPanelScale * ControlPanel.ActualWidth * ControlPanel.RenderTransformOrigin.X)
+                + (translateX * _controlPanelScale / inverseScale);
+            double pivotRootY = renderedOrigin.Y
+                + (_controlPanelScale * ControlPanel.ActualHeight * ControlPanel.RenderTransformOrigin.Y)
+                + (translateY * _controlPanelScale / inverseScale);
 
             var popupTransform = new CompositeTransform
             {

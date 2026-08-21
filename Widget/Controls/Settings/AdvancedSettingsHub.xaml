@@ -179,36 +179,23 @@
                 <TextBlock x:Name="HubStatusBadgeText" />
             </StackPanel>
 
-            <!-- Tab 1: General Settings View (Fluent 2) -->
+            <!-- Tab 1: Game Experience View (Fluent 2) -->
             <ScrollViewer
                 x:Name="HubGeneralView"
                 VerticalScrollBarVisibility="Auto"
                 HorizontalScrollBarVisibility="Disabled">
                 <StackPanel Spacing="16" MaxWidth="1480" HorizontalAlignment="Stretch">
-                    <!-- GSI & General Options -->
+                    <!-- Game Experience Options -->
                     <StackPanel Spacing="6">
                         <TextBlock
-                            x:Name="HubGeneralCardSecondaryTitle"
+                            x:Name="HubExperienceCardTitle"
                             Style="{StaticResource FluentSectionHeaderStyle}"
-                            Text="游戏状态集成 (GAME-STATE INTEGRATION)" />
+                            Text="游戏体验增强 (GAME EXPERIENCE)" />
                         <TextBlock
-                            x:Name="HubGeneralCardSecondaryDescription"
+                            x:Name="HubExperienceCardDescription"
                             Style="{StaticResource FluentCardDescriptionStyle}"
                             Margin="2,0,2,6" />
                         <settings:GeneralSettingsOptionsPanel x:Name="HubGeneralOptionsPanel" />
-                    </StackPanel>
-
-                    <!-- Runtime & Maintenance Options -->
-                    <StackPanel Spacing="6">
-                        <TextBlock
-                            x:Name="HubGeneralCardTitle"
-                            Style="{StaticResource FluentSectionHeaderStyle}"
-                            Text="运行时与维护 (RUNTIME &amp; MAINTENANCE)" />
-                        <TextBlock
-                            x:Name="HubGeneralCardDescription"
-                            Style="{StaticResource FluentCardDescriptionStyle}"
-                            Margin="2,0,2,6" />
-                        <settings:RuntimeMaintenancePanel x:Name="HubRuntimePanel" />
                     </StackPanel>
                 </StackPanel>
             </ScrollViewer>
@@ -497,25 +484,51 @@
                 </StackPanel>
             </ScrollViewer>
 
-            <!-- Tab 3: Display & Scaling View (Fluent 2) -->
+            <!-- Tab 3: Advanced Settings View (Fluent 2) -->
             <ScrollViewer
                 x:Name="HubDisplayView"
                 VerticalScrollBarVisibility="Auto"
                 HorizontalScrollBarVisibility="Disabled"
                 Visibility="Collapsed">
-                <StackPanel Spacing="12" MaxWidth="1480" HorizontalAlignment="Stretch">
+                <StackPanel Spacing="16" MaxWidth="1480" HorizontalAlignment="Stretch">
                     <StackPanel Spacing="2" Margin="2,4,2,4">
                         <TextBlock
                             x:Name="HubDisplayCardTitle"
                             Style="{StaticResource FluentSectionHeaderStyle}"
                             FontSize="15"
-                            Text="DISPLAY &amp; SCALING" />
+                            Text="ADVANCED SETTINGS" />
                         <TextBlock
                             x:Name="HubDisplayCardDescription"
                             Style="{StaticResource FluentCardDescriptionStyle}" />
                     </StackPanel>
 
                     <settings:DisplayScalingSettingsPanel x:Name="HubDisplayScalingPanel" x:FieldModifier="public" />
+
+                    <!-- GSI & System Options -->
+                    <StackPanel Spacing="6">
+                        <TextBlock
+                            x:Name="HubGeneralCardSecondaryTitle"
+                            Style="{StaticResource FluentSectionHeaderStyle}"
+                            Text="游戏状态集成与系统选项 (GAME-STATE &amp; SYSTEM)" />
+                        <TextBlock
+                            x:Name="HubGeneralCardSecondaryDescription"
+                            Style="{StaticResource FluentCardDescriptionStyle}"
+                            Margin="2,0,2,6" />
+                        <settings:AdvancedSystemOptionsPanel x:Name="HubAdvancedSystemOptionsPanel" />
+                    </StackPanel>
+
+                    <!-- Runtime & Maintenance Options -->
+                    <StackPanel Spacing="6">
+                        <TextBlock
+                            x:Name="HubGeneralCardTitle"
+                            Style="{StaticResource FluentSectionHeaderStyle}"
+                            Text="运行时与维护 (RUNTIME &amp; MAINTENANCE)" />
+                        <TextBlock
+                            x:Name="HubGeneralCardDescription"
+                            Style="{StaticResource FluentCardDescriptionStyle}"
+                            Margin="2,0,2,6" />
+                        <settings:RuntimeMaintenancePanel x:Name="HubRuntimePanel" />
+                    </StackPanel>
                 </StackPanel>
             </ScrollViewer>
 
@@ -558,6 +571,58 @@
                                     Foreground="{StaticResource FluentSubtleText}" />
                             </StackPanel>
                         </Grid>
+                    </Border>
+
+                    <!-- What's New Card -->
+                    <Border Style="{StaticResource FluentSettingsCardStyle}">
+                        <StackPanel Spacing="8">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <Border Style="{StaticResource FluentIconContainerStyle}" Background="{StaticResource FluentAccentLight}">
+                                    <FontIcon
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        FontFamily="Segoe MDL2 Assets"
+                                        FontSize="14"
+                                        Foreground="{StaticResource FluentAccent}"
+                                        Glyph="&#xE777;" />
+                                </Border>
+                                <TextBlock
+                                    x:Name="HubAboutUpdateTitle"
+                                    Style="{StaticResource FluentCardTitleStyle}"
+                                    VerticalAlignment="Center"
+                                    Text="更新信息" />
+                            </StackPanel>
+                            <TextBlock
+                                x:Name="HubAboutUpdateBody"
+                                Style="{StaticResource FluentCardDescriptionStyle}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Author & Credits Card -->
+                    <Border Style="{StaticResource FluentSettingsCardStyle}">
+                        <StackPanel Spacing="8">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <Border Style="{StaticResource FluentIconContainerStyle}" Background="{StaticResource FluentAccentLight}">
+                                    <FontIcon
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        FontFamily="Segoe MDL2 Assets"
+                                        FontSize="14"
+                                        Foreground="{StaticResource FluentAccent}"
+                                        Glyph="&#xE77B;" />
+                                </Border>
+                                <TextBlock
+                                    x:Name="HubAboutCreditsTitle"
+                                    Style="{StaticResource FluentCardTitleStyle}"
+                                    VerticalAlignment="Center"
+                                    Text="作者与致谢" />
+                            </StackPanel>
+                            <TextBlock
+                                x:Name="HubAboutCreditsBody"
+                                Style="{StaticResource FluentCardDescriptionStyle}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
                     </Border>
                 </StackPanel>
             </ScrollViewer>

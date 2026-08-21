@@ -56,18 +56,16 @@ namespace KillConfirmGameBar
                 Background = new SolidColorBrush(Color.FromArgb(180, 10, 15, 25))
             };
 
-            void OnWindowSizeChanged(object sender, Windows.UI.Core.WindowSizeChangedEventArgs e)
-            {
-                rootOverlay.Width = e.Size.Width;
-                rootOverlay.Height = e.Size.Height;
-            }
-            Window.Current.SizeChanged += OnWindowSizeChanged;
+            // Keep the dialog inside the window: a fixed 490 DIP card overflows
+            // narrow windows (common with display scaling above 100%), pushing
+            // the per-row select buttons past the right screen edge.
+            double CardWidthFor(double windowWidth) => Math.Min(490, Math.Max(300, windowWidth - 24));
 
             var dialogCard = new Border
             {
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center,
-                Width = 490,
+                Width = CardWidthFor(Window.Current.Bounds.Width),
                 MaxHeight = 620,
                 Padding = new Thickness(18),
                 Background = new SolidColorBrush(Color.FromArgb(255, 250, 250, 247)),
@@ -75,6 +73,14 @@ namespace KillConfirmGameBar
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(18)
             };
+
+            void OnWindowSizeChanged(object sender, Windows.UI.Core.WindowSizeChangedEventArgs e)
+            {
+                rootOverlay.Width = e.Size.Width;
+                rootOverlay.Height = e.Size.Height;
+                dialogCard.Width = CardWidthFor(e.Size.Width);
+            }
+            Window.Current.SizeChanged += OnWindowSizeChanged;
 
             var rootLayout = new StackPanel { Spacing = 10 };
 
@@ -105,8 +111,9 @@ namespace KillConfirmGameBar
 
             var closeIconBtn = new Button
             {
-                Content = "✕",
-                FontSize = 12,
+                Content = "",
+                FontFamily = new FontFamily("Segoe MDL2 Assets"),
+                FontSize = 10,
                 Width = 28,
                 Height = 28,
                 Padding = new Thickness(0),
@@ -132,16 +139,16 @@ namespace KillConfirmGameBar
                 CornerRadius = new CornerRadius(8)
             };
 
-            categorySelector.Items.Add(new ComboBoxItem { Content = isChinese ? "⭐ 本次已导入素材池" : "⭐ Staged Material Pool", Tag = "staged" });
-            categorySelector.Items.Add(new ComboBoxItem { Content = isChinese ? "🎯 当前游戏素材" : "🎯 Current Game", Tag = "current" });
-            categorySelector.Items.Add(new ComboBoxItem { Content = isChinese ? "🔥 穿越火线 (CF)" : "🔥 CrossFire", Tag = "crossfire" });
-            categorySelector.Items.Add(new ComboBoxItem { Content = isChinese ? "💥 CSOL (反恐精英Online)" : "💥 CSOL", Tag = "csol" });
-            categorySelector.Items.Add(new ComboBoxItem { Content = isChinese ? "✨ 无畏契约 (Valorant)" : "✨ Valorant", Tag = "valorant" });
-            categorySelector.Items.Add(new ComboBoxItem { Content = isChinese ? "🎖️ 战地系列 (BF)" : "🎖️ Battlefield", Tag = "battlefield" });
-            categorySelector.Items.Add(new ComboBoxItem { Content = isChinese ? "🍗 绝地求生 (PUBG)" : "🍗 PUBG", Tag = "pubg" });
-            categorySelector.Items.Add(new ComboBoxItem { Content = isChinese ? "🛡️ 三角洲行动 (Delta Force)" : "🛡️ Delta Force", Tag = "deltaforce" });
-            categorySelector.Items.Add(new ComboBoxItem { Content = isChinese ? "🤖 豆包 (Doubao)" : "🤖 Doubao", Tag = "doubao" });
-            categorySelector.Items.Add(new ComboBoxItem { Content = isChinese ? "🐶 大狗叫 (Dagoujiao)" : "🐶 Dagoujiao", Tag = "dagoujiao" });
+            categorySelector.Items.Add(new ComboBoxItem { Content = isChinese ? "本次已导入素材池" : "Staged Material Pool", Tag = "staged" });
+            categorySelector.Items.Add(new ComboBoxItem { Content = isChinese ? "当前游戏素材" : "Current Game", Tag = "current" });
+            categorySelector.Items.Add(new ComboBoxItem { Content = isChinese ? "穿越火线 (CF)" : "CrossFire", Tag = "crossfire" });
+            categorySelector.Items.Add(new ComboBoxItem { Content = isChinese ? "CSOL (反恐精英Online)" : "CSOL", Tag = "csol" });
+            categorySelector.Items.Add(new ComboBoxItem { Content = isChinese ? "无畏契约 (Valorant)" : "Valorant", Tag = "valorant" });
+            categorySelector.Items.Add(new ComboBoxItem { Content = isChinese ? "战地系列 (BF)" : "Battlefield", Tag = "battlefield" });
+            categorySelector.Items.Add(new ComboBoxItem { Content = isChinese ? "绝地求生 (PUBG)" : "PUBG", Tag = "pubg" });
+            categorySelector.Items.Add(new ComboBoxItem { Content = isChinese ? "三角洲行动 (Delta Force)" : "Delta Force", Tag = "deltaforce" });
+            categorySelector.Items.Add(new ComboBoxItem { Content = isChinese ? "豆包 (Doubao)" : "Doubao", Tag = "doubao" });
+            categorySelector.Items.Add(new ComboBoxItem { Content = isChinese ? "大狗叫 (Dagoujiao)" : "Dagoujiao", Tag = "dagoujiao" });
 
             categorySelector.SelectedIndex = (stagedFiles != null && stagedFiles.Count > 0) ? 0 : 1;
 
@@ -150,7 +157,7 @@ namespace KillConfirmGameBar
 
             var searchBox = new TextBox
             {
-                PlaceholderText = isChinese ? "🔍 搜索素材名称..." : "🔍 Search materials...",
+                PlaceholderText = isChinese ? "搜索素材名称..." : "Search materials...",
                 Background = new SolidColorBrush(Color.FromArgb(255, 255, 255, 252)),
                 BorderBrush = new SolidColorBrush(Color.FromArgb(255, 213, 208, 196)),
                 CornerRadius = new CornerRadius(8)
@@ -162,7 +169,7 @@ namespace KillConfirmGameBar
             // Material List Container
             var listScroll = new ScrollViewer
             {
-                Height = 260,
+                Height = Math.Min(260, Math.Max(120, Window.Current.Bounds.Height - 340)),
                 VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
                 HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
                 Background = new SolidColorBrush(Color.FromArgb(255, 248, 249, 251)),
@@ -183,7 +190,7 @@ namespace KillConfirmGameBar
 
             var browseLocalButton = new Button
             {
-                Content = isChinese ? "📁 从本地电脑浏览新文件..." : "📁 Browse Local File...",
+                Content = isChinese ? "从本地电脑浏览新文件..." : "Browse Local File...",
                 FontSize = 11,
                 Padding = new Thickness(10, 5, 10, 5),
                 Background = new SolidColorBrush(Color.FromArgb(255, 236, 247, 252)),
@@ -196,7 +203,7 @@ namespace KillConfirmGameBar
 
             var clearSlotButton = new Button
             {
-                Content = isChinese ? "🗑️ 清空此插槽" : "🗑️ Clear Slot",
+                Content = isChinese ? "清空此插槽" : "Clear Slot",
                 FontSize = 11,
                 Padding = new Thickness(10, 5, 10, 5),
                 Background = new SolidColorBrush(Color.FromArgb(255, 254, 242, 242)),
@@ -350,7 +357,8 @@ namespace KillConfirmGameBar
                     {
                         var playBtn = new Button
                         {
-                            Content = "▶",
+                            Content = "",
+                            FontFamily = new FontFamily("Segoe MDL2 Assets"),
                             FontSize = 10,
                             MinWidth = 28,
                             Height = 28,

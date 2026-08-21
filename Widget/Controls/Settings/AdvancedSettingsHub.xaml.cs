@@ -47,23 +47,30 @@ namespace KillConfirmGameBar.Controls.Settings
             if (HubHeaderBadgeText != null) HubHeaderBadgeText.Text = isChinese ? "高级设置中心" : "ADVANCED CONTROL HUB";
             if (HubHeaderTitleText != null) HubHeaderTitleText.Text = isChinese ? "高级设置" : "Advanced Settings";
             if (HubHeaderSubtitleText != null) HubHeaderSubtitleText.Text = isChinese
-                ? "在一个页面集中调整运行时、网络端口与显示偏好。"
-                : "Tune runtime behaviour, network endpoints, and presentation in one place.";
+                ? "在一个页面集中调整游戏体验、网络端口与进阶系统设置。"
+                : "Tune game experience, network endpoints, and advanced system options in one place.";
             if (HubStatusBadgeText != null) HubStatusBadgeText.Text = isChinese ? "服务就绪" : "SERVICE READY";
 
-            if (HubTabGeneralButton != null) HubTabGeneralButton.Content = isChinese ? "通用" : "General";
+            if (HubTabGeneralButton != null) HubTabGeneralButton.Content = isChinese ? "体验" : "Experience";
             if (HubTabPortButton != null) HubTabPortButton.Content = isChinese ? "端口" : "Port";
-            if (HubTabDisplayButton != null) HubTabDisplayButton.Content = isChinese ? "显示" : "Display";
+            if (HubTabDisplayButton != null) HubTabDisplayButton.Content = isChinese ? "进阶" : "Advanced";
             if (HubTabAboutButton != null) HubTabAboutButton.Content = isChinese ? "关于" : "About";
+
+            HubExperienceCardTitle.Text = isChinese ? "游戏体验增强" : "GAME EXPERIENCE";
+            HubExperienceCardDescription.Text = isChinese
+                ? "观战击杀特效、游戏退出自动关闭、击杀语音打断与 C4 炸弹音效等对局体验选项。"
+                : "In-match experience options: spectated kill effects, auto-close on game exit, kill-voice interrupt, and C4 bomb audio.";
 
             HubGeneralCardTitle.Text = isChinese ? "运行时与维护" : "RUNTIME & MAINTENANCE";
             HubGeneralCardDescription.Text = isChinese
-                ? "更新 GSI 配置文件、重启服务、关闭窗口行为等。"
-                : "Update the GSI config, restart the service, and configure window-close behaviour.";
-            HubGeneralCardSecondaryTitle.Text = isChinese ? "游戏状态集成" : "GAME-STATE INTEGRATION";
+                ? "更新 GSI 配置文件、重启服务等运行时维护操作。"
+                : "Runtime maintenance: refresh the GSI config, restart the service, and more.";
+            HubGeneralCardSecondaryTitle.Text = isChinese
+                ? "游戏状态集成与系统选项"
+                : "GAME-STATE & SYSTEM";
             HubGeneralCardSecondaryDescription.Text = isChinese
-                ? "选择 CF2 或 CS:GO legacy 模式，调整广播、轰炸音效等选项。"
-                : "Switch between CS2 and CS:GO legacy mode, plus broadcast and bomb-audio options.";
+                ? "GSI 游戏版本、关闭主窗口行为与 Game Bar 进程优先级等系统级设置。"
+                : "System-level options: GSI game version, main-window close behaviour, and Game Bar process priorities.";
 
             HubPortTitleText.Text = isChinese ? "本地服务端口" : "LOCAL SERVICE PORT";
             HubPortDescriptionText.Text = isChinese
@@ -91,18 +98,46 @@ namespace KillConfirmGameBar.Controls.Settings
                 ? "下面是最近一次端口探测结果。"
                 : "Latest port probe result.";
 
-            HubDisplayCardTitle.Text = isChinese ? "显示与缩放" : "DISPLAY & SCALING";
+            HubDisplayCardTitle.Text = isChinese ? "进阶设置" : "ADVANCED SETTINGS";
             HubDisplayCardDescription.Text = isChinese
-                ? "高分辨率显示器下放大控制面板，方便点击。"
-                : "Scale up the control panel on high-resolution displays for easier clicking.";
+                ? "控制面板缩放、GSI 与系统选项、运行时维护等进阶配置集中在这里。"
+                : "Control-panel scaling, GSI/system options, and runtime maintenance live here.";
 
             HubAboutTitle.Text = isChinese ? "关于本版本" : "ABOUT THIS BUILD";
             HubAboutBody.Text = isChinese
-                ? "KillConfirm FIX 高级设置中心 — 集中管理端口、显示与维护选项。"
-                : "KillConfirm FIX Advanced Hub — centralised port, display, and maintenance controls.";
+                ? "Kill Confirm Overlay 是为 Xbox Game Bar 打造的可自定义 CS2 击杀确认覆盖层，通过 Game State Integration 接收对局事件，播放击杀语音与动画，不读取或注入游戏进程。"
+                : "Kill Confirm Overlay is a customizable CS2 kill-confirm overlay for Xbox Game Bar. It receives match events via Game State Integration and plays kill voices and animations without reading or injecting the game process.";
+            var packageVersion = Windows.ApplicationModel.Package.Current.Id.Version;
+            string versionText = $"{packageVersion.Major}.{packageVersion.Minor}.{packageVersion.Build}.{packageVersion.Revision}";
             HubAboutVersion.Text = isChinese
-                ? "Widget 通过 LocalService 端点与后台服务通信，所有端口变更都会同步到 gamestate_integration 配置。"
-                : "The widget talks to the companion service through LocalService endpoints. Every port change syncs into the gamestate_integration config.";
+                ? $"当前版本 {versionText}"
+                : $"Current version {versionText}";
+
+            HubAboutUpdateTitle.Text = isChinese ? "更新信息" : "WHAT'S NEW";
+            HubAboutUpdateBody.Text = isChinese
+                ? "· 新增：进阶设置中心（Fluent 2 全新界面）与端口快速切换\n"
+                    + "· 新增：C4 炸弹倒计时与音效自定义、面板配色自定义、CSOL 资源包导入\n"
+                    + "· 优化：设置页签重组为「游戏体验增强」与「进阶设置」，常用体验选项一键直达\n"
+                    + "· 修复：控制面板缩放超过 100% 时下拉菜单偏移的问题"
+                : "• New: Advanced settings hub (Fluent 2 redesign) with quick port switching\n"
+                    + "• New: C4 bomb timer audio customization, panel color customizer, CSOL pack import\n"
+                    + "• Improved: settings tabs reorganized into Game Experience and Advanced\n"
+                    + "• Fixed: dropdown offset when control-panel scale exceeds 100%";
+
+            HubAboutCreditsTitle.Text = isChinese ? "作者与致谢" : "AUTHOR & CREDITS";
+            HubAboutCreditsBody.Text = isChinese
+                ? "作者：eachkinji（github.com/eachkinji）\n"
+                    + "本项目基于 st0nie 的 cskillconfirm 开源项目思路与 gsi-cs2-rs 集成成果开发。\n"
+                    + "联动推荐：CS2 Customizer（gufan0000）。\n"
+                    + "本工具为非官方社区项目，仅供学习交流；游戏资源归各自版权方所有。"
+                : "Author: eachkinji (github.com/eachkinji)\n"
+                    + "Built on ideas from st0nie's open-source cskillconfirm project and its gsi-cs2-rs integration.\n"
+                    + "Recommended companion: CS2 Customizer by gufan0000.\n"
+                    + "Unofficial community tool for learning and personal use; all game assets belong to their respective owners.";
+
+            HubGeneralOptionsPanel?.ApplyLanguage();
+            HubAdvancedSystemOptionsPanel?.ApplyLanguage();
+            HubRuntimePanel?.ApplyLanguage();
 
             RefreshPortButtons();
             UpdatePortStatusText();
@@ -110,6 +145,8 @@ namespace KillConfirmGameBar.Controls.Settings
 
         internal void ApplyTheme(GameThemePalette theme)
         {
+            if (HubExperienceCardTitle != null) HubExperienceCardTitle.Foreground = new SolidColorBrush(theme.Text);
+            if (HubExperienceCardDescription != null) HubExperienceCardDescription.Foreground = new SolidColorBrush(theme.MutedText);
             if (HubGeneralCardTitle != null) HubGeneralCardTitle.Foreground = new SolidColorBrush(theme.Text);
             if (HubGeneralCardDescription != null) HubGeneralCardDescription.Foreground = new SolidColorBrush(theme.MutedText);
             if (HubGeneralCardSecondaryTitle != null) HubGeneralCardSecondaryTitle.Foreground = new SolidColorBrush(theme.Text);
@@ -134,6 +171,10 @@ namespace KillConfirmGameBar.Controls.Settings
             if (HubAboutTitle != null) HubAboutTitle.Foreground = new SolidColorBrush(theme.Text);
             if (HubAboutBody != null) HubAboutBody.Foreground = new SolidColorBrush(theme.MutedText);
             if (HubAboutVersion != null) HubAboutVersion.Foreground = new SolidColorBrush(theme.SubtleText);
+            if (HubAboutUpdateTitle != null) HubAboutUpdateTitle.Foreground = new SolidColorBrush(theme.Text);
+            if (HubAboutUpdateBody != null) HubAboutUpdateBody.Foreground = new SolidColorBrush(theme.MutedText);
+            if (HubAboutCreditsTitle != null) HubAboutCreditsTitle.Foreground = new SolidColorBrush(theme.Text);
+            if (HubAboutCreditsBody != null) HubAboutCreditsBody.Foreground = new SolidColorBrush(theme.MutedText);
 
             if (HubRuntimePanel != null)
             {
@@ -142,6 +183,10 @@ namespace KillConfirmGameBar.Controls.Settings
             if (HubGeneralOptionsPanel != null)
             {
                 HubGeneralOptionsPanel.ApplyTheme(theme);
+            }
+            if (HubAdvancedSystemOptionsPanel != null)
+            {
+                HubAdvancedSystemOptionsPanel.ApplyTheme(theme);
             }
             if (HubDisplayScalingPanel != null)
             {

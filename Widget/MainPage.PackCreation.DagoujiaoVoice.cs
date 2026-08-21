@@ -223,7 +223,8 @@ namespace KillConfirmGameBar
 
                 var playBtn = new Button
                 {
-                    Content = "▶",
+                    Content = "",
+                    FontFamily = new FontFamily("Segoe MDL2 Assets"),
                     Padding = new Thickness(8, 4, 8, 4),
                     FontSize = 11,
                     Background = new SolidColorBrush(Color.FromArgb(255, 236, 247, 252)),

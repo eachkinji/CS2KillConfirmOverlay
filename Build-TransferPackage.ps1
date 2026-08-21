@@ -1216,13 +1216,17 @@ function Get-CounterStrikeInstallRoot {
 }
 
 function Install-Cs2GsiConfig {
+    # This template is the install-time fallback. It must stay in sync with the
+    # widget's GsiConfigText (which mirrors the service GSI_CONFIG_TEXT). Any
+    # mismatch here will surface as a "cfg outdated" prompt after every reinstall.
+    # Last synced: 3.3.8.x (buffer 0.05 -> 0.01, throttle 0.05 -> 0.0, commit 22f2a9f).
     $configLines = @(
         '"KillConfirmGameBar"',
         '{',
         ' "uri" "http://127.0.0.1:10087/"',
         ' "timeout" "0.5"',
-        ' "buffer"  "0.05"',
-        ' "throttle" "0.05"',
+        ' "buffer"  "0.01"',
+        ' "throttle" "0.0"',
         ' "heartbeat" "15.0"',
         ' "auth"',
         ' {',

@@ -753,7 +753,6 @@ namespace KillConfirmGameBar
             {
                 _doubaoAdvancedEffectsPanel = new DoubaoAdvancedEffectsPanel();
                 _doubaoAdvancedEffectsPanel.StreakModeSelectionChanged += OnStreakModeSelectionChanged;
-                _doubaoAdvancedEffectsPanel.DoubaoSettingsChanged += OnDoubaoSettingsChanged;
             }
 
             _doubaoAdvancedEffectsPanel.SelectStreakMode(

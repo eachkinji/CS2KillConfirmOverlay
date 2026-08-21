@@ -171,6 +171,13 @@ namespace KillConfirmGameBar
                     StorageFile existingHeadImage = packFolder != null ? await TryGetCustomPackHeadImageAsync(packFolder.Path) : null;
                     await ShowCreateDagoujiaoVoicePackDialogAsync(packName, existingFiles, existingHeadImage);
                 }
+                else if (packStyle == GameStyleMode.Doubao)
+                {
+                    var existingFiles = await CollectFilesFromPackFolderAsync(
+                        packFolder,
+                        "1kill.wav", "2kill.wav", "3kill.wav", "4kill.wav", "5kill.wav");
+                    await ShowCreateDoubaoVoicePackDialogAsync(packName, existingFiles);
+                }
                 else if (packStyle == GameStyleMode.Csol)
                 {
                     var existingFiles = await CollectFilesFromPackFolderAsync(
@@ -301,6 +308,13 @@ namespace KillConfirmGameBar
                         "common.png", "headshot.png", "epic.jpg",
                         "1kill.png", "2kill.png", "3kill.png", "4kill.png", "5kill.png");
                     await ShowCreateDagoujiaoIconPackDialogAsync(packName, existingFiles);
+                }
+                else if (packStyle == GameStyleMode.Doubao)
+                {
+                    var existingFiles = await CollectFilesFromPackFolderAsync(
+                        packFolder,
+                        "1kill.png", "2kill.png", "3kill.png", "4kill.png", "5kill.png");
+                    await ShowCreateDoubaoIconPackDialogAsync(packName, existingFiles);
                 }
                 else if (packStyle == GameStyleMode.Csol)
                 {

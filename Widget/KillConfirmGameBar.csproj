@@ -120,6 +120,8 @@
     <Compile Include="MainPage.PackCreation.CsolIcon.cs" />
     <Compile Include="MainPage.PackCreation.DagoujiaoVoice.cs" />
     <Compile Include="MainPage.PackCreation.DagoujiaoIcon.cs" />
+    <Compile Include="MainPage.PackCreation.DoubaoVoice.cs" />
+    <Compile Include="MainPage.PackCreation.DoubaoIcon.cs" />
     <Compile Include="MainPage.PackCreation.DialogUi.cs" />
     <Compile Include="MainPage.MaterialPicker.cs" />
     <Compile Include="MainPage.PackFileNames.cs" />

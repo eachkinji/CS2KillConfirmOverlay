@@ -32,6 +32,15 @@ namespace KillConfirmGameBar
             "jiaojiaojiao.wav"
         };
 
+        private static readonly string[] DoubaoVoicePackImportFiles =
+        {
+            "1kill.wav",
+            "2kill.wav",
+            "3kill.wav",
+            "4kill.wav",
+            "5kill.wav"
+        };
+
         private static readonly string[] IconPackImportFiles =
         {
             "badge_multi1.png",
@@ -103,6 +112,15 @@ namespace KillConfirmGameBar
             "dog_pack.jpg",
             "no_bark.png",
             "logo.jpg"
+        };
+
+        private static readonly string[] DoubaoIconPackImportFiles =
+        {
+            "1kill.png",
+            "2kill.png",
+            "3kill.png",
+            "4kill.png",
+            "5kill.png"
         };
 
         private static readonly string[] VoicePackHeadImageNames =

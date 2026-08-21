@@ -59,7 +59,8 @@ namespace KillConfirmGameBar.Services
             if (string.IsNullOrWhiteSpace(key)) return false;
             return key.StartsWith("custom_icon_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_csol_icon_", StringComparison.OrdinalIgnoreCase)
-                || key.StartsWith("custom_dagoujiao_icon_", StringComparison.OrdinalIgnoreCase);
+                || key.StartsWith("custom_dagoujiao_icon_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("custom_doubao_icon_", StringComparison.OrdinalIgnoreCase);
         }
 
         public static bool IsCsolIconPackKey(string key)
@@ -74,6 +75,13 @@ namespace KillConfirmGameBar.Services
             if (string.IsNullOrWhiteSpace(key)) return false;
             return key.StartsWith("custom_dagoujiao_icon_", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(key, "dagoujiao", StringComparison.OrdinalIgnoreCase);
+        }
+
+        public static bool IsDoubaoIconPackKey(string key)
+        {
+            if (string.IsNullOrWhiteSpace(key)) return false;
+            return key.StartsWith("custom_doubao_icon_", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(key, "doubao", StringComparison.OrdinalIgnoreCase);
         }
 
         public static async Task<StorageFolder> GetImportedIconFolderAsync(string key)
@@ -445,6 +453,79 @@ namespace KillConfirmGameBar.Services
             catalog.IconPacks.Add(new IconPackItem
             {
                 Key = "custom_dagoujiao_icon_" + Guid.NewGuid().ToString("N"),
+                DisplayName = displayName,
+                FolderPath = packFolder.Path,
+                IsBuiltIn = false,
+                IsVisibleInWidget = true,
+                OwnsFolder = true,
+                HasFxOverlay = false,
+                HasKillFxOverlay = false,
+                HasEliteOverlay = false,
+                HasWeaponBadgeOverlay = false
+            });
+            await SaveAsync(catalog);
+        }
+
+        public static async Task ImportDoubaoIconPackAsync(StorageFolder folder)
+        {
+            var catalog = await LoadAsync();
+            catalog.IconPacks.Add(new IconPackItem
+            {
+                Key = "custom_doubao_icon_" + Guid.NewGuid().ToString("N"),
+                DisplayName = folder.DisplayName,
+                FolderPath = folder.Path,
+                IsBuiltIn = false,
+                IsVisibleInWidget = true,
+                OwnsFolder = false
+            });
+            await SaveAsync(catalog);
+        }
+
+        // Doubao icon packs carry 5 independent per-kill images (1kill.png..5kill.png),
+        // mirroring the Dagoujiao per-kill override pattern. The icon keys map straight
+        // to the animation's kill-streak lookup so a folder-based pack works unchanged.
+        public static readonly IReadOnlyList<string> DoubaoIconSlotFileNames = new[]
+        {
+            "1kill.png",
+            "2kill.png",
+            "3kill.png",
+            "4kill.png",
+            "5kill.png"
+        };
+
+        public static async Task CreateDoubaoIconPackAsync(string displayName, IReadOnlyDictionary<string, StorageFile> selectedFiles)
+        {
+            if (selectedFiles == null || selectedFiles.Count == 0)
+            {
+                return;
+            }
+
+            StorageFolder root = await GetGameIconPacksFolderAsync("doubao");
+            StorageFolder packFolder = await root.CreateFolderAsync(
+                SanitizeName(displayName),
+                CreationCollisionOption.GenerateUniqueName);
+
+            foreach (var pair in selectedFiles)
+            {
+                if (pair.Value == null)
+                {
+                    continue;
+                }
+
+                if (pair.Value.FileType.Equals(".tga", StringComparison.OrdinalIgnoreCase))
+                {
+                    await TgaDecoder.ConvertTgaToPngAsync(pair.Value, packFolder, pair.Key);
+                }
+                else
+                {
+                    await pair.Value.CopyAsync(packFolder, pair.Key, NameCollisionOption.ReplaceExisting);
+                }
+            }
+
+            PackCatalog catalog = await LoadAsync();
+            catalog.IconPacks.Add(new IconPackItem
+            {
+                Key = "custom_doubao_icon_" + Guid.NewGuid().ToString("N"),
                 DisplayName = displayName,
                 FolderPath = packFolder.Path,
                 IsBuiltIn = false,

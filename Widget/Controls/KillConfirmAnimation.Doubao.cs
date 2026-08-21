@@ -90,9 +90,7 @@ namespace KillConfirmGameBar.Controls
         private static async Task<CanvasBitmap> LoadDoubaoKillBitmapAsync(int killCount)
         {
             int normalized = Math.Max(1, Math.Min(5, killCount));
-            DoubaoSettingsValues settings = DoubaoSettingsStore.Load();
-            string key = settings.KillImageKeys.TryGetValue(normalized, out string k) ? k : DoubaoSettingsStore.DefaultImageKey(normalized);
-            string cacheKey = $"{normalized}:{key}";
+            string cacheKey = $"{normalized}:{_iconPack}";
             lock (DoubaoKillCache)
             {
                 if (DoubaoKillCache.TryGetValue(cacheKey, out CanvasBitmap cached))
@@ -102,23 +100,19 @@ namespace KillConfirmGameBar.Controls
             }
 
             CanvasBitmap loaded = null;
-            if (string.IsNullOrWhiteSpace(key) || key.StartsWith("builtin:", StringComparison.OrdinalIgnoreCase))
+            if (PackCatalogService.IsImportedIconPackKey(_iconPack))
+            {
+                StorageFolder packFolder = await PackCatalogService.GetImportedIconFolderAsync(_iconPack);
+                if (packFolder != null)
+                {
+                    loaded = await TryLoadDoubaoBitmapFromFolderAsync(packFolder, $"{normalized}kill.png");
+                }
+            }
+
+            if (loaded == null)
             {
                 loaded = await LoadBitmapFromApplicationUriAsync(
                     $"ms-appx:///Assets/GameStyles/doubao/killconfirm/textures/{normalized}kill.png");
-            }
-            else
-            {
-                StorageFile imported = await DoubaoSettingsStore.GetImportedImageFileAsync(key);
-                if (imported != null)
-                {
-                    loaded = await LoadBitmapFromStorageFileAsync(imported);
-                }
-                if (loaded == null)
-                {
-                    loaded = await LoadBitmapFromApplicationUriAsync(
-                        $"ms-appx:///Assets/GameStyles/doubao/killconfirm/textures/{normalized}kill.png");
-                }
             }
 
             lock (DoubaoKillCache)
@@ -132,6 +126,21 @@ namespace KillConfirmGameBar.Controls
                 DoubaoKillCache[cacheKey] = loaded;
                 return loaded;
             }
+        }
+
+        private static async Task<CanvasBitmap> TryLoadDoubaoBitmapFromFolderAsync(StorageFolder folder, string fileName)
+        {
+            if (folder == null || string.IsNullOrWhiteSpace(fileName)) return null;
+            try
+            {
+                StorageFile file = await folder.GetFileAsync(fileName);
+                if (file != null)
+                {
+                    return await LoadBitmapFromStorageFileAsync(file);
+                }
+            }
+            catch { }
+            return null;
         }
 
         private static void ClearDoubaoIconCache()

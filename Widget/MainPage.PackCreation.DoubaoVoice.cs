@@ -12,48 +12,53 @@ namespace KillConfirmGameBar
 {
     public sealed partial class MainPage
     {
-        private static readonly (string FileName, string LabelKey, string BuiltInDefault)[] DagoujiaoIconSlots =
+        private static readonly (string FileName, string LabelKey, string BuiltInDefault)[] DoubaoVoiceSlots =
         {
-            ("common.png", "DagoujiaoIconCommon", "common.png"),
-            ("headshot.png", "DagoujiaoIconHeadshot", "headshot.png"),
-            ("epic.jpg", "DagoujiaoIconEpic", "epic.jpg"),
-            ("1kill.png", "DagoujiaoIconKill1", "common.png"),
-            ("2kill.png", "DagoujiaoIconKill2", "common.png"),
-            ("3kill.png", "DagoujiaoIconKill3", "common.png"),
-            ("4kill.png", "DagoujiaoIconKill4", "common.png"),
-            ("5kill.png", "DagoujiaoIconKill5", "common.png")
+            ("1kill.wav", "DoubaoSlotVoice1", "1kill.wav"),
+            ("2kill.wav", "DoubaoSlotVoice2", "2kill.wav"),
+            ("3kill.wav", "DoubaoSlotVoice3", "3kill.wav"),
+            ("4kill.wav", "DoubaoSlotVoice4", "4kill.wav"),
+            ("5kill.wav", "DoubaoSlotVoice5", "5kill.wav")
         };
 
-        private async Task ShowCreateDagoujiaoIconPackDialogAsync(
+        private async Task ShowCreateDoubaoVoicePackDialogAsync(
             string initialDisplayName = null,
-            IReadOnlyDictionary<string, StorageFile> initialFiles = null)
+            IReadOnlyDictionary<string, StorageFile> initialFiles = null,
+            StorageFile initialHeadImageFile = null)
         {
             var selectedFiles = initialFiles != null
                 ? new Dictionary<string, StorageFile>(initialFiles, StringComparer.OrdinalIgnoreCase)
                 : new Dictionary<string, StorageFile>(StringComparer.OrdinalIgnoreCase);
+            StorageFile headImageFile = initialHeadImageFile;
 
             var layout = CreatePackDialogLayout(
-                LocalizationManager.Text("CreateIconPack"),
-                LocalizationManager.Text("DagoujiaoIconCollectionsHint"),
-                LocalizationManager.Text("IconPackNamePlaceholder"),
+                LocalizationManager.Text("CreateVoicePack"),
+                LocalizationManager.Text("DoubaoVoiceCollectionsHint"),
+                LocalizationManager.Text("VoicePackNamePlaceholder"),
                 initialDisplayName,
                 out var nameBox);
 
+            var headCard = await CreateHeadImageCardAsync(
+                "ms-appx:///Assets/GameLogos/doubao.png",
+                headImageFile,
+                f => headImageFile = f,
+                () => headImageFile = null);
+            layout.Children.Add(headCard);
+
             var slotContainer = new StackPanel { Spacing = 8 };
-            foreach (var slot in DagoujiaoIconSlots)
+            foreach (var slot in DoubaoVoiceSlots)
             {
                 selectedFiles.TryGetValue(slot.FileName, out StorageFile existingFile);
                 var row = await CreateSlotRowAsync(
                     slot.FileName, LocalizationManager.Text(slot.LabelKey),
-                    isAudio: false, GameStyleMode.Dagoujiao,
-                    selectedFiles, existingFile,
-                    defaultPreviewUri: $"ms-appx:///Assets/GameStyles/dagoujiao/killconfirm/textures/{slot.BuiltInDefault}");
+                    isAudio: true, GameStyleMode.Doubao,
+                    selectedFiles, existingFile);
                 slotContainer.Children.Add(row);
             }
 
             var scroll = new ScrollViewer
             {
-                MaxHeight = 440,
+                MaxHeight = 420,
                 VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
                 HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
                 Content = slotContainer
@@ -68,13 +73,17 @@ namespace KillConfirmGameBar
             }
 
             string packName = string.IsNullOrWhiteSpace(nameBox.Text)
-                ? "大狗叫图标包"
+                ? "豆包语音包"
                 : nameBox.Text.Trim();
 
             await FillBuiltInDefaultsAsync(
-                selectedFiles, DagoujiaoIconSlots, "ms-appx:///Assets/GameStyles/dagoujiao/killconfirm/textures/");
+                selectedFiles, DoubaoVoiceSlots, "ms-appx:///KillConfirmService/sounds/doubao/");
 
-            await PackCatalogService.CreateDagoujiaoIconPackAsync(packName, selectedFiles);
+            await PackCatalogService.CreateDoubaoVoicePackAsync(packName, new VoicePackBuildOptions
+            {
+                SelectedFiles = selectedFiles,
+                HeadImageFile = headImageFile
+            });
         }
     }
 }

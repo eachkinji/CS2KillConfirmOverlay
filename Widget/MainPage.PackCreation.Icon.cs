@@ -74,7 +74,8 @@ namespace KillConfirmGameBar
             GameStyleMode currentGame,
             Func<string, IReadOnlyDictionary<string, StorageFile>, Task> createHandler,
             string initialDisplayName = null,
-            IReadOnlyDictionary<string, StorageFile> initialFiles = null)
+            IReadOnlyDictionary<string, StorageFile> initialFiles = null,
+            Func<string, string> defaultPreviewUriForFileName = null)
         {
             var selectedFiles = initialFiles != null
                 ? new Dictionary<string, StorageFile>(initialFiles, StringComparer.OrdinalIgnoreCase)
@@ -105,7 +106,8 @@ namespace KillConfirmGameBar
                 selectedFiles.TryGetValue(slot.FileName, out StorageFile existingFile);
                 var row = await CreateSlotRowAsync(
                     slot.FileName, slot.Label, isAudio: false, currentGame,
-                    selectedFiles, existingFile);
+                    selectedFiles, existingFile,
+                    defaultPreviewUri: defaultPreviewUriForFileName?.Invoke(slot.FileName));
                 slotPanel.Children.Add(row);
             }
 
@@ -122,6 +124,99 @@ namespace KillConfirmGameBar
                 ? LocalizationManager.Text("NewPack")
                 : nameBox.Text.Trim();
             await createHandler(displayName, selectedFiles);
+        }
+
+        // ---- Battlefield / Delta Force icon pack creation dialogs ----
+        // Only the static kill icons the animation actually draws are exposed; dynamic
+        // frames / decorative textures stay built-in via loader fallback.
+
+        private async Task ShowCreateBattlefield1IconPackDialogAsync(
+            string initialDisplayName = null,
+            IReadOnlyDictionary<string, StorageFile> initialFiles = null)
+        {
+            bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            var slots = new (string FileName, string Label)[]
+            {
+                ("killicon_battlefield1_default.png", isChinese ? "普通击杀" : "Default"),
+                ("killicon_battlefield1_headshot.png", isChinese ? "爆头" : "Headshot"),
+                ("killicon_battlefield1_crit.png", isChinese ? "刀杀/暴击" : "Crit")
+            };
+            await ShowPackCreationDialogAsync(
+                LocalizationManager.Text("CreateIconPack"),
+                LocalizationManager.Text("IconPackCreationHint"),
+                slots,
+                GameStyleMode.Battlefield1,
+                PackCatalogService.CreateBattlefield1IconPackAsync,
+                initialDisplayName,
+                initialFiles,
+                defaultPreviewUriForFileName: fn => $"ms-appx:///Assets/GameStyles/battlefield1/killconfirm/textures/{fn}");
+        }
+
+        private async Task ShowCreateBattlefield5IconPackDialogAsync(
+            string initialDisplayName = null,
+            IReadOnlyDictionary<string, StorageFile> initialFiles = null)
+        {
+            bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            var slots = new (string FileName, string Label)[]
+            {
+                ("killicon_battlefield5_default.png", isChinese ? "普通击杀" : "Default"),
+                ("killicon_battlefield5_headshot.png", isChinese ? "爆头" : "Headshot"),
+                ("killicon_battlefield5_assist.png", isChinese ? "助攻" : "Assist")
+            };
+            await ShowPackCreationDialogAsync(
+                LocalizationManager.Text("CreateIconPack"),
+                LocalizationManager.Text("IconPackCreationHint"),
+                slots,
+                GameStyleMode.Battlefield5,
+                PackCatalogService.CreateBattlefield5IconPackAsync,
+                initialDisplayName,
+                initialFiles,
+                defaultPreviewUriForFileName: fn => $"ms-appx:///Assets/GameStyles/battlefield5/killconfirm/textures/{fn}");
+        }
+
+        private async Task ShowCreateBattlefield2042IconPackDialogAsync(
+            string initialDisplayName = null,
+            IReadOnlyDictionary<string, StorageFile> initialFiles = null)
+        {
+            bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            var slots = new (string FileName, string Label)[]
+            {
+                ("NormalSkullSprite.png", isChinese ? "普通击杀" : "Default"),
+                ("HeadshotSkullSprite.png", isChinese ? "爆头" : "Headshot"),
+                ("AssistSprite.png", isChinese ? "助攻" : "Assist")
+            };
+            await ShowPackCreationDialogAsync(
+                LocalizationManager.Text("CreateIconPack"),
+                LocalizationManager.Text("IconPackCreationHint"),
+                slots,
+                GameStyleMode.Battlefield2042,
+                PackCatalogService.CreateBattlefield2042IconPackAsync,
+                initialDisplayName,
+                initialFiles,
+                defaultPreviewUriForFileName: fn => $"ms-appx:///Assets/GameStyles/battlefield2042/killconfirm/textures/{fn}");
+        }
+
+        private async Task ShowCreateDeltaForceIconPackDialogAsync(
+            string initialDisplayName = null,
+            IReadOnlyDictionary<string, StorageFile> initialFiles = null)
+        {
+            bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            var slots = new (string FileName, string Label)[]
+            {
+                ("killicon_df_default.png", isChinese ? "普通击杀" : "Default"),
+                ("killicon_df_headshot.png", isChinese ? "爆头" : "Headshot"),
+                ("killicon_df_capture.png", isChinese ? "占点" : "Capture"),
+                ("killicon_scrolling_assist.png", isChinese ? "助攻" : "Assist")
+            };
+            await ShowPackCreationDialogAsync(
+                LocalizationManager.Text("CreateIconPack"),
+                LocalizationManager.Text("IconPackCreationHint"),
+                slots,
+                GameStyleMode.DeltaForce,
+                PackCatalogService.CreateDeltaForceIconPackAsync,
+                initialDisplayName,
+                initialFiles,
+                defaultPreviewUriForFileName: fn => $"ms-appx:///Assets/GameStyles/deltaforce/killconfirm/textures/{fn}");
         }
     }
 }

@@ -94,7 +94,7 @@ namespace KillConfirmGameBar.Controls
 
         private static async Task<CanvasBitmap> LoadDeltaForceIconAsync(string iconFileName)
         {
-            string cacheKey = "deltaforce/" + iconFileName;
+            string cacheKey = "deltaforce/" + iconFileName + ":" + _iconPack;
             lock (DeltaForceIconCache)
             {
                 if (DeltaForceIconCache.TryGetValue(cacheKey, out CanvasBitmap cached))
@@ -103,13 +103,18 @@ namespace KillConfirmGameBar.Controls
                 }
             }
 
-            CanvasBitmap loaded = await LoadBitmapFromApplicationUriAsync(
-                "ms-appx:///Assets/GameStyles/deltaforce/killconfirm/textures/" + iconFileName);
+            CanvasBitmap loaded = await TryLoadIconFromPackFolderAsync(iconFileName);
+            if (loaded == null)
+            {
+                loaded = await LoadBitmapFromApplicationUriAsync(
+                    "ms-appx:///Assets/GameStyles/deltaforce/killconfirm/textures/" + iconFileName);
+            }
 
             lock (DeltaForceIconCache)
             {
                 if (DeltaForceIconCache.TryGetValue(cacheKey, out CanvasBitmap cached))
                 {
+                    loaded?.Dispose();
                     return cached;
                 }
 

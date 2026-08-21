@@ -60,7 +60,11 @@ namespace KillConfirmGameBar.Services
             return key.StartsWith("custom_icon_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_csol_icon_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_dagoujiao_icon_", StringComparison.OrdinalIgnoreCase)
-                || key.StartsWith("custom_doubao_icon_", StringComparison.OrdinalIgnoreCase);
+                || key.StartsWith("custom_doubao_icon_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("custom_battlefield1_icon_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("custom_battlefield5_icon_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("custom_battlefield2042_icon_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("custom_deltaforce_icon_", StringComparison.OrdinalIgnoreCase);
         }
 
         public static bool IsCsolIconPackKey(string key)
@@ -535,6 +539,148 @@ namespace KillConfirmGameBar.Services
                 HasKillFxOverlay = false,
                 HasEliteOverlay = false,
                 HasWeaponBadgeOverlay = false
+            });
+            await SaveAsync(catalog);
+        }
+
+        // ---- Battlefield / Delta Force icon packs (static-image override only) ----
+        // These games draw a fixed set of static kill icons in the animation; users may
+        // override just those. Dynamic frames / decorative textures stay built-in: the
+        // animation loader falls back to ms-appx when a file is absent from the pack.
+
+        public static readonly IReadOnlyList<string> Battlefield1IconSlotFileNames = new[]
+        {
+            "killicon_battlefield1_default.png",
+            "killicon_battlefield1_headshot.png",
+            "killicon_battlefield1_crit.png"
+        };
+
+        public static readonly IReadOnlyList<string> Battlefield5IconSlotFileNames = new[]
+        {
+            "killicon_battlefield5_default.png",
+            "killicon_battlefield5_headshot.png",
+            "killicon_battlefield5_assist.png"
+        };
+
+        public static readonly IReadOnlyList<string> Battlefield2042IconSlotFileNames = new[]
+        {
+            "NormalSkullSprite.png",
+            "HeadshotSkullSprite.png",
+            "AssistSprite.png"
+        };
+
+        public static readonly IReadOnlyList<string> DeltaForceIconSlotFileNames = new[]
+        {
+            "killicon_df_default.png",
+            "killicon_df_headshot.png",
+            "killicon_df_capture.png",
+            "killicon_scrolling_assist.png"
+        };
+
+        public static bool IsBattlefield1IconPackKey(string key)
+        {
+            if (string.IsNullOrWhiteSpace(key)) return false;
+            return key.StartsWith("custom_battlefield1_icon_", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(key, "battlefield1", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(key, "bf1", StringComparison.OrdinalIgnoreCase);
+        }
+
+        public static bool IsBattlefield5IconPackKey(string key)
+        {
+            if (string.IsNullOrWhiteSpace(key)) return false;
+            return key.StartsWith("custom_battlefield5_icon_", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(key, "battlefield5", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(key, "bf5", StringComparison.OrdinalIgnoreCase);
+        }
+
+        public static bool IsBattlefield2042IconPackKey(string key)
+        {
+            if (string.IsNullOrWhiteSpace(key)) return false;
+            return key.StartsWith("custom_battlefield2042_icon_", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(key, "battlefield2042", StringComparison.OrdinalIgnoreCase);
+        }
+
+        public static bool IsDeltaForceIconPackKey(string key)
+        {
+            if (string.IsNullOrWhiteSpace(key)) return false;
+            return key.StartsWith("custom_deltaforce_icon_", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(key, "deltaforce", StringComparison.OrdinalIgnoreCase);
+        }
+
+        public static Task ImportBattlefield1IconPackAsync(StorageFolder folder)
+            => ImportGameIconPackAsync("custom_battlefield1_icon_", folder);
+        public static Task ImportBattlefield5IconPackAsync(StorageFolder folder)
+            => ImportGameIconPackAsync("custom_battlefield5_icon_", folder);
+        public static Task ImportBattlefield2042IconPackAsync(StorageFolder folder)
+            => ImportGameIconPackAsync("custom_battlefield2042_icon_", folder);
+        public static Task ImportDeltaForceIconPackAsync(StorageFolder folder)
+            => ImportGameIconPackAsync("custom_deltaforce_icon_", folder);
+
+        public static Task CreateBattlefield1IconPackAsync(string displayName, IReadOnlyDictionary<string, StorageFile> selectedFiles)
+            => CreateGameIconPackAsync("battlefield1", "custom_battlefield1_icon_", displayName, selectedFiles);
+        public static Task CreateBattlefield5IconPackAsync(string displayName, IReadOnlyDictionary<string, StorageFile> selectedFiles)
+            => CreateGameIconPackAsync("battlefield5", "custom_battlefield5_icon_", displayName, selectedFiles);
+        public static Task CreateBattlefield2042IconPackAsync(string displayName, IReadOnlyDictionary<string, StorageFile> selectedFiles)
+            => CreateGameIconPackAsync("battlefield2042", "custom_battlefield2042_icon_", displayName, selectedFiles);
+        public static Task CreateDeltaForceIconPackAsync(string displayName, IReadOnlyDictionary<string, StorageFile> selectedFiles)
+            => CreateGameIconPackAsync("deltaforce", "custom_deltaforce_icon_", displayName, selectedFiles);
+
+        private static async Task CreateGameIconPackAsync(string gameKey, string keyPrefix, string displayName, IReadOnlyDictionary<string, StorageFile> selectedFiles)
+        {
+            if (selectedFiles == null || selectedFiles.Count == 0)
+            {
+                return;
+            }
+
+            StorageFolder root = await GetGameIconPacksFolderAsync(gameKey);
+            StorageFolder packFolder = await root.CreateFolderAsync(
+                SanitizeName(displayName), CreationCollisionOption.GenerateUniqueName);
+
+            foreach (var pair in selectedFiles)
+            {
+                if (pair.Value == null)
+                {
+                    continue;
+                }
+
+                if (pair.Value.FileType.Equals(".tga", StringComparison.OrdinalIgnoreCase))
+                {
+                    await TgaDecoder.ConvertTgaToPngAsync(pair.Value, packFolder, pair.Key);
+                }
+                else
+                {
+                    await pair.Value.CopyAsync(packFolder, pair.Key, NameCollisionOption.ReplaceExisting);
+                }
+            }
+
+            PackCatalog catalog = await LoadAsync();
+            catalog.IconPacks.Add(new IconPackItem
+            {
+                Key = keyPrefix + Guid.NewGuid().ToString("N"),
+                DisplayName = displayName,
+                FolderPath = packFolder.Path,
+                IsBuiltIn = false,
+                IsVisibleInWidget = true,
+                OwnsFolder = true,
+                HasFxOverlay = false,
+                HasKillFxOverlay = false,
+                HasEliteOverlay = false,
+                HasWeaponBadgeOverlay = false
+            });
+            await SaveAsync(catalog);
+        }
+
+        private static async Task ImportGameIconPackAsync(string keyPrefix, StorageFolder folder)
+        {
+            var catalog = await LoadAsync();
+            catalog.IconPacks.Add(new IconPackItem
+            {
+                Key = keyPrefix + Guid.NewGuid().ToString("N"),
+                DisplayName = folder.DisplayName,
+                FolderPath = folder.Path,
+                IsBuiltIn = false,
+                IsVisibleInWidget = true,
+                OwnsFolder = false
             });
             await SaveAsync(catalog);
         }

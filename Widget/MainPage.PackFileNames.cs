@@ -123,6 +123,35 @@ namespace KillConfirmGameBar
             "5kill.png"
         };
 
+        private static readonly string[] Battlefield1IconPackImportFiles =
+        {
+            "killicon_battlefield1_default.png",
+            "killicon_battlefield1_headshot.png",
+            "killicon_battlefield1_crit.png"
+        };
+
+        private static readonly string[] Battlefield5IconPackImportFiles =
+        {
+            "killicon_battlefield5_default.png",
+            "killicon_battlefield5_headshot.png",
+            "killicon_battlefield5_assist.png"
+        };
+
+        private static readonly string[] Battlefield2042IconPackImportFiles =
+        {
+            "NormalSkullSprite.png",
+            "HeadshotSkullSprite.png",
+            "AssistSprite.png"
+        };
+
+        private static readonly string[] DeltaForceIconPackImportFiles =
+        {
+            "killicon_df_default.png",
+            "killicon_df_headshot.png",
+            "killicon_df_capture.png",
+            "killicon_scrolling_assist.png"
+        };
+
         private static readonly string[] VoicePackHeadImageNames =
         {
             "pack_head.png",

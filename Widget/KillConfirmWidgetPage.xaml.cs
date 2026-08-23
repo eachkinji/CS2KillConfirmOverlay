@@ -497,6 +497,7 @@ namespace KillConfirmGameBar
 
                         LoadAnimationPlacementSettings();
                         ApplyGameStyleUi();
+                        await ReloadAudioVolumeForCurrentGameAsync();
                         await InitializePackSelectorsAsync();
                         await SyncSelectedVoicePackAsync();
                         await SyncCrossfireGameplaySettingsAsync();
@@ -546,18 +547,24 @@ namespace KillConfirmGameBar
 
         private async void OnCenterClick(object sender, RoutedEventArgs e)
         {
-            if (_widget == null)
+            await CenterWidgetWindowAsync("visual-toolbar");
+        }
+
+        private async Task CenterWidgetWindowAsync(string source)
+        {
+            XboxGameBarWidget widget = _widget;
+            if (widget == null)
             {
                 return;
             }
 
             try
             {
-                await _widget.CenterWindowAsync();
+                await widget.CenterWindowAsync();
             }
             catch (Exception ex)
             {
-                App.Log("Center widget window failed: " + ex.Message);
+                App.Log("Center widget window failed (" + source + "): " + ex.Message);
             }
         }
 
@@ -1070,7 +1077,7 @@ namespace KillConfirmGameBar
             return item;
         }
 
-        private void OnAnimationFrameMenuItemClick(object sender, RoutedEventArgs e)
+        private async void OnAnimationFrameMenuItemClick(object sender, RoutedEventArgs e)
         {
             string command = (sender as FrameworkElement)?.Tag as string;
             Border outline = _animationContextOutline;
@@ -1086,6 +1093,7 @@ namespace KillConfirmGameBar
                     break;
                 case "center":
                     SetAnimationFramePlacement(outline, AnimationPlacementMode.Center);
+                    await CenterWidgetWindowAsync("animation-frame-menu");
                     break;
                 case "bottom":
                     SetAnimationFramePlacement(outline, AnimationPlacementMode.Bottom);
@@ -1741,7 +1749,7 @@ namespace KillConfirmGameBar
             RequestFixedWidgetLayoutRefresh();
         }
 
-        private void RequestFixedWidgetLayoutRefresh()
+        private void RequestFixedWidgetLayoutRefresh(string source = "automatic")
         {
             if (_widget == null)
             {
@@ -1749,10 +1757,10 @@ namespace KillConfirmGameBar
             }
 
             int requestVersion = Interlocked.Increment(ref _widgetLayoutRefreshRequestVersion);
-            _ = RefreshFixedWidgetLayoutAsync(requestVersion);
+            _ = RefreshFixedWidgetLayoutAsync(requestVersion, source);
         }
 
-        private async Task RefreshFixedWidgetLayoutAsync(int requestVersion)
+        private async Task RefreshFixedWidgetLayoutAsync(int requestVersion, string source)
         {
             await _widgetLayoutRefreshGate.WaitAsync();
             try
@@ -1790,7 +1798,8 @@ namespace KillConfirmGameBar
                 SynchronizeHostPageLayout("after-host-refresh");
                 SavePanelOffset();
                 App.LogCrash(
-                    "Fixed widget host refreshed. nudgeAccepted=" + nudgeAccepted
+                    "Fixed widget host refreshed. source=" + source
+                    + ", nudgeAccepted=" + nudgeAccepted
                     + ", restoreAccepted=" + resizeAccepted
                     + ", requestCurrent=" + (requestVersion == _widgetLayoutRefreshRequestVersion)
                     + ", viewport=" + ActualWidth + "x" + ActualHeight

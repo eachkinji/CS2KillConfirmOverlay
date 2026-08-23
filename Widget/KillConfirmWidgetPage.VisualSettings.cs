@@ -37,6 +37,12 @@ namespace KillConfirmGameBar
             SelectPercentageOption(ContrastSelector, DefaultContrastValue);
             _suppressVisualAdjustmentEvents = false;
             ApplyVisualAdjustmentSettings();
+
+            // This button is also the user's explicit recovery path for a stale
+            // Game Bar composition surface after a display-mode/resolution switch.
+            // The refresh performs a small host-window size nudge and restores the
+            // fixed size so Game Bar rebuilds both drawing and input bounds.
+            RequestFixedWidgetLayoutRefresh("manual-visual-reset");
         }
 
         private void LoadVisualAdjustmentSettings()
@@ -44,7 +50,7 @@ namespace KillConfirmGameBar
             ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
             double brightness = ReadSetting(localSettings, BrightnessSettingKey);
             double contrast = ReadSetting(localSettings, ContrastSettingKey);
-            double audioVolume = ReadSetting(localSettings, AudioVolumeSettingKey);
+            double audioVolume = ReadAudioVolumeSetting(localSettings);
             double playbackFps = NormalizePlaybackFps(ReadSetting(localSettings, PlaybackFpsSettingKey));
 
             _suppressVisualAdjustmentEvents = true;
@@ -121,7 +127,7 @@ namespace KillConfirmGameBar
             }
 
             double volume = ReadSelectedPercentage(AudioVolumeSelector, DefaultAudioVolumeValue);
-            ApplicationData.Current.LocalSettings.Values[AudioVolumeSettingKey] = volume;
+            ApplicationData.Current.LocalSettings.Values[GetAnimationStyleSettingKey(AudioVolumeSettingKey)] = volume;
 
             try
             {
@@ -142,6 +148,37 @@ namespace KillConfirmGameBar
             {
                 App.Log("Set audio volume failed: " + ex);
             }
+        }
+
+        private async Task ReloadAudioVolumeForCurrentGameAsync()
+        {
+            double volume = ReadAudioVolumeSetting(ApplicationData.Current.LocalSettings);
+            _suppressVisualAdjustmentEvents = true;
+            try
+            {
+                SelectPercentageOption(AudioVolumeSelector, volume);
+            }
+            finally
+            {
+                _suppressVisualAdjustmentEvents = false;
+            }
+
+            // The service owns one live output gain. Reapply the newly selected
+            // game's persisted gain whenever the game style changes.
+            await ApplyAndSaveAudioVolumeAsync();
+        }
+
+        private static double ReadAudioVolumeSetting(ApplicationDataContainer settings)
+        {
+            string styleKey = GetAnimationStyleSettingKey(AudioVolumeSettingKey);
+            if (settings.Values.ContainsKey(styleKey))
+            {
+                return ReadDoubleSetting(settings, styleKey, DefaultAudioVolumeValue);
+            }
+
+            // Existing installations only have the former global key. Use it as
+            // the initial value for each game until that game's own value is saved.
+            return ReadSetting(settings, AudioVolumeSettingKey);
         }
 
         private static double ReadSelectedPercentage(ComboBox selector, double fallback)

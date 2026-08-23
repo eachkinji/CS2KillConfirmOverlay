@@ -21,7 +21,7 @@
                     x:Name="HintText"
                     FontSize="10.5"
                     Opacity="0.75"
-                    Text="集中管理 CF 连杀机制、优先级决议、首末杀特权与画面光效。"
+                    Text="集中设置 CF 的连杀规则、爆头与刀杀提示、首杀与最终击杀，以及画面特效。"
                     TextWrapping="WrapWholeWords" />
             </StackPanel>
             <Button
@@ -47,12 +47,25 @@
                     FontSize="12"
                     FontWeight="Bold"
                     VerticalAlignment="Center"
-                    Text="画面光效与徽章增强" />
+                    Text="画面特效与武器徽章" />
             </StackPanel>
             <ContentControl
                 x:Name="StylePanelHost"
                 HorizontalAlignment="Stretch"
                 HorizontalContentAlignment="Stretch" />
+            <Border x:Name="VisualEffectsCard" Padding="12" BorderThickness="1" CornerRadius="8">
+                <StackPanel Spacing="8">
+                    <TextBlock x:Name="VisualEffectsTitle" FontSize="12" FontWeight="SemiBold" />
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock x:Name="KillMarkEffectLabel" VerticalAlignment="Center" FontSize="10" TextWrapping="WrapWholeWords" />
+                        <ToggleSwitch x:Name="KillMarkEffectToggle" Grid.Column="1" MinWidth="0" Toggled="OnKillMarkEffectToggled" />
+                    </Grid>
+                </StackPanel>
+            </Border>
         </StackPanel>
 
         <!-- Section 2: Streak & Assist Trigger -->
@@ -103,7 +116,7 @@
                     FontSize="12"
                     FontWeight="Bold"
                     VerticalAlignment="Center"
-                    Text="优先权决议策略（声音与图标）" />
+                    Text="爆头与刀杀提示优先级" />
             </StackPanel>
             <Grid RowSpacing="8" ColumnSpacing="8">
                 <Grid.RowDefinitions>
@@ -186,7 +199,7 @@
                     FontSize="12"
                     FontWeight="Bold"
                     VerticalAlignment="Center"
-                    Text="首杀与末杀特权配置" />
+                    Text="首杀与最终击杀" />
             </StackPanel>
             <Grid RowSpacing="8" ColumnSpacing="8">
                 <Grid.RowDefinitions>

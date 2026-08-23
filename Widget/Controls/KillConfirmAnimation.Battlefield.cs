@@ -489,7 +489,8 @@ namespace KillConfirmGameBar.Controls
             double y,
             double scale,
             Color color,
-            CanvasTextFormat format)
+            CanvasTextFormat format,
+            bool useVisibleShadow = false)
         {
             if (string.IsNullOrEmpty(text) || scale <= 0 || color.A == 0)
             {
@@ -507,7 +508,7 @@ namespace KillConfirmGameBar.Controls
 
             try
             {
-                const double shadowOffset = 0.0;
+                double shadowOffset = useVisibleShadow ? 1.25 / scale : 0.0;
                 using (CanvasSolidColorBrush shadowBrush = new CanvasSolidColorBrush(
                     drawingSession,
                     Color.FromArgb((byte)Math.Max(0, color.A * 0.65), 0, 0, 0)))
@@ -530,7 +531,8 @@ namespace KillConfirmGameBar.Controls
             double y,
             double scale,
             Color color,
-            CanvasTextFormat format)
+            CanvasTextFormat format,
+            bool useVisibleShadow = false)
         {
             if (string.IsNullOrEmpty(text) || scale <= 0 || color.A == 0)
             {
@@ -538,7 +540,7 @@ namespace KillConfirmGameBar.Controls
             }
 
             double width = MeasureBattlefieldTextWidth(text, format) * scale;
-            DrawBattlefieldText(drawingSession, text, centerX - (width / 2.0), y, scale, color, format);
+            DrawBattlefieldText(drawingSession, text, centerX - (width / 2.0), y, scale, color, format, useVisibleShadow);
         }
 
         private static void DrawBattlefieldTextRightAligned(
@@ -548,7 +550,8 @@ namespace KillConfirmGameBar.Controls
             double y,
             double scale,
             Color color,
-            CanvasTextFormat format)
+            CanvasTextFormat format,
+            bool useVisibleShadow = false)
         {
             if (string.IsNullOrEmpty(text) || scale <= 0 || color.A == 0)
             {
@@ -556,7 +559,7 @@ namespace KillConfirmGameBar.Controls
             }
 
             double width = MeasureBattlefieldTextWidth(text, format) * scale;
-            DrawBattlefieldText(drawingSession, text, rightX - width, y, scale, color, format);
+            DrawBattlefieldText(drawingSession, text, rightX - width, y, scale, color, format, useVisibleShadow);
         }
 
 

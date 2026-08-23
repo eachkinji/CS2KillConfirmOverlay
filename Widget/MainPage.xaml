@@ -311,6 +311,15 @@
                         <ListViewItem Tag="valorant" Style="{StaticResource GameModeSidebarItemStyle}" ToolTipService.ToolTip="Valorant">
                             <Border Style="{StaticResource GameModeLogoTileStyle}"><Image Source="ms-appx:///Assets/GameLogos/valorant.png" Stretch="Uniform" /></Border>
                         </ListViewItem>
+                        <ListViewItem Tag="overwatch" Style="{StaticResource GameModeSidebarItemStyle}" ToolTipService.ToolTip="OverWatch">
+                            <Border Style="{StaticResource GameModeLogoTileStyle}"><Image Source="ms-appx:///Assets/GameLogos/overwatch.png" Stretch="Uniform" /></Border>
+                        </ListViewItem>
+                        <ListViewItem Tag="modernwarfare2019" Style="{StaticResource GameModeSidebarItemStyle}" ToolTipService.ToolTip="Modern Warfare 2019">
+                            <Border Style="{StaticResource GameModeLogoTileStyle}"><Image Source="ms-appx:///Assets/GameLogos/modernwarfare2019.png" Stretch="Uniform" /></Border>
+                        </ListViewItem>
+                        <ListViewItem Tag="apex" Style="{StaticResource GameModeSidebarItemStyle}" ToolTipService.ToolTip="Apex Legends">
+                            <Border Style="{StaticResource GameModeLogoTileStyle}"><Image Source="ms-appx:///Assets/GameLogos/apex.png" Stretch="Uniform" /></Border>
+                        </ListViewItem>
                         <ListViewItem Tag="battlefield1" Style="{StaticResource GameModeSidebarItemStyle}" ToolTipService.ToolTip="Battlefield 1">
                             <Border Style="{StaticResource GameModeLogoTileStyle}"><Image Source="ms-appx:///Assets/GameLogos/battlefield1.png" Stretch="Uniform" /></Border>
                         </ListViewItem>
@@ -371,6 +380,9 @@
                                 <ComboBoxItem x:Name="CrossfireStyleItem" Tag="crossfire">CrossFire (穿越火线)</ComboBoxItem>
                                 <ComboBoxItem x:Name="CsolStyleItem" Tag="csol">CSOL (反恐精英Online)</ComboBoxItem>
                                 <ComboBoxItem x:Name="ValorantStyleItem" Tag="valorant">Valorant (无畏契约)</ComboBoxItem>
+                                <ComboBoxItem x:Name="OverwatchStyleItem" Tag="overwatch">OverWatch (守望先锋)</ComboBoxItem>
+                                <ComboBoxItem x:Name="ModernWarfare2019StyleItem" Tag="modernwarfare2019">Modern Warfare 2019 (使命召唤：现代战争)</ComboBoxItem>
+                                <ComboBoxItem x:Name="ApexStyleItem" Tag="apex">Apex Legends (Apex 英雄)</ComboBoxItem>
                                 <ComboBoxItem x:Name="Battlefield1StyleItem" Tag="battlefield1">Battlefield 1 (战地1)</ComboBoxItem>
                                 <ComboBoxItem x:Name="Battlefield5StyleItem" Tag="battlefield5">Battlefield V (战地5)</ComboBoxItem>
                                 <ComboBoxItem x:Name="Battlefield4StyleItem" Tag="battlefield4">Battlefield 4 (战地4)</ComboBoxItem>
@@ -448,7 +460,7 @@
                             <Button
                                 x:Name="GameTabGuideButton"
                                 Style="{StaticResource StudioTabButtonStyle}"
-                                Content="自定义规范"
+                                Content="自定义指南"
                                 Click="OnGameTabGuideClick" />
                         </StackPanel>
                     </Border>
@@ -497,7 +509,7 @@
                                         <TextBlock
                                             x:Name="VoiceCollectionsTitleText"
                                             Style="{StaticResource SettingsSectionTitleTextStyle}"
-                                            Text="角色语音包仓库" />
+                                            Text="角色语音包库" />
                                         <TextBlock
                                             x:Name="VoiceCollectionsHintText"
                                             Style="{StaticResource SettingsCaptionTextStyle}"
@@ -555,7 +567,7 @@
                                         <TextBlock
                                             x:Name="IconCollectionsTitleText"
                                             Style="{StaticResource SettingsSectionTitleTextStyle}"
-                                            Text="击杀图标包仓库" />
+                                            Text="击杀图标包库" />
                                         <TextBlock
                                             x:Name="IconCollectionsHintText"
                                             Style="{StaticResource SettingsCaptionTextStyle}"
@@ -608,11 +620,11 @@
                                         x:Name="StructureTitleText"
                                         Style="{StaticResource SettingsSectionTitleTextStyle}"
                                         FontSize="18"
-                                        Text="CF 资源包标准规范与制作指南" />
+                                        Text="CF 资源包制作指南" />
                                     <TextBlock
                                         x:Name="StructureBodyText"
                                         Style="{StaticResource SettingsCaptionTextStyle}"
-                                        Text="所有内置包与自定义包均采用纯 Manifest 数据驱动，无需编写代码，只需放入规范命名的素材即可。" />
+                                        Text="内置包和自定义包都可以直接选择使用；导入素材时会自动整理所需文件。" />
                                 </StackPanel>
 
                                 <Grid ColumnSpacing="16">
@@ -624,7 +636,7 @@
                                     <!-- Audio Slot Spec Box -->
                                     <Border Padding="14,12" Background="#FAFAFA" BorderBrush="#E5E5E5" BorderThickness="1" CornerRadius="6">
                                         <StackPanel Spacing="8">
-                                            <TextBlock x:Name="StructureVoiceSpecTitleText" Style="{StaticResource MethodStepDetailTitleTextStyle}" FontSize="13" Text="音频插槽对照表 (Audio Slots)" />
+                                            <TextBlock x:Name="StructureVoiceSpecTitleText" Style="{StaticResource MethodStepDetailTitleTextStyle}" FontSize="13" Text="提示音文件说明" />
                                             <TextBlock x:Name="StructureVoiceSpecBodyText" Style="{StaticResource MethodStepMonoTextStyle}" FontSize="11" />
                                         </StackPanel>
                                     </Border>
@@ -632,7 +644,7 @@
                                     <!-- Icon Slot Spec Box -->
                                     <Border Grid.Column="1" Padding="14,12" Background="#FAFAFA" BorderBrush="#E5E5E5" BorderThickness="1" CornerRadius="6">
                                         <StackPanel Spacing="8">
-                                            <TextBlock x:Name="StructureIconSpecTitleText" Style="{StaticResource MethodStepDetailTitleTextStyle}" FontSize="13" Text="图标与特效序列帧规范 (Visual Slots)" />
+                                            <TextBlock x:Name="StructureIconSpecTitleText" Style="{StaticResource MethodStepDetailTitleTextStyle}" FontSize="13" Text="图标文件说明" />
                                             <TextBlock x:Name="StructureIconSpecSummaryText" Style="{StaticResource MethodStepBodyTextStyle}" FontSize="11" Foreground="#0067C0" />
                                             <Button
                                                 x:Name="IconSpecToggleButton"

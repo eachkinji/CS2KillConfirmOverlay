@@ -6,10 +6,12 @@ namespace KillConfirmGameBar.Controls.GameStyles
 {
     public sealed partial class Battlefield4AdvancedEffectsPanel : UserControl
     {
+        private bool _suppressKillMarkChanges;
+
         public Battlefield4AdvancedEffectsPanel()
         {
             InitializeComponent();
-            EventSoundPanel.Configure(GameStyleMode.Battlefield4);
+            RefreshKillMarkSetting();
         }
 
         public event SelectionChangedEventHandler MoneyRewardModeSelectionChanged;
@@ -27,8 +29,8 @@ namespace KillConfirmGameBar.Controls.GameStyles
             AdvancedEffectsPanelSupport.ApplyResetButton(ResetButton, theme);
             AdvancedEffectsPanelSupport.ApplyMoneyRow(MoneyRewardModeLabel, MoneyRewardModeSelector, theme);
             StreakEditor.ApplyTheme(theme);
-            EventSoundPanel.ApplyTheme(theme);
             AdvancedEffectsPanelSupport.ApplyNotice(ImportLockedNotice, ImportLockedText, theme);
+            AdvancedEffectsPanelSupport.ApplyKillMarkCard(VisualEffectsCard, VisualEffectsTitle, KillMarkEffectLabel, KillMarkEffectToggle, theme);
             StylePanel.ApplyTheme(theme);
         }
 
@@ -38,10 +40,10 @@ namespace KillConfirmGameBar.Controls.GameStyles
             ResetButtonText.Text = isChinese ? "恢复默认" : "Reset";
             ToolTipService.SetToolTip(ResetButton, isChinese ? "恢复 BF4 默认设置" : "Restore BF4 defaults");
             MoneyRewardModeLabel.Text = isChinese ? "奖励算法" : "Money";
-            MoneyRewardDeltaItem.Content = isChinese ? "GSI 差值（默认）" : "GSI delta (default)";
+            MoneyRewardDeltaItem.Content = isChinese ? "按实际金钱变化（推荐）" : "Actual money change (recommended)";
             MoneyRewardRulesItem.Content = isChinese ? "击杀奖励规则" : "Kill reward rules";
             StreakEditor.ApplyLanguage(isChinese);
-            EventSoundPanel.ApplyLanguage(isChinese);
+            AdvancedEffectsPanelSupport.ApplyKillMarkLanguage(VisualEffectsTitle, KillMarkEffectLabel, KillMarkEffectToggle, isChinese);
             StylePanel.ApplyLanguage(isChinese);
         }
 
@@ -65,11 +67,6 @@ namespace KillConfirmGameBar.Controls.GameStyles
             StreakEditor.SelectValue(value);
         }
 
-        public void ReloadEventSoundSettings()
-        {
-            EventSoundPanel.Reload();
-        }
-
         private void OnMoneyRewardModeSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             MoneyRewardModeSelectionChanged?.Invoke(this, e);
@@ -80,13 +77,36 @@ namespace KillConfirmGameBar.Controls.GameStyles
             StreakModeSelectionChanged?.Invoke(this, e);
         }
 
-        private async void OnResetButtonClick(object sender, RoutedEventArgs e)
+        private void OnResetButtonClick(object sender, RoutedEventArgs e)
         {
             SelectTaggedComboBoxItem(MoneyRewardModeSelector, "delta", "delta");
             StreakEditor.SelectValue(SharedStreakSettingsStore.LifeMode);
+            SetKillMarkEnabled(true);
             MoneyRewardModeSelectionChanged?.Invoke(MoneyRewardModeSelector, null);
             StreakModeSelectionChanged?.Invoke(StreakEditor.SelectorControl, null);
-            await EventSoundPanel.ResetToDefaultsAsync();
+        }
+
+        private void RefreshKillMarkSetting()
+        {
+            SetKillMarkEnabled(KillFeedbackVisibilitySettingsStore.Load(GameStyleMode.Battlefield4).CrosshairEnabled, false);
+        }
+
+        private void SetKillMarkEnabled(bool enabled, bool save = true)
+        {
+            _suppressKillMarkChanges = true;
+            KillMarkEffectToggle.IsOn = enabled;
+            _suppressKillMarkChanges = false;
+            if (save) SaveKillMarkSetting();
+        }
+
+        private void OnKillMarkEffectToggled(object sender, RoutedEventArgs e)
+        {
+            if (!_suppressKillMarkChanges) SaveKillMarkSetting();
+        }
+
+        private void SaveKillMarkSetting()
+        {
+            KillFeedbackVisibilitySettingsStore.Save(GameStyleMode.Battlefield4, new KillFeedbackVisibilitySettingsValues { CrosshairEnabled = KillMarkEffectToggle.IsOn });
         }
 
         private static string ReadTaggedComboBoxItem(ComboBox selector, string fallback)

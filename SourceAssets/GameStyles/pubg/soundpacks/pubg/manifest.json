@@ -1,0 +1,11 @@
+{
+  "id": "pubg",
+  "name": "pubg",
+  "game_style": "pubg",
+  "version": "1.0",
+  "audio": {
+    "base_gain": 1.0,
+    "slots": {},
+    "overlay_slots": []
+  }
+}

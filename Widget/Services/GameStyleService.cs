@@ -7,6 +7,9 @@ namespace KillConfirmGameBar.Services
         Crossfire,
         Csol,
         Valorant,
+        Overwatch,
+        ModernWarfare2019,
+        Apex,
         Battlefield1,
         Battlefield5,
         Battlefield4,
@@ -47,6 +50,12 @@ namespace KillConfirmGameBar.Services
             {
                 case GameStyleMode.Valorant:
                     return "valorant";
+                case GameStyleMode.Overwatch:
+                    return "overwatch";
+                case GameStyleMode.ModernWarfare2019:
+                    return "modernwarfare2019";
+                case GameStyleMode.Apex:
+                    return "apex";
                 case GameStyleMode.Battlefield1:
                     return "battlefield1";
                 case GameStyleMode.Battlefield5:
@@ -77,6 +86,12 @@ namespace KillConfirmGameBar.Services
             {
                 case GameStyleMode.Valorant:
                     return "无畏契约";
+                case GameStyleMode.Overwatch:
+                    return "守望先锋";
+                case GameStyleMode.ModernWarfare2019:
+                    return "使命召唤：现代战争 2019";
+                case GameStyleMode.Apex:
+                    return "Apex 英雄";
                 case GameStyleMode.Battlefield1:
                     return "战地1";
                 case GameStyleMode.Battlefield5:
@@ -107,6 +122,18 @@ namespace KillConfirmGameBar.Services
             {
                 case "valorant":
                     return GameStyleMode.Valorant;
+                case "overwatch":
+                case "ow":
+                    return GameStyleMode.Overwatch;
+                case "modernwarfare2019":
+                case "modernwarfare":
+                case "mw2019":
+                case "mw19":
+                    return GameStyleMode.ModernWarfare2019;
+                case "apex":
+                case "apexlegends":
+                case "apex_legends":
+                    return GameStyleMode.Apex;
                 case "battlefield1":
                 case "bf1":
                     return GameStyleMode.Battlefield1;
@@ -143,7 +170,63 @@ namespace KillConfirmGameBar.Services
         public static bool IsValorantKey(string key)
         {
             return !string.IsNullOrWhiteSpace(key)
-                && key.Trim().StartsWith("valorant_", System.StringComparison.OrdinalIgnoreCase);
+                && (key.Trim().StartsWith("valorant_", System.StringComparison.OrdinalIgnoreCase)
+                    || key.Trim().StartsWith("custom_valorant_voice_", System.StringComparison.OrdinalIgnoreCase));
+        }
+
+        public static bool IsOverwatchKey(string key)
+        {
+            string value = (key ?? string.Empty).Trim();
+            return string.Equals(value, "overwatch", System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "ow", System.StringComparison.OrdinalIgnoreCase)
+                || value.StartsWith("custom_overwatch_voice_", System.StringComparison.OrdinalIgnoreCase);
+        }
+
+        public static bool IsApexKey(string key)
+        {
+            string value = (key ?? string.Empty).Trim();
+            return string.Equals(value, "apex", System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "apexlegends", System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "apex_legends", System.StringComparison.OrdinalIgnoreCase)
+                || value.StartsWith("custom_apex_voice_", System.StringComparison.OrdinalIgnoreCase);
+        }
+
+        public static bool IsModernWarfare2019Key(string key)
+        {
+            string value = (key ?? string.Empty).Trim();
+            return string.Equals(value, "modernwarfare2019", System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "modernwarfare", System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "mw2019", System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "mw19", System.StringComparison.OrdinalIgnoreCase)
+                || value.StartsWith("custom_modernwarfare2019_voice_", System.StringComparison.OrdinalIgnoreCase);
+        }
+
+        public static bool SupportsCrosshairAreaEffect(GameStyleMode mode)
+        {
+            return mode == GameStyleMode.Overwatch
+                || mode == GameStyleMode.ModernWarfare2019
+                || mode == GameStyleMode.Apex
+                || IsAuxiliaryKillMarkStyle(mode);
+        }
+
+        public static bool IsAuxiliaryKillMarkStyle(GameStyleMode mode)
+        {
+            return IsBattlefieldKillMarkStyle(mode)
+                || mode == GameStyleMode.Crossfire
+                || mode == GameStyleMode.Pubg
+                || mode == GameStyleMode.Csol
+                || mode == GameStyleMode.Valorant
+                || mode == GameStyleMode.Doubao
+                || mode == GameStyleMode.Dagoujiao;
+        }
+
+        public static bool IsBattlefieldKillMarkStyle(GameStyleMode mode)
+        {
+            return mode == GameStyleMode.Battlefield1
+                || mode == GameStyleMode.Battlefield5
+                || mode == GameStyleMode.Battlefield4
+                || mode == GameStyleMode.Battlefield2042
+                || mode == GameStyleMode.DeltaForce;
         }
 
         public static bool IsBattlefield1Key(string key)
@@ -224,7 +307,10 @@ namespace KillConfirmGameBar.Services
                 || IsBattlefield2042Key(key)
                 || IsPubgKey(key)
                 || IsDeltaForceKey(key)
-                || IsDoubaoKey(key);
+                || IsDoubaoKey(key)
+                || IsOverwatchKey(key)
+                || IsModernWarfare2019Key(key)
+                || IsApexKey(key);
         }
 
         public static GameStyleMode GetStyleForPackKey(string key)
@@ -253,9 +339,63 @@ namespace KillConfirmGameBar.Services
                 return GameStyleMode.DeltaForce;
             }
 
+            // Event voice packs (unified event-sound-as-voice-pack-slot) for the
+            // combat-event games. Same per-game prefix scheme as icon packs.
+            if (key.StartsWith("custom_battlefield1_voice_", System.StringComparison.OrdinalIgnoreCase))
+            {
+                return GameStyleMode.Battlefield1;
+            }
+            if (key.StartsWith("custom_battlefield5_voice_", System.StringComparison.OrdinalIgnoreCase))
+            {
+                return GameStyleMode.Battlefield5;
+            }
+            if (key.StartsWith("custom_battlefield4_voice_", System.StringComparison.OrdinalIgnoreCase))
+            {
+                return GameStyleMode.Battlefield4;
+            }
+            if (key.StartsWith("custom_battlefield2042_voice_", System.StringComparison.OrdinalIgnoreCase))
+            {
+                return GameStyleMode.Battlefield2042;
+            }
+            if (key.StartsWith("custom_deltaforce_voice_", System.StringComparison.OrdinalIgnoreCase))
+            {
+                return GameStyleMode.DeltaForce;
+            }
+            if (key.StartsWith("custom_pubg_voice_", System.StringComparison.OrdinalIgnoreCase))
+            {
+                return GameStyleMode.Pubg;
+            }
+            if (key.StartsWith("custom_apex_voice_", System.StringComparison.OrdinalIgnoreCase))
+            {
+                return GameStyleMode.Apex;
+            }
+
+            // Defensive: BF4 / PUBG are text-only games that draw no kill icons, so
+            // they have no icon-pack creator. If a key with these prefixes ever
+            // appears (e.g. migrated from a prior leak), route it home instead of
+            // letting it fall through to Crossfire.
+            if (key.StartsWith("custom_battlefield4_icon_", System.StringComparison.OrdinalIgnoreCase))
+            {
+                return GameStyleMode.Battlefield4;
+            }
+            if (key.StartsWith("custom_pubg_icon_", System.StringComparison.OrdinalIgnoreCase))
+            {
+                return GameStyleMode.Pubg;
+            }
+
             if (IsValorantKey(key))
             {
                 return GameStyleMode.Valorant;
+            }
+
+            if (IsOverwatchKey(key))
+            {
+                return GameStyleMode.Overwatch;
+            }
+
+            if (IsModernWarfare2019Key(key))
+            {
+                return GameStyleMode.ModernWarfare2019;
             }
 
             if (IsCsolKey(key))
@@ -303,6 +443,11 @@ namespace KillConfirmGameBar.Services
                 return GameStyleMode.Doubao;
             }
 
+            if (IsApexKey(key))
+            {
+                return GameStyleMode.Apex;
+            }
+
             return GameStyleMode.Crossfire;
         }
 
@@ -317,6 +462,12 @@ namespace KillConfirmGameBar.Services
             {
                 case GameStyleMode.Valorant:
                     return ValorantPackService.DefaultKey;
+                case GameStyleMode.Overwatch:
+                    return "overwatch";
+                case GameStyleMode.ModernWarfare2019:
+                    return "modernwarfare2019";
+                case GameStyleMode.Apex:
+                    return "apex";
                 case GameStyleMode.Battlefield1:
                     return "bf1";
                 case GameStyleMode.Battlefield5:
@@ -347,6 +498,12 @@ namespace KillConfirmGameBar.Services
             {
                 case GameStyleMode.Valorant:
                     return ValorantPackService.DefaultKey;
+                case GameStyleMode.Overwatch:
+                    return "overwatch";
+                case GameStyleMode.ModernWarfare2019:
+                    return "modernwarfare2019";
+                case GameStyleMode.Apex:
+                    return "apex";
                 case GameStyleMode.Battlefield1:
                     return "bf1";
                 case GameStyleMode.Battlefield5:

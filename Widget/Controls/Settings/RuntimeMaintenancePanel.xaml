@@ -96,7 +96,7 @@
         <StackPanel Spacing="8">
             <!-- Hidden compatibility anchors for code-behind bindings -->
             <StackPanel Visibility="Collapsed">
-                <TextBlock x:Name="TitleText" Text="Plugin runtime" />
+                <TextBlock x:Name="TitleText" Text="软件与维护" />
                 <TextBlock x:Name="DescriptionText" Text="Choose an audio output device or restore all plugin data." />
             </StackPanel>
 
@@ -172,9 +172,18 @@
                             TextWrapping="WrapWholeWords" />
                     </StackPanel>
 
-                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <StackPanel Grid.Column="2" Spacing="8" VerticalAlignment="Center" HorizontalAlignment="Right">
+                        <ToggleSwitch
+                            x:Name="DeveloperModeToggle"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center"
+                            MinWidth="0"
+                            OffContent="关"
+                            OnContent="开"
+                            Toggled="OnDeveloperModeToggled" />
                         <Button
                             x:Name="OpenLogPathButton"
+                            HorizontalAlignment="Right"
                             Style="{StaticResource FluentActionBtnStyle}"
                             Click="OnOpenLogPathClick">
                             <StackPanel Orientation="Horizontal" Spacing="4">
@@ -182,13 +191,6 @@
                                 <TextBlock Text="打开日志目录" />
                             </StackPanel>
                         </Button>
-                        <ToggleSwitch
-                            x:Name="DeveloperModeToggle"
-                            VerticalAlignment="Center"
-                            MinWidth="0"
-                            OffContent="关"
-                            OnContent="开"
-                            Toggled="OnDeveloperModeToggled" />
                     </StackPanel>
                 </Grid>
             </Border>

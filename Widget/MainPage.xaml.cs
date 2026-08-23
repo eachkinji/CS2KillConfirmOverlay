@@ -152,15 +152,7 @@ namespace KillConfirmGameBar
                 {
                     ApplyGameStyleUi();
                     await ReloadPackListsAsync(mode);
-                    try
-                    {
-                        await CombatEventSoundSettingsStore.SyncAsync(mode);
-                    }
-                   catch (System.Exception ex)
-                   {
-                        App.LogCrash("Sync event sounds after style change failed: " + ex.Message);
-                   }
-               }
+                }
                catch (System.Exception ex)
                {
                     App.LogCrash("Game style switch failed in settings page: " + ex);

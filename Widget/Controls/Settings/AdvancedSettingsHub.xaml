@@ -113,6 +113,12 @@
             <Setter Property="FontSize" Value="12" />
         </Style>
 
+        <Style x:Key="FluentDangerButtonStyle" TargetType="Button" BasedOn="{StaticResource FluentSecondaryButtonStyle}">
+            <Setter Property="Background" Value="#C42B1C" />
+            <Setter Property="BorderBrush" Value="#C42B1C" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+
         <!-- Fluent 2 Input Style -->
         <Style x:Key="FluentInputStyle" TargetType="TextBox">
             <Setter Property="Background" Value="#FFFFFF" />
@@ -459,7 +465,7 @@
                                     <TextBlock
                                         x:Name="HubPortStatusTitle"
                                         Style="{StaticResource FluentCardTitleStyle}"
-                                        Text="连接探测诊断" />
+                                        Text="连接状态" />
                                     <TextBlock
                                         x:Name="HubPortStatusBody"
                                         Style="{StaticResource FluentCardDescriptionStyle}" />
@@ -502,8 +508,6 @@
                             Style="{StaticResource FluentCardDescriptionStyle}" />
                     </StackPanel>
 
-                    <settings:DisplayScalingSettingsPanel x:Name="HubDisplayScalingPanel" x:FieldModifier="public" />
-
                     <!-- GSI & System Options -->
                     <StackPanel Spacing="6">
                         <TextBlock
@@ -522,7 +526,7 @@
                         <TextBlock
                             x:Name="HubGeneralCardTitle"
                             Style="{StaticResource FluentSectionHeaderStyle}"
-                            Text="运行时与维护 (RUNTIME &amp; MAINTENANCE)" />
+                            Text="软件与维护" />
                         <TextBlock
                             x:Name="HubGeneralCardDescription"
                             Style="{StaticResource FluentCardDescriptionStyle}"
@@ -569,6 +573,22 @@
                                     x:Name="HubAboutVersion"
                                     Style="{StaticResource FluentCardDescriptionStyle}"
                                     Foreground="{StaticResource FluentSubtleText}" />
+                                <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,6,0,0">
+                                    <Button
+                                        x:Name="HubExitAllButton"
+                                        Style="{StaticResource FluentDangerButtonStyle}"
+                                        Content="完全退出本程序"
+                                        Click="OnHubExitAllClick" />
+                                    <Button
+                                        x:Name="HubUninstallButton"
+                                        Style="{StaticResource FluentSecondaryButtonStyle}"
+                                        Content="卸载"
+                                        Click="OnHubUninstallClick" />
+                                </StackPanel>
+                                <TextBlock
+                                    x:Name="HubAppActionsStatusText"
+                                    Style="{StaticResource FluentCardDescriptionStyle}"
+                                    Visibility="Collapsed" />
                             </StackPanel>
                         </Grid>
                     </Border>
@@ -601,7 +621,7 @@
 
                     <!-- Author & Credits Card -->
                     <Border Style="{StaticResource FluentSettingsCardStyle}">
-                        <StackPanel Spacing="8">
+                        <StackPanel Spacing="12">
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <Border Style="{StaticResource FluentIconContainerStyle}" Background="{StaticResource FluentAccentLight}">
                                     <FontIcon
@@ -618,10 +638,81 @@
                                     VerticalAlignment="Center"
                                     Text="作者与致谢" />
                             </StackPanel>
+
+                            <Border
+                                x:Name="HubAuthorProfileCard"
+                                Padding="12"
+                                BorderThickness="1"
+                                CornerRadius="12">
+                                <Grid ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="54" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border
+                                        x:Name="HubAuthorAvatarFrame"
+                                        Width="54"
+                                        Height="54"
+                                        BorderThickness="1"
+                                        CornerRadius="27">
+                                        <Image
+                                            Source="ms-appx:///Assets/DeveloperAvatar.jpg"
+                                            Stretch="UniformToFill" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                                        <TextBlock
+                                            x:Name="HubAuthorNameText"
+                                            FontSize="15"
+                                            FontWeight="SemiBold"
+                                            Text="Zac · eachkinji" />
+                                        <TextBlock
+                                            x:Name="HubAuthorDescriptionText"
+                                            FontSize="11"
+                                            Text="Kill Confirm Overlay 作者与维护者"
+                                            TextWrapping="WrapWholeWords" />
+                                    </StackPanel>
+                                    <Grid Grid.Column="2" Width="294" ColumnSpacing="6" RowSpacing="6">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+                                        <HyperlinkButton
+                                            x:Name="HubAuthorGitHubButton"
+                                            HorizontalContentAlignment="Center"
+                                            NavigateUri="https://github.com/eachkinji"
+                                            Content="GitHub · eachkinji" />
+                                        <HyperlinkButton
+                                            x:Name="HubAuthorBilibiliButton"
+                                            Grid.Column="1"
+                                            HorizontalContentAlignment="Center"
+                                            NavigateUri="https://space.bilibili.com/18017622"
+                                            Content="B站 · Zac不想烤肉" />
+                                        <HyperlinkButton
+                                            x:Name="HubProjectButton"
+                                            Grid.Row="1"
+                                            HorizontalContentAlignment="Center"
+                                            NavigateUri="https://github.com/eachkinji/CS2KillConfirmOverlay"
+                                            Content="项目主页" />
+                                        <HyperlinkButton
+                                            x:Name="HubDownloadButton"
+                                            Grid.Row="1"
+                                            Grid.Column="1"
+                                            HorizontalContentAlignment="Center"
+                                            NavigateUri="https://pan.quark.cn/s/1f3cfbcf8d5f?pwd=7Twv"
+                                            Content="下载与更新 · 7Twv" />
+                                    </Grid>
+                                </Grid>
+                            </Border>
                             <TextBlock
                                 x:Name="HubAboutCreditsBody"
                                 Style="{StaticResource FluentCardDescriptionStyle}"
                                 TextWrapping="Wrap" />
+                            <settings:CreditsCommunityPanel x:Name="HubCreditsCommunityPanel" />
                         </StackPanel>
                     </Border>
                 </StackPanel>

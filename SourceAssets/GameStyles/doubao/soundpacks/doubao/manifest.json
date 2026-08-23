@@ -1,0 +1,11 @@
+{
+  "id": "doubao",
+  "name": "doubao",
+  "game_style": "doubao",
+  "version": "1.0",
+  "audio": {
+    "base_gain": 1.0,
+    "slots": {"kill_1":"1kill.wav","kill_2":"2kill.wav","kill_3":"3kill.wav","kill_4":"4kill.wav","kill_5":"5kill.wav"},
+    "overlay_slots": []
+  }
+}

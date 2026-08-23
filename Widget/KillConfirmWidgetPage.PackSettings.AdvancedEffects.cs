@@ -109,6 +109,8 @@ namespace KillConfirmGameBar
             ApplicationData.Current.LocalSettings.Values[MainAnimationStyleSettingKey] = style;
             PrimaryKillAnimation?.ReleaseAnimationResourcesForPackChange();
             BadgeKillAnimation?.ReleaseAnimationResourcesForPackChange();
+            OverwatchCardAnimation?.ReleaseAnimationResourcesForPackChange();
+            ModernWarfare2019UpperAnimation?.ReleaseAnimationResourcesForPackChange();
             Controls.KillConfirmAnimation.ConfigureMainAnimationStyle(style);
             WarmStartupAnimationCacheIfActive();
         }

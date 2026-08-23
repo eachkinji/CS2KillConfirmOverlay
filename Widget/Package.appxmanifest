@@ -4,12 +4,14 @@
   xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest"
   xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
   xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3"
-  IgnorableNamespaces="uap uap3 mp">
+  xmlns:desktop="http://schemas.microsoft.com/appx/manifest/desktop/windows10"
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  IgnorableNamespaces="uap uap3 mp desktop rescap">
 
   <Identity
     Name="KillConfirmGameBar.Overlay"
     Publisher="CN=TestXboxGameBar"
-    Version="3.3.9.0" />
+    Version="4.0.0.0" />
 
   <mp:PhoneIdentity PhoneProductId="8f70c4bd-4270-4a4f-a7d1-91ae48dbe9f4" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
 
@@ -77,6 +79,28 @@
         <uap:Extension Category="windows.protocol">
           <uap:Protocol Name="killconfirmoverlay" />
         </uap:Extension>
+        <desktop:Extension Category="windows.fullTrustProcess" Executable="KillConfirmService\cskillconfirm.exe">
+          <desktop:FullTrustProcess>
+            <desktop:ParameterGroup GroupId="CrossfirePreset" Parameters="--preset crossfire_swat_gr --exit-with-ui" />
+            <desktop:ParameterGroup GroupId="CrossfirePresetDeveloper" Parameters="--preset crossfire_swat_gr --developer-mode --exit-with-ui" />
+            <desktop:ParameterGroup GroupId="FreeServicePort" Parameters="--free-port 10087" />
+            <desktop:ParameterGroup GroupId="OpenRuntimeLogs" Parameters="--open-logs" />
+            <desktop:ParameterGroup GroupId="ExitAll" Parameters="--exit-all" />
+            <desktop:ParameterGroup GroupId="OpenUninstaller" Parameters="--open-uninstaller" />
+            <desktop:ParameterGroup GroupId="OpenSettingsWindow" Parameters="--open-settings-launcher" />
+            <desktop:ParameterGroup GroupId="OpenSettingsWindowDeveloper" Parameters="--open-settings-launcher --developer-mode" />
+            <desktop:ParameterGroup GroupId="OpenQuarkUpdate" Parameters="--open-quark-update" />
+            <desktop:ParameterGroup GroupId="OpenAuthorGitHub" Parameters="--open-author-github" />
+            <desktop:ParameterGroup GroupId="OpenAuthorBilibili" Parameters="--open-author-bilibili" />
+            <desktop:ParameterGroup GroupId="ServicePort10087" Parameters="--port 10087 --exit-with-ui" />
+            <desktop:ParameterGroup GroupId="ServicePort10088" Parameters="--port 10088 --exit-with-ui" />
+            <desktop:ParameterGroup GroupId="ServicePort10089" Parameters="--port 10089 --exit-with-ui" />
+            <desktop:ParameterGroup GroupId="ServicePort10090" Parameters="--port 10090 --exit-with-ui" />
+            <desktop:ParameterGroup GroupId="ServicePort10091" Parameters="--port 10091 --exit-with-ui" />
+            <desktop:ParameterGroup GroupId="ServicePort10092" Parameters="--port 10092 --exit-with-ui" />
+            <desktop:ParameterGroup GroupId="ServicePortCustom" Parameters="--port-from-file --exit-with-ui" />
+          </desktop:FullTrustProcess>
+        </desktop:Extension>
       </Extensions>
     </Application>
   </Applications>
@@ -112,6 +136,7 @@
   </Extensions>
 
   <Capabilities>
+    <rescap:Capability Name="runFullTrust" />
     <Capability Name="internetClient" />
     <Capability Name="privateNetworkClientServer" />
   </Capabilities>

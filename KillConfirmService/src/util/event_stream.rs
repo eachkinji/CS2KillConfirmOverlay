@@ -74,6 +74,11 @@ pub struct HealthResponse {
     pub service: &'static str,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct UiProcessRequest {
+    pub pid: u32,
+}
+
 #[derive(Debug, Serialize)]
 pub struct PortResponse {
     pub port: u16,
@@ -162,6 +167,10 @@ fn default_dagoujiao_maximum_playback_speed() -> f32 {
     2.0
 }
 
+fn default_dagoujiao_epic_playback_speed() -> f32 {
+    1.0
+}
+
 #[derive(Debug, Deserialize)]
 pub struct CrossfireSettingsRequest {
     pub active: bool,
@@ -224,6 +233,20 @@ pub struct InterruptPreviousKillAudioRequest {
 }
 
 #[derive(Debug, Deserialize)]
+pub struct StreakGainSettingsRequest {
+    pub enabled: bool,
+    pub step_percent: u32,
+    pub maximum_percent: u32,
+}
+
+#[derive(Debug, Serialize)]
+pub struct StreakGainSettingsResponse {
+    pub enabled: bool,
+    pub step_percent: u32,
+    pub maximum_percent: u32,
+}
+
+#[derive(Debug, Deserialize)]
 pub struct GsiGameSettingsRequest {
     pub version: String,
 }
@@ -269,6 +292,8 @@ pub struct CsolSettingsRequest {
     pub voice_picks: HashMap<String, String>,
     #[serde(default)]
     pub special_voice_priority: bool,
+    #[serde(default = "default_true")]
+    pub last_kill_special_audio: bool,
 }
 
 #[derive(Debug, Serialize)]
@@ -276,6 +301,7 @@ pub struct CsolSettingsResponse {
     pub active: bool,
     pub voice_picks: HashMap<String, String>,
     pub special_voice_priority: bool,
+    pub last_kill_special_audio: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -286,6 +312,8 @@ pub struct DagoujiaoSettingsRequest {
     pub initial_playback_speed: f32,
     #[serde(default = "default_dagoujiao_maximum_playback_speed")]
     pub maximum_playback_speed: f32,
+    #[serde(default = "default_dagoujiao_epic_playback_speed")]
+    pub epic_playback_speed: f32,
     #[serde(default = "default_dagoujiao_common_audio_path")]
     pub common_audio_path: String,
     #[serde(default = "default_dagoujiao_epic_audio_path")]
@@ -300,6 +328,7 @@ pub struct DagoujiaoSettingsResponse {
     pub headshot_priority: bool,
     pub initial_playback_speed: f32,
     pub maximum_playback_speed: f32,
+    pub epic_playback_speed: f32,
 }
 
 #[derive(Debug, Serialize)]
@@ -472,12 +501,28 @@ const SOUND_PACK_OPTIONS: &[SoundPackOption] = &[
         display_name: "大狗叫",
     },
     SoundPackOption {
+        preset: "dagoujiao_animals",
+        display_name: "Animals",
+    },
+    SoundPackOption {
         preset: "doubao",
         display_name: "豆包",
     },
     SoundPackOption {
         preset: "csol4",
         display_name: "CSOL 10杀",
+    },
+    SoundPackOption {
+        preset: "overwatch",
+        display_name: "OverWatch",
+    },
+    SoundPackOption {
+        preset: "modernwarfare2019",
+        display_name: "Modern Warfare 2019",
+    },
+    SoundPackOption {
+        preset: "apex",
+        display_name: "Apex Legends",
     },
     SoundPackOption {
         preset: "valorant_00009_prime",
@@ -754,6 +799,47 @@ pub async fn shutdown(State(app_state): State<Arc<AppState>>) -> Json<HealthResp
     })
 }
 
+pub async fn register_ui_process(
+    State(app_state): State<Arc<AppState>>,
+    Json(request): Json<UiProcessRequest>,
+) -> Result<Json<HealthResponse>, StatusCode> {
+    if request.pid == 0 {
+        return Err(StatusCode::BAD_REQUEST);
+    }
+
+    app_state.ui_process_ids.write().await.insert(request.pid);
+    service_log(&format!("registered UI process pid={}", request.pid));
+    Ok(Json(HealthResponse {
+        ok: true,
+        service: "kill-confirm-gamebar",
+    }))
+}
+
+pub async fn unregister_ui_process(
+    State(app_state): State<Arc<AppState>>,
+    Json(request): Json<UiProcessRequest>,
+) -> Result<Json<HealthResponse>, StatusCode> {
+    if request.pid == 0 {
+        return Err(StatusCode::BAD_REQUEST);
+    }
+
+    let should_stop = {
+        let mut pids = app_state.ui_process_ids.write().await;
+        pids.remove(&request.pid);
+        service_log(&format!("unregistered UI process pid={}", request.pid));
+        app_state.args.exit_with_ui && pids.is_empty()
+    };
+    if should_stop {
+        service_log("last registered UI process closed; shutting down service");
+        let _ = app_state.shutdown_tx.send(());
+    }
+
+    Ok(Json(HealthResponse {
+        ok: true,
+        service: "kill-confirm-gamebar",
+    }))
+}
+
 #[derive(Debug, Deserialize)]
 pub struct AudioDeviceRequest {
     pub device: String,
@@ -1023,8 +1109,8 @@ pub async fn set_csol_settings(
     Json(request): Json<CsolSettingsRequest>,
 ) -> Result<Json<CsolSettingsResponse>, (axum::http::StatusCode, String)> {
     service_log(&format!(
-        "CSOL settings: voice_picks={:?}, special_voice_priority={}",
-        request.voice_picks, request.special_voice_priority
+        "CSOL settings: voice_picks={:?}, special_voice_priority={}, last_kill_special_audio={}",
+        request.voice_picks, request.special_voice_priority, request.last_kill_special_audio
     ));
 
     {
@@ -1035,6 +1121,9 @@ pub async fn set_csol_settings(
     app_state
         .csol_special_voice_priority
         .store(request.special_voice_priority, Ordering::Relaxed);
+    app_state
+        .csol_last_kill_special_audio
+        .store(request.last_kill_special_audio, Ordering::Relaxed);
 
     Ok(Json(csol_settings_response(&app_state).await))
 }
@@ -1066,6 +1155,11 @@ pub async fn set_dagoujiao_settings(
         (maximum_playback_speed * 100.0).round() as u32,
         Ordering::Relaxed,
     );
+    let epic_playback_speed = request.epic_playback_speed.clamp(0.25, 4.0);
+    app_state.dagoujiao_epic_playback_speed_percent.store(
+        (epic_playback_speed * 100.0).round() as u32,
+        Ordering::Relaxed,
+    );
     {
         let mut paths = app_state.dagoujiao_audio_paths.write().await;
         paths.insert("common".to_string(), request.common_audio_path.clone());
@@ -1073,11 +1167,12 @@ pub async fn set_dagoujiao_settings(
         paths.insert("headshot".to_string(), request.headshot_audio_path.clone());
     }
     service_log(&format!(
-        "Dagoujiao settings: epic_kill_count={}, headshot_priority={}, playback_speed={:.2}x->{:.2}x, custom_audio={}",
+        "Dagoujiao settings: epic_kill_count={}, headshot_priority={}, playback_speed={:.2}x->{:.2}x, epic_speed={:.2}x, custom_audio={}",
         epic_kill_count,
         request.headshot_priority,
         initial_playback_speed,
         maximum_playback_speed,
+        epic_playback_speed,
         [
             &request.common_audio_path,
             &request.epic_audio_path,
@@ -1264,10 +1359,36 @@ pub async fn interrupt_previous_kill_audio_settings(
     State(app_state): State<Arc<AppState>>,
 ) -> Json<InterruptPreviousKillAudioResponse> {
     Json(InterruptPreviousKillAudioResponse {
-        enabled: app_state
-            .stop_previous_kill_audio
-            .load(Ordering::Relaxed),
+        enabled: app_state.stop_previous_kill_audio.load(Ordering::Relaxed),
     })
+}
+
+pub async fn streak_gain_settings(
+    State(app_state): State<Arc<AppState>>,
+) -> Json<StreakGainSettingsResponse> {
+    Json(streak_gain_settings_response(&app_state))
+}
+
+pub async fn set_streak_gain_settings(
+    State(app_state): State<Arc<AppState>>,
+    Json(request): Json<StreakGainSettingsRequest>,
+) -> Json<StreakGainSettingsResponse> {
+    let step_percent = request.step_percent.min(100);
+    let maximum_percent = request.maximum_percent.clamp(100, 400);
+    app_state
+        .streak_gain_enabled
+        .store(request.enabled, Ordering::Relaxed);
+    app_state
+        .streak_gain_step_percent
+        .store(step_percent, Ordering::Relaxed);
+    app_state
+        .streak_gain_maximum_percent
+        .store(maximum_percent, Ordering::Relaxed);
+    service_log(&format!(
+        "streak gain: enabled={}, step={}%, maximum={}%",
+        request.enabled, step_percent, maximum_percent
+    ));
+    Json(streak_gain_settings_response(&app_state))
 }
 
 pub async fn set_interrupt_previous_kill_audio_settings(
@@ -1279,10 +1400,10 @@ pub async fn set_interrupt_previous_kill_audio_settings(
         .swap(request.enabled, Ordering::Relaxed);
 
     if previous && !request.enabled {
-        // The user just turned the setting off: drop any held kill sink so the
+        // The user just turned the setting off: drop any held kill sinks so the
         // next play_audio() call doesn't accidentally stop a still-playing voice.
-        if let Ok(mut active) = app_state.kill_audio_sink.lock() {
-            active.take();
+        if let Ok(mut active) = app_state.kill_audio_sinks.lock() {
+            active.clear();
         }
     }
 
@@ -1632,6 +1753,9 @@ fn resolve_soundpack_alias(value: &str) -> Option<&'static str> {
         "dagoujiao" | "da_gou_jiao" => Some("dagoujiao"),
         "doubao" | "dou_bao" => Some("doubao"),
         "csol4" | "csol" => Some("csol4"),
+        "overwatch" | "overwatch2" | "overwatch_2" | "ow" | "ow2" => Some("overwatch"),
+        "modernwarfare2019" | "modernwarfare" | "mw2019" | "mw19" => Some("modernwarfare2019"),
+        "apex" | "apexlegends" | "apex_legends" => Some("apex"),
         _ => None,
     }
 }
@@ -1683,6 +1807,9 @@ async fn csol_settings_response(app_state: &AppState) -> CsolSettingsResponse {
         special_voice_priority: app_state
             .csol_special_voice_priority
             .load(Ordering::Relaxed),
+        last_kill_special_audio: app_state
+            .csol_last_kill_special_audio
+            .load(Ordering::Relaxed),
     }
 }
 
@@ -1700,6 +1827,20 @@ fn dagoujiao_settings_response(app_state: &AppState) -> DagoujiaoSettingsRespons
             .dagoujiao_maximum_playback_speed_percent
             .load(Ordering::Relaxed) as f32
             / 100.0,
+        epic_playback_speed: app_state
+            .dagoujiao_epic_playback_speed_percent
+            .load(Ordering::Relaxed) as f32
+            / 100.0,
+    }
+}
+
+fn streak_gain_settings_response(app_state: &AppState) -> StreakGainSettingsResponse {
+    StreakGainSettingsResponse {
+        enabled: app_state.streak_gain_enabled.load(Ordering::Relaxed),
+        step_percent: app_state.streak_gain_step_percent.load(Ordering::Relaxed),
+        maximum_percent: app_state
+            .streak_gain_maximum_percent
+            .load(Ordering::Relaxed),
     }
 }
 
@@ -2175,6 +2316,7 @@ mod tests {
         let request: CsolSettingsRequest = serde_json::from_str("{}").unwrap();
         assert!(request.voice_picks.is_empty());
         assert!(!request.special_voice_priority);
+        assert!(request.last_kill_special_audio);
     }
 
     #[test]
@@ -2227,10 +2369,11 @@ mod tests {
         assert_eq!(request.headshot_audio_path, "builtin:jiaojiaojiao.wav");
         assert!((request.initial_playback_speed - 0.5).abs() < f32::EPSILON);
         assert!((request.maximum_playback_speed - 2.0).abs() < f32::EPSILON);
+        assert!((request.epic_playback_speed - 1.0).abs() < f32::EPSILON);
     }
 
     #[test]
-    fn soundpack_alias_resolves_csol4_and_doubao() {
+    fn soundpack_alias_resolves_game_specific_presets() {
         assert_eq!(super::resolve_soundpack_alias("csol4"), Some("csol4"));
         assert_eq!(super::resolve_soundpack_alias("csol"), Some("csol4"));
         assert_eq!(super::resolve_soundpack_alias("CSOL4"), Some("csol4"));
@@ -2240,6 +2383,17 @@ mod tests {
         );
         assert_eq!(super::resolve_soundpack_alias("doubao"), Some("doubao"));
         assert_eq!(super::resolve_soundpack_alias("DOU_BAO"), Some("doubao"));
+        assert_eq!(
+            super::resolve_soundpack_alias("overwatch"),
+            Some("overwatch")
+        );
+        assert_eq!(super::resolve_soundpack_alias("OW2"), Some("overwatch"));
+        assert_eq!(
+            super::resolve_soundpack_alias("MW19"),
+            Some("modernwarfare2019")
+        );
+        assert_eq!(super::resolve_soundpack_alias("apex"), Some("apex"));
+        assert_eq!(super::resolve_soundpack_alias("APEX_LEGENDS"), Some("apex"));
         assert_eq!(super::resolve_soundpack_alias("unsupported_pack"), None);
     }
 }

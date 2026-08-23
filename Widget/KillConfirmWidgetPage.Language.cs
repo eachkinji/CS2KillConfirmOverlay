@@ -82,6 +82,9 @@ namespace KillConfirmGameBar
             SetGameStyleItemContent(CrossfireStyleItem, LocalizationManager.Text("GameStyleCrossfireShort"), "ms-appx:///Assets/GameLogos/crossfire.png");
             SetGameStyleItemContent(CsolStyleItem, LocalizationManager.Text("GameStyleCsolShort"), "ms-appx:///Assets/GameLogos/csol.png");
             SetGameStyleItemContent(ValorantStyleItem, LocalizationManager.Text("GameStyleValorantShort"), "ms-appx:///Assets/GameLogos/valorant.png");
+            SetGameStyleItemContent(OverwatchStyleItem, LocalizationManager.Text("GameStyleOverwatchShort"), "ms-appx:///Assets/GameLogos/overwatch.png");
+            SetGameStyleItemContent(ModernWarfare2019StyleItem, "MW2019", "ms-appx:///Assets/GameLogos/modernwarfare2019.png");
+            SetGameStyleItemContent(ApexStyleItem, "APEX", "ms-appx:///Assets/GameLogos/apex.png");
             SetGameStyleItemContent(Battlefield1StyleItem, "BF1", "ms-appx:///Assets/GameLogos/battlefield1.png");
             SetGameStyleItemContent(Battlefield5StyleItem, "BF5", "ms-appx:///Assets/GameLogos/battlefield5.png");
             SetGameStyleItemContent(Battlefield4StyleItem, "BF4", "ms-appx:///Assets/GameLogos/battlefield4.png");
@@ -144,16 +147,9 @@ namespace KillConfirmGameBar
             SetNamedToolTip(WindowTopButton, LocalizationManager.Text("WindowTopTitle"), LocalizationManager.Text("WindowTopTooltip"));
             SetNamedToolTip(ControlPanelCenterButton, LocalizationManager.Text("ControlPanelCenterTitle"), LocalizationManager.Text("ControlPanelCenterTooltip"));
             SetNamedToolTip(WindowBottomButton, LocalizationManager.Text("WindowBottomTitle"), LocalizationManager.Text("WindowBottomTooltip"));
-            SetNamedToolTip(LowerThirdButton, LocalizationManager.Text("LowerThirdTitle"), LocalizationManager.Text("LowerThirdTooltip"));
-            SetNamedToolTip(HighPositionButton, LocalizationManager.Text("HighPositionTitle"), LocalizationManager.Text("HighPositionTooltip"));
-            SetNamedToolTip(IconCenterButton, LocalizationManager.Text("IconCenterTitle"), LocalizationManager.Text("IconCenterTooltip"));
             SetNamedToolTip(AnimationDragOutline, LocalizationManager.Text("IconDragTitle"), LocalizationManager.Text("IconDragTooltip"));
-            SetNamedToolTip(MoveUpButton, LocalizationManager.Text("MoveUpTitle"), LocalizationManager.Text("MoveUpTooltip"));
-            SetNamedToolTip(MoveDownButton, LocalizationManager.Text("MoveDownTitle"), LocalizationManager.Text("MoveDownTooltip"));
-            SetNamedToolTip(MoveLeftButton, LocalizationManager.Text("MoveLeftTitle"), LocalizationManager.Text("MoveLeftTooltip"));
-            SetNamedToolTip(MoveRightButton, LocalizationManager.Text("MoveRightTitle"), LocalizationManager.Text("MoveRightTooltip"));
-            SetNamedToolTip(ScaleDownButton, LocalizationManager.Text("ShrinkTitle"), LocalizationManager.Text("ShrinkTooltip"));
-            SetNamedToolTip(ScaleUpButton, LocalizationManager.Text("EnlargeTitle"), LocalizationManager.Text("EnlargeTooltip"));
+            SetNamedToolTip(OverwatchCardDragOutline, LocalizationManager.Text("IconDragTitle"), LocalizationManager.Text("IconDragTooltip"));
+            SetNamedToolTip(ModernWarfare2019UpperDragOutline, LocalizationManager.Text("IconDragTitle"), LocalizationManager.Text("IconDragTooltip"));
 
             SetNamedToolTip(BrightnessIcon, LocalizationManager.Text("BrightnessTitle"), LocalizationManager.Text("BrightnessTooltip"));
             SetNamedToolTip(BrightnessSelector, LocalizationManager.Text("BrightnessTitle"), LocalizationManager.Text("BrightnessTooltip"));

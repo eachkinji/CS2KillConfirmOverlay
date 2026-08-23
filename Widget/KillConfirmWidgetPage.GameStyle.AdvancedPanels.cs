@@ -13,6 +13,9 @@ namespace KillConfirmGameBar
         private CrossfireAdvancedEffectsPanel _crossfireAdvancedEffectsPanel;
         private CsolAdvancedEffectsPanel _csolAdvancedEffectsPanel;
         private ValorantAdvancedEffectsPanel _valorantAdvancedEffectsPanel;
+        private OverwatchAdvancedEffectsPanel _overwatchAdvancedEffectsPanel;
+        private ModernWarfare2019AdvancedEffectsPanel _modernWarfare2019AdvancedEffectsPanel;
+        private ApexAdvancedEffectsPanel _apexAdvancedEffectsPanel;
         private Battlefield1AdvancedEffectsPanel _battlefield1AdvancedEffectsPanel;
         private Battlefield5AdvancedEffectsPanel _battlefield5AdvancedEffectsPanel;
         private Battlefield4AdvancedEffectsPanel _battlefield4AdvancedEffectsPanel;
@@ -32,6 +35,8 @@ namespace KillConfirmGameBar
                 if (AdvancedEffectsPanelHost?.Content == _battlefield2042AdvancedEffectsPanel) return _battlefield2042AdvancedEffectsPanel?.MoneyRewardModeSelectorControl;
                 if (AdvancedEffectsPanelHost?.Content == _deltaForceAdvancedEffectsPanel) return _deltaForceAdvancedEffectsPanel?.MoneyRewardModeSelectorControl;
                 if (AdvancedEffectsPanelHost?.Content == _pubgAdvancedEffectsPanel) return _pubgAdvancedEffectsPanel?.MoneyRewardModeSelectorControl;
+                if (AdvancedEffectsPanelHost?.Content == _apexAdvancedEffectsPanel) return _apexAdvancedEffectsPanel?.MoneyRewardModeSelectorControl;
+                if (AdvancedEffectsPanelHost?.Content == _modernWarfare2019AdvancedEffectsPanel) return _modernWarfare2019AdvancedEffectsPanel?.MoneyRewardModeSelectorControl;
                 return null;
             }
         }
@@ -46,6 +51,8 @@ namespace KillConfirmGameBar
                 if (AdvancedEffectsPanelHost?.Content == _battlefield2042AdvancedEffectsPanel) return _battlefield2042AdvancedEffectsPanel?.MoneyRewardModeLabelControl;
                 if (AdvancedEffectsPanelHost?.Content == _deltaForceAdvancedEffectsPanel) return _deltaForceAdvancedEffectsPanel?.MoneyRewardModeLabelControl;
                 if (AdvancedEffectsPanelHost?.Content == _pubgAdvancedEffectsPanel) return _pubgAdvancedEffectsPanel?.MoneyRewardModeLabelControl;
+                if (AdvancedEffectsPanelHost?.Content == _apexAdvancedEffectsPanel) return _apexAdvancedEffectsPanel?.MoneyRewardModeLabelControl;
+                if (AdvancedEffectsPanelHost?.Content == _modernWarfare2019AdvancedEffectsPanel) return _modernWarfare2019AdvancedEffectsPanel?.MoneyRewardModeLabelControl;
                 return null;
             }
         }
@@ -60,6 +67,8 @@ namespace KillConfirmGameBar
                 if (AdvancedEffectsPanelHost?.Content == _battlefield2042AdvancedEffectsPanel) return _battlefield2042AdvancedEffectsPanel?.MoneyRewardDeltaItemControl;
                 if (AdvancedEffectsPanelHost?.Content == _deltaForceAdvancedEffectsPanel) return _deltaForceAdvancedEffectsPanel?.MoneyRewardDeltaItemControl;
                 if (AdvancedEffectsPanelHost?.Content == _pubgAdvancedEffectsPanel) return _pubgAdvancedEffectsPanel?.MoneyRewardDeltaItemControl;
+                if (AdvancedEffectsPanelHost?.Content == _apexAdvancedEffectsPanel) return _apexAdvancedEffectsPanel?.MoneyRewardDeltaItemControl;
+                if (AdvancedEffectsPanelHost?.Content == _modernWarfare2019AdvancedEffectsPanel) return _modernWarfare2019AdvancedEffectsPanel?.MoneyRewardDeltaItemControl;
                 return null;
             }
         }
@@ -74,6 +83,8 @@ namespace KillConfirmGameBar
                 if (AdvancedEffectsPanelHost?.Content == _battlefield2042AdvancedEffectsPanel) return _battlefield2042AdvancedEffectsPanel?.MoneyRewardRulesItemControl;
                 if (AdvancedEffectsPanelHost?.Content == _deltaForceAdvancedEffectsPanel) return _deltaForceAdvancedEffectsPanel?.MoneyRewardRulesItemControl;
                 if (AdvancedEffectsPanelHost?.Content == _pubgAdvancedEffectsPanel) return _pubgAdvancedEffectsPanel?.MoneyRewardRulesItemControl;
+                if (AdvancedEffectsPanelHost?.Content == _apexAdvancedEffectsPanel) return _apexAdvancedEffectsPanel?.MoneyRewardRulesItemControl;
+                if (AdvancedEffectsPanelHost?.Content == _modernWarfare2019AdvancedEffectsPanel) return _modernWarfare2019AdvancedEffectsPanel?.MoneyRewardRulesItemControl;
                 return null;
             }
         }
@@ -88,6 +99,15 @@ namespace KillConfirmGameBar
             object panel;
             switch (GameStyleService.Current)
             {
+                case GameStyleMode.Overwatch:
+                    panel = EnsureOverwatchAdvancedEffectsPanel();
+                    break;
+                case GameStyleMode.ModernWarfare2019:
+                    panel = EnsureModernWarfare2019AdvancedEffectsPanel();
+                    break;
+                case GameStyleMode.Apex:
+                    panel = EnsureApexAdvancedEffectsPanel();
+                    break;
                 case GameStyleMode.Valorant:
                     panel = EnsureValorantAdvancedEffectsPanel();
                     break;
@@ -197,12 +217,61 @@ namespace KillConfirmGameBar
                 _valorantAdvancedEffectsPanel.SetStylePanel(new ValorantStylePanel());
                 _valorantAdvancedEffectsPanel.SelectAssistAudio(
                     AssistAudioSettingsStore.Load(GameStyleMode.Valorant));
+                _valorantAdvancedEffectsPanel.SelectPackSync(
+                    ValorantPackSyncSettingsStore.Load());
                 _valorantAdvancedEffectsPanel.StreakModeSelectionChanged += OnSharedStreakModeSelectionChanged;
                 _valorantAdvancedEffectsPanel.AssistAudioToggled += OnValorantAssistAudioToggled;
+                _valorantAdvancedEffectsPanel.PackSyncToggled += OnValorantPackSyncToggled;
                 LoadSharedStreakMode(GameStyleMode.Valorant);
             }
 
             return _valorantAdvancedEffectsPanel;
+        }
+
+        private OverwatchAdvancedEffectsPanel EnsureOverwatchAdvancedEffectsPanel()
+        {
+            if (_overwatchAdvancedEffectsPanel == null)
+            {
+                _overwatchAdvancedEffectsPanel = new OverwatchAdvancedEffectsPanel();
+                _overwatchAdvancedEffectsPanel.AssistAudioToggled += OnGameAssistAudioToggled;
+            }
+
+            _overwatchAdvancedEffectsPanel.SelectAssistAudio(
+                AssistAudioSettingsStore.Load(GameStyleMode.Overwatch));
+            _overwatchAdvancedEffectsPanel.RefreshVisualEffectSettings();
+
+            return _overwatchAdvancedEffectsPanel;
+        }
+
+        private ModernWarfare2019AdvancedEffectsPanel EnsureModernWarfare2019AdvancedEffectsPanel()
+        {
+            if (_modernWarfare2019AdvancedEffectsPanel == null)
+            {
+                _modernWarfare2019AdvancedEffectsPanel = new ModernWarfare2019AdvancedEffectsPanel();
+                _modernWarfare2019AdvancedEffectsPanel.MoneyRewardModeSelectionChanged += OnMoneyRewardModeSelectionChanged;
+                _modernWarfare2019AdvancedEffectsPanel.StreakModeSelectionChanged += OnSharedStreakModeSelectionChanged;
+                _modernWarfare2019AdvancedEffectsPanel.AssistAudioToggled += OnGameAssistAudioToggled;
+                LoadSharedStreakMode(GameStyleMode.ModernWarfare2019);
+            }
+
+            _modernWarfare2019AdvancedEffectsPanel.SelectAssistAudio(
+                AssistAudioSettingsStore.Load(GameStyleMode.ModernWarfare2019));
+            _modernWarfare2019AdvancedEffectsPanel.RefreshVisualEffectSettings();
+
+            return _modernWarfare2019AdvancedEffectsPanel;
+        }
+
+        private ApexAdvancedEffectsPanel EnsureApexAdvancedEffectsPanel()
+        {
+            if (_apexAdvancedEffectsPanel == null)
+            {
+                _apexAdvancedEffectsPanel = new ApexAdvancedEffectsPanel();
+                _apexAdvancedEffectsPanel.MoneyRewardModeSelectionChanged += OnMoneyRewardModeSelectionChanged;
+                _apexAdvancedEffectsPanel.StreakModeSelectionChanged += OnSharedStreakModeSelectionChanged;
+                LoadSharedStreakMode(GameStyleMode.Apex);
+            }
+            _apexAdvancedEffectsPanel.RefreshVisualEffectSettings();
+            return _apexAdvancedEffectsPanel;
         }
 
         private Battlefield1AdvancedEffectsPanel EnsureBattlefield1AdvancedEffectsPanel()
@@ -215,7 +284,6 @@ namespace KillConfirmGameBar
                 LoadSharedStreakMode(GameStyleMode.Battlefield1);
             }
 
-            _battlefield1AdvancedEffectsPanel.ReloadEventSoundSettings();
             return _battlefield1AdvancedEffectsPanel;
         }
 
@@ -229,7 +297,6 @@ namespace KillConfirmGameBar
                 LoadSharedStreakMode(GameStyleMode.Battlefield5);
             }
 
-            _battlefield5AdvancedEffectsPanel.ReloadEventSoundSettings();
             return _battlefield5AdvancedEffectsPanel;
         }
 
@@ -243,7 +310,6 @@ namespace KillConfirmGameBar
                 LoadSharedStreakMode(GameStyleMode.Battlefield4);
             }
 
-            _battlefield4AdvancedEffectsPanel.ReloadEventSoundSettings();
             return _battlefield4AdvancedEffectsPanel;
         }
 
@@ -257,7 +323,6 @@ namespace KillConfirmGameBar
                 LoadSharedStreakMode(GameStyleMode.Battlefield2042);
             }
 
-            _battlefield2042AdvancedEffectsPanel.ReloadEventSoundSettings();
             return _battlefield2042AdvancedEffectsPanel;
         }
 
@@ -284,7 +349,6 @@ namespace KillConfirmGameBar
                 LoadSharedStreakMode(GameStyleMode.DeltaForce);
             }
 
-            _deltaForceAdvancedEffectsPanel.ReloadEventSoundSettings();
             return _deltaForceAdvancedEffectsPanel;
         }
 
@@ -320,6 +384,25 @@ namespace KillConfirmGameBar
             AdvancedEffectsGameCard.Background = new SolidColorBrush(theme.Panel);
             AdvancedEffectsGameCard.BorderBrush = new SolidColorBrush(theme.Border);
             AdvancedEffectsGameTitleText.Foreground = new SolidColorBrush(theme.Text);
+            AdvancedEffectsExperienceCard.Background = new SolidColorBrush(theme.Panel);
+            AdvancedEffectsExperienceCard.BorderBrush = new SolidColorBrush(theme.Border);
+            AdvancedEffectsExperienceTitleText.Foreground = new SolidColorBrush(theme.Text);
+            AdvancedEffectsRuntimeCard.Background = new SolidColorBrush(theme.Panel);
+            AdvancedEffectsRuntimeCard.BorderBrush = new SolidColorBrush(theme.Border);
+            AdvancedEffectsRuntimeTitleText.Foreground = new SolidColorBrush(theme.Text);
+            AdvancedEffectsCreditsCard.Background = new SolidColorBrush(theme.Panel);
+            AdvancedEffectsCreditsCard.BorderBrush = new SolidColorBrush(theme.Border);
+            AdvancedEffectsCreditsTitleText.Foreground = new SolidColorBrush(theme.Text);
+            AdvancedEffectsCreditsBodyText.Foreground = new SolidColorBrush(theme.MutedText);
+            AdvancedEffectsAuthorCard.Background = theme.Brush(theme.SubtleField);
+            AdvancedEffectsAuthorCard.BorderBrush = theme.Brush(theme.SoftBorder);
+            AdvancedEffectsAuthorAvatarFrame.Background = theme.Brush(theme.Card);
+            AdvancedEffectsAuthorAvatarFrame.BorderBrush = theme.Brush(theme.SoftBorder);
+            AdvancedEffectsAuthorNameText.Foreground = theme.Brush(theme.Text);
+            AdvancedEffectsAuthorDescriptionText.Foreground = theme.Brush(theme.MutedText);
+            AdvancedEffectsCreditsCommunityPanel.ApplyTheme(theme);
+            AdvancedEffectsExperiencePanel.ApplyTheme(theme);
+            AdvancedEffectsRuntimePanel.ApplyTheme(theme);
             if (_crossfireAdvancedEffectsPanel != null)
             {
                 _crossfireAdvancedEffectsPanel.ApplyTheme(theme);
@@ -333,6 +416,21 @@ namespace KillConfirmGameBar
             if (_valorantAdvancedEffectsPanel != null)
             {
                 _valorantAdvancedEffectsPanel.ApplyTheme(theme);
+            }
+
+            if (_overwatchAdvancedEffectsPanel != null)
+            {
+                _overwatchAdvancedEffectsPanel.ApplyTheme(theme);
+            }
+
+            if (_modernWarfare2019AdvancedEffectsPanel != null)
+            {
+                _modernWarfare2019AdvancedEffectsPanel.ApplyTheme(theme);
+            }
+
+            if (_apexAdvancedEffectsPanel != null)
+            {
+                _apexAdvancedEffectsPanel.ApplyTheme(theme);
             }
 
             if (_battlefield1AdvancedEffectsPanel != null)
@@ -385,6 +483,23 @@ namespace KillConfirmGameBar
         {
             bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
             AdvancedEffectsGameTitleText.Text = LocalizationManager.Text("GameEffectsTitle");
+            AdvancedEffectsExperienceTitleText.Text = isChinese ? "游戏体验增强" : "Game experience";
+            AdvancedEffectsRuntimeTitleText.Text = isChinese ? "软件与维护" : "App & maintenance";
+            AdvancedEffectsCreditsTitleText.Text = isChinese ? "作者与致谢" : "Author & credits";
+            AdvancedEffectsAuthorNameText.Text = "Zac · eachkinji";
+            AdvancedEffectsAuthorDescriptionText.Text = isChinese
+                ? "Kill Confirm Overlay 作者与维护者"
+                : "Author and maintainer of Kill Confirm Overlay";
+            AdvancedEffectsAuthorGitHubButton.Content = "GitHub · eachkinji";
+            AdvancedEffectsAuthorBilibiliButton.Content = isChinese ? "B站 · Zac不想烤肉" : "Bilibili · Zac";
+            AdvancedEffectsProjectButton.Content = isChinese ? "项目主页" : "Project home";
+            AdvancedEffectsDownloadButton.Content = isChinese ? "下载与更新 · 7Twv" : "Download & update · 7Twv";
+            AdvancedEffectsCreditsBodyText.Text = isChinese
+                ? "感谢 st0nie 提供 cskillconfirm 的开发思路与基础代码，并感谢 gufan0000 的 CS2 Customizer 与本项目持续联动。"
+                : "Thanks to st0nie for the ideas and foundation from cskillconfirm, and to gufan0000 for the ongoing CS2 Customizer collaboration.";
+            AdvancedEffectsCreditsCommunityPanel.ApplyLanguage();
+            AdvancedEffectsExperiencePanel.ApplyLanguage();
+            AdvancedEffectsRuntimePanel.ApplyLanguage();
             if (_crossfireAdvancedEffectsPanel != null)
             {
                 _crossfireAdvancedEffectsPanel.ApplyLanguage(isChinese);
@@ -398,6 +513,21 @@ namespace KillConfirmGameBar
             if (_valorantAdvancedEffectsPanel != null)
             {
                 _valorantAdvancedEffectsPanel.ApplyLanguage(isChinese);
+            }
+
+            if (_overwatchAdvancedEffectsPanel != null)
+            {
+                _overwatchAdvancedEffectsPanel.ApplyLanguage(isChinese);
+            }
+
+            if (_modernWarfare2019AdvancedEffectsPanel != null)
+            {
+                _modernWarfare2019AdvancedEffectsPanel.ApplyLanguage(isChinese);
+            }
+
+            if (_apexAdvancedEffectsPanel != null)
+            {
+                _apexAdvancedEffectsPanel.ApplyLanguage(isChinese);
             }
 
             if (_battlefield1AdvancedEffectsPanel != null)
@@ -469,6 +599,14 @@ namespace KillConfirmGameBar
             else if (AdvancedEffectsPanelHost?.Content == _pubgAdvancedEffectsPanel)
             {
                 _pubgAdvancedEffectsPanel.SelectMoneyRewardMode(mode, DefaultMoneyRewardMode);
+            }
+            else if (AdvancedEffectsPanelHost?.Content == _apexAdvancedEffectsPanel)
+            {
+                _apexAdvancedEffectsPanel.SelectMoneyRewardMode(mode, DefaultMoneyRewardMode);
+            }
+            else if (AdvancedEffectsPanelHost?.Content == _modernWarfare2019AdvancedEffectsPanel)
+            {
+                _modernWarfare2019AdvancedEffectsPanel.SelectMoneyRewardMode(mode, DefaultMoneyRewardMode);
             }
             else if (AdvancedEffectsPanelHost?.Content == _deltaForceAdvancedEffectsPanel)
             {

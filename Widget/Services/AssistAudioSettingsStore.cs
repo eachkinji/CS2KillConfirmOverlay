@@ -6,6 +6,15 @@ namespace KillConfirmGameBar.Services
     {
         private const string CrossfireSettingKey = "CrossfireAssistAudioEnabled";
         private const string ValorantSettingKey = "ValorantAssistAudioEnabled";
+        private const string OverwatchSettingKey = "OverwatchAssistAudioEnabled";
+        private const string ModernWarfare2019SettingKey = "ModernWarfare2019AssistAudioEnabled";
+
+        public static bool IsSupported(GameStyleMode style)
+        {
+            return style == GameStyleMode.Valorant
+                || style == GameStyleMode.Overwatch
+                || style == GameStyleMode.ModernWarfare2019;
+        }
 
         public static bool Load(GameStyleMode style)
         {
@@ -41,6 +50,10 @@ namespace KillConfirmGameBar.Services
                     return CrossfireSettingKey;
                 case GameStyleMode.Valorant:
                     return ValorantSettingKey;
+                case GameStyleMode.Overwatch:
+                    return OverwatchSettingKey;
+                case GameStyleMode.ModernWarfare2019:
+                    return ModernWarfare2019SettingKey;
                 default:
                     return null;
             }

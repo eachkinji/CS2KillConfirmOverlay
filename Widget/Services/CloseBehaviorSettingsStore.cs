@@ -12,9 +12,9 @@ namespace KillConfirmGameBar.Services
         internal static string Load()
         {
             string value = ApplicationData.Current.LocalSettings.Values[SettingKey] as string;
-            return string.Equals(value, ExitMode, StringComparison.OrdinalIgnoreCase)
-                ? ExitMode
-                : KeepRunningMode;
+            return string.Equals(value, KeepRunningMode, StringComparison.OrdinalIgnoreCase)
+                ? KeepRunningMode
+                : ExitMode;
         }
 
         internal static bool KeepRunningAfterSettingsClose =>
@@ -23,9 +23,9 @@ namespace KillConfirmGameBar.Services
         internal static void Save(string mode)
         {
             ApplicationData.Current.LocalSettings.Values[SettingKey] =
-                string.Equals(mode, ExitMode, StringComparison.OrdinalIgnoreCase)
-                    ? ExitMode
-                    : KeepRunningMode;
+                string.Equals(mode, KeepRunningMode, StringComparison.OrdinalIgnoreCase)
+                    ? KeepRunningMode
+                    : ExitMode;
         }
     }
 }

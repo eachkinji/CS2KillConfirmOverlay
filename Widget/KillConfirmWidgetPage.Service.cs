@@ -31,6 +31,7 @@ namespace KillConfirmGameBar
         }
 
         private ServiceDiagnosticInfo _currentServiceDiagnostic;
+        private int _serviceRecoveryPending;
         private void ConfigureWidgetCapabilities()
         {
             if (_widget == null)
@@ -64,6 +65,30 @@ namespace KillConfirmGameBar
             _eventClient.ConnectionFailure += OnServiceConnectionFailure;
             _eventClient.EventsDropped += OnEventsDropped;
             _eventClient.Start();
+        }
+
+        private async Task<bool> WaitForKillEventConnectionAsync(TimeSpan timeout)
+        {
+            if (!_isPageActive || _shutdownRequested)
+            {
+                return false;
+            }
+
+            StartKillEventClient();
+            DateTimeOffset deadline = DateTimeOffset.UtcNow + timeout;
+            while (_isPageActive
+                && !_shutdownRequested
+                && DateTimeOffset.UtcNow < deadline)
+            {
+                if (_eventClient?.ConnectionState == KillEventConnectionState.Connected)
+                {
+                    return true;
+                }
+
+                await Task.Delay(50);
+            }
+
+            return _eventClient?.ConnectionState == KillEventConnectionState.Connected;
         }
 
         private void UpdateConnectionStateFromHealth(bool serviceHealthy)
@@ -165,6 +190,10 @@ namespace KillConfirmGameBar
 
         private async Task SyncServiceSettingsAsync()
         {
+            if (!await ServiceLauncher.RegisterCurrentProcessAsync())
+            {
+                App.Log("Failed to register UI process with companion lifetime monitor.");
+            }
             await SyncDeveloperModeAsync();
             await SyncSelectedVoicePackAsync();
             await SyncMoneyRewardModeAsync();
@@ -174,11 +203,23 @@ namespace KillConfirmGameBar
             await SyncDagoujiaoSettingsAsync();
             await SyncBombAudioSettingsAsync();
             await SyncSharedStreakSettingsAsync();
-            await SyncCombatEventSoundSettingsAsync();
             await SyncSpectatedKillEffectsAsync();
             await SyncGsiGameVersionAsync();
             await SyncProcessPrioritySettingsAsync();
             await SyncInterruptPreviousKillAudioAsync();
+            await SyncStreakGainSettingsAsync();
+        }
+
+        private static async Task SyncStreakGainSettingsAsync()
+        {
+            try
+            {
+                await StreakGainSettingsStore.SyncAsync();
+            }
+            catch (Exception ex)
+            {
+                App.Log("Sync streak gain settings failed: " + ex);
+            }
         }
 
         private static async Task SyncInterruptPreviousKillAudioAsync()
@@ -711,49 +752,80 @@ namespace KillConfirmGameBar
 
         private async void OnServiceConnectionFailure(object sender, ServiceConnectionFailureEventArgs failure)
         {
-            if (!_isPageActive || failure == null)
+            if (!_isPageActive || _shutdownRequested || failure == null)
             {
                 return;
             }
 
-            App.Log(
-                "Service event connection failure: kind=" + failure.Kind
-                + ", hresult=0x" + failure.HResult.ToString("X8")
-                + ", detail=" + failure.Detail);
-
-            await Task.Delay(300);
-            if (_serviceConnectionState == KillEventConnectionState.Connected)
+            // KillEventClient retries the HTTP poll every second. Collapse those
+            // failures into one recovery attempt so an exited companion is
+            // relaunched instead of leaving the widget permanently at SVC-07.
+            if (System.Threading.Interlocked.CompareExchange(ref _serviceRecoveryPending, 1, 0) != 0)
             {
                 return;
             }
 
-            ServiceHealthCheckResult health = await CheckServiceHealthAsync();
-            ServiceDiagnosticInfo fallback;
-            if (failure.Kind == ServiceConnectionFailureKind.AuthenticationFailed)
+            try
             {
-                fallback = CreateServiceDiagnostic("SVC-05", "ServiceDiagAuthFailed", failure.Detail);
-            }
-            else if (failure.Kind == ServiceConnectionFailureKind.ConnectionClosed)
-            {
-                fallback = CreateServiceDiagnostic("SVC-07", "ServiceDiagConnectionClosed", failure.Detail);
-            }
-            else if (failure.Kind == ServiceConnectionFailureKind.MessageReadFailed)
-            {
-                fallback = CreateServiceDiagnostic("SVC-07", "ServiceDiagEventDataInvalid", failure.Detail);
-            }
-            else
-            {
-                string detail = "0x" + failure.HResult.ToString("X8")
-                    + (string.IsNullOrWhiteSpace(failure.Detail) ? string.Empty : ": " + failure.Detail);
-                fallback = CreateServiceDiagnostic("SVC-07", "ServiceDiagConnectionFailed", detail);
-            }
+                App.Log(
+                    "Service event connection failure: kind=" + failure.Kind
+                    + ", hresult=0x" + failure.HResult.ToString("X8")
+                    + ", detail=" + failure.Detail);
 
-            ServiceDiagnosticInfo diagnostic = health.IsHealthy
-                ? fallback
-                : await ResolveServiceFailureAsync(health.Diagnostic ?? fallback);
-            if (_serviceConnectionState != KillEventConnectionState.Connected)
+                await Task.Delay(300);
+                if (!_isPageActive
+                    || _shutdownRequested
+                    || _serviceConnectionState == KillEventConnectionState.Connected)
+                {
+                    return;
+                }
+
+                ServiceHealthCheckResult health = await CheckServiceHealthAsync();
+                if (!health.IsHealthy && _isPageActive && !_shutdownRequested)
+                {
+                    App.Log("Event connection lost with no healthy companion; attempting automatic recovery.");
+                    await EnsureServiceAvailableAsync();
+                    health = await CheckServiceHealthAsync();
+                }
+
+                if (health.IsHealthy)
+                {
+                    UpdateConnectionState(
+                        _eventClient?.ConnectionState == KillEventConnectionState.Connected
+                            ? KillEventConnectionState.Connected
+                            : KillEventConnectionState.Connecting);
+                    return;
+                }
+
+                ServiceDiagnosticInfo fallback;
+                if (failure.Kind == ServiceConnectionFailureKind.AuthenticationFailed)
+                {
+                    fallback = CreateServiceDiagnostic("SVC-05", "ServiceDiagAuthFailed", failure.Detail);
+                }
+                else if (failure.Kind == ServiceConnectionFailureKind.ConnectionClosed)
+                {
+                    fallback = CreateServiceDiagnostic("SVC-07", "ServiceDiagConnectionClosed", failure.Detail);
+                }
+                else if (failure.Kind == ServiceConnectionFailureKind.MessageReadFailed)
+                {
+                    fallback = CreateServiceDiagnostic("SVC-07", "ServiceDiagEventDataInvalid", failure.Detail);
+                }
+                else
+                {
+                    string detail = "0x" + failure.HResult.ToString("X8")
+                        + (string.IsNullOrWhiteSpace(failure.Detail) ? string.Empty : ": " + failure.Detail);
+                    fallback = CreateServiceDiagnostic("SVC-07", "ServiceDiagConnectionFailed", detail);
+                }
+
+                ServiceDiagnosticInfo diagnostic = await ResolveServiceFailureAsync(health.Diagnostic ?? fallback);
+                if (_serviceConnectionState != KillEventConnectionState.Connected)
+                {
+                    ShowServiceDiagnostic(diagnostic);
+                }
+            }
+            finally
             {
-                ShowServiceDiagnostic(diagnostic);
+                System.Threading.Interlocked.Exchange(ref _serviceRecoveryPending, 0);
             }
         }
 
@@ -785,6 +857,15 @@ namespace KillConfirmGameBar
         {
             try
             {
+                // Normal UI shutdown releases only this process's lease. The
+                // service exits when the last registered UI process closes.
+                if (await ServiceLauncher.UnregisterCurrentProcessAsync())
+                {
+                    return;
+                }
+
+                // Compatibility fallback for an older companion that does not
+                // expose the process-lifetime endpoints yet.
                 using (var client = await LocalServiceAuth.CreateHttpClientAsync())
                 using (var content = new HttpStringContent(string.Empty, UnicodeEncoding.Utf8, "text/plain"))
                 {

@@ -1,0 +1,11 @@
+{
+  "id": "deltaforce",
+  "name": "deltaforce",
+  "game_style": "deltaforce",
+  "version": "1.0",
+  "audio": {
+    "base_gain": 1.0,
+    "slots": {"kill_1":"default.wav","headshot":"headshot.wav","knife":"crit.wav","assist":"assist.wav"},
+    "overlay_slots": []
+  }
+}

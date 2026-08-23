@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,6 +21,7 @@ namespace KillConfirmGameBar.Services
         public double MaximumScale { get; set; } = 2.0;
         public double InitialPlaybackSpeed { get; set; } = 0.5;
         public double MaximumPlaybackSpeed { get; set; } = 2.0;
+        public double EpicPlaybackSpeed { get; set; } = 1.0;
         public string HeadshotImageKey { get; set; } = DagoujiaoSettingsStore.DefaultHeadshotImageKey;
         public string EpicImageKey { get; set; } = DagoujiaoSettingsStore.DefaultEpicImageKey;
         public Dictionary<int, string> KillImageKeys { get; set; } = new Dictionary<int, string>();
@@ -54,6 +56,7 @@ namespace KillConfirmGameBar.Services
         public const string DefaultEpicAudioKey = "builtin:epic.wav";
         public const string JiaojiaojiaoAudioKey = "builtin:jiaojiaojiao.wav";
         public const string DefaultHeadshotAudioKey = JiaojiaojiaoAudioKey;
+        public const string AnimalsAudioKey = "builtin:animals.mp3";
 
         private const string Prefix = "Dagoujiao.";
         private const string ImportedFolderName = "DagoujiaoImages";
@@ -92,7 +95,8 @@ namespace KillConfirmGameBar.Services
                 BuiltInAudio("common.wav", "普通连杀语音"),
                 BuiltInAudio("epic.wav", "叫！！！"),
                 BuiltInAudio("jiaojiaojiao.wav", "叫叫叫"),
-                BuiltInAudio("headshot.wav", "原爆头语音")
+                BuiltInAudio("headshot.wav", "原爆头语音"),
+                BuiltInAudio("animals.mp3", "Animals")
             };
 
         public static event EventHandler Changed;
@@ -126,6 +130,7 @@ namespace KillConfirmGameBar.Services
                 MaximumScale = ReadInt(values[Prefix + "MaximumScalePercent"], 200) / 100.0,
                 InitialPlaybackSpeed = ReadInt(values[Prefix + "InitialPlaybackSpeedPercent"], 50) / 100.0,
                 MaximumPlaybackSpeed = ReadInt(values[Prefix + "MaximumPlaybackSpeedPercent"], 200) / 100.0,
+                EpicPlaybackSpeed = ReadInt(values[Prefix + "EpicPlaybackSpeedPercent"], 100) / 100.0,
                 HeadshotImageKey = NormalizeImageKey(
                     values[Prefix + "HeadshotImage"] as string,
                     DefaultHeadshotImageKey),
@@ -157,6 +162,7 @@ namespace KillConfirmGameBar.Services
             values[Prefix + "MaximumScalePercent"] = (int)Math.Round(Math.Max(0.1, Math.Min(4.0, settings.MaximumScale)) * 100.0);
             values[Prefix + "InitialPlaybackSpeedPercent"] = (int)Math.Round(Math.Max(0.25, Math.Min(4.0, settings.InitialPlaybackSpeed)) * 100.0);
             values[Prefix + "MaximumPlaybackSpeedPercent"] = (int)Math.Round(Math.Max(0.25, Math.Min(4.0, settings.MaximumPlaybackSpeed)) * 100.0);
+            values[Prefix + "EpicPlaybackSpeedPercent"] = (int)Math.Round(Math.Max(0.25, Math.Min(4.0, settings.EpicPlaybackSpeed)) * 100.0);
             values[Prefix + "HeadshotImage"] = NormalizeImageKey(settings.HeadshotImageKey, DefaultHeadshotImageKey);
             values[Prefix + "EpicImage"] = NormalizeImageKey(settings.EpicImageKey, DefaultEpicImageKey);
             values[Prefix + "CommonAudio"] = NormalizeAudioKey(settings.CommonAudioKey, DefaultCommonAudioKey);
@@ -345,13 +351,17 @@ namespace KillConfirmGameBar.Services
 
             bool commonRoute = !(isHeadshot && (settings?.HeadshotPriority ?? false))
                 && killCount < (settings?.EpicKillCount ?? 5);
+            bool epicRoute = !(isHeadshot && (settings?.HeadshotPriority ?? false))
+                && killCount >= (settings?.EpicKillCount ?? 5);
             double speed = commonRoute
                 ? ResolvePlaybackSpeed(
                     killCount,
                     settings?.EpicKillCount ?? 5,
                     settings?.InitialPlaybackSpeed ?? 0.5,
                     settings?.MaximumPlaybackSpeed ?? 2.0)
-                : 1.0;
+                : epicRoute
+                    ? settings?.EpicPlaybackSpeed ?? 1.0
+                    : 1.0;
             return sourceDurationMs / Math.Max(0.25, Math.Min(4.0, speed));
         }
 
@@ -394,6 +404,7 @@ namespace KillConfirmGameBar.Services
                     ["headshot_priority"] = JsonValue.CreateBooleanValue(settings.HeadshotPriority),
                     ["initial_playback_speed"] = JsonValue.CreateNumberValue(settings.InitialPlaybackSpeed),
                     ["maximum_playback_speed"] = JsonValue.CreateNumberValue(settings.MaximumPlaybackSpeed),
+                    ["epic_playback_speed"] = JsonValue.CreateNumberValue(settings.EpicPlaybackSpeed),
                     ["common_audio_path"] = JsonValue.CreateStringValue(commonAudioPath),
                     ["epic_audio_path"] = JsonValue.CreateStringValue(epicAudioPath),
                     ["headshot_audio_path"] = JsonValue.CreateStringValue(headshotAudioPath)
@@ -441,6 +452,17 @@ namespace KillConfirmGameBar.Services
         private static async Task<StorageFile> ResolveAudioFileAsync(string key)
         {
             string normalized = NormalizeAudioKey(key, DefaultCommonAudioKey);
+            if (Path.IsPathRooted(normalized))
+            {
+                try
+                {
+                    return await StorageFile.GetFileFromPathAsync(normalized);
+                }
+                catch
+                {
+                    return null;
+                }
+            }
             if (normalized.StartsWith("builtin:", StringComparison.OrdinalIgnoreCase))
             {
                 string fileName = normalized.Substring("builtin:".Length);
@@ -497,7 +519,16 @@ namespace KillConfirmGameBar.Services
             if (PackCatalogService.IsDagoujiaoVoicePackKey(voicePackKey))
             {
                 DagoujiaoSettingsValues settings = Load();
-                if (PackCatalogService.IsImportedVoicePackKey(voicePackKey))
+                if (string.Equals(
+                    voicePackKey,
+                    PackCatalogService.DagoujiaoAnimalsPackKey,
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    settings.CommonAudioKey = AnimalsAudioKey;
+                    settings.HeadshotAudioKey = AnimalsAudioKey;
+                    settings.EpicAudioKey = AnimalsAudioKey;
+                }
+                else if (PackCatalogService.IsImportedVoicePackKey(voicePackKey))
                 {
                     StorageFolder folder = await PackCatalogService.GetImportedVoiceFolderAsync(voicePackKey);
                     if (folder != null)
@@ -505,9 +536,9 @@ namespace KillConfirmGameBar.Services
                         StorageFile commonFile = await TryFindAudioFileInFolderAsync(folder, "common");
                         StorageFile headshotFile = await TryFindAudioFileInFolderAsync(folder, "headshot");
                         StorageFile epicFile = await TryFindAudioFileInFolderAsync(folder, "epic");
-                        if (commonFile != null) settings.CommonAudioKey = commonFile.Path;
-                        if (headshotFile != null) settings.HeadshotAudioKey = headshotFile.Path;
-                        if (epicFile != null) settings.EpicAudioKey = epicFile.Path;
+                        settings.CommonAudioKey = commonFile?.Path ?? DefaultCommonAudioKey;
+                        settings.HeadshotAudioKey = headshotFile?.Path ?? DefaultHeadshotAudioKey;
+                        settings.EpicAudioKey = epicFile?.Path ?? DefaultEpicAudioKey;
                     }
                 }
                 else
@@ -566,6 +597,7 @@ namespace KillConfirmGameBar.Services
         {
             if (string.IsNullOrWhiteSpace(key)) return fallback;
             string trimmed = key.Trim();
+            if (Path.IsPathRooted(trimmed) && File.Exists(trimmed)) return trimmed;
             DagoujiaoAudioChoice builtIn = BuiltInAudios.FirstOrDefault(
                 item => string.Equals(item.Key, trimmed, StringComparison.OrdinalIgnoreCase));
             if (builtIn != null) return builtIn.Key;

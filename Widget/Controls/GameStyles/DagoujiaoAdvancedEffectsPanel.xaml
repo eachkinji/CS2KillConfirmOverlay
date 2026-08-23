@@ -12,8 +12,6 @@
             </Grid.ColumnDefinitions>
             <StackPanel Spacing="2">
                 <TextBlock x:Name="TitleText" FontSize="15" FontWeight="Bold" Text="大狗叫高级设置" />
-                <TextBlock x:Name="HintText" FontSize="10" TextWrapping="WrapWholeWords"
-                           Text="设置 Epic 击杀阈值、优先级、变速与缩放曲线。语音与图标包请在上方标签页中管理。" />
             </StackPanel>
             <Button
                 x:Name="ResetButton"
@@ -32,6 +30,20 @@
         </Grid>
 
         <local:StreakWindowEditor x:Name="StreakEditor" SettingsChanged="OnStreakSettingChanged" />
+
+        <Border x:Name="VisualEffectsCard" Padding="12" BorderThickness="1" CornerRadius="8">
+            <StackPanel Spacing="8">
+                <TextBlock x:Name="VisualEffectsTitle" FontSize="12" FontWeight="SemiBold" />
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock x:Name="KillMarkEffectLabel" VerticalAlignment="Center" FontSize="10" TextWrapping="WrapWholeWords" />
+                    <ToggleSwitch x:Name="KillMarkEffectToggle" Grid.Column="1" MinWidth="0" Toggled="OnKillMarkEffectToggled" />
+                </Grid>
+            </StackPanel>
+        </Border>
 
         <Grid ColumnSpacing="8" RowSpacing="8">
             <Grid.ColumnDefinitions>
@@ -63,7 +75,7 @@
                 <TextBlock x:Name="InitialScaleLabel" FontSize="11" Text="第一杀缩放：0.50×" />
                 <Slider x:Name="InitialScaleSlider" Minimum="10" Maximum="400" StepFrequency="10" ValueChanged="OnCoreSettingChanged" />
             </StackPanel>
-            <StackPanel Grid.Row="2" Spacing="4">
+            <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Spacing="4">
                 <TextBlock x:Name="ScaleLabel" FontSize="11" Text="Epic 前一杀缩放：2.00×" />
                 <Slider x:Name="MaximumScaleSlider" Minimum="10" Maximum="400" StepFrequency="10" ValueChanged="OnCoreSettingChanged" />
             </StackPanel>
@@ -84,9 +96,10 @@
             </StackPanel>
         </Grid>
 
-        <Border x:Name="EpicNotice" Padding="10" BorderThickness="1" CornerRadius="10">
-            <TextBlock x:Name="EpicNoticeText" FontSize="11" TextWrapping="WrapWholeWords"
-                       Text="提示：大狗叫语音包（包含普通连杀、爆头与 Epic 叫叫叫）与图标包（包含 16 款大狗表情包与自定义图片）均由上方“语音包库”与“图标包库”统一管理。" />
-        </Border>
+        <StackPanel Spacing="4">
+            <TextBlock x:Name="EpicPlaybackSpeedLabel" FontSize="11" Text="Epic 音频速度：1.00×" />
+            <Slider x:Name="EpicPlaybackSpeedSlider" Minimum="25" Maximum="400" StepFrequency="5" ValueChanged="OnCoreSettingChanged" />
+        </StackPanel>
+
     </StackPanel>
 </UserControl>

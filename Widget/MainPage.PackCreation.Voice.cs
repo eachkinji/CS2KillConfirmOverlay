@@ -14,7 +14,7 @@ namespace KillConfirmGameBar
     {
         private async Task ShowCreateVoicePackDialogAsync(
             string initialDisplayName = null,
-            IReadOnlyDictionary<string, StorageFile> initialFiles = null,
+            IReadOnlyDictionary<string, IReadOnlyList<StorageFile>> initialFiles = null,
             StorageFile initialCommonOverlayFile = null,
             StorageFile initialHeadImageFile = null)
         {
@@ -33,9 +33,7 @@ namespace KillConfirmGameBar
                 ("firstandlast.wav", LocalizationManager.Text("FirstLastKill"))
             };
 
-            var selectedFiles = initialFiles != null
-                ? new Dictionary<string, StorageFile>(initialFiles, StringComparer.OrdinalIgnoreCase)
-                : new Dictionary<string, StorageFile>(StringComparer.OrdinalIgnoreCase);
+            var selectedFiles = CreateVoiceSelectionMap(initialFiles);
             var overlayEnabled = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
             var overlayCheckBoxes = new List<CheckBox>();
             StorageFile customCommonOverlayFile = initialCommonOverlayFile;
@@ -226,7 +224,7 @@ namespace KillConfirmGameBar
             foreach (var slot in slots)
             {
                 overlayEnabled[slot.Item1] = true;
-                selectedFiles.TryGetValue(slot.Item1, out StorageFile existingFile);
+                selectedFiles.TryGetValue(slot.Item1, out List<StorageFile> existingFiles);
 
                 string hint = string.Equals(slot.Item1, "common.wav", StringComparison.OrdinalIgnoreCase)
                     ? LocalizationManager.Text("SingleKillVoiceSlotHint") : null;
@@ -277,9 +275,9 @@ namespace KillConfirmGameBar
                     overlayCheckBoxes.Add(overlayCheckBox);
                 };
 
-                var row = await CreateSlotRowAsync(
-                    slot.Item1, slot.Item2, isAudio: true, GameStyleService.Current,
-                    selectedFiles, existingFile, hint: hint, attachExtraColumn: attachOverlay);
+                var row = await CreateVoiceSlotRowAsync(
+                    slot.Item1, slot.Item2, GameStyleService.Current,
+                    selectedFiles, existingFiles, hint: hint, attachExtraColumn: attachOverlay);
                 slotPanel.Children.Add(row);
             }
 
@@ -300,7 +298,7 @@ namespace KillConfirmGameBar
                 displayName,
                 new VoicePackBuildOptions
                 {
-                    SelectedFiles = selectedFiles,
+                    SelectedFileGroups = AsReadOnlyVoiceSelection(selectedFiles),
                     CommonOverlayEnabled = overlayEnabled,
                     UseBuiltInDefaultCommonOverlay = useBuiltInCommonOverlay,
                     CommonOverlayFile = useBuiltInCommonOverlay ? null : customCommonOverlayFile,

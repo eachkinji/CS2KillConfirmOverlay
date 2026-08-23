@@ -33,6 +33,12 @@ namespace KillConfirmGameBar.Services
             {
                 case GameStyleMode.Valorant:
                     return Valorant;
+                case GameStyleMode.Overwatch:
+                    return Overwatch;
+                case GameStyleMode.ModernWarfare2019:
+                    return ModernWarfare2019;
+                case GameStyleMode.Apex:
+                    return Apex;
                 case GameStyleMode.Battlefield1:
                     return Battlefield1;
                 case GameStyleMode.Battlefield5:
@@ -139,6 +145,69 @@ namespace KillConfirmGameBar.Services
             WarningField = Color.FromArgb(255, 255, 241, 242),
             WarningBorder = Color.FromArgb(255, 253, 164, 175),
             WarningText = Color.FromArgb(255, 159, 18, 57)
+        };
+
+        public static readonly GameThemePalette Overwatch = new GameThemePalette
+        {
+            Shell = Color.FromArgb(255, 246, 248, 250),
+            Panel = Color.FromArgb(255, 255, 255, 255),
+            Card = Color.FromArgb(255, 251, 252, 253),
+            Field = Color.FromArgb(255, 247, 249, 250),
+            SubtleField = Color.FromArgb(255, 232, 237, 241),
+            Border = Color.FromArgb(255, 207, 216, 223),
+            SoftBorder = Color.FromArgb(255, 216, 223, 229),
+            Text = Color.FromArgb(255, 50, 63, 74),
+            MutedText = Color.FromArgb(255, 92, 111, 125),
+            SubtleText = Color.FromArgb(255, 132, 147, 158),
+            Accent = Color.FromArgb(255, 246, 101, 22),
+            AccentSoft = Color.FromArgb(255, 255, 235, 222),
+            AccentText = Color.FromArgb(255, 174, 65, 12),
+            Secondary = Color.FromArgb(255, 54, 67, 79),
+            WarningField = Color.FromArgb(255, 255, 241, 232),
+            WarningBorder = Color.FromArgb(255, 244, 147, 92),
+            WarningText = Color.FromArgb(255, 160, 56, 12)
+        };
+
+        public static readonly GameThemePalette Apex = new GameThemePalette
+        {
+            Shell = Color.FromArgb(255, 249, 249, 249),
+            Panel = Color.FromArgb(255, 255, 255, 255),
+            Card = Color.FromArgb(255, 255, 255, 255),
+            Field = Color.FromArgb(255, 250, 250, 250),
+            SubtleField = Color.FromArgb(255, 245, 241, 240),
+            Border = Color.FromArgb(255, 229, 229, 229),
+            SoftBorder = Color.FromArgb(255, 232, 222, 219),
+            Text = Color.FromArgb(255, 27, 27, 27),
+            MutedText = Color.FromArgb(255, 97, 97, 97),
+            SubtleText = Color.FromArgb(255, 140, 140, 140),
+            Accent = Color.FromArgb(255, 218, 41, 42),
+            AccentSoft = Color.FromArgb(255, 254, 226, 226),
+            AccentText = Color.FromArgb(255, 153, 27, 27),
+            Secondary = Color.FromArgb(255, 88, 76, 72),
+            WarningField = Color.FromArgb(255, 255, 247, 237),
+            WarningBorder = Color.FromArgb(255, 251, 146, 60),
+            WarningText = Color.FromArgb(255, 154, 52, 18)
+        };
+
+        public static readonly GameThemePalette ModernWarfare2019 = new GameThemePalette
+        {
+            Shell = Color.FromArgb(255, 244, 249, 250),
+            Panel = Color.FromArgb(255, 255, 255, 255),
+            Card = Color.FromArgb(255, 249, 252, 253),
+            Field = Color.FromArgb(255, 246, 250, 251),
+            SubtleField = Color.FromArgb(255, 231, 242, 245),
+            Border = Color.FromArgb(255, 199, 222, 228),
+            SoftBorder = Color.FromArgb(255, 211, 230, 235),
+            Text = Color.FromArgb(255, 29, 48, 55),
+            MutedText = Color.FromArgb(255, 80, 107, 116),
+            SubtleText = Color.FromArgb(255, 123, 145, 152),
+            Accent = Color.FromArgb(255, 68, 177, 213),
+            AccentSoft = Color.FromArgb(255, 220, 242, 248),
+            AccentText = Color.FromArgb(255, 20, 108, 139),
+            Secondary = Color.FromArgb(255, 48, 65, 72),
+            WarningField = Color.FromArgb(255, 236, 246, 248),
+            WarningBorder = Color.FromArgb(255, 147, 199, 214),
+            WarningText = Color.FromArgb(255, 34, 91, 108)
         };
 
         public static readonly GameThemePalette Battlefield1 = new GameThemePalette

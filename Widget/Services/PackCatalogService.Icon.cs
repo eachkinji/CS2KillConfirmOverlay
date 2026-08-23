@@ -31,6 +31,15 @@ namespace KillConfirmGameBar.Services
         public static async Task<IReadOnlyList<IconPackItem>> GetVisibleIconPacksAsync()
         {
             var catalog = await LoadAsync();
+            if (GameStyleService.Current == GameStyleMode.Overwatch
+                || GameStyleService.Current == GameStyleMode.Apex)
+            {
+                string lockedKey = GameStyleService.Current == GameStyleMode.Apex ? "apex" : "overwatch";
+                return catalog.IconPacks
+                    .Where(p => string.Equals(p.Key, lockedKey, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+            }
+
             IEnumerable<IconPackItem> visible = catalog.IconPacks
                 .Where(p => p.IsVisibleInWidget && GameStyleService.IsVisibleForCurrentStyle(p.Key))
                 .ToList();
@@ -78,7 +87,7 @@ namespace KillConfirmGameBar.Services
         {
             if (string.IsNullOrWhiteSpace(key)) return false;
             return key.StartsWith("custom_dagoujiao_icon_", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(key, "dagoujiao", StringComparison.OrdinalIgnoreCase);
+                || key.StartsWith("dagoujiao", StringComparison.OrdinalIgnoreCase);
         }
 
         public static bool IsDoubaoIconPackKey(string key)
@@ -297,7 +306,7 @@ namespace KillConfirmGameBar.Services
             }
         }
 
-        public static async Task CreateIconPackAsync(string displayName, IReadOnlyDictionary<string, StorageFile> selectedFiles)
+        public static async Task CreateIconPackAsync(string displayName, IReadOnlyDictionary<string, StorageFile> selectedFiles, StorageFile headImageFile = null)
         {
             if (selectedFiles == null || selectedFiles.Count == 0)
             {
@@ -326,6 +335,8 @@ namespace KillConfirmGameBar.Services
                 }
             }
 
+            await WriteIconPackHeadImageAsync(packFolder, headImageFile);
+
             IconPackCapabilities capabilities = await DetectIconPackCapabilitiesAsync(packFolder);
 
             PackCatalog catalog = await LoadAsync();
@@ -345,28 +356,29 @@ namespace KillConfirmGameBar.Services
             await SaveAsync(catalog);
         }
 
-        // CSOL icon packs have a fixed 13-slot layout (no FX / Elite / Weapon
-        // Badge overlays — the CSOL rendering path does not consume them).
-        // The icon keys mirror the CF kill_<n> / headshot / knife / first_and_last
-        // scheme so the existing icon resolver works unchanged.
+        // CSOL icon packs use the exact filenames consumed by
+        // KillConfirmAnimation.Csol. Keep this list aligned with that renderer;
+        // CF-style badge_* / multi* names are not valid CSOL slots.
         public static readonly IReadOnlyList<string> CsolIconSlotFileNames = new[]
         {
-            "badge_headshot.png",
-            "badge_knife.png",
-            "badge_firstkill.png",
-            "badge_lastkill.png",
-            "multi2.png",
-            "multi3.png",
-            "multi4.png",
-            "multi5.png",
-            "multi6.png",
-            "multi7.png",
-            "multi8.png",
-            "multi9.png",
-            "multi10.png"
+            "1kill.png",
+            "2kill.png",
+            "3kill.png",
+            "4kill.png",
+            "5kill.png",
+            "6kill.png",
+            "7kill.png",
+            "8kill.png",
+            "9kill.png",
+            "10kill.png",
+            "headshot_kill.png",
+            "melee_kill.png",
+            "revenge.png",
+            "firstkill.png",
+            "assist.png"
         };
 
-        public static async Task CreateCsolIconPackAsync(string displayName, IReadOnlyDictionary<string, StorageFile> selectedFiles)
+        public static async Task CreateCsolIconPackAsync(string displayName, IReadOnlyDictionary<string, StorageFile> selectedFiles, StorageFile headImageFile = null)
         {
             if (selectedFiles == null || selectedFiles.Count == 0)
             {
@@ -394,6 +406,8 @@ namespace KillConfirmGameBar.Services
                     await pair.Value.CopyAsync(packFolder, pair.Key, NameCollisionOption.ReplaceExisting);
                 }
             }
+
+            await WriteIconPackHeadImageAsync(packFolder, headImageFile);
 
             PackCatalog catalog = await LoadAsync();
             catalog.IconPacks.Add(new IconPackItem
@@ -424,7 +438,7 @@ namespace KillConfirmGameBar.Services
             "5kill.png"
         };
 
-        public static async Task CreateDagoujiaoIconPackAsync(string displayName, IReadOnlyDictionary<string, StorageFile> selectedFiles)
+        public static async Task CreateDagoujiaoIconPackAsync(string displayName, IReadOnlyDictionary<string, StorageFile> selectedFiles, StorageFile headImageFile = null)
         {
             if (selectedFiles == null || selectedFiles.Count == 0)
             {
@@ -452,6 +466,8 @@ namespace KillConfirmGameBar.Services
                     await pair.Value.CopyAsync(packFolder, pair.Key, NameCollisionOption.ReplaceExisting);
                 }
             }
+
+            await WriteIconPackHeadImageAsync(packFolder, headImageFile);
 
             PackCatalog catalog = await LoadAsync();
             catalog.IconPacks.Add(new IconPackItem
@@ -497,7 +513,7 @@ namespace KillConfirmGameBar.Services
             "5kill.png"
         };
 
-        public static async Task CreateDoubaoIconPackAsync(string displayName, IReadOnlyDictionary<string, StorageFile> selectedFiles)
+        public static async Task CreateDoubaoIconPackAsync(string displayName, IReadOnlyDictionary<string, StorageFile> selectedFiles, StorageFile headImageFile = null)
         {
             if (selectedFiles == null || selectedFiles.Count == 0)
             {
@@ -525,6 +541,8 @@ namespace KillConfirmGameBar.Services
                     await pair.Value.CopyAsync(packFolder, pair.Key, NameCollisionOption.ReplaceExisting);
                 }
             }
+
+            await WriteIconPackHeadImageAsync(packFolder, headImageFile);
 
             PackCatalog catalog = await LoadAsync();
             catalog.IconPacks.Add(new IconPackItem
@@ -616,16 +634,16 @@ namespace KillConfirmGameBar.Services
         public static Task ImportDeltaForceIconPackAsync(StorageFolder folder)
             => ImportGameIconPackAsync("custom_deltaforce_icon_", folder);
 
-        public static Task CreateBattlefield1IconPackAsync(string displayName, IReadOnlyDictionary<string, StorageFile> selectedFiles)
-            => CreateGameIconPackAsync("battlefield1", "custom_battlefield1_icon_", displayName, selectedFiles);
-        public static Task CreateBattlefield5IconPackAsync(string displayName, IReadOnlyDictionary<string, StorageFile> selectedFiles)
-            => CreateGameIconPackAsync("battlefield5", "custom_battlefield5_icon_", displayName, selectedFiles);
-        public static Task CreateBattlefield2042IconPackAsync(string displayName, IReadOnlyDictionary<string, StorageFile> selectedFiles)
-            => CreateGameIconPackAsync("battlefield2042", "custom_battlefield2042_icon_", displayName, selectedFiles);
-        public static Task CreateDeltaForceIconPackAsync(string displayName, IReadOnlyDictionary<string, StorageFile> selectedFiles)
-            => CreateGameIconPackAsync("deltaforce", "custom_deltaforce_icon_", displayName, selectedFiles);
+        public static Task CreateBattlefield1IconPackAsync(string displayName, IReadOnlyDictionary<string, StorageFile> selectedFiles, StorageFile headImageFile = null)
+            => CreateGameIconPackAsync("battlefield1", "custom_battlefield1_icon_", displayName, selectedFiles, headImageFile);
+        public static Task CreateBattlefield5IconPackAsync(string displayName, IReadOnlyDictionary<string, StorageFile> selectedFiles, StorageFile headImageFile = null)
+            => CreateGameIconPackAsync("battlefield5", "custom_battlefield5_icon_", displayName, selectedFiles, headImageFile);
+        public static Task CreateBattlefield2042IconPackAsync(string displayName, IReadOnlyDictionary<string, StorageFile> selectedFiles, StorageFile headImageFile = null)
+            => CreateGameIconPackAsync("battlefield2042", "custom_battlefield2042_icon_", displayName, selectedFiles, headImageFile);
+        public static Task CreateDeltaForceIconPackAsync(string displayName, IReadOnlyDictionary<string, StorageFile> selectedFiles, StorageFile headImageFile = null)
+            => CreateGameIconPackAsync("deltaforce", "custom_deltaforce_icon_", displayName, selectedFiles, headImageFile);
 
-        private static async Task CreateGameIconPackAsync(string gameKey, string keyPrefix, string displayName, IReadOnlyDictionary<string, StorageFile> selectedFiles)
+        private static async Task CreateGameIconPackAsync(string gameKey, string keyPrefix, string displayName, IReadOnlyDictionary<string, StorageFile> selectedFiles, StorageFile headImageFile)
         {
             if (selectedFiles == null || selectedFiles.Count == 0)
             {
@@ -652,6 +670,8 @@ namespace KillConfirmGameBar.Services
                     await pair.Value.CopyAsync(packFolder, pair.Key, NameCollisionOption.ReplaceExisting);
                 }
             }
+
+            await WriteIconPackHeadImageAsync(packFolder, headImageFile);
 
             PackCatalog catalog = await LoadAsync();
             catalog.IconPacks.Add(new IconPackItem
@@ -683,6 +703,33 @@ namespace KillConfirmGameBar.Services
                 OwnsFolder = false
             });
             await SaveAsync(catalog);
+        }
+
+        // Writes the user-chosen head/cover image into the pack as pack_head.*.
+        private static async Task WriteIconPackHeadImageAsync(StorageFolder packFolder, StorageFile headImageFile)
+        {
+            if (headImageFile == null)
+            {
+                return;
+            }
+
+            string extension = headImageFile.FileType;
+            if (string.IsNullOrWhiteSpace(extension))
+            {
+                extension = ".png";
+            }
+
+            if (extension.Equals(".tga", StringComparison.OrdinalIgnoreCase))
+            {
+                await TgaDecoder.ConvertTgaToPngAsync(headImageFile, packFolder, "pack_head.png");
+            }
+            else
+            {
+                await headImageFile.CopyAsync(
+                    packFolder,
+                    "pack_head" + extension.ToLowerInvariant(),
+                    NameCollisionOption.ReplaceExisting);
+            }
         }
     }
 }

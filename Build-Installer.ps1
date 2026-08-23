@@ -6,6 +6,13 @@ param(
     [string]$Configuration = "Release",
     [string]$Platform = "x64",
     [switch]$SkipWithDependencies,
+    [switch]$SkipRust,
+    [string]$MsBuildPath = "",
+    [switch]$DisableSigning,
+    [string]$CertificatePfxPath = "",
+    [string]$CertificatePassword = "",
+    [string]$CertificateThumbprint = "",
+    [string]$CertificateCerPath = "",
     [string]$OutputDir = ""
 )
 

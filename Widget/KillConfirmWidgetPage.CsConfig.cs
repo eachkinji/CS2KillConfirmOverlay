@@ -24,6 +24,7 @@ namespace KillConfirmGameBar
         private const string GameFolderName = "game";
         private const string CsgoFolderName = "csgo";
         private const string CfgFolderName = "cfg";
+        private const string CsgoLegacyExecutableName = "csgo.exe";
 
         // Ordered path segments that lead from a picked folder down to the
         // CS2/CSGO cfg folder. Each segment only branches when the folder
@@ -31,11 +32,17 @@ namespace KillConfirmGameBar
         private static readonly string[] Cs2CfgResolveSpineNames =
         {
             SteamFolderName,
+            "steamlibrary",
+            "steam library",
+            "games",
             SteamAppsFolderName,
             CommonFolderName,
             InstallRootFolderName,
+            "Counter-Strike 2",
+            "Counter Strike Global Offensive",
+            "Counter-Strike",
+            "CS2",
             GameFolderName,
-            CsgoFolderName,
         };
 
         // Legacy CS:GO has no game/ folder — its cfg lives at <root>/csgo/cfg.
@@ -44,10 +51,16 @@ namespace KillConfirmGameBar
         private static readonly string[] LegacyCfgResolveSpineNames =
         {
             SteamFolderName,
+            "steamlibrary",
+            "steam library",
+            "games",
             SteamAppsFolderName,
             CommonFolderName,
             InstallRootFolderName,
-            CsgoFolderName,
+            "Counter-Strike 2",
+            "Counter Strike Global Offensive",
+            "Counter-Strike",
+            "CS2",
         };
 
         private string[] CfgResolveSpineNames => IsCsgoLegacyCfgMode
@@ -172,12 +185,6 @@ namespace KillConfirmGameBar
             {
                 await EnsureServiceAvailableAsync();
 
-                if (_serviceConnectionState != KillEventConnectionState.Connected)
-                {
-                    UpdateCfgStatus(CfgDetectionState.NotSelected, null, LocalizationManager.Text("CfgDetectServiceUnavailable"));
-                    return;
-                }
-
                 var rootUri = new Uri(
                     CounterStrikeRootUri
                     + "?version="
@@ -251,6 +258,10 @@ namespace KillConfirmGameBar
                 UpdateCfgStatus(CfgDetectionState.Error, null, LocalizationManager.Text("CfgWrongFolderHint"));
                 return;
             }
+
+            App.Log(
+                "CFG folder resolved: selected=" + (_csInstallFolder.Path ?? _csInstallFolder.Name)
+                + ", cfg=" + (cfgFolder.Path ?? cfgFolder.Name));
 
             try
             {
@@ -458,59 +469,28 @@ namespace KillConfirmGameBar
                 return null;
             }
 
-            // 1. If the selected folder is named "csgo" directly:
+            // A directly selected csgo folder is already the version-specific
+            // game data folder. Its parent is outside the UWP access grant, so
+            // accept it without attempting to infer the version from ancestors.
             if (string.Equals(folder.Name, CsgoFolderName, StringComparison.OrdinalIgnoreCase))
             {
-                // In case a parent root was named "csgo" and contains "game/csgo", search downward first
-                StorageFolder nestedCs2Csgo = await TryGetSubfolderChainAsync(folder, GameFolderName, CsgoFolderName);
-                if (nestedCs2Csgo != null)
-                {
-                    return nestedCs2Csgo;
-                }
                 return folder;
             }
 
-            // 2. If the selected folder is named "game":
-            if (string.Equals(folder.Name, GameFolderName, StringComparison.OrdinalIgnoreCase))
+            // Resolve an install root using only the layout for the selected
+            // game version. This prevents CS2's game/csgo/cfg and Legacy's
+            // csgo/cfg from being mistaken for one another.
+            StorageFolder versionSpecificCsgo =
+                await TryCsgoSubfolderOfInstallRootAsync(folder);
+            if (versionSpecificCsgo != null)
             {
-                StorageFolder csgoUnderGame = await TryGetSubfolderAsync(folder, CsgoFolderName);
-                if (csgoUnderGame != null)
-                {
-                    return csgoUnderGame;
-                }
+                return versionSpecificCsgo;
             }
 
-            // 3. Direct install root structures:
-            // 3A. CS2 layout: <folder>/game/csgo
-            StorageFolder cs2Csgo = await TryGetSubfolderChainAsync(folder, GameFolderName, CsgoFolderName);
-            if (cs2Csgo != null)
-            {
-                return cs2Csgo;
-            }
-
-            // 3B. CS:GO Legacy layout: <folder>/csgo
-            StorageFolder directCsgo = await TryGetSubfolderAsync(folder, CsgoFolderName);
-            if (directCsgo != null)
-            {
-                return directCsgo;
-            }
-
-            // 4. Walk downward along known spine names
-            string[] spineNames = IsCsgoLegacyCfgMode
-                ? new[] {
-                    SteamFolderName, "steamlibrary", "steam library", "games",
-                    SteamAppsFolderName, CommonFolderName,
-                    InstallRootFolderName, "Counter-Strike Global Offensive", "Counter-Strike 2", "Counter Strike Global Offensive", "Counter-Strike", "CS2",
-                    CsgoFolderName
-                }
-                : new[] {
-                    SteamFolderName, "steamlibrary", "steam library", "games",
-                    SteamAppsFolderName, CommonFolderName,
-                    InstallRootFolderName, "Counter-Strike Global Offensive", "Counter-Strike 2", "Counter Strike Global Offensive", "Counter-Strike", "CS2",
-                    GameFolderName, CsgoFolderName
-                };
-
-            foreach (string name in spineNames)
+            // Walk downward only through folders that can lead to an install
+            // root. The terminal csgo segment is deliberately excluded so it
+            // cannot bypass the version-specific layout check above.
+            foreach (string name in CfgResolveSpineNames)
             {
                 StorageFolder child = await TryGetSubfolderAsync(folder, name);
                 if (child != null)
@@ -529,17 +509,11 @@ namespace KillConfirmGameBar
                 List<StorageFolder> subfolders = await TryListSubfoldersAsync(folder, 100);
                 foreach (StorageFolder child in subfolders)
                 {
-                    // Check if child is an install root containing game/csgo or csgo
-                    StorageFolder fromChildCs2 = await TryGetSubfolderChainAsync(child, GameFolderName, CsgoFolderName);
-                    if (fromChildCs2 != null)
+                    StorageFolder fromChild =
+                        await TryCsgoSubfolderOfInstallRootAsync(child);
+                    if (fromChild != null)
                     {
-                        return fromChildCs2;
-                    }
-
-                    StorageFolder fromChildLegacy = await TryGetSubfolderAsync(child, CsgoFolderName);
-                    if (fromChildLegacy != null)
-                    {
-                        return fromChildLegacy;
+                        return fromChild;
                     }
                 }
             }
@@ -560,20 +534,22 @@ namespace KillConfirmGameBar
             {
                 if (IsCsgoLegacyCfgMode)
                 {
-                    StorageFolder csgo = await TryGetSubfolderAsync(folder, CsgoFolderName);
-                    if (csgo != null)
+                    StorageFile executable =
+                        await TryGetFileAsync(folder, CsgoLegacyExecutableName);
+                    if (executable == null)
                     {
-                        return csgo;
+                        return null;
                     }
+
+                    return await TryGetSubfolderAsync(folder, CsgoFolderName);
                 }
 
-                StorageFolder cs2 = await TryGetSubfolderChainAsync(folder, GameFolderName, CsgoFolderName);
-                if (cs2 != null)
+                if (string.Equals(folder.Name, GameFolderName, StringComparison.OrdinalIgnoreCase))
                 {
-                    return cs2;
+                    return await TryGetSubfolderAsync(folder, CsgoFolderName);
                 }
 
-                return await TryGetSubfolderAsync(folder, CsgoFolderName);
+                return await TryGetSubfolderChainAsync(folder, GameFolderName, CsgoFolderName);
             }
             catch
             {
@@ -586,6 +562,18 @@ namespace KillConfirmGameBar
             try
             {
                 return await folder.GetFolderAsync(name);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private async Task<StorageFile> TryGetFileAsync(StorageFolder folder, string name)
+        {
+            try
+            {
+                return await folder.GetFileAsync(name);
             }
             catch
             {

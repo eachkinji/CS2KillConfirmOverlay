@@ -141,7 +141,10 @@ namespace KillConfirmGameBar
 
             bool shouldPlayPrimaryAnimation = (killEvent.IsCombatEvent && killEvent.PlayMainAnimation)
                 || (IsEconomyPresentationStyle(style) && IsBattlefieldTextEvent(killEvent))
-                || (style == GameStyleMode.Csol && killEvent.IsCombatEvent);
+                || (style == GameStyleMode.Csol && killEvent.IsCombatEvent)
+                || (style == GameStyleMode.ModernWarfare2019 && killEvent.IsCombatEvent)
+                || (style == GameStyleMode.Overwatch && killEvent.IsCombatEvent && killEvent.IsAssist)
+                || (style == GameStyleMode.Apex && killEvent.IsCombatEvent && killEvent.IsAssist);
             if (shouldPlayPrimaryAnimation)
             {
                 PlayPrimaryAnimation(killEvent);
@@ -155,8 +158,22 @@ namespace KillConfirmGameBar
             bool isCsolAssist = GameStyleService.Current == GameStyleMode.Csol
                 && killEvent != null
                 && killEvent.IsAssist;
+            bool isApexAssist = GameStyleService.Current == GameStyleMode.Apex
+                && killEvent != null
+                && killEvent.IsAssist;
+            bool isOverwatchAssist = GameStyleService.Current == GameStyleMode.Overwatch
+                && killEvent != null
+                && killEvent.IsAssist;
+            bool isModernWarfare2019Assist = GameStyleService.Current == GameStyleMode.ModernWarfare2019
+                && killEvent != null
+                && killEvent.IsAssist;
             if (!CanStyleConsumeEvent(GameStyleService.Current, killEvent)
-                || (killEvent.KillCount <= 0 && !IsBattlefieldTextEvent(killEvent) && !isCsolAssist))
+                || (killEvent.KillCount <= 0
+                    && !IsBattlefieldTextEvent(killEvent)
+                    && !isCsolAssist
+                    && !isApexAssist
+                    && !isOverwatchAssist
+                    && !isModernWarfare2019Assist))
             {
                 return;
             }
@@ -165,6 +182,67 @@ namespace KillConfirmGameBar
             {
                 case GameStyleMode.Valorant:
                     PlayValorantPrimaryAnimation(killEvent);
+                    return;
+                case GameStyleMode.Overwatch:
+                    KillFeedbackVisibilitySettingsValues overwatchVisibility =
+                        KillFeedbackVisibilitySettingsStore.Load(GameStyleMode.Overwatch);
+                    if (overwatchVisibility.CrosshairEnabled && !killEvent.IsAssist)
+                    {
+                        PrimaryKillAnimation.PlayOverwatchCrosshairKill();
+                    }
+                    if (overwatchVisibility.LowerEnabled)
+                    {
+                        OverwatchCardAnimation.PlayOverwatchLowerThirdKill(
+                            GetKillTargetDisplayName(killEvent),
+                            killEvent.IsAssist);
+                    }
+                    return;
+                case GameStyleMode.ModernWarfare2019:
+                    KillFeedbackVisibilitySettingsValues modernWarfareVisibility =
+                        KillFeedbackVisibilitySettingsStore.Load(GameStyleMode.ModernWarfare2019);
+                    if (killEvent.IsAssist)
+                    {
+                        if (modernWarfareVisibility.CrosshairEnabled)
+                        {
+                            PrimaryKillAnimation.PlayModernWarfare2019Assist();
+                        }
+                        return;
+                    }
+                    if (modernWarfareVisibility.CrosshairEnabled)
+                    {
+                        PrimaryKillAnimation.PlayModernWarfare2019CrosshairKill(
+                            killEvent.IsHeadshot,
+                            killEvent.KillCount,
+                            killEvent.MoneyReward);
+                    }
+                    if (modernWarfareVisibility.LowerEnabled)
+                    {
+                        OverwatchCardAnimation.PlayModernWarfare2019LowerKill(
+                            killEvent.KillCount);
+                    }
+                    if (modernWarfareVisibility.UpperEnabled)
+                    {
+                        ModernWarfare2019UpperAnimation.PlayModernWarfare2019UpperKill(
+                            killEvent.KillCount);
+                    }
+                    return;
+                case GameStyleMode.Apex:
+                    KillFeedbackVisibilitySettingsValues apexVisibility =
+                        KillFeedbackVisibilitySettingsStore.Load(GameStyleMode.Apex);
+                    if (apexVisibility.CrosshairEnabled && !killEvent.IsAssist)
+                    {
+                        PrimaryKillAnimation.PlayApexCrosshairKill(
+                            killEvent.IsHeadshot,
+                            killEvent.MoneyReward,
+                            killEvent.KillCount);
+                    }
+                    if (apexVisibility.LowerEnabled)
+                    {
+                        OverwatchCardAnimation.PlayApexFeedCard(
+                            killEvent.IsAssist,
+                            GetKillTargetDisplayName(killEvent),
+                            killEvent.MoneyReward);
+                    }
                     return;
                 case GameStyleMode.Csol:
                     PlayCsolPrimaryAnimation(killEvent);
@@ -202,6 +280,7 @@ namespace KillConfirmGameBar
 
         private void PlayValorantPrimaryAnimation(KillEvent killEvent)
         {
+            PlayAuxiliaryKillMarkIfEnabled(killEvent);
             string valorantPack = GetSelectedIconPack();
             if (!ValorantPackService.IsValorantPackKey(valorantPack))
             {
@@ -221,6 +300,7 @@ namespace KillConfirmGameBar
 
         private void PlayBattlefield1PrimaryAnimation(KillEvent killEvent)
         {
+            PlayBattlefieldKillMarkIfEnabled(killEvent);
             PrimaryKillAnimation.PlayBattlefield1Kill(
                 killEvent.KillCount,
                 killEvent.IsHeadshot,
@@ -236,6 +316,7 @@ namespace KillConfirmGameBar
 
         private void PlayBattlefield5PrimaryAnimation(KillEvent killEvent)
         {
+            PlayBattlefieldKillMarkIfEnabled(killEvent);
             PrimaryKillAnimation.PlayBattlefield5Kill(
                 killEvent.KillCount,
                 killEvent.IsHeadshot,
@@ -251,6 +332,7 @@ namespace KillConfirmGameBar
 
         private void PlayBattlefield4PrimaryAnimation(KillEvent killEvent)
         {
+            PlayBattlefieldKillMarkIfEnabled(killEvent);
             PrimaryKillAnimation.PlayBattlefield4Kill(
                 killEvent.KillCount,
                 killEvent.IsHeadshot,
@@ -266,6 +348,7 @@ namespace KillConfirmGameBar
 
         private void PlayBattlefield2042PrimaryAnimation(KillEvent killEvent)
         {
+            PlayBattlefieldKillMarkIfEnabled(killEvent);
             PrimaryKillAnimation.PlayBattlefield2042Kill(
                 killEvent.KillCount,
                 killEvent.IsHeadshot,
@@ -281,6 +364,7 @@ namespace KillConfirmGameBar
 
         private void PlayPubgPrimaryAnimation(KillEvent killEvent)
         {
+            PlayAuxiliaryKillMarkIfEnabled(killEvent);
             PrimaryKillAnimation.PlayPubgKill(
                 killEvent.KillCount,
                 killEvent.IsHeadshot,
@@ -296,6 +380,7 @@ namespace KillConfirmGameBar
 
         private void PlayDeltaForcePrimaryAnimation(KillEvent killEvent)
         {
+            PlayBattlefieldKillMarkIfEnabled(killEvent);
             PrimaryKillAnimation.PlayDeltaForceKill(
                 killEvent.KillCount,
                 killEvent.IsHeadshot,
@@ -309,13 +394,41 @@ namespace KillConfirmGameBar
                 killEvent.MoneyEpoch);
         }
 
+        private void PlayBattlefieldKillMarkIfEnabled(KillEvent killEvent)
+        {
+            PlayAuxiliaryKillMarkIfEnabled(killEvent);
+        }
+
+        private void PlayAuxiliaryKillMarkIfEnabled(KillEvent killEvent)
+        {
+            GameStyleMode style = GameStyleService.Current;
+            if (!GameStyleService.IsAuxiliaryKillMarkStyle(style)
+                || killEvent == null
+                || !killEvent.IsCombatEvent
+                || killEvent.IsAssist
+                || killEvent.KillCount <= 0)
+            {
+                return;
+            }
+
+            KillFeedbackVisibilitySettingsValues visibility =
+                KillFeedbackVisibilitySettingsStore.Load(style);
+            if (visibility.CrosshairEnabled)
+            {
+                ModernWarfare2019UpperAnimation.PlayModernWarfare2019KillMarkOnly(
+                    killEvent.IsHeadshot);
+            }
+        }
+
         private void PlayDoubaoPrimaryAnimation(KillEvent killEvent)
         {
+            PlayAuxiliaryKillMarkIfEnabled(killEvent);
             PrimaryKillAnimation.PlayDoubaoKill(killEvent.KillCount);
         }
 
         private void PlayDagoujiaoPrimaryAnimation(KillEvent killEvent)
         {
+            PlayAuxiliaryKillMarkIfEnabled(killEvent);
             PrimaryKillAnimation.PlayDagoujiaoKill(killEvent.KillCount, killEvent.IsHeadshot);
         }
 
@@ -394,6 +507,7 @@ namespace KillConfirmGameBar
 
         private void PlayCsolPrimaryAnimation(KillEvent killEvent)
         {
+            PlayAuxiliaryKillMarkIfEnabled(killEvent);
             string specialKey = null;
             if (killEvent.IsFirstKill)
             {
@@ -423,6 +537,7 @@ namespace KillConfirmGameBar
 
         private void PlayCrossfirePrimaryAnimation(KillEvent killEvent)
         {
+            PlayAuxiliaryKillMarkIfEnabled(killEvent);
             CrossfireGameplaySettingsValues settings = CrossfireGameplaySettingsStore.Load();
 
             if (string.Equals(killEvent.AnimationKey, "code2kill", StringComparison.OrdinalIgnoreCase))
@@ -538,6 +653,13 @@ namespace KillConfirmGameBar
 
             try
             {
+                await EnsureServiceAvailableAsync();
+                if (!await WaitForKillEventConnectionAsync(TimeSpan.FromSeconds(3)))
+                {
+                    App.Log("Test event cancelled because the visual event stream did not become ready.");
+                    return;
+                }
+
                 await SyncSelectedVoicePackAsync();
 
                 using (var client = await LocalServiceAuth.CreateHttpClientAsync())
@@ -676,6 +798,68 @@ namespace KillConfirmGameBar
             SaveAnimationPlacementSettings();
         }
 
+        private void ScaleOverwatchCard(double factor)
+        {
+            double candidate = _overwatchCardScale * factor;
+            if (double.IsNaN(candidate) || double.IsInfinity(candidate) || candidate <= 0)
+            {
+                return;
+            }
+
+            _overwatchCardScale = candidate;
+            ApplyOverwatchCardTransform();
+            SaveOverwatchCardPlacementSettings();
+        }
+
+        private void ScaleModernWarfare2019Upper(double factor)
+        {
+            double candidate = _modernWarfare2019UpperScale * factor;
+            if (double.IsNaN(candidate) || double.IsInfinity(candidate) || candidate <= 0)
+            {
+                return;
+            }
+
+            _modernWarfare2019UpperScale = candidate;
+            ApplyModernWarfare2019UpperTransform();
+            SaveModernWarfare2019UpperPlacementSettings();
+        }
+
+        private void SetNonCrosshairAnimationPlacement(AnimationPlacementMode placement)
+        {
+            if (GameStyleService.Current == GameStyleMode.Overwatch
+                || GameStyleService.Current == GameStyleMode.Apex
+                || GameStyleService.Current == GameStyleMode.ModernWarfare2019)
+            {
+                switch (placement)
+                {
+                    case AnimationPlacementMode.Top:
+                        _overwatchCardVerticalOffset = GetTopOffset() - GetBottomOffset();
+                        break;
+                    case AnimationPlacementMode.Center:
+                        _overwatchCardVerticalOffset = -GetBottomOffset();
+                        _overwatchCardHorizontalOffset = 0;
+                        break;
+                    case AnimationPlacementMode.Bottom:
+                    default:
+                        _overwatchCardVerticalOffset = 0;
+                        break;
+                }
+
+                ApplyOverwatchCardTransform();
+                SaveOverwatchCardPlacementSettings();
+                return;
+            }
+
+            _animationPlacement = placement;
+            if (placement == AnimationPlacementMode.Center)
+            {
+                _animationOffset = 0;
+                _animationHorizontalOffset = 0;
+            }
+            ApplyAnimationTransform();
+            SaveAnimationPlacementSettings();
+        }
+
         private void ApplyAnimationTransform()
         {
             bool directValorantPresentation = Controls.KillConfirmAnimation.IsValorantPresentationConfigured;
@@ -693,6 +877,49 @@ namespace KillConfirmGameBar
             UpdateAnimationDragOutlineSize();
         }
 
+        private void ApplyOverwatchCardTransform()
+        {
+            double renderScale = Math.Max(1.0, Math.Min(4.0, _overwatchCardScale));
+            OverwatchCardAnimation.SetPresentationScale(_overwatchCardScale);
+            OverwatchCardAnimation.SetRenderResolutionScale(renderScale);
+            OverwatchCardTransform.ScaleX = _overwatchCardScale;
+            OverwatchCardTransform.ScaleY = _overwatchCardScale;
+            OverwatchCardTransform.TranslateX = _overwatchCardHorizontalOffset;
+            OverwatchCardTransform.TranslateY = GetBottomOffset() + _overwatchCardVerticalOffset;
+            UpdateAnimationDragOutlineSize();
+        }
+
+        private void ApplyModernWarfare2019UpperTransform()
+        {
+            double renderScale = Math.Max(
+                1.0,
+                Math.Min(4.0, _modernWarfare2019UpperScale));
+            ModernWarfare2019UpperAnimation.SetPresentationScale(
+                _modernWarfare2019UpperScale);
+            ModernWarfare2019UpperAnimation.SetRenderResolutionScale(renderScale);
+            ModernWarfare2019UpperTransform.ScaleX = _modernWarfare2019UpperScale;
+            ModernWarfare2019UpperTransform.ScaleY = _modernWarfare2019UpperScale;
+            ModernWarfare2019UpperTransform.TranslateX =
+                _modernWarfare2019UpperHorizontalOffset;
+            ModernWarfare2019UpperTransform.TranslateY =
+                GetAuxiliaryLayerResolvedVerticalOffset();
+            UpdateAnimationDragOutlineSize();
+        }
+
+        private double GetAuxiliaryLayerResolvedVerticalOffset()
+        {
+            return GameStyleService.IsAuxiliaryKillMarkStyle(GameStyleService.Current)
+                ? _modernWarfare2019UpperVerticalOffset
+                : GetUpperThirdOffset() + _modernWarfare2019UpperVerticalOffset;
+        }
+
+        private double GetAuxiliaryLayerBaseVerticalOffset()
+        {
+            return GameStyleService.IsAuxiliaryKillMarkStyle(GameStyleService.Current)
+                ? 0.0
+                : GetUpperThirdOffset();
+        }
+
         private void OnAnimationLayerSizeChanged(object sender, SizeChangedEventArgs e)
         {
             UpdateAnimationDragOutlineSize();
@@ -700,6 +927,17 @@ namespace KillConfirmGameBar
                 || _animationPlacement == AnimationPlacementMode.Top)
             {
                 ApplyAnimationOffset();
+            }
+            if (GameStyleService.Current == GameStyleMode.Overwatch
+                || GameStyleService.Current == GameStyleMode.Apex
+                || GameStyleService.Current == GameStyleMode.ModernWarfare2019)
+            {
+                ApplyOverwatchCardTransform();
+            }
+            if (GameStyleService.Current == GameStyleMode.ModernWarfare2019
+                || GameStyleService.IsAuxiliaryKillMarkStyle(GameStyleService.Current))
+            {
+                ApplyModernWarfare2019UpperTransform();
             }
         }
 
@@ -726,7 +964,7 @@ namespace KillConfirmGameBar
                 layerHeight = DefaultWidgetSize.Height;
             }
 
-            return -Math.Max(AnimationOffsetStep, layerHeight * BottomQuarterAnimationOffsetRatio);
+            return -Math.Max(AnimationOffsetStep, layerHeight * EdgeFifthAnimationOffsetRatio);
         }
 
         private double GetBottomOffset()
@@ -737,7 +975,18 @@ namespace KillConfirmGameBar
                 layerHeight = DefaultWidgetSize.Height;
             }
 
-            return Math.Max(AnimationOffsetStep, layerHeight * BottomQuarterAnimationOffsetRatio);
+            return Math.Max(AnimationOffsetStep, layerHeight * EdgeFifthAnimationOffsetRatio);
+        }
+
+        private double GetUpperThirdOffset()
+        {
+            double layerHeight = AnimationLayer.ActualHeight;
+            if (layerHeight <= 0)
+            {
+                layerHeight = DefaultWidgetSize.Height;
+            }
+
+            return -Math.Max(AnimationOffsetStep, layerHeight / 6.0);
         }
 
         private double GetMaxAnimationHorizontalOffset()

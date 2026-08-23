@@ -8,6 +8,8 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
+    HorizontalAlignment="Stretch"
+    VerticalAlignment="Stretch"
     RequestedTheme="Light">
 
     <Page.Resources>
@@ -19,7 +21,10 @@
     </Page.Resources>
 
     <!-- 根容器不设背景、不参与命中测试，透明区域点击可穿透到游戏；仅交互面板命中 -->
-    <Grid>
+    <Grid
+        x:Name="LayoutRoot"
+        HorizontalAlignment="Stretch"
+        VerticalAlignment="Stretch">
         <Grid
             x:Name="AnimationLayer"
             HorizontalAlignment="Stretch"
@@ -60,7 +65,96 @@
                 PointerWheelChanged="OnAnimationFramePointerWheelChanged"
                 PointerEntered="OnAnimationFramePointerEntered"
                 PointerExited="OnAnimationFramePointerExited"
-                ToolTipService.ToolTip="Drag to move icon" />
+                ContextRequested="OnAnimationFrameContextRequested"
+                ToolTipService.ToolTip="Drag to move icon">
+                <Border.RenderTransform>
+                    <TranslateTransform x:Name="AnimationDragOutlineTransform" />
+                </Border.RenderTransform>
+            </Border>
+        </Grid>
+
+        <Grid
+            x:Name="OverwatchCardLayer"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Stretch"
+            RenderTransformOrigin="0.5,0.5">
+            <Grid.RenderTransform>
+                <CompositeTransform x:Name="OverwatchCardTransform" />
+            </Grid.RenderTransform>
+
+            <controls:KillConfirmAnimation
+                x:Name="OverwatchCardAnimation"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch" />
+
+            <Border
+                x:Name="OverwatchCardDragOutline"
+                Width="180"
+                Height="44"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Background="Transparent"
+                BorderBrush="#E53935"
+                BorderThickness="2"
+                CornerRadius="4"
+                Opacity="0.85"
+                Visibility="Collapsed"
+                PointerPressed="OnAnimationFramePointerPressed"
+                PointerMoved="OnAnimationFramePointerMoved"
+                PointerReleased="OnAnimationFramePointerReleased"
+                PointerCanceled="OnAnimationFramePointerCanceled"
+                PointerCaptureLost="OnAnimationFramePointerCaptureLost"
+                PointerWheelChanged="OnAnimationFramePointerWheelChanged"
+                PointerEntered="OnAnimationFramePointerEntered"
+                PointerExited="OnAnimationFramePointerExited"
+                ContextRequested="OnAnimationFrameContextRequested"
+                ToolTipService.ToolTip="Drag to move non-crosshair effect">
+                <Border.RenderTransform>
+                    <TranslateTransform x:Name="OverwatchCardDragOutlineTransform" />
+                </Border.RenderTransform>
+            </Border>
+        </Grid>
+
+        <Grid
+            x:Name="ModernWarfare2019UpperLayer"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Stretch"
+            RenderTransformOrigin="0.5,0.5">
+            <Grid.RenderTransform>
+                <CompositeTransform x:Name="ModernWarfare2019UpperTransform" />
+            </Grid.RenderTransform>
+
+            <controls:KillConfirmAnimation
+                x:Name="ModernWarfare2019UpperAnimation"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch" />
+
+            <Border
+                x:Name="ModernWarfare2019UpperDragOutline"
+                Width="496"
+                Height="198"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Background="Transparent"
+                BorderBrush="#E53935"
+                BorderThickness="2"
+                CornerRadius="4"
+                Opacity="0.85"
+                Visibility="Collapsed"
+                PointerPressed="OnAnimationFramePointerPressed"
+                PointerMoved="OnAnimationFramePointerMoved"
+                PointerReleased="OnAnimationFramePointerReleased"
+                PointerCanceled="OnAnimationFramePointerCanceled"
+                PointerCaptureLost="OnAnimationFramePointerCaptureLost"
+                PointerWheelChanged="OnAnimationFramePointerWheelChanged"
+                PointerEntered="OnAnimationFramePointerEntered"
+                PointerExited="OnAnimationFramePointerExited"
+                ContextRequested="OnAnimationFrameContextRequested"
+                ToolTipService.ToolTip="Drag to move upper kill effect">
+                <Border.RenderTransform>
+                    <TranslateTransform x:Name="ModernWarfare2019UpperDragOutlineTransform" />
+                </Border.RenderTransform>
+            </Border>
         </Grid>
 
         <Border
@@ -405,6 +499,9 @@
                             <ComboBoxItem x:Name="CrossfireStyleItem" Tag="crossfire">CF</ComboBoxItem>
                             <ComboBoxItem x:Name="CsolStyleItem" Tag="csol">CSOL</ComboBoxItem>
                             <ComboBoxItem x:Name="ValorantStyleItem" Tag="valorant">VAL</ComboBoxItem>
+                            <ComboBoxItem x:Name="OverwatchStyleItem" Tag="overwatch">OW</ComboBoxItem>
+                            <ComboBoxItem x:Name="ModernWarfare2019StyleItem" Tag="modernwarfare2019">MW19</ComboBoxItem>
+                            <ComboBoxItem x:Name="ApexStyleItem" Tag="apex">APEX</ComboBoxItem>
                             <ComboBoxItem x:Name="Battlefield1StyleItem" Tag="battlefield1">BF1</ComboBoxItem>
                             <ComboBoxItem x:Name="Battlefield5StyleItem" Tag="battlefield5">BF5</ComboBoxItem>
                             <ComboBoxItem x:Name="Battlefield4StyleItem" Tag="battlefield4">BF4</ComboBoxItem>
@@ -495,6 +592,8 @@
                         x:Name="CfgActionRow"
                         ColumnSpacing="6">
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
@@ -709,6 +808,123 @@
                                                                 <ContentControl x:Name="AdvancedEffectsPanelHost" />
                                                             </StackPanel>
                                                         </Border>
+
+                                                        <Border
+                                                            x:Name="AdvancedEffectsExperienceCard"
+                                                            Padding="12"
+                                                            BorderThickness="1"
+                                                            CornerRadius="18">
+                                                            <StackPanel Spacing="10">
+                                                                <TextBlock
+                                                                    x:Name="AdvancedEffectsExperienceTitleText"
+                                                                    FontSize="16"
+                                                                    FontWeight="Bold"
+                                                                    Text="游戏体验增强" />
+                                                                <settings:GeneralSettingsOptionsPanel x:Name="AdvancedEffectsExperiencePanel" />
+                                                            </StackPanel>
+                                                        </Border>
+
+                                                        <Border
+                                                            x:Name="AdvancedEffectsRuntimeCard"
+                                                            Padding="12"
+                                                            BorderThickness="1"
+                                                            CornerRadius="18">
+                                                            <StackPanel Spacing="10">
+                                                                <TextBlock
+                                                                    x:Name="AdvancedEffectsRuntimeTitleText"
+                                                                    FontSize="16"
+                                                                    FontWeight="Bold"
+                                                                    Text="软件与维护" />
+                                                                <settings:RuntimeMaintenancePanel x:Name="AdvancedEffectsRuntimePanel" />
+                                                            </StackPanel>
+                                                        </Border>
+
+                                                        <Border
+                                                            x:Name="AdvancedEffectsCreditsCard"
+                                                            Padding="12"
+                                                            BorderThickness="1"
+                                                            CornerRadius="18">
+                                                            <StackPanel Spacing="10">
+                                                                <TextBlock
+                                                                    x:Name="AdvancedEffectsCreditsTitleText"
+                                                                    FontSize="16"
+                                                                    FontWeight="Bold"
+                                                                    Text="作者与致谢" />
+                                                                <Border
+                                                                    x:Name="AdvancedEffectsAuthorCard"
+                                                                    Padding="10"
+                                                                    BorderThickness="1"
+                                                                    CornerRadius="12">
+                                                                    <Grid ColumnSpacing="10">
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="46" />
+                                                                            <ColumnDefinition Width="*" />
+                                                                        </Grid.ColumnDefinitions>
+                                                                        <Border
+                                                                            x:Name="AdvancedEffectsAuthorAvatarFrame"
+                                                                            Width="46"
+                                                                            Height="46"
+                                                                            BorderThickness="1"
+                                                                            CornerRadius="23">
+                                                                            <Image
+                                                                                Source="ms-appx:///Assets/DeveloperAvatar.jpg"
+                                                                                Stretch="UniformToFill" />
+                                                                        </Border>
+                                                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                                                                            <TextBlock
+                                                                                x:Name="AdvancedEffectsAuthorNameText"
+                                                                                FontSize="13"
+                                                                                FontWeight="SemiBold"
+                                                                                Text="Zac · eachkinji" />
+                                                                            <TextBlock
+                                                                                x:Name="AdvancedEffectsAuthorDescriptionText"
+                                                                                FontSize="10"
+                                                                                Text="Kill Confirm Overlay 作者与维护者" />
+                                                                        </StackPanel>
+                                                                    </Grid>
+                                                                </Border>
+                                                                <Grid ColumnSpacing="6" RowSpacing="6">
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="*" />
+                                                                        <ColumnDefinition Width="*" />
+                                                                    </Grid.ColumnDefinitions>
+                                                                    <Grid.RowDefinitions>
+                                                                        <RowDefinition Height="Auto" />
+                                                                        <RowDefinition Height="Auto" />
+                                                                    </Grid.RowDefinitions>
+                                                                    <HyperlinkButton
+                                                                        x:Name="AdvancedEffectsAuthorGitHubButton"
+                                                                        HorizontalContentAlignment="Center"
+                                                                        NavigateUri="https://github.com/eachkinji"
+                                                                        Content="GitHub · eachkinji" />
+                                                                    <HyperlinkButton
+                                                                        x:Name="AdvancedEffectsAuthorBilibiliButton"
+                                                                        Grid.Column="1"
+                                                                        HorizontalContentAlignment="Center"
+                                                                        NavigateUri="https://space.bilibili.com/18017622"
+                                                                        Content="B站 · Zac不想烤肉" />
+                                                                    <HyperlinkButton
+                                                                        x:Name="AdvancedEffectsProjectButton"
+                                                                        Grid.Row="1"
+                                                                        HorizontalContentAlignment="Center"
+                                                                        NavigateUri="https://github.com/eachkinji/CS2KillConfirmOverlay"
+                                                                        Content="项目主页" />
+                                                                    <HyperlinkButton
+                                                                        x:Name="AdvancedEffectsDownloadButton"
+                                                                        Grid.Row="1"
+                                                                        Grid.Column="1"
+                                                                        HorizontalContentAlignment="Center"
+                                                                        NavigateUri="https://pan.quark.cn/s/1f3cfbcf8d5f?pwd=7Twv"
+                                                                        Content="下载与更新 · 7Twv" />
+                                                                </Grid>
+                                                                <TextBlock
+                                                                    x:Name="AdvancedEffectsCreditsBodyText"
+                                                                    FontSize="12"
+                                                                    LineHeight="17"
+                                                                    TextWrapping="Wrap" />
+                                                                <settings:CreditsCommunityPanel x:Name="AdvancedEffectsCreditsCommunityPanel" />
+                                                            </StackPanel>
+                                                        </Border>
                                                     </StackPanel>
                                                 </ScrollViewer>
                                             </Border>
@@ -898,8 +1114,6 @@
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
                     <Button
@@ -958,122 +1172,8 @@
                     </Button>
 
                     <Button
-                        x:Name="LowerThirdButton"
-                        Grid.Column="5"
-                        Style="{StaticResource CompactIconButtonStyle}"
-                        Click="OnLowerThirdClick"
-                        ToolTipService.ToolTip="Place icon at bottom">
-                        <Grid Style="{StaticResource CompactIconHostStyle}">
-                            <PathIcon Style="{StaticResource FluentTinyPathIconStyle}" Data="M5 3H19C20.1 3 21 3.9 21 5V19C21 20.1 20.1 21 19 21H5C3.9 21 3 20.1 3 19V5C3 3.9 3.9 3 5 3ZM5 4.5C4.72 4.5 4.5 4.72 4.5 5V19C4.5 19.28 4.72 19.5 5 19.5H19C19.28 19.5 19.5 19.28 19.5 19V5C19.5 4.72 19.28 4.5 19 4.5H5ZM12 14C13.38 14 14.5 15.12 14.5 16.5C14.5 17.88 13.38 19 12 19C10.62 19 9.5 17.88 9.5 16.5C9.5 15.12 10.62 14 12 14Z" />
-                        </Grid>
-                    </Button>
-
-                    <Button
-                        x:Name="HighPositionButton"
-                        Grid.Column="6"
-                        Style="{StaticResource CompactIconButtonStyle}"
-                        Click="OnHighPositionClick"
-                        ToolTipService.ToolTip="Place icon at top">
-                        <Grid Style="{StaticResource CompactIconHostStyle}">
-                            <PathIcon Style="{StaticResource FluentTinyPathIconStyle}" Data="M5 3H19C20.1 3 21 3.9 21 5V19C21 20.1 20.1 21 19 21H5C3.9 21 3 20.1 3 19V5C3 3.9 3.9 3 5 3ZM5 4.5C4.72 4.5 4.5 4.72 4.5 5V19C4.5 19.28 4.72 19.5 5 19.5H19C19.28 19.5 19.5 19.28 19.5 19V5C19.5 4.72 19.28 4.5 19 4.5H5ZM12 5C13.38 5 14.5 6.12 14.5 7.5C14.5 8.88 13.38 10 12 10C10.62 10 9.5 8.88 9.5 7.5C9.5 6.12 10.62 5 12 5Z" />
-                        </Grid>
-                    </Button>
-
-                    <Button
-                        x:Name="IconCenterButton"
-                        Grid.Column="7"
-                        Style="{StaticResource CompactIconButtonStyle}"
-                        Click="OnIconCenterClick"
-                        ToolTipService.ToolTip="Center icon">
-                        <Grid Style="{StaticResource CompactIconHostStyle}">
-                            <PathIcon Style="{StaticResource FluentTinyPathIconStyle}" Data="M5 3H19C20.1 3 21 3.9 21 5V19C21 20.1 20.1 21 19 21H5C3.9 21 3 20.1 3 19V5C3 3.9 3.9 3 5 3ZM5 4.5C4.72 4.5 4.5 4.72 4.5 5V19C4.5 19.28 4.72 19.5 5 19.5H19C19.28 19.5 19.5 19.28 19.5 19V5C19.5 4.72 19.28 4.5 19 4.5H5ZM12 9.5C13.38 9.5 14.5 10.62 14.5 12C14.5 13.38 13.38 14.5 12 14.5C10.62 14.5 9.5 13.38 9.5 12C9.5 10.62 10.62 9.5 12 9.5Z" />
-                        </Grid>
-                    </Button>
-
-                        </Grid>
-
-                        <Grid
-                            HorizontalAlignment="Center"
-                            ColumnSpacing="6">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-
-                    <Button
-                        x:Name="MoveUpButton"
-                        Grid.Column="0"
-                        Style="{StaticResource CompactIconButtonStyle}"
-                        Click="OnMoveUpClick"
-                        ToolTipService.ToolTip="Move icon up">
-                        <Grid Style="{StaticResource CompactIconHostStyle}">
-                            <PathIcon Style="{StaticResource FluentTinyPathIconStyle}" Data="M4.20889 10.7327C3.9232 11.0326 3.93475 11.5074 4.23467 11.7931C4.5346 12.0788 5.00933 12.0672 5.29502 11.7673L11.2495 5.516V20.25C11.2495 20.6642 11.5853 21 11.9995 21C12.4137 21 12.7495 20.6642 12.7495 20.25V5.51565L18.7043 11.7673C18.99 12.0672 19.4648 12.0788 19.7647 11.7931C20.0646 11.5074 20.0762 11.0326 19.7905 10.7327L12.7238 3.31379C12.5627 3.14474 12.3573 3.04477 12.1438 3.01386C12.0971 3.00477 12.0489 3 11.9995 3C11.9498 3 11.9012 3.00483 11.8543 3.01406C11.6412 3.04518 11.4363 3.14509 11.2756 3.31379L4.20889 10.7327Z" />
-                        </Grid>
-                    </Button>
-
-                    <Button
-                        x:Name="MoveDownButton"
-                        Grid.Column="1"
-                        Style="{StaticResource CompactIconButtonStyle}"
-                        Click="OnMoveDownClick"
-                        ToolTipService.ToolTip="Move icon down">
-                        <Grid Style="{StaticResource CompactIconHostStyle}">
-                            <PathIcon Style="{StaticResource FluentTinyPathIconStyle}" Data="M19.7905 13.2673C20.0762 12.9674 20.0646 12.4926 19.7647 12.2069C19.4648 11.9212 18.99 11.9328 18.7043 12.2327L12.7498 18.484V3.75C12.7498 3.33579 12.4141 3 11.9998 3C11.5856 3 11.2498 3.33579 11.2498 3.75V18.4844L5.29502 12.2327C5.00933 11.9328 4.5346 11.9212 4.23467 12.2069C3.93475 12.4926 3.9232 12.9674 4.20889 13.2673L11.2756 20.6862C11.4366 20.8553 11.642 20.9552 11.8556 20.9861C11.9023 20.9952 11.9505 21 11.9998 21C12.0495 21 12.0981 20.9952 12.1451 20.9859C12.3582 20.9548 12.5631 20.8549 12.7238 20.6862L19.7905 13.2673Z" />
-                        </Grid>
-                    </Button>
-
-                    <Button
-                        x:Name="MoveLeftButton"
-                        Grid.Column="2"
-                        Style="{StaticResource CompactIconButtonStyle}"
-                        Click="OnMoveLeftClick"
-                        ToolTipService.ToolTip="Move icon left">
-                        <Grid Style="{StaticResource CompactIconHostStyle}">
-                            <FontIcon FontFamily="Segoe MDL2 Assets" FontSize="12" Glyph="&#xE72B;" />
-                        </Grid>
-                    </Button>
-
-                    <Button
-                        x:Name="MoveRightButton"
-                        Grid.Column="3"
-                        Style="{StaticResource CompactIconButtonStyle}"
-                        Click="OnMoveRightClick"
-                        ToolTipService.ToolTip="Move icon right">
-                        <Grid Style="{StaticResource CompactIconHostStyle}">
-                            <FontIcon FontFamily="Segoe MDL2 Assets" FontSize="12" Glyph="&#xE72A;" />
-                        </Grid>
-                    </Button>
-
-                    <Button
-                        x:Name="ScaleDownButton"
-                        Grid.Column="4"
-                        Style="{StaticResource CompactIconButtonStyle}"
-                        Click="OnScaleDownClick"
-                        ToolTipService.ToolTip="Shrink icon">
-                        <Grid Style="{StaticResource CompactIconHostStyle}">
-                            <PathIcon Style="{StaticResource FluentTinyPathIconStyle}" Data="M3.75391 12.5H20.2458C20.66 12.5 20.9958 12.1642 20.9958 11.75C20.9958 11.3358 20.66 11 20.2458 11H3.75391C3.33969 11 3.00391 11.3358 3.00391 11.75C3.00391 12.1642 3.33969 12.5 3.75391 12.5Z" />
-                        </Grid>
-                    </Button>
-
-                    <Button
-                        x:Name="ScaleUpButton"
-                        Grid.Column="5"
-                        Style="{StaticResource CompactIconButtonStyle}"
-                        Click="OnScaleUpClick"
-                        ToolTipService.ToolTip="Enlarge icon">
-                        <Grid Style="{StaticResource CompactIconHostStyle}">
-                            <PathIcon Style="{StaticResource FluentTinyPathIconStyle}" Data="M12 3.25C12.4142 3.25 12.75 3.58579 12.75 4V11.25H20C20.4142 11.25 20.75 11.5858 20.75 12C20.75 12.4142 20.4142 12.75 20 12.75H12.75V20C12.75 20.4142 12.4142 20.75 12 20.75C11.5858 20.75 11.25 20.4142 11.25 20V12.75H4C3.58579 12.75 3.25 12.4142 3.25 12C3.25 11.5858 3.58579 11.25 4 11.25H11.25V4C11.25 3.58579 11.5858 3.25 12 3.25Z" />
-                        </Grid>
-                    </Button>
-
-                    <Button
                         x:Name="ResetVisualButton"
-                        Grid.Column="6"
+                        Grid.Column="5"
                         Style="{StaticResource CompactIconButtonStyle}"
                         Click="OnResetVisualAdjustmentsClick"
                         ToolTipService.ToolTip="Reset visual adjustments">
@@ -1209,15 +1309,6 @@
                         ToolTipService.ToolTip="Restore panel">
                         <Grid Style="{StaticResource IconHostStyle}">
                             <PathIcon Style="{StaticResource FluentPathIconStyle}" Data="M4 5H20V7H4V5ZM4 11H20V13H4V11ZM4 17H20V19H4V17Z" />
-                        </Grid>
-                    </Button>
-                    <Button
-                        x:Name="MiniExitButton"
-                        Style="{StaticResource ToolbarIconButtonStyle}"
-                        Click="OnMiniExitClick"
-                        ToolTipService.ToolTip="Exit Kill Confirm Overlay">
-                        <Grid Style="{StaticResource IconHostStyle}">
-                            <PathIcon Style="{StaticResource FluentPathIconStyle}" Data="M6 4L18 4L18 6L13 6L13 18L18 18L18 20L6 20L6 18L11 18L11 6L6 6Z" />
                         </Grid>
                     </Button>
                 </StackPanel>

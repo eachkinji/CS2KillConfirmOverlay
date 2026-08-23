@@ -15,11 +15,11 @@
                 FontSize="12"
                 FontWeight="Bold"
                 Foreground="#FFFFFF"
-                Text="Valorant 独立面板" />
+                Text="VALORANT 击杀提示" />
             <TextBlock
                 FontSize="10"
                 Foreground="#D8E5EF"
-                Text="VAL 使用 Valorant 资源包和击杀动画文件，不参与 CF 的武器徽章和精英图标逻辑。"
+                Text="选择 VALORANT 语音包和图标包，设置连杀与爆头提示效果。"
                 TextWrapping="WrapWholeWords" />
         </StackPanel>
     </Border>

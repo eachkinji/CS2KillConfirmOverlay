@@ -19,18 +19,6 @@ namespace KillConfirmGameBar
             return true;
         }
 
-        private bool TrySyncBattlefieldVoicePackForIconSelection(string iconPack)
-        {
-            if (!IsCurrentModPresetPackKey(iconPack))
-            {
-                return false;
-            }
-
-            SavePackSettingForStyle(VoicePackSettingKey, GameStyleService.Current, iconPack);
-            SelectVoicePackPreset(iconPack);
-            return true;
-        }
-
         private static string NormalizeBattlefieldVoicePackAlias(string preset)
         {
             switch ((preset ?? string.Empty).Trim().ToLowerInvariant())
@@ -69,7 +57,8 @@ namespace KillConfirmGameBar
                 || (GameStyleService.Current == GameStyleMode.Pubg && GameStyleService.IsPubgKey(packKey))
                 || (GameStyleService.Current == GameStyleMode.DeltaForce && GameStyleService.IsDeltaForceKey(packKey))
                 || (GameStyleService.Current == GameStyleMode.Doubao && GameStyleService.IsDoubaoKey(packKey))
-                || (GameStyleService.Current == GameStyleMode.Dagoujiao && GameStyleService.IsDagoujiaoKey(packKey));
+                || (GameStyleService.Current == GameStyleMode.Dagoujiao && GameStyleService.IsDagoujiaoKey(packKey))
+                || (GameStyleService.Current == GameStyleMode.Apex && GameStyleService.IsApexKey(packKey));
         }
     }
 }

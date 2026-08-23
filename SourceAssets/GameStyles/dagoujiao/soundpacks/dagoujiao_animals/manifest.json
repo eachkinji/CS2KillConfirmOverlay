@@ -1,0 +1,16 @@
+{
+  "id": "dagoujiao_animals",
+  "name": "Animals",
+  "game_style": "dagoujiao",
+  "version": "1.0",
+  "audio": {
+    "base_gain": 1.0,
+    "slots": {
+      "common": "animals.mp3",
+      "headshot": "animals.mp3",
+      "epic": "animals.mp3",
+      "jiaojiaojiao": "animals.mp3"
+    },
+    "overlay_slots": []
+  }
+}

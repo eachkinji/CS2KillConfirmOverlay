@@ -66,6 +66,10 @@ namespace KillConfirmGameBar
                     {
                         string responseText = await response.Content.ReadAsStringAsync();
                         ApplyVoicePackResponse(responseText, requestStyle, preset);
+                        if (requestStyle == GameStyleMode.Dagoujiao)
+                        {
+                            await DagoujiaoSettingsStore.SyncActiveVoicePackAudioAsync(preset);
+                        }
                     }
                     else
                     {

@@ -1,0 +1,15 @@
+{
+  "id": "modernwarfare2019",
+  "name": "Modern Warfare 2019",
+  "game_style": "modernwarfare2019",
+  "version": "1.0",
+  "audio": {
+    "base_gain": 1.0,
+    "slots": {
+      "hit": "hit.wav",
+      "kill_1": "kill.wav",
+      "headshot": "headshot.wav"
+    },
+    "overlay_slots": []
+  }
+}

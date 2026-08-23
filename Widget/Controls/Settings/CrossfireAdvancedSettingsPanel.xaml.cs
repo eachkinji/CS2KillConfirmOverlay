@@ -58,13 +58,13 @@ namespace KillConfirmGameBar.Controls.Settings
             HeadshotIconStreakPriorityItem.Content = HeadshotStreakPriorityItem.Content;
             KnifeIconStreakPriorityItem.Content = HeadshotStreakPriorityItem.Content;
             FirstKillAudioLabel.Text = isChinese ? "\u9996\u6740\u8bed\u97f3" : "First-kill audio";
-            LastKillAudioLabel.Text = isChinese ? "\u5c3e\u6740\u8bed\u97f3" : "Last-kill audio";
+            LastKillAudioLabel.Text = isChinese ? "最终击杀语音" : "Last-kill audio";
             FirstKillSpecialItem.Content = isChinese ? "\u7279\u6b8a\u97f3\u6548" : "Special audio";
             LastKillSpecialItem.Content = FirstKillSpecialItem.Content;
             FirstKillOriginalItem.Content = isChinese ? "\u539f\u51fb\u6740\u97f3\u6548" : "Original kill audio";
             LastKillOriginalItem.Content = FirstKillOriginalItem.Content;
             FirstKillEffectLabel.Text = isChinese ? "\u9996\u6740\u7279\u6548" : "First-kill effect";
-            LastKillEffectLabel.Text = isChinese ? "\u5c3e\u6740\u7279\u6548" : "Last-kill effect";
+            LastKillEffectLabel.Text = isChinese ? "最终击杀特效" : "Last-kill effect";
             FirstKillEffectToggle.OnContent = isChinese ? "\u5f00\u542f\uff08\u9ed8\u8ba4\uff09" : "On (default)";
             LastKillEffectToggle.OnContent = FirstKillEffectToggle.OnContent;
             FirstKillEffectToggle.OffContent = isChinese ? "\u5173\u95ed" : "Off";

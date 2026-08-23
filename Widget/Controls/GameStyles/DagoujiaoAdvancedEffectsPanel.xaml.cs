@@ -10,6 +10,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
     public sealed partial class DagoujiaoAdvancedEffectsPanel : UserControl
     {
         private bool _suppressChanges = true;
+        private bool _suppressKillMarkChanges;
         private bool _isChinese = true;
         private GameThemePalette _theme;
 
@@ -48,6 +49,10 @@ namespace KillConfirmGameBar.Controls.GameStyles
                 MaximumScaleSlider.Value = settings.MaximumScale * 100.0;
                 InitialPlaybackSpeedSlider.Value = settings.InitialPlaybackSpeed * 100.0;
                 MaximumPlaybackSpeedSlider.Value = settings.MaximumPlaybackSpeed * 100.0;
+                EpicPlaybackSpeedSlider.Value = settings.EpicPlaybackSpeed * 100.0;
+                SetKillMarkEnabled(
+                    KillFeedbackVisibilitySettingsStore.Load(GameStyleMode.Dagoujiao).CrosshairEnabled,
+                    false);
                 UpdateValueLabels();
             }
             finally
@@ -62,12 +67,18 @@ namespace KillConfirmGameBar.Controls.GameStyles
         internal void ApplyTheme(GameThemePalette theme)
         {
             _theme = theme;
-            AdvancedEffectsPanelSupport.ApplyHeader(TitleText, HintText, theme);
+            TitleText.Foreground = theme.Brush(theme.Text);
             StreakEditor.ApplyTheme(theme);
+            AdvancedEffectsPanelSupport.ApplyKillMarkCard(
+                VisualEffectsCard,
+                VisualEffectsTitle,
+                KillMarkEffectLabel,
+                KillMarkEffectToggle,
+                theme);
             foreach (TextBlock label in new[]
             {
                 EpicCountLabel, PriorityLabel, OpacityLabel, InitialScaleLabel, ScaleLabel,
-                InitialPlaybackSpeedLabel, MaximumPlaybackSpeedLabel
+                InitialPlaybackSpeedLabel, MaximumPlaybackSpeedLabel, EpicPlaybackSpeedLabel
             })
             {
                 label.Foreground = new SolidColorBrush(theme.Text);
@@ -80,9 +91,6 @@ namespace KillConfirmGameBar.Controls.GameStyles
                 AdvancedEffectsPanelSupport.ApplyCombo(selector, theme.Text, theme.SubtleField, theme.SoftBorder);
             }
             AdvancedEffectsPanelSupport.ApplyResetButton(ResetButton, theme);
-            EpicNotice.Background = new SolidColorBrush(theme.AccentSoft);
-            EpicNotice.BorderBrush = new SolidColorBrush(theme.SoftBorder);
-            EpicNoticeText.Foreground = new SolidColorBrush(theme.AccentText);
         }
 
         public void ApplyLanguage(bool isChinese)
@@ -91,17 +99,16 @@ namespace KillConfirmGameBar.Controls.GameStyles
             TitleText.Text = isChinese ? "大狗叫战斗设置" : "Dagoujiao Combat Settings";
             ResetButtonText.Text = isChinese ? "恢复默认" : "Reset";
             ToolTipService.SetToolTip(ResetButton, isChinese ? "恢复大狗叫默认设置" : "Restore Dagoujiao defaults");
-            HintText.Text = isChinese
-                ? "设置 Epic 击杀阈值、优先级、变速与缩放曲线。语音与图标包请在上方标签页中管理。"
-                : "Configure the Epic threshold, headshot/streak priority, speed/scale curve. Voice & icon packs are managed in tabs above.";
             EpicCountLabel.Text = isChinese ? "Epic 击杀数" : "Epic kill count";
             PriorityLabel.Text = isChinese ? "音效优先级" : "Audio priority";
             HeadshotPriorityItem.Content = isChinese ? "爆头优先" : "Headshot first";
             StreakPriorityItem.Content = isChinese ? "连杀优先" : "Streak first";
-            EpicNoticeText.Text = isChinese
-                ? "提示：大狗叫语音包（包含普通连杀、爆头与 Epic 叫叫叫）与图标包（包含 16 款大狗表情包与自定义图片）均由上方“语音包库”与“图标包库”统一管理。"
-                : "Note: Dagoujiao voice packs (common streak, headshot & Epic barks) and icon packs (16 meme dog icons & custom images) are fully managed via the dedicated tabs above.";
             StreakEditor.ApplyLanguage(isChinese);
+            AdvancedEffectsPanelSupport.ApplyKillMarkLanguage(
+                VisualEffectsTitle,
+                KillMarkEffectLabel,
+                KillMarkEffectToggle,
+                isChinese);
             UpdateValueLabels();
         }
 
@@ -112,6 +119,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
                 StreakEditor.SelectValue(SharedStreakSettingsStore.LifeMode);
                 DagoujiaoSettingsValues defaults = new DagoujiaoSettingsValues();
                 DagoujiaoSettingsStore.Save(defaults);
+                SetKillMarkEnabled(true);
                 await RefreshSettingsAsync();
                 StreakModeSelectionChanged?.Invoke(StreakEditor.SelectorControl, null);
                 DagoujiaoSettingsChanged?.Invoke(this, EventArgs.Empty);
@@ -147,6 +155,35 @@ namespace KillConfirmGameBar.Controls.GameStyles
             }
         }
 
+        private void SetKillMarkEnabled(bool enabled, bool save = true)
+        {
+            _suppressKillMarkChanges = true;
+            KillMarkEffectToggle.IsOn = enabled;
+            _suppressKillMarkChanges = false;
+            if (save)
+            {
+                SaveKillMarkSetting();
+            }
+        }
+
+        private void OnKillMarkEffectToggled(object sender, RoutedEventArgs e)
+        {
+            if (!_suppressKillMarkChanges)
+            {
+                SaveKillMarkSetting();
+            }
+        }
+
+        private void SaveKillMarkSetting()
+        {
+            KillFeedbackVisibilitySettingsStore.Save(
+                GameStyleMode.Dagoujiao,
+                new KillFeedbackVisibilitySettingsValues
+                {
+                    CrosshairEnabled = KillMarkEffectToggle.IsOn
+                });
+        }
+
         private void SaveCurrentSettings()
         {
             DagoujiaoSettingsValues current = DagoujiaoSettingsStore.Load();
@@ -157,6 +194,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
             current.MaximumScale = MaximumScaleSlider.Value / 100.0;
             current.InitialPlaybackSpeed = InitialPlaybackSpeedSlider.Value / 100.0;
             current.MaximumPlaybackSpeed = MaximumPlaybackSpeedSlider.Value / 100.0;
+            current.EpicPlaybackSpeed = EpicPlaybackSpeedSlider.Value / 100.0;
             DagoujiaoSettingsStore.Save(current);
             UpdateValueLabels();
             KillConfirmAnimation.InvalidateDagoujiaoImageCache();
@@ -169,6 +207,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
             double scale = MaximumScaleSlider.Value / 100.0;
             double initialPlaybackSpeed = InitialPlaybackSpeedSlider.Value / 100.0;
             double maximumPlaybackSpeed = MaximumPlaybackSpeedSlider.Value / 100.0;
+            double epicPlaybackSpeed = EpicPlaybackSpeedSlider.Value / 100.0;
             OpacityLabel.Text = _isChinese ? $"显示透明度：{opacity}%" : $"Display opacity: {opacity}%";
             InitialScaleLabel.Text = _isChinese
                 ? $"第一杀缩放：{initialScale:0.00}×（{initialScale * 100:0}%）"
@@ -182,6 +221,9 @@ namespace KillConfirmGameBar.Controls.GameStyles
             MaximumPlaybackSpeedLabel.Text = _isChinese
                 ? $"Epic 前一杀音频速度：{maximumPlaybackSpeed:0.00}×（{maximumPlaybackSpeed * 100:0}%）"
                 : $"Epic-1 audio speed: {maximumPlaybackSpeed:0.00}× ({maximumPlaybackSpeed * 100:0}%)";
+            EpicPlaybackSpeedLabel.Text = _isChinese
+                ? $"Epic 音频速度：{epicPlaybackSpeed:0.00}×（{epicPlaybackSpeed * 100:0}%）"
+                : $"Epic audio speed: {epicPlaybackSpeed:0.00}× ({epicPlaybackSpeed * 100:0}%)";
         }
 
         private int ReadEpicCount()

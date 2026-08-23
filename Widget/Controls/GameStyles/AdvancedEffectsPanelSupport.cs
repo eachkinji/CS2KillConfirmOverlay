@@ -57,6 +57,46 @@ namespace KillConfirmGameBar.Controls.GameStyles
             }
         }
 
+        public static void ApplyKillMarkCard(
+            Border card,
+            TextBlock title,
+            TextBlock label,
+            ToggleSwitch toggle,
+            GameThemePalette theme)
+        {
+            if (card != null)
+            {
+                card.Background = Brush(theme.Card);
+                card.BorderBrush = Brush(theme.SoftBorder);
+            }
+            if (title != null)
+            {
+                title.Foreground = Brush(theme.Text);
+            }
+            ApplyToggleRow(label, toggle, theme);
+        }
+
+        public static void ApplyKillMarkLanguage(
+            TextBlock title,
+            TextBlock label,
+            ToggleSwitch toggle,
+            bool isChinese)
+        {
+            if (title != null)
+            {
+                title.Text = isChinese ? "显示哪些击杀提示" : "Visible kill feedback";
+            }
+            if (label != null)
+            {
+                label.Text = isChinese ? "准心 KillMark" : "Crosshair KillMark";
+            }
+            if (toggle != null)
+            {
+                toggle.OnContent = isChinese ? "开" : "On";
+                toggle.OffContent = isChinese ? "关" : "Off";
+            }
+        }
+
         public static void ApplyTextInput(TextBox input, TextBlock hint, GameThemePalette theme)
         {
             if (input != null)

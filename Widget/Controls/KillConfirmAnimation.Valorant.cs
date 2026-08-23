@@ -640,7 +640,7 @@ namespace KillConfirmGameBar.Controls
 
         private Rect SnapValorantRectToPhysicalPixels(Rect rect)
         {
-            double physicalScale = Math.Max(0.1, GetRenderResolutionScale() * GetDisplayDpiScale());
+            double physicalScale = Math.Max(0.1, GetRenderResolutionScale());
             double left = Math.Round(rect.Left * physicalScale) / physicalScale;
             double top = Math.Round(rect.Top * physicalScale) / physicalScale;
             double right = Math.Round(rect.Right * physicalScale) / physicalScale;
@@ -655,13 +655,13 @@ namespace KillConfirmGameBar.Controls
 
         private double SnapValorantCoordinateToPhysicalPixel(double coordinate)
         {
-            double physicalScale = Math.Max(0.1, GetRenderResolutionScale() * GetDisplayDpiScale());
+            double physicalScale = Math.Max(0.1, GetRenderResolutionScale());
             return Math.Round(coordinate * physicalScale) / physicalScale;
         }
 
         private CanvasImageInterpolation GetValorantImageInterpolation(Rect target, Rect source)
         {
-            double physicalScale = Math.Max(0.1, GetRenderResolutionScale() * GetDisplayDpiScale());
+            double physicalScale = Math.Max(0.1, GetRenderResolutionScale());
             bool isUpscaling = target.Width * physicalScale > source.Width + 0.5
                 || target.Height * physicalScale > source.Height + 0.5;
             return isUpscaling

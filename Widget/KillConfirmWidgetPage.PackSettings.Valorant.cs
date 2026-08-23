@@ -1,6 +1,8 @@
 using System;
+using KillConfirmGameBar.Controls.GameStyles;
 using KillConfirmGameBar.Services;
-using Windows.Storage;
+using Windows.UI.Xaml;
+using Windows.UI.Xaml.Controls;
 
 namespace KillConfirmGameBar
 {
@@ -9,7 +11,8 @@ namespace KillConfirmGameBar
         private bool TrySyncValorantIconPackForVoiceSelection(string preset)
         {
             if (GameStyleService.Current != GameStyleMode.Valorant
-                || !ValorantPackService.IsValorantPackKey(preset))
+                || !ValorantPackSyncSettingsStore.Load()
+                || !HasPackOption(IconPackSelector, preset))
             {
                 return false;
             }
@@ -17,6 +20,7 @@ namespace KillConfirmGameBar
             SavePackSettingForStyle(IconPackSettingKey, GameStyleService.Current, preset);
             SelectIconPack(preset);
             ConfigureAnimationIconPack(preset);
+            _ = ApplyCustomPackOverlaySupportAsync(preset);
             WarmStartupAnimationCacheIfActive();
             return true;
         }
@@ -24,7 +28,8 @@ namespace KillConfirmGameBar
         private bool TrySyncValorantVoicePackForIconSelection(string iconPack)
         {
             if (GameStyleService.Current != GameStyleMode.Valorant
-                || !ValorantPackService.IsValorantPackKey(iconPack))
+                || !ValorantPackSyncSettingsStore.Load()
+                || !HasPackOption(VoicePackSelector, iconPack))
             {
                 return false;
             }
@@ -34,48 +39,45 @@ namespace KillConfirmGameBar
             return true;
         }
 
-        private bool TryApplyValorantLoadedIconPack(string iconPack)
+        private static bool HasPackOption(ComboBox selector, string key)
         {
-            if (GameStyleService.Current != GameStyleMode.Valorant)
+            if (selector == null || string.IsNullOrWhiteSpace(key))
             {
                 return false;
             }
 
-            SavePackSettingForStyle(VoicePackSettingKey, GameStyleService.Current, iconPack);
-            return true;
+            foreach (object option in selector.Items)
+            {
+                if (option is ComboBoxItem item
+                    && item.Tag is string tag
+                    && string.Equals(tag, key, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool TryApplyValorantLoadedIconPack(string iconPack)
+        {
+            // Initial pairing is applied after both selectors have loaded, with
+            // the saved voice pack as the source of truth.
+            return false;
         }
 
         private bool TryApplyValorantVoicePackLoadOverride(ref string preset)
         {
-            if (GameStyleService.Current != GameStyleMode.Valorant)
-            {
-                return false;
-            }
-
-            string iconPack = GetSelectedIconPack();
-            preset = ValorantPackService.IsValorantPackKey(iconPack)
-                ? iconPack
-                : ValorantPackService.DefaultKey;
-            return true;
+            // Voice and icon selections are persisted independently. The optional
+            // pairing pass runs only after both selector lists are available.
+            return false;
         }
 
         private string GetValorantEffectiveSelectedVoicePackPreset()
         {
-            if (GameStyleService.Current != GameStyleMode.Valorant)
-            {
-                return null;
-            }
-
-            string iconPack = GetSelectedIconPack();
-            if (ValorantPackService.IsValorantPackKey(iconPack))
-            {
-                return iconPack;
-            }
-
-            string selectedVoice = GetSelectedVoicePackPreset();
-            return ValorantPackService.IsValorantPackKey(selectedVoice)
-                ? selectedVoice
-                : ValorantPackService.DefaultKey;
+            return GameStyleService.Current == GameStyleMode.Valorant
+                ? GetSelectedVoicePackPreset()
+                : null;
         }
 
         private bool TryApplyValorantVoicePackResponse(ref string preset)
@@ -85,16 +87,30 @@ namespace KillConfirmGameBar
                 return false;
             }
 
-            string effective = GetEffectiveSelectedVoicePackPreset();
-            if (!ValorantPackService.IsValorantPackKey(preset))
+            if (ValorantPackSyncSettingsStore.Load())
             {
-                preset = effective;
+                TrySyncValorantIconPackForVoiceSelection(preset);
             }
 
-            SavePackSettingForStyle(IconPackSettingKey, GameStyleService.Current, preset);
-            SelectIconPack(preset);
-            ConfigureAnimationIconPack(preset);
             return true;
+        }
+
+        private void OnValorantPackSyncToggled(object sender, RoutedEventArgs e)
+        {
+            if (!(sender is ValorantAdvancedEffectsPanel panel))
+            {
+                return;
+            }
+
+            bool enabled = panel.GetPackSyncEnabled(true);
+            ValorantPackSyncSettingsStore.Save(enabled);
+            if (!enabled || GameStyleService.Current != GameStyleMode.Valorant)
+            {
+                return;
+            }
+
+            string voicePack = GetSelectedVoicePackPreset();
+            TrySyncValorantIconPackForVoiceSelection(voicePack);
         }
     }
 }

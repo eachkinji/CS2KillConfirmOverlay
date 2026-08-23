@@ -16,11 +16,39 @@ namespace KillConfirmGameBar
             ControlPanel.Visibility = showControlPanel ? Visibility.Visible : Visibility.Collapsed;
             ControlPanel.IsHitTestVisible = showControlPanel;
             ControlPanel.Opacity = showControlPanel ? 1.0 : 0.0;
-            AnimationDragOutline.Visibility = showControlPanel ? Visibility.Visible : Visibility.Collapsed;
-            AnimationDragOutline.IsHitTestVisible = showControlPanel;
-            if (!showControlPanel && _isAnimationFrameSelected)
+            GameStyleMode style = GameStyleService.Current;
+            KillFeedbackVisibilitySettingsValues visibility =
+                KillFeedbackVisibilitySettingsStore.Load(style);
+            bool primaryIsOptionalCrosshair = style == GameStyleMode.Overwatch
+                || style == GameStyleMode.Apex
+                || style == GameStyleMode.ModernWarfare2019;
+            bool showPrimaryOutline = showControlPanel
+                && (!primaryIsOptionalCrosshair || visibility.CrosshairEnabled);
+            AnimationDragOutline.Visibility = showPrimaryOutline ? Visibility.Visible : Visibility.Collapsed;
+            AnimationDragOutline.IsHitTestVisible = showPrimaryOutline;
+            bool showOverwatchCardOutline = showControlPanel
+                && visibility.LowerEnabled
+                && (style == GameStyleMode.Overwatch
+                    || style == GameStyleMode.Apex
+                    || style == GameStyleMode.ModernWarfare2019);
+            OverwatchCardDragOutline.Visibility = showOverwatchCardOutline ? Visibility.Visible : Visibility.Collapsed;
+            OverwatchCardDragOutline.IsHitTestVisible = showOverwatchCardOutline;
+            bool showModernWarfare2019UpperOutline = showControlPanel
+                && ((style == GameStyleMode.ModernWarfare2019 && visibility.UpperEnabled)
+                    || (GameStyleService.IsAuxiliaryKillMarkStyle(style)
+                        && visibility.CrosshairEnabled));
+            ModernWarfare2019UpperDragOutline.Visibility = showModernWarfare2019UpperOutline
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+            ModernWarfare2019UpperDragOutline.IsHitTestVisible = showModernWarfare2019UpperOutline;
+            if (!showControlPanel
+                || (!showPrimaryOutline && _isAnimationFrameSelected)
+                || (!showOverwatchCardOutline && _isOverwatchCardFrameSelected)
+                || (!showModernWarfare2019UpperOutline && _isModernWarfare2019UpperFrameSelected))
             {
                 _isAnimationFrameSelected = false;
+                _isOverwatchCardFrameSelected = false;
+                _isModernWarfare2019UpperFrameSelected = false;
                 UpdateAnimationDragOutlineSelectionVisual();
             }
         }
@@ -55,7 +83,10 @@ namespace KillConfirmGameBar
             UpdateControlPanelVisibility();
             if (wasControlPanelVisible != IsControlPanelVisible())
             {
-                RequestWidgetResize(forceResize: true);
+                // Preserve the known-good v3.3.2 behavior: a visibility transition
+                // forces Game Bar to refresh the existing host window for the current
+                // display mode. The requested size itself always remains 550 x 600.
+                RequestFixedWidgetLayoutRefresh();
             }
         }
 

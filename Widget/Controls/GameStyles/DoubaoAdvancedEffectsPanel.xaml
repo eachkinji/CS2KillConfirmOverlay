@@ -16,11 +16,6 @@
                     FontSize="13"
                     FontWeight="Bold"
                     Text="Doubao Effects" />
-                <TextBlock
-                    x:Name="HintText"
-                    FontSize="10"
-                    Text="Configure streak mode. Icons and voices are managed in the Voice / Icon Pack library tabs."
-                    TextWrapping="WrapWholeWords" />
             </StackPanel>
             <Button
                 x:Name="ResetButton"
@@ -41,5 +36,19 @@
         <local:StreakWindowEditor
             x:Name="StreakEditor"
             SettingsChanged="OnStreakModeSelectionChanged" />
+
+        <Border x:Name="VisualEffectsCard" Padding="12" BorderThickness="1" CornerRadius="8">
+            <StackPanel Spacing="8">
+                <TextBlock x:Name="VisualEffectsTitle" FontSize="12" FontWeight="SemiBold" />
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock x:Name="KillMarkEffectLabel" VerticalAlignment="Center" FontSize="10" TextWrapping="WrapWholeWords" />
+                    <ToggleSwitch x:Name="KillMarkEffectToggle" Grid.Column="1" MinWidth="0" Toggled="OnKillMarkEffectToggled" />
+                </Grid>
+            </StackPanel>
+        </Border>
     </StackPanel>
 </UserControl>

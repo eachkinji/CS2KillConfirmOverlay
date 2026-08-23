@@ -184,7 +184,8 @@ namespace KillConfirmGameBar.Controls
                 y,
                 scale,
                 Color.FromArgb(textAlpha, 255, 255, 255),
-                textFormat);
+                textFormat,
+                true);
         }
 
         private void DrawBattlefield5MoneyScore(
@@ -219,7 +220,8 @@ namespace KillConfirmGameBar.Controls
                     y,
                     scale,
                     Color.FromArgb(textAlpha, 255, 255, 255),
-                    textFormat);
+                    textFormat,
+                    true);
                 return;
             }
 
@@ -230,7 +232,8 @@ namespace KillConfirmGameBar.Controls
                 y,
                 scale,
                 Color.FromArgb(textAlpha, 255, 255, 255),
-                textFormat);
+                textFormat,
+                true);
         }
 
         private void DrawBattlefield5BonusList(CanvasDrawingSession drawingSession, CanvasTextFormat textFormat, double currentTimeMs, double centerX, double baseY)
@@ -279,7 +282,8 @@ namespace KillConfirmGameBar.Controls
                         y,
                         scale * 1.04,
                         Color.FromArgb(flashAlpha, 255, 255, 255),
-                        textFormat);
+                        textFormat,
+                        true);
                 }
 
                 DrawBattlefieldTextCentered(
@@ -289,7 +293,8 @@ namespace KillConfirmGameBar.Controls
                     y,
                     scale,
                     Color.FromArgb(textAlpha, 255, 255, 255),
-                    textFormat);
+                    textFormat,
+                    true);
             }
         }
 

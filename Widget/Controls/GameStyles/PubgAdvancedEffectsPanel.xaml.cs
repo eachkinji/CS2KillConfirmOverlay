@@ -6,9 +6,12 @@ namespace KillConfirmGameBar.Controls.GameStyles
 {
     public sealed partial class PubgAdvancedEffectsPanel : UserControl
     {
+        private bool _suppressKillMarkChanges;
+
         public PubgAdvancedEffectsPanel()
         {
             InitializeComponent();
+            RefreshKillMarkSetting();
         }
 
         public event SelectionChangedEventHandler MoneyRewardModeSelectionChanged;
@@ -26,6 +29,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
             AdvancedEffectsPanelSupport.ApplyResetButton(ResetButton, theme);
             AdvancedEffectsPanelSupport.ApplyMoneyRow(MoneyRewardModeLabel, MoneyRewardModeSelector, theme);
             StreakEditor.ApplyTheme(theme);
+            AdvancedEffectsPanelSupport.ApplyKillMarkCard(VisualEffectsCard, VisualEffectsTitle, KillMarkEffectLabel, KillMarkEffectToggle, theme);
             AdvancedEffectsPanelSupport.ApplyNotice(ImportLockedNotice, ImportLockedText, theme);
             StylePanel.ApplyTheme(theme);
         }
@@ -36,9 +40,10 @@ namespace KillConfirmGameBar.Controls.GameStyles
             ResetButtonText.Text = isChinese ? "恢复默认" : "Reset";
             ToolTipService.SetToolTip(ResetButton, isChinese ? "恢复 PUBG 默认设置" : "Restore PUBG defaults");
             MoneyRewardModeLabel.Text = isChinese ? "奖励算法" : "Money";
-            MoneyRewardDeltaItem.Content = isChinese ? "GSI 差值（默认）" : "GSI delta (default)";
+            MoneyRewardDeltaItem.Content = isChinese ? "按实际金钱变化（推荐）" : "Actual money change (recommended)";
             MoneyRewardRulesItem.Content = isChinese ? "击杀奖励规则" : "Kill reward rules";
             StreakEditor.ApplyLanguage(isChinese);
+            AdvancedEffectsPanelSupport.ApplyKillMarkLanguage(VisualEffectsTitle, KillMarkEffectLabel, KillMarkEffectToggle, isChinese);
             StylePanel.ApplyLanguage(isChinese);
         }
 
@@ -76,8 +81,40 @@ namespace KillConfirmGameBar.Controls.GameStyles
         {
             SelectTaggedComboBoxItem(MoneyRewardModeSelector, "delta", "delta");
             StreakEditor.SelectValue(SharedStreakSettingsStore.LifeMode);
+            SetKillMarkEnabled(false);
             MoneyRewardModeSelectionChanged?.Invoke(MoneyRewardModeSelector, null);
             StreakModeSelectionChanged?.Invoke(StreakEditor.SelectorControl, null);
+        }
+
+        private void RefreshKillMarkSetting()
+        {
+            SetKillMarkEnabled(KillFeedbackVisibilitySettingsStore.Load(GameStyleMode.Pubg).CrosshairEnabled, false);
+        }
+
+        private void SetKillMarkEnabled(bool enabled, bool save = true)
+        {
+            _suppressKillMarkChanges = true;
+            KillMarkEffectToggle.IsOn = enabled;
+            _suppressKillMarkChanges = false;
+            if (save)
+            {
+                SaveKillMarkSetting();
+            }
+        }
+
+        private void OnKillMarkEffectToggled(object sender, RoutedEventArgs e)
+        {
+            if (!_suppressKillMarkChanges)
+            {
+                SaveKillMarkSetting();
+            }
+        }
+
+        private void SaveKillMarkSetting()
+        {
+            KillFeedbackVisibilitySettingsStore.Save(
+                GameStyleMode.Pubg,
+                new KillFeedbackVisibilitySettingsValues { CrosshairEnabled = KillMarkEffectToggle.IsOn });
         }
 
         private static string ReadTaggedComboBoxItem(ComboBox selector, string fallback)

@@ -4,7 +4,6 @@ using System.Numerics;
 using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.UI.Xaml;
 using Windows.Foundation;
-using Windows.Graphics.Display;
 using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Media;
@@ -30,6 +29,24 @@ namespace KillConfirmGameBar.Controls
 
             try
             {
+                if (_isModernWarfare2019Active)
+                {
+                    DrawModernWarfare2019Frame(args.DrawingSession);
+                    return;
+                }
+
+                if (_isApexFeedActive)
+                {
+                    DrawApexFeedFrame(args.DrawingSession);
+                    return;
+                }
+
+                if (_isOverwatchActive)
+                {
+                    DrawOverwatchFrame(args.DrawingSession);
+                    return;
+                }
+
                 if (_isDoubaoActive)
                 {
                     DrawDoubaoFrame(args.DrawingSession);
@@ -290,6 +307,24 @@ namespace KillConfirmGameBar.Controls
 
         private void OnTick(object sender, object e)
         {
+            if (_isModernWarfare2019Active)
+            {
+                UpdateModernWarfare2019Frame();
+                return;
+            }
+
+            if (_isApexFeedActive)
+            {
+                UpdateApexFeedFrame();
+                return;
+            }
+
+            if (_isOverwatchActive)
+            {
+                UpdateOverwatchFrame();
+                return;
+            }
+
             if (_isDoubaoActive)
             {
                 UpdateDoubaoFrame();
@@ -408,9 +443,8 @@ namespace KillConfirmGameBar.Controls
             double requestedScale = isValorant
                 ? GetBaseDisplayFit() * _presentationScale
                 : Math.Max(1.0, Math.Min(4.0, _renderResolutionScale));
-            double dpiScale = GetDisplayDpiScale();
-            double pixelWidthAtScaleOne = Math.Max(1.0, _logicalFrameWidth * dpiScale);
-            double pixelHeightAtScaleOne = Math.Max(1.0, _logicalFrameHeight * dpiScale);
+            double pixelWidthAtScaleOne = Math.Max(1.0, _logicalFrameWidth);
+            double pixelHeightAtScaleOne = Math.Max(1.0, _logicalFrameHeight);
             double maxPixelWidth = isValorant ? ValorantMaxCanvasPixelWidth : MaxCanvasPixelWidth;
             double maxPixelHeight = isValorant ? ValorantMaxCanvasPixelHeight : MaxCanvasPixelHeight;
             double maxPixelArea = isValorant ? ValorantMaxCanvasPixelArea : MaxCanvasPixelArea;
@@ -423,6 +457,15 @@ namespace KillConfirmGameBar.Controls
 
         private double GetBaseDisplayFit()
         {
+            if (_isModernWarfare2019Active && _drawModernWarfare2019Primary)
+            {
+                // The primary canvas is wider only to provide a real feed
+                // column. Preserve the original 1920x1080 content scale.
+                return Math.Min(
+                    ReferenceDisplayWidth / ModernWarfare2019FrameWidth,
+                    ReferenceDisplayHeight / ModernWarfare2019FrameHeight);
+            }
+
             return _contentSizedViewport
                 ? 1.0
                 : Math.Min(ReferenceDisplayWidth / _logicalFrameWidth, ReferenceDisplayHeight / _logicalFrameHeight);
@@ -442,18 +485,6 @@ namespace KillConfirmGameBar.Controls
             return IsValorantPresentationConfigured
                 ? ValorantInteractionLogicalHeight * GetBaseDisplayFit() * _presentationScale
                 : _displayViewportHeight;
-        }
-
-        private static double GetDisplayDpiScale()
-        {
-            try
-            {
-                return Math.Max(1.0, DisplayInformation.GetForCurrentView().LogicalDpi / 96.0);
-            }
-            catch
-            {
-                return 1.0;
-            }
         }
 
         private void ApplyViewportSize(double logicalWidth, double logicalHeight)

@@ -51,9 +51,23 @@ pub struct Args {
     #[arg(long, default_value = "false")]
     pub auto_search_port: bool,
 
+    /// Exit automatically when every registered packaged UI process has
+    /// terminated. The appx manifest enables this for normal service launches;
+    /// direct command-line runs remain independent for development.
+    #[arg(long, default_value = "false")]
+    pub exit_with_ui: bool,
+
     /// open the package runtime log folder, then exit
     #[arg(long, default_value = "false")]
     pub open_logs: bool,
+
+    /// terminate every Kill Confirm Overlay foreground and background process
+    #[arg(long, default_value = "false")]
+    pub exit_all: bool,
+
+    /// open the installed setup manager's uninstaller, then exit
+    #[arg(long, default_value = "false")]
+    pub open_uninstaller: bool,
 
     /// enable diagnostic file logs and tracing
     #[arg(long, default_value = "false")]
@@ -82,7 +96,6 @@ pub struct Args {
     /// open the author's Bilibili page, then exit
     #[arg(long, default_value = "false")]
     pub open_author_bilibili: bool,
-
 }
 
 impl Args {

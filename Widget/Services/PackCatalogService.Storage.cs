@@ -132,7 +132,11 @@ namespace KillConfirmGameBar.Services
                     CreateBuiltInVoice("pubg", "PUBG", true),
                     CreateBuiltInVoice("deltaforce", "Delta Force", true),
                     CreateBuiltInVoice("doubao", "豆包", true),
-                    CreateBuiltInVoice("dagoujiao", "大狗叫", true)
+                    CreateBuiltInVoice("dagoujiao", "大狗叫", true),
+                    CreateBuiltInVoice(DagoujiaoAnimalsPackKey, "Animals", true),
+                    CreateBuiltInVoice("overwatch", "OverWatch", true),
+                    CreateBuiltInVoice("modernwarfare2019", "Modern Warfare 2019", true),
+                    CreateBuiltInVoice("apex", "Apex Legends", true)
                 },
                 IconPacks = new List<IconPackItem>
                 {
@@ -152,7 +156,11 @@ namespace KillConfirmGameBar.Services
                     CreateBuiltInIcon("pubg", "PUBG", true),
                     CreateBuiltInIcon("deltaforce", "Delta Force", true),
                     CreateBuiltInIcon("doubao", "豆包", true),
-                    CreateBuiltInIcon("dagoujiao", "大狗叫", true)
+                    CreateBuiltInIcon("dagoujiao", "大狗叫", true),
+                    CreateBuiltInIcon(DagoujiaoAnimalsPackKey, "Animals", true),
+                    CreateBuiltInIcon("overwatch", "OverWatch", true),
+                    CreateBuiltInIcon("modernwarfare2019", "Modern Warfare 2019", true),
+                    CreateBuiltInIcon("apex", "Apex Legends", true)
                 }
             };
 

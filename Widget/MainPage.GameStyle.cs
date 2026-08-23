@@ -21,6 +21,9 @@ namespace KillConfirmGameBar
         private CrossfireStylePanel _crossfireStylePanel;
         private CsolAdvancedEffectsPanel _csolAdvancedEffectsPanel;
         private ValorantAdvancedEffectsPanel _valorantAdvancedEffectsPanel;
+        private OverwatchAdvancedEffectsPanel _overwatchAdvancedEffectsPanel;
+        private ModernWarfare2019AdvancedEffectsPanel _modernWarfare2019AdvancedEffectsPanel;
+        private ApexAdvancedEffectsPanel _apexAdvancedEffectsPanel;
         private Battlefield1AdvancedEffectsPanel _battlefield1AdvancedEffectsPanel;
         private Battlefield5AdvancedEffectsPanel _battlefield5AdvancedEffectsPanel;
         private Battlefield4AdvancedEffectsPanel _battlefield4AdvancedEffectsPanel;
@@ -48,7 +51,16 @@ namespace KillConfirmGameBar
             bool fixedPreset = GameStyleService.IsModPresetGameKey(GameStyleService.ToStorageValue(mode));
             bool isCrossfire = mode == GameStyleMode.Crossfire;
             bool isDagoujiao = mode == GameStyleMode.Dagoujiao;
+            bool overwatch = mode == GameStyleMode.Overwatch;
+            bool modernWarfare2019 = mode == GameStyleMode.ModernWarfare2019;
+            bool apex = mode == GameStyleMode.Apex;
             GameThemePalette theme = _isHomePageSelected ? GameThemePalette.Home : GameThemePalette.ForMode(mode);
+
+            Visibility iconCreationVisibility = overwatch || modernWarfare2019 || apex ? Visibility.Collapsed : Visibility.Visible;
+            if (ImportIconMaterialButton != null) ImportIconMaterialButton.Visibility = iconCreationVisibility;
+            if (ImportIconPackButton != null) ImportIconPackButton.Visibility = iconCreationVisibility;
+            if (ImportIconZipButton != null) ImportIconZipButton.Visibility = iconCreationVisibility;
+            if (CreateIconPackButton != null) CreateIconPackButton.Visibility = iconCreationVisibility;
 
             UpdateSettingsPageVisibility();
             if (_isHomePageSelected)
@@ -106,6 +118,8 @@ namespace KillConfirmGameBar
                     valorant ? Color.FromArgb(255, 255, 170, 178) :
                     csol ? Color.FromArgb(255, 255, 168, 150) :
                     isDagoujiao ? Color.FromArgb(255, 233, 213, 255) :
+                    overwatch ? Color.FromArgb(255, 255, 205, 168) :
+                    modernWarfare2019 ? Color.FromArgb(255, 177, 231, 244) :
                     Color.FromArgb(255, 255, 240, 213));
 
                 FrameStripeOne.Stroke = new SolidColorBrush(
@@ -116,6 +130,8 @@ namespace KillConfirmGameBar
                     valorant ? Color.FromArgb(255, 59, 78, 102) :
                     csol ? Color.FromArgb(255, 120, 37, 42) :
                     isDagoujiao ? Color.FromArgb(255, 107, 33, 168) :
+                    overwatch ? Color.FromArgb(255, 67, 77, 88) :
+                    modernWarfare2019 ? Color.FromArgb(255, 48, 93, 107) :
                     Color.FromArgb(255, 196, 196, 196));
                 FrameStripeTwo.Stroke = FrameStripeOne.Stroke;
 
@@ -130,13 +146,22 @@ namespace KillConfirmGameBar
 
             bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
             string gameName = isChinese ? GameStyleService.ToDisplayName(mode) : mode.ToString();
-            if (mode != GameStyleMode.Dagoujiao && mode != GameStyleMode.Csol)
+            if (mode != GameStyleMode.Dagoujiao
+                && mode != GameStyleMode.Csol
+                && mode != GameStyleMode.Overwatch
+                && mode != GameStyleMode.ModernWarfare2019
+                && mode != GameStyleMode.Apex)
             {
                 if (VoiceCollectionsTitleText != null) VoiceCollectionsTitleText.Text = gameName + " " + LocalizationManager.Text("VoiceCollectionsTitle");
                 if (IconCollectionsTitleText != null) IconCollectionsTitleText.Text = gameName + " " + LocalizationManager.Text("IconCollectionsTitle");
             }
-            if (GameEffectsTitleText != null) GameEffectsTitleText.Text = gameName + " " + (isChinese ? "战斗与特效设置" : "Combat & Effects Settings");
-            if (StructureTitleText != null) StructureTitleText.Text = gameName + " " + (isChinese ? "资源包标准规范与制作指南" : "Resource Pack Guide");
+            if (GameEffectsTitleText != null)
+            {
+                GameEffectsTitleText.Text = mode == GameStyleMode.Overwatch
+                    ? (isChinese ? "守望先锋击杀提示" : "Overwatch Kill Feedback")
+                    : gameName + " " + (isChinese ? "战斗与特效设置" : "Combat & Effects Settings");
+            }
+            if (StructureTitleText != null) StructureTitleText.Text = gameName + " " + (isChinese ? "资源包制作指南" : "Resource Pack Guide");
 
             SetText(TitleText, Color.FromArgb(255, 27, 27, 27));
             SetText(GameStyleLabelText, theme.Text);
@@ -379,6 +404,15 @@ namespace KillConfirmGameBar
             object panel;
             switch (GameStyleService.Current)
             {
+                case GameStyleMode.Overwatch:
+                    panel = EnsureOverwatchAdvancedSettingsPanel();
+                    break;
+                case GameStyleMode.ModernWarfare2019:
+                    panel = EnsureModernWarfare2019AdvancedSettingsPanel();
+                    break;
+                case GameStyleMode.Apex:
+                    panel = EnsureApexAdvancedSettingsPanel();
+                    break;
                 case GameStyleMode.Valorant:
                     panel = EnsureValorantAdvancedSettingsPanel();
                     break;
@@ -538,7 +572,6 @@ namespace KillConfirmGameBar
             {
                 _csolAdvancedEffectsPanel = new CsolAdvancedEffectsPanel();
                 _csolAdvancedEffectsPanel.VoiceSettingChanged += OnCsolGameplaySettingChanged;
-                _csolAdvancedEffectsPanel.ImportVoiceRequested += (s, ev) => OnImportVoicePackClick(s, null);
             }
 
             RefreshCsolAdvancedSettingsPanel();
@@ -560,9 +593,9 @@ namespace KillConfirmGameBar
                 _csolAdvancedEffectsPanel.SelectSettings(
                     streakMode,
                     settings.SpecialVoicePriority,
+                    settings.LastKillSpecialAudio,
                     settings.FirstKillIcon,
-                    settings.LastKillIcon,
-                    settings.VoicePicks);
+                    settings.LastKillIcon);
             }
             finally
             {
@@ -584,10 +617,10 @@ namespace KillConfirmGameBar
             SharedStreakSettingsStore.Save(GameStyleMode.Csol, streakMode);
             CsolVoiceSettingsStore.Save(new CsolVoiceSettingsValues
             {
-                VoicePicks = _csolAdvancedEffectsPanel.GetVoicePicks(),
                 FirstKillIcon = _csolAdvancedEffectsPanel.GetFirstKillIcon(fallback.FirstKillIcon),
                 LastKillIcon = _csolAdvancedEffectsPanel.GetLastKillIcon(fallback.LastKillIcon),
-                SpecialVoicePriority = _csolAdvancedEffectsPanel.GetSpecialVoicePriority(fallback.SpecialVoicePriority)
+                SpecialVoicePriority = _csolAdvancedEffectsPanel.GetSpecialVoicePriority(fallback.SpecialVoicePriority),
+                LastKillSpecialAudio = _csolAdvancedEffectsPanel.GetLastKillSpecialAudio(fallback.LastKillSpecialAudio)
             });
             await TrySyncCsolSettingsAsync();
         }
@@ -597,16 +630,10 @@ namespace KillConfirmGameBar
             try
             {
                 CsolVoiceSettingsValues settings = CsolVoiceSettingsStore.Load();
-                var picks = new JsonObject();
-                foreach (var pair in settings.VoicePicks)
-                {
-                    picks[pair.Key] = JsonValue.CreateStringValue(pair.Value);
-                }
-
                 var request = new JsonObject
                 {
-                    ["voice_picks"] = picks,
-                    ["special_voice_priority"] = JsonValue.CreateBooleanValue(settings.SpecialVoicePriority)
+                    ["special_voice_priority"] = JsonValue.CreateBooleanValue(settings.SpecialVoicePriority),
+                    ["last_kill_special_audio"] = JsonValue.CreateBooleanValue(settings.LastKillSpecialAudio)
                 };
 
                 using (var client = await LocalServiceAuth.CreateHttpClientAsync())
@@ -642,14 +669,69 @@ namespace KillConfirmGameBar
                 _valorantAdvancedEffectsPanel = new ValorantAdvancedEffectsPanel();
                 _valorantAdvancedEffectsPanel.SelectAssistAudio(
                     AssistAudioSettingsStore.Load(GameStyleMode.Valorant));
+                _valorantAdvancedEffectsPanel.SelectPackSync(
+                    ValorantPackSyncSettingsStore.Load());
                 _valorantAdvancedEffectsPanel.StreakModeSelectionChanged += OnStreakModeSelectionChanged;
                 _valorantAdvancedEffectsPanel.AssistAudioToggled += OnValorantAssistAudioToggled;
+                _valorantAdvancedEffectsPanel.PackSyncToggled += OnValorantPackSyncToggled;
             }
             string streak = SharedStreakSettingsStore.Load(GameStyleMode.Valorant);
             _valorantAdvancedEffectsPanel.SelectStreakMode(streak);
             _valorantAdvancedEffectsPanel.SelectAssistAudio(
                 AssistAudioSettingsStore.Load(GameStyleMode.Valorant));
+            _valorantAdvancedEffectsPanel.SelectPackSync(
+                ValorantPackSyncSettingsStore.Load());
             return _valorantAdvancedEffectsPanel;
+        }
+
+        private OverwatchAdvancedEffectsPanel EnsureOverwatchAdvancedSettingsPanel()
+        {
+            if (_overwatchAdvancedEffectsPanel == null)
+            {
+                _overwatchAdvancedEffectsPanel = new OverwatchAdvancedEffectsPanel();
+                _overwatchAdvancedEffectsPanel.AssistAudioToggled += OnGameAssistAudioToggled;
+            }
+
+            _overwatchAdvancedEffectsPanel.SelectAssistAudio(
+                AssistAudioSettingsStore.Load(GameStyleMode.Overwatch));
+            _overwatchAdvancedEffectsPanel.RefreshVisualEffectSettings();
+
+            return _overwatchAdvancedEffectsPanel;
+        }
+
+        private ModernWarfare2019AdvancedEffectsPanel EnsureModernWarfare2019AdvancedSettingsPanel()
+        {
+            if (_modernWarfare2019AdvancedEffectsPanel == null)
+            {
+                _modernWarfare2019AdvancedEffectsPanel = new ModernWarfare2019AdvancedEffectsPanel();
+                _modernWarfare2019AdvancedEffectsPanel.MoneyRewardModeSelectionChanged += OnMoneyRewardModeSelectionChanged;
+                _modernWarfare2019AdvancedEffectsPanel.StreakModeSelectionChanged += OnStreakModeSelectionChanged;
+                _modernWarfare2019AdvancedEffectsPanel.AssistAudioToggled += OnGameAssistAudioToggled;
+            }
+            string money = ApplicationData.Current.LocalSettings.Values["MoneyRewardMode"] as string;
+            string streak = SharedStreakSettingsStore.Load(GameStyleMode.ModernWarfare2019);
+            _modernWarfare2019AdvancedEffectsPanel.SelectMoneyRewardMode(money, "delta");
+            _modernWarfare2019AdvancedEffectsPanel.SelectStreakMode(streak);
+            _modernWarfare2019AdvancedEffectsPanel.SelectAssistAudio(
+                AssistAudioSettingsStore.Load(GameStyleMode.ModernWarfare2019));
+            _modernWarfare2019AdvancedEffectsPanel.RefreshVisualEffectSettings();
+            return _modernWarfare2019AdvancedEffectsPanel;
+        }
+
+        private ApexAdvancedEffectsPanel EnsureApexAdvancedSettingsPanel()
+        {
+            if (_apexAdvancedEffectsPanel == null)
+            {
+                _apexAdvancedEffectsPanel = new ApexAdvancedEffectsPanel();
+                _apexAdvancedEffectsPanel.MoneyRewardModeSelectionChanged += OnMoneyRewardModeSelectionChanged;
+                _apexAdvancedEffectsPanel.StreakModeSelectionChanged += OnStreakModeSelectionChanged;
+            }
+            string money = ApplicationData.Current.LocalSettings.Values["MoneyRewardMode"] as string;
+            string streak = SharedStreakSettingsStore.Load(GameStyleMode.Apex);
+            _apexAdvancedEffectsPanel.SelectMoneyRewardMode(money, "delta");
+            _apexAdvancedEffectsPanel.SelectStreakMode(streak);
+            _apexAdvancedEffectsPanel.RefreshVisualEffectSettings();
+            return _apexAdvancedEffectsPanel;
         }
 
         private Battlefield1AdvancedEffectsPanel EnsureBattlefield1AdvancedSettingsPanel()
@@ -664,7 +746,6 @@ namespace KillConfirmGameBar
             string streak = SharedStreakSettingsStore.Load(GameStyleMode.Battlefield1);
             _battlefield1AdvancedEffectsPanel.SelectMoneyRewardMode(money, "delta");
             _battlefield1AdvancedEffectsPanel.SelectStreakMode(streak);
-            _battlefield1AdvancedEffectsPanel.ReloadEventSoundSettings();
             return _battlefield1AdvancedEffectsPanel;
         }
 
@@ -680,7 +761,6 @@ namespace KillConfirmGameBar
             string streak = SharedStreakSettingsStore.Load(GameStyleMode.Battlefield5);
             _battlefield5AdvancedEffectsPanel.SelectMoneyRewardMode(money, "delta");
             _battlefield5AdvancedEffectsPanel.SelectStreakMode(streak);
-            _battlefield5AdvancedEffectsPanel.ReloadEventSoundSettings();
             return _battlefield5AdvancedEffectsPanel;
         }
 
@@ -696,7 +776,6 @@ namespace KillConfirmGameBar
             string streak = SharedStreakSettingsStore.Load(GameStyleMode.Battlefield4);
             _battlefield4AdvancedEffectsPanel.SelectMoneyRewardMode(money, "delta");
             _battlefield4AdvancedEffectsPanel.SelectStreakMode(streak);
-            _battlefield4AdvancedEffectsPanel.ReloadEventSoundSettings();
             return _battlefield4AdvancedEffectsPanel;
         }
 
@@ -712,7 +791,6 @@ namespace KillConfirmGameBar
             string streak = SharedStreakSettingsStore.Load(GameStyleMode.Battlefield2042);
             _battlefield2042AdvancedEffectsPanel.SelectMoneyRewardMode(money, "delta");
             _battlefield2042AdvancedEffectsPanel.SelectStreakMode(streak);
-            _battlefield2042AdvancedEffectsPanel.ReloadEventSoundSettings();
             return _battlefield2042AdvancedEffectsPanel;
         }
 
@@ -743,7 +821,6 @@ namespace KillConfirmGameBar
             string streak = SharedStreakSettingsStore.Load(GameStyleMode.DeltaForce);
             _deltaForceAdvancedEffectsPanel.SelectMoneyRewardMode(money, "delta");
             _deltaForceAdvancedEffectsPanel.SelectStreakMode(streak);
-            _deltaForceAdvancedEffectsPanel.ReloadEventSoundSettings();
             return _deltaForceAdvancedEffectsPanel;
         }
 
@@ -808,6 +885,8 @@ namespace KillConfirmGameBar
             else if (sender is Battlefield2042AdvancedEffectsPanel p2042) mode = p2042.GetSelectedMoneyRewardMode("delta");
             else if (sender is DeltaForceAdvancedEffectsPanel pDF) mode = pDF.GetSelectedMoneyRewardMode("delta");
             else if (sender is PubgAdvancedEffectsPanel pPubg) mode = pPubg.GetSelectedMoneyRewardMode("delta");
+            else if (sender is ApexAdvancedEffectsPanel pApex) mode = pApex.GetSelectedMoneyRewardMode("delta");
+            else if (sender is ModernWarfare2019AdvancedEffectsPanel pMw) mode = pMw.GetSelectedMoneyRewardMode("delta");
 
             ApplicationData.Current.LocalSettings.Values["MoneyRewardMode"] = mode;
         }
@@ -826,6 +905,39 @@ namespace KillConfirmGameBar
                 SharedStreakSettingsStore.Load(GameStyleMode.Valorant));
         }
 
+        private async void OnGameAssistAudioToggled(object sender, RoutedEventArgs e)
+        {
+            GameStyleMode style;
+            bool enabled;
+            if (sender is OverwatchAdvancedEffectsPanel overwatchPanel)
+            {
+                style = GameStyleMode.Overwatch;
+                enabled = overwatchPanel.GetAssistAudioEnabled(false);
+            }
+            else if (sender is ModernWarfare2019AdvancedEffectsPanel modernWarfarePanel)
+            {
+                style = GameStyleMode.ModernWarfare2019;
+                enabled = modernWarfarePanel.GetAssistAudioEnabled(false);
+            }
+            else
+            {
+                return;
+            }
+
+            AssistAudioSettingsStore.Save(style, enabled);
+            await TrySyncSharedStreakSettingsAsync(
+                style,
+                SharedStreakSettingsStore.Load(style));
+        }
+
+        private void OnValorantPackSyncToggled(object sender, RoutedEventArgs e)
+        {
+            if (sender is ValorantAdvancedEffectsPanel panel)
+            {
+                ValorantPackSyncSettingsStore.Save(panel.GetPackSyncEnabled(true));
+            }
+        }
+
         private async void OnStreakModeSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             GameStyleMode style = GameStyleService.Current;
@@ -836,6 +948,8 @@ namespace KillConfirmGameBar
             else if (sender is Battlefield2042AdvancedEffectsPanel p2042) mode = p2042.GetSelectedStreakMode(mode);
             else if (sender is DeltaForceAdvancedEffectsPanel pDF) mode = pDF.GetSelectedStreakMode(mode);
             else if (sender is PubgAdvancedEffectsPanel pPubg) mode = pPubg.GetSelectedStreakMode(mode);
+            else if (sender is ApexAdvancedEffectsPanel pApex) mode = pApex.GetSelectedStreakMode(mode);
+            else if (sender is ModernWarfare2019AdvancedEffectsPanel pMw) mode = pMw.GetSelectedStreakMode(mode);
             else if (sender is ValorantAdvancedEffectsPanel pVal) mode = pVal.GetSelectedStreakMode(mode);
             else if (sender is DoubaoAdvancedEffectsPanel pDoubao) mode = pDoubao.GetSelectedStreakMode(mode);
             else if (sender is DagoujiaoAdvancedEffectsPanel pDagoujiao) mode = pDagoujiao.GetSelectedStreakMode(mode);
@@ -854,10 +968,10 @@ namespace KillConfirmGameBar
                         SharedStreakSettingsStore.IsSupported(style)),
                     ["streak_mode"] = JsonValue.CreateStringValue(mode),
                     ["assist_audio_enabled"] = JsonValue.CreateBooleanValue(
-                        style == GameStyleMode.Valorant
+                        AssistAudioSettingsStore.IsSupported(style)
                         && AssistAudioSettingsStore.Load(style)),
                     ["assist_audio_setting_active"] = JsonValue.CreateBooleanValue(
-                        style == GameStyleMode.Valorant)
+                        AssistAudioSettingsStore.IsSupported(style))
                 };
 
                 using (var client = await LocalServiceAuth.CreateHttpClientAsync())
@@ -883,6 +997,9 @@ namespace KillConfirmGameBar
             if (_crossfireAdvancedEffectsPanel != null) _crossfireAdvancedEffectsPanel.ApplyTheme(theme);
             if (_csolAdvancedEffectsPanel != null) _csolAdvancedEffectsPanel.ApplyTheme(theme);
             if (_valorantAdvancedEffectsPanel != null) _valorantAdvancedEffectsPanel.ApplyTheme(theme);
+            if (_overwatchAdvancedEffectsPanel != null) _overwatchAdvancedEffectsPanel.ApplyTheme(theme);
+            if (_modernWarfare2019AdvancedEffectsPanel != null) _modernWarfare2019AdvancedEffectsPanel.ApplyTheme(theme);
+            if (_apexAdvancedEffectsPanel != null) _apexAdvancedEffectsPanel.ApplyTheme(theme);
             if (_battlefield1AdvancedEffectsPanel != null) _battlefield1AdvancedEffectsPanel.ApplyTheme(theme);
             if (_battlefield5AdvancedEffectsPanel != null) _battlefield5AdvancedEffectsPanel.ApplyTheme(theme);
             if (_battlefield4AdvancedEffectsPanel != null) _battlefield4AdvancedEffectsPanel.ApplyTheme(theme);
@@ -908,6 +1025,9 @@ namespace KillConfirmGameBar
             if (_crossfireAdvancedEffectsPanel != null) _crossfireAdvancedEffectsPanel.ApplyLanguage(isChinese);
             if (_csolAdvancedEffectsPanel != null) _csolAdvancedEffectsPanel.ApplyLanguage(isChinese);
             if (_valorantAdvancedEffectsPanel != null) _valorantAdvancedEffectsPanel.ApplyLanguage(isChinese);
+            if (_overwatchAdvancedEffectsPanel != null) _overwatchAdvancedEffectsPanel.ApplyLanguage(isChinese);
+            if (_modernWarfare2019AdvancedEffectsPanel != null) _modernWarfare2019AdvancedEffectsPanel.ApplyLanguage(isChinese);
+            if (_apexAdvancedEffectsPanel != null) _apexAdvancedEffectsPanel.ApplyLanguage(isChinese);
             if (_battlefield1AdvancedEffectsPanel != null) _battlefield1AdvancedEffectsPanel.ApplyLanguage(isChinese);
             if (_battlefield5AdvancedEffectsPanel != null) _battlefield5AdvancedEffectsPanel.ApplyLanguage(isChinese);
             if (_battlefield4AdvancedEffectsPanel != null) _battlefield4AdvancedEffectsPanel.ApplyLanguage(isChinese);
@@ -959,6 +1079,18 @@ namespace KillConfirmGameBar
                 case GameStyleMode.Pubg:
                     brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 26, 24, 17), Offset = 0 });
                     brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 74, 61, 30), Offset = 1 });
+                    break;
+                case GameStyleMode.Apex:
+                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 28, 20, 20), Offset = 0 });
+                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 76, 31, 30), Offset = 1 });
+                    break;
+                case GameStyleMode.Overwatch:
+                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 38, 48, 58), Offset = 0 });
+                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 79, 87, 96), Offset = 1 });
+                    break;
+                case GameStyleMode.ModernWarfare2019:
+                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 16, 30, 35), Offset = 0 });
+                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 39, 74, 84), Offset = 1 });
                     break;
                 case GameStyleMode.DeltaForce:
                     brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 9, 21, 19), Offset = 0 });
@@ -1025,6 +1157,21 @@ namespace KillConfirmGameBar
                     brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 245, 182, 66), Offset = 0 });
                     brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 130, 104, 40), Offset = 0.58 });
                     brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 36, 55, 36), Offset = 1 });
+                    break;
+                case GameStyleMode.Apex:
+                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 235, 57, 52), Offset = 0 });
+                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 139, 37, 35), Offset = 0.58 });
+                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 45, 28, 28), Offset = 1 });
+                    break;
+                case GameStyleMode.Overwatch:
+                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 246, 101, 22), Offset = 0 });
+                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 161, 72, 28), Offset = 0.58 });
+                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 54, 67, 79), Offset = 1 });
+                    break;
+                case GameStyleMode.ModernWarfare2019:
+                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 100, 210, 231), Offset = 0 });
+                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 48, 132, 158), Offset = 0.58 });
+                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 30, 48, 55), Offset = 1 });
                     break;
                 case GameStyleMode.DeltaForce:
                     brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 102, 214, 134), Offset = 0 });

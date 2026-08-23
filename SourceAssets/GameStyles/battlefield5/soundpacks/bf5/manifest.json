@@ -1,0 +1,11 @@
+{
+  "id": "bf5",
+  "name": "bf5",
+  "game_style": "battlefield5",
+  "version": "1.0",
+  "audio": {
+    "base_gain": 1.0,
+    "slots": {"kill_1":"common.wav","headshot":"headshot.wav"},
+    "overlay_slots": []
+  }
+}

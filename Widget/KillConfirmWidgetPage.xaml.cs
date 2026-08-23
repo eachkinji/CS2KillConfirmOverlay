@@ -37,16 +37,38 @@ namespace KillConfirmGameBar
         private static readonly Size DefaultWidgetSize = new Size(550, 600);
         private static readonly Size MinWidgetSize = new Size(50, 50);
         private static readonly Size MaxWidgetSize = new Size(3840, 2160);
+        private const double HostLayoutRefreshNudge = 2.0;
         private const double AnimationOffsetStep = 12.0;
         private const double MaxAnimationOffsetRatio = 0.45;
-        private const double BottomQuarterAnimationOffsetRatio = 0.25;
+        // A bottom/top preset places the effect center on the 4/5 or 1/5
+        // horizontal line of the game view. Relative to screen center that is 30%.
+        private const double EdgeFifthAnimationOffsetRatio = 0.30;
+        private const double OverwatchDefaultCrosshairScale = 0.60;
+        private const double ApexCrosshairFrameWidth = 430;
+        private const double ApexCrosshairFrameHeight = 220;
+        private const double ModernWarfare2019CrosshairFrameWidth = 630;
+        private const double ModernWarfare2019CrosshairFrameHeight = 326;
+        // The KillMark is drawn at the canvas center, so its edit frame must use
+        // the exact same geometric center for COD and every reused COD KillMark.
+        private const double ModernWarfare2019CrosshairFrameOffsetX = 0;
+        private const double ModernWarfare2019CrosshairFrameOffsetY = 0;
+        private const double ModernWarfare2019LowerFrameWidth = 224;
+        private const double ModernWarfare2019LowerFrameHeight = 40;
+        private const double ModernWarfare2019UpperFrameWidth = 196;
+        private const double ModernWarfare2019UpperFrameHeight = 108;
         private const double ScaleUpFactor = 1.1;
         private const double ScaleDownFactor = 0.9;
         private const double ClickVsDragThresholdPx = 4.0;
         private const double DragOutlineUnselectedOpacity = 0.85;
         private const double DragOutlineSelectedOpacity = 1.0;
         private const double DragOutlineSelectedThickness = 3.0;
-        private static readonly SolidColorBrush DragOutlineSelectedBrush = new SolidColorBrush(Color.FromArgb(0xFF, 0xFF, 0x17, 0x44));
+        // XAML brushes are WinRT/COM objects. Keep them scoped to this page instance:
+        // Game Bar can destroy and recreate a widget page while the app process stays
+        // alive, which makes static brush RCWs point at released native objects.
+        private readonly SolidColorBrush _dragOutlineDefaultBrush = new SolidColorBrush(Color.FromArgb(0xFF, 0xE5, 0x39, 0x35));
+        private readonly SolidColorBrush _dragOutlineSelectedBrush = new SolidColorBrush(Color.FromArgb(0xFF, 0xFF, 0x17, 0x44));
+        private readonly SolidColorBrush _dragOutlineTransparentBrush = new SolidColorBrush(Colors.Transparent);
+        private readonly Brush _dragOutlineScratchBrush = CreateDragOutlineScratchBrush();
         private const int StartupPreloadDelayMs = 250;
         private const double DefaultBrightnessValue = 0;
         private const double DefaultContrastValue = 0;
@@ -79,6 +101,26 @@ namespace KillConfirmGameBar
         private const string AnimationOffsetSettingKey = "AnimationOffset";
         private const string AnimationHorizontalOffsetSettingKey = "AnimationHorizontalOffset";
         private const string AnimationScaleSettingKey = "AnimationScale";
+        private const string AnimationPlacementDefaultsRevisionKey = "AnimationPlacementDefaultsV2";
+        private const string BottomFifthPrimaryPlacementRevisionKey = "BottomFifthPrimaryPlacementV1";
+        private const string OverwatchCardHorizontalOffsetSettingKey = "OverwatchCardHorizontalOffset";
+        private const string OverwatchCardVerticalOffsetSettingKey = "OverwatchCardVerticalOffset";
+        private const string OverwatchCardScaleSettingKey = "OverwatchCardScale";
+        private const string ApexCardHorizontalOffsetSettingKey = "ApexCardHorizontalOffset";
+        private const string ApexCardVerticalOffsetSettingKey = "ApexCardVerticalOffset";
+        private const string ApexCardScaleSettingKey = "ApexCardScale";
+        private const string ApexSplitPlacementRevisionKey = "ApexSplitPlacementV1";
+        private const string ModernWarfare2019LowerHorizontalOffsetSettingKey = "ModernWarfare2019LowerHorizontalOffset";
+        private const string ModernWarfare2019LowerVerticalOffsetSettingKey = "ModernWarfare2019LowerVerticalOffset";
+        private const string ModernWarfare2019LowerScaleSettingKey = "ModernWarfare2019LowerScale";
+        private const string ModernWarfare2019SplitPlacementRevisionKey = "ModernWarfare2019SplitPlacementV1";
+        private const string ModernWarfare2019UpperHorizontalOffsetSettingKey = "ModernWarfare2019UpperHorizontalOffset";
+        private const string ModernWarfare2019UpperVerticalOffsetSettingKey = "ModernWarfare2019UpperVerticalOffset";
+        private const string ModernWarfare2019UpperScaleSettingKey = "ModernWarfare2019UpperScale";
+        private const string ModernWarfare2019UpperPlacementRevisionKey = "ModernWarfare2019UpperPlacementV1";
+        private const string BattlefieldKillMarkHorizontalOffsetSettingKey = "BattlefieldKillMarkHorizontalOffset";
+        private const string BattlefieldKillMarkVerticalOffsetSettingKey = "BattlefieldKillMarkVerticalOffset";
+        private const string BattlefieldKillMarkScaleSettingKey = "BattlefieldKillMarkScale";
         private const string VoicePackSettingKey = "VoicePack";
         private const string MoneyRewardModeSettingKey = "MoneyRewardMode";
         private const string DefaultMoneyRewardMode = "delta";
@@ -89,10 +131,11 @@ namespace KillConfirmGameBar
         private const string CsgoLegacyInstallFolderTokenSettingKey = "CsgoLegacyInstallFolderToken";
         private const string CsgoLegacyInstallFolderPathSettingKey = "CsgoLegacyInstallFolderPath";
         private const string GsiConfigFileName = "gamestate_integration_killconfirm.cfg";
+        private const string GsiServiceUriToken = "{KILLCONFIRM_SERVICE_URI}";
         private const string GsiConfigTextTemplate =
             "\"KillConfirmGameBar\"\r\n" +
             "{\r\n" +
-            " \"uri\" \"{0}\"\r\n" +
+            " \"uri\" \"" + GsiServiceUriToken + "\"\r\n" +
             " \"timeout\" \"0.5\"\r\n" +
             " \"buffer\"  \"0.01\"\r\n" +
             " \"throttle\" \"0.0\"\r\n" +
@@ -119,11 +162,9 @@ namespace KillConfirmGameBar
         /// Re-rendered on every read so the same template works after a port change
         /// without restarting the widget.
         /// </summary>
-        private string GsiConfigText =>
-            string.Format(
-                System.Globalization.CultureInfo.InvariantCulture,
-                GsiConfigTextTemplate,
-                LocalServiceEndpoints.BaseUri + "/");
+        private string GsiConfigText => GsiConfigTextTemplate.Replace(
+            GsiServiceUriToken,
+            LocalServiceEndpoints.BaseUri + "/");
         private const int ControlPanelStateRefreshMs = 250;
         private const int StatusHintRotationMs = 3000;
         private const string PackagedServiceParameterGroupId = "CrossfirePreset";
@@ -136,6 +177,8 @@ namespace KillConfirmGameBar
         private const string PanelOffsetXSettingKey = "PanelOffsetX";
         private const string PanelOffsetYSettingKey = "PanelOffsetY";
         private const string PanelCollapsedSettingKey = "PanelCollapsed";
+        private const string FixedPanelBaselineMigrationKey = "FixedPanelBaselineAfterScaleRemovalV1";
+        private const string RemovedControlPanelScaleSettingKey = "ControlPanelUiScale";
         private static readonly Uri ServiceHealthUri = LocalServiceEndpoints.Build("/health");
         private static readonly Uri GsiStatusUri = LocalServiceEndpoints.Build("/gsi-status");
         private static readonly Uri ServiceShutdownUri = LocalServiceEndpoints.Build("/shutdown");
@@ -154,6 +197,8 @@ namespace KillConfirmGameBar
         private static readonly TimeSpan ServiceStartupPollInterval = TimeSpan.FromMilliseconds(250);
         private const string FreeServicePortParameterGroupId = "FreeServicePort";
         internal const string OpenRuntimeLogsParameterGroupId = "OpenRuntimeLogs";
+        internal const string ExitAllParameterGroupId = "ExitAll";
+        internal const string OpenUninstallerParameterGroupId = "OpenUninstaller";
         private const string OpenSettingsWindowParameterGroupId = "OpenSettingsWindow";
         private const string OpenSettingsWindowDeveloperParameterGroupId = "OpenSettingsWindowDeveloper";
         private const string OpenQuarkUpdateParameterGroupId = "OpenQuarkUpdate";
@@ -195,13 +240,22 @@ namespace KillConfirmGameBar
         private double _animationHorizontalOffset;
         private double _animationScale = 1.0;
         private AnimationPlacementMode _animationPlacement = AnimationPlacementMode.Center;
+        private double _overwatchCardHorizontalOffset;
+        private double _overwatchCardVerticalOffset;
+        private double _overwatchCardScale = 1.0;
+        private double _modernWarfare2019UpperHorizontalOffset;
+        private double _modernWarfare2019UpperVerticalOffset;
+        private double _modernWarfare2019UpperScale = 1.0;
         private bool _isWidgetVisible = true;
         private XboxGameBarDisplayMode _displayMode = XboxGameBarDisplayMode.Foreground;
         private XboxGameBarWidgetWindowState _windowState = XboxGameBarWidgetWindowState.Restored;
         private bool _isPinned;
         private bool _clickThroughEnabled;
-        private readonly SemaphoreSlim _widgetResizeGate = new SemaphoreSlim(1, 1);
-        private int _widgetResizeRequestVersion;
+        private readonly SemaphoreSlim _widgetLayoutRefreshGate = new SemaphoreSlim(1, 1);
+        private int _widgetLayoutRefreshRequestVersion;
+        private bool _hostLayoutHandlersAttached;
+        private bool _isSynchronizingHostLayout;
+        private string _lastHostLayoutSignature = string.Empty;
         private bool _suppressVisualAdjustmentEvents;
         private bool _suppressVoicePackEvents;
         private bool _suppressIconPackEvents;
@@ -234,18 +288,14 @@ namespace KillConfirmGameBar
         private double _panelDragStartY;
         private double _panelOffsetX;
         private double _panelOffsetY;
-        private CompositeTransform _panelDragTransform;
-        private readonly HashSet<ComboBox> _wiredControlPanelComboBoxes =
-            new HashSet<ComboBox>();
-        private readonly Dictionary<ComboBox, Popup> _activeComboBoxPopups =
-            new Dictionary<ComboBox, Popup>();
-        private readonly Dictionary<Popup, ComboBoxPopupTransformState> _comboBoxPopupTransforms =
-            new Dictionary<Popup, ComboBoxPopupTransformState>();
-        private string _loadedControlPanelScaleMode = string.Empty;
-        private double _controlPanelScale = 1.0;
+        private TranslateTransform _panelDragTransform;
         private bool _panelCollapsed;
         private bool _isDraggingAnimation;
         private bool _isAnimationFrameSelected;
+        private bool _isOverwatchCardFrameSelected;
+        private bool _isModernWarfare2019UpperFrameSelected;
+        private Border _activeAnimationDragOutline;
+        private Border _animationContextOutline;
         private uint _animationDragPointerId;
         private Point _animationDragPointerStart;
         private double _animationDragStartX;
@@ -279,10 +329,6 @@ namespace KillConfirmGameBar
             _suppressVoicePackEvents = false;
             _suppressIconPackEvents = false;
             WireMoveWindowEvents();
-            ControlPanel.AddHandler(
-                UIElement.PointerReleasedEvent,
-                new PointerEventHandler(OnControlPanelComboBoxPointerReleased),
-                true);
             if (Window.Current?.Content is UIElement windowRoot)
             {
                 windowRoot.AddHandler(
@@ -290,14 +336,18 @@ namespace KillConfirmGameBar
                     new PointerEventHandler(OnWindowPointerPressed),
                     true);
             }
-            ControlPanel.Loaded += OnControlPanelLoaded;
             PrimaryKillAnimation.LogicalViewportSizeChanged += OnAnimationLogicalViewportSizeChanged;
+            OverwatchCardAnimation.LogicalViewportSizeChanged += OnAnimationLogicalViewportSizeChanged;
+            ModernWarfare2019UpperAnimation.LogicalViewportSizeChanged += OnAnimationLogicalViewportSizeChanged;
+            SizeChanged += OnPanelViewportSizeChanged;
+            ControlPanel.SizeChanged += OnPanelViewportSizeChanged;
             LoadPanelOffset();
             object collapsed = ApplicationData.Current.LocalSettings.Values[PanelCollapsedSettingKey];
             SetPanelCollapsed(collapsed is bool collapsedValue && collapsedValue);
-            RefreshControlPanelScale(resizeWindow: false, forceResize: false);
             WireUpdateOverlayEvents();
             AnimationLayer.SizeChanged += OnAnimationLayerSizeChanged;
+            OverwatchCardLayer.SizeChanged += OnAnimationLayerSizeChanged;
+            ModernWarfare2019UpperLayer.SizeChanged += OnAnimationLayerSizeChanged;
             VersionText.Text = GetUpdateButtonLabel();
             ToolTipService.SetToolTip(UpdateButton, GetDisplayVersion());
             LoadGameStyleSelector();
@@ -317,6 +367,21 @@ namespace KillConfirmGameBar
                 Interval = TimeSpan.FromMilliseconds(StatusHintRotationMs)
             };
             _statusHintTimer.Tick += OnStatusHintTimerTick;
+            Unloaded += OnWidgetPageUnloaded;
+        }
+
+        private void OnWidgetPageUnloaded(object sender, RoutedEventArgs e)
+        {
+            // Closing a Game Bar widget does not always navigate the Frame away.
+            // Detach static events here as well so callbacks cannot touch XAML
+            // objects after their COM wrappers have been released.
+            _isPageActive = false;
+            GameStyleService.Changed -= OnGameStyleServiceChanged;
+            PackCatalogService.CatalogChanged -= OnPackCatalogChanged;
+            GsiGameVersionSettingsStore.VersionChanged -= OnGsiGameVersionChanged;
+            _controlPanelStateTimer?.Stop();
+            _statusHintTimer?.Stop();
+            DetachHostLayoutHandlers();
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -339,18 +404,20 @@ namespace KillConfirmGameBar
                 _widget.WindowStateChanged += OnWidgetWindowStateChanged;
                 _widget.ClickThroughEnabledChanged += OnClickThroughEnabledChanged;
                 _widget.PinnedChanged += OnWidgetPinnedChanged;
+                _widget.WindowBoundsChanged += OnWidgetWindowBoundsChanged;
                 SyncWidgetPresentationState();
-                RefreshControlPanelScale(resizeWindow: true, forceResize: false);
             }
+
+            AttachHostLayoutHandlers();
 
             LoadVisualAdjustmentSettings();
             LoadMoneyRewardModeSettings();
             LoadAnimationPlacementSettings();
             _controlPanelStateTimer.Start();
             _statusHintTimer.Start();
-            StartKillEventClient();
             StartAutoCloseGameExitMonitoring();
             ConfigureWidgetCapabilities();
+            _ = InitializeWidgetLayoutAsync();
             _ = InitializePackSelectorsAndServiceAsync();
             _ = LoadSavedCsFolderAsync();
             _ = CheckForUpdatesAsync(false);
@@ -361,12 +428,14 @@ namespace KillConfirmGameBar
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
             _isPageActive = false;
-            RestoreAllComboBoxPopups();
+            Interlocked.Increment(ref _widgetLayoutRefreshRequestVersion);
             GameStyleService.Changed -= OnGameStyleServiceChanged;
             PackCatalogService.CatalogChanged -= OnPackCatalogChanged;
             _animationPreloadToken++;
             PrimaryKillAnimation?.ReleaseAnimationResourcesForPackChange();
             BadgeKillAnimation?.ReleaseAnimationResourcesForPackChange();
+            OverwatchCardAnimation?.ReleaseAnimationResourcesForPackChange();
+            ModernWarfare2019UpperAnimation?.ReleaseAnimationResourcesForPackChange();
             GsiGameVersionSettingsStore.VersionChanged -= OnGsiGameVersionChanged;
             if (_widget != null)
             {
@@ -375,7 +444,10 @@ namespace KillConfirmGameBar
                 _widget.WindowStateChanged -= OnWidgetWindowStateChanged;
                 _widget.ClickThroughEnabledChanged -= OnClickThroughEnabledChanged;
                 _widget.PinnedChanged -= OnWidgetPinnedChanged;
+                _widget.WindowBoundsChanged -= OnWidgetWindowBoundsChanged;
             }
+
+            DetachHostLayoutHandlers();
 
             _controlPanelStateTimer.Stop();
             _statusHintTimer.Stop();
@@ -411,6 +483,8 @@ namespace KillConfirmGameBar
                         _animationPreloadToken++;
                         PrimaryKillAnimation?.ReleaseAnimationResourcesForPackChange();
                         BadgeKillAnimation?.ReleaseAnimationResourcesForPackChange();
+                        OverwatchCardAnimation?.ReleaseAnimationResourcesForPackChange();
+                        ModernWarfare2019UpperAnimation?.ReleaseAnimationResourcesForPackChange();
                         _suppressGameStyleEvents = true;
                         try
                         {
@@ -429,7 +503,6 @@ namespace KillConfirmGameBar
                         await SyncCsolGameplaySettingsAsync();
                         await SyncDagoujiaoSettingsAsync();
                         await SyncSharedStreakSettingsAsync();
-                        await SyncCombatEventSoundSettingsAsync();
                         await WarmStartupAnimationCacheAsync(0);
                     }
                     catch (Exception ex)
@@ -464,7 +537,7 @@ namespace KillConfirmGameBar
 
             try
             {
-                await _widget.TryResizeWindowAsync(GetDesiredWidgetSizeForPresentation());
+                await _widget.TryResizeWindowAsync(DefaultWidgetSize);
             }
             catch (Exception)
             {
@@ -490,25 +563,55 @@ namespace KillConfirmGameBar
 
         private void OnLowerThirdClick(object sender, RoutedEventArgs e)
         {
-            _animationPlacement = AnimationPlacementMode.Bottom;
-            ApplyAnimationOffset();
-            SaveAnimationPlacementSettings();
+            SetNonCrosshairAnimationPlacement(AnimationPlacementMode.Bottom);
         }
 
         private void OnHighPositionClick(object sender, RoutedEventArgs e)
         {
-            _animationPlacement = AnimationPlacementMode.Top;
-            ApplyAnimationOffset();
-            SaveAnimationPlacementSettings();
+            SetNonCrosshairAnimationPlacement(AnimationPlacementMode.Top);
         }
 
         private void OnIconCenterClick(object sender, RoutedEventArgs e)
         {
-            _animationPlacement = AnimationPlacementMode.Center;
-            _animationOffset = 0;
-            _animationHorizontalOffset = 0;
-            ApplyAnimationTransform();
-            SaveAnimationPlacementSettings();
+            SetNonCrosshairAnimationPlacement(AnimationPlacementMode.Center);
+        }
+
+        private async void OnCrosshairCenterClick(object sender, RoutedEventArgs e)
+        {
+            if (!GameStyleService.SupportsCrosshairAreaEffect(GameStyleService.Current))
+            {
+                return;
+            }
+
+            if (GameStyleService.IsAuxiliaryKillMarkStyle(GameStyleService.Current))
+            {
+                _modernWarfare2019UpperHorizontalOffset = 0;
+                _modernWarfare2019UpperVerticalOffset = 0;
+                ApplyModernWarfare2019UpperTransform();
+                SaveModernWarfare2019UpperPlacementSettings();
+            }
+            else
+            {
+                _animationPlacement = AnimationPlacementMode.Center;
+                _animationOffset = 0;
+                _animationHorizontalOffset = 0;
+                ApplyAnimationTransform();
+                SaveAnimationPlacementSettings();
+            }
+
+            if (_widget == null)
+            {
+                return;
+            }
+
+            try
+            {
+                await _widget.CenterWindowAsync();
+            }
+            catch (Exception ex)
+            {
+                App.Log("Center crosshair effect window failed: " + ex.Message);
+            }
         }
 
         private void OnWindowTopClick(object sender, RoutedEventArgs e)
@@ -523,12 +626,12 @@ namespace KillConfirmGameBar
 
         private void OnControlPanelCenterClick(object sender, RoutedEventArgs e)
         {
-            if (!TryGetControlPanelVerticalRange(out _, out double bottomOffset))
+            if (!TryGetCenteredControlPanelOffset(out Point centeredOffset))
             {
                 return;
             }
 
-            SetPanelOffset(0, bottomOffset / 2.0);
+            SetPanelOffset(centeredOffset.X, centeredOffset.Y);
             SavePanelOffset();
         }
 
@@ -562,9 +665,28 @@ namespace KillConfirmGameBar
             }
 
             bottomOffset = ActualHeight
-                - (ControlPanel.ActualHeight * _controlPanelScale)
+                - ControlPanel.ActualHeight
                 - ControlPanel.Margin.Top
                 - ControlPanel.Margin.Bottom;
+            return true;
+        }
+
+        private bool TryGetCenteredControlPanelOffset(out Point centeredOffset)
+        {
+            centeredOffset = new Point();
+            if (ControlPanel == null
+                || ControlPanel.ActualWidth <= 0
+                || ControlPanel.ActualHeight <= 0
+                || ActualWidth <= 0
+                || ActualHeight <= 0)
+            {
+                return false;
+            }
+
+            double panelHeight = ControlPanel.ActualHeight;
+            centeredOffset = new Point(
+                0,
+                ((ActualHeight - panelHeight) / 2.0) - ControlPanel.Margin.Top);
             return true;
         }
 
@@ -616,14 +738,83 @@ namespace KillConfirmGameBar
         {
             double availableWidth = AnimationLayer?.ActualWidth > 0 ? AnimationLayer.ActualWidth : DefaultWidgetSize.Width;
             double availableHeight = AnimationLayer?.ActualHeight > 0 ? AnimationLayer.ActualHeight : DefaultWidgetSize.Height;
-            double displayWidth = Math.Max(1, PrimaryKillAnimation?.InteractionViewportWidth ?? 550);
-            double displayHeight = Math.Max(1, PrimaryKillAnimation?.InteractionViewportHeight ?? 412.5);
+            bool overwatch = GameStyleService.Current == GameStyleMode.Overwatch;
+            bool apex = GameStyleService.Current == GameStyleMode.Apex;
+            bool modernWarfare2019 = GameStyleService.Current == GameStyleMode.ModernWarfare2019;
+            double displayWidth = overwatch
+                ? 320
+                : apex
+                    ? ApexCrosshairFrameWidth
+                    : modernWarfare2019
+                        ? ModernWarfare2019CrosshairFrameWidth
+                        : Math.Max(1, PrimaryKillAnimation?.SelectionViewportWidth ?? 550);
+            double displayHeight = overwatch
+                ? 320
+                : apex
+                    ? ApexCrosshairFrameHeight
+                    : modernWarfare2019
+                        ? ModernWarfare2019CrosshairFrameHeight
+                        : Math.Max(1, PrimaryKillAnimation?.SelectionViewportHeight ?? 412.5);
             bool directValorantPresentation = Controls.KillConfirmAnimation.IsValorantPresentationConfigured;
             double fit = directValorantPresentation
                 ? 1.0
                 : Math.Min(1.0, Math.Min(availableWidth / displayWidth, availableHeight / displayHeight));
             AnimationDragOutline.Width = Math.Max(40, displayWidth * fit);
             AnimationDragOutline.Height = Math.Max(40, displayHeight * fit);
+            AnimationDragOutlineTransform.X = modernWarfare2019
+                ? ModernWarfare2019CrosshairFrameOffsetX * fit
+                : 0;
+            AnimationDragOutlineTransform.Y = modernWarfare2019
+                ? ModernWarfare2019CrosshairFrameOffsetY * fit
+                : 0;
+
+            double cardWidth = modernWarfare2019
+                ? ModernWarfare2019LowerFrameWidth
+                : Math.Max(1, OverwatchCardAnimation?.SelectionViewportWidth ?? 180);
+            double cardHeight = modernWarfare2019
+                ? ModernWarfare2019LowerFrameHeight
+                : Math.Max(1, OverwatchCardAnimation?.SelectionViewportHeight ?? 44);
+            double cardFit = apex
+                ? Math.Min(1.0, Math.Min(availableWidth / 560.0, availableHeight / 360.0))
+                : modernWarfare2019
+                    ? Math.Min(
+                        1.0,
+                        Math.Min(availableWidth / cardWidth, availableHeight / cardHeight))
+                    : Math.Min(1.0, Math.Min(availableWidth / 550.0, availableHeight / 600.0));
+            OverwatchCardDragOutline.Width = Math.Max(40, cardWidth * cardFit);
+            OverwatchCardDragOutline.Height = Math.Max(28, cardHeight * cardFit);
+            OverwatchCardDragOutlineTransform.X = apex || overwatch
+                ? OverwatchCardAnimation.SelectionViewportCenterOffsetX * cardFit
+                : 0;
+            OverwatchCardDragOutlineTransform.Y = apex || overwatch
+                ? OverwatchCardAnimation.SelectionViewportCenterOffsetY * cardFit
+                : 0;
+
+            bool battlefieldKillMark = GameStyleService.IsAuxiliaryKillMarkStyle(
+                GameStyleService.Current);
+            double auxiliaryFrameWidth = battlefieldKillMark
+                ? ModernWarfare2019CrosshairFrameWidth
+                : ModernWarfare2019UpperFrameWidth;
+            double auxiliaryFrameHeight = battlefieldKillMark
+                ? ModernWarfare2019CrosshairFrameHeight
+                : ModernWarfare2019UpperFrameHeight;
+            double upperFit = Math.Min(
+                1.0,
+                Math.Min(
+                    availableWidth / auxiliaryFrameWidth,
+                    availableHeight / auxiliaryFrameHeight));
+            ModernWarfare2019UpperDragOutline.Width = Math.Max(
+                40,
+                auxiliaryFrameWidth * upperFit);
+            ModernWarfare2019UpperDragOutline.Height = Math.Max(
+                40,
+                auxiliaryFrameHeight * upperFit);
+            ModernWarfare2019UpperDragOutlineTransform.X = battlefieldKillMark
+                ? ModernWarfare2019CrosshairFrameOffsetX * upperFit
+                : 0.0;
+            ModernWarfare2019UpperDragOutlineTransform.Y = battlefieldKillMark
+                ? ModernWarfare2019CrosshairFrameOffsetY * upperFit
+                : 0.0;
         }
 
         private void OnAnimationFramePointerPressed(object sender, PointerRoutedEventArgs e)
@@ -634,17 +825,21 @@ namespace KillConfirmGameBar
                 return;
             }
 
+            var pointerPoint = e.GetCurrentPoint(Window.Current.Content);
+            if (e.Pointer.PointerDeviceType == PointerDeviceType.Mouse
+                && pointerPoint.Properties.IsRightButtonPressed)
+            {
+                return;
+            }
+
             _animationDragPointerId = e.Pointer.PointerId;
-            _animationDragPointerStart = e.GetCurrentPoint(Window.Current.Content).Position;
+            _animationDragPointerStart = pointerPoint.Position;
+            _activeAnimationDragOutline = sender as Border;
             // Mark selected immediately; drag is armed in PointerMoved once the
             // pointer travels past ClickVsDragThresholdPx. A press without
             // movement leaves the outline selected so the wheel can resize it.
-            if (!_isAnimationFrameSelected)
-            {
-                _isAnimationFrameSelected = true;
-                UpdateAnimationDragOutlineSelectionVisual();
-            }
-            AnimationDragOutline.CapturePointer(e.Pointer);
+            SelectAnimationFrame(_activeAnimationDragOutline);
+            _activeAnimationDragOutline?.CapturePointer(e.Pointer);
             e.Handled = true;
         }
 
@@ -667,21 +862,68 @@ namespace KillConfirmGameBar
                     return;
                 }
                 _isDraggingAnimation = true;
-                _animationDragStartX = _animationHorizontalOffset;
-                _animationDragStartY = GetResolvedAnimationOffset();
-                _animationPlacement = AnimationPlacementMode.Manual;
+                if (_isModernWarfare2019UpperFrameSelected)
+                {
+                    _animationDragStartX = _modernWarfare2019UpperHorizontalOffset;
+                    _animationDragStartY = GetAuxiliaryLayerResolvedVerticalOffset();
+                }
+                else if (_isOverwatchCardFrameSelected)
+                {
+                    _animationDragStartX = _overwatchCardHorizontalOffset;
+                    _animationDragStartY = GetBottomOffset() + _overwatchCardVerticalOffset;
+                }
+                else
+                {
+                    _animationDragStartX = _animationHorizontalOffset;
+                    _animationDragStartY = GetResolvedAnimationOffset();
+                    _animationPlacement = AnimationPlacementMode.Manual;
+                }
             }
 
-            double scale = Controls.KillConfirmAnimation.IsValorantPresentationConfigured
-                ? 1.0
-                : (_animationScale > 0 ? _animationScale : 1.0);
-            _animationHorizontalOffset = Math.Max(-GetMaxAnimationHorizontalOffset(), Math.Min(
-                GetMaxAnimationHorizontalOffset(),
-                _animationDragStartX + (dx / scale)));
-            _animationOffset = Math.Max(-GetMaxAnimationOffset(), Math.Min(
-                GetMaxAnimationOffset(),
-                _animationDragStartY + (dy / scale)));
-            ApplyAnimationTransform();
+            if (_isModernWarfare2019UpperFrameSelected)
+            {
+                double scale = _modernWarfare2019UpperScale > 0
+                    ? _modernWarfare2019UpperScale
+                    : 1.0;
+                _modernWarfare2019UpperHorizontalOffset = Math.Max(
+                    -GetMaxAnimationHorizontalOffset(),
+                    Math.Min(
+                        GetMaxAnimationHorizontalOffset(),
+                        _animationDragStartX + (dx / scale)));
+                double resolvedVerticalOffset = Math.Max(
+                    -GetMaxAnimationOffset(),
+                    Math.Min(
+                        GetMaxAnimationOffset(),
+                        _animationDragStartY + (dy / scale)));
+                _modernWarfare2019UpperVerticalOffset = resolvedVerticalOffset
+                    - GetAuxiliaryLayerBaseVerticalOffset();
+                ApplyModernWarfare2019UpperTransform();
+            }
+            else if (_isOverwatchCardFrameSelected)
+            {
+                double scale = _overwatchCardScale > 0 ? _overwatchCardScale : 1.0;
+                _overwatchCardHorizontalOffset = Math.Max(-GetMaxAnimationHorizontalOffset(), Math.Min(
+                    GetMaxAnimationHorizontalOffset(),
+                    _animationDragStartX + (dx / scale)));
+                double resolvedVerticalOffset = Math.Max(-GetMaxAnimationOffset(), Math.Min(
+                    GetMaxAnimationOffset(),
+                    _animationDragStartY + (dy / scale)));
+                _overwatchCardVerticalOffset = resolvedVerticalOffset - GetBottomOffset();
+                ApplyOverwatchCardTransform();
+            }
+            else
+            {
+                double scale = Controls.KillConfirmAnimation.IsValorantPresentationConfigured
+                    ? 1.0
+                    : (_animationScale > 0 ? _animationScale : 1.0);
+                _animationHorizontalOffset = Math.Max(-GetMaxAnimationHorizontalOffset(), Math.Min(
+                    GetMaxAnimationHorizontalOffset(),
+                    _animationDragStartX + (dx / scale)));
+                _animationOffset = Math.Max(-GetMaxAnimationOffset(), Math.Min(
+                    GetMaxAnimationOffset(),
+                    _animationDragStartY + (dy / scale)));
+                ApplyAnimationTransform();
+            }
             e.Handled = true;
         }
 
@@ -691,7 +933,7 @@ namespace KillConfirmGameBar
             {
                 return;
             }
-            AnimationDragOutline.ReleasePointerCapture(e.Pointer);
+            _activeAnimationDragOutline?.ReleasePointerCapture(e.Pointer);
             EndAnimationDrag();
             e.Handled = true;
         }
@@ -709,64 +951,364 @@ namespace KillConfirmGameBar
 
         private void OnAnimationFramePointerWheelChanged(object sender, PointerRoutedEventArgs e)
         {
-            if (!_isAnimationFrameSelected)
+            bool cardFrame = ReferenceEquals(sender, OverwatchCardDragOutline);
+            bool upperFrame = ReferenceEquals(sender, ModernWarfare2019UpperDragOutline);
+            if ((cardFrame && !_isOverwatchCardFrameSelected)
+                || (upperFrame && !_isModernWarfare2019UpperFrameSelected)
+                || (!cardFrame && !upperFrame && !_isAnimationFrameSelected))
             {
                 return;
             }
-            int delta = e.GetCurrentPoint(AnimationDragOutline).Properties.MouseWheelDelta;
-            if (delta > 0)
+            int delta = e.GetCurrentPoint(sender as UIElement).Properties.MouseWheelDelta;
+            if (delta != 0)
             {
-                ScaleAnimation(ScaleUpFactor);
-            }
-            else if (delta < 0)
-            {
-                ScaleAnimation(ScaleDownFactor);
+                double factor = delta > 0 ? ScaleUpFactor : ScaleDownFactor;
+                if (upperFrame)
+                {
+                    ScaleModernWarfare2019Upper(factor);
+                }
+                else if (cardFrame)
+                {
+                    ScaleOverwatchCard(factor);
+                }
+                else
+                {
+                    ScaleAnimation(factor);
+                }
             }
             e.Handled = true;
         }
 
         private void OnAnimationFramePointerEntered(object sender, PointerRoutedEventArgs e)
         {
-            if (AnimationDragOutline.Opacity < 1.0)
+            if (sender is Border outline && outline.Opacity < 1.0)
             {
-                AnimationDragOutline.Opacity = 1.0;
+                outline.Opacity = 1.0;
             }
+        }
+
+        private void OnAnimationFrameContextRequested(
+            UIElement sender,
+            ContextRequestedEventArgs e)
+        {
+            Border outline = sender as Border;
+            if (outline == null)
+            {
+                return;
+            }
+
+            _animationContextOutline = outline;
+            SelectAnimationFrame(outline);
+
+            MenuFlyout menu = new MenuFlyout();
+            menu.Items.Add(CreateAnimationFrameMenuItem(
+                LocalizationManager.Text("FrameTopFifth"),
+                "top",
+                "\uE74A"));
+            menu.Items.Add(CreateAnimationFrameMenuItem(
+                LocalizationManager.Text("FrameCenter"),
+                "center",
+                "\uE8E3"));
+            menu.Items.Add(CreateAnimationFrameMenuItem(
+                LocalizationManager.Text("FrameBottomFifth"),
+                "bottom",
+                "\uE74B"));
+            menu.Items.Add(new MenuFlyoutSeparator());
+            menu.Items.Add(CreateAnimationFrameMenuItem(
+                LocalizationManager.Text("EnlargeTitle"),
+                "larger",
+                "\uE8A3"));
+            menu.Items.Add(CreateAnimationFrameMenuItem(
+                LocalizationManager.Text("ShrinkTitle"),
+                "smaller",
+                "\uE71F"));
+            menu.Items.Add(CreateAnimationFrameMenuItem(
+                LocalizationManager.Text("MoveUpTitle"),
+                "up",
+                "\uE74A"));
+            menu.Items.Add(CreateAnimationFrameMenuItem(
+                LocalizationManager.Text("MoveDownTitle"),
+                "down",
+                "\uE74B"));
+            menu.Items.Add(CreateAnimationFrameMenuItem(
+                LocalizationManager.Text("MoveLeftTitle"),
+                "left",
+                "\uE76B"));
+            menu.Items.Add(CreateAnimationFrameMenuItem(
+                LocalizationManager.Text("MoveRightTitle"),
+                "right",
+                "\uE76C"));
+
+            Point position;
+            if (e.TryGetPosition(outline, out position))
+            {
+                menu.ShowAt(outline, position);
+            }
+            else
+            {
+                menu.ShowAt(outline);
+            }
+            e.Handled = true;
+        }
+
+        private MenuFlyoutItem CreateAnimationFrameMenuItem(
+            string text,
+            string command,
+            string glyph)
+        {
+            MenuFlyoutItem item = new MenuFlyoutItem
+            {
+                Text = text,
+                Tag = command,
+                Icon = new FontIcon
+                {
+                    FontFamily = new FontFamily("Segoe MDL2 Assets"),
+                    Glyph = glyph
+                }
+            };
+            item.Click += OnAnimationFrameMenuItemClick;
+            return item;
+        }
+
+        private void OnAnimationFrameMenuItemClick(object sender, RoutedEventArgs e)
+        {
+            string command = (sender as FrameworkElement)?.Tag as string;
+            Border outline = _animationContextOutline;
+            if (outline == null || string.IsNullOrWhiteSpace(command))
+            {
+                return;
+            }
+
+            switch (command)
+            {
+                case "top":
+                    SetAnimationFramePlacement(outline, AnimationPlacementMode.Top);
+                    break;
+                case "center":
+                    SetAnimationFramePlacement(outline, AnimationPlacementMode.Center);
+                    break;
+                case "bottom":
+                    SetAnimationFramePlacement(outline, AnimationPlacementMode.Bottom);
+                    break;
+                case "larger":
+                    ScaleSelectedAnimationFrame(outline, ScaleUpFactor);
+                    break;
+                case "smaller":
+                    ScaleSelectedAnimationFrame(outline, ScaleDownFactor);
+                    break;
+                case "up":
+                    MoveAnimationFrameVertically(outline, -AnimationOffsetStep);
+                    break;
+                case "down":
+                    MoveAnimationFrameVertically(outline, AnimationOffsetStep);
+                    break;
+                case "left":
+                    MoveAnimationFrameHorizontally(outline, -AnimationOffsetStep);
+                    break;
+                case "right":
+                    MoveAnimationFrameHorizontally(outline, AnimationOffsetStep);
+                    break;
+            }
+        }
+
+        private void SelectAnimationFrame(Border outline)
+        {
+            bool cardFrame = ReferenceEquals(outline, OverwatchCardDragOutline);
+            bool upperFrame = ReferenceEquals(outline, ModernWarfare2019UpperDragOutline);
+            _isAnimationFrameSelected = !cardFrame && !upperFrame;
+            _isOverwatchCardFrameSelected = cardFrame;
+            _isModernWarfare2019UpperFrameSelected = upperFrame;
+            UpdateAnimationDragOutlineSelectionVisual();
+        }
+
+        private void SetAnimationFramePlacement(Border outline, AnimationPlacementMode placement)
+        {
+            double targetVerticalOffset = placement == AnimationPlacementMode.Top
+                ? GetTopOffset()
+                : placement == AnimationPlacementMode.Bottom
+                    ? GetBottomOffset()
+                    : 0.0;
+
+            if (ReferenceEquals(outline, ModernWarfare2019UpperDragOutline))
+            {
+                _modernWarfare2019UpperHorizontalOffset = 0;
+                _modernWarfare2019UpperVerticalOffset = targetVerticalOffset
+                    - GetAuxiliaryLayerBaseVerticalOffset();
+                ApplyModernWarfare2019UpperTransform();
+                SaveModernWarfare2019UpperPlacementSettings();
+                return;
+            }
+
+            if (ReferenceEquals(outline, OverwatchCardDragOutline))
+            {
+                _overwatchCardHorizontalOffset = 0;
+                _overwatchCardVerticalOffset = targetVerticalOffset - GetBottomOffset();
+                ApplyOverwatchCardTransform();
+                SaveOverwatchCardPlacementSettings();
+                return;
+            }
+
+            _animationPlacement = placement;
+            _animationOffset = targetVerticalOffset;
+            _animationHorizontalOffset = 0;
+            ApplyAnimationTransform();
+            SaveAnimationPlacementSettings();
+        }
+
+        private void ScaleSelectedAnimationFrame(Border outline, double factor)
+        {
+            if (ReferenceEquals(outline, ModernWarfare2019UpperDragOutline))
+            {
+                ScaleModernWarfare2019Upper(factor);
+            }
+            else if (ReferenceEquals(outline, OverwatchCardDragOutline))
+            {
+                ScaleOverwatchCard(factor);
+            }
+            else
+            {
+                ScaleAnimation(factor);
+            }
+        }
+
+        private void MoveAnimationFrameHorizontally(Border outline, double delta)
+        {
+            double maxOffset = GetMaxAnimationHorizontalOffset();
+            if (ReferenceEquals(outline, ModernWarfare2019UpperDragOutline))
+            {
+                _modernWarfare2019UpperHorizontalOffset = Math.Max(
+                    -maxOffset,
+                    Math.Min(maxOffset, _modernWarfare2019UpperHorizontalOffset + delta));
+                ApplyModernWarfare2019UpperTransform();
+                SaveModernWarfare2019UpperPlacementSettings();
+                return;
+            }
+
+            if (ReferenceEquals(outline, OverwatchCardDragOutline))
+            {
+                _overwatchCardHorizontalOffset = Math.Max(
+                    -maxOffset,
+                    Math.Min(maxOffset, _overwatchCardHorizontalOffset + delta));
+                ApplyOverwatchCardTransform();
+                SaveOverwatchCardPlacementSettings();
+                return;
+            }
+
+            NudgeAnimationHorizontal(delta);
+        }
+
+        private void MoveAnimationFrameVertically(Border outline, double delta)
+        {
+            double maxOffset = GetMaxAnimationOffset();
+            if (ReferenceEquals(outline, ModernWarfare2019UpperDragOutline))
+            {
+                double resolvedOffset = GetAuxiliaryLayerResolvedVerticalOffset();
+                resolvedOffset = Math.Max(
+                    -maxOffset,
+                    Math.Min(maxOffset, resolvedOffset + delta));
+                _modernWarfare2019UpperVerticalOffset = resolvedOffset
+                    - GetAuxiliaryLayerBaseVerticalOffset();
+                ApplyModernWarfare2019UpperTransform();
+                SaveModernWarfare2019UpperPlacementSettings();
+                return;
+            }
+
+            if (ReferenceEquals(outline, OverwatchCardDragOutline))
+            {
+                double resolvedOffset = GetBottomOffset()
+                    + _overwatchCardVerticalOffset;
+                resolvedOffset = Math.Max(
+                    -maxOffset,
+                    Math.Min(maxOffset, resolvedOffset + delta));
+                _overwatchCardVerticalOffset = resolvedOffset - GetBottomOffset();
+                ApplyOverwatchCardTransform();
+                SaveOverwatchCardPlacementSettings();
+                return;
+            }
+
+            NudgeAnimation(delta);
         }
 
         private void OnAnimationFramePointerExited(object sender, PointerRoutedEventArgs e)
         {
-            if (!_isAnimationFrameSelected)
+            bool selected = ReferenceEquals(sender, OverwatchCardDragOutline)
+                ? _isOverwatchCardFrameSelected
+                : ReferenceEquals(sender, ModernWarfare2019UpperDragOutline)
+                    ? _isModernWarfare2019UpperFrameSelected
+                    : _isAnimationFrameSelected;
+            if (!selected && sender is Border outline)
             {
-                AnimationDragOutline.Opacity = DragOutlineUnselectedOpacity;
+                outline.Opacity = DragOutlineUnselectedOpacity;
             }
         }
 
         private void UpdateAnimationDragOutlineSelectionVisual()
         {
-            if (_isAnimationFrameSelected)
+            ApplyDragOutlineSelectionVisual(AnimationDragOutline, _isAnimationFrameSelected);
+            ApplyDragOutlineSelectionVisual(OverwatchCardDragOutline, _isOverwatchCardFrameSelected);
+            ApplyDragOutlineSelectionVisual(
+                ModernWarfare2019UpperDragOutline,
+                _isModernWarfare2019UpperFrameSelected);
+        }
+
+        private void ApplyDragOutlineSelectionVisual(Border outline, bool selected)
+        {
+            if (selected)
             {
-                AnimationDragOutline.BorderBrush = DragOutlineSelectedBrush;
-                AnimationDragOutline.BorderThickness = new Thickness(DragOutlineSelectedThickness);
-                AnimationDragOutline.Opacity = DragOutlineSelectedOpacity;
+                outline.BorderBrush = _dragOutlineSelectedBrush;
+                outline.BorderThickness = new Thickness(DragOutlineSelectedThickness);
+                outline.Background = _dragOutlineScratchBrush;
+                outline.Opacity = DragOutlineSelectedOpacity;
             }
             else
             {
-                AnimationDragOutline.ClearValue(Border.BorderBrushProperty);
-                AnimationDragOutline.ClearValue(Border.BorderThicknessProperty);
-                AnimationDragOutline.Opacity = DragOutlineUnselectedOpacity;
+                outline.BorderBrush = _dragOutlineDefaultBrush;
+                outline.BorderThickness = new Thickness(2.0);
+                outline.Background = _dragOutlineTransparentBrush;
+                outline.Opacity = DragOutlineUnselectedOpacity;
             }
+        }
+
+        private static Brush CreateDragOutlineScratchBrush()
+        {
+            LinearGradientBrush brush = new LinearGradientBrush
+            {
+                StartPoint = new Point(0, 1),
+                EndPoint = new Point(1, 0)
+            };
+            Color transparent = Colors.Transparent;
+            Color scratch = Color.FromArgb(0x58, 0x86, 0x86, 0x86);
+            const int stripeCount = 11;
+            for (int index = 0; index < stripeCount; index++)
+            {
+                double start = index / (double)stripeCount;
+                double leading = Math.Min(1.0, start + 0.055);
+                double scratchStart = Math.Min(1.0, start + 0.060);
+                double scratchEnd = Math.Min(1.0, start + 0.073);
+                double trailing = Math.Min(1.0, start + 0.078);
+                brush.GradientStops.Add(new GradientStop { Color = transparent, Offset = start });
+                brush.GradientStops.Add(new GradientStop { Color = transparent, Offset = leading });
+                brush.GradientStops.Add(new GradientStop { Color = scratch, Offset = scratchStart });
+                brush.GradientStops.Add(new GradientStop { Color = scratch, Offset = scratchEnd });
+                brush.GradientStops.Add(new GradientStop { Color = transparent, Offset = trailing });
+            }
+            return brush;
         }
 
         private bool IsPointerOnDragOutline(object originalSource)
         {
-            if (ReferenceEquals(originalSource, AnimationDragOutline))
+            if (ReferenceEquals(originalSource, AnimationDragOutline)
+                || ReferenceEquals(originalSource, OverwatchCardDragOutline)
+                || ReferenceEquals(originalSource, ModernWarfare2019UpperDragOutline))
             {
                 return true;
             }
             DependencyObject current = originalSource as DependencyObject;
             while (current != null)
             {
-                if (ReferenceEquals(current, AnimationDragOutline))
+                if (ReferenceEquals(current, AnimationDragOutline)
+                    || ReferenceEquals(current, OverwatchCardDragOutline)
+                    || ReferenceEquals(current, ModernWarfare2019UpperDragOutline))
                 {
                     return true;
                 }
@@ -777,7 +1319,9 @@ namespace KillConfirmGameBar
 
         private void OnWindowPointerPressed(object sender, PointerRoutedEventArgs e)
         {
-            if (!_isAnimationFrameSelected)
+            if (!_isAnimationFrameSelected
+                && !_isOverwatchCardFrameSelected
+                && !_isModernWarfare2019UpperFrameSelected)
             {
                 return;
             }
@@ -786,19 +1330,36 @@ namespace KillConfirmGameBar
                 return;
             }
             _isAnimationFrameSelected = false;
+            _isOverwatchCardFrameSelected = false;
+            _isModernWarfare2019UpperFrameSelected = false;
             UpdateAnimationDragOutlineSelectionVisual();
             e.Handled = true;
         }
 
         private void EndAnimationDrag()
         {
-            if (!_isDraggingAnimation)
+            bool wasDragging = _isDraggingAnimation;
+            bool cardFrame = _isOverwatchCardFrameSelected;
+            bool upperFrame = _isModernWarfare2019UpperFrameSelected;
+            _isDraggingAnimation = false;
+            _animationDragPointerId = 0;
+            _activeAnimationDragOutline = null;
+            if (!wasDragging)
             {
                 return;
             }
-            _isDraggingAnimation = false;
-            _animationDragPointerId = 0;
-            SaveAnimationPlacementSettings();
+            if (upperFrame)
+            {
+                SaveModernWarfare2019UpperPlacementSettings();
+            }
+            else if (cardFrame)
+            {
+                SaveOverwatchCardPlacementSettings();
+            }
+            else
+            {
+                SaveAnimationPlacementSettings();
+            }
         }
 
         private void WireDragElement(UIElement element)
@@ -928,20 +1489,9 @@ namespace KillConfirmGameBar
 
         private void OnCollapsePanelToggle(object sender, RoutedEventArgs e)
         {
-            // "关闭主窗口时的行为 = 退出程序" 时直接关进程；
-            // "保持运行 / 最小化" 走原来的折叠成 mini。
-            if (!Services.CloseBehaviorSettingsStore.KeepRunningAfterSettingsClose)
-            {
-                Application.Current.Exit();
-                return;
-            }
+            // This button only changes the panel presentation. Window-close
+            // behavior is handled by App.OnWindowCloseRequested.
             SetPanelCollapsed(!_panelCollapsed);
-        }
-
-        private void OnMiniExitClick(object sender, RoutedEventArgs e)
-        {
-            // mini 面板的彻底退出入口,无视 CloseBehaviorSettingsStore。
-            Application.Current.Exit();
         }
 
         private void SetPanelCollapsed(bool collapsed)
@@ -975,17 +1525,17 @@ namespace KillConfirmGameBar
 
         private Point ClampPanelOffset(double x, double y)
         {
-            double panelWidth = (ControlPanel.ActualWidth > 0 ? ControlPanel.ActualWidth : DefaultWidgetSize.Width)
-                * _controlPanelScale;
-            double panelHeight = (ControlPanel.ActualHeight > 0 ? ControlPanel.ActualHeight : DefaultWidgetSize.Height)
-                * _controlPanelScale;
+            double panelWidth = ControlPanel.ActualWidth > 0 ? ControlPanel.ActualWidth : DefaultWidgetSize.Width;
+            double panelHeight = ControlPanel.ActualHeight > 0 ? ControlPanel.ActualHeight : DefaultWidgetSize.Height;
             double windowWidth = ActualWidth > 0 ? ActualWidth : DefaultWidgetSize.Width;
             double windowHeight = ActualHeight > 0 ? ActualHeight : DefaultWidgetSize.Height;
 
             // The panel is centered horizontally and top-aligned (Margin 5) at rest.
             double restLeft = (windowWidth - panelWidth) / 2.0;
-            double minX = -restLeft;
-            double maxX = windowWidth - panelWidth - restLeft;
+            double leftAlignedX = -restLeft;
+            double rightAlignedX = windowWidth - panelWidth - restLeft;
+            double minX = Math.Min(leftAlignedX, rightAlignedX);
+            double maxX = Math.Max(leftAlignedX, rightAlignedX);
             double topOffset = 0;
             double bottomOffset = windowHeight
                 - panelHeight
@@ -999,325 +1549,279 @@ namespace KillConfirmGameBar
                 Math.Max(minY, Math.Min(maxY, y)));
         }
 
-        private void ApplyPanelTransform()
+        private void OnPanelViewportSizeChanged(object sender, SizeChangedEventArgs e)
         {
-            if (_panelDragTransform == null)
-            {
-                _panelDragTransform = new CompositeTransform
-                {
-                    ScaleX = _controlPanelScale,
-                    ScaleY = _controlPanelScale,
-                    TranslateX = _panelOffsetX,
-                    TranslateY = _panelOffsetY
-                };
-                ControlPanel.RenderTransform = _panelDragTransform;
-                ControlPanel.RenderTransformOrigin = new Point(0.5, 0);
-            }
-            else
-            {
-                _panelDragTransform.ScaleX = _controlPanelScale;
-                _panelDragTransform.ScaleY = _controlPanelScale;
-                _panelDragTransform.TranslateX = _panelOffsetX;
-                _panelDragTransform.TranslateY = _panelOffsetY;
-            }
-        }
-
-        private void OnControlPanelLoaded(object sender, RoutedEventArgs e)
-        {
-            WireComboBoxPopupEvents(ControlPanel);
-        }
-
-        private void WireComboBoxPopupEvents(DependencyObject root)
-        {
-            if (root == null)
+            if (_isDraggingPanel || ControlPanel == null)
             {
                 return;
             }
 
-            if (root is ComboBox comboBox && _wiredControlPanelComboBoxes.Add(comboBox))
-            {
-                comboBox.DropDownOpened += OnControlPanelComboBoxDropDownOpened;
-                comboBox.DropDownClosed += OnControlPanelComboBoxDropDownClosed;
-                return;
-            }
-
-            int childCount = VisualTreeHelper.GetChildrenCount(root);
-            for (int index = 0; index < childCount; index++)
-            {
-                WireComboBoxPopupEvents(VisualTreeHelper.GetChild(root, index));
-            }
-        }
-
-        private async void OnControlPanelComboBoxDropDownOpened(object sender, object e)
-        {
-            if (!(sender is ComboBox comboBox))
-            {
-                return;
-            }
-
-            await Dispatcher.RunAsync(
-                CoreDispatcherPriority.Low,
-                () => AlignOpenComboBoxPopup(comboBox));
-        }
-
-        private void OnControlPanelComboBoxDropDownClosed(object sender, object e)
-        {
-            if (sender is ComboBox comboBox)
-            {
-                RestoreComboBoxPopup(comboBox);
-            }
-        }
-
-        private async void OnControlPanelComboBoxPointerReleased(object sender, PointerRoutedEventArgs e)
-        {
-            ComboBox comboBox = FindAncestorComboBox(e.OriginalSource as DependencyObject);
-            if (comboBox == null)
-            {
-                return;
-            }
-
-            WireComboBoxPopupEvents(comboBox);
-            await Dispatcher.RunAsync(
-                CoreDispatcherPriority.Low,
-                () => AlignOpenComboBoxPopup(comboBox));
-        }
-
-        private static ComboBox FindAncestorComboBox(DependencyObject source)
-        {
-            DependencyObject current = source;
-            while (current != null)
-            {
-                if (current is ComboBox comboBox)
-                {
-                    return comboBox;
-                }
-                current = VisualTreeHelper.GetParent(current);
-            }
-            return null;
-        }
-
-        private void AlignOpenComboBoxPopup(ComboBox comboBox)
-        {
-            if (comboBox == null || !comboBox.IsDropDownOpen || Window.Current?.Content == null)
-            {
-                return;
-            }
-
-            RestoreComboBoxPopup(comboBox);
-            IReadOnlyList<Popup> openPopups = VisualTreeHelper.GetOpenPopups(Window.Current);
-            Popup target = openPopups.FirstOrDefault(popup =>
-                popup.IsOpen && PopupContainsComboBoxItem(popup.Child, comboBox));
-            if (target == null && openPopups.Count == 1)
-            {
-                target = openPopups[0];
-            }
-            if (target?.Child == null)
-            {
-                return;
-            }
-
-            var root = Window.Current.Content as UIElement;
-            if (root == null || Math.Abs(_controlPanelScale - 1.0) < 0.001)
-            {
-                return;
-            }
-
-            // The ComboBox dropdown is a separate popup window that does not
-            // inherit the panel's scale. Reproduce it here by scaling the popup
-            // content around the SAME pivot the panel uses (its RenderTransformOrigin
-            // top-center, plus any drag offset). Scaling around the popup's own
-            // top-left instead makes the dropdown drift and defeats hit-testing
-            // once the scale reaches 125%+.
-            UIElement popupChild = target.Child;
-            Transform originalTransform = popupChild.RenderTransform;
-            Point originalTransformOrigin = popupChild.RenderTransformOrigin;
-
-            double translateX = _panelDragTransform?.TranslateX ?? 0;
-            double translateY = _panelDragTransform?.TranslateY ?? 0;
-
-            popupChild.UpdateLayout();
-            Point layoutPos = popupChild.TransformToVisual(root).TransformPoint(new Point(0, 0));
-
-            // The pivot must be expressed in window-root coordinates, same as
-            // layoutPos. The panel's own origin (ActualWidth * RenderTransformOrigin)
-            // is panel-local, so it must be offset by the panel's untransformed
-            // position within the window. The rendered origin TransformToVisual
-            // gives already contains the panel's scale/drag transform:
-            // renderedOrigin = panelPos + (1-s)*Origin + translate, from which
-            // panelPos + Origin = renderedOrigin + s*Origin - translate.
-            // The scale pivot must be the transform's fixed point
-            // panelPos + Origin + translate/(1-s), otherwise the dropdown drifts
-            // by (s-1)*panelPos whenever the scaled window is wider than the
-            // unscaled panel (always true above 100%).
-            Point renderedOrigin = ControlPanel.TransformToVisual(root).TransformPoint(new Point(0, 0));
-            double inverseScale = 1.0 - _controlPanelScale;
-            double pivotRootX = renderedOrigin.X
-                + (_controlPanelScale * ControlPanel.ActualWidth * ControlPanel.RenderTransformOrigin.X)
-                + (translateX * _controlPanelScale / inverseScale);
-            double pivotRootY = renderedOrigin.Y
-                + (_controlPanelScale * ControlPanel.ActualHeight * ControlPanel.RenderTransformOrigin.Y)
-                + (translateY * _controlPanelScale / inverseScale);
-
-            var popupTransform = new CompositeTransform
-            {
-                ScaleX = _controlPanelScale,
-                ScaleY = _controlPanelScale,
-                CenterX = pivotRootX - layoutPos.X,
-                CenterY = pivotRootY - layoutPos.Y
-            };
-            var transformGroup = new TransformGroup();
-            popupChild.RenderTransform = null;
-            if (originalTransform != null)
-            {
-                transformGroup.Children.Add(originalTransform);
-            }
-            transformGroup.Children.Add(popupTransform);
-            popupChild.RenderTransformOrigin = new Point(0, 0);
-            popupChild.RenderTransform = transformGroup;
-
-            _comboBoxPopupTransforms[target] = new ComboBoxPopupTransformState(
-                popupChild,
-                originalTransform,
-                originalTransformOrigin,
-                transformGroup);
-            _activeComboBoxPopups[comboBox] = target;
-        }
-
-        private void RestoreComboBoxPopup(ComboBox comboBox)
-        {
-            if (comboBox == null || !_activeComboBoxPopups.TryGetValue(comboBox, out Popup popup))
-            {
-                return;
-            }
-
-            RestoreComboBoxPopupTransform(popup);
-            _activeComboBoxPopups.Remove(comboBox);
-        }
-
-        private void RestoreComboBoxPopupTransform(Popup popup)
-        {
-            if (popup == null || !_comboBoxPopupTransforms.TryGetValue(
-                    popup,
-                    out ComboBoxPopupTransformState state))
-            {
-                return;
-            }
-
-            state.Child.RenderTransform = null;
-            state.AppliedTransform.Children.Clear();
-            state.Child.RenderTransformOrigin = state.OriginalRenderTransformOrigin;
-            state.Child.RenderTransform = state.OriginalRenderTransform;
-            _comboBoxPopupTransforms.Remove(popup);
-        }
-
-        private void RestoreAllComboBoxPopups()
-        {
-            foreach (Popup popup in _comboBoxPopupTransforms.Keys.ToList())
-            {
-                RestoreComboBoxPopupTransform(popup);
-            }
-            _activeComboBoxPopups.Clear();
-        }
-
-        private static bool PopupContainsComboBoxItem(DependencyObject root, ComboBox comboBox)
-        {
-            if (root == null || comboBox == null)
-            {
-                return false;
-            }
-            if (root is ComboBoxItem item)
-            {
-                foreach (object entry in comboBox.Items)
-                {
-                    if (ReferenceEquals(entry, item)
-                        || ReferenceEquals(comboBox.ContainerFromItem(entry), item))
-                    {
-                        return true;
-                    }
-                }
-            }
-            int count = VisualTreeHelper.GetChildrenCount(root);
-            for (int index = 0; index < count; index++)
-            {
-                if (PopupContainsComboBoxItem(VisualTreeHelper.GetChild(root, index), comboBox))
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        private void RefreshControlPanelScale(bool resizeWindow, bool forceResize)
-        {
-            string mode = ControlPanelScaleSettingsStore.Load();
-            double scale = ControlPanelScaleSettingsStore.ResolveScaleForCurrentView(mode);
-
-            _loadedControlPanelScaleMode = mode;
-            _controlPanelScale = scale;
-            ApplyPanelTransform();
             Point clamped = ClampPanelOffset(_panelOffsetX, _panelOffsetY);
             _panelOffsetX = clamped.X;
             _panelOffsetY = clamped.Y;
             ApplyPanelTransform();
+        }
 
-            if (resizeWindow)
+        private void AttachHostLayoutHandlers()
+        {
+            DetachHostLayoutHandlers();
+
+            if (Window.Current == null)
             {
-                RequestWidgetResize(forceResize);
+                return;
+            }
+
+            Window.Current.SizeChanged += OnCoreWindowSizeChanged;
+            if (Window.Current.Content is Frame frame)
+            {
+                frame.SizeChanged += OnHostFrameSizeChanged;
+            }
+            _hostLayoutHandlersAttached = true;
+            SynchronizeHostPageLayout("attach");
+        }
+
+        private void DetachHostLayoutHandlers()
+        {
+            if (!_hostLayoutHandlersAttached || Window.Current == null)
+            {
+                return;
+            }
+
+            Window.Current.SizeChanged -= OnCoreWindowSizeChanged;
+            if (Window.Current.Content is Frame frame)
+            {
+                frame.SizeChanged -= OnHostFrameSizeChanged;
+            }
+            _hostLayoutHandlersAttached = false;
+        }
+
+        private void OnCoreWindowSizeChanged(object sender, WindowSizeChangedEventArgs e)
+        {
+            SynchronizeHostPageLayout("core-window-size");
+        }
+
+        private void OnHostFrameSizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            SynchronizeHostPageLayout("frame-size");
+        }
+
+        private async void OnWidgetWindowBoundsChanged(XboxGameBarWidget sender, object args)
+        {
+            try
+            {
+                await Dispatcher.RunAsync(
+                    CoreDispatcherPriority.Normal,
+                    () => SynchronizeHostPageLayout("widget-bounds"));
+            }
+            catch (Exception ex)
+            {
+                if (_isPageActive)
+                {
+                    App.LogCrash("Host layout bounds dispatch failed: " + ex.Message);
+                }
             }
         }
 
-        private Size GetScaledDefaultWidgetSize()
+        private void SynchronizeHostPageLayout(string reason)
         {
-            return new Size(
-                Math.Min(MaxWidgetSize.Width, DefaultWidgetSize.Width * _controlPanelScale),
-                Math.Min(MaxWidgetSize.Height, DefaultWidgetSize.Height * _controlPanelScale));
+            if (_isSynchronizingHostLayout || !_isPageActive || Window.Current == null)
+            {
+                return;
+            }
+
+            _isSynchronizingHostLayout = true;
+            try
+            {
+                Rect coreBounds = Window.Current.Bounds;
+                Frame frame = Window.Current.Content as Frame;
+                if (frame != null)
+                {
+                    frame.HorizontalAlignment = HorizontalAlignment.Stretch;
+                    frame.VerticalAlignment = VerticalAlignment.Stretch;
+                    frame.HorizontalContentAlignment = HorizontalAlignment.Stretch;
+                    frame.VerticalContentAlignment = VerticalAlignment.Stretch;
+
+                    // A Game Bar display-mode transition can leave the root Frame
+                    // arranged to the old CoreWindow client size. Explicitly bind it
+                    // to the current client bounds so the Page and its hit-test area
+                    // are rebuilt together instead of retaining a smaller top-left
+                    // layout surface.
+                    if (coreBounds.Width > 0 && coreBounds.Height > 0)
+                    {
+                        if (double.IsNaN(frame.Width)
+                            || Math.Abs(frame.Width - coreBounds.Width) > 0.1)
+                        {
+                            frame.Width = coreBounds.Width;
+                        }
+                        if (double.IsNaN(frame.Height)
+                            || Math.Abs(frame.Height - coreBounds.Height) > 0.1)
+                        {
+                            frame.Height = coreBounds.Height;
+                        }
+                    }
+
+                    frame.InvalidateMeasure();
+                    frame.InvalidateArrange();
+                }
+
+                HorizontalAlignment = HorizontalAlignment.Stretch;
+                VerticalAlignment = VerticalAlignment.Stretch;
+                LayoutRoot.HorizontalAlignment = HorizontalAlignment.Stretch;
+                LayoutRoot.VerticalAlignment = VerticalAlignment.Stretch;
+                InvalidateMeasure();
+                InvalidateArrange();
+                LayoutRoot.InvalidateMeasure();
+                LayoutRoot.InvalidateArrange();
+                frame?.UpdateLayout();
+
+                Point clamped = ClampPanelOffset(_panelOffsetX, _panelOffsetY);
+                _panelOffsetX = clamped.X;
+                _panelOffsetY = clamped.Y;
+                ApplyPanelTransform();
+                LogHostLayoutIfChanged(reason, coreBounds, frame);
+            }
+            catch (Exception ex)
+            {
+                App.LogCrash("Host layout synchronization failed (" + reason + "): " + ex);
+            }
+            finally
+            {
+                _isSynchronizingHostLayout = false;
+            }
         }
 
-        private Size GetDesiredWidgetSizeForPresentation()
+        private void LogHostLayoutIfChanged(string reason, Rect coreBounds, Frame frame)
         {
-            return IsControlPanelVisible()
-                ? GetScaledDefaultWidgetSize()
-                : DefaultWidgetSize;
+            Rect widgetBounds = new Rect();
+            try
+            {
+                if (_widget != null)
+                {
+                    widgetBounds = _widget.WindowBounds;
+                }
+            }
+            catch
+            {
+            }
+
+            string signature = string.Format(
+                "widget={0:F2},{1:F2},{2:F2},{3:F2};core={4:F2},{5:F2};frame={6:F2},{7:F2};page={8:F2},{9:F2};root={10:F2},{11:F2};panel={12:F2},{13:F2}",
+                widgetBounds.X,
+                widgetBounds.Y,
+                widgetBounds.Width,
+                widgetBounds.Height,
+                coreBounds.Width,
+                coreBounds.Height,
+                frame?.ActualWidth ?? 0,
+                frame?.ActualHeight ?? 0,
+                ActualWidth,
+                ActualHeight,
+                LayoutRoot?.ActualWidth ?? 0,
+                LayoutRoot?.ActualHeight ?? 0,
+                ControlPanel?.ActualWidth ?? 0,
+                ControlPanel?.ActualHeight ?? 0);
+            if (string.Equals(signature, _lastHostLayoutSignature, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            _lastHostLayoutSignature = signature;
+            App.LogCrash("Host layout [" + reason + "] " + signature);
         }
 
-        private void RequestWidgetResize(bool forceResize)
+        private async Task InitializeWidgetLayoutAsync()
+        {
+            await RestoreFixedPanelBaselineOnceAsync();
+            if (!_isPageActive || _widget == null)
+            {
+                return;
+            }
+
+            SynchronizeHostPageLayout("initial");
+            RequestFixedWidgetLayoutRefresh();
+        }
+
+        private void RequestFixedWidgetLayoutRefresh()
         {
             if (_widget == null)
             {
                 return;
             }
 
-            int requestVersion = Interlocked.Increment(ref _widgetResizeRequestVersion);
-            _ = ResizeWidgetForControlPanelScaleAsync(forceResize, requestVersion);
+            int requestVersion = Interlocked.Increment(ref _widgetLayoutRefreshRequestVersion);
+            _ = RefreshFixedWidgetLayoutAsync(requestVersion);
         }
 
-        private async Task ResizeWidgetForControlPanelScaleAsync(bool forceResize, int requestVersion)
+        private async Task RefreshFixedWidgetLayoutAsync(int requestVersion)
         {
-            await _widgetResizeGate.WaitAsync();
+            await _widgetLayoutRefreshGate.WaitAsync();
             try
             {
-                if (_widget == null || requestVersion != _widgetResizeRequestVersion)
+                if (!_isPageActive
+                    || _widget == null
+                    || requestVersion != _widgetLayoutRefreshRequestVersion)
                 {
                     return;
                 }
 
-                Size desired = GetDesiredWidgetSizeForPresentation();
-                if (!forceResize
-                    && Math.Abs(ActualWidth - desired.Width) < 1
-                    && Math.Abs(ActualHeight - desired.Height) < 1)
+                XboxGameBarWidget widget = _widget;
+                SynchronizeHostPageLayout("before-host-refresh");
+
+                // Game Bar can keep the old UWP composition surface when the desktop
+                // switches to a stretched in-game resolution. Asking for 550x600 again
+                // is commonly coalesced as a no-op, leaving the Page arranged in a
+                // smaller top-left client area. A two-DIP nudge followed by the real
+                // size forces the host to rebuild both its composition and input bounds.
+                var nudgeSize = new Size(
+                    DefaultWidgetSize.Width - HostLayoutRefreshNudge,
+                    DefaultWidgetSize.Height - HostLayoutRefreshNudge);
+                bool nudgeAccepted = await widget.TryResizeWindowAsync(nudgeSize);
+                await Task.Delay(80);
+                bool resizeAccepted = await widget.TryResizeWindowAsync(DefaultWidgetSize);
+                await Task.Delay(140);
+
+                if (!_isPageActive
+                    || _widget == null
+                    || !ReferenceEquals(widget, _widget))
                 {
                     return;
                 }
 
-                await _widget.TryResizeWindowAsync(desired);
+                SynchronizeHostPageLayout("after-host-refresh");
+                SavePanelOffset();
+                App.LogCrash(
+                    "Fixed widget host refreshed. nudgeAccepted=" + nudgeAccepted
+                    + ", restoreAccepted=" + resizeAccepted
+                    + ", requestCurrent=" + (requestVersion == _widgetLayoutRefreshRequestVersion)
+                    + ", viewport=" + ActualWidth + "x" + ActualHeight
+                    + ", panel=" + ControlPanel.ActualWidth + "x" + ControlPanel.ActualHeight);
             }
             catch (Exception ex)
             {
-                App.Log("Resize widget for control panel scale failed: " + ex.Message);
+                App.LogCrash("Fixed widget host refresh failed: " + ex);
             }
             finally
             {
-                _widgetResizeGate.Release();
+                _widgetLayoutRefreshGate.Release();
+            }
+        }
+
+        private void ApplyPanelTransform()
+        {
+            if (_panelDragTransform == null)
+            {
+                _panelDragTransform = new TranslateTransform
+                {
+                    X = _panelOffsetX,
+                    Y = _panelOffsetY
+                };
+                ControlPanel.RenderTransform = _panelDragTransform;
+                ControlPanel.RenderTransformOrigin = new Point(0, 0);
+            }
+            else
+            {
+                _panelDragTransform.X = _panelOffsetX;
+                _panelDragTransform.Y = _panelOffsetY;
             }
         }
 
@@ -1326,6 +1830,48 @@ namespace KillConfirmGameBar
             _panelOffsetX = ReadDoubleSetting(PanelOffsetXSettingKey, 0);
             _panelOffsetY = ReadDoubleSetting(PanelOffsetYSettingKey, 0);
             ApplyPanelTransform();
+        }
+
+        private async Task RestoreFixedPanelBaselineOnceAsync()
+        {
+            if (_widget == null)
+            {
+                return;
+            }
+
+            var values = ApplicationData.Current.LocalSettings.Values;
+            if (values[FixedPanelBaselineMigrationKey] is bool migrated && migrated)
+            {
+                return;
+            }
+
+            // Old releases persisted both a scaled Game Bar host size and panel
+            // offsets expressed in that scaled coordinate system. Removing the
+            // transform alone cannot undo either persisted value.
+            values.Remove(RemovedControlPanelScaleSettingKey);
+            _panelOffsetX = 0;
+            _panelOffsetY = 0;
+            ApplyPanelTransform();
+            SavePanelOffset();
+
+            try
+            {
+                bool resized = await _widget.TryResizeWindowAsync(DefaultWidgetSize);
+                await Task.Delay(100);
+                if (!_isPageActive || _widget == null)
+                {
+                    return;
+                }
+
+                await _widget.CenterWindowAsync();
+                values[FixedPanelBaselineMigrationKey] = true;
+                App.Log("Fixed panel baseline restored. resizeAccepted=" + resized);
+            }
+            catch (Exception ex)
+            {
+                // Leave the migration pending so the next activation retries.
+                App.Log("Restore fixed panel baseline failed: " + ex.Message);
+            }
         }
 
         private void SavePanelOffset()
@@ -1533,13 +2079,6 @@ namespace KillConfirmGameBar
         private void OnControlPanelStateTimerTick(object sender, object e)
         {
             SyncWidgetPresentationState();
-            string scaleMode = ControlPanelScaleSettingsStore.Load();
-            double resolvedScale = ControlPanelScaleSettingsStore.ResolveScaleForCurrentView(scaleMode);
-            if (!string.Equals(_loadedControlPanelScaleMode, scaleMode, StringComparison.Ordinal)
-                || Math.Abs(_controlPanelScale - resolvedScale) > 0.001)
-            {
-                RefreshControlPanelScale(resizeWindow: true, forceResize: true);
-            }
             if (!string.Equals(
                     _loadedCsGameVersion,
                     GsiGameVersionSettingsStore.Load(),
@@ -1563,26 +2102,6 @@ namespace KillConfirmGameBar
         private void OnConnectionStateChanged(object sender, KillEventConnectionState state)
         {
             UpdateConnectionState(state);
-        }
-
-        private sealed class ComboBoxPopupTransformState
-        {
-            public ComboBoxPopupTransformState(
-                UIElement child,
-                Transform originalRenderTransform,
-                Point originalRenderTransformOrigin,
-                TransformGroup appliedTransform)
-            {
-                Child = child;
-                OriginalRenderTransform = originalRenderTransform;
-                OriginalRenderTransformOrigin = originalRenderTransformOrigin;
-                AppliedTransform = appliedTransform;
-            }
-
-            public UIElement Child { get; }
-            public Transform OriginalRenderTransform { get; }
-            public Point OriginalRenderTransformOrigin { get; }
-            public TransformGroup AppliedTransform { get; }
         }
 
         private enum CfgDetectionState

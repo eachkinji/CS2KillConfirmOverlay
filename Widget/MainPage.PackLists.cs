@@ -123,10 +123,6 @@ namespace KillConfirmGameBar
             checkBox.Checked += async (_, __) =>
             {
                 await PackCatalogService.SetVoicePackVisibilityAsync(item.Key, true);
-                if (PackCatalogService.IsDagoujiaoVoicePackKey(item.Key))
-                {
-                    await DagoujiaoSettingsStore.SyncActiveVoicePackAudioAsync(item.Key);
-                }
             };
             checkBox.Unchecked += async (_, __) => await PackCatalogService.SetVoicePackVisibilityAsync(item.Key, false);
             var title = new TextBlock
@@ -163,37 +159,68 @@ namespace KillConfirmGameBar
                 string packName = PackCatalogService.GetVoicePackDisplayName(item);
                 GameStyleMode packStyle = GameStyleService.GetStyleForPackKey(item.Key);
 
-                if (packStyle == GameStyleMode.Dagoujiao)
+                if (packStyle == GameStyleMode.Overwatch)
                 {
-                    var existingFiles = await CollectFilesFromPackFolderAsync(
-                        packFolder,
-                        "common.wav", "headshot.wav", "epic.wav", "jiaojiaojiao.wav");
+                    var existingFiles = await CollectVoiceFileGroupsFromManifestAsync(
+                        packFolder, PackCatalogService.OverwatchVoiceSlotMapping);
+                    StorageFile existingHeadImage = packFolder != null ? await TryGetCustomPackHeadImageAsync(packFolder.Path) : null;
+                    await ShowCreateOverwatchVoicePackDialogAsync(
+                        packName,
+                        existingFiles,
+                        existingHeadImage);
+                }
+                else if (packStyle == GameStyleMode.ModernWarfare2019)
+                {
+                    var existingFiles = await CollectVoiceFileGroupsFromManifestAsync(
+                        packFolder, PackCatalogService.ModernWarfare2019VoiceSlotMapping);
+                    StorageFile existingHeadImage = packFolder != null ? await TryGetCustomPackHeadImageAsync(packFolder.Path) : null;
+                    await ShowCreateModernWarfare2019VoicePackDialogAsync(
+                        packName,
+                        existingFiles,
+                        existingHeadImage);
+                }
+                else if (IsEventVoiceGame(packStyle))
+                {
+                    var existingFiles = await CollectVoiceFileGroupsFromManifestAsync(
+                        packFolder, PackCatalogService.EventSlotMapping);
+                    StorageFile existingHeadImage = packFolder != null ? await TryGetCustomPackHeadImageAsync(packFolder.Path) : null;
+                    await ShowCreateEventVoicePackDialogAsync(packStyle, packName, existingFiles, existingHeadImage);
+                }
+                else if (packStyle == GameStyleMode.Dagoujiao)
+                {
+                    var existingFiles = await CollectVoiceFileGroupsFromManifestAsync(
+                        packFolder, PackCatalogService.DagoujiaoSlotMapping);
                     StorageFile existingHeadImage = packFolder != null ? await TryGetCustomPackHeadImageAsync(packFolder.Path) : null;
                     await ShowCreateDagoujiaoVoicePackDialogAsync(packName, existingFiles, existingHeadImage);
                 }
                 else if (packStyle == GameStyleMode.Doubao)
                 {
-                    var existingFiles = await CollectFilesFromPackFolderAsync(
-                        packFolder,
-                        "1kill.wav", "2kill.wav", "3kill.wav", "4kill.wav", "5kill.wav");
+                    var existingFiles = await CollectVoiceFileGroupsFromManifestAsync(
+                        packFolder, PackCatalogService.DoubaoSlotMapping);
                     await ShowCreateDoubaoVoicePackDialogAsync(packName, existingFiles);
                 }
                 else if (packStyle == GameStyleMode.Csol)
                 {
-                    var existingFiles = await CollectFilesFromPackFolderAsync(
-                        packFolder,
-                        "1.wav", "2.wav", "3.wav", "4.wav", "5.wav",
-                        "6.wav", "7.wav", "8.wav", "9.wav", "10.wav",
-                        "headshot.wav", "knife.wav", "first.wav", "last.wav", "assist.wav");
+                    var existingFiles = await CollectVoiceFileGroupsFromManifestAsync(
+                        packFolder, PackCatalogService.CsolSlotMapping);
                     StorageFile existingHeadImage = packFolder != null ? await TryGetCustomPackHeadImageAsync(packFolder.Path) : null;
                     await ShowCreateCsolVoicePackDialogAsync(packName, existingFiles, existingHeadImage);
                 }
+                else if (packStyle == GameStyleMode.Valorant)
+                {
+                    var existingFiles = await CollectVoiceFileGroupsFromManifestAsync(
+                        packFolder, PackCatalogService.ValorantVoiceSlotMapping);
+                    StorageFile existingHeadImage = packFolder != null ? await TryGetCustomPackHeadImageAsync(packFolder.Path) : null;
+                    await ShowCreateValorantVoicePackDialogAsync(
+                        packName,
+                        existingFiles,
+                        existingHeadImage,
+                        GetValorantVoicePackEmblemUri(item.Key));
+                }
                 else
                 {
-                    var existingFiles = await CollectFilesFromPackFolderAsync(
-                        packFolder,
-                        "common.wav", "2.wav", "3.wav", "4.wav", "5.wav",
-                        "6.wav", "7.wav", "8.wav", "headshot.wav", "knife.wav", "firstandlast.wav");
+                    var existingFiles = await CollectVoiceFileGroupsFromManifestAsync(
+                        packFolder, PackCatalogService.CrossfireSlotMapping);
                     StorageFile overlayFile = packFolder != null ? await TryGetFileAsync(packFolder, "common_overlay.wav") : null;
                     StorageFile existingHeadImage = packFolder != null ? await TryGetCustomPackHeadImageAsync(packFolder.Path) : null;
                     await ShowCreateVoicePackDialogAsync(packName, existingFiles, overlayFile, existingHeadImage);
@@ -259,9 +286,14 @@ namespace KillConfirmGameBar
 
         private async Task<UIElement> BuildIconPackRowAsync(IconPackItem item)
         {
+            GameStyleMode visualStyle = GameStyleService.GetStyleForPackKey(item.Key);
+            bool isLockedVisualPack = visualStyle == GameStyleMode.Overwatch
+                || visualStyle == GameStyleMode.ModernWarfare2019
+                || visualStyle == GameStyleMode.Apex;
             var checkBox = new CheckBox
             {
-                IsChecked = item.IsVisibleInWidget,
+                IsChecked = isLockedVisualPack || item.IsVisibleInWidget,
+                IsEnabled = !isLockedVisualPack,
                 VerticalAlignment = VerticalAlignment.Center,
                 MinWidth = 36
             };
@@ -293,7 +325,7 @@ namespace KillConfirmGameBar
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(12),
                 Margin = new Thickness(0, 0, 4, 0),
-                Visibility = Visibility.Visible
+                Visibility = isLockedVisualPack ? Visibility.Collapsed : Visibility.Visible
             };
             editButton.Click += async (_, __) =>
             {
@@ -301,29 +333,31 @@ namespace KillConfirmGameBar
                 string packName = PackCatalogService.GetIconPackDisplayName(item);
                 GameStyleMode packStyle = GameStyleService.GetStyleForPackKey(item.Key);
 
+                StorageFile existingHeadImage = packFolder != null ? await TryGetCustomPackHeadImageAsync(packFolder.Path) : null;
+
                 if (packStyle == GameStyleMode.Dagoujiao)
                 {
                     var existingFiles = await CollectFilesFromPackFolderAsync(
                         packFolder,
                         "common.png", "headshot.png", "epic.jpg",
                         "1kill.png", "2kill.png", "3kill.png", "4kill.png", "5kill.png");
-                    await ShowCreateDagoujiaoIconPackDialogAsync(packName, existingFiles);
+                    await ShowCreateDagoujiaoIconPackDialogAsync(packName, existingFiles, existingHeadImage);
                 }
                 else if (packStyle == GameStyleMode.Doubao)
                 {
                     var existingFiles = await CollectFilesFromPackFolderAsync(
                         packFolder,
                         "1kill.png", "2kill.png", "3kill.png", "4kill.png", "5kill.png");
-                    await ShowCreateDoubaoIconPackDialogAsync(packName, existingFiles);
+                    await ShowCreateDoubaoIconPackDialogAsync(packName, existingFiles, existingHeadImage);
                 }
                 else if (packStyle == GameStyleMode.Csol)
                 {
                     var existingFiles = await CollectFilesFromPackFolderAsync(
                         packFolder,
-                        "badge_headshot.png", "badge_knife.png", "badge_firstkill.png", "badge_lastkill.png",
-                        "multi2.png", "multi3.png", "multi4.png", "multi5.png", "multi6.png",
-                        "multi7.png", "multi8.png", "multi9.png", "multi10.png");
-                    await ShowCreateCsolIconPackDialogAsync(packName, existingFiles);
+                        "1kill.png", "2kill.png", "3kill.png", "4kill.png", "5kill.png",
+                        "6kill.png", "7kill.png", "8kill.png", "9kill.png", "10kill.png",
+                        "headshot_kill.png", "melee_kill.png", "revenge.png", "firstkill.png", "assist.png");
+                    await ShowCreateCsolIconPackDialogAsync(packName, existingFiles, existingHeadImage);
                 }
                 else if (packStyle == GameStyleMode.Battlefield1)
                 {
@@ -332,7 +366,7 @@ namespace KillConfirmGameBar
                         "killicon_battlefield1_default.png",
                         "killicon_battlefield1_headshot.png",
                         "killicon_battlefield1_crit.png");
-                    await ShowCreateBattlefield1IconPackDialogAsync(packName, existingFiles);
+                    await ShowCreateBattlefield1IconPackDialogAsync(packName, existingFiles, existingHeadImage);
                 }
                 else if (packStyle == GameStyleMode.Battlefield5)
                 {
@@ -341,14 +375,14 @@ namespace KillConfirmGameBar
                         "killicon_battlefield5_default.png",
                         "killicon_battlefield5_headshot.png",
                         "killicon_battlefield5_assist.png");
-                    await ShowCreateBattlefield5IconPackDialogAsync(packName, existingFiles);
+                    await ShowCreateBattlefield5IconPackDialogAsync(packName, existingFiles, existingHeadImage);
                 }
                 else if (packStyle == GameStyleMode.Battlefield2042)
                 {
                     var existingFiles = await CollectFilesFromPackFolderAsync(
                         packFolder,
                         "NormalSkullSprite.png", "HeadshotSkullSprite.png", "AssistSprite.png");
-                    await ShowCreateBattlefield2042IconPackDialogAsync(packName, existingFiles);
+                    await ShowCreateBattlefield2042IconPackDialogAsync(packName, existingFiles, existingHeadImage);
                 }
                 else if (packStyle == GameStyleMode.DeltaForce)
                 {
@@ -356,7 +390,11 @@ namespace KillConfirmGameBar
                         packFolder,
                         "killicon_df_default.png", "killicon_df_headshot.png",
                         "killicon_df_capture.png", "killicon_scrolling_assist.png");
-                    await ShowCreateDeltaForceIconPackDialogAsync(packName, existingFiles);
+                    await ShowCreateDeltaForceIconPackDialogAsync(packName, existingFiles, existingHeadImage);
+                }
+                else if (IsIconPackCreationUnavailable(packStyle))
+                {
+                    await GuardIconPackCreationAsync();
                 }
                 else
                 {
@@ -374,7 +412,7 @@ namespace KillConfirmGameBar
                         "badge_sniper1.png", "badge_sniper2.png", "badge_sniper3.png",
                         "badge_elite1.png", "badge_elite2.png", "badge_elite3.png",
                         "badge_knife1.png", "badge_knife2.png", "badge_knife3.png");
-                    await ShowCreateIconPackDialogAsync(packName, existingFiles);
+                    await ShowCreateIconPackDialogAsync(packName, existingFiles, existingHeadImage);
                 }
             };
             var deleteButton = new Button

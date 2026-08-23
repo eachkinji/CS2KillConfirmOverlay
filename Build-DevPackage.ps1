@@ -17,6 +17,9 @@
 
 .PARAMETER OutputDir
     输出目录，默认 .\Output\Dev。
+
+.PARAMETER CertificatePfxPath
+    用于最终 MSIX 签名的 PFX；CI 会传入正式签名证书。
 #>
 param(
     [ValidateSet("Debug", "Release")]
@@ -25,6 +28,12 @@ param(
     [string]$Platform = "x64",
     [switch]$Install,
     [switch]$SkipRust,
+    [string]$MsBuildPath = "",
+    [switch]$DisableSigning,
+    [string]$CertificatePfxPath = "",
+    [string]$CertificatePassword = "",
+    [string]$CertificateThumbprint = "",
+    [string]$CertificateCerPath = "",
     [string]$OutputDir = ""
 )
 
@@ -37,8 +46,17 @@ $WidgetRoot = Join-Path $Root "Widget"
 $PackageRoot = Join-Path $Root "Package"
 $PackageProjectPath = Join-Path $PackageRoot "KillConfirmGameBar.Package.wapproj"
 $PackagedServiceRoot = Join-Path $WidgetRoot "KillConfirmService"
-$CertPfx = Join-Path $WidgetRoot "LOCAL_SIGNING_KEY.pfx"
-$CertCer = Join-Path $WidgetRoot "KillConfirmGameBar_TemporaryKey.cer"
+$DefaultCertPfx = Join-Path $WidgetRoot "LOCAL_SIGNING_KEY.pfx"
+$DefaultCertCer = Join-Path $WidgetRoot "KillConfirmGameBar_TemporaryKey.cer"
+if (-not $CertificatePfxPath -and (Test-Path $DefaultCertPfx)) {
+    $CertificatePfxPath = $DefaultCertPfx
+    if (-not $CertificatePassword) {
+        $CertificatePassword = "test"
+    }
+}
+if (-not $CertificateCerPath -and (Test-Path $DefaultCertCer)) {
+    $CertificateCerPath = $DefaultCertCer
+}
 $PackageFamilyName = "KillConfirmGameBar.Overlay_5jgcw66eyez0m"
 
 if (-not $OutputDir) {
@@ -54,10 +72,9 @@ Write-Host "==========================================================" -Foregro
 
 # 1. 查找工具链
 $VsWhere = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\Installer\vswhere.exe"
-$MsBuildPath = $null
 $VcInstallPath = $null
 
-if (Test-Path $VsWhere) {
+if (-not $MsBuildPath -and (Test-Path $VsWhere)) {
     $VsInstallPath = & $VsWhere -latest -products * -requires Microsoft.Component.MSBuild -property installationPath
     if ($VsInstallPath) {
         $MsBuildPath = @(
@@ -125,32 +142,50 @@ if (-not $SkipRust) {
         Copy-Item -LiteralPath $settingsLauncher -Destination (Join-Path $PackagedServiceRoot "killconfirm-settings-launcher.exe") -Force
     }
 
-    # 同步 sound 目录
-    $PackagedSoundsRoot = Join-Path $PackagedServiceRoot "sounds"
-    if (Test-Path $PackagedSoundsRoot) {
-        Remove-Item -LiteralPath $PackagedSoundsRoot -Recurse -Force
-    }
-    Copy-Item -LiteralPath (Join-Path $ServiceRoot "sounds") -Destination $PackagedSoundsRoot -Recurse -Force
-
-    # 补充 dagoujiao / doubao 内置语音：源素材在 SourceAssets，不在 ServiceRoot\sounds 里
-    $DagoujiaoSrc = Join-Path $Root "SourceAssets\GameStyles\dagoujiao\soundpacks\dagoujiao"
-    $DoubaoSrc    = Join-Path $Root "SourceAssets\GameStyles\doubao\soundpacks\doubao"
-    foreach ($pair in @(@($DagoujiaoSrc, "dagoujiao"), @($DoubaoSrc, "doubao"))) {
-        $src = $pair[0]; $name = $pair[1]
-        if (Test-Path $src) {
-            $dst = Join-Path $PackagedSoundsRoot $name
-            New-Item -ItemType Directory -Force -Path $dst | Out-Null
-            Copy-Item -Path "$src\*.wav" -Destination $dst -Force
-        }
-    }
 }
 else {
     Write-Host "`n[1/4] 跳过 Rust 编译 (-SkipRust)" -ForegroundColor DarkGray
 }
 
+# SourceAssets is the checked-in source of truth for every built-in sound pack.
+# KillConfirmService/sounds and Widget/KillConfirmService are generated/ignored,
+# so a clean CI checkout must never depend on either directory already existing.
+$PackagedSoundsRoot = Join-Path $PackagedServiceRoot "sounds"
+if (Test-Path $PackagedSoundsRoot) {
+    Remove-Item -LiteralPath $PackagedSoundsRoot -Recurse -Force
+}
+New-Item -ItemType Directory -Force -Path $PackagedSoundsRoot | Out-Null
+
+$SourceGameStylesRoot = Join-Path $Root "SourceAssets\GameStyles"
+$copiedSoundPackNames = @{}
+$copiedSoundPackCount = 0
+foreach ($styleFolder in (Get-ChildItem -LiteralPath $SourceGameStylesRoot -Directory)) {
+    $soundPacksRoot = Join-Path $styleFolder.FullName "soundpacks"
+    if (-not (Test-Path $soundPacksRoot -PathType Container)) {
+        continue
+    }
+
+    foreach ($soundPack in (Get-ChildItem -LiteralPath $soundPacksRoot -Directory)) {
+        $normalizedPackName = $soundPack.Name.ToLowerInvariant()
+        if ($copiedSoundPackNames.ContainsKey($normalizedPackName)) {
+            throw "内置语音包目录名重复: $($soundPack.Name)"
+        }
+
+        $destination = Join-Path $PackagedSoundsRoot $soundPack.Name
+        New-Item -ItemType Directory -Force -Path $destination | Out-Null
+        Copy-Item -Path (Join-Path $soundPack.FullName "*") -Destination $destination -Recurse -Force
+        $copiedSoundPackNames[$normalizedPackName] = $true
+        $copiedSoundPackCount++
+    }
+}
+if ($copiedSoundPackCount -eq 0) {
+    throw "SourceAssets 中未找到任何内置语音包。"
+}
+Write-Host "  已从 SourceAssets 同步 $copiedSoundPackCount 个内置语音包。" -ForegroundColor DarkGray
+
 # 3. 编译打包 MSIX
 Write-Host "`n[2/4] 调用 MSBuild 编译打包 MSIX ($Configuration/$Platform)..." -ForegroundColor Yellow
-$TempAppxDir = Join-Path $OutputDir "TempAppPackages\"
+$TempAppxDir = Join-Path $OutputDir "TempAppPackages"
 $MsBuildArgs = @(
     $PackageProjectPath,
     "/restore",
@@ -178,21 +213,73 @@ if (-not $msixFile) {
 $FinalMsixPath = Join-Path $OutputDir $msixFile.Name
 Copy-Item -LiteralPath $msixFile.FullName -Destination $FinalMsixPath -Force
 
+# Fail closed if a packaging regression produces an installable UWP shell
+# without the FullTrust companion registration or executable.
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+$archive = [System.IO.Compression.ZipFile]::OpenRead($FinalMsixPath)
+try {
+    $manifestEntry = $archive.Entries | Where-Object { $_.FullName -eq "AppxManifest.xml" } | Select-Object -First 1
+    $serviceEntry = $archive.Entries | Where-Object { $_.FullName -eq "KillConfirmService/cskillconfirm.exe" } | Select-Object -First 1
+    if (-not $manifestEntry) {
+        throw "MSIX 产物缺少 AppxManifest.xml"
+    }
+
+    $reader = New-Object System.IO.StreamReader($manifestEntry.Open())
+    try {
+        $packagedManifestText = $reader.ReadToEnd()
+    }
+    finally {
+        $reader.Dispose()
+    }
+
+    $requiredManifestMarkers = @(
+        'windows.fullTrustProcess',
+        'KillConfirmService\cskillconfirm.exe',
+        'GroupId="ServicePort10087"',
+        'Name="runFullTrust"'
+    )
+    foreach ($marker in $requiredManifestMarkers) {
+        if (-not $packagedManifestText.Contains($marker)) {
+            throw "MSIX 后台服务注册不完整，缺少清单标记: $marker"
+        }
+    }
+    if (-not $serviceEntry) {
+        throw "MSIX 产物缺少 KillConfirmService/cskillconfirm.exe"
+    }
+}
+finally {
+    $archive.Dispose()
+}
+
 # 4. 签名与证书输出
 Write-Host "`n[3/4] 对 MSIX 执行 Authenticode 数字签名..." -ForegroundColor Yellow
-if ($SignToolPath -and (Test-Path $CertPfx)) {
-    & $SignToolPath sign /fd SHA256 /f $CertPfx /p "test" $FinalMsixPath
-    if ($LASTEXITCODE -ne 0) {
-        Write-Warning "SignTool 签名退出码: $LASTEXITCODE"
+if (-not $DisableSigning -and $SignToolPath -and (Test-Path $CertificatePfxPath)) {
+    $signingCertificate = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new(
+        $CertificatePfxPath,
+        $CertificatePassword)
+    $thumbprintMatches = -not $CertificateThumbprint -or [string]::Equals(
+        $signingCertificate.Thumbprint,
+        $CertificateThumbprint,
+        [System.StringComparison]::OrdinalIgnoreCase)
+    if (-not $thumbprintMatches) {
+        throw "PFX 证书指纹与请求的签名证书不一致。"
     }
+
+    & $SignToolPath sign /fd SHA256 /f $CertificatePfxPath /p $CertificatePassword $FinalMsixPath
+    if ($LASTEXITCODE -ne 0) {
+        throw "SignTool 签名失败 (ExitCode: $LASTEXITCODE)"
+    }
+}
+elseif ($DisableSigning) {
+    Write-Host "  已按参数禁用额外签名。" -ForegroundColor DarkGray
 }
 else {
     Write-Warning "未找到 signtool 或证书文件，跳过额外显式重签名。"
 }
 
 $FinalCerPath = Join-Path $OutputDir "KillConfirmGameBar_TemporaryKey.cer"
-if (Test-Path $CertCer) {
-    Copy-Item -LiteralPath $CertCer -Destination $FinalCerPath -Force
+if ($CertificateCerPath -and (Test-Path $CertificateCerPath)) {
+    Copy-Item -LiteralPath $CertificateCerPath -Destination $FinalCerPath -Force
 }
 
 # 清理临时打包文件夹

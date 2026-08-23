@@ -16,7 +16,18 @@ namespace KillConfirmGameBar.Services
         internal static bool Load()
         {
             object value = ApplicationData.Current.LocalSettings.Values[SettingKey];
-            return value is bool enabled && enabled;
+            if (value is bool enabled)
+            {
+                return enabled;
+            }
+
+            if (value is string text && bool.TryParse(text, out bool parsed))
+            {
+                return parsed;
+            }
+
+            // Only a genuinely missing/unrecognized value receives the first-install default.
+            return true;
         }
 
         internal static void Save(bool enabled)

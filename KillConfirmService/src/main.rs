@@ -6,7 +6,9 @@ mod util;
 
 use axum::http::StatusCode;
 use axum::{
-    Router, middleware,
+    Router,
+    extract::State,
+    middleware,
     routing::{get, post},
 };
 use std::{
@@ -20,7 +22,7 @@ use std::{
     process::Command,
     sync::Arc,
     sync::atomic::{AtomicBool, AtomicU8, AtomicU32, AtomicU64},
-    time::{Duration, SystemTime, UNIX_EPOCH},
+    time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
 use tokio::sync::{RwLock, broadcast};
 use tokio::time::sleep;
@@ -43,21 +45,26 @@ use util::playback::{default_output_device_name, get_output_stream_with_name, li
 
 use anyhow::{Context, Result};
 use soundpack::Preset;
+use soundpack::gain::{DEFAULT_STREAK_GAIN_MAXIMUM_PERCENT, DEFAULT_STREAK_GAIN_STEP_PERCENT};
 use soundpack::sound::warm_audio_cache;
 use util::event_stream::{
     audio_devices, audio_reload, audio_volume, bomb_audio_settings, counter_strike_root,
     crossfire_settings, cs2_root, csol_settings, dagoujiao_settings, developer_settings,
     doubao_settings, event_sound_settings, events_poll, gsi_game_settings, gsi_status, health,
-    install_counter_strike_cfg, interrupt_previous_kill_audio_settings, money_mode,
-    port, process_priorities, set_audio_device, set_bomb_audio_settings, set_crossfire_settings,
-    set_csol_settings, set_dagoujiao_settings, set_developer_settings, set_doubao_settings,
-    set_event_sound_settings,
-    set_gsi_game_settings, set_interrupt_previous_kill_audio_settings, set_money_mode,
-    set_process_priority, set_spectator_settings, set_streak_settings, shutdown,
-    spectator_settings, streak_settings, test_event,
+    install_counter_strike_cfg, interrupt_previous_kill_audio_settings, money_mode, port,
+    process_priorities, register_ui_process, set_audio_device, set_bomb_audio_settings,
+    set_crossfire_settings, set_csol_settings, set_dagoujiao_settings, set_developer_settings,
+    set_doubao_settings, set_event_sound_settings, set_gsi_game_settings,
+    set_interrupt_previous_kill_audio_settings, set_money_mode, set_process_priority,
+    set_spectator_settings, set_streak_gain_settings, set_streak_settings, shutdown,
+    spectator_settings, streak_gain_settings, streak_settings, test_event, unregister_ui_process,
 };
 use util::handler::update;
 use util::logging::{developer_logging_enabled, set_developer_logging_enabled};
+use windows_sys::Win32::Foundation::{CloseHandle, STILL_ACTIVE};
+use windows_sys::Win32::System::Threading::{
+    GetExitCodeProcess, OpenProcess, PROCESS_QUERY_LIMITED_INFORMATION,
+};
 use windows_sys::Win32::UI::Shell::ShellExecuteW;
 use windows_sys::Win32::UI::WindowsAndMessaging::SW_SHOWNORMAL;
 
@@ -69,6 +76,7 @@ const DEFAULT_LOG_LEVEL: LevelFilter = if cfg!(debug_assertions) {
 const QUARK_UPDATE_URL: &str = "https://pan.quark.cn/s/1f3cfbcf8d5f?pwd=7Twv";
 const AUTHOR_GITHUB_URL: &str = "https://github.com/eachkinji";
 const AUTHOR_BILIBILI_URL: &str = "https://space.bilibili.com/18017622";
+const UNINSTALL_REGISTRY_KEY: &str = r"HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{E0DF6407-CB2E-43D0-8B51-8C8924F50AA1}_is1";
 #[link(name = "kernel32")]
 unsafe extern "system" {
     fn GetCurrentPackageFamilyName(
@@ -115,7 +123,13 @@ fn boost_process_priority() {
             state_mask: 0,
         };
         let size = std::mem::size_of::<ProcessPowerThrottlingState>() as u32;
-        if SetProcessInformation(process, PROCESS_POWER_THROTTLING, &state as *const _ as *mut _, size) != 0 {
+        if SetProcessInformation(
+            process,
+            PROCESS_POWER_THROTTLING,
+            &state as *const _ as *mut _,
+            size,
+        ) != 0
+        {
             service_log("service power throttling disabled");
         } else {
             service_log("SetProcessInformation(PowerThrottling) failed");
@@ -199,7 +213,7 @@ async fn main() {
     }
 }
 
-async fn bind_with_fallback(args: &mut Args) -> Result<tokio::net::TcpListener> {
+async fn bind_with_fallback(args: &mut Args) -> Result<Option<tokio::net::TcpListener>> {
     const MAX_PORT_SCAN: u16 = 100;
     let target = args.port;
     let bind_target = format!("127.0.0.1:{target}");
@@ -207,9 +221,18 @@ async fn bind_with_fallback(args: &mut Args) -> Result<tokio::net::TcpListener> 
     match tokio::net::TcpListener::bind(&bind_target).await {
         Ok(listener) => {
             service_log(&format!("listening on {bind_target}"));
-            return Ok(listener);
+            return Ok(Some(listener));
         }
         Err(primary_error) => {
+            if same_service_owns_port(target) {
+                service_log(&format!(
+                    "service already running on {bind_target}; duplicate launch ignored"
+                ));
+                bootstrap_log(&format!(
+                    "existing cskillconfirm instance owns {bind_target}; exiting successfully"
+                ));
+                return Ok(None);
+            }
             if !args.auto_search_port {
                 return Err(primary_error).with_context(|| format!("failed to bind {bind_target}"));
             }
@@ -233,8 +256,11 @@ async fn bind_with_fallback(args: &mut Args) -> Result<tokio::net::TcpListener> 
                 ));
                 write_port_to_file(candidate);
                 args.port = candidate;
-                bootstrap_log(&format!("effective port updated to {} after fallback", candidate));
-                return Ok(listener);
+                bootstrap_log(&format!(
+                    "effective port updated to {} after fallback",
+                    candidate
+                ));
+                return Ok(Some(listener));
             }
             Err(error) => {
                 last_error = Some(error);
@@ -281,6 +307,16 @@ async fn run(mut args: Args) -> Result<()> {
         return Ok(());
     }
 
+    if args.exit_all {
+        exit_all_processes();
+        return Ok(());
+    }
+
+    if args.open_uninstaller {
+        open_uninstaller().context("failed to open uninstaller")?;
+        return Ok(());
+    }
+
     if args.open_settings_launcher {
         launch_settings_launcher().context("failed to launch settings helper")?;
         return Ok(());
@@ -324,6 +360,12 @@ async fn run(mut args: Args) -> Result<()> {
         return Ok(());
     }
 
+    // Bind before opening the audio device or loading a preset. A duplicate
+    // packaged launch can then exit cheaply without disturbing the live stream.
+    let Some(listener) = bind_with_fallback(&mut args).await? else {
+        return Ok(());
+    };
+
     // initialize the specified audio device
     let (output_stream, output_device_name) =
         get_output_stream_with_name(&args.device).context("failed to get output stream")?;
@@ -346,8 +388,6 @@ async fn run(mut args: Args) -> Result<()> {
         .context("failed to initialize local control authentication")?;
     service_log("local control authentication ready");
 
-    let listener = bind_with_fallback(&mut args).await?;
-
     let (shutdown_tx, shutdown_rx) = broadcast::channel(1);
 
     let app_state = Arc::new(AppState {
@@ -365,6 +405,9 @@ async fn run(mut args: Args) -> Result<()> {
         args: args.clone(),
         preset: RwLock::new(preset),
         volume_percent: AtomicU32::new(initial_volume_percent),
+        streak_gain_enabled: AtomicBool::new(true),
+        streak_gain_step_percent: AtomicU32::new(DEFAULT_STREAK_GAIN_STEP_PERCENT),
+        streak_gain_maximum_percent: AtomicU32::new(DEFAULT_STREAK_GAIN_MAXIMUM_PERCENT),
         money_reward_mode: AtomicU8::new(MoneyRewardMode::DEFAULT.as_u8()),
         crossfire_streak_mode: AtomicU8::new(CrossfireStreakMode::DEFAULT.as_u8()),
         crossfire_streak_window_ms: AtomicU64::new(DEFAULT_CUSTOM_STREAK_WINDOW_MS),
@@ -381,10 +424,12 @@ async fn run(mut args: Args) -> Result<()> {
         event_sound_settings: RwLock::new(EventSoundSettings::default()),
         csol_voice_picks: RwLock::new(HashMap::new()),
         csol_special_voice_priority: AtomicBool::new(false),
+        csol_last_kill_special_audio: AtomicBool::new(true),
         dagoujiao_epic_kill_count: AtomicU32::new(5),
         dagoujiao_headshot_priority: AtomicBool::new(false),
         dagoujiao_initial_playback_speed_percent: AtomicU32::new(50),
         dagoujiao_maximum_playback_speed_percent: AtomicU32::new(200),
+        dagoujiao_epic_playback_speed_percent: AtomicU32::new(100),
         dagoujiao_audio_paths: RwLock::new(HashMap::from([
             ("common".to_string(), "builtin:common.wav".to_string()),
             ("epic".to_string(), "builtin:epic.wav".to_string()),
@@ -400,12 +445,13 @@ async fn run(mut args: Args) -> Result<()> {
         bomb_audio_final_speed_percent: AtomicU32::new(DEFAULT_BOMB_AUDIO_FINAL_SPEED_PERCENT),
         bomb_audio_generation: AtomicU64::new(0),
         bomb_audio_sink: std::sync::Mutex::new(None),
-        stop_previous_kill_audio: AtomicBool::new(false),
-        kill_audio_sink: std::sync::Mutex::new(None),
+        stop_previous_kill_audio: AtomicBool::new(true),
+        kill_audio_sinks: std::sync::Mutex::new(Vec::new()),
         spectated_kill_effects_enabled: AtomicBool::new(false),
         bomb_audio_paths: std::sync::Mutex::new(Default::default()),
         gsi_game_version: AtomicU8::new(GsiGameVersion::DEFAULT.as_u8()),
         events: EventJournal::default(),
+        ui_process_ids: RwLock::new(Default::default()),
         shutdown_tx,
         gsi_posts: AtomicU64::new(0),
         gsi_parse_errors: AtomicU64::new(0),
@@ -420,6 +466,13 @@ async fn run(mut args: Args) -> Result<()> {
         monitor_default_output_device(watcher_state).await;
     });
 
+    if app_state.args.exit_with_ui {
+        let ui_watcher_state = app_state.clone();
+        tokio::spawn(async move {
+            monitor_ui_processes(ui_watcher_state).await;
+        });
+    }
+
     {
         let cache_state = app_state.clone();
         tokio::spawn(async move {
@@ -431,6 +484,8 @@ async fn run(mut args: Args) -> Result<()> {
         .route("/", post(update))
         .route("/events", get(events_poll))
         .route("/health", get(health))
+        .route("/client/register", post(register_ui_process))
+        .route("/client/unregister", post(unregister_ui_process))
         .route("/port", get(port))
         .route("/gsi-status", get(gsi_status))
         .route(
@@ -444,6 +499,10 @@ async fn run(mut args: Args) -> Result<()> {
         .route("/audio/devices", get(audio_devices))
         .route("/audio/device", post(set_audio_device))
         .route("/audio/volume", post(audio_volume))
+        .route(
+            "/audio/streak-gain",
+            get(streak_gain_settings).post(set_streak_gain_settings),
+        )
         .route(
             "/bomb-audio/settings",
             get(bomb_audio_settings).post(set_bomb_audio_settings),
@@ -488,6 +547,7 @@ async fn run(mut args: Args) -> Result<()> {
             get(process_priorities).post(set_process_priority),
         )
         .route("/shutdown", post(shutdown))
+        .route("/exit-all", post(exit_all_handler))
         .route(
             "/soundpack",
             get(util::event_stream::soundpack).post(util::event_stream::set_soundpack),
@@ -572,6 +632,55 @@ async fn monitor_default_output_device(app_state: Arc<AppState>) {
             }
         }
     }
+}
+
+async fn monitor_ui_processes(app_state: Arc<AppState>) {
+    const REGISTRATION_GRACE: Duration = Duration::from_secs(15);
+    const PROCESS_CHECK_INTERVAL: Duration = Duration::from_secs(2);
+
+    service_log("UI lifetime monitor started");
+    let registration_deadline = Instant::now() + REGISTRATION_GRACE;
+
+    loop {
+        if app_state.shutdown_tx.receiver_count() == 0 {
+            return;
+        }
+
+        let (registered, alive) = {
+            let mut pids = app_state.ui_process_ids.write().await;
+            let registered = pids.len();
+            pids.retain(|pid| is_process_running(*pid));
+            (registered, pids.len())
+        };
+
+        if registered > 0 && alive == 0 {
+            service_log("all registered UI processes exited; shutting down service");
+            let _ = app_state.shutdown_tx.send(());
+            return;
+        }
+
+        if registered == 0 && Instant::now() >= registration_deadline {
+            service_log("no UI process registered during startup grace; shutting down service");
+            let _ = app_state.shutdown_tx.send(());
+            return;
+        }
+
+        sleep(PROCESS_CHECK_INTERVAL).await;
+    }
+}
+
+fn is_process_running(pid: u32) -> bool {
+    let handle = unsafe { OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, 0, pid) };
+    if handle.is_null() {
+        return false;
+    }
+
+    let mut exit_code = 0u32;
+    let result = unsafe { GetExitCodeProcess(handle, &mut exit_code) };
+    unsafe {
+        CloseHandle(handle);
+    }
+    result != 0 && exit_code == STILL_ACTIVE as u32
 }
 
 fn service_log(message: &str) {
@@ -662,6 +771,150 @@ fn launch_settings_launcher() -> Result<()> {
     Ok(())
 }
 
+fn exit_all_processes() {
+    service_log("exit-all requested");
+    let current_pid = std::process::id();
+    let image_names = [
+        "KillConfirmGameBar.exe",
+        "killconfirm-settings-launcher.exe",
+        "KillConfirmOverlay.exe",
+        "TestXboxGameBar.exe",
+        "cskillconfirm.exe",
+    ];
+
+    for image_name in image_names {
+        let pids = match process_ids_by_image_name(image_name) {
+            Ok(pids) => pids,
+            Err(error) => {
+                service_log(&format!("exit-all: failed to list {image_name}: {error}"));
+                continue;
+            }
+        };
+
+        for pid in pids {
+            if pid == current_pid {
+                continue;
+            }
+
+            let output = match Command::new("taskkill")
+                .args(["/PID", &pid.to_string(), "/T", "/F"])
+                .output()
+            {
+                Ok(output) => output,
+                Err(error) => {
+                    service_log(&format!(
+                        "exit-all: failed to terminate {image_name} pid={pid}: {error}"
+                    ));
+                    continue;
+                }
+            };
+
+            service_log(&format!(
+                "exit-all: terminated {image_name} pid={pid} exit={:?}",
+                output.status.code()
+            ));
+        }
+    }
+}
+
+async fn exit_all_handler(State(app_state): State<Arc<AppState>>) -> StatusCode {
+    service_log("authenticated exit-all request accepted");
+    let shutdown_tx = app_state.shutdown_tx.clone();
+    tokio::spawn(async move {
+        // Return the HTTP response before terminating the requesting UWP process.
+        sleep(Duration::from_millis(250)).await;
+        exit_all_processes();
+        let _ = shutdown_tx.send(());
+    });
+    StatusCode::ACCEPTED
+}
+
+fn process_ids_by_image_name(image_name: &str) -> Result<Vec<u32>> {
+    let filter = format!("IMAGENAME eq {image_name}");
+    let output = Command::new("tasklist")
+        .args(["/FI", &filter, "/FO", "CSV", "/NH"])
+        .output()
+        .with_context(|| format!("failed to run tasklist for {image_name}"))?;
+
+    if !output.status.success() {
+        anyhow::bail!("tasklist returned {:?}", output.status.code());
+    }
+
+    let mut pids = Vec::new();
+    for line in String::from_utf8_lossy(&output.stdout).lines() {
+        let trimmed = line.trim();
+        if !trimmed.starts_with('"') {
+            continue;
+        }
+
+        let columns: Vec<&str> = trimmed.trim_matches('"').split("\",\"").collect();
+        if columns.len() < 2 || !columns[0].eq_ignore_ascii_case(image_name) {
+            continue;
+        }
+
+        if let Ok(pid) = columns[1].replace(',', "").parse::<u32>() {
+            if !pids.contains(&pid) {
+                pids.push(pid);
+            }
+        }
+    }
+
+    Ok(pids)
+}
+
+fn open_uninstaller() -> Result<()> {
+    if let Some(uninstaller_path) = query_uninstaller_path() {
+        service_log(&format!(
+            "opening uninstaller: {}",
+            uninstaller_path.display()
+        ));
+        shell_execute_text("open", &uninstaller_path.display().to_string(), None)
+            .context("failed to launch registered uninstaller")?;
+        return Ok(());
+    }
+
+    service_log("registered uninstaller not found; opening Windows Installed apps");
+    shell_execute_text("open", "ms-settings:appsfeatures", None)
+        .context("failed to open Windows Installed apps")?;
+    Ok(())
+}
+
+fn query_uninstaller_path() -> Option<PathBuf> {
+    let output = Command::new("reg.exe")
+        .args([
+            "query",
+            UNINSTALL_REGISTRY_KEY,
+            "/v",
+            "UninstallString",
+            "/reg:64",
+        ])
+        .output()
+        .ok()?;
+    if !output.status.success() {
+        return None;
+    }
+
+    for line in String::from_utf8_lossy(&output.stdout).lines() {
+        let Some(value_index) = line.find("REG_SZ") else {
+            continue;
+        };
+        let command = line[value_index + "REG_SZ".len()..].trim();
+        let executable = if let Some(remainder) = command.strip_prefix('"') {
+            remainder.split('"').next().unwrap_or("")
+        } else {
+            command.split_whitespace().next().unwrap_or("")
+        };
+        if !executable.is_empty() {
+            let path = PathBuf::from(executable);
+            if path.is_file() {
+                return Some(path);
+            }
+        }
+    }
+
+    None
+}
+
 fn log_local_port_owners(port: u16) {
     match find_local_port_pids(port) {
         Ok(pids) if pids.is_empty() => {
@@ -678,6 +931,20 @@ fn log_local_port_owners(port: u16) {
         }
         Err(error) => service_log(&format!("port {port} owner lookup failed: {error}")),
     }
+}
+
+fn same_service_owns_port(port: u16) -> bool {
+    let current_pid = std::process::id();
+    find_local_port_pids(port)
+        .ok()
+        .into_iter()
+        .flatten()
+        .filter(|pid| *pid != current_pid)
+        .any(|pid| {
+            process_image_name(pid)
+                .map(|name| name.eq_ignore_ascii_case("cskillconfirm.exe"))
+                .unwrap_or(false)
+        })
 }
 
 fn process_image_name(pid: u32) -> Option<String> {
@@ -876,7 +1143,12 @@ fn write_port_to_file(port: u16) {
     if let Some(parent) = path.parent() {
         let _ = fs::create_dir_all(parent);
     }
-    if let Ok(mut file) = OpenOptions::new().create(true).truncate(true).write(true).open(&path) {
+    if let Ok(mut file) = OpenOptions::new()
+        .create(true)
+        .truncate(true)
+        .write(true)
+        .open(&path)
+    {
         let _ = file.write_all(port.to_string().as_bytes());
     }
 }

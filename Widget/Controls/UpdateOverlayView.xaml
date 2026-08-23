@@ -1,7 +1,8 @@
 ﻿<UserControl
     x:Class="KillConfirmGameBar.Controls.UpdateOverlayView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:settings="using:KillConfirmGameBar.Controls.Settings">
         <Grid
             x:Name="Root"
             x:FieldModifier="public"
@@ -81,15 +82,19 @@
                         LineHeight="20"
                         TextWrapping="WrapWholeWords" />
 
-                    <Border
-                        x:Name="AboutCard"
-                        x:FieldModifier="public"
+                    <ScrollViewer
                         Grid.Row="2"
-                        Padding="12"
-                        Background="#FFFDFC"
-                        BorderBrush="#E2DDD3"
-                        BorderThickness="1"
-                        CornerRadius="16">
+                        MaxHeight="520"
+                        HorizontalScrollBarVisibility="Disabled"
+                        VerticalScrollBarVisibility="Auto">
+                        <Border
+                            x:Name="AboutCard"
+                            x:FieldModifier="public"
+                            Padding="12"
+                            Background="#FFFDFC"
+                            BorderBrush="#E2DDD3"
+                            BorderThickness="1"
+                            CornerRadius="16">
                         <StackPanel Spacing="7">
                             <Grid ColumnSpacing="8">
                                 <Grid.ColumnDefinitions>
@@ -244,6 +249,9 @@
                                     FontSize="12"
                                     Foreground="#1B1F31" />
                             </Grid>
+                            <settings:CreditsCommunityPanel
+                                x:Name="UpdateCreditsCommunityPanel"
+                                x:FieldModifier="public" />
                             <Grid Margin="0,2,0,0">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
@@ -288,8 +296,9 @@
                                     LineHeight="17"
                                     TextWrapping="WrapWholeWords" />
                             </ScrollViewer>
-                        </StackPanel>
-                    </Border>
+                            </StackPanel>
+                        </Border>
+                    </ScrollViewer>
 
                 </Grid>
             </Border>

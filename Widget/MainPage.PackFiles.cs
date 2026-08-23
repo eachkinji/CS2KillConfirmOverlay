@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using KillConfirmGameBar.Services;
 using Windows.Storage;
 using Windows.Storage.Pickers;
+using Windows.Data.Json;
 using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -395,6 +396,18 @@ namespace KillConfirmGameBar
                     {
                         return await installed.GetFolderAsync(@"Assets\GameStyles\doubao\killconfirm\textures");
                     }
+                    if (string.Equals(key, "overwatch", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return await installed.GetFolderAsync(@"Assets\GameStyles\overwatch\killconfirm\textures");
+                    }
+                    if (string.Equals(key, "modernwarfare2019", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return await installed.GetFolderAsync(@"Assets\GameStyles\modernwarfare2019\killconfirm\textures");
+                    }
+                    if (string.Equals(key, "apex", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return await installed.GetFolderAsync(@"Assets\GameStyles\apex\killconfirm\textures");
+                    }
 
                     // Valorant
                     if (key.StartsWith("valorant_", StringComparison.OrdinalIgnoreCase))
@@ -416,6 +429,115 @@ namespace KillConfirmGameBar
                 return new Dictionary<string, StorageFile>(StringComparer.OrdinalIgnoreCase);
             }
             return await CollectRecognizedFilesAsync(folder, fileNames);
+        }
+
+        public static async Task<IReadOnlyDictionary<string, IReadOnlyList<StorageFile>>> CollectVoiceFileGroupsFromPackFolderAsync(
+            StorageFolder folder,
+            params string[] fileNames)
+        {
+            var result = new Dictionary<string, IReadOnlyList<StorageFile>>(StringComparer.OrdinalIgnoreCase);
+            if (folder == null) return result;
+
+            IReadOnlyList<StorageFile> allFiles;
+            try
+            {
+                allFiles = await folder.GetFilesAsync();
+            }
+            catch
+            {
+                return result;
+            }
+
+            string[] audioExtensions = { ".wav", ".mp3", ".m4a" };
+            foreach (string fileName in fileNames)
+            {
+                string targetStem = System.IO.Path.GetFileNameWithoutExtension(fileName);
+                List<StorageFile> matches = allFiles
+                    .Where(file => audioExtensions.Contains(file.FileType, StringComparer.OrdinalIgnoreCase))
+                    .Where(file =>
+                    {
+                        string stem = System.IO.Path.GetFileNameWithoutExtension(file.Name);
+                        return string.Equals(stem, targetStem, StringComparison.OrdinalIgnoreCase)
+                            || stem.StartsWith(targetStem + "__", StringComparison.OrdinalIgnoreCase);
+                    })
+                    .OrderBy(file => string.Equals(
+                        System.IO.Path.GetFileNameWithoutExtension(file.Name),
+                        targetStem,
+                        StringComparison.OrdinalIgnoreCase) ? 0 : 1)
+                    .ThenBy(file => file.Name, StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+                if (matches.Count > 0) result[fileName] = matches;
+            }
+            return result;
+        }
+
+        public static async Task<IReadOnlyDictionary<string, IReadOnlyList<StorageFile>>> CollectVoiceFileGroupsFromManifestAsync(
+            StorageFolder folder,
+            IReadOnlyDictionary<string, string> sourceStemToManifestSlot)
+        {
+            var result = new Dictionary<string, IReadOnlyList<StorageFile>>(StringComparer.OrdinalIgnoreCase);
+            if (folder == null || sourceStemToManifestSlot == null) return result;
+
+            string[] canonicalNames = sourceStemToManifestSlot.Keys
+                .Select(stem => stem + ".wav")
+                .ToArray();
+            IReadOnlyDictionary<string, IReadOnlyList<StorageFile>> discovered =
+                await CollectVoiceFileGroupsFromPackFolderAsync(folder, canonicalNames);
+            foreach (var pair in discovered) result[pair.Key] = pair.Value;
+
+            try
+            {
+                StorageFile manifestFile = await folder.GetFileAsync("manifest.json");
+                JsonObject manifest = JsonObject.Parse(await FileIO.ReadTextAsync(manifestFile));
+                JsonObject audio = manifest.GetNamedObject("audio", null);
+                JsonObject slots = audio?.GetNamedObject("slots", null);
+                if (slots == null) return result;
+
+                foreach (var mapping in sourceStemToManifestSlot)
+                {
+                    if (!slots.TryGetValue(mapping.Value, out IJsonValue slotValue)) continue;
+                    var manifestNames = new List<string>();
+                    if (slotValue.ValueType == JsonValueType.String)
+                    {
+                        manifestNames.Add(slotValue.GetString());
+                    }
+                    else if (slotValue.ValueType == JsonValueType.Array)
+                    {
+                        foreach (IJsonValue value in slotValue.GetArray())
+                        {
+                            if (value.ValueType == JsonValueType.String) manifestNames.Add(value.GetString());
+                        }
+                    }
+
+                    var files = new List<StorageFile>();
+                    foreach (string manifestName in manifestNames)
+                    {
+                        if (string.IsNullOrWhiteSpace(manifestName)) continue;
+                        try
+                        {
+                            StorageFile file = await folder.GetFileAsync(manifestName.Replace('/', '\\'));
+                            if (file != null) files.Add(file);
+                        }
+                        catch { }
+                    }
+                    if (files.Count > 0) result[mapping.Key + ".wav"] = files;
+                }
+            }
+            catch { }
+
+            return result;
+        }
+
+        private static IReadOnlyDictionary<string, IReadOnlyList<StorageFile>> ToVoiceFileGroups(
+            IReadOnlyDictionary<string, StorageFile> files)
+        {
+            var result = new Dictionary<string, IReadOnlyList<StorageFile>>(StringComparer.OrdinalIgnoreCase);
+            if (files == null) return result;
+            foreach (var pair in files)
+            {
+                if (pair.Value != null) result[pair.Key] = new[] { pair.Value };
+            }
+            return result;
         }
 
         private static async Task<IReadOnlyDictionary<string, StorageFile>> CollectRecognizedFilesFromFolderAsync(string folderPath, params string[] fileNames)

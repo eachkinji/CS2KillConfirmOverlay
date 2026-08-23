@@ -4,7 +4,7 @@
     "game_style":  "crossfire",
     "version":  "1.0",
     "audio":  {
-                  "base_gain":  1.5,
+                  "base_gain":  1.0,
                   "slots":  {
                                 "knife":  "knife.wav",
                                 "common_overlay":  "common.wav",
@@ -19,8 +19,6 @@
                                 "kill_8":  "8.wav",
                                 "kill_7":  "7.wav"
                             },
-                  "slot_gains":  {
-                                     "headshot":  1.8
-                                 }
+                  "slot_gains":  {}
               }
 }

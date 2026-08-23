@@ -17,7 +17,7 @@ namespace KillConfirmGameBar.Services
     {
         private const string CatalogFileName = "pack-catalog.json";
         private const string VisibilityDefaultsVersionKey = "PackCatalogVisibilityDefaultsVersion";
-        private const int CurrentVisibilityDefaultsVersion = 9;
+        private const int CurrentVisibilityDefaultsVersion = 11;
         private const string DefaultVoiceKey = "crossfire_swat_gr";
         private const string DefaultIconKey = "default";
         private static readonly string[] SupportedAudioExtensions = { ".wav", ".mp3", ".m4a" };

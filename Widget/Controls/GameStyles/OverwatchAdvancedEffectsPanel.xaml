@@ -1,0 +1,70 @@
+<UserControl
+    x:Class="KillConfirmGameBar.Controls.GameStyles.OverwatchAdvancedEffectsPanel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <StackPanel Spacing="12">
+        <StackPanel Spacing="3">
+            <TextBlock
+                x:Name="TitleText"
+                FontSize="16"
+                FontWeight="Bold"
+                Text="OverWatch Crosshair Effect" />
+        </StackPanel>
+
+        <Border x:Name="VisualEffectsCard" Padding="12" BorderThickness="1" CornerRadius="8">
+            <StackPanel Spacing="8">
+                <TextBlock
+                    x:Name="VisualEffectsTitle"
+                    FontSize="11"
+                    FontWeight="SemiBold"
+                    Text="显示哪些击杀提示" />
+                <Grid ColumnSpacing="18">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Spacing="2">
+                        <TextBlock
+                            x:Name="CrosshairEffectLabel"
+                            FontSize="10"
+                            Text="中央准心提示"
+                            TextWrapping="WrapWholeWords" />
+                        <ToggleSwitch
+                            x:Name="CrosshairEffectToggle"
+                            Toggled="OnVisualEffectToggled" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Spacing="2">
+                        <TextBlock
+                            x:Name="LowerEffectLabel"
+                            FontSize="10"
+                            Text="下方击杀卡片"
+                            TextWrapping="WrapWholeWords" />
+                        <ToggleSwitch
+                            x:Name="LowerEffectToggle"
+                            Toggled="OnVisualEffectToggled" />
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </Border>
+
+        <Border x:Name="CombatAudioCard" Padding="12" BorderThickness="1" CornerRadius="8">
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock
+                    x:Name="AssistAudioLabel"
+                    VerticalAlignment="Center"
+                    FontSize="11"
+                    Text="助攻语音" />
+                <ToggleSwitch
+                    x:Name="AssistAudioToggle"
+                    Grid.Column="1"
+                    MinWidth="0"
+                    Toggled="OnAssistAudioToggled" />
+            </Grid>
+        </Border>
+    </StackPanel>
+</UserControl>

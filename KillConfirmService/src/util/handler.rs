@@ -693,10 +693,26 @@ pub async fn update(
                     pending_last_kill.kill_count
                 );
 
-                let should_play_delayed_last_audio = !crossfire_mode_active
-                    || app_state
-                        .crossfire_last_kill_special_audio
-                        .load(Ordering::Relaxed);
+                let is_csol_preset = {
+                    let preset = app_state.preset.read().await;
+                    preset.preset_name.eq_ignore_ascii_case("csol4")
+                        || preset
+                            .manifest
+                            .as_ref()
+                            .and_then(|manifest| manifest.game_style.as_deref())
+                            .map(|style| style.eq_ignore_ascii_case("csol"))
+                            .unwrap_or(false)
+                };
+                let should_play_delayed_last_audio = if is_csol_preset {
+                    app_state
+                        .csol_last_kill_special_audio
+                        .load(Ordering::Relaxed)
+                } else {
+                    !crossfire_mode_active
+                        || app_state
+                            .crossfire_last_kill_special_audio
+                            .load(Ordering::Relaxed)
+                };
                 if should_play_delayed_last_audio {
                     let app_state_clone = app_state.clone();
                     let kill_count = pending_last_kill.kill_count;
@@ -1098,7 +1114,10 @@ fn sanitize_cs2_numeric_fields(value: &mut serde_json::Value) {
     };
     let mut fixes: Vec<String> = Vec::new();
 
-    if let Some(map) = root.get_mut("map").and_then(serde_json::Value::as_object_mut) {
+    if let Some(map) = root
+        .get_mut("map")
+        .and_then(serde_json::Value::as_object_mut)
+    {
         if let Some(round_wins) = map
             .get_mut("round_wins")
             .and_then(serde_json::Value::as_object_mut)
@@ -1117,7 +1136,10 @@ fn sanitize_cs2_numeric_fields(value: &mut serde_json::Value) {
             &mut fixes,
         );
         for team_key in ["team_ct", "team_t"] {
-            if let Some(team) = map.get_mut(team_key).and_then(serde_json::Value::as_object_mut) {
+            if let Some(team) = map
+                .get_mut(team_key)
+                .and_then(serde_json::Value::as_object_mut)
+            {
                 clamp_json_int_fields(
                     team,
                     &[
@@ -1134,7 +1156,10 @@ fn sanitize_cs2_numeric_fields(value: &mut serde_json::Value) {
         }
     }
 
-    if let Some(player) = root.get_mut("player").and_then(serde_json::Value::as_object_mut) {
+    if let Some(player) = root
+        .get_mut("player")
+        .and_then(serde_json::Value::as_object_mut)
+    {
         sanitize_cs2_player_fields(player, "player", &mut fixes);
     }
     if let Some(allplayers) = root
@@ -1375,10 +1400,10 @@ mod tests {
     use super::{
         CrossfireStreakMode, DelayedLastKillDecision, WeaponKillContext,
         can_read_observed_combat_events, classify_delayed_last_kill, has_observed_player_changed,
-        is_knife_weapon, is_local_observed_player, is_recent_final_kill,
-        normalize_cs2_map_mode, opponent_team_display_name, resolve_crossfire_streak_count,
-        resolve_observed_player_id, resolve_player_kill_delta, resolve_weapon_kill_context,
-        should_emit_player_kill, should_reset_stored_streak,
+        is_knife_weapon, is_local_observed_player, is_recent_final_kill, normalize_cs2_map_mode,
+        opponent_team_display_name, resolve_crossfire_streak_count, resolve_observed_player_id,
+        resolve_player_kill_delta, resolve_weapon_kill_context, should_emit_player_kill,
+        should_reset_stored_streak,
     };
     use gsi_cs2::round::BombState;
     use gsi_cs2::team::TeamClass;
@@ -1619,14 +1644,7 @@ mod tests {
             1
         );
         assert_eq!(
-            resolve_crossfire_streak_count(
-                4,
-                None,
-                CrossfireStreakMode::Loop,
-                5,
-                true,
-                1,
-            ),
+            resolve_crossfire_streak_count(4, None, CrossfireStreakMode::Loop, 5, true, 1,),
             1
         );
     }
@@ -1770,7 +1788,7 @@ fn infer_round_phase_from_kills(current_kills: u16) -> Option<TrackedRoundPhase>
 
 #[cfg(test)]
 mod gsi_sanitizer_tests {
-    use super::{parse_gsi_body, sanitize_cs2_numeric_fields, GsiGameVersion};
+    use super::{GsiGameVersion, parse_gsi_body, sanitize_cs2_numeric_fields};
 
     fn sample_payload() -> serde_json::Value {
         serde_json::json!({
@@ -1827,23 +1845,22 @@ mod gsi_sanitizer_tests {
         sanitize_cs2_numeric_fields(&mut value);
         let map = value.get("map").unwrap();
         assert_eq!(map.get("round"), Some(&serde_json::json!(255)));
-        assert_eq!(
-            map.pointer("/team_ct/score"),
-            Some(&serde_json::json!(255))
-        );
+        assert_eq!(map.pointer("/team_ct/score"), Some(&serde_json::json!(255)));
         // Round-win keys beyond u8 are dropped so the map key stays parseable.
-        assert!(map
-            .get("round_wins")
-            .unwrap()
-            .as_object()
-            .unwrap()
-            .contains_key("1"));
-        assert!(!map
-            .get("round_wins")
-            .unwrap()
-            .as_object()
-            .unwrap()
-            .contains_key("500"));
+        assert!(
+            map.get("round_wins")
+                .unwrap()
+                .as_object()
+                .unwrap()
+                .contains_key("1")
+        );
+        assert!(
+            !map.get("round_wins")
+                .unwrap()
+                .as_object()
+                .unwrap()
+                .contains_key("500")
+        );
         assert_eq!(
             value.pointer("/player/state/armor"),
             Some(&serde_json::json!(255))
@@ -1861,10 +1878,13 @@ mod gsi_sanitizer_tests {
         // expected u8" that made the service drop every GSI payload.
         let mut value = sample_payload();
         value["auth"] = serde_json::json!({ "token": "killconfirm" });
-        let body =
-            serde_json::to_vec(&value).expect("serialize sample payload");
+        let body = serde_json::to_vec(&value).expect("serialize sample payload");
         let parsed = parse_gsi_body(&body, GsiGameVersion::Cs2);
-        assert!(parsed.is_ok(), "expected payload to parse: {:?}", parsed.err());
+        assert!(
+            parsed.is_ok(),
+            "expected payload to parse: {:?}",
+            parsed.err()
+        );
         let parsed = parsed.unwrap();
         assert_eq!(parsed.player.unwrap().state.unwrap().armor, 255);
     }

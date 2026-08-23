@@ -118,6 +118,10 @@
     <Compile Include="MainPage.PackCreation.DagoujiaoVoice.cs" />
     <Compile Include="MainPage.PackCreation.DagoujiaoIcon.cs" />
     <Compile Include="MainPage.PackCreation.DoubaoVoice.cs" />
+    <Compile Include="MainPage.PackCreation.EventVoice.cs" />
+    <Compile Include="MainPage.PackCreation.ValorantVoice.cs" />
+    <Compile Include="MainPage.PackCreation.OverwatchVoice.cs" />
+    <Compile Include="MainPage.PackCreation.ModernWarfare2019Voice.cs" />
     <Compile Include="MainPage.PackCreation.DoubaoIcon.cs" />
     <Compile Include="MainPage.PackCreation.DialogUi.cs" />
     <Compile Include="MainPage.MaterialPicker.cs" />
@@ -152,7 +156,6 @@
     <Compile Include="KillConfirmWidgetPage.DagoujiaoSettings.cs" />
     <Compile Include="KillConfirmWidgetPage.DoubaoSettings.cs" />
     <Compile Include="KillConfirmWidgetPage.SharedStreakSettings.cs" />
-    <Compile Include="KillConfirmWidgetPage.EventSoundSettings.cs" />
     <Compile Include="KillConfirmWidgetPage.AutoCloseGameExit.cs" />
     <Compile Include="KillConfirmWidgetPage.Status.cs" />
     <Compile Include="KillConfirmWidgetPage.VisualSettings.cs" />
@@ -175,14 +178,14 @@
     <Compile Include="Controls\KillConfirmAnimation.Pubg.cs" />
     <Compile Include="Controls\KillConfirmAnimation.DeltaForce.cs" />
     <Compile Include="Controls\KillConfirmAnimation.Doubao.cs" />
+    <Compile Include="Controls\KillConfirmAnimation.Overwatch.cs" />
+    <Compile Include="Controls\KillConfirmAnimation.ModernWarfare2019.cs" />
+    <Compile Include="Controls\KillConfirmAnimation.Apex.cs" />
     <Compile Include="Controls\KillConfirmAnimation.Dagoujiao.cs" />
     <Compile Include="Controls\KillConfirmAnimation.ValorantDemo.cs" />
     <Compile Include="Controls\KillConfirmAnimation.Valorant.cs" />
     <Compile Include="Controls\KillConfirmAnimation.Valorant.Motion.cs" />
     <Compile Include="Controls\GameStyles\AdvancedEffectsPanelSupport.cs" />
-    <Compile Include="Controls\GameStyles\EventSoundRoutingPanel.xaml.cs">
-      <DependentUpon>EventSoundRoutingPanel.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Controls\GameStyles\StreakWindowEditor.xaml.cs">
       <DependentUpon>StreakWindowEditor.xaml</DependentUpon>
     </Compile>
@@ -240,6 +243,15 @@
     <Compile Include="Controls\GameStyles\ValorantAdvancedEffectsPanel.xaml.cs">
       <DependentUpon>ValorantAdvancedEffectsPanel.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\GameStyles\OverwatchAdvancedEffectsPanel.xaml.cs">
+      <DependentUpon>OverwatchAdvancedEffectsPanel.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\GameStyles\ModernWarfare2019AdvancedEffectsPanel.xaml.cs">
+      <DependentUpon>ModernWarfare2019AdvancedEffectsPanel.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\GameStyles\ApexAdvancedEffectsPanel.xaml.cs">
+      <DependentUpon>ApexAdvancedEffectsPanel.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\GameStyles\ValorantStylePanel.xaml.cs">
       <DependentUpon>ValorantStylePanel.xaml</DependentUpon>
     </Compile>
@@ -249,6 +261,9 @@
     <Compile Include="Controls\Settings\AdvancedSettingsHub.xaml.cs">
       <DependentUpon>AdvancedSettingsHub.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\Settings\CreditsCommunityPanel.xaml.cs">
+      <DependentUpon>CreditsCommunityPanel.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\Settings\GeneralSettingsOptionsPanel.xaml.cs">
       <DependentUpon>GeneralSettingsOptionsPanel.xaml</DependentUpon>
     </Compile>
@@ -256,9 +271,6 @@
       <DependentUpon>AdvancedSystemOptionsPanel.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\Settings\AdvancedSystemOptionsPanel.ProcessPriority.cs" />
-    <Compile Include="Controls\Settings\DisplayScalingSettingsPanel.xaml.cs">
-      <DependentUpon>DisplayScalingSettingsPanel.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Controls\Settings\SettingsPanelSupport.cs" />
     <Compile Include="Controls\Settings\SharedStreakSettingsPanelSupport.cs" />
     <Compile Include="Controls\Settings\Battlefield1AdvancedSettingsPanel.xaml.cs">
@@ -295,19 +307,20 @@
     <Compile Include="Services\PortSettingsStore.cs" />
     <Compile Include="Services\ServiceLauncher.cs" />
     <Compile Include="Services\AssistAudioSettingsStore.cs" />
-    <Compile Include="Services\CombatEventSoundSettingsStore.cs" />
+    <Compile Include="Services\ValorantPackSyncSettingsStore.cs" />
     <Compile Include="Services\CrossfireGameplaySettingsStore.cs" />
     <Compile Include="Services\CsolVoiceSettingsStore.cs" />
     <Compile Include="Services\DagoujiaoSettingsStore.cs" />
     <Compile Include="Services\BombAudioSettingsStore.cs" />
     <Compile Include="Services\ProcessPrioritySettingsStore.cs" />
     <Compile Include="Services\SharedStreakSettingsStore.cs" />
+    <Compile Include="Services\KillFeedbackVisibilitySettingsStore.cs" />
     <Compile Include="Services\DeveloperModeSettingsStore.cs" />
     <Compile Include="Services\GsiGameVersionSettingsStore.cs" />
+    <Compile Include="Services\StreakGainSettingsStore.cs" />
     <Compile Include="Services\CloseBehaviorSettingsStore.cs" />
     <Compile Include="Services\AutoCloseOnGameExitSettingsStore.cs" />
     <Compile Include="Services\InterruptPreviousKillAudioSettingsStore.cs" />
-    <Compile Include="Services\ControlPanelScaleSettingsStore.cs" />
     <Compile Include="Services\GameStyleService.cs" />
     <Compile Include="Services\GameThemePalette.cs" />
     <Compile Include="Services\ValorantPackService.cs" />
@@ -317,6 +330,8 @@
     <Compile Include="Services\PackCatalogService.Icon.cs" />
     <Compile Include="Services\PackCatalogService.Storage.cs" />
     <Compile Include="Services\PackCatalogService.Voice.cs" />
+    <Compile Include="Services\PackCatalogService.Overwatch.cs" />
+    <Compile Include="Services\PackCatalogService.ModernWarfare2019.cs" />
     <Compile Include="Services\DoubaoSettingsStore.cs" />
     <Compile Include="Helpers\ProcessPriorityBoost.cs" />
     <Compile Include="Helpers\TgaDecoder.cs" />
@@ -344,6 +359,7 @@
     <Content Include="Assets\StoreLogo.png" />
     <Content Include="Assets\Wide310x150Logo.scale-200.png" />
     <Content Include="Assets\DeveloperAvatar.jpg" />
+    <Content Include="Assets\Credits\*" />
     <Content Include="Assets\GitHub.svg" />
     <Content Include="Assets\bilibili.svg" />
     <Content Include="Assets\GitHub.png" />
@@ -391,10 +407,6 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Controls\GameStyles\StreakWindowEditor.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Controls\GameStyles\EventSoundRoutingPanel.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -470,6 +482,18 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="Controls\GameStyles\OverwatchAdvancedEffectsPanel.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\GameStyles\ModernWarfare2019AdvancedEffectsPanel.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\GameStyles\ApexAdvancedEffectsPanel.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Controls\GameStyles\ValorantStylePanel.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -506,15 +530,15 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="Controls\Settings\CreditsCommunityPanel.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Controls\Settings\GeneralSettingsOptionsPanel.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Controls\Settings\AdvancedSystemOptionsPanel.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Controls\Settings\DisplayScalingSettingsPanel.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

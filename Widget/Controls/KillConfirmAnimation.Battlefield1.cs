@@ -336,7 +336,8 @@ namespace KillConfirmGameBar.Controls
                 y,
                 scale,
                 Color.FromArgb(textAlpha, 255, 255, 255),
-                textFormat);
+                textFormat,
+                true);
         }
 
         private void DrawBattlefield1BonusList(CanvasDrawingSession drawingSession, CanvasTextFormat textFormat, double currentTimeMs, double centerX, double baseY)
@@ -385,7 +386,8 @@ namespace KillConfirmGameBar.Controls
                         y,
                         scale * 1.04,
                         Color.FromArgb(flashAlpha, 255, 255, 255),
-                        textFormat);
+                        textFormat,
+                        true);
                 }
 
                 DrawBattlefieldTextCentered(
@@ -395,7 +397,8 @@ namespace KillConfirmGameBar.Controls
                     y,
                     scale,
                     Color.FromArgb(textAlpha, 255, 255, 255),
-                    textFormat);
+                    textFormat,
+                    true);
             }
         }
 
@@ -484,7 +487,7 @@ namespace KillConfirmGameBar.Controls
                     byte textAlpha = (byte)Math.Max(5, Math.Min(255, Math.Round(alpha * 255)));
                     Color white = Color.FromArgb(textAlpha, 255, 255, 255);
                     double textLeft = -contentWidth / 2.0;
-                    DrawBattlefieldText(drawingSession, label, textLeft, -9, labelScale, white, textFormat);
+                    DrawBattlefieldText(drawingSession, label, textLeft, -9, labelScale, white, textFormat, true);
                     if (!string.IsNullOrEmpty(rewardText))
                     {
                         DrawBattlefieldText(
@@ -494,7 +497,8 @@ namespace KillConfirmGameBar.Controls
                             -12,
                             rewardScale,
                             white,
-                            textFormat);
+                            textFormat,
+                            true);
                     }
                 }
             }
@@ -648,10 +652,10 @@ namespace KillConfirmGameBar.Controls
                         contentAlpha);
 
                     byte textAlpha = (byte)Math.Max(0, Math.Min(255, Math.Round(contentAlpha * 255)));
-                    DrawBattlefieldText(drawingSession, weaponName, layout.WeaponX, layout.WeaponY, Battlefield1WeaponScale, Color.FromArgb(textAlpha, 255, 255, 255), textFormat);
-                    DrawBattlefieldText(drawingSession, victimName, layout.VictimX, layout.VictimY, Battlefield1VictimScale, Color.FromArgb(textAlpha, 255, 0, 0), textFormat);
+                    DrawBattlefieldText(drawingSession, weaponName, layout.WeaponX, layout.WeaponY, Battlefield1WeaponScale, Color.FromArgb(textAlpha, 255, 255, 255), textFormat, true);
+                    DrawBattlefieldText(drawingSession, victimName, layout.VictimX, layout.VictimY, Battlefield1VictimScale, Color.FromArgb(textAlpha, 255, 0, 0), textFormat, true);
 
-                    DrawBattlefieldText(drawingSession, healthText, layout.HealthX, layout.HealthY, Battlefield1HealthScale, Color.FromArgb(textAlpha, 255, 255, 255), textFormat);
+                    DrawBattlefieldText(drawingSession, healthText, layout.HealthX, layout.HealthY, Battlefield1HealthScale, Color.FromArgb(textAlpha, 255, 255, 255), textFormat, true);
                 }
                 finally
                 {

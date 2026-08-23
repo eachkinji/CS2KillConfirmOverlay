@@ -21,7 +21,13 @@ namespace KillConfirmGameBar
         {
             "1.wav", "2.wav", "3.wav", "4.wav", "5.wav",
             "6.wav", "7.wav", "8.wav", "9.wav", "10.wav",
-            "headshot.wav", "knife.wav", "first.wav", "last.wav", "assist.wav"
+            "headshot.wav", "knife.wav", "revenge.wav", "assist.wav"
+        };
+
+        private static readonly string[] ValorantVoicePackImportFiles =
+        {
+            "1.wav", "2.wav", "3.wav", "4.wav", "5.wav",
+            "headshot.wav"
         };
 
         private static readonly string[] DagoujiaoVoicePackImportFiles =
@@ -39,6 +45,16 @@ namespace KillConfirmGameBar
             "3kill.wav",
             "4kill.wav",
             "5kill.wav"
+        };
+
+        // Superset used only to locate candidate files during ZIP import. The
+        // editor filters this list through the selected game's own slot schema.
+        private static readonly string[] EventVoicePackImportFiles =
+        {
+            "normal.wav",
+            "headshot.wav",
+            "knife.wav",
+            "assist.wav"
         };
 
         private static readonly string[] IconPackImportFiles =
@@ -84,9 +100,9 @@ namespace KillConfirmGameBar
 
         private static readonly string[] CsolIconPackImportFiles =
         {
-            "badge_headshot.png", "badge_knife.png", "badge_firstkill.png", "badge_lastkill.png",
-            "multi2.png", "multi3.png", "multi4.png", "multi5.png", "multi6.png",
-            "multi7.png", "multi8.png", "multi9.png", "multi10.png"
+            "1kill.png", "2kill.png", "3kill.png", "4kill.png", "5kill.png",
+            "6kill.png", "7kill.png", "8kill.png", "9kill.png", "10kill.png",
+            "headshot_kill.png", "melee_kill.png", "revenge.png", "firstkill.png", "assist.png"
         };
 
         private static readonly string[] DagoujiaoIconPackImportFiles =

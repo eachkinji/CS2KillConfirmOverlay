@@ -1,0 +1,11 @@
+{
+  "id": "dagoujiao",
+  "name": "dagoujiao",
+  "game_style": "dagoujiao",
+  "version": "1.0",
+  "audio": {
+    "base_gain": 1.0,
+    "slots": {"common":"common.wav","headshot":"headshot.wav","epic":"epic.wav","jiaojiaojiao":"jiaojiaojiao.wav"},
+    "overlay_slots": []
+  }
+}

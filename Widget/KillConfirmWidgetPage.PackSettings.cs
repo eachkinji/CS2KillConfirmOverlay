@@ -49,10 +49,9 @@ namespace KillConfirmGameBar
 
             string iconPack = GetSelectedIconPack();
             SavePackSettingForStyle(IconPackSettingKey, GameStyleService.Current, iconPack);
-            if (TrySyncValorantVoicePackForIconSelection(iconPack)
-                || TrySyncBattlefieldVoicePackForIconSelection(iconPack))
+            if (TrySyncValorantVoicePackForIconSelection(iconPack))
             {
-                _ = SyncSelectedVoicePackAsync();
+                _ = SyncValorantVoicePackAfterIconSelectionAsync();
             }
 
             ConfigureAnimationIconPack(iconPack);
@@ -67,6 +66,19 @@ namespace KillConfirmGameBar
             if (_isPageActive)
             {
                 _ = WarmStartupAnimationCacheAsync(0);
+            }
+        }
+
+        private async Task SyncValorantVoicePackAfterIconSelectionAsync()
+        {
+            try
+            {
+                await EnsureServiceAvailableAsync();
+                await SyncSelectedVoicePackAsync();
+            }
+            catch (Exception ex)
+            {
+                App.Log("Valorant icon-to-voice pack sync failed: " + ex);
             }
         }
 
@@ -154,6 +166,8 @@ namespace KillConfirmGameBar
             {
                 PrimaryKillAnimation?.ReleaseAnimationResourcesForPackChange();
                 BadgeKillAnimation?.ReleaseAnimationResourcesForPackChange();
+                OverwatchCardAnimation?.ReleaseAnimationResourcesForPackChange();
+                ModernWarfare2019UpperAnimation?.ReleaseAnimationResourcesForPackChange();
             }
 
             Controls.KillConfirmAnimation.ConfigureIconPack(iconPack);

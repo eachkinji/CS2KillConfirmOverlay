@@ -103,7 +103,7 @@
                     <TextBlock
                         x:Name="GsiGameVersionLabelText"
                         Style="{StaticResource FluentCardTitle}"
-                        Text="GSI 游戏版本" />
+                        Text="Counter-Strike 版本" />
                     <TextBlock
                         x:Name="GsiGameVersionHintText"
                         Style="{StaticResource FluentCardHint}"
@@ -185,11 +185,11 @@
                         <TextBlock
                             x:Name="ProcessPriorityTitleText"
                             Style="{StaticResource FluentCardTitle}"
-                            Text="Xbox Game Bar 进程优先级管理" />
+                            Text="程序运行优先级" />
                         <TextBlock
                             x:Name="ProcessPriorityHintText"
                             Style="{StaticResource FluentCardHint}"
-                            Text="读取并优化覆盖层三个关键进程的 Windows 调度优先级" />
+                            Text="调整悬浮窗相关程序的运行优先级。大多数情况下保持“正常”即可。" />
                     </StackPanel>
 
                     <Button
@@ -303,11 +303,11 @@
                                     FontSize="12"
                                     FontWeight="SemiBold"
                                     Foreground="{StaticResource FluentTitleText}"
-                                    Text="软件启动时自动恢复并保持上述优先级" />
+                                    Text="每次启动时自动应用所选优先级" />
                                 <TextBlock
                                     x:Name="ProcessPriorityPersistenceHintText"
                                     Style="{StaticResource FluentCardHint}"
-                                    Text="启用后，每次伴随服务启动均会自动校验并重新应用设定好的进程优先级" />
+                                    Text="启用后，每次启动都会自动应用所选优先级" />
                             </StackPanel>
 
                             <ToggleSwitch

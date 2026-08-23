@@ -209,6 +209,118 @@
             </Grid>
         </Border>
 
+        <!-- Global streak audio gain -->
+        <Border Style="{StaticResource FluentCardStyle}">
+            <StackPanel Spacing="10">
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <Border Style="{StaticResource FluentIconStyle}">
+                        <FontIcon
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            FontFamily="Segoe MDL2 Assets"
+                            FontSize="14"
+                            Foreground="{StaticResource FluentBodyText}"
+                            Glyph="&#xE9D9;" />
+                    </Border>
+
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                        <TextBlock
+                            x:Name="StreakGainLabelText"
+                            Style="{StaticResource FluentCardTitle}"
+                            Text="连杀音量递增" />
+                        <TextBlock
+                            x:Name="StreakGainHintText"
+                            Style="{StaticResource FluentCardHint}"
+                            Text="对所有游戏和语音包生效，连杀越多音量越高" />
+                    </StackPanel>
+
+                    <ToggleSwitch
+                        x:Name="StreakGainToggle"
+                        Grid.Column="2"
+                        VerticalAlignment="Center"
+                        MinWidth="0"
+                        OffContent="关"
+                        OnContent="开"
+                        Toggled="OnStreakGainToggled" />
+                </Grid>
+
+                <Border
+                    Background="{StaticResource FluentCardSubBackground}"
+                    BorderBrush="{StaticResource FluentDivider}"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    Padding="14,12">
+                    <Grid ColumnSpacing="18">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Spacing="3">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock
+                                    x:Name="StreakGainStepLabelText"
+                                    FontSize="11"
+                                    Foreground="{StaticResource FluentTitleText}"
+                                    Text="每次击杀增加" />
+                                <TextBlock
+                                    x:Name="StreakGainStepValueText"
+                                    Grid.Column="1"
+                                    FontSize="11"
+                                    FontWeight="SemiBold"
+                                    Foreground="{StaticResource FluentAccent}"
+                                    Text="7%" />
+                            </Grid>
+                            <Slider
+                                x:Name="StreakGainStepSlider"
+                                Minimum="0"
+                                Maximum="100"
+                                StepFrequency="1"
+                                ValueChanged="OnStreakGainValueChanged" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1" Spacing="3">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock
+                                    x:Name="StreakGainMaximumLabelText"
+                                    FontSize="11"
+                                    Foreground="{StaticResource FluentTitleText}"
+                                    Text="最高音量" />
+                                <TextBlock
+                                    x:Name="StreakGainMaximumValueText"
+                                    Grid.Column="1"
+                                    FontSize="11"
+                                    FontWeight="SemiBold"
+                                    Foreground="{StaticResource FluentAccent}"
+                                    Text="150%" />
+                            </Grid>
+                            <Slider
+                                x:Name="StreakGainMaximumSlider"
+                                Grid.Column="1"
+                                Minimum="100"
+                                Maximum="400"
+                                StepFrequency="5"
+                                ValueChanged="OnStreakGainValueChanged" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </StackPanel>
+        </Border>
+
         <!-- 6. Bomb Audio Settings Card (Expander Structure) -->
         <Border Style="{StaticResource FluentCardStyle}">
             <StackPanel Spacing="10">

@@ -1,0 +1,11 @@
+{
+  "id": "bf4",
+  "name": "bf4",
+  "game_style": "battlefield4",
+  "version": "1.0",
+  "audio": {
+    "base_gain": 1.0,
+    "slots": {"kill_1":"score.wav"},
+    "overlay_slots": []
+  }
+}

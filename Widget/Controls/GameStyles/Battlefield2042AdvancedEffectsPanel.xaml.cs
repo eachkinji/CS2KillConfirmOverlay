@@ -7,10 +7,12 @@ namespace KillConfirmGameBar.Controls.GameStyles
 {
     public sealed partial class Battlefield2042AdvancedEffectsPanel : UserControl
     {
+        private bool _suppressKillMarkChanges;
+
         public Battlefield2042AdvancedEffectsPanel()
         {
             InitializeComponent();
-            EventSoundPanel.Configure(GameStyleMode.Battlefield2042);
+            RefreshKillMarkSetting();
         }
 
         public event SelectionChangedEventHandler MoneyRewardModeSelectionChanged;
@@ -28,8 +30,8 @@ namespace KillConfirmGameBar.Controls.GameStyles
             AdvancedEffectsPanelSupport.ApplyResetButton(ResetButton, theme);
             AdvancedEffectsPanelSupport.ApplyMoneyRow(MoneyRewardModeLabel, MoneyRewardModeSelector, theme);
             StreakEditor.ApplyTheme(theme);
-            EventSoundPanel.ApplyTheme(theme);
             AdvancedEffectsPanelSupport.ApplyNotice(ImportLockedNotice, ImportLockedText, theme);
+            AdvancedEffectsPanelSupport.ApplyKillMarkCard(VisualEffectsCard, VisualEffectsTitle, KillMarkEffectLabel, KillMarkEffectToggle, theme);
             StylePanel.ApplyTheme(theme);
         }
 
@@ -42,13 +44,13 @@ namespace KillConfirmGameBar.Controls.GameStyles
                 ? "Battlefield 2042 击杀展示、钱瀑布和 2042 声音包在这里单独设置。"
                 : "Battlefield 2042 kill display, money waterfall, and 2042 sound pack are isolated here.";
             ImportLockedText.Text = isChinese
-                ? "Battlefield 2042 视觉资源保持内置，事件声音可在上方单独自定义。"
-                : "Battlefield 2042 visuals stay built in; event sounds can be customized above.";
+                ? "Battlefield 2042 视觉资源保持内置，事件声音可在语音标签页中自定义。"
+                : "Battlefield 2042 visuals stay built in; event sounds can be customized in the Voice tab.";
             MoneyRewardModeLabel.Text = isChinese ? "奖励算法" : "Money";
-            MoneyRewardDeltaItem.Content = isChinese ? "GSI 差值（默认）" : "GSI delta (default)";
+            MoneyRewardDeltaItem.Content = isChinese ? "按实际金钱变化（推荐）" : "Actual money change (recommended)";
             MoneyRewardRulesItem.Content = isChinese ? "击杀奖励规则" : "Kill reward rules";
             StreakEditor.ApplyLanguage(isChinese);
-            EventSoundPanel.ApplyLanguage(isChinese);
+            AdvancedEffectsPanelSupport.ApplyKillMarkLanguage(VisualEffectsTitle, KillMarkEffectLabel, KillMarkEffectToggle, isChinese);
             StylePanel.ApplyLanguage(isChinese);
         }
 
@@ -72,11 +74,6 @@ namespace KillConfirmGameBar.Controls.GameStyles
             StreakEditor.SelectValue(value);
         }
 
-        public void ReloadEventSoundSettings()
-        {
-            EventSoundPanel.Reload();
-        }
-
         private void OnMoneyRewardModeSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             MoneyRewardModeSelectionChanged?.Invoke(this, e);
@@ -87,13 +84,36 @@ namespace KillConfirmGameBar.Controls.GameStyles
             StreakModeSelectionChanged?.Invoke(this, e);
         }
 
-        private async void OnResetButtonClick(object sender, RoutedEventArgs e)
+        private void OnResetButtonClick(object sender, RoutedEventArgs e)
         {
             SelectTaggedComboBoxItem(MoneyRewardModeSelector, "delta", "delta");
             StreakEditor.SelectValue(SharedStreakSettingsStore.LifeMode);
+            SetKillMarkEnabled(true);
             MoneyRewardModeSelectionChanged?.Invoke(MoneyRewardModeSelector, null);
             StreakModeSelectionChanged?.Invoke(StreakEditor.SelectorControl, null);
-            await EventSoundPanel.ResetToDefaultsAsync();
+        }
+
+        private void RefreshKillMarkSetting()
+        {
+            SetKillMarkEnabled(KillFeedbackVisibilitySettingsStore.Load(GameStyleMode.Battlefield2042).CrosshairEnabled, false);
+        }
+
+        private void SetKillMarkEnabled(bool enabled, bool save = true)
+        {
+            _suppressKillMarkChanges = true;
+            KillMarkEffectToggle.IsOn = enabled;
+            _suppressKillMarkChanges = false;
+            if (save) SaveKillMarkSetting();
+        }
+
+        private void OnKillMarkEffectToggled(object sender, RoutedEventArgs e)
+        {
+            if (!_suppressKillMarkChanges) SaveKillMarkSetting();
+        }
+
+        private void SaveKillMarkSetting()
+        {
+            KillFeedbackVisibilitySettingsStore.Save(GameStyleMode.Battlefield2042, new KillFeedbackVisibilitySettingsValues { CrosshairEnabled = KillMarkEffectToggle.IsOn });
         }
 
         private static string ReadTaggedComboBoxItem(ComboBox selector, string fallback)

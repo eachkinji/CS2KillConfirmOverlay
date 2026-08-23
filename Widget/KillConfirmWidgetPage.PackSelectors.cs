@@ -59,6 +59,11 @@ namespace KillConfirmGameBar
                 LoadWeaponBadgeSetting();
                 LoadMainAnimationStyleSetting();
                 LoadVoicePackSetting();
+                if (GameStyleService.Current == GameStyleMode.Valorant
+                    && ValorantPackSyncSettingsStore.Load())
+                {
+                    TrySyncValorantIconPackForVoiceSelection(GetSelectedVoicePackPreset());
+                }
                 ApplyGameStyleUi();
                 _packSelectorsInitialized = true;
                 if (_isPageActive)
@@ -87,7 +92,24 @@ namespace KillConfirmGameBar
 
             if (_isPageActive)
             {
-                await EnsureServiceAvailableAsync();
+                try
+                {
+                    await EnsureServiceAvailableAsync();
+                }
+                catch (Exception ex)
+                {
+                    App.LogCrash("Initialize companion service failed: " + ex);
+                }
+                finally
+                {
+                    if (_isPageActive && !_shutdownRequested)
+                    {
+                        // Do not attach the event stream until the icon pack and the
+                        // initial companion launch attempt have both completed. If
+                        // launch failed, the stream's recovery path can retry it.
+                        StartKillEventClient();
+                    }
+                }
             }
         }
 
@@ -390,8 +412,48 @@ namespace KillConfirmGameBar
                     return "ms-appx:///Assets/GameLogos/doubao.png";
                 case "dagoujiao":
                     return "ms-appx:///Assets/GameLogos/dagoujiao.jpg";
+                case "dagoujiao_animals":
+                    return "ms-appx:///Assets/GameStyles/dagoujiao/iconpacks/dagoujiao_animals/animals.jpg";
+                case "overwatch":
+                    return "ms-appx:///Assets/GameStyles/overwatch/killconfirm/textures/preview.png";
+                case "modernwarfare2019":
+                    return "ms-appx:///Assets/GameLogos/modernwarfare2019.png";
+                case "apex":
+                    return "ms-appx:///Assets/GameLogos/apex.png";
                 case "csol4":
                     return "ms-appx:///Assets/KillConfirmCode/Csol4/headshot_kill.png";
+                default:
+                    break;
+            }
+
+            switch (GameStyleService.GetStyleForPackKey(key))
+            {
+                case GameStyleMode.Csol:
+                    return "ms-appx:///Assets/KillConfirmCode/Csol4/headshot_kill.png";
+                case GameStyleMode.Valorant:
+                    return GetValorantPackIconUri(ValorantPackService.DefaultKey);
+                case GameStyleMode.Battlefield1:
+                    return "ms-appx:///Assets/GameStyles/battlefield1/killconfirm/textures/killicon_battlefield1_default.png";
+                case GameStyleMode.Battlefield5:
+                    return "ms-appx:///Assets/GameStyles/battlefield5/killconfirm/textures/killicon_battlefield5_default.png";
+                case GameStyleMode.Battlefield4:
+                    return "ms-appx:///Assets/GameStyles/battlefield4/killconfirm/textures/killicon_battlefield1_default.png";
+                case GameStyleMode.Battlefield2042:
+                    return "ms-appx:///Assets/GameStyles/battlefield2042/killconfirm/textures/NormalSkull.png";
+                case GameStyleMode.Pubg:
+                    return "ms-appx:///Assets/GameStyles/pubg/killconfirm/textures/killicon_scrolling_default.png";
+                case GameStyleMode.DeltaForce:
+                    return "ms-appx:///Assets/GameStyles/deltaforce/killconfirm/textures/killicon_df_default.png";
+                case GameStyleMode.Doubao:
+                    return "ms-appx:///Assets/GameLogos/doubao.png";
+                case GameStyleMode.Dagoujiao:
+                    return "ms-appx:///Assets/GameLogos/dagoujiao.jpg";
+                case GameStyleMode.Overwatch:
+                    return "ms-appx:///Assets/GameStyles/overwatch/killconfirm/textures/preview.png";
+                case GameStyleMode.ModernWarfare2019:
+                    return "ms-appx:///Assets/GameLogos/modernwarfare2019.png";
+                case GameStyleMode.Apex:
+                    return "ms-appx:///Assets/GameLogos/apex.png";
                 default:
                     return "ms-appx:///Assets/KillConfirmCode/Original/badge_headshot.PNG";
             }
@@ -436,6 +498,14 @@ namespace KillConfirmGameBar
                     return "ms-appx:///Assets/GameLogos/doubao.png";
                 case "dagoujiao":
                     return "ms-appx:///Assets/GameLogos/dagoujiao.jpg";
+                case "dagoujiao_animals":
+                    return "ms-appx:///Assets/GameStyles/dagoujiao/iconpacks/dagoujiao_animals/animals.jpg";
+                case "overwatch":
+                    return "ms-appx:///Assets/GameStyles/overwatch/killconfirm/textures/preview.png";
+                case "modernwarfare2019":
+                    return "ms-appx:///Assets/GameLogos/modernwarfare2019.png";
+                case "apex":
+                    return "ms-appx:///Assets/GameLogos/apex.png";
                 case "csol4":
                     return "ms-appx:///Assets/KillConfirmCode/Csol4/headshot_kill.png";
                 case "default":
@@ -464,6 +534,8 @@ namespace KillConfirmGameBar
                     return "豆包";
                 case "dagoujiao":
                     return "大狗叫";
+                case "overwatch":
+                    return "OverWatch";
                 case "crossfire_swat_gr":
                     return "swat GR";
                 case "csol4":
@@ -495,6 +567,8 @@ namespace KillConfirmGameBar
                     return "豆包";
                 case "dagoujiao":
                     return "大狗叫";
+                case "overwatch":
+                    return "OverWatch";
                 case "default":
                     return "原版";
                 case "csol4":
@@ -509,6 +583,14 @@ namespace KillConfirmGameBar
         private static string GetValorantPackIconUri(string key)
         {
             string folder = ValorantPackService.GetFolder(key) ?? "00009_prime";
+            string emblem = ValorantPackService.GetEmblemFile(key);
+            if (!string.IsNullOrWhiteSpace(emblem))
+            {
+                return $"ms-appx:///Assets/GameStyles/valorant/killconfirm/{folder}/textures/{emblem}";
+            }
+
+            // Fallback for custom Valorant packs (custom_valorant_voice_*) which have no
+            // declared emblem: use the pack's headshot texture, then the default pack's.
             return $"ms-appx:///Assets/GameStyles/valorant/killconfirm/{folder}/textures/killicon_valorant_headshot.png";
         }
     }

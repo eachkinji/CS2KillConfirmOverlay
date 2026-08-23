@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using KillConfirmGameBar.Controls.GameStyles;
 using KillConfirmGameBar.Services;
 using Windows.Data.Json;
 using Windows.Storage.Streams;
@@ -57,6 +58,41 @@ namespace KillConfirmGameBar
             }
         }
 
+        private async void OnGameAssistAudioToggled(object sender, RoutedEventArgs e)
+        {
+            if (_suppressSharedStreakModeEvents)
+            {
+                return;
+            }
+
+            GameStyleMode style;
+            bool enabled;
+            if (sender is OverwatchAdvancedEffectsPanel overwatchPanel)
+            {
+                style = GameStyleMode.Overwatch;
+                enabled = overwatchPanel.GetAssistAudioEnabled(false);
+            }
+            else if (sender is ModernWarfare2019AdvancedEffectsPanel modernWarfarePanel)
+            {
+                style = GameStyleMode.ModernWarfare2019;
+                enabled = modernWarfarePanel.GetAssistAudioEnabled(false);
+            }
+            else
+            {
+                return;
+            }
+
+            AssistAudioSettingsStore.Save(style, enabled);
+            try
+            {
+                await EnsureServiceAvailableAsync();
+            }
+            catch (Exception ex)
+            {
+                App.Log("Set assist audio failed for " + style + ": " + ex);
+            }
+        }
+
         private void LoadSharedStreakMode(GameStyleMode style)
         {
             if (!SharedStreakSettingsStore.IsSupported(style))
@@ -91,6 +127,10 @@ namespace KillConfirmGameBar
                     return _battlefield2042AdvancedEffectsPanel?.GetSelectedStreakMode(fallback) ?? fallback;
                 case GameStyleMode.Pubg:
                     return _pubgAdvancedEffectsPanel?.GetSelectedStreakMode(fallback) ?? fallback;
+                case GameStyleMode.Apex:
+                    return _apexAdvancedEffectsPanel?.GetSelectedStreakMode(fallback) ?? fallback;
+                case GameStyleMode.ModernWarfare2019:
+                    return _modernWarfare2019AdvancedEffectsPanel?.GetSelectedStreakMode(fallback) ?? fallback;
                 case GameStyleMode.DeltaForce:
                     return _deltaForceAdvancedEffectsPanel?.GetSelectedStreakMode(fallback) ?? fallback;
                 case GameStyleMode.Doubao:
@@ -126,6 +166,12 @@ namespace KillConfirmGameBar
                 case GameStyleMode.Pubg:
                     _pubgAdvancedEffectsPanel?.SelectStreakMode(value);
                     break;
+                case GameStyleMode.Apex:
+                    _apexAdvancedEffectsPanel?.SelectStreakMode(value);
+                    break;
+                case GameStyleMode.ModernWarfare2019:
+                    _modernWarfare2019AdvancedEffectsPanel?.SelectStreakMode(value);
+                    break;
                 case GameStyleMode.DeltaForce:
                     _deltaForceAdvancedEffectsPanel?.SelectStreakMode(value);
                     break;
@@ -153,11 +199,24 @@ namespace KillConfirmGameBar
             {
                 mode = ReadSharedStreakMode(style, mode);
                 SharedStreakSettingsStore.Save(style, mode);
-                if (style == GameStyleMode.Valorant)
+                if (AssistAudioSettingsStore.IsSupported(style))
                 {
-                    assistAudioEnabled = _valorantAdvancedEffectsPanel?.GetAssistAudioEnabled(
-                        AssistAudioSettingsStore.Load(style))
-                        ?? AssistAudioSettingsStore.Load(style);
+                    assistAudioEnabled = AssistAudioSettingsStore.Load(style);
+                    if (style == GameStyleMode.Valorant)
+                    {
+                        assistAudioEnabled = _valorantAdvancedEffectsPanel?.GetAssistAudioEnabled(assistAudioEnabled)
+                            ?? assistAudioEnabled;
+                    }
+                    else if (style == GameStyleMode.Overwatch)
+                    {
+                        assistAudioEnabled = _overwatchAdvancedEffectsPanel?.GetAssistAudioEnabled(assistAudioEnabled)
+                            ?? assistAudioEnabled;
+                    }
+                    else if (style == GameStyleMode.ModernWarfare2019)
+                    {
+                        assistAudioEnabled = _modernWarfare2019AdvancedEffectsPanel?.GetAssistAudioEnabled(assistAudioEnabled)
+                            ?? assistAudioEnabled;
+                    }
                     AssistAudioSettingsStore.Save(style, assistAudioEnabled);
                 }
             }
@@ -170,7 +229,7 @@ namespace KillConfirmGameBar
                     ["streak_mode"] = JsonValue.CreateStringValue(mode),
                     ["assist_audio_enabled"] = JsonValue.CreateBooleanValue(assistAudioEnabled),
                     ["assist_audio_setting_active"] = JsonValue.CreateBooleanValue(
-                        style == GameStyleMode.Valorant)
+                        AssistAudioSettingsStore.IsSupported(style))
                 };
 
                 using (var client = await LocalServiceAuth.CreateHttpClientAsync())

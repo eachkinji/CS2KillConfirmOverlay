@@ -1,0 +1,11 @@
+{
+  "id": "bf1_special",
+  "name": "bf1_special",
+  "game_style": "battlefield1",
+  "version": "1.0",
+  "audio": {
+    "base_gain": 1.0,
+    "slots": {"kill_1":"common.wav","headshot":"common_headshot.wav"},
+    "overlay_slots": []
+  }
+}

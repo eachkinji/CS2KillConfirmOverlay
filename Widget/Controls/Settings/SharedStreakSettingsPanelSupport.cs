@@ -29,10 +29,10 @@ namespace KillConfirmGameBar.Controls.Settings
                     ["active"] = JsonValue.CreateBooleanValue(GameStyleService.Current == style),
                     ["streak_mode"] = JsonValue.CreateStringValue(mode),
                     ["assist_audio_enabled"] = JsonValue.CreateBooleanValue(
-                        style == GameStyleMode.Valorant
+                        AssistAudioSettingsStore.IsSupported(style)
                         && AssistAudioSettingsStore.Load(style)),
                     ["assist_audio_setting_active"] = JsonValue.CreateBooleanValue(
-                        style == GameStyleMode.Valorant)
+                        AssistAudioSettingsStore.IsSupported(style))
                 };
 
                 using (var client = await LocalServiceAuth.CreateHttpClientAsync())

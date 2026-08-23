@@ -83,6 +83,7 @@ namespace KillConfirmGameBar.Services
     public sealed class VoicePackBuildOptions
     {
         public IReadOnlyDictionary<string, StorageFile> SelectedFiles { get; set; }
+        public IReadOnlyDictionary<string, IReadOnlyList<StorageFile>> SelectedFileGroups { get; set; }
         public IReadOnlyDictionary<string, bool> CommonOverlayEnabled { get; set; }
         public bool UseBuiltInDefaultCommonOverlay { get; set; }
         public StorageFile CommonOverlayFile { get; set; }

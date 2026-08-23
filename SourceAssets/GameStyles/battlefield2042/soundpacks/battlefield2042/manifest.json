@@ -1,0 +1,11 @@
+{
+  "id": "battlefield2042",
+  "name": "battlefield2042",
+  "game_style": "battlefield2042",
+  "version": "1.0",
+  "audio": {
+    "base_gain": 1.0,
+    "slots": {"kill_1":"normal.wav","headshot":"headshot.wav"},
+    "overlay_slots": []
+  }
+}

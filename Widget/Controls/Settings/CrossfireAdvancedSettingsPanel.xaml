@@ -32,7 +32,7 @@
                     FontSize="12"
                     LineHeight="16"
                     Foreground="{StaticResource FluentMutedText}"
-                    Text="自定义击杀连杀窗口持续规则、助攻音效、爆头/近战优先逻辑及首尾杀专属特效音效。"
+                    Text="设置连杀计时、助攻音效、爆头与刀杀提示，以及首杀和最终击杀特效。"
                     TextWrapping="WrapWholeWords" />
             </StackPanel>
 
@@ -138,10 +138,10 @@
                     <StackPanel Spacing="6">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <Border Style="{StaticResource CompactCircleIconStyle}"><FontIcon FontSize="13" Foreground="White" Glyph="&#xE8D6;" /></Border>
-                            <TextBlock x:Name="LastKillAudioLabel" Style="{StaticResource CompactChoiceLabelStyle}" VerticalAlignment="Center" Text="尾杀语音播报" />
+                            <TextBlock x:Name="LastKillAudioLabel" Style="{StaticResource CompactChoiceLabelStyle}" VerticalAlignment="Center" Text="最终击杀语音" />
                         </StackPanel>
                         <ComboBox x:Name="LastKillAudioSelector" Style="{StaticResource CompactSettingsComboBoxStyle}" SelectionChanged="OnGameplaySettingChanged">
-                            <ComboBoxItem x:Name="LastKillSpecialItem" Tag="special">尾杀专属语音 (Last Kill)</ComboBoxItem>
+                            <ComboBoxItem x:Name="LastKillSpecialItem" Tag="special">最终击杀语音</ComboBoxItem>
                             <ComboBoxItem x:Name="LastKillOriginalItem" Tag="original">普通击杀语音</ComboBoxItem>
                         </ComboBox>
                     </StackPanel>
@@ -160,7 +160,7 @@
                     <StackPanel Spacing="6">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <Border Style="{StaticResource CompactCircleIconStyle}"><FontIcon FontSize="13" Foreground="White" Glyph="&#xE945;" /></Border>
-                            <TextBlock x:Name="LastKillEffectLabel" Style="{StaticResource CompactChoiceLabelStyle}" VerticalAlignment="Center" Text="尾杀动效/徽章" />
+                            <TextBlock x:Name="LastKillEffectLabel" Style="{StaticResource CompactChoiceLabelStyle}" VerticalAlignment="Center" Text="最终击杀特效" />
                         </StackPanel>
                         <ToggleSwitch x:Name="LastKillEffectToggle" MinWidth="0" IsOn="True" OffContent="关闭" OnContent="开启 (推荐)" Toggled="OnGameplaySettingChanged" />
                     </StackPanel>

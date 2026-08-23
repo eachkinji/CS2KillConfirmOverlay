@@ -18,10 +18,6 @@
                                 "kill_8":  "8.wav",
                                 "kill_7":  "7.wav"
                             },
-                  "slot_gains":  {
-                                     "first_and_last":  1.25,
-                                     "headshot":  1.8,
-                                     "knife":  1.5
-                                 }
+                  "slot_gains":  {}
               }
 }

@@ -1971,7 +1971,7 @@ namespace KillConfirmGameBar.Controls
         {
             double physicalScale = Math.Max(
                 1.0,
-                GetRenderResolutionScale() * GetDisplayDpiScale());
+                GetRenderResolutionScale());
             return (float)Math.Min(384.0, 96.0 * physicalScale);
         }
 

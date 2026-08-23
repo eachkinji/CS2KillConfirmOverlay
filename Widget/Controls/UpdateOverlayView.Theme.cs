@@ -22,6 +22,7 @@ namespace KillConfirmGameBar.Controls
             AboutCard.BorderBrush = theme.Brush(theme.SoftBorder);
             AuthorAvatarFrame.Background = theme.Brush(theme.SubtleField);
             AuthorAvatarFrame.BorderBrush = theme.Brush(theme.SoftBorder);
+            UpdateCreditsCommunityPanel?.ApplyTheme(theme);
 
             SetText(UpdateDialogTitleText, theme.Text);
             SetText(UpdateDialogVersionText, theme.AccentText);

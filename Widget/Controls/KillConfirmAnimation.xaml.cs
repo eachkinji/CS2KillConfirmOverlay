@@ -96,6 +96,44 @@ namespace KillConfirmGameBar.Controls
         public double DisplayViewportHeight => _displayViewportHeight;
         public double InteractionViewportWidth => GetInteractionViewportWidth();
         public double InteractionViewportHeight => GetInteractionViewportHeight();
+        public double SelectionViewportWidth => _isOverwatchActive
+            ? _overwatchSelectionViewportWidth
+            : _isApexFeedActive
+                ? _apexSelectionViewportWidth
+                : _isModernWarfare2019Active
+                    ? (_drawModernWarfare2019LowerBanner
+                        ? ModernWarfare2019LowerSelectionWidth
+                        : _drawModernWarfare2019UpperBanner
+                            ? ModernWarfare2019UpperSelectionWidth
+                            : ModernWarfare2019SelectionWidth)
+                    : InteractionViewportWidth;
+        public double SelectionViewportHeight => _isOverwatchActive
+            ? _overwatchSelectionViewportHeight
+            : _isApexFeedActive
+                ? _apexSelectionViewportHeight
+                : _isModernWarfare2019Active
+                    ? (_drawModernWarfare2019LowerBanner
+                        ? ModernWarfare2019LowerSelectionHeight
+                        : _drawModernWarfare2019UpperBanner
+                            ? ModernWarfare2019UpperSelectionHeight
+                            : ModernWarfare2019SelectionHeight)
+                    : InteractionViewportHeight;
+        public double SelectionViewportCenterOffsetX => _isOverwatchActive
+            ? _overwatchSelectionViewportCenterOffsetX
+            : _isApexFeedActive
+                ? _apexSelectionViewportCenterOffsetX
+                : _isModernWarfare2019Active && _drawModernWarfare2019Primary
+                    ? ModernWarfare2019SelectionCenterOffsetX
+                    : 0;
+        public double SelectionViewportCenterOffsetY => _isOverwatchActive
+            ? _overwatchSelectionViewportCenterOffsetY
+            : _isApexFeedActive
+                ? _apexSelectionViewportCenterOffsetY
+                : _isModernWarfare2019Active && _drawModernWarfare2019Primary
+                    ? ModernWarfare2019SelectionCenterOffsetY
+                    : 0;
+        public double OverwatchSelectionViewportWidth => _overwatchSelectionViewportWidth;
+        public double OverwatchSelectionViewportHeight => _overwatchSelectionViewportHeight;
         public static bool IsValorantPresentationConfigured => ValorantPackService.IsValorantPackKey(_iconPack);
 
         public void PlayCode2Kill()
@@ -175,10 +213,28 @@ namespace KillConfirmGameBar.Controls
 
         private Task PreloadCurrentPackAnimationsCoreAsync(IProgress<int> progress)
         {
+            if (GameStyleService.IsModernWarfare2019Key(_iconPack)
+                || GameStyleService.Current == GameStyleMode.ModernWarfare2019)
+            {
+                return PreloadModernWarfare2019AnimationsAsync(progress);
+            }
+
             if (GameStyleService.IsCsolKey(_iconPack)
                 || GameStyleService.Current == GameStyleMode.Csol)
             {
                 return PreloadCsolAnimationsAsync(progress);
+            }
+
+            if (GameStyleService.IsOverwatchKey(_iconPack)
+                || GameStyleService.Current == GameStyleMode.Overwatch)
+            {
+                return PreloadOverwatchAnimationsAsync(progress);
+            }
+
+            if (GameStyleService.IsApexKey(_iconPack)
+                || GameStyleService.Current == GameStyleMode.Apex)
+            {
+                return PreloadApexAnimationsAsync(progress);
             }
 
             if (GameStyleService.IsBattlefield1Key(_iconPack))
@@ -348,6 +404,8 @@ namespace KillConfirmGameBar.Controls
             ClearDeltaForceIconCache();
             ClearDoubaoIconCache();
             ClearDagoujiaoImageCache();
+            ClearOverwatchIconCache();
+            ClearModernWarfare2019IconCache();
             return true;
         }
 
@@ -372,6 +430,9 @@ namespace KillConfirmGameBar.Controls
                 && !GameStyleService.IsDeltaForceKey(normalized)
                 && !GameStyleService.IsDoubaoKey(normalized)
                 && !GameStyleService.IsDagoujiaoKey(normalized)
+                && !GameStyleService.IsOverwatchKey(normalized)
+                && !GameStyleService.IsApexKey(normalized)
+                && !GameStyleService.IsModernWarfare2019Key(normalized)
                 && !PackCatalogService.IsImportedIconPackKey(normalized))
             {
                 normalized = "default";
@@ -433,6 +494,9 @@ namespace KillConfirmGameBar.Controls
             ResetDeltaForceHudState();
             ResetDoubaoState();
             ResetDagoujiaoState();
+            ResetOverwatchState();
+            ResetApexFeedState();
+            ResetModernWarfare2019State();
             Visibility = Visibility.Collapsed;
             ReleaseValorantEffects();
             ReleaseAllAnimationResourceCaches();
@@ -475,6 +539,10 @@ namespace KillConfirmGameBar.Controls
             {
                 foreach (CanvasBitmap bitmap in DagoujiaoImageCache.Values) bitmaps.Add(bitmap);
             }
+            if (_overwatchEffectSheetBitmap != null) bitmaps.Add(_overwatchEffectSheetBitmap);
+            if (_apexHitmarkBitmap != null) bitmaps.Add(_apexHitmarkBitmap);
+            if (_modernWarfare2019UpperIconBitmap != null) bitmaps.Add(_modernWarfare2019UpperIconBitmap);
+            if (_modernWarfare2019MoneyGlowBitmap != null) bitmaps.Add(_modernWarfare2019MoneyGlowBitmap);
 
             CodeKillCache.Clear();
             CsolKillCache.Clear();
@@ -485,6 +553,9 @@ namespace KillConfirmGameBar.Controls
             ClearDeltaForceIconCache();
             ClearDoubaoIconCache();
             ClearDagoujiaoImageCache();
+            ClearOverwatchIconCache();
+            ClearApexHitmarkCache();
+            ClearModernWarfare2019IconCache();
             foreach (CanvasBitmap bitmap in bitmaps)
             {
                 bitmap?.Dispose();
@@ -580,6 +651,9 @@ namespace KillConfirmGameBar.Controls
             ResetDeltaForceHudState();
             ResetDoubaoState();
             ResetDagoujiaoState();
+            ResetOverwatchState();
+            ResetApexFeedState();
+            ResetModernWarfare2019State();
             int token = ++_playToken;
             bool isLoading = true;
             var progress = new Progress<int>(value =>

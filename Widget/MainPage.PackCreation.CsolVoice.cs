@@ -13,13 +13,14 @@ namespace KillConfirmGameBar
     public sealed partial class MainPage
     {
         // CSOL voice pack creation dialog.
-        // 15 slot rows (1.wav..10.wav, headshot.wav, knife.wav, first.wav,
-        // last.wav, assist.wav). No common-overlay sub-card (CSOL has no
-        // shared overlay audio). No kill-1 special hint. After Primary the
-        // dialog calls PackCatalogService.CreateCsolVoicePackAsync.
+        // Slot rows driven by CSOL's actual asset layout: 1.wav..10.wav (kill
+        // streak 1-10), headshot.wav, knife.wav, revenge.wav (last-kill revenge
+        // voice), assist.wav (assist). CSOL has no dedicated first-kill voice.
+        // No common-overlay sub-card (CSOL has no shared overlay audio). After
+        // Primary the dialog calls PackCatalogService.CreateCsolVoicePackAsync.
         private async Task ShowCreateCsolVoicePackDialogAsync(
             string initialDisplayName = null,
-            IReadOnlyDictionary<string, StorageFile> initialFiles = null,
+            IReadOnlyDictionary<string, IReadOnlyList<StorageFile>> initialFiles = null,
             StorageFile initialHeadImageFile = null)
         {
             var slots = new[]
@@ -36,25 +37,22 @@ namespace KillConfirmGameBar
                 ("10.wav", LocalizationManager.Text("CsolSlot10")),
                 ("headshot.wav", LocalizationManager.Text("CsolSlotHeadshot")),
                 ("knife.wav", LocalizationManager.Text("CsolSlotKnife")),
-                ("first.wav", LocalizationManager.Text("CsolSlotFirst")),
-                ("last.wav", LocalizationManager.Text("CsolSlotLast")),
+                ("revenge.wav", LocalizationManager.Text("CsolSlotRevenge")),
                 ("assist.wav", LocalizationManager.Text("CsolSlotAssist"))
             };
 
-            var selectedFiles = initialFiles != null
-                ? new Dictionary<string, StorageFile>(initialFiles, StringComparer.OrdinalIgnoreCase)
-                : new Dictionary<string, StorageFile>(StringComparer.OrdinalIgnoreCase);
+            var selectedFiles = CreateVoiceSelectionMap(initialFiles);
             StorageFile headImageFile = initialHeadImageFile;
 
             var layout = CreatePackDialogLayout(
-                LocalizationManager.Text("CreateVoicePack"),
-                LocalizationManager.Text("VoicePackCreationHint"),
-                LocalizationManager.Text("VoicePackNamePlaceholder"),
+                LocalizationManager.Text("CreateCsolVoicePack"),
+                LocalizationManager.Text("CsolVoicePackCreationHint"),
+                LocalizationManager.Text("CsolVoicePackNamePlaceholder"),
                 initialDisplayName,
                 out var nameBox);
 
             var headCard = await CreateHeadImageCardAsync(
-                "ms-appx:///Assets/KillConfirmCode/Original/badge_headshot.PNG",
+                "ms-appx:///Assets/KillConfirmCode/Csol4/headshot_kill.png",
                 headImageFile,
                 f => headImageFile = f,
                 () => headImageFile = null);
@@ -75,10 +73,10 @@ namespace KillConfirmGameBar
 
             foreach (var slot in slots)
             {
-                selectedFiles.TryGetValue(slot.Item1, out StorageFile existingFile);
-                var row = await CreateSlotRowAsync(
-                    slot.Item1, slot.Item2, isAudio: true, GameStyleMode.Csol,
-                    selectedFiles, existingFile);
+                selectedFiles.TryGetValue(slot.Item1, out List<StorageFile> existingFiles);
+                var row = await CreateVoiceSlotRowAsync(
+                    slot.Item1, slot.Item2, GameStyleMode.Csol,
+                    selectedFiles, existingFiles);
                 slotPanel.Children.Add(row);
             }
 
@@ -92,14 +90,14 @@ namespace KillConfirmGameBar
             }
 
             string displayName = string.IsNullOrWhiteSpace(nameBox.Text)
-                ? LocalizationManager.Text("NewPack")
+                ? LocalizationManager.Text("CsolVoicePack")
                 : nameBox.Text.Trim();
 
             await PackCatalogService.CreateCsolVoicePackAsync(
                 displayName,
                 new VoicePackBuildOptions
                 {
-                    SelectedFiles = selectedFiles,
+                    SelectedFileGroups = AsReadOnlyVoiceSelection(selectedFiles),
                     CommonOverlayEnabled = null,
                     UseBuiltInDefaultCommonOverlay = false,
                     CommonOverlayFile = null,

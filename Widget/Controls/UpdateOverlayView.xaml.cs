@@ -17,6 +17,11 @@ namespace KillConfirmGameBar.Controls
         public event RoutedEventHandler ToggleReleaseNotesClicked;
         public event RoutedEventHandler CopyQuarkClicked;
 
+        public void RefreshCredits()
+        {
+            UpdateCreditsCommunityPanel?.ApplyLanguage();
+        }
+
         private void OnCloseUpdateOverlayClick(object sender, RoutedEventArgs e) => CloseClicked?.Invoke(sender, e);
 
         private void OnOpenAuthorGitHubClick(object sender, RoutedEventArgs e) => OpenAuthorGitHubClicked?.Invoke(sender, e);

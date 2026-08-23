@@ -14,7 +14,8 @@ namespace KillConfirmGameBar
     {
         private async Task ShowCreateIconPackDialogAsync(
             string initialDisplayName = null,
-            IReadOnlyDictionary<string, StorageFile> initialFiles = null)
+            IReadOnlyDictionary<string, StorageFile> initialFiles = null,
+            StorageFile initialHeadImageFile = null)
         {
             var slots = new[]
             {
@@ -64,7 +65,9 @@ namespace KillConfirmGameBar
                 GameStyleMode.Crossfire,
                 PackCatalogService.CreateIconPackAsync,
                 initialDisplayName,
-                initialFiles);
+                initialFiles,
+                defaultHeadPreviewUri: "ms-appx:///Assets/KillConfirmCode/Original/badge_headshot.PNG",
+                initialHeadImageFile: initialHeadImageFile);
         }
 
         private async Task ShowPackCreationDialogAsync(
@@ -72,14 +75,17 @@ namespace KillConfirmGameBar
             string description,
             (string FileName, string Label)[] slots,
             GameStyleMode currentGame,
-            Func<string, IReadOnlyDictionary<string, StorageFile>, Task> createHandler,
+            Func<string, IReadOnlyDictionary<string, StorageFile>, StorageFile, Task> createHandler,
             string initialDisplayName = null,
             IReadOnlyDictionary<string, StorageFile> initialFiles = null,
-            Func<string, string> defaultPreviewUriForFileName = null)
+            Func<string, string> defaultPreviewUriForFileName = null,
+            StorageFile initialHeadImageFile = null,
+            string defaultHeadPreviewUri = null)
         {
             var selectedFiles = initialFiles != null
                 ? new Dictionary<string, StorageFile>(initialFiles, StringComparer.OrdinalIgnoreCase)
                 : new Dictionary<string, StorageFile>(StringComparer.OrdinalIgnoreCase);
+            StorageFile headImageFile = initialHeadImageFile;
 
             var layout = CreatePackDialogLayout(
                 title,
@@ -87,6 +93,16 @@ namespace KillConfirmGameBar
                 LocalizationManager.Text("IconPackNamePlaceholder"),
                 initialDisplayName,
                 out var nameBox);
+
+            if (defaultHeadPreviewUri != null)
+            {
+                var headCard = await CreateHeadImageCardAsync(
+                    defaultHeadPreviewUri,
+                    headImageFile,
+                    f => headImageFile = f,
+                    () => headImageFile = null);
+                layout.Children.Add(headCard);
+            }
 
             var scroll = new ScrollViewer
             {
@@ -123,7 +139,7 @@ namespace KillConfirmGameBar
             string displayName = string.IsNullOrWhiteSpace(nameBox.Text)
                 ? LocalizationManager.Text("NewPack")
                 : nameBox.Text.Trim();
-            await createHandler(displayName, selectedFiles);
+            await createHandler(displayName, selectedFiles, headImageFile);
         }
 
         // ---- Battlefield / Delta Force icon pack creation dialogs ----
@@ -132,7 +148,8 @@ namespace KillConfirmGameBar
 
         private async Task ShowCreateBattlefield1IconPackDialogAsync(
             string initialDisplayName = null,
-            IReadOnlyDictionary<string, StorageFile> initialFiles = null)
+            IReadOnlyDictionary<string, StorageFile> initialFiles = null,
+            StorageFile initialHeadImageFile = null)
         {
             bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
             var slots = new (string FileName, string Label)[]
@@ -143,18 +160,22 @@ namespace KillConfirmGameBar
             };
             await ShowPackCreationDialogAsync(
                 LocalizationManager.Text("CreateIconPack"),
-                LocalizationManager.Text("IconPackCreationHint"),
+                isChinese
+                    ? "战地1可以分别设置普通击杀、爆头和刀杀/暴击图标；未设置的项目继续使用内置图标。"
+                    : "Choose separate Battlefield 1 icons for normal kills, headshots, and knife/critical kills. Items left empty keep the built-in icons.",
                 slots,
                 GameStyleMode.Battlefield1,
                 PackCatalogService.CreateBattlefield1IconPackAsync,
                 initialDisplayName,
                 initialFiles,
-                defaultPreviewUriForFileName: fn => $"ms-appx:///Assets/GameStyles/battlefield1/killconfirm/textures/{fn}");
+                defaultPreviewUriForFileName: fn => $"ms-appx:///Assets/GameStyles/battlefield1/killconfirm/textures/{fn}",
+                defaultHeadPreviewUri: "ms-appx:///Assets/GameStyles/battlefield1/killconfirm/textures/killicon_battlefield1_default.png");
         }
 
         private async Task ShowCreateBattlefield5IconPackDialogAsync(
             string initialDisplayName = null,
-            IReadOnlyDictionary<string, StorageFile> initialFiles = null)
+            IReadOnlyDictionary<string, StorageFile> initialFiles = null,
+            StorageFile initialHeadImageFile = null)
         {
             bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
             var slots = new (string FileName, string Label)[]
@@ -165,18 +186,22 @@ namespace KillConfirmGameBar
             };
             await ShowPackCreationDialogAsync(
                 LocalizationManager.Text("CreateIconPack"),
-                LocalizationManager.Text("IconPackCreationHint"),
+                isChinese
+                    ? "战地5可以分别设置普通击杀、爆头和助攻图标；未设置的项目继续使用内置图标。"
+                    : "Choose separate Battlefield V icons for normal kills, headshots, and assists. Items left empty keep the built-in icons.",
                 slots,
                 GameStyleMode.Battlefield5,
                 PackCatalogService.CreateBattlefield5IconPackAsync,
                 initialDisplayName,
                 initialFiles,
-                defaultPreviewUriForFileName: fn => $"ms-appx:///Assets/GameStyles/battlefield5/killconfirm/textures/{fn}");
+                defaultPreviewUriForFileName: fn => $"ms-appx:///Assets/GameStyles/battlefield5/killconfirm/textures/{fn}",
+                defaultHeadPreviewUri: "ms-appx:///Assets/GameStyles/battlefield5/killconfirm/textures/killicon_battlefield5_default.png");
         }
 
         private async Task ShowCreateBattlefield2042IconPackDialogAsync(
             string initialDisplayName = null,
-            IReadOnlyDictionary<string, StorageFile> initialFiles = null)
+            IReadOnlyDictionary<string, StorageFile> initialFiles = null,
+            StorageFile initialHeadImageFile = null)
         {
             bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
             var slots = new (string FileName, string Label)[]
@@ -187,18 +212,78 @@ namespace KillConfirmGameBar
             };
             await ShowPackCreationDialogAsync(
                 LocalizationManager.Text("CreateIconPack"),
-                LocalizationManager.Text("IconPackCreationHint"),
+                isChinese
+                    ? "分别为战地2042的普通击杀、爆头和助攻选择图标。"
+                    : "Choose separate Battlefield 2042 icons for normal kills, headshots, and assists.",
                 slots,
                 GameStyleMode.Battlefield2042,
                 PackCatalogService.CreateBattlefield2042IconPackAsync,
                 initialDisplayName,
                 initialFiles,
-                defaultPreviewUriForFileName: fn => $"ms-appx:///Assets/GameStyles/battlefield2042/killconfirm/textures/{fn}");
+                defaultPreviewUriForFileName: fn => $"ms-appx:///Assets/GameStyles/battlefield2042/killconfirm/textures/{fn}",
+                defaultHeadPreviewUri: "ms-appx:///Assets/GameStyles/battlefield2042/killconfirm/textures/HeadshotSkullSprite.png");
+        }
+
+        // BF4 / PUBG 的击杀提示是纯文本 HUD（见 KillConfirmAnimation.Battlefield4.cs /
+        // .Pubg.cs 的 ClearXxxIconCache 注释），不绘制任何击杀图标，因此没有图标包可
+        // 自定义。Valorant 虽然绘制图标，但自定义图标包尚未开放。阻止这三者在图标包
+        // 创建/导入时落到 Crossfire 兜底分支——那会生成一个属于 Crossfire 的包并出现
+        // 在 Crossfire 的管理列表里（"不适配本游戏"的包）。
+        private static bool IsIconlessGame(GameStyleMode style)
+        {
+            return style == GameStyleMode.Battlefield4
+                || style == GameStyleMode.Pubg
+                || style == GameStyleMode.Apex;
+        }
+
+        private static bool IsIconPackCreationUnavailable(GameStyleMode style)
+        {
+            return IsIconlessGame(style)
+                || style == GameStyleMode.Valorant
+                || style == GameStyleMode.Overwatch;
+        }
+
+        private async Task<bool> GuardIconPackCreationAsync()
+        {
+            GameStyleMode style = GameStyleService.Current;
+            bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            if (IsIconlessGame(style))
+            {
+                await ShowMessageAsync(
+                    isChinese ? "无图标包" : "No icon pack",
+                    isChinese
+                        ? "该游戏的击杀提示为纯文本样式，不绘制击杀图标，因此不支持自定义图标包。"
+                        : "This game uses a text-only kill feed and draws no kill icons, so custom icon packs are not supported.");
+                return true;
+            }
+
+            if (style == GameStyleMode.Valorant)
+            {
+                await ShowMessageAsync(
+                    isChinese ? "暂未开放" : "Not available yet",
+                    isChinese
+                        ? "Valorant 自定义图标包暂未开放，敬请期待。"
+                        : "Custom Valorant icon packs are not available yet.");
+                return true;
+            }
+
+            if (style == GameStyleMode.Overwatch)
+            {
+                await ShowMessageAsync(
+                    isChinese ? "OW 图标包暂未开放" : "OW icon packs are not available yet",
+                    isChinese
+                        ? "守望先锋当前使用内置准心反馈和下方击杀卡片，暂不支持更换图标。"
+                        : "Overwatch currently uses its built-in crosshair response and lower kill card. Custom icons are not available yet.");
+                return true;
+            }
+
+            return false;
         }
 
         private async Task ShowCreateDeltaForceIconPackDialogAsync(
             string initialDisplayName = null,
-            IReadOnlyDictionary<string, StorageFile> initialFiles = null)
+            IReadOnlyDictionary<string, StorageFile> initialFiles = null,
+            StorageFile initialHeadImageFile = null)
         {
             bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
             var slots = new (string FileName, string Label)[]
@@ -210,13 +295,16 @@ namespace KillConfirmGameBar
             };
             await ShowPackCreationDialogAsync(
                 LocalizationManager.Text("CreateIconPack"),
-                LocalizationManager.Text("IconPackCreationHint"),
+                isChinese
+                    ? "三角洲可以分别设置普通击杀、爆头、占点和助攻图标；未设置的项目继续使用内置图标。"
+                    : "Choose separate Delta Force icons for normal kills, headshots, captures, and assists. Items left empty keep the built-in icons.",
                 slots,
                 GameStyleMode.DeltaForce,
                 PackCatalogService.CreateDeltaForceIconPackAsync,
                 initialDisplayName,
                 initialFiles,
-                defaultPreviewUriForFileName: fn => $"ms-appx:///Assets/GameStyles/deltaforce/killconfirm/textures/{fn}");
+                defaultPreviewUriForFileName: fn => $"ms-appx:///Assets/GameStyles/deltaforce/killconfirm/textures/{fn}",
+                defaultHeadPreviewUri: "ms-appx:///Assets/GameStyles/deltaforce/killconfirm/textures/killicon_df_default.png");
         }
     }
 }

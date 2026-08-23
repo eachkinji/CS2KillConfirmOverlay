@@ -12,6 +12,9 @@
 .PARAMETER SkipWithDependencies
     仅生成无依赖的轻量更新安装包（跳过打包体积较大的离线运行库）。
 
+.PARAMETER SkipRust
+    跳过未变化的 Rust 服务编译，复用现有 Release 二进制以加快打包。
+
 .PARAMETER OutputDir
     最终输出目录，默认 .\Output。
 #>
@@ -21,6 +24,13 @@ param(
     [ValidateSet("x64", "x86", "arm64")]
     [string]$Platform = "x64",
     [switch]$SkipWithDependencies,
+    [switch]$SkipRust,
+    [string]$MsBuildPath = "",
+    [switch]$DisableSigning,
+    [string]$CertificatePfxPath = "",
+    [string]$CertificatePassword = "",
+    [string]$CertificateThumbprint = "",
+    [string]$CertificateCerPath = "",
     [string]$OutputDir = ""
 )
 
@@ -30,12 +40,30 @@ $Root = Split-Path -Parent $MyInvocation.MyCommand.Path
 $WorkspaceRoot = Split-Path -Parent $Root
 $ManifestPath = Join-Path $Root "Package\Package.appxmanifest"
 $InstallerScript = Join-Path $Root "Installer\KillConfirmGameBar.iss"
+$InstallerPayloadScript = Join-Path $Root "Installer\Install-KillConfirm.ps1"
+$InstallerPayloadReadme = Join-Path $Root "Installer\README.txt"
 
 if (-not (Test-Path $ManifestPath)) {
     throw "未找到 Package.appxmanifest: $ManifestPath"
 }
 if (-not (Test-Path $InstallerScript)) {
     throw "未找到 Inno Setup 脚本: $InstallerScript"
+}
+if (-not (Test-Path $InstallerPayloadScript)) {
+    throw "未找到安装载荷脚本: $InstallerPayloadScript"
+}
+
+$parseTokens = $null
+$parseErrors = $null
+$installerPayloadSource = Get-Content -LiteralPath $InstallerPayloadScript -Raw -Encoding UTF8
+[System.Management.Automation.Language.Parser]::ParseInput(
+    $installerPayloadSource,
+    $InstallerPayloadScript,
+    [ref]$parseTokens,
+    [ref]$parseErrors) | Out-Null
+if ($parseErrors.Count -gt 0) {
+    $parseSummary = ($parseErrors | ForEach-Object { "line $($_.Extent.StartLineNumber): $($_.Message)" }) -join "; "
+    throw "安装载荷脚本语法检查失败: $parseSummary"
 }
 
 [xml]$Manifest = Get-Content $ManifestPath
@@ -58,7 +86,33 @@ Write-Host "==========================================================" -Foregro
 # 1. 首先通过 Build-DevPackage 构建出最新的 MSIX 与签名文件
 Write-Host "`n[第 1 步/3] 构建核心应用 MSIX 包与二进制..." -ForegroundColor Yellow
 $DevOutputDir = Join-Path $OutputDir "TempDevPackage"
-& (Join-Path $Root "Build-DevPackage.ps1") -Configuration $Configuration -Platform $Platform -OutputDir $DevOutputDir
+$devBuildArgs = @{
+    Configuration = $Configuration
+    Platform = $Platform
+    OutputDir = $DevOutputDir
+}
+if ($SkipRust) {
+    $devBuildArgs.SkipRust = $true
+}
+if ($MsBuildPath) {
+    $devBuildArgs.MsBuildPath = $MsBuildPath
+}
+if ($DisableSigning) {
+    $devBuildArgs.DisableSigning = $true
+}
+if ($CertificatePfxPath) {
+    $devBuildArgs.CertificatePfxPath = $CertificatePfxPath
+}
+if ($CertificatePassword) {
+    $devBuildArgs.CertificatePassword = $CertificatePassword
+}
+if ($CertificateThumbprint) {
+    $devBuildArgs.CertificateThumbprint = $CertificateThumbprint
+}
+if ($CertificateCerPath) {
+    $devBuildArgs.CertificateCerPath = $CertificateCerPath
+}
+& (Join-Path $Root "Build-DevPackage.ps1") @devBuildArgs
 
 $msixFile = Get-ChildItem -LiteralPath $DevOutputDir -Filter "*.msix" -File | Select-Object -First 1
 $cerFile = Get-ChildItem -LiteralPath $DevOutputDir -Filter "*.cer" -File | Select-Object -First 1
@@ -93,6 +147,18 @@ foreach ($targetRoot in @($TransferRoot, $NoDepsTransferRoot)) {
     Copy-Item -LiteralPath $msixFile.FullName -Destination (Join-Path $overlayDir $msixFile.Name) -Force
     if ($cerFile) {
         Copy-Item -LiteralPath $cerFile.FullName -Destination (Join-Path $overlayDir $cerFile.Name) -Force
+    }
+
+    # Windows PowerShell 5.1 needs a UTF-8 BOM to parse the Chinese diagnostics
+    # in the payload script reliably.
+    $payloadText = Get-Content -LiteralPath $InstallerPayloadScript -Raw -Encoding UTF8
+    $utf8Bom = New-Object System.Text.UTF8Encoding($true)
+    [System.IO.File]::WriteAllText(
+        (Join-Path $targetRoot "Install-KillConfirm.ps1"),
+        $payloadText,
+        $utf8Bom)
+    if (Test-Path -LiteralPath $InstallerPayloadReadme) {
+        Copy-Item -LiteralPath $InstallerPayloadReadme -Destination (Join-Path $targetRoot "README.txt") -Force
     }
 }
 

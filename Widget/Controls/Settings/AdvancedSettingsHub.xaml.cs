@@ -61,16 +61,16 @@ namespace KillConfirmGameBar.Controls.Settings
                 ? "观战击杀特效、游戏退出自动关闭、击杀语音打断与 C4 炸弹音效等对局体验选项。"
                 : "In-match experience options: spectated kill effects, auto-close on game exit, kill-voice interrupt, and C4 bomb audio.";
 
-            HubGeneralCardTitle.Text = isChinese ? "运行时与维护" : "RUNTIME & MAINTENANCE";
+            HubGeneralCardTitle.Text = isChinese ? "软件与维护" : "APP & MAINTENANCE";
             HubGeneralCardDescription.Text = isChinese
-                ? "更新 GSI 配置文件、重启服务等运行时维护操作。"
-                : "Runtime maintenance: refresh the GSI config, restart the service, and more.";
+                ? "更新游戏数据配置、重启本地服务或查看日志。"
+                : "Update the game-data configuration, restart the local service, or view logs.";
             HubGeneralCardSecondaryTitle.Text = isChinese
-                ? "游戏状态集成与系统选项"
-                : "GAME-STATE & SYSTEM";
+                ? "游戏与系统选项"
+                : "GAME & SYSTEM";
             HubGeneralCardSecondaryDescription.Text = isChinese
-                ? "GSI 游戏版本、关闭主窗口行为与 Game Bar 进程优先级等系统级设置。"
-                : "System-level options: GSI game version, main-window close behaviour, and Game Bar process priorities.";
+                ? "设置 Counter-Strike 版本、主窗口关闭方式和程序运行优先级。"
+                : "Choose the Counter-Strike version, main-window close behavior, and program priority.";
 
             HubPortTitleText.Text = isChinese ? "本地服务端口" : "LOCAL SERVICE PORT";
             HubPortDescriptionText.Text = isChinese
@@ -95,45 +95,48 @@ namespace KillConfirmGameBar.Controls.Settings
 
             HubPortStatusTitle.Text = isChinese ? "连接状态" : "CONNECTION STATUS";
             HubPortStatusBody.Text = isChinese
-                ? "下面是最近一次端口探测结果。"
-                : "Latest port probe result.";
+                ? "下面是最近一次连接检查结果。"
+                : "Latest connection check result.";
 
             HubDisplayCardTitle.Text = isChinese ? "进阶设置" : "ADVANCED SETTINGS";
             HubDisplayCardDescription.Text = isChinese
-                ? "控制面板缩放、GSI 与系统选项、运行时维护等进阶配置集中在这里。"
-                : "Control-panel scaling, GSI/system options, and runtime maintenance live here.";
+                ? "可在这里调整 Counter-Strike 版本和软件维护选项。"
+                : "Adjust the Counter-Strike version and app maintenance options here.";
 
             HubAboutTitle.Text = isChinese ? "关于本版本" : "ABOUT THIS BUILD";
             HubAboutBody.Text = isChinese
-                ? "Kill Confirm Overlay 是为 Xbox Game Bar 打造的可自定义 CS2 击杀确认覆盖层，通过 Game State Integration 接收对局事件，播放击杀语音与动画，不读取或注入游戏进程。"
-                : "Kill Confirm Overlay is a customizable CS2 kill-confirm overlay for Xbox Game Bar. It receives match events via Game State Integration and plays kill voices and animations without reading or injecting the game process.";
+                ? "Kill Confirm Overlay 是 Xbox Game Bar 的击杀提示工具，可根据比赛中的击杀信息显示动画并播放语音。程序不会修改游戏文件或游戏进程。"
+                : "Kill Confirm Overlay is a kill-feedback tool for Xbox Game Bar. It shows animations and plays audio from match information without modifying game files or the game process.";
             var packageVersion = Windows.ApplicationModel.Package.Current.Id.Version;
             string versionText = $"{packageVersion.Major}.{packageVersion.Minor}.{packageVersion.Build}.{packageVersion.Revision}";
             HubAboutVersion.Text = isChinese
                 ? $"当前版本 {versionText}"
                 : $"Current version {versionText}";
+            HubExitAllButton.Content = isChinese ? "完全退出本程序" : "Exit completely";
+            HubUninstallButton.Content = isChinese ? "卸载" : "Uninstall";
 
             HubAboutUpdateTitle.Text = isChinese ? "更新信息" : "WHAT'S NEW";
             HubAboutUpdateBody.Text = isChinese
-                ? "· 新增：进阶设置中心（Fluent 2 全新界面）与端口快速切换\n"
+                ? "· 新增：全新高级设置页面与端口快速切换\n"
                     + "· 新增：C4 炸弹倒计时与音效自定义、面板配色自定义、CSOL 资源包导入\n"
-                    + "· 优化：设置页签重组为「游戏体验增强」与「进阶设置」，常用体验选项一键直达\n"
-                    + "· 修复：控制面板缩放超过 100% 时下拉菜单偏移的问题"
-                : "• New: Advanced settings hub (Fluent 2 redesign) with quick port switching\n"
+                    + "· 优化：设置页签重组为「游戏体验增强」与「进阶设置」，常用体验选项一键直达"
+                : "• New: redesigned advanced settings page with quick port switching\n"
                     + "• New: C4 bomb timer audio customization, panel color customizer, CSOL pack import\n"
-                    + "• Improved: settings tabs reorganized into Game Experience and Advanced\n"
-                    + "• Fixed: dropdown offset when control-panel scale exceeds 100%";
+                    + "• Improved: settings tabs reorganized into Game Experience and Advanced";
 
             HubAboutCreditsTitle.Text = isChinese ? "作者与致谢" : "AUTHOR & CREDITS";
+            HubAuthorNameText.Text = "Zac · eachkinji";
+            HubAuthorDescriptionText.Text = isChinese
+                ? "Kill Confirm Overlay 作者与维护者"
+                : "Author and maintainer of Kill Confirm Overlay";
+            HubAuthorGitHubButton.Content = "GitHub · eachkinji";
+            HubAuthorBilibiliButton.Content = isChinese ? "B站 · Zac不想烤肉" : "Bilibili · Zac";
+            HubProjectButton.Content = isChinese ? "项目主页" : "Project home";
+            HubDownloadButton.Content = isChinese ? "下载与更新 · 7Twv" : "Download & update · 7Twv";
             HubAboutCreditsBody.Text = isChinese
-                ? "作者：eachkinji（github.com/eachkinji）\n"
-                    + "本项目基于 st0nie 的 cskillconfirm 开源项目思路与 gsi-cs2-rs 集成成果开发。\n"
-                    + "联动推荐：CS2 Customizer（gufan0000）。\n"
-                    + "本工具为非官方社区项目，仅供学习交流；游戏资源归各自版权方所有。"
-                : "Author: eachkinji (github.com/eachkinji)\n"
-                    + "Built on ideas from st0nie's open-source cskillconfirm project and its gsi-cs2-rs integration.\n"
-                    + "Recommended companion: CS2 Customizer by gufan0000.\n"
-                    + "Unofficial community tool for learning and personal use; all game assets belong to their respective owners.";
+                ? "感谢 st0nie 提供 cskillconfirm 的开发思路与基础代码，并感谢 gufan0000 的 CS2 Customizer 与本项目持续联动。本工具为非官方社区项目，仅供学习交流；游戏资源归各自版权方所有。"
+                : "Thanks to st0nie for the ideas and foundation from cskillconfirm, and to gufan0000 for the ongoing CS2 Customizer collaboration. This is an unofficial community project for learning and personal use; game assets belong to their respective owners.";
+            HubCreditsCommunityPanel?.ApplyLanguage();
 
             HubGeneralOptionsPanel?.ApplyLanguage();
             HubAdvancedSystemOptionsPanel?.ApplyLanguage();
@@ -171,10 +174,30 @@ namespace KillConfirmGameBar.Controls.Settings
             if (HubAboutTitle != null) HubAboutTitle.Foreground = new SolidColorBrush(theme.Text);
             if (HubAboutBody != null) HubAboutBody.Foreground = new SolidColorBrush(theme.MutedText);
             if (HubAboutVersion != null) HubAboutVersion.Foreground = new SolidColorBrush(theme.SubtleText);
+            if (HubUninstallButton != null)
+            {
+                HubUninstallButton.Background = theme.Brush(theme.Card);
+                HubUninstallButton.BorderBrush = theme.Brush(theme.SoftBorder);
+                HubUninstallButton.Foreground = theme.Brush(theme.Text);
+            }
+            if (HubAppActionsStatusText != null) HubAppActionsStatusText.Foreground = theme.Brush(theme.MutedText);
             if (HubAboutUpdateTitle != null) HubAboutUpdateTitle.Foreground = new SolidColorBrush(theme.Text);
             if (HubAboutUpdateBody != null) HubAboutUpdateBody.Foreground = new SolidColorBrush(theme.MutedText);
             if (HubAboutCreditsTitle != null) HubAboutCreditsTitle.Foreground = new SolidColorBrush(theme.Text);
             if (HubAboutCreditsBody != null) HubAboutCreditsBody.Foreground = new SolidColorBrush(theme.MutedText);
+            if (HubAuthorProfileCard != null)
+            {
+                HubAuthorProfileCard.Background = theme.Brush(theme.SubtleField);
+                HubAuthorProfileCard.BorderBrush = theme.Brush(theme.SoftBorder);
+            }
+            if (HubAuthorAvatarFrame != null)
+            {
+                HubAuthorAvatarFrame.Background = theme.Brush(theme.Card);
+                HubAuthorAvatarFrame.BorderBrush = theme.Brush(theme.SoftBorder);
+            }
+            if (HubAuthorNameText != null) HubAuthorNameText.Foreground = theme.Brush(theme.Text);
+            if (HubAuthorDescriptionText != null) HubAuthorDescriptionText.Foreground = theme.Brush(theme.MutedText);
+            if (HubCreditsCommunityPanel != null) HubCreditsCommunityPanel.ApplyTheme(theme);
 
             if (HubRuntimePanel != null)
             {
@@ -188,16 +211,64 @@ namespace KillConfirmGameBar.Controls.Settings
             {
                 HubAdvancedSystemOptionsPanel.ApplyTheme(theme);
             }
-            if (HubDisplayScalingPanel != null)
-            {
-                HubDisplayScalingPanel.ApplyTheme(theme);
-            }
         }
 
         private void OnHubTabGeneralClick(object sender, RoutedEventArgs e) => SwitchTab(TabGeneral);
         private void OnHubTabPortClick(object sender, RoutedEventArgs e) => SwitchTab(TabPort);
         private void OnHubTabDisplayClick(object sender, RoutedEventArgs e) => SwitchTab(TabDisplay);
         private void OnHubTabAboutClick(object sender, RoutedEventArgs e) => SwitchTab(TabAbout);
+
+        private async void OnHubExitAllClick(object sender, RoutedEventArgs e)
+        {
+            bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            var confirmation = new ContentDialog
+            {
+                Title = isChinese ? "完全退出本程序？" : "Exit Kill Confirm Overlay?",
+                Content = isChinese
+                    ? "这会关闭所有前台窗口和后台服务。"
+                    : "This closes every Kill Confirm Overlay window and background service.",
+                PrimaryButtonText = isChinese ? "完全退出" : "Exit",
+                CloseButtonText = isChinese ? "取消" : "Cancel"
+            };
+
+            if (await confirmation.ShowAsync() != ContentDialogResult.Primary)
+            {
+                return;
+            }
+
+            HubExitAllButton.IsEnabled = false;
+            HubUninstallButton.IsEnabled = false;
+            bool launched = await App.RequestFullExitAsync();
+            if (launched)
+            {
+                Application.Current.Exit();
+                return;
+            }
+
+            HubExitAllButton.IsEnabled = true;
+            HubUninstallButton.IsEnabled = true;
+            ShowAppActionStatus(isChinese
+                ? "无法启动退出程序，请稍后重试。"
+                : "Could not start the exit helper. Please retry.");
+        }
+
+        private async void OnHubUninstallClick(object sender, RoutedEventArgs e)
+        {
+            bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            HubUninstallButton.IsEnabled = false;
+            bool launched = await KillConfirmWidgetPage.TryLaunchFullTrustHelperAsync(
+                KillConfirmWidgetPage.OpenUninstallerParameterGroupId);
+            HubUninstallButton.IsEnabled = true;
+            ShowAppActionStatus(launched
+                ? (isChinese ? "已打开卸载程序。" : "The uninstaller was opened.")
+                : (isChinese ? "无法打开卸载程序。" : "Could not open the uninstaller."));
+        }
+
+        private void ShowAppActionStatus(string message)
+        {
+            HubAppActionsStatusText.Text = message;
+            HubAppActionsStatusText.Visibility = Visibility.Visible;
+        }
 
         public void SwitchTab(string tab)
         {

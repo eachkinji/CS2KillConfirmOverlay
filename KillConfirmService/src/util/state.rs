@@ -1,4 +1,4 @@
-use std::collections::{HashMap, VecDeque};
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicU8, AtomicU32, AtomicU64, Ordering};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
@@ -533,6 +533,9 @@ pub struct AppState {
     pub args: Args,
     pub preset: RwLock<Preset>,
     pub volume_percent: AtomicU32,
+    pub streak_gain_enabled: AtomicBool,
+    pub streak_gain_step_percent: AtomicU32,
+    pub streak_gain_maximum_percent: AtomicU32,
     pub money_reward_mode: AtomicU8,
     pub crossfire_streak_mode: AtomicU8,
     pub crossfire_streak_window_ms: AtomicU64,
@@ -549,10 +552,12 @@ pub struct AppState {
     pub event_sound_settings: RwLock<EventSoundSettings>,
     pub csol_voice_picks: RwLock<HashMap<String, String>>,
     pub csol_special_voice_priority: AtomicBool,
+    pub csol_last_kill_special_audio: AtomicBool,
     pub dagoujiao_epic_kill_count: AtomicU32,
     pub dagoujiao_headshot_priority: AtomicBool,
     pub dagoujiao_initial_playback_speed_percent: AtomicU32,
     pub dagoujiao_maximum_playback_speed_percent: AtomicU32,
+    pub dagoujiao_epic_playback_speed_percent: AtomicU32,
     pub dagoujiao_audio_paths: RwLock<HashMap<String, String>>,
     pub doubao_audio_paths: RwLock<HashMap<String, String>>,
     pub bomb_audio_enabled: AtomicBool,
@@ -562,11 +567,12 @@ pub struct AppState {
     pub bomb_audio_generation: AtomicU64,
     pub bomb_audio_sink: std::sync::Mutex<Option<Arc<rodio::Sink>>>,
     pub stop_previous_kill_audio: AtomicBool,
-    pub kill_audio_sink: std::sync::Mutex<Option<Arc<Sink>>>,
+    pub kill_audio_sinks: std::sync::Mutex<Vec<Arc<Sink>>>,
     pub spectated_kill_effects_enabled: AtomicBool,
     pub bomb_audio_paths: std::sync::Mutex<BombAudioPaths>,
     pub gsi_game_version: AtomicU8,
     pub events: EventJournal,
+    pub ui_process_ids: RwLock<HashSet<u32>>,
     pub shutdown_tx: broadcast::Sender<()>,
     pub gsi_posts: AtomicU64,
     pub gsi_parse_errors: AtomicU64,

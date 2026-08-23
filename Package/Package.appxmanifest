@@ -11,7 +11,7 @@
   <Identity
     Name="KillConfirmGameBar.Overlay"
     Publisher="CN=TestXboxGameBar"
-    Version="3.3.9.0" />
+    Version="4.0.0.0" />
 
   <mp:PhoneIdentity PhoneProductId="8f70c4bd-4270-4a4f-a7d1-91ae48dbe9f4" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
 
@@ -81,22 +81,24 @@
         </uap:Extension>
         <desktop:Extension Category="windows.fullTrustProcess" Executable="KillConfirmService\cskillconfirm.exe">
           <desktop:FullTrustProcess>
-            <desktop:ParameterGroup GroupId="CrossfirePreset" Parameters="--preset crossfire_swat_gr" />
-            <desktop:ParameterGroup GroupId="CrossfirePresetDeveloper" Parameters="--preset crossfire_swat_gr --developer-mode" />
+            <desktop:ParameterGroup GroupId="CrossfirePreset" Parameters="--preset crossfire_swat_gr --exit-with-ui" />
+            <desktop:ParameterGroup GroupId="CrossfirePresetDeveloper" Parameters="--preset crossfire_swat_gr --developer-mode --exit-with-ui" />
             <desktop:ParameterGroup GroupId="FreeServicePort" Parameters="--free-port 10087" />
             <desktop:ParameterGroup GroupId="OpenRuntimeLogs" Parameters="--open-logs" />
+            <desktop:ParameterGroup GroupId="ExitAll" Parameters="--exit-all" />
+            <desktop:ParameterGroup GroupId="OpenUninstaller" Parameters="--open-uninstaller" />
             <desktop:ParameterGroup GroupId="OpenSettingsWindow" Parameters="--open-settings-launcher" />
             <desktop:ParameterGroup GroupId="OpenSettingsWindowDeveloper" Parameters="--open-settings-launcher --developer-mode" />
             <desktop:ParameterGroup GroupId="OpenQuarkUpdate" Parameters="--open-quark-update" />
             <desktop:ParameterGroup GroupId="OpenAuthorGitHub" Parameters="--open-author-github" />
             <desktop:ParameterGroup GroupId="OpenAuthorBilibili" Parameters="--open-author-bilibili" />
-            <desktop:ParameterGroup GroupId="ServicePort10087" Parameters="--port 10087" />
-            <desktop:ParameterGroup GroupId="ServicePort10088" Parameters="--port 10088" />
-            <desktop:ParameterGroup GroupId="ServicePort10089" Parameters="--port 10089" />
-            <desktop:ParameterGroup GroupId="ServicePort10090" Parameters="--port 10090" />
-            <desktop:ParameterGroup GroupId="ServicePort10091" Parameters="--port 10091" />
-            <desktop:ParameterGroup GroupId="ServicePort10092" Parameters="--port 10092" />
-            <desktop:ParameterGroup GroupId="ServicePortCustom" Parameters="--port-from-file" />
+            <desktop:ParameterGroup GroupId="ServicePort10087" Parameters="--port 10087 --exit-with-ui" />
+            <desktop:ParameterGroup GroupId="ServicePort10088" Parameters="--port 10088 --exit-with-ui" />
+            <desktop:ParameterGroup GroupId="ServicePort10089" Parameters="--port 10089 --exit-with-ui" />
+            <desktop:ParameterGroup GroupId="ServicePort10090" Parameters="--port 10090 --exit-with-ui" />
+            <desktop:ParameterGroup GroupId="ServicePort10091" Parameters="--port 10091 --exit-with-ui" />
+            <desktop:ParameterGroup GroupId="ServicePort10092" Parameters="--port 10092 --exit-with-ui" />
+            <desktop:ParameterGroup GroupId="ServicePortCustom" Parameters="--port-from-file --exit-with-ui" />
           </desktop:FullTrustProcess>
         </desktop:Extension>
       </Extensions>

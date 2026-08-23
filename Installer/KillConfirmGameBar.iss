@@ -2,7 +2,7 @@
 #define MyAppExeName "Install-KillConfirm.ps1"
 
 #ifndef MyAppVersion
-  #define MyAppVersion "1.0.0.0"
+  #define MyAppVersion "4.0.0.0"
 #endif
 
 #ifndef TransferRoot
@@ -53,8 +53,16 @@ english.InstallScriptLaunchFailed=Could not start the installer script. Setup wi
 chinesesimplified.InstallScriptLaunchFailed=无法启动安装脚本。安装管理器不会中止，请记录此问题后继续查看完成页面。
 english.InstallScriptFailed=The installer script reported an unexpected exit code. Setup will not abort. Exit code:
 chinesesimplified.InstallScriptFailed=安装脚本返回了异常退出码，但安装管理器不会中止。退出码：
-english.InstallLogOpened=If the log did not open, check %TEMP%\KillConfirmGameBar_Install.log.
-chinesesimplified.InstallLogOpened=如果日志没有自动打开，请查看 %TEMP%\KillConfirmGameBar_Install.log。
+english.OpenInstallLogQuestion=Would you like to open the installation diagnostic log now?
+chinesesimplified.OpenInstallLogQuestion=是否现在打开安装诊断日志？
+english.InstallCompletedSuccess=Installation completed successfully.
+chinesesimplified.InstallCompletedSuccess=安装已成功完成。
+english.InstallCompletedWarning=Installation completed with non-blocking notices. The main program can still be used; open the log only if you want to review the notices.
+chinesesimplified.InstallCompletedWarning=安装已完成，但存在非阻断提示。主程序仍可正常使用；如需查看提示详情，可选择打开日志。
+english.InstallCompletedError=Installation finished, but one or more items failed. Review the log for details.
+chinesesimplified.InstallCompletedError=安装流程已结束，但存在失败项。建议打开日志查看详情。
+english.InstallCompletedUnknown=Installation finished, but no structured result was returned. You may open the log for details.
+chinesesimplified.InstallCompletedUnknown=安装流程已结束，但没有读取到结构化结果。可打开日志查看详情。
 english.InstallLogMissing=The script stopped before it could create a new log. This usually indicates a PowerShell launch or parsing failure.
 chinesesimplified.InstallLogMissing=安装脚本在生成新日志前就已停止，通常表示 PowerShell 启动或脚本解析失败。
 english.SameOrNewerVersionBlocked=This computer already has a newer version installed. Please uninstall the newer Kill Confirm Overlay first, then run this installer again.
@@ -295,45 +303,90 @@ end;
 procedure CurStepChanged(CurStep: TSetupStep);
 var
   ResultCode: Integer;
-  OpenResult: Integer;
   Params: String;
   LogPath: String;
+  ResultPath: String;
+  StatusPath: String;
+  InstallStatus: String;
+  PromptText: String;
+  PromptType: TMsgBoxType;
+  OpenResult: Integer;
 begin
   if CurStep = ssPostInstall then
   begin
     ResultCode := 0;
     LogPath := ExpandConstant('{%TEMP}\KillConfirmGameBar_Install.log');
+    ResultPath := ExpandConstant('{%TEMP}\KillConfirmGameBar_Install_Result.txt');
+    StatusPath := ExpandConstant('{%TEMP}\KillConfirmGameBar_Install_Status.ini');
     DeleteFile(LogPath);
+    DeleteFile(ResultPath);
+    DeleteFile(StatusPath);
 #if SkipPrerequisites
     WizardForm.StatusLabel.Caption := ExpandConstant('{cm:InstallingOverlay}');
 #else
     WizardForm.StatusLabel.Caption := ExpandConstant('{cm:CheckingPrerequisites}');
 #endif
+#if SkipPrerequisites
     Params := '-NoProfile -ExecutionPolicy Bypass -File "' + ExpandConstant('{app}\Payload\Install-KillConfirm.ps1') + '"';
+#else
+    Params := '-NoProfile -ExecutionPolicy Bypass -File "' + ExpandConstant('{app}\Payload\Install-KillConfirm.ps1') + '" -InstallPrerequisites';
+#endif
 
     if not Exec(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'), Params, ExpandConstant('{app}\Payload'), SW_HIDE, ewWaitUntilTerminated, ResultCode) then
     begin
-      MsgBox(ExpandConstant('{cm:InstallScriptLaunchFailed}'), mbError, MB_OK);
+      PromptText := ExpandConstant('{cm:InstallScriptLaunchFailed}') + #13#10 + #13#10 + ExpandConstant('{cm:OpenInstallLogQuestion}');
+      if MsgBox(PromptText, mbError, MB_YESNO) = IDYES then
+      begin
+        if FileExists(ResultPath) then
+          ShellExec('', ResultPath, '', '', SW_SHOWNORMAL, ewNoWait, OpenResult)
+        else if FileExists(LogPath) then
+          ShellExec('', LogPath, '', '', SW_SHOWNORMAL, ewNoWait, OpenResult);
+      end;
       Exit;
     end;
 
     if ResultCode <> 0 then
     begin
-      if FileExists(LogPath) then
+      PromptText := ExpandConstant('{cm:InstallScriptFailed}') + ' ' + IntToStr(ResultCode) + #13#10 + #13#10 + ExpandConstant('{cm:OpenInstallLogQuestion}');
+      if MsgBox(PromptText, mbError, MB_YESNO) = IDYES then
       begin
-        ShellExec('', LogPath, '', '', SW_SHOWNORMAL, ewNoWait, OpenResult);
-        MsgBox(
-          ExpandConstant('{cm:InstallScriptFailed}') + ' ' + IntToStr(ResultCode) + #13#10 + ExpandConstant('{cm:InstallLogOpened}'),
-          mbError,
-          MB_OK);
-      end
-      else
-      begin
-        MsgBox(
-          ExpandConstant('{cm:InstallScriptFailed}') + ' ' + IntToStr(ResultCode) + #13#10 + ExpandConstant('{cm:InstallLogMissing}'),
-          mbError,
-          MB_OK);
+        if FileExists(ResultPath) then
+          ShellExec('', ResultPath, '', '', SW_SHOWNORMAL, ewNoWait, OpenResult)
+        else if FileExists(LogPath) then
+          ShellExec('', LogPath, '', '', SW_SHOWNORMAL, ewNoWait, OpenResult);
       end;
+      Exit;
+    end;
+
+    InstallStatus := GetIniString('Result', 'Status', '', StatusPath);
+    if CompareText(InstallStatus, 'Error') = 0 then
+    begin
+      PromptText := ExpandConstant('{cm:InstallCompletedError}');
+      PromptType := mbError;
+    end
+    else if CompareText(InstallStatus, 'Warning') = 0 then
+    begin
+      PromptText := ExpandConstant('{cm:InstallCompletedWarning}');
+      PromptType := mbInformation;
+    end
+    else if CompareText(InstallStatus, 'Success') = 0 then
+    begin
+      PromptText := ExpandConstant('{cm:InstallCompletedSuccess}');
+      PromptType := mbInformation;
+    end
+    else
+    begin
+      PromptText := ExpandConstant('{cm:InstallCompletedUnknown}');
+      PromptType := mbInformation;
+    end;
+
+    PromptText := PromptText + #13#10 + #13#10 + ExpandConstant('{cm:OpenInstallLogQuestion}');
+    if MsgBox(PromptText, PromptType, MB_YESNO) = IDYES then
+    begin
+      if FileExists(ResultPath) then
+        ShellExec('', ResultPath, '', '', SW_SHOWNORMAL, ewNoWait, OpenResult)
+      else if FileExists(LogPath) then
+        ShellExec('', LogPath, '', '', SW_SHOWNORMAL, ewNoWait, OpenResult);
     end;
   end;
 end;

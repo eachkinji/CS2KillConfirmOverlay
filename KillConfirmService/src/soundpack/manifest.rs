@@ -1,12 +1,42 @@
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
-use std::{
-    collections::HashMap,
-    fs,
-    path::Path,
-};
+use std::{collections::HashMap, fs, path::Path};
 
-use super::lua_script::{SoundContext, SoundEntry};
+use crate::util::state::EventChannel;
+
+/// Context describing the current kill event, consumed by manifest audio routing.
+#[derive(Serialize, Clone, Debug)]
+pub struct SoundContext {
+    pub kill_count: u16,
+    pub is_headshot: bool,
+    pub is_first_kill: bool,
+    pub is_knife_kill: bool,
+    pub is_last_kill: bool,
+    pub is_assist: bool,
+    pub play_main_audio: bool,
+    pub money_reward: u16,
+    pub event_kind: Option<String>,
+    pub event_channel: EventChannel,
+    pub preset_name: String,
+    pub master_name: String,
+    pub variant: Option<String>,
+    pub base_dir: String,
+    /// CSOL: per kill-type voice pick ("random" or a specific file name).
+    pub voice_picks: HashMap<String, String>,
+    /// CSOL: true when a special voice (headshot/knife) beats the streak voice.
+    pub special_voice_priority: bool,
+    /// CrossFire / Generic: true when user enables headshot audio priority
+    pub headshot_priority: bool,
+    /// CrossFire / Generic: true when user enables knife audio priority
+    pub knife_priority: bool,
+}
+
+/// SoundEntry represents an audio file path with its playback gain.
+#[derive(Clone, Debug, PartialEq)]
+pub struct SoundEntry {
+    pub path: String,
+    pub gain: f32,
+}
 
 /// Declarative manifest for sound and icon packs
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
@@ -198,38 +228,39 @@ impl PackManifest {
                 .unwrap_or(audio.base_gain)
         };
 
-        let push_slot = |entries: &mut Vec<SoundEntry>, slot: &str, specific_alias: Option<&str>| -> bool {
-            if let Some(slot_files) = audio.slots.get(slot) {
-                let preferred = specific_alias
-                    .and_then(|alias| ctx.voice_picks.get(alias))
-                    .or_else(|| {
-                        let pick_key = match slot {
-                            "kill_1" => "1",
-                            "kill_2" => "2",
-                            "kill_3" => "3",
-                            "kill_4" => "4",
-                            "kill_5" => "5",
-                            "kill_6" => "6",
-                            "kill_7" => "7",
-                            "kill_8" => "8",
-                            "kill_9" => "9",
-                            "kill_10" => "10",
-                            other => other,
-                        };
-                        ctx.voice_picks.get(pick_key)
-                    })
-                    .or_else(|| ctx.voice_picks.get(slot))
-                    .map(String::as_str);
+        let push_slot =
+            |entries: &mut Vec<SoundEntry>, slot: &str, specific_alias: Option<&str>| -> bool {
+                if let Some(slot_files) = audio.slots.get(slot) {
+                    let preferred = specific_alias
+                        .and_then(|alias| ctx.voice_picks.get(alias))
+                        .or_else(|| {
+                            let pick_key = match slot {
+                                "kill_1" => "1",
+                                "kill_2" => "2",
+                                "kill_3" => "3",
+                                "kill_4" => "4",
+                                "kill_5" => "5",
+                                "kill_6" => "6",
+                                "kill_7" => "7",
+                                "kill_8" => "8",
+                                "kill_9" => "9",
+                                "kill_10" => "10",
+                                other => other,
+                            };
+                            ctx.voice_picks.get(pick_key)
+                        })
+                        .or_else(|| ctx.voice_picks.get(slot))
+                        .map(String::as_str);
 
-                if let Some(filename) = slot_files.pick_audio(preferred) {
-                    let path = format!("{base}{filename}");
-                    let gain = get_gain(slot);
-                    entries.push(SoundEntry { path, gain });
-                    return true;
+                    if let Some(filename) = slot_files.pick_audio(preferred) {
+                        let path = format!("{base}{filename}");
+                        let gain = get_gain(slot);
+                        entries.push(SoundEntry { path, gain });
+                        return true;
+                    }
                 }
-            }
-            false
-        };
+                false
+            };
 
         let push_overlay_if_enabled = |entries: &mut Vec<SoundEntry>, current_slot: &str| {
             let enabled = match &audio.overlay_slots {
@@ -247,8 +278,33 @@ impl PackManifest {
             }
         };
 
-        // 1. First Kill / Last Kill check
-        if ctx.is_first_kill || ctx.is_last_kill {
+        let game_style = self.game_style.as_deref().unwrap_or_default();
+        let is_valorant = game_style.eq_ignore_ascii_case("valorant");
+
+        // Valorant always uses the numbered kill cue as the base layer, starting
+        // at kill 1. A headshot adds headshot.wav to that same event group; it
+        // never replaces the numbered cue.
+        if is_valorant && ctx.play_main_audio && ctx.kill_count >= 1 {
+            let count = ctx.kill_count.clamp(1, 5);
+            let slot = format!("kill_{count}");
+            if !push_slot(&mut entries, &slot, None) {
+                push_slot(&mut entries, "kill_1", None);
+            }
+            push_overlay_if_enabled(&mut entries, &slot);
+            if ctx.is_headshot {
+                push_slot(&mut entries, "headshot", None);
+            }
+            return entries;
+        }
+
+        // 1. First Kill / Last Kill check.
+        // CSOL has no dedicated first-kill voice (素材无首杀): its first kill plays
+        // the normal streak/kill_1 voice, and only the last kill (revenge) uses the
+        // first_and_last slot. Every other game keeps the shared first_and_last
+        // slot for both first and last kill.
+        let is_csol = game_style.eq_ignore_ascii_case("csol");
+        let handle_first_last = ctx.is_last_kill || (ctx.is_first_kill && !is_csol);
+        if handle_first_last {
             let alias = if ctx.is_first_kill { "first" } else { "last" };
             if push_slot(&mut entries, "first_and_last", Some(alias)) {
                 push_overlay_if_enabled(&mut entries, "first_and_last");
@@ -256,13 +312,56 @@ impl PackManifest {
             }
         }
 
+        // 1b. Assist — event voice pack slot. Falls back to the normal kill
+        // voice (kill_1) when no dedicated assist audio is provided, matching
+        // the prior assist-routing behavior. Existing CF/CSOL packs have no
+        // "assist" slot so they keep playing kill_1 unchanged.
+        if ctx.is_assist {
+            if !push_slot(&mut entries, "assist", None) {
+                push_slot(&mut entries, "kill_1", None);
+            }
+            return entries;
+        }
+
         // 2. Priority calculation
-        let play_headshot = ctx.is_headshot && (ctx.headshot_priority || ctx.kill_count == 1);
-        let play_knife = ctx.is_knife_kill && (ctx.knife_priority || ctx.kill_count == 1);
-        let play_streak = ctx.play_main_audio && ctx.kill_count >= 2 && !play_headshot && !play_knife;
+        // Event-cue games and Valorant/MW2019 expose dedicated special-kill
+        // sounds rather than CrossFire-style optional priorities. Their
+        // headshot/critical cue must therefore win at every streak count.
+        // CSOL keeps its own user-controlled special-vs-streak priority.
+        let always_prioritize_special = matches!(
+            game_style.to_ascii_lowercase().as_str(),
+            "apex"
+                | "battlefield1"
+                | "battlefield5"
+                | "battlefield2042"
+                | "deltaforce"
+                | "valorant"
+                | "modernwarfare2019"
+        );
+        let csol_special_priority = is_csol && ctx.special_voice_priority;
+        let crossfire_headshot_priority = !is_csol && ctx.headshot_priority;
+        let crossfire_knife_priority = !is_csol && ctx.knife_priority;
+        let play_headshot = ctx.is_headshot
+            && (always_prioritize_special
+                || csol_special_priority
+                || crossfire_headshot_priority
+                || ctx.kill_count == 1);
+        let play_knife = ctx.is_knife_kill
+            && (always_prioritize_special
+                || csol_special_priority
+                || crossfire_knife_priority
+                || ctx.kill_count == 1);
+        let play_streak =
+            ctx.play_main_audio && ctx.kill_count >= 2 && !play_headshot && !play_knife;
 
         if play_streak {
-            let cap = if self.game_style.as_deref() == Some("csol") { 10 } else { 8 };
+            let cap = if is_csol {
+                10
+            } else if is_valorant {
+                5
+            } else {
+                8
+            };
             let count = ctx.kill_count.clamp(1, cap);
             let slot = format!("kill_{count}");
             if !push_slot(&mut entries, &slot, None) {
@@ -288,4 +387,3 @@ impl PackManifest {
         entries
     }
 }
-

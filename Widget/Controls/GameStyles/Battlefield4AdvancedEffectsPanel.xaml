@@ -50,7 +50,7 @@
                         <TextBlock x:Name="MoneyRewardModeLabel" Style="{StaticResource CompactChoiceLabelStyle}" VerticalAlignment="Center" Text="Money" />
                     </StackPanel>
                     <ComboBox x:Name="MoneyRewardModeSelector" SelectedIndex="0" Style="{StaticResource CompactSettingsComboBoxStyle}" SelectionChanged="OnMoneyRewardModeSelectionChanged" ToolTipService.ToolTip="Money reward calculation">
-                        <ComboBoxItem x:Name="MoneyRewardDeltaItem" Tag="delta">GSI delta (default)</ComboBoxItem>
+                        <ComboBoxItem x:Name="MoneyRewardDeltaItem" Tag="delta">Actual money change (recommended)</ComboBoxItem>
                         <ComboBoxItem x:Name="MoneyRewardRulesItem" Tag="rules">Kill reward rules</ComboBoxItem>
                     </ComboBox>
                 </StackPanel>
@@ -61,7 +61,20 @@
                 SettingsChanged="OnStreakModeSelectionChanged" />
         </Grid>
 
-        <local:EventSoundRoutingPanel x:Name="EventSoundPanel" />
+        <Border x:Name="VisualEffectsCard" Padding="12" BorderThickness="1" CornerRadius="8">
+            <StackPanel Spacing="8">
+                <TextBlock x:Name="VisualEffectsTitle" FontSize="12" FontWeight="SemiBold" />
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock x:Name="KillMarkEffectLabel" VerticalAlignment="Center" FontSize="10" TextWrapping="WrapWholeWords" />
+                    <ToggleSwitch x:Name="KillMarkEffectToggle" Grid.Column="1" MinWidth="0" Toggled="OnKillMarkEffectToggled" />
+                </Grid>
+            </StackPanel>
+        </Border>
+
         <local:Battlefield4StylePanel x:Name="StylePanel" />
         <Border
             x:Name="ImportLockedNotice"
@@ -72,7 +85,7 @@
             <TextBlock
                 x:Name="ImportLockedText"
                 FontSize="10"
-                Text="Battlefield 4 visuals stay built in; event sounds can be customized above."
+                Text="Battlefield 4 visuals stay built in; event sounds can be customized in the Voice tab."
                 TextWrapping="WrapWholeWords" />
         </Border>
     </StackPanel>

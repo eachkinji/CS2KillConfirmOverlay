@@ -140,6 +140,7 @@ namespace KillConfirmGameBar
             UpdateReleaseNotesVisualState();
             UpdateQuarkCodeText.Text = string.Format(LocalizationManager.Text("UpdateQuarkCode"), QuarkUpdateCode);
             UpdateCopyQuarkButton.Content = LocalizationManager.Text("UpdateCopyQuark");
+            UpdateOverlay.RefreshCredits();
             UpdateCloseButton.IsEnabled = true;
             UpdateOverlay.Visibility = Visibility.Visible;
         }

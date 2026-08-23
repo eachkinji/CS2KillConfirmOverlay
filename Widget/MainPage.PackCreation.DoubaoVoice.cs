@@ -23,12 +23,10 @@ namespace KillConfirmGameBar
 
         private async Task ShowCreateDoubaoVoicePackDialogAsync(
             string initialDisplayName = null,
-            IReadOnlyDictionary<string, StorageFile> initialFiles = null,
+            IReadOnlyDictionary<string, IReadOnlyList<StorageFile>> initialFiles = null,
             StorageFile initialHeadImageFile = null)
         {
-            var selectedFiles = initialFiles != null
-                ? new Dictionary<string, StorageFile>(initialFiles, StringComparer.OrdinalIgnoreCase)
-                : new Dictionary<string, StorageFile>(StringComparer.OrdinalIgnoreCase);
+            var selectedFiles = CreateVoiceSelectionMap(initialFiles);
             StorageFile headImageFile = initialHeadImageFile;
 
             var layout = CreatePackDialogLayout(
@@ -48,11 +46,10 @@ namespace KillConfirmGameBar
             var slotContainer = new StackPanel { Spacing = 8 };
             foreach (var slot in DoubaoVoiceSlots)
             {
-                selectedFiles.TryGetValue(slot.FileName, out StorageFile existingFile);
-                var row = await CreateSlotRowAsync(
+                selectedFiles.TryGetValue(slot.FileName, out List<StorageFile> existingFiles);
+                var row = await CreateVoiceSlotRowAsync(
                     slot.FileName, LocalizationManager.Text(slot.LabelKey),
-                    isAudio: true, GameStyleMode.Doubao,
-                    selectedFiles, existingFile);
+                    GameStyleMode.Doubao, selectedFiles, existingFiles);
                 slotContainer.Children.Add(row);
             }
 
@@ -76,12 +73,12 @@ namespace KillConfirmGameBar
                 ? "豆包语音包"
                 : nameBox.Text.Trim();
 
-            await FillBuiltInDefaultsAsync(
+            await FillBuiltInVoiceDefaultsAsync(
                 selectedFiles, DoubaoVoiceSlots, "ms-appx:///KillConfirmService/sounds/doubao/");
 
             await PackCatalogService.CreateDoubaoVoicePackAsync(packName, new VoicePackBuildOptions
             {
-                SelectedFiles = selectedFiles,
+                SelectedFileGroups = AsReadOnlyVoiceSelection(selectedFiles),
                 HeadImageFile = headImageFile
             });
         }

@@ -3,12 +3,10 @@ use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use super::lua_script::LuaScript;
 use super::manifest::PackManifest;
 
-/// Preset holds either a declarative PackManifest or a legacy LuaScript
+/// Preset holds a declarative PackManifest describing a sound pack's materials.
 pub struct Preset {
-    pub lua_script: Option<LuaScript>,
     pub manifest: Option<PackManifest>,
     pub preset_name: String,
     pub display_name: String,
@@ -32,42 +30,12 @@ impl Preset {
         let pack_dir = sounds_root.join(preset_name);
         let base_dir = pack_dir.to_string_lossy().replace('\\', "/");
 
-        // 1. Try loading manifest.json first
-        let manifest_path = pack_dir.join("manifest.json");
-        let manifest = if manifest_path.exists() {
-            Some(PackManifest::load_from_dir(&pack_dir)?)
-        } else {
-            None
-        };
-
-        // 2. Load Lua script if present or if manifest is absent
-        let own_script_path = pack_dir.join("sound.lua");
-        let master_script_path = sounds_root.join(master_name).join("sound.lua");
-        let script_path = if fs::metadata(&own_script_path).is_ok() {
-            Some(own_script_path)
-        } else if fs::metadata(&master_script_path).is_ok() {
-            Some(master_script_path)
-        } else {
-            None
-        };
-
-        let lua_script = if let Some(sp) = script_path {
-            let sp_text = sp.to_string_lossy().to_string();
-            LuaScript::load(&sp_text).ok()
-        } else {
-            None
-        };
-
-        // If neither manifest.json nor sound.lua was found, auto-discover manifest from files
-        let manifest = if manifest.is_none() && lua_script.is_none() {
-            PackManifest::auto_discover(&pack_dir).ok()
-        } else {
-            manifest
-        };
+        // Load manifest.json if present; otherwise auto-discover one from the
+        // pack's audio files. (Legacy sound.lua scripts have been retired.)
+        let manifest = PackManifest::load_from_dir(&pack_dir)?;
 
         Ok(Self {
-            lua_script,
-            manifest,
+            manifest: Some(manifest),
             preset_name: preset_name.to_string(),
             display_name: preset_name.to_string(),
             master_name: master_name.to_string(),
@@ -80,32 +48,10 @@ impl Preset {
         let pack_dir = Path::new(folder_path);
         let base_dir = folder_path.replace('\\', "/");
 
-        // 1. Try loading manifest.json
-        let manifest_path = pack_dir.join("manifest.json");
-        let manifest = if manifest_path.exists() {
-            Some(PackManifest::load_from_dir(pack_dir)?)
-        } else {
-            None
-        };
-
-        // 2. Try loading sound.lua if present
-        let script_path = format!("{folder_path}/sound.lua");
-        let lua_script = if Path::new(&script_path).exists() {
-            LuaScript::load(&script_path).ok()
-        } else {
-            None
-        };
-
-        // 3. Fallback: auto-discover manifest from folder
-        let manifest = if manifest.is_none() && lua_script.is_none() {
-            Some(PackManifest::auto_discover(pack_dir)?)
-        } else {
-            manifest
-        };
+        let manifest = PackManifest::load_from_dir(pack_dir)?;
 
         Ok(Self {
-            lua_script,
-            manifest,
+            manifest: Some(manifest),
             preset_name: preset_name.to_string(),
             display_name: display_name.to_string(),
             master_name: preset_name.to_string(),

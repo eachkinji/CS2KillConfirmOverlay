@@ -6,10 +6,10 @@
   "audio": {
     "base_gain": 1.0,
     "slots": {
-      "kill_1": "Cantbelive.wav",
+      "kill_1": [ "Cantbelive.wav", "Crazy.wav", "Excellent.wav", "Firstkill.wav", "Incredible.wav" ],
       "kill_2": "Doublekill.wav",
       "kill_3": "Triplekill.wav",
-      "kill_4": "Multikill.wav",
+      "kill_4": [ "Multikill.wav", "Multikill_ch.wav" ],
       "kill_5": "Megakill.wav",
       "kill_6": "Rampage.wav",
       "kill_7": "Monsterkill.wav",
@@ -17,8 +17,9 @@
       "kill_9": "Outofworld.wav",
       "kill_10": "Ohgod.wav",
       "headshot": "Headshot.wav",
-      "knife": "Humililation.wav",
-      "first_and_last": "Firstkill.wav"
+      "knife": [ "Humililation.wav", "Ohno.wav" ],
+      "assist": "Assist.wav",
+      "first_and_last": "Revenge.wav"
     },
     "overlay_slots": []
   }

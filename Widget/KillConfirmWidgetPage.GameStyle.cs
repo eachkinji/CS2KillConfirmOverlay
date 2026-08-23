@@ -94,6 +94,7 @@ namespace KillConfirmGameBar
             OpenGuideButton.Background = Brush(theme.Accent);
             OpenGuideButton.BorderBrush = Brush(crossfire ? Color.FromArgb(255, 197, 106, 0) : theme.AccentText);
             SetButtonTheme(AdvancedEffectsButton, theme.Accent, crossfire ? Color.FromArgb(255, 197, 106, 0) : theme.AccentText, Color.FromArgb(255, 255, 255, 255));
+            AdvancedEffectsButton.IsEnabled = true;
             SetNamedToolTip(
                 AdvancedEffectsButton,
                 LocalizationManager.Text("AdvancedEffectsTitle"),
@@ -131,6 +132,10 @@ namespace KillConfirmGameBar
 
             SetComboTheme(VoicePackSelector, text, field, border);
             SetComboTheme(IconPackSelector, text, field, border);
+            VoicePackSelector.IsEnabled = true;
+            IconPackSelector.IsEnabled = GameStyleService.Current != GameStyleMode.Overwatch
+                && GameStyleService.Current != GameStyleMode.ModernWarfare2019
+                && GameStyleService.Current != GameStyleMode.Apex;
             SetComboTheme(KillFxSelector, text, field, border);
             SetComboTheme(EliteEffectSelector, text, field, border);
             SetComboTheme(WeaponBadgeSelector, text, field, border);
@@ -166,19 +171,10 @@ namespace KillConfirmGameBar
             SetButtonTheme(ControlPanelCenterButton, panelButtonBackground, theme.Secondary, theme.Secondary);
             SetButtonTheme(WindowBottomButton, panelButtonBackground, theme.Secondary, theme.Secondary);
 
-            SetButtonTheme(LowerThirdButton, theme.WarningField, theme.WarningBorder, theme.WarningText);
-            SetButtonTheme(HighPositionButton, theme.WarningField, theme.WarningBorder, theme.WarningText);
-            SetButtonTheme(IconCenterButton, theme.WarningField, theme.WarningBorder, theme.WarningText);
-
-            // Fine adjustments and reset stay neutral on the second row.
-            SetButtonTheme(MoveUpButton, theme.Field, theme.SoftBorder, theme.Text);
-            SetButtonTheme(MoveDownButton, theme.Field, theme.SoftBorder, theme.Text);
-            SetButtonTheme(MoveLeftButton, theme.Field, theme.SoftBorder, theme.Text);
-            SetButtonTheme(MoveRightButton, theme.Field, theme.SoftBorder, theme.Text);
-            SetButtonTheme(ScaleDownButton, theme.Field, theme.SoftBorder, theme.Text);
-            SetButtonTheme(ScaleUpButton, theme.Field, theme.SoftBorder, theme.Text);
+            // Reset stays neutral in the primary visual toolbar.
             SetButtonTheme(ResetVisualButton, theme.Field, theme.SoftBorder, theme.Text);
             UpdateOverlay.ApplyTheme(theme);
+            UpdateControlPanelVisibility();
         }
 
         private static void SetGameStyleItemContent(ComboBoxItem item, string text, string logoUri)

@@ -1,11 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using KillConfirmGameBar.Helpers;
 using KillConfirmGameBar.Services;
-using Windows.Media.Core;
 using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.UI;
@@ -19,178 +16,231 @@ namespace KillConfirmGameBar
 {
     public sealed partial class MainPage
     {
-        public sealed class MaterialItem
+        private sealed class MaterialFolderItem
         {
-            public string Name { get; set; }
-            public string SourceCategory { get; set; }
-            public StorageFile File { get; set; }
-            public string AppxUri { get; set; }
-            public bool IsAudio { get; set; }
             public string Key { get; set; }
+            public string DisplayName { get; set; }
+            public StorageFolder Folder { get; set; }
+            public IReadOnlyList<StorageFile> Files { get; set; }
         }
 
-        private Task<StorageFile> ShowMaterialPickerDialogAsync(
+        private async Task<StorageFile> ShowMaterialPickerDialogAsync(
             bool isAudio,
             GameStyleMode currentGame,
             IReadOnlyDictionary<string, StorageFile> stagedFiles,
             string slotDisplayName,
             StorageFile currentSelectedFile)
         {
-            var tcs = new TaskCompletionSource<StorageFile>();
+            IReadOnlyList<StorageFile> files = await ShowMaterialPickerCoreAsync(
+                isAudio,
+                allowMultiple: false,
+                currentGame,
+                stagedFiles?.Values,
+                slotDisplayName,
+                currentSelectedFile == null ? null : new[] { currentSelectedFile });
+            return files?.FirstOrDefault();
+        }
 
-            bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
-            string materialTypeLabel = isAudio
-                ? (isChinese ? "音频素材" : "Audio Material")
-                : (isChinese ? "图标素材" : "Icon Material");
+        private Task<IReadOnlyList<StorageFile>> ShowAudioMaterialPickerDialogAsync(
+            GameStyleMode currentGame,
+            IReadOnlyDictionary<string, List<StorageFile>> stagedFiles,
+            string slotDisplayName,
+            IReadOnlyList<StorageFile> currentSelectedFiles)
+        {
+            IEnumerable<StorageFile> allStaged = stagedFiles == null
+                ? Enumerable.Empty<StorageFile>()
+                : stagedFiles.Values.Where(files => files != null).SelectMany(files => files);
+            return ShowMaterialPickerCoreAsync(
+                isAudio: true,
+                allowMultiple: true,
+                currentGame,
+                allStaged,
+                slotDisplayName,
+                currentSelectedFiles);
+        }
 
-            var popup = new Popup
-            {
-                IsOpen = false,
-                IsLightDismissEnabled = false
-            };
+        private Task<IReadOnlyList<StorageFile>> ShowMaterialPickerCoreAsync(
+            bool isAudio,
+            bool allowMultiple,
+            GameStyleMode currentGame,
+            IEnumerable<StorageFile> stagedFiles,
+            string slotDisplayName,
+            IEnumerable<StorageFile> currentSelectedFiles)
+        {
+            var completion = new TaskCompletionSource<IReadOnlyList<StorageFile>>();
+            bool zh = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            string typeName = isAudio ? (zh ? "语音素材" : "Audio") : (zh ? "图标素材" : "Icon");
+            var original = DistinctMaterialFiles(currentSelectedFiles).ToList();
+            var selection = original.ToDictionary(MaterialFileIdentity, file => file, StringComparer.OrdinalIgnoreCase);
+            var folders = new List<MaterialFolderItem>();
+            MaterialFolderItem activeFolder = null;
+            IReadOnlyList<StorageFile> activeFiles = Array.Empty<StorageFile>();
+            int loadVersion = 0;
 
-            var rootOverlay = new Grid
+            var popup = new Popup { IsLightDismissEnabled = false };
+            var overlay = new Grid
             {
                 Width = Window.Current.Bounds.Width,
                 Height = Window.Current.Bounds.Height,
                 Background = new SolidColorBrush(Color.FromArgb(180, 10, 15, 25))
             };
-
-            // Keep the dialog inside the window: a fixed 490 DIP card overflows
-            // narrow windows (common with display scaling above 100%), pushing
-            // the per-row select buttons past the right screen edge.
-            double CardWidthFor(double windowWidth) => Math.Min(490, Math.Max(300, windowWidth - 24));
-
-            var dialogCard = new Border
+            double CardWidth(double width) => Math.Min(500, Math.Max(300, width - 24));
+            var card = new Border
             {
+                Width = CardWidth(Window.Current.Bounds.Width),
+                MaxHeight = 640,
+                Padding = new Thickness(18),
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center,
-                Width = CardWidthFor(Window.Current.Bounds.Width),
-                MaxHeight = 620,
-                Padding = new Thickness(18),
                 Background = new SolidColorBrush(Color.FromArgb(255, 250, 250, 247)),
                 BorderBrush = new SolidColorBrush(Color.FromArgb(255, 213, 208, 196)),
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(18)
             };
-
-            void OnWindowSizeChanged(object sender, Windows.UI.Core.WindowSizeChangedEventArgs e)
+            void OnSizeChanged(object sender, Windows.UI.Core.WindowSizeChangedEventArgs e)
             {
-                rootOverlay.Width = e.Size.Width;
-                rootOverlay.Height = e.Size.Height;
-                dialogCard.Width = CardWidthFor(e.Size.Width);
+                overlay.Width = e.Size.Width;
+                overlay.Height = e.Size.Height;
+                card.Width = CardWidth(e.Size.Width);
             }
-            Window.Current.SizeChanged += OnWindowSizeChanged;
+            Window.Current.SizeChanged += OnSizeChanged;
 
-            var rootLayout = new StackPanel { Spacing = 10 };
-
-            // Title Bar
-            var titleBar = new Grid { ColumnSpacing = 8 };
-            titleBar.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-            titleBar.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-
+            var layout = new StackPanel { Spacing = 10 };
+            var titleGrid = new Grid { ColumnSpacing = 8 };
+            titleGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            titleGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             var titlePanel = new StackPanel { Spacing = 2 };
             titlePanel.Children.Add(new TextBlock
             {
-                Text = (isChinese ? "选择材料 - " : "Select Material - ") + (slotDisplayName ?? materialTypeLabel),
+                Text = (zh ? "选择素材 - " : "Select material - ") + (slotDisplayName ?? typeName),
                 FontSize = 16,
                 FontWeight = Windows.UI.Text.FontWeights.Bold,
                 Foreground = new SolidColorBrush(Color.FromArgb(255, 29, 34, 51))
             });
             titlePanel.Children.Add(new TextBlock
             {
-                Text = isChinese
-                    ? "优先展示当前游戏临时素材与已导入素材池，亦可切换分类自由选用。"
-                    : "Prioritizes current game & staged pool; you can pick from any game.",
+                Text = allowMultiple
+                    ? (zh ? "按游戏查看语音包文件夹；可跨包多选，播放时随机取一个。" : "Browse voice-pack folders by game; multiple picks play at random.")
+                    : (zh ? "按游戏查看素材包文件夹；切换游戏即可跨游戏选择。" : "Browse pack folders by game; switch games for cross-game material."),
                 FontSize = 11,
                 Foreground = new SolidColorBrush(Color.FromArgb(255, 106, 110, 122)),
                 TextWrapping = TextWrapping.WrapWholeWords
             });
-            Grid.SetColumn(titlePanel, 0);
-            titleBar.Children.Add(titlePanel);
-
-            var closeIconBtn = new Button
+            titleGrid.Children.Add(titlePanel);
+            var closeButton = new Button
             {
                 Content = "",
                 FontFamily = new FontFamily("Segoe MDL2 Assets"),
-                FontSize = 10,
                 Width = 28,
                 Height = 28,
                 Padding = new Thickness(0),
                 Background = new SolidColorBrush(Colors.Transparent),
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 120, 120, 120)),
                 BorderThickness = new Thickness(0),
                 CornerRadius = new CornerRadius(14)
             };
-            Grid.SetColumn(closeIconBtn, 1);
-            titleBar.Children.Add(closeIconBtn);
-            rootLayout.Children.Add(titleBar);
+            Grid.SetColumn(closeButton, 1);
+            titleGrid.Children.Add(closeButton);
+            layout.Children.Add(titleGrid);
 
-            // Filter Bar (Category Selector + Search Box)
-            var filterRow = new Grid { ColumnSpacing = 8 };
-            filterRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(190) });
-            filterRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-
-            var categorySelector = new ComboBox
+            var filterGrid = new Grid { ColumnSpacing = 8 };
+            filterGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(238) });
+            filterGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            var gameSelector = new ComboBox
             {
                 HorizontalAlignment = HorizontalAlignment.Stretch,
                 Background = new SolidColorBrush(Color.FromArgb(255, 255, 255, 252)),
                 BorderBrush = new SolidColorBrush(Color.FromArgb(255, 213, 208, 196)),
                 CornerRadius = new CornerRadius(8)
             };
-
-            categorySelector.Items.Add(new ComboBoxItem { Content = isChinese ? "本次已导入素材池" : "Staged Material Pool", Tag = "staged" });
-            categorySelector.Items.Add(new ComboBoxItem { Content = isChinese ? "当前游戏素材" : "Current Game", Tag = "current" });
-            categorySelector.Items.Add(new ComboBoxItem { Content = isChinese ? "穿越火线 (CF)" : "CrossFire", Tag = "crossfire" });
-            categorySelector.Items.Add(new ComboBoxItem { Content = isChinese ? "CSOL (反恐精英Online)" : "CSOL", Tag = "csol" });
-            categorySelector.Items.Add(new ComboBoxItem { Content = isChinese ? "无畏契约 (Valorant)" : "Valorant", Tag = "valorant" });
-            categorySelector.Items.Add(new ComboBoxItem { Content = isChinese ? "战地系列 (BF)" : "Battlefield", Tag = "battlefield" });
-            categorySelector.Items.Add(new ComboBoxItem { Content = isChinese ? "绝地求生 (PUBG)" : "PUBG", Tag = "pubg" });
-            categorySelector.Items.Add(new ComboBoxItem { Content = isChinese ? "三角洲行动 (Delta Force)" : "Delta Force", Tag = "deltaforce" });
-            categorySelector.Items.Add(new ComboBoxItem { Content = isChinese ? "豆包 (Doubao)" : "Doubao", Tag = "doubao" });
-            categorySelector.Items.Add(new ComboBoxItem { Content = isChinese ? "大狗叫 (Dagoujiao)" : "Dagoujiao", Tag = "dagoujiao" });
-
-            categorySelector.SelectedIndex = (stagedFiles != null && stagedFiles.Count > 0) ? 0 : 1;
-
-            Grid.SetColumn(categorySelector, 0);
-            filterRow.Children.Add(categorySelector);
-
+            var gameStyles = new[]
+            {
+                GameStyleMode.Crossfire, GameStyleMode.Csol, GameStyleMode.Valorant,
+                GameStyleMode.Battlefield1, GameStyleMode.Battlefield5,
+                GameStyleMode.Battlefield4, GameStyleMode.Battlefield2042,
+                GameStyleMode.Pubg, GameStyleMode.DeltaForce,
+                GameStyleMode.Doubao, GameStyleMode.Dagoujiao,
+                GameStyleMode.Overwatch, GameStyleMode.Apex,
+                GameStyleMode.ModernWarfare2019
+            };
+            foreach (GameStyleMode style in gameStyles.OrderBy(style => style == currentGame ? 0 : 1))
+            {
+                string name = GameStyleService.ToDisplayName(style);
+                if (style == currentGame) name += zh ? "（当前）" : " (Current)";
+                gameSelector.Items.Add(new ComboBoxItem
+                {
+                    Content = CreateMaterialGameSelectorContent(style, name),
+                    Tag = GameStyleService.ToStorageValue(style)
+                });
+            }
+            gameSelector.SelectedIndex = 0;
+            filterGrid.Children.Add(gameSelector);
             var searchBox = new TextBox
             {
-                PlaceholderText = isChinese ? "搜索素材名称..." : "Search materials...",
+                PlaceholderText = zh ? "搜索文件夹或文件..." : "Search folders or files...",
                 Background = new SolidColorBrush(Color.FromArgb(255, 255, 255, 252)),
                 BorderBrush = new SolidColorBrush(Color.FromArgb(255, 213, 208, 196)),
                 CornerRadius = new CornerRadius(8)
             };
             Grid.SetColumn(searchBox, 1);
-            filterRow.Children.Add(searchBox);
-            rootLayout.Children.Add(filterRow);
+            filterGrid.Children.Add(searchBox);
+            layout.Children.Add(filterGrid);
 
-            // Material List Container
-            var listScroll = new ScrollViewer
+            var navigation = new Grid { ColumnSpacing = 8 };
+            navigation.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            navigation.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            navigation.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            var backButton = new Button
             {
-                Height = Math.Min(260, Math.Max(120, Window.Current.Bounds.Height - 340)),
+                Content = zh ? "← 返回文件夹" : "← Back to folders",
+                FontSize = 10,
+                Padding = new Thickness(8, 3, 8, 3),
+                Visibility = Visibility.Collapsed,
+                Background = new SolidColorBrush(Color.FromArgb(255, 240, 240, 240)),
+                CornerRadius = new CornerRadius(7)
+            };
+            navigation.Children.Add(backButton);
+            var breadcrumb = new TextBlock
+            {
+                VerticalAlignment = VerticalAlignment.Center,
+                FontSize = 11,
+                FontWeight = Windows.UI.Text.FontWeights.SemiBold,
+                Foreground = new SolidColorBrush(Color.FromArgb(255, 70, 74, 86)),
+                TextTrimming = TextTrimming.CharacterEllipsis
+            };
+            Grid.SetColumn(breadcrumb, 1);
+            navigation.Children.Add(breadcrumb);
+            var selectionText = new TextBlock
+            {
+                VerticalAlignment = VerticalAlignment.Center,
+                FontSize = 10,
+                Foreground = new SolidColorBrush(Color.FromArgb(255, 46, 136, 184))
+            };
+            Grid.SetColumn(selectionText, 2);
+            navigation.Children.Add(selectionText);
+            layout.Children.Add(navigation);
+
+            var itemsPanel = new StackPanel { Spacing = 6 };
+            layout.Children.Add(new ScrollViewer
+            {
+                Height = Math.Min(280, Math.Max(120, Window.Current.Bounds.Height - 350)),
                 VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
                 HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
                 Background = new SolidColorBrush(Color.FromArgb(255, 248, 249, 251)),
                 BorderBrush = new SolidColorBrush(Color.FromArgb(255, 226, 221, 211)),
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(10),
-                Padding = new Thickness(6)
-            };
+                Padding = new Thickness(6),
+                Content = itemsPanel
+            });
 
-            var itemsPanel = new StackPanel { Spacing = 6 };
-            listScroll.Content = itemsPanel;
-            rootLayout.Children.Add(listScroll);
-
-            // Action Toolbar (Browse local file / Clear selection)
-            var actionToolbar = new Grid { ColumnSpacing = 8 };
-            actionToolbar.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-            actionToolbar.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-
-            var browseLocalButton = new Button
+            var toolbar = new Grid { ColumnSpacing = 8 };
+            toolbar.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            toolbar.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            var browseButton = new Button
             {
-                Content = isChinese ? "从本地电脑浏览新文件..." : "Browse Local File...",
+                Content = allowMultiple
+                    ? (zh ? "从电脑多选语音..." : "Choose audio files...")
+                    : (zh ? "从电脑选择文件..." : "Choose a local file..."),
                 FontSize = 11,
                 Padding = new Thickness(10, 5, 10, 5),
                 Background = new SolidColorBrush(Color.FromArgb(255, 236, 247, 252)),
@@ -198,12 +248,10 @@ namespace KillConfirmGameBar
                 BorderBrush = new SolidColorBrush(Color.FromArgb(255, 185, 220, 236)),
                 CornerRadius = new CornerRadius(8)
             };
-            Grid.SetColumn(browseLocalButton, 0);
-            actionToolbar.Children.Add(browseLocalButton);
-
-            var clearSlotButton = new Button
+            toolbar.Children.Add(browseButton);
+            var clearButton = new Button
             {
-                Content = isChinese ? "清空此插槽" : "Clear Slot",
+                Content = zh ? "清空此项" : "Clear item",
                 FontSize = 11,
                 Padding = new Thickness(10, 5, 10, 5),
                 Background = new SolidColorBrush(Color.FromArgb(255, 254, 242, 242)),
@@ -211,156 +259,177 @@ namespace KillConfirmGameBar
                 BorderBrush = new SolidColorBrush(Color.FromArgb(255, 254, 202, 202)),
                 CornerRadius = new CornerRadius(8)
             };
-            Grid.SetColumn(clearSlotButton, 1);
-            actionToolbar.Children.Add(clearSlotButton);
-            rootLayout.Children.Add(actionToolbar);
+            Grid.SetColumn(clearButton, 1);
+            toolbar.Children.Add(clearButton);
+            layout.Children.Add(toolbar);
 
-            // Dialog Footer Buttons (Confirm / Cancel)
-            var footerRow = new Grid { ColumnSpacing = 10, Margin = new Thickness(0, 4, 0, 0) };
-            footerRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-            footerRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-
-            var confirmBtn = new Button
+            var footer = new Grid { ColumnSpacing = 10, Margin = new Thickness(0, 4, 0, 0) };
+            footer.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            footer.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            var confirmButton = new Button
             {
-                Content = isChinese ? "确定选用" : "Select",
                 HorizontalAlignment = HorizontalAlignment.Stretch,
                 Style = CreateDialogPrimaryButtonStyle()
             };
-            Grid.SetColumn(confirmBtn, 0);
-            footerRow.Children.Add(confirmBtn);
-
-            var cancelBtn = new Button
+            footer.Children.Add(confirmButton);
+            var cancelButton = new Button
             {
-                Content = isChinese ? "取消" : "Cancel",
+                Content = zh ? "取消" : "Cancel",
                 HorizontalAlignment = HorizontalAlignment.Stretch,
                 Style = CreateDialogCloseButtonStyle()
             };
-            Grid.SetColumn(cancelBtn, 1);
-            footerRow.Children.Add(cancelBtn);
-            rootLayout.Children.Add(footerRow);
+            Grid.SetColumn(cancelButton, 1);
+            footer.Children.Add(cancelButton);
+            layout.Children.Add(footer);
+            card.Child = layout;
+            overlay.Children.Add(card);
+            popup.Child = overlay;
 
-            dialogCard.Child = rootLayout;
-            rootOverlay.Children.Add(dialogCard);
-            popup.Child = rootOverlay;
-
-            StorageFile chosenFile = currentSelectedFile;
-
-            void CloseDialog(StorageFile finalResult)
+            void UpdateSelection()
             {
-                Window.Current.SizeChanged -= OnWindowSizeChanged;
-                popup.IsOpen = false;
-                tcs.TrySetResult(finalResult);
+                selectionText.Text = allowMultiple
+                    ? string.Format(zh ? "已选 {0} 个" : "{0} selected", selection.Count)
+                    : (selection.Count == 0 ? string.Empty : (zh ? "已选择" : "Selected"));
+                confirmButton.Content = allowMultiple
+                    ? string.Format(zh ? "确定（{0}）" : "Select ({0})", selection.Count)
+                    : (zh ? "确定选用" : "Select");
             }
 
-            closeIconBtn.Click += (_, __) => CloseDialog(currentSelectedFile);
-            cancelBtn.Click += (_, __) => CloseDialog(currentSelectedFile);
-            clearSlotButton.Click += (_, __) => CloseDialog(null);
-            confirmBtn.Click += (_, __) => CloseDialog(chosenFile);
+            void Close(IReadOnlyList<StorageFile> result)
+            {
+                Window.Current.SizeChanged -= OnSizeChanged;
+                popup.IsOpen = false;
+                completion.TrySetResult(result);
+            }
 
-            async Task RefreshMaterialsAsync()
+            void ShowEmpty(string text)
             {
                 itemsPanel.Children.Clear();
-                string categoryTag = (categorySelector.SelectedItem as ComboBoxItem)?.Tag as string ?? "current";
-                string filterText = (searchBox.Text ?? string.Empty).Trim().ToLowerInvariant();
-
-                var materialList = new List<MaterialItem>();
-
-                // 1. Session Staged files
-                if (categoryTag == "staged" || categoryTag == "current")
+                itemsPanel.Children.Add(new TextBlock
                 {
-                    if (stagedFiles != null)
-                    {
-                        foreach (var pair in stagedFiles)
-                        {
-                            materialList.Add(new MaterialItem
-                            {
-                                Name = pair.Value.Name,
-                                SourceCategory = isChinese ? "本次导入素材" : "Staged Pool",
-                                File = pair.Value,
-                                IsAudio = isAudio,
-                                Key = pair.Key
-                            });
-                        }
-                    }
-                }
+                    Text = text,
+                    Margin = new Thickness(10),
+                    FontSize = 11,
+                    Foreground = new SolidColorBrush(Color.FromArgb(255, 130, 130, 130)),
+                    TextWrapping = TextWrapping.WrapWholeWords
+                });
+            }
 
-                // 2. Disk Staged files for category
-                string targetGameKey = categoryTag == "current" ? GameStyleService.ToStorageValue(currentGame) : categoryTag;
-                if (targetGameKey != "staged")
+            void RenderFolders()
+            {
+                activeFolder = null;
+                activeFiles = Array.Empty<StorageFile>();
+                backButton.Visibility = Visibility.Collapsed;
+                breadcrumb.Text = zh ? "素材包文件夹" : "Material-pack folders";
+                itemsPanel.Children.Clear();
+                string query = (searchBox.Text ?? string.Empty).Trim();
+                var visible = folders
+                    .Where(folder => string.IsNullOrWhiteSpace(query)
+                        || (folder.DisplayName ?? string.Empty).IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0)
+                    .OrderBy(folder => folder.DisplayName, StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+                if (visible.Count == 0)
                 {
-                    var diskStaged = await PackCatalogService.GetStagedMaterialsAsync(targetGameKey, isAudio);
-                    foreach (var df in diskStaged)
-                    {
-                        if (!materialList.Any(m => m.File == df || string.Equals(m.Name, df.Name, StringComparison.OrdinalIgnoreCase)))
-                        {
-                            materialList.Add(new MaterialItem
-                            {
-                                Name = df.Name,
-                                SourceCategory = isChinese ? "临时素材池" : "Staging Pool",
-                                File = df,
-                                IsAudio = isAudio,
-                                Key = df.Name
-                            });
-                        }
-                    }
-                }
-
-                // 3. Built-in and Pack materials
-                if (categoryTag != "staged")
-                {
-                    var builtIn = await DiscoverBuiltInMaterialsAsync(isAudio, targetGameKey);
-                    materialList.AddRange(builtIn);
-                }
-
-                if (!string.IsNullOrWhiteSpace(filterText))
-                {
-                    materialList = materialList
-                        .Where(m => m.Name.ToLowerInvariant().Contains(filterText) || m.SourceCategory.ToLowerInvariant().Contains(filterText))
-                        .ToList();
-                }
-
-                if (materialList.Count == 0)
-                {
-                    itemsPanel.Children.Add(new TextBlock
-                    {
-                        Text = isChinese ? "无匹配素材文件。您可以点击下方“从本地电脑浏览新文件”导入。" : "No matching materials found. Click 'Browse Local File' below.",
-                        FontSize = 11,
-                        Foreground = new SolidColorBrush(Color.FromArgb(255, 140, 140, 140)),
-                        TextWrapping = TextWrapping.WrapWholeWords,
-                        Margin = new Thickness(10)
-                    });
+                    ShowEmpty(zh ? "这个游戏下没有匹配的素材包文件夹。" : "No matching pack folders for this game.");
                     return;
                 }
-
-                foreach (var mat in materialList)
+                foreach (MaterialFolderItem folder in visible)
                 {
-                    bool isSelected = chosenFile != null && (chosenFile == mat.File || string.Equals(chosenFile.Name, mat.Name, StringComparison.OrdinalIgnoreCase));
-                    var card = new Border
+                    var row = new Grid { ColumnSpacing = 10 };
+                    row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                    row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                    row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                    row.Children.Add(new TextBlock
                     {
-                        Padding = new Thickness(8, 6, 8, 6),
-                        Background = new SolidColorBrush(isSelected
-                            ? Color.FromArgb(255, 230, 244, 255)
-                            : Color.FromArgb(255, 255, 255, 255)),
-                        BorderBrush = new SolidColorBrush(isSelected
-                            ? Color.FromArgb(255, 46, 136, 184)
-                            : Color.FromArgb(255, 230, 230, 230)),
-                        BorderThickness = new Thickness(1),
-                        CornerRadius = new CornerRadius(8)
+                        Text = "",
+                        FontFamily = new FontFamily("Segoe MDL2 Assets"),
+                        FontSize = 22,
+                        Foreground = new SolidColorBrush(Color.FromArgb(255, 224, 151, 34)),
+                        VerticalAlignment = VerticalAlignment.Center
+                    });
+                    var names = new StackPanel { Spacing = 1, VerticalAlignment = VerticalAlignment.Center };
+                    names.Children.Add(new TextBlock
+                    {
+                        Text = folder.DisplayName,
+                        FontSize = 12,
+                        FontWeight = Windows.UI.Text.FontWeights.SemiBold,
+                        TextTrimming = TextTrimming.CharacterEllipsis
+                    });
+                    names.Children.Add(new TextBlock
+                    {
+                        Text = zh ? "打开后读取文件" : "Files load when opened",
+                        FontSize = 9,
+                        Foreground = new SolidColorBrush(Color.FromArgb(255, 112, 116, 126))
+                    });
+                    Grid.SetColumn(names, 1);
+                    row.Children.Add(names);
+                    var arrow = new TextBlock
+                    {
+                        Text = "",
+                        FontFamily = new FontFamily("Segoe MDL2 Assets"),
+                        VerticalAlignment = VerticalAlignment.Center
                     };
+                    Grid.SetColumn(arrow, 2);
+                    row.Children.Add(arrow);
+                    var button = new Button
+                    {
+                        Content = row,
+                        HorizontalContentAlignment = HorizontalAlignment.Stretch,
+                        HorizontalAlignment = HorizontalAlignment.Stretch,
+                        Padding = new Thickness(10, 8, 10, 8),
+                        Background = new SolidColorBrush(Colors.White),
+                        BorderBrush = new SolidColorBrush(Color.FromArgb(255, 224, 221, 213)),
+                        BorderThickness = new Thickness(1),
+                        CornerRadius = new CornerRadius(9)
+                    };
+                    button.Click += async (_, __) =>
+                    {
+                        activeFolder = folder;
+                        searchBox.Text = string.Empty;
+                        activeFiles = await LoadMaterialFolderFilesAsync(folder, isAudio);
+                        RenderFiles();
+                    };
+                    itemsPanel.Children.Add(button);
+                }
+            }
 
+            void RenderFiles()
+            {
+                if (activeFolder == null)
+                {
+                    RenderFolders();
+                    return;
+                }
+                backButton.Visibility = Visibility.Visible;
+                breadcrumb.Text = activeFolder.DisplayName;
+                itemsPanel.Children.Clear();
+                string query = (searchBox.Text ?? string.Empty).Trim();
+                var visible = activeFiles
+                    .Where(file => IsSupportedMaterialFile(file, isAudio))
+                    .Where(file => string.IsNullOrWhiteSpace(query)
+                        || file.Name.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0)
+                    .OrderBy(file => file.Name, StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+                if (visible.Count == 0)
+                {
+                    ShowEmpty(zh ? "此文件夹没有匹配的素材文件。" : "No matching material files in this folder.");
+                    return;
+                }
+                foreach (StorageFile file in visible)
+                {
+                    string id = MaterialFileIdentity(file);
+                    bool selected = selection.ContainsKey(id);
                     var row = new Grid { ColumnSpacing = 8 };
                     row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                     row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
                     row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-
                     if (isAudio)
                     {
-                        var playBtn = new Button
+                        var play = new Button
                         {
                             Content = "",
                             FontFamily = new FontFamily("Segoe MDL2 Assets"),
-                            FontSize = 10,
-                            MinWidth = 28,
+                            Width = 28,
                             Height = 28,
                             Padding = new Thickness(0),
                             Background = new SolidColorBrush(Color.FromArgb(255, 236, 247, 252)),
@@ -368,273 +437,305 @@ namespace KillConfirmGameBar
                             BorderBrush = new SolidColorBrush(Color.FromArgb(255, 185, 220, 236)),
                             CornerRadius = new CornerRadius(14)
                         };
-                        playBtn.Click += async (_, __) =>
-                        {
-                            if (mat.File != null)
-                            {
-                                await PlayPreviewAsync(mat.File);
-                            }
-                            else if (!string.IsNullOrWhiteSpace(mat.AppxUri))
-                            {
-                                try
-                                {
-                                    StorageFile sf = await StorageFile.GetFileFromApplicationUriAsync(new Uri(mat.AppxUri));
-                                    await PlayPreviewAsync(sf);
-                                }
-                                catch {}
-                            }
-                        };
-                        Grid.SetColumn(playBtn, 0);
-                        row.Children.Add(playBtn);
+                        play.Click += async (_, __) => await PlayPreviewAsync(file);
+                        row.Children.Add(play);
                     }
                     else
                     {
-                        var img = new Image
-                        {
-                            Width = 28,
-                            Height = 28,
-                            Stretch = Stretch.Uniform,
-                            VerticalAlignment = VerticalAlignment.Center
-                        };
-                        if (mat.File != null)
-                        {
-                            _ = SetPreviewImageAsync(img, mat.File);
-                        }
-                        else if (!string.IsNullOrWhiteSpace(mat.AppxUri))
-                        {
-                            img.Source = new BitmapImage(new Uri(mat.AppxUri));
-                        }
-                        Grid.SetColumn(img, 0);
-                        row.Children.Add(img);
+                        var preview = new Image { Width = 28, Height = 28, Stretch = Stretch.Uniform };
+                        _ = SetPreviewImageAsync(preview, file);
+                        row.Children.Add(preview);
                     }
-
-                    var textStack = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Spacing = 1 };
-                    textStack.Children.Add(new TextBlock
+                    var name = new TextBlock
                     {
-                        Text = mat.Name,
+                        Text = file.Name,
+                        VerticalAlignment = VerticalAlignment.Center,
                         FontSize = 11,
                         FontWeight = Windows.UI.Text.FontWeights.SemiBold,
-                        Foreground = new SolidColorBrush(Color.FromArgb(255, 29, 34, 51)),
                         TextTrimming = TextTrimming.CharacterEllipsis
-                    });
-                    textStack.Children.Add(new TextBlock
+                    };
+                    Grid.SetColumn(name, 1);
+                    row.Children.Add(name);
+                    var fileCard = new Border
                     {
-                        Text = mat.SourceCategory,
-                        FontSize = 9,
-                        Foreground = new SolidColorBrush(Color.FromArgb(255, 120, 120, 120))
-                    });
-                    Grid.SetColumn(textStack, 1);
-                    row.Children.Add(textStack);
-
-                    var selectBtn = new Button
+                        Padding = new Thickness(8, 6, 8, 6),
+                        BorderThickness = new Thickness(1),
+                        CornerRadius = new CornerRadius(8),
+                        Child = row
+                    };
+                    var select = new Button
                     {
-                        Content = isSelected ? (isChinese ? "已选" : "Selected") : (isChinese ? "选用" : "Use"),
+                        Content = selected
+                            ? (zh ? "取消选择" : "Remove")
+                            : (allowMultiple ? (zh ? "加入" : "Add") : (zh ? "选用" : "Use")),
                         FontSize = 10,
                         Padding = new Thickness(8, 3, 8, 3),
-                        Background = new SolidColorBrush(isSelected
+                        Background = new SolidColorBrush(selected
                             ? Color.FromArgb(255, 46, 136, 184)
                             : Color.FromArgb(255, 240, 240, 240)),
-                        Foreground = new SolidColorBrush(isSelected ? Colors.White : Color.FromArgb(255, 29, 34, 51)),
+                        Foreground = new SolidColorBrush(selected ? Colors.White : Color.FromArgb(255, 29, 34, 51)),
                         CornerRadius = new CornerRadius(6)
                     };
-                    selectBtn.Click += async (_, __) =>
+                    select.Click += (_, __) =>
                     {
-                        if (mat.File != null)
+                        if (allowMultiple)
                         {
-                            chosenFile = mat.File;
+                            if (selection.ContainsKey(id)) selection.Remove(id);
+                            else selection[id] = file;
+                            bool nowSelected = selection.ContainsKey(id);
+                            select.Content = nowSelected ? (zh ? "取消选择" : "Remove") : (zh ? "加入" : "Add");
+                            select.Background = new SolidColorBrush(nowSelected
+                                ? Color.FromArgb(255, 46, 136, 184)
+                                : Color.FromArgb(255, 240, 240, 240));
+                            select.Foreground = new SolidColorBrush(nowSelected
+                                ? Colors.White
+                                : Color.FromArgb(255, 29, 34, 51));
+                            fileCard.Background = new SolidColorBrush(nowSelected
+                                ? Color.FromArgb(255, 230, 244, 255)
+                                : Colors.White);
+                            fileCard.BorderBrush = new SolidColorBrush(nowSelected
+                                ? Color.FromArgb(255, 46, 136, 184)
+                                : Color.FromArgb(255, 230, 230, 230));
                         }
-                        else if (!string.IsNullOrWhiteSpace(mat.AppxUri))
+                        else
                         {
-                            try
-                            {
-                                chosenFile = await StorageFile.GetFileFromApplicationUriAsync(new Uri(mat.AppxUri));
-                            }
-                            catch {}
+                            selection.Clear();
+                            selection[id] = file;
+                            RenderFiles();
                         }
-                        await RefreshMaterialsAsync();
+                        UpdateSelection();
                     };
-                    Grid.SetColumn(selectBtn, 2);
-                    row.Children.Add(selectBtn);
-
-                    card.Child = row;
-                    itemsPanel.Children.Add(card);
+                    Grid.SetColumn(select, 2);
+                    row.Children.Add(select);
+                    fileCard.Background = new SolidColorBrush(selected
+                        ? Color.FromArgb(255, 230, 244, 255)
+                        : Colors.White);
+                    fileCard.BorderBrush = new SolidColorBrush(selected
+                        ? Color.FromArgb(255, 46, 136, 184)
+                        : Color.FromArgb(255, 230, 230, 230));
+                    itemsPanel.Children.Add(fileCard);
                 }
             }
 
-            categorySelector.SelectionChanged += async (_, __) => await RefreshMaterialsAsync();
-            searchBox.TextChanged += async (_, __) => await RefreshMaterialsAsync();
-
-            browseLocalButton.Click += async (_, __) =>
+            async Task LoadGameFoldersAsync()
             {
-                var filters = isAudio
-                    ? new[] { ".wav", ".mp3", ".m4a", ".ogg", ".flac" }
-                    : new[] { ".png", ".jpg", ".jpeg", ".webp", ".tga" };
-                StorageFile picked = await PickSingleFileAsync(filters);
-                if (picked != null)
+                int version = ++loadVersion;
+                activeFolder = null;
+                ShowEmpty(zh ? "正在读取素材包文件夹..." : "Loading pack folders...");
+                string gameKey = (gameSelector.SelectedItem as ComboBoxItem)?.Tag as string
+                    ?? GameStyleService.ToStorageValue(currentGame);
+                List<MaterialFolderItem> result = await DiscoverMaterialFoldersAsync(isAudio, gameKey);
+                if (version != loadVersion) return;
+                IReadOnlyList<StorageFile> diskStaged = await PackCatalogService.GetStagedMaterialsAsync(gameKey, isAudio);
+                if (version != loadVersion) return;
+                if (diskStaged.Count > 0)
                 {
-                    chosenFile = picked;
-                    // Also copy into staging for persistent access
-                    await PackCatalogService.ImportStagedMaterialsAsync(currentGame, isAudio, new[] { picked });
-                    await RefreshMaterialsAsync();
+                    result.Insert(0, new MaterialFolderItem
+                    {
+                        Key = "staged:" + gameKey,
+                        DisplayName = zh ? "临时素材" : "Staged materials",
+                        Files = diskStaged
+                    });
                 }
+                folders = result;
+                searchBox.Text = string.Empty;
+                RenderFolders();
+            }
+
+            backButton.Click += (_, __) =>
+            {
+                searchBox.Text = string.Empty;
+                RenderFolders();
             };
+            searchBox.TextChanged += (_, __) =>
+            {
+                if (activeFolder == null) RenderFolders();
+                else RenderFiles();
+            };
+            gameSelector.SelectionChanged += async (_, __) => await LoadGameFoldersAsync();
+            browseButton.Click += async (_, __) =>
+            {
+                IReadOnlyList<StorageFile> picked = await PickMaterialFilesAsync(isAudio, allowMultiple);
+                if (picked.Count == 0) return;
+                await PackCatalogService.ImportStagedMaterialsAsync(currentGame, isAudio, picked);
+                if (!allowMultiple) selection.Clear();
+                foreach (StorageFile file in picked) selection[MaterialFileIdentity(file)] = file;
+                activeFolder = new MaterialFolderItem
+                {
+                    Key = "session",
+                    DisplayName = zh ? "本次导入" : "Imported now",
+                    Files = picked
+                };
+                activeFiles = picked;
+                searchBox.Text = string.Empty;
+                UpdateSelection();
+                RenderFiles();
+            };
+            clearButton.Click += (_, __) => Close(Array.Empty<StorageFile>());
+            confirmButton.Click += (_, __) => Close(selection.Values.ToList());
+            closeButton.Click += (_, __) => Close(original);
+            cancelButton.Click += (_, __) => Close(original);
 
-            _ = RefreshMaterialsAsync();
-
+            UpdateSelection();
             popup.IsOpen = true;
-            return tcs.Task;
+            _ = LoadGameFoldersAsync();
+            return completion.Task;
         }
 
-        private static async Task<List<MaterialItem>> DiscoverBuiltInMaterialsAsync(bool isAudio, string gameKey)
+        private static async Task<List<MaterialFolderItem>> DiscoverMaterialFoldersAsync(bool isAudio, string gameKey)
         {
-            var results = new List<MaterialItem>();
-            string norm = (gameKey ?? string.Empty).Trim().ToLowerInvariant();
+            var result = new List<MaterialFolderItem>();
+            if (isAudio)
+            {
+                IReadOnlyList<VoicePackItem> packs = await PackCatalogService.GetAllVoicePacksAsync();
+                MaterialFolderItem[] resolved = await Task.WhenAll(
+                    packs
+                        .Where(pack => IsPackInMaterialCategory(gameKey, pack.Key))
+                        .Select(async pack =>
+                        {
+                            StorageFolder folder = await GetVoicePackFolderAsync(pack);
+                            return folder == null ? null : new MaterialFolderItem
+                            {
+                                Key = "voice:" + pack.Key,
+                                DisplayName = PackCatalogService.GetVoicePackDisplayName(pack),
+                                Folder = folder
+                            };
+                        }));
+                foreach (MaterialFolderItem folder in resolved.Where(folder => folder != null))
+                {
+                    result.Add(folder);
+                }
+            }
+            else
+            {
+                IReadOnlyList<IconPackItem> packs = await PackCatalogService.GetAllIconPacksAsync();
+                MaterialFolderItem[] resolved = await Task.WhenAll(
+                    packs
+                        .Where(pack => IsPackInMaterialCategory(gameKey, pack.Key))
+                        .Select(async pack =>
+                        {
+                            StorageFolder folder = await GetIconPackFolderAsync(pack);
+                            return folder == null ? null : new MaterialFolderItem
+                            {
+                                Key = "icon:" + pack.Key,
+                                DisplayName = PackCatalogService.GetIconPackDisplayName(pack),
+                                Folder = folder
+                            };
+                        }));
+                foreach (MaterialFolderItem folder in resolved.Where(folder => folder != null))
+                {
+                    result.Add(folder);
+                }
+            }
+            return result;
+        }
 
+        private static FrameworkElement CreateMaterialGameSelectorContent(GameStyleMode style, string name)
+        {
+            string key = GameStyleService.ToStorageValue(style);
+            string extension = style == GameStyleMode.Dagoujiao ? "jpg" : "png";
+            var image = new Image
+            {
+                Width = 34,
+                Height = 22,
+                Stretch = Stretch.Uniform,
+                Source = new BitmapImage(new Uri(
+                    $"ms-appx:///Assets/GameLogos/{key}.{extension}"))
+            };
+            var logoBackground = new Border
+            {
+                Width = 42,
+                Height = 26,
+                Padding = new Thickness(4, 2, 4, 2),
+                CornerRadius = new CornerRadius(4),
+                Background = new SolidColorBrush(Color.FromArgb(255, 52, 56, 64)),
+                Child = image
+            };
+            var text = new TextBlock
+            {
+                Text = name,
+                VerticalAlignment = VerticalAlignment.Center,
+                TextTrimming = TextTrimming.CharacterEllipsis
+            };
+            var content = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                Spacing = 9,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            content.Children.Add(logoBackground);
+            content.Children.Add(text);
+            return content;
+        }
+
+        private static bool IsPackInMaterialCategory(string gameKey, string packKey)
+        {
+            return GameStyleService.GetStyleForPackKey(packKey) == GameStyleService.FromKey(gameKey);
+        }
+
+        private static async Task<IReadOnlyList<StorageFile>> LoadMaterialFolderFilesAsync(MaterialFolderItem folder, bool isAudio)
+        {
+            if (folder?.Files != null) return folder.Files;
+            if (folder?.Folder == null) return Array.Empty<StorageFile>();
             try
             {
-                StorageFolder installed = Windows.ApplicationModel.Package.Current.InstalledLocation;
-
-                if (isAudio)
-                {
-                    StorageFolder soundsFolder = await installed.GetFolderAsync(@"KillConfirmService\sounds");
-                    IReadOnlyList<StorageFolder> packFolders = await soundsFolder.GetFoldersAsync();
-
-                    foreach (StorageFolder folder in packFolders)
-                    {
-                        string fname = folder.Name.ToLowerInvariant();
-                        if (norm != "battlefield" && norm != "all")
-                        {
-                            if (norm == "crossfire" && !fname.StartsWith("crossfire_")) continue;
-                            if (norm == "csol" && !fname.StartsWith("csol")) continue;
-                            if (norm == "pubg" && !fname.StartsWith("pubg")) continue;
-                            if (norm == "deltaforce" && !fname.StartsWith("deltaforce")) continue;
-                            if (norm == "doubao" && !fname.StartsWith("doubao")) continue;
-                            if (norm == "dagoujiao" && !fname.StartsWith("dagoujiao")) continue;
-                            if (norm == "valorant" && !fname.StartsWith("valorant")) continue;
-                            if (norm == "battlefield1" && !fname.StartsWith("bf1")) continue;
-                            if (norm == "battlefield5" && !fname.StartsWith("bf5")) continue;
-                            if (norm == "battlefield4" && !fname.StartsWith("bf4")) continue;
-                            if (norm == "battlefield2042" && !fname.StartsWith("battlefield2042")) continue;
-                        }
-
-                        IReadOnlyList<StorageFile> files = await folder.GetFilesAsync();
-                        foreach (StorageFile file in files)
-                        {
-                            if (file.FileType.Equals(".wav", StringComparison.OrdinalIgnoreCase)
-                                || file.FileType.Equals(".mp3", StringComparison.OrdinalIgnoreCase)
-                                || file.FileType.Equals(".m4a", StringComparison.OrdinalIgnoreCase))
-                            {
-                                results.Add(new MaterialItem
-                                {
-                                    Name = file.Name,
-                                    SourceCategory = folder.DisplayName,
-                                    File = file,
-                                    IsAudio = true
-                                });
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    StorageFolder assetsFolder = await installed.GetFolderAsync(@"Assets");
-                    try
-                    {
-                        StorageFolder kcFolder = await assetsFolder.GetFolderAsync(@"KillConfirmCode");
-                        IReadOnlyList<StorageFolder> kcSubFolders = await kcFolder.GetFoldersAsync();
-                        foreach (StorageFolder folder in kcSubFolders)
-                        {
-                            string fname = folder.Name.ToLowerInvariant();
-                            if (norm == "csol" && !fname.StartsWith("csol")) continue;
-                            if (norm == "crossfire" && fname.StartsWith("csol")) continue;
-
-                            IReadOnlyList<StorageFile> files = await folder.GetFilesAsync();
-                            foreach (StorageFile file in files)
-                            {
-                                if (file.FileType.Equals(".png", StringComparison.OrdinalIgnoreCase)
-                                    || file.FileType.Equals(".tga", StringComparison.OrdinalIgnoreCase)
-                                    || file.FileType.Equals(".jpg", StringComparison.OrdinalIgnoreCase))
-                                {
-                                    results.Add(new MaterialItem
-                                    {
-                                        Name = file.Name,
-                                        SourceCategory = folder.DisplayName,
-                                        File = file,
-                                        IsAudio = false
-                                    });
-                                }
-                            }
-                        }
-                    }
-                    catch {}
-
-                    // Assets\GameStyles\{game}\killconfirm\textures\* —— 豆包/大狗叫/战地/PUBG/三角洲/瓦 的内置图标
-                    try
-                    {
-                        StorageFolder gsRoot = await assetsFolder.GetFolderAsync(@"GameStyles");
-                        foreach (string dirName in GameStyleDirNames(norm))
-                        {
-                            try
-                            {
-                                StorageFolder texFolder = await gsRoot.GetFolderAsync($@"{dirName}\killconfirm\textures");
-                                IReadOnlyList<StorageFile> gsFiles = await texFolder.GetFilesAsync();
-                                foreach (StorageFile file in gsFiles)
-                                {
-                                    if (file.FileType.Equals(".png", StringComparison.OrdinalIgnoreCase)
-                                        || file.FileType.Equals(".tga", StringComparison.OrdinalIgnoreCase)
-                                        || file.FileType.Equals(".jpg", StringComparison.OrdinalIgnoreCase)
-                                        || file.FileType.Equals(".jpeg", StringComparison.OrdinalIgnoreCase))
-                                    {
-                                        results.Add(new MaterialItem
-                                        {
-                                            Name = file.Name,
-                                            SourceCategory = dirName,
-                                            File = file,
-                                            IsAudio = false
-                                        });
-                                    }
-                                }
-                            }
-                            catch { }
-                        }
-                    }
-                    catch { }
-                }
+                IReadOnlyList<StorageFile> files = await folder.Folder.GetFilesAsync();
+                return files
+                    .Where(file => !file.Name.StartsWith("pack_head.", StringComparison.OrdinalIgnoreCase))
+                    .Where(file => IsSupportedMaterialFile(file, isAudio))
+                    .ToList();
             }
             catch
             {
+                return Array.Empty<StorageFile>();
             }
-
-            return results;
         }
 
-        // gameKey → Assets\GameStyles\ 下的目录名（battlefield 为合并项，枚举四个子目录）。
-        // crossfire/csol 在 GameStyles 下无目录，返回空。
-        private static IEnumerable<string> GameStyleDirNames(string gameKey)
+        private static async Task<IReadOnlyList<StorageFile>> PickMaterialFilesAsync(bool isAudio, bool allowMultiple)
         {
-            string norm = (gameKey ?? string.Empty).Trim().ToLowerInvariant();
-            switch (norm)
+            var picker = new FileOpenPicker();
+            string[] filters = isAudio
+                ? new[] { ".wav", ".mp3", ".m4a" }
+                : new[] { ".png", ".jpg", ".jpeg", ".webp", ".tga" };
+            foreach (string filter in filters) picker.FileTypeFilter.Add(filter);
+            if (allowMultiple)
             {
-                case "doubao": yield return "doubao"; break;
-                case "dagoujiao": yield return "dagoujiao"; break;
-                case "valorant": yield return "valorant"; break;
-                case "pubg": yield return "pubg"; break;
-                case "deltaforce": yield return "deltaforce"; break;
-                case "battlefield1":
-                case "bf1": yield return "battlefield1"; break;
-                case "battlefield5":
-                case "bf5": yield return "battlefield5"; break;
-                case "battlefield4":
-                case "bf4": yield return "battlefield4"; break;
-                case "battlefield2042": yield return "battlefield2042"; break;
-                case "battlefield":
-                case "all":
-                    yield return "battlefield1";
-                    yield return "battlefield4";
-                    yield return "battlefield5";
-                    yield return "battlefield2042";
-                    break;
+                IReadOnlyList<StorageFile> files = await picker.PickMultipleFilesAsync();
+                return files ?? Array.Empty<StorageFile>();
             }
+            StorageFile file = await picker.PickSingleFileAsync();
+            return file == null ? Array.Empty<StorageFile>() : new[] { file };
+        }
+
+        private static IEnumerable<StorageFile> DistinctMaterialFiles(IEnumerable<StorageFile> files)
+        {
+            return (files ?? Enumerable.Empty<StorageFile>())
+                .Where(file => file != null)
+                .GroupBy(MaterialFileIdentity, StringComparer.OrdinalIgnoreCase)
+                .Select(group => group.First());
+        }
+
+        private static string MaterialFileIdentity(StorageFile file)
+        {
+            if (file == null) return string.Empty;
+            return string.IsNullOrWhiteSpace(file.Path) ? file.Name : file.Path;
+        }
+
+        private static bool IsSupportedMaterialFile(StorageFile file, bool isAudio)
+        {
+            if (file == null) return false;
+            string extension = file.FileType ?? string.Empty;
+            if (isAudio)
+            {
+                return extension.Equals(".wav", StringComparison.OrdinalIgnoreCase)
+                    || extension.Equals(".mp3", StringComparison.OrdinalIgnoreCase)
+                    || extension.Equals(".m4a", StringComparison.OrdinalIgnoreCase);
+            }
+            return extension.Equals(".png", StringComparison.OrdinalIgnoreCase)
+                || extension.Equals(".tga", StringComparison.OrdinalIgnoreCase)
+                || extension.Equals(".jpg", StringComparison.OrdinalIgnoreCase)
+                || extension.Equals(".jpeg", StringComparison.OrdinalIgnoreCase)
+                || extension.Equals(".webp", StringComparison.OrdinalIgnoreCase);
         }
     }
 }

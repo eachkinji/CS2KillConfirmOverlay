@@ -22,12 +22,10 @@ namespace KillConfirmGameBar
 
         private async Task ShowCreateDagoujiaoVoicePackDialogAsync(
             string initialDisplayName = null,
-            IReadOnlyDictionary<string, StorageFile> initialFiles = null,
+            IReadOnlyDictionary<string, IReadOnlyList<StorageFile>> initialFiles = null,
             StorageFile initialHeadImageFile = null)
         {
-            var selectedFiles = initialFiles != null
-                ? new Dictionary<string, StorageFile>(initialFiles, StringComparer.OrdinalIgnoreCase)
-                : new Dictionary<string, StorageFile>(StringComparer.OrdinalIgnoreCase);
+            var selectedFiles = CreateVoiceSelectionMap(initialFiles);
             StorageFile headImageFile = initialHeadImageFile;
 
             var layout = CreatePackDialogLayout(
@@ -47,11 +45,10 @@ namespace KillConfirmGameBar
             var slotContainer = new StackPanel { Spacing = 8 };
             foreach (var slot in DagoujiaoVoiceSlots)
             {
-                selectedFiles.TryGetValue(slot.FileName, out StorageFile existingFile);
-                var row = await CreateSlotRowAsync(
+                selectedFiles.TryGetValue(slot.FileName, out List<StorageFile> existingFiles);
+                var row = await CreateVoiceSlotRowAsync(
                     slot.FileName, LocalizationManager.Text(slot.Label),
-                    isAudio: true, GameStyleMode.Dagoujiao,
-                    selectedFiles, existingFile);
+                    GameStyleMode.Dagoujiao, selectedFiles, existingFiles);
                 slotContainer.Children.Add(row);
             }
 
@@ -75,12 +72,12 @@ namespace KillConfirmGameBar
                 ? "大狗叫语音包"
                 : nameBox.Text.Trim();
 
-            await FillBuiltInDefaultsAsync(
+            await FillBuiltInVoiceDefaultsAsync(
                 selectedFiles, DagoujiaoVoiceSlots, "ms-appx:///KillConfirmService/sounds/dagoujiao/");
 
             await PackCatalogService.CreateDagoujiaoVoicePackAsync(packName, new VoicePackBuildOptions
             {
-                SelectedFiles = selectedFiles,
+                SelectedFileGroups = AsReadOnlyVoiceSelection(selectedFiles),
                 HeadImageFile = headImageFile
             });
         }

@@ -8,9 +8,12 @@ namespace KillConfirmGameBar.Controls.GameStyles
 {
     public sealed partial class CrossfireAdvancedEffectsPanel : UserControl
     {
+        private bool _suppressKillMarkChanges;
+
         public CrossfireAdvancedEffectsPanel()
         {
             InitializeComponent();
+            RefreshKillMarkSetting();
         }
 
         public event SelectionChangedEventHandler StreakModeSelectionChanged;
@@ -56,6 +59,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
             AdvancedEffectsPanelSupport.ApplyToggleRow(FirstKillEffectLabel, FirstKillEffectToggle, theme);
             AdvancedEffectsPanelSupport.ApplyToggleRow(LastKillEffectLabel, LastKillEffectToggle, theme);
             AdvancedEffectsPanelSupport.ApplyToggleRow(AssistAudioLabel, AssistAudioToggle, theme);
+            AdvancedEffectsPanelSupport.ApplyKillMarkCard(VisualEffectsCard, VisualEffectsTitle, KillMarkEffectLabel, KillMarkEffectToggle, theme);
             if (StylePanelHost.Content is CrossfireStylePanel stylePanel)
             {
                 stylePanel.ApplyTheme(theme);
@@ -64,21 +68,21 @@ namespace KillConfirmGameBar.Controls.GameStyles
 
         public void ApplyLanguage(bool isChinese)
         {
-            TitleText.Text = isChinese ? "CF (穿越火线) 专属战斗与特效控制台" : "CrossFire Combat & Effects Control";
+            TitleText.Text = isChinese ? "CF（穿越火线）战斗与视效" : "CrossFire Combat & Effects";
             HintText.Text = isChinese
-                ? "集中管理 CF 连杀触发机制、声音与图标优先权决议、首末杀特权以及画面光效与徽章增强。"
+                ? "集中设置 CF 的连杀规则、爆头与刀杀提示、首杀与最终击杀，以及画面特效和武器徽章。"
                 : "Centralized control for CrossFire streak triggers, priority resolutions, first/last kills, and visual FX.";
             ResetButtonText.Text = isChinese ? "恢复默认" : "Reset";
             ToolTipService.SetToolTip(ResetButton, isChinese ? "恢复 CF 默认设置" : "Restore CF defaults");
 
             if (VisualEffectsGroupLabel != null)
-                VisualEffectsGroupLabel.Text = isChinese ? "画面光效与徽章增强" : "Visual FX & Badges";
+                VisualEffectsGroupLabel.Text = isChinese ? "画面特效与武器徽章" : "Visual FX & Badges";
             if (StreakTriggerGroupLabel != null)
-                StreakTriggerGroupLabel.Text = isChinese ? "连杀机制与助攻触发" : "Streak & Assist Triggers";
+                StreakTriggerGroupLabel.Text = isChinese ? "连杀与助攻设置" : "Streak & Assist Triggers";
             if (PrioritiesGroupLabel != null)
-                PrioritiesGroupLabel.Text = isChinese ? "优先权决议策略（声音与图标）" : "Priority Policies (Audio & Icon)";
+                PrioritiesGroupLabel.Text = isChinese ? "爆头与刀杀提示优先级" : "Priority Policies (Audio & Icon)";
             if (SpecialKillsGroupLabel != null)
-                SpecialKillsGroupLabel.Text = isChinese ? "首杀与末杀特权配置" : "Special & First/Last Kills";
+                SpecialKillsGroupLabel.Text = isChinese ? "首杀与最终击杀" : "Special & First/Last Kills";
 
             StreakEditor.ApplyLanguage(isChinese);
             HeadshotAudioPriorityLabel.Text = isChinese ? "爆头声音" : "Headshot audio";
@@ -94,13 +98,13 @@ namespace KillConfirmGameBar.Controls.GameStyles
             HeadshotIconStreakPriorityItem.Content = HeadshotStreakPriorityItem.Content;
             KnifeIconStreakPriorityItem.Content = HeadshotStreakPriorityItem.Content;
             FirstKillAudioLabel.Text = isChinese ? "首杀语音" : "First-kill audio";
-            LastKillAudioLabel.Text = isChinese ? "尾杀语音" : "Last-kill audio";
+            LastKillAudioLabel.Text = isChinese ? "最终击杀语音" : "Last-kill audio";
             FirstKillSpecialItem.Content = isChinese ? "特殊音效（手雷）" : "Special audio (grenade)";
             LastKillSpecialItem.Content = FirstKillSpecialItem.Content;
             FirstKillOriginalItem.Content = isChinese ? "原击杀音效" : "Original kill audio";
             LastKillOriginalItem.Content = FirstKillOriginalItem.Content;
-            FirstKillEffectLabel.Text = isChinese ? "首杀专属特效" : "First-kill effect";
-            LastKillEffectLabel.Text = isChinese ? "尾杀专属特效" : "Last-kill effect";
+            FirstKillEffectLabel.Text = isChinese ? "首杀特效" : "First-kill effect";
+            LastKillEffectLabel.Text = isChinese ? "最终击杀特效" : "Last-kill effect";
             FirstKillEffectToggle.OnContent = isChinese ? "开启（默认）" : "On (default)";
             LastKillEffectToggle.OnContent = FirstKillEffectToggle.OnContent;
             FirstKillEffectToggle.OffContent = isChinese ? "关闭" : "Off";
@@ -108,6 +112,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
             AssistAudioLabel.Text = isChinese ? "助攻音效" : "Assist audio";
             AssistAudioToggle.OnContent = isChinese ? "有声音（common）" : "Sound (common)";
             AssistAudioToggle.OffContent = isChinese ? "无声音（默认）" : "Muted (default)";
+            AdvancedEffectsPanelSupport.ApplyKillMarkLanguage(VisualEffectsTitle, KillMarkEffectLabel, KillMarkEffectToggle, isChinese);
             if (StylePanelHost.Content is CrossfireStylePanel stylePanel)
             {
                 stylePanel.ApplyLanguage(isChinese);
@@ -284,6 +289,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
             FirstKillEffectToggle.IsOn = true;
             LastKillEffectToggle.IsOn = true;
             AssistAudioToggle.IsOn = false;
+            SetKillMarkEnabled(false);
 
             StreakModeSelectionChanged?.Invoke(StreakEditor.SelectorControl, null);
             HeadshotAudioPrioritySelectionChanged?.Invoke(HeadshotAudioPrioritySelector, null);
@@ -295,6 +301,37 @@ namespace KillConfirmGameBar.Controls.GameStyles
             FirstKillEffectToggled?.Invoke(FirstKillEffectToggle, null);
             LastKillEffectToggled?.Invoke(LastKillEffectToggle, null);
             AssistAudioToggled?.Invoke(AssistAudioToggle, null);
+        }
+
+        private void RefreshKillMarkSetting()
+        {
+            SetKillMarkEnabled(KillFeedbackVisibilitySettingsStore.Load(GameStyleMode.Crossfire).CrosshairEnabled, false);
+        }
+
+        private void SetKillMarkEnabled(bool enabled, bool save = true)
+        {
+            _suppressKillMarkChanges = true;
+            KillMarkEffectToggle.IsOn = enabled;
+            _suppressKillMarkChanges = false;
+            if (save)
+            {
+                SaveKillMarkSetting();
+            }
+        }
+
+        private void OnKillMarkEffectToggled(object sender, RoutedEventArgs e)
+        {
+            if (!_suppressKillMarkChanges)
+            {
+                SaveKillMarkSetting();
+            }
+        }
+
+        private void SaveKillMarkSetting()
+        {
+            KillFeedbackVisibilitySettingsStore.Save(
+                GameStyleMode.Crossfire,
+                new KillFeedbackVisibilitySettingsValues { CrosshairEnabled = KillMarkEffectToggle.IsOn });
         }
     }
 }

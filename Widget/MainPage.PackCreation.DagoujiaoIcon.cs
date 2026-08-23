@@ -26,11 +26,13 @@ namespace KillConfirmGameBar
 
         private async Task ShowCreateDagoujiaoIconPackDialogAsync(
             string initialDisplayName = null,
-            IReadOnlyDictionary<string, StorageFile> initialFiles = null)
+            IReadOnlyDictionary<string, StorageFile> initialFiles = null,
+            StorageFile initialHeadImageFile = null)
         {
             var selectedFiles = initialFiles != null
                 ? new Dictionary<string, StorageFile>(initialFiles, StringComparer.OrdinalIgnoreCase)
                 : new Dictionary<string, StorageFile>(StringComparer.OrdinalIgnoreCase);
+            StorageFile headImageFile = initialHeadImageFile;
 
             var layout = CreatePackDialogLayout(
                 LocalizationManager.Text("CreateIconPack"),
@@ -38,6 +40,13 @@ namespace KillConfirmGameBar
                 LocalizationManager.Text("IconPackNamePlaceholder"),
                 initialDisplayName,
                 out var nameBox);
+
+            var headCard = await CreateHeadImageCardAsync(
+                "ms-appx:///Assets/GameLogos/dagoujiao.jpg",
+                headImageFile,
+                f => headImageFile = f,
+                () => headImageFile = null);
+            layout.Children.Add(headCard);
 
             var slotContainer = new StackPanel { Spacing = 8 };
             foreach (var slot in DagoujiaoIconSlots)
@@ -74,7 +83,7 @@ namespace KillConfirmGameBar
             await FillBuiltInDefaultsAsync(
                 selectedFiles, DagoujiaoIconSlots, "ms-appx:///Assets/GameStyles/dagoujiao/killconfirm/textures/");
 
-            await PackCatalogService.CreateDagoujiaoIconPackAsync(packName, selectedFiles);
+            await PackCatalogService.CreateDagoujiaoIconPackAsync(packName, selectedFiles, headImageFile);
         }
     }
 }

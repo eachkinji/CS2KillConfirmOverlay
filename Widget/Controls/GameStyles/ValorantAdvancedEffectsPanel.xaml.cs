@@ -6,13 +6,17 @@ namespace KillConfirmGameBar.Controls.GameStyles
 {
     public sealed partial class ValorantAdvancedEffectsPanel : UserControl
     {
+        private bool _suppressKillMarkChanges;
+
         public ValorantAdvancedEffectsPanel()
         {
             InitializeComponent();
+            RefreshKillMarkSetting();
         }
 
         public event SelectionChangedEventHandler StreakModeSelectionChanged;
         public event RoutedEventHandler AssistAudioToggled;
+        public event RoutedEventHandler PackSyncToggled;
 
         public ComboBox StreakModeSelectorControl => StreakEditor.SelectorControl;
 
@@ -27,6 +31,8 @@ namespace KillConfirmGameBar.Controls.GameStyles
             AdvancedEffectsPanelSupport.ApplyResetButton(ResetButton, theme);
             StreakEditor.ApplyTheme(theme);
             AdvancedEffectsPanelSupport.ApplyToggleRow(AssistAudioLabel, AssistAudioToggle, theme);
+            AdvancedEffectsPanelSupport.ApplyToggleRow(PackSyncLabel, PackSyncToggle, theme);
+            AdvancedEffectsPanelSupport.ApplyKillMarkCard(VisualEffectsCard, VisualEffectsTitle, KillMarkEffectLabel, KillMarkEffectToggle, theme);
         }
 
         public void ApplyLanguage(bool isChinese)
@@ -40,6 +46,10 @@ namespace KillConfirmGameBar.Controls.GameStyles
             AssistAudioLabel.Text = isChinese ? "助攻音效" : "Assist audio";
             AssistAudioToggle.OnContent = isChinese ? "有声音（common）" : "Sound (common)";
             AssistAudioToggle.OffContent = isChinese ? "无声音（默认）" : "Muted (default)";
+            PackSyncLabel.Text = isChinese ? "语音包与图标包同步" : "Voice / icon pack sync";
+            PackSyncToggle.OnContent = isChinese ? "同步（默认）" : "Paired (default)";
+            PackSyncToggle.OffContent = isChinese ? "自由搭配" : "Independent";
+            AdvancedEffectsPanelSupport.ApplyKillMarkLanguage(VisualEffectsTitle, KillMarkEffectLabel, KillMarkEffectToggle, isChinese);
         }
 
         public string GetSelectedStreakMode(string fallback)
@@ -62,6 +72,16 @@ namespace KillConfirmGameBar.Controls.GameStyles
             AssistAudioToggle.IsOn = enabled;
         }
 
+        public bool GetPackSyncEnabled(bool fallback)
+        {
+            return PackSyncToggle?.IsOn ?? fallback;
+        }
+
+        public void SelectPackSync(bool enabled)
+        {
+            PackSyncToggle.IsOn = enabled;
+        }
+
         private void OnStreakModeSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             StreakModeSelectionChanged?.Invoke(this, e);
@@ -72,12 +92,51 @@ namespace KillConfirmGameBar.Controls.GameStyles
             AssistAudioToggled?.Invoke(this, e);
         }
 
+        private void OnPackSyncToggled(object sender, RoutedEventArgs e)
+        {
+            PackSyncToggled?.Invoke(this, e);
+        }
+
         private void OnResetButtonClick(object sender, RoutedEventArgs e)
         {
             StreakEditor.SelectValue(SharedStreakSettingsStore.LifeMode);
             AssistAudioToggle.IsOn = false;
+            PackSyncToggle.IsOn = true;
+            SetKillMarkEnabled(false);
             StreakModeSelectionChanged?.Invoke(StreakEditor.SelectorControl, null);
             AssistAudioToggled?.Invoke(AssistAudioToggle, null);
+            PackSyncToggled?.Invoke(PackSyncToggle, null);
+        }
+
+        private void RefreshKillMarkSetting()
+        {
+            SetKillMarkEnabled(KillFeedbackVisibilitySettingsStore.Load(GameStyleMode.Valorant).CrosshairEnabled, false);
+        }
+
+        private void SetKillMarkEnabled(bool enabled, bool save = true)
+        {
+            _suppressKillMarkChanges = true;
+            KillMarkEffectToggle.IsOn = enabled;
+            _suppressKillMarkChanges = false;
+            if (save)
+            {
+                SaveKillMarkSetting();
+            }
+        }
+
+        private void OnKillMarkEffectToggled(object sender, RoutedEventArgs e)
+        {
+            if (!_suppressKillMarkChanges)
+            {
+                SaveKillMarkSetting();
+            }
+        }
+
+        private void SaveKillMarkSetting()
+        {
+            KillFeedbackVisibilitySettingsStore.Save(
+                GameStyleMode.Valorant,
+                new KillFeedbackVisibilitySettingsValues { CrosshairEnabled = KillMarkEffectToggle.IsOn });
         }
     }
 }

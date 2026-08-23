@@ -68,7 +68,10 @@ namespace KillConfirmGameBar.Controls
             }
             catch (Exception ex)
             {
-                App.Log("Play Dagoujiao animation failed: " + ex.Message);
+                // A missing/invalid built-in image must be diagnosable even when
+                // developer logging is disabled; this path means the visual was
+                // actually lost while its companion audio may still have played.
+                App.LogCrash("Play Dagoujiao animation failed: " + ex);
                 if (token == _playToken)
                 {
                     ResetDagoujiaoState();
@@ -103,6 +106,15 @@ namespace KillConfirmGameBar.Controls
 
         private async Task<CanvasBitmap> LoadDagoujiaoImageForKillAsync(DagoujiaoSettingsValues settings, int killCount, bool isHeadshot)
         {
+            if (string.Equals(
+                _iconPack,
+                PackCatalogService.DagoujiaoAnimalsPackKey,
+                StringComparison.OrdinalIgnoreCase))
+            {
+                return await LoadBitmapFromApplicationUriAsync(
+                    "ms-appx:///Assets/GameStyles/dagoujiao/iconpacks/dagoujiao_animals/animals.jpg");
+            }
+
             if (PackCatalogService.IsImportedIconPackKey(_iconPack))
             {
                 StorageFolder customFolder = await PackCatalogService.GetImportedIconFolderAsync(_iconPack);

@@ -186,6 +186,9 @@ Write-Host "  已从 SourceAssets 同步 $copiedSoundPackCount 个内置语音�
 # 3. 编译打包 MSIX
 Write-Host "`n[2/4] 调用 MSBuild 编译打包 MSIX ($Configuration/$Platform)..." -ForegroundColor Yellow
 $TempAppxDir = Join-Path $OutputDir "TempAppPackages"
+if (Test-Path -LiteralPath $TempAppxDir -PathType Container) {
+    Remove-Item -LiteralPath $TempAppxDir -Recurse -Force
+}
 $MsBuildArgs = @(
     $PackageProjectPath,
     "/restore",
@@ -308,8 +311,7 @@ if ($Install) {
     if (Test-Path $FinalCerPath) {
         try {
             Import-Certificate -FilePath $FinalCerPath -CertStoreLocation "Cert:\CurrentUser\TrustedPeople" -ErrorAction Stop | Out-Null
-            Import-Certificate -FilePath $FinalCerPath -CertStoreLocation "Cert:\CurrentUser\Root" -ErrorAction Stop | Out-Null
-            Write-Host " [√] 证书已导入到当前用户受信任证书库" -ForegroundColor Green
+            Write-Host " [√] 证书已导入到当前用户 TrustedPeople 证书库" -ForegroundColor Green
         }
         catch {
             Write-Warning "证书自动导入提示: $($_.Exception.Message)"

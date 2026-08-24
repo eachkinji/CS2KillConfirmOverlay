@@ -52,7 +52,25 @@ jobs:
           if (-not (Test-Path $VclibsRoot)) {
             throw "Vclibs folder was not found at $VclibsRoot"
           }
-          Get-ChildItem -LiteralPath $VclibsRoot | ForEach-Object { Write-Host ("{0} {1}" -f $_.Name, $_.Length) }
+          $requiredFiles = @(
+            "Microsoft.UI.Xaml.Appx",
+            "vclibs.appx",
+            "vclibs2.appx",
+            "Microsoft.NET.Native.Framework.2.2.x64.appx",
+            "Microsoft.NET.Native.Runtime.2.2.x64.appx",
+            "gamebar.AppxBundle"
+          )
+          $missingFiles = @($requiredFiles | Where-Object {
+            $candidatePath = Join-Path $VclibsRoot $_
+            (-not (Test-Path -LiteralPath $candidatePath -PathType Leaf)) -or ((Get-Item -LiteralPath $candidatePath).Length -le 0)
+          })
+          if ($missingFiles.Count -gt 0) {
+            throw "Missing offline prerequisite packages: $($missingFiles -join ', ')"
+          }
+          $requiredFiles | ForEach-Object {
+            $package = Get-Item -LiteralPath (Join-Path $VclibsRoot $_)
+            Write-Host ("{0} {1}" -f $package.Name, $package.Length)
+          }
 
       - name: Cache NuGet packages
         uses: actions/cache@v4
@@ -113,7 +131,7 @@ jobs:
           if ($cert.NotAfter -le (Get-Date).AddDays(30)) {
               throw "Signing certificate expires too soon: $($cert.NotAfter)"
           }
-          Import-Certificate -FilePath $cer -CertStoreLocation "Cert:\LocalMachine\Root" | Out-Null
+          Import-Certificate -FilePath $cer -CertStoreLocation "Cert:\LocalMachine\TrustedPeople" | Out-Null
           "CERT_PFX=$pfx" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           "CERT_CER=$cer" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           "CERT_PASSWORD=$env:SIGNING_PASSWORD" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8

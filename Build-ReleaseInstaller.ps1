@@ -86,6 +86,9 @@ Write-Host "==========================================================" -Foregro
 # 1. 首先通过 Build-DevPackage 构建出最新的 MSIX 与签名文件
 Write-Host "`n[第 1 步/3] 构建核心应用 MSIX 包与二进制..." -ForegroundColor Yellow
 $DevOutputDir = Join-Path $OutputDir "TempDevPackage"
+if (Test-Path -LiteralPath $DevOutputDir -PathType Container) {
+    Remove-Item -LiteralPath $DevOutputDir -Recurse -Force
+}
 $devBuildArgs = @{
     Configuration = $Configuration
     Platform = $Platform
@@ -114,10 +117,27 @@ if ($CertificateCerPath) {
 }
 & (Join-Path $Root "Build-DevPackage.ps1") @devBuildArgs
 
-$msixFile = Get-ChildItem -LiteralPath $DevOutputDir -Filter "*.msix" -File | Select-Object -First 1
-$cerFile = Get-ChildItem -LiteralPath $DevOutputDir -Filter "*.cer" -File | Select-Object -First 1
-if (-not $msixFile) {
-    throw "MSIX 构建产物丢失！"
+$msixFiles = @(Get-ChildItem -LiteralPath $DevOutputDir -Filter "*.msix" -File)
+$cerFiles = @(Get-ChildItem -LiteralPath $DevOutputDir -Filter "*.cer" -File)
+if ($msixFiles.Count -ne 1) {
+    throw "预期生成 1 个 MSIX，实际找到 $($msixFiles.Count) 个：$DevOutputDir"
+}
+if ($cerFiles.Count -ne 1) {
+    throw "预期生成 1 个签名证书 .cer，实际找到 $($cerFiles.Count) 个；不能生成用户无法建立信任的安装包。"
+}
+$msixFile = $msixFiles[0]
+$cerFile = $cerFiles[0]
+
+$packageSignature = Get-AuthenticodeSignature -LiteralPath $msixFile.FullName
+$publicCertificate = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($cerFile.FullName)
+if (-not $packageSignature.SignerCertificate) {
+    throw "MSIX 没有可读取的 Authenticode 签名：$($msixFile.FullName)"
+}
+if (-not [string]::Equals(
+        $packageSignature.SignerCertificate.Thumbprint,
+        $publicCertificate.Thumbprint,
+        [System.StringComparison]::OrdinalIgnoreCase)) {
+    throw "MSIX 签名证书与安装包携带的 .cer 不一致。"
 }
 
 # 2. 准备 Transfer 安装环境目录
@@ -139,6 +159,19 @@ $PrerequisiteFileNames = @(
     "Microsoft.NET.Native.Runtime.2.2.x64.appx",
     "gamebar.AppxBundle"
 )
+
+if (-not $SkipWithDependencies) {
+    if (-not (Test-Path -LiteralPath $PrerequisiteSourceRoot -PathType Container)) {
+        throw "离线依赖目录不存在：$PrerequisiteSourceRoot"
+    }
+    $missingPrerequisiteFiles = @($PrerequisiteFileNames | Where-Object {
+        $candidatePath = Join-Path $PrerequisiteSourceRoot $_
+        (-not (Test-Path -LiteralPath $candidatePath -PathType Leaf)) -or ((Get-Item -LiteralPath $candidatePath).Length -le 0)
+    })
+    if ($missingPrerequisiteFiles.Count -gt 0) {
+        throw "有依赖版安装包缺少离线组件：$($missingPrerequisiteFiles -join '、')"
+    }
+}
 
 # 复制 Overlay 主程序与证书
 foreach ($targetRoot in @($TransferRoot, $NoDepsTransferRoot)) {
@@ -184,8 +217,7 @@ $InnoCmd = Get-Command iscc -ErrorAction SilentlyContinue
 $InnoCompilerPath = if ($InnoCmd) { $InnoCmd.Source } else { $InnoCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1 }
 
 if (-not $InnoCompilerPath -or -not (Test-Path $InnoCompilerPath)) {
-    Write-Warning "未检测到 Inno Setup 6 (ISCC.exe)。已生成 Transfer 目录但无法编译 EXE 安装包。请安装 Inno Setup 6 后重试。"
-    return
+    throw "未检测到 Inno Setup 6 (ISCC.exe)，无法生成最终 EXE 安装包。"
 }
 
 # 4. 编译 Inno Setup 安装包 EXE
@@ -198,6 +230,14 @@ function Invoke-InnoCompile {
         [string]$FinalFileName,
         [bool]$SkipPrerequisites
     )
+
+    $rawFile = Join-Path $Root ("Output\KillConfirmGameBar_Setup_{0}{1}.exe" -f $Version, $InternalSuffix)
+    $finalOutput = Join-Path $OutputDir $FinalFileName
+    foreach ($stalePath in @($rawFile, $finalOutput) | Select-Object -Unique) {
+        if (Test-Path -LiteralPath $stalePath -PathType Leaf) {
+            Remove-Item -LiteralPath $stalePath -Force
+        }
+    }
 
     $innoArgs = @(
         ("/DMyAppVersion={0}" -f $Version),
@@ -212,10 +252,12 @@ function Invoke-InnoCompile {
         throw "Inno Setup 编译失败 (ExitCode: $LASTEXITCODE)"
     }
 
-    $rawFile = Join-Path $Root ("Output\KillConfirmGameBar_Setup_{0}{1}.exe" -f $Version, $InternalSuffix)
-    $finalOutput = Join-Path $OutputDir $FinalFileName
-    if (Test-Path $rawFile) {
-        Move-Item -LiteralPath $rawFile -Destination $finalOutput -Force
+    if (-not (Test-Path -LiteralPath $rawFile -PathType Leaf)) {
+        throw "Inno Setup 返回成功，但没有生成预期产物：$rawFile"
+    }
+    Move-Item -LiteralPath $rawFile -Destination $finalOutput -Force
+    if (-not (Test-Path -LiteralPath $finalOutput -PathType Leaf)) {
+        throw "最终安装包移动后不存在：$finalOutput"
     }
 }
 

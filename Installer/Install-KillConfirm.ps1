@@ -212,20 +212,31 @@ function Write-InstallLog {
 }
 
 function Test-XboxGameBarAvailable {
-    return $null -ne (Get-AppxPackage -Name "Microsoft.XboxGamingOverlay" -ErrorAction SilentlyContinue |
-        Sort-Object Version -Descending |
-        Select-Object -First 1)
+    $requirement = $Prerequisites |
+        Where-Object PackageName -eq "Microsoft.XboxGamingOverlay" |
+        Select-Object -First 1
+    return $null -ne $requirement -and (Test-PrerequisiteInstalled -Prerequisite $requirement)
 }
 
 function Confirm-XboxGameBarAvailable {
+    $requirement = $Prerequisites |
+        Where-Object PackageName -eq "Microsoft.XboxGamingOverlay" |
+        Select-Object -First 1
+    $gameBar = if ($requirement) {
+        Get-InstalledPrerequisitePackage -Prerequisite $requirement
+    }
+    else {
+        $null
+    }
+
     if (Test-XboxGameBarAvailable) {
-        $gameBar = Get-AppxPackage -Name "Microsoft.XboxGamingOverlay" -ErrorAction SilentlyContinue |
-            Sort-Object Version -Descending |
-            Select-Object -First 1
-        Write-InstallLog "Xbox Game Bar package is available: $($gameBar.Version)"
+        Write-InstallLog "Xbox Game Bar package is available: $($gameBar.Version); Status=$($gameBar.Status)"
         return
     }
 
+    if ($gameBar) {
+        Write-InstallLog "Xbox Game Bar is installed but does not satisfy requirements: Version=$($gameBar.Version); Status=$($gameBar.Status); Minimum=$($requirement.MinimumVersion)"
+    }
     Write-InstallLog "Xbox Game Bar is still unavailable after prerequisite handling. Opening Microsoft Store fallback."
     try {
         Start-Process "ms-windows-store://pdp/?ProductId=9NZKPSTSNW4P" | Out-Null
@@ -234,7 +245,7 @@ function Confirm-XboxGameBarAvailable {
         Write-InstallLog "Could not open the Xbox Game Bar Microsoft Store page: $($_.Exception.Message)"
     }
 
-    throw "Xbox Game Bar is not installed. Install it from Microsoft Store, then run this installer again."
+    throw "Xbox Game Bar is missing, damaged, or older than required version $($requirement.MinimumVersion). Update it from Microsoft Store, then run this installer again."
 }
 
 function Set-RegistryDwordAndReport {
@@ -279,7 +290,12 @@ function Backup-GameBarRegistry {
                 $exportedCount++
             }
         }
-        Add-InstallResult -Status Success -Item "Game Bar 注册表备份" -Detail ("已备份 {0} 项到：{1}" -f $exportedCount, $backupRoot)
+        if ($exportedCount -eq $exports.Count) {
+            Add-InstallResult -Status Success -Item "Game Bar 注册表备份" -Detail ("已备份 {0} 项到：{1}" -f $exportedCount, $backupRoot)
+        }
+        else {
+            Add-InstallResult -Status Warning -Item "Game Bar 注册表备份" -Detail ("仅成功备份 {0}/{1} 项到：{2}；修复仍会继续" -f $exportedCount, $exports.Count, $backupRoot)
+        }
     }
     catch {
         Add-InstallResult -Status Warning -Item "Game Bar 注册表备份" -Detail ((Get-ErrorReason $_) + "；修复仍会继续")
@@ -517,6 +533,10 @@ function Get-InstalledOverlayPackage {
     if (-not $package) {
         throw "MSIX install finished, but $PackageName is not registered for this user."
     }
+    $packageStatus = [string]$package.Status
+    if ($packageStatus -and $packageStatus -ne "Ok") {
+        throw "MSIX package $($package.PackageFullName) is registered but its status is $packageStatus."
+    }
 
     return $package
 }
@@ -533,9 +553,7 @@ function Import-PackageCertificate {
 
     $storeLocations = @(
         "Cert:\CurrentUser\TrustedPeople",
-        "Cert:\CurrentUser\Root",
-        "Cert:\LocalMachine\TrustedPeople",
-        "Cert:\LocalMachine\Root"
+        "Cert:\LocalMachine\TrustedPeople"
     )
 
     $importedCount = 0
@@ -601,6 +619,14 @@ function Test-PrerequisiteInstalled {
 
     $installed = Get-InstalledPrerequisitePackage -Prerequisite $Prerequisite
     if (-not $installed) {
+        return $false
+    }
+    $installedStatus = [string]$installed.Status
+    if ($installedStatus -and $installedStatus -ne "Ok") {
+        return $false
+    }
+    $installedStatus = [string]$installed.Status
+    if ($installedStatus -and $installedStatus -ne "Ok") {
         return $false
     }
 
@@ -805,7 +831,7 @@ function Stop-OverlayRuntimeForUpdate {
         else {
             ""
         }
-        throw "无法完全关闭旧版小组件或 Xbox Game Bar（仍在运行：$remainingText）$failureText。为避免更新后出现 0x80070002，安装已停止。"
+        throw "无法完全关闭旧版小组件或 Xbox Game Bar（仍在运行：$remainingText）$failureText。安装器将继续尝试延迟更新。"
     }
 }
 
@@ -820,6 +846,7 @@ function Install-OverlayPackage {
         throw "OverlayPackage was not found under $ScriptRoot"
     }
 
+    $deferMainUpdate = $false
     try {
         Stop-OverlayRuntimeForUpdate
     }
@@ -827,8 +854,9 @@ function Install-OverlayPackage {
         # A stale widget or Game Bar process should not prevent the installer
         # from attempting the actual MSIX update. AppX deployment will report
         # its own failure if the package is still in use.
-        Add-InstallResult -Status Error -Item "关闭正在运行的旧程序" -Detail ((Get-ErrorReason $_) + "；仍会继续尝试更新主程序")
-        Write-InstallLog "旧版进程未能完全退出；继续尝试安装新版 MSIX。"
+        $deferMainUpdate = $true
+        Add-InstallResult -Status Warning -Item "关闭正在运行的旧程序" -Detail ((Get-ErrorReason $_) + "；仍会继续尝试更新主程序")
+        Write-InstallLog "旧版进程未能完全退出；继续尝试安装新版 MSIX，并在系统支持时延迟注册。"
     }
 
     $msix = Get-ChildItem -LiteralPath $OverlayRoot -Filter "*.msix" -File | Select-Object -First 1
@@ -836,26 +864,37 @@ function Install-OverlayPackage {
         throw "MSIX package was not found under $OverlayRoot"
     }
 
-    $cert = Get-ChildItem -LiteralPath $OverlayRoot -Filter "*.cer" -File | Select-Object -First 1
-    if ($cert) {
-        Write-InstallLog "Installing package certificate: $($cert.FullName)"
-        $certificateResult = Import-PackageCertificate -CertificatePath $cert.FullName
-        if ($certificateResult.ImportedCount -gt 0) {
-            Add-InstallResult -Status Success -Item "Kill Confirm 包签名证书" -Detail ("已写入 {0} 个证书库" -f $certificateResult.ImportedCount)
+    try {
+        $cert = Get-ChildItem -LiteralPath $OverlayRoot -Filter "*.cer" -File | Select-Object -First 1
+        if ($cert) {
+            Write-InstallLog "Installing package certificate: $($cert.FullName)"
+            $certificateResult = Import-PackageCertificate -CertificatePath $cert.FullName
+            if ($certificateResult.ImportedCount -gt 0) {
+                Add-InstallResult -Status Success -Item "Kill Confirm 包签名证书" -Detail ("已写入 {0} 个 TrustedPeople 证书库" -f $certificateResult.ImportedCount)
+            }
+            else {
+                Add-InstallResult -Status Error -Item "Kill Confirm 包签名证书" -Detail ("所有 TrustedPeople 证书库均导入失败：{0}" -f $certificateResult.LastFailure)
+            }
         }
         else {
-            Add-InstallResult -Status Error -Item "Kill Confirm 包签名证书" -Detail ("所有证书库均导入失败：{0}" -f $certificateResult.LastFailure)
+            Write-InstallLog "No package certificate found beside MSIX."
+            Add-InstallResult -Status Error -Item "Kill Confirm 包签名证书" -Detail "主程序旁边没有找到 .cer 证书文件"
         }
     }
-    else {
-        Write-InstallLog "No package certificate found beside MSIX."
-        Add-InstallResult -Status Error -Item "Kill Confirm 包签名证书" -Detail "主程序旁边没有找到 .cer 证书文件"
+    catch {
+        Add-InstallResult -Status Error -Item "Kill Confirm 包签名证书" -Detail ((Get-ErrorReason $_) + "；仍会继续尝试安装主程序")
     }
 
     $dependencies = @()
     $dependencyRoot = Join-Path $OverlayRoot "Dependencies\x64"
-    if (Test-Path $dependencyRoot) {
-        $dependencies = @(Get-ChildItem -LiteralPath $dependencyRoot -Include "*.appx", "*.msix" -File -Recurse | ForEach-Object { $_.FullName })
+    try {
+        if (Test-Path $dependencyRoot) {
+            $dependencies = @(Get-ChildItem -LiteralPath $dependencyRoot -Include "*.appx", "*.msix" -File -Recurse | ForEach-Object { $_.FullName })
+        }
+    }
+    catch {
+        Add-InstallResult -Status Error -Item "枚举主程序依赖" -Detail ((Get-ErrorReason $_) + "；仍会继续尝试安装主程序")
+        $dependencies = @()
     }
     Write-InstallLog "Dependency root: $dependencyRoot"
     Write-InstallLog "Dependency count: $($dependencies.Count)"
@@ -897,6 +936,9 @@ function Install-OverlayPackage {
             $installedVersion = [version]$installedMsix.Version
             $installedStatus = [string]$installedMsix.Status
             Write-InstallLog "Installed MSIX detected: $installedVersion; Status=$installedStatus; Location=$($installedMsix.InstallLocation)"
+            if ($installedVersion -gt $msixIdentity.Version) {
+                throw "检测到更高版本 $installedVersion；当前安装包版本为 $($msixIdentity.Version)，已拒绝降级。"
+            }
             if ($installedVersion -eq $msixIdentity.Version -and $installedStatus -eq "Ok") {
                 Write-InstallLog "The same healthy MSIX version is already registered. Skipping package replacement and continuing repair steps."
                 Add-InstallResult -Status Success -Item "Kill Confirm Overlay 主程序" -Detail ("版本 {0} 已安装且状态正常；继续执行修复步骤" -f $installedVersion)
@@ -904,11 +946,21 @@ function Install-OverlayPackage {
             }
         }
     }
-    # All widget and host processes were verified stopped above. Do not defer
-    # registration: a deferred update can leave an old Game Bar widget instance
-    # running against files from the newly staged package.
-    Add-AppxPackageCompat -PackagePath $msix.FullName -ForceUpdate
+    Add-AppxPackageCompat `
+        -PackagePath $msix.FullName `
+        -ForceUpdate `
+        -DeferWhenInUse:$deferMainUpdate
     $installedPackage = Get-InstalledOverlayPackage
+    if ($msixIdentity) {
+        $installedVersion = [version]$installedPackage.Version
+        if ($installedVersion -lt $msixIdentity.Version) {
+            if ($deferMainUpdate) {
+                Add-InstallResult -Status Warning -Item "Kill Confirm Overlay 主程序" -Detail ("新版 {0} 已提交延迟更新；当前仍为 {1}。请关闭 Xbox Game Bar，必要时重启 Windows 后完成更新" -f $msixIdentity.Version, $installedVersion)
+                return
+            }
+            throw "MSIX 安装命令执行完成，但已注册版本仍为 $installedVersion，目标版本为 $($msixIdentity.Version)。"
+        }
+    }
     $serviceExecutable = Join-Path $installedPackage.InstallLocation "KillConfirmService\cskillconfirm.exe"
     if (-not (Test-Path -LiteralPath $serviceExecutable -PathType Leaf)) {
         throw "MSIX 已注册，但后台服务文件不存在：$serviceExecutable"

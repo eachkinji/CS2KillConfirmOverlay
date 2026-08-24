@@ -1,0 +1,225 @@
+<UserControl
+    x:Class="KillConfirmGameBar.VisualSettingsView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="ms-appx:///Pages/KillConfirmWidget/KillConfirmWidgetPage.Styles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+<Grid x:Name="VisualSection" x:FieldModifier="public">
+    <Border
+        x:Name="VisualCard" x:FieldModifier="public"
+        Padding="0"
+        Background="#FAFAF7"
+        BorderBrush="#E2DDD3"
+        BorderThickness="1"
+        CornerRadius="16">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="18" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Border
+                x:Name="VisualHeaderBorder" x:FieldModifier="public"
+                Grid.Row="0"
+                Background="#2E88B8"
+                BorderBrush="#256F98"
+                BorderThickness="0,0,0,1"
+                CornerRadius="16,16,0,0"
+                Padding="9,0,9,0">
+                <TextBlock
+                    x:Name="VisualHeaderText" x:FieldModifier="public"
+                    Style="{StaticResource SectionHeaderTextStyle}"
+                    Foreground="#FFFFFF"
+                    Text="VISUAL" />
+            </Border>
+
+        <StackPanel
+            Grid.Row="1"
+            Margin="4,4,4,4"
+            Spacing="4">
+            <Grid
+                HorizontalAlignment="Center"
+                ColumnSpacing="6">
+    <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="Auto" />
+    </Grid.ColumnDefinitions>
+
+    <Button
+        x:Name="DefaultSizeButton" x:FieldModifier="public"
+        Grid.Column="0"
+        Style="{StaticResource VisualImportantIconButtonStyle}"
+        Click="OnResizeClick"
+        ToolTipService.ToolTip="Default size">
+        <Grid Style="{StaticResource CompactIconHostStyle}">
+            <PathIcon Foreground="#1B5F82" Style="{StaticResource FluentTinyPathIconStyle}" Data="M4 4H9V5.5H5.5V9H4V4ZM15 4H20V9H18.5V5.5H15V4ZM4 15H5.5V18.5H9V20H4V15ZM18.5 15H20V20H15V18.5H18.5V15Z" />
+        </Grid>
+    </Button>
+
+    <Button
+        x:Name="CenterButton" x:FieldModifier="public"
+        Grid.Column="1"
+        Style="{StaticResource VisualImportantIconButtonStyle}"
+        Click="OnCenterClick"
+        ToolTipService.ToolTip="Center window">
+        <Grid Style="{StaticResource CompactIconHostStyle}">
+            <PathIcon Foreground="#1B5F82" Style="{StaticResource FluentTinyPathIconStyle}" Data="M11.25 2H12.75V5.04C15.96 5.38 18.62 8.04 18.96 11.25H22V12.75H18.96C18.62 15.96 15.96 18.62 12.75 18.96V22H11.25V18.96C8.04 18.62 5.38 15.96 5.04 12.75H2V11.25H5.04C5.38 8.04 8.04 5.38 11.25 5.04V2ZM12 6.5C8.96 6.5 6.5 8.96 6.5 12C6.5 15.04 8.96 17.5 12 17.5C15.04 17.5 17.5 15.04 17.5 12C17.5 8.96 15.04 6.5 12 6.5ZM12 9.5C13.38 9.5 14.5 10.62 14.5 12C14.5 13.38 13.38 14.5 12 14.5C10.62 14.5 9.5 13.38 9.5 12C9.5 10.62 10.62 9.5 12 9.5Z" />
+        </Grid>
+    </Button>
+
+    <Button
+        x:Name="WindowTopButton" x:FieldModifier="public"
+        Grid.Column="2"
+        Style="{StaticResource VisualImportantIconButtonStyle}"
+        Click="OnWindowTopClick"
+        ToolTipService.ToolTip="Place window at top">
+        <Grid Style="{StaticResource CompactIconHostStyle}">
+            <PathIcon Style="{StaticResource FluentTinyPathIconStyle}" Data="M5 3H19C20.1 3 21 3.9 21 5V19C21 20.1 20.1 21 19 21H5C3.9 21 3 20.1 3 19V5C3 3.9 3.9 3 5 3ZM5 4.5C4.72 4.5 4.5 4.72 4.5 5V19C4.5 19.28 4.72 19.5 5 19.5H19C19.28 19.5 19.5 19.28 19.5 19V5C19.5 4.72 19.28 4.5 19 4.5H5ZM6.5 6H17.5V9H6.5V6Z" />
+        </Grid>
+    </Button>
+
+    <Button
+        x:Name="WindowBottomButton" x:FieldModifier="public"
+        Grid.Column="4"
+        Style="{StaticResource VisualImportantIconButtonStyle}"
+        Click="OnWindowBottomClick"
+        ToolTipService.ToolTip="Place window at bottom">
+        <Grid Style="{StaticResource CompactIconHostStyle}">
+            <PathIcon Style="{StaticResource FluentTinyPathIconStyle}" Data="M5 3H19C20.1 3 21 3.9 21 5V19C21 20.1 20.1 21 19 21H5C3.9 21 3 20.1 3 19V5C3 3.9 3.9 3 5 3ZM5 4.5C4.72 4.5 4.5 4.72 4.5 5V19C4.5 19.28 4.72 19.5 5 19.5H19C19.28 19.5 19.5 19.28 19.5 19V5C19.5 4.72 19.28 4.5 19 4.5H5ZM6.5 15H17.5V18H6.5V15Z" />
+        </Grid>
+    </Button>
+
+    <Button
+        x:Name="ControlPanelCenterButton" x:FieldModifier="public"
+        Grid.Column="3"
+        Style="{StaticResource CompactIconButtonStyle}"
+        Click="OnControlPanelCenterClick"
+        ToolTipService.ToolTip="Center control panel">
+        <Grid Style="{StaticResource CompactIconHostStyle}">
+            <PathIcon Style="{StaticResource FluentTinyPathIconStyle}" Data="M5 3H19C20.1 3 21 3.9 21 5V19C21 20.1 20.1 21 19 21H5C3.9 21 3 20.1 3 19V5C3 3.9 3.9 3 5 3ZM5 4.5C4.72 4.5 4.5 4.72 4.5 5V19C4.5 19.28 4.72 19.5 5 19.5H19C19.28 19.5 19.5 19.28 19.5 19V5C19.5 4.72 19.28 4.5 19 4.5H5ZM7 9H17V15H7V9Z" />
+        </Grid>
+    </Button>
+
+    <Button
+        x:Name="ResetVisualButton" x:FieldModifier="public"
+        Grid.Column="5"
+        Style="{StaticResource CompactIconButtonStyle}"
+        Click="OnResetVisualAdjustmentsClick"
+        ToolTipService.ToolTip="Reset visual adjustments">
+        <Grid Style="{StaticResource CompactIconHostStyle}">
+            <PathIcon Style="{StaticResource FluentTinyPathIconStyle}" Data="M12 4.5C7.85786 4.5 4.5 7.85786 4.5 12C4.5 16.1421 7.85786 19.5 12 19.5C16.1421 19.5 19.5 16.1421 19.5 12C19.5 11.6236 19.4723 11.2538 19.4188 10.8923C19.3515 10.4382 19.6839 10 20.1429 10C20.5138 10 20.839 10.2562 20.8953 10.6228C20.9642 11.0718 21 11.5317 21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C14.3051 3 16.4077 3.86656 18 5.29168V4.25C18 3.83579 18.3358 3.5 18.75 3.5C19.1642 3.5 19.5 3.83579 19.5 4.25V7.25C19.5 7.66421 19.1642 8 18.75 8H15.75C15.3358 8 15 7.66421 15 7.25C15 6.83579 15.3358 6.5 15.75 6.5H17.0991C15.7609 5.25883 13.9691 4.5 12 4.5Z" />
+        </Grid>
+    </Button>
+
+        </Grid>
+
+        <Grid
+            HorizontalAlignment="Center"
+            ColumnSpacing="4">
+    <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="Auto" />
+    </Grid.ColumnDefinitions>
+
+    <PathIcon
+        x:Name="BrightnessIcon" x:FieldModifier="public"
+        Grid.Column="0"
+        Style="{StaticResource FluentTinyPathIconStyle}"
+        Data="M12 2C12.4142 2 12.75 2.33579 12.75 2.75V4.25C12.75 4.66421 12.4142 5 12 5C11.5858 5 11.25 4.66421 11.25 4.25V2.75C11.25 2.33579 11.5858 2 12 2ZM12 17C14.7614 17 17 14.7614 17 12C17 9.23858 14.7614 7 12 7C9.23858 7 7 9.23858 7 12C7 14.7614 9.23858 17 12 17ZM12 15.5C10.067 15.5 8.5 13.933 8.5 12C8.5 10.067 10.067 8.5 12 8.5C13.933 8.5 15.5 10.067 15.5 12C15.5 13.933 13.933 15.5 12 15.5ZM21.25 12.75C21.6642 12.75 22 12.4142 22 12C22 11.5858 21.6642 11.25 21.25 11.25H19.75C19.3358 11.25 19 11.5858 19 12C19 12.4142 19.3358 12.75 19.75 12.75H21.25ZM12 19C12.4142 19 12.75 19.3358 12.75 19.75V21.25C12.75 21.6642 12.4142 22 12 22C11.5858 22 11.25 21.6642 11.25 21.25V19.75C11.25 19.3358 11.5858 19 12 19ZM4.25 12.75C4.66421 12.75 5 12.4142 5 12C5 11.5858 4.66421 11.25 4.25 11.25H2.75C2.33579 11.25 2 11.5858 2 12C2 12.4142 2.33579 12.75 2.75 12.75H4.25ZM4.21967 4.22004C4.51256 3.92715 4.98744 3.92715 5.28033 4.22004L6.78033 5.72004C7.07322 6.01294 7.07322 6.48781 6.78033 6.7807C6.48744 7.0736 6.01256 7.0736 5.71967 6.7807L4.21967 5.2807C3.92678 4.98781 3.92678 4.51294 4.21967 4.22004ZM5.28033 19.7807C4.98744 20.0736 4.51256 20.0736 4.21967 19.7807C3.92678 19.4878 3.92678 19.0129 4.21967 18.72L5.71967 17.22C6.01256 16.9271 6.48744 16.9271 6.78033 17.22C7.07322 17.5129 7.07322 17.9878 6.78033 18.2807L5.28033 19.7807ZM19.7803 4.22004C19.4874 3.92715 19.0126 3.92715 18.7197 4.22004L17.2197 5.72004C16.9268 6.01294 16.9268 6.48781 17.2197 6.7807C17.5126 7.0736 17.9874 7.0736 18.2803 6.7807L19.7803 5.2807C20.0732 4.98781 20.0732 4.51294 19.7803 4.22004ZM18.7197 19.7807C19.0126 20.0736 19.4874 20.0736 19.7803 19.7807C20.0732 19.4878 20.0732 19.0129 19.7803 18.72L18.2803 17.22C17.9874 16.9271 17.5126 16.9271 17.2197 17.22C16.9268 17.5129 16.9268 17.9878 17.2197 18.2807L18.7197 19.7807Z"
+        ToolTipService.ToolTip="Animation brightness" />
+
+    <ComboBox
+        x:Name="BrightnessSelector" x:FieldModifier="public"
+        Grid.Column="1"
+        Width="70"
+        Style="{StaticResource NarrowComboBoxStyle}"
+        SelectionChanged="OnBrightnessSelectionChanged"
+        ToolTipService.ToolTip="Animation brightness">
+        <ComboBoxItem Tag="0">OFF</ComboBoxItem>
+        <ComboBoxItem Tag="10">10%</ComboBoxItem>
+        <ComboBoxItem Tag="20">20%</ComboBoxItem>
+        <ComboBoxItem Tag="30">30%</ComboBoxItem>
+        <ComboBoxItem Tag="40">40%</ComboBoxItem>
+        <ComboBoxItem Tag="50">50%</ComboBoxItem>
+        <ComboBoxItem Tag="60">60%</ComboBoxItem>
+        <ComboBoxItem Tag="70">70%</ComboBoxItem>
+        <ComboBoxItem Tag="80">80%</ComboBoxItem>
+        <ComboBoxItem Tag="90">90%</ComboBoxItem>
+        <ComboBoxItem Tag="100">100%</ComboBoxItem>
+    </ComboBox>
+
+    <PathIcon
+        x:Name="ContrastIcon" x:FieldModifier="public"
+        Grid.Column="2"
+        Style="{StaticResource FluentTinyPathIconStyle}"
+        Data="M3.5 12C3.5 7.30558 7.30558 3.5 12 3.5C16.6944 3.5 20.5 7.30558 20.5 12H3.5ZM12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2Z"
+        ToolTipService.ToolTip="Animation contrast" />
+
+    <ComboBox
+        x:Name="ContrastSelector" x:FieldModifier="public"
+        Grid.Column="3"
+        Width="70"
+        Style="{StaticResource NarrowComboBoxStyle}"
+        SelectionChanged="OnContrastSelectionChanged"
+        ToolTipService.ToolTip="Animation contrast">
+        <ComboBoxItem Tag="0">OFF</ComboBoxItem>
+        <ComboBoxItem Tag="10">10%</ComboBoxItem>
+        <ComboBoxItem Tag="20">20%</ComboBoxItem>
+        <ComboBoxItem Tag="30">30%</ComboBoxItem>
+        <ComboBoxItem Tag="40">40%</ComboBoxItem>
+        <ComboBoxItem Tag="50">50%</ComboBoxItem>
+        <ComboBoxItem Tag="60">60%</ComboBoxItem>
+        <ComboBoxItem Tag="70">70%</ComboBoxItem>
+        <ComboBoxItem Tag="80">80%</ComboBoxItem>
+        <ComboBoxItem Tag="90">90%</ComboBoxItem>
+        <ComboBoxItem Tag="100">100%</ComboBoxItem>
+    </ComboBox>
+
+    <TextBlock
+        x:Name="PlaybackFpsLabel" x:FieldModifier="public"
+        Grid.Column="4"
+        VerticalAlignment="Center"
+        FontSize="9"
+        FontWeight="SemiBold"
+        Foreground="#2D3748"
+        Text="FPS"
+        ToolTipService.ToolTip="Animation playback FPS" />
+
+        <ComboBox
+            x:Name="PlaybackFpsSelector" x:FieldModifier="public"
+            Grid.Column="5"
+        Width="70"
+        MinWidth="70"
+        Style="{StaticResource NarrowComboBoxStyle}"
+        SelectionChanged="OnPlaybackFpsSelectionChanged"
+        ToolTipService.ToolTip="Animation playback FPS">
+        <ComboBoxItem Tag="30">30</ComboBoxItem>
+        <ComboBoxItem Tag="40">40</ComboBoxItem>
+        <ComboBoxItem Tag="50">50</ComboBoxItem>
+        <ComboBoxItem Tag="60">60</ComboBoxItem>
+    </ComboBox>
+            </Grid>
+        </StackPanel>
+        </Grid>
+    </Border>
+
+</Grid>
+</UserControl>

@@ -2,7 +2,7 @@ use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, fs, path::Path};
 
-use crate::util::state::EventChannel;
+use crate::state::EventChannel;
 
 /// Context describing the current kill event, consumed by manifest audio routing.
 #[derive(Serialize, Clone, Debug)]

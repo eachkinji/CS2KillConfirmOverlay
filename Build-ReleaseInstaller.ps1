@@ -41,6 +41,7 @@ $WorkspaceRoot = Split-Path -Parent $Root
 $ManifestPath = Join-Path $Root "Package\Package.appxmanifest"
 $InstallerScript = Join-Path $Root "Installer\KillConfirmGameBar.iss"
 $InstallerPayloadScript = Join-Path $Root "Installer\Install-KillConfirm.ps1"
+$InstallerPayloadModuleRoot = Join-Path $Root "Installer\Scripts\Install"
 $InstallerPayloadReadme = Join-Path $Root "Installer\README.txt"
 
 if (-not (Test-Path $ManifestPath)) {
@@ -52,18 +53,32 @@ if (-not (Test-Path $InstallerScript)) {
 if (-not (Test-Path $InstallerPayloadScript)) {
     throw "未找到安装载荷脚本: $InstallerPayloadScript"
 }
+if (-not (Test-Path -LiteralPath $InstallerPayloadModuleRoot -PathType Container)) {
+    throw "未找到安装载荷模块目录: $InstallerPayloadModuleRoot"
+}
 
-$parseTokens = $null
-$parseErrors = $null
-$installerPayloadSource = Get-Content -LiteralPath $InstallerPayloadScript -Raw -Encoding UTF8
-[System.Management.Automation.Language.Parser]::ParseInput(
-    $installerPayloadSource,
-    $InstallerPayloadScript,
-    [ref]$parseTokens,
-    [ref]$parseErrors) | Out-Null
-if ($parseErrors.Count -gt 0) {
-    $parseSummary = ($parseErrors | ForEach-Object { "line $($_.Extent.StartLineNumber): $($_.Message)" }) -join "; "
-    throw "安装载荷脚本语法检查失败: $parseSummary"
+$InstallerPayloadModuleFiles = @(
+    Get-ChildItem -LiteralPath $InstallerPayloadModuleRoot -File -Filter "*.ps1" |
+        Sort-Object Name
+)
+if ($InstallerPayloadModuleFiles.Count -eq 0) {
+    throw "安装载荷模块目录为空: $InstallerPayloadModuleRoot"
+}
+$InstallerPayloadScripts = @($InstallerPayloadScript) + @($InstallerPayloadModuleFiles.FullName)
+
+foreach ($payloadScriptPath in $InstallerPayloadScripts) {
+    $parseTokens = $null
+    $parseErrors = $null
+    $installerPayloadSource = Get-Content -LiteralPath $payloadScriptPath -Raw -Encoding UTF8
+    [System.Management.Automation.Language.Parser]::ParseInput(
+        $installerPayloadSource,
+        $payloadScriptPath,
+        [ref]$parseTokens,
+        [ref]$parseErrors) | Out-Null
+    if ($parseErrors.Count -gt 0) {
+        $parseSummary = ($parseErrors | ForEach-Object { "line $($_.Extent.StartLineNumber): $($_.Message)" }) -join "; "
+        throw "安装载荷脚本语法检查失败 ($payloadScriptPath): $parseSummary"
+    }
 }
 
 [xml]$Manifest = Get-Content $ManifestPath
@@ -182,14 +197,25 @@ foreach ($targetRoot in @($TransferRoot, $NoDepsTransferRoot)) {
         Copy-Item -LiteralPath $cerFile.FullName -Destination (Join-Path $overlayDir $cerFile.Name) -Force
     }
 
-    # Windows PowerShell 5.1 needs a UTF-8 BOM to parse the Chinese diagnostics
-    # in the payload script reliably.
-    $payloadText = Get-Content -LiteralPath $InstallerPayloadScript -Raw -Encoding UTF8
+    # Windows PowerShell 5.1 needs a UTF-8 BOM to parse Chinese diagnostics in
+    # both the entry script and its dot-sourced modules reliably.
     $utf8Bom = New-Object System.Text.UTF8Encoding($true)
-    [System.IO.File]::WriteAllText(
-        (Join-Path $targetRoot "Install-KillConfirm.ps1"),
-        $payloadText,
-        $utf8Bom)
+    foreach ($payloadScriptPath in $InstallerPayloadScripts) {
+        $payloadRelativePath = if ([string]::Equals(
+                $payloadScriptPath,
+                $InstallerPayloadScript,
+                [System.StringComparison]::OrdinalIgnoreCase)) {
+            "Install-KillConfirm.ps1"
+        }
+        else {
+            Join-Path "Scripts\Install" (Split-Path -Leaf $payloadScriptPath)
+        }
+        $payloadTargetPath = Join-Path $targetRoot $payloadRelativePath
+        $payloadTargetDirectory = Split-Path -Parent $payloadTargetPath
+        New-Item -ItemType Directory -Force -Path $payloadTargetDirectory | Out-Null
+        $payloadText = Get-Content -LiteralPath $payloadScriptPath -Raw -Encoding UTF8
+        [System.IO.File]::WriteAllText($payloadTargetPath, $payloadText, $utf8Bom)
+    }
     if (Test-Path -LiteralPath $InstallerPayloadReadme) {
         Copy-Item -LiteralPath $InstallerPayloadReadme -Destination (Join-Path $targetRoot "README.txt") -Force
     }

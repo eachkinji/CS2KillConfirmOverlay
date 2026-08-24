@@ -1,0 +1,114 @@
+    #[test]
+    fn crossfire_swat_gr_manifest_routes_streak_and_priorities() {
+        use crate::soundpack::SoundContext;
+        use crate::soundpack::manifest::PackManifest;
+        use crate::state::EventChannel;
+        use std::collections::HashMap;
+        use std::path::Path;
+
+        let manifest = PackManifest::load_from_dir(Path::new("sounds/crossfire_swat_gr"))
+            .expect("load swat_gr manifest");
+        let make_ctx = |kill_count,
+                        is_headshot,
+                        is_knife,
+                        is_first,
+                        is_last,
+                        headshot_priority,
+                        knife_priority| SoundContext {
+            kill_count,
+            is_headshot,
+            is_first_kill: is_first,
+            is_knife_kill: is_knife,
+            is_last_kill: is_last,
+            is_assist: false,
+            play_main_audio: true,
+            money_reward: 0,
+            event_kind: None,
+            event_channel: EventChannel::Combat,
+            preset_name: "crossfire_swat_gr".to_string(),
+            master_name: "crossfire_swat_gr".to_string(),
+            variant: None,
+            base_dir: "sounds/crossfire_swat_gr".to_string(),
+            voice_picks: HashMap::new(),
+            special_voice_priority: false,
+            headshot_priority,
+            knife_priority,
+        };
+
+        // 1. Single kill -> common.wav
+        let sounds: Vec<String> = manifest
+            .resolve_audio(
+                &make_ctx(1, false, false, false, false, false, false),
+                "sounds/crossfire_swat_gr",
+            )
+            .into_iter()
+            .map(|e| e.path)
+            .collect();
+        assert_eq!(sounds, vec!["sounds/crossfire_swat_gr/common.wav"]);
+
+        // 2. 4-kill streak (no special) -> 4.wav
+        let sounds: Vec<String> = manifest
+            .resolve_audio(
+                &make_ctx(4, false, false, false, false, false, false),
+                "sounds/crossfire_swat_gr",
+            )
+            .into_iter()
+            .map(|e| e.path)
+            .collect();
+        assert_eq!(sounds, vec!["sounds/crossfire_swat_gr/4.wav"]);
+
+        // 3. 4-kill with headshot, headshot_priority = true -> headshot.wav
+        let sounds: Vec<String> = manifest
+            .resolve_audio(
+                &make_ctx(4, true, false, false, false, true, false),
+                "sounds/crossfire_swat_gr",
+            )
+            .into_iter()
+            .map(|e| e.path)
+            .collect();
+        assert_eq!(sounds, vec!["sounds/crossfire_swat_gr/headshot.wav"]);
+
+        // 4. 4-kill with headshot, headshot_priority = false -> 4.wav (streak wins!)
+        let sounds: Vec<String> = manifest
+            .resolve_audio(
+                &make_ctx(4, true, false, false, false, false, false),
+                "sounds/crossfire_swat_gr",
+            )
+            .into_iter()
+            .map(|e| e.path)
+            .collect();
+        assert_eq!(sounds, vec!["sounds/crossfire_swat_gr/4.wav"]);
+
+        // 5. 3-kill with knife, knife_priority = true -> knife.wav
+        let sounds: Vec<String> = manifest
+            .resolve_audio(
+                &make_ctx(3, false, true, false, false, false, true),
+                "sounds/crossfire_swat_gr",
+            )
+            .into_iter()
+            .map(|e| e.path)
+            .collect();
+        assert_eq!(sounds, vec!["sounds/crossfire_swat_gr/knife.wav"]);
+
+        // 6. 3-kill with knife, knife_priority = false -> 3.wav (streak wins!)
+        let sounds: Vec<String> = manifest
+            .resolve_audio(
+                &make_ctx(3, false, true, false, false, false, false),
+                "sounds/crossfire_swat_gr",
+            )
+            .into_iter()
+            .map(|e| e.path)
+            .collect();
+        assert_eq!(sounds, vec!["sounds/crossfire_swat_gr/3.wav"]);
+
+        // 7. First kill -> grenade.wav
+        let sounds: Vec<String> = manifest
+            .resolve_audio(
+                &make_ctx(1, false, false, true, false, false, false),
+                "sounds/crossfire_swat_gr",
+            )
+            .into_iter()
+            .map(|e| e.path)
+            .collect();
+        assert_eq!(sounds, vec!["sounds/crossfire_swat_gr/grenade.wav"]);
+    }

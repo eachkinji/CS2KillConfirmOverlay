@@ -6,7 +6,7 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="ms-appx:///KillConfirmWidgetPage.Styles.xaml" />
+                <ResourceDictionary Source="ms-appx:///Pages/KillConfirmWidget/KillConfirmWidgetPage.Styles.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

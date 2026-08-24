@@ -1,0 +1,353 @@
+<UserControl
+    x:Class="KillConfirmGameBar.HeaderStatusView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="ms-appx:///Pages/KillConfirmWidget/KillConfirmWidgetPage.Styles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+<Grid ColumnSpacing="4" RowSpacing="4">
+    <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+    <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="212" />
+        <ColumnDefinition Width="228" />
+    </Grid.ColumnDefinitions>
+
+    <Border
+        x:Name="StatusHintBox" x:FieldModifier="public"
+        Grid.RowSpan="2"
+        Width="212"
+        Height="46"
+        VerticalAlignment="Center"
+        Padding="8,4,8,3"
+        Background="#FFFDFC"
+        BorderBrush="#E2DDD3"
+        BorderThickness="1"
+        CornerRadius="14"
+        ToolTipService.ToolTip="Click the pin button in Xbox Game Bar's top-right corner.">
+        <Grid RowSpacing="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="3" />
+            </Grid.RowDefinitions>
+            <Grid ColumnSpacing="6">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock
+                    x:Name="PinHintText" x:FieldModifier="public"
+                    VerticalAlignment="Center"
+                    FontSize="10"
+                    FontWeight="Bold"
+                    LineHeight="13"
+                    Foreground="#B45A00"
+                    MaxLines="2"
+                    Opacity="1"
+                    Text="Pin the widget in the top-right to keep the icon on screen."
+                    TextTrimming="CharacterEllipsis"
+                    TextWrapping="WrapWholeWords" />
+                <TextBlock
+                    x:Name="StatusHintPagerText" x:FieldModifier="public"
+                    Grid.Column="1"
+                    VerticalAlignment="Center"
+                    Margin="2,0,0,0"
+                    FontSize="8"
+                    FontWeight="Bold"
+                    Foreground="#4B5563"
+                    Text="1/1" />
+            </Grid>
+            <Border
+                Grid.Row="1"
+                Height="3"
+                Background="#EEE8DE"
+                CornerRadius="2">
+                <Border
+                    x:Name="StatusHintProgressFill" x:FieldModifier="public"
+                    HorizontalAlignment="Stretch"
+                    Background="#F59E0B"
+                    CornerRadius="2"
+                    RenderTransformOrigin="0,0.5">
+                    <Border.RenderTransform>
+                        <ScaleTransform x:Name="StatusHintProgressScale" x:FieldModifier="public" ScaleX="1" />
+                    </Border.RenderTransform>
+                </Border>
+            </Border>
+        </Grid>
+    </Border>
+
+    <Grid
+        Grid.Row="0"
+        Grid.Column="1"
+        Width="228"
+        HorizontalAlignment="Left"
+        ColumnSpacing="4">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="55" />
+            <ColumnDefinition Width="24" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Button
+            x:Name="LanguageToggleButton" x:FieldModifier="public"
+            Grid.Column="0"
+            Width="55"
+            Height="24"
+            Padding="0"
+            Background="#FFFDFC"
+            Foreground="#1B1F31"
+            BorderBrush="#D5D0C4"
+            BorderThickness="1"
+            CornerRadius="13"
+            Click="OnLanguageToggleClick"
+            ToolTipService.ToolTip="Language">
+            <Grid Margin="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Border
+                    x:Name="LanguageEnglishChip" x:FieldModifier="public"
+                    Grid.Column="0"
+                    Margin="0,0,1,0"
+                    Padding="0,1"
+                    Background="#2E88B8"
+                    CornerRadius="8">
+                    <TextBlock
+                        x:Name="LanguageEnglishText" x:FieldModifier="public"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        FontSize="8"
+                        FontWeight="SemiBold"
+                        Foreground="#FFFFFF"
+                        Text="EN" />
+                </Border>
+
+                <Border
+                    x:Name="LanguageChineseChip" x:FieldModifier="public"
+                    Grid.Column="1"
+                    Margin="1,0,0,0"
+                    Padding="0,1"
+                    Background="Transparent"
+                    CornerRadius="8">
+                    <TextBlock
+                        x:Name="LanguageChineseText" x:FieldModifier="public"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        FontSize="8"
+                        FontWeight="SemiBold"
+                        Foreground="#5F6673"
+                        Text="涓枃" />
+                </Border>
+            </Grid>
+        </Button>
+
+        <Button
+            x:Name="OpenGuideButton" x:FieldModifier="public"
+            Grid.Column="1"
+            Style="{StaticResource ToolbarIconButtonStyle}"
+            Background="#F59E0B"
+            BorderBrush="#C56A00"
+            Click="OnOpenGuideClick"
+            ToolTipService.ToolTip="Open settings">
+            <FontIcon
+                FontFamily="Segoe MDL2 Assets"
+                FontSize="12"
+                Glyph="&#xE713;"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Foreground="#FFFFFF" />
+        </Button>
+
+        <Button
+            x:Name="UpdateButton" x:FieldModifier="public"
+            Grid.Column="2"
+            Width="132"
+            Height="24"
+            Padding="0"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Center"
+            Background="#FFFDFC"
+            BorderBrush="#E2DDD3"
+            BorderThickness="1"
+            CornerRadius="13"
+            Click="OnUpdateClick"
+            ToolTipService.ToolTip="Update">
+            <Grid ColumnSpacing="3" Padding="5,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Ellipse
+                    x:Name="UpdateIndicatorDot" x:FieldModifier="public"
+                    Width="6"
+                    Height="6"
+                    VerticalAlignment="Center"
+                    Fill="#4B5563" />
+                <TextBlock
+                    x:Name="VersionText" x:FieldModifier="public"
+                    Grid.Column="1"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    FontFamily="Segoe UI"
+                    FontSize="9"
+                    FontWeight="SemiBold"
+                    Foreground="#8A6A36"
+                    Text="版本：作者 Zac" />
+            </Grid>
+        </Button>
+    </Grid>
+
+    <Grid
+        Grid.Row="1"
+        Grid.Column="1"
+        Width="228"
+        Height="26"
+        HorizontalAlignment="Left"
+        Background="Transparent">
+        <Grid ColumnSpacing="4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="148" />
+                <ColumnDefinition Width="72" />
+            </Grid.ColumnDefinitions>
+
+        <Border
+            x:Name="StatusLightsBox" x:FieldModifier="public"
+            Grid.Column="0"
+            Background="#FFFDFC"
+            BorderBrush="#E2DDD3"
+            BorderThickness="1"
+            CornerRadius="13" />
+        <Grid Grid.Column="0" Margin="7,0" ColumnSpacing="6">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+        <StackPanel
+            x:Name="ConnectionStatusBadge" x:FieldModifier="public"
+            Orientation="Horizontal"
+            Spacing="4">
+            <Border
+                x:Name="ConnectionDot" x:FieldModifier="public"
+                Width="7"
+                Height="7"
+                VerticalAlignment="Center"
+                Background="#FF6B7280"
+                CornerRadius="3.5" />
+            <TextBlock
+                x:Name="ServiceBadgeText" x:FieldModifier="public"
+                VerticalAlignment="Center"
+                FontSize="9"
+                FontWeight="SemiBold"
+                Foreground="#1B1F31"
+                Text="SVC" />
+        </StackPanel>
+
+        <StackPanel
+            x:Name="CfgStatusBadge" x:FieldModifier="public"
+            Grid.Column="1"
+            Orientation="Horizontal"
+            Spacing="4">
+            <Border
+                x:Name="CfgDot" x:FieldModifier="public"
+                Width="7"
+                Height="7"
+                VerticalAlignment="Center"
+                Background="#FF6B7280"
+                CornerRadius="3.5" />
+            <TextBlock
+                x:Name="CfgBadgeText" x:FieldModifier="public"
+                VerticalAlignment="Center"
+                FontSize="9"
+                FontWeight="SemiBold"
+                Foreground="#1B1F31"
+                Text="CFG" />
+        </StackPanel>
+
+        <StackPanel
+            x:Name="GsiStatusBadge" x:FieldModifier="public"
+            Grid.Column="2"
+            Orientation="Horizontal"
+            Spacing="4">
+            <Border
+                x:Name="GsiDot" x:FieldModifier="public"
+                Width="7"
+                Height="7"
+                VerticalAlignment="Center"
+                Background="#FF6B7280"
+                CornerRadius="3.5" />
+            <TextBlock
+                x:Name="GsiBadgeText" x:FieldModifier="public"
+                VerticalAlignment="Center"
+                FontSize="9"
+                FontWeight="SemiBold"
+                Foreground="#1B1F31"
+                Text="GSI" />
+        </StackPanel>
+
+        <StackPanel
+            x:Name="AnimationCacheStatusBadge" x:FieldModifier="public"
+            Grid.Column="3"
+            Orientation="Horizontal"
+            Spacing="4">
+            <Border
+                x:Name="AnimationCacheDot" x:FieldModifier="public"
+                Width="7"
+                Height="7"
+                VerticalAlignment="Center"
+                Background="#FF6B7280"
+                CornerRadius="3.5" />
+            <TextBlock
+                x:Name="AnimationCacheBadgeText" x:FieldModifier="public"
+                VerticalAlignment="Center"
+                FontSize="9"
+                FontWeight="SemiBold"
+                Foreground="#1B1F31"
+                Text="ANI" />
+        </StackPanel>
+        </Grid>
+        <ComboBox
+            x:Name="GameStyleSelector" x:FieldModifier="public"
+            Grid.Column="1"
+            Width="72"
+            MinWidth="72"
+            Padding="4,0,8,0"
+            Style="{StaticResource NarrowComboBoxStyle}"
+            HorizontalContentAlignment="Center"
+            SelectedIndex="0"
+            SelectionChanged="OnGameStyleSelectionChanged"
+            ToolTipService.ToolTip="Game UI style">
+            <ComboBoxItem x:Name="CrossfireStyleItem" x:FieldModifier="public" Tag="crossfire">CF</ComboBoxItem>
+            <ComboBoxItem x:Name="CsolStyleItem" x:FieldModifier="public" Tag="csol">CSOL</ComboBoxItem>
+            <ComboBoxItem x:Name="ValorantStyleItem" x:FieldModifier="public" Tag="valorant">VAL</ComboBoxItem>
+            <ComboBoxItem x:Name="OverwatchStyleItem" x:FieldModifier="public" Tag="overwatch">OW</ComboBoxItem>
+            <ComboBoxItem x:Name="ModernWarfare2019StyleItem" x:FieldModifier="public" Tag="modernwarfare2019">MW19</ComboBoxItem>
+            <ComboBoxItem x:Name="ApexStyleItem" x:FieldModifier="public" Tag="apex">APEX</ComboBoxItem>
+            <ComboBoxItem x:Name="Battlefield1StyleItem" x:FieldModifier="public" Tag="battlefield1">BF1</ComboBoxItem>
+            <ComboBoxItem x:Name="Battlefield5StyleItem" x:FieldModifier="public" Tag="battlefield5">BF5</ComboBoxItem>
+            <ComboBoxItem x:Name="Battlefield4StyleItem" x:FieldModifier="public" Tag="battlefield4">BF4</ComboBoxItem>
+            <ComboBoxItem x:Name="Battlefield2042StyleItem" x:FieldModifier="public" Tag="battlefield2042">2042</ComboBoxItem>
+            <ComboBoxItem x:Name="PubgStyleItem" x:FieldModifier="public" Tag="pubg">PUBG</ComboBoxItem>
+            <ComboBoxItem x:Name="DeltaForceStyleItem" x:FieldModifier="public" Tag="deltaforce">DF</ComboBoxItem>
+            <ComboBoxItem x:Name="DoubaoStyleItem" x:FieldModifier="public" Tag="doubao">豆包</ComboBoxItem>
+            <ComboBoxItem x:Name="DagoujiaoStyleItem" x:FieldModifier="public" Tag="dagoujiao">大狗叫</ComboBoxItem>
+        </ComboBox>
+        </Grid>
+    </Grid>
+</Grid>
+</UserControl>

@@ -27,7 +27,7 @@ DefaultGroupName=Kill Confirm Overlay
 DisableProgramGroupPage=yes
 OutputDir=..\Output
 OutputBaseFilename=KillConfirmGameBar_Setup_{#MyAppVersion}{#InstallerOutputSuffix}
-SetupIconFile=KillConfirmOverlay.ico
+SetupIconFile=Assets\KillConfirmOverlay.ico
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
@@ -38,7 +38,7 @@ UninstallDisplayName={cm:InstallerDisplayName}
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
-Name: "chinesesimplified"; MessagesFile: "ChineseSimplified.isl"
+Name: "chinesesimplified"; MessagesFile: "Languages\ChineseSimplified.isl"
 
 [CustomMessages]
 english.InstallerDisplayName=Kill Confirm Overlay Setup Manager
@@ -103,8 +103,8 @@ Type: files; Name: "{autodesktop}\{cm:ControlPanelShortcutName}.lnk"
 
 [Files]
 Source: "{#TransferRoot}\*"; DestDir: "{app}\Payload"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "KillConfirmOverlay.ico"; DestDir: "{app}"; Flags: ignoreversion
-Source: "GameBarPinGuide.png"; Flags: dontcopy
+Source: "Assets\KillConfirmOverlay.ico"; DestDir: "{app}"; Flags: ignoreversion
+Source: "Assets\GameBarPinGuide.png"; Flags: dontcopy
 
 [UninstallRun]
 Filename: "{sys}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -Command ""Get-Process -Name cskillconfirm,TestXboxGameBar,KillConfirmOverlay,KillConfirmGameBar,GameBar,GameBarFTServer,GameBarPresenceWriter -ErrorAction SilentlyContinue | Stop-Process -Force; Start-Sleep -Milliseconds 800; $p = Get-AppxPackage -Name KillConfirmGameBar.Overlay -ErrorAction SilentlyContinue | Sort-Object Version -Descending | Select-Object -First 1; if ($p) {{ CheckNetIsolation.exe LoopbackExempt -d \""-n=$($p.PackageFamilyName)\"" 2>$null; $p | Remove-AppxPackage -ErrorAction SilentlyContinue }"""; Flags: runhidden waituntilterminated; RunOnceId: "RemoveAppxPackage"

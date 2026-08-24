@@ -1,0 +1,450 @@
+<UserControl
+    x:Class="KillConfirmGameBar.Controls.Settings.PortSettingsView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <UserControl.Resources>
+        <!-- Fluent 2 Palette & Theme Brushes -->
+        <SolidColorBrush x:Key="FluentCardBackground" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="FluentCardSubBackground" Color="#FBFBFB" />
+        <SolidColorBrush x:Key="FluentCardBorder" Color="#E5E5E5" />
+        <SolidColorBrush x:Key="FluentDivider" Color="#F0F0F0" />
+        <SolidColorBrush x:Key="FluentTitleText" Color="#1B1B1B" />
+        <SolidColorBrush x:Key="FluentBodyText" Color="#424242" />
+        <SolidColorBrush x:Key="FluentMutedText" Color="#6E6E6E" />
+        <SolidColorBrush x:Key="FluentSubtleText" Color="#8C8C8C" />
+        <SolidColorBrush x:Key="FluentAccent" Color="#0067C0" />
+        <SolidColorBrush x:Key="FluentAccentHover" Color="#1879CD" />
+        <SolidColorBrush x:Key="FluentAccentLight" Color="#EBF3FC" />
+        <SolidColorBrush x:Key="FluentAccentBorder" Color="#CCE4F7" />
+
+        <!-- Backward Compatibility Aliases for Code-Behind (theme brush overrides) -->
+        <SolidColorBrush x:Key="HubCardBackground" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="HubCardBorder" Color="#E5E5E5" />
+        <SolidColorBrush x:Key="HubDivider" Color="#F0F0F0" />
+        <SolidColorBrush x:Key="HubTitleText" Color="#1B1B1B" />
+        <SolidColorBrush x:Key="HubBodyText" Color="#424242" />
+        <SolidColorBrush x:Key="HubMutedText" Color="#6E6E6E" />
+        <SolidColorBrush x:Key="HubAccentText" Color="#0067C0" />
+        <SolidColorBrush x:Key="HubPanelBackground" Color="#FBFBFB" />
+        <SolidColorBrush x:Key="HubPanelBorder" Color="#E5E5E5" />
+
+        <!-- Fluent 2 Card Style -->
+        <Style x:Key="FluentSettingsCardStyle" TargetType="Border">
+            <Setter Property="Padding" Value="16,12" />
+            <Setter Property="Background" Value="{StaticResource FluentCardBackground}" />
+            <Setter Property="BorderBrush" Value="{StaticResource FluentCardBorder}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+        </Style>
+
+        <!-- Fluent 2 Hero Card Style -->
+        <Style x:Key="FluentHeroCardStyle" TargetType="Border">
+            <Setter Property="Padding" Value="18,16" />
+            <Setter Property="Background" Value="{StaticResource FluentCardBackground}" />
+            <Setter Property="BorderBrush" Value="{StaticResource FluentCardBorder}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+        </Style>
+
+        <!-- Fluent 2 Section Header Typography -->
+        <Style x:Key="FluentSectionHeaderStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{StaticResource FluentTitleText}" />
+            <Setter Property="Margin" Value="2,10,2,2" />
+        </Style>
+
+        <!-- Fluent 2 Setting Card Title Typography -->
+        <Style x:Key="FluentCardTitleStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{StaticResource FluentTitleText}" />
+            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+        </Style>
+
+        <!-- Fluent 2 Setting Card Description Typography -->
+        <Style x:Key="FluentCardDescriptionStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{StaticResource FluentMutedText}" />
+            <Setter Property="TextWrapping" Value="WrapWholeWords" />
+            <Setter Property="LineHeight" Value="16" />
+        </Style>
+
+        <!-- Fluent 2 Icon Base Container -->
+        <Style x:Key="FluentIconContainerStyle" TargetType="Border">
+            <Setter Property="Width" Value="32" />
+            <Setter Property="Height" Value="32" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Background" Value="#F3F3F3" />
+            <Setter Property="Margin" Value="0,0,12,0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <!-- Fluent 2 Primary Button -->
+        <Style x:Key="FluentPrimaryButtonStyle" TargetType="Button">
+            <Setter Property="Padding" Value="14,6" />
+            <Setter Property="MinHeight" Value="32" />
+            <Setter Property="MinWidth" Value="0" />
+            <Setter Property="Background" Value="{StaticResource FluentAccent}" />
+            <Setter Property="BorderBrush" Value="{StaticResource FluentAccent}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="FontSize" Value="12" />
+        </Style>
+
+        <!-- Fluent 2 Secondary Button -->
+        <Style x:Key="FluentSecondaryButtonStyle" TargetType="Button">
+            <Setter Property="Padding" Value="14,6" />
+            <Setter Property="MinHeight" Value="32" />
+            <Setter Property="MinWidth" Value="0" />
+            <Setter Property="Background" Value="#FFFFFF" />
+            <Setter Property="BorderBrush" Value="#D1D1D1" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Foreground" Value="#1B1B1B" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="FontSize" Value="12" />
+        </Style>
+
+        <Style x:Key="FluentDangerButtonStyle" TargetType="Button" BasedOn="{StaticResource FluentSecondaryButtonStyle}">
+            <Setter Property="Background" Value="#C42B1C" />
+            <Setter Property="BorderBrush" Value="#C42B1C" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+
+        <!-- Fluent 2 Input Style -->
+        <Style x:Key="FluentInputStyle" TargetType="TextBox">
+            <Setter Property="Background" Value="#FFFFFF" />
+            <Setter Property="BorderBrush" Value="#D1D1D1" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Foreground" Value="#1B1B1B" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Padding" Value="10,6" />
+            <Setter Property="MinHeight" Value="32" />
+            <Setter Property="FontSize" Value="13" />
+        </Style>
+
+        <!-- Fluent 2 Badge Style -->
+        <Style x:Key="FluentBadgeBorderStyle" TargetType="Border">
+            <Setter Property="Padding" Value="8,3" />
+            <Setter Property="Background" Value="{StaticResource FluentAccentLight}" />
+            <Setter Property="BorderBrush" Value="{StaticResource FluentAccentBorder}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="4" />
+        </Style>
+
+        <!-- Legacy Style Aliases for External/Internal Compatibility -->
+        <Style x:Key="HubCardStyle" TargetType="Border" BasedOn="{StaticResource FluentSettingsCardStyle}" />
+        <Style x:Key="HubTitleTextStyle" TargetType="TextBlock" BasedOn="{StaticResource FluentCardTitleStyle}" />
+        <Style x:Key="HubBodyTextStyle" TargetType="TextBlock" BasedOn="{StaticResource FluentCardDescriptionStyle}" />
+        <Style x:Key="HubSectionLabelTextStyle" TargetType="TextBlock" BasedOn="{StaticResource FluentSectionHeaderStyle}" />
+        <Style x:Key="HubFieldLabelTextStyle" TargetType="TextBlock" BasedOn="{StaticResource FluentCardTitleStyle}" />
+        <Style x:Key="HubHelperTextStyle" TargetType="TextBlock" BasedOn="{StaticResource FluentCardDescriptionStyle}" />
+        <Style x:Key="HubPrimaryButtonStyle" TargetType="Button" BasedOn="{StaticResource FluentPrimaryButtonStyle}" />
+        <Style x:Key="HubSecondaryButtonStyle" TargetType="Button" BasedOn="{StaticResource FluentSecondaryButtonStyle}" />
+        <Style x:Key="HubBadgeBorderStyle" TargetType="Border" BasedOn="{StaticResource FluentBadgeBorderStyle}" />
+        <Style x:Key="HubInputStyle" TargetType="TextBox" BasedOn="{StaticResource FluentInputStyle}" />
+
+        <Style x:Key="HubTabButtonStyle" TargetType="Button">
+            <Setter Property="Padding" Value="14,6" />
+            <Setter Property="MinWidth" Value="100" />
+            <Setter Property="Background" Value="#F3F3F3" />
+            <Setter Property="Foreground" Value="#424242" />
+            <Setter Property="BorderBrush" Value="#E0E0E0" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="FontSize" Value="12" />
+        </Style>
+
+        <Style x:Key="HubTabActiveButtonStyle" TargetType="Button" BasedOn="{StaticResource HubTabButtonStyle}">
+            <Setter Property="Background" Value="{StaticResource FluentAccent}" />
+            <Setter Property="BorderBrush" Value="{StaticResource FluentAccent}" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+    </UserControl.Resources>
+            <ScrollViewer
+                x:Name="HubPortView"
+                VerticalScrollBarVisibility="Auto"
+                HorizontalScrollBarVisibility="Disabled">
+                <StackPanel Spacing="12" MaxWidth="1480" HorizontalAlignment="Stretch">
+                    <!-- Header Text Area -->
+                    <StackPanel Spacing="2" Margin="2,4,2,4">
+                        <TextBlock
+                            x:Name="HubPortTitleText"
+                            Style="{StaticResource FluentSectionHeaderStyle}"
+                            FontSize="15"
+                            Text="LOCAL SERVICE PORT" />
+                        <TextBlock
+                            x:Name="HubPortDescriptionText"
+                            Style="{StaticResource FluentCardDescriptionStyle}" />
+                    </StackPanel>
+
+                    <!-- Hero Card: Active Port & Status -->
+                    <Border Style="{StaticResource FluentHeroCardStyle}">
+                        <Grid ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <Border Style="{StaticResource FluentIconContainerStyle}" Width="40" Height="40" Background="{StaticResource FluentAccentLight}">
+                                <FontIcon
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    FontFamily="Segoe MDL2 Assets"
+                                    FontSize="16"
+                                    Foreground="{StaticResource FluentAccent}"
+                                    Glyph="&#xE704;" />
+                            </Border>
+
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
+                                <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                    <TextBlock
+                                        x:Name="HubPortCurrentLabel"
+                                        Style="{StaticResource FluentCardTitleStyle}"
+                                        VerticalAlignment="Center"
+                                        Text="当前服务端口" />
+                                    <Border Style="{StaticResource FluentBadgeBorderStyle}">
+                                        <TextBlock
+                                            x:Name="HubPortCurrentBadgeText"
+                                            Foreground="{StaticResource FluentAccent}"
+                                            FontWeight="SemiBold"
+                                            FontSize="11" />
+                                    </Border>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                                    <TextBlock
+                                        x:Name="HubPortCurrentValue"
+                                        FontFamily="Consolas"
+                                        FontSize="24"
+                                        FontWeight="Bold"
+                                        Foreground="{StaticResource FluentAccent}"
+                                        VerticalAlignment="Center" />
+                                    <TextBlock
+                                        x:Name="HubPortServiceReportedValue"
+                                        FontFamily="Consolas"
+                                        FontSize="12"
+                                        Foreground="{StaticResource FluentMutedText}"
+                                        VerticalAlignment="Center" />
+                                </StackPanel>
+                            </StackPanel>
+
+                            <Button
+                                x:Name="HubPortRefreshButton"
+                                Grid.Column="2"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource FluentSecondaryButtonStyle}"
+                                Click="OnHubPortRefreshClick">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon FontFamily="Segoe MDL2 Assets" FontSize="12" Glyph="&#xE72C;" />
+                                    <TextBlock Text="重新检测" />
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+                    </Border>
+
+                    <!-- SettingsCard: Auto Search Port -->
+                    <Border Style="{StaticResource FluentSettingsCardStyle}">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <Border Style="{StaticResource FluentIconContainerStyle}">
+                                <FontIcon
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    FontFamily="Segoe MDL2 Assets"
+                                    FontSize="14"
+                                    Foreground="{StaticResource FluentBodyText}"
+                                    Glyph="&#xE721;" />
+                            </Border>
+
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                                <TextBlock
+                                    x:Name="HubPortAutoSearchLabel"
+                                    Style="{StaticResource FluentCardTitleStyle}"
+                                    Text="端口冲突时自动顺延切换" />
+                                <TextBlock
+                                    x:Name="HubPortAutoSearchHint"
+                                    Style="{StaticResource FluentCardDescriptionStyle}" />
+                            </StackPanel>
+
+                            <ToggleSwitch
+                                x:Name="HubPortAutoSearchToggle"
+                                Grid.Column="2"
+                                VerticalAlignment="Center"
+                                MinWidth="0"
+                                OnContent=""
+                                OffContent=""
+                                Toggled="OnHubPortAutoSearchToggled" />
+                        </Grid>
+                    </Border>
+
+                    <!-- SettingsCard: Backup Ports -->
+                    <Border Style="{StaticResource FluentSettingsCardStyle}">
+                        <StackPanel Spacing="10">
+                            <Grid ColumnSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <Border Style="{StaticResource FluentIconContainerStyle}">
+                                    <FontIcon
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        FontFamily="Segoe MDL2 Assets"
+                                        FontSize="14"
+                                        Foreground="{StaticResource FluentBodyText}"
+                                        Glyph="&#xE8B9;" />
+                                </Border>
+
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                                    <TextBlock
+                                        x:Name="HubPortBackupLabel"
+                                        Style="{StaticResource FluentCardTitleStyle}"
+                                        Text="快速切换备用端口" />
+                                    <TextBlock
+                                        x:Name="HubPortBackupHint"
+                                        Style="{StaticResource FluentCardDescriptionStyle}" />
+                                </StackPanel>
+                            </Grid>
+
+                            <Border
+                                Background="{StaticResource FluentCardSubBackground}"
+                                BorderBrush="{StaticResource FluentDivider}"
+                                BorderThickness="1"
+                                CornerRadius="6"
+                                Padding="12,10">
+                                <ItemsControl x:Name="HubPortBackupList">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapGrid Orientation="Horizontal" MaximumRowsOrColumns="6" HorizontalAlignment="Left" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Button
+                                                Margin="0,0,8,0"
+                                                Padding="14,6"
+                                                MinWidth="76"
+                                                Background="#FFFFFF"
+                                                BorderBrush="#D1D1D1"
+                                                BorderThickness="1"
+                                                CornerRadius="4"
+                                                Foreground="#1B1B1B"
+                                                FontFamily="Consolas"
+                                                FontSize="13"
+                                                FontWeight="SemiBold"
+                                                Content="{Binding Label}"
+                                                Tag="{Binding Port}"
+                                                Click="OnPortChipClick" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- SettingsCard: Custom Port Entry -->
+                    <Border Style="{StaticResource FluentSettingsCardStyle}">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <Border Style="{StaticResource FluentIconContainerStyle}">
+                                <FontIcon
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    FontFamily="Segoe MDL2 Assets"
+                                    FontSize="14"
+                                    Foreground="{StaticResource FluentBodyText}"
+                                    Glyph="&#xE70F;" />
+                            </Border>
+
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                                <TextBlock
+                                    x:Name="HubPortCustomLabel"
+                                    Style="{StaticResource FluentCardTitleStyle}"
+                                    Text="自定义端口" />
+                                <TextBlock
+                                    x:Name="HubPortCustomHint"
+                                    Style="{StaticResource FluentCardDescriptionStyle}" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <TextBox
+                                    x:Name="HubPortCustomInput"
+                                    Style="{StaticResource FluentInputStyle}"
+                                    Width="120"
+                                    FontFamily="Consolas"
+                                    InputScope="Number"
+                                    MaxLength="5"
+                                    PlaceholderText="1024-65535" />
+                                <Button
+                                    x:Name="HubPortCustomApplyButton"
+                                    Style="{StaticResource FluentPrimaryButtonStyle}"
+                                    Click="OnHubPortCustomApplyClick" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- SettingsCard: Connection Probe Status -->
+                    <Border Style="{StaticResource FluentSettingsCardStyle}">
+                        <StackPanel Spacing="8">
+                            <Grid ColumnSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <Border Style="{StaticResource FluentIconContainerStyle}">
+                                    <FontIcon
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        FontFamily="Segoe MDL2 Assets"
+                                        FontSize="14"
+                                        Foreground="{StaticResource FluentBodyText}"
+                                        Glyph="&#xE946;" />
+                                </Border>
+
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                                    <TextBlock
+                                        x:Name="HubPortStatusTitle"
+                                        Style="{StaticResource FluentCardTitleStyle}"
+                                        Text="连接状态" />
+                                    <TextBlock
+                                        x:Name="HubPortStatusBody"
+                                        Style="{StaticResource FluentCardDescriptionStyle}" />
+                                </StackPanel>
+                            </Grid>
+
+                            <Border
+                                Background="{StaticResource FluentCardSubBackground}"
+                                BorderBrush="{StaticResource FluentDivider}"
+                                BorderThickness="1"
+                                CornerRadius="6"
+                                Padding="12,10">
+                                <TextBlock
+                                    x:Name="HubPortStatusMessage"
+                                    FontFamily="Consolas"
+                                    FontSize="12"
+                                    Foreground="{StaticResource FluentBodyText}"
+                                    TextWrapping="Wrap" />
+                            </Border>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+</UserControl>

@@ -1,6 +1,6 @@
 use std::sync::atomic::Ordering;
 
-use crate::util::state::AppState;
+use crate::state::AppState;
 
 /// Global baseline amplification applied to all sounds played through the mixer/sink.
 pub const GLOBAL_SOUND_GAIN: f32 = 0.5;

@@ -1,0 +1,264 @@
+<Page
+    x:Class="KillConfirmGameBar.KillConfirmWidgetPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:KillConfirmGameBar.Controls"
+    xmlns:settings="using:KillConfirmGameBar.Controls.Settings"
+    xmlns:sections="using:KillConfirmGameBar"
+    xmlns:primitives="using:Windows.UI.Xaml.Controls.Primitives"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    HorizontalAlignment="Stretch"
+    VerticalAlignment="Stretch"
+    RequestedTheme="Light">
+
+    <Page.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="ms-appx:///Pages/KillConfirmWidget/KillConfirmWidgetPage.Styles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Page.Resources>
+
+    <!-- 根容器不设背景、不参与命中测试，透明区域点击可穿透到游戏；仅交互面板命中 -->
+    <Grid
+        x:Name="LayoutRoot"
+        HorizontalAlignment="Stretch"
+        VerticalAlignment="Stretch">
+        <Grid
+            x:Name="AnimationLayer"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Stretch"
+            RenderTransformOrigin="0.5,0.5">
+            <Grid.RenderTransform>
+                <CompositeTransform x:Name="AnimationTransform" />
+            </Grid.RenderTransform>
+
+            <controls:KillConfirmAnimation
+                x:Name="PrimaryKillAnimation"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch" />
+
+            <controls:KillConfirmAnimation
+                x:Name="BadgeKillAnimation"
+                Margin="0,-128,0,0"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch" />
+
+            <Border
+                x:Name="AnimationDragOutline"
+                Width="400"
+                Height="300"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Background="Transparent"
+                BorderBrush="#E53935"
+                BorderThickness="2"
+                CornerRadius="4"
+                Opacity="0.85"
+                Visibility="Collapsed"
+                PointerPressed="OnAnimationFramePointerPressed"
+                PointerMoved="OnAnimationFramePointerMoved"
+                PointerReleased="OnAnimationFramePointerReleased"
+                PointerCanceled="OnAnimationFramePointerCanceled"
+                PointerCaptureLost="OnAnimationFramePointerCaptureLost"
+                PointerWheelChanged="OnAnimationFramePointerWheelChanged"
+                PointerEntered="OnAnimationFramePointerEntered"
+                PointerExited="OnAnimationFramePointerExited"
+                ContextRequested="OnAnimationFrameContextRequested"
+                ToolTipService.ToolTip="Drag to move icon">
+                <Border.RenderTransform>
+                    <TranslateTransform x:Name="AnimationDragOutlineTransform" />
+                </Border.RenderTransform>
+            </Border>
+        </Grid>
+
+        <Grid
+            x:Name="OverwatchCardLayer"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Stretch"
+            RenderTransformOrigin="0.5,0.5">
+            <Grid.RenderTransform>
+                <CompositeTransform x:Name="OverwatchCardTransform" />
+            </Grid.RenderTransform>
+
+            <controls:KillConfirmAnimation
+                x:Name="OverwatchCardAnimation"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch" />
+
+            <Border
+                x:Name="OverwatchCardDragOutline"
+                Width="180"
+                Height="44"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Background="Transparent"
+                BorderBrush="#E53935"
+                BorderThickness="2"
+                CornerRadius="4"
+                Opacity="0.85"
+                Visibility="Collapsed"
+                PointerPressed="OnAnimationFramePointerPressed"
+                PointerMoved="OnAnimationFramePointerMoved"
+                PointerReleased="OnAnimationFramePointerReleased"
+                PointerCanceled="OnAnimationFramePointerCanceled"
+                PointerCaptureLost="OnAnimationFramePointerCaptureLost"
+                PointerWheelChanged="OnAnimationFramePointerWheelChanged"
+                PointerEntered="OnAnimationFramePointerEntered"
+                PointerExited="OnAnimationFramePointerExited"
+                ContextRequested="OnAnimationFrameContextRequested"
+                ToolTipService.ToolTip="Drag to move non-crosshair effect">
+                <Border.RenderTransform>
+                    <TranslateTransform x:Name="OverwatchCardDragOutlineTransform" />
+                </Border.RenderTransform>
+            </Border>
+        </Grid>
+
+        <Grid
+            x:Name="ModernWarfare2019UpperLayer"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Stretch"
+            RenderTransformOrigin="0.5,0.5">
+            <Grid.RenderTransform>
+                <CompositeTransform x:Name="ModernWarfare2019UpperTransform" />
+            </Grid.RenderTransform>
+
+            <controls:KillConfirmAnimation
+                x:Name="ModernWarfare2019UpperAnimation"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch" />
+
+            <Border
+                x:Name="ModernWarfare2019UpperDragOutline"
+                Width="496"
+                Height="198"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Background="Transparent"
+                BorderBrush="#E53935"
+                BorderThickness="2"
+                CornerRadius="4"
+                Opacity="0.85"
+                Visibility="Collapsed"
+                PointerPressed="OnAnimationFramePointerPressed"
+                PointerMoved="OnAnimationFramePointerMoved"
+                PointerReleased="OnAnimationFramePointerReleased"
+                PointerCanceled="OnAnimationFramePointerCanceled"
+                PointerCaptureLost="OnAnimationFramePointerCaptureLost"
+                PointerWheelChanged="OnAnimationFramePointerWheelChanged"
+                PointerEntered="OnAnimationFramePointerEntered"
+                PointerExited="OnAnimationFramePointerExited"
+                ContextRequested="OnAnimationFrameContextRequested"
+                ToolTipService.ToolTip="Drag to move upper kill effect">
+                <Border.RenderTransform>
+                    <TranslateTransform x:Name="ModernWarfare2019UpperDragOutlineTransform" />
+                </Border.RenderTransform>
+            </Border>
+        </Grid>
+
+        <Border
+            x:Name="ControlPanel"
+            Margin="5"
+            Padding="4"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Top"
+            Width="452"
+            MaxWidth="452"
+            Background="#F4FAFAF7"
+            BorderBrush="#E2DDD3"
+            BorderThickness="1"
+            CornerRadius="18">
+            <Grid>
+                <Grid x:Name="MainPanelContent" RowSpacing="3">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <sections:HeaderStatusView
+                    x:Name="HeaderStatusSection"
+                    LanguageToggleRequested="OnLanguageToggleClick"
+                    OpenGuideRequested="OnOpenGuideClick"
+                    UpdateRequested="OnUpdateClick"
+                    GameStyleSelectionChanged="OnGameStyleSelectionChanged" />
+
+                <sections:StatusDetailsView
+                    x:Name="StatusDetailsSection"
+                    Grid.Row="1"
+                    RetryServiceRequested="OnRetryServiceClick"
+                    CopyDiagnosticRequested="OnCopyServiceDiagnosticClick"
+                    FreePortRequested="OnFreePortClick"
+                    OpenLogsRequested="OnOpenLogsClick"
+                    SelectCsFolderRequested="OnSelectCsFolderClick"
+                    InstallCfgRequested="OnInstallCfgClick" />
+
+
+                <sections:PackTestView
+                    x:Name="PackTestSectionView"
+                    Grid.Row="2"
+                    Margin="0,5,0,0"
+                    VoicePackSelectionChanged="OnVoicePackSelectionChanged"
+                    IconPackSelectionChanged="OnIconPackSelectionChanged"
+                    AdvancedEffectsRequested="OnAdvancedEffectsButtonClick"
+                    AudioVolumeSelectionChanged="OnAudioVolumeSelectionChanged"
+                    TestEventRequested="OnTestEventClick"
+                    CollapsePanelRequested="OnCollapsePanelToggle"
+                    ReloadAudioRequested="OnReloadAudioClick" />
+
+                <sections:VisualSettingsView
+                    x:Name="VisualSettingsSectionView"
+                    Grid.Row="3"
+                    Margin="0,5,0,0"
+                    ResizeRequested="OnResizeClick"
+                    CenterRequested="OnCenterClick"
+                    WindowTopRequested="OnWindowTopClick"
+                    WindowBottomRequested="OnWindowBottomClick"
+                    ControlPanelCenterRequested="OnControlPanelCenterClick"
+                    ResetVisualRequested="OnResetVisualAdjustmentsClick"
+                    BrightnessSelectionChanged="OnBrightnessSelectionChanged"
+                    ContrastSelectionChanged="OnContrastSelectionChanged"
+                    PlaybackFpsSelectionChanged="OnPlaybackFpsSelectionChanged" />
+            </Grid>
+            <Grid
+                x:Name="MiniPanel"
+                MinWidth="92"
+                MinHeight="46"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Background="Transparent"
+                Visibility="Collapsed">
+                <StackPanel
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal"
+                    Spacing="8">
+                    <Button
+                        x:Name="MiniSendTestButton"
+                        Style="{StaticResource PackImportantIconButtonStyle}"
+                        Click="OnTestEventClick"
+                        ToolTipService.ToolTip="Send selected test event">
+                        <Grid Style="{StaticResource IconHostStyle}">
+                            <PathIcon Foreground="#FFFFFF" Style="{StaticResource FluentPathIconStyle}" Data="M15 4.24951C15 3.17089 13.7255 2.59866 12.9195 3.31534L8.42794 7.30861C8.29065 7.43067 8.11333 7.4981 7.92961 7.4981H4.25C3.00736 7.4981 2 8.50546 2 9.7481V14.246C2 15.4886 3.00736 16.496 4.25 16.496H7.92956C8.11329 16.496 8.29063 16.5634 8.42793 16.6855L12.9194 20.6792C13.7255 21.396 15 20.8238 15 19.7451V4.24951Z" />
+                        </Grid>
+                    </Button>
+                    <Button
+                        x:Name="MiniCollapsePanelButton"
+                        Style="{StaticResource ToolbarIconButtonStyle}"
+                        Click="OnCollapsePanelToggle"
+                        ToolTipService.ToolTip="Restore panel">
+                        <Grid Style="{StaticResource IconHostStyle}">
+                            <PathIcon Style="{StaticResource FluentPathIconStyle}" Data="M4 5H20V7H4V5ZM4 11H20V13H4V11ZM4 17H20V19H4V17Z" />
+                        </Grid>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </Border>
+
+        <controls:UpdateOverlayView x:Name="UpdateOverlay" Visibility="Collapsed" />
+    </Grid>
+</Page>

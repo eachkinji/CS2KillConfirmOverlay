@@ -106,233 +106,355 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
-    <Compile Include="MainPage.xaml.cs">
+    <Compile Include="Pages\Main\MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="MainPage.GameStyle.cs" />
-    <Compile Include="MainPage.PackCreation.cs" />
-    <Compile Include="MainPage.PackCreation.Voice.cs" />
-    <Compile Include="MainPage.PackCreation.Icon.cs" />
-    <Compile Include="MainPage.PackCreation.CsolVoice.cs" />
-    <Compile Include="MainPage.PackCreation.CsolIcon.cs" />
-    <Compile Include="MainPage.PackCreation.DagoujiaoVoice.cs" />
-    <Compile Include="MainPage.PackCreation.DagoujiaoIcon.cs" />
-    <Compile Include="MainPage.PackCreation.DoubaoVoice.cs" />
-    <Compile Include="MainPage.PackCreation.EventVoice.cs" />
-    <Compile Include="MainPage.PackCreation.ValorantVoice.cs" />
-    <Compile Include="MainPage.PackCreation.OverwatchVoice.cs" />
-    <Compile Include="MainPage.PackCreation.ModernWarfare2019Voice.cs" />
-    <Compile Include="MainPage.PackCreation.DoubaoIcon.cs" />
-    <Compile Include="MainPage.PackCreation.DialogUi.cs" />
-    <Compile Include="MainPage.MaterialPicker.cs" />
-    <Compile Include="MainPage.PackFileNames.cs" />
-    <Compile Include="MainPage.PackFiles.cs" />
-    <Compile Include="MainPage.PackLists.cs" />
-    <Compile Include="MainPage.PackPreviews.cs" />
-    <Compile Include="MainPage.Language.cs" />
-    <Compile Include="KillConfirmWidgetPage.xaml.cs">
+    <Compile Include="Pages\Main\Appearance\MainPage.GameStyle.cs" />
+    <Compile Include="Pages\Main\Appearance\MainPageBackgroundView.xaml.cs">
+      <DependentUpon>MainPageBackgroundView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\Main\Appearance\MainPage.GameStyle.Panels.cs" />
+    <Compile Include="Pages\Main\Appearance\MainPage.GameStyle.Theme.cs" />
+    <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.cs" />
+    <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.Import.cs" />
+    <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.Voice.cs" />
+    <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.Icon.cs" />
+    <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.CsolVoice.cs" />
+    <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.CsolIcon.cs" />
+    <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.DagoujiaoVoice.cs" />
+    <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.DagoujiaoIcon.cs" />
+    <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.DoubaoVoice.cs" />
+    <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.EventVoice.cs" />
+    <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.ValorantVoice.cs" />
+    <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.OverwatchVoice.cs" />
+    <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.ModernWarfare2019Voice.cs" />
+    <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.DoubaoIcon.cs" />
+    <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.DialogUi.cs" />
+    <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.DialogUi.Voice.cs" />
+    <Compile Include="Pages\Main\Appearance\MainPage.MaterialPicker.cs" />
+    <Compile Include="Pages\Main\Appearance\MainPage.MaterialPicker.Layout.cs" />
+    <Compile Include="Pages\Main\Appearance\MainPage.MaterialPicker.Data.cs" />
+    <Compile Include="Pages\Main\Packs\MainPage.PackFileNames.cs" />
+    <Compile Include="Pages\Main\Packs\MainPage.PackFiles.cs" />
+    <Compile Include="Pages\Main\Packs\MainPage.PackFiles.Manifest.cs" />
+    <Compile Include="Pages\Main\Packs\MainPage.PackLists.cs" />
+    <Compile Include="Pages\Main\Packs\MainPage.PackPreviews.cs" />
+    <Compile Include="Pages\Main\Localization\MainPage.Language.cs" />
+    <Compile Include="Pages\KillConfirmWidget\KillConfirmWidgetPage.xaml.cs">
       <DependentUpon>KillConfirmWidgetPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="KillConfirmWidgetPage.GameStyle.cs" />
-    <Compile Include="KillConfirmWidgetPage.GameStyle.AdvancedPanels.cs" />
-    <Compile Include="KillConfirmWidgetPage.CsConfig.cs" />
-    <Compile Include="KillConfirmWidgetPage.Language.cs" />
-    <Compile Include="KillConfirmWidgetPage.StatusHints.cs" />
-    <Compile Include="KillConfirmWidgetPage.Update.cs" />
-    <Compile Include="KillConfirmWidgetPage.UpdateOverlayRefs.cs" />
-    <Compile Include="KillConfirmWidgetPage.Service.cs" />
-    <Compile Include="KillConfirmWidgetPage.PackSelectors.cs" />
-    <Compile Include="KillConfirmWidgetPage.PackSettings.cs" />
-    <Compile Include="KillConfirmWidgetPage.PackSettings.Persistence.cs" />
-    <Compile Include="KillConfirmWidgetPage.PackSettings.Crossfire.cs" />
-    <Compile Include="KillConfirmWidgetPage.PackSettings.Valorant.cs" />
-    <Compile Include="KillConfirmWidgetPage.PackSettings.Battlefield.cs" />
-    <Compile Include="KillConfirmWidgetPage.PackSettings.Voice.cs" />
-    <Compile Include="KillConfirmWidgetPage.PackSettings.AdvancedEffects.cs" />
-    <Compile Include="KillConfirmWidgetPage.Animation.cs" />
-    <Compile Include="KillConfirmWidgetPage.CrossfireStyle.cs" />
-    <Compile Include="KillConfirmWidgetPage.CrossfireGameplaySettings.cs" />
-    <Compile Include="KillConfirmWidgetPage.CsolGameplaySettings.cs" />
-    <Compile Include="KillConfirmWidgetPage.DagoujiaoSettings.cs" />
-    <Compile Include="KillConfirmWidgetPage.DoubaoSettings.cs" />
-    <Compile Include="KillConfirmWidgetPage.SharedStreakSettings.cs" />
-    <Compile Include="KillConfirmWidgetPage.AutoCloseGameExit.cs" />
-    <Compile Include="KillConfirmWidgetPage.Status.cs" />
-    <Compile Include="KillConfirmWidgetPage.VisualSettings.cs" />
-    <Compile Include="KillConfirmWidgetPage.MoneySettings.cs" />
-    <Compile Include="Controls\KillConfirmAnimation.xaml.cs">
+    <Compile Include="Pages\KillConfirmWidget\Sections\Status\HeaderStatusView.xaml.cs">
+      <DependentUpon>HeaderStatusView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\KillConfirmWidget\Sections\Status\StatusDetailsView.xaml.cs">
+      <DependentUpon>StatusDetailsView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\KillConfirmWidget\Sections\Packs\PackTestView.xaml.cs">
+      <DependentUpon>PackTestView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\KillConfirmWidget\Sections\Visual\VisualSettingsView.xaml.cs">
+      <DependentUpon>VisualSettingsView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\KillConfirmWidget\Interaction\KillConfirmWidgetPage.Input.cs" />
+    <Compile Include="Pages\KillConfirmWidget\Interaction\KillConfirmWidgetPage.Drag.cs" />
+    <Compile Include="Pages\KillConfirmWidget\Interaction\KillConfirmWidgetPage.DragVisuals.cs" />
+    <Compile Include="Pages\KillConfirmWidget\Layout\KillConfirmWidgetPage.HostLayout.cs" />
+    <Compile Include="Pages\KillConfirmWidget\Animation\KillConfirmWidgetPage.TestPreset.cs" />
+    <Compile Include="Pages\KillConfirmWidget\GameStyles\KillConfirmWidgetPage.GameStyle.cs" />
+    <Compile Include="Pages\KillConfirmWidget\GameStyles\KillConfirmWidgetPage.GameStyle.AdvancedPanels.cs" />
+    <Compile Include="Pages\KillConfirmWidget\GameStyles\KillConfirmWidgetPage.GameStyle.AdvancedPanels.Theme.cs" />
+    <Compile Include="Pages\KillConfirmWidget\Configuration\KillConfirmWidgetPage.CsConfig.cs" />
+    <Compile Include="Pages\KillConfirmWidget\Configuration\KillConfirmWidgetPage.CsConfig.Installation.cs" />
+    <Compile Include="Pages\KillConfirmWidget\Configuration\KillConfirmWidgetPage.Language.cs" />
+    <Compile Include="Pages\KillConfirmWidget\Runtime\KillConfirmWidgetPage.StatusHints.cs" />
+    <Compile Include="Pages\KillConfirmWidget\Runtime\KillConfirmWidgetPage.Update.cs" />
+    <Compile Include="Pages\KillConfirmWidget\Runtime\KillConfirmWidgetPage.UpdateOverlayRefs.cs" />
+    <Compile Include="Pages\KillConfirmWidget\Runtime\KillConfirmWidgetPage.Service.cs" />
+    <Compile Include="Pages\KillConfirmWidget\Runtime\KillConfirmWidgetPage.Service.Lifecycle.cs" />
+    <Compile Include="Pages\KillConfirmWidget\Packs\KillConfirmWidgetPage.PackSelectors.cs" />
+    <Compile Include="Pages\KillConfirmWidget\Packs\KillConfirmWidgetPage.PackSelectors.Icons.cs" />
+    <Compile Include="Pages\KillConfirmWidget\Packs\KillConfirmWidgetPage.PackSettings.cs" />
+    <Compile Include="Pages\KillConfirmWidget\Packs\KillConfirmWidgetPage.PackSettings.Persistence.cs" />
+    <Compile Include="Pages\KillConfirmWidget\Packs\KillConfirmWidgetPage.PackSettings.Crossfire.cs" />
+    <Compile Include="Pages\KillConfirmWidget\Packs\KillConfirmWidgetPage.PackSettings.Valorant.cs" />
+    <Compile Include="Pages\KillConfirmWidget\Packs\KillConfirmWidgetPage.PackSettings.Battlefield.cs" />
+    <Compile Include="Pages\KillConfirmWidget\Packs\KillConfirmWidgetPage.PackSettings.Voice.cs" />
+    <Compile Include="Pages\KillConfirmWidget\Packs\KillConfirmWidgetPage.PackSettings.AdvancedEffects.cs" />
+    <Compile Include="Pages\KillConfirmWidget\Packs\KillConfirmWidgetPage.PackSettings.AdvancedEffects.Defaults.cs" />
+    <Compile Include="Pages\KillConfirmWidget\Animation\KillConfirmWidgetPage.Animation.cs" />
+    <Compile Include="Pages\KillConfirmWidget\Animation\KillConfirmWidgetPage.Animation.Routing.cs" />
+    <Compile Include="Pages\KillConfirmWidget\Animation\KillConfirmWidgetPage.Animation.Layout.cs" />
+    <Compile Include="Pages\KillConfirmWidget\GameStyles\KillConfirmWidgetPage.CrossfireStyle.cs" />
+    <Compile Include="Pages\KillConfirmWidget\Settings\KillConfirmWidgetPage.CrossfireGameplaySettings.cs" />
+    <Compile Include="Pages\KillConfirmWidget\Settings\KillConfirmWidgetPage.CsolGameplaySettings.cs" />
+    <Compile Include="Pages\KillConfirmWidget\Settings\KillConfirmWidgetPage.DagoujiaoSettings.cs" />
+    <Compile Include="Pages\KillConfirmWidget\Settings\KillConfirmWidgetPage.DoubaoSettings.cs" />
+    <Compile Include="Pages\KillConfirmWidget\Settings\KillConfirmWidgetPage.SharedStreakSettings.cs" />
+    <Compile Include="Pages\KillConfirmWidget\Configuration\KillConfirmWidgetPage.AutoCloseGameExit.cs" />
+    <Compile Include="Pages\KillConfirmWidget\Runtime\KillConfirmWidgetPage.Status.cs" />
+    <Compile Include="Pages\KillConfirmWidget\Settings\KillConfirmWidgetPage.VisualSettings.cs" />
+    <Compile Include="Pages\KillConfirmWidget\Settings\KillConfirmWidgetPage.VisualSettings.Placement.cs" />
+    <Compile Include="Pages\KillConfirmWidget\Settings\KillConfirmWidgetPage.MoneySettings.cs" />
+    <Compile Include="Controls\Animations\Core\KillConfirmAnimation.xaml.cs">
       <DependentUpon>KillConfirmAnimation.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\KillConfirmAnimation.Assets.cs" />
-    <Compile Include="Controls\KillConfirmAnimation.Csol.cs" />
-    <Compile Include="Controls\KillConfirmAnimation.Render.cs" />
-    <Compile Include="Controls\KillConfirmAnimation.Battlefield.cs" />
-    <Compile Include="Controls\KillConfirmAnimation.Battlefield1.cs" />
-    <Compile Include="Controls\KillConfirmAnimation.Battlefield1.Layout.cs" />
-    <Compile Include="Controls\KillConfirmAnimation.Battlefield5.cs" />
-    <Compile Include="Controls\KillConfirmAnimation.Battlefield5.Money.cs" />
-    <Compile Include="Controls\KillConfirmAnimation.Battlefield5.Models.cs" />
-    <Compile Include="Controls\KillConfirmAnimation.Battlefield5.TextOverlay.cs" />
-    <Compile Include="Controls\KillConfirmAnimation.Battlefield4.cs" />
-    <Compile Include="Controls\KillConfirmAnimation.Battlefield2042.cs" />
-    <Compile Include="Controls\KillConfirmAnimation.Pubg.cs" />
-    <Compile Include="Controls\KillConfirmAnimation.DeltaForce.cs" />
-    <Compile Include="Controls\KillConfirmAnimation.Doubao.cs" />
-    <Compile Include="Controls\KillConfirmAnimation.Overwatch.cs" />
-    <Compile Include="Controls\KillConfirmAnimation.ModernWarfare2019.cs" />
-    <Compile Include="Controls\KillConfirmAnimation.Apex.cs" />
-    <Compile Include="Controls\KillConfirmAnimation.Dagoujiao.cs" />
-    <Compile Include="Controls\KillConfirmAnimation.ValorantDemo.cs" />
-    <Compile Include="Controls\KillConfirmAnimation.Valorant.cs" />
-    <Compile Include="Controls\KillConfirmAnimation.Valorant.Motion.cs" />
-    <Compile Include="Controls\GameStyles\AdvancedEffectsPanelSupport.cs" />
-    <Compile Include="Controls\GameStyles\StreakWindowEditor.xaml.cs">
+    <Compile Include="Controls\Animations\Core\KillConfirmAnimation.Preloading.cs" />
+    <Compile Include="Controls\Animations\Core\KillConfirmAnimation.Configuration.cs" />
+    <Compile Include="Controls\Animations\Core\KillConfirmAnimation.Playback.cs" />
+    <Compile Include="Controls\Animations\Core\KillConfirmAnimation.Models.cs" />
+    <Compile Include="Controls\Animations\Core\KillConfirmAnimation.Assets.cs" />
+    <Compile Include="Controls\Animations\Core\KillConfirmAnimation.AssetOverlays.cs" />
+    <Compile Include="Controls\Animations\Csol\CsolAnimation.Data.cs" />
+    <Compile Include="Controls\Animations\Csol\CsolAnimation.Playback.cs" />
+    <Compile Include="Controls\Animations\Csol\CsolAnimation.Resources.cs" />
+    <Compile Include="Controls\Animations\Csol\CsolAnimation.Render.cs" />
+    <Compile Include="Controls\Animations\Core\KillConfirmAnimation.Render.cs" />
+    <Compile Include="Controls\Animations\Core\KillConfirmAnimation.Layout.cs" />
+    <Compile Include="Controls\Animations\Core\KillConfirmAnimation.Transforms.cs" />
+    <Compile Include="Controls\Animations\Shared\Battlefield\BattlefieldAnimation.Data.cs" />
+    <Compile Include="Controls\Animations\Shared\Battlefield\BattlefieldAnimation.Resources.cs" />
+    <Compile Include="Controls\Animations\Shared\Battlefield\BattlefieldAnimation.Events.cs" />
+    <Compile Include="Controls\Animations\Shared\Battlefield\BattlefieldAnimation.Routing.cs" />
+    <Compile Include="Controls\Animations\Shared\Battlefield\BattlefieldAnimation.Text.cs" />
+    <Compile Include="Controls\Animations\Shared\Battlefield\BattlefieldAnimation.Drawing.cs" />
+    <Compile Include="Controls\Animations\Battlefield1\Battlefield1Animation.Data.cs" />
+    <Compile Include="Controls\Animations\Battlefield1\Battlefield1Animation.Playback.cs" />
+    <Compile Include="Controls\Animations\Battlefield1\Battlefield1Animation.State.cs" />
+    <Compile Include="Controls\Animations\Battlefield1\Battlefield1Animation.Overlay.cs" />
+    <Compile Include="Controls\Animations\Battlefield1\Battlefield1Animation.Card.cs" />
+    <Compile Include="Controls\Animations\Battlefield1\Battlefield1Animation.Layout.cs" />
+    <Compile Include="Controls\Animations\Battlefield5\Battlefield5Animation.Data.cs" />
+    <Compile Include="Controls\Animations\Battlefield5\Battlefield5Animation.Playback.cs" />
+    <Compile Include="Controls\Animations\Battlefield5\Battlefield5Animation.State.cs" />
+    <Compile Include="Controls\Animations\Battlefield5\Battlefield5Animation.Render.cs" />
+    <Compile Include="Controls\Animations\Battlefield5\Battlefield5Animation.Money.cs" />
+    <Compile Include="Controls\Animations\Battlefield5\Battlefield5Animation.Models.cs" />
+    <Compile Include="Controls\Animations\Battlefield5\Battlefield5Animation.TextOverlay.cs" />
+    <Compile Include="Controls\Animations\Battlefield4\Battlefield4Animation.Data.cs" />
+    <Compile Include="Controls\Animations\Battlefield4\Battlefield4Animation.Playback.cs" />
+    <Compile Include="Controls\Animations\Battlefield4\Battlefield4Animation.State.cs" />
+    <Compile Include="Controls\Animations\Battlefield4\Battlefield4Animation.Render.cs" />
+    <Compile Include="Controls\Animations\Battlefield4\Battlefield4Animation.Drawing.cs" />
+    <Compile Include="Controls\Animations\Battlefield2042\Battlefield2042Animation.Data.cs" />
+    <Compile Include="Controls\Animations\Battlefield2042\Battlefield2042Animation.Playback.cs" />
+    <Compile Include="Controls\Animations\Battlefield2042\Battlefield2042Animation.KillIcons.cs" />
+    <Compile Include="Controls\Animations\Battlefield2042\Battlefield2042Animation.IconCache.cs" />
+    <Compile Include="Controls\Animations\Battlefield2042\Battlefield2042Animation.Feed.cs" />
+    <Compile Include="Controls\Animations\Battlefield2042\Battlefield2042Animation.FeedLayout.cs" />
+    <Compile Include="Controls\Animations\Battlefield2042\Battlefield2042Animation.FeedCache.cs" />
+    <Compile Include="Controls\Animations\Battlefield2042\Battlefield2042Animation.Drawing.cs" />
+    <Compile Include="Controls\Animations\Battlefield2042\Battlefield2042Animation.Models.cs" />
+    <Compile Include="Controls\Animations\Pubg\PubgAnimation.Data.cs" />
+    <Compile Include="Controls\Animations\Pubg\PubgAnimation.Playback.cs" />
+    <Compile Include="Controls\Animations\Pubg\PubgAnimation.State.cs" />
+    <Compile Include="Controls\Animations\Pubg\PubgAnimation.Render.cs" />
+    <Compile Include="Controls\Animations\Pubg\PubgAnimation.Feed.cs" />
+    <Compile Include="Controls\Animations\Pubg\PubgAnimation.Combo.cs" />
+    <Compile Include="Controls\Animations\DeltaForce\DeltaForceAnimation.Data.cs" />
+    <Compile Include="Controls\Animations\DeltaForce\DeltaForceAnimation.Playback.cs" />
+    <Compile Include="Controls\Animations\DeltaForce\DeltaForceAnimation.Resources.cs" />
+    <Compile Include="Controls\Animations\DeltaForce\DeltaForceAnimation.State.cs" />
+    <Compile Include="Controls\Animations\DeltaForce\DeltaForceAnimation.Render.cs" />
+    <Compile Include="Controls\Animations\DeltaForce\DeltaForceAnimation.Drawing.cs" />
+    <Compile Include="Controls\Animations\Doubao\DoubaoAnimation.Data.cs" />
+    <Compile Include="Controls\Animations\Doubao\DoubaoAnimation.Playback.cs" />
+    <Compile Include="Controls\Animations\Doubao\DoubaoAnimation.Resources.cs" />
+    <Compile Include="Controls\Animations\Doubao\DoubaoAnimation.Render.cs" />
+    <Compile Include="Controls\Animations\Overwatch\OverwatchAnimation.Data.cs" />
+    <Compile Include="Controls\Animations\Overwatch\OverwatchAnimation.Playback.cs" />
+    <Compile Include="Controls\Animations\Overwatch\OverwatchAnimation.Resources.cs" />
+    <Compile Include="Controls\Animations\Overwatch\OverwatchAnimation.State.cs" />
+    <Compile Include="Controls\Animations\Overwatch\OverwatchAnimation.Render.cs" />
+    <Compile Include="Controls\Animations\Overwatch\OverwatchAnimation.Cards.cs" />
+    <Compile Include="Controls\Animations\ModernWarfare2019\ModernWarfare2019Animation.Data.cs" />
+    <Compile Include="Controls\Animations\ModernWarfare2019\ModernWarfare2019Animation.Playback.cs" />
+    <Compile Include="Controls\Animations\ModernWarfare2019\ModernWarfare2019Animation.Resources.cs" />
+    <Compile Include="Controls\Animations\ModernWarfare2019\ModernWarfare2019Animation.Marker.cs" />
+    <Compile Include="Controls\Animations\ModernWarfare2019\ModernWarfare2019Animation.MoneyFeed.cs" />
+    <Compile Include="Controls\Animations\ModernWarfare2019\ModernWarfare2019Animation.UpperBanner.cs" />
+    <Compile Include="Controls\Animations\ModernWarfare2019\ModernWarfare2019Animation.LowerBanner.cs" />
+    <Compile Include="Controls\Animations\Apex\ApexAnimation.Data.cs" />
+    <Compile Include="Controls\Animations\Apex\ApexAnimation.Playback.cs" />
+    <Compile Include="Controls\Animations\Apex\ApexAnimation.Resources.cs" />
+    <Compile Include="Controls\Animations\Apex\ApexAnimation.State.cs" />
+    <Compile Include="Controls\Animations\Apex\ApexAnimation.Render.cs" />
+    <Compile Include="Controls\Animations\Apex\ApexAnimation.Crosshair.cs" />
+    <Compile Include="Controls\Animations\Apex\ApexAnimation.Cards.cs" />
+    <Compile Include="Controls\Animations\Dagoujiao\DagoujiaoAnimation.Data.cs" />
+    <Compile Include="Controls\Animations\Dagoujiao\DagoujiaoAnimation.Playback.cs" />
+    <Compile Include="Controls\Animations\Dagoujiao\DagoujiaoAnimation.Resources.cs" />
+    <Compile Include="Controls\Animations\Dagoujiao\DagoujiaoAnimation.Render.cs" />
+    <Compile Include="Controls\Animations\Valorant\ValorantAnimation.Data.cs" />
+    <Compile Include="Controls\Animations\Valorant\ValorantAnimation.Resources.cs" />
+    <Compile Include="Controls\Animations\Valorant\ValorantAnimation.Render.cs" />
+    <Compile Include="Controls\Animations\Valorant\ValorantAnimation.Drawing.cs" />
+    <Compile Include="Controls\Animations\Valorant\ValorantAnimation.Effects.cs" />
+    <Compile Include="Controls\Animations\Valorant\ValorantAnimation.Motion.cs" />
+    <Compile Include="Controls\Animations\Valorant\ValorantAnimation.Profiles.cs" />
+    <Compile Include="Controls\GameStyles\Shared\AdvancedEffectsPanelSupport.cs" />
+    <Compile Include="Controls\GameStyles\Shared\StreakWindowEditor.xaml.cs">
       <DependentUpon>StreakWindowEditor.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\GameStyles\Battlefield1AdvancedEffectsPanel.xaml.cs">
+    <Compile Include="Controls\GameStyles\Battlefield1\Battlefield1AdvancedEffectsPanel.xaml.cs">
       <DependentUpon>Battlefield1AdvancedEffectsPanel.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\GameStyles\Battlefield1StylePanel.xaml.cs">
+    <Compile Include="Controls\GameStyles\Battlefield1\Battlefield1StylePanel.xaml.cs">
       <DependentUpon>Battlefield1StylePanel.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\GameStyles\Battlefield5AdvancedEffectsPanel.xaml.cs">
+    <Compile Include="Controls\GameStyles\Battlefield5\Battlefield5AdvancedEffectsPanel.xaml.cs">
       <DependentUpon>Battlefield5AdvancedEffectsPanel.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\GameStyles\Battlefield5StylePanel.xaml.cs">
+    <Compile Include="Controls\GameStyles\Battlefield5\Battlefield5StylePanel.xaml.cs">
       <DependentUpon>Battlefield5StylePanel.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\GameStyles\Battlefield4AdvancedEffectsPanel.xaml.cs">
+    <Compile Include="Controls\GameStyles\Battlefield4\Battlefield4AdvancedEffectsPanel.xaml.cs">
       <DependentUpon>Battlefield4AdvancedEffectsPanel.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\GameStyles\Battlefield4StylePanel.xaml.cs">
+    <Compile Include="Controls\GameStyles\Battlefield4\Battlefield4StylePanel.xaml.cs">
       <DependentUpon>Battlefield4StylePanel.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\GameStyles\Battlefield2042AdvancedEffectsPanel.xaml.cs">
+    <Compile Include="Controls\GameStyles\Battlefield2042\Battlefield2042AdvancedEffectsPanel.xaml.cs">
       <DependentUpon>Battlefield2042AdvancedEffectsPanel.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\GameStyles\Battlefield2042StylePanel.xaml.cs">
+    <Compile Include="Controls\GameStyles\Battlefield2042\Battlefield2042StylePanel.xaml.cs">
       <DependentUpon>Battlefield2042StylePanel.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\GameStyles\PubgAdvancedEffectsPanel.xaml.cs">
+    <Compile Include="Controls\GameStyles\Pubg\PubgAdvancedEffectsPanel.xaml.cs">
       <DependentUpon>PubgAdvancedEffectsPanel.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\GameStyles\PubgStylePanel.xaml.cs">
+    <Compile Include="Controls\GameStyles\Pubg\PubgStylePanel.xaml.cs">
       <DependentUpon>PubgStylePanel.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\GameStyles\DeltaForceAdvancedEffectsPanel.xaml.cs">
+    <Compile Include="Controls\GameStyles\DeltaForce\DeltaForceAdvancedEffectsPanel.xaml.cs">
       <DependentUpon>DeltaForceAdvancedEffectsPanel.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\GameStyles\DoubaoAdvancedEffectsPanel.xaml.cs">
+    <Compile Include="Controls\GameStyles\Doubao\DoubaoAdvancedEffectsPanel.xaml.cs">
       <DependentUpon>DoubaoAdvancedEffectsPanel.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\GameStyles\DagoujiaoAdvancedEffectsPanel.xaml.cs">
+    <Compile Include="Controls\GameStyles\Dagoujiao\DagoujiaoAdvancedEffectsPanel.xaml.cs">
       <DependentUpon>DagoujiaoAdvancedEffectsPanel.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\GameStyles\DeltaForceStylePanel.xaml.cs">
+    <Compile Include="Controls\GameStyles\DeltaForce\DeltaForceStylePanel.xaml.cs">
       <DependentUpon>DeltaForceStylePanel.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\GameStyles\CrossfireAdvancedEffectsPanel.xaml.cs">
+    <Compile Include="Controls\GameStyles\Crossfire\CrossfireAdvancedEffectsPanel.xaml.cs">
       <DependentUpon>CrossfireAdvancedEffectsPanel.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\GameStyles\CrossfireStylePanel.xaml.cs">
+    <Compile Include="Controls\GameStyles\Crossfire\CrossfireStylePanel.xaml.cs">
       <DependentUpon>CrossfireStylePanel.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\GameStyles\CsolAdvancedEffectsPanel.xaml.cs">
+    <Compile Include="Controls\GameStyles\Csol\CsolAdvancedEffectsPanel.xaml.cs">
       <DependentUpon>CsolAdvancedEffectsPanel.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\GameStyles\ValorantAdvancedEffectsPanel.xaml.cs">
+    <Compile Include="Controls\GameStyles\Valorant\ValorantAdvancedEffectsPanel.xaml.cs">
       <DependentUpon>ValorantAdvancedEffectsPanel.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\GameStyles\OverwatchAdvancedEffectsPanel.xaml.cs">
+    <Compile Include="Controls\GameStyles\Overwatch\OverwatchAdvancedEffectsPanel.xaml.cs">
       <DependentUpon>OverwatchAdvancedEffectsPanel.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\GameStyles\ModernWarfare2019AdvancedEffectsPanel.xaml.cs">
+    <Compile Include="Controls\GameStyles\ModernWarfare2019\ModernWarfare2019AdvancedEffectsPanel.xaml.cs">
       <DependentUpon>ModernWarfare2019AdvancedEffectsPanel.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\GameStyles\ApexAdvancedEffectsPanel.xaml.cs">
+    <Compile Include="Controls\GameStyles\Apex\ApexAdvancedEffectsPanel.xaml.cs">
       <DependentUpon>ApexAdvancedEffectsPanel.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\GameStyles\ValorantStylePanel.xaml.cs">
+    <Compile Include="Controls\GameStyles\Valorant\ValorantStylePanel.xaml.cs">
       <DependentUpon>ValorantStylePanel.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\Settings\RuntimeMaintenancePanel.xaml.cs">
+    <Compile Include="Controls\Settings\Maintenance\RuntimeMaintenancePanel.xaml.cs">
       <DependentUpon>RuntimeMaintenancePanel.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\Settings\AdvancedSettingsHub.xaml.cs">
+    <Compile Include="Controls\Settings\Hub\AdvancedSettingsHub.xaml.cs">
       <DependentUpon>AdvancedSettingsHub.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\Settings\CreditsCommunityPanel.xaml.cs">
+    <Compile Include="Controls\Settings\Hub\PortSettingsView.xaml.cs">
+      <DependentUpon>PortSettingsView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\Settings\About\CreditsCommunityPanel.xaml.cs">
       <DependentUpon>CreditsCommunityPanel.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\Settings\GeneralSettingsOptionsPanel.xaml.cs">
+    <Compile Include="Controls\Settings\General\GeneralSettingsOptionsPanel.xaml.cs">
       <DependentUpon>GeneralSettingsOptionsPanel.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\Settings\AdvancedSystemOptionsPanel.xaml.cs">
+    <Compile Include="Controls\Settings\General\BombAudioOptionsPanel.xaml.cs">
+      <DependentUpon>BombAudioOptionsPanel.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\Settings\System\AdvancedSystemOptionsPanel.xaml.cs">
       <DependentUpon>AdvancedSystemOptionsPanel.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\Settings\AdvancedSystemOptionsPanel.ProcessPriority.cs" />
-    <Compile Include="Controls\Settings\SettingsPanelSupport.cs" />
-    <Compile Include="Controls\Settings\SharedStreakSettingsPanelSupport.cs" />
-    <Compile Include="Controls\Settings\Battlefield1AdvancedSettingsPanel.xaml.cs">
+    <Compile Include="Controls\Settings\System\AdvancedSystemOptionsPanel.ProcessPriority.cs" />
+    <Compile Include="Controls\Settings\Shared\SettingsPanelSupport.cs" />
+    <Compile Include="Controls\Settings\Shared\SharedStreakSettingsPanelSupport.cs" />
+    <Compile Include="Controls\Settings\Battlefield1\Battlefield1AdvancedSettingsPanel.xaml.cs">
       <DependentUpon>Battlefield1AdvancedSettingsPanel.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\Settings\Battlefield5AdvancedSettingsPanel.xaml.cs">
+    <Compile Include="Controls\Settings\Battlefield5\Battlefield5AdvancedSettingsPanel.xaml.cs">
       <DependentUpon>Battlefield5AdvancedSettingsPanel.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\Settings\Battlefield4AdvancedSettingsPanel.xaml.cs">
+    <Compile Include="Controls\Settings\Battlefield4\Battlefield4AdvancedSettingsPanel.xaml.cs">
       <DependentUpon>Battlefield4AdvancedSettingsPanel.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\Settings\Battlefield2042AdvancedSettingsPanel.xaml.cs">
+    <Compile Include="Controls\Settings\Battlefield2042\Battlefield2042AdvancedSettingsPanel.xaml.cs">
       <DependentUpon>Battlefield2042AdvancedSettingsPanel.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\Settings\PubgAdvancedSettingsPanel.xaml.cs">
+    <Compile Include="Controls\Settings\Pubg\PubgAdvancedSettingsPanel.xaml.cs">
       <DependentUpon>PubgAdvancedSettingsPanel.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\Settings\DeltaForceAdvancedSettingsPanel.xaml.cs">
+    <Compile Include="Controls\Settings\DeltaForce\DeltaForceAdvancedSettingsPanel.xaml.cs">
       <DependentUpon>DeltaForceAdvancedSettingsPanel.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\Settings\CrossfireAdvancedSettingsPanel.xaml.cs">
+    <Compile Include="Controls\Settings\Crossfire\CrossfireAdvancedSettingsPanel.xaml.cs">
       <DependentUpon>CrossfireAdvancedSettingsPanel.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\Settings\ValorantAdvancedSettingsPanel.xaml.cs">
+    <Compile Include="Controls\Settings\Valorant\ValorantAdvancedSettingsPanel.xaml.cs">
       <DependentUpon>ValorantAdvancedSettingsPanel.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\UpdateOverlayView.xaml.cs">
+    <Compile Include="Controls\Overlays\Update\UpdateOverlayView.xaml.cs">
       <DependentUpon>UpdateOverlayView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\UpdateOverlayView.Theme.cs" />
-    <Compile Include="Services\KillEventClient.cs" />
-    <Compile Include="Services\LocalServiceAuth.cs" />
-    <Compile Include="Services\LocalServiceEndpoints.cs" />
-    <Compile Include="Services\PortSettingsStore.cs" />
-    <Compile Include="Services\ServiceLauncher.cs" />
-    <Compile Include="Services\AssistAudioSettingsStore.cs" />
-    <Compile Include="Services\ValorantPackSyncSettingsStore.cs" />
-    <Compile Include="Services\CrossfireGameplaySettingsStore.cs" />
-    <Compile Include="Services\CsolVoiceSettingsStore.cs" />
-    <Compile Include="Services\DagoujiaoSettingsStore.cs" />
-    <Compile Include="Services\BombAudioSettingsStore.cs" />
-    <Compile Include="Services\ProcessPrioritySettingsStore.cs" />
-    <Compile Include="Services\SharedStreakSettingsStore.cs" />
-    <Compile Include="Services\KillFeedbackVisibilitySettingsStore.cs" />
-    <Compile Include="Services\DeveloperModeSettingsStore.cs" />
-    <Compile Include="Services\GsiGameVersionSettingsStore.cs" />
-    <Compile Include="Services\StreakGainSettingsStore.cs" />
-    <Compile Include="Services\CloseBehaviorSettingsStore.cs" />
-    <Compile Include="Services\AutoCloseOnGameExitSettingsStore.cs" />
-    <Compile Include="Services\InterruptPreviousKillAudioSettingsStore.cs" />
-    <Compile Include="Services\GameStyleService.cs" />
-    <Compile Include="Services\GameThemePalette.cs" />
-    <Compile Include="Services\ValorantPackService.cs" />
-    <Compile Include="Services\LocalizationManager.cs" />
-    <Compile Include="Services\PackCatalogModels.cs" />
-    <Compile Include="Services\PackCatalogService.cs" />
-    <Compile Include="Services\PackCatalogService.Icon.cs" />
-    <Compile Include="Services\PackCatalogService.Storage.cs" />
-    <Compile Include="Services\PackCatalogService.Voice.cs" />
-    <Compile Include="Services\PackCatalogService.Overwatch.cs" />
-    <Compile Include="Services\PackCatalogService.ModernWarfare2019.cs" />
-    <Compile Include="Services\DoubaoSettingsStore.cs" />
+    <Compile Include="Controls\Overlays\Update\UpdateOverlayView.Theme.cs" />
+    <Compile Include="Services\Runtime\KillEventClient.cs" />
+    <Compile Include="Services\Runtime\KillEventModels.cs" />
+    <Compile Include="Services\Runtime\LocalServiceAuth.cs" />
+    <Compile Include="Services\Runtime\LocalServiceEndpoints.cs" />
+    <Compile Include="Services\Settings\General\PortSettingsStore.cs" />
+    <Compile Include="Services\Runtime\ServiceLauncher.cs" />
+    <Compile Include="Services\Settings\Audio\AssistAudioSettingsStore.cs" />
+    <Compile Include="Services\Settings\Games\ValorantPackSyncSettingsStore.cs" />
+    <Compile Include="Services\Settings\Games\CrossfireGameplaySettingsStore.cs" />
+    <Compile Include="Services\Settings\Games\CsolVoiceSettingsStore.cs" />
+    <Compile Include="Services\Settings\Games\DagoujiaoSettingsStore.cs" />
+    <Compile Include="Services\Settings\Games\DagoujiaoSettingsStore.ServiceSync.cs" />
+    <Compile Include="Services\Settings\Audio\BombAudioSettingsStore.cs" />
+    <Compile Include="Services\Settings\General\ProcessPrioritySettingsStore.cs" />
+    <Compile Include="Services\Settings\General\SharedStreakSettingsStore.cs" />
+    <Compile Include="Services\Settings\General\KillFeedbackVisibilitySettingsStore.cs" />
+    <Compile Include="Services\Settings\General\DeveloperModeSettingsStore.cs" />
+    <Compile Include="Services\Settings\Games\GsiGameVersionSettingsStore.cs" />
+    <Compile Include="Services\Settings\General\StreakGainSettingsStore.cs" />
+    <Compile Include="Services\Settings\General\CloseBehaviorSettingsStore.cs" />
+    <Compile Include="Services\Settings\General\AutoCloseOnGameExitSettingsStore.cs" />
+    <Compile Include="Services\Settings\Audio\InterruptPreviousKillAudioSettingsStore.cs" />
+    <Compile Include="Services\Styling\GameStyleService.cs" />
+    <Compile Include="Services\Styling\GameStyleService.PackMappings.cs" />
+    <Compile Include="Services\Styling\GameThemePalette.cs" />
+    <Compile Include="Services\Catalog\Games\ValorantPackService.cs" />
+    <Compile Include="Services\Localization\LocalizationManager.cs" />
+    <Compile Include="Services\Localization\LocalizationManager.English.Core.cs" />
+    <Compile Include="Services\Localization\LocalizationManager.English.Widget.cs" />
+    <Compile Include="Services\Localization\LocalizationManager.Chinese.Core.cs" />
+    <Compile Include="Services\Localization\LocalizationManager.Chinese.Widget.cs" />
+    <Compile Include="Services\Catalog\PackCatalogModels.cs" />
+    <Compile Include="Services\Catalog\PackCatalogService.cs" />
+    <Compile Include="Services\Catalog\PackCatalogService.Icon.cs" />
+    <Compile Include="Services\Catalog\PackCatalogService.Icon.Creation.cs" />
+    <Compile Include="Services\Catalog\PackCatalogService.Storage.cs" />
+    <Compile Include="Services\Catalog\PackCatalogService.GameStorage.cs" />
+    <Compile Include="Services\Catalog\PackCatalogService.Voice.cs" />
+    <Compile Include="Services\Catalog\PackCatalogService.Voice.Creation.cs" />
+    <Compile Include="Services\Catalog\Games\PackCatalogService.Overwatch.cs" />
+    <Compile Include="Services\Catalog\Games\PackCatalogService.ModernWarfare2019.cs" />
+    <Compile Include="Services\Settings\Games\DoubaoSettingsStore.cs" />
     <Compile Include="Helpers\ProcessPriorityBoost.cs" />
     <Compile Include="Helpers\TgaDecoder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -390,167 +512,199 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Page Include="MainPage.xaml">
+    <Page Include="Pages\Main\MainPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="KillConfirmWidgetPage.xaml">
+    <Page Include="Pages\Main\Appearance\MainPage.Resources.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="KillConfirmWidgetPage.Styles.xaml">
+    <Page Include="Pages\Main\Appearance\MainPageBackgroundView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\KillConfirmAnimation.xaml">
+    <Page Include="Pages\KillConfirmWidget\KillConfirmWidgetPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\GameStyles\StreakWindowEditor.xaml">
+    <Page Include="Pages\KillConfirmWidget\Sections\Status\HeaderStatusView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\GameStyles\Battlefield1AdvancedEffectsPanel.xaml">
+    <Page Include="Pages\KillConfirmWidget\Sections\Status\StatusDetailsView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\GameStyles\Battlefield1StylePanel.xaml">
+    <Page Include="Pages\KillConfirmWidget\Sections\Packs\PackTestView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\GameStyles\Battlefield5AdvancedEffectsPanel.xaml">
+    <Page Include="Pages\KillConfirmWidget\Sections\Visual\VisualSettingsView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\GameStyles\Battlefield5StylePanel.xaml">
+    <Page Include="Pages\KillConfirmWidget\KillConfirmWidgetPage.Styles.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\GameStyles\Battlefield4AdvancedEffectsPanel.xaml">
+    <Page Include="Controls\Animations\Core\KillConfirmAnimation.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\GameStyles\Battlefield4StylePanel.xaml">
+    <Page Include="Controls\GameStyles\Shared\StreakWindowEditor.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\GameStyles\Battlefield2042AdvancedEffectsPanel.xaml">
+    <Page Include="Controls\GameStyles\Battlefield1\Battlefield1AdvancedEffectsPanel.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\GameStyles\Battlefield2042StylePanel.xaml">
+    <Page Include="Controls\GameStyles\Battlefield1\Battlefield1StylePanel.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\GameStyles\PubgAdvancedEffectsPanel.xaml">
+    <Page Include="Controls\GameStyles\Battlefield5\Battlefield5AdvancedEffectsPanel.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\GameStyles\PubgStylePanel.xaml">
+    <Page Include="Controls\GameStyles\Battlefield5\Battlefield5StylePanel.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\GameStyles\DeltaForceAdvancedEffectsPanel.xaml">
+    <Page Include="Controls\GameStyles\Battlefield4\Battlefield4AdvancedEffectsPanel.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\GameStyles\DoubaoAdvancedEffectsPanel.xaml">
+    <Page Include="Controls\GameStyles\Battlefield4\Battlefield4StylePanel.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\GameStyles\DagoujiaoAdvancedEffectsPanel.xaml">
+    <Page Include="Controls\GameStyles\Battlefield2042\Battlefield2042AdvancedEffectsPanel.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\GameStyles\DeltaForceStylePanel.xaml">
+    <Page Include="Controls\GameStyles\Battlefield2042\Battlefield2042StylePanel.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\GameStyles\CrossfireAdvancedEffectsPanel.xaml">
+    <Page Include="Controls\GameStyles\Pubg\PubgAdvancedEffectsPanel.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\GameStyles\CrossfireStylePanel.xaml">
+    <Page Include="Controls\GameStyles\Pubg\PubgStylePanel.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\GameStyles\CsolAdvancedEffectsPanel.xaml">
+    <Page Include="Controls\GameStyles\DeltaForce\DeltaForceAdvancedEffectsPanel.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\GameStyles\ValorantAdvancedEffectsPanel.xaml">
+    <Page Include="Controls\GameStyles\Doubao\DoubaoAdvancedEffectsPanel.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\GameStyles\OverwatchAdvancedEffectsPanel.xaml">
+    <Page Include="Controls\GameStyles\Dagoujiao\DagoujiaoAdvancedEffectsPanel.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\GameStyles\ModernWarfare2019AdvancedEffectsPanel.xaml">
+    <Page Include="Controls\GameStyles\DeltaForce\DeltaForceStylePanel.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\GameStyles\ApexAdvancedEffectsPanel.xaml">
+    <Page Include="Controls\GameStyles\Crossfire\CrossfireAdvancedEffectsPanel.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\GameStyles\ValorantStylePanel.xaml">
+    <Page Include="Controls\GameStyles\Crossfire\CrossfireStylePanel.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\Settings\Battlefield1AdvancedSettingsPanel.xaml">
+    <Page Include="Controls\GameStyles\Csol\CsolAdvancedEffectsPanel.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\Settings\Battlefield5AdvancedSettingsPanel.xaml">
+    <Page Include="Controls\GameStyles\Valorant\ValorantAdvancedEffectsPanel.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\Settings\Battlefield4AdvancedSettingsPanel.xaml">
+    <Page Include="Controls\GameStyles\Overwatch\OverwatchAdvancedEffectsPanel.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\Settings\Battlefield2042AdvancedSettingsPanel.xaml">
+    <Page Include="Controls\GameStyles\ModernWarfare2019\ModernWarfare2019AdvancedEffectsPanel.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\Settings\PubgAdvancedSettingsPanel.xaml">
+    <Page Include="Controls\GameStyles\Apex\ApexAdvancedEffectsPanel.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\Settings\DeltaForceAdvancedSettingsPanel.xaml">
+    <Page Include="Controls\GameStyles\Valorant\ValorantStylePanel.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\Settings\RuntimeMaintenancePanel.xaml">
+    <Page Include="Controls\Settings\Battlefield1\Battlefield1AdvancedSettingsPanel.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\Settings\AdvancedSettingsHub.xaml">
+    <Page Include="Controls\Settings\Battlefield5\Battlefield5AdvancedSettingsPanel.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\Settings\CreditsCommunityPanel.xaml">
+    <Page Include="Controls\Settings\Battlefield4\Battlefield4AdvancedSettingsPanel.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\Settings\GeneralSettingsOptionsPanel.xaml">
+    <Page Include="Controls\Settings\Battlefield2042\Battlefield2042AdvancedSettingsPanel.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\Settings\AdvancedSystemOptionsPanel.xaml">
+    <Page Include="Controls\Settings\Pubg\PubgAdvancedSettingsPanel.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\Settings\CrossfireAdvancedSettingsPanel.xaml">
+    <Page Include="Controls\Settings\DeltaForce\DeltaForceAdvancedSettingsPanel.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\Settings\ValorantAdvancedSettingsPanel.xaml">
+    <Page Include="Controls\Settings\Maintenance\RuntimeMaintenancePanel.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\UpdateOverlayView.xaml">
+    <Page Include="Controls\Settings\Hub\AdvancedSettingsHub.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\Settings\Hub\PortSettingsView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\Settings\About\CreditsCommunityPanel.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\Settings\General\GeneralSettingsOptionsPanel.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\Settings\General\BombAudioOptionsPanel.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\Settings\System\AdvancedSystemOptionsPanel.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\Settings\Crossfire\CrossfireAdvancedSettingsPanel.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\Settings\Valorant\ValorantAdvancedSettingsPanel.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\Overlays\Update\UpdateOverlayView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

@@ -1,0 +1,49 @@
+<UserControl
+    x:Class="KillConfirmGameBar.Pages.Main.Appearance.MainPageBackgroundView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <UserControl.Resources>
+        <LinearGradientBrush x:Key="OrangeSlashGradient" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#F29A17" Offset="0" />
+            <GradientStop Color="#EA7F05" Offset="0.58" />
+            <GradientStop Color="#DB6900" Offset="1" />
+        </LinearGradientBrush>
+    </UserControl.Resources>
+    <Canvas>
+        <Rectangle x:Name="HeroSlash" Width="620" Height="1200" Fill="{StaticResource OrangeSlashGradient}" Opacity="0.95" Canvas.Left="720" Canvas.Top="-160">
+            <Rectangle.RenderTransform>
+                <SkewTransform AngleX="-18" />
+            </Rectangle.RenderTransform>
+        </Rectangle>
+        <Rectangle x:Name="HeroSlashLight" Width="24" Height="1200" Fill="#FFF0D5" Opacity="0.9" Canvas.Left="815" Canvas.Top="-120">
+            <Rectangle.RenderTransform>
+                <SkewTransform AngleX="-18" />
+            </Rectangle.RenderTransform>
+        </Rectangle>
+        <Rectangle x:Name="FrameStripeOne" Width="260" Height="520" Stroke="#C4C4C4" StrokeThickness="3" Opacity="0.45" Canvas.Left="80" Canvas.Top="70">
+            <Rectangle.RenderTransform>
+                <SkewTransform AngleX="-18" />
+            </Rectangle.RenderTransform>
+        </Rectangle>
+        <Rectangle x:Name="FrameStripeTwo" Width="260" Height="520" Stroke="#C4C4C4" StrokeThickness="3" Opacity="0.32" Canvas.Left="420" Canvas.Top="110">
+            <Rectangle.RenderTransform>
+                <SkewTransform AngleX="-18" />
+            </Rectangle.RenderTransform>
+        </Rectangle>
+        <Rectangle x:Name="AccentLineOne" Width="190" Height="2" Fill="#CF6B00" Opacity="0.35" Canvas.Left="910" Canvas.Top="150">
+            <Rectangle.RenderTransform>
+                <SkewTransform AngleX="-18" />
+            </Rectangle.RenderTransform>
+        </Rectangle>
+        <Rectangle x:Name="AccentLineTwo" Width="260" Height="2" Fill="#CF6B00" Opacity="0.35" Canvas.Left="910" Canvas.Top="165">
+            <Rectangle.RenderTransform>
+                <SkewTransform AngleX="-18" />
+            </Rectangle.RenderTransform>
+        </Rectangle>
+        <Rectangle x:Name="AccentLineThree" Width="220" Height="2" Fill="#CF6B00" Opacity="0.35" Canvas.Left="910" Canvas.Top="180">
+            <Rectangle.RenderTransform>
+                <SkewTransform AngleX="-18" />
+            </Rectangle.RenderTransform>
+        </Rectangle>
+    </Canvas>
+</UserControl>

@@ -1,0 +1,59 @@
+    #[test]
+    fn valorant_builtin_manifest_caps_streak_at_five() {
+        use crate::soundpack::SoundContext;
+        use crate::soundpack::manifest::PackManifest;
+        use crate::state::EventChannel;
+        use std::collections::HashMap;
+        use std::path::Path;
+
+        let manifest = PackManifest::load_from_dir(Path::new("sounds/valorant_00009_prime"))
+            .expect("load valorant manifest");
+        let make_ctx = |kill_count| SoundContext {
+            kill_count,
+            is_headshot: false,
+            is_first_kill: false,
+            is_knife_kill: false,
+            is_last_kill: false,
+            is_assist: false,
+            play_main_audio: true,
+            money_reward: 0,
+            event_kind: None,
+            event_channel: EventChannel::Combat,
+            preset_name: "valorant_00009_prime".to_string(),
+            master_name: "valorant_00009_prime".to_string(),
+            variant: None,
+            base_dir: "sounds/valorant_00009_prime".to_string(),
+            voice_picks: HashMap::new(),
+            special_voice_priority: false,
+            headshot_priority: false,
+            knife_priority: false,
+        };
+
+        // Tier 3 -> 3.wav
+        let tier3 = manifest.resolve_audio(&make_ctx(3), "sounds/valorant_00009_prime");
+        assert!(tier3[0].path.ends_with("3.wav"), "{}", tier3[0].path);
+
+        // Beyond 5 is capped at tier 5 (5.wav), matching the retired sound.lua.
+        let beyond = manifest.resolve_audio(&make_ctx(8), "sounds/valorant_00009_prime");
+        assert!(beyond[0].path.ends_with("5.wav"), "{}", beyond[0].path);
+
+        // Every Valorant headshot, including the first kill, is one two-layer
+        // event: numbered kill cue + headshot cue.
+        for count in [1u16, 2u16, 3u16] {
+            let mut headshot_ctx = make_ctx(count);
+            headshot_ctx.is_headshot = true;
+            headshot_ctx.is_first_kill = count == 1;
+            let headshot = manifest.resolve_audio(&headshot_ctx, "sounds/valorant_00009_prime");
+            assert_eq!(headshot.len(), 2, "kill {count} must keep both layers");
+            assert!(
+                headshot[0].path.ends_with(&format!("{count}.wav")),
+                "{}",
+                headshot[0].path
+            );
+            assert!(
+                headshot[1].path.ends_with("headshot.wav"),
+                "{}",
+                headshot[1].path
+            );
+        }
+    }

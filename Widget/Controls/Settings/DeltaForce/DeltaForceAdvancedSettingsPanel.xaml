@@ -1,0 +1,39 @@
+<UserControl
+    x:Class="KillConfirmGameBar.Controls.Settings.DeltaForceAdvancedSettingsPanel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="ms-appx:///Pages/KillConfirmWidget/KillConfirmWidgetPage.Styles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Border
+        x:Name="Card"
+        Padding="18,16"
+        Background="{StaticResource FluentCardBackground}"
+        BorderBrush="{StaticResource FluentCardBorder}"
+        BorderThickness="1"
+        CornerRadius="8">
+        <StackPanel Spacing="14">
+            <StackPanel Spacing="4">
+                <TextBlock
+                    x:Name="TitleText"
+                    FontSize="16"
+                    FontWeight="SemiBold"
+                    Foreground="{StaticResource FluentTitleText}"
+                    Text="Delta Force 战斗设置" />
+                <TextBlock
+                    x:Name="BodyText"
+                    FontSize="12"
+                    LineHeight="16"
+                    Foreground="{StaticResource FluentMutedText}"
+                    Visibility="Collapsed"
+                    TextWrapping="WrapWholeWords" />
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</UserControl>

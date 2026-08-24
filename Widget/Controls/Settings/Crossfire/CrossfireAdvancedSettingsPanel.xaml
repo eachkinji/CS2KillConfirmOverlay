@@ -1,0 +1,171 @@
+<UserControl
+    x:Class="KillConfirmGameBar.Controls.Settings.CrossfireAdvancedSettingsPanel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:gameStyles="using:KillConfirmGameBar.Controls.GameStyles">
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="ms-appx:///Pages/KillConfirmWidget/KillConfirmWidgetPage.Styles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Border
+        x:Name="Card"
+        Padding="18,16"
+        Background="{StaticResource FluentCardBackground}"
+        BorderBrush="{StaticResource FluentCardBorder}"
+        BorderThickness="1"
+        CornerRadius="8">
+        <StackPanel Spacing="14">
+            <StackPanel Spacing="4">
+                <TextBlock
+                    x:Name="TitleText"
+                    FontSize="16"
+                    FontWeight="SemiBold"
+                    Foreground="{StaticResource FluentTitleText}"
+                    Text="CrossFire 核心战斗设置" />
+                <TextBlock
+                    x:Name="BodyText"
+                    FontSize="12"
+                    LineHeight="16"
+                    Foreground="{StaticResource FluentMutedText}"
+                    Text="设置连杀计时、助攻音效、爆头与刀杀提示，以及首杀和最终击杀特效。"
+                    TextWrapping="WrapWholeWords" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Spacing="6">
+                <Border x:Name="VoiceTag" Padding="8,3" Background="{StaticResource FluentAccentLight}" BorderBrush="{StaticResource FluentAccentBorder}" BorderThickness="1" CornerRadius="4">
+                    <TextBlock x:Name="VoiceTagText" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource FluentAccent}" Text="CF 角色语音" />
+                </Border>
+                <Border x:Name="IconTag" Padding="8,3" Background="{StaticResource FluentAccentLight}" BorderBrush="{StaticResource FluentAccentBorder}" BorderThickness="1" CornerRadius="4">
+                    <TextBlock x:Name="IconTagText" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource FluentAccent}" Text="CF 击杀图标" />
+                </Border>
+            </StackPanel>
+
+            <Grid Margin="0,4,0,0" RowSpacing="10" ColumnSpacing="10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <gameStyles:StreakWindowEditor
+                    x:Name="StreakEditor"
+                    SettingsChanged="OnGameplaySettingChanged" />
+
+                <Border Grid.Column="1" Style="{StaticResource CompactChoiceCardStyle}">
+                    <StackPanel Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Border Style="{StaticResource CompactCircleIconStyle}"><FontIcon FontSize="13" Foreground="White" Glyph="&#xE8D6;" /></Border>
+                            <TextBlock x:Name="AssistAudioLabel" Style="{StaticResource CompactChoiceLabelStyle}" VerticalAlignment="Center" Text="助攻播报音效" />
+                        </StackPanel>
+                        <ToggleSwitch x:Name="AssistAudioToggle" MinWidth="0" IsOn="False" OffContent="静音 (默认)" OnContent="播放助攻音效" Toggled="OnGameplaySettingChanged" />
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="1" Style="{StaticResource CompactChoiceCardStyle}">
+                    <StackPanel Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Border Style="{StaticResource CompactCircleIconStyle}"><FontIcon FontSize="13" Foreground="White" Glyph="&#xE8D6;" /></Border>
+                            <TextBlock x:Name="HeadshotAudioPriorityLabel" Style="{StaticResource CompactChoiceLabelStyle}" VerticalAlignment="Center" Text="爆头音效优先级" />
+                        </StackPanel>
+                        <ComboBox x:Name="HeadshotAudioPrioritySelector" Style="{StaticResource CompactSettingsComboBoxStyle}" SelectionChanged="OnGameplaySettingChanged">
+                            <ComboBoxItem x:Name="HeadshotSpecialPriorityItem" Tag="special">爆头音效优先</ComboBoxItem>
+                            <ComboBoxItem x:Name="HeadshotStreakPriorityItem" Tag="streak">连杀音效优先</ComboBoxItem>
+                        </ComboBox>
+                    </StackPanel>
+                </Border>
+                <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource CompactChoiceCardStyle}">
+                    <StackPanel Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Border Style="{StaticResource CompactCircleIconStyle}"><FontIcon FontSize="13" Foreground="White" Glyph="&#xE767;" /></Border>
+                            <TextBlock x:Name="KnifeAudioPriorityLabel" Style="{StaticResource CompactChoiceLabelStyle}" VerticalAlignment="Center" Text="刀杀音效优先级" />
+                        </StackPanel>
+                        <ComboBox x:Name="KnifeAudioPrioritySelector" Style="{StaticResource CompactSettingsComboBoxStyle}" SelectionChanged="OnGameplaySettingChanged">
+                            <ComboBoxItem x:Name="KnifeSpecialPriorityItem" Tag="special">刀杀音效优先</ComboBoxItem>
+                            <ComboBoxItem x:Name="KnifeStreakPriorityItem" Tag="streak">连杀音效优先</ComboBoxItem>
+                        </ComboBox>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="2" Style="{StaticResource CompactChoiceCardStyle}">
+                    <StackPanel Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Border Style="{StaticResource CompactCircleIconStyle}"><FontIcon FontSize="13" Foreground="White" Glyph="&#xE91F;" /></Border>
+                            <TextBlock x:Name="HeadshotIconPriorityLabel" Style="{StaticResource CompactChoiceLabelStyle}" VerticalAlignment="Center" Text="爆头图标优先级" />
+                        </StackPanel>
+                        <ComboBox x:Name="HeadshotIconPrioritySelector" Style="{StaticResource CompactSettingsComboBoxStyle}" SelectionChanged="OnGameplaySettingChanged">
+                            <ComboBoxItem x:Name="HeadshotIconSpecialPriorityItem" Tag="special">爆头图标优先</ComboBoxItem>
+                            <ComboBoxItem x:Name="HeadshotIconStreakPriorityItem" Tag="streak">连杀图标优先</ComboBoxItem>
+                        </ComboBox>
+                    </StackPanel>
+                </Border>
+                <Border Grid.Row="2" Grid.Column="1" Style="{StaticResource CompactChoiceCardStyle}">
+                    <StackPanel Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Border Style="{StaticResource CompactCircleIconStyle}"><FontIcon FontSize="13" Foreground="White" Glyph="&#xE7F4;" /></Border>
+                            <TextBlock x:Name="KnifeIconPriorityLabel" Style="{StaticResource CompactChoiceLabelStyle}" VerticalAlignment="Center" Text="刀杀图标优先级" />
+                        </StackPanel>
+                        <ComboBox x:Name="KnifeIconPrioritySelector" Style="{StaticResource CompactSettingsComboBoxStyle}" SelectionChanged="OnGameplaySettingChanged">
+                            <ComboBoxItem x:Name="KnifeIconSpecialPriorityItem" Tag="special">刀杀图标优先</ComboBoxItem>
+                            <ComboBoxItem x:Name="KnifeIconStreakPriorityItem" Tag="streak">连杀图标优先</ComboBoxItem>
+                        </ComboBox>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="3" Style="{StaticResource CompactChoiceCardStyle}">
+                    <StackPanel Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Border Style="{StaticResource CompactCircleIconStyle}"><FontIcon FontSize="13" Foreground="White" Glyph="&#xE8D6;" /></Border>
+                            <TextBlock x:Name="FirstKillAudioLabel" Style="{StaticResource CompactChoiceLabelStyle}" VerticalAlignment="Center" Text="首杀语音播报" />
+                        </StackPanel>
+                        <ComboBox x:Name="FirstKillAudioSelector" Style="{StaticResource CompactSettingsComboBoxStyle}" SelectionChanged="OnGameplaySettingChanged">
+                            <ComboBoxItem x:Name="FirstKillSpecialItem" Tag="special">首杀专属语音 (First Kill)</ComboBoxItem>
+                            <ComboBoxItem x:Name="FirstKillOriginalItem" Tag="original">普通击杀语音</ComboBoxItem>
+                        </ComboBox>
+                    </StackPanel>
+                </Border>
+                <Border Grid.Row="3" Grid.Column="1" Style="{StaticResource CompactChoiceCardStyle}">
+                    <StackPanel Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Border Style="{StaticResource CompactCircleIconStyle}"><FontIcon FontSize="13" Foreground="White" Glyph="&#xE8D6;" /></Border>
+                            <TextBlock x:Name="LastKillAudioLabel" Style="{StaticResource CompactChoiceLabelStyle}" VerticalAlignment="Center" Text="最终击杀语音" />
+                        </StackPanel>
+                        <ComboBox x:Name="LastKillAudioSelector" Style="{StaticResource CompactSettingsComboBoxStyle}" SelectionChanged="OnGameplaySettingChanged">
+                            <ComboBoxItem x:Name="LastKillSpecialItem" Tag="special">最终击杀语音</ComboBoxItem>
+                            <ComboBoxItem x:Name="LastKillOriginalItem" Tag="original">普通击杀语音</ComboBoxItem>
+                        </ComboBox>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="4" Style="{StaticResource CompactChoiceCardStyle}">
+                    <StackPanel Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Border Style="{StaticResource CompactCircleIconStyle}"><FontIcon FontSize="13" Foreground="White" Glyph="&#xE945;" /></Border>
+                            <TextBlock x:Name="FirstKillEffectLabel" Style="{StaticResource CompactChoiceLabelStyle}" VerticalAlignment="Center" Text="首杀动效/徽章" />
+                        </StackPanel>
+                        <ToggleSwitch x:Name="FirstKillEffectToggle" MinWidth="0" IsOn="True" OffContent="关闭" OnContent="开启 (推荐)" Toggled="OnGameplaySettingChanged" />
+                    </StackPanel>
+                </Border>
+                <Border Grid.Row="4" Grid.Column="1" Style="{StaticResource CompactChoiceCardStyle}">
+                    <StackPanel Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Border Style="{StaticResource CompactCircleIconStyle}"><FontIcon FontSize="13" Foreground="White" Glyph="&#xE945;" /></Border>
+                            <TextBlock x:Name="LastKillEffectLabel" Style="{StaticResource CompactChoiceLabelStyle}" VerticalAlignment="Center" Text="最终击杀特效" />
+                        </StackPanel>
+                        <ToggleSwitch x:Name="LastKillEffectToggle" MinWidth="0" IsOn="True" OffContent="关闭" OnContent="开启 (推荐)" Toggled="OnGameplaySettingChanged" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </StackPanel>
+    </Border>
+</UserControl>

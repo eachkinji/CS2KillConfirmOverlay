@@ -68,10 +68,10 @@
         use crate::soundpack::{SoundContext, SoundEntry};
         use crate::state::EventChannel;
         use std::collections::HashMap;
-        use std::path::Path;
 
-        let manifest = PackManifest::load_from_dir(Path::new("sounds/crossfire_v_sex"))
-            .expect("load v_sex manifest");
+        let pack_dir = source_sound_pack("crossfire", "crossfire_v_sex");
+        let base_dir = pack_dir.to_string_lossy().into_owned();
+        let manifest = PackManifest::load_from_dir(&pack_dir).expect("load v_sex manifest");
         let make_ctx = |kill_count,
                         is_headshot,
                         is_knife,
@@ -92,7 +92,7 @@
             preset_name: "crossfire_v_sex".to_string(),
             master_name: "crossfire_v_sex".to_string(),
             variant: None,
-            base_dir: "sounds/crossfire_v_sex".to_string(),
+            base_dir: base_dir.clone(),
             voice_picks: HashMap::new(),
             special_voice_priority: false,
             headshot_priority,
@@ -102,17 +102,17 @@
         // 2-kill streak -> two parallel, asset-normalized layers.
         let entries = manifest.resolve_audio(
             &make_ctx(2, false, false, false, false, false, false),
-            "sounds/crossfire_v_sex",
+            &base_dir,
         );
         assert_eq!(
             entries,
             vec![
                 SoundEntry {
-                    path: "sounds/crossfire_v_sex/2.wav".to_string(),
+                    path: format!("{base_dir}/2.wav"),
                     gain: 1.0,
                 },
                 SoundEntry {
-                    path: "sounds/crossfire_v_sex/common.wav".to_string(),
+                    path: format!("{base_dir}/common.wav"),
                     gain: 1.0,
                 },
             ]

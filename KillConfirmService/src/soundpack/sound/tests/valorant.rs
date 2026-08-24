@@ -4,10 +4,10 @@
         use crate::soundpack::manifest::PackManifest;
         use crate::state::EventChannel;
         use std::collections::HashMap;
-        use std::path::Path;
 
-        let manifest = PackManifest::load_from_dir(Path::new("sounds/valorant_00009_prime"))
-            .expect("load valorant manifest");
+        let pack_dir = source_sound_pack("valorant", "valorant_00009_prime");
+        let base_dir = pack_dir.to_string_lossy().into_owned();
+        let manifest = PackManifest::load_from_dir(&pack_dir).expect("load valorant manifest");
         let make_ctx = |kill_count| SoundContext {
             kill_count,
             is_headshot: false,
@@ -22,7 +22,7 @@
             preset_name: "valorant_00009_prime".to_string(),
             master_name: "valorant_00009_prime".to_string(),
             variant: None,
-            base_dir: "sounds/valorant_00009_prime".to_string(),
+            base_dir: base_dir.clone(),
             voice_picks: HashMap::new(),
             special_voice_priority: false,
             headshot_priority: false,
@@ -30,11 +30,11 @@
         };
 
         // Tier 3 -> 3.wav
-        let tier3 = manifest.resolve_audio(&make_ctx(3), "sounds/valorant_00009_prime");
+        let tier3 = manifest.resolve_audio(&make_ctx(3), &base_dir);
         assert!(tier3[0].path.ends_with("3.wav"), "{}", tier3[0].path);
 
         // Beyond 5 is capped at tier 5 (5.wav), matching the retired sound.lua.
-        let beyond = manifest.resolve_audio(&make_ctx(8), "sounds/valorant_00009_prime");
+        let beyond = manifest.resolve_audio(&make_ctx(8), &base_dir);
         assert!(beyond[0].path.ends_with("5.wav"), "{}", beyond[0].path);
 
         // Every Valorant headshot, including the first kill, is one two-layer
@@ -43,7 +43,7 @@
             let mut headshot_ctx = make_ctx(count);
             headshot_ctx.is_headshot = true;
             headshot_ctx.is_first_kill = count == 1;
-            let headshot = manifest.resolve_audio(&headshot_ctx, "sounds/valorant_00009_prime");
+            let headshot = manifest.resolve_audio(&headshot_ctx, &base_dir);
             assert_eq!(headshot.len(), 2, "kill {count} must keep both layers");
             assert!(
                 headshot[0].path.ends_with(&format!("{count}.wav")),

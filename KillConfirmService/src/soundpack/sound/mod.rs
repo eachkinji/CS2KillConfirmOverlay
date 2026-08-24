@@ -31,6 +31,8 @@ include!("routing.rs");
 
 #[cfg(test)]
 mod tests {
+    use std::path::{Path, PathBuf};
+
     use super::{
         install_kill_sink_group, is_pack_style, manifest_slot_pick, resolve_assist_audio_routing,
         resolve_dagoujiao_audio_path, resolve_dagoujiao_playback_speed,
@@ -38,6 +40,16 @@ mod tests {
         supports_economy_audio_events, supports_event_sound_routing,
         uses_battlefield2042_audio_rules, uses_crossfire_audio_rules,
     };
+
+    fn source_sound_pack(game_style: &str, pack_name: &str) -> PathBuf {
+        Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("..")
+            .join("SourceAssets")
+            .join("GameStyles")
+            .join(game_style)
+            .join("soundpacks")
+            .join(pack_name)
+    }
 
     include!("tests/core.rs");
     include!("tests/csol.rs");

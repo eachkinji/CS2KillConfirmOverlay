@@ -820,7 +820,16 @@ function Install-OverlayPackage {
         throw "OverlayPackage was not found under $ScriptRoot"
     }
 
-    Stop-OverlayRuntimeForUpdate
+    try {
+        Stop-OverlayRuntimeForUpdate
+    }
+    catch {
+        # A stale widget or Game Bar process should not prevent the installer
+        # from attempting the actual MSIX update. AppX deployment will report
+        # its own failure if the package is still in use.
+        Add-InstallResult -Status Error -Item "关闭正在运行的旧程序" -Detail ((Get-ErrorReason $_) + "；仍会继续尝试更新主程序")
+        Write-InstallLog "旧版进程未能完全退出；继续尝试安装新版 MSIX。"
+    }
 
     $msix = Get-ChildItem -LiteralPath $OverlayRoot -Filter "*.msix" -File | Select-Object -First 1
     if (-not $msix) {

@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       releaseTag:
-        description: Optional release tag; blank uses the package version (for example v4.0.0.0)
+        description: Optional release tag; blank uses the package version (for example v4.3.0.0)
         required: false
         default: ''
         type: string

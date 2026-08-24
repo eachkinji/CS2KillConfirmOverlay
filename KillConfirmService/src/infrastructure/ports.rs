@@ -3,11 +3,15 @@ use crate::infrastructure::logging::{bootstrap_log, local_state_dir, service_log
 
 use anyhow::{Context, Result};
 use std::{
+    ffi::OsStr,
     fs::{self, OpenOptions},
     io::Write,
+    os::windows::process::CommandExt,
     path::PathBuf,
     process::Command,
 };
+
+const CREATE_NO_WINDOW: u32 = 0x08000000;
 
 pub(crate) async fn bind_with_fallback(args: &mut Args) -> Result<Option<tokio::net::TcpListener>> {
     const MAX_PORT_SCAN: u16 = 100;
@@ -109,7 +113,7 @@ fn same_service_owns_port(port: u16) -> bool {
 
 fn process_image_name(pid: u32) -> Option<String> {
     let filter = format!("PID eq {pid}");
-    let output = Command::new("tasklist")
+    let output = hidden_command("tasklist")
         .args(["/FI", &filter, "/FO", "CSV", "/NH"])
         .output()
         .ok()?;
@@ -151,7 +155,7 @@ pub(crate) fn free_local_port(port: u16) -> Result<()> {
         }
 
         service_log(&format!("free-port: terminating pid {pid}"));
-        let output = Command::new("taskkill")
+        let output = hidden_command("taskkill")
             .args(["/PID", &pid.to_string(), "/F"])
             .output()
             .with_context(|| format!("failed to run taskkill for pid {pid}"))?;
@@ -168,7 +172,7 @@ pub(crate) fn free_local_port(port: u16) -> Result<()> {
 }
 
 fn find_local_port_pids(port: u16) -> Result<Vec<u32>> {
-    let output = Command::new("netstat")
+    let output = hidden_command("netstat")
         .args(["-ano", "-p", "tcp"])
         .output()
         .context("failed to run netstat")?;
@@ -204,6 +208,12 @@ fn find_local_port_pids(port: u16) -> Result<Vec<u32>> {
 
     service_log(&format!("free-port: pids for port {port}: {pids:?}"));
     Ok(pids)
+}
+
+fn hidden_command(program: impl AsRef<OsStr>) -> Command {
+    let mut command = Command::new(program);
+    command.creation_flags(CREATE_NO_WINDOW);
+    command
 }
 
 fn widget_port_file() -> PathBuf {

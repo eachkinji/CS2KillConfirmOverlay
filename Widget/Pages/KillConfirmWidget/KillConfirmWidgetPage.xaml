@@ -46,32 +46,59 @@
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch" />
 
-            <Border
-                x:Name="AnimationDragOutline"
-                Width="400"
-                Height="300"
+            <Grid
                 HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                Background="Transparent"
-                BorderBrush="#E53935"
-                BorderThickness="2"
-                CornerRadius="4"
-                Opacity="0.85"
-                Visibility="Collapsed"
-                PointerPressed="OnAnimationFramePointerPressed"
-                PointerMoved="OnAnimationFramePointerMoved"
-                PointerReleased="OnAnimationFramePointerReleased"
-                PointerCanceled="OnAnimationFramePointerCanceled"
-                PointerCaptureLost="OnAnimationFramePointerCaptureLost"
-                PointerWheelChanged="OnAnimationFramePointerWheelChanged"
-                PointerEntered="OnAnimationFramePointerEntered"
-                PointerExited="OnAnimationFramePointerExited"
-                ContextRequested="OnAnimationFrameContextRequested"
-                ToolTipService.ToolTip="Drag to move icon">
-                <Border.RenderTransform>
+                VerticalAlignment="Center">
+                <Grid.RenderTransform>
                     <TranslateTransform x:Name="AnimationDragOutlineTransform" />
-                </Border.RenderTransform>
-            </Border>
+                </Grid.RenderTransform>
+                <Border
+                    x:Name="AnimationDragOutline"
+                    Width="400"
+                    Height="300"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Background="Transparent"
+                    BorderBrush="#E53935"
+                    BorderThickness="2"
+                    CornerRadius="4"
+                    Opacity="0.85"
+                    Visibility="Collapsed"
+                    PointerPressed="OnAnimationFramePointerPressed"
+                    PointerMoved="OnAnimationFramePointerMoved"
+                    PointerReleased="OnAnimationFramePointerReleased"
+                    PointerCanceled="OnAnimationFramePointerCanceled"
+                    PointerCaptureLost="OnAnimationFramePointerCaptureLost"
+                    PointerWheelChanged="OnAnimationFramePointerWheelChanged"
+                    PointerEntered="OnAnimationFramePointerEntered"
+                    PointerExited="OnAnimationFramePointerExited"
+                    ContextRequested="OnAnimationFrameContextRequested"
+                    ToolTipService.ToolTip="Drag to move icon" />
+                <Border
+                    x:Name="AnimationDragHint"
+                    Width="178"
+                    Padding="6,2"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Top"
+                    Background="#D91F1518"
+                    BorderBrush="#FFFF1744"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    IsHitTestVisible="False"
+                    Visibility="Collapsed">
+                    <Border.RenderTransform>
+                        <TranslateTransform Y="-25" />
+                    </Border.RenderTransform>
+                    <TextBlock
+                        x:Name="AnimationDragHintText"
+                        HorizontalAlignment="Center"
+                        Foreground="White"
+                        FontSize="10"
+                        FontWeight="SemiBold"
+                        TextAlignment="Center"
+                        TextWrapping="NoWrap" />
+                </Border>
+            </Grid>
         </Grid>
 
         <Grid
@@ -88,32 +115,59 @@
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch" />
 
-            <Border
-                x:Name="OverwatchCardDragOutline"
-                Width="180"
-                Height="44"
+            <Grid
                 HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                Background="Transparent"
-                BorderBrush="#E53935"
-                BorderThickness="2"
-                CornerRadius="4"
-                Opacity="0.85"
-                Visibility="Collapsed"
-                PointerPressed="OnAnimationFramePointerPressed"
-                PointerMoved="OnAnimationFramePointerMoved"
-                PointerReleased="OnAnimationFramePointerReleased"
-                PointerCanceled="OnAnimationFramePointerCanceled"
-                PointerCaptureLost="OnAnimationFramePointerCaptureLost"
-                PointerWheelChanged="OnAnimationFramePointerWheelChanged"
-                PointerEntered="OnAnimationFramePointerEntered"
-                PointerExited="OnAnimationFramePointerExited"
-                ContextRequested="OnAnimationFrameContextRequested"
-                ToolTipService.ToolTip="Drag to move non-crosshair effect">
-                <Border.RenderTransform>
+                VerticalAlignment="Center">
+                <Grid.RenderTransform>
                     <TranslateTransform x:Name="OverwatchCardDragOutlineTransform" />
-                </Border.RenderTransform>
-            </Border>
+                </Grid.RenderTransform>
+                <Border
+                    x:Name="OverwatchCardDragOutline"
+                    Width="180"
+                    Height="44"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Background="Transparent"
+                    BorderBrush="#E53935"
+                    BorderThickness="2"
+                    CornerRadius="4"
+                    Opacity="0.85"
+                    Visibility="Collapsed"
+                    PointerPressed="OnAnimationFramePointerPressed"
+                    PointerMoved="OnAnimationFramePointerMoved"
+                    PointerReleased="OnAnimationFramePointerReleased"
+                    PointerCanceled="OnAnimationFramePointerCanceled"
+                    PointerCaptureLost="OnAnimationFramePointerCaptureLost"
+                    PointerWheelChanged="OnAnimationFramePointerWheelChanged"
+                    PointerEntered="OnAnimationFramePointerEntered"
+                    PointerExited="OnAnimationFramePointerExited"
+                    ContextRequested="OnAnimationFrameContextRequested"
+                    ToolTipService.ToolTip="Drag to move non-crosshair effect" />
+                <Border
+                    x:Name="OverwatchCardDragHint"
+                    Width="178"
+                    Padding="6,2"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Top"
+                    Background="#D91F1518"
+                    BorderBrush="#FFFF1744"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    IsHitTestVisible="False"
+                    Visibility="Collapsed">
+                    <Border.RenderTransform>
+                        <TranslateTransform Y="-25" />
+                    </Border.RenderTransform>
+                    <TextBlock
+                        x:Name="OverwatchCardDragHintText"
+                        HorizontalAlignment="Center"
+                        Foreground="White"
+                        FontSize="10"
+                        FontWeight="SemiBold"
+                        TextAlignment="Center"
+                        TextWrapping="NoWrap" />
+                </Border>
+            </Grid>
         </Grid>
 
         <Grid
@@ -130,32 +184,59 @@
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch" />
 
-            <Border
-                x:Name="ModernWarfare2019UpperDragOutline"
-                Width="496"
-                Height="198"
+            <Grid
                 HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                Background="Transparent"
-                BorderBrush="#E53935"
-                BorderThickness="2"
-                CornerRadius="4"
-                Opacity="0.85"
-                Visibility="Collapsed"
-                PointerPressed="OnAnimationFramePointerPressed"
-                PointerMoved="OnAnimationFramePointerMoved"
-                PointerReleased="OnAnimationFramePointerReleased"
-                PointerCanceled="OnAnimationFramePointerCanceled"
-                PointerCaptureLost="OnAnimationFramePointerCaptureLost"
-                PointerWheelChanged="OnAnimationFramePointerWheelChanged"
-                PointerEntered="OnAnimationFramePointerEntered"
-                PointerExited="OnAnimationFramePointerExited"
-                ContextRequested="OnAnimationFrameContextRequested"
-                ToolTipService.ToolTip="Drag to move upper kill effect">
-                <Border.RenderTransform>
+                VerticalAlignment="Center">
+                <Grid.RenderTransform>
                     <TranslateTransform x:Name="ModernWarfare2019UpperDragOutlineTransform" />
-                </Border.RenderTransform>
-            </Border>
+                </Grid.RenderTransform>
+                <Border
+                    x:Name="ModernWarfare2019UpperDragOutline"
+                    Width="496"
+                    Height="198"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Background="Transparent"
+                    BorderBrush="#E53935"
+                    BorderThickness="2"
+                    CornerRadius="4"
+                    Opacity="0.85"
+                    Visibility="Collapsed"
+                    PointerPressed="OnAnimationFramePointerPressed"
+                    PointerMoved="OnAnimationFramePointerMoved"
+                    PointerReleased="OnAnimationFramePointerReleased"
+                    PointerCanceled="OnAnimationFramePointerCanceled"
+                    PointerCaptureLost="OnAnimationFramePointerCaptureLost"
+                    PointerWheelChanged="OnAnimationFramePointerWheelChanged"
+                    PointerEntered="OnAnimationFramePointerEntered"
+                    PointerExited="OnAnimationFramePointerExited"
+                    ContextRequested="OnAnimationFrameContextRequested"
+                    ToolTipService.ToolTip="Drag to move upper kill effect" />
+                <Border
+                    x:Name="ModernWarfare2019UpperDragHint"
+                    Width="178"
+                    Padding="6,2"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Top"
+                    Background="#D91F1518"
+                    BorderBrush="#FFFF1744"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    IsHitTestVisible="False"
+                    Visibility="Collapsed">
+                    <Border.RenderTransform>
+                        <TranslateTransform Y="-25" />
+                    </Border.RenderTransform>
+                    <TextBlock
+                        x:Name="ModernWarfare2019UpperDragHintText"
+                        HorizontalAlignment="Center"
+                        Foreground="White"
+                        FontSize="10"
+                        FontWeight="SemiBold"
+                        TextAlignment="Center"
+                        TextWrapping="NoWrap" />
+                </Border>
+            </Grid>
         </Grid>
 
         <Border
@@ -173,6 +254,7 @@
             <Grid>
                 <Grid x:Name="MainPanelContent" RowSpacing="3">
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
@@ -206,7 +288,6 @@
                     AdvancedEffectsRequested="OnAdvancedEffectsButtonClick"
                     AudioVolumeSelectionChanged="OnAudioVolumeSelectionChanged"
                     TestEventRequested="OnTestEventClick"
-                    CollapsePanelRequested="OnCollapsePanelToggle"
                     ReloadAudioRequested="OnReloadAudioClick" />
 
                 <sections:VisualSettingsView
@@ -222,16 +303,37 @@
                     BrightnessSelectionChanged="OnBrightnessSelectionChanged"
                     ContrastSelectionChanged="OnContrastSelectionChanged"
                     PlaybackFpsSelectionChanged="OnPlaybackFpsSelectionChanged" />
+
+                <Button
+                    x:Name="PanelCollapseBar"
+                    Grid.Row="4"
+                    Margin="0,3,0,0"
+                    Style="{StaticResource PanelToggleBarButtonStyle}"
+                    Click="OnCollapsePanelToggle"
+                    ToolTipService.ToolTip="Collapse panel">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <FontIcon
+                            FontFamily="Segoe MDL2 Assets"
+                            FontSize="9"
+                            Glyph="&#xE70E;" />
+                        <TextBlock
+                            x:Name="PanelCollapseBarText"
+                            VerticalAlignment="Center"
+                            FontSize="9"
+                            FontWeight="Normal"
+                            Text="Collapse" />
+                    </StackPanel>
+                </Button>
             </Grid>
-            <Grid
+            <StackPanel
                 x:Name="MiniPanel"
-                MinWidth="92"
-                MinHeight="46"
+                MinWidth="72"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
                 Background="Transparent"
                 Visibility="Collapsed">
                 <StackPanel
+                    Margin="0,0,0,3"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     Orientation="Horizontal"
@@ -245,17 +347,26 @@
                             <PathIcon Foreground="#FFFFFF" Style="{StaticResource FluentPathIconStyle}" Data="M15 4.24951C15 3.17089 13.7255 2.59866 12.9195 3.31534L8.42794 7.30861C8.29065 7.43067 8.11333 7.4981 7.92961 7.4981H4.25C3.00736 7.4981 2 8.50546 2 9.7481V14.246C2 15.4886 3.00736 16.496 4.25 16.496H7.92956C8.11329 16.496 8.29063 16.5634 8.42793 16.6855L12.9194 20.6792C13.7255 21.396 15 20.8238 15 19.7451V4.24951Z" />
                         </Grid>
                     </Button>
-                    <Button
-                        x:Name="MiniCollapsePanelButton"
-                        Style="{StaticResource ToolbarIconButtonStyle}"
-                        Click="OnCollapsePanelToggle"
-                        ToolTipService.ToolTip="Restore panel">
-                        <Grid Style="{StaticResource IconHostStyle}">
-                            <PathIcon Style="{StaticResource FluentPathIconStyle}" Data="M4 5H20V7H4V5ZM4 11H20V13H4V11ZM4 17H20V19H4V17Z" />
-                        </Grid>
-                    </Button>
                 </StackPanel>
-            </Grid>
+                <Button
+                    x:Name="MiniPanelExpandBar"
+                    Style="{StaticResource PanelToggleBarButtonStyle}"
+                    Click="OnCollapsePanelToggle"
+                    ToolTipService.ToolTip="Expand panel">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <FontIcon
+                            FontFamily="Segoe MDL2 Assets"
+                            FontSize="9"
+                            Glyph="&#xE70D;" />
+                        <TextBlock
+                            x:Name="MiniPanelExpandBarText"
+                            VerticalAlignment="Center"
+                            FontSize="9"
+                            FontWeight="Normal"
+                            Text="Open" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
         </Grid>
     </Border>
 

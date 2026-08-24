@@ -32,11 +32,10 @@ namespace KillConfirmGameBar
 
         private void OnResetVisualAdjustmentsClick(object sender, RoutedEventArgs e)
         {
-            _suppressVisualAdjustmentEvents = true;
-            SelectPercentageOption(VisualSettingsSectionView.BrightnessSelector, DefaultBrightnessValue);
-            SelectPercentageOption(VisualSettingsSectionView.ContrastSelector, DefaultContrastValue);
-            _suppressVisualAdjustmentEvents = false;
-            ApplyVisualAdjustmentSettings();
+            // Restore every editable effect frame used by the current game only.
+            // Placement settings are game-scoped, so other games keep their own
+            // customized red-frame positions and sizes.
+            ResetCurrentGameAnimationPlacement();
 
             // This button is also the user's explicit recovery path for a stale
             // Game Bar composition surface after a display-mode/resolution switch.
@@ -48,21 +47,17 @@ namespace KillConfirmGameBar
         private void LoadVisualAdjustmentSettings()
         {
             ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
-            double brightness = ReadSetting(localSettings, BrightnessSettingKey);
-            double contrast = ReadSetting(localSettings, ContrastSettingKey);
             double audioVolume = ReadAudioVolumeSetting(localSettings);
-            double playbackFps = NormalizePlaybackFps(ReadSetting(localSettings, PlaybackFpsSettingKey));
 
             _suppressVisualAdjustmentEvents = true;
-            SelectPercentageOption(VisualSettingsSectionView.BrightnessSelector, brightness);
-            SelectPercentageOption(VisualSettingsSectionView.ContrastSelector, contrast);
             SelectPercentageOption(PackTestSectionView.AudioVolumeSelector, audioVolume);
-            SelectPercentageOption(VisualSettingsSectionView.PlaybackFpsSelector, playbackFps);
             _suppressVisualAdjustmentEvents = false;
 
-            UpdateVisualAdjustmentLabels(brightness, contrast);
-            ApplyVisualAdjustmentSettings();
-            ApplyPlaybackFpsSettings();
+            // Global visual controls were removed. Keep the legacy renderer at
+            // its neutral 60 FPS baseline; per-layer appearance is applied by
+            // the shared kill-feedback editor when an animation is routed.
+            Controls.KillConfirmAnimation.ConfigureRenderSettings(0, 0);
+            Controls.KillConfirmAnimation.ConfigurePlaybackFps(60);
             _ = ApplyAndSaveAudioVolumeAsync();
         }
 

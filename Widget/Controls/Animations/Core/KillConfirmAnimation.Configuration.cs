@@ -51,6 +51,14 @@ namespace KillConfirmGameBar.Controls
             _targetPlaybackFps = Math.Max(30.0, Math.Min(60.0, playbackFps));
         }
 
+        public void ConfigureAppearance(double brightness, double contrast, double opacity)
+        {
+            _appearanceBrightness = Math.Max(0.5, Math.Min(1.5, brightness));
+            _appearanceContrast = Math.Max(0.5, Math.Min(1.5, contrast));
+            Opacity = Math.Max(0.1, Math.Min(1.0, opacity));
+            SpriteCanvas?.Invalidate();
+        }
+
         public static void ConfigureIconPack(string iconPack)
         {
             string normalized = string.IsNullOrWhiteSpace(iconPack)

@@ -153,6 +153,17 @@ namespace KillConfirmGameBar
                 return;
             }
 
+            KillFeedbackVisibilitySettingsValues visibility =
+                KillFeedbackVisibilitySettingsStore.Load(GameStyleMode.Crossfire);
+            if (!visibility.LowerEnabled)
+            {
+                return;
+            }
+            ConfigureFeedbackAppearance(
+                BadgeKillAnimation,
+                visibility,
+                KillFeedbackLayer.Lower);
+
             CrossfireGameplaySettingsValues settings = CrossfireGameplaySettingsStore.Load();
 
             if (killEvent.IsAssist

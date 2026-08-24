@@ -23,7 +23,9 @@ namespace KillConfirmGameBar
                 || style == GameStyleMode.Apex
                 || style == GameStyleMode.ModernWarfare2019;
             bool showPrimaryOutline = showControlPanel
-                && (!primaryIsOptionalCrosshair || visibility.CrosshairEnabled);
+                && (primaryIsOptionalCrosshair
+                    ? visibility.CrosshairEnabled
+                    : visibility.LowerEnabled);
             AnimationDragOutline.Visibility = showPrimaryOutline ? Visibility.Visible : Visibility.Collapsed;
             AnimationDragOutline.IsHitTestVisible = showPrimaryOutline;
             bool showOverwatchCardOutline = showControlPanel
@@ -131,10 +133,7 @@ namespace KillConfirmGameBar
             StatusDetailsSection.CfgInstallButton.Visibility = state == CfgDetectionState.Missing || state == CfgDetectionState.Outdated
                 ? Visibility.Visible
                 : Visibility.Collapsed;
-            SetNamedToolTip(
-                StatusDetailsSection.CfgInstallButton,
-                LocalizationManager.Text(state == CfgDetectionState.Outdated ? "UpdateCfgTitle" : "AddMissingCfgTitle"),
-                LocalizationManager.Text(state == CfgDetectionState.Outdated ? "UpdateCfgTooltip" : "AddMissingCfgTooltip"));
+            UpdateCfgActionButtonPresentation(state);
             UpdateStatusDetailRowVisibility();
 
             switch (state)
@@ -166,6 +165,17 @@ namespace KillConfirmGameBar
             }
 
             RefreshStatusHint(false);
+        }
+
+        private void UpdateCfgActionButtonPresentation(CfgDetectionState state)
+        {
+            bool isUpdate = state == CfgDetectionState.Outdated;
+            StatusDetailsSection.CfgInstallButton.Content = LocalizationManager.Text(
+                isUpdate ? "UpdateCfgAction" : "Add");
+            SetNamedToolTip(
+                StatusDetailsSection.CfgInstallButton,
+                LocalizationManager.Text(isUpdate ? "UpdateCfgTitle" : "AddMissingCfgTitle"),
+                LocalizationManager.Text(isUpdate ? "UpdateCfgTooltip" : "AddMissingCfgTooltip"));
         }
 
         private void UpdateStatusDetailRowVisibility()

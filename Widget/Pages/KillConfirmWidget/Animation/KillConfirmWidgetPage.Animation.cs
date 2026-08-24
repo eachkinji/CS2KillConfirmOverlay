@@ -155,6 +155,7 @@ namespace KillConfirmGameBar
 
         private void PlayPrimaryAnimation(KillEvent killEvent)
         {
+            GameStyleMode style = GameStyleService.Current;
             bool isCsolAssist = GameStyleService.Current == GameStyleMode.Csol
                 && killEvent != null
                 && killEvent.IsAssist;
@@ -178,66 +179,112 @@ namespace KillConfirmGameBar
                 return;
             }
 
+            KillFeedbackVisibilitySettingsValues visibility =
+                KillFeedbackVisibilitySettingsStore.Load(style);
+            bool usesDedicatedLayerRouting = style == GameStyleMode.Overwatch
+                || style == GameStyleMode.ModernWarfare2019
+                || style == GameStyleMode.Apex;
+            if (!usesDedicatedLayerRouting)
+            {
+                ConfigureFeedbackAppearance(
+                    PrimaryKillAnimation,
+                    visibility,
+                    KillFeedbackLayer.Lower);
+                if (!visibility.LowerEnabled)
+                {
+                    // The optional crosshair remains independent from the lower
+                    // game-specific feedback layer.
+                    PlayAuxiliaryKillMarkIfEnabled(killEvent);
+                    return;
+                }
+            }
+
             switch (GameStyleService.Current)
             {
                 case GameStyleMode.Valorant:
                     PlayValorantPrimaryAnimation(killEvent);
                     return;
                 case GameStyleMode.Overwatch:
-                    KillFeedbackVisibilitySettingsValues overwatchVisibility =
-                        KillFeedbackVisibilitySettingsStore.Load(GameStyleMode.Overwatch);
-                    if (overwatchVisibility.CrosshairEnabled && !killEvent.IsAssist)
+                    if (visibility.CrosshairEnabled && !killEvent.IsAssist)
                     {
+                        ConfigureFeedbackAppearance(
+                            PrimaryKillAnimation,
+                            visibility,
+                            KillFeedbackLayer.Crosshair);
                         PrimaryKillAnimation.PlayOverwatchCrosshairKill();
                     }
-                    if (overwatchVisibility.LowerEnabled)
+                    if (visibility.LowerEnabled)
                     {
+                        ConfigureFeedbackAppearance(
+                            OverwatchCardAnimation,
+                            visibility,
+                            KillFeedbackLayer.Lower);
                         OverwatchCardAnimation.PlayOverwatchLowerThirdKill(
                             GetKillTargetDisplayName(killEvent),
                             killEvent.IsAssist);
                     }
                     return;
                 case GameStyleMode.ModernWarfare2019:
-                    KillFeedbackVisibilitySettingsValues modernWarfareVisibility =
-                        KillFeedbackVisibilitySettingsStore.Load(GameStyleMode.ModernWarfare2019);
                     if (killEvent.IsAssist)
                     {
-                        if (modernWarfareVisibility.CrosshairEnabled)
+                        if (visibility.CrosshairEnabled)
                         {
+                            ConfigureFeedbackAppearance(
+                                PrimaryKillAnimation,
+                                visibility,
+                                KillFeedbackLayer.Crosshair);
                             PrimaryKillAnimation.PlayModernWarfare2019Assist();
                         }
                         return;
                     }
-                    if (modernWarfareVisibility.CrosshairEnabled)
+                    if (visibility.CrosshairEnabled)
                     {
+                        ConfigureFeedbackAppearance(
+                            PrimaryKillAnimation,
+                            visibility,
+                            KillFeedbackLayer.Crosshair);
                         PrimaryKillAnimation.PlayModernWarfare2019CrosshairKill(
                             killEvent.IsHeadshot,
                             killEvent.KillCount,
                             killEvent.MoneyReward);
                     }
-                    if (modernWarfareVisibility.LowerEnabled)
+                    if (visibility.LowerEnabled)
                     {
+                        ConfigureFeedbackAppearance(
+                            OverwatchCardAnimation,
+                            visibility,
+                            KillFeedbackLayer.Lower);
                         OverwatchCardAnimation.PlayModernWarfare2019LowerKill(
                             killEvent.KillCount);
                     }
-                    if (modernWarfareVisibility.UpperEnabled)
+                    if (visibility.UpperEnabled)
                     {
+                        ConfigureFeedbackAppearance(
+                            ModernWarfare2019UpperAnimation,
+                            visibility,
+                            KillFeedbackLayer.Upper);
                         ModernWarfare2019UpperAnimation.PlayModernWarfare2019UpperKill(
                             killEvent.KillCount);
                     }
                     return;
                 case GameStyleMode.Apex:
-                    KillFeedbackVisibilitySettingsValues apexVisibility =
-                        KillFeedbackVisibilitySettingsStore.Load(GameStyleMode.Apex);
-                    if (apexVisibility.CrosshairEnabled && !killEvent.IsAssist)
+                    if (visibility.CrosshairEnabled && !killEvent.IsAssist)
                     {
+                        ConfigureFeedbackAppearance(
+                            PrimaryKillAnimation,
+                            visibility,
+                            KillFeedbackLayer.Crosshair);
                         PrimaryKillAnimation.PlayApexCrosshairKill(
                             killEvent.IsHeadshot,
                             killEvent.MoneyReward,
                             killEvent.KillCount);
                     }
-                    if (apexVisibility.LowerEnabled)
+                    if (visibility.LowerEnabled)
                     {
+                        ConfigureFeedbackAppearance(
+                            OverwatchCardAnimation,
+                            visibility,
+                            KillFeedbackLayer.Lower);
                         OverwatchCardAnimation.PlayApexFeedCard(
                             killEvent.IsAssist,
                             GetKillTargetDisplayName(killEvent),
@@ -415,6 +462,10 @@ namespace KillConfirmGameBar
                 KillFeedbackVisibilitySettingsStore.Load(style);
             if (visibility.CrosshairEnabled)
             {
+                ConfigureFeedbackAppearance(
+                    ModernWarfare2019UpperAnimation,
+                    visibility,
+                    KillFeedbackLayer.Crosshair);
                 ModernWarfare2019UpperAnimation.PlayModernWarfare2019KillMarkOnly(
                     killEvent.IsHeadshot);
             }
@@ -430,6 +481,28 @@ namespace KillConfirmGameBar
         {
             PlayAuxiliaryKillMarkIfEnabled(killEvent);
             PrimaryKillAnimation.PlayDagoujiaoKill(killEvent.KillCount, killEvent.IsHeadshot);
+        }
+
+        private static void ConfigureFeedbackAppearance(
+            Controls.KillConfirmAnimation animation,
+            KillFeedbackVisibilitySettingsValues settings,
+            KillFeedbackLayer layer)
+        {
+            if (animation == null)
+            {
+                return;
+            }
+
+            KillFeedbackVisibilitySettingsStore.GetAppearance(
+                settings,
+                layer,
+                out double brightnessPercent,
+                out double contrastPercent,
+                out double opacityPercent);
+            animation.ConfigureAppearance(
+                brightnessPercent / 100.0,
+                contrastPercent / 100.0,
+                opacityPercent / 100.0);
         }
 
         private static bool IsBattlefieldTextEvent(KillEvent killEvent)

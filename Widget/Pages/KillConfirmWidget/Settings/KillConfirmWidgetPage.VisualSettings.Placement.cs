@@ -63,6 +63,50 @@ namespace KillConfirmGameBar
             localSettings.Values[GetAnimationStyleSettingKey(AnimationScaleSettingKey)] = _animationScale;
         }
 
+        private void ResetCurrentGameAnimationPlacement()
+        {
+            GameStyleMode style = GameStyleService.Current;
+
+            _animationPlacement = GetDefaultAnimationPlacement(style);
+            _animationOffset = GetDefaultAnimationVerticalOffset(style);
+            _animationHorizontalOffset = GetDefaultAnimationHorizontalOffset(style);
+            _animationScale = GetDefaultAnimationScale(style);
+            SaveAnimationPlacementSettings();
+            ApplyAnimationTransform();
+
+            if (style == GameStyleMode.Overwatch
+                || style == GameStyleMode.Apex
+                || style == GameStyleMode.ModernWarfare2019)
+            {
+                _overwatchCardHorizontalOffset = GetDefaultCardHorizontalOffset(style);
+                _overwatchCardVerticalOffset = GetDefaultCardVerticalOffset(style);
+                _overwatchCardScale = GetDefaultCardScale(style);
+                SaveOverwatchCardPlacementSettings();
+                ApplyOverwatchCardTransform();
+            }
+
+            if (style == GameStyleMode.ModernWarfare2019)
+            {
+                _modernWarfare2019UpperHorizontalOffset =
+                    GetDefaultModernWarfare2019UpperHorizontalOffset();
+                _modernWarfare2019UpperVerticalOffset =
+                    GetDefaultModernWarfare2019UpperVerticalOffset();
+                _modernWarfare2019UpperScale =
+                    GetDefaultModernWarfare2019UpperScale();
+                SaveModernWarfare2019UpperPlacementSettings();
+                ApplyModernWarfare2019UpperTransform();
+            }
+            else if (GameStyleService.IsAuxiliaryKillMarkStyle(style))
+            {
+                _modernWarfare2019UpperHorizontalOffset = 0;
+                _modernWarfare2019UpperVerticalOffset = 0;
+                _modernWarfare2019UpperScale =
+                    GetDefaultAnimationScale(GameStyleMode.ModernWarfare2019);
+                SaveModernWarfare2019UpperPlacementSettings();
+                ApplyModernWarfare2019UpperTransform();
+            }
+        }
+
         private void LoadOverwatchCardPlacementSettings(ApplicationDataContainer localSettings)
         {
             bool apex = GameStyleService.Current == GameStyleMode.Apex;

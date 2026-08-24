@@ -15,7 +15,6 @@ namespace KillConfirmGameBar
         public event RoutedEventHandler AdvancedEffectsRequested;
         public event SelectionChangedEventHandler AudioVolumeSelectionChanged;
         public event RoutedEventHandler TestEventRequested;
-        public event RoutedEventHandler CollapsePanelRequested;
         public event RoutedEventHandler ReloadAudioRequested;
 
         private void OnVoicePackSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -32,9 +31,6 @@ namespace KillConfirmGameBar
 
         private void OnTestEventClick(object sender, RoutedEventArgs e)
             => TestEventRequested?.Invoke(sender, e);
-
-        private void OnCollapsePanelToggle(object sender, RoutedEventArgs e)
-            => CollapsePanelRequested?.Invoke(sender, e);
 
         private void OnReloadAudioClick(object sender, RoutedEventArgs e)
             => ReloadAudioRequested?.Invoke(sender, e);

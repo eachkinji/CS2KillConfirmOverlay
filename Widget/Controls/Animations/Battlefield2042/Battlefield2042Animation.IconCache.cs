@@ -119,9 +119,12 @@ namespace KillConfirmGameBar.Controls
             }
 
             Rect source = cache.BaseSurface.Bounds;
+            double physicalScale = Math.Max(1.0, cache.BaseSurface.Dpi / 96.0);
+            double targetX = Math.Round((centerX - cache.CenterOffset) * physicalScale) / physicalScale;
+            double targetY = Math.Round((centerY - cache.CenterOffset) * physicalScale) / physicalScale;
             Rect target = new Rect(
-                centerX - cache.CenterOffset,
-                centerY - cache.CenterOffset,
+                targetX,
+                targetY,
                 cache.BaseSurface.Size.Width,
                 cache.BaseSurface.Size.Height);
             CanvasBlend previousBlend = drawingSession.Blend;
@@ -145,7 +148,7 @@ namespace KillConfirmGameBar.Controls
                 target,
                 source,
                 1.0f,
-                CanvasImageInterpolation.Linear);
+                CanvasImageInterpolation.NearestNeighbor);
         }
 
         private static void DrawBattlefield2042TintedImage(
@@ -172,7 +175,7 @@ namespace KillConfirmGameBar.Controls
                     target,
                     source,
                     (float)Clamp01(opacity),
-                    CanvasImageInterpolation.Linear);
+                    CanvasImageInterpolation.HighQualityCubic);
             }
         }
 
@@ -208,7 +211,7 @@ namespace KillConfirmGameBar.Controls
                     target,
                     source,
                     (float)Clamp01(opacity),
-                    CanvasImageInterpolation.Linear);
+                    CanvasImageInterpolation.HighQualityCubic);
             }
         }
 

@@ -142,9 +142,8 @@ namespace KillConfirmGameBar
             }
             if (StructureTitleText != null) StructureTitleText.Text = gameName + " " + (isChinese ? "资源包制作指南" : "Resource Pack Guide");
 
-            SetText(TitleText, Color.FromArgb(255, 27, 27, 27));
+            ApplyPageTitleTheme(theme);
             SetText(GameStyleLabelText, theme.Text);
-            SetText(GameStyleSidebarTitleText, Color.FromArgb(255, 140, 140, 140));
             SetText(GameEffectsTitleText, Color.FromArgb(255, 27, 27, 27));
             SetText(VoiceCollectionsTitleText, Color.FromArgb(255, 27, 27, 27));
             SetText(VoiceCollectionsHintText, Color.FromArgb(255, 97, 97, 97));
@@ -203,6 +202,19 @@ namespace KillConfirmGameBar
             }
         }
 
+        private void ApplyPageTitleTheme(GameThemePalette theme)
+        {
+            if (PageTitleSurface != null)
+            {
+                // Keep the title on an opaque theme-colored surface so the
+                // decorative game background can never reduce its contrast.
+                PageTitleSurface.Background = new SolidColorBrush(theme.AccentSoft);
+                PageTitleSurface.BorderBrush = new SolidColorBrush(theme.Accent);
+            }
+
+            SetText(TitleText, theme.AccentText);
+        }
+
         private static void ApplyCardTheme(Border card, GameThemePalette theme)
         {
             if (card != null)
@@ -238,9 +250,9 @@ namespace KillConfirmGameBar
                 if (GameStyleSidebarSelector != null)
                 {
                     string sidebarKey = _isHomePageSelected ? "home" : key;
-                    foreach (object item in GameStyleSidebarSelector.Items)
+                    foreach (object item in GameStyleSidebarSelector.MenuItems)
                     {
-                        if (item is ListViewItem sidebarItem && sidebarItem.Tag is string tag && string.Equals(tag, sidebarKey, System.StringComparison.OrdinalIgnoreCase))
+                        if (item is NavigationViewItem sidebarItem && sidebarItem.Tag is string tag && string.Equals(tag, sidebarKey, System.StringComparison.OrdinalIgnoreCase))
                         {
                             GameStyleSidebarSelector.SelectedItem = sidebarItem;
                             break;
@@ -267,14 +279,16 @@ namespace KillConfirmGameBar
             }
         }
 
-        private void OnGameStyleSidebarSelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void OnGameStyleSidebarSelectionChanged(
+            NavigationView sender,
+            NavigationViewSelectionChangedEventArgs e)
         {
             if (_suppressGameStyleEvents)
             {
                 return;
             }
 
-            if (GameStyleSidebarSelector?.SelectedItem is ListViewItem selected && selected.Tag is string key)
+            if (e.SelectedItem is NavigationViewItem selected && selected.Tag is string key)
             {
                 if (string.Equals(key, "home", StringComparison.OrdinalIgnoreCase))
                 {
@@ -325,6 +339,8 @@ namespace KillConfirmGameBar
         {
             System.Threading.Interlocked.Increment(ref _gameStyleNavigationRevision);
             System.Threading.Interlocked.Increment(ref _packListReloadVersion);
+            _loadedVoicePackStyle = null;
+            _loadedIconPackStyle = null;
             UpdateSettingsPageVisibility();
 
             if (GameAdvancedSettingsPanelHost != null)
@@ -357,19 +373,16 @@ namespace KillConfirmGameBar
                 return;
             }
 
-            foreach (object entry in GameStyleSidebarSelector.Items)
+            foreach (object entry in GameStyleSidebarSelector.MenuItems)
             {
-                if (!(entry is ListViewItem item) || !(item.Content is Border tile))
+                if (!(entry is NavigationViewItem item))
                 {
                     continue;
                 }
 
                 bool selected = item.IsSelected;
-                item.Background = new SolidColorBrush(Colors.Transparent);
-                tile.Background = new SolidColorBrush(selected ? theme.AccentSoft : theme.SubtleField);
-                tile.BorderBrush = new SolidColorBrush(selected ? theme.Accent : theme.SoftBorder);
-                tile.BorderThickness = new Thickness(selected ? 2 : 1);
-                tile.Opacity = selected ? 1.0 : 0.78;
+                item.Foreground = new SolidColorBrush(selected ? theme.Accent : theme.MutedText);
+                item.Opacity = selected ? 1.0 : 0.82;
             }
         }
 
@@ -432,6 +445,20 @@ namespace KillConfirmGameBar
             {
                 GameAdvancedSettingsPanelHost.Content = panel;
             }
+
+            // All games now use the same per-layer appearance editor. Keep the
+            // old one-toggle card hidden inside legacy panels while preserving
+            // their unrelated gameplay settings and reset controls.
+            if (panel is FrameworkElement panelElement
+                && panelElement.FindName("VisualEffectsCard") is UIElement legacyVisualEffectsCard)
+            {
+                legacyVisualEffectsCard.Visibility = Visibility.Collapsed;
+            }
+
+            KillFeedbackAppearanceEditorControl?.Configure(
+                GameStyleService.Current,
+                LocalizationManager.Current == UiLanguage.SimplifiedChinese,
+                GameThemePalette.ForMode(GameStyleService.Current));
 
             ApplyGameAdvancedSettingsPanelLanguage();
         }

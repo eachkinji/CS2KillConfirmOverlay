@@ -7,6 +7,11 @@ function Get-AppxIdentityFromPackageFile {
         $zip = [System.IO.Compression.ZipFile]::OpenRead($PackagePath)
         try {
             $entry = $zip.GetEntry("AppxManifest.xml")
+            $isBundle = $false
+            if (-not $entry) {
+                $entry = $zip.GetEntry("AppxMetadata/AppxBundleManifest.xml")
+                $isBundle = $null -ne $entry
+            }
             if (-not $entry) {
                 return $null
             }
@@ -19,14 +24,15 @@ function Get-AppxIdentityFromPackageFile {
                 $reader.Dispose()
             }
 
-            if (-not $manifest.Package.Identity.Name) {
+            $identity = if ($isBundle) { $manifest.Bundle.Identity } else { $manifest.Package.Identity }
+            if (-not $identity.Name) {
                 return $null
             }
 
             return [pscustomobject]@{
-                Name = $manifest.Package.Identity.Name
-                Version = [version]$manifest.Package.Identity.Version
-                Publisher = $manifest.Package.Identity.Publisher
+                Name = $identity.Name
+                Version = [version]$identity.Version
+                Publisher = $identity.Publisher
             }
         }
         finally {

@@ -292,6 +292,12 @@
     <Compile Include="Controls\Animations\Valorant\ValorantAnimation.Motion.cs" />
     <Compile Include="Controls\Animations\Valorant\ValorantAnimation.Profiles.cs" />
     <Compile Include="Controls\GameStyles\Shared\AdvancedEffectsPanelSupport.cs" />
+    <Compile Include="Controls\GameStyles\Shared\KillFeedbackAppearanceEditor.xaml.cs">
+      <DependentUpon>KillFeedbackAppearanceEditor.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\GameStyles\Shared\KillFeedbackAppearanceRow.xaml.cs">
+      <DependentUpon>KillFeedbackAppearanceRow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\GameStyles\Shared\StreakWindowEditor.xaml.cs">
       <DependentUpon>StreakWindowEditor.xaml</DependentUpon>
     </Compile>
@@ -553,6 +559,14 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Controls\GameStyles\Shared\StreakWindowEditor.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\GameStyles\Shared\KillFeedbackAppearanceEditor.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\GameStyles\Shared\KillFeedbackAppearanceRow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

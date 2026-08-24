@@ -11,6 +11,7 @@ Package/AppPackages/
 KillConfirmGameBar_Transfer_*/
 KillConfirmGameBar_Transfer_*.zip
 Widget/BundleArtifacts/
+Package/BundleArtifacts/
 
 # Release upload logs
 .release-upload-*.log

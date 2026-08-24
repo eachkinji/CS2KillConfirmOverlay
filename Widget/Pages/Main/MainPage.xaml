@@ -3,6 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:appearance="using:KillConfirmGameBar.Pages.Main.Appearance"
+    xmlns:gameStyles="using:KillConfirmGameBar.Controls.GameStyles"
     xmlns:settings="using:KillConfirmGameBar.Controls.Settings"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -26,114 +27,88 @@
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
-            <!-- Sidebar Navigation (Fluent 2 Vertical Navigation Rail) -->
+            <!-- Native compact, icon-only NavigationView for game workspaces. -->
             <Border
                 x:Name="GameModeSidebar"
                 Grid.Column="0"
                 Width="54"
                 Margin="5,12,5,12"
-                Padding="4,8"
+                Padding="0"
                 HorizontalAlignment="Center"
-                VerticalAlignment="Top"
+                VerticalAlignment="Stretch"
                 Background="#FFFFFF"
                 BorderBrush="#E5E5E5"
                 BorderThickness="1"
                 CornerRadius="8">
-                <Grid RowSpacing="6">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-
-                    <TextBlock
-                        x:Name="GameStyleSidebarTitleText"
-                        HorizontalAlignment="Center"
-                        FontSize="9"
-                        FontWeight="SemiBold"
-                        Foreground="#8C8C8C"
-                        Text="MODE"
-                        TextTrimming="CharacterEllipsis" />
-
-                    <ListView
-                        x:Name="GameStyleSidebarSelector"
-                        Grid.Row="1"
-                        Width="44"
-                        Padding="0"
-                        HorizontalAlignment="Center"
-                        HorizontalContentAlignment="Center"
-                        ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                        ScrollViewer.VerticalScrollBarVisibility="Hidden"
-                        SelectionChanged="OnGameStyleSidebarSelectionChanged"
-                        SelectionMode="Single">
-                        <ListView.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <StackPanel
-                                    HorizontalAlignment="Center"
-                                    Orientation="Vertical" />
-                            </ItemsPanelTemplate>
-                        </ListView.ItemsPanel>
-                        <ListView.Resources>
-                            <SolidColorBrush x:Key="ListViewItemBackgroundPointerOver" Color="Transparent" />
-                            <SolidColorBrush x:Key="ListViewItemBackgroundPressed" Color="Transparent" />
-                            <SolidColorBrush x:Key="ListViewItemBackgroundSelected" Color="Transparent" />
-                            <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPointerOver" Color="Transparent" />
-                            <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPressed" Color="Transparent" />
-                        </ListView.Resources>
-                        <ListViewItem x:Name="HomeSidebarItem" Tag="home" Style="{StaticResource GameModeSidebarItemStyle}" ToolTipService.ToolTip="系统设置">
-                            <Border Style="{StaticResource GameModeLogoTileStyle}">
-                                <FontIcon
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    FontFamily="Segoe MDL2 Assets"
-                                    FontSize="18"
-                                    Foreground="{StaticResource FluentAccent}"
-                                    Glyph="&#xE80F;" />
-                            </Border>
-                        </ListViewItem>
-                        <ListViewItem Tag="crossfire" Style="{StaticResource GameModeSidebarItemStyle}" ToolTipService.ToolTip="CrossFire">
-                            <Border Style="{StaticResource GameModeLogoTileStyle}"><Image Source="ms-appx:///Assets/GameLogos/crossfire.png" Stretch="Uniform" /></Border>
-                        </ListViewItem>
-                        <ListViewItem Tag="csol" Style="{StaticResource GameModeSidebarItemStyle}" ToolTipService.ToolTip="CSOL">
-                            <Border Style="{StaticResource GameModeLogoTileStyle}"><Image Source="ms-appx:///Assets/GameLogos/csol.png" Stretch="Uniform" /></Border>
-                        </ListViewItem>
-                        <ListViewItem Tag="valorant" Style="{StaticResource GameModeSidebarItemStyle}" ToolTipService.ToolTip="Valorant">
-                            <Border Style="{StaticResource GameModeLogoTileStyle}"><Image Source="ms-appx:///Assets/GameLogos/valorant.png" Stretch="Uniform" /></Border>
-                        </ListViewItem>
-                        <ListViewItem Tag="overwatch" Style="{StaticResource GameModeSidebarItemStyle}" ToolTipService.ToolTip="OverWatch">
-                            <Border Style="{StaticResource GameModeLogoTileStyle}"><Image Source="ms-appx:///Assets/GameLogos/overwatch.png" Stretch="Uniform" /></Border>
-                        </ListViewItem>
-                        <ListViewItem Tag="modernwarfare2019" Style="{StaticResource GameModeSidebarItemStyle}" ToolTipService.ToolTip="Modern Warfare 2019">
-                            <Border Style="{StaticResource GameModeLogoTileStyle}"><Image Source="ms-appx:///Assets/GameLogos/modernwarfare2019.png" Stretch="Uniform" /></Border>
-                        </ListViewItem>
-                        <ListViewItem Tag="apex" Style="{StaticResource GameModeSidebarItemStyle}" ToolTipService.ToolTip="Apex Legends">
-                            <Border Style="{StaticResource GameModeLogoTileStyle}"><Image Source="ms-appx:///Assets/GameLogos/apex.png" Stretch="Uniform" /></Border>
-                        </ListViewItem>
-                        <ListViewItem Tag="battlefield1" Style="{StaticResource GameModeSidebarItemStyle}" ToolTipService.ToolTip="Battlefield 1">
-                            <Border Style="{StaticResource GameModeLogoTileStyle}"><Image Source="ms-appx:///Assets/GameLogos/battlefield1.png" Stretch="Uniform" /></Border>
-                        </ListViewItem>
-                        <ListViewItem Tag="battlefield5" Style="{StaticResource GameModeSidebarItemStyle}" ToolTipService.ToolTip="Battlefield V">
-                            <Border Style="{StaticResource GameModeLogoTileStyle}"><Image Source="ms-appx:///Assets/GameLogos/battlefield5.png" Stretch="Uniform" /></Border>
-                        </ListViewItem>
-                        <ListViewItem Tag="battlefield4" Style="{StaticResource GameModeSidebarItemStyle}" ToolTipService.ToolTip="Battlefield 4">
-                            <Border Style="{StaticResource GameModeLogoTileStyle}"><Image Source="ms-appx:///Assets/GameLogos/battlefield4.png" Stretch="Uniform" /></Border>
-                        </ListViewItem>
-                        <ListViewItem Tag="battlefield2042" Style="{StaticResource GameModeSidebarItemStyle}" ToolTipService.ToolTip="Battlefield 2042">
-                            <Border Style="{StaticResource GameModeLogoTileStyle}"><Image Source="ms-appx:///Assets/GameLogos/battlefield2042.png" Stretch="Uniform" /></Border>
-                        </ListViewItem>
-                        <ListViewItem Tag="pubg" Style="{StaticResource GameModeSidebarItemStyle}" ToolTipService.ToolTip="PUBG">
-                            <Border Style="{StaticResource GameModeLogoTileStyle}"><Image Source="ms-appx:///Assets/GameLogos/pubg.png" Stretch="Uniform" /></Border>
-                        </ListViewItem>
-                        <ListViewItem Tag="deltaforce" Style="{StaticResource GameModeSidebarItemStyle}" ToolTipService.ToolTip="Delta Force">
-                            <Border Style="{StaticResource GameModeLogoTileStyle}"><Image Source="ms-appx:///Assets/GameLogos/deltaforce.png" Stretch="Uniform" /></Border>
-                        </ListViewItem>
-                        <ListViewItem Tag="doubao" Style="{StaticResource GameModeSidebarItemStyle}" ToolTipService.ToolTip="豆包">
-                            <Border Style="{StaticResource GameModeLogoTileStyle}"><Image Source="ms-appx:///Assets/GameLogos/doubao.png" Stretch="Uniform" /></Border>
-                        </ListViewItem>
-                        <ListViewItem Tag="dagoujiao" Style="{StaticResource GameModeSidebarItemStyle}" ToolTipService.ToolTip="大狗叫">
-                            <Border Style="{StaticResource GameModeLogoTileStyle}"><Image Source="ms-appx:///Assets/GameLogos/dagoujiao.jpg" Stretch="Uniform" /></Border>
-                        </ListViewItem>
-                    </ListView>
-                </Grid>
+                <NavigationView
+                    x:Name="GameStyleSidebarSelector"
+                    Background="Transparent"
+                    CompactPaneLength="52"
+                    IsBackButtonVisible="Collapsed"
+                    IsPaneOpen="False"
+                    IsPaneToggleButtonVisible="False"
+                    IsSettingsVisible="False"
+                    OpenPaneLength="52"
+                    PaneDisplayMode="LeftCompact"
+                    SelectionChanged="OnGameStyleSidebarSelectionChanged">
+                    <NavigationView.Resources>
+                        <Style TargetType="NavigationViewItem">
+                            <Setter Property="Width" Value="52" />
+                            <Setter Property="Padding" Value="7,0,0,0" />
+                            <Setter Property="HorizontalAlignment" Value="Center" />
+                            <Setter Property="HorizontalContentAlignment" Value="Center" />
+                        </Style>
+                    </NavigationView.Resources>
+                    <NavigationView.MenuItems>
+                        <NavigationViewItem x:Name="HomeSidebarItem" AutomationProperties.Name="主页" Tag="home" ToolTipService.ToolTip="系统设置">
+                            <NavigationViewItem.Icon>
+                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE80F;" />
+                            </NavigationViewItem.Icon>
+                        </NavigationViewItem>
+                        <NavigationViewItem AutomationProperties.Name="CrossFire" Tag="crossfire" ToolTipService.ToolTip="CrossFire">
+                            <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/crossfire.png" /></NavigationViewItem.Icon>
+                        </NavigationViewItem>
+                        <NavigationViewItem AutomationProperties.Name="CSOL" Tag="csol" ToolTipService.ToolTip="CSOL">
+                            <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/csol.png" /></NavigationViewItem.Icon>
+                        </NavigationViewItem>
+                        <NavigationViewItem AutomationProperties.Name="Valorant" Tag="valorant" ToolTipService.ToolTip="Valorant">
+                            <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/valorant.png" /></NavigationViewItem.Icon>
+                        </NavigationViewItem>
+                        <NavigationViewItem AutomationProperties.Name="Overwatch" Tag="overwatch" ToolTipService.ToolTip="Overwatch">
+                            <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/overwatch.png" /></NavigationViewItem.Icon>
+                        </NavigationViewItem>
+                        <NavigationViewItem AutomationProperties.Name="Modern Warfare 2019" Tag="modernwarfare2019" ToolTipService.ToolTip="Modern Warfare 2019">
+                            <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/modernwarfare2019.png" /></NavigationViewItem.Icon>
+                        </NavigationViewItem>
+                        <NavigationViewItem AutomationProperties.Name="Apex Legends" Tag="apex" ToolTipService.ToolTip="Apex Legends">
+                            <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/apex.png" /></NavigationViewItem.Icon>
+                        </NavigationViewItem>
+                        <NavigationViewItem AutomationProperties.Name="Battlefield 1" Tag="battlefield1" ToolTipService.ToolTip="Battlefield 1">
+                            <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/battlefield1.png" /></NavigationViewItem.Icon>
+                        </NavigationViewItem>
+                        <NavigationViewItem AutomationProperties.Name="Battlefield V" Tag="battlefield5" ToolTipService.ToolTip="Battlefield V">
+                            <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/battlefield5.png" /></NavigationViewItem.Icon>
+                        </NavigationViewItem>
+                        <NavigationViewItem AutomationProperties.Name="Battlefield 4" Tag="battlefield4" ToolTipService.ToolTip="Battlefield 4">
+                            <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/battlefield4.png" /></NavigationViewItem.Icon>
+                        </NavigationViewItem>
+                        <NavigationViewItem AutomationProperties.Name="Battlefield 2042" Tag="battlefield2042" ToolTipService.ToolTip="Battlefield 2042">
+                            <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/battlefield2042.png" /></NavigationViewItem.Icon>
+                        </NavigationViewItem>
+                        <NavigationViewItem AutomationProperties.Name="PUBG" Tag="pubg" ToolTipService.ToolTip="PUBG">
+                            <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/pubg.png" /></NavigationViewItem.Icon>
+                        </NavigationViewItem>
+                        <NavigationViewItem AutomationProperties.Name="Delta Force" Tag="deltaforce" ToolTipService.ToolTip="Delta Force">
+                            <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/deltaforce.png" /></NavigationViewItem.Icon>
+                        </NavigationViewItem>
+                        <NavigationViewItem AutomationProperties.Name="豆包" Tag="doubao" ToolTipService.ToolTip="豆包">
+                            <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/doubao.png" /></NavigationViewItem.Icon>
+                        </NavigationViewItem>
+                        <NavigationViewItem AutomationProperties.Name="大狗叫" Tag="dagoujiao" ToolTipService.ToolTip="大狗叫">
+                            <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/dagoujiao.jpg" /></NavigationViewItem.Icon>
+                        </NavigationViewItem>
+                    </NavigationView.MenuItems>
+                </NavigationView>
             </Border>
 
             <!-- Main Content Area -->
@@ -146,20 +121,34 @@
                     </Grid.RowDefinitions>
 
                     <!-- Top Header Bar -->
-                    <Grid MaxWidth="1480" HorizontalAlignment="Stretch" Padding="2,0">
+                    <Grid
+                        x:Name="PageTitleHeader"
+                        MaxWidth="1480"
+                        HorizontalAlignment="Stretch"
+                        Padding="2,0"
+                        Canvas.ZIndex="10">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
-                        <StackPanel Grid.ColumnSpan="2" HorizontalAlignment="Left" Orientation="Horizontal" VerticalAlignment="Center" Spacing="10">
+                        <Border
+                            x:Name="PageTitleSurface"
+                            Grid.ColumnSpan="2"
+                            Padding="10,4,12,5"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            Background="#EBF3FC"
+                            BorderBrush="#0067C0"
+                            BorderThickness="4,0,0,0"
+                            CornerRadius="4">
                             <TextBlock
                                 x:Name="TitleText"
                                 FontSize="20"
                                 FontWeight="SemiBold"
-                                Foreground="#1B1B1B"
+                                Foreground="#0067C0"
                                 Text="Kill Confirm Overlay 控制面板" />
-                        </StackPanel>
+                        </Border>
 
                         <!-- Hidden compatibility anchor -->
                         <StackPanel Grid.Column="1" Visibility="Collapsed">
@@ -277,6 +266,8 @@
                                     Style="{StaticResource SettingsSectionTitleTextStyle}"
                                     FontSize="18"
                                     Text="CF 战斗与特效设置" />
+                                <gameStyles:KillFeedbackAppearanceEditor
+                                    x:Name="KillFeedbackAppearanceEditorControl" />
                                 <ContentControl
                                     x:Name="GameAdvancedSettingsPanelHost"
                                     HorizontalAlignment="Stretch"

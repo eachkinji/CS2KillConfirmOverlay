@@ -132,27 +132,27 @@ if ($CertificateCerPath) {
 }
 & (Join-Path $Root "Build-DevPackage.ps1") @devBuildArgs
 
-$msixFiles = @(Get-ChildItem -LiteralPath $DevOutputDir -Filter "*.msix" -File)
+$bundleFiles = @(Get-ChildItem -LiteralPath $DevOutputDir -Filter "*.msixbundle" -File)
 $cerFiles = @(Get-ChildItem -LiteralPath $DevOutputDir -Filter "*.cer" -File)
-if ($msixFiles.Count -ne 1) {
-    throw "预期生成 1 个 MSIX，实际找到 $($msixFiles.Count) 个：$DevOutputDir"
+if ($bundleFiles.Count -ne 1) {
+    throw "预期生成 1 个 MSIX Bundle，实际找到 $($bundleFiles.Count) 个：$DevOutputDir"
 }
 if ($cerFiles.Count -ne 1) {
     throw "预期生成 1 个签名证书 .cer，实际找到 $($cerFiles.Count) 个；不能生成用户无法建立信任的安装包。"
 }
-$msixFile = $msixFiles[0]
+$bundleFile = $bundleFiles[0]
 $cerFile = $cerFiles[0]
 
-$packageSignature = Get-AuthenticodeSignature -LiteralPath $msixFile.FullName
+$packageSignature = Get-AuthenticodeSignature -LiteralPath $bundleFile.FullName
 $publicCertificate = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($cerFile.FullName)
 if (-not $packageSignature.SignerCertificate) {
-    throw "MSIX 没有可读取的 Authenticode 签名：$($msixFile.FullName)"
+    throw "MSIX Bundle 没有可读取的 Authenticode 签名：$($bundleFile.FullName)"
 }
 if (-not [string]::Equals(
         $packageSignature.SignerCertificate.Thumbprint,
         $publicCertificate.Thumbprint,
         [System.StringComparison]::OrdinalIgnoreCase)) {
-    throw "MSIX 签名证书与安装包携带的 .cer 不一致。"
+    throw "MSIX Bundle 签名证书与安装包携带的 .cer 不一致。"
 }
 
 # 2. 准备 Transfer 安装环境目录
@@ -192,7 +192,7 @@ if (-not $SkipWithDependencies) {
 foreach ($targetRoot in @($TransferRoot, $NoDepsTransferRoot)) {
     $overlayDir = Join-Path $targetRoot "OverlayPackage"
     New-Item -ItemType Directory -Force -Path $overlayDir | Out-Null
-    Copy-Item -LiteralPath $msixFile.FullName -Destination (Join-Path $overlayDir $msixFile.Name) -Force
+    Copy-Item -LiteralPath $bundleFile.FullName -Destination (Join-Path $overlayDir $bundleFile.Name) -Force
     if ($cerFile) {
         Copy-Item -LiteralPath $cerFile.FullName -Destination (Join-Path $overlayDir $cerFile.Name) -Force
     }

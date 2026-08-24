@@ -15,13 +15,15 @@ namespace KillConfirmGameBar
     public sealed partial class MainPage
     {
         private int _packListReloadVersion;
+        private GameStyleMode? _loadedVoicePackStyle;
+        private GameStyleMode? _loadedIconPackStyle;
 
         private async void OnLoaded(object sender, RoutedEventArgs e)
         {
             _isSettingsPageLoaded = true;
             GameStyleService.Changed += OnGameStyleServiceChanged;
             PackCatalogService.CatalogChanged += OnCatalogChanged;
-            await ReloadPackListsAsync(GameStyleService.Current);
+            await EnsureActivePackListLoadedAsync();
         }
 
         private void OnUnloaded(object sender, RoutedEventArgs e)
@@ -37,60 +39,127 @@ namespace KillConfirmGameBar
         {
             await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, async () =>
             {
-                await ReloadPackListsAsync(GameStyleService.Current);
+                _loadedVoicePackStyle = null;
+                _loadedIconPackStyle = null;
+                await EnsureActivePackListLoadedAsync();
             });
         }
 
-        private async Task ReloadPackListsAsync(GameStyleMode style)
+        private async Task EnsureActivePackListLoadedAsync()
+        {
+            if (!_isSettingsPageLoaded || _isHomePageSelected)
+            {
+                return;
+            }
+
+            GameStyleMode style = GameStyleService.Current;
+            bool loadVoice = _activeGameTab == "voice" && _loadedVoicePackStyle != style;
+            bool loadIcon = _activeGameTab == "icon" && _loadedIconPackStyle != style;
+            if (!loadVoice && !loadIcon)
+            {
+                return;
+            }
+
+            await ReloadPackListsAsync(style, loadVoice, loadIcon);
+        }
+
+        private bool IsPackListReloadCurrent(int reloadVersion, GameStyleMode style)
+        {
+            return _isSettingsPageLoaded
+                && !_isHomePageSelected
+                && reloadVersion == Volatile.Read(ref _packListReloadVersion)
+                && GameStyleService.Current == style;
+        }
+
+        private async Task ReloadPackListsAsync(
+            GameStyleMode style,
+            bool loadVoice,
+            bool loadIcon)
         {
             int reloadVersion = Interlocked.Increment(ref _packListReloadVersion);
-            if (GameStyleService.Current != style)
+            if (!IsPackListReloadCurrent(reloadVersion, style))
             {
                 return;
             }
 
-            // Never leave another game's rows visible while the new list is
-            // loading. Rows are built off-screen and committed together below.
-            VoicePackListPanel.Children.Clear();
-            IconPackListPanel.Children.Clear();
-            VoiceVisibleCountText.Text = string.Empty;
-            IconVisibleCountText.Text = string.Empty;
-
-            IReadOnlyList<VoicePackItem> voiceItems = (await PackCatalogService.GetAllVoicePacksAsync())
-                .Where(item => GameStyleService.GetStyleForPackKey(item.Key) == style)
-                .ToList();
+            IReadOnlyList<VoicePackItem> voiceItems = Array.Empty<VoicePackItem>();
             var voiceRows = new List<UIElement>();
-            foreach (VoicePackItem item in voiceItems)
+            if (loadVoice)
             {
-                voiceRows.Add(await BuildVoicePackRowAsync(item));
+                VoicePackListPanel.Children.Clear();
+                VoiceVisibleCountText.Text = string.Empty;
+                voiceItems = (await PackCatalogService.GetAllVoicePacksAsync())
+                    .Where(item => GameStyleService.GetStyleForPackKey(item.Key) == style)
+                    .ToList();
+                if (!IsPackListReloadCurrent(reloadVersion, style))
+                {
+                    return;
+                }
+
+                foreach (VoicePackItem item in voiceItems)
+                {
+                    UIElement row = await BuildVoicePackRowAsync(item);
+                    if (!IsPackListReloadCurrent(reloadVersion, style))
+                    {
+                        return;
+                    }
+                    voiceRows.Add(row);
+                }
             }
 
-            IReadOnlyList<IconPackItem> iconItems = (await PackCatalogService.GetAllIconPacksAsync())
-                .Where(item => GameStyleService.GetStyleForPackKey(item.Key) == style)
-                .ToList();
+            IReadOnlyList<IconPackItem> iconItems = Array.Empty<IconPackItem>();
             var iconRows = new List<UIElement>();
-            foreach (IconPackItem item in iconItems)
+            if (loadIcon)
             {
-                iconRows.Add(await BuildIconPackRowAsync(item));
+                IconPackListPanel.Children.Clear();
+                IconVisibleCountText.Text = string.Empty;
+                iconItems = (await PackCatalogService.GetAllIconPacksAsync())
+                    .Where(item => GameStyleService.GetStyleForPackKey(item.Key) == style)
+                    .ToList();
+                if (!IsPackListReloadCurrent(reloadVersion, style))
+                {
+                    return;
+                }
+
+                foreach (IconPackItem item in iconItems)
+                {
+                    UIElement row = await BuildIconPackRowAsync(item);
+                    if (!IsPackListReloadCurrent(reloadVersion, style))
+                    {
+                        return;
+                    }
+                    iconRows.Add(row);
+                }
             }
 
-            if (reloadVersion != Volatile.Read(ref _packListReloadVersion)
-                || GameStyleService.Current != style)
+            if (!IsPackListReloadCurrent(reloadVersion, style))
             {
                 return;
             }
 
-            foreach (UIElement row in voiceRows)
+            if (loadVoice)
             {
-                VoicePackListPanel.Children.Add(row);
+                foreach (UIElement row in voiceRows)
+                {
+                    VoicePackListPanel.Children.Add(row);
+                }
+                VoiceVisibleCountText.Text = string.Format(
+                    LocalizationManager.Text("VisibleCount"),
+                    CountVisible(voiceItems));
+                _loadedVoicePackStyle = style;
             }
-            foreach (UIElement row in iconRows)
+
+            if (loadIcon)
             {
-                IconPackListPanel.Children.Add(row);
+                foreach (UIElement row in iconRows)
+                {
+                    IconPackListPanel.Children.Add(row);
+                }
+                IconVisibleCountText.Text = string.Format(
+                    LocalizationManager.Text("VisibleCount"),
+                    CountVisible(iconItems));
+                _loadedIconPackStyle = style;
             }
-            VoiceVisibleCountText.Text = string.Format(LocalizationManager.Text("VisibleCount"), CountVisible(voiceItems));
-            IconVisibleCountText.Text = string.Format(LocalizationManager.Text("VisibleCount"), CountVisible(iconItems));
-            ApplyLanguage();
         }
 
         private static int CountVisible<T>(IEnumerable<T> items)

@@ -1,0 +1,75 @@
+<UserControl
+    x:Class="KillConfirmGameBar.Controls.GameStyles.KillFeedbackAppearanceRow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Border
+        x:Name="Card"
+        Padding="10"
+        BorderThickness="1"
+        CornerRadius="9">
+        <StackPanel Spacing="8">
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock
+                    x:Name="LayerNameText"
+                    VerticalAlignment="Center"
+                    FontSize="11"
+                    FontWeight="SemiBold"
+                    TextWrapping="WrapWholeWords" />
+                <ToggleSwitch
+                    x:Name="EnabledToggle"
+                    Grid.Column="1"
+                    MinWidth="0"
+                    Toggled="OnSettingChanged" />
+            </Grid>
+
+            <Grid x:Name="AdjustmentGrid" ColumnSpacing="14">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Spacing="2">
+                    <Grid>
+                        <TextBlock x:Name="BrightnessLabel" HorizontalAlignment="Left" FontSize="9" />
+                        <TextBlock x:Name="BrightnessValueText" HorizontalAlignment="Right" FontSize="9" FontWeight="SemiBold" />
+                    </Grid>
+                    <Slider
+                        x:Name="BrightnessSlider"
+                        Minimum="50"
+                        Maximum="150"
+                        StepFrequency="5" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Spacing="2">
+                    <Grid>
+                        <TextBlock x:Name="ContrastLabel" HorizontalAlignment="Left" FontSize="9" />
+                        <TextBlock x:Name="ContrastValueText" HorizontalAlignment="Right" FontSize="9" FontWeight="SemiBold" />
+                    </Grid>
+                    <Slider
+                        x:Name="ContrastSlider"
+                        Minimum="50"
+                        Maximum="150"
+                        StepFrequency="5" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Spacing="2">
+                    <Grid>
+                        <TextBlock x:Name="OpacityLabel" HorizontalAlignment="Left" FontSize="9" />
+                        <TextBlock x:Name="OpacityValueText" HorizontalAlignment="Right" FontSize="9" FontWeight="SemiBold" />
+                    </Grid>
+                    <Slider
+                        x:Name="OpacitySlider"
+                        Minimum="10"
+                        Maximum="100"
+                        StepFrequency="5" />
+                </StackPanel>
+            </Grid>
+        </StackPanel>
+    </Border>
+</UserControl>

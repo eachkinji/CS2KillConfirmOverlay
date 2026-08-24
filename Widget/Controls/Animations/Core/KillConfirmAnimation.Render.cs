@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using Microsoft.Graphics.Canvas;
+using Microsoft.Graphics.Canvas.Effects;
 using Microsoft.Graphics.Canvas.UI.Xaml;
 using Windows.Foundation;
 using Windows.UI;
@@ -22,112 +23,128 @@ namespace KillConfirmGameBar.Controls
         private void OnSpriteCanvasDraw(CanvasControl sender, CanvasDrawEventArgs args)
         {
             args.DrawingSession.Clear(Colors.Transparent);
-            Matrix3x2 previousTransform = args.DrawingSession.Transform;
-            args.DrawingSession.Transform =
-                Matrix3x2.CreateScale((float)GetRenderResolutionScale())
-                * previousTransform;
+            bool usesAppearanceEffect = Math.Abs(_appearanceBrightness - 1.0) > 0.001
+                || Math.Abs(_appearanceContrast - 1.0) > 0.001;
+            if (!usesAppearanceEffect)
+            {
+                DrawCurrentAnimationFrameWithResolutionScale(args.DrawingSession);
+                return;
+            }
 
+            using (var commandList = new CanvasCommandList(sender.Device))
+            {
+                using (CanvasDrawingSession effectSourceSession = commandList.CreateDrawingSession())
+                {
+                    DrawCurrentAnimationFrameWithResolutionScale(effectSourceSession);
+                }
+
+                using (var appearanceEffect = new ColorMatrixEffect
+                {
+                    Source = commandList,
+                    ColorMatrix = CreateBrightnessContrastMatrix(
+                        (float)_appearanceBrightness,
+                        (float)_appearanceContrast),
+                    ClampOutput = true
+                })
+                {
+                    args.DrawingSession.DrawImage(appearanceEffect);
+                }
+            }
+        }
+
+        private void DrawCurrentAnimationFrameWithResolutionScale(CanvasDrawingSession drawingSession)
+        {
+            Matrix3x2 previousTransform = drawingSession.Transform;
+            drawingSession.Transform = Matrix3x2.CreateScale((float)GetRenderResolutionScale()) * previousTransform;
             try
             {
-                if (_isModernWarfare2019Active)
-                {
-                    DrawModernWarfare2019Frame(args.DrawingSession);
-                    return;
-                }
-
-                if (_isApexFeedActive)
-                {
-                    DrawApexFeedFrame(args.DrawingSession);
-                    return;
-                }
-
-                if (_isOverwatchActive)
-                {
-                    DrawOverwatchFrame(args.DrawingSession);
-                    return;
-                }
-
-                if (_isDoubaoActive)
-                {
-                    DrawDoubaoFrame(args.DrawingSession);
-                    return;
-                }
-
-                if (_isDagoujiaoActive)
-                {
-                    DrawDagoujiaoFrame(args.DrawingSession);
-                    return;
-                }
-
-                if (_currentCodeAsset != null)
-                {
-                    DrawCode2KillFrame(args.DrawingSession, _currentFrame);
-                    return;
-                }
-
-                if (_currentCsolAsset != null)
-                {
-                    DrawCsolKillFrame(args.DrawingSession, _currentFrame);
-                    return;
-                }
-
-                if (_currentValorantAsset != null)
-                {
-                    DrawValorantKillFrame(args.DrawingSession, _currentFrame);
-                    return;
-                }
-
-                if (_currentBattlefieldAsset != null)
-                {
-                    DrawBattlefieldKillFrame(args.DrawingSession, _currentFrame);
-                    if (_isBattlefieldTextOverlayActive)
-                    {
-                        DrawBattlefield1TextOverlayFrame(args.DrawingSession);
-                    }
-
-                    return;
-                }
-
-                if (_isBattlefieldTextOverlayActive)
-                {
-                    DrawBattlefield1TextOverlayFrame(args.DrawingSession);
-                    return;
-                }
-
-                if (_isBattlefield5ScrollingActive)
-                {
-                    DrawBattlefield5ScrollingFrame(args.DrawingSession);
-                    return;
-                }
-
-                if (_isBattlefield4HudActive)
-                {
-                    DrawBattlefield4HudFrame(args.DrawingSession);
-                    return;
-                }
-
-                if (_isBattlefield2042HudActive)
-                {
-                    DrawBattlefield2042HudFrame(args.DrawingSession);
-                    return;
-                }
-
-                if (_isPubgHudActive)
-                {
-                    DrawPubgHudFrame(args.DrawingSession);
-                    return;
-                }
-
-                if (_isDeltaForceHudActive)
-                {
-                    DrawDeltaForceHudFrame(args.DrawingSession);
-                    return;
-                }
-
+                DrawCurrentAnimationFrame(drawingSession);
             }
             finally
             {
-                args.DrawingSession.Transform = previousTransform;
+                drawingSession.Transform = previousTransform;
+            }
+        }
+
+        private void DrawCurrentAnimationFrame(CanvasDrawingSession drawingSession)
+        {
+            if (_isModernWarfare2019Active)
+            {
+                DrawModernWarfare2019Frame(drawingSession);
+                return;
+            }
+            if (_isApexFeedActive)
+            {
+                DrawApexFeedFrame(drawingSession);
+                return;
+            }
+            if (_isOverwatchActive)
+            {
+                DrawOverwatchFrame(drawingSession);
+                return;
+            }
+            if (_isDoubaoActive)
+            {
+                DrawDoubaoFrame(drawingSession);
+                return;
+            }
+            if (_isDagoujiaoActive)
+            {
+                DrawDagoujiaoFrame(drawingSession);
+                return;
+            }
+            if (_currentCodeAsset != null)
+            {
+                DrawCode2KillFrame(drawingSession, _currentFrame);
+                return;
+            }
+            if (_currentCsolAsset != null)
+            {
+                DrawCsolKillFrame(drawingSession, _currentFrame);
+                return;
+            }
+            if (_currentValorantAsset != null)
+            {
+                DrawValorantKillFrame(drawingSession, _currentFrame);
+                return;
+            }
+            if (_currentBattlefieldAsset != null)
+            {
+                DrawBattlefieldKillFrame(drawingSession, _currentFrame);
+                if (_isBattlefieldTextOverlayActive)
+                {
+                    DrawBattlefield1TextOverlayFrame(drawingSession);
+                }
+                return;
+            }
+            if (_isBattlefieldTextOverlayActive)
+            {
+                DrawBattlefield1TextOverlayFrame(drawingSession);
+                return;
+            }
+            if (_isBattlefield5ScrollingActive)
+            {
+                DrawBattlefield5ScrollingFrame(drawingSession);
+                return;
+            }
+            if (_isBattlefield4HudActive)
+            {
+                DrawBattlefield4HudFrame(drawingSession);
+                return;
+            }
+            if (_isBattlefield2042HudActive)
+            {
+                DrawBattlefield2042HudFrame(drawingSession);
+                return;
+            }
+            if (_isPubgHudActive)
+            {
+                DrawPubgHudFrame(drawingSession);
+                return;
+            }
+            if (_isDeltaForceHudActive)
+            {
+                DrawDeltaForceHudFrame(drawingSession);
             }
         }
 

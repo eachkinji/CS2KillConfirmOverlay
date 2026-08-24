@@ -74,46 +74,39 @@ namespace KillConfirmGameBar
 
             if (_isModernWarfare2019UpperFrameSelected)
             {
-                double scale = _modernWarfare2019UpperScale > 0
-                    ? _modernWarfare2019UpperScale
-                    : 1.0;
                 _modernWarfare2019UpperHorizontalOffset = Math.Max(
                     -GetMaxAnimationHorizontalOffset(),
                     Math.Min(
                         GetMaxAnimationHorizontalOffset(),
-                        _animationDragStartX + (dx / scale)));
+                        _animationDragStartX + dx));
                 double resolvedVerticalOffset = Math.Max(
                     -GetMaxAnimationOffset(),
                     Math.Min(
                         GetMaxAnimationOffset(),
-                        _animationDragStartY + (dy / scale)));
+                        _animationDragStartY + dy));
                 _modernWarfare2019UpperVerticalOffset = resolvedVerticalOffset
                     - GetAuxiliaryLayerBaseVerticalOffset();
                 ApplyModernWarfare2019UpperTransform();
             }
             else if (_isOverwatchCardFrameSelected)
             {
-                double scale = _overwatchCardScale > 0 ? _overwatchCardScale : 1.0;
                 _overwatchCardHorizontalOffset = Math.Max(-GetMaxAnimationHorizontalOffset(), Math.Min(
                     GetMaxAnimationHorizontalOffset(),
-                    _animationDragStartX + (dx / scale)));
+                    _animationDragStartX + dx));
                 double resolvedVerticalOffset = Math.Max(-GetMaxAnimationOffset(), Math.Min(
                     GetMaxAnimationOffset(),
-                    _animationDragStartY + (dy / scale)));
+                    _animationDragStartY + dy));
                 _overwatchCardVerticalOffset = resolvedVerticalOffset - GetBottomOffset();
                 ApplyOverwatchCardTransform();
             }
             else
             {
-                double scale = Controls.KillConfirmAnimation.IsValorantPresentationConfigured
-                    ? 1.0
-                    : (_animationScale > 0 ? _animationScale : 1.0);
                 _animationHorizontalOffset = Math.Max(-GetMaxAnimationHorizontalOffset(), Math.Min(
                     GetMaxAnimationHorizontalOffset(),
-                    _animationDragStartX + (dx / scale)));
+                    _animationDragStartX + dx));
                 _animationOffset = Math.Max(-GetMaxAnimationOffset(), Math.Min(
                     GetMaxAnimationOffset(),
-                    _animationDragStartY + (dy / scale)));
+                    _animationDragStartY + dy));
                 ApplyAnimationTransform();
             }
             e.Handled = true;
@@ -446,12 +439,20 @@ namespace KillConfirmGameBar
 
         private void ApplyDragOutlineSelectionVisual(Border outline, bool selected)
         {
+            Border hint = ReferenceEquals(outline, OverwatchCardDragOutline)
+                ? OverwatchCardDragHint
+                : ReferenceEquals(outline, ModernWarfare2019UpperDragOutline)
+                    ? ModernWarfare2019UpperDragHint
+                    : AnimationDragHint;
+
             if (selected)
             {
                 outline.BorderBrush = _dragOutlineSelectedBrush;
                 outline.BorderThickness = new Thickness(DragOutlineSelectedThickness);
                 outline.Background = _dragOutlineScratchBrush;
                 outline.Opacity = DragOutlineSelectedOpacity;
+                hint.BorderBrush = _dragOutlineSelectedBrush;
+                hint.Visibility = Visibility.Visible;
             }
             else
             {
@@ -459,6 +460,7 @@ namespace KillConfirmGameBar
                 outline.BorderThickness = new Thickness(2.0);
                 outline.Background = _dragOutlineTransparentBrush;
                 outline.Opacity = DragOutlineUnselectedOpacity;
+                hint.Visibility = Visibility.Collapsed;
             }
         }
     }

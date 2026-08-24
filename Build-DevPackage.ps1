@@ -183,8 +183,9 @@ if ($copiedSoundPackCount -eq 0) {
 }
 Write-Host "  已从 SourceAssets 同步 $copiedSoundPackCount 个内置语音包。" -ForegroundColor DarkGray
 
-# 3. 编译打包 MSIX
-Write-Host "`n[2/4] 调用 MSBuild 编译打包 MSIX ($Configuration/$Platform)..." -ForegroundColor Yellow
+# 3. 编译打包 MSIX Bundle。正式与开发安装都必须使用 Bundle，确保
+# 已由 Bundle 注册的主包和语言资源包可以沿用 Windows 的正常升级链。
+Write-Host "`n[2/4] 调用 MSBuild 编译打包 MSIX Bundle ($Configuration/$Platform)..." -ForegroundColor Yellow
 $TempAppxDir = Join-Path $OutputDir "TempAppPackages"
 if (Test-Path -LiteralPath $TempAppxDir -PathType Container) {
     Remove-Item -LiteralPath $TempAppxDir -Recurse -Force
@@ -194,8 +195,13 @@ $MsBuildArgs = @(
     "/restore",
     "/p:Configuration=$Configuration",
     "/p:Platform=$Platform",
+    "/p:AppxBundle=Always",
+    "/p:AppxBundlePlatforms=$Platform",
     "/p:AppxPackageDir=$TempAppxDir",
-    "/t:Rebuild",
+    # Rebuild runs the AppX Clean target, which can unregister an installed
+    # developer-signed package with the same identity. Build still regenerates
+    # the deleted package output while preserving the local installation.
+    "/t:Build",
     "/verbosity:minimal"
 )
 
@@ -204,27 +210,54 @@ if ($LASTEXITCODE -ne 0) {
     throw "MSBuild 打包失败 (ExitCode: $LASTEXITCODE)"
 }
 
-$msixFile = Get-ChildItem -LiteralPath $TempAppxDir -Filter "*.msix" -Recurse -File |
+$bundleFile = Get-ChildItem -LiteralPath $TempAppxDir -Filter "*.msixbundle" -Recurse -File |
     Where-Object { $_.FullName -notlike "*\obj\*" } |
     Sort-Object LastWriteTime -Descending |
     Select-Object -First 1
 
-if (-not $msixFile) {
-    throw "在 $TempAppxDir 下未找到生成的 .msix 文件！"
+if (-not $bundleFile) {
+    throw "在 $TempAppxDir 下未找到生成的 .msixbundle 文件！"
 }
 
-$FinalMsixPath = Join-Path $OutputDir $msixFile.Name
-Copy-Item -LiteralPath $msixFile.FullName -Destination $FinalMsixPath -Force
+$FinalPackagePath = Join-Path $OutputDir $bundleFile.Name
+Copy-Item -LiteralPath $bundleFile.FullName -Destination $FinalPackagePath -Force
 
 # Fail closed if a packaging regression produces an installable UWP shell
 # without the FullTrust companion registration or executable.
 Add-Type -AssemblyName System.IO.Compression.FileSystem
-$archive = [System.IO.Compression.ZipFile]::OpenRead($FinalMsixPath)
+$bundleArchive = [System.IO.Compression.ZipFile]::OpenRead($FinalPackagePath)
+$mainPackageStream = $null
+$archive = $null
 try {
+    $bundleManifestEntry = $bundleArchive.Entries |
+        Where-Object { $_.FullName -eq "AppxMetadata/AppxBundleManifest.xml" } |
+        Select-Object -First 1
+    $mainPackageEntry = $bundleArchive.Entries |
+        Where-Object { $_.FullName -like "*.msix" -and $_.FullName -notlike "*language-*" } |
+        Sort-Object Length -Descending |
+        Select-Object -First 1
+    if (-not $bundleManifestEntry -or -not $mainPackageEntry) {
+        throw "MSIX Bundle 缺少 Bundle 清单或主应用 MSIX"
+    }
+
+    $mainPackageStream = New-Object System.IO.MemoryStream
+    $entryStream = $mainPackageEntry.Open()
+    try {
+        $entryStream.CopyTo($mainPackageStream)
+    }
+    finally {
+        $entryStream.Dispose()
+    }
+    $mainPackageStream.Position = 0
+    $archive = [System.IO.Compression.ZipArchive]::new(
+        $mainPackageStream,
+        [System.IO.Compression.ZipArchiveMode]::Read,
+        $false)
+
     $manifestEntry = $archive.Entries | Where-Object { $_.FullName -eq "AppxManifest.xml" } | Select-Object -First 1
     $serviceEntry = $archive.Entries | Where-Object { $_.FullName -eq "KillConfirmService/cskillconfirm.exe" } | Select-Object -First 1
     if (-not $manifestEntry) {
-        throw "MSIX 产物缺少 AppxManifest.xml"
+        throw "MSIX Bundle 的主应用包缺少 AppxManifest.xml"
     }
 
     $reader = New-Object System.IO.StreamReader($manifestEntry.Open())
@@ -247,15 +280,21 @@ try {
         }
     }
     if (-not $serviceEntry) {
-        throw "MSIX 产物缺少 KillConfirmService/cskillconfirm.exe"
+        throw "MSIX Bundle 的主应用包缺少 KillConfirmService/cskillconfirm.exe"
     }
 }
 finally {
-    $archive.Dispose()
+    if ($archive) {
+        $archive.Dispose()
+    }
+    elseif ($mainPackageStream) {
+        $mainPackageStream.Dispose()
+    }
+    $bundleArchive.Dispose()
 }
 
 # 4. 签名与证书输出
-Write-Host "`n[3/4] 对 MSIX 执行 Authenticode 数字签名..." -ForegroundColor Yellow
+Write-Host "`n[3/4] 对 MSIX Bundle 执行 Authenticode 数字签名..." -ForegroundColor Yellow
 if (-not $DisableSigning -and $SignToolPath -and (Test-Path $CertificatePfxPath)) {
     $signingCertificate = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new(
         $CertificatePfxPath,
@@ -268,7 +307,7 @@ if (-not $DisableSigning -and $SignToolPath -and (Test-Path $CertificatePfxPath)
         throw "PFX 证书指纹与请求的签名证书不一致。"
     }
 
-    & $SignToolPath sign /fd SHA256 /f $CertificatePfxPath /p $CertificatePassword $FinalMsixPath
+    & $SignToolPath sign /fd SHA256 /f $CertificatePfxPath /p $CertificatePassword $FinalPackagePath
     if ($LASTEXITCODE -ne 0) {
         throw "SignTool 签名失败 (ExitCode: $LASTEXITCODE)"
     }
@@ -290,10 +329,10 @@ if (Test-Path $TempAppxDir) {
     Remove-Item -LiteralPath $TempAppxDir -Recurse -Force -ErrorAction SilentlyContinue
 }
 
-$msixSizeMb = [math]::Round((Get-Item $FinalMsixPath).Length / 1MB, 2)
+$packageSizeMb = [math]::Round((Get-Item $FinalPackagePath).Length / 1MB, 2)
 Write-Host "`n[4/4] 打包完成！" -ForegroundColor Green
 Write-Host "  产物目录: $OutputDir" -ForegroundColor White
-Write-Host "  MSIX安装包: $FinalMsixPath ($msixSizeMb MB)" -ForegroundColor Green
+Write-Host "  MSIX Bundle 安装包: $FinalPackagePath ($packageSizeMb MB)" -ForegroundColor Green
 Write-Host "  签名证书: $FinalCerPath" -ForegroundColor White
 
 # 5. 本地一键安装
@@ -318,20 +357,20 @@ if ($Install) {
         }
     }
 
-    # 安装 MSIX
-    Write-Host " 正在安装 MSIX 包到系统..." -ForegroundColor Yellow
+    # 安装 MSIX Bundle
+    Write-Host " 正在安装 MSIX Bundle 到系统..." -ForegroundColor Yellow
     $addParams = @{
-        Path = $FinalMsixPath
+        Path = $FinalPackagePath
         ForceUpdateFromAnyVersion = $true
         DeferRegistrationWhenPackagesAreInUse = $true
         ErrorAction = "Stop"
     }
     try {
         Add-AppxPackage @addParams
-        Write-Host " [√] MSIX 应用包安装成功！" -ForegroundColor Green
+        Write-Host " [√] MSIX Bundle 安装成功！" -ForegroundColor Green
     }
     catch {
-        Write-Host " [X] MSIX 安装失败: $($_.Exception.Message)" -ForegroundColor Red
+        Write-Host " [X] MSIX Bundle 安装失败: $($_.Exception.Message)" -ForegroundColor Red
         throw
     }
 

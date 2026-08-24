@@ -78,9 +78,15 @@ function Install-OverlayPackage {
         Write-InstallLog "旧版进程未能完全退出；继续尝试安装新版 MSIX，并在系统支持时延迟注册。"
     }
 
-    $msix = Get-ChildItem -LiteralPath $OverlayRoot -Filter "*.msix" -File | Select-Object -First 1
-    if (-not $msix) {
-        throw "MSIX package was not found under $OverlayRoot"
+    $packageFile = Get-ChildItem -LiteralPath $OverlayRoot -Filter "*.msixbundle" -File | Select-Object -First 1
+    if (-not $packageFile) {
+        # Compatibility fallback for legacy development payloads. Official
+        # upgrades always carry a bundle so a bundle-managed install remains
+        # on the same Windows deployment chain.
+        $packageFile = Get-ChildItem -LiteralPath $OverlayRoot -Filter "*.msix" -File | Select-Object -First 1
+    }
+    if (-not $packageFile) {
+        throw "MSIX Bundle package was not found under $OverlayRoot"
     }
 
     try {
@@ -96,7 +102,7 @@ function Install-OverlayPackage {
             }
         }
         else {
-            Write-InstallLog "No package certificate found beside MSIX."
+            Write-InstallLog "No package certificate found beside the MSIX Bundle."
             Add-InstallResult -Status Error -Item "Kill Confirm 包签名证书" -Detail "主程序旁边没有找到 .cer 证书文件"
         }
     }
@@ -143,22 +149,22 @@ function Install-OverlayPackage {
         }
     }
 
-    Write-InstallLog "Installing MSIX package: $($msix.Name)"
-    $msixIdentity = Get-AppxIdentityFromPackageFile -PackagePath $msix.FullName
-    if ($msixIdentity) {
-        Write-InstallLog "MSIX identity: $($msixIdentity.Name) $($msixIdentity.Version)"
+    Write-InstallLog "Installing AppX package: $($packageFile.Name)"
+    $packageIdentity = Get-AppxIdentityFromPackageFile -PackagePath $packageFile.FullName
+    if ($packageIdentity) {
+        Write-InstallLog "Package identity: $($packageIdentity.Name) $($packageIdentity.Version)"
 
-        $installedMsix = Get-AppxPackage -Name $msixIdentity.Name -ErrorAction SilentlyContinue |
+        $installedMsix = Get-AppxPackage -Name $packageIdentity.Name -ErrorAction SilentlyContinue |
             Sort-Object Version -Descending |
             Select-Object -First 1
         if ($installedMsix) {
             $installedVersion = [version]$installedMsix.Version
             $installedStatus = [string]$installedMsix.Status
             Write-InstallLog "Installed MSIX detected: $installedVersion; Status=$installedStatus; Location=$($installedMsix.InstallLocation)"
-            if ($installedVersion -gt $msixIdentity.Version) {
-                throw "检测到更高版本 $installedVersion；当前安装包版本为 $($msixIdentity.Version)，已拒绝降级。"
+            if ($installedVersion -gt $packageIdentity.Version) {
+                throw "检测到更高版本 $installedVersion；当前安装包版本为 $($packageIdentity.Version)，已拒绝降级。"
             }
-            if ($installedVersion -eq $msixIdentity.Version -and $installedStatus -eq "Ok") {
+            if ($installedVersion -eq $packageIdentity.Version -and $installedStatus -eq "Ok") {
                 Write-InstallLog "The same healthy MSIX version is already registered. Skipping package replacement and continuing repair steps."
                 Add-InstallResult -Status Success -Item "Kill Confirm Overlay 主程序" -Detail ("版本 {0} 已安装且状态正常；继续执行修复步骤" -f $installedVersion)
                 return
@@ -166,18 +172,18 @@ function Install-OverlayPackage {
         }
     }
     Add-AppxPackageCompat `
-        -PackagePath $msix.FullName `
+        -PackagePath $packageFile.FullName `
         -ForceUpdate `
         -DeferWhenInUse:$deferMainUpdate
     $installedPackage = Get-InstalledOverlayPackage
-    if ($msixIdentity) {
+    if ($packageIdentity) {
         $installedVersion = [version]$installedPackage.Version
-        if ($installedVersion -lt $msixIdentity.Version) {
+        if ($installedVersion -lt $packageIdentity.Version) {
             if ($deferMainUpdate) {
-                Add-InstallResult -Status Warning -Item "Kill Confirm Overlay 主程序" -Detail ("新版 {0} 已提交延迟更新；当前仍为 {1}。请关闭 Xbox Game Bar，必要时重启 Windows 后完成更新" -f $msixIdentity.Version, $installedVersion)
+                Add-InstallResult -Status Warning -Item "Kill Confirm Overlay 主程序" -Detail ("新版 {0} 已提交延迟更新；当前仍为 {1}。请关闭 Xbox Game Bar，必要时重启 Windows 后完成更新" -f $packageIdentity.Version, $installedVersion)
                 return
             }
-            throw "MSIX 安装命令执行完成，但已注册版本仍为 $installedVersion，目标版本为 $($msixIdentity.Version)。"
+            throw "MSIX Bundle 安装命令执行完成，但已注册版本仍为 $installedVersion，目标版本为 $($packageIdentity.Version)。"
         }
     }
     $serviceExecutable = Join-Path $installedPackage.InstallLocation "KillConfirmService\cskillconfirm.exe"

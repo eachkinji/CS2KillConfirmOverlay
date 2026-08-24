@@ -14,24 +14,25 @@
         </ResourceDictionary>
     </UserControl.Resources>
 
-<StackPanel
-    x:Name="StatusDetailRow" x:FieldModifier="public"
-    Grid.Row="1"
-    Spacing="4">
-    <Grid
-        x:Name="ServiceDiagnosticRow" x:FieldModifier="public"
-        ColumnSpacing="6"
-        Visibility="Collapsed">
+    <StackPanel
+        x:Name="StatusDetailRow" x:FieldModifier="public"
+        Grid.Row="1"
+        Spacing="4">
+        <Grid
+            x:Name="ServiceDiagnosticRow" x:FieldModifier="public"
+            ColumnSpacing="6"
+            Visibility="Collapsed">
         <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
 
         <TextBlock
             x:Name="ServiceDiagnosticText" x:FieldModifier="public"
+            Grid.Column="4"
             VerticalAlignment="Center"
             FontSize="10"
             FontWeight="SemiBold"
@@ -43,7 +44,7 @@
 
         <Button
             x:Name="RetryServiceButton" x:FieldModifier="public"
-            Grid.Column="1"
+            Grid.Column="0"
             Style="{StaticResource ToolbarIconButtonStyle}"
             Click="OnRetryServiceClick"
             ToolTipService.ToolTip="Retry service">
@@ -54,7 +55,7 @@
 
         <Button
             x:Name="CopyServiceDiagnosticButton" x:FieldModifier="public"
-            Grid.Column="2"
+            Grid.Column="1"
             Style="{StaticResource ToolbarIconButtonStyle}"
             Click="OnCopyServiceDiagnosticClick"
             ToolTipService.ToolTip="Copy diagnostic information">
@@ -65,7 +66,7 @@
 
         <Button
             x:Name="FreePortButton" x:FieldModifier="public"
-            Grid.Column="3"
+            Grid.Column="2"
             Visibility="Collapsed"
             Style="{StaticResource ToolbarIconButtonStyle}"
             Click="OnFreePortClick"
@@ -77,7 +78,7 @@
 
         <Button
             x:Name="OpenLogsButton" x:FieldModifier="public"
-            Grid.Column="4"
+            Grid.Column="3"
             Style="{StaticResource ToolbarIconButtonStyle}"
             Click="OnOpenLogsClick"
             ToolTipService.ToolTip="Open logs folder">
@@ -85,84 +86,67 @@
                 <PathIcon Style="{StaticResource FluentPathIconStyle}" Data="M3.50014 6.25C3.50014 5.2835 4.28364 4.5 5.25014 4.5H8.12882C8.32773 4.5 8.5185 4.57902 8.65915 4.71967L10.7198 6.78033C10.8605 6.92098 11.0512 7 11.2501 7H16.7501C17.7166 7 18.5001 7.7835 18.5001 8.75C18.5001 8.83602 18.5146 8.91866 18.5413 8.99561L8.71867 8.99561C7.37893 8.99561 6.14095 9.71035 5.47108 10.8706L3.50014 14.2844V6.25ZM2.00036 17.7883C2.02089 19.5656 3.468 21 5.25014 21H11.0001C11.0292 21 11.058 20.9983 11.0862 20.9951H16.2812C17.6209 20.9951 18.8589 20.2804 19.5288 19.1201L22.5596 13.8706C23.7748 11.7657 22.3337 9.14964 19.9567 9.00214C19.9848 8.92334 20.0001 8.83846 20.0001 8.75C20.0001 6.95507 18.5451 5.5 16.7501 5.5H11.5608L9.71981 3.65901C9.29786 3.23705 8.72556 3 8.12882 3H5.25014C3.45522 3 2.00014 4.45507 2.00014 6.25V17.71C1.9999 17.7362 1.99997 17.7623 2.00036 17.7883ZM8.71867 10.4956L19.745 10.4956C21.0921 10.4956 21.9341 11.9539 21.2605 13.1206L18.2297 18.3701C17.8278 19.0663 17.085 19.4951 16.2812 19.4951H5.25485C3.9077 19.4951 3.06573 18.0368 3.7393 16.8701L6.77011 11.6206C7.17204 10.9245 7.91482 10.4956 8.71867 10.4956Z" />
             </Grid>
         </Button>
-    </Grid>
-
-    <Grid
-        x:Name="CfgActionRow" x:FieldModifier="public"
-        ColumnSpacing="6">
-    <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="Auto" />
-        <ColumnDefinition Width="Auto" />
-        <ColumnDefinition Width="Auto" />
-        <ColumnDefinition Width="Auto" />
-        <ColumnDefinition Width="*" />
-        <ColumnDefinition Width="Auto" />
-    </Grid.ColumnDefinitions>
-
-    <Button
-        x:Name="SelectCsFolderButton" x:FieldModifier="public"
-        Grid.Column="0"
-        Style="{StaticResource ToolbarIconButtonStyle}"
-        Click="OnSelectCsFolderClick"
-        ToolTipService.ToolTip="Select CS2 folder or any folder under it">
-        <Grid Style="{StaticResource IconHostStyle}">
-            <PathIcon Style="{StaticResource FluentPathIconStyle}" Data="M3.5 6.25V8H8.12868C8.32759 8 8.51836 7.92098 8.65901 7.78033L10.1893 6.25L8.65901 4.71967C8.51836 4.57902 8.32759 4.5 8.12868 4.5H5.25C4.2835 4.5 3.5 5.2835 3.5 6.25ZM2 6.25C2 4.45507 3.45507 3 5.25 3H8.12868C8.72542 3 9.29771 3.23705 9.71967 3.65901L11.5607 5.5H18.75C20.5449 5.5 22 6.95507 22 8.75V17.75C22 19.5449 20.5449 21 18.75 21H5.25C4.45507 21 2 19.5449 2 17.75V6.25ZM3.5 9.5V17.75C3.5 18.7165 4.2835 19.5 5.25 19.5H18.75C19.7165 19.5 20.5 18.7165 20.5 17.75V8.75C20.5 7.7835 19.7165 7 18.75 7H11.5607L9.71967 8.84099C9.29771 9.26295 8.72542 9.5 8.12868 9.5H3.5Z" />
         </Grid>
-    </Button>
 
-    <Border
-        Grid.Column="1"
-        Width="42"
-        Height="24"
-        Background="#FFFDFC"
-        BorderBrush="#E2DDD3"
-        BorderThickness="1"
-        CornerRadius="14">
-        <TextBlock
-            x:Name="CfgLabelText" x:FieldModifier="public"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            FontSize="10"
-            FontWeight="SemiBold"
-            Foreground="#1B1F31"
-            Text="CFG" />
-    </Border>
+        <Grid
+            x:Name="CfgActionRow" x:FieldModifier="public"
+            ColumnSpacing="6">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
 
-    <StackPanel
-        Grid.Column="2"
-        VerticalAlignment="Center"
-        Spacing="1">
-        <TextBlock
-            x:Name="CfgStatusText" x:FieldModifier="public"
-            FontSize="10"
-            FontWeight="SemiBold"
-            Foreground="#1B1F31"
-            Text="CFG not checked"
-            TextTrimming="CharacterEllipsis" />
-        <TextBlock
-            x:Name="CfgHintText" x:FieldModifier="public"
-            FontSize="10"
-            Foreground="#6B7280"
-            Text="Finding CS2"
-            TextTrimming="CharacterEllipsis" />
+            <Button
+                x:Name="SelectCsFolderButton" x:FieldModifier="public"
+                Grid.Column="0"
+                Style="{StaticResource ToolbarIconButtonStyle}"
+                Click="OnSelectCsFolderClick"
+                ToolTipService.ToolTip="Select CS2 folder or any folder under it">
+                <Grid Style="{StaticResource IconHostStyle}">
+                    <PathIcon Style="{StaticResource FluentPathIconStyle}" Data="M3.5 6.25V8H8.12868C8.32759 8 8.51836 7.92098 8.65901 7.78033L10.1893 6.25L8.65901 4.71967C8.51836 4.57902 8.32759 4.5 8.12868 4.5H5.25C4.2835 4.5 3.5 5.2835 3.5 6.25ZM2 6.25C2 4.45507 3.45507 3 5.25 3H8.12868C8.72542 3 9.29771 3.23705 9.71967 3.65901L11.5607 5.5H18.75C20.5449 5.5 22 6.95507 22 8.75V17.75C22 19.5449 20.5449 21 18.75 21H5.25C4.45507 21 2 19.5449 2 17.75V6.25ZM3.5 9.5V17.75C3.5 18.7165 4.2835 19.5 5.25 19.5H18.75C19.7165 19.5 20.5 18.7165 20.5 17.75V8.75C20.5 7.7835 19.7165 7 18.75 7H11.5607L9.71967 8.84099C9.29771 9.26295 8.72542 9.5 8.12868 9.5H3.5Z" />
+                </Grid>
+            </Button>
+
+            <Button
+                x:Name="CfgInstallButton" x:FieldModifier="public"
+                Grid.Column="1"
+                MinWidth="36"
+                Height="24"
+                Padding="7,0"
+                Background="#2E88B8"
+                BorderBrush="#3A9CCF"
+                BorderThickness="1"
+                Click="OnInstallCfgClick"
+                Content="Add"
+                CornerRadius="14"
+                FontSize="10"
+                Foreground="#FFFFFF"
+                ToolTipService.ToolTip="Add missing CFG"
+                Visibility="Collapsed" />
+
+            <StackPanel
+                Grid.Column="2"
+                VerticalAlignment="Center"
+                Spacing="1">
+                <TextBlock
+                    x:Name="CfgStatusText" x:FieldModifier="public"
+                    FontSize="10"
+                    FontWeight="SemiBold"
+                    Foreground="#1B1F31"
+                    MaxLines="2"
+                    Text="CFG not checked"
+                    TextTrimming="CharacterEllipsis"
+                    TextWrapping="Wrap" />
+                <TextBlock
+                    x:Name="CfgHintText" x:FieldModifier="public"
+                    FontSize="10"
+                    Foreground="#6B7280"
+                    MaxLines="2"
+                    Text="Finding CS2"
+                    TextTrimming="CharacterEllipsis"
+                    TextWrapping="Wrap" />
+            </StackPanel>
+        </Grid>
     </StackPanel>
-
-    <Button
-        x:Name="CfgInstallButton" x:FieldModifier="public"
-        Grid.Column="3"
-        MinWidth="36"
-        Height="24"
-        Padding="7,0"
-        Background="#2E88B8"
-        BorderBrush="#3A9CCF"
-        BorderThickness="1"
-        Click="OnInstallCfgClick"
-        Content="Add"
-        CornerRadius="14"
-        FontSize="10"
-        Foreground="#FFFFFF"
-        ToolTipService.ToolTip="Add missing CFG"
-        Visibility="Collapsed" />
-    </Grid>
-</StackPanel>
 </UserControl>

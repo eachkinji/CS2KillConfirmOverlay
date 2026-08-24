@@ -54,6 +54,7 @@ namespace KillConfirmGameBar
         {
             _activeGameTab = tab;
             ApplyGameActiveTab();
+            _ = EnsureActivePackListLoadedAsync();
         }
 
         private void ApplyHomeActiveTab()
@@ -150,8 +151,12 @@ namespace KillConfirmGameBar
 
                 try
                 {
-                    ApplyGameStyleUi();
-                    await ReloadPackListsAsync(mode);
+                    // Game-specific tab titles, collection descriptions and guide
+                    // text are localized from the active style. Refresh them with
+                    // the visual theme so labels from the previous game cannot
+                    // remain after navigation.
+                    ApplyLanguage();
+                    await EnsureActivePackListLoadedAsync();
                 }
                catch (System.Exception ex)
                {

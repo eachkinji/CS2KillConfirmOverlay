@@ -45,9 +45,26 @@ namespace KillConfirmGameBar.Controls
         private const double ReferenceDisplayHeight = 600;
         private const double CodeKillFrameWidth = 607;
         private const double CodeKillFrameHeight = 436;
+        private const double Battlefield5LowerSelectionWidth = 360;
+        private const double Battlefield5LowerSelectionHeight = 150;
+        private const double Battlefield5LowerSelectionCenterOffsetY = 30;
+        private const double Battlefield4LowerSelectionWidth = 360;
+        private const double Battlefield4LowerSelectionHeight = 100;
+        private const double Battlefield4LowerSelectionCenterOffsetY = 65;
+        private const double Battlefield2042LowerSelectionWidth = 440;
+        private const double Battlefield2042LowerSelectionHeight = 170;
+        private const double Battlefield2042LowerSelectionCenterOffsetY = 45;
+        private const double PubgLowerSelectionWidth = 420;
+        private const double PubgLowerSelectionHeight = 125;
+        private const double PubgLowerSelectionCenterOffsetY = 30;
+        private const double DeltaForceLowerSelectionWidth = 360;
+        private const double DeltaForceLowerSelectionHeight = 125;
+        private const double DeltaForceLowerSelectionCenterOffsetY = 37;
         private static double _brightnessBoost;
         private static double _contrastBoost;
         private static double _targetPlaybackFps = FrameSequenceFps;
+        private double _appearanceBrightness = 1.0;
+        private double _appearanceContrast = 1.0;
         private static string _iconPack = "default";
         private static int _eliteEffectLevel;
         private static int _weaponBadgeMode;
@@ -134,6 +151,33 @@ namespace KillConfirmGameBar.Controls
                     : 0;
         public double OverwatchSelectionViewportWidth => _overwatchSelectionViewportWidth;
         public double OverwatchSelectionViewportHeight => _overwatchSelectionViewportHeight;
+        public double ApexCardSelectionViewportWidth => _isApexFeedActive && _drawApexCards
+            ? _apexSelectionViewportWidth
+            : ApexCardMinimumWidth;
+        public double ApexCardSelectionViewportHeight => _isApexFeedActive && _drawApexCards
+            ? _apexSelectionViewportHeight
+            : ApexCardHeight;
+        public double ApexCardSelectionViewportCenterOffsetX => _isApexFeedActive && _drawApexCards
+            ? _apexSelectionViewportCenterOffsetX
+            : 0;
+        public double ApexCardSelectionViewportCenterOffsetY => _isApexFeedActive && _drawApexCards
+            ? _apexSelectionViewportCenterOffsetY
+            : ApexCardBottomY + (ApexCardHeight / 2.0) - (ApexFrameHeight / 2.0);
+        public double Battlefield5LowerSelectionViewportWidth => Battlefield5LowerSelectionWidth;
+        public double Battlefield5LowerSelectionViewportHeight => Battlefield5LowerSelectionHeight;
+        public double Battlefield5LowerSelectionViewportCenterOffsetY => Battlefield5LowerSelectionCenterOffsetY;
+        public double Battlefield4LowerSelectionViewportWidth => Battlefield4LowerSelectionWidth;
+        public double Battlefield4LowerSelectionViewportHeight => Battlefield4LowerSelectionHeight;
+        public double Battlefield4LowerSelectionViewportCenterOffsetY => Battlefield4LowerSelectionCenterOffsetY;
+        public double Battlefield2042LowerSelectionViewportWidth => Battlefield2042LowerSelectionWidth;
+        public double Battlefield2042LowerSelectionViewportHeight => Battlefield2042LowerSelectionHeight;
+        public double Battlefield2042LowerSelectionViewportCenterOffsetY => Battlefield2042LowerSelectionCenterOffsetY;
+        public double PubgLowerSelectionViewportWidth => PubgLowerSelectionWidth;
+        public double PubgLowerSelectionViewportHeight => PubgLowerSelectionHeight;
+        public double PubgLowerSelectionViewportCenterOffsetY => PubgLowerSelectionCenterOffsetY;
+        public double DeltaForceLowerSelectionViewportWidth => DeltaForceLowerSelectionWidth;
+        public double DeltaForceLowerSelectionViewportHeight => DeltaForceLowerSelectionHeight;
+        public double DeltaForceLowerSelectionViewportCenterOffsetY => DeltaForceLowerSelectionCenterOffsetY;
         public static bool IsValorantPresentationConfigured => ValorantPackService.IsValorantPackKey(_iconPack);
 
         public void PlayCode2Kill()

@@ -4,7 +4,7 @@ use anyhow::{Context, Result};
 use std::{
     env,
     ffi::OsStr,
-    os::windows::ffi::OsStrExt,
+    os::windows::{ffi::OsStrExt, process::CommandExt},
     path::{Path, PathBuf},
     process::Command,
 };
@@ -16,6 +16,7 @@ use windows_sys::Win32::UI::Shell::ShellExecuteW;
 use windows_sys::Win32::UI::WindowsAndMessaging::SW_SHOWNORMAL;
 
 const UNINSTALL_REGISTRY_KEY: &str = r"HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{E0DF6407-CB2E-43D0-8B51-8C8924F50AA1}_is1";
+const CREATE_NO_WINDOW: u32 = 0x08000000;
 
 /// Win32 types and constants for process priority + power throttling control.
 const HIGH_PRIORITY_CLASS: u32 = 0x00000080;
@@ -137,7 +138,7 @@ pub(crate) fn launch_settings_launcher() -> Result<()> {
         launcher_path.display()
     ));
 
-    let mut command = Command::new(&launcher_path);
+    let mut command = hidden_command(&launcher_path);
     if developer_logging_enabled() {
         command.arg("--developer-mode");
     }
@@ -176,7 +177,7 @@ pub(crate) fn exit_all_processes() {
                 continue;
             }
 
-            let output = match Command::new("taskkill")
+            let output = match hidden_command("taskkill")
                 .args(["/PID", &pid.to_string(), "/T", "/F"])
                 .output()
             {
@@ -199,7 +200,7 @@ pub(crate) fn exit_all_processes() {
 
 fn process_ids_by_image_name(image_name: &str) -> Result<Vec<u32>> {
     let filter = format!("IMAGENAME eq {image_name}");
-    let output = Command::new("tasklist")
+    let output = hidden_command("tasklist")
         .args(["/FI", &filter, "/FO", "CSV", "/NH"])
         .output()
         .with_context(|| format!("failed to run tasklist for {image_name}"))?;
@@ -248,7 +249,7 @@ pub(crate) fn open_uninstaller() -> Result<()> {
 }
 
 fn query_uninstaller_path() -> Option<PathBuf> {
-    let output = Command::new("reg.exe")
+    let output = hidden_command("reg.exe")
         .args([
             "query",
             UNINSTALL_REGISTRY_KEY,
@@ -281,6 +282,12 @@ fn query_uninstaller_path() -> Option<PathBuf> {
     }
 
     None
+}
+
+fn hidden_command(program: impl AsRef<OsStr>) -> Command {
+    let mut command = Command::new(program);
+    command.creation_flags(CREATE_NO_WINDOW);
+    command
 }
 
 pub(crate) fn normalize_working_directory() -> Result<()> {

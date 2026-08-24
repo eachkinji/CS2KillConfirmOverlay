@@ -125,10 +125,19 @@ namespace KillConfirmGameBar
             VisualSettingsSectionView.VisualHeaderBorder.Background = Brush(crossfire ? Color.FromArgb(255, 46, 136, 184) : theme.Secondary);
             VisualSettingsSectionView.VisualHeaderBorder.BorderBrush = Brush(crossfire ? Color.FromArgb(255, 37, 111, 152) : theme.Border);
 
-            StatusDetailsSection.CfgLabelText.Foreground = Brush(text);
             StatusDetailsSection.CfgStatusText.Foreground = Brush(text);
             StatusDetailsSection.CfgHintText.Foreground = Brush(muted);
             StatusDetailsSection.ServiceDiagnosticText.Foreground = Brush(crossfire ? Color.FromArgb(255, 255, 209, 102) : theme.WarningText);
+
+            Color actionBorder = crossfire
+                ? Color.FromArgb(255, 197, 106, 0)
+                : theme.AccentText;
+            SetButtonTheme(StatusDetailsSection.RetryServiceButton, theme.Accent, actionBorder, Colors.White);
+            SetButtonTheme(StatusDetailsSection.CopyServiceDiagnosticButton, theme.Accent, actionBorder, Colors.White);
+            SetButtonTheme(StatusDetailsSection.FreePortButton, theme.Accent, actionBorder, Colors.White);
+            SetButtonTheme(StatusDetailsSection.OpenLogsButton, theme.Accent, actionBorder, Colors.White);
+            SetButtonTheme(StatusDetailsSection.SelectCsFolderButton, theme.Accent, actionBorder, Colors.White);
+            SetButtonTheme(StatusDetailsSection.CfgInstallButton, theme.Accent, actionBorder, Colors.White);
 
             SetComboTheme(PackTestSectionView.VoicePackSelector, text, field, border);
             SetComboTheme(PackTestSectionView.IconPackSelector, text, field, border);

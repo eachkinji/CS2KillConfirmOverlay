@@ -149,6 +149,21 @@ namespace KillConfirmGameBar
                 PackTestSectionView.AdvancedEffectsPanelHost.Content = panel;
             }
 
+            // Use the same per-layer editor as the full advanced-settings page.
+            // The legacy game panels remain mounted for their other gameplay
+            // controls, but their old visibility card must not become a second,
+            // stale source of truth.
+            if (panel is FrameworkElement panelElement
+                && panelElement.FindName("VisualEffectsCard") is UIElement legacyVisualEffectsCard)
+            {
+                legacyVisualEffectsCard.Visibility = Visibility.Collapsed;
+            }
+
+            PackTestSectionView.KillFeedbackAppearanceEditorControl?.Configure(
+                GameStyleService.Current,
+                LocalizationManager.Current == UiLanguage.SimplifiedChinese,
+                GameThemePalette.ForMode(GameStyleService.Current));
+
             ApplyAdvancedEffectsPanelLanguage();
             ApplyAdvancedEffectsPanelTheme();
             SelectCurrentBattlefieldMoneyRewardMode();

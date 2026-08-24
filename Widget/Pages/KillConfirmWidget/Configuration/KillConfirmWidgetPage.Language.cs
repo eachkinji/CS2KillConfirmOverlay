@@ -96,8 +96,6 @@ namespace KillConfirmGameBar
             PackTestSectionView.PackTestHeaderText.Text = LocalizationManager.Text("PackTestHeader");
             VisualSettingsSectionView.VisualHeaderText.Text = LocalizationManager.Text("VisualHeader");
             ApplyAdvancedEffectsPanelLanguage();
-            StatusDetailsSection.CfgLabelText.Text = LocalizationManager.Text("CfgLabel");
-
             PackTestSectionView.CrossfireSwatGrVoiceItem.Content = LocalizationManager.Text("crossfire_swat_gr");
             PackTestSectionView.CrossfireSwatBlVoiceItem.Content = LocalizationManager.Text("crossfire_swat_bl");
             PackTestSectionView.CrossfireFlyingTigerGrVoiceItem.Content = LocalizationManager.Text("crossfire_flying_tiger_gr");
@@ -130,16 +128,17 @@ namespace KillConfirmGameBar
                 SetNamedToolTip(MoneyRewardModeSelector, MoneyRewardModeLabel.Text, isChinese ? "\u51fb\u6740\u5956\u91d1\u6570\u5b57\u7684\u8ba1\u7b97\u65b9\u5f0f" : "Money reward calculation mode");
             }
 
-            StatusDetailsSection.CfgInstallButton.Content = LocalizationManager.Text("Add");
-            SetNamedToolTip(StatusDetailsSection.CfgInstallButton, LocalizationManager.Text("AddMissingCfgTitle"), LocalizationManager.Text("AddMissingCfgTooltip"));
+            UpdateCfgActionButtonPresentation(_cfgDetectionState);
             SetNamedToolTip(StatusDetailsSection.SelectCsFolderButton, LocalizationManager.Text("SelectCsFolderTitle"), LocalizationManager.Text("SelectCsFolderTooltip"));
 
             SetNamedToolTip(PackTestSectionView.TestPresetIcon, LocalizationManager.Text("TestPresetTitle"), LocalizationManager.Text("TestPresetTooltip"));
             SetNamedToolTip(PackTestSectionView.TestPresetSelector, LocalizationManager.Text("TestPresetTitle"), LocalizationManager.Text("TestPresetTooltip"));
             SetNamedToolTip(PackTestSectionView.SendTestButton, LocalizationManager.Text("SendTestTitle"), LocalizationManager.Text("SendTestTooltip"));
             SetNamedToolTip(MiniSendTestButton, LocalizationManager.Text("SendTestTitle"), LocalizationManager.Text("SendTestTooltip"));
-            SetNamedToolTip(PackTestSectionView.CollapsePanelButton, LocalizationManager.Text("CollapsePanelTooltip"), LocalizationManager.Text("CollapsePanelTooltip"));
-            SetNamedToolTip(MiniCollapsePanelButton, LocalizationManager.Text("ExpandPanelTooltip"), LocalizationManager.Text("ExpandPanelTooltip"));
+            PanelCollapseBarText.Text = LocalizationManager.Text("CollapsePanelAction");
+            MiniPanelExpandBarText.Text = LocalizationManager.Text("ExpandPanelAction");
+            SetNamedToolTip(PanelCollapseBar, LocalizationManager.Text("CollapsePanelTooltip"), LocalizationManager.Text("CollapsePanelTooltip"));
+            SetNamedToolTip(MiniPanelExpandBar, LocalizationManager.Text("ExpandPanelTooltip"), LocalizationManager.Text("ExpandPanelTooltip"));
             SetNamedToolTip(PackTestSectionView.ReloadAudioButton, LocalizationManager.Text("ReloadAudioTitle"), LocalizationManager.Text("ReloadAudioTooltip"));
 
             SetNamedToolTip(VisualSettingsSectionView.DefaultSizeButton, LocalizationManager.Text("DefaultSizeTitle"), LocalizationManager.Text("DefaultSizeTooltip"));
@@ -150,6 +149,10 @@ namespace KillConfirmGameBar
             SetNamedToolTip(AnimationDragOutline, LocalizationManager.Text("IconDragTitle"), LocalizationManager.Text("IconDragTooltip"));
             SetNamedToolTip(OverwatchCardDragOutline, LocalizationManager.Text("IconDragTitle"), LocalizationManager.Text("IconDragTooltip"));
             SetNamedToolTip(ModernWarfare2019UpperDragOutline, LocalizationManager.Text("IconDragTitle"), LocalizationManager.Text("IconDragTooltip"));
+            string dragOutlineHint = LocalizationManager.Text("DragOutlineSelectedHint");
+            AnimationDragHintText.Text = dragOutlineHint;
+            OverwatchCardDragHintText.Text = dragOutlineHint;
+            ModernWarfare2019UpperDragHintText.Text = dragOutlineHint;
 
             SetNamedToolTip(VisualSettingsSectionView.BrightnessIcon, LocalizationManager.Text("BrightnessTitle"), LocalizationManager.Text("BrightnessTooltip"));
             SetNamedToolTip(VisualSettingsSectionView.BrightnessSelector, LocalizationManager.Text("BrightnessTitle"), LocalizationManager.Text("BrightnessTooltip"));

@@ -125,7 +125,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
             {
                 StreakEditor.SelectValue(streakMode);
                 SelectTaggedItem(PrioritySelector, specialVoicePriority ? "special" : "streak", "streak");
-                SelectTaggedItem(LastKillAudioSelector, lastKillSpecialAudio ? "special" : "normal", "special");
+                SelectTaggedItem(LastKillAudioSelector, lastKillSpecialAudio ? "special" : "normal", "normal");
                 SelectTaggedItem(
                     FirstKillIconSelector,
                     NormalizeIcon(firstKillIcon, CsolVoiceSettingsStore.FirstKillIcon),
@@ -160,7 +160,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
                 SelectTaggedItem(PrioritySelector, "streak", "streak");
                 SelectTaggedItem(FirstKillIconSelector, CsolVoiceSettingsStore.FirstKillIcon, CsolVoiceSettingsStore.FirstKillIcon);
                 SelectTaggedItem(LastKillIconSelector, CsolVoiceSettingsStore.RevengeIcon, CsolVoiceSettingsStore.RevengeIcon);
-                SelectTaggedItem(LastKillAudioSelector, "special", "special");
+                SelectTaggedItem(LastKillAudioSelector, "normal", "normal");
                 SetKillMarkEnabled(false);
             }
             finally

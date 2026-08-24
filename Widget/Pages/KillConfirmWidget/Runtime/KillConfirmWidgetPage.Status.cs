@@ -256,9 +256,10 @@ namespace KillConfirmGameBar
 
             if (state == CfgDetectionState.Error)
             {
+                string actionHint = LocalizationManager.Text("CfgCheckFailedFolderHint");
                 return string.IsNullOrWhiteSpace(detail)
-                    ? LocalizationManager.Text("CfgWrongFolderHint")
-                    : detail;
+                    ? actionHint
+                    : actionHint + "\n" + detail;
             }
 
             if (string.IsNullOrWhiteSpace(detail))

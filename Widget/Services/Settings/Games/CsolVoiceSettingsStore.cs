@@ -13,7 +13,7 @@ namespace KillConfirmGameBar.Services
         public bool SpecialVoicePriority { get; set; }
 
         /// <summary>true = the final kill uses Revenge.wav; false = normal streak/kill audio.</summary>
-        public bool LastKillSpecialAudio { get; set; } = true;
+        public bool LastKillSpecialAudio { get; set; }
     }
 
     internal static class CsolVoiceSettingsStore
@@ -44,7 +44,7 @@ namespace KillConfirmGameBar.Services
                     ? NormalizeIcon(values[LastKillIconSettingKey] as string, RevengeIcon)
                     : NormalizeIcon(values[LegacyFirstLastIconSettingKey] as string, RevengeIcon),
                 SpecialVoicePriority = ReadBoolean(values[SpecialVoicePrioritySettingKey], false),
-                LastKillSpecialAudio = ReadBoolean(values[LastKillSpecialAudioSettingKey], true)
+                LastKillSpecialAudio = ReadBoolean(values[LastKillSpecialAudioSettingKey], false)
             };
         }
 

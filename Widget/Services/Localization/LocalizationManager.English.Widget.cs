@@ -213,7 +213,7 @@ namespace KillConfirmGameBar.Services
             ["CrosshairCenterTooltip"] = "Center the crosshair-area effect and the widget window. Available only for supported games.",
             ["IconDragTitle"] = "Move or resize icon",
             ["IconDragTooltip"] = "Drag to move. Click to select, then scroll the wheel to scale.",
-            ["DragOutlineSelectedHint"] = "Left-drag to move · Right-click to center",
+            ["DragOutlineSelectedHint"] = "Left-drag to move · Right-click to center · Mouse wheel to resize",
             ["WindowTopTitle"] = "Control panel top",
             ["WindowTopTooltip"] = "Place the control panel at the top of the Game Bar window.",
             ["ControlPanelCenterTitle"] = "Center control panel",

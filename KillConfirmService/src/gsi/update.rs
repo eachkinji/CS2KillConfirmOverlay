@@ -104,9 +104,10 @@ pub async fn update(
 
     let current_active_weapon = ply
         .weapons
-        .values()
-        .find(|weapon| matches!(weapon.state, WeaponState::Active));
-    let current_weapon_context = current_active_weapon.map(|weapon| WeaponKillContext {
+        .iter()
+        .find(|(_, weapon)| matches!(weapon.state, WeaponState::Active));
+    let current_weapon_context = current_active_weapon.map(|(inventory_key, weapon)| WeaponKillContext {
+        inventory_key: inventory_key.clone(),
         is_knife: is_knife_weapon(weapon.r#type.as_ref(), &weapon.name),
         badge_key: weapon
             .r#type
@@ -116,6 +117,11 @@ pub async fn update(
         name: map_weapon_name(&weapon.name).to_string(),
         money_reward: money_rules::weapon_kill_reward(&weapon.name, current_mode),
     });
+    let current_weapon_ammo = ply
+        .weapons
+        .iter()
+        .map(|(inventory_key, weapon)| (inventory_key.clone(), weapon.ammo_clip))
+        .collect::<HashMap<_, _>>();
 
     let player_name = ply.name.as_deref().unwrap_or("").to_string();
     let spectarget = ply.spectarget.as_deref().filter(|value| !value.is_empty());
@@ -164,6 +170,8 @@ pub async fn update(
     let previous_round_phase = tracked_player.last_round_phase;
     let had_first_kill_in_round = tracked_player.has_first_kill_in_round;
     let pending_last_kill = tracked_player.pending_last_kill.clone();
+    let previous_active_weapon = tracked_player.last_active_weapon.clone();
+    let previous_weapon_ammo = tracked_player.last_weapon_ammo.clone();
     let previous_player_money = tracked_player.last_player_money;
     let previous_money_epoch = tracked_player.money_epoch;
     let previous_bomb_state = binding.last_bomb_state.clone();
@@ -328,6 +336,8 @@ pub async fn update(
     } else {
         pending_last_kill_for_next
     };
+    tracked_player.last_active_weapon = current_weapon_context;
+    tracked_player.last_weapon_ammo = current_weapon_ammo;
 
     drop(binding);
 

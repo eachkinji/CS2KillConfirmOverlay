@@ -39,6 +39,17 @@ pub async fn set_bomb_audio_settings(
     Json(bomb_audio_settings_response(&app_state))
 }
 
+pub async fn preview_bomb_audio_endpoint(
+    State(app_state): State<Arc<AppState>>,
+    Path(kind): Path<String>,
+) -> StatusCode {
+    if preview_bomb_audio(app_state, kind.trim().to_ascii_lowercase().as_str()) {
+        StatusCode::NO_CONTENT
+    } else {
+        StatusCode::BAD_REQUEST
+    }
+}
+
 pub async fn money_mode(State(app_state): State<Arc<AppState>>) -> Json<MoneyModeResponse> {
     Json(money_mode_response(MoneyRewardMode::from_u8(
         app_state.money_reward_mode.load(Ordering::Relaxed),

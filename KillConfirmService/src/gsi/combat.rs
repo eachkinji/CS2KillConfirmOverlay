@@ -1,6 +1,6 @@
-// Round outcome normally follows the final kill in the next few GSI samples.
-// Anything older is too ambiguous to upgrade into a last-kill effect.
-const FINAL_KILL_GRACE_WINDOW: Duration = Duration::from_millis(350);
+// Round outcome normally follows the final kill in the next few GSI snapshots.
+// Keep this frame-based so service scheduling latency cannot change the result.
+const FINAL_KILL_CONFIRMATION_FRAMES: u8 = 3;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum BombAudioTransition {
@@ -51,22 +51,43 @@ fn is_knife_weapon(weapon_type: Option<&WeaponType>, weapon_name: &WeaponName) -
         )
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
-struct WeaponKillContext {
-    is_knife: bool,
-    badge_key: Option<String>,
-    name: String,
-    money_reward: u16,
-}
-
 fn resolve_weapon_kill_context<'a>(
     current: Option<&'a WeaponKillContext>,
+    previous_active: Option<&'a WeaponKillContext>,
+    previous_ammo: &HashMap<String, u16>,
+    current_ammo: &HashMap<String, u16>,
 ) -> Option<&'a WeaponKillContext> {
-    current
+    let current = current?;
+    if !current.is_knife {
+        return Some(current);
+    }
+
+    let previous = previous_active.filter(|weapon| !weapon.is_knife)?;
+    let fired_before_switching = previous_ammo
+        .get(&previous.inventory_key)
+        .zip(current_ammo.get(&previous.inventory_key))
+        .map(|(before, after)| after < before)
+        .unwrap_or(false);
+    fired_before_switching.then_some(previous).or(Some(current))
 }
 
-fn is_recent_final_kill(recorded_at: Instant, now: Instant) -> bool {
-    now.saturating_duration_since(recorded_at) <= FINAL_KILL_GRACE_WINDOW
+fn pending_last_kill_is_confirmable(pending: Option<&PendingLastKill>) -> bool {
+    pending
+        .map(|pending| pending.confirmation_frames_remaining > 0)
+        .unwrap_or(false)
+}
+
+fn advance_pending_last_kill_frame(
+    pending: Option<PendingLastKill>,
+) -> Option<PendingLastKill> {
+    pending.and_then(|mut pending| {
+        if pending.confirmation_frames_remaining <= 1 {
+            None
+        } else {
+            pending.confirmation_frames_remaining -= 1;
+            Some(pending)
+        }
+    })
 }
 
 fn can_read_observed_combat_events(

@@ -1,5 +1,6 @@
 use anyhow::Result;
 use axum::body::Bytes;
+use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::atomic::Ordering;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
@@ -21,7 +22,7 @@ use crate::soundpack::sound::{
 };
 use crate::state::{
     AppState, CrossfireStreakMode, EventChannel, GsiGameVersion, KillEvent, MoneyRewardMode,
-    PendingLastKill, TrackedRoundPhase,
+    PendingLastKill, TrackedRoundPhase, WeaponKillContext,
 };
 
 include!("combat.rs");

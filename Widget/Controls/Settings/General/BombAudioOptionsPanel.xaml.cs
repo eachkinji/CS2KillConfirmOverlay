@@ -13,12 +13,16 @@ namespace KillConfirmGameBar.Controls.Settings
     {
         private bool _suppressBombAudioEvents = true;
         private readonly DispatcherTimer _bombAudioSyncTimer = new DispatcherTimer();
+        private readonly DispatcherTimer _fullEffectPreviewTimer = new DispatcherTimer();
+        private bool _fullEffectPreviewActive;
 
         public BombAudioOptionsPanel()
         {
             InitializeComponent();
             _bombAudioSyncTimer.Interval = TimeSpan.FromMilliseconds(250);
             _bombAudioSyncTimer.Tick += OnBombAudioSyncTimerTick;
+            _fullEffectPreviewTimer.Interval = TimeSpan.FromSeconds(40);
+            _fullEffectPreviewTimer.Tick += OnFullEffectPreviewTimerTick;
             ApplyLanguage();
             RefreshSettings();
             Loaded += OnLoaded;
@@ -47,6 +51,10 @@ namespace KillConfirmGameBar.Controls.Settings
             BombTimerAudioImportButtonText.Text = LocalizationManager.Text("Import");
             BombExplodedAudioImportButtonText.Text = LocalizationManager.Text("Import");
             BombDefusedAudioImportButtonText.Text = LocalizationManager.Text("Import");
+            ToolTipService.SetToolTip(BombTimerAudioPreviewButton, LocalizationManager.Text("BombAudioPreview"));
+            ToolTipService.SetToolTip(BombExplodedAudioPreviewButton, LocalizationManager.Text("BombAudioPreview"));
+            ToolTipService.SetToolTip(BombDefusedAudioPreviewButton, LocalizationManager.Text("BombAudioPreview"));
+            UpdateFullEffectPreviewButtonText();
             UpdateBombAudioStatusTexts();
         }
 
@@ -194,6 +202,72 @@ namespace KillConfirmGameBar.Controls.Settings
                 UpdateBombAudioStatusTexts();
                 await SyncBombAudioSettingsAsync();
             }
+        }
+
+        private async void OnBombAudioPreviewClick(object sender, RoutedEventArgs e)
+        {
+            if (!(sender is Button button) || !(button.Tag is string kind)) return;
+            try
+            {
+                ResetFullEffectPreviewState();
+                await SyncCurrentBombAudioSettingsAsync();
+                await BombAudioSettingsStore.PreviewAsync(kind);
+            }
+            catch (Exception ex)
+            {
+                App.Log("Preview bomb audio material failed: " + ex);
+            }
+        }
+
+        private async void OnBombFullEffectPreviewClick(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_fullEffectPreviewActive)
+                {
+                    await BombAudioSettingsStore.PreviewAsync("stop");
+                    ResetFullEffectPreviewState();
+                    return;
+                }
+
+                await SyncCurrentBombAudioSettingsAsync();
+                await BombAudioSettingsStore.PreviewAsync("full");
+                _fullEffectPreviewActive = true;
+                _fullEffectPreviewTimer.Stop();
+                _fullEffectPreviewTimer.Start();
+                UpdateFullEffectPreviewButtonText();
+            }
+            catch (Exception ex)
+            {
+                ResetFullEffectPreviewState();
+                App.Log("Preview full bomb audio effect failed: " + ex);
+            }
+        }
+
+        private void OnFullEffectPreviewTimerTick(object sender, object e)
+        {
+            ResetFullEffectPreviewState();
+        }
+
+        private async Task SyncCurrentBombAudioSettingsAsync()
+        {
+            _bombAudioSyncTimer.Stop();
+            SaveBombAudioSettings();
+            await SyncBombAudioSettingsAsync();
+        }
+
+        private void ResetFullEffectPreviewState()
+        {
+            _fullEffectPreviewTimer.Stop();
+            _fullEffectPreviewActive = false;
+            UpdateFullEffectPreviewButtonText();
+        }
+
+        private void UpdateFullEffectPreviewButtonText()
+        {
+            if (BombFullEffectPreviewButtonText == null) return;
+            BombFullEffectPreviewButtonText.Text = LocalizationManager.Text(
+                _fullEffectPreviewActive ? "BombAudioStopPreview" : "BombAudioFullPreview");
         }
 
         private void UpdateBombAudioStatusTexts()

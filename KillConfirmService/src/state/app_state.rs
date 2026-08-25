@@ -1,11 +1,20 @@
 #[derive(Clone, Debug)]
 pub struct PendingLastKill {
-    pub recorded_at: Instant,
+    pub confirmation_frames_remaining: u8,
     pub kill_count: u16,
     pub is_headshot: bool,
     pub is_knife_kill: bool,
     pub weapon_badge_key: Option<String>,
     pub weapon_name: Option<String>,
+    pub money_reward: u16,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct WeaponKillContext {
+    pub inventory_key: String,
+    pub is_knife: bool,
+    pub badge_key: Option<String>,
+    pub name: String,
     pub money_reward: u16,
 }
 

@@ -8,6 +8,7 @@ using Microsoft.Graphics.Canvas.Brushes;
 using Microsoft.Graphics.Canvas.Effects;
 using Microsoft.Graphics.Canvas.Text;
 using Windows.Foundation;
+using Windows.Graphics.Display;
 using Windows.UI;
 using Windows.UI.Text;
 
@@ -248,8 +249,20 @@ namespace KillConfirmGameBar.Controls
         {
             double physicalScale = Math.Max(
                 1.0,
-                GetRenderResolutionScale());
+                GetRenderResolutionScale() * GetBattlefield2042DisplayDpiScale());
             return (float)Math.Min(384.0, 96.0 * physicalScale);
+        }
+
+        private static double GetBattlefield2042DisplayDpiScale()
+        {
+            try
+            {
+                return Math.Max(1.0, DisplayInformation.GetForCurrentView().LogicalDpi / 96.0);
+            }
+            catch
+            {
+                return 1.0;
+            }
         }
 
     }

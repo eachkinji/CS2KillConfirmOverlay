@@ -148,7 +148,7 @@ namespace KillConfirmGameBar.Controls
                 target,
                 source,
                 1.0f,
-                CanvasImageInterpolation.NearestNeighbor);
+                CanvasImageInterpolation.Linear);
         }
 
         private static void DrawBattlefield2042TintedImage(
@@ -175,7 +175,7 @@ namespace KillConfirmGameBar.Controls
                     target,
                     source,
                     (float)Clamp01(opacity),
-                    CanvasImageInterpolation.HighQualityCubic);
+                    CanvasImageInterpolation.Linear);
             }
         }
 
@@ -211,7 +211,7 @@ namespace KillConfirmGameBar.Controls
                     target,
                     source,
                     (float)Clamp01(opacity),
-                    CanvasImageInterpolation.HighQualityCubic);
+                    CanvasImageInterpolation.Linear);
             }
         }
 

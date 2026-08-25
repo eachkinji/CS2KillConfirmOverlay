@@ -12,3 +12,21 @@ fn bomb_timer_interpolates_smoothly_between_initial_and_final_speed() {
         None
     );
 }
+
+#[cfg(test)]
+#[test]
+fn bomb_timer_bark_interval_shrinks_with_playback_speed() {
+    let source_duration = Duration::from_millis(1000);
+    assert_eq!(
+        bomb_timer_repeat_interval(source_duration, 0.5),
+        Duration::from_millis(2000)
+    );
+    assert_eq!(
+        bomb_timer_repeat_interval(source_duration, 1.0),
+        Duration::from_millis(1000)
+    );
+    assert_eq!(
+        bomb_timer_repeat_interval(source_duration, 2.0),
+        Duration::from_millis(500)
+    );
+}

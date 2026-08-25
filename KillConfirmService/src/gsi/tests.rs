@@ -2,16 +2,19 @@
 mod tests {
     use super::{
         CrossfireStreakMode, DelayedLastKillDecision, WeaponKillContext,
+        advance_pending_last_kill_frame,
         can_read_observed_combat_events, classify_delayed_last_kill, has_observed_player_changed,
-        is_knife_weapon, is_local_observed_player, is_recent_final_kill, normalize_cs2_map_mode,
-        opponent_team_display_name, resolve_crossfire_streak_count, resolve_observed_player_id,
-        resolve_player_kill_delta, resolve_weapon_kill_context, should_emit_player_kill,
-        should_reset_stored_streak,
+        is_knife_weapon, is_local_observed_player, normalize_cs2_map_mode,
+        opponent_team_display_name, pending_last_kill_is_confirmable,
+        resolve_crossfire_streak_count, resolve_observed_player_id, resolve_player_kill_delta,
+        resolve_weapon_kill_context, should_emit_player_kill, should_reset_stored_streak,
     };
+    use crate::state::PendingLastKill;
     use gsi_cs2::round::BombState;
     use gsi_cs2::team::TeamClass;
     use gsi_cs2::weapon::{WeaponName, WeaponType};
-    use std::time::{Duration, Instant};
+    use std::collections::HashMap;
+    use std::time::Duration;
 
     #[test]
     fn retakes_map_mode_is_accepted_as_custom_gameplay() {
@@ -43,40 +46,83 @@ mod tests {
     #[test]
     fn weapon_kill_context_keeps_knife_and_weapon_metadata_together() {
         let gun = WeaponKillContext {
+            inventory_key: "weapon_0".to_string(),
             is_knife: false,
             badge_key: Some("assault".to_string()),
             name: "ak47".to_string(),
             money_reward: 300,
         };
         let knife = WeaponKillContext {
+            inventory_key: "weapon_1".to_string(),
             is_knife: true,
             badge_key: Some("knife".to_string()),
             name: "knife_karambit".to_string(),
             money_reward: 1500,
         };
 
-        // With the GSI frame short enough (buffer 0.01, throttle 0.0) the
-        // active weapon reported in the kill frame is the weapon the kill
-        // was made with; the function simply returns the current context.
-        assert_eq!(resolve_weapon_kill_context(Some(&gun)), Some(&gun));
-        assert_eq!(resolve_weapon_kill_context(Some(&knife)), Some(&knife));
-        assert_eq!(resolve_weapon_kill_context(None), None);
+        let previous_ammo = HashMap::from([("weapon_0".to_string(), 30)]);
+        let fired_ammo = HashMap::from([
+            ("weapon_0".to_string(), 29),
+            ("weapon_1".to_string(), 0),
+        ]);
+        let unchanged_ammo = HashMap::from([
+            ("weapon_0".to_string(), 30),
+            ("weapon_1".to_string(), 0),
+        ]);
+
+        assert_eq!(
+            resolve_weapon_kill_context(
+                Some(&knife),
+                Some(&gun),
+                &previous_ammo,
+                &fired_ammo,
+            ),
+            Some(&gun)
+        );
+        assert_eq!(
+            resolve_weapon_kill_context(
+                Some(&knife),
+                Some(&gun),
+                &previous_ammo,
+                &unchanged_ammo,
+            ),
+            Some(&knife)
+        );
+        assert_eq!(
+            resolve_weapon_kill_context(
+                Some(&gun),
+                Some(&knife),
+                &unchanged_ammo,
+                &fired_ammo,
+            ),
+            Some(&gun)
+        );
+        assert_eq!(
+            resolve_weapon_kill_context(None, Some(&gun), &previous_ammo, &fired_ammo),
+            None
+        );
         assert!(is_knife_weapon(None, &WeaponName::KnifeKarambit));
         assert!(is_knife_weapon(Some(&WeaponType::Knife), &WeaponName::AK47));
         assert!(!is_knife_weapon(None, &WeaponName::AK47));
     }
 
     #[test]
-    fn final_kill_history_uses_grace_window() {
-        let now = Instant::now();
-        assert!(is_recent_final_kill(
-            now.checked_sub(Duration::from_millis(350)).unwrap(),
-            now
-        ));
-        assert!(!is_recent_final_kill(
-            now.checked_sub(Duration::from_millis(351)).unwrap(),
-            now
-        ));
+    fn final_kill_history_expires_after_three_following_frames() {
+        let pending = PendingLastKill {
+            confirmation_frames_remaining: 3,
+            kill_count: 2,
+            is_headshot: false,
+            is_knife_kill: false,
+            weapon_badge_key: Some("assault".to_string()),
+            weapon_name: Some("AK-47".to_string()),
+            money_reward: 300,
+        };
+        let after_one = advance_pending_last_kill_frame(Some(pending)).unwrap();
+        assert_eq!(after_one.confirmation_frames_remaining, 2);
+        let after_two = advance_pending_last_kill_frame(Some(after_one)).unwrap();
+        assert_eq!(after_two.confirmation_frames_remaining, 1);
+        assert!(pending_last_kill_is_confirmable(Some(&after_two)));
+        assert!(advance_pending_last_kill_frame(Some(after_two)).is_none());
     }
 
     #[test]

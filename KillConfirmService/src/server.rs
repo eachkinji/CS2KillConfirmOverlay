@@ -3,9 +3,9 @@ use crate::api::{
     crossfire_settings, cs2_root, csol_settings, dagoujiao_settings, developer_settings,
     doubao_settings, event_sound_settings, events_poll, gsi_game_settings, gsi_status, health,
     install_counter_strike_cfg, interrupt_previous_kill_audio_settings, money_mode, port,
-    process_priorities, register_ui_process, set_audio_device, set_bomb_audio_settings,
-    set_crossfire_settings, set_csol_settings, set_dagoujiao_settings, set_developer_settings,
-    set_doubao_settings, set_event_sound_settings, set_gsi_game_settings,
+    preview_bomb_audio_endpoint, process_priorities, register_ui_process, set_audio_device,
+    set_bomb_audio_settings, set_crossfire_settings, set_csol_settings, set_dagoujiao_settings,
+    set_developer_settings, set_doubao_settings, set_event_sound_settings, set_gsi_game_settings,
     set_interrupt_previous_kill_audio_settings, set_money_mode, set_process_priority,
     set_spectator_settings, set_streak_gain_settings, set_streak_settings, shutdown,
     spectator_settings, streak_gain_settings, streak_settings, test_event, unregister_ui_process,
@@ -294,6 +294,10 @@ pub(crate) async fn run(mut args: Args) -> Result<()> {
         .route(
             "/bomb-audio/settings",
             get(bomb_audio_settings).post(set_bomb_audio_settings),
+        )
+        .route(
+            "/bomb-audio/preview/{kind}",
+            post(preview_bomb_audio_endpoint),
         )
         .route("/money/mode", get(money_mode).post(set_money_mode))
         .route(

@@ -141,6 +141,23 @@ namespace KillConfirmGameBar.Services
             }
         }
 
+        public static async Task PreviewAsync(string kind)
+        {
+            if (string.IsNullOrWhiteSpace(kind))
+            {
+                throw new ArgumentException("Preview kind is required.", nameof(kind));
+            }
+
+            Uri previewUri = LocalServiceEndpoints.Build(
+                "/bomb-audio/preview/" + Uri.EscapeDataString(kind.Trim().ToLowerInvariant()));
+            using (HttpClient client = await LocalServiceAuth.CreateHttpClientAsync())
+            using (var content = new HttpStringContent(string.Empty))
+            using (HttpResponseMessage response = await client.PostAsync(previewUri, content))
+            {
+                response.EnsureSuccessStatusCode();
+            }
+        }
+
         private static string PathKeyFor(string kind)
         {
             switch (kind)

@@ -53,7 +53,12 @@
 
     if is_initialized && can_emit_kill {
         let is_headshot = current_hs_kills > origin_hs_kills;
-        let weapon_context = resolve_weapon_kill_context(current_weapon_context.as_ref());
+        let weapon_context = resolve_weapon_kill_context(
+            current_weapon_context.as_ref(),
+            previous_active_weapon.as_ref(),
+            &previous_weapon_ammo,
+            &current_weapon_ammo,
+        );
         let is_knife_kill = weapon_context
             .map(|weapon| weapon.is_knife)
             .unwrap_or(false);
@@ -77,7 +82,7 @@
             pending_last_kill_for_next = None;
         } else {
             pending_last_kill_for_next = Some(PendingLastKill {
-                recorded_at: now,
+                confirmation_frames_remaining: FINAL_KILL_CONFIRMATION_FRAMES,
                 kill_count: event_kill_count,
                 is_headshot,
                 is_knife_kill,
@@ -148,12 +153,10 @@
             current_bomb_state.as_deref(),
             latest_round_outcome,
         );
-        let pending_last_kill_is_recent = pending_last_kill
-            .as_ref()
-            .map(|pending| is_recent_final_kill(pending.recorded_at, now))
-            .unwrap_or(false);
+        let pending_last_kill_is_confirmable =
+            pending_last_kill_is_confirmable(pending_last_kill.as_ref());
         if delayed_last_kill_decision == DelayedLastKillDecision::Allow
-            && pending_last_kill_is_recent
+            && pending_last_kill_is_confirmable
         {
             if let Some(pending_last_kill) = pending_last_kill {
                 badge_only_event_to_send = Some(KillEvent {
@@ -231,7 +234,7 @@
         }
 
         if delayed_last_kill_decision != DelayedLastKillDecision::Wait
-            || !pending_last_kill_is_recent
+            || !pending_last_kill_is_confirmable
         {
             pending_last_kill_for_next = None;
         }
@@ -394,6 +397,11 @@
                 });
             }
         }
+    }
+
+    if !can_emit_kill {
+        pending_last_kill_for_next =
+            advance_pending_last_kill_frame(pending_last_kill_for_next);
     }
 
     (

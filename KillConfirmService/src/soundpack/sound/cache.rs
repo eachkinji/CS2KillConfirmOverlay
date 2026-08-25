@@ -4,6 +4,8 @@ const BOMB_EXPLODED_AUDIO_FILE: &str = "sounds/dagoujiao/epic.wav";
 const BOMB_DEFUSED_AUDIO_FILE: &str = "sounds/dagoujiao/jiaojiaojiao.wav";
 const BOMB_TIMER_SECONDS: u64 = 40;
 const BOMB_TIMER_SPEED_REFRESH_MS: u64 = 50;
+const BOMB_TIMER_FALLBACK_REPEAT_MS: u64 = 1000;
+const BOMB_TIMER_MINIMUM_REPEAT_MS: u64 = 50;
 const AUDIO_CACHE_EXTENSIONS: [&str; 3] = ["wav", "mp3", "m4a"];
 
 static AUDIO_BYTES_CACHE: OnceLock<RwLock<HashMap<String, Arc<[u8]>>>> = OnceLock::new();

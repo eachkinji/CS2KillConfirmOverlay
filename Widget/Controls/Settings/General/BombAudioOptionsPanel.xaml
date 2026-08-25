@@ -262,6 +262,15 @@
                                 </StackPanel>
                                 <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="4">
                                     <Button
+                                        x:Name="BombTimerAudioPreviewButton"
+                                        Style="{StaticResource FluentActionBtnStyle}"
+                                        MinWidth="28"
+                                        Padding="6,4"
+                                        Click="OnBombAudioPreviewClick"
+                                        Tag="timer">
+                                        <FontIcon FontFamily="Segoe MDL2 Assets" FontSize="11" Glyph="&#xE768;" />
+                                    </Button>
+                                    <Button
                                         x:Name="BombTimerAudioImportButton"
                                         Style="{StaticResource FluentActionBtnStyle}"
                                         Click="OnBombAudioImportClick"
@@ -290,6 +299,15 @@
                                     <TextBlock x:Name="BombExplodedAudioStatusText" FontSize="11" Foreground="{StaticResource FluentMutedText}" Text="内置默认" />
                                 </StackPanel>
                                 <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                                    <Button
+                                        x:Name="BombExplodedAudioPreviewButton"
+                                        Style="{StaticResource FluentActionBtnStyle}"
+                                        MinWidth="28"
+                                        Padding="6,4"
+                                        Click="OnBombAudioPreviewClick"
+                                        Tag="exploded">
+                                        <FontIcon FontFamily="Segoe MDL2 Assets" FontSize="11" Glyph="&#xE768;" />
+                                    </Button>
                                     <Button
                                         x:Name="BombExplodedAudioImportButton"
                                         Style="{StaticResource FluentActionBtnStyle}"
@@ -320,6 +338,15 @@
                                 </StackPanel>
                                 <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Spacing="4">
                                     <Button
+                                        x:Name="BombDefusedAudioPreviewButton"
+                                        Style="{StaticResource FluentActionBtnStyle}"
+                                        MinWidth="28"
+                                        Padding="6,4"
+                                        Click="OnBombAudioPreviewClick"
+                                        Tag="defused">
+                                        <FontIcon FontFamily="Segoe MDL2 Assets" FontSize="11" Glyph="&#xE768;" />
+                                    </Button>
+                                    <Button
                                         x:Name="BombDefusedAudioImportButton"
                                         Style="{StaticResource FluentActionBtnStyle}"
                                         Click="OnBombAudioImportClick"
@@ -342,6 +369,17 @@
                                     </Button>
                                 </StackPanel>
                             </Grid>
+
+                            <Button
+                                x:Name="BombFullEffectPreviewButton"
+                                Style="{StaticResource FluentActionBtnStyle}"
+                                HorizontalAlignment="Right"
+                                Click="OnBombFullEffectPreviewClick">
+                                <StackPanel Orientation="Horizontal" Spacing="5">
+                                    <FontIcon FontFamily="Segoe MDL2 Assets" FontSize="11" Glyph="&#xE768;" />
+                                    <TextBlock x:Name="BombFullEffectPreviewButtonText" Text="完整效果试听" />
+                                </StackPanel>
+                            </Button>
                         </StackPanel>
                     </StackPanel>
                 </Border>

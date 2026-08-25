@@ -79,7 +79,7 @@ namespace KillConfirmGameBar.Controls
 
         private static CanvasBitmap GetCachedBattlefield2042Icon(string iconFileName)
         {
-            string cacheKey = "battlefield2042/" + iconFileName;
+            string cacheKey = "battlefield2042/" + iconFileName + ":" + _iconPack;
             lock (Battlefield2042IconCache)
             {
                 Battlefield2042IconCache.TryGetValue(cacheKey, out CanvasBitmap cached);

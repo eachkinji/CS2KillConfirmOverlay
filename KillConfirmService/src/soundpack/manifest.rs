@@ -32,6 +32,8 @@ pub struct SoundContext {
     pub headshot_priority: bool,
     /// CrossFire / Generic: true when user enables knife audio priority
     pub knife_priority: bool,
+    /// CrossFire: true when grenade audio beats the streak voice.
+    pub grenade_priority: bool,
 }
 
 /// SoundEntry represents an audio file path with its playback gain.
@@ -376,10 +378,16 @@ impl PackManifest {
             return entries;
         }
 
-        // 1. Grenade / fire kill. This must win over first/last-kill routing so
-        // a dedicated grenade voice is not replaced just because the grenade
-        // also happened to open or close the round.
-        if ctx.is_grenade_kill {
+        let is_csol = game_style.eq_ignore_ascii_case("csol");
+        let is_crossfire = game_style.eq_ignore_ascii_case("crossfire");
+        let crossfire_special_kill = is_crossfire
+            && (ctx.is_knife_kill || ctx.is_grenade_kill || ctx.is_headshot);
+
+        // CF special-kill choices apply even on the first/last kill. Other
+        // styles retain their existing grenade and first/last-kill rules.
+        if ctx.is_grenade_kill
+            && (!is_crossfire || ctx.kill_count <= 1 || ctx.grenade_priority)
+        {
             if !push_slot(&mut entries, "grenade", None) {
                 if !push_slot(&mut entries, "first_and_last", None) {
                     push_slot(&mut entries, "kill_1", None);
@@ -394,9 +402,8 @@ impl PackManifest {
         // the normal streak/kill_1 voice, and only the last kill (revenge) uses the
         // first_and_last slot. Every other game keeps the shared first_and_last
         // slot for both first and last kill.
-        let is_csol = game_style.eq_ignore_ascii_case("csol");
         let handle_first_last = ctx.is_last_kill || (ctx.is_first_kill && !is_csol);
-        if handle_first_last {
+        if handle_first_last && !crossfire_special_kill {
             let alias = if ctx.is_first_kill { "first" } else { "last" };
             if push_slot(&mut entries, "first_and_last", Some(alias)) {
                 push_overlay_if_enabled(&mut entries, "first_and_last");
@@ -434,6 +441,7 @@ impl PackManifest {
         let crossfire_headshot_priority = !is_csol && ctx.headshot_priority;
         let crossfire_knife_priority = !is_csol && ctx.knife_priority;
         let play_headshot = ctx.is_headshot
+            && !(is_crossfire && (ctx.is_knife_kill || ctx.is_grenade_kill))
             && (always_prioritize_special
                 || csol_special_priority
                 || crossfire_headshot_priority

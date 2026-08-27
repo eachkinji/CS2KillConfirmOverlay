@@ -121,6 +121,9 @@ pub async fn set_crossfire_settings(
     app_state
         .crossfire_knife_special_audio_priority
         .store(request.knife_special_audio_priority, Ordering::Relaxed);
+    app_state
+        .crossfire_grenade_special_audio_priority
+        .store(request.grenade_special_audio_priority, Ordering::Relaxed);
     if request.active {
         app_state
             .assist_audio_enabled
@@ -151,13 +154,14 @@ pub async fn set_crossfire_settings(
     }
 
     service_log(&format!(
-        "CrossFire settings: active={}, streak={}, first_special={}, last_special={}, headshot_priority={}, knife_priority={}, assist_audio={}",
+        "CrossFire settings: active={}, streak={}, first_special={}, last_special={}, headshot_priority={}, knife_priority={}, grenade_priority={}, assist_audio={}",
         request.active,
         format_streak_setting(streak_mode, streak_window_ms),
         request.first_kill_special_audio,
         request.last_kill_special_audio,
         request.headshot_special_audio_priority,
         request.knife_special_audio_priority,
+        request.grenade_special_audio_priority,
         request.assist_audio_enabled
     ));
 

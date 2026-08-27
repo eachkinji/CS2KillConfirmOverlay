@@ -28,6 +28,7 @@
             special_voice_priority: false,
             headshot_priority: false,
             knife_priority: false,
+            grenade_priority: true,
         };
 
         // Tier 3 -> 3.wav

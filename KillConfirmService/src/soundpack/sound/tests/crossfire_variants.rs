@@ -34,6 +34,7 @@
             special_voice_priority: false,
             headshot_priority,
             knife_priority,
+            grenade_priority: true,
         };
 
         // CF volume is normalized in the WAV asset, so every slot uses unity gain.
@@ -99,6 +100,7 @@
             special_voice_priority: false,
             headshot_priority,
             knife_priority,
+            grenade_priority: true,
         };
 
         // 2-kill streak -> two parallel, asset-normalized layers.
@@ -158,6 +160,7 @@
             special_voice_priority: false,
             headshot_priority: false,
             knife_priority: false,
+            grenade_priority: true,
         };
 
         // Both layers use their configured manifest gains.

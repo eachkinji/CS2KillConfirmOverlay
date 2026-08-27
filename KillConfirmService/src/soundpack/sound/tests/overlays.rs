@@ -48,6 +48,7 @@
             special_voice_priority: false,
             headshot_priority: false,
             knife_priority: false,
+            grenade_priority: true,
         };
 
         // kill 1 has overlay

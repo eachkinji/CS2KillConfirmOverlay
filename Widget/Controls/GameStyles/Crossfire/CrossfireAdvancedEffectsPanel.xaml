@@ -21,7 +21,7 @@
                     x:Name="HintText"
                     FontSize="10.5"
                     Opacity="0.75"
-                    Text="集中设置 CF 的连杀规则、爆头与刀杀提示、首杀与最终击杀，以及画面特效。"
+                    Text="集中设置 CF 的连杀规则、爆头、刀杀与雷杀提示、首杀与最终击杀，以及画面特效。"
                     TextWrapping="WrapWholeWords" />
             </StackPanel>
             <Button
@@ -116,10 +116,17 @@
                     FontSize="12"
                     FontWeight="Bold"
                     VerticalAlignment="Center"
-                    Text="爆头与刀杀提示优先级" />
+                    Text="爆头、刀杀与雷杀提示优先级" />
             </StackPanel>
+            <TextBlock
+                x:Name="PrioritiesHintText"
+                FontSize="10.5"
+                Opacity="0.75"
+                TextWrapping="WrapWholeWords"
+                Text="2 连杀起比较优先级；单杀仍显示、播放对应击杀提示。声音与图标独立设置。" />
             <Grid RowSpacing="8" ColumnSpacing="8">
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
@@ -184,6 +191,36 @@
                         <ComboBox x:Name="KnifeIconPrioritySelector" Style="{StaticResource CompactSettingsComboBoxStyle}" SelectionChanged="OnKnifeIconPrioritySelectionChanged">
                             <ComboBoxItem x:Name="KnifeIconSpecialPriorityItem" Tag="special">Knife-kill priority</ComboBoxItem>
                             <ComboBoxItem x:Name="KnifeIconStreakPriorityItem" Tag="streak">Kill-streak priority</ComboBoxItem>
+                        </ComboBox>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="2" Grid.Column="0" Style="{StaticResource CompactChoiceCardStyle}">
+                    <StackPanel Spacing="5">
+                        <StackPanel Orientation="Horizontal" Spacing="5">
+                            <Border Style="{StaticResource CompactCircleIconStyle}">
+                                <FontIcon FontSize="11" Foreground="White" Glyph="&#xE767;" />
+                            </Border>
+                            <TextBlock x:Name="GrenadeAudioPriorityLabel" Style="{StaticResource CompactChoiceLabelStyle}" VerticalAlignment="Center" Text="雷杀声音" />
+                        </StackPanel>
+                        <ComboBox x:Name="GrenadeAudioPrioritySelector" Style="{StaticResource CompactSettingsComboBoxStyle}" SelectionChanged="OnGrenadeAudioPrioritySelectionChanged">
+                            <ComboBoxItem x:Name="GrenadeSpecialPriorityItem" Tag="special">Grenade-kill priority</ComboBoxItem>
+                            <ComboBoxItem x:Name="GrenadeStreakPriorityItem" Tag="streak">Kill-streak priority</ComboBoxItem>
+                        </ComboBox>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="2" Grid.Column="1" Style="{StaticResource CompactChoiceCardStyle}">
+                    <StackPanel Spacing="5">
+                        <StackPanel Orientation="Horizontal" Spacing="5">
+                            <Border Style="{StaticResource CompactCircleIconStyle}">
+                                <FontIcon FontSize="11" Foreground="White" Glyph="&#xE7F4;" />
+                            </Border>
+                            <TextBlock x:Name="GrenadeIconPriorityLabel" Style="{StaticResource CompactChoiceLabelStyle}" VerticalAlignment="Center" Text="雷杀图标" />
+                        </StackPanel>
+                        <ComboBox x:Name="GrenadeIconPrioritySelector" Style="{StaticResource CompactSettingsComboBoxStyle}" SelectionChanged="OnGrenadeIconPrioritySelectionChanged">
+                            <ComboBoxItem x:Name="GrenadeIconSpecialPriorityItem" Tag="special">Grenade-kill priority</ComboBoxItem>
+                            <ComboBoxItem x:Name="GrenadeIconStreakPriorityItem" Tag="streak">Kill-streak priority</ComboBoxItem>
                         </ComboBox>
                     </StackPanel>
                 </Border>

@@ -28,6 +28,7 @@
             special_voice_priority: false,
             headshot_priority: false,
             knife_priority: false,
+            grenade_priority: true,
         };
 
         // Plain streaks route to the numbered voice (capped at 10).
@@ -145,6 +146,7 @@
             special_voice_priority: false,
             headshot_priority: false,
             knife_priority: false,
+            grenade_priority: true,
         };
 
         // CSOL has no dedicated first-kill voice: a first kill falls through to the

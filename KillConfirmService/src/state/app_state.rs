@@ -50,6 +50,7 @@ pub struct AppState {
     pub crossfire_last_kill_special_audio: AtomicBool,
     pub crossfire_headshot_special_audio_priority: AtomicBool,
     pub crossfire_knife_special_audio_priority: AtomicBool,
+    pub crossfire_grenade_special_audio_priority: AtomicBool,
     pub assist_audio_enabled: AtomicBool,
     pub assist_audio_setting_active: AtomicBool,
     pub event_sound_settings: RwLock<EventSoundSettings>,

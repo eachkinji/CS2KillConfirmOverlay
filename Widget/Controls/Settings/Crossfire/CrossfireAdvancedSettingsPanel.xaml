@@ -52,6 +52,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -125,6 +126,31 @@
                 <Border Grid.Row="3" Style="{StaticResource CompactChoiceCardStyle}">
                     <StackPanel Spacing="6">
                         <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Border Style="{StaticResource CompactCircleIconStyle}"><FontIcon FontSize="13" Foreground="White" Glyph="&#xE767;" /></Border>
+                            <TextBlock x:Name="GrenadeAudioPriorityLabel" Style="{StaticResource CompactChoiceLabelStyle}" VerticalAlignment="Center" Text="雷杀音效优先级" />
+                        </StackPanel>
+                        <ComboBox x:Name="GrenadeAudioPrioritySelector" Style="{StaticResource CompactSettingsComboBoxStyle}" SelectionChanged="OnGameplaySettingChanged">
+                            <ComboBoxItem x:Name="GrenadeSpecialPriorityItem" Tag="special">雷杀音效优先</ComboBoxItem>
+                            <ComboBoxItem x:Name="GrenadeStreakPriorityItem" Tag="streak">连杀音效优先</ComboBoxItem>
+                        </ComboBox>
+                    </StackPanel>
+                </Border>
+                <Border Grid.Row="3" Grid.Column="1" Style="{StaticResource CompactChoiceCardStyle}">
+                    <StackPanel Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Border Style="{StaticResource CompactCircleIconStyle}"><FontIcon FontSize="13" Foreground="White" Glyph="&#xE7F4;" /></Border>
+                            <TextBlock x:Name="GrenadeIconPriorityLabel" Style="{StaticResource CompactChoiceLabelStyle}" VerticalAlignment="Center" Text="雷杀图标优先级" />
+                        </StackPanel>
+                        <ComboBox x:Name="GrenadeIconPrioritySelector" Style="{StaticResource CompactSettingsComboBoxStyle}" SelectionChanged="OnGameplaySettingChanged">
+                            <ComboBoxItem x:Name="GrenadeIconSpecialPriorityItem" Tag="special">雷杀图标优先</ComboBoxItem>
+                            <ComboBoxItem x:Name="GrenadeIconStreakPriorityItem" Tag="streak">连杀图标优先</ComboBoxItem>
+                        </ComboBox>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="4" Style="{StaticResource CompactChoiceCardStyle}">
+                    <StackPanel Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
                             <Border Style="{StaticResource CompactCircleIconStyle}"><FontIcon FontSize="13" Foreground="White" Glyph="&#xE8D6;" /></Border>
                             <TextBlock x:Name="FirstKillAudioLabel" Style="{StaticResource CompactChoiceLabelStyle}" VerticalAlignment="Center" Text="首杀语音播报" />
                         </StackPanel>
@@ -134,7 +160,7 @@
                         </ComboBox>
                     </StackPanel>
                 </Border>
-                <Border Grid.Row="3" Grid.Column="1" Style="{StaticResource CompactChoiceCardStyle}">
+                <Border Grid.Row="4" Grid.Column="1" Style="{StaticResource CompactChoiceCardStyle}">
                     <StackPanel Spacing="6">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <Border Style="{StaticResource CompactCircleIconStyle}"><FontIcon FontSize="13" Foreground="White" Glyph="&#xE8D6;" /></Border>
@@ -147,7 +173,7 @@
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Row="4" Style="{StaticResource CompactChoiceCardStyle}">
+                <Border Grid.Row="5" Style="{StaticResource CompactChoiceCardStyle}">
                     <StackPanel Spacing="6">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <Border Style="{StaticResource CompactCircleIconStyle}"><FontIcon FontSize="13" Foreground="White" Glyph="&#xE945;" /></Border>
@@ -156,7 +182,7 @@
                         <ToggleSwitch x:Name="FirstKillEffectToggle" MinWidth="0" IsOn="True" OffContent="关闭" OnContent="开启 (推荐)" Toggled="OnGameplaySettingChanged" />
                     </StackPanel>
                 </Border>
-                <Border Grid.Row="4" Grid.Column="1" Style="{StaticResource CompactChoiceCardStyle}">
+                <Border Grid.Row="5" Grid.Column="1" Style="{StaticResource CompactChoiceCardStyle}">
                     <StackPanel Spacing="6">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <Border Style="{StaticResource CompactCircleIconStyle}"><FontIcon FontSize="13" Foreground="White" Glyph="&#xE945;" /></Border>

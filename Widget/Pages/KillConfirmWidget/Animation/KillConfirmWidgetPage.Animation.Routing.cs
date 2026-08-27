@@ -127,74 +127,68 @@ namespace KillConfirmGameBar
         {
             PlayAuxiliaryKillMarkIfEnabled(killEvent);
             CrossfireGameplaySettingsValues settings = CrossfireGameplaySettingsStore.Load();
+            LowerFeedbackAnimation.PlayCodeKill(
+                ResolveCrossfirePrimaryAnimationKey(killEvent, settings), killEvent.WeaponBadgeKey);
+        }
 
+        private static string ResolveCrossfirePrimaryAnimationKey(
+            KillEvent killEvent, CrossfireGameplaySettingsValues settings)
+        {
             string eventKind = killEvent.EventKind ?? killEvent.AnimationKey;
             if (string.Equals(eventKind, "bomb_plant", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(killEvent.AnimationKey, "bomb_plant", StringComparison.OrdinalIgnoreCase))
             {
-                LowerFeedbackAnimation.PlayCodeKill("c4", killEvent.WeaponBadgeKey);
-                return;
+                return "c4";
             }
             if (string.Equals(eventKind, "bomb_defuse", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(killEvent.AnimationKey, "bomb_defuse", StringComparison.OrdinalIgnoreCase))
             {
-                LowerFeedbackAnimation.PlayCodeKill("c4defuse", killEvent.WeaponBadgeKey);
-                return;
-            }
-
-            if (string.Equals(killEvent.AnimationKey, "code2kill", StringComparison.OrdinalIgnoreCase))
-            {
-                LowerFeedbackAnimation.PlayCodeKill("multi2", killEvent.WeaponBadgeKey);
-                return;
-            }
-
-            if (string.Equals(killEvent.AnimationKey, "headshot_vvip", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(killEvent.AnimationKey, "headshot_gold_vvip", StringComparison.OrdinalIgnoreCase))
-            {
-                LowerFeedbackAnimation.PlayCodeKill(killEvent.AnimationKey, killEvent.WeaponBadgeKey);
-                return;
+                return "c4defuse";
             }
 
             bool knifeIconWins = killEvent.IsKnifeKill
                 && (killEvent.KillCount < 2 || settings.KnifeSpecialIconPriority);
             if (knifeIconWins)
             {
-                LowerFeedbackAnimation.PlayCodeKill("knife", killEvent.WeaponBadgeKey);
-                return;
+                return "knife";
             }
 
-            if (killEvent.IsGrenadeKill)
+            bool grenadeIconWins = killEvent.IsGrenadeKill
+                && (killEvent.KillCount < 2 || settings.GrenadeSpecialIconPriority);
+            if (grenadeIconWins)
             {
-                LowerFeedbackAnimation.PlayCodeKill("grenade", killEvent.WeaponBadgeKey);
-                return;
+                return "grenade";
             }
 
-            bool headshotIconWins = killEvent.IsHeadshot
+            bool explicitHeadshotIcon = string.Equals(killEvent.AnimationKey, "headshot_vvip", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(killEvent.AnimationKey, "headshot_gold_vvip", StringComparison.OrdinalIgnoreCase);
+            bool headshotIconWins = (killEvent.IsHeadshot || explicitHeadshotIcon)
+                && !killEvent.IsKnifeKill && !killEvent.IsGrenadeKill
                 && (killEvent.KillCount < 2 || settings.HeadshotSpecialIconPriority);
             if (headshotIconWins)
             {
+                if (explicitHeadshotIcon)
+                {
+                    return killEvent.AnimationKey;
+                }
                 bool useFirstOrLastEffect = (killEvent.IsFirstKill && settings.FirstKillEffectEnabled)
                     || (killEvent.IsLastKill && settings.LastKillEffectEnabled);
-                LowerFeedbackAnimation.PlayCodeKill(
-                    useFirstOrLastEffect ? "headshot_gold" : "headshot",
-                    killEvent.WeaponBadgeKey);
-                return;
+                return useFirstOrLastEffect ? "headshot_gold" : "headshot";
             }
 
-            if (killEvent.KillCount == 1)
+            // Explicit streak/preview keys must not bypass special-kill priorities.
+            if (string.Equals(killEvent.AnimationKey, "code2kill", StringComparison.OrdinalIgnoreCase))
             {
-                LowerFeedbackAnimation.PlayCodeKill("multi1", killEvent.WeaponBadgeKey);
-                return;
+                return "multi2";
             }
 
             if (killEvent.KillCount >= 2)
             {
                 int codeKillCount = Math.Max(2, Math.Min(6, killEvent.KillCount));
-                LowerFeedbackAnimation.PlayCodeKill("multi" + codeKillCount, killEvent.WeaponBadgeKey);
-                return;
+                return "multi" + codeKillCount;
             }
 
-            LowerFeedbackAnimation.PlayCodeKill("multi1", killEvent.WeaponBadgeKey);
+            return "multi1";
         }
 
         private void PlayBadgeAnimation(KillEvent killEvent)

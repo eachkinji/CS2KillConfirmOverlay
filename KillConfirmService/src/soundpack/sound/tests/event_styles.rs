@@ -58,6 +58,7 @@
                 special_voice_priority: false,
                 headshot_priority: false,
                 knife_priority: false,
+                grenade_priority: true,
             };
 
             let headshot = manifest.resolve_audio(&make_ctx(true, false), "sounds/custom");
@@ -125,6 +126,7 @@
             special_voice_priority: false,
             headshot_priority: false,
             knife_priority: false,
+            grenade_priority: true,
         };
 
         let plant = manifest.resolve_audio(&context("bomb_plant"), "sounds/custom");
@@ -219,7 +221,7 @@
         use crate::state::EventChannel;
         use std::collections::HashMap;
 
-        let manifest = PackManifest {
+        let mut manifest = PackManifest {
             game_style: Some("crossfire".to_string()),
             audio: Some(AudioConfig {
                 base_gain: 1.0,
@@ -257,11 +259,23 @@
             special_voice_priority: false,
             headshot_priority: false,
             knife_priority: false,
+            grenade_priority: true,
         };
 
         for context in [make_context(true, false), make_context(false, true)] {
             let entries = manifest.resolve_audio(&context, "sounds/custom");
             assert_eq!(entries.len(), 1);
             assert!(entries[0].path.ends_with("grenade.wav"));
+        }
+
+        // Disabling CF grenade priority must not change other styles' cues.
+        for style in ["csol", "battlefield1", "modernwarfare2019"] {
+            manifest.game_style = Some(style.to_string());
+            let mut context = make_context(true, true);
+            context.kill_count = 4;
+            context.grenade_priority = false;
+            let entries = manifest.resolve_audio(&context, "sounds/custom");
+            assert_eq!(entries.len(), 1);
+            assert!(entries[0].path.ends_with("grenade.wav"), "style: {style}");
         }
     }

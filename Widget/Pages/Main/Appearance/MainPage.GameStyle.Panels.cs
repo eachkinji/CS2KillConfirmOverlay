@@ -29,8 +29,10 @@ namespace KillConfirmGameBar
                 _crossfireAdvancedEffectsPanel.StreakModeSelectionChanged += OnCrossfireGameplaySettingChanged;
                 _crossfireAdvancedEffectsPanel.HeadshotAudioPrioritySelectionChanged += OnCrossfireGameplaySettingChanged;
                 _crossfireAdvancedEffectsPanel.KnifeAudioPrioritySelectionChanged += OnCrossfireGameplaySettingChanged;
+                _crossfireAdvancedEffectsPanel.GrenadeAudioPrioritySelectionChanged += OnCrossfireGameplaySettingChanged;
                 _crossfireAdvancedEffectsPanel.HeadshotIconPrioritySelectionChanged += OnCrossfireGameplaySettingChanged;
                 _crossfireAdvancedEffectsPanel.KnifeIconPrioritySelectionChanged += OnCrossfireGameplaySettingChanged;
+                _crossfireAdvancedEffectsPanel.GrenadeIconPrioritySelectionChanged += OnCrossfireGameplaySettingChanged;
                 _crossfireAdvancedEffectsPanel.FirstKillAudioSelectionChanged += OnCrossfireGameplaySettingChanged;
                 _crossfireAdvancedEffectsPanel.LastKillAudioSelectionChanged += OnCrossfireGameplaySettingChanged;
                 _crossfireAdvancedEffectsPanel.FirstKillEffectToggled += OnCrossfireGameplaySettingChanged;
@@ -57,8 +59,10 @@ namespace KillConfirmGameBar
                     settings.StreakMode,
                     settings.HeadshotSpecialAudioPriority,
                     settings.KnifeSpecialAudioPriority,
+                    settings.GrenadeSpecialAudioPriority,
                     settings.HeadshotSpecialIconPriority,
                     settings.KnifeSpecialIconPriority,
+                    settings.GrenadeSpecialIconPriority,
                     settings.FirstKillSpecialAudio,
                     settings.LastKillSpecialAudio,
                     settings.FirstKillEffectEnabled,
@@ -85,8 +89,10 @@ namespace KillConfirmGameBar
                 StreakMode = _crossfireAdvancedEffectsPanel.GetSelectedStreakMode(fallback.StreakMode),
                 HeadshotSpecialAudioPriority = _crossfireAdvancedEffectsPanel.GetHeadshotSpecialAudioPriority(fallback.HeadshotSpecialAudioPriority),
                 KnifeSpecialAudioPriority = _crossfireAdvancedEffectsPanel.GetKnifeSpecialAudioPriority(fallback.KnifeSpecialAudioPriority),
+                GrenadeSpecialAudioPriority = _crossfireAdvancedEffectsPanel.GetGrenadeSpecialAudioPriority(fallback.GrenadeSpecialAudioPriority),
                 HeadshotSpecialIconPriority = _crossfireAdvancedEffectsPanel.GetHeadshotSpecialIconPriority(fallback.HeadshotSpecialIconPriority),
                 KnifeSpecialIconPriority = _crossfireAdvancedEffectsPanel.GetKnifeSpecialIconPriority(fallback.KnifeSpecialIconPriority),
+                GrenadeSpecialIconPriority = _crossfireAdvancedEffectsPanel.GetGrenadeSpecialIconPriority(fallback.GrenadeSpecialIconPriority),
                 FirstKillSpecialAudio = _crossfireAdvancedEffectsPanel.GetFirstKillSpecialAudio(fallback.FirstKillSpecialAudio),
                 LastKillSpecialAudio = _crossfireAdvancedEffectsPanel.GetLastKillSpecialAudio(fallback.LastKillSpecialAudio),
                 FirstKillEffectEnabled = _crossfireAdvancedEffectsPanel.GetFirstKillEffectEnabled(fallback.FirstKillEffectEnabled),
@@ -109,6 +115,7 @@ namespace KillConfirmGameBar
                     ["last_kill_special_audio"] = JsonValue.CreateBooleanValue(settings.LastKillSpecialAudio),
                     ["headshot_special_audio_priority"] = JsonValue.CreateBooleanValue(settings.HeadshotSpecialAudioPriority),
                     ["knife_special_audio_priority"] = JsonValue.CreateBooleanValue(settings.KnifeSpecialAudioPriority),
+                    ["grenade_special_audio_priority"] = JsonValue.CreateBooleanValue(settings.GrenadeSpecialAudioPriority),
                     ["assist_audio_enabled"] = JsonValue.CreateBooleanValue(settings.AssistAudioEnabled)
                 };
 

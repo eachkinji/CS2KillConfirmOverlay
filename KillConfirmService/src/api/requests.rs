@@ -142,6 +142,8 @@ pub struct CrossfireSettingsRequest {
     pub headshot_special_audio_priority: bool,
     #[serde(default = "default_true")]
     pub knife_special_audio_priority: bool,
+    #[serde(default = "default_true")]
+    pub grenade_special_audio_priority: bool,
     #[serde(default)]
     pub assist_audio_enabled: bool,
 }
@@ -244,6 +246,7 @@ pub struct CrossfireSettingsResponse {
     pub last_kill_special_audio: bool,
     pub headshot_special_audio_priority: bool,
     pub knife_special_audio_priority: bool,
+    pub grenade_special_audio_priority: bool,
     pub assist_audio_enabled: bool,
 }
 

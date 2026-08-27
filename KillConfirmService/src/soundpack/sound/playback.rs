@@ -135,6 +135,9 @@ pub async fn play_audio(
             knife_priority: app_state_clone
                 .crossfire_knife_special_audio_priority
                 .load(Ordering::Relaxed),
+            grenade_priority: app_state_clone
+                .crossfire_grenade_special_audio_priority
+                .load(Ordering::Relaxed),
         };
 
         // Custom packs use generated keys (for example

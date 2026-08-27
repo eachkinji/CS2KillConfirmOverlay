@@ -1,11 +1,33 @@
 #[cfg(test)]
 mod tests {
     use super::{
-        BombAudioSettingsRequest, CsolSettingsRequest, DagoujiaoSettingsRequest,
+        BombAudioSettingsRequest, CrossfireSettingsRequest, CsolSettingsRequest, DagoujiaoSettingsRequest,
         HIGH_PRIORITY_CLASS, PROCESS_PRIORITY_TARGETS, ProcessPriority, is_expected_process_path,
         priority_name, resolve_bomb_audio_speed_range,
     };
     use std::path::Path;
+
+    #[test]
+    fn crossfire_priority_defaults_and_explicit_choices_are_independent() {
+        let legacy = serde_json::json!({
+            "active": true, "streak_mode": "life",
+            "first_kill_special_audio": false, "last_kill_special_audio": false
+        });
+        let defaults: CrossfireSettingsRequest = serde_json::from_value(legacy.clone()).unwrap();
+        assert!(!defaults.headshot_special_audio_priority);
+        assert!(defaults.knife_special_audio_priority);
+        assert!(defaults.grenade_special_audio_priority);
+        for knife in [false, true] {
+            for grenade in [false, true] {
+                let mut json = legacy.clone();
+                json["knife_special_audio_priority"] = knife.into();
+                json["grenade_special_audio_priority"] = grenade.into();
+                let request: CrossfireSettingsRequest = serde_json::from_value(json).unwrap();
+                assert_eq!(request.knife_special_audio_priority, knife);
+                assert_eq!(request.grenade_special_audio_priority, grenade);
+            }
+        }
+    }
 
     #[test]
     fn process_priority_values_map_to_windows_priority_classes() {

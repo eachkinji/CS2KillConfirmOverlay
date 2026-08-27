@@ -207,6 +207,7 @@ pub(crate) async fn run(mut args: Args) -> Result<()> {
         crossfire_last_kill_special_audio: AtomicBool::new(false),
         crossfire_headshot_special_audio_priority: AtomicBool::new(false),
         crossfire_knife_special_audio_priority: AtomicBool::new(true),
+        crossfire_grenade_special_audio_priority: AtomicBool::new(true),
         assist_audio_enabled: AtomicBool::new(false),
         assist_audio_setting_active: AtomicBool::new(true),
         event_sound_settings: RwLock::new(EventSoundSettings::default()),

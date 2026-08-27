@@ -297,6 +297,9 @@ fn crossfire_settings_response(app_state: &AppState) -> CrossfireSettingsRespons
         knife_special_audio_priority: app_state
             .crossfire_knife_special_audio_priority
             .load(Ordering::Relaxed),
+        grenade_special_audio_priority: app_state
+            .crossfire_grenade_special_audio_priority
+            .load(Ordering::Relaxed),
         assist_audio_enabled: app_state.assist_audio_enabled.load(Ordering::Relaxed),
     }
 }

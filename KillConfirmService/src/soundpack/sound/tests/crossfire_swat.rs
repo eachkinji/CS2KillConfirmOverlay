@@ -34,6 +34,7 @@
             special_voice_priority: false,
             headshot_priority,
             knife_priority,
+            grenade_priority: true,
         };
 
         // 1. Single kill -> common.wav
@@ -122,4 +123,59 @@
             .map(|e| e.path)
             .collect();
         assert_eq!(sounds, vec!["sounds/crossfire_swat_gr/grenade.wav"]);
+    }
+
+    #[test]
+    fn crossfire_special_priorities_apply_to_streaks_and_first_last_kills() {
+        use crate::soundpack::SoundContext;
+        use crate::soundpack::manifest::PackManifest;
+        use crate::state::EventChannel;
+        use std::collections::HashMap;
+        use std::path::Path;
+
+        let base = "sounds/crossfire_swat_gr";
+        let manifest = PackManifest::load_from_dir(Path::new(base)).unwrap();
+        for kind in ["knife", "grenade", "headshot"] {
+            for kill_count in [1, 2, 4, 9] {
+                for flags in 0..4 {
+                    for priorities in 0..8 {
+                        let ctx = SoundContext {
+                            kill_count,
+                            is_headshot: kind == "headshot",
+                            is_knife_kill: kind == "knife",
+                            is_grenade_kill: kind == "grenade",
+                            is_first_kill: flags & 1 != 0,
+                            is_last_kill: flags & 2 != 0,
+                            headshot_priority: priorities & 1 != 0,
+                            knife_priority: priorities & 2 != 0,
+                            grenade_priority: priorities & 4 != 0,
+                            is_assist: false,
+                            play_main_audio: true,
+                            money_reward: 0,
+                            event_kind: Some("kill".to_string()),
+                            event_channel: EventChannel::Combat,
+                            preset_name: "crossfire_swat_gr".to_string(),
+                            master_name: "crossfire_swat_gr".to_string(),
+                            variant: None,
+                            base_dir: base.to_string(),
+                            voice_picks: HashMap::new(),
+                            special_voice_priority: false,
+                        };
+                        let priority = match kind {
+                            "knife" => ctx.knife_priority,
+                            "grenade" => ctx.grenade_priority,
+                            _ => ctx.headshot_priority,
+                        };
+                        let file = if kill_count == 1 || priority {
+                            kind.to_string()
+                        } else {
+                            kill_count.min(8).to_string()
+                        };
+                        let entries = manifest.resolve_audio(&ctx, base);
+                        assert_eq!(entries.len(), 1, "context: {ctx:?}");
+                        assert_eq!(entries[0].path, format!("{base}/{file}.wav"), "context: {ctx:?}");
+                    }
+                }
+            }
+        }
     }

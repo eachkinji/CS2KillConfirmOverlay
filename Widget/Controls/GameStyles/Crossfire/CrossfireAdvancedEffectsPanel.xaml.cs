@@ -19,8 +19,10 @@ namespace KillConfirmGameBar.Controls.GameStyles
         public event SelectionChangedEventHandler StreakModeSelectionChanged;
         public event SelectionChangedEventHandler HeadshotAudioPrioritySelectionChanged;
         public event SelectionChangedEventHandler KnifeAudioPrioritySelectionChanged;
+        public event SelectionChangedEventHandler GrenadeAudioPrioritySelectionChanged;
         public event SelectionChangedEventHandler HeadshotIconPrioritySelectionChanged;
         public event SelectionChangedEventHandler KnifeIconPrioritySelectionChanged;
+        public event SelectionChangedEventHandler GrenadeIconPrioritySelectionChanged;
         public event SelectionChangedEventHandler FirstKillAudioSelectionChanged;
         public event SelectionChangedEventHandler LastKillAudioSelectionChanged;
         public event RoutedEventHandler FirstKillEffectToggled;
@@ -30,8 +32,10 @@ namespace KillConfirmGameBar.Controls.GameStyles
         public ComboBox StreakModeSelectorControl => StreakEditor.SelectorControl;
         public ComboBox HeadshotAudioPrioritySelectorControl => HeadshotAudioPrioritySelector;
         public ComboBox KnifeAudioPrioritySelectorControl => KnifeAudioPrioritySelector;
+        public ComboBox GrenadeAudioPrioritySelectorControl => GrenadeAudioPrioritySelector;
         public ComboBox HeadshotIconPrioritySelectorControl => HeadshotIconPrioritySelector;
         public ComboBox KnifeIconPrioritySelectorControl => KnifeIconPrioritySelector;
+        public ComboBox GrenadeIconPrioritySelectorControl => GrenadeIconPrioritySelector;
         public ComboBox FirstKillAudioSelectorControl => FirstKillAudioSelector;
         public ComboBox LastKillAudioSelectorControl => LastKillAudioSelector;
 
@@ -52,8 +56,10 @@ namespace KillConfirmGameBar.Controls.GameStyles
             StreakEditor.ApplyTheme(theme);
             AdvancedEffectsPanelSupport.ApplyMoneyRow(HeadshotAudioPriorityLabel, HeadshotAudioPrioritySelector, theme);
             AdvancedEffectsPanelSupport.ApplyMoneyRow(KnifeAudioPriorityLabel, KnifeAudioPrioritySelector, theme);
+            AdvancedEffectsPanelSupport.ApplyMoneyRow(GrenadeAudioPriorityLabel, GrenadeAudioPrioritySelector, theme);
             AdvancedEffectsPanelSupport.ApplyMoneyRow(HeadshotIconPriorityLabel, HeadshotIconPrioritySelector, theme);
             AdvancedEffectsPanelSupport.ApplyMoneyRow(KnifeIconPriorityLabel, KnifeIconPrioritySelector, theme);
+            AdvancedEffectsPanelSupport.ApplyMoneyRow(GrenadeIconPriorityLabel, GrenadeIconPrioritySelector, theme);
             AdvancedEffectsPanelSupport.ApplyMoneyRow(FirstKillAudioLabel, FirstKillAudioSelector, theme);
             AdvancedEffectsPanelSupport.ApplyMoneyRow(LastKillAudioLabel, LastKillAudioSelector, theme);
             AdvancedEffectsPanelSupport.ApplyToggleRow(FirstKillEffectLabel, FirstKillEffectToggle, theme);
@@ -70,7 +76,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
         {
             TitleText.Text = isChinese ? "CF（穿越火线）战斗与视效" : "CrossFire Combat & Effects";
             HintText.Text = isChinese
-                ? "集中设置 CF 的连杀规则、爆头与刀杀提示、首杀与最终击杀，以及画面特效和武器徽章。"
+                ? "集中设置 CF 的连杀规则、爆头、刀杀与雷杀提示、首杀与最终击杀，以及画面特效和武器徽章。"
                 : "Centralized control for CrossFire streak triggers, priority resolutions, first/last kills, and visual FX.";
             ResetButtonText.Text = isChinese ? "恢复默认" : "Reset";
             ToolTipService.SetToolTip(ResetButton, isChinese ? "恢复 CF 默认设置" : "Restore CF defaults");
@@ -80,23 +86,32 @@ namespace KillConfirmGameBar.Controls.GameStyles
             if (StreakTriggerGroupLabel != null)
                 StreakTriggerGroupLabel.Text = isChinese ? "连杀与助攻设置" : "Streak & Assist Triggers";
             if (PrioritiesGroupLabel != null)
-                PrioritiesGroupLabel.Text = isChinese ? "爆头与刀杀提示优先级" : "Priority Policies (Audio & Icon)";
+                PrioritiesGroupLabel.Text = isChinese ? "爆头、刀杀与雷杀提示优先级" : "Priority Policies (Audio & Icon)";
+            PrioritiesHintText.Text = isChinese
+                ? "2 连杀起比较优先级；单杀仍显示、播放对应击杀提示。声音与图标独立设置，首杀／最终击杀也遵循此选择。"
+                : "Priorities apply from 2 kills; single kills keep their event cue. Audio and icons are independent, including first/last kills.";
             if (SpecialKillsGroupLabel != null)
                 SpecialKillsGroupLabel.Text = isChinese ? "首杀与最终击杀" : "Special & First/Last Kills";
 
             StreakEditor.ApplyLanguage(isChinese);
             HeadshotAudioPriorityLabel.Text = isChinese ? "爆头声音" : "Headshot audio";
             KnifeAudioPriorityLabel.Text = isChinese ? "刀杀声音" : "Knife-kill audio";
+            GrenadeAudioPriorityLabel.Text = isChinese ? "雷杀声音" : "Grenade-kill audio";
             HeadshotSpecialPriorityItem.Content = isChinese ? "爆头优先" : "Headshot priority";
             KnifeSpecialPriorityItem.Content = isChinese ? "刀杀优先" : "Knife-kill priority";
+            GrenadeSpecialPriorityItem.Content = isChinese ? "雷杀优先" : "Grenade-kill priority";
             HeadshotStreakPriorityItem.Content = isChinese ? "连杀优先" : "Kill-streak priority";
             KnifeStreakPriorityItem.Content = HeadshotStreakPriorityItem.Content;
+            GrenadeStreakPriorityItem.Content = HeadshotStreakPriorityItem.Content;
             HeadshotIconPriorityLabel.Text = isChinese ? "爆头图标" : "Headshot icon";
             KnifeIconPriorityLabel.Text = isChinese ? "刀杀图标" : "Knife-kill icon";
+            GrenadeIconPriorityLabel.Text = isChinese ? "雷杀图标" : "Grenade-kill icon";
             HeadshotIconSpecialPriorityItem.Content = HeadshotSpecialPriorityItem.Content;
             KnifeIconSpecialPriorityItem.Content = KnifeSpecialPriorityItem.Content;
+            GrenadeIconSpecialPriorityItem.Content = GrenadeSpecialPriorityItem.Content;
             HeadshotIconStreakPriorityItem.Content = HeadshotStreakPriorityItem.Content;
             KnifeIconStreakPriorityItem.Content = HeadshotStreakPriorityItem.Content;
+            GrenadeIconStreakPriorityItem.Content = HeadshotStreakPriorityItem.Content;
             FirstKillAudioLabel.Text = isChinese ? "首杀语音" : "First-kill audio";
             LastKillAudioLabel.Text = isChinese ? "最终击杀语音" : "Last-kill audio";
             FirstKillSpecialItem.Content = isChinese ? "特殊音效（手雷）" : "Special audio (grenade)";
@@ -134,6 +149,11 @@ namespace KillConfirmGameBar.Controls.GameStyles
             return ReadTaggedItem(KnifeAudioPrioritySelector, fallback ? "special" : "streak") == "special";
         }
 
+        public bool GetGrenadeSpecialAudioPriority(bool fallback)
+        {
+            return ReadTaggedItem(GrenadeAudioPrioritySelector, fallback ? "special" : "streak") == "special";
+        }
+
         public bool GetHeadshotSpecialIconPriority(bool fallback)
         {
             return ReadTaggedItem(HeadshotIconPrioritySelector, fallback ? "special" : "streak") == "special";
@@ -142,6 +162,11 @@ namespace KillConfirmGameBar.Controls.GameStyles
         public bool GetKnifeSpecialIconPriority(bool fallback)
         {
             return ReadTaggedItem(KnifeIconPrioritySelector, fallback ? "special" : "streak") == "special";
+        }
+
+        public bool GetGrenadeSpecialIconPriority(bool fallback)
+        {
+            return ReadTaggedItem(GrenadeIconPrioritySelector, fallback ? "special" : "streak") == "special";
         }
 
         public bool GetFirstKillSpecialAudio(bool fallback)
@@ -173,8 +198,10 @@ namespace KillConfirmGameBar.Controls.GameStyles
             string streakMode,
             bool headshotSpecialPriority,
             bool knifeSpecialPriority,
+            bool grenadeSpecialPriority,
             bool headshotIconSpecialPriority,
             bool knifeIconSpecialPriority,
+            bool grenadeIconSpecialPriority,
             bool firstSpecial,
             bool lastSpecial,
             bool firstKillEffectEnabled,
@@ -184,8 +211,10 @@ namespace KillConfirmGameBar.Controls.GameStyles
             StreakEditor.SelectValue(streakMode);
             SelectTaggedItem(HeadshotAudioPrioritySelector, headshotSpecialPriority ? "special" : "streak", "special");
             SelectTaggedItem(KnifeAudioPrioritySelector, knifeSpecialPriority ? "special" : "streak", "special");
+            SelectTaggedItem(GrenadeAudioPrioritySelector, grenadeSpecialPriority ? "special" : "streak", "special");
             SelectTaggedItem(HeadshotIconPrioritySelector, headshotIconSpecialPriority ? "special" : "streak", "streak");
             SelectTaggedItem(KnifeIconPrioritySelector, knifeIconSpecialPriority ? "special" : "streak", "special");
+            SelectTaggedItem(GrenadeIconPrioritySelector, grenadeIconSpecialPriority ? "special" : "streak", "special");
             SelectTaggedItem(FirstKillAudioSelector, firstSpecial ? "special" : "original", "original");
             SelectTaggedItem(LastKillAudioSelector, lastSpecial ? "special" : "original", "original");
             FirstKillEffectToggle.IsOn = firstKillEffectEnabled;
@@ -208,6 +237,11 @@ namespace KillConfirmGameBar.Controls.GameStyles
             KnifeAudioPrioritySelectionChanged?.Invoke(this, e);
         }
 
+        private void OnGrenadeAudioPrioritySelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            GrenadeAudioPrioritySelectionChanged?.Invoke(this, e);
+        }
+
         private void OnHeadshotIconPrioritySelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             HeadshotIconPrioritySelectionChanged?.Invoke(this, e);
@@ -216,6 +250,11 @@ namespace KillConfirmGameBar.Controls.GameStyles
         private void OnKnifeIconPrioritySelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             KnifeIconPrioritySelectionChanged?.Invoke(this, e);
+        }
+
+        private void OnGrenadeIconPrioritySelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            GrenadeIconPrioritySelectionChanged?.Invoke(this, e);
         }
 
         private void OnFirstKillAudioSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -282,8 +321,10 @@ namespace KillConfirmGameBar.Controls.GameStyles
             StreakEditor.SelectValue(SharedStreakSettingsStore.LifeMode);
             SelectTaggedItem(HeadshotAudioPrioritySelector, "special", "special");
             SelectTaggedItem(KnifeAudioPrioritySelector, "special", "special");
+            SelectTaggedItem(GrenadeAudioPrioritySelector, "special", "special");
             SelectTaggedItem(HeadshotIconPrioritySelector, "special", "special");
             SelectTaggedItem(KnifeIconPrioritySelector, "special", "special");
+            SelectTaggedItem(GrenadeIconPrioritySelector, "special", "special");
             SelectTaggedItem(FirstKillAudioSelector, "special", "special");
             SelectTaggedItem(LastKillAudioSelector, "special", "special");
             FirstKillEffectToggle.IsOn = true;
@@ -294,8 +335,10 @@ namespace KillConfirmGameBar.Controls.GameStyles
             StreakModeSelectionChanged?.Invoke(StreakEditor.SelectorControl, null);
             HeadshotAudioPrioritySelectionChanged?.Invoke(HeadshotAudioPrioritySelector, null);
             KnifeAudioPrioritySelectionChanged?.Invoke(KnifeAudioPrioritySelector, null);
+            GrenadeAudioPrioritySelectionChanged?.Invoke(GrenadeAudioPrioritySelector, null);
             HeadshotIconPrioritySelectionChanged?.Invoke(HeadshotIconPrioritySelector, null);
             KnifeIconPrioritySelectionChanged?.Invoke(KnifeIconPrioritySelector, null);
+            GrenadeIconPrioritySelectionChanged?.Invoke(GrenadeIconPrioritySelector, null);
             FirstKillAudioSelectionChanged?.Invoke(FirstKillAudioSelector, null);
             LastKillAudioSelectionChanged?.Invoke(LastKillAudioSelector, null);
             FirstKillEffectToggled?.Invoke(FirstKillEffectToggle, null);

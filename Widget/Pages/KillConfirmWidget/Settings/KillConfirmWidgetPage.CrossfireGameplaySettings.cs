@@ -45,8 +45,10 @@ namespace KillConfirmGameBar
                     settings.StreakMode,
                     settings.HeadshotSpecialAudioPriority,
                     settings.KnifeSpecialAudioPriority,
+                    settings.GrenadeSpecialAudioPriority,
                     settings.HeadshotSpecialIconPriority,
                     settings.KnifeSpecialIconPriority,
+                    settings.GrenadeSpecialIconPriority,
                     settings.FirstKillSpecialAudio,
                     settings.LastKillSpecialAudio,
                     settings.FirstKillEffectEnabled,
@@ -75,8 +77,10 @@ namespace KillConfirmGameBar
                 StreakMode = panel.GetSelectedStreakMode(fallback.StreakMode),
                 HeadshotSpecialAudioPriority = panel.GetHeadshotSpecialAudioPriority(fallback.HeadshotSpecialAudioPriority),
                 KnifeSpecialAudioPriority = panel.GetKnifeSpecialAudioPriority(fallback.KnifeSpecialAudioPriority),
+                GrenadeSpecialAudioPriority = panel.GetGrenadeSpecialAudioPriority(fallback.GrenadeSpecialAudioPriority),
                 HeadshotSpecialIconPriority = panel.GetHeadshotSpecialIconPriority(fallback.HeadshotSpecialIconPriority),
                 KnifeSpecialIconPriority = panel.GetKnifeSpecialIconPriority(fallback.KnifeSpecialIconPriority),
+                GrenadeSpecialIconPriority = panel.GetGrenadeSpecialIconPriority(fallback.GrenadeSpecialIconPriority),
                 FirstKillSpecialAudio = panel.GetFirstKillSpecialAudio(fallback.FirstKillSpecialAudio),
                 LastKillSpecialAudio = panel.GetLastKillSpecialAudio(fallback.LastKillSpecialAudio),
                 FirstKillEffectEnabled = panel.GetFirstKillEffectEnabled(fallback.FirstKillEffectEnabled),
@@ -88,30 +92,8 @@ namespace KillConfirmGameBar
         private async Task SyncCrossfireGameplaySettingsAsync()
         {
             CrossfireGameplaySettingsValues settings = CrossfireGameplaySettingsStore.Load();
-            if (_crossfireAdvancedEffectsPanel != null)
-            {
-                settings.StreakMode = _crossfireAdvancedEffectsPanel.GetSelectedStreakMode(settings.StreakMode);
-                settings.HeadshotSpecialAudioPriority = _crossfireAdvancedEffectsPanel.GetHeadshotSpecialAudioPriority(
-                    settings.HeadshotSpecialAudioPriority);
-                settings.KnifeSpecialAudioPriority = _crossfireAdvancedEffectsPanel.GetKnifeSpecialAudioPriority(
-                    settings.KnifeSpecialAudioPriority);
-                settings.HeadshotSpecialIconPriority = _crossfireAdvancedEffectsPanel.GetHeadshotSpecialIconPriority(
-                    settings.HeadshotSpecialIconPriority);
-                settings.KnifeSpecialIconPriority = _crossfireAdvancedEffectsPanel.GetKnifeSpecialIconPriority(
-                    settings.KnifeSpecialIconPriority);
-                settings.FirstKillSpecialAudio = _crossfireAdvancedEffectsPanel.GetFirstKillSpecialAudio(
-                    settings.FirstKillSpecialAudio);
-                settings.LastKillSpecialAudio = _crossfireAdvancedEffectsPanel.GetLastKillSpecialAudio(
-                    settings.LastKillSpecialAudio);
-                settings.FirstKillEffectEnabled = _crossfireAdvancedEffectsPanel.GetFirstKillEffectEnabled(
-                    settings.FirstKillEffectEnabled);
-                settings.LastKillEffectEnabled = _crossfireAdvancedEffectsPanel.GetLastKillEffectEnabled(
-                    settings.LastKillEffectEnabled);
-                settings.AssistAudioEnabled = _crossfireAdvancedEffectsPanel.GetAssistAudioEnabled(
-                    settings.AssistAudioEnabled);
-            }
-
-            CrossfireGameplaySettingsStore.Save(settings);
+            // Persisted settings are authoritative; another window may have changed
+            // them while this panel was closed. Never write stale controls back here.
             try
             {
                 var request = new JsonObject
@@ -127,6 +109,8 @@ namespace KillConfirmGameBar
                         settings.HeadshotSpecialAudioPriority),
                     ["knife_special_audio_priority"] = JsonValue.CreateBooleanValue(
                         settings.KnifeSpecialAudioPriority),
+                    ["grenade_special_audio_priority"] = JsonValue.CreateBooleanValue(
+                        settings.GrenadeSpecialAudioPriority),
                     ["assist_audio_enabled"] = JsonValue.CreateBooleanValue(
                         settings.AssistAudioEnabled)
                 };

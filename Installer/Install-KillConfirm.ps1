@@ -12,6 +12,10 @@
 )
 
 $ErrorActionPreference = "Stop"
+# Inno Setup decodes redirected stdout/stderr as UTF-8, including Chinese and
+# result symbols. Suppress console progress records; stages are logged below.
+$ProgressPreference = "SilentlyContinue"
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 
 $ScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $OverlayRoot = Join-Path $ScriptRoot "OverlayPackage"
@@ -235,7 +239,7 @@ finally {
     }
     catch {
         Write-InstallLog "Failed to show the installation summary: $($_.Exception.Message)"
-        Write-Host "安装流程已经执行完毕，但诊断窗口显示失败。完整日志：$LogPath"
+        Write-Host "安装流程已经执行完毕，但诊断报告生成失败。完整日志：$LogPath"
     }
 }
 

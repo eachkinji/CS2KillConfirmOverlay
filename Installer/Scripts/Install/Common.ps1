@@ -205,7 +205,7 @@ function Write-InstallLog {
     catch {
         Write-Host "[Log write failed: $($_.Exception.Message)]"
     }
-    Write-Host $Message
+    Write-Host $line
 }
 
 function Write-InstallStage {

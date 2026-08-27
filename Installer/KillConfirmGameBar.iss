@@ -2,7 +2,7 @@
 #define MyAppExeName "Install-KillConfirm.ps1"
 
 #ifndef MyAppVersion
-  #define MyAppVersion "4.4.3.0"
+  #define MyAppVersion "4.4.4.0"
 #endif
 
 #ifndef TransferRoot
@@ -59,10 +59,14 @@ english.InstallerDisplayName=Kill Confirm Overlay Setup Manager
 chinesesimplified.InstallerDisplayName=Kill Confirm Overlay 安装管理器
 english.ControlPanelShortcutName=Kill Confirm Overlay Control Panel
 chinesesimplified.ControlPanelShortcutName=Kill Confirm Overlay 控制面板
-english.InstallingOverlay=Installing Kill Confirm Overlay; follow the installation progress window that just opened...
-chinesesimplified.InstallingOverlay=正在安装 Kill Confirm Overlay；请查看已打开的安装进度窗口...
-english.CheckingPrerequisites=Checking and installing required components; follow the installation progress window and leave it open...
-chinesesimplified.CheckingPrerequisites=正在检测并安装必要组件；请查看已打开的安装进度窗口，耗时较长时请勿关闭...
+english.InstallingOverlay=Installing Kill Confirm Overlay; live installation details appear below...
+chinesesimplified.InstallingOverlay=正在安装 Kill Confirm Overlay；下方显示实时安装日志...
+english.CheckingPrerequisites=Checking and installing required components; see the live log below and keep this window open...
+chinesesimplified.CheckingPrerequisites=正在检测并安装必要组件；下方显示实时日志，耗时较长时请勿关闭...
+english.InstallLogStarting=Starting the installation script. Waiting for output...
+chinesesimplified.InstallLogStarting=正在启动安装脚本，等待日志输出...
+english.InstallLogReadFailed=Live output could not be read. The installation result and full diagnostic log will still be available after the script finishes.
+chinesesimplified.InstallLogReadFailed=实时日志读取中断；脚本结束后仍可查看安装结果及完整诊断日志。
 english.InstallScriptLaunchFailed=Could not start the installer script. Setup will remain open so you can review this problem.
 chinesesimplified.InstallScriptLaunchFailed=无法启动安装脚本。安装管理器不会中止，请记录此问题后继续查看完成页面。
 english.InstallScriptFailed=The installer script reported an unexpected exit code. Setup will not abort. Exit code:
@@ -103,8 +107,8 @@ english.AcknowledgedButtonText=Understood
 chinesesimplified.AcknowledgedButtonText=已确认
 english.AcknowledgeRequiredText=Please click "I understand" before starting the installation.
 chinesesimplified.AcknowledgeRequiredText=请先点击“我清楚了”，然后才能开始安装。
-english.FinishedGameBarText=The installation pass is complete. Use the diagnostic window as the final result. If the main app is marked successful, press Win+G to use it.
-chinesesimplified.FinishedGameBarText=安装流程已执行完毕，请以诊断窗口为最终结果。主程序显示 ✅ 后，可按 Win+G 使用插件。
+english.FinishedGameBarText=The installation pass is complete. Refer to the installation result and log. If the main app is marked successful, press Win+G to use it.
+chinesesimplified.FinishedGameBarText=安装流程已执行完毕，请以安装结果及日志为准。主程序显示 ✅ 后，可按 Win+G 使用插件。
 english.FinishedTutorialText=Need help? Click here to view the tutorial.
 chinesesimplified.FinishedTutorialText=如有不懂，请点击这里查看教程。
 english.FinishedPinWarningText=Important: turn off click-through mode and pin the widget window before use.
@@ -126,6 +130,8 @@ Source: "Assets\GameBarPinGuide.png"; Flags: dontcopy
 Filename: "{sys}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -Command ""Get-Process -Name cskillconfirm,TestXboxGameBar,KillConfirmOverlay,KillConfirmGameBar,GameBar,GameBarFTServer,GameBarPresenceWriter -ErrorAction SilentlyContinue | Stop-Process -Force; Start-Sleep -Milliseconds 800; $p = Get-AppxPackage -Name KillConfirmGameBar.Overlay -ErrorAction SilentlyContinue | Sort-Object Version -Descending | Select-Object -First 1; if ($p) {{ CheckNetIsolation.exe LoopbackExempt -d \""-n=$($p.PackageFamilyName)\"" 2>$null; $p | Remove-AppxPackage -ErrorAction SilentlyContinue }"""; Flags: runhidden waituntilterminated; RunOnceId: "RemoveAppxPackage"
 
 [Code]
+#include "Scripts\Setup\InstallLog.iss"
+
 var
   InstallConfirmPage: TWizardPage;
   InstallConfirmButton: TNewButton;
@@ -182,6 +188,7 @@ var
   BeginnerLabel: TNewStaticText;
   TutorialLink: TNewStaticText;
 begin
+  InitializeInstallLog();
   InstallConfirmed := False;
   InstallConfirmPage := CreateCustomPage(
     wpReady,
@@ -349,10 +356,10 @@ begin
     WizardForm.StatusLabel.Caption := ExpandConstant('{cm:CheckingPrerequisites}');
 #endif
     // Keep long-running prerequisite/MSIX work inside the setup progress page.
-    // PowerShell runs hidden while the native setup progress bar shows that
-    // installation is still active.
+    // Stream the hidden PowerShell process into the embedded log control.
     WizardForm.ProgressGauge.Style := npbstMarquee;
-    Params := '-NoProfile -ExecutionPolicy Bypass -File "' +
+    BeginInstallLog();
+    Params := '-NoProfile -NonInteractive -ExecutionPolicy Bypass -OutputFormat Text -File "' +
       ExpandConstant('{app}\Payload\Install-KillConfirm.ps1') + '"' +
       ' -InstallerVariant "{#InstallerVariant}"' +
       ' -InstallerVersion "{#MyAppVersion}"' +
@@ -363,8 +370,9 @@ begin
     Params := Params + ' -InstallPrerequisites -PrerequisitesConfirmed';
 #endif
 
-    if not Exec(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'), Params, ExpandConstant('{app}\Payload'), SW_HIDE, ewWaitUntilTerminated, ResultCode) then
+    if not ExecInstallWithLog(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'), Params, ExpandConstant('{app}\Payload'), ResultCode) then
     begin
+      AppendInstallLog(ExpandConstant('{cm:InstallScriptLaunchFailed}'));
       PromptText := ExpandConstant('{cm:InstallScriptLaunchFailed}') + #13#10 + #13#10 + ExpandConstant('{cm:OpenInstallLogQuestion}');
       if MsgBox(PromptText, mbError, MB_YESNO) = IDYES then
       begin
@@ -378,6 +386,7 @@ begin
 
     if ResultCode <> 0 then
     begin
+      AppendInstallLog(ExpandConstant('{cm:InstallScriptFailed}') + ' ' + IntToStr(ResultCode));
       PromptText := ExpandConstant('{cm:InstallScriptFailed}') + ' ' + IntToStr(ResultCode) + #13#10 + #13#10 + ExpandConstant('{cm:OpenInstallLogQuestion}');
       if MsgBox(PromptText, mbError, MB_YESNO) = IDYES then
       begin
@@ -411,6 +420,7 @@ begin
       PromptType := mbInformation;
     end;
 
+    AppendInstallLog(PromptText);
     PromptText := PromptText + #13#10 + #13#10 + ExpandConstant('{cm:OpenInstallLogQuestion}');
     if MsgBox(PromptText, PromptType, MB_YESNO) = IDYES then
     begin

@@ -74,6 +74,7 @@ function Write-AppxFailureDetails {
     Write-InstallLog ("Install failed: {0}" -f $ErrorRecord.Exception.Message)
     $details = ($ErrorRecord | Format-List * -Force | Out-String)
     Add-Content -LiteralPath $LogPath -Value $details -Encoding UTF8
+    Write-Host $details
 
     $activityId = $null
     if ($ErrorRecord.Exception -and $ErrorRecord.Exception.ActivityId) {
@@ -85,6 +86,7 @@ function Write-AppxFailureDetails {
             Write-InstallLog "AppX deployment activity id: $activityId"
             $activityLog = Get-AppPackageLog -ActivityID $activityId -ErrorAction Stop | Out-String
             Add-Content -LiteralPath $LogPath -Value $activityLog -Encoding UTF8
+            Write-Host $activityLog
         }
         catch {
             Write-InstallLog "Could not read AppX activity log: $($_.Exception.Message)"
@@ -97,6 +99,7 @@ function Write-AppxFailureDetails {
             Format-List |
             Out-String
         Add-Content -LiteralPath $LogPath -Value $events -Encoding UTF8
+        Write-Host $events
     }
     catch {
         Write-InstallLog "Could not read AppX deployment event log: $($_.Exception.Message)"

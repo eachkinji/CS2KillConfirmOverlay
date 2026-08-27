@@ -103,6 +103,7 @@ pub fn detect_bomb_planted_action(
 
 pub fn detect_bomb_defused_action(
     player_team: Option<&TeamClass>,
+    mode: &gsi_cs2::map::Mode,
     previous_round_bomb: Option<&str>,
     current_round_bomb: Option<&str>,
     previous_player_money: Option<u32>,
@@ -123,7 +124,8 @@ pub fn detect_bomb_defused_action(
     let money_delta = previous_player_money
         .map(|prev| current_player_money.saturating_sub(prev))
         .unwrap_or(0);
-    let is_local_defuse = is_ct && (money_delta == 300 || is_spectated_defuse);
+    let expected_reward = u32::from(money_rules::bomb_objective_reward(mode));
+    let is_local_defuse = is_ct && money_delta == expected_reward;
 
     is_spectated_defuse || is_local_defuse
 }
@@ -168,13 +170,90 @@ fn resolve_weapon_kill_context<'a>(
         return Some(current);
     }
 
-    let previous = previous_active.filter(|weapon| !weapon.is_knife)?;
+    let Some(previous) = previous_active.filter(|weapon| !weapon.is_knife) else {
+        return Some(current);
+    };
     let fired_before_switching = previous_ammo
         .get(&previous.inventory_key)
         .zip(current_ammo.get(&previous.inventory_key))
         .map(|(before, after)| after < before)
         .unwrap_or(false);
     fired_before_switching.then_some(previous).or(Some(current))
+}
+
+fn resolve_grenade_kill(
+    weapon: Option<&WeaponKillContext>,
+    grenade: Option<&ActiveGrenadeTracker>,
+    is_headshot: bool,
+    previous_money: Option<u32>,
+    current_money: u32,
+    now: Instant,
+) -> bool {
+    // A thrown grenade can kill after the player switches to a knife. Holding
+    // the knife is not evidence that it dealt the damage. Its distinct personal
+    // reward (including Casual's reward) does disambiguate a real knife kill.
+    // With capped/missing/coalesced money, this is still a throw-window inference;
+    // the GSI player snapshot does not identify the weapon for each victim.
+    let knife_reward_received = weapon.filter(|weapon| weapon.is_knife).is_some_and(|weapon| {
+        previous_money.is_some_and(|previous| {
+            current_money.checked_sub(previous) == Some(u32::from(weapon.money_reward))
+        })
+    });
+    !is_headshot
+        && !knife_reward_received
+        && grenade.is_some_and(|tracker| {
+            now.saturating_duration_since(tracker.thrown_at) <= Duration::from_secs(10)
+        })
+}
+
+#[derive(Debug)]
+struct KillWeaponFeedback {
+    is_knife_kill: bool,
+    is_grenade_kill: bool,
+    weapon_badge_key: Option<String>,
+    weapon_name: Option<String>,
+    rule_money_reward: u16,
+}
+
+fn resolve_kill_weapon_feedback(
+    weapon: Option<&WeaponKillContext>,
+    grenade: Option<&ActiveGrenadeTracker>,
+    is_headshot: bool,
+    previous_money: Option<u32>,
+    current_money: u32,
+    mode: &gsi_cs2::map::Mode,
+    now: Instant,
+) -> KillWeaponFeedback {
+    let is_grenade_kill = resolve_grenade_kill(
+        weapon, grenade, is_headshot, previous_money, current_money, now,
+    );
+    KillWeaponFeedback {
+        is_knife_kill: !is_grenade_kill && weapon.is_some_and(|weapon| weapon.is_knife),
+        is_grenade_kill,
+        weapon_badge_key: if is_grenade_kill {
+            Some("grenade".to_string())
+        } else {
+            weapon.and_then(|weapon| weapon.badge_key.clone())
+        },
+        weapon_name: if is_grenade_kill {
+            grenade.map(|tracker| tracker.weapon_name.clone())
+        } else {
+            weapon.map(|weapon| weapon.name.clone())
+        },
+        rule_money_reward: if is_grenade_kill {
+            money_rules::weapon_kill_reward(&WeaponName::HEGrenade, mode)
+        } else {
+            weapon.map(|weapon| weapon.money_reward).unwrap_or(300)
+        },
+    }
+}
+
+fn consume_grenade_after_kill(grenade: &mut Option<ActiveGrenadeTracker>) {
+    // Fire can produce kills in separate GSI samples. It still expires or clears
+    // on firing, death, round changes and observed-player switches in update.rs.
+    if !grenade.as_ref().is_some_and(|tracker| tracker.is_fire) {
+        *grenade = None;
+    }
 }
 
 fn pending_last_kill_is_confirmable(pending: Option<&PendingLastKill>) -> bool {

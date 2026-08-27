@@ -363,12 +363,14 @@ namespace KillConfirmGameBar.Controls
                     return importedEliteKnife;
                 }
 
-                return await LoadCodeKillBitmapAsync(defaultMainFileName, mainFolder, alternatePackFolder, true);
+                return await LoadCodeKillBitmapAsync(defaultMainFileName, mainFolder, alternatePackFolder, true,
+                    allowGenericKillFallback: false);
             }
 
             // Missing event-specific art may use the original pack's matching
             // icon, but must never masquerade as an ordinary single kill.
-            bool allowGenericKillFallback = !string.Equals(assetName, "grenade", StringComparison.OrdinalIgnoreCase)
+            bool allowGenericKillFallback = !string.Equals(assetName, "knife", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(assetName, "grenade", StringComparison.OrdinalIgnoreCase)
                 && !string.Equals(assetName, "c4", StringComparison.OrdinalIgnoreCase)
                 && !string.Equals(assetName, "bomb_plant", StringComparison.OrdinalIgnoreCase)
                 && !string.Equals(assetName, "c4defuse", StringComparison.OrdinalIgnoreCase)

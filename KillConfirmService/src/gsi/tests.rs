@@ -11,6 +11,7 @@ mod tests {
         resolve_weapon_kill_context, should_emit_player_kill, should_reset_stored_streak,
     };
     use crate::state::PendingLastKill;
+    use gsi_cs2::map::Mode;
     use gsi_cs2::round::BombState;
     use gsi_cs2::team::TeamClass;
     use gsi_cs2::weapon::{WeaponName, WeaponType};
@@ -102,6 +103,16 @@ mod tests {
             resolve_weapon_kill_context(None, Some(&gun), &previous_ammo, &fired_ammo),
             None
         );
+        // Ordinary knife kills keep the knife active across several GSI samples.
+        for previous in [Some(&knife), None] {
+            assert_eq!(
+                resolve_weapon_kill_context(
+                    Some(&knife), previous, &unchanged_ammo, &unchanged_ammo,
+                ),
+                Some(&knife),
+                "Holding the knife must not erase the kill's weapon context"
+            );
+        }
         assert!(is_knife_weapon(None, &WeaponName::KnifeKarambit));
         assert!(is_knife_weapon(Some(&WeaponType::Knife), &WeaponName::AK47));
         assert!(!is_knife_weapon(None, &WeaponName::AK47));
@@ -508,6 +519,7 @@ mod tests {
         // 1. Local CT player gets 300 money reward on defusal -> true!
         assert!(detect_bomb_defused_action(
             Some(&TeamClass::CT),
+            &Mode::Competitive,
             Some("planted"),
             Some("defused"),
             Some(1000),
@@ -519,6 +531,7 @@ mod tests {
         // 2. Local T player during defuse (T lost) -> false!
         assert!(!detect_bomb_defused_action(
             Some(&TeamClass::T),
+            &Mode::Competitive,
             Some("planted"),
             Some("defused"),
             Some(1000),
@@ -530,12 +543,21 @@ mod tests {
         // 3. CT teammate defused (local CT did not get 300 instant reward) -> false!
         assert!(!detect_bomb_defused_action(
             Some(&TeamClass::CT),
+            &Mode::Competitive,
             Some("planted"),
             Some("defused"),
             Some(1000),
             1000,
             None,
             "76561198000000000"
+        ));
+    }
+
+    #[test]
+    fn casual_defuse_accepts_the_200_personal_reward() {
+        assert!(detect_bomb_defused_action(
+            Some(&TeamClass::CT), &Mode::Casual, Some("planted"), Some("defused"),
+            Some(1000), 1200, None, "76561198000000000"
         ));
     }
 }

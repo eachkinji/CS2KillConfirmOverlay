@@ -32,3 +32,5 @@ include!("tests.rs");
 include!("time.rs");
 include!("sanitizer_tests.rs");
 include!("bomb_tests.rs");
+#[cfg(test)]
+mod combat_feedback_tests;

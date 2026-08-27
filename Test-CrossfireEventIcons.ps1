@@ -1,6 +1,7 @@
 param(
     [string]$BundlePath = '',
-    [object]$PackageArchive = $null
+    [object]$PackageArchive = $null,
+    [string]$GsiEventsPath = ''
 )
 
 $ErrorActionPreference = 'Stop'
@@ -14,6 +15,7 @@ $routingSource = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/
 $animationSource = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Pages/KillConfirmWidget/Animation/KillConfirmWidgetPage.Animation.cs')
 $styleSource = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Services/Styling/GameStyleService.cs')
 $eventSource = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Services/Runtime/KillEventModels.cs')
+$eventClientSource = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Services/Runtime/KillEventClient.cs')
 $settingsSource = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Services/Settings/Games/CrossfireGameplaySettingsStore.cs')
 $settingsModel = [regex]::Match($settingsSource, '(?ms)^    internal sealed class CrossfireGameplaySettingsValues\r?\n.*?^    \}').Value
 $settingsStore = [regex]::Match($settingsSource, '(?ms)^    internal static class CrossfireGameplaySettingsStore\r?\n.*?^    \}').Value
@@ -36,6 +38,8 @@ $methods = @(
     Get-LoaderMethod $routingSource 'CanStyleConsumeEvent'
     Get-LoaderMethod $routingSource 'ResolveCrossfirePrimaryAnimationKey'
     Get-LoaderMethod $animationSource 'IsEconomyPresentationStyle'
+    Get-LoaderMethod $eventClientSource 'ParseKillEvent'
+    Get-LoaderMethod $eventClientSource 'ToUInt64'
 )
 # The overload without arguments comes first; include the pack-key overload too.
 $folderOverload = [regex]::Match($overlaySource, '(?ms)^        private static string GetIconPackFolder\(string iconPack\).*?^        \}').Value
@@ -48,6 +52,18 @@ using System.IO;
 using System.Threading.Tasks;
 public static class CrossfireIconRegressionChecks
 {
+    // Platform JSON access shim; the real wire-event parser is compiled below.
+    private sealed class JsonObject
+    {
+        private readonly IDictionary<string, object> values;
+        public JsonObject(IDictionary<string, object> values) { this.values = values; }
+        public bool GetNamedBoolean(string key, bool fallback)
+        { object value; return values.TryGetValue(key, out value) ? Convert.ToBoolean(value) : fallback; }
+        public string GetNamedString(string key, string fallback)
+        { object value; return values.TryGetValue(key, out value) ? Convert.ToString(value) : fallback; }
+        public double GetNamedNumber(string key, double fallback)
+        { object value; return values.TryGetValue(key, out value) ? Convert.ToDouble(value) : fallback; }
+    }
     // In-memory platform storage; production Load/Save code is compiled below.
     private static class ApplicationData
     {
@@ -106,6 +122,31 @@ public static class CrossfireIconRegressionChecks
     private static void Check(bool condition, string message)
     {
         if (!condition) throw new Exception(message);
+    }
+    public static int RunDetectedEvent(IDictionary<string, object> payload, string expectedKind)
+    {
+        KillEvent ev = ParseKillEvent(new JsonObject(payload));
+        Check(ev.IsKnifeKill == (expectedKind == "knife")
+            && ev.IsGrenadeKill == (expectedKind == "grenade"), "Detected kill flags lost on the wire.");
+        Check(ev.PlayMainAnimation && CanStyleConsumeEvent(GameStyleMode.Crossfire, ev),
+            "Detected kill cannot reach the primary animation.");
+        for (int choices = 0; choices < 16; choices++)
+        {
+            CrossfireGameplaySettingsStore.Save(new CrossfireGameplaySettingsValues {
+                KnifeSpecialAudioPriority = (choices & 1) != 0,
+                KnifeSpecialIconPriority = (choices & 2) != 0,
+                GrenadeSpecialAudioPriority = (choices & 4) != 0,
+                GrenadeSpecialIconPriority = (choices & 8) != 0,
+                FirstKillEffectEnabled = true, LastKillEffectEnabled = true
+            });
+            var settings = CrossfireGameplaySettingsStore.Load();
+            bool special = ev.KillCount == 1 || (expectedKind == "knife"
+                ? settings.KnifeSpecialIconPriority : settings.GrenadeSpecialIconPriority);
+            string expected = special ? expectedKind : "multi" + Math.Min(6, ev.KillCount);
+            Check(ResolveCrossfirePrimaryAnimationKey(ev, settings) == expected,
+                "Detected event ignored icon priority: " + expectedKind + "/" + ev.KillCount + "/" + choices);
+        }
+        return 16;
     }
     public static string Run()
     {
@@ -175,7 +216,7 @@ public static class CrossfireIconRegressionChecks
         Check(CanStyleConsumeEvent(GameStyleMode.Battlefield1, new KillEvent {
             EventChannel = "economy", EventKind = "bomb_plant" }), "Battlefield objective disabled.");
         var events = new Dictionary<string, string> {
-            { "grenade", "badge_grenade.png" }, { "c4", "badge_c4.png" },
+            { "knife", "badge_knife.png" }, { "grenade", "badge_grenade.png" }, { "c4", "badge_c4.png" },
             { "bomb_plant", "badge_c4.png" }, { "c4defuse", "badge_c4defuse.png" },
             { "bomb_defuse", "badge_c4defuse.png" }
         };
@@ -191,8 +232,9 @@ public static class CrossfireIconRegressionChecks
         {
             _iconPack = pack.Key;
             Available.Clear();
-            string original = Uri("Original", item.Value);
-            string selected = pack.Value == "import" ? "import:" + item.Value : Uri(pack.Value, item.Value);
+            string original = Uri(item.Key == "knife" ? "Knife" : "Original", item.Value);
+            string selected = pack.Key == "default" && item.Key == "knife" ? original
+                : pack.Value == "import" ? "import:" + item.Value : Uri(pack.Value, item.Value);
             Available.Add(original);
             Available.Add(selected);
             Check(Resolve(item.Key, item.Value).Path == selected, "Selected pack ignored: " + pack.Key + "/" + item.Key);
@@ -209,6 +251,23 @@ public static class CrossfireIconRegressionChecks
         _iconPack = "default";
         Check(LoadMainCodeKillBitmapAsync("multi2", "badge_multi2.png", "badge_multi2.png", "Original", "AngelicBeast")
             .GetAwaiter().GetResult().Path == Uri("Original", "badge_multi1.PNG"), "Ordinary kill fallback changed.");
+        _iconPack = "custom_icon_test";
+        Available.Clear();
+        Available.Add(Uri("Knife", "badge_knife.png"));
+        Check(LoadMainCodeKillBitmapAsync("knife", "badge_knife.png", "badge_knife_2.png", "Knife", "Knife")
+            .GetAwaiter().GetResult().Path == Uri("Knife", "badge_knife.png"), "Missing imported elite knife lost the built-in knife.");
+        Available.Add("import:badge_knife.png");
+        Check(LoadMainCodeKillBitmapAsync("knife", "badge_knife.png", "badge_knife_2.png", "Knife", "Knife")
+            .GetAwaiter().GetResult().Path == "import:badge_knife.png", "Imported regular knife fallback ignored.");
+        Available.Add("import:badge_knife_2.png");
+        Check(LoadMainCodeKillBitmapAsync("knife", "badge_knife.png", "badge_knife_2.png", "Knife", "Knife")
+            .GetAwaiter().GetResult().Path == "import:badge_knife_2.png", "Imported elite knife ignored.");
+        Available.Clear();
+        Available.Add(Uri("Original", "badge_multi1.PNG"));
+        bool eliteRejected = false;
+        try { LoadMainCodeKillBitmapAsync("knife", "badge_knife.png", "badge_knife_2.png", "Knife", "Knife").GetAwaiter().GetResult(); }
+        catch (FileNotFoundException) { eliteRejected = true; }
+        Check(eliteRejected, "Missing elite knife masqueraded as an ordinary kill.");
         return "PASS: " + priorityCases + " persisted audio/icon priority cases; " + count + " event/pack combinations, selected icons, matching-original fallback, missing-event rejection and CF/CSOL objective filtering.";
     }
 __METHODS__
@@ -219,8 +278,20 @@ if ($PSVersionTable.PSVersion.Major -ge 7) {
         Add-Type -TypeDefinition $harness.Replace('__METHODS__', (($constants + $methods + $folderOverload + $styleEnum + $eventModel + $eventChannels + $settingsModel + $settingsStore) -join "`n"))
     }
     [CrossfireIconRegressionChecks]::Run()
+    if ($GsiEventsPath) {
+        $fixtures = @(Get-Content -Raw -LiteralPath $GsiEventsPath | ConvertFrom-Json -AsHashtable)
+        if (-not $fixtures.Count) { throw 'No detected GSI events to verify.' }
+        $checked = 0
+        foreach ($fixture in $fixtures) {
+            $payload = [Collections.Generic.Dictionary[string, object]]::new()
+            foreach ($key in $fixture.event.Keys) { $payload[$key] = $fixture.event[$key] }
+            $checked += [CrossfireIconRegressionChecks]::RunDetectedEvent($payload, $fixture.expected_kind)
+        }
+        "PASS: $checked icon choices using $($fixtures.Count) detected Rust kill events and the production wire parser."
+    }
 }
 else {
+    if ($GsiEventsPath) { throw 'Detected GSI event checks require PowerShell 7.' }
     # Windows PowerShell's legacy compiler cannot compile the app's C# syntax.
     # The packaging guard below remains usable by the existing PS 5.1 installer builds.
     Write-Warning 'Loader regression checks require PowerShell 7; source/package asset checks will still run.'

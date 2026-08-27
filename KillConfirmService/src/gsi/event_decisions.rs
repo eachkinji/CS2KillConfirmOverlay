@@ -24,6 +24,7 @@
 
         let is_defuse = detect_bomb_defused_action(
             player_team,
+            current_mode,
             previous_round_bomb_state.as_deref(),
             current_round_bomb_state.as_deref(),
             previous_player_money,
@@ -73,37 +74,26 @@
             &previous_weapon_ammo,
             &current_weapon_ammo,
         );
-        let is_knife_kill = weapon_context
-            .map(|weapon| weapon.is_knife)
-            .unwrap_or(false);
-        let is_grenade_kill = if !is_headshot && !is_knife_kill {
-            current_active_grenade.as_ref().is_some_and(|tracker| {
-                now.saturating_duration_since(tracker.thrown_at) <= Duration::from_secs(10)
-            })
-        } else {
-            false
-        };
-
-        let weapon_badge_key = if is_grenade_kill {
-            Some("grenade".to_string())
-        } else {
-            weapon_context.and_then(|weapon| weapon.badge_key.clone())
-        };
-        let weapon_name = if is_grenade_kill {
-            current_active_grenade
-                .as_ref()
-                .map(|tracker| tracker.weapon_name.clone())
-        } else {
-            weapon_context.map(|weapon| weapon.name.clone())
-        };
+        let KillWeaponFeedback {
+            is_knife_kill,
+            is_grenade_kill,
+            weapon_badge_key,
+            weapon_name,
+            rule_money_reward,
+        } = resolve_kill_weapon_feedback(
+            weapon_context,
+            current_active_grenade.as_ref(),
+            is_headshot,
+            previous_player_money_for_delta,
+            current_player_money,
+            current_mode,
+            now,
+        );
 
         if is_grenade_kill {
-            current_active_grenade = None;
+            consume_grenade_after_kill(&mut current_active_grenade);
         }
 
-        let rule_money_reward = weapon_context
-            .map(|weapon| weapon.money_reward)
-            .unwrap_or(300);
         let money_reward = match money_reward_mode {
             MoneyRewardMode::Delta => money_delta::kill_reward(
                 previous_player_money_for_delta,

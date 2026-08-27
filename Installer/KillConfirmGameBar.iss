@@ -2,7 +2,7 @@
 #define MyAppExeName "Install-KillConfirm.ps1"
 
 #ifndef MyAppVersion
-  #define MyAppVersion "4.4.5.0"
+  #define MyAppVersion "4.4.6.0"
 #endif
 
 #ifndef TransferRoot

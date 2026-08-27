@@ -23,13 +23,10 @@ namespace KillConfirmGameBar.Controls
                 return;
             }
 
-            item.WeaponText = item.IsAssist || string.IsNullOrWhiteSpace(item.WeaponName)
-                ? string.Empty
-                : "[" + item.WeaponName + "] ";
+            item.WeaponText = item.EventLabel
+                + (string.IsNullOrWhiteSpace(item.WeaponName) ? " " : " [" + item.WeaponName + "] ");
             item.FullText = item.WeaponText + item.TargetName;
-            item.MoneyText = item.MoneyReward > 0
-                ? "+" + FormatBattlefieldMoney(item.MoneyReward)
-                : string.Empty;
+            item.MoneyText = FormatBattlefield2042MoneyReward(item.MoneyReward);
             item.TextBounds = MeasureBattlefieldTextBounds(item.FullText, _battlefield2042TextFormat);
             item.WeaponAdvance = MeasureBattlefieldTextAdvance(item.WeaponText, _battlefield2042TextFormat);
             item.MoneyTextWidth = MeasureBattlefieldTextWidth(item.MoneyText, _battlefield2042TextFormat)
@@ -87,7 +84,12 @@ namespace KillConfirmGameBar.Controls
                 return;
             }
 
-            item.Text = "+" + FormatBattlefieldMoney(item.MoneyReward);
+            item.Text = FormatBattlefield2042MoneyReward(item.MoneyReward);
+            if (item.Text.Length == 0)
+            {
+                item.IsCachePrepared = true;
+                return;
+            }
             item.TextBounds = MeasureBattlefieldTextBounds(item.Text, _battlefield2042TextFormat);
             item.TextWidth = item.TextBounds.Width * Battlefield2042FeedTextScale;
             try

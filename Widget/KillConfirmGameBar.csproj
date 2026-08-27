@@ -244,6 +244,7 @@
     <Compile Include="Controls\Animations\Battlefield2042\Battlefield2042Animation.Feed.cs" />
     <Compile Include="Controls\Animations\Battlefield2042\Battlefield2042Animation.FeedLayout.cs" />
     <Compile Include="Controls\Animations\Battlefield2042\Battlefield2042Animation.FeedCache.cs" />
+    <Compile Include="Controls\Animations\Battlefield2042\Battlefield2042Animation.Text.cs" />
     <Compile Include="Controls\Animations\Battlefield2042\Battlefield2042Animation.Drawing.cs" />
     <Compile Include="Controls\Animations\Battlefield2042\Battlefield2042Animation.Models.cs" />
     <Compile Include="Controls\Animations\Pubg\PubgAnimation.Data.cs" />

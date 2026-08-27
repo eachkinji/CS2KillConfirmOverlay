@@ -428,6 +428,7 @@ namespace KillConfirmGameBar
                 killEvent.KillCount,
                 killEvent.IsHeadshot,
                 killEvent.IsKnifeKill,
+                killEvent.IsGrenadeKill,
                 killEvent.IsAssist,
                 GetKillTargetDisplayName(killEvent),
                 GetBattlefieldWeaponLabel(killEvent),

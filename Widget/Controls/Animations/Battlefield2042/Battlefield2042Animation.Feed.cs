@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Numerics;
 using System.Threading.Tasks;
+using KillConfirmGameBar.Services;
 using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.Brushes;
 using Microsoft.Graphics.Canvas.Effects;
@@ -236,6 +237,11 @@ namespace KillConfirmGameBar.Controls
                 }
 
                 string text = item.Text;
+                if (string.IsNullOrEmpty(text))
+                {
+                    row++;
+                    continue;
+                }
                 Rect textBounds = item.TextBounds;
                 double textWidth = item.TextWidth;
                 double x = ResolveBattlefield2042MoneyFeedX(textWidth, exitEase);
@@ -338,8 +344,9 @@ namespace KillConfirmGameBar.Controls
 
             double alpha = ResolveBattlefield5MoneyAlpha(now);
             double scale = ResolveBattlefield5MoneyScale(now, true) * 0.74;
-            string text = FormatBattlefieldMoney(
-                (int)Math.Round(ResolveBattlefield5MoneyValue(now)));
+            string text = FormatBattlefield2042MoneyTotal(
+                (int)Math.Round(ResolveBattlefield5MoneyValue(now)),
+                LocalizationManager.Current == UiLanguage.SimplifiedChinese);
             double width = MeasureBattlefieldTextWidth(text, textFormat) * scale;
             DrawBattlefield2042Text(
                 drawingSession,

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Numerics;
 using System.Threading.Tasks;
+using KillConfirmGameBar.Services;
 using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.Brushes;
 using Microsoft.Graphics.Canvas.Effects;
@@ -19,6 +20,7 @@ namespace KillConfirmGameBar.Controls
             int killCount,
             bool isHeadshot,
             bool isKnifeKill,
+            bool isGrenadeKill,
             bool isAssist,
             string playerName,
             string weaponLabel,
@@ -32,9 +34,11 @@ namespace KillConfirmGameBar.Controls
             AddBattlefield2042Event(
                 Math.Max(0, killCount),
                 isHeadshot,
+                isKnifeKill,
+                isGrenadeKill,
                 isAssist,
-                string.IsNullOrWhiteSpace(playerName) ? "ENEMY" : playerName.Trim(),
-                ResolveBattlefieldWeaponName(weaponLabel),
+                playerName,
+                string.IsNullOrWhiteSpace(weaponLabel) ? string.Empty : ResolveBattlefieldWeaponName(weaponLabel),
                 NormalizeBattlefieldMoneyReward(moneyReward),
                 normalizedEventKind,
                 Math.Max(0, roundNumber),
@@ -158,6 +162,8 @@ namespace KillConfirmGameBar.Controls
         private async void AddBattlefield2042Event(
             int killCount,
             bool isHeadshot,
+            bool isKnifeKill,
+            bool isGrenadeKill,
             bool isAssist,
             string targetName,
             string weaponName,
@@ -177,35 +183,27 @@ namespace KillConfirmGameBar.Controls
                 && now - _battlefield2042HudState.LastKillLogTriggerTimeMs <= Battlefield2042SameFrameWindowMs;
 
             double feedRevealTimeMs = now;
-            if (!textOnlyEvent)
+            if (!textOnlyEvent && !isAssist)
             {
-                if (!isAssist)
+                _battlefield2042HudState.PlayerKillfeedQueue++;
+                if (sameFrameBurst)
                 {
-                    _battlefield2042HudState.PlayerKillfeedQueue++;
-                    if (sameFrameBurst)
-                    {
-                        feedRevealTimeMs += Battlefield2042QueueDelayMs * _battlefield2042HudState.PlayerKillfeedQueue;
-                    }
+                    feedRevealTimeMs += Battlefield2042QueueDelayMs * _battlefield2042HudState.PlayerKillfeedQueue;
                 }
-
-                var feedItem = new Battlefield2042FeedItem(
-                    targetName,
-                    isAssist ? string.Empty : weaponName,
-                    isAssist,
-                    reward,
-                    feedRevealTimeMs);
-                PrepareBattlefield2042FeedItemCache(feedItem);
-                AddBattlefield2042FeedItem(feedItem, now);
             }
 
-            if (reward > 0)
-            {
-                var moneyItem = new Battlefield2042MoneyItem(
-                    reward,
-                    feedRevealTimeMs);
-                PrepareBattlefield2042MoneyItemCache(moneyItem);
-                AddBattlefield2042MoneyItem(moneyItem, now);
-            }
+            var feedItem = CreateBattlefield2042FeedItem(
+                isHeadshot, isKnifeKill, isGrenadeKill, isAssist,
+                targetName, weaponName, reward, eventKind, feedRevealTimeMs,
+                LocalizationManager.Current == UiLanguage.SimplifiedChinese);
+            PrepareBattlefield2042FeedItemCache(feedItem);
+            AddBattlefield2042FeedItem(feedItem, now);
+
+            // Keep a matching row even for zero rewards, so an objective or a
+            // zero-reward kill never puts another event's amount beside this label.
+            var moneyItem = new Battlefield2042MoneyItem(reward, feedRevealTimeMs);
+            PrepareBattlefield2042MoneyItemCache(moneyItem);
+            AddBattlefield2042MoneyItem(moneyItem, now);
 
             Battlefield2042KillIconItem killIconItem = null;
             if (!textOnlyEvent && _battlefield2042HudState.KillIconItems.Count < Battlefield2042MaxKillIcons)

@@ -166,22 +166,22 @@ namespace KillConfirmGameBar.Controls
         private sealed class Battlefield2042FeedItem
         {
             public Battlefield2042FeedItem(
+                string eventLabel,
                 string targetName,
                 string weaponName,
-                bool isAssist,
                 int moneyReward,
                 double revealTimeMs)
             {
-                TargetName = string.IsNullOrWhiteSpace(targetName) ? "ENEMY" : targetName;
-                WeaponName = string.IsNullOrWhiteSpace(weaponName) ? "UNKNOWN" : weaponName;
-                IsAssist = isAssist;
+                EventLabel = eventLabel;
+                TargetName = targetName ?? string.Empty;
+                WeaponName = weaponName ?? string.Empty;
                 MoneyReward = NormalizeBattlefieldMoneyReward(moneyReward);
                 RevealTimeMs = revealTimeMs;
             }
 
+            public string EventLabel { get; }
             public string TargetName { get; }
             public string WeaponName { get; }
-            public bool IsAssist { get; }
             public int MoneyReward { get; }
             public double RevealTimeMs { get; }
             public double ExitStartTimeMs { get; private set; } = -1;

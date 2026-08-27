@@ -4,6 +4,8 @@ use std::{collections::HashMap, fs, path::Path};
 
 use crate::state::EventChannel;
 
+pub(crate) const VALORANT_DEFAULT_PRESET: &str = "valorant_00011_singularity_v1";
+
 /// Context describing the current kill event, consumed by manifest audio routing.
 #[derive(Serialize, Clone, Debug)]
 pub struct SoundContext {
@@ -11,6 +13,7 @@ pub struct SoundContext {
     pub is_headshot: bool,
     pub is_first_kill: bool,
     pub is_knife_kill: bool,
+    pub is_grenade_kill: bool,
     pub is_last_kill: bool,
     pub is_assist: bool,
     pub play_main_audio: bool,
@@ -204,6 +207,50 @@ impl PackManifest {
         })
     }
 
+    /// Repair sparse custom Valorant manifests in memory. Older creators saved
+    /// only selected slots despite promising built-in audio for empty slots.
+    pub(crate) fn fill_valorant_audio_defaults(&mut self, default_pack_dir: &Path) -> Result<()> {
+        if !self
+            .game_style
+            .as_deref()
+            .unwrap_or_default()
+            .eq_ignore_ascii_case("valorant")
+        {
+            return Ok(());
+        }
+
+        let audio = self.audio.get_or_insert_with(|| AudioConfig {
+            base_gain: 1.0,
+            ..AudioConfig::default()
+        });
+        for (slot, file_name) in [
+            ("kill_1", "1.wav"),
+            ("kill_2", "2.wav"),
+            ("kill_3", "3.wav"),
+            ("kill_4", "4.wav"),
+            ("kill_5", "5.wav"),
+            ("headshot", "headshot.wav"),
+        ] {
+            let has_audio = audio
+                .slots
+                .get(slot)
+                .is_some_and(|files| files.as_slice().iter().any(|file| !file.trim().is_empty()));
+            if has_audio {
+                continue;
+            }
+
+            let path = default_pack_dir
+                .join(file_name)
+                .canonicalize()
+                .with_context(|| format!("missing default Valorant audio: {file_name}"))?;
+            audio.slots.insert(
+                slot.to_string(),
+                SlotFiles::Single(path.to_string_lossy().into_owned()),
+            );
+        }
+        Ok(())
+    }
+
     /// Resolve audio playback entries based on context and manifest configuration
     pub fn resolve_audio(&self, ctx: &SoundContext, base_dir: &str) -> Vec<SoundEntry> {
         let audio = match &self.audio {
@@ -253,7 +300,13 @@ impl PackManifest {
                         .map(String::as_str);
 
                     if let Some(filename) = slot_files.pick_audio(preferred) {
-                        let path = format!("{base}{filename}");
+                        // Defaults supplied while loading an older custom pack
+                        // live in the installed sounds folder, not its directory.
+                        let path = if Path::new(filename).is_absolute() {
+                            filename.to_string()
+                        } else {
+                            format!("{base}{filename}")
+                        };
                         let gain = get_gain(slot);
                         entries.push(SoundEntry { path, gain });
                         return true;
@@ -320,6 +373,17 @@ impl PackManifest {
             if !push_slot(&mut entries, "assist", None) {
                 push_slot(&mut entries, "kill_1", None);
             }
+            return entries;
+        }
+
+        // 1c. Grenade / Fire kill
+        if ctx.is_grenade_kill {
+            if !push_slot(&mut entries, "grenade", None) {
+                if !push_slot(&mut entries, "first_and_last", None) {
+                    push_slot(&mut entries, "kill_1", None);
+                }
+            }
+            push_overlay_if_enabled(&mut entries, "grenade");
             return entries;
         }
 

@@ -191,6 +191,163 @@
                 VerticalScrollBarVisibility="Auto"
                 HorizontalScrollBarVisibility="Disabled">
                 <StackPanel Spacing="16" MaxWidth="1480" HorizontalAlignment="Stretch">
+                    <!-- Live Xbox Game Bar setup state reported by the widget process. -->
+                    <StackPanel Spacing="6">
+                        <TextBlock
+                            x:Name="HubGameBarStatusTitle"
+                            Style="{StaticResource FluentSectionHeaderStyle}"
+                            Text="GAME BAR 使用状态" />
+                        <TextBlock
+                            x:Name="HubGameBarStatusDescription"
+                            Margin="2,0,2,6"
+                            Style="{StaticResource FluentCardDescriptionStyle}"
+                            Text="打开 Win+G 后，这里会实时显示固定与单击浏览状态。" />
+                        <Border
+                            x:Name="HubGameBarStatusCard"
+                            Style="{StaticResource FluentSettingsCardStyle}">
+                            <Grid RowSpacing="12">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="1" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <Grid ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Spacing="2">
+                                        <TextBlock
+                                            x:Name="HubGameBarCardTitle"
+                                            Style="{StaticResource FluentCardTitleStyle}"
+                                            Text="Kill Confirm Overlay 小组件" />
+                                        <TextBlock
+                                            x:Name="HubGameBarCardSummary"
+                                            Style="{StaticResource FluentCardDescriptionStyle}"
+                                            Text="等待小组件上报状态" />
+                                    </StackPanel>
+                                    <Button
+                                        x:Name="HubOpenGameBarButton"
+                                        Grid.Column="1"
+                                        VerticalAlignment="Center"
+                                        Style="{StaticResource FluentSecondaryButtonStyle}"
+                                        Click="OnOpenGameBarClick"
+                                        Content="打开 Game Bar" />
+                                </Grid>
+
+                                <Border
+                                    Grid.Row="1"
+                                    Height="1"
+                                    Background="{StaticResource FluentDivider}" />
+
+                                <Grid Grid.Row="2" ColumnSpacing="10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="26" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock
+                                        x:Name="HubWidgetStatusGlyph"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        FontSize="18"
+                                        FontWeight="Bold"
+                                        Foreground="#6E6E6E"
+                                        Text="?" />
+                                    <StackPanel Grid.Column="1" Spacing="1">
+                                        <TextBlock
+                                            x:Name="HubWidgetStatusTitle"
+                                            Style="{StaticResource FluentCardTitleStyle}"
+                                            Text="小组件状态" />
+                                        <TextBlock
+                                            x:Name="HubWidgetStatusDetail"
+                                            Style="{StaticResource FluentCardDescriptionStyle}"
+                                            Text="请按 Win+G 打开 Kill Confirm Overlay" />
+                                    </StackPanel>
+                                    <TextBlock
+                                        x:Name="HubWidgetStatusBadge"
+                                        Grid.Column="2"
+                                        VerticalAlignment="Center"
+                                        FontSize="12"
+                                        FontWeight="SemiBold"
+                                        Foreground="#6E6E6E"
+                                        Text="未检测" />
+                                </Grid>
+
+                                <Grid Grid.Row="3" ColumnSpacing="10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="26" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock
+                                        x:Name="HubPinStatusGlyph"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        FontSize="18"
+                                        FontWeight="Bold"
+                                        Foreground="#6E6E6E"
+                                        Text="?" />
+                                    <StackPanel Grid.Column="1" Spacing="1">
+                                        <TextBlock
+                                            x:Name="HubPinStatusTitle"
+                                            Style="{StaticResource FluentCardTitleStyle}"
+                                            Text="固定窗口" />
+                                        <TextBlock
+                                            x:Name="HubPinStatusDetail"
+                                            Style="{StaticResource FluentCardDescriptionStyle}"
+                                            Text="等待小组件状态" />
+                                    </StackPanel>
+                                    <TextBlock
+                                        x:Name="HubPinStatusBadge"
+                                        Grid.Column="2"
+                                        VerticalAlignment="Center"
+                                        FontSize="12"
+                                        FontWeight="SemiBold"
+                                        Foreground="#6E6E6E"
+                                        Text="未知" />
+                                </Grid>
+
+                                <Grid Grid.Row="4" ColumnSpacing="10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="26" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock
+                                        x:Name="HubClickThroughStatusGlyph"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        FontSize="18"
+                                        FontWeight="Bold"
+                                        Foreground="#6E6E6E"
+                                        Text="?" />
+                                    <StackPanel Grid.Column="1" Spacing="1">
+                                        <TextBlock
+                                            x:Name="HubClickThroughStatusTitle"
+                                            Style="{StaticResource FluentCardTitleStyle}"
+                                            Text="单击浏览" />
+                                        <TextBlock
+                                            x:Name="HubClickThroughStatusDetail"
+                                            Style="{StaticResource FluentCardDescriptionStyle}"
+                                            Text="等待小组件状态" />
+                                    </StackPanel>
+                                    <TextBlock
+                                        x:Name="HubClickThroughStatusBadge"
+                                        Grid.Column="2"
+                                        VerticalAlignment="Center"
+                                        FontSize="12"
+                                        FontWeight="SemiBold"
+                                        Foreground="#6E6E6E"
+                                        Text="未知" />
+                                </Grid>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+
                     <!-- Game Experience Options -->
                     <StackPanel Spacing="6">
                         <TextBlock

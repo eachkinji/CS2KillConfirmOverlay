@@ -158,6 +158,7 @@
     <Compile Include="Pages\KillConfirmWidget\Interaction\KillConfirmWidgetPage.Input.cs" />
     <Compile Include="Pages\KillConfirmWidget\Interaction\KillConfirmWidgetPage.Drag.cs" />
     <Compile Include="Pages\KillConfirmWidget\Interaction\KillConfirmWidgetPage.DragVisuals.cs" />
+    <Compile Include="Pages\KillConfirmWidget\Interaction\KillConfirmWidgetPage.FeedbackFrames.cs" />
     <Compile Include="Pages\KillConfirmWidget\Layout\KillConfirmWidgetPage.HostLayout.cs" />
     <Compile Include="Pages\KillConfirmWidget\Animation\KillConfirmWidgetPage.TestPreset.cs" />
     <Compile Include="Pages\KillConfirmWidget\GameStyles\KillConfirmWidgetPage.GameStyle.cs" />
@@ -192,6 +193,7 @@
     <Compile Include="Pages\KillConfirmWidget\Settings\KillConfirmWidgetPage.SharedStreakSettings.cs" />
     <Compile Include="Pages\KillConfirmWidget\Configuration\KillConfirmWidgetPage.AutoCloseGameExit.cs" />
     <Compile Include="Pages\KillConfirmWidget\Runtime\KillConfirmWidgetPage.Status.cs" />
+    <Compile Include="Pages\KillConfirmWidget\Runtime\KillConfirmWidgetPage.SetupGuideAssets.cs" />
     <Compile Include="Pages\KillConfirmWidget\Settings\KillConfirmWidgetPage.VisualSettings.cs" />
     <Compile Include="Pages\KillConfirmWidget\Settings\KillConfirmWidgetPage.VisualSettings.Placement.cs" />
     <Compile Include="Pages\KillConfirmWidget\Settings\KillConfirmWidgetPage.MoneySettings.cs" />
@@ -440,8 +442,10 @@
     <Compile Include="Services\Settings\General\StreakGainSettingsStore.cs" />
     <Compile Include="Services\Settings\General\CloseBehaviorSettingsStore.cs" />
     <Compile Include="Services\Settings\General\AutoCloseOnGameExitSettingsStore.cs" />
+    <Compile Include="Services\Settings\General\GameBarRuntimeStatusStore.cs" />
     <Compile Include="Services\Settings\Audio\InterruptPreviousKillAudioSettingsStore.cs" />
     <Compile Include="Services\Styling\GameStyleService.cs" />
+    <Compile Include="Services\Styling\KillFeedbackFrameDefinition.cs" />
     <Compile Include="Services\Styling\GameStyleService.PackMappings.cs" />
     <Compile Include="Services\Styling\GameThemePalette.cs" />
     <Compile Include="Services\Catalog\Games\ValorantPackService.cs" />

@@ -2,7 +2,7 @@
 #define MyAppExeName "Install-KillConfirm.ps1"
 
 #ifndef MyAppVersion
-  #define MyAppVersion "4.4.0.0"
+  #define MyAppVersion "4.4.3.0"
 #endif
 
 #ifndef TransferRoot
@@ -14,8 +14,22 @@
 #endif
 
 #ifndef SkipPrerequisites
-  #define SkipPrerequisites 0
+  #define SkipPrerequisites "0"
 #endif
+
+#ifndef InstallerVariant
+  #define InstallerVariant "Unknown"
+#endif
+
+#ifndef InstallerBuildTimeUtc
+  #define InstallerBuildTimeUtc "Unknown"
+#endif
+
+#ifndef InstallerSourceCommit
+  #define InstallerSourceCommit "Unknown"
+#endif
+
+#pragma message "Installer metadata: Variant=" + InstallerVariant + ", SkipPrerequisites=" + SkipPrerequisites + ", Version=" + MyAppVersion
 
 [Setup]
 AppId={{E0DF6407-CB2E-43D0-8B51-8C8924F50AA1}
@@ -45,10 +59,10 @@ english.InstallerDisplayName=Kill Confirm Overlay Setup Manager
 chinesesimplified.InstallerDisplayName=Kill Confirm Overlay 安装管理器
 english.ControlPanelShortcutName=Kill Confirm Overlay Control Panel
 chinesesimplified.ControlPanelShortcutName=Kill Confirm Overlay 控制面板
-english.InstallingOverlay=Installing Kill Confirm Overlay...
-chinesesimplified.InstallingOverlay=Installing Kill Confirm Overlay...
-english.CheckingPrerequisites=Checking required Microsoft UI XAML, VCLibs, and Xbox Game Bar components...
-chinesesimplified.CheckingPrerequisites=正在检测必需的 Microsoft UI XAML、VCLibs 和 Xbox Game Bar 组件...
+english.InstallingOverlay=Installing Kill Confirm Overlay; follow the installation progress window that just opened...
+chinesesimplified.InstallingOverlay=正在安装 Kill Confirm Overlay；请查看已打开的安装进度窗口...
+english.CheckingPrerequisites=Checking and installing required components; follow the installation progress window and leave it open...
+chinesesimplified.CheckingPrerequisites=正在检测并安装必要组件；请查看已打开的安装进度窗口，耗时较长时请勿关闭...
 english.InstallScriptLaunchFailed=Could not start the installer script. Setup will remain open so you can review this problem.
 chinesesimplified.InstallScriptLaunchFailed=无法启动安装脚本。安装管理器不会中止，请记录此问题后继续查看完成页面。
 english.InstallScriptFailed=The installer script reported an unexpected exit code. Setup will not abort. Exit code:
@@ -79,6 +93,8 @@ english.CertificateWarningText=Please note: the next steps will add a new person
 chinesesimplified.CertificateWarningText=请记住：接下来的步骤将会给你的电脑添加新证书，该证书是个人签名证书，请确认后再继续。
 english.PrerequisiteWarningText=Please note: the installer will check required system dependencies. Follow the instructions shown on screen to complete any required actions.
 chinesesimplified.PrerequisiteWarningText=请记住：接下来的步骤将会检查你的系统依赖，请按照界面提示执行相关操作。
+english.UpdateOnlyWarningText=This is the dependency-free update package. It will not check or repair Xbox Game Bar and will not install offline prerequisites. Use it only on a computer where the app already works correctly.
+chinesesimplified.UpdateOnlyWarningText=这是无依赖更新包，不会检测或修复 Xbox Game Bar，也不会安装离线前置依赖。请仅在软件原本可以正常运行的电脑上使用。
 english.GameBarUsageText=After installation, press Win+G to open Xbox Game Bar and use this program.
 chinesesimplified.GameBarUsageText=请记住：安装结束后，按 Win+G 打开 Game Bar 界面并使用本程序。
 english.AcknowledgeButtonText=I understand
@@ -196,7 +212,11 @@ begin
   TopPosition := TutorialLink.Top + TutorialLink.Height + ScaleY(18);
 
   AddConfirmPageText(ExpandConstant('{cm:CertificateWarningText}'), TopPosition);
+#if SkipPrerequisites == "0"
   AddConfirmPageText(ExpandConstant('{cm:PrerequisiteWarningText}'), TopPosition);
+#else
+  AddConfirmPageText(ExpandConstant('{cm:UpdateOnlyWarningText}'), TopPosition);
+#endif
   AddConfirmPageText(ExpandConstant('{cm:GameBarUsageText}'), TopPosition);
 
   InstallConfirmButton := TNewButton.Create(InstallConfirmPage);
@@ -321,15 +341,26 @@ begin
     DeleteFile(LogPath);
     DeleteFile(ResultPath);
     DeleteFile(StatusPath);
-#if SkipPrerequisites
+    // Values supplied through ISCC /D are strings. Test against "0" or "1"
+    // explicitly because the non-empty string "0" is truthy in ISPP.
+#if SkipPrerequisites == "1"
     WizardForm.StatusLabel.Caption := ExpandConstant('{cm:InstallingOverlay}');
 #else
     WizardForm.StatusLabel.Caption := ExpandConstant('{cm:CheckingPrerequisites}');
 #endif
-#if SkipPrerequisites
-    Params := '-NoProfile -ExecutionPolicy Bypass -File "' + ExpandConstant('{app}\Payload\Install-KillConfirm.ps1') + '"';
-#else
-    Params := '-NoProfile -ExecutionPolicy Bypass -File "' + ExpandConstant('{app}\Payload\Install-KillConfirm.ps1') + '" -InstallPrerequisites';
+    // Keep long-running prerequisite/MSIX work inside the setup progress page.
+    // PowerShell runs hidden while the native setup progress bar shows that
+    // installation is still active.
+    WizardForm.ProgressGauge.Style := npbstMarquee;
+    Params := '-NoProfile -ExecutionPolicy Bypass -File "' +
+      ExpandConstant('{app}\Payload\Install-KillConfirm.ps1') + '"' +
+      ' -InstallerVariant "{#InstallerVariant}"' +
+      ' -InstallerVersion "{#MyAppVersion}"' +
+      ' -InstallerBuildTimeUtc "{#InstallerBuildTimeUtc}"' +
+      ' -InstallerSourceCommit "{#InstallerSourceCommit}"' +
+      ' -InstallerSourcePath "' + ExpandConstant('{srcexe}') + '"';
+#if SkipPrerequisites == "0"
+    Params := Params + ' -InstallPrerequisites -PrerequisitesConfirmed';
 #endif
 
     if not Exec(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'), Params, ExpandConstant('{app}\Payload'), SW_HIDE, ewWaitUntilTerminated, ResultCode) then

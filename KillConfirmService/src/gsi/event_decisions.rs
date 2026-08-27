@@ -13,18 +13,31 @@
     let mut round_bonus_event_to_send = None;
 
     if is_initialized && !steamid.is_empty() {
-        let completed_bomb_action = match (
-            previous_bomb_state.as_deref(),
-            current_bomb_state.as_deref(),
+        let is_plant = detect_bomb_planted_action(
+            &previous_weapons,
+            &current_weapons,
+            previous_round_bomb_state.as_deref(),
+            current_round_bomb_state.as_deref(),
             previous_bomb_player.as_deref(),
-        ) {
-            (Some("planting"), Some("planted"), Some(actor)) if actor == steamid.as_str() => {
-                Some("bomb_plant")
-            }
-            (Some("defusing"), Some("defused"), Some(actor)) if actor == steamid.as_str() => {
-                Some("bomb_defuse")
-            }
-            _ => None,
+            &steamid,
+        );
+
+        let is_defuse = detect_bomb_defused_action(
+            player_team,
+            previous_round_bomb_state.as_deref(),
+            current_round_bomb_state.as_deref(),
+            previous_player_money,
+            current_player_money,
+            previous_bomb_player.as_deref(),
+            &steamid,
+        );
+
+        let completed_bomb_action = if is_plant {
+            Some("bomb_plant")
+        } else if is_defuse {
+            Some("bomb_defuse")
+        } else {
+            None
         };
 
         if let Some(event_kind) = completed_bomb_action {
@@ -33,6 +46,7 @@
                 kill_count: 0,
                 is_headshot: false,
                 is_knife_kill: false,
+                is_grenade_kill: false,
                 is_first_kill: false,
                 is_last_kill: false,
                 is_assist: false,
@@ -62,8 +76,31 @@
         let is_knife_kill = weapon_context
             .map(|weapon| weapon.is_knife)
             .unwrap_or(false);
-        let weapon_badge_key = weapon_context.and_then(|weapon| weapon.badge_key.clone());
-        let weapon_name = weapon_context.map(|weapon| weapon.name.clone());
+        let is_grenade_kill = if !is_headshot && !is_knife_kill {
+            current_active_grenade.as_ref().is_some_and(|tracker| {
+                now.saturating_duration_since(tracker.thrown_at) <= Duration::from_secs(10)
+            })
+        } else {
+            false
+        };
+
+        let weapon_badge_key = if is_grenade_kill {
+            Some("grenade".to_string())
+        } else {
+            weapon_context.and_then(|weapon| weapon.badge_key.clone())
+        };
+        let weapon_name = if is_grenade_kill {
+            current_active_grenade
+                .as_ref()
+                .map(|tracker| tracker.weapon_name.clone())
+        } else {
+            weapon_context.map(|weapon| weapon.name.clone())
+        };
+
+        if is_grenade_kill {
+            current_active_grenade = None;
+        }
+
         let rule_money_reward = weapon_context
             .map(|weapon| weapon.money_reward)
             .unwrap_or(300);
@@ -86,6 +123,7 @@
                 kill_count: event_kill_count,
                 is_headshot,
                 is_knife_kill,
+                is_grenade_kill,
                 weapon_badge_key: weapon_badge_key.clone(),
                 weapon_name: weapon_name.clone(),
                 money_reward,
@@ -97,6 +135,7 @@
             kill_count: event_kill_count,
             is_headshot,
             is_knife_kill,
+            is_grenade_kill,
             is_first_kill,
             is_last_kill,
             is_assist: false,
@@ -122,6 +161,7 @@
                 is_headshot,
                 is_first_kill,
                 is_knife_kill,
+                is_grenade_kill,
                 is_last_kill,
                 false,
                 money_reward,
@@ -136,11 +176,12 @@
             }
         });
         debug!(
-            "player: {}, kills: {}, headshot: {}, knife: {}, first: {}, last: {}",
+            "player: {}, kills: {}, headshot: {}, knife: {}, grenade: {}, first: {}, last: {}",
             ply.name.as_deref().unwrap_or(""),
             event_kill_count,
             is_headshot,
             is_knife_kill,
+            is_grenade_kill,
             is_first_kill,
             is_last_kill
         );
@@ -164,6 +205,7 @@
                     kill_count: pending_last_kill.kill_count,
                     is_headshot: pending_last_kill.is_headshot,
                     is_knife_kill: pending_last_kill.is_knife_kill,
+                    is_grenade_kill: pending_last_kill.is_grenade_kill,
                     is_first_kill: false,
                     is_last_kill: true,
                     is_assist: false,
@@ -216,6 +258,7 @@
                             pending_last_kill.is_headshot,
                             false,
                             pending_last_kill.is_knife_kill,
+                            pending_last_kill.is_grenade_kill,
                             true,
                             false,
                             0,
@@ -245,6 +288,7 @@
             kill_count: 0,
             is_headshot: false,
             is_knife_kill: false,
+            is_grenade_kill: false,
             is_first_kill: false,
             is_last_kill: false,
             is_assist: true,
@@ -313,6 +357,7 @@
                 kill_count: 0,
                 is_headshot: false,
                 is_knife_kill: false,
+                is_grenade_kill: false,
                 is_first_kill: false,
                 is_last_kill: false,
                 is_assist: false,
@@ -380,6 +425,7 @@
                     kill_count: 0,
                     is_headshot: false,
                     is_knife_kill: false,
+                    is_grenade_kill: false,
                     is_first_kill: false,
                     is_last_kill: false,
                     is_assist: false,

@@ -36,6 +36,9 @@ namespace KillConfirmGameBar.Controls
                     return "firstkill.png";
                 case "assist":
                     return "assist.png";
+                case "grenade_kill":
+                case "grenade":
+                    return "grenade_kill.png";
                 default:
                     return null;
             }

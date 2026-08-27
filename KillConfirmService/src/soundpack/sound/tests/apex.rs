@@ -11,6 +11,7 @@
         let base_dir = pack_dir.to_string_lossy().into_owned();
         let manifest = PackManifest::load_from_dir(&pack_dir).expect("load Apex manifest");
         let make_ctx = |is_headshot, is_assist| SoundContext {
+            is_grenade_kill: false,
             // Use multi-kill counts here so the test catches regressions where
             // generic streak routing incorrectly wins over Apex shield break.
             kill_count: if is_assist {

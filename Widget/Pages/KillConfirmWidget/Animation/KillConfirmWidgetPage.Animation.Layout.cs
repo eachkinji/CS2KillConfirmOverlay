@@ -14,7 +14,7 @@ namespace KillConfirmGameBar
     public sealed partial class KillConfirmWidgetPage
     {
 
-        private double GetAuxiliaryLayerBaseVerticalOffset()
+        private double GetLegacyAuxiliaryBaseVerticalOffset()
         {
             return GameStyleService.IsAuxiliaryKillMarkStyle(GameStyleService.Current)
                 ? 0.0
@@ -24,8 +24,8 @@ namespace KillConfirmGameBar
         private void OnAnimationLayerSizeChanged(object sender, SizeChangedEventArgs e)
         {
             UpdateAnimationDragOutlineSize();
-            if (_animationPlacement == AnimationPlacementMode.Bottom
-                || _animationPlacement == AnimationPlacementMode.Top)
+            if (_legacyPrimaryPlacement == AnimationPlacementMode.Bottom
+                || _legacyPrimaryPlacement == AnimationPlacementMode.Top)
             {
                 ApplyAnimationOffset();
             }
@@ -33,18 +33,18 @@ namespace KillConfirmGameBar
                 || GameStyleService.Current == GameStyleMode.Apex
                 || GameStyleService.Current == GameStyleMode.ModernWarfare2019)
             {
-                ApplyOverwatchCardTransform();
+                ApplyLegacyLowerCardTransform();
             }
             if (GameStyleService.Current == GameStyleMode.ModernWarfare2019
                 || GameStyleService.IsAuxiliaryKillMarkStyle(GameStyleService.Current))
             {
-                ApplyModernWarfare2019UpperTransform();
+                ApplyLegacyAuxiliaryTransform();
             }
         }
 
-        private double GetResolvedAnimationOffset()
+        private double GetLegacyPrimaryResolvedVerticalOffset()
         {
-            switch (_animationPlacement)
+            switch (_legacyPrimaryPlacement)
             {
                 case AnimationPlacementMode.Bottom:
                     return GetBottomOffset();
@@ -53,13 +53,13 @@ namespace KillConfirmGameBar
                 case AnimationPlacementMode.Center:
                     return 0;
                 default:
-                    return _animationOffset;
+                    return _legacyPrimaryVerticalOffset;
             }
         }
 
         private double GetTopOffset()
         {
-            double layerHeight = AnimationLayer.ActualHeight;
+            double layerHeight = LowerFeedbackLayer.ActualHeight;
             if (layerHeight <= 0)
             {
                 layerHeight = DefaultWidgetSize.Height;
@@ -70,7 +70,7 @@ namespace KillConfirmGameBar
 
         private double GetBottomOffset()
         {
-            double layerHeight = AnimationLayer.ActualHeight;
+            double layerHeight = LowerFeedbackLayer.ActualHeight;
             if (layerHeight <= 0)
             {
                 layerHeight = DefaultWidgetSize.Height;
@@ -81,7 +81,7 @@ namespace KillConfirmGameBar
 
         private double GetUpperThirdOffset()
         {
-            double layerHeight = AnimationLayer.ActualHeight;
+            double layerHeight = LowerFeedbackLayer.ActualHeight;
             if (layerHeight <= 0)
             {
                 layerHeight = DefaultWidgetSize.Height;
@@ -92,7 +92,7 @@ namespace KillConfirmGameBar
 
         private double GetMaxAnimationHorizontalOffset()
         {
-            double layerWidth = AnimationLayer.ActualWidth;
+            double layerWidth = LowerFeedbackLayer.ActualWidth;
             if (layerWidth <= 0)
             {
                 layerWidth = DefaultWidgetSize.Width;
@@ -103,7 +103,7 @@ namespace KillConfirmGameBar
 
         private double GetMaxAnimationOffset()
         {
-            double layerHeight = AnimationLayer.ActualHeight;
+            double layerHeight = LowerFeedbackLayer.ActualHeight;
             if (layerHeight <= 0)
             {
                 layerHeight = DefaultWidgetSize.Height;

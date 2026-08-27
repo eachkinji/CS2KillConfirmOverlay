@@ -15,6 +15,7 @@
                         is_last,
                         headshot_priority,
                         knife_priority| SoundContext {
+                            is_grenade_kill: false,
             kill_count,
             is_headshot,
             is_first_kill: is_first,
@@ -79,6 +80,7 @@
                         is_last,
                         headshot_priority,
                         knife_priority| SoundContext {
+                            is_grenade_kill: false,
             kill_count,
             is_headshot,
             is_first_kill: is_first,
@@ -109,11 +111,11 @@
             vec![
                 SoundEntry {
                     path: format!("{base_dir}/2.wav"),
-                    gain: 1.0,
+                    gain: 2.0,
                 },
                 SoundEntry {
                     path: format!("{base_dir}/common.wav"),
-                    gain: 1.0,
+                    gain: 1.25,
                 },
             ]
         );
@@ -137,6 +139,7 @@
         .expect("load heart_judge_gr manifest");
 
         let make_ctx = |preset: &'static str| SoundContext {
+            is_grenade_kill: false,
             kill_count: 2,
             is_headshot: false,
             is_first_kill: false,
@@ -157,7 +160,7 @@
             knife_priority: false,
         };
 
-        // Both layers use their normalized source volume.
+        // Both layers use their configured manifest gains.
         let bunny_entries = bunny_manifest
             .resolve_audio(&make_ctx("crossfire_bunny_gr"), "sounds/crossfire_bunny_gr");
         assert_eq!(
@@ -165,16 +168,16 @@
             vec![
                 SoundEntry {
                     path: "sounds/crossfire_bunny_gr/2.wav".to_string(),
-                    gain: 1.0,
+                    gain: 2.2,
                 },
                 SoundEntry {
                     path: "sounds/crossfire_bunny_gr/common.wav".to_string(),
-                    gain: 1.0,
+                    gain: 1.15,
                 },
             ]
         );
 
-        // Both layers use their normalized source volume.
+        // Both layers use their configured manifest gains.
         let judge_entries = judge_manifest.resolve_audio(
             &make_ctx("crossfire_heart_judge_gr"),
             "sounds/crossfire_heart_judge_gr",
@@ -184,11 +187,11 @@
             vec![
                 SoundEntry {
                     path: "sounds/crossfire_heart_judge_gr/2.wav".to_string(),
-                    gain: 1.0,
+                    gain: 2.2,
                 },
                 SoundEntry {
                     path: "sounds/crossfire_heart_judge_gr/common.wav".to_string(),
-                    gain: 1.0,
+                    gain: 1.15,
                 },
             ]
         );

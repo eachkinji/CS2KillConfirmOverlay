@@ -19,13 +19,6 @@ namespace KillConfirmGameBar.Services
         public double UpperOpacityPercent { get; set; } = 100;
     }
 
-    internal enum KillFeedbackLayer
-    {
-        Crosshair,
-        Lower,
-        Upper
-    }
-
     internal static class KillFeedbackVisibilitySettingsStore
     {
         public static event Action<GameStyleMode> Changed;

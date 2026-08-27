@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use super::manifest::PackManifest;
+use super::manifest::{PackManifest, VALORANT_DEFAULT_PRESET};
 
 /// Preset holds a declarative PackManifest describing a sound pack's materials.
 pub struct Preset {
@@ -48,7 +48,8 @@ impl Preset {
         let pack_dir = Path::new(folder_path);
         let base_dir = folder_path.replace('\\', "/");
 
-        let manifest = PackManifest::load_from_dir(pack_dir)?;
+        let mut manifest = PackManifest::load_from_dir(pack_dir)?;
+        manifest.fill_valorant_audio_defaults(&sounds_root().join(VALORANT_DEFAULT_PRESET))?;
 
         Ok(Self {
             manifest: Some(manifest),

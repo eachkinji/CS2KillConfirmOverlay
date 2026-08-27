@@ -71,6 +71,9 @@ namespace KillConfirmGameBar.Controls
                     return asset.FirstKill;
                 case "assist":
                     return asset.Assist;
+                case "grenade_kill":
+                case "grenade":
+                    return asset.GrenadeKill;
                 default:
                     return null;
             }

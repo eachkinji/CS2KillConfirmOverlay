@@ -1,3 +1,4 @@
+using System;
 using KillConfirmGameBar.Services;
 using Windows.UI;
 using Windows.UI.Xaml;
@@ -54,6 +55,13 @@ namespace KillConfirmGameBar
         {
             bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
             RefreshStatusHint(true);
+            ClickThroughSetupGuideText.Text = isChinese
+                ? "请在顶部工具栏关闭“单击浏览”"
+                : "Turn off click-through in the top toolbar";
+            PinSetupGuideText.Text = isChinese
+                ? "点击上方图钉固定窗口"
+                : "Click the pin above to pin the widget";
+            UpdateGameBarSetupGuidance();
             LoadLanguageSelector();
             LoadGameStyleSelector();
             if (_isPageActive)
@@ -146,13 +154,15 @@ namespace KillConfirmGameBar
             SetNamedToolTip(VisualSettingsSectionView.WindowTopButton, LocalizationManager.Text("WindowTopTitle"), LocalizationManager.Text("WindowTopTooltip"));
             SetNamedToolTip(VisualSettingsSectionView.ControlPanelCenterButton, LocalizationManager.Text("ControlPanelCenterTitle"), LocalizationManager.Text("ControlPanelCenterTooltip"));
             SetNamedToolTip(VisualSettingsSectionView.WindowBottomButton, LocalizationManager.Text("WindowBottomTitle"), LocalizationManager.Text("WindowBottomTooltip"));
-            SetNamedToolTip(AnimationDragOutline, LocalizationManager.Text("IconDragTitle"), LocalizationManager.Text("IconDragTooltip"));
-            SetNamedToolTip(OverwatchCardDragOutline, LocalizationManager.Text("IconDragTitle"), LocalizationManager.Text("IconDragTooltip"));
-            SetNamedToolTip(ModernWarfare2019UpperDragOutline, LocalizationManager.Text("IconDragTitle"), LocalizationManager.Text("IconDragTooltip"));
-            string dragOutlineHint = LocalizationManager.Text("DragOutlineSelectedHint");
-            AnimationDragHintText.Text = dragOutlineHint;
-            OverwatchCardDragHintText.Text = dragOutlineHint;
-            ModernWarfare2019UpperDragHintText.Text = dragOutlineHint;
+            foreach (KillFeedbackLayer layer in Enum.GetValues(typeof(KillFeedbackLayer)))
+            {
+                string title = LocalizationManager.Text(KillFeedbackFrameDefinition.GetTitleKey(layer));
+                SetNamedToolTip(GetFeedbackFrameOutline(layer), title, LocalizationManager.Text("IconDragTooltip"));
+                if (GetFeedbackFrameHint(layer).Child is TextBlock hintText)
+                {
+                    hintText.Text = title + " · " + LocalizationManager.Text("DragOutlineSelectedHint");
+                }
+            }
 
             SetNamedToolTip(VisualSettingsSectionView.BrightnessIcon, LocalizationManager.Text("BrightnessTitle"), LocalizationManager.Text("BrightnessTooltip"));
             SetNamedToolTip(VisualSettingsSectionView.BrightnessSelector, LocalizationManager.Text("BrightnessTitle"), LocalizationManager.Text("BrightnessTooltip"));
@@ -227,6 +237,7 @@ namespace KillConfirmGameBar
                     case "one": return "1 kill";
                     case "one_hs": return "1 kill HS";
                     case "one_knife": return "1 kill knife";
+                    case "one_grenade": return "1 kill grenade";
                     case "one_first": return "1 kill first";
                     case "one_last": return "1 kill last";
                     case "assist": return "Assist";
@@ -242,30 +253,43 @@ namespace KillConfirmGameBar
                     case "nine": return "9 kills";
                     case "badge_first": return "First badge";
                     case "badge_last": return "Last badge";
+                    case "bomb_plant": return "C4 plant";
+                    case "bomb_defuse": return "C4 defuse";
+                    case "hostage_interact": return "Hostage touch";
+                    case "hostage_rescue": return "Hostage rescue";
+                    case "round_win": return "Round win";
+                    case "round_loss": return "Round loss";
                     default: return tag;
                 }
             }
 
             switch (tag)
             {
-                case "one": return "1\u6740";
-                case "one_hs": return "1\u6740\u7206\u5934";
-                case "one_knife": return "1\u6740\u5200\u6740";
-                case "one_first": return "1\u6740\u9996\u6740";
-                case "one_last": return "1\u6740\u5c3e\u6740";
-                case "assist": return "\u52a9\u653b";
-                case "gold_first": return "\u9ec4\u91d1\u9996\u6740";
-                case "gold_last": return "\u9ec4\u91d1\u5c3e\u6740";
-                case "two": return "2\u6740";
-                case "three": return "3\u6740";
-                case "four": return "4\u6740";
-                case "five": return "5\u6740";
-                case "six": return "6\u6740";
-                case "seven": return "7\u6740";
-                case "eight": return "8\u6740";
-                case "nine": return "9\u6740";
-                case "badge_first": return "\u9996\u6740\u5fbd\u7ae0";
-                case "badge_last": return "\u5c3e\u6740\u5fbd\u7ae0";
+                case "one": return "1杀";
+                case "one_hs": return "1杀爆头";
+                case "one_knife": return "1杀刀杀";
+                case "one_grenade": return "1杀雷杀";
+                case "one_first": return "1杀首杀";
+                case "one_last": return "1杀尾杀";
+                case "assist": return "助攻";
+                case "gold_first": return "黄金首杀";
+                case "gold_last": return "黄金尾杀";
+                case "two": return "2杀";
+                case "three": return "3杀";
+                case "four": return "4杀";
+                case "five": return "5杀";
+                case "six": return "6杀";
+                case "seven": return "7杀";
+                case "eight": return "8杀";
+                case "nine": return "9杀";
+                case "badge_first": return "首杀徽章";
+                case "badge_last": return "尾杀徽章";
+                case "bomb_plant": return "C4安包";
+                case "bomb_defuse": return "C4拆包";
+                case "hostage_interact": return "人质接触";
+                case "hostage_rescue": return "人质救出";
+                case "round_win": return "回合胜利";
+                case "round_loss": return "回合失败";
                 default: return tag;
             }
         }

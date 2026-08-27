@@ -27,8 +27,11 @@ namespace KillConfirmGameBar
 
         private bool TrySyncValorantVoicePackForIconSelection(string iconPack)
         {
+            // Custom voices have no paired icon pack. Keep an explicit custom
+            // selection when the user changes skins, even with pairing enabled.
             if (GameStyleService.Current != GameStyleMode.Valorant
                 || !ValorantPackSyncSettingsStore.Load()
+                || PackCatalogService.IsImportedVoicePackKey(GetSelectedVoicePackPreset())
                 || !HasPackOption(PackTestSectionView.VoicePackSelector, iconPack))
             {
                 return false;

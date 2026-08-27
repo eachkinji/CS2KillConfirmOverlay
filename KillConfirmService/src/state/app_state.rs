@@ -4,6 +4,7 @@ pub struct PendingLastKill {
     pub kill_count: u16,
     pub is_headshot: bool,
     pub is_knife_kill: bool,
+    pub is_grenade_kill: bool,
     pub weapon_badge_key: Option<String>,
     pub weapon_name: Option<String>,
     pub money_reward: u16,

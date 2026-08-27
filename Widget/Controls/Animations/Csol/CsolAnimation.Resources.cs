@@ -55,6 +55,10 @@ namespace KillConfirmGameBar.Controls
                     Assist = await LoadCsolBitmapFromFolderOrDefaultAsync(
                         customFolder,
                         "assist.png",
+                        fallbackFolder),
+                    GrenadeKill = await LoadCsolBitmapFromFolderOrDefaultAsync(
+                        customFolder,
+                        "grenade_kill.png",
                         fallbackFolder)
                 };
                 CsolKillCache[cacheKey] = baseAsset;
@@ -69,6 +73,7 @@ namespace KillConfirmGameBar.Controls
                 Revenge = baseAsset.Revenge,
                 FirstKill = baseAsset.FirstKill,
                 Assist = baseAsset.Assist,
+                GrenadeKill = baseAsset.GrenadeKill,
                 KillCount = Math.Max(0, Math.Min(10, killCount)),
                 SpecialKey = GetCsolSpecialFileName(normalizedSpecialKey) == null
                     ? string.Empty

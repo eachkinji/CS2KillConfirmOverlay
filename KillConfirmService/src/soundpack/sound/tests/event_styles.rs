@@ -39,6 +39,7 @@
                 ..PackManifest::default()
             };
             let make_ctx = |is_headshot, is_knife_kill| SoundContext {
+                is_grenade_kill: false,
                 kill_count: 4,
                 is_headshot,
                 is_first_kill: false,

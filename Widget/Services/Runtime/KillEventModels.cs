@@ -46,6 +46,7 @@ namespace KillConfirmGameBar.Services
         public int KillCount { get; set; }
         public bool IsHeadshot { get; set; }
         public bool IsKnifeKill { get; set; }
+        public bool IsGrenadeKill { get; set; }
         public bool IsFirstKill { get; set; }
         public bool IsLastKill { get; set; }
         public bool IsAssist { get; set; }

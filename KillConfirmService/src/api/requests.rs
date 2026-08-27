@@ -2,6 +2,7 @@
 pub struct TestEventQuery {
     pub headshot: Option<bool>,
     pub knife: Option<bool>,
+    pub grenade: Option<bool>,
     pub assist: Option<bool>,
     pub first: Option<bool>,
     pub last: Option<bool>,

@@ -27,21 +27,21 @@
         HorizontalAlignment="Stretch"
         VerticalAlignment="Stretch">
         <Grid
-            x:Name="AnimationLayer"
+            x:Name="LowerFeedbackLayer"
             HorizontalAlignment="Stretch"
             VerticalAlignment="Stretch"
             RenderTransformOrigin="0.5,0.5">
             <Grid.RenderTransform>
-                <CompositeTransform x:Name="AnimationTransform" />
+                <CompositeTransform x:Name="LowerFeedbackTransform" />
             </Grid.RenderTransform>
 
             <controls:KillConfirmAnimation
-                x:Name="PrimaryKillAnimation"
+                x:Name="LowerFeedbackAnimation"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch" />
 
             <controls:KillConfirmAnimation
-                x:Name="BadgeKillAnimation"
+                x:Name="LowerBadgeAnimation"
                 Margin="0,-128,0,0"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch" />
@@ -50,16 +50,16 @@
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center">
                 <Grid.RenderTransform>
-                    <TranslateTransform x:Name="AnimationDragOutlineTransform" />
+                    <TranslateTransform x:Name="LowerDragOutlineTransform" />
                 </Grid.RenderTransform>
                 <Border
-                    x:Name="AnimationDragOutline"
+                    x:Name="LowerDragOutline"
                     Width="400"
                     Height="300"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     Background="Transparent"
-                    BorderBrush="#E53935"
+                    BorderBrush="#EF4444"
                     BorderThickness="2"
                     CornerRadius="4"
                     Opacity="0.85"
@@ -73,45 +73,46 @@
                     PointerEntered="OnAnimationFramePointerEntered"
                     PointerExited="OnAnimationFramePointerExited"
                     ContextRequested="OnAnimationFrameContextRequested"
-                    ToolTipService.ToolTip="Drag to move icon" />
+                    ToolTipService.ToolTip="Lower feedback" />
                 <Border
-                    x:Name="AnimationDragHint"
-                    Width="178"
+                    x:Name="LowerDragHint"
+                    MaxWidth="360"
                     Padding="6,2"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Top"
                     Background="#D91F1518"
-                    BorderBrush="#FFFF1744"
+                    BorderBrush="#F87171"
                     BorderThickness="1"
                     CornerRadius="4"
                     IsHitTestVisible="False"
-                    Visibility="Collapsed">
+                    Visibility="Collapsed"
+                    SizeChanged="OnAnimationDragHintSizeChanged">
                     <Border.RenderTransform>
-                        <TranslateTransform Y="-25" />
+                        <TranslateTransform />
                     </Border.RenderTransform>
                     <TextBlock
-                        x:Name="AnimationDragHintText"
-                        HorizontalAlignment="Center"
+                        x:Name="LowerDragHintText"
+                        HorizontalAlignment="Stretch"
                         Foreground="White"
                         FontSize="10"
                         FontWeight="SemiBold"
                         TextAlignment="Center"
-                        TextWrapping="NoWrap" />
+                        TextWrapping="Wrap" />
                 </Border>
             </Grid>
         </Grid>
 
         <Grid
-            x:Name="OverwatchCardLayer"
+            x:Name="CrosshairFeedbackLayer"
             HorizontalAlignment="Stretch"
             VerticalAlignment="Stretch"
             RenderTransformOrigin="0.5,0.5">
             <Grid.RenderTransform>
-                <CompositeTransform x:Name="OverwatchCardTransform" />
+                <CompositeTransform x:Name="CrosshairFeedbackTransform" />
             </Grid.RenderTransform>
 
             <controls:KillConfirmAnimation
-                x:Name="OverwatchCardAnimation"
+                x:Name="CrosshairFeedbackAnimation"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch" />
 
@@ -119,16 +120,16 @@
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center">
                 <Grid.RenderTransform>
-                    <TranslateTransform x:Name="OverwatchCardDragOutlineTransform" />
+                    <TranslateTransform x:Name="CrosshairDragOutlineTransform" />
                 </Grid.RenderTransform>
                 <Border
-                    x:Name="OverwatchCardDragOutline"
-                    Width="180"
-                    Height="44"
+                    x:Name="CrosshairDragOutline"
+                    Width="320"
+                    Height="320"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     Background="Transparent"
-                    BorderBrush="#E53935"
+                    BorderBrush="#F59E0B"
                     BorderThickness="2"
                     CornerRadius="4"
                     Opacity="0.85"
@@ -142,45 +143,46 @@
                     PointerEntered="OnAnimationFramePointerEntered"
                     PointerExited="OnAnimationFramePointerExited"
                     ContextRequested="OnAnimationFrameContextRequested"
-                    ToolTipService.ToolTip="Drag to move non-crosshair effect" />
+                    ToolTipService.ToolTip="Crosshair feedback" />
                 <Border
-                    x:Name="OverwatchCardDragHint"
-                    Width="178"
+                    x:Name="CrosshairDragHint"
+                    MaxWidth="360"
                     Padding="6,2"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Top"
                     Background="#D91F1518"
-                    BorderBrush="#FFFF1744"
+                    BorderBrush="#FCD34D"
                     BorderThickness="1"
                     CornerRadius="4"
                     IsHitTestVisible="False"
-                    Visibility="Collapsed">
+                    Visibility="Collapsed"
+                    SizeChanged="OnAnimationDragHintSizeChanged">
                     <Border.RenderTransform>
-                        <TranslateTransform Y="-25" />
+                        <TranslateTransform />
                     </Border.RenderTransform>
                     <TextBlock
-                        x:Name="OverwatchCardDragHintText"
-                        HorizontalAlignment="Center"
+                        x:Name="CrosshairDragHintText"
+                        HorizontalAlignment="Stretch"
                         Foreground="White"
                         FontSize="10"
                         FontWeight="SemiBold"
                         TextAlignment="Center"
-                        TextWrapping="NoWrap" />
+                        TextWrapping="Wrap" />
                 </Border>
             </Grid>
         </Grid>
 
         <Grid
-            x:Name="ModernWarfare2019UpperLayer"
+            x:Name="UpperFeedbackLayer"
             HorizontalAlignment="Stretch"
             VerticalAlignment="Stretch"
             RenderTransformOrigin="0.5,0.5">
             <Grid.RenderTransform>
-                <CompositeTransform x:Name="ModernWarfare2019UpperTransform" />
+                <CompositeTransform x:Name="UpperFeedbackTransform" />
             </Grid.RenderTransform>
 
             <controls:KillConfirmAnimation
-                x:Name="ModernWarfare2019UpperAnimation"
+                x:Name="UpperFeedbackAnimation"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch" />
 
@@ -188,16 +190,16 @@
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center">
                 <Grid.RenderTransform>
-                    <TranslateTransform x:Name="ModernWarfare2019UpperDragOutlineTransform" />
+                    <TranslateTransform x:Name="UpperDragOutlineTransform" />
                 </Grid.RenderTransform>
                 <Border
-                    x:Name="ModernWarfare2019UpperDragOutline"
+                    x:Name="UpperDragOutline"
                     Width="496"
                     Height="198"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     Background="Transparent"
-                    BorderBrush="#E53935"
+                    BorderBrush="#06B6D4"
                     BorderThickness="2"
                     CornerRadius="4"
                     Opacity="0.85"
@@ -211,30 +213,31 @@
                     PointerEntered="OnAnimationFramePointerEntered"
                     PointerExited="OnAnimationFramePointerExited"
                     ContextRequested="OnAnimationFrameContextRequested"
-                    ToolTipService.ToolTip="Drag to move upper kill effect" />
+                    ToolTipService.ToolTip="Upper feedback" />
                 <Border
-                    x:Name="ModernWarfare2019UpperDragHint"
-                    Width="178"
+                    x:Name="UpperDragHint"
+                    MaxWidth="360"
                     Padding="6,2"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Top"
                     Background="#D91F1518"
-                    BorderBrush="#FFFF1744"
+                    BorderBrush="#67E8F9"
                     BorderThickness="1"
                     CornerRadius="4"
                     IsHitTestVisible="False"
-                    Visibility="Collapsed">
+                    Visibility="Collapsed"
+                    SizeChanged="OnAnimationDragHintSizeChanged">
                     <Border.RenderTransform>
-                        <TranslateTransform Y="-25" />
+                        <TranslateTransform />
                     </Border.RenderTransform>
                     <TextBlock
-                        x:Name="ModernWarfare2019UpperDragHintText"
-                        HorizontalAlignment="Center"
+                        x:Name="UpperDragHintText"
+                        HorizontalAlignment="Stretch"
                         Foreground="White"
                         FontSize="10"
                         FontWeight="SemiBold"
                         TextAlignment="Center"
-                        TextWrapping="NoWrap" />
+                        TextWrapping="Wrap" />
                 </Border>
             </Grid>
         </Grid>
@@ -370,6 +373,104 @@
         </Grid>
     </Border>
 
-        <controls:UpdateOverlayView x:Name="UpdateOverlay" Visibility="Collapsed" />
+        <Grid
+            x:Name="GameBarSetupGuideLayer"
+            Canvas.ZIndex="20"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Top"
+            IsHitTestVisible="False"
+            Visibility="Collapsed">
+            <Grid.Transitions>
+                <TransitionCollection>
+                    <EntranceThemeTransition FromVerticalOffset="18" />
+                </TransitionCollection>
+            </Grid.Transitions>
+
+            <StackPanel
+                x:Name="ClickThroughSetupGuide"
+                Width="286"
+                Margin="12,0"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Top"
+                Visibility="Collapsed">
+                <Grid Height="9">
+                    <Path
+                        Width="18"
+                        Height="9"
+                        Margin="0,0,90,0"
+                        HorizontalAlignment="Right"
+                        Data="M 0,9 L 9,0 L 18,9 Z"
+                        Fill="#F21E1E1E"
+                        Stretch="Fill" />
+                </Grid>
+                <Border
+                    Margin="0,-1,0,0"
+                    Padding="10"
+                    Background="#F21E1E1E"
+                    BorderBrush="#FF4B4B4B"
+                    BorderThickness="1"
+                    CornerRadius="7">
+                    <StackPanel Spacing="8">
+                        <Image
+                            x:Name="ClickThroughSetupGuideImage"
+                            Width="252"
+                            Height="158"
+                            HorizontalAlignment="Center"
+                            Stretch="Uniform" />
+                        <StackPanel
+                            HorizontalAlignment="Center"
+                            Orientation="Horizontal"
+                            Spacing="8">
+                            <FontIcon
+                                FontFamily="Segoe MDL2 Assets"
+                                FontSize="15"
+                                Foreground="#FFFFC857"
+                                Glyph="&#xE7BA;" />
+                            <TextBlock
+                                x:Name="ClickThroughSetupGuideText"
+                                VerticalAlignment="Center"
+                                FontSize="13"
+                                FontWeight="SemiBold"
+                                Foreground="White"
+                                Text="请在顶部工具栏关闭“单击浏览”" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <Grid
+                x:Name="PinSetupGuide"
+                Width="220"
+                Margin="4,0"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Top"
+                Visibility="Collapsed">
+                <Path
+                    Width="18"
+                    Height="9"
+                    Margin="0,0,32,0"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Top"
+                    Data="M 0,9 L 9,0 L 18,9 Z"
+                    Fill="#F21E1E1E"
+                    Stretch="Fill" />
+                <Border
+                    Margin="0,8,0,0"
+                    Padding="12,7"
+                    Background="#F21E1E1E"
+                    BorderBrush="#FF4B4B4B"
+                    BorderThickness="1"
+                    CornerRadius="7">
+                    <TextBlock
+                        x:Name="PinSetupGuideText"
+                        FontSize="13"
+                        FontWeight="SemiBold"
+                        Foreground="White"
+                        Text="点击上方图钉固定窗口" />
+                </Border>
+            </Grid>
+        </Grid>
+
+        <controls:UpdateOverlayView x:Name="UpdateOverlay" Canvas.ZIndex="30" Visibility="Collapsed" />
     </Grid>
 </Page>

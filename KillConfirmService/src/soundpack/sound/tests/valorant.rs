@@ -9,6 +9,7 @@
         let base_dir = pack_dir.to_string_lossy().into_owned();
         let manifest = PackManifest::load_from_dir(&pack_dir).expect("load valorant manifest");
         let make_ctx = |kill_count| SoundContext {
+            is_grenade_kill: false,
             kill_count,
             is_headshot: false,
             is_first_kill: false,

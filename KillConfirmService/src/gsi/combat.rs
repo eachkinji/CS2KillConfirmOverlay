@@ -17,9 +17,115 @@ fn map_weapon_badge_key(weapon_type: WeaponType) -> Option<&'static str> {
         WeaponType::SMG => Some("scout"),
         WeaponType::SniperRifle => Some("sniper"),
         WeaponType::Knife => Some("knife"),
+        WeaponType::Grenade => Some("grenade"),
         WeaponType::Pistol => None,
         _ => None,
     }
+}
+
+pub fn is_harmful_grenade_weapon(weapon_name: &WeaponName) -> Option<(&'static str, bool)> {
+    match weapon_name {
+        WeaponName::HEGrenade | WeaponName::FragGrenade => Some(("hegrenade", false)),
+        WeaponName::Molotov | WeaponName::Firebomb => Some(("molotov", true)),
+        WeaponName::IncendiaryGrenade | WeaponName::FireGrenade => Some(("incgrenade", true)),
+        _ => None,
+    }
+}
+
+pub fn detect_thrown_grenade(
+    previous_weapons: &HashMap<String, (WeaponName, u16)>,
+    current_weapons: &HashMap<String, (WeaponName, u16)>,
+    now: Instant,
+) -> Option<ActiveGrenadeTracker> {
+    for (prev_key, (prev_name, prev_ammo)) in previous_weapons {
+        if let Some((clean_name, is_fire)) = is_harmful_grenade_weapon(prev_name) {
+            let disappeared = !current_weapons.contains_key(prev_key);
+            let ammo_decreased = current_weapons
+                .get(prev_key)
+                .map(|(_, curr_ammo)| *curr_ammo < *prev_ammo)
+                .unwrap_or(false);
+            if disappeared || ammo_decreased {
+                return Some(ActiveGrenadeTracker {
+                    thrown_at: now,
+                    weapon_name: clean_name.to_string(),
+                    is_fire,
+                });
+            }
+        }
+    }
+    None
+}
+
+pub fn detect_gun_fired(
+    previous_weapons: &HashMap<String, (WeaponName, u16)>,
+    current_weapons: &HashMap<String, (WeaponName, u16)>,
+) -> bool {
+    for (prev_key, (prev_name, prev_ammo)) in previous_weapons {
+        if is_harmful_grenade_weapon(prev_name).is_some() || is_knife_weapon(None, prev_name) {
+            continue;
+        }
+        if let Some((_, curr_ammo)) = current_weapons.get(prev_key) {
+            if *curr_ammo < *prev_ammo {
+                return true;
+            }
+        }
+    }
+    false
+}
+
+pub fn has_c4_weapon(weapons: &HashMap<String, (WeaponName, u16)>) -> bool {
+    weapons.values().any(|(name, _)| matches!(name, WeaponName::C4))
+}
+
+pub fn detect_bomb_planted_action(
+    previous_weapons: &HashMap<String, (WeaponName, u16)>,
+    current_weapons: &HashMap<String, (WeaponName, u16)>,
+    previous_round_bomb: Option<&str>,
+    current_round_bomb: Option<&str>,
+    previous_bomb_player: Option<&str>,
+    steamid: &str,
+) -> bool {
+    let had_c4 = has_c4_weapon(previous_weapons);
+    let has_c4_now = has_c4_weapon(current_weapons);
+    let round_became_planted =
+        previous_round_bomb != Some("planted") && current_round_bomb == Some("planted");
+
+    let is_local_plant = had_c4
+        && !has_c4_now
+        && (round_became_planted || current_round_bomb == Some("planted"));
+    let is_spectated_plant = previous_bomb_player
+        .map(|actor| actor == steamid)
+        .unwrap_or(false)
+        && round_became_planted;
+
+    is_local_plant || is_spectated_plant
+}
+
+pub fn detect_bomb_defused_action(
+    player_team: Option<&TeamClass>,
+    previous_round_bomb: Option<&str>,
+    current_round_bomb: Option<&str>,
+    previous_player_money: Option<u32>,
+    current_player_money: u32,
+    previous_bomb_player: Option<&str>,
+    steamid: &str,
+) -> bool {
+    let became_defused =
+        previous_round_bomb != Some("defused") && current_round_bomb == Some("defused");
+    if !became_defused {
+        return false;
+    }
+
+    let is_spectated_defuse = previous_bomb_player
+        .map(|actor| actor == steamid)
+        .unwrap_or(false);
+    let is_ct = matches!(player_team, Some(TeamClass::CT));
+    let money_delta = previous_player_money
+        .map(|prev| current_player_money.saturating_sub(prev))
+        .unwrap_or(0);
+    let is_local_defuse = is_ct && (money_delta == 300 || is_spectated_defuse);
+
+    is_spectated_defuse || is_local_defuse
 }
 
 fn is_knife_weapon(weapon_type: Option<&WeaponType>, weapon_name: &WeaponName) -> bool {

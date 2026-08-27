@@ -19,40 +19,24 @@ namespace KillConfirmGameBar
             GameStyleMode style = GameStyleService.Current;
             KillFeedbackVisibilitySettingsValues visibility =
                 KillFeedbackVisibilitySettingsStore.Load(style);
-            bool primaryIsOptionalCrosshair = style == GameStyleMode.Overwatch
-                || style == GameStyleMode.Apex
-                || style == GameStyleMode.ModernWarfare2019;
-            bool showPrimaryOutline = showControlPanel
-                && (primaryIsOptionalCrosshair
-                    ? visibility.CrosshairEnabled
-                    : visibility.LowerEnabled);
-            AnimationDragOutline.Visibility = showPrimaryOutline ? Visibility.Visible : Visibility.Collapsed;
-            AnimationDragOutline.IsHitTestVisible = showPrimaryOutline;
-            bool showOverwatchCardOutline = showControlPanel
-                && visibility.LowerEnabled
-                && (style == GameStyleMode.Overwatch
-                    || style == GameStyleMode.Apex
-                    || style == GameStyleMode.ModernWarfare2019);
-            OverwatchCardDragOutline.Visibility = showOverwatchCardOutline ? Visibility.Visible : Visibility.Collapsed;
-            OverwatchCardDragOutline.IsHitTestVisible = showOverwatchCardOutline;
-            bool showModernWarfare2019UpperOutline = showControlPanel
-                && ((style == GameStyleMode.ModernWarfare2019 && visibility.UpperEnabled)
-                    || (GameStyleService.IsAuxiliaryKillMarkStyle(style)
-                        && visibility.CrosshairEnabled));
-            ModernWarfare2019UpperDragOutline.Visibility = showModernWarfare2019UpperOutline
-                ? Visibility.Visible
-                : Visibility.Collapsed;
-            ModernWarfare2019UpperDragOutline.IsHitTestVisible = showModernWarfare2019UpperOutline;
-            if (!showControlPanel
-                || (!showPrimaryOutline && _isAnimationFrameSelected)
-                || (!showOverwatchCardOutline && _isOverwatchCardFrameSelected)
-                || (!showModernWarfare2019UpperOutline && _isModernWarfare2019UpperFrameSelected))
+            bool showCrosshair = showControlPanel && visibility.CrosshairEnabled
+                && GameStyleService.SupportsCrosshairAreaEffect(style);
+            bool showLower = showControlPanel && visibility.LowerEnabled;
+            bool showUpper = showControlPanel && visibility.UpperEnabled
+                && KillFeedbackFrameDefinition.IsSupported(style, KillFeedbackLayer.Upper);
+            CrosshairDragOutline.Visibility = showCrosshair ? Visibility.Visible : Visibility.Collapsed;
+            CrosshairDragOutline.IsHitTestVisible = showCrosshair;
+            LowerDragOutline.Visibility = showLower ? Visibility.Visible : Visibility.Collapsed;
+            LowerDragOutline.IsHitTestVisible = showLower;
+            UpperDragOutline.Visibility = showUpper ? Visibility.Visible : Visibility.Collapsed;
+            UpperDragOutline.IsHitTestVisible = showUpper;
+            if (_selectedFeedbackLayer.HasValue
+                && GetFeedbackFrameOutline(_selectedFeedbackLayer.Value).Visibility != Visibility.Visible)
             {
-                _isAnimationFrameSelected = false;
-                _isOverwatchCardFrameSelected = false;
-                _isModernWarfare2019UpperFrameSelected = false;
-                UpdateAnimationDragOutlineSelectionVisual();
+                EndAnimationDrag();
+                _selectedFeedbackLayer = null;
             }
+            UpdateAnimationDragOutlineSelectionVisual();
         }
 
         private bool IsControlPanelVisible()
@@ -70,6 +54,7 @@ namespace KillConfirmGameBar
             }
 
             bool wasControlPanelVisible = IsControlPanelVisible();
+            bool stateReadSucceeded = false;
             try
             {
                 _isWidgetVisible = _widget.Visible;
@@ -77,12 +62,20 @@ namespace KillConfirmGameBar
                 _windowState = _widget.WindowState;
                 _isPinned = _widget.Pinned;
                 _clickThroughEnabled = _widget.ClickThroughEnabled;
+                _hasGameBarSetupState = true;
+                stateReadSucceeded = true;
             }
             catch (Exception)
             {
             }
 
+            if (stateReadSucceeded)
+            {
+                GameBarRuntimeStatusStore.Publish(_isPinned, _clickThroughEnabled);
+            }
+
             UpdateControlPanelVisibility();
+            UpdateGameBarSetupGuidance();
             if (wasControlPanelVisible != IsControlPanelVisible())
             {
                 // Preserve the known-good v3.3.2 behavior: a visibility transition
@@ -90,6 +83,33 @@ namespace KillConfirmGameBar
                 // display mode. The requested size itself always remains 550 x 600.
                 RequestFixedWidgetLayoutRefresh();
             }
+        }
+
+        private void UpdateGameBarSetupGuidance()
+        {
+            if (GameBarSetupGuideLayer == null)
+            {
+                return;
+            }
+
+            bool panelVisible = _hasGameBarSetupState && IsControlPanelVisible();
+            // Game Bar reports ClickThroughEnabled=true after the user has
+            // pressed the toolbar button whose Chinese action text is
+            // "禁用单击浏览". That is the ready state for an overlay: mouse
+            // input passes through to the game. Only guide the user while the
+            // feature is not yet active.
+            bool showClickThroughGuide = panelVisible && !_clickThroughEnabled;
+            bool showPinGuide = panelVisible && !showClickThroughGuide && !_isPinned;
+
+            ClickThroughSetupGuide.Visibility = showClickThroughGuide
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+            PinSetupGuide.Visibility = showPinGuide
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+            GameBarSetupGuideLayer.Visibility = showClickThroughGuide || showPinGuide
+                ? Visibility.Visible
+                : Visibility.Collapsed;
         }
 
         private void UpdateConnectionState(KillEventConnectionState state)

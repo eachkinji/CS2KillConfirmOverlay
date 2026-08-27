@@ -30,6 +30,7 @@ namespace KillConfirmGameBar.Controls
             public CanvasBitmap Revenge { get; set; }
             public CanvasBitmap FirstKill { get; set; }
             public CanvasBitmap Assist { get; set; }
+            public CanvasBitmap GrenadeKill { get; set; }
             public int KillCount { get; set; }
             public string SpecialKey { get; set; }
         }

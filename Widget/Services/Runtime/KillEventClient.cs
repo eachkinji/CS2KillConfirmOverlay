@@ -287,6 +287,7 @@ namespace KillConfirmGameBar.Services
                 KillCount = (int)json.GetNamedNumber("kill_count", 0),
                 IsHeadshot = json.GetNamedBoolean("is_headshot", false),
                 IsKnifeKill = json.GetNamedBoolean("is_knife_kill", false),
+                IsGrenadeKill = json.GetNamedBoolean("is_grenade_kill", false),
                 IsFirstKill = json.GetNamedBoolean("is_first_kill", false),
                 IsLastKill = json.GetNamedBoolean("is_last_kill", false),
                 IsAssist = isAssist,

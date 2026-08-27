@@ -85,6 +85,22 @@ namespace KillConfirmGameBar.Services
 
             await CopySelectedVoiceFilesAsync(packFolder, options);
 
+            // A custom pack is self-contained: omitted slots retain the default
+            // Valorant cue, including when this pack is exported or imported.
+            foreach (string stem in ValorantVoiceSlotMapping.Keys)
+            {
+                if ((await FindAudioFileNamesAsync(packFolder, stem)).Count > 0)
+                {
+                    continue;
+                }
+
+                string fileName = stem + ".wav";
+                StorageFile builtIn = await StorageFile.GetFileFromApplicationUriAsync(
+                    new Uri("ms-appx:///KillConfirmService/sounds/"
+                        + ValorantPackService.DefaultKey + "/" + fileName));
+                await builtIn.CopyAsync(packFolder, fileName, NameCollisionOption.ReplaceExisting);
+            }
+
             if (options.HeadImageFile != null)
             {
                 string extension = options.HeadImageFile.FileType;

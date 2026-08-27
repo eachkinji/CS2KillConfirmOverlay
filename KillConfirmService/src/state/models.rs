@@ -1,9 +1,18 @@
+use gsi_cs2::weapon::WeaponName;
+
 pub struct Mutable {
     pub active_player: TrackedPlayerState,
     pub active_observed_player_id: Option<String>,
     pub last_bomb_state: Option<String>,
     pub last_bomb_player: Option<String>,
     pub last_round_bomb_state: Option<String>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ActiveGrenadeTracker {
+    pub thrown_at: Instant,
+    pub weapon_name: String,
+    pub is_fire: bool,
 }
 
 #[derive(Clone)]
@@ -25,6 +34,8 @@ pub struct TrackedPlayerState {
     pub pending_last_kill: Option<PendingLastKill>,
     pub last_active_weapon: Option<WeaponKillContext>,
     pub last_weapon_ammo: HashMap<String, u16>,
+    pub last_weapons: HashMap<String, (WeaponName, u16)>,
+    pub active_grenade: Option<ActiveGrenadeTracker>,
 }
 
 impl Default for TrackedPlayerState {
@@ -47,6 +58,8 @@ impl Default for TrackedPlayerState {
             pending_last_kill: None,
             last_active_weapon: None,
             last_weapon_ammo: HashMap::new(),
+            last_weapons: HashMap::new(),
+            active_grenade: None,
         }
     }
 }
@@ -57,6 +70,7 @@ pub struct KillEvent {
     pub kill_count: u16,
     pub is_headshot: bool,
     pub is_knife_kill: bool,
+    pub is_grenade_kill: bool,
     pub is_first_kill: bool,
     pub is_last_kill: bool,
     pub is_assist: bool,

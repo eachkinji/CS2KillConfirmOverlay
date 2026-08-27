@@ -26,6 +26,32 @@ namespace KillConfirmGameBar
                 return true;
             }
 
+            if (style == GameStyleMode.Crossfire)
+            {
+                string eventKind = killEvent.EventKind ?? killEvent.AnimationKey;
+                if (string.Equals(eventKind, "bomb_plant", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(eventKind, "bomb_defuse", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(killEvent.AnimationKey, "bomb_plant", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(killEvent.AnimationKey, "bomb_defuse", StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            if (style == GameStyleMode.ModernWarfare2019)
+            {
+                string eventKind = killEvent.EventKind ?? killEvent.AnimationKey;
+                if (string.Equals(eventKind, "bomb_plant", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(eventKind, "bomb_defuse", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(eventKind, "hostage_interact", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(eventKind, "hostage_rescue", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(eventKind, "round_win", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(eventKind, "round_loss", StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
             return killEvent.IsEconomyEvent && IsEconomyPresentationStyle(style);
         }
 
@@ -79,12 +105,16 @@ namespace KillConfirmGameBar
             {
                 specialKey = "melee";
             }
+            else if (killEvent.IsGrenadeKill)
+            {
+                specialKey = "grenade_kill";
+            }
             else if (killEvent.IsHeadshot)
             {
                 specialKey = "headshot";
             }
 
-            PrimaryKillAnimation.PlayCsolKill(killEvent.KillCount, specialKey);
+            LowerFeedbackAnimation.PlayCsolKill(killEvent.KillCount, specialKey);
         }
 
         private void PlayCrossfirePrimaryAnimation(KillEvent killEvent)
@@ -92,16 +122,30 @@ namespace KillConfirmGameBar
             PlayAuxiliaryKillMarkIfEnabled(killEvent);
             CrossfireGameplaySettingsValues settings = CrossfireGameplaySettingsStore.Load();
 
+            string eventKind = killEvent.EventKind ?? killEvent.AnimationKey;
+            if (string.Equals(eventKind, "bomb_plant", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(killEvent.AnimationKey, "bomb_plant", StringComparison.OrdinalIgnoreCase))
+            {
+                LowerFeedbackAnimation.PlayCodeKill("c4", killEvent.WeaponBadgeKey);
+                return;
+            }
+            if (string.Equals(eventKind, "bomb_defuse", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(killEvent.AnimationKey, "bomb_defuse", StringComparison.OrdinalIgnoreCase))
+            {
+                LowerFeedbackAnimation.PlayCodeKill("c4defuse", killEvent.WeaponBadgeKey);
+                return;
+            }
+
             if (string.Equals(killEvent.AnimationKey, "code2kill", StringComparison.OrdinalIgnoreCase))
             {
-                PrimaryKillAnimation.PlayCodeKill("multi2", killEvent.WeaponBadgeKey);
+                LowerFeedbackAnimation.PlayCodeKill("multi2", killEvent.WeaponBadgeKey);
                 return;
             }
 
             if (string.Equals(killEvent.AnimationKey, "headshot_vvip", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(killEvent.AnimationKey, "headshot_gold_vvip", StringComparison.OrdinalIgnoreCase))
             {
-                PrimaryKillAnimation.PlayCodeKill(killEvent.AnimationKey, killEvent.WeaponBadgeKey);
+                LowerFeedbackAnimation.PlayCodeKill(killEvent.AnimationKey, killEvent.WeaponBadgeKey);
                 return;
             }
 
@@ -109,7 +153,13 @@ namespace KillConfirmGameBar
                 && (killEvent.KillCount < 2 || settings.KnifeSpecialIconPriority);
             if (knifeIconWins)
             {
-                PrimaryKillAnimation.PlayCodeKill("knife", killEvent.WeaponBadgeKey);
+                LowerFeedbackAnimation.PlayCodeKill("knife", killEvent.WeaponBadgeKey);
+                return;
+            }
+
+            if (killEvent.IsGrenadeKill)
+            {
+                LowerFeedbackAnimation.PlayCodeKill("grenade", killEvent.WeaponBadgeKey);
                 return;
             }
 
@@ -119,7 +169,7 @@ namespace KillConfirmGameBar
             {
                 bool useFirstOrLastEffect = (killEvent.IsFirstKill && settings.FirstKillEffectEnabled)
                     || (killEvent.IsLastKill && settings.LastKillEffectEnabled);
-                PrimaryKillAnimation.PlayCodeKill(
+                LowerFeedbackAnimation.PlayCodeKill(
                     useFirstOrLastEffect ? "headshot_gold" : "headshot",
                     killEvent.WeaponBadgeKey);
                 return;
@@ -127,18 +177,18 @@ namespace KillConfirmGameBar
 
             if (killEvent.KillCount == 1)
             {
-                PrimaryKillAnimation.PlayCodeKill("multi1", killEvent.WeaponBadgeKey);
+                LowerFeedbackAnimation.PlayCodeKill("multi1", killEvent.WeaponBadgeKey);
                 return;
             }
 
             if (killEvent.KillCount >= 2)
             {
                 int codeKillCount = Math.Max(2, Math.Min(6, killEvent.KillCount));
-                PrimaryKillAnimation.PlayCodeKill("multi" + codeKillCount, killEvent.WeaponBadgeKey);
+                LowerFeedbackAnimation.PlayCodeKill("multi" + codeKillCount, killEvent.WeaponBadgeKey);
                 return;
             }
 
-            PrimaryKillAnimation.PlayCodeKill("multi1", killEvent.WeaponBadgeKey);
+            LowerFeedbackAnimation.PlayCodeKill("multi1", killEvent.WeaponBadgeKey);
         }
 
         private void PlayBadgeAnimation(KillEvent killEvent)
@@ -160,7 +210,7 @@ namespace KillConfirmGameBar
                 return;
             }
             ConfigureFeedbackAppearance(
-                BadgeKillAnimation,
+                LowerBadgeAnimation,
                 visibility,
                 KillFeedbackLayer.Lower);
 
@@ -169,7 +219,7 @@ namespace KillConfirmGameBar
             if (killEvent.IsAssist
                 || string.Equals(killEvent.AnimationKey, "assist", StringComparison.OrdinalIgnoreCase))
             {
-                BadgeKillAnimation.PlayCodeKill("assist");
+                LowerBadgeAnimation.PlayCodeKill("assist");
                 return;
             }
 
@@ -180,7 +230,7 @@ namespace KillConfirmGameBar
                     return;
                 }
 
-                BadgeKillAnimation.PlayCodeKill("lastkill");
+                LowerBadgeAnimation.PlayCodeKill("lastkill");
                 return;
             }
 
@@ -191,7 +241,7 @@ namespace KillConfirmGameBar
                     return;
                 }
 
-                BadgeKillAnimation.PlayCodeKill("firstkill");
+                LowerBadgeAnimation.PlayCodeKill("firstkill");
             }
         }
 
@@ -284,12 +334,17 @@ namespace KillConfirmGameBar
                 query.Add("knife=true");
             }
 
+            if (preset.IsGrenadeKill)
+            {
+                query.Add("grenade=true");
+            }
+
             if (preset.IsAssist)
             {
                 query.Add("assist=true");
             }
 
-            query.Add("event_kind=" + (preset.IsAssist ? "assist" : "kill"));
+            query.Add("event_kind=" + (string.IsNullOrWhiteSpace(preset.EventKind) ? (preset.IsAssist ? "assist" : "kill") : preset.EventKind));
 
             if (preset.IsFirstKill)
             {
@@ -311,10 +366,12 @@ namespace KillConfirmGameBar
                 query.Add("animation=" + Uri.EscapeDataString(preset.AnimationKey));
             }
 
-            string testWeaponName = preset.IsKnifeKill ? "Knife" : "AK-47";
-            int testMoneyReward = preset.IsAssist ? 0 : (preset.IsKnifeKill ? 1500 : 300);
-            query.Add("player_name=" + Uri.EscapeDataString("\u73a9\u5bb6"));
-            query.Add("target_name=" + Uri.EscapeDataString("\u6050\u6016\u5206\u5b50"));
+            string testWeaponName = !string.IsNullOrWhiteSpace(preset.WeaponName)
+                ? preset.WeaponName
+                : (preset.IsKnifeKill ? "Knife" : (preset.IsGrenadeKill ? "HE Grenade" : "AK-47"));
+            int testMoneyReward = preset.MoneyReward;
+            query.Add("player_name=" + Uri.EscapeDataString("玩家"));
+            query.Add("target_name=" + Uri.EscapeDataString("恐怖分子"));
             query.Add("weapon_name=" + Uri.EscapeDataString(testWeaponName));
             query.Add("money_reward=" + testMoneyReward);
             query.Add("audio=true");
@@ -325,155 +382,128 @@ namespace KillConfirmGameBar
         private void NudgeAnimation(double delta)
         {
             double maxOffset = GetMaxAnimationOffset();
-            double currentOffset = GetResolvedAnimationOffset();
-
-            _animationPlacement = AnimationPlacementMode.Manual;
-            _animationOffset = Math.Max(-maxOffset, Math.Min(maxOffset, currentOffset + delta));
+            double currentOffset = GetLegacyPrimaryResolvedVerticalOffset();
+            _legacyPrimaryPlacement = AnimationPlacementMode.Manual;
+            _legacyPrimaryVerticalOffset = Math.Max(-maxOffset, Math.Min(maxOffset, currentOffset + delta));
             ApplyAnimationOffset();
-            SaveAnimationPlacementSettings();
+            SaveLegacyPrimaryPlacementSettings();
         }
 
         private void ApplyAnimationOffset()
         {
-            ApplyAnimationTransform();
+            ApplyLegacyPrimaryTransform();
         }
 
         private void NudgeAnimationHorizontal(double delta)
         {
             double maxOffset = GetMaxAnimationHorizontalOffset();
-            _animationHorizontalOffset = Math.Max(
+            _legacyPrimaryHorizontalOffset = Math.Max(
                 -maxOffset,
-                Math.Min(maxOffset, _animationHorizontalOffset + delta));
-            ApplyAnimationTransform();
-            SaveAnimationPlacementSettings();
+                Math.Min(maxOffset, _legacyPrimaryHorizontalOffset + delta));
+            ApplyLegacyPrimaryTransform();
+            SaveLegacyPrimaryPlacementSettings();
         }
 
         private void ScaleAnimation(double factor)
         {
-            double candidate = _animationScale * factor;
+            double candidate = _legacyPrimaryScale * factor;
             if (double.IsNaN(candidate) || double.IsInfinity(candidate) || candidate <= 0)
             {
                 return;
             }
 
-            _animationScale = candidate;
-            ApplyAnimationTransform();
-            SaveAnimationPlacementSettings();
+            _legacyPrimaryScale = candidate;
+            ApplyLegacyPrimaryTransform();
+            SaveLegacyPrimaryPlacementSettings();
         }
 
-        private void ScaleOverwatchCard(double factor)
+        private void ScaleLegacyLowerCard(double factor)
         {
-            double candidate = _overwatchCardScale * factor;
+            double candidate = _legacyLowerCardScale * factor;
             if (double.IsNaN(candidate) || double.IsInfinity(candidate) || candidate <= 0)
             {
                 return;
             }
 
-            _overwatchCardScale = candidate;
-            ApplyOverwatchCardTransform();
-            SaveOverwatchCardPlacementSettings();
+            _legacyLowerCardScale = candidate;
+            ApplyLegacyLowerCardTransform();
+            SaveLegacyLowerCardPlacementSettings();
         }
 
-        private void ScaleModernWarfare2019Upper(double factor)
+        private void ScaleLegacyAuxiliary(double factor)
         {
-            double candidate = _modernWarfare2019UpperScale * factor;
+            double candidate = _legacyAuxiliaryScale * factor;
             if (double.IsNaN(candidate) || double.IsInfinity(candidate) || candidate <= 0)
             {
                 return;
             }
 
-            _modernWarfare2019UpperScale = candidate;
-            ApplyModernWarfare2019UpperTransform();
-            SaveModernWarfare2019UpperPlacementSettings();
+            _legacyAuxiliaryScale = candidate;
+            ApplyLegacyAuxiliaryTransform();
+            SaveLegacyAuxiliaryPlacementSettings();
         }
 
         private void SetNonCrosshairAnimationPlacement(AnimationPlacementMode placement)
         {
-            if (GameStyleService.Current == GameStyleMode.Overwatch
-                || GameStyleService.Current == GameStyleMode.Apex
-                || GameStyleService.Current == GameStyleMode.ModernWarfare2019)
-            {
-                switch (placement)
-                {
-                    case AnimationPlacementMode.Top:
-                        _overwatchCardVerticalOffset = GetTopOffset() - GetBottomOffset();
-                        break;
-                    case AnimationPlacementMode.Center:
-                        _overwatchCardVerticalOffset = -GetBottomOffset();
-                        _overwatchCardHorizontalOffset = 0;
-                        break;
-                    case AnimationPlacementMode.Bottom:
-                    default:
-                        _overwatchCardVerticalOffset = 0;
-                        break;
-                }
+            SetFeedbackFramePlacement(KillFeedbackLayer.Lower, placement,
+                centerHorizontally: placement == AnimationPlacementMode.Center);
+        }
 
-                ApplyOverwatchCardTransform();
-                SaveOverwatchCardPlacementSettings();
+        private void ApplyLegacyPrimaryTransform()
+        {
+            KillFeedbackLayer layer = KillFeedbackFrameDefinition.GetLegacyPrimaryLayer(GameStyleService.Current);
+            ApplyFeedbackLayerTransform(layer, _legacyPrimaryScale,
+                _legacyPrimaryHorizontalOffset, GetLegacyPrimaryResolvedVerticalOffset());
+        }
+
+        private void ApplyLegacyLowerCardTransform()
+        {
+            if (KillFeedbackFrameDefinition.GetLegacyPrimaryLayer(GameStyleService.Current) != KillFeedbackLayer.Crosshair)
+            {
                 return;
             }
+            ApplyFeedbackLayerTransform(KillFeedbackLayer.Lower, _legacyLowerCardScale,
+                _legacyLowerCardHorizontalOffset, GetBottomOffset() + _legacyLowerCardVerticalOffset);
+        }
 
-            _animationPlacement = placement;
-            if (placement == AnimationPlacementMode.Center)
+        private void ApplyLegacyAuxiliaryTransform()
+        {
+            GameStyleMode style = GameStyleService.Current;
+            if (style != GameStyleMode.ModernWarfare2019 && !GameStyleService.IsAuxiliaryKillMarkStyle(style))
             {
-                _animationOffset = 0;
-                _animationHorizontalOffset = 0;
+                return;
             }
-            ApplyAnimationTransform();
-            SaveAnimationPlacementSettings();
+            ApplyFeedbackLayerTransform(KillFeedbackFrameDefinition.GetLegacyAuxiliaryLayer(style),
+                _legacyAuxiliaryScale, _legacyAuxiliaryHorizontalOffset,
+                GetLegacyAuxiliaryResolvedVerticalOffset());
         }
 
-        private void ApplyAnimationTransform()
+        private void ApplyFeedbackLayerTransform(KillFeedbackLayer layer, double scale, double x, double y)
         {
-            bool directValorantPresentation = Controls.KillConfirmAnimation.IsValorantPresentationConfigured;
-            double renderScale = directValorantPresentation
-                ? 1.0
-                : Math.Max(1.0, Math.Min(4.0, _animationScale));
-            PrimaryKillAnimation.SetPresentationScale(_animationScale);
-            BadgeKillAnimation.SetPresentationScale(_animationScale);
-            PrimaryKillAnimation.SetRenderResolutionScale(renderScale);
-            BadgeKillAnimation.SetRenderResolutionScale(renderScale);
-            AnimationTransform.ScaleX = directValorantPresentation ? 1.0 : _animationScale;
-            AnimationTransform.ScaleY = directValorantPresentation ? 1.0 : _animationScale;
-            AnimationTransform.TranslateX = _animationHorizontalOffset;
-            AnimationTransform.TranslateY = GetResolvedAnimationOffset();
+            bool directValorant = layer == KillFeedbackLayer.Lower
+                && Controls.KillConfirmAnimation.IsValorantPresentationConfigured;
+            double renderScale = directValorant ? 1.0 : Math.Max(1.0, Math.Min(4.0, scale));
+            Controls.KillConfirmAnimation animation = GetFeedbackAnimation(layer);
+            animation.SetPresentationScale(scale);
+            animation.SetRenderResolutionScale(renderScale);
+            if (layer == KillFeedbackLayer.Lower)
+            {
+                LowerBadgeAnimation.SetPresentationScale(scale);
+                LowerBadgeAnimation.SetRenderResolutionScale(renderScale);
+            }
+            CompositeTransform transform = GetFeedbackTransform(layer);
+            transform.ScaleX = directValorant ? 1.0 : scale;
+            transform.ScaleY = directValorant ? 1.0 : scale;
+            transform.TranslateX = x;
+            transform.TranslateY = y;
             UpdateAnimationDragOutlineSize();
         }
 
-        private void ApplyOverwatchCardTransform()
-        {
-            double renderScale = Math.Max(1.0, Math.Min(4.0, _overwatchCardScale));
-            OverwatchCardAnimation.SetPresentationScale(_overwatchCardScale);
-            OverwatchCardAnimation.SetRenderResolutionScale(renderScale);
-            OverwatchCardTransform.ScaleX = _overwatchCardScale;
-            OverwatchCardTransform.ScaleY = _overwatchCardScale;
-            OverwatchCardTransform.TranslateX = _overwatchCardHorizontalOffset;
-            OverwatchCardTransform.TranslateY = GetBottomOffset() + _overwatchCardVerticalOffset;
-            UpdateAnimationDragOutlineSize();
-        }
-
-        private void ApplyModernWarfare2019UpperTransform()
-        {
-            double renderScale = Math.Max(
-                1.0,
-                Math.Min(4.0, _modernWarfare2019UpperScale));
-            ModernWarfare2019UpperAnimation.SetPresentationScale(
-                _modernWarfare2019UpperScale);
-            ModernWarfare2019UpperAnimation.SetRenderResolutionScale(renderScale);
-            ModernWarfare2019UpperTransform.ScaleX = _modernWarfare2019UpperScale;
-            ModernWarfare2019UpperTransform.ScaleY = _modernWarfare2019UpperScale;
-            ModernWarfare2019UpperTransform.TranslateX =
-                _modernWarfare2019UpperHorizontalOffset;
-            ModernWarfare2019UpperTransform.TranslateY =
-                GetAuxiliaryLayerResolvedVerticalOffset();
-            UpdateAnimationDragOutlineSize();
-        }
-
-        private double GetAuxiliaryLayerResolvedVerticalOffset()
+        private double GetLegacyAuxiliaryResolvedVerticalOffset()
         {
             return GameStyleService.IsAuxiliaryKillMarkStyle(GameStyleService.Current)
-                ? _modernWarfare2019UpperVerticalOffset
-                : GetUpperThirdOffset() + _modernWarfare2019UpperVerticalOffset;
+                ? _legacyAuxiliaryVerticalOffset
+                : GetUpperThirdOffset() + _legacyAuxiliaryVerticalOffset;
         }
     }
 }

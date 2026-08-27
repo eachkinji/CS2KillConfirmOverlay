@@ -35,6 +35,16 @@ namespace KillConfirmGameBar
     public sealed partial class KillConfirmWidgetPage : Page
     {
 
+        private void OnAnimationDragHintSizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            // Localized hints can wrap. Keep the entire hint above the frame
+            // instead of using a fixed offset sized for a single line.
+            if (sender is Border hint && hint.RenderTransform is TranslateTransform transform)
+            {
+                transform.Y = -e.NewSize.Height - 6.0;
+            }
+        }
+
         private static Brush CreateDragOutlineScratchBrush()
         {
             LinearGradientBrush brush = new LinearGradientBrush
@@ -63,18 +73,18 @@ namespace KillConfirmGameBar
 
         private bool IsPointerOnDragOutline(object originalSource)
         {
-            if (ReferenceEquals(originalSource, AnimationDragOutline)
-                || ReferenceEquals(originalSource, OverwatchCardDragOutline)
-                || ReferenceEquals(originalSource, ModernWarfare2019UpperDragOutline))
+            if (ReferenceEquals(originalSource, LowerDragOutline)
+                || ReferenceEquals(originalSource, CrosshairDragOutline)
+                || ReferenceEquals(originalSource, UpperDragOutline))
             {
                 return true;
             }
             DependencyObject current = originalSource as DependencyObject;
             while (current != null)
             {
-                if (ReferenceEquals(current, AnimationDragOutline)
-                    || ReferenceEquals(current, OverwatchCardDragOutline)
-                    || ReferenceEquals(current, ModernWarfare2019UpperDragOutline))
+                if (ReferenceEquals(current, LowerDragOutline)
+                    || ReferenceEquals(current, CrosshairDragOutline)
+                    || ReferenceEquals(current, UpperDragOutline))
                 {
                     return true;
                 }
@@ -85,19 +95,8 @@ namespace KillConfirmGameBar
 
         private void OnWindowPointerPressed(object sender, PointerRoutedEventArgs e)
         {
-            if (!_isAnimationFrameSelected
-                && !_isOverwatchCardFrameSelected
-                && !_isModernWarfare2019UpperFrameSelected)
-            {
-                return;
-            }
-            if (IsPointerOnDragOutline(e.OriginalSource))
-            {
-                return;
-            }
-            _isAnimationFrameSelected = false;
-            _isOverwatchCardFrameSelected = false;
-            _isModernWarfare2019UpperFrameSelected = false;
+            if (!_selectedFeedbackLayer.HasValue || IsPointerOnDragOutline(e.OriginalSource)) return;
+            _selectedFeedbackLayer = null;
             UpdateAnimationDragOutlineSelectionVisual();
             e.Handled = true;
         }
@@ -105,26 +104,16 @@ namespace KillConfirmGameBar
         private void EndAnimationDrag()
         {
             bool wasDragging = _isDraggingAnimation;
-            bool cardFrame = _isOverwatchCardFrameSelected;
-            bool upperFrame = _isModernWarfare2019UpperFrameSelected;
+            Border activeOutline = _activeAnimationDragOutline;
+            KillFeedbackLayer? layer = GetFeedbackFrameLayer(_activeAnimationDragOutline);
             _isDraggingAnimation = false;
             _animationDragPointerId = 0;
             _activeAnimationDragOutline = null;
-            if (!wasDragging)
+            activeOutline?.ReleasePointerCaptures();
+            if (wasDragging && layer.HasValue && _feedbackDragStyle == GameStyleService.Current
+                && KillFeedbackFrameDefinition.IsSupported(GameStyleService.Current, layer.Value))
             {
-                return;
-            }
-            if (upperFrame)
-            {
-                SaveModernWarfare2019UpperPlacementSettings();
-            }
-            else if (cardFrame)
-            {
-                SaveOverwatchCardPlacementSettings();
-            }
-            else
-            {
-                SaveAnimationPlacementSettings();
+                SaveFeedbackFramePlacement(layer.Value);
             }
         }
 

@@ -1,5 +1,6 @@
 using System;
 using KillConfirmGameBar.Services;
+using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
@@ -14,17 +15,31 @@ namespace KillConfirmGameBar.Controls.Settings
         private const string TabAbout = "about";
 
         private string _activeTab = TabGeneral;
+        private readonly DispatcherTimer _gameBarStatusTimer;
 
         public AdvancedSettingsHub()
         {
             InitializeComponent();
+            _gameBarStatusTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(1)
+            };
+            _gameBarStatusTimer.Tick += OnGameBarStatusTimerTick;
             Loaded += OnLoaded;
+            Unloaded += OnUnloaded;
         }
         private async void OnLoaded(object sender, RoutedEventArgs e)
         {
             ApplyLanguage();
             ApplyTheme(GameThemePalette.Current);
+            RefreshGameBarStatus();
+            _gameBarStatusTimer.Start();
             await HubPortSettingsView.InitializeAsync();
+        }
+
+        private void OnUnloaded(object sender, RoutedEventArgs e)
+        {
+            _gameBarStatusTimer.Stop();
         }
 
         internal void ApplyLanguage()
@@ -47,6 +62,19 @@ namespace KillConfirmGameBar.Controls.Settings
             HubExperienceCardDescription.Text = isChinese
                 ? "观战击杀特效、游戏退出自动关闭、击杀语音打断与 C4 炸弹音效等对局体验选项。"
                 : "In-match experience options: spectated kill effects, auto-close on game exit, kill-voice interrupt, and C4 bomb audio.";
+
+            HubGameBarStatusTitle.Text = isChinese ? "GAME BAR 使用状态" : "GAME BAR STATUS";
+            HubGameBarStatusDescription.Text = isChinese
+                ? "打开 Win+G 后，这里会实时显示固定与单击浏览状态。"
+                : "Open Win+G to see the live pin and click-through state.";
+            HubGameBarCardTitle.Text = isChinese
+                ? "Kill Confirm Overlay 小组件"
+                : "Kill Confirm Overlay widget";
+            HubWidgetStatusTitle.Text = isChinese ? "小组件状态" : "Widget status";
+            HubPinStatusTitle.Text = isChinese ? "固定窗口" : "Pin widget";
+            HubClickThroughStatusTitle.Text = isChinese ? "单击浏览" : "Click-through";
+            HubOpenGameBarButton.Content = isChinese ? "打开 Game Bar" : "Open Game Bar";
+            RefreshGameBarStatus();
 
             HubGeneralCardTitle.Text = isChinese ? "软件与维护" : "APP & MAINTENANCE";
             HubGeneralCardDescription.Text = isChinese
@@ -110,6 +138,27 @@ namespace KillConfirmGameBar.Controls.Settings
         {
             if (HubExperienceCardTitle != null) HubExperienceCardTitle.Foreground = new SolidColorBrush(theme.Text);
             if (HubExperienceCardDescription != null) HubExperienceCardDescription.Foreground = new SolidColorBrush(theme.MutedText);
+            if (HubGameBarStatusTitle != null) HubGameBarStatusTitle.Foreground = theme.Brush(theme.Text);
+            if (HubGameBarStatusDescription != null) HubGameBarStatusDescription.Foreground = theme.Brush(theme.MutedText);
+            if (HubGameBarStatusCard != null)
+            {
+                HubGameBarStatusCard.Background = theme.Brush(theme.Card);
+                HubGameBarStatusCard.BorderBrush = theme.Brush(theme.SoftBorder);
+            }
+            if (HubGameBarCardTitle != null) HubGameBarCardTitle.Foreground = theme.Brush(theme.Text);
+            if (HubGameBarCardSummary != null) HubGameBarCardSummary.Foreground = theme.Brush(theme.MutedText);
+            if (HubWidgetStatusTitle != null) HubWidgetStatusTitle.Foreground = theme.Brush(theme.Text);
+            if (HubWidgetStatusDetail != null) HubWidgetStatusDetail.Foreground = theme.Brush(theme.MutedText);
+            if (HubPinStatusTitle != null) HubPinStatusTitle.Foreground = theme.Brush(theme.Text);
+            if (HubPinStatusDetail != null) HubPinStatusDetail.Foreground = theme.Brush(theme.MutedText);
+            if (HubClickThroughStatusTitle != null) HubClickThroughStatusTitle.Foreground = theme.Brush(theme.Text);
+            if (HubClickThroughStatusDetail != null) HubClickThroughStatusDetail.Foreground = theme.Brush(theme.MutedText);
+            if (HubOpenGameBarButton != null)
+            {
+                HubOpenGameBarButton.Background = theme.Brush(theme.Card);
+                HubOpenGameBarButton.BorderBrush = theme.Brush(theme.SoftBorder);
+                HubOpenGameBarButton.Foreground = theme.Brush(theme.Text);
+            }
             if (HubGeneralCardTitle != null) HubGeneralCardTitle.Foreground = new SolidColorBrush(theme.Text);
             if (HubGeneralCardDescription != null) HubGeneralCardDescription.Foreground = new SolidColorBrush(theme.MutedText);
             if (HubGeneralCardSecondaryTitle != null) HubGeneralCardSecondaryTitle.Foreground = new SolidColorBrush(theme.Text);
@@ -165,6 +214,116 @@ namespace KillConfirmGameBar.Controls.Settings
         private void OnHubTabPortClick(object sender, RoutedEventArgs e) => SwitchTab(TabPort);
         private void OnHubTabDisplayClick(object sender, RoutedEventArgs e) => SwitchTab(TabDisplay);
         private void OnHubTabAboutClick(object sender, RoutedEventArgs e) => SwitchTab(TabAbout);
+
+        private void OnGameBarStatusTimerTick(object sender, object e)
+        {
+            RefreshGameBarStatus();
+        }
+
+        private void RefreshGameBarStatus()
+        {
+            if (HubGameBarCardSummary == null)
+            {
+                return;
+            }
+
+            bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            GameBarRuntimeStatus status = GameBarRuntimeStatusStore.Read();
+            if (!status.IsAvailable)
+            {
+                HubGameBarCardSummary.Text = isChinese
+                    ? "等待小组件上报状态"
+                    : "Waiting for the widget to report its state";
+                SetGameBarStatusRow(
+                    HubWidgetStatusGlyph,
+                    HubWidgetStatusDetail,
+                    HubWidgetStatusBadge,
+                    null,
+                    isChinese ? "请按 Win+G 打开 Kill Confirm Overlay" : "Press Win+G and open Kill Confirm Overlay",
+                    isChinese ? "未检测" : "Not detected");
+                SetGameBarStatusRow(
+                    HubPinStatusGlyph,
+                    HubPinStatusDetail,
+                    HubPinStatusBadge,
+                    null,
+                    isChinese ? "等待小组件状态" : "Waiting for widget state",
+                    isChinese ? "未知" : "Unknown");
+                SetGameBarStatusRow(
+                    HubClickThroughStatusGlyph,
+                    HubClickThroughStatusDetail,
+                    HubClickThroughStatusBadge,
+                    null,
+                    isChinese ? "等待小组件状态" : "Waiting for widget state",
+                    isChinese ? "未知" : "Unknown");
+                return;
+            }
+
+            bool ready = status.IsPinned && status.IsClickThroughEnabled;
+            HubGameBarCardSummary.Text = ready
+                ? (isChinese ? "Game Bar 配置正确" : "Game Bar is configured correctly")
+                : (isChinese ? "还有项目需要处理" : "Some setup steps still need attention");
+            SetGameBarStatusRow(
+                HubWidgetStatusGlyph,
+                HubWidgetStatusDetail,
+                HubWidgetStatusBadge,
+                true,
+                isChinese ? "正在接收实时状态" : "Receiving live state",
+                isChinese ? "运行中" : "Running");
+            SetGameBarStatusRow(
+                HubPinStatusGlyph,
+                HubPinStatusDetail,
+                HubPinStatusBadge,
+                status.IsPinned,
+                status.IsPinned
+                    ? (isChinese ? "窗口会保留在游戏画面上" : "The widget stays visible over the game")
+                    : (isChinese ? "点击小组件右上角的图钉" : "Click the pin in the widget's top-right corner"),
+                status.IsPinned
+                    ? (isChinese ? "已固定" : "Pinned")
+                    : (isChinese ? "未固定" : "Not pinned"));
+            SetGameBarStatusRow(
+                HubClickThroughStatusGlyph,
+                HubClickThroughStatusDetail,
+                HubClickThroughStatusBadge,
+                status.IsClickThroughEnabled,
+                status.IsClickThroughEnabled
+                    ? (isChinese ? "单击浏览已关闭" : "Click-through is configured correctly")
+                    : (isChinese ? "请在顶部工具栏关闭“单击浏览”" : "Configure click-through in the top toolbar"),
+                status.IsClickThroughEnabled
+                    ? (isChinese ? "已关闭" : "Ready")
+                    : (isChinese ? "需要关闭" : "Action needed"));
+        }
+
+        private static void SetGameBarStatusRow(
+            TextBlock glyph,
+            TextBlock detail,
+            TextBlock badge,
+            bool? success,
+            string detailText,
+            string badgeText)
+        {
+            Color color = !success.HasValue
+                ? Color.FromArgb(255, 110, 110, 110)
+                : success.Value
+                    ? Color.FromArgb(255, 16, 124, 16)
+                    : Color.FromArgb(255, 196, 43, 28);
+            glyph.Text = !success.HasValue ? "?" : success.Value ? "✓" : "×";
+            glyph.Foreground = new SolidColorBrush(color);
+            detail.Text = detailText;
+            badge.Text = badgeText;
+            badge.Foreground = new SolidColorBrush(color);
+        }
+
+        private async void OnOpenGameBarClick(object sender, RoutedEventArgs e)
+        {
+            bool launched = await Windows.System.Launcher.LaunchUriAsync(new Uri("ms-gamebar:"));
+            if (!launched)
+            {
+                bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+                HubGameBarCardSummary.Text = isChinese
+                    ? "无法打开 Game Bar，请尝试按 Win+G"
+                    : "Could not open Game Bar. Try pressing Win+G.";
+            }
+        }
 
         private async void OnHubExitAllClick(object sender, RoutedEventArgs e)
         {

@@ -122,6 +122,16 @@ pub async fn update(
         .iter()
         .map(|(inventory_key, weapon)| (inventory_key.clone(), weapon.ammo_clip))
         .collect::<HashMap<_, _>>();
+    let current_weapons = ply
+        .weapons
+        .iter()
+        .map(|(inventory_key, weapon)| {
+            (
+                inventory_key.clone(),
+                (weapon.name.clone(), weapon.ammo_clip),
+            )
+        })
+        .collect::<HashMap<_, _>>();
 
     let player_name = ply.name.as_deref().unwrap_or("").to_string();
     let spectarget = ply.spectarget.as_deref().filter(|value| !value.is_empty());
@@ -172,9 +182,11 @@ pub async fn update(
     let pending_last_kill = tracked_player.pending_last_kill.clone();
     let previous_active_weapon = tracked_player.last_active_weapon.clone();
     let previous_weapon_ammo = tracked_player.last_weapon_ammo.clone();
+    let previous_weapons = tracked_player.last_weapons.clone();
+    let previous_active_grenade = tracked_player.active_grenade.clone();
     let previous_player_money = tracked_player.last_player_money;
     let previous_money_epoch = tracked_player.money_epoch;
-    let previous_bomb_state = binding.last_bomb_state.clone();
+    let _previous_bomb_state = binding.last_bomb_state.clone();
     let previous_bomb_player = binding.last_bomb_player.clone();
     let previous_round_bomb_state = binding.last_round_bomb_state.clone();
     let previous_crossfire_streak_kills = tracked_player.crossfire_streak_kills;
@@ -288,6 +300,28 @@ pub async fn update(
         had_first_kill_in_round
     };
 
+    let new_thrown_grenade = if is_initialized {
+        detect_thrown_grenade(&previous_weapons, &current_weapons, now)
+    } else {
+        None
+    };
+    let gun_fired = is_initialized && detect_gun_fired(&previous_weapons, &current_weapons);
+    let grenade_scope_reset = round_reset || death_reset || observed_player_changed;
+
+    let mut current_active_grenade = if let Some(thrown) = new_thrown_grenade {
+        Some(thrown)
+    } else if gun_fired || grenade_scope_reset {
+        None
+    } else if let Some(tracker) = previous_active_grenade.as_ref() {
+        if now.saturating_duration_since(tracker.thrown_at) <= Duration::from_secs(10) {
+            Some(tracker.clone())
+        } else {
+            None
+        }
+    } else {
+        None
+    };
+
     let (
         pending_last_kill_for_next,
         kill_event_to_send,
@@ -338,6 +372,8 @@ pub async fn update(
     };
     tracked_player.last_active_weapon = current_weapon_context;
     tracked_player.last_weapon_ammo = current_weapon_ammo;
+    tracked_player.last_weapons = current_weapons;
+    tracked_player.active_grenade = current_active_grenade;
 
     drop(binding);
 
@@ -375,6 +411,7 @@ pub async fn update(
                 audio_event.is_headshot,
                 audio_event.is_first_kill,
                 audio_event.is_knife_kill,
+                audio_event.is_grenade_kill,
                 audio_event.is_last_kill,
                 audio_event.is_assist,
                 audio_event.money_reward,
@@ -400,6 +437,7 @@ pub async fn update(
                 audio_event.is_headshot,
                 audio_event.is_first_kill,
                 audio_event.is_knife_kill,
+                audio_event.is_grenade_kill,
                 audio_event.is_last_kill,
                 audio_event.is_assist,
                 audio_event.money_reward,

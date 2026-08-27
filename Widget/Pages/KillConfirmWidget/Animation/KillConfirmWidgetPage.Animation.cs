@@ -38,7 +38,7 @@ namespace KillConfirmGameBar
                     }
                 });
 
-                await PrimaryKillAnimation.PreloadCurrentPackAnimationsAsync(progress);
+                await LowerFeedbackAnimation.PreloadCurrentPackAnimationsAsync(progress);
 
                 if (_isPageActive && token == _animationPreloadToken)
                 {
@@ -139,12 +139,29 @@ namespace KillConfirmGameBar
                 return;
             }
 
+            bool isCrossfireObjective = style == GameStyleMode.Crossfire
+                && killEvent != null
+                && (string.Equals(killEvent.EventKind, "bomb_plant", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(killEvent.EventKind, "bomb_defuse", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(killEvent.AnimationKey, "bomb_plant", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(killEvent.AnimationKey, "bomb_defuse", StringComparison.OrdinalIgnoreCase));
+            bool isCsolObjective = style == GameStyleMode.Csol
+                && killEvent != null
+                && (string.Equals(killEvent.EventKind, "bomb_plant", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(killEvent.EventKind, "bomb_defuse", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(killEvent.AnimationKey, "bomb_plant", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(killEvent.AnimationKey, "bomb_defuse", StringComparison.OrdinalIgnoreCase));
+            bool isModernWarfare2019Objective = style == GameStyleMode.ModernWarfare2019
+                && killEvent != null
+                && killEvent.IsEconomyEvent;
+
             bool shouldPlayPrimaryAnimation = (killEvent.IsCombatEvent && killEvent.PlayMainAnimation)
                 || (IsEconomyPresentationStyle(style) && IsBattlefieldTextEvent(killEvent))
-                || (style == GameStyleMode.Csol && killEvent.IsCombatEvent)
-                || (style == GameStyleMode.ModernWarfare2019 && killEvent.IsCombatEvent)
+                || (style == GameStyleMode.Csol && (killEvent.IsCombatEvent || isCsolObjective))
+                || (style == GameStyleMode.ModernWarfare2019 && (killEvent.IsCombatEvent || isModernWarfare2019Objective))
                 || (style == GameStyleMode.Overwatch && killEvent.IsCombatEvent && killEvent.IsAssist)
-                || (style == GameStyleMode.Apex && killEvent.IsCombatEvent && killEvent.IsAssist);
+                || (style == GameStyleMode.Apex && killEvent.IsCombatEvent && killEvent.IsAssist)
+                || isCrossfireObjective;
             if (shouldPlayPrimaryAnimation)
             {
                 PlayPrimaryAnimation(killEvent);
@@ -168,13 +185,32 @@ namespace KillConfirmGameBar
             bool isModernWarfare2019Assist = GameStyleService.Current == GameStyleMode.ModernWarfare2019
                 && killEvent != null
                 && killEvent.IsAssist;
+            bool isCrossfireObjective = style == GameStyleMode.Crossfire
+                && killEvent != null
+                && (string.Equals(killEvent.EventKind, "bomb_plant", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(killEvent.EventKind, "bomb_defuse", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(killEvent.AnimationKey, "bomb_plant", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(killEvent.AnimationKey, "bomb_defuse", StringComparison.OrdinalIgnoreCase));
+            bool isCsolObjective = style == GameStyleMode.Csol
+                && killEvent != null
+                && (string.Equals(killEvent.EventKind, "bomb_plant", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(killEvent.EventKind, "bomb_defuse", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(killEvent.AnimationKey, "bomb_plant", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(killEvent.AnimationKey, "bomb_defuse", StringComparison.OrdinalIgnoreCase));
+            bool isModernWarfare2019Objective = style == GameStyleMode.ModernWarfare2019
+                && killEvent != null
+                && killEvent.IsEconomyEvent;
+
             if (!CanStyleConsumeEvent(GameStyleService.Current, killEvent)
                 || (killEvent.KillCount <= 0
                     && !IsBattlefieldTextEvent(killEvent)
                     && !isCsolAssist
                     && !isApexAssist
                     && !isOverwatchAssist
-                    && !isModernWarfare2019Assist))
+                    && !isModernWarfare2019Assist
+                    && !isCrossfireObjective
+                    && !isCsolObjective
+                    && !isModernWarfare2019Objective))
             {
                 return;
             }
@@ -187,7 +223,7 @@ namespace KillConfirmGameBar
             if (!usesDedicatedLayerRouting)
             {
                 ConfigureFeedbackAppearance(
-                    PrimaryKillAnimation,
+                    LowerFeedbackAnimation,
                     visibility,
                     KillFeedbackLayer.Lower);
                 if (!visibility.LowerEnabled)
@@ -208,42 +244,57 @@ namespace KillConfirmGameBar
                     if (visibility.CrosshairEnabled && !killEvent.IsAssist)
                     {
                         ConfigureFeedbackAppearance(
-                            PrimaryKillAnimation,
+                            CrosshairFeedbackAnimation,
                             visibility,
                             KillFeedbackLayer.Crosshair);
-                        PrimaryKillAnimation.PlayOverwatchCrosshairKill();
+                        CrosshairFeedbackAnimation.PlayOverwatchCrosshairKill();
                     }
                     if (visibility.LowerEnabled)
                     {
                         ConfigureFeedbackAppearance(
-                            OverwatchCardAnimation,
+                            LowerFeedbackAnimation,
                             visibility,
                             KillFeedbackLayer.Lower);
-                        OverwatchCardAnimation.PlayOverwatchLowerThirdKill(
+                        LowerFeedbackAnimation.PlayOverwatchLowerThirdKill(
                             GetKillTargetDisplayName(killEvent),
                             killEvent.IsAssist);
                     }
                     return;
                 case GameStyleMode.ModernWarfare2019:
+                    if (killEvent.IsEconomyEvent)
+                    {
+                        if (visibility.CrosshairEnabled)
+                        {
+                            ConfigureFeedbackAppearance(
+                                CrosshairFeedbackAnimation,
+                                visibility,
+                                KillFeedbackLayer.Crosshair);
+                            string eventKind = killEvent.EventKind ?? killEvent.AnimationKey;
+                            CrosshairFeedbackAnimation.PlayModernWarfare2019Objective(
+                                eventKind,
+                                killEvent.MoneyReward);
+                        }
+                        return;
+                    }
                     if (killEvent.IsAssist)
                     {
                         if (visibility.CrosshairEnabled)
                         {
                             ConfigureFeedbackAppearance(
-                                PrimaryKillAnimation,
+                                CrosshairFeedbackAnimation,
                                 visibility,
                                 KillFeedbackLayer.Crosshair);
-                            PrimaryKillAnimation.PlayModernWarfare2019Assist();
+                            CrosshairFeedbackAnimation.PlayModernWarfare2019Assist();
                         }
                         return;
                     }
                     if (visibility.CrosshairEnabled)
                     {
                         ConfigureFeedbackAppearance(
-                            PrimaryKillAnimation,
+                            CrosshairFeedbackAnimation,
                             visibility,
                             KillFeedbackLayer.Crosshair);
-                        PrimaryKillAnimation.PlayModernWarfare2019CrosshairKill(
+                        CrosshairFeedbackAnimation.PlayModernWarfare2019CrosshairKill(
                             killEvent.IsHeadshot,
                             killEvent.KillCount,
                             killEvent.MoneyReward);
@@ -251,19 +302,19 @@ namespace KillConfirmGameBar
                     if (visibility.LowerEnabled)
                     {
                         ConfigureFeedbackAppearance(
-                            OverwatchCardAnimation,
+                            LowerFeedbackAnimation,
                             visibility,
                             KillFeedbackLayer.Lower);
-                        OverwatchCardAnimation.PlayModernWarfare2019LowerKill(
+                        LowerFeedbackAnimation.PlayModernWarfare2019LowerKill(
                             killEvent.KillCount);
                     }
                     if (visibility.UpperEnabled)
                     {
                         ConfigureFeedbackAppearance(
-                            ModernWarfare2019UpperAnimation,
+                            UpperFeedbackAnimation,
                             visibility,
                             KillFeedbackLayer.Upper);
-                        ModernWarfare2019UpperAnimation.PlayModernWarfare2019UpperKill(
+                        UpperFeedbackAnimation.PlayModernWarfare2019UpperKill(
                             killEvent.KillCount);
                     }
                     return;
@@ -271,10 +322,10 @@ namespace KillConfirmGameBar
                     if (visibility.CrosshairEnabled && !killEvent.IsAssist)
                     {
                         ConfigureFeedbackAppearance(
-                            PrimaryKillAnimation,
+                            CrosshairFeedbackAnimation,
                             visibility,
                             KillFeedbackLayer.Crosshair);
-                        PrimaryKillAnimation.PlayApexCrosshairKill(
+                        CrosshairFeedbackAnimation.PlayApexCrosshairKill(
                             killEvent.IsHeadshot,
                             killEvent.MoneyReward,
                             killEvent.KillCount);
@@ -282,10 +333,10 @@ namespace KillConfirmGameBar
                     if (visibility.LowerEnabled)
                     {
                         ConfigureFeedbackAppearance(
-                            OverwatchCardAnimation,
+                            LowerFeedbackAnimation,
                             visibility,
                             KillFeedbackLayer.Lower);
-                        OverwatchCardAnimation.PlayApexFeedCard(
+                        LowerFeedbackAnimation.PlayApexFeedCard(
                             killEvent.IsAssist,
                             GetKillTargetDisplayName(killEvent),
                             killEvent.MoneyReward);
@@ -334,7 +385,7 @@ namespace KillConfirmGameBar
                 valorantPack = GetSelectedVoicePackPreset();
             }
 
-            PrimaryKillAnimation.PlayValorantKill(valorantPack, killEvent.KillCount, killEvent.IsHeadshot);
+            LowerFeedbackAnimation.PlayValorantKill(valorantPack, killEvent.KillCount, killEvent.IsHeadshot);
         }
 
         private static string GetKillTargetDisplayName(KillEvent killEvent)
@@ -348,7 +399,7 @@ namespace KillConfirmGameBar
         private void PlayBattlefield1PrimaryAnimation(KillEvent killEvent)
         {
             PlayBattlefieldKillMarkIfEnabled(killEvent);
-            PrimaryKillAnimation.PlayBattlefield1Kill(
+            LowerFeedbackAnimation.PlayBattlefield1Kill(
                 killEvent.KillCount,
                 killEvent.IsHeadshot,
                 killEvent.IsKnifeKill,
@@ -364,7 +415,7 @@ namespace KillConfirmGameBar
         private void PlayBattlefield5PrimaryAnimation(KillEvent killEvent)
         {
             PlayBattlefieldKillMarkIfEnabled(killEvent);
-            PrimaryKillAnimation.PlayBattlefield5Kill(
+            LowerFeedbackAnimation.PlayBattlefield5Kill(
                 killEvent.KillCount,
                 killEvent.IsHeadshot,
                 killEvent.IsKnifeKill,
@@ -380,7 +431,7 @@ namespace KillConfirmGameBar
         private void PlayBattlefield4PrimaryAnimation(KillEvent killEvent)
         {
             PlayBattlefieldKillMarkIfEnabled(killEvent);
-            PrimaryKillAnimation.PlayBattlefield4Kill(
+            LowerFeedbackAnimation.PlayBattlefield4Kill(
                 killEvent.KillCount,
                 killEvent.IsHeadshot,
                 killEvent.IsKnifeKill,
@@ -396,7 +447,7 @@ namespace KillConfirmGameBar
         private void PlayBattlefield2042PrimaryAnimation(KillEvent killEvent)
         {
             PlayBattlefieldKillMarkIfEnabled(killEvent);
-            PrimaryKillAnimation.PlayBattlefield2042Kill(
+            LowerFeedbackAnimation.PlayBattlefield2042Kill(
                 killEvent.KillCount,
                 killEvent.IsHeadshot,
                 killEvent.IsKnifeKill,
@@ -412,7 +463,7 @@ namespace KillConfirmGameBar
         private void PlayPubgPrimaryAnimation(KillEvent killEvent)
         {
             PlayAuxiliaryKillMarkIfEnabled(killEvent);
-            PrimaryKillAnimation.PlayPubgKill(
+            LowerFeedbackAnimation.PlayPubgKill(
                 killEvent.KillCount,
                 killEvent.IsHeadshot,
                 killEvent.IsKnifeKill,
@@ -428,7 +479,7 @@ namespace KillConfirmGameBar
         private void PlayDeltaForcePrimaryAnimation(KillEvent killEvent)
         {
             PlayBattlefieldKillMarkIfEnabled(killEvent);
-            PrimaryKillAnimation.PlayDeltaForceKill(
+            LowerFeedbackAnimation.PlayDeltaForceKill(
                 killEvent.KillCount,
                 killEvent.IsHeadshot,
                 killEvent.IsKnifeKill,
@@ -463,10 +514,10 @@ namespace KillConfirmGameBar
             if (visibility.CrosshairEnabled)
             {
                 ConfigureFeedbackAppearance(
-                    ModernWarfare2019UpperAnimation,
+                    CrosshairFeedbackAnimation,
                     visibility,
                     KillFeedbackLayer.Crosshair);
-                ModernWarfare2019UpperAnimation.PlayModernWarfare2019KillMarkOnly(
+                CrosshairFeedbackAnimation.PlayModernWarfare2019KillMarkOnly(
                     killEvent.IsHeadshot);
             }
         }
@@ -474,13 +525,13 @@ namespace KillConfirmGameBar
         private void PlayDoubaoPrimaryAnimation(KillEvent killEvent)
         {
             PlayAuxiliaryKillMarkIfEnabled(killEvent);
-            PrimaryKillAnimation.PlayDoubaoKill(killEvent.KillCount);
+            LowerFeedbackAnimation.PlayDoubaoKill(killEvent.KillCount);
         }
 
         private void PlayDagoujiaoPrimaryAnimation(KillEvent killEvent)
         {
             PlayAuxiliaryKillMarkIfEnabled(killEvent);
-            PrimaryKillAnimation.PlayDagoujiaoKill(killEvent.KillCount, killEvent.IsHeadshot);
+            LowerFeedbackAnimation.PlayDagoujiaoKill(killEvent.KillCount, killEvent.IsHeadshot);
         }
 
         private static void ConfigureFeedbackAppearance(

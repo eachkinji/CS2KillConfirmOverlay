@@ -4,6 +4,7 @@ pub async fn play_audio(
     is_headshot: bool,
     is_first_kill: bool,
     is_knife_kill: bool,
+    is_grenade_kill: bool,
     is_last_kill: bool,
     is_assist: bool,
     money_reward: u16,
@@ -107,6 +108,7 @@ pub async fn play_audio(
             is_headshot: is_headshot && !route_to_common && !route_to_custom,
             is_first_kill: effective_first_kill && !route_to_common && !route_to_custom,
             is_knife_kill: is_knife_kill && !route_to_common && !route_to_custom,
+            is_grenade_kill: is_grenade_kill && !route_to_common && !route_to_custom,
             is_last_kill: effective_last_kill && !route_to_common && !route_to_custom,
             is_assist: is_assist && !route_to_common && !route_to_custom,
             play_main_audio: if route_to_common {

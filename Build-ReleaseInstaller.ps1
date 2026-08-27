@@ -57,6 +57,18 @@ if (-not (Test-Path -LiteralPath $InstallerPayloadModuleRoot -PathType Container
     throw "未找到安装载荷模块目录: $InstallerPayloadModuleRoot"
 }
 
+$installerScriptSource = Get-Content -LiteralPath $InstallerScript -Raw -Encoding UTF8
+if ($installerScriptSource -match '(?m)^\s*#if\s+SkipPrerequisites\s*$') {
+    throw 'Inno 脚本不能直接判断 #if SkipPrerequisites；ISCC /D 传入的是字符串，必须显式比较 "0" 或 "1"。'
+}
+foreach ($requiredConditional in @(
+        '#if SkipPrerequisites == "0"',
+        '#if SkipPrerequisites == "1"')) {
+    if (-not $installerScriptSource.Contains($requiredConditional)) {
+        throw "Inno 脚本缺少依赖模式显式判断：$requiredConditional"
+    }
+}
+
 $InstallerPayloadModuleFiles = @(
     Get-ChildItem -LiteralPath $InstallerPayloadModuleRoot -File -Filter "*.ps1" |
         Sort-Object Name
@@ -85,6 +97,21 @@ foreach ($payloadScriptPath in $InstallerPayloadScripts) {
 $Version = $Manifest.Package.Identity.Version
 if (-not $Version) {
     throw "无法从 Package.appxmanifest 中读取包版本号！"
+}
+$InstallerBuildTimeUtc = [DateTimeOffset]::UtcNow.ToString(
+    "yyyy-MM-ddTHH:mm:ss'Z'",
+    [System.Globalization.CultureInfo]::InvariantCulture)
+$InstallerSourceCommit = [string]$env:GITHUB_SHA
+if ([string]::IsNullOrWhiteSpace($InstallerSourceCommit)) {
+    try {
+        $InstallerSourceCommit = (& git -C $Root rev-parse HEAD 2>$null).Trim()
+    }
+    catch {
+        $InstallerSourceCommit = "Unknown"
+    }
+}
+if ([string]::IsNullOrWhiteSpace($InstallerSourceCommit)) {
+    $InstallerSourceCommit = "Unknown"
 }
 
 if (-not $OutputDir) {
@@ -257,6 +284,8 @@ function Invoke-InnoCompile {
         [bool]$SkipPrerequisites
     )
 
+    $installerVariant = if ($SkipPrerequisites) { "NoDependencies" } else { "WithDependencies" }
+
     $rawFile = Join-Path $Root ("Output\KillConfirmGameBar_Setup_{0}{1}.exe" -f $Version, $InternalSuffix)
     $finalOutput = Join-Path $OutputDir $FinalFileName
     foreach ($stalePath in @($rawFile, $finalOutput) | Select-Object -Unique) {
@@ -270,9 +299,14 @@ function Invoke-InnoCompile {
         ("/DTransferRoot={0}" -f $TransferPath),
         ("/DInstallerOutputSuffix={0}" -f $InternalSuffix),
         ("/DSkipPrerequisites={0}" -f $(if ($SkipPrerequisites) { 1 } else { 0 })),
+        ("/DInstallerVariant={0}" -f $installerVariant),
+        ("/DInstallerBuildTimeUtc={0}" -f $InstallerBuildTimeUtc),
+        ("/DInstallerSourceCommit={0}" -f $InstallerSourceCommit),
         $InstallerScript
     )
 
+    Write-Host (" Inno installer metadata: Variant={0}; SkipPrerequisites={1}; Version={2}; BuildUtc={3}; Commit={4}" -f `
+        $installerVariant, $SkipPrerequisites, $Version, $InstallerBuildTimeUtc, $InstallerSourceCommit)
     & $InnoCompilerPath @innoArgs
     if ($LASTEXITCODE -ne 0) {
         throw "Inno Setup 编译失败 (ExitCode: $LASTEXITCODE)"

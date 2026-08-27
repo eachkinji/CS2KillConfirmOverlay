@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using KillConfirmGameBar.Services;
 using Windows.Storage;
@@ -76,7 +76,7 @@ namespace KillConfirmGameBar
                 contrast / 100.0);
             if (renderSettingsChanged && GameStyleService.Current == GameStyleMode.Valorant)
             {
-                PrimaryKillAnimation?.ReleaseValorantResources();
+                LowerFeedbackAnimation?.ReleaseValorantResources();
             }
 
             ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
@@ -248,27 +248,27 @@ namespace KillConfirmGameBar
 
             if (string.Equals(placement, nameof(AnimationPlacementMode.Bottom), StringComparison.OrdinalIgnoreCase))
             {
-                _animationPlacement = AnimationPlacementMode.Bottom;
+                _legacyPrimaryPlacement = AnimationPlacementMode.Bottom;
             }
             else if (string.Equals(placement, nameof(AnimationPlacementMode.Top), StringComparison.OrdinalIgnoreCase))
             {
-                _animationPlacement = AnimationPlacementMode.Top;
+                _legacyPrimaryPlacement = AnimationPlacementMode.Top;
             }
             else if (string.Equals(placement, nameof(AnimationPlacementMode.Manual), StringComparison.OrdinalIgnoreCase))
             {
-                _animationPlacement = AnimationPlacementMode.Manual;
+                _legacyPrimaryPlacement = AnimationPlacementMode.Manual;
             }
             else
             {
-                _animationPlacement = GetDefaultAnimationPlacement(style);
+                _legacyPrimaryPlacement = GetDefaultAnimationPlacement(style);
             }
 
-            _animationOffset = ReadStyleDoubleSetting(
+            _legacyPrimaryVerticalOffset = ReadStyleDoubleSetting(
                 localSettings,
                 AnimationOffsetSettingKey,
                 crossfire,
                 GetDefaultAnimationVerticalOffset(style));
-            _animationHorizontalOffset = ReadStyleDoubleSetting(
+            _legacyPrimaryHorizontalOffset = ReadStyleDoubleSetting(
                 localSettings,
                 AnimationHorizontalOffsetSettingKey,
                 crossfire,
@@ -278,7 +278,7 @@ namespace KillConfirmGameBar
                 AnimationScaleSettingKey,
                 crossfire,
                 GetDefaultAnimationScale(style));
-            _animationScale = double.IsNaN(savedAnimationScale)
+            _legacyPrimaryScale = double.IsNaN(savedAnimationScale)
                 || double.IsInfinity(savedAnimationScale)
                 || savedAnimationScale <= 0
                     ? GetDefaultAnimationScale(style)
@@ -289,9 +289,9 @@ namespace KillConfirmGameBar
             ApplyApexSplitPlacementDefaultsIfNeeded(localSettings, style);
             ApplyModernWarfare2019SplitPlacementDefaultsIfNeeded(localSettings, style);
             ApplyModernWarfare2019UpperPlacementDefaultsIfNeeded(localSettings, style);
-            ApplyAnimationTransform();
-            LoadOverwatchCardPlacementSettings(localSettings);
-            LoadModernWarfare2019UpperPlacementSettings(localSettings);
+            ApplyLegacyPrimaryTransform();
+            LoadLegacyLowerCardPlacementSettings(localSettings);
+            LoadLegacyAuxiliaryPlacementSettings(localSettings);
         }
 
         private void ApplyModernWarfare2019UpperPlacementDefaultsIfNeeded(
@@ -335,10 +335,10 @@ namespace KillConfirmGameBar
             string placementKey = GetAnimationStyleSettingKey(AnimationPlacementSettingKey);
             if (!localSettings.Values.ContainsKey(placementKey))
             {
-                _animationPlacement = GetDefaultAnimationPlacement(style);
-                _animationOffset = GetDefaultAnimationVerticalOffset(style);
-                _animationHorizontalOffset = GetDefaultAnimationHorizontalOffset(style);
-                _animationScale = GetDefaultAnimationScale(style);
+                _legacyPrimaryPlacement = GetDefaultAnimationPlacement(style);
+                _legacyPrimaryVerticalOffset = GetDefaultAnimationVerticalOffset(style);
+                _legacyPrimaryHorizontalOffset = GetDefaultAnimationHorizontalOffset(style);
+                _legacyPrimaryScale = GetDefaultAnimationScale(style);
             }
             if (!localSettings.Values.ContainsKey(ModernWarfare2019LowerHorizontalOffsetSettingKey))
             {
@@ -356,7 +356,7 @@ namespace KillConfirmGameBar
                     GetDefaultCardScale(style);
             }
             localSettings.Values[ModernWarfare2019SplitPlacementRevisionKey] = true;
-            SaveAnimationPlacementSettings();
+            SaveLegacyPrimaryPlacementSettings();
         }
 
         private void ApplyApexSplitPlacementDefaultsIfNeeded(
@@ -372,10 +372,10 @@ namespace KillConfirmGameBar
             string placementKey = GetAnimationStyleSettingKey(AnimationPlacementSettingKey);
             if (!localSettings.Values.ContainsKey(placementKey))
             {
-                _animationPlacement = GetDefaultAnimationPlacement(style);
-                _animationOffset = GetDefaultAnimationVerticalOffset(style);
-                _animationHorizontalOffset = GetDefaultAnimationHorizontalOffset(style);
-                _animationScale = GetDefaultAnimationScale(style);
+                _legacyPrimaryPlacement = GetDefaultAnimationPlacement(style);
+                _legacyPrimaryVerticalOffset = GetDefaultAnimationVerticalOffset(style);
+                _legacyPrimaryHorizontalOffset = GetDefaultAnimationHorizontalOffset(style);
+                _legacyPrimaryScale = GetDefaultAnimationScale(style);
             }
             if (!localSettings.Values.ContainsKey(ApexCardHorizontalOffsetSettingKey))
             {
@@ -392,7 +392,7 @@ namespace KillConfirmGameBar
                 localSettings.Values[ApexCardScaleSettingKey] = GetDefaultCardScale(style);
             }
             localSettings.Values[ApexSplitPlacementRevisionKey] = true;
-            SaveAnimationPlacementSettings();
+            SaveLegacyPrimaryPlacementSettings();
         }
 
         private void ApplyRevisedAnimationDefaultsIfNeeded(
@@ -418,20 +418,20 @@ namespace KillConfirmGameBar
                 bool overwatchPresetWasAppliedToWrongLayer = style == GameStyleMode.Overwatch;
                 if (oldPresetWasDefault || overwatchPresetWasAppliedToWrongLayer)
                 {
-                    _animationPlacement = revisedDefault;
-                    _animationOffset = GetDefaultAnimationVerticalOffset(style);
-                    _animationHorizontalOffset = GetDefaultAnimationHorizontalOffset(style);
+                    _legacyPrimaryPlacement = revisedDefault;
+                    _legacyPrimaryVerticalOffset = GetDefaultAnimationVerticalOffset(style);
+                    _legacyPrimaryHorizontalOffset = GetDefaultAnimationHorizontalOffset(style);
                 }
             }
 
             if (style == GameStyleMode.Overwatch
-                && Math.Abs(_animationScale - 1.0) < 0.001)
+                && Math.Abs(_legacyPrimaryScale - 1.0) < 0.001)
             {
-                _animationScale = OverwatchDefaultCrosshairScale;
+                _legacyPrimaryScale = OverwatchDefaultCrosshairScale;
             }
 
             localSettings.Values[revisionKey] = true;
-            SaveAnimationPlacementSettings();
+            SaveLegacyPrimaryPlacementSettings();
         }
     }
 }

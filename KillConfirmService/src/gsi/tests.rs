@@ -3,9 +3,10 @@ mod tests {
     use super::{
         CrossfireStreakMode, DelayedLastKillDecision, WeaponKillContext,
         advance_pending_last_kill_frame,
-        can_read_observed_combat_events, classify_delayed_last_kill, has_observed_player_changed,
-        is_knife_weapon, is_local_observed_player, normalize_cs2_map_mode,
-        opponent_team_display_name, pending_last_kill_is_confirmable,
+        can_read_observed_combat_events, classify_delayed_last_kill, detect_bomb_defused_action,
+        detect_bomb_planted_action, detect_gun_fired, detect_thrown_grenade,
+        has_observed_player_changed, is_knife_weapon, is_local_observed_player,
+        normalize_cs2_map_mode, opponent_team_display_name, pending_last_kill_is_confirmable,
         resolve_crossfire_streak_count, resolve_observed_player_id, resolve_player_kill_delta,
         resolve_weapon_kill_context, should_emit_player_kill, should_reset_stored_streak,
     };
@@ -14,7 +15,7 @@ mod tests {
     use gsi_cs2::team::TeamClass;
     use gsi_cs2::weapon::{WeaponName, WeaponType};
     use std::collections::HashMap;
-    use std::time::Duration;
+    use std::time::{Duration, Instant};
 
     #[test]
     fn retakes_map_mode_is_accepted_as_custom_gameplay() {
@@ -113,6 +114,7 @@ mod tests {
             kill_count: 2,
             is_headshot: false,
             is_knife_kill: false,
+            is_grenade_kill: false,
             weapon_badge_key: Some("assault".to_string()),
             weapon_name: Some("AK-47".to_string()),
             money_reward: 300,
@@ -409,5 +411,131 @@ mod tests {
             Some("\u{53cd}\u{6050}\u{7cbe}\u{82f1}".to_string())
         );
         assert_eq!(opponent_team_display_name(None), None);
+    }
+
+    #[test]
+    fn detect_thrown_grenade_detects_he_and_molotov_but_ignores_flash() {
+        let now = Instant::now();
+
+        // 1. HE Grenade thrown (consumed from inventory)
+        let mut prev = HashMap::new();
+        prev.insert("weapon_0".to_string(), (WeaponName::AK47, 30));
+        prev.insert("weapon_1".to_string(), (WeaponName::HEGrenade, 1));
+        let mut curr = HashMap::new();
+        curr.insert("weapon_0".to_string(), (WeaponName::AK47, 30));
+
+        let tracker = detect_thrown_grenade(&prev, &curr, now).expect("HE thrown");
+        assert_eq!(tracker.weapon_name, "hegrenade");
+        assert!(!tracker.is_fire);
+
+        // 2. Molotov thrown
+        let mut prev_molo = HashMap::new();
+        prev_molo.insert("weapon_0".to_string(), (WeaponName::Molotov, 1));
+        let curr_molo = HashMap::new();
+        let tracker_molo = detect_thrown_grenade(&prev_molo, &curr_molo, now).expect("Molotov thrown");
+        assert_eq!(tracker_molo.weapon_name, "molotov");
+        assert!(tracker_molo.is_fire);
+
+        // 3. Flashbang thrown (should be ignored)
+        let mut prev_flash = HashMap::new();
+        prev_flash.insert("weapon_0".to_string(), (WeaponName::FlashbangGrenade, 1));
+        let curr_flash = HashMap::new();
+        assert!(detect_thrown_grenade(&prev_flash, &curr_flash, now).is_none());
+    }
+
+    #[test]
+    fn gun_fire_interrupts_grenade_window() {
+        let mut prev = HashMap::new();
+        prev.insert("weapon_0".to_string(), (WeaponName::AK47, 30));
+        prev.insert("weapon_1".to_string(), (WeaponName::KnifeCT, 0));
+
+        // Knife or same ammo -> no gun fire
+        let mut curr_no_fire = HashMap::new();
+        curr_no_fire.insert("weapon_0".to_string(), (WeaponName::AK47, 30));
+        curr_no_fire.insert("weapon_1".to_string(), (WeaponName::KnifeCT, 0));
+        assert!(!detect_gun_fired(&prev, &curr_no_fire));
+
+        // AK-47 ammo decreased -> gun fired!
+        let mut curr_fired = HashMap::new();
+        curr_fired.insert("weapon_0".to_string(), (WeaponName::AK47, 29));
+        curr_fired.insert("weapon_1".to_string(), (WeaponName::KnifeCT, 0));
+        assert!(detect_gun_fired(&prev, &curr_fired));
+    }
+
+    #[test]
+    fn detect_bomb_planted_action_detects_local_c4_consumed() {
+        let mut prev_weapons = HashMap::new();
+        prev_weapons.insert("weapon_0".to_string(), (WeaponName::AK47, 30));
+        prev_weapons.insert("weapon_1".to_string(), (WeaponName::C4, 1));
+
+        let mut curr_weapons = HashMap::new();
+        curr_weapons.insert("weapon_0".to_string(), (WeaponName::AK47, 30));
+
+        // 1. Local T player had C4, consumed it, and round became planted -> true!
+        assert!(detect_bomb_planted_action(
+            &prev_weapons,
+            &curr_weapons,
+            Some("planting"),
+            Some("planted"),
+            None,
+            "76561198000000000"
+        ));
+
+        // 2. Spectated player where actor matches steamid -> true!
+        let empty_weapons = HashMap::new();
+        assert!(detect_bomb_planted_action(
+            &empty_weapons,
+            &empty_weapons,
+            Some("planting"),
+            Some("planted"),
+            Some("76561198000000000"),
+            "76561198000000000"
+        ));
+
+        // 3. Teammate planted, not local player, actor mismatch -> false!
+        assert!(!detect_bomb_planted_action(
+            &curr_weapons,
+            &curr_weapons,
+            Some("planting"),
+            Some("planted"),
+            Some("76561198999999999"),
+            "76561198000000000"
+        ));
+    }
+
+    #[test]
+    fn detect_bomb_defused_action_detects_local_ct_300_reward() {
+        // 1. Local CT player gets 300 money reward on defusal -> true!
+        assert!(detect_bomb_defused_action(
+            Some(&TeamClass::CT),
+            Some("planted"),
+            Some("defused"),
+            Some(1000),
+            1300,
+            None,
+            "76561198000000000"
+        ));
+
+        // 2. Local T player during defuse (T lost) -> false!
+        assert!(!detect_bomb_defused_action(
+            Some(&TeamClass::T),
+            Some("planted"),
+            Some("defused"),
+            Some(1000),
+            1000,
+            None,
+            "76561198000000000"
+        ));
+
+        // 3. CT teammate defused (local CT did not get 300 instant reward) -> false!
+        assert!(!detect_bomb_defused_action(
+            Some(&TeamClass::CT),
+            Some("planted"),
+            Some("defused"),
+            Some(1000),
+            1000,
+            None,
+            "76561198000000000"
+        ));
     }
 }

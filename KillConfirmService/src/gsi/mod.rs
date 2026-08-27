@@ -21,8 +21,8 @@ use crate::soundpack::sound::{
     stop_bomb_audio,
 };
 use crate::state::{
-    AppState, CrossfireStreakMode, EventChannel, GsiGameVersion, KillEvent, MoneyRewardMode,
-    PendingLastKill, TrackedRoundPhase, WeaponKillContext,
+    ActiveGrenadeTracker, AppState, CrossfireStreakMode, EventChannel, GsiGameVersion, KillEvent,
+    MoneyRewardMode, PendingLastKill, TrackedRoundPhase, WeaponKillContext,
 };
 
 include!("combat.rs");

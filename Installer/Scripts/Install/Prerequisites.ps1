@@ -139,6 +139,8 @@ function Confirm-PrerequisiteInstall {
 }
 
 function Install-RequiredComponents {
+    param([switch]$Confirmed)
+
     Write-InstallLog "Checking required Microsoft UI XAML, VCLibs, .NET Native, and Xbox Game Bar packages..."
     if (-not (Test-Path -LiteralPath $PrerequisiteRoot -PathType Container)) {
         Add-InstallResult -Status Error -Item "离线依赖目录" -Detail "未找到：$PrerequisiteRoot"
@@ -168,14 +170,20 @@ function Install-RequiredComponents {
         return
     }
 
-    try {
-        $confirmed = Confirm-PrerequisiteInstall -MissingPrerequisites $missingPrerequisites
+    $installationApproved = [bool]$Confirmed
+    if ($installationApproved) {
+        Write-InstallLog "Prerequisite installation was already confirmed in the outer setup manager. Skipping the secondary confirmation dialog."
     }
-    catch {
-        Add-InstallResult -Status Error -Item "依赖安装确认窗口" -Detail (Get-ErrorReason $_)
-        $confirmed = $false
+    else {
+        try {
+            $installationApproved = Confirm-PrerequisiteInstall -MissingPrerequisites $missingPrerequisites
+        }
+        catch {
+            Add-InstallResult -Status Error -Item "依赖安装确认窗口" -Detail (Get-ErrorReason $_)
+            $installationApproved = $false
+        }
     }
-    if (-not $confirmed) {
+    if (-not $installationApproved) {
         Write-InstallLog "The user declined installation of required components. Continuing overlay installation with a compatibility warning."
         foreach ($prerequisite in $missingPrerequisites) {
             Add-InstallResult -Status Warning -Item $prerequisite.ChineseDisplayName -Detail "未安装或版本过低；用户未确认安装，已继续后续流程"
@@ -213,6 +221,7 @@ function Install-RequiredComponents {
 
         try {
             Write-InstallLog ("Installing prerequisite {0}/{1}: {2} (minimum {3})" -f $prerequisite.Order, $Prerequisites.Count, $prerequisite.PackageName, $prerequisite.MinimumVersion)
+            Write-InstallLog "Windows 正在部署该组件，较慢的电脑可能需要几分钟。请不要关闭安装进度窗口。"
             Add-AppxPackageCompat -PackagePath $packagePath -ForceUpdate
 
             if (-not (Test-PrerequisiteInstalled -Prerequisite $prerequisite)) {

@@ -51,6 +51,7 @@ namespace KillConfirmGameBar.Controls
             double elapsedMs = _playbackClock.Elapsed.TotalMilliseconds;
             if (_drawModernWarfare2019Primary
                 && !_modernWarfare2019IsAssist
+                && !_modernWarfare2019IsObjective
                 && elapsedMs < ModernWarfare2019MarkerEndMs)
             {
                 DrawModernWarfare2019Marker(drawingSession, elapsedMs);

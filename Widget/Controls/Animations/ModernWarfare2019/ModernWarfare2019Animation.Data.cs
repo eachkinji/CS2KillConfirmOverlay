@@ -56,6 +56,7 @@ namespace KillConfirmGameBar.Controls
         private int _modernWarfare2019AccumulatedMoney;
         private int _modernWarfare2019LastMoneyKillCount;
         private bool _modernWarfare2019IsAssist;
+        private bool _modernWarfare2019IsObjective;
         private double _modernWarfare2019ImpactAngleDegrees;
 
 

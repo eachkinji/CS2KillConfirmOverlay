@@ -164,16 +164,16 @@ namespace KillConfirmGameBar
         {
             if (!Controls.KillConfirmAnimation.IsIconPackConfigured(iconPack))
             {
-                PrimaryKillAnimation?.ReleaseAnimationResourcesForPackChange();
-                BadgeKillAnimation?.ReleaseAnimationResourcesForPackChange();
-                OverwatchCardAnimation?.ReleaseAnimationResourcesForPackChange();
-                ModernWarfare2019UpperAnimation?.ReleaseAnimationResourcesForPackChange();
+                LowerFeedbackAnimation?.ReleaseAnimationResourcesForPackChange();
+                LowerBadgeAnimation?.ReleaseAnimationResourcesForPackChange();
+                CrosshairFeedbackAnimation?.ReleaseAnimationResourcesForPackChange();
+                UpperFeedbackAnimation?.ReleaseAnimationResourcesForPackChange();
             }
 
             Controls.KillConfirmAnimation.ConfigureIconPack(iconPack);
-            PrimaryKillAnimation?.RefreshPresentationLayout();
-            BadgeKillAnimation?.RefreshPresentationLayout();
-            ApplyAnimationTransform();
+            LowerFeedbackAnimation?.RefreshPresentationLayout();
+            LowerBadgeAnimation?.RefreshPresentationLayout();
+            ApplyLegacyPrimaryTransform();
         }
     }
 }

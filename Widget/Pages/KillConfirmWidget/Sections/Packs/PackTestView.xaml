@@ -363,6 +363,7 @@
                 <ComboBoxItem Tag="one">1鏉€</ComboBoxItem>
                 <ComboBoxItem Tag="one_hs">1鏉€鐖嗗ご</ComboBoxItem>
                 <ComboBoxItem Tag="one_knife">1鏉€鍒€鏉€</ComboBoxItem>
+                <ComboBoxItem Tag="one_grenade">1杀雷杀</ComboBoxItem>
                 <ComboBoxItem Tag="one_first">1鏉€棣栨潃</ComboBoxItem>
                 <ComboBoxItem Tag="one_last">1鏉€灏炬潃</ComboBoxItem>
                 <ComboBoxItem Tag="assist">Assist</ComboBoxItem>
@@ -378,6 +379,12 @@
                 <ComboBoxItem Tag="nine">9鏉€</ComboBoxItem>
                 <ComboBoxItem Tag="badge_first">棣栨潃寰界珷</ComboBoxItem>
                 <ComboBoxItem Tag="badge_last">灏炬潃寰界珷</ComboBoxItem>
+                <ComboBoxItem Tag="bomb_plant">C4下包</ComboBoxItem>
+                <ComboBoxItem Tag="bomb_defuse">C4拆包</ComboBoxItem>
+                <ComboBoxItem Tag="hostage_interact">人质接触</ComboBoxItem>
+                <ComboBoxItem Tag="hostage_rescue">人质救出</ComboBoxItem>
+                <ComboBoxItem Tag="round_win">回合胜利</ComboBoxItem>
+                <ComboBoxItem Tag="round_loss">回合失败</ComboBoxItem>
             </ComboBox>
 
             <Button

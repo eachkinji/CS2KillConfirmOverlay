@@ -107,10 +107,10 @@ namespace KillConfirmGameBar
 
             int style = GetSelectedMainAnimationStyle();
             ApplicationData.Current.LocalSettings.Values[MainAnimationStyleSettingKey] = style;
-            PrimaryKillAnimation?.ReleaseAnimationResourcesForPackChange();
-            BadgeKillAnimation?.ReleaseAnimationResourcesForPackChange();
-            OverwatchCardAnimation?.ReleaseAnimationResourcesForPackChange();
-            ModernWarfare2019UpperAnimation?.ReleaseAnimationResourcesForPackChange();
+            LowerFeedbackAnimation?.ReleaseAnimationResourcesForPackChange();
+            LowerBadgeAnimation?.ReleaseAnimationResourcesForPackChange();
+            CrosshairFeedbackAnimation?.ReleaseAnimationResourcesForPackChange();
+            UpperFeedbackAnimation?.ReleaseAnimationResourcesForPackChange();
             Controls.KillConfirmAnimation.ConfigureMainAnimationStyle(style);
             WarmStartupAnimationCacheIfActive();
         }

@@ -39,8 +39,8 @@ namespace KillConfirmGameBar
             var layout = CreatePackDialogLayout(
                 LocalizationManager.Text("CreateVoicePack"),
                 isChinese
-                    ? "分别选择 1～5 杀和爆头语音；未设置的项目保持原样。"
-                    : "Choose Valorant voices for kills 1-5 and headshots. Items left empty keep the built-in voice.",
+                    ? "分别选择 1～5 杀和爆头语音；留空或重置的项目使用默认内置 VAL 语音。"
+                    : "Choose Valorant voices for kills 1-5 and headshots. Empty or reset slots use the default built-in Valorant voice.",
                 LocalizationManager.Text("VoicePackNamePlaceholder"),
                 initialDisplayName,
                 out var nameBox);

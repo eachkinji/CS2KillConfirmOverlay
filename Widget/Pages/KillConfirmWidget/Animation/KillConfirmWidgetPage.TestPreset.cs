@@ -41,46 +41,63 @@ namespace KillConfirmGameBar
                 int killCount,
                 bool isHeadshot = false,
                 bool isKnifeKill = false,
+                bool isGrenadeKill = false,
                 bool isAssist = false,
                 bool isFirstKill = false,
                 bool isLastKill = false,
                 bool playMainAnimation = true,
-                string animationKey = null)
+                string animationKey = null,
+                string eventChannel = KillEventChannels.Combat,
+                string eventKind = null,
+                string weaponName = null,
+                int? moneyReward = null)
             {
                 KillCount = killCount;
                 IsHeadshot = isHeadshot;
                 IsKnifeKill = isKnifeKill;
+                IsGrenadeKill = isGrenadeKill;
                 IsAssist = isAssist;
                 IsFirstKill = isFirstKill;
                 IsLastKill = isLastKill;
                 PlayMainAnimation = playMainAnimation;
                 AnimationKey = animationKey;
+                EventChannel = eventChannel ?? KillEventChannels.Combat;
+                EventKind = eventKind ?? (isAssist ? "assist" : "kill");
+                WeaponName = weaponName;
+                MoneyReward = moneyReward ?? (isAssist ? 0 : (isKnifeKill ? 1500 : 300));
             }
 
             public int KillCount { get; }
             public bool IsHeadshot { get; }
             public bool IsKnifeKill { get; }
+            public bool IsGrenadeKill { get; }
             public bool IsAssist { get; }
             public bool IsFirstKill { get; }
             public bool IsLastKill { get; }
             public bool PlayMainAnimation { get; }
             public string AnimationKey { get; }
+            public string EventChannel { get; }
+            public string EventKind { get; }
+            public string WeaponName { get; }
+            public int MoneyReward { get; }
 
             public KillEvent ToKillEvent()
             {
                 return new KillEvent
                 {
-                    EventChannel = KillEventChannels.Combat,
+                    EventChannel = EventChannel,
                     KillCount = KillCount,
                     IsHeadshot = IsHeadshot,
                     IsKnifeKill = IsKnifeKill,
+                    IsGrenadeKill = IsGrenadeKill,
                     IsAssist = IsAssist,
                     IsFirstKill = IsFirstKill,
                     IsLastKill = IsLastKill,
                     PlayMainAnimation = PlayMainAnimation,
                     AnimationKey = AnimationKey,
-                    EventKind = IsAssist ? "assist" : "kill",
-                    MoneyReward = IsAssist ? 0 : (IsKnifeKill ? 1500 : 300)
+                    EventKind = EventKind,
+                    WeaponName = WeaponName,
+                    MoneyReward = MoneyReward
                 };
             }
         }

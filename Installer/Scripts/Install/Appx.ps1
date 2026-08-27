@@ -126,6 +126,65 @@ function Update-InstalledPackageContext {
     return $package
 }
 
+function Test-LoopbackExemption {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$AppPackageFamilyName
+    )
+
+    $checkNetIsolationPath = Get-SystemToolPath "CheckNetIsolation.exe"
+    if (-not (Test-Path -LiteralPath $checkNetIsolationPath -PathType Leaf)) {
+        throw "找不到 CheckNetIsolation.exe：$checkNetIsolationPath"
+    }
+
+    $listOutput = @(& $checkNetIsolationPath LoopbackExempt -s 2>&1)
+    $listExitCode = $LASTEXITCODE
+    if ($listExitCode -ne 0) {
+        throw "CheckNetIsolation 无法读取回环豁免列表，退出码 $listExitCode"
+    }
+
+    $listText = $listOutput -join "`n"
+    return $listText.IndexOf(
+        $AppPackageFamilyName,
+        [System.StringComparison]::OrdinalIgnoreCase) -ge 0
+}
+
+function Enable-LoopbackExemptionVerified {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$AppPackageFamilyName
+    )
+
+    $checkNetIsolationPath = Get-SystemToolPath "CheckNetIsolation.exe"
+    if (-not (Test-Path -LiteralPath $checkNetIsolationPath -PathType Leaf)) {
+        throw "找不到 CheckNetIsolation.exe：$checkNetIsolationPath"
+    }
+
+    for ($attempt = 1; $attempt -le 2; $attempt++) {
+        Write-InstallLog "Adding loopback exemption for $AppPackageFamilyName (attempt $attempt/2)..."
+        $addOutput = @(& $checkNetIsolationPath LoopbackExempt -a "-n=$AppPackageFamilyName" 2>&1)
+        $addExitCode = $LASTEXITCODE
+        foreach ($line in $addOutput) {
+            if (-not [string]::IsNullOrWhiteSpace([string]$line)) {
+                Write-InstallLog "CheckNetIsolation: $line"
+            }
+        }
+        if ($addExitCode -ne 0) {
+            Write-InstallLog "CheckNetIsolation add returned exit code $addExitCode."
+        }
+        else {
+            Start-Sleep -Milliseconds 250
+            if (Test-LoopbackExemption -AppPackageFamilyName $AppPackageFamilyName) {
+                Write-InstallLog "Loopback exemption verified in the system list: $AppPackageFamilyName"
+                return
+            }
+            Write-InstallLog "Loopback add returned success, but the package family was not found during verification."
+        }
+    }
+
+    throw "两次写入后仍未在系统列表中找到回环豁免：$AppPackageFamilyName"
+}
+
 function Import-PackageCertificate {
     param([string]$CertificatePath)
 
@@ -173,6 +232,7 @@ function Add-AppxPackageCompat {
     Write-InstallLog ("Add-AppxPackage switches: ForceUpdateFromAnyVersion={0}; DeferRegistrationWhenPackagesAreInUse={1}" -f `
         $addPackageParams.ContainsKey("ForceUpdateFromAnyVersion"), `
         $addPackageParams.ContainsKey("DeferRegistrationWhenPackagesAreInUse"))
+    Write-InstallLog "正在等待 Windows 应用部署服务完成；此步骤可能持续数分钟。"
     try {
         Add-AppxPackage @addPackageParams
         Write-InstallLog "Add-AppxPackage succeeded: $(Split-Path -Leaf $PackagePath)"

@@ -15,6 +15,7 @@
                         is_last,
                         headshot_priority,
                         knife_priority| SoundContext {
+                            is_grenade_kill: false,
             kill_count,
             is_headshot,
             is_first_kill: is_first,
@@ -107,6 +108,16 @@
                 &make_ctx(1, false, false, true, false, false, false),
                 "sounds/crossfire_swat_gr",
             )
+            .into_iter()
+            .map(|e| e.path)
+            .collect();
+        assert_eq!(sounds, vec!["sounds/crossfire_swat_gr/grenade.wav"]);
+
+        // 8. Grenade kill -> grenade.wav
+        let mut grenade_ctx = make_ctx(1, false, false, false, false, false, false);
+        grenade_ctx.is_grenade_kill = true;
+        let sounds: Vec<String> = manifest
+            .resolve_audio(&grenade_ctx, "sounds/crossfire_swat_gr")
             .into_iter()
             .map(|e| e.path)
             .collect();

@@ -100,14 +100,19 @@ function Get-CounterStrikeInstallRoot {
     return $null
 }
 
-function Install-Cs2GsiConfig {
+function New-Cs2GsiConfigText {
+    param(
+        [ValidateRange(1024, 65535)]
+        [int]$ServicePort = 10087
+    )
+
     $configLines = @(
         '"KillConfirmGameBar"',
         '{',
-        ' "uri" "http://127.0.0.1:10087/"',
+        (' "uri" "http://127.0.0.1:{0}/"' -f $ServicePort),
         ' "timeout" "0.5"',
-        ' "buffer"  "0.05"',
-        ' "throttle" "0.05"',
+        ' "buffer"  "0.01"',
+        ' "throttle" "0.0"',
         ' "heartbeat" "15.0"',
         ' "auth"',
         ' {',
@@ -127,16 +132,72 @@ function Install-Cs2GsiConfig {
         '}'
     )
 
+    return ($configLines -join "`r`n") + "`r`n"
+}
+
+function Get-Cs2GsiServicePort {
+    param(
+        [string]$CfgPath = "",
+        [string]$AppPackageFamilyName = ""
+    )
+
+    # The widget's persisted selection is the source of truth. This also covers
+    # an upgrade where the CFG is missing but the user's custom port survives.
+    if ($env:LOCALAPPDATA -and -not [string]::IsNullOrWhiteSpace($AppPackageFamilyName)) {
+        $widgetPortPath = Join-Path $env:LOCALAPPDATA ("Packages\{0}\LocalState\widget_port.txt" -f $AppPackageFamilyName)
+        if (Test-Path -LiteralPath $widgetPortPath -PathType Leaf) {
+            try {
+                $widgetPortText = (Get-Content -LiteralPath $widgetPortPath -Raw -ErrorAction Stop).Trim()
+                $widgetPort = 0
+                if ([int]::TryParse($widgetPortText, [ref]$widgetPort) -and
+                    $widgetPort -ge 1024 -and $widgetPort -le 65535) {
+                    return $widgetPort
+                }
+            }
+            catch {
+            }
+        }
+    }
+
+    # Older releases did not always create widget_port.txt. Preserve a valid
+    # localhost port from their CFG rather than resetting it during an upgrade.
+    if (-not [string]::IsNullOrWhiteSpace($CfgPath) -and
+        (Test-Path -LiteralPath $CfgPath -PathType Leaf)) {
+        try {
+            $existingConfig = Get-Content -LiteralPath $CfgPath -Raw -ErrorAction Stop
+            if ($existingConfig -match '(?im)^\s*"uri"\s+"http://127\.0\.0\.1:(\d{1,5})/"\s*$') {
+                $existingPort = 0
+                if ([int]::TryParse($matches[1], [ref]$existingPort) -and
+                    $existingPort -ge 1024 -and $existingPort -le 65535) {
+                    return $existingPort
+                }
+            }
+        }
+        catch {
+        }
+    }
+
+    return 10087
+}
+
+function Install-Cs2GsiConfig {
+
     $installed = $false
     $installRoot = Get-CounterStrikeInstallRoot
     if ($installRoot) {
         $cfgRoot = Join-Path $installRoot "game\csgo\cfg"
         if (Test-Path -LiteralPath $cfgRoot -PathType Container) {
-        $cfgPath = Join-Path $cfgRoot "gamestate_integration_killconfirm.cfg"
-        Set-Content -LiteralPath $cfgPath -Value $configLines -Encoding ASCII
-        Write-InstallLog "CS2 GSI config installed: $cfgPath"
-        Add-InstallResult -Status Success -Item "CS2 GSI 配置" -Detail "已写入：$cfgPath"
-        $installed = $true
+            $cfgPath = Join-Path $cfgRoot "gamestate_integration_killconfirm.cfg"
+            $servicePort = Get-Cs2GsiServicePort -CfgPath $cfgPath -AppPackageFamilyName $PackageFamilyName
+            if ($servicePort -ne 10087) {
+                Write-InstallLog "Preserving configured CS2 GSI service port: $servicePort"
+            }
+
+            $configText = New-Cs2GsiConfigText -ServicePort $servicePort
+            [System.IO.File]::WriteAllText($cfgPath, $configText, [System.Text.Encoding]::ASCII)
+            Write-InstallLog "CS2 GSI config installed: $cfgPath (port=$servicePort)"
+            Add-InstallResult -Status Success -Item "CS2 GSI 配置" -Detail "已写入：$cfgPath（端口 $servicePort）"
+            $installed = $true
         }
     }
 

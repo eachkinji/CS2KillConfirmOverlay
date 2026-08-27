@@ -165,6 +165,29 @@ namespace KillConfirmGameBar.Controls
                     fxFileName = null;
                     fxFolder = null;
                     return true;
+                case "grenade":
+                    mainFileName = "badge_grenade.png";
+                    mainFolder = DefaultCodeFolder;
+                    alternatePackFolder = DefaultCodeFolder;
+                    fxFileName = null;
+                    fxFolder = null;
+                    return true;
+                case "c4":
+                case "bomb_plant":
+                    mainFileName = "badge_c4.png";
+                    mainFolder = DefaultCodeFolder;
+                    alternatePackFolder = DefaultCodeFolder;
+                    fxFileName = null;
+                    fxFolder = null;
+                    return true;
+                case "c4defuse":
+                case "bomb_defuse":
+                    mainFileName = "badge_c4defuse.png";
+                    mainFolder = DefaultCodeFolder;
+                    alternatePackFolder = DefaultCodeFolder;
+                    fxFileName = null;
+                    fxFolder = null;
+                    return true;
                 case "headshot_vvip":
                     mainFileName = "badge_headshot_vvip.png";
                     mainFolder = null;
@@ -225,10 +248,31 @@ namespace KillConfirmGameBar.Controls
 
             if (!string.IsNullOrWhiteSpace(folder))
             {
-                return await LoadBitmapFromApplicationUriAsync($"ms-appx:///Assets/KillConfirmCode/{folder}/{fileName}");
+                try
+                {
+                    return await LoadBitmapFromApplicationUriAsync($"ms-appx:///Assets/KillConfirmCode/{folder}/{fileName}");
+                }
+                catch
+                {
+                    if (!allowDefaultFallback)
+                    {
+                        throw;
+                    }
+                }
             }
 
-            return await LoadBitmapFromApplicationUriAsync($"ms-appx:///Assets/KillConfirmCode/{fileName}");
+            try
+            {
+                return await LoadBitmapFromApplicationUriAsync($"ms-appx:///Assets/KillConfirmCode/{fileName}");
+            }
+            catch
+            {
+                if (allowDefaultFallback)
+                {
+                    return await LoadBitmapFromApplicationUriAsync("ms-appx:///Assets/KillConfirmCode/Original/badge_multi1.PNG");
+                }
+                throw;
+            }
         }
 
         private static async Task<CanvasBitmap> TryLoadImportedIconBitmapAsync(string fileName)

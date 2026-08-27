@@ -1,4 +1,4 @@
-﻿# Xbox Game Bar detection and environment repair.
+# Xbox Game Bar detection and environment repair.
 function Test-XboxGameBarAvailable {
     $requirement = $Prerequisites |
         Where-Object PackageName -eq "Microsoft.XboxGamingOverlay" |
@@ -71,9 +71,10 @@ function Backup-GameBarRegistry {
             @{ Key = "HKCU\System\GameConfigStore"; File = "HKCU-GameConfigStore.reg" },
             @{ Key = "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer"; File = "HKCU-Explorer-Policy.reg" }
         )
+        $regPath = Get-SystemToolPath "reg.exe"
         $exportedCount = 0
         foreach ($export in $exports) {
-            & reg.exe export $export.Key (Join-Path $backupRoot $export.File) /y 2>$null | Out-Null
+            & $regPath export $export.Key (Join-Path $backupRoot $export.File) /y 2>$null | Out-Null
             if ($LASTEXITCODE -eq 0) {
                 $exportedCount++
             }
@@ -192,22 +193,28 @@ function Repair-XboxGameBarEnvironment {
 
     try {
         $policyReportPath = Join-Path $backupRoot "Applied-Group-Policy.html"
-        # Do not pipe gpresult through PowerShell's native-command stream. Some
-        # Windows builds surface its diagnostic output as a misleading
-        # 0x80131501 "invalid pointer" PowerShell exception.
-        $gpresultProcess = Start-Process `
-            -FilePath (Join-Path $env:SystemRoot "System32\gpresult.exe") `
-            -ArgumentList @("/h", ('"{0}"' -f $policyReportPath), "/f") `
-            -WindowStyle Hidden `
-            -Wait `
-            -PassThru `
-            -ErrorAction Stop
-        $gpresultExitCode = $gpresultProcess.ExitCode
-        if ($gpresultExitCode -eq 0 -and (Test-Path -LiteralPath $policyReportPath -PathType Leaf)) {
-            Add-InstallResult -Status Success -Item "实际生效组策略报告" -Detail "已保存：$policyReportPath"
+        $gpresultPath = Get-SystemToolPath "gpresult.exe"
+        if (-not (Test-Path -LiteralPath $gpresultPath -PathType Leaf)) {
+            Add-InstallResult -Status Warning -Item "实际生效组策略报告" -Detail "未找到 gpresult.exe 工具；该报告仅用于诊断，不影响安装和程序运行"
         }
         else {
-            Add-InstallResult -Status Warning -Item "实际生效组策略报告" -Detail "gpresult 返回退出码 $gpresultExitCode；该报告仅用于诊断，不影响安装和程序运行"
+            # Do not pipe gpresult through PowerShell's native-command stream. Some
+            # Windows builds surface its diagnostic output as a misleading
+            # 0x80131501 "invalid pointer" PowerShell exception.
+            $gpresultProcess = Start-Process `
+                -FilePath $gpresultPath `
+                -ArgumentList @("/h", ('"{0}"' -f $policyReportPath), "/f") `
+                -WindowStyle Hidden `
+                -Wait `
+                -PassThru `
+                -ErrorAction Stop
+            $gpresultExitCode = $gpresultProcess.ExitCode
+            if ($gpresultExitCode -eq 0 -and (Test-Path -LiteralPath $policyReportPath -PathType Leaf)) {
+                Add-InstallResult -Status Success -Item "实际生效组策略报告" -Detail "已保存：$policyReportPath"
+            }
+            else {
+                Add-InstallResult -Status Warning -Item "实际生效组策略报告" -Detail "gpresult 返回退出码 $gpresultExitCode；该报告仅用于诊断，不影响安装和程序运行"
+            }
         }
     }
     catch {

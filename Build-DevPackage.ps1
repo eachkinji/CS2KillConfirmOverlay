@@ -376,7 +376,9 @@ if ($Install) {
 
     # 配置网络回环豁免权限
     try {
-        & CheckNetIsolation.exe LoopbackExempt -a "-n=$PackageFamilyName" | Out-Null
+        $checkNetPath = if ($env:SystemRoot -and (Test-Path (Join-Path $env:SystemRoot "System32\CheckNetIsolation.exe"))) { Join-Path $env:SystemRoot "System32\CheckNetIsolation.exe" } else { "C:\Windows\System32\CheckNetIsolation.exe" }
+        if (-not (Test-Path $checkNetPath)) { $checkNetPath = "CheckNetIsolation.exe" }
+        & $checkNetPath LoopbackExempt -a "-n=$PackageFamilyName" | Out-Null
         Write-Host " [√] 本机回环通信权限 (LoopbackExempt) 已配置" -ForegroundColor Green
     }
     catch {

@@ -54,10 +54,10 @@ namespace KillConfirmGameBar
                     try
                     {
                         _animationPreloadToken++;
-                        PrimaryKillAnimation?.ReleaseAnimationResourcesForPackChange();
-                        BadgeKillAnimation?.ReleaseAnimationResourcesForPackChange();
-                        OverwatchCardAnimation?.ReleaseAnimationResourcesForPackChange();
-                        ModernWarfare2019UpperAnimation?.ReleaseAnimationResourcesForPackChange();
+                        LowerFeedbackAnimation?.ReleaseAnimationResourcesForPackChange();
+                        LowerBadgeAnimation?.ReleaseAnimationResourcesForPackChange();
+                        CrosshairFeedbackAnimation?.ReleaseAnimationResourcesForPackChange();
+                        UpperFeedbackAnimation?.ReleaseAnimationResourcesForPackChange();
                         _suppressGameStyleEvents = true;
                         try
                         {
@@ -163,21 +163,7 @@ namespace KillConfirmGameBar
                 return;
             }
 
-            if (GameStyleService.IsAuxiliaryKillMarkStyle(GameStyleService.Current))
-            {
-                _modernWarfare2019UpperHorizontalOffset = 0;
-                _modernWarfare2019UpperVerticalOffset = 0;
-                ApplyModernWarfare2019UpperTransform();
-                SaveModernWarfare2019UpperPlacementSettings();
-            }
-            else
-            {
-                _animationPlacement = AnimationPlacementMode.Center;
-                _animationOffset = 0;
-                _animationHorizontalOffset = 0;
-                ApplyAnimationTransform();
-                SaveAnimationPlacementSettings();
-            }
+            SetFeedbackFramePlacement(KillFeedbackLayer.Crosshair, AnimationPlacementMode.Center);
 
             if (_widget == null)
             {
@@ -316,155 +302,91 @@ namespace KillConfirmGameBar
 
         private void UpdateAnimationDragOutlineSize()
         {
-            double availableWidth = AnimationLayer?.ActualWidth > 0 ? AnimationLayer.ActualWidth : DefaultWidgetSize.Width;
-            double availableHeight = AnimationLayer?.ActualHeight > 0 ? AnimationLayer.ActualHeight : DefaultWidgetSize.Height;
-            bool overwatch = GameStyleService.Current == GameStyleMode.Overwatch;
-            bool apex = GameStyleService.Current == GameStyleMode.Apex;
-            bool modernWarfare2019 = GameStyleService.Current == GameStyleMode.ModernWarfare2019;
-            ResolvePrimaryAnimationDragViewport(
-                overwatch,
-                apex,
-                modernWarfare2019,
-                out double displayWidth,
-                out double displayHeight,
-                out double displayCenterOffsetX,
-                out double displayCenterOffsetY);
-            bool directValorantPresentation = Controls.KillConfirmAnimation.IsValorantPresentationConfigured;
-            double fit = directValorantPresentation
-                ? 1.0
-                : Math.Min(1.0, Math.Min(availableWidth / displayWidth, availableHeight / displayHeight));
-            AnimationDragOutline.Width = Math.Max(40, displayWidth * fit);
-            AnimationDragOutline.Height = Math.Max(40, displayHeight * fit);
-            AnimationDragOutlineTransform.X = displayCenterOffsetX * fit;
-            AnimationDragOutlineTransform.Y = displayCenterOffsetY * fit;
+            double availableWidth = LowerFeedbackLayer?.ActualWidth > 0 ? LowerFeedbackLayer.ActualWidth : DefaultWidgetSize.Width;
+            double availableHeight = LowerFeedbackLayer?.ActualHeight > 0 ? LowerFeedbackLayer.ActualHeight : DefaultWidgetSize.Height;
+            GameStyleMode style = GameStyleService.Current;
+            ResolveLowerFeedbackViewport(out double width, out double height, out double offsetX, out double offsetY);
+            double fit = Controls.KillConfirmAnimation.IsValorantPresentationConfigured ? 1.0
+                : style == GameStyleMode.Overwatch ? Math.Min(1.0, Math.Min(availableWidth / 550.0, availableHeight / 600.0))
+                : style == GameStyleMode.Apex ? Math.Min(1.0, Math.Min(availableWidth / 560.0, availableHeight / 360.0))
+                : Math.Min(1.0, Math.Min(availableWidth / width, availableHeight / height));
+            LowerDragOutline.Width = Math.Max(40, width * fit);
+            double minimumLowerHeight = KillFeedbackFrameDefinition.GetLegacyPrimaryLayer(style) == KillFeedbackLayer.Crosshair ? 28 : 40;
+            LowerDragOutline.Height = Math.Max(minimumLowerHeight, height * fit);
+            LowerDragOutlineTransform.X = offsetX * fit;
+            LowerDragOutlineTransform.Y = offsetY * fit;
 
-            double cardWidth = modernWarfare2019
-                ? ModernWarfare2019LowerFrameWidth
-                : overwatch
-                    ? Math.Max(1, OverwatchCardAnimation?.OverwatchSelectionViewportWidth ?? 180)
-                    : apex
-                        ? Math.Max(1, OverwatchCardAnimation?.ApexCardSelectionViewportWidth ?? 96)
-                        : Math.Max(1, OverwatchCardAnimation?.SelectionViewportWidth ?? 180);
-            double cardHeight = modernWarfare2019
-                ? ModernWarfare2019LowerFrameHeight
-                : overwatch
-                    ? Math.Max(1, OverwatchCardAnimation?.OverwatchSelectionViewportHeight ?? 44)
-                    : apex
-                        ? Math.Max(1, OverwatchCardAnimation?.ApexCardSelectionViewportHeight ?? 56)
-                        : Math.Max(1, OverwatchCardAnimation?.SelectionViewportHeight ?? 44);
-            double cardFit = apex
-                ? Math.Min(1.0, Math.Min(availableWidth / 560.0, availableHeight / 360.0))
-                : modernWarfare2019
-                    ? Math.Min(
-                        1.0,
-                        Math.Min(availableWidth / cardWidth, availableHeight / cardHeight))
-                    : Math.Min(1.0, Math.Min(availableWidth / 550.0, availableHeight / 600.0));
-            OverwatchCardDragOutline.Width = Math.Max(40, cardWidth * cardFit);
-            OverwatchCardDragOutline.Height = Math.Max(28, cardHeight * cardFit);
-            OverwatchCardDragOutlineTransform.X = apex
-                ? OverwatchCardAnimation.ApexCardSelectionViewportCenterOffsetX * cardFit
-                : overwatch
-                    ? OverwatchCardAnimation.SelectionViewportCenterOffsetX * cardFit
-                    : 0;
-            OverwatchCardDragOutlineTransform.Y = apex
-                ? OverwatchCardAnimation.ApexCardSelectionViewportCenterOffsetY * cardFit
-                : overwatch
-                    ? OverwatchCardAnimation.SelectionViewportCenterOffsetY * cardFit
-                    : 0;
+            double crosshairWidth = style == GameStyleMode.Overwatch ? 320
+                : style == GameStyleMode.Apex ? ApexCrosshairFrameWidth : ModernWarfare2019CrosshairFrameWidth;
+            double crosshairHeight = style == GameStyleMode.Overwatch ? 320
+                : style == GameStyleMode.Apex ? ApexCrosshairFrameHeight : ModernWarfare2019CrosshairFrameHeight;
+            double crosshairFit = Math.Min(1.0, Math.Min(availableWidth / crosshairWidth, availableHeight / crosshairHeight));
+            CrosshairDragOutline.Width = Math.Max(40, crosshairWidth * crosshairFit);
+            CrosshairDragOutline.Height = Math.Max(40, crosshairHeight * crosshairFit);
+            CrosshairDragOutlineTransform.X = 0;
+            CrosshairDragOutlineTransform.Y = 0;
 
-            bool battlefieldKillMark = GameStyleService.IsAuxiliaryKillMarkStyle(
-                GameStyleService.Current);
-            double auxiliaryFrameWidth = battlefieldKillMark
-                ? ModernWarfare2019CrosshairFrameWidth
-                : ModernWarfare2019UpperFrameWidth;
-            double auxiliaryFrameHeight = battlefieldKillMark
-                ? ModernWarfare2019CrosshairFrameHeight
-                : ModernWarfare2019UpperFrameHeight;
-            double upperFit = Math.Min(
-                1.0,
-                Math.Min(
-                    availableWidth / auxiliaryFrameWidth,
-                    availableHeight / auxiliaryFrameHeight));
-            ModernWarfare2019UpperDragOutline.Width = Math.Max(
-                40,
-                auxiliaryFrameWidth * upperFit);
-            ModernWarfare2019UpperDragOutline.Height = Math.Max(
-                40,
-                auxiliaryFrameHeight * upperFit);
-            ModernWarfare2019UpperDragOutlineTransform.X = battlefieldKillMark
-                ? ModernWarfare2019CrosshairFrameOffsetX * upperFit
-                : 0.0;
-            ModernWarfare2019UpperDragOutlineTransform.Y = battlefieldKillMark
-                ? ModernWarfare2019CrosshairFrameOffsetY * upperFit
-                : 0.0;
+            double upperFit = Math.Min(1.0, Math.Min(availableWidth / ModernWarfare2019UpperFrameWidth,
+                availableHeight / ModernWarfare2019UpperFrameHeight));
+            UpperDragOutline.Width = Math.Max(40, ModernWarfare2019UpperFrameWidth * upperFit);
+            UpperDragOutline.Height = Math.Max(40, ModernWarfare2019UpperFrameHeight * upperFit);
+            UpperDragOutlineTransform.X = 0;
+            UpperDragOutlineTransform.Y = 0;
         }
 
-        private void ResolvePrimaryAnimationDragViewport(
-            bool overwatch,
-            bool apex,
-            bool modernWarfare2019,
-            out double width,
-            out double height,
-            out double centerOffsetX,
-            out double centerOffsetY)
+        private void ResolveLowerFeedbackViewport(out double width, out double height,
+            out double centerOffsetX, out double centerOffsetY)
         {
             centerOffsetX = 0;
             centerOffsetY = 0;
-            if (overwatch)
-            {
-                width = 320;
-                height = 320;
-                return;
-            }
-
-            if (apex)
-            {
-                width = ApexCrosshairFrameWidth;
-                height = ApexCrosshairFrameHeight;
-                return;
-            }
-
-            if (modernWarfare2019)
-            {
-                width = ModernWarfare2019CrosshairFrameWidth;
-                height = ModernWarfare2019CrosshairFrameHeight;
-                centerOffsetX = ModernWarfare2019CrosshairFrameOffsetX;
-                centerOffsetY = ModernWarfare2019CrosshairFrameOffsetY;
-                return;
-            }
-
             switch (GameStyleService.Current)
             {
+                case GameStyleMode.Overwatch:
+                    width = Math.Max(1, LowerFeedbackAnimation?.OverwatchSelectionViewportWidth ?? 180);
+                    height = Math.Max(1, LowerFeedbackAnimation?.OverwatchSelectionViewportHeight ?? 44);
+                    centerOffsetX = LowerFeedbackAnimation?.SelectionViewportCenterOffsetX ?? 0;
+                    centerOffsetY = LowerFeedbackAnimation?.SelectionViewportCenterOffsetY ?? 0;
+                    return;
+                case GameStyleMode.Apex:
+                    width = Math.Max(1, LowerFeedbackAnimation?.ApexCardSelectionViewportWidth ?? 96);
+                    height = Math.Max(1, LowerFeedbackAnimation?.ApexCardSelectionViewportHeight ?? 56);
+                    centerOffsetX = LowerFeedbackAnimation?.ApexCardSelectionViewportCenterOffsetX ?? 0;
+                    centerOffsetY = LowerFeedbackAnimation?.ApexCardSelectionViewportCenterOffsetY ?? 0;
+                    return;
+                case GameStyleMode.ModernWarfare2019:
+                    width = ModernWarfare2019LowerFrameWidth;
+                    height = ModernWarfare2019LowerFrameHeight;
+                    return;
                 case GameStyleMode.Battlefield5:
-                    width = PrimaryKillAnimation?.Battlefield5LowerSelectionViewportWidth ?? 360;
-                    height = PrimaryKillAnimation?.Battlefield5LowerSelectionViewportHeight ?? 150;
-                    centerOffsetY = PrimaryKillAnimation?.Battlefield5LowerSelectionViewportCenterOffsetY ?? 30;
+                    width = LowerFeedbackAnimation?.Battlefield5LowerSelectionViewportWidth ?? 360;
+                    height = LowerFeedbackAnimation?.Battlefield5LowerSelectionViewportHeight ?? 150;
+                    centerOffsetY = LowerFeedbackAnimation?.Battlefield5LowerSelectionViewportCenterOffsetY ?? 30;
                     return;
                 case GameStyleMode.Battlefield4:
-                    width = PrimaryKillAnimation?.Battlefield4LowerSelectionViewportWidth ?? 360;
-                    height = PrimaryKillAnimation?.Battlefield4LowerSelectionViewportHeight ?? 100;
-                    centerOffsetY = PrimaryKillAnimation?.Battlefield4LowerSelectionViewportCenterOffsetY ?? 65;
+                    width = LowerFeedbackAnimation?.Battlefield4LowerSelectionViewportWidth ?? 360;
+                    height = LowerFeedbackAnimation?.Battlefield4LowerSelectionViewportHeight ?? 100;
+                    centerOffsetY = LowerFeedbackAnimation?.Battlefield4LowerSelectionViewportCenterOffsetY ?? 65;
                     return;
                 case GameStyleMode.Battlefield2042:
-                    width = PrimaryKillAnimation?.Battlefield2042LowerSelectionViewportWidth ?? 440;
-                    height = PrimaryKillAnimation?.Battlefield2042LowerSelectionViewportHeight ?? 170;
-                    centerOffsetY = PrimaryKillAnimation?.Battlefield2042LowerSelectionViewportCenterOffsetY ?? 45;
+                    width = LowerFeedbackAnimation?.Battlefield2042LowerSelectionViewportWidth ?? 440;
+                    height = LowerFeedbackAnimation?.Battlefield2042LowerSelectionViewportHeight ?? 170;
+                    centerOffsetY = LowerFeedbackAnimation?.Battlefield2042LowerSelectionViewportCenterOffsetY ?? 45;
                     return;
                 case GameStyleMode.Pubg:
-                    width = PrimaryKillAnimation?.PubgLowerSelectionViewportWidth ?? 420;
-                    height = PrimaryKillAnimation?.PubgLowerSelectionViewportHeight ?? 125;
-                    centerOffsetY = PrimaryKillAnimation?.PubgLowerSelectionViewportCenterOffsetY ?? 30;
+                    width = LowerFeedbackAnimation?.PubgLowerSelectionViewportWidth ?? 420;
+                    height = LowerFeedbackAnimation?.PubgLowerSelectionViewportHeight ?? 125;
+                    centerOffsetY = LowerFeedbackAnimation?.PubgLowerSelectionViewportCenterOffsetY ?? 30;
                     return;
                 case GameStyleMode.DeltaForce:
-                    width = PrimaryKillAnimation?.DeltaForceLowerSelectionViewportWidth ?? 360;
-                    height = PrimaryKillAnimation?.DeltaForceLowerSelectionViewportHeight ?? 125;
-                    centerOffsetY = PrimaryKillAnimation?.DeltaForceLowerSelectionViewportCenterOffsetY ?? 37;
+                    width = LowerFeedbackAnimation?.DeltaForceLowerSelectionViewportWidth ?? 360;
+                    height = LowerFeedbackAnimation?.DeltaForceLowerSelectionViewportHeight ?? 125;
+                    centerOffsetY = LowerFeedbackAnimation?.DeltaForceLowerSelectionViewportCenterOffsetY ?? 37;
                     return;
                 default:
-                    width = Math.Max(1, PrimaryKillAnimation?.SelectionViewportWidth ?? 550);
-                    height = Math.Max(1, PrimaryKillAnimation?.SelectionViewportHeight ?? 412.5);
-                    centerOffsetX = PrimaryKillAnimation?.SelectionViewportCenterOffsetX ?? 0;
-                    centerOffsetY = PrimaryKillAnimation?.SelectionViewportCenterOffsetY ?? 0;
+                    width = Math.Max(1, LowerFeedbackAnimation?.SelectionViewportWidth ?? 550);
+                    height = Math.Max(1, LowerFeedbackAnimation?.SelectionViewportHeight ?? 412.5);
+                    centerOffsetX = LowerFeedbackAnimation?.SelectionViewportCenterOffsetX ?? 0;
+                    centerOffsetY = LowerFeedbackAnimation?.SelectionViewportCenterOffsetY ?? 0;
                     return;
             }
         }
@@ -487,6 +409,7 @@ namespace KillConfirmGameBar
             _animationDragPointerId = e.Pointer.PointerId;
             _animationDragPointerStart = pointerPoint.Position;
             _activeAnimationDragOutline = sender as Border;
+            _feedbackDragStyle = GameStyleService.Current;
             // Mark selected immediately; drag is armed in PointerMoved once the
             // pointer travels past ClickVsDragThresholdPx. A press without
             // movement leaves the outline selected so the wheel can resize it.

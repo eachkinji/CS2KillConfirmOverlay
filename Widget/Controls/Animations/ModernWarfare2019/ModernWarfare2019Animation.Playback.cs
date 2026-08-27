@@ -70,6 +70,24 @@ namespace KillConfirmGameBar.Controls
                 isAssist: true);
         }
 
+        public void PlayModernWarfare2019Objective(string eventKind, int moneyReward)
+        {
+            int normalizedReward = Math.Max(0, moneyReward);
+            _modernWarfare2019AccumulatedMoney = normalizedReward;
+            ++_playToken;
+            PrepareModernWarfare2019Playback(
+                drawPrimary: true,
+                drawLowerBanner: false,
+                drawUpperBanner: false,
+                isHeadshot: false,
+                killCount: 0,
+                moneyReward: normalizedReward,
+                isAssist: false,
+                killMarkOnly: false,
+                objectiveEventKind: eventKind);
+            EnsureModernWarfare2019MoneyGlowReadyAsync();
+        }
+
         public void PlayModernWarfare2019LowerKill(int killCount)
         {
             ++_playToken;
@@ -103,7 +121,8 @@ namespace KillConfirmGameBar.Controls
             int killCount,
             int moneyReward,
             bool isAssist = false,
-            bool killMarkOnly = false)
+            bool killMarkOnly = false,
+            string objectiveEventKind = null)
         {
             _timer.Stop();
             _playbackClock.Stop();
@@ -130,12 +149,13 @@ namespace KillConfirmGameBar.Controls
             _modernWarfare2019KillMarkOnly = killMarkOnly;
             _modernWarfare2019IsHeadshot = isHeadshot;
             _modernWarfare2019IsAssist = isAssist;
+            _modernWarfare2019IsObjective = !string.IsNullOrWhiteSpace(objectiveEventKind);
             _modernWarfare2019MoneyReward = Math.Max(0, moneyReward);
             _modernWarfare2019KillCount = isAssist ? 0 : Math.Max(1, killCount);
 
             if (drawPrimary)
             {
-                if (!isAssist)
+                if (!isAssist && !_modernWarfare2019IsObjective)
                 {
                     double magnitude = 7.0 + (_modernWarfare2019Random.NextDouble() * 6.0);
                     _modernWarfare2019ImpactAngleDegrees =
@@ -149,6 +169,7 @@ namespace KillConfirmGameBar.Controls
                         isHeadshot,
                         isAssist ? 0 : Math.Max(1, killCount),
                         isAssist,
+                        objectiveEventKind,
                         nowUnixMs);
                 }
             }
@@ -185,8 +206,16 @@ namespace KillConfirmGameBar.Controls
             bool isHeadshot,
             int killCount,
             bool isAssist,
+            string objectiveEventKind,
             long spawnUnixMs)
         {
+            if (!string.IsNullOrWhiteSpace(objectiveEventKind))
+            {
+                string label = GetModernWarfare2019ObjectiveLabel(objectiveEventKind);
+                AddModernWarfare2019FeedItem(label, false, false, spawnUnixMs);
+                return;
+            }
+
             if (isAssist)
             {
                 AddModernWarfare2019FeedItem("助攻", false, true, spawnUnixMs);
@@ -209,6 +238,27 @@ namespace KillConfirmGameBar.Controls
             else if (!isHeadshot)
             {
                 AddModernWarfare2019FeedItem("击杀", false, false, spawnUnixMs);
+            }
+        }
+
+        private static string GetModernWarfare2019ObjectiveLabel(string eventKind)
+        {
+            switch (eventKind?.Trim().ToLowerInvariant())
+            {
+                case "bomb_plant":
+                    return "安放炸弹";
+                case "bomb_defuse":
+                    return "拆除炸弹";
+                case "hostage_interact":
+                    return "接触人质";
+                case "hostage_rescue":
+                    return "救出人质";
+                case "round_win":
+                    return "回合胜利";
+                case "round_loss":
+                    return "回合失败";
+                default:
+                    return "目标完成";
             }
         }
 
@@ -264,6 +314,7 @@ namespace KillConfirmGameBar.Controls
             _modernWarfare2019KillMarkOnly = false;
             _modernWarfare2019IsHeadshot = false;
             _modernWarfare2019IsAssist = false;
+            _modernWarfare2019IsObjective = false;
             _modernWarfare2019MoneyReward = 0;
             _modernWarfare2019KillCount = 0;
             _modernWarfare2019FeedItems.Clear();

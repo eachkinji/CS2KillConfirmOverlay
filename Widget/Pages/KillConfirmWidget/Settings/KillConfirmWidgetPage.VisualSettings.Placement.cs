@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using KillConfirmGameBar.Services;
 using Windows.Storage;
@@ -38,14 +38,14 @@ namespace KillConfirmGameBar
                         savedPlacement,
                         nameof(AnimationPlacementMode.Center),
                         StringComparison.OrdinalIgnoreCase))
-                && Math.Abs(_animationOffset) < 0.001
-                && Math.Abs(_animationHorizontalOffset) < 0.001;
+                && Math.Abs(_legacyPrimaryVerticalOffset) < 0.001
+                && Math.Abs(_legacyPrimaryHorizontalOffset) < 0.001;
             if (stillUsingPreviousCenterDefault)
             {
-                _animationPlacement = AnimationPlacementMode.Bottom;
-                _animationOffset = 0;
-                _animationHorizontalOffset = 0;
-                SaveAnimationPlacementSettings();
+                _legacyPrimaryPlacement = AnimationPlacementMode.Bottom;
+                _legacyPrimaryVerticalOffset = 0;
+                _legacyPrimaryHorizontalOffset = 0;
+                SaveLegacyPrimaryPlacementSettings();
             }
 
             // Preserve Manual, Top, and already customized offsets. This revision
@@ -53,61 +53,61 @@ namespace KillConfirmGameBar
             localSettings.Values[revisionKey] = true;
         }
 
-        private void SaveAnimationPlacementSettings()
+        private void SaveLegacyPrimaryPlacementSettings()
         {
             ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
-            localSettings.Values[GetAnimationStyleSettingKey(AnimationPlacementSettingKey)] = _animationPlacement.ToString();
-            localSettings.Values[GetAnimationStyleSettingKey(AnimationOffsetSettingKey)] = _animationOffset;
+            localSettings.Values[GetAnimationStyleSettingKey(AnimationPlacementSettingKey)] = _legacyPrimaryPlacement.ToString();
+            localSettings.Values[GetAnimationStyleSettingKey(AnimationOffsetSettingKey)] = _legacyPrimaryVerticalOffset;
             localSettings.Values[GetAnimationStyleSettingKey(AnimationHorizontalOffsetSettingKey)] =
-                _animationHorizontalOffset;
-            localSettings.Values[GetAnimationStyleSettingKey(AnimationScaleSettingKey)] = _animationScale;
+                _legacyPrimaryHorizontalOffset;
+            localSettings.Values[GetAnimationStyleSettingKey(AnimationScaleSettingKey)] = _legacyPrimaryScale;
         }
 
         private void ResetCurrentGameAnimationPlacement()
         {
             GameStyleMode style = GameStyleService.Current;
 
-            _animationPlacement = GetDefaultAnimationPlacement(style);
-            _animationOffset = GetDefaultAnimationVerticalOffset(style);
-            _animationHorizontalOffset = GetDefaultAnimationHorizontalOffset(style);
-            _animationScale = GetDefaultAnimationScale(style);
-            SaveAnimationPlacementSettings();
-            ApplyAnimationTransform();
+            _legacyPrimaryPlacement = GetDefaultAnimationPlacement(style);
+            _legacyPrimaryVerticalOffset = GetDefaultAnimationVerticalOffset(style);
+            _legacyPrimaryHorizontalOffset = GetDefaultAnimationHorizontalOffset(style);
+            _legacyPrimaryScale = GetDefaultAnimationScale(style);
+            SaveLegacyPrimaryPlacementSettings();
+            ApplyLegacyPrimaryTransform();
 
             if (style == GameStyleMode.Overwatch
                 || style == GameStyleMode.Apex
                 || style == GameStyleMode.ModernWarfare2019)
             {
-                _overwatchCardHorizontalOffset = GetDefaultCardHorizontalOffset(style);
-                _overwatchCardVerticalOffset = GetDefaultCardVerticalOffset(style);
-                _overwatchCardScale = GetDefaultCardScale(style);
-                SaveOverwatchCardPlacementSettings();
-                ApplyOverwatchCardTransform();
+                _legacyLowerCardHorizontalOffset = GetDefaultCardHorizontalOffset(style);
+                _legacyLowerCardVerticalOffset = GetDefaultCardVerticalOffset(style);
+                _legacyLowerCardScale = GetDefaultCardScale(style);
+                SaveLegacyLowerCardPlacementSettings();
+                ApplyLegacyLowerCardTransform();
             }
 
             if (style == GameStyleMode.ModernWarfare2019)
             {
-                _modernWarfare2019UpperHorizontalOffset =
+                _legacyAuxiliaryHorizontalOffset =
                     GetDefaultModernWarfare2019UpperHorizontalOffset();
-                _modernWarfare2019UpperVerticalOffset =
+                _legacyAuxiliaryVerticalOffset =
                     GetDefaultModernWarfare2019UpperVerticalOffset();
-                _modernWarfare2019UpperScale =
+                _legacyAuxiliaryScale =
                     GetDefaultModernWarfare2019UpperScale();
-                SaveModernWarfare2019UpperPlacementSettings();
-                ApplyModernWarfare2019UpperTransform();
+                SaveLegacyAuxiliaryPlacementSettings();
+                ApplyLegacyAuxiliaryTransform();
             }
             else if (GameStyleService.IsAuxiliaryKillMarkStyle(style))
             {
-                _modernWarfare2019UpperHorizontalOffset = 0;
-                _modernWarfare2019UpperVerticalOffset = 0;
-                _modernWarfare2019UpperScale =
+                _legacyAuxiliaryHorizontalOffset = 0;
+                _legacyAuxiliaryVerticalOffset = 0;
+                _legacyAuxiliaryScale =
                     GetDefaultAnimationScale(GameStyleMode.ModernWarfare2019);
-                SaveModernWarfare2019UpperPlacementSettings();
-                ApplyModernWarfare2019UpperTransform();
+                SaveLegacyAuxiliaryPlacementSettings();
+                ApplyLegacyAuxiliaryTransform();
             }
         }
 
-        private void LoadOverwatchCardPlacementSettings(ApplicationDataContainer localSettings)
+        private void LoadLegacyLowerCardPlacementSettings(ApplicationDataContainer localSettings)
         {
             bool apex = GameStyleService.Current == GameStyleMode.Apex;
             bool modernWarfare2019 = GameStyleService.Current == GameStyleMode.ModernWarfare2019;
@@ -126,11 +126,11 @@ namespace KillConfirmGameBar
                 : modernWarfare2019
                     ? ModernWarfare2019LowerScaleSettingKey
                     : OverwatchCardScaleSettingKey;
-            _overwatchCardHorizontalOffset = ReadDoubleSetting(
+            _legacyLowerCardHorizontalOffset = ReadDoubleSetting(
                 localSettings,
                 horizontalKey,
                 GetDefaultCardHorizontalOffset(GameStyleService.Current));
-            _overwatchCardVerticalOffset = ReadDoubleSetting(
+            _legacyLowerCardVerticalOffset = ReadDoubleSetting(
                 localSettings,
                 verticalKey,
                 GetDefaultCardVerticalOffset(GameStyleService.Current));
@@ -138,12 +138,12 @@ namespace KillConfirmGameBar
                 localSettings,
                 scaleKey,
                 GetDefaultCardScale(GameStyleService.Current));
-            _overwatchCardScale = double.IsNaN(savedScale)
+            _legacyLowerCardScale = double.IsNaN(savedScale)
                 || double.IsInfinity(savedScale)
                 || savedScale <= 0
                     ? 1.0
                     : savedScale;
-            ApplyOverwatchCardTransform();
+            ApplyLegacyLowerCardTransform();
         }
 
         private static AnimationPlacementMode GetDefaultAnimationPlacement(GameStyleMode style)
@@ -239,7 +239,7 @@ namespace KillConfirmGameBar
             return 1.3310000000000004;
         }
 
-        private void SaveOverwatchCardPlacementSettings()
+        private void SaveLegacyLowerCardPlacementSettings()
         {
             ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
             bool apex = GameStyleService.Current == GameStyleMode.Apex;
@@ -259,12 +259,12 @@ namespace KillConfirmGameBar
                 : modernWarfare2019
                     ? ModernWarfare2019LowerScaleSettingKey
                     : OverwatchCardScaleSettingKey;
-            localSettings.Values[horizontalKey] = _overwatchCardHorizontalOffset;
-            localSettings.Values[verticalKey] = _overwatchCardVerticalOffset;
-            localSettings.Values[scaleKey] = _overwatchCardScale;
+            localSettings.Values[horizontalKey] = _legacyLowerCardHorizontalOffset;
+            localSettings.Values[verticalKey] = _legacyLowerCardVerticalOffset;
+            localSettings.Values[scaleKey] = _legacyLowerCardScale;
         }
 
-        private void LoadModernWarfare2019UpperPlacementSettings(
+        private void LoadLegacyAuxiliaryPlacementSettings(
             ApplicationDataContainer localSettings)
         {
             bool battlefieldKillMark =
@@ -278,11 +278,11 @@ namespace KillConfirmGameBar
             string scaleKey = battlefieldKillMark
                 ? GetAnimationStyleSettingKey(BattlefieldKillMarkScaleSettingKey)
                 : ModernWarfare2019UpperScaleSettingKey;
-            _modernWarfare2019UpperHorizontalOffset = ReadDoubleSetting(
+            _legacyAuxiliaryHorizontalOffset = ReadDoubleSetting(
                 localSettings,
                 horizontalKey,
                 battlefieldKillMark ? 0.0 : GetDefaultModernWarfare2019UpperHorizontalOffset());
-            _modernWarfare2019UpperVerticalOffset = ReadDoubleSetting(
+            _legacyAuxiliaryVerticalOffset = ReadDoubleSetting(
                 localSettings,
                 verticalKey,
                 battlefieldKillMark ? 0.0 : GetDefaultModernWarfare2019UpperVerticalOffset());
@@ -292,15 +292,15 @@ namespace KillConfirmGameBar
                 battlefieldKillMark
                     ? GetDefaultAnimationScale(GameStyleMode.ModernWarfare2019)
                     : GetDefaultModernWarfare2019UpperScale());
-            _modernWarfare2019UpperScale = double.IsNaN(savedScale)
+            _legacyAuxiliaryScale = double.IsNaN(savedScale)
                 || double.IsInfinity(savedScale)
                 || savedScale <= 0
                     ? 1.0
                     : savedScale;
-            ApplyModernWarfare2019UpperTransform();
+            ApplyLegacyAuxiliaryTransform();
         }
 
-        private void SaveModernWarfare2019UpperPlacementSettings()
+        private void SaveLegacyAuxiliaryPlacementSettings()
         {
             ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
             bool battlefieldKillMark =
@@ -315,11 +315,11 @@ namespace KillConfirmGameBar
                 ? GetAnimationStyleSettingKey(BattlefieldKillMarkScaleSettingKey)
                 : ModernWarfare2019UpperScaleSettingKey;
             localSettings.Values[horizontalKey] =
-                _modernWarfare2019UpperHorizontalOffset;
+                _legacyAuxiliaryHorizontalOffset;
             localSettings.Values[verticalKey] =
-                _modernWarfare2019UpperVerticalOffset;
+                _legacyAuxiliaryVerticalOffset;
             localSettings.Values[scaleKey] =
-                _modernWarfare2019UpperScale;
+                _legacyAuxiliaryScale;
         }
 
         private static string GetAnimationStyleSettingKey(string baseKey)

@@ -65,8 +65,6 @@ namespace KillConfirmGameBar
         // XAML brushes are WinRT/COM objects. Keep them scoped to this page instance:
         // Game Bar can destroy and recreate a widget page while the app process stays
         // alive, which makes static brush RCWs point at released native objects.
-        private readonly SolidColorBrush _dragOutlineDefaultBrush = new SolidColorBrush(Color.FromArgb(0xFF, 0xE5, 0x39, 0x35));
-        private readonly SolidColorBrush _dragOutlineSelectedBrush = new SolidColorBrush(Color.FromArgb(0xFF, 0xFF, 0x17, 0x44));
         private readonly SolidColorBrush _dragOutlineTransparentBrush = new SolidColorBrush(Colors.Transparent);
         private readonly Brush _dragOutlineScratchBrush = CreateDragOutlineScratchBrush();
         private const int StartupPreloadDelayMs = 250;
@@ -217,6 +215,7 @@ namespace KillConfirmGameBar
                 ["one"] = new TestPreset(1),
                 ["one_hs"] = new TestPreset(1, isHeadshot: true),
                 ["one_knife"] = new TestPreset(1, isKnifeKill: true),
+                ["one_grenade"] = new TestPreset(1, isGrenadeKill: true, weaponName: "HE Grenade"),
                 ["one_first"] = new TestPreset(1, isFirstKill: true),
                 ["one_last"] = new TestPreset(1, isLastKill: true),
                 ["assist"] = new TestPreset(0, isAssist: true, playMainAnimation: false),
@@ -231,26 +230,32 @@ namespace KillConfirmGameBar
                 ["eight"] = new TestPreset(8),
                 ["nine"] = new TestPreset(9),
                 ["badge_first"] = new TestPreset(1, isFirstKill: true, playMainAnimation: false),
-                ["badge_last"] = new TestPreset(1, isLastKill: true, playMainAnimation: false)
+                ["bomb_plant"] = new TestPreset(0, playMainAnimation: true, animationKey: "bomb_plant", eventChannel: KillEventChannels.Economy, eventKind: "bomb_plant", weaponName: "C4", moneyReward: 300),
+                ["bomb_defuse"] = new TestPreset(0, playMainAnimation: true, animationKey: "bomb_defuse", eventChannel: KillEventChannels.Economy, eventKind: "bomb_defuse", weaponName: "Defuse Kit", moneyReward: 300),
+                ["hostage_interact"] = new TestPreset(0, playMainAnimation: true, animationKey: "hostage_interact", eventChannel: KillEventChannels.Economy, eventKind: "hostage_interact", weaponName: "Hostage", moneyReward: 800),
+                ["hostage_rescue"] = new TestPreset(0, playMainAnimation: true, animationKey: "hostage_rescue", eventChannel: KillEventChannels.Economy, eventKind: "hostage_rescue", weaponName: "Hostage", moneyReward: 1600),
+                ["round_win"] = new TestPreset(0, playMainAnimation: true, animationKey: "round_win", eventChannel: KillEventChannels.Economy, eventKind: "round_win", moneyReward: 3250),
+                ["round_loss"] = new TestPreset(0, playMainAnimation: true, animationKey: "round_loss", eventChannel: KillEventChannels.Economy, eventKind: "round_loss", moneyReward: 1400)
             };
 
         private XboxGameBarWidget _widget;
         private KillEventClient _eventClient;
-        private double _animationOffset;
-        private double _animationHorizontalOffset;
-        private double _animationScale = 1.0;
-        private AnimationPlacementMode _animationPlacement = AnimationPlacementMode.Center;
-        private double _overwatchCardHorizontalOffset;
-        private double _overwatchCardVerticalOffset;
-        private double _overwatchCardScale = 1.0;
-        private double _modernWarfare2019UpperHorizontalOffset;
-        private double _modernWarfare2019UpperVerticalOffset;
-        private double _modernWarfare2019UpperScale = 1.0;
+        private double _legacyPrimaryVerticalOffset;
+        private double _legacyPrimaryHorizontalOffset;
+        private double _legacyPrimaryScale = 1.0;
+        private AnimationPlacementMode _legacyPrimaryPlacement = AnimationPlacementMode.Center;
+        private double _legacyLowerCardHorizontalOffset;
+        private double _legacyLowerCardVerticalOffset;
+        private double _legacyLowerCardScale = 1.0;
+        private double _legacyAuxiliaryHorizontalOffset;
+        private double _legacyAuxiliaryVerticalOffset;
+        private double _legacyAuxiliaryScale = 1.0;
         private bool _isWidgetVisible = true;
         private XboxGameBarDisplayMode _displayMode = XboxGameBarDisplayMode.Foreground;
         private XboxGameBarWidgetWindowState _windowState = XboxGameBarWidgetWindowState.Restored;
         private bool _isPinned;
         private bool _clickThroughEnabled;
+        private bool _hasGameBarSetupState;
         private readonly SemaphoreSlim _widgetLayoutRefreshGate = new SemaphoreSlim(1, 1);
         private int _widgetLayoutRefreshRequestVersion;
         private bool _hostLayoutHandlersAttached;
@@ -291,9 +296,6 @@ namespace KillConfirmGameBar
         private TranslateTransform _panelDragTransform;
         private bool _panelCollapsed;
         private bool _isDraggingAnimation;
-        private bool _isAnimationFrameSelected;
-        private bool _isOverwatchCardFrameSelected;
-        private bool _isModernWarfare2019UpperFrameSelected;
         private Border _activeAnimationDragOutline;
         private Border _animationContextOutline;
         private uint _animationDragPointerId;
@@ -325,6 +327,7 @@ namespace KillConfirmGameBar
             _suppressVoicePackEvents = true;
             _suppressIconPackEvents = true;
             InitializeComponent();
+            InitializeGameBarSetupGuideImage();
             _suppressGameStyleEvents = false;
             _suppressVoicePackEvents = false;
             _suppressIconPackEvents = false;
@@ -336,18 +339,18 @@ namespace KillConfirmGameBar
                     new PointerEventHandler(OnWindowPointerPressed),
                     true);
             }
-            PrimaryKillAnimation.LogicalViewportSizeChanged += OnAnimationLogicalViewportSizeChanged;
-            OverwatchCardAnimation.LogicalViewportSizeChanged += OnAnimationLogicalViewportSizeChanged;
-            ModernWarfare2019UpperAnimation.LogicalViewportSizeChanged += OnAnimationLogicalViewportSizeChanged;
+            LowerFeedbackAnimation.LogicalViewportSizeChanged += OnAnimationLogicalViewportSizeChanged;
+            CrosshairFeedbackAnimation.LogicalViewportSizeChanged += OnAnimationLogicalViewportSizeChanged;
+            UpperFeedbackAnimation.LogicalViewportSizeChanged += OnAnimationLogicalViewportSizeChanged;
             SizeChanged += OnPanelViewportSizeChanged;
             ControlPanel.SizeChanged += OnPanelViewportSizeChanged;
             LoadPanelOffset();
             object collapsed = ApplicationData.Current.LocalSettings.Values[PanelCollapsedSettingKey];
             SetPanelCollapsed(collapsed is bool collapsedValue && collapsedValue);
             WireUpdateOverlayEvents();
-            AnimationLayer.SizeChanged += OnAnimationLayerSizeChanged;
-            OverwatchCardLayer.SizeChanged += OnAnimationLayerSizeChanged;
-            ModernWarfare2019UpperLayer.SizeChanged += OnAnimationLayerSizeChanged;
+            LowerFeedbackLayer.SizeChanged += OnAnimationLayerSizeChanged;
+            CrosshairFeedbackLayer.SizeChanged += OnAnimationLayerSizeChanged;
+            UpperFeedbackLayer.SizeChanged += OnAnimationLayerSizeChanged;
             HeaderStatusSection.VersionText.Text = GetUpdateButtonLabel();
             ToolTipService.SetToolTip(HeaderStatusSection.UpdateButton, GetDisplayVersion());
             LoadGameStyleSelector();
@@ -432,13 +435,14 @@ namespace KillConfirmGameBar
             GameStyleService.Changed -= OnGameStyleServiceChanged;
             PackCatalogService.CatalogChanged -= OnPackCatalogChanged;
             _animationPreloadToken++;
-            PrimaryKillAnimation?.ReleaseAnimationResourcesForPackChange();
-            BadgeKillAnimation?.ReleaseAnimationResourcesForPackChange();
-            OverwatchCardAnimation?.ReleaseAnimationResourcesForPackChange();
-            ModernWarfare2019UpperAnimation?.ReleaseAnimationResourcesForPackChange();
+            LowerFeedbackAnimation?.ReleaseAnimationResourcesForPackChange();
+            LowerBadgeAnimation?.ReleaseAnimationResourcesForPackChange();
+            CrosshairFeedbackAnimation?.ReleaseAnimationResourcesForPackChange();
+            UpperFeedbackAnimation?.ReleaseAnimationResourcesForPackChange();
             GsiGameVersionSettingsStore.VersionChanged -= OnGsiGameVersionChanged;
             if (_widget != null)
             {
+                GameBarRuntimeStatusStore.MarkInactive();
                 _widget.VisibleChanged -= OnWidgetVisibleChanged;
                 _widget.GameBarDisplayModeChanged -= OnGameBarDisplayModeChanged;
                 _widget.WindowStateChanged -= OnWidgetWindowStateChanged;

@@ -1,4 +1,4 @@
-﻿# Shared diagnostics, logging, and decoding helpers.
+# Shared diagnostics, logging, and decoding helpers.
 function Add-InstallResult {
     param(
         [ValidateSet("Success", "Warning", "Error")][string]$Status,
@@ -33,6 +33,66 @@ function Get-ErrorReason {
     return $message
 }
 
+function Get-SystemToolPath {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$ToolName
+    )
+
+    $candidates = [System.Collections.Generic.List[string]]::new()
+    
+    # 1. SystemRoot / windir candidates
+    $sysRoots = @($env:SystemRoot, $env:windir, "C:\Windows") | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+    foreach ($root in $sysRoots) {
+        $candidates.Add((Join-Path $root "System32\$ToolName"))
+        $candidates.Add((Join-Path $root "SysWOW64\$ToolName"))
+    }
+
+    # 2. .NET Environment System Directory
+    try {
+        $sysDir = [Environment]::GetFolderPath([Environment+SpecialFolder]::System)
+        if (-not [string]::IsNullOrWhiteSpace($sysDir)) {
+            $candidates.Add((Join-Path $sysDir $ToolName))
+        }
+    }
+    catch {
+    }
+
+    # Check candidates for existing file
+    foreach ($cand in $candidates) {
+        if (Test-Path -LiteralPath $cand -PathType Leaf) {
+            return $cand
+        }
+    }
+
+    return $ToolName
+}
+
+function Initialize-InstallLogHeader {
+    $headerLines = @(
+        "======================================================================",
+        "Kill Confirm Overlay 安装会话信息",
+        "======================================================================"
+    ) + @($InstallMetadataLines) + @(
+        "日志文件：$LogPath",
+        "======================================================================",
+        ""
+    )
+
+    try {
+        $utf8Bom = New-Object System.Text.UTF8Encoding($true)
+        [System.IO.File]::WriteAllText(
+            $LogPath,
+            ($headerLines -join [Environment]::NewLine),
+            $utf8Bom)
+    }
+    catch {
+        Write-Host "[Install log header write failed: $($_.Exception.Message)]"
+    }
+
+    $headerLines | ForEach-Object { Write-Host $_ }
+}
+
 function Show-InstallSummary {
     $errorCount = @($InstallResults | Where-Object Status -eq "Error").Count
     $warningCount = @($InstallResults | Where-Object Status -eq "Warning").Count
@@ -48,6 +108,10 @@ function Show-InstallSummary {
     }
 
     $summaryLines = @(
+        "================ 安装包信息 ================"
+    ) + @($InstallMetadataLines) + @(
+        "==============================================",
+        "",
         $title,
         "",
         "安装流程已经执行完毕，不会因为单项失败而跳过后续安装。",
@@ -99,6 +163,15 @@ function Show-InstallSummary {
         $statusText = @(
             "[Result]",
             "Status=$status",
+            "InstallerVariant=$DeclaredInstallerVariant",
+            "EffectiveInstallerVariant=$EffectiveInstallerVariant",
+            "InstallerModeMatches=$InstallerModeMatches",
+            "InstallerVersion=$InstallerVersion",
+            "InstallerBuildTimeUtc=$InstallerBuildTimeUtc",
+            "InstallerSourceCommit=$InstallerSourceCommit",
+            "InstallerSourceFileName=$InstallerSourceFileName",
+            "InstallSessionId=$InstallSessionId",
+            "InstallStartedAtUtc=$($InstallStartedAtUtc.ToString('yyyy-MM-ddTHH:mm:ss.fffZ'))",
             "SuccessCount=$successCount",
             "WarningCount=$warningCount",
             "ErrorCount=$errorCount",
@@ -133,4 +206,26 @@ function Write-InstallLog {
         Write-Host "[Log write failed: $($_.Exception.Message)]"
     }
     Write-Host $Message
+}
+
+function Write-InstallStage {
+    param(
+        [int]$Number,
+        [int]$Total,
+        [string]$Name,
+        [string]$Detail = ""
+    )
+
+    $elapsed = (Get-Date) - $InstallStartedAt
+    $elapsedText = if ($elapsed.TotalHours -ge 1) {
+        "{0}:{1:00}:{2:00}" -f [int]$elapsed.TotalHours, $elapsed.Minutes, $elapsed.Seconds
+    }
+    else {
+        "{0}:{1:00}" -f [int]$elapsed.TotalMinutes, $elapsed.Seconds
+    }
+    $line = "========== 第 $Number/$Total 步：$Name（已耗时 $elapsedText） =========="
+    Write-InstallLog $line
+    if (-not [string]::IsNullOrWhiteSpace($Detail)) {
+        Write-InstallLog ("当前操作：{0}" -f $Detail)
+    }
 }

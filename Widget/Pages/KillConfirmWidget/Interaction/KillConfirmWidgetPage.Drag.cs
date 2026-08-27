@@ -37,78 +37,25 @@ namespace KillConfirmGameBar
 
         private void OnAnimationFramePointerMoved(object sender, PointerRoutedEventArgs e)
         {
-            if (e.Pointer.PointerId != _animationDragPointerId)
+            KillFeedbackLayer? layer = GetFeedbackFrameLayer(_activeAnimationDragOutline);
+            if (e.Pointer.PointerId != _animationDragPointerId || !layer.HasValue) return;
+            if (_feedbackDragStyle != GameStyleService.Current)
             {
+                EndAnimationDrag();
                 return;
             }
-
             Point current = e.GetCurrentPoint(Window.Current.Content).Position;
             double dx = current.X - _animationDragPointerStart.X;
             double dy = current.Y - _animationDragPointerStart.Y;
-            // Promote a press to a drag only after the cursor moves past the
-            // click threshold. Stays a click below that, ready for wheel resize.
             if (!_isDraggingAnimation)
             {
-                if (dx * dx + dy * dy <= ClickVsDragThresholdPx * ClickVsDragThresholdPx)
-                {
-                    return;
-                }
+                if (dx * dx + dy * dy <= ClickVsDragThresholdPx * ClickVsDragThresholdPx) return;
                 _isDraggingAnimation = true;
-                if (_isModernWarfare2019UpperFrameSelected)
-                {
-                    _animationDragStartX = _modernWarfare2019UpperHorizontalOffset;
-                    _animationDragStartY = GetAuxiliaryLayerResolvedVerticalOffset();
-                }
-                else if (_isOverwatchCardFrameSelected)
-                {
-                    _animationDragStartX = _overwatchCardHorizontalOffset;
-                    _animationDragStartY = GetBottomOffset() + _overwatchCardVerticalOffset;
-                }
-                else
-                {
-                    _animationDragStartX = _animationHorizontalOffset;
-                    _animationDragStartY = GetResolvedAnimationOffset();
-                    _animationPlacement = AnimationPlacementMode.Manual;
-                }
+                Point start = GetFeedbackFramePosition(layer.Value);
+                _animationDragStartX = start.X;
+                _animationDragStartY = start.Y;
             }
-
-            if (_isModernWarfare2019UpperFrameSelected)
-            {
-                _modernWarfare2019UpperHorizontalOffset = Math.Max(
-                    -GetMaxAnimationHorizontalOffset(),
-                    Math.Min(
-                        GetMaxAnimationHorizontalOffset(),
-                        _animationDragStartX + dx));
-                double resolvedVerticalOffset = Math.Max(
-                    -GetMaxAnimationOffset(),
-                    Math.Min(
-                        GetMaxAnimationOffset(),
-                        _animationDragStartY + dy));
-                _modernWarfare2019UpperVerticalOffset = resolvedVerticalOffset
-                    - GetAuxiliaryLayerBaseVerticalOffset();
-                ApplyModernWarfare2019UpperTransform();
-            }
-            else if (_isOverwatchCardFrameSelected)
-            {
-                _overwatchCardHorizontalOffset = Math.Max(-GetMaxAnimationHorizontalOffset(), Math.Min(
-                    GetMaxAnimationHorizontalOffset(),
-                    _animationDragStartX + dx));
-                double resolvedVerticalOffset = Math.Max(-GetMaxAnimationOffset(), Math.Min(
-                    GetMaxAnimationOffset(),
-                    _animationDragStartY + dy));
-                _overwatchCardVerticalOffset = resolvedVerticalOffset - GetBottomOffset();
-                ApplyOverwatchCardTransform();
-            }
-            else
-            {
-                _animationHorizontalOffset = Math.Max(-GetMaxAnimationHorizontalOffset(), Math.Min(
-                    GetMaxAnimationHorizontalOffset(),
-                    _animationDragStartX + dx));
-                _animationOffset = Math.Max(-GetMaxAnimationOffset(), Math.Min(
-                    GetMaxAnimationOffset(),
-                    _animationDragStartY + dy));
-                ApplyAnimationTransform();
-            }
+            SetFeedbackFramePosition(layer.Value, _animationDragStartX + dx, _animationDragStartY + dy, save: false);
             e.Handled = true;
         }
 
@@ -136,30 +83,12 @@ namespace KillConfirmGameBar
 
         private void OnAnimationFramePointerWheelChanged(object sender, PointerRoutedEventArgs e)
         {
-            bool cardFrame = ReferenceEquals(sender, OverwatchCardDragOutline);
-            bool upperFrame = ReferenceEquals(sender, ModernWarfare2019UpperDragOutline);
-            if ((cardFrame && !_isOverwatchCardFrameSelected)
-                || (upperFrame && !_isModernWarfare2019UpperFrameSelected)
-                || (!cardFrame && !upperFrame && !_isAnimationFrameSelected))
-            {
-                return;
-            }
+            KillFeedbackLayer? layer = GetFeedbackFrameLayer(sender as Border);
+            if (!layer.HasValue || _selectedFeedbackLayer != layer) return;
             int delta = e.GetCurrentPoint(sender as UIElement).Properties.MouseWheelDelta;
             if (delta != 0)
             {
-                double factor = delta > 0 ? ScaleUpFactor : ScaleDownFactor;
-                if (upperFrame)
-                {
-                    ScaleModernWarfare2019Upper(factor);
-                }
-                else if (cardFrame)
-                {
-                    ScaleOverwatchCard(factor);
-                }
-                else
-                {
-                    ScaleAnimation(factor);
-                }
+                ScaleFeedbackFrame(layer.Value, delta > 0 ? ScaleUpFactor : ScaleDownFactor);
             }
             e.Handled = true;
         }
@@ -299,130 +228,42 @@ namespace KillConfirmGameBar
 
         private void SelectAnimationFrame(Border outline)
         {
-            bool cardFrame = ReferenceEquals(outline, OverwatchCardDragOutline);
-            bool upperFrame = ReferenceEquals(outline, ModernWarfare2019UpperDragOutline);
-            _isAnimationFrameSelected = !cardFrame && !upperFrame;
-            _isOverwatchCardFrameSelected = cardFrame;
-            _isModernWarfare2019UpperFrameSelected = upperFrame;
+            _selectedFeedbackLayer = GetFeedbackFrameLayer(outline);
             UpdateAnimationDragOutlineSelectionVisual();
         }
 
         private void SetAnimationFramePlacement(Border outline, AnimationPlacementMode placement)
         {
-            double targetVerticalOffset = placement == AnimationPlacementMode.Top
-                ? GetTopOffset()
-                : placement == AnimationPlacementMode.Bottom
-                    ? GetBottomOffset()
-                    : 0.0;
-
-            if (ReferenceEquals(outline, ModernWarfare2019UpperDragOutline))
-            {
-                _modernWarfare2019UpperHorizontalOffset = 0;
-                _modernWarfare2019UpperVerticalOffset = targetVerticalOffset
-                    - GetAuxiliaryLayerBaseVerticalOffset();
-                ApplyModernWarfare2019UpperTransform();
-                SaveModernWarfare2019UpperPlacementSettings();
-                return;
-            }
-
-            if (ReferenceEquals(outline, OverwatchCardDragOutline))
-            {
-                _overwatchCardHorizontalOffset = 0;
-                _overwatchCardVerticalOffset = targetVerticalOffset - GetBottomOffset();
-                ApplyOverwatchCardTransform();
-                SaveOverwatchCardPlacementSettings();
-                return;
-            }
-
-            _animationPlacement = placement;
-            _animationOffset = targetVerticalOffset;
-            _animationHorizontalOffset = 0;
-            ApplyAnimationTransform();
-            SaveAnimationPlacementSettings();
+            KillFeedbackLayer? layer = GetFeedbackFrameLayer(outline);
+            if (layer.HasValue) SetFeedbackFramePlacement(layer.Value, placement);
         }
 
         private void ScaleSelectedAnimationFrame(Border outline, double factor)
         {
-            if (ReferenceEquals(outline, ModernWarfare2019UpperDragOutline))
-            {
-                ScaleModernWarfare2019Upper(factor);
-            }
-            else if (ReferenceEquals(outline, OverwatchCardDragOutline))
-            {
-                ScaleOverwatchCard(factor);
-            }
-            else
-            {
-                ScaleAnimation(factor);
-            }
+            KillFeedbackLayer? layer = GetFeedbackFrameLayer(outline);
+            if (layer.HasValue) ScaleFeedbackFrame(layer.Value, factor);
         }
 
         private void MoveAnimationFrameHorizontally(Border outline, double delta)
         {
-            double maxOffset = GetMaxAnimationHorizontalOffset();
-            if (ReferenceEquals(outline, ModernWarfare2019UpperDragOutline))
-            {
-                _modernWarfare2019UpperHorizontalOffset = Math.Max(
-                    -maxOffset,
-                    Math.Min(maxOffset, _modernWarfare2019UpperHorizontalOffset + delta));
-                ApplyModernWarfare2019UpperTransform();
-                SaveModernWarfare2019UpperPlacementSettings();
-                return;
-            }
-
-            if (ReferenceEquals(outline, OverwatchCardDragOutline))
-            {
-                _overwatchCardHorizontalOffset = Math.Max(
-                    -maxOffset,
-                    Math.Min(maxOffset, _overwatchCardHorizontalOffset + delta));
-                ApplyOverwatchCardTransform();
-                SaveOverwatchCardPlacementSettings();
-                return;
-            }
-
-            NudgeAnimationHorizontal(delta);
+            KillFeedbackLayer? layer = GetFeedbackFrameLayer(outline);
+            if (!layer.HasValue) return;
+            Point position = GetFeedbackFramePosition(layer.Value);
+            SetFeedbackFramePosition(layer.Value, position.X + delta, position.Y,
+                save: true, preserveVerticalPlacement: true);
         }
 
         private void MoveAnimationFrameVertically(Border outline, double delta)
         {
-            double maxOffset = GetMaxAnimationOffset();
-            if (ReferenceEquals(outline, ModernWarfare2019UpperDragOutline))
-            {
-                double resolvedOffset = GetAuxiliaryLayerResolvedVerticalOffset();
-                resolvedOffset = Math.Max(
-                    -maxOffset,
-                    Math.Min(maxOffset, resolvedOffset + delta));
-                _modernWarfare2019UpperVerticalOffset = resolvedOffset
-                    - GetAuxiliaryLayerBaseVerticalOffset();
-                ApplyModernWarfare2019UpperTransform();
-                SaveModernWarfare2019UpperPlacementSettings();
-                return;
-            }
-
-            if (ReferenceEquals(outline, OverwatchCardDragOutline))
-            {
-                double resolvedOffset = GetBottomOffset()
-                    + _overwatchCardVerticalOffset;
-                resolvedOffset = Math.Max(
-                    -maxOffset,
-                    Math.Min(maxOffset, resolvedOffset + delta));
-                _overwatchCardVerticalOffset = resolvedOffset - GetBottomOffset();
-                ApplyOverwatchCardTransform();
-                SaveOverwatchCardPlacementSettings();
-                return;
-            }
-
-            NudgeAnimation(delta);
+            KillFeedbackLayer? layer = GetFeedbackFrameLayer(outline);
+            if (!layer.HasValue) return;
+            Point position = GetFeedbackFramePosition(layer.Value);
+            SetFeedbackFramePosition(layer.Value, position.X, position.Y + delta, save: true);
         }
 
         private void OnAnimationFramePointerExited(object sender, PointerRoutedEventArgs e)
         {
-            bool selected = ReferenceEquals(sender, OverwatchCardDragOutline)
-                ? _isOverwatchCardFrameSelected
-                : ReferenceEquals(sender, ModernWarfare2019UpperDragOutline)
-                    ? _isModernWarfare2019UpperFrameSelected
-                    : _isAnimationFrameSelected;
-            if (!selected && sender is Border outline)
+            if (sender is Border outline && GetFeedbackFrameLayer(outline) != _selectedFeedbackLayer)
             {
                 outline.Opacity = DragOutlineUnselectedOpacity;
             }
@@ -430,38 +271,23 @@ namespace KillConfirmGameBar
 
         private void UpdateAnimationDragOutlineSelectionVisual()
         {
-            ApplyDragOutlineSelectionVisual(AnimationDragOutline, _isAnimationFrameSelected);
-            ApplyDragOutlineSelectionVisual(OverwatchCardDragOutline, _isOverwatchCardFrameSelected);
-            ApplyDragOutlineSelectionVisual(
-                ModernWarfare2019UpperDragOutline,
-                _isModernWarfare2019UpperFrameSelected);
+            foreach (KillFeedbackLayer layer in Enum.GetValues(typeof(KillFeedbackLayer)))
+            {
+                ApplyDragOutlineSelectionVisual(layer, _selectedFeedbackLayer == layer);
+            }
         }
 
-        private void ApplyDragOutlineSelectionVisual(Border outline, bool selected)
+        private void ApplyDragOutlineSelectionVisual(KillFeedbackLayer layer, bool selected)
         {
-            Border hint = ReferenceEquals(outline, OverwatchCardDragOutline)
-                ? OverwatchCardDragHint
-                : ReferenceEquals(outline, ModernWarfare2019UpperDragOutline)
-                    ? ModernWarfare2019UpperDragHint
-                    : AnimationDragHint;
-
-            if (selected)
-            {
-                outline.BorderBrush = _dragOutlineSelectedBrush;
-                outline.BorderThickness = new Thickness(DragOutlineSelectedThickness);
-                outline.Background = _dragOutlineScratchBrush;
-                outline.Opacity = DragOutlineSelectedOpacity;
-                hint.BorderBrush = _dragOutlineSelectedBrush;
-                hint.Visibility = Visibility.Visible;
-            }
-            else
-            {
-                outline.BorderBrush = _dragOutlineDefaultBrush;
-                outline.BorderThickness = new Thickness(2.0);
-                outline.Background = _dragOutlineTransparentBrush;
-                outline.Opacity = DragOutlineUnselectedOpacity;
-                hint.Visibility = Visibility.Collapsed;
-            }
+            Border outline = GetFeedbackFrameOutline(layer);
+            Border hint = GetFeedbackFrameHint(layer);
+            SolidColorBrush brush = GetFeedbackFrameBrush(layer, selected);
+            outline.BorderBrush = brush;
+            hint.BorderBrush = brush;
+            outline.BorderThickness = new Thickness(selected ? DragOutlineSelectedThickness : 2.0);
+            outline.Background = selected ? _dragOutlineScratchBrush : _dragOutlineTransparentBrush;
+            outline.Opacity = selected ? DragOutlineSelectedOpacity : DragOutlineUnselectedOpacity;
+            hint.Visibility = selected ? Visibility.Visible : Visibility.Collapsed;
         }
     }
 }

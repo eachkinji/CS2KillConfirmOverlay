@@ -13,6 +13,7 @@ mod tests {
             kill_count,
             is_headshot: false,
             is_knife_kill: false,
+            is_grenade_kill: false,
             is_first_kill: false,
             is_last_kill: false,
             is_assist: false,

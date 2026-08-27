@@ -193,8 +193,8 @@ This project is not affiliated with Valve, Microsoft, Xbox, CrossFire, Riot Game
 
 <a href="https://www.star-history.com/?repos=eachkinji%2FCS2KillConfirmOverlay&type=date&legend=top-left">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=eachkinji/CS2KillConfirmOverlay&type=date&theme=dark&legend=top-left&sealed_token=h14p8Daxv7z793bAlZPP_xcy-2SfQzit57_QKp1CIDyUiRpKdDYeatoUoGr3P65j-0F_24GIvkRDmXv79WOffQwuxurzGiDaGYxA6ZDI8l1fwrvi2PKpv5L8C5ujaoZ47FA" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=eachkinji/CS2KillConfirmOverlay&type=date&legend=top-left&sealed_token=h14p8Daxv7z793bAlZPP_xcy-2SfQzit57_QKp1CIDyUiRpKdDYeatoUoGr3P65j-0F_24GIvkRDmXv79WOffQwuxurzGiDaGYxA6ZDI8l1fwrvi2PKpv5L8C5ujaoZ47FA" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=eachkinji/CS2KillConfirmOverlay&type=date&legend=top-left&sealed_token=h14p8Daxv7z793bAlZPP_xcy-2SfQzit57_QKp1CIDyUiRpKdDYeatoUoGr3P65j-0F_24GIvkRDmXv79WOffQwuxurzGiDaGYxA6ZDI8l1fwrvi2PKpv5L8C5ujaoZ47FA" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=eachkinji/CS2KillConfirmOverlay&type=date&theme=dark&legend=top-left&sealed_token=JO7S8AitdgsgeJkQQ1VllxXemOmgTJQ-vAfDJhdhXyaUKJP8neUInbQMV4bHYN9Aaarxe8b3i-QFSwDPZ433U1Z9UTz-jUm5N7_QyCB14Vr4I_hZFmNsRLww_4Qv1JAy73-VLpPKkTCopmcWViZh301QwvH6kMdPHYykp-TiTPiWZIFEcl_UIunjQQiK" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=eachkinji/CS2KillConfirmOverlay&type=date&legend=top-left&sealed_token=JO7S8AitdgsgeJkQQ1VllxXemOmgTJQ-vAfDJhdhXyaUKJP8neUInbQMV4bHYN9Aaarxe8b3i-QFSwDPZ433U1Z9UTz-jUm5N7_QyCB14Vr4I_hZFmNsRLww_4Qv1JAy73-VLpPKkTCopmcWViZh301QwvH6kMdPHYykp-TiTPiWZIFEcl_UIunjQQiK" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=eachkinji/CS2KillConfirmOverlay&type=date&legend=top-left&sealed_token=JO7S8AitdgsgeJkQQ1VllxXemOmgTJQ-vAfDJhdhXyaUKJP8neUInbQMV4bHYN9Aaarxe8b3i-QFSwDPZ433U1Z9UTz-jUm5N7_QyCB14Vr4I_hZFmNsRLww_4Qv1JAy73-VLpPKkTCopmcWViZh301QwvH6kMdPHYykp-TiTPiWZIFEcl_UIunjQQiK" />
  </picture>
 </a>

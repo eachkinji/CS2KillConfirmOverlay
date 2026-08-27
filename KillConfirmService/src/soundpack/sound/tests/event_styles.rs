@@ -77,14 +77,14 @@
     }
 
     #[test]
-    fn objective_events_use_explicit_slots_without_kill_fallback() {
+    fn objective_events_follow_crossfire_csol_and_explicit_slot_rules() {
         use crate::soundpack::SoundContext;
         use crate::soundpack::manifest::{AudioConfig, PackManifest, SlotFiles};
         use crate::state::EventChannel;
         use std::collections::HashMap;
 
-        let manifest = PackManifest {
-            game_style: Some("crossfire".to_string()),
+        let mut manifest = PackManifest {
+            game_style: Some("modernwarfare2019".to_string()),
             audio: Some(AudioConfig {
                 base_gain: 1.0,
                 slots: HashMap::from([
@@ -141,6 +141,75 @@
                 .is_empty(),
             "an unconfigured objective must not fall back to normal.wav"
         );
+
+        // Older custom packs may still contain dedicated bomb voices. CF must
+        // use only its common slot, honoring the same voice pick and gain.
+        manifest.game_style = Some("CrossFire".to_string());
+        let audio = manifest.audio.as_mut().unwrap();
+        audio.slots.insert(
+            "kill_1".to_string(),
+            SlotFiles::Multiple(vec!["common-a.wav".to_string(), "common-b.wav".to_string()]),
+        );
+        audio.slots.insert(
+            "common_overlay".to_string(),
+            SlotFiles::Single("overlay.wav".to_string()),
+        );
+        audio.overlay_slots = Some(vec!["kill_1".to_string()]);
+        audio.slot_gains.insert("kill_1".to_string(), 2.5);
+        for kind in ["bomb_plant", "bomb_defuse", " BOMB_PLANT ", "BOMB_DEFUSE"] {
+            let mut ctx = context(kind);
+            ctx.voice_picks
+                .insert("1".to_string(), "common-b.wav".to_string());
+            assert_eq!(
+                manifest.resolve_audio(&ctx, "sounds/custom"),
+                vec![crate::soundpack::SoundEntry {
+                    path: "sounds/custom/common-b.wav".to_string(),
+                    gain: 2.5,
+                }]
+            );
+        }
+        assert!(manifest.resolve_audio(&context("round_win"), "sounds/custom").is_empty());
+        manifest.audio.as_mut().unwrap().slots.remove("kill_1");
+        assert!(
+            manifest.resolve_audio(&context("bomb_plant"), "sounds/custom").is_empty(),
+            "missing common must not play a legacy bomb or overlay cue"
+        );
+
+        // CSOL remains silent even when imported manifests contain bomb slots.
+        manifest.game_style = Some("CSOL".to_string());
+        manifest.audio.as_mut().unwrap().slots.insert(
+            "kill_1".to_string(),
+            SlotFiles::Single("common.wav".to_string()),
+        );
+        for preset in ["csol4", "custom_csol_voice_test"] {
+            for kind in ["bomb_plant", "bomb_defuse"] {
+                let mut ctx = context(kind);
+                ctx.preset_name = preset.to_string();
+                assert!(manifest.resolve_audio(&ctx, "sounds/custom").is_empty());
+            }
+        }
+
+        // Exercise every checked-in CF pack, including slot gain overrides.
+        for folder in std::fs::read_dir(source_sound_pack("crossfire", "")).unwrap() {
+            let folder = folder.unwrap().path();
+            if !folder.is_dir() {
+                continue;
+            }
+            let builtin = PackManifest::load_from_dir(&folder).unwrap();
+            let audio = builtin.audio.as_ref().unwrap();
+            let common = audio.slots.get("kill_1").expect("CF common slot");
+            let base = folder.to_string_lossy();
+            for kind in ["bomb_plant", "bomb_defuse"] {
+                let entries = builtin.resolve_audio(&context(kind), &base);
+                assert_eq!(entries.len(), 1, "{}: {kind}", folder.display());
+                assert!(common.as_slice().iter()
+                    .any(|file| entries[0].path == format!("{base}/{file}")));
+                assert_eq!(
+                    entries[0].gain,
+                    *audio.slot_gains.get("kill_1").unwrap_or(&audio.base_gain)
+                );
+            }
+        }
     }
 
     #[test]

@@ -31,9 +31,7 @@ namespace KillConfirmGameBar
                 ("headshot.wav", LocalizationManager.Text("Headshot")),
                 ("knife.wav", LocalizationManager.Text("KnifeKill")),
                 ("firstandlast.wav", LocalizationManager.Text("FirstLastKill")),
-                ("grenade.wav", LocalizationManager.Text("GrenadeKillVoiceLabel")),
-                ("bomb_plant.wav", LocalizationManager.Text("BombPlantVoiceLabel")),
-                ("bomb_defuse.wav", LocalizationManager.Text("BombDefuseVoiceLabel"))
+                ("grenade.wav", LocalizationManager.Text("GrenadeKillVoiceLabel"))
             };
 
             var selectedFiles = CreateVoiceSelectionMap(initialFiles);

@@ -334,10 +334,10 @@ impl PackManifest {
         let game_style = self.game_style.as_deref().unwrap_or_default();
         let is_valorant = game_style.eq_ignore_ascii_case("valorant");
 
-        // Economy/objective events use explicit manifest slots. Never fall back
-        // to a kill cue for an objective event: a pack that does not provide the
-        // requested voice should remain silent while the separate bomb timer /
-        // outcome audio continues to follow its own user setting.
+        // CF plant/defuse uses exactly the common (kill_1) cue, including its
+        // configured gain/pick, but no overlay or streak voice. CSOL has no
+        // plant/defuse feedback. Other objectives still require explicit slots;
+        // the independent bomb timer/outcome audio keeps its own setting.
         if ctx.event_channel == EventChannel::Economy {
             if let Some(event_kind) = ctx
                 .event_kind
@@ -345,7 +345,17 @@ impl PackManifest {
                 .map(str::trim)
                 .filter(|value| !value.is_empty())
             {
-                push_slot(&mut entries, event_kind, None);
+                let is_bomb_objective = event_kind.eq_ignore_ascii_case("bomb_plant")
+                    || event_kind.eq_ignore_ascii_case("bomb_defuse");
+                if is_bomb_objective && game_style.eq_ignore_ascii_case("csol") {
+                    return entries;
+                }
+                let slot = if is_bomb_objective && game_style.eq_ignore_ascii_case("crossfire") {
+                    "kill_1"
+                } else {
+                    event_kind
+                };
+                push_slot(&mut entries, slot, None);
             }
             return entries;
         }

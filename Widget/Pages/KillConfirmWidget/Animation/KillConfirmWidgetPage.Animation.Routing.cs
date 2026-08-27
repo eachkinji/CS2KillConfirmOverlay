@@ -13,10 +13,18 @@ namespace KillConfirmGameBar
 {
     public sealed partial class KillConfirmWidgetPage
     {
+        private static bool IsBombObjectiveEvent(KillEvent killEvent)
+        {
+            return killEvent != null
+                && (string.Equals(killEvent.EventKind, "bomb_plant", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(killEvent.EventKind, "bomb_defuse", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(killEvent.AnimationKey, "bomb_plant", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(killEvent.AnimationKey, "bomb_defuse", StringComparison.OrdinalIgnoreCase));
+        }
 
         private static bool CanStyleConsumeEvent(GameStyleMode style, KillEvent killEvent)
         {
-            if (killEvent == null)
+            if (killEvent == null || (style == GameStyleMode.Csol && IsBombObjectiveEvent(killEvent)))
             {
                 return false;
             }
@@ -26,28 +34,9 @@ namespace KillConfirmGameBar
                 return true;
             }
 
-            if (style == GameStyleMode.Crossfire)
+            if (style == GameStyleMode.Crossfire && IsBombObjectiveEvent(killEvent))
             {
-                string eventKind = killEvent.EventKind ?? killEvent.AnimationKey;
-                if (string.Equals(eventKind, "bomb_plant", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(eventKind, "bomb_defuse", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(killEvent.AnimationKey, "bomb_plant", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(killEvent.AnimationKey, "bomb_defuse", StringComparison.OrdinalIgnoreCase))
-                {
-                    return true;
-                }
-            }
-
-            if (style == GameStyleMode.Csol)
-            {
-                string eventKind = killEvent.EventKind ?? killEvent.AnimationKey;
-                if (string.Equals(eventKind, "bomb_plant", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(eventKind, "bomb_defuse", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(killEvent.AnimationKey, "bomb_plant", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(killEvent.AnimationKey, "bomb_defuse", StringComparison.OrdinalIgnoreCase))
-                {
-                    return true;
-                }
+                return true;
             }
 
             if (style == GameStyleMode.ModernWarfare2019)
@@ -97,20 +86,11 @@ namespace KillConfirmGameBar
 
         private void PlayCsolPrimaryAnimation(KillEvent killEvent)
         {
+            if (IsBombObjectiveEvent(killEvent))
+            {
+                return;
+            }
             PlayAuxiliaryKillMarkIfEnabled(killEvent);
-            string eventKind = killEvent.EventKind ?? killEvent.AnimationKey;
-            if (string.Equals(eventKind, "bomb_plant", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(killEvent.AnimationKey, "bomb_plant", StringComparison.OrdinalIgnoreCase))
-            {
-                LowerFeedbackAnimation.PlayCodeKill("c4", killEvent.WeaponBadgeKey);
-                return;
-            }
-            if (string.Equals(eventKind, "bomb_defuse", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(killEvent.AnimationKey, "bomb_defuse", StringComparison.OrdinalIgnoreCase))
-            {
-                LowerFeedbackAnimation.PlayCodeKill("c4defuse", killEvent.WeaponBadgeKey);
-                return;
-            }
 
             string specialKey = null;
             if (killEvent.IsFirstKill)

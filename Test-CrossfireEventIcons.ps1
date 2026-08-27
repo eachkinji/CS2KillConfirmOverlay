@@ -10,6 +10,14 @@ $ErrorActionPreference = 'Stop'
 $assetSource = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Controls/Animations/Core/KillConfirmAnimation.Assets.cs')
 $overlaySource = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Controls/Animations/Core/KillConfirmAnimation.AssetOverlays.cs')
 $coreSource = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Controls/Animations/Core/KillConfirmAnimation.xaml.cs')
+$routingSource = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Pages/KillConfirmWidget/Animation/KillConfirmWidgetPage.Animation.Routing.cs')
+$animationSource = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Pages/KillConfirmWidget/Animation/KillConfirmWidgetPage.Animation.cs')
+$styleSource = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Services/Styling/GameStyleService.cs')
+$eventSource = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Services/Runtime/KillEventModels.cs')
+$styleEnum = [regex]::Match($styleSource, '(?s)internal enum GameStyleMode\s*\{[^}]+\}').Value
+$eventModel = [regex]::Match($eventSource, '(?ms)^    public sealed class KillEvent\r?\n.*?^    \}').Value
+$eventChannels = [regex]::Match($eventSource, '(?ms)^    public static class KillEventChannels\r?\n.*?^    \}').Value
+if (-not $styleEnum -or -not $eventModel -or -not $eventChannels) { throw 'Event routing model not found.' }
 function Get-LoaderMethod([string]$Source, [string]$Name) {
     $method = [regex]::Match($Source, '(?ms)^        private [^\r\n]+\b' + $Name + '\([^)]*\).*?^        \}')
     if (-not $method.Success) { throw "Loader method not found: $Name" }
@@ -20,6 +28,9 @@ $methods = @(
     Get-LoaderMethod $assetSource 'LoadCodeKillBitmapAsync'
     Get-LoaderMethod $assetSource 'LoadMainCodeKillBitmapAsync'
     Get-LoaderMethod $overlaySource 'GetIconPackFolder'
+    Get-LoaderMethod $routingSource 'IsBombObjectiveEvent'
+    Get-LoaderMethod $routingSource 'CanStyleConsumeEvent'
+    Get-LoaderMethod $animationSource 'IsEconomyPresentationStyle'
 )
 # The overload without arguments comes first; include the pack-key overload too.
 $folderOverload = [regex]::Match($overlaySource, '(?ms)^        private static string GetIconPackFolder\(string iconPack\).*?^        \}').Value
@@ -67,6 +78,22 @@ public static class CrossfireIconRegressionChecks
     }
     public static string Run()
     {
+        Check(!CanStyleConsumeEvent(GameStyleMode.Csol, null), "Null event accepted.");
+        foreach (string kind in new[] { "bomb_plant", "bomb_defuse", "BOMB_PLANT", "BOMB_DEFUSE" })
+        foreach (string channel in new[] { "economy", "combat" })
+        foreach (bool useAnimationKey in new[] { false, true })
+        {
+            var bomb = new KillEvent { EventChannel = channel,
+                EventKind = useAnimationKey ? "" : kind, AnimationKey = useAnimationKey ? kind : null };
+            Check(CanStyleConsumeEvent(GameStyleMode.Crossfire, bomb), "CF bomb icon rejected.");
+            Check(!CanStyleConsumeEvent(GameStyleMode.Csol, bomb), "CSOL bomb event reached animation dispatch.");
+        }
+        Check(CanStyleConsumeEvent(GameStyleMode.Csol, new KillEvent {
+            EventChannel = "combat", EventKind = "kill", IsGrenadeKill = true }), "CSOL grenade kill disabled.");
+        Check(CanStyleConsumeEvent(GameStyleMode.Csol, new KillEvent {
+            EventChannel = "combat", EventKind = "assist", IsAssist = true }), "CSOL assist disabled.");
+        Check(CanStyleConsumeEvent(GameStyleMode.Battlefield1, new KillEvent {
+            EventChannel = "economy", EventKind = "bomb_plant" }), "Battlefield objective disabled.");
         var events = new Dictionary<string, string> {
             { "grenade", "badge_grenade.png" }, { "c4", "badge_c4.png" },
             { "bomb_plant", "badge_c4.png" }, { "c4defuse", "badge_c4defuse.png" },
@@ -102,14 +129,14 @@ public static class CrossfireIconRegressionChecks
         _iconPack = "default";
         Check(LoadMainCodeKillBitmapAsync("multi2", "badge_multi2.png", "badge_multi2.png", "Original", "AngelicBeast")
             .GetAwaiter().GetResult().Path == Uri("Original", "badge_multi1.PNG"), "Ordinary kill fallback changed.");
-        return "PASS: " + count + " event/pack combinations, selected icons, matching-original fallback and missing-event rejection.";
+        return "PASS: " + count + " event/pack combinations, selected icons, matching-original fallback, missing-event rejection and CF/CSOL objective filtering.";
     }
 __METHODS__
 }
 '@
 if ($PSVersionTable.PSVersion.Major -ge 7) {
     if (-not ('CrossfireIconRegressionChecks' -as [type])) {
-        Add-Type -TypeDefinition $harness.Replace('__METHODS__', (($constants + $methods + $folderOverload) -join "`n"))
+        Add-Type -TypeDefinition $harness.Replace('__METHODS__', (($constants + $methods + $folderOverload + $styleEnum + $eventModel + $eventChannels) -join "`n"))
     }
     [CrossfireIconRegressionChecks]::Run()
 }

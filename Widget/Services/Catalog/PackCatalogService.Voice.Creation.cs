@@ -180,9 +180,7 @@ namespace KillConfirmGameBar.Services
                 { "headshot", "headshot" },
                 { "knife", "knife" },
                 { "firstandlast", "first_and_last" },
-                { "grenade", "grenade" },
-                { "bomb_plant", "bomb_plant" },
-                { "bomb_defuse", "bomb_defuse" }
+                { "grenade", "grenade" }
             };
 
         // Slot mapping for CSOL voice packs. The CSOL 10-kill voice pack uses
@@ -209,9 +207,7 @@ namespace KillConfirmGameBar.Services
                 { "knife", "knife" },
                 { "revenge", "first_and_last" },
                 { "assist", "assist" },
-                { "grenade", "grenade" },
-                { "bomb_plant", "bomb_plant" },
-                { "bomb_defuse", "bomb_defuse" }
+                { "grenade", "grenade" }
             };
 
         // Storage mapping shared by event-style packs. Each game's editor exposes

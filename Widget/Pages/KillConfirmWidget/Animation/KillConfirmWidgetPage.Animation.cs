@@ -139,25 +139,14 @@ namespace KillConfirmGameBar
                 return;
             }
 
-            bool isCrossfireObjective = style == GameStyleMode.Crossfire
-                && killEvent != null
-                && (string.Equals(killEvent.EventKind, "bomb_plant", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(killEvent.EventKind, "bomb_defuse", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(killEvent.AnimationKey, "bomb_plant", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(killEvent.AnimationKey, "bomb_defuse", StringComparison.OrdinalIgnoreCase));
-            bool isCsolObjective = style == GameStyleMode.Csol
-                && killEvent != null
-                && (string.Equals(killEvent.EventKind, "bomb_plant", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(killEvent.EventKind, "bomb_defuse", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(killEvent.AnimationKey, "bomb_plant", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(killEvent.AnimationKey, "bomb_defuse", StringComparison.OrdinalIgnoreCase));
+            bool isCrossfireObjective = style == GameStyleMode.Crossfire && IsBombObjectiveEvent(killEvent);
             bool isModernWarfare2019Objective = style == GameStyleMode.ModernWarfare2019
                 && killEvent != null
                 && killEvent.IsEconomyEvent;
 
             bool shouldPlayPrimaryAnimation = (killEvent.IsCombatEvent && killEvent.PlayMainAnimation)
                 || (IsEconomyPresentationStyle(style) && IsBattlefieldTextEvent(killEvent))
-                || (style == GameStyleMode.Csol && (killEvent.IsCombatEvent || isCsolObjective))
+                || (style == GameStyleMode.Csol && killEvent.IsCombatEvent)
                 || (style == GameStyleMode.ModernWarfare2019 && (killEvent.IsCombatEvent || isModernWarfare2019Objective))
                 || (style == GameStyleMode.Overwatch && killEvent.IsCombatEvent && killEvent.IsAssist)
                 || (style == GameStyleMode.Apex && killEvent.IsCombatEvent && killEvent.IsAssist)
@@ -185,18 +174,7 @@ namespace KillConfirmGameBar
             bool isModernWarfare2019Assist = GameStyleService.Current == GameStyleMode.ModernWarfare2019
                 && killEvent != null
                 && killEvent.IsAssist;
-            bool isCrossfireObjective = style == GameStyleMode.Crossfire
-                && killEvent != null
-                && (string.Equals(killEvent.EventKind, "bomb_plant", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(killEvent.EventKind, "bomb_defuse", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(killEvent.AnimationKey, "bomb_plant", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(killEvent.AnimationKey, "bomb_defuse", StringComparison.OrdinalIgnoreCase));
-            bool isCsolObjective = style == GameStyleMode.Csol
-                && killEvent != null
-                && (string.Equals(killEvent.EventKind, "bomb_plant", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(killEvent.EventKind, "bomb_defuse", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(killEvent.AnimationKey, "bomb_plant", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(killEvent.AnimationKey, "bomb_defuse", StringComparison.OrdinalIgnoreCase));
+            bool isCrossfireObjective = style == GameStyleMode.Crossfire && IsBombObjectiveEvent(killEvent);
             bool isModernWarfare2019Objective = style == GameStyleMode.ModernWarfare2019
                 && killEvent != null
                 && killEvent.IsEconomyEvent;
@@ -209,7 +187,6 @@ namespace KillConfirmGameBar
                     && !isOverwatchAssist
                     && !isModernWarfare2019Assist
                     && !isCrossfireObjective
-                    && !isCsolObjective
                     && !isModernWarfare2019Objective))
             {
                 return;

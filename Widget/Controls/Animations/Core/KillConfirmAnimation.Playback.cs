@@ -90,8 +90,9 @@ namespace KillConfirmGameBar.Controls
                 _playbackClock.Restart();
                 _timer.Start();
             }
-            catch
+            catch (Exception ex)
             {
+                App.Log("Animation asset load/playback failed: " + ex);
                 isLoading = false;
                 HideLoadingProgress();
                 Visibility = Visibility.Collapsed;

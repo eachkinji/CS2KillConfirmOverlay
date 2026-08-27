@@ -217,7 +217,8 @@ namespace KillConfirmGameBar.Controls
             string folder,
             string alternatePackFolder,
             bool allowDefaultFallback,
-            bool preferImported = true)
+            bool preferImported = true,
+            bool allowGenericKillFallback = true)
         {
             if (preferImported && PackCatalogService.IsImportedIconPackKey(_iconPack))
             {
@@ -267,7 +268,7 @@ namespace KillConfirmGameBar.Controls
             }
             catch
             {
-                if (allowDefaultFallback)
+                if (allowDefaultFallback && allowGenericKillFallback)
                 {
                     return await LoadBitmapFromApplicationUriAsync("ms-appx:///Assets/KillConfirmCode/Original/badge_multi1.PNG");
                 }
@@ -365,7 +366,16 @@ namespace KillConfirmGameBar.Controls
                 return await LoadCodeKillBitmapAsync(defaultMainFileName, mainFolder, alternatePackFolder, true);
             }
 
-            return await LoadCodeKillBitmapAsync(effectiveMainFileName, mainFolder, alternatePackFolder, true);
+            // Missing event-specific art may use the original pack's matching
+            // icon, but must never masquerade as an ordinary single kill.
+            bool allowGenericKillFallback = !string.Equals(assetName, "grenade", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(assetName, "c4", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(assetName, "bomb_plant", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(assetName, "c4defuse", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(assetName, "bomb_defuse", StringComparison.OrdinalIgnoreCase);
+            return await LoadCodeKillBitmapAsync(
+                effectiveMainFileName, mainFolder, alternatePackFolder, true,
+                allowGenericKillFallback: allowGenericKillFallback);
         }
 
         private static async Task<CanvasBitmap> LoadOptionalOverlayBitmapAsync(

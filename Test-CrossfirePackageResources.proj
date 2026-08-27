@@ -1,0 +1,49 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Test">
+  <!-- Run with MSBuild /t:Test /p:Configuration=Release /p:Platform=x64.
+       The real packaging target is imported; only its file-list input is faked. -->
+  <Import Project="Package\KillConfirmGameBar.Package.wapproj" />
+  <PropertyGroup>
+    <FixtureOutput>$(MSBuildThisFileDirectory)Output\Tests\</FixtureOutput>
+    <_FilteredPackageLayoutFilePath>$(FixtureOutput)cf-filtered.resfiles</_FilteredPackageLayoutFilePath>
+    <_ExcludedPackageLayoutFilePath>$(FixtureOutput)cf-excluded.resfiles</_ExcludedPackageLayoutFilePath>
+    <BuildAppxUploadPackageForUap>true</BuildAppxUploadPackageForUap>
+    <_FilteredUploadPackageLayoutFilePath>$(FixtureOutput)cf-upload-filtered.resfiles</_FilteredUploadPackageLayoutFilePath>
+    <_ExcludedUploadPackageLayoutFilePath>$(FixtureOutput)cf-upload-excluded.resfiles</_ExcludedUploadPackageLayoutFilePath>
+    <FixtureLayout>$(FixtureOutput)PackageLayout\</FixtureLayout>
+  </PropertyGroup>
+  <ItemGroup>
+    <_PackageLayoutFileTarget Include="$(FixtureLayout)Assets\KillConfirmCode\Original\badge_multi1.PNG">
+      <TargetPath>Assets\KillConfirmCode\Original\badge_multi1.PNG</TargetPath>
+    </_PackageLayoutFileTarget>
+    <_PackageLayoutFileTarget Include="$(FixtureLayout)Assets\KillConfirmCode\Original\badge_c4.png">
+      <TargetPath>Assets\KillConfirmCode\Original\badge_c4.png</TargetPath>
+    </_PackageLayoutFileTarget>
+    <_PackageLayoutFileTarget Include="$(FixtureLayout)Assets\KillConfirmCode\Original\badge_c4defuse.png">
+      <TargetPath>Assets\KillConfirmCode\Original\badge_c4defuse.png</TargetPath>
+    </_PackageLayoutFileTarget>
+    <_PackageLayoutFileTarget Include="$(FixtureLayout)Assets\KillConfirmCode\Original\badge_grenade.png">
+      <TargetPath>Assets\KillConfirmCode\Original\badge_grenade.png</TargetPath>
+    </_PackageLayoutFileTarget>
+    <_UploadPackageLayoutFileTarget Include="@(_PackageLayoutFileTarget)" />
+  </ItemGroup>
+  <Target Name="SeedStaleList">
+    <MakeDir Directories="$(FixtureOutput)" />
+    <WriteLinesToFile File="$(_FilteredPackageLayoutFilePath)" Lines="Assets\KillConfirmCode\Original\badge_multi1.PNG" Overwrite="true" />
+    <WriteLinesToFile File="$(_FilteredPackageLayoutFilePath).intermediate" Lines="Assets\KillConfirmCode\Original\badge_multi1.PNG" Overwrite="true" />
+    <WriteLinesToFile File="$(_FilteredUploadPackageLayoutFilePath)" Lines="Assets\KillConfirmCode\Original\badge_multi1.PNG" Overwrite="true" />
+    <WriteLinesToFile File="$(_FilteredUploadPackageLayoutFilePath).intermediate" Lines="Assets\KillConfirmCode\Original\badge_multi1.PNG" Overwrite="true" />
+  </Target>
+  <Target Name="Test" DependsOnTargets="SeedStaleList;RefreshMainPackageResourceList;RefreshUploadPackageResourceList">
+    <ReadLinesFromFile File="$(_FilteredPackageLayoutFilePath)">
+      <Output TaskParameter="Lines" ItemName="ActualFiles" />
+    </ReadLinesFromFile>
+    <ReadLinesFromFile File="$(_FilteredUploadPackageLayoutFilePath)">
+      <Output TaskParameter="Lines" ItemName="ActualUploadFiles" />
+    </ReadLinesFromFile>
+    <Error Condition="@(ActualFiles->Count()) != 4" Text="The stale resource list was not refreshed." />
+    <Error Condition="@(ActualUploadFiles->Count()) != 4" Text="The stale upload resource list was not refreshed." />
+    <Error Condition="'@(_AppxBundleMainPackageMapInputs)' != '$(_FilteredPackageLayoutFilePath)'" Text="The refreshed list does not invalidate the main file map." />
+    <Error Condition="'@(_AppxUploadBundleMainPackageMapInputs)' != '$(_FilteredUploadPackageLayoutFilePath)'" Text="The refreshed list does not invalidate the upload file map." />
+    <Message Importance="high" Text="PASS: actual sideload/upload packaging targets repair stale one-file lists into all four current icons and track them as file-map inputs." />
+  </Target>
+</Project>

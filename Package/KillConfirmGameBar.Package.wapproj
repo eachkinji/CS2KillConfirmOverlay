@@ -46,4 +46,31 @@
       <PublishProfile>Properties\PublishProfiles\win-$(Platform).pubxml</PublishProfile>
     </ProjectReference>
   </ItemGroup>
+
+  <!-- The SDK's PRI-config target only tracks project/config timestamps, not
+       changes to the package file list. Refresh that list on incremental builds
+       so newly added assets are not silently omitted from the final MSIX. -->
+  <Target Name="RefreshMainPackageResourceList"
+          BeforeTargets="_CreatePriConfigXmlForMainPackageFileMap"
+          Condition="'$(_FilteredPackageLayoutFilePath)' != ''">
+    <GenerateMainPriConfigurationFile
+        FilteredPackageLayoutFilePath="$(_FilteredPackageLayoutFilePath)"
+        PackageLayoutFiles="@(_PackageLayoutFileTarget)"
+        ExcludedPackageLayoutFilePath="$(_ExcludedPackageLayoutFilePath)" />
+    <ItemGroup>
+      <_AppxBundleMainPackageMapInputs Include="$(_FilteredPackageLayoutFilePath)" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="RefreshUploadPackageResourceList"
+          BeforeTargets="_CreateUploadPriConfigXmlForMainPackageFileMap"
+          Condition="'$(BuildAppxUploadPackageForUap)' == 'true' AND '$(_FilteredUploadPackageLayoutFilePath)' != ''">
+    <GenerateMainPriConfigurationFile
+        FilteredPackageLayoutFilePath="$(_FilteredUploadPackageLayoutFilePath)"
+        PackageLayoutFiles="@(_UploadPackageLayoutFileTarget)"
+        ExcludedPackageLayoutFilePath="$(_ExcludedUploadPackageLayoutFilePath)" />
+    <ItemGroup>
+      <_AppxUploadBundleMainPackageMapInputs Include="$(_FilteredUploadPackageLayoutFilePath)" />
+    </ItemGroup>
+  </Target>
 </Project>

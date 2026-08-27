@@ -282,6 +282,8 @@ try {
     if (-not $serviceEntry) {
         throw "MSIX Bundle 的主应用包缺少 KillConfirmService/cskillconfirm.exe"
     }
+
+    & (Join-Path $Root "Test-CrossfireEventIcons.ps1") -PackageArchive $archive
 }
 finally {
     if ($archive) {

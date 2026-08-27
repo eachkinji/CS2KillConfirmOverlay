@@ -182,7 +182,10 @@ namespace KillConfirmGameBar.Controls
                 Tuple.Create("knife", (string)null),
                 Tuple.Create("firstkill", (string)null),
                 Tuple.Create("lastkill", (string)null),
-                Tuple.Create("assist", (string)null)
+                Tuple.Create("assist", (string)null),
+                Tuple.Create("grenade", (string)null),
+                Tuple.Create("c4", (string)null),
+                Tuple.Create("c4defuse", (string)null)
             };
 
             if (_weaponBadgeMode > 0 && SupportsWeaponBadgeOverlay())

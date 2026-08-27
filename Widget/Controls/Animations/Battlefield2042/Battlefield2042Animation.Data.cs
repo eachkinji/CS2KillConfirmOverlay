@@ -31,6 +31,8 @@ namespace KillConfirmGameBar.Controls
         private const double Battlefield2042FeedMoneyGap = 20;
         private const double Battlefield2042MoneyCursorWidth = 14.4842;
         private const double Battlefield2042FeedRowRightOffset = 112;
+        private const double Battlefield2042MoneyTotalGap = 28;
+        private const double Battlefield2042MoneyTotalRightPadding = 12;
         private const double Battlefield2042MoneyCursorGap = 2;
 
 

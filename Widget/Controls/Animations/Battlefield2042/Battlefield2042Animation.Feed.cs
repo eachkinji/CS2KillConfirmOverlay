@@ -347,11 +347,11 @@ namespace KillConfirmGameBar.Controls
             string text = FormatBattlefield2042MoneyTotal(
                 (int)Math.Round(ResolveBattlefield5MoneyValue(now)),
                 LocalizationManager.Current == UiLanguage.SimplifiedChinese);
-            double width = MeasureBattlefieldTextWidth(text, textFormat) * scale;
+            scale = ResolveBattlefield2042MoneyTotalScale(MeasureBattlefieldTextWidth(text, textFormat), scale);
             DrawBattlefield2042Text(
                 drawingSession,
                 text,
-                Battlefield2042FrameWidth / 2.0 + 155 - width,
+                ResolveBattlefield2042MoneyTotalX(),
                 Battlefield2042MoneyTotalY,
                 scale,
                 Color.FromArgb(

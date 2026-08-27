@@ -24,7 +24,6 @@ namespace KillConfirmGameBar.Controls
             int roundNumber,
             int moneyEpoch)
         {
-            int token = ++_playToken;
             string normalizedEventKind = NormalizeBattlefieldEventKind(isAssist, eventKind);
             bool isTextOnly = IsBattlefieldTextOnlyEvent(isAssist, normalizedEventKind);
             double currentTimeMs = PrepareBattlefield1TextOverlayPlayback();
@@ -44,14 +43,17 @@ namespace KillConfirmGameBar.Controls
 
             if (isTextOnly)
             {
-                _currentBattlefieldAsset = null;
-                _currentCsolAsset = null;
-                _currentFrame = 0;
-                ApplyBattlefield1TextOnlyViewport();
+                // Rewards/assists update only the waterfall. Keep the card's
+                // asset, frame, clock, viewport and any pending load intact.
+                if (_currentBattlefieldAsset == null)
+                {
+                    ApplyBattlefield1TextOnlyViewport();
+                }
                 SpriteCanvas.Invalidate();
                 return;
             }
 
+            int token = ++_playToken;
             LoadBattlefield1PrimaryAsync(
                 token,
                 killCount,
@@ -116,6 +118,15 @@ namespace KillConfirmGameBar.Controls
 
         private double PrepareBattlefield1TextOverlayPlayback()
         {
+            if (_isBattlefieldTextOverlayActive && _playbackClock.IsRunning)
+            {
+                return _playbackClock.Elapsed.TotalMilliseconds;
+            }
+
+            // Initialize once on entry, not for each independently arriving reward.
+            _playToken++;
+            _currentBattlefieldAsset = null;
+            _currentFrame = 0;
             if (_isBattlefield5ScrollingActive)
             {
                 ResetBattlefield5ScrollingState();

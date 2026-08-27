@@ -368,7 +368,7 @@ namespace KillConfirmGameBar
                     centerOffsetY = LowerFeedbackAnimation?.Battlefield4LowerSelectionViewportCenterOffsetY ?? 65;
                     return;
                 case GameStyleMode.Battlefield2042:
-                    width = LowerFeedbackAnimation?.Battlefield2042LowerSelectionViewportWidth ?? 440;
+                    width = LowerFeedbackAnimation?.Battlefield2042LowerSelectionViewportWidth ?? 600;
                     height = LowerFeedbackAnimation?.Battlefield2042LowerSelectionViewportHeight ?? 170;
                     centerOffsetY = LowerFeedbackAnimation?.Battlefield2042LowerSelectionViewportCenterOffsetY ?? 45;
                     return;

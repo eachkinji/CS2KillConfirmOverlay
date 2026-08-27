@@ -15,6 +15,21 @@ namespace KillConfirmGameBar.Controls
 {
     public sealed partial class KillConfirmAnimation
     {
+        private static double ResolveBattlefield2042MoneyTotalX()
+        {
+            // The feed cursor ends at FeedRowRightOffset. Anchor the total's
+            // left edge beyond it so longer amounts cannot grow back over rows.
+            return Battlefield2042FrameWidth / 2.0
+                + Battlefield2042FeedRowRightOffset + Battlefield2042MoneyTotalGap;
+        }
+
+        private static double ResolveBattlefield2042MoneyTotalScale(double textWidth, double requestedScale)
+        {
+            double availableWidth = Battlefield2042FrameWidth
+                - Battlefield2042MoneyTotalRightPadding - ResolveBattlefield2042MoneyTotalX();
+            return textWidth > 0 ? Math.Min(requestedScale, availableWidth / textWidth) : requestedScale;
+        }
+
         private static double ResolveBattlefield2042MoneyFeedX(
             double textWidth,
             double exitEase)

@@ -9,6 +9,7 @@ $models = Get-Content -Raw (Join-Path $root 'Battlefield2042/Battlefield2042Anim
 $text = Get-Content -Raw (Join-Path $root 'Battlefield2042/Battlefield2042Animation.Text.cs')
 $cache = Get-Content -Raw (Join-Path $root 'Battlefield2042/Battlefield2042Animation.FeedCache.cs')
 $data = Get-Content -Raw (Join-Path $root 'Battlefield2042/Battlefield2042Animation.Data.cs')
+$layout = Get-Content -Raw (Join-Path $root 'Battlefield2042/Battlefield2042Animation.FeedLayout.cs')
 $events = Get-Content -Raw (Join-Path $root 'Shared/Battlefield/BattlefieldAnimation.Events.cs')
 $money = Get-Content -Raw (Join-Path $root 'Battlefield5/Battlefield5Animation.Money.cs')
 function Get-Method([string]$source, [string]$name) {
@@ -30,6 +31,9 @@ $members = @(
     Get-Method $cache 'PrepareBattlefield2042MoneyItemCache'
     Get-Method $money 'NormalizeBattlefieldMoneyReward'
     Get-Method $money 'FormatBattlefieldMoney'
+    Get-Method $layout 'ResolveBattlefield2042MoneyTotalX'
+    Get-Method $layout 'ResolveBattlefield2042MoneyTotalScale'
+    Get-Method $layout 'ResolveBattlefield2042MoneyFeedX'
     foreach ($name in @('Battlefield2042FeedItem', 'Battlefield2042MoneyItem', 'Battlefield2042KillIconItem', 'Battlefield2042HudState')) {
         $match = [regex]::Match($models, '(?ms)^        private sealed class ' + $name + '\r?\n.*?^        \}')
         if (-not $match.Success) { throw "Production model missing: $name" }
@@ -72,6 +76,22 @@ public sealed class Battlefield2042FeedbackChecks
 
     public static string Run()
     {
+        double totalX = ResolveBattlefield2042MoneyTotalX();
+        foreach (double amountWidth in new[] { 0.0, 20.0, 100.0, 250.0 })
+        foreach (double exitEase in new[] { 0.0, 0.5, 1.0 })
+        {
+            double cursorRight = ResolveBattlefield2042MoneyFeedX(amountWidth, exitEase)
+                + amountWidth + Battlefield2042MoneyCursorGap + Battlefield2042MoneyCursorWidth;
+            Check(totalX - cursorRight >= Battlefield2042MoneyTotalGap - 0.001, "Total overlaps reward/cursor column.");
+        }
+        foreach (double width in new[] { 50.0, 100.0, 200.0, 400.0 })
+        foreach (double requestedScale in new[] { 1.0, 1.48, 1.9, 2.5 })
+        {
+            double scale = ResolveBattlefield2042MoneyTotalScale(width, requestedScale);
+            Check(scale > 0 && scale <= requestedScale, "Invalid total text scale.");
+            Check(totalX + width * scale <= Battlefield2042FrameWidth - Battlefield2042MoneyTotalRightPadding + 0.001,
+                "Long/pulsing total is clipped by the canvas.");
+        }
         var cases = new[] {
             new[] { "kill", "击杀", "KILL" },
             new[] { "headshot", "爆头击杀", "HEADSHOT KILL" },
@@ -139,7 +159,7 @@ public sealed class Battlefield2042FeedbackChecks
         mixed.RemoveFinishedBattlefield2042Items(10000);
         Check(mixed._battlefield2042HudState.FeedItems.Count == 0 && mixed._battlefield2042HudState.MoneyItems.Count == 0,
             "Description or amount remained after exit.");
-        return "PASS: " + checkedRows + " localized event/reward cases; zero rewards, mixed burst alignment, row limits and exit cleanup.";
+        return "PASS: " + checkedRows + " localized event/reward cases; independent total column, zero rewards, mixed burst alignment, row limits and exit cleanup.";
     }
 __MEMBERS__
 }
@@ -154,6 +174,9 @@ if ($routing -notmatch 'PlayBattlefield2042Kill\(\s*killEvent.KillCount,\s*killE
     throw '2042 event flags are not forwarded to playback.'
 }
 $feed = Get-Content -Raw (Join-Path $root 'Battlefield2042/Battlefield2042Animation.Feed.cs')
+if ($feed -notmatch 'ResolveBattlefield2042MoneyTotalX\(\)' -or $feed -notmatch 'ResolveBattlefield2042MoneyTotalScale\(') {
+    throw 'Total drawing bypasses the independent column layout.'
+}
 if ($feed -notmatch 'if \(string.IsNullOrEmpty\(text\)\)\s*\{\s*row\+\+;\s*continue;') {
     throw 'Zero-reward rows must retain their vertical position without drawing an amount.'
 }

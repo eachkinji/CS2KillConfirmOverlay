@@ -157,9 +157,7 @@ namespace KillConfirmGameBar.Controls
         {
             if (IsObjectiveBonusEvent(eventKind))
             {
-                string objective = GetObjectiveBonusLabel(eventKind)
-                    + (reward > 0 ? " +" + reward.ToString(CultureInfo.InvariantCulture) : string.Empty);
-                return PubgFeedItem.Plain(objective);
+                return PubgFeedItem.Plain(GetObjectiveBonusLabel(eventKind));
             }
 
             if (IsRoundBonusEvent(eventKind))

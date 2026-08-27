@@ -51,7 +51,7 @@ namespace KillConfirmGameBar.Controls
         private const double Battlefield4LowerSelectionWidth = 360;
         private const double Battlefield4LowerSelectionHeight = 100;
         private const double Battlefield4LowerSelectionCenterOffsetY = 65;
-        private const double Battlefield2042LowerSelectionWidth = 440;
+        private const double Battlefield2042LowerSelectionWidth = 600;
         private const double Battlefield2042LowerSelectionHeight = 170;
         private const double Battlefield2042LowerSelectionCenterOffsetY = 45;
         private const double PubgLowerSelectionWidth = 420;

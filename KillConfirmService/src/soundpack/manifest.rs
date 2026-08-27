@@ -334,6 +334,22 @@ impl PackManifest {
         let game_style = self.game_style.as_deref().unwrap_or_default();
         let is_valorant = game_style.eq_ignore_ascii_case("valorant");
 
+        // Economy/objective events use explicit manifest slots. Never fall back
+        // to a kill cue for an objective event: a pack that does not provide the
+        // requested voice should remain silent while the separate bomb timer /
+        // outcome audio continues to follow its own user setting.
+        if ctx.event_channel == EventChannel::Economy {
+            if let Some(event_kind) = ctx
+                .event_kind
+                .as_deref()
+                .map(str::trim)
+                .filter(|value| !value.is_empty())
+            {
+                push_slot(&mut entries, event_kind, None);
+            }
+            return entries;
+        }
+
         // Valorant always uses the numbered kill cue as the base layer, starting
         // at kill 1. A headshot adds headshot.wav to that same event group; it
         // never replaces the numbered cue.
@@ -350,7 +366,20 @@ impl PackManifest {
             return entries;
         }
 
-        // 1. First Kill / Last Kill check.
+        // 1. Grenade / fire kill. This must win over first/last-kill routing so
+        // a dedicated grenade voice is not replaced just because the grenade
+        // also happened to open or close the round.
+        if ctx.is_grenade_kill {
+            if !push_slot(&mut entries, "grenade", None) {
+                if !push_slot(&mut entries, "first_and_last", None) {
+                    push_slot(&mut entries, "kill_1", None);
+                }
+            }
+            push_overlay_if_enabled(&mut entries, "grenade");
+            return entries;
+        }
+
+        // 2. First Kill / Last Kill check.
         // CSOL has no dedicated first-kill voice (素材无首杀): its first kill plays
         // the normal streak/kill_1 voice, and only the last kill (revenge) uses the
         // first_and_last slot. Every other game keeps the shared first_and_last
@@ -365,7 +394,7 @@ impl PackManifest {
             }
         }
 
-        // 1b. Assist — event voice pack slot. Falls back to the normal kill
+        // 3. Assist — event voice pack slot. Falls back to the normal kill
         // voice (kill_1) when no dedicated assist audio is provided, matching
         // the prior assist-routing behavior. Existing CF/CSOL packs have no
         // "assist" slot so they keep playing kill_1 unchanged.
@@ -376,18 +405,7 @@ impl PackManifest {
             return entries;
         }
 
-        // 1c. Grenade / Fire kill
-        if ctx.is_grenade_kill {
-            if !push_slot(&mut entries, "grenade", None) {
-                if !push_slot(&mut entries, "first_and_last", None) {
-                    push_slot(&mut entries, "kill_1", None);
-                }
-            }
-            push_overlay_if_enabled(&mut entries, "grenade");
-            return entries;
-        }
-
-        // 2. Priority calculation
+        // 4. Priority calculation
         // Event-cue games and Valorant/MW2019 expose dedicated special-kill
         // sounds rather than CrossFire-style optional priorities. Their
         // headshot/critical cue must therefore win at every streak count.

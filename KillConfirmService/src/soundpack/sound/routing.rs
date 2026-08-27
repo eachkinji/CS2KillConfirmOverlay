@@ -119,13 +119,24 @@ fn supports_economy_audio_events(preset_name: &str) -> bool {
     let normalized = preset_name.trim().to_ascii_lowercase();
     matches!(
         normalized.as_str(),
-        "bf1" | "bf5" | "bf4" | "battlefield2042" | "pubg" | "deltaforce"
+        "bf1"
+            | "bf5"
+            | "bf4"
+            | "battlefield2042"
+            | "pubg"
+            | "deltaforce"
+            | "modernwarfare2019"
+            | "csol4"
     ) || normalized.starts_with("custom_battlefield1_voice_")
         || normalized.starts_with("custom_battlefield5_voice_")
         || normalized.starts_with("custom_battlefield4_voice_")
         || normalized.starts_with("custom_battlefield2042_voice_")
         || normalized.starts_with("custom_pubg_voice_")
         || normalized.starts_with("custom_deltaforce_voice_")
+        || normalized.starts_with("custom_modernwarfare2019_voice_")
+        || normalized.starts_with("crossfire_")
+        || normalized.starts_with("custom_voice_")
+        || normalized.starts_with("custom_csol_voice_")
 }
 
 fn supports_event_sound_routing(preset_name: &str) -> bool {

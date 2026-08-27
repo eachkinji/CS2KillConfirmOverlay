@@ -12,7 +12,9 @@ namespace KillConfirmGameBar.Services
             new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
                 { "kill", "kill_1" },
-                { "headshot", "headshot" }
+                { "headshot", "headshot" },
+                { "bomb_plant", "bomb_plant" },
+                { "bomb_defuse", "bomb_defuse" }
             };
 
         public static async Task CreateModernWarfare2019VoicePackAsync(

@@ -38,6 +38,18 @@ namespace KillConfirmGameBar
                 }
             }
 
+            if (style == GameStyleMode.Csol)
+            {
+                string eventKind = killEvent.EventKind ?? killEvent.AnimationKey;
+                if (string.Equals(eventKind, "bomb_plant", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(eventKind, "bomb_defuse", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(killEvent.AnimationKey, "bomb_plant", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(killEvent.AnimationKey, "bomb_defuse", StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
             if (style == GameStyleMode.ModernWarfare2019)
             {
                 string eventKind = killEvent.EventKind ?? killEvent.AnimationKey;
@@ -86,6 +98,20 @@ namespace KillConfirmGameBar
         private void PlayCsolPrimaryAnimation(KillEvent killEvent)
         {
             PlayAuxiliaryKillMarkIfEnabled(killEvent);
+            string eventKind = killEvent.EventKind ?? killEvent.AnimationKey;
+            if (string.Equals(eventKind, "bomb_plant", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(killEvent.AnimationKey, "bomb_plant", StringComparison.OrdinalIgnoreCase))
+            {
+                LowerFeedbackAnimation.PlayCodeKill("c4", killEvent.WeaponBadgeKey);
+                return;
+            }
+            if (string.Equals(eventKind, "bomb_defuse", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(killEvent.AnimationKey, "bomb_defuse", StringComparison.OrdinalIgnoreCase))
+            {
+                LowerFeedbackAnimation.PlayCodeKill("c4defuse", killEvent.WeaponBadgeKey);
+                return;
+            }
+
             string specialKey = null;
             if (killEvent.IsFirstKill)
             {

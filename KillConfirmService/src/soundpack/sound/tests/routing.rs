@@ -46,8 +46,18 @@
     }
 
     #[test]
-    fn economy_audio_is_limited_to_economy_style_sound_packs() {
-        for preset in ["bf1", "bf5", "bf4", "battlefield2042", "pubg", "deltaforce"] {
+    fn economy_audio_is_limited_to_objective_capable_sound_packs() {
+        for preset in [
+            "bf1",
+            "bf5",
+            "bf4",
+            "battlefield2042",
+            "pubg",
+            "deltaforce",
+            "modernwarfare2019",
+            "crossfire_swat_gr",
+            "csol4",
+        ] {
             assert!(supports_economy_audio_events(preset));
         }
         for preset in [
@@ -57,12 +67,13 @@
             "custom_battlefield2042_voice_test",
             "custom_pubg_voice_test",
             "custom_deltaforce_voice_test",
+            "custom_modernwarfare2019_voice_test",
+            "custom_voice_test",
+            "custom_csol_voice_test",
         ] {
             assert!(supports_economy_audio_events(preset), "{preset}");
         }
-        assert!(!supports_economy_audio_events("crossfire_swat_gr"));
         assert!(!supports_economy_audio_events("valorant_00009_prime"));
-        assert!(!supports_economy_audio_events("custom_voice_012345"));
     }
 
     #[test]

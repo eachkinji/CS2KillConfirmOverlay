@@ -160,6 +160,16 @@ namespace KillConfirmGameBar
             StorageFile initialHeadImageFile = null)
         {
             EventVoiceEditorDefinition definition = GetEventVoiceEditorDefinition(style);
+            if (style != GameStyleMode.Apex)
+            {
+                definition.ChineseHint += " 也可以为 C4 安包和拆包配置独立提示音，留空则保持语音包静音。";
+                definition.EnglishHint += " Optional C4 plant and defuse cues stay silent when left empty.";
+                definition.Slots = definition.Slots.Concat(new[]
+                {
+                    Slot("bomb_plant.wav", "C4 安包", "C4 plant"),
+                    Slot("bomb_defuse.wav", "C4 拆包", "C4 defuse")
+                }).ToArray();
+            }
             bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
             var selectedFiles = CreateVoiceSelectionMap(initialFiles);
             StorageFile headImageFile = initialHeadImageFile;

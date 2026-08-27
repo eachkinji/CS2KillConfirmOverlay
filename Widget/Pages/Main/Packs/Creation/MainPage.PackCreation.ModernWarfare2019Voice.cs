@@ -12,7 +12,9 @@ namespace KillConfirmGameBar
         private static readonly string[] ModernWarfare2019VoicePackImportFiles =
         {
             "kill.wav",
-            "headshot.wav"
+            "headshot.wav",
+            "bomb_plant.wav",
+            "bomb_defuse.wav"
         };
 
         private async Task ShowCreateModernWarfare2019VoicePackDialogAsync(
@@ -27,8 +29,8 @@ namespace KillConfirmGameBar
             var layout = CreatePackDialogLayout(
                 isChinese ? "新建 MW2019 击杀音效包" : "Create MW2019 kill audio pack",
                 isChinese
-                    ? "分别为 MW2019 的普通击杀和爆头击杀选择音效；普通命中保持静音。"
-                    : "Choose separate MW2019 cues for normal kills and headshot kills; regular hits stay silent.",
+                    ? "分别为 MW2019 的普通击杀、爆头、C4 安包和拆包选择音效；普通命中及未配置的目标事件保持静音。"
+                    : "Choose separate MW2019 cues for normal kills, headshots, C4 plants, and defuses; regular hits and unconfigured objective events stay silent.",
                 LocalizationManager.Text("VoicePackNamePlaceholder"),
                 initialDisplayName,
                 out var nameBox);
@@ -52,6 +54,22 @@ namespace KillConfirmGameBar
             layout.Children.Add(await CreateVoiceSlotRowAsync(
                 "headshot.wav",
                 isChinese ? "MW2019 爆头击杀音效" : "MW2019 headshot-kill cue",
+                GameStyleMode.ModernWarfare2019,
+                selectedFiles,
+                existingFiles));
+
+            selectedFiles.TryGetValue("bomb_plant.wav", out existingFiles);
+            layout.Children.Add(await CreateVoiceSlotRowAsync(
+                "bomb_plant.wav",
+                isChinese ? "C4 安包音效" : "C4 plant cue",
+                GameStyleMode.ModernWarfare2019,
+                selectedFiles,
+                existingFiles));
+
+            selectedFiles.TryGetValue("bomb_defuse.wav", out existingFiles);
+            layout.Children.Add(await CreateVoiceSlotRowAsync(
+                "bomb_defuse.wav",
+                isChinese ? "C4 拆包音效" : "C4 defuse cue",
                 GameStyleMode.ModernWarfare2019,
                 selectedFiles,
                 existingFiles));

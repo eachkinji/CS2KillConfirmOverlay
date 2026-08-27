@@ -157,7 +157,7 @@ namespace KillConfirmGameBar.Services
             ["WeaponBadgeTooltip"] = "Toggle the extra weapon badge overlay.",
             ["MainAnimationTooltip"] = "Choose the main animation style.",
             ["VoicePackNamePlaceholder"] = "Voice pack name",
-            ["VoicePackCreationHint"] = "Set the single-kill and shared kill sounds separately. For each item, choose whether the shared kill sound also plays.",
+            ["VoicePackCreationHint"] = "Set the single-kill and shared kill sounds separately. For each item, choose whether the shared kill sound also plays; grenade kills and C4 plant/defuse events can use dedicated voices.",
             ["SingleKillVoiceSlotHint"] = "Usually no separate sound. It plays the common audio above; empty is fine.",
             ["IconPackNamePlaceholder"] = "Icon pack name",
             ["IconPackCreationHint"] = "Choose the PNG images you want to replace. Items left empty continue to use the default icons.",

@@ -395,7 +395,30 @@ pub async fn update(
         app_state.events.publish(badge_only_event).await;
     }
     if let Some(bomb_objective_event) = bomb_objective_event_to_send {
+        let audio_event = bomb_objective_event.clone();
         app_state.events.publish(bomb_objective_event).await;
+        let app_state_clone = app_state.clone();
+        tokio::spawn(async move {
+            let result = play_audio(
+                app_state_clone,
+                audio_event.kill_count,
+                audio_event.is_headshot,
+                audio_event.is_first_kill,
+                audio_event.is_knife_kill,
+                audio_event.is_grenade_kill,
+                audio_event.is_last_kill,
+                audio_event.is_assist,
+                audio_event.money_reward,
+                audio_event.event_kind.clone(),
+                audio_event.event_channel,
+                audio_event.play_main_animation,
+            )
+            .await;
+
+            if let Err(e) = result {
+                error!("Failed to play bomb objective audio: {}", e);
+            }
+        });
     }
     if let Some(hostage_objective_event) = hostage_objective_event_to_send {
         app_state.events.publish(hostage_objective_event).await;

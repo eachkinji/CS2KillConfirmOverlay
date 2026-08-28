@@ -61,6 +61,10 @@ pub struct Args {
     #[arg(long, default_value = "false")]
     pub open_logs: bool,
 
+    /// open Xbox Game Bar, then exit
+    #[arg(long, default_value = "false")]
+    pub open_game_bar: bool,
+
     /// terminate every Kill Confirm Overlay foreground and background process
     #[arg(long, default_value = "false")]
     pub exit_all: bool,

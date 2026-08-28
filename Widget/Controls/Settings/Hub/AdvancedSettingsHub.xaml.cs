@@ -16,6 +16,8 @@ namespace KillConfirmGameBar.Controls.Settings
 
         private string _activeTab = TabGeneral;
         private readonly DispatcherTimer _gameBarStatusTimer;
+        private string _gameBarActionMessage;
+        private DateTimeOffset _gameBarActionMessageExpiresAt;
 
         public AdvancedSettingsHub()
         {
@@ -231,9 +233,9 @@ namespace KillConfirmGameBar.Controls.Settings
             GameBarRuntimeStatus status = GameBarRuntimeStatusStore.Read();
             if (!status.IsAvailable)
             {
-                HubGameBarCardSummary.Text = isChinese
+                SetGameBarCardSummary(isChinese
                     ? "等待小组件上报状态"
-                    : "Waiting for the widget to report its state";
+                    : "Waiting for the widget to report its state");
                 SetGameBarStatusRow(
                     HubWidgetStatusGlyph,
                     HubWidgetStatusDetail,
@@ -259,9 +261,9 @@ namespace KillConfirmGameBar.Controls.Settings
             }
 
             bool ready = status.IsPinned && status.IsClickThroughEnabled;
-            HubGameBarCardSummary.Text = ready
+            SetGameBarCardSummary(ready
                 ? (isChinese ? "Game Bar 配置正确" : "Game Bar is configured correctly")
-                : (isChinese ? "还有项目需要处理" : "Some setup steps still need attention");
+                : (isChinese ? "还有项目需要处理" : "Some setup steps still need attention"));
             SetGameBarStatusRow(
                 HubWidgetStatusGlyph,
                 HubWidgetStatusDetail,
@@ -315,14 +317,47 @@ namespace KillConfirmGameBar.Controls.Settings
 
         private async void OnOpenGameBarClick(object sender, RoutedEventArgs e)
         {
-            bool launched = await Windows.System.Launcher.LaunchUriAsync(new Uri("ms-gamebar:"));
-            if (!launched)
+            bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            HubOpenGameBarButton.IsEnabled = false;
+            HubOpenGameBarButton.Content = isChinese ? "正在打开…" : "Opening…";
+
+            bool launched = false;
+            try
             {
-                bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
-                HubGameBarCardSummary.Text = isChinese
-                    ? "无法打开 Game Bar，请尝试按 Win+G"
-                    : "Could not open Game Bar. Try pressing Win+G.";
+                // Launching ms-gamebar directly from a UWP control panel can
+                // report success without displaying Game Bar on some Windows
+                // builds. Prefer the packaged desktop helper and retain the
+                // system launcher for installations where full-trust launch is
+                // unavailable.
+                launched = await KillConfirmWidgetPage.TryLaunchFullTrustHelperAsync(
+                    KillConfirmWidgetPage.OpenGameBarParameterGroupId);
+                if (!launched)
+                {
+                    launched = await Windows.System.Launcher.LaunchUriAsync(new Uri("ms-gamebar:"));
+                }
             }
+            catch (Exception ex)
+            {
+                App.Log("Failed to open Xbox Game Bar: " + ex);
+            }
+            finally
+            {
+                HubOpenGameBarButton.IsEnabled = true;
+                HubOpenGameBarButton.Content = isChinese ? "打开 Game Bar" : "Open Game Bar";
+            }
+
+            _gameBarActionMessage = launched
+                ? (isChinese ? "已发送 Game Bar 打开请求" : "Game Bar open request sent")
+                : (isChinese ? "无法打开 Game Bar，请尝试按 Win+G" : "Could not open Game Bar. Try pressing Win+G.");
+            _gameBarActionMessageExpiresAt = DateTimeOffset.UtcNow.AddSeconds(5);
+            HubGameBarCardSummary.Text = _gameBarActionMessage;
+        }
+
+        private void SetGameBarCardSummary(string statusMessage)
+        {
+            HubGameBarCardSummary.Text = DateTimeOffset.UtcNow < _gameBarActionMessageExpiresAt
+                ? _gameBarActionMessage
+                : statusMessage;
         }
 
         private async void OnHubExitAllClick(object sender, RoutedEventArgs e)

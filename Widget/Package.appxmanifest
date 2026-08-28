@@ -85,6 +85,7 @@
             <desktop:ParameterGroup GroupId="CrossfirePresetDeveloper" Parameters="--preset crossfire_swat_gr --developer-mode --exit-with-ui" />
             <desktop:ParameterGroup GroupId="FreeServicePort" Parameters="--free-port 10087" />
             <desktop:ParameterGroup GroupId="OpenRuntimeLogs" Parameters="--open-logs" />
+            <desktop:ParameterGroup GroupId="OpenGameBar" Parameters="--open-game-bar" />
             <desktop:ParameterGroup GroupId="ExitAll" Parameters="--exit-all" />
             <desktop:ParameterGroup GroupId="OpenUninstaller" Parameters="--open-uninstaller" />
             <desktop:ParameterGroup GroupId="OpenSettingsWindow" Parameters="--open-settings-launcher" />

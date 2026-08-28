@@ -20,7 +20,7 @@ use crate::infrastructure::playback::{get_output_stream_with_name, list_host_dev
 use crate::infrastructure::ports::{bind_with_fallback, free_local_port};
 use crate::infrastructure::runtime::{
     boost_process_priority, exit_all_processes, launch_settings_launcher,
-    normalize_working_directory, open_uninstaller, open_url,
+    normalize_working_directory, open_game_bar, open_uninstaller, open_url,
 };
 use crate::infrastructure::signal::shutdown_signal;
 use crate::infrastructure::watchers::{monitor_default_output_device, monitor_ui_processes};
@@ -92,6 +92,11 @@ pub(crate) async fn run(mut args: Args) -> Result<()> {
 
     if args.open_logs {
         open_runtime_log_folder();
+        return Ok(());
+    }
+
+    if args.open_game_bar {
+        open_game_bar().context("failed to open Xbox Game Bar")?;
         return Ok(());
     }
 

@@ -195,6 +195,7 @@ namespace KillConfirmGameBar
         private static readonly TimeSpan ServiceStartupPollInterval = TimeSpan.FromMilliseconds(250);
         private const string FreeServicePortParameterGroupId = "FreeServicePort";
         internal const string OpenRuntimeLogsParameterGroupId = "OpenRuntimeLogs";
+        internal const string OpenGameBarParameterGroupId = "OpenGameBar";
         internal const string ExitAllParameterGroupId = "ExitAll";
         internal const string OpenUninstallerParameterGroupId = "OpenUninstaller";
         private const string OpenSettingsWindowParameterGroupId = "OpenSettingsWindow";

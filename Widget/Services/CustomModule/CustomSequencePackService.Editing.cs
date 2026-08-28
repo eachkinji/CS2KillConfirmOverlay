@@ -14,6 +14,7 @@ namespace KillConfirmGameBar.Services
         public StorageFile Sheet;
         public StorageFile Metadata;
         public IReadOnlyList<StorageFile> Frames;
+        public StorageFolder SourceFolder;
         public int? Fps;
         public double? Hold;
         public string Description;
@@ -21,6 +22,62 @@ namespace KillConfirmGameBar.Services
 
     internal static partial class CustomSequencePackService
     {
+        // Probe before choosing the conversion path: a PNG next to a JSON is an
+        // atlas, not one animation frame (CS2 Customizer probe_source / KI-4).
+        internal static async Task<CustomSequenceInput> ProbeInputAsync(string slot,
+            IReadOnlyList<StorageFile> selected, StorageFolder folder = null)
+        {
+            var images = selected.Where(f => ImageExtensions.Contains(f.FileType.ToLowerInvariant())).ToList();
+            var metadata = selected.Where(f => f.FileType.Equals(".json", StringComparison.OrdinalIgnoreCase)
+                && !f.Name.Equals("style.json", StringComparison.OrdinalIgnoreCase)).ToList();
+            var pairs = new List<CustomSequenceInput>();
+
+            async Task<StorageFile> SiblingAsync(StorageFile file, string extension)
+            {
+                string name = Path.GetFileNameWithoutExtension(file.Name) + extension;
+                var sibling = selected.FirstOrDefault(f => f.Name.Equals(name, StringComparison.OrdinalIgnoreCase)
+                    && string.Equals(Path.GetDirectoryName(f.Path), Path.GetDirectoryName(file.Path), StringComparison.OrdinalIgnoreCase));
+                if (sibling != null) return sibling;
+                StorageFolder parent = folder;
+                if (parent == null)
+                {
+                    try { parent = await file.GetParentAsync(); }
+                    catch (UnauthorizedAccessException) { }
+                }
+                // A picker grant may cover the selected file but not its siblings.
+                // Do not bypass that grant or silently flatten an unprobed atlas.
+                if (parent == null) throw new InvalidDataException(
+                    file.Name + ": cannot inspect companion files / 无权读取同目录文件，请选择素材目录，或同时选择同名 PNG 和 JSON。");
+                return await parent.TryGetItemAsync(name) as StorageFile;
+            }
+
+            foreach (var png in images.Where(f => f.FileType.Equals(".png", StringComparison.OrdinalIgnoreCase)))
+            {
+                var json = await SiblingAsync(png, ".json");
+                if (json != null) pairs.Add(new CustomSequenceInput { Slot = slot, Sheet = png, Metadata = json });
+            }
+            foreach (var json in metadata)
+            {
+                if (pairs.Any(p => p.Metadata.Path.Equals(json.Path, StringComparison.OrdinalIgnoreCase))) continue;
+                var png = await SiblingAsync(json, ".png");
+                if (png != null) pairs.Add(new CustomSequenceInput { Slot = slot, Sheet = png, Metadata = json });
+                else if (folder == null) throw new InvalidDataException(json.Name + ": missing matching PNG / 缺少同名 PNG 图集。");
+            }
+            if (pairs.Count > 0)
+            {
+                if (pairs.Count != 1 || images.Any(f => !f.Path.Equals(pairs[0].Sheet.Path, StringComparison.OrdinalIgnoreCase)))
+                    throw new InvalidDataException("Choose one atlas per kill slot / 每个击杀槽位请选择一组 PNG/JSON 图集，不要混选图集和散帧；整包请使用图标包库的导入功能。");
+                var input = pairs[0];
+                var info = await ReadMetadataFilesAsync(input.Sheet, input.Metadata);
+                input.Description = input.Sheet.Name + " + " + input.Metadata.Name
+                    + " · " + info.Frames + " frames / 帧 · " + info.Width + "×" + info.Height;
+                return input;
+            }
+            if (images.Count == 0) throw new InvalidDataException("No supported frames or atlas / 没有支持的帧图片或 PNG/JSON 图集。");
+            return new CustomSequenceInput { Slot = slot, Frames = images,
+                Description = images.Count + " frames / 张帧图片 · numeric filename order / 按文件名数字排序" };
+        }
+
         internal static async Task<List<CustomSequenceInput>> ReadInputsAsync(StorageFolder folder, ICollection<string> warnings)
         {
             var files = (await folder.GetFilesAsync()).ToDictionary(f => f.Name, StringComparer.OrdinalIgnoreCase);
@@ -59,7 +116,11 @@ namespace KillConfirmGameBar.Services
             {
                 var input = new CustomSequenceInput { Slot = pair.Key, Description = pair.Value.Name };
                 if (pair.Value is StorageFolder frames)
+                {
+                    // Defer probing to preserve partial import for malformed slots.
                     input.Frames = await frames.GetFilesAsync();
+                    input.SourceFolder = frames;
+                }
                 else
                 {
                     var file = (StorageFile)pair.Value;
@@ -153,6 +214,13 @@ namespace KillConfirmGameBar.Services
 
         private static async Task WriteInputAsync(CustomSequenceInput input, StorageFolder target, ICollection<string> warnings)
         {
+            if (input.SourceFolder != null)
+            {
+                var probed = await ProbeInputAsync(input.Slot, input.Frames, input.SourceFolder);
+                probed.Fps = input.Fps;
+                probed.Hold = input.Hold;
+                input = probed;
+            }
             JsonObject json = input.Metadata == null ? new JsonObject() : await ReadJsonFileAsync(input.Metadata);
             if (input.Sheet != null && input.Metadata != null)
             {

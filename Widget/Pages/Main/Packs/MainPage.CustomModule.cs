@@ -85,8 +85,8 @@ namespace KillConfirmGameBar
                 var notes = new List<string>();
                 var initial = original == null ? new List<CustomSequenceInput>() : await CustomSequencePackService.ReadInputsAsync(original, notes);
                 var layout = CreatePackDialogLayout(title,
-                    chinese ? "为每个击杀等级选择一组帧图片、帧目录，或配套 PNG 图集与 JSON。无需手动命名文件。这里仅编辑素材，测试和位置设置沿用现有入口。"
-                        : "Assign frame images, a frame folder, or a PNG/JSON sheet pair to each kill level. No file renaming required. Tests and positioning stay in their existing locations.",
+                    chinese ? "选择素材或目录，自动识别散帧与同名 PNG/JSON 图集。每个击杀等级一组，无需改名。这里只编辑素材，测试和位置设置沿用现有入口。"
+                        : "Choose files or a folder; matching PNG/JSON atlases and frame sequences are detected automatically. One source per kill level. Tests and positioning stay in their existing locations.",
                     LocalizationManager.Text("IconPackNamePlaceholder"), existing?.DisplayName, out TextBox name);
                 var status = new TextBlock { Text = string.Join("\n", notes), TextWrapping = TextWrapping.Wrap, FontSize = 12 };
                 var rows = new List<CustomSequenceRow>();
@@ -124,11 +124,10 @@ namespace KillConfirmGameBar
                         var description = new TextBlock { TextWrapping = TextWrapping.Wrap, FontSize = 12 };
                         card.Children.Add(description);
                         var buttons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4 };
-                        var images = new Button { Content = chinese ? "选择帧" : "Frames" };
-                        var folder = new Button { Content = chinese ? "帧目录" : "Folder" };
-                        var sheet = new Button { Content = chinese ? "图集文件" : "Sheet" };
+                        var images = new Button { Content = chinese ? "选择素材" : "Choose source" };
+                        var folder = new Button { Content = chinese ? "素材目录" : "Source folder" };
                         var clear = new Button { Content = chinese ? "清除" : "Clear" };
-                        foreach (var button in new[] { images, folder, sheet, clear })
+                        foreach (var button in new[] { images, folder, clear })
                         { button.Padding = new Thickness(8, 4, 8, 4); button.FontSize = 12; buttons.Children.Add(button); }
                         card.Children.Add(buttons);
                         row.Fps = new TextBox { Header = "FPS (1–60)", Width = 130 };
@@ -161,28 +160,16 @@ namespace KillConfirmGameBar
                         {
                             var picker = new FileOpenPicker();
                             foreach (string extension in CustomSequencePackService.ImageExtensions) picker.FileTypeFilter.Add(extension);
+                            picker.FileTypeFilter.Add(".json");
                             var files = await picker.PickMultipleFilesAsync();
-                            return files.Count == 0 ? null : new CustomSequenceInput { Slot = slot, Frames = files, Description = files.Count + (chinese ? " 张帧图片 · 按文件名数字排序" : " frames · numeric filename order") };
+                            return files.Count == 0 ? null : await CustomSequencePackService.ProbeInputAsync(slot, files);
                         });
                         folder.Click += async (s, e) => await SelectAsync(async () =>
                         {
                             var picker = new FolderPicker(); picker.FileTypeFilter.Add("*");
                             var selected = await picker.PickSingleFolderAsync();
                             if (selected == null) return null;
-                            var files = (await selected.GetFilesAsync()).Where(f => CustomSequencePackService.ImageExtensions.Contains(f.FileType.ToLowerInvariant())).ToList();
-                            if (files.Count == 0) throw new InvalidDataException(chinese ? "目录内没有支持的帧图片。" : "No supported frame images in this folder.");
-                            return new CustomSequenceInput { Slot = slot, Frames = files, Description = selected.Name + " · " + files.Count + (chinese ? " 帧" : " frames") };
-                        });
-                        sheet.Click += async (s, e) => await SelectAsync(async () =>
-                        {
-                            var picker = new FileOpenPicker(); picker.FileTypeFilter.Add(".png"); picker.FileTypeFilter.Add(".json");
-                            var files = await picker.PickMultipleFilesAsync();
-                            if (files.Count == 0) return null;
-                            var png = files.FirstOrDefault(f => f.FileType.Equals(".png", StringComparison.OrdinalIgnoreCase));
-                            var json = files.FirstOrDefault(f => f.FileType.Equals(".json", StringComparison.OrdinalIgnoreCase));
-                            if (files.Count != 2 || png == null || json == null || !png.DisplayName.Equals(json.DisplayName, StringComparison.OrdinalIgnoreCase))
-                                throw new InvalidDataException(chinese ? "请同时选择同名的 PNG 图集和 JSON 配置（按住 Ctrl 多选）。" : "Select the matching PNG and JSON together (Ctrl+click).");
-                            return new CustomSequenceInput { Slot = slot, Sheet = png, Metadata = json, Description = png.Name + " + " + json.Name };
+                            return await CustomSequencePackService.ProbeInputAsync(slot, await selected.GetFilesAsync(), selected);
                         });
                         clear.Click += async (s, e) => { if (!busy) { row.Input = null; await RefreshRowAsync(); } };
                         await RefreshRowAsync();

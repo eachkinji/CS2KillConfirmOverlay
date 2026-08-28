@@ -34,9 +34,11 @@ def helpers(path, names, module_name):
 
 reference, fixtures = map(Path, sys.argv[1:3])
 overlay = helpers(reference / "kill_icon_overlay.py", {
-    "DEFAULT_FPS", "MIN_FPS", "MAX_FPS", "MAX_HOLD_SECONDS",
+    "DEFAULT_FPS", "MIN_FPS", "MAX_FPS", "MAX_HOLD_SECONDS", "DEFAULT_STATIC_HOLD_SECONDS",
     "clamp_fps", "clamp_hold", "playback_state"
 }, "reference_timeline")
+# Source probing imports the pure clamps from this module; no Qt is loaded.
+sys.modules["kill_icon_overlay"] = overlay
 count = 0
 with (fixtures / "timeline.csv").open(newline="") as source:
     for row in csv.DictReader(source):
@@ -52,7 +54,10 @@ with (fixtures / "timeline.csv").open(newline="") as source:
 
 importer = helpers(reference / "core/kill_icon_import.py", {
     "LEVEL_ALIASES", "HEADSHOT_ALIASES", "parse_level_name",
-    "ANIMATED_EXTENSIONS", "STATIC_EXTENSIONS", "SEQUENCE_EXTENSIONS", "_sorted_sequence_files"
+    "ANIMATED_EXTENSIONS", "STATIC_EXTENSIONS", "SEQUENCE_EXTENSIONS", "_sorted_sequence_files",
+    "SINGLE_FILE_EXTENSIONS", "MAX_FRAMES", "MAX_FRAME_EDGE", "DEFAULT_FPS", "RATE_SAMPLE_FRAMES",
+    "SourceProbe", "_pil", "_fit", "_as_int", "_fps_from_durations", "_static_probe_hold",
+    "_sibling_metadata_path", "_resolve_sheet_image", "_probe_spritesheet", "_probe_animation", "probe_source"
 }, "reference_importer")
 alias_count = 0
 with (fixtures / "aliases.tsv").open(encoding="utf-8") as source:
@@ -63,6 +68,22 @@ with (fixtures / "aliases.tsv").open(encoding="utf-8") as source:
         assert actual == expected, (name, actual, expected)
         alias_count += 1
 assert [Path(p).name for p in importer._sorted_sequence_files(str(fixtures / "legacy/1"))] == ["2.png", "10.png"]
+
+# Exercise the reference's actual PNG -> sibling JSON dispatch against the same
+# oversized atlas used by the C# picker/import/runtime regression.
+atlas_result = json.loads((fixtures / "wide-atlas-result.json").read_text(encoding="utf-8-sig"))
+for extension in ("png", "json"):
+    atlas_probe = importer.probe_source(str(fixtures / f"wide-atlas/sheet.{extension}"))
+    assert atlas_probe.kind == "spritesheet", atlas_probe
+    assert (atlas_probe.frame_width, atlas_probe.frame_height, atlas_probe.frame_count,
+            atlas_probe.fps, atlas_probe.hold_seconds, atlas_probe.grid[0]) == (
+        atlas_result["frame_width"], atlas_result["frame_height"], atlas_result["frames"],
+        atlas_result["fps"], atlas_result["hold_seconds"], atlas_result["cols"]), atlas_probe
+raw_probe = importer.probe_source(str(fixtures / "large-raw-frames/frame.png"))
+raw_result = json.loads((fixtures / "raw-frame-result.json").read_text(encoding="utf-8-sig"))
+assert raw_probe.kind == "animation" and raw_probe.warnings, raw_probe
+assert (raw_probe.frame_width, raw_probe.frame_height, raw_probe.frame_count) == (
+    raw_result["frame_width"], raw_result["frame_height"], raw_result["frames"]), raw_probe
 
 pack = helpers(reference / "core/kill_icon_pack.py", {
     "PACK_VERSION", "MANIFEST_NAME", "LEVEL_ENTRY_RE", "MAX_ENTRIES",
@@ -77,4 +98,4 @@ loose = pack.probe_pack(str(fixtures / "loose.zip"))
 assert loose.name == "Theme" and [(k, v) for k, v, _ in loose.loose_items] == [(1, ""), (3, "hs"), (5, "")], loose
 mixed = pack.probe_pack(str(fixtures / "mixed.zip"))
 assert mixed.levels == [(1, "")] and mixed.warnings, mixed
-print(f"PASS: {count} timeline states, {alias_count} aliases, numeric frame order, standard/loose package rules and exported ZIP agree with the reference helpers.")
+print(f"PASS: {count} timeline states, {alias_count} aliases, numeric frame order, PNG/JSON atlas detection, raw frame sizing, standard/loose package rules and exported ZIP agree with the reference helpers.")

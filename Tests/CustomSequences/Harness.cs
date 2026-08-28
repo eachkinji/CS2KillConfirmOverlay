@@ -87,6 +87,25 @@ internal static class Harness
         return file;
     }
 
+    private static async Task<StorageFile> SizedImage(StorageFolder folder, string name, int width, int height, int cellWidth = 256)
+    {
+        var file = await folder.CreateFileAsync(name);
+        using (var stream = await file.OpenAsync(FileAccessMode.ReadWrite))
+        {
+            var encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.PngEncoderId, stream);
+            byte[] pixels = new byte[width * height * 4];
+            for (int y = 0; y < height; y++)
+            for (int x = 0; x < width; x++)
+            {
+                pixels[(y * width + x) * 4 + 2] = (byte)(x / cellWidth + 1);
+                pixels[(y * width + x) * 4 + 3] = 128;
+            }
+            encoder.SetPixelData(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Straight, (uint)width, (uint)height, 96, 96, pixels);
+            await encoder.FlushAsync();
+        }
+        return file;
+    }
+
     private static async Task Run(string root)
     {
         Directory.CreateDirectory(root);
@@ -364,6 +383,116 @@ internal static class Harness
             byte[] pixels = (await decoder.GetPixelDataAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Straight, new BitmapTransform(),
                 ExifOrientationMode.IgnoreExifOrientation, ColorManagementMode.DoNotColorManage)).DetachPixelData();
             Check(pixels[4 * 4 + 3] == 0 && pixels[5 * 4 + 2] == 66, "unequal frames centered without resampling or losing transparency");
+        }
+        // Regression: the picker must recognize the same PNG as an atlas even
+        // when only PNG is selected. Its total edge is not its frame edge.
+        var atlasSource = await local.CreateFolderAsync("wide-atlas");
+        var widePng = await SizedImage(atlasSource, "sheet.png", 8192, 4);
+        var wideJson = await atlasSource.CreateFileAsync("sheet.json");
+        const string wideMetadata = "{\"frame_width\":256,\"frame_height\":4,\"frames\":32,\"cols\":32,\"rows\":1,\"fps\":25,\"hold_seconds\":0.75}";
+        await FileIO.WriteTextAsync(wideJson, wideMetadata);
+        var pngProbe = await CustomSequencePackService.ProbeInputAsync("3", new[] { widePng });
+        var jsonProbe = await CustomSequencePackService.ProbeInputAsync("3", new[] { wideJson });
+        var pairProbe = await CustomSequencePackService.ProbeInputAsync("3", new[] { wideJson, widePng });
+        var folderProbe = await CustomSequencePackService.ProbeInputAsync("3", await atlasSource.GetFilesAsync(), atlasSource);
+        foreach (var probeInput in new[] { pngProbe, jsonProbe, pairProbe, folderProbe })
+            Check(probeInput.Sheet.Path == widePng.Path && probeInput.Metadata.Path == wideJson.Path
+                && probeInput.Frames == null, "PNG, JSON, pair and directory all route to native atlas");
+        notes.Clear();
+        var widePack = await CustomSequencePackService.SavePackAsync("Wide atlas", new[] { pngProbe }, warnings: notes);
+        var wideFolder = await StorageFolder.GetFolderFromPathAsync(widePack.FolderPath);
+        var wideInfo = await CustomSequencePackService.ReadMetadataAsync(wideFolder, "3", true);
+        await (await wideFolder.GetFileAsync("3.json")).CopyAsync(local, "wide-atlas-result.json");
+        Check(wideInfo.Width == 256 && wideInfo.Height == 4 && wideInfo.Frames == 32
+            && wideInfo.Fps == 25 && wideInfo.HoldSeconds == .75, "atlas retains real cell geometry and timing");
+        Check(File.ReadAllBytes(widePng.Path).SequenceEqual(File.ReadAllBytes(Path.Combine(wideFolder.Path, "3.png")))
+            && File.ReadAllBytes(wideJson.Path).SequenceEqual(File.ReadAllBytes(Path.Combine(wideFolder.Path, "3.json")))
+            && notes.Count == 0, "8192px atlas copied byte-for-byte without resizing warnings");
+        using (var stream = await (await wideFolder.GetFileAsync("3.png")).OpenReadAsync())
+        {
+            var decoder = await BitmapDecoder.CreateAsync(stream);
+            var atlasPixels = (await decoder.GetPixelDataAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied,
+                new BitmapTransform(), ExifOrientationMode.IgnoreExifOrientation, ColorManagementMode.DoNotColorManage)).DetachPixelData();
+            int columns = Math.Min(wideInfo.Frames, 4096 / wideInfo.Width);
+            var page = CustomSequenceFormat.RepackPage(atlasPixels, (int)decoder.PixelWidth, wideInfo, 0, wideInfo.Frames,
+                columns, out int pageWidth, out int pageHeight);
+            Check(pageWidth == 4096 && pageHeight == 8, "runtime repacks the wide atlas into GPU page geometry");
+            for (int f = 0; f < wideInfo.Frames; f++)
+            for (int y = 0; y < wideInfo.Height; y++)
+            {
+                int src = (y * 8192 + f * 256) * 4;
+                int dst = (((f / columns) * 4 + y) * pageWidth + (f % columns) * 256) * 4;
+                Check(atlasPixels.Skip(src).Take(256 * 4).SequenceEqual(page.Skip(dst).Take(256 * 4)),
+                    "UWP frame crop keeps per-frame pixels and alpha after atlas repacking");
+            }
+        }
+        var atlasLevelRoot = await local.CreateFolderAsync("atlas-level-root");
+        var atlasLevel = await atlasLevelRoot.CreateFolderAsync("kill2");
+        await widePng.CopyAsync(atlasLevel);
+        await wideJson.CopyAsync(atlasLevel);
+        var nestedAtlas = await CustomSequencePackService.ImportFolderAsync(atlasLevelRoot);
+        Check((await CustomSequencePackService.ReadMetadataAsync(
+            await StorageFolder.GetFolderFromPathAsync(nestedAtlas.FolderPath), "2")).Frames == 32,
+            "loose level directory containing an atlas is not flattened");
+        await Reject(async () => await CustomSequencePackService.ProbeInputAsync("1", new[] { widePng, small }),
+            "mixed atlas and frames rejected instead of flattening");
+        var secondAtlas = await widePng.CopyAsync(atlasSource, "second.png");
+        await wideJson.CopyAsync(atlasSource, "second.json");
+        await Reject(async () => await CustomSequencePackService.ProbeInputAsync("1", await atlasSource.GetFilesAsync(), atlasSource),
+            "multiple atlases in a slot require explicit selection or whole-pack import");
+        await FileIO.WriteTextAsync(wideJson, "{");
+        await Reject(async () => await CustomSequencePackService.ProbeInputAsync("1", new[] { widePng }),
+            "damaged companion JSON does not fall back to static frame");
+        await FileIO.WriteTextAsync(wideJson, wideMetadata);
+        var missingJson = await atlasSource.CreateFileAsync("missing.json");
+        await FileIO.WriteTextAsync(missingJson, wideMetadata);
+        await Reject(async () => await CustomSequencePackService.ProbeInputAsync("1", new[] { missingJson }),
+            "JSON without image gives actionable missing atlas error");
+
+        var rawSource = await local.CreateFolderAsync("large-raw-frames");
+        var raw = await SizedImage(rawSource, "frame.png", 5120, 10, 5120);
+        var rawProbe = await CustomSequencePackService.ProbeInputAsync("1", new[] { raw });
+        Check(rawProbe.Sheet == null && rawProbe.Frames.Count == 1, "PNG without companion JSON is a raw frame");
+        notes.Clear();
+        var resized = await CustomSequencePackService.SavePackAsync("Resized raw", new[] { rawProbe }, warnings: notes);
+        var resizedFolder = await StorageFolder.GetFolderFromPathAsync(resized.FolderPath);
+        var resizedInfo = await CustomSequencePackService.ReadMetadataAsync(resizedFolder, "1", true);
+        await (await resizedFolder.GetFileAsync("1.json")).CopyAsync(local, "raw-frame-result.json");
+        Check(resizedInfo.Width == 1024 && resizedInfo.Height == 2 && resizedInfo.Frames == 1 && resizedInfo.HoldSeconds == 1
+            && notes.Any(n => n.Contains("5120×10") && n.Contains("1024×2")), "only oversized raw frames are proportionally normalized and reported");
+        using (var stream = await (await resizedFolder.GetFileAsync("1.png")).OpenReadAsync())
+        {
+            var decoder = await BitmapDecoder.CreateAsync(stream);
+            var pixels = (await decoder.GetPixelDataAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Straight, new BitmapTransform(),
+                ExifOrientationMode.IgnoreExifOrientation, ColorManagementMode.DoNotColorManage)).DetachPixelData();
+            Check(pixels.Where((v, i) => i % 4 == 3).All(v => v == 128), "raw frame resize preserves partial transparency");
+        }
+        var smallProbe = await CustomSequencePackService.ProbeInputAsync("1", await frames.GetFilesAsync(), frames);
+        Check(smallProbe.Frames.Count == 2 && smallProbe.Sheet == null, "ordinary frame directory still uses numeric sequence conversion");
+        var tallSource = await local.CreateFolderAsync("tall-atlas");
+        var tallPng = await SizedImage(tallSource, "tall.png", 4, 8192);
+        await FileIO.WriteTextAsync(await tallSource.CreateFileAsync("tall.json"),
+            "{\"frame_width\":4,\"frame_height\":256,\"frames\":32,\"cols\":1,\"rows\":32}");
+        var tallPack = await CustomSequencePackService.SavePackAsync("Tall atlas", new[] {
+            await CustomSequencePackService.ProbeInputAsync("1", new[] { tallPng })
+        });
+        var tallFolder = await StorageFolder.GetFolderFromPathAsync(tallPack.FolderPath);
+        Check((await CustomSequencePackService.ReadMetadataAsync(tallFolder, "1", true)).Frames == 32
+            && File.ReadAllBytes(tallPng.Path).SequenceEqual(File.ReadAllBytes(Path.Combine(tallFolder.Path, "1.png"))),
+            "8192px vertical atlas also stays intact");
+
+        var smallerRaw = await SizedImage(rawSource, "frame2.png", 2560, 5, 2560);
+        var scaledPair = await CustomSequencePackService.SavePackAsync("Scaled centered", new[] {
+            await CustomSequencePackService.ProbeInputAsync("1", await rawSource.GetFilesAsync(), rawSource)
+        });
+        using (var stream = await (await (await StorageFolder.GetFolderFromPathAsync(scaledPair.FolderPath)).GetFileAsync("1.png")).OpenReadAsync())
+        {
+            var decoder = await BitmapDecoder.CreateAsync(stream);
+            var pixels = (await decoder.GetPixelDataAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Straight, new BitmapTransform(),
+                ExifOrientationMode.IgnoreExifOrientation, ColorManagementMode.DoNotColorManage)).DetachPixelData();
+            Check(decoder.PixelWidth == 2048 && decoder.PixelHeight == 2 && pixels[1024 * 4 + 3] == 0
+                && pixels[(1024 + 256) * 4 + 3] == 128 && pixels[(1024 + 768) * 4 + 3] == 0,
+                "mixed-size raw frames share one scale and stay centered with transparent padding");
         }
         Console.WriteLine("PASS: " + checks + " custom-sequence checks using production format/import/export code and Windows image codecs.");
         Console.WriteLine("Roundtrip fixture: " + output.Path);

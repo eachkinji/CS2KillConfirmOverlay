@@ -15,17 +15,6 @@ namespace KillConfirmGameBar.Services
     {
         internal static readonly string[] ImageExtensions = { ".png", ".jpg", ".jpeg", ".bmp", ".webp" };
 
-        internal static async Task<JsonObject> ReadJsonAsync(StorageFolder folder, string name)
-        {
-            var file = await folder.TryGetItemAsync(name) as StorageFile;
-            if (file == null) return new JsonObject();
-            if ((await file.GetBasicPropertiesAsync()).Size > 1024 * 1024)
-                throw new InvalidDataException("JSON exceeds 1 MB / JSON 文件过大。");
-            if (!JsonObject.TryParse(await FileIO.ReadTextAsync(file), out JsonObject json))
-                throw new InvalidDataException(name + ": invalid JSON / JSON 格式错误。");
-            return json;
-        }
-
         internal static double Number(JsonObject json, string name, double fallback)
         {
             if (!json.TryGetValue(name, out IJsonValue value)) return fallback;
@@ -41,8 +30,13 @@ namespace KillConfirmGameBar.Services
 
         internal static async Task<CustomSequenceMetadata> ReadMetadataAsync(StorageFolder folder, string slot, bool validatePixels = false)
         {
-            JsonObject json = await ReadJsonAsync(folder, slot + ".json");
-            var file = await folder.GetFileAsync(slot + ".png");
+            return await ReadMetadataFilesAsync(await folder.GetFileAsync(slot + ".png"),
+                await folder.GetFileAsync(slot + ".json"), validatePixels);
+        }
+
+        private static async Task<CustomSequenceMetadata> ReadMetadataFilesAsync(StorageFile file, StorageFile metadataFile, bool validatePixels = false)
+        {
+            JsonObject json = await ReadJsonFileAsync(metadataFile);
             await RejectAnimatedPngAsync(file);
             using (IRandomAccessStream stream = await file.OpenReadAsync())
             {
@@ -67,7 +61,7 @@ namespace KillConfirmGameBar.Services
                         await decoder.GetPixelDataAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Straight,
                             new BitmapTransform(), ExifOrientationMode.IgnoreExifOrientation, ColorManagementMode.DoNotColorManage);
                     }
-                    catch (Exception ex) { throw new InvalidDataException(slot + ": damaged image / 图像损坏。", ex); }
+                    catch (Exception ex) { throw new InvalidDataException(file.Name + ": damaged image / 图像损坏。", ex); }
                 }
                 return metadata;
             }
@@ -195,7 +189,16 @@ namespace KillConfirmGameBar.Services
                     height = Math.Max(height, checked((int)decoder.PixelHeight));
                 }
             }
-            if (width > 4096 || height > 4096) throw new InvalidDataException("Frame exceeds 4096 pixels / 单帧边长超过 4096。");
+            // Only raw frames reach this path. Native PNG/JSON atlases are copied
+            // unchanged, even when the whole atlas is wider than a GPU page.
+            double scale = Math.Min(1, 1024.0 / Math.Max(width, height));
+            if (scale < 1)
+            {
+                int originalWidth = width, originalHeight = height;
+                width = Math.Max(1, (int)Math.Round(width * scale));
+                height = Math.Max(1, (int)Math.Round(height * scale));
+                warnings?.Add(slot + ": frames resized / 独立帧已等比缩小 " + originalWidth + "×" + originalHeight + " → " + width + "×" + height);
+            }
             int columns = Math.Max(1, Math.Min(files.Length, 4096 / width));
             int rows = (files.Length + columns - 1) / columns;
             int sheetWidth = width * columns, sheetHeight = height * rows;
@@ -207,9 +210,11 @@ namespace KillConfirmGameBar.Services
                 using (var stream = await files[i].OpenReadAsync())
                 {
                     BitmapDecoder decoder = await BitmapDecoder.CreateAsync(stream);
+                    int fw = Math.Max(1, (int)Math.Round(decoder.PixelWidth * scale));
+                    int fh = Math.Max(1, (int)Math.Round(decoder.PixelHeight * scale));
                     byte[] frame = (await decoder.GetPixelDataAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Straight,
-                        new BitmapTransform(), ExifOrientationMode.IgnoreExifOrientation, ColorManagementMode.DoNotColorManage)).DetachPixelData();
-                    int fw = (int)decoder.PixelWidth, fh = (int)decoder.PixelHeight;
+                        new BitmapTransform { ScaledWidth = (uint)fw, ScaledHeight = (uint)fh, InterpolationMode = BitmapInterpolationMode.Fant },
+                        ExifOrientationMode.IgnoreExifOrientation, ColorManagementMode.DoNotColorManage)).DetachPixelData();
                     int x = (i % columns) * width + (width - fw) / 2, y = (i / columns) * height + (height - fh) / 2;
                     for (int row = 0; row < fh; row++)
                         System.Buffer.BlockCopy(frame, row * fw * 4, pixels, ((y + row) * sheetWidth + x) * 4, fw * 4);

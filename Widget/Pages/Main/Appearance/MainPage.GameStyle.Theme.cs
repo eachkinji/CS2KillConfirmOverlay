@@ -107,6 +107,7 @@ namespace KillConfirmGameBar
         private void ApplyGameAdvancedSettingsPanelTheme()
         {
             GameThemePalette theme = GameThemePalette.Current;
+            _customModulePanel?.ApplyTheme(theme);
             if (_crossfireAdvancedEffectsPanel != null) _crossfireAdvancedEffectsPanel.ApplyTheme(theme);
             if (_csolAdvancedEffectsPanel != null) _csolAdvancedEffectsPanel.ApplyTheme(theme);
             if (_valorantAdvancedEffectsPanel != null) _valorantAdvancedEffectsPanel.ApplyTheme(theme);
@@ -135,6 +136,7 @@ namespace KillConfirmGameBar
         private void ApplyGameAdvancedSettingsPanelLanguage()
         {
             bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            _customModulePanel?.ApplyLanguage(isChinese);
             if (_crossfireAdvancedEffectsPanel != null) _crossfireAdvancedEffectsPanel.ApplyLanguage(isChinese);
             if (_csolAdvancedEffectsPanel != null) _csolAdvancedEffectsPanel.ApplyLanguage(isChinese);
             if (_valorantAdvancedEffectsPanel != null) _valorantAdvancedEffectsPanel.ApplyLanguage(isChinese);

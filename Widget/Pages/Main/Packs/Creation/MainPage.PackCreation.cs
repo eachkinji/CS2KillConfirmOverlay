@@ -249,6 +249,7 @@ namespace KillConfirmGameBar
 
         private async void OnImportIconPackClick(object sender, RoutedEventArgs e)
         {
+            if (GameStyleService.Current == GameStyleMode.CustomModule) { await ImportCustomModuleAsync(false); return; }
             if (await GuardIconPackCreationAsync())
             {
                 return;
@@ -324,6 +325,7 @@ namespace KillConfirmGameBar
 
         private async void OnImportIconZipClick(object sender, RoutedEventArgs e)
         {
+            if (GameStyleService.Current == GameStyleMode.CustomModule) { await ImportCustomModuleAsync(true); return; }
             if (await GuardIconPackCreationAsync())
             {
                 return;

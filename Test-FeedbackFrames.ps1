@@ -60,7 +60,7 @@ namespace KillConfirmGameBar.Services
                     Check((color >> 24) == 255, "Frame color must remain opaque.");
                 }
             }
-            return "PASS: " + testedFrames + " frame mappings across all 14 styles, unsupported-frame rejection, independent saved placements and six distinct colors.";
+            return "PASS: " + testedFrames + " frame mappings across all " + System.Enum.GetValues(typeof(GameStyleMode)).Length + " styles, unsupported-frame rejection, independent saved placements and six distinct colors.";
         }
     }
 }

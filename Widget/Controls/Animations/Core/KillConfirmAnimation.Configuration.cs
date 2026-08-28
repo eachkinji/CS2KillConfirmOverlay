@@ -73,6 +73,7 @@ namespace KillConfirmGameBar.Controls
                 && !GameStyleService.IsBattlefield2042Key(normalized)
                 && !GameStyleService.IsPubgKey(normalized)
                 && !GameStyleService.IsDeltaForceKey(normalized)
+                && !GameStyleService.IsCustomModuleKey(normalized)
                 && !GameStyleService.IsDoubaoKey(normalized)
                 && !GameStyleService.IsDagoujiaoKey(normalized)
                 && !GameStyleService.IsOverwatchKey(normalized)
@@ -122,6 +123,7 @@ namespace KillConfirmGameBar.Controls
 
         public void ReleaseAnimationResourcesForPackChange()
         {
+            ReleaseCustomSequence();
             _resourceGeneration++;
             _playToken++;
             _timer.Stop();

@@ -18,6 +18,7 @@ namespace KillConfirmGameBar
 
         private static string GetIconPackIconUri(string key)
         {
+            if (GameStyleService.IsCustomModuleKey(key)) return null;
             if (ValorantPackService.IsValorantPackKey(key))
             {
                 return GetValorantPackIconUri(key);
@@ -87,6 +88,8 @@ namespace KillConfirmGameBar
                     return "PUBG";
                 case "deltaforce":
                     return "Delta Force";
+                case "custommodule":
+                    return "自定义模块";
                 case "doubao":
                     return "豆包";
                 case "dagoujiao":
@@ -120,6 +123,8 @@ namespace KillConfirmGameBar
                     return "PUBG";
                 case "deltaforce":
                     return "Delta Force";
+                case "custommodule":
+                    return "自定义模块";
                 case "doubao":
                     return "豆包";
                 case "dagoujiao":

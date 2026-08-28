@@ -66,7 +66,7 @@ namespace KillConfirmGameBar.Services
         public static bool IsImportedIconPackKey(string key)
         {
             if (string.IsNullOrWhiteSpace(key)) return false;
-            return key.StartsWith("custom_icon_", StringComparison.OrdinalIgnoreCase)
+            return key.StartsWith("custom_module_icon_", StringComparison.OrdinalIgnoreCase) || key.StartsWith("custom_icon_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_csol_icon_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_dagoujiao_icon_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_doubao_icon_", StringComparison.OrdinalIgnoreCase)

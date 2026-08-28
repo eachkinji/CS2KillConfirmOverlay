@@ -50,6 +50,7 @@ namespace KillConfirmGameBar.Controls
                 // the new pack's preload to begin.
                 if (generation != _resourceGeneration)
                 {
+                    ReleaseCustomSequence();
                     ReleaseAllAnimationResourceCaches();
                 }
                 PreloadGate.Release();
@@ -58,6 +59,7 @@ namespace KillConfirmGameBar.Controls
 
         private Task PreloadCurrentPackAnimationsCoreAsync(IProgress<int> progress)
         {
+            if (GameStyleService.IsCustomModuleKey(_iconPack)) return PreloadCustomSequenceAsync(progress);
             if (GameStyleService.IsModernWarfare2019Key(_iconPack)
                 || GameStyleService.Current == GameStyleMode.ModernWarfare2019)
             {

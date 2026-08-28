@@ -115,6 +115,12 @@ mod tests {
 
     #[test]
     fn soundpack_alias_resolves_game_specific_presets() {
+        assert_eq!(super::resolve_soundpack_alias("custommodule"), Some("custommodule"));
+        assert_eq!(super::resolve_soundpack_alias("CUSTOMMODULE"), Some("custommodule"));
+        let silent = crate::soundpack::Preset::load("custommodule").unwrap();
+        assert_eq!(silent.preset_name, "custommodule");
+        assert!(silent.base_dir.is_empty());
+        assert!(silent.manifest.unwrap().audio.is_none());
         assert_eq!(super::resolve_soundpack_alias("csol4"), Some("csol4"));
         assert_eq!(super::resolve_soundpack_alias("csol"), Some("csol4"));
         assert_eq!(super::resolve_soundpack_alias("CSOL4"), Some("csol4"));

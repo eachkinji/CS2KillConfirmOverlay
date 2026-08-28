@@ -22,6 +22,7 @@ namespace KillConfirmGameBar
         private Battlefield2042AdvancedEffectsPanel _battlefield2042AdvancedEffectsPanel;
         private PubgAdvancedEffectsPanel _pubgAdvancedEffectsPanel;
         private DeltaForceAdvancedEffectsPanel _deltaForceAdvancedEffectsPanel;
+        private CustomModulePanel _customModulePanel;
         private DoubaoAdvancedEffectsPanel _doubaoAdvancedEffectsPanel;
         private DagoujiaoAdvancedEffectsPanel _dagoujiaoAdvancedEffectsPanel;
 
@@ -128,6 +129,15 @@ namespace KillConfirmGameBar
                     break;
                 case GameStyleMode.DeltaForce:
                     panel = EnsureDeltaForceAdvancedEffectsPanel();
+                    break;
+                case GameStyleMode.CustomModule:
+                    if (_customModulePanel == null)
+                    {
+                        _customModulePanel = new CustomModulePanel();
+                        _customModulePanel.StreakModeSelectionChanged += OnSharedStreakModeSelectionChanged;
+                        _customModulePanel.PlacementChanged += (s, e) => LoadAnimationPlacementSettings();
+                    }
+                    panel = _customModulePanel;
                     break;
                 case GameStyleMode.Doubao:
                     panel = EnsureDoubaoAdvancedEffectsPanel();

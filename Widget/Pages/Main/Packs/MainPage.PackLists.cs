@@ -404,6 +404,7 @@ namespace KillConfirmGameBar
 
                 StorageFile existingHeadImage = packFolder != null ? await TryGetCustomPackHeadImageAsync(packFolder.Path) : null;
 
+                if (packStyle == GameStyleMode.CustomModule) { await ShowCustomModuleEditorAsync(item.Key); return; }
                 if (packStyle == GameStyleMode.Dagoujiao)
                 {
                     var existingFiles = await CollectFilesFromPackFolderAsync(

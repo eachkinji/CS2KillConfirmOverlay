@@ -340,6 +340,13 @@ namespace KillConfirmGameBar
                 case GameStyleMode.DeltaForce:
                     PlayDeltaForcePrimaryAnimation(killEvent);
                     return;
+                case GameStyleMode.CustomModule:
+                    if (!killEvent.IsAssist && !killEvent.IsEconomyEvent && !IsBombObjectiveEvent(killEvent))
+                    {
+                        PlayAuxiliaryKillMarkIfEnabled(killEvent);
+                        LowerFeedbackAnimation.PlayCustomKill(killEvent.KillCount, killEvent.IsHeadshot);
+                    }
+                    break;
                 case GameStyleMode.Doubao:
                     PlayDoubaoPrimaryAnimation(killEvent);
                     return;

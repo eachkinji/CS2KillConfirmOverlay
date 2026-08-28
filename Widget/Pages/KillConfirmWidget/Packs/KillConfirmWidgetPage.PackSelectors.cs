@@ -372,6 +372,7 @@ namespace KillConfirmGameBar
 
         private static string GetVoicePackIconUri(string key)
         {
+            if (GameStyleService.IsCustomModuleKey(key)) return null;
             if (ValorantPackService.IsValorantPackKey(key))
             {
                 return GetValorantPackIconUri(key);

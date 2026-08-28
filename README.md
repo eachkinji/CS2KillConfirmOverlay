@@ -85,6 +85,7 @@ The project has grown from a simple kill-confirm sound tool into a configurable 
 - **Eleven built-in presentation styles** — CrossFire, CSOL, VALORANT, Battlefield 1, Battlefield V, Battlefield 4, Battlefield 2042, PUBG, Delta Force, Doubao, and Dagoujiao.
 - **Flexible streak logic** — life-based, round-based, and looped streak windows with a configurable loop point from 2 to 50 kills.
 - **Custom images and audio** — choose bundled assets or import supported images and voice lines for individual events and styles.
+- **Custom Module** — import CS2 Customizer kill-icon ZIPs or legacy frame folders, preview and tune playback, and export compatible packs. See the [format and usage guide (Chinese)](docs/CustomModule.md).
 - **Advanced audio control** — per-style priorities, volume controls, event-specific sounds, and configurable playback speed/pitch behavior.
 - **Bomb audio timeline** — optional sounds for plant, defuse, explosion, and new-round reset, with a smooth 40-second acceleration between configurable initial and final speeds.
 - **High-resolution visuals** — optimized rendering, positioning, and scaling for high-DPI displays and 4:3 fullscreen resolutions.

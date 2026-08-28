@@ -51,6 +51,8 @@ namespace KillConfirmGameBar.Services
                     return Pubg;
                 case GameStyleMode.DeltaForce:
                     return DeltaForce;
+                case GameStyleMode.CustomModule:
+                    return Home;
                 case GameStyleMode.Doubao:
                     return Doubao;
                 case GameStyleMode.Dagoujiao:

@@ -133,6 +133,8 @@ namespace KillConfirmGameBar
                     return _modernWarfare2019AdvancedEffectsPanel?.GetSelectedStreakMode(fallback) ?? fallback;
                 case GameStyleMode.DeltaForce:
                     return _deltaForceAdvancedEffectsPanel?.GetSelectedStreakMode(fallback) ?? fallback;
+                case GameStyleMode.CustomModule:
+                    return _customModulePanel?.GetSelectedStreakMode(fallback) ?? SharedStreakSettingsStore.Load(GameStyleMode.CustomModule);
                 case GameStyleMode.Doubao:
                     return _doubaoAdvancedEffectsPanel?.GetSelectedStreakMode(fallback) ?? fallback;
                 case GameStyleMode.Dagoujiao:
@@ -175,6 +177,8 @@ namespace KillConfirmGameBar
                 case GameStyleMode.DeltaForce:
                     _deltaForceAdvancedEffectsPanel?.SelectStreakMode(value);
                     break;
+                case GameStyleMode.CustomModule:
+                    _customModulePanel?.SelectStreakMode(value); break;
                 case GameStyleMode.Doubao:
                     _doubaoAdvancedEffectsPanel?.SelectStreakMode(value);
                     break;

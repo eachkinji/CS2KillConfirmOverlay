@@ -12,6 +12,10 @@ pub struct MoneyModeOption {
 
 const SOUND_PACK_OPTIONS: &[SoundPackOption] = &[
     SoundPackOption {
+        preset: "custommodule",
+        display_name: "Custom Module (silent)",
+    },
+    SoundPackOption {
         preset: "crossfire_swat_gr",
         display_name: "swat GR",
     },

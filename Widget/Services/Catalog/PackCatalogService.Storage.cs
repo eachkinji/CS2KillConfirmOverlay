@@ -136,6 +136,7 @@ namespace KillConfirmGameBar.Services
                     CreateBuiltInVoice(DagoujiaoAnimalsPackKey, "Animals", true),
                     CreateBuiltInVoice("overwatch", "OverWatch", true),
                     CreateBuiltInVoice("modernwarfare2019", "Modern Warfare 2019", true),
+                    CreateBuiltInVoice("custommodule", "自定义模块 · 无音效", true),
                     CreateBuiltInVoice("apex", "Apex Legends", true)
                 },
                 IconPacks = new List<IconPackItem>
@@ -160,6 +161,7 @@ namespace KillConfirmGameBar.Services
                     CreateBuiltInIcon(DagoujiaoAnimalsPackKey, "Animals", true),
                     CreateBuiltInIcon("overwatch", "OverWatch", true),
                     CreateBuiltInIcon("modernwarfare2019", "Modern Warfare 2019", true),
+                    CreateBuiltInIcon("custommodule", "自定义模块 · 导入素材", true),
                     CreateBuiltInIcon("apex", "Apex Legends", true)
                 }
             };

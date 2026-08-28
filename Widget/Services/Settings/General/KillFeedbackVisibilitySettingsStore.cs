@@ -114,6 +114,8 @@ namespace KillConfirmGameBar.Services
         {
             switch (style)
             {
+                case GameStyleMode.CustomModule:
+                    return "CustomModuleKillFeedback";
                 case GameStyleMode.ModernWarfare2019:
                     return "ModernWarfare2019KillFeedback";
                 case GameStyleMode.Apex:
@@ -150,6 +152,7 @@ namespace KillConfirmGameBar.Services
         private static bool DefaultCrosshairEnabled(GameStyleMode style)
         {
             return style != GameStyleMode.Crossfire
+                && style != GameStyleMode.CustomModule
                 && style != GameStyleMode.Pubg
                 && style != GameStyleMode.Csol
                 && style != GameStyleMode.Valorant;

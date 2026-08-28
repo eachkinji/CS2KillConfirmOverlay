@@ -258,6 +258,10 @@ namespace KillConfirmGameBar
             {
                 _legacyPrimaryPlacement = AnimationPlacementMode.Manual;
             }
+            else if (style == GameStyleMode.CustomModule && string.Equals(placement, nameof(AnimationPlacementMode.Center), StringComparison.OrdinalIgnoreCase))
+            {
+                _legacyPrimaryPlacement = AnimationPlacementMode.Center;
+            }
             else
             {
                 _legacyPrimaryPlacement = GetDefaultAnimationPlacement(style);
@@ -400,6 +404,8 @@ namespace KillConfirmGameBar
             GameStyleMode style,
             string savedPlacement)
         {
+            // This new style has no legacy defaults to migrate; preserve choices made in the main app.
+            if (style == GameStyleMode.CustomModule) return;
             string revisionKey = AnimationPlacementDefaultsRevisionKey + "." + GameStyleService.ToStorageValue(style);
             if (localSettings.Values[revisionKey] is bool applied && applied)
             {

@@ -22,6 +22,7 @@ namespace KillConfirmGameBar.Controls
     {
         private async void PlayInternal(Func<IProgress<int>, Task<AnimationAsset>> assetLoader)
         {
+            _customSequencePlaying = false;
             int resourceGeneration = _resourceGeneration;
             _contentSizedViewport = false;
             _isBattlefield1CompactLayoutActive = false;

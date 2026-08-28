@@ -10,6 +10,7 @@ namespace KillConfirmGameBar
         {
             TitleText.Text = LocalizationManager.Text("MainTitle");
             bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            CustomModuleStyleItem.Content = isChinese ? "自定义模块" : "Custom Module";
             ToolTipService.SetToolTip(HomeSidebarItem, isChinese ? "主页" : "Home");
 
             GameEffectsTitleText.Text = LocalizationManager.Text("GameEffectsTitle");
@@ -85,7 +86,9 @@ namespace KillConfirmGameBar
                 ImportIconMaterialButton.Content = isChinese ? "导入图标素材" : "Import Icon Material";
                 ImportIconPackButton.Content = LocalizationManager.Text("ImportIconPack");
                 ImportIconZipButton.Content = LocalizationManager.Text("ImportZip");
-                CreateIconPackButton.Content = LocalizationManager.Text("CreateIconPack");
+                CreateIconPackButton.Content = currentMode == GameStyleMode.CustomModule
+                    ? (isChinese ? "管理与预览素材" : "Manage & Preview")
+                    : LocalizationManager.Text("CreateIconPack");
             }
 
             if (HomeTabGeneralButton != null) HomeTabGeneralButton.Content = LocalizationManager.Text("HomeTabGeneral");
@@ -161,6 +164,20 @@ namespace KillConfirmGameBar
 
             switch (style)
             {
+                case GameStyleMode.CustomModule:
+                    body = isChinese
+                        ? "导入 CS2 Customizer 序列帧素材，在高级设置中预览并调整帧率、末帧停留、淡入淡出、位置和缩放。新击杀会替换当前动画。"
+                        : "Import CS2 Customizer frame sequences. Preview and adjust FPS, last-frame hold, fades, position and scale in Advanced Settings. A new kill replaces the current animation.";
+                    voice = isChinese ? "此模块只播放击杀图标，默认静音。" : "This module plays kill icons and is silent by default.";
+                    iconSummary = isChinese
+                        ? "支持 1～5 杀 PNG 图集及 JSON 配置，可选 1hs～5hs 爆头变体；也支持旧版逐帧目录。"
+                        : "Supports PNG sheets and JSON for kills 1–5, optional 1hs–5hs variants, and legacy frame folders.";
+                    iconFull = "style.json (optional)\n1.png + 1.json … 5.png + 5.json\n1hs.png + 1hs.json … 5hs.png + 5hs.json (optional)\nLegacy: 1/ … 5/ or kill1-1/ … kill1-5/";
+                    fileHint = isChinese
+                        ? "选择素材包所在目录或 ZIP。爆头素材缺失时使用同等级普通素材；缺少该等级则不显示。可导出兼容 ZIP 返回原库使用。GIF/APNG/动画 WebP 请先在原库转换为图集。"
+                        : "Select the pack folder or ZIP. Missing headshot variants fall back to the same normal level; missing levels stay hidden. Export a compatible ZIP for the reference app. Convert GIF/APNG/animated WebP to sheets there first.";
+                    break;
+
                 case GameStyleMode.Apex:
                     body = isChinese
                         ? "击杀时显示目标和金钱，助攻只显示目标。新提示从下方弹入，旧提示依次上移并淡出。"

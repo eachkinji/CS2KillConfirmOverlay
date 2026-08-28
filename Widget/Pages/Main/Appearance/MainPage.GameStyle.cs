@@ -29,6 +29,7 @@ namespace KillConfirmGameBar
         private Battlefield2042AdvancedEffectsPanel _battlefield2042AdvancedEffectsPanel;
         private PubgAdvancedEffectsPanel _pubgAdvancedEffectsPanel;
         private DeltaForceAdvancedEffectsPanel _deltaForceAdvancedEffectsPanel;
+        private CustomModulePanel _customModulePanel;
         private DoubaoAdvancedEffectsPanel _doubaoAdvancedEffectsPanel;
         private DagoujiaoAdvancedEffectsPanel _dagoujiaoAdvancedEffectsPanel;
 
@@ -60,6 +61,9 @@ namespace KillConfirmGameBar
             if (ImportIconPackButton != null) ImportIconPackButton.Visibility = iconCreationVisibility;
             if (ImportIconZipButton != null) ImportIconZipButton.Visibility = iconCreationVisibility;
             if (CreateIconPackButton != null) CreateIconPackButton.Visibility = iconCreationVisibility;
+            if (mode == GameStyleMode.CustomModule && ImportIconMaterialButton != null) ImportIconMaterialButton.Visibility = Visibility.Collapsed;
+            VoicePackCollectionsCard.Visibility = mode == GameStyleMode.CustomModule ? Visibility.Collapsed : Visibility.Visible;
+            VoiceCollectionsCard.Visibility = mode == GameStyleMode.CustomModule ? Visibility.Collapsed : Visibility.Visible;
 
             UpdateSettingsPageVisibility();
             if (_isHomePageSelected)
@@ -425,6 +429,14 @@ namespace KillConfirmGameBar
                     break;
                 case GameStyleMode.DeltaForce:
                     panel = EnsureDeltaForceAdvancedSettingsPanel();
+                    break;
+                case GameStyleMode.CustomModule:
+                    if (_customModulePanel == null)
+                    {
+                        _customModulePanel = new CustomModulePanel();
+                        _customModulePanel.StreakModeSelectionChanged += async (s, e) => await TrySyncSharedStreakSettingsAsync(GameStyleMode.CustomModule, SharedStreakSettingsStore.Load(GameStyleMode.CustomModule));
+                    }
+                    panel = _customModulePanel;
                     break;
                 case GameStyleMode.Doubao:
                     panel = EnsureDoubaoAdvancedSettingsPanel();

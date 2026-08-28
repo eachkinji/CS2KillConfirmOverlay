@@ -103,6 +103,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Services\CustomModule\CustomSequenceFormat.cs" />
+    <Compile Include="Services\CustomModule\CustomSequencePackService.cs" />
+    <Compile Include="Services\CustomModule\CustomModuleSettingsStore.cs" />
+    <Compile Include="Services\Catalog\PackCatalogService.CustomModule.cs" />
+    <Compile Include="Controls\Animations\CustomModule\CustomModuleAnimation.cs" />
+    <Compile Include="Controls\GameStyles\CustomModule\CustomModulePanel.cs" />
+    <Compile Include="Pages\Main\Packs\MainPage.CustomModule.cs" />
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>

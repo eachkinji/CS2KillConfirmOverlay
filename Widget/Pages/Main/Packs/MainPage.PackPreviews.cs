@@ -209,6 +209,7 @@ namespace KillConfirmGameBar
 
         private static string GetIconPackIconUri(IconPackItem item)
         {
+            if (GameStyleService.IsCustomModuleKey(item?.Key)) return null;
             switch ((item?.Key ?? string.Empty).Trim().ToLowerInvariant())
             {
                 case "vip":

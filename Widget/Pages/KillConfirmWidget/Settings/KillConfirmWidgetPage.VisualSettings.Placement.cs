@@ -158,6 +158,7 @@ namespace KillConfirmGameBar
                 case GameStyleMode.Battlefield2042:
                 case GameStyleMode.Pubg:
                 case GameStyleMode.DeltaForce:
+                case GameStyleMode.CustomModule:
                 case GameStyleMode.Doubao:
                 case GameStyleMode.Dagoujiao:
                     return AnimationPlacementMode.Bottom;
@@ -359,6 +360,9 @@ namespace KillConfirmGameBar
                     break;
                 case GameStyleMode.Doubao:
                     suffix = "Doubao";
+                    break;
+                case GameStyleMode.CustomModule:
+                    suffix = "CustomModule";
                     break;
                 case GameStyleMode.Dagoujiao:
                     suffix = "Dagoujiao";

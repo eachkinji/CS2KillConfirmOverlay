@@ -68,6 +68,7 @@ namespace KillConfirmGameBar.Controls
 
         private void DrawCurrentAnimationFrame(CanvasDrawingSession drawingSession)
         {
+            if (_customSequencePlaying) { DrawCustomSequenceFrame(drawingSession); return; }
             if (_isModernWarfare2019Active)
             {
                 DrawModernWarfare2019Frame(drawingSession);
@@ -324,6 +325,7 @@ namespace KillConfirmGameBar.Controls
 
         private void OnTick(object sender, object e)
         {
+            if (_customSequencePlaying) { UpdateCustomSequenceFrame(); return; }
             if (_isModernWarfare2019Active)
             {
                 UpdateModernWarfare2019Frame();

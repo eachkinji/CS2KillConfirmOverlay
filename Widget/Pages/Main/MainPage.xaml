@@ -107,6 +107,9 @@
                         <NavigationViewItem AutomationProperties.Name="大狗叫" Tag="dagoujiao" ToolTipService.ToolTip="大狗叫">
                             <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/dagoujiao.jpg" /></NavigationViewItem.Icon>
                         </NavigationViewItem>
+                        <NavigationViewItem AutomationProperties.Name="自定义模块" Tag="custommodule" ToolTipService.ToolTip="自定义模块">
+                            <NavigationViewItem.Icon><FontIcon FontFamily="Microsoft YaHei UI" FontSize="10" Glyph="自定义" /></NavigationViewItem.Icon>
+                        </NavigationViewItem>
                     </NavigationView.MenuItems>
                 </NavigationView>
             </Border>
@@ -167,6 +170,7 @@
                                 <ComboBoxItem x:Name="PubgStyleItem" Tag="pubg">PUBG (绝地求生)</ComboBoxItem>
                                 <ComboBoxItem x:Name="DeltaForceStyleItem" Tag="deltaforce">Delta Force (三角洲行动)</ComboBoxItem>
                                 <ComboBoxItem x:Name="DoubaoStyleItem" Tag="doubao">Doubao (豆包)</ComboBoxItem>
+                                <ComboBoxItem x:Name="CustomModuleStyleItem" Tag="custommodule">自定义模块</ComboBoxItem>
                                 <ComboBoxItem x:Name="DagoujiaoStyleItem" Tag="dagoujiao">Big Dog Bark (大狗叫)</ComboBoxItem>
                             </ComboBox>
                         </StackPanel>

@@ -4,26 +4,36 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Threading;
+using System.Runtime.Serialization;
 using KillConfirmGameBar.Services;
 using Windows.Storage;
 using Windows.Graphics.Imaging;
 
 namespace KillConfirmGameBar.Services
 {
-    public sealed class IconPackItem { public string Key; public string FolderPath; public string DisplayName; }
-    public static class PackCatalogService
+    [DataContract]
+    public sealed class IconPackItem
     {
-        internal static readonly Dictionary<string, IconPackItem> Packs = new Dictionary<string, IconPackItem>();
+        [DataMember] public string Key;
+        [DataMember] public string FolderPath;
+        [DataMember] public string DisplayName;
+        [DataMember] public bool IsBuiltIn, IsVisibleInWidget, OwnsFolder;
+    }
+    [DataContract]
+    public sealed class PackCatalog { [DataMember] public List<IconPackItem> IconPacks = new List<IconPackItem>(); }
+    internal static class App { internal static void Log(string text) { } }
+    public static partial class PackCatalogService
+    {
+        internal static readonly PackCatalog Catalog = new PackCatalog();
+        private static readonly SemaphoreSlim CatalogIoLock = new SemaphoreSlim(1, 1);
+        internal const string CatalogFileName = "catalog.json";
+        internal static event EventHandler CatalogChanged;
+        private static Task<PackCatalog> LoadAsync() => Task.FromResult(Catalog);
         public static Task<StorageFolder> GetGameIconPacksFolderAsync(string key)
             => TestApplicationData.Current.LocalFolder.CreateFolderAsync("packs", CreationCollisionOption.OpenIfExists).AsTask();
-        internal static Task<IconPackItem> RegisterCustomSequencePackAsync(StorageFolder folder, string name)
-        {
-            var pack = new IconPackItem { Key = Guid.NewGuid().ToString("N"), FolderPath = folder.Path, DisplayName = name };
-            Packs.Add(pack.Key, pack);
-            return Task.FromResult(pack);
-        }
         public static Task<StorageFolder> GetImportedIconFolderAsync(string key)
-            => StorageFolder.GetFolderFromPathAsync(Packs[key].FolderPath).AsTask();
+            => StorageFolder.GetFolderFromPathAsync(Catalog.IconPacks.Single(p => p.Key == key).FolderPath).AsTask();
     }
 
     public sealed class TestApplicationData
@@ -181,7 +191,7 @@ internal static class Harness
         {
             var decoder = await BitmapDecoder.CreateAsync(stream);
             byte[] pixels = (await decoder.GetPixelDataAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Straight, new BitmapTransform(), ExifOrientationMode.IgnoreExifOrientation, ColorManagementMode.DoNotColorManage)).DetachPixelData();
-            Check(pixels[2] == 100 && pixels[4 * 4 + 2] == 200, "legacy ordinal frame order");
+            Check(pixels[2] == 200 && pixels[4 * 4 + 2] == 100, "importer numeric frame order (2 before 10)");
             Check(pixels[3] == 128, "alpha retained");
         }
         var unsafeZip = await Zip(local, "unsafe.zip", new Dictionary<string, byte[]> { ["../escaped.png"] = new byte[] { 1 } });
@@ -204,11 +214,157 @@ internal static class Harness
         await Reject(async () => await CustomSequencePackService.ImportZipAsync(compressed), "compression ratio limit");
         await FileIO.WriteTextAsync(await source.GetFileAsync("1.json"), "{\"padding\":\"" + new string('x', 1024 * 1024) + "\"}");
         await Reject(async () => await CustomSequencePackService.ImportFolderAsync(source), "JSON size limit");
-        int before = PackCatalogService.Packs.Count;
+        int before = PackCatalogService.Catalog.IconPacks.Count;
         await FileIO.WriteTextAsync(await source.GetFileAsync("1.json"), "{\"frame_width\":9999,\"frame_height\":1,\"frames\":2,\"cols\":2}");
         await Reject(async () => await CustomSequencePackService.ImportFolderAsync(source), "invalid grid rejected");
-        Check(before == PackCatalogService.Packs.Count, "failed import not registered");
+        Check(before == PackCatalogService.Catalog.IconPacks.Count, "failed import not registered");
         Check((await TestApplicationData.Current.TemporaryFolder.GetFoldersAsync()).Count == 0, "ZIP staging cleaned");
+        var aliasNames = new[] { "1.png", "kill2.json", "3kill.png", "ace.webp", "三杀", "single-headshot.png", "双杀_爆头", "5HEAD.png", "junk.png", "6.png", "hs.png" };
+        using (var aliases = new StreamWriter(Path.Combine(root, "aliases.tsv"), false, new System.Text.UTF8Encoding(false)))
+            foreach (string name in aliasNames) aliases.WriteLine(name + "\t" + (CustomSequenceFormat.ParseLevelName(name) ?? ""));
+        Check(CustomSequenceFormat.ParseLevelName("三杀_爆头.png") == "3hs", "localized level/headshot alias");
+        Check(CustomSequenceFormat.ParseLevelName("kill1-5") == "5", "legacy folder alias retained");
+        Check(CustomSequenceFormat.CompareFrameNames("frame-2.png", "frame-10.png") < 0, "numeric frame order");
+        Check(CustomSequenceFormat.CompareFrameNames("clip9-frame2.png", "clip1-frame3.png") < 0, "last numeric group decides order");
+        Check(CustomSequenceFormat.CompareFrameNames("999999999999999999999.png", "10.png") > 0, "large sequence numbers do not overflow");
+
+        var notes = new List<string>();
+        var looseZip = await Zip(local, "loose.zip", new Dictionary<string, byte[]>
+        {
+            ["Theme/kill1.png"] = File.ReadAllBytes(png.Path),
+            ["Theme/ace.png"] = File.ReadAllBytes(png.Path),
+            ["Theme/三杀_爆头/10.png"] = File.ReadAllBytes(png.Path),
+            ["Theme/三杀_爆头/2.png"] = File.ReadAllBytes(png.Path)
+        });
+        var loose = await CustomSequencePackService.ImportZipAsync(looseZip, warnings: notes);
+        Check(loose.DisplayName == "Theme", "wrapper folder supplies missing pack name");
+        var looseFolder = await StorageFolder.GetFolderFromPathAsync(loose.FolderPath);
+        Check(await CustomSequencePackService.ResolveSlotAsync(looseFolder, 5, false) == "5", "ace static image imported");
+        Check(await CustomSequencePackService.ResolveSlotAsync(looseFolder, 3, true) == "3hs", "headshot frame folder imported");
+        Check((await CustomSequencePackService.ReadMetadataAsync(looseFolder, "1")).HoldSeconds == 1, "single-frame default hold");
+        await FileIO.WriteTextAsync(await looseFolder.CreateFileAsync("style.json", CreationCollisionOption.ReplaceExisting), "{broken");
+        var looseAgain = await CustomSequencePackService.ImportFolderAsync(looseFolder, warnings: notes);
+        Check(notes.Any(n => n.Contains("style.json")), "invalid optional manifest reported and ignored");
+
+        notes.Clear();
+        var mixed = await Zip(local, "mixed.zip", new Dictionary<string, byte[]>
+        {
+            ["1.png"] = File.ReadAllBytes(png.Path),
+            ["1.json"] = System.Text.Encoding.UTF8.GetBytes(metadata),
+            ["2.png"] = File.ReadAllBytes(png.Path),
+            ["ace.png"] = File.ReadAllBytes(png.Path)
+        });
+        var mixedPack = await CustomSequencePackService.ImportZipAsync(mixed, warnings: notes);
+        var mixedFolder = await StorageFolder.GetFolderFromPathAsync(mixedPack.FolderPath);
+        Check(notes.Any(n => n.Contains("2")), "incomplete standard pair is reported");
+        Check(await CustomSequencePackService.ResolveSlotAsync(mixedFolder, 2, false) == null, "standard package skips incomplete pair");
+        Check(await CustomSequencePackService.ResolveSlotAsync(mixedFolder, 5, false) == null, "standard pairs precede loose inputs");
+
+        var priorityRoot = await local.CreateFolderAsync("priority");
+        await png.CopyAsync(priorityRoot, "triple.png");
+        await FileIO.WriteTextAsync(await priorityRoot.CreateFileAsync("triple.json"), metadata);
+        var lowerPriority = await priorityRoot.CreateFolderAsync("3");
+        await Image(lowerPriority, "0.png", 10);
+        var priorityPack = await CustomSequencePackService.ImportFolderAsync(priorityRoot);
+        Check((await CustomSequencePackService.ReadMetadataAsync(await StorageFolder.GetFolderFromPathAsync(priorityPack.FolderPath), "3")).Fps == 10, "JSON beats loose image and frame directory");
+
+        var frameFiles = await frames.GetFilesAsync();
+        var draft = new[] { new CustomSequenceInput { Slot = "2hs", Frames = frameFiles, Fps = 24, Hold = .75 } };
+        var custom = await CustomSequencePackService.SavePackAsync("Draft", draft);
+        var customFolder = await StorageFolder.GetFolderFromPathAsync(custom.FolderPath);
+        var customMetadata = await CustomSequencePackService.ReadMetadataAsync(customFolder, "2hs");
+        Check(customMetadata.Frames == 2 && customMetadata.Fps == 24 && customMetadata.HoldSeconds == .75, "manual frames assigned to chosen slot with asset timing");
+        Check(await CustomSequencePackService.ResolveSlotAsync(customFolder, 1, false) == null, "new editor does not manufacture other kill levels");
+        custom.IsVisibleInWidget = false;
+        int catalogCount = PackCatalogService.Catalog.IconPacks.Count;
+        var originalPath = custom.FolderPath;
+        var edit = await CustomSequencePackService.SavePackAsync("Renamed", new[] {
+            new CustomSequenceInput { Slot = "1", Frames = frameFiles, Fps = 40, Hold = .2 }
+        }, customFolder, custom.Key);
+        Check(edit.Key == custom.Key && edit.DisplayName == "Renamed" && !edit.IsVisibleInWidget, "edit preserves key/visibility");
+        Check(catalogCount == PackCatalogService.Catalog.IconPacks.Count, "edit replaces rather than duplicates");
+        Check(!Directory.Exists(originalPath), "owned old copy cleaned only after save");
+        var editedFolder = await StorageFolder.GetFolderFromPathAsync(edit.FolderPath);
+        Check(await CustomSequencePackService.ResolveSlotAsync(editedFolder, 2, true) == null, "cleared slot not copied back during edit");
+        string catalogBeforeFailure = await FileIO.ReadTextAsync(await local.GetFileAsync(PackCatalogService.CatalogFileName));
+        var invalidInput = new[] { new CustomSequenceInput { Slot = "1", Metadata = await source.GetFileAsync("1.json"), Sheet = png } };
+        await Reject(async () => await CustomSequencePackService.SavePackAsync("Broken", invalidInput, editedFolder, edit.Key), "failed replacement rejected");
+        Check(Directory.Exists(edit.FolderPath) && (await CustomSequencePackService.ReadMetadataAsync(editedFolder, "1")).Fps == 40, "failed replacement keeps existing assets");
+        Check(catalogBeforeFailure == await FileIO.ReadTextAsync(await local.GetFileAsync(PackCatalogService.CatalogFileName)), "failed edit leaves persisted catalog unchanged");
+        await Reject(async () => await CustomSequencePackService.SavePackAsync("Empty", new CustomSequenceInput[0], editedFolder, edit.Key), "empty editor cannot erase old pack");
+        await Reject(async () => await CustomSequencePackService.SavePackAsync("Escape", new[] { new CustomSequenceInput { Slot = "../1", Frames = frameFiles } }), "manual slot path rejected");
+
+        // Exercise the production catalog write failure and rollback, not a mock save.
+        var persistedCatalog = await local.GetFileAsync(PackCatalogService.CatalogFileName);
+        await persistedCatalog.RenameAsync("catalog.saved.json");
+        var blockedCatalog = await local.CreateFolderAsync(PackCatalogService.CatalogFileName);
+        var packRoot = await PackCatalogService.GetGameIconPacksFolderAsync("custommodule");
+        int foldersBeforeFailure = (await packRoot.GetFoldersAsync()).Count;
+        bool saveFailed = false;
+        try { await CustomSequencePackService.SavePackAsync("Cannot save", draft, editedFolder, edit.Key); }
+        catch { saveFailed = true; }
+        Check(saveFailed && PackCatalogService.Catalog.IconPacks.Single(p => p.Key == edit.Key).FolderPath == edit.FolderPath, "catalog persistence failure rolls back memory");
+        Check((await packRoot.GetFoldersAsync()).Count == foldersBeforeFailure, "failed save discards staged material");
+        Check(!(await local.GetFilesAsync()).Any(f => f.Name.StartsWith("custom-catalog-", StringComparison.Ordinal)), "catalog temporary file cleaned");
+        await blockedCatalog.DeleteAsync();
+        await persistedCatalog.RenameAsync(PackCatalogService.CatalogFileName);
+        Check(File.ReadAllBytes(png.Path).SequenceEqual(inputs["wrapper/1.png"]), "source images never modified");
+        notes.Clear();
+        var capped = await CustomSequencePackService.SavePackAsync("Capped", new[] {
+            new CustomSequenceInput { Slot = "1", Frames = Enumerable.Repeat(png, 601).ToList() }
+        }, warnings: notes);
+        Check(notes.Any(n => n.Contains("600")) && (await CustomSequencePackService.ReadMetadataAsync(
+            await StorageFolder.GetFolderFromPathAsync(capped.FolderPath), "1")).Frames == 600, "frame truncation is reported");
+        var animatedPng = await local.CreateFileAsync("animated.png");
+        byte[] pngBytes = File.ReadAllBytes(png.Path);
+        byte[] animationChunk = { 0, 0, 0, 8, 97, 99, 84, 76, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0 };
+        uint crc = 0xffffffff;
+        foreach (byte value in animationChunk.Skip(4).Take(12))
+        {
+            crc ^= value;
+            for (int bit = 0; bit < 8; bit++) crc = (crc >> 1) ^ ((crc & 1) == 0 ? 0 : 0xedb88320);
+        }
+        crc ^= 0xffffffff;
+        for (int i = 0; i < 4; i++) animationChunk[16 + i] = (byte)(crc >> (24 - 8 * i));
+        File.WriteAllBytes(animatedPng.Path, pngBytes.Take(33).Concat(animationChunk).Concat(pngBytes.Skip(33)).ToArray());
+        await Reject(async () => await CustomSequencePackService.SavePackAsync("APNG", new[] {
+            new CustomSequenceInput { Slot = "1", Frames = new[] { animatedPng } }
+        }), "APNG cannot silently flatten into first frame");
+        var emptyName = await Zip(local, "fallback-name.zip", new Dictionary<string, byte[]>
+        {
+            ["1.png"] = File.ReadAllBytes(png.Path), ["1.json"] = System.Text.Encoding.UTF8.GetBytes(metadata),
+            ["style.json"] = System.Text.Encoding.UTF8.GetBytes("{\"name\":\"\"}")
+        });
+        Check((await CustomSequencePackService.ImportZipAsync(emptyName)).DisplayName == "fallback-name", "empty manifest name uses ZIP name");
+
+        notes.Clear();
+        var partlyBroken = await Zip(local, "partial.zip", new Dictionary<string, byte[]>
+        {
+            ["1.png"] = File.ReadAllBytes(png.Path), ["1.json"] = System.Text.Encoding.UTF8.GetBytes(metadata),
+            ["2.png"] = File.ReadAllBytes(png.Path), ["2.json"] = System.Text.Encoding.UTF8.GetBytes("{\"frame_width\":9999,\"frame_height\":1,\"frames\":2}")
+        });
+        var partial = await CustomSequencePackService.ImportZipAsync(partlyBroken, warnings: notes);
+        var partialFolder = await StorageFolder.GetFolderFromPathAsync(partial.FolderPath);
+        Check(notes.Any(n => n.Contains("2:")) && await CustomSequencePackService.ResolveSlotAsync(partialFolder, 2, false) == null, "damaged standard level is reported and not registered");
+        Check(await CustomSequencePackService.ResolveSlotAsync(partialFolder, 1, false) == "1", "valid level survives partial package import");
+
+        var small = await local.CreateFileAsync("2.png");
+        using (var stream = await small.OpenAsync(FileAccessMode.ReadWrite))
+        {
+            var encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.PngEncoderId, stream);
+            encoder.SetPixelData(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Straight, 2, 1, 96, 96, new byte[] { 0, 0, 66, 255, 0, 0, 77, 255 });
+            await encoder.FlushAsync();
+        }
+        var aligned = await CustomSequencePackService.SavePackAsync("Centered", new[] {
+            new CustomSequenceInput { Slot = "1", Frames = new[] { png, small } }
+        });
+        using (var stream = await (await (await StorageFolder.GetFolderFromPathAsync(aligned.FolderPath)).GetFileAsync("1.png")).OpenReadAsync())
+        {
+            var decoder = await BitmapDecoder.CreateAsync(stream);
+            byte[] pixels = (await decoder.GetPixelDataAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Straight, new BitmapTransform(),
+                ExifOrientationMode.IgnoreExifOrientation, ColorManagementMode.DoNotColorManage)).DetachPixelData();
+            Check(pixels[4 * 4 + 3] == 0 && pixels[5 * 4 + 2] == 66, "unequal frames centered without resampling or losing transparency");
+        }
         Console.WriteLine("PASS: " + checks + " custom-sequence checks using production format/import/export code and Windows image codecs.");
         Console.WriteLine("Roundtrip fixture: " + output.Path);
     }

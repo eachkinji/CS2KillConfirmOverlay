@@ -517,6 +517,16 @@ namespace KillConfirmGameBar
             buttonPanel.Children.Add(editButton);
             buttonPanel.Children.Add(deleteButton);
             var preview = CreatePackPreviewImage(GetIconPackIconUri(item));
+            if (visualStyle == GameStyleMode.CustomModule)
+            {
+                var exportButton = new Button
+                {
+                    Content = LocalizationManager.Current == UiLanguage.SimplifiedChinese ? "导出" : "Export",
+                    FontSize = 11, Padding = new Thickness(8, 3, 8, 3), Margin = new Thickness(4, 0, 0, 0)
+                };
+                exportButton.Click += async (_, __) => await ExportCustomModuleAsync(item);
+                buttonPanel.Children.Add(exportButton);
+            }
             await TryApplyCustomPackPreviewAsync(preview, item?.FolderPath, IconPackHeadImageNames);
             var row = new Grid { ColumnSpacing = 8 };
             row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });

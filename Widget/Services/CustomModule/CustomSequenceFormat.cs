@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace KillConfirmGameBar.Services
 {
@@ -27,6 +28,46 @@ namespace KillConfirmGameBar.Services
         public const long MaxSourcePixels = 67108864;
         public const long MaxArchiveBytes = 512L * 1024 * 1024;
         public const int MaxArchiveEntries = 3200;
+
+        // Match CS2 Customizer's importer, independently of its legacy player.
+        public static string ParseLevelName(string name)
+        {
+            string stem = Path.GetFileNameWithoutExtension(name ?? "").Trim().ToLowerInvariant();
+            string variant = "";
+            foreach (string suffix in new[] { "hs", "headshot", "head", "爆头" })
+                if (stem.Length > suffix.Length && stem.EndsWith(suffix, StringComparison.Ordinal))
+                {
+                    stem = stem.Substring(0, stem.Length - suffix.Length).Trim(' ', '-', '_');
+                    variant = "hs";
+                    break;
+                }
+            string[][] aliases = {
+                new[] { "1", "kill1", "1kill", "single", "一杀", "单杀", "kill1-1" },
+                new[] { "2", "kill2", "2kill", "double", "二杀", "双杀", "kill1-2" },
+                new[] { "3", "kill3", "3kill", "triple", "三杀", "kill1-3" },
+                new[] { "4", "kill4", "4kill", "quad", "四杀", "kill1-4" },
+                new[] { "5", "kill5", "5kill", "ace", "penta", "五杀", "团灭", "kill1-5" }
+            };
+            for (int level = 0; level < aliases.Length; level++)
+                if (Array.IndexOf(aliases[level], stem) >= 0) return (level + 1).ToString() + variant;
+            return null;
+        }
+
+        public static bool IsSlot(string slot) => slot != null && Regex.IsMatch(slot, "^[1-5](hs)?$");
+
+        public static int CompareFrameNames(string left, string right)
+        {
+            string LastNumber(string name)
+            {
+                MatchCollection matches = Regex.Matches(name, "[0-9]+");
+                string value = matches.Count == 0 ? "0" : matches[matches.Count - 1].Value.TrimStart('0');
+                return value.Length == 0 ? "0" : value;
+            }
+            string a = LastNumber(left), b = LastNumber(right);
+            int order = a.Length.CompareTo(b.Length);
+            if (order == 0) order = StringComparer.Ordinal.Compare(a, b);
+            return order != 0 ? order : StringComparer.Ordinal.Compare(left, right);
+        }
 
         public static int ClampFps(double value)
         {

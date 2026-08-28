@@ -87,7 +87,7 @@ namespace KillConfirmGameBar
                 ImportIconPackButton.Content = LocalizationManager.Text("ImportIconPack");
                 ImportIconZipButton.Content = LocalizationManager.Text("ImportZip");
                 CreateIconPackButton.Content = currentMode == GameStyleMode.CustomModule
-                    ? (isChinese ? "管理与预览素材" : "Manage & Preview")
+                    ? (isChinese ? "自定义" : "Customize")
                     : LocalizationManager.Text("CreateIconPack");
             }
 
@@ -166,16 +166,16 @@ namespace KillConfirmGameBar
             {
                 case GameStyleMode.CustomModule:
                     body = isChinese
-                        ? "导入 CS2 Customizer 序列帧素材，在高级设置中预览并调整帧率、末帧停留、淡入淡出、位置和缩放。新击杀会替换当前动画。"
-                        : "Import CS2 Customizer frame sequences. Preview and adjust FPS, last-frame hold, fades, position and scale in Advanced Settings. A new kill replaces the current animation.";
+                        ? "在图标包库中自定义逐帧图标，或导入 CS2 Customizer 素材包。效果测试和位置调整沿用现有功能；高级设置仅调整播放规则。"
+                        : "Create frame icons in the icon library or import CS2 Customizer packs. Use the existing tests and position controls; Advanced Settings only adjusts playback rules.";
                     voice = isChinese ? "此模块只播放击杀图标，默认静音。" : "This module plays kill icons and is silent by default.";
                     iconSummary = isChinese
-                        ? "支持 1～5 杀 PNG 图集及 JSON 配置，可选 1hs～5hs 爆头变体；也支持旧版逐帧目录。"
-                        : "Supports PNG sheets and JSON for kills 1–5, optional 1hs–5hs variants, and legacy frame folders.";
+                        ? "自定义时直接选择帧图片或帧目录，程序自动生成图集。整包支持 1～5 杀及爆头变体，也识别 kill1、ace、三杀等命名。"
+                        : "Choose images or frame folders when customizing; sheets are generated automatically. Packs support kills 1–5, headshot variants and names such as kill1, ace or 三杀.";
                     iconFull = "style.json (optional)\n1.png + 1.json … 5.png + 5.json\n1hs.png + 1hs.json … 5hs.png + 5hs.json (optional)\nLegacy: 1/ … 5/ or kill1-1/ … kill1-5/";
                     fileHint = isChinese
-                        ? "选择素材包所在目录或 ZIP。爆头素材缺失时使用同等级普通素材；缺少该等级则不显示。可导出兼容 ZIP 返回原库使用。GIF/APNG/动画 WebP 请先在原库转换为图集。"
-                        : "Select the pack folder or ZIP. Missing headshot variants fall back to the same normal level; missing levels stay hidden. Export a compatible ZIP for the reference app. Convert GIF/APNG/animated WebP to sheets there first.";
+                        ? "整包请选择目录或 ZIP；单组帧图片请点“自定义”。帧按文件名最后一组数字排序。库内支持编辑及导出兼容 ZIP。GIF/APNG/动画 WebP 请先在 CS2 Customizer 转换为图集。"
+                        : "Import a pack folder or ZIP; use Customize for individual frame sequences. Frames sort by the last number in each filename. Edit and export compatible ZIPs from the library. Convert GIF/APNG/animated WebP to sheets in CS2 Customizer first.";
                     break;
 
                 case GameStyleMode.Apex:

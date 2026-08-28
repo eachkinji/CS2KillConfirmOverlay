@@ -11,7 +11,7 @@ using Windows.Storage.Streams;
 
 namespace KillConfirmGameBar.Services
 {
-    internal static class CustomSequencePackService
+    internal static partial class CustomSequencePackService
     {
         internal static readonly string[] ImageExtensions = { ".png", ".jpg", ".jpeg", ".bmp", ".webp" };
 
@@ -43,6 +43,7 @@ namespace KillConfirmGameBar.Services
         {
             JsonObject json = await ReadJsonAsync(folder, slot + ".json");
             var file = await folder.GetFileAsync(slot + ".png");
+            await RejectAnimatedPngAsync(file);
             using (IRandomAccessStream stream = await file.OpenReadAsync())
             {
                 BitmapDecoder decoder = await BitmapDecoder.CreateAsync(stream);
@@ -88,7 +89,7 @@ namespace KillConfirmGameBar.Services
             return (int)value;
         }
 
-        public static async Task<IconPackItem> ImportZipAsync(StorageFile zip, IProgress<string> progress = null)
+        public static async Task<IconPackItem> ImportZipAsync(StorageFile zip, IProgress<string> progress = null, ICollection<string> warnings = null)
         {
             StorageFolder temporary = await ApplicationData.Current.TemporaryFolder.CreateFolderAsync(
                 "CustomSequence_" + Guid.NewGuid().ToString("N"), CreationCollisionOption.FailIfExists);
@@ -137,90 +138,32 @@ namespace KillConfirmGameBar.Services
                         }
                     }
                 }
-                return await ImportFolderAsync(temporary, progress, zip.DisplayName);
+                return await ImportFolderAsync(temporary, progress, zip.DisplayName, warnings);
             }
             finally { await temporary.DeleteAsync(StorageDeleteOption.PermanentDelete); }
         }
 
-        public static async Task<IconPackItem> ImportFolderAsync(StorageFolder source, IProgress<string> progress = null, string fallbackName = null)
+        public static async Task<IconPackItem> ImportFolderAsync(StorageFolder source, IProgress<string> progress = null,
+            string fallbackName = null, ICollection<string> warnings = null)
         {
+            StorageFolder selectedFolder = source;
             source = await FindStyleFolderAsync(source);
-            JsonObject manifest = await ReadJsonAsync(source, "style.json");
-            string name = Text(manifest, "name", fallbackName ?? source.DisplayName).Trim();
-            if (string.IsNullOrEmpty(name)) name = "Custom";
-            StorageFolder root = await PackCatalogService.GetGameIconPacksFolderAsync("custommodule");
-            StorageFolder destination = await root.CreateFolderAsync(Guid.NewGuid().ToString("N"), CreationCollisionOption.FailIfExists);
-            bool registered = false;
-            try
-            {
-                int imported = 0;
-                long totalBytes = 0;
-                var levels = new JsonArray();
-                for (int level = 1; level <= 5; level++)
-                {
-                    foreach (string suffix in new[] { "", "hs" })
-                    {
-                        string slot = level + suffix;
-                        progress?.Report("Import / 导入 " + slot);
-                        StorageFile sheet = await source.TryGetItemAsync(slot + ".png") as StorageFile;
-                        StorageFile metadata = await source.TryGetItemAsync(slot + ".json") as StorageFile;
-                        if (sheet != null && metadata != null)
-                        {
-                            totalBytes += (long)(await sheet.GetBasicPropertiesAsync()).Size;
-                            if (totalBytes > CustomSequenceFormat.MaxArchiveBytes) throw new InvalidDataException("Pack too large / 素材包过大。");
-                            await Task.Run(() => ReadMetadataAsync(source, slot, validatePixels: true));
-                            await sheet.CopyAsync(destination, sheet.Name, NameCollisionOption.FailIfExists);
-                            await metadata.CopyAsync(destination, metadata.Name, NameCollisionOption.FailIfExists);
-                        }
-                        else if (suffix == "" && (await source.TryGetItemAsync(level.ToString()) as StorageFolder
-                            ?? await source.TryGetItemAsync("kill1-" + level) as StorageFolder) is StorageFolder sequence)
-                        {
-                            await Task.Run(() => ConvertLegacyAsync(sequence, source, destination, slot));
-                        }
-                        else
-                        {
-                            if (sheet != null || metadata != null)
-                                throw new InvalidDataException(slot + ": missing PNG/JSON pair / 缺少配套 PNG 或 JSON。");
-                            continue;
-                        }
-                        imported++;
-                        levels.Add(JsonValue.CreateStringValue(slot));
-                    }
-                }
-                if (imported == 0) throw new InvalidDataException("No 1–5 frame animations found / 未找到 1～5 杀图集或逐帧目录。");
-                manifest["pack_version"] = JsonValue.CreateNumberValue(1);
-                manifest["name"] = JsonValue.CreateStringValue(name);
-                manifest["levels"] = levels;
-                StorageFile style = await destination.CreateFileAsync("style.json");
-                await FileIO.WriteTextAsync(style, manifest.Stringify());
-                foreach (string extra in new[] { "preview.png", "readme.txt", "readme.md", "license.txt" })
-                {
-                    if (await source.TryGetItemAsync(extra) is StorageFile file)
-                    {
-                        if ((await file.GetBasicPropertiesAsync()).Size > 16 * 1024 * 1024) throw new InvalidDataException("Attachment too large / 附件过大。");
-                        await file.CopyAsync(destination, extra, NameCollisionOption.ReplaceExisting);
-                    }
-                }
-                long storedBytes = 0;
-                foreach (StorageFile file in await destination.GetFilesAsync())
-                    storedBytes += (long)(await file.GetBasicPropertiesAsync()).Size;
-                if (storedBytes > CustomSequenceFormat.MaxArchiveBytes)
-                    throw new InvalidDataException("Pack too large / 素材包过大。");
-                IconPackItem pack = await PackCatalogService.RegisterCustomSequencePackAsync(destination, name);
-                registered = true;
-                return pack;
-            }
-            finally { if (!registered) await destination.DeleteAsync(StorageDeleteOption.PermanentDelete); }
+            string selectedName = source.Path == selectedFolder.Path ? fallbackName ?? source.DisplayName : source.DisplayName;
+            JsonObject manifest = await ReadManifestAsync(source, warnings);
+            string name = Text(manifest, "name", selectedName).Trim();
+            if (string.IsNullOrEmpty(name)) name = selectedName;
+            var inputs = await ReadInputsAsync(source, warnings);
+            if (inputs.Count == 0) throw new InvalidDataException(
+                "No kill levels found / 未找到击杀等级。整包请按 1～5、1hs～5hs 或 kill1、ace、三杀等命名；只有一组帧图片时请使用图标包库的“自定义”按钮。");
+            return await SavePackAsync(name, inputs, source, progress: progress, warnings: warnings, allowPartial: true);
         }
 
         private static async Task<StorageFolder> FindStyleFolderAsync(StorageFolder folder)
         {
             for (int depth = 0; depth < 5; depth++)
             {
-                for (int i = 1; i <= 5; i++)
-                    if (await folder.TryGetItemAsync(i + ".json") != null || await folder.TryGetItemAsync(i + "hs.json") != null
-                        || await folder.TryGetItemAsync(i.ToString()) is StorageFolder || await folder.TryGetItemAsync("kill1-" + i) is StorageFolder)
-                        return folder;
+                if ((await folder.GetItemsAsync()).Any(item => CustomSequenceFormat.ParseLevelName(item.Name) != null))
+                    return folder;
                 var children = await folder.GetFoldersAsync();
                 if (children.Count != 1) break;
                 folder = children[0];
@@ -228,18 +171,24 @@ namespace KillConfirmGameBar.Services
             return folder;
         }
 
-        private static async Task ConvertLegacyAsync(StorageFolder frames, StorageFolder source, StorageFolder target, string slot)
+        private static async Task ConvertFramesAsync(IReadOnlyList<StorageFile> frames, StorageFolder target,
+            string slot, int fps, double hold, ICollection<string> warnings)
         {
-            // Direct legacy playback uses ordinal filename order in the reference player.
-            StorageFile[] files = (await frames.GetFilesAsync()).Where(f => ImageExtensions.Contains(f.FileType.ToLowerInvariant()))
-                .OrderBy(f => f.Name, StringComparer.Ordinal).Take(CustomSequenceFormat.MaxFrames).ToArray();
-            if (files.Length == 0) throw new InvalidDataException(slot + ": empty frame directory / 逐帧目录为空。");
+            StorageFile[] ordered = frames.Where(f => ImageExtensions.Contains(f.FileType.ToLowerInvariant()))
+                .OrderBy(f => f.Name, Comparer<string>.Create(CustomSequenceFormat.CompareFrameNames)).ToArray();
+            if (ordered.Length == 0) throw new InvalidDataException(slot + ": no supported static frames / 没有支持的静态帧。GIF/APNG/动画 WebP 请先导出为 CS2 Customizer 图集包。");
+            if (ordered.Length > CustomSequenceFormat.MaxFrames)
+                warnings?.Add(slot + ": using first 600 frames / 超过 600 帧，仅导入前 600 张。");
+            StorageFile[] files = ordered.Take(CustomSequenceFormat.MaxFrames).ToArray();
             int width = 0, height = 0;
             foreach (StorageFile file in files)
             {
+                await RejectAnimatedPngAsync(file);
                 using (var stream = await file.OpenReadAsync())
                 {
                     BitmapDecoder decoder = await BitmapDecoder.CreateAsync(stream);
+                    if (decoder.FrameCount != 1)
+                        throw new InvalidDataException(file.Name + ": animated source / 动图请先导出为图集，不能只导入首帧。");
                     if ((long)decoder.PixelWidth * decoder.PixelHeight > CustomSequenceFormat.MaxSourcePixels)
                         throw new InvalidDataException("Frame too large / 单帧图像过大。");
                     width = Math.Max(width, checked((int)decoder.PixelWidth));
@@ -261,7 +210,7 @@ namespace KillConfirmGameBar.Services
                     byte[] frame = (await decoder.GetPixelDataAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Straight,
                         new BitmapTransform(), ExifOrientationMode.IgnoreExifOrientation, ColorManagementMode.DoNotColorManage)).DetachPixelData();
                     int fw = (int)decoder.PixelWidth, fh = (int)decoder.PixelHeight;
-                    int x = (i % columns) * width, y = (i / columns) * height;
+                    int x = (i % columns) * width + (width - fw) / 2, y = (i / columns) * height + (height - fh) / 2;
                     for (int row = 0; row < fh; row++)
                         System.Buffer.BlockCopy(frame, row * fw * 4, pixels, ((y + row) * sheetWidth + x) * 4, fw * 4);
                 }
@@ -273,14 +222,14 @@ namespace KillConfirmGameBar.Services
                 encoder.SetPixelData(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Straight, (uint)sheetWidth, (uint)sheetHeight, 96, 96, pixels);
                 await encoder.FlushAsync();
             }
-            JsonObject json = await ReadJsonAsync(source, slot + ".json");
+            var json = new JsonObject();
             json["frame_width"] = JsonValue.CreateNumberValue(width);
             json["frame_height"] = JsonValue.CreateNumberValue(height);
             json["frames"] = JsonValue.CreateNumberValue(files.Length);
             json["cols"] = JsonValue.CreateNumberValue(columns);
             json["rows"] = JsonValue.CreateNumberValue(rows);
-            json["fps"] = JsonValue.CreateNumberValue(CustomSequenceFormat.ClampFps(Number(json, "fps", 30)));
-            json["hold_seconds"] = JsonValue.CreateNumberValue(CustomSequenceFormat.ClampHold(Number(json, "hold_seconds", 0)));
+            json["fps"] = JsonValue.CreateNumberValue(CustomSequenceFormat.ClampFps(fps));
+            json["hold_seconds"] = JsonValue.CreateNumberValue(CustomSequenceFormat.ClampHold(hold));
             json["loop"] = JsonValue.CreateBooleanValue(false);
             json["version"] = JsonValue.CreateNumberValue(1);
             await FileIO.WriteTextAsync(await target.CreateFileAsync(slot + ".json"), json.Stringify());

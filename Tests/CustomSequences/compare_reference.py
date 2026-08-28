@@ -50,12 +50,31 @@ with (fixtures / "timeline.csv").open(newline="") as source:
             assert abs(actual[1] - float(row["opacity"])) < 1e-6, (actual, row)
         count += 1
 
+importer = helpers(reference / "core/kill_icon_import.py", {
+    "LEVEL_ALIASES", "HEADSHOT_ALIASES", "parse_level_name",
+    "ANIMATED_EXTENSIONS", "STATIC_EXTENSIONS", "SEQUENCE_EXTENSIONS", "_sorted_sequence_files"
+}, "reference_importer")
+alias_count = 0
+with (fixtures / "aliases.tsv").open(encoding="utf-8") as source:
+    for line in source:
+        name, actual = line.rstrip("\n").split("\t")
+        parsed = importer.parse_level_name(name)
+        expected = "" if parsed is None else f"{parsed[0]}{parsed[1]}"
+        assert actual == expected, (name, actual, expected)
+        alias_count += 1
+assert [Path(p).name for p in importer._sorted_sequence_files(str(fixtures / "legacy/1"))] == ["2.png", "10.png"]
+
 pack = helpers(reference / "core/kill_icon_pack.py", {
     "PACK_VERSION", "MANIFEST_NAME", "LEVEL_ENTRY_RE", "MAX_ENTRIES",
     "MAX_UNCOMPRESSED_BYTES", "MAX_COMPRESSION_RATIO", "PackProbe",
-    "_safe_relpath", "_iter_safe_members", "_strip_single_root", "probe_pack"
+    "_safe_relpath", "_iter_safe_members", "_strip_single_root", "probe_pack", "_collect_loose_items"
 }, "reference_pack")
+pack.parse_level_name = importer.parse_level_name
 probe = pack.probe_pack(str(fixtures / "roundtrip.zip"))
 assert probe.name == "兼容测试" and probe.levels == [(1, "")], probe
 assert not probe.warnings, probe.warnings
-print(f"PASS: {count} C# timeline states match reference playback_state; reference probe_pack accepts exported ZIP.")
+loose = pack.probe_pack(str(fixtures / "loose.zip"))
+assert loose.name == "Theme" and [(k, v) for k, v, _ in loose.loose_items] == [(1, ""), (3, "hs"), (5, "")], loose
+mixed = pack.probe_pack(str(fixtures / "mixed.zip"))
+assert mixed.levels == [(1, "")] and mixed.warnings, mixed
+print(f"PASS: {count} timeline states, {alias_count} aliases, numeric frame order, standard/loose package rules and exported ZIP agree with the reference helpers.")

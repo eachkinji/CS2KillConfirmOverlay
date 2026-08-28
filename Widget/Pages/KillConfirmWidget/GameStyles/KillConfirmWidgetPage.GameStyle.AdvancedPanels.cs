@@ -135,7 +135,6 @@ namespace KillConfirmGameBar
                     {
                         _customModulePanel = new CustomModulePanel();
                         _customModulePanel.StreakModeSelectionChanged += OnSharedStreakModeSelectionChanged;
-                        _customModulePanel.PlacementChanged += (s, e) => LoadAnimationPlacementSettings();
                     }
                     panel = _customModulePanel;
                     break;

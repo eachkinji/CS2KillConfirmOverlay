@@ -94,7 +94,7 @@ namespace KillConfirmGameBar.Controls
             if (folder == null) return false;
             string slot = await CustomSequencePackService.ResolveSlotAsync(folder, level, headshot);
             if (slot == null) return false;
-            string cacheKey = key + "/" + slot;
+            string cacheKey = key + "/" + folder.Path + "/" + slot;
             if (_customSequence != null && _customSequenceKey == cacheKey) return true;
             var next = new CustomSequenceAsset { Metadata = await CustomSequencePackService.ReadMetadataAsync(folder, slot) };
             try

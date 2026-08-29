@@ -15,6 +15,9 @@ namespace KillConfirmGameBar.Services
         public StorageFile Metadata;
         public IReadOnlyList<StorageFile> Frames;
         public StorageFolder SourceFolder;
+        public StorageFile Video;
+        public double VideoStart;
+        public double VideoEnd = 5;
         public int? Fps;
         public double? Hold;
         public string Description;
@@ -214,6 +217,11 @@ namespace KillConfirmGameBar.Services
 
         private static async Task WriteInputAsync(CustomSequenceInput input, StorageFolder target, ICollection<string> warnings)
         {
+            if (input.Video != null)
+            {
+                await ConvertVideoAsync(input, target, warnings);
+                return;
+            }
             if (input.SourceFolder != null)
             {
                 var probed = await ProbeInputAsync(input.Slot, input.Frames, input.SourceFolder);

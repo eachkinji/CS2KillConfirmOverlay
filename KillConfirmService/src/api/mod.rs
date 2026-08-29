@@ -46,4 +46,5 @@ include!("settings.rs");
 include!("event_settings.rs");
 include!("events.rs");
 include!("process_priority.rs");
+include!("video_import.rs");
 include!("tests.rs");

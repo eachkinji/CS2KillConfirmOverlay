@@ -12,6 +12,12 @@ using Windows.Graphics.Imaging;
 
 namespace KillConfirmGameBar.Services
 {
+    internal static partial class CustomSequencePackService
+    {
+        private static Task ConvertVideoAsync(CustomSequenceInput input, StorageFolder target, ICollection<string> warnings)
+            => Task.FromException(new InvalidOperationException("video service is not used by this harness"));
+    }
+
     [DataContract]
     public sealed class IconPackItem
     {

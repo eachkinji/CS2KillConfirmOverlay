@@ -7,8 +7,11 @@ using System.Threading.Tasks;
 using KillConfirmGameBar.Services;
 using Windows.Storage;
 using Windows.Storage.Pickers;
+using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Controls.Primitives;
+using Windows.UI.Xaml.Media;
 
 namespace KillConfirmGameBar
 {
@@ -18,7 +21,38 @@ namespace KillConfirmGameBar
         {
             public string Slot;
             public CustomSequenceInput Input;
-            public TextBox Fps, Hold;
+            public TextBox Fps, Hold, Start, End;
+            public int Mode;
+        }
+
+        private static ToggleButton CreateCustomSourceModeButton(string glyph, string label)
+        {
+            var content = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, HorizontalAlignment = HorizontalAlignment.Center };
+            content.Children.Add(new FontIcon { Glyph = glyph, FontFamily = new FontFamily("Segoe MDL2 Assets"), FontSize = 13 });
+            content.Children.Add(new TextBlock { Text = label, FontSize = 11, VerticalAlignment = VerticalAlignment.Center });
+            return new ToggleButton
+            {
+                Content = content, MinHeight = 38, HorizontalAlignment = HorizontalAlignment.Stretch,
+                Background = new SolidColorBrush(Color.FromArgb(255, 255, 255, 252)),
+                Foreground = new SolidColorBrush(Color.FromArgb(255, 58, 63, 76)),
+                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 213, 208, 196)),
+                BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(12)
+            };
+        }
+
+        private static void ApplyCustomSourceModeVisual(IReadOnlyList<ToggleButton> buttons, int selected)
+        {
+            for (int index = 0; index < buttons.Count; index++)
+            {
+                bool active = index == selected;
+                buttons[index].IsChecked = active;
+                buttons[index].Background = new SolidColorBrush(active
+                    ? Color.FromArgb(255, 226, 244, 251) : Color.FromArgb(255, 255, 255, 252));
+                buttons[index].Foreground = new SolidColorBrush(active
+                    ? Color.FromArgb(255, 24, 116, 158) : Color.FromArgb(255, 58, 63, 76));
+                buttons[index].BorderBrush = new SolidColorBrush(active
+                    ? Color.FromArgb(255, 81, 170, 207) : Color.FromArgb(255, 213, 208, 196));
+            }
         }
 
         private async Task ImportCustomModuleAsync(bool zip)
@@ -85,8 +119,8 @@ namespace KillConfirmGameBar
                 var notes = new List<string>();
                 var initial = original == null ? new List<CustomSequenceInput>() : await CustomSequencePackService.ReadInputsAsync(original, notes);
                 var layout = CreatePackDialogLayout(title,
-                    chinese ? "选择素材或目录，自动识别散帧与同名 PNG/JSON 图集。每个击杀等级一组，无需改名。这里只编辑素材，测试和位置设置沿用现有入口。"
-                        : "Choose files or a folder; matching PNG/JSON atlases and frame sequences are detected automatically. One source per kill level. Tests and positioning stay in their existing locations.",
+                    chinese ? "每个击杀等级可选择单张、散帧、PNG/JSON 图集或视频。视频只在保存时转成图集；这里只编辑素材，测试和位置设置沿用现有入口。"
+                        : "Choose an image, loose frames, PNG/JSON atlas, or video for each kill level. Video is converted to an atlas when saved. Tests and positioning stay in their existing locations.",
                     LocalizationManager.Text("IconPackNamePlaceholder"), existing?.DisplayName, out TextBox name);
                 var status = new TextBlock { Text = string.Join("\n", notes), TextWrapping = TextWrapping.Wrap, FontSize = 12 };
                 var rows = new List<CustomSequenceRow>();
@@ -119,21 +153,60 @@ namespace KillConfirmGameBar
                         string slot = level + suffix;
                         var row = new CustomSequenceRow { Slot = slot, Input = initial.FirstOrDefault(i => i.Slot == slot) };
                         rows.Add(row);
-                        var card = new StackPanel { Spacing = 6 };
-                        card.Children.Add(new TextBlock { Text = chinese ? level + " 杀" + (suffix == "" ? "" : " · 爆头") : "Kill " + level + (suffix == "" ? "" : " · Headshot"), FontWeight = Windows.UI.Text.FontWeights.SemiBold });
+                        row.Mode = row.Input?.Sheet != null ? 2 : row.Input?.Frames?.Count == 1 ? 0 : 1;
+                        var card = new StackPanel { Spacing = 9 };
+                        var header = new Grid();
+                        header.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                        header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                        header.Children.Add(new TextBlock { Text = chinese ? level + " 杀" + (suffix == "" ? "" : " · 爆头") : "Kill " + level + (suffix == "" ? "" : " · Headshot"), FontWeight = Windows.UI.Text.FontWeights.SemiBold, FontSize = 14 });
+                        var clear = new Button { Content = "×", Padding = new Thickness(8, 2, 8, 2), FontSize = 14, Background = new SolidColorBrush(Colors.Transparent), BorderThickness = new Thickness(0) };
+                        ToolTipService.SetToolTip(clear, chinese ? "清除这个击杀等级的素材" : "Clear this kill level");
+                        Grid.SetColumn(clear, 1); header.Children.Add(clear); card.Children.Add(header);
+                        var modeGrid = new Grid { ColumnSpacing = 6, RowSpacing = 6 };
+                        for (int column = 0; column < 2; column++) modeGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                        for (int gridRow = 0; gridRow < 2; gridRow++) modeGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                        var modeButtons = new[] {
+                            CreateCustomSourceModeButton("\uEB9F", chinese ? "单张" : "Image"),
+                            CreateCustomSourceModeButton("\uE8B7", chinese ? "散帧" : "Frames"),
+                            CreateCustomSourceModeButton("\uE91B", chinese ? "图集" : "Atlas"),
+                            CreateCustomSourceModeButton("\uE714", chinese ? "视频" : "Video")
+                        };
+                        for (int mode = 0; mode < modeButtons.Length; mode++)
+                        {
+                            Grid.SetColumn(modeButtons[mode], mode % 2);
+                            Grid.SetRow(modeButtons[mode], mode / 2);
+                            modeGrid.Children.Add(modeButtons[mode]);
+                        }
+                        card.Children.Add(modeGrid);
                         var description = new TextBlock { TextWrapping = TextWrapping.Wrap, FontSize = 12 };
                         card.Children.Add(description);
-                        var buttons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4 };
-                        var images = new Button { Content = chinese ? "选择素材" : "Choose source" };
-                        var folder = new Button { Content = chinese ? "素材目录" : "Source folder" };
-                        var clear = new Button { Content = chinese ? "清除" : "Clear" };
-                        foreach (var button in new[] { images, folder, clear })
-                        { button.Padding = new Thickness(8, 4, 8, 4); button.FontSize = 12; buttons.Children.Add(button); }
-                        card.Children.Add(buttons);
+                        var actions = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
+                        var choose = new Button { Padding = new Thickness(12, 6, 12, 6), FontSize = 11, CornerRadius = new CornerRadius(12), Background = new SolidColorBrush(Color.FromArgb(255, 226, 244, 251)), Foreground = new SolidColorBrush(Color.FromArgb(255, 24, 116, 158)) };
+                        var folder = new Button { Padding = new Thickness(12, 6, 12, 6), FontSize = 11, CornerRadius = new CornerRadius(12) };
+                        actions.Children.Add(choose); actions.Children.Add(folder); card.Children.Add(actions);
                         row.Fps = new TextBox { Header = "FPS (1–60)", Width = 130 };
                         row.Hold = new TextBox { Header = chinese ? "末帧停留（秒）" : "Last-frame hold (s)", Width = 165 };
                         var timing = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
                         timing.Children.Add(row.Fps); timing.Children.Add(row.Hold); card.Children.Add(timing);
+                        row.Start = new TextBox { Header = chinese ? "起点（秒）" : "Start (s)", Width = 105, Text = "0" };
+                        row.End = new TextBox { Header = chinese ? "终点（秒，最长 20）" : "End (s, max 20)", Width = 145, Text = "5" };
+                        var videoRange = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
+                        videoRange.Children.Add(row.Start); videoRange.Children.Add(row.End); card.Children.Add(videoRange);
+                        var borderedCard = new Border { Padding = new Thickness(12), CornerRadius = new CornerRadius(16), Background = new SolidColorBrush(Color.FromArgb(255, 255, 255, 252)), BorderBrush = new SolidColorBrush(Color.FromArgb(255, 226, 221, 211)), BorderThickness = new Thickness(1), Child = card };
+                        bool switchingMode = false;
+                        void RefreshMode()
+                        {
+                            switchingMode = true;
+                            ApplyCustomSourceModeVisual(modeButtons, row.Mode);
+                            switchingMode = false;
+                            choose.Content = row.Mode == 0 ? (chinese ? "选择一张图片" : "Choose image")
+                                : row.Mode == 1 ? (chinese ? "选择多张帧" : "Choose frames")
+                                : row.Mode == 2 ? (chinese ? "选择 PNG / JSON" : "Choose PNG / JSON")
+                                : (chinese ? "选择视频" : "Choose video");
+                            folder.Content = row.Mode == 1 ? (chinese ? "选择帧目录" : "Frame folder") : (chinese ? "选择图集目录" : "Atlas folder");
+                            folder.Visibility = row.Mode == 1 || row.Mode == 2 ? Visibility.Visible : Visibility.Collapsed;
+                            videoRange.Visibility = row.Mode == 3 ? Visibility.Visible : Visibility.Collapsed;
+                        }
                         async Task RefreshRowAsync()
                         {
                             var json = row.Input?.Metadata == null ? new Windows.Data.Json.JsonObject() : await CustomSequencePackService.ReadJsonFileAsync(row.Input.Metadata);
@@ -142,6 +215,7 @@ namespace KillConfirmGameBar
                             row.Fps.Text = fps.ToString(CultureInfo.InvariantCulture); row.Hold.Text = hold.ToString("0.###", CultureInfo.InvariantCulture);
                             description.Text = row.Input?.Description ?? (chinese ? "未设置" : "Not assigned");
                             timing.Visibility = row.Input == null ? Visibility.Collapsed : Visibility.Visible;
+                            RefreshMode();
                         }
                         async Task SelectAsync(Func<Task<CustomSequenceInput>> pick)
                         {
@@ -156,29 +230,56 @@ namespace KillConfirmGameBar
                             catch (Exception ex) { row.Input = previous; status.Text = ex.Message; }
                             finally { SetBusy(false); }
                         }
-                        images.Click += async (s, e) => await SelectAsync(async () =>
+                        for (int mode = 0; mode < modeButtons.Length; mode++)
+                        {
+                            int selectedMode = mode;
+                            modeButtons[mode].Click += async (s, e) =>
+                            {
+                                if (switchingMode || busy || row.Mode == selectedMode) { RefreshMode(); return; }
+                                row.Mode = selectedMode; row.Input = null; await RefreshRowAsync();
+                            };
+                        }
+                        choose.Click += async (s, e) => await SelectAsync(async () =>
                         {
                             var picker = new FileOpenPicker();
+                            if (row.Mode == 3)
+                            {
+                                foreach (string extension in CustomSequencePackService.VideoExtensions) picker.FileTypeFilter.Add(extension);
+                                var video = await picker.PickSingleFileAsync();
+                                return video == null ? null : new CustomSequenceInput { Slot = slot, Video = video, Fps = 30, Hold = 0, VideoStart = 0, VideoEnd = 5, Description = video.Name + (chinese ? " · 视频将在保存时解析" : " · decoded when saved") };
+                            }
                             foreach (string extension in CustomSequencePackService.ImageExtensions) picker.FileTypeFilter.Add(extension);
-                            picker.FileTypeFilter.Add(".json");
+                            if (row.Mode == 2) picker.FileTypeFilter.Add(".json");
+                            if (row.Mode == 0)
+                            {
+                                var file = await picker.PickSingleFileAsync();
+                                return file == null ? null : new CustomSequenceInput { Slot = slot, Frames = new[] { file }, Description = file.Name + (chinese ? " · 单张图片" : " · single image") };
+                            }
                             var files = await picker.PickMultipleFilesAsync();
-                            return files.Count == 0 ? null : await CustomSequencePackService.ProbeInputAsync(slot, files);
+                            if (files.Count == 0) return null;
+                            if (row.Mode == 1) return new CustomSequenceInput { Slot = slot, Frames = files, Description = files.Count + (chinese ? " 张散帧 · 按文件名数字排序" : " frames · numeric filename order") };
+                            var atlas = await CustomSequencePackService.ProbeInputAsync(slot, files);
+                            if (atlas.Sheet == null) throw new InvalidDataException(chinese ? "图集模式需要同名 PNG 和 JSON。" : "Atlas mode requires matching PNG and JSON.");
+                            return atlas;
                         });
                         folder.Click += async (s, e) => await SelectAsync(async () =>
                         {
                             var picker = new FolderPicker(); picker.FileTypeFilter.Add("*");
                             var selected = await picker.PickSingleFolderAsync();
                             if (selected == null) return null;
-                            return await CustomSequencePackService.ProbeInputAsync(slot, await selected.GetFilesAsync(), selected);
+                            var input = await CustomSequencePackService.ProbeInputAsync(slot, await selected.GetFilesAsync(), selected);
+                            if (row.Mode == 2 && input.Sheet == null) throw new InvalidDataException(chinese ? "目录内没有一组同名 PNG 和 JSON 图集。" : "No matching PNG/JSON atlas found.");
+                            if (row.Mode == 1 && input.Sheet != null) throw new InvalidDataException(chinese ? "该目录是图集，请切换到“图集”模式。" : "This folder contains an atlas; choose Atlas mode.");
+                            return input;
                         });
                         clear.Click += async (s, e) => { if (!busy) { row.Input = null; await RefreshRowAsync(); } };
                         await RefreshRowAsync();
-                        (suffix == "" ? slots : headshotSlots).Children.Add(card);
+                        (suffix == "" ? slots : headshotSlots).Children.Add(borderedCard);
                     }
                 slots.Children.Add(showHeadshots); slots.Children.Add(headshotSlots);
                 void UpdateHeadshots() => headshotSlots.Visibility = showHeadshots.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
                 showHeadshots.Checked += (s, e) => UpdateHeadshots(); showHeadshots.Unchecked += (s, e) => UpdateHeadshots(); UpdateHeadshots();
-                layout.Children.Add(new ScrollViewer { Content = slotHost, MaxHeight = 370, VerticalScrollBarVisibility = ScrollBarVisibility.Auto });
+                layout.Children.Add(new ScrollViewer { Content = slotHost, MaxHeight = 470, VerticalScrollBarVisibility = ScrollBarVisibility.Auto });
                 layout.Children.Add(status);
                 dialog.Closing += (s, e) => { if (busy) e.Cancel = true; };
                 dialog.PrimaryButtonClick += async (s, e) =>
@@ -196,6 +297,15 @@ namespace KillConfirmGameBar
                             var json = row.Input.Metadata == null ? new Windows.Data.Json.JsonObject() : await CustomSequencePackService.ReadJsonFileAsync(row.Input.Metadata);
                             row.Input.Fps = row.Input.Sheet != null && fps == CustomSequenceFormat.ClampFps(CustomSequencePackService.Number(json, "fps", 30)) ? (int?)null : fps;
                             row.Input.Hold = row.Input.Sheet != null && hold == CustomSequenceFormat.ClampHold(CustomSequencePackService.Number(json, "hold_seconds", 0)) ? (double?)null : hold;
+                            if (row.Input.Video != null)
+                            {
+                                if (!double.TryParse(row.Start.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out double start)
+                                    || !double.TryParse(row.End.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out double end)
+                                    || double.IsNaN(start) || double.IsInfinity(start) || double.IsNaN(end) || double.IsInfinity(end)
+                                    || start < 0 || end <= start || end - start > 20 || (end - start) * fps > 600)
+                                    throw new InvalidDataException(row.Slot + (chinese ? "：视频截取须在 20 秒、600 帧以内。请缩短区间或降低 FPS。" : ": video extraction must stay within 20 seconds and 600 frames. Shorten the range or lower FPS."));
+                                row.Input.VideoStart = start; row.Input.VideoEnd = end;
+                            }
                         }
                         notes.Clear();
                         await CustomSequencePackService.SavePackAsync(name.Text, rows.Where(r => r.Input != null).Select(r => r.Input),

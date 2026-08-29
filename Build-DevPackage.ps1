@@ -183,6 +183,17 @@ if ($copiedSoundPackCount -eq 0) {
 }
 Write-Host "  已从 SourceAssets 同步 $copiedSoundPackCount 个内置语音包。" -ForegroundColor DarkGray
 
+$PackagedFfmpegRoot = Join-Path $PackagedServiceRoot "ffmpeg"
+$resolvedFfmpegRoot = [IO.Path]::GetFullPath($PackagedFfmpegRoot)
+$resolvedServiceRoot = [IO.Path]::GetFullPath($PackagedServiceRoot).TrimEnd([IO.Path]::DirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
+if (-not $resolvedFfmpegRoot.StartsWith($resolvedServiceRoot, [StringComparison]::OrdinalIgnoreCase)) {
+    throw "拒绝清理服务目录之外的 FFmpeg 路径: $resolvedFfmpegRoot"
+}
+if (Test-Path -LiteralPath $resolvedFfmpegRoot) { Remove-Item -LiteralPath $resolvedFfmpegRoot -Recurse -Force }
+& (Join-Path $Root 'Build-FFmpegDependency.ps1') -Destination $PackagedFfmpegRoot
+if (-not (Test-Path -LiteralPath (Join-Path $PackagedFfmpegRoot 'ffmpeg.exe'))) { throw "FFmpeg 依赖准备失败" }
+Write-Host "  已准备精简分发的 LGPL FFmpeg（仅 ffmpeg.exe）。" -ForegroundColor DarkGray
+
 # 3. 编译打包 MSIX Bundle。正式与开发安装都必须使用 Bundle，确保
 # 已由 Bundle 注册的主包和语言资源包可以沿用 Windows 的正常升级链。
 Write-Host "`n[2/4] 调用 MSBuild 编译打包 MSIX Bundle ($Configuration/$Platform)..." -ForegroundColor Yellow
@@ -256,6 +267,9 @@ try {
 
     $manifestEntry = $archive.Entries | Where-Object { $_.FullName -eq "AppxManifest.xml" } | Select-Object -First 1
     $serviceEntry = $archive.Entries | Where-Object { $_.FullName -eq "KillConfirmService/cskillconfirm.exe" } | Select-Object -First 1
+    $ffmpegEntry = $archive.Entries | Where-Object { $_.FullName -eq "KillConfirmService/ffmpeg/ffmpeg.exe" } | Select-Object -First 1
+    $ffmpegLicenseEntry = $archive.Entries | Where-Object { $_.FullName -eq "KillConfirmService/ffmpeg/LICENSE.txt" } | Select-Object -First 1
+    $ffmpegSourceEntry = $archive.Entries | Where-Object { $_.FullName -eq "KillConfirmService/ffmpeg/SOURCE.txt" } | Select-Object -First 1
     if (-not $manifestEntry) {
         throw "MSIX Bundle 的主应用包缺少 AppxManifest.xml"
     }
@@ -281,6 +295,9 @@ try {
     }
     if (-not $serviceEntry) {
         throw "MSIX Bundle 的主应用包缺少 KillConfirmService/cskillconfirm.exe"
+    }
+    if (-not $ffmpegEntry -or $ffmpegEntry.Length -lt 50MB -or -not $ffmpegLicenseEntry -or -not $ffmpegSourceEntry) {
+        throw "MSIX Bundle 的主应用包缺少完整的 FFmpeg 运行文件、许可证或源码信息"
     }
 
     & (Join-Path $Root "Test-CrossfireEventIcons.ps1") -PackageArchive $archive

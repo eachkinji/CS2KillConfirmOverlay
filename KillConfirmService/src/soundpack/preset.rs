@@ -18,17 +18,10 @@ pub struct Preset {
 impl Preset {
     /// Load a preset from the sounds directory
     pub fn load(preset_name: &str) -> Result<Self> {
-        // A visual-only module must not retain the previously selected game's audio.
-        if preset_name == "custommodule" {
-            return Ok(Self {
-                manifest: Some(PackManifest::default()),
-                preset_name: preset_name.to_string(),
-                display_name: "Custom Module (silent)".to_string(),
-                master_name: preset_name.to_string(),
-                variant: None,
-                base_dir: String::new(),
-            });
-        }
+        Self::load_from_sounds_root(preset_name, &sounds_root())
+    }
+
+    pub(crate) fn load_from_sounds_root(preset_name: &str, sounds_root: &Path) -> Result<Self> {
         let parts: Vec<&str> = preset_name.split("_v_").collect();
         let is_crossfire_variant = preset_name.starts_with("crossfire_") && parts.len() > 1;
         let (master_name, variant) = if is_crossfire_variant {
@@ -37,7 +30,6 @@ impl Preset {
             (preset_name, None)
         };
 
-        let sounds_root = sounds_root();
         let pack_dir = sounds_root.join(preset_name);
         let base_dir = pack_dir.to_string_lossy().replace('\\', "/");
 

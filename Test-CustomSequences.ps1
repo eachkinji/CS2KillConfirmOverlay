@@ -10,6 +10,12 @@ $manifest = Get-Content -Raw -LiteralPath $manifestPath | ConvertFrom-Json
 if ($manifest.game_style -ne 'custommodule' -or @($manifest.audio.slots.PSObject.Properties).Count -ne 5) {
     throw 'The built-in custom-module audio manifest must define five normal kill cues.'
 }
+$presetSource = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'KillConfirmService/src/soundpack/preset.rs')
+$playbackSource = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'KillConfirmService/src/soundpack/sound/playback.rs')
+if ($presetSource.Contains('Custom Module (silent)') -or
+    $playbackSource.Contains('preset_name == "custommodule"')) {
+    throw 'The built-in custom-module voice pack must not be short-circuited as a silent visual-only preset.'
+}
 foreach ($level in 1..5) {
     $sourceIcon = Join-Path $sourceCustomRoot "iconpacks/custommodule/$level.png"
     $widgetIcon = Join-Path $widgetCustomRoot "$level.png"

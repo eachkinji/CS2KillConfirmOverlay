@@ -12,9 +12,6 @@ pub async fn play_audio(
     event_channel: EventChannel,
     play_main_audio: bool,
 ) -> Result<()> {
-    if app_state_clone.preset.read().await.preset_name == "custommodule" {
-        return Ok(());
-    }
     if event_channel == EventChannel::Economy {
         let preset = app_state_clone.preset.read().await;
         if !supports_economy_audio_events(&preset.preset_name) {

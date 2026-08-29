@@ -1,6 +1,7 @@
 using Microsoft.Gaming.XboxGameBar;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -97,6 +98,70 @@ namespace KillConfirmGameBar
             _ = RefreshFixedWidgetLayoutAsync(requestVersion, source);
         }
 
+        private async Task RefreshFixedWidgetLayoutAndCenterAsync(string source)
+        {
+            if (_widget == null)
+            {
+                return;
+            }
+
+            int requestVersion = Interlocked.Increment(ref _widgetLayoutRefreshRequestVersion);
+            await RefreshFixedWidgetLayoutAsync(requestVersion, source);
+            if (!_isPageActive || _widget == null || requestVersion != _widgetLayoutRefreshRequestVersion)
+            {
+                return;
+            }
+
+            await CenterWidgetWindowAsync(source);
+            SynchronizeHostPageLayout("after-center-" + source);
+        }
+
+        private async Task<bool> WaitForHostLayoutSizeAsync(
+            XboxGameBarWidget widget,
+            Size expected,
+            int requestVersion,
+            int timeoutMs = 900)
+        {
+            var clock = Stopwatch.StartNew();
+            while (clock.ElapsedMilliseconds < timeoutMs)
+            {
+                if (!_isPageActive || _widget == null || !ReferenceEquals(widget, _widget)
+                    || requestVersion != _widgetLayoutRefreshRequestVersion)
+                {
+                    return false;
+                }
+
+                SynchronizeHostPageLayout("wait-host-size");
+                Rect widgetBounds = widget.WindowBounds;
+                Rect coreBounds = Window.Current.Bounds;
+                Frame frame = Window.Current.Content as Frame;
+                bool widgetReady = IsHostDimensionReady(widgetBounds.Width, expected.Width)
+                    && IsHostDimensionReady(widgetBounds.Height, expected.Height);
+                bool coreReady = IsHostDimensionReady(coreBounds.Width, expected.Width)
+                    && IsHostDimensionReady(coreBounds.Height, expected.Height);
+                bool frameReady = frame != null
+                    && IsHostDimensionReady(frame.ActualWidth, expected.Width)
+                    && IsHostDimensionReady(frame.ActualHeight, expected.Height);
+                bool pageReady = IsHostDimensionReady(ActualWidth, expected.Width)
+                    && IsHostDimensionReady(ActualHeight, expected.Height)
+                    && IsHostDimensionReady(LayoutRoot.ActualWidth, expected.Width)
+                    && IsHostDimensionReady(LayoutRoot.ActualHeight, expected.Height);
+                if (widgetReady && coreReady && frameReady && pageReady)
+                {
+                    return true;
+                }
+
+                await Task.Delay(16);
+            }
+
+            return false;
+        }
+
+        private static bool IsHostDimensionReady(double actual, double expected)
+        {
+            return actual > 0 && Math.Abs(actual - expected) <= 0.5;
+        }
+
         private async Task RefreshFixedWidgetLayoutAsync(int requestVersion, string source)
         {
             await _widgetLayoutRefreshGate.WaitAsync();
@@ -121,9 +186,26 @@ namespace KillConfirmGameBar
                     DefaultWidgetSize.Width - HostLayoutRefreshNudge,
                     DefaultWidgetSize.Height - HostLayoutRefreshNudge);
                 bool nudgeAccepted = await widget.TryResizeWindowAsync(nudgeSize);
-                await Task.Delay(80);
+                bool nudgeSettled = nudgeAccepted
+                    && await WaitForHostLayoutSizeAsync(widget, nudgeSize, requestVersion);
+                if (!_isPageActive || _widget == null || !ReferenceEquals(widget, _widget)
+                    || requestVersion != _widgetLayoutRefreshRequestVersion)
+                {
+                    return;
+                }
                 bool resizeAccepted = await widget.TryResizeWindowAsync(DefaultWidgetSize);
-                await Task.Delay(140);
+                bool resizeSettled = resizeAccepted
+                    && await WaitForHostLayoutSizeAsync(widget, DefaultWidgetSize, requestVersion);
+
+                // A resize request can be accepted before the compositor applies it.
+                // Retry once if the real CoreWindow/Page never returned to 550x600.
+                bool retryAccepted = false;
+                if (!resizeSettled && requestVersion == _widgetLayoutRefreshRequestVersion)
+                {
+                    retryAccepted = await widget.TryResizeWindowAsync(DefaultWidgetSize);
+                    resizeSettled = retryAccepted
+                        && await WaitForHostLayoutSizeAsync(widget, DefaultWidgetSize, requestVersion);
+                }
 
                 if (!_isPageActive
                     || _widget == null
@@ -137,7 +219,10 @@ namespace KillConfirmGameBar
                 App.LogCrash(
                     "Fixed widget host refreshed. source=" + source
                     + ", nudgeAccepted=" + nudgeAccepted
+                    + ", nudgeSettled=" + nudgeSettled
                     + ", restoreAccepted=" + resizeAccepted
+                    + ", retryAccepted=" + retryAccepted
+                    + ", restoreSettled=" + resizeSettled
                     + ", requestCurrent=" + (requestVersion == _widgetLayoutRefreshRequestVersion)
                     + ", viewport=" + ActualWidth + "x" + ActualHeight
                     + ", panel=" + ControlPanel.ActualWidth + "x" + ControlPanel.ActualHeight);

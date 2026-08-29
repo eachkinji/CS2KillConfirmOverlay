@@ -6,8 +6,18 @@ $styleEnum = [regex]::Match($styleSource, '(?s)internal enum GameStyleMode\s*\{[
 if (-not $styleEnum) { throw 'GameStyleMode declaration not found.' }
 $definition = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Services/Styling/KillFeedbackFrameDefinition.cs')
 $markerPlayback = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Controls/Animations/ModernWarfare2019/ModernWarfare2019Animation.Playback.cs')
+$hostLayout = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Pages/KillConfirmWidget/Layout/KillConfirmWidgetPage.HostLayout.cs')
+$widgetInput = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Pages/KillConfirmWidget/Interaction/KillConfirmWidgetPage.Input.cs')
 if ($markerPlayback -notmatch '(?s)if\s*\(killMarkOnly\)\s*\{\s*.*?_modernWarfare2019ImpactAngleDegrees\s*=\s*0\s*;\s*\}\s*else\s*\{\s*.*?_modernWarfare2019Random\.NextDouble') {
     throw 'Shared non-COD KillMark must stay axis-locked while full COD playback keeps its random impact angle.'
+}
+if ($hostLayout -match 'Task\.Delay\((80|140)\)' -or
+    $hostLayout -notmatch 'WaitForHostLayoutSizeAsync\(widget, nudgeSize, requestVersion\)' -or
+    $hostLayout -notmatch 'WaitForHostLayoutSizeAsync\(widget, DefaultWidgetSize, requestVersion\)') {
+    throw 'The 548x598 -> 550x600 host refresh must wait for real layout sizes instead of fixed delays.'
+}
+if ($widgetInput -notmatch 'RefreshFixedWidgetLayoutAndCenterAsync\("crosshair-center"\)') {
+    throw 'Crosshair centering must restore and verify the fixed host size before centering the window.'
 }
 $checks = @'
 namespace KillConfirmGameBar.Services

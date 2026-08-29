@@ -9,6 +9,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
     public sealed partial class KillFeedbackAppearanceRow : UserControl
     {
         private bool _suppressChanges;
+        private CrosshairOffsetEditor _crosshairOffsetEditor;
 
         public KillFeedbackAppearanceRow()
         {
@@ -19,6 +20,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
         }
 
         public event EventHandler SettingsChanged;
+        public event EventHandler CrosshairOffsetChanged;
 
         public bool IsLayerEnabled => EnabledToggle.IsOn;
         public double BrightnessPercent => BrightnessSlider.Value;
@@ -57,6 +59,25 @@ namespace KillConfirmGameBar.Controls.GameStyles
             }
         }
 
+        internal void ConfigureCrosshairOffset(
+            GameStyleMode style,
+            bool isChinese,
+            GameThemePalette theme)
+        {
+            if (_crosshairOffsetEditor == null)
+            {
+                _crosshairOffsetEditor = new CrosshairOffsetEditor();
+                _crosshairOffsetEditor.SettingsChanged += OnCrosshairOffsetChanged;
+                AdditionalSettingsHost.Content = _crosshairOffsetEditor;
+            }
+
+            _crosshairOffsetEditor.Initialize(style);
+            _crosshairOffsetEditor.ApplyLanguage(isChinese);
+            _crosshairOffsetEditor.ApplyTheme(theme);
+            AdditionalSettingsHost.Visibility = Visibility.Visible;
+            UpdateAdjustmentAvailability();
+        }
+
         private void ApplyTheme(GameThemePalette theme)
         {
             if (theme == null)
@@ -91,12 +112,19 @@ namespace KillConfirmGameBar.Controls.GameStyles
             RaiseSettingsChanged();
         }
 
+        private void OnCrosshairOffsetChanged(object sender, RoutedEventArgs e)
+        {
+            CrosshairOffsetChanged?.Invoke(this, EventArgs.Empty);
+        }
+
         private void UpdateAdjustmentAvailability()
         {
             BrightnessSlider.IsEnabled = EnabledToggle.IsOn;
             ContrastSlider.IsEnabled = EnabledToggle.IsOn;
             OpacitySlider.IsEnabled = EnabledToggle.IsOn;
             AdjustmentGrid.Opacity = EnabledToggle.IsOn ? 1.0 : 0.5;
+            AdditionalSettingsHost.IsEnabled = EnabledToggle.IsOn;
+            AdditionalSettingsHost.Opacity = EnabledToggle.IsOn ? 1.0 : 0.5;
         }
 
         private void UpdateValueLabels()

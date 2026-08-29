@@ -172,6 +172,8 @@ namespace KillConfirmGameBar
                 GameStyleService.Current,
                 LocalizationManager.Current == UiLanguage.SimplifiedChinese,
                 GameThemePalette.ForMode(GameStyleService.Current));
+            PackTestSectionView.KillFeedbackAppearanceEditorControl.CrosshairOffsetChanged -= OnCrosshairOffsetSettingChanged;
+            PackTestSectionView.KillFeedbackAppearanceEditorControl.CrosshairOffsetChanged += OnCrosshairOffsetSettingChanged;
 
             ApplyAdvancedEffectsPanelLanguage();
             ApplyAdvancedEffectsPanelTheme();
@@ -400,6 +402,19 @@ namespace KillConfirmGameBar
                 LoadSharedStreakMode(GameStyleMode.Dagoujiao);
             }
             return _dagoujiaoAdvancedEffectsPanel;
+        }
+
+        private void OnCrosshairOffsetSettingChanged(object sender, System.EventArgs e)
+        {
+            if (KillFeedbackFrameDefinition.GetLegacyPrimaryLayer(GameStyleService.Current)
+                == KillFeedbackLayer.Crosshair)
+            {
+                ApplyLegacyPrimaryTransform();
+            }
+            else
+            {
+                ApplyLegacyAuxiliaryTransform();
+            }
         }
     }
 }

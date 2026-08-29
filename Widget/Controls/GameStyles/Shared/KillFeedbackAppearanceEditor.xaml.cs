@@ -22,6 +22,8 @@ namespace KillConfirmGameBar.Controls.GameStyles
             Unloaded += OnUnloaded;
         }
 
+        public event EventHandler CrosshairOffsetChanged;
+
         internal void Configure(GameStyleMode style, bool isChinese, GameThemePalette theme)
         {
             _style = style;
@@ -46,6 +48,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
                     settings.CrosshairOpacityPercent,
                     isChinese,
                     theme);
+                CrosshairRow.ConfigureCrosshairOffset(style, isChinese, theme);
                 LowerRow.Configure(
                     ResolveLowerName(style, isChinese),
                     settings.LowerEnabled,
@@ -109,6 +112,11 @@ namespace KillConfirmGameBar.Controls.GameStyles
             {
                 _suppressChanges = false;
             }
+        }
+
+        private void OnCrosshairOffsetChanged(object sender, EventArgs e)
+        {
+            CrosshairOffsetChanged?.Invoke(this, EventArgs.Empty);
         }
 
         private void OnLoaded(object sender, RoutedEventArgs e)

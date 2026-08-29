@@ -452,8 +452,12 @@ namespace KillConfirmGameBar
         private void ApplyLegacyPrimaryTransform()
         {
             KillFeedbackLayer layer = KillFeedbackFrameDefinition.GetLegacyPrimaryLayer(GameStyleService.Current);
+            CrosshairOffset crosshairOffset = layer == KillFeedbackLayer.Crosshair
+                ? CrosshairOffsetSettingsStore.Load(GameStyleService.Current)
+                : new CrosshairOffset();
             ApplyFeedbackLayerTransform(layer, _legacyPrimaryScale,
-                _legacyPrimaryHorizontalOffset, GetLegacyPrimaryResolvedVerticalOffset());
+                _legacyPrimaryHorizontalOffset + crosshairOffset.X,
+                GetLegacyPrimaryResolvedVerticalOffset() + crosshairOffset.Y);
         }
 
         private void ApplyLegacyLowerCardTransform()
@@ -473,9 +477,14 @@ namespace KillConfirmGameBar
             {
                 return;
             }
-            ApplyFeedbackLayerTransform(KillFeedbackFrameDefinition.GetLegacyAuxiliaryLayer(style),
-                _legacyAuxiliaryScale, _legacyAuxiliaryHorizontalOffset,
-                GetLegacyAuxiliaryResolvedVerticalOffset());
+            KillFeedbackLayer layer = KillFeedbackFrameDefinition.GetLegacyAuxiliaryLayer(style);
+            CrosshairOffset crosshairOffset = layer == KillFeedbackLayer.Crosshair
+                ? CrosshairOffsetSettingsStore.Load(style)
+                : new CrosshairOffset();
+            ApplyFeedbackLayerTransform(layer,
+                _legacyAuxiliaryScale,
+                _legacyAuxiliaryHorizontalOffset + crosshairOffset.X,
+                GetLegacyAuxiliaryResolvedVerticalOffset() + crosshairOffset.Y);
         }
 
         private void ApplyFeedbackLayerTransform(KillFeedbackLayer layer, double scale, double x, double y)

@@ -18,7 +18,10 @@
                 x:Name="HintText"
                 FontSize="10"
                 TextWrapping="WrapWholeWords" />
-            <local:KillFeedbackAppearanceRow x:Name="CrosshairRow" SettingsChanged="OnSettingsChanged" />
+            <local:KillFeedbackAppearanceRow
+                x:Name="CrosshairRow"
+                CrosshairOffsetChanged="OnCrosshairOffsetChanged"
+                SettingsChanged="OnSettingsChanged" />
             <local:KillFeedbackAppearanceRow x:Name="LowerRow" SettingsChanged="OnSettingsChanged" />
             <local:KillFeedbackAppearanceRow x:Name="UpperRow" SettingsChanged="OnSettingsChanged" />
         </StackPanel>

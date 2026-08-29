@@ -312,6 +312,9 @@
     <Compile Include="Controls\GameStyles\Shared\StreakWindowEditor.xaml.cs">
       <DependentUpon>StreakWindowEditor.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\GameStyles\Shared\CrosshairOffsetEditor.xaml.cs">
+      <DependentUpon>CrosshairOffsetEditor.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\GameStyles\Battlefield1\Battlefield1AdvancedEffectsPanel.xaml.cs">
       <DependentUpon>Battlefield1AdvancedEffectsPanel.xaml</DependentUpon>
     </Compile>
@@ -437,6 +440,7 @@
     <Compile Include="Services\Settings\General\PortSettingsStore.cs" />
     <Compile Include="Services\Runtime\ServiceLauncher.cs" />
     <Compile Include="Services\Settings\Audio\AssistAudioSettingsStore.cs" />
+    <Compile Include="Services\Settings\Crosshair\CrosshairOffsetSettingsStore.cs" />
     <Compile Include="Services\Settings\Games\ValorantPackSyncSettingsStore.cs" />
     <Compile Include="Services\Settings\Games\CrossfireGameplaySettingsStore.cs" />
     <Compile Include="Services\Settings\Games\CsolVoiceSettingsStore.cs" />
@@ -572,6 +576,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Controls\GameStyles\Shared\StreakWindowEditor.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\GameStyles\Shared\CrosshairOffsetEditor.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

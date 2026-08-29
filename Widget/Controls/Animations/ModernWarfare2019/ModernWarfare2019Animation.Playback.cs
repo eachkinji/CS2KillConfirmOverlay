@@ -157,9 +157,21 @@ namespace KillConfirmGameBar.Controls
             {
                 if (!isAssist && !_modernWarfare2019IsObjective)
                 {
-                    double magnitude = 7.0 + (_modernWarfare2019Random.NextDouble() * 6.0);
-                    _modernWarfare2019ImpactAngleDegrees =
-                        _modernWarfare2019Random.Next(0, 2) == 0 ? -magnitude : magnitude;
+                    if (killMarkOnly)
+                    {
+                        // Other game styles reuse only COD's center KillMark. A
+                        // random impact angle makes its small diagonal arms look
+                        // as if the hit landed beside the actual crosshair after
+                        // scaling. Keep this shared marker axis-locked; the full
+                        // COD presentation retains its original impact variation.
+                        _modernWarfare2019ImpactAngleDegrees = 0;
+                    }
+                    else
+                    {
+                        double magnitude = 7.0 + (_modernWarfare2019Random.NextDouble() * 6.0);
+                        _modernWarfare2019ImpactAngleDegrees =
+                            _modernWarfare2019Random.Next(0, 2) == 0 ? -magnitude : magnitude;
+                    }
                 }
 
                 if (!killMarkOnly)

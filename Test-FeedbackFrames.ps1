@@ -5,6 +5,10 @@ $styleSource = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Se
 $styleEnum = [regex]::Match($styleSource, '(?s)internal enum GameStyleMode\s*\{[^}]+\}').Value
 if (-not $styleEnum) { throw 'GameStyleMode declaration not found.' }
 $definition = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Services/Styling/KillFeedbackFrameDefinition.cs')
+$markerPlayback = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Controls/Animations/ModernWarfare2019/ModernWarfare2019Animation.Playback.cs')
+if ($markerPlayback -notmatch '(?s)if\s*\(killMarkOnly\)\s*\{\s*.*?_modernWarfare2019ImpactAngleDegrees\s*=\s*0\s*;\s*\}\s*else\s*\{\s*.*?_modernWarfare2019Random\.NextDouble') {
+    throw 'Shared non-COD KillMark must stay axis-locked while full COD playback keeps its random impact angle.'
+}
 $checks = @'
 namespace KillConfirmGameBar.Services
 {

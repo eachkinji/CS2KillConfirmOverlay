@@ -119,8 +119,8 @@ namespace KillConfirmGameBar
                 var notes = new List<string>();
                 var initial = original == null ? new List<CustomSequenceInput>() : await CustomSequencePackService.ReadInputsAsync(original, notes);
                 var layout = CreatePackDialogLayout(title,
-                    chinese ? "每个击杀等级可选择单张、散帧、PNG/JSON 图集或视频。视频只在保存时转成图集；这里只编辑素材，测试和位置设置沿用现有入口。"
-                        : "Choose an image, loose frames, PNG/JSON atlas, or video for each kill level. Video is converted to an atlas when saved. Tests and positioning stay in their existing locations.",
+                    chinese ? "这里按击杀等级单独添加素材：先选择导入方式，再选择对应文件。单槽不会扫描或猜测目录结构；整套目录/ZIP 的自动解析请使用图标包库上方的“导入整包”。"
+                        : "Add assets to each kill level: choose an input mode first, then its files. A slot never scans or guesses a folder layout; use Import full pack above for automatic folder/ZIP parsing.",
                     LocalizationManager.Text("IconPackNamePlaceholder"), existing?.DisplayName, out TextBox name);
                 var status = new TextBlock { Text = string.Join("\n", notes), TextWrapping = TextWrapping.Wrap, FontSize = 12 };
                 var rows = new List<CustomSequenceRow>();
@@ -201,11 +201,18 @@ namespace KillConfirmGameBar
                             switchingMode = false;
                             choose.Content = row.Mode == 0 ? (chinese ? "选择一张图片" : "Choose image")
                                 : row.Mode == 1 ? (chinese ? "选择多张帧" : "Choose frames")
-                                : row.Mode == 2 ? (chinese ? "选择 PNG / JSON" : "Choose PNG / JSON")
+                                : row.Mode == 2 ? (chinese ? "同时选择 PNG + JSON" : "Select PNG + JSON together")
                                 : (chinese ? "选择视频" : "Choose video");
-                            folder.Content = row.Mode == 1 ? (chinese ? "选择帧目录" : "Frame folder") : (chinese ? "选择图集目录" : "Atlas folder");
-                            folder.Visibility = row.Mode == 1 || row.Mode == 2 ? Visibility.Visible : Visibility.Collapsed;
+                            folder.Content = chinese ? "选择散帧目录" : "Choose frame folder";
+                            folder.Visibility = row.Mode == 1 ? Visibility.Visible : Visibility.Collapsed;
                             videoRange.Visibility = row.Mode == 3 ? Visibility.Visible : Visibility.Collapsed;
+                        }
+                        string EmptyModeDescription()
+                        {
+                            if (row.Mode == 0) return chinese ? "单个静态图片；不会查找同目录文件。" : "One static image; sibling files are not inspected.";
+                            if (row.Mode == 1) return chinese ? "多张图片或一个散帧目录；只读取顶层图片，并按文件名数字排序。" : "Multiple images or one frame folder; reads top-level images in numeric filename order.";
+                            if (row.Mode == 2) return chinese ? "严格选择一对同名 PNG + JSON；不提供图集目录扫描。" : "Exactly one matching PNG + JSON pair; atlas folders are not scanned.";
+                            return chinese ? "一个视频；保存时按下方时间范围和 FPS 转为图集。" : "One video; converted to an atlas at save time using the range and FPS below.";
                         }
                         async Task RefreshRowAsync()
                         {
@@ -213,7 +220,7 @@ namespace KillConfirmGameBar
                             int fps = row.Input?.Fps ?? CustomSequenceFormat.ClampFps(CustomSequencePackService.Number(json, "fps", 30));
                             double hold = row.Input?.Hold ?? CustomSequenceFormat.ClampHold(CustomSequencePackService.Number(json, "hold_seconds", row.Input?.Frames?.Count == 1 ? 1 : 0));
                             row.Fps.Text = fps.ToString(CultureInfo.InvariantCulture); row.Hold.Text = hold.ToString("0.###", CultureInfo.InvariantCulture);
-                            description.Text = row.Input?.Description ?? (chinese ? "未设置" : "Not assigned");
+                            description.Text = row.Input?.Description ?? EmptyModeDescription();
                             timing.Visibility = row.Input == null ? Visibility.Collapsed : Visibility.Visible;
                             RefreshMode();
                         }
@@ -248,8 +255,12 @@ namespace KillConfirmGameBar
                                 var video = await picker.PickSingleFileAsync();
                                 return video == null ? null : new CustomSequenceInput { Slot = slot, Video = video, Fps = 30, Hold = 0, VideoStart = 0, VideoEnd = 5, Description = video.Name + (chinese ? " · 视频将在保存时解析" : " · decoded when saved") };
                             }
-                            foreach (string extension in CustomSequencePackService.ImageExtensions) picker.FileTypeFilter.Add(extension);
-                            if (row.Mode == 2) picker.FileTypeFilter.Add(".json");
+                            if (row.Mode == 2)
+                            {
+                                picker.FileTypeFilter.Add(".png");
+                                picker.FileTypeFilter.Add(".json");
+                            }
+                            else foreach (string extension in CustomSequencePackService.ImageExtensions) picker.FileTypeFilter.Add(extension);
                             if (row.Mode == 0)
                             {
                                 var file = await picker.PickSingleFileAsync();
@@ -257,20 +268,15 @@ namespace KillConfirmGameBar
                             }
                             var files = await picker.PickMultipleFilesAsync();
                             if (files.Count == 0) return null;
-                            if (row.Mode == 1) return new CustomSequenceInput { Slot = slot, Frames = files, Description = files.Count + (chinese ? " 张散帧 · 按文件名数字排序" : " frames · numeric filename order") };
-                            var atlas = await CustomSequencePackService.ProbeInputAsync(slot, files);
-                            if (atlas.Sheet == null) throw new InvalidDataException(chinese ? "图集模式需要同名 PNG 和 JSON。" : "Atlas mode requires matching PNG and JSON.");
-                            return atlas;
+                            if (row.Mode == 1) return CustomSequencePackService.CreateLooseFramesInput(slot, files);
+                            return await CustomSequencePackService.CreateAtlasInputAsync(slot, files);
                         });
                         folder.Click += async (s, e) => await SelectAsync(async () =>
                         {
                             var picker = new FolderPicker(); picker.FileTypeFilter.Add("*");
                             var selected = await picker.PickSingleFolderAsync();
                             if (selected == null) return null;
-                            var input = await CustomSequencePackService.ProbeInputAsync(slot, await selected.GetFilesAsync(), selected);
-                            if (row.Mode == 2 && input.Sheet == null) throw new InvalidDataException(chinese ? "目录内没有一组同名 PNG 和 JSON 图集。" : "No matching PNG/JSON atlas found.");
-                            if (row.Mode == 1 && input.Sheet != null) throw new InvalidDataException(chinese ? "该目录是图集，请切换到“图集”模式。" : "This folder contains an atlas; choose Atlas mode.");
-                            return input;
+                            return CustomSequencePackService.CreateLooseFramesInput(slot, await selected.GetFilesAsync(), true);
                         });
                         clear.Click += async (s, e) => { if (!busy) { row.Input = null; await RefreshRowAsync(); } };
                         await RefreshRowAsync();

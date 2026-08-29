@@ -398,6 +398,20 @@ internal static class Harness
         foreach (var probeInput in new[] { pngProbe, jsonProbe, pairProbe, folderProbe })
             Check(probeInput.Sheet.Path == widePng.Path && probeInput.Metadata.Path == wideJson.Path
                 && probeInput.Frames == null, "PNG, JSON, pair and directory all route to native atlas");
+        var explicitAtlas = await CustomSequencePackService.CreateAtlasInputAsync("3", new[] { wideJson, widePng });
+        Check(explicitAtlas.Sheet.Path == widePng.Path && explicitAtlas.Metadata.Path == wideJson.Path,
+            "single-slot atlas accepts exactly the selected matching PNG and JSON");
+        await Reject(async () => await CustomSequencePackService.CreateAtlasInputAsync("3", new[] { widePng }),
+            "single-slot atlas does not inspect siblings or accept a partial selection");
+        await Reject(async () => await CustomSequencePackService.CreateAtlasInputAsync("3", new[] { wideJson, widePng, small }),
+            "single-slot atlas rejects extra files");
+        await Reject(async () =>
+        {
+            CustomSequencePackService.CreateLooseFramesInput("3", await atlasSource.GetFilesAsync(), true);
+        }, "frame-folder mode rejects a matching PNG/JSON atlas instead of guessing its mode");
+        var explicitFrames = CustomSequencePackService.CreateLooseFramesInput("3", new[] { widePng });
+        Check(explicitFrames.Sheet == null && explicitFrames.Frames.Count == 1,
+            "explicit frame selection stays frames even when a sibling JSON exists");
         notes.Clear();
         var widePack = await CustomSequencePackService.SavePackAsync("Wide atlas", new[] { pngProbe }, warnings: notes);
         var wideFolder = await StorageFolder.GetFolderFromPathAsync(widePack.FolderPath);

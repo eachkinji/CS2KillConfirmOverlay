@@ -25,6 +25,54 @@ namespace KillConfirmGameBar.Services
 
     internal static partial class CustomSequencePackService
     {
+        // The slot editor is deliberately strict. Automatic sibling/folder probing
+        // belongs to whole-pack import; here the mode selected by the user decides
+        // exactly how the chosen files are interpreted.
+        internal static async Task<CustomSequenceInput> CreateAtlasInputAsync(string slot,
+            IReadOnlyList<StorageFile> selected)
+        {
+            var files = selected ?? Array.Empty<StorageFile>();
+            var sheets = files.Where(f => f.FileType.Equals(".png", StringComparison.OrdinalIgnoreCase)).ToList();
+            var metadata = files.Where(f => f.FileType.Equals(".json", StringComparison.OrdinalIgnoreCase)).ToList();
+            if (files.Count != 2 || sheets.Count != 1 || metadata.Count != 1
+                || !Path.GetFileNameWithoutExtension(sheets[0].Name).Equals(
+                    Path.GetFileNameWithoutExtension(metadata[0].Name), StringComparison.OrdinalIgnoreCase))
+                throw new InvalidDataException("Select exactly one matching PNG + JSON pair / 请同时选择一对同名 PNG + JSON，不能多选、少选或混入其他文件。");
+
+            var input = new CustomSequenceInput { Slot = slot, Sheet = sheets[0], Metadata = metadata[0] };
+            var info = await ReadMetadataFilesAsync(input.Sheet, input.Metadata);
+            input.Description = input.Sheet.Name + " + " + input.Metadata.Name
+                + " · " + info.Frames + " frames / 帧 · " + info.Width + "×" + info.Height;
+            return input;
+        }
+
+        internal static CustomSequenceInput CreateLooseFramesInput(string slot,
+            IReadOnlyList<StorageFile> selected, bool fromFolder = false)
+        {
+            var files = selected ?? Array.Empty<StorageFile>();
+            var images = files.Where(f => ImageExtensions.Contains(f.FileType.ToLowerInvariant())).ToList();
+            if (images.Count == 0)
+                throw new InvalidDataException("No supported frame images / 没有可用的散帧图片。");
+
+            if (fromFolder)
+            {
+                var jsonStems = new HashSet<string>(files
+                    .Where(f => f.FileType.Equals(".json", StringComparison.OrdinalIgnoreCase)
+                        && !f.Name.Equals("style.json", StringComparison.OrdinalIgnoreCase))
+                    .Select(f => Path.GetFileNameWithoutExtension(f.Name)), StringComparer.OrdinalIgnoreCase);
+                if (images.Any(f => f.FileType.Equals(".png", StringComparison.OrdinalIgnoreCase)
+                    && jsonStems.Contains(Path.GetFileNameWithoutExtension(f.Name))))
+                    throw new InvalidDataException("This folder contains a PNG/JSON atlas / 该目录包含同名 PNG + JSON 图集；请切换到“图集”并同时选择这两个文件，或使用整包导入。");
+            }
+
+            return new CustomSequenceInput
+            {
+                Slot = slot,
+                Frames = images,
+                Description = images.Count + " frames / 张散帧 · numeric filename order / 按文件名数字排序"
+            };
+        }
+
         // Probe before choosing the conversion path: a PNG next to a JSON is an
         // atlas, not one animation frame (CS2 Customizer probe_source / KI-4).
         internal static async Task<CustomSequenceInput> ProbeInputAsync(string slot,

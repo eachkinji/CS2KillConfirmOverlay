@@ -84,12 +84,21 @@ namespace KillConfirmGameBar
                 ImportVoiceZipButton.Content = LocalizationManager.Text("ImportZip");
                 CreateVoicePackButton.Content = LocalizationManager.Text("CreateVoicePack");
                 ImportIconMaterialButton.Content = isChinese ? "导入图标素材" : "Import Icon Material";
-                ImportIconPackButton.Content = LocalizationManager.Text("ImportIconPack");
-                ImportIconZipButton.Content = LocalizationManager.Text("ImportZip");
+                ImportIconPackButton.Content = currentMode == GameStyleMode.CustomModule
+                    ? (isChinese ? "导入整包目录" : "Import full folder")
+                    : LocalizationManager.Text("ImportIconPack");
+                ImportIconZipButton.Content = currentMode == GameStyleMode.CustomModule
+                    ? (isChinese ? "导入整包 ZIP" : "Import full ZIP")
+                    : LocalizationManager.Text("ImportZip");
                 CreateIconPackButton.Content = currentMode == GameStyleMode.CustomModule
-                    ? (isChinese ? "自定义" : "Customize")
+                    ? (isChinese ? "新建自定义包" : "New custom pack")
                     : LocalizationManager.Text("CreateIconPack");
             }
+
+            if (currentMode == GameStyleMode.CustomModule)
+                IconCollectionsHintText.Text = isChinese
+                    ? "整包目录/ZIP 会自动解析；新建或编辑时，每个击杀槽位严格按所选导入方式读取。"
+                    : "Full folders/ZIPs are parsed automatically. New and edited slots follow the selected input mode exactly.";
 
             if (HomeTabGeneralButton != null) HomeTabGeneralButton.Content = LocalizationManager.Text("HomeTabGeneral");
             if (HomeTabPortButton != null) HomeTabPortButton.Content = LocalizationManager.Text("HomeTabPort");

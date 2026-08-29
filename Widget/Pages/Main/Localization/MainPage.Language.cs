@@ -175,16 +175,18 @@ namespace KillConfirmGameBar
             {
                 case GameStyleMode.CustomModule:
                     body = isChinese
-                        ? "在图标包库中自定义逐帧图标，或导入 CS2 Customizer 素材包。效果测试和位置调整沿用现有功能；模块设置只调整连杀计算。"
-                        : "Create frame icons in the icon library or import CS2 Customizer packs. Use the existing tests and position controls; module settings only adjust kill-streak counting.";
-                    voice = isChinese ? "此模块只播放击杀图标，默认静音。" : "This module plays kill icons and is silent by default.";
+                        ? "默认使用“瓦默认音效/图标”。图标和语音均兼容 CS2 Customizer 的 1～5 杀结构，也可以分别创建或导入自己的资源包。"
+                        : "Uses the built-in Valorant default audio/icon pack. Icons and voices both follow CS2 Customizer's kill 1-5 structure and can be replaced independently.";
+                    voice = isChinese
+                        ? "1.wav ～ 5.wav = 1～5 杀普通语音\n1-headshot.wav ～ 5-headshot.wav = 1～5 杀爆头语音（可选）"
+                        : "1.wav to 5.wav = normal kill 1-5 cues\n1-headshot.wav to 5-headshot.wav = optional headshot cues for kills 1-5";
                     iconSummary = isChinese
                         ? "自定义时直接选择帧图片或帧目录，程序自动生成图集。整包支持 1～5 杀及爆头变体，也识别 kill1、ace、三杀等命名。"
                         : "Choose images or frame folders when customizing; sheets are generated automatically. Packs support kills 1–5, headshot variants and names such as kill1, ace or 三杀.";
                     iconFull = "style.json (optional)\n1.png + 1.json … 5.png + 5.json\n1hs.png + 1hs.json … 5hs.png + 5hs.json (optional)\nLegacy: 1/ … 5/ or kill1-1/ … kill1-5/";
                     fileHint = isChinese
-                        ? "整包请选择目录或 ZIP；单组帧图片请点“自定义”。帧按文件名最后一组数字排序。库内支持编辑及导出兼容 ZIP。GIF/APNG/动画 WebP 请先在 CS2 Customizer 转换为图集。"
-                        : "Import a pack folder or ZIP; use Customize for individual frame sequences. Frames sort by the last number in each filename. Edit and export compatible ZIPs from the library. Convert GIF/APNG/animated WebP to sheets in CS2 Customizer first.";
+                        ? "语音共有 10 种事件；空槽按同级普通语音、1 杀爆头、1 杀普通语音的顺序回退。图标整包请选择目录或 ZIP，单组帧图片请点“自定义”。"
+                        : "Voice packs expose 10 events. Empty slots fall back through same-level normal, kill-1 headshot, then kill-1 normal. Import icon packs as folders or ZIPs, or use Customize for one sequence.";
                     break;
 
                 case GameStyleMode.Apex:

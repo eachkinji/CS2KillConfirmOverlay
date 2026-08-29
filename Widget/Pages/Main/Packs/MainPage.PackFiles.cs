@@ -314,6 +314,12 @@ namespace KillConfirmGameBar
                     StorageFolder installed = Windows.ApplicationModel.Package.Current.InstalledLocation;
                     string key = item.Key ?? string.Empty;
 
+                    if (string.Equals(key, "custommodule", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return await installed.GetFolderAsync(
+                            @"Assets\GameStyles\custommodule\iconpacks\custommodule");
+                    }
+
                     // Dagoujiao
                     if (string.Equals(key, "dagoujiao", StringComparison.OrdinalIgnoreCase))
                     {

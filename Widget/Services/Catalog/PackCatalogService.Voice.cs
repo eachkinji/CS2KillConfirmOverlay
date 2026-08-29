@@ -34,6 +34,7 @@ namespace KillConfirmGameBar.Services
         {
             if (string.IsNullOrWhiteSpace(key)) return false;
             return key.StartsWith("custom_voice_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("custom_module_voice_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_csol_voice_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_dagoujiao_voice_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_doubao_voice_", StringComparison.OrdinalIgnoreCase)

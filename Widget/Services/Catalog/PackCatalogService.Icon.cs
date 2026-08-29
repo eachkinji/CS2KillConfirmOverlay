@@ -99,6 +99,20 @@ namespace KillConfirmGameBar.Services
 
         public static async Task<StorageFolder> GetImportedIconFolderAsync(string key)
         {
+            if (string.Equals(key, "custommodule", StringComparison.OrdinalIgnoreCase))
+            {
+                try
+                {
+                    StorageFolder installed = Windows.ApplicationModel.Package.Current.InstalledLocation;
+                    return await installed.GetFolderAsync(
+                        @"Assets\GameStyles\custommodule\iconpacks\custommodule");
+                }
+                catch
+                {
+                    return null;
+                }
+            }
+
             var item = await GetIconPackAsync(key);
             if (item == null || string.IsNullOrEmpty(item.FolderPath)) return null;
 

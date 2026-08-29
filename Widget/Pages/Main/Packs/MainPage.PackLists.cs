@@ -228,7 +228,17 @@ namespace KillConfirmGameBar
                 string packName = PackCatalogService.GetVoicePackDisplayName(item);
                 GameStyleMode packStyle = GameStyleService.GetStyleForPackKey(item.Key);
 
-                if (packStyle == GameStyleMode.Overwatch)
+                if (packStyle == GameStyleMode.CustomModule)
+                {
+                    var existingFiles = await CollectVoiceFileGroupsFromManifestAsync(
+                        packFolder, PackCatalogService.CustomModuleVoiceSlotMapping);
+                    StorageFile existingHeadImage = packFolder != null ? await TryGetCustomPackHeadImageAsync(packFolder.Path) : null;
+                    await ShowCreateCustomModuleVoicePackDialogAsync(
+                        packName,
+                        existingFiles,
+                        existingHeadImage);
+                }
+                else if (packStyle == GameStyleMode.Overwatch)
                 {
                     var existingFiles = await CollectVoiceFileGroupsFromManifestAsync(
                         packFolder, PackCatalogService.OverwatchVoiceSlotMapping);

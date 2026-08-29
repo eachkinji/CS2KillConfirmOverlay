@@ -335,6 +335,7 @@ impl PackManifest {
 
         let game_style = self.game_style.as_deref().unwrap_or_default();
         let is_valorant = game_style.eq_ignore_ascii_case("valorant");
+        let is_custommodule = game_style.eq_ignore_ascii_case("custommodule");
 
         // CF plant/defuse uses exactly the common (kill_1) cue, including its
         // configured gain/pick, but no overlay or streak voice. CSOL has no
@@ -378,16 +379,40 @@ impl PackManifest {
             return entries;
         }
 
+        // Match CS2 Customizer's ten kill-sound events: kill levels 1-5 each
+        // have an optional headshot variant. Follow its conservative fallback
+        // chain: same-level headshot -> same-level normal -> kill-1 headshot ->
+        // kill-1 normal.
+        if is_custommodule {
+            if ctx.is_assist || !ctx.play_main_audio || ctx.kill_count < 1 {
+                return entries;
+            }
+
+            let count = ctx.kill_count.clamp(1, 5);
+            let normal_slot = format!("kill_{count}");
+            if ctx.is_headshot {
+                let headshot_slot = format!("kill_{count}_headshot");
+                if !push_slot(&mut entries, &headshot_slot, None) {
+                    if !push_slot(&mut entries, &normal_slot, None)
+                        && !push_slot(&mut entries, "kill_1_headshot", None)
+                    {
+                        push_slot(&mut entries, "kill_1", None);
+                    }
+                }
+            } else if !push_slot(&mut entries, &normal_slot, None) {
+                push_slot(&mut entries, "kill_1", None);
+            }
+            return entries;
+        }
+
         let is_csol = game_style.eq_ignore_ascii_case("csol");
         let is_crossfire = game_style.eq_ignore_ascii_case("crossfire");
-        let crossfire_special_kill = is_crossfire
-            && (ctx.is_knife_kill || ctx.is_grenade_kill || ctx.is_headshot);
+        let crossfire_special_kill =
+            is_crossfire && (ctx.is_knife_kill || ctx.is_grenade_kill || ctx.is_headshot);
 
         // CF special-kill choices apply even on the first/last kill. Other
         // styles retain their existing grenade and first/last-kill rules.
-        if ctx.is_grenade_kill
-            && (!is_crossfire || ctx.kill_count <= 1 || ctx.grenade_priority)
-        {
+        if ctx.is_grenade_kill && (!is_crossfire || ctx.kill_count <= 1 || ctx.grenade_priority) {
             if !push_slot(&mut entries, "grenade", None) {
                 if !push_slot(&mut entries, "first_and_last", None) {
                     push_slot(&mut entries, "kill_1", None);

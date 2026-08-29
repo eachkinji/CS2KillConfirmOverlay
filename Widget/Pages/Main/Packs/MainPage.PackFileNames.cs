@@ -30,6 +30,15 @@ namespace KillConfirmGameBar
             "headshot.wav"
         };
 
+        private static readonly string[] CustomModuleVoicePackImportFiles =
+        {
+            "1.wav", "1-headshot.wav",
+            "2.wav", "2-headshot.wav",
+            "3.wav", "3-headshot.wav",
+            "4.wav", "4-headshot.wav",
+            "5.wav", "5-headshot.wav"
+        };
+
         private static readonly string[] DagoujiaoVoicePackImportFiles =
         {
             "common.wav",

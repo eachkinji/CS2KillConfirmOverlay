@@ -372,6 +372,10 @@ namespace KillConfirmGameBar
 
         private static string GetVoicePackIconUri(string key)
         {
+            if (string.Equals(key, "custommodule", StringComparison.OrdinalIgnoreCase))
+            {
+                return "ms-appx:///Assets/GameStyles/custommodule/iconpacks/custommodule/pack_head.webp";
+            }
             if (GameStyleService.IsCustomModuleKey(key)) return null;
             if (ValorantPackService.IsValorantPackKey(key))
             {

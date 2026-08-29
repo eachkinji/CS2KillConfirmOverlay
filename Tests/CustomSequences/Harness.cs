@@ -120,8 +120,9 @@ internal static class Harness
         var local = TestApplicationData.Current.LocalFolder;
         Check(GameStyleService.FromKey("custommodule") == GameStyleMode.CustomModule, "custom style lookup");
         Check(GameStyleService.GetStyleForPackKey("custom_module_icon_test") == GameStyleMode.CustomModule, "custom pack routing");
+        Check(GameStyleService.GetStyleForPackKey("custom_module_voice_test") == GameStyleMode.CustomModule, "custom voice routing");
         Check(GameStyleService.DefaultIconPackKey(GameStyleMode.CustomModule) == "custommodule", "empty library does not fall back to CF");
-        Check(GameStyleService.DefaultVoicePackKey(GameStyleMode.CustomModule) == "custommodule", "silent audio preset");
+        Check(GameStyleService.DefaultVoicePackKey(GameStyleMode.CustomModule) == "custommodule", "default custom-module audio preset");
         var cfBefore = KillFeedbackVisibilitySettingsStore.Load(GameStyleMode.Crossfire);
         KillFeedbackVisibilitySettingsStore.Save(GameStyleMode.CustomModule, new KillFeedbackVisibilitySettingsValues { LowerEnabled = false, LowerOpacityPercent = 35 });
         Check(!KillFeedbackVisibilitySettingsStore.Load(GameStyleMode.CustomModule).LowerEnabled, "custom visibility persisted");

@@ -55,6 +55,62 @@ namespace KillConfirmGameBar
             }
         }
 
+        private static async Task<StorageFile> PickCustomModuleVideoAsync(bool chinese)
+        {
+            // Some Windows installations fail to activate the picker broker when
+            // its filter contains an extension with no registered file association
+            // (most commonly .mkv or .webm). Pick all files through the broker and
+            // validate the selected extension ourselves instead.
+            var picker = new FileOpenPicker
+            {
+                ViewMode = PickerViewMode.Thumbnail,
+                SuggestedStartLocation = PickerLocationId.VideosLibrary,
+                SettingsIdentifier = "CustomModuleVideo"
+            };
+            picker.FileTypeFilter.Add("*");
+
+            StorageFile video;
+            try
+            {
+                video = await picker.PickSingleFileAsync();
+            }
+            catch (Exception ex)
+            {
+                App.Log("Custom module video picker failed (0x"
+                    + ex.HResult.ToString("X8", CultureInfo.InvariantCulture)
+                    + "): " + ex);
+                throw new InvalidOperationException(
+                    (chinese ? "Windows 视频文件选择器启动失败" : "Windows video file picker failed")
+                    + " (0x" + ex.HResult.ToString("X8", CultureInfo.InvariantCulture) + ").",
+                    ex);
+            }
+
+            if (video == null)
+            {
+                return null;
+            }
+
+            if (!CustomSequencePackService.VideoExtensions.Contains(
+                    video.FileType,
+                    StringComparer.OrdinalIgnoreCase))
+            {
+                throw new InvalidDataException(
+                    (chinese ? "不支持此视频格式：" : "Unsupported video format: ")
+                    + video.FileType
+                    + (chinese ? "。请选择 MP4、MOV、WEBM、MKV 或 AVI。" : ". Choose MP4, MOV, WEBM, MKV, or AVI."));
+            }
+
+            ulong size = (await video.GetBasicPropertiesAsync()).Size;
+            if (size == 0 || size > 512UL * 1024UL * 1024UL)
+            {
+                throw new InvalidDataException(chinese
+                    ? "视频必须有效且不超过 512 MB。"
+                    : "The video must be valid and no larger than 512 MB.");
+            }
+
+            return video;
+        }
+
         private async Task ImportCustomModuleAsync(bool zip)
         {
             bool chinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
@@ -234,7 +290,23 @@ namespace KillConfirmGameBar
                                 var input = await pick();
                                 if (input != null) { row.Input = input; await RefreshRowAsync(); status.Text = ""; }
                             }
-                            catch (Exception ex) { row.Input = previous; status.Text = ex.Message; }
+                            catch (Exception ex)
+                            {
+                                row.Input = previous;
+                                App.Log("Custom module material selection failed for slot " + slot
+                                    + ", mode " + row.Mode
+                                    + " (0x" + ex.HResult.ToString("X8", CultureInfo.InvariantCulture)
+                                    + "): " + ex);
+                                string message = string.IsNullOrWhiteSpace(ex.Message)
+                                    ? (chinese ? "选择素材失败" : "Material selection failed")
+                                    : ex.Message;
+                                if (message.IndexOf("0x", StringComparison.OrdinalIgnoreCase) < 0)
+                                {
+                                    message += " (0x"
+                                        + ex.HResult.ToString("X8", CultureInfo.InvariantCulture) + ")";
+                                }
+                                status.Text = message;
+                            }
                             finally { SetBusy(false); }
                         }
                         for (int mode = 0; mode < modeButtons.Length; mode++)
@@ -248,13 +320,12 @@ namespace KillConfirmGameBar
                         }
                         choose.Click += async (s, e) => await SelectAsync(async () =>
                         {
-                            var picker = new FileOpenPicker();
                             if (row.Mode == 3)
                             {
-                                foreach (string extension in CustomSequencePackService.VideoExtensions) picker.FileTypeFilter.Add(extension);
-                                var video = await picker.PickSingleFileAsync();
+                                var video = await PickCustomModuleVideoAsync(chinese);
                                 return video == null ? null : new CustomSequenceInput { Slot = slot, Video = video, Fps = 30, Hold = 0, VideoStart = 0, VideoEnd = 5, Description = video.Name + (chinese ? " · 视频将在保存时解析" : " · decoded when saved") };
                             }
+                            var picker = new FileOpenPicker();
                             if (row.Mode == 2)
                             {
                                 picker.FileTypeFilter.Add(".png");
@@ -315,7 +386,8 @@ namespace KillConfirmGameBar
                         }
                         notes.Clear();
                         await CustomSequencePackService.SavePackAsync(name.Text, rows.Where(r => r.Input != null).Select(r => r.Input),
-                            original, key, new Progress<string>(text => status.Text = text), notes);
+                            original, existing != null && !existing.IsBuiltIn ? key : null,
+                            new Progress<string>(text => status.Text = text), notes);
                     }
                     catch (Exception ex) { e.Cancel = true; status.Text = ex.Message; }
                     finally { SetBusy(false); deferral.Complete(); }

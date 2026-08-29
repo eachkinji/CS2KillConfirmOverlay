@@ -118,6 +118,8 @@ namespace KillConfirmGameBar
 
             switch ((item?.Key ?? string.Empty).Trim().ToLowerInvariant())
             {
+                case "custommodule":
+                    return "ms-appx:///Assets/GameStyles/custommodule/iconpacks/custommodule/pack_head.webp";
                 case "crossfire_swat_gr":
                 case "crossfire_swat_bl":
                     return "ms-appx:///Assets/PackIcons/swat.png";
@@ -209,6 +211,10 @@ namespace KillConfirmGameBar
 
         private static string GetIconPackIconUri(IconPackItem item)
         {
+            if (string.Equals(item?.Key, "custommodule", StringComparison.OrdinalIgnoreCase))
+            {
+                return "ms-appx:///Assets/GameStyles/custommodule/iconpacks/custommodule/pack_head.webp";
+            }
             if (GameStyleService.IsCustomModuleKey(item?.Key)) return null;
             switch ((item?.Key ?? string.Empty).Trim().ToLowerInvariant())
             {

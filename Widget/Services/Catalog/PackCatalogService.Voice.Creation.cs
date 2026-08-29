@@ -142,6 +142,73 @@ namespace KillConfirmGameBar.Services
             await SaveAsync(catalog);
         }
 
+        // CS2 Customizer-compatible custom-module voice packs expose ten event
+        // slots: kills 1-5, each with a matching headshot variant.
+        public static readonly IReadOnlyDictionary<string, string> CustomModuleVoiceSlotMapping =
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "1", "kill_1" },
+                { "2", "kill_2" },
+                { "3", "kill_3" },
+                { "4", "kill_4" },
+                { "5", "kill_5" },
+                { "1-headshot", "kill_1_headshot" },
+                { "2-headshot", "kill_2_headshot" },
+                { "3-headshot", "kill_3_headshot" },
+                { "4-headshot", "kill_4_headshot" },
+                { "5-headshot", "kill_5_headshot" }
+            };
+
+        public static async Task CreateCustomModuleVoicePackAsync(string displayName, VoicePackBuildOptions options)
+        {
+            StorageFolder root = await GetGameVoicePacksFolderAsync("custommodule");
+            StorageFolder packFolder = await root.CreateFolderAsync(
+                SanitizeName(displayName),
+                CreationCollisionOption.GenerateUniqueName);
+
+            await CopySelectedVoiceFilesAsync(packFolder, options);
+
+            if (options.HeadImageFile != null)
+            {
+                string extension = options.HeadImageFile.FileType;
+                if (string.IsNullOrWhiteSpace(extension))
+                {
+                    extension = ".png";
+                }
+
+                if (extension.Equals(".tga", StringComparison.OrdinalIgnoreCase))
+                {
+                    await TgaDecoder.ConvertTgaToPngAsync(options.HeadImageFile, packFolder, "pack_head.png");
+                }
+                else
+                {
+                    await options.HeadImageFile.CopyAsync(
+                        packFolder,
+                        "pack_head" + extension.ToLowerInvariant(),
+                        NameCollisionOption.ReplaceExisting);
+                }
+            }
+
+            await WriteGeneratedVoiceManifestAsync(
+                packFolder,
+                displayName,
+                "custommodule",
+                CustomModuleVoiceSlotMapping,
+                commonOverlayEnabled: null);
+
+            var catalog = await LoadAsync();
+            catalog.VoicePacks.Add(new VoicePackItem
+            {
+                Key = "custom_module_voice_" + Guid.NewGuid().ToString("N"),
+                DisplayName = displayName,
+                FolderPath = packFolder.Path,
+                IsBuiltIn = false,
+                IsVisibleInWidget = true,
+                OwnsFolder = true
+            });
+            await SaveAsync(catalog);
+        }
+
         public static readonly IReadOnlyDictionary<string, string> DagoujiaoSlotMapping =
             new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {

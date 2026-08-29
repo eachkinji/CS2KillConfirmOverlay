@@ -87,7 +87,14 @@ namespace KillConfirmGameBar
                 return;
             }
 
-            if (GameStyleService.Current == GameStyleMode.Dagoujiao)
+            if (GameStyleService.Current == GameStyleMode.CustomModule)
+            {
+                await ShowCreateCustomModuleVoicePackDialogAsync(
+                    folder.DisplayName,
+                    await CollectVoiceFileGroupsFromManifestAsync(folder, PackCatalogService.CustomModuleVoiceSlotMapping),
+                    await TryGetCustomPackHeadImageAsync(folder.Path));
+            }
+            else if (GameStyleService.Current == GameStyleMode.Dagoujiao)
             {
                 await ShowCreateDagoujiaoVoicePackDialogAsync(
                     folder.DisplayName,
@@ -148,7 +155,19 @@ namespace KillConfirmGameBar
 
         private async void OnImportVoiceZipClick(object sender, RoutedEventArgs e)
         {
-            if (GameStyleService.Current == GameStyleMode.Dagoujiao)
+            if (GameStyleService.Current == GameStyleMode.CustomModule)
+            {
+                await ImportPackFromZipAsync(
+                    CustomModuleVoicePackImportFiles,
+                    async (folder, files) =>
+                    {
+                        await ShowCreateCustomModuleVoicePackDialogAsync(
+                            folder.DisplayName,
+                            await CollectVoiceFileGroupsFromManifestAsync(folder, PackCatalogService.CustomModuleVoiceSlotMapping),
+                            await TryGetCustomPackHeadImageAsync(folder.Path));
+                    });
+            }
+            else if (GameStyleService.Current == GameStyleMode.Dagoujiao)
             {
                 await ImportPackFromZipAsync(
                     DagoujiaoVoicePackImportFiles,
@@ -423,7 +442,11 @@ namespace KillConfirmGameBar
 
         private async void OnCreateVoicePackClick(object sender, RoutedEventArgs e)
         {
-            if (GameStyleService.Current == GameStyleMode.Dagoujiao)
+            if (GameStyleService.Current == GameStyleMode.CustomModule)
+            {
+                await ShowCreateCustomModuleVoicePackDialogAsync();
+            }
+            else if (GameStyleService.Current == GameStyleMode.Dagoujiao)
             {
                 await ShowCreateDagoujiaoVoicePackDialogAsync();
             }

@@ -134,6 +134,7 @@
     <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.DoubaoVoice.cs" />
     <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.EventVoice.cs" />
     <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.ValorantVoice.cs" />
+    <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.CustomModuleVoice.cs" />
     <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.OverwatchVoice.cs" />
     <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.ModernWarfare2019Voice.cs" />
     <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.DoubaoIcon.cs" />

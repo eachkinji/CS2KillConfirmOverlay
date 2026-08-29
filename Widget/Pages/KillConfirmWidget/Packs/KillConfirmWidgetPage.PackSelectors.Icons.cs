@@ -18,6 +18,10 @@ namespace KillConfirmGameBar
 
         private static string GetIconPackIconUri(string key)
         {
+            if (string.Equals(key, "custommodule", StringComparison.OrdinalIgnoreCase))
+            {
+                return "ms-appx:///Assets/GameStyles/custommodule/iconpacks/custommodule/pack_head.webp";
+            }
             if (GameStyleService.IsCustomModuleKey(key)) return null;
             if (ValorantPackService.IsValorantPackKey(key))
             {
@@ -89,7 +93,7 @@ namespace KillConfirmGameBar
                 case "deltaforce":
                     return "Delta Force";
                 case "custommodule":
-                    return "自定义模块";
+                    return "瓦默认音效/图标";
                 case "doubao":
                     return "豆包";
                 case "dagoujiao":
@@ -124,7 +128,7 @@ namespace KillConfirmGameBar
                 case "deltaforce":
                     return "Delta Force";
                 case "custommodule":
-                    return "自定义模块";
+                    return "瓦默认音效/图标";
                 case "doubao":
                     return "豆包";
                 case "dagoujiao":

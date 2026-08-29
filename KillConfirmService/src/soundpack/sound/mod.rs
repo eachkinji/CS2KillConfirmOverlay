@@ -56,6 +56,7 @@ mod tests {
     include!("tests/battlefield1.rs");
     include!("tests/apex.rs");
     include!("tests/valorant.rs");
+    include!("tests/custommodule.rs");
     include!("tests/event_styles.rs");
     include!("tests/dagoujiao_doubao.rs");
     include!("tests/crossfire_swat.rs");

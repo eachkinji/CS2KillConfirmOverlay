@@ -43,6 +43,7 @@ namespace KillConfirmGameBar.Services
                 }
 
                 MergeMissingBuiltIns(_cache);
+                mustSave |= RefreshBuiltInMetadata(_cache);
                 mustSave |= RemoveRetiredBuiltIns(_cache);
                 mustSave |= ApplyBuiltInVisibilityDefaultsIfNeeded(_cache);
                 ApplyVisibilityOverrides(_cache);
@@ -136,7 +137,7 @@ namespace KillConfirmGameBar.Services
                     CreateBuiltInVoice(DagoujiaoAnimalsPackKey, "Animals", true),
                     CreateBuiltInVoice("overwatch", "OverWatch", true),
                     CreateBuiltInVoice("modernwarfare2019", "Modern Warfare 2019", true),
-                    CreateBuiltInVoice("custommodule", "自定义模块 · 无音效", true),
+                    CreateBuiltInVoice("custommodule", "瓦默认音效/图标", true),
                     CreateBuiltInVoice("apex", "Apex Legends", true)
                 },
                 IconPacks = new List<IconPackItem>
@@ -161,7 +162,7 @@ namespace KillConfirmGameBar.Services
                     CreateBuiltInIcon(DagoujiaoAnimalsPackKey, "Animals", true),
                     CreateBuiltInIcon("overwatch", "OverWatch", true),
                     CreateBuiltInIcon("modernwarfare2019", "Modern Warfare 2019", true),
-                    CreateBuiltInIcon("custommodule", "自定义模块 · 导入素材", true),
+                    CreateBuiltInIcon("custommodule", "瓦默认音效/图标", true),
                     CreateBuiltInIcon("apex", "Apex Legends", true)
                 }
             };
@@ -223,6 +224,30 @@ namespace KillConfirmGameBar.Services
                     catalog.IconPacks.Add(item);
                 }
             }
+        }
+
+        private static bool RefreshBuiltInMetadata(PackCatalog catalog)
+        {
+            bool changed = false;
+            VoicePackItem voice = catalog.VoicePacks.FirstOrDefault(item =>
+                item.IsBuiltIn
+                && string.Equals(item.Key, "custommodule", StringComparison.OrdinalIgnoreCase));
+            if (voice != null && !string.Equals(voice.DisplayName, "瓦默认音效/图标", StringComparison.Ordinal))
+            {
+                voice.DisplayName = "瓦默认音效/图标";
+                changed = true;
+            }
+
+            IconPackItem icon = catalog.IconPacks.FirstOrDefault(item =>
+                item.IsBuiltIn
+                && string.Equals(item.Key, "custommodule", StringComparison.OrdinalIgnoreCase));
+            if (icon != null && !string.Equals(icon.DisplayName, "瓦默认音效/图标", StringComparison.Ordinal))
+            {
+                icon.DisplayName = "瓦默认音效/图标";
+                changed = true;
+            }
+
+            return changed;
         }
 
         private static bool RemoveRetiredBuiltIns(PackCatalog catalog)

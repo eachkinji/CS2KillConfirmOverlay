@@ -3,6 +3,29 @@ param([string]$OutputDirectory = '')
 $ErrorActionPreference = 'Stop'
 if (-not $OutputDirectory) { $OutputDirectory = Join-Path $PSScriptRoot 'Output/CustomSequenceTests' }
 New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
+$sourceCustomRoot = Join-Path $PSScriptRoot 'SourceAssets/GameStyles/custommodule'
+$widgetCustomRoot = Join-Path $PSScriptRoot 'Widget/Assets/GameStyles/custommodule/iconpacks/custommodule'
+$manifestPath = Join-Path $sourceCustomRoot 'soundpacks/custommodule/manifest.json'
+$manifest = Get-Content -Raw -LiteralPath $manifestPath | ConvertFrom-Json
+if ($manifest.game_style -ne 'custommodule' -or @($manifest.audio.slots.PSObject.Properties).Count -ne 5) {
+    throw 'The built-in custom-module audio manifest must define five normal kill cues.'
+}
+foreach ($level in 1..5) {
+    $sourceIcon = Join-Path $sourceCustomRoot "iconpacks/custommodule/$level.png"
+    $widgetIcon = Join-Path $widgetCustomRoot "$level.png"
+    foreach ($path in @(
+        $sourceIcon,
+        $widgetIcon,
+        (Join-Path $sourceCustomRoot "iconpacks/custommodule/$level.json"),
+        (Join-Path $widgetCustomRoot "$level.json"),
+        (Join-Path $sourceCustomRoot "soundpacks/custommodule/$level.mp3"))) {
+        if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "Missing custom-module default asset: $path" }
+    }
+    if ((Get-FileHash -LiteralPath $sourceIcon -Algorithm SHA256).Hash -ne
+        (Get-FileHash -LiteralPath $widgetIcon -Algorithm SHA256).Hash) {
+        throw "Packaged custom-module icon differs from SourceAssets at level $level."
+    }
+}
 $framework = 'C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8'
 if (-not (Test-Path (Join-Path $framework 'mscorlib.dll'))) {
     $framework = 'C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8.1'

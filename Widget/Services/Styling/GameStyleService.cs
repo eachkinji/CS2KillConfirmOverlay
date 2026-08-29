@@ -286,7 +286,8 @@ namespace KillConfirmGameBar.Services
         public static bool IsCustomModuleKey(string key)
         {
             return string.Equals(key, "custommodule", System.StringComparison.OrdinalIgnoreCase)
-                || (key ?? "").StartsWith("custom_module_icon_", System.StringComparison.OrdinalIgnoreCase);
+                || (key ?? "").StartsWith("custom_module_icon_", System.StringComparison.OrdinalIgnoreCase)
+                || (key ?? "").StartsWith("custom_module_voice_", System.StringComparison.OrdinalIgnoreCase);
         }
 
         public static bool IsDoubaoKey(string key)

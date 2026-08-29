@@ -62,8 +62,8 @@ namespace KillConfirmGameBar
             if (ImportIconZipButton != null) ImportIconZipButton.Visibility = iconCreationVisibility;
             if (CreateIconPackButton != null) CreateIconPackButton.Visibility = iconCreationVisibility;
             if (mode == GameStyleMode.CustomModule && ImportIconMaterialButton != null) ImportIconMaterialButton.Visibility = Visibility.Collapsed;
-            VoicePackCollectionsCard.Visibility = mode == GameStyleMode.CustomModule ? Visibility.Collapsed : Visibility.Visible;
-            VoiceCollectionsCard.Visibility = mode == GameStyleMode.CustomModule ? Visibility.Collapsed : Visibility.Visible;
+            VoicePackCollectionsCard.Visibility = Visibility.Visible;
+            VoiceCollectionsCard.Visibility = Visibility.Visible;
 
             UpdateSettingsPageVisibility();
             if (_isHomePageSelected)

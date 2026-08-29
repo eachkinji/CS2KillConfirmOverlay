@@ -37,7 +37,6 @@ namespace KillConfirmGameBar
         private static readonly Size DefaultWidgetSize = new Size(550, 600);
         private static readonly Size MinWidgetSize = new Size(50, 50);
         private static readonly Size MaxWidgetSize = new Size(3840, 2160);
-        private const double HostLayoutRefreshNudge = 2.0;
         private const double AnimationOffsetStep = 12.0;
         private const double MaxAnimationOffsetRatio = 0.45;
         // A bottom/top preset places the effect center on the 4/5 or 1/5

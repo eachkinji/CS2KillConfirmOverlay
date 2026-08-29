@@ -177,22 +177,9 @@ namespace KillConfirmGameBar
                 XboxGameBarWidget widget = _widget;
                 SynchronizeHostPageLayout("before-host-refresh");
 
-                // Game Bar can keep the old UWP composition surface when the desktop
-                // switches to a stretched in-game resolution. Asking for 550x600 again
-                // is commonly coalesced as a no-op, leaving the Page arranged in a
-                // smaller top-left client area. A two-DIP nudge followed by the real
-                // size forces the host to rebuild both its composition and input bounds.
-                var nudgeSize = new Size(
-                    DefaultWidgetSize.Width - HostLayoutRefreshNudge,
-                    DefaultWidgetSize.Height - HostLayoutRefreshNudge);
-                bool nudgeAccepted = await widget.TryResizeWindowAsync(nudgeSize);
-                bool nudgeSettled = nudgeAccepted
-                    && await WaitForHostLayoutSizeAsync(widget, nudgeSize, requestVersion);
-                if (!_isPageActive || _widget == null || !ReferenceEquals(widget, _widget)
-                    || requestVersion != _widgetLayoutRefreshRequestVersion)
-                {
-                    return;
-                }
+                // Keep every host layer at the one real widget size. Do not pass
+                // through a smaller temporary window: even a two-DIP intermediate
+                // surface can expose a left/up center while composition catches up.
                 bool resizeAccepted = await widget.TryResizeWindowAsync(DefaultWidgetSize);
                 bool resizeSettled = resizeAccepted
                     && await WaitForHostLayoutSizeAsync(widget, DefaultWidgetSize, requestVersion);
@@ -218,8 +205,6 @@ namespace KillConfirmGameBar
                 SavePanelOffset();
                 App.LogCrash(
                     "Fixed widget host refreshed. source=" + source
-                    + ", nudgeAccepted=" + nudgeAccepted
-                    + ", nudgeSettled=" + nudgeSettled
                     + ", restoreAccepted=" + resizeAccepted
                     + ", retryAccepted=" + retryAccepted
                     + ", restoreSettled=" + resizeSettled

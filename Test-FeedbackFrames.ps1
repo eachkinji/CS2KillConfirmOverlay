@@ -11,10 +11,9 @@ $widgetInput = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Pa
 if ($markerPlayback -notmatch '(?s)if\s*\(killMarkOnly\)\s*\{\s*.*?_modernWarfare2019ImpactAngleDegrees\s*=\s*0\s*;\s*\}\s*else\s*\{\s*.*?_modernWarfare2019Random\.NextDouble') {
     throw 'Shared non-COD KillMark must stay axis-locked while full COD playback keeps its random impact angle.'
 }
-if ($hostLayout -match 'Task\.Delay\((80|140)\)' -or
-    $hostLayout -notmatch 'WaitForHostLayoutSizeAsync\(widget, nudgeSize, requestVersion\)' -or
+if ($hostLayout -match 'nudgeSize|HostLayoutRefreshNudge|548x598' -or
     $hostLayout -notmatch 'WaitForHostLayoutSizeAsync\(widget, DefaultWidgetSize, requestVersion\)') {
-    throw 'The 548x598 -> 550x600 host refresh must wait for real layout sizes instead of fixed delays.'
+    throw 'Host refresh must use only the real 550x600 size and wait for the actual layout.'
 }
 if ($widgetInput -notmatch 'RefreshFixedWidgetLayoutAndCenterAsync\("crosshair-center"\)') {
     throw 'Crosshair centering must restore and verify the fixed host size before centering the window.'

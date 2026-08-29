@@ -166,8 +166,8 @@ namespace KillConfirmGameBar
             {
                 case GameStyleMode.CustomModule:
                     body = isChinese
-                        ? "在图标包库中自定义逐帧图标，或导入 CS2 Customizer 素材包。效果测试和位置调整沿用现有功能；高级设置仅调整播放规则。"
-                        : "Create frame icons in the icon library or import CS2 Customizer packs. Use the existing tests and position controls; Advanced Settings only adjusts playback rules.";
+                        ? "在图标包库中自定义逐帧图标，或导入 CS2 Customizer 素材包。效果测试和位置调整沿用现有功能；模块设置只调整连杀计算。"
+                        : "Create frame icons in the icon library or import CS2 Customizer packs. Use the existing tests and position controls; module settings only adjust kill-streak counting.";
                     voice = isChinese ? "此模块只播放击杀图标，默认静音。" : "This module plays kill icons and is silent by default.";
                     iconSummary = isChinese
                         ? "自定义时直接选择帧图片或帧目录，程序自动生成图集。整包支持 1～5 杀及爆头变体，也识别 kill1、ace、三杀等命名。"

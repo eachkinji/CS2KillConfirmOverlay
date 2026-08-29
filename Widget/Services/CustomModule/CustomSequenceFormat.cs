@@ -18,7 +18,6 @@ namespace KillConfirmGameBar.Services
     internal struct CustomSequenceState
     {
         public int Frame;
-        public float Opacity;
         public bool Finished;
     }
 
@@ -78,19 +77,16 @@ namespace KillConfirmGameBar.Services
         public static double ClampHold(double value)
             => double.IsNaN(value) || double.IsInfinity(value) ? 0 : Math.Max(0, Math.Min(10, value));
 
-        public static CustomSequenceState At(double elapsed, int frames, int fps, double hold, bool fade)
+        public static CustomSequenceState At(double elapsed, int frames, int fps, double hold)
         {
             elapsed = Math.Max(0, elapsed);
             fps = ClampFps(fps);
             double end = frames / (double)fps + ClampHold(hold);
-            if (frames <= 0 || elapsed >= end + (fade ? 0.25 : 0))
+            if (frames <= 0 || elapsed >= end)
                 return new CustomSequenceState { Finished = true };
-            double opacity = fade && elapsed < 0.12 ? elapsed / 0.12 : 1;
-            if (fade && elapsed > end) opacity = Math.Min(opacity, 1 - (elapsed - end) / 0.25);
             return new CustomSequenceState
             {
-                Frame = Math.Min(frames - 1, (int)(elapsed * fps)),
-                Opacity = (float)Math.Max(0, Math.Min(1, opacity))
+                Frame = Math.Min(frames - 1, (int)(elapsed * fps))
             };
         }
 

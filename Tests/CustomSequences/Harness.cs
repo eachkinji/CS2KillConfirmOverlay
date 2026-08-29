@@ -122,21 +122,16 @@ internal static class Harness
         Check(KillFeedbackVisibilitySettingsStore.Load(GameStyleMode.CustomModule).LowerOpacityPercent == 35, "custom opacity persisted");
         Check(KillFeedbackVisibilitySettingsStore.Load(GameStyleMode.Crossfire).LowerEnabled == cfBefore.LowerEnabled
             && KillFeedbackVisibilitySettingsStore.Load(GameStyleMode.Crossfire).LowerOpacityPercent == cfBefore.LowerOpacityPercent, "CF appearance unchanged");
-        CustomModuleSettingsStore.Save(new CustomModuleSettings { Fps = 24, Hold = .8, Fade = false, Headshots = false });
-        var saved = CustomModuleSettingsStore.Load();
-        Check(saved.Fps == 24 && saved.Hold == .8 && !saved.Fade && !saved.Headshots, "playback settings persisted");
         for (int fps = 1; fps <= 60; fps++)
         {
-            Check(CustomSequenceFormat.At(0, 60, fps, 0, false).Frame == 0, "first frame");
-            Check(CustomSequenceFormat.At(60.0 / fps, 60, fps, 0, false).Finished, "end time");
+            Check(CustomSequenceFormat.At(0, 60, fps, 0).Frame == 0, "first frame");
+            Check(CustomSequenceFormat.At(60.0 / fps, 60, fps, 0).Finished, "end time");
         }
-        Check(CustomSequenceFormat.At(.35, 10, 10, 0, false).Frame == 3, "clock selects skipped frame");
-        Check(CustomSequenceFormat.At(1.2, 10, 10, .5, true).Frame == 9, "hold final frame");
-        Check(Math.Abs(CustomSequenceFormat.At(1.625, 10, 10, .5, true).Opacity - .5f) < .0001, "fade follows hold");
-        Check(CustomSequenceFormat.At(1.75, 10, 10, .5, true).Finished, "fade completion");
-        Check(Math.Abs(CustomSequenceFormat.At(.06, 10, 10, 0, true).Opacity - .5f) < .0001, "fade in");
+        Check(CustomSequenceFormat.At(.35, 10, 10, 0).Frame == 3, "clock selects skipped frame");
+        Check(CustomSequenceFormat.At(1.49, 10, 10, .5).Frame == 9, "material hold keeps final frame");
+        Check(CustomSequenceFormat.At(1.5, 10, 10, .5).Finished, "material hold determines completion");
         Check(CustomSequenceFormat.ClampFps(double.NaN) == 30 && CustomSequenceFormat.ClampFps(0) == 1 && CustomSequenceFormat.ClampFps(90) == 60, "FPS defaults and clamps");
-        Check(CustomSequenceFormat.At(.5, 1, 30, 1.5, false).Frame == 0, "static hold");
+        Check(CustomSequenceFormat.At(.5, 1, 30, 1.5).Frame == 0, "static hold");
         var pageMetadata = new CustomSequenceMetadata { Width = 2, Height = 2, Columns = 3, Frames = 7 };
         byte[] sourcePixels = Enumerable.Range(0, 6 * 6 * 4).Select(i => (byte)i).ToArray();
         for (int start = 0; start < 7; start += 4)
@@ -155,15 +150,14 @@ internal static class Harness
         }
         using (var csv = new StreamWriter(Path.Combine(root, "timeline.csv")))
         {
-            csv.WriteLine("elapsed,frames,fps,hold,fade,index,opacity,finished");
+            csv.WriteLine("elapsed,frames,fps,hold,index,finished");
             foreach (int fps in new[] { 1, 10, 30, 60 })
             foreach (int count in new[] { 1, 10, 201 })
             foreach (double hold in new[] { 0, .5, 1.5 })
-            foreach (bool fade in new[] { false, true })
             foreach (double elapsed in new[] { 0, .06, .12, .35, 1, 1.2, 1.625, 1.75, 10, 202 })
             {
-                var state = CustomSequenceFormat.At(elapsed, count, fps, hold, fade);
-                csv.WriteLine(string.Join(",", new[] { elapsed.ToString("R", System.Globalization.CultureInfo.InvariantCulture), count.ToString(), fps.ToString(), hold.ToString("R", System.Globalization.CultureInfo.InvariantCulture), fade ? "1" : "0", state.Frame.ToString(), state.Opacity.ToString("R", System.Globalization.CultureInfo.InvariantCulture), state.Finished ? "1" : "0" }));
+                var state = CustomSequenceFormat.At(elapsed, count, fps, hold);
+                csv.WriteLine(string.Join(",", new[] { elapsed.ToString("R", System.Globalization.CultureInfo.InvariantCulture), count.ToString(), fps.ToString(), hold.ToString("R", System.Globalization.CultureInfo.InvariantCulture), state.Frame.ToString(), state.Finished ? "1" : "0" }));
             }
         }
 

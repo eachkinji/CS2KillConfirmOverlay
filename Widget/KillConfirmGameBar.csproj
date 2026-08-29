@@ -106,7 +106,6 @@
     <Compile Include="Services\CustomModule\CustomSequenceFormat.cs" />
     <Compile Include="Services\CustomModule\CustomSequencePackService.cs" />
     <Compile Include="Services\CustomModule\CustomSequencePackService.Editing.cs" />
-    <Compile Include="Services\CustomModule\CustomModuleSettingsStore.cs" />
     <Compile Include="Services\Catalog\PackCatalogService.CustomModule.cs" />
     <Compile Include="Controls\Animations\CustomModule\CustomModuleAnimation.cs" />
     <Compile Include="Controls\GameStyles\CustomModule\CustomModulePanel.cs" />

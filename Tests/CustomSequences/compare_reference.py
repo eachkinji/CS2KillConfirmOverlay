@@ -42,14 +42,13 @@ sys.modules["kill_icon_overlay"] = overlay
 count = 0
 with (fixtures / "timeline.csv").open(newline="") as source:
     for row in csv.DictReader(source):
-        fade = row["fade"] == "1"
         actual = overlay.playback_state(float(row["elapsed"]), int(row["fps"]), int(row["frames"]),
-                                        .12 if fade else 0, .25 if fade else 0, float(row["hold"]))
+                                        0, 0, float(row["hold"]))
         if row["finished"] == "1":
             assert actual is None, row
         else:
             assert actual is not None and actual[0] == int(row["index"]), row
-            assert abs(actual[1] - float(row["opacity"])) < 1e-6, (actual, row)
+            assert actual[1] == 1.0, (actual, row)
         count += 1
 
 importer = helpers(reference / "core/kill_icon_import.py", {

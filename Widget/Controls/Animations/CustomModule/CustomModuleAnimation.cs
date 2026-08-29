@@ -25,7 +25,6 @@ namespace KillConfirmGameBar.Controls
         private string _customSequenceKey;
         private bool _customSequencePlaying;
         private CustomSequenceState _customState;
-        private CustomModuleSettings _customSettings;
         public event EventHandler<string> CustomSequenceStatusChanged;
 
         public async void PlayCustomKill(int kills, bool headshot, string packKey = null)
@@ -44,8 +43,7 @@ namespace KillConfirmGameBar.Controls
                 try
                 {
                     if (token != _playToken || generation != _resourceGeneration) return;
-                    _customSettings = CustomModuleSettingsStore.Load();
-                    bool ready = await LoadCustomSequenceAsync(key, Math.Max(1, Math.Min(5, kills)), headshot && _customSettings.Headshots);
+                    bool ready = await LoadCustomSequenceAsync(key, Math.Max(1, Math.Min(5, kills)), headshot);
                     if (token != _playToken || generation != _resourceGeneration)
                     {
                         ReleaseCustomSequence();
@@ -141,16 +139,18 @@ namespace KillConfirmGameBar.Controls
         {
             if (_customSequence == null) return;
             var m = _customSequence.Metadata;
-            var state = CustomSequenceFormat.At(_playbackClock.Elapsed.TotalSeconds, m.Frames,
-                _customSettings.Fps > 0 ? _customSettings.Fps : m.Fps,
-                _customSettings.Hold >= 0 ? _customSettings.Hold : m.HoldSeconds, _customSettings.Fade);
+            var state = CustomSequenceFormat.At(
+                _playbackClock.Elapsed.TotalSeconds,
+                m.Frames,
+                m.Fps,
+                m.HoldSeconds);
             if (state.Finished)
             {
                 _timer.Stop(); _playbackClock.Stop();
                 _customSequencePlaying = false; Visibility = Visibility.Collapsed;
                 return;
             }
-            bool changed = state.Frame != _customState.Frame || Math.Abs(state.Opacity - _customState.Opacity) >= 0.005;
+            bool changed = state.Frame != _customState.Frame;
             _customState = state;
             if (changed || _playbackClock.ElapsedMilliseconds < 25) SpriteCanvas.Invalidate();
         }
@@ -164,7 +164,7 @@ namespace KillConfirmGameBar.Controls
             int frame = _customState.Frame % asset.FramesPerPage;
             session.DrawImage(asset.Pages[page], new Rect(0, 0, _logicalFrameWidth, _logicalFrameHeight),
                 new Rect((frame % asset.Columns) * m.Width, (frame / asset.Columns) * m.Height, m.Width, m.Height),
-                _customState.Opacity, CanvasImageInterpolation.Linear);
+                1, CanvasImageInterpolation.Linear);
         }
 
         public void StopCustomSequence()

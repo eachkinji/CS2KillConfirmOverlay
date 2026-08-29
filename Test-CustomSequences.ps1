@@ -16,7 +16,7 @@ $service = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'Widget/Services/Cust
 $service = "using ApplicationData = KillConfirmGameBar.Services.TestApplicationData;`n" + $service
 $servicePath = Join-Path $OutputDirectory 'CustomSequencePackService.cs'
 [IO.File]::WriteAllText($servicePath, $service)
-$extraSources = @('Widget/Services/Styling/GameStyleService.cs', 'Widget/Services/Styling/GameStyleService.PackMappings.cs', 'Widget/Services/Styling/KillFeedbackFrameDefinition.cs', 'Widget/Services/Settings/General/KillFeedbackVisibilitySettingsStore.cs', 'Widget/Services/CustomModule/CustomModuleSettingsStore.cs', 'Widget/Services/CustomModule/CustomSequencePackService.Editing.cs', 'Widget/Services/Catalog/PackCatalogService.CustomModule.cs') | ForEach-Object {
+$extraSources = @('Widget/Services/Styling/GameStyleService.cs', 'Widget/Services/Styling/GameStyleService.PackMappings.cs', 'Widget/Services/Styling/KillFeedbackFrameDefinition.cs', 'Widget/Services/Settings/General/KillFeedbackVisibilitySettingsStore.cs', 'Widget/Services/CustomModule/CustomSequencePackService.Editing.cs', 'Widget/Services/Catalog/PackCatalogService.CustomModule.cs') | ForEach-Object {
     $copy = Join-Path $OutputDirectory ([IO.Path]::GetFileName($_))
     [IO.File]::WriteAllText($copy, "using ApplicationData = KillConfirmGameBar.Services.TestApplicationData;`n" + [IO.File]::ReadAllText((Join-Path $PSScriptRoot $_)))
     $copy

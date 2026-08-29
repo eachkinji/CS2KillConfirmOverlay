@@ -1,5 +1,6 @@
 using System;
 using KillConfirmGameBar.Services;
+using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
@@ -12,6 +13,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
         private GameStyleMode _style = GameStyleMode.Crossfire;
         private bool _isChinese = true;
         private GameThemePalette _theme;
+        private volatile bool _isLoaded;
 
         public KillFeedbackAppearanceEditor()
         {
@@ -111,18 +113,48 @@ namespace KillConfirmGameBar.Controls.GameStyles
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
+            _isLoaded = true;
             KillFeedbackVisibilitySettingsStore.Changed -= OnStoreChanged;
             KillFeedbackVisibilitySettingsStore.Changed += OnStoreChanged;
         }
 
         private void OnUnloaded(object sender, RoutedEventArgs e)
         {
+            _isLoaded = false;
             KillFeedbackVisibilitySettingsStore.Changed -= OnStoreChanged;
         }
 
-        private void OnStoreChanged(GameStyleMode style)
+        private async void OnStoreChanged(GameStyleMode style)
         {
-            if (!_suppressChanges && style == _style && _theme != null)
+            if (!_isLoaded || style != _style)
+            {
+                return;
+            }
+
+            try
+            {
+                if (Dispatcher.HasThreadAccess)
+                {
+                    RefreshFromStore(style);
+                    return;
+                }
+
+                await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => RefreshFromStore(style));
+            }
+            catch (Exception ex)
+            {
+                // Game Bar creates its settings surfaces on separate UI threads.
+                // A page can disappear before its static store subscription receives
+                // Unloaded; a dead dispatcher must never terminate the widget process.
+                _isLoaded = false;
+                KillFeedbackVisibilitySettingsStore.Changed -= OnStoreChanged;
+                App.Log("Discarded stale feedback editor callback: " + ex.Message);
+            }
+        }
+
+        private void RefreshFromStore(GameStyleMode style)
+        {
+            if (_isLoaded && !_suppressChanges && style == _style && _theme != null)
             {
                 Configure(_style, _isChinese, _theme);
             }

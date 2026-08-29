@@ -8,6 +8,7 @@ $definition = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Ser
 $markerPlayback = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Controls/Animations/ModernWarfare2019/ModernWarfare2019Animation.Playback.cs')
 $hostLayout = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Pages/KillConfirmWidget/Layout/KillConfirmWidgetPage.HostLayout.cs')
 $widgetInput = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Pages/KillConfirmWidget/Interaction/KillConfirmWidgetPage.Input.cs')
+$appearanceEditor = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Controls/GameStyles/Shared/KillFeedbackAppearanceEditor.xaml.cs')
 if ($markerPlayback -notmatch '(?s)if\s*\(killMarkOnly\)\s*\{\s*.*?_modernWarfare2019ImpactAngleDegrees\s*=\s*0\s*;\s*\}\s*else\s*\{\s*.*?_modernWarfare2019Random\.NextDouble') {
     throw 'Shared non-COD KillMark must stay axis-locked while full COD playback keeps its random impact angle.'
 }
@@ -17,6 +18,11 @@ if ($hostLayout -match 'nudgeSize|HostLayoutRefreshNudge|548x598' -or
 }
 if ($widgetInput -notmatch 'RefreshFixedWidgetLayoutAndCenterAsync\("crosshair-center"\)') {
     throw 'Crosshair centering must restore and verify the fixed host size before centering the window.'
+}
+if ($appearanceEditor -notmatch 'Dispatcher\.HasThreadAccess' -or
+    $appearanceEditor -notmatch 'Dispatcher\.RunAsync\(CoreDispatcherPriority\.Normal' -or
+    $appearanceEditor -notmatch 'KillFeedbackVisibilitySettingsStore\.Changed\s*-=' ) {
+    throw 'Feedback appearance store callbacks must return to their owning UI dispatcher and release stale subscriptions.'
 }
 $checks = @'
 namespace KillConfirmGameBar.Services

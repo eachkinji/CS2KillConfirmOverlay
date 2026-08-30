@@ -105,4 +105,6 @@
             "{}",
             sounds[1].path
         );
+        assert!((sounds[0].gain - 1.0).abs() < f32::EPSILON);
+        assert!((sounds[1].gain - 0.6).abs() < f32::EPSILON);
     }

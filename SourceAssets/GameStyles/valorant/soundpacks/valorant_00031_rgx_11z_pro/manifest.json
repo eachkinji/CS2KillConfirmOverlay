@@ -5,6 +5,9 @@
   "version": "1.0",
   "audio": {
     "base_gain": 1.0,
+    "slot_gains": {
+      "common_overlay": 0.6
+    },
     "slots": {
       "kill_1": "1.wav",
       "kill_2": "2.wav",

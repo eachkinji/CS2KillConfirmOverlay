@@ -80,6 +80,7 @@
   ],
   "base_audio_event": "Play_UI_KillBanner_Base_Appear",
   "base_audio_behavior": "ConfigureKillBanner calls StartKillBannerAnimation before GetVisibility, so cooked WasVisible resolves true and the Appear branch is selected",
+  "base_audio_mix_gain": 0.6,
   "unreachable_reappear_event": "Play_UI_KillBanner_Base_Transition",
   "headshot_audio_event": null
 }

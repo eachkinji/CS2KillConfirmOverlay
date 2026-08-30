@@ -1,5 +1,4 @@
 using System;
-using KillConfirmGameBar.Services;
 using Windows.UI;
 
 namespace KillConfirmGameBar.Controls
@@ -33,7 +32,7 @@ namespace KillConfirmGameBar.Controls
             switch (id)
             {
                 case "00010":
-                    return new ValorantDemoProfile(id, "#2697f5", "killicon_valorant_glitchpop_emblem.png", "killicon_valorant_glitchpop_frame.png", "killicon_valorant_glitchpop_bar.png") { HeadshotY = -16, HeroFlame = false };
+                    return new ValorantDemoProfile(id, "#2697f5", "killicon_valorant_glitchpop_emblem.png", "killicon_valorant_glitchpop_frame.png", "killicon_valorant_glitchpop_bar.png") { Ring = "killicon_valorant_glitchpop_ring.png", HeadshotY = -16, HeroFlame = false };
                 case "00011":
                     return new ValorantDemoProfile(id, "#df7e49", "killicon_valorant_singularity_v1_emblem.png", "killicon_valorant_base_frame.png", "killicon_valorant_singularity_v1_bar.png") { HeadshotY = -10, HeroFlame = false, EmblemScale = 0.9, FrameWidthScale = 0.8 };
                 case "00012":
@@ -49,13 +48,13 @@ namespace KillConfirmGameBar.Controls
                 case "00017":
                     return new ValorantDemoProfile(id, "#f77124", "killicon_valorant_gaia_v3_emblem.png", "killicon_valorant_gaia_v3_frame.png", "killicon_valorant_gaia_v3_bar.png") { HeadshotX = -2, HeadshotY = -20, EmblemScale = 0.9, BarRadiusOffset = 4, IsGaia = true };
                 case "00018":
-                    return new ValorantDemoProfile(id, "#c94fb9", "killicon_valorant_bubblegum_deathwish_emblem.png", "killicon_valorant_bubblegum_deathwish_frame.png", "killicon_valorant_bubblegum_deathwish_bar.png") { Blade = "killicon_valorant_bubblegum_deathwish_blade.png", HeadshotY = -12, EmblemScale = 0.55 };
+                    return new ValorantDemoProfile(id, "#c94fb9", "killicon_valorant_bubblegum_deathwish_emblem.png", "killicon_valorant_bubblegum_deathwish_frame.png", "killicon_valorant_bubblegum_deathwish_bar.png") { Ring = null, Blade = "killicon_valorant_bubblegum_deathwish_blade.png", HeadshotY = -12, EmblemScale = 0.55 };
                 case "00019":
-                    return new ValorantDemoProfile(id, "#c98e4c", "killicon_valorant_bubblegum_deathwish_v3_emblem.png", "killicon_valorant_bubblegum_deathwish_frame.png", "killicon_valorant_bubblegum_deathwish_v1_bar.png") { Blade = "killicon_valorant_bubblegum_deathwish_blade.png", HeadshotY = -12, EmblemScale = 0.55 };
+                    return new ValorantDemoProfile(id, "#c98e4c", "killicon_valorant_bubblegum_deathwish_v3_emblem.png", "killicon_valorant_bubblegum_deathwish_frame.png", "killicon_valorant_bubblegum_deathwish_v1_bar.png") { Ring = null, Blade = "killicon_valorant_bubblegum_deathwish_blade.png", HeadshotY = -12, EmblemScale = 0.55 };
                 case "00020":
-                    return new ValorantDemoProfile(id, "#9d332f", "killicon_valorant_bubblegum_deathwish_v2_emblem.png", "killicon_valorant_bubblegum_deathwish_frame.png", "killicon_valorant_bubblegum_deathwish_v2_bar.png") { Blade = "killicon_valorant_bubblegum_deathwish_blade.png", HeadshotY = -12, EmblemScale = 0.55 };
+                    return new ValorantDemoProfile(id, "#9d332f", "killicon_valorant_bubblegum_deathwish_v2_emblem.png", "killicon_valorant_bubblegum_deathwish_frame.png", "killicon_valorant_bubblegum_deathwish_v2_bar.png") { Ring = null, Blade = "killicon_valorant_bubblegum_deathwish_blade.png", HeadshotY = -12, EmblemScale = 0.55 };
                 case "00021":
-                    return new ValorantDemoProfile(id, "#6eb037", "killicon_valorant_bubblegum_deathwish_v1_emblem.png", "killicon_valorant_bubblegum_deathwish_frame.png", "killicon_valorant_bubblegum_deathwish_v3_bar.png") { Blade = "killicon_valorant_bubblegum_deathwish_blade.png", HeadshotY = -12, EmblemScale = 0.55 };
+                    return new ValorantDemoProfile(id, "#6eb037", "killicon_valorant_bubblegum_deathwish_v1_emblem.png", "killicon_valorant_bubblegum_deathwish_frame.png", "killicon_valorant_bubblegum_deathwish_v3_bar.png") { Ring = null, Blade = "killicon_valorant_bubblegum_deathwish_blade.png", HeadshotY = -12, EmblemScale = 0.55 };
                 case "00022":
                     return new ValorantDemoProfile(id, "#947046", "killicon_valorant_champions_2021_emblem.png", "killicon_valorant_base_frame.png", "killicon_valorant_champions_2021_bar.png") { HeadshotY = -12, EmblemScale = 0.6, FrameWidthScale = 0.8 };
                 case "00023":
@@ -75,13 +74,13 @@ namespace KillConfirmGameBar.Controls
                 case "00030":
                     return new ValorantDemoProfile(id, "#73c0c4", "killicon_valorant_radiant_crisis_001_emblem.png", "killicon_valorant_base_frame.png", "killicon_valorant_radiant_crisis_001_bar.png") { HeadshotY = -12, EmblemScale = 0.5, FrameWidthScale = 0.8, HaloRadius = 25 };
                 case "00031":
-                    return new ValorantDemoProfile(id, "#a4ff96", "killicon_valorant_rgx_11z_pro_emblem.png", "killicon_valorant_rgx_11z_pro_frame.png", "killicon_valorant_rgx_11z_pro_bar.png") { HeadshotX = 0.85, HeadshotY = -21, EmblemScale = 0.35, FrameWidthScale = 0.8, HaloRadius = 25, UsesNativeAfterglowPlayback = ValorantPackService.UsesNativeAfterglowPlayback(packKey) };
+                    return new ValorantDemoProfile(id, "#a4ff96", "killicon_valorant_rgx_11z_pro_emblem.png", "killicon_valorant_rgx_11z_pro_frame.png", "killicon_valorant_rgx_11z_pro_bar.png") { Ring = "killicon_valorant_rgx_11z_pro_ring.png", HeadshotX = 0.85, HeadshotY = -21, EmblemScale = 0.35, FrameWidthScale = 0.8, HaloRadius = 25 };
                 case "00032":
-                    return new ValorantDemoProfile(id, "#f3414a", "killicon_valorant_rgx_11z_pro_v1_emblem.png", "killicon_valorant_rgx_11z_pro_frame.png", "killicon_valorant_rgx_11z_pro_v1_bar.png") { HeadshotY = -12, EmblemScale = 0.35, FrameWidthScale = 0.8, HaloRadius = 25 };
+                    return new ValorantDemoProfile(id, "#f3414a", "killicon_valorant_rgx_11z_pro_v1_emblem.png", "killicon_valorant_rgx_11z_pro_frame.png", "killicon_valorant_rgx_11z_pro_v1_bar.png") { Ring = "killicon_valorant_rgx_11z_pro_ring.png", HeadshotY = -12, EmblemScale = 0.35, FrameWidthScale = 0.8, HaloRadius = 25 };
                 case "00033":
-                    return new ValorantDemoProfile(id, "#41baf3", "killicon_valorant_rgx_11z_pro_v2_emblem.png", "killicon_valorant_rgx_11z_pro_frame.png", "killicon_valorant_rgx_11z_pro_v2_bar.png") { HeadshotY = -12, EmblemScale = 0.35, FrameWidthScale = 0.8, HaloRadius = 25 };
+                    return new ValorantDemoProfile(id, "#41baf3", "killicon_valorant_rgx_11z_pro_v2_emblem.png", "killicon_valorant_rgx_11z_pro_frame.png", "killicon_valorant_rgx_11z_pro_v2_bar.png") { Ring = "killicon_valorant_rgx_11z_pro_ring.png", HeadshotY = -12, EmblemScale = 0.35, FrameWidthScale = 0.8, HaloRadius = 25 };
                 case "00034":
-                    return new ValorantDemoProfile(id, "#f3a741", "killicon_valorant_rgx_11z_pro_v3_emblem.png", "killicon_valorant_rgx_11z_pro_frame.png", "killicon_valorant_rgx_11z_pro_v3_bar.png") { HeadshotY = -12, EmblemScale = 0.35, FrameWidthScale = 0.8, HaloRadius = 25 };
+                    return new ValorantDemoProfile(id, "#f3a741", "killicon_valorant_rgx_11z_pro_v3_emblem.png", "killicon_valorant_rgx_11z_pro_frame.png", "killicon_valorant_rgx_11z_pro_v3_bar.png") { Ring = "killicon_valorant_rgx_11z_pro_ring.png", HeadshotY = -12, EmblemScale = 0.35, FrameWidthScale = 0.8, HaloRadius = 25 };
                 default:
                     return new ValorantDemoProfile("00009", "#908ccd", "killicon_valorant_prime_emblem.png", "killicon_valorant_prime_frame.png", "killicon_valorant_bar.png") { HeadshotY = -16, HeroFlame = false };
             }
@@ -115,6 +114,7 @@ namespace KillConfirmGameBar.Controls
             public string Emblem { get; }
             public string Frame { get; }
             public string Bar { get; }
+            public string Ring { get; set; } = "killicon_valorant_base_ring.png";
             public string Blade { get; set; }
             public double HeadshotX { get; set; }
             public double HeadshotY { get; set; }
@@ -127,7 +127,6 @@ namespace KillConfirmGameBar.Controls
             public double BaseParticleScale { get; set; } = 1.0;
             public double LargeSparksScale { get; set; } = 1.0;
             public double HaloRadius { get; set; } = 30.0;
-            public bool UsesNativeAfterglowPlayback { get; set; }
         }
 
         private static Color ParseValorantColor(string hex)

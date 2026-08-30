@@ -5,9 +5,6 @@
   "version": "1.0",
   "audio": {
     "base_gain": 1.0,
-    "slot_gains": {
-      "common_overlay": 0.6
-    },
     "slots": {
       "kill_1": "1.wav",
       "kill_2": "2.wav",
@@ -16,6 +13,9 @@
       "kill_5": "5.wav",
       "common_overlay": "appear.wav",
       "headshot": []
+    },
+    "slot_gains": {
+      "common_overlay": 0.3
     },
     "overlay_slots": ["kill_1", "kill_2", "kill_3", "kill_4", "kill_5"]
   }

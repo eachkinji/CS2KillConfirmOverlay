@@ -23,15 +23,6 @@ namespace KillConfirmGameBar.Services
     internal static class ValorantPackService
     {
         public const string DefaultKey = "valorant_00011_singularity_v1";
-        public const string NativeAfterglowKey = "valorant_00031_rgx_11z_pro";
-
-        public static bool UsesNativeAfterglowPlayback(string key)
-        {
-            return string.Equals(
-                key?.Trim(),
-                NativeAfterglowKey,
-                StringComparison.OrdinalIgnoreCase);
-        }
 
         // Pack(folder, displayName, emblemFile). The emblem file lives at
         // Assets/GameStyles/valorant/killconfirm/{folder}/textures/{emblemFile}.

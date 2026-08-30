@@ -97,7 +97,6 @@ namespace KillConfirmGameBar.Controls
             public CanvasBitmap LargeSparks => Textures?.LargeSparks;
             public CanvasBitmap XSparks => Textures?.XSparks;
             public ValorantDemoProfile DemoProfile { get; set; }
-            public bool UsesNativeAfterglowPlayback => DemoProfile?.UsesNativeAfterglowPlayback == true;
         }
 
         private sealed class ValorantTextureSet : IDisposable

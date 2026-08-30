@@ -43,9 +43,7 @@ namespace KillConfirmGameBar.Controls
                 {
                     FrameWidth = (int)ValorantFrameWidth,
                     FrameHeight = (int)ValorantFrameHeight,
-                    Frames = profile.UsesNativeAfterglowPlayback
-                        ? GetNativeAfterglowFrameCount(asset.KillCount)
-                        : ValorantFrameCount,
+                    Frames = GetNativeValorantFrameCount(asset.KillCount),
                     Fps = FrameSequenceFps
                 },
                 asset);
@@ -142,6 +140,8 @@ namespace KillConfirmGameBar.Controls
         {
             string folder = ValorantPackService.GetFolder(packKey) ?? ValorantPackService.GetFolder(ValorantPackService.DefaultKey);
             string root = $"ms-appx:///Assets/GameStyles/valorant/killconfirm/{folder}";
+            string nativeSupportRoot =
+                "ms-appx:///Assets/GameStyles/valorant/killconfirm/00031_rgx_11z_pro";
             var textures = new ValorantTextureSet
             {
                 PackKey = packKey
@@ -170,16 +170,20 @@ namespace KillConfirmGameBar.Controls
                 textures.LargeSparks = await LoadValorantTextureAsync(root, "killicon_valorant_particle_large_sparks.png", cancellationToken);
                 progress?.Report(92);
                 textures.XSparks = await LoadValorantTextureAsync(root, "killicon_valorant_particle_x_sparks.png", cancellationToken);
-                if (profile.UsesNativeAfterglowPlayback)
-                {
-                    textures.Ring = await LoadValorantTextureAsync(root, "killicon_valorant_rgx_11z_pro_ring.png", cancellationToken);
-                    textures.RingDissolve = await LoadValorantTextureAsync(root, "native_mask_ramp_top_down.png", cancellationToken);
-                    textures.FrameDissolve = await LoadValorantTextureAsync(root, "native_afterglow_frame_dissolve.png", cancellationToken);
-                    textures.BadgeDissolve = await LoadValorantTextureAsync(root, "native_afterglow_badge_dissolve.png", cancellationToken);
-                    textures.Shadow = await LoadValorantTextureAsync(root, "native_killbanner_vignette.png", cancellationToken);
-                    textures.BaseParticleT2 = await LoadValorantTextureAsync(root, "native_particle_base_t2.png", cancellationToken);
-                    textures.BaseParticleT3 = await LoadValorantTextureAsync(root, "native_particle_base_t3.png", cancellationToken);
-                }
+                // Every Valorant pack now uses the cooked/native timeline. Theme
+                // textures stay pack-local; timeline support textures are shared
+                // from the canonical Afterglow extraction instead of duplicated.
+                textures.Ring = await TryLoadValorantTextureAsync(root, profile.Ring, cancellationToken)
+                    ?? await LoadValorantTextureAsync(
+                        "ms-appx:///Assets/GameStyles/valorant/killconfirm/00011_singularity_v1",
+                        "killicon_valorant_base_ring.png",
+                        cancellationToken);
+                textures.RingDissolve = await LoadValorantTextureAsync(nativeSupportRoot, "native_mask_ramp_top_down.png", cancellationToken);
+                textures.FrameDissolve = await LoadValorantTextureAsync(nativeSupportRoot, "native_afterglow_frame_dissolve.png", cancellationToken);
+                textures.BadgeDissolve = await LoadValorantTextureAsync(nativeSupportRoot, "native_afterglow_badge_dissolve.png", cancellationToken);
+                textures.Shadow = await LoadValorantTextureAsync(nativeSupportRoot, "native_killbanner_vignette.png", cancellationToken);
+                textures.BaseParticleT2 = await LoadValorantTextureAsync(nativeSupportRoot, "native_particle_base_t2.png", cancellationToken);
+                textures.BaseParticleT3 = await LoadValorantTextureAsync(nativeSupportRoot, "native_particle_base_t3.png", cancellationToken);
                 progress?.Report(100);
                 return textures;
             }

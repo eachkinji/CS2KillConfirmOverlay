@@ -19,7 +19,7 @@ namespace KillConfirmGameBar.Controls
         private const double CookedAfterglowSpinMs = 750.0;
         private const double CookedAfterglowPentaPlaybackSpeed = 0.3;
 
-        private static int GetNativeAfterglowFrameCount(int killCount)
+        private static int GetNativeValorantFrameCount(int killCount)
         {
             double speed = GetNativeAfterglowPlaybackSpeed(killCount);
             return (int)Math.Ceiling(
@@ -31,7 +31,7 @@ namespace KillConfirmGameBar.Controls
             return killCount >= 5 ? CookedAfterglowPentaPlaybackSpeed : 1.0;
         }
 
-        private void DrawCookedAfterglowFrame(CanvasDrawingSession ds, int frame, ValorantKillAsset asset)
+        private void DrawNativeValorantFrame(CanvasDrawingSession ds, int frame, ValorantKillAsset asset)
         {
             // StartAnimation selects 0.3 playback speed for penta/overkill and
             // 1.0 for kills 1-4. Events and all child animations remain on the
@@ -96,8 +96,8 @@ namespace KillConfirmGameBar.Controls
                     300.0);
             DrawNativeDissolvedImage(ds, asset.Frame, asset.Textures.FrameDissolve,
                 cx, cy,
-                200.0 * CookedAfterglowUmgScale,
-                256.0 * CookedAfterglowUmgScale,
+                asset.Frame.SizeInPixels.Width * CookedAfterglowUmgScale,
+                asset.Frame.SizeInPixels.Height * CookedAfterglowUmgScale,
                 dissolve, opacity);
         }
 
@@ -130,8 +130,8 @@ namespace KillConfirmGameBar.Controls
 
             DrawNativeDissolvedTintedImage(ds, asset.Emblem, asset.Textures.BadgeDissolve,
                 cx, cy,
-                85.0 * CookedAfterglowUmgScale,
-                85.0 * CookedAfterglowUmgScale,
+                asset.Emblem.SizeInPixels.Width * CookedAfterglowUmgScale,
+                asset.Emblem.SizeInPixels.Height * CookedAfterglowUmgScale,
                 scale, dissolve, badgeTint, opacity);
 
             if (!asset.IsHeadshot || hsMs < 0 || hsMs > 550.0)
@@ -142,9 +142,10 @@ namespace KillConfirmGameBar.Controls
             double reticleScale = CookedChannel(hsMs,
                 new[] { 0.0, 250.0 }, new[] { 2.0, 1.0 },
                 null, null, new[] { 2, 2 });
+            ValorantDemoProfile profile = asset.DemoProfile ?? GetValorantDemoProfile(asset.PackKey);
             DrawNativeTintedStretchedImage(ds, asset.Headshot,
-                cx + (0.85 * CookedAfterglowUmgScale),
-                cy - (21.0 * CookedAfterglowUmgScale),
+                cx + (profile.HeadshotX * CookedAfterglowUmgScale),
+                cy + (profile.HeadshotY * CookedAfterglowUmgScale),
                 128.0 * 0.3 * CookedAfterglowUmgScale * reticleScale,
                 128.0 * 0.3 * CookedAfterglowUmgScale * reticleScale,
                 0, CookedHeadshotColor(hsMs, true), opacity);
@@ -196,6 +197,11 @@ namespace KillConfirmGameBar.Controls
             double playbackSpeed,
             double cx, double cy, double opacity)
         {
+            if (asset.DemoProfile?.HeroFlame == false)
+            {
+                return;
+            }
+
             DrawCookedFlipbook(ds, asset.HeroFlame, 20, 35.0,
                 CookedChildElapsedMs(ms, CookedAfterglowEventMs, playbackSpeed),
                 cx, cy - (30.0 * CookedAfterglowUmgScale),
@@ -273,7 +279,10 @@ namespace KillConfirmGameBar.Controls
                 ms, CookedAfterglowEventMs, playbackSpeed);
             double ringReveal = CookedProgress(stateMs, 0.0, 500.0);
             DrawNativeDissolvedImage(ds, asset.Textures.Ring, asset.Textures.RingDissolve,
-                cx, cy, 170.0 * unit, 170.0 * unit, ringReveal, opacity);
+                cx, cy,
+                asset.Textures.Ring.SizeInPixels.Width * unit,
+                asset.Textures.Ring.SizeInPixels.Height * unit,
+                ringReveal, opacity);
 
             double spin = CookedWheelAngle(
                 CookedChildElapsedMs(ms, CookedAfterglowSpinMs, playbackSpeed),
@@ -322,8 +331,11 @@ namespace KillConfirmGameBar.Controls
                 double radians = angle * Math.PI / 180.0;
                 double x = cx + Math.Sin(radians) * radius;
                 double y = cy - Math.Cos(radians) * radius;
-                double sizeX = 45.0 * unit * pipScaleX;
-                double sizeY = 42.0 * unit * pipScaleY;
+                double pipWidth = asset.Bar.SizeInPixels.Width;
+                double pipHeight = asset.Bar.SizeInPixels.Height;
+                double pipFit = Math.Min(1.0, 45.0 / Math.Max(pipWidth, pipHeight));
+                double sizeX = pipWidth * pipFit * unit * pipScaleX;
+                double sizeY = pipHeight * pipFit * unit * pipScaleY;
                 DrawNativeTintedStretchedImage(ds, asset.Bar, x, y,
                     sizeX, sizeY, angle, Colors.White, upOpacity * opacity);
                 if (hoverOpacity > 0)

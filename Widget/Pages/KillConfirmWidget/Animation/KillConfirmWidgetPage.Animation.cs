@@ -369,15 +369,7 @@ namespace KillConfirmGameBar
                 valorantPack = GetSelectedVoicePackPreset();
             }
 
-            if (ValorantPackService.UsesNativeAfterglowPlayback(valorantPack))
-            {
-                LowerFeedbackAnimation.PlayNativeAfterglowKill(
-                    killEvent.KillCount,
-                    killEvent.IsHeadshot);
-                return;
-            }
-
-            LowerFeedbackAnimation.PlayValorantKill(
+            LowerFeedbackAnimation.PlayNativeValorantKill(
                 valorantPack,
                 killEvent.KillCount,
                 killEvent.IsHeadshot);

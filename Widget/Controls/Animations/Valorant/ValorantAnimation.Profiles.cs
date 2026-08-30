@@ -64,7 +64,10 @@ namespace KillConfirmGameBar.Controls
                 case "00034":
                     return AfterglowProfile(id, "#CE842B", "v3");
                 default:
-                    return new ValorantDemoProfile("00009", "#FFBC00", "HypeBeast_Emblem.png", "HypeBeast__FrameBG.png", "HypeBeast_KillPip_Up.png", "HypeBeast_KillPip_Hover.png") { Ring = "HypeBeast_RingBG.png", FrameDissolve = "HypeBeast_FrameDissolve.png", BadgeDissolve = "HypeBeast_Emblem_Dissolve.png", SliceSize = 145, HeadshotY = -17 };
+                    // Unreal stores Prime's PrimaryColor as the linear value
+                    // (1.0, 0.5, 0.0). FModel's #FFBC00 is its sRGB preview,
+                    // not the multiplier passed to the particle widgets.
+                    return new ValorantDemoProfile("00009", "#FF8000", "HypeBeast_Emblem.png", "HypeBeast__FrameBG.png", "HypeBeast_KillPip_Up.png", "HypeBeast_KillPip_Hover.png") { Ring = "HypeBeast_RingBG.png", FrameDissolve = "HypeBeast_FrameDissolve.png", BadgeDissolve = "HypeBeast_Emblem_Dissolve.png", SliceSize = 145, HeadshotY = -17 };
             }
         }
 

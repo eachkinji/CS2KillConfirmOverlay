@@ -163,7 +163,7 @@ namespace KillConfirmGameBar.Controls
             double hsMs = CookedChildElapsedMs(
                 ms, CookedAfterglowEventMs, playbackSpeed);
             Color badgeTint = Colors.White;
-            if (asset.IsHeadshot && hsMs >= 0 && hsMs <= 550.0)
+            if (asset.IsHeadshot && hsMs >= 0)
             {
                 scale *= CookedHeadshotBadgeScale(hsMs);
                 badgeTint = CookedHeadshotColor(hsMs, false);
@@ -175,11 +175,14 @@ namespace KillConfirmGameBar.Controls
                 asset.Emblem.SizeInPixels.Height * CookedAfterglowUmgScale,
                 scale, dissolve, badgeTint, opacity);
 
-            if (!asset.IsHeadshot || hsMs < 0 || hsMs > 550.0)
+            if (!asset.IsHeadshot || hsMs < 0)
             {
                 return;
             }
 
+            // HeadshotFlicker finishes on its settled red frame. Keep that
+            // frame alive so it inherits GlobalHolder's unified outro instead
+            // of disappearing as soon as the flicker animation completes.
             double reticleScale = CookedChannel(hsMs,
                 new[] { 0.0, 250.0 }, new[] { 2.0, 1.0 },
                 null, null, new[] { 2, 2 });

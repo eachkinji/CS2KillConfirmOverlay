@@ -99,6 +99,47 @@ namespace KillConfirmGameBar.Controls
                 asset.Frame.SizeInPixels.Width * CookedAfterglowUmgScale,
                 asset.Frame.SizeInPixels.Height * CookedAfterglowUmgScale,
                 dissolve, opacity);
+
+            DrawNativeHazardFrame(ds, asset, ms, realMs, playbackSpeed, cx, cy, opacity);
+        }
+
+        private void DrawNativeHazardFrame(
+            CanvasDrawingSession ds, ValorantKillAsset asset, double ms,
+            double realMs, double playbackSpeed,
+            double cx, double cy, double opacity)
+        {
+            if (asset.SpecialFrame == null || asset.Blade == null)
+            {
+                return;
+            }
+
+            double outroMs = CookedChildElapsedMs(ms, 1803.2667, playbackSpeed);
+            double frameScale = outroMs < 0
+                ? CookedChannel(realMs,
+                    new[] { 0.0, 100.0 }, new[] { 0.0, 1.0 },
+                    null, null, new[] { 2, 2 })
+                : 1.0 - CookedProgress(outroMs, 0.0, 550.0);
+            double bladeScale = outroMs < 0
+                ? CookedChannel(realMs,
+                    new[] { 0.0, 150.0, 300.0 }, new[] { 0.0, 0.75, 1.0 },
+                    null, null, new[] { 2, 2, 2 })
+                : CookedChannel(outroMs,
+                    new[] { 0.0, 200.0, 450.0, 550.0 }, new[] { 1.0, 1.0, 0.75, 0.0 },
+                    null, null, new[] { 2, 2, 2, 2 });
+            double bladeRotation = outroMs < 0
+                ? CookedChannel(realMs,
+                    new[] { 50.0, 750.0 }, new[] { 0.0, 240.0 },
+                    null, null, new[] { 2, 2 })
+                : 240.0 + (90.0 * CookedProgress(outroMs, 0.0, 550.0));
+
+            DrawNativeStretchedImage(ds, asset.SpecialFrame, cx, cy,
+                asset.SpecialFrame.SizeInPixels.Width * CookedAfterglowUmgScale * frameScale,
+                asset.SpecialFrame.SizeInPixels.Height * CookedAfterglowUmgScale * frameScale,
+                0, opacity);
+            DrawNativeStretchedImage(ds, asset.Blade, cx, cy,
+                asset.Blade.SizeInPixels.Width * CookedAfterglowUmgScale * bladeScale,
+                asset.Blade.SizeInPixels.Height * CookedAfterglowUmgScale * bladeScale,
+                bladeRotation, opacity);
         }
 
         private void DrawCookedBadge(
@@ -197,11 +238,6 @@ namespace KillConfirmGameBar.Controls
             double playbackSpeed,
             double cx, double cy, double opacity)
         {
-            if (asset.DemoProfile?.HeroFlame == false)
-            {
-                return;
-            }
-
             DrawCookedFlipbook(ds, asset.HeroFlame, 20, 35.0,
                 CookedChildElapsedMs(ms, CookedAfterglowEventMs, playbackSpeed),
                 cx, cy - (30.0 * CookedAfterglowUmgScale),
@@ -324,25 +360,23 @@ namespace KillConfirmGameBar.Controls
                         new[] { 2, 2, 2, 2 });
                 }
 
-                // SetSize(147) changes the spacer below the 45x42 pip. With the
-                // root's default 0.5 pivot, that creates a 147/2 = 73.5 unit
-                // orbit. 147 is the spacer height, not the orbit radius.
-                double radius = (73.5 * unit) + lift;
+                // KillBannerData stores the pie-slice spacer size. The root's
+                // 0.5 pivot turns it into a half-size orbit radius.
+                ValorantDemoProfile profile = asset.DemoProfile ?? GetValorantDemoProfile(asset.PackKey);
+                double radius = ((profile.SliceSize / 2.0) * unit) + lift;
                 double radians = angle * Math.PI / 180.0;
                 double x = cx + Math.Sin(radians) * radius;
                 double y = cy - Math.Cos(radians) * radius;
-                double pipWidth = asset.Bar.SizeInPixels.Width;
-                double pipHeight = asset.Bar.SizeInPixels.Height;
-                double pipFit = Math.Min(1.0, 45.0 / Math.Max(pipWidth, pipHeight));
-                double sizeX = pipWidth * pipFit * unit * pipScaleX;
-                double sizeY = pipHeight * pipFit * unit * pipScaleY;
+                double sizeX = asset.Bar.SizeInPixels.Width * unit * pipScaleX;
+                double sizeY = asset.Bar.SizeInPixels.Height * unit * pipScaleY;
                 DrawNativeTintedStretchedImage(ds, asset.Bar, x, y,
                     sizeX, sizeY, angle, Colors.White, upOpacity * opacity);
-                if (hoverOpacity > 0)
+                if (hoverOpacity > 0 && asset.BarHover != null)
                 {
-                    Color hoverTint = LerpValorantColor(Colors.White, asset.Accent, 0.25);
-                    DrawNativeTintedStretchedImage(ds, asset.Bar, x, y,
-                        sizeX, sizeY, angle, hoverTint, hoverOpacity * opacity);
+                    double hoverWidth = asset.BarHover.SizeInPixels.Width * unit * pipScaleX;
+                    double hoverHeight = asset.BarHover.SizeInPixels.Height * unit * pipScaleY;
+                    DrawNativeTintedStretchedImage(ds, asset.BarHover, x, y,
+                        hoverWidth, hoverHeight, angle, Colors.White, hoverOpacity * opacity);
                 }
             }
         }
@@ -445,6 +479,16 @@ namespace KillConfirmGameBar.Controls
             double white = CookedChannel(elapsedMs, times, values,
                 null, null, new[] { 2, 2, 2, 2, 2, 2, 2, 2 });
             return LerpValorantColor(Color.FromArgb(255, 255, 0, 0), Colors.White, white);
+        }
+
+        private static Color LerpValorantColor(Color from, Color to, double amount)
+        {
+            amount = Clamp01(amount);
+            return Color.FromArgb(
+                (byte)(from.A + ((to.A - from.A) * amount)),
+                (byte)(from.R + ((to.R - from.R) * amount)),
+                (byte)(from.G + ((to.G - from.G) * amount)),
+                (byte)(from.B + ((to.B - from.B) * amount)));
         }
 
         private static double CookedProgress(double value, double start, double end)

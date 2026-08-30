@@ -83,14 +83,13 @@ namespace KillConfirmGameBar.Controls
             public int KillCount { get; set; }
             public bool IsHeadshot { get; set; }
             public Color Accent { get; set; } = Color.FromArgb(255, 255, 70, 85);
-            public float Brightness { get; set; } = 1.0f;
-            public float Contrast { get; set; } = 1.0f;
-            public int SpinDirection { get; set; } = 1;
             public ValorantTextureSet Textures { get; set; }
             public CanvasBitmap Frame => Textures?.Frame;
             public CanvasBitmap Emblem => Textures?.Emblem;
             public CanvasBitmap Bar => Textures?.Bar;
+            public CanvasBitmap BarHover => Textures?.BarHover;
             public CanvasBitmap Blade => Textures?.Blade;
+            public CanvasBitmap SpecialFrame => Textures?.SpecialFrame;
             public CanvasBitmap Headshot => Textures?.Headshot;
             public CanvasBitmap BaseParticle => Textures?.BaseParticle;
             public CanvasBitmap HeroFlame => Textures?.HeroFlame;
@@ -107,7 +106,9 @@ namespace KillConfirmGameBar.Controls
             public CanvasBitmap Frame { get; set; }
             public CanvasBitmap Emblem { get; set; }
             public CanvasBitmap Bar { get; set; }
+            public CanvasBitmap BarHover { get; set; }
             public CanvasBitmap Blade { get; set; }
+            public CanvasBitmap SpecialFrame { get; set; }
             public CanvasBitmap Headshot { get; set; }
             public CanvasBitmap BaseParticle { get; set; }
             public CanvasBitmap HeroFlame { get; set; }
@@ -132,7 +133,9 @@ namespace KillConfirmGameBar.Controls
                 Frame?.Dispose();
                 Emblem?.Dispose();
                 Bar?.Dispose();
+                BarHover?.Dispose();
                 Blade?.Dispose();
+                SpecialFrame?.Dispose();
                 Headshot?.Dispose();
                 BaseParticle?.Dispose();
                 HeroFlame?.Dispose();
@@ -148,7 +151,9 @@ namespace KillConfirmGameBar.Controls
                 Frame = null;
                 Emblem = null;
                 Bar = null;
+                BarHover = null;
                 Blade = null;
+                SpecialFrame = null;
                 Headshot = null;
                 BaseParticle = null;
                 HeroFlame = null;

@@ -6,25 +6,7 @@ namespace KillConfirmGameBar.Controls
     public sealed partial class KillConfirmAnimation
     {
         private const double ValorantDemoVfxScale = 0.8075;
-        private const double ValorantDemoDurationMs = 2600.0;
-        private const double ValorantDemoFadeStartMs = 2380.0;
-        private const double ValorantDemoFivePlusShowMs = 300.0;
-        private const double ValorantDemoFrameCssWidth = 116.0;
         private const double ValorantDemoFrameCssHeight = 116.0;
-        private const double ValorantDemoEmblemCssSize = 104.0;
-        private const double ValorantDemoBladeCssSize = 70.0;
-        private const double ValorantDemoHeadshotCssSize = 19.0;
-        private static readonly Color ValorantDemoFlashColor = Color.FromArgb(255, 255, 42, 54);
-
-        private static readonly int[][] ValorantDemoBarAngles =
-        {
-            new[] { 0 },
-            new[] { -90, 90 },
-            new[] { 0, -120, 120 },
-            new[] { 0, -90, 90, 180 },
-            new[] { 0, -72, 72, -144, 144 },
-            new[] { 0, -60, 60, -120, 120, 180 }
-        };
 
         private static ValorantDemoProfile GetValorantDemoProfile(string packKey)
         {
@@ -32,58 +14,92 @@ namespace KillConfirmGameBar.Controls
             switch (id)
             {
                 case "00010":
-                    return new ValorantDemoProfile(id, "#2697f5", "killicon_valorant_glitchpop_emblem.png", "killicon_valorant_glitchpop_frame.png", "killicon_valorant_glitchpop_bar.png") { Ring = "killicon_valorant_glitchpop_ring.png", HeadshotY = -16, HeroFlame = false };
+                    return new ValorantDemoProfile(id, "#68F5FF", "Cyberpunk_Emblem.png", "Cyberpunk_FrameBG.png", "Cyberpunk_KillPip_Hover.png", "Cyberpunk_KillPip_Up.png") { Ring = "Cyberpunk_RingBG.png", FrameDissolve = "Cyberpunk_FrameDissolve.png", BadgeDissolve = "Cyberpunk_BadgeDissolve.png", SliceSize = 172, HeadshotY = -10 };
                 case "00011":
-                    return new ValorantDemoProfile(id, "#df7e49", "killicon_valorant_singularity_v1_emblem.png", "killicon_valorant_base_frame.png", "killicon_valorant_singularity_v1_bar.png") { HeadshotY = -10, HeroFlame = false, EmblemScale = 0.9, FrameWidthScale = 0.8 };
+                    return EdgeProfile(id, "#F67A44", "V1");
                 case "00012":
-                    return new ValorantDemoProfile(id, "#dcc971", "killicon_valorant_singularity_v2_emblem.png", "killicon_valorant_base_frame.png", "killicon_valorant_singularity_v2_bar.png") { HeadshotY = -10, HeroFlame = false, EmblemScale = 0.9, FrameWidthScale = 0.8 };
+                    return EdgeProfile(id, "#D6B644", "V2");
                 case "00013":
-                    return new ValorantDemoProfile(id, "#7e9edc", "killicon_valorant_singularity_v3_emblem.png", "killicon_valorant_base_frame.png", "killicon_valorant_singularity_v3_bar.png") { HeadshotY = -10, HeroFlame = false, EmblemScale = 0.9, FrameWidthScale = 0.8 };
+                    return EdgeProfile(id, "#436CBF", "V3");
                 case "00014":
-                    return new ValorantDemoProfile(id, "#f9545e", "killicon_valorant_gaia_emblem.png", "killicon_valorant_gaia_frame.png", "killicon_valorant_gaia_bar.png") { HeadshotX = -2, HeadshotY = -20, EmblemScale = 0.9, BarRadiusOffset = 4, IsGaia = true };
+                    return AshenProfile(id, "#C01B1F", string.Empty);
                 case "00015":
-                    return new ValorantDemoProfile(id, "#287ef3", "killicon_valorant_gaia_v1_emblem.png", "killicon_valorant_gaia_v1_frame.png", "killicon_valorant_gaia_v1_bar.png") { HeadshotX = -2, HeadshotY = -20, EmblemScale = 0.9, BarRadiusOffset = 4, IsGaia = true };
+                    return AshenProfile(id, "#0871F7", "_v1");
                 case "00016":
-                    return new ValorantDemoProfile(id, "#27b748", "killicon_valorant_gaia_v2_emblem.png", "killicon_valorant_gaia_v2_frame.png", "killicon_valorant_gaia_v2_bar.png") { HeadshotX = -2, HeadshotY = -20, EmblemScale = 0.9, BarRadiusOffset = 4, IsGaia = true };
+                    return AshenProfile(id, "#257133", "_v2");
                 case "00017":
-                    return new ValorantDemoProfile(id, "#f77124", "killicon_valorant_gaia_v3_emblem.png", "killicon_valorant_gaia_v3_frame.png", "killicon_valorant_gaia_v3_bar.png") { HeadshotX = -2, HeadshotY = -20, EmblemScale = 0.9, BarRadiusOffset = 4, IsGaia = true };
+                    return AshenProfile(id, "#CB2C00", "_v3");
                 case "00018":
-                    return new ValorantDemoProfile(id, "#c94fb9", "killicon_valorant_bubblegum_deathwish_emblem.png", "killicon_valorant_bubblegum_deathwish_frame.png", "killicon_valorant_bubblegum_deathwish_bar.png") { Ring = null, Blade = "killicon_valorant_bubblegum_deathwish_blade.png", HeadshotY = -12, EmblemScale = 0.55 };
+                    return HazardProfile(id, "#AF00A3", "Standard", string.Empty, 0, 3.25);
                 case "00019":
-                    return new ValorantDemoProfile(id, "#c98e4c", "killicon_valorant_bubblegum_deathwish_v3_emblem.png", "killicon_valorant_bubblegum_deathwish_frame.png", "killicon_valorant_bubblegum_deathwish_v1_bar.png") { Ring = null, Blade = "killicon_valorant_bubblegum_deathwish_blade.png", HeadshotY = -12, EmblemScale = 0.55 };
+                    return HazardProfile(id, "#FFC359", "Yellow", "_v1", -1, -16.5);
                 case "00020":
-                    return new ValorantDemoProfile(id, "#9d332f", "killicon_valorant_bubblegum_deathwish_v2_emblem.png", "killicon_valorant_bubblegum_deathwish_frame.png", "killicon_valorant_bubblegum_deathwish_v2_bar.png") { Ring = null, Blade = "killicon_valorant_bubblegum_deathwish_blade.png", HeadshotY = -12, EmblemScale = 0.55 };
+                    return HazardProfile(id, "#932B00", "Red", "_v2", 0.6, -4);
                 case "00021":
-                    return new ValorantDemoProfile(id, "#6eb037", "killicon_valorant_bubblegum_deathwish_v1_emblem.png", "killicon_valorant_bubblegum_deathwish_frame.png", "killicon_valorant_bubblegum_deathwish_v3_bar.png") { Ring = null, Blade = "killicon_valorant_bubblegum_deathwish_blade.png", HeadshotY = -12, EmblemScale = 0.55 };
+                    return HazardProfile(id, "#06A600", "Green", "_v3", 8, 4);
                 case "00022":
-                    return new ValorantDemoProfile(id, "#947046", "killicon_valorant_champions_2021_emblem.png", "killicon_valorant_base_frame.png", "killicon_valorant_champions_2021_bar.png") { HeadshotY = -12, EmblemScale = 0.6, FrameWidthScale = 0.8 };
+                    return new ValorantDemoProfile(id, "#C5B174", "Esports_Emblem.png", null, "Esports_KillPip_Up.png", "EsportsKillPip_Hover.png") { Ring = "Dragon_RingBG.png", SliceSize = 134 };
                 case "00023":
-                    return new ValorantDemoProfile(id, "#f46e57", "killicon_valorant_prelude_to_chaos_v1_emblem.png", "killicon_valorant_base_frame.png", "killicon_valorant_prelude_to_chaos_v1_bar.png") { HeadshotY = -12, EmblemScale = 0.5, FrameWidthScale = 0.8, BarRadiusOffset = 9 };
+                    return DemonStoneProfile(id, "#F35D45", "v1");
                 case "00024":
-                    return new ValorantDemoProfile(id, "#10c110", "killicon_valorant_prelude_to_chaos_v2_emblem.png", "killicon_valorant_base_frame.png", "killicon_valorant_prelude_to_chaos_v2_bar.png") { HeadshotY = -12, EmblemScale = 0.5, FrameWidthScale = 0.8, BarRadiusOffset = 9 };
+                    return DemonStoneProfile(id, "#01BA01", "v2");
                 case "00025":
-                    return new ValorantDemoProfile(id, "#1168c1", "killicon_valorant_prelude_to_chaos_v3_emblem.png", "killicon_valorant_base_frame.png", "killicon_valorant_prelude_to_chaos_v3_bar.png") { HeadshotY = -12, EmblemScale = 0.5, FrameWidthScale = 0.8, BarRadiusOffset = 9 };
+                    return DemonStoneProfile(id, "#0D7DF5", "v3");
                 case "00026":
-                    return new ValorantDemoProfile(id, "#8f3e31", "killicon_valorant_primordium_emblem.png", "killicon_valorant_primordium_frame.png", "killicon_valorant_primordium_bar.png") { HeadshotY = -14, EmblemScale = 0.4, HaloRadius = 25 };
+                    return HellfireProfile(id, "#FE6D41", string.Empty);
                 case "00027":
-                    return new ValorantDemoProfile(id, "#387a51", "killicon_valorant_primordium_v1_emblem.png", "killicon_valorant_primordium_frame.png", "killicon_valorant_primordium_v1_bar.png") { HeadshotY = -14, EmblemScale = 0.4, HaloRadius = 25 };
+                    return HellfireProfile(id, "#84EAB6", "V1");
                 case "00028":
-                    return new ValorantDemoProfile(id, "#316884", "killicon_valorant_primordium_v2_emblem.png", "killicon_valorant_primordium_frame.png", "killicon_valorant_primordium_v2_bar.png") { HeadshotY = -14, EmblemScale = 0.4, HaloRadius = 25 };
+                    return HellfireProfile(id, "#70C9F2", "V2");
                 case "00029":
-                    return new ValorantDemoProfile(id, "#8d6f43", "killicon_valorant_primordium_v3_emblem.png", "killicon_valorant_primordium_frame.png", "killicon_valorant_primordium_v3_bar.png") { HeadshotY = -14, EmblemScale = 0.4, HaloRadius = 25 };
+                    return HellfireProfile(id, "#F0D854", "V3");
                 case "00030":
-                    return new ValorantDemoProfile(id, "#73c0c4", "killicon_valorant_radiant_crisis_001_emblem.png", "killicon_valorant_base_frame.png", "killicon_valorant_radiant_crisis_001_bar.png") { HeadshotY = -12, EmblemScale = 0.5, FrameWidthScale = 0.8, HaloRadius = 25 };
+                    return new ValorantDemoProfile(id, "#FFC10F", "ComicBook_Emblem.png", "Dragon_FrameBG.png", "ComicBook_KillPip_Up.png", "ComicBook_KillPip_Hover.png") { Ring = "Dragon_RingBG.png", SliceSize = 135, HeadshotY = -19 };
                 case "00031":
-                    return new ValorantDemoProfile(id, "#a4ff96", "killicon_valorant_rgx_11z_pro_emblem.png", "killicon_valorant_rgx_11z_pro_frame.png", "killicon_valorant_rgx_11z_pro_bar.png") { Ring = "killicon_valorant_rgx_11z_pro_ring.png", HeadshotX = 0.85, HeadshotY = -21, EmblemScale = 0.35, FrameWidthScale = 0.8, HaloRadius = 25 };
+                    return AfterglowProfile(id, "#A4FF96", string.Empty);
                 case "00032":
-                    return new ValorantDemoProfile(id, "#f3414a", "killicon_valorant_rgx_11z_pro_v1_emblem.png", "killicon_valorant_rgx_11z_pro_frame.png", "killicon_valorant_rgx_11z_pro_v1_bar.png") { Ring = "killicon_valorant_rgx_11z_pro_ring.png", HeadshotY = -12, EmblemScale = 0.35, FrameWidthScale = 0.8, HaloRadius = 25 };
+                    return AfterglowProfile(id, "#A73437", "v1");
                 case "00033":
-                    return new ValorantDemoProfile(id, "#41baf3", "killicon_valorant_rgx_11z_pro_v2_emblem.png", "killicon_valorant_rgx_11z_pro_frame.png", "killicon_valorant_rgx_11z_pro_v2_bar.png") { Ring = "killicon_valorant_rgx_11z_pro_ring.png", HeadshotY = -12, EmblemScale = 0.35, FrameWidthScale = 0.8, HaloRadius = 25 };
+                    return AfterglowProfile(id, "#184DD4", "v2");
                 case "00034":
-                    return new ValorantDemoProfile(id, "#f3a741", "killicon_valorant_rgx_11z_pro_v3_emblem.png", "killicon_valorant_rgx_11z_pro_frame.png", "killicon_valorant_rgx_11z_pro_v3_bar.png") { Ring = "killicon_valorant_rgx_11z_pro_ring.png", HeadshotY = -12, EmblemScale = 0.35, FrameWidthScale = 0.8, HaloRadius = 25 };
+                    return AfterglowProfile(id, "#CE842B", "v3");
                 default:
-                    return new ValorantDemoProfile("00009", "#908ccd", "killicon_valorant_prime_emblem.png", "killicon_valorant_prime_frame.png", "killicon_valorant_bar.png") { HeadshotY = -16, HeroFlame = false };
+                    return new ValorantDemoProfile("00009", "#FFBC00", "HypeBeast_Emblem.png", "HypeBeast__FrameBG.png", "HypeBeast_KillPip_Up.png", "HypeBeast_KillPip_Hover.png") { Ring = "HypeBeast_RingBG.png", FrameDissolve = "HypeBeast_FrameDissolve.png", BadgeDissolve = "HypeBeast_Emblem_Dissolve.png", SliceSize = 145, HeadshotY = -17 };
             }
+        }
+
+        private static ValorantDemoProfile EdgeProfile(string id, string color, string variant)
+        {
+            return new ValorantDemoProfile(id, color, $"Edge_Emblem{variant}.png", "Dragon_FrameBG.png", $"Edge_KillPip_Up{variant}.png", $"Edge_KillPip_Hover{variant}.png") { Ring = "FantasySovereign_RingBG.png", FrameDissolve = "Dragon_FrameDissolve.png", BadgeDissolve = "Cyberpunk_BadgeDissolve.png", SliceSize = 140, HeadshotY = -10 };
+        }
+
+        private static ValorantDemoProfile AshenProfile(string id, string color, string suffix)
+        {
+            return new ValorantDemoProfile(id, color, $"Ashen_Emblem{suffix}.png", "Ashen_FrameBG.png", $"Ashen_KillPip{suffix}_Up.png", $"Ashen_KillPip{suffix}_Hover.png") { Ring = "Dragon_RingBG.png", HeadshotX = -2, HeadshotY = -20 };
+        }
+
+        private static ValorantDemoProfile HazardProfile(string id, string color, string emblem, string suffix, double headshotX, double headshotY)
+        {
+            return new ValorantDemoProfile(id, color, $"Hazard_Emblem_{emblem}.png", "hazard_blank.png", $"Hazard_KillPip_Up{suffix}.png", $"Hazard_KillPip_Hover{suffix}.png") { Ring = "hazard_blank_ring.png", SpecialFrame = "Hazard_Frame_BG.png", Blade = "Hazard_Frame_Blade.png", SliceSize = 170, HeadshotX = headshotX, HeadshotY = headshotY };
+        }
+
+        private static ValorantDemoProfile DemonStoneProfile(string id, string color, string variant)
+        {
+            return new ValorantDemoProfile(id, color, $"Demonstone_Emblem_{variant}.png", "Demonstone_FrameBG.png", $"Demonstone_KillPip_Up_{variant}.png", $"Demonstone_KillPip_Hover_{variant}.png") { FrameDissolve = "Demonstone_FrameDissolve.png", SliceSize = 170, HeadshotY = -18 };
+        }
+
+        private static ValorantDemoProfile HellfireProfile(string id, string color, string variant)
+        {
+            string suffix = string.IsNullOrEmpty(variant) ? string.Empty : "_" + variant;
+            return new ValorantDemoProfile(id, color, $"Hellfire_Emblem{suffix}.png", "HellFire_Frame.png", $"HellFire_KillPip_Up{suffix}.png", $"HellFire_KillPip_Hover{suffix}.png") { SliceSize = 152 };
+        }
+
+        private static ValorantDemoProfile AfterglowProfile(string id, string color, string variant)
+        {
+            string emblem = string.IsNullOrEmpty(variant) ? "Afterglow_Emblem.png" : $"Afterglow_Emblem_{variant}.png";
+            string up = string.IsNullOrEmpty(variant) ? "Afterglow_KillPip_Up.png" : $"Afterglow_KillPip__{variant}_Up.png";
+            string hover = string.IsNullOrEmpty(variant) ? "Afterglow_KillPip_Hover.png" : $"Afterglow_KillPip_{variant}_Hover.png";
+            return new ValorantDemoProfile(id, color, emblem, "Afterglow_FrameBG.png", up, hover) { Ring = "Afterglow_RingBG.png", FrameDissolve = "Afterglow_FrameDissolve.png", BadgeDissolve = "Afterglow_Badge_Dissolve.png", SliceSize = 147, HeadshotX = 0.85, HeadshotY = -21 };
         }
 
         private static string ExtractValorantDemoId(string packKey)
@@ -100,13 +116,14 @@ namespace KillConfirmGameBar.Controls
 
         private sealed class ValorantDemoProfile
         {
-            public ValorantDemoProfile(string id, string accentHex, string emblem, string frame, string bar)
+            public ValorantDemoProfile(string id, string accentHex, string emblem, string frame, string bar, string barHover)
             {
                 Id = id;
                 Accent = ParseValorantColor(accentHex);
                 Emblem = emblem;
                 Frame = frame;
                 Bar = bar;
+                BarHover = barHover;
             }
 
             public string Id { get; }
@@ -114,19 +131,15 @@ namespace KillConfirmGameBar.Controls
             public string Emblem { get; }
             public string Frame { get; }
             public string Bar { get; }
-            public string Ring { get; set; } = "killicon_valorant_base_ring.png";
+            public string BarHover { get; }
+            public string Ring { get; set; }
+            public string FrameDissolve { get; set; }
+            public string BadgeDissolve { get; set; }
             public string Blade { get; set; }
+            public string SpecialFrame { get; set; }
             public double HeadshotX { get; set; }
             public double HeadshotY { get; set; }
-            public bool HeroFlame { get; set; } = true;
-            public bool IsGaia { get; set; }
-            public double EmblemScale { get; set; } = 1.0;
-            public double FrameWidthScale { get; set; } = 1.0;
-            public double BarRadiusOffset { get; set; }
-            public double BaseParticleYOffset { get; set; } = 45.0;
-            public double BaseParticleScale { get; set; } = 1.0;
-            public double LargeSparksScale { get; set; } = 1.0;
-            public double HaloRadius { get; set; } = 30.0;
+            public double SliceSize { get; set; } = 147.0;
         }
 
         private static Color ParseValorantColor(string hex)

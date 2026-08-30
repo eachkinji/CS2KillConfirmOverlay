@@ -11,11 +11,7 @@ namespace KillConfirmGameBar.Services
         public string DisplayName { get; set; }
 
         /// <summary>
-        /// Emblem texture file name inside the pack's textures/ folder. Each Valorant
-        /// pack ships a distinct emblem (the pack's identifying badge); the file name is
-        /// not derivable from the folder (e.g. 00014_gaia_s_vengeance uses
-        /// killicon_valorant_gaia_emblem.png, and the bubblegum v1/v3 emblem files are
-        /// swapped), so it is declared explicitly per pack.
+        /// Emblem texture file name inside the native theme's textures folder.
         /// </summary>
         public string EmblemFile { get; set; }
     }
@@ -24,36 +20,36 @@ namespace KillConfirmGameBar.Services
     {
         public const string DefaultKey = "valorant_00011_singularity_v1";
 
-        // Pack(folder, displayName, emblemFile). The emblem file lives at
-        // Assets/GameStyles/valorant/killconfirm/{folder}/textures/{emblemFile}.
+        // The public keys remain stable for saved settings. Their folders now point
+        // directly at the replacement tree built from the cooked VALORANT exports.
         private static readonly ValorantPackInfo[] Packs =
         {
-            Pack("00011_singularity_v1", "Singularity V1", "killicon_valorant_singularity_v1_emblem.png"),
-            Pack("00012_singularity_v2", "Singularity V2", "killicon_valorant_singularity_v2_emblem.png"),
-            Pack("00013_singularity_v3", "Singularity V3", "killicon_valorant_singularity_v3_emblem.png"),
-            Pack("00014_gaia_s_vengeance", "Gaia's Vengeance", "killicon_valorant_gaia_emblem.png"),
-            Pack("00015_gaia_s_vengeance_v1", "Gaia's Vengeance V1", "killicon_valorant_gaia_v1_emblem.png"),
-            Pack("00016_gaia_s_vengeance_v2", "Gaia's Vengeance V2", "killicon_valorant_gaia_v2_emblem.png"),
-            Pack("00017_gaia_s_vengeance_v3", "Gaia's Vengeance V3", "killicon_valorant_gaia_v3_emblem.png"),
-            Pack("00018_bubblegum_deathwish", "Bubblegum Deathwish", "killicon_valorant_bubblegum_deathwish_emblem.png"),
-            Pack("00019_bubblegum_deathwish_v1", "Bubblegum Deathwish V1", "killicon_valorant_bubblegum_deathwish_v3_emblem.png"),
-            Pack("00020_bubblegum_deathwish_v2", "Bubblegum Deathwish V2", "killicon_valorant_bubblegum_deathwish_v2_emblem.png"),
-            Pack("00021_bubblegum_deathwish_v3", "Bubblegum Deathwish V3", "killicon_valorant_bubblegum_deathwish_v1_emblem.png"),
-            Pack("00022_champions_2021", "Champions 2021", "killicon_valorant_champions_2021_emblem.png"),
-            Pack("00023_prelude_to_chaos_v1", "Prelude to Chaos V1", "killicon_valorant_prelude_to_chaos_v1_emblem.png"),
-            Pack("00024_prelude_to_chaos_v2", "Prelude to Chaos V2", "killicon_valorant_prelude_to_chaos_v2_emblem.png"),
-            Pack("00025_prelude_to_chaos_v3", "Prelude to Chaos V3", "killicon_valorant_prelude_to_chaos_v3_emblem.png"),
-            Pack("00026_primordium", "Primordium", "killicon_valorant_primordium_emblem.png"),
-            Pack("00027_primordium_v1", "Primordium V1", "killicon_valorant_primordium_v1_emblem.png"),
-            Pack("00028_primordium_v2", "Primordium V2", "killicon_valorant_primordium_v2_emblem.png"),
-            Pack("00029_primordium_v3", "Primordium V3", "killicon_valorant_primordium_v3_emblem.png"),
-            Pack("00030_radiant_crisis_001", "Radiant Crisis 001", "killicon_valorant_radiant_crisis_001_emblem.png"),
-            Pack("00031_rgx_11z_pro", "RGX 11z Pro", "killicon_valorant_rgx_11z_pro_emblem.png"),
-            Pack("00032_rgx_11z_pro_v1", "RGX 11z Pro V1", "killicon_valorant_rgx_11z_pro_v1_emblem.png"),
-            Pack("00033_rgx_11z_pro_v2", "RGX 11z Pro V2", "killicon_valorant_rgx_11z_pro_v2_emblem.png"),
-            Pack("00034_rgx_11z_pro_v3", "RGX 11z Pro V3", "killicon_valorant_rgx_11z_pro_v3_emblem.png"),
-            Pack("00009_prime", "Prime", "killicon_valorant_prime_emblem.png"),
-            Pack("00010_glitchpop", "Glitchpop", "killicon_valorant_glitchpop_emblem.png")
+            Pack("00011_singularity_v1", "_native/themes/Edge02", "Singularity V1", "Edge_EmblemV1.png"),
+            Pack("00012_singularity_v2", "_native/themes/Edge02", "Singularity V2", "Edge_EmblemV2.png"),
+            Pack("00013_singularity_v3", "_native/themes/Edge02", "Singularity V3", "Edge_EmblemV3.png"),
+            Pack("00014_gaia_s_vengeance", "_native/themes/Ashen", "Gaia's Vengeance", "Ashen_Emblem.png"),
+            Pack("00015_gaia_s_vengeance_v1", "_native/themes/Ashen", "Gaia's Vengeance V1", "Ashen_Emblem_v1.png"),
+            Pack("00016_gaia_s_vengeance_v2", "_native/themes/Ashen", "Gaia's Vengeance V2", "Ashen_Emblem_v2.png"),
+            Pack("00017_gaia_s_vengeance_v3", "_native/themes/Ashen", "Gaia's Vengeance V3", "Ashen_Emblem_v3.png"),
+            Pack("00018_bubblegum_deathwish", "_native/themes/Hazard", "Bubblegum Deathwish", "Hazard_Emblem_Standard.png"),
+            Pack("00019_bubblegum_deathwish_v1", "_native/themes/Hazard", "Bubblegum Deathwish V1", "Hazard_Emblem_Yellow.png"),
+            Pack("00020_bubblegum_deathwish_v2", "_native/themes/Hazard", "Bubblegum Deathwish V2", "Hazard_Emblem_Red.png"),
+            Pack("00021_bubblegum_deathwish_v3", "_native/themes/Hazard", "Bubblegum Deathwish V3", "Hazard_Emblem_Green.png"),
+            Pack("00022_champions_2021", "_native/themes/Esports", "Champions 2021", "Esports_Emblem.png"),
+            Pack("00023_prelude_to_chaos_v1", "_native/themes/DemonStone", "Prelude to Chaos V1", "Demonstone_Emblem_v1.png"),
+            Pack("00024_prelude_to_chaos_v2", "_native/themes/DemonStone", "Prelude to Chaos V2", "Demonstone_Emblem_v2.png"),
+            Pack("00025_prelude_to_chaos_v3", "_native/themes/DemonStone", "Prelude to Chaos V3", "Demonstone_Emblem_v3.png"),
+            Pack("00026_primordium", "_native/themes/Hellfire", "Primordium", "Hellfire_Emblem.png"),
+            Pack("00027_primordium_v1", "_native/themes/Hellfire", "Primordium V1", "Hellfire_Emblem_V1.png"),
+            Pack("00028_primordium_v2", "_native/themes/Hellfire", "Primordium V2", "Hellfire_Emblem_V2.png"),
+            Pack("00029_primordium_v3", "_native/themes/Hellfire", "Primordium V3", "Hellfire_Emblem_V3.png"),
+            Pack("00030_radiant_crisis_001", "_native/themes/Comicbook", "Radiant Crisis 001", "ComicBook_Emblem.png"),
+            Pack("00031_rgx_11z_pro", "_native/themes/Afterglow", "RGX 11z Pro", "Afterglow_Emblem.png"),
+            Pack("00032_rgx_11z_pro_v1", "_native/themes/Afterglow2", "RGX 11z Pro V1", "Afterglow_Emblem_v1.png"),
+            Pack("00033_rgx_11z_pro_v2", "_native/themes/Afterglow2", "RGX 11z Pro V2", "Afterglow_Emblem_v2.png"),
+            Pack("00034_rgx_11z_pro_v3", "_native/themes/Afterglow2", "RGX 11z Pro V3", "Afterglow_Emblem_v3.png"),
+            Pack("00009_prime", "_native/themes/HypeBeast", "Prime", "HypeBeast_Emblem.png"),
+            Pack("00010_glitchpop", "_native/themes/Cyberpunk", "Glitchpop", "Cyberpunk_Emblem.png")
         };
 
         public static IReadOnlyList<ValorantPackInfo> All => Packs;
@@ -92,11 +88,11 @@ namespace KillConfirmGameBar.Services
             return index < 0 ? int.MaxValue : index;
         }
 
-        private static ValorantPackInfo Pack(string folder, string displayName, string emblemFile)
+        private static ValorantPackInfo Pack(string keySuffix, string folder, string displayName, string emblemFile)
         {
             return new ValorantPackInfo
             {
-                Key = "valorant_" + folder,
+                Key = "valorant_" + keySuffix,
                 Folder = folder,
                 DisplayName = displayName,
                 EmblemFile = emblemFile

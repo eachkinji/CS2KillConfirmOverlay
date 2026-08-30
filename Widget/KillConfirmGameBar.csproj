@@ -301,7 +301,6 @@
     <Compile Include="Controls\Animations\Valorant\ValorantAnimation.Render.cs" />
     <Compile Include="Controls\Animations\Valorant\ValorantAnimation.Drawing.cs" />
     <Compile Include="Controls\Animations\Valorant\ValorantAnimation.Effects.cs" />
-    <Compile Include="Controls\Animations\Valorant\ValorantAnimation.Motion.cs" />
     <Compile Include="Controls\Animations\Valorant\ValorantAnimation.Profiles.cs" />
     <Compile Include="Controls\Animations\Valorant\ValorantAnimation.NativeDrawing.cs" />
     <Compile Include="Controls\Animations\Valorant\ValorantAnimation.CookedAfterglow.cs" />

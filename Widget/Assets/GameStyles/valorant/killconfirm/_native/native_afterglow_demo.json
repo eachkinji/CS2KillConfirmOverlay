@@ -1,0 +1,100 @@
+{
+  "scope": "native-replacement",
+  "runtime_scope": "all-built-in-valorant-packs",
+  "reference_pack": "valorant_00031_rgx_11z_pro",
+  "reference_native_theme": "Afterglow",
+  "theme_bindings": {
+    "00009": "HypeBeast",
+    "00010": "Cyberpunk",
+    "00011_00013": "Edge02",
+    "00014_00017": "Ashen",
+    "00018_00021": "Hazard",
+    "00022": "Esports",
+    "00023_00025": "DemonStone",
+    "00026_00029": "Hellfire",
+    "00030": "Comicbook",
+    "00031": "Afterglow",
+    "00032_00034": "Afterglow2"
+  },
+  "source_asset": "/Game/UI/InGame/KillBanner/Afterglow/KillBannerData_Afterglow",
+  "primary_color": "#A4FF96",
+  "max_generated_slices": 6,
+  "kill_wheel": {
+    "slice_radius": 147.0,
+    "slice_angle": "count == 2 ? 90 - index * 180 : index * (-360 / count)",
+    "spin_event_ms": 750.0,
+    "spin_targets": {
+      "2": -180.0,
+      "3": -120.0,
+      "4": -90.0,
+      "5_plus": 720.0
+    },
+    "finterp_speed": {
+      "under_5": 8.0,
+      "5_plus": 5.0
+    }
+  },
+  "headshot_offset": {
+    "x": 0.85,
+    "y": -21.0
+  },
+  "intro_timeline_ms": {
+    "pie_slice_and_fx": 150.0,
+    "wheel_spin": 750.0,
+    "badge_fade_out": 1803.2667,
+    "general_fade_out_event": 1903.2667,
+    "global_holder_fade_out": 1953.2667,
+    "end": 2108.0167
+  },
+  "playback_speed": {
+    "kills_1_to_4": 1.0,
+    "kills_5_plus": 0.3
+  },
+  "clock_domains": {
+    "intro_channels_and_events": "scaled by playback_speed",
+    "event_started_materials_flipbooks_pips_and_finterp": "real-time 1.0x after each event fires"
+  },
+  "native_brush_sizes": {
+    "frame": [200.0, 256.0],
+    "badge": [85.0, 85.0],
+    "ring": [170.0, 170.0],
+    "pip": [45.0, 42.0],
+    "pip_orbit_radius": 73.5
+  },
+  "global_holder_paint_order": [
+    "HeadShotParticles",
+    "Tier1FireEffect",
+    "KillBanner_FX",
+    "Tier2Sparks",
+    "FrameMaterial",
+    "KillBanner_Wheel",
+    "KillBadgeMaterial"
+  ],
+  "ring_dissolve_texture": "/Game/VFX/Textures/AlphaGradient/T_Mask_Ramp_TopDown",
+  "flipbooks": {
+    "tier_1": { "fps": 40.0, "frames": 49 },
+    "tier_2": { "fps": 40.0, "frames": 49 },
+    "tier_3": { "fps": 40.0, "frames": 42 },
+    "hero_flame": { "fps": 35.0, "frames": 20 },
+    "large_sparks": { "fps": 40.0, "frames": 52 },
+    "penta_x_sparks": { "fps": 40.0, "frames": 29, "instances": 4 }
+  },
+  "tier_selection": {
+    "1": "blank",
+    "2_3": "tier_1",
+    "4": "tier_2",
+    "5_plus": "tier_3"
+  },
+  "audio_events": [
+    "Play_UI_KillBanner_AfterGlow_1",
+    "Play_UI_KillBanner_AfterGlow_2",
+    "Play_UI_KillBanner_AfterGlow_3",
+    "Play_UI_KillBanner_AfterGlow_4",
+    "Play_UI_KillBanner_AfterGlow_5"
+  ],
+  "base_audio_event": "Play_UI_KillBanner_Base_Appear",
+  "base_audio_behavior": "ConfigureKillBanner calls StartKillBannerAnimation before GetVisibility, so cooked WasVisible resolves true and the Appear branch is selected",
+  "configured_base_audio_gain": 0.3,
+  "unreachable_reappear_event": "Play_UI_KillBanner_Base_Transition",
+  "headshot_audio_event": null
+}

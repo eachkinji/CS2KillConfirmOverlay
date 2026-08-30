@@ -23,7 +23,7 @@ namespace KillConfirmGameBar.Controls
             double cx, double cy, double width, double height, double scale,
             double reveal, Color tint, double opacity)
         {
-            if (image == null || opacity <= 0 || scale <= 0 || reveal <= 0)
+            if (image == null || opacity <= 0 || width <= 0 || height <= 0 || scale <= 0 || reveal <= 0)
             {
                 return;
             }
@@ -46,9 +46,19 @@ namespace KillConfirmGameBar.Controls
                     return;
                 }
 
-                using (var luminance = new LuminanceToAlphaEffect
+                using (var scaledMask = new Transform2DEffect
                 {
                     Source = mask,
+                    TransformMatrix = Matrix3x2.CreateScale(
+                        image.SizeInPixels.Width / (float)mask.SizeInPixels.Width,
+                        image.SizeInPixels.Height / (float)mask.SizeInPixels.Height),
+                    InterpolationMode = CanvasImageInterpolation.Linear,
+                    BorderMode = EffectBorderMode.Hard,
+                    CacheOutput = false
+                })
+                using (var luminance = new LuminanceToAlphaEffect
+                {
+                    Source = scaledMask,
                     CacheOutput = false
                 })
                 using (var threshold = new LinearTransferEffect
@@ -82,7 +92,7 @@ namespace KillConfirmGameBar.Controls
             CanvasDrawingSession ds, CanvasBitmap image, double cx, double cy,
             double width, double height, double degrees, double opacity)
         {
-            if (image == null || opacity <= 0)
+            if (image == null || opacity <= 0 || width <= 0 || height <= 0)
             {
                 return;
             }
@@ -107,7 +117,7 @@ namespace KillConfirmGameBar.Controls
             CanvasDrawingSession ds, CanvasBitmap image, double cx, double cy,
             double width, double height, double degrees, Color tint, double opacity)
         {
-            if (image == null || opacity <= 0)
+            if (image == null || opacity <= 0 || width <= 0 || height <= 0)
             {
                 return;
             }

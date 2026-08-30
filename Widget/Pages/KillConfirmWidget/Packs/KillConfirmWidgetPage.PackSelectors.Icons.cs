@@ -148,7 +148,8 @@ namespace KillConfirmGameBar
 
         private static string GetValorantPackIconUri(string key)
         {
-            string folder = ValorantPackService.GetFolder(key) ?? "00009_prime";
+            string folder = ValorantPackService.GetFolder(key)
+                ?? ValorantPackService.GetFolder(ValorantPackService.DefaultKey);
             string emblem = ValorantPackService.GetEmblemFile(key);
             if (!string.IsNullOrWhiteSpace(emblem))
             {
@@ -157,7 +158,7 @@ namespace KillConfirmGameBar
 
             // Fallback for custom Valorant packs (custom_valorant_voice_*) which have no
             // declared emblem: use the pack's headshot texture, then the default pack's.
-            return $"ms-appx:///Assets/GameStyles/valorant/killconfirm/{folder}/textures/killicon_valorant_headshot.png";
+            return "ms-appx:///Assets/GameStyles/valorant/killconfirm/_native/shared/textures/Base_headshot.png";
         }
     }
 }

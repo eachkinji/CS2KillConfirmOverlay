@@ -203,9 +203,10 @@ namespace KillConfirmGameBar
             string effectiveKey = ValorantPackService.IsValorantPackKey(key)
                 ? key
                 : ValorantPackService.DefaultKey;
-            string folder = ValorantPackService.GetFolder(effectiveKey) ?? "00011_singularity_v1";
+            string folder = ValorantPackService.GetFolder(effectiveKey)
+                ?? ValorantPackService.GetFolder(ValorantPackService.DefaultKey);
             string emblem = ValorantPackService.GetEmblemFile(effectiveKey)
-                ?? "killicon_valorant_singularity_v1_emblem.png";
+                ?? ValorantPackService.GetEmblemFile(ValorantPackService.DefaultKey);
             return $"ms-appx:///Assets/GameStyles/valorant/killconfirm/{folder}/textures/{emblem}";
         }
 

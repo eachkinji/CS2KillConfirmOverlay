@@ -30,9 +30,6 @@ namespace KillConfirmGameBar.Controls
                 KillCount = Math.Max(1, Math.Min(6, killCount)),
                 IsHeadshot = isHeadshot,
                 Accent = profile.Accent,
-                Brightness = profile.IsGaia ? ValorantGaiaBrightness : 1.0f,
-                Contrast = profile.IsGaia ? ValorantGaiaContrast : 1.0f,
-                SpinDirection = NextValorantSpinDirection(),
                 DemoProfile = profile,
                 Textures = textures
             };
@@ -140,8 +137,8 @@ namespace KillConfirmGameBar.Controls
         {
             string folder = ValorantPackService.GetFolder(packKey) ?? ValorantPackService.GetFolder(ValorantPackService.DefaultKey);
             string root = $"ms-appx:///Assets/GameStyles/valorant/killconfirm/{folder}";
-            string nativeSupportRoot =
-                "ms-appx:///Assets/GameStyles/valorant/killconfirm/00031_rgx_11z_pro";
+            const string nativeSupportRoot =
+                "ms-appx:///Assets/GameStyles/valorant/killconfirm/_native/shared";
             var textures = new ValorantTextureSet
             {
                 PackKey = packKey
@@ -150,40 +147,46 @@ namespace KillConfirmGameBar.Controls
             try
             {
                 progress?.Report(5);
-                textures.Frame = await LoadValorantTextureAsync(root, profile.Frame, cancellationToken);
+                textures.Frame = string.IsNullOrWhiteSpace(profile.Frame)
+                    ? await LoadValorantTextureAsync(nativeSupportRoot, "Base_FrameBG.png", cancellationToken)
+                    : await LoadValorantTextureAsync(root, profile.Frame, cancellationToken);
                 progress?.Report(15);
                 textures.Emblem = await LoadValorantTextureAsync(root, profile.Emblem, cancellationToken);
                 progress?.Report(25);
                 textures.Bar = await LoadValorantTextureAsync(root, profile.Bar, cancellationToken);
+                textures.BarHover = await LoadValorantTextureAsync(root, profile.BarHover, cancellationToken);
                 if (!string.IsNullOrWhiteSpace(profile.Blade))
                 {
                     textures.Blade = await LoadValorantTextureAsync(root, profile.Blade, cancellationToken);
                 }
+                if (!string.IsNullOrWhiteSpace(profile.SpecialFrame))
+                {
+                    textures.SpecialFrame = await LoadValorantTextureAsync(root, profile.SpecialFrame, cancellationToken);
+                }
 
                 progress?.Report(35);
-                textures.Headshot = await LoadValorantTextureAsync(root, "killicon_valorant_headshot.png", cancellationToken);
+                textures.Headshot = await LoadValorantTextureAsync(nativeSupportRoot, "Base_headshot.png", cancellationToken);
                 progress?.Report(45);
-                textures.BaseParticle = await LoadValorantTextureAsync(root, "killicon_valorant_particle_base_t1.png", cancellationToken);
+                textures.BaseParticle = await LoadValorantTextureAsync(nativeSupportRoot, "BaseT1_FX.png", cancellationToken);
                 progress?.Report(65);
-                textures.HeroFlame = await TryLoadValorantTextureAsync(root, "killicon_valorant_particle_hero_flame.png", cancellationToken);
+                textures.HeroFlame = await LoadValorantTextureAsync(nativeSupportRoot, "FB_HeroFlame.png", cancellationToken);
                 progress?.Report(78);
-                textures.LargeSparks = await LoadValorantTextureAsync(root, "killicon_valorant_particle_large_sparks.png", cancellationToken);
+                textures.LargeSparks = await LoadValorantTextureAsync(nativeSupportRoot, "FB_Large_Sparks.png", cancellationToken);
                 progress?.Report(92);
-                textures.XSparks = await LoadValorantTextureAsync(root, "killicon_valorant_particle_x_sparks.png", cancellationToken);
-                // Every Valorant pack now uses the cooked/native timeline. Theme
-                // textures stay pack-local; timeline support textures are shared
-                // from the canonical Afterglow extraction instead of duplicated.
-                textures.Ring = await TryLoadValorantTextureAsync(root, profile.Ring, cancellationToken)
-                    ?? await LoadValorantTextureAsync(
-                        "ms-appx:///Assets/GameStyles/valorant/killconfirm/00011_singularity_v1",
-                        "killicon_valorant_base_ring.png",
-                        cancellationToken);
-                textures.RingDissolve = await LoadValorantTextureAsync(nativeSupportRoot, "native_mask_ramp_top_down.png", cancellationToken);
-                textures.FrameDissolve = await LoadValorantTextureAsync(nativeSupportRoot, "native_afterglow_frame_dissolve.png", cancellationToken);
-                textures.BadgeDissolve = await LoadValorantTextureAsync(nativeSupportRoot, "native_afterglow_badge_dissolve.png", cancellationToken);
-                textures.Shadow = await LoadValorantTextureAsync(nativeSupportRoot, "native_killbanner_vignette.png", cancellationToken);
-                textures.BaseParticleT2 = await LoadValorantTextureAsync(nativeSupportRoot, "native_particle_base_t2.png", cancellationToken);
-                textures.BaseParticleT3 = await LoadValorantTextureAsync(nativeSupportRoot, "native_particle_base_t3.png", cancellationToken);
+                textures.XSparks = await LoadValorantTextureAsync(nativeSupportRoot, "FB_X_Sparks.png", cancellationToken);
+                textures.Ring = string.IsNullOrWhiteSpace(profile.Ring)
+                    ? await LoadValorantTextureAsync(nativeSupportRoot, "Base_RingBG.png", cancellationToken)
+                    : await LoadValorantTextureAsync(root, profile.Ring, cancellationToken);
+                textures.RingDissolve = await LoadValorantTextureAsync(nativeSupportRoot, "T_Mask_Ramp_TopDown.png", cancellationToken);
+                textures.FrameDissolve = string.IsNullOrWhiteSpace(profile.FrameDissolve)
+                    ? await LoadValorantTextureAsync(nativeSupportRoot, "Base_FrameDissolve.png", cancellationToken)
+                    : await LoadValorantTextureAsync(root, profile.FrameDissolve, cancellationToken);
+                textures.BadgeDissolve = string.IsNullOrWhiteSpace(profile.BadgeDissolve)
+                    ? await LoadValorantTextureAsync(nativeSupportRoot, "Base_Badge_Dissolve.png", cancellationToken)
+                    : await LoadValorantTextureAsync(root, profile.BadgeDissolve, cancellationToken);
+                textures.Shadow = await LoadValorantTextureAsync(nativeSupportRoot, "UI_Hud_Killbanner_VignetteFlat.png", cancellationToken);
+                textures.BaseParticleT2 = await LoadValorantTextureAsync(nativeSupportRoot, "BaseT2_FX.png", cancellationToken);
+                textures.BaseParticleT3 = await LoadValorantTextureAsync(nativeSupportRoot, "BaseT3_FX.png", cancellationToken);
                 progress?.Report(100);
                 return textures;
             }

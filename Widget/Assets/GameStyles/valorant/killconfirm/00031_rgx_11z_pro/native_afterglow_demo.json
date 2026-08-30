@@ -1,21 +1,31 @@
 {
-  "scope": "single-demo",
+  "scope": "single-cooked-playback",
   "public_pack": "valorant_00031_rgx_11z_pro",
   "native_theme": "Afterglow",
   "source_asset": "/Game/UI/InGame/KillBanner/Afterglow/KillBannerData_Afterglow",
   "primary_color": "#A4FF96",
-  "max_kills": 5,
+  "max_generated_slices": 6,
   "kill_wheel": {
     "slice_radius": 147.0,
-    "reverse_spin_degrees": -360.0,
-    "reverse_spin_duration_ms": 1000.0
+    "slice_angle": "count == 2 ? 90 - index * 180 : index * (-360 / count)",
+    "spin_event_ms": 750.0,
+    "spin_targets": {
+      "2": -180.0,
+      "3": -120.0,
+      "4": -90.0,
+      "5_plus": 720.0
+    },
+    "finterp_speed": {
+      "under_5": 8.0,
+      "5_plus": 5.0
+    }
   },
   "headshot_offset": {
     "x": 0.85,
     "y": -21.0
   },
   "intro_timeline_ms": {
-    "general_fade_in": 150.0,
+    "pie_slice_and_fx": 150.0,
     "wheel_spin": 750.0,
     "badge_fade_out": 1803.2667,
     "global_fade_out": 1953.2667,
@@ -27,7 +37,13 @@
     "tier_3": { "fps": 40.0, "frames": 42 },
     "hero_flame": { "fps": 35.0, "frames": 20 },
     "large_sparks": { "fps": 40.0, "frames": 52 },
-    "headshot_sparks": { "fps": 40.0, "frames": 29, "instances": 4 }
+    "penta_x_sparks": { "fps": 40.0, "frames": 29, "instances": 4 }
+  },
+  "tier_selection": {
+    "1": "blank",
+    "2_3": "tier_1",
+    "4": "tier_2",
+    "5_plus": "tier_3"
   },
   "audio_events": [
     "Play_UI_KillBanner_AfterGlow_1",

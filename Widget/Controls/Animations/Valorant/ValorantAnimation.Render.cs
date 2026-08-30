@@ -23,7 +23,7 @@ namespace KillConfirmGameBar.Controls
 
             if (asset.UsesNativeAfterglowPlayback)
             {
-                DrawNativeAfterglowFrame(drawingSession, frame, asset);
+                DrawCookedAfterglowFrame(drawingSession, frame, asset);
                 return;
             }
 

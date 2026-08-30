@@ -1,0 +1,436 @@
+using System;
+using System.Numerics;
+using Microsoft.Graphics.Canvas;
+using Windows.Foundation;
+using Windows.UI;
+
+namespace KillConfirmGameBar.Controls
+{
+    public sealed partial class KillConfirmAnimation
+    {
+        // The native frame brush is 256 UMG units. Map that brush to the
+        // renderer's existing 116-CSS-pixel Valorant frame contract; this is a
+        // unit conversion, not a visually tuned Afterglow scale.
+        private const int ValorantNativeAfterglowFrameCount = 137;
+        private const double CookedAfterglowUmgScale =
+            ValorantDemoFrameCssHeight * ValorantDemoVfxScale / 256.0;
+        private const double CookedAfterglowEventMs = 150.0;
+        private const double CookedAfterglowSpinMs = 750.0;
+
+        private void DrawCookedAfterglowFrame(CanvasDrawingSession ds, int frame, ValorantKillAsset asset)
+        {
+            double ms = frame * (1000.0 / FrameSequenceFps);
+            double holderOpacity = CookedChannel(ms,
+                new[] { 0.0, 5.05, 1953.2667, 2108.0167 },
+                new[] { 1.0, 1.0, 1.0, 0.0 },
+                null, null, new[] { 2, 2, 2, 2 });
+            if (holderOpacity <= 0)
+            {
+                return;
+            }
+
+            double cx = ValorantFrameWidth / 2.0;
+            double baseCy = ValorantFrameHeight / 2.0;
+            double holderY = CookedChannel(ms,
+                new[] { 50.0, 100.0 }, new[] { -30.0, 0.0 },
+                null, null, new[] { 2, 2 }) * CookedAfterglowUmgScale;
+            double cy = baseCy + holderY;
+            int kills = Math.Max(1, Math.Min(6, asset.KillCount));
+
+            // Overlay_33: Shadow is behind GlobalHolder and does not inherit
+            // the holder's translation/opacity track.
+            double shadowOpacity = CookedChannel(ms,
+                new[] { 0.0, 150.0, 1803.2667, 1903.25 },
+                new[] { 0.0, 1.0, 1.0, 0.0 },
+                new[] { 0.0, 0.0000074074073, -0.0000051282314, 0.0 },
+                new[] { 0.0, 0.0, -0.0000051282314, 0.0 },
+                new[] { 2, 1, 2, 2 });
+            DrawNativeStretchedImage(ds, asset.Textures.Shadow, cx, baseCy,
+                512.0 * CookedAfterglowUmgScale,
+                512.0 * CookedAfterglowUmgScale, 0, shadowOpacity);
+
+            // GlobalHolder children in their cooked paint order.
+            DrawCookedPentaParticles(ds, asset, kills, ms, cx, cy, holderOpacity);
+            DrawCookedFrame(ds, asset, ms, cx, cy, holderOpacity);
+            DrawCookedBadge(ds, asset, ms, cx, cy, holderOpacity);
+            DrawCookedTierFx(ds, asset, kills, ms, cx, cy, holderOpacity);
+            DrawCookedLargeSparks(ds, asset, kills, ms, cx, cy, holderOpacity);
+            DrawCookedWheel(ds, asset, kills, ms, cx, cy, holderOpacity);
+            DrawCookedHeroFlame(ds, asset, ms, cx, cy, holderOpacity);
+        }
+
+        private void DrawCookedFrame(
+            CanvasDrawingSession ds, ValorantKillAsset asset, double ms,
+            double cx, double cy, double opacity)
+        {
+            DrawNativeDissolvedImage(ds, asset.Frame, asset.Textures.FrameDissolve,
+                cx, cy,
+                256.0 * CookedAfterglowUmgScale,
+                256.0 * CookedAfterglowUmgScale,
+                CookedProgress(ms, 150.0, 450.0), opacity);
+        }
+
+        private void DrawCookedBadge(
+            CanvasDrawingSession ds, ValorantKillAsset asset, double ms,
+            double cx, double cy, double opacity)
+        {
+            double dissolve = ms < 1803.2667
+                ? CookedProgress(ms, 150.0, 170.0)
+                : 1.0 - CookedProgress(ms, 1803.2667, 2103.2667);
+            double scale = CookedChannel(ms,
+                new[] { 0.45, 2.6833, 17.5167, 1803.2667, 1903.25 },
+                new[] { 1.0, 0.6, 1.0, 1.0, 0.6 },
+                new[] { 0.0, 0.0, 0.00044943817, 0.0, 0.0 },
+                new[] { 0.0, 0.0, 0.0, -0.00006667778, 0.0 },
+                new[] { 2, 2, 0, 0, 2 });
+
+            double hsMs = ms - CookedAfterglowEventMs;
+            Color badgeTint = Colors.White;
+            if (asset.IsHeadshot && hsMs >= 0 && hsMs <= 550.0)
+            {
+                scale *= CookedHeadshotBadgeScale(hsMs);
+                badgeTint = CookedHeadshotColor(hsMs, false);
+            }
+
+            DrawNativeDissolvedTintedImage(ds, asset.Emblem, asset.Textures.BadgeDissolve,
+                cx, cy,
+                76.0 * CookedAfterglowUmgScale,
+                100.0 * CookedAfterglowUmgScale,
+                scale, dissolve, badgeTint, opacity);
+
+            if (!asset.IsHeadshot || hsMs < 0 || hsMs > 550.0)
+            {
+                return;
+            }
+
+            double reticleScale = CookedChannel(hsMs,
+                new[] { 0.0, 250.0 }, new[] { 2.0, 1.0 },
+                null, null, new[] { 2, 2 });
+            DrawNativeTintedStretchedImage(ds, asset.Headshot,
+                cx + (0.85 * CookedAfterglowUmgScale),
+                cy - (21.0 * CookedAfterglowUmgScale),
+                128.0 * 0.3 * CookedAfterglowUmgScale * reticleScale,
+                128.0 * 0.3 * CookedAfterglowUmgScale * reticleScale,
+                0, CookedHeadshotColor(hsMs, true), opacity);
+        }
+
+        private void DrawCookedTierFx(
+            CanvasDrawingSession ds, ValorantKillAsset asset, int kills,
+            double ms, double cx, double cy, double opacity)
+        {
+            // TriggerFX Blueprint select: 1 -> Tier999 (blank), 2/3 ->
+            // Tier0 (BaseT1), 4 -> Tier1 (BaseT2), >=5 -> Tier2 (BaseT3).
+            if (kills <= 1)
+            {
+                return;
+            }
+
+            CanvasBitmap atlas;
+            int frameCount;
+            if (kills < 4)
+            {
+                atlas = asset.BaseParticle;
+                frameCount = 49;
+            }
+            else if (kills == 4)
+            {
+                atlas = asset.Textures.BaseParticleT2;
+                frameCount = 49;
+            }
+            else
+            {
+                atlas = asset.Textures.BaseParticleT3;
+                frameCount = 42;
+            }
+
+            double halfPane = 128.0 * CookedAfterglowUmgScale;
+            DrawCookedFlipbook(ds, atlas, frameCount, 40.0,
+                ms - CookedAfterglowEventMs, cx - halfPane, cy,
+                256, 256, true, false, asset.Accent, opacity);
+            DrawCookedFlipbook(ds, atlas, frameCount, 40.0,
+                ms - CookedAfterglowEventMs, cx + halfPane, cy,
+                256, 256, false, false, asset.Accent, opacity);
+        }
+
+        private void DrawCookedHeroFlame(
+            CanvasDrawingSession ds, ValorantKillAsset asset, double ms,
+            double cx, double cy, double opacity)
+        {
+            DrawCookedFlipbook(ds, asset.HeroFlame, 20, 35.0,
+                ms - CookedAfterglowEventMs,
+                cx, cy - (30.0 * CookedAfterglowUmgScale),
+                199, 224, false, false, asset.Accent, opacity);
+        }
+
+        private void DrawCookedLargeSparks(
+            CanvasDrawingSession ds, ValorantKillAsset asset, int kills,
+            double ms, double cx, double cy, double opacity)
+        {
+            if (kills < 5)
+            {
+                return;
+            }
+
+            DrawCookedFlipbook(ds, asset.LargeSparks, 52, 40.0,
+                ms - CookedAfterglowEventMs, cx, cy,
+                300, 300, false, false, asset.Accent, opacity);
+        }
+
+        private void DrawCookedPentaParticles(
+            CanvasDrawingSession ds, ValorantKillAsset asset, int kills,
+            double ms, double cx, double cy, double opacity)
+        {
+            // Despite its widget name, HeadShotParticles.BeginAnimation is
+            // guarded by CurrentKillCount >= 5, not by IsHeadshot.
+            if (kills < 5)
+            {
+                return;
+            }
+
+            double offset = 100.0 * CookedAfterglowUmgScale;
+            double[] x = { -offset, offset, offset, -offset };
+            double[] y = { -offset, -offset, offset, offset };
+            double[] angle = { -45.0, 45.0, 135.0, -135.0 };
+            for (int i = 0; i < 4; i++)
+            {
+                DrawCookedRotatedFlipbook(ds, asset.XSparks, 29, 40.0,
+                    ms - CookedAfterglowEventMs,
+                    cx + x[i], cy + y[i], 80, 250, angle[i],
+                    asset.Accent, opacity);
+            }
+        }
+
+        private void DrawCookedWheel(
+            CanvasDrawingSession ds, ValorantKillAsset asset, int kills,
+            double ms, double cx, double cy, double holderOpacity)
+        {
+            double opacity = CookedChannel(ms,
+                new[] { 50.0, 150.0, 1953.2667, 2103.2667 },
+                new[] { 0.0, 1.0, 1.0, 0.0 },
+                new[] { 0.0, 0.00016666666, -0.0000051282314, 0.0 },
+                new[] { 0.0, 0.0, -0.0000051282314, 0.0 },
+                new[] { 2, 1, 2, 2 }) * holderOpacity;
+            if (opacity <= 0)
+            {
+                return;
+            }
+
+            double widgetScale = CookedChannel(ms,
+                new[] { 50.0, 150.0, 1953.2667, 2103.2667 },
+                new[] { 1.1, 1.0, 1.0, 1.1 },
+                new[] { 0.0, -0.00006666666, 0.0, 0.0 },
+                new[] { 0.0, 0.0, 0.00006666666, 0.0 },
+                new[] { 2, 0, 0, 2 });
+            double unit = CookedAfterglowUmgScale * widgetScale;
+
+            // Ring is not a child of SpinHolder in the cooked WidgetTree.
+            double ringReveal = CookedProgress(ms, CookedAfterglowEventMs, CookedAfterglowEventMs + 500.0);
+            DrawNativeStretchedImage(ds, asset.Textures.Ring, cx, cy,
+                180.0 * unit, 180.0 * unit, 0, opacity * ringReveal);
+
+            double spin = CookedWheelAngle(ms, kills);
+            double stateMs = ms - CookedAfterglowEventMs;
+            for (int i = 0; i < kills; i++)
+            {
+                double baseAngle = kills == 2 ? 90.0 - (i * 180.0) : i * (-360.0 / kills);
+                double angle = baseAngle + spin;
+                double pipScale = 1.0;
+                double lift = 0.0;
+                double upOpacity = 0.3;
+                double hoverOpacity = 0.0;
+                if (stateMs >= 0)
+                {
+                    upOpacity = 1.0;
+                    pipScale = CookedChannel(stateMs,
+                        new[] { 0.0, 300.0, 750.0 },
+                        new[] { 1.2, 1.2, 1.0 }, null, null,
+                        new[] { 2, 2, 2 });
+                    lift = CookedChannel(stateMs,
+                        new[] { 0.0, 300.0, 750.0 },
+                        new[] { 15.0, 15.0, 0.0 }, null, null,
+                        new[] { 2, 2, 2 }) * unit;
+                    hoverOpacity = CookedChannel(stateMs,
+                        new[] { 0.0, 150.0, 300.0, 750.0 },
+                        new[] { 0.0, 1.0, 1.0, 0.6 }, null, null,
+                        new[] { 2, 2, 2, 2 });
+                }
+
+                double radius = (147.0 * unit) + lift;
+                double radians = angle * Math.PI / 180.0;
+                double x = cx + Math.Sin(radians) * radius;
+                double y = cy - Math.Cos(radians) * radius;
+                double size = 64.0 * unit * pipScale;
+                Color upTint = stateMs >= 0 ? Colors.White : Color.FromArgb(230, 51, 51, 51);
+                DrawNativeTintedStretchedImage(ds, asset.Bar, x, y,
+                    size, size, angle, upTint, upOpacity * opacity);
+                if (hoverOpacity > 0)
+                {
+                    Color hoverTint = LerpValorantColor(Colors.White, asset.Accent, 0.25);
+                    DrawNativeTintedStretchedImage(ds, asset.Bar, x, y,
+                        size, size, angle, hoverTint, hoverOpacity * opacity);
+                }
+            }
+        }
+
+        private void DrawCookedFlipbook(
+            CanvasDrawingSession ds, CanvasBitmap atlas, int frameCount, double fps,
+            double elapsedMs, double cx, double cy, double width, double height,
+            bool mirrorX, bool additive, Color tint, double opacity)
+        {
+            if (atlas == null || elapsedMs < 0 || opacity <= 0)
+            {
+                return;
+            }
+
+            int index = (int)Math.Floor(elapsedMs * fps / 1000.0);
+            if (index < 0 || index >= frameCount)
+            {
+                return;
+            }
+
+            double sourceHeight = atlas.SizeInPixels.Height / (double)frameCount;
+            var source = new Rect(0, index * sourceHeight, atlas.SizeInPixels.Width, sourceHeight);
+            double targetWidth = width * CookedAfterglowUmgScale;
+            double targetHeight = height * CookedAfterglowUmgScale;
+            var target = SnapValorantRectToPhysicalPixels(new Rect(
+                cx - (targetWidth / 2.0), cy - (targetHeight / 2.0),
+                targetWidth, targetHeight));
+
+            Matrix3x2 previous = ds.Transform;
+            if (mirrorX)
+            {
+                ds.Transform = Matrix3x2.CreateScale(-1, 1,
+                    new Vector2((float)cx, (float)cy)) * previous;
+            }
+
+            DrawNativeTintedSource(ds, atlas, target, source, tint, opacity, additive);
+            ds.Transform = previous;
+        }
+
+        private void DrawCookedRotatedFlipbook(
+            CanvasDrawingSession ds, CanvasBitmap atlas, int frameCount, double fps,
+            double elapsedMs, double cx, double cy, double width, double height,
+            double degrees, Color tint, double opacity)
+        {
+            Matrix3x2 previous = ds.Transform;
+            ds.Transform = Matrix3x2.CreateRotation(
+                (float)(degrees * Math.PI / 180.0),
+                new Vector2((float)cx, (float)cy)) * previous;
+            DrawCookedFlipbook(ds, atlas, frameCount, fps, elapsedMs,
+                cx, cy, width, height, false, false, tint, opacity);
+            ds.Transform = previous;
+        }
+
+        private static double CookedWheelAngle(double elapsedMs, int kills)
+        {
+            if (kills <= 1 || elapsedMs < CookedAfterglowSpinMs)
+            {
+                return 0.0;
+            }
+
+            double target = kills < 5 ? -360.0 / kills : 720.0;
+            double speed = kills < 5 ? 8.0 : 5.0;
+            int ticks = Math.Max(0, (int)Math.Floor(
+                (elapsedMs - CookedAfterglowSpinMs) * FrameSequenceFps / 1000.0));
+            double angle = 0.0;
+            double alpha = Math.Min(1.0, speed / FrameSequenceFps);
+            for (int i = 0; i < ticks; i++)
+            {
+                angle += (target - angle) * alpha;
+                if (Math.Abs(target - angle) <= 0.1)
+                {
+                    return target;
+                }
+            }
+
+            return angle;
+        }
+
+        private static double CookedHeadshotBadgeScale(double elapsedMs)
+        {
+            return CookedChannel(elapsedMs,
+                new[] { 0.0, 50.0, 100.0, 150.0, 200.0, 250.0, 300.0, 350.0 },
+                new[] { 1.155, 1.0, 1.106, 1.0, 1.076, 1.0, 1.049, 1.0 },
+                new[] { 0.0, -0.000008, 0.0, -0.000005, 0.0, -0.000005, 0.0, 0.0 },
+                new[] { 0.0, -0.000008, 0.0, -0.000005, 0.0, -0.000005, 0.0, 0.0 },
+                new[] { 2, 2, 2, 2, 2, 2, 2, 2 });
+        }
+
+        private static Color CookedHeadshotColor(double elapsedMs, bool reticle)
+        {
+            if (elapsedMs < 0 || elapsedMs > 550.0)
+            {
+                return reticle ? Color.FromArgb(255, 255, 0, 0) : Colors.White;
+            }
+
+            double[] times = { 0.0, 50.0, 100.0, 150.0, 200.0, 250.0, 300.0, 350.0 };
+            double[] values = reticle
+                ? new[] { 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0 }
+                : new[] { 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0 };
+            double white = CookedChannel(elapsedMs, times, values,
+                null, null, new[] { 2, 2, 2, 2, 2, 2, 2, 2 });
+            return LerpValorantColor(Color.FromArgb(255, 255, 0, 0), Colors.White, white);
+        }
+
+        private static double CookedProgress(double value, double start, double end)
+        {
+            return end <= start
+                ? (value >= end ? 1.0 : 0.0)
+                : Clamp01((value - start) / (end - start));
+        }
+
+        // Evaluates FMovieSceneFloatChannel. InterpMode uses the native
+        // ERichCurveInterpMode values: 0 linear, 1 constant, 2 cubic Hermite.
+        private static double CookedChannel(
+            double elapsedMs, double[] timesMs, double[] values,
+            double[] arriveTangents, double[] leaveTangents, int[] interpModes)
+        {
+            if (timesMs == null || values == null || timesMs.Length == 0
+                || timesMs.Length != values.Length)
+            {
+                return 0.0;
+            }
+
+            if (elapsedMs <= timesMs[0])
+            {
+                return values[0];
+            }
+
+            for (int i = 0; i < timesMs.Length - 1; i++)
+            {
+                if (elapsedMs > timesMs[i + 1])
+                {
+                    continue;
+                }
+
+                double spanMs = timesMs[i + 1] - timesMs[i];
+                double t = spanMs <= 0 ? 1.0 : Clamp01((elapsedMs - timesMs[i]) / spanMs);
+                int mode = interpModes != null && i < interpModes.Length ? interpModes[i] : 0;
+                if (mode == 1)
+                {
+                    return values[i];
+                }
+
+                if (mode != 2)
+                {
+                    return Lerp(values[i], values[i + 1], t);
+                }
+
+                // Stored tangents are value per MovieScene tick (60,000 Hz).
+                double tickSpan = spanMs * 60.0;
+                double m0 = leaveTangents != null && i < leaveTangents.Length
+                    ? leaveTangents[i] * tickSpan : 0.0;
+                double m1 = arriveTangents != null && i + 1 < arriveTangents.Length
+                    ? arriveTangents[i + 1] * tickSpan : 0.0;
+                double t2 = t * t;
+                double t3 = t2 * t;
+                return ((2 * t3) - (3 * t2) + 1) * values[i]
+                    + (t3 - (2 * t2) + t) * m0
+                    + ((-2 * t3) + (3 * t2)) * values[i + 1]
+                    + (t3 - t2) * m1;
+            }
+
+            return values[values.Length - 1];
+        }
+    }
+}

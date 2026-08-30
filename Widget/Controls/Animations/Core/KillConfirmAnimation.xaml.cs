@@ -202,7 +202,27 @@ namespace KillConfirmGameBar.Controls
                 ? packKey
                 : ValorantPackService.DefaultKey;
             int normalizedKillCount = Math.Max(1, Math.Min(6, killCount));
+
+            if (ValorantPackService.UsesNativeAfterglowPlayback(normalizedPackKey))
+            {
+                PlayNativeAfterglowKill(normalizedKillCount, isHeadshot);
+                return;
+            }
+
             PlayInternal(progress => LoadValorantKillAssetAsync(normalizedPackKey, normalizedKillCount, isHeadshot, progress));
+        }
+
+        // Keep the cooked VALORANT widget replay on an explicit entry point.
+        // This prevents the native lifecycle from being confused with the
+        // repository's legacy, visually-authored Valorant renderer.
+        public void PlayNativeAfterglowKill(int killCount, bool isHeadshot)
+        {
+            int normalizedKillCount = Math.Max(1, Math.Min(6, killCount));
+            PlayInternal(progress => LoadValorantKillAssetAsync(
+                ValorantPackService.NativeAfterglowKey,
+                normalizedKillCount,
+                isHeadshot,
+                progress));
         }
 
         public void PlayBattlefield1Kill(int killCount, bool isHeadshot, bool isKnifeKill, bool isAssist, string playerName, string weaponLabel, int moneyReward, string eventKind, int roundNumber, int moneyEpoch)

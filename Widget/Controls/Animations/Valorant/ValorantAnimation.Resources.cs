@@ -43,7 +43,9 @@ namespace KillConfirmGameBar.Controls
                 {
                     FrameWidth = (int)ValorantFrameWidth,
                     FrameHeight = (int)ValorantFrameHeight,
-                    Frames = profile.UsesNativeAfterglowPlayback ? ValorantNativeAfterglowFrameCount : ValorantFrameCount,
+                    Frames = profile.UsesNativeAfterglowPlayback
+                        ? GetNativeAfterglowFrameCount(asset.KillCount)
+                        : ValorantFrameCount,
                     Fps = FrameSequenceFps
                 },
                 asset);

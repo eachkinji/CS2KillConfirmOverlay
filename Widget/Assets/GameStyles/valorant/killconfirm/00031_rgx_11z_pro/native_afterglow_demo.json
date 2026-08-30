@@ -32,6 +32,30 @@
     "global_holder_fade_out": 1953.2667,
     "end": 2108.0167
   },
+  "playback_speed": {
+    "kills_1_to_4": 1.0,
+    "kills_5_plus": 0.3
+  },
+  "clock_domains": {
+    "intro_channels_and_events": "scaled by playback_speed",
+    "event_started_materials_flipbooks_pips_and_finterp": "real-time 1.0x after each event fires"
+  },
+  "native_brush_sizes": {
+    "frame": [200.0, 256.0],
+    "badge": [85.0, 85.0],
+    "ring": [170.0, 170.0],
+    "pip": [45.0, 42.0],
+    "pip_orbit_radius": 73.5
+  },
+  "global_holder_paint_order": [
+    "HeadShotParticles",
+    "Tier1FireEffect",
+    "KillBanner_FX",
+    "Tier2Sparks",
+    "FrameMaterial",
+    "KillBanner_Wheel",
+    "KillBadgeMaterial"
+  ],
   "ring_dissolve_texture": "/Game/VFX/Textures/AlphaGradient/T_Mask_Ramp_TopDown",
   "flipbooks": {
     "tier_1": { "fps": 40.0, "frames": 49 },

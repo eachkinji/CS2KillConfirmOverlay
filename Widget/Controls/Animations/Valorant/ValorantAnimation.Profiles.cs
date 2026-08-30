@@ -1,4 +1,5 @@
 using System;
+using KillConfirmGameBar.Services;
 using Windows.UI;
 
 namespace KillConfirmGameBar.Controls
@@ -74,7 +75,7 @@ namespace KillConfirmGameBar.Controls
                 case "00030":
                     return new ValorantDemoProfile(id, "#73c0c4", "killicon_valorant_radiant_crisis_001_emblem.png", "killicon_valorant_base_frame.png", "killicon_valorant_radiant_crisis_001_bar.png") { HeadshotY = -12, EmblemScale = 0.5, FrameWidthScale = 0.8, HaloRadius = 25 };
                 case "00031":
-                    return new ValorantDemoProfile(id, "#a4ff96", "killicon_valorant_rgx_11z_pro_emblem.png", "killicon_valorant_rgx_11z_pro_frame.png", "killicon_valorant_rgx_11z_pro_bar.png") { HeadshotX = 0.85, HeadshotY = -21, EmblemScale = 0.35, FrameWidthScale = 0.8, HaloRadius = 25, UsesNativeAfterglowPlayback = true };
+                    return new ValorantDemoProfile(id, "#a4ff96", "killicon_valorant_rgx_11z_pro_emblem.png", "killicon_valorant_rgx_11z_pro_frame.png", "killicon_valorant_rgx_11z_pro_bar.png") { HeadshotX = 0.85, HeadshotY = -21, EmblemScale = 0.35, FrameWidthScale = 0.8, HaloRadius = 25, UsesNativeAfterglowPlayback = ValorantPackService.UsesNativeAfterglowPlayback(packKey) };
                 case "00032":
                     return new ValorantDemoProfile(id, "#f3414a", "killicon_valorant_rgx_11z_pro_v1_emblem.png", "killicon_valorant_rgx_11z_pro_frame.png", "killicon_valorant_rgx_11z_pro_v1_bar.png") { HeadshotY = -12, EmblemScale = 0.35, FrameWidthScale = 0.8, HaloRadius = 25 };
                 case "00033":

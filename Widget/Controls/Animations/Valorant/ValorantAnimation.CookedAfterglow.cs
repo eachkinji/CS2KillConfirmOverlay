@@ -8,20 +8,37 @@ namespace KillConfirmGameBar.Controls
 {
     public sealed partial class KillConfirmAnimation
     {
-        // The native frame brush is 256 UMG units. Map that brush to the
-        // renderer's existing 116-CSS-pixel Valorant frame contract; this is a
-        // unit conversion, not a visually tuned Afterglow scale.
-        // IntroAnimation ends at 2108.0167 ms. At the renderer's 60 Hz this
-        // requires 127 frames (ceil), with no guessed blank tail.
-        private const int ValorantNativeAfterglowFrameCount = 127;
+        // One UMG layout unit is mapped consistently across the cooked tree.
+        // Individual brush sizes below come from SetBrushFromTexture(..., true),
+        // so they must use each Afterglow texture's real dimensions rather than
+        // the Base widget's placeholder dimensions.
         private const double CookedAfterglowUmgScale =
             ValorantDemoFrameCssHeight * ValorantDemoVfxScale / 256.0;
+        private const double CookedAfterglowDurationMs = 2108.0167;
         private const double CookedAfterglowEventMs = 150.0;
         private const double CookedAfterglowSpinMs = 750.0;
+        private const double CookedAfterglowPentaPlaybackSpeed = 0.3;
+
+        private static int GetNativeAfterglowFrameCount(int killCount)
+        {
+            double speed = GetNativeAfterglowPlaybackSpeed(killCount);
+            return (int)Math.Ceiling(
+                CookedAfterglowDurationMs / speed * FrameSequenceFps / 1000.0);
+        }
+
+        private static double GetNativeAfterglowPlaybackSpeed(int killCount)
+        {
+            return killCount >= 5 ? CookedAfterglowPentaPlaybackSpeed : 1.0;
+        }
 
         private void DrawCookedAfterglowFrame(CanvasDrawingSession ds, int frame, ValorantKillAsset asset)
         {
-            double ms = frame * (1000.0 / FrameSequenceFps);
+            // StartAnimation selects 0.3 playback speed for penta/overkill and
+            // 1.0 for kills 1-4. Events and all child animations remain on the
+            // cooked IntroAnimation clock, so sample that clock here.
+            double realMs = frame * (1000.0 / FrameSequenceFps);
+            double playbackSpeed = GetNativeAfterglowPlaybackSpeed(asset.KillCount);
+            double ms = realMs * playbackSpeed;
             double holderOpacity = CookedChannel(ms,
                 new[] { 0.0, 5.05, 1953.2667, 2108.0167 },
                 new[] { 1.0, 1.0, 1.0, 0.0 },
@@ -51,34 +68,50 @@ namespace KillConfirmGameBar.Controls
                 512.0 * CookedAfterglowUmgScale,
                 512.0 * CookedAfterglowUmgScale, 0, shadowOpacity);
 
-            // GlobalHolder children in their cooked paint order.
-            DrawCookedPentaParticles(ds, asset, kills, ms, cx, cy, holderOpacity);
-            DrawCookedFrame(ds, asset, ms, cx, cy, holderOpacity);
-            DrawCookedBadge(ds, asset, ms, cx, cy, holderOpacity);
-            DrawCookedTierFx(ds, asset, kills, ms, cx, cy, holderOpacity);
-            DrawCookedLargeSparks(ds, asset, kills, ms, cx, cy, holderOpacity);
-            DrawCookedWheel(ds, asset, kills, ms, cx, cy, holderOpacity);
-            DrawCookedHeroFlame(ds, asset, ms, cx, cy, holderOpacity);
+            // GlobalHolder children in exact WidgetTree slot order. In
+            // particular, Frame and Wheel are behind KillBadgeMaterial; drawing
+            // the wheel last incorrectly put its ring across the emblem.
+            DrawCookedPentaParticles(ds, asset, kills, ms, playbackSpeed, cx, cy, holderOpacity);
+            DrawCookedHeroFlame(ds, asset, ms, playbackSpeed, cx, cy, holderOpacity);
+            DrawCookedTierFx(ds, asset, kills, ms, playbackSpeed, cx, cy, holderOpacity);
+            DrawCookedLargeSparks(ds, asset, kills, ms, playbackSpeed, cx, cy, holderOpacity);
+            DrawCookedFrame(ds, asset, ms, realMs, playbackSpeed, cx, cy, holderOpacity);
+            DrawCookedWheel(ds, asset, kills, ms, playbackSpeed, cx, cy, holderOpacity);
+            DrawCookedBadge(ds, asset, ms, realMs, playbackSpeed, cx, cy, holderOpacity);
         }
 
         private void DrawCookedFrame(
             CanvasDrawingSession ds, ValorantKillAsset asset, double ms,
+            double realMs, double playbackSpeed,
             double cx, double cy, double opacity)
         {
+            // TriggerGeneralFadeIn runs immediately after PlayAnimation and the
+            // material animation itself remains at real-time speed. The reverse
+            // dissolve starts from the 1803.2667 ms Intro event.
+            double dissolve = ms < 1803.2667
+                ? CookedProgress(realMs, 0.0, 300.0)
+                : 1.0 - CookedProgress(
+                    CookedChildElapsedMs(ms, 1803.2667, playbackSpeed),
+                    0.0,
+                    300.0);
             DrawNativeDissolvedImage(ds, asset.Frame, asset.Textures.FrameDissolve,
                 cx, cy,
+                200.0 * CookedAfterglowUmgScale,
                 256.0 * CookedAfterglowUmgScale,
-                256.0 * CookedAfterglowUmgScale,
-                CookedProgress(ms, 150.0, 450.0), opacity);
+                dissolve, opacity);
         }
 
         private void DrawCookedBadge(
             CanvasDrawingSession ds, ValorantKillAsset asset, double ms,
+            double realMs, double playbackSpeed,
             double cx, double cy, double opacity)
         {
             double dissolve = ms < 1803.2667
-                ? CookedProgress(ms, 150.0, 170.0)
-                : 1.0 - CookedProgress(ms, 1803.2667, 2103.2667);
+                ? CookedProgress(realMs, 0.0, 20.0)
+                : 1.0 - CookedProgress(
+                    CookedChildElapsedMs(ms, 1803.2667, playbackSpeed),
+                    0.0,
+                    300.0);
             double scale = CookedChannel(ms,
                 new[] { 0.45, 2.6833, 17.5167, 1803.2667, 1903.25 },
                 new[] { 1.0, 0.6, 1.0, 1.0, 0.6 },
@@ -86,7 +119,8 @@ namespace KillConfirmGameBar.Controls
                 new[] { 0.0, 0.0, 0.0, -0.00006667778, 0.0 },
                 new[] { 2, 2, 0, 0, 2 });
 
-            double hsMs = ms - CookedAfterglowEventMs;
+            double hsMs = CookedChildElapsedMs(
+                ms, CookedAfterglowEventMs, playbackSpeed);
             Color badgeTint = Colors.White;
             if (asset.IsHeadshot && hsMs >= 0 && hsMs <= 550.0)
             {
@@ -96,8 +130,8 @@ namespace KillConfirmGameBar.Controls
 
             DrawNativeDissolvedTintedImage(ds, asset.Emblem, asset.Textures.BadgeDissolve,
                 cx, cy,
-                76.0 * CookedAfterglowUmgScale,
-                100.0 * CookedAfterglowUmgScale,
+                85.0 * CookedAfterglowUmgScale,
+                85.0 * CookedAfterglowUmgScale,
                 scale, dissolve, badgeTint, opacity);
 
             if (!asset.IsHeadshot || hsMs < 0 || hsMs > 550.0)
@@ -118,7 +152,8 @@ namespace KillConfirmGameBar.Controls
 
         private void DrawCookedTierFx(
             CanvasDrawingSession ds, ValorantKillAsset asset, int kills,
-            double ms, double cx, double cy, double opacity)
+            double ms, double playbackSpeed,
+            double cx, double cy, double opacity)
         {
             // TriggerFX Blueprint select: 1 -> Tier999 (blank), 2/3 ->
             // Tier0 (BaseT1), 4 -> Tier1 (BaseT2), >=5 -> Tier2 (BaseT3).
@@ -146,27 +181,31 @@ namespace KillConfirmGameBar.Controls
             }
 
             double halfPane = 128.0 * CookedAfterglowUmgScale;
+            double elapsedMs = CookedChildElapsedMs(
+                ms, CookedAfterglowEventMs, playbackSpeed);
             DrawCookedFlipbook(ds, atlas, frameCount, 40.0,
-                ms - CookedAfterglowEventMs, cx - halfPane, cy,
+                elapsedMs, cx - halfPane, cy,
                 256, 256, true, false, asset.Accent, opacity);
             DrawCookedFlipbook(ds, atlas, frameCount, 40.0,
-                ms - CookedAfterglowEventMs, cx + halfPane, cy,
+                elapsedMs, cx + halfPane, cy,
                 256, 256, false, false, asset.Accent, opacity);
         }
 
         private void DrawCookedHeroFlame(
             CanvasDrawingSession ds, ValorantKillAsset asset, double ms,
+            double playbackSpeed,
             double cx, double cy, double opacity)
         {
             DrawCookedFlipbook(ds, asset.HeroFlame, 20, 35.0,
-                ms - CookedAfterglowEventMs,
+                CookedChildElapsedMs(ms, CookedAfterglowEventMs, playbackSpeed),
                 cx, cy - (30.0 * CookedAfterglowUmgScale),
                 199, 224, false, false, asset.Accent, opacity);
         }
 
         private void DrawCookedLargeSparks(
             CanvasDrawingSession ds, ValorantKillAsset asset, int kills,
-            double ms, double cx, double cy, double opacity)
+            double ms, double playbackSpeed,
+            double cx, double cy, double opacity)
         {
             if (kills < 5)
             {
@@ -174,13 +213,14 @@ namespace KillConfirmGameBar.Controls
             }
 
             DrawCookedFlipbook(ds, asset.LargeSparks, 52, 40.0,
-                ms - CookedAfterglowEventMs, cx, cy,
+                CookedChildElapsedMs(ms, CookedAfterglowEventMs, playbackSpeed), cx, cy,
                 300, 300, false, false, asset.Accent, opacity);
         }
 
         private void DrawCookedPentaParticles(
             CanvasDrawingSession ds, ValorantKillAsset asset, int kills,
-            double ms, double cx, double cy, double opacity)
+            double ms, double playbackSpeed,
+            double cx, double cy, double opacity)
         {
             // Despite its widget name, HeadShotParticles.BeginAnimation is
             // guarded by CurrentKillCount >= 5, not by IsHeadshot.
@@ -193,10 +233,12 @@ namespace KillConfirmGameBar.Controls
             double[] x = { -offset, offset, offset, -offset };
             double[] y = { -offset, -offset, offset, offset };
             double[] angle = { -45.0, 45.0, 135.0, -135.0 };
+            double elapsedMs = CookedChildElapsedMs(
+                ms, CookedAfterglowEventMs, playbackSpeed);
             for (int i = 0; i < 4; i++)
             {
                 DrawCookedRotatedFlipbook(ds, asset.XSparks, 29, 40.0,
-                    ms - CookedAfterglowEventMs,
+                    elapsedMs,
                     cx + x[i], cy + y[i], 80, 250, angle[i],
                     asset.Accent, opacity);
             }
@@ -204,7 +246,8 @@ namespace KillConfirmGameBar.Controls
 
         private void DrawCookedWheel(
             CanvasDrawingSession ds, ValorantKillAsset asset, int kills,
-            double ms, double cx, double cy, double holderOpacity)
+            double ms, double playbackSpeed,
+            double cx, double cy, double holderOpacity)
         {
             double opacity = CookedChannel(ms,
                 new[] { 50.0, 150.0, 1953.2667, 2103.2667 },
@@ -226,12 +269,15 @@ namespace KillConfirmGameBar.Controls
             double unit = CookedAfterglowUmgScale * widgetScale;
 
             // Ring is not a child of SpinHolder in the cooked WidgetTree.
-            double ringReveal = CookedProgress(ms, CookedAfterglowEventMs, CookedAfterglowEventMs + 500.0);
+            double stateMs = CookedChildElapsedMs(
+                ms, CookedAfterglowEventMs, playbackSpeed);
+            double ringReveal = CookedProgress(stateMs, 0.0, 500.0);
             DrawNativeDissolvedImage(ds, asset.Textures.Ring, asset.Textures.RingDissolve,
-                cx, cy, 180.0 * unit, 180.0 * unit, ringReveal, opacity);
+                cx, cy, 170.0 * unit, 170.0 * unit, ringReveal, opacity);
 
-            double spin = CookedWheelAngle(ms, kills);
-            double stateMs = ms - CookedAfterglowEventMs;
+            double spin = CookedWheelAngle(
+                CookedChildElapsedMs(ms, CookedAfterglowSpinMs, playbackSpeed),
+                kills);
             for (int i = 0; i < kills; i++)
             {
                 double baseAngle = kills == 2 ? 90.0 - (i * 180.0) : i * (-360.0 / kills);
@@ -269,12 +315,15 @@ namespace KillConfirmGameBar.Controls
                         new[] { 2, 2, 2, 2 });
                 }
 
-                double radius = (147.0 * unit) + lift;
+                // SetSize(147) changes the spacer below the 45x42 pip. With the
+                // root's default 0.5 pivot, that creates a 147/2 = 73.5 unit
+                // orbit. 147 is the spacer height, not the orbit radius.
+                double radius = (73.5 * unit) + lift;
                 double radians = angle * Math.PI / 180.0;
                 double x = cx + Math.Sin(radians) * radius;
                 double y = cy - Math.Cos(radians) * radius;
-                double sizeX = 64.0 * unit * pipScaleX;
-                double sizeY = 64.0 * unit * pipScaleY;
+                double sizeX = 45.0 * unit * pipScaleX;
+                double sizeY = 42.0 * unit * pipScaleY;
                 DrawNativeTintedStretchedImage(ds, asset.Bar, x, y,
                     sizeX, sizeY, angle, Colors.White, upOpacity * opacity);
                 if (hoverOpacity > 0)
@@ -335,9 +384,9 @@ namespace KillConfirmGameBar.Controls
             ds.Transform = previous;
         }
 
-        private static double CookedWheelAngle(double elapsedMs, int kills)
+        private static double CookedWheelAngle(double spinElapsedMs, int kills)
         {
-            if (kills <= 1 || elapsedMs < CookedAfterglowSpinMs)
+            if (kills <= 1 || spinElapsedMs < 0)
             {
                 return 0.0;
             }
@@ -345,7 +394,7 @@ namespace KillConfirmGameBar.Controls
             double target = kills < 5 ? -360.0 / kills : 720.0;
             double speed = kills < 5 ? 8.0 : 5.0;
             int ticks = Math.Max(0, (int)Math.Floor(
-                (elapsedMs - CookedAfterglowSpinMs) * FrameSequenceFps / 1000.0));
+                spinElapsedMs * FrameSequenceFps / 1000.0));
             double angle = 0.0;
             double alpha = Math.Min(1.0, speed / FrameSequenceFps);
             for (int i = 0; i < ticks; i++)
@@ -391,6 +440,13 @@ namespace KillConfirmGameBar.Controls
             return end <= start
                 ? (value >= end ? 1.0 : 0.0)
                 : Clamp01((value - start) / (end - start));
+        }
+
+        private static double CookedChildElapsedMs(
+            double introTimelineMs, double eventTimelineMs, double playbackSpeed)
+        {
+            return (introTimelineMs - eventTimelineMs)
+                / Math.Max(0.001, playbackSpeed);
         }
 
         // Evaluates FMovieSceneFloatChannel. InterpMode uses the native

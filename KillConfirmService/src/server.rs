@@ -15,7 +15,8 @@ use crate::cli::Args;
 use crate::gsi::update;
 use crate::infrastructure::auth::{load_or_create_control_token, require_control_token};
 use crate::infrastructure::logging::{
-    bootstrap_log, developer_logging_enabled, open_runtime_log_folder, service_log,
+    DeveloperTraceLayer, bootstrap_log, developer_logging_enabled, open_runtime_log_folder,
+    service_log,
 };
 use crate::infrastructure::playback::{get_output_stream_with_name, list_host_devices};
 use crate::infrastructure::ports::{bind_with_fallback, free_local_port};
@@ -55,15 +56,8 @@ use tokio::sync::{RwLock, broadcast};
 use tokio::time::sleep;
 use tower_http::timeout::TimeoutLayer;
 use tracing::info;
-use tracing::level_filters::LevelFilter;
-use tracing_subscriber::filter::filter_fn;
 use tracing_subscriber::{EnvFilter, layer::SubscriberExt, util::SubscriberInitExt};
 
-const DEFAULT_LOG_LEVEL: LevelFilter = if cfg!(debug_assertions) {
-    LevelFilter::DEBUG
-} else {
-    LevelFilter::INFO
-};
 const QUARK_UPDATE_URL: &str = "https://pan.quark.cn/s/1f3cfbcf8d5f?pwd=7Twv";
 const AUTHOR_GITHUB_URL: &str = "https://github.com/eachkinji";
 const AUTHOR_BILIBILI_URL: &str = "https://space.bilibili.com/18017622";
@@ -78,14 +72,15 @@ pub(crate) async fn run(mut args: Args) -> Result<()> {
     }
 
     tracing_subscriber::registry()
-        .with(
-            EnvFilter::builder()
-                .with_default_directive(DEFAULT_LOG_LEVEL.into())
-                .from_env_lossy(),
-        )
-        .with(filter_fn(|_| developer_logging_enabled()))
-        .with(tracing_subscriber::fmt::layer().without_time())
+        // Developer mode is an in-app diagnostic contract: always retain
+        // debug-and-higher events instead of allowing a machine-wide RUST_LOG
+        // value to silently suppress the file log.
+        .with(EnvFilter::new("debug"))
+        .with(DeveloperTraceLayer)
         .init();
+    if developer_logging_enabled() {
+        tracing::info!("developer trace file logging active at service startup");
+    }
 
     let sanitized_args = Args::sanitized_runtime_args();
     bootstrap_log(&format!("sanitized args: {:?}", sanitized_args));

@@ -183,7 +183,14 @@ pub async fn set_developer_settings(
     Json(request): Json<DeveloperSettingsRequest>,
 ) -> Json<DeveloperSettingsResponse> {
     set_developer_logging_enabled(request.enabled);
-    service_log("developer logging enabled");
+    service_log(if request.enabled {
+        "developer logging enabled"
+    } else {
+        "developer logging disabled"
+    });
+    if request.enabled {
+        tracing::info!("developer trace file logging active");
+    }
     Json(DeveloperSettingsResponse {
         enabled: request.enabled,
     })

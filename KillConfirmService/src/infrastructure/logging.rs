@@ -1,10 +1,15 @@
 use std::env;
+use std::fmt::Write as FmtWrite;
 use std::fs::{self, OpenOptions};
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
+use tracing::field::{Field, Visit};
+use tracing::{Event, Subscriber};
+use tracing_subscriber::Layer;
+use tracing_subscriber::layer::Context;
 
 static DEVELOPER_LOGGING_ENABLED: AtomicBool = AtomicBool::new(false);
 
@@ -110,6 +115,46 @@ fn append_trace_log(file_name: &str, message: &str) {
 pub fn perf_trace(message: &str) {
     if developer_logging_enabled() {
         service_log(&format!("[perf] {message}"));
+    }
+}
+
+pub(crate) struct DeveloperTraceLayer;
+
+impl<S> Layer<S> for DeveloperTraceLayer
+where
+    S: Subscriber,
+{
+    fn on_event(&self, event: &Event<'_>, _context: Context<'_, S>) {
+        if !developer_logging_enabled() {
+            return;
+        }
+
+        let metadata = event.metadata();
+        let mut visitor = TraceFieldVisitor::default();
+        event.record(&mut visitor);
+        let mut line = format!("{} {}", metadata.level(), metadata.target());
+        if !visitor.message.is_empty() {
+            let _ = write!(line, ": {}", visitor.message);
+        }
+        append_trace_log("service-trace.log", &line);
+    }
+}
+
+#[derive(Default)]
+struct TraceFieldVisitor {
+    message: String,
+}
+
+impl Visit for TraceFieldVisitor {
+    fn record_debug(&mut self, field: &Field, value: &dyn std::fmt::Debug) {
+        if !self.message.is_empty() {
+            self.message.push_str(", ");
+        }
+        if field.name() == "message" {
+            let _ = write!(self.message, "{value:?}");
+        } else {
+            let _ = write!(self.message, "{}={value:?}", field.name());
+        }
     }
 }
 

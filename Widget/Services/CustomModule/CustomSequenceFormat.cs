@@ -71,7 +71,7 @@ namespace KillConfirmGameBar.Services
         public static int ClampFps(double value)
         {
             if (double.IsNaN(value) || double.IsInfinity(value)) return 30;
-            return (int)Math.Max(1, Math.Min(60, Math.Truncate(value)));
+            return (int)Math.Max(1, Math.Min(120, Math.Truncate(value)));
         }
 
         public static double ClampHold(double value)

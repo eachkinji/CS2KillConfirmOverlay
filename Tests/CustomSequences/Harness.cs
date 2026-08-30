@@ -129,7 +129,7 @@ internal static class Harness
         Check(KillFeedbackVisibilitySettingsStore.Load(GameStyleMode.CustomModule).LowerOpacityPercent == 35, "custom opacity persisted");
         Check(KillFeedbackVisibilitySettingsStore.Load(GameStyleMode.Crossfire).LowerEnabled == cfBefore.LowerEnabled
             && KillFeedbackVisibilitySettingsStore.Load(GameStyleMode.Crossfire).LowerOpacityPercent == cfBefore.LowerOpacityPercent, "CF appearance unchanged");
-        for (int fps = 1; fps <= 60; fps++)
+        for (int fps = 1; fps <= 120; fps++)
         {
             Check(CustomSequenceFormat.At(0, 60, fps, 0).Frame == 0, "first frame");
             Check(CustomSequenceFormat.At(60.0 / fps, 60, fps, 0).Finished, "end time");
@@ -137,7 +137,9 @@ internal static class Harness
         Check(CustomSequenceFormat.At(.35, 10, 10, 0).Frame == 3, "clock selects skipped frame");
         Check(CustomSequenceFormat.At(1.49, 10, 10, .5).Frame == 9, "material hold keeps final frame");
         Check(CustomSequenceFormat.At(1.5, 10, 10, .5).Finished, "material hold determines completion");
-        Check(CustomSequenceFormat.ClampFps(double.NaN) == 30 && CustomSequenceFormat.ClampFps(0) == 1 && CustomSequenceFormat.ClampFps(90) == 60, "FPS defaults and clamps");
+        Check(CustomSequenceFormat.ClampFps(double.NaN) == 30 && CustomSequenceFormat.ClampFps(0) == 1
+            && CustomSequenceFormat.ClampFps(90) == 90 && CustomSequenceFormat.ClampFps(121) == 120,
+            "FPS defaults and clamps");
         Check(CustomSequenceFormat.At(.5, 1, 30, 1.5).Frame == 0, "static hold");
         var pageMetadata = new CustomSequenceMetadata { Width = 2, Height = 2, Columns = 3, Frames = 7 };
         byte[] sourcePixels = Enumerable.Range(0, 6 * 6 * 4).Select(i => (byte)i).ToArray();
@@ -158,7 +160,7 @@ internal static class Harness
         using (var csv = new StreamWriter(Path.Combine(root, "timeline.csv")))
         {
             csv.WriteLine("elapsed,frames,fps,hold,index,finished");
-            foreach (int fps in new[] { 1, 10, 30, 60 })
+            foreach (int fps in new[] { 1, 10, 30, 60, 90, 120 })
             foreach (int count in new[] { 1, 10, 201 })
             foreach (double hold in new[] { 0, .5, 1.5 })
             foreach (double elapsed in new[] { 0, .06, .12, .35, 1, 1.2, 1.625, 1.75, 10, 202 })
@@ -290,10 +292,12 @@ internal static class Harness
 
         var frameFiles = await frames.GetFilesAsync();
         var draft = new[] { new CustomSequenceInput { Slot = "2hs", Frames = frameFiles, Fps = 24, Hold = .75 } };
-        var custom = await CustomSequencePackService.SavePackAsync("Draft", draft);
+        var custom = await CustomSequencePackService.SavePackAsync("Draft", draft, headImageFile: png);
         var customFolder = await StorageFolder.GetFolderFromPathAsync(custom.FolderPath);
         var customMetadata = await CustomSequencePackService.ReadMetadataAsync(customFolder, "2hs");
         Check(customMetadata.Frames == 2 && customMetadata.Fps == 24 && customMetadata.HoldSeconds == .75, "manual frames assigned to chosen slot with asset timing");
+        Check(File.ReadAllBytes(png.Path).SequenceEqual(File.ReadAllBytes(Path.Combine(customFolder.Path, "pack_head.png"))),
+            "custom pack head image is stored with the pack");
         Check(await CustomSequencePackService.ResolveSlotAsync(customFolder, 1, false) == null, "new editor does not manufacture other kill levels");
         custom.IsVisibleInWidget = false;
         int catalogCount = PackCatalogService.Catalog.IconPacks.Count;
@@ -306,6 +310,7 @@ internal static class Harness
         Check(!Directory.Exists(originalPath), "owned old copy cleaned only after save");
         var editedFolder = await StorageFolder.GetFolderFromPathAsync(edit.FolderPath);
         Check(await CustomSequencePackService.ResolveSlotAsync(editedFolder, 2, true) == null, "cleared slot not copied back during edit");
+        Check(File.Exists(Path.Combine(editedFolder.Path, "pack_head.png")), "editing preserves the existing custom pack head image");
         string catalogBeforeFailure = await FileIO.ReadTextAsync(await local.GetFileAsync(PackCatalogService.CatalogFileName));
         var invalidInput = new[] { new CustomSequenceInput { Slot = "1", Metadata = await source.GetFileAsync("1.json"), Sheet = png } };
         await Reject(async () => await CustomSequencePackService.SavePackAsync("Broken", invalidInput, editedFolder, edit.Key), "failed replacement rejected");

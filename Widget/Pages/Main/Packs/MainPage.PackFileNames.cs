@@ -177,6 +177,21 @@ namespace KillConfirmGameBar
             "killicon_scrolling_assist.png"
         };
 
+        private static readonly string[] OverwatchIconPackImportFiles =
+        {
+            "kill_icon_white.png", "kill_effect_sheet.png"
+        };
+
+        private static readonly string[] ModernWarfare2019IconPackImportFiles =
+        {
+            "killcon.png", "huiguangcod.png"
+        };
+
+        private static readonly string[] ApexIconPackImportFiles =
+        {
+            "hitmark.png"
+        };
+
         private static readonly string[] VoicePackHeadImageNames =
         {
             "pack_head.png",

@@ -333,6 +333,27 @@ namespace KillConfirmGameBar
                     await CollectRecognizedFilesAsync(folder, DeltaForceIconPackImportFiles),
                     headImage);
             }
+            else if (GameStyleService.Current == GameStyleMode.Overwatch)
+            {
+                await ShowCreateOverwatchIconPackDialogAsync(
+                    folder.DisplayName,
+                    await CollectRecognizedFilesAsync(folder, OverwatchIconPackImportFiles),
+                    headImage);
+            }
+            else if (GameStyleService.Current == GameStyleMode.ModernWarfare2019)
+            {
+                await ShowCreateModernWarfare2019IconPackDialogAsync(
+                    folder.DisplayName,
+                    await CollectRecognizedFilesAsync(folder, ModernWarfare2019IconPackImportFiles),
+                    headImage);
+            }
+            else if (GameStyleService.Current == GameStyleMode.Apex)
+            {
+                await ShowCreateApexIconPackDialogAsync(
+                    folder.DisplayName,
+                    await CollectRecognizedFilesAsync(folder, ApexIconPackImportFiles),
+                    headImage);
+            }
             else
             {
                 await ShowCreateIconPackDialogAsync(
@@ -426,6 +447,27 @@ namespace KillConfirmGameBar
                             folder.DisplayName, files,
                             await TryGetCustomPackHeadImageAsync(folder.Path));
                     });
+            }
+            else if (GameStyleService.Current == GameStyleMode.Overwatch)
+            {
+                await ImportPackFromZipAsync(
+                    OverwatchIconPackImportFiles,
+                    async (folder, files) => await ShowCreateOverwatchIconPackDialogAsync(
+                        folder.DisplayName, files, await TryGetCustomPackHeadImageAsync(folder.Path)));
+            }
+            else if (GameStyleService.Current == GameStyleMode.ModernWarfare2019)
+            {
+                await ImportPackFromZipAsync(
+                    ModernWarfare2019IconPackImportFiles,
+                    async (folder, files) => await ShowCreateModernWarfare2019IconPackDialogAsync(
+                        folder.DisplayName, files, await TryGetCustomPackHeadImageAsync(folder.Path)));
+            }
+            else if (GameStyleService.Current == GameStyleMode.Apex)
+            {
+                await ImportPackFromZipAsync(
+                    ApexIconPackImportFiles,
+                    async (folder, files) => await ShowCreateApexIconPackDialogAsync(
+                        folder.DisplayName, files, await TryGetCustomPackHeadImageAsync(folder.Path)));
             }
             else
             {

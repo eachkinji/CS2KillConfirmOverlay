@@ -31,15 +31,6 @@ namespace KillConfirmGameBar.Services
         public static async Task<IReadOnlyList<IconPackItem>> GetVisibleIconPacksAsync()
         {
             var catalog = await LoadAsync();
-            if (GameStyleService.Current == GameStyleMode.Overwatch
-                || GameStyleService.Current == GameStyleMode.Apex)
-            {
-                string lockedKey = GameStyleService.Current == GameStyleMode.Apex ? "apex" : "overwatch";
-                return catalog.IconPacks
-                    .Where(p => string.Equals(p.Key, lockedKey, StringComparison.OrdinalIgnoreCase))
-                    .ToList();
-            }
-
             IEnumerable<IconPackItem> visible = catalog.IconPacks
                 .Where(p => p.IsVisibleInWidget && GameStyleService.IsVisibleForCurrentStyle(p.Key))
                 .ToList();
@@ -73,7 +64,10 @@ namespace KillConfirmGameBar.Services
                 || key.StartsWith("custom_battlefield1_icon_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_battlefield5_icon_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_battlefield2042_icon_", StringComparison.OrdinalIgnoreCase)
-                || key.StartsWith("custom_deltaforce_icon_", StringComparison.OrdinalIgnoreCase);
+                || key.StartsWith("custom_deltaforce_icon_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("custom_overwatch_icon_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("custom_modernwarfare2019_icon_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("custom_apex_icon_", StringComparison.OrdinalIgnoreCase);
         }
 
         public static bool IsCsolIconPackKey(string key)

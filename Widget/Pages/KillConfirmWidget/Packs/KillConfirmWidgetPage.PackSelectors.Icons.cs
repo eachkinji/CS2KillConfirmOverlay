@@ -51,7 +51,7 @@ namespace KillConfirmGameBar
                 case "bf4":
                     return "ms-appx:///Assets/GameStyles/battlefield4/killconfirm/textures/killicon_battlefield1_headshot.png";
                 case "battlefield2042":
-                    return "ms-appx:///Assets/GameStyles/battlefield2042/killconfirm/textures/HeadshotSkull.png";
+                    return "ms-appx:///Assets/GameLogos/battlefield2042.png";
                 case "pubg":
                     return "ms-appx:///Assets/GameStyles/pubg/killconfirm/textures/killicon_scrolling_headshot.png";
                 case "deltaforce":

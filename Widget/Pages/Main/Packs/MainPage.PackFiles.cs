@@ -428,6 +428,96 @@ namespace KillConfirmGameBar
             return null;
         }
 
+        private async Task ExportVoicePackAsync(VoicePackItem item)
+        {
+            await ExportPackFolderAsync(
+                await GetVoicePackFolderAsync(item),
+                PackCatalogService.GetVoicePackDisplayName(item));
+        }
+
+        private async Task ExportIconPackAsync(IconPackItem item)
+        {
+            await ExportPackFolderAsync(
+                await GetIconPackFolderAsync(item),
+                PackCatalogService.GetIconPackDisplayName(item));
+        }
+
+        private async Task ExportPackFolderAsync(StorageFolder sourceFolder, string displayName)
+        {
+            bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            if (sourceFolder == null)
+            {
+                await ShowMessageAsync(
+                    isChinese ? "无法导出" : "Unable to export",
+                    isChinese ? "没有找到这个资源包的文件。" : "The files for this pack could not be found.");
+                return;
+            }
+
+            var picker = new FileSavePicker
+            {
+                SuggestedStartLocation = PickerLocationId.Downloads,
+                SuggestedFileName = SanitizeExportFileName(displayName)
+            };
+            picker.FileTypeChoices.Add("ZIP", new List<string> { ".zip" });
+            StorageFile destination = await picker.PickSaveFileAsync();
+            if (destination == null)
+            {
+                return;
+            }
+
+            StorageFile temporaryZip = await ApplicationData.Current.TemporaryFolder.CreateFileAsync(
+                "PackExport_" + Guid.NewGuid().ToString("N") + ".zip",
+                CreationCollisionOption.ReplaceExisting);
+            try
+            {
+                using (Stream stream = await temporaryZip.OpenStreamForWriteAsync())
+                using (var archive = new ZipArchive(stream, ZipArchiveMode.Create))
+                {
+                    await AddFolderToArchiveAsync(archive, sourceFolder, string.Empty);
+                }
+
+                await temporaryZip.CopyAndReplaceAsync(destination);
+            }
+            finally
+            {
+                try { await temporaryZip.DeleteAsync(); } catch { }
+            }
+        }
+
+        private static async Task AddFolderToArchiveAsync(ZipArchive archive, StorageFolder folder, string relativePath)
+        {
+            foreach (StorageFile file in await folder.GetFilesAsync())
+            {
+                string entryName = string.IsNullOrEmpty(relativePath)
+                    ? file.Name
+                    : relativePath + "/" + file.Name;
+                ZipArchiveEntry entry = archive.CreateEntry(entryName, CompressionLevel.Optimal);
+                using (Stream input = await file.OpenStreamForReadAsync())
+                using (Stream output = entry.Open())
+                {
+                    await input.CopyToAsync(output);
+                }
+            }
+
+            foreach (StorageFolder child in await folder.GetFoldersAsync())
+            {
+                string childPath = string.IsNullOrEmpty(relativePath)
+                    ? child.Name
+                    : relativePath + "/" + child.Name;
+                await AddFolderToArchiveAsync(archive, child, childPath);
+            }
+        }
+
+        private static string SanitizeExportFileName(string value)
+        {
+            string safe = string.IsNullOrWhiteSpace(value) ? "KillConfirm-Pack" : value.Trim();
+            foreach (char invalid in Path.GetInvalidFileNameChars())
+            {
+                safe = safe.Replace(invalid, '_');
+            }
+            return safe;
+        }
+
         public static async Task<IReadOnlyDictionary<string, StorageFile>> CollectFilesFromPackFolderAsync(StorageFolder folder, params string[] fileNames)
         {
             if (folder == null)

@@ -144,7 +144,7 @@ namespace KillConfirmGameBar
                 case "bf4":
                     return "ms-appx:///Assets/GameStyles/battlefield4/killconfirm/textures/killicon_battlefield1_headshot.png";
                 case "battlefield2042":
-                    return "ms-appx:///Assets/GameStyles/battlefield2042/killconfirm/textures/HeadshotSkull.png";
+                    return "ms-appx:///Assets/GameLogos/battlefield2042.png";
                 case "pubg":
                     return "ms-appx:///Assets/GameStyles/pubg/killconfirm/textures/killicon_scrolling_headshot.png";
                 case "deltaforce":
@@ -180,7 +180,7 @@ namespace KillConfirmGameBar
                 case GameStyleMode.Battlefield4:
                     return "ms-appx:///Assets/GameStyles/battlefield4/killconfirm/textures/killicon_battlefield1_default.png";
                 case GameStyleMode.Battlefield2042:
-                    return "ms-appx:///Assets/GameStyles/battlefield2042/killconfirm/textures/NormalSkull.png";
+                    return "ms-appx:///Assets/GameLogos/battlefield2042.png";
                 case GameStyleMode.Pubg:
                     return "ms-appx:///Assets/GameStyles/pubg/killconfirm/textures/killicon_scrolling_default.png";
                 case GameStyleMode.DeltaForce:
@@ -211,11 +211,33 @@ namespace KillConfirmGameBar
 
         private static string GetIconPackIconUri(IconPackItem item)
         {
+            if (ValorantPackService.IsValorantPackKey(item?.Key))
+            {
+                return GetValorantVoicePackEmblemUri(item.Key);
+            }
+
             if (string.Equals(item?.Key, "custommodule", StringComparison.OrdinalIgnoreCase))
             {
                 return "ms-appx:///Assets/GameStyles/custommodule/iconpacks/custommodule/pack_head.webp";
             }
             if (GameStyleService.IsCustomModuleKey(item?.Key)) return null;
+            GameStyleMode style = GameStyleService.GetStyleForPackKey(item?.Key);
+            if (style == GameStyleMode.Overwatch)
+            {
+                return "ms-appx:///Assets/GameStyles/overwatch/killconfirm/textures/preview.png";
+            }
+            if (style == GameStyleMode.ModernWarfare2019)
+            {
+                return "ms-appx:///Assets/GameLogos/modernwarfare2019.png";
+            }
+            if (style == GameStyleMode.Apex)
+            {
+                return "ms-appx:///Assets/GameLogos/apex.png";
+            }
+            if (style == GameStyleMode.Battlefield2042)
+            {
+                return "ms-appx:///Assets/GameLogos/battlefield2042.png";
+            }
             switch ((item?.Key ?? string.Empty).Trim().ToLowerInvariant())
             {
                 case "vip":
@@ -239,7 +261,7 @@ namespace KillConfirmGameBar
                 case "bf4":
                     return "ms-appx:///Assets/GameStyles/battlefield4/killconfirm/textures/killicon_battlefield1_headshot.png";
                 case "battlefield2042":
-                    return "ms-appx:///Assets/GameStyles/battlefield2042/killconfirm/textures/HeadshotSkull.png";
+                    return "ms-appx:///Assets/GameLogos/battlefield2042.png";
                 case "pubg":
                     return "ms-appx:///Assets/GameStyles/pubg/killconfirm/textures/killicon_scrolling_headshot.png";
                 case "deltaforce":

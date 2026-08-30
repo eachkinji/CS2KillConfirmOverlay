@@ -10,7 +10,7 @@ namespace KillConfirmGameBar
         {
             TitleText.Text = LocalizationManager.Text("MainTitle");
             bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
-            CustomModuleStyleItem.Content = isChinese ? "自定义模块" : "Custom Module";
+            CustomModuleStyleItem.Content = isChinese ? "自定义" : "Custom";
             ToolTipService.SetToolTip(HomeSidebarItem, isChinese ? "主页" : "Home");
 
             GameEffectsTitleText.Text = LocalizationManager.Text("GameEffectsTitle");

@@ -3,13 +3,13 @@ use crate::api::{
     crossfire_settings, cs2_root, csol_settings, dagoujiao_settings, developer_settings,
     doubao_settings, event_sound_settings, events_poll, extract_video_frames, gsi_game_settings,
     gsi_status, health, install_counter_strike_cfg, interrupt_previous_kill_audio_settings,
-    money_mode, port, preview_bomb_audio_endpoint, process_priorities, register_ui_process,
-    set_audio_device, set_bomb_audio_settings, set_crossfire_settings, set_csol_settings,
-    set_dagoujiao_settings, set_developer_settings, set_doubao_settings, set_event_sound_settings,
-    set_gsi_game_settings, set_interrupt_previous_kill_audio_settings, set_money_mode,
-    set_process_priority, set_spectator_settings, set_streak_gain_settings, set_streak_settings,
-    shutdown, spectator_settings, streak_gain_settings, streak_settings, test_event,
-    unregister_ui_process,
+    money_mode, port, prepare_video_preview, preview_bomb_audio_endpoint, process_priorities,
+    register_ui_process, set_audio_device, set_bomb_audio_settings, set_crossfire_settings,
+    set_csol_settings, set_dagoujiao_settings, set_developer_settings, set_doubao_settings,
+    set_event_sound_settings, set_gsi_game_settings, set_interrupt_previous_kill_audio_settings,
+    set_money_mode, set_process_priority, set_spectator_settings, set_streak_gain_settings,
+    set_streak_settings, shutdown, spectator_settings, streak_gain_settings, streak_settings,
+    test_event, unregister_ui_process,
 };
 use crate::cli::Args;
 use crate::gsi::update;
@@ -346,6 +346,7 @@ pub(crate) async fn run(mut args: Args) -> Result<()> {
             get(process_priorities).post(set_process_priority),
         )
         .route("/video/extract", post(extract_video_frames))
+        .route("/video/preview", post(prepare_video_preview))
         .route("/shutdown", post(shutdown))
         .route("/exit-all", post(exit_all_handler))
         .route("/soundpack", get(api::soundpack).post(api::set_soundpack))

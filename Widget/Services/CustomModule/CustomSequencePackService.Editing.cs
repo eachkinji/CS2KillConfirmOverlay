@@ -208,7 +208,8 @@ namespace KillConfirmGameBar.Services
 
         internal static async Task<IconPackItem> SavePackAsync(string name, IEnumerable<CustomSequenceInput> inputs,
             StorageFolder original = null, string existingKey = null, IProgress<string> progress = null,
-            ICollection<string> warnings = null, bool allowPartial = false)
+            ICollection<string> warnings = null, bool allowPartial = false, StorageFile headImageFile = null,
+            bool preserveOriginalHeadImage = true)
         {
             var selected = inputs.ToList();
             if (selected.Count == 0) throw new InvalidDataException("Choose at least one sequence / 请至少添加一组帧素材。");
@@ -246,6 +247,25 @@ namespace KillConfirmGameBar.Services
                 if (levels.Count == 0) throw new InvalidDataException("No usable animations / 没有可用的逐帧素材。\n" + string.Join("\n", failures));
                 manifest["levels"] = levels;
                 await FileIO.WriteTextAsync(await destination.CreateFileAsync("style.json"), manifest.Stringify());
+                StorageFile effectiveHeadImage = headImageFile;
+                if (effectiveHeadImage == null && original != null && preserveOriginalHeadImage)
+                {
+                    foreach (string candidate in new[]
+                    {
+                        "pack_head.png", "pack_head.jpg", "pack_head.jpeg", "pack_head.webp", "preview.png"
+                    })
+                    {
+                        effectiveHeadImage = await original.TryGetItemAsync(candidate) as StorageFile;
+                        if (effectiveHeadImage != null) break;
+                    }
+                }
+                if (effectiveHeadImage != null)
+                {
+                    string extension = string.IsNullOrWhiteSpace(effectiveHeadImage.FileType)
+                        ? ".png"
+                        : effectiveHeadImage.FileType.ToLowerInvariant();
+                    await effectiveHeadImage.CopyAsync(destination, "pack_head" + extension, NameCollisionOption.ReplaceExisting);
+                }
                 if (original != null)
                     foreach (string extra in new[] { "preview.png", "readme.txt", "readme.md", "license.txt" })
                         if (await original.TryGetItemAsync(extra) is StorageFile file)

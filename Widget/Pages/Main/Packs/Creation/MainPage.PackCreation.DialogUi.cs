@@ -135,7 +135,8 @@ namespace KillConfirmGameBar
             string defaultPreviewUri,
             StorageFile initialHeadImageFile,
             Action<StorageFile> onImageChanged,
-            Action onImageCleared)
+            Action onImageCleared,
+            bool allowTga = true)
         {
             var card = new Border
             {
@@ -209,7 +210,9 @@ namespace KillConfirmGameBar
 
             chooseButton.Click += async (_, __) =>
             {
-                StorageFile file = await PickSingleFileAsync(new[] { ".png", ".jpg", ".jpeg", ".webp", ".tga" });
+                StorageFile file = await PickSingleFileAsync(allowTga
+                    ? new[] { ".png", ".jpg", ".jpeg", ".webp", ".tga" }
+                    : new[] { ".png", ".jpg", ".jpeg", ".webp" });
                 if (file == null) return;
                 headFileText.Text = file.Name;
                 await SetPreviewImageAsync(headPreview, file);

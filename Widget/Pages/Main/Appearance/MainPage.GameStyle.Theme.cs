@@ -365,7 +365,24 @@ namespace KillConfirmGameBar
             }
             else if (element is Button button)
             {
-                ApplyButtonTheme(button, theme, false);
+                string role = button.Tag as string;
+                if (string.Equals(role, "PackDelete", StringComparison.Ordinal))
+                {
+                    button.Background = new SolidColorBrush(Color.FromArgb(255, 254, 242, 242));
+                    button.Foreground = new SolidColorBrush(Color.FromArgb(255, 196, 43, 28));
+                    button.BorderBrush = new SolidColorBrush(Color.FromArgb(255, 252, 209, 209));
+                }
+                else if (string.Equals(role, "PackEdit", StringComparison.Ordinal)
+                    || string.Equals(role, "PackExport", StringComparison.Ordinal))
+                {
+                    button.Background = new SolidColorBrush(theme.Field);
+                    button.Foreground = new SolidColorBrush(theme.Accent);
+                    button.BorderBrush = new SolidColorBrush(theme.AccentSoft);
+                }
+                else
+                {
+                    ApplyButtonTheme(button, theme, false);
+                }
             }
 
             int count = VisualTreeHelper.GetChildrenCount(element);

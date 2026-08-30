@@ -107,7 +107,7 @@
                         <NavigationViewItem AutomationProperties.Name="大狗叫" Tag="dagoujiao" ToolTipService.ToolTip="大狗叫">
                             <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/dagoujiao.jpg" /></NavigationViewItem.Icon>
                         </NavigationViewItem>
-                        <NavigationViewItem AutomationProperties.Name="自定义模块" Tag="custommodule" ToolTipService.ToolTip="自定义模块">
+                        <NavigationViewItem AutomationProperties.Name="自定义" Tag="custommodule" ToolTipService.ToolTip="自定义">
                             <NavigationViewItem.Icon><FontIcon FontFamily="Microsoft YaHei UI" FontSize="10" Glyph="自定义" /></NavigationViewItem.Icon>
                         </NavigationViewItem>
                     </NavigationView.MenuItems>
@@ -170,8 +170,8 @@
                                 <ComboBoxItem x:Name="PubgStyleItem" Tag="pubg">PUBG (绝地求生)</ComboBoxItem>
                                 <ComboBoxItem x:Name="DeltaForceStyleItem" Tag="deltaforce">Delta Force (三角洲行动)</ComboBoxItem>
                                 <ComboBoxItem x:Name="DoubaoStyleItem" Tag="doubao">Doubao (豆包)</ComboBoxItem>
-                                <ComboBoxItem x:Name="CustomModuleStyleItem" Tag="custommodule">自定义模块</ComboBoxItem>
                                 <ComboBoxItem x:Name="DagoujiaoStyleItem" Tag="dagoujiao">Big Dog Bark (大狗叫)</ComboBoxItem>
+                                <ComboBoxItem x:Name="CustomModuleStyleItem" Tag="custommodule">自定义</ComboBoxItem>
                             </ComboBox>
                         </StackPanel>
                     </Grid>
@@ -331,9 +331,10 @@
 
                                 <VariableSizedWrapGrid
                                     x:Name="VoicePackListPanel"
+                                    Margin="0,0,0,24"
                                     Orientation="Horizontal"
-                                    ItemWidth="255"
-                                    ItemHeight="84" />
+                                    ItemWidth="270"
+                                    ItemHeight="108" />
                             </StackPanel>
                         </Border>
 
@@ -389,9 +390,10 @@
 
                                 <VariableSizedWrapGrid
                                     x:Name="IconPackListPanel"
+                                    Margin="0,0,0,24"
                                     Orientation="Horizontal"
-                                    ItemWidth="255"
-                                    ItemHeight="84" />
+                                    ItemWidth="270"
+                                    ItemHeight="108" />
                             </StackPanel>
                         </Border>
 

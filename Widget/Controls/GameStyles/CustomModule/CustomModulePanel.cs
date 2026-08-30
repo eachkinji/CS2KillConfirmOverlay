@@ -34,7 +34,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
 
         public void ApplyLanguage(bool chinese)
         {
-            _title.Text = chinese ? "自定义模块 · 连杀规则" : "Custom Module · Kill streak";
+            _title.Text = chinese ? "自定义 · 连杀规则" : "Custom · Kill streak";
             _help.Text = chinese ? "决定击杀事件使用第 1～5 杀中的哪组素材。帧率与末帧停留在图标包中设置；爆头素材自动优先并回退普通素材。"
                 : "Choose how kill events map to slots 1–5. Set FPS and last-frame hold in the icon pack; headshot variants are selected automatically with normal fallback.";
             _streak.ApplyLanguage(chinese);

@@ -55,6 +55,18 @@ namespace KillConfirmGameBar
             {
                 await ShowCreateDeltaForceIconPackDialogAsync();
             }
+            else if (GameStyleService.Current == GameStyleMode.Overwatch)
+            {
+                await ShowCreateOverwatchIconPackDialogAsync(null, null, null);
+            }
+            else if (GameStyleService.Current == GameStyleMode.ModernWarfare2019)
+            {
+                await ShowCreateModernWarfare2019IconPackDialogAsync(null, null, null);
+            }
+            else if (GameStyleService.Current == GameStyleMode.Apex)
+            {
+                await ShowCreateApexIconPackDialogAsync(null, null, null);
+            }
             else
             {
                 await ShowCreateIconPackDialogAsync();

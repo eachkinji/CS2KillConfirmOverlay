@@ -345,8 +345,8 @@
             <ComboBoxItem x:Name="PubgStyleItem" x:FieldModifier="public" Tag="pubg">PUBG</ComboBoxItem>
             <ComboBoxItem x:Name="DeltaForceStyleItem" x:FieldModifier="public" Tag="deltaforce">DF</ComboBoxItem>
             <ComboBoxItem x:Name="DoubaoStyleItem" x:FieldModifier="public" Tag="doubao">豆包</ComboBoxItem>
-            <ComboBoxItem x:Name="CustomModuleStyleItem" x:FieldModifier="public" Tag="custommodule">自定义模块</ComboBoxItem>
             <ComboBoxItem x:Name="DagoujiaoStyleItem" x:FieldModifier="public" Tag="dagoujiao">大狗叫</ComboBoxItem>
+            <ComboBoxItem x:Name="CustomModuleStyleItem" x:FieldModifier="public" Tag="custommodule">自定义</ComboBoxItem>
         </ComboBox>
         </Grid>
     </Grid>

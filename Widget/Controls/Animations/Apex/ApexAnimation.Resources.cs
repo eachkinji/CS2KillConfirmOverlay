@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Numerics;
 using System.Threading.Tasks;
+using KillConfirmGameBar.Services;
 using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.Text;
 using Windows.Foundation;
@@ -30,8 +31,18 @@ namespace KillConfirmGameBar.Controls
 
             try
             {
-                CanvasBitmap loaded = await LoadBitmapFromApplicationUriAsync(
-                    "ms-appx:///Assets/GameStyles/apex/killconfirm/textures/hitmark.png");
+                CanvasBitmap loaded = null;
+                if (_iconPack.StartsWith("custom_apex_icon_", StringComparison.OrdinalIgnoreCase))
+                {
+                    Windows.Storage.StorageFolder folder = await PackCatalogService.GetImportedIconFolderAsync(_iconPack);
+                    Windows.Storage.StorageFile file = await TryGetImportedIconFileAsync(folder, "hitmark.png");
+                    if (file != null) loaded = await LoadBitmapFromStorageFileAsync(file);
+                }
+                if (loaded == null)
+                {
+                    loaded = await LoadBitmapFromApplicationUriAsync(
+                        "ms-appx:///Assets/GameStyles/apex/killconfirm/textures/hitmark.png");
+                }
                 if (_apexHitmarkBitmap != null)
                 {
                     loaded?.Dispose();

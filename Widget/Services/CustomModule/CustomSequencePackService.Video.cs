@@ -10,7 +10,10 @@ namespace KillConfirmGameBar.Services
 {
     internal static partial class CustomSequencePackService
     {
-        internal static readonly string[] VideoExtensions = { ".mp4", ".mov", ".webm", ".mkv", ".avi" };
+        internal static readonly string[] VideoExtensions =
+        {
+            ".mp4", ".mov", ".m4v", ".webm", ".mkv", ".avi", ".wmv", ".gif"
+        };
 
         private static async Task ConvertVideoAsync(CustomSequenceInput input, StorageFolder target, ICollection<string> warnings)
         {

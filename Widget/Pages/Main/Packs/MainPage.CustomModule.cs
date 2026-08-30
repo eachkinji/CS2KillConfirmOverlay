@@ -7,11 +7,14 @@ using System.Threading.Tasks;
 using KillConfirmGameBar.Services;
 using Windows.Storage;
 using Windows.Storage.Pickers;
+using Windows.Storage.Streams;
 using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
 using Windows.UI.Xaml.Media;
+using Windows.UI.Xaml.Media.Imaging;
+using Windows.Web.Http;
 
 namespace KillConfirmGameBar
 {
@@ -23,6 +26,14 @@ namespace KillConfirmGameBar
             public CustomSequenceInput Input;
             public TextBox Fps, Hold, Start, End;
             public int Mode;
+        }
+
+        private sealed class CustomVideoPreviewInfo
+        {
+            public StorageFolder StagingFolder;
+            public StorageFile PreviewFile;
+            public double DurationSeconds;
+            public double SourceFps;
         }
 
         private static ToggleButton CreateCustomSourceModeButton(string glyph, string label)
@@ -57,17 +68,16 @@ namespace KillConfirmGameBar
 
         private static async Task<StorageFile> PickCustomModuleVideoAsync(bool chinese)
         {
-            // Some Windows installations fail to activate the picker broker when
-            // its filter contains an extension with no registered file association
-            // (most commonly .mkv or .webm). Pick all files through the broker and
-            // validate the selected extension ourselves instead.
             var picker = new FileOpenPicker
             {
                 ViewMode = PickerViewMode.Thumbnail,
                 SuggestedStartLocation = PickerLocationId.VideosLibrary,
                 SettingsIdentifier = "CustomModuleVideo"
             };
-            picker.FileTypeFilter.Add("*");
+            foreach (string extension in CustomSequencePackService.VideoExtensions)
+            {
+                picker.FileTypeFilter.Add(extension);
+            }
 
             StorageFile video;
             try
@@ -97,7 +107,9 @@ namespace KillConfirmGameBar
                 throw new InvalidDataException(
                     (chinese ? "不支持此视频格式：" : "Unsupported video format: ")
                     + video.FileType
-                    + (chinese ? "。请选择 MP4、MOV、WEBM、MKV 或 AVI。" : ". Choose MP4, MOV, WEBM, MKV, or AVI."));
+                    + (chinese
+                        ? "。支持 MP4、MOV、M4V、WEBM、MKV、AVI、WMV 和 GIF。"
+                        : ". Supported: MP4, MOV, M4V, WEBM, MKV, AVI, WMV, and GIF."));
             }
 
             ulong size = (await video.GetBasicPropertiesAsync()).Size;
@@ -109,6 +121,284 @@ namespace KillConfirmGameBar
             }
 
             return video;
+        }
+
+        private static async Task<CustomVideoPreviewInfo> PrepareCustomVideoPreviewAsync(StorageFile video)
+        {
+            StorageFolder root = await ApplicationData.Current.LocalFolder.CreateFolderAsync(
+                "CustomVideoImport", CreationCollisionOption.OpenIfExists);
+            StorageFolder staging = await root.CreateFolderAsync(
+                "Preview_" + Guid.NewGuid().ToString("N"), CreationCollisionOption.FailIfExists);
+            try
+            {
+                StorageFile source = await video.CopyAsync(staging, "source" + video.FileType);
+                string previewPath = Path.Combine(staging.Path, "preview.mp4");
+                var request = new Windows.Data.Json.JsonObject
+                {
+                    ["source_path"] = Windows.Data.Json.JsonValue.CreateStringValue(source.Path),
+                    ["preview_path"] = Windows.Data.Json.JsonValue.CreateStringValue(previewPath)
+                };
+                using (HttpClient client = await LocalServiceAuth.CreateHttpClientAsync())
+                using (var content = new HttpStringContent(
+                    request.Stringify(), UnicodeEncoding.Utf8, "application/json"))
+                using (HttpResponseMessage response = await client.PostAsync(
+                    LocalServiceEndpoints.Build("/video/preview"), content))
+                {
+                    string body = await response.Content.ReadAsStringAsync();
+                    if (!response.IsSuccessStatusCode
+                        || !Windows.Data.Json.JsonObject.TryParse(body, out Windows.Data.Json.JsonObject result))
+                    {
+                        throw new InvalidDataException(string.IsNullOrWhiteSpace(body)
+                            ? "Video preview failed / 视频预览生成失败。"
+                            : body);
+                    }
+                    return new CustomVideoPreviewInfo
+                    {
+                        StagingFolder = staging,
+                        PreviewFile = await staging.GetFileAsync("preview.mp4"),
+                        DurationSeconds = result.GetNamedNumber("duration_seconds", 0),
+                        SourceFps = result.GetNamedNumber("source_fps", 30)
+                    };
+                }
+            }
+            catch
+            {
+                try { await staging.DeleteAsync(StorageDeleteOption.PermanentDelete); } catch { }
+                throw;
+            }
+        }
+
+        private async Task<CustomSequenceInput> ShowCustomVideoClipEditorAsync(
+            string slot, StorageFile video, bool chinese)
+        {
+            CustomVideoPreviewInfo info = await PrepareCustomVideoPreviewAsync(video);
+            IRandomAccessStream previewStream = null;
+            var completion = new TaskCompletionSource<CustomSequenceInput>();
+            var media = new MediaElement
+            {
+                Height = 300,
+                Stretch = Stretch.Uniform,
+                AutoPlay = false,
+                AreTransportControlsEnabled = true,
+                PosterSource = new BitmapImage()
+            };
+            double duration = Math.Max(0.01, info.DurationSeconds);
+            int sourceFps = CustomSequenceFormat.ClampFps(Math.Round(info.SourceFps));
+            double initialEnd = Math.Min(duration, 20.0);
+            var seek = new Slider { Minimum = 0, Maximum = duration, StepFrequency = 0.01 };
+            var startSlider = new Slider { Minimum = 0, Maximum = duration, Value = 0, StepFrequency = 0.01 };
+            var endSlider = new Slider { Minimum = 0, Maximum = duration, Value = initialEnd, StepFrequency = 0.01 };
+            var startBox = new TextBox { Header = chinese ? "起点（秒）" : "Start (seconds)", Text = "0", Width = 150 };
+            var endBox = new TextBox { Header = chinese ? "终点（秒）" : "End (seconds)", Text = initialEnd.ToString("0.###", CultureInfo.InvariantCulture), Width = 150 };
+            var fpsBox = new TextBox { Header = "FPS (1–120)", Text = sourceFps.ToString(CultureInfo.InvariantCulture), Width = 130 };
+            var rangeText = new TextBlock { FontSize = 12, Foreground = new SolidColorBrush(Color.FromArgb(255, 86, 91, 104)) };
+            var warning = new TextBlock { FontSize = 12, Foreground = new SolidColorBrush(Color.FromArgb(255, 194, 93, 0)), TextWrapping = TextWrapping.Wrap };
+            var loop = new CheckBox { Content = chinese ? "循环预览所选区间" : "Loop selected range", IsChecked = true };
+            bool internalSeek = false;
+            bool previewingRange = false;
+
+            bool TryReadValues(out double start, out double end, out int fps)
+            {
+                start = 0;
+                end = 0;
+                fps = 0;
+                bool parsedStart = double.TryParse(startBox.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out start);
+                bool parsedEnd = double.TryParse(endBox.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out end);
+                bool parsedFps = int.TryParse(fpsBox.Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out fps);
+                bool valid = parsedStart && parsedEnd && parsedFps
+                    && start >= 0 && end > start && end <= duration + 0.01
+                    && end - start <= 20.0 && fps >= 1 && fps <= 120
+                    && (end - start) * fps <= CustomSequenceFormat.MaxFrames;
+                return valid;
+            }
+
+            void UpdateSummary()
+            {
+                if (!double.TryParse(startBox.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out double start)
+                    || !double.TryParse(endBox.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out double end)
+                    || !int.TryParse(fpsBox.Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out int fps))
+                {
+                    rangeText.Text = chinese ? "请输入有效数字。" : "Enter valid numeric values.";
+                    return;
+                }
+                int frames = end > start && fps > 0 ? (int)Math.Ceiling((end - start) * fps) : 0;
+                rangeText.Text = chinese
+                    ? $"源视频：{duration:0.###} 秒 / {info.SourceFps:0.##} FPS；所选约 {frames} 帧"
+                    : $"Source: {duration:0.###} s / {info.SourceFps:0.##} FPS; selection about {frames} frames";
+                if (fps > 60)
+                {
+                    warning.Text = chinese
+                        ? "高帧率会增加图集体积、内存与转换耗时；运行时跟不上时会跳帧，但总时长不会变慢。"
+                        : "High FPS increases atlas size, memory use, and conversion time. Runtime playback may skip frames while preserving duration.";
+                }
+                else if (frames > CustomSequenceFormat.MaxFrames)
+                {
+                    warning.Text = chinese ? "超过 600 帧，请缩短区间或降低 FPS。" : "Over 600 frames; shorten the range or lower FPS.";
+                }
+                else
+                {
+                    warning.Text = string.Empty;
+                }
+            }
+
+            void SyncBoxesFromSliders()
+            {
+                if (startSlider.Value >= endSlider.Value)
+                {
+                    endSlider.Value = Math.Min(duration, startSlider.Value + 0.01);
+                    if (startSlider.Value >= endSlider.Value)
+                        startSlider.Value = Math.Max(0, endSlider.Value - 0.01);
+                }
+                startBox.Text = startSlider.Value.ToString("0.###", CultureInfo.InvariantCulture);
+                endBox.Text = endSlider.Value.ToString("0.###", CultureInfo.InvariantCulture);
+                UpdateSummary();
+            }
+
+            startSlider.ValueChanged += (_, __) => SyncBoxesFromSliders();
+            endSlider.ValueChanged += (_, __) => SyncBoxesFromSliders();
+            startBox.LostFocus += (_, __) =>
+            {
+                if (double.TryParse(startBox.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out double value))
+                    startSlider.Value = Math.Max(0, Math.Min(duration, value));
+                SyncBoxesFromSliders();
+            };
+            endBox.LostFocus += (_, __) =>
+            {
+                if (double.TryParse(endBox.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out double value))
+                    endSlider.Value = Math.Max(0, Math.Min(duration, value));
+                SyncBoxesFromSliders();
+            };
+            fpsBox.TextChanged += (_, __) => UpdateSummary();
+            seek.ValueChanged += (_, __) =>
+            {
+                if (!internalSeek) media.Position = TimeSpan.FromSeconds(seek.Value);
+            };
+
+            var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(50) };
+            timer.Tick += (_, __) =>
+            {
+                internalSeek = true;
+                seek.Value = Math.Max(0, Math.Min(duration, media.Position.TotalSeconds));
+                internalSeek = false;
+                if (previewingRange
+                    && double.TryParse(endBox.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out double end)
+                    && media.Position.TotalSeconds >= end - 0.02)
+                {
+                    if (loop.IsChecked == true
+                        && double.TryParse(startBox.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out double start))
+                    {
+                        media.Position = TimeSpan.FromSeconds(start);
+                        media.Play();
+                    }
+                    else
+                    {
+                        media.Pause();
+                        previewingRange = false;
+                    }
+                }
+            };
+
+            var previewButton = new Button
+            {
+                Content = chinese ? "预览所选区间" : "Preview selection",
+                Padding = new Thickness(14, 7, 14, 7),
+                CornerRadius = new CornerRadius(14)
+            };
+            previewButton.Click += (_, __) =>
+            {
+                if (!TryReadValues(out double start, out double ignoredEnd, out int ignoredFps)) { UpdateSummary(); return; }
+                previewingRange = true;
+                media.Position = TimeSpan.FromSeconds(start);
+                media.Play();
+            };
+            var presets = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 5, VerticalAlignment = VerticalAlignment.Bottom };
+            foreach (int fps in new[] { 24, 30, 60, 90, 120 })
+            {
+                var button = new Button { Content = fps.ToString(CultureInfo.InvariantCulture), MinWidth = 44, Padding = new Thickness(7, 5, 7, 5), CornerRadius = new CornerRadius(12) };
+                button.Click += (_, __) => fpsBox.Text = fps.ToString(CultureInfo.InvariantCulture);
+                presets.Children.Add(button);
+            }
+
+            var fields = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
+            fields.Children.Add(startBox); fields.Children.Add(endBox); fields.Children.Add(fpsBox); fields.Children.Add(presets);
+            var buttons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, HorizontalAlignment = HorizontalAlignment.Right };
+            var cancel = new Button { Content = LocalizationManager.Text("Cancel"), Padding = new Thickness(16, 7, 16, 7), CornerRadius = new CornerRadius(14) };
+            var confirm = new Button { Content = chinese ? "使用此片段" : "Use clip", Padding = new Thickness(16, 7, 16, 7), CornerRadius = new CornerRadius(14), Background = new SolidColorBrush(GameThemePalette.Current.Accent), Foreground = new SolidColorBrush(Colors.White) };
+            buttons.Children.Add(cancel); buttons.Children.Add(confirm);
+
+            var layout = new StackPanel { Spacing = 10 };
+            layout.Children.Add(new TextBlock { Text = chinese ? "视频 / GIF 片段编辑" : "Video / GIF clip editor", FontSize = 19, FontWeight = Windows.UI.Text.FontWeights.SemiBold });
+            layout.Children.Add(new TextBlock { Text = video.Name + (chinese ? " · 可拖动播放器查看整段素材" : " · use the player to inspect the full source"), FontSize = 12, TextWrapping = TextWrapping.Wrap });
+            layout.Children.Add(media);
+            layout.Children.Add(seek);
+            layout.Children.Add(new TextBlock { Text = chinese ? "起点" : "Start", FontSize = 11 });
+            layout.Children.Add(startSlider);
+            layout.Children.Add(new TextBlock { Text = chinese ? "终点" : "End", FontSize = 11 });
+            layout.Children.Add(endSlider);
+            layout.Children.Add(fields);
+            layout.Children.Add(rangeText);
+            layout.Children.Add(warning);
+            var previewRow = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10 };
+            previewRow.Children.Add(previewButton); previewRow.Children.Add(loop);
+            layout.Children.Add(previewRow);
+            layout.Children.Add(buttons);
+
+            double width = Math.Min(780, Math.Max(620, Window.Current.Bounds.Width - 80));
+            var popup = new Popup { IsLightDismissEnabled = false };
+            popup.Child = new Border
+            {
+                Width = width,
+                MaxHeight = Math.Max(420, Window.Current.Bounds.Height - 50),
+                Padding = new Thickness(18),
+                Background = new SolidColorBrush(Color.FromArgb(255, 250, 250, 247)),
+                BorderBrush = new SolidColorBrush(GameThemePalette.Current.AccentSoft),
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(20),
+                Child = new ScrollViewer { Content = layout, VerticalScrollBarVisibility = ScrollBarVisibility.Auto }
+            };
+            popup.HorizontalOffset = Math.Max(20, (Window.Current.Bounds.Width - width) / 2);
+            popup.VerticalOffset = 20;
+
+            cancel.Click += (_, __) => { popup.IsOpen = false; completion.TrySetResult(null); };
+            confirm.Click += (_, __) =>
+            {
+                if (!TryReadValues(out double start, out double end, out int fps))
+                {
+                    warning.Text = chinese
+                        ? "请确保起止点有效、片段不超过 20 秒、FPS 为 1～120，并且总帧数不超过 600。"
+                        : "Use a valid range up to 20 seconds, FPS 1–120, and no more than 600 frames.";
+                    return;
+                }
+                popup.IsOpen = false;
+                completion.TrySetResult(new CustomSequenceInput
+                {
+                    Slot = slot,
+                    Video = video,
+                    Fps = fps,
+                    Hold = 0,
+                    VideoStart = start,
+                    VideoEnd = end,
+                    Description = video.Name + $" · {start:0.###}–{end:0.###}s · {fps} FPS"
+                });
+            };
+
+            try
+            {
+                previewStream = await info.PreviewFile.OpenAsync(FileAccessMode.Read);
+                media.SetSource(previewStream, "video/mp4");
+                timer.Start();
+                UpdateSummary();
+                popup.IsOpen = true;
+                return await completion.Task;
+            }
+            finally
+            {
+                timer.Stop();
+                media.Stop();
+                media.Source = null;
+                previewStream?.Dispose();
+                try { await info.StagingFolder.DeleteAsync(StorageDeleteOption.PermanentDelete); } catch { }
+            }
         }
 
         private async Task ImportCustomModuleAsync(bool zip)
@@ -178,6 +468,15 @@ namespace KillConfirmGameBar
                     chinese ? "这里按击杀等级单独添加素材：先选择导入方式，再选择对应文件。单槽不会扫描或猜测目录结构；整套目录/ZIP 的自动解析请使用图标包库上方的“导入整包”。"
                         : "Add assets to each kill level: choose an input mode first, then its files. A slot never scans or guesses a folder layout; use Import full pack above for automatic folder/ZIP parsing.",
                     LocalizationManager.Text("IconPackNamePlaceholder"), existing?.DisplayName, out TextBox name);
+                StorageFile headImageFile = original == null
+                    ? null
+                    : await TryGetCustomPackHeadImageAsync(original.Path);
+                layout.Children.Add(await CreateHeadImageCardAsync(
+                    "ms-appx:///Assets/GameStyles/custommodule/iconpacks/custommodule/pack_head.webp",
+                    headImageFile,
+                    file => headImageFile = file,
+                    () => headImageFile = null,
+                    allowTga: false));
                 var status = new TextBlock { Text = string.Join("\n", notes), TextWrapping = TextWrapping.Wrap, FontSize = 12 };
                 var rows = new List<CustomSequenceRow>();
                 var slots = new StackPanel { Spacing = 12 };
@@ -240,7 +539,7 @@ namespace KillConfirmGameBar
                         var choose = new Button { Padding = new Thickness(12, 6, 12, 6), FontSize = 11, CornerRadius = new CornerRadius(12), Background = new SolidColorBrush(Color.FromArgb(255, 226, 244, 251)), Foreground = new SolidColorBrush(Color.FromArgb(255, 24, 116, 158)) };
                         var folder = new Button { Padding = new Thickness(12, 6, 12, 6), FontSize = 11, CornerRadius = new CornerRadius(12) };
                         actions.Children.Add(choose); actions.Children.Add(folder); card.Children.Add(actions);
-                        row.Fps = new TextBox { Header = "FPS (1–60)", Width = 130 };
+                        row.Fps = new TextBox { Header = "FPS (1–120)", Width = 130 };
                         row.Hold = new TextBox { Header = chinese ? "末帧停留（秒）" : "Last-frame hold (s)", Width = 165 };
                         var timing = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
                         timing.Children.Add(row.Fps); timing.Children.Add(row.Hold); card.Children.Add(timing);
@@ -268,7 +567,9 @@ namespace KillConfirmGameBar
                             if (row.Mode == 0) return chinese ? "单个静态图片；不会查找同目录文件。" : "One static image; sibling files are not inspected.";
                             if (row.Mode == 1) return chinese ? "多张图片或一个散帧目录；只读取顶层图片，并按文件名数字排序。" : "Multiple images or one frame folder; reads top-level images in numeric filename order.";
                             if (row.Mode == 2) return chinese ? "严格选择一对同名 PNG + JSON；不提供图集目录扫描。" : "Exactly one matching PNG + JSON pair; atlas folders are not scanned.";
-                            return chinese ? "一个视频；保存时按下方时间范围和 FPS 转为图集。" : "One video; converted to an atlas at save time using the range and FPS below.";
+                            return chinese
+                                ? "支持 MP4/MOV/M4V/WEBM/MKV/AVI/WMV/GIF；选择后会打开片段编辑窗口。"
+                                : "MP4/MOV/M4V/WEBM/MKV/AVI/WMV/GIF; choosing one opens the clip editor.";
                         }
                         async Task RefreshRowAsync()
                         {
@@ -323,7 +624,9 @@ namespace KillConfirmGameBar
                             if (row.Mode == 3)
                             {
                                 var video = await PickCustomModuleVideoAsync(chinese);
-                                return video == null ? null : new CustomSequenceInput { Slot = slot, Video = video, Fps = 30, Hold = 0, VideoStart = 0, VideoEnd = 5, Description = video.Name + (chinese ? " · 视频将在保存时解析" : " · decoded when saved") };
+                                if (video == null) return null;
+                                status.Text = chinese ? "正在读取视频并生成预览…" : "Reading video and preparing preview…";
+                                return await ShowCustomVideoClipEditorAsync(slot, video, chinese);
                             }
                             var picker = new FileOpenPicker();
                             if (row.Mode == 2)
@@ -368,9 +671,9 @@ namespace KillConfirmGameBar
                         if (string.IsNullOrWhiteSpace(name.Text)) throw new InvalidDataException(chinese ? "请填写素材包名称。" : "Enter a pack name.");
                         foreach (var row in rows.Where(r => r.Input != null))
                         {
-                            if (!int.TryParse(row.Fps.Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out int fps) || fps < 1 || fps > 60
+                            if (!int.TryParse(row.Fps.Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out int fps) || fps < 1 || fps > 120
                                 || !double.TryParse(row.Hold.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out double hold) || double.IsNaN(hold) || double.IsInfinity(hold) || hold < 0 || hold > 10)
-                                throw new InvalidDataException(row.Slot + (chinese ? "：FPS 须为 1～60 整数，停留须为 0～10 秒（小数点用 .）。" : ": FPS must be 1–60; hold must be 0–10 seconds (use a decimal point)."));
+                                throw new InvalidDataException(row.Slot + (chinese ? "：FPS 须为 1～120 整数，停留须为 0～10 秒（小数点用 .）。" : ": FPS must be 1–120; hold must be 0–10 seconds (use a decimal point)."));
                             var json = row.Input.Metadata == null ? new Windows.Data.Json.JsonObject() : await CustomSequencePackService.ReadJsonFileAsync(row.Input.Metadata);
                             row.Input.Fps = row.Input.Sheet != null && fps == CustomSequenceFormat.ClampFps(CustomSequencePackService.Number(json, "fps", 30)) ? (int?)null : fps;
                             row.Input.Hold = row.Input.Sheet != null && hold == CustomSequenceFormat.ClampHold(CustomSequencePackService.Number(json, "hold_seconds", 0)) ? (double?)null : hold;
@@ -387,7 +690,9 @@ namespace KillConfirmGameBar
                         notes.Clear();
                         await CustomSequencePackService.SavePackAsync(name.Text, rows.Where(r => r.Input != null).Select(r => r.Input),
                             original, existing != null && !existing.IsBuiltIn ? key : null,
-                            new Progress<string>(text => status.Text = text), notes);
+                            new Progress<string>(text => status.Text = text), notes,
+                            headImageFile: headImageFile,
+                            preserveOriginalHeadImage: false);
                     }
                     catch (Exception ex) { e.Cancel = true; status.Text = ex.Message; }
                     finally { SetBusy(false); deferral.Complete(); }

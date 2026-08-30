@@ -54,8 +54,11 @@ namespace KillConfirmGameBar.Controls
                 using (var threshold = new LinearTransferEffect
                 {
                     Source = luminance,
-                    AlphaSlope = -10.0f,
-                    AlphaOffset = (float)(Clamp01(reveal) * 11.0),
+                    // AnimatedUMG reveals the brightest dissolve texels first.
+                    // The old negative slope inverted every native mask (most
+                    // visibly the top-down ring ramp).
+                    AlphaSlope = 10.0f,
+                    AlphaOffset = (float)((Clamp01(reveal) * 11.0) - 10.0),
                     RedDisable = true,
                     GreenDisable = true,
                     BlueDisable = true,

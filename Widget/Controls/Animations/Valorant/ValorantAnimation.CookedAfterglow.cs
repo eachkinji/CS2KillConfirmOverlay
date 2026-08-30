@@ -11,7 +11,9 @@ namespace KillConfirmGameBar.Controls
         // The native frame brush is 256 UMG units. Map that brush to the
         // renderer's existing 116-CSS-pixel Valorant frame contract; this is a
         // unit conversion, not a visually tuned Afterglow scale.
-        private const int ValorantNativeAfterglowFrameCount = 137;
+        // IntroAnimation ends at 2108.0167 ms. At the renderer's 60 Hz this
+        // requires 127 frames (ceil), with no guessed blank tail.
+        private const int ValorantNativeAfterglowFrameCount = 127;
         private const double CookedAfterglowUmgScale =
             ValorantDemoFrameCssHeight * ValorantDemoVfxScale / 256.0;
         private const double CookedAfterglowEventMs = 150.0;
@@ -225,8 +227,8 @@ namespace KillConfirmGameBar.Controls
 
             // Ring is not a child of SpinHolder in the cooked WidgetTree.
             double ringReveal = CookedProgress(ms, CookedAfterglowEventMs, CookedAfterglowEventMs + 500.0);
-            DrawNativeStretchedImage(ds, asset.Textures.Ring, cx, cy,
-                180.0 * unit, 180.0 * unit, 0, opacity * ringReveal);
+            DrawNativeDissolvedImage(ds, asset.Textures.Ring, asset.Textures.RingDissolve,
+                cx, cy, 180.0 * unit, 180.0 * unit, ringReveal, opacity);
 
             double spin = CookedWheelAngle(ms, kills);
             double stateMs = ms - CookedAfterglowEventMs;
@@ -234,24 +236,36 @@ namespace KillConfirmGameBar.Controls
             {
                 double baseAngle = kills == 2 ? 90.0 - (i * 180.0) : i * (-360.0 / kills);
                 double angle = baseAngle + spin;
-                double pipScale = 1.0;
+                double pipScaleX = 1.0;
+                double pipScaleY = 1.0;
                 double lift = 0.0;
                 double upOpacity = 0.3;
                 double hoverOpacity = 0.0;
                 if (stateMs >= 0)
                 {
                     upOpacity = 1.0;
-                    pipScale = CookedChannel(stateMs,
+                    pipScaleX = CookedChannel(stateMs,
+                        new[] { 0.0, 300.0, 750.0 },
+                        new[] { 1.2, 1.2, 1.0 },
+                        new[] { 0.0, 0.0, 0.0 },
+                        new[] { 0.0, -0.0000235409225, 0.0 },
+                        new[] { 1, 2, 2 });
+                    pipScaleY = CookedChannel(stateMs,
                         new[] { 0.0, 300.0, 750.0 },
                         new[] { 1.2, 1.2, 1.0 }, null, null,
-                        new[] { 2, 2, 2 });
-                    lift = CookedChannel(stateMs,
+                        new[] { 0, 0, 2 });
+                    double localY = CookedChannel(stateMs,
                         new[] { 0.0, 300.0, 750.0 },
-                        new[] { 15.0, 15.0, 0.0 }, null, null,
-                        new[] { 2, 2, 2 }) * unit;
+                        new[] { -15.0, -15.0, 0.0 },
+                        new[] { 0.0, 0.0, 0.0 },
+                        new[] { 0.0, 0.0013094102, 0.0 },
+                        new[] { 0, 2, 2 });
+                    lift = -localY * unit;
                     hoverOpacity = CookedChannel(stateMs,
                         new[] { 0.0, 150.0, 300.0, 750.0 },
-                        new[] { 0.0, 1.0, 1.0, 0.6 }, null, null,
+                        new[] { 0.0, 1.0, 1.0, 0.6 },
+                        new[] { 0.0, 0.000055555556, -0.000027777778, 0.0 },
+                        new[] { 0.0, 0.000055555556, -0.000027777778, 0.0 },
                         new[] { 2, 2, 2, 2 });
                 }
 
@@ -259,15 +273,15 @@ namespace KillConfirmGameBar.Controls
                 double radians = angle * Math.PI / 180.0;
                 double x = cx + Math.Sin(radians) * radius;
                 double y = cy - Math.Cos(radians) * radius;
-                double size = 64.0 * unit * pipScale;
-                Color upTint = stateMs >= 0 ? Colors.White : Color.FromArgb(230, 51, 51, 51);
+                double sizeX = 64.0 * unit * pipScaleX;
+                double sizeY = 64.0 * unit * pipScaleY;
                 DrawNativeTintedStretchedImage(ds, asset.Bar, x, y,
-                    size, size, angle, upTint, upOpacity * opacity);
+                    sizeX, sizeY, angle, Colors.White, upOpacity * opacity);
                 if (hoverOpacity > 0)
                 {
                     Color hoverTint = LerpValorantColor(Colors.White, asset.Accent, 0.25);
                     DrawNativeTintedStretchedImage(ds, asset.Bar, x, y,
-                        size, size, angle, hoverTint, hoverOpacity * opacity);
+                        sizeX, sizeY, angle, hoverTint, hoverOpacity * opacity);
                 }
             }
         }

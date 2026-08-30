@@ -28,9 +28,11 @@
     "pie_slice_and_fx": 150.0,
     "wheel_spin": 750.0,
     "badge_fade_out": 1803.2667,
-    "global_fade_out": 1953.2667,
-    "end": 2108.2667
+    "general_fade_out_event": 1903.2667,
+    "global_holder_fade_out": 1953.2667,
+    "end": 2108.0167
   },
+  "ring_dissolve_texture": "/Game/VFX/Textures/AlphaGradient/T_Mask_Ramp_TopDown",
   "flipbooks": {
     "tier_1": { "fps": 40.0, "frames": 49 },
     "tier_2": { "fps": 40.0, "frames": 49 },
@@ -52,5 +54,8 @@
     "Play_UI_KillBanner_AfterGlow_4",
     "Play_UI_KillBanner_AfterGlow_5"
   ],
+  "base_audio_event": "Play_UI_KillBanner_Base_Appear",
+  "base_audio_behavior": "ConfigureKillBanner calls StartKillBannerAnimation before GetVisibility, so cooked WasVisible resolves true and the Appear branch is selected",
+  "unreachable_reappear_event": "Play_UI_KillBanner_Base_Transition",
   "headshot_audio_event": null
 }

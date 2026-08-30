@@ -61,7 +61,7 @@
     }
 
     #[test]
-    fn native_afterglow_uses_numbered_cue_without_generic_headshot_overlay() {
+    fn native_afterglow_uses_numbered_cue_and_native_appear_layer() {
         use crate::soundpack::manifest::PackManifest;
         use crate::soundpack::SoundContext;
         use crate::state::EventChannel;
@@ -98,6 +98,11 @@
         };
 
         let sounds = manifest.resolve_audio(&ctx, &base_dir);
-        assert_eq!(sounds.len(), 1);
+        assert_eq!(sounds.len(), 2);
         assert!(sounds[0].path.ends_with("3.wav"), "{}", sounds[0].path);
+        assert!(
+            sounds[1].path.ends_with("appear.wav"),
+            "{}",
+            sounds[1].path
+        );
     }

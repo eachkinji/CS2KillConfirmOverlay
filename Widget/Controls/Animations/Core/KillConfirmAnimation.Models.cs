@@ -115,6 +115,7 @@ namespace KillConfirmGameBar.Controls
             public CanvasBitmap LargeSparks { get; set; }
             public CanvasBitmap XSparks { get; set; }
             public CanvasBitmap Ring { get; set; }
+            public CanvasBitmap RingDissolve { get; set; }
             public CanvasBitmap FrameDissolve { get; set; }
             public CanvasBitmap BadgeDissolve { get; set; }
             public CanvasBitmap Shadow { get; set; }
@@ -139,6 +140,7 @@ namespace KillConfirmGameBar.Controls
                 LargeSparks?.Dispose();
                 XSparks?.Dispose();
                 Ring?.Dispose();
+                RingDissolve?.Dispose();
                 FrameDissolve?.Dispose();
                 BadgeDissolve?.Dispose();
                 Shadow?.Dispose();
@@ -154,6 +156,7 @@ namespace KillConfirmGameBar.Controls
                 LargeSparks = null;
                 XSparks = null;
                 Ring = null;
+                RingDissolve = null;
                 FrameDissolve = null;
                 BadgeDissolve = null;
                 Shadow = null;

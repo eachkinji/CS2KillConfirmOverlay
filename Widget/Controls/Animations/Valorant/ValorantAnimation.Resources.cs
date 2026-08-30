@@ -171,6 +171,7 @@ namespace KillConfirmGameBar.Controls
                 if (profile.UsesNativeAfterglowPlayback)
                 {
                     textures.Ring = await LoadValorantTextureAsync(root, "killicon_valorant_rgx_11z_pro_ring.png", cancellationToken);
+                    textures.RingDissolve = await LoadValorantTextureAsync(root, "native_mask_ramp_top_down.png", cancellationToken);
                     textures.FrameDissolve = await LoadValorantTextureAsync(root, "native_afterglow_frame_dissolve.png", cancellationToken);
                     textures.BadgeDissolve = await LoadValorantTextureAsync(root, "native_afterglow_badge_dissolve.png", cancellationToken);
                     textures.Shadow = await LoadValorantTextureAsync(root, "native_killbanner_vignette.png", cancellationToken);

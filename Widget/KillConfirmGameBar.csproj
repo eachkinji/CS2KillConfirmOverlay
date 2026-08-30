@@ -465,6 +465,7 @@
     <Compile Include="Services\Styling\GameStyleService.PackMappings.cs" />
     <Compile Include="Services\Styling\GameThemePalette.cs" />
     <Compile Include="Services\Catalog\Games\ValorantPackService.cs" />
+    <Compile Include="Services\Catalog\Games\ValorantExternalAssetService.cs" />
     <Compile Include="Services\Localization\LocalizationManager.cs" />
     <Compile Include="Services\Localization\LocalizationManager.English.Core.cs" />
     <Compile Include="Services\Localization\LocalizationManager.English.Widget.cs" />

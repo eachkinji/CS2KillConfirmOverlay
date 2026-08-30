@@ -148,12 +148,10 @@ namespace KillConfirmGameBar
 
         private static string GetValorantPackIconUri(string key)
         {
-            string folder = ValorantPackService.GetFolder(key)
-                ?? ValorantPackService.GetFolder(ValorantPackService.DefaultKey);
-            string emblem = ValorantPackService.GetEmblemFile(key);
-            if (!string.IsNullOrWhiteSpace(emblem))
+            string emblemUri = ValorantPackService.GetEmblemUri(key);
+            if (!string.IsNullOrWhiteSpace(emblemUri))
             {
-                return $"ms-appx:///Assets/GameStyles/valorant/killconfirm/{folder}/textures/{emblem}";
+                return emblemUri;
             }
 
             // Fallback for custom Valorant packs (custom_valorant_voice_*) which have no

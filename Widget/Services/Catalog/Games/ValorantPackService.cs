@@ -9,11 +9,37 @@ namespace KillConfirmGameBar.Services
         public string Key { get; set; }
         public string Folder { get; set; }
         public string DisplayName { get; set; }
+        public string ChineseDisplayName { get; set; }
 
         /// <summary>
         /// Emblem texture file name inside the native theme's textures folder.
         /// </summary>
         public string EmblemFile { get; set; }
+
+        /// <summary>
+        /// Base is a visual-only selection. It has no matching six-slot audio
+        /// set, so it must not be offered as a voice preset.
+        /// </summary>
+        public bool HasBuiltInAudio { get; set; }
+        public bool IsExternal { get; set; }
+        public ValorantVisualProfileInfo Profile { get; set; }
+    }
+
+    internal sealed class ValorantVisualProfileInfo
+    {
+        public string Accent { get; set; }
+        public string Emblem { get; set; }
+        public string Frame { get; set; }
+        public string Bar { get; set; }
+        public string BarHover { get; set; }
+        public string Ring { get; set; }
+        public string FrameDissolve { get; set; }
+        public string BadgeDissolve { get; set; }
+        public string Blade { get; set; }
+        public string SpecialFrame { get; set; }
+        public double HeadshotX { get; set; }
+        public double HeadshotY { get; set; }
+        public double SliceSize { get; set; }
     }
 
     internal static class ValorantPackService
@@ -22,8 +48,9 @@ namespace KillConfirmGameBar.Services
 
         // The public keys remain stable for saved settings. Their folders now point
         // directly at the replacement tree built from the cooked VALORANT exports.
-        private static readonly ValorantPackInfo[] Packs =
+        private static readonly ValorantPackInfo[] BuiltInPacks =
         {
+            Pack("00000_base", "_native/themes/Base", "Base", "Base_Emblem.png", hasBuiltInAudio: false),
             Pack("00011_singularity_v1", "_native/themes/Edge02", "Singularity (Variant 1)", "Edge_EmblemV1.png"),
             Pack("00012_singularity_v2", "_native/themes/Edge02", "Singularity (Variant 2)", "Edge_EmblemV2.png"),
             Pack("00013_singularity_v3", "_native/themes/Edge02", "Singularity (Variant 3)", "Edge_EmblemV3.png"),
@@ -52,7 +79,25 @@ namespace KillConfirmGameBar.Services
             Pack("00010_glitchpop", "_native/themes/Cyberpunk", "Glitchpop", "Cyberpunk_Emblem.png")
         };
 
-        public static IReadOnlyList<ValorantPackInfo> All => Packs;
+        private static readonly object PacksLock = new object();
+        private static IReadOnlyList<ValorantPackInfo> _packs = BuiltInPacks;
+
+        public static IReadOnlyList<ValorantPackInfo> All => _packs;
+
+        public static void RefreshExternalPacks()
+        {
+            IReadOnlyList<ValorantPackInfo> discovered = ValorantExternalAssetService.DiscoverExternalPacks();
+            var builtInKeys = new HashSet<string>(
+                BuiltInPacks.Select(pack => pack.Key),
+                StringComparer.OrdinalIgnoreCase);
+            ValorantPackInfo[] combined = BuiltInPacks
+                .Concat(discovered.Where(pack => !builtInKeys.Contains(pack.Key)))
+                .ToArray();
+            lock (PacksLock)
+            {
+                _packs = combined;
+            }
+        }
 
         public static bool IsValorantPackKey(string key)
         {
@@ -62,7 +107,7 @@ namespace KillConfirmGameBar.Services
 
         public static ValorantPackInfo Find(string key)
         {
-            return Packs.FirstOrDefault(pack =>
+            return All.FirstOrDefault(pack =>
                 string.Equals(pack.Key, key, StringComparison.OrdinalIgnoreCase));
         }
 
@@ -80,9 +125,16 @@ namespace KillConfirmGameBar.Services
             }
 
             string localized = LocalizationManager.Text(pack.Key);
-            return string.Equals(localized, pack.Key, StringComparison.Ordinal)
-                ? pack.DisplayName
-                : localized;
+            if (!string.Equals(localized, pack.Key, StringComparison.Ordinal))
+            {
+                return localized;
+            }
+
+            return pack.IsExternal
+                && LocalizationManager.Current == UiLanguage.SimplifiedChinese
+                && !string.IsNullOrWhiteSpace(pack.ChineseDisplayName)
+                ? pack.ChineseDisplayName
+                : pack.DisplayName;
         }
 
         public static string GetEmblemFile(string key)
@@ -90,21 +142,49 @@ namespace KillConfirmGameBar.Services
             return Find(key)?.EmblemFile;
         }
 
+        public static string GetEmblemUri(string key)
+        {
+            ValorantPackInfo pack = Find(key);
+            string externalUri = ValorantExternalAssetService.GetExternalEmblemUri(pack);
+            if (!string.IsNullOrWhiteSpace(externalUri))
+            {
+                return externalUri;
+            }
+
+            return pack == null || string.IsNullOrWhiteSpace(pack.EmblemFile)
+                ? null
+                : $"ms-appx:///Assets/GameStyles/valorant/killconfirm/{pack.Folder}/textures/{pack.EmblemFile}";
+        }
+
         public static int GetDisplayOrder(string key)
         {
-            int index = Array.FindIndex(Packs, pack =>
-                string.Equals(pack.Key, key, StringComparison.OrdinalIgnoreCase));
+            IReadOnlyList<ValorantPackInfo> packs = All;
+            int index = -1;
+            for (int candidate = 0; candidate < packs.Count; candidate++)
+            {
+                if (string.Equals(packs[candidate].Key, key, StringComparison.OrdinalIgnoreCase))
+                {
+                    index = candidate;
+                    break;
+                }
+            }
             return index < 0 ? int.MaxValue : index;
         }
 
-        private static ValorantPackInfo Pack(string keySuffix, string folder, string displayName, string emblemFile)
+        private static ValorantPackInfo Pack(
+            string keySuffix,
+            string folder,
+            string displayName,
+            string emblemFile,
+            bool hasBuiltInAudio = true)
         {
             return new ValorantPackInfo
             {
                 Key = "valorant_" + keySuffix,
                 Folder = folder,
                 DisplayName = displayName,
-                EmblemFile = emblemFile
+                EmblemFile = emblemFile,
+                HasBuiltInAudio = hasBuiltInAudio
             };
         }
     }

@@ -57,6 +57,29 @@
                     </ComboBox>
                 </Grid>
             </Border>
+
+            <Border Style="{StaticResource CompactChoiceCardStyle}">
+                <Grid ColumnSpacing="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Border Style="{StaticResource CompactCircleIconStyle}">
+                        <FontIcon FontSize="13" Foreground="White" Glyph="&#xE8B7;" />
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                        <TextBlock x:Name="ExternalAssetsLabel" Style="{StaticResource CompactChoiceLabelStyle}" Text="外部原生素材" />
+                        <TextBlock x:Name="ExternalAssetsHint" FontSize="12" Foreground="{StaticResource FluentMutedText}" TextWrapping="WrapWholeWords" Text="视觉素材和音频会优先从外部目录加载；增删素材包后重启应用刷新列表。" />
+                    </StackPanel>
+                    <Button x:Name="OpenExternalAssetsButton" Grid.Column="2" Style="{StaticResource FluentActionBtnStyle}" Click="OnOpenExternalAssetsClicked">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <FontIcon FontSize="12" Glyph="&#xE838;" />
+                            <TextBlock x:Name="OpenExternalAssetsButtonText" Text="打开目录" />
+                        </StackPanel>
+                    </Button>
+                </Grid>
+            </Border>
         </StackPanel>
     </Border>
 </UserControl>

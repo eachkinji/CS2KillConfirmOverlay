@@ -1,4 +1,5 @@
 using System;
+using KillConfirmGameBar.Services;
 using Windows.UI;
 
 namespace KillConfirmGameBar.Controls
@@ -10,9 +11,39 @@ namespace KillConfirmGameBar.Controls
 
         private static ValorantDemoProfile GetValorantDemoProfile(string packKey)
         {
+            ValorantVisualProfileInfo external = ValorantPackService.Find(packKey)?.Profile;
+            if (external != null)
+            {
+                return new ValorantDemoProfile(
+                    "external",
+                    external.Accent,
+                    external.Emblem,
+                    external.Frame,
+                    external.Bar,
+                    external.BarHover)
+                {
+                    Ring = external.Ring,
+                    FrameDissolve = external.FrameDissolve,
+                    BadgeDissolve = external.BadgeDissolve,
+                    Blade = external.Blade,
+                    SpecialFrame = external.SpecialFrame,
+                    HeadshotX = external.HeadshotX,
+                    HeadshotY = external.HeadshotY,
+                    SliceSize = external.SliceSize > 0 ? external.SliceSize : 147.0
+                };
+            }
+
             string id = ExtractValorantDemoId(packKey);
             switch (id)
             {
+                case "00000":
+                    return new ValorantDemoProfile(
+                        id,
+                        "#57F2D1",
+                        "Base_Emblem.png",
+                        null,
+                        "Base_KillPip_Up.png",
+                        "Base_KillPip_Hover.png");
                 case "00010":
                     return new ValorantDemoProfile(id, "#68F5FF", "Cyberpunk_Emblem.png", "Cyberpunk_FrameBG.png", "Cyberpunk_KillPip_Hover.png", "Cyberpunk_KillPip_Up.png") { Ring = "Cyberpunk_RingBG.png", FrameDissolve = "Cyberpunk_FrameDissolve.png", BadgeDissolve = "Cyberpunk_BadgeDissolve.png", SliceSize = 172, HeadshotY = -10 };
                 case "00011":

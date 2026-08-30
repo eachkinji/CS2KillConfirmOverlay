@@ -201,6 +201,7 @@ namespace KillConfirmGameBar.Services
             ["OneKillSound"] = "\u901a\u7528\u97f3\u9891\u66ff\u6362",
 
             // 无畏契约原生击杀横幅包；名称来自国服本地化。
+            ["valorant_00000_base"] = "基础击杀图标",
             ["valorant_00009_prime"] = "紫阙金琅",
             ["valorant_00010_glitchpop"] = "全息波普",
             ["valorant_00011_singularity_v1"] = "奇点（炫彩1）",

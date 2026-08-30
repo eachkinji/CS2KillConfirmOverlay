@@ -443,6 +443,7 @@
     <Compile Include="Services\Runtime\ServiceLauncher.cs" />
     <Compile Include="Services\Settings\Audio\AssistAudioSettingsStore.cs" />
     <Compile Include="Services\Settings\Crosshair\CrosshairOffsetSettingsStore.cs" />
+    <Compile Include="Services\Settings\Games\ModernWarfare2019FeedOffsetSettingsStore.cs" />
     <Compile Include="Services\Settings\Games\ValorantPackSyncSettingsStore.cs" />
     <Compile Include="Services\Settings\Games\CrossfireGameplaySettingsStore.cs" />
     <Compile Include="Services\Settings\Games\CsolVoiceSettingsStore.cs" />

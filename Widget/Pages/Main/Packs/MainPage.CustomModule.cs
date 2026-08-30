@@ -24,7 +24,7 @@ namespace KillConfirmGameBar
         {
             public string Slot;
             public CustomSequenceInput Input;
-            public TextBox Fps, Hold, Start, End;
+            public TextBox Fps, Hold;
             public int Mode;
         }
 
@@ -543,10 +543,6 @@ namespace KillConfirmGameBar
                         row.Hold = new TextBox { Header = chinese ? "末帧停留（秒）" : "Last-frame hold (s)", Width = 165 };
                         var timing = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
                         timing.Children.Add(row.Fps); timing.Children.Add(row.Hold); card.Children.Add(timing);
-                        row.Start = new TextBox { Header = chinese ? "起点（秒）" : "Start (s)", Width = 105, Text = "0" };
-                        row.End = new TextBox { Header = chinese ? "终点（秒，最长 20）" : "End (s, max 20)", Width = 145, Text = "5" };
-                        var videoRange = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
-                        videoRange.Children.Add(row.Start); videoRange.Children.Add(row.End); card.Children.Add(videoRange);
                         var borderedCard = new Border { Padding = new Thickness(12), CornerRadius = new CornerRadius(16), Background = new SolidColorBrush(Color.FromArgb(255, 255, 255, 252)), BorderBrush = new SolidColorBrush(Color.FromArgb(255, 226, 221, 211)), BorderThickness = new Thickness(1), Child = card };
                         bool switchingMode = false;
                         void RefreshMode()
@@ -560,7 +556,6 @@ namespace KillConfirmGameBar
                                 : (chinese ? "选择视频" : "Choose video");
                             folder.Content = chinese ? "选择散帧目录" : "Choose frame folder";
                             folder.Visibility = row.Mode == 1 ? Visibility.Visible : Visibility.Collapsed;
-                            videoRange.Visibility = row.Mode == 3 ? Visibility.Visible : Visibility.Collapsed;
                         }
                         string EmptyModeDescription()
                         {
@@ -679,12 +674,11 @@ namespace KillConfirmGameBar
                             row.Input.Hold = row.Input.Sheet != null && hold == CustomSequenceFormat.ClampHold(CustomSequencePackService.Number(json, "hold_seconds", 0)) ? (double?)null : hold;
                             if (row.Input.Video != null)
                             {
-                                if (!double.TryParse(row.Start.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out double start)
-                                    || !double.TryParse(row.End.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out double end)
-                                    || double.IsNaN(start) || double.IsInfinity(start) || double.IsNaN(end) || double.IsInfinity(end)
+                                double start = row.Input.VideoStart;
+                                double end = row.Input.VideoEnd;
+                                if (double.IsNaN(start) || double.IsInfinity(start) || double.IsNaN(end) || double.IsInfinity(end)
                                     || start < 0 || end <= start || end - start > 20 || (end - start) * fps > 600)
                                     throw new InvalidDataException(row.Slot + (chinese ? "：视频截取须在 20 秒、600 帧以内。请缩短区间或降低 FPS。" : ": video extraction must stay within 20 seconds and 600 frames. Shorten the range or lower FPS."));
-                                row.Input.VideoStart = start; row.Input.VideoEnd = end;
                             }
                         }
                         notes.Clear();

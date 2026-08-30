@@ -1,0 +1,40 @@
+{
+  "scope": "single-demo",
+  "public_pack": "valorant_00031_rgx_11z_pro",
+  "native_theme": "Afterglow",
+  "source_asset": "/Game/UI/InGame/KillBanner/Afterglow/KillBannerData_Afterglow",
+  "primary_color": "#A4FF96",
+  "max_kills": 5,
+  "kill_wheel": {
+    "slice_radius": 147.0,
+    "reverse_spin_degrees": -360.0,
+    "reverse_spin_duration_ms": 1000.0
+  },
+  "headshot_offset": {
+    "x": 0.85,
+    "y": -21.0
+  },
+  "intro_timeline_ms": {
+    "general_fade_in": 150.0,
+    "wheel_spin": 750.0,
+    "badge_fade_out": 1803.2667,
+    "global_fade_out": 1953.2667,
+    "end": 2108.2667
+  },
+  "flipbooks": {
+    "tier_1": { "fps": 40.0, "frames": 49 },
+    "tier_2": { "fps": 40.0, "frames": 49 },
+    "tier_3": { "fps": 40.0, "frames": 42 },
+    "hero_flame": { "fps": 35.0, "frames": 20 },
+    "large_sparks": { "fps": 40.0, "frames": 52 },
+    "headshot_sparks": { "fps": 40.0, "frames": 29, "instances": 4 }
+  },
+  "audio_events": [
+    "Play_UI_KillBanner_AfterGlow_1",
+    "Play_UI_KillBanner_AfterGlow_2",
+    "Play_UI_KillBanner_AfterGlow_3",
+    "Play_UI_KillBanner_AfterGlow_4",
+    "Play_UI_KillBanner_AfterGlow_5"
+  ],
+  "headshot_audio_event": null
+}

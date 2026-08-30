@@ -21,6 +21,12 @@ namespace KillConfirmGameBar.Controls
                 return;
             }
 
+            if (asset.UsesNativeAfterglowPlayback)
+            {
+                DrawNativeAfterglowFrame(drawingSession, frame, asset);
+                return;
+            }
+
             double elapsedMs = frame * (1000.0 / FrameSequenceFps);
             double cx = ValorantFrameWidth / 2.0;
             double cy = ValorantFrameHeight / 2.0;

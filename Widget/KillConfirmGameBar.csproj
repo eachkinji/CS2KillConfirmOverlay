@@ -303,6 +303,7 @@
     <Compile Include="Controls\Animations\Valorant\ValorantAnimation.Effects.cs" />
     <Compile Include="Controls\Animations\Valorant\ValorantAnimation.Motion.cs" />
     <Compile Include="Controls\Animations\Valorant\ValorantAnimation.Profiles.cs" />
+    <Compile Include="Controls\Animations\Valorant\ValorantAnimation.NativeAfterglow.cs" />
     <Compile Include="Controls\GameStyles\Shared\AdvancedEffectsPanelSupport.cs" />
     <Compile Include="Controls\GameStyles\Shared\KillFeedbackAppearanceEditor.xaml.cs">
       <DependentUpon>KillFeedbackAppearanceEditor.xaml</DependentUpon>

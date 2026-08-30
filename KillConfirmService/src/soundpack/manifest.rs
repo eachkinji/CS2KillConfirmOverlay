@@ -233,11 +233,9 @@ impl PackManifest {
             ("kill_5", "5.wav"),
             ("headshot", "headshot.wav"),
         ] {
-            let has_audio = audio
-                .slots
-                .get(slot)
-                .is_some_and(|files| files.as_slice().iter().any(|file| !file.trim().is_empty()));
-            if has_audio {
+            // An explicitly present empty list means "this native pack has no
+            // cue for this slot". Only truly missing slots inherit defaults.
+            if audio.slots.contains_key(slot) {
                 continue;
             }
 

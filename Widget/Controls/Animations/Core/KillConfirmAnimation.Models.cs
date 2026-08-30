@@ -97,6 +97,7 @@ namespace KillConfirmGameBar.Controls
             public CanvasBitmap LargeSparks => Textures?.LargeSparks;
             public CanvasBitmap XSparks => Textures?.XSparks;
             public ValorantDemoProfile DemoProfile { get; set; }
+            public bool UsesNativeAfterglowPlayback => DemoProfile?.UsesNativeAfterglowPlayback == true;
         }
 
         private sealed class ValorantTextureSet : IDisposable
@@ -113,6 +114,12 @@ namespace KillConfirmGameBar.Controls
             public CanvasBitmap HeroFlame { get; set; }
             public CanvasBitmap LargeSparks { get; set; }
             public CanvasBitmap XSparks { get; set; }
+            public CanvasBitmap Ring { get; set; }
+            public CanvasBitmap FrameDissolve { get; set; }
+            public CanvasBitmap BadgeDissolve { get; set; }
+            public CanvasBitmap Shadow { get; set; }
+            public CanvasBitmap BaseParticleT2 { get; set; }
+            public CanvasBitmap BaseParticleT3 { get; set; }
 
             public void Dispose()
             {
@@ -131,6 +138,12 @@ namespace KillConfirmGameBar.Controls
                 HeroFlame?.Dispose();
                 LargeSparks?.Dispose();
                 XSparks?.Dispose();
+                Ring?.Dispose();
+                FrameDissolve?.Dispose();
+                BadgeDissolve?.Dispose();
+                Shadow?.Dispose();
+                BaseParticleT2?.Dispose();
+                BaseParticleT3?.Dispose();
                 Frame = null;
                 Emblem = null;
                 Bar = null;
@@ -140,6 +153,12 @@ namespace KillConfirmGameBar.Controls
                 HeroFlame = null;
                 LargeSparks = null;
                 XSparks = null;
+                Ring = null;
+                FrameDissolve = null;
+                BadgeDissolve = null;
+                Shadow = null;
+                BaseParticleT2 = null;
+                BaseParticleT3 = null;
             }
         }
 

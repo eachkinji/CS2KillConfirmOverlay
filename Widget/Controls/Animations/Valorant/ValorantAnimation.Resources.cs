@@ -43,7 +43,7 @@ namespace KillConfirmGameBar.Controls
                 {
                     FrameWidth = (int)ValorantFrameWidth,
                     FrameHeight = (int)ValorantFrameHeight,
-                    Frames = ValorantFrameCount,
+                    Frames = profile.UsesNativeAfterglowPlayback ? ValorantNativeAfterglowFrameCount : ValorantFrameCount,
                     Fps = FrameSequenceFps
                 },
                 asset);
@@ -168,6 +168,15 @@ namespace KillConfirmGameBar.Controls
                 textures.LargeSparks = await LoadValorantTextureAsync(root, "killicon_valorant_particle_large_sparks.png", cancellationToken);
                 progress?.Report(92);
                 textures.XSparks = await LoadValorantTextureAsync(root, "killicon_valorant_particle_x_sparks.png", cancellationToken);
+                if (profile.UsesNativeAfterglowPlayback)
+                {
+                    textures.Ring = await LoadValorantTextureAsync(root, "killicon_valorant_rgx_11z_pro_ring.png", cancellationToken);
+                    textures.FrameDissolve = await LoadValorantTextureAsync(root, "native_afterglow_frame_dissolve.png", cancellationToken);
+                    textures.BadgeDissolve = await LoadValorantTextureAsync(root, "native_afterglow_badge_dissolve.png", cancellationToken);
+                    textures.Shadow = await LoadValorantTextureAsync(root, "native_killbanner_vignette.png", cancellationToken);
+                    textures.BaseParticleT2 = await LoadValorantTextureAsync(root, "native_particle_base_t2.png", cancellationToken);
+                    textures.BaseParticleT3 = await LoadValorantTextureAsync(root, "native_particle_base_t3.png", cancellationToken);
+                }
                 progress?.Report(100);
                 return textures;
             }

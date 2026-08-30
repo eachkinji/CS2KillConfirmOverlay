@@ -59,3 +59,45 @@
             );
         }
     }
+
+    #[test]
+    fn native_afterglow_uses_numbered_cue_without_generic_headshot_overlay() {
+        use crate::soundpack::manifest::PackManifest;
+        use crate::soundpack::SoundContext;
+        use crate::state::EventChannel;
+        use std::collections::HashMap;
+
+        let pack_dir = source_sound_pack("valorant", "valorant_00031_rgx_11z_pro");
+        let base_dir = pack_dir.to_string_lossy().into_owned();
+        let mut manifest = PackManifest::load_from_dir(&pack_dir).expect("load native Afterglow manifest");
+        let default_pack = source_sound_pack("valorant", "valorant_00011_singularity_v1");
+        manifest
+            .fill_valorant_audio_defaults(&default_pack)
+            .expect("preserve explicit native empty slot while filling defaults");
+        let ctx = SoundContext {
+            kill_count: 3,
+            is_headshot: true,
+            is_first_kill: false,
+            is_knife_kill: false,
+            is_grenade_kill: false,
+            is_last_kill: false,
+            is_assist: false,
+            play_main_audio: true,
+            money_reward: 0,
+            event_kind: None,
+            event_channel: EventChannel::Combat,
+            preset_name: "valorant_00031_rgx_11z_pro".to_string(),
+            master_name: "valorant_00031_rgx_11z_pro".to_string(),
+            variant: None,
+            base_dir: base_dir.clone(),
+            voice_picks: HashMap::new(),
+            special_voice_priority: false,
+            headshot_priority: false,
+            knife_priority: false,
+            grenade_priority: true,
+        };
+
+        let sounds = manifest.resolve_audio(&ctx, &base_dir);
+        assert_eq!(sounds.len(), 1);
+        assert!(sounds[0].path.ends_with("3.wav"), "{}", sounds[0].path);
+    }

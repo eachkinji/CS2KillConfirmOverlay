@@ -1,6 +1,7 @@
 #Requires -Version 7.0
 $ErrorActionPreference = 'Stop'
-$root = Join-Path $PSScriptRoot 'Widget/Controls/Animations'
+$RepositoryRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
+$root = Join-Path $RepositoryRoot 'Widget/Controls/Animations'
 $bf1 = Get-Content -Raw (Join-Path $root 'Battlefield1/Battlefield1Animation.Playback.cs')
 $state = Get-Content -Raw (Join-Path $root 'Battlefield1/Battlefield1Animation.State.cs')
 $events = Get-Content -Raw (Join-Path $root 'Shared/Battlefield/BattlefieldAnimation.Events.cs')

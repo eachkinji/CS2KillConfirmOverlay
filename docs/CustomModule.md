@@ -66,10 +66,10 @@ FPS 范围 1～60、停留 0～10 秒，均读取各槽位的 JSON；编辑器�
 
 ## 验证
 
-`Test-CustomSequences.ps1` 使用实际格式、导入、编辑、目录持久化和导出代码，以及 Windows 图片解码器和文件 API。测试需要 PowerShell 7、Visual Studio C# 编译器、.NET Framework 4.8 或 4.8.1 引用程序集和 Windows SDK 10.0.26100.0。
+`Tests/CustomSequences/Test-CustomSequences.ps1` 使用实际格式、导入、编辑、目录持久化和导出代码，以及 Windows 图片解码器和文件 API。测试需要 PowerShell 7、Visual Studio C# 编译器、.NET Framework 4.8 或 4.8.1 引用程序集和 Windows SDK 10.0.26100.0。
 
 ```powershell
-pwsh -NoProfile -File .\Test-CustomSequences.ps1
+pwsh -NoProfile -File .\Tests\CustomSequences\Test-CustomSequences.ps1
 python .\Tests\CustomSequences\compare_reference.py ..\workshop\cs2-customizer <测试输出的 GUID 目录>
 ```
 

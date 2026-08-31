@@ -1,9 +1,9 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Test">
   <!-- Run with MSBuild /t:Test /p:Configuration=Release /p:Platform=x64.
        The real packaging target is imported; only its file-list input is faked. -->
-  <Import Project="Package\KillConfirmGameBar.Package.wapproj" />
+  <Import Project="..\..\Package\KillConfirmGameBar.Package.wapproj" />
   <PropertyGroup>
-    <FixtureOutput>$(MSBuildThisFileDirectory)Output\Tests\</FixtureOutput>
+    <FixtureOutput>$(MSBuildThisFileDirectory)..\..\Output\Tests\</FixtureOutput>
     <_FilteredPackageLayoutFilePath>$(FixtureOutput)cf-filtered.resfiles</_FilteredPackageLayoutFilePath>
     <_ExcludedPackageLayoutFilePath>$(FixtureOutput)cf-excluded.resfiles</_ExcludedPackageLayoutFilePath>
     <BuildAppxUploadPackageForUap>true</BuildAppxUploadPackageForUap>

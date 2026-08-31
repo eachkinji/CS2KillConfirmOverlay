@@ -2,6 +2,7 @@
 # installing packages, importing certificates, or changing system settings.
 param([string]$InnoCompilerPath = '')
 $ErrorActionPreference = 'Stop'
+$RepositoryRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
 if (-not $InnoCompilerPath) {
     $InnoCompilerPath = @(
         (Join-Path $env:LOCALAPPDATA 'Programs\Inno Setup 6\ISCC.exe'),
@@ -9,10 +10,10 @@ if (-not $InnoCompilerPath) {
     ) | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
 }
 if (-not $InnoCompilerPath) { throw 'Inno Setup 6.4+ is required.' }
-$testRoot = Join-Path $PSScriptRoot ('Output\InstallerLogTests-' + [guid]::NewGuid().ToString('N'))
+$testRoot = Join-Path $RepositoryRoot ('Output\InstallerLogTests-' + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $testRoot | Out-Null
 $utf8Bom = [Text.UTF8Encoding]::new($true)
-$entryPath = Join-Path $PSScriptRoot 'Installer\Install-KillConfirm.ps1'
+$entryPath = Join-Path $RepositoryRoot 'Installer\Install-KillConfirm.ps1'
 $tokens = $null
 $errors = $null
 $entryAst = [Management.Automation.Language.Parser]::ParseFile($entryPath, [ref]$tokens, [ref]$errors)
@@ -27,7 +28,7 @@ $bootstrap = foreach ($statement in $entryAst.EndBlock.Statements) {
 $commonPath = Join-Path $testRoot 'Common.ps1'
 # Match Build-ReleaseInstaller's UTF-8 BOM staging for Windows PowerShell 5.1.
 [IO.File]::WriteAllText($commonPath,
-    (Get-Content -LiteralPath (Join-Path $PSScriptRoot 'Installer\Scripts\Install\Common.ps1') -Raw), $utf8Bom)
+    (Get-Content -LiteralPath (Join-Path $RepositoryRoot 'Installer\Scripts\Install\Common.ps1') -Raw), $utf8Bom)
 $commonPath = $commonPath.Replace("'", "''")
 $childSource = ($bootstrap -join "`r`n") + "`r`n. '$commonPath'`r`n" + @'
 $LogPath = Join-Path $PSScriptRoot 'payload.log'
@@ -47,7 +48,7 @@ Write-InstallLog '__LAST_LINE__'
 exit 0
 '@
 [IO.File]::WriteAllText((Join-Path $testRoot 'emit.ps1'), $childSource, $utf8Bom)
-$helperPath = Join-Path $PSScriptRoot 'Installer\Scripts\Setup\InstallLog.iss'
+$helperPath = Join-Path $RepositoryRoot 'Installer\Scripts\Setup\InstallLog.iss'
 $fixture = @'
 [Setup]
 AppName=Installer Log Regression Test

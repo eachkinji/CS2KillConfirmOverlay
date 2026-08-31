@@ -1,17 +1,18 @@
 #Requires -Version 7.0
 param([string]$OutputDirectory = '')
 $ErrorActionPreference = 'Stop'
-if (-not $OutputDirectory) { $OutputDirectory = Join-Path $PSScriptRoot 'Output/CustomSequenceTests' }
+$RepositoryRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
+if (-not $OutputDirectory) { $OutputDirectory = Join-Path $RepositoryRoot 'Output/CustomSequenceTests' }
 New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
-$sourceCustomRoot = Join-Path $PSScriptRoot 'SourceAssets/GameStyles/custommodule'
-$widgetCustomRoot = Join-Path $PSScriptRoot 'Widget/Assets/GameStyles/custommodule/iconpacks/custommodule'
+$sourceCustomRoot = Join-Path $RepositoryRoot 'SourceAssets/GameStyles/custommodule'
+$widgetCustomRoot = Join-Path $RepositoryRoot 'Widget/Assets/GameStyles/custommodule/iconpacks/custommodule'
 $manifestPath = Join-Path $sourceCustomRoot 'soundpacks/custommodule/manifest.json'
 $manifest = Get-Content -Raw -LiteralPath $manifestPath | ConvertFrom-Json
 if ($manifest.game_style -ne 'custommodule' -or @($manifest.audio.slots.PSObject.Properties).Count -ne 5) {
     throw 'The built-in custom-module audio manifest must define five normal kill cues.'
 }
-$presetSource = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'KillConfirmService/src/soundpack/preset.rs')
-$playbackSource = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'KillConfirmService/src/soundpack/sound/playback.rs')
+$presetSource = Get-Content -Raw -LiteralPath (Join-Path $RepositoryRoot 'KillConfirmService/src/soundpack/preset.rs')
+$playbackSource = Get-Content -Raw -LiteralPath (Join-Path $RepositoryRoot 'KillConfirmService/src/soundpack/sound/playback.rs')
 if ($presetSource.Contains('Custom Module (silent)') -or
     $playbackSource.Contains('preset_name == "custommodule"')) {
     throw 'The built-in custom-module voice pack must not be short-circuited as a silent visual-only preset.'
@@ -41,19 +42,19 @@ $sdk = 'C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.26100.0\Window
 $vswhere = 'C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe'
 $vs = & $vswhere -latest -products * -property installationPath
 $compiler = Join-Path $vs 'MSBuild/Current/Bin/Roslyn/csc.exe'
-$service = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'Widget/Services/CustomModule/CustomSequencePackService.cs'))
+$service = [IO.File]::ReadAllText((Join-Path $RepositoryRoot 'Widget/Services/CustomModule/CustomSequencePackService.cs'))
 $service = "using ApplicationData = KillConfirmGameBar.Services.TestApplicationData;`n" + $service
 $servicePath = Join-Path $OutputDirectory 'CustomSequencePackService.cs'
 [IO.File]::WriteAllText($servicePath, $service)
 $extraSources = @('Widget/Services/Styling/GameStyleService.cs', 'Widget/Services/Styling/GameStyleService.PackMappings.cs', 'Widget/Services/Styling/KillFeedbackFrameDefinition.cs', 'Widget/Services/Settings/General/KillFeedbackVisibilitySettingsStore.cs', 'Widget/Services/CustomModule/CustomSequencePackService.Editing.cs', 'Widget/Services/Catalog/PackCatalogService.CustomModule.cs') | ForEach-Object {
     $copy = Join-Path $OutputDirectory ([IO.Path]::GetFileName($_))
-    [IO.File]::WriteAllText($copy, "using ApplicationData = KillConfirmGameBar.Services.TestApplicationData;`n" + [IO.File]::ReadAllText((Join-Path $PSScriptRoot $_)))
+    [IO.File]::WriteAllText($copy, "using ApplicationData = KillConfirmGameBar.Services.TestApplicationData;`n" + [IO.File]::ReadAllText((Join-Path $RepositoryRoot $_)))
     $copy
 }
 $references = @('mscorlib.dll','System.dll','System.Core.dll','System.Runtime.Serialization.dll','System.Xml.dll','System.IO.Compression.dll','System.IO.Compression.FileSystem.dll','Facades/System.Runtime.dll','Facades/System.Runtime.InteropServices.WindowsRuntime.dll') | ForEach-Object { '/r:' + (Join-Path $framework $_) }
 $references += '/r:C:\Windows\Microsoft.NET\Framework64\v4.0.30319\System.Runtime.WindowsRuntime.dll'
 $exe = Join-Path $OutputDirectory 'CustomSequenceTests.exe'
-& $compiler /nologo /target:exe /langversion:latest /nostdlib+ "/out:$exe" "/r:$sdk" @references (Join-Path $PSScriptRoot 'Widget/Services/CustomModule/CustomSequenceFormat.cs') $servicePath @extraSources (Join-Path $PSScriptRoot 'Tests/CustomSequences/Harness.cs')
+& $compiler /nologo /target:exe /langversion:latest /nostdlib+ "/out:$exe" "/r:$sdk" @references (Join-Path $RepositoryRoot 'Widget/Services/CustomModule/CustomSequenceFormat.cs') $servicePath @extraSources (Join-Path $PSScriptRoot 'Harness.cs')
 if ($LASTEXITCODE -ne 0) { throw 'Custom-sequence harness compilation failed.' }
 $fixtureRoot = Join-Path $OutputDirectory ([guid]::NewGuid().ToString('N'))
 & $exe $fixtureRoot

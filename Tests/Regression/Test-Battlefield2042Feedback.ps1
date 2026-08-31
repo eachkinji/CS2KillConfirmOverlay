@@ -1,9 +1,10 @@
 #Requires -Version 7.0
 $ErrorActionPreference = 'Stop'
+$RepositoryRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
 
 # Compile the actual text, cache preparation and event queue methods. Only GPU
 # resources and font measurement are stubbed; this is not a visual rendering test.
-$root = Join-Path $PSScriptRoot 'Widget/Controls/Animations'
+$root = Join-Path $RepositoryRoot 'Widget/Controls/Animations'
 $playback = Get-Content -Raw (Join-Path $root 'Battlefield2042/Battlefield2042Animation.Playback.cs')
 $models = Get-Content -Raw (Join-Path $root 'Battlefield2042/Battlefield2042Animation.Models.cs')
 $text = Get-Content -Raw (Join-Path $root 'Battlefield2042/Battlefield2042Animation.Text.cs')
@@ -169,7 +170,7 @@ if (-not ('Battlefield2042FeedbackChecks' -as [type])) {
 }
 [Battlefield2042FeedbackChecks]::Run()
 
-$routing = Get-Content -Raw (Join-Path $PSScriptRoot 'Widget/Pages/KillConfirmWidget/Animation/KillConfirmWidgetPage.Animation.cs')
+$routing = Get-Content -Raw (Join-Path $RepositoryRoot 'Widget/Pages/KillConfirmWidget/Animation/KillConfirmWidgetPage.Animation.cs')
 if ($routing -notmatch 'PlayBattlefield2042Kill\(\s*killEvent.KillCount,\s*killEvent.IsHeadshot,\s*killEvent.IsKnifeKill,\s*killEvent.IsGrenadeKill,') {
     throw '2042 event flags are not forwarded to playback.'
 }

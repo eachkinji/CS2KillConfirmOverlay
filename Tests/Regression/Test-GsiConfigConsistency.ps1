@@ -6,7 +6,7 @@
 
 $ErrorActionPreference = "Stop"
 
-$Root = Split-Path -Parent $MyInvocation.MyCommand.Path
+$RepositoryRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
 $DefaultServiceUri = "http://127.0.0.1:10087/"
 $ServicePortToken = "__KILLCONFIRM_PORT__"
 $WidgetUriToken = "__WIDGET_GSI_SERVICE_URI__"
@@ -27,7 +27,7 @@ function ConvertFrom-EscapedSourceLiteral {
 }
 
 function Get-WidgetGsiTemplate {
-    $path = Join-Path $Root "Widget\Pages\KillConfirmWidget\KillConfirmWidgetPage.xaml.cs"
+    $path = Join-Path $RepositoryRoot "Widget\Pages\KillConfirmWidget\KillConfirmWidgetPage.xaml.cs"
     $source = Get-Content -LiteralPath $path -Raw -Encoding UTF8
     $block = [regex]::Match(
         $source,
@@ -48,7 +48,7 @@ function Get-WidgetGsiTemplate {
 }
 
 function Get-ServiceGsiTemplate {
-    $path = Join-Path $Root "KillConfirmService\src\api\requests.rs"
+    $path = Join-Path $RepositoryRoot "KillConfirmService\src\api\requests.rs"
     $source = Get-Content -LiteralPath $path -Raw -Encoding UTF8
     $literal = [regex]::Match(
         $source,
@@ -62,11 +62,11 @@ function Get-ServiceGsiTemplate {
         "10087")
 }
 
-$installerModule = Join-Path $Root "Installer\Scripts\Install\Cs2.ps1"
+$installerModule = Join-Path $RepositoryRoot "Installer\Scripts\Install\Cs2.ps1"
 . $installerModule
 
 $templates = [ordered]@{
-    "canonical sample" = Get-Content -LiteralPath (Join-Path $Root "KillConfirmService\gsi\gamestate_integration_killconfirm.cfg") -Raw -Encoding UTF8
+    "canonical sample" = Get-Content -LiteralPath (Join-Path $RepositoryRoot "KillConfirmService\gsi\gamestate_integration_killconfirm.cfg") -Raw -Encoding UTF8
     "installer PowerShell" = New-Cs2GsiConfigText -ServicePort 10087
     "widget" = Get-WidgetGsiTemplate
     "service" = Get-ServiceGsiTemplate

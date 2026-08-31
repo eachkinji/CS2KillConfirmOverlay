@@ -5,18 +5,19 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+$RepositoryRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
 
 # Run the real UI-independent loader methods with an in-memory bitmap store.
 # This covers selected-pack precedence and missing-file behavior, not just names.
-$assetSource = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Controls/Animations/Core/KillConfirmAnimation.Assets.cs')
-$overlaySource = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Controls/Animations/Core/KillConfirmAnimation.AssetOverlays.cs')
-$coreSource = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Controls/Animations/Core/KillConfirmAnimation.xaml.cs')
-$routingSource = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Pages/KillConfirmWidget/Animation/KillConfirmWidgetPage.Animation.Routing.cs')
-$animationSource = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Pages/KillConfirmWidget/Animation/KillConfirmWidgetPage.Animation.cs')
-$styleSource = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Services/Styling/GameStyleService.cs')
-$eventSource = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Services/Runtime/KillEventModels.cs')
-$eventClientSource = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Services/Runtime/KillEventClient.cs')
-$settingsSource = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Services/Settings/Games/CrossfireGameplaySettingsStore.cs')
+$assetSource = Get-Content -Raw -LiteralPath (Join-Path $RepositoryRoot 'Widget/Controls/Animations/Core/KillConfirmAnimation.Assets.cs')
+$overlaySource = Get-Content -Raw -LiteralPath (Join-Path $RepositoryRoot 'Widget/Controls/Animations/Core/KillConfirmAnimation.AssetOverlays.cs')
+$coreSource = Get-Content -Raw -LiteralPath (Join-Path $RepositoryRoot 'Widget/Controls/Animations/Core/KillConfirmAnimation.xaml.cs')
+$routingSource = Get-Content -Raw -LiteralPath (Join-Path $RepositoryRoot 'Widget/Pages/KillConfirmWidget/Animation/KillConfirmWidgetPage.Animation.Routing.cs')
+$animationSource = Get-Content -Raw -LiteralPath (Join-Path $RepositoryRoot 'Widget/Pages/KillConfirmWidget/Animation/KillConfirmWidgetPage.Animation.cs')
+$styleSource = Get-Content -Raw -LiteralPath (Join-Path $RepositoryRoot 'Widget/Services/Styling/GameStyleService.cs')
+$eventSource = Get-Content -Raw -LiteralPath (Join-Path $RepositoryRoot 'Widget/Services/Runtime/KillEventModels.cs')
+$eventClientSource = Get-Content -Raw -LiteralPath (Join-Path $RepositoryRoot 'Widget/Services/Runtime/KillEventClient.cs')
+$settingsSource = Get-Content -Raw -LiteralPath (Join-Path $RepositoryRoot 'Widget/Services/Settings/Games/CrossfireGameplaySettingsStore.cs')
 $settingsModel = [regex]::Match($settingsSource, '(?ms)^    internal sealed class CrossfireGameplaySettingsValues\r?\n.*?^    \}').Value
 $settingsStore = [regex]::Match($settingsSource, '(?ms)^    internal static class CrossfireGameplaySettingsStore\r?\n.*?^    \}').Value
 if (-not $settingsModel -or -not $settingsStore) { throw 'CF settings model/store not found.' }
@@ -298,7 +299,7 @@ else {
 }
 
 # Service reconnect must read saved choices, never overwrite them from a stale flyout.
-$syncSource = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Pages/KillConfirmWidget/Settings/KillConfirmWidgetPage.CrossfireGameplaySettings.cs')
+$syncSource = Get-Content -Raw -LiteralPath (Join-Path $RepositoryRoot 'Widget/Pages/KillConfirmWidget/Settings/KillConfirmWidgetPage.CrossfireGameplaySettings.cs')
 $syncMethod = Get-LoaderMethod $syncSource 'SyncCrossfireGameplaySettingsAsync'
 if ($syncMethod -notmatch 'CrossfireGameplaySettingsStore.Load\(\)' -or $syncMethod -match '_crossfireAdvancedEffectsPanel|CrossfireGameplaySettingsStore.Save') {
     throw 'CF service sync can overwrite saved preferences from stale controls.'
@@ -308,14 +309,14 @@ foreach ($relative in @(
     'Widget/Pages/KillConfirmWidget/Settings/KillConfirmWidgetPage.CrossfireGameplaySettings.cs',
     'Widget/Controls/Settings/Crossfire/CrossfireAdvancedSettingsPanel.xaml.cs'
 )) {
-    $source = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot $relative)
+    $source = Get-Content -Raw -LiteralPath (Join-Path $RepositoryRoot $relative)
     if ($source -notmatch '\["grenade_special_audio_priority"\]\s*=\s*JsonValue.CreateBooleanValue\(\s*settings.GrenadeSpecialAudioPriority\)') {
         throw "Grenade audio setting missing from runtime request: $relative"
     }
 }
 'PASS: runtime preference sync uses saved values and all settings surfaces send grenade audio priority.'
 
-$iconRoot = Join-Path $PSScriptRoot 'Widget/Assets/KillConfirmCode'
+$iconRoot = Join-Path $RepositoryRoot 'Widget/Assets/KillConfirmCode'
 foreach ($folder in @('Original', 'Vip', 'AngelicBeast', 'Anniversary10', 'Anniversary15', 'CFPL', 'Rankmach2019_1', 'Rankmach2019_2')) {
     foreach ($name in @('badge_c4.png', 'badge_c4defuse.png', 'badge_grenade.png')) {
         if (-not (Test-Path -LiteralPath (Join-Path $iconRoot "$folder/$name") -PathType Leaf)) {

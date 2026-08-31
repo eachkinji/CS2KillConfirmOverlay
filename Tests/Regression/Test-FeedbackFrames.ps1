@@ -1,18 +1,19 @@
 #Requires -Version 7.0
 # Exercise the actual UI-independent frame definition without launching Game Bar.
 $ErrorActionPreference = 'Stop'
-$styleSource = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Services/Styling/GameStyleService.cs')
+$RepositoryRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
+$styleSource = Get-Content -Raw -LiteralPath (Join-Path $RepositoryRoot 'Widget/Services/Styling/GameStyleService.cs')
 $styleEnum = [regex]::Match($styleSource, '(?s)internal enum GameStyleMode\s*\{[^}]+\}').Value
 if (-not $styleEnum) { throw 'GameStyleMode declaration not found.' }
-$definition = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Services/Styling/KillFeedbackFrameDefinition.cs')
-$markerPlayback = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Controls/Animations/ModernWarfare2019/ModernWarfare2019Animation.Playback.cs')
-$hostLayout = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Pages/KillConfirmWidget/Layout/KillConfirmWidgetPage.HostLayout.cs')
-$dragVisuals = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Pages/KillConfirmWidget/Interaction/KillConfirmWidgetPage.DragVisuals.cs')
-$widgetInput = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Pages/KillConfirmWidget/Interaction/KillConfirmWidgetPage.Input.cs')
-$appearanceEditor = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Controls/GameStyles/Shared/KillFeedbackAppearanceEditor.xaml.cs')
-$crosshairOffsetEditor = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Controls/GameStyles/Shared/CrosshairOffsetEditor.xaml')
-$crosshairOffsetEditorCode = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Controls/GameStyles/Shared/CrosshairOffsetEditor.xaml.cs')
-$appearanceRow = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Controls/GameStyles/Shared/KillFeedbackAppearanceRow.xaml')
+$definition = Get-Content -Raw -LiteralPath (Join-Path $RepositoryRoot 'Widget/Services/Styling/KillFeedbackFrameDefinition.cs')
+$markerPlayback = Get-Content -Raw -LiteralPath (Join-Path $RepositoryRoot 'Widget/Controls/Animations/ModernWarfare2019/ModernWarfare2019Animation.Playback.cs')
+$hostLayout = Get-Content -Raw -LiteralPath (Join-Path $RepositoryRoot 'Widget/Pages/KillConfirmWidget/Layout/KillConfirmWidgetPage.HostLayout.cs')
+$dragVisuals = Get-Content -Raw -LiteralPath (Join-Path $RepositoryRoot 'Widget/Pages/KillConfirmWidget/Interaction/KillConfirmWidgetPage.DragVisuals.cs')
+$widgetInput = Get-Content -Raw -LiteralPath (Join-Path $RepositoryRoot 'Widget/Pages/KillConfirmWidget/Interaction/KillConfirmWidgetPage.Input.cs')
+$appearanceEditor = Get-Content -Raw -LiteralPath (Join-Path $RepositoryRoot 'Widget/Controls/GameStyles/Shared/KillFeedbackAppearanceEditor.xaml.cs')
+$crosshairOffsetEditor = Get-Content -Raw -LiteralPath (Join-Path $RepositoryRoot 'Widget/Controls/GameStyles/Shared/CrosshairOffsetEditor.xaml')
+$crosshairOffsetEditorCode = Get-Content -Raw -LiteralPath (Join-Path $RepositoryRoot 'Widget/Controls/GameStyles/Shared/CrosshairOffsetEditor.xaml.cs')
+$appearanceRow = Get-Content -Raw -LiteralPath (Join-Path $RepositoryRoot 'Widget/Controls/GameStyles/Shared/KillFeedbackAppearanceRow.xaml')
 if ($markerPlayback -notmatch '(?s)if\s*\(killMarkOnly\)\s*\{\s*.*?_modernWarfare2019ImpactAngleDegrees\s*=\s*0\s*;\s*\}\s*else\s*\{\s*.*?_modernWarfare2019Random\.NextDouble') {
     throw 'Shared non-COD KillMark must stay axis-locked while full COD playback keeps its random impact angle.'
 }

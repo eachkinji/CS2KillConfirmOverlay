@@ -1,7 +1,6 @@
 using Microsoft.Gaming.XboxGameBar;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,192 +35,6 @@ namespace KillConfirmGameBar
     public sealed partial class KillConfirmWidgetPage : Page
     {
 
-        private void LogHostLayoutIfChanged(string reason, Rect coreBounds, Frame frame)
-        {
-            Rect widgetBounds = new Rect();
-            try
-            {
-                if (_widget != null)
-                {
-                    widgetBounds = _widget.WindowBounds;
-                }
-            }
-            catch
-            {
-            }
-
-            string signature = string.Format(
-                "widget={0:F2},{1:F2},{2:F2},{3:F2};core={4:F2},{5:F2};frame={6:F2},{7:F2};page={8:F2},{9:F2};root={10:F2},{11:F2};panel={12:F2},{13:F2}",
-                widgetBounds.X,
-                widgetBounds.Y,
-                widgetBounds.Width,
-                widgetBounds.Height,
-                coreBounds.Width,
-                coreBounds.Height,
-                frame?.ActualWidth ?? 0,
-                frame?.ActualHeight ?? 0,
-                ActualWidth,
-                ActualHeight,
-                LayoutRoot?.ActualWidth ?? 0,
-                LayoutRoot?.ActualHeight ?? 0,
-                ControlPanel?.ActualWidth ?? 0,
-                ControlPanel?.ActualHeight ?? 0);
-            if (string.Equals(signature, _lastHostLayoutSignature, StringComparison.Ordinal))
-            {
-                return;
-            }
-
-            _lastHostLayoutSignature = signature;
-            App.LogCrash("Host layout [" + reason + "] " + signature);
-        }
-
-        private async Task InitializeWidgetLayoutAsync()
-        {
-            await RestoreFixedPanelBaselineOnceAsync();
-            if (!_isPageActive || _widget == null)
-            {
-                return;
-            }
-
-            SynchronizeHostPageLayout("initial");
-            RequestFixedWidgetLayoutRefresh();
-        }
-
-        private void RequestFixedWidgetLayoutRefresh(string source = "automatic")
-        {
-            if (_widget == null)
-            {
-                return;
-            }
-
-            int requestVersion = Interlocked.Increment(ref _widgetLayoutRefreshRequestVersion);
-            _ = RefreshFixedWidgetLayoutAsync(requestVersion, source);
-        }
-
-        private async Task RefreshFixedWidgetLayoutAndCenterAsync(string source)
-        {
-            if (_widget == null)
-            {
-                return;
-            }
-
-            int requestVersion = Interlocked.Increment(ref _widgetLayoutRefreshRequestVersion);
-            await RefreshFixedWidgetLayoutAsync(requestVersion, source);
-            if (!_isPageActive || _widget == null || requestVersion != _widgetLayoutRefreshRequestVersion)
-            {
-                return;
-            }
-
-            await CenterWidgetWindowAsync(source);
-            SynchronizeHostPageLayout("after-center-" + source);
-        }
-
-        private async Task<bool> WaitForHostLayoutSizeAsync(
-            XboxGameBarWidget widget,
-            Size expected,
-            int requestVersion,
-            int timeoutMs = 900)
-        {
-            var clock = Stopwatch.StartNew();
-            while (clock.ElapsedMilliseconds < timeoutMs)
-            {
-                if (!_isPageActive || _widget == null || !ReferenceEquals(widget, _widget)
-                    || requestVersion != _widgetLayoutRefreshRequestVersion)
-                {
-                    return false;
-                }
-
-                SynchronizeHostPageLayout("wait-host-size");
-                Rect widgetBounds = widget.WindowBounds;
-                Rect coreBounds = Window.Current.Bounds;
-                Frame frame = Window.Current.Content as Frame;
-                bool widgetReady = IsHostDimensionReady(widgetBounds.Width, expected.Width)
-                    && IsHostDimensionReady(widgetBounds.Height, expected.Height);
-                bool coreReady = IsHostDimensionReady(coreBounds.Width, expected.Width)
-                    && IsHostDimensionReady(coreBounds.Height, expected.Height);
-                bool frameReady = frame != null
-                    && IsHostDimensionReady(frame.ActualWidth, expected.Width)
-                    && IsHostDimensionReady(frame.ActualHeight, expected.Height);
-                bool pageReady = IsHostDimensionReady(ActualWidth, expected.Width)
-                    && IsHostDimensionReady(ActualHeight, expected.Height)
-                    && IsHostDimensionReady(LayoutRoot.ActualWidth, expected.Width)
-                    && IsHostDimensionReady(LayoutRoot.ActualHeight, expected.Height);
-                if (widgetReady && coreReady && frameReady && pageReady)
-                {
-                    return true;
-                }
-
-                await Task.Delay(16);
-            }
-
-            return false;
-        }
-
-        private static bool IsHostDimensionReady(double actual, double expected)
-        {
-            return actual > 0 && Math.Abs(actual - expected) <= 0.5;
-        }
-
-        private async Task RefreshFixedWidgetLayoutAsync(int requestVersion, string source)
-        {
-            await _widgetLayoutRefreshGate.WaitAsync();
-            try
-            {
-                if (!_isPageActive
-                    || _widget == null
-                    || requestVersion != _widgetLayoutRefreshRequestVersion)
-                {
-                    return;
-                }
-
-                XboxGameBarWidget widget = _widget;
-                SynchronizeHostPageLayout("before-host-refresh");
-
-                // Keep every host layer at the one real widget size. Do not pass
-                // through a smaller temporary window: even a two-DIP intermediate
-                // surface can expose a left/up center while composition catches up.
-                bool resizeAccepted = await widget.TryResizeWindowAsync(DefaultWidgetSize);
-                bool resizeSettled = resizeAccepted
-                    && await WaitForHostLayoutSizeAsync(widget, DefaultWidgetSize, requestVersion);
-
-                // A resize request can be accepted before the compositor applies it.
-                // Retry once if the real CoreWindow/Page never returned to 550x600.
-                bool retryAccepted = false;
-                if (!resizeSettled && requestVersion == _widgetLayoutRefreshRequestVersion)
-                {
-                    retryAccepted = await widget.TryResizeWindowAsync(DefaultWidgetSize);
-                    resizeSettled = retryAccepted
-                        && await WaitForHostLayoutSizeAsync(widget, DefaultWidgetSize, requestVersion);
-                }
-
-                if (!_isPageActive
-                    || _widget == null
-                    || !ReferenceEquals(widget, _widget))
-                {
-                    return;
-                }
-
-                SynchronizeHostPageLayout("after-host-refresh");
-                SavePanelOffset();
-                App.LogCrash(
-                    "Fixed widget host refreshed. source=" + source
-                    + ", restoreAccepted=" + resizeAccepted
-                    + ", retryAccepted=" + retryAccepted
-                    + ", restoreSettled=" + resizeSettled
-                    + ", requestCurrent=" + (requestVersion == _widgetLayoutRefreshRequestVersion)
-                    + ", viewport=" + ActualWidth + "x" + ActualHeight
-                    + ", panel=" + ControlPanel.ActualWidth + "x" + ControlPanel.ActualHeight);
-            }
-            catch (Exception ex)
-            {
-                App.LogCrash("Fixed widget host refresh failed: " + ex);
-            }
-            finally
-            {
-                _widgetLayoutRefreshGate.Release();
-            }
-        }
-
         private void ApplyPanelTransform()
         {
             if (_panelDragTransform == null)
@@ -246,48 +59,6 @@ namespace KillConfirmGameBar
             _panelOffsetX = ReadDoubleSetting(PanelOffsetXSettingKey, 0);
             _panelOffsetY = ReadDoubleSetting(PanelOffsetYSettingKey, 0);
             ApplyPanelTransform();
-        }
-
-        private async Task RestoreFixedPanelBaselineOnceAsync()
-        {
-            if (_widget == null)
-            {
-                return;
-            }
-
-            var values = ApplicationData.Current.LocalSettings.Values;
-            if (values[FixedPanelBaselineMigrationKey] is bool migrated && migrated)
-            {
-                return;
-            }
-
-            // Old releases persisted both a scaled Game Bar host size and panel
-            // offsets expressed in that scaled coordinate system. Removing the
-            // transform alone cannot undo either persisted value.
-            values.Remove(RemovedControlPanelScaleSettingKey);
-            _panelOffsetX = 0;
-            _panelOffsetY = 0;
-            ApplyPanelTransform();
-            SavePanelOffset();
-
-            try
-            {
-                bool resized = await _widget.TryResizeWindowAsync(DefaultWidgetSize);
-                await Task.Delay(100);
-                if (!_isPageActive || _widget == null)
-                {
-                    return;
-                }
-
-                await _widget.CenterWindowAsync();
-                values[FixedPanelBaselineMigrationKey] = true;
-                App.Log("Fixed panel baseline restored. resizeAccepted=" + resized);
-            }
-            catch (Exception ex)
-            {
-                // Leave the migration pending so the next activation retries.
-                App.Log("Restore fixed panel baseline failed: " + ex.Message);
-            }
         }
 
         private void SavePanelOffset()
@@ -323,6 +94,102 @@ namespace KillConfirmGameBar
             }
 
             await SendTestEventAsync(preset);
+        }
+
+        private bool _isRepeatTestLooping;
+        private int _repeatTestLoopToken;
+
+        private async void OnRepeatTestClick(object sender, RoutedEventArgs e)
+        {
+            _isRepeatTestLooping = !_isRepeatTestLooping;
+            int token = ++_repeatTestLoopToken;
+            UpdateRepeatTestButtonVisuals();
+            if (!_isRepeatTestLooping)
+            {
+                return;
+            }
+
+            await RunRepeatTestLoopAsync(token);
+        }
+
+        private async Task RunRepeatTestLoopAsync(int token)
+        {
+            while (_isRepeatTestLooping && token == _repeatTestLoopToken && _isPageActive)
+            {
+                TestPreset preset = GetSelectedTestPreset();
+                if (preset == null)
+                {
+                    break;
+                }
+
+                await SendTestEventAsync(preset);
+                if (!await WaitForRepeatTestPlaybackAsync(token))
+                {
+                    break;
+                }
+            }
+
+            if (token == _repeatTestLoopToken)
+            {
+                _isRepeatTestLooping = false;
+                UpdateRepeatTestButtonVisuals();
+            }
+        }
+
+        private async Task<bool> WaitForRepeatTestPlaybackAsync(int token)
+        {
+            Controls.KillConfirmAnimation primary =
+                GetFeedbackAnimation(KillFeedbackFrameDefinition.GetLegacyPrimaryLayer(GameStyleService.Current));
+            if (primary == null)
+            {
+                await Task.Delay(400);
+                return _isRepeatTestLooping && token == _repeatTestLoopToken;
+            }
+
+            // Wait for the playback to start (the animation becomes Visible).
+            for (int i = 0; i < 40; i++)
+            {
+                if (token != _repeatTestLoopToken || !_isRepeatTestLooping || !_isPageActive)
+                {
+                    return false;
+                }
+                if (primary.Visibility == Visibility.Visible)
+                {
+                    break;
+                }
+                await Task.Delay(50);
+            }
+
+            // Wait for the playback to finish (the animation collapses).
+            for (int i = 0; i < 200; i++)
+            {
+                if (token != _repeatTestLoopToken || !_isRepeatTestLooping || !_isPageActive)
+                {
+                    return false;
+                }
+                if (primary.Visibility == Visibility.Collapsed)
+                {
+                    return true;
+                }
+                await Task.Delay(50);
+            }
+
+            return true;
+        }
+
+        private void UpdateRepeatTestButtonVisuals()
+        {
+            SolidColorBrush highlight = _isRepeatTestLooping
+                ? new SolidColorBrush(Color.FromArgb(96, 245, 158, 11))
+                : null;
+            if (MiniRepeatTestButton != null)
+            {
+                MiniRepeatTestButton.Background = highlight;
+            }
+            if (PackTestSectionView != null && PackTestSectionView.RepeatTestButton != null)
+            {
+                PackTestSectionView.RepeatTestButton.Background = highlight;
+            }
         }
 
         private async void OnReloadAudioClick(object sender, RoutedEventArgs e)

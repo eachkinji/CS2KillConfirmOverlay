@@ -7,22 +7,34 @@ if (-not $styleEnum) { throw 'GameStyleMode declaration not found.' }
 $definition = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Services/Styling/KillFeedbackFrameDefinition.cs')
 $markerPlayback = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Controls/Animations/ModernWarfare2019/ModernWarfare2019Animation.Playback.cs')
 $hostLayout = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Pages/KillConfirmWidget/Layout/KillConfirmWidgetPage.HostLayout.cs')
+$dragVisuals = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Pages/KillConfirmWidget/Interaction/KillConfirmWidgetPage.DragVisuals.cs')
 $widgetInput = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Pages/KillConfirmWidget/Interaction/KillConfirmWidgetPage.Input.cs')
 $appearanceEditor = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Controls/GameStyles/Shared/KillFeedbackAppearanceEditor.xaml.cs')
+$crosshairOffsetEditor = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Controls/GameStyles/Shared/CrosshairOffsetEditor.xaml')
+$crosshairOffsetEditorCode = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Controls/GameStyles/Shared/CrosshairOffsetEditor.xaml.cs')
+$appearanceRow = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot 'Widget/Controls/GameStyles/Shared/KillFeedbackAppearanceRow.xaml')
 if ($markerPlayback -notmatch '(?s)if\s*\(killMarkOnly\)\s*\{\s*.*?_modernWarfare2019ImpactAngleDegrees\s*=\s*0\s*;\s*\}\s*else\s*\{\s*.*?_modernWarfare2019Random\.NextDouble') {
     throw 'Shared non-COD KillMark must stay axis-locked while full COD playback keeps its random impact angle.'
 }
-if ($hostLayout -match 'nudgeSize|HostLayoutRefreshNudge|548x598' -or
-    $hostLayout -notmatch 'WaitForHostLayoutSizeAsync\(widget, DefaultWidgetSize, requestVersion\)') {
-    throw 'Host refresh must use only the real 550x600 size and wait for the actual layout.'
+if ($hostLayout -match 'TryResizeWindowAsync|RefreshFixedWidgetLayout|SynchronizeHostPageLayout' -or
+    $dragVisuals -match 'SynchronizeHostPageLayout|frame\.Width\s*=|frame\.Height\s*=') {
+    throw 'The overlay must use the host-provided XAML layout without forcing window or Frame dimensions.'
 }
-if ($widgetInput -notmatch 'RefreshFixedWidgetLayoutAndCenterAsync\("crosshair-center"\)') {
-    throw 'Crosshair centering must restore and verify the fixed host size before centering the window.'
+if ($widgetInput -notmatch 'CenterWidgetWindowAsync\("crosshair-center"\)' -or
+    $widgetInput -match 'RefreshFixedWidgetLayoutAndCenterAsync') {
+    throw 'Crosshair centering must call only the native Game Bar center operation.'
 }
 if ($appearanceEditor -notmatch 'Dispatcher\.HasThreadAccess' -or
     $appearanceEditor -notmatch 'Dispatcher\.RunAsync\(CoreDispatcherPriority\.Normal' -or
     $appearanceEditor -notmatch 'KillFeedbackVisibilitySettingsStore\.Changed\s*-=' ) {
     throw 'Feedback appearance store callbacks must return to their owning UI dispatcher and release stale subscriptions.'
+}
+if ($crosshairOffsetEditor -notmatch 'x:Name="ResponsiveSettingsGrid"' -or
+    $crosshairOffsetEditor -notmatch 'x:Name="ManualColumn"' -or
+    $crosshairOffsetEditorCode -notmatch 'e\.NewSize\.Width\s*<\s*720\.0' -or
+    $crosshairOffsetEditorCode -notmatch 'Grid\.SetRow\(ManualPanel,\s*compact\s*\?\s*1\s*:\s*0\)' -or
+    $appearanceRow -notmatch 'x:Name="AdditionalSettingsHost"(?s).*?HorizontalContentAlignment="Stretch"') {
+    throw 'Crosshair offset controls must stretch on wide settings pages and stack in the narrow advanced-effects flyout.'
 }
 $checks = @'
 namespace KillConfirmGameBar.Services

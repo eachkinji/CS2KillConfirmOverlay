@@ -53,7 +53,6 @@ namespace KillConfirmGameBar
                 return;
             }
 
-            bool wasControlPanelVisible = IsControlPanelVisible();
             bool stateReadSucceeded = false;
             try
             {
@@ -76,13 +75,6 @@ namespace KillConfirmGameBar
 
             UpdateControlPanelVisibility();
             UpdateGameBarSetupGuidance();
-            if (wasControlPanelVisible != IsControlPanelVisible())
-            {
-                // Preserve the known-good v3.3.2 behavior: a visibility transition
-                // forces Game Bar to refresh the existing host window for the current
-                // display mode. The requested size itself always remains 550 x 600.
-                RequestFixedWidgetLayoutRefresh();
-            }
         }
 
         private void UpdateGameBarSetupGuidance()

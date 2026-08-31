@@ -300,7 +300,7 @@ try {
         throw "MSIX Bundle 的主应用包缺少完整的 FFmpeg 运行文件、许可证或源码信息"
     }
 
-    & (Join-Path $Root "Test-CrossfireEventIcons.ps1") -PackageArchive $archive
+    & (Join-Path $Root "Tests\Regression\Test-CrossfireEventIcons.ps1") -PackageArchive $archive
 }
 finally {
     if ($archive) {

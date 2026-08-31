@@ -26,7 +26,7 @@ $bootstrap = foreach ($statement in $entryAst.EndBlock.Statements) {
     $statement.Extent.Text
 }
 $commonPath = Join-Path $testRoot 'Common.ps1'
-# Match Build-ReleaseInstaller's UTF-8 BOM staging for Windows PowerShell 5.1.
+# Match Build-FullPackage's UTF-8 BOM staging for Windows PowerShell 5.1.
 [IO.File]::WriteAllText($commonPath,
     (Get-Content -LiteralPath (Join-Path $RepositoryRoot 'Installer\Scripts\Install\Common.ps1') -Raw), $utf8Bom)
 $commonPath = $commonPath.Replace("'", "''")

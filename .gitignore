@@ -27,7 +27,7 @@ Package/BundleArtifacts/
 !Vclibs/
 !Vclibs/*
 
-# Generated copies refreshed from SourceAssets by Build-IntegratedPackage.ps1
+# Generated copies refreshed from SourceAssets by Build-QuickPackage.ps1
 Widget/Assets/KillConfirm/
 Widget/KillConfirmService/
 KillConfirmService/sounds/
@@ -36,13 +36,17 @@ KillConfirmService/sounds/
 资源/
 
 # Local signing/test certificates
+.local/
 *.pfx
+*.p12
+*.cer
 *.snk
 *.key
 *.pem
 *_TemporaryKey.pfx
 
 # Visual Studio and local user state
+AGENTS.md
 .vs/
 *.user
 *.suo

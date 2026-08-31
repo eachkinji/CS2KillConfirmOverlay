@@ -26,7 +26,6 @@ param(
     [switch]$SkipWithDependencies,
     [switch]$SkipRust,
     [string]$MsBuildPath = "",
-    [switch]$DisableSigning,
     [string]$CertificatePfxPath = "",
     [string]$CertificatePassword = "",
     [string]$CertificateThumbprint = "",
@@ -125,44 +124,41 @@ Write-Host " Kill Confirm Overlay - 完整 Release 安装包打包" -ForegroundC
 Write-Host " 版本: $Version | 配置: $Configuration | 平台: $Platform" -ForegroundColor Cyan
 Write-Host "==========================================================" -ForegroundColor Cyan
 
-# 1. 首先通过 Build-DevPackage 构建出最新的 MSIX 与签名文件
+# 1. 首先通过快速打包脚本构建最新的 MSIX 与签名文件
 Write-Host "`n[第 1 步/3] 构建核心应用 MSIX 包与二进制..." -ForegroundColor Yellow
-$DevOutputDir = Join-Path $OutputDir "TempDevPackage"
-if (Test-Path -LiteralPath $DevOutputDir -PathType Container) {
-    Remove-Item -LiteralPath $DevOutputDir -Recurse -Force
+$QuickOutputDir = Join-Path $OutputDir "TempQuickPackage"
+if (Test-Path -LiteralPath $QuickOutputDir -PathType Container) {
+    Remove-Item -LiteralPath $QuickOutputDir -Recurse -Force
 }
-$devBuildArgs = @{
+$quickBuildArgs = @{
     Configuration = $Configuration
     Platform = $Platform
-    OutputDir = $DevOutputDir
+    OutputDir = $QuickOutputDir
 }
 if ($SkipRust) {
-    $devBuildArgs.SkipRust = $true
+    $quickBuildArgs.SkipRust = $true
 }
 if ($MsBuildPath) {
-    $devBuildArgs.MsBuildPath = $MsBuildPath
-}
-if ($DisableSigning) {
-    $devBuildArgs.DisableSigning = $true
+    $quickBuildArgs.MsBuildPath = $MsBuildPath
 }
 if ($CertificatePfxPath) {
-    $devBuildArgs.CertificatePfxPath = $CertificatePfxPath
+    $quickBuildArgs.CertificatePfxPath = $CertificatePfxPath
 }
 if ($CertificatePassword) {
-    $devBuildArgs.CertificatePassword = $CertificatePassword
+    $quickBuildArgs.CertificatePassword = $CertificatePassword
 }
 if ($CertificateThumbprint) {
-    $devBuildArgs.CertificateThumbprint = $CertificateThumbprint
+    $quickBuildArgs.CertificateThumbprint = $CertificateThumbprint
 }
 if ($CertificateCerPath) {
-    $devBuildArgs.CertificateCerPath = $CertificateCerPath
+    $quickBuildArgs.CertificateCerPath = $CertificateCerPath
 }
-& (Join-Path $Root "Build-DevPackage.ps1") @devBuildArgs
+& (Join-Path $Root "Build-QuickPackage.ps1") @quickBuildArgs
 
-$bundleFiles = @(Get-ChildItem -LiteralPath $DevOutputDir -Filter "*.msixbundle" -File)
-$cerFiles = @(Get-ChildItem -LiteralPath $DevOutputDir -Filter "*.cer" -File)
+$bundleFiles = @(Get-ChildItem -LiteralPath $QuickOutputDir -Filter "*.msixbundle" -File)
+$cerFiles = @(Get-ChildItem -LiteralPath $QuickOutputDir -Filter "*.cer" -File)
 if ($bundleFiles.Count -ne 1) {
-    throw "预期生成 1 个 MSIX Bundle，实际找到 $($bundleFiles.Count) 个：$DevOutputDir"
+    throw "预期生成 1 个 MSIX Bundle，实际找到 $($bundleFiles.Count) 个：$QuickOutputDir"
 }
 if ($cerFiles.Count -ne 1) {
     throw "预期生成 1 个签名证书 .cer，实际找到 $($cerFiles.Count) 个；不能生成用户无法建立信任的安装包。"
@@ -180,6 +176,46 @@ if (-not [string]::Equals(
         $publicCertificate.Thumbprint,
         [System.StringComparison]::OrdinalIgnoreCase)) {
     throw "MSIX Bundle 签名证书与安装包携带的 .cer 不一致。"
+}
+
+if (-not $CertificatePfxPath) {
+    $CertificatePfxPath = Join-Path $Root '.local\signing\KillConfirmGameBar_Local.pfx'
+    $localPasswordPath = Join-Path $Root '.local\signing\KillConfirmGameBar_Local.password.dpapi'
+    if (-not (Test-Path -LiteralPath $localPasswordPath -PathType Leaf)) {
+        throw "快速打包没有生成本地签名密码缓存: $localPasswordPath"
+    }
+    $secureLocalPassword = (Get-Content -LiteralPath $localPasswordPath -Raw).Trim() | ConvertTo-SecureString
+    $CertificatePassword = [System.Net.NetworkCredential]::new('', $secureLocalPassword).Password
+}
+if (-not (Test-Path -LiteralPath $CertificatePfxPath -PathType Leaf) -or -not $CertificatePassword) {
+    throw '完整安装包缺少可用的签名 PFX 或密码。'
+}
+$installerSigningCertificate = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new(
+    $CertificatePfxPath,
+    $CertificatePassword,
+    [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::EphemeralKeySet)
+if (-not $installerSigningCertificate.HasPrivateKey -or -not [string]::Equals(
+        $installerSigningCertificate.Thumbprint,
+        $publicCertificate.Thumbprint,
+        [StringComparison]::OrdinalIgnoreCase)) {
+    throw '安装器签名 PFX 与 MSIX Bundle 携带的公开证书不一致。'
+}
+
+$SignToolCandidates = @(
+    'C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\signtool.exe',
+    'C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\signtool.exe',
+    'C:\Program Files (x86)\Windows Kits\10\bin\10.0.19041.0\x64\signtool.exe',
+    (Join-Path ${env:ProgramFiles(x86)} 'Windows Kits\10\bin\x64\signtool.exe')
+)
+$SignToolCommand = Get-Command signtool -ErrorAction SilentlyContinue
+$SignToolPath = if ($SignToolCommand) {
+    $SignToolCommand.Source
+}
+else {
+    $SignToolCandidates | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } | Select-Object -First 1
+}
+if (-not $SignToolPath) {
+    throw '未找到 signtool，无法签名最终安装器。'
 }
 
 # 2. 准备 Transfer 安装环境目录
@@ -319,6 +355,17 @@ function Invoke-InnoCompile {
     if (-not (Test-Path -LiteralPath $finalOutput -PathType Leaf)) {
         throw "最终安装包移动后不存在：$finalOutput"
     }
+    & $SignToolPath sign /fd SHA256 /f $CertificatePfxPath /p $CertificatePassword $finalOutput
+    if ($LASTEXITCODE -ne 0) {
+        throw "最终安装器签名失败 (ExitCode: $LASTEXITCODE): $finalOutput"
+    }
+    $installerSignature = Get-AuthenticodeSignature -LiteralPath $finalOutput
+    if (-not $installerSignature.SignerCertificate -or -not [string]::Equals(
+            $installerSignature.SignerCertificate.Thumbprint,
+            $publicCertificate.Thumbprint,
+            [StringComparison]::OrdinalIgnoreCase)) {
+        throw "最终安装器签名证书不匹配: $finalOutput"
+    }
 }
 
 if (-not $SkipWithDependencies) {
@@ -332,7 +379,7 @@ Write-Host " 正在生成: $noName ..." -ForegroundColor Cyan
 Invoke-InnoCompile -TransferPath $NoDepsTransferRoot -InternalSuffix "_NoDeps" -FinalFileName $noName -SkipPrerequisites $true
 
 # 清理临时中间目录
-Remove-Item -LiteralPath $DevOutputDir -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item -LiteralPath $QuickOutputDir -Recurse -Force -ErrorAction SilentlyContinue
 Remove-Item -LiteralPath $TransferRoot -Recurse -Force -ErrorAction SilentlyContinue
 Remove-Item -LiteralPath $NoDepsTransferRoot -Recurse -Force -ErrorAction SilentlyContinue
 

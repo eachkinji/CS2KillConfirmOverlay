@@ -149,23 +149,26 @@ The upstream reference configuration is available in [`gsi-cs2-rs`](https://gith
 
 Source builds require the Rust toolchain, Visual Studio or Visual Studio Build Tools with Windows/UWP/MSIX tooling, and Inno Setup 6 when building the optional `.exe` installers.
 
-From the repository root:
+Create a quick MSIX Bundle for local testing:
 
 ```powershell
-.\Build-IntegratedPackage.ps1
+.\Build-QuickPackage.ps1
 ```
 
-Create the transferable packages:
+Build and install it locally in one step:
 
 ```powershell
-.\Build-TransferPackage.ps1
+.\Build-QuickPackage.ps1 -Install
 ```
 
-Create the installers:
+Create the complete release installers:
 
 ```powershell
-.\Build-Installer.ps1
+.\Build-FullPackage.ps1
 ```
+
+Local builds create a per-machine development certificate under `.local/signing/`.
+The directory is ignored by Git; release builds use the signing certificate supplied by CI secrets.
 
 ## Project layout
 

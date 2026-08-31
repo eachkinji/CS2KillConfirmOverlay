@@ -52,7 +52,5 @@ and `audio`. Native `appear` and `transition` slots use gain `0.3`. Per-streak
 headshot slots are named `headshot_1` through `headshot_5`; an empty `headshot`
 slot explicitly means that the theme has no generic headshot cue.
 
-Run `Build-ValorantExternalPacks.ps1 -CleanOutput` to convert the complete
-FModel export. The default output is the workspace outer folder
-`ValorantExternalPacks`, with separate `IconPacks` and `VoicePacks` directories
-and a `package-index.json` association index.
+The internal FModel conversion tool is maintained with the private VALORANT
+resource repository rather than the public application source tree.

@@ -164,7 +164,7 @@ jobs:
           else {
               Write-Host "Production repository: building both installers."
           }
-          .\Build-Installer.ps1 @buildArgs
+          .\Build-FullPackage.ps1 @buildArgs
 
       - name: Create or update draft release
         if: inputs.createDraftRelease || inputs.uploadToRelease

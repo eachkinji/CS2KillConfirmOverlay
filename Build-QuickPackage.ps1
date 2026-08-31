@@ -1,6 +1,6 @@
 ﻿<#
 .SYNOPSIS
-    本地测试轻量化打包与部署脚本
+    快速 MSIX Bundle 打包与本地部署脚本
     快速增量编译 Rust、同步素材、构建并签名 MSIX，支持一键安装到本机测试。
 
 .PARAMETER Configuration
@@ -16,7 +16,7 @@
     跳过 Rust 服务的编译（仅修改前端 UI 时可用以极大加速打包）。
 
 .PARAMETER OutputDir
-    输出目录，默认 .\Output\Dev。
+    输出目录，默认 .\Output\Quick。
 
 .PARAMETER CertificatePfxPath
     用于最终 MSIX 签名的 PFX；CI 会传入正式签名证书。
@@ -40,33 +40,197 @@ param(
 $ErrorActionPreference = "Stop"
 
 $Root = Split-Path -Parent $MyInvocation.MyCommand.Path
-$WorkspaceRoot = Split-Path -Parent $Root
 $ServiceRoot = Join-Path $Root "KillConfirmService"
 $WidgetRoot = Join-Path $Root "Widget"
 $PackageRoot = Join-Path $Root "Package"
 $PackageProjectPath = Join-Path $PackageRoot "KillConfirmGameBar.Package.wapproj"
 $PackagedServiceRoot = Join-Path $WidgetRoot "KillConfirmService"
-$DefaultCertPfx = Join-Path $WidgetRoot "LOCAL_SIGNING_KEY.pfx"
-$DefaultCertCer = Join-Path $WidgetRoot "KillConfirmGameBar_TemporaryKey.cer"
-if (-not $CertificatePfxPath -and (Test-Path $DefaultCertPfx)) {
-    $CertificatePfxPath = $DefaultCertPfx
-    if (-not $CertificatePassword) {
-        $CertificatePassword = "test"
-    }
-}
-if (-not $CertificateCerPath -and (Test-Path $DefaultCertCer)) {
-    $CertificateCerPath = $DefaultCertCer
-}
 $PackageFamilyName = "KillConfirmGameBar.Overlay_5jgcw66eyez0m"
 
 if (-not $OutputDir) {
-    $OutputDir = Join-Path $Root "Output\Dev"
+    $OutputDir = Join-Path $Root "Output\Quick"
 }
 $OutputDir = [System.IO.Path]::GetFullPath($OutputDir)
 New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null
 
+function ConvertFrom-ProtectedPassword([string]$Path) {
+    $securePassword = (Get-Content -LiteralPath $Path -Raw).Trim() | ConvertTo-SecureString
+    return [System.Net.NetworkCredential]::new('', $securePassword).Password
+}
+
+function New-LocalSigningMaterial([string]$SigningRoot) {
+    $pfxPath = Join-Path $SigningRoot 'KillConfirmGameBar_Local.pfx'
+    $cerPath = Join-Path $SigningRoot 'KillConfirmGameBar_Local.cer'
+    $passwordPath = Join-Path $SigningRoot 'KillConfirmGameBar_Local.password.dpapi'
+    if ((Test-Path -LiteralPath $pfxPath -PathType Leaf) -and
+        (Test-Path -LiteralPath $cerPath -PathType Leaf) -and
+        (Test-Path -LiteralPath $passwordPath -PathType Leaf)) {
+        try {
+            $cachedPassword = ConvertFrom-ProtectedPassword $passwordPath
+            $cachedCertificate = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new(
+                $pfxPath,
+                $cachedPassword,
+                [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::EphemeralKeySet)
+            $codeSigningUsage = $cachedCertificate.Extensions |
+                Where-Object { $_ -is [System.Security.Cryptography.X509Certificates.X509EnhancedKeyUsageExtension] } |
+                ForEach-Object { $_.EnhancedKeyUsages } |
+                Where-Object { $_.Value -eq '1.3.6.1.5.5.7.3.3' }
+            if ($cachedCertificate.HasPrivateKey -and
+                $cachedCertificate.Subject -eq 'CN=TestXboxGameBar' -and
+                $cachedCertificate.NotAfter -gt (Get-Date).AddDays(30) -and
+                $codeSigningUsage) {
+                return @{ PfxPath = $pfxPath; CerPath = $cerPath; Password = $cachedPassword }
+            }
+        }
+        catch {
+            Write-Host '  本地签名证书缓存无效，将重新生成。' -ForegroundColor DarkGray
+        }
+        Remove-Item -LiteralPath $pfxPath,$cerPath,$passwordPath -Force -ErrorAction SilentlyContinue
+    }
+
+    New-Item -ItemType Directory -Path $SigningRoot -Force | Out-Null
+    $passwordBytes = [byte[]]::new(32)
+    [System.Security.Cryptography.RandomNumberGenerator]::Fill($passwordBytes)
+    $plainPassword = [Convert]::ToBase64String($passwordBytes)
+    $securePassword = ConvertTo-SecureString $plainPassword -AsPlainText -Force
+    $certificate = New-SelfSignedCertificate `
+        -Type Custom `
+        -Subject 'CN=TestXboxGameBar' `
+        -FriendlyName 'Kill Confirm Overlay local development signing' `
+        -CertStoreLocation 'Cert:\CurrentUser\My' `
+        -KeyAlgorithm RSA `
+        -KeyLength 2048 `
+        -KeySpec Signature `
+        -KeyExportPolicy Exportable `
+        -KeyUsage DigitalSignature `
+        -HashAlgorithm SHA256 `
+        -TextExtension @(
+            '2.5.29.37={text}1.3.6.1.5.5.7.3.3',
+            '2.5.29.19={text}') `
+        -NotAfter (Get-Date).AddYears(3)
+    try {
+        Export-PfxCertificate -Cert $certificate -FilePath $pfxPath -Password $securePassword | Out-Null
+        Export-Certificate -Cert $certificate -FilePath $cerPath -Type CERT | Out-Null
+        $securePassword | ConvertFrom-SecureString | Set-Content -LiteralPath $passwordPath -Encoding utf8NoBOM
+    }
+    finally {
+        Remove-Item -LiteralPath ("Cert:\CurrentUser\My\{0}" -f $certificate.Thumbprint) -Force -ErrorAction SilentlyContinue
+    }
+    return @{ PfxPath = $pfxPath; CerPath = $cerPath; Password = $plainPassword }
+}
+
+function Copy-FfmpegDependency([string]$Destination) {
+    $archiveName = 'ffmpeg-n9.0-latest-win64-lgpl-9.0.zip'
+    $releaseBaseUrl = 'https://github.com/BtbN/FFmpeg-Builds/releases/download/latest'
+    $assetUrl = "$releaseBaseUrl/$archiveName"
+    $checksumsUrl = "$releaseBaseUrl/checksums.sha256"
+    $checksumsResponse = Invoke-WebRequest -Uri $checksumsUrl
+    $checksums = if ($checksumsResponse.Content -is [byte[]]) {
+        [Text.Encoding]::UTF8.GetString($checksumsResponse.Content)
+    }
+    else {
+        [string]$checksumsResponse.Content
+    }
+    $checksumMatch = [regex]::Match(
+        $checksums,
+        ('(?im)^([0-9a-f]{{64}})\s+\*?{0}$' -f [regex]::Escape($archiveName)))
+    if (-not $checksumMatch.Success) {
+        throw "FFmpeg upstream checksum is missing for $archiveName"
+    }
+    $archiveSha256 = $checksumMatch.Groups[1].Value.ToUpperInvariant()
+    $cacheRoot = Join-Path $env:LOCALAPPDATA 'KillConfirmBuildCache/ffmpeg-n9.0-lgpl'
+    $archive = Join-Path $cacheRoot $archiveName
+    New-Item -ItemType Directory -Force -Path $cacheRoot | Out-Null
+    if (-not (Test-Path -LiteralPath $archive) -or (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash -ne $archiveSha256) {
+        $download = "$archive.download"
+        Remove-Item -LiteralPath $download -Force -ErrorAction SilentlyContinue
+        Invoke-WebRequest -Uri $assetUrl -OutFile $download
+        if ((Get-FileHash -LiteralPath $download -Algorithm SHA256).Hash -ne $archiveSha256) {
+            Remove-Item -LiteralPath $download -Force
+            throw 'FFmpeg archive checksum mismatch.'
+        }
+        Move-Item -LiteralPath $download -Destination $archive -Force
+    }
+    if ((Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash -ne $archiveSha256) {
+        throw 'FFmpeg archive checksum mismatch.'
+    }
+
+    $extract = Join-Path $cacheRoot 'extract'
+    $extractHashPath = Join-Path $extract 'archive.sha256'
+    $cachedExtractHash = if (Test-Path -LiteralPath $extractHashPath) {
+        (Get-Content -LiteralPath $extractHashPath -Raw).Trim()
+    }
+    else {
+        ''
+    }
+    if (-not (Test-Path -LiteralPath (Join-Path $extract 'ffmpeg.exe')) -or $cachedExtractHash -ne $archiveSha256) {
+        $resolvedExtract = [IO.Path]::GetFullPath($extract)
+        $resolvedCache = [IO.Path]::GetFullPath($cacheRoot).TrimEnd([IO.Path]::DirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
+        if (-not $resolvedExtract.StartsWith($resolvedCache, [StringComparison]::OrdinalIgnoreCase)) {
+            throw 'Unsafe FFmpeg cache path.'
+        }
+        if (Test-Path -LiteralPath $resolvedExtract) {
+            Remove-Item -LiteralPath $resolvedExtract -Recurse -Force
+        }
+        Expand-Archive -LiteralPath $archive -DestinationPath $extract
+        $ffmpegDistribution = Get-ChildItem -LiteralPath $extract -Directory | Select-Object -First 1
+        Copy-Item -LiteralPath (Join-Path $ffmpegDistribution.FullName 'bin/ffmpeg.exe') -Destination $extract -Force
+        Copy-Item -LiteralPath (Join-Path $ffmpegDistribution.FullName 'LICENSE.txt') -Destination $extract -Force
+        Set-Content -LiteralPath $extractHashPath -Value $archiveSha256 -Encoding ascii -NoNewline
+    }
+
+    New-Item -ItemType Directory -Force -Path $Destination | Out-Null
+    Copy-Item -LiteralPath (Join-Path $extract 'ffmpeg.exe'),(Join-Path $extract 'LICENSE.txt') -Destination $Destination -Force
+    $sourceLines = @(
+        'FFmpeg n9.0 LGPLv3 build by BtbN (invoked as a separate process for video import)'
+        'Build and corresponding source information: https://github.com/BtbN/FFmpeg-Builds'
+        "Binary archive: $assetUrl"
+        "Binary archive SHA-256: $archiveSha256"
+    )
+    [IO.File]::WriteAllLines((Join-Path $Destination 'SOURCE.txt'), $sourceLines)
+}
+
+if (-not $DisableSigning) {
+    if (-not $CertificatePfxPath) {
+        $localSigning = New-LocalSigningMaterial (Join-Path $Root '.local\signing')
+        $CertificatePfxPath = $localSigning.PfxPath
+        $CertificateCerPath = $localSigning.CerPath
+        $CertificatePassword = $localSigning.Password
+        Write-Host "  已使用仅保存在本机的开发签名证书。" -ForegroundColor DarkGray
+    }
+    if (-not (Test-Path -LiteralPath $CertificatePfxPath -PathType Leaf)) {
+        throw "签名 PFX 不存在: $CertificatePfxPath"
+    }
+    if (-not $CertificatePassword) {
+        throw '启用签名时必须提供 CertificatePassword。'
+    }
+    $signingCertificate = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new(
+        $CertificatePfxPath,
+        $CertificatePassword,
+        [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::EphemeralKeySet)
+    if (-not $signingCertificate.HasPrivateKey) {
+        throw '签名 PFX 不包含私钥。'
+    }
+    if ($signingCertificate.Subject -ne 'CN=TestXboxGameBar') {
+        throw "签名证书主题必须为 CN=TestXboxGameBar，实际为 $($signingCertificate.Subject)"
+    }
+    if ($CertificateThumbprint -and -not [string]::Equals(
+            $signingCertificate.Thumbprint,
+            $CertificateThumbprint,
+            [StringComparison]::OrdinalIgnoreCase)) {
+        throw 'PFX 证书指纹与请求的签名证书不一致。'
+    }
+    $CertificateThumbprint = $signingCertificate.Thumbprint
+    if (-not $CertificateCerPath) {
+        $CertificateCerPath = Join-Path $OutputDir 'KillConfirmGameBar_SigningCertificate.cer'
+        [IO.File]::WriteAllBytes(
+            $CertificateCerPath,
+            $signingCertificate.Export([System.Security.Cryptography.X509Certificates.X509ContentType]::Cert))
+    }
+}
+
 Write-Host "==========================================================" -ForegroundColor Cyan
-Write-Host " Kill Confirm Overlay - 本地开发测试轻量打包" -ForegroundColor Cyan
+Write-Host " Kill Confirm Overlay - 快速 MSIX 打包" -ForegroundColor Cyan
 Write-Host " 配置: $Configuration | 平台: $Platform | 自动安装: $(if ($Install) { '是' } else { '否' })" -ForegroundColor Cyan
 Write-Host "==========================================================" -ForegroundColor Cyan
 
@@ -190,7 +354,7 @@ if (-not $resolvedFfmpegRoot.StartsWith($resolvedServiceRoot, [StringComparison]
     throw "拒绝清理服务目录之外的 FFmpeg 路径: $resolvedFfmpegRoot"
 }
 if (Test-Path -LiteralPath $resolvedFfmpegRoot) { Remove-Item -LiteralPath $resolvedFfmpegRoot -Recurse -Force }
-& (Join-Path $Root 'Build-FFmpegDependency.ps1') -Destination $PackagedFfmpegRoot
+Copy-FfmpegDependency $PackagedFfmpegRoot
 if (-not (Test-Path -LiteralPath (Join-Path $PackagedFfmpegRoot 'ffmpeg.exe'))) { throw "FFmpeg 依赖准备失败" }
 Write-Host "  已准备精简分发的 LGPL FFmpeg（仅 ffmpeg.exe）。" -ForegroundColor DarkGray
 
@@ -215,6 +379,15 @@ $MsBuildArgs = @(
     "/t:Build",
     "/verbosity:minimal"
 )
+if ($DisableSigning) {
+    $MsBuildArgs += '/p:AppxPackageSigningEnabled=false'
+}
+else {
+    $MsBuildArgs += '/p:AppxPackageSigningEnabled=true'
+    $MsBuildArgs += "/p:PackageCertificateKeyFile=$CertificatePfxPath"
+    $MsBuildArgs += "/p:PackageCertificatePassword=$CertificatePassword"
+    $MsBuildArgs += "/p:PackageCertificateThumbprint=$CertificateThumbprint"
+}
 
 & $MsBuildPath @MsBuildArgs
 if ($LASTEXITCODE -ne 0) {
@@ -314,18 +487,7 @@ finally {
 
 # 4. 签名与证书输出
 Write-Host "`n[3/4] 对 MSIX Bundle 执行 Authenticode 数字签名..." -ForegroundColor Yellow
-if (-not $DisableSigning -and $SignToolPath -and (Test-Path $CertificatePfxPath)) {
-    $signingCertificate = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new(
-        $CertificatePfxPath,
-        $CertificatePassword)
-    $thumbprintMatches = -not $CertificateThumbprint -or [string]::Equals(
-        $signingCertificate.Thumbprint,
-        $CertificateThumbprint,
-        [System.StringComparison]::OrdinalIgnoreCase)
-    if (-not $thumbprintMatches) {
-        throw "PFX 证书指纹与请求的签名证书不一致。"
-    }
-
+if (-not $DisableSigning -and $SignToolPath) {
     & $SignToolPath sign /fd SHA256 /f $CertificatePfxPath /p $CertificatePassword $FinalPackagePath
     if ($LASTEXITCODE -ne 0) {
         throw "SignTool 签名失败 (ExitCode: $LASTEXITCODE)"
@@ -335,10 +497,10 @@ elseif ($DisableSigning) {
     Write-Host "  已按参数禁用额外签名。" -ForegroundColor DarkGray
 }
 else {
-    Write-Warning "未找到 signtool 或证书文件，跳过额外显式重签名。"
+    throw '未找到 signtool，无法生成可安装的签名 MSIX Bundle。'
 }
 
-$FinalCerPath = Join-Path $OutputDir "KillConfirmGameBar_TemporaryKey.cer"
+$FinalCerPath = Join-Path $OutputDir "KillConfirmGameBar_SigningCertificate.cer"
 if ($CertificateCerPath -and (Test-Path $CertificateCerPath)) {
     Copy-Item -LiteralPath $CertificateCerPath -Destination $FinalCerPath -Force
 }
@@ -352,7 +514,9 @@ $packageSizeMb = [math]::Round((Get-Item $FinalPackagePath).Length / 1MB, 2)
 Write-Host "`n[4/4] 打包完成！" -ForegroundColor Green
 Write-Host "  产物目录: $OutputDir" -ForegroundColor White
 Write-Host "  MSIX Bundle 安装包: $FinalPackagePath ($packageSizeMb MB)" -ForegroundColor Green
-Write-Host "  签名证书: $FinalCerPath" -ForegroundColor White
+if (-not $DisableSigning) {
+    Write-Host "  签名证书: $FinalCerPath" -ForegroundColor White
+}
 
 # 5. 本地一键安装
 if ($Install) {
@@ -446,5 +610,5 @@ if ($Install) {
 }
 else {
     Write-Host "`n提示: 若要一键打包并直接安装到本机，可带 -Install 参数运行:" -ForegroundColor Cyan
-    Write-Host "  .\Build-DevPackage.ps1 -Install`n" -ForegroundColor White
+    Write-Host "  .\Build-QuickPackage.ps1 -Install`n" -ForegroundColor White
 }

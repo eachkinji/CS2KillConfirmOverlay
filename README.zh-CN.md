@@ -133,23 +133,25 @@ C:\Program Files (x86)\Steam\steamapps\common\Counter-Strike Global Offensive\ga
 
 源码构建需要 Rust 工具链、安装了 Windows/UWP/MSIX 工具的 Visual Studio 或 Visual Studio Build Tools；如需生成 `.exe` 安装器，还需要 Inno Setup 6。
 
-在仓库根目录运行：
+快速生成用于本地测试的 MSIX Bundle：
 
 ```powershell
-.\Build-IntegratedPackage.ps1
+.\Build-QuickPackage.ps1
 ```
 
-创建可转移安装包：
+快速打包并安装到本机：
 
 ```powershell
-.\Build-TransferPackage.ps1
+.\Build-QuickPackage.ps1 -Install
 ```
 
-创建安装器：
+生成完整发布安装包：
 
 ```powershell
-.\Build-Installer.ps1
+.\Build-FullPackage.ps1
 ```
+
+本地构建会在 `.local/signing/` 下创建仅供当前机器使用的开发证书，该目录不会提交到 Git；正式发布使用 CI Secret 提供的签名证书。
 
 ## 项目结构
 

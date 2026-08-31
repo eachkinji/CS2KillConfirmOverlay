@@ -436,7 +436,7 @@ foreach ($file in $dataFiles) {
 $index = [ordered]@{
     format_version = 2
     generated_at_utc = [DateTime]::UtcNow.ToString('o')
-    source_root = $SourceRoot
+    source = 'FModel KillBanner_Readable_Complete export'
     package_count = $results.Count * 2
     association_count = $results.Count
     packages = $results

@@ -8,13 +8,14 @@
 
     <Border
         x:Name="OptionsCard"
-        Padding="12"
-        Background="#08000000"
-        BorderBrush="#18000000"
+        Margin="0,0,0,8"
+        Padding="14,10"
+        Background="#18181B"
+        BorderBrush="#33FFFFFF"
         BorderThickness="1"
-        CornerRadius="10">
+        CornerRadius="8">
         <StackPanel Spacing="10">
-            <!-- Header with Title and Test Button -->
+            <!-- Header & Test Buttons -->
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -26,26 +27,71 @@
                         x:Name="PanelTitle"
                         FontSize="13"
                         FontWeight="SemiBold"
-                        Text="6657 击杀弹幕个性化设置" />
+                        Text="6657 击杀/阵亡双场景弹幕设置" />
                     <TextBlock
                         x:Name="PanelSubtitle"
                         FontSize="10"
                         Foreground="#888888"
-                        Text="可自定义弹幕数量、飞行时间、显示区域、字号粗细与背景底框" />
+                        Text="击杀触发夸赞/质疑/外挂梗，阵亡触发买菜/下饭/菜就多练" />
                 </StackPanel>
 
-                <Button
-                    x:Name="TestButton"
-                    Grid.Column="1"
-                    Padding="12,4"
-                    FontSize="11"
-                    FontWeight="SemiBold"
-                    Content="测试弹幕"
-                    Click="OnTestClick"
-                    ToolTipService.ToolTip="立即按照当前设置发射弹幕" />
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                    <Button
+                        x:Name="KillTestButton"
+                        Padding="10,4"
+                        FontSize="11"
+                        FontWeight="SemiBold"
+                        Content="💥 测试击杀弹幕"
+                        Click="OnKillTestClick"
+                        ToolTipService.ToolTip="测试击杀触发的夸赞/问号/外挂梗弹幕" />
+                    <Button
+                        x:Name="DeathTestButton"
+                        Padding="10,4"
+                        FontSize="11"
+                        FontWeight="SemiBold"
+                        Content="🥬 测试阵亡弹幕"
+                        Click="OnDeathTestClick"
+                        ToolTipService.ToolTip="测试阵亡触发的买菜/下饭/菜就多练弹幕" />
+                </StackPanel>
             </Grid>
 
-            <!-- Row 1: Count & Duration -->
+            <!-- Row 1: Scenarios Toggles -->
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Spacing="3">
+                    <TextBlock
+                        x:Name="TriggerOnKillLabel"
+                        FontSize="11"
+                        FontWeight="SemiBold"
+                        Text="击杀时触发高光弹幕" />
+                    <ToggleSwitch
+                        x:Name="TriggerOnKillToggle"
+                        MinWidth="0"
+                        OffContent="关闭"
+                        OnContent="开启 (问号/TOP1/外挂梗)"
+                        Toggled="OnTriggerOnKillToggled" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Spacing="3">
+                    <TextBlock
+                        x:Name="TriggerOnDeathLabel"
+                        FontSize="11"
+                        FontWeight="SemiBold"
+                        Text="阵亡时触发买菜弹幕" />
+                    <ToggleSwitch
+                        x:Name="TriggerOnDeathToggle"
+                        MinWidth="0"
+                        OffContent="关闭"
+                        OnContent="开启 (买菜/下饭/菜就多练)"
+                        Toggled="OnTriggerOnDeathToggled" />
+                </StackPanel>
+            </Grid>
+
+            <!-- Row 2: Count & Duration -->
             <Grid ColumnSpacing="12">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -57,7 +103,7 @@
                         x:Name="CountLabel"
                         FontSize="11"
                         FontWeight="SemiBold"
-                        Text="弹幕数量" />
+                        Text="单次弹幕数量" />
                     <ComboBox
                         x:Name="CountSelector"
                         HorizontalAlignment="Stretch"
@@ -90,7 +136,7 @@
                 </StackPanel>
             </Grid>
 
-            <!-- Row 2: Display Area & Speed -->
+            <!-- Row 3: Display Area & Speed -->
             <Grid ColumnSpacing="12">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -132,7 +178,7 @@
                 </StackPanel>
             </Grid>
 
-            <!-- Row 3: Font Size & Font Weight & Outline & Background Toggle -->
+            <!-- Row 4: Font Size & Font Weight & Outline & Background Toggle -->
             <Grid ColumnSpacing="10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />

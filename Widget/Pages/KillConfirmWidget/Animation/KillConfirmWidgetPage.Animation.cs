@@ -160,20 +160,39 @@ namespace KillConfirmGameBar
 
             if (killEvent.IsCombatEvent && !killEvent.IsAssist && killEvent.KillCount > 0)
             {
-                TriggerDanmakuIfEnabled();
+                TriggerKillDanmakuIfEnabled();
+            }
+            else if (string.Equals(killEvent.EventKind, "player_death", StringComparison.OrdinalIgnoreCase))
+            {
+                TriggerDeathDanmakuIfEnabled();
             }
         }
 
-        private void TriggerDanmakuIfEnabled()
+        private void TriggerKillDanmakuIfEnabled()
         {
             if (DanmakuOverlayControl == null)
             {
                 return;
             }
 
-            if (KillConfirmGameBar.Danmaku.DanmakuSettingsStore.IsEnabled)
+            if (KillConfirmGameBar.Danmaku.DanmakuSettingsStore.IsEnabled && KillConfirmGameBar.Danmaku.DanmakuSettingsStore.TriggerOnKill)
             {
-                DanmakuOverlayControl.TriggerBarrage(
+                DanmakuOverlayControl.TriggerKillBarrage(
+                    KillConfirmGameBar.Danmaku.DanmakuSettingsStore.Count,
+                    KillConfirmGameBar.Danmaku.DanmakuSettingsStore.DurationSeconds);
+            }
+        }
+
+        private void TriggerDeathDanmakuIfEnabled()
+        {
+            if (DanmakuOverlayControl == null)
+            {
+                return;
+            }
+
+            if (KillConfirmGameBar.Danmaku.DanmakuSettingsStore.IsEnabled && KillConfirmGameBar.Danmaku.DanmakuSettingsStore.TriggerOnDeath)
+            {
+                DanmakuOverlayControl.TriggerDeathBarrage(
                     KillConfirmGameBar.Danmaku.DanmakuSettingsStore.Count,
                     KillConfirmGameBar.Danmaku.DanmakuSettingsStore.DurationSeconds);
             }

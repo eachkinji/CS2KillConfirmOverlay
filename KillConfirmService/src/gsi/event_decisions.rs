@@ -435,6 +435,35 @@
         }
     }
 
+    if is_initialized
+        && death_reset
+        && observed_player_is_local
+        && matches!(current_round_phase, Some(TrackedRoundPhase::Live))
+        && kill_event_to_send.is_none()
+    {
+        kill_event_to_send = Some(KillEvent {
+            event_channel: EventChannel::Combat,
+            kill_count: 0,
+            is_headshot: false,
+            is_knife_kill: false,
+            is_grenade_kill: false,
+            is_first_kill: false,
+            is_last_kill: false,
+            is_assist: false,
+            play_main_animation: false,
+            animation_key: None,
+            event_kind: Some("player_death".to_string()),
+            weapon_badge_key: None,
+            weapon_name: None,
+            money_reward: 0,
+            round_number: current_round,
+            money_epoch: current_money_epoch,
+            player_name: player_name.clone(),
+            target_name: None,
+            steamid: steamid.to_string(),
+        });
+    }
+
     if !can_emit_kill {
         pending_last_kill_for_next =
             advance_pending_last_kill_frame(pending_last_kill_for_next);

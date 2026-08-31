@@ -31,6 +31,8 @@ namespace KillConfirmGameBar.Danmaku
     public static class DanmakuSettingsStore
     {
         public const string EnabledSettingKey = "Danmaku6657Enabled";
+        public const string TriggerOnKillSettingKey = "Danmaku6657TriggerOnKill";
+        public const string TriggerOnDeathSettingKey = "Danmaku6657TriggerOnDeath";
         public const string CountSettingKey = "Danmaku6657Count";
         public const string DurationSettingKey = "Danmaku6657DurationSeconds";
         public const string AreaSettingKey = "Danmaku6657Area";
@@ -47,6 +49,8 @@ namespace KillConfirmGameBar.Danmaku
         public static event Action<bool> EnabledChanged;
         public static event Action SettingsChanged;
         public static event Action TestRequested;
+        public static event Action KillTestRequested;
+        public static event Action DeathTestRequested;
 
         public static bool IsEnabled
         {
@@ -64,6 +68,42 @@ namespace KillConfirmGameBar.Danmaku
                     EnabledChanged?.Invoke(value);
                     SettingsChanged?.Invoke();
                 }
+            }
+        }
+
+        public static bool TriggerOnKill
+        {
+            get
+            {
+                object value = ApplicationData.Current.LocalSettings.Values[TriggerOnKillSettingKey];
+                if (value is bool b)
+                {
+                    return b;
+                }
+                return true; // 默认击杀触发
+            }
+            set
+            {
+                ApplicationData.Current.LocalSettings.Values[TriggerOnKillSettingKey] = value;
+                SettingsChanged?.Invoke();
+            }
+        }
+
+        public static bool TriggerOnDeath
+        {
+            get
+            {
+                object value = ApplicationData.Current.LocalSettings.Values[TriggerOnDeathSettingKey];
+                if (value is bool b)
+                {
+                    return b;
+                }
+                return true; // 默认阵亡触发
+            }
+            set
+            {
+                ApplicationData.Current.LocalSettings.Values[TriggerOnDeathSettingKey] = value;
+                SettingsChanged?.Invoke();
             }
         }
 
@@ -234,6 +274,16 @@ namespace KillConfirmGameBar.Danmaku
         public static void RequestTest()
         {
             TestRequested?.Invoke();
+        }
+
+        public static void RequestKillTest()
+        {
+            KillTestRequested?.Invoke();
+        }
+
+        public static void RequestDeathTest()
+        {
+            DeathTestRequested?.Invoke();
         }
     }
 }

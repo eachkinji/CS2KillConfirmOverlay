@@ -66,11 +66,17 @@ namespace KillConfirmGameBar.Danmaku
             _ = DanmakuRepository.EnsureLoadedAsync();
             DanmakuSettingsStore.TestRequested -= OnTestRequested;
             DanmakuSettingsStore.TestRequested += OnTestRequested;
+            DanmakuSettingsStore.KillTestRequested -= OnKillTestRequested;
+            DanmakuSettingsStore.KillTestRequested += OnKillTestRequested;
+            DanmakuSettingsStore.DeathTestRequested -= OnDeathTestRequested;
+            DanmakuSettingsStore.DeathTestRequested += OnDeathTestRequested;
         }
 
         private void OnUnloaded(object sender, RoutedEventArgs e)
         {
             DanmakuSettingsStore.TestRequested -= OnTestRequested;
+            DanmakuSettingsStore.KillTestRequested -= OnKillTestRequested;
+            DanmakuSettingsStore.DeathTestRequested -= OnDeathTestRequested;
             StopRendering();
             lock (_activeList)
             {
@@ -86,12 +92,47 @@ namespace KillConfirmGameBar.Danmaku
 
         private void OnTestRequested()
         {
-            TriggerBarrage();
+            TriggerKillBarrage();
+        }
+
+        private void OnKillTestRequested()
+        {
+            TriggerKillBarrage();
+        }
+
+        private void OnDeathTestRequested()
+        {
+            TriggerDeathBarrage();
+        }
+
+        public void TriggerKillBarrage(int? customCount = null, double? customDurationSeconds = null)
+        {
+            int count = customCount ?? DanmakuSettingsStore.Count;
+            IReadOnlyList<string> items = DanmakuRepository.GetRandomKillBatch(count);
+            TriggerBarrageInternal(items, customDurationSeconds);
+        }
+
+        public void TriggerDeathBarrage(int? customCount = null, double? customDurationSeconds = null)
+        {
+            int count = customCount ?? DanmakuSettingsStore.Count;
+            IReadOnlyList<string> items = DanmakuRepository.GetRandomDeathBatch(count);
+            TriggerBarrageInternal(items, customDurationSeconds);
         }
 
         public void TriggerBarrage(int? customCount = null, double? customDurationSeconds = null)
         {
             int count = customCount ?? DanmakuSettingsStore.Count;
+            IReadOnlyList<string> items = DanmakuRepository.GetRandomBatch(count);
+            TriggerBarrageInternal(items, customDurationSeconds);
+        }
+
+        private void TriggerBarrageInternal(IReadOnlyList<string> items, double? customDurationSeconds = null)
+        {
+            if (items == null || items.Count == 0)
+            {
+                return;
+            }
+
             double totalDurationSeconds = customDurationSeconds ?? DanmakuSettingsStore.DurationSeconds;
             DanmakuDisplayArea area = DanmakuSettingsStore.Area;
             int fontSize = DanmakuSettingsStore.FontSize;
@@ -102,12 +143,6 @@ namespace KillConfirmGameBar.Danmaku
 
             double canvasWidth = ActualWidth > 50 ? ActualWidth : (Window.Current?.Bounds.Width ?? 1920);
             double canvasHeight = ActualHeight > 50 ? ActualHeight : (Window.Current?.Bounds.Height ?? 1080);
-
-            IReadOnlyList<string> items = DanmakuRepository.GetRandomBatch(count);
-            if (items == null || items.Count == 0)
-            {
-                return;
-            }
 
             // Update format cache
             if (_cachedTextFormat == null || _cachedFontSize != fontSize || _cachedFontWeight.Weight != fontWeight.Weight)
@@ -229,7 +264,7 @@ namespace KillConfirmGameBar.Danmaku
                     var p = _pendingList[0];
                     _pendingList.RemoveAt(0);
 
-                    // Estimate/measure width: ~ fontSize * 0.85 per character
+                    // Estimate/measure width: ~ fontSize * 0.95 per character
                     float estimatedWidth = Math.Max(40, p.Text.Length * (_cachedFontSize * 0.95f));
 
                     lock (_activeList)

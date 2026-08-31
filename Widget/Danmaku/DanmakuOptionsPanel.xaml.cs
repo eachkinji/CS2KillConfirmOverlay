@@ -1,14 +1,14 @@
 using System;
-using KillConfirmGameBar.Services;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
+using KillConfirmGameBar.Services;
 
 namespace KillConfirmGameBar.Danmaku
 {
     public sealed partial class DanmakuOptionsPanel : UserControl
     {
-        private bool _suppressEvents;
+        private bool _suppressEvents = false;
 
         public DanmakuOptionsPanel()
         {
@@ -18,14 +18,23 @@ namespace KillConfirmGameBar.Danmaku
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
-            RefreshSettings();
+            SyncFromStore();
         }
 
         public void RefreshSettings()
         {
+            SyncFromStore();
+        }
+
+        private void SyncFromStore()
+        {
             _suppressEvents = true;
             try
             {
+                // Scenarios
+                TriggerOnKillToggle.IsOn = DanmakuSettingsStore.TriggerOnKill;
+                TriggerOnDeathToggle.IsOn = DanmakuSettingsStore.TriggerOnDeath;
+
                 // Count
                 int count = DanmakuSettingsStore.Count;
                 SelectComboItemByTag(CountSelector, count.ToString());
@@ -75,6 +84,18 @@ namespace KillConfirmGameBar.Danmaku
             {
                 comboBox.SelectedIndex = 0;
             }
+        }
+
+        private void OnTriggerOnKillToggled(object sender, RoutedEventArgs e)
+        {
+            if (_suppressEvents) return;
+            DanmakuSettingsStore.TriggerOnKill = TriggerOnKillToggle.IsOn;
+        }
+
+        private void OnTriggerOnDeathToggled(object sender, RoutedEventArgs e)
+        {
+            if (_suppressEvents) return;
+            DanmakuSettingsStore.TriggerOnDeath = TriggerOnDeathToggle.IsOn;
         }
 
         private void OnCountSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -143,9 +164,14 @@ namespace KillConfirmGameBar.Danmaku
             DanmakuSettingsStore.ShowOutline = OutlineToggle.IsOn;
         }
 
-        private void OnTestClick(object sender, RoutedEventArgs e)
+        private void OnKillTestClick(object sender, RoutedEventArgs e)
         {
-            DanmakuSettingsStore.RequestTest();
+            DanmakuSettingsStore.RequestKillTest();
+        }
+
+        private void OnDeathTestClick(object sender, RoutedEventArgs e)
+        {
+            DanmakuSettingsStore.RequestDeathTest();
         }
 
         internal void ApplyTheme(GameThemePalette theme)
@@ -155,6 +181,8 @@ namespace KillConfirmGameBar.Danmaku
             OptionsCard.BorderBrush = new SolidColorBrush(theme.SoftBorder);
             PanelTitle.Foreground = new SolidColorBrush(theme.Text);
             PanelSubtitle.Foreground = new SolidColorBrush(theme.MutedText);
+            TriggerOnKillLabel.Foreground = new SolidColorBrush(theme.Text);
+            TriggerOnDeathLabel.Foreground = new SolidColorBrush(theme.Text);
             CountLabel.Foreground = new SolidColorBrush(theme.Text);
             DurationLabel.Foreground = new SolidColorBrush(theme.Text);
             AreaLabel.Foreground = new SolidColorBrush(theme.Text);

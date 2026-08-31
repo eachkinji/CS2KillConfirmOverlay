@@ -78,6 +78,10 @@ namespace KillConfirmGameBar
         };
         private static readonly string[] IconPackHeadImageNames =
         {
+            "pack_head.png",
+            "pack_head.jpg",
+            "pack_head.jpeg",
+            "pack_head.webp",
             "badge_headshot.png",
             "badgeex\\badge_headshot.png"
         };
@@ -402,6 +406,20 @@ namespace KillConfirmGameBar
                 SyncWidgetPresentationState();
             }
 
+            try
+            {
+                var display = Windows.Graphics.Display.DisplayInformation.GetForCurrentView();
+                display.DpiChanged -= OnDisplayChanged;
+                display.DpiChanged += OnDisplayChanged;
+                display.OrientationChanged -= OnDisplayChanged;
+                display.OrientationChanged += OnDisplayChanged;
+                Windows.Graphics.Display.DisplayInformation.DisplayContentsInvalidated -= OnDisplayContentsInvalidated;
+                Windows.Graphics.Display.DisplayInformation.DisplayContentsInvalidated += OnDisplayContentsInvalidated;
+            }
+            catch (Exception)
+            {
+            }
+
             LoadVisualAdjustmentSettings();
             LoadMoneyRewardModeSettings();
             LoadAnimationPlacementSettings();
@@ -416,9 +434,44 @@ namespace KillConfirmGameBar
             base.OnNavigatedTo(e);
         }
 
+        private void OnDisplayContentsInvalidated(object sender, object args)
+        {
+            OnDisplayChanged(null, args);
+        }
+
+        private async void OnDisplayChanged(Windows.Graphics.Display.DisplayInformation sender, object args)
+        {
+            if (!_isPageActive)
+            {
+                return;
+            }
+
+            try
+            {
+                await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+                {
+                    if (!_isPageActive) return;
+                    UpdateAnimationDragOutlineSize();
+                });
+            }
+            catch (Exception)
+            {
+            }
+        }
+
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
             _isPageActive = false;
+            try
+            {
+                var display = Windows.Graphics.Display.DisplayInformation.GetForCurrentView();
+                display.DpiChanged -= OnDisplayChanged;
+                display.OrientationChanged -= OnDisplayChanged;
+                Windows.Graphics.Display.DisplayInformation.DisplayContentsInvalidated -= OnDisplayContentsInvalidated;
+            }
+            catch (Exception)
+            {
+            }
             GameStyleService.Changed -= OnGameStyleServiceChanged;
             PackCatalogService.CatalogChanged -= OnPackCatalogChanged;
             _animationPreloadToken++;

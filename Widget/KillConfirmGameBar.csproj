@@ -18,12 +18,10 @@
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{A5A43C5B-DE2A-4C0C-9213-0A381AF9435A};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WindowsXamlEnableOverview>true</WindowsXamlEnableOverview>
-    <AppxPackageSigningEnabled Condition="'$(AppxPackageSigningEnabled)' == ''">false</AppxPackageSigningEnabled>
+    <AppxPackageSigningEnabled>true</AppxPackageSigningEnabled>
+    <PackageCertificateKeyFile>..\..\cer\TestXboxGameBar\TestXboxGameBar-CodeSigning.pfx</PackageCertificateKeyFile>
+    <PackageCertificatePassword>nPkhFb/cMGyREJM1kMD/TeD9QRvtaYvw6ZNq+Gp8QhPIckCE</PackageCertificatePassword>
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(GenerateAppxPackageOnBuild)' == 'false'">
-    <AppxPackageSigningEnabled>false</AppxPackageSigningEnabled>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
@@ -103,6 +101,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Danmaku\DanmakuRepository.cs" />
+    <Compile Include="Danmaku\DanmakuSettingsStore.cs" />
+    <Compile Include="Danmaku\DanmakuOverlay.xaml.cs">
+      <DependentUpon>DanmakuOverlay.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Danmaku\DanmakuOptionsPanel.xaml.cs">
+      <DependentUpon>DanmakuOptionsPanel.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Services\CustomModule\CustomSequenceFormat.cs" />
     <Compile Include="Services\CustomModule\CustomSequencePackService.cs" />
     <Compile Include="Services\CustomModule\CustomSequencePackService.Editing.cs" />
@@ -484,6 +490,7 @@
     <Compile Include="Services\Settings\Games\DoubaoSettingsStore.cs" />
     <Compile Include="Helpers\ProcessPriorityBoost.cs" />
     <Compile Include="Helpers\TgaDecoder.cs" />
+    <Compile Include="Helpers\AudioSlotAliases.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
 
@@ -530,6 +537,9 @@
     </Content>
     <Content Include="GameBar\Square44x44Logo.png" />
     <Content Include="KillConfirmService\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Danmaku\6657_memes.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
@@ -744,6 +754,14 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Controls\Overlays\Update\UpdateOverlayView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Danmaku\DanmakuOverlay.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Danmaku\DanmakuOptionsPanel.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

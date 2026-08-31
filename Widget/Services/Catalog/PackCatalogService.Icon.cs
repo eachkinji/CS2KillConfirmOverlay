@@ -44,7 +44,7 @@ namespace KillConfirmGameBar.Services
         public static async Task<IReadOnlyList<IconPackItem>> GetAllIconPacksAsync()
         {
             var catalog = await LoadAsync();
-            return catalog.IconPacks;
+            return catalog.IconPacks.ToList();
         }
 
         public static async Task<IconPackItem> GetIconPackAsync(string key)

@@ -89,9 +89,23 @@ namespace KillConfirmGameBar
 
             if (GameStyleService.Current == GameStyleMode.Valorant)
             {
-                await ImportValorantPackageFromFolderAsync(
+                if (await ValorantExternalAssetService.IsPackageKindAsync(
                     folder,
-                    ValorantExternalAssetService.VoicePackageKind);
+                    ValorantExternalAssetService.VoicePackageKind))
+                {
+                    await ImportValorantPackageFromFolderAsync(
+                        folder,
+                        ValorantExternalAssetService.VoicePackageKind);
+                }
+                else
+                {
+                    await ShowCreateValorantVoicePackDialogAsync(
+                        folder.DisplayName,
+                        await CollectVoiceFileGroupsFromManifestAsync(
+                            folder,
+                            PackCatalogService.ValorantVoiceSlotMapping),
+                        await TryGetCustomPackHeadImageAsync(folder.Path));
+                }
                 return;
             }
 
@@ -155,6 +169,11 @@ namespace KillConfirmGameBar
         }
 
         private async void OnImportVoiceZipClick(object sender, RoutedEventArgs e)
+        {
+            await ImportVoiceZipForCurrentStyleAsync();
+        }
+
+        private async Task ImportVoiceZipForCurrentStyleAsync()
         {
             if (GameStyleService.Current == GameStyleMode.Valorant)
             {
@@ -370,6 +389,11 @@ namespace KillConfirmGameBar
         }
 
         private async void OnImportIconZipClick(object sender, RoutedEventArgs e)
+        {
+            await ImportIconZipForCurrentStyleAsync();
+        }
+
+        private async Task ImportIconZipForCurrentStyleAsync()
         {
             if (GameStyleService.Current == GameStyleMode.CustomModule) { await ImportCustomModuleAsync(true); return; }
             if (GameStyleService.Current == GameStyleMode.Valorant)

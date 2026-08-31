@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use super::manifest::{PackManifest, VALORANT_DEFAULT_PRESET};
+use super::manifest::{default_valorant_sounds_dir, PackManifest};
 
 /// Preset holds a declarative PackManifest describing a sound pack's materials.
 pub struct Preset {
@@ -35,7 +35,9 @@ impl Preset {
 
         // Load manifest.json if present; otherwise auto-discover one from the
         // pack's audio files. (Legacy sound.lua scripts have been retired.)
-        let manifest = PackManifest::load_from_dir(&pack_dir)?;
+        let mut manifest = PackManifest::load_from_dir(&pack_dir)?;
+        let default_sounds = default_valorant_sounds_dir(sounds_root);
+        manifest.fill_valorant_audio_defaults(&default_sounds)?;
 
         Ok(Self {
             manifest: Some(manifest),
@@ -52,7 +54,8 @@ impl Preset {
         let base_dir = folder_path.replace('\\', "/");
 
         let mut manifest = PackManifest::load_from_dir(pack_dir)?;
-        manifest.fill_valorant_audio_defaults(&sounds_root().join(VALORANT_DEFAULT_PRESET))?;
+        let default_sounds = default_valorant_sounds_dir(&sounds_root());
+        manifest.fill_valorant_audio_defaults(&default_sounds)?;
 
         Ok(Self {
             manifest: Some(manifest),

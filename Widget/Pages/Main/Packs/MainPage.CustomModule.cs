@@ -410,8 +410,12 @@ namespace KillConfirmGameBar
                 Func<IProgress<string>, ICollection<string>, Task<IconPackItem>> import;
                 if (zip)
                 {
-                    var picker = new FileOpenPicker(); picker.FileTypeFilter.Add(".zip");
-                    StorageFile file = await picker.PickSingleFileAsync();
+                    StorageFile file = _providedPackZipFile;
+                    if (file == null)
+                    {
+                        var picker = new FileOpenPicker(); picker.FileTypeFilter.Add(".zip");
+                        file = await picker.PickSingleFileAsync();
+                    }
                     if (file == null) return;
                     import = (progress, warnings) => CustomSequencePackService.ImportZipAsync(file, progress, warnings);
                 }
@@ -477,7 +481,40 @@ namespace KillConfirmGameBar
                     file => headImageFile = file,
                     () => headImageFile = null,
                     allowTga: false));
-                var status = new TextBlock { Text = string.Join("\n", notes), TextWrapping = TextWrapping.Wrap, FontSize = 12 };
+                var status = new TextBlock
+                {
+                    Text = string.Join("\n", notes),
+                    TextWrapping = TextWrapping.Wrap,
+                    FontSize = 12,
+                    Foreground = new SolidColorBrush(Color.FromArgb(255, 86, 91, 104))
+                };
+                var statusCard = new Border
+                {
+                    Padding = new Thickness(10, 8, 10, 8),
+                    CornerRadius = new CornerRadius(10),
+                    Background = new SolidColorBrush(Color.FromArgb(255, 245, 247, 250)),
+                    BorderBrush = new SolidColorBrush(Color.FromArgb(255, 220, 224, 232)),
+                    BorderThickness = new Thickness(1),
+                    Child = status,
+                    Visibility = string.IsNullOrWhiteSpace(status.Text) ? Visibility.Collapsed : Visibility.Visible
+                };
+                void SetStatus(string message, bool isError = false)
+                {
+                    status.Text = message ?? string.Empty;
+                    status.Foreground = new SolidColorBrush(isError
+                        ? Color.FromArgb(255, 157, 38, 28)
+                        : Color.FromArgb(255, 86, 91, 104));
+                    statusCard.Background = new SolidColorBrush(isError
+                        ? Color.FromArgb(255, 255, 238, 235)
+                        : Color.FromArgb(255, 245, 247, 250));
+                    statusCard.BorderBrush = new SolidColorBrush(isError
+                        ? Color.FromArgb(255, 224, 128, 118)
+                        : Color.FromArgb(255, 220, 224, 232));
+                    statusCard.Visibility = string.IsNullOrWhiteSpace(status.Text)
+                        ? Visibility.Collapsed
+                        : Visibility.Visible;
+                }
+                layout.Children.Add(statusCard);
                 var rows = new List<CustomSequenceRow>();
                 var slots = new StackPanel { Spacing = 12 };
                 var slotHost = new ContentControl { Content = slots, HorizontalContentAlignment = HorizontalAlignment.Stretch };
@@ -584,7 +621,7 @@ namespace KillConfirmGameBar
                             try
                             {
                                 var input = await pick();
-                                if (input != null) { row.Input = input; await RefreshRowAsync(); status.Text = ""; }
+                                if (input != null) { row.Input = input; await RefreshRowAsync(); SetStatus(""); }
                             }
                             catch (Exception ex)
                             {
@@ -601,7 +638,7 @@ namespace KillConfirmGameBar
                                     message += " (0x"
                                         + ex.HResult.ToString("X8", CultureInfo.InvariantCulture) + ")";
                                 }
-                                status.Text = message;
+                                SetStatus(message, true);
                             }
                             finally { SetBusy(false); }
                         }
@@ -620,7 +657,7 @@ namespace KillConfirmGameBar
                             {
                                 var video = await PickCustomModuleVideoAsync(chinese);
                                 if (video == null) return null;
-                                status.Text = chinese ? "正在读取视频并生成预览…" : "Reading video and preparing preview…";
+                                SetStatus(chinese ? "正在读取视频并生成预览…" : "Reading video and preparing preview…");
                                 return await ShowCustomVideoClipEditorAsync(slot, video, chinese);
                             }
                             var picker = new FileOpenPicker();
@@ -655,7 +692,6 @@ namespace KillConfirmGameBar
                 void UpdateHeadshots() => headshotSlots.Visibility = showHeadshots.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
                 showHeadshots.Checked += (s, e) => UpdateHeadshots(); showHeadshots.Unchecked += (s, e) => UpdateHeadshots(); UpdateHeadshots();
                 layout.Children.Add(new ScrollViewer { Content = slotHost, MaxHeight = 470, VerticalScrollBarVisibility = ScrollBarVisibility.Auto });
-                layout.Children.Add(status);
                 dialog.Closing += (s, e) => { if (busy) e.Cancel = true; };
                 dialog.PrimaryButtonClick += async (s, e) =>
                 {
@@ -684,11 +720,16 @@ namespace KillConfirmGameBar
                         notes.Clear();
                         await CustomSequencePackService.SavePackAsync(name.Text, rows.Where(r => r.Input != null).Select(r => r.Input),
                             original, existing != null && !existing.IsBuiltIn ? key : null,
-                            new Progress<string>(text => status.Text = text), notes,
+                            new Progress<string>(text => SetStatus(text)), notes,
                             headImageFile: headImageFile,
                             preserveOriginalHeadImage: false);
                     }
-                    catch (Exception ex) { e.Cancel = true; status.Text = ex.Message; }
+                    catch (Exception ex)
+                    {
+                        e.Cancel = true;
+                        App.Log("Custom module pack save failed: " + ex);
+                        SetStatus(ex.Message, true);
+                    }
                     finally { SetBusy(false); deferral.Complete(); }
                 };
                 var result = await dialog.ShowAsync();

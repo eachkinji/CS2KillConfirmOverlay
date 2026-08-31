@@ -105,3 +105,235 @@
         assert!((sounds[0].gain - 1.0).abs() < f32::EPSILON);
         assert!((sounds[1].gain - 0.3).abs() < f32::EPSILON);
     }
+
+    struct TestTempDir(PathBuf);
+    impl TestTempDir {
+        fn new(name: &str) -> Self {
+            let unique = format!(
+                "kc_test_{}_{}_{:?}",
+                name,
+                std::process::id(),
+                std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap()
+                    .as_nanos()
+            );
+            let path = std::env::temp_dir().join(unique);
+            std::fs::create_dir_all(&path).expect("create test temp dir");
+            Self(path)
+        }
+        fn path(&self) -> &Path {
+            &self.0
+        }
+    }
+    impl Drop for TestTempDir {
+        fn drop(&mut self) {
+            let _ = std::fs::remove_dir_all(&self.0);
+        }
+    }
+
+    #[test]
+    fn valorant_imported_external_pack_routes_all_kill_audio_and_transitions() {
+        use crate::soundpack::manifest::PackManifest;
+        use crate::soundpack::SoundContext;
+        use crate::state::EventChannel;
+        use std::collections::HashMap;
+        use std::fs;
+
+        let temp_dir = TestTempDir::new("valorant_test_pack");
+        let pack_path = temp_dir.path();
+
+        // Create Format V2 manifest (with empty slots like real external voice packs)
+        let manifest_content = r#"{
+            "format_version": 2,
+            "package_kind": "valorant_voice",
+            "id": "valorant_voice_test",
+            "association_id": "valorant:test",
+            "display_name": "Test Valorant Pack",
+            "game_style": "valorant",
+            "version": "2.0",
+            "audio": {
+                "base_gain": 1.0,
+                "slots": {
+                    "headshot": []
+                },
+                "slot_gains": {
+                    "appear": 0.3,
+                    "transition": 0.3
+                },
+                "overlay_slots": [
+                    "kill_1",
+                    "kill_2",
+                    "kill_3",
+                    "kill_4",
+                    "kill_5"
+                ]
+            }
+        }"#;
+        fs::write(pack_path.join("manifest.json"), manifest_content).expect("write test manifest");
+
+        // Write dummy audio files
+        for filename in &[
+            "kill_1.wav",
+            "kill_2.wav",
+            "kill_3.wav",
+            "kill_4.wav",
+            "kill_5.wav",
+            "appear.wav",
+            "transition.wav",
+        ] {
+            fs::write(pack_path.join(filename), b"RIFFdummyWAVE").expect("write dummy audio");
+        }
+
+        let mut manifest = PackManifest::load_from_dir(pack_path).expect("load imported manifest");
+        let default_sounds = source_sound_pack("valorant", "valorant_00000_base");
+        manifest
+            .fill_valorant_audio_defaults(&default_sounds)
+            .expect("fill defaults");
+
+        let base_dir = pack_path.to_string_lossy().replace('\\', "/");
+        let make_ctx = |kill_count| SoundContext {
+            is_grenade_kill: false,
+            kill_count,
+            is_headshot: false,
+            is_first_kill: false,
+            is_knife_kill: false,
+            is_last_kill: false,
+            is_assist: false,
+            play_main_audio: true,
+            money_reward: 0,
+            event_kind: None,
+            event_channel: EventChannel::Combat,
+            preset_name: "valorant_voice_test".to_string(),
+            master_name: "valorant_voice_test".to_string(),
+            variant: None,
+            base_dir: base_dir.clone(),
+            voice_picks: HashMap::new(),
+            special_voice_priority: false,
+            headshot_priority: false,
+            knife_priority: false,
+            grenade_priority: true,
+        };
+
+        // Test "Play 1" (Kill 1): Must play custom kill_1.wav (gain 1.0) and appear.wav (gain 0.3)
+        let kill1 = manifest.resolve_audio(&make_ctx(1), &base_dir);
+        assert_eq!(kill1.len(), 2, "kill 1 must resolve main audio and appear overlay");
+        assert!(
+            kill1[0].path.ends_with("kill_1.wav"),
+            "kill 1 must use custom pack's kill_1.wav, got {}",
+            kill1[0].path
+        );
+        assert!((kill1[0].gain - 1.0).abs() < f32::EPSILON);
+        assert!(
+            kill1[1].path.ends_with("appear.wav"),
+            "kill 1 overlay must use custom pack's appear.wav, got {}",
+            kill1[1].path
+        );
+        assert!((kill1[1].gain - 0.3).abs() < f32::EPSILON);
+
+        // Test Kill 2: Must play custom kill_2.wav (gain 1.0) and transition.wav (gain 0.3)
+        let kill2 = manifest.resolve_audio(&make_ctx(2), &base_dir);
+        assert_eq!(kill2.len(), 2);
+        assert!(kill2[0].path.ends_with("kill_2.wav"), "{}", kill2[0].path);
+        assert!((kill2[0].gain - 1.0).abs() < f32::EPSILON);
+        assert!(kill2[1].path.ends_with("transition.wav"), "{}", kill2[1].path);
+        assert!((kill2[1].gain - 0.3).abs() < f32::EPSILON);
+
+        // Test Kill 3..5
+        for count in 3..=5 {
+            let kill_n = manifest.resolve_audio(&make_ctx(count), &base_dir);
+            assert_eq!(kill_n.len(), 2);
+            assert!(
+                kill_n[0].path.ends_with(&format!("kill_{count}.wav")),
+                "{}",
+                kill_n[0].path
+            );
+            assert!(kill_n[1].path.ends_with("transition.wav"), "{}", kill_n[1].path);
+        }
+    }
+
+    #[test]
+    fn valorant_imported_pack_falls_back_to_base_for_missing_kill_slots() {
+        use crate::soundpack::manifest::PackManifest;
+        use crate::soundpack::SoundContext;
+        use crate::state::EventChannel;
+        use std::collections::HashMap;
+        use std::fs;
+
+        let temp_dir = TestTempDir::new("valorant_partial");
+        let pack_path = temp_dir.path();
+
+        // Manifest missing kill_1.wav on disk (e.g. only kill_2..kill_5 provided)
+        let manifest_content = r#"{
+            "format_version": 2,
+            "package_kind": "valorant_voice",
+            "id": "valorant_voice_partial",
+            "association_id": "valorant:partial",
+            "display_name": "Partial Valorant Pack",
+            "game_style": "valorant",
+            "version": "2.0",
+            "audio": {
+                "base_gain": 1.0,
+                "slots": { "headshot": [] },
+                "slot_gains": { "appear": 0.3, "transition": 0.3 },
+                "overlay_slots": ["kill_1", "kill_2"]
+            }
+        }"#;
+        fs::write(pack_path.join("manifest.json"), manifest_content).expect("write manifest");
+
+        // Only kill_2.wav and appear.wav are provided
+        fs::write(pack_path.join("kill_2.wav"), b"RIFFdummyWAVE").expect("write kill_2");
+        fs::write(pack_path.join("appear.wav"), b"RIFFdummyWAVE").expect("write appear");
+
+        let mut manifest = PackManifest::load_from_dir(pack_path).expect("load manifest");
+        let default_sounds = source_sound_pack("valorant", "valorant_00000_base");
+        manifest
+            .fill_valorant_audio_defaults(&default_sounds)
+            .expect("fill defaults");
+
+        let base_dir = pack_path.to_string_lossy().replace('\\', "/");
+        let make_ctx = |kill_count| SoundContext {
+            is_grenade_kill: false,
+            kill_count,
+            is_headshot: false,
+            is_first_kill: false,
+            is_knife_kill: false,
+            is_last_kill: false,
+            is_assist: false,
+            play_main_audio: true,
+            money_reward: 0,
+            event_kind: None,
+            event_channel: EventChannel::Combat,
+            preset_name: "valorant_voice_partial".to_string(),
+            master_name: "valorant_voice_partial".to_string(),
+            variant: None,
+            base_dir: base_dir.clone(),
+            voice_picks: HashMap::new(),
+            special_voice_priority: false,
+            headshot_priority: false,
+            knife_priority: false,
+            grenade_priority: true,
+        };
+
+        // Kill 1: Should fall back to default Base 1.wav, but use custom appear.wav
+        let kill1 = manifest.resolve_audio(&make_ctx(1), &base_dir);
+        assert_eq!(kill1.len(), 2);
+        assert!(
+            kill1[0].path.ends_with("1.wav") && !kill1[0].path.ends_with("kill_1.wav"),
+            "fallback kill 1 must use base 1.wav, got {}",
+            kill1[0].path
+        );
+        assert!(
+            kill1[1].path.ends_with("appear.wav"),
+            "kill 1 overlay must use custom appear.wav, got {}",
+            kill1[1].path
+        );
+
+        // Kill 2: Should use custom kill_2.wav
+        let kill2 = manifest.resolve_audio(&make_ctx(2), &base_dir);
+        assert!(
+            kill2[0].path.ends_with("kill_2.wav"),
+            "kill 2 must use custom kill_2.wav, got {}",
+            kill2[0].path
+        );
+    }

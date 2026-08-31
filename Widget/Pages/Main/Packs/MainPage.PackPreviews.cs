@@ -200,9 +200,14 @@ namespace KillConfirmGameBar
 
         private static string GetValorantVoicePackEmblemUri(string key)
         {
-            string effectiveKey = ValorantPackService.IsValorantPackKey(key)
+            string effectiveKey = ValorantPackService.Find(key) != null
                 ? key
-                : ValorantPackService.DefaultKey;
+                : ValorantExternalAssetService.FindIconPackKeyByAssociation(
+                    ValorantExternalAssetService.GetAssociationIdForVoicePack(key));
+            if (string.IsNullOrWhiteSpace(effectiveKey))
+            {
+                effectiveKey = ValorantPackService.DefaultKey;
+            }
             return ValorantPackService.GetEmblemUri(effectiveKey)
                 ?? ValorantPackService.GetEmblemUri(ValorantPackService.DefaultKey);
         }

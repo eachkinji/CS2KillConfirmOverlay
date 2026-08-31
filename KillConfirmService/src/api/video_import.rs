@@ -3,7 +3,8 @@ pub async fn extract_video_frames(
 ) -> Result<Json<VideoExtractResponse>, (StatusCode, String)> {
     let result = tokio::task::spawn_blocking(move || extract_video_frames_blocking(request))
         .await
-        .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "video worker failed".to_string()))??;
+        .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "video worker failed".to_string()))?
+        .map_err(log_video_error)?;
     Ok(Json(result))
 }
 
@@ -12,8 +13,14 @@ pub async fn prepare_video_preview(
 ) -> Result<Json<VideoPreviewResponse>, (StatusCode, String)> {
     let result = tokio::task::spawn_blocking(move || prepare_video_preview_blocking(request))
         .await
-        .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "video preview worker failed".to_string()))??;
+        .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "video preview worker failed".to_string()))?
+        .map_err(log_video_error)?;
     Ok(Json(result))
+}
+
+fn log_video_error(error: (StatusCode, String)) -> (StatusCode, String) {
+    service_log(&format!("video import request failed ({}): {}", error.0, error.1));
+    error
 }
 
 fn prepare_video_preview_blocking(
@@ -78,14 +85,10 @@ fn prepare_video_preview_blocking(
 }
 
 fn allowed_video_staging_root() -> Result<std::path::PathBuf, (StatusCode, String)> {
-    let local = std::env::var_os("LOCALAPPDATA")
-        .map(std::path::PathBuf::from)
-        .ok_or_else(|| (StatusCode::INTERNAL_SERVER_ERROR, "LOCALAPPDATA unavailable".to_string()))?;
-    std::fs::canonicalize(local
-        .join("Packages")
-        .join("KillConfirmGameBar.Overlay_5jgcw66eyez0m")
-        .join("LocalState")
-        .join("CustomVideoImport"))
+    // Resolve LocalState from the package that is actually running. The package
+    // family suffix changes with the signing publisher (release/developer builds),
+    // so a hard-coded PFN rejects otherwise valid private staging paths.
+    std::fs::canonicalize(local_state_dir().join("CustomVideoImport"))
         .map_err(|_| (StatusCode::BAD_REQUEST, "video staging unavailable".to_string()))
 }
 
@@ -97,7 +100,10 @@ fn ffmpeg_executable() -> Result<std::path::PathBuf, (StatusCode, String)> {
         .join("ffmpeg")
         .join("ffmpeg.exe");
     if executable.is_file() { Ok(executable) } else {
-        Err((StatusCode::SERVICE_UNAVAILABLE, "bundled FFmpeg is missing".to_string()))
+        Err((
+            StatusCode::SERVICE_UNAVAILABLE,
+            "Bundled FFmpeg is missing; reinstall the complete MSIX Bundle / 内置 FFmpeg 缺失，请重新安装完整 MSIX Bundle。".to_string(),
+        ))
     }
 }
 
@@ -130,29 +136,11 @@ fn extract_video_frames_blocking(
     request: VideoExtractRequest,
 ) -> Result<VideoExtractResponse, (StatusCode, String)> {
     validate_video_options(&request)?;
-    let local = std::env::var_os("LOCALAPPDATA")
-        .map(std::path::PathBuf::from)
-        .ok_or_else(|| {
-            (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "LOCALAPPDATA unavailable".to_string(),
-            )
-        })?;
-    let allowed = local
-        .join("Packages")
-        .join("KillConfirmGameBar.Overlay_5jgcw66eyez0m")
-        .join("LocalState")
-        .join("CustomVideoImport");
     let source = std::fs::canonicalize(&request.source_path)
         .map_err(|_| (StatusCode::BAD_REQUEST, "video source unavailable".to_string()))?;
     let output = std::fs::canonicalize(&request.output_path)
         .map_err(|_| (StatusCode::BAD_REQUEST, "video output unavailable".to_string()))?;
-    let allowed = std::fs::canonicalize(&allowed).map_err(|_| {
-        (
-            StatusCode::BAD_REQUEST,
-            "video staging unavailable".to_string(),
-        )
-    })?;
+    let allowed = allowed_video_staging_root()?;
     if !source.starts_with(&allowed)
         || !output.starts_with(&allowed)
         || source.parent() != output.parent()

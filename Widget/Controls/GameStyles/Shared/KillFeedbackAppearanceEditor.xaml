@@ -24,6 +24,51 @@
                 SettingsChanged="OnSettingsChanged" />
             <local:KillFeedbackAppearanceRow x:Name="LowerRow" SettingsChanged="OnSettingsChanged" />
             <local:KillFeedbackAppearanceRow x:Name="UpperRow" SettingsChanged="OnSettingsChanged" />
+
+            <Border
+                x:Name="DanmakuCard"
+                Margin="0,4,0,0"
+                Padding="10,6"
+                Background="#08000000"
+                BorderThickness="1"
+                BorderBrush="#15000000"
+                CornerRadius="8">
+                <Grid ColumnSpacing="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel VerticalAlignment="Center" Spacing="1">
+                        <TextBlock
+                            x:Name="DanmakuRowTitle"
+                            FontSize="11"
+                            FontWeight="SemiBold"
+                            Text="6657 击杀弹幕" />
+                        <TextBlock
+                            x:Name="DanmakuRowHint"
+                            FontSize="9"
+                            Foreground="#888888"
+                            Text="击杀时屏幕随机飘过 100 条 6657 弹幕 (15 秒内)" />
+                    </StackPanel>
+                    <Button
+                        x:Name="DanmakuTestBtn"
+                        Grid.Column="1"
+                        Padding="8,3"
+                        FontSize="10"
+                        Content="测试弹幕"
+                        Click="OnDanmakuTestClick"
+                        ToolTipService.ToolTip="立即发送 100 条测试弹幕" />
+                    <ToggleSwitch
+                        x:Name="DanmakuToggle"
+                        Grid.Column="2"
+                        MinWidth="0"
+                        VerticalAlignment="Center"
+                        OffContent="关"
+                        OnContent="开"
+                        Toggled="OnDanmakuToggled" />
+                </Grid>
+            </Border>
         </StackPanel>
     </Border>
 </UserControl>

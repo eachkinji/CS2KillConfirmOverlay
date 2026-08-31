@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
+using KillConfirmGameBar.Helpers;
 using KillConfirmGameBar.Services;
 using Windows.Storage;
 using Windows.Storage.Pickers;
@@ -205,17 +206,29 @@ namespace KillConfirmGameBar
                     }
                 }
 
-                // If still not found by direct lookup, scan files list case-insensitively
+                // If still not found by direct lookup, scan files list case-insensitively and via aliases
                 if (file == null && allFolderFiles != null)
                 {
                     string targetNameWithoutExt = System.IO.Path.GetFileNameWithoutExtension(fileName);
-                    foreach (StorageFile candidate in allFolderFiles)
+                    if (AudioSlotAliases.SupportedAudioExtensions.Any(ext => fileName.EndsWith(ext, StringComparison.OrdinalIgnoreCase)))
                     {
-                        if (string.Equals(candidate.Name, fileName, StringComparison.OrdinalIgnoreCase)
-                            || string.Equals(System.IO.Path.GetFileNameWithoutExtension(candidate.Name), targetNameWithoutExt, StringComparison.OrdinalIgnoreCase))
+                        var audioMatches = AudioSlotAliases.MatchSlotAudioFiles(allFolderFiles, targetNameWithoutExt);
+                        if (audioMatches.Count > 0)
                         {
-                            file = candidate;
-                            break;
+                            file = audioMatches[0];
+                        }
+                    }
+
+                    if (file == null)
+                    {
+                        foreach (StorageFile candidate in allFolderFiles)
+                        {
+                            if (string.Equals(candidate.Name, fileName, StringComparison.OrdinalIgnoreCase)
+                                || string.Equals(System.IO.Path.GetFileNameWithoutExtension(candidate.Name), targetNameWithoutExt, StringComparison.OrdinalIgnoreCase))
+                            {
+                                file = candidate;
+                                break;
+                            }
                         }
                     }
                 }
@@ -544,25 +557,18 @@ namespace KillConfirmGameBar
                 return result;
             }
 
-            string[] audioExtensions = { ".wav", ".mp3", ".m4a" };
+            var audioFiles = allFiles
+                .Where(file => AudioSlotAliases.SupportedAudioExtensions.Contains(file.FileType, StringComparer.OrdinalIgnoreCase))
+                .ToList();
+
             foreach (string fileName in fileNames)
             {
                 string targetStem = System.IO.Path.GetFileNameWithoutExtension(fileName);
-                List<StorageFile> matches = allFiles
-                    .Where(file => audioExtensions.Contains(file.FileType, StringComparer.OrdinalIgnoreCase))
-                    .Where(file =>
-                    {
-                        string stem = System.IO.Path.GetFileNameWithoutExtension(file.Name);
-                        return string.Equals(stem, targetStem, StringComparison.OrdinalIgnoreCase)
-                            || stem.StartsWith(targetStem + "__", StringComparison.OrdinalIgnoreCase);
-                    })
-                    .OrderBy(file => string.Equals(
-                        System.IO.Path.GetFileNameWithoutExtension(file.Name),
-                        targetStem,
-                        StringComparison.OrdinalIgnoreCase) ? 0 : 1)
-                    .ThenBy(file => file.Name, StringComparer.OrdinalIgnoreCase)
-                    .ToList();
-                if (matches.Count > 0) result[fileName] = matches;
+                var matches = AudioSlotAliases.MatchSlotAudioFiles(audioFiles, targetStem);
+                if (matches.Count > 0)
+                {
+                    result[fileName] = matches;
+                }
             }
             return result;
         }

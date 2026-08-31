@@ -22,7 +22,8 @@ use windows_sys::Win32::System::Threading::{
 };
 
 use crate::infrastructure::logging::{
-    developer_logging_enabled, perf_trace, service_log, set_developer_logging_enabled,
+    developer_logging_enabled, local_state_dir, perf_trace, service_log,
+    set_developer_logging_enabled,
 };
 use crate::infrastructure::playback::{get_output_stream_with_name, output_device_names};
 use crate::infrastructure::process::{process_image_path, system_process_ids};

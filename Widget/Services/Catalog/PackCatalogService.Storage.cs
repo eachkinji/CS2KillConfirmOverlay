@@ -12,10 +12,8 @@ namespace KillConfirmGameBar.Services
     {
         private static async Task<PackCatalog> LoadAsync()
         {
-            ValorantPackService.RefreshExternalPacks();
             if (_cache != null)
             {
-                RefreshExternalValorantEntries(_cache);
                 return _cache;
             }
 
@@ -26,6 +24,8 @@ namespace KillConfirmGameBar.Services
                 {
                     return _cache;
                 }
+
+                ValorantPackService.RefreshExternalPacks();
 
                 bool mustSave = false;
                 StorageFolder localFolder = ApplicationData.Current.LocalFolder;
@@ -256,17 +256,25 @@ namespace KillConfirmGameBar.Services
                 return;
             }
 
-            catalog.VoicePacks.RemoveAll(item =>
-                !item.IsBuiltIn && !string.IsNullOrWhiteSpace(item.AssociationId)
-                && item.Key.StartsWith("valorant_voice_", StringComparison.OrdinalIgnoreCase));
-            catalog.IconPacks.RemoveAll(item =>
-                !item.IsBuiltIn && !string.IsNullOrWhiteSpace(item.AssociationId)
-                && item.Key.StartsWith("valorant_icon_", StringComparison.OrdinalIgnoreCase));
+            // Build replacement lists and publish them with property assignment.
+            // Readers may still hold the old list while an import refresh runs;
+            // mutating that list in place used to crash their enumerators and two
+            // racing refreshes could append the same package twice.
+            var voicePacks = catalog.VoicePacks
+                .Where(item => item.IsBuiltIn
+                    || string.IsNullOrWhiteSpace(item.AssociationId)
+                    || !item.Key.StartsWith("valorant_voice_", StringComparison.OrdinalIgnoreCase))
+                .ToList();
+            var iconPacks = catalog.IconPacks
+                .Where(item => item.IsBuiltIn
+                    || string.IsNullOrWhiteSpace(item.AssociationId)
+                    || !item.Key.StartsWith("valorant_icon_", StringComparison.OrdinalIgnoreCase))
+                .ToList();
 
-            catalog.VoicePacks.AddRange(ValorantExternalAssetService.DiscoverExternalVoicePacks());
+            voicePacks.AddRange(ValorantExternalAssetService.DiscoverExternalVoicePacks());
             foreach (ValorantPackInfo pack in ValorantPackService.All.Where(item => item.IsExternal))
             {
-                catalog.IconPacks.Add(new IconPackItem
+                iconPacks.Add(new IconPackItem
                 {
                     Key = pack.Key,
                     DisplayName = pack.DisplayName,
@@ -277,6 +285,15 @@ namespace KillConfirmGameBar.Services
                     AssociationId = pack.AssociationId
                 });
             }
+
+            catalog.VoicePacks = voicePacks
+                .GroupBy(item => item.Key, StringComparer.OrdinalIgnoreCase)
+                .Select(group => group.Last())
+                .ToList();
+            catalog.IconPacks = iconPacks
+                .GroupBy(item => item.Key, StringComparer.OrdinalIgnoreCase)
+                .Select(group => group.Last())
+                .ToList();
             ApplyVisibilityOverrides(catalog);
         }
 

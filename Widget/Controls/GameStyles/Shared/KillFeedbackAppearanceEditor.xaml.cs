@@ -69,15 +69,39 @@ namespace KillConfirmGameBar.Controls.GameStyles
                     isChinese,
                     theme);
 
+                DanmakuRowTitle.Text = isChinese ? "6657 击杀弹幕" : "6657 Kill Danmaku";
+                DanmakuRowHint.Text = isChinese
+                    ? "击杀时屏幕随机飘过 100 条 6657 弹幕 (15 秒内)"
+                    : "100 random stream memes floating on kill (15s)";
+                DanmakuTestBtn.Content = isChinese ? "测试弹幕" : "Test";
+                DanmakuToggle.IsOn = KillConfirmGameBar.Danmaku.DanmakuSettingsStore.IsEnabled;
+
                 EditorCard.Background = new SolidColorBrush(theme.Card);
                 EditorCard.BorderBrush = new SolidColorBrush(theme.SoftBorder);
                 TitleText.Foreground = new SolidColorBrush(theme.Text);
                 HintText.Foreground = new SolidColorBrush(theme.MutedText);
+                DanmakuRowTitle.Foreground = new SolidColorBrush(theme.Text);
+                DanmakuRowHint.Foreground = new SolidColorBrush(theme.MutedText);
             }
             finally
             {
                 _suppressChanges = false;
             }
+        }
+
+        private void OnDanmakuToggled(object sender, RoutedEventArgs e)
+        {
+            if (_suppressChanges)
+            {
+                return;
+            }
+
+            KillConfirmGameBar.Danmaku.DanmakuSettingsStore.IsEnabled = DanmakuToggle.IsOn;
+        }
+
+        private void OnDanmakuTestClick(object sender, RoutedEventArgs e)
+        {
+            KillConfirmGameBar.Danmaku.DanmakuSettingsStore.RequestTest();
         }
 
         private void OnSettingsChanged(object sender, EventArgs e)

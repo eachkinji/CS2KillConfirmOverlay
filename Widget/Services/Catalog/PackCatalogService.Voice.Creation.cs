@@ -357,7 +357,6 @@ namespace KillConfirmGameBar.Services
                 ["slot_gains"] = new Windows.Data.Json.JsonObject(),
                 ["overlay_slots"] = overlaySlotsArray
             };
-
             var manifestObj = new Windows.Data.Json.JsonObject
             {
                 ["id"] = Windows.Data.Json.JsonValue.CreateStringValue(packFolder.Name),
@@ -428,21 +427,8 @@ namespace KillConfirmGameBar.Services
             try
             {
                 IReadOnlyList<StorageFile> files = await folder.GetFilesAsync();
-                return files
-                    .Where(file => SupportedAudioExtensions.Contains(file.FileType, StringComparer.OrdinalIgnoreCase))
-                    .Where(file =>
-                    {
-                        string stem = Path.GetFileNameWithoutExtension(file.Name);
-                        return string.Equals(stem, baseName, StringComparison.OrdinalIgnoreCase)
-                            || stem.StartsWith(baseName + "__", StringComparison.OrdinalIgnoreCase);
-                    })
-                    .OrderBy(file => string.Equals(
-                        Path.GetFileNameWithoutExtension(file.Name),
-                        baseName,
-                        StringComparison.OrdinalIgnoreCase) ? 0 : 1)
-                    .ThenBy(file => file.Name, StringComparer.OrdinalIgnoreCase)
-                    .Select(file => file.Name)
-                    .ToList();
+                var matches = Helpers.AudioSlotAliases.MatchSlotAudioFiles(files, baseName);
+                return matches.Select(file => file.Name).ToList();
             }
             catch
             {
@@ -452,20 +438,8 @@ namespace KillConfirmGameBar.Services
 
         private static async Task<string> FindAudioFileNameAsync(StorageFolder folder, string baseName)
         {
-            foreach (string extension in SupportedAudioExtensions)
-            {
-                string fileName = baseName + extension;
-                try
-                {
-                    await folder.GetFileAsync(fileName);
-                    return fileName;
-                }
-                catch
-                {
-                }
-            }
-
-            return null;
+            var files = await FindAudioFileNamesAsync(folder, baseName);
+            return files.Count > 0 ? files[0] : null;
         }
     }
 }

@@ -120,6 +120,28 @@ function New-LocalSigningMaterial([string]$SigningRoot) {
 }
 
 function Copy-FfmpegDependency([string]$Destination) {
+    $cacheRoot = Join-Path $env:LOCALAPPDATA 'KillConfirmBuildCache/ffmpeg-n9.0-lgpl'
+    $extract = Join-Path $cacheRoot 'extract'
+    $archiveName = 'ffmpeg-n9.0-latest-win64-lgpl-9.0.zip'
+    $releaseBaseUrl = 'https://github.com/BtbN/FFmpeg-Builds/releases/download/latest'
+    $assetUrl = "$releaseBaseUrl/$archiveName"
+    $archiveSha256 = ''
+    if (Test-Path -LiteralPath (Join-Path $extract 'ffmpeg.exe')) {
+        $extractHashPath = Join-Path $extract 'archive.sha256'
+        if (Test-Path -LiteralPath $extractHashPath) {
+            $archiveSha256 = (Get-Content -LiteralPath $extractHashPath -Raw).Trim()
+        }
+        New-Item -ItemType Directory -Force -Path $Destination | Out-Null
+        Copy-Item -LiteralPath (Join-Path $extract 'ffmpeg.exe'),(Join-Path $extract 'LICENSE.txt') -Destination $Destination -Force
+        $sourceLines = @(
+            'FFmpeg n9.0 LGPLv3 build by BtbN (invoked as a separate process for video import)'
+            'Build and corresponding source information: https://github.com/BtbN/FFmpeg-Builds'
+            "Binary archive: $assetUrl"
+            "Binary archive SHA-256: $archiveSha256"
+        )
+        [IO.File]::WriteAllLines((Join-Path $Destination 'SOURCE.txt'), $sourceLines)
+        return
+    }
     $archiveName = 'ffmpeg-n9.0-latest-win64-lgpl-9.0.zip'
     $releaseBaseUrl = 'https://github.com/BtbN/FFmpeg-Builds/releases/download/latest'
     $assetUrl = "$releaseBaseUrl/$archiveName"

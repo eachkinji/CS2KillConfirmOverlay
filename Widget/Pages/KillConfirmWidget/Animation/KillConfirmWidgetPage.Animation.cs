@@ -157,6 +157,26 @@ namespace KillConfirmGameBar
             }
 
             PlayBadgeAnimation(killEvent);
+
+            if (killEvent.IsCombatEvent && !killEvent.IsAssist && killEvent.KillCount > 0)
+            {
+                TriggerDanmakuIfEnabled();
+            }
+        }
+
+        private void TriggerDanmakuIfEnabled()
+        {
+            if (DanmakuOverlayControl == null)
+            {
+                return;
+            }
+
+            if (KillConfirmGameBar.Danmaku.DanmakuSettingsStore.IsEnabled)
+            {
+                DanmakuOverlayControl.TriggerBarrage(
+                    KillConfirmGameBar.Danmaku.DanmakuSettingsStore.Count,
+                    KillConfirmGameBar.Danmaku.DanmakuSettingsStore.DurationSeconds);
+            }
         }
 
         private void PlayPrimaryAnimation(KillEvent killEvent)

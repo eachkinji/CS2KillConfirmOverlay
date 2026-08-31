@@ -36,6 +36,11 @@ namespace KillConfirmGameBar
         private void OnRepeatTestClick(object sender, RoutedEventArgs e)
             => RepeatTestRequested?.Invoke(sender, e);
 
+        private void OnDanmakuTestClick(object sender, RoutedEventArgs e)
+        {
+            KillConfirmGameBar.Danmaku.DanmakuSettingsStore.RequestTest();
+        }
+
         private void OnReloadAudioClick(object sender, RoutedEventArgs e)
             => ReloadAudioRequested?.Invoke(sender, e);
     }

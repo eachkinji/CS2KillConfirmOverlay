@@ -15,7 +15,11 @@ namespace KillConfirmGameBar.Services
         public static string GetVoicePackDisplayName(VoicePackItem item)
         {
             if (item == null) return string.Empty;
-            if (ValorantPackService.IsValorantPackKey(item.Key))
+            // Built-in VALORANT voices share the visual-pack catalog. External
+            // voices have their own ids (valorant_voice_*), so asking the icon
+            // catalog for their name returned the raw key instead of manifest
+            // display_name and made one imported package look like two entries.
+            if (ValorantPackService.Find(item.Key) != null)
             {
                 return ValorantPackService.GetDisplayName(item.Key);
             }
@@ -47,7 +51,8 @@ namespace KillConfirmGameBar.Services
                 || key.StartsWith("custom_valorant_voice_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_overwatch_voice_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_modernwarfare2019_voice_", StringComparison.OrdinalIgnoreCase)
-                || key.StartsWith("custom_apex_voice_", StringComparison.OrdinalIgnoreCase);
+                || key.StartsWith("custom_apex_voice_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("valorant_voice_", StringComparison.OrdinalIgnoreCase);
         }
 
         // Event voice packs unify the old "event sound routing" concept into voice
@@ -117,7 +122,7 @@ namespace KillConfirmGameBar.Services
         public static async Task<IReadOnlyList<VoicePackItem>> GetAllVoicePacksAsync()
         {
             var catalog = await LoadAsync();
-            return catalog.VoicePacks;
+            return catalog.VoicePacks.ToList();
         }
 
         public static async Task<VoicePackItem> GetVoicePackAsync(string key)

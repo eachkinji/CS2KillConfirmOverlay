@@ -280,7 +280,13 @@
                         </Border>
 
                         <!-- View 2: Voice Packs Hub (Full Width) -->
-                        <Border x:Name="VoicePackCollectionsCard" Style="{StaticResource SettingsSectionCardStyle}" Visibility="Collapsed">
+                        <Border
+                            x:Name="VoicePackCollectionsCard"
+                            AllowDrop="True"
+                            DragOver="OnVoicePackLibraryDragOver"
+                            Drop="OnVoicePackLibraryDrop"
+                            Style="{StaticResource SettingsSectionCardStyle}"
+                            Visibility="Collapsed">
                             <StackPanel Spacing="16">
                                 <Grid RowSpacing="12">
                                     <Grid.ColumnDefinitions>
@@ -339,7 +345,13 @@
                         </Border>
 
                         <!-- View 3: Icon Packs Hub (Full Width) -->
-                        <Border x:Name="IconPackCollectionsCard" Style="{StaticResource SettingsSectionCardStyle}" Visibility="Collapsed">
+                        <Border
+                            x:Name="IconPackCollectionsCard"
+                            AllowDrop="True"
+                            DragOver="OnIconPackLibraryDragOver"
+                            Drop="OnIconPackLibraryDrop"
+                            Style="{StaticResource SettingsSectionCardStyle}"
+                            Visibility="Collapsed">
                             <StackPanel Spacing="16">
                                 <Grid RowSpacing="12">
                                     <Grid.ColumnDefinitions>

@@ -178,6 +178,37 @@ namespace KillConfirmGameBar.Services
             };
         }
 
+        public static async Task<bool> IsPackageKindAsync(StorageFolder sourceFolder, string expectedKind)
+        {
+            if (sourceFolder == null
+                || (!string.Equals(expectedKind, IconPackageKind, StringComparison.Ordinal)
+                    && !string.Equals(expectedKind, VoicePackageKind, StringComparison.Ordinal)))
+            {
+                return false;
+            }
+
+            try
+            {
+                StorageFolder packageFolder = await FindManifestFolderAsync(sourceFolder);
+                if (packageFolder == null)
+                {
+                    return false;
+                }
+
+                ValorantExternalPackManifest manifest = ReadManifest(packageFolder.Path);
+                return IsValidCommonManifest(
+                    manifest,
+                    packageFolder.Name,
+                    expectedKind,
+                    requireFolderNameMatch: false);
+            }
+            catch (Exception ex)
+            {
+                App.Log("VALORANT package type detection failed: " + ex.Message);
+                return false;
+            }
+        }
+
         public static string GetIconPacksRootPath()
         {
             return Path.Combine(GetValorantRootPath(), "icon_packs");

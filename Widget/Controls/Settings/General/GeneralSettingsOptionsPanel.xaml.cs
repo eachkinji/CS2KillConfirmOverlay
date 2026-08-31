@@ -12,6 +12,7 @@ namespace KillConfirmGameBar.Controls.Settings
     public sealed partial class GeneralSettingsOptionsPanel : UserControl
     {
         private bool _suppressSpectatedKillEffectsEvents;
+        private bool _suppressDanmaku6657Events;
         private bool _suppressAutoCloseOnGameExitEvents;
         private bool _suppressInterruptPreviousKillAudioEvents;
         private bool _suppressStreakGainEvents = true;
@@ -41,6 +42,14 @@ namespace KillConfirmGameBar.Controls.Settings
                 LocalizationManager.Text("SpectatedKillEffectsHint");
             SpectatedKillEffectsToggle.OffContent = LocalizationManager.Text("Off");
             SpectatedKillEffectsToggle.OnContent = LocalizationManager.Text("On");
+            bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            Danmaku6657LabelText.Text = isChinese ? "6657 击杀弹幕" : "6657 Kill Danmaku";
+            Danmaku6657HintText.Text = isChinese
+                ? "检测到击杀时在屏幕内随机发送 100 条 6657 经典弹幕（15 秒内分批飘过）"
+                : "Spawns 100 random 6657 stream memes floating across screen on kill over 15s.";
+            Danmaku6657TestButton.Content = isChinese ? "测试弹幕" : "Test";
+            Danmaku6657Toggle.OffContent = LocalizationManager.Text("Off");
+            Danmaku6657Toggle.OnContent = LocalizationManager.Text("On");
             BombAudioPanel?.ApplyLanguage();
             AutoCloseOnGameExitLabelText.Text =
                 LocalizationManager.Text("AutoCloseOnGameExitLabel");
@@ -54,7 +63,6 @@ namespace KillConfirmGameBar.Controls.Settings
                 LocalizationManager.Text("InterruptPreviousKillAudioHint");
             InterruptPreviousKillAudioToggle.OffContent = LocalizationManager.Text("Off");
             InterruptPreviousKillAudioToggle.OnContent = LocalizationManager.Text("On");
-            bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
             StreakGainLabelText.Text = isChinese ? "连杀音量递增" : "Streak volume gain";
             StreakGainHintText.Text = isChinese
                 ? "对所有游戏和语音包生效，连杀越多音量越高"
@@ -73,6 +81,8 @@ namespace KillConfirmGameBar.Controls.Settings
             }
 
             SpectatedKillEffectsHintText.Foreground = new SolidColorBrush(theme.MutedText);
+            Danmaku6657HintText.Foreground = new SolidColorBrush(theme.MutedText);
+            DanmakuSettingsOptions?.ApplyTheme(theme);
             BombAudioPanel?.ApplyTheme(theme);
             AutoCloseOnGameExitHintText.Foreground = new SolidColorBrush(theme.MutedText);
             InterruptPreviousKillAudioHintText.Foreground = new SolidColorBrush(theme.MutedText);
@@ -83,10 +93,42 @@ namespace KillConfirmGameBar.Controls.Settings
         internal void RefreshSettings()
         {
             SelectSpectatedKillEffects();
+            SelectDanmaku6657();
             BombAudioPanel?.RefreshSettings();
             SelectAutoCloseOnGameExit();
             SelectInterruptPreviousKillAudio();
             SelectStreakGainSettings();
+        }
+
+        private void SelectDanmaku6657()
+        {
+            _suppressDanmaku6657Events = true;
+            try
+            {
+                Danmaku6657Toggle.IsOn = KillConfirmGameBar.Danmaku.DanmakuSettingsStore.IsEnabled;
+                DanmakuSettingsOptions.Visibility = Danmaku6657Toggle.IsOn ? Visibility.Visible : Visibility.Collapsed;
+                DanmakuSettingsOptions.RefreshSettings();
+            }
+            finally
+            {
+                _suppressDanmaku6657Events = false;
+            }
+        }
+
+        private void OnDanmaku6657Toggled(object sender, RoutedEventArgs e)
+        {
+            if (_suppressDanmaku6657Events)
+            {
+                return;
+            }
+
+            KillConfirmGameBar.Danmaku.DanmakuSettingsStore.IsEnabled = Danmaku6657Toggle.IsOn;
+            DanmakuSettingsOptions.Visibility = Danmaku6657Toggle.IsOn ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        private void OnDanmaku6657TestClick(object sender, RoutedEventArgs e)
+        {
+            KillConfirmGameBar.Danmaku.DanmakuSettingsStore.RequestTest();
         }
 
         private void SelectSpectatedKillEffects()

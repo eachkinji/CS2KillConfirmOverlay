@@ -27,7 +27,11 @@ namespace KillConfirmGameBar
         private static readonly string[] ValorantVoicePackImportFiles =
         {
             "1.wav", "2.wav", "3.wav", "4.wav", "5.wav",
-            "headshot.wav"
+            "kill_1.wav", "kill_2.wav", "kill_3.wav", "kill_4.wav", "kill_5.wav",
+            "一杀.wav", "二杀.wav", "双杀.wav", "三杀.wav", "四杀.wav", "五杀.wav",
+            "1杀.wav", "2杀.wav", "3杀.wav", "4杀.wav", "5杀.wav",
+            "headshot.wav", "爆头.wav",
+            "appear.wav", "transition.wav"
         };
 
         private static readonly string[] CustomModuleVoicePackImportFiles =
@@ -202,6 +206,11 @@ namespace KillConfirmGameBar
 
         private static readonly string[] IconPackHeadImageNames =
         {
+            "pack_head.png",
+            "pack_head.jpg",
+            "pack_head.jpeg",
+            "pack_head.webp",
+            "pack_head.tga",
             "badge_headshot.png",
             "badge_headshot.jpg",
             "badge_headshot.jpeg",

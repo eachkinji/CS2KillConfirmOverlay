@@ -35,14 +35,38 @@ KillConfirmService/sounds/
 # Local raw resource drop folder, not published to GitHub
 资源/
 
-# Local signing/test certificates
+# Local signing material and credentials
+.local/
+.env
+.env.*
+!.env.example
 *.pfx
+*.p12
+*.p7b
+*.p7c
+*.p8
+*.cer
+*.crt
+*.csr
 *.snk
 *.key
 *.pem
+*.jks
+*.keystore
+id_rsa
+id_rsa.*
+id_ed25519
+id_ed25519.*
+credentials.json
+credentials.*.json
+secrets.json
+secrets.*.json
+*.secrets.json
+*.token
 *_TemporaryKey.pfx
 
 # Visual Studio and local user state
+AGENTS.md
 .vs/
 *.user
 *.suo

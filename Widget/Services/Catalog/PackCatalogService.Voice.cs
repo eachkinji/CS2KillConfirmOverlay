@@ -228,7 +228,6 @@ namespace KillConfirmGameBar.Services
             if (item != null && !item.IsBuiltIn)
             {
                 catalog.VoicePacks.Remove(item);
-                await SaveAsync(catalog);
                 if (item.OwnsFolder)
                 {
                     try
@@ -238,6 +237,7 @@ namespace KillConfirmGameBar.Services
                     }
                     catch { }
                 }
+                await SaveAsync(catalog);
             }
         }
 

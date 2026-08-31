@@ -4,7 +4,7 @@ use std::{collections::HashMap, fs, path::Path};
 
 use crate::state::EventChannel;
 
-pub(crate) const VALORANT_DEFAULT_PRESET: &str = "valorant_00011_singularity_v1";
+pub(crate) const VALORANT_DEFAULT_PRESET: &str = "valorant_00000_base";
 
 /// Context describing the current kill event, consumed by manifest audio routing.
 #[derive(Serialize, Clone, Debug)]
@@ -239,10 +239,19 @@ impl PackManifest {
                 continue;
             }
 
-            let path = default_pack_dir
-                .join(file_name)
-                .canonicalize()
-                .with_context(|| format!("missing default Valorant audio: {file_name}"))?;
+            let path = match default_pack_dir.join(file_name).canonicalize() {
+                Ok(path) => path,
+                Err(_) if slot.eq_ignore_ascii_case("headshot") => {
+                    audio
+                        .slots
+                        .insert(slot.to_string(), SlotFiles::Multiple(Vec::new()));
+                    continue;
+                }
+                Err(error) => {
+                    return Err(error)
+                        .with_context(|| format!("missing default Valorant audio: {file_name}"));
+                }
+            };
             audio.slots.insert(
                 slot.to_string(),
                 SlotFiles::Single(path.to_string_lossy().into_owned()),
@@ -370,9 +379,30 @@ impl PackManifest {
             if !push_slot(&mut entries, &slot, None) {
                 push_slot(&mut entries, "kill_1", None);
             }
-            push_overlay_if_enabled(&mut entries, &slot);
+            let overlay_enabled = match &audio.overlay_slots {
+                Some(list) => list.iter().any(|candidate| candidate.eq_ignore_ascii_case(&slot)),
+                None => count > 1,
+            };
+            if overlay_enabled {
+                let transition_slot = if count == 1 { "appear" } else { "transition" };
+                let before_overlay = entries.len();
+                if !push_slot(&mut entries, transition_slot, None) {
+                    push_overlay_if_enabled(&mut entries, &slot);
+                }
+                if entries.len() > before_overlay {
+                    let overlay_path = entries.last().map(|entry| entry.path.clone());
+                    if let Some(path) = overlay_path {
+                        if entries[..before_overlay].iter().any(|entry| entry.path == path) {
+                            entries.pop();
+                        }
+                    }
+                }
+            }
             if ctx.is_headshot {
-                push_slot(&mut entries, "headshot", None);
+                let headshot_slot = format!("headshot_{count}");
+                if !push_slot(&mut entries, &headshot_slot, None) {
+                    push_slot(&mut entries, "headshot", None);
+                }
             }
             return entries;
         }

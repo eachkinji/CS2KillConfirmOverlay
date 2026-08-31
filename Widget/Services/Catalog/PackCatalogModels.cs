@@ -34,6 +34,9 @@ namespace KillConfirmGameBar.Services
 
         [DataMember]
         public bool OwnsFolder { get; set; }
+
+        [DataMember]
+        public string AssociationId { get; set; }
     }
 
     [DataContract]
@@ -59,6 +62,9 @@ namespace KillConfirmGameBar.Services
 
         [DataMember]
         public bool OwnsFolder { get; set; }
+
+        [DataMember]
+        public string AssociationId { get; set; }
 
         [DataMember]
         public bool HasFxOverlay { get; set; }

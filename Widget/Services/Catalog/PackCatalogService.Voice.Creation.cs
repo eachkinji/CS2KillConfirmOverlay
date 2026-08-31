@@ -95,10 +95,18 @@ namespace KillConfirmGameBar.Services
                 }
 
                 string fileName = stem + ".wav";
-                StorageFile builtIn = await StorageFile.GetFileFromApplicationUriAsync(
-                    new Uri("ms-appx:///KillConfirmService/sounds/"
-                        + ValorantPackService.DefaultKey + "/" + fileName));
-                await builtIn.CopyAsync(packFolder, fileName, NameCollisionOption.ReplaceExisting);
+                try
+                {
+                    StorageFile builtIn = await StorageFile.GetFileFromApplicationUriAsync(
+                        new Uri("ms-appx:///KillConfirmService/sounds/"
+                            + ValorantPackService.DefaultKey + "/" + fileName));
+                    await builtIn.CopyAsync(packFolder, fileName, NameCollisionOption.ReplaceExisting);
+                }
+                catch when (string.Equals(stem, "headshot", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Base has no native headshot audio. An omitted custom
+                    // headshot slot is therefore intentional silence.
+                }
             }
 
             if (options.HeadImageFile != null)

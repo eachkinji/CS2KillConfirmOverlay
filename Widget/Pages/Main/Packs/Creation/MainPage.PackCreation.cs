@@ -87,6 +87,14 @@ namespace KillConfirmGameBar
                 return;
             }
 
+            if (GameStyleService.Current == GameStyleMode.Valorant)
+            {
+                await ImportValorantPackageFromFolderAsync(
+                    folder,
+                    ValorantExternalAssetService.VoicePackageKind);
+                return;
+            }
+
             if (GameStyleService.Current == GameStyleMode.CustomModule)
             {
                 await ShowCreateCustomModuleVoicePackDialogAsync(
@@ -112,13 +120,6 @@ namespace KillConfirmGameBar
                 await ShowCreateCsolVoicePackDialogAsync(
                     folder.DisplayName,
                     await CollectVoiceFileGroupsFromManifestAsync(folder, PackCatalogService.CsolSlotMapping),
-                    await TryGetCustomPackHeadImageAsync(folder.Path));
-            }
-            else if (GameStyleService.Current == GameStyleMode.Valorant)
-            {
-                await ShowCreateValorantVoicePackDialogAsync(
-                    folder.DisplayName,
-                    await CollectVoiceFileGroupsFromManifestAsync(folder, PackCatalogService.ValorantVoiceSlotMapping),
                     await TryGetCustomPackHeadImageAsync(folder.Path));
             }
             else if (GameStyleService.Current == GameStyleMode.Overwatch)
@@ -155,7 +156,11 @@ namespace KillConfirmGameBar
 
         private async void OnImportVoiceZipClick(object sender, RoutedEventArgs e)
         {
-            if (GameStyleService.Current == GameStyleMode.CustomModule)
+            if (GameStyleService.Current == GameStyleMode.Valorant)
+            {
+                await ImportValorantPackageFromZipAsync(ValorantExternalAssetService.VoicePackageKind);
+            }
+            else if (GameStyleService.Current == GameStyleMode.CustomModule)
             {
                 await ImportPackFromZipAsync(
                     CustomModuleVoicePackImportFiles,
@@ -199,18 +204,6 @@ namespace KillConfirmGameBar
                         await ShowCreateCsolVoicePackDialogAsync(
                             folder.DisplayName,
                             await CollectVoiceFileGroupsFromManifestAsync(folder, PackCatalogService.CsolSlotMapping),
-                            await TryGetCustomPackHeadImageAsync(folder.Path));
-                    });
-            }
-            else if (GameStyleService.Current == GameStyleMode.Valorant)
-            {
-                await ImportPackFromZipAsync(
-                    ValorantVoicePackImportFiles,
-                    async (folder, files) =>
-                    {
-                        await ShowCreateValorantVoicePackDialogAsync(
-                            folder.DisplayName,
-                            await CollectVoiceFileGroupsFromManifestAsync(folder, PackCatalogService.ValorantVoiceSlotMapping),
                             await TryGetCustomPackHeadImageAsync(folder.Path));
                     });
             }
@@ -269,6 +262,19 @@ namespace KillConfirmGameBar
         private async void OnImportIconPackClick(object sender, RoutedEventArgs e)
         {
             if (GameStyleService.Current == GameStyleMode.CustomModule) { await ImportCustomModuleAsync(false); return; }
+            if (GameStyleService.Current == GameStyleMode.Valorant)
+            {
+                var valorantPicker = new FolderPicker();
+                valorantPicker.FileTypeFilter.Add("*");
+                StorageFolder valorantFolder = await valorantPicker.PickSingleFolderAsync();
+                if (valorantFolder != null)
+                {
+                    await ImportValorantPackageFromFolderAsync(
+                        valorantFolder,
+                        ValorantExternalAssetService.IconPackageKind);
+                }
+                return;
+            }
             if (await GuardIconPackCreationAsync())
             {
                 return;
@@ -366,6 +372,11 @@ namespace KillConfirmGameBar
         private async void OnImportIconZipClick(object sender, RoutedEventArgs e)
         {
             if (GameStyleService.Current == GameStyleMode.CustomModule) { await ImportCustomModuleAsync(true); return; }
+            if (GameStyleService.Current == GameStyleMode.Valorant)
+            {
+                await ImportValorantPackageFromZipAsync(ValorantExternalAssetService.IconPackageKind);
+                return;
+            }
             if (await GuardIconPackCreationAsync())
             {
                 return;

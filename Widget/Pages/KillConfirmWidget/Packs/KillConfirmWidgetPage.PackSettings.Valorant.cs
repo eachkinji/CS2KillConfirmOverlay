@@ -10,35 +10,42 @@ namespace KillConfirmGameBar
     {
         private bool TrySyncValorantIconPackForVoiceSelection(string preset)
         {
+            string associationId = ValorantExternalAssetService.GetAssociationIdForVoicePack(preset);
+            string iconPack = string.IsNullOrWhiteSpace(associationId)
+                ? null
+                : ValorantExternalAssetService.FindIconPackKeyByAssociation(associationId);
             if (GameStyleService.Current != GameStyleMode.Valorant
                 || !ValorantPackSyncSettingsStore.Load()
-                || !HasPackOption(PackTestSectionView.IconPackSelector, preset))
+                || string.IsNullOrWhiteSpace(iconPack)
+                || !HasPackOption(PackTestSectionView.IconPackSelector, iconPack))
             {
                 return false;
             }
 
-            SavePackSettingForStyle(IconPackSettingKey, GameStyleService.Current, preset);
-            SelectIconPack(preset);
-            ConfigureAnimationIconPack(preset);
-            _ = ApplyCustomPackOverlaySupportAsync(preset);
+            SavePackSettingForStyle(IconPackSettingKey, GameStyleService.Current, iconPack);
+            SelectIconPack(iconPack);
+            ConfigureAnimationIconPack(iconPack);
+            _ = ApplyCustomPackOverlaySupportAsync(iconPack);
             WarmStartupAnimationCacheIfActive();
             return true;
         }
 
         private bool TrySyncValorantVoicePackForIconSelection(string iconPack)
         {
-            // Custom voices have no paired icon pack. Keep an explicit custom
-            // selection when the user changes skins, even with pairing enabled.
+            string associationId = ValorantPackService.Find(iconPack)?.AssociationId;
+            string voicePack = string.IsNullOrWhiteSpace(associationId)
+                ? null
+                : ValorantExternalAssetService.FindVoicePackKeyByAssociation(associationId);
             if (GameStyleService.Current != GameStyleMode.Valorant
                 || !ValorantPackSyncSettingsStore.Load()
-                || PackCatalogService.IsImportedVoicePackKey(GetSelectedVoicePackPreset())
-                || !HasPackOption(PackTestSectionView.VoicePackSelector, iconPack))
+                || string.IsNullOrWhiteSpace(voicePack)
+                || !HasPackOption(PackTestSectionView.VoicePackSelector, voicePack))
             {
                 return false;
             }
 
-            SavePackSettingForStyle(VoicePackSettingKey, GameStyleService.Current, iconPack);
-            SelectVoicePackPreset(iconPack);
+            SavePackSettingForStyle(VoicePackSettingKey, GameStyleService.Current, voicePack);
+            SelectVoicePackPreset(voicePack);
             return true;
         }
 

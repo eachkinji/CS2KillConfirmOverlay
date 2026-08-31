@@ -5,7 +5,7 @@
         use crate::state::EventChannel;
         use std::collections::HashMap;
 
-        let pack_dir = source_sound_pack("valorant", "valorant_00009_prime");
+        let pack_dir = source_sound_pack("valorant", "valorant_00000_base");
         let base_dir = pack_dir.to_string_lossy().into_owned();
         let manifest = PackManifest::load_from_dir(&pack_dir).expect("load valorant manifest");
         let make_ctx = |kill_count| SoundContext {
@@ -20,8 +20,8 @@
             money_reward: 0,
             event_kind: None,
             event_channel: EventChannel::Combat,
-            preset_name: "valorant_00009_prime".to_string(),
-            master_name: "valorant_00009_prime".to_string(),
+            preset_name: "valorant_00000_base".to_string(),
+            master_name: "valorant_00000_base".to_string(),
             variant: None,
             base_dir: base_dir.clone(),
             voice_picks: HashMap::new(),
@@ -39,41 +39,38 @@
         let beyond = manifest.resolve_audio(&make_ctx(8), &base_dir);
         assert!(beyond[0].path.ends_with("5.wav"), "{}", beyond[0].path);
 
-        // Every Valorant headshot, including the first kill, is one two-layer
-        // event: numbered kill cue + headshot cue.
+        // Base has no dedicated headshot sound. Its second layer is only the
+        // native appear/transition cue and must remain at 0.3 gain.
         for count in [1u16, 2u16, 3u16] {
             let mut headshot_ctx = make_ctx(count);
             headshot_ctx.is_headshot = true;
             headshot_ctx.is_first_kill = count == 1;
             let headshot = manifest.resolve_audio(&headshot_ctx, &base_dir);
-            assert_eq!(headshot.len(), 2, "kill {count} must keep both layers");
+            assert_eq!(headshot.len(), 2, "kill {count} must keep native transition layer");
             assert!(
                 headshot[0].path.ends_with(&format!("{count}.wav")),
                 "{}",
                 headshot[0].path
             );
             assert!(
-                headshot[1].path.ends_with("headshot.wav"),
+                headshot[1].path.ends_with(if count == 1 { "appear.wav" } else { "transition.wav" }),
                 "{}",
                 headshot[1].path
             );
+            assert!((headshot[1].gain - 0.3).abs() < f32::EPSILON);
         }
     }
 
     #[test]
-    fn native_afterglow_uses_numbered_cue_and_native_appear_layer() {
+    fn valorant_base_uses_transition_after_the_first_kill() {
         use crate::soundpack::manifest::PackManifest;
         use crate::soundpack::SoundContext;
         use crate::state::EventChannel;
         use std::collections::HashMap;
 
-        let pack_dir = source_sound_pack("valorant", "valorant_00031_rgx_11z_pro");
+        let pack_dir = source_sound_pack("valorant", "valorant_00000_base");
         let base_dir = pack_dir.to_string_lossy().into_owned();
-        let mut manifest = PackManifest::load_from_dir(&pack_dir).expect("load native Afterglow manifest");
-        let default_pack = source_sound_pack("valorant", "valorant_00011_singularity_v1");
-        manifest
-            .fill_valorant_audio_defaults(&default_pack)
-            .expect("preserve explicit native empty slot while filling defaults");
+        let manifest = PackManifest::load_from_dir(&pack_dir).expect("load VALORANT Base manifest");
         let ctx = SoundContext {
             kill_count: 3,
             is_headshot: true,
@@ -86,8 +83,8 @@
             money_reward: 0,
             event_kind: None,
             event_channel: EventChannel::Combat,
-            preset_name: "valorant_00031_rgx_11z_pro".to_string(),
-            master_name: "valorant_00031_rgx_11z_pro".to_string(),
+            preset_name: "valorant_00000_base".to_string(),
+            master_name: "valorant_00000_base".to_string(),
             variant: None,
             base_dir: base_dir.clone(),
             voice_picks: HashMap::new(),
@@ -101,7 +98,7 @@
         assert_eq!(sounds.len(), 2);
         assert!(sounds[0].path.ends_with("3.wav"), "{}", sounds[0].path);
         assert!(
-            sounds[1].path.ends_with("appear.wav"),
+            sounds[1].path.ends_with("transition.wav"),
             "{}",
             sounds[1].path
         );

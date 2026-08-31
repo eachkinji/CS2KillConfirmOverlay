@@ -54,17 +54,6 @@ namespace KillConfirmGameBar
                     request["custom_path"] = JsonValue.CreateStringValue(selectedPack.FolderPath);
                     request["display_name"] = JsonValue.CreateStringValue(selectedPack.DisplayName ?? preset);
                 }
-                else if (ValorantPackService.IsValorantPackKey(preset))
-                {
-                    string externalAudioPath = await ValorantExternalAssetService
-                        .TryGetAudioPackFolderPathAsync(preset);
-                    if (!string.IsNullOrWhiteSpace(externalAudioPath))
-                    {
-                        request["custom_path"] = JsonValue.CreateStringValue(externalAudioPath);
-                        request["display_name"] = JsonValue.CreateStringValue(
-                            ValorantPackService.GetDisplayName(preset));
-                    }
-                }
 
                 using (var client = await LocalServiceAuth.CreateHttpClientAsync())
                 using (var content = new HttpStringContent(

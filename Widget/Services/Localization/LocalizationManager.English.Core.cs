@@ -201,7 +201,7 @@ namespace KillConfirmGameBar.Services
             ["OneKillSound"] = "Common audio replacement",
 
             // VALORANT native kill-banner packs
-            ["valorant_00000_base"] = "Base kill icon",
+            ["valorant_00000_base"] = "Base kill icon & audio",
             ["valorant_00009_prime"] = "Prime",
             ["valorant_00010_glitchpop"] = "Glitchpop",
             ["valorant_00011_singularity_v1"] = "Singularity (Variant 1)",

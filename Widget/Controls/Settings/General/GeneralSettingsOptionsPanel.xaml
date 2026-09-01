@@ -132,15 +132,17 @@
         <!-- 2. 6657 Kill Danmaku Card -->
         <Border Style="{StaticResource FluentCardStyle}">
             <StackPanel Spacing="10">
-                <Grid ColumnSpacing="12">
+                <Grid ColumnSpacing="12" RowSpacing="8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
 
-                    <Border Style="{StaticResource FluentIconStyle}">
+                    <Border Grid.RowSpan="2" Style="{StaticResource FluentIconStyle}">
                         <FontIcon
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"
@@ -150,34 +152,38 @@
                             Glyph="&#xE8BD;" />
                     </Border>
 
-                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                    <StackPanel Grid.Column="1" Spacing="2">
                         <TextBlock
                             x:Name="Danmaku6657LabelText"
                             Style="{StaticResource FluentCardTitle}"
-                            Text="6657 击杀弹幕" />
+                            Text="游戏事件弹幕" />
                         <TextBlock
                             x:Name="Danmaku6657HintText"
                             Style="{StaticResource FluentCardHint}"
-                            Text="检测到击杀时在屏幕内发送 6657 经典弹幕（支持位置、时长、数量、字号与背景定制）" />
+                            Text="按游戏事件显示 5–7 条分类弹幕，已发出的弹幕会完整飞出屏幕" />
                     </StackPanel>
 
-                    <Button
-                        x:Name="Danmaku6657TestButton"
-                        Grid.Column="2"
-                        Style="{StaticResource FluentActionBtnStyle}"
-                        Content="测试弹幕"
-                        Click="OnDanmaku6657TestClick"
-                        ToolTipService.ToolTip="立即在小组件中发送测试弹幕"
-                        Margin="0,0,8,0" />
+                    <StackPanel
+                        Grid.Row="1"
+                        Grid.Column="1"
+                        HorizontalAlignment="Right"
+                        Orientation="Horizontal"
+                        Spacing="8">
+                        <Button
+                            x:Name="Danmaku6657TestButton"
+                            Style="{StaticResource FluentActionBtnStyle}"
+                            Content="测试所选事件"
+                            Click="OnDanmaku6657TestClick"
+                            ToolTipService.ToolTip="测试高级设置中当前选中的事件弹幕" />
 
-                    <ToggleSwitch
-                        x:Name="Danmaku6657Toggle"
-                        Grid.Column="3"
-                        VerticalAlignment="Center"
-                        MinWidth="0"
-                        OffContent="关"
-                        OnContent="开"
-                        Toggled="OnDanmaku6657Toggled" />
+                        <ToggleSwitch
+                            x:Name="Danmaku6657Toggle"
+                            VerticalAlignment="Center"
+                            MinWidth="0"
+                            OffContent="关"
+                            OnContent="开"
+                            Toggled="OnDanmaku6657Toggled" />
+                    </StackPanel>
                 </Grid>
 
                 <danmaku:DanmakuOptionsPanel

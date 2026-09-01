@@ -1,0 +1,220 @@
+{
+  "kill": {
+    "core": [
+      { "section": "kill", "index": 211 },
+      { "section": "kill", "index": 2361 },
+      { "section": "kill", "index": 5419 },
+      { "section": "kill", "index": 6241 },
+      { "section": "kill", "index": 7418 }
+    ],
+    "water": [
+      { "section": "kill", "index": 2449 },
+      { "section": "kill", "index": 6914 },
+      { "section": "kill", "index": 6986 }
+    ]
+  },
+  "first_kill": {
+    "core": [
+      { "section": "general", "index": 437 },
+      { "section": "general", "index": 5000 },
+      { "section": "general", "index": 6366 },
+      { "section": "kill", "index": 1808 },
+      { "section": "death", "index": 1354 }
+    ],
+    "water": [
+      { "section": "death", "index": 2137 },
+      { "section": "death", "index": 2156 }
+    ]
+  },
+  "headshot": {
+    "core": [
+      { "section": "kill", "index": 488 },
+      { "section": "kill", "index": 1254 },
+      { "section": "kill", "index": 1438 },
+      { "section": "kill", "index": 2537 },
+      { "section": "kill", "index": 7049 }
+    ],
+    "water": [
+      { "section": "kill", "index": 2664 },
+      { "section": "kill", "index": 6712 },
+      { "section": "death", "index": 8389 }
+    ]
+  },
+  "knife_kill": {
+    "core": [
+      { "section": "general", "index": 2170 },
+      { "section": "general", "index": 6217 },
+      { "section": "kill", "index": 62 },
+      { "section": "kill", "index": 3553 },
+      { "section": "death", "index": 5865 }
+    ],
+    "water": [
+      { "section": "death", "index": 3727 },
+      { "section": "death", "index": 3946 },
+      { "section": "kill", "index": 1796 }
+    ]
+  },
+  "grenade_kill": {
+    "core": [
+      { "section": "general", "index": 3403 },
+      { "section": "general", "index": 4461 },
+      { "section": "general", "index": 6384 },
+      { "section": "kill", "index": 6988 },
+      { "section": "death", "index": 5263 }
+    ],
+    "water": [
+      { "section": "death", "index": 4973 },
+      { "section": "death", "index": 6699 },
+      { "section": "death", "index": 8496 }
+    ]
+  },
+  "multi_kill": {
+    "core": [
+      { "section": "general", "index": 1704 },
+      { "section": "general", "index": 2111 },
+      { "section": "kill", "index": 3205 },
+      { "section": "kill", "index": 5286 },
+      { "section": "kill", "index": 6775 }
+    ],
+    "water": [
+      { "section": "kill", "index": 3462 },
+      { "section": "kill", "index": 5670 },
+      { "section": "kill", "index": 7107 }
+    ]
+  },
+  "epic_streak": {
+    "core": [
+      { "section": "general", "index": 3952 },
+      { "section": "kill", "index": 1665 },
+      { "section": "kill", "index": 2813 },
+      { "section": "kill", "index": 5734 },
+      { "section": "death", "index": 5379 }
+    ],
+    "water": [
+      { "section": "kill", "index": 1456 },
+      { "section": "kill", "index": 3133 },
+      { "section": "kill", "index": 7106 }
+    ]
+  },
+  "last_kill": {
+    "core": [
+      { "section": "general", "index": 1008 },
+      { "section": "kill", "index": 2100 },
+      { "section": "general", "index": 5662 },
+      { "section": "kill", "index": 7086 },
+      { "section": "death", "index": 9300 }
+    ],
+    "water": [
+      { "section": "kill", "index": 1325 },
+      { "section": "kill", "index": 7335 },
+      { "section": "general", "index": 5302 }
+    ]
+  },
+  "assist": {
+    "core": [
+      { "section": "kill", "index": 3584 },
+      { "section": "kill", "index": 4979 },
+      { "section": "death", "index": 2043 },
+      { "section": "death", "index": 5656 },
+      { "section": "death", "index": 8853 }
+    ],
+    "water": [
+      { "section": "general", "index": 2682 },
+      { "section": "death", "index": 8128 },
+      { "section": "death", "index": 8285 }
+    ]
+  },
+  "death": {
+    "core": [
+      { "section": "death", "index": 56 },
+      { "section": "death", "index": 89 },
+      { "section": "death", "index": 136 },
+      { "section": "death", "index": 620 },
+      { "section": "death", "index": 736 }
+    ],
+    "water": [
+      { "section": "death", "index": 754 },
+      { "section": "death", "index": 762 },
+      { "section": "death", "index": 788 }
+    ]
+  },
+  "round_win": {
+    "core": [
+      { "section": "general", "index": 608 },
+      { "section": "general", "index": 1167 },
+      { "section": "general", "index": 3439 },
+      { "section": "general", "index": 5252 },
+      { "section": "general", "index": 5800 }
+    ],
+    "water": [
+      { "section": "general", "index": 1092 },
+      { "section": "general", "index": 1636 },
+      { "section": "general", "index": 1834 }
+    ]
+  },
+  "round_loss": {
+    "core": [
+      { "section": "death", "index": 487 },
+      { "section": "death", "index": 2446 },
+      { "section": "death", "index": 3021 },
+      { "section": "death", "index": 3305 },
+      { "section": "death", "index": 8116 }
+    ],
+    "water": [
+      { "section": "death", "index": 8025 },
+      { "section": "death", "index": 5417 },
+      { "section": "death", "index": 6288 }
+    ]
+  },
+  "bomb_plant": {
+    "core": [
+      { "section": "general", "index": 2021 },
+      { "section": "general", "index": 2083 },
+      { "section": "general", "index": 5532 },
+      { "section": "kill", "index": 4146 },
+      { "section": "kill", "index": 4431 }
+    ],
+    "water": [
+      { "section": "kill", "index": 1709 },
+      { "section": "kill", "index": 3377 },
+      { "section": "death", "index": 8304 }
+    ]
+  },
+  "bomb_defuse": {
+    "core": [
+      { "section": "general", "index": 1042 },
+      { "section": "general", "index": 2624 },
+      { "section": "kill", "index": 2631 },
+      { "section": "kill", "index": 2656 },
+      { "section": "death", "index": 1389 }
+    ],
+    "water": [
+      { "section": "general", "index": 1585 },
+      { "section": "kill", "index": 3168 },
+      { "section": "kill", "index": 4678 }
+    ]
+  },
+  "hostage_interact": {
+    "core": [
+      { "section": "death", "index": 4359 },
+      { "section": "death", "index": 1490 },
+      { "section": "general", "index": 4965 }
+    ],
+    "water": [
+      { "section": "general", "index": 3300 },
+      { "section": "general", "index": 2515 }
+    ]
+  },
+  "hostage_rescue": {
+    "core": [
+      { "section": "general", "index": 1299 },
+      { "section": "general", "index": 4369 },
+      { "section": "death", "index": 1131 },
+      { "section": "death", "index": 2662 }
+    ],
+    "water": [
+      { "section": "death", "index": 6018 },
+      { "section": "kill", "index": 6168 }
+    ]
+  }
+}

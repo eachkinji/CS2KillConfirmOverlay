@@ -69,10 +69,10 @@ namespace KillConfirmGameBar.Controls.GameStyles
                     isChinese,
                     theme);
 
-                DanmakuRowTitle.Text = isChinese ? "6657 击杀弹幕" : "6657 Kill Danmaku";
+                DanmakuRowTitle.Text = isChinese ? "游戏事件弹幕" : "Game Event Danmaku";
                 DanmakuRowHint.Text = isChinese
-                    ? "击杀时屏幕随机飘过 100 条 6657 弹幕 (15 秒内)"
-                    : "100 random stream memes floating on kill (15s)";
+                    ? "游戏事件触发 5–7 条分类弹幕，单条最长 5 秒"
+                    : "Game events trigger 5–7 categorized comments, up to 5 seconds each";
                 DanmakuTestBtn.Content = isChinese ? "测试弹幕" : "Test";
                 DanmakuToggle.IsOn = KillConfirmGameBar.Danmaku.DanmakuSettingsStore.IsEnabled;
 

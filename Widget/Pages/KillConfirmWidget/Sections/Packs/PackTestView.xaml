@@ -420,7 +420,7 @@
                 Grid.Column="6"
                 Style="{StaticResource ToolbarIconButtonStyle}"
                 Click="OnDanmakuTestClick"
-                ToolTipService.ToolTip="测试 6657 击杀弹幕 (Test 6657 Danmaku)">
+                ToolTipService.ToolTip="测试游戏事件弹幕 (Test game event danmaku)">
                 <FontIcon
                     FontFamily="Segoe MDL2 Assets"
                     FontSize="12"

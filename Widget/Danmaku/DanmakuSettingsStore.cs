@@ -1,4 +1,5 @@
 using System;
+using KillConfirmGameBar.Danmaku.Engine;
 using Windows.Storage;
 using Windows.UI.Text;
 
@@ -15,7 +16,7 @@ namespace KillConfirmGameBar.Danmaku
 
     public enum DanmakuSpeedMode
     {
-        Slow = 0,   // 平缓 (约 6.0s)
+        Slow = 0,   // 平缓 (最长 5.0s)
         Normal = 1, // 标准 (约 4.5s)
         Fast = 2    // 快速 (约 3.2s)
     }
@@ -33,6 +34,8 @@ namespace KillConfirmGameBar.Danmaku
         public const string EnabledSettingKey = "Danmaku6657Enabled";
         public const string TriggerOnKillSettingKey = "Danmaku6657TriggerOnKill";
         public const string TriggerOnDeathSettingKey = "Danmaku6657TriggerOnDeath";
+        public const string TriggerOnRoundSettingKey = "DanmakuTriggerOnRound";
+        public const string TriggerOnObjectiveSettingKey = "DanmakuTriggerOnObjective";
         public const string CountSettingKey = "Danmaku6657Count";
         public const string DurationSettingKey = "Danmaku6657DurationSeconds";
         public const string AreaSettingKey = "Danmaku6657Area";
@@ -42,8 +45,8 @@ namespace KillConfirmGameBar.Danmaku
         public const string OutlineSettingKey = "Danmaku6657Outline";
         public const string SpeedSettingKey = "Danmaku6657Speed";
 
-        public const int DefaultCount = 100;
-        public const double DefaultDurationSeconds = 15.0;
+        public const int DefaultCount = 7;
+        public const double DefaultDurationSeconds = 5.0;
         public const int DefaultFontSize = 16;
 
         public static event Action<bool> EnabledChanged;
@@ -51,6 +54,7 @@ namespace KillConfirmGameBar.Danmaku
         public static event Action TestRequested;
         public static event Action KillTestRequested;
         public static event Action DeathTestRequested;
+        public static event Action<string> EventTestRequested;
 
         public static bool IsEnabled
         {
@@ -107,6 +111,34 @@ namespace KillConfirmGameBar.Danmaku
             }
         }
 
+        public static bool TriggerOnRound
+        {
+            get
+            {
+                object value = ApplicationData.Current.LocalSettings.Values[TriggerOnRoundSettingKey];
+                return value is bool enabled ? enabled : true;
+            }
+            set
+            {
+                ApplicationData.Current.LocalSettings.Values[TriggerOnRoundSettingKey] = value;
+                SettingsChanged?.Invoke();
+            }
+        }
+
+        public static bool TriggerOnObjective
+        {
+            get
+            {
+                object value = ApplicationData.Current.LocalSettings.Values[TriggerOnObjectiveSettingKey];
+                return value is bool enabled ? enabled : true;
+            }
+            set
+            {
+                ApplicationData.Current.LocalSettings.Values[TriggerOnObjectiveSettingKey] = value;
+                SettingsChanged?.Invoke();
+            }
+        }
+
         public static int Count
         {
             get
@@ -114,13 +146,13 @@ namespace KillConfirmGameBar.Danmaku
                 object value = ApplicationData.Current.LocalSettings.Values[CountSettingKey];
                 if (value is int intVal && intVal > 0)
                 {
-                    return intVal;
+                    return DanmakuReactionPolicies.ClampVisibleCount(intVal);
                 }
                 return DefaultCount;
             }
             set
             {
-                int clamped = Math.Max(10, Math.Min(300, value));
+                int clamped = DanmakuReactionPolicies.ClampVisibleCount(value);
                 ApplicationData.Current.LocalSettings.Values[CountSettingKey] = clamped;
                 SettingsChanged?.Invoke();
             }
@@ -133,13 +165,13 @@ namespace KillConfirmGameBar.Danmaku
                 object value = ApplicationData.Current.LocalSettings.Values[DurationSettingKey];
                 if (value is double dblVal && dblVal > 0)
                 {
-                    return dblVal;
+                    return DanmakuReactionPolicies.ClampFlightSeconds(dblVal);
                 }
                 return DefaultDurationSeconds;
             }
             set
             {
-                double clamped = Math.Max(3.0, Math.Min(45.0, value));
+                double clamped = DanmakuReactionPolicies.ClampFlightSeconds(value);
                 ApplicationData.Current.LocalSettings.Values[DurationSettingKey] = clamped;
                 SettingsChanged?.Invoke();
             }
@@ -284,6 +316,14 @@ namespace KillConfirmGameBar.Danmaku
         public static void RequestDeathTest()
         {
             DeathTestRequested?.Invoke();
+        }
+
+        public static void RequestEventTest(string eventKey)
+        {
+            if (!string.IsNullOrWhiteSpace(eventKey))
+            {
+                EventTestRequested?.Invoke(eventKey.Trim());
+            }
         }
     }
 }

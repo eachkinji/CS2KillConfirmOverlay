@@ -101,6 +101,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Danmaku\Engine\DanmakuEvent.cs" />
+    <Compile Include="Danmaku\Engine\DanmakuReactionPolicy.cs" />
+    <Compile Include="Danmaku\Engine\DanmakuEventPoolRepository.cs" />
+    <Compile Include="Danmaku\Engine\DanmakuBatchComposer.cs" />
+    <Compile Include="Danmaku\Engine\DanmakuPendingQueue.cs" />
+    <Compile Include="Danmaku\Engine\DanmakuMotion.cs" />
+    <Compile Include="Danmaku\Engine\DanmakuLaneLayout.cs" />
     <Compile Include="Danmaku\DanmakuRepository.cs" />
     <Compile Include="Danmaku\DanmakuSettingsStore.cs" />
     <Compile Include="Danmaku\DanmakuOverlay.xaml.cs">
@@ -540,6 +547,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Danmaku\6657_memes.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Danmaku\Pools\event_reactions.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

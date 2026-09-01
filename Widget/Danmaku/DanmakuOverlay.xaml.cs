@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Microsoft.Graphics.Canvas;
+using System.Threading.Tasks;
+using KillConfirmGameBar.Danmaku.Engine;
+using KillConfirmGameBar.Services;
 using Microsoft.Graphics.Canvas.Text;
 using Microsoft.Graphics.Canvas.UI.Xaml;
 using Windows.Foundation;
 using Windows.UI;
+using Windows.UI.Core;
 using Windows.UI.Text;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -20,22 +23,16 @@ namespace KillConfirmGameBar.Danmaku
             public string Text;
             public float X;
             public float Y;
-            public float SpeedPxPerSec;
+            public float StartX;
+            public float EndX;
             public float MeasuredWidth;
+            public double ElapsedSeconds;
+            public double DurationSeconds;
+            public int LaneIndex;
             public Color Color;
         }
 
-        private sealed class PendingDanmaku
-        {
-            public string Text;
-            public float TargetY;
-            public float SpeedPxPerSec;
-            public long TriggerTimeMs;
-            public Color Color;
-        }
-
-        private static readonly Random _rand = new Random();
-
+        private static readonly Random Random = new Random();
         private static readonly Color WhiteColor = Colors.White;
         private static readonly Color GoldColor = Color.FromArgb(255, 252, 211, 77);
         private static readonly Color CyanColor = Color.FromArgb(255, 103, 232, 249);
@@ -43,10 +40,16 @@ namespace KillConfirmGameBar.Danmaku
         private static readonly Color TextOutlineColor = Color.FromArgb(240, 15, 15, 15);
 
         private readonly List<ActiveDanmaku> _activeList = new List<ActiveDanmaku>();
-        private readonly List<PendingDanmaku> _pendingList = new List<PendingDanmaku>();
+        private readonly Queue<DanmakuEventContext> _eventsAwaitingPools = new Queue<DanmakuEventContext>();
+        private readonly DanmakuPendingQueue _pendingQueue = new DanmakuPendingQueue();
+        private readonly DanmakuBatchComposer _batchComposer = new DanmakuBatchComposer(Random);
         private readonly Stopwatch _animationStopwatch = new Stopwatch();
-        private long _lastFrameMs;
+        private readonly CoreDispatcher _uiDispatcher;
 
+        private long _lastFrameMs;
+        private int _nextLaneIndex;
+        private bool _isLoaded;
+        private bool _isPoolDrainRunning;
         private bool _isRendering;
         private CanvasTextFormat _cachedTextFormat;
         private int _cachedFontSize = 16;
@@ -57,95 +60,192 @@ namespace KillConfirmGameBar.Danmaku
         public DanmakuOverlay()
         {
             InitializeComponent();
+            _uiDispatcher = Dispatcher;
             Loaded += OnLoaded;
             Unloaded += OnUnloaded;
         }
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
+            _isLoaded = true;
             _ = DanmakuRepository.EnsureLoadedAsync();
+            _ = DanmakuEventPoolRepository.EnsureLoadedAsync();
             DanmakuSettingsStore.TestRequested -= OnTestRequested;
             DanmakuSettingsStore.TestRequested += OnTestRequested;
             DanmakuSettingsStore.KillTestRequested -= OnKillTestRequested;
             DanmakuSettingsStore.KillTestRequested += OnKillTestRequested;
             DanmakuSettingsStore.DeathTestRequested -= OnDeathTestRequested;
             DanmakuSettingsStore.DeathTestRequested += OnDeathTestRequested;
+            DanmakuSettingsStore.EventTestRequested -= OnEventTestRequested;
+            DanmakuSettingsStore.EventTestRequested += OnEventTestRequested;
         }
 
         private void OnUnloaded(object sender, RoutedEventArgs e)
         {
+            _isLoaded = false;
             DanmakuSettingsStore.TestRequested -= OnTestRequested;
             DanmakuSettingsStore.KillTestRequested -= OnKillTestRequested;
             DanmakuSettingsStore.DeathTestRequested -= OnDeathTestRequested;
+            DanmakuSettingsStore.EventTestRequested -= OnEventTestRequested;
             StopRendering();
-            lock (_activeList)
-            {
-                _activeList.Clear();
-            }
-            lock (_pendingList)
-            {
-                _pendingList.Clear();
-            }
+            _activeList.Clear();
+            _eventsAwaitingPools.Clear();
+            _pendingQueue.Clear();
             _cachedTextFormat?.Dispose();
             _cachedTextFormat = null;
         }
 
         private void OnTestRequested()
         {
-            TriggerKillBarrage();
+            RunOnOverlayThread(() => TriggerKillBarrage());
         }
 
         private void OnKillTestRequested()
         {
-            TriggerKillBarrage();
+            RunOnOverlayThread(() => TriggerKillBarrage());
         }
 
         private void OnDeathTestRequested()
         {
-            TriggerDeathBarrage();
+            RunOnOverlayThread(() => TriggerDeathBarrage());
         }
 
-        public void TriggerKillBarrage(int? customCount = null, double? customDurationSeconds = null)
+        private void OnEventTestRequested(string eventKey)
         {
-            int count = customCount ?? DanmakuSettingsStore.Count;
-            IReadOnlyList<string> items = DanmakuRepository.GetRandomKillBatch(count);
-            TriggerBarrageInternal(items, customDurationSeconds);
+            RunOnOverlayThread(() =>
+                QueueReactionWhenPoolsReady(DanmakuEventClassifier.CreateTestFromKey(eventKey)));
         }
 
-        public void TriggerDeathBarrage(int? customCount = null, double? customDurationSeconds = null)
+        public void TriggerGameEvent(KillEvent gameEvent)
         {
-            int count = customCount ?? DanmakuSettingsStore.Count;
-            IReadOnlyList<string> items = DanmakuRepository.GetRandomDeathBatch(count);
-            TriggerBarrageInternal(items, customDurationSeconds);
-        }
+            if (!_uiDispatcher.HasThreadAccess)
+            {
+                RunOnOverlayThread(() => TriggerGameEvent(gameEvent));
+                return;
+            }
 
-        public void TriggerBarrage(int? customCount = null, double? customDurationSeconds = null)
-        {
-            int count = customCount ?? DanmakuSettingsStore.Count;
-            IReadOnlyList<string> items = DanmakuRepository.GetRandomBatch(count);
-            TriggerBarrageInternal(items, customDurationSeconds);
-        }
-
-        private void TriggerBarrageInternal(IReadOnlyList<string> items, double? customDurationSeconds = null)
-        {
-            if (items == null || items.Count == 0)
+            if (!DanmakuSettingsStore.IsEnabled)
             {
                 return;
             }
 
-            double totalDurationSeconds = customDurationSeconds ?? DanmakuSettingsStore.DurationSeconds;
-            DanmakuDisplayArea area = DanmakuSettingsStore.Area;
+            DanmakuEventContext context = DanmakuEventClassifier.Classify(gameEvent);
+            if (context == null)
+            {
+                return;
+            }
+
+            if (context.Kind == DanmakuEventKind.Death && !DanmakuSettingsStore.TriggerOnDeath)
+            {
+                return;
+            }
+
+            if (DanmakuEventClassifier.IsKillReaction(context.Kind) && !DanmakuSettingsStore.TriggerOnKill)
+            {
+                return;
+            }
+
+            if (DanmakuEventClassifier.IsRoundReaction(context.Kind) && !DanmakuSettingsStore.TriggerOnRound)
+            {
+                return;
+            }
+
+            if (DanmakuEventClassifier.IsObjectiveReaction(context.Kind) && !DanmakuSettingsStore.TriggerOnObjective)
+            {
+                return;
+            }
+
+            QueueReactionWhenPoolsReady(context);
+        }
+
+        private void QueueReactionWhenPoolsReady(DanmakuEventContext context)
+        {
+            if (context == null)
+            {
+                return;
+            }
+            _eventsAwaitingPools.Enqueue(context);
+            if (!_isPoolDrainRunning)
+            {
+                _ = DrainEventsWhenPoolsReadyAsync();
+            }
+        }
+
+        private async Task DrainEventsWhenPoolsReadyAsync()
+        {
+            _isPoolDrainRunning = true;
+            await DanmakuEventPoolRepository.EnsureLoadedAsync();
+            if (!_isLoaded)
+            {
+                _eventsAwaitingPools.Clear();
+                _isPoolDrainRunning = false;
+                return;
+            }
+
+            while (_eventsAwaitingPools.Count > 0)
+            {
+                TriggerReaction(_eventsAwaitingPools.Dequeue(), null, null);
+            }
+            _isPoolDrainRunning = false;
+        }
+
+        public void TriggerKillBarrage(int? customCount = null, double? customDurationSeconds = null)
+        {
+            TriggerReaction(
+                DanmakuEventClassifier.CreateTest(DanmakuEventKind.Kill),
+                customCount,
+                customDurationSeconds);
+        }
+
+        public void TriggerDeathBarrage(int? customCount = null, double? customDurationSeconds = null)
+        {
+            TriggerReaction(
+                DanmakuEventClassifier.CreateTest(DanmakuEventKind.Death),
+                customCount,
+                customDurationSeconds);
+        }
+
+        public void TriggerBarrage(int? customCount = null, double? customDurationSeconds = null)
+        {
+            TriggerReaction(
+                DanmakuEventClassifier.CreateTest(DanmakuEventKind.Kill),
+                customCount,
+                customDurationSeconds);
+        }
+
+        private void TriggerReaction(
+            DanmakuEventContext context,
+            int? customVisibleLimit,
+            double? customMaximumFlightSeconds)
+        {
+            int visibleLimit = DanmakuReactionPolicies.ClampVisibleCount(
+                customVisibleLimit ?? DanmakuSettingsStore.Count);
+            double maximumFlightSeconds = DanmakuReactionPolicies.ClampFlightSeconds(
+                customMaximumFlightSeconds ?? DanmakuSettingsStore.DurationSeconds);
+
+            RefreshDrawingSettings();
+
+            IReadOnlyList<DanmakuMessage> messages = _batchComposer.Compose(context, visibleLimit);
+            if (messages.Count == 0)
+            {
+                return;
+            }
+
+            double flightDuration = DanmakuMotion.ResolveFlightDuration(
+                DanmakuSettingsStore.Speed,
+                maximumFlightSeconds,
+                Random);
+            _pendingQueue.Enqueue(messages, flightDuration);
+            StartRendering();
+        }
+
+        private void RefreshDrawingSettings()
+        {
             int fontSize = DanmakuSettingsStore.FontSize;
             FontWeight fontWeight = DanmakuSettingsStore.ResolveFontWeight(DanmakuSettingsStore.FontWeight);
-            bool showBackground = DanmakuSettingsStore.ShowBackground;
-            bool showOutline = DanmakuSettingsStore.ShowOutline;
-            DanmakuSpeedMode speed = DanmakuSettingsStore.Speed;
-
-            double canvasWidth = ActualWidth > 50 ? ActualWidth : (Window.Current?.Bounds.Width ?? 1920);
-            double canvasHeight = ActualHeight > 50 ? ActualHeight : (Window.Current?.Bounds.Height ?? 1080);
-
-            // Update format cache
-            if (_cachedTextFormat == null || _cachedFontSize != fontSize || _cachedFontWeight.Weight != fontWeight.Weight)
+            if (_cachedTextFormat == null
+                || _cachedFontSize != fontSize
+                || _cachedFontWeight.Weight != fontWeight.Weight)
             {
                 _cachedTextFormat?.Dispose();
                 _cachedFontSize = fontSize;
@@ -161,141 +261,204 @@ namespace KillConfirmGameBar.Danmaku
                 };
             }
 
-            _cachedShowBackground = showBackground;
-            _cachedShowOutline = showOutline;
-
-            var validYRanges = ResolveYRangesForArea(area, canvasHeight);
-
-            if (!_animationStopwatch.IsRunning)
-            {
-                _animationStopwatch.Restart();
-                _lastFrameMs = 0;
-            }
-            long baseMs = _animationStopwatch.ElapsedMilliseconds;
-
-            lock (_pendingList)
-            {
-                for (int i = 0; i < items.Count; i++)
-                {
-                    string text = items[i];
-                    if (string.IsNullOrWhiteSpace(text))
-                    {
-                        continue;
-                    }
-
-                    double delaySec = _rand.NextDouble() * totalDurationSeconds;
-                    long triggerMs = baseMs + (long)(delaySec * 1000.0);
-
-                    float posY = (float)PickRandomYFromRanges(validYRanges);
-                    double flightDuration = ResolveFlightDuration(speed);
-                    float speedPxPerSec = (float)((canvasWidth + 600) / flightDuration);
-
-                    _pendingList.Add(new PendingDanmaku
-                    {
-                        Text = text,
-                        TargetY = posY,
-                        SpeedPxPerSec = speedPxPerSec,
-                        TriggerTimeMs = triggerMs,
-                        Color = GetRandomDanmakuColor()
-                    });
-                }
-
-                _pendingList.Sort((a, b) => a.TriggerTimeMs.CompareTo(b.TriggerTimeMs));
-            }
-
-            StartRendering();
+            _cachedShowBackground = DanmakuSettingsStore.ShowBackground;
+            _cachedShowOutline = DanmakuSettingsStore.ShowOutline;
         }
 
         private void StartRendering()
         {
-            if (!_isRendering)
+            if (_isRendering)
             {
-                _isRendering = true;
-                _lastFrameMs = _animationStopwatch.ElapsedMilliseconds;
-                CompositionTarget.Rendering += OnCompositionRendering;
+                return;
             }
+
+            _isRendering = true;
+            _animationStopwatch.Restart();
+            _lastFrameMs = 0;
+            CompositionTarget.Rendering += OnCompositionRendering;
         }
 
         private void StopRendering()
         {
-            if (_isRendering)
+            if (!_isRendering)
             {
-                _isRendering = false;
-                CompositionTarget.Rendering -= OnCompositionRendering;
-                _animationStopwatch.Stop();
-                DanmakuCanvas.Invalidate();
+                return;
             }
+
+            _isRendering = false;
+            CompositionTarget.Rendering -= OnCompositionRendering;
+            _animationStopwatch.Stop();
+            DanmakuCanvas.Invalidate();
         }
 
         private void OnCompositionRendering(object sender, object e)
         {
+            // CompositionTarget.Rendering is static and can fire for another
+            // Game Bar XAML island. Never touch this overlay from that island's thread.
+            if (!_uiDispatcher.HasThreadAccess || !_isLoaded)
+            {
+                return;
+            }
+
             long nowMs = _animationStopwatch.ElapsedMilliseconds;
-            float dt = (nowMs - _lastFrameMs) / 1000.0f;
+            double deltaSeconds = Math.Max(0, (nowMs - _lastFrameMs) / 1000.0);
             _lastFrameMs = nowMs;
 
-            if (dt <= 0 || dt > 0.1f)
-            {
-                dt = 0.0166f; // Clamp delta time to avoid jumps
-            }
+            AdvanceActiveDanmaku(deltaSeconds);
+            SpawnPendingDanmaku();
 
-            double canvasWidth = ActualWidth > 50 ? ActualWidth : (Window.Current?.Bounds.Width ?? 1920);
-
-            // 1. Move active items
-            lock (_activeList)
-            {
-                for (int i = _activeList.Count - 1; i >= 0; i--)
-                {
-                    var d = _activeList[i];
-                    d.X -= d.SpeedPxPerSec * dt;
-
-                    // Remove if completely off-screen left
-                    if (d.X < -d.MeasuredWidth - 50)
-                    {
-                        _activeList.RemoveAt(i);
-                    }
-                }
-            }
-
-            // 2. Spawn pending items
-            lock (_pendingList)
-            {
-                while (_pendingList.Count > 0 && _pendingList[0].TriggerTimeMs <= nowMs)
-                {
-                    var p = _pendingList[0];
-                    _pendingList.RemoveAt(0);
-
-                    // Estimate/measure width: ~ fontSize * 0.95 per character
-                    float estimatedWidth = Math.Max(40, p.Text.Length * (_cachedFontSize * 0.95f));
-
-                    lock (_activeList)
-                    {
-                        _activeList.Add(new ActiveDanmaku
-                        {
-                            Text = p.Text,
-                            X = (float)canvasWidth + 10f,
-                            Y = p.TargetY,
-                            SpeedPxPerSec = p.SpeedPxPerSec,
-                            MeasuredWidth = estimatedWidth,
-                            Color = p.Color
-                        });
-                    }
-                }
-            }
-
-            // 3. Check if all finished
-            bool hasActive;
-            bool hasPending;
-            lock (_activeList) { hasActive = _activeList.Count > 0; }
-            lock (_pendingList) { hasPending = _pendingList.Count > 0; }
-
-            if (!hasActive && !hasPending)
+            if (_activeList.Count == 0 && _pendingQueue.Count == 0)
             {
                 StopRendering();
                 return;
             }
 
-            // 4. Request GPU Redraw
             DanmakuCanvas.Invalidate();
+        }
+
+        private void RunOnOverlayThread(Action action)
+        {
+            if (action == null)
+            {
+                return;
+            }
+
+            if (_uiDispatcher.HasThreadAccess)
+            {
+                if (_isLoaded)
+                {
+                    action();
+                }
+                return;
+            }
+
+            _ = RunOnOverlayThreadAsync(action);
+        }
+
+        private async Task RunOnOverlayThreadAsync(Action action)
+        {
+            try
+            {
+                await _uiDispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+                {
+                    if (_isLoaded)
+                    {
+                        action();
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                App.Log("Danmaku UI dispatch skipped: " + ex.Message);
+            }
+        }
+
+        private void AdvanceActiveDanmaku(double deltaSeconds)
+        {
+            for (int i = _activeList.Count - 1; i >= 0; i--)
+            {
+                ActiveDanmaku danmaku = _activeList[i];
+                danmaku.ElapsedSeconds += deltaSeconds;
+                danmaku.X = DanmakuMotion.ResolveX(
+                    danmaku.StartX,
+                    danmaku.EndX,
+                    danmaku.ElapsedSeconds,
+                    danmaku.DurationSeconds);
+
+                // Removal happens only after the complete right-to-left flight.
+                if (danmaku.ElapsedSeconds >= danmaku.DurationSeconds)
+                {
+                    _activeList.RemoveAt(i);
+                }
+            }
+        }
+
+        private void SpawnPendingDanmaku()
+        {
+            int visibleLimit = DanmakuReactionPolicies.ClampVisibleCount(DanmakuSettingsStore.Count);
+            if (_activeList.Count >= visibleLimit)
+            {
+                return;
+            }
+
+            double canvasWidth = ActualWidth > 50 ? ActualWidth : (Window.Current?.Bounds.Width ?? 1920);
+            double canvasHeight = ActualHeight > 50 ? ActualHeight : (Window.Current?.Bounds.Height ?? 1080);
+            IReadOnlyList<float> lanes = DanmakuLaneLayout.Build(
+                DanmakuSettingsStore.Area,
+                canvasHeight,
+                visibleLimit,
+                _cachedFontSize);
+
+            DanmakuQueueItem pending;
+            while (_activeList.Count < visibleLimit && _pendingQueue.TryDequeue(out pending))
+            {
+                int laneIndex = FindFreeLane(visibleLimit);
+                if (laneIndex < 0)
+                {
+                    return;
+                }
+
+                float measuredWidth = MeasureTextWidth(pending.Message.Text);
+                float startX = (float)canvasWidth + 12f;
+                float endX = -measuredWidth - 12f;
+                _activeList.Add(new ActiveDanmaku
+                {
+                    Text = pending.Message.Text,
+                    X = startX,
+                    Y = lanes[laneIndex],
+                    StartX = startX,
+                    EndX = endX,
+                    MeasuredWidth = measuredWidth,
+                    ElapsedSeconds = 0,
+                    DurationSeconds = pending.FlightDurationSeconds,
+                    LaneIndex = laneIndex,
+                    Color = GetRandomDanmakuColor(pending.Message.Role)
+                });
+                _nextLaneIndex = (laneIndex + 1) % visibleLimit;
+            }
+        }
+
+        private float MeasureTextWidth(string text)
+        {
+            try
+            {
+                using (var layout = new CanvasTextLayout(
+                    DanmakuCanvas,
+                    text,
+                    _cachedTextFormat,
+                    0,
+                    0))
+                {
+                    return Math.Max(40, (float)layout.LayoutBounds.Width);
+                }
+            }
+            catch (Exception ex)
+            {
+                App.Log("Danmaku text measurement fallback: " + ex.Message);
+                return Math.Max(40, text.Length * (_cachedFontSize * 0.95f));
+            }
+        }
+
+        private int FindFreeLane(int laneCount)
+        {
+            for (int offset = 0; offset < laneCount; offset++)
+            {
+                int candidate = (_nextLaneIndex + offset) % laneCount;
+                bool inUse = false;
+                for (int i = 0; i < _activeList.Count; i++)
+                {
+                    if (_activeList[i].LaneIndex == candidate)
+                    {
+                        inUse = true;
+                        break;
+                    }
+                }
+                if (!inUse)
+                {
+                    return candidate;
+                }
+            }
+            return -1;
         }
 
         private void OnDanmakuCanvasDraw(CanvasControl sender, CanvasDrawEventArgs args)
@@ -303,117 +466,61 @@ namespace KillConfirmGameBar.Danmaku
             var session = args.DrawingSession;
             session.Clear(Colors.Transparent);
 
-            var format = _cachedTextFormat;
-            if (format == null)
+            CanvasTextFormat format = _cachedTextFormat;
+            if (format == null || _activeList.Count == 0)
             {
                 return;
             }
 
-            List<ActiveDanmaku> snapshot;
-            lock (_activeList)
-            {
-                if (_activeList.Count == 0)
-                {
-                    return;
-                }
-                snapshot = new List<ActiveDanmaku>(_activeList);
-            }
-
-            bool showBg = _cachedShowBackground;
-            bool showOutline = _cachedShowOutline;
-            float fontSize = _cachedFontSize;
-
+            var snapshot = new List<ActiveDanmaku>(_activeList);
             for (int i = 0; i < snapshot.Count; i++)
             {
-                var d = snapshot[i];
-
-                if (showBg)
+                ActiveDanmaku danmaku = snapshot[i];
+                if (_cachedShowBackground)
                 {
                     session.FillRoundedRectangle(
-                        new Rect(d.X - 6, d.Y - 2, d.MeasuredWidth + 12, fontSize + 6),
-                        4, 4,
+                        new Rect(
+                            danmaku.X - 6,
+                            danmaku.Y - 2,
+                            danmaku.MeasuredWidth + 12,
+                            _cachedFontSize + 6),
+                        4,
+                        4,
                         ShadowBgColor);
                 }
 
-                if (showOutline)
+                if (_cachedShowOutline)
                 {
-                    // 8-directional GPU Direct2D text outline
-                    session.DrawText(d.Text, d.X - 1.2f, d.Y - 1.2f, TextOutlineColor, format);
-                    session.DrawText(d.Text, d.X + 1.2f, d.Y - 1.2f, TextOutlineColor, format);
-                    session.DrawText(d.Text, d.X - 1.2f, d.Y + 1.2f, TextOutlineColor, format);
-                    session.DrawText(d.Text, d.X + 1.2f, d.Y + 1.2f, TextOutlineColor, format);
-                    session.DrawText(d.Text, d.X - 1.4f, d.Y, TextOutlineColor, format);
-                    session.DrawText(d.Text, d.X + 1.4f, d.Y, TextOutlineColor, format);
-                    session.DrawText(d.Text, d.X, d.Y - 1.4f, TextOutlineColor, format);
-                    session.DrawText(d.Text, d.X, d.Y + 1.4f, TextOutlineColor, format);
+                    DrawOutline(session, danmaku, format);
                 }
 
-                // Foreground text
-                session.DrawText(d.Text, d.X, d.Y, d.Color, format);
+                session.DrawText(danmaku.Text, danmaku.X, danmaku.Y, danmaku.Color, format);
             }
         }
 
-        private static List<(double MinY, double MaxY)> ResolveYRangesForArea(DanmakuDisplayArea area, double height)
+        private static void DrawOutline(
+            Microsoft.Graphics.Canvas.CanvasDrawingSession session,
+            ActiveDanmaku danmaku,
+            CanvasTextFormat format)
         {
-            var ranges = new List<(double MinY, double MaxY)>();
-            switch (area)
-            {
-                case DanmakuDisplayArea.Top:
-                    ranges.Add((10, height * 0.48));
-                    break;
-                case DanmakuDisplayArea.Bottom:
-                    ranges.Add((height * 0.52, height - 40));
-                    break;
-                case DanmakuDisplayArea.Center:
-                    ranges.Add((height * 0.25, height * 0.75));
-                    break;
-                case DanmakuDisplayArea.AvoidCenter:
-                    ranges.Add((10, height * 0.32));
-                    ranges.Add((height * 0.68, height - 40));
-                    break;
-                case DanmakuDisplayArea.All:
-                default:
-                    ranges.Add((10, height - 40));
-                    break;
-            }
-            return ranges;
+            session.DrawText(danmaku.Text, danmaku.X - 1.2f, danmaku.Y - 1.2f, TextOutlineColor, format);
+            session.DrawText(danmaku.Text, danmaku.X + 1.2f, danmaku.Y - 1.2f, TextOutlineColor, format);
+            session.DrawText(danmaku.Text, danmaku.X - 1.2f, danmaku.Y + 1.2f, TextOutlineColor, format);
+            session.DrawText(danmaku.Text, danmaku.X + 1.2f, danmaku.Y + 1.2f, TextOutlineColor, format);
+            session.DrawText(danmaku.Text, danmaku.X - 1.4f, danmaku.Y, TextOutlineColor, format);
+            session.DrawText(danmaku.Text, danmaku.X + 1.4f, danmaku.Y, TextOutlineColor, format);
+            session.DrawText(danmaku.Text, danmaku.X, danmaku.Y - 1.4f, TextOutlineColor, format);
+            session.DrawText(danmaku.Text, danmaku.X, danmaku.Y + 1.4f, TextOutlineColor, format);
         }
 
-        private static double PickRandomYFromRanges(List<(double MinY, double MaxY)> ranges)
+        private static Color GetRandomDanmakuColor(DanmakuMessageRole role)
         {
-            if (ranges == null || ranges.Count == 0)
-            {
-                return 50;
-            }
-
-            var range = ranges[_rand.Next(ranges.Count)];
-            double minY = Math.Max(0, range.MinY);
-            double maxY = Math.Max(minY + 20, range.MaxY);
-            return minY + (_rand.NextDouble() * (maxY - minY));
-        }
-
-        private static double ResolveFlightDuration(DanmakuSpeedMode speed)
-        {
-            switch (speed)
-            {
-                case DanmakuSpeedMode.Fast:
-                    return 2.9 + (_rand.NextDouble() * 0.8);
-                case DanmakuSpeedMode.Slow:
-                    return 5.6 + (_rand.NextDouble() * 1.5);
-                case DanmakuSpeedMode.Normal:
-                default:
-                    return 4.0 + (_rand.NextDouble() * 1.2);
-            }
-        }
-
-        private static Color GetRandomDanmakuColor()
-        {
-            int r = _rand.Next(100);
-            if (r < 8)
+            int roll = Random.Next(100);
+            if (role == DanmakuMessageRole.Core && roll < 18)
             {
                 return GoldColor;
             }
-            if (r < 15)
+            if (roll < 15)
             {
                 return CyanColor;
             }

@@ -43,11 +43,11 @@ namespace KillConfirmGameBar.Controls.Settings
             SpectatedKillEffectsToggle.OffContent = LocalizationManager.Text("Off");
             SpectatedKillEffectsToggle.OnContent = LocalizationManager.Text("On");
             bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
-            Danmaku6657LabelText.Text = isChinese ? "6657 击杀弹幕" : "6657 Kill Danmaku";
+            Danmaku6657LabelText.Text = isChinese ? "游戏事件弹幕" : "Game Event Danmaku";
             Danmaku6657HintText.Text = isChinese
-                ? "检测到击杀时在屏幕内随机发送 100 条 6657 经典弹幕（15 秒内分批飘过）"
-                : "Spawns 100 random 6657 stream memes floating across screen on kill over 15s.";
-            Danmaku6657TestButton.Content = isChinese ? "测试弹幕" : "Test";
+                ? "根据战斗、目标与回合事件显示 5–7 条分类弹幕，单条最长 5 秒"
+                : "Shows 5–7 categorized comments for combat, objective, and round events; each completes within 5 seconds.";
+            Danmaku6657TestButton.Content = isChinese ? "测试所选事件" : "Test selected event";
             Danmaku6657Toggle.OffContent = LocalizationManager.Text("Off");
             Danmaku6657Toggle.OnContent = LocalizationManager.Text("On");
             BombAudioPanel?.ApplyLanguage();
@@ -128,7 +128,7 @@ namespace KillConfirmGameBar.Controls.Settings
 
         private void OnDanmaku6657TestClick(object sender, RoutedEventArgs e)
         {
-            KillConfirmGameBar.Danmaku.DanmakuSettingsStore.RequestTest();
+            DanmakuSettingsOptions?.TestSelectedEvent();
         }
 
         private void SelectSpectatedKillEffects()

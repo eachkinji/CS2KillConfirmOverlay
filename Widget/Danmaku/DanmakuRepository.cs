@@ -8,191 +8,124 @@ namespace KillConfirmGameBar.Danmaku
 {
     public static class DanmakuRepository
     {
-        private static readonly object _lock = new object();
-        private static List<string> _killMemes = null;
-        private static List<string> _deathMemes = null;
-        private static List<string> _allMemes = null;
-        private static readonly Random _random = new Random();
+        private static readonly object SyncRoot = new object();
+        private static IReadOnlyList<string> _kill = new string[0];
+        private static IReadOnlyList<string> _death = new string[0];
+        private static IReadOnlyList<string> _general = new string[0];
+        private static Task _loadTask;
 
-        private static readonly string[] FallbackKillMemes = new string[]
+        public static Task EnsureLoadedAsync()
         {
-            "？？？？？",
-            "这枪法直接拉满了！",
-            "开了？锁头了这是！",
-            "透视举报了！",
-            "m0NESY 附体！",
-            "这就是 TOP1 吗？",
-            "全体起立！",
-            "6657 永远滴神！",
-            "真主降临！",
-            "太猛了太猛了！",
-            "这波操作直接封神！",
-            "这就是职业选手的压枪吗？",
-            "给大佬递茶！",
-            "秒了！",
-            "66666666666"
-        };
-
-        private static readonly string[] FallbackDeathMemes = new string[]
-        {
-            "买菜去吧！",
-            "下饭！太下饭了！",
-            "菜就多练！",
-            "这也死？？？",
-            "主播在干嘛？",
-            "木柜子动了！",
-            "脑溢血操作！",
-            "退钱！退钱！",
-            "就这啊？",
-            "白给大队在此！",
-            "你下播吧！",
-            "这波在第几层？",
-            "人体描边大师！",
-            "闹麻了！",
-            "急了急了！"
-        };
-
-        public static async Task EnsureLoadedAsync()
-        {
-            if (_allMemes != null && _allMemes.Count > 0)
+            lock (SyncRoot)
             {
-                return;
+                if (_loadTask == null)
+                {
+                    _loadTask = LoadAsync();
+                }
+                return _loadTask;
+            }
+        }
+
+        public static bool TryGetByIndex(
+            string section,
+            int oneBasedIndex,
+            out string text)
+        {
+            text = null;
+            if (oneBasedIndex <= 0)
+            {
+                return false;
             }
 
+            IReadOnlyList<string> source;
+            lock (SyncRoot)
+            {
+                switch ((section ?? string.Empty).Trim().ToLowerInvariant())
+                {
+                    case "kill":
+                        source = _kill;
+                        break;
+                    case "death":
+                        source = _death;
+                        break;
+                    case "general":
+                        source = _general;
+                        break;
+                    default:
+                        return false;
+                }
+
+                int zeroBasedIndex = oneBasedIndex - 1;
+                if (zeroBasedIndex < 0 || zeroBasedIndex >= source.Count)
+                {
+                    return false;
+                }
+                text = source[zeroBasedIndex];
+            }
+
+            return !string.IsNullOrWhiteSpace(text);
+        }
+
+        private static async Task LoadAsync()
+        {
             try
             {
-                var file = await StorageFile.GetFileFromApplicationUriAsync(new Uri("ms-appx:///Danmaku/6657_memes.json"));
+                StorageFile file = await StorageFile.GetFileFromApplicationUriAsync(
+                    new Uri("ms-appx:///Danmaku/6657_memes.json"));
                 string jsonText = await FileIO.ReadTextAsync(file);
-                if (!string.IsNullOrWhiteSpace(jsonText))
+                JsonObject root;
+                if (!JsonObject.TryParse(jsonText, out root))
                 {
-                    var killList = new List<string>();
-                    var deathList = new List<string>();
-                    var allList = new List<string>();
+                    throw new InvalidOperationException("6657_memes.json is not a JSON object.");
+                }
 
-                    if (JsonObject.TryParse(jsonText, out JsonObject rootObj))
-                    {
-                        if (rootObj.ContainsKey("kill") && rootObj.GetNamedValue("kill").ValueType == JsonValueType.Array)
-                        {
-                            var killArr = rootObj.GetNamedArray("kill");
-                            foreach (var item in killArr)
-                            {
-                                string s = item.GetString();
-                                if (!string.IsNullOrWhiteSpace(s))
-                                {
-                                    killList.Add(s);
-                                    allList.Add(s);
-                                }
-                            }
-                        }
+                IReadOnlyList<string> kill = ReadSection(root, "kill");
+                IReadOnlyList<string> death = ReadSection(root, "death");
+                IReadOnlyList<string> general = ReadSection(root, "general");
+                if (kill.Count == 0 || death.Count == 0 || general.Count == 0)
+                {
+                    throw new InvalidOperationException("6657_memes.json contains an empty required section.");
+                }
 
-                        if (rootObj.ContainsKey("death") && rootObj.GetNamedValue("death").ValueType == JsonValueType.Array)
-                        {
-                            var deathArr = rootObj.GetNamedArray("death");
-                            foreach (var item in deathArr)
-                            {
-                                string s = item.GetString();
-                                if (!string.IsNullOrWhiteSpace(s))
-                                {
-                                    deathList.Add(s);
-                                    allList.Add(s);
-                                }
-                            }
-                        }
-
-                        if (rootObj.ContainsKey("general") && rootObj.GetNamedValue("general").ValueType == JsonValueType.Array)
-                        {
-                            var genArr = rootObj.GetNamedArray("general");
-                            foreach (var item in genArr)
-                            {
-                                string s = item.GetString();
-                                if (!string.IsNullOrWhiteSpace(s))
-                                {
-                                    allList.Add(s);
-                                }
-                            }
-                        }
-                    }
-                    else if (JsonArray.TryParse(jsonText, out JsonArray array))
-                    {
-                        foreach (var val in array)
-                        {
-                            string str = val.GetString();
-                            if (!string.IsNullOrWhiteSpace(str))
-                            {
-                                allList.Add(str);
-                            }
-                        }
-                    }
-
-                    lock (_lock)
-                    {
-                        _killMemes = killList.Count > 0 ? killList : new List<string>(FallbackKillMemes);
-                        _deathMemes = deathList.Count > 0 ? deathList : new List<string>(FallbackDeathMemes);
-                        _allMemes = allList.Count > 0 ? allList : new List<string>(FallbackKillMemes);
-                    }
-                    return;
+                lock (SyncRoot)
+                {
+                    _kill = kill;
+                    _death = death;
+                    _general = general;
                 }
             }
             catch (Exception ex)
             {
-                App.Log("DanmakuRepository.EnsureLoadedAsync failed: " + ex.Message);
+                // Strict source rule: if the 6657 library cannot be loaded,
+                // leave every section empty and emit no danmaku.
+                App.Log("DanmakuRepository.LoadAsync failed: " + ex.Message);
+            }
+        }
+
+        private static IReadOnlyList<string> ReadSection(JsonObject root, string section)
+        {
+            var result = new List<string>();
+            if (!root.ContainsKey(section)
+                || root.GetNamedValue(section).ValueType != JsonValueType.Array)
+            {
+                return result;
             }
 
-            lock (_lock)
+            JsonArray values = root.GetNamedArray(section);
+            for (int i = 0; i < values.Count; i++)
             {
-                if (_allMemes == null || _allMemes.Count == 0)
+                IJsonValue value = values[i];
+                if (value.ValueType == JsonValueType.String)
                 {
-                    _killMemes = new List<string>(FallbackKillMemes);
-                    _deathMemes = new List<string>(FallbackDeathMemes);
-                    _allMemes = new List<string>(_killMemes);
-                    _allMemes.AddRange(_deathMemes);
+                    // Preserve the exact 6657 array position and text. Empty
+                    // entries stay in place and simply fail reference validation.
+                    result.Add(value.GetString());
                 }
-            }
-        }
-
-        public static IReadOnlyList<string> GetRandomKillBatch(int count = 100)
-        {
-            List<string> source;
-            lock (_lock)
-            {
-                source = _killMemes;
-            }
-            return SampleFromList(source, FallbackKillMemes, count);
-        }
-
-        public static IReadOnlyList<string> GetRandomDeathBatch(int count = 100)
-        {
-            List<string> source;
-            lock (_lock)
-            {
-                source = _deathMemes;
-            }
-            return SampleFromList(source, FallbackDeathMemes, count);
-        }
-
-        public static IReadOnlyList<string> GetRandomBatch(int count = 100)
-        {
-            List<string> source;
-            lock (_lock)
-            {
-                source = _allMemes;
-            }
-            return SampleFromList(source, FallbackKillMemes, count);
-        }
-
-        private static IReadOnlyList<string> SampleFromList(List<string> source, string[] fallback, int count)
-        {
-            if (source == null || source.Count == 0)
-            {
-                source = new List<string>(fallback);
-            }
-
-            int n = source.Count;
-            var result = new List<string>(count);
-            for (int i = 0; i < count; i++)
-            {
-                int idx = _random.Next(0, n);
-                result.Add(source[idx]);
+                else
+                {
+                    // A non-string entry also occupies its original sequence number.
+                    result.Add(null);
+                }
             }
             return result;
         }

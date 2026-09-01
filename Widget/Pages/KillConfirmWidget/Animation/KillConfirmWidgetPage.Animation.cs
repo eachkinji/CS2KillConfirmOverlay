@@ -134,9 +134,13 @@ namespace KillConfirmGameBar
                     + ", channel=" + killEvent.EventChannel);
             }
 
+            // Danmaku has its own event classifier and reaction policy. Route every
+            // service event before style-specific animation filtering so economy,
+            // objective, assist, death and kill reactions stay independent.
+            DanmakuOverlayControl?.TriggerGameEvent(killEvent);
+
             if (string.Equals(killEvent.EventKind, "player_death", StringComparison.OrdinalIgnoreCase))
             {
-                TriggerDeathDanmakuIfEnabled();
                 return;
             }
 
@@ -165,43 +169,6 @@ namespace KillConfirmGameBar
 
             PlayBadgeAnimation(killEvent);
 
-            if (killEvent.IsCombatEvent
-                && !killEvent.IsAssist
-                && killEvent.KillCount > 0
-                && string.Equals(killEvent.EventKind, "kill", StringComparison.OrdinalIgnoreCase))
-            {
-                TriggerKillDanmakuIfEnabled();
-            }
-        }
-
-        private void TriggerKillDanmakuIfEnabled()
-        {
-            if (DanmakuOverlayControl == null)
-            {
-                return;
-            }
-
-            if (KillConfirmGameBar.Danmaku.DanmakuSettingsStore.IsEnabled && KillConfirmGameBar.Danmaku.DanmakuSettingsStore.TriggerOnKill)
-            {
-                DanmakuOverlayControl.TriggerKillBarrage(
-                    KillConfirmGameBar.Danmaku.DanmakuSettingsStore.Count,
-                    KillConfirmGameBar.Danmaku.DanmakuSettingsStore.DurationSeconds);
-            }
-        }
-
-        private void TriggerDeathDanmakuIfEnabled()
-        {
-            if (DanmakuOverlayControl == null)
-            {
-                return;
-            }
-
-            if (KillConfirmGameBar.Danmaku.DanmakuSettingsStore.IsEnabled && KillConfirmGameBar.Danmaku.DanmakuSettingsStore.TriggerOnDeath)
-            {
-                DanmakuOverlayControl.TriggerDeathBarrage(
-                    KillConfirmGameBar.Danmaku.DanmakuSettingsStore.Count,
-                    KillConfirmGameBar.Danmaku.DanmakuSettingsStore.DurationSeconds);
-            }
         }
 
         private void PlayPrimaryAnimation(KillEvent killEvent)

@@ -7,8 +7,9 @@ mod tests {
         detect_bomb_planted_action, detect_gun_fired, detect_thrown_grenade,
         has_observed_player_changed, is_knife_weapon, is_local_observed_player,
         normalize_cs2_map_mode, opponent_team_display_name, pending_last_kill_is_confirmable,
-        resolve_crossfire_streak_count, resolve_observed_player_id, resolve_player_kill_delta,
-        resolve_weapon_kill_context, should_emit_player_kill, should_reset_stored_streak,
+        resolve_crossfire_streak_count, resolve_observed_player_id, resolve_player_death_count,
+        resolve_player_kill_delta, resolve_weapon_kill_context, should_emit_player_death,
+        should_emit_player_kill, should_reset_stored_streak,
     };
     use crate::state::PendingLastKill;
     use gsi_cs2::map::Mode;
@@ -264,6 +265,20 @@ mod tests {
     fn bomb_explosion_kill_deltas_do_not_emit_player_kill_audio() {
         assert!(!should_emit_player_kill(true, 2, 1, true));
         assert!(should_emit_player_kill(true, 2, 1, false));
+    }
+
+    #[test]
+    fn missing_match_stats_preserve_the_previous_death_count() {
+        assert_eq!(resolve_player_death_count(None, 7), 7);
+        assert_eq!(resolve_player_death_count(Some(8), 7), 8);
+    }
+
+    #[test]
+    fn local_death_is_independent_from_kill_and_round_phase_decisions() {
+        assert!(should_emit_player_death(true, true, true));
+        assert!(!should_emit_player_death(false, true, true));
+        assert!(!should_emit_player_death(true, false, true));
+        assert!(!should_emit_player_death(true, true, false));
     }
 
     #[test]

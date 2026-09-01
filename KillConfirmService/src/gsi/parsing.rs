@@ -305,6 +305,18 @@ fn should_emit_player_kill(
     initialized && current_kills > previous_kills && !bomb_exploded
 }
 
+fn resolve_player_death_count(current_deaths: Option<u16>, previous_deaths: u16) -> u16 {
+    current_deaths.unwrap_or(previous_deaths)
+}
+
+fn should_emit_player_death(
+    initialized: bool,
+    death_detected: bool,
+    observed_player_is_local: bool,
+) -> bool {
+    initialized && death_detected && observed_player_is_local
+}
+
 fn resolve_player_kill_delta(
     was_initialized: bool,
     can_emit_kill: bool,

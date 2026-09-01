@@ -133,6 +133,13 @@ namespace KillConfirmGameBar
                     + ", kills=" + killEvent.KillCount
                     + ", channel=" + killEvent.EventChannel);
             }
+
+            if (string.Equals(killEvent.EventKind, "player_death", StringComparison.OrdinalIgnoreCase))
+            {
+                TriggerDeathDanmakuIfEnabled();
+                return;
+            }
+
             GameStyleMode style = GameStyleService.Current;
             if (!CanStyleConsumeEvent(style, killEvent))
             {
@@ -158,13 +165,12 @@ namespace KillConfirmGameBar
 
             PlayBadgeAnimation(killEvent);
 
-            if (killEvent.IsCombatEvent && !killEvent.IsAssist && killEvent.KillCount > 0)
+            if (killEvent.IsCombatEvent
+                && !killEvent.IsAssist
+                && killEvent.KillCount > 0
+                && string.Equals(killEvent.EventKind, "kill", StringComparison.OrdinalIgnoreCase))
             {
                 TriggerKillDanmakuIfEnabled();
-            }
-            else if (string.Equals(killEvent.EventKind, "player_death", StringComparison.OrdinalIgnoreCase))
-            {
-                TriggerDeathDanmakuIfEnabled();
             }
         }
 

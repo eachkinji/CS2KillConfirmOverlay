@@ -104,6 +104,13 @@
     <Compile Include="Danmaku\Engine\DanmakuEvent.cs" />
     <Compile Include="Danmaku\Engine\DanmakuReactionPolicy.cs" />
     <Compile Include="Danmaku\Engine\DanmakuEventPoolRepository.cs" />
+    <Compile Include="Danmaku\Engine\SemanticAnnotationRepository.cs" />
+    <Compile Include="Danmaku\Engine\SemanticProfileRepository.cs" />
+    <Compile Include="Danmaku\Engine\DanmakuSelectionHistory.cs" />
+    <Compile Include="Danmaku\Engine\DanmakuWeightEngine.cs" />
+    <Compile Include="Danmaku\Engine\DanmakuImpulseManager.cs" />
+    <Compile Include="Danmaku\Engine\DanmakuLiveScheduler.cs" />
+    <Compile Include="Danmaku\Engine\DanmakuSessionController.cs" />
     <Compile Include="Danmaku\Engine\DanmakuBatchComposer.cs" />
     <Compile Include="Danmaku\Engine\DanmakuPendingQueue.cs" />
     <Compile Include="Danmaku\Engine\DanmakuMotion.cs" />
@@ -116,6 +123,7 @@
     <Compile Include="Danmaku\DanmakuOptionsPanel.xaml.cs">
       <DependentUpon>DanmakuOptionsPanel.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Services\Runtime\GsiStatusMonitor.cs" />
     <Compile Include="Services\CustomModule\CustomSequenceFormat.cs" />
     <Compile Include="Services\CustomModule\CustomSequencePackService.cs" />
     <Compile Include="Services\CustomModule\CustomSequencePackService.Editing.cs" />
@@ -550,6 +558,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Danmaku\Pools\event_reactions.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Danmaku\Pools\semantic_event_profiles.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Danmaku\Annotation\6657_annotations_v1.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

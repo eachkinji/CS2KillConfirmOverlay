@@ -78,5 +78,7 @@ AGENTS.md
 Thumbs.db
 Desktop.ini
 .DS_Store
+__pycache__/
+*.pyc
 .vscode/
 .idea/

@@ -9,9 +9,7 @@ namespace KillConfirmGameBar.Danmaku
     public static class DanmakuRepository
     {
         private static readonly object SyncRoot = new object();
-        private static IReadOnlyList<string> _kill = new string[0];
-        private static IReadOnlyList<string> _death = new string[0];
-        private static IReadOnlyList<string> _general = new string[0];
+        private static IReadOnlyList<string> _messages = new string[0];
         private static Task _loadTask;
 
         public static Task EnsureLoadedAsync()
@@ -26,10 +24,7 @@ namespace KillConfirmGameBar.Danmaku
             }
         }
 
-        public static bool TryGetByIndex(
-            string section,
-            int oneBasedIndex,
-            out string text)
+        public static bool TryGetByIndex(int oneBasedIndex, out string text)
         {
             text = null;
             if (oneBasedIndex <= 0)
@@ -37,30 +32,14 @@ namespace KillConfirmGameBar.Danmaku
                 return false;
             }
 
-            IReadOnlyList<string> source;
             lock (SyncRoot)
             {
-                switch ((section ?? string.Empty).Trim().ToLowerInvariant())
-                {
-                    case "kill":
-                        source = _kill;
-                        break;
-                    case "death":
-                        source = _death;
-                        break;
-                    case "general":
-                        source = _general;
-                        break;
-                    default:
-                        return false;
-                }
-
                 int zeroBasedIndex = oneBasedIndex - 1;
-                if (zeroBasedIndex < 0 || zeroBasedIndex >= source.Count)
+                if (zeroBasedIndex < 0 || zeroBasedIndex >= _messages.Count)
                 {
                     return false;
                 }
-                text = source[zeroBasedIndex];
+                text = _messages[zeroBasedIndex];
             }
 
             return !string.IsNullOrWhiteSpace(text);
@@ -73,45 +52,34 @@ namespace KillConfirmGameBar.Danmaku
                 StorageFile file = await StorageFile.GetFileFromApplicationUriAsync(
                     new Uri("ms-appx:///Danmaku/6657_memes.json"));
                 string jsonText = await FileIO.ReadTextAsync(file);
-                JsonObject root;
-                if (!JsonObject.TryParse(jsonText, out root))
+                JsonArray root;
+                if (!JsonArray.TryParse(jsonText, out root))
                 {
-                    throw new InvalidOperationException("6657_memes.json is not a JSON object.");
+                    throw new InvalidOperationException("6657_memes.json is not a JSON array.");
                 }
 
-                IReadOnlyList<string> kill = ReadSection(root, "kill");
-                IReadOnlyList<string> death = ReadSection(root, "death");
-                IReadOnlyList<string> general = ReadSection(root, "general");
-                if (kill.Count == 0 || death.Count == 0 || general.Count == 0)
+                IReadOnlyList<string> messages = ReadMessages(root);
+                if (messages.Count == 0)
                 {
-                    throw new InvalidOperationException("6657_memes.json contains an empty required section.");
+                    throw new InvalidOperationException("6657_memes.json is empty.");
                 }
 
                 lock (SyncRoot)
                 {
-                    _kill = kill;
-                    _death = death;
-                    _general = general;
+                    _messages = messages;
                 }
             }
             catch (Exception ex)
             {
                 // Strict source rule: if the 6657 library cannot be loaded,
-                // leave every section empty and emit no danmaku.
+                // leave the library empty and emit no danmaku.
                 App.Log("DanmakuRepository.LoadAsync failed: " + ex.Message);
             }
         }
 
-        private static IReadOnlyList<string> ReadSection(JsonObject root, string section)
+        private static IReadOnlyList<string> ReadMessages(JsonArray values)
         {
             var result = new List<string>();
-            if (!root.ContainsKey(section)
-                || root.GetNamedValue(section).ValueType != JsonValueType.Array)
-            {
-                return result;
-            }
-
-            JsonArray values = root.GetNamedArray(section);
             for (int i = 0; i < values.Count; i++)
             {
                 IJsonValue value = values[i];

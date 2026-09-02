@@ -7,6 +7,13 @@ $requiredModules = @(
     'DanmakuEvent.cs',
     'DanmakuReactionPolicy.cs',
     'DanmakuEventPoolRepository.cs',
+    'SemanticAnnotationRepository.cs',
+    'SemanticProfileRepository.cs',
+    'DanmakuSelectionHistory.cs',
+    'DanmakuWeightEngine.cs',
+    'DanmakuImpulseManager.cs',
+    'DanmakuLiveScheduler.cs',
+    'DanmakuSessionController.cs',
     'DanmakuBatchComposer.cs',
     'DanmakuPendingQueue.cs',
     'DanmakuMotion.cs',
@@ -21,7 +28,10 @@ foreach ($module in $requiredModules) {
 $poolPath = Join-Path $RepositoryRoot 'Widget/Danmaku/Pools/event_reactions.json'
 $poolData = Get-Content -Raw -LiteralPath $poolPath | ConvertFrom-Json -AsHashtable
 $libraryPath = Join-Path $RepositoryRoot 'Widget/Danmaku/6657_memes.json'
-$libraryData = Get-Content -Raw -LiteralPath $libraryPath | ConvertFrom-Json -AsHashtable
+$libraryData = @(Get-Content -Raw -LiteralPath $libraryPath | ConvertFrom-Json)
+if ($libraryData.Count -ne 23521) {
+    throw "Expected the untouched flat 6657 source to contain 23521 entries, found $($libraryData.Count)."
+}
 $expectedPoolKeys = @(
     'kill', 'first_kill', 'headshot', 'knife_kill', 'grenade_kill', 'multi_kill',
     'epic_streak', 'last_kill', 'assist', 'death', 'round_win', 'round_loss',
@@ -55,29 +65,23 @@ foreach ($key in $expectedPoolKeys) {
         }
         $seen = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
         foreach ($reference in $references) {
-            if ($reference.Keys.Count -ne 2 -or
-                -not $reference.ContainsKey('section') -or
+            if ($reference.Keys.Count -ne 1 -or
                 -not $reference.ContainsKey('index')) {
-                throw "Each danmaku mapping entry must contain only section + index: $key/$role"
+                throw "Each danmaku mapping entry must contain only a global index: $key/$role"
             }
-            $section = [string]$reference.section
             $index = $reference.index
-            if ($section -notin @('general', 'death', 'kill')) {
-                throw "Danmaku mapping references an unknown 6657 section: $key/$role"
-            }
             if ($index -isnot [int] -and $index -isnot [long]) {
                 throw "Danmaku mapping index is not an integer: $key/$role"
             }
             $oneBasedIndex = [int]$index
-            if (-not $seen.Add("$section#$oneBasedIndex")) {
-                throw "Danmaku mapping contains a duplicate reference: $key/$role $section#$oneBasedIndex"
+            if (-not $seen.Add([string]$oneBasedIndex)) {
+                throw "Danmaku mapping contains a duplicate reference: $key/$role #$oneBasedIndex"
             }
-            $source = @($libraryData[$section])
-            if ($oneBasedIndex -lt 1 -or $oneBasedIndex -gt $source.Count) {
-                throw "Danmaku mapping index is outside the 6657 library: $key/$role $section#$oneBasedIndex"
+            if ($oneBasedIndex -lt 1 -or $oneBasedIndex -gt $libraryData.Count) {
+                throw "Danmaku mapping index is outside the 6657 library: $key/$role #$oneBasedIndex"
             }
-            if ([string]::IsNullOrWhiteSpace([string]$source[$oneBasedIndex - 1])) {
-                throw "Danmaku mapping references an empty 6657 entry: $key/$role $section#$oneBasedIndex"
+            if ([string]::IsNullOrWhiteSpace([string]$libraryData[$oneBasedIndex - 1])) {
+                throw "Danmaku mapping references an empty 6657 entry: $key/$role #$oneBasedIndex"
             }
         }
     }
@@ -107,14 +111,13 @@ $semanticPatterns = [ordered]@{
 foreach ($key in $expectedPoolKeys) {
     foreach ($role in @('core', 'water')) {
         foreach ($reference in @($poolData[$key][$role])) {
-            $section = [string]$reference.section
             $oneBasedIndex = [int]$reference.index
-            $text = [string]@($libraryData[$section])[$oneBasedIndex - 1]
+            $text = [string]$libraryData[$oneBasedIndex - 1]
             if ($text -notmatch $semanticPatterns[$key]) {
-                throw "Scene mismatch: $key/$role $section#$oneBasedIndex"
+                throw "Scene mismatch: $key/$role #$oneBasedIndex"
             }
             if (-not $reviewedTexts.Add($text)) {
-                throw "The curated 6657 event mapping reuses exact text: $key/$role $section#$oneBasedIndex"
+                throw "The curated 6657 event mapping reuses exact text: $key/$role #$oneBasedIndex"
             }
         }
     }

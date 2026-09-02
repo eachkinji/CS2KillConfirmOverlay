@@ -1,0 +1,882 @@
+{
+  "schema_version": "1.0.0",
+  "batch_id": "calibration_sample",
+  "total_items": 20,
+  "range": {
+    "start_index": 1,
+    "end_index": 23521
+  },
+  "annotator": "Lead-Annotator-Gemini",
+  "annotations": [
+    {
+      "index": 1,
+      "targets": [
+        "pro_player",
+        "general_meta"
+      ],
+      "stances": [
+        "cheer_praise",
+        "hype_excitement"
+      ],
+      "topics": [
+        "pro_ranking_rating",
+        "pro_sniper_awp",
+        "pro_gunplay_aim"
+      ],
+      "formats": [
+        "rhetorical_question",
+        "exaggeration_hyperbole",
+        "slang_argot"
+      ],
+      "culture": [
+        "origin_cs_community"
+      ],
+      "entities": [],
+      "context": "pro_scene_history",
+      "safety": {
+        "severity": "safe",
+        "flags": [
+          "none"
+        ]
+      },
+      "confidence": 0.95,
+      "review": {
+        "status": "pending",
+        "comments": "待审校准样本 (待宿主复审)"
+      }
+    },
+    {
+      "index": 2,
+      "targets": [
+        "pro_team",
+        "pro_player"
+      ],
+      "stances": [
+        "melancholy_lament",
+        "tease_playful"
+      ],
+      "topics": [
+        "pro_transfer_roster",
+        "pro_trophy_history",
+        "historical_memes"
+      ],
+      "formats": [
+        "parallelism_listing",
+        "slang_argot",
+        "homophonic_pun"
+      ],
+      "culture": [
+        "origin_cs_community",
+        "origin_6657"
+      ],
+      "entities": [
+        {
+          "name": "FaZe",
+          "type": "team"
+        },
+        {
+          "name": "karrigan",
+          "type": "player"
+        },
+        {
+          "name": "rain",
+          "type": "player"
+        },
+        {
+          "name": "Guardian",
+          "type": "player"
+        }
+      ],
+      "context": "pro_scene_history",
+      "safety": {
+        "severity": "safe",
+        "flags": [
+          "none"
+        ]
+      },
+      "confidence": 0.98,
+      "review": {
+        "status": "pending",
+        "comments": "待审校准样本 (待宿主复审)"
+      }
+    },
+    {
+      "index": 5,
+      "targets": [
+        "streamer"
+      ],
+      "stances": [
+        "tease_playful",
+        "cynical_sarcastic"
+      ],
+      "topics": [
+        "streamer_stubborn_rage",
+        "streamer_schedule_laziness",
+        "historical_memes"
+      ],
+      "formats": [
+        "formulaic_template",
+        "rhetorical_question",
+        "direct_address_at"
+      ],
+      "culture": [
+        "origin_6657"
+      ],
+      "entities": [
+        {
+          "name": "玩机器",
+          "type": "streamer"
+        }
+      ],
+      "context": "stream_context",
+      "safety": {
+        "severity": "safe",
+        "flags": [
+          "none"
+        ]
+      },
+      "confidence": 0.95,
+      "review": {
+        "status": "pending",
+        "comments": "待审校准样本 (待宿主复审)"
+      }
+    },
+    {
+      "index": 7,
+      "targets": [
+        "streamer"
+      ],
+      "stances": [
+        "flame_streamer",
+        "cynical_sarcastic"
+      ],
+      "topics": [
+        "streamer_tech_hardware",
+        "streamer_intelligence"
+      ],
+      "formats": [
+        "rhetorical_question",
+        "direct_address_at"
+      ],
+      "culture": [
+        "origin_6657"
+      ],
+      "entities": [
+        {
+          "name": "玩机器",
+          "type": "streamer"
+        },
+        {
+          "name": "OBS",
+          "type": "other"
+        }
+      ],
+      "context": "stream_context",
+      "safety": {
+        "severity": "borderline_playful",
+        "flags": [
+          "none"
+        ]
+      },
+      "confidence": 0.96,
+      "review": {
+        "status": "pending",
+        "comments": "待审校准样本 (待宿主复审)"
+      }
+    },
+    {
+      "index": 9,
+      "targets": [
+        "pro_player"
+      ],
+      "stances": [
+        "cheer_praise",
+        "tease_playful"
+      ],
+      "topics": [
+        "pro_ranking_rating",
+        "pro_trophy_history",
+        "historical_memes"
+      ],
+      "formats": [
+        "parallelism_listing",
+        "slang_argot",
+        "copypasta_repetition"
+      ],
+      "culture": [
+        "origin_cs_community"
+      ],
+      "entities": [
+        {
+          "name": "s1mple",
+          "type": "player"
+        },
+        {
+          "name": "ZywOo",
+          "type": "player"
+        },
+        {
+          "name": "sh1ro",
+          "type": "player"
+        },
+        {
+          "name": "donk",
+          "type": "player"
+        }
+      ],
+      "context": "pro_scene_history",
+      "safety": {
+        "severity": "safe",
+        "flags": [
+          "none"
+        ]
+      },
+      "confidence": 0.95,
+      "review": {
+        "status": "pending",
+        "comments": "待审校准样本 (待宿主复审)"
+      }
+    },
+    {
+      "index": 11,
+      "targets": [
+        "streamer",
+        "caster_host"
+      ],
+      "stances": [
+        "tease_playful",
+        "flame_streamer"
+      ],
+      "topics": [
+        "streamer_schedule_laziness",
+        "streamer_career_finance"
+      ],
+      "formats": [
+        "fake_official_news",
+        "direct_address_at"
+      ],
+      "culture": [
+        "origin_6657"
+      ],
+      "entities": [
+        {
+          "name": "刘一博",
+          "type": "streamer"
+        },
+        {
+          "name": "冬瓜强",
+          "type": "caster"
+        }
+      ],
+      "context": "stream_context",
+      "safety": {
+        "severity": "safe",
+        "flags": [
+          "none"
+        ]
+      },
+      "confidence": 0.98,
+      "review": {
+        "status": "pending",
+        "comments": "待审校准样本 (待宿主复审)"
+      }
+    },
+    {
+      "index": 15,
+      "targets": [
+        "external_figure",
+        "streamer"
+      ],
+      "stances": [
+        "tease_playful"
+      ],
+      "topics": [
+        "acg_popculture",
+        "streamer_career_finance"
+      ],
+      "formats": [
+        "dialogue_roleplay",
+        "slang_argot"
+      ],
+      "culture": [
+        "origin_acg_subculture",
+        "origin_6657"
+      ],
+      "entities": [
+        {
+          "name": "长崎素世",
+          "type": "acg_character"
+        },
+        {
+          "name": "千早爱音",
+          "type": "acg_character"
+        },
+        {
+          "name": "玩机器",
+          "type": "streamer"
+        }
+      ],
+      "context": "standalone",
+      "safety": {
+        "severity": "safe",
+        "flags": [
+          "none"
+        ]
+      },
+      "confidence": 0.97,
+      "review": {
+        "status": "pending",
+        "comments": "待审校准样本 (待宿主复审)"
+      }
+    },
+    {
+      "index": 500,
+      "targets": [
+        "general_meta",
+        "chat_audience"
+      ],
+      "stances": [
+        "melancholy_lament",
+        "tease_playful"
+      ],
+      "topics": [
+        "pro_ranking_rating",
+        "daily_life_work"
+      ],
+      "formats": [
+        "single_word_or_char",
+        "plain_statement"
+      ],
+      "culture": [
+        "origin_cs_community"
+      ],
+      "entities": [],
+      "context": "standalone",
+      "safety": {
+        "severity": "safe",
+        "flags": [
+          "none"
+        ]
+      },
+      "confidence": 0.92,
+      "review": {
+        "status": "pending",
+        "comments": "待审校准样本 (待宿主复审)"
+      }
+    },
+    {
+      "index": 501,
+      "targets": [
+        "pro_player",
+        "pro_team"
+      ],
+      "stances": [
+        "cynical_sarcastic",
+        "flame_player"
+      ],
+      "topics": [
+        "pro_gunplay_aim",
+        "pro_tactics_igl",
+        "historical_memes"
+      ],
+      "formats": [
+        "homophonic_pun",
+        "slang_argot"
+      ],
+      "culture": [
+        "origin_cs_community"
+      ],
+      "entities": [
+        {
+          "name": "n1ssim",
+          "type": "player"
+        },
+        {
+          "name": "iM",
+          "type": "player"
+        },
+        {
+          "name": "NaVi",
+          "type": "team"
+        }
+      ],
+      "context": "pro_scene_history",
+      "safety": {
+        "severity": "safe",
+        "flags": [
+          "none"
+        ]
+      },
+      "confidence": 0.94,
+      "review": {
+        "status": "pending",
+        "comments": "待审校准样本 (待宿主复审)"
+      }
+    },
+    {
+      "index": 503,
+      "targets": [
+        "pro_team",
+        "pro_player",
+        "chat_audience"
+      ],
+      "stances": [
+        "cynical_sarcastic",
+        "flame_team"
+      ],
+      "topics": [
+        "pro_tactics_igl",
+        "pro_whiff_blunder",
+        "pro_score_outcome"
+      ],
+      "formats": [
+        "formulaic_template",
+        "parallelism_listing",
+        "slang_argot"
+      ],
+      "culture": [
+        "origin_cs_community",
+        "origin_6657"
+      ],
+      "entities": [
+        {
+          "name": "Falcons",
+          "type": "team"
+        },
+        {
+          "name": "karrigan",
+          "type": "player"
+        },
+        {
+          "name": "NiKo",
+          "type": "player"
+        }
+      ],
+      "context": "game_event",
+      "safety": {
+        "severity": "borderline_playful",
+        "flags": [
+          "none"
+        ]
+      },
+      "confidence": 0.95,
+      "review": {
+        "status": "pending",
+        "comments": "待审校准样本 (待宿主复审)"
+      }
+    },
+    {
+      "index": 1000,
+      "targets": [
+        "external_figure"
+      ],
+      "stances": [
+        "tease_playful"
+      ],
+      "topics": [
+        "acg_popculture"
+      ],
+      "formats": [
+        "dialogue_roleplay"
+      ],
+      "culture": [
+        "origin_acg_subculture"
+      ],
+      "entities": [
+        {
+          "name": "千石由乃",
+          "type": "acg_character"
+        },
+        {
+          "name": "丰川祥子",
+          "type": "acg_character"
+        }
+      ],
+      "context": "standalone",
+      "safety": {
+        "severity": "safe",
+        "flags": [
+          "none"
+        ]
+      },
+      "confidence": 0.96,
+      "review": {
+        "status": "pending",
+        "comments": "待审校准样本 (待宿主复审)"
+      }
+    },
+    {
+      "index": 2500,
+      "targets": [
+        "pro_player"
+      ],
+      "stances": [
+        "cynical_sarcastic",
+        "flame_player"
+      ],
+      "topics": [
+        "pro_trophy_history",
+        "pro_score_outcome"
+      ],
+      "formats": [
+        "formulaic_template"
+      ],
+      "culture": [
+        "origin_cs_community",
+        "origin_abstract"
+      ],
+      "entities": [
+        {
+          "name": "NiKo",
+          "type": "player"
+        }
+      ],
+      "context": "pro_scene_history",
+      "safety": {
+        "severity": "borderline_playful",
+        "flags": [
+          "none"
+        ]
+      },
+      "confidence": 0.96,
+      "review": {
+        "status": "pending",
+        "comments": "待审校准样本 (待宿主复审)"
+      }
+    },
+    {
+      "index": 5000,
+      "targets": [
+        "streamer"
+      ],
+      "stances": [
+        "tease_playful"
+      ],
+      "topics": [
+        "acg_popculture",
+        "streamer_stubborn_rage",
+        "streamer_appearance_pig_weight"
+      ],
+      "formats": [
+        "dialogue_roleplay",
+        "quotation_remix"
+      ],
+      "culture": [
+        "origin_6657",
+        "origin_internet_folklore"
+      ],
+      "entities": [
+        {
+          "name": "玩机器",
+          "type": "streamer"
+        }
+      ],
+      "context": "standalone",
+      "safety": {
+        "severity": "borderline_playful",
+        "flags": [
+          "none"
+        ]
+      },
+      "confidence": 0.95,
+      "review": {
+        "status": "pending",
+        "comments": "待审校准样本 (待宿主复审)"
+      }
+    },
+    {
+      "index": 8000,
+      "targets": [
+        "pro_team",
+        "chat_audience"
+      ],
+      "stances": [
+        "flame_team",
+        "hype_excitement"
+      ],
+      "topics": [
+        "pro_whiff_blunder",
+        "pro_score_outcome",
+        "pro_scene_drama"
+      ],
+      "formats": [
+        "repeated_symbols",
+        "exaggeration_hyperbole",
+        "copypasta_repetition"
+      ],
+      "culture": [
+        "origin_cs_community",
+        "origin_6657"
+      ],
+      "entities": [
+        {
+          "name": "CNCS",
+          "type": "org"
+        }
+      ],
+      "context": "game_event",
+      "safety": {
+        "severity": "sensitive_flame",
+        "flags": [
+          "profanity"
+        ]
+      },
+      "confidence": 0.98,
+      "review": {
+        "status": "pending",
+        "comments": "待审校准样本 (待宿主复审)"
+      }
+    },
+    {
+      "index": 10000,
+      "targets": [
+        "pro_player"
+      ],
+      "stances": [
+        "melancholy_lament",
+        "tease_playful"
+      ],
+      "topics": [
+        "pro_trophy_history",
+        "pro_score_outcome",
+        "pro_comeback_choke"
+      ],
+      "formats": [
+        "parallelism_listing",
+        "formulaic_template"
+      ],
+      "culture": [
+        "origin_cs_community"
+      ],
+      "entities": [
+        {
+          "name": "NiKo",
+          "type": "player"
+        },
+        {
+          "name": "Major",
+          "type": "other"
+        }
+      ],
+      "context": "pro_scene_history",
+      "safety": {
+        "severity": "safe",
+        "flags": [
+          "none"
+        ]
+      },
+      "confidence": 0.98,
+      "review": {
+        "status": "pending",
+        "comments": "待审校准样本 (待宿主复审)"
+      }
+    },
+    {
+      "index": 15000,
+      "targets": [
+        "chat_audience",
+        "general_meta"
+      ],
+      "stances": [
+        "melancholy_lament"
+      ],
+      "topics": [
+        "daily_life_work",
+        "streamer_schedule_laziness",
+        "historical_memes"
+      ],
+      "formats": [
+        "plain_statement"
+      ],
+      "culture": [
+        "origin_6657",
+        "origin_bilibili"
+      ],
+      "entities": [],
+      "context": "standalone",
+      "safety": {
+        "severity": "safe",
+        "flags": [
+          "none"
+        ]
+      },
+      "confidence": 0.93,
+      "review": {
+        "status": "pending",
+        "comments": "待审校准样本 (待宿主复审)"
+      }
+    },
+    {
+      "index": 18000,
+      "targets": [
+        "game_system",
+        "streamer"
+      ],
+      "stances": [
+        "tease_playful",
+        "cynical_sarcastic"
+      ],
+      "topics": [
+        "acg_popculture",
+        "streamer_career_finance"
+      ],
+      "formats": [
+        "dialogue_roleplay"
+      ],
+      "culture": [
+        "origin_gaming_general",
+        "origin_6657"
+      ],
+      "entities": [
+        {
+          "name": "黑神话悟空",
+          "type": "game_asset"
+        },
+        {
+          "name": "玩机器",
+          "type": "streamer"
+        }
+      ],
+      "context": "standalone",
+      "safety": {
+        "severity": "safe",
+        "flags": [
+          "none"
+        ]
+      },
+      "confidence": 0.95,
+      "review": {
+        "status": "pending",
+        "comments": "待审校准样本 (待宿主复审)"
+      }
+    },
+    {
+      "index": 20000,
+      "targets": [
+        "external_figure",
+        "streamer"
+      ],
+      "stances": [
+        "tease_playful"
+      ],
+      "topics": [
+        "acg_popculture",
+        "streamer_romance_sexuality",
+        "streamer_career_finance"
+      ],
+      "formats": [
+        "formulaic_template",
+        "direct_address_at"
+      ],
+      "culture": [
+        "origin_acg_subculture",
+        "origin_6657"
+      ],
+      "entities": [
+        {
+          "name": "丰川祥子",
+          "type": "acg_character"
+        },
+        {
+          "name": "玩机器",
+          "type": "streamer"
+        }
+      ],
+      "context": "standalone",
+      "safety": {
+        "severity": "borderline_playful",
+        "flags": [
+          "sexual_content"
+        ]
+      },
+      "confidence": 0.96,
+      "review": {
+        "status": "pending",
+        "comments": "待审校准样本 (待宿主复审)"
+      }
+    },
+    {
+      "index": 22000,
+      "targets": [
+        "streamer",
+        "pro_player"
+      ],
+      "stances": [
+        "tease_playful",
+        "cheer_praise"
+      ],
+      "topics": [
+        "streamer_skill_gameplay",
+        "pro_cheating_matchfixing",
+        "streamer_stubborn_rage"
+      ],
+      "formats": [
+        "formulaic_template",
+        "exaggeration_hyperbole"
+      ],
+      "culture": [
+        "origin_6657",
+        "origin_cs_community"
+      ],
+      "entities": [
+        {
+          "name": "玩机器",
+          "type": "streamer"
+        }
+      ],
+      "context": "standalone",
+      "safety": {
+        "severity": "safe",
+        "flags": [
+          "none"
+        ]
+      },
+      "confidence": 0.95,
+      "review": {
+        "status": "pending",
+        "comments": "待审校准样本 (待宿主复审)"
+      }
+    },
+    {
+      "index": 23521,
+      "targets": [
+        "streamer",
+        "caster_host"
+      ],
+      "stances": [
+        "cheer_praise",
+        "tease_playful"
+      ],
+      "topics": [
+        "streamer_casting_knowledge",
+        "streamer_bias_favoritism"
+      ],
+      "formats": [
+        "parallelism_listing",
+        "formulaic_template"
+      ],
+      "culture": [
+        "origin_6657",
+        "origin_cs_community"
+      ],
+      "entities": [
+        {
+          "name": "刘一博",
+          "type": "streamer"
+        }
+      ],
+      "context": "standalone",
+      "safety": {
+        "severity": "safe",
+        "flags": [
+          "none"
+        ]
+      },
+      "confidence": 0.98,
+      "review": {
+        "status": "pending",
+        "comments": "待审校准样本 (待宿主复审)"
+      }
+    }
+  ]
+}

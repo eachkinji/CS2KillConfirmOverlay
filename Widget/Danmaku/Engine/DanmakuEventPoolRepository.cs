@@ -8,7 +8,6 @@ namespace KillConfirmGameBar.Danmaku.Engine
 {
     internal sealed class DanmakuLibraryReference
     {
-        public string Section { get; set; }
         public int Index { get; set; }
     }
 
@@ -85,10 +84,7 @@ namespace KillConfirmGameBar.Danmaku.Engine
             {
                 DanmakuLibraryReference reference = references[i];
                 string text;
-                if (DanmakuRepository.TryGetByIndex(
-                    reference.Section,
-                    reference.Index,
-                    out text))
+                if (DanmakuRepository.TryGetByIndex(reference.Index, out text))
                 {
                     result.Add(text);
                 }
@@ -168,9 +164,7 @@ namespace KillConfirmGameBar.Danmaku.Engine
                 }
 
                 JsonObject reference = value.GetObject();
-                if (!reference.ContainsKey("section")
-                    || !reference.ContainsKey("index")
-                    || reference.GetNamedValue("section").ValueType != JsonValueType.String
+                if (!reference.ContainsKey("index")
                     || reference.GetNamedValue("index").ValueType != JsonValueType.Number)
                 {
                     continue;
@@ -185,7 +179,6 @@ namespace KillConfirmGameBar.Danmaku.Engine
 
                 result.Add(new DanmakuLibraryReference
                 {
-                    Section = reference.GetNamedString("section").Trim().ToLowerInvariant(),
                     Index = index
                 });
             }
@@ -200,10 +193,7 @@ namespace KillConfirmGameBar.Danmaku.Engine
             for (int i = 0; i < references.Count; i++)
             {
                 string ignored;
-                if (!DanmakuRepository.TryGetByIndex(
-                    references[i].Section,
-                    references[i].Index,
-                    out ignored))
+                if (!DanmakuRepository.TryGetByIndex(references[i].Index, out ignored))
                 {
                     throw new InvalidOperationException(
                         "Invalid 6657 reference: " + eventKey + "/" + role + " #" + (i + 1));

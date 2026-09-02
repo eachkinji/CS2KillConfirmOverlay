@@ -1,0 +1,879 @@
+{
+  "schema_version": "1.0.0",
+  "batch_id": "batch_048",
+  "total_items": 21,
+  "range": {
+    "start_index": 23501,
+    "end_index": 23521
+  },
+  "annotations": [
+    {
+      "index": 23501,
+      "targets": [
+        "external_figure",
+        "streamer",
+        "chat_audience"
+      ],
+      "stances": [
+        "tease_playful"
+      ],
+      "topics": [
+        "external_sports_competition",
+        "misc_unclear"
+      ],
+      "formats": [
+        "parallelism_listing",
+        "formulaic_template"
+      ],
+      "culture": [
+        "origin_6657",
+        "origin_abstract",
+        "origin_internet_folklore"
+      ],
+      "entities": [
+        {
+          "name": "勒布朗·詹姆斯",
+          "type": "other"
+        },
+        {
+          "name": "梅西",
+          "type": "other"
+        },
+        {
+          "name": "科比·布莱恩特",
+          "type": "other"
+        },
+        {
+          "name": "C罗",
+          "type": "other"
+        },
+        {
+          "name": "郑翔",
+          "type": "other"
+        },
+        {
+          "name": "玩机器",
+          "type": "streamer"
+        }
+      ],
+      "context": "standalone",
+      "safety": {
+        "severity": "safe",
+        "flags": [
+          "none"
+        ]
+      },
+      "confidence": 0.95,
+      "review": {
+        "status": "pending",
+        "comments": "待宿主复审"
+      }
+    },
+    {
+      "index": 23502,
+      "targets": [
+        "streamer",
+        "pro_player"
+      ],
+      "stances": [
+        "tease_playful",
+        "cynical_sarcastic"
+      ],
+      "topics": [
+        "streamer_casting_knowledge",
+        "pro_sniper_awp"
+      ],
+      "formats": [
+        "plain_statement",
+        "direct_address_at"
+      ],
+      "culture": [
+        "origin_6657",
+        "origin_cs_community"
+      ],
+      "entities": [
+        {
+          "name": "玩机器",
+          "type": "streamer"
+        },
+        {
+          "name": "torzsi",
+          "type": "player"
+        }
+      ],
+      "context": "standalone",
+      "safety": {
+        "severity": "safe",
+        "flags": [
+          "none"
+        ]
+      },
+      "confidence": 0.95,
+      "review": {
+        "status": "pending",
+        "comments": "待宿主复审"
+      }
+    },
+    {
+      "index": 23503,
+      "targets": [
+        "streamer",
+        "pro_team",
+        "pro_player"
+      ],
+      "stances": [
+        "tease_playful"
+      ],
+      "topics": [
+        "streamer_casting_knowledge",
+        "pro_scene_drama"
+      ],
+      "formats": [
+        "formulaic_template",
+        "plain_statement"
+      ],
+      "culture": [
+        "origin_6657",
+        "origin_cs_community"
+      ],
+      "entities": [
+        {
+          "name": "玩机器",
+          "type": "streamer"
+        },
+        {
+          "name": "G2",
+          "type": "team"
+        },
+        {
+          "name": "NiKo",
+          "type": "player"
+        }
+      ],
+      "context": "standalone",
+      "safety": {
+        "severity": "safe",
+        "flags": [
+          "none"
+        ]
+      },
+      "confidence": 0.95,
+      "review": {
+        "status": "pending",
+        "comments": "待宿主复审"
+      }
+    },
+    {
+      "index": 23504,
+      "targets": [
+        "streamer",
+        "pro_player"
+      ],
+      "stances": [
+        "tease_playful",
+        "cynical_sarcastic"
+      ],
+      "topics": [
+        "streamer_bias_favoritism",
+        "pro_whiff_blunder"
+      ],
+      "formats": [
+        "formulaic_template",
+        "parallelism_listing"
+      ],
+      "culture": [
+        "origin_6657",
+        "origin_cs_community"
+      ],
+      "entities": [
+        {
+          "name": "玩机器",
+          "type": "streamer"
+        },
+        {
+          "name": "dupreeh",
+          "type": "player"
+        },
+        {
+          "name": "dev1ce",
+          "type": "player"
+        },
+        {
+          "name": "NiKo",
+          "type": "player"
+        }
+      ],
+      "context": "standalone",
+      "safety": {
+        "severity": "safe",
+        "flags": [
+          "none"
+        ]
+      },
+      "confidence": 0.95,
+      "review": {
+        "status": "pending",
+        "comments": "待宿主复审"
+      }
+    },
+    {
+      "index": 23505,
+      "targets": [
+        "streamer"
+      ],
+      "stances": [
+        "tease_playful"
+      ],
+      "topics": [
+        "streamer_schedule_laziness",
+        "streamer_romance_sexuality"
+      ],
+      "formats": [
+        "dialogue_roleplay",
+        "direct_address_at"
+      ],
+      "culture": [
+        "origin_6657",
+        "origin_internet_folklore"
+      ],
+      "entities": [
+        {
+          "name": "玩机器",
+          "type": "streamer"
+        }
+      ],
+      "context": "stream_context",
+      "safety": {
+        "severity": "borderline_playful",
+        "flags": [
+          "sexual_content"
+        ]
+      },
+      "confidence": 0.95,
+      "review": {
+        "status": "pending",
+        "comments": "待宿主复审"
+      }
+    },
+    {
+      "index": 23506,
+      "targets": [
+        "streamer"
+      ],
+      "stances": [
+        "tease_playful",
+        "flame_streamer"
+      ],
+      "topics": [
+        "streamer_appearance_pig_weight"
+      ],
+      "formats": [
+        "dialogue_roleplay",
+        "exaggeration_hyperbole"
+      ],
+      "culture": [
+        "origin_6657",
+        "origin_abstract"
+      ],
+      "entities": [
+        {
+          "name": "玩机器",
+          "type": "streamer"
+        }
+      ],
+      "context": "standalone",
+      "safety": {
+        "severity": "borderline_playful",
+        "flags": [
+          "personal_attack"
+        ]
+      },
+      "confidence": 0.95,
+      "review": {
+        "status": "pending",
+        "comments": "待宿主复审"
+      }
+    },
+    {
+      "index": 23507,
+      "targets": [
+        "streamer",
+        "chat_audience"
+      ],
+      "stances": [
+        "cynical_sarcastic",
+        "flame_streamer"
+      ],
+      "topics": [
+        "streamer_career_finance",
+        "streamer_stubborn_rage"
+      ],
+      "formats": [
+        "formulaic_template",
+        "direct_address_at"
+      ],
+      "culture": [
+        "origin_6657",
+        "origin_internet_folklore"
+      ],
+      "entities": [],
+      "context": "stream_context",
+      "safety": {
+        "severity": "safe",
+        "flags": [
+          "none"
+        ]
+      },
+      "confidence": 0.95,
+      "review": {
+        "status": "pending",
+        "comments": "待宿主复审"
+      }
+    },
+    {
+      "index": 23508,
+      "targets": [
+        "streamer"
+      ],
+      "stances": [
+        "tease_playful"
+      ],
+      "topics": [
+        "streamer_commercial_gifting",
+        "streamer_career_finance"
+      ],
+      "formats": [
+        "direct_address_at",
+        "formulaic_template",
+        "homophonic_pun"
+      ],
+      "culture": [
+        "origin_6657"
+      ],
+      "entities": [],
+      "context": "standalone",
+      "safety": {
+        "severity": "safe",
+        "flags": [
+          "none"
+        ]
+      },
+      "confidence": 0.95,
+      "review": {
+        "status": "pending",
+        "comments": "待宿主复审"
+      }
+    },
+    {
+      "index": 23509,
+      "targets": [
+        "streamer"
+      ],
+      "stances": [
+        "tease_playful"
+      ],
+      "topics": [
+        "streamer_appearance_pig_weight",
+        "streamer_food_diet"
+      ],
+      "formats": [
+        "quotation_remix",
+        "parallelism_listing"
+      ],
+      "culture": [
+        "origin_6657",
+        "origin_internet_folklore"
+      ],
+      "entities": [],
+      "context": "standalone",
+      "safety": {
+        "severity": "borderline_playful",
+        "flags": [
+          "none"
+        ]
+      },
+      "confidence": 0.95,
+      "review": {
+        "status": "pending",
+        "comments": "待宿主复审"
+      }
+    },
+    {
+      "index": 23510,
+      "targets": [
+        "streamer",
+        "external_figure"
+      ],
+      "stances": [
+        "tease_playful"
+      ],
+      "topics": [
+        "streamer_food_diet",
+        "streamer_romance_sexuality"
+      ],
+      "formats": [
+        "dialogue_roleplay",
+        "exaggeration_hyperbole"
+      ],
+      "culture": [
+        "origin_6657",
+        "origin_internet_folklore"
+      ],
+      "entities": [
+        {
+          "name": "何红雨",
+          "type": "other"
+        },
+        {
+          "name": "玩机器",
+          "type": "streamer"
+        }
+      ],
+      "context": "standalone",
+      "safety": {
+        "severity": "safe",
+        "flags": [
+          "none"
+        ]
+      },
+      "confidence": 0.95,
+      "review": {
+        "status": "pending",
+        "comments": "待宿主复审"
+      }
+    },
+    {
+      "index": 23511,
+      "targets": [
+        "streamer",
+        "chat_audience"
+      ],
+      "stances": [
+        "tease_playful",
+        "cynical_sarcastic"
+      ],
+      "topics": [
+        "streamer_skill_gameplay"
+      ],
+      "formats": [
+        "formulaic_template",
+        "rhetorical_question"
+      ],
+      "culture": [
+        "origin_6657",
+        "origin_internet_folklore"
+      ],
+      "entities": [
+        {
+          "name": "玩机器",
+          "type": "streamer"
+        }
+      ],
+      "context": "standalone",
+      "safety": {
+        "severity": "safe",
+        "flags": [
+          "none"
+        ]
+      },
+      "confidence": 0.95,
+      "review": {
+        "status": "pending",
+        "comments": "待宿主复审"
+      }
+    },
+    {
+      "index": 23512,
+      "targets": [
+        "streamer",
+        "external_figure"
+      ],
+      "stances": [
+        "tease_playful"
+      ],
+      "topics": [
+        "streamer_romance_sexuality",
+        "streamer_appearance_pig_weight"
+      ],
+      "formats": [
+        "homophonic_pun",
+        "dialogue_roleplay"
+      ],
+      "culture": [
+        "origin_6657"
+      ],
+      "entities": [
+        {
+          "name": "何红雨",
+          "type": "other"
+        },
+        {
+          "name": "玩机器",
+          "type": "streamer"
+        }
+      ],
+      "context": "standalone",
+      "safety": {
+        "severity": "safe",
+        "flags": [
+          "none"
+        ]
+      },
+      "confidence": 0.95,
+      "review": {
+        "status": "pending",
+        "comments": "待宿主复审"
+      }
+    },
+    {
+      "index": 23513,
+      "targets": [
+        "streamer"
+      ],
+      "stances": [
+        "tease_playful",
+        "melancholy_lament"
+      ],
+      "topics": [
+        "streamer_career_finance",
+        "streamer_casting_knowledge"
+      ],
+      "formats": [
+        "plain_statement",
+        "parallelism_listing"
+      ],
+      "culture": [
+        "origin_6657",
+        "origin_cs_community"
+      ],
+      "entities": [
+        {
+          "name": "玩机器",
+          "type": "streamer"
+        }
+      ],
+      "context": "standalone",
+      "safety": {
+        "severity": "safe",
+        "flags": [
+          "none"
+        ]
+      },
+      "confidence": 0.95,
+      "review": {
+        "status": "pending",
+        "comments": "待宿主复审"
+      }
+    },
+    {
+      "index": 23514,
+      "targets": [
+        "streamer",
+        "chat_audience"
+      ],
+      "stances": [
+        "tease_playful"
+      ],
+      "topics": [
+        "streamer_stubborn_rage"
+      ],
+      "formats": [
+        "direct_address_at",
+        "plain_statement"
+      ],
+      "culture": [
+        "origin_6657",
+        "origin_internet_folklore"
+      ],
+      "entities": [],
+      "context": "stream_context",
+      "safety": {
+        "severity": "safe",
+        "flags": [
+          "none"
+        ]
+      },
+      "confidence": 0.95,
+      "review": {
+        "status": "pending",
+        "comments": "待宿主复审"
+      }
+    },
+    {
+      "index": 23515,
+      "targets": [
+        "streamer"
+      ],
+      "stances": [
+        "flame_streamer",
+        "cynical_sarcastic"
+      ],
+      "topics": [
+        "streamer_food_diet",
+        "streamer_appearance_pig_weight"
+      ],
+      "formats": [
+        "copypasta_repetition",
+        "repeated_symbols"
+      ],
+      "culture": [
+        "origin_6657",
+        "origin_abstract"
+      ],
+      "entities": [],
+      "context": "stream_context",
+      "safety": {
+        "severity": "borderline_playful",
+        "flags": [
+          "profanity"
+        ]
+      },
+      "confidence": 0.95,
+      "review": {
+        "status": "pending",
+        "comments": "待宿主复审"
+      }
+    },
+    {
+      "index": 23516,
+      "targets": [
+        "streamer"
+      ],
+      "stances": [
+        "tease_playful"
+      ],
+      "topics": [
+        "streamer_romance_sexuality",
+        "streamer_intelligence"
+      ],
+      "formats": [
+        "poem_lyric",
+        "repeated_symbols"
+      ],
+      "culture": [
+        "origin_6657",
+        "origin_internet_folklore"
+      ],
+      "entities": [
+        {
+          "name": "玩机器",
+          "type": "streamer"
+        }
+      ],
+      "context": "standalone",
+      "safety": {
+        "severity": "borderline_playful",
+        "flags": [
+          "sexual_content"
+        ]
+      },
+      "confidence": 0.95,
+      "review": {
+        "status": "pending",
+        "comments": "待宿主复审"
+      }
+    },
+    {
+      "index": 23517,
+      "targets": [
+        "streamer",
+        "chat_audience"
+      ],
+      "stances": [
+        "cynical_sarcastic",
+        "tease_playful"
+      ],
+      "topics": [
+        "streamer_casting_knowledge",
+        "pro_cheating_matchfixing"
+      ],
+      "formats": [
+        "direct_address_at",
+        "rhetorical_question",
+        "formulaic_template"
+      ],
+      "culture": [
+        "origin_6657",
+        "origin_cs_community"
+      ],
+      "entities": [
+        {
+          "name": "玩机器",
+          "type": "streamer"
+        }
+      ],
+      "context": "standalone",
+      "safety": {
+        "severity": "safe",
+        "flags": [
+          "none"
+        ]
+      },
+      "confidence": 0.95,
+      "review": {
+        "status": "pending",
+        "comments": "待宿主复审"
+      }
+    },
+    {
+      "index": 23518,
+      "targets": [
+        "streamer",
+        "chat_audience"
+      ],
+      "stances": [
+        "tease_playful"
+      ],
+      "topics": [
+        "streamer_stubborn_rage"
+      ],
+      "formats": [
+        "announcement_ad",
+        "formulaic_template"
+      ],
+      "culture": [
+        "origin_6657"
+      ],
+      "entities": [],
+      "context": "stream_context",
+      "safety": {
+        "severity": "safe",
+        "flags": [
+          "none"
+        ]
+      },
+      "confidence": 0.95,
+      "review": {
+        "status": "pending",
+        "comments": "待宿主复审"
+      }
+    },
+    {
+      "index": 23519,
+      "targets": [
+        "general_meta"
+      ],
+      "stances": [
+        "tease_playful"
+      ],
+      "topics": [
+        "misc_unclear"
+      ],
+      "formats": [
+        "parallelism_listing",
+        "homophonic_pun"
+      ],
+      "culture": [
+        "origin_internet_folklore"
+      ],
+      "entities": [],
+      "context": "standalone",
+      "safety": {
+        "severity": "safe",
+        "flags": [
+          "none"
+        ]
+      },
+      "confidence": 0.95,
+      "review": {
+        "status": "pending",
+        "comments": "待宿主复审"
+      }
+    },
+    {
+      "index": 23520,
+      "targets": [
+        "streamer",
+        "pro_player",
+        "chat_audience"
+      ],
+      "stances": [
+        "tease_playful",
+        "cynical_sarcastic"
+      ],
+      "topics": [
+        "streamer_bias_favoritism",
+        "streamer_stubborn_rage"
+      ],
+      "formats": [
+        "rhetorical_question",
+        "formulaic_template",
+        "parallelism_listing"
+      ],
+      "culture": [
+        "origin_6657",
+        "origin_cs_community"
+      ],
+      "entities": [
+        {
+          "name": "玩机器",
+          "type": "streamer"
+        },
+        {
+          "name": "dev1ce",
+          "type": "player"
+        },
+        {
+          "name": "dupreeh",
+          "type": "player"
+        },
+        {
+          "name": "NiKo",
+          "type": "player"
+        }
+      ],
+      "context": "standalone",
+      "safety": {
+        "severity": "safe",
+        "flags": [
+          "none"
+        ]
+      },
+      "confidence": 0.95,
+      "review": {
+        "status": "pending",
+        "comments": "待宿主复审"
+      }
+    },
+    {
+      "index": 23521,
+      "targets": [
+        "streamer",
+        "caster_host"
+      ],
+      "stances": [
+        "tease_playful",
+        "cynical_sarcastic"
+      ],
+      "topics": [
+        "streamer_casting_knowledge"
+      ],
+      "formats": [
+        "parallelism_listing",
+        "formulaic_template"
+      ],
+      "culture": [
+        "origin_6657",
+        "origin_cs_community"
+      ],
+      "entities": [
+        {
+          "name": "玩机器",
+          "type": "streamer"
+        }
+      ],
+      "context": "standalone",
+      "safety": {
+        "severity": "safe",
+        "flags": [
+          "none"
+        ]
+      },
+      "confidence": 0.95,
+      "review": {
+        "status": "pending",
+        "comments": "待宿主复审"
+      }
+    }
+  ]
+}

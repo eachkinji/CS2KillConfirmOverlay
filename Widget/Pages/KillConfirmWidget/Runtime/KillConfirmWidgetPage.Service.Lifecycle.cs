@@ -264,25 +264,15 @@ namespace KillConfirmGameBar
 
             try
             {
-                using (var client = await LocalServiceAuth.CreateHttpClientAsync())
-                using (HttpResponseMessage response = await client.GetAsync(GsiStatusUri))
-                {
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        UpdateGsiStatus(false, false, 0, null, 0);
-                        return;
-                    }
-
-                    string responseText = await response.Content.ReadAsStringAsync();
-                    JsonObject json = JsonObject.Parse(responseText);
-                    double posts = json.GetNamedNumber("posts", 0);
-                    double parseErrors = json.GetNamedNumber("parse_errors", 0);
-                    double? ageMs = TryGetJsonNumber(json, "last_post_age_ms");
-                    bool recentlySeen = posts > 0 && ageMs.HasValue && ageMs.Value <= RecentGsiAgeMs;
-                    _lastGsiPosts = posts;
-                    _lastGsiParseErrors = parseErrors;
-                    UpdateGsiStatus(true, recentlySeen, posts, ageMs, parseErrors);
-                }
+                GsiStatusSnapshot snapshot = await GsiStatusMonitor.Instance.RefreshAsync();
+                _lastGsiPosts = snapshot.Posts;
+                _lastGsiParseErrors = snapshot.ParseErrors;
+                UpdateGsiStatus(
+                    snapshot.ServiceReachable,
+                    snapshot.IsGreen,
+                    snapshot.Posts,
+                    snapshot.LastPostAgeMs,
+                    snapshot.ParseErrors);
             }
             catch (Exception)
             {

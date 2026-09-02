@@ -68,8 +68,13 @@ namespace KillConfirmGameBar.Danmaku
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
             _isLoaded = true;
-            _ = DanmakuRepository.EnsureLoadedAsync();
-            _ = DanmakuEventPoolRepository.EnsureLoadedAsync();
+
+            DanmakuSessionController.Instance.MessageDispatched -= OnSessionMessageDispatched;
+            DanmakuSessionController.Instance.MessageDispatched += OnSessionMessageDispatched;
+            DanmakuSessionController.Instance.SessionEnded -= OnSessionEnded;
+            DanmakuSessionController.Instance.SessionEnded += OnSessionEnded;
+            DanmakuSessionController.Instance.AttachConsumer();
+
             DanmakuSettingsStore.TestRequested -= OnTestRequested;
             DanmakuSettingsStore.TestRequested += OnTestRequested;
             DanmakuSettingsStore.KillTestRequested -= OnKillTestRequested;
@@ -83,16 +88,58 @@ namespace KillConfirmGameBar.Danmaku
         private void OnUnloaded(object sender, RoutedEventArgs e)
         {
             _isLoaded = false;
+            DanmakuSessionController.Instance.MessageDispatched -= OnSessionMessageDispatched;
+            DanmakuSessionController.Instance.SessionEnded -= OnSessionEnded;
+            DanmakuSessionController.Instance.DetachConsumer();
+
             DanmakuSettingsStore.TestRequested -= OnTestRequested;
             DanmakuSettingsStore.KillTestRequested -= OnKillTestRequested;
             DanmakuSettingsStore.DeathTestRequested -= OnDeathTestRequested;
             DanmakuSettingsStore.EventTestRequested -= OnEventTestRequested;
+
             StopRendering();
             _activeList.Clear();
             _eventsAwaitingPools.Clear();
             _pendingQueue.Clear();
             _cachedTextFormat?.Dispose();
             _cachedTextFormat = null;
+        }
+
+        private void OnSessionMessageDispatched(DanmakuDispatchedPayload payload)
+        {
+            RunOnOverlayThread(() =>
+            {
+                if (!_isLoaded || !DanmakuSettingsStore.IsEnabled || payload == null || payload.Message == null || string.IsNullOrWhiteSpace(payload.Message.Text))
+                {
+                    return;
+                }
+
+                // Guard against cross-session delayed dispatch: verify current active session and exact session ID match
+                if (!DanmakuSessionController.Instance.IsSessionActive ||
+                    DanmakuSessionController.Instance.SessionId != payload.SessionId)
+                {
+                    return;
+                }
+
+                RefreshDrawingSettings();
+                double flightDuration = DanmakuMotion.ResolveFlightDuration(
+                    DanmakuSettingsStore.Speed,
+                    DanmakuSettingsStore.DurationSeconds,
+                    Random);
+
+                _pendingQueue.Enqueue(new[] { payload.Message }, flightDuration);
+                StartRendering();
+            });
+        }
+
+        private void OnSessionEnded()
+        {
+            RunOnOverlayThread(() =>
+            {
+                _eventsAwaitingPools.Clear();
+                _pendingQueue.Clear();
+                // Active messages in _activeList continue flying until natural exit
+            });
         }
 
         private void OnTestRequested()
@@ -113,49 +160,21 @@ namespace KillConfirmGameBar.Danmaku
         private void OnEventTestRequested(string eventKey)
         {
             RunOnOverlayThread(() =>
-                QueueReactionWhenPoolsReady(DanmakuEventClassifier.CreateTestFromKey(eventKey)));
+            {
+                DanmakuEventContext context = DanmakuEventClassifier.CreateTestFromKey(eventKey);
+                QueueReactionWhenPoolsReady(context);
+            });
         }
 
         public void TriggerGameEvent(KillEvent gameEvent)
         {
-            if (!_uiDispatcher.HasThreadAccess)
-            {
-                RunOnOverlayThread(() => TriggerGameEvent(gameEvent));
-                return;
-            }
-
-            if (!DanmakuSettingsStore.IsEnabled)
+            if (gameEvent == null)
             {
                 return;
             }
 
-            DanmakuEventContext context = DanmakuEventClassifier.Classify(gameEvent);
-            if (context == null)
-            {
-                return;
-            }
-
-            if (context.Kind == DanmakuEventKind.Death && !DanmakuSettingsStore.TriggerOnDeath)
-            {
-                return;
-            }
-
-            if (DanmakuEventClassifier.IsKillReaction(context.Kind) && !DanmakuSettingsStore.TriggerOnKill)
-            {
-                return;
-            }
-
-            if (DanmakuEventClassifier.IsRoundReaction(context.Kind) && !DanmakuSettingsStore.TriggerOnRound)
-            {
-                return;
-            }
-
-            if (DanmakuEventClassifier.IsObjectiveReaction(context.Kind) && !DanmakuSettingsStore.TriggerOnObjective)
-            {
-                return;
-            }
-
-            QueueReactionWhenPoolsReady(context);
+            // Strictly route live game events into active session controller
+            DanmakuSessionController.Instance.OnGameEvent(gameEvent);
         }
 
         private void QueueReactionWhenPoolsReady(DanmakuEventContext context)
@@ -164,6 +183,11 @@ namespace KillConfirmGameBar.Danmaku
             {
                 return;
             }
+            if (context.Kind == DanmakuEventKind.Death && !DanmakuSettingsStore.TriggerOnDeath) return;
+            if (DanmakuEventClassifier.IsKillReaction(context.Kind) && !DanmakuSettingsStore.TriggerOnKill) return;
+            if (DanmakuEventClassifier.IsRoundReaction(context.Kind) && !DanmakuSettingsStore.TriggerOnRound) return;
+            if (DanmakuEventClassifier.IsObjectiveReaction(context.Kind) && !DanmakuSettingsStore.TriggerOnObjective) return;
+
             _eventsAwaitingPools.Enqueue(context);
             if (!_isPoolDrainRunning)
             {
@@ -293,8 +317,6 @@ namespace KillConfirmGameBar.Danmaku
 
         private void OnCompositionRendering(object sender, object e)
         {
-            // CompositionTarget.Rendering is static and can fire for another
-            // Game Bar XAML island. Never touch this overlay from that island's thread.
             if (!_uiDispatcher.HasThreadAccess || !_isLoaded)
             {
                 return;

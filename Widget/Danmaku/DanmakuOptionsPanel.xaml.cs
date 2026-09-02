@@ -52,6 +52,8 @@ namespace KillConfirmGameBar.Danmaku
                     ((int)Math.Round(DanmakuSettingsStore.DurationSeconds)).ToString());
                 SelectComboItemByTag(AreaSelector, ((int)DanmakuSettingsStore.Area).ToString());
                 SelectComboItemByTag(SpeedSelector, ((int)DanmakuSettingsStore.Speed).ToString());
+                SelectComboItemByTag(DispatchPaceSelector, ((int)DanmakuSettingsStore.DispatchPace).ToString());
+                SelectComboItemByTag(EventIntensitySelector, ((int)DanmakuSettingsStore.EventIntensity).ToString());
                 SelectComboItemByTag(FontSizeSelector, DanmakuSettingsStore.FontSize.ToString());
                 SelectComboItemByTag(FontWeightSelector, ((int)DanmakuSettingsStore.FontWeight).ToString());
 
@@ -220,6 +222,36 @@ namespace KillConfirmGameBar.Danmaku
                 && int.TryParse(item.Tag?.ToString(), out int value))
             {
                 DanmakuSettingsStore.Speed = (DanmakuSpeedMode)value;
+                if (value == (int)DanmakuSpeedMode.VerySlow && DanmakuSettingsStore.DurationSeconds < 8.0)
+                {
+                    DanmakuSettingsStore.DurationSeconds = 8.0;
+                    SelectComboItemByTag(DurationSelector, "8");
+                }
+                else if (value == (int)DanmakuSpeedMode.UltraSlow && DanmakuSettingsStore.DurationSeconds < 12.0)
+                {
+                    DanmakuSettingsStore.DurationSeconds = 12.0;
+                    SelectComboItemByTag(DurationSelector, "12");
+                }
+            }
+        }
+
+        private void OnDispatchPaceSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_suppressEvents) return;
+            if (DispatchPaceSelector.SelectedItem is ComboBoxItem item
+                && int.TryParse(item.Tag?.ToString(), out int value))
+            {
+                DanmakuSettingsStore.DispatchPace = (DanmakuDispatchPace)value;
+            }
+        }
+
+        private void OnEventIntensitySelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_suppressEvents) return;
+            if (EventIntensitySelector.SelectedItem is ComboBoxItem item
+                && int.TryParse(item.Tag?.ToString(), out int value))
+            {
+                DanmakuSettingsStore.EventIntensity = (DanmakuEventIntensity)value;
             }
         }
 
@@ -273,6 +305,9 @@ namespace KillConfirmGameBar.Danmaku
                 TriggerOnDeathLabel,
                 TriggerOnRoundLabel,
                 TriggerOnObjectiveLabel,
+                LiveSchedulingLabel,
+                DispatchPaceLabel,
+                EventIntensityLabel,
                 DisplaySettingsLabel,
                 CountLabel,
                 DurationLabel,
@@ -290,6 +325,8 @@ namespace KillConfirmGameBar.Danmaku
                 TriggerOnDeathHint,
                 TriggerOnRoundHint,
                 TriggerOnObjectiveHint,
+                DispatchPaceHint,
+                EventIntensityHint,
                 OutlineHint,
                 BackgroundHint);
         }

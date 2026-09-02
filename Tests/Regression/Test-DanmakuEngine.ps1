@@ -126,8 +126,18 @@ foreach ($key in $expectedPoolKeys) {
 $policy = Get-Content -Raw -LiteralPath (Join-Path $engineRoot 'DanmakuReactionPolicy.cs')
 if ($policy -notmatch 'MinimumVisibleCount\s*=\s*5' -or
     $policy -notmatch 'MaximumVisibleCount\s*=\s*7' -or
-    $policy -notmatch 'MaximumFlightSeconds\s*=\s*5\.0') {
-    throw 'Danmaku 5–7 visible / 5-second lifetime invariants are missing.'
+    $policy -notmatch 'MaximumFlightSeconds\s*=\s*15\.0') {
+    throw 'Danmaku 5–7 visible / 15-second maximum lifetime invariants are missing.'
+}
+
+$settingsSource = Get-Content -Raw -LiteralPath (Join-Path $RepositoryRoot 'Widget/Danmaku/DanmakuSettingsStore.cs')
+$schedulerSource = Get-Content -Raw -LiteralPath (Join-Path $engineRoot 'DanmakuLiveScheduler.cs')
+$motionSource = Get-Content -Raw -LiteralPath (Join-Path $engineRoot 'DanmakuMotion.cs')
+if ($settingsSource -notmatch 'DanmakuDispatchPace\.VerySlow:\s*return 4\.0' -or
+    $settingsSource -notmatch 'DanmakuDispatchPace\.Relaxed:\s*return 2\.0' -or
+    $schedulerSource -notmatch 'paceMultiplier \* eventMultiplier' -or
+    $motionSource -notmatch 'DanmakuSpeedMode\.UltraSlow') {
+    throw 'Slow live dispatch and slow flight modes are not wired through runtime behavior.'
 }
 
 $expectedPolicies = [ordered]@{
@@ -248,4 +258,4 @@ if ($project -notmatch [regex]::Escape('Danmaku\Pools\event_reactions.json')) {
     throw 'The 16 event reaction pools are not packaged by the Widget project.'
 }
 
-'PASS: all 16 event pools contain only validated 1-based 6657 references; no authored/fallback runtime text; 5–7 visible items and <=5s complete flights.'
+'PASS: all 16 event pools contain only validated 1-based 6657 references; no authored/fallback runtime text; 5–7 visible items and <=15s complete flights; slow pacing is runtime-wired.'

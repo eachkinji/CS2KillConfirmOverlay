@@ -13,6 +13,12 @@ namespace KillConfirmGameBar.Danmaku.Engine
             double duration;
             switch (speed)
             {
+                case DanmakuSpeedMode.UltraSlow:
+                    duration = 11.0 + (random.NextDouble() * 1.0);
+                    break;
+                case DanmakuSpeedMode.VerySlow:
+                    duration = 7.4 + (random.NextDouble() * 0.8);
+                    break;
                 case DanmakuSpeedMode.Fast:
                     duration = 2.8 + (random.NextDouble() * 0.5);
                     break;

@@ -21,7 +21,7 @@
                     x:Name="PanelSubtitle"
                     FontSize="11"
                     Foreground="#888888"
-                    Text="16 类事件只按 6657 库序号匹配核心/划水文案；已发弹幕一定完整飞出屏幕"
+                    Text="GSI 绿色状态自动启停持续弹幕；语义池负责日常内容，游戏事件会临时调整内容权重与发送节奏"
                     TextWrapping="Wrap" />
             </StackPanel>
 
@@ -110,6 +110,28 @@
                 <ToggleSwitch x:Name="TriggerOnObjectiveToggle" Grid.Column="1" MinWidth="0" OffContent="关" OnContent="开" Toggled="OnTriggerOnObjectiveToggled" />
             </Grid>
 
+            <TextBlock x:Name="LiveSchedulingLabel" Margin="0,2,0,0" FontSize="12" FontWeight="SemiBold" Text="直播弹幕节奏" />
+
+            <StackPanel Spacing="3">
+                <TextBlock x:Name="DispatchPaceLabel" FontSize="11" FontWeight="SemiBold" Text="持续发送频率" />
+                <TextBlock x:Name="DispatchPaceHint" FontSize="10" Foreground="#888888" Text="控制每条弹幕出现的间隔，与单条飞行速度互不影响" TextWrapping="Wrap" />
+                <ComboBox x:Name="DispatchPaceSelector" HorizontalAlignment="Stretch" SelectionChanged="OnDispatchPaceSelectionChanged">
+                    <ComboBoxItem Tag="0">标准（约 2–5 秒/条）</ComboBoxItem>
+                    <ComboBoxItem Tag="1">舒缓（约 4–10 秒/条，默认）</ComboBoxItem>
+                    <ComboBoxItem Tag="2">极慢（约 8–20 秒/条）</ComboBoxItem>
+                </ComboBox>
+            </StackPanel>
+
+            <StackPanel Spacing="3">
+                <TextBlock x:Name="EventIntensityLabel" FontSize="11" FontWeight="SemiBold" Text="事件响应强度" />
+                <TextBlock x:Name="EventIntensityHint" FontSize="10" Foreground="#888888" Text="击杀、阵亡等事件发生后，控制短时弹幕加速幅度" TextWrapping="Wrap" />
+                <ComboBox x:Name="EventIntensitySelector" HorizontalAlignment="Stretch" SelectionChanged="OnEventIntensitySelectionChanged">
+                    <ComboBoxItem Tag="0">克制（事件后也保持较慢）</ComboBoxItem>
+                    <ComboBoxItem Tag="1">标准</ComboBoxItem>
+                    <ComboBoxItem Tag="2">热闹（事件后明显加速）</ComboBoxItem>
+                </ComboBox>
+            </StackPanel>
+
             <TextBlock x:Name="DisplaySettingsLabel" Margin="0,2,0,0" FontSize="12" FontWeight="SemiBold" Text="显示与运动" />
 
             <StackPanel Spacing="3">
@@ -122,7 +144,7 @@
             <StackPanel Spacing="3">
                 <TextBlock x:Name="DurationLabel" FontSize="11" FontWeight="SemiBold" Text="单条最长飞行时间" />
                 <ComboBox x:Name="DurationSelector" HorizontalAlignment="Stretch" SelectionChanged="OnDurationSelectionChanged">
-                    <ComboBoxItem Tag="3">3 秒（快速）</ComboBoxItem><ComboBoxItem Tag="4">4 秒</ComboBoxItem><ComboBoxItem Tag="5">5 秒（推荐上限）</ComboBoxItem>
+                    <ComboBoxItem Tag="3">3 秒（快速）</ComboBoxItem><ComboBoxItem Tag="5">5 秒</ComboBoxItem><ComboBoxItem Tag="8">8 秒（很慢）</ComboBoxItem><ComboBoxItem Tag="12">12 秒（极慢）</ComboBoxItem><ComboBoxItem Tag="15">15 秒（最长）</ComboBoxItem>
                 </ComboBox>
             </StackPanel>
 
@@ -136,7 +158,7 @@
             <StackPanel Spacing="3">
                 <TextBlock x:Name="SpeedLabel" FontSize="11" FontWeight="SemiBold" Text="单条飞行速度" />
                 <ComboBox x:Name="SpeedSelector" HorizontalAlignment="Stretch" SelectionChanged="OnSpeedSelectionChanged">
-                    <ComboBoxItem Tag="0">平缓（最长 5 秒）</ComboBoxItem><ComboBoxItem Tag="1">标准（约 4.5 秒）</ComboBoxItem><ComboBoxItem Tag="2">快速（约 3.2 秒）</ComboBoxItem>
+                    <ComboBoxItem Tag="0">平缓（约 5 秒）</ComboBoxItem><ComboBoxItem Tag="1">标准（约 4.5 秒）</ComboBoxItem><ComboBoxItem Tag="2">快速（约 3.2 秒）</ComboBoxItem><ComboBoxItem Tag="3">很慢（约 8 秒）</ComboBoxItem><ComboBoxItem Tag="4">极慢（约 12 秒）</ComboBoxItem>
                 </ComboBox>
             </StackPanel>
 

@@ -18,7 +18,23 @@ namespace KillConfirmGameBar.Danmaku
     {
         Slow = 0,   // 平缓 (最长 5.0s)
         Normal = 1, // 标准 (约 4.5s)
-        Fast = 2    // 快速 (约 3.2s)
+        Fast = 2,   // 快速 (约 3.2s)
+        VerySlow = 3, // 很慢 (约 8s)
+        UltraSlow = 4 // 极慢 (约 12s)
+    }
+
+    public enum DanmakuDispatchPace
+    {
+        Normal = 0,
+        Relaxed = 1,
+        VerySlow = 2
+    }
+
+    public enum DanmakuEventIntensity
+    {
+        Gentle = 0,
+        Standard = 1,
+        Lively = 2
     }
 
     public enum DanmakuFontWeightMode
@@ -44,6 +60,8 @@ namespace KillConfirmGameBar.Danmaku
         public const string BackgroundSettingKey = "Danmaku6657Background";
         public const string OutlineSettingKey = "Danmaku6657Outline";
         public const string SpeedSettingKey = "Danmaku6657Speed";
+        public const string DispatchPaceSettingKey = "DanmakuDispatchPace";
+        public const string EventIntensitySettingKey = "DanmakuEventIntensity";
 
         public const int DefaultCount = 7;
         public const double DefaultDurationSeconds = 5.0;
@@ -283,6 +301,70 @@ namespace KillConfirmGameBar.Danmaku
             {
                 ApplicationData.Current.LocalSettings.Values[SpeedSettingKey] = (int)value;
                 SettingsChanged?.Invoke();
+            }
+        }
+
+        public static DanmakuDispatchPace DispatchPace
+        {
+            get
+            {
+                object value = ApplicationData.Current.LocalSettings.Values[DispatchPaceSettingKey];
+                if (value is int intVal && Enum.IsDefined(typeof(DanmakuDispatchPace), intVal))
+                {
+                    return (DanmakuDispatchPace)intVal;
+                }
+                return DanmakuDispatchPace.Relaxed;
+            }
+            set
+            {
+                ApplicationData.Current.LocalSettings.Values[DispatchPaceSettingKey] = (int)value;
+                SettingsChanged?.Invoke();
+            }
+        }
+
+        public static DanmakuEventIntensity EventIntensity
+        {
+            get
+            {
+                object value = ApplicationData.Current.LocalSettings.Values[EventIntensitySettingKey];
+                if (value is int intVal && Enum.IsDefined(typeof(DanmakuEventIntensity), intVal))
+                {
+                    return (DanmakuEventIntensity)intVal;
+                }
+                return DanmakuEventIntensity.Standard;
+            }
+            set
+            {
+                ApplicationData.Current.LocalSettings.Values[EventIntensitySettingKey] = (int)value;
+                SettingsChanged?.Invoke();
+            }
+        }
+
+        public static double ResolveDispatchIntervalMultiplier(DanmakuDispatchPace pace)
+        {
+            switch (pace)
+            {
+                case DanmakuDispatchPace.VerySlow:
+                    return 4.0;
+                case DanmakuDispatchPace.Relaxed:
+                    return 2.0;
+                case DanmakuDispatchPace.Normal:
+                default:
+                    return 1.0;
+            }
+        }
+
+        public static double ResolveEventIntervalMultiplier(DanmakuEventIntensity intensity)
+        {
+            switch (intensity)
+            {
+                case DanmakuEventIntensity.Gentle:
+                    return 1.75;
+                case DanmakuEventIntensity.Lively:
+                    return 0.72;
+                case DanmakuEventIntensity.Standard:
+                default:
+                    return 1.0;
             }
         }
 

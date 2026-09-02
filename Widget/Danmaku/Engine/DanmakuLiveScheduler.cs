@@ -1,4 +1,5 @@
 using System;
+using KillConfirmGameBar.Danmaku;
 
 namespace KillConfirmGameBar.Danmaku.Engine
 {
@@ -169,8 +170,15 @@ namespace KillConfirmGameBar.Danmaku.Engine
                 jitterRatio = SemanticProfileRepository.Ambient.IntervalJitter;
             }
 
+            double paceMultiplier = DanmakuSettingsStore.ResolveDispatchIntervalMultiplier(
+                DanmakuSettingsStore.DispatchPace);
+            double eventMultiplier = impulse == null
+                ? 1.0
+                : DanmakuSettingsStore.ResolveEventIntervalMultiplier(DanmakuSettingsStore.EventIntensity);
             double jitter = (_random.NextDouble() * 2.0 - 1.0) * jitterRatio;
-            double nextSeconds = Math.Max(0.6, Math.Min(6.0, baseInterval * (1.0 + jitter)));
+            double nextSeconds = Math.Max(
+                0.6,
+                Math.Min(30.0, baseInterval * (1.0 + jitter) * paceMultiplier * eventMultiplier));
             TimeSpan nextInterval = TimeSpan.FromSeconds(nextSeconds);
 
             DanmakuMessage message = null;

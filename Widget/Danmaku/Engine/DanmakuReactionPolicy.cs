@@ -21,7 +21,7 @@ namespace KillConfirmGameBar.Danmaku.Engine
     {
         public const int MinimumVisibleCount = 5;
         public const int MaximumVisibleCount = 7;
-        public const double MaximumFlightSeconds = 5.0;
+        public const double MaximumFlightSeconds = 15.0;
 
         public static DanmakuReactionPolicy Resolve(DanmakuEventKind kind)
         {

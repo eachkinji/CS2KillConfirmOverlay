@@ -18,7 +18,9 @@ namespace KillConfirmGameBar.Danmaku.Engine
             int laneCount,
             double fontSize)
         {
-            laneCount = DanmakuReactionPolicies.ClampVisibleCount(laneCount);
+            laneCount = Math.Max(
+                1,
+                Math.Min(DanmakuReactionPolicies.EventMaximumVisibleCount, laneCount));
             double safeHeight = Math.Max(120, height);
             double bottom = Math.Max(12, safeHeight - fontSize - 10);
             var bands = new List<LaneBand>();

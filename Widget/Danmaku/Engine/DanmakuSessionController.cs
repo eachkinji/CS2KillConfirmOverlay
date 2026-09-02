@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using KillConfirmGameBar.Services;
@@ -17,6 +18,20 @@ namespace KillConfirmGameBar.Danmaku.Engine
         }
     }
 
+    internal sealed class DanmakuSessionEndingPayload
+    {
+        public int SessionId { get; }
+        public IReadOnlyList<DanmakuMessage> Messages { get; }
+
+        public DanmakuSessionEndingPayload(
+            int sessionId,
+            IReadOnlyList<DanmakuMessage> messages)
+        {
+            SessionId = sessionId;
+            Messages = messages ?? Array.Empty<DanmakuMessage>();
+        }
+    }
+
     internal sealed class DanmakuSessionController : IDisposable
     {
         private static readonly Lazy<DanmakuSessionController> LazyInstance =
@@ -28,6 +43,7 @@ namespace KillConfirmGameBar.Danmaku.Engine
         private readonly DanmakuImpulseManager _impulseManager = new DanmakuImpulseManager();
         private readonly DanmakuSelectionHistory _selectionHistory = new DanmakuSelectionHistory();
         private readonly DanmakuWeightEngine _weightEngine = new DanmakuWeightEngine();
+        private readonly SemaphoreSlim _schedulerWakeSignal = new SemaphoreSlim(0);
         private DanmakuLiveScheduler _scheduler;
         private CancellationTokenSource _schedulerCancellation;
         private int _consumerCount;
@@ -38,6 +54,7 @@ namespace KillConfirmGameBar.Danmaku.Engine
 
         public event Action<DanmakuDispatchedPayload> MessageDispatched;
         public event Action SessionStarted;
+        public event Action<DanmakuSessionEndingPayload> SessionEnding;
         public event Action SessionEnded;
 
         public bool IsSessionActive
@@ -84,6 +101,7 @@ namespace KillConfirmGameBar.Danmaku.Engine
                 {
                     _ = DanmakuRepository.EnsureLoadedAsync();
                     _ = DanmakuEventPoolRepository.EnsureLoadedAsync();
+                    _ = SupplementalDanmakuPoolRepository.EnsureLoadedAsync();
                     _ = SemanticAnnotationRepository.EnsureLoadedAsync();
                     _ = SemanticProfileRepository.EnsureLoadedAsync();
 
@@ -115,7 +133,7 @@ namespace KillConfirmGameBar.Danmaku.Engine
 
                 if (_consumerCount == 0)
                 {
-                    EndSessionLocked();
+                    EndSessionLocked(dispatchSessionEnd: false);
 
                     GsiStatusMonitor.Instance.GreenStateChanged -= OnGsiGreenStateChanged;
                     DanmakuSettingsStore.EnabledChanged -= OnDanmakuEnabledChanged;
@@ -173,6 +191,8 @@ namespace KillConfirmGameBar.Danmaku.Engine
             _sessionId++;
             _impulseManager.Clear();
             _selectionHistory.Clear();
+            _scheduler.ResetOpeningPhase();
+            while (_schedulerWakeSignal.Wait(0)) { }
 
             _schedulerCancellation = new CancellationTokenSource();
             _ = RunSchedulerLoopAsync(_sessionId, _schedulerCancellation.Token);
@@ -181,7 +201,7 @@ namespace KillConfirmGameBar.Danmaku.Engine
             Task.Run(() => SessionStarted?.Invoke());
         }
 
-        private void EndSessionLocked()
+        private void EndSessionLocked(bool dispatchSessionEnd = true)
         {
             if (!_isSessionActive)
             {
@@ -190,22 +210,68 @@ namespace KillConfirmGameBar.Danmaku.Engine
 
             _isSessionActive = false;
             int currentId = _sessionId;
+            IReadOnlyList<DanmakuMessage> sessionEndMessages = dispatchSessionEnd
+                ? ComposeSessionEndMessages()
+                : Array.Empty<DanmakuMessage>();
 
             try
             {
                 _schedulerCancellation?.Cancel();
                 _schedulerCancellation?.Dispose();
             }
-            catch
+            catch { }
+            finally
             {
+                _schedulerCancellation = null;
             }
-            _schedulerCancellation = null;
 
             _impulseManager.Clear();
             _selectionHistory.Clear();
 
-            App.Log($"[DanmakuSession] Ended: session_id={currentId}");
+            if (sessionEndMessages.Count > 0)
+            {
+                try
+                {
+                    SessionEnding?.Invoke(new DanmakuSessionEndingPayload(
+                        currentId,
+                        sessionEndMessages));
+                }
+                catch (Exception ex)
+                {
+                    App.Log("[DanmakuSession] SessionEnding dispatch failed: " + ex.Message);
+                }
+            }
+
+            App.Log($"[DanmakuSession] Ended: session_id={currentId}, outro_count={sessionEndMessages.Count}");
             Task.Run(() => SessionEnded?.Invoke());
+        }
+
+        private IReadOnlyList<DanmakuMessage> ComposeSessionEndMessages()
+        {
+            IReadOnlyList<DanmakuSelectionResult> selections =
+                _weightEngine.SelectSessionEndDanmaku(4, _selectionHistory);
+            if (selections == null || selections.Count == 0)
+            {
+                return Array.Empty<DanmakuMessage>();
+            }
+
+            var result = new List<DanmakuMessage>(selections.Count);
+            for (int i = 0; i < selections.Count; i++)
+            {
+                DanmakuSelectionResult selection = selections[i];
+                if (selection == null || !selection.IsSuccess)
+                {
+                    continue;
+                }
+                result.Add(new DanmakuMessage
+                {
+                    Text = selection.Text,
+                    Role = DanmakuMessageRole.Core,
+                    EventPriority = 70,
+                    IsEventReaction = true
+                });
+            }
+            return result;
         }
 
         public void OnGameEvent(KillEvent gameEvent)
@@ -246,7 +312,8 @@ namespace KillConfirmGameBar.Danmaku.Engine
             }
 
             SemanticEventProfile profile = SemanticProfileRepository.GetProfile(context.Kind);
-            _impulseManager.AddOrUpdateImpulse(context, profile, DateTimeOffset.Now);
+            _impulseManager.AddImpulse(context, profile, DateTimeOffset.Now);
+            _schedulerWakeSignal.Release();
 
             App.Log($"[DanmakuImpulse] Injected: kind={context.Kind}, duration={profile.ImpulseDurationSeconds:F1}s, strength={profile.ImpulseStrength:F2}");
         }
@@ -260,18 +327,18 @@ namespace KillConfirmGameBar.Danmaku.Engine
                     return;
                 }
 
-                if (isGreen && DanmakuSettingsStore.IsEnabled)
+                if (isGreen && !_isSessionActive && DanmakuSettingsStore.IsEnabled)
                 {
                     StartSessionLocked();
                 }
-                else if (!isGreen)
+                else if (!isGreen && _isSessionActive)
                 {
                     EndSessionLocked();
                 }
             }
         }
 
-        private void OnDanmakuEnabledChanged(bool enabled)
+        private void OnDanmakuEnabledChanged(bool isEnabled)
         {
             lock (_syncRoot)
             {
@@ -280,13 +347,13 @@ namespace KillConfirmGameBar.Danmaku.Engine
                     return;
                 }
 
-                if (enabled && GsiStatusMonitor.Instance.IsGreen)
+                if (isEnabled && !_isSessionActive && GsiStatusMonitor.Instance.IsGreen)
                 {
                     StartSessionLocked();
                 }
-                else if (!enabled)
+                else if (!isEnabled && _isSessionActive)
                 {
-                    EndSessionLocked();
+                    EndSessionLocked(dispatchSessionEnd: false);
                 }
             }
         }
@@ -312,7 +379,7 @@ namespace KillConfirmGameBar.Danmaku.Engine
 
                 try
                 {
-                    await Task.Delay(step.NextInterval, token);
+                    await _schedulerWakeSignal.WaitAsync(step.NextInterval, token);
                 }
                 catch (TaskCanceledException)
                 {
@@ -343,7 +410,8 @@ namespace KillConfirmGameBar.Danmaku.Engine
                 }
                 _disposed = true;
                 ++_attachGeneration;
-                EndSessionLocked();
+                EndSessionLocked(dispatchSessionEnd: false);
+                _schedulerWakeSignal.Dispose();
                 GsiStatusMonitor.Instance.GreenStateChanged -= OnGsiGreenStateChanged;
                 DanmakuSettingsStore.EnabledChanged -= OnDanmakuEnabledChanged;
                 GsiStatusMonitor.Instance.StopMonitoring();

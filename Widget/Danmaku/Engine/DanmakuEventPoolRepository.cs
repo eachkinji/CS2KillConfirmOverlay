@@ -92,6 +92,24 @@ namespace KillConfirmGameBar.Danmaku.Engine
             return result;
         }
 
+        public static IReadOnlyList<DanmakuLibraryReference> GetReferences(
+            DanmakuEventKind kind,
+            DanmakuMessageRole role)
+        {
+            lock (SyncRoot)
+            {
+                DanmakuEventReferencePool pool;
+                if (!_pools.TryGetValue(kind, out pool) || pool == null)
+                {
+                    return Array.Empty<DanmakuLibraryReference>();
+                }
+
+                IReadOnlyList<DanmakuLibraryReference> source =
+                    role == DanmakuMessageRole.Core ? pool.Core : pool.Water;
+                return new List<DanmakuLibraryReference>(source);
+            }
+        }
+
         private static async Task LoadAsync()
         {
             try

@@ -1,0 +1,150 @@
+{
+  "schema_version": "2.0.0",
+  "pool_id": "supplemental_death_flame_source_v2",
+  "event_label": "death_flame",
+  "description": "从原始 23,521 条弹幕中人工复核出的主播死亡、空枪、白给和菜的直接嘲讽。每条保留原文、原始索引和哈希。",
+  "source": "Widget/Danmaku/6657_memes.json",
+  "line_policy": "render_newlines_as_spaces",
+  "selection_policy": {
+    "recommended_dispatch_count": 5,
+    "sample_without_replacement": true,
+    "max_near_duplicate_variant_per_event": 1
+  },
+  "messages": [
+    {
+      "id": "death_flame_src_001",
+      "source_index": 166,
+      "source_text": "可是玩宝宝也🥺……太菜了吧😅",
+      "sha256": "5ee9bae953d3e76f77f6b0a062e3a6c6d6ecef3d816ac1dc7c1aa80453a43218",
+      "family": "direct_vegetable",
+      "phase": "burst",
+      "reason": "直接说主播太菜，适合死亡瞬间"
+    },
+    {
+      "id": "death_flame_src_002",
+      "source_index": 7053,
+      "source_text": "这tm 玩神真tm菜啊😡，这玩神真tm🥬呀今天😫，太菜了，tm撤离点聊天跟个区一样",
+      "sha256": "3adff74518d5a860e74078947df595591ff93c50e705f8396371daa69892131d",
+      "family": "direct_vegetable",
+      "phase": "aftermath",
+      "reason": "连续直球骂玩神菜，适合死亡余波"
+    },
+    {
+      "id": "death_flame_src_003",
+      "source_index": 9279,
+      "source_text": "弹幕玩玩梗得了，别老是抓着主播的技术人身攻击，菜成这b样他也不好受",
+      "sha256": "5f0aec1036d52c99c009fa34c5bac96b669e96df0e9aef30618686ad30d1cdfb",
+      "family": "direct_vegetable",
+      "phase": "aftermath",
+      "reason": "以假劝架方式直接嘲讽主播菜"
+    },
+    {
+      "id": "death_flame_src_004",
+      "source_index": 10175,
+      "source_text": "你好，我是腾讯客服，由于您长期未登录QQ农场，特地来通知，您菜死了",
+      "sha256": "2a1a08b9c0ee0edecd8fd755ca3737f04adc3f1cbb51e52780a7a598689a339e",
+      "family": "direct_vegetable",
+      "phase": "aftermath",
+      "reason": "客服模板结尾直说菜死了"
+    },
+    {
+      "id": "death_flame_src_005",
+      "source_index": 13111,
+      "source_text": "飞猪大狙空枪，大家伙都说猪又空枪了。618：“胡说，我大狙枪都开不出来，哪里能空枪？”",
+      "sha256": "808bc096000fcc742d99dd53eb25cd550e75537e46f1b34fdb99332b977d1f26",
+      "family": "aim_miss",
+      "phase": "aftermath",
+      "reason": "直接嘲讽主播大狙空枪"
+    },
+    {
+      "id": "death_flame_src_006",
+      "source_index": 13295,
+      "source_text": "真后悔在你这办牌子，本来技术还不错，现在这么菜，要不是看你吧有点小烧早取关了",
+      "sha256": "661697bbe05a616e256b81f0af8a16f3942d108e7d04c7055d5f8a0df834c566",
+      "family": "direct_vegetable",
+      "phase": "aftermath",
+      "reason": "直接评价主播现在太菜"
+    },
+    {
+      "id": "death_flame_src_007",
+      "source_index": 15916,
+      "source_text": "刘农经典repeek教学：侧身-白给-再来亿次",
+      "sha256": "2f160c411a257ff8c75bd0c7af35f714ae07ce37c8e1ecf4d2bd8c87c3578b5a",
+      "family": "misplay",
+      "phase": "both",
+      "reason": "直接嘲讽重复拉枪白给"
+    },
+    {
+      "id": "death_flame_src_008",
+      "source_index": 16180,
+      "source_text": "玩机器语气词：哇呜~！行了！甚~么！真别玩了！",
+      "sha256": "6f25ef64e4328612141ac82090988bb0c813eb0ccb845ca487016a78b4b9966a",
+      "family": "misplay",
+      "phase": "burst",
+      "reason": "死亡失误后直接劝主播别玩了"
+    },
+    {
+      "id": "death_flame_src_009",
+      "source_index": 17396,
+      "source_text": "玩机器，我感觉你真的很想融入这桌好菜啊。",
+      "sha256": "f4c408634406d4467a066e60a9605b32bbad0ab3bd2124d50fcf90bbde794a90",
+      "family": "direct_vegetable",
+      "phase": "aftermath",
+      "reason": "用菜的双关直接嘲讽主播"
+    },
+    {
+      "id": "death_flame_src_010",
+      "source_index": 18957,
+      "source_text": "十枪九空，落得八场七负，六胜五躺，却骂四个憨批队友，三番两次破防，我看阁下傻波一个",
+      "sha256": "1f3d7a2178acc5f12b8ccfb0805e3c60792a12361c77c25daf2e9e7c00cc2d22",
+      "family": "aim_miss",
+      "phase": "aftermath",
+      "reason": "以十枪九空直接嘲讽枪法"
+    },
+    {
+      "id": "death_flame_src_011",
+      "source_index": 21201,
+      "source_text": "刘农已经菜到我不能发送重复内容了",
+      "sha256": "5b920e69a179acd1d86553bde58eb96eec5998f72f3e113460d4e4a5fc81f2c4",
+      "family": "direct_vegetable",
+      "phase": "both",
+      "reason": "短句直说主播菜到无法复读"
+    },
+    {
+      "id": "death_flame_src_012",
+      "source_index": 22562,
+      "source_text": "你好，我是QQ农场管理员，由于你很久没登录游戏，特地来跟你说一下：你菜死了",
+      "sha256": "821ba06c71d7c7782867768f6349856d1667d9d13e2df6920ae61287079b8a92",
+      "family": "direct_vegetable",
+      "phase": "aftermath",
+      "reason": "农场模板结尾直说菜死了，与腾讯客服版本同场只取一条"
+    },
+    {
+      "id": "death_flame_src_013",
+      "source_index": 22855,
+      "source_text": "主播真tm菜，可以学习架一些智障点位，侧道单车，沙发贴墙，A大树位，火车低坡",
+      "sha256": "755cf7d77b44f9f1e644005aca5c07c6258dc7320501c73b4da7b26bf0916d47",
+      "family": "direct_vegetable",
+      "phase": "aftermath",
+      "reason": "开头直接骂主播菜并继续嘲讽站位"
+    },
+    {
+      "id": "death_flame_src_014",
+      "source_index": 23193,
+      "source_text": "十枪九空，落得八场七负，六胜五躺，却骂四个憨批队友，三番两次破防，我看阁下啥比一个",
+      "sha256": "201e025e237985517277ca6af129ae4f61096d1f491769e34c4636828ea6b0ac",
+      "family": "aim_miss",
+      "phase": "aftermath",
+      "reason": "十枪九空文案变体，与另一版本同场只取一条"
+    },
+    {
+      "id": "death_flame_src_015",
+      "source_index": 23291,
+      "source_text": "农民伯伯满脸喜悦的把主播从地里挖出来，捧在手心里直夸：好菜，真是好菜啊",
+      "sha256": "b1cc8b88cbc57f31b4c7ba7fb119d08c58c28ff495109437652a799cc005ef46",
+      "family": "direct_vegetable",
+      "phase": "aftermath",
+      "reason": "用好菜双关直接嘲讽主播"
+    }
+  ]
+}

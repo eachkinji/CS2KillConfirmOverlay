@@ -5,14 +5,11 @@ namespace KillConfirmGameBar.Danmaku.Engine
 {
     internal sealed class DanmakuBatchComposer
     {
-        private const int RecentHistoryLimit = 48;
-        private readonly Random _random;
-        private readonly Queue<string> _recentTexts = new Queue<string>();
-        private readonly HashSet<string> _recentSet = new HashSet<string>(StringComparer.Ordinal);
+        private readonly DanmakuWeightEngine _weightEngine;
 
         public DanmakuBatchComposer(Random random)
         {
-            _random = random ?? throw new ArgumentNullException(nameof(random));
+            _weightEngine = new DanmakuWeightEngine(random ?? throw new ArgumentNullException(nameof(random)));
         }
 
         public IReadOnlyList<DanmakuMessage> Compose(DanmakuEventContext context, int visibleLimit)
@@ -26,99 +23,36 @@ namespace KillConfirmGameBar.Danmaku.Engine
             int limit = DanmakuReactionPolicies.ClampVisibleCount(visibleLimit);
             int targetCount = Math.Min(limit, policy.TotalCount);
             int coreCount = Math.Min(policy.CoreCount, targetCount);
-            int atmosphereCount = targetCount - coreCount;
-
             var result = new List<DanmakuMessage>(targetCount);
-            IReadOnlyList<string> coreSource = DanmakuEventPoolRepository.GetMessages(
-                context.Kind,
-                DanmakuMessageRole.Core);
-            if (coreSource == null || coreSource.Count == 0)
+            var eventHistory = new DanmakuSelectionHistory();
+            SemanticEventProfile profile = SemanticProfileRepository.GetProfile(context.Kind);
+            for (int i = 0; i < targetCount; i++)
             {
-                return new DanmakuMessage[0];
-            }
-            AppendMessages(result, coreSource, coreCount, DanmakuMessageRole.Core, policy.Priority);
+                DanmakuMessageRole role = i < coreCount
+                    ? DanmakuMessageRole.Core
+                    : DanmakuMessageRole.Atmosphere;
+                DanmakuSelectionResult selection = _weightEngine.SelectEventDanmaku(
+                    context.Kind,
+                    profile,
+                    eventHistory,
+                    role,
+                    context.Kind == DanmakuEventKind.Death && (i % 2) == 1,
+                    preferBurstPhase: true);
+                if (selection == null || !selection.IsSuccess)
+                {
+                    break;
+                }
 
-            IReadOnlyList<string> atmosphereSource = DanmakuEventPoolRepository.GetMessages(
-                context.Kind,
-                DanmakuMessageRole.Atmosphere);
-            if (atmosphereSource == null || atmosphereSource.Count == 0)
-            {
-                return new DanmakuMessage[0];
+                result.Add(new DanmakuMessage
+                {
+                    Text = selection.Text,
+                    Role = role,
+                    EventPriority = policy.Priority,
+                    IsEventReaction = true
+                });
             }
-            AppendMessages(
-                result,
-                atmosphereSource,
-                atmosphereCount,
-                DanmakuMessageRole.Atmosphere,
-                policy.Priority);
 
             return result;
-        }
-
-        private void AppendMessages(
-            List<DanmakuMessage> destination,
-            IReadOnlyList<string> source,
-            int count,
-            DanmakuMessageRole role,
-            int eventPriority)
-        {
-            if (count <= 0 || source == null || source.Count == 0)
-            {
-                return;
-            }
-
-            var usedInBatch = new HashSet<string>(StringComparer.Ordinal);
-            int attempts = Math.Max(source.Count * 3, 24);
-            while (usedInBatch.Count < count && attempts-- > 0)
-            {
-                string text = source[_random.Next(source.Count)];
-                if (string.IsNullOrWhiteSpace(text) || usedInBatch.Contains(text) || _recentSet.Contains(text))
-                {
-                    continue;
-                }
-
-                usedInBatch.Add(text);
-                Add(destination, text, role, eventPriority);
-            }
-
-            // Small curated pools may all be in recent history. Reuse them only
-            // after exhausting fresh choices, while still avoiding duplicates in one batch.
-            attempts = Math.Max(source.Count * 3, 24);
-            while (usedInBatch.Count < count && attempts-- > 0)
-            {
-                string text = source[_random.Next(source.Count)];
-                if (string.IsNullOrWhiteSpace(text) || usedInBatch.Contains(text))
-                {
-                    continue;
-                }
-
-                usedInBatch.Add(text);
-                Add(destination, text, role, eventPriority);
-            }
-        }
-
-        private void Add(
-            ICollection<DanmakuMessage> destination,
-            string text,
-            DanmakuMessageRole role,
-            int eventPriority)
-        {
-            destination.Add(new DanmakuMessage
-            {
-                Text = text,
-                Role = role,
-                EventPriority = eventPriority
-            });
-
-            if (_recentSet.Add(text))
-            {
-                _recentTexts.Enqueue(text);
-            }
-
-            while (_recentTexts.Count > RecentHistoryLimit)
-            {
-                _recentSet.Remove(_recentTexts.Dequeue());
-            }
         }
     }
 }

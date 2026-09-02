@@ -1,0 +1,148 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EventFitAnnotationDatasetV2",
+  "description": "Schema definition for 6657 Danmaku Event Fit Secondary Annotation Dataset (V2)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "dataset_name",
+    "description",
+    "total_records",
+    "annotations"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "2.0.0"
+    },
+    "dataset_name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "total_records": {
+      "type": "integer",
+      "const": 23521
+    },
+    "annotations": {
+      "type": "array",
+      "minItems": 23521,
+      "maxItems": 23521,
+      "items": {
+        "$ref": "#/$defs/annotation_record"
+      }
+    }
+  },
+  "$defs": {
+    "annotation_record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "index",
+        "sha256",
+        "source_text",
+        "event_labels",
+        "eligibility",
+        "phase",
+        "directness",
+        "contains_non_streamer_named_entity",
+        "contains_pro_or_team_reference",
+        "confidence",
+        "review_status",
+        "reason"
+      ],
+      "properties": {
+        "index": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 23521,
+          "description": "1-based index pointing to original 6657_memes.json array"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$",
+          "description": "Verifiable SHA256 hex digest of verbatim source_text (UTF-8)"
+        },
+        "source_text": {
+          "type": "string",
+          "description": "Verbatim text copied from 6657_memes.json[index-1]"
+        },
+        "event_labels": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "opening_wait",
+              "kill_praise",
+              "death_flame",
+              "death_question",
+              "round_win",
+              "round_loss",
+              "ambient_only"
+            ]
+          }
+        },
+        "eligibility": {
+          "type": "string",
+          "enum": [
+            "eligible",
+            "ambient_only"
+          ],
+          "description": "Whether this item is eligible for game event impulse driving"
+        },
+        "phase": {
+          "type": "string",
+          "enum": [
+            "burst",
+            "aftermath",
+            "both",
+            "none"
+          ],
+          "description": "Suitable timing phase: burst (instant reaction), aftermath (review/freeze), both, or none"
+        },
+        "directness": {
+          "type": "string",
+          "enum": [
+            "direct",
+            "indirect",
+            "none"
+          ],
+          "description": "Directness level of the reaction expression"
+        },
+        "contains_non_streamer_named_entity": {
+          "type": "boolean",
+          "description": "True if text refers to non-streamer persons/characters"
+        },
+        "contains_pro_or_team_reference": {
+          "type": "boolean",
+          "description": "True if text references pro players, coaches, tournaments or esports teams"
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "description": "Classification confidence score"
+        },
+        "review_status": {
+          "type": "string",
+          "enum": [
+            "approved",
+            "verified",
+            "rejected",
+            "pending"
+          ],
+          "description": "Audit review status"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Concise Chinese justification for annotation and classification"
+        }
+      }
+    }
+  }
+}

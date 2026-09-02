@@ -1,220 +1,464 @@
 {
   "kill": {
     "core": [
-      { "index": 798 },
-      { "index": 6616 },
-      { "index": 16175 },
-      { "index": 19695 },
-      { "index": 23380 }
+      {
+        "index": 58
+      },
+      {
+        "index": 148
+      },
+      {
+        "index": 1425
+      },
+      {
+        "index": 3288
+      },
+      {
+        "index": 4001
+      }
     ],
     "water": [
-      { "index": 6871 },
-      { "index": 21566 },
-      { "index": 21703 }
+      {
+        "index": 4055
+      },
+      {
+        "index": 4082
+      },
+      {
+        "index": 4214
+      }
     ]
   },
   "first_kill": {
     "core": [
-      { "index": 947 },
-      { "index": 16560 },
-      { "index": 21474 },
-      { "index": 4899 },
-      { "index": 5203 }
+      {
+        "index": 946
+      },
+      {
+        "index": 1150
+      },
+      {
+        "index": 1257
+      },
+      {
+        "index": 1348
+      },
+      {
+        "index": 1349
+      }
     ],
     "water": [
-      { "index": 7424 },
-      { "index": 7484 }
+      {
+        "index": 1672
+      },
+      {
+        "index": 2749
+      }
     ]
   },
   "headshot": {
     "core": [
-      { "index": 1601 },
-      { "index": 3299 },
-      { "index": 3787 },
-      { "index": 7111 },
-      { "index": 21821 }
+      {
+        "index": 363
+      },
+      {
+        "index": 705
+      },
+      {
+        "index": 954
+      },
+      {
+        "index": 1416
+      },
+      {
+        "index": 1428
+      }
     ],
     "water": [
-      { "index": 7476 },
-      { "index": 20982 },
-      { "index": 21814 }
+      {
+        "index": 1506
+      },
+      {
+        "index": 1730
+      },
+      {
+        "index": 1810
+      }
     ]
   },
   "knife_kill": {
     "core": [
-      { "index": 5917 },
-      { "index": 20261 },
-      { "index": 242 },
-      { "index": 10333 },
-      { "index": 16277 }
+      {
+        "index": 2888
+      },
+      {
+        "index": 3472
+      },
+      {
+        "index": 3702
+      },
+      {
+        "index": 3758
+      },
+      {
+        "index": 3784
+      }
     ],
     "water": [
-      { "index": 11018 },
-      { "index": 11510 },
-      { "index": 4878 }
+      {
+        "index": 4096
+      },
+      {
+        "index": 4878
+      },
+      {
+        "index": 5681
+      }
     ]
   },
   "grenade_kill": {
     "core": [
-      { "index": 10372 },
-      { "index": 14405 },
-      { "index": 21956 },
-      { "index": 21708 },
-      { "index": 14812 }
+      {
+        "index": 1069
+      },
+      {
+        "index": 3227
+      },
+      {
+        "index": 4207
+      },
+      {
+        "index": 4227
+      },
+      {
+        "index": 4746
+      }
     ],
     "water": [
-      { "index": 14088 },
-      { "index": 17711 },
-      { "index": 21960 }
+      {
+        "index": 4784
+      },
+      {
+        "index": 4858
+      },
+      {
+        "index": 5571
+      }
     ]
   },
   "multi_kill": {
     "core": [
-      { "index": 4474 },
-      { "index": 5744 },
-      { "index": 9151 },
-      { "index": 15751 },
-      { "index": 21188 }
+      {
+        "index": 3093
+      },
+      {
+        "index": 3129
+      },
+      {
+        "index": 3306
+      },
+      {
+        "index": 3307
+      },
+      {
+        "index": 3321
+      }
     ],
     "water": [
-      { "index": 9992 },
-      { "index": 17207 },
-      { "index": 22056 }
+      {
+        "index": 3325
+      },
+      {
+        "index": 3357
+      },
+      {
+        "index": 3648
+      }
     ]
   },
   "epic_streak": {
     "core": [
-      { "index": 12555 },
-      { "index": 4472 },
-      { "index": 7886 },
-      { "index": 17464 },
-      { "index": 15113 }
+      {
+        "index": 1294
+      },
+      {
+        "index": 6591
+      },
+      {
+        "index": 6616
+      },
+      {
+        "index": 8801
+      },
+      {
+        "index": 9191
+      }
     ],
     "water": [
-      { "index": 3832 },
-      { "index": 8920 },
-      { "index": 22055 }
+      {
+        "index": 16290
+      },
+      {
+        "index": 16388
+      },
+      {
+        "index": 19761
+      }
     ]
   },
   "last_kill": {
     "core": [
-      { "index": 2756 },
-      { "index": 5793 },
-      { "index": 18475 },
-      { "index": 21988 },
-      { "index": 23071 }
+      {
+        "index": 1434
+      },
+      {
+        "index": 2133
+      },
+      {
+        "index": 2720
+      },
+      {
+        "index": 3049
+      },
+      {
+        "index": 3156
+      }
     ],
     "water": [
-      { "index": 3461 },
-      { "index": 22934 },
-      { "index": 17964 }
+      {
+        "index": 3793
+      },
+      {
+        "index": 5340
+      },
+      {
+        "index": 5655
+      }
     ]
   },
   "assist": {
     "core": [
-      { "index": 10483 },
-      { "index": 14848 },
-      { "index": 7178 },
-      { "index": 15834 },
-      { "index": 22459 }
+      {
+        "index": 2571
+      },
+      {
+        "index": 7178
+      },
+      {
+        "index": 8076
+      },
+      {
+        "index": 10517
+      },
+      {
+        "index": 13166
+      }
     ],
     "water": [
-      { "index": 7555 },
-      { "index": 21295 },
-      { "index": 21569 }
+      {
+        "index": 18475
+      },
+      {
+        "index": 21295
+      },
+      {
+        "index": 21569
+      }
     ]
   },
   "death": {
     "core": [
-      { "index": 166 },
-      { "index": 285 },
-      { "index": 493 },
-      { "index": 2481 },
-      { "index": 2873 }
+      {
+        "index": 19
+      },
+      {
+        "index": 22
+      },
+      {
+        "index": 75
+      },
+      {
+        "index": 102
+      },
+      {
+        "index": 166
+      }
     ],
     "water": [
-      { "index": 2934 },
-      { "index": 2972 },
-      { "index": 3082 }
+      {
+        "index": 203
+      },
+      {
+        "index": 263
+      },
+      {
+        "index": 436
+      }
     ]
   },
   "round_win": {
     "core": [
-      { "index": 1425 },
-      { "index": 3156 },
-      { "index": 10480 },
-      { "index": 17887 },
-      { "index": 18654 }
+      {
+        "index": 1007
+      },
+      {
+        "index": 1206
+      },
+      {
+        "index": 1244
+      },
+      {
+        "index": 1291
+      },
+      {
+        "index": 1412
+      }
     ],
     "water": [
-      { "index": 2988 },
-      { "index": 4308 },
-      { "index": 4853 }
+      {
+        "index": 1647
+      },
+      {
+        "index": 2453
+      },
+      {
+        "index": 2680
+      }
     ]
   },
   "round_loss": {
     "core": [
-      { "index": 1751 },
-      { "index": 8313 },
-      { "index": 9548 },
-      { "index": 10172 },
-      { "index": 21272 }
+      {
+        "index": 47
+      },
+      {
+        "index": 77
+      },
+      {
+        "index": 614
+      },
+      {
+        "index": 795
+      },
+      {
+        "index": 908
+      }
     ],
     "water": [
-      { "index": 21144 },
-      { "index": 15261 },
-      { "index": 16983 }
+      {
+        "index": 1186
+      },
+      {
+        "index": 1824
+      },
+      {
+        "index": 1845
+      }
     ]
   },
   "bomb_plant": {
     "core": [
-      { "index": 5418 },
-      { "index": 5650 },
-      { "index": 18287 },
-      { "index": 12349 },
-      { "index": 13317 }
+      {
+        "index": 898
+      },
+      {
+        "index": 3424
+      },
+      {
+        "index": 4614
+      },
+      {
+        "index": 5650
+      },
+      {
+        "index": 8983
+      }
     ],
     "water": [
-      { "index": 4614 },
-      { "index": 9688 },
-      { "index": 21604 }
+      {
+        "index": 9688
+      },
+      {
+        "index": 10212
+      },
+      {
+        "index": 13388
+      }
     ]
   },
   "bomb_defuse": {
     "core": [
-      { "index": 2840 },
-      { "index": 7344 },
-      { "index": 7386 },
-      { "index": 7461 },
-      { "index": 5298 }
+      {
+        "index": 766
+      },
+      {
+        "index": 905
+      },
+      {
+        "index": 1008
+      },
+      {
+        "index": 1184
+      },
+      {
+        "index": 1863
+      }
     ],
     "water": [
-      { "index": 4167 },
-      { "index": 9044 },
-      { "index": 13980 }
+      {
+        "index": 7361
+      },
+      {
+        "index": 7756
+      },
+      {
+        "index": 9116
+      }
     ]
   },
   "hostage_interact": {
     "core": [
-      { "index": 12455 },
-      { "index": 5568 },
-      { "index": 16333 }
+      {
+        "index": 4564
+      },
+      {
+        "index": 5568
+      },
+      {
+        "index": 8706
+      }
     ],
     "water": [
-      { "index": 9941 },
-      { "index": 6967 }
+      {
+        "index": 9941
+      },
+      {
+        "index": 10019
+      }
     ]
   },
   "hostage_rescue": {
     "core": [
-      { "index": 3524 },
-      { "index": 13968 },
-      { "index": 4564 },
-      { "index": 8706 }
+      {
+        "index": 7053
+      },
+      {
+        "index": 10174
+      },
+      {
+        "index": 11556
+      },
+      {
+        "index": 13314
+      }
     ],
     "water": [
-      { "index": 16544 },
-      { "index": 19410 }
+      {
+        "index": 14559
+      },
+      {
+        "index": 22374
+      }
     ]
   }
 }

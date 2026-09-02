@@ -28,11 +28,15 @@ namespace KillConfirmGameBar.Danmaku.Engine
 
     internal sealed class DanmakuLiveScheduler
     {
+        public const int DefaultOpeningDispatchesQuota = 4;
+
         private readonly DanmakuImpulseManager _impulseManager;
         private readonly DanmakuWeightEngine _weightEngine;
         private readonly DanmakuSelectionHistory _history;
         private readonly Random _random;
         private readonly Func<DateTimeOffset> _clock;
+        private int _openingDispatchesRemaining = DefaultOpeningDispatchesQuota;
+        private int _openingDispatchesQuota = DefaultOpeningDispatchesQuota;
 
         public DanmakuLiveScheduler(
             DanmakuImpulseManager impulseManager,
@@ -48,138 +52,174 @@ namespace KillConfirmGameBar.Danmaku.Engine
             _clock = clock ?? (() => DateTimeOffset.Now);
         }
 
+        public void ResetOpeningPhase(int quota = DefaultOpeningDispatchesQuota)
+        {
+            _openingDispatchesQuota = Math.Max(1, quota);
+            _openingDispatchesRemaining = _openingDispatchesQuota;
+        }
+
         public DanmakuScheduleStepResult Step()
         {
             DateTimeOffset now = _clock();
-            DanmakuImpulse impulse = _impulseManager.GetDominantImpulse(now);
-
-            DanmakuSelectionResult selection = null;
-            DanmakuMessageRole messageRole = DanmakuMessageRole.Atmosphere;
-            int eventPriority = 0;
-            string diagnosticSource = "Ambient";
-            double strengthRatio = 0.0;
-
-            if (impulse != null)
+            DanmakuImpulse impulse;
+            TimeSpan delayUntilEvent;
+            if (_impulseManager.TryGetDueImpulse(now, out impulse, out delayUntilEvent))
             {
-                eventPriority = DanmakuReactionPolicies.Resolve(impulse.Kind).Priority;
-                double curStrength = impulse.CalculateCurrentStrength(now);
-                strengthRatio = impulse.InitialStrength > 0.0001
-                    ? Math.Max(0.0, Math.Min(1.0, curStrength / impulse.InitialStrength))
-                    : 0.0;
-
-                SemanticMixRatio baseMix = impulse.Profile.MixRatio;
-                double coreWeight = baseMix.Core * strengthRatio;
-                double semanticWeight = baseMix.Semantic * strengthRatio;
-                double atmosphereWeight = baseMix.Atmosphere + (1.0 - strengthRatio) * baseMix.Core * 0.3;
-                double ambientWeight = baseMix.Ambient + (1.0 - strengthRatio) * (baseMix.Core * 0.7 + baseMix.Semantic);
-                double totalShare = coreWeight + semanticWeight + atmosphereWeight + ambientWeight;
-
-                double coreThreshold = totalShare > 0.0001 ? coreWeight / totalShare : 0.5;
-                double semanticThreshold = coreThreshold + (totalShare > 0.0001 ? semanticWeight / totalShare : 0.25);
-                double atmosphereThreshold = semanticThreshold + (totalShare > 0.0001 ? atmosphereWeight / totalShare : 0.15);
-
-                double roll = _random.NextDouble();
-
-                if (roll < coreThreshold)
-                {
-                    // Core curated reaction
-                    messageRole = DanmakuMessageRole.Core;
-                    diagnosticSource = "CuratedCore";
-                    selection = _weightEngine.SelectCuratedDanmaku(impulse.Kind, DanmakuMessageRole.Core, _history);
-                }
-                else if (roll < semanticThreshold)
-                {
-                    // Semantic weighted reaction with profile-defined allowed_contexts
-                    messageRole = DanmakuMessageRole.Core;
-                    diagnosticSource = "SemanticEvent";
-                    selection = _weightEngine.SelectSemanticDanmaku(
-                        impulse.Profile.PreferredTopics,
-                        impulse.Profile.PreferredStances,
-                        impulse.Profile.PreferredTargets,
-                        impulse.Profile.AllowedContexts,
-                        _history,
-                        DanmakuMessageRole.Core);
-
-                    // Fallback to core curated if semantic yields nothing
-                    if (selection == null || !selection.IsSuccess)
-                    {
-                        diagnosticSource = "CuratedCoreFallback";
-                        selection = _weightEngine.SelectCuratedDanmaku(impulse.Kind, DanmakuMessageRole.Core, _history);
-                    }
-                }
-                else if (roll < atmosphereThreshold)
-                {
-                    // Atmosphere curated reaction
-                    messageRole = DanmakuMessageRole.Atmosphere;
-                    diagnosticSource = "CuratedAtmosphere";
-                    selection = _weightEngine.SelectCuratedDanmaku(impulse.Kind, DanmakuMessageRole.Atmosphere, _history);
-                }
-                else
-                {
-                    // Ambient / off-topic during event
-                    messageRole = DanmakuMessageRole.Atmosphere;
-                    diagnosticSource = "SemanticAmbientDuringEvent";
-                    AmbientProfile ambient = SemanticProfileRepository.Ambient;
-                    selection = _weightEngine.SelectSemanticDanmaku(
-                        ambient.PreferredTopics,
-                        ambient.PreferredStances,
-                        ambient.PreferredTargets,
-                        ambient.AllowedContexts,
-                        _history,
-                        DanmakuMessageRole.Atmosphere);
-                }
-            }
-            else
-            {
-                // Calm ambient state
-                diagnosticSource = "AmbientCalm";
-                AmbientProfile ambient = SemanticProfileRepository.Ambient;
-                selection = _weightEngine.SelectSemanticDanmaku(
-                    ambient.PreferredTopics,
-                    ambient.PreferredStances,
-                    ambient.PreferredTargets,
-                    ambient.AllowedContexts,
-                    _history,
-                    DanmakuMessageRole.Atmosphere);
-
-                // Fallback to a gentle round/kill atmosphere if semantic unavailable
-                if (selection == null || !selection.IsSuccess)
-                {
-                    diagnosticSource = "CuratedAtmosphereFallback";
-                    selection = _weightEngine.SelectCuratedDanmaku(
-                        DanmakuEventKind.Kill,
-                        DanmakuMessageRole.Atmosphere,
-                        _history);
-                }
+                return DispatchEventImpulse(now, impulse);
             }
 
-            // Dynamically interpolate next tick interval based on remaining strength
-            double baseInterval;
-            double jitterRatio;
-
-            if (impulse != null)
+            if (_impulseManager.HasActiveImpulse(now))
             {
-                double burstInterval = impulse.Profile.ImpulseBurstIntervalSeconds;
-                double ambientInterval = SemanticProfileRepository.Ambient.BaseIntervalSeconds;
-                baseInterval = burstInterval * strengthRatio + ambientInterval * (1.0 - strengthRatio);
-                jitterRatio = 0.25 * strengthRatio + SemanticProfileRepository.Ambient.IntervalJitter * (1.0 - strengthRatio);
+                TimeSpan wait = ClampDelay(delayUntilEvent, 0.05, 2.0);
+                return new DanmakuScheduleStepResult(null, wait, 0, "EventAftermathWait");
             }
-            else
+
+            if (_openingDispatchesRemaining > 0)
             {
-                baseInterval = SemanticProfileRepository.Ambient.BaseIntervalSeconds;
-                jitterRatio = SemanticProfileRepository.Ambient.IntervalJitter;
+                return DispatchOpening();
+            }
+
+            return DispatchAmbient();
+        }
+
+        private DanmakuScheduleStepResult DispatchOpening()
+        {
+            bool preferDirectCall = _openingDispatchesRemaining > (_openingDispatchesQuota / 2);
+            DanmakuSelectionResult selection = _weightEngine.SelectOpeningDanmaku(
+                _history,
+                DanmakuMessageRole.Atmosphere,
+                preferDirectCall);
+
+            if (selection == null || !selection.IsSuccess)
+            {
+                if (selection != null
+                    && string.Equals(selection.RejectionReason, "SupplementalPoolsLoading", StringComparison.Ordinal))
+                {
+                    return new DanmakuScheduleStepResult(
+                        null,
+                        TimeSpan.FromMilliseconds(250),
+                        0,
+                        "SessionOpeningPoolsLoading");
+                }
+                _openingDispatchesRemaining = 0;
+                return DispatchAmbient();
+            }
+
+            _openingDispatchesRemaining--;
+
+            double paceMultiplier = DanmakuSettingsStore.ResolveDispatchIntervalMultiplier(
+                DanmakuSettingsStore.DispatchPace);
+            double jitter = 1.0 + ((_random.NextDouble() * 2.0 - 1.0) * 0.25);
+            double nextSeconds = Math.Max(0.6, Math.Min(10.0, 1.8 * paceMultiplier * jitter));
+
+            var message = new DanmakuMessage
+            {
+                Text = selection.Text,
+                Role = DanmakuMessageRole.Atmosphere,
+                EventPriority = 0,
+                IsEventReaction = false
+            };
+
+            return new DanmakuScheduleStepResult(
+                message,
+                TimeSpan.FromSeconds(nextSeconds),
+                selection.SourceIndex,
+                "SessionOpening");
+        }
+
+        private DanmakuScheduleStepResult DispatchEventImpulse(DateTimeOffset now, DanmakuImpulse impulse)
+        {
+            DanmakuEventDynamics dynamics = DanmakuEventSemantics.ResolveDynamics(impulse.Kind);
+            bool isInitialBurst = impulse.IsInInitialBurst(dynamics);
+            double curStrength = impulse.CalculateCurrentStrength(now);
+            double strengthRatio = impulse.InitialStrength > 0.0001
+                ? Math.Max(0.0, Math.Min(1.0, curStrength / impulse.InitialStrength))
+                : 0.0;
+
+            DanmakuSelectionResult selection = _weightEngine.SelectEventDanmaku(
+                impulse.Kind,
+                impulse.Profile,
+                impulse.ReactionHistory,
+                DanmakuMessageRole.Core,
+                impulse.Kind == DanmakuEventKind.Death && (impulse.DispatchCount % 2) == 1,
+                preferBurstPhase: isInitialBurst,
+                sessionHistory: _history);
+
+            if (selection == null || !selection.IsSuccess)
+            {
+                // Annotation data loads asynchronously at session start. Preserve the
+                // impulse and retry instead of consuming its burst with unrelated text.
+                TimeSpan retry = TimeSpan.FromMilliseconds(250);
+                _impulseManager.Defer(impulse, now, retry);
+                return new DanmakuScheduleStepResult(
+                    null,
+                    retry,
+                    0,
+                    "EventSemanticRetry",
+                    strengthRatio);
+            }
+
+            double baseSeconds = isInitialBurst
+                ? dynamics.BurstIntervalSeconds
+                : dynamics.AftermathIntervalSeconds;
+            double eventMultiplier = DanmakuSettingsStore.ResolveEventIntervalMultiplier(
+                DanmakuSettingsStore.EventIntensity);
+            double jitterRatio = isInitialBurst ? 0.10 : 0.22;
+            double jitter = 1.0 + ((_random.NextDouble() * 2.0 - 1.0) * jitterRatio);
+            double nextSeconds = baseSeconds * eventMultiplier * jitter;
+            nextSeconds = isInitialBurst
+                ? Math.Max(0.15, Math.Min(0.65, nextSeconds))
+                : Math.Max(0.55, Math.Min(2.50, nextSeconds));
+
+            TimeSpan impulseInterval = TimeSpan.FromSeconds(nextSeconds);
+            _impulseManager.RecordDispatch(impulse, now, impulseInterval);
+            TimeSpan schedulerDelay = _impulseManager.GetDelayUntilNext(now, impulseInterval);
+            schedulerDelay = ClampDelay(schedulerDelay, 0.05, 2.50);
+
+            var message = new DanmakuMessage
+            {
+                Text = selection.Text,
+                Role = DanmakuMessageRole.Core,
+                EventPriority = DanmakuReactionPolicies.Resolve(impulse.Kind).Priority,
+                IsEventReaction = true
+            };
+
+            string diagnostic = isInitialBurst
+                ? "EventBurst:" + impulse.Kind
+                : "EventAftermath:" + impulse.Kind;
+            return new DanmakuScheduleStepResult(
+                message,
+                schedulerDelay,
+                selection.SourceIndex,
+                diagnostic,
+                strengthRatio);
+        }
+
+        private DanmakuScheduleStepResult DispatchAmbient()
+        {
+            AmbientProfile ambient = SemanticProfileRepository.Ambient;
+            DanmakuSelectionResult selection = _weightEngine.SelectSemanticDanmaku(
+                ambient.PreferredTopics,
+                ambient.PreferredStances,
+                ambient.PreferredTargets,
+                ambient.AllowedContexts,
+                _history,
+                DanmakuMessageRole.Atmosphere);
+
+            if (selection == null || !selection.IsSuccess)
+            {
+                selection = _weightEngine.SelectCuratedDanmaku(
+                    DanmakuEventKind.Kill,
+                    DanmakuMessageRole.Atmosphere,
+                    _history);
             }
 
             double paceMultiplier = DanmakuSettingsStore.ResolveDispatchIntervalMultiplier(
                 DanmakuSettingsStore.DispatchPace);
-            double eventMultiplier = impulse == null
-                ? 1.0
-                : DanmakuSettingsStore.ResolveEventIntervalMultiplier(DanmakuSettingsStore.EventIntensity);
-            double jitter = (_random.NextDouble() * 2.0 - 1.0) * jitterRatio;
+            double jitter = 1.0 + ((_random.NextDouble() * 2.0 - 1.0) * ambient.IntervalJitter);
             double nextSeconds = Math.Max(
                 0.6,
-                Math.Min(30.0, baseInterval * (1.0 + jitter) * paceMultiplier * eventMultiplier));
-            TimeSpan nextInterval = TimeSpan.FromSeconds(nextSeconds);
+                Math.Min(30.0, ambient.BaseIntervalSeconds * paceMultiplier * jitter));
 
             DanmakuMessage message = null;
             if (selection != null && selection.IsSuccess)
@@ -187,17 +227,23 @@ namespace KillConfirmGameBar.Danmaku.Engine
                 message = new DanmakuMessage
                 {
                     Text = selection.Text,
-                    Role = messageRole,
-                    EventPriority = eventPriority
+                    Role = DanmakuMessageRole.Atmosphere,
+                    EventPriority = 0,
+                    IsEventReaction = false
                 };
             }
 
             return new DanmakuScheduleStepResult(
                 message,
-                nextInterval,
+                TimeSpan.FromSeconds(nextSeconds),
                 selection?.SourceIndex ?? 0,
-                diagnosticSource,
-                strengthRatio);
+                "AmbientCalm");
+        }
+
+        private static TimeSpan ClampDelay(TimeSpan value, double minimumSeconds, double maximumSeconds)
+        {
+            double seconds = Math.Max(minimumSeconds, Math.Min(maximumSeconds, value.TotalSeconds));
+            return TimeSpan.FromSeconds(seconds);
         }
     }
 }

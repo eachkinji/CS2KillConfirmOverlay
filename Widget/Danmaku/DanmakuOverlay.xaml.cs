@@ -56,6 +56,7 @@ namespace KillConfirmGameBar.Danmaku
         private FontWeight _cachedFontWeight = FontWeights.SemiBold;
         private bool _cachedShowBackground;
         private bool _cachedShowOutline = true;
+        private DateTimeOffset _eventDensityUntil = DateTimeOffset.MinValue;
 
         public DanmakuOverlay()
         {
@@ -71,6 +72,8 @@ namespace KillConfirmGameBar.Danmaku
 
             DanmakuSessionController.Instance.MessageDispatched -= OnSessionMessageDispatched;
             DanmakuSessionController.Instance.MessageDispatched += OnSessionMessageDispatched;
+            DanmakuSessionController.Instance.SessionEnding -= OnSessionEnding;
+            DanmakuSessionController.Instance.SessionEnding += OnSessionEnding;
             DanmakuSessionController.Instance.SessionEnded -= OnSessionEnded;
             DanmakuSessionController.Instance.SessionEnded += OnSessionEnded;
             DanmakuSessionController.Instance.AttachConsumer();
@@ -89,6 +92,7 @@ namespace KillConfirmGameBar.Danmaku
         {
             _isLoaded = false;
             DanmakuSessionController.Instance.MessageDispatched -= OnSessionMessageDispatched;
+            DanmakuSessionController.Instance.SessionEnding -= OnSessionEnding;
             DanmakuSessionController.Instance.SessionEnded -= OnSessionEnded;
             DanmakuSessionController.Instance.DetachConsumer();
 
@@ -128,6 +132,10 @@ namespace KillConfirmGameBar.Danmaku
                     Random);
 
                 _pendingQueue.Enqueue(new[] { payload.Message }, flightDuration);
+                if (payload.Message.IsEventReaction)
+                {
+                    _eventDensityUntil = DateTimeOffset.UtcNow.AddSeconds(3.0);
+                }
                 StartRendering();
             });
         }
@@ -137,24 +145,55 @@ namespace KillConfirmGameBar.Danmaku
             RunOnOverlayThread(() =>
             {
                 _eventsAwaitingPools.Clear();
+                // Session-ending messages and active messages continue flying until
+                // natural exit. Stale pending live messages were removed in OnSessionEnding.
+            });
+        }
+
+        private void OnSessionEnding(DanmakuSessionEndingPayload payload)
+        {
+            RunOnOverlayThread(() =>
+            {
+                if (!_isLoaded
+                    || !DanmakuSettingsStore.IsEnabled
+                    || payload == null
+                    || payload.Messages == null
+                    || payload.Messages.Count == 0
+                    || DanmakuSessionController.Instance.SessionId != payload.SessionId)
+                {
+                    return;
+                }
+
+                _eventsAwaitingPools.Clear();
                 _pendingQueue.Clear();
-                // Active messages in _activeList continue flying until natural exit
+                RefreshDrawingSettings();
+
+                double flightDuration = DanmakuMotion.ResolveFlightDuration(
+                    DanmakuSettingsStore.Speed,
+                    DanmakuSettingsStore.DurationSeconds,
+                    Random);
+                _pendingQueue.Enqueue(payload.Messages, flightDuration);
+                _eventDensityUntil = DateTimeOffset.UtcNow.AddSeconds(4.0);
+                StartRendering();
             });
         }
 
         private void OnTestRequested()
         {
-            RunOnOverlayThread(() => TriggerKillBarrage());
+            RunOnOverlayThread(() => QueueReactionWhenPoolsReady(
+                DanmakuEventClassifier.CreateTest(DanmakuEventKind.Kill)));
         }
 
         private void OnKillTestRequested()
         {
-            RunOnOverlayThread(() => TriggerKillBarrage());
+            RunOnOverlayThread(() => QueueReactionWhenPoolsReady(
+                DanmakuEventClassifier.CreateTest(DanmakuEventKind.Kill)));
         }
 
         private void OnDeathTestRequested()
         {
-            RunOnOverlayThread(() => TriggerDeathBarrage());
+            RunOnOverlayThread(() => QueueReactionWhenPoolsReady(
+                DanmakuEventClassifier.CreateTest(DanmakuEventKind.Death)));
         }
 
         private void OnEventTestRequested(string eventKey)
@@ -198,7 +237,12 @@ namespace KillConfirmGameBar.Danmaku
         private async Task DrainEventsWhenPoolsReadyAsync()
         {
             _isPoolDrainRunning = true;
-            await DanmakuEventPoolRepository.EnsureLoadedAsync();
+            await Task.WhenAll(
+                DanmakuRepository.EnsureLoadedAsync(),
+                DanmakuEventPoolRepository.EnsureLoadedAsync(),
+                SupplementalDanmakuPoolRepository.EnsureLoadedAsync(),
+                SemanticAnnotationRepository.EnsureLoadedAsync(),
+                SemanticProfileRepository.EnsureLoadedAsync());
             if (!_isLoaded)
             {
                 _eventsAwaitingPools.Clear();
@@ -260,6 +304,7 @@ namespace KillConfirmGameBar.Danmaku
                 maximumFlightSeconds,
                 Random);
             _pendingQueue.Enqueue(messages, flightDuration);
+            _eventDensityUntil = DateTimeOffset.UtcNow.AddSeconds(3.0);
             StartRendering();
         }
 
@@ -397,7 +442,10 @@ namespace KillConfirmGameBar.Danmaku
 
         private void SpawnPendingDanmaku()
         {
-            int visibleLimit = DanmakuReactionPolicies.ClampVisibleCount(DanmakuSettingsStore.Count);
+            bool eventDensityActive = DateTimeOffset.UtcNow < _eventDensityUntil;
+            int visibleLimit = eventDensityActive
+                ? DanmakuReactionPolicies.EventMaximumVisibleCount
+                : DanmakuReactionPolicies.ClampVisibleCount(DanmakuSettingsStore.Count);
             if (_activeList.Count >= visibleLimit)
             {
                 return;
@@ -420,12 +468,13 @@ namespace KillConfirmGameBar.Danmaku
                     return;
                 }
 
-                float measuredWidth = MeasureTextWidth(pending.Message.Text);
+                string displayText = NormalizeForSingleLine(pending.Message.Text);
+                float measuredWidth = MeasureTextWidth(displayText);
                 float startX = (float)canvasWidth + 12f;
                 float endX = -measuredWidth - 12f;
                 _activeList.Add(new ActiveDanmaku
                 {
-                    Text = pending.Message.Text,
+                    Text = displayText,
                     X = startX,
                     Y = lanes[laneIndex],
                     StartX = startX,
@@ -438,6 +487,14 @@ namespace KillConfirmGameBar.Danmaku
                 });
                 _nextLaneIndex = (laneIndex + 1) % visibleLimit;
             }
+        }
+
+        private static string NormalizeForSingleLine(string text)
+        {
+            return (text ?? string.Empty)
+                .Replace("\r\n", " ")
+                .Replace('\r', ' ')
+                .Replace('\n', ' ');
         }
 
         private float MeasureTextWidth(string text)

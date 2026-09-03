@@ -90,12 +90,13 @@ namespace KillConfirmGameBar.Danmaku
             int total = Math.Min(DanmakuSettingsStore.Count, policy.TotalCount);
             int core = Math.Min(policy.CoreCount, total);
             int water = total - core;
+            int poolCount = DanmakuEventPoolRepository.GetEventEntries(context.Kind).Count;
 
-            EventQuotaText.Text = $"本次反应：核心 {core} 条 · 划水 {water} 条 · 共 {total} 条";
-            CoreExampleText.Text = "核心示例：" + FormatExamples(
-                DanmakuEventPoolRepository.GetMessages(context.Kind, DanmakuMessageRole.Core));
-            WaterExampleText.Text = "划水示例：" + FormatExamples(
-                DanmakuEventPoolRepository.GetMessages(context.Kind, DanmakuMessageRole.Atmosphere));
+            EventQuotaText.Text = $"事件池 {poolCount} 条 · 本次反应 {total} 条（核心轨道 {core} · 氛围轨道 {water}）";
+            CoreExampleText.Text = "事件池示例：" + FormatExamples(
+                DanmakuEventPoolRepository.GetEventTexts(context.Kind, 0, 3));
+            WaterExampleText.Text = "更多示例：" + FormatExamples(
+                DanmakuEventPoolRepository.GetEventTexts(context.Kind, 3, 3));
         }
 
         private static string FormatExamples(IReadOnlyList<string> messages)

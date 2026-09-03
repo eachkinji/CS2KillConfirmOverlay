@@ -37,6 +37,8 @@ namespace KillConfirmGameBar.Danmaku.Engine
         private readonly Func<DateTimeOffset> _clock;
         private int _openingDispatchesRemaining = DefaultOpeningDispatchesQuota;
         private int _openingDispatchesQuota = DefaultOpeningDispatchesQuota;
+        private DateTimeOffset _nextOpeningDispatchTime = DateTimeOffset.MinValue;
+        private DateTimeOffset _nextAmbientDispatchTime = DateTimeOffset.MinValue;
 
         public DanmakuLiveScheduler(
             DanmakuImpulseManager impulseManager,
@@ -56,6 +58,9 @@ namespace KillConfirmGameBar.Danmaku.Engine
         {
             _openingDispatchesQuota = Math.Max(1, quota);
             _openingDispatchesRemaining = _openingDispatchesQuota;
+            DateTimeOffset now = _clock();
+            _nextOpeningDispatchTime = now;
+            _nextAmbientDispatchTime = now;
         }
 
         public DanmakuScheduleStepResult Step()
@@ -68,21 +73,24 @@ namespace KillConfirmGameBar.Danmaku.Engine
                 return DispatchEventImpulse(now, impulse);
             }
 
-            if (_impulseManager.HasActiveImpulse(now))
+            if (_openingDispatchesRemaining > 0 && now >= _nextOpeningDispatchTime)
             {
-                TimeSpan wait = ClampDelay(delayUntilEvent, 0.05, 2.0);
-                return new DanmakuScheduleStepResult(null, wait, 0, "EventAftermathWait");
+                return DispatchOpening(now);
             }
 
-            if (_openingDispatchesRemaining > 0)
+            if (now >= _nextAmbientDispatchTime)
             {
-                return DispatchOpening();
+                return DispatchAmbient(now);
             }
 
-            return DispatchAmbient();
+            return new DanmakuScheduleStepResult(
+                null,
+                ResolveDelayUntilNextWork(now, delayUntilEvent),
+                0,
+                _impulseManager.HasActiveImpulse(now) ? "EventAndAmbientWait" : "AmbientWait");
         }
 
-        private DanmakuScheduleStepResult DispatchOpening()
+        private DanmakuScheduleStepResult DispatchOpening(DateTimeOffset now)
         {
             bool preferDirectCall = _openingDispatchesRemaining > (_openingDispatchesQuota / 2);
             DanmakuSelectionResult selection = _weightEngine.SelectOpeningDanmaku(
@@ -95,14 +103,19 @@ namespace KillConfirmGameBar.Danmaku.Engine
                 if (selection != null
                     && string.Equals(selection.RejectionReason, "SupplementalPoolsLoading", StringComparison.Ordinal))
                 {
+                    TimeSpan retry = TimeSpan.FromMilliseconds(250);
+                    _nextOpeningDispatchTime = now + retry;
                     return new DanmakuScheduleStepResult(
                         null,
-                        TimeSpan.FromMilliseconds(250),
+                        ResolveDelayUntilNextWork(
+                            now,
+                            _impulseManager.GetDelayUntilNext(now, retry)),
                         0,
                         "SessionOpeningPoolsLoading");
                 }
                 _openingDispatchesRemaining = 0;
-                return DispatchAmbient();
+                _nextOpeningDispatchTime = DateTimeOffset.MaxValue;
+                return DispatchAmbient(now);
             }
 
             _openingDispatchesRemaining--;
@@ -111,6 +124,9 @@ namespace KillConfirmGameBar.Danmaku.Engine
                 DanmakuSettingsStore.DispatchPace);
             double jitter = 1.0 + ((_random.NextDouble() * 2.0 - 1.0) * 0.25);
             double nextSeconds = Math.Max(0.6, Math.Min(10.0, 1.8 * paceMultiplier * jitter));
+            _nextOpeningDispatchTime = _openingDispatchesRemaining > 0
+                ? now.AddSeconds(nextSeconds)
+                : DateTimeOffset.MaxValue;
 
             var message = new DanmakuMessage
             {
@@ -122,7 +138,9 @@ namespace KillConfirmGameBar.Danmaku.Engine
 
             return new DanmakuScheduleStepResult(
                 message,
-                TimeSpan.FromSeconds(nextSeconds),
+                ResolveDelayUntilNextWork(
+                    now,
+                    _impulseManager.GetDelayUntilNext(now, TimeSpan.FromSeconds(nextSeconds))),
                 selection.SourceIndex,
                 "SessionOpening");
         }
@@ -138,11 +156,8 @@ namespace KillConfirmGameBar.Danmaku.Engine
 
             DanmakuSelectionResult selection = _weightEngine.SelectEventDanmaku(
                 impulse.Kind,
-                impulse.Profile,
                 impulse.ReactionHistory,
                 DanmakuMessageRole.Core,
-                impulse.Kind == DanmakuEventKind.Death && (impulse.DispatchCount % 2) == 1,
-                preferBurstPhase: isInitialBurst,
                 sessionHistory: _history);
 
             if (selection == null || !selection.IsSuccess)
@@ -153,7 +168,7 @@ namespace KillConfirmGameBar.Danmaku.Engine
                 _impulseManager.Defer(impulse, now, retry);
                 return new DanmakuScheduleStepResult(
                     null,
-                    retry,
+                    ResolveDelayUntilNextWork(now, retry),
                     0,
                     "EventSemanticRetry",
                     strengthRatio);
@@ -168,13 +183,13 @@ namespace KillConfirmGameBar.Danmaku.Engine
             double jitter = 1.0 + ((_random.NextDouble() * 2.0 - 1.0) * jitterRatio);
             double nextSeconds = baseSeconds * eventMultiplier * jitter;
             nextSeconds = isInitialBurst
-                ? Math.Max(0.15, Math.Min(0.65, nextSeconds))
-                : Math.Max(0.55, Math.Min(2.50, nextSeconds));
+                ? Math.Max(0.15, Math.Min(0.25, nextSeconds))
+                : Math.Max(0.20, Math.Min(0.38, nextSeconds));
 
             TimeSpan impulseInterval = TimeSpan.FromSeconds(nextSeconds);
             _impulseManager.RecordDispatch(impulse, now, impulseInterval);
             TimeSpan schedulerDelay = _impulseManager.GetDelayUntilNext(now, impulseInterval);
-            schedulerDelay = ClampDelay(schedulerDelay, 0.05, 2.50);
+            schedulerDelay = ResolveDelayUntilNextWork(now, schedulerDelay);
 
             var message = new DanmakuMessage
             {
@@ -195,7 +210,7 @@ namespace KillConfirmGameBar.Danmaku.Engine
                 strengthRatio);
         }
 
-        private DanmakuScheduleStepResult DispatchAmbient()
+        private DanmakuScheduleStepResult DispatchAmbient(DateTimeOffset now)
         {
             AmbientProfile ambient = SemanticProfileRepository.Ambient;
             DanmakuSelectionResult selection = _weightEngine.SelectSemanticDanmaku(
@@ -206,20 +221,13 @@ namespace KillConfirmGameBar.Danmaku.Engine
                 _history,
                 DanmakuMessageRole.Atmosphere);
 
-            if (selection == null || !selection.IsSuccess)
-            {
-                selection = _weightEngine.SelectCuratedDanmaku(
-                    DanmakuEventKind.Kill,
-                    DanmakuMessageRole.Atmosphere,
-                    _history);
-            }
-
             double paceMultiplier = DanmakuSettingsStore.ResolveDispatchIntervalMultiplier(
                 DanmakuSettingsStore.DispatchPace);
             double jitter = 1.0 + ((_random.NextDouble() * 2.0 - 1.0) * ambient.IntervalJitter);
             double nextSeconds = Math.Max(
                 0.6,
                 Math.Min(30.0, ambient.BaseIntervalSeconds * paceMultiplier * jitter));
+            _nextAmbientDispatchTime = now.AddSeconds(nextSeconds);
 
             DanmakuMessage message = null;
             if (selection != null && selection.IsSuccess)
@@ -235,7 +243,9 @@ namespace KillConfirmGameBar.Danmaku.Engine
 
             return new DanmakuScheduleStepResult(
                 message,
-                TimeSpan.FromSeconds(nextSeconds),
+                ResolveDelayUntilNextWork(
+                    now,
+                    _impulseManager.GetDelayUntilNext(now, TimeSpan.FromSeconds(nextSeconds))),
                 selection?.SourceIndex ?? 0,
                 "AmbientCalm");
         }
@@ -244,6 +254,27 @@ namespace KillConfirmGameBar.Danmaku.Engine
         {
             double seconds = Math.Max(minimumSeconds, Math.Min(maximumSeconds, value.TotalSeconds));
             return TimeSpan.FromSeconds(seconds);
+        }
+
+        private TimeSpan ResolveDelayUntilNextWork(DateTimeOffset now, TimeSpan eventDelay)
+        {
+            TimeSpan earliest = eventDelay > TimeSpan.Zero
+                ? eventDelay
+                : TimeSpan.FromSeconds(30.0);
+            if (_openingDispatchesRemaining > 0 && _nextOpeningDispatchTime != DateTimeOffset.MaxValue)
+            {
+                TimeSpan openingDelay = _nextOpeningDispatchTime - now;
+                if (openingDelay < earliest)
+                {
+                    earliest = openingDelay;
+                }
+            }
+            TimeSpan ambientDelay = _nextAmbientDispatchTime - now;
+            if (ambientDelay < earliest)
+            {
+                earliest = ambientDelay;
+            }
+            return ClampDelay(earliest, 0.15, 2.50);
         }
     }
 }

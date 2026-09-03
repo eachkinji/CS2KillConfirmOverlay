@@ -43,6 +43,7 @@ Widget/Danmaku/EventFitAnnotationV2/
 ├── supplemental_kill_praise_v2.json    # 独立新增的 140 条短促击杀夸奖弹幕
 ├── supplemental_death_question_v2.json # 独立新增且明确标注来源的 40 条死亡问号反应
 ├── supplemental_death_flame_source_v2.json # 原库引用的 15 条骂菜/空枪/白给弹幕
+├── scripts/generate_event_pools_v4.py   # 从6657原库及语义标注生成16个千条事件池
 ├── validate_event_fit_v2.py            # 严格自动化自检与防回归验证工具
 ├── validate_supplemental_opening_wait_v2.py # 开场补充池单行、去重、意图与实体校验
 ├── validate_supplemental_session_end_v2.py # 结束池源索引、哈希、语义家族与去重校验
@@ -83,4 +84,12 @@ python Widget/Danmaku/EventFitAnnotationV2/validate_supplemental_death_flame_sou
 
 `supplemental_death_flame_source_v2.json` 只引用原始弹幕库，提供 15 条直接骂主播菜、空枪、白给或劝别玩的弹幕；每条均保留 1-based 原始索引、完整原文与 SHA-256，运行时仅把原文中的换行渲染为空格。
 
-以上五个补充池由 `SupplementalDanmakuPoolRepository` 从应用包加载：击杀事件优先使用 `kill_praise`，死亡事件在 `death_flame` 与 `death_question` 之间交替，GSI 结束时从四个不同语义家族各取一条。每个游戏事件仍拥有独立冲激与余波，多个同时发生的事件不会互相覆盖。
+以上五个 V2 补充池保留作历史标注与对照数据，当前不再打入应用包。
+
+## 当前运行时：千条事件池 V4
+
+当前事件池位于 `../EventPools/`：16类事件各自一个独立 JSON，每个文件至少1000条。所有条目均为 `context_rewrite`，并保留 `source_index`、可在对应原文中逐字找到的 `source_excerpt`、单行 `text` 和 `template_id`。运行时会回查 `6657_memes.json` 并强制检查每池最低数量、文本唯一性及来源一致性。
+
+事件派发只读取这16个事件池，不再读取原生小池，也不再使用全量语义库作为事件兜底。全量语义标注仍用于日常氛围选择以及事件池生成时的素材过滤。开场与结束数据独立位于 `../LifecyclePools/`。
+
+日常氛围弹幕拥有独立时间轴，从 GSI 会话开始持续到结束；事件冲激只叠加事件弹幕，不再暂停日常流。每个游戏事件仍拥有独立冲激与余波，多个同时发生的事件不会互相覆盖。

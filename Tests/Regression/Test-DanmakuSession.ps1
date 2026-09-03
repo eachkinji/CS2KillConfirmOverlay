@@ -15,7 +15,6 @@ $expectedModules = @(
     'DanmakuImpulseManager.cs',
     'DanmakuWeightEngine.cs',
     'DanmakuSelectionHistory.cs',
-    'SupplementalDanmakuPoolRepository.cs',
     'SemanticAnnotationRepository.cs',
     'SemanticProfileRepository.cs'
 )
@@ -48,12 +47,8 @@ $expectedContentItems = @(
     'Danmaku\Pools\semantic_event_profiles.json',
     'Danmaku\Annotation\6657_annotations_v1.json',
     'Danmaku\6657_memes.json',
-    'Danmaku\Pools\event_reactions.json',
-    'Danmaku\EventFitAnnotationV2\supplemental_opening_wait_v2.json',
-    'Danmaku\EventFitAnnotationV2\supplemental_session_end_v2.json',
-    'Danmaku\EventFitAnnotationV2\supplemental_kill_praise_v2.json',
-    'Danmaku\EventFitAnnotationV2\supplemental_death_question_v2.json',
-    'Danmaku\EventFitAnnotationV2\supplemental_death_flame_source_v2.json'
+    'Danmaku\EventPools\*.json',
+    'Danmaku\LifecyclePools\*.json'
 )
 foreach ($content in $expectedContentItems) {
     $pattern = '(?s)<Content\s+Include="' + [regex]::Escape($content) + '".*?<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>'
@@ -667,7 +662,7 @@ if ($distinctOpeningCount -ne 12) {
 }
 Write-Host "  -> Session opening real-text evaluation passed: 12 distinct, 100% opening intent, zero pro entities."
 
-Write-Host "`n[Behavior 2.10] Testing Consecutive 10 Kill Events (50 Real Messages, Production Weighted Selection)..."
+Write-Host "`n[Behavior 2.10] Testing Semantic Kill Candidate Utility (not used by event runtime)..."
 $killIntentPat = "nb|NB|Nb|牛逼|好枪|真准|准啊|帅啊|太帅|帅！|帅气|杀疯|乱杀|控枪|单杀|神！|太准|好杀|硬！|秀啊|秀！|秒了|起飞|爆头|一枪头|定位|枪法|这枪|神仙|夸张|拉满|好拉|好架|锁头|锁死了|瞬秒|顶级|赏心悦目|艺术|准！|牛批|好颗|颗秒|玩神一直赢|Crazy Shot|这就是6657|拿下|帅|扫射转移|提前枪"
 $killExcludePat = "反杀|被反杀|快跑|被杀|白给|送|空枪|菜|描边|马|退役|下播|停播|结婚|生病|买房|被抓|判刑|人设|当年|回忆|历史|以前|过去|前妻|离婚|相亲|借钱|和解|封禁|拉黑|解约|等级|等级墙|外卖|合影|长隆|科隆|吃瓜|西瓜|生鲜|展会|切片|定位不行|点不到弹幕|假打|广告|练习定位"
 
@@ -739,9 +734,9 @@ $distinctKillCount = @($allDispatchedKillTexts | Select-Object -Unique).Count
 if ($distinctKillCount -lt 40) {
     throw "Expected at least 40 distinct kill texts across 10 events, found $distinctKillCount"
 }
-Write-Host "  -> Consecutive 10 Kill events passed: 50 messages dispatched ($distinctKillCount distinct), 100% positive kill praise, zero pro entities."
+Write-Host "  -> Semantic kill utility passed: 50 messages dispatched ($distinctKillCount distinct), positive polarity and zero pro entities."
 
-Write-Host "`n[Behavior 2.11] Testing Consecutive 10 Death Events (50 Real Messages, 3 Flame + 2 Question per Burst)..."
+Write-Host "`n[Behavior 2.11] Testing Semantic Death Candidate Utility (not used by event runtime)..."
 $deathFlamePat = "太菜|菜逼|真菜|菜狗|好菜|菜啊|菜死|白给|空枪|送了|这也能死|暴毙|送人头|下饭|饱了|吐了|退役|别玩了|下播吧|会不会玩|什么枪法|人体描边|描边大师|脑溢血|犯病|冥场面|玩不明白|马成这样|马枪|马死了|小丑|神人|下课|脸都不要了|这都能空|唐人|纯唐|神操作|可是玩宝宝也|玩神真tm菜"
 $deathQuestionPat = "^\s*[？\?]{1,10}\s*$|[？\?]{3,}|这也能死|你在干嘛|你在打什么|在干嘛|干什么|干嘛呢|什么鬼|这都没死|这都不死|会不会玩|谁教你|怎么敢的|怎么死了|死因|打的什么|这什么枪法|这什么操作|这能空|这都能空|到底在干嘛|良心呢"
 $deathExcludePat = "送外卖|送礼|送钱|送鱼翅|送点吧|房管|屏蔽词|禁言|办卡|粉丝牌|抽奖|二次元|百合|游戏推荐|改名|解说|排队|挂机|请假|作息|硬件|网线|电脑|停播|复播|转会|买房|买车|生病|结婚|生娃|前妻|考编|公务员|大学|教授|肄业|台风|外卖|合影|长隆|科隆|人寿|贵族|宫廷|加一|＋1|点数|JRPG|诊所|岐路司|鱼翅|魔棒|买点|赞助|抽奖|斗地主|麻辣烫|骑手|差评|身份证|大姐姐|录像|魔女|银行|火猫|钻粉|黄毛|面具|红姐|下锅|红烧|猪瘟|obs|伴侣|尾椎|骗钱|伤害粉丝"
@@ -836,9 +831,9 @@ $distinctDeathCount = @($allDispatchedDeathTexts | Select-Object -Unique).Count
 if ($distinctDeathCount -lt 35) {
     throw "Expected at least 35 distinct death texts across 10 events, found $distinctDeathCount"
 }
-Write-Host "  -> Consecutive 10 Death events passed: 50 messages dispatched ($distinctDeathCount distinct), exactly >=3 direct flame and >=2 questions per burst, zero pro entities."
+Write-Host "  -> Semantic death utility passed: 50 messages dispatched ($distinctDeathCount distinct), flame/question quotas and zero pro entities."
 
-Write-Host "`n[Behavior 2.12] Testing RoundWin & RoundLoss Real-Text Sampling (20 Messages Each)..."
+Write-Host "`n[Behavior 2.12] Testing Semantic RoundWin & RoundLoss Candidate Utility (not used by event runtime)..."
 $winIntentPat = "拿下|赢了|翻盘|胜利|通关|好赢|一直赢|这就是CS|干得漂亮|赢局|打赢了|这就是6657"
 $winExcludePat = "输|败|没了|完|寄|前妻|买房|外卖|被窝|可乐|金河田|电源|预制菜|护航|通电|橙汁|键盘|耳机|退款|男娘|女装|下班|做饭|二次元|高考|解说|退役|下播|停播|XM4|XM5|索尼|SONY|国gala|波黑|教父|开过吗"
 

@@ -134,21 +134,21 @@ namespace KillConfirmGameBar.Danmaku.Engine
             DanmakuMessageRole role,
             bool preferDirectCall = false)
         {
-            if (!SupplementalDanmakuPoolRepository.IsLoadCompleted)
+            if (!DanmakuEventPoolRepository.IsLoadCompleted)
             {
-                return new DanmakuSelectionResult(null, 0, role, 0, "SupplementalPoolsLoading");
+                return new DanmakuSelectionResult(null, 0, role, 0, "EventPoolsLoading");
             }
 
-            if (SupplementalDanmakuPoolRepository.IsAvailable)
+            if (DanmakuEventPoolRepository.IsAvailable)
             {
-                DanmakuSelectionResult supplemental = SelectSupplementalDanmaku(
-                    SupplementalDanmakuPoolRepository.GetOpeningEntries(preferDirectCall),
+                DanmakuSelectionResult eventPoolSelection = SelectPoolDanmaku(
+                    DanmakuEventPoolRepository.GetOpeningEntries(preferDirectCall),
                     history,
                     role,
                     preferBurstPhase: preferDirectCall);
-                if (supplemental != null && supplemental.IsSuccess)
+                if (eventPoolSelection != null && eventPoolSelection.IsSuccess)
                 {
-                    return supplemental;
+                    return eventPoolSelection;
                 }
             }
 
@@ -437,131 +437,49 @@ namespace KillConfirmGameBar.Danmaku.Engine
 
         public DanmakuSelectionResult SelectEventDanmaku(
             DanmakuEventKind kind,
-            SemanticEventProfile profile,
             DanmakuSelectionHistory history,
             DanmakuMessageRole role,
-            bool preferQuestionReaction = false,
-            bool preferBurstPhase = false,
             DanmakuSelectionHistory sessionHistory = null)
         {
-            if (!SupplementalDanmakuPoolRepository.IsLoadCompleted)
+            if (!DanmakuEventPoolRepository.IsLoadCompleted)
             {
-                return new DanmakuSelectionResult(null, 0, role, 0, "SupplementalPoolsLoading");
+                return new DanmakuSelectionResult(null, 0, role, 0, "EventPoolsLoading");
+            }
+            if (!DanmakuEventPoolRepository.IsAvailable)
+            {
+                return new DanmakuSelectionResult(null, 0, role, 0, "EventPoolsUnavailable");
             }
 
-            IReadOnlyList<SupplementalDanmakuEntry> supplementalEntries = null;
-            if (DanmakuEventClassifier.IsKillReaction(kind))
-            {
-                supplementalEntries = SupplementalDanmakuPoolRepository.GetEntries(
-                    SupplementalDanmakuPoolKind.KillPraise);
-            }
-            else if (kind == DanmakuEventKind.Death)
-            {
-                supplementalEntries = SupplementalDanmakuPoolRepository.GetEntries(
-                    preferQuestionReaction
-                        ? SupplementalDanmakuPoolKind.DeathQuestion
-                        : SupplementalDanmakuPoolKind.DeathFlame);
-            }
-
-            if (supplementalEntries != null && supplementalEntries.Count > 0)
-            {
-                DanmakuSelectionResult supplemental = SelectSupplementalDanmaku(
-                    supplementalEntries,
-                    history,
-                    role,
-                    preferBurstPhase,
-                    sessionHistory);
-                if (supplemental != null && supplemental.IsSuccess)
-                {
-                    return supplemental;
-                }
-            }
-
-            profile = profile ?? SemanticProfileRepository.GetProfile(kind);
-            IReadOnlyCollection<string> requiredStances = DanmakuEventSemantics.RequiredStances(kind);
-            IReadOnlyCollection<string> forbiddenStances = DanmakuEventSemantics.ForbiddenStances(kind);
-            IReadOnlyDictionary<string, double> preferredFormats = DanmakuEventSemantics.PreferredFormats(kind);
-
-            // Primary: Data-driven candidate selection across full semantic repository.
-            // Strictly forbids pro_player, pro_team, and external_figure entities.
-            // Topic-aligned match with Event Intent validation.
-            DanmakuSelectionResult selection = SelectSemanticDanmaku(
-                profile.PreferredTopics,
-                profile.PreferredStances,
-                profile.PreferredTargets,
-                profile.AllowedContexts,
+            return SelectPoolDanmaku(
+                DanmakuEventPoolRepository.GetEventEntries(kind),
                 history,
                 role,
-                requiredStances,
-                forbiddenStances,
-                preferredFormats,
-                true,
-                forbidProEntities: true,
-                preferQuestionReaction: preferQuestionReaction,
+                preferBurstPhase: false,
                 sessionHistory: sessionHistory,
-                eventKind: kind);
-
-            if (selection != null && selection.IsSuccess)
-            {
-                return selection;
-            }
-
-            // Secondary fallback: Relax topic alignment, retain strict polarity, pro entity isolation and event intent validation.
-            selection = SelectSemanticDanmaku(
-                profile.PreferredTopics,
-                profile.PreferredStances,
-                profile.PreferredTargets,
-                profile.AllowedContexts,
-                history,
-                role,
-                requiredStances,
-                forbiddenStances,
-                preferredFormats,
-                false,
-                forbidProEntities: true,
-                preferQuestionReaction: preferQuestionReaction,
-                sessionHistory: sessionHistory,
-                eventKind: kind);
-
-            if (selection != null && selection.IsSuccess)
-            {
-                return selection;
-            }
-
-            // Tertiary fallback: Curated validated non-pro event anchors
-            return SelectValidatedEventAnchor(
-                kind,
-                role,
-                history,
-                requiredStances,
-                forbiddenStances,
-                preferQuestionReaction,
-                forbidProEntities: true,
-                sessionHistory: sessionHistory);
+                filterByPhase: false);
         }
 
         public IReadOnlyList<DanmakuSelectionResult> SelectSessionEndDanmaku(
             int count,
             DanmakuSelectionHistory history)
         {
-            IReadOnlyList<SupplementalDanmakuEntry> entries =
-                SupplementalDanmakuPoolRepository.GetEntries(
-                    SupplementalDanmakuPoolKind.SessionEnd);
+            IReadOnlyList<DanmakuEventPoolEntry> entries =
+                DanmakuEventPoolRepository.GetSessionEndEntries();
             if (entries == null || entries.Count == 0 || count <= 0)
             {
                 return Array.Empty<DanmakuSelectionResult>();
             }
 
-            var available = new List<SupplementalDanmakuEntry>(entries);
+            var available = new List<DanmakuEventPoolEntry>(entries);
             var selected = new List<DanmakuSelectionResult>(Math.Min(count, entries.Count));
             var usedFamilies = new HashSet<string>(StringComparer.Ordinal);
 
             while (available.Count > 0 && selected.Count < count)
             {
-                var eligible = new List<SupplementalDanmakuEntry>();
+                var eligible = new List<DanmakuEventPoolEntry>();
                 for (int i = 0; i < available.Count; i++)
                 {
-                    SupplementalDanmakuEntry entry = available[i];
+                    DanmakuEventPoolEntry entry = available[i];
                     string family = entry?.Family ?? string.Empty;
                     if (!usedFamilies.Contains(family)
                         && (history == null || !history.ContainsRecentText(entry.Text)))
@@ -575,7 +493,7 @@ namespace KillConfirmGameBar.Danmaku.Engine
                     break;
                 }
 
-                SupplementalDanmakuEntry chosen = eligible[_random.Next(eligible.Count)];
+                DanmakuEventPoolEntry chosen = eligible[_random.Next(eligible.Count)];
                 selected.Add(new DanmakuSelectionResult(
                     chosen.Text,
                     chosen.SourceIndex,
@@ -589,45 +507,46 @@ namespace KillConfirmGameBar.Danmaku.Engine
             return selected;
         }
 
-        private DanmakuSelectionResult SelectSupplementalDanmaku(
-            IReadOnlyList<SupplementalDanmakuEntry> entries,
+        private DanmakuSelectionResult SelectPoolDanmaku(
+            IReadOnlyList<DanmakuEventPoolEntry> entries,
             DanmakuSelectionHistory history,
             DanmakuMessageRole role,
             bool preferBurstPhase,
-            DanmakuSelectionHistory sessionHistory = null)
+            DanmakuSelectionHistory sessionHistory = null,
+            bool filterByPhase = true)
         {
             if (entries == null || entries.Count == 0)
             {
-                return new DanmakuSelectionResult(null, 0, role, 0, "SupplementalPoolEmpty");
+                return new DanmakuSelectionResult(null, 0, role, 0, "EventPoolEmpty");
             }
 
-            var phaseMatched = new List<SupplementalDanmakuEntry>();
+            var phaseMatched = new List<DanmakuEventPoolEntry>();
             for (int i = 0; i < entries.Count; i++)
             {
-                SupplementalDanmakuEntry entry = entries[i];
+                DanmakuEventPoolEntry entry = entries[i];
                 if (entry == null || string.IsNullOrWhiteSpace(entry.Text))
                 {
                     continue;
                 }
 
-                bool phaseMatches = preferBurstPhase
+                bool phaseMatches = !filterByPhase || (preferBurstPhase
                     ? string.Equals(entry.Phase, "burst", StringComparison.Ordinal)
                         || string.Equals(entry.Phase, "both", StringComparison.Ordinal)
                     : string.Equals(entry.Phase, "aftermath", StringComparison.Ordinal)
-                        || string.Equals(entry.Phase, "both", StringComparison.Ordinal);
+                        || string.Equals(entry.Phase, "both", StringComparison.Ordinal));
                 if (phaseMatches)
                 {
                     phaseMatched.Add(entry);
                 }
             }
 
-            IReadOnlyList<SupplementalDanmakuEntry> source = phaseMatched.Count > 0
+            IReadOnlyList<DanmakuEventPoolEntry> source = phaseMatched.Count > 0
                 ? phaseMatched
                 : entries;
-            var available = new List<SupplementalDanmakuEntry>();
+            var available = new List<DanmakuEventPoolEntry>();
             for (int i = 0; i < source.Count; i++)
             {
-                SupplementalDanmakuEntry entry = source[i];
+                DanmakuEventPoolEntry entry = source[i];
                 if ((history == null || !history.ContainsRecentText(entry.Text))
                     && (sessionHistory == null || !sessionHistory.ContainsRecentText(entry.Text)))
                 {
@@ -635,14 +554,13 @@ namespace KillConfirmGameBar.Danmaku.Engine
                 }
             }
 
-            // A small source-backed pool may be exhausted during a long session.
-            // Reuse only after every fresh choice has been shown; keep per-impulse
-            // repetition protection whenever possible.
+            // The event pools are intentionally large (1000+ each). Reuse only
+            // after every fresh choice available to the current histories is gone.
             if (available.Count == 0 && sessionHistory != null)
             {
                 for (int i = 0; i < source.Count; i++)
                 {
-                    SupplementalDanmakuEntry entry = source[i];
+                    DanmakuEventPoolEntry entry = source[i];
                     if (history == null || !history.ContainsRecentText(entry.Text))
                     {
                         available.Add(entry);
@@ -655,10 +573,10 @@ namespace KillConfirmGameBar.Danmaku.Engine
             }
             if (available.Count == 0)
             {
-                return new DanmakuSelectionResult(null, 0, role, 0, "SupplementalPoolFiltered");
+                return new DanmakuSelectionResult(null, 0, role, 0, "EventPoolFiltered");
             }
 
-            SupplementalDanmakuEntry selected = available[_random.Next(available.Count)];
+            DanmakuEventPoolEntry selected = available[_random.Next(available.Count)];
             history?.RecordSelection(selected.Text, null);
             sessionHistory?.RecordSelection(selected.Text, null);
             return new DanmakuSelectionResult(
@@ -666,110 +584,6 @@ namespace KillConfirmGameBar.Danmaku.Engine
                 selected.SourceIndex,
                 role,
                 available.Count);
-        }
-
-        private DanmakuSelectionResult SelectValidatedEventAnchor(
-            DanmakuEventKind kind,
-            DanmakuMessageRole role,
-            DanmakuSelectionHistory history,
-            IReadOnlyCollection<string> requiredStances,
-            IReadOnlyCollection<string> forbiddenStances,
-            bool preferQuestionReaction,
-            bool forbidProEntities = true,
-            DanmakuSelectionHistory sessionHistory = null)
-        {
-            IReadOnlyList<DanmakuLibraryReference> references =
-                DanmakuEventPoolRepository.GetReferences(kind, role);
-            var validEntries = new List<SemanticAnnotationEntry>(references.Count);
-            var validTexts = new List<string>(references.Count);
-
-            for (int i = 0; i < references.Count; i++)
-            {
-                DanmakuLibraryReference reference = references[i];
-                SemanticAnnotationEntry entry = null;
-                string text = null;
-                if (reference == null
-                    || !SemanticAnnotationRepository.TryGetEntryByIndex(reference.Index, out entry)
-                    || entry == null
-                    || (forbidProEntities && entry.HasProOrExternalEntity)
-                    || !ContainsAny(entry.Stances, requiredStances)
-                    || ContainsAny(entry.Stances, forbiddenStances)
-                    || !DanmakuRepository.TryGetByIndex(reference.Index, out text)
-                    || string.IsNullOrWhiteSpace(text)
-                    || (forbidProEntities && SemanticAnnotationRepository.HasProOrExternalText(text))
-                    || !IsEventIntentEligible(kind, text, entry, preferQuestionReaction)
-                    || (history != null && history.ContainsRecentText(text))
-                    || (sessionHistory != null && sessionHistory.ContainsRecentText(text)))
-                {
-                    continue;
-                }
-
-                validEntries.Add(entry);
-                validTexts.Add(text);
-            }
-
-            if (validEntries.Count == 0)
-            {
-                return new DanmakuSelectionResult(null, 0, role, 0, "NoValidatedEventAnchors");
-            }
-
-            int selectedIndex = _random.Next(validEntries.Count);
-            SemanticAnnotationEntry selectedEntry = validEntries[selectedIndex];
-            string selectedText = validTexts[selectedIndex];
-            if (history != null)
-            {
-                history.RecordSelection(selectedText, selectedEntry);
-            }
-            if (sessionHistory != null)
-            {
-                sessionHistory.RecordSelection(selectedText, selectedEntry);
-            }
-            return new DanmakuSelectionResult(
-                selectedText,
-                selectedEntry.Index,
-                role,
-                validEntries.Count);
-        }
-
-        public DanmakuSelectionResult SelectCuratedDanmaku(
-            DanmakuEventKind kind,
-            DanmakuMessageRole role,
-            DanmakuSelectionHistory history)
-        {
-            IReadOnlyList<string> messages = DanmakuEventPoolRepository.GetMessages(kind, role);
-            if (messages == null || messages.Count == 0)
-            {
-                return new DanmakuSelectionResult(null, 0, role, 0, "NoCuratedMessages");
-            }
-
-            var available = new List<string>(messages.Count);
-            for (int i = 0; i < messages.Count; i++)
-            {
-                string text = messages[i];
-                if (!string.IsNullOrWhiteSpace(text) && (history == null || !history.ContainsRecentText(text)))
-                {
-                    available.Add(text);
-                }
-            }
-
-            // If all are in recent history, reuse pool after exhausting fresh choices
-            if (available.Count == 0)
-            {
-                available.AddRange(messages);
-            }
-
-            if (available.Count == 0)
-            {
-                return new DanmakuSelectionResult(null, 0, role, 0, "CuratedPoolEmpty");
-            }
-
-            string chosenText = available[_random.Next(available.Count)];
-            if (history != null)
-            {
-                history.RecordSelection(chosenText, null);
-            }
-
-            return new DanmakuSelectionResult(chosenText, 0, role, available.Count);
         }
 
         private static double CalculateScore(

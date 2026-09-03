@@ -101,7 +101,6 @@ namespace KillConfirmGameBar.Danmaku.Engine
                 {
                     _ = DanmakuRepository.EnsureLoadedAsync();
                     _ = DanmakuEventPoolRepository.EnsureLoadedAsync();
-                    _ = SupplementalDanmakuPoolRepository.EnsureLoadedAsync();
                     _ = SemanticAnnotationRepository.EnsureLoadedAsync();
                     _ = SemanticProfileRepository.EnsureLoadedAsync();
 

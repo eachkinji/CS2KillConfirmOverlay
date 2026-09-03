@@ -8,6 +8,7 @@ namespace KillConfirmGameBar.Danmaku.Engine
         public DanmakuMessage Message { get; set; }
         public double FlightDurationSeconds { get; set; }
         public long Sequence { get; set; }
+        public float MeasuredWidth { get; set; }
     }
 
     internal sealed class DanmakuPendingQueue
@@ -17,6 +18,21 @@ namespace KillConfirmGameBar.Danmaku.Engine
         private long _nextSequence;
 
         public int Count { get { return _items.Count; } }
+
+        public bool HasEventReaction
+        {
+            get
+            {
+                for (int i = 0; i < _items.Count; i++)
+                {
+                    if (_items[i].Message != null && _items[i].Message.IsEventReaction)
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        }
 
         public void Enqueue(IReadOnlyList<DanmakuMessage> messages, double flightDurationSeconds)
         {
@@ -43,7 +59,35 @@ namespace KillConfirmGameBar.Danmaku.Engine
 
             while (_items.Count > MaximumPendingCount)
             {
-                _items.RemoveAt(FindLeastImportantIndex());
+                int removableIndex = FindLeastImportantAtmosphereIndex();
+                if (removableIndex < 0)
+                {
+                    // Event reactions are never discarded. A temporary event-only
+                    // overflow is preferable to silently losing a reaction.
+                    break;
+                }
+                _items.RemoveAt(removableIndex);
+            }
+        }
+
+        public bool TryPeek(out DanmakuQueueItem item)
+        {
+            int bestIndex = FindMostImportantIndex();
+            if (bestIndex < 0)
+            {
+                item = null;
+                return false;
+            }
+
+            item = _items[bestIndex];
+            return true;
+        }
+
+        public void Remove(DanmakuQueueItem item)
+        {
+            if (item != null)
+            {
+                _items.Remove(item);
             }
         }
 
@@ -55,14 +99,7 @@ namespace KillConfirmGameBar.Danmaku.Engine
                 return false;
             }
 
-            int bestIndex = 0;
-            for (int i = 1; i < _items.Count; i++)
-            {
-                if (IsMoreImportant(_items[i], _items[bestIndex]))
-                {
-                    bestIndex = i;
-                }
-            }
+            int bestIndex = FindMostImportantIndex();
 
             item = _items[bestIndex];
             _items.RemoveAt(bestIndex);
@@ -74,12 +111,35 @@ namespace KillConfirmGameBar.Danmaku.Engine
             _items.Clear();
         }
 
-        private int FindLeastImportantIndex()
+        private int FindMostImportantIndex()
         {
-            int worstIndex = 0;
+            if (_items.Count == 0)
+            {
+                return -1;
+            }
+
+            int bestIndex = 0;
             for (int i = 1; i < _items.Count; i++)
             {
-                if (IsMoreImportant(_items[worstIndex], _items[i]))
+                if (IsMoreImportant(_items[i], _items[bestIndex]))
+                {
+                    bestIndex = i;
+                }
+            }
+            return bestIndex;
+        }
+
+        private int FindLeastImportantAtmosphereIndex()
+        {
+            int worstIndex = -1;
+            for (int i = 0; i < _items.Count; i++)
+            {
+                DanmakuQueueItem candidate = _items[i];
+                if (candidate.Message != null && candidate.Message.IsEventReaction)
+                {
+                    continue;
+                }
+                if (worstIndex < 0 || IsMoreImportant(_items[worstIndex], candidate))
                 {
                     worstIndex = i;
                 }

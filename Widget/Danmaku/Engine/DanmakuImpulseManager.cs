@@ -92,6 +92,18 @@ namespace KillConfirmGameBar.Danmaku.Engine
                 // Every game event owns an independent impulse. Even repeated events
                 // of the same kind remain active so concurrent reactions never overwrite.
                 _activeImpulses.RemoveAll(imp => imp.IsExpired(now));
+                if (_activeImpulses.Count >= 4)
+                {
+                    for (int i = 0; i < _activeImpulses.Count; i++)
+                    {
+                        DanmakuEventDynamics dyn = DanmakuEventSemantics.ResolveDynamics(_activeImpulses[i].Kind);
+                        if (!_activeImpulses[i].IsInInitialBurst(dyn))
+                        {
+                            _activeImpulses.RemoveAt(i);
+                            break;
+                        }
+                    }
+                }
                 var impulse = new DanmakuImpulse(++_nextSequenceId, context, profile, now);
                 _activeImpulses.Add(impulse);
                 return impulse;
@@ -121,8 +133,7 @@ namespace KillConfirmGameBar.Danmaku.Engine
                         continue;
                     }
                     if (impulse == null
-                        || candidate.NextDispatchTime < impulse.NextDispatchTime
-                        || (candidate.NextDispatchTime == impulse.NextDispatchTime && candidate.SequenceId < impulse.SequenceId))
+                        || IsMoreUrgent(candidate, impulse))
                     {
                         impulse = candidate;
                     }
@@ -133,6 +144,33 @@ namespace KillConfirmGameBar.Danmaku.Engine
                     : TimeSpan.Zero;
                 return impulse != null;
             }
+        }
+
+        private static bool IsMoreUrgent(DanmakuImpulse candidate, DanmakuImpulse current)
+        {
+            int candidatePhase = ResolveUrgencyPhase(candidate);
+            int currentPhase = ResolveUrgencyPhase(current);
+            if (candidatePhase != currentPhase)
+            {
+                return candidatePhase < currentPhase;
+            }
+            if (candidate.NextDispatchTime != current.NextDispatchTime)
+            {
+                return candidate.NextDispatchTime < current.NextDispatchTime;
+            }
+            return candidate.SequenceId < current.SequenceId;
+        }
+
+        private static int ResolveUrgencyPhase(DanmakuImpulse impulse)
+        {
+            // Every new event gets its first visible reaction before an older
+            // event's aftermath. Remaining burst messages then outrank aftermath.
+            if (impulse.DispatchCount == 0)
+            {
+                return 0;
+            }
+            DanmakuEventDynamics dynamics = DanmakuEventSemantics.ResolveDynamics(impulse.Kind);
+            return impulse.IsInInitialBurst(dynamics) ? 1 : 2;
         }
 
         public void RecordDispatch(DanmakuImpulse impulse, DateTimeOffset now, TimeSpan nextInterval)
@@ -184,7 +222,7 @@ namespace KillConfirmGameBar.Danmaku.Engine
                     }
                 }
                 TimeSpan delay = earliest - now;
-                return delay <= TimeSpan.Zero ? TimeSpan.FromMilliseconds(50) : delay;
+                return delay <= TimeSpan.Zero ? TimeSpan.FromMilliseconds(180) : delay;
             }
         }
 

@@ -6,10 +6,12 @@ namespace KillConfirmGameBar.Danmaku.Engine
     internal sealed class DanmakuBatchComposer
     {
         private readonly DanmakuWeightEngine _weightEngine;
+        private readonly Random _random;
 
         public DanmakuBatchComposer(Random random)
         {
-            _weightEngine = new DanmakuWeightEngine(random ?? throw new ArgumentNullException(nameof(random)));
+            _random = random ?? new Random();
+            _weightEngine = new DanmakuWeightEngine(_random);
         }
 
         public IReadOnlyList<DanmakuMessage> Compose(DanmakuEventContext context, int visibleLimit)
@@ -20,12 +22,12 @@ namespace KillConfirmGameBar.Danmaku.Engine
             }
 
             DanmakuReactionPolicy policy = DanmakuReactionPolicies.Resolve(context.Kind);
-            int limit = DanmakuReactionPolicies.ClampVisibleCount(visibleLimit);
-            int targetCount = Math.Min(limit, policy.TotalCount);
-            int coreCount = Math.Min(policy.CoreCount, targetCount);
+            int targetCount = visibleLimit >= 10 && visibleLimit <= 20
+                ? visibleLimit
+                : _random.Next(10, 21);
+            int coreCount = Math.Max(7, (int)(targetCount * 0.75));
             var result = new List<DanmakuMessage>(targetCount);
             var eventHistory = new DanmakuSelectionHistory();
-            SemanticEventProfile profile = SemanticProfileRepository.GetProfile(context.Kind);
             for (int i = 0; i < targetCount; i++)
             {
                 DanmakuMessageRole role = i < coreCount
@@ -33,11 +35,8 @@ namespace KillConfirmGameBar.Danmaku.Engine
                     : DanmakuMessageRole.Atmosphere;
                 DanmakuSelectionResult selection = _weightEngine.SelectEventDanmaku(
                     context.Kind,
-                    profile,
                     eventHistory,
-                    role,
-                    context.Kind == DanmakuEventKind.Death && (i % 2) == 1,
-                    preferBurstPhase: true);
+                    role);
                 if (selection == null || !selection.IsSuccess)
                 {
                     break;

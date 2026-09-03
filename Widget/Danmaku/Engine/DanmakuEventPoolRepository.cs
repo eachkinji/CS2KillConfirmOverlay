@@ -6,51 +6,42 @@ using Windows.Storage;
 
 namespace KillConfirmGameBar.Danmaku.Engine
 {
-    internal sealed class DanmakuLibraryReference
+    internal sealed class DanmakuEventPoolEntry
     {
-        public int Index { get; set; }
-    }
-
-    internal sealed class DanmakuEventReferencePool
-    {
-        public DanmakuEventReferencePool(
-            IReadOnlyList<DanmakuLibraryReference> core,
-            IReadOnlyList<DanmakuLibraryReference> water)
-        {
-            Core = core;
-            Water = water;
-        }
-
-        public IReadOnlyList<DanmakuLibraryReference> Core { get; }
-        public IReadOnlyList<DanmakuLibraryReference> Water { get; }
+        public string Id { get; set; }
+        public string Text { get; set; }
+        public string Intent { get; set; }
+        public string Family { get; set; }
+        public string Phase { get; set; }
+        public string Derivation { get; set; }
+        public string SourceExcerpt { get; set; }
+        public int SourceIndex { get; set; }
     }
 
     internal static class DanmakuEventPoolRepository
     {
-        private static readonly object SyncRoot = new object();
-        private static readonly DanmakuEventKind[] SupportedKinds =
-        {
-            DanmakuEventKind.Kill,
-            DanmakuEventKind.FirstKill,
-            DanmakuEventKind.Headshot,
-            DanmakuEventKind.KnifeKill,
-            DanmakuEventKind.GrenadeKill,
-            DanmakuEventKind.MultiKill,
-            DanmakuEventKind.EpicStreak,
-            DanmakuEventKind.LastKill,
-            DanmakuEventKind.Assist,
-            DanmakuEventKind.Death,
-            DanmakuEventKind.RoundWin,
-            DanmakuEventKind.RoundLoss,
-            DanmakuEventKind.BombPlant,
-            DanmakuEventKind.BombDefuse,
-            DanmakuEventKind.HostageInteract,
-            DanmakuEventKind.HostageRescue
-        };
+        internal const string EventPoolDirectoryName = "EventPools";
+        internal const string LifecyclePoolDirectoryName = "LifecyclePools";
+        internal const int MinimumEventPoolSize = 1000;
 
-        private static Dictionary<DanmakuEventKind, DanmakuEventReferencePool> _pools =
-            new Dictionary<DanmakuEventKind, DanmakuEventReferencePool>();
+        private static readonly object SyncRoot = new object();
+        private static IReadOnlyList<DanmakuEventPoolEntry> _openingEntries = Array.Empty<DanmakuEventPoolEntry>();
+        private static IReadOnlyList<DanmakuEventPoolEntry> _sessionEndEntries = Array.Empty<DanmakuEventPoolEntry>();
+        private static Dictionary<DanmakuEventKind, IReadOnlyList<DanmakuEventPoolEntry>> _eventPools =
+            new Dictionary<DanmakuEventKind, IReadOnlyList<DanmakuEventPoolEntry>>();
         private static Task _loadTask;
+        private static bool _isLoadCompleted;
+        private static bool _isAvailable;
+
+        public static bool IsLoadCompleted
+        {
+            get { lock (SyncRoot) { return _isLoadCompleted; } }
+        }
+
+        public static bool IsAvailable
+        {
+            get { lock (SyncRoot) { return _isAvailable; } }
+        }
 
         public static Task EnsureLoadedAsync()
         {
@@ -64,50 +55,69 @@ namespace KillConfirmGameBar.Danmaku.Engine
             }
         }
 
-        public static IReadOnlyList<string> GetMessages(
-            DanmakuEventKind kind,
-            DanmakuMessageRole role)
+        public static IReadOnlyList<DanmakuEventPoolEntry> GetOpeningEntries(bool directCallOnly)
         {
-            IReadOnlyList<DanmakuLibraryReference> references;
+            IReadOnlyList<DanmakuEventPoolEntry> source;
             lock (SyncRoot)
             {
-                DanmakuEventReferencePool pool;
-                if (!_pools.TryGetValue(kind, out pool) || pool == null)
-                {
-                    return null;
-                }
-                references = role == DanmakuMessageRole.Core ? pool.Core : pool.Water;
+                source = new List<DanmakuEventPoolEntry>(_openingEntries);
+            }
+            if (!directCallOnly)
+            {
+                return source;
             }
 
-            var result = new List<string>(references.Count);
-            for (int i = 0; i < references.Count; i++)
+            var result = new List<DanmakuEventPoolEntry>();
+            for (int i = 0; i < source.Count; i++)
             {
-                DanmakuLibraryReference reference = references[i];
-                string text;
-                if (DanmakuRepository.TryGetByIndex(reference.Index, out text))
+                DanmakuEventPoolEntry entry = source[i];
+                if (entry != null
+                    && (string.Equals(entry.Intent, "open_door", StringComparison.Ordinal)
+                        || string.Equals(entry.Intent, "urge_start", StringComparison.Ordinal)))
                 {
-                    result.Add(text);
+                    result.Add(entry);
+                }
+            }
+            return result.Count > 0 ? result : source;
+        }
+
+        public static IReadOnlyList<DanmakuEventPoolEntry> GetSessionEndEntries()
+        {
+            lock (SyncRoot)
+            {
+                return new List<DanmakuEventPoolEntry>(_sessionEndEntries);
+            }
+        }
+
+        public static IReadOnlyList<DanmakuEventPoolEntry> GetEventEntries(DanmakuEventKind kind)
+        {
+            lock (SyncRoot)
+            {
+                IReadOnlyList<DanmakuEventPoolEntry> pool;
+                if (!_eventPools.TryGetValue(kind, out pool) || pool == null)
+                {
+                    return Array.Empty<DanmakuEventPoolEntry>();
+                }
+                return new List<DanmakuEventPoolEntry>(pool);
+            }
+        }
+
+        public static IReadOnlyList<string> GetEventTexts(
+            DanmakuEventKind kind,
+            int skip,
+            int count)
+        {
+            IReadOnlyList<DanmakuEventPoolEntry> entries = GetEventEntries(kind);
+            var result = new List<string>(Math.Max(0, count));
+            for (int i = Math.Max(0, skip); i < entries.Count && result.Count < count; i++)
+            {
+                DanmakuEventPoolEntry entry = entries[i];
+                if (entry != null && !string.IsNullOrWhiteSpace(entry.Text))
+                {
+                    result.Add(entry.Text);
                 }
             }
             return result;
-        }
-
-        public static IReadOnlyList<DanmakuLibraryReference> GetReferences(
-            DanmakuEventKind kind,
-            DanmakuMessageRole role)
-        {
-            lock (SyncRoot)
-            {
-                DanmakuEventReferencePool pool;
-                if (!_pools.TryGetValue(kind, out pool) || pool == null)
-                {
-                    return Array.Empty<DanmakuLibraryReference>();
-                }
-
-                IReadOnlyList<DanmakuLibraryReference> source =
-                    role == DanmakuMessageRole.Core ? pool.Core : pool.Water;
-                return new List<DanmakuLibraryReference>(source);
-            }
         }
 
         private static async Task LoadAsync()
@@ -115,108 +125,193 @@ namespace KillConfirmGameBar.Danmaku.Engine
             try
             {
                 await DanmakuRepository.EnsureLoadedAsync();
-                StorageFile file = await StorageFile.GetFileFromApplicationUriAsync(
-                    new Uri("ms-appx:///Danmaku/Pools/event_reactions.json"));
-                string text = await FileIO.ReadTextAsync(file);
-                JsonObject root;
-                if (!JsonObject.TryParse(text, out root))
-                {
-                    throw new InvalidOperationException("event_reactions.json is not a JSON object.");
-                }
+                JsonObject openingRoot = await ReadPoolFileAsync(
+                    LifecyclePoolDirectoryName, "opening_wait.json");
+                IReadOnlyList<DanmakuEventPoolEntry> opening = ReadEntries(
+                    openingRoot.GetNamedArray("entries"), "opening_wait");
+                JsonObject endingRoot = await ReadPoolFileAsync(
+                    LifecyclePoolDirectoryName, "session_end.json");
+                IReadOnlyList<DanmakuEventPoolEntry> ending = ReadEntries(
+                    endingRoot.GetNamedArray("entries"), "session_end");
 
-                var loaded = new Dictionary<DanmakuEventKind, DanmakuEventReferencePool>();
-                for (int i = 0; i < SupportedKinds.Length; i++)
+                var eventPools = new Dictionary<DanmakuEventKind, IReadOnlyList<DanmakuEventPoolEntry>>();
+                foreach (DanmakuEventKind kind in SupportedEventKinds())
                 {
-                    DanmakuEventKind kind = SupportedKinds[i];
                     string key = ToStorageKey(kind);
-                    if (!root.ContainsKey(key)
-                        || root.GetNamedValue(key).ValueType != JsonValueType.Object)
+                    JsonObject eventObject = await ReadPoolFileAsync(
+                        EventPoolDirectoryName, key + ".json");
+                    string storedEvent = ReadOptionalString(eventObject, "event");
+                    if (!string.Equals(storedEvent, key, StringComparison.Ordinal))
                     {
-                        throw new InvalidOperationException("Missing danmaku event reference pool: " + key);
+                        throw new InvalidOperationException("Event pool identity mismatch: " + key);
                     }
 
-                    JsonObject poolObject = root.GetNamedObject(key);
-                    List<DanmakuLibraryReference> core = ReadReferences(poolObject, "core");
-                    List<DanmakuLibraryReference> water = ReadReferences(poolObject, "water");
-                    DanmakuReactionPolicy policy = DanmakuReactionPolicies.Resolve(kind);
-                    if (core.Count < policy.CoreCount || water.Count < policy.AtmosphereCount)
+                    IReadOnlyList<DanmakuEventPoolEntry> entries = ReadEntries(
+                        eventObject.GetNamedArray("entries"), key);
+                    if (entries.Count < MinimumEventPoolSize)
                     {
                         throw new InvalidOperationException(
-                            "Danmaku event pool does not satisfy its core/water reaction quota: " + key);
+                            "Event pool must contain at least " + MinimumEventPoolSize + " entries: " + key);
                     }
-                    ValidateReferences(core, key, "core");
-                    ValidateReferences(water, key, "water");
-                    loaded[kind] = new DanmakuEventReferencePool(core, water);
+                    eventPools[kind] = entries;
+                }
+
+                if (opening.Count == 0 || ending.Count == 0)
+                {
+                    throw new InvalidOperationException("Lifecycle source-derived pool is empty.");
                 }
 
                 lock (SyncRoot)
                 {
-                    _pools = loaded;
+                    _openingEntries = opening;
+                    _sessionEndEntries = ending;
+                    _eventPools = eventPools;
+                    _isAvailable = true;
                 }
+                App.Log("DanmakuEventPoolRepository loaded source-derived event pools: events="
+                    + eventPools.Count + ", opening=" + opening.Count + ", end=" + ending.Count);
             }
             catch (Exception ex)
             {
-                // No fallback text: invalid references mean no event danmaku.
+                lock (SyncRoot)
+                {
+                    _openingEntries = Array.Empty<DanmakuEventPoolEntry>();
+                    _sessionEndEntries = Array.Empty<DanmakuEventPoolEntry>();
+                    _eventPools = new Dictionary<DanmakuEventKind, IReadOnlyList<DanmakuEventPoolEntry>>();
+                    _isAvailable = false;
+                }
                 App.Log("DanmakuEventPoolRepository.LoadAsync failed: " + ex.Message);
+            }
+            finally
+            {
+                lock (SyncRoot)
+                {
+                    _isLoadCompleted = true;
+                }
             }
         }
 
-        private static List<DanmakuLibraryReference> ReadReferences(
-            JsonObject pool,
-            string propertyName)
+        private static async Task<JsonObject> ReadPoolFileAsync(string directoryName, string fileName)
         {
-            var result = new List<DanmakuLibraryReference>();
-            if (!pool.ContainsKey(propertyName)
-                || pool.GetNamedValue(propertyName).ValueType != JsonValueType.Array)
+            StorageFile file = await StorageFile.GetFileFromApplicationUriAsync(
+                new Uri("ms-appx:///Danmaku/" + directoryName + "/" + fileName));
+            string jsonText = await FileIO.ReadTextAsync(file);
+            JsonObject root;
+            if (!JsonObject.TryParse(jsonText, out root))
             {
-                return result;
+                throw new InvalidOperationException(fileName + " is not a JSON object.");
             }
+            return root;
+        }
 
-            JsonArray items = pool.GetNamedArray(propertyName);
-            for (int i = 0; i < items.Count; i++)
+        private static IReadOnlyList<DanmakuEventPoolEntry> ReadEntries(
+            JsonArray messages,
+            string poolKey)
+        {
+            var result = new List<DanmakuEventPoolEntry>(messages.Count);
+            var seenIds = new HashSet<string>(StringComparer.Ordinal);
+            var seenTexts = new HashSet<string>(StringComparer.Ordinal);
+            for (int i = 0; i < messages.Count; i++)
             {
-                IJsonValue value = items[i];
-                if (value.ValueType != JsonValueType.Object)
+                if (messages[i].ValueType != JsonValueType.Object)
                 {
-                    continue;
+                    throw new InvalidOperationException("Invalid source-derived entry: " + poolKey);
                 }
 
-                JsonObject reference = value.GetObject();
-                if (!reference.ContainsKey("index")
-                    || reference.GetNamedValue("index").ValueType != JsonValueType.Number)
+                JsonObject item = messages[i].GetObject();
+                string id = ReadRequiredString(item, "id", poolKey);
+                string text = ReadRequiredString(item, "text", poolKey);
+                string sourceExcerpt = ReadRequiredString(item, "source_excerpt", poolKey);
+                string derivation = ReadRequiredString(item, "derivation", poolKey);
+                int sourceIndex = ReadRequiredPositiveInteger(item, "source_index", poolKey);
+                string originalText;
+                if (!DanmakuRepository.TryGetByIndex(sourceIndex, out originalText)
+                    || string.IsNullOrWhiteSpace(originalText)
+                    || originalText.IndexOf(sourceExcerpt, StringComparison.Ordinal) < 0)
                 {
-                    continue;
+                    throw new InvalidOperationException(
+                        "Source-derived excerpt mismatch: " + poolKey + " #" + sourceIndex);
+                }
+                if (text.IndexOf('\r') >= 0 || text.IndexOf('\n') >= 0)
+                {
+                    throw new InvalidOperationException("Source-derived text must be single-line: " + id);
+                }
+                if (!seenIds.Add(id) || !seenTexts.Add(text))
+                {
+                    throw new InvalidOperationException("Duplicate source-derived entry: " + id);
                 }
 
-                double rawIndex = reference.GetNamedNumber("index");
-                int index = (int)rawIndex;
-                if (index <= 0 || Math.Abs(rawIndex - index) > 0.001)
+                result.Add(new DanmakuEventPoolEntry
                 {
-                    continue;
-                }
-
-                result.Add(new DanmakuLibraryReference
-                {
-                    Index = index
+                    Id = id,
+                    Text = text,
+                    Intent = ReadOptionalString(item, "intent"),
+                    Family = ReadOptionalString(item, "family"),
+                    Phase = ReadOptionalString(item, "phase"),
+                    Derivation = derivation,
+                    SourceExcerpt = sourceExcerpt,
+                    SourceIndex = sourceIndex
                 });
             }
             return result;
         }
 
-        private static void ValidateReferences(
-            IReadOnlyList<DanmakuLibraryReference> references,
-            string eventKey,
-            string role)
+        private static string ReadRequiredString(JsonObject item, string propertyName, string poolKey)
         {
-            for (int i = 0; i < references.Count; i++)
+            string value = ReadOptionalString(item, propertyName);
+            if (string.IsNullOrWhiteSpace(value))
             {
-                string ignored;
-                if (!DanmakuRepository.TryGetByIndex(references[i].Index, out ignored))
-                {
-                    throw new InvalidOperationException(
-                        "Invalid 6657 reference: " + eventKey + "/" + role + " #" + (i + 1));
-                }
+                throw new InvalidOperationException("Missing " + propertyName + " in " + poolKey);
             }
+            return value;
+        }
+
+        private static string ReadOptionalString(JsonObject item, string propertyName)
+        {
+            if (item == null
+                || !item.ContainsKey(propertyName)
+                || item.GetNamedValue(propertyName).ValueType != JsonValueType.String)
+            {
+                return null;
+            }
+            return item.GetNamedString(propertyName);
+        }
+
+        private static int ReadRequiredPositiveInteger(JsonObject item, string propertyName, string poolKey)
+        {
+            if (item == null
+                || !item.ContainsKey(propertyName)
+                || item.GetNamedValue(propertyName).ValueType != JsonValueType.Number)
+            {
+                throw new InvalidOperationException("Missing " + propertyName + " in " + poolKey);
+            }
+            double rawValue = item.GetNamedNumber(propertyName);
+            int value = (int)rawValue;
+            if (value <= 0 || Math.Abs(rawValue - value) >= 0.001)
+            {
+                throw new InvalidOperationException("Invalid " + propertyName + " in " + poolKey);
+            }
+            return value;
+        }
+
+        private static IEnumerable<DanmakuEventKind> SupportedEventKinds()
+        {
+            yield return DanmakuEventKind.Kill;
+            yield return DanmakuEventKind.FirstKill;
+            yield return DanmakuEventKind.Headshot;
+            yield return DanmakuEventKind.KnifeKill;
+            yield return DanmakuEventKind.GrenadeKill;
+            yield return DanmakuEventKind.MultiKill;
+            yield return DanmakuEventKind.EpicStreak;
+            yield return DanmakuEventKind.LastKill;
+            yield return DanmakuEventKind.Assist;
+            yield return DanmakuEventKind.Death;
+            yield return DanmakuEventKind.RoundWin;
+            yield return DanmakuEventKind.RoundLoss;
+            yield return DanmakuEventKind.BombPlant;
+            yield return DanmakuEventKind.BombDefuse;
+            yield return DanmakuEventKind.HostageInteract;
+            yield return DanmakuEventKind.HostageRescue;
         }
 
         private static string ToStorageKey(DanmakuEventKind kind)

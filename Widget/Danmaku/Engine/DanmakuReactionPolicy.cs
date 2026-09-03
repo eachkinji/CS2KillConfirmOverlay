@@ -23,6 +23,11 @@ namespace KillConfirmGameBar.Danmaku.Engine
         public const int MinimumVisibleCount = 5;
         public const int MaximumVisibleCount = 7;
         public const int EventMaximumVisibleCount = 12;
+        // Event barrages may share a lane once the preceding message has moved far
+        // enough ahead. Keep the lane count readable while allowing several
+        // closely-spaced game events to become visible without waiting for a full
+        // flight to finish.
+        public const int EventMaximumActiveCount = 24;
         public const double MaximumFlightSeconds = 15.0;
 
         public static DanmakuReactionPolicy Resolve(DanmakuEventKind kind)

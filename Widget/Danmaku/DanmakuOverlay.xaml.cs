@@ -30,6 +30,7 @@ namespace KillConfirmGameBar.Danmaku
             public double DurationSeconds;
             public int LaneIndex;
             public Color Color;
+            public bool IsEventReaction;
         }
 
         private static readonly Random Random = new Random();
@@ -46,12 +47,18 @@ namespace KillConfirmGameBar.Danmaku
         private readonly Stopwatch _animationStopwatch = new Stopwatch();
         private readonly CoreDispatcher _uiDispatcher;
 
+        private const long EventMinSpawnIntervalMs = 180;
+        private const long NormalMinSpawnIntervalMs = 280;
+
         private long _lastFrameMs;
+        private long _lastSpawnTimeMs;
+        private bool _lastSpawnWasEvent;
         private int _nextLaneIndex;
         private bool _isLoaded;
         private bool _isPoolDrainRunning;
         private bool _isRendering;
         private CanvasTextFormat _cachedTextFormat;
+        private CanvasTextFormat _cachedOutlineFormat;
         private int _cachedFontSize = 16;
         private FontWeight _cachedFontWeight = FontWeights.SemiBold;
         private bool _cachedShowBackground;
@@ -107,10 +114,15 @@ namespace KillConfirmGameBar.Danmaku
             _pendingQueue.Clear();
             _cachedTextFormat?.Dispose();
             _cachedTextFormat = null;
+            _cachedOutlineFormat?.Dispose();
+            _cachedOutlineFormat = null;
         }
 
         private void OnSessionMessageDispatched(DanmakuDispatchedPayload payload)
         {
+            CoreDispatcherPriority priority = payload?.Message?.IsEventReaction == true
+                ? CoreDispatcherPriority.High
+                : CoreDispatcherPriority.Normal;
             RunOnOverlayThread(() =>
             {
                 if (!_isLoaded || !DanmakuSettingsStore.IsEnabled || payload == null || payload.Message == null || string.IsNullOrWhiteSpace(payload.Message.Text))
@@ -137,7 +149,7 @@ namespace KillConfirmGameBar.Danmaku
                     _eventDensityUntil = DateTimeOffset.UtcNow.AddSeconds(3.0);
                 }
                 StartRendering();
-            });
+            }, priority);
         }
 
         private void OnSessionEnded()
@@ -240,7 +252,6 @@ namespace KillConfirmGameBar.Danmaku
             await Task.WhenAll(
                 DanmakuRepository.EnsureLoadedAsync(),
                 DanmakuEventPoolRepository.EnsureLoadedAsync(),
-                SupplementalDanmakuPoolRepository.EnsureLoadedAsync(),
                 SemanticAnnotationRepository.EnsureLoadedAsync(),
                 SemanticProfileRepository.EnsureLoadedAsync());
             if (!_isLoaded)
@@ -286,8 +297,7 @@ namespace KillConfirmGameBar.Danmaku
             int? customVisibleLimit,
             double? customMaximumFlightSeconds)
         {
-            int visibleLimit = DanmakuReactionPolicies.ClampVisibleCount(
-                customVisibleLimit ?? DanmakuSettingsStore.Count);
+            int visibleLimit = customVisibleLimit ?? Random.Next(10, 21);
             double maximumFlightSeconds = DanmakuReactionPolicies.ClampFlightSeconds(
                 customMaximumFlightSeconds ?? DanmakuSettingsStore.DurationSeconds);
 
@@ -304,7 +314,7 @@ namespace KillConfirmGameBar.Danmaku
                 maximumFlightSeconds,
                 Random);
             _pendingQueue.Enqueue(messages, flightDuration);
-            _eventDensityUntil = DateTimeOffset.UtcNow.AddSeconds(3.0);
+            _eventDensityUntil = DateTimeOffset.UtcNow.AddSeconds(5.0);
             StartRendering();
         }
 
@@ -313,20 +323,33 @@ namespace KillConfirmGameBar.Danmaku
             int fontSize = DanmakuSettingsStore.FontSize;
             FontWeight fontWeight = DanmakuSettingsStore.ResolveFontWeight(DanmakuSettingsStore.FontWeight);
             if (_cachedTextFormat == null
+                || _cachedOutlineFormat == null
                 || _cachedFontSize != fontSize
                 || _cachedFontWeight.Weight != fontWeight.Weight)
             {
                 _cachedTextFormat?.Dispose();
+                _cachedOutlineFormat?.Dispose();
                 _cachedFontSize = fontSize;
                 _cachedFontWeight = fontWeight;
                 _cachedTextFormat = new CanvasTextFormat
                 {
-                    FontFamily = "Microsoft YaHei, Segoe UI",
+                    FontFamily = "Microsoft YaHei, Segoe UI Emoji, Segoe UI",
                     FontSize = fontSize,
                     FontWeight = fontWeight,
                     HorizontalAlignment = CanvasHorizontalAlignment.Left,
                     VerticalAlignment = CanvasVerticalAlignment.Top,
-                    WordWrapping = CanvasWordWrapping.NoWrap
+                    WordWrapping = CanvasWordWrapping.NoWrap,
+                    Options = CanvasDrawTextOptions.EnableColorFont
+                };
+                _cachedOutlineFormat = new CanvasTextFormat
+                {
+                    FontFamily = "Microsoft YaHei, Segoe UI Emoji, Segoe UI",
+                    FontSize = fontSize,
+                    FontWeight = fontWeight,
+                    HorizontalAlignment = CanvasHorizontalAlignment.Left,
+                    VerticalAlignment = CanvasVerticalAlignment.Top,
+                    WordWrapping = CanvasWordWrapping.NoWrap,
+                    Options = CanvasDrawTextOptions.Default
                 };
             }
 
@@ -357,6 +380,8 @@ namespace KillConfirmGameBar.Danmaku
             _isRendering = false;
             CompositionTarget.Rendering -= OnCompositionRendering;
             _animationStopwatch.Stop();
+            _lastSpawnTimeMs = 0;
+            _lastSpawnWasEvent = false;
             DanmakuCanvas.Invalidate();
         }
 
@@ -383,7 +408,9 @@ namespace KillConfirmGameBar.Danmaku
             DanmakuCanvas.Invalidate();
         }
 
-        private void RunOnOverlayThread(Action action)
+        private void RunOnOverlayThread(
+            Action action,
+            CoreDispatcherPriority priority = CoreDispatcherPriority.Normal)
         {
             if (action == null)
             {
@@ -399,14 +426,14 @@ namespace KillConfirmGameBar.Danmaku
                 return;
             }
 
-            _ = RunOnOverlayThreadAsync(action);
+            _ = RunOnOverlayThreadAsync(action, priority);
         }
 
-        private async Task RunOnOverlayThreadAsync(Action action)
+        private async Task RunOnOverlayThreadAsync(Action action, CoreDispatcherPriority priority)
         {
             try
             {
-                await _uiDispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+                await _uiDispatcher.RunAsync(priority, () =>
                 {
                     if (_isLoaded)
                     {
@@ -442,11 +469,16 @@ namespace KillConfirmGameBar.Danmaku
 
         private void SpawnPendingDanmaku()
         {
-            bool eventDensityActive = DateTimeOffset.UtcNow < _eventDensityUntil;
-            int visibleLimit = eventDensityActive
+            bool eventDensityActive = DateTimeOffset.UtcNow < _eventDensityUntil
+                || _pendingQueue.HasEventReaction
+                || HasActiveEventReaction();
+            int laneCount = eventDensityActive
                 ? DanmakuReactionPolicies.EventMaximumVisibleCount
                 : DanmakuReactionPolicies.ClampVisibleCount(DanmakuSettingsStore.Count);
-            if (_activeList.Count >= visibleLimit)
+            int activeLimit = eventDensityActive
+                ? DanmakuReactionPolicies.EventMaximumActiveCount
+                : laneCount;
+            if (_activeList.Count >= activeLimit)
             {
                 return;
             }
@@ -456,22 +488,43 @@ namespace KillConfirmGameBar.Danmaku
             IReadOnlyList<float> lanes = DanmakuLaneLayout.Build(
                 DanmakuSettingsStore.Area,
                 canvasHeight,
-                visibleLimit,
+                laneCount,
                 _cachedFontSize);
 
             DanmakuQueueItem pending;
-            while (_activeList.Count < visibleLimit && _pendingQueue.TryDequeue(out pending))
+            while (_activeList.Count < activeLimit && _pendingQueue.TryPeek(out pending))
             {
-                int laneIndex = FindFreeLane(visibleLimit);
+                long nowMs = _animationStopwatch.ElapsedMilliseconds;
+                bool isEvent = pending.Message != null && pending.Message.IsEventReaction;
+                long requiredInterval = isEvent ? EventMinSpawnIntervalMs : NormalMinSpawnIntervalMs;
+                long elapsedSinceSpawn = nowMs - _lastSpawnTimeMs;
+
+                if (_lastSpawnTimeMs > 0 && elapsedSinceSpawn < requiredInterval)
+                {
+                    bool allowImmediateEventFirst = isEvent && (!_lastSpawnWasEvent || elapsedSinceSpawn >= 120);
+                    if (!allowImmediateEventFirst)
+                    {
+                        return;
+                    }
+                }
+
+                string displayText = NormalizeForSingleLine(pending.Message.Text);
+                float measuredWidth = pending.MeasuredWidth > 0
+                    ? pending.MeasuredWidth
+                    : (pending.MeasuredWidth = MeasureTextWidth(displayText));
+                float startX = (float)canvasWidth + 12f;
+                float endX = -measuredWidth - 12f;
+                int laneIndex = FindAvailableLane(
+                    laneCount,
+                    startX,
+                    endX,
+                    pending.FlightDurationSeconds);
                 if (laneIndex < 0)
                 {
                     return;
                 }
 
-                string displayText = NormalizeForSingleLine(pending.Message.Text);
-                float measuredWidth = MeasureTextWidth(displayText);
-                float startX = (float)canvasWidth + 12f;
-                float endX = -measuredWidth - 12f;
+                _pendingQueue.Remove(pending);
                 _activeList.Add(new ActiveDanmaku
                 {
                     Text = displayText,
@@ -483,10 +536,26 @@ namespace KillConfirmGameBar.Danmaku
                     ElapsedSeconds = 0,
                     DurationSeconds = pending.FlightDurationSeconds,
                     LaneIndex = laneIndex,
-                    Color = GetRandomDanmakuColor(pending.Message.Role)
+                    Color = GetRandomDanmakuColor(pending.Message.Role),
+                    IsEventReaction = pending.Message.IsEventReaction
                 });
-                _nextLaneIndex = (laneIndex + 1) % visibleLimit;
+                _nextLaneIndex = (laneIndex + 1) % laneCount;
+                _lastSpawnTimeMs = nowMs;
+                _lastSpawnWasEvent = isEvent;
+                break;
             }
+        }
+
+        private bool HasActiveEventReaction()
+        {
+            for (int i = 0; i < _activeList.Count; i++)
+            {
+                if (_activeList[i].IsEventReaction)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         private static string NormalizeForSingleLine(string text)
@@ -518,26 +587,75 @@ namespace KillConfirmGameBar.Danmaku
             }
         }
 
-        private int FindFreeLane(int laneCount)
+        private int FindAvailableLane(
+            int laneCount,
+            float newStartX,
+            float newEndX,
+            double newDurationSeconds)
         {
+            int bestCandidate = -1;
+            float bestGap = -1f;
+
             for (int offset = 0; offset < laneCount; offset++)
             {
                 int candidate = (_nextLaneIndex + offset) % laneCount;
-                bool inUse = false;
+                bool isSafe = true;
+                float minGapInCandidate = float.MaxValue;
+                bool hasDanmakuInLane = false;
+
                 for (int i = 0; i < _activeList.Count; i++)
                 {
-                    if (_activeList[i].LaneIndex == candidate)
+                    ActiveDanmaku active = _activeList[i];
+                    if (active.LaneIndex != candidate)
                     {
-                        inUse = true;
+                        continue;
+                    }
+
+                    hasDanmakuInLane = true;
+                    float minimumGap = Math.Max(32f, _cachedFontSize * 1.75f);
+                    float currentGap = newStartX - (active.X + active.MeasuredWidth);
+                    if (currentGap < minimumGap)
+                    {
+                        isSafe = false;
                         break;
                     }
+                    if (currentGap < minGapInCandidate)
+                    {
+                        minGapInCandidate = currentGap;
+                    }
+
+                    double activeSpeed = (active.StartX - active.EndX)
+                        / Math.Max(0.1, active.DurationSeconds);
+                    double newSpeed = (newStartX - newEndX)
+                        / Math.Max(0.1, newDurationSeconds);
+                    if (newSpeed > activeSpeed)
+                    {
+                        double remainingSeconds = Math.Max(
+                            0.0,
+                            active.DurationSeconds - active.ElapsedSeconds);
+                        double secondsUntilMinimumGap = (currentGap - minimumGap)
+                            / (newSpeed - activeSpeed);
+                        if (secondsUntilMinimumGap < remainingSeconds)
+                        {
+                            isSafe = false;
+                            break;
+                        }
+                    }
                 }
-                if (!inUse)
+                if (isSafe)
                 {
-                    return candidate;
+                    if (!hasDanmakuInLane)
+                    {
+                        return candidate;
+                    }
+                    if (minGapInCandidate > bestGap)
+                    {
+                        bestGap = minGapInCandidate;
+                        bestCandidate = candidate;
+                    }
                 }
             }
-            return -1;
+            return bestCandidate;
         }
 
         private void OnDanmakuCanvasDraw(CanvasControl sender, CanvasDrawEventArgs args)
@@ -570,7 +688,7 @@ namespace KillConfirmGameBar.Danmaku
 
                 if (_cachedShowOutline)
                 {
-                    DrawOutline(session, danmaku, format);
+                    DrawOutline(session, danmaku, _cachedOutlineFormat ?? format);
                 }
 
                 session.DrawText(danmaku.Text, danmaku.X, danmaku.Y, danmaku.Color, format);
@@ -586,10 +704,6 @@ namespace KillConfirmGameBar.Danmaku
             session.DrawText(danmaku.Text, danmaku.X + 1.2f, danmaku.Y - 1.2f, TextOutlineColor, format);
             session.DrawText(danmaku.Text, danmaku.X - 1.2f, danmaku.Y + 1.2f, TextOutlineColor, format);
             session.DrawText(danmaku.Text, danmaku.X + 1.2f, danmaku.Y + 1.2f, TextOutlineColor, format);
-            session.DrawText(danmaku.Text, danmaku.X - 1.4f, danmaku.Y, TextOutlineColor, format);
-            session.DrawText(danmaku.Text, danmaku.X + 1.4f, danmaku.Y, TextOutlineColor, format);
-            session.DrawText(danmaku.Text, danmaku.X, danmaku.Y - 1.4f, TextOutlineColor, format);
-            session.DrawText(danmaku.Text, danmaku.X, danmaku.Y + 1.4f, TextOutlineColor, format);
         }
 
         private static Color GetRandomDanmakuColor(DanmakuMessageRole role)

@@ -38,7 +38,8 @@ namespace KillConfirmGameBar.Controls
                 + ":" + normalizedWeaponBadgeKey
                 + ":" + _killFxMode
                 + ":elite" + _eliteEffectLevel
-                + ":weapon" + _weaponBadgeMode;
+                + ":weapon" + _weaponBadgeMode
+                + ":style" + _mainAnimationStyle;
             if (!CodeKillCache.TryGetValue(cacheKey, out Code2KillAsset asset))
             {
                 string effectiveMainFileName = GetEffectiveMainFileName(normalizedAssetName, mainFileName);
@@ -54,7 +55,7 @@ namespace KillConfirmGameBar.Controls
                     : await LoadKillFxOverlayBitmapAsync(fxFileName, fxFolder);
                 CanvasBitmap eliteOverlay = await LoadEliteOverlayBitmapAsync(normalizedAssetName);
                 CanvasBitmap weaponBadgeOverlay = await LoadWeaponBadgeOverlayBitmapAsync(normalizedAssetName, normalizedWeaponBadgeKey);
-                asset = new Code2KillAsset(main, fx, eliteOverlay, weaponBadgeOverlay);
+                asset = new Code2KillAsset(main, fx, eliteOverlay, weaponBadgeOverlay) { Action = normalizedAssetName };
                 await LoadCrossfireExtraLayersAsync(asset, normalizedAssetName);
                 CodeKillCache[cacheKey] = asset;
             }
@@ -64,7 +65,7 @@ namespace KillConfirmGameBar.Controls
                 new SpriteMetadata
                 {
                     FrameWidth = (int)asset.FrameWidth,
-                    FrameHeight = (int)CodeKillFrameHeight,
+                    FrameHeight = (int)asset.FrameHeight,
                     Frames = 77,
                     Fps = FrameSequenceFps
                 },

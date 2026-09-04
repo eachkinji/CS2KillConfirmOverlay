@@ -86,9 +86,11 @@ namespace KillConfirmGameBar.Controls
 
                 HideLoadingProgress();
                 Visibility = Visibility.Visible;
-                _timer.Interval = TimeSpan.FromMilliseconds(1000.0 / FrameSequenceFps);
-                ShowFrame(0);
+                double samplingFps = _currentCodeAsset != null && _mainAnimationStyle == 2
+                    ? Math.Max(30, Math.Min(60, _targetPlaybackFps)) : FrameSequenceFps;
+                _timer.Interval = TimeSpan.FromMilliseconds(1000.0 / samplingFps);
                 _playbackClock.Restart();
+                ShowFrame(0);
                 _timer.Start();
             }
             catch (Exception ex)

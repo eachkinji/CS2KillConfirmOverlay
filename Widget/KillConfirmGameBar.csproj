@@ -237,6 +237,8 @@
     <Compile Include="Controls\Animations\Core\KillConfirmAnimation.Assets.cs" />
     <Compile Include="Controls\Animations\Core\KillConfirmAnimation.AssetOverlays.cs" />
     <Compile Include="Controls\Animations\Core\KillConfirmAnimation.CrossfireLayers.cs" />
+    <Compile Include="Controls\Animations\Core\CrossfireStyle2Motion.cs" />
+    <Compile Include="Controls\Animations\Core\KillConfirmAnimation.CrossfireStyle2.cs" />
     <Compile Include="Controls\Animations\Csol\CsolAnimation.Data.cs" />
     <Compile Include="Controls\Animations\Csol\CsolAnimation.Playback.cs" />
     <Compile Include="Controls\Animations\Csol\CsolAnimation.Resources.cs" />

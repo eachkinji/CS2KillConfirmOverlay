@@ -43,7 +43,7 @@ namespace KillConfirmGameBar.Controls
                 return null;
             }
 
-            if (!assetName.StartsWith("multi", StringComparison.OrdinalIgnoreCase))
+            if (_mainAnimationStyle != 2 && !assetName.StartsWith("multi", StringComparison.OrdinalIgnoreCase))
             {
                 return null;
             }
@@ -98,7 +98,7 @@ namespace KillConfirmGameBar.Controls
 
         private static bool SupportsWeaponBadgeForAsset(string assetName)
         {
-            return assetName.StartsWith("multi", StringComparison.OrdinalIgnoreCase);
+            return _mainAnimationStyle == 2 || assetName.StartsWith("multi", StringComparison.OrdinalIgnoreCase);
         }
 
         private static string GetEffectiveMainFileName(string assetName, string defaultMainFileName)

@@ -193,6 +193,7 @@ namespace KillConfirmGameBar.Controls
 
             CodeKillCache.Clear();
             ClearCrossfireExtraCache();
+            ImportedCodeFileIndexes.Clear();
             CsolKillCache.Clear();
             ClearBattlefieldIconCache();
             ClearBattlefield4IconCache();
@@ -210,6 +211,8 @@ namespace KillConfirmGameBar.Controls
             }
             ReleaseValorantTextureCache();
             _startupPreloadTask = null;
+            _cfPreloadTask = null;
+            _cfPreloadSignature = null;
         }
 
         public static void ConfigureEliteEffectLevel(int eliteLevel)
@@ -221,7 +224,6 @@ namespace KillConfirmGameBar.Controls
             }
 
             _eliteEffectLevel = normalized;
-            CodeKillCache.Clear();
         }
 
         public static void ConfigureWeaponBadgeEnabled(bool enabled)
@@ -238,7 +240,6 @@ namespace KillConfirmGameBar.Controls
             }
 
             _weaponBadgeMode = normalized;
-            CodeKillCache.Clear();
         }
 
         public static void ConfigureMainAnimationStyle(int style)
@@ -267,7 +268,6 @@ namespace KillConfirmGameBar.Controls
             _customPackHasKillFx = hasKillFxOverlay;
             _customPackHasEliteOverlay = hasEliteOverlay;
             _customPackHasWeaponBadgeOverlay = hasWeaponBadgeOverlay;
-            CodeKillCache.Clear();
         }
 
         public static bool GetCustomPackHasKillFx() => _customPackHasKillFx;
@@ -283,7 +283,6 @@ namespace KillConfirmGameBar.Controls
             }
 
             _killFxMode = normalized;
-            CodeKillCache.Clear();
         }
 
 

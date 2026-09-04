@@ -16,10 +16,12 @@ namespace KillConfirmGameBar
                 // Built-in pack 鈥?FX handled by built-in logic, no override needed
                 Controls.KillConfirmAnimation.ConfigureCustomPackOverlayCapabilities(false, false, false);
                 LoadKillFxSetting();
+                WarmStartupAnimationCacheIfActive();
                 return;
             }
 
             IconPackItem item = await PackCatalogService.RefreshImportedIconPackCapabilitiesAsync(iconPack);
+            if (!string.Equals(iconPack, GetSelectedIconPack(), StringComparison.OrdinalIgnoreCase)) return;
             bool hasKillFx = item?.HasKillFxOverlay == true;
             bool hasEliteOverlay = item?.HasEliteOverlay == true;
             bool hasWeaponBadgeOverlay = item?.HasWeaponBadgeOverlay == true;
@@ -72,6 +74,7 @@ namespace KillConfirmGameBar
             int eliteLevel = GetSelectedEliteEffectLevel();
             ApplicationData.Current.LocalSettings.Values[EliteEffectSettingKey] = eliteLevel;
             Controls.KillConfirmAnimation.ConfigureEliteEffectLevel(eliteLevel);
+            WarmStartupAnimationCacheIfActive();
         }
 
         private void OnKillFxSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -84,6 +87,7 @@ namespace KillConfirmGameBar
             int mode = GetSelectedKillFxMode();
             ApplicationData.Current.LocalSettings.Values[KillFxSettingKey] = mode;
             Controls.KillConfirmAnimation.ConfigureKillFxMode(mode);
+            WarmStartupAnimationCacheIfActive();
         }
 
         private void OnWeaponBadgeSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -96,6 +100,7 @@ namespace KillConfirmGameBar
             int mode = GetSelectedWeaponBadgeMode();
             ApplicationData.Current.LocalSettings.Values[WeaponBadgeSettingKey] = mode;
             Controls.KillConfirmAnimation.ConfigureWeaponBadgeMode(mode);
+            WarmStartupAnimationCacheIfActive();
         }
 
         private void OnMainAnimationStyleSelectionChanged(object sender, SelectionChangedEventArgs e)

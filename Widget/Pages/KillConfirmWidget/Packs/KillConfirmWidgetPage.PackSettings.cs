@@ -63,10 +63,6 @@ namespace KillConfirmGameBar
             UpdateKillFxSelectorState();
             UpdateWeaponBadgeSelectorState();
 
-            if (_isPageActive)
-            {
-                _ = WarmStartupAnimationCacheAsync(0);
-            }
         }
 
         private async Task SyncValorantVoicePackAfterIconSelectionAsync()

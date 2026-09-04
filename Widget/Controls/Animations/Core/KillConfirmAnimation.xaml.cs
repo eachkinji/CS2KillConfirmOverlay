@@ -193,7 +193,11 @@ namespace KillConfirmGameBar.Controls
                 return;
             }
 
-            PlayInternal(progress => LoadCodeKillAssetAsync(assetName, weaponBadgeKey, progress));
+            string action = assetName.Trim().ToLowerInvariant();
+            string badge = SupportsWeaponBadgeForAsset(action) ? NormalizeWeaponBadgeKey(weaponBadgeKey) : string.Empty;
+            CodeKillCache.TryGetValue(GetCodeKillCacheKey(action, badge), out Code2KillAsset cached);
+            PlayInternal(progress => LoadCodeKillAssetAsync(action, badge, progress), false,
+                cached == null ? null : CreateCodeKillAnimationAsset(cached));
         }
 
         public void PlayNativeValorantKill(string packKey, int killCount, bool isHeadshot)

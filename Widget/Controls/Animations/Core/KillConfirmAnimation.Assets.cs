@@ -33,34 +33,59 @@ namespace KillConfirmGameBar.Controls
             string normalizedWeaponBadgeKey = SupportsWeaponBadgeForAsset(normalizedAssetName)
                 ? NormalizeWeaponBadgeKey(weaponBadgeKey)
                 : string.Empty;
-            string cacheKey = _iconPack
-                + ":" + normalizedAssetName
-                + ":" + normalizedWeaponBadgeKey
-                + ":" + _killFxMode
-                + ":elite" + _eliteEffectLevel
-                + ":weapon" + _weaponBadgeMode
-                + ":style" + _mainAnimationStyle;
+            int generation = _resourceGeneration;
+            string cacheKey = GetCodeKillCacheKey(normalizedAssetName, normalizedWeaponBadgeKey);
             if (!CodeKillCache.TryGetValue(cacheKey, out Code2KillAsset asset))
             {
-                string effectiveMainFileName = GetEffectiveMainFileName(normalizedAssetName, mainFileName);
-                CanvasBitmap main = await LoadMainCodeKillBitmapAsync(
-                    normalizedAssetName,
-                    mainFileName,
-                    effectiveMainFileName,
-                    mainFolder,
-                    alternatePackFolder);
-                progress?.Report(50);
-                CanvasBitmap fx = string.IsNullOrWhiteSpace(fxFileName)
-                    ? null
-                    : await LoadKillFxOverlayBitmapAsync(fxFileName, fxFolder);
-                CanvasBitmap eliteOverlay = await LoadEliteOverlayBitmapAsync(normalizedAssetName);
-                CanvasBitmap weaponBadgeOverlay = await LoadWeaponBadgeOverlayBitmapAsync(normalizedAssetName, normalizedWeaponBadgeKey);
-                asset = new Code2KillAsset(main, fx, eliteOverlay, weaponBadgeOverlay) { Action = normalizedAssetName };
-                await LoadCrossfireExtraLayersAsync(asset, normalizedAssetName);
+                CodeKillCache.TryGetValue(GetCodeKillCacheKey(normalizedAssetName, string.Empty), out Code2KillAsset baseAsset);
+                if (baseAsset != null)
+                {
+                    asset = new Code2KillAsset(baseAsset.Main, baseAsset.Fx, baseAsset.Overlay,
+                        await LoadWeaponBadgeOverlayBitmapAsync(normalizedAssetName, normalizedWeaponBadgeKey))
+                    { Action = normalizedAssetName, EventOverlay = baseAsset.EventOverlay, Sequence = baseAsset.Sequence };
+                }
+                else
+                {
+                    string effectiveMainFileName = GetEffectiveMainFileName(normalizedAssetName, mainFileName);
+                    CanvasBitmap main = await LoadMainCodeKillBitmapAsync(
+                        normalizedAssetName,
+                        mainFileName,
+                        effectiveMainFileName,
+                        mainFolder,
+                        alternatePackFolder);
+                    progress?.Report(50);
+                    CanvasBitmap fx = string.IsNullOrWhiteSpace(fxFileName)
+                        ? null
+                        : await LoadKillFxOverlayBitmapAsync(fxFileName, fxFolder);
+                    CanvasBitmap eliteOverlay = await LoadEliteOverlayBitmapAsync(normalizedAssetName);
+                    CanvasBitmap weaponBadgeOverlay = await LoadWeaponBadgeOverlayBitmapAsync(normalizedAssetName, normalizedWeaponBadgeKey);
+                    asset = new Code2KillAsset(main, fx, eliteOverlay, weaponBadgeOverlay) { Action = normalizedAssetName };
+                    await LoadCrossfireExtraLayersAsync(asset, normalizedAssetName);
+                }
+                if (generation != _resourceGeneration || cacheKey != GetCodeKillCacheKey(normalizedAssetName, normalizedWeaponBadgeKey))
+                {
+                    var owned = new HashSet<CanvasBitmap> { asset.WeaponBadge };
+                    if (baseAsset == null) { owned.Add(asset.Main); owned.Add(asset.Fx); owned.Add(asset.Overlay); }
+                    foreach (CanvasBitmap bitmap in owned) bitmap?.Dispose();
+                    throw new OperationCanceledException("CF preload settings changed.");
+                }
                 CodeKillCache[cacheKey] = asset;
             }
 
             progress?.Report(100);
+            return CreateCodeKillAnimationAsset(asset);
+        }
+
+        private static string GetCodeKillCacheKey(string action, string badge)
+        {
+            return _iconPack + ":" + action + ":" + badge + ":" + _killFxMode
+                + ":elite" + _eliteEffectLevel + ":weapon" + _weaponBadgeMode + ":style" + _mainAnimationStyle
+                + ":brightness" + _brightnessBoost + ":contrast" + _contrastBoost
+                + ":capabilities" + _customPackHasKillFx + _customPackHasEliteOverlay + _customPackHasWeaponBadgeOverlay;
+        }
+
+        private static AnimationAsset CreateCodeKillAnimationAsset(Code2KillAsset asset)
+        {
             return new AnimationAsset(
                 new SpriteMetadata
                 {
@@ -337,20 +362,38 @@ namespace KillConfirmGameBar.Controls
             }
         }
 
+        private static readonly Dictionary<string, Task<Dictionary<string, StorageFile>>> ImportedCodeFileIndexes
+            = new Dictionary<string, Task<Dictionary<string, StorageFile>>>();
+
+        private static async Task<Dictionary<string, StorageFile>> IndexImportedCodeFilesAsync(StorageFolder folder)
+        {
+            var files = new Dictionary<string, StorageFile>(StringComparer.OrdinalIgnoreCase);
+            foreach (StorageFile file in await folder.GetFilesAsync()) files[file.Name] = file;
+            foreach (string child in new[] { "Sprite", "badgeex" })
+            {
+                try
+                {
+                    StorageFolder subfolder = await folder.GetFolderAsync(child);
+                    foreach (StorageFile file in await subfolder.GetFilesAsync()) files[child + "\\" + file.Name] = file;
+                }
+                catch (FileNotFoundException) { }
+                catch (DirectoryNotFoundException) { }
+            }
+            return files;
+        }
+
         private static async Task<StorageFile> TryGetImportedIconFileAsync(StorageFolder folder, string canonicalFileName)
         {
-            foreach (string candidate in CrossfirePackFormat.Candidates(canonicalFileName))
+            if (!ImportedCodeFileIndexes.TryGetValue(folder.Path, out Task<Dictionary<string, StorageFile>> index))
             {
-                foreach (string child in new[] { "", "Sprite\\", "badgeex\\" })
-                {
-                    foreach (string extension in ImportedIconImageExtensions)
-                    {
-                        StorageFile candidateFile = await TryGetImportedIconFileExactAsync(folder, child + Path.ChangeExtension(candidate, extension));
-                        if (candidateFile != null) return candidateFile;
-                    }
-                }
+                index = IndexImportedCodeFilesAsync(folder);
+                ImportedCodeFileIndexes[folder.Path] = index;
             }
-
+            Dictionary<string, StorageFile> files = await index;
+            foreach (string candidate in CrossfirePackFormat.Candidates(canonicalFileName))
+                foreach (string child in new[] { "", "Sprite\\", "badgeex\\" })
+                    foreach (string extension in ImportedIconImageExtensions)
+                        if (files.TryGetValue(child + Path.ChangeExtension(candidate, extension), out StorageFile file)) return file;
             return null;
         }
 

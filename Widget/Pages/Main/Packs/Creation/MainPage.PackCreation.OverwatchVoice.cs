@@ -19,6 +19,8 @@ namespace KillConfirmGameBar
             IReadOnlyDictionary<string, IReadOnlyList<StorageFile>> initialFiles = null,
             StorageFile initialHeadImageFile = null)
         {
+            if (await TryBatchImportVoiceAsync(initialFiles, initialHeadImageFile, PackCatalogService.CreateOverwatchVoicePackAsync)) return;
+
             bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
             var selectedFiles = CreateVoiceSelectionMap(initialFiles);
             StorageFile headImageFile = initialHeadImageFile;

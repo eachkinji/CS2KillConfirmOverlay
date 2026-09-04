@@ -21,6 +21,8 @@ namespace KillConfirmGameBar
             IReadOnlyDictionary<string, StorageFile> initialFiles = null,
             StorageFile initialHeadImageFile = null)
         {
+            if (await TryBatchImportIconAsync(initialFiles, initialHeadImageFile, PackCatalogService.CreateCsolIconPackAsync)) return;
+
             var slots = new (string FileName, string Label)[PackCatalogService.CsolIconSlotFileNames.Count];
             for (int i = 0; i < PackCatalogService.CsolIconSlotFileNames.Count; i++)
             {

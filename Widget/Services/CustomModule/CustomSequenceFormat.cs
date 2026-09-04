@@ -125,12 +125,12 @@ namespace KillConfirmGameBar.Services
         {
             string path = (name ?? "").Replace('\\', '/');
             if (path.Length == 0 || path.StartsWith("/") || path.Length > 240)
-                throw new InvalidDataException("Unsafe ZIP path / ZIP 路径不安全。");
+                throw new InvalidDataException("Unsafe icon pack path / 图标包路径不安全。");
             foreach (string part in path.TrimEnd('/').Split('/'))
             {
                 if (string.IsNullOrWhiteSpace(part) || part == "." || part == ".."
                     || part.EndsWith(".") || part.EndsWith(" ") || part.IndexOfAny(new[] { ':', '*', '?', '"', '<', '>', '|', '\0' }) >= 0)
-                    throw new InvalidDataException("Unsafe ZIP path / ZIP 路径不安全。");
+                    throw new InvalidDataException("Unsafe icon pack path / 图标包路径不安全。");
             }
             return path;
         }

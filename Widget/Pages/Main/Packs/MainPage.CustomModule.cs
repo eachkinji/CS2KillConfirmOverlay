@@ -426,6 +426,13 @@ namespace KillConfirmGameBar
                     if (folder == null) return;
                     import = (progress, warnings) => CustomSequencePackService.ImportFolderAsync(folder, progress, warnings: warnings);
                 }
+                if (_batchPackImport)
+                {
+                    var warnings = new List<string>();
+                    await import(null, warnings);
+                    _packImportNotes.AddRange(warnings.Select(note => _providedPackZipFile.Name + ": " + note));
+                    return;
+                }
                 var progressText = new TextBlock { Text = chinese ? "正在解析图标包…" : "Reading icon pack…", TextWrapping = TextWrapping.Wrap };
                 var dialog = new ContentDialog { Title = title, Content = progressText };
                 bool running = true;
@@ -439,7 +446,7 @@ namespace KillConfirmGameBar
                     + (chinese ? "\n已加入图标包库，可在库中编辑；效果测试使用现有测试功能。" : "\nAdded to the icon library. Edit it there and use the existing tests.")
                     + (notes.Count == 0 ? "" : "\n\n" + string.Join("\n", notes.Distinct())));
             }
-            catch (Exception ex) { await ShowMessageAsync(title, ex.Message); }
+            catch (Exception ex) { if (_batchPackImport) throw; await ShowMessageAsync(title, ex.Message); }
         }
 
         private async Task ExportCustomModuleAsync(IconPackItem pack)
@@ -447,11 +454,11 @@ namespace KillConfirmGameBar
             try
             {
                 var picker = new FileSavePicker { SuggestedFileName = pack.DisplayName };
-                picker.FileTypeChoices.Add("CS2 Customizer ZIP", new[] { ".zip" });
+                picker.FileTypeChoices.Add("Icon pack", new[] { ".zip" });
                 var file = await picker.PickSaveFileAsync();
                 if (file != null) await CustomSequencePackService.ExportAsync(pack.Key, file);
             }
-            catch (Exception ex) { await ShowMessageAsync("Export ZIP / 导出 ZIP", ex.Message); }
+            catch (Exception ex) { await ShowMessageAsync("Export icon pack / 导出图标包", ex.Message); }
         }
 
         // The library's create/edit action edits assets, never the active selection
@@ -469,8 +476,8 @@ namespace KillConfirmGameBar
                 var notes = new List<string>();
                 var initial = original == null ? new List<CustomSequenceInput>() : await CustomSequencePackService.ReadInputsAsync(original, notes);
                 var layout = CreatePackDialogLayout(title,
-                    chinese ? "这里按击杀等级单独添加素材：先选择导入方式，再选择对应文件。单槽不会扫描或猜测目录结构；整套目录/ZIP 的自动解析请使用图标包库上方的“导入整包”。"
-                        : "Add assets to each kill level: choose an input mode first, then its files. A slot never scans or guesses a folder layout; use Import full pack above for automatic folder/ZIP parsing.",
+                    chinese ? "这里按击杀等级单独添加素材：先选择导入方式，再选择对应文件。单槽不会扫描或猜测目录结构；导入完整图标包请使用图标包库上方的“导入图标包”。"
+                        : "Add assets to each kill level: choose an input mode first, then its files. A slot never scans or guesses a folder layout; use Import icon pack above to read a complete icon pack.",
                     LocalizationManager.Text("IconPackNamePlaceholder"), existing?.DisplayName, out TextBox name);
                 StorageFile headImageFile = original == null
                     ? null

@@ -311,21 +311,13 @@
                                         Spacing="8"
                                         VerticalAlignment="Center">
                                         <Button
-                                            x:Name="ImportVoiceMaterialButton"
-                                            Style="{StaticResource SettingsHeaderButtonStyle}"
-                                            Click="OnImportVoiceMaterialClick" />
-                                        <Button
-                                            x:Name="ImportVoicePackButton"
-                                            Style="{StaticResource SettingsHeaderButtonStyle}"
-                                            Click="OnImportVoicePackClick" />
-                                        <Button
                                             x:Name="ImportVoiceZipButton"
                                             Style="{StaticResource SettingsHeaderButtonStyle}"
                                             Click="OnImportVoiceZipClick" />
                                         <Button
-                                            x:Name="CreateVoicePackButton"
-                                            Style="{StaticResource SettingsPrimaryButtonStyle}"
-                                            Click="OnCreateVoicePackClick" />
+                                            x:Name="BatchImportVoiceZipButton"
+                                            Style="{StaticResource SettingsHeaderButtonStyle}"
+                                            Click="OnBatchImportVoiceZipClick" />
                                     </StackPanel>
                                 </Grid>
 
@@ -376,17 +368,13 @@
                                         Spacing="8"
                                         VerticalAlignment="Center">
                                         <Button
-                                            x:Name="ImportIconMaterialButton"
-                                            Style="{StaticResource SettingsHeaderButtonStyle}"
-                                            Click="OnImportIconMaterialClick" />
-                                        <Button
-                                            x:Name="ImportIconPackButton"
-                                            Style="{StaticResource SettingsHeaderButtonStyle}"
-                                            Click="OnImportIconPackClick" />
-                                        <Button
                                             x:Name="ImportIconZipButton"
                                             Style="{StaticResource SettingsHeaderButtonStyle}"
                                             Click="OnImportIconZipClick" />
+                                        <Button
+                                            x:Name="BatchImportIconZipButton"
+                                            Style="{StaticResource SettingsHeaderButtonStyle}"
+                                            Click="OnBatchImportIconZipClick" />
                                         <Button
                                             x:Name="CreateIconPackButton"
                                             Style="{StaticResource SettingsPrimaryButtonStyle}"

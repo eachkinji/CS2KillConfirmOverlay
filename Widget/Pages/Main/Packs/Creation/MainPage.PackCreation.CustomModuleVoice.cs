@@ -17,6 +17,8 @@ namespace KillConfirmGameBar
             IReadOnlyDictionary<string, IReadOnlyList<StorageFile>> initialFiles = null,
             StorageFile initialHeadImageFile = null)
         {
+            if (await TryBatchImportVoiceAsync(initialFiles, initialHeadImageFile, PackCatalogService.CreateCustomModuleVoicePackAsync)) return;
+
             bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
             var slots = new (string FileName, string Label)[]
             {

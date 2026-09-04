@@ -471,7 +471,7 @@ namespace KillConfirmGameBar
                 SuggestedStartLocation = PickerLocationId.Downloads,
                 SuggestedFileName = SanitizeExportFileName(displayName)
             };
-            picker.FileTypeChoices.Add("ZIP", new List<string> { ".zip" });
+            picker.FileTypeChoices.Add("Audio / icon pack", new List<string> { ".zip" });
             StorageFile destination = await picker.PickSaveFileAsync();
             if (destination == null)
             {

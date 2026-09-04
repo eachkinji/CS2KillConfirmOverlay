@@ -22,6 +22,8 @@ namespace KillConfirmGameBar
             StorageFile initialHeadImageFile = null,
             string defaultHeadPreviewUri = null)
         {
+            if (await TryBatchImportVoiceAsync(initialFiles, initialHeadImageFile, PackCatalogService.CreateValorantVoicePackAsync)) return;
+
             bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
             var slots = new (string FileName, string Label)[]
             {

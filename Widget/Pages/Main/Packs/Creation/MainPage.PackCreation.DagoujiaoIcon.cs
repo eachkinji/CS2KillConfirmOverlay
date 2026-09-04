@@ -29,6 +29,8 @@ namespace KillConfirmGameBar
             IReadOnlyDictionary<string, StorageFile> initialFiles = null,
             StorageFile initialHeadImageFile = null)
         {
+            if (await TryBatchImportIconAsync(initialFiles, initialHeadImageFile, PackCatalogService.CreateDagoujiaoIconPackAsync)) return;
+
             var selectedFiles = initialFiles != null
                 ? new Dictionary<string, StorageFile>(initialFiles, StringComparer.OrdinalIgnoreCase)
                 : new Dictionary<string, StorageFile>(StringComparer.OrdinalIgnoreCase);

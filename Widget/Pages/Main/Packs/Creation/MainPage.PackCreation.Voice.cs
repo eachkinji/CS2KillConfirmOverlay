@@ -18,6 +18,8 @@ namespace KillConfirmGameBar
             StorageFile initialCommonOverlayFile = null,
             StorageFile initialHeadImageFile = null)
         {
+            if (await TryBatchImportVoiceAsync(initialFiles, initialHeadImageFile, PackCatalogService.CreateVoicePackAsync, initialCommonOverlayFile)) return;
+
             var slots = new[]
             {
                 ("common.wav", LocalizationManager.Text("SingleKill")),

@@ -93,17 +93,17 @@ namespace KillConfirmGameBar.Services
                 using (var archive = new ZipArchive(input, ZipArchiveMode.Read))
                 {
                     if (archive.Entries.Count > CustomSequenceFormat.MaxArchiveEntries)
-                        throw new InvalidDataException("Too many ZIP entries / ZIP 文件数量过多。");
+                        throw new InvalidDataException("Too many icon pack entries / 图标包内文件数量过多。");
                     long total = 0;
                     var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                     foreach (ZipArchiveEntry entry in archive.Entries)
                     {
                         string path = CustomSequenceFormat.SafeArchivePath(entry.FullName);
                         if (!names.Add(path.TrimEnd('/')) || ((entry.ExternalAttributes >> 16) & 0xf000) == 0xa000)
-                            throw new InvalidDataException("Duplicate path or symbolic link / ZIP 含重复路径或符号链接。");
+                            throw new InvalidDataException("Duplicate path or symbolic link / 图标包含重复路径或符号链接。");
                         total = checked(total + entry.Length);
                         if (total > CustomSequenceFormat.MaxArchiveBytes || entry.Length / (double)Math.Max(1, entry.CompressedLength) > 500)
-                            throw new InvalidDataException("ZIP exceeds extraction limits / ZIP 超出安全解压限制。");
+                            throw new InvalidDataException("Icon pack exceeds extraction limits / 图标包超出安全解压限制。");
                     }
                     long copied = 0;
                     foreach (ZipArchiveEntry entry in archive.Entries)
@@ -126,7 +126,7 @@ namespace KillConfirmGameBar.Services
                                 entryBytes += read;
                                 copied += read;
                                 if (entryBytes > entry.Length || copied > CustomSequenceFormat.MaxArchiveBytes)
-                                    throw new InvalidDataException("ZIP size mismatch / ZIP 解压大小异常。");
+                                    throw new InvalidDataException("Icon pack size mismatch / 图标包解压大小异常。");
                                 await target.WriteAsync(buffer, 0, read);
                             }
                         }

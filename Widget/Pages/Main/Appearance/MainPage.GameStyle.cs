@@ -57,11 +57,9 @@ namespace KillConfirmGameBar
             GameThemePalette theme = _isHomePageSelected ? GameThemePalette.Home : GameThemePalette.ForMode(mode);
 
             Visibility iconCreationVisibility = overwatch || modernWarfare2019 || apex ? Visibility.Collapsed : Visibility.Visible;
-            if (ImportIconMaterialButton != null) ImportIconMaterialButton.Visibility = iconCreationVisibility;
-            if (ImportIconPackButton != null) ImportIconPackButton.Visibility = iconCreationVisibility;
             if (ImportIconZipButton != null) ImportIconZipButton.Visibility = iconCreationVisibility;
+            if (BatchImportIconZipButton != null) BatchImportIconZipButton.Visibility = iconCreationVisibility;
             if (CreateIconPackButton != null) CreateIconPackButton.Visibility = iconCreationVisibility;
-            if (mode == GameStyleMode.CustomModule && ImportIconMaterialButton != null) ImportIconMaterialButton.Visibility = Visibility.Collapsed;
             VoicePackCollectionsCard.Visibility = Visibility.Visible;
             VoiceCollectionsCard.Visibility = Visibility.Visible;
 
@@ -178,11 +176,10 @@ namespace KillConfirmGameBar
             ApplyCardTheme(VoiceCollectionsCard, theme);
             ApplyCardTheme(IconCollectionsCard, theme);
 
-            ApplyButtonTheme(ImportVoicePackButton, theme, false);
             ApplyButtonTheme(ImportVoiceZipButton, theme, false);
-            ApplyButtonTheme(CreateVoicePackButton, theme, true);
-            ApplyButtonTheme(ImportIconPackButton, theme, false);
             ApplyButtonTheme(ImportIconZipButton, theme, false);
+            ApplyButtonTheme(BatchImportIconZipButton, theme, false);
+            ApplyButtonTheme(BatchImportVoiceZipButton, theme, false);
             ApplyButtonTheme(CreateIconPackButton, theme, true);
             ApplyButtonTheme(IconSpecToggleButton, theme, false);
             ApplyPackCardTheme(VoicePackListPanel, theme);

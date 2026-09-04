@@ -82,6 +82,8 @@ namespace KillConfirmGameBar
             StorageFile initialHeadImageFile = null,
             string defaultHeadPreviewUri = null)
         {
+            if (await TryBatchImportIconAsync(initialFiles, initialHeadImageFile, createHandler)) return;
+
             var selectedFiles = initialFiles != null
                 ? new Dictionary<string, StorageFile>(initialFiles, StringComparer.OrdinalIgnoreCase)
                 : new Dictionary<string, StorageFile>(StringComparer.OrdinalIgnoreCase);

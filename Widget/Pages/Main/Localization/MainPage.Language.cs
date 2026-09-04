@@ -66,39 +66,16 @@ namespace KillConfirmGameBar
                 : gameName + " " + (isChinese ? "战斗与特效设置" : "Combat & Effects Settings");
             StructureTitleText.Text = gameName + " " + (isChinese ? "资源包制作指南" : "Resource Pack Guide");
 
-            if (currentMode == GameStyleMode.Csol)
-            {
-                ImportVoiceMaterialButton.Content = LocalizationManager.Text("ImportCsolVoiceMaterial");
-                ImportVoicePackButton.Content = LocalizationManager.Text("ImportCsolVoicePack");
-                ImportVoiceZipButton.Content = LocalizationManager.Text("ImportCsolVoiceZip");
-                CreateVoicePackButton.Content = LocalizationManager.Text("CreateCsolVoicePack");
-                ImportIconMaterialButton.Content = LocalizationManager.Text("ImportCsolIconMaterial");
-                ImportIconPackButton.Content = LocalizationManager.Text("ImportCsolIconPack");
-                ImportIconZipButton.Content = LocalizationManager.Text("ImportCsolIconZip");
-                CreateIconPackButton.Content = LocalizationManager.Text("CreateCsolIconPack");
-            }
-            else
-            {
-                ImportVoiceMaterialButton.Content = isChinese ? "导入语音素材" : "Import Voice Material";
-                ImportVoicePackButton.Content = LocalizationManager.Text("ImportVoicePack");
-                ImportVoiceZipButton.Content = LocalizationManager.Text("ImportZip");
-                CreateVoicePackButton.Content = LocalizationManager.Text("CreateVoicePack");
-                ImportIconMaterialButton.Content = isChinese ? "导入图标素材" : "Import Icon Material";
-                ImportIconPackButton.Content = currentMode == GameStyleMode.CustomModule
-                    ? (isChinese ? "导入整包目录" : "Import full folder")
-                    : LocalizationManager.Text("ImportIconPack");
-                ImportIconZipButton.Content = currentMode == GameStyleMode.CustomModule
-                    ? (isChinese ? "导入整包 ZIP" : "Import full ZIP")
-                    : LocalizationManager.Text("ImportZip");
-                CreateIconPackButton.Content = currentMode == GameStyleMode.CustomModule
-                    ? (isChinese ? "新建自定义包" : "New custom pack")
-                    : LocalizationManager.Text("CreateIconPack");
-            }
+            ImportVoiceZipButton.Content = isChinese ? "导入音频包" : "Import audio pack";
+            BatchImportVoiceZipButton.Content = isChinese ? "批量导入音频包" : "Import audio packs";
+            ImportIconZipButton.Content = isChinese ? "导入图标包" : "Import icon pack";
+            BatchImportIconZipButton.Content = isChinese ? "批量导入图标包" : "Import icon packs";
+            CreateIconPackButton.Content = isChinese ? "新建图标包" : "New icon pack";
 
             if (currentMode == GameStyleMode.CustomModule)
                 IconCollectionsHintText.Text = isChinese
-                    ? "整包目录/ZIP 会自动解析；新建或编辑时，每个击杀槽位严格按所选导入方式读取。"
-                    : "Full folders/ZIPs are parsed automatically. New and edited slots follow the selected input mode exactly.";
+                    ? "导入图标包或一次批量导入多个图标包，也可以新建和编辑图标包。"
+                    : "Import one or more icon packs, or create and edit an icon pack.";
 
             if (HomeTabGeneralButton != null) HomeTabGeneralButton.Content = LocalizationManager.Text("HomeTabGeneral");
             if (HomeTabPortButton != null) HomeTabPortButton.Content = LocalizationManager.Text("HomeTabPort");
@@ -185,8 +162,8 @@ namespace KillConfirmGameBar
                         : "Choose images or frame folders when customizing; sheets are generated automatically. Packs support kills 1–5, headshot variants and names such as kill1, ace or 三杀.";
                     iconFull = "style.json (optional)\n1.png + 1.json … 5.png + 5.json\n1hs.png + 1hs.json … 5hs.png + 5hs.json (optional)\nLegacy: 1/ … 5/ or kill1-1/ … kill1-5/";
                     fileHint = isChinese
-                        ? "语音共有 10 种事件；空槽按同级普通语音、1 杀爆头、1 杀普通语音的顺序回退。图标整包请选择目录或 ZIP，单组帧图片请点“自定义”。"
-                        : "Voice packs expose 10 events. Empty slots fall back through same-level normal, kill-1 headshot, then kill-1 normal. Import icon packs as folders or ZIPs, or use Customize for one sequence.";
+                        ? "语音共有 10 种事件；空槽按同级普通语音、1 杀爆头、1 杀普通语音的顺序回退。请选择图标包导入，或通过“新建图标包”配置单组帧图片。"
+                        : "Voice packs expose 10 events. Empty slots fall back through same-level normal, kill-1 headshot, then kill-1 normal. Import icon packs, or choose New icon pack for one sequence.";
                     break;
 
                 case GameStyleMode.Apex:

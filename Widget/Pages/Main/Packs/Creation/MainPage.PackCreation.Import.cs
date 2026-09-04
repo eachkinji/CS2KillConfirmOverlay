@@ -40,6 +40,12 @@ namespace KillConfirmGameBar
             CreateVoicePackButton.IsEnabled = !busy;
             CreateIconPackButton.IsEnabled = !busy;
             GameStyleSidebarSelector.IsEnabled = !busy;
+            if (!busy)
+            {
+                _loadedVoicePackStyle = null;
+                _loadedIconPackStyle = null;
+                _ = EnsureActivePackListLoadedAsync();
+            }
         }
 
         private async Task PickAndImportPackFilesAsync(bool isVoice, bool multiple)
@@ -80,8 +86,18 @@ namespace KillConfirmGameBar
             PackImportQueueResult result = null;
             string title = chinese ? (isVoice ? "批量导入音频包" : "批量导入图标包")
                 : (isVoice ? "Import audio packs" : "Import icon packs");
-            var progress = new TextBlock { TextWrapping = TextWrapping.Wrap };
-            var dialog = new ContentDialog { Title = title, Content = progress };
+            var theme = GameThemePalette.Current;
+            var progress = new TextBlock { TextWrapping = TextWrapping.Wrap, FontSize = 14, Foreground = new SolidColorBrush(theme.Text) };
+            var progressBar = new ProgressBar { Minimum = 0, Maximum = files.Count, Height = 6, Foreground = new SolidColorBrush(theme.Accent), Background = new SolidColorBrush(theme.AccentSoft) };
+            var status = new StackPanel { Spacing = 16 };
+            status.Children.Add(progress);
+            status.Children.Add(progressBar);
+            status.Children.Add(new TextBlock
+            {
+                Text = chinese ? "正在整理包内素材，请稍候。完成后会显示导入结果。" : "Preparing pack files. Results will appear when the import finishes.",
+                FontSize = 12, Foreground = new SolidColorBrush(theme.MutedText), TextWrapping = TextWrapping.Wrap
+            });
+            var dialog = CreatePackStatusDialog(title, status);
             bool running = true;
             dialog.Closing += (sender, args) => args.Cancel = running;
             Windows.Foundation.IAsyncOperation<ContentDialogResult> showing = null;
@@ -97,7 +113,7 @@ namespace KillConfirmGameBar
                         if (isVoice) await ImportVoiceZipForCurrentStyleAsync();
                         else await ImportIconZipForCurrentStyleAsync();
                     }
-                    finally { _providedPackZipFile = null; }
+                    finally { _providedPackZipFile = null; progressBar.Value = index + 1; }
                 });
             }
             finally
@@ -109,6 +125,8 @@ namespace KillConfirmGameBar
             }
             if (batch)
             {
+                if (GameStyleService.Current == GameStyleMode.Valorant)
+                    await PackCatalogService.RefreshValorantExternalPacksAsync();
                 string summary = chinese ? $"导入完成：成功 {result.Succeeded} 个，失败 {result.Failures.Count} 个。"
                     : $"Import complete: {result.Succeeded} succeeded, {result.Failures.Count} failed.";
                 var details = result.Failures.Concat(_packImportNotes).ToList();
@@ -357,8 +375,8 @@ namespace KillConfirmGameBar
                 ValorantPackageInstallResult installed = await ValorantExternalAssetService.InstallPackageAsync(
                     extractedFolder,
                     packageKind);
-                await PackCatalogService.RefreshValorantExternalPacksAsync();
                 if (_batchPackImport) return;
+                await PackCatalogService.RefreshValorantExternalPacksAsync();
                 bool chinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
                 await ShowMessageAsync(
                     chinese ? "瓦资源包已导入" : "VALORANT package imported",
@@ -390,8 +408,8 @@ namespace KillConfirmGameBar
                 ValorantPackageInstallResult installed = await ValorantExternalAssetService.InstallPackageAsync(
                     folder,
                     packageKind);
-                await PackCatalogService.RefreshValorantExternalPacksAsync();
                 if (_batchPackImport) return;
+                await PackCatalogService.RefreshValorantExternalPacksAsync();
                 bool chinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
                 await ShowMessageAsync(
                     chinese ? "瓦资源包已导入" : "VALORANT package imported",

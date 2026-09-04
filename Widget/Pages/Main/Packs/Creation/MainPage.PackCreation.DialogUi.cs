@@ -15,6 +15,28 @@ namespace KillConfirmGameBar
 {
     public sealed partial class MainPage
     {
+        private static ContentDialog CreatePackStatusDialog(string title, UIElement content, string closeText = null)
+        {
+            var theme = GameThemePalette.Current;
+            var layout = new StackPanel { Spacing = 18, MinWidth = 340, MaxWidth = 500, Margin = new Thickness(10) };
+            layout.Children.Add(new TextBlock
+            {
+                Text = title, FontSize = 21, FontWeight = Windows.UI.Text.FontWeights.SemiBold,
+                Foreground = new SolidColorBrush(theme.Text), TextWrapping = TextWrapping.Wrap
+            });
+            layout.Children.Add(content);
+            var shell = CreatePackDialogShell(layout);
+            shell.Background = new SolidColorBrush(theme.Panel);
+            shell.BorderBrush = new SolidColorBrush(theme.Border);
+            return new ContentDialog
+            {
+                Content = shell, CloseButtonText = closeText ?? string.Empty,
+                CloseButtonStyle = CreateDialogCloseButtonStyle(),
+                RequestedTheme = ElementTheme.Light, Background = new SolidColorBrush(Colors.Transparent),
+                Foreground = new SolidColorBrush(theme.Text)
+            };
+        }
+
         private static Border CreatePackDialogShell(UIElement content)
         {
             return new Border
@@ -76,7 +98,7 @@ namespace KillConfirmGameBar
                 }
                 else
                 {
-                    var bitmap = new BitmapImage();
+                    var bitmap = new BitmapImage { DecodePixelWidth = 128 };
                     using (var stream = await file.OpenReadAsync())
                     {
                         await bitmap.SetSourceAsync(stream);

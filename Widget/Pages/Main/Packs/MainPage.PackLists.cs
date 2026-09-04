@@ -15,6 +15,32 @@ namespace KillConfirmGameBar
     public sealed partial class MainPage
     {
         private int _packListReloadVersion;
+        private const int PackPageSize = 24;
+        private int _voicePackPage, _iconPackPage;
+        private GameStyleMode? _voicePageStyle, _iconPageStyle;
+
+        private async void OnVoicePackPreviousClick(object sender, RoutedEventArgs e) => await ChangePackPageAsync(true, -1);
+        private async void OnVoicePackNextClick(object sender, RoutedEventArgs e) => await ChangePackPageAsync(true, 1);
+        private async void OnIconPackPreviousClick(object sender, RoutedEventArgs e) => await ChangePackPageAsync(false, -1);
+        private async void OnIconPackNextClick(object sender, RoutedEventArgs e) => await ChangePackPageAsync(false, 1);
+
+        private async Task ChangePackPageAsync(bool voice, int offset)
+        {
+            if (_packZipDropInProgress) return;
+            if (voice) { _voicePackPage = Math.Max(0, _voicePackPage + offset); _loadedVoicePackStyle = null; }
+            else { _iconPackPage = Math.Max(0, _iconPackPage + offset); _loadedIconPackStyle = null; }
+            await EnsureActivePackListLoadedAsync();
+        }
+
+        private static void UpdatePackPager(StackPanel pager, Button previous, Button next, TextBlock label, int page, int total)
+        {
+            int pages = Math.Max(1, (total + PackPageSize - 1) / PackPageSize);
+            pager.Visibility = pages > 1 ? Visibility.Visible : Visibility.Collapsed;
+            previous.IsEnabled = page > 0;
+            next.IsEnabled = page + 1 < pages;
+            label.Text = $"{page + 1} / {pages}";
+        }
+
         private GameStyleMode? _loadedVoicePackStyle;
         private GameStyleMode? _loadedIconPackStyle;
 
@@ -41,7 +67,7 @@ namespace KillConfirmGameBar
             {
                 _loadedVoicePackStyle = null;
                 _loadedIconPackStyle = null;
-                await EnsureActivePackListLoadedAsync();
+                if (!_packZipDropInProgress) await EnsureActivePackListLoadedAsync();
             });
         }
 
@@ -60,7 +86,15 @@ namespace KillConfirmGameBar
                 return;
             }
 
-            await ReloadPackListsAsync(style, loadVoice, loadIcon);
+            try { await ReloadPackListsAsync(style, loadVoice, loadIcon); }
+            catch (Exception ex)
+            {
+                App.Log("Pack library reload failed: " + ex);
+                string message = LocalizationManager.Current == UiLanguage.SimplifiedChinese
+                    ? "包列表加载失败，请重新打开此页面。" : "Could not load packs. Reopen this page to retry.";
+                if (loadVoice) VoiceVisibleCountText.Text = message;
+                if (loadIcon) IconVisibleCountText.Text = message;
+            }
         }
 
         private bool IsPackListReloadCurrent(int reloadVersion, GameStyleMode style)
@@ -86,8 +120,7 @@ namespace KillConfirmGameBar
             var voiceRows = new List<UIElement>();
             if (loadVoice)
             {
-                VoicePackListPanel.Children.Clear();
-                VoiceVisibleCountText.Text = string.Empty;
+
                 voiceItems = (await PackCatalogService.GetAllVoicePacksAsync())
                     .Where(item => GameStyleService.GetStyleForPackKey(item.Key) == style)
                     .ToList();
@@ -96,9 +129,17 @@ namespace KillConfirmGameBar
                     return;
                 }
 
-                foreach (VoicePackItem item in voiceItems)
+                if (_voicePageStyle != style) { _voicePackPage = 0; _voicePageStyle = style; }
+                _voicePackPage = Math.Min(_voicePackPage, Math.Max(0, (voiceItems.Count - 1) / PackPageSize));
+                foreach (VoicePackItem item in voiceItems.Skip(_voicePackPage * PackPageSize).Take(PackPageSize))
                 {
-                    UIElement row = await BuildVoicePackRowAsync(item);
+                    UIElement row;
+                    try { row = await BuildVoicePackRowAsync(item); }
+                    catch (Exception ex)
+                    {
+                        App.Log("Pack card failed: " + item.Key + ": " + ex);
+                        row = new TextBlock { Text = item.DisplayName, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(12) };
+                    }
                     if (!IsPackListReloadCurrent(reloadVersion, style))
                     {
                         return;
@@ -111,8 +152,7 @@ namespace KillConfirmGameBar
             var iconRows = new List<UIElement>();
             if (loadIcon)
             {
-                IconPackListPanel.Children.Clear();
-                IconVisibleCountText.Text = string.Empty;
+
                 iconItems = (await PackCatalogService.GetAllIconPacksAsync())
                     .Where(item => GameStyleService.GetStyleForPackKey(item.Key) == style)
                     .ToList();
@@ -121,9 +161,17 @@ namespace KillConfirmGameBar
                     return;
                 }
 
-                foreach (IconPackItem item in iconItems)
+                if (_iconPageStyle != style) { _iconPackPage = 0; _iconPageStyle = style; }
+                _iconPackPage = Math.Min(_iconPackPage, Math.Max(0, (iconItems.Count - 1) / PackPageSize));
+                foreach (IconPackItem item in iconItems.Skip(_iconPackPage * PackPageSize).Take(PackPageSize))
                 {
-                    UIElement row = await BuildIconPackRowAsync(item);
+                    UIElement row;
+                    try { row = await BuildIconPackRowAsync(item); }
+                    catch (Exception ex)
+                    {
+                        App.Log("Pack card failed: " + item.Key + ": " + ex);
+                        row = new TextBlock { Text = item.DisplayName, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(12) };
+                    }
                     if (!IsPackListReloadCurrent(reloadVersion, style))
                     {
                         return;
@@ -139,6 +187,8 @@ namespace KillConfirmGameBar
 
             if (loadVoice)
             {
+                VoicePackListPanel.Children.Clear();
+                UpdatePackPager(VoicePackPager, VoicePackPreviousButton, VoicePackNextButton, VoicePackPageText, _voicePackPage, voiceItems.Count);
                 foreach (UIElement row in voiceRows)
                 {
                     VoicePackListPanel.Children.Add(row);
@@ -151,6 +201,8 @@ namespace KillConfirmGameBar
 
             if (loadIcon)
             {
+                IconPackListPanel.Children.Clear();
+                UpdatePackPager(IconPackPager, IconPackPreviousButton, IconPackNextButton, IconPackPageText, _iconPackPage, iconItems.Count);
                 foreach (UIElement row in iconRows)
                 {
                     IconPackListPanel.Children.Add(row);
@@ -352,8 +404,10 @@ namespace KillConfirmGameBar
             buttonPanel.Children.Add(editButton);
             buttonPanel.Children.Add(exportButton);
             buttonPanel.Children.Add(deleteButton);
-            var preview = CreatePackPreviewImage(GetVoicePackIconUri(item));
+            var preview = CreatePackPreviewImage(null);
             await TryApplyCustomPackPreviewAsync(preview, item?.FolderPath, VoicePackHeadImageNames);
+            if (preview.Source == null)
+                preview = CreatePackPreviewImage(!item.IsBuiltIn && ValorantPackService.IsValorantPackKey(item.Key) ? "ms-appx:///Assets/GameLogos/valorant.png" : GetVoicePackIconUri(item));
             var row = new Grid { ColumnSpacing = 8 };
             row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });

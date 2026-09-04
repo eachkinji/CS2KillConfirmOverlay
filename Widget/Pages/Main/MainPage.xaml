@@ -337,6 +337,11 @@
                                     Orientation="Horizontal"
                                     ItemWidth="270"
                                     ItemHeight="108" />
+                                <StackPanel x:Name="VoicePackPager" Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center" Visibility="Collapsed">
+                                    <Button x:Name="VoicePackPreviousButton" Content="‹" Style="{StaticResource SettingsHeaderButtonStyle}" Click="OnVoicePackPreviousClick" />
+                                    <TextBlock x:Name="VoicePackPageText" VerticalAlignment="Center" Style="{StaticResource SettingsCaptionTextStyle}" />
+                                    <Button x:Name="VoicePackNextButton" Content="›" Style="{StaticResource SettingsHeaderButtonStyle}" Click="OnVoicePackNextClick" />
+                                </StackPanel>
                             </StackPanel>
                         </Border>
 
@@ -398,6 +403,11 @@
                                     Orientation="Horizontal"
                                     ItemWidth="270"
                                     ItemHeight="108" />
+                                <StackPanel x:Name="IconPackPager" Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center" Visibility="Collapsed">
+                                    <Button x:Name="IconPackPreviousButton" Content="‹" Style="{StaticResource SettingsHeaderButtonStyle}" Click="OnIconPackPreviousClick" />
+                                    <TextBlock x:Name="IconPackPageText" VerticalAlignment="Center" Style="{StaticResource SettingsCaptionTextStyle}" />
+                                    <Button x:Name="IconPackNextButton" Content="›" Style="{StaticResource SettingsHeaderButtonStyle}" Click="OnIconPackNextClick" />
+                                </StackPanel>
                             </StackPanel>
                         </Border>
 

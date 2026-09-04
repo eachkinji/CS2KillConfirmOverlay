@@ -434,7 +434,7 @@ namespace KillConfirmGameBar
                     return;
                 }
                 var progressText = new TextBlock { Text = chinese ? "正在解析图标包…" : "Reading icon pack…", TextWrapping = TextWrapping.Wrap };
-                var dialog = new ContentDialog { Title = title, Content = progressText };
+                var dialog = CreatePackStatusDialog(title, progressText);
                 bool running = true;
                 dialog.Closing += (s, e) => e.Cancel = running;
                 var showing = dialog.ShowAsync();

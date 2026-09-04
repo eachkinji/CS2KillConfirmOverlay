@@ -318,6 +318,10 @@
                                             x:Name="BatchImportVoiceZipButton"
                                             Style="{StaticResource SettingsHeaderButtonStyle}"
                                             Click="OnBatchImportVoiceZipClick" />
+                                        <Button
+                                            x:Name="CreateVoicePackButton"
+                                            Style="{StaticResource SettingsPrimaryButtonStyle}"
+                                            Click="OnCreateVoicePackClick" />
                                     </StackPanel>
                                 </Grid>
 

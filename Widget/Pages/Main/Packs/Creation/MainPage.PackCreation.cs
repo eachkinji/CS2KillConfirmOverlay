@@ -19,6 +19,46 @@ namespace KillConfirmGameBar
     public sealed partial class MainPage
     {
 
+        private async void OnCreateVoicePackClick(object sender, RoutedEventArgs e)
+        {
+            if (GameStyleService.Current == GameStyleMode.CustomModule)
+            {
+                await ShowCreateCustomModuleVoicePackDialogAsync();
+            }
+            else if (GameStyleService.Current == GameStyleMode.Dagoujiao)
+            {
+                await ShowCreateDagoujiaoVoicePackDialogAsync();
+            }
+            else if (GameStyleService.Current == GameStyleMode.Doubao)
+            {
+                await ShowCreateDoubaoVoicePackDialogAsync();
+            }
+            else if (GameStyleService.Current == GameStyleMode.Csol)
+            {
+                await ShowCreateCsolVoicePackDialogAsync();
+            }
+            else if (GameStyleService.Current == GameStyleMode.Valorant)
+            {
+                await ShowCreateValorantVoicePackDialogAsync();
+            }
+            else if (GameStyleService.Current == GameStyleMode.Overwatch)
+            {
+                await ShowCreateOverwatchVoicePackDialogAsync();
+            }
+            else if (GameStyleService.Current == GameStyleMode.ModernWarfare2019)
+            {
+                await ShowCreateModernWarfare2019VoicePackDialogAsync();
+            }
+            else if (IsEventVoiceGame(GameStyleService.Current))
+            {
+                await ShowCreateEventVoicePackDialogAsync(GameStyleService.Current);
+            }
+            else
+            {
+                await ShowCreateVoicePackDialogAsync();
+            }
+        }
+
         private async void OnImportVoiceZipClick(object sender, RoutedEventArgs e)
         {
             await PickAndImportPackFilesAsync(isVoice: true, multiple: false);

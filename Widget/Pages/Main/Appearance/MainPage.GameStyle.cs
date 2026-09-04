@@ -180,6 +180,7 @@ namespace KillConfirmGameBar
             ApplyButtonTheme(ImportIconZipButton, theme, false);
             ApplyButtonTheme(BatchImportIconZipButton, theme, false);
             ApplyButtonTheme(BatchImportVoiceZipButton, theme, false);
+            ApplyButtonTheme(CreateVoicePackButton, theme, true);
             ApplyButtonTheme(CreateIconPackButton, theme, true);
             ApplyButtonTheme(IconSpecToggleButton, theme, false);
             ApplyPackCardTheme(VoicePackListPanel, theme);

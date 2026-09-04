@@ -37,6 +37,7 @@ namespace KillConfirmGameBar
             BatchImportVoiceZipButton.IsEnabled = !busy;
             ImportIconZipButton.IsEnabled = !busy;
             BatchImportIconZipButton.IsEnabled = !busy;
+            CreateVoicePackButton.IsEnabled = !busy;
             CreateIconPackButton.IsEnabled = !busy;
             GameStyleSidebarSelector.IsEnabled = !busy;
         }

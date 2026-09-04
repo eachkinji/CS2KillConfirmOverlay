@@ -70,6 +70,7 @@ namespace KillConfirmGameBar
             BatchImportVoiceZipButton.Content = isChinese ? "批量导入音频包" : "Import audio packs";
             ImportIconZipButton.Content = isChinese ? "导入图标包" : "Import icon pack";
             BatchImportIconZipButton.Content = isChinese ? "批量导入图标包" : "Import icon packs";
+            CreateVoicePackButton.Content = isChinese ? "新建音频包" : "New audio pack";
             CreateIconPackButton.Content = isChinese ? "新建图标包" : "New icon pack";
 
             if (currentMode == GameStyleMode.CustomModule)

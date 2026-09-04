@@ -46,6 +46,7 @@ namespace KillConfirmGameBar.Services
 
                 MergeMissingBuiltIns(_cache);
                 RefreshExternalValorantEntries(_cache);
+                CrossfireExternalAssetService.RefreshCatalog(_cache);
                 mustSave |= RefreshBuiltInMetadata(_cache);
                 mustSave |= RemoveRetiredBuiltIns(_cache);
                 mustSave |= ApplyBuiltInVisibilityDefaultsIfNeeded(_cache);
@@ -117,17 +118,7 @@ namespace KillConfirmGameBar.Services
             {
                 VoicePacks = new List<VoicePackItem>
                 {
-                    CreateBuiltInVoice("crossfire_swat_gr", "swat GR", true),
-                    CreateBuiltInVoice("crossfire_swat_bl", "swat BL", true),
-                    CreateBuiltInVoice("crossfire_flying_tiger_gr", "tiger GR", true),
-                    CreateBuiltInVoice("crossfire_flying_tiger_bl", "tiger BL", true),
-                    CreateBuiltInVoice("crossfire_v_sex", "American Girl", true),
-                    CreateBuiltInVoice("crossfire_women_gr", "women GR", true),
-                    CreateBuiltInVoice("crossfire_women_bl", "women BL", true),
-                    CreateBuiltInVoice("crossfire_bunny_gr", "Bunny GR", true),
-                    CreateBuiltInVoice("crossfire_bunny_bl", "Bunny BL", true),
-                    CreateBuiltInVoice("crossfire_heart_judge_gr", "Heart Judge GR", true),
-                    CreateBuiltInVoice("crossfire_heart_judge_bl", "Heart Judge BL", true),
+
                     CreateBuiltInVoice("csol4", "CSOL 10杀", true),
                     CreateBuiltInVoice("bf1", "Battlefield 1", true),
                     CreateBuiltInVoice("bf5", "Battlefield 5", true),
@@ -145,14 +136,7 @@ namespace KillConfirmGameBar.Services
                 },
                 IconPacks = new List<IconPackItem>
                 {
-                    CreateBuiltInIcon("default", "鍘熺増", true),
-                    CreateBuiltInIcon("vip", "VIP", true),
-                    CreateBuiltInIcon("angelic_beast", "绀轰緥", true),
-                    CreateBuiltInIcon("anniversary_10", "10周年庆", true),
-                    CreateBuiltInIcon("anniversary_15", "15周年庆", true),
-                    CreateBuiltInIcon("cfpl", "CFPL", true),
-                    CreateBuiltInIcon("rankmach_2019_1", "排位赛-1", true),
-                    CreateBuiltInIcon("rankmach_2019_2", "排位赛-2", true),
+
                     CreateBuiltInIcon("csol4", "CSOL 10杀", true),
                     CreateBuiltInIcon("bf1", "Battlefield 1", true),
                     CreateBuiltInIcon("bf5", "Battlefield 5", true),
@@ -303,6 +287,14 @@ namespace KillConfirmGameBar.Services
             PackCatalog catalog = await LoadAsync();
             RefreshExternalValorantEntries(catalog);
             CatalogChanged?.Invoke(null, EventArgs.Empty);
+        }
+
+        public static async Task RefreshCrossfireExternalPacksAsync()
+        {
+            PackCatalog catalog = await LoadAsync();
+            CrossfireExternalAssetService.RefreshCatalog(catalog);
+            ApplyVisibilityOverrides(catalog);
+            await SaveAsync(catalog);
         }
 
         private static bool RefreshBuiltInMetadata(PackCatalog catalog)

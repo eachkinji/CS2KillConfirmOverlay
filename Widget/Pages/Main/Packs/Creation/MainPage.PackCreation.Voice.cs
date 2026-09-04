@@ -51,7 +51,7 @@ namespace KillConfirmGameBar
                 out var nameBox);
 
             var headCard = await CreateHeadImageCardAsync(
-                "ms-appx:///Assets/KillConfirmCode/Original/badge_headshot.PNG",
+                CrossfireExternalAssetService.VisualUri("Original", "badge_headshot.PNG"),
                 headImageFile,
                 f => headImageFile = f,
                 () => headImageFile = null);

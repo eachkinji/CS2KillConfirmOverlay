@@ -2,6 +2,23 @@
 
 在 CF 图标包库中使用“导入图标包”或“批量导入图标包”。每个 ZIP 对应一个独立套装，可有一层或多层外包装目录；不要求 manifest。文件名忽略大小写，支持原有 PNG、JPG、JPEG、WebP、TGA 导入。导入后规范为本地槽位名称。
 
+## 独立资源包（4.5.1.42）
+
+CF 的全部素材现已外置，包括原版。应用源码与安装包不再包含 CF 图标、包头图、音频、公共特效或旧序列帧；游戏选择器的 CF 标识属于界面资源，仍保留。原有 8 套图标和 11 套音频分别发行中文 ZIP，全部带 `pack_head.png`。每套图标包包含自己的主图及公共叠加层；原版包另存旧序列帧。测试目录仅保存无媒体的路由 JSON 样例。
+
+资源包通过通常的单个、批量或拖放导入入口安装到 `LocalState/Packs/crossfire/icon_packs/<id>` 和 `voice_packs/<id>`。这些包使用 `package_kind: crossfire_icon` 或 `crossfire_voice`、`game_style: crossfire`、原有稳定 `id` 及中文 `display_name_zh_cn`。保留旧选择记录，重新导入同名包会更新素材并重新预载；缺少资源的旧内置条目不会继续显示在资源库。普通创作者图标包仍然不需要 manifest。
+
+选择“原版”叠加或缺少事件的对应原图时，从独立安装的原版图标包读取。未安装原版包时没有内置图片兜底，需要先导入原版包。
+
+从仓库外部的素材备份生成这些包：
+
+```powershell
+python .\Build-CrossfireExternalPacks.py --source 'D:\icon\CF独立资源\源素材' --output 'D:\icon\CF独立资源\独立包'
+.\Tests\Regression\Test-CrossfireExternalPacks.ps1 -PackagesPath 'D:\icon\CF独立资源\独立包'
+```
+
+最终 MSIX 构建检查会拒绝再次混入 CF 素材；CSOL 的独立素材保持原有打包方式。
+
 ## 素材结构
 
 ```text

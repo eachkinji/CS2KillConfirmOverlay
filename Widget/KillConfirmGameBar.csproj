@@ -490,6 +490,7 @@
     <Compile Include="Services\Styling\GameThemePalette.cs" />
     <Compile Include="Services\Catalog\Games\ValorantPackService.cs" />
     <Compile Include="Services\Catalog\Games\ValorantExternalAssetService.cs" />
+    <Compile Include="Services\Catalog\Games\CrossfireExternalAssetService.cs" />
     <Compile Include="Services\Localization\LocalizationManager.cs" />
     <Compile Include="Services\Localization\LocalizationManager.English.Core.cs" />
     <Compile Include="Services\Localization\LocalizationManager.English.Widget.cs" />
@@ -539,7 +540,7 @@
     <Content Include="Assets\bilibili.svg" />
     <Content Include="Assets\GitHub.png" />
     <Content Include="Assets\bilibili.png" />
-    <Content Include="Assets\KillConfirmCode\**\*">
+    <Content Include="Assets\KillConfirmCode\Csol4\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Assets\FluentIcons\*">

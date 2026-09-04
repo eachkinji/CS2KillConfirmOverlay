@@ -122,21 +122,21 @@ namespace KillConfirmGameBar
                     return "ms-appx:///Assets/GameStyles/custommodule/iconpacks/custommodule/pack_head.webp";
                 case "crossfire_swat_gr":
                 case "crossfire_swat_bl":
-                    return "ms-appx:///Assets/PackIcons/swat.png";
+                    return new Uri(System.IO.Path.Combine(CrossfireExternalAssetService.PackPath(item.Key, true), "pack_head.png")).AbsoluteUri;
                 case "crossfire_flying_tiger_gr":
                 case "crossfire_flying_tiger_bl":
-                    return "ms-appx:///Assets/PackIcons/flying_tiger.png";
+                    return new Uri(System.IO.Path.Combine(CrossfireExternalAssetService.PackPath(item.Key, true), "pack_head.png")).AbsoluteUri;
                 case "crossfire_women_gr":
                 case "crossfire_women_bl":
-                    return "ms-appx:///Assets/PackIcons/women.png";
+                    return new Uri(System.IO.Path.Combine(CrossfireExternalAssetService.PackPath(item.Key, true), "pack_head.png")).AbsoluteUri;
                 case "crossfire_v_sex":
-                    return "ms-appx:///Assets/PackIcons/cfsex.png";
+                    return new Uri(System.IO.Path.Combine(CrossfireExternalAssetService.PackPath(item.Key, true), "pack_head.png")).AbsoluteUri;
                 case "crossfire_bunny_gr":
                 case "crossfire_bunny_bl":
-                    return "ms-appx:///Assets/PackIcons/bunny.png";
+                    return new Uri(System.IO.Path.Combine(CrossfireExternalAssetService.PackPath(item.Key, true), "pack_head.png")).AbsoluteUri;
                 case "crossfire_heart_judge_gr":
                 case "crossfire_heart_judge_bl":
-                    return "ms-appx:///Assets/PackIcons/heart_judge.png";
+                    return new Uri(System.IO.Path.Combine(CrossfireExternalAssetService.PackPath(item.Key, true), "pack_head.png")).AbsoluteUri;
                 case "bf1":
                     return "ms-appx:///Assets/GameStyles/battlefield1/killconfirm/textures/killicon_battlefield1_headshot.png";
                 case "bf5":
@@ -194,7 +194,7 @@ namespace KillConfirmGameBar
                 case GameStyleMode.Apex:
                     return "ms-appx:///Assets/GameLogos/apex.png";
                 default:
-                    return "ms-appx:///Assets/KillConfirmCode/Original/badge_headshot.PNG";
+                    return CrossfireExternalAssetService.VisualUri("Original", "badge_headshot.PNG");
             }
         }
 
@@ -244,19 +244,19 @@ namespace KillConfirmGameBar
             switch ((item?.Key ?? string.Empty).Trim().ToLowerInvariant())
             {
                 case "vip":
-                    return "ms-appx:///Assets/KillConfirmCode/Vip/badge_headshot.png";
+                    return CrossfireExternalAssetService.VisualUri("Vip", "badge_headshot.png");
                 case "angelic_beast":
-                    return "ms-appx:///Assets/KillConfirmCode/AngelicBeast/badge_headshot.png";
+                    return CrossfireExternalAssetService.VisualUri("AngelicBeast", "badge_headshot.png");
                 case "anniversary_10":
-                    return "ms-appx:///Assets/KillConfirmCode/Anniversary10/badge_headshot.png";
+                    return CrossfireExternalAssetService.VisualUri("Anniversary10", "badge_headshot.png");
                 case "anniversary_15":
-                    return "ms-appx:///Assets/KillConfirmCode/Anniversary15/badge_headshot.png";
+                    return CrossfireExternalAssetService.VisualUri("Anniversary15", "badge_headshot.png");
                 case "cfpl":
-                    return "ms-appx:///Assets/KillConfirmCode/CFPL/badge_headshot.png";
+                    return CrossfireExternalAssetService.VisualUri("CFPL", "badge_headshot.png");
                 case "rankmach_2019_1":
-                    return "ms-appx:///Assets/KillConfirmCode/Rankmach2019_1/badge_headshot.png";
+                    return CrossfireExternalAssetService.VisualUri("Rankmach2019_1", "badge_headshot.png");
                 case "rankmach_2019_2":
-                    return "ms-appx:///Assets/KillConfirmCode/Rankmach2019_2/badge_headshot.png";
+                    return CrossfireExternalAssetService.VisualUri("Rankmach2019_2", "badge_headshot.png");
                 case "bf1":
                     return "ms-appx:///Assets/GameStyles/battlefield1/killconfirm/textures/killicon_battlefield1_headshot.png";
                 case "bf5":
@@ -285,7 +285,7 @@ namespace KillConfirmGameBar
                     return "ms-appx:///Assets/KillConfirmCode/Csol4/headshot_kill.png";
                 case "default":
                 default:
-                    return "ms-appx:///Assets/KillConfirmCode/Original/badge_headshot.PNG";
+                    return CrossfireExternalAssetService.VisualUri("Original", "badge_headshot.PNG");
             }
         }
 
@@ -293,8 +293,7 @@ namespace KillConfirmGameBar
         {
             try
             {
-                return await StorageFile.GetFileFromApplicationUriAsync(
-                    new Uri("ms-appx:///KillConfirmService/sounds/crossfire_swat_gr/common.wav"));
+                return await CrossfireExternalAssetService.DefaultVoiceFileAsync("common.wav");
             }
             catch
             {

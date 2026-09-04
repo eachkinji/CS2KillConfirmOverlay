@@ -15,6 +15,8 @@ namespace KillConfirmGameBar
 {
     public sealed partial class KillConfirmWidgetPage
     {
+        private int _lastCrossfirePackRevision = -1;
+
         private async void OnPackCatalogChanged(object sender, EventArgs e)
         {
             if (!_isPageActive)
@@ -28,6 +30,15 @@ namespace KillConfirmGameBar
                 {
                     if (_isPageActive)
                     {
+                        if (GameStyleService.Current == GameStyleMode.Crossfire
+                            && _lastCrossfirePackRevision != CrossfireExternalAssetService.Revision)
+                        {
+                            _lastCrossfirePackRevision = CrossfireExternalAssetService.Revision;
+                            LowerFeedbackAnimation?.ReleaseAnimationResourcesForPackChange();
+                            LowerBadgeAnimation?.ReleaseAnimationResourcesForPackChange();
+                            CrosshairFeedbackAnimation?.ReleaseAnimationResourcesForPackChange();
+                            UpperFeedbackAnimation?.ReleaseAnimationResourcesForPackChange();
+                        }
                         await InitializePackSelectorsAsync();
                     }
                 });
@@ -386,21 +397,21 @@ namespace KillConfirmGameBar
             {
                 case "crossfire_swat_gr":
                 case "crossfire_swat_bl":
-                    return "ms-appx:///Assets/PackIcons/swat.png";
+                    return new Uri(System.IO.Path.Combine(CrossfireExternalAssetService.PackPath(key, true), "pack_head.png")).AbsoluteUri;
                 case "crossfire_flying_tiger_gr":
                 case "crossfire_flying_tiger_bl":
-                    return "ms-appx:///Assets/PackIcons/flying_tiger.png";
+                    return new Uri(System.IO.Path.Combine(CrossfireExternalAssetService.PackPath(key, true), "pack_head.png")).AbsoluteUri;
                 case "crossfire_women_gr":
                 case "crossfire_women_bl":
-                    return "ms-appx:///Assets/PackIcons/women.png";
+                    return new Uri(System.IO.Path.Combine(CrossfireExternalAssetService.PackPath(key, true), "pack_head.png")).AbsoluteUri;
                 case "crossfire_v_sex":
-                    return "ms-appx:///Assets/PackIcons/cfsex.png";
+                    return new Uri(System.IO.Path.Combine(CrossfireExternalAssetService.PackPath(key, true), "pack_head.png")).AbsoluteUri;
                 case "crossfire_bunny_gr":
                 case "crossfire_bunny_bl":
-                    return "ms-appx:///Assets/PackIcons/bunny.png";
+                    return new Uri(System.IO.Path.Combine(CrossfireExternalAssetService.PackPath(key, true), "pack_head.png")).AbsoluteUri;
                 case "crossfire_heart_judge_gr":
                 case "crossfire_heart_judge_bl":
-                    return "ms-appx:///Assets/PackIcons/heart_judge.png";
+                    return new Uri(System.IO.Path.Combine(CrossfireExternalAssetService.PackPath(key, true), "pack_head.png")).AbsoluteUri;
                 case "bf1":
                     return "ms-appx:///Assets/GameStyles/battlefield1/killconfirm/textures/killicon_battlefield1_headshot.png";
                 case "bf5":
@@ -460,7 +471,7 @@ namespace KillConfirmGameBar
                 case GameStyleMode.Apex:
                     return "ms-appx:///Assets/GameLogos/apex.png";
                 default:
-                    return "ms-appx:///Assets/KillConfirmCode/Original/badge_headshot.PNG";
+                    return CrossfireExternalAssetService.VisualUri("Original", "badge_headshot.PNG");
             }
         }
     }

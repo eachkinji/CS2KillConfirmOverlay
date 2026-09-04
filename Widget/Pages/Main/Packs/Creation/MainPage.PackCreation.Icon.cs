@@ -82,7 +82,7 @@ namespace KillConfirmGameBar
                 PackCatalogService.CreateIconPackAsync,
                 initialDisplayName,
                 initialFiles,
-                defaultHeadPreviewUri: "ms-appx:///Assets/KillConfirmCode/Original/badge_headshot.PNG",
+                defaultHeadPreviewUri: CrossfireExternalAssetService.VisualUri("Original", "badge_headshot.PNG"),
                 initialHeadImageFile: initialHeadImageFile);
         }
 

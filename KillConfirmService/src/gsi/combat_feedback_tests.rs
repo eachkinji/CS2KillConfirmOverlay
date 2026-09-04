@@ -198,7 +198,7 @@ fn grenade_after_switching_to_knife_preserves_flags_weapon_and_reward() {
 fn detected_special_kills_reach_crossfire_audio_and_icon_routing() {
     let now = Instant::now();
     let base = "sounds/crossfire_swat_gr";
-    let manifest = PackManifest::load_from_dir(Path::new(base)).unwrap();
+    let manifest = PackManifest::load_from_dir(&Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/crossfire/crossfire_swat_gr")).unwrap();
     let ammo = HashMap::from([("weapon_1".to_string(), 0)]);
     let mut fixtures = Vec::new();
     for mode in [Mode::Casual, Mode::Competitive] {

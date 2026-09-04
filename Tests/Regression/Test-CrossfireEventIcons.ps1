@@ -1,4 +1,4 @@
-﻿param(
+param(
     [string]$BundlePath = '',
     [object]$PackageArchive = $null,
     [string]$GsiEventsPath = ''
@@ -94,9 +94,19 @@ public static class CrossfireIconRegressionChecks
     private static string _iconPack;
     private static readonly HashSet<string> Available = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
     private sealed class CanvasBitmap { public string Path; }
+    private sealed class StorageFolder { }
+    private sealed class StorageFile { public string Path; }
+    private static Task<StorageFile> TryGetImportedIconFileAsync(StorageFolder folder, string name) {
+        string path=Uri("Original",name);
+        foreach(string candidate in Available)
+            if(string.Equals(candidate,path,StringComparison.OrdinalIgnoreCase))return Task.FromResult(new StorageFile{Path=candidate});
+        return Task.FromResult<StorageFile>(null);
+    }
+    private static Task<CanvasBitmap> LoadBitmapFromStorageFileAsync(StorageFile file) { return LoadBitmapFromApplicationUriAsync(file.Path); }
     private static class PackCatalogService
     {
-        public static bool IsImportedIconPackKey(string key) { return key == "custom_icon_test"; }
+        public static bool IsImportedIconPackKey(string key) { return true; }
+        public static Task<StorageFolder> GetImportedIconFolderAsync(string key) { return Task.FromResult(new StorageFolder()); }
     }
     private static Task<CanvasBitmap> LoadBitmapFromApplicationUriAsync(string path)
     {
@@ -105,12 +115,12 @@ public static class CrossfireIconRegressionChecks
     }
     private static Task<CanvasBitmap> TryLoadImportedIconBitmapAsync(string name)
     {
-        string path = "import:" + name;
+        string path = _iconPack == "custom_icon_test" ? "import:" + name : Uri(GetIconPackFolder(_iconPack) ?? "Original", name);
         return Task.FromResult(Available.Contains(path) ? new CanvasBitmap { Path = path } : null);
     }
     private static string Uri(string folder, string name)
     {
-        return "ms-appx:///Assets/KillConfirmCode/" + folder + "/" + name;
+        return "external:" + (folder == "Knife" ? "Original" : folder) + "/" + name;
     }
     private static CanvasBitmap Resolve(string key, string expectedFile)
     {
@@ -323,14 +333,12 @@ foreach ($relative in @(
 'PASS: runtime preference sync uses saved values and all settings surfaces send grenade audio priority.'
 
 $iconRoot = Join-Path $RepositoryRoot 'Widget/Assets/KillConfirmCode'
-foreach ($folder in @('Original', 'Vip', 'AngelicBeast', 'Anniversary10', 'Anniversary15', 'CFPL', 'Rankmach2019_1', 'Rankmach2019_2')) {
-    foreach ($name in @('badge_c4.png', 'badge_c4defuse.png', 'badge_grenade.png')) {
-        if (-not (Test-Path -LiteralPath (Join-Path $iconRoot "$folder/$name") -PathType Leaf)) {
-            throw "Missing source icon: $folder/$name"
-        }
-    }
+$cfFiles = Get-ChildItem -LiteralPath $iconRoot -Recurse -File | Where-Object { $_.FullName -notlike '*\Csol4\*' }
+if ($cfFiles) { throw 'CF media must live in external packs, not application sources.' }
+if (Test-Path (Join-Path $RepositoryRoot 'SourceAssets/GameStyles/crossfire')) {
+    throw 'CF raw source assets must be kept outside this repository.'
 }
-'PASS: all 24 built-in CF bomb/grenade source icons exist.'
+'PASS: no CF media remains in application sources.'
 
 # Inspect the final archive, not bin/obj: stale PRI file lists can omit newly
 # copied images even when the build succeeds and the images exist in staging.
@@ -353,6 +361,12 @@ try {
         $PackageArchive = $ownedArchive
     }
     if ($PackageArchive) {
+        $forbidden = $PackageArchive.Entries | Where-Object {
+            ($_.FullName -like 'Assets/KillConfirmCode/*' -and $_.FullName -notlike 'Assets/KillConfirmCode/Csol4/*') -or
+            $_.FullName -like 'KillConfirmService/sounds/crossfire_*/*' -or
+            $_.FullName -match '^Assets/PackIcons/(swat|flying_tiger|women|cfsex|bunny|heart_judge)\.png$'
+        }
+        if ($forbidden) { throw 'Application archive contains external CF resources.' }
         $failures = @()
         $verified = 0
         $entries = [Collections.Generic.Dictionary[string, object]]::new([StringComparer]::OrdinalIgnoreCase)
@@ -376,7 +390,7 @@ try {
             $verified++
         }
         if ($failures.Count) { throw ("CF icon payload check failed:`n" + ($failures -join "`n")) }
-        "PASS: all $verified packaged code-icon assets match their source SHA-256, including 24 bomb/grenade icons."
+        "PASS: all $verified packaged code-icon assets match their source SHA-256, with no CF media bundled."
     }
 }
 finally {

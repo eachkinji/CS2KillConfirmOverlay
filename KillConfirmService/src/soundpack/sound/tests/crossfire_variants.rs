@@ -4,9 +4,8 @@
         use crate::soundpack::{SoundContext, SoundEntry};
         use crate::state::EventChannel;
         use std::collections::HashMap;
-        use std::path::Path;
 
-        let manifest = PackManifest::load_from_dir(Path::new("sounds/crossfire_women_gr"))
+        let manifest = PackManifest::load_from_dir(&source_sound_pack("crossfire", "crossfire_women_gr"))
             .expect("load women_gr manifest");
         let make_ctx = |kill_count,
                         is_headshot,
@@ -128,16 +127,12 @@
         use crate::soundpack::manifest::PackManifest;
         use crate::soundpack::{SoundContext, SoundEntry};
         use crate::state::EventChannel;
-        use std::{collections::HashMap, path::Path};
+        use std::collections::HashMap;
 
-        let bunny_manifest = PackManifest::load_from_dir(Path::new(
-            "../SourceAssets/GameStyles/crossfire/soundpacks/crossfire_bunny_gr",
-        ))
+        let bunny_manifest = PackManifest::load_from_dir(&source_sound_pack("crossfire", "crossfire_bunny_gr"))
         .expect("load bunny_gr manifest");
 
-        let judge_manifest = PackManifest::load_from_dir(Path::new(
-            "../SourceAssets/GameStyles/crossfire/soundpacks/crossfire_heart_judge_gr",
-        ))
+        let judge_manifest = PackManifest::load_from_dir(&source_sound_pack("crossfire", "crossfire_heart_judge_gr"))
         .expect("load heart_judge_gr manifest");
 
         let make_ctx = |preset: &'static str| SoundContext {

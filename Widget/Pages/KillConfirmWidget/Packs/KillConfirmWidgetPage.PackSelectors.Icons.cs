@@ -31,19 +31,19 @@ namespace KillConfirmGameBar
             switch ((key ?? string.Empty).Trim().ToLowerInvariant())
             {
                 case "vip":
-                    return "ms-appx:///Assets/KillConfirmCode/Vip/badge_headshot.png";
+                    return CrossfireExternalAssetService.VisualUri("Vip", "badge_headshot.png");
                 case "angelic_beast":
-                    return "ms-appx:///Assets/KillConfirmCode/AngelicBeast/badge_headshot.png";
+                    return CrossfireExternalAssetService.VisualUri("AngelicBeast", "badge_headshot.png");
                 case "anniversary_10":
-                    return "ms-appx:///Assets/KillConfirmCode/Anniversary10/badge_headshot.png";
+                    return CrossfireExternalAssetService.VisualUri("Anniversary10", "badge_headshot.png");
                 case "anniversary_15":
-                    return "ms-appx:///Assets/KillConfirmCode/Anniversary15/badge_headshot.png";
+                    return CrossfireExternalAssetService.VisualUri("Anniversary15", "badge_headshot.png");
                 case "cfpl":
-                    return "ms-appx:///Assets/KillConfirmCode/CFPL/badge_headshot.png";
+                    return CrossfireExternalAssetService.VisualUri("CFPL", "badge_headshot.png");
                 case "rankmach_2019_1":
-                    return "ms-appx:///Assets/KillConfirmCode/Rankmach2019_1/badge_headshot.png";
+                    return CrossfireExternalAssetService.VisualUri("Rankmach2019_1", "badge_headshot.png");
                 case "rankmach_2019_2":
-                    return "ms-appx:///Assets/KillConfirmCode/Rankmach2019_2/badge_headshot.png";
+                    return CrossfireExternalAssetService.VisualUri("Rankmach2019_2", "badge_headshot.png");
                 case "bf1":
                     return "ms-appx:///Assets/GameStyles/battlefield1/killconfirm/textures/killicon_battlefield1_headshot.png";
                 case "bf5":
@@ -72,7 +72,7 @@ namespace KillConfirmGameBar
                     return "ms-appx:///Assets/KillConfirmCode/Csol4/headshot_kill.png";
                 case "default":
                 default:
-                    return "ms-appx:///Assets/KillConfirmCode/Original/badge_headshot.PNG";
+                    return CrossfireExternalAssetService.VisualUri("Original", "badge_headshot.PNG");
             }
         }
 

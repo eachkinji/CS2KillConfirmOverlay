@@ -37,7 +37,7 @@ namespace KillConfirmGameBar.Services
         public static bool IsImportedVoicePackKey(string key)
         {
             if (string.IsNullOrWhiteSpace(key)) return false;
-            return key.StartsWith("custom_voice_", StringComparison.OrdinalIgnoreCase)
+            return CrossfireExternalAssetService.IsVoiceKey(key) || key.StartsWith("custom_voice_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_module_voice_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_csol_voice_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_dagoujiao_voice_", StringComparison.OrdinalIgnoreCase)
@@ -285,8 +285,7 @@ namespace KillConfirmGameBar.Services
             }
             else if (options.UseBuiltInDefaultCommonOverlay)
             {
-                StorageFile builtInCommon = await StorageFile.GetFileFromApplicationUriAsync(
-                    new Uri("ms-appx:///KillConfirmService/sounds/crossfire_swat_gr/common.wav"));
+                StorageFile builtInCommon = await CrossfireExternalAssetService.DefaultVoiceFileAsync("common.wav");
                 await builtInCommon.CopyAsync(
                     packFolder,
                     "common_overlay.wav",

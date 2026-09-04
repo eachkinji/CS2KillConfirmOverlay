@@ -32,6 +32,17 @@ Widget/Assets/KillConfirm/
 Widget/KillConfirmService/
 KillConfirmService/sounds/
 
+# CF resources are distributed separately, including the original packs.
+SourceAssets/GameStyles/crossfire/
+Widget/Assets/KillConfirmCode/*
+!Widget/Assets/KillConfirmCode/Csol4/
+Widget/Assets/PackIcons/swat.png
+Widget/Assets/PackIcons/flying_tiger.png
+Widget/Assets/PackIcons/women.png
+Widget/Assets/PackIcons/cfsex.png
+Widget/Assets/PackIcons/bunny.png
+Widget/Assets/PackIcons/heart_judge.png
+
 # Local raw resource drop folder, not published to GitHub
 资源/
 

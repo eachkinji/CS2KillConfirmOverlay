@@ -298,6 +298,10 @@ namespace KillConfirmGameBar
             {
                 extractedFolder = await ExtractZipToTemporaryFolderAsync(zipFile);
                 StorageFolder bestFolder = await FindBestPackFolderAsync(extractedFolder, recognizedFileNames);
+                if (GameStyleService.Current == GameStyleMode.Crossfire
+                    && await CrossfireExternalAssetService.TryInstallAsync(bestFolder,
+                        !recognizedFileNames.Any(name => name.EndsWith(".png", StringComparison.OrdinalIgnoreCase))))
+                    return;
                 IReadOnlyDictionary<string, StorageFile> files = await CollectRecognizedFilesAsync(bestFolder, recognizedFileNames.ToArray());
                 StorageFile manifestFile = await TryGetFileAsync(bestFolder, "manifest.json");
                 if (files.Count == 0 && manifestFile == null)

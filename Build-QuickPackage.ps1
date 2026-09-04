@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     快速 MSIX Bundle 打包与本地部署脚本
     快速增量编译 Rust、同步素材、构建并签名 MSIX，支持一键安装到本机测试。
@@ -346,6 +346,7 @@ $SourceGameStylesRoot = Join-Path $Root "SourceAssets\GameStyles"
 $copiedSoundPackNames = @{}
 $copiedSoundPackCount = 0
 foreach ($styleFolder in (Get-ChildItem -LiteralPath $SourceGameStylesRoot -Directory)) {
+    if ($styleFolder.Name -eq "crossfire") { continue }
     $soundPacksRoot = Join-Path $styleFolder.FullName "soundpacks"
     if (-not (Test-Path $soundPacksRoot -PathType Container)) {
         continue

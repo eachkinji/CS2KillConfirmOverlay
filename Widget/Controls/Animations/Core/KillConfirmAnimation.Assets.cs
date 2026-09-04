@@ -291,51 +291,12 @@ namespace KillConfirmGameBar.Controls
                 }
             }
 
-            string iconPackFolder = GetIconPackFolder();
-            if (!string.IsNullOrWhiteSpace(alternatePackFolder)
-                && !string.IsNullOrWhiteSpace(iconPackFolder))
-            {
-                try
-                {
-                    return await LoadBitmapFromApplicationUriAsync(
-                        $"ms-appx:///Assets/KillConfirmCode/{iconPackFolder}/{fileName}");
-                }
-                catch
-                {
-                    if (!allowDefaultFallback)
-                    {
-                        throw;
-                    }
-                }
-            }
-
-            if (!string.IsNullOrWhiteSpace(folder))
-            {
-                try
-                {
-                    return await LoadBitmapFromApplicationUriAsync($"ms-appx:///Assets/KillConfirmCode/{folder}/{fileName}");
-                }
-                catch
-                {
-                    if (!allowDefaultFallback)
-                    {
-                        throw;
-                    }
-                }
-            }
-
-            try
-            {
-                return await LoadBitmapFromApplicationUriAsync($"ms-appx:///Assets/KillConfirmCode/{fileName}");
-            }
-            catch
-            {
-                if (allowDefaultFallback && allowGenericKillFallback)
-                {
-                    return await LoadBitmapFromApplicationUriAsync("ms-appx:///Assets/KillConfirmCode/Original/badge_multi1.PNG");
-                }
-                throw;
-            }
+            StorageFolder original = await PackCatalogService.GetImportedIconFolderAsync("default");
+            StorageFile file = original == null ? null : await TryGetImportedIconFileAsync(original, fileName);
+            if (file == null && allowDefaultFallback && allowGenericKillFallback && original != null)
+                file = await TryGetImportedIconFileAsync(original, "badge_multi1.png");
+            if (file == null) throw new FileNotFoundException("CF 素材未安装：" + fileName);
+            return await LoadBitmapFromStorageFileAsync(file);
         }
 
         private static async Task<CanvasBitmap> TryLoadImportedIconBitmapAsync(string fileName)

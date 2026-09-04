@@ -146,6 +146,14 @@ namespace KillConfirmGameBar
                 return "c4defuse";
             }
 
+            // Event-specific art can be supplied by an imported CF pack.
+            // These keys require an explicit event; a normal kill is never inferred to be a wall shot.
+            switch ((killEvent.AnimationKey ?? string.Empty).ToLowerInvariant())
+            {
+                case "wallshot": case "headwallshot": case "headwallshot_gold": case "revenge": case "smash":
+                    return killEvent.AnimationKey.ToLowerInvariant();
+            }
+
             bool knifeIconWins = killEvent.IsKnifeKill
                 && (killEvent.KillCount < 2 || settings.KnifeSpecialIconPriority);
             if (knifeIconWins)

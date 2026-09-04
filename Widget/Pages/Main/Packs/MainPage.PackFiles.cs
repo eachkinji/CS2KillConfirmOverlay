@@ -159,6 +159,33 @@ namespace KillConfirmGameBar
                 return files;
             }
 
+            if (fileNames.Any(name => name.Equals("SPRITE_01.png", StringComparison.OrdinalIgnoreCase)))
+            {
+                var sources = new List<StorageFolder> { folder };
+                foreach (string child in new[] { "Sprite", "badgeex" })
+                {
+                    try { sources.Add(await folder.GetFolderAsync(child)); } catch { }
+                }
+                foreach (StorageFolder source in sources)
+                {
+                    var available = (await source.GetFilesAsync()).ToDictionary(file => file.Name, StringComparer.OrdinalIgnoreCase);
+                    foreach (string canonical in CrossfirePackFormat.Files)
+                    {
+                        if (files.ContainsKey(canonical)) continue;
+                        foreach (string candidate in CrossfirePackFormat.Candidates(canonical))
+                        {
+                            foreach (string extension in IconImageExtensions)
+                            {
+                                if (available.TryGetValue(Path.ChangeExtension(candidate, extension), out StorageFile file))
+                                { files[canonical] = file; break; }
+                            }
+                            if (files.ContainsKey(canonical)) break;
+                        }
+                    }
+                }
+                return files;
+            }
+
             IReadOnlyList<StorageFile> allFolderFiles = null;
             try
             {

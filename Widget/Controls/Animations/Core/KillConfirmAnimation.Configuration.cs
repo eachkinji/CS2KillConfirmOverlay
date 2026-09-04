@@ -192,6 +192,7 @@ namespace KillConfirmGameBar.Controls
             if (_modernWarfare2019MoneyGlowBitmap != null) bitmaps.Add(_modernWarfare2019MoneyGlowBitmap);
 
             CodeKillCache.Clear();
+            ClearCrossfireExtraCache();
             CsolKillCache.Clear();
             ClearBattlefieldIconCache();
             ClearBattlefield4IconCache();

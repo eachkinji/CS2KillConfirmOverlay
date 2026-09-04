@@ -96,7 +96,10 @@ namespace KillConfirmGameBar.Controls
             }
             if (_currentCodeAsset != null)
             {
-                DrawCode2KillFrame(drawingSession, _currentFrame);
+                Matrix3x2 prior = drawingSession.Transform;
+                drawingSession.Transform = Matrix3x2.CreateTranslation((float)((_currentCodeAsset.FrameWidth - CodeKillFrameWidth) / 2), 0) * prior;
+                try { DrawCode2KillFrame(drawingSession, _currentFrame); }
+                finally { drawingSession.Transform = prior; }
                 return;
             }
             if (_currentCsolAsset != null)
@@ -302,6 +305,7 @@ namespace KillConfirmGameBar.Controls
             }
 
             drawingSession.Blend = previousBlend;
+            DrawCrossfireExtraLayers(drawingSession, main, timeSec * 1000);
         }
 
         private void ShowLoadingProgress(int percent)

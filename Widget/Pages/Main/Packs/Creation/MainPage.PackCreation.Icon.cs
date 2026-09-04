@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using KillConfirmGameBar.Services;
 using Windows.Storage;
@@ -26,7 +27,7 @@ namespace KillConfirmGameBar
                 ("badge_multi5.png", LocalizationManager.Text("PentaKill")),
                 ("badge_multi6.png", LocalizationManager.Text("HexaKill")),
                 ("badge_headshot.png", LocalizationManager.Text("Headshot")),
-                ("badge_headshot_gold.png", LocalizationManager.Text("FirstLastKill")),
+                ("badge_headshot_gold.png", LocalizationManager.Current == UiLanguage.SimplifiedChinese ? "黄金爆头" : "Golden headshot"),
                 ("badge_knife.png", LocalizationManager.Text("KnifeKill")),
                 ("FIRSTKILL.png", LocalizationManager.Text("FirstLastKill")),
                 ("LASTKILL.png", LocalizationManager.Text("FirstLastKill")),
@@ -57,6 +58,21 @@ namespace KillConfirmGameBar
                 ("badge_knife2.png", LocalizationManager.Text("ClassKnife") + " 2"),
                 ("badge_knife3.png", LocalizationManager.Text("ClassKnife") + " 3")
             };
+
+            bool chinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            var extraLabels = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["badge_grenade.png"] = "手雷击杀", ["badge_c4.png"] = "安装 C4", ["badge_c4defuse.png"] = "拆除 C4",
+                ["badge_wallshot.png"] = "穿墙击杀", ["badge_headwallshot.png"] = "穿墙爆头", ["badge_headwallshot_gold.png"] = "黄金穿墙爆头",
+                ["revenge.png"] = "复仇", ["badge_assist.png"] = "助攻", ["badge_smash.png"] = "特殊重击",
+                ["killmark_headshot.png"] = "爆头专属叠加", ["killmark_multikill.png"] = "击杀专属叠加",
+                ["killmark_knife.png"] = "刀杀专属叠加", ["killmark_grenade.png"] = "手雷专属叠加"
+            };
+            var existingNames = new HashSet<string>(slots.Select(slot => slot.Item1), StringComparer.OrdinalIgnoreCase);
+            slots = slots.Concat(CrossfirePackFormat.Files.Where(name => !existingNames.Contains(name)).Select(name =>
+                (name, chinese ? (extraLabels.TryGetValue(name, out string label) ? label :
+                (name.StartsWith("SPRITESPECIAL") ? "特殊事件动态叠加 " : name.StartsWith("SPRITENORMAL") ? "普通事件动态叠加 " : "通用动态叠加 ")
+                + System.IO.Path.GetFileNameWithoutExtension(name).Split('_').Last()) : name))).ToArray();
 
             await ShowPackCreationDialogAsync(
                 LocalizationManager.Text("CreateIconPack"),

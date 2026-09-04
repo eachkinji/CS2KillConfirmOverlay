@@ -236,6 +236,7 @@
     <Compile Include="Controls\Animations\Core\KillConfirmAnimation.Models.cs" />
     <Compile Include="Controls\Animations\Core\KillConfirmAnimation.Assets.cs" />
     <Compile Include="Controls\Animations\Core\KillConfirmAnimation.AssetOverlays.cs" />
+    <Compile Include="Controls\Animations\Core\KillConfirmAnimation.CrossfireLayers.cs" />
     <Compile Include="Controls\Animations\Csol\CsolAnimation.Data.cs" />
     <Compile Include="Controls\Animations\Csol\CsolAnimation.Playback.cs" />
     <Compile Include="Controls\Animations\Csol\CsolAnimation.Resources.cs" />
@@ -496,6 +497,7 @@
     <Compile Include="Services\Catalog\PackCatalogService.cs" />
     <Compile Include="Services\Catalog\PackCatalogService.Icon.cs" />
     <Compile Include="Services\Catalog\PackCatalogService.Icon.Creation.cs" />
+    <Compile Include="Services\Catalog\CrossfirePackFormat.cs" />
     <Compile Include="Services\Catalog\PackCatalogService.Storage.cs" />
     <Compile Include="Services\Catalog\PackCatalogService.GameStorage.cs" />
     <Compile Include="Services\Catalog\PackCatalogService.Voice.cs" />

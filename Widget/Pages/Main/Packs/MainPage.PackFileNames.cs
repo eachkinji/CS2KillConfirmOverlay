@@ -70,46 +70,7 @@ namespace KillConfirmGameBar
             "assist.wav"
         };
 
-        private static readonly string[] IconPackImportFiles =
-        {
-            "badge_multi1.png",
-            "badge_multi2.png",
-            "badge_multi3.png",
-            "badge_multi4.png",
-            "badge_multi5.png",
-            "badge_multi6.png",
-            "badge_headshot.png",
-            "badge_headshot_gold.png",
-            "badge_knife.png",
-            "FIRSTKILL.png",
-            "LASTKILL.png",
-            "KillMark_Upgrade1.png",
-            "KillMark_Upgrade2.png",
-            "KillMark_Upgrade3.png",
-            "multi2_fx.png",
-            "multi3_fx.png",
-            "multi4_fx.png",
-            "multi5_fx.png",
-            "multi6_fx.png",
-            "badge_knife_1.png",
-            "badge_knife_2.png",
-            "badge_knife_3.png",
-            "badge_assault1.png",
-            "badge_assault2.png",
-            "badge_assault3.png",
-            "badge_scout1.png",
-            "badge_scout2.png",
-            "badge_scout3.png",
-            "badge_sniper1.png",
-            "badge_sniper2.png",
-            "badge_sniper3.png",
-            "badge_elite1.png",
-            "badge_elite2.png",
-            "badge_elite3.png",
-            "badge_knife1.png",
-            "badge_knife2.png",
-            "badge_knife3.png"
-        };
+        private static readonly string[] IconPackImportFiles = Services.CrossfirePackFormat.Files;
 
         private static readonly string[] CsolIconPackImportFiles =
         {

@@ -55,6 +55,7 @@ namespace KillConfirmGameBar.Controls
                 CanvasBitmap eliteOverlay = await LoadEliteOverlayBitmapAsync(normalizedAssetName);
                 CanvasBitmap weaponBadgeOverlay = await LoadWeaponBadgeOverlayBitmapAsync(normalizedAssetName, normalizedWeaponBadgeKey);
                 asset = new Code2KillAsset(main, fx, eliteOverlay, weaponBadgeOverlay);
+                await LoadCrossfireExtraLayersAsync(asset, normalizedAssetName);
                 CodeKillCache[cacheKey] = asset;
             }
 
@@ -62,7 +63,7 @@ namespace KillConfirmGameBar.Controls
             return new AnimationAsset(
                 new SpriteMetadata
                 {
-                    FrameWidth = (int)CodeKillFrameWidth,
+                    FrameWidth = (int)asset.FrameWidth,
                     FrameHeight = (int)CodeKillFrameHeight,
                     Frames = 77,
                     Fps = FrameSequenceFps
@@ -188,6 +189,41 @@ namespace KillConfirmGameBar.Controls
                     fxFileName = null;
                     fxFolder = null;
                     return true;
+                case "wallshot":
+                    mainFileName = "badge_wallshot.png";
+                    mainFolder = DefaultCodeFolder;
+                    alternatePackFolder = DefaultCodeFolder;
+                    fxFileName = null;
+                    fxFolder = null;
+                    return true;
+                case "headwallshot":
+                    mainFileName = "badge_headwallshot.png";
+                    mainFolder = DefaultCodeFolder;
+                    alternatePackFolder = DefaultCodeFolder;
+                    fxFileName = null;
+                    fxFolder = null;
+                    return true;
+                case "headwallshot_gold":
+                    mainFileName = "badge_headwallshot_gold.png";
+                    mainFolder = DefaultCodeFolder;
+                    alternatePackFolder = DefaultCodeFolder;
+                    fxFileName = null;
+                    fxFolder = null;
+                    return true;
+                case "revenge":
+                    mainFileName = "revenge.png";
+                    mainFolder = DefaultCodeFolder;
+                    alternatePackFolder = DefaultCodeFolder;
+                    fxFileName = null;
+                    fxFolder = null;
+                    return true;
+                case "smash":
+                    mainFileName = "badge_smash.png";
+                    mainFolder = DefaultCodeFolder;
+                    alternatePackFolder = DefaultCodeFolder;
+                    fxFileName = null;
+                    fxFolder = null;
+                    return true;
                 case "headshot_vvip":
                     mainFileName = "badge_headshot_vvip.png";
                     mainFolder = null;
@@ -302,33 +338,16 @@ namespace KillConfirmGameBar.Controls
 
         private static async Task<StorageFile> TryGetImportedIconFileAsync(StorageFolder folder, string canonicalFileName)
         {
-            foreach (string extension in ImportedIconImageExtensions)
+            foreach (string candidate in CrossfirePackFormat.Candidates(canonicalFileName))
             {
-                StorageFile file = await TryGetImportedIconFileExactAsync(
-                    folder,
-                    Path.ChangeExtension(canonicalFileName, extension));
-                if (file != null)
+                foreach (string child in new[] { "", "Sprite\\", "badgeex\\" })
                 {
-                    return file;
-                }
-            }
-
-            try
-            {
-                StorageFolder badgeex = await folder.GetFolderAsync("badgeex");
-                foreach (string extension in ImportedIconImageExtensions)
-                {
-                    StorageFile file = await TryGetImportedIconFileExactAsync(
-                        badgeex,
-                        Path.ChangeExtension(canonicalFileName, extension));
-                    if (file != null)
+                    foreach (string extension in ImportedIconImageExtensions)
                     {
-                        return file;
+                        StorageFile candidateFile = await TryGetImportedIconFileExactAsync(folder, child + Path.ChangeExtension(candidate, extension));
+                        if (candidateFile != null) return candidateFile;
                     }
                 }
-            }
-            catch
-            {
             }
 
             return null;
@@ -374,7 +393,12 @@ namespace KillConfirmGameBar.Controls
                 && !string.Equals(assetName, "c4", StringComparison.OrdinalIgnoreCase)
                 && !string.Equals(assetName, "bomb_plant", StringComparison.OrdinalIgnoreCase)
                 && !string.Equals(assetName, "c4defuse", StringComparison.OrdinalIgnoreCase)
-                && !string.Equals(assetName, "bomb_defuse", StringComparison.OrdinalIgnoreCase);
+                && !string.Equals(assetName, "bomb_defuse", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(assetName, "wallshot", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(assetName, "headwallshot", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(assetName, "headwallshot_gold", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(assetName, "revenge", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(assetName, "smash", StringComparison.OrdinalIgnoreCase);
             return await LoadCodeKillBitmapAsync(
                 effectiveMainFileName, mainFolder, alternatePackFolder, true,
                 allowGenericKillFallback: allowGenericKillFallback);

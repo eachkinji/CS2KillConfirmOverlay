@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string]$BundlePath = '',
     [object]$PackageArchive = $null,
     [string]$GsiEventsPath = ''
@@ -219,8 +219,14 @@ public static class CrossfireIconRegressionChecks
         var events = new Dictionary<string, string> {
             { "knife", "badge_knife.png" }, { "grenade", "badge_grenade.png" }, { "c4", "badge_c4.png" },
             { "bomb_plant", "badge_c4.png" }, { "c4defuse", "badge_c4defuse.png" },
-            { "bomb_defuse", "badge_c4defuse.png" }
+            { "bomb_defuse", "badge_c4defuse.png" },
+            { "wallshot", "badge_wallshot.png" }, { "headwallshot", "badge_headwallshot.png" },
+            { "headwallshot_gold", "badge_headwallshot_gold.png" }, { "revenge", "revenge.png" },
+            { "smash", "badge_smash.png" }
         };
+        foreach (string action in new[] { "wallshot", "headwallshot", "headwallshot_gold", "revenge", "smash" })
+            Check(ResolveCrossfirePrimaryAnimationKey(new KillEvent { AnimationKey = action, KillCount = 1 }, defaults) == action,
+                "Explicit imported event key was discarded: " + action);
         var packs = new Dictionary<string, string> {
             { "default", "Original" }, { "vip", "Vip" }, { "angelic_beast", "AngelicBeast" },
             { "anniversary_10", "Anniversary10" }, { "anniversary_15", "Anniversary15" },

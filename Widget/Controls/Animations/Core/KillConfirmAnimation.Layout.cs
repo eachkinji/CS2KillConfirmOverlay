@@ -66,6 +66,9 @@ namespace KillConfirmGameBar.Controls
 
         private double GetBaseDisplayFit()
         {
+            if (_currentCodeAsset?.Sequence != null)
+                return Math.Min(ReferenceDisplayWidth / CodeKillFrameWidth, ReferenceDisplayHeight / CodeKillFrameHeight);
+
             if (_isModernWarfare2019Active && _drawModernWarfare2019Primary)
             {
                 // The primary canvas is wider only to provide a real feed

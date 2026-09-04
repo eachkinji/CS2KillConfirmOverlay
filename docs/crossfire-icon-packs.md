@@ -4,6 +4,8 @@
 
 ## 独立资源包（4.5.1.42）
 
+独立包统一保存在私有仓库 [CS2KillConfirmOverlay-CrossfirePacks](https://github.com/eachkinji/CS2KillConfirmOverlay-CrossfirePacks)：`IconPacks/` 包含 155 个图标包，`VoicePacks/` 包含 11 个音频包，并附带索引、SHA-256 校验值和生成工具。应用代码继续维护在本仓库的 `dev` 分支，资源 ZIP 不提交到应用代码仓库。
+
 CF 的全部素材现已外置，包括原版。应用源码与安装包不再包含 CF 图标、包头图、音频、公共特效或旧序列帧；游戏选择器的 CF 标识属于界面资源，仍保留。原有 8 套图标和 11 套音频分别发行中文 ZIP，全部带 `pack_head.png`。每套图标包包含自己的主图及公共叠加层；原版包另存旧序列帧。测试目录仅保存无媒体的路由 JSON 样例。
 
 资源包通过通常的单个、批量或拖放导入入口安装到 `LocalState/Packs/crossfire/icon_packs/<id>` 和 `voice_packs/<id>`。这些包使用 `package_kind: crossfire_icon` 或 `crossfire_voice`、`game_style: crossfire`、原有稳定 `id` 及中文 `display_name_zh_cn`。保留旧选择记录，重新导入同名包会更新素材并重新预载；缺少资源的旧内置条目不会继续显示在资源库。普通创作者图标包仍然不需要 manifest。

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -30,30 +30,14 @@ namespace KillConfirmGameBar.Services
 
         public static async Task<IReadOnlyList<IconPackItem>> GetVisibleIconPacksAsync()
         {
-            var catalog = await LoadAsync();
-            if (GameStyleService.Current == GameStyleMode.Overwatch
-                || GameStyleService.Current == GameStyleMode.Apex)
-            {
-                string lockedKey = GameStyleService.Current == GameStyleMode.Apex ? "apex" : "overwatch";
-                return catalog.IconPacks
-                    .Where(p => string.Equals(p.Key, lockedKey, StringComparison.OrdinalIgnoreCase))
-                    .ToList();
-            }
-
-            IEnumerable<IconPackItem> visible = catalog.IconPacks
-                .Where(p => p.IsVisibleInWidget && GameStyleService.IsVisibleForCurrentStyle(p.Key))
-                .ToList();
-            if (GameStyleService.Current == GameStyleMode.Valorant)
-            {
-                visible = visible.OrderBy(p => ValorantPackService.GetDisplayOrder(p.Key));
-            }
-            return visible.ToList();
+            return (await GetAllIconPacksAsync())
+                .Where(p => p.IsVisibleInWidget && GameStyleService.IsVisibleForCurrentStyle(p.Key)).ToList();
         }
 
         public static async Task<IReadOnlyList<IconPackItem>> GetAllIconPacksAsync()
         {
             var catalog = await LoadAsync();
-            return catalog.IconPacks;
+            return OrderPacks(catalog.IconPacks, p => p.Key, catalog.IconPackOrder);
         }
 
         public static async Task<IconPackItem> GetIconPackAsync(string key)
@@ -66,14 +50,17 @@ namespace KillConfirmGameBar.Services
         public static bool IsImportedIconPackKey(string key)
         {
             if (string.IsNullOrWhiteSpace(key)) return false;
-            return key.StartsWith("custom_icon_", StringComparison.OrdinalIgnoreCase)
+            return CrossfireExternalAssetService.IsIconKey(key) || key.StartsWith("custom_module_icon_", StringComparison.OrdinalIgnoreCase) || key.StartsWith("custom_icon_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_csol_icon_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_dagoujiao_icon_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_doubao_icon_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_battlefield1_icon_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_battlefield5_icon_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_battlefield2042_icon_", StringComparison.OrdinalIgnoreCase)
-                || key.StartsWith("custom_deltaforce_icon_", StringComparison.OrdinalIgnoreCase);
+                || key.StartsWith("custom_deltaforce_icon_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("custom_overwatch_icon_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("custom_modernwarfare2019_icon_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("custom_apex_icon_", StringComparison.OrdinalIgnoreCase);
         }
 
         public static bool IsCsolIconPackKey(string key)
@@ -99,6 +86,20 @@ namespace KillConfirmGameBar.Services
 
         public static async Task<StorageFolder> GetImportedIconFolderAsync(string key)
         {
+            if (string.Equals(key, "custommodule", StringComparison.OrdinalIgnoreCase))
+            {
+                try
+                {
+                    StorageFolder installed = Windows.ApplicationModel.Package.Current.InstalledLocation;
+                    return await installed.GetFolderAsync(
+                        @"Assets\GameStyles\custommodule\iconpacks\custommodule");
+                }
+                catch
+                {
+                    return null;
+                }
+            }
+
             var item = await GetIconPackAsync(key);
             if (item == null || string.IsNullOrEmpty(item.FolderPath)) return null;
 
@@ -205,6 +206,9 @@ namespace KillConfirmGameBar.Services
             return new IconPackCapabilities
             {
                 HasKillFxOverlay = await ContainsAnyFileAsync(folder,
+                    "killmark_headshot.png", "killmark_multikill.png", "killmark_knife.png", "killmark_grenade.png",
+                    "SPRITE_01.png", "SPRITENORMAL_01.png", "SPRITESPECIAL_01.png",
+                    "Sprite\\SPRITE_01.png", "Sprite\\SPRITENORMAL_01.png", "Sprite\\SPRITESPECIAL_01.png",
                     "multi2_fx.png", "multi2_fx.tga",
                     "multi3_fx.png", "multi3_fx.tga",
                     "multi4_fx.png", "multi4_fx.tga",
@@ -293,7 +297,6 @@ namespace KillConfirmGameBar.Services
             if (item != null && !item.IsBuiltIn)
             {
                 catalog.IconPacks.Remove(item);
-                await SaveAsync(catalog);
                 if (item.OwnsFolder)
                 {
                     try
@@ -303,6 +306,12 @@ namespace KillConfirmGameBar.Services
                     }
                     catch { }
                 }
+                if (CrossfireExternalAssetService.IsIconKey(key))
+                {
+                    CrossfireExternalAssetService.RefreshAfterRemoval(catalog);
+                    ApplyVisibilityOverrides(catalog);
+                }
+                await SaveAsync(catalog);
             }
         }
 

@@ -5,6 +5,7 @@ using Windows.Foundation;
 using Windows.UI;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
+using Windows.UI.Xaml.Shapes;
 
 namespace KillConfirmGameBar
 {
@@ -33,6 +34,19 @@ namespace KillConfirmGameBar
                 case KillFeedbackLayer.Crosshair: return CrosshairDragHint;
                 case KillFeedbackLayer.Lower: return LowerDragHint;
                 case KillFeedbackLayer.Upper: return UpperDragHint;
+                default: throw new ArgumentOutOfRangeException(nameof(layer));
+            }
+        }
+
+        // A small dot at the frame's geometric center so the user can verify
+        // where the frame center sits relative to the rendered effect.
+        private Ellipse GetFeedbackFrameCenterDot(KillFeedbackLayer layer)
+        {
+            switch (layer)
+            {
+                case KillFeedbackLayer.Crosshair: return CrosshairDragCenterDot;
+                case KillFeedbackLayer.Lower: return LowerDragCenterDot;
+                case KillFeedbackLayer.Upper: return UpperDragCenterDot;
                 default: throw new ArgumentOutOfRangeException(nameof(layer));
             }
         }

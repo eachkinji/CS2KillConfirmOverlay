@@ -1,0 +1,864 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "version": "1.0.0",
+  "name": "6657_danmaku_entity_aliases_v1",
+  "description": "6657 弹幕标注受控专名实体规范名与高频别名映射表。仅收录首批可靠确证的高频实体，严禁录入未经考证的猜测别名。",
+  "entities": {
+    "teams": {
+      "FaZe": {
+        "canonical_name": "FaZe",
+        "type": "team",
+        "aliases": [
+          "faze",
+          "FAZE",
+          "Faze",
+          "痱子",
+          "菲兹",
+          "银河战舰"
+        ]
+      },
+      "Spirit": {
+        "canonical_name": "Spirit",
+        "type": "team",
+        "aliases": [
+          "spirit",
+          "SPIRIT",
+          "Team Spirit",
+          "绿龙",
+          "绿龙队",
+          "雪龙"
+        ]
+      },
+      "Vitality": {
+        "canonical_name": "Vitality",
+        "type": "team",
+        "aliases": [
+          "vitality",
+          "VITALITY",
+          "Team Vitality",
+          "小蜜蜂",
+          "蜜蜂",
+          "蜜蜂队"
+        ]
+      },
+      "Falcons": {
+        "canonical_name": "Falcons",
+        "type": "team",
+        "aliases": [
+          "falcons",
+          "FALCONS",
+          "Team Falcons",
+          "猎鹰",
+          "猎鹰队",
+          "沙特猎鹰"
+        ]
+      },
+      "NaVi": {
+        "canonical_name": "NaVi",
+        "type": "team",
+        "aliases": [
+          "navi",
+          "NAVI",
+          "Navi",
+          "Natus Vincere",
+          "天团",
+          "邪恶天团",
+          "老NaVi"
+        ]
+      },
+      "Liquid": {
+        "canonical_name": "Liquid",
+        "type": "team",
+        "aliases": [
+          "liquid",
+          "LIQUID",
+          "Team Liquid",
+          "老液体",
+          "液体",
+          "液体队"
+        ]
+      },
+      "Virtus.pro": {
+        "canonical_name": "Virtus.pro",
+        "type": "team",
+        "aliases": [
+          "virtus.pro",
+          "Virtus.Pro",
+          "VP",
+          "vp",
+          "Vp",
+          "白熊",
+          "老熊",
+          "大白熊战队"
+        ]
+      },
+      "G2": {
+        "canonical_name": "G2",
+        "type": "team",
+        "aliases": [
+          "g2",
+          "G2 Esports",
+          "g2队"
+        ]
+      },
+      "MOUZ": {
+        "canonical_name": "MOUZ",
+        "type": "team",
+        "aliases": [
+          "mouz",
+          "Mouz",
+          "mousesports",
+          "老鼠",
+          "老鼠队",
+          "耗子队"
+        ]
+      },
+      "Astralis": {
+        "canonical_name": "Astralis",
+        "type": "team",
+        "aliases": [
+          "astralis",
+          "A队",
+          "星队",
+          "四星A队"
+        ]
+      },
+      "TYLOO": {
+        "canonical_name": "TYLOO",
+        "type": "team",
+        "aliases": [
+          "tyloo",
+          "Tyloo",
+          "天禄",
+          "天禄队"
+        ]
+      },
+      "LVG": {
+        "canonical_name": "LVG",
+        "type": "team",
+        "aliases": [
+          "lvg",
+          "Lynn Vision",
+          "准星队"
+        ]
+      },
+      "The MongolZ": {
+        "canonical_name": "The MongolZ",
+        "type": "team",
+        "aliases": [
+          "mongolz",
+          "MongolZ",
+          "The Mongolz",
+          "蒙古",
+          "蒙古队"
+        ]
+      },
+      "HEROIC": {
+        "canonical_name": "HEROIC",
+        "type": "team",
+        "aliases": [
+          "heroic",
+          "Heroic",
+          "大英雄"
+        ]
+      },
+      "Eternal Fire": {
+        "canonical_name": "Eternal Fire",
+        "type": "team",
+        "aliases": [
+          "eternal fire",
+          "EF",
+          "ef",
+          "土耳其火",
+          "永恒之火"
+        ]
+      },
+      "FURIA": {
+        "canonical_name": "FURIA",
+        "type": "team",
+        "aliases": [
+          "furia",
+          "Furia",
+          "黑豹",
+          "黑豹战队"
+        ]
+      },
+      "Complexity": {
+        "canonical_name": "Complexity",
+        "type": "team",
+        "aliases": [
+          "complexity",
+          "COL",
+          "col",
+          "coL"
+        ]
+      },
+      "BIG": {
+        "canonical_name": "BIG",
+        "type": "team",
+        "aliases": [
+          "big"
+        ]
+      },
+      "Imperial": {
+        "canonical_name": "Imperial",
+        "type": "team",
+        "aliases": [
+          "imperial"
+        ]
+      },
+      "paiN": {
+        "canonical_name": "paiN",
+        "type": "team",
+        "aliases": [
+          "pain",
+          "paiN Gaming"
+        ]
+      }
+    },
+    "coaches": {
+      "zonic": {
+        "canonical_name": "zonic",
+        "type": "coach",
+        "aliases": [
+          "Zonic",
+          "ZONIC",
+          "佐尼克",
+          "光头教练"
+        ]
+      },
+      "hally": {
+        "canonical_name": "hally",
+        "type": "coach",
+        "aliases": [
+          "Hally",
+          "HALLY",
+          "哈利",
+          "绿龙教练"
+        ]
+      },
+      "B1ad3": {
+        "canonical_name": "B1ad3",
+        "type": "coach",
+        "aliases": [
+          "b1ad3",
+          "BLADE",
+          "blade",
+          "Blade",
+          "刃哥",
+          "刀哥",
+          "老刀"
+        ]
+      },
+      "XTQZZZ": {
+        "canonical_name": "XTQZZZ",
+        "type": "coach",
+        "aliases": [
+          "xtqzzz",
+          "光头xtq",
+          "小蜜蜂教练",
+          "包工头"
+        ]
+      },
+      "kassad": {
+        "canonical_name": "kassad",
+        "type": "coach",
+        "aliases": [
+          "Kassad",
+          "卡萨德"
+        ]
+      },
+      "Taz": {
+        "canonical_name": "Taz",
+        "type": "coach",
+        "aliases": [
+          "taz",
+          "TAZ",
+          "TaZ",
+          "老熊Taz",
+          "战神Taz"
+        ]
+      },
+      "kuben": {
+        "canonical_name": "kuben",
+        "type": "coach",
+        "aliases": [
+          "Kuben",
+          "库本"
+        ]
+      }
+    },
+    "players": {
+      "s1mple": {
+        "canonical_name": "s1mple",
+        "type": "player",
+        "aliases": [
+          "S1mple",
+          "SIMPLE",
+          "simple",
+          "森破",
+          "简单男孩",
+          "大金牙",
+          "乌克兰剑魔"
+        ]
+      },
+      "ZywOo": {
+        "canonical_name": "ZywOo",
+        "type": "player",
+        "aliases": [
+          "zywoo",
+          "ZYWOO",
+          "Zywoo",
+          "载物",
+          "大番薯",
+          "薯薯"
+        ]
+      },
+      "NiKo": {
+        "canonical_name": "NiKo",
+        "type": "player",
+        "aliases": [
+          "niko",
+          "NIKO",
+          "Niko",
+          "尼克",
+          "波黑枪王",
+          "牢尼"
+        ]
+      },
+      "m0NESY": {
+        "canonical_name": "m0NESY",
+        "type": "player",
+        "aliases": [
+          "monesy",
+          "M0NESY",
+          "Monesy",
+          "m0nesy",
+          "莫奈西",
+          "太子",
+          "小孩"
+        ]
+      },
+      "donk": {
+        "canonical_name": "donk",
+        "type": "player",
+        "aliases": [
+          "Donk",
+          "DONK",
+          "顿克",
+          "咚咚",
+          "donk神"
+        ]
+      },
+      "sh1ro": {
+        "canonical_name": "sh1ro",
+        "type": "player",
+        "aliases": [
+          "shiro",
+          "SH1RO",
+          "Shiro",
+          "红星大狙",
+          "骨折哥",
+          "四罗"
+        ]
+      },
+      "karrigan": {
+        "canonical_name": "karrigan",
+        "type": "player",
+        "aliases": [
+          "Karrigan",
+          "KARRIGAN",
+          "大表哥",
+          "卡里根",
+          "大表姐"
+        ]
+      },
+      "rain": {
+        "canonical_name": "rain",
+        "type": "player",
+        "aliases": [
+          "Rain",
+          "RAIN",
+          "雨神",
+          "雨神rain"
+        ]
+      },
+      "broky": {
+        "canonical_name": "broky",
+        "type": "player",
+        "aliases": [
+          "Broky",
+          "BROKY",
+          "布罗基",
+          "老八",
+          "白神"
+        ]
+      },
+      "ropz": {
+        "canonical_name": "ropz",
+        "type": "player",
+        "aliases": [
+          "Ropz",
+          "ROPZ",
+          "罗普兹",
+          "寒王"
+        ]
+      },
+      "frozen": {
+        "canonical_name": "frozen",
+        "type": "player",
+        "aliases": [
+          "Frozen",
+          "FROZEN",
+          "冰人",
+          "小寒王"
+        ]
+      },
+      "b1t": {
+        "canonical_name": "b1t",
+        "type": "player",
+        "aliases": [
+          "B1t",
+          "B1T",
+          "bit",
+          "大B哥",
+          "战神b1t"
+        ]
+      },
+      "ELiGE": {
+        "canonical_name": "ELiGE",
+        "type": "player",
+        "aliases": [
+          "elige",
+          "EliGE",
+          "ELIGE",
+          "鸡哥",
+          "北美鸡哥"
+        ]
+      },
+      "apEX": {
+        "canonical_name": "apEX",
+        "type": "player",
+        "aliases": [
+          "apex",
+          "APEX",
+          "Apex",
+          "豆豆",
+          "蜜蜂指挥"
+        ]
+      },
+      "Spinx": {
+        "canonical_name": "Spinx",
+        "type": "player",
+        "aliases": [
+          "spinx",
+          "SPINX",
+          "陀螺"
+        ]
+      },
+      "flameZ": {
+        "canonical_name": "flameZ",
+        "type": "player",
+        "aliases": [
+          "flamez",
+          "FLAMEZ",
+          "FlameZ",
+          "烈火哥"
+        ]
+      },
+      "mezii": {
+        "canonical_name": "mezii",
+        "type": "player",
+        "aliases": [
+          "Mezii",
+          "MEZII",
+          "梅子",
+          "梅老板"
+        ]
+      },
+      "GuardiaN": {
+        "canonical_name": "GuardiaN",
+        "type": "player",
+        "aliases": [
+          "guardian",
+          "GUARDIAN",
+          "Guardian",
+          "瓜神",
+          "瓜皇",
+          "护国神狙"
+        ]
+      },
+      "dev1ce": {
+        "canonical_name": "dev1ce",
+        "type": "player",
+        "aliases": [
+          "device",
+          "DEVICE",
+          "Device",
+          "阿汤哥",
+          "蛇狙",
+          "蛇哥"
+        ]
+      },
+      "cadiaN": {
+        "canonical_name": "cadiaN",
+        "type": "player",
+        "aliases": [
+          "cadian",
+          "CADIAN",
+          "Cadian",
+          "点子哥",
+          "点包哥",
+          "点子"
+        ]
+      },
+      "Snax": {
+        "canonical_name": "Snax",
+        "type": "player",
+        "aliases": [
+          "snax",
+          "SNAX",
+          "大白熊",
+          "斯纳克斯"
+        ]
+      },
+      "blameF": {
+        "canonical_name": "blameF",
+        "type": "player",
+        "aliases": [
+          "blamef",
+          "BLAMEF",
+          "BlameF",
+          "大壮",
+          "健身哥"
+        ]
+      },
+      "jks": {
+        "canonical_name": "jks",
+        "type": "player",
+        "aliases": [
+          "Jks",
+          "JKS",
+          "贾克斯",
+          "救火队员"
+        ]
+      },
+      "Jimpphat": {
+        "canonical_name": "Jimpphat",
+        "type": "player",
+        "aliases": [
+          "jimpphat",
+          "JIMPOPHAT",
+          "小吉姆",
+          "吉姆佩特"
+        ]
+      },
+      "torzsi": {
+        "canonical_name": "torzsi",
+        "type": "player",
+        "aliases": [
+          "Torzsi",
+          "TORZSI",
+          "托子哥",
+          "托尔奇"
+        ]
+      },
+      "xertioN": {
+        "canonical_name": "xertioN",
+        "type": "player",
+        "aliases": [
+          "xertion",
+          "XERTION",
+          "XertioN",
+          "塞申",
+          "小罗"
+        ]
+      },
+      "siuhy": {
+        "canonical_name": "siuhy",
+        "type": "player",
+        "aliases": [
+          "Siuhy",
+          "SIUHY",
+          "休西",
+          "小红帽"
+        ]
+      },
+      "Brollan": {
+        "canonical_name": "Brollan",
+        "type": "player",
+        "aliases": [
+          "brollan",
+          "BROLLAN",
+          "宝蓝",
+          "大光头"
+        ]
+      },
+      "coldzera": {
+        "canonical_name": "coldzera",
+        "type": "player",
+        "aliases": [
+          "Coldzera",
+          "COLDZERA",
+          "冷神",
+          "跳杀冷神"
+        ]
+      },
+      "olofmeister": {
+        "canonical_name": "olofmeister",
+        "type": "player",
+        "aliases": [
+          "Olofmeister",
+          "OLOFMEISTER",
+          "奥拉夫"
+        ]
+      },
+      "f0rest": {
+        "canonical_name": "f0rest",
+        "type": "player",
+        "aliases": [
+          "F0rest",
+          "F0REST",
+          "森林哥"
+        ]
+      },
+      "GeT_RiGhT": {
+        "canonical_name": "GeT_RiGhT",
+        "type": "player",
+        "aliases": [
+          "get_right",
+          "Get_Right",
+          "狗头人"
+        ]
+      },
+      "kennyS": {
+        "canonical_name": "kennyS",
+        "type": "player",
+        "aliases": [
+          "kennys",
+          "KENNYS",
+          "KennyS",
+          "K神",
+          "肯尼S"
+        ]
+      },
+      "Magisk": {
+        "canonical_name": "Magisk",
+        "type": "player",
+        "aliases": [
+          "magisk",
+          "MAGISK",
+          "魔法男孩"
+        ]
+      },
+      "dupreeh": {
+        "canonical_name": "dupreeh",
+        "type": "player",
+        "aliases": [
+          "Dupreeh",
+          "DUPREEH",
+          "阿杜",
+          "杜普里"
+        ]
+      },
+      "gla1ve": {
+        "canonical_name": "gla1ve",
+        "type": "player",
+        "aliases": [
+          "glaive",
+          "GLA1VE",
+          "Gla1ve",
+          "智将"
+        ]
+      },
+      "Xyp9x": {
+        "canonical_name": "Xyp9x",
+        "type": "player",
+        "aliases": [
+          "xyp9x",
+          "XYP9X",
+          "九爷",
+          "残局大师"
+        ]
+      },
+      "Ax1Le": {
+        "canonical_name": "Ax1Le",
+        "type": "player",
+        "aliases": [
+          "ax1le",
+          "AX1LE",
+          "阿乐",
+          "红星阿乐"
+        ]
+      },
+      "FalleN": {
+        "canonical_name": "FalleN",
+        "type": "player",
+        "aliases": [
+          "fallen",
+          "FALLEN",
+          "教父",
+          "巴西教父"
+        ]
+      },
+      "KSCERATO": {
+        "canonical_name": "KSCERATO",
+        "type": "player",
+        "aliases": [
+          "kscerato",
+          "KSCERATO",
+          "卡塞拉托"
+        ]
+      },
+      "Dank1ng": {
+        "canonical_name": "Dank1ng",
+        "type": "player",
+        "aliases": [
+          "danking",
+          "DANK1NG",
+          "Danking",
+          "蛋总"
+        ]
+      },
+      "JamYoung": {
+        "canonical_name": "JamYoung",
+        "type": "player",
+        "aliases": [
+          "jamyoung",
+          "JAMYOUNG",
+          "杨哥",
+          "小杨"
+        ]
+      },
+      "Moseyuh": {
+        "canonical_name": "Moseyuh",
+        "type": "player",
+        "aliases": [
+          "moseyuh",
+          "MOSEYUH",
+          "莫思雨"
+        ]
+      },
+      "Jee": {
+        "canonical_name": "Jee",
+        "type": "player",
+        "aliases": [
+          "jee",
+          "JEE",
+          "小吉"
+        ]
+      },
+      "Starry": {
+        "canonical_name": "Starry",
+        "type": "player",
+        "aliases": [
+          "starry",
+          "STARRY",
+          "星光"
+        ]
+      },
+      "z4kr": {
+        "canonical_name": "z4kr",
+        "type": "player",
+        "aliases": [
+          "Z4kr",
+          "Z4KR",
+          "张坤"
+        ]
+      },
+      "advent": {
+        "canonical_name": "advent",
+        "type": "player",
+        "aliases": [
+          "Advent",
+          "ADVENT",
+          "259",
+          "老259"
+        ]
+      },
+      "SOMEBODY": {
+        "canonical_name": "SOMEBODY",
+        "type": "player",
+        "aliases": [
+          "somebody",
+          "Somebody",
+          "小鬼",
+          "鬼王爷"
+        ]
+      },
+      "captainMo": {
+        "canonical_name": "captainMo",
+        "type": "player",
+        "aliases": [
+          "captainmo",
+          "CaptainMo",
+          "老队长",
+          "毛子Mo"
+        ]
+      }
+    },
+    "streamers": {
+      "玩机器": {
+        "canonical_name": "玩机器",
+        "type": "streamer",
+        "aliases": [
+          "玩神",
+          "玩主播",
+          "机哥",
+          "哈基玩",
+          "玩大哥",
+          "大聪明",
+          "录像店老板"
+        ]
+      },
+      "刘一博": {
+        "canonical_name": "刘一博",
+        "type": "streamer",
+        "aliases": []
+      },
+      "冬瓜强": {
+        "canonical_name": "冬瓜强",
+        "type": "caster",
+        "aliases": [
+          "冬瓜",
+          "强哥",
+          "瓜哥",
+          "冬瓜强社长"
+        ]
+      },
+      "QUQU": {
+        "canonical_name": "QUQU",
+        "type": "caster",
+        "aliases": [
+          "ququ",
+          "屈六六",
+          "吴权清"
+        ]
+      },
+      "马西西": {
+        "canonical_name": "马西西",
+        "type": "caster",
+        "aliases": [
+          "胖头妹",
+          "西西"
+        ]
+      },
+      "CSBOY": {
+        "canonical_name": "CSBOY",
+        "type": "caster",
+        "aliases": [
+          "csboy",
+          "CSBoy"
+        ]
+      },
+      "茄子": {
+        "canonical_name": "茄子",
+        "type": "caster",
+        "aliases": [
+          "吴子豪",
+          "窗帘艺术家"
+        ]
+      }
+    }
+  }
+}

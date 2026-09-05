@@ -1,0 +1,99 @@
+{
+  "schema_version": "4.0.0",
+  "pool_type": "lifecycle",
+  "lifecycle": "session_end",
+  "source": "Widget/Danmaku/6657_memes.json",
+  "policy": "Every runtime line is an exact excerpt or a documented event-context rewrite of an indexed 6657 source line.",
+  "entries": [
+    {
+      "id": "ending_001",
+      "source_index": 8585,
+      "source_excerpt": "刷新🔄失望",
+      "text": "刷新🔄失望😞刷新🔄崩溃😭玩宝宝你去哪了😭",
+      "family": "refresh_disappointment",
+      "phase": "both",
+      "derivation": "excerpt"
+    },
+    {
+      "id": "ending_002",
+      "source_index": 8664,
+      "source_excerpt": "宝贝你去哪了",
+      "text": "刷新🔄失望😞宝贝你去哪了😭",
+      "family": "refresh_disappointment",
+      "phase": "both",
+      "derivation": "excerpt"
+    },
+    {
+      "id": "ending_003",
+      "source_index": 11268,
+      "source_excerpt": "宝宝你人呢",
+      "text": "刷新半天，宝宝你人呢😭",
+      "family": "refresh_disappointment",
+      "phase": "both",
+      "derivation": "context_rewrite"
+    },
+    {
+      "id": "ending_004",
+      "source_index": 23089,
+      "source_excerpt": "刷新🔄崩溃",
+      "text": "刷新🔄失望😞刷新🔄崩溃😭",
+      "family": "refresh_disappointment",
+      "phase": "both",
+      "derivation": "excerpt"
+    },
+    {
+      "id": "ending_005",
+      "source_index": 69,
+      "source_excerpt": "真短啊",
+      "text": "要结束了吗，真短啊，再见了各位",
+      "family": "farewell",
+      "phase": "both",
+      "derivation": "excerpt"
+    },
+    {
+      "id": "ending_006",
+      "source_index": 2419,
+      "source_excerpt": "再见了机器",
+      "text": "再见了机器👋我的青春又大结局了😭",
+      "family": "farewell",
+      "phase": "both",
+      "derivation": "context_rewrite"
+    },
+    {
+      "id": "ending_007",
+      "source_index": 4933,
+      "source_excerpt": "你不要下播好不好",
+      "text": "你不要下播好不好😭除了你我没有朋友了😭",
+      "family": "dont_leave",
+      "phase": "both",
+      "derivation": "excerpt"
+    },
+    {
+      "id": "ending_008",
+      "source_index": 14236,
+      "source_excerpt": "玩神你终于走了",
+      "text": "玩神你终于走了，这下弹幕也能下班了",
+      "family": "dont_leave",
+      "phase": "both",
+      "derivation": "context_rewrite"
+    },
+    {
+      "id": "ending_009",
+      "source_index": 16943,
+      "source_excerpt": "主播没了",
+      "text": "主播没了，直播间又成一座坟了",
+      "family": "offline_meta",
+      "phase": "both",
+      "derivation": "context_rewrite"
+    },
+    {
+      "id": "ending_010",
+      "source_index": 17331,
+      "source_excerpt": "玩机器下播了",
+      "text": "玩机器下播了，弹幕气不气",
+      "family": "offline_meta",
+      "phase": "both",
+      "derivation": "exact"
+    }
+  ]
+}

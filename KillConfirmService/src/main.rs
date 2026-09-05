@@ -19,6 +19,11 @@ use std::env;
 
 #[tokio::main]
 async fn main() {
+    std::panic::set_hook(Box::new(|panic_info| {
+        let detail = format!("service panic: {panic_info}");
+        bootstrap_log(&detail);
+        service_log(&detail);
+    }));
     let startup_args = Args::sanitized_runtime_args();
     set_developer_logging_enabled(
         startup_args

@@ -12,6 +12,13 @@ namespace KillConfirmGameBar.Services
 
         [DataMember]
         public List<IconPackItem> IconPacks { get; set; } = new List<IconPackItem>();
+
+        // Keep order separate from discovered entries, which are rebuilt on refresh.
+        [DataMember]
+        public List<string> VoicePackOrder { get; set; } = new List<string>();
+
+        [DataMember]
+        public List<string> IconPackOrder { get; set; } = new List<string>();
     }
 
     [DataContract]
@@ -34,6 +41,9 @@ namespace KillConfirmGameBar.Services
 
         [DataMember]
         public bool OwnsFolder { get; set; }
+
+        [DataMember]
+        public string AssociationId { get; set; }
     }
 
     [DataContract]
@@ -59,6 +69,9 @@ namespace KillConfirmGameBar.Services
 
         [DataMember]
         public bool OwnsFolder { get; set; }
+
+        [DataMember]
+        public string AssociationId { get; set; }
 
         [DataMember]
         public bool HasFxOverlay { get; set; }

@@ -6,6 +6,7 @@ namespace KillConfirmGameBar.Services
     {
         public static GameStyleMode GetStyleForPackKey(string key)
         {
+            if (IsCustomModuleKey(key)) return GameStyleMode.CustomModule;
             if (string.IsNullOrEmpty(key))
             {
                 return GameStyleMode.Crossfire;
@@ -171,6 +172,8 @@ namespace KillConfirmGameBar.Services
                     return "pubg";
                 case GameStyleMode.DeltaForce:
                     return "deltaforce";
+                case GameStyleMode.CustomModule:
+                    return "custommodule";
                 case GameStyleMode.Doubao:
                     return "doubao";
                 case GameStyleMode.Dagoujiao:
@@ -207,6 +210,8 @@ namespace KillConfirmGameBar.Services
                     return "pubg";
                 case GameStyleMode.DeltaForce:
                     return "deltaforce";
+                case GameStyleMode.CustomModule:
+                    return "custommodule";
                 case GameStyleMode.Doubao:
                     return "doubao";
                 case GameStyleMode.Dagoujiao:

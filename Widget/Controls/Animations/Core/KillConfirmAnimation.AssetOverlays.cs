@@ -103,13 +103,7 @@ namespace KillConfirmGameBar.Controls
 
         private static string GetEffectiveMainFileName(string assetName, string defaultMainFileName)
         {
-            if (string.Equals(assetName, "knife", StringComparison.OrdinalIgnoreCase)
-                && SupportsEliteOverlay()
-                && GetEffectiveEliteEffectLevel() > 0)
-            {
-                return $"badge_knife_{GetEffectiveEliteEffectLevel()}.png";
-            }
-
+            // Elite wings belong to kill-count badges, including no elite knife substitution.
             return defaultMainFileName;
         }
 

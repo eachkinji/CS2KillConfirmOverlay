@@ -1,3 +1,5 @@
+using System;
+using System.Globalization;
 using KillConfirmGameBar.Services;
 using Windows.UI;
 using Windows.UI.Xaml;
@@ -15,6 +17,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
             InitializeComponent();
             RefreshVisualEffectSettings();
             SelectAssistAudio(AssistAudioSettingsStore.Load(GameStyleMode.ModernWarfare2019));
+            SelectRightFeedOffset(ModernWarfare2019FeedOffsetSettingsStore.Load());
         }
 
         public event SelectionChangedEventHandler MoneyRewardModeSelectionChanged;
@@ -31,6 +34,8 @@ namespace KillConfirmGameBar.Controls.GameStyles
             TitleText.Foreground = Brush(theme.Text);
             VisualEffectsCard.Background = Brush(theme.Card);
             VisualEffectsCard.BorderBrush = Brush(theme.SoftBorder);
+            RightFeedOffsetCard.Background = Brush(theme.Card);
+            RightFeedOffsetCard.BorderBrush = Brush(theme.SoftBorder);
             AdvancedEffectsPanelSupport.ApplyResetButton(ResetButton, theme);
             AdvancedEffectsPanelSupport.ApplyMoneyRow(MoneyRewardModeLabel, MoneyRewardModeSelector, theme);
             StreakEditor.ApplyTheme(theme);
@@ -43,6 +48,9 @@ namespace KillConfirmGameBar.Controls.GameStyles
             LowerEffectToggle.Foreground = Brush(theme.Text);
             AssistAudioLabel.Foreground = Brush(theme.Text);
             AssistAudioToggle.Foreground = Brush(theme.Text);
+            RightFeedOffsetLabel.Foreground = Brush(theme.Text);
+            RightFeedOffsetValue.Foreground = Brush(theme.Accent);
+            RightFeedOffsetHint.Foreground = Brush(theme.MutedText);
         }
 
         public void ApplyLanguage(bool isChinese)
@@ -59,6 +67,12 @@ namespace KillConfirmGameBar.Controls.GameStyles
             CrosshairEffectLabel.Text = isChinese ? "中央准心提示" : "Center crosshair feedback";
             LowerEffectLabel.Text = isChinese ? "下方第 N 杀提示" : "Lower kill-count banner";
             AssistAudioLabel.Text = isChinese ? "助攻时播放语音" : "Play voice on assist";
+            RightFeedOffsetLabel.Text = isChinese
+                ? "右侧金钱与文字离准心距离"
+                : "Money and text distance from crosshair";
+            RightFeedOffsetHint.Text = isChinese
+                ? "数值越大，右侧金钱和文字瀑布越向右移动；准心本身不会移动。"
+                : "Higher values move the money and text waterfall farther right without moving the crosshair.";
             ApplyToggleLanguage(UpperEffectToggle, isChinese);
             ApplyToggleLanguage(CrosshairEffectToggle, isChinese);
             ApplyToggleLanguage(LowerEffectToggle, isChinese);
@@ -88,6 +102,44 @@ namespace KillConfirmGameBar.Controls.GameStyles
             finally
             {
                 _suppressVisualEffectChanges = false;
+            }
+        }
+
+        private void SelectRightFeedOffset(double value)
+        {
+            _suppressVisualEffectChanges = true;
+            try
+            {
+                RightFeedOffsetSlider.Minimum = ModernWarfare2019FeedOffsetSettingsStore.MinimumOffset;
+                RightFeedOffsetSlider.Maximum = ModernWarfare2019FeedOffsetSettingsStore.MaximumOffset;
+                RightFeedOffsetSlider.StepFrequency = ModernWarfare2019FeedOffsetSettingsStore.OffsetStep;
+                RightFeedOffsetSlider.Value = value;
+                UpdateRightFeedOffsetValue();
+            }
+            finally
+            {
+                _suppressVisualEffectChanges = false;
+            }
+        }
+
+        private void OnRightFeedOffsetValueChanged(
+            object sender,
+            Windows.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
+        {
+            UpdateRightFeedOffsetValue();
+            if (!_suppressVisualEffectChanges)
+            {
+                ModernWarfare2019FeedOffsetSettingsStore.Save(e.NewValue);
+            }
+        }
+
+        private void UpdateRightFeedOffsetValue()
+        {
+            if (RightFeedOffsetValue != null && RightFeedOffsetSlider != null)
+            {
+                RightFeedOffsetValue.Text = "+"
+                    + Math.Round(RightFeedOffsetSlider.Value)
+                        .ToString(CultureInfo.InvariantCulture);
             }
         }
 
@@ -140,7 +192,10 @@ namespace KillConfirmGameBar.Controls.GameStyles
             CrosshairEffectToggle.IsOn = true;
             LowerEffectToggle.IsOn = true;
             AssistAudioToggle.IsOn = false;
+            RightFeedOffsetSlider.Value = ModernWarfare2019FeedOffsetSettingsStore.DefaultOffset;
             _suppressVisualEffectChanges = false;
+            ModernWarfare2019FeedOffsetSettingsStore.Save(
+                ModernWarfare2019FeedOffsetSettingsStore.DefaultOffset);
             OnVisualEffectToggled(this, null);
             OnAssistAudioToggled(this, null);
             MoneyRewardModeSelectionChanged?.Invoke(this, null);

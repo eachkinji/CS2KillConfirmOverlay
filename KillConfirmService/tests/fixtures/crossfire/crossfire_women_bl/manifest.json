@@ -1,0 +1,26 @@
+{
+  "id": "crossfire_women_bl",
+  "name": "猎狐者 (潜伏者)",
+  "game_style": "crossfire",
+  "version": "1.0",
+  "audio": {
+    "base_gain": 1.0,
+    "slots": {
+      "kill_1": "common.wav",
+      "kill_2": "2.wav",
+      "kill_3": "3.wav",
+      "kill_4": "4.wav",
+      "kill_5": "5.wav",
+      "kill_6": "6.wav",
+      "kill_7": "7.wav",
+      "kill_8": "8.wav",
+      "headshot": "headshot.wav",
+      "knife": "knife.wav",
+      "first_and_last": "grenade.wav",
+      "grenade": "grenade.wav"
+    },
+    "slot_gains": {
+      "kill_1": 2.5
+    }
+  }
+}

@@ -69,6 +69,7 @@ Kill Confirm Overlay 通过 Counter-Strike 2 Game State Integration 接收对局
 - **11 种内置展示风格**：穿越火线、CSOL、VALORANT、战地 1、战地 5、战地 4、战地 2042、PUBG、三角洲行动、豆包和大狗叫。
 - **灵活的连杀逻辑**：支持按生命、按回合和循环连杀窗口；循环点可在 2–50 杀之间设置。
 - **自定义图片与语音**：可使用内置素材，也可为支持的事件和风格导入图片、语音资源。
+- **自定义模块**：兼容 CS2 Customizer 击杀图标序列帧，支持 ZIP/旧版目录导入、预览、播放调节和兼容导出。详见[格式与使用说明](docs/CustomModule.md)。
 - **高级音频控制**：支持独立风格优先级、音量、事件音效以及可配置的播放速度与音调变化。
 - **炸弹音效时间线**：可选安放、拆除、爆炸和新回合重置音效，并可设置初始与最终倍速，由程序在 40 秒内平滑加速。
 - **高分辨率视觉优化**：针对高 DPI 显示器和 4:3 全屏分辨率优化渲染、定位与缩放。
@@ -132,23 +133,25 @@ C:\Program Files (x86)\Steam\steamapps\common\Counter-Strike Global Offensive\ga
 
 源码构建需要 Rust 工具链、安装了 Windows/UWP/MSIX 工具的 Visual Studio 或 Visual Studio Build Tools；如需生成 `.exe` 安装器，还需要 Inno Setup 6。
 
-在仓库根目录运行：
+快速生成用于本地测试的 MSIX Bundle：
 
 ```powershell
-.\Build-IntegratedPackage.ps1
+.\Build-QuickPackage.ps1
 ```
 
-创建可转移安装包：
+快速打包并安装到本机：
 
 ```powershell
-.\Build-TransferPackage.ps1
+.\Build-QuickPackage.ps1 -Install
 ```
 
-创建安装器：
+生成完整发布安装包：
 
 ```powershell
-.\Build-Installer.ps1
+.\Build-FullPackage.ps1
 ```
+
+本地构建会在 `.local/signing/` 下创建仅供当前机器使用的开发证书，该目录不会提交到 Git；正式发布使用 CI Secret 提供的签名证书。
 
 ## 项目结构
 

@@ -1,0 +1,119 @@
+{
+  "schema_version": "4.0.0",
+  "pool_type": "lifecycle",
+  "lifecycle": "opening_wait",
+  "source": "Widget/Danmaku/6657_memes.json",
+  "policy": "Every runtime line is an exact excerpt or a documented event-context rewrite of an indexed 6657 source line.",
+  "entries": [
+    {
+      "id": "opening_001",
+      "source_index": 17422,
+      "source_excerpt": "开门啊",
+      "text": "开门啊😭我真的很想融入这个直播间😭",
+      "intent": "open_door",
+      "family": "open_door",
+      "phase": "burst",
+      "derivation": "excerpt"
+    },
+    {
+      "id": "opening_002",
+      "source_index": 8477,
+      "source_excerpt": "醒了就开播，别过少爷生活",
+      "text": "醒了就开播，别过少爷生活desuwa",
+      "intent": "urge_start",
+      "family": "urge_start",
+      "phase": "burst",
+      "derivation": "excerpt"
+    },
+    {
+      "id": "opening_003",
+      "source_index": 10407,
+      "source_excerpt": "你开播吧",
+      "text": "你开播吧，别装死了",
+      "intent": "urge_start",
+      "family": "urge_start",
+      "phase": "burst",
+      "derivation": "context_rewrite"
+    },
+    {
+      "id": "opening_004",
+      "source_index": 14283,
+      "source_excerpt": "我要玩大哥开播",
+      "text": "我要玩大哥开播😭",
+      "intent": "urge_start",
+      "family": "urge_start",
+      "phase": "burst",
+      "derivation": "excerpt"
+    },
+    {
+      "id": "opening_005",
+      "source_index": 10181,
+      "source_excerpt": "若您仍不开播",
+      "text": "若您仍不开播，斗鱼将不再隐瞒您的猪妖身份",
+      "intent": "urge_start",
+      "family": "mock_notice",
+      "phase": "both",
+      "derivation": "excerpt"
+    },
+    {
+      "id": "opening_006",
+      "source_index": 6119,
+      "source_excerpt": "我都穿好婚纱了在等你开播",
+      "text": "我都穿好婚纱了在等你开播😭",
+      "intent": "waiting",
+      "family": "waiting",
+      "phase": "both",
+      "derivation": "excerpt"
+    },
+    {
+      "id": "opening_007",
+      "source_index": 10733,
+      "source_excerpt": "开播啦",
+      "text": "🐷开播啦🥰总算舍得来了",
+      "intent": "arrival",
+      "family": "arrival",
+      "phase": "both",
+      "derivation": "context_rewrite"
+    },
+    {
+      "id": "opening_008",
+      "source_index": 14378,
+      "source_excerpt": "你终于来了",
+      "text": "你终于来了，一晚上都魂不守舍",
+      "intent": "arrival",
+      "family": "arrival",
+      "phase": "aftermath",
+      "derivation": "excerpt"
+    },
+    {
+      "id": "opening_009",
+      "source_index": 14398,
+      "source_excerpt": "坐在电脑前等玩神开播",
+      "text": "又坐在电脑前等玩神开播，这人生真有出息",
+      "intent": "waiting",
+      "family": "self_mockery",
+      "phase": "aftermath",
+      "derivation": "context_rewrite"
+    },
+    {
+      "id": "opening_010",
+      "source_index": 20491,
+      "source_excerpt": "已开播",
+      "text": "系统提示：猪妖已开播，点击围观",
+      "intent": "arrival",
+      "family": "mock_notice",
+      "phase": "both",
+      "derivation": "context_rewrite"
+    },
+    {
+      "id": "opening_011",
+      "source_index": 21868,
+      "source_excerpt": "玩神你终于来了",
+      "text": "玩神你终于来了，再不来直播间都要长草了",
+      "intent": "arrival",
+      "family": "arrival",
+      "phase": "aftermath",
+      "derivation": "context_rewrite"
+    }
+  ]
+}

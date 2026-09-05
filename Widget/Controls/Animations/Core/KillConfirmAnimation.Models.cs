@@ -75,6 +75,11 @@ namespace KillConfirmGameBar.Controls
             public CanvasBitmap Fx { get; }
             public CanvasBitmap Overlay { get; }
             public CanvasBitmap WeaponBadge { get; }
+            public CanvasBitmap EventOverlay { get; set; }
+            public CanvasBitmap[] Sequence { get; set; }
+            public string Action { get; set; }
+            public double FrameWidth => _mainAnimationStyle == 2 || Sequence != null ? 1100 : CodeKillFrameWidth;
+            public double FrameHeight => _mainAnimationStyle == 2 ? 900 : CodeKillFrameHeight;
         }
 
         private sealed class ValorantKillAsset
@@ -83,14 +88,13 @@ namespace KillConfirmGameBar.Controls
             public int KillCount { get; set; }
             public bool IsHeadshot { get; set; }
             public Color Accent { get; set; } = Color.FromArgb(255, 255, 70, 85);
-            public float Brightness { get; set; } = 1.0f;
-            public float Contrast { get; set; } = 1.0f;
-            public int SpinDirection { get; set; } = 1;
             public ValorantTextureSet Textures { get; set; }
             public CanvasBitmap Frame => Textures?.Frame;
             public CanvasBitmap Emblem => Textures?.Emblem;
             public CanvasBitmap Bar => Textures?.Bar;
+            public CanvasBitmap BarHover => Textures?.BarHover;
             public CanvasBitmap Blade => Textures?.Blade;
+            public CanvasBitmap SpecialFrame => Textures?.SpecialFrame;
             public CanvasBitmap Headshot => Textures?.Headshot;
             public CanvasBitmap BaseParticle => Textures?.BaseParticle;
             public CanvasBitmap HeroFlame => Textures?.HeroFlame;
@@ -107,12 +111,21 @@ namespace KillConfirmGameBar.Controls
             public CanvasBitmap Frame { get; set; }
             public CanvasBitmap Emblem { get; set; }
             public CanvasBitmap Bar { get; set; }
+            public CanvasBitmap BarHover { get; set; }
             public CanvasBitmap Blade { get; set; }
+            public CanvasBitmap SpecialFrame { get; set; }
             public CanvasBitmap Headshot { get; set; }
             public CanvasBitmap BaseParticle { get; set; }
             public CanvasBitmap HeroFlame { get; set; }
             public CanvasBitmap LargeSparks { get; set; }
             public CanvasBitmap XSparks { get; set; }
+            public CanvasBitmap Ring { get; set; }
+            public CanvasBitmap RingDissolve { get; set; }
+            public CanvasBitmap FrameDissolve { get; set; }
+            public CanvasBitmap BadgeDissolve { get; set; }
+            public CanvasBitmap Shadow { get; set; }
+            public CanvasBitmap BaseParticleT2 { get; set; }
+            public CanvasBitmap BaseParticleT3 { get; set; }
 
             public void Dispose()
             {
@@ -125,21 +138,39 @@ namespace KillConfirmGameBar.Controls
                 Frame?.Dispose();
                 Emblem?.Dispose();
                 Bar?.Dispose();
+                BarHover?.Dispose();
                 Blade?.Dispose();
+                SpecialFrame?.Dispose();
                 Headshot?.Dispose();
                 BaseParticle?.Dispose();
                 HeroFlame?.Dispose();
                 LargeSparks?.Dispose();
                 XSparks?.Dispose();
+                Ring?.Dispose();
+                RingDissolve?.Dispose();
+                FrameDissolve?.Dispose();
+                BadgeDissolve?.Dispose();
+                Shadow?.Dispose();
+                BaseParticleT2?.Dispose();
+                BaseParticleT3?.Dispose();
                 Frame = null;
                 Emblem = null;
                 Bar = null;
+                BarHover = null;
                 Blade = null;
+                SpecialFrame = null;
                 Headshot = null;
                 BaseParticle = null;
                 HeroFlame = null;
                 LargeSparks = null;
                 XSparks = null;
+                Ring = null;
+                RingDissolve = null;
+                FrameDissolve = null;
+                BadgeDissolve = null;
+                Shadow = null;
+                BaseParticleT2 = null;
+                BaseParticleT3 = null;
             }
         }
 

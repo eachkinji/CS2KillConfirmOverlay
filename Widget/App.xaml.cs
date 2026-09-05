@@ -60,6 +60,7 @@ namespace KillConfirmGameBar
                     }
 
                     ApplySettingsWindowTitle();
+                    (rootFrame.Content as MainPage)?.ApplyPendingPackLibraryNavigation();
                     ConfigureWindowCloseHandling(false);
                     Window.Current.Activate();
                 }

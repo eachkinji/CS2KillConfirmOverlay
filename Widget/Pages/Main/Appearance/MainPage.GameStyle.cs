@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using KillConfirmGameBar.Services;
 using KillConfirmGameBar.Controls.Settings;
 using KillConfirmGameBar.Controls.GameStyles;
@@ -29,6 +29,7 @@ namespace KillConfirmGameBar
         private Battlefield2042AdvancedEffectsPanel _battlefield2042AdvancedEffectsPanel;
         private PubgAdvancedEffectsPanel _pubgAdvancedEffectsPanel;
         private DeltaForceAdvancedEffectsPanel _deltaForceAdvancedEffectsPanel;
+        private CustomModulePanel _customModulePanel;
         private DoubaoAdvancedEffectsPanel _doubaoAdvancedEffectsPanel;
         private DagoujiaoAdvancedEffectsPanel _dagoujiaoAdvancedEffectsPanel;
 
@@ -56,10 +57,11 @@ namespace KillConfirmGameBar
             GameThemePalette theme = _isHomePageSelected ? GameThemePalette.Home : GameThemePalette.ForMode(mode);
 
             Visibility iconCreationVisibility = overwatch || modernWarfare2019 || apex ? Visibility.Collapsed : Visibility.Visible;
-            if (ImportIconMaterialButton != null) ImportIconMaterialButton.Visibility = iconCreationVisibility;
-            if (ImportIconPackButton != null) ImportIconPackButton.Visibility = iconCreationVisibility;
             if (ImportIconZipButton != null) ImportIconZipButton.Visibility = iconCreationVisibility;
+            if (BatchImportIconZipButton != null) BatchImportIconZipButton.Visibility = iconCreationVisibility;
             if (CreateIconPackButton != null) CreateIconPackButton.Visibility = iconCreationVisibility;
+            VoicePackCollectionsCard.Visibility = Visibility.Visible;
+            VoiceCollectionsCard.Visibility = Visibility.Visible;
 
             UpdateSettingsPageVisibility();
             if (_isHomePageSelected)
@@ -174,11 +176,11 @@ namespace KillConfirmGameBar
             ApplyCardTheme(VoiceCollectionsCard, theme);
             ApplyCardTheme(IconCollectionsCard, theme);
 
-            ApplyButtonTheme(ImportVoicePackButton, theme, false);
             ApplyButtonTheme(ImportVoiceZipButton, theme, false);
-            ApplyButtonTheme(CreateVoicePackButton, theme, true);
-            ApplyButtonTheme(ImportIconPackButton, theme, false);
             ApplyButtonTheme(ImportIconZipButton, theme, false);
+            ApplyButtonTheme(BatchImportIconZipButton, theme, false);
+            ApplyButtonTheme(BatchImportVoiceZipButton, theme, false);
+            ApplyButtonTheme(CreateVoicePackButton, theme, true);
             ApplyButtonTheme(CreateIconPackButton, theme, true);
             ApplyButtonTheme(IconSpecToggleButton, theme, false);
             ApplyPackCardTheme(VoicePackListPanel, theme);
@@ -337,6 +339,7 @@ namespace KillConfirmGameBar
 
         private void BeginGameStyleTransition()
         {
+            ResetNativePackDrag();
             System.Threading.Interlocked.Increment(ref _gameStyleNavigationRevision);
             System.Threading.Interlocked.Increment(ref _packListReloadVersion);
             _loadedVoicePackStyle = null;
@@ -348,8 +351,8 @@ namespace KillConfirmGameBar
                 GameAdvancedSettingsPanelHost.Content = null;
             }
 
-            VoicePackListPanel?.Children.Clear();
-            IconPackListPanel?.Children.Clear();
+            if (VoicePackListPanel != null) VoicePackListPanel.ItemsSource = null;
+            if (IconPackListPanel != null) IconPackListPanel.ItemsSource = null;
             if (VoiceVisibleCountText != null)
             {
                 VoiceVisibleCountText.Text = string.Empty;
@@ -425,6 +428,14 @@ namespace KillConfirmGameBar
                     break;
                 case GameStyleMode.DeltaForce:
                     panel = EnsureDeltaForceAdvancedSettingsPanel();
+                    break;
+                case GameStyleMode.CustomModule:
+                    if (_customModulePanel == null)
+                    {
+                        _customModulePanel = new CustomModulePanel();
+                        _customModulePanel.StreakModeSelectionChanged += async (s, e) => await TrySyncSharedStreakSettingsAsync(GameStyleMode.CustomModule, SharedStreakSettingsStore.Load(GameStyleMode.CustomModule));
+                    }
+                    panel = _customModulePanel;
                     break;
                 case GameStyleMode.Doubao:
                     panel = EnsureDoubaoAdvancedSettingsPanel();

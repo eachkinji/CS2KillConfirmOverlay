@@ -1,26 +1,28 @@
 use crate::api::{
     self, audio_devices, audio_reload, audio_volume, bomb_audio_settings, counter_strike_root,
     crossfire_settings, cs2_root, csol_settings, dagoujiao_settings, developer_settings,
-    doubao_settings, event_sound_settings, events_poll, gsi_game_settings, gsi_status, health,
-    install_counter_strike_cfg, interrupt_previous_kill_audio_settings, money_mode, port,
-    preview_bomb_audio_endpoint, process_priorities, register_ui_process, set_audio_device,
-    set_bomb_audio_settings, set_crossfire_settings, set_csol_settings, set_dagoujiao_settings,
-    set_developer_settings, set_doubao_settings, set_event_sound_settings, set_gsi_game_settings,
-    set_interrupt_previous_kill_audio_settings, set_money_mode, set_process_priority,
-    set_spectator_settings, set_streak_gain_settings, set_streak_settings, shutdown,
-    spectator_settings, streak_gain_settings, streak_settings, test_event, unregister_ui_process,
+    doubao_settings, event_sound_settings, events_poll, extract_video_frames, gsi_game_settings,
+    gsi_status, health, install_counter_strike_cfg, interrupt_previous_kill_audio_settings,
+    money_mode, port, prepare_video_preview, preview_bomb_audio_endpoint, process_priorities,
+    register_ui_process, set_audio_device, set_bomb_audio_settings, set_crossfire_settings,
+    set_csol_settings, set_dagoujiao_settings, set_developer_settings, set_doubao_settings,
+    set_event_sound_settings, set_gsi_game_settings, set_interrupt_previous_kill_audio_settings,
+    set_money_mode, set_process_priority, set_spectator_settings, set_streak_gain_settings,
+    set_streak_settings, shutdown, spectator_settings, streak_gain_settings, streak_settings,
+    test_event, unregister_ui_process,
 };
 use crate::cli::Args;
 use crate::gsi::update;
 use crate::infrastructure::auth::{load_or_create_control_token, require_control_token};
 use crate::infrastructure::logging::{
-    bootstrap_log, developer_logging_enabled, open_runtime_log_folder, service_log,
+    DeveloperTraceLayer, bootstrap_log, developer_logging_enabled, open_runtime_log_folder,
+    service_log,
 };
 use crate::infrastructure::playback::{get_output_stream_with_name, list_host_devices};
 use crate::infrastructure::ports::{bind_with_fallback, free_local_port};
 use crate::infrastructure::runtime::{
     boost_process_priority, exit_all_processes, launch_settings_launcher,
-    normalize_working_directory, open_uninstaller, open_url,
+    normalize_working_directory, open_game_bar, open_uninstaller, open_url,
 };
 use crate::infrastructure::signal::shutdown_signal;
 use crate::infrastructure::watchers::{monitor_default_output_device, monitor_ui_processes};
@@ -54,15 +56,8 @@ use tokio::sync::{RwLock, broadcast};
 use tokio::time::sleep;
 use tower_http::timeout::TimeoutLayer;
 use tracing::info;
-use tracing::level_filters::LevelFilter;
-use tracing_subscriber::filter::filter_fn;
 use tracing_subscriber::{EnvFilter, layer::SubscriberExt, util::SubscriberInitExt};
 
-const DEFAULT_LOG_LEVEL: LevelFilter = if cfg!(debug_assertions) {
-    LevelFilter::DEBUG
-} else {
-    LevelFilter::INFO
-};
 const QUARK_UPDATE_URL: &str = "https://pan.quark.cn/s/1f3cfbcf8d5f?pwd=7Twv";
 const AUTHOR_GITHUB_URL: &str = "https://github.com/eachkinji";
 const AUTHOR_BILIBILI_URL: &str = "https://space.bilibili.com/18017622";
@@ -77,14 +72,15 @@ pub(crate) async fn run(mut args: Args) -> Result<()> {
     }
 
     tracing_subscriber::registry()
-        .with(
-            EnvFilter::builder()
-                .with_default_directive(DEFAULT_LOG_LEVEL.into())
-                .from_env_lossy(),
-        )
-        .with(filter_fn(|_| developer_logging_enabled()))
-        .with(tracing_subscriber::fmt::layer().without_time())
+        // Developer mode is an in-app diagnostic contract: always retain
+        // debug-and-higher events instead of allowing a machine-wide RUST_LOG
+        // value to silently suppress the file log.
+        .with(EnvFilter::new("debug"))
+        .with(DeveloperTraceLayer)
         .init();
+    if developer_logging_enabled() {
+        tracing::info!("developer trace file logging active at service startup");
+    }
 
     let sanitized_args = Args::sanitized_runtime_args();
     bootstrap_log(&format!("sanitized args: {:?}", sanitized_args));
@@ -92,6 +88,11 @@ pub(crate) async fn run(mut args: Args) -> Result<()> {
 
     if args.open_logs {
         open_runtime_log_folder();
+        return Ok(());
+    }
+
+    if args.open_game_bar {
+        open_game_bar().context("failed to open Xbox Game Bar")?;
         return Ok(());
     }
 
@@ -339,6 +340,8 @@ pub(crate) async fn run(mut args: Args) -> Result<()> {
             "/process-priority",
             get(process_priorities).post(set_process_priority),
         )
+        .route("/video/extract", post(extract_video_frames))
+        .route("/video/preview", post(prepare_video_preview))
         .route("/shutdown", post(shutdown))
         .route("/exit-all", post(exit_all_handler))
         .route("/soundpack", get(api::soundpack).post(api::set_soundpack))
@@ -347,7 +350,7 @@ pub(crate) async fn run(mut args: Args) -> Result<()> {
         // Keep the GSI hot path lean: avoid per-request tracing and only retain timeout protection.
         .layer(TimeoutLayer::with_status_code(
             StatusCode::REQUEST_TIMEOUT,
-            Duration::from_secs(10),
+            Duration::from_secs(60),
         ))
         .layer(middleware::from_fn_with_state(
             app_state,

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Numerics;
 using System.Threading.Tasks;
+using KillConfirmGameBar.Services;
 using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.Text;
 using Windows.Foundation;
@@ -33,8 +34,17 @@ namespace KillConfirmGameBar.Controls
         {
             if (_modernWarfare2019UpperIconBitmap == null)
             {
-                _modernWarfare2019UpperIconBitmap = await LoadBitmapFromApplicationUriAsync(
-                    "ms-appx:///Assets/GameStyles/modernwarfare2019/killconfirm/textures/killcon.png");
+                if (_iconPack.StartsWith("custom_modernwarfare2019_icon_", StringComparison.OrdinalIgnoreCase))
+                {
+                    Windows.Storage.StorageFolder folder = await PackCatalogService.GetImportedIconFolderAsync(_iconPack);
+                    Windows.Storage.StorageFile file = await TryGetImportedIconFileAsync(folder, "killcon.png");
+                    if (file != null) _modernWarfare2019UpperIconBitmap = await LoadBitmapFromStorageFileAsync(file);
+                }
+                if (_modernWarfare2019UpperIconBitmap == null)
+                {
+                    _modernWarfare2019UpperIconBitmap = await LoadBitmapFromApplicationUriAsync(
+                        "ms-appx:///Assets/GameStyles/modernwarfare2019/killconfirm/textures/killcon.png");
+                }
             }
 
             return _modernWarfare2019UpperIconBitmap;
@@ -44,8 +54,17 @@ namespace KillConfirmGameBar.Controls
         {
             if (_modernWarfare2019MoneyGlowBitmap == null)
             {
-                _modernWarfare2019MoneyGlowBitmap = await LoadBitmapFromApplicationUriAsync(
-                    "ms-appx:///Assets/GameStyles/modernwarfare2019/killconfirm/textures/huiguangcod.png");
+                if (_iconPack.StartsWith("custom_modernwarfare2019_icon_", StringComparison.OrdinalIgnoreCase))
+                {
+                    Windows.Storage.StorageFolder folder = await PackCatalogService.GetImportedIconFolderAsync(_iconPack);
+                    Windows.Storage.StorageFile file = await TryGetImportedIconFileAsync(folder, "huiguangcod.png");
+                    if (file != null) _modernWarfare2019MoneyGlowBitmap = await LoadBitmapFromStorageFileAsync(file);
+                }
+                if (_modernWarfare2019MoneyGlowBitmap == null)
+                {
+                    _modernWarfare2019MoneyGlowBitmap = await LoadBitmapFromApplicationUriAsync(
+                        "ms-appx:///Assets/GameStyles/modernwarfare2019/killconfirm/textures/huiguangcod.png");
+                }
             }
 
             return _modernWarfare2019MoneyGlowBitmap;

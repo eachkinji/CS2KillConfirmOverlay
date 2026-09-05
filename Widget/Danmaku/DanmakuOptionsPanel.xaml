@@ -1,0 +1,198 @@
+<UserControl
+    x:Class="KillConfirmGameBar.Danmaku.DanmakuOptionsPanel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Border
+        x:Name="OptionsCard"
+        Margin="0,0,0,8"
+        Padding="14,12"
+        Background="#18181B"
+        BorderBrush="#33FFFFFF"
+        BorderThickness="1"
+        CornerRadius="8">
+        <StackPanel Spacing="12">
+            <StackPanel Spacing="3">
+                <TextBlock x:Name="PanelTitle" FontSize="14" FontWeight="SemiBold" Text="游戏事件弹幕设置" />
+                <TextBlock
+                    x:Name="PanelSubtitle"
+                    FontSize="11"
+                    Foreground="#888888"
+                    Text="GSI 绿色状态自动启停持续弹幕；语义池负责日常内容，游戏事件会临时调整内容权重与发送节奏"
+                    TextWrapping="Wrap" />
+            </StackPanel>
+
+            <Border
+                x:Name="EventPreviewCard"
+                Padding="12"
+                Background="#10000000"
+                BorderBrush="#26FFFFFF"
+                BorderThickness="1"
+                CornerRadius="7">
+                <StackPanel Spacing="8">
+                    <TextBlock x:Name="EventPreviewLabel" FontSize="12" FontWeight="SemiBold" Text="事件预览与配额" />
+                    <ComboBox
+                        x:Name="EventTestSelector"
+                        HorizontalAlignment="Stretch"
+                        SelectionChanged="OnEventTestSelectionChanged">
+                        <ComboBoxItem Tag="kill">普通击杀</ComboBoxItem>
+                        <ComboBoxItem Tag="first_kill">首杀</ComboBoxItem>
+                        <ComboBoxItem Tag="headshot">爆头击杀</ComboBoxItem>
+                        <ComboBoxItem Tag="knife_kill">近战/刀杀</ComboBoxItem>
+                        <ComboBoxItem Tag="grenade_kill">投掷物击杀</ComboBoxItem>
+                        <ComboBoxItem Tag="multi_kill">连续多杀</ComboBoxItem>
+                        <ComboBoxItem Tag="epic_streak">高连杀</ComboBoxItem>
+                        <ComboBoxItem Tag="last_kill">回合最后击杀</ComboBoxItem>
+                        <ComboBoxItem Tag="assist">助攻</ComboBoxItem>
+                        <ComboBoxItem Tag="death">阵亡</ComboBoxItem>
+                        <ComboBoxItem Tag="round_win">回合胜利</ComboBoxItem>
+                        <ComboBoxItem Tag="round_loss">回合失败</ComboBoxItem>
+                        <ComboBoxItem Tag="bomb_plant">炸弹安放</ComboBoxItem>
+                        <ComboBoxItem Tag="bomb_defuse">炸弹拆除</ComboBoxItem>
+                        <ComboBoxItem Tag="hostage_interact">人质互动</ComboBoxItem>
+                        <ComboBoxItem Tag="hostage_rescue">人质救援</ComboBoxItem>
+                    </ComboBox>
+                    <Button
+                        x:Name="EventTestButton"
+                        HorizontalAlignment="Stretch"
+                        Padding="10,6"
+                        Content="测试所选事件弹幕"
+                        Click="OnEventTestClick" />
+                    <TextBlock
+                        x:Name="EventQuotaText"
+                        FontSize="11"
+                        FontWeight="SemiBold"
+                        Text="本次反应：核心 3 条 · 划水 2 条 · 共 5 条"
+                        TextWrapping="Wrap" />
+                    <TextBlock x:Name="CoreExampleText" FontSize="10" Foreground="#AAAAAA" Text="核心示例：加载中…" TextWrapping="Wrap" />
+                    <TextBlock x:Name="WaterExampleText" FontSize="10" Foreground="#AAAAAA" Text="划水示例：加载中…" TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
+            <TextBlock x:Name="TriggerScopeLabel" FontSize="12" FontWeight="SemiBold" Text="事件触发范围" />
+
+            <Grid ColumnSpacing="10">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <StackPanel Spacing="2">
+                    <TextBlock x:Name="TriggerOnKillLabel" FontSize="11" FontWeight="SemiBold" Text="战斗事件" />
+                    <TextBlock x:Name="TriggerOnKillHint" FontSize="10" Foreground="#888888" Text="击杀、首杀、特殊击杀、连杀与助攻" TextWrapping="Wrap" />
+                </StackPanel>
+                <ToggleSwitch x:Name="TriggerOnKillToggle" Grid.Column="1" MinWidth="0" OffContent="关" OnContent="开" Toggled="OnTriggerOnKillToggled" />
+            </Grid>
+
+            <Grid ColumnSpacing="10">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <StackPanel Spacing="2">
+                    <TextBlock x:Name="TriggerOnDeathLabel" FontSize="11" FontWeight="SemiBold" Text="阵亡事件" />
+                    <TextBlock x:Name="TriggerOnDeathHint" FontSize="10" Foreground="#888888" Text="阵亡后触发对应吐槽弹幕" TextWrapping="Wrap" />
+                </StackPanel>
+                <ToggleSwitch x:Name="TriggerOnDeathToggle" Grid.Column="1" MinWidth="0" OffContent="关" OnContent="开" Toggled="OnTriggerOnDeathToggled" />
+            </Grid>
+
+            <Grid ColumnSpacing="10">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <StackPanel Spacing="2">
+                    <TextBlock x:Name="TriggerOnRoundLabel" FontSize="11" FontWeight="SemiBold" Text="回合结果事件" />
+                    <TextBlock x:Name="TriggerOnRoundHint" FontSize="10" Foreground="#888888" Text="回合胜利与回合失败" TextWrapping="Wrap" />
+                </StackPanel>
+                <ToggleSwitch x:Name="TriggerOnRoundToggle" Grid.Column="1" MinWidth="0" OffContent="关" OnContent="开" Toggled="OnTriggerOnRoundToggled" />
+            </Grid>
+
+            <Grid ColumnSpacing="10">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <StackPanel Spacing="2">
+                    <TextBlock x:Name="TriggerOnObjectiveLabel" FontSize="11" FontWeight="SemiBold" Text="目标任务事件" />
+                    <TextBlock x:Name="TriggerOnObjectiveHint" FontSize="10" Foreground="#888888" Text="安包、拆包、人质互动与救援" TextWrapping="Wrap" />
+                </StackPanel>
+                <ToggleSwitch x:Name="TriggerOnObjectiveToggle" Grid.Column="1" MinWidth="0" OffContent="关" OnContent="开" Toggled="OnTriggerOnObjectiveToggled" />
+            </Grid>
+
+            <TextBlock x:Name="LiveSchedulingLabel" Margin="0,2,0,0" FontSize="12" FontWeight="SemiBold" Text="直播弹幕节奏" />
+
+            <StackPanel Spacing="3">
+                <TextBlock x:Name="DispatchPaceLabel" FontSize="11" FontWeight="SemiBold" Text="持续发送频率" />
+                <TextBlock x:Name="DispatchPaceHint" FontSize="10" Foreground="#888888" Text="控制每条弹幕出现的间隔，与单条飞行速度互不影响" TextWrapping="Wrap" />
+                <ComboBox x:Name="DispatchPaceSelector" HorizontalAlignment="Stretch" SelectionChanged="OnDispatchPaceSelectionChanged">
+                    <ComboBoxItem Tag="0">标准（约 2–5 秒/条）</ComboBoxItem>
+                    <ComboBoxItem Tag="1">舒缓（约 4–10 秒/条，默认）</ComboBoxItem>
+                    <ComboBoxItem Tag="2">极慢（约 8–20 秒/条）</ComboBoxItem>
+                </ComboBox>
+            </StackPanel>
+
+            <StackPanel Spacing="3">
+                <TextBlock x:Name="EventIntensityLabel" FontSize="11" FontWeight="SemiBold" Text="事件响应强度" />
+                <TextBlock x:Name="EventIntensityHint" FontSize="10" Foreground="#888888" Text="固定快速发送 2 条，再跟 3 条；2 秒后不再补发，同屏最多 9 条" TextWrapping="Wrap" />
+                <ComboBox x:Name="EventIntensitySelector" Visibility="Collapsed" HorizontalAlignment="Stretch" SelectionChanged="OnEventIntensitySelectionChanged">
+                    <ComboBoxItem Tag="0">克制（事件后也保持较慢）</ComboBoxItem>
+                    <ComboBoxItem Tag="1">标准</ComboBoxItem>
+                    <ComboBoxItem Tag="2">热闹（事件后明显加速）</ComboBoxItem>
+                </ComboBox>
+            </StackPanel>
+
+            <TextBlock x:Name="DisplaySettingsLabel" Margin="0,2,0,0" FontSize="12" FontWeight="SemiBold" Text="显示与运动" />
+
+            <StackPanel Spacing="3">
+                <TextBlock x:Name="CountLabel" FontSize="11" FontWeight="SemiBold" Text="同屏弹幕上限" />
+                <ComboBox x:Name="CountSelector" HorizontalAlignment="Stretch" SelectionChanged="OnCountSelectionChanged">
+                    <ComboBoxItem Tag="5">5 条（清爽）</ComboBoxItem><ComboBoxItem Tag="6">6 条</ComboBoxItem><ComboBoxItem Tag="7">7 条（推荐）</ComboBoxItem><ComboBoxItem Tag="8">8 条</ComboBoxItem><ComboBoxItem Tag="9">9 条（最高）</ComboBoxItem>
+                </ComboBox>
+            </StackPanel>
+
+            <StackPanel Spacing="3">
+                <TextBlock x:Name="DurationLabel" FontSize="11" FontWeight="SemiBold" Text="单条最长飞行时间" />
+                <ComboBox x:Name="DurationSelector" HorizontalAlignment="Stretch" SelectionChanged="OnDurationSelectionChanged">
+                    <ComboBoxItem Tag="15">15 秒</ComboBoxItem><ComboBoxItem Tag="20">20 秒</ComboBoxItem><ComboBoxItem Tag="25">25 秒</ComboBoxItem><ComboBoxItem Tag="30">30 秒（最长）</ComboBoxItem>
+                </ComboBox>
+            </StackPanel>
+
+            <StackPanel Spacing="3">
+                <TextBlock x:Name="AreaLabel" FontSize="11" FontWeight="SemiBold" Text="屏幕显示区域" />
+                <ComboBox x:Name="AreaSelector" HorizontalAlignment="Stretch" SelectionChanged="OnAreaSelectionChanged">
+                    <ComboBoxItem Tag="0">避开准星中心（推荐）</ComboBoxItem><ComboBoxItem Tag="1">全屏铺满</ComboBoxItem><ComboBoxItem Tag="2">仅上半屏</ComboBoxItem><ComboBoxItem Tag="3">仅下半屏</ComboBoxItem><ComboBoxItem Tag="4">居中区域</ComboBoxItem>
+                </ComboBox>
+            </StackPanel>
+
+            <StackPanel Spacing="3">
+                <TextBlock x:Name="SpeedLabel" FontSize="11" FontWeight="SemiBold" Text="单条飞行速度" />
+                <ComboBox x:Name="SpeedSelector" HorizontalAlignment="Stretch" SelectionChanged="OnSpeedSelectionChanged">
+                    <ComboBoxItem Tag="4">慢速（约 12 秒）</ComboBoxItem><ComboBoxItem Tag="5">更慢（约 18 秒）</ComboBoxItem><ComboBoxItem Tag="6">缓缓飘过（约 24 秒）</ComboBoxItem><ComboBoxItem Tag="7">最慢（约 30 秒）</ComboBoxItem>
+                </ComboBox>
+            </StackPanel>
+
+            <StackPanel Spacing="3">
+                <TextBlock x:Name="FontSizeLabel" FontSize="11" FontWeight="SemiBold" Text="字体大小" />
+                <ComboBox x:Name="FontSizeSelector" HorizontalAlignment="Stretch" SelectionChanged="OnFontSizeSelectionChanged">
+                    <ComboBoxItem Tag="12">12 px（极小）</ComboBoxItem><ComboBoxItem Tag="14">14 px（精简）</ComboBoxItem><ComboBoxItem Tag="16">16 px（推荐）</ComboBoxItem><ComboBoxItem Tag="18">18 px（标准）</ComboBoxItem><ComboBoxItem Tag="20">20 px（清晰）</ComboBoxItem><ComboBoxItem Tag="24">24 px（醒目）</ComboBoxItem><ComboBoxItem Tag="28">28 px（特大）</ComboBoxItem>
+                </ComboBox>
+            </StackPanel>
+
+            <StackPanel Spacing="3">
+                <TextBlock x:Name="FontWeightLabel" FontSize="11" FontWeight="SemiBold" Text="字体粗细" />
+                <ComboBox x:Name="FontWeightSelector" HorizontalAlignment="Stretch" SelectionChanged="OnFontWeightSelectionChanged">
+                    <ComboBoxItem Tag="0">常规（Normal）</ComboBoxItem><ComboBoxItem Tag="1">半粗（SemiBold）</ComboBoxItem><ComboBoxItem Tag="2">粗体（Bold）</ComboBoxItem><ComboBoxItem Tag="3">特粗（ExtraBold）</ComboBoxItem>
+                </ComboBox>
+            </StackPanel>
+
+            <Grid ColumnSpacing="10">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <StackPanel Spacing="2">
+                    <TextBlock x:Name="OutlineLabel" FontSize="11" FontWeight="SemiBold" Text="文字黑色描边" />
+                    <TextBlock x:Name="OutlineHint" FontSize="10" Foreground="#888888" Text="提高复杂画面中的文字可读性" TextWrapping="Wrap" />
+                </StackPanel>
+                <ToggleSwitch x:Name="OutlineToggle" Grid.Column="1" MinWidth="0" OffContent="关" OnContent="开" Toggled="OnOutlineToggled" />
+            </Grid>
+
+            <Grid ColumnSpacing="10">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <StackPanel Spacing="2">
+                    <TextBlock x:Name="BackgroundLabel" FontSize="11" FontWeight="SemiBold" Text="胶囊背景底框" />
+                    <TextBlock x:Name="BackgroundHint" FontSize="10" Foreground="#888888" Text="为每条弹幕增加深色半透明底框" TextWrapping="Wrap" />
+                </StackPanel>
+                <ToggleSwitch x:Name="BackgroundToggle" Grid.Column="1" MinWidth="0" OffContent="关" OnContent="开" Toggled="OnBackgroundToggled" />
+            </Grid>
+        </StackPanel>
+    </Border>
+</UserControl>

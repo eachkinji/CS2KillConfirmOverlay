@@ -11,6 +11,7 @@ namespace KillConfirmGameBar
         }
 
         public event RoutedEventHandler ResizeRequested;
+        public event RoutedEventHandler FitScreenRequested;
         public event RoutedEventHandler CenterRequested;
         public event RoutedEventHandler WindowTopRequested;
         public event RoutedEventHandler WindowBottomRequested;
@@ -22,6 +23,9 @@ namespace KillConfirmGameBar
 
         private void OnResizeClick(object sender, RoutedEventArgs e)
             => ResizeRequested?.Invoke(sender, e);
+
+        private void OnFitScreenClick(object sender, RoutedEventArgs e)
+            => FitScreenRequested?.Invoke(sender, e);
 
         private void OnCenterClick(object sender, RoutedEventArgs e)
             => CenterRequested?.Invoke(sender, e);

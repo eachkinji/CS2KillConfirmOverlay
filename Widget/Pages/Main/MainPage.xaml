@@ -1,4 +1,4 @@
-<Page
+﻿<Page
     x:Class="KillConfirmGameBar.MainPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -15,6 +15,18 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="ms-appx:///Pages/Main/Appearance/MainPage.Resources.xaml" />
             </ResourceDictionary.MergedDictionaries>
+            <DataTemplate x:Key="PackCardTemplate">
+                <ContentControl Width="270" Height="108" IsTabStop="False"
+                    HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
+                    DataContextChanged="OnPackCardHostDataContextChanged"
+                    Loaded="OnPackCardHostLoaded" Unloaded="OnPackCardHostUnloaded" />
+            </DataTemplate>
+            <Style x:Key="PackCardContainerStyle" TargetType="GridViewItem">
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="Margin" Value="0" />
+                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                <Setter Property="VerticalContentAlignment" Value="Stretch" />
+            </Style>
         </ResourceDictionary>
     </Page.Resources>
 
@@ -107,12 +119,15 @@
                         <NavigationViewItem AutomationProperties.Name="大狗叫" Tag="dagoujiao" ToolTipService.ToolTip="大狗叫">
                             <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/dagoujiao.jpg" /></NavigationViewItem.Icon>
                         </NavigationViewItem>
+                        <NavigationViewItem AutomationProperties.Name="自定义" Tag="custommodule" ToolTipService.ToolTip="自定义">
+                            <NavigationViewItem.Icon><FontIcon FontFamily="Microsoft YaHei UI" FontSize="10" Glyph="自定义" /></NavigationViewItem.Icon>
+                        </NavigationViewItem>
                     </NavigationView.MenuItems>
                 </NavigationView>
             </Border>
 
             <!-- Main Content Area -->
-            <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Background="Transparent">
+            <ScrollViewer x:Name="PackLibraryScrollViewer" Grid.Column="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Background="Transparent">
                 <Grid Padding="18,14,22,24" RowSpacing="12">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -168,6 +183,7 @@
                                 <ComboBoxItem x:Name="DeltaForceStyleItem" Tag="deltaforce">Delta Force (三角洲行动)</ComboBoxItem>
                                 <ComboBoxItem x:Name="DoubaoStyleItem" Tag="doubao">Doubao (豆包)</ComboBoxItem>
                                 <ComboBoxItem x:Name="DagoujiaoStyleItem" Tag="dagoujiao">Big Dog Bark (大狗叫)</ComboBoxItem>
+                                <ComboBoxItem x:Name="CustomModuleStyleItem" Tag="custommodule">自定义</ComboBoxItem>
                             </ComboBox>
                         </StackPanel>
                     </Grid>
@@ -276,15 +292,22 @@
                         </Border>
 
                         <!-- View 2: Voice Packs Hub (Full Width) -->
-                        <Border x:Name="VoicePackCollectionsCard" Style="{StaticResource SettingsSectionCardStyle}" Visibility="Collapsed">
+                        <Border
+                            x:Name="VoicePackCollectionsCard"
+                            AllowDrop="True"
+                            DragOver="OnVoicePackLibraryDragOver"
+                            Drop="OnVoicePackLibraryDrop"
+                            Style="{StaticResource SettingsSectionCardStyle}"
+                            Visibility="Collapsed">
                             <StackPanel Spacing="16">
                                 <Grid RowSpacing="12">
+                                    <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
 
-                                    <StackPanel Spacing="4">
+                                    <StackPanel Spacing="4" Grid.ColumnSpan="2">
                                         <TextBlock
                                             x:Name="VoiceCollectionsTitleText"
                                             Style="{StaticResource SettingsSectionTitleTextStyle}"
@@ -296,22 +319,22 @@
                                     </StackPanel>
 
                                     <StackPanel
-                                        Grid.Column="1"
+                                        Grid.Row="1" Grid.ColumnSpan="2" HorizontalAlignment="Left"
                                         Orientation="Horizontal"
                                         Spacing="8"
                                         VerticalAlignment="Center">
                                         <Button
-                                            x:Name="ImportVoiceMaterialButton"
-                                            Style="{StaticResource SettingsHeaderButtonStyle}"
-                                            Click="OnImportVoiceMaterialClick" />
-                                        <Button
-                                            x:Name="ImportVoicePackButton"
-                                            Style="{StaticResource SettingsHeaderButtonStyle}"
-                                            Click="OnImportVoicePackClick" />
+                                            x:Name="DownloadVoicePackButton"
+                                            Style="{StaticResource SettingsDownloadButtonStyle}"
+                                            Click="OnDownloadPackClick" />
                                         <Button
                                             x:Name="ImportVoiceZipButton"
                                             Style="{StaticResource SettingsHeaderButtonStyle}"
                                             Click="OnImportVoiceZipClick" />
+                                        <Button
+                                            x:Name="BatchImportVoiceZipButton"
+                                            Style="{StaticResource SettingsHeaderButtonStyle}"
+                                            Click="OnBatchImportVoiceZipClick" />
                                         <Button
                                             x:Name="CreateVoicePackButton"
                                             Style="{StaticResource SettingsPrimaryButtonStyle}"
@@ -325,24 +348,48 @@
                                     FontWeight="SemiBold"
                                     Foreground="#2E88B8" />
 
-                                <VariableSizedWrapGrid
-                                    x:Name="VoicePackListPanel"
-                                    Orientation="Horizontal"
-                                    ItemWidth="255"
-                                    ItemHeight="84" />
+                                <GridView x:Name="VoicePackListPanel" Margin="0,0,0,24"
+                                    MaxHeight="540" SelectionMode="None" IsItemClickEnabled="False"
+                                    CanDragItems="True" CanReorderItems="True" AllowDrop="True" IsSwipeEnabled="True"
+                                    ItemTemplate="{StaticResource PackCardTemplate}"
+                                    ItemContainerStyle="{StaticResource PackCardContainerStyle}"
+                                    DragItemsStarting="OnNativePackDragStarting"
+                                    DragItemsCompleted="OnNativePackDragCompleted"
+                                    ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                    ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                    <GridView.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <ItemsWrapGrid Orientation="Horizontal" ItemWidth="270" ItemHeight="108" />
+                                        </ItemsPanelTemplate>
+                                    </GridView.ItemsPanel>
+                                </GridView>
+                                <Grid MinHeight="156" Background="Transparent">
+                                    <Rectangle Stroke="#8D9AA8" StrokeThickness="1.5" StrokeDashArray="4,3" RadiusX="10" RadiusY="10" IsHitTestVisible="False" />
+                                    <StackPanel Margin="24" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
+                                        <TextBlock x:Name="VoicePackDropHint" TextAlignment="Center" TextWrapping="Wrap" Style="{StaticResource SettingsCaptionTextStyle}" FontSize="14" FontWeight="SemiBold" />
+                                        <TextBlock x:Name="VoicePackDownloadHint" TextAlignment="Center" TextWrapping="Wrap" Style="{StaticResource SettingsCaptionTextStyle}" />
+                                    </StackPanel>
+                                </Grid>
                             </StackPanel>
                         </Border>
 
                         <!-- View 3: Icon Packs Hub (Full Width) -->
-                        <Border x:Name="IconPackCollectionsCard" Style="{StaticResource SettingsSectionCardStyle}" Visibility="Collapsed">
+                        <Border
+                            x:Name="IconPackCollectionsCard"
+                            AllowDrop="True"
+                            DragOver="OnIconPackLibraryDragOver"
+                            Drop="OnIconPackLibraryDrop"
+                            Style="{StaticResource SettingsSectionCardStyle}"
+                            Visibility="Collapsed">
                             <StackPanel Spacing="16">
                                 <Grid RowSpacing="12">
+                                    <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
 
-                                    <StackPanel Spacing="4">
+                                    <StackPanel Spacing="4" Grid.ColumnSpan="2">
                                         <TextBlock
                                             x:Name="IconCollectionsTitleText"
                                             Style="{StaticResource SettingsSectionTitleTextStyle}"
@@ -354,22 +401,22 @@
                                     </StackPanel>
 
                                     <StackPanel
-                                        Grid.Column="1"
+                                        Grid.Row="1" Grid.ColumnSpan="2" HorizontalAlignment="Left"
                                         Orientation="Horizontal"
                                         Spacing="8"
                                         VerticalAlignment="Center">
                                         <Button
-                                            x:Name="ImportIconMaterialButton"
-                                            Style="{StaticResource SettingsHeaderButtonStyle}"
-                                            Click="OnImportIconMaterialClick" />
-                                        <Button
-                                            x:Name="ImportIconPackButton"
-                                            Style="{StaticResource SettingsHeaderButtonStyle}"
-                                            Click="OnImportIconPackClick" />
+                                            x:Name="DownloadIconPackButton"
+                                            Style="{StaticResource SettingsDownloadButtonStyle}"
+                                            Click="OnDownloadPackClick" />
                                         <Button
                                             x:Name="ImportIconZipButton"
                                             Style="{StaticResource SettingsHeaderButtonStyle}"
                                             Click="OnImportIconZipClick" />
+                                        <Button
+                                            x:Name="BatchImportIconZipButton"
+                                            Style="{StaticResource SettingsHeaderButtonStyle}"
+                                            Click="OnBatchImportIconZipClick" />
                                         <Button
                                             x:Name="CreateIconPackButton"
                                             Style="{StaticResource SettingsPrimaryButtonStyle}"
@@ -383,11 +430,28 @@
                                     FontWeight="SemiBold"
                                     Foreground="#2E88B8" />
 
-                                <VariableSizedWrapGrid
-                                    x:Name="IconPackListPanel"
-                                    Orientation="Horizontal"
-                                    ItemWidth="255"
-                                    ItemHeight="84" />
+                                <GridView x:Name="IconPackListPanel" Margin="0,0,0,24"
+                                    MaxHeight="540" SelectionMode="None" IsItemClickEnabled="False"
+                                    CanDragItems="True" CanReorderItems="True" AllowDrop="True" IsSwipeEnabled="True"
+                                    ItemTemplate="{StaticResource PackCardTemplate}"
+                                    ItemContainerStyle="{StaticResource PackCardContainerStyle}"
+                                    DragItemsStarting="OnNativePackDragStarting"
+                                    DragItemsCompleted="OnNativePackDragCompleted"
+                                    ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                    ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                    <GridView.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <ItemsWrapGrid Orientation="Horizontal" ItemWidth="270" ItemHeight="108" />
+                                        </ItemsPanelTemplate>
+                                    </GridView.ItemsPanel>
+                                </GridView>
+                                <Grid MinHeight="156" Background="Transparent">
+                                    <Rectangle Stroke="#8D9AA8" StrokeThickness="1.5" StrokeDashArray="4,3" RadiusX="10" RadiusY="10" IsHitTestVisible="False" />
+                                    <StackPanel Margin="24" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
+                                        <TextBlock x:Name="IconPackDropHint" TextAlignment="Center" TextWrapping="Wrap" Style="{StaticResource SettingsCaptionTextStyle}" FontSize="14" FontWeight="SemiBold" />
+                                        <TextBlock x:Name="IconPackDownloadHint" TextAlignment="Center" TextWrapping="Wrap" Style="{StaticResource SettingsCaptionTextStyle}" />
+                                    </StackPanel>
+                                </Grid>
                             </StackPanel>
                         </Border>
 

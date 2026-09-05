@@ -98,5 +98,38 @@
             </StackPanel>
         </Border>
 
+        <Border x:Name="RightFeedOffsetCard" Padding="12" BorderThickness="1" CornerRadius="8">
+            <StackPanel Spacing="7">
+                <Grid ColumnSpacing="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock
+                        x:Name="RightFeedOffsetLabel"
+                        FontSize="11"
+                        FontWeight="SemiBold"
+                        TextWrapping="WrapWholeWords" />
+                    <TextBlock
+                        x:Name="RightFeedOffsetValue"
+                        Grid.Column="1"
+                        VerticalAlignment="Center"
+                        FontSize="11"
+                        FontWeight="SemiBold" />
+                </Grid>
+                <Slider
+                    x:Name="RightFeedOffsetSlider"
+                    Minimum="0"
+                    Maximum="300"
+                    StepFrequency="10"
+                    ValueChanged="OnRightFeedOffsetValueChanged" />
+                <TextBlock
+                    x:Name="RightFeedOffsetHint"
+                    FontSize="9"
+                    Opacity="0.72"
+                    TextWrapping="WrapWholeWords" />
+            </StackPanel>
+        </Border>
+
     </StackPanel>
 </UserControl>

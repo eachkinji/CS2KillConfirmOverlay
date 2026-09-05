@@ -25,6 +25,8 @@ namespace KillConfirmGameBar.Services
                     return _cache;
                 }
 
+                ValorantPackService.RefreshExternalPacks();
+
                 bool mustSave = false;
                 StorageFolder localFolder = ApplicationData.Current.LocalFolder;
                 try
@@ -43,6 +45,9 @@ namespace KillConfirmGameBar.Services
                 }
 
                 MergeMissingBuiltIns(_cache);
+                RefreshExternalValorantEntries(_cache);
+                CrossfireExternalAssetService.RefreshCatalog(_cache);
+                mustSave |= RefreshBuiltInMetadata(_cache);
                 mustSave |= RemoveRetiredBuiltIns(_cache);
                 mustSave |= ApplyBuiltInVisibilityDefaultsIfNeeded(_cache);
                 ApplyVisibilityOverrides(_cache);
@@ -113,17 +118,7 @@ namespace KillConfirmGameBar.Services
             {
                 VoicePacks = new List<VoicePackItem>
                 {
-                    CreateBuiltInVoice("crossfire_swat_gr", "swat GR", true),
-                    CreateBuiltInVoice("crossfire_swat_bl", "swat BL", true),
-                    CreateBuiltInVoice("crossfire_flying_tiger_gr", "tiger GR", true),
-                    CreateBuiltInVoice("crossfire_flying_tiger_bl", "tiger BL", true),
-                    CreateBuiltInVoice("crossfire_v_sex", "American Girl", true),
-                    CreateBuiltInVoice("crossfire_women_gr", "women GR", true),
-                    CreateBuiltInVoice("crossfire_women_bl", "women BL", true),
-                    CreateBuiltInVoice("crossfire_bunny_gr", "Bunny GR", true),
-                    CreateBuiltInVoice("crossfire_bunny_bl", "Bunny BL", true),
-                    CreateBuiltInVoice("crossfire_heart_judge_gr", "Heart Judge GR", true),
-                    CreateBuiltInVoice("crossfire_heart_judge_bl", "Heart Judge BL", true),
+
                     CreateBuiltInVoice("csol4", "CSOL 10杀", true),
                     CreateBuiltInVoice("bf1", "Battlefield 1", true),
                     CreateBuiltInVoice("bf5", "Battlefield 5", true),
@@ -136,18 +131,12 @@ namespace KillConfirmGameBar.Services
                     CreateBuiltInVoice(DagoujiaoAnimalsPackKey, "Animals", true),
                     CreateBuiltInVoice("overwatch", "OverWatch", true),
                     CreateBuiltInVoice("modernwarfare2019", "Modern Warfare 2019", true),
+                    CreateBuiltInVoice("custommodule", "瓦默认音效/图标", true),
                     CreateBuiltInVoice("apex", "Apex Legends", true)
                 },
                 IconPacks = new List<IconPackItem>
                 {
-                    CreateBuiltInIcon("default", "鍘熺増", true),
-                    CreateBuiltInIcon("vip", "VIP", true),
-                    CreateBuiltInIcon("angelic_beast", "绀轰緥", true),
-                    CreateBuiltInIcon("anniversary_10", "10周年庆", true),
-                    CreateBuiltInIcon("anniversary_15", "15周年庆", true),
-                    CreateBuiltInIcon("cfpl", "CFPL", true),
-                    CreateBuiltInIcon("rankmach_2019_1", "排位赛-1", true),
-                    CreateBuiltInIcon("rankmach_2019_2", "排位赛-2", true),
+
                     CreateBuiltInIcon("csol4", "CSOL 10杀", true),
                     CreateBuiltInIcon("bf1", "Battlefield 1", true),
                     CreateBuiltInIcon("bf5", "Battlefield 5", true),
@@ -160,15 +149,36 @@ namespace KillConfirmGameBar.Services
                     CreateBuiltInIcon(DagoujiaoAnimalsPackKey, "Animals", true),
                     CreateBuiltInIcon("overwatch", "OverWatch", true),
                     CreateBuiltInIcon("modernwarfare2019", "Modern Warfare 2019", true),
+                    CreateBuiltInIcon("custommodule", "瓦默认音效/图标", true),
                     CreateBuiltInIcon("apex", "Apex Legends", true)
                 }
             };
 
             foreach (ValorantPackInfo pack in ValorantPackService.All)
             {
-                catalog.VoicePacks.Add(CreateBuiltInVoice(pack.Key, pack.DisplayName, true));
-                catalog.IconPacks.Add(CreateBuiltInIcon(pack.Key, pack.DisplayName, true));
+                if (pack.HasBuiltInAudio)
+                {
+                    VoicePackItem voice = CreateBuiltInVoice(pack.Key, pack.DisplayName, true);
+                    voice.AssociationId = pack.AssociationId;
+                    catalog.VoicePacks.Add(voice);
+                }
+                IconPackItem icon = pack.IsExternal
+                    ? new IconPackItem
+                    {
+                        Key = pack.Key,
+                        DisplayName = pack.DisplayName,
+                        FolderPath = pack.FolderPath,
+                        IsBuiltIn = false,
+                        IsVisibleInWidget = true,
+                        OwnsFolder = true,
+                        AssociationId = pack.AssociationId
+                    }
+                    : CreateBuiltInIcon(pack.Key, pack.DisplayName, true);
+                icon.AssociationId = pack.AssociationId;
+                catalog.IconPacks.Add(icon);
             }
+
+            catalog.VoicePacks.AddRange(ValorantExternalAssetService.DiscoverExternalVoicePacks());
 
             return catalog;
         }
@@ -223,12 +233,126 @@ namespace KillConfirmGameBar.Services
             }
         }
 
+        private static void RefreshExternalValorantEntries(PackCatalog catalog)
+        {
+            if (catalog?.VoicePacks == null || catalog.IconPacks == null)
+            {
+                return;
+            }
+
+            // Build replacement lists and publish them with property assignment.
+            // Readers may still hold the old list while an import refresh runs;
+            // mutating that list in place used to crash their enumerators and two
+            // racing refreshes could append the same package twice.
+            var voicePacks = catalog.VoicePacks
+                .Where(item => item.IsBuiltIn
+                    || string.IsNullOrWhiteSpace(item.AssociationId)
+                    || !item.Key.StartsWith("valorant_voice_", StringComparison.OrdinalIgnoreCase))
+                .ToList();
+            var iconPacks = catalog.IconPacks
+                .Where(item => item.IsBuiltIn
+                    || string.IsNullOrWhiteSpace(item.AssociationId)
+                    || !item.Key.StartsWith("valorant_icon_", StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            voicePacks.AddRange(ValorantExternalAssetService.DiscoverExternalVoicePacks());
+            foreach (ValorantPackInfo pack in ValorantPackService.All.Where(item => item.IsExternal))
+            {
+                iconPacks.Add(new IconPackItem
+                {
+                    Key = pack.Key,
+                    DisplayName = pack.DisplayName,
+                    FolderPath = pack.FolderPath,
+                    IsBuiltIn = false,
+                    IsVisibleInWidget = true,
+                    OwnsFolder = true,
+                    AssociationId = pack.AssociationId
+                });
+            }
+
+            catalog.VoicePacks = voicePacks
+                .GroupBy(item => item.Key, StringComparer.OrdinalIgnoreCase)
+                .Select(group => group.Last())
+                .ToList();
+            catalog.IconPacks = iconPacks
+                .GroupBy(item => item.Key, StringComparer.OrdinalIgnoreCase)
+                .Select(group => group.Last())
+                .ToList();
+            ApplyVisibilityOverrides(catalog);
+        }
+
+        public static async Task RefreshValorantExternalPacksAsync()
+        {
+            ValorantPackService.RefreshExternalPacks();
+            PackCatalog catalog = await LoadAsync();
+            RefreshExternalValorantEntries(catalog);
+            CatalogChanged?.Invoke(null, EventArgs.Empty);
+        }
+
+        public static async Task RefreshCrossfireExternalPacksAsync()
+        {
+            PackCatalog catalog = await LoadAsync();
+            CrossfireExternalAssetService.RefreshCatalog(catalog);
+            ApplyVisibilityOverrides(catalog);
+            await SaveAsync(catalog);
+        }
+
+        private static bool RefreshBuiltInMetadata(PackCatalog catalog)
+        {
+            bool changed = false;
+            foreach (VoicePackItem valorantVoice in catalog.VoicePacks.Where(item =>
+                item.IsBuiltIn && string.Equals(item.Key, ValorantPackService.DefaultKey, StringComparison.OrdinalIgnoreCase)))
+            {
+                if (!string.Equals(valorantVoice.AssociationId, "valorant:base", StringComparison.OrdinalIgnoreCase))
+                {
+                    valorantVoice.AssociationId = "valorant:base";
+                    changed = true;
+                }
+            }
+            foreach (IconPackItem valorantIcon in catalog.IconPacks.Where(item =>
+                item.IsBuiltIn && string.Equals(item.Key, ValorantPackService.DefaultKey, StringComparison.OrdinalIgnoreCase)))
+            {
+                if (!string.Equals(valorantIcon.AssociationId, "valorant:base", StringComparison.OrdinalIgnoreCase))
+                {
+                    valorantIcon.AssociationId = "valorant:base";
+                    changed = true;
+                }
+            }
+
+            VoicePackItem voice = catalog.VoicePacks.FirstOrDefault(item =>
+                item.IsBuiltIn
+                && string.Equals(item.Key, "custommodule", StringComparison.OrdinalIgnoreCase));
+            if (voice != null && !string.Equals(voice.DisplayName, "瓦默认音效/图标", StringComparison.Ordinal))
+            {
+                voice.DisplayName = "瓦默认音效/图标";
+                changed = true;
+            }
+
+            IconPackItem icon = catalog.IconPacks.FirstOrDefault(item =>
+                item.IsBuiltIn
+                && string.Equals(item.Key, "custommodule", StringComparison.OrdinalIgnoreCase));
+            if (icon != null && !string.Equals(icon.DisplayName, "瓦默认音效/图标", StringComparison.Ordinal))
+            {
+                icon.DisplayName = "瓦默认音效/图标";
+                changed = true;
+            }
+
+            return changed;
+        }
+
         private static bool RemoveRetiredBuiltIns(PackCatalog catalog)
         {
-            int removed = catalog.IconPacks.RemoveAll(item =>
+            int removedIcons = catalog.IconPacks.RemoveAll(item =>
                 item.IsBuiltIn
-                && string.Equals(item.Key, "legacy", StringComparison.OrdinalIgnoreCase));
-            return removed > 0;
+                && (string.Equals(item.Key, "legacy", StringComparison.OrdinalIgnoreCase)
+                    || (ValorantPackService.IsValorantPackKey(item.Key)
+                        && ValorantPackService.Find(item.Key) == null)));
+            int removedVoices = catalog.VoicePacks.RemoveAll(item =>
+                item.IsBuiltIn
+                && ValorantPackService.IsValorantPackKey(item.Key)
+                && (ValorantPackService.Find(item.Key) == null
+                    || !ValorantPackService.Find(item.Key).HasBuiltInAudio));
+            return removedIcons + removedVoices > 0;
         }
 
         private static bool ApplyBuiltInVisibilityDefaultsIfNeeded(PackCatalog catalog)

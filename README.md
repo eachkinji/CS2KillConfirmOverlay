@@ -85,6 +85,7 @@ The project has grown from a simple kill-confirm sound tool into a configurable 
 - **Eleven built-in presentation styles** — CrossFire, CSOL, VALORANT, Battlefield 1, Battlefield V, Battlefield 4, Battlefield 2042, PUBG, Delta Force, Doubao, and Dagoujiao.
 - **Flexible streak logic** — life-based, round-based, and looped streak windows with a configurable loop point from 2 to 50 kills.
 - **Custom images and audio** — choose bundled assets or import supported images and voice lines for individual events and styles.
+- **Custom Module** — import CS2 Customizer kill-icon ZIPs or legacy frame folders, preview and tune playback, and export compatible packs. See the [format and usage guide (Chinese)](docs/CustomModule.md).
 - **Advanced audio control** — per-style priorities, volume controls, event-specific sounds, and configurable playback speed/pitch behavior.
 - **Bomb audio timeline** — optional sounds for plant, defuse, explosion, and new-round reset, with a smooth 40-second acceleration between configurable initial and final speeds.
 - **High-resolution visuals** — optimized rendering, positioning, and scaling for high-DPI displays and 4:3 fullscreen resolutions.
@@ -148,23 +149,26 @@ The upstream reference configuration is available in [`gsi-cs2-rs`](https://gith
 
 Source builds require the Rust toolchain, Visual Studio or Visual Studio Build Tools with Windows/UWP/MSIX tooling, and Inno Setup 6 when building the optional `.exe` installers.
 
-From the repository root:
+Create a quick MSIX Bundle for local testing:
 
 ```powershell
-.\Build-IntegratedPackage.ps1
+.\Build-QuickPackage.ps1
 ```
 
-Create the transferable packages:
+Build and install it locally in one step:
 
 ```powershell
-.\Build-TransferPackage.ps1
+.\Build-QuickPackage.ps1 -Install
 ```
 
-Create the installers:
+Create the complete release installers:
 
 ```powershell
-.\Build-Installer.ps1
+.\Build-FullPackage.ps1
 ```
+
+Local builds create a per-machine development certificate under `.local/signing/`.
+The directory is ignored by Git; release builds use the signing certificate supplied by CI secrets.
 
 ## Project layout
 

@@ -57,6 +57,7 @@
         <ColumnDefinition Width="Auto" />
         <ColumnDefinition Width="Auto" />
         <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="Auto" />
     </Grid.ColumnDefinitions>
 
     <Button
@@ -71,8 +72,19 @@
     </Button>
 
     <Button
-        x:Name="CenterButton" x:FieldModifier="public"
+        x:Name="FitScreenButton" x:FieldModifier="public"
         Grid.Column="1"
+        Style="{StaticResource VisualImportantIconButtonStyle}"
+        Click="OnFitScreenClick"
+        ToolTipService.ToolTip="一键伪全屏 (Fit screen)">
+        <Grid Style="{StaticResource CompactIconHostStyle}">
+            <PathIcon Foreground="#1B5F82" Style="{StaticResource FluentTinyPathIconStyle}" Data="M3 3H8.5V4.5H4.5V8.5H3V3ZM15.5 3H21V8.5H19.5V4.5H15.5V3ZM3 15.5H4.5V19.5H8.5V21H3V15.5ZM19.5 15.5H21V21H15.5V19.5H19.5V15.5ZM8 8H16V16H8V8Z" />
+        </Grid>
+    </Button>
+
+    <Button
+        x:Name="CenterButton" x:FieldModifier="public"
+        Grid.Column="2"
         Style="{StaticResource VisualImportantIconButtonStyle}"
         Click="OnCenterClick"
         ToolTipService.ToolTip="Center window">
@@ -83,7 +95,7 @@
 
     <Button
         x:Name="WindowTopButton" x:FieldModifier="public"
-        Grid.Column="2"
+        Grid.Column="3"
         Style="{StaticResource VisualImportantIconButtonStyle}"
         Click="OnWindowTopClick"
         ToolTipService.ToolTip="Place window at top">
@@ -93,19 +105,8 @@
     </Button>
 
     <Button
-        x:Name="WindowBottomButton" x:FieldModifier="public"
-        Grid.Column="4"
-        Style="{StaticResource VisualImportantIconButtonStyle}"
-        Click="OnWindowBottomClick"
-        ToolTipService.ToolTip="Place window at bottom">
-        <Grid Style="{StaticResource CompactIconHostStyle}">
-            <PathIcon Style="{StaticResource FluentTinyPathIconStyle}" Data="M5 3H19C20.1 3 21 3.9 21 5V19C21 20.1 20.1 21 19 21H5C3.9 21 3 20.1 3 19V5C3 3.9 3.9 3 5 3ZM5 4.5C4.72 4.5 4.5 4.72 4.5 5V19C4.5 19.28 4.72 19.5 5 19.5H19C19.28 19.5 19.5 19.28 19.5 19V5C19.5 4.72 19.28 4.5 19 4.5H5ZM6.5 15H17.5V18H6.5V15Z" />
-        </Grid>
-    </Button>
-
-    <Button
         x:Name="ControlPanelCenterButton" x:FieldModifier="public"
-        Grid.Column="3"
+        Grid.Column="4"
         Style="{StaticResource CompactIconButtonStyle}"
         Click="OnControlPanelCenterClick"
         ToolTipService.ToolTip="Center control panel">
@@ -115,8 +116,19 @@
     </Button>
 
     <Button
-        x:Name="ResetVisualButton" x:FieldModifier="public"
+        x:Name="WindowBottomButton" x:FieldModifier="public"
         Grid.Column="5"
+        Style="{StaticResource VisualImportantIconButtonStyle}"
+        Click="OnWindowBottomClick"
+        ToolTipService.ToolTip="Place window at bottom">
+        <Grid Style="{StaticResource CompactIconHostStyle}">
+            <PathIcon Style="{StaticResource FluentTinyPathIconStyle}" Data="M5 3H19C20.1 3 21 3.9 21 5V19C21 20.1 20.1 21 19 21H5C3.9 21 3 20.1 3 19V5C3 3.9 3.9 3 5 3ZM5 4.5C4.72 4.5 4.5 4.72 4.5 5V19C4.5 19.28 4.72 19.5 5 19.5H19C19.28 19.5 19.5 19.28 19.5 19V5C19.5 4.72 19.28 4.5 19 4.5H5ZM6.5 15H17.5V18H6.5V15Z" />
+        </Grid>
+    </Button>
+
+    <Button
+        x:Name="ResetVisualButton" x:FieldModifier="public"
+        Grid.Column="6"
         Style="{StaticResource CompactIconButtonStyle}"
         Click="OnResetVisualAdjustmentsClick"
         ToolTipService.ToolTip="Reset visual adjustments">

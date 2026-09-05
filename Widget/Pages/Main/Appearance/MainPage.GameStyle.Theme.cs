@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using KillConfirmGameBar.Services;
 using KillConfirmGameBar.Controls.Settings;
 using KillConfirmGameBar.Controls.GameStyles;
@@ -107,6 +107,7 @@ namespace KillConfirmGameBar
         private void ApplyGameAdvancedSettingsPanelTheme()
         {
             GameThemePalette theme = GameThemePalette.Current;
+            _customModulePanel?.ApplyTheme(theme);
             if (_crossfireAdvancedEffectsPanel != null) _crossfireAdvancedEffectsPanel.ApplyTheme(theme);
             if (_csolAdvancedEffectsPanel != null) _csolAdvancedEffectsPanel.ApplyTheme(theme);
             if (_valorantAdvancedEffectsPanel != null) _valorantAdvancedEffectsPanel.ApplyTheme(theme);
@@ -135,6 +136,7 @@ namespace KillConfirmGameBar
         private void ApplyGameAdvancedSettingsPanelLanguage()
         {
             bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            _customModulePanel?.ApplyLanguage(isChinese);
             if (_crossfireAdvancedEffectsPanel != null) _crossfireAdvancedEffectsPanel.ApplyLanguage(isChinese);
             if (_csolAdvancedEffectsPanel != null) _csolAdvancedEffectsPanel.ApplyLanguage(isChinese);
             if (_valorantAdvancedEffectsPanel != null) _valorantAdvancedEffectsPanel.ApplyLanguage(isChinese);
@@ -337,21 +339,23 @@ namespace KillConfirmGameBar
             button.Foreground = new SolidColorBrush(primary ? Colors.White : theme.Text);
         }
 
-        private static void ApplyPackCardTheme(Panel panel, GameThemePalette theme)
+        private static void ApplyPackCardTheme(GridView panel, GameThemePalette theme)
         {
             if (panel == null)
             {
                 return;
             }
 
-            foreach (UIElement child in panel.Children)
+            for (int i = 0; i < panel.Items.Count; i++)
             {
-                ApplyThemeToElement(child, theme);
+                if (panel.ContainerFromIndex(i) is GridViewItem container && container.ContentTemplateRoot != null)
+                    ApplyThemeToElement(container.ContentTemplateRoot, theme);
             }
         }
 
         private static void ApplyThemeToElement(DependencyObject element, GameThemePalette theme)
         {
+            if (element is FrameworkElement decoration && Equals(decoration.Tag, "PackDecoration")) return;
             if (element is Border border)
             {
                 border.Background = new SolidColorBrush(theme.Card);
@@ -363,7 +367,24 @@ namespace KillConfirmGameBar
             }
             else if (element is Button button)
             {
-                ApplyButtonTheme(button, theme, false);
+                string role = button.Tag as string;
+                if (string.Equals(role, "PackDelete", StringComparison.Ordinal))
+                {
+                    button.Background = new SolidColorBrush(Color.FromArgb(255, 254, 242, 242));
+                    button.Foreground = new SolidColorBrush(Color.FromArgb(255, 196, 43, 28));
+                    button.BorderBrush = new SolidColorBrush(Color.FromArgb(255, 252, 209, 209));
+                }
+                else if (string.Equals(role, "PackEdit", StringComparison.Ordinal)
+                    || string.Equals(role, "PackExport", StringComparison.Ordinal))
+                {
+                    button.Background = new SolidColorBrush(theme.Field);
+                    button.Foreground = new SolidColorBrush(theme.Accent);
+                    button.BorderBrush = new SolidColorBrush(theme.AccentSoft);
+                }
+                else
+                {
+                    ApplyButtonTheme(button, theme, false);
+                }
             }
 
             int count = VisualTreeHelper.GetChildrenCount(element);

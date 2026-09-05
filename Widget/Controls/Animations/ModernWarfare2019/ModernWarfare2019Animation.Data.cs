@@ -58,6 +58,7 @@ namespace KillConfirmGameBar.Controls
         private bool _modernWarfare2019IsAssist;
         private bool _modernWarfare2019IsObjective;
         private double _modernWarfare2019ImpactAngleDegrees;
+        private double _modernWarfare2019RightFeedOffset;
 
 
         private sealed class ModernWarfare2019FeedItem

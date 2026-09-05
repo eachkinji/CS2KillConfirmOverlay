@@ -138,6 +138,14 @@ jobs:
           "CERT_THUMBPRINT=$($cert.Thumbprint)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           Write-Host "Signing cert: $($cert.Subject), thumbprint $($cert.Thumbprint), valid to $($cert.NotAfter)"
 
+      - name: Verify danmaku pools and pacing
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          ./Tests/Regression/Test-DanmakuEventPools.ps1
+          ./Tests/Regression/Test-DanmakuEngine.ps1
+          ./Tests/Regression/Test-DanmakuPacing.ps1
+
       - name: Build installer
         shell: pwsh
         run: |
@@ -164,7 +172,7 @@ jobs:
           else {
               Write-Host "Production repository: building both installers."
           }
-          .\Build-Installer.ps1 @buildArgs
+          .\Build-FullPackage.ps1 @buildArgs
 
       - name: Create or update draft release
         if: inputs.createDraftRelease || inputs.uploadToRelease

@@ -299,6 +299,13 @@ namespace KillConfirmGameBar.Services
             "killicon_scrolling_assist.png"
         };
 
+        public static Task CreateOverwatchIconPackAsync(string displayName, IReadOnlyDictionary<string, StorageFile> selectedFiles, StorageFile headImageFile = null)
+            => CreateGameIconPackAsync("overwatch", "custom_overwatch_icon_", displayName, selectedFiles, headImageFile);
+        public static Task CreateModernWarfare2019IconPackAsync(string displayName, IReadOnlyDictionary<string, StorageFile> selectedFiles, StorageFile headImageFile = null)
+            => CreateGameIconPackAsync("modernwarfare2019", "custom_modernwarfare2019_icon_", displayName, selectedFiles, headImageFile);
+        public static Task CreateApexIconPackAsync(string displayName, IReadOnlyDictionary<string, StorageFile> selectedFiles, StorageFile headImageFile = null)
+            => CreateGameIconPackAsync("apex", "custom_apex_icon_", displayName, selectedFiles, headImageFile);
+
         public static bool IsBattlefield1IconPackKey(string key)
         {
             if (string.IsNullOrWhiteSpace(key)) return false;

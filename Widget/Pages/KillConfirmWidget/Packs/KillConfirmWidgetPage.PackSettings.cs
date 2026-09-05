@@ -21,6 +21,11 @@ namespace KillConfirmGameBar
 
             try
             {
+                if (Equals((PackTestSectionView.VoicePackSelector.SelectedItem as ComboBoxItem)?.Tag, PackLibraryNavigation.AddMoreTag))
+                {
+                    await OpenPackLibraryAsync(true, e);
+                    return;
+                }
                 string preset = GetSelectedVoicePackPreset();
                 if (string.IsNullOrWhiteSpace(preset))
                 {
@@ -40,13 +45,18 @@ namespace KillConfirmGameBar
             }
         }
 
-        private void OnIconPackSelectionChanged(object sender, SelectionChangedEventArgs e)
+        private async void OnIconPackSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_suppressIconPackEvents || !_packSelectorsInitialized)
             {
                 return;
             }
 
+            if (Equals((PackTestSectionView.IconPackSelector.SelectedItem as ComboBoxItem)?.Tag, PackLibraryNavigation.AddMoreTag))
+            {
+                await OpenPackLibraryAsync(false, e);
+                return;
+            }
             string iconPack = GetSelectedIconPack();
             SavePackSettingForStyle(IconPackSettingKey, GameStyleService.Current, iconPack);
             if (TrySyncValorantVoicePackForIconSelection(iconPack))
@@ -63,10 +73,6 @@ namespace KillConfirmGameBar
             UpdateKillFxSelectorState();
             UpdateWeaponBadgeSelectorState();
 
-            if (_isPageActive)
-            {
-                _ = WarmStartupAnimationCacheAsync(0);
-            }
         }
 
         private async Task SyncValorantVoicePackAfterIconSelectionAsync()
@@ -109,6 +115,7 @@ namespace KillConfirmGameBar
         {
             if (PackTestSectionView.IconPackSelector?.SelectedItem is ComboBoxItem item
                 && item.Tag is string tag
+                && tag != PackLibraryNavigation.AddMoreTag
                 && !string.IsNullOrWhiteSpace(tag))
             {
                 return tag;

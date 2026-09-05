@@ -4,9 +4,8 @@
         use crate::soundpack::manifest::PackManifest;
         use crate::state::EventChannel;
         use std::collections::HashMap;
-        use std::path::Path;
 
-        let manifest = PackManifest::load_from_dir(Path::new("sounds/crossfire_swat_gr"))
+        let manifest = PackManifest::load_from_dir(&source_sound_pack("crossfire", "crossfire_swat_gr"))
             .expect("load swat_gr manifest");
         let make_ctx = |kill_count,
                         is_headshot,
@@ -131,10 +130,9 @@
         use crate::soundpack::manifest::PackManifest;
         use crate::state::EventChannel;
         use std::collections::HashMap;
-        use std::path::Path;
 
         let base = "sounds/crossfire_swat_gr";
-        let manifest = PackManifest::load_from_dir(Path::new(base)).unwrap();
+        let manifest = PackManifest::load_from_dir(&source_sound_pack("crossfire", "crossfire_swat_gr")).unwrap();
         for kind in ["knife", "grenade", "headshot"] {
             for kill_count in [1, 2, 4, 9] {
                 for flags in 0..4 {

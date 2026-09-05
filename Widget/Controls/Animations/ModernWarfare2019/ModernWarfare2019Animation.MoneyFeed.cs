@@ -28,7 +28,9 @@ namespace KillConfirmGameBar.Controls
             double scale = ResolveModernWarfare2019ImpactScale(elapsedMs, 2.65);
             // Reserve 480 logical pixels for four-digit rewards, then leave a
             // fixed 70-pixel gap before the feed column.
-            Vector2 position = new Vector2(1380, 340);
+            Vector2 position = new Vector2(
+                (float)(1380 + _modernWarfare2019RightFeedOffset),
+                340);
             Color shadow = Color.FromArgb(ToModernWarfare2019Byte(opacity * 118), 26, 18, 5);
             Color fill = Color.FromArgb(ToModernWarfare2019Byte(opacity * 255), 255, 201, 31);
             DrawModernWarfare2019MoneyGlow(
@@ -131,7 +133,9 @@ namespace KillConfirmGameBar.Controls
                         / (ModernWarfare2019FeedEndMs - ModernWarfare2019FeedHoldEndMs));
                 opacity *= Clamp01(elapsedMs / 24.0);
                 double scale = ResolveModernWarfare2019ImpactScale(elapsedMs, 2.85);
-                Vector2 position = new Vector2(1930, 360 + (slot * 145));
+                Vector2 position = new Vector2(
+                    (float)(1930 + _modernWarfare2019RightFeedOffset),
+                    360 + (slot * 145));
                 Color shadow = Color.FromArgb(ToModernWarfare2019Byte(opacity * 122), 24, 17, 5);
                 Color fill = item.IsHeadshot
                     ? Color.FromArgb(ToModernWarfare2019Byte(opacity * 255), 255, 211, 42)

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Package
   xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
   xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest"
@@ -11,7 +11,7 @@
   <Identity
     Name="KillConfirmGameBar.Overlay"
     Publisher="CN=TestXboxGameBar"
-    Version="4.5.0.0" />
+    Version="4.5.1.56" />
 
   <mp:PhoneIdentity PhoneProductId="8f70c4bd-4270-4a4f-a7d1-91ae48dbe9f4" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
 
@@ -85,6 +85,7 @@
             <desktop:ParameterGroup GroupId="CrossfirePresetDeveloper" Parameters="--preset crossfire_swat_gr --developer-mode --exit-with-ui" />
             <desktop:ParameterGroup GroupId="FreeServicePort" Parameters="--free-port 10087" />
             <desktop:ParameterGroup GroupId="OpenRuntimeLogs" Parameters="--open-logs" />
+            <desktop:ParameterGroup GroupId="OpenGameBar" Parameters="--open-game-bar" />
             <desktop:ParameterGroup GroupId="ExitAll" Parameters="--exit-all" />
             <desktop:ParameterGroup GroupId="OpenUninstaller" Parameters="--open-uninstaller" />
             <desktop:ParameterGroup GroupId="OpenSettingsWindow" Parameters="--open-settings-launcher" />
@@ -93,12 +94,19 @@
             <desktop:ParameterGroup GroupId="OpenAuthorGitHub" Parameters="--open-author-github" />
             <desktop:ParameterGroup GroupId="OpenAuthorBilibili" Parameters="--open-author-bilibili" />
             <desktop:ParameterGroup GroupId="ServicePort10087" Parameters="--port 10087 --exit-with-ui" />
+            <desktop:ParameterGroup GroupId="ServicePort10087Developer" Parameters="--port 10087 --developer-mode --exit-with-ui" />
             <desktop:ParameterGroup GroupId="ServicePort10088" Parameters="--port 10088 --exit-with-ui" />
+            <desktop:ParameterGroup GroupId="ServicePort10088Developer" Parameters="--port 10088 --developer-mode --exit-with-ui" />
             <desktop:ParameterGroup GroupId="ServicePort10089" Parameters="--port 10089 --exit-with-ui" />
+            <desktop:ParameterGroup GroupId="ServicePort10089Developer" Parameters="--port 10089 --developer-mode --exit-with-ui" />
             <desktop:ParameterGroup GroupId="ServicePort10090" Parameters="--port 10090 --exit-with-ui" />
+            <desktop:ParameterGroup GroupId="ServicePort10090Developer" Parameters="--port 10090 --developer-mode --exit-with-ui" />
             <desktop:ParameterGroup GroupId="ServicePort10091" Parameters="--port 10091 --exit-with-ui" />
+            <desktop:ParameterGroup GroupId="ServicePort10091Developer" Parameters="--port 10091 --developer-mode --exit-with-ui" />
             <desktop:ParameterGroup GroupId="ServicePort10092" Parameters="--port 10092 --exit-with-ui" />
+            <desktop:ParameterGroup GroupId="ServicePort10092Developer" Parameters="--port 10092 --developer-mode --exit-with-ui" />
             <desktop:ParameterGroup GroupId="ServicePortCustom" Parameters="--port-from-file --exit-with-ui" />
+            <desktop:ParameterGroup GroupId="ServicePortCustomDeveloper" Parameters="--port-from-file --developer-mode --exit-with-ui" />
           </desktop:FullTrustProcess>
         </desktop:Extension>
       </Extensions>
@@ -141,3 +149,4 @@
     <Capability Name="privateNetworkClientServer" />
   </Capabilities>
 </Package>
+

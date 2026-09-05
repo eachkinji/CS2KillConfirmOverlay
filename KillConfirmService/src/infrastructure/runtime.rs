@@ -91,6 +91,13 @@ pub(crate) fn open_url(url: &str) -> Result<()> {
     Ok(())
 }
 
+pub(crate) fn open_game_bar() -> Result<()> {
+    service_log("opening Xbox Game Bar");
+    shell_execute_text("open", "ms-gamebar:", None)
+        .context("failed to open Xbox Game Bar via the ms-gamebar protocol")?;
+    Ok(())
+}
+
 fn shell_execute_text(verb: &str, target: &str, working_dir: Option<&Path>) -> Result<()> {
     let verb_w = wide_null(verb);
     let target_w = wide_null(target);

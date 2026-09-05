@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Numerics;
 using System.Threading.Tasks;
+using KillConfirmGameBar.Services;
 using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.Text;
 using Windows.Foundation;
@@ -73,6 +74,36 @@ namespace KillConfirmGameBar.Controls
         public void PlayModernWarfare2019Objective(string eventKind, int moneyReward)
         {
             int normalizedReward = Math.Max(0, moneyReward);
+
+            // A final kill and its round-win/loss economy event are published
+            // back-to-back from the same GSI snapshot. Restarting the primary
+            // presentation for the settlement event used to replace the fresh
+            // kill marker before its first visible frame. Merge the settlement
+            // reward/feed into the active kill presentation instead.
+            if (IsModernWarfare2019RoundSettlement(eventKind)
+                && _isModernWarfare2019Active
+                && _drawModernWarfare2019Primary
+                && !_modernWarfare2019KillMarkOnly
+                && !_modernWarfare2019IsAssist
+                && !_modernWarfare2019IsObjective
+                && _playbackClock.IsRunning
+                && _playbackClock.Elapsed.TotalMilliseconds < ModernWarfare2019MarkerEndMs)
+            {
+                _modernWarfare2019AccumulatedMoney = (int)Math.Min(
+                    int.MaxValue,
+                    (long)_modernWarfare2019AccumulatedMoney + normalizedReward);
+                _modernWarfare2019MoneyReward = _modernWarfare2019AccumulatedMoney;
+                QueueModernWarfare2019FeedItems(
+                    false,
+                    0,
+                    false,
+                    eventKind,
+                    DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
+                EnsureModernWarfare2019MoneyGlowReadyAsync();
+                SpriteCanvas.Invalidate();
+                return;
+            }
+
             _modernWarfare2019AccumulatedMoney = normalizedReward;
             ++_playToken;
             PrepareModernWarfare2019Playback(
@@ -86,6 +117,12 @@ namespace KillConfirmGameBar.Controls
                 killMarkOnly: false,
                 objectiveEventKind: eventKind);
             EnsureModernWarfare2019MoneyGlowReadyAsync();
+        }
+
+        private static bool IsModernWarfare2019RoundSettlement(string eventKind)
+        {
+            return string.Equals(eventKind, "round_win", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(eventKind, "round_loss", StringComparison.OrdinalIgnoreCase);
         }
 
         public void PlayModernWarfare2019LowerKill(int killCount)
@@ -152,14 +189,28 @@ namespace KillConfirmGameBar.Controls
             _modernWarfare2019IsObjective = !string.IsNullOrWhiteSpace(objectiveEventKind);
             _modernWarfare2019MoneyReward = Math.Max(0, moneyReward);
             _modernWarfare2019KillCount = isAssist ? 0 : Math.Max(1, killCount);
+            _modernWarfare2019RightFeedOffset =
+                ModernWarfare2019FeedOffsetSettingsStore.Load();
 
             if (drawPrimary)
             {
                 if (!isAssist && !_modernWarfare2019IsObjective)
                 {
-                    double magnitude = 7.0 + (_modernWarfare2019Random.NextDouble() * 6.0);
-                    _modernWarfare2019ImpactAngleDegrees =
-                        _modernWarfare2019Random.Next(0, 2) == 0 ? -magnitude : magnitude;
+                    if (killMarkOnly)
+                    {
+                        // Other game styles reuse only COD's center KillMark. A
+                        // random impact angle makes its small diagonal arms look
+                        // as if the hit landed beside the actual crosshair after
+                        // scaling. Keep this shared marker axis-locked; the full
+                        // COD presentation retains its original impact variation.
+                        _modernWarfare2019ImpactAngleDegrees = 0;
+                    }
+                    else
+                    {
+                        double magnitude = 7.0 + (_modernWarfare2019Random.NextDouble() * 6.0);
+                        _modernWarfare2019ImpactAngleDegrees =
+                            _modernWarfare2019Random.Next(0, 2) == 0 ? -magnitude : magnitude;
+                    }
                 }
 
                 if (!killMarkOnly)

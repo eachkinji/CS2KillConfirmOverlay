@@ -88,7 +88,9 @@ namespace KillConfirmGameBar.Controls.GameStyles
             WeaponBadgeLabelText.Text = Services.LocalizationManager.Text("WeaponBadgeLabel");
             MainAnimationLabelText.Text = Services.LocalizationManager.Text("MainAnimationLabel");
 
-            KillFxPackItem.Content = isChinese ? "自动" : "AUTO";
+            KillFxLabelText.Text = isChinese ? "叠加特效" : "Overlay effects";
+            KillFxPackItem.Content = isChinese ? "跟随图标包" : "From pack";
+            ToolTipService.SetToolTip(KillFxSelector, isChinese ? "自动使用包内连杀火焰、事件专属叠加和动态序列帧。" : "Use package multi-kill FX, event overlays and animated sequences.");
             KillFxOffItem.Content = isChinese ? "关闭" : "OFF";
             KillFxOriginalItem.Content = isChinese ? "原版" : "ORIG";
             EliteLevelOffItem.Content = isChinese ? "关闭" : "OFF";

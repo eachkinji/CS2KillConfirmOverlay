@@ -1,0 +1,333 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DanmakuAnnotationBatch",
+  "description": "Schema for 6657 Danmaku Multi-Dimensional Semantic Annotation Batches and Merged Dataset",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "batch_id",
+    "total_items",
+    "range",
+    "annotations"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "batch_id": {
+      "type": "string",
+      "pattern": "^(batch_[0-9]{3}|calibration_sample|gold_sample|full_merged)$"
+    },
+    "total_items": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 23521
+    },
+    "range": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "start_index",
+        "end_index"
+      ],
+      "properties": {
+        "start_index": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 23521
+        },
+        "end_index": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 23521
+        }
+      }
+    },
+    "annotator": {
+      "type": "string"
+    },
+    "annotations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/annotation_entry"
+      }
+    }
+  },
+  "$defs": {
+    "annotation_entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "index",
+        "targets",
+        "stances",
+        "topics",
+        "formats",
+        "culture",
+        "entities",
+        "context",
+        "safety",
+        "confidence",
+        "review"
+      ],
+      "properties": {
+        "index": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 23521,
+          "description": "1-based index pointing to untouched 6657_memes.json array. Original text MUST NOT be copied or altered."
+        },
+        "targets": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "streamer",
+              "pro_player",
+              "pro_team",
+              "caster_host",
+              "chat_audience",
+              "game_system",
+              "external_figure",
+              "general_meta"
+            ]
+          }
+        },
+        "stances": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "flame_streamer",
+              "flame_player",
+              "flame_team",
+              "flame_audience",
+              "flame_caster_host",
+              "flame_external_figure",
+              "cheer_praise",
+              "comfort_support",
+              "tease_playful",
+              "cynical_sarcastic",
+              "hype_excitement",
+              "melancholy_lament",
+              "neutral_informative"
+            ]
+          }
+        },
+        "topics": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "streamer_appearance_pig_weight",
+              "streamer_intelligence",
+              "streamer_skill_gameplay",
+              "streamer_casting_knowledge",
+              "streamer_bias_favoritism",
+              "streamer_stubborn_rage",
+              "streamer_schedule_laziness",
+              "streamer_tech_hardware",
+              "streamer_commercial_gifting",
+              "streamer_smoking_health",
+              "streamer_food_diet",
+              "streamer_romance_sexuality",
+              "streamer_career_finance",
+              "pro_gunplay_aim",
+              "pro_headshot",
+              "pro_sniper_awp",
+              "pro_utility_grenade",
+              "pro_knife_melee",
+              "pro_entry_trade",
+              "pro_multikill_clutch",
+              "pro_whiff_blunder",
+              "pro_eco_save",
+              "pro_score_outcome",
+              "pro_comeback_choke",
+              "pro_tactics_igl",
+              "pro_ranking_rating",
+              "pro_transfer_roster",
+              "pro_trophy_history",
+              "pro_cheating_matchfixing",
+              "pro_personal_appearance",
+              "pro_personal_relationships",
+              "external_sports_competition",
+              "external_figure_personal_life",
+              "daily_life_work",
+              "acg_popculture",
+              "historical_memes",
+              "hardware_skin_economy",
+              "pro_scene_drama",
+              "misc_unclear"
+            ]
+          }
+        },
+        "formats": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "plain_statement",
+              "direct_address_at",
+              "fake_official_news",
+              "quotation_remix",
+              "poem_lyric",
+              "copypasta_repetition",
+              "announcement_ad",
+              "single_word_or_char",
+              "repeated_symbols",
+              "formulaic_template",
+              "idiom_adaptation",
+              "parallelism_listing",
+              "rhetorical_question",
+              "dialogue_roleplay",
+              "slang_argot",
+              "exaggeration_hyperbole",
+              "homophonic_pun"
+            ]
+          }
+        },
+        "culture": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "origin_6657",
+              "origin_cs_community",
+              "origin_bilibili",
+              "origin_abstract",
+              "origin_acg_subculture",
+              "origin_gaming_general",
+              "origin_internet_folklore"
+            ]
+          }
+        },
+        "entities": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "type"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "streamer",
+                  "player",
+                  "team",
+                  "coach",
+                  "caster",
+                  "acg_character",
+                  "game_asset",
+                  "org",
+                  "other"
+                ]
+              }
+            }
+          }
+        },
+        "context": {
+          "type": "string",
+          "enum": [
+            "standalone",
+            "stream_context",
+            "game_event",
+            "pro_scene_history"
+          ],
+          "description": "Degree of contextual dependency for understanding the text (not a game trigger event classification)."
+        },
+        "safety": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "severity",
+            "flags"
+          ],
+          "properties": {
+            "severity": {
+              "type": "string",
+              "enum": [
+                "safe",
+                "borderline_playful",
+                "sensitive_flame",
+                "toxic_vulgar"
+              ]
+            },
+            "flags": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "enum": [
+                  "profanity",
+                  "personal_attack",
+                  "sexual_content",
+                  "violent_imagery",
+                  "discriminatory",
+                  "self_harm",
+                  "spam_noise",
+                  "none"
+                ]
+              }
+            }
+          }
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0
+        },
+        "review": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status"
+          ],
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "pending",
+                "reviewed",
+                "approved",
+                "disputed"
+              ]
+            },
+            "reviewer": {
+              "type": "string"
+            },
+            "comments": {
+              "type": "string"
+            }
+          }
+        },
+        "source_tags": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

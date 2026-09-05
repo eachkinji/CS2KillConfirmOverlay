@@ -27,6 +27,7 @@ using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Imaging;
 using Windows.UI.Xaml.Media.Animation;
 using Windows.UI.Xaml.Navigation;
+using Windows.UI.Xaml.Shapes;
 using Windows.Web.Http;
 using Windows.System;
 
@@ -281,6 +282,7 @@ namespace KillConfirmGameBar
         {
             Border outline = GetFeedbackFrameOutline(layer);
             Border hint = GetFeedbackFrameHint(layer);
+            Ellipse centerDot = GetFeedbackFrameCenterDot(layer);
             SolidColorBrush brush = GetFeedbackFrameBrush(layer, selected);
             outline.BorderBrush = brush;
             hint.BorderBrush = brush;
@@ -288,6 +290,7 @@ namespace KillConfirmGameBar
             outline.Background = selected ? _dragOutlineScratchBrush : _dragOutlineTransparentBrush;
             outline.Opacity = selected ? DragOutlineSelectedOpacity : DragOutlineUnselectedOpacity;
             hint.Visibility = selected ? Visibility.Visible : Visibility.Collapsed;
+            centerDot.Visibility = selected ? Visibility.Visible : Visibility.Collapsed;
         }
     }
 }

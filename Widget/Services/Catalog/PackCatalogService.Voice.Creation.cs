@@ -61,10 +61,7 @@ namespace KillConfirmGameBar.Services
             await SaveAsync(catalog);
         }
 
-        // Valorant voice packs. Valorant's built-in voice plays tier 1-5 streak
-        // voices and a headshot voice (its sound.lua caps kills at 5), so a custom
-        // Valorant pack exposes those same six slots on the manifest's generic
-        // kill_1..kill_5 / headshot keys.
+        // The native Valorant player consumes all thirteen independent slots.
         public static readonly IReadOnlyDictionary<string, string> ValorantVoiceSlotMapping =
             new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
@@ -73,7 +70,14 @@ namespace KillConfirmGameBar.Services
                 { "3", "kill_3" },
                 { "4", "kill_4" },
                 { "5", "kill_5" },
-                { "headshot", "headshot" }
+                { "headshot", "headshot" },
+                { "headshot_1", "headshot_1" },
+                { "headshot_2", "headshot_2" },
+                { "headshot_3", "headshot_3" },
+                { "headshot_4", "headshot_4" },
+                { "headshot_5", "headshot_5" },
+                { "appear", "appear" },
+                { "transition", "transition" }
             };
 
         public static async Task CreateValorantVoicePackAsync(string displayName, VoicePackBuildOptions options)
@@ -89,16 +93,25 @@ namespace KillConfirmGameBar.Services
             // Valorant cue, including when this pack is exported or imported.
             foreach (string stem in ValorantVoiceSlotMapping.Keys)
             {
+                if (!int.TryParse(stem, out int kill) || kill < 1 || kill > 5) continue;
                 if ((await FindAudioFileNamesAsync(packFolder, stem)).Count > 0)
                 {
                     continue;
                 }
 
                 string fileName = stem + ".wav";
-                StorageFile builtIn = await StorageFile.GetFileFromApplicationUriAsync(
-                    new Uri("ms-appx:///KillConfirmService/sounds/"
-                        + ValorantPackService.DefaultKey + "/" + fileName));
-                await builtIn.CopyAsync(packFolder, fileName, NameCollisionOption.ReplaceExisting);
+                try
+                {
+                    StorageFile builtIn = await StorageFile.GetFileFromApplicationUriAsync(
+                        new Uri("ms-appx:///KillConfirmService/sounds/"
+                            + ValorantPackService.DefaultKey + "/" + fileName));
+                    await builtIn.CopyAsync(packFolder, fileName, NameCollisionOption.ReplaceExisting);
+                }
+                catch when (string.Equals(stem, "headshot", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Base has no native headshot audio. An omitted custom
+                    // headshot slot is therefore intentional silence.
+                }
             }
 
             if (options.HeadImageFile != null)
@@ -127,12 +140,79 @@ namespace KillConfirmGameBar.Services
                 displayName,
                 "valorant",
                 ValorantVoiceSlotMapping,
-                commonOverlayEnabled: null);
+                commonOverlayEnabled: options.CommonOverlayEnabled);
 
             var catalog = await LoadAsync();
             catalog.VoicePacks.Add(new VoicePackItem
             {
                 Key = "custom_valorant_voice_" + Guid.NewGuid().ToString("N"),
+                DisplayName = displayName,
+                FolderPath = packFolder.Path,
+                IsBuiltIn = false,
+                IsVisibleInWidget = true,
+                OwnsFolder = true
+            });
+            await SaveAsync(catalog);
+        }
+
+        // CS2 Customizer-compatible custom-module voice packs expose ten event
+        // slots: kills 1-5, each with a matching headshot variant.
+        public static readonly IReadOnlyDictionary<string, string> CustomModuleVoiceSlotMapping =
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "1", "kill_1" },
+                { "2", "kill_2" },
+                { "3", "kill_3" },
+                { "4", "kill_4" },
+                { "5", "kill_5" },
+                { "1-headshot", "kill_1_headshot" },
+                { "2-headshot", "kill_2_headshot" },
+                { "3-headshot", "kill_3_headshot" },
+                { "4-headshot", "kill_4_headshot" },
+                { "5-headshot", "kill_5_headshot" }
+            };
+
+        public static async Task CreateCustomModuleVoicePackAsync(string displayName, VoicePackBuildOptions options)
+        {
+            StorageFolder root = await GetGameVoicePacksFolderAsync("custommodule");
+            StorageFolder packFolder = await root.CreateFolderAsync(
+                SanitizeName(displayName),
+                CreationCollisionOption.GenerateUniqueName);
+
+            await CopySelectedVoiceFilesAsync(packFolder, options);
+
+            if (options.HeadImageFile != null)
+            {
+                string extension = options.HeadImageFile.FileType;
+                if (string.IsNullOrWhiteSpace(extension))
+                {
+                    extension = ".png";
+                }
+
+                if (extension.Equals(".tga", StringComparison.OrdinalIgnoreCase))
+                {
+                    await TgaDecoder.ConvertTgaToPngAsync(options.HeadImageFile, packFolder, "pack_head.png");
+                }
+                else
+                {
+                    await options.HeadImageFile.CopyAsync(
+                        packFolder,
+                        "pack_head" + extension.ToLowerInvariant(),
+                        NameCollisionOption.ReplaceExisting);
+                }
+            }
+
+            await WriteGeneratedVoiceManifestAsync(
+                packFolder,
+                displayName,
+                "custommodule",
+                CustomModuleVoiceSlotMapping,
+                commonOverlayEnabled: null);
+
+            var catalog = await LoadAsync();
+            catalog.VoicePacks.Add(new VoicePackItem
+            {
+                Key = "custom_module_voice_" + Guid.NewGuid().ToString("N"),
                 DisplayName = displayName,
                 FolderPath = packFolder.Path,
                 IsBuiltIn = false,
@@ -233,7 +313,12 @@ namespace KillConfirmGameBar.Services
             var slotsObj = new Windows.Data.Json.JsonObject();
             foreach (var pair in slotMapping)
             {
-                IReadOnlyList<string> fileNames = await FindAudioFileNamesAsync(packFolder, pair.Key);
+                IReadOnlyList<string> fileNames = string.Equals(gameStyle, "valorant", StringComparison.OrdinalIgnoreCase)
+                    ? (await packFolder.GetFilesAsync()).Where(file =>
+                        SupportedAudioExtensions.Contains(file.FileType, StringComparer.OrdinalIgnoreCase)
+                        && string.Equals(Helpers.AudioSlotAliases.ExtractBaseStem(file.Name), pair.Key, StringComparison.OrdinalIgnoreCase))
+                        .OrderBy(file => file.Name, StringComparer.OrdinalIgnoreCase).Select(file => file.Name).ToList()
+                    : await FindAudioFileNamesAsync(packFolder, pair.Key);
                 if (fileNames.Count == 1)
                 {
                     slotsObj[pair.Value] = Windows.Data.Json.JsonValue.CreateStringValue(fileNames[0]);
@@ -247,6 +332,8 @@ namespace KillConfirmGameBar.Services
                     }
                     slotsObj[pair.Value] = variants;
                 }
+                else if (string.Equals(gameStyle, "valorant", StringComparison.OrdinalIgnoreCase))
+                    slotsObj[pair.Value] = new Windows.Data.Json.JsonArray();
             }
 
             if (string.Equals(gameStyle, "crossfire", StringComparison.OrdinalIgnoreCase))
@@ -282,7 +369,17 @@ namespace KillConfirmGameBar.Services
                 ["slot_gains"] = new Windows.Data.Json.JsonObject(),
                 ["overlay_slots"] = overlaySlotsArray
             };
-
+            if (string.Equals(gameStyle, "valorant", StringComparison.OrdinalIgnoreCase))
+            {
+                for (int kill = 1; kill <= 5; kill++)
+                    if (commonOverlayEnabled == null || (commonOverlayEnabled.TryGetValue(kill + ".wav", out bool enabled) && enabled))
+                        overlaySlotsArray.Add(Windows.Data.Json.JsonValue.CreateStringValue("kill_" + kill));
+                audioObj["slot_gains"] = new Windows.Data.Json.JsonObject
+                {
+                    ["appear"] = Windows.Data.Json.JsonValue.CreateNumberValue(0.3),
+                    ["transition"] = Windows.Data.Json.JsonValue.CreateNumberValue(0.3)
+                };
+            }
             var manifestObj = new Windows.Data.Json.JsonObject
             {
                 ["id"] = Windows.Data.Json.JsonValue.CreateStringValue(packFolder.Name),
@@ -353,21 +450,8 @@ namespace KillConfirmGameBar.Services
             try
             {
                 IReadOnlyList<StorageFile> files = await folder.GetFilesAsync();
-                return files
-                    .Where(file => SupportedAudioExtensions.Contains(file.FileType, StringComparer.OrdinalIgnoreCase))
-                    .Where(file =>
-                    {
-                        string stem = Path.GetFileNameWithoutExtension(file.Name);
-                        return string.Equals(stem, baseName, StringComparison.OrdinalIgnoreCase)
-                            || stem.StartsWith(baseName + "__", StringComparison.OrdinalIgnoreCase);
-                    })
-                    .OrderBy(file => string.Equals(
-                        Path.GetFileNameWithoutExtension(file.Name),
-                        baseName,
-                        StringComparison.OrdinalIgnoreCase) ? 0 : 1)
-                    .ThenBy(file => file.Name, StringComparer.OrdinalIgnoreCase)
-                    .Select(file => file.Name)
-                    .ToList();
+                var matches = Helpers.AudioSlotAliases.MatchSlotAudioFiles(files, baseName);
+                return matches.Select(file => file.Name).ToList();
             }
             catch
             {
@@ -377,20 +461,8 @@ namespace KillConfirmGameBar.Services
 
         private static async Task<string> FindAudioFileNameAsync(StorageFolder folder, string baseName)
         {
-            foreach (string extension in SupportedAudioExtensions)
-            {
-                string fileName = baseName + extension;
-                try
-                {
-                    await folder.GetFileAsync(fileName);
-                    return fileName;
-                }
-                catch
-                {
-                }
-            }
-
-            return null;
+            var files = await FindAudioFileNamesAsync(folder, baseName);
+            return files.Count > 0 ? files[0] : null;
         }
     }
 }

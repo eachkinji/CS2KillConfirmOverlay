@@ -1,0 +1,17 @@
+{
+  "id": "custommodule",
+  "name": "瓦默认音效/图标",
+  "game_style": "custommodule",
+  "version": "1.0",
+  "audio": {
+    "base_gain": 1.0,
+    "slots": {
+      "kill_1": "1.mp3",
+      "kill_2": "2.mp3",
+      "kill_3": "3.mp3",
+      "kill_4": "4.mp3",
+      "kill_5": "5.mp3"
+    },
+    "overlay_slots": []
+  }
+}

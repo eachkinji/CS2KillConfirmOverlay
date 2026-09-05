@@ -30,7 +30,27 @@ namespace KillConfirmGameBar.Controls
             return _startupPreloadTask;
         }
 
+        private static Task _cfPreloadTask;
+        private static string _cfPreloadSignature;
+
         public async Task PreloadCurrentPackAnimationsAsync(IProgress<int> progress)
+        {
+            if (GameStyleService.Current != GameStyleMode.Crossfire)
+            {
+                await PreloadCurrentPackAnimationsOnceAsync(progress);
+                return;
+            }
+            string signature = _resourceGeneration + ":" + GetCodeKillCacheKey("", "");
+            if (_cfPreloadTask == null || _cfPreloadSignature != signature || _cfPreloadTask.IsFaulted || _cfPreloadTask.IsCanceled)
+            {
+                _cfPreloadSignature = signature;
+                _cfPreloadTask = PreloadCurrentPackAnimationsOnceAsync(progress);
+            }
+            await _cfPreloadTask;
+            progress?.Report(100);
+        }
+
+        private async Task PreloadCurrentPackAnimationsOnceAsync(IProgress<int> progress)
         {
             int generation = _resourceGeneration;
             await PreloadGate.WaitAsync();
@@ -50,6 +70,7 @@ namespace KillConfirmGameBar.Controls
                 // the new pack's preload to begin.
                 if (generation != _resourceGeneration)
                 {
+                    ReleaseCustomSequence();
                     ReleaseAllAnimationResourceCaches();
                 }
                 PreloadGate.Release();
@@ -58,6 +79,7 @@ namespace KillConfirmGameBar.Controls
 
         private Task PreloadCurrentPackAnimationsCoreAsync(IProgress<int> progress)
         {
+            if (GameStyleService.IsCustomModuleKey(_iconPack)) return PreloadCustomSequenceAsync(progress);
             if (GameStyleService.IsModernWarfare2019Key(_iconPack)
                 || GameStyleService.Current == GameStyleMode.ModernWarfare2019)
             {
@@ -167,43 +189,32 @@ namespace KillConfirmGameBar.Controls
             SpriteCanvas.Invalidate();
         }
 
+        private static List<Tuple<string, string>> GetCodeKillPreloadRequests()
+        {
+            string[] actions = { "multi1", "multi2", "multi3", "multi4", "multi5", "multi6", "code2kill",
+                "headshot", "headshot_gold", "headshot_vvip", "headshot_gold_vvip", "knife", "grenade",
+                "firstkill", "lastkill", "assist", "c4", "bomb_plant", "c4defuse", "bomb_defuse",
+                "wallshot", "headwallshot", "headwallshot_gold", "revenge", "smash" };
+            var requests = new List<Tuple<string, string>>();
+            foreach (string action in actions) requests.Add(Tuple.Create(action, (string)null));
+            if (_weaponBadgeMode > 0 && SupportsWeaponBadgeOverlay())
+                foreach (string action in actions)
+                    if (SupportsWeaponBadgeForAsset(action))
+                        foreach (string badge in new[] { "assault", "elite", "scout", "sniper", "knife" })
+                            requests.Add(Tuple.Create(action, badge));
+            return requests;
+        }
+
         private async Task PreloadCodeKillAnimationsAsync(IProgress<int> progress)
         {
-            var requests = new List<Tuple<string, string>>
-            {
-                Tuple.Create("multi1", (string)null),
-                Tuple.Create("multi2", (string)null),
-                Tuple.Create("multi3", (string)null),
-                Tuple.Create("multi4", (string)null),
-                Tuple.Create("multi5", (string)null),
-                Tuple.Create("multi6", (string)null),
-                Tuple.Create("headshot", (string)null),
-                Tuple.Create("headshot_gold", (string)null),
-                Tuple.Create("knife", (string)null),
-                Tuple.Create("firstkill", (string)null),
-                Tuple.Create("lastkill", (string)null),
-                Tuple.Create("assist", (string)null),
-                Tuple.Create("grenade", (string)null),
-                Tuple.Create("c4", (string)null),
-                Tuple.Create("c4defuse", (string)null)
-            };
-
-            if (_weaponBadgeMode > 0 && SupportsWeaponBadgeOverlay())
-            {
-                string[] weaponBadges = { "assault", "elite", "scout", "sniper", "knife" };
-                for (int killCount = 1; killCount <= 6; killCount++)
-                {
-                    foreach (string weaponBadge in weaponBadges)
-                    {
-                        requests.Add(Tuple.Create("multi" + killCount, weaponBadge));
-                    }
-                }
-            }
+            string signature = _resourceGeneration + ":" + GetCodeKillCacheKey("", "");
+            var requests = GetCodeKillPreloadRequests();
 
             int loaded = 0;
             progress?.Report(0);
             foreach (Tuple<string, string> request in requests)
             {
+                if (signature != _resourceGeneration + ":" + GetCodeKillCacheKey("", "")) return;
                 try
                 {
                     await LoadCodeKillAssetAsync(request.Item1, request.Item2, null);

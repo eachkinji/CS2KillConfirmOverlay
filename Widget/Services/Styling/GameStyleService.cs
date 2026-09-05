@@ -17,7 +17,8 @@ namespace KillConfirmGameBar.Services
         Pubg,
         DeltaForce,
         Doubao,
-        Dagoujiao
+        Dagoujiao,
+        CustomModule
     }
 
     internal static partial class GameStyleService
@@ -68,6 +69,8 @@ namespace KillConfirmGameBar.Services
                     return "pubg";
                 case GameStyleMode.DeltaForce:
                     return "deltaforce";
+                case GameStyleMode.CustomModule:
+                    return "custommodule";
                 case GameStyleMode.Doubao:
                     return "doubao";
                 case GameStyleMode.Dagoujiao:
@@ -104,6 +107,8 @@ namespace KillConfirmGameBar.Services
                     return "PUBG";
                 case GameStyleMode.DeltaForce:
                     return "三角洲";
+                case GameStyleMode.CustomModule:
+                    return "自定义";
                 case GameStyleMode.Doubao:
                     return "豆包";
                 case GameStyleMode.Dagoujiao:
@@ -153,6 +158,8 @@ namespace KillConfirmGameBar.Services
                 case "delta":
                 case "df":
                     return GameStyleMode.DeltaForce;
+                case "custommodule":
+                    return GameStyleMode.CustomModule;
                 case "doubao":
                 case "豆包":
                     return GameStyleMode.Doubao;
@@ -179,7 +186,8 @@ namespace KillConfirmGameBar.Services
             string value = (key ?? string.Empty).Trim();
             return string.Equals(value, "overwatch", System.StringComparison.OrdinalIgnoreCase)
                 || string.Equals(value, "ow", System.StringComparison.OrdinalIgnoreCase)
-                || value.StartsWith("custom_overwatch_voice_", System.StringComparison.OrdinalIgnoreCase);
+                || value.StartsWith("custom_overwatch_voice_", System.StringComparison.OrdinalIgnoreCase)
+                || value.StartsWith("custom_overwatch_icon_", System.StringComparison.OrdinalIgnoreCase);
         }
 
         public static bool IsApexKey(string key)
@@ -188,7 +196,8 @@ namespace KillConfirmGameBar.Services
             return string.Equals(value, "apex", System.StringComparison.OrdinalIgnoreCase)
                 || string.Equals(value, "apexlegends", System.StringComparison.OrdinalIgnoreCase)
                 || string.Equals(value, "apex_legends", System.StringComparison.OrdinalIgnoreCase)
-                || value.StartsWith("custom_apex_voice_", System.StringComparison.OrdinalIgnoreCase);
+                || value.StartsWith("custom_apex_voice_", System.StringComparison.OrdinalIgnoreCase)
+                || value.StartsWith("custom_apex_icon_", System.StringComparison.OrdinalIgnoreCase);
         }
 
         public static bool IsModernWarfare2019Key(string key)
@@ -198,7 +207,8 @@ namespace KillConfirmGameBar.Services
                 || string.Equals(value, "modernwarfare", System.StringComparison.OrdinalIgnoreCase)
                 || string.Equals(value, "mw2019", System.StringComparison.OrdinalIgnoreCase)
                 || string.Equals(value, "mw19", System.StringComparison.OrdinalIgnoreCase)
-                || value.StartsWith("custom_modernwarfare2019_voice_", System.StringComparison.OrdinalIgnoreCase);
+                || value.StartsWith("custom_modernwarfare2019_voice_", System.StringComparison.OrdinalIgnoreCase)
+                || value.StartsWith("custom_modernwarfare2019_icon_", System.StringComparison.OrdinalIgnoreCase);
         }
 
         public static bool SupportsCrosshairAreaEffect(GameStyleMode mode)
@@ -216,6 +226,7 @@ namespace KillConfirmGameBar.Services
                 || mode == GameStyleMode.Pubg
                 || mode == GameStyleMode.Csol
                 || mode == GameStyleMode.Valorant
+                || mode == GameStyleMode.CustomModule
                 || mode == GameStyleMode.Doubao
                 || mode == GameStyleMode.Dagoujiao;
         }
@@ -273,6 +284,13 @@ namespace KillConfirmGameBar.Services
             return string.Equals(value, "deltaforce", System.StringComparison.OrdinalIgnoreCase)
                 || string.Equals(value, "delta", System.StringComparison.OrdinalIgnoreCase)
                 || string.Equals(value, "df", System.StringComparison.OrdinalIgnoreCase);
+        }
+
+        public static bool IsCustomModuleKey(string key)
+        {
+            return string.Equals(key, "custommodule", System.StringComparison.OrdinalIgnoreCase)
+                || (key ?? "").StartsWith("custom_module_icon_", System.StringComparison.OrdinalIgnoreCase)
+                || (key ?? "").StartsWith("custom_module_voice_", System.StringComparison.OrdinalIgnoreCase);
         }
 
         public static bool IsDoubaoKey(string key)

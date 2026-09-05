@@ -15,6 +15,9 @@ namespace KillConfirmGameBar
 {
     public sealed partial class KillConfirmWidgetPage
     {
+        private int _lastCrossfirePackRevision = -1;
+        private int _lastValorantEditRevision;
+
         private async void OnPackCatalogChanged(object sender, EventArgs e)
         {
             if (!_isPageActive)
@@ -28,7 +31,27 @@ namespace KillConfirmGameBar
                 {
                     if (_isPageActive)
                     {
+                        bool valorantEdited = GameStyleService.Current == GameStyleMode.Valorant
+                            && _lastValorantEditRevision != ValorantPackEditing.Revision;
+                        if (valorantEdited)
+                        {
+                            _lastValorantEditRevision = ValorantPackEditing.Revision;
+                            LowerFeedbackAnimation?.ReleaseAnimationResourcesForPackChange();
+                            LowerBadgeAnimation?.ReleaseAnimationResourcesForPackChange();
+                            CrosshairFeedbackAnimation?.ReleaseAnimationResourcesForPackChange();
+                            UpperFeedbackAnimation?.ReleaseAnimationResourcesForPackChange();
+                        }
+                        if (GameStyleService.Current == GameStyleMode.Crossfire
+                            && _lastCrossfirePackRevision != CrossfireExternalAssetService.Revision)
+                        {
+                            _lastCrossfirePackRevision = CrossfireExternalAssetService.Revision;
+                            LowerFeedbackAnimation?.ReleaseAnimationResourcesForPackChange();
+                            LowerBadgeAnimation?.ReleaseAnimationResourcesForPackChange();
+                            CrosshairFeedbackAnimation?.ReleaseAnimationResourcesForPackChange();
+                            UpperFeedbackAnimation?.ReleaseAnimationResourcesForPackChange();
+                        }
                         await InitializePackSelectorsAsync();
+                        if (valorantEdited) await SyncSelectedVoicePackAsync();
                     }
                 });
             }
@@ -166,6 +189,7 @@ namespace KillConfirmGameBar
                     GetVoicePackIconUri(fallback)));
             }
 
+            PackTestSectionView.VoicePackSelector.Items.Add(CreateAddMorePackItem(true));
             SelectVoicePackPreset(preferredPreset);
         }
 
@@ -222,6 +246,7 @@ namespace KillConfirmGameBar
                     GetIconPackIconUri(fallback)));
             }
 
+            PackTestSectionView.IconPackSelector.Items.Add(CreateAddMorePackItem(false));
             SelectIconPack(preferredIconPack);
         }
 
@@ -303,6 +328,45 @@ namespace KillConfirmGameBar
             };
         }
 
+        private static ComboBoxItem CreateAddMorePackItem(bool voice)
+        {
+            bool chinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            string text = chinese
+                ? (voice ? "＋ 添加更多语音包" : "＋ 添加更多图标包")
+                : (voice ? "+ Add more audio packs" : "+ Add more icon packs");
+            return CreatePackComboBoxItem(text, PackLibraryNavigation.AddMoreTag, null);
+        }
+
+        private async Task OpenPackLibraryAsync(bool voice, SelectionChangedEventArgs e)
+        {
+            var selector = voice ? PackTestSectionView.VoicePackSelector : PackTestSectionView.IconPackSelector;
+            bool previous = voice ? _suppressVoicePackEvents : _suppressIconPackEvents;
+            if (voice) _suppressVoicePackEvents = true;
+            else _suppressIconPackEvents = true;
+            try
+            {
+                // This is a navigation action; restore the real selection before any await.
+                selector.SelectedItem = e.RemovedItems.OfType<ComboBoxItem>()
+                    .FirstOrDefault(item => !Equals(item.Tag, PackLibraryNavigation.AddMoreTag))
+                    ?? selector.Items.OfType<ComboBoxItem>().FirstOrDefault();
+            }
+            finally
+            {
+                if (voice) _suppressVoicePackEvents = previous;
+                else _suppressIconPackEvents = previous;
+            }
+            PackLibraryNavigation.Request(GameStyleService.Current, voice);
+            try
+            {
+                string group = DeveloperModeSettingsStore.IsEnabled
+                    ? OpenSettingsWindowDeveloperParameterGroupId : OpenSettingsWindowParameterGroupId;
+                if (await TryLaunchFullTrustHelperAsync(group)) return;
+            }
+            catch (Exception ex) { App.Log("Open pack library failed: " + ex.Message); }
+            PackLibraryNavigation.Clear();
+            ShowGuideOpenFailedHint();
+        }
+
         private static Image FindPackItemImage(ComboBoxItem item)
         {
             if (item?.Content is StackPanel panel)
@@ -372,6 +436,11 @@ namespace KillConfirmGameBar
 
         private static string GetVoicePackIconUri(string key)
         {
+            if (string.Equals(key, "custommodule", StringComparison.OrdinalIgnoreCase))
+            {
+                return "ms-appx:///Assets/GameStyles/custommodule/iconpacks/custommodule/pack_head.webp";
+            }
+            if (GameStyleService.IsCustomModuleKey(key)) return null;
             if (ValorantPackService.IsValorantPackKey(key))
             {
                 return GetValorantPackIconUri(key);
@@ -381,21 +450,21 @@ namespace KillConfirmGameBar
             {
                 case "crossfire_swat_gr":
                 case "crossfire_swat_bl":
-                    return "ms-appx:///Assets/PackIcons/swat.png";
+                    return new Uri(System.IO.Path.Combine(CrossfireExternalAssetService.ResolvePackPath(key, true), "pack_head.png")).AbsoluteUri;
                 case "crossfire_flying_tiger_gr":
                 case "crossfire_flying_tiger_bl":
-                    return "ms-appx:///Assets/PackIcons/flying_tiger.png";
+                    return new Uri(System.IO.Path.Combine(CrossfireExternalAssetService.ResolvePackPath(key, true), "pack_head.png")).AbsoluteUri;
                 case "crossfire_women_gr":
                 case "crossfire_women_bl":
-                    return "ms-appx:///Assets/PackIcons/women.png";
+                    return new Uri(System.IO.Path.Combine(CrossfireExternalAssetService.ResolvePackPath(key, true), "pack_head.png")).AbsoluteUri;
                 case "crossfire_v_sex":
-                    return "ms-appx:///Assets/PackIcons/cfsex.png";
+                    return new Uri(System.IO.Path.Combine(CrossfireExternalAssetService.ResolvePackPath(key, true), "pack_head.png")).AbsoluteUri;
                 case "crossfire_bunny_gr":
                 case "crossfire_bunny_bl":
-                    return "ms-appx:///Assets/PackIcons/bunny.png";
+                    return new Uri(System.IO.Path.Combine(CrossfireExternalAssetService.ResolvePackPath(key, true), "pack_head.png")).AbsoluteUri;
                 case "crossfire_heart_judge_gr":
                 case "crossfire_heart_judge_bl":
-                    return "ms-appx:///Assets/PackIcons/heart_judge.png";
+                    return new Uri(System.IO.Path.Combine(CrossfireExternalAssetService.ResolvePackPath(key, true), "pack_head.png")).AbsoluteUri;
                 case "bf1":
                     return "ms-appx:///Assets/GameStyles/battlefield1/killconfirm/textures/killicon_battlefield1_headshot.png";
                 case "bf5":
@@ -403,7 +472,7 @@ namespace KillConfirmGameBar
                 case "bf4":
                     return "ms-appx:///Assets/GameStyles/battlefield4/killconfirm/textures/killicon_battlefield1_headshot.png";
                 case "battlefield2042":
-                    return "ms-appx:///Assets/GameStyles/battlefield2042/killconfirm/textures/HeadshotSkull.png";
+                    return "ms-appx:///Assets/GameLogos/battlefield2042.png";
                 case "pubg":
                     return "ms-appx:///Assets/GameStyles/pubg/killconfirm/textures/killicon_scrolling_headshot.png";
                 case "deltaforce":
@@ -439,7 +508,7 @@ namespace KillConfirmGameBar
                 case GameStyleMode.Battlefield4:
                     return "ms-appx:///Assets/GameStyles/battlefield4/killconfirm/textures/killicon_battlefield1_default.png";
                 case GameStyleMode.Battlefield2042:
-                    return "ms-appx:///Assets/GameStyles/battlefield2042/killconfirm/textures/NormalSkull.png";
+                    return "ms-appx:///Assets/GameLogos/battlefield2042.png";
                 case GameStyleMode.Pubg:
                     return "ms-appx:///Assets/GameStyles/pubg/killconfirm/textures/killicon_scrolling_default.png";
                 case GameStyleMode.DeltaForce:
@@ -455,7 +524,7 @@ namespace KillConfirmGameBar
                 case GameStyleMode.Apex:
                     return "ms-appx:///Assets/GameLogos/apex.png";
                 default:
-                    return "ms-appx:///Assets/KillConfirmCode/Original/badge_headshot.PNG";
+                    return CrossfireExternalAssetService.VisualUri("Original", "badge_headshot.PNG");
             }
         }
     }

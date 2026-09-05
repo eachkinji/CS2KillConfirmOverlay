@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -15,6 +15,7 @@ namespace KillConfirmGameBar
     public sealed partial class MainPage
     {
         private int _packListReloadVersion;
+        private bool _packOrderMoveInProgress;
         private GameStyleMode? _loadedVoicePackStyle;
         private GameStyleMode? _loadedIconPackStyle;
 
@@ -23,12 +24,14 @@ namespace KillConfirmGameBar
             _isSettingsPageLoaded = true;
             GameStyleService.Changed += OnGameStyleServiceChanged;
             PackCatalogService.CatalogChanged += OnCatalogChanged;
+            ApplyPendingPackLibraryNavigation();
             await EnsureActivePackListLoadedAsync();
         }
 
         private void OnUnloaded(object sender, RoutedEventArgs e)
         {
             _isSettingsPageLoaded = false;
+            ResetNativePackDrag();
             GameStyleService.Changed -= OnGameStyleServiceChanged;
             PackCatalogService.CatalogChanged -= OnCatalogChanged;
             Interlocked.Increment(ref _packListReloadVersion);
@@ -37,17 +40,21 @@ namespace KillConfirmGameBar
 
         private async void OnCatalogChanged(object sender, EventArgs e)
         {
+            // The native collection already has our saved order; do not reset its scroll position.
+            if (_savingNativePackOrder) return;
+            if (_packOrderMoveInProgress) { _packCatalogChangedDuringDrag = true; return; }
             await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, async () =>
             {
+                if (_packOrderMoveInProgress) { _packCatalogChangedDuringDrag = true; return; }
                 _loadedVoicePackStyle = null;
                 _loadedIconPackStyle = null;
-                await EnsureActivePackListLoadedAsync();
+                if (!_packZipDropInProgress && !_packOrderMoveInProgress) await EnsureActivePackListLoadedAsync();
             });
         }
 
         private async Task EnsureActivePackListLoadedAsync()
         {
-            if (!_isSettingsPageLoaded || _isHomePageSelected)
+            if (!_isSettingsPageLoaded || _isHomePageSelected || _packOrderMoveInProgress)
             {
                 return;
             }
@@ -60,7 +67,15 @@ namespace KillConfirmGameBar
                 return;
             }
 
-            await ReloadPackListsAsync(style, loadVoice, loadIcon);
+            try { await ReloadPackListsAsync(style, loadVoice, loadIcon); }
+            catch (Exception ex)
+            {
+                App.Log("Pack library reload failed: " + ex);
+                string message = LocalizationManager.Current == UiLanguage.SimplifiedChinese
+                    ? "包列表加载失败，请重新打开此页面。" : "Could not load packs. Reopen this page to retry.";
+                if (loadVoice) VoiceVisibleCountText.Text = message;
+                if (loadIcon) IconVisibleCountText.Text = message;
+            }
         }
 
         private bool IsPackListReloadCurrent(int reloadVersion, GameStyleMode style)
@@ -82,82 +97,24 @@ namespace KillConfirmGameBar
                 return;
             }
 
-            IReadOnlyList<VoicePackItem> voiceItems = Array.Empty<VoicePackItem>();
-            var voiceRows = new List<UIElement>();
             if (loadVoice)
             {
-                VoicePackListPanel.Children.Clear();
-                VoiceVisibleCountText.Text = string.Empty;
-                voiceItems = (await PackCatalogService.GetAllVoicePacksAsync())
-                    .Where(item => GameStyleService.GetStyleForPackKey(item.Key) == style)
-                    .ToList();
-                if (!IsPackListReloadCurrent(reloadVersion, style))
-                {
-                    return;
-                }
-
-                foreach (VoicePackItem item in voiceItems)
-                {
-                    UIElement row = await BuildVoicePackRowAsync(item);
-                    if (!IsPackListReloadCurrent(reloadVersion, style))
-                    {
-                        return;
-                    }
-                    voiceRows.Add(row);
-                }
-            }
-
-            IReadOnlyList<IconPackItem> iconItems = Array.Empty<IconPackItem>();
-            var iconRows = new List<UIElement>();
-            if (loadIcon)
-            {
-                IconPackListPanel.Children.Clear();
-                IconVisibleCountText.Text = string.Empty;
-                iconItems = (await PackCatalogService.GetAllIconPacksAsync())
-                    .Where(item => GameStyleService.GetStyleForPackKey(item.Key) == style)
-                    .ToList();
-                if (!IsPackListReloadCurrent(reloadVersion, style))
-                {
-                    return;
-                }
-
-                foreach (IconPackItem item in iconItems)
-                {
-                    UIElement row = await BuildIconPackRowAsync(item);
-                    if (!IsPackListReloadCurrent(reloadVersion, style))
-                    {
-                        return;
-                    }
-                    iconRows.Add(row);
-                }
-            }
-
-            if (!IsPackListReloadCurrent(reloadVersion, style))
-            {
-                return;
-            }
-
-            if (loadVoice)
-            {
-                foreach (UIElement row in voiceRows)
-                {
-                    VoicePackListPanel.Children.Add(row);
-                }
-                VoiceVisibleCountText.Text = string.Format(
-                    LocalizationManager.Text("VisibleCount"),
-                    CountVisible(voiceItems));
+                var items = (await PackCatalogService.GetAllVoicePacksAsync())
+                    .Where(item => GameStyleService.GetStyleForPackKey(item.Key) == style).ToList();
+                if (!IsPackListReloadCurrent(reloadVersion, style)) return;
+                VoicePackListPanel.ItemsSource = new System.Collections.ObjectModel.ObservableCollection<PackCardEntry>(
+                    items.Select((item, index) => new PackCardEntry { Voice = item, Ordinal = index + 1 }));
+                VoiceVisibleCountText.Text = string.Format(LocalizationManager.Text("VisibleCount"), CountVisible(items));
                 _loadedVoicePackStyle = style;
             }
-
             if (loadIcon)
             {
-                foreach (UIElement row in iconRows)
-                {
-                    IconPackListPanel.Children.Add(row);
-                }
-                IconVisibleCountText.Text = string.Format(
-                    LocalizationManager.Text("VisibleCount"),
-                    CountVisible(iconItems));
+                var items = (await PackCatalogService.GetAllIconPacksAsync())
+                    .Where(item => GameStyleService.GetStyleForPackKey(item.Key) == style).ToList();
+                if (!IsPackListReloadCurrent(reloadVersion, style)) return;
+                IconPackListPanel.ItemsSource = new System.Collections.ObjectModel.ObservableCollection<PackCardEntry>(
+                    items.Select((item, index) => new PackCardEntry { Icon = item, Ordinal = index + 1 }));
+                IconVisibleCountText.Text = string.Format(LocalizationManager.Text("VisibleCount"), CountVisible(items));
                 _loadedIconPackStyle = style;
             }
         }
@@ -181,7 +138,39 @@ namespace KillConfirmGameBar
             return count;
         }
 
-        private async Task<UIElement> BuildVoicePackRowAsync(VoicePackItem item)
+        private static Button CreatePackActionButton(string text, string role)
+        {
+            GameThemePalette theme = GameThemePalette.Current;
+            bool isDelete = string.Equals(role, "PackDelete", StringComparison.Ordinal);
+            bool isExport = string.Equals(role, "PackExport", StringComparison.Ordinal);
+            var button = new Button
+            {
+                Tag = role,
+                Content = isDelete
+                    ? (object)new FontIcon
+                    {
+                        FontFamily = new FontFamily("Segoe MDL2 Assets"),
+                        Glyph = "\uE74D",
+                        FontSize = 12
+                    }
+                    : text,
+                MinWidth = isDelete ? 30 : (isExport ? 52 : 46),
+                Height = 27,
+                Padding = isDelete ? new Thickness(6, 3, 6, 3) : new Thickness(9, 3, 9, 3),
+                FontSize = 11,
+                Background = new SolidColorBrush(isDelete ? Color.FromArgb(255, 254, 242, 242) : theme.Field),
+                Foreground = new SolidColorBrush(isDelete ? Color.FromArgb(255, 196, 43, 28) : theme.Accent),
+                BorderBrush = new SolidColorBrush(isDelete ? Color.FromArgb(255, 252, 209, 209) : theme.AccentSoft),
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(14),
+                Margin = new Thickness(0, 0, 4, 0)
+            };
+            ToolTipService.SetToolTip(button, text);
+            Windows.UI.Xaml.Automation.AutomationProperties.SetName(button, text);
+            return button;
+        }
+
+        private async Task<UIElement> BuildVoicePackRowAsync(VoicePackItem item, int index)
         {
             var checkBox = new CheckBox
             {
@@ -209,26 +198,24 @@ namespace KillConfirmGameBar
                 FontSize = 11,
                 TextTrimming = TextTrimming.CharacterEllipsis
             };
-            var editButton = new Button
-            {
-                Content = LocalizationManager.Text("Edit"),
-                Padding = new Thickness(8, 3, 8, 3),
-                FontSize = 11,
-                Background = new SolidColorBrush(Color.FromArgb(255, 235, 243, 252)),
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 0, 103, 192)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 204, 228, 247)),
-                BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(4),
-                Margin = new Thickness(0, 0, 4, 0),
-                Visibility = Visibility.Visible
-            };
+            var editButton = CreatePackActionButton(LocalizationManager.Text("Edit"), "PackEdit");
             editButton.Click += async (_, __) =>
             {
                 StorageFolder packFolder = await GetVoicePackFolderAsync(item);
                 string packName = PackCatalogService.GetVoicePackDisplayName(item);
                 GameStyleMode packStyle = GameStyleService.GetStyleForPackKey(item.Key);
 
-                if (packStyle == GameStyleMode.Overwatch)
+                if (packStyle == GameStyleMode.CustomModule)
+                {
+                    var existingFiles = await CollectVoiceFileGroupsFromManifestAsync(
+                        packFolder, PackCatalogService.CustomModuleVoiceSlotMapping);
+                    StorageFile existingHeadImage = packFolder != null ? await TryGetCustomPackHeadImageAsync(packFolder.Path) : null;
+                    await ShowCreateCustomModuleVoicePackDialogAsync(
+                        packName,
+                        existingFiles,
+                        existingHeadImage);
+                }
+                else if (packStyle == GameStyleMode.Overwatch)
                 {
                     var existingFiles = await CollectVoiceFileGroupsFromManifestAsync(
                         packFolder, PackCatalogService.OverwatchVoiceSlotMapping);
@@ -284,7 +271,7 @@ namespace KillConfirmGameBar
                         packName,
                         existingFiles,
                         existingHeadImage,
-                        GetValorantVoicePackEmblemUri(item.Key));
+                        GetValorantVoicePackEmblemUri(item.Key), item);
                 }
                 else
                 {
@@ -295,24 +282,19 @@ namespace KillConfirmGameBar
                     await ShowCreateVoicePackDialogAsync(packName, existingFiles, overlayFile, existingHeadImage);
                 }
             };
-            var deleteButton = new Button
-            {
-                Content = LocalizationManager.Text("Delete"),
-                Padding = new Thickness(8, 3, 8, 3),
-                FontSize = 11,
-                Background = new SolidColorBrush(Color.FromArgb(255, 254, 242, 242)),
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 196, 43, 28)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 252, 209, 209)),
-                BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(4),
-                Visibility = item.IsBuiltIn ? Visibility.Collapsed : Visibility.Visible
-            };
+            var exportButton = CreatePackActionButton(
+                LocalizationManager.Current == UiLanguage.SimplifiedChinese ? "导出" : "Export",
+                "PackExport");
+            exportButton.Click += async (_, __) => await ExportVoicePackAsync(item);
+            var deleteButton = CreatePackActionButton(LocalizationManager.Text("Delete"), "PackDelete");
+            deleteButton.Margin = new Thickness(0);
+            deleteButton.Visibility = item.IsBuiltIn ? Visibility.Collapsed : Visibility.Visible;
             deleteButton.Click += async (_, __) => await PackCatalogService.RemoveCustomVoicePackAsync(item.Key);
             var content = new StackPanel
             {
                 Spacing = 1,
                 VerticalAlignment = VerticalAlignment.Top,
-                Margin = new Thickness(0, 2, 0, 22)
+                Margin = new Thickness(0, 2, 0, 32)
             };
             content.Children.Add(title);
             content.Children.Add(meta);
@@ -325,44 +307,36 @@ namespace KillConfirmGameBar
                 Visibility = Visibility.Visible
             };
             buttonPanel.Children.Add(editButton);
+            buttonPanel.Children.Add(exportButton);
             buttonPanel.Children.Add(deleteButton);
-            var preview = CreatePackPreviewImage(GetVoicePackIconUri(item));
+            var preview = CreatePackPreviewImage(null);
             await TryApplyCustomPackPreviewAsync(preview, item?.FolderPath, VoicePackHeadImageNames);
+            if (preview.Source == null)
+                preview = CreatePackPreviewImage(!item.IsBuiltIn && ValorantPackService.IsValorantPackKey(item.Key) ? "ms-appx:///Assets/GameLogos/valorant.png" : GetVoicePackIconUri(item));
             var row = new Grid { ColumnSpacing = 8 };
             row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            checkBox.VerticalAlignment = VerticalAlignment.Top;
+            checkBox.Margin = new Thickness(0, 8, 0, 0);
+            preview.VerticalAlignment = VerticalAlignment.Top;
             row.Children.Add(checkBox);
             Grid.SetColumn(preview, 1);
             row.Children.Add(preview);
             Grid.SetColumn(content, 2);
             row.Children.Add(content);
-            Grid.SetColumn(buttonPanel, 2);
+            Grid.SetColumnSpan(buttonPanel, 3);
             row.Children.Add(buttonPanel);
-            return new Border
-            {
-                Width = 238,
-                Height = 74,
-                Padding = new Thickness(10, 8, 10, 8),
-                Background = new SolidColorBrush(Color.FromArgb(255, 255, 255, 255)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 229, 229, 229)),
-                BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(8),
-                Margin = new Thickness(0, 0, 8, 8),
-                Child = row
-            };
+            return CreatePackCard(row, item.Key, true, index + 1, PackCatalogService.GetVoicePackDisplayName(item));
         }
 
-        private async Task<UIElement> BuildIconPackRowAsync(IconPackItem item)
+        private async Task<UIElement> BuildIconPackRowAsync(IconPackItem item, int index)
         {
             GameStyleMode visualStyle = GameStyleService.GetStyleForPackKey(item.Key);
-            bool isLockedVisualPack = visualStyle == GameStyleMode.Overwatch
-                || visualStyle == GameStyleMode.ModernWarfare2019
-                || visualStyle == GameStyleMode.Apex;
             var checkBox = new CheckBox
             {
-                IsChecked = isLockedVisualPack || item.IsVisibleInWidget,
-                IsEnabled = !isLockedVisualPack,
+                IsChecked = item.IsVisibleInWidget,
+                IsEnabled = true,
                 VerticalAlignment = VerticalAlignment.Center,
                 MinWidth = 36
             };
@@ -383,19 +357,7 @@ namespace KillConfirmGameBar
                 FontSize = 11,
                 TextTrimming = TextTrimming.CharacterEllipsis
             };
-            var editButton = new Button
-            {
-                Content = LocalizationManager.Text("Edit"),
-                Padding = new Thickness(8, 4, 8, 4),
-                FontSize = 11,
-                Background = new SolidColorBrush(Color.FromArgb(255, 236, 247, 252)),
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 46, 136, 184)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 185, 220, 236)),
-                BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(12),
-                Margin = new Thickness(0, 0, 4, 0),
-                Visibility = isLockedVisualPack ? Visibility.Collapsed : Visibility.Visible
-            };
+            var editButton = CreatePackActionButton(LocalizationManager.Text("Edit"), "PackEdit");
             editButton.Click += async (_, __) =>
             {
                 StorageFolder packFolder = await GetIconPackFolderAsync(item);
@@ -404,6 +366,7 @@ namespace KillConfirmGameBar
 
                 StorageFile existingHeadImage = packFolder != null ? await TryGetCustomPackHeadImageAsync(packFolder.Path) : null;
 
+                if (packStyle == GameStyleMode.CustomModule) { await ShowCustomModuleEditorAsync(item.Key); return; }
                 if (packStyle == GameStyleMode.Dagoujiao)
                 {
                     var existingFiles = await CollectFilesFromPackFolderAsync(
@@ -461,6 +424,27 @@ namespace KillConfirmGameBar
                         "killicon_df_capture.png", "killicon_scrolling_assist.png");
                     await ShowCreateDeltaForceIconPackDialogAsync(packName, existingFiles, existingHeadImage);
                 }
+                else if (packStyle == GameStyleMode.Overwatch)
+                {
+                    var existingFiles = await CollectFilesFromPackFolderAsync(
+                        packFolder, "kill_icon_white.png", "kill_effect_sheet.png");
+                    await ShowCreateOverwatchIconPackDialogAsync(packName, existingFiles, existingHeadImage);
+                }
+                else if (packStyle == GameStyleMode.ModernWarfare2019)
+                {
+                    var existingFiles = await CollectFilesFromPackFolderAsync(
+                        packFolder, "killcon.png", "huiguangcod.png");
+                    await ShowCreateModernWarfare2019IconPackDialogAsync(packName, existingFiles, existingHeadImage);
+                }
+                else if (packStyle == GameStyleMode.Apex)
+                {
+                    var existingFiles = await CollectFilesFromPackFolderAsync(packFolder, "hitmark.png");
+                    await ShowCreateApexIconPackDialogAsync(packName, existingFiles, existingHeadImage);
+                }
+                else if (packStyle == GameStyleMode.Valorant)
+                {
+                    await ShowValorantIconEditorAsync(item);
+                }
                 else if (IsIconPackCreationUnavailable(packStyle))
                 {
                     await GuardIconPackCreationAsync();
@@ -484,24 +468,19 @@ namespace KillConfirmGameBar
                     await ShowCreateIconPackDialogAsync(packName, existingFiles, existingHeadImage);
                 }
             };
-            var deleteButton = new Button
-            {
-                Content = LocalizationManager.Text("Delete"),
-                Padding = new Thickness(8, 3, 8, 3),
-                FontSize = 11,
-                Background = new SolidColorBrush(Color.FromArgb(255, 254, 242, 242)),
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 196, 43, 28)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 252, 209, 209)),
-                BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(4),
-                Visibility = item.IsBuiltIn ? Visibility.Collapsed : Visibility.Visible
-            };
+            var exportButton = CreatePackActionButton(
+                LocalizationManager.Current == UiLanguage.SimplifiedChinese ? "导出" : "Export",
+                "PackExport");
+            exportButton.Click += async (_, __) => await ExportIconPackAsync(item);
+            var deleteButton = CreatePackActionButton(LocalizationManager.Text("Delete"), "PackDelete");
+            deleteButton.Margin = new Thickness(0);
+            deleteButton.Visibility = item.IsBuiltIn ? Visibility.Collapsed : Visibility.Visible;
             deleteButton.Click += async (_, __) => await PackCatalogService.RemoveCustomIconPackAsync(item.Key);
             var content = new StackPanel
             {
                 Spacing = 1,
                 VerticalAlignment = VerticalAlignment.Top,
-                Margin = new Thickness(0, 2, 0, 22)
+                Margin = new Thickness(0, 2, 0, 32)
             };
             content.Children.Add(title);
             content.Children.Add(meta);
@@ -514,6 +493,7 @@ namespace KillConfirmGameBar
                 Visibility = Visibility.Visible
             };
             buttonPanel.Children.Add(editButton);
+            buttonPanel.Children.Add(exportButton);
             buttonPanel.Children.Add(deleteButton);
             var preview = CreatePackPreviewImage(GetIconPackIconUri(item));
             await TryApplyCustomPackPreviewAsync(preview, item?.FolderPath, IconPackHeadImageNames);
@@ -521,25 +501,17 @@ namespace KillConfirmGameBar
             row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            checkBox.VerticalAlignment = VerticalAlignment.Top;
+            checkBox.Margin = new Thickness(0, 8, 0, 0);
+            preview.VerticalAlignment = VerticalAlignment.Top;
             row.Children.Add(checkBox);
             Grid.SetColumn(preview, 1);
             row.Children.Add(preview);
             Grid.SetColumn(content, 2);
             row.Children.Add(content);
-            Grid.SetColumn(buttonPanel, 2);
+            Grid.SetColumnSpan(buttonPanel, 3);
             row.Children.Add(buttonPanel);
-            return new Border
-            {
-                Width = 238,
-                Height = 74,
-                Padding = new Thickness(10, 8, 10, 8),
-                Background = new SolidColorBrush(Color.FromArgb(255, 255, 255, 255)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 229, 229, 229)),
-                BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(8),
-                Margin = new Thickness(0, 0, 8, 8),
-                Child = row
-            };
+            return CreatePackCard(row, item.Key, false, index + 1, PackCatalogService.GetIconPackDisplayName(item));
         }
     }
 }

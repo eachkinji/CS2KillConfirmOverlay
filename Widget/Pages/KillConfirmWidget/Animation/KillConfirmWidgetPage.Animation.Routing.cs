@@ -146,6 +146,14 @@ namespace KillConfirmGameBar
                 return "c4defuse";
             }
 
+            // Event-specific art can be supplied by an imported CF pack.
+            // These keys require an explicit event; a normal kill is never inferred to be a wall shot.
+            switch ((killEvent.AnimationKey ?? string.Empty).ToLowerInvariant())
+            {
+                case "wallshot": case "headwallshot": case "headwallshot_gold": case "revenge": case "smash":
+                    return killEvent.AnimationKey.ToLowerInvariant();
+            }
+
             bool knifeIconWins = killEvent.IsKnifeKill
                 && (killEvent.KillCount < 2 || settings.KnifeSpecialIconPriority);
             if (knifeIconWins)
@@ -452,8 +460,12 @@ namespace KillConfirmGameBar
         private void ApplyLegacyPrimaryTransform()
         {
             KillFeedbackLayer layer = KillFeedbackFrameDefinition.GetLegacyPrimaryLayer(GameStyleService.Current);
+            CrosshairOffset crosshairOffset = layer == KillFeedbackLayer.Crosshair
+                ? CrosshairOffsetSettingsStore.Load(GameStyleService.Current)
+                : new CrosshairOffset();
             ApplyFeedbackLayerTransform(layer, _legacyPrimaryScale,
-                _legacyPrimaryHorizontalOffset, GetLegacyPrimaryResolvedVerticalOffset());
+                _legacyPrimaryHorizontalOffset + crosshairOffset.X,
+                GetLegacyPrimaryResolvedVerticalOffset() + crosshairOffset.Y);
         }
 
         private void ApplyLegacyLowerCardTransform()
@@ -473,9 +485,14 @@ namespace KillConfirmGameBar
             {
                 return;
             }
-            ApplyFeedbackLayerTransform(KillFeedbackFrameDefinition.GetLegacyAuxiliaryLayer(style),
-                _legacyAuxiliaryScale, _legacyAuxiliaryHorizontalOffset,
-                GetLegacyAuxiliaryResolvedVerticalOffset());
+            KillFeedbackLayer layer = KillFeedbackFrameDefinition.GetLegacyAuxiliaryLayer(style);
+            CrosshairOffset crosshairOffset = layer == KillFeedbackLayer.Crosshair
+                ? CrosshairOffsetSettingsStore.Load(style)
+                : new CrosshairOffset();
+            ApplyFeedbackLayerTransform(layer,
+                _legacyAuxiliaryScale,
+                _legacyAuxiliaryHorizontalOffset + crosshairOffset.X,
+                GetLegacyAuxiliaryResolvedVerticalOffset() + crosshairOffset.Y);
         }
 
         private void ApplyFeedbackLayerTransform(KillFeedbackLayer layer, double scale, double x, double y)

@@ -12,6 +12,10 @@ pub struct MoneyModeOption {
 
 const SOUND_PACK_OPTIONS: &[SoundPackOption] = &[
     SoundPackOption {
+        preset: "custommodule",
+        display_name: "Custom Module (silent)",
+    },
+    SoundPackOption {
         preset: "crossfire_swat_gr",
         display_name: "swat GR",
     },
@@ -108,108 +112,8 @@ const SOUND_PACK_OPTIONS: &[SoundPackOption] = &[
         display_name: "Apex Legends",
     },
     SoundPackOption {
-        preset: "valorant_00009_prime",
-        display_name: "Prime",
-    },
-    SoundPackOption {
-        preset: "valorant_00010_glitchpop",
-        display_name: "Glitchpop",
-    },
-    SoundPackOption {
-        preset: "valorant_00011_singularity_v1",
-        display_name: "Singularity V1",
-    },
-    SoundPackOption {
-        preset: "valorant_00012_singularity_v2",
-        display_name: "Singularity V2",
-    },
-    SoundPackOption {
-        preset: "valorant_00013_singularity_v3",
-        display_name: "Singularity V3",
-    },
-    SoundPackOption {
-        preset: "valorant_00014_gaia_s_vengeance",
-        display_name: "Gaia's Vengeance",
-    },
-    SoundPackOption {
-        preset: "valorant_00015_gaia_s_vengeance_v1",
-        display_name: "Gaia's Vengeance V1",
-    },
-    SoundPackOption {
-        preset: "valorant_00016_gaia_s_vengeance_v2",
-        display_name: "Gaia's Vengeance V2",
-    },
-    SoundPackOption {
-        preset: "valorant_00017_gaia_s_vengeance_v3",
-        display_name: "Gaia's Vengeance V3",
-    },
-    SoundPackOption {
-        preset: "valorant_00018_bubblegum_deathwish",
-        display_name: "Bubblegum Deathwish",
-    },
-    SoundPackOption {
-        preset: "valorant_00019_bubblegum_deathwish_v1",
-        display_name: "Bubblegum Deathwish V1",
-    },
-    SoundPackOption {
-        preset: "valorant_00020_bubblegum_deathwish_v2",
-        display_name: "Bubblegum Deathwish V2",
-    },
-    SoundPackOption {
-        preset: "valorant_00021_bubblegum_deathwish_v3",
-        display_name: "Bubblegum Deathwish V3",
-    },
-    SoundPackOption {
-        preset: "valorant_00022_champions_2021",
-        display_name: "Champions 2021",
-    },
-    SoundPackOption {
-        preset: "valorant_00023_prelude_to_chaos_v1",
-        display_name: "Prelude to Chaos V1",
-    },
-    SoundPackOption {
-        preset: "valorant_00024_prelude_to_chaos_v2",
-        display_name: "Prelude to Chaos V2",
-    },
-    SoundPackOption {
-        preset: "valorant_00025_prelude_to_chaos_v3",
-        display_name: "Prelude to Chaos V3",
-    },
-    SoundPackOption {
-        preset: "valorant_00026_primordium",
-        display_name: "Primordium",
-    },
-    SoundPackOption {
-        preset: "valorant_00027_primordium_v1",
-        display_name: "Primordium V1",
-    },
-    SoundPackOption {
-        preset: "valorant_00028_primordium_v2",
-        display_name: "Primordium V2",
-    },
-    SoundPackOption {
-        preset: "valorant_00029_primordium_v3",
-        display_name: "Primordium V3",
-    },
-    SoundPackOption {
-        preset: "valorant_00030_radiant_crisis_001",
-        display_name: "Radiant Crisis 001",
-    },
-    SoundPackOption {
-        preset: "valorant_00031_rgx_11z_pro",
-        display_name: "RGX 11z Pro",
-    },
-    SoundPackOption {
-        preset: "valorant_00032_rgx_11z_pro_v1",
-        display_name: "RGX 11z Pro V1",
-    },
-    SoundPackOption {
-        preset: "valorant_00033_rgx_11z_pro_v2",
-        display_name: "RGX 11z Pro V2",
-    },
-    SoundPackOption {
-        preset: "valorant_00034_rgx_11z_pro_v3",
-        display_name: "RGX 11z Pro V3",
+        preset: "valorant_00000_base",
+        display_name: "VALORANT Base",
     },
 ];
 

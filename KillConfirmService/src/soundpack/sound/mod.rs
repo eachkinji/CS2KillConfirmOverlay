@@ -42,6 +42,11 @@ mod tests {
     };
 
     fn source_sound_pack(game_style: &str, pack_name: &str) -> PathBuf {
+        if game_style == "crossfire" {
+            // Routing fixtures contain JSON only; CF media ships separately.
+            return Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("tests/fixtures/crossfire").join(pack_name);
+        }
         Path::new(env!("CARGO_MANIFEST_DIR"))
             .join("..")
             .join("SourceAssets")
@@ -56,6 +61,7 @@ mod tests {
     include!("tests/battlefield1.rs");
     include!("tests/apex.rs");
     include!("tests/valorant.rs");
+    include!("tests/custommodule.rs");
     include!("tests/event_styles.rs");
     include!("tests/dagoujiao_doubao.rs");
     include!("tests/crossfire_swat.rs");

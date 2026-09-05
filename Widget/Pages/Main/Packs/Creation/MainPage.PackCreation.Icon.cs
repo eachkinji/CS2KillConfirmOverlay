@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using KillConfirmGameBar.Services;
 using Windows.Storage;
@@ -26,7 +27,7 @@ namespace KillConfirmGameBar
                 ("badge_multi5.png", LocalizationManager.Text("PentaKill")),
                 ("badge_multi6.png", LocalizationManager.Text("HexaKill")),
                 ("badge_headshot.png", LocalizationManager.Text("Headshot")),
-                ("badge_headshot_gold.png", LocalizationManager.Text("FirstLastKill")),
+                ("badge_headshot_gold.png", LocalizationManager.Current == UiLanguage.SimplifiedChinese ? "黄金爆头" : "Golden headshot"),
                 ("badge_knife.png", LocalizationManager.Text("KnifeKill")),
                 ("FIRSTKILL.png", LocalizationManager.Text("FirstLastKill")),
                 ("LASTKILL.png", LocalizationManager.Text("FirstLastKill")),
@@ -58,6 +59,21 @@ namespace KillConfirmGameBar
                 ("badge_knife3.png", LocalizationManager.Text("ClassKnife") + " 3")
             };
 
+            bool chinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            var extraLabels = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["badge_grenade.png"] = "手雷击杀", ["badge_c4.png"] = "安装 C4", ["badge_c4defuse.png"] = "拆除 C4",
+                ["badge_wallshot.png"] = "穿墙击杀", ["badge_headwallshot.png"] = "穿墙爆头", ["badge_headwallshot_gold.png"] = "黄金穿墙爆头",
+                ["revenge.png"] = "复仇", ["badge_assist.png"] = "助攻", ["badge_smash.png"] = "特殊重击",
+                ["killmark_headshot.png"] = "爆头专属叠加", ["killmark_multikill.png"] = "击杀专属叠加",
+                ["killmark_knife.png"] = "刀杀专属叠加", ["killmark_grenade.png"] = "手雷专属叠加"
+            };
+            var existingNames = new HashSet<string>(slots.Select(slot => slot.Item1), StringComparer.OrdinalIgnoreCase);
+            slots = slots.Concat(CrossfirePackFormat.Files.Where(name => !existingNames.Contains(name)).Select(name =>
+                (name, chinese ? (extraLabels.TryGetValue(name, out string label) ? label :
+                (name.StartsWith("SPRITESPECIAL") ? "特殊事件动态叠加 " : name.StartsWith("SPRITENORMAL") ? "普通事件动态叠加 " : "通用动态叠加 ")
+                + System.IO.Path.GetFileNameWithoutExtension(name).Split('_').Last()) : name))).ToArray();
+
             await ShowPackCreationDialogAsync(
                 LocalizationManager.Text("CreateIconPack"),
                 LocalizationManager.Text("IconPackCreationHint"),
@@ -66,7 +82,7 @@ namespace KillConfirmGameBar
                 PackCatalogService.CreateIconPackAsync,
                 initialDisplayName,
                 initialFiles,
-                defaultHeadPreviewUri: "ms-appx:///Assets/KillConfirmCode/Original/badge_headshot.PNG",
+                defaultHeadPreviewUri: CrossfireExternalAssetService.VisualUri("Original", "badge_headshot.PNG"),
                 initialHeadImageFile: initialHeadImageFile);
         }
 
@@ -82,6 +98,8 @@ namespace KillConfirmGameBar
             StorageFile initialHeadImageFile = null,
             string defaultHeadPreviewUri = null)
         {
+            if (await TryBatchImportIconAsync(initialFiles, initialHeadImageFile, createHandler)) return;
+
             var selectedFiles = initialFiles != null
                 ? new Dictionary<string, StorageFile>(initialFiles, StringComparer.OrdinalIgnoreCase)
                 : new Dictionary<string, StorageFile>(StringComparer.OrdinalIgnoreCase);
@@ -221,26 +239,85 @@ namespace KillConfirmGameBar
                 initialDisplayName,
                 initialFiles,
                 defaultPreviewUriForFileName: fn => $"ms-appx:///Assets/GameStyles/battlefield2042/killconfirm/textures/{fn}",
-                defaultHeadPreviewUri: "ms-appx:///Assets/GameStyles/battlefield2042/killconfirm/textures/HeadshotSkullSprite.png");
+                defaultHeadPreviewUri: "ms-appx:///Assets/GameLogos/battlefield2042.png");
+        }
+
+        private async Task ShowCreateOverwatchIconPackDialogAsync(
+            string initialDisplayName,
+            IReadOnlyDictionary<string, StorageFile> initialFiles,
+            StorageFile initialHeadImageFile)
+        {
+            bool zh = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            var slots = new[]
+            {
+                ("kill_icon_white.png", zh ? "击杀图标" : "Kill icon"),
+                ("kill_effect_sheet.png", zh ? "击杀特效图集" : "Kill effect sheet")
+            };
+            await ShowPackCreationDialogAsync(
+                LocalizationManager.Text("CreateIconPack"),
+                zh ? "编辑守望先锋默认素材会创建一份可选择的自定义副本。" : "Editing the Overwatch defaults creates a selectable custom copy.",
+                slots, GameStyleMode.Overwatch,
+                PackCatalogService.CreateOverwatchIconPackAsync,
+                initialDisplayName, initialFiles,
+                fn => $"ms-appx:///Assets/GameStyles/overwatch/killconfirm/textures/{fn}",
+                initialHeadImageFile,
+                "ms-appx:///Assets/GameStyles/overwatch/killconfirm/textures/preview.png");
+        }
+
+        private async Task ShowCreateModernWarfare2019IconPackDialogAsync(
+            string initialDisplayName,
+            IReadOnlyDictionary<string, StorageFile> initialFiles,
+            StorageFile initialHeadImageFile)
+        {
+            bool zh = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            var slots = new[]
+            {
+                ("killcon.png", zh ? "上方击杀图标" : "Upper kill icon"),
+                ("huiguangcod.png", zh ? "金钱提示辉光" : "Money glow")
+            };
+            await ShowPackCreationDialogAsync(
+                LocalizationManager.Text("CreateIconPack"),
+                zh ? "编辑 MW2019 默认素材会创建一份可选择的自定义副本。" : "Editing the MW2019 defaults creates a selectable custom copy.",
+                slots, GameStyleMode.ModernWarfare2019,
+                PackCatalogService.CreateModernWarfare2019IconPackAsync,
+                initialDisplayName, initialFiles,
+                fn => $"ms-appx:///Assets/GameStyles/modernwarfare2019/killconfirm/textures/{fn}",
+                initialHeadImageFile,
+                "ms-appx:///Assets/GameLogos/modernwarfare2019.png");
+        }
+
+        private async Task ShowCreateApexIconPackDialogAsync(
+            string initialDisplayName,
+            IReadOnlyDictionary<string, StorageFile> initialFiles,
+            StorageFile initialHeadImageFile)
+        {
+            bool zh = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            var slots = new[] { ("hitmark.png", zh ? "命中标记" : "Hit marker") };
+            await ShowPackCreationDialogAsync(
+                LocalizationManager.Text("CreateIconPack"),
+                zh ? "编辑 Apex 默认命中标记会创建一份可选择的自定义副本。" : "Editing the Apex hit marker creates a selectable custom copy.",
+                slots, GameStyleMode.Apex,
+                PackCatalogService.CreateApexIconPackAsync,
+                initialDisplayName, initialFiles,
+                fn => $"ms-appx:///Assets/GameStyles/apex/killconfirm/textures/{fn}",
+                initialHeadImageFile,
+                "ms-appx:///Assets/GameLogos/apex.png");
         }
 
         // BF4 / PUBG 的击杀提示是纯文本 HUD（见 KillConfirmAnimation.Battlefield4.cs /
         // .Pubg.cs 的 ClearXxxIconCache 注释），不绘制任何击杀图标，因此没有图标包可
-        // 自定义。Valorant 虽然绘制图标，但自定义图标包尚未开放。阻止这三者在图标包
-        // 创建/导入时落到 Crossfire 兜底分支——那会生成一个属于 Crossfire 的包并出现
+        // 自定义。阻止这两者在图标包创建/导入时落到 Crossfire 兜底分支——
+        // 那会生成一个属于 Crossfire 的包并出现
         // 在 Crossfire 的管理列表里（"不适配本游戏"的包）。
         private static bool IsIconlessGame(GameStyleMode style)
         {
             return style == GameStyleMode.Battlefield4
-                || style == GameStyleMode.Pubg
-                || style == GameStyleMode.Apex;
+                || style == GameStyleMode.Pubg;
         }
 
         private static bool IsIconPackCreationUnavailable(GameStyleMode style)
         {
-            return IsIconlessGame(style)
-                || style == GameStyleMode.Valorant
-                || style == GameStyleMode.Overwatch;
+            return IsIconlessGame(style);
         }
 
         private async Task<bool> GuardIconPackCreationAsync()
@@ -254,26 +331,6 @@ namespace KillConfirmGameBar
                     isChinese
                         ? "该游戏的击杀提示为纯文本样式，不绘制击杀图标，因此不支持自定义图标包。"
                         : "This game uses a text-only kill feed and draws no kill icons, so custom icon packs are not supported.");
-                return true;
-            }
-
-            if (style == GameStyleMode.Valorant)
-            {
-                await ShowMessageAsync(
-                    isChinese ? "暂未开放" : "Not available yet",
-                    isChinese
-                        ? "Valorant 自定义图标包暂未开放，敬请期待。"
-                        : "Custom Valorant icon packs are not available yet.");
-                return true;
-            }
-
-            if (style == GameStyleMode.Overwatch)
-            {
-                await ShowMessageAsync(
-                    isChinese ? "OW 图标包暂未开放" : "OW icon packs are not available yet",
-                    isChinese
-                        ? "守望先锋当前使用内置准心反馈和下方击杀卡片，暂不支持更换图标。"
-                        : "Overwatch currently uses its built-in crosshair response and lower kill card. Custom icons are not available yet.");
                 return true;
             }
 

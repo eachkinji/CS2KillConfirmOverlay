@@ -33,37 +33,64 @@ namespace KillConfirmGameBar.Controls
             string normalizedWeaponBadgeKey = SupportsWeaponBadgeForAsset(normalizedAssetName)
                 ? NormalizeWeaponBadgeKey(weaponBadgeKey)
                 : string.Empty;
-            string cacheKey = _iconPack
-                + ":" + normalizedAssetName
-                + ":" + normalizedWeaponBadgeKey
-                + ":" + _killFxMode
-                + ":elite" + _eliteEffectLevel
-                + ":weapon" + _weaponBadgeMode;
+            int generation = _resourceGeneration;
+            string cacheKey = GetCodeKillCacheKey(normalizedAssetName, normalizedWeaponBadgeKey);
             if (!CodeKillCache.TryGetValue(cacheKey, out Code2KillAsset asset))
             {
-                string effectiveMainFileName = GetEffectiveMainFileName(normalizedAssetName, mainFileName);
-                CanvasBitmap main = await LoadMainCodeKillBitmapAsync(
-                    normalizedAssetName,
-                    mainFileName,
-                    effectiveMainFileName,
-                    mainFolder,
-                    alternatePackFolder);
-                progress?.Report(50);
-                CanvasBitmap fx = string.IsNullOrWhiteSpace(fxFileName)
-                    ? null
-                    : await LoadKillFxOverlayBitmapAsync(fxFileName, fxFolder);
-                CanvasBitmap eliteOverlay = await LoadEliteOverlayBitmapAsync(normalizedAssetName);
-                CanvasBitmap weaponBadgeOverlay = await LoadWeaponBadgeOverlayBitmapAsync(normalizedAssetName, normalizedWeaponBadgeKey);
-                asset = new Code2KillAsset(main, fx, eliteOverlay, weaponBadgeOverlay);
+                CodeKillCache.TryGetValue(GetCodeKillCacheKey(normalizedAssetName, string.Empty), out Code2KillAsset baseAsset);
+                if (baseAsset != null)
+                {
+                    asset = new Code2KillAsset(baseAsset.Main, baseAsset.Fx, baseAsset.Overlay,
+                        await LoadWeaponBadgeOverlayBitmapAsync(normalizedAssetName, normalizedWeaponBadgeKey))
+                    { Action = normalizedAssetName, EventOverlay = baseAsset.EventOverlay, Sequence = baseAsset.Sequence };
+                }
+                else
+                {
+                    string effectiveMainFileName = GetEffectiveMainFileName(normalizedAssetName, mainFileName);
+                    CanvasBitmap main = await LoadMainCodeKillBitmapAsync(
+                        normalizedAssetName,
+                        mainFileName,
+                        effectiveMainFileName,
+                        mainFolder,
+                        alternatePackFolder);
+                    progress?.Report(50);
+                    CanvasBitmap fx = string.IsNullOrWhiteSpace(fxFileName)
+                        ? null
+                        : await LoadKillFxOverlayBitmapAsync(fxFileName, fxFolder);
+                    CanvasBitmap eliteOverlay = await LoadEliteOverlayBitmapAsync(normalizedAssetName);
+                    CanvasBitmap weaponBadgeOverlay = await LoadWeaponBadgeOverlayBitmapAsync(normalizedAssetName, normalizedWeaponBadgeKey);
+                    asset = new Code2KillAsset(main, fx, eliteOverlay, weaponBadgeOverlay) { Action = normalizedAssetName };
+                    await LoadCrossfireExtraLayersAsync(asset, normalizedAssetName);
+                }
+                if (generation != _resourceGeneration || cacheKey != GetCodeKillCacheKey(normalizedAssetName, normalizedWeaponBadgeKey))
+                {
+                    var owned = new HashSet<CanvasBitmap> { asset.WeaponBadge };
+                    if (baseAsset == null) { owned.Add(asset.Main); owned.Add(asset.Fx); owned.Add(asset.Overlay); }
+                    foreach (CanvasBitmap bitmap in owned) bitmap?.Dispose();
+                    throw new OperationCanceledException("CF preload settings changed.");
+                }
                 CodeKillCache[cacheKey] = asset;
             }
 
             progress?.Report(100);
+            return CreateCodeKillAnimationAsset(asset);
+        }
+
+        private static string GetCodeKillCacheKey(string action, string badge)
+        {
+            return _iconPack + ":" + action + ":" + badge + ":" + _killFxMode
+                + ":elite" + _eliteEffectLevel + ":weapon" + _weaponBadgeMode + ":style" + _mainAnimationStyle
+                + ":brightness" + _brightnessBoost + ":contrast" + _contrastBoost
+                + ":capabilities" + _customPackHasKillFx + _customPackHasEliteOverlay + _customPackHasWeaponBadgeOverlay;
+        }
+
+        private static AnimationAsset CreateCodeKillAnimationAsset(Code2KillAsset asset)
+        {
             return new AnimationAsset(
                 new SpriteMetadata
                 {
-                    FrameWidth = (int)CodeKillFrameWidth,
-                    FrameHeight = (int)CodeKillFrameHeight,
+                    FrameWidth = (int)asset.FrameWidth,
+                    FrameHeight = (int)asset.FrameHeight,
                     Frames = 77,
                     Fps = FrameSequenceFps
                 },
@@ -188,6 +215,41 @@ namespace KillConfirmGameBar.Controls
                     fxFileName = null;
                     fxFolder = null;
                     return true;
+                case "wallshot":
+                    mainFileName = "badge_wallshot.png";
+                    mainFolder = DefaultCodeFolder;
+                    alternatePackFolder = DefaultCodeFolder;
+                    fxFileName = null;
+                    fxFolder = null;
+                    return true;
+                case "headwallshot":
+                    mainFileName = "badge_headwallshot.png";
+                    mainFolder = DefaultCodeFolder;
+                    alternatePackFolder = DefaultCodeFolder;
+                    fxFileName = null;
+                    fxFolder = null;
+                    return true;
+                case "headwallshot_gold":
+                    mainFileName = "badge_headwallshot_gold.png";
+                    mainFolder = DefaultCodeFolder;
+                    alternatePackFolder = DefaultCodeFolder;
+                    fxFileName = null;
+                    fxFolder = null;
+                    return true;
+                case "revenge":
+                    mainFileName = "revenge.png";
+                    mainFolder = DefaultCodeFolder;
+                    alternatePackFolder = DefaultCodeFolder;
+                    fxFileName = null;
+                    fxFolder = null;
+                    return true;
+                case "smash":
+                    mainFileName = "badge_smash.png";
+                    mainFolder = DefaultCodeFolder;
+                    alternatePackFolder = DefaultCodeFolder;
+                    fxFileName = null;
+                    fxFolder = null;
+                    return true;
                 case "headshot_vvip":
                     mainFileName = "badge_headshot_vvip.png";
                     mainFolder = null;
@@ -229,51 +291,12 @@ namespace KillConfirmGameBar.Controls
                 }
             }
 
-            string iconPackFolder = GetIconPackFolder();
-            if (!string.IsNullOrWhiteSpace(alternatePackFolder)
-                && !string.IsNullOrWhiteSpace(iconPackFolder))
-            {
-                try
-                {
-                    return await LoadBitmapFromApplicationUriAsync(
-                        $"ms-appx:///Assets/KillConfirmCode/{iconPackFolder}/{fileName}");
-                }
-                catch
-                {
-                    if (!allowDefaultFallback)
-                    {
-                        throw;
-                    }
-                }
-            }
-
-            if (!string.IsNullOrWhiteSpace(folder))
-            {
-                try
-                {
-                    return await LoadBitmapFromApplicationUriAsync($"ms-appx:///Assets/KillConfirmCode/{folder}/{fileName}");
-                }
-                catch
-                {
-                    if (!allowDefaultFallback)
-                    {
-                        throw;
-                    }
-                }
-            }
-
-            try
-            {
-                return await LoadBitmapFromApplicationUriAsync($"ms-appx:///Assets/KillConfirmCode/{fileName}");
-            }
-            catch
-            {
-                if (allowDefaultFallback && allowGenericKillFallback)
-                {
-                    return await LoadBitmapFromApplicationUriAsync("ms-appx:///Assets/KillConfirmCode/Original/badge_multi1.PNG");
-                }
-                throw;
-            }
+            StorageFolder original = await PackCatalogService.GetImportedIconFolderAsync("default");
+            StorageFile file = original == null ? null : await TryGetImportedIconFileAsync(original, fileName);
+            if (file == null && allowDefaultFallback && allowGenericKillFallback && original != null)
+                file = await TryGetImportedIconFileAsync(original, "badge_multi1.png");
+            if (file == null) throw new FileNotFoundException("CF 素材未安装：" + fileName);
+            return await LoadBitmapFromStorageFileAsync(file);
         }
 
         private static async Task<CanvasBitmap> TryLoadImportedIconBitmapAsync(string fileName)
@@ -300,37 +323,38 @@ namespace KillConfirmGameBar.Controls
             }
         }
 
+        private static readonly Dictionary<string, Task<Dictionary<string, StorageFile>>> ImportedCodeFileIndexes
+            = new Dictionary<string, Task<Dictionary<string, StorageFile>>>();
+
+        private static async Task<Dictionary<string, StorageFile>> IndexImportedCodeFilesAsync(StorageFolder folder)
+        {
+            var files = new Dictionary<string, StorageFile>(StringComparer.OrdinalIgnoreCase);
+            foreach (StorageFile file in await folder.GetFilesAsync()) files[file.Name] = file;
+            foreach (string child in new[] { "Sprite", "badgeex" })
+            {
+                try
+                {
+                    StorageFolder subfolder = await folder.GetFolderAsync(child);
+                    foreach (StorageFile file in await subfolder.GetFilesAsync()) files[child + "\\" + file.Name] = file;
+                }
+                catch (FileNotFoundException) { }
+                catch (DirectoryNotFoundException) { }
+            }
+            return files;
+        }
+
         private static async Task<StorageFile> TryGetImportedIconFileAsync(StorageFolder folder, string canonicalFileName)
         {
-            foreach (string extension in ImportedIconImageExtensions)
+            if (!ImportedCodeFileIndexes.TryGetValue(folder.Path, out Task<Dictionary<string, StorageFile>> index))
             {
-                StorageFile file = await TryGetImportedIconFileExactAsync(
-                    folder,
-                    Path.ChangeExtension(canonicalFileName, extension));
-                if (file != null)
-                {
-                    return file;
-                }
+                index = IndexImportedCodeFilesAsync(folder);
+                ImportedCodeFileIndexes[folder.Path] = index;
             }
-
-            try
-            {
-                StorageFolder badgeex = await folder.GetFolderAsync("badgeex");
-                foreach (string extension in ImportedIconImageExtensions)
-                {
-                    StorageFile file = await TryGetImportedIconFileExactAsync(
-                        badgeex,
-                        Path.ChangeExtension(canonicalFileName, extension));
-                    if (file != null)
-                    {
-                        return file;
-                    }
-                }
-            }
-            catch
-            {
-            }
-
+            Dictionary<string, StorageFile> files = await index;
+            foreach (string candidate in CrossfirePackFormat.Candidates(canonicalFileName))
+                foreach (string child in new[] { "", "Sprite\\", "badgeex\\" })
+                    foreach (string extension in ImportedIconImageExtensions)
+                        if (files.TryGetValue(child + Path.ChangeExtension(candidate, extension), out StorageFile file)) return file;
             return null;
         }
 
@@ -374,7 +398,12 @@ namespace KillConfirmGameBar.Controls
                 && !string.Equals(assetName, "c4", StringComparison.OrdinalIgnoreCase)
                 && !string.Equals(assetName, "bomb_plant", StringComparison.OrdinalIgnoreCase)
                 && !string.Equals(assetName, "c4defuse", StringComparison.OrdinalIgnoreCase)
-                && !string.Equals(assetName, "bomb_defuse", StringComparison.OrdinalIgnoreCase);
+                && !string.Equals(assetName, "bomb_defuse", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(assetName, "wallshot", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(assetName, "headwallshot", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(assetName, "headwallshot_gold", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(assetName, "revenge", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(assetName, "smash", StringComparison.OrdinalIgnoreCase);
             return await LoadCodeKillBitmapAsync(
                 effectiveMainFileName, mainFolder, alternatePackFolder, true,
                 allowGenericKillFallback: allowGenericKillFallback);

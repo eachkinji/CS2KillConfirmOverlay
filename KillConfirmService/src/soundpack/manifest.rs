@@ -1,10 +1,10 @@
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, fs, path::Path};
+use std::{collections::HashMap, fs, path::{Path, PathBuf}};
 
 use crate::state::EventChannel;
 
-pub(crate) const VALORANT_DEFAULT_PRESET: &str = "valorant_00011_singularity_v1";
+pub(crate) const VALORANT_DEFAULT_PRESET: &str = "valorant_00000_base";
 
 /// Context describing the current kill event, consumed by manifest audio routing.
 #[derive(Serialize, Clone, Debug)]
@@ -132,16 +132,127 @@ pub struct IconConfig {
     pub effects: HashMap<String, String>,
 }
 
+const STANDARD_AUDIO_EXTENSIONS: &[&str] = &["wav", "mp3", "m4a", "ogg"];
+
+const STANDARD_SLOT_STEMS: &[(&str, &[&str])] = &[
+    ("kill_1", &["kill_1", "1", "common", "normal", "1kill"]),
+    ("kill_2", &["kill_2", "2", "2kill"]),
+    ("kill_3", &["kill_3", "3", "3kill"]),
+    ("kill_4", &["kill_4", "4", "4kill"]),
+    ("kill_5", &["kill_5", "5", "5kill"]),
+    ("kill_6", &["kill_6", "6", "6kill"]),
+    ("kill_7", &["kill_7", "7", "7kill"]),
+    ("kill_8", &["kill_8", "8", "8kill"]),
+    ("kill_9", &["kill_9", "9", "9kill"]),
+    ("kill_10", &["kill_10", "10", "10kill"]),
+    ("appear", &["appear"]),
+    ("transition", &["transition"]),
+    ("headshot_1", &["headshot_1", "1-headshot", "1_headshot", "kill_1_headshot"]),
+    ("headshot_2", &["headshot_2", "2-headshot", "2_headshot", "kill_2_headshot"]),
+    ("headshot_3", &["headshot_3", "3-headshot", "3_headshot", "kill_3_headshot"]),
+    ("headshot_4", &["headshot_4", "4-headshot", "4_headshot", "kill_4_headshot"]),
+    ("headshot_5", &["headshot_5", "5-headshot", "5_headshot", "kill_5_headshot"]),
+    ("headshot", &["headshot", "headshot_kill"]),
+    ("knife", &["knife", "melee"]),
+    ("first_and_last", &["first_and_last", "firstandlast", "revenge"]),
+    ("grenade", &["grenade", "grenade_kill"]),
+    ("assist", &["assist"]),
+    ("common_overlay", &["common_overlay"]),
+    ("bomb_plant", &["bomb_plant"]),
+    ("bomb_defuse", &["bomb_defuse"]),
+    ("epic", &["epic"]),
+    ("jiaojiaojiao", &["jiaojiaojiao"]),
+];
+
+fn find_slot_files_in_dir(dir_path: &Path, stems: &[&str]) -> Option<SlotFiles> {
+    let entries = fs::read_dir(dir_path).ok()?;
+    let mut file_names: Vec<String> = Vec::new();
+    for entry in entries.flatten() {
+        if let Ok(file_type) = entry.file_type() {
+            if file_type.is_file() {
+                if let Some(name) = entry.file_name().to_str() {
+                    file_names.push(name.to_string());
+                }
+            }
+        }
+    }
+
+    let mut matched_files: Vec<String> = Vec::new();
+    for &stem in stems {
+        for &ext in STANDARD_AUDIO_EXTENSIONS {
+            let target_exact = format!("{stem}.{ext}");
+            if let Some(found) = file_names
+                .iter()
+                .find(|name| name.eq_ignore_ascii_case(&target_exact))
+            {
+                if !matched_files.iter().any(|m| m.eq_ignore_ascii_case(found)) {
+                    matched_files.push(found.clone());
+                }
+            }
+        }
+
+        for name in &file_names {
+            let path = Path::new(name);
+            let ext_str = match path.extension().and_then(|e| e.to_str()) {
+                Some(e) => e,
+                None => continue,
+            };
+            if !STANDARD_AUDIO_EXTENSIONS.iter().any(|&e| e.eq_ignore_ascii_case(ext_str)) {
+                continue;
+            }
+            let file_stem = match path.file_stem().and_then(|s| s.to_str()) {
+                Some(s) => s,
+                None => continue,
+            };
+
+            if file_stem.len() > stem.len() + 2
+                && file_stem[..stem.len()].eq_ignore_ascii_case(stem)
+                && &file_stem[stem.len()..stem.len() + 2] == "__"
+            {
+                if !matched_files.iter().any(|m| m.eq_ignore_ascii_case(name)) {
+                    matched_files.push(name.clone());
+                }
+            }
+        }
+
+        if !matched_files.is_empty() {
+            break;
+        }
+    }
+
+    if matched_files.is_empty() {
+        None
+    } else if matched_files.len() == 1 {
+        Some(SlotFiles::Single(matched_files.remove(0)))
+    } else {
+        matched_files.sort();
+        Some(SlotFiles::Multiple(matched_files))
+    }
+}
+
+pub(crate) fn default_valorant_sounds_dir(sounds_root: &Path) -> PathBuf {
+    let candidate = sounds_root.join(VALORANT_DEFAULT_PRESET);
+    if candidate.is_dir() {
+        return candidate;
+    }
+    let fallback = sounds_root.join("valorant");
+    if fallback.is_dir() {
+        return fallback;
+    }
+    candidate
+}
+
 impl PackManifest {
-    /// Load manifest.json from a given directory path
+    /// Load manifest.json from a given directory path and auto-populate unmapped slots
     pub fn load_from_dir(dir_path: &Path) -> Result<Self> {
         let manifest_path = dir_path.join("manifest.json");
         if manifest_path.exists() {
             let content = fs::read_to_string(&manifest_path)
                 .with_context(|| format!("failed to read {}", manifest_path.display()))?;
             let trimmed = content.trim_start_matches('\u{feff}');
-            let manifest: PackManifest = serde_json::from_str(trimmed)
+            let mut manifest: PackManifest = serde_json::from_str(trimmed)
                 .with_context(|| format!("failed to parse {}", manifest_path.display()))?;
+            manifest.auto_populate_slots_from_dir(dir_path);
             return Ok(manifest);
         }
 
@@ -149,51 +260,35 @@ impl PackManifest {
         Self::auto_discover(dir_path)
     }
 
-    /// Auto-discover standard CrossFire / generic audio slots from directory
-    pub fn auto_discover(dir_path: &Path) -> Result<Self> {
-        let mut slots = HashMap::new();
-        let extensions = ["wav", "mp3", "m4a"];
+    /// Auto-populate missing audio slots from files that actually exist in the directory
+    pub fn auto_populate_slots_from_dir(&mut self, dir_path: &Path) {
+        let audio = self.audio.get_or_insert_with(|| AudioConfig {
+            base_gain: 1.0,
+            ..AudioConfig::default()
+        });
 
-        let find_file = |stem: &str| -> Option<String> {
-            for ext in &extensions {
-                let filename = format!("{stem}.{ext}");
-                if dir_path.join(&filename).exists() {
-                    return Some(filename);
+        for &(slot, stems) in STANDARD_SLOT_STEMS {
+            if let Some(existing) = audio.slots.get(slot) {
+                if !existing.as_slice().is_empty() {
+                    continue;
                 }
             }
-            None
-        };
 
-        if let Some(f) = find_file("common") {
-            slots.insert("kill_1".to_string(), SlotFiles::Single(f));
-        }
-        for i in 2..=8 {
-            if let Some(f) = find_file(&i.to_string()) {
-                slots.insert(format!("kill_{i}"), SlotFiles::Single(f));
+            if let Some(files) = find_slot_files_in_dir(dir_path, stems) {
+                audio.slots.insert(slot.to_string(), files);
             }
         }
-        if let Some(f) = find_file("headshot") {
-            slots.insert("headshot".to_string(), SlotFiles::Single(f));
-        }
-        if let Some(f) = find_file("knife") {
-            slots.insert("knife".to_string(), SlotFiles::Single(f));
-        }
-        if let Some(f) = find_file("grenade") {
-            slots.insert("first_and_last".to_string(), SlotFiles::Single(f));
-        } else if let Some(f) = find_file("firstandlast") {
-            slots.insert("first_and_last".to_string(), SlotFiles::Single(f));
-        }
-        if let Some(f) = find_file("common_overlay") {
-            slots.insert("common_overlay".to_string(), SlotFiles::Single(f));
-        }
+    }
 
+    /// Auto-discover standard audio slots from directory when manifest.json is absent
+    pub fn auto_discover(dir_path: &Path) -> Result<Self> {
         let folder_name = dir_path
             .file_name()
             .and_then(|n| n.to_str())
             .unwrap_or("unknown")
             .to_string();
 
-        Ok(PackManifest {
+        let mut manifest = PackManifest {
             id: Some(folder_name.clone()),
             name: Some(folder_name),
             game_style: Some("crossfire".to_string()),
@@ -201,12 +296,15 @@ impl PackManifest {
             author: None,
             audio: Some(AudioConfig {
                 base_gain: 1.0,
-                slots,
+                slots: HashMap::new(),
                 slot_gains: HashMap::new(),
                 overlay_slots: None,
             }),
             icons: None,
-        })
+        };
+
+        manifest.auto_populate_slots_from_dir(dir_path);
+        Ok(manifest)
     }
 
     /// Repair sparse custom Valorant manifests in memory. Older creators saved
@@ -225,6 +323,25 @@ impl PackManifest {
             base_gain: 1.0,
             ..AudioConfig::default()
         });
+
+        let resolved_default_dir = if default_pack_dir.is_dir() {
+            Some(default_pack_dir.to_path_buf())
+        } else if let Some(parent) = default_pack_dir.parent() {
+            let candidate_base = parent.join(VALORANT_DEFAULT_PRESET);
+            if candidate_base.is_dir() {
+                Some(candidate_base)
+            } else {
+                let candidate_val = parent.join("valorant");
+                if candidate_val.is_dir() {
+                    Some(candidate_val)
+                } else {
+                    None
+                }
+            }
+        } else {
+            None
+        };
+
         for (slot, file_name) in [
             ("kill_1", "1.wav"),
             ("kill_2", "2.wav"),
@@ -233,22 +350,30 @@ impl PackManifest {
             ("kill_5", "5.wav"),
             ("headshot", "headshot.wav"),
         ] {
-            let has_audio = audio
-                .slots
-                .get(slot)
-                .is_some_and(|files| files.as_slice().iter().any(|file| !file.trim().is_empty()));
-            if has_audio {
+            // An explicitly present non-empty slot means the pack provides it.
+            if let Some(existing) = audio.slots.get(slot) {
+                if !existing.as_slice().is_empty() {
+                    continue;
+                }
+            }
+
+            if slot.eq_ignore_ascii_case("headshot") {
+                audio
+                    .slots
+                    .insert(slot.to_string(), SlotFiles::Multiple(Vec::new()));
                 continue;
             }
 
-            let path = default_pack_dir
-                .join(file_name)
-                .canonicalize()
-                .with_context(|| format!("missing default Valorant audio: {file_name}"))?;
-            audio.slots.insert(
-                slot.to_string(),
-                SlotFiles::Single(path.to_string_lossy().into_owned()),
-            );
+            if let Some(ref def_dir) = resolved_default_dir {
+                let file_path = def_dir.join(file_name);
+                if file_path.exists() {
+                    let path = file_path.canonicalize().unwrap_or(file_path);
+                    audio.slots.insert(
+                        slot.to_string(),
+                        SlotFiles::Single(path.to_string_lossy().into_owned()),
+                    );
+                }
+            }
         }
         Ok(())
     }
@@ -335,6 +460,7 @@ impl PackManifest {
 
         let game_style = self.game_style.as_deref().unwrap_or_default();
         let is_valorant = game_style.eq_ignore_ascii_case("valorant");
+        let is_custommodule = game_style.eq_ignore_ascii_case("custommodule");
 
         // CF plant/defuse uses exactly the common (kill_1) cue, including its
         // configured gain/pick, but no overlay or streak voice. CSOL has no
@@ -371,23 +497,68 @@ impl PackManifest {
             if !push_slot(&mut entries, &slot, None) {
                 push_slot(&mut entries, "kill_1", None);
             }
-            push_overlay_if_enabled(&mut entries, &slot);
+            let overlay_enabled = match &audio.overlay_slots {
+                Some(list) => list.iter().any(|candidate| candidate.eq_ignore_ascii_case(&slot)),
+                None => count > 1,
+            };
+            if overlay_enabled {
+                let transition_slot = if count == 1 { "appear" } else { "transition" };
+                let before_overlay = entries.len();
+                if !push_slot(&mut entries, transition_slot, None) {
+                    push_overlay_if_enabled(&mut entries, &slot);
+                }
+                if entries.len() > before_overlay {
+                    let overlay_path = entries.last().map(|entry| entry.path.clone());
+                    if let Some(path) = overlay_path {
+                        if entries[..before_overlay].iter().any(|entry| entry.path == path) {
+                            entries.pop();
+                        }
+                    }
+                }
+            }
             if ctx.is_headshot {
-                push_slot(&mut entries, "headshot", None);
+                let headshot_slot = format!("headshot_{count}");
+                if !push_slot(&mut entries, &headshot_slot, None) {
+                    push_slot(&mut entries, "headshot", None);
+                }
+            }
+            return entries;
+        }
+
+        // Match CS2 Customizer's ten kill-sound events: kill levels 1-5 each
+        // have an optional headshot variant. Follow its conservative fallback
+        // chain: same-level headshot -> same-level normal -> kill-1 headshot ->
+        // kill-1 normal.
+        if is_custommodule {
+            if ctx.is_assist || !ctx.play_main_audio || ctx.kill_count < 1 {
+                return entries;
+            }
+
+            let count = ctx.kill_count.clamp(1, 5);
+            let normal_slot = format!("kill_{count}");
+            if ctx.is_headshot {
+                let headshot_slot = format!("kill_{count}_headshot");
+                if !push_slot(&mut entries, &headshot_slot, None) {
+                    if !push_slot(&mut entries, &normal_slot, None)
+                        && !push_slot(&mut entries, "kill_1_headshot", None)
+                    {
+                        push_slot(&mut entries, "kill_1", None);
+                    }
+                }
+            } else if !push_slot(&mut entries, &normal_slot, None) {
+                push_slot(&mut entries, "kill_1", None);
             }
             return entries;
         }
 
         let is_csol = game_style.eq_ignore_ascii_case("csol");
         let is_crossfire = game_style.eq_ignore_ascii_case("crossfire");
-        let crossfire_special_kill = is_crossfire
-            && (ctx.is_knife_kill || ctx.is_grenade_kill || ctx.is_headshot);
+        let crossfire_special_kill =
+            is_crossfire && (ctx.is_knife_kill || ctx.is_grenade_kill || ctx.is_headshot);
 
         // CF special-kill choices apply even on the first/last kill. Other
         // styles retain their existing grenade and first/last-kill rules.
-        if ctx.is_grenade_kill
-            && (!is_crossfire || ctx.kill_count <= 1 || ctx.grenade_priority)
-        {
+        if ctx.is_grenade_kill && (!is_crossfire || ctx.kill_count <= 1 || ctx.grenade_priority) {
             if !push_slot(&mut entries, "grenade", None) {
                 if !push_slot(&mut entries, "first_and_last", None) {
                     push_slot(&mut entries, "kill_1", None);

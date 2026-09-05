@@ -18,6 +18,7 @@ namespace KillConfirmGameBar.Services
         public const string DefaultGroupId = "CrossfirePreset";
         public const string DeveloperGroupId = "CrossfirePresetDeveloper";
         public const string CustomPortGroupId = "ServicePortCustom";
+        public const string CustomPortDeveloperGroupId = "ServicePortCustomDeveloper";
 
         private static readonly IReadOnlyDictionary<int, string> StaticPortGroups =
             new Dictionary<int, string>
@@ -41,11 +42,11 @@ namespace KillConfirmGameBar.Services
             if (StaticPortGroups.TryGetValue(port, out string staticGroup))
             {
                 return developerMode
-                    ? ReplacePresetInGroupId(staticGroup)
+                    ? staticGroup + "Developer"
                     : staticGroup;
             }
 
-            return CustomPortGroupId;
+            return developerMode ? CustomPortDeveloperGroupId : CustomPortGroupId;
         }
 
         public static async Task<bool> LaunchAsync(int port)
@@ -112,13 +113,5 @@ namespace KillConfirmGameBar.Services
         [DllImport("api-ms-win-core-processthreads-l1-1-0.dll", ExactSpelling = true)]
         private static extern uint GetCurrentProcessId();
 
-        private static string ReplacePresetInGroupId(string groupId)
-        {
-            // The static groups only carry --port; the developer-mode groups
-            // additionally need --developer-mode. For now we re-use the
-            // standard group and rely on the user toggling developer mode
-            // separately; this keeps the wiring small.
-            return groupId;
-        }
     }
 }

@@ -23,6 +23,8 @@ namespace KillConfirmGameBar
             IReadOnlyDictionary<string, IReadOnlyList<StorageFile>> initialFiles = null,
             StorageFile initialHeadImageFile = null)
         {
+            if (await TryBatchImportVoiceAsync(initialFiles, initialHeadImageFile, PackCatalogService.CreateCsolVoicePackAsync)) return;
+
             var slots = new[]
             {
                 ("1.wav", LocalizationManager.Text("CsolSlot1")),

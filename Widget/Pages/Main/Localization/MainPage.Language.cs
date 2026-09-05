@@ -10,6 +10,8 @@ namespace KillConfirmGameBar
         {
             TitleText.Text = LocalizationManager.Text("MainTitle");
             bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            ApplyPackLibraryLanguage();
+            CustomModuleStyleItem.Content = isChinese ? "自定义" : "Custom";
             ToolTipService.SetToolTip(HomeSidebarItem, isChinese ? "主页" : "Home");
 
             GameEffectsTitleText.Text = LocalizationManager.Text("GameEffectsTitle");
@@ -65,28 +67,17 @@ namespace KillConfirmGameBar
                 : gameName + " " + (isChinese ? "战斗与特效设置" : "Combat & Effects Settings");
             StructureTitleText.Text = gameName + " " + (isChinese ? "资源包制作指南" : "Resource Pack Guide");
 
-            if (currentMode == GameStyleMode.Csol)
-            {
-                ImportVoiceMaterialButton.Content = LocalizationManager.Text("ImportCsolVoiceMaterial");
-                ImportVoicePackButton.Content = LocalizationManager.Text("ImportCsolVoicePack");
-                ImportVoiceZipButton.Content = LocalizationManager.Text("ImportCsolVoiceZip");
-                CreateVoicePackButton.Content = LocalizationManager.Text("CreateCsolVoicePack");
-                ImportIconMaterialButton.Content = LocalizationManager.Text("ImportCsolIconMaterial");
-                ImportIconPackButton.Content = LocalizationManager.Text("ImportCsolIconPack");
-                ImportIconZipButton.Content = LocalizationManager.Text("ImportCsolIconZip");
-                CreateIconPackButton.Content = LocalizationManager.Text("CreateCsolIconPack");
-            }
-            else
-            {
-                ImportVoiceMaterialButton.Content = isChinese ? "导入语音素材" : "Import Voice Material";
-                ImportVoicePackButton.Content = LocalizationManager.Text("ImportVoicePack");
-                ImportVoiceZipButton.Content = LocalizationManager.Text("ImportZip");
-                CreateVoicePackButton.Content = LocalizationManager.Text("CreateVoicePack");
-                ImportIconMaterialButton.Content = isChinese ? "导入图标素材" : "Import Icon Material";
-                ImportIconPackButton.Content = LocalizationManager.Text("ImportIconPack");
-                ImportIconZipButton.Content = LocalizationManager.Text("ImportZip");
-                CreateIconPackButton.Content = LocalizationManager.Text("CreateIconPack");
-            }
+            ImportVoiceZipButton.Content = isChinese ? "导入音频包" : "Import audio pack";
+            BatchImportVoiceZipButton.Content = isChinese ? "批量导入音频包" : "Import audio packs";
+            ImportIconZipButton.Content = isChinese ? "导入图标包" : "Import icon pack";
+            BatchImportIconZipButton.Content = isChinese ? "批量导入图标包" : "Import icon packs";
+            CreateVoicePackButton.Content = isChinese ? "新建音频包" : "New audio pack";
+            CreateIconPackButton.Content = isChinese ? "新建图标包" : "New icon pack";
+
+            if (currentMode == GameStyleMode.CustomModule)
+                IconCollectionsHintText.Text = isChinese
+                    ? "导入图标包或一次批量导入多个图标包，也可以新建和编辑图标包。"
+                    : "Import one or more icon packs, or create and edit an icon pack.";
 
             if (HomeTabGeneralButton != null) HomeTabGeneralButton.Content = LocalizationManager.Text("HomeTabGeneral");
             if (HomeTabPortButton != null) HomeTabPortButton.Content = LocalizationManager.Text("HomeTabPort");
@@ -161,6 +152,22 @@ namespace KillConfirmGameBar
 
             switch (style)
             {
+                case GameStyleMode.CustomModule:
+                    body = isChinese
+                        ? "默认使用“瓦默认音效/图标”。图标和语音均兼容 CS2 Customizer 的 1～5 杀结构，也可以分别创建或导入自己的资源包。"
+                        : "Uses the built-in Valorant default audio/icon pack. Icons and voices both follow CS2 Customizer's kill 1-5 structure and can be replaced independently.";
+                    voice = isChinese
+                        ? "1.wav ～ 5.wav = 1～5 杀普通语音\n1-headshot.wav ～ 5-headshot.wav = 1～5 杀爆头语音（可选）"
+                        : "1.wav to 5.wav = normal kill 1-5 cues\n1-headshot.wav to 5-headshot.wav = optional headshot cues for kills 1-5";
+                    iconSummary = isChinese
+                        ? "自定义时直接选择帧图片或帧目录，程序自动生成图集。整包支持 1～5 杀及爆头变体，也识别 kill1、ace、三杀等命名。"
+                        : "Choose images or frame folders when customizing; sheets are generated automatically. Packs support kills 1–5, headshot variants and names such as kill1, ace or 三杀.";
+                    iconFull = "style.json (optional)\n1.png + 1.json … 5.png + 5.json\n1hs.png + 1hs.json … 5hs.png + 5hs.json (optional)\nLegacy: 1/ … 5/ or kill1-1/ … kill1-5/";
+                    fileHint = isChinese
+                        ? "语音共有 10 种事件；空槽按同级普通语音、1 杀爆头、1 杀普通语音的顺序回退。请选择图标包导入，或通过“新建图标包”配置单组帧图片。"
+                        : "Voice packs expose 10 events. Empty slots fall back through same-level normal, kill-1 headshot, then kill-1 normal. Import icon packs, or choose New icon pack for one sequence.";
+                    break;
+
                 case GameStyleMode.Apex:
                     body = isChinese
                         ? "击杀时显示目标和金钱，助攻只显示目标。新提示从下方弹入，旧提示依次上移并淡出。"
@@ -211,16 +218,16 @@ namespace KillConfirmGameBar
 
                 case GameStyleMode.Valorant:
                     body = isChinese
-                        ? "VALORANT 提供 1～5 杀和爆头语音；开启配套选择后，语音和图标会自动使用同一系列。"
-                        : "VALORANT provides voices for kills 1–5 and headshots. With pairing enabled, voice and icon packs automatically use the same series.";
+                        ? "VALORANT 支持 1～5 杀、分级爆头、出现和切换音效；开启配套选择后，语音和图标会自动使用同一系列。"
+                        : "VALORANT supports kills 1–5, tiered headshots, appear and transition audio. Pairing selects the matching icon and voice series.";
                     voice = isChinese
-                        ? "1.wav ~ 5.wav = 1至5级连杀语音\nheadshot.wav = 爆头语音"
-                        : "1.wav ~ 5.wav = streak tiers 1 through 5\nheadshot.wav = headshot voice";
-                    iconSummary = isChinese ? "自定义图标包暂未开放；可选用内置皮肤图标包。" : "Custom icon packs are not available yet; built-in skin icon packs remain selectable.";
+                        ? "1.wav～5.wav：连杀语音\nheadshot_1.wav～headshot_5.wav：分级爆头\nheadshot.wav：通用爆头回退\nappear.wav：首次出现\ntransition.wav：连杀切换"
+                        : "1.wav–5.wav: kill tiers\nheadshot_1.wav–headshot_5.wav: tiered headshots\nheadshot.wav: fallback headshot\nappear.wav: first appearance\ntransition.wav: subsequent kills";
+                    iconSummary = isChinese ? "可编辑图标纹理、主题颜色、爆头偏移和连杀标记尺寸；内置包另存副本。" : "Edit textures, accent, headshot offsets and kill marker size. Built-in packs save as copies.";
                     iconFull = isChinese
                         ? "开启配套选择：选择语音或图标时会自动匹配同系列资源。\n关闭配套选择：语音和图标可以分别选择。"
                         : "Pairing on: choosing a voice or icon pack also selects the matching series.\nPairing off: voice and icon packs can be chosen separately.";
-                    fileHint = isChinese ? "每项可以选择多段音频，播放时会随机使用其中一段；未设置的项目保持原样。" : "Each item can contain multiple audio files; one is chosen at random. Items you do not set remain unchanged.";
+                    fileHint = isChinese ? "每项可选多段音频随机播放。连杀留空使用基础语音；爆头、出现和切换留空则不叠加。" : "Each slot supports random variants. Empty kill slots use Base; empty headshot, appear and transition layers stay silent.";
                     break;
 
                 case GameStyleMode.Battlefield1:

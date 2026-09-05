@@ -68,6 +68,7 @@ namespace KillConfirmGameBar.Controls
 
         private void DrawCurrentAnimationFrame(CanvasDrawingSession drawingSession)
         {
+            if (_customSequencePlaying) { DrawCustomSequenceFrame(drawingSession); return; }
             if (_isModernWarfare2019Active)
             {
                 DrawModernWarfare2019Frame(drawingSession);
@@ -95,7 +96,15 @@ namespace KillConfirmGameBar.Controls
             }
             if (_currentCodeAsset != null)
             {
-                DrawCode2KillFrame(drawingSession, _currentFrame);
+                Matrix3x2 prior = drawingSession.Transform;
+                drawingSession.Transform = Matrix3x2.CreateTranslation((float)((_currentCodeAsset.FrameWidth - CodeKillFrameWidth) / 2),
+                    (float)((_currentCodeAsset.FrameHeight - CodeKillFrameHeight) / 2)) * prior;
+                try
+                {
+                    if (_mainAnimationStyle == 2) DrawCrossfireStyle2(drawingSession, _playbackClock.Elapsed.TotalMilliseconds);
+                    else DrawCode2KillFrame(drawingSession, _currentFrame);
+                }
+                finally { drawingSession.Transform = prior; }
                 return;
             }
             if (_currentCsolAsset != null)
@@ -301,6 +310,7 @@ namespace KillConfirmGameBar.Controls
             }
 
             drawingSession.Blend = previousBlend;
+            DrawCrossfireExtraLayers(drawingSession, main, timeSec * 1000);
         }
 
         private void ShowLoadingProgress(int percent)
@@ -324,6 +334,7 @@ namespace KillConfirmGameBar.Controls
 
         private void OnTick(object sender, object e)
         {
+            if (_customSequencePlaying) { UpdateCustomSequenceFrame(); return; }
             if (_isModernWarfare2019Active)
             {
                 UpdateModernWarfare2019Frame();
@@ -395,6 +406,22 @@ namespace KillConfirmGameBar.Controls
                 _timer.Stop();
                 _playbackClock.Stop();
                 Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            if (_currentCodeAsset != null && _mainAnimationStyle == 2)
+            {
+                // FPS controls sampling density, never the lifetime of this style.
+                double elapsedMs = _playbackClock.Elapsed.TotalMilliseconds;
+                if (elapsedMs >= CrossfireStyle2Motion.DurationMs)
+                {
+                    _timer.Stop();
+                    _playbackClock.Stop();
+                    Visibility = Visibility.Collapsed;
+                    return;
+                }
+                _currentFrame = (int)Math.Floor(elapsedMs * FrameSequenceFps / 1000);
+                ShowFrame(_currentFrame);
                 return;
             }
 

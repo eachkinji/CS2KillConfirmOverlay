@@ -160,12 +160,11 @@ pub async fn update(
         .map(|stats| stats.assists)
         .unwrap_or(0);
     let original_assists = tracked_player.ply_assists;
-    let current_deaths = ply
-        .match_stats
-        .as_ref()
-        .map(|stats| stats.deaths)
-        .unwrap_or(0);
     let original_deaths = tracked_player.ply_deaths;
+    let current_deaths = resolve_player_death_count(
+        ply.match_stats.as_ref().map(|stats| stats.deaths),
+        original_deaths,
+    );
     let current_score = ply
         .match_stats
         .as_ref()
@@ -326,6 +325,7 @@ pub async fn update(
         pending_last_kill_for_next,
         kill_event_to_send,
         badge_only_event_to_send,
+        death_event_to_send,
         assist_event_to_send,
         bomb_objective_event_to_send,
         hostage_objective_event_to_send,
@@ -393,6 +393,9 @@ pub async fn update(
 
     if let Some(badge_only_event) = badge_only_event_to_send {
         app_state.events.publish(badge_only_event).await;
+    }
+    if let Some(death_event) = death_event_to_send {
+        app_state.events.publish(death_event).await;
     }
     if let Some(bomb_objective_event) = bomb_objective_event_to_send {
         let audio_event = bomb_objective_event.clone();

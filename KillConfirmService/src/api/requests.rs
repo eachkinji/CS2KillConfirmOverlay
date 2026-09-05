@@ -40,6 +40,32 @@ pub struct UiProcessRequest {
     pub pid: u32,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct VideoExtractRequest {
+    pub source_path: String,
+    pub output_path: String,
+    pub fps: u32,
+    pub start_seconds: f64,
+    pub end_seconds: f64,
+}
+
+#[derive(Debug, Serialize)]
+pub struct VideoExtractResponse {
+    pub frames: usize,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct VideoPreviewRequest {
+    pub source_path: String,
+    pub preview_path: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct VideoPreviewResponse {
+    pub duration_seconds: f64,
+    pub source_fps: f64,
+}
+
 #[derive(Debug, Serialize)]
 pub struct PortResponse {
     pub port: u16,

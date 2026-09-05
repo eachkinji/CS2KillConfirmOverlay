@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -15,7 +15,11 @@ namespace KillConfirmGameBar.Services
         public static string GetVoicePackDisplayName(VoicePackItem item)
         {
             if (item == null) return string.Empty;
-            if (ValorantPackService.IsValorantPackKey(item.Key))
+            // Built-in VALORANT voices share the visual-pack catalog. External
+            // voices have their own ids (valorant_voice_*), so asking the icon
+            // catalog for their name returned the raw key instead of manifest
+            // display_name and made one imported package look like two entries.
+            if (ValorantPackService.Find(item.Key) != null)
             {
                 return ValorantPackService.GetDisplayName(item.Key);
             }
@@ -33,7 +37,8 @@ namespace KillConfirmGameBar.Services
         public static bool IsImportedVoicePackKey(string key)
         {
             if (string.IsNullOrWhiteSpace(key)) return false;
-            return key.StartsWith("custom_voice_", StringComparison.OrdinalIgnoreCase)
+            return CrossfireExternalAssetService.IsVoiceKey(key) || key.StartsWith("custom_voice_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("custom_module_voice_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_csol_voice_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_dagoujiao_voice_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_doubao_voice_", StringComparison.OrdinalIgnoreCase)
@@ -46,7 +51,8 @@ namespace KillConfirmGameBar.Services
                 || key.StartsWith("custom_valorant_voice_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_overwatch_voice_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_modernwarfare2019_voice_", StringComparison.OrdinalIgnoreCase)
-                || key.StartsWith("custom_apex_voice_", StringComparison.OrdinalIgnoreCase);
+                || key.StartsWith("custom_apex_voice_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("valorant_voice_", StringComparison.OrdinalIgnoreCase);
         }
 
         // Event voice packs unify the old "event sound routing" concept into voice
@@ -102,21 +108,14 @@ namespace KillConfirmGameBar.Services
 
         public static async Task<IReadOnlyList<VoicePackItem>> GetVisibleVoicePacksAsync()
         {
-            var catalog = await LoadAsync();
-            IEnumerable<VoicePackItem> visible = catalog.VoicePacks
-                .Where(p => p.IsVisibleInWidget && GameStyleService.IsVisibleForCurrentStyle(p.Key))
-                .ToList();
-            if (GameStyleService.Current == GameStyleMode.Valorant)
-            {
-                visible = visible.OrderBy(p => ValorantPackService.GetDisplayOrder(p.Key));
-            }
-            return visible.ToList();
+            return (await GetAllVoicePacksAsync())
+                .Where(p => p.IsVisibleInWidget && GameStyleService.IsVisibleForCurrentStyle(p.Key)).ToList();
         }
 
         public static async Task<IReadOnlyList<VoicePackItem>> GetAllVoicePacksAsync()
         {
             var catalog = await LoadAsync();
-            return catalog.VoicePacks;
+            return OrderPacks(catalog.VoicePacks, p => p.Key, catalog.VoicePackOrder);
         }
 
         public static async Task<VoicePackItem> GetVoicePackAsync(string key)
@@ -227,7 +226,6 @@ namespace KillConfirmGameBar.Services
             if (item != null && !item.IsBuiltIn)
             {
                 catalog.VoicePacks.Remove(item);
-                await SaveAsync(catalog);
                 if (item.OwnsFolder)
                 {
                     try
@@ -237,6 +235,12 @@ namespace KillConfirmGameBar.Services
                     }
                     catch { }
                 }
+                if (CrossfireExternalAssetService.IsVoiceKey(key))
+                {
+                    CrossfireExternalAssetService.RefreshAfterRemoval(catalog);
+                    ApplyVisibilityOverrides(catalog);
+                }
+                await SaveAsync(catalog);
             }
         }
 
@@ -279,8 +283,7 @@ namespace KillConfirmGameBar.Services
             }
             else if (options.UseBuiltInDefaultCommonOverlay)
             {
-                StorageFile builtInCommon = await StorageFile.GetFileFromApplicationUriAsync(
-                    new Uri("ms-appx:///KillConfirmService/sounds/crossfire_swat_gr/common.wav"));
+                StorageFile builtInCommon = await CrossfireExternalAssetService.DefaultVoiceFileAsync("common.wav");
                 await builtInCommon.CopyAsync(
                     packFolder,
                     "common_overlay.wav",

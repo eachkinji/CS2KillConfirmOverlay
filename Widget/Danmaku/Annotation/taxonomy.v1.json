@@ -1,0 +1,371 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "version": "1.3.0",
+  "name": "6657_danmaku_taxonomy_v1",
+  "description": "6657 弹幕多维多标签语义分类体系 (Taxonomy v1)。脱离游戏触发事件，专注于弹幕语言学、情绪立场、受众文化与社区传播特征。核心语义与内容分类枚举严格控制在 100 项（全体系受控枚举 113 项）。注：context 维度仅表示弹幕文本理解对外部语境的依赖程度，并非游戏事件分类，后续事件联动系统另行构建语义标签查询。",
+  "dimensions": {
+    "targets": {
+      "type": "array",
+      "description": "弹幕指涉对象/谈论主体 (多选)",
+      "items": {
+        "type": "string",
+        "enum": [
+          "streamer",
+          "pro_player",
+          "pro_team",
+          "caster_host",
+          "chat_audience",
+          "game_system",
+          "external_figure",
+          "general_meta"
+        ]
+      },
+      "enum_descriptions": {
+        "streamer": "玩机器/主播本人 (包括玩神、刘一博、机哥、大聪明、哈基玩等称呼)",
+        "pro_player": "职业选手 (如 s1mple, ZywOo, NiKo, donk, m0NESY, b1t, 茄子等)",
+        "pro_team": "职业战队 (如 NaVi, FaZe, G2, Spirit, Vitality, Astralis, LVG, TYLOO, Falcons 等)",
+        "caster_host": "解说/主持/嘉宾/其他主播 (如 冬瓜强, QUQU, CSBOY, 马西西等)",
+        "chat_audience": "弹幕水友/粉丝群体/带哥/特定观众群体",
+        "game_system": "游戏本体/V社/CS2机制/官方/服务器/VAC/Tickrate/物理引擎等",
+        "external_figure": "圈外人物/跨界角色/虚构二次元人物/现实名人 (如 长崎素世, 动漫角色等)",
+        "general_meta": "无特定指涉/自言自语/社会哲学/泛指空泛发言"
+      }
+    },
+    "stances": {
+      "type": "array",
+      "description": "说话者的情感立场与态度倾向 (多选)",
+      "items": {
+        "type": "string",
+        "enum": [
+          "flame_streamer",
+          "flame_player",
+          "flame_team",
+          "flame_audience",
+          "flame_caster_host",
+          "flame_external_figure",
+          "cheer_praise",
+          "comfort_support",
+          "tease_playful",
+          "cynical_sarcastic",
+          "hype_excitement",
+          "melancholy_lament",
+          "neutral_informative"
+        ]
+      },
+      "enum_descriptions": {
+        "flame_streamer": "喷/嘲讽/质疑/拷打主播 (如 技术菜、下播、画质糊、加钟、摆烂)",
+        "flame_player": "喷/嘲讽/开会选手 (如 拉胯、白给、懦夫、空枪、战犯)",
+        "flame_team": "喷/嘲讽战队 (如 假赛、内讧、战术烂、被翻盘)",
+        "flame_audience": "直播间互喷/喷弹幕水友/抓内鬼/攻击特定粉丝群体",
+        "flame_caster_host": "喷/嘲讽/开会解说、主持、嘉宾或其他主播 (如 偏袒解说、废话多、解说失误、同行节奏)",
+        "flame_external_figure": "喷/嘲讽圈外人物/现实名人/跨界角色 (如 跨界明星、足球/F1选手、二次元角色攻击)",
+        "cheer_praise": "赞扬/吹捧/封神/认可 (如 顶级枪法、GOAT、满配、帅气操作)",
+        "comfort_support": "安慰/打气/鼓励/同理心 (如 没事、下把加油、已经很尽力了)",
+        "tease_playful": "善意调侃/玩梗戏谑/打情骂俏/爱称恶搞 (无恶意或低恶意互动)",
+        "cynical_sarcastic": "阴阳怪气/反向讽刺/假夸真贬/借古讽今",
+        "hype_excitement": "纯粹情绪释放/热血沸腾/震惊狂欢/尖叫",
+        "melancholy_lament": "怀旧感伤/悲伤叹息/意难平 (如 怀念当年的FaZe/录像店/老CS)",
+        "neutral_informative": "中立客观/事实陈述/询问提问/纯战术讨论"
+      }
+    },
+    "topics": {
+      "type": "array",
+      "description": "细粒度具体语义话题领域 (多选)",
+      "items": {
+        "type": "string",
+        "enum": [
+          "streamer_appearance_pig_weight",
+          "streamer_intelligence",
+          "streamer_skill_gameplay",
+          "streamer_casting_knowledge",
+          "streamer_bias_favoritism",
+          "streamer_stubborn_rage",
+          "streamer_schedule_laziness",
+          "streamer_tech_hardware",
+          "streamer_commercial_gifting",
+          "streamer_smoking_health",
+          "streamer_food_diet",
+          "streamer_romance_sexuality",
+          "streamer_career_finance",
+          "pro_gunplay_aim",
+          "pro_headshot",
+          "pro_sniper_awp",
+          "pro_utility_grenade",
+          "pro_knife_melee",
+          "pro_entry_trade",
+          "pro_multikill_clutch",
+          "pro_whiff_blunder",
+          "pro_eco_save",
+          "pro_score_outcome",
+          "pro_comeback_choke",
+          "pro_tactics_igl",
+          "pro_ranking_rating",
+          "pro_transfer_roster",
+          "pro_trophy_history",
+          "pro_cheating_matchfixing",
+          "pro_personal_appearance",
+          "pro_personal_relationships",
+          "external_sports_competition",
+          "external_figure_personal_life",
+          "daily_life_work",
+          "acg_popculture",
+          "historical_memes",
+          "hardware_skin_economy",
+          "pro_scene_drama",
+          "misc_unclear"
+        ]
+      },
+      "enum_descriptions": {
+        "streamer_appearance_pig_weight": "主播外貌体型/猪梗/体重身材/面相容貌",
+        "streamer_intelligence": "主播智力/智商/大聪明/理解力/反应迟钝",
+        "streamer_skill_gameplay": "主播个人游戏水平/枪法身法/天梯段位/下饭操作",
+        "streamer_casting_knowledge": "主播赛事解说水平/局势分析/解说预言剧本/解说风格",
+        "streamer_bias_favoritism": "主播偏袒立场/偏心战队选手/屁股歪/双标评论",
+        "streamer_stubborn_rage": "主播情绪嘴硬/红温破防/狡辩甩锅/急了",
+        "streamer_schedule_laziness": "主播作息懒惰/迟到早退/鸽播/下播加钟/熬夜修仙",
+        "streamer_tech_hardware": "主播设备技术/电脑配置/OBS画质/外设麦克风/直播间故障",
+        "streamer_commercial_gifting": "主播商业化/礼物办卡/开箱抽奖/广告赞助/商务合作",
+        "streamer_smoking_health": "主播抽烟/咽炎咳嗽/身体健康/体检作息",
+        "streamer_food_diet": "主播饮食外卖/吃夜宵/能量结构/喝水吃药",
+        "streamer_romance_sexuality": "主播感情恋爱/相亲八卦/性相关话题戏谑",
+        "streamer_career_finance": "主播职业财务/收入身价/录像店/客服经历/经济账/签约",
+        "pro_gunplay_aim": "职业选手枪法/定位/扫射控枪/准星瞄准能力",
+        "pro_headshot": "职业选手爆头/一颗爆头/高爆头率/精准秒杀",
+        "pro_sniper_awp": "职业选手大狙/AWP甩狙/架点防守/狙击手博弈/空狙",
+        "pro_utility_grenade": "职业选手道具/闪光弹/烟雾弹/燃烧弹投掷/失误道具",
+        "pro_knife_melee": "职业选手刀杀/背刺/近战嘲讽/电击枪/刀战名场面",
+        "pro_entry_trade": "职业选手突破补枪/首杀Entry/拿信息/人头互换",
+        "pro_multikill_clutch": "职业选手多杀残局/1vX博弈/极限反杀/神级高光表现",
+        "pro_whiff_blunder": "职业选手白给失误/空枪/迷路/战犯操作/严重下饭",
+        "pro_eco_save": "职业比赛经济管理/保枪/强起翻盘/Eco局博弈/买枪决策",
+        "pro_score_outcome": "职业比分胜负/输赢走势/赛点/加时/小局得失",
+        "pro_comeback_choke": "职业翻盘与被翻盘/痛失好局/逆转/窒息被翻",
+        "pro_tactics_igl": "职业战术指挥/战术执行/IGL决策/暂停调整/战术素养",
+        "pro_ranking_rating": "排名数据/Rating/TOP20/战队世界排名/数据榜单",
+        "pro_transfer_roster": "转会阵容/选手变阵/人员调整/买断身价/试训替补",
+        "pro_trophy_history": "冠军历史/Major名场面/王朝历史/夺冠战绩荣誉",
+        "pro_cheating_matchfixing": "作弊假赛/开挂质疑/雷达透视/菠菜盘口/道德违规",
+        "pro_personal_appearance": "职业选手/教练/圈内人物外貌颜值/身材体型/穿搭发型调侃 (与主播外貌严格隔离)",
+        "pro_personal_relationships": "职业选手/教练/圈内人物恋爱感情/女友八卦/家庭婚恋/CP戏谑 (与主播感情严格隔离)",
+        "external_sports_competition": "F1/足球/篮球等非电竞赛事、车队俱乐部、比赛规则、赛果比分与竞技讨论",
+        "external_figure_personal_life": "圈外人物/现实名人/跨界角色的外貌身材、恋爱家庭、私生活八卦 (与主播及CS职业圈严格隔离)",
+        "daily_life_work": "日常打工/考研考公/现实生活琐事/生活哲学/情感日常",
+        "acg_popculture": "二次元动漫 (如 MyGO/BanG Dream 等)/影视游戏跨界流行文化",
+        "historical_memes": "经典名场面复刻/历史典故/'那晚'/老CS版本记忆",
+        "hardware_skin_economy": "CS饰品皮肤/开箱磨损/贴纸行情/外设硬件/电脑硬件",
+        "pro_scene_drama": "职业圈八卦节奏/解说争端/社区恩怨/主播互动撕扯",
+        "misc_unclear": "其它杂项/语义模糊/无明确归类意图的发言"
+      }
+    },
+    "formats": {
+      "type": "array",
+      "description": "文本修辞与表达形式 (多选，允许且支持单选 plain_statement)",
+      "items": {
+        "type": "string",
+        "enum": [
+          "plain_statement",
+          "direct_address_at",
+          "fake_official_news",
+          "quotation_remix",
+          "poem_lyric",
+          "copypasta_repetition",
+          "announcement_ad",
+          "single_word_or_char",
+          "repeated_symbols",
+          "formulaic_template",
+          "idiom_adaptation",
+          "parallelism_listing",
+          "rhetorical_question",
+          "dialogue_roleplay",
+          "slang_argot",
+          "exaggeration_hyperbole",
+          "homophonic_pun"
+        ]
+      },
+      "enum_descriptions": {
+        "plain_statement": "普通直陈句/平铺直叙陈述 (无特殊修辞或套路的常规语句，可单选)",
+        "direct_address_at": "艾特呼叫/喊话/指名道姓 (如 '玩大哥...', '刘一博...', '兄弟们...')",
+        "fake_official_news": "假新闻/伪造官方通报/洋葱新闻 (如 '冬瓜强社长通知...', '官方通报...')",
+        "quotation_remix": "名言名句化用/台词混搭/经典语录改写",
+        "poem_lyric": "定型诗词/押韵打油诗/歌词改编/赋韵体",
+        "copypasta_repetition": "长段复制粘贴/复读机/大段发疯小作文/刷屏短文",
+        "announcement_ad": "公告通知/抽奖活动/招租买卖广告/格式化启事",
+        "single_word_or_char": "单字/超短词 (如 '6', '?', '典', '急', '乐')",
+        "repeated_symbols": "符号刷屏/连续标点 (如 '???', '！！！', '......')",
+        "formulaic_template": "经典定式句型 (如 '以前...现在...', '出高等级账号...', '玩大哥你还记得...')",
+        "idiom_adaptation": "成语改编/化用古文/四字词组化用",
+        "parallelism_listing": "排比/盘点/列举式阵容 (如 'TOP1: ... TOP2: ...')",
+        "rhetorical_question": "反问/质问句 (如 '你这画质还能更糊一点？')",
+        "dialogue_roleplay": "对话剧场/角色扮演/情景演绎 (如 '素世说：... 爱音：...')",
+        "slang_argot": "密集黑话/缩写/专属黑称 (如 '满配黑闪', '痱子录像店')",
+        "exaggeration_hyperbole": "夸张夸大/神格化/极端比喻/极度夸饰",
+        "homophonic_pun": "谐音双关/谐音梗 (如 '难宫雨', '出身主义')"
+      }
+    },
+    "culture": {
+      "type": "array",
+      "description": "文化圈层与梗来源 (多选)",
+      "items": {
+        "type": "string",
+        "enum": [
+          "origin_6657",
+          "origin_cs_community",
+          "origin_bilibili",
+          "origin_abstract",
+          "origin_acg_subculture",
+          "origin_gaming_general",
+          "origin_internet_folklore"
+        ]
+      },
+      "enum_descriptions": {
+        "origin_6657": "玩机器 6657 直播间原生梗/二创/房规/原生黑粉文化",
+        "origin_cs_community": "CS/CS:GO/CS2 职业圈与玩家社区通用梗 (如 P1, GOAT, TOP20, 大表哥)",
+        "origin_bilibili": "B站/弹幕视频网站原生文化",
+        "origin_abstract": "抽象文化/贴吧/抗压背锅吧派系梗",
+        "origin_acg_subculture": "二次元/日漫/轻小说/手游亚文化 (如 MyGO, BanG Dream 等)",
+        "origin_gaming_general": "泛游戏圈通用梗 (如 DOTA2, LOL, Valorant 跨圈梗)",
+        "origin_internet_folklore": "中文互联网大众网络流行语/广泛传播流行梗"
+      }
+    },
+    "context": {
+      "type": "string",
+      "description": "文本理解的语境依赖度 (单选)。注意：仅刻画弹幕语义对上下文的依赖关系，绝非游戏内事件触发分类。",
+      "enum": [
+        "standalone",
+        "stream_context",
+        "game_event",
+        "pro_scene_history"
+      ],
+      "enum_descriptions": {
+        "standalone": "独立自洽 (脱离具体游戏或直播画面仍可完整理解)",
+        "stream_context": "依赖主播当前直播状态 (作息、画质、摄像头、言行事故等)",
+        "game_event": "依赖即时游戏局势 (高光、失误、残局、比分、击杀事件)",
+        "pro_scene_history": "依赖职业赛事历史背景/特定历史名场面背景"
+      }
+    },
+    "safety": {
+      "type": "object",
+      "description": "安全强度与毒性控制 (结构化对象，包含 severity 与可多选 flags)",
+      "required": [
+        "severity",
+        "flags"
+      ],
+      "properties": {
+        "severity": {
+          "type": "string",
+          "enum": [
+            "safe",
+            "borderline_playful",
+            "sensitive_flame",
+            "toxic_vulgar"
+          ],
+          "description": "安全严重度等级"
+        },
+        "flags": {
+          "type": "array",
+          "description": "具体违规与风险特征标签 (可多选，无风险时选 [\"none\"])",
+          "items": {
+            "type": "string",
+            "enum": [
+              "profanity",
+              "personal_attack",
+              "sexual_content",
+              "violent_imagery",
+              "discriminatory",
+              "self_harm",
+              "spam_noise",
+              "none"
+            ]
+          }
+        }
+      },
+      "severity_descriptions": {
+        "safe": "安全无害 (中性客观、赞美、正常游戏讨论、温和玩梗，无脏话攻击)",
+        "borderline_playful": "擦边戏谑 (直播间常见轻度互损/弱冒犯/调侃，属于良性社区互动)",
+        "sensitive_flame": "敏感/较重攻击 (激烈嘲讽、严重破防、粗口脏话、尖锐对立情绪)",
+        "toxic_vulgar": "严重违规剧毒 (直接恶性人身侮辱/极度下流粗俗/严重违规词汇)"
+      },
+      "flag_descriptions": {
+        "profanity": "脏话/粗口/粗鄙辱骂词汇 (如 我操、他妈、狗屎等，出现即不可标为 safe)",
+        "personal_attack": "人身攻击/针对具体个人的外貌、智力或人格恶性侮辱",
+        "sexual_content": "性暗示/黄色下流/性骚扰/低俗涉黄戏谑",
+        "violent_imagery": "暴力血腥意象/身体伤害威胁/极端暴力表达",
+        "discriminatory": "歧视/地域黑/群体侮辱/仇恨言论",
+        "self_harm": "自残自杀诱导/极端绝望表达",
+        "spam_noise": "垃圾广告/纯无意义字符刷屏/恶意灌水",
+        "none": "无任何安全风险标志 (仅当 severity 为 safe 或良性时使用)"
+      }
+    },
+    "entities": {
+      "type": "array",
+      "description": "可扩展专名实体列表 (非互斥硬编码，自由扩展专名)",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "type"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "实体名称/专名/外号规范名"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "streamer",
+              "player",
+              "team",
+              "coach",
+              "caster",
+              "acg_character",
+              "game_asset",
+              "org",
+              "other"
+            ],
+            "description": "实体类型 (含 coach 战队教练/监督)"
+          }
+        }
+      }
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "description": "标注置信度 (0.0 - 1.0)"
+    },
+    "review": {
+      "type": "object",
+      "required": [
+        "status"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "reviewed",
+            "approved",
+            "disputed"
+          ],
+          "description": "审核状态"
+        },
+        "reviewer": {
+          "type": "string",
+          "description": "审核人 ID (仅在 reviewed/approved 状态下可由实际复核人填写，pending 状态禁止伪造)"
+        },
+        "comments": {
+          "type": "string",
+          "description": "审核意见或特殊说明"
+        }
+      }
+    },
+    "source_tags": {
+      "type": "array",
+      "description": "可选的历史/种子分类标签 (仅在具有确凿线上精确匹配证据时方可填写)",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

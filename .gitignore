@@ -27,10 +27,27 @@ Package/BundleArtifacts/
 !Vclibs/
 !Vclibs/*
 
-# Generated copies refreshed from SourceAssets by Build-IntegratedPackage.ps1
+# Generated copies refreshed from SourceAssets by Build-QuickPackage.ps1
 Widget/Assets/KillConfirm/
 Widget/KillConfirmService/
 KillConfirmService/sounds/
+
+# Only the default CF icon and voice packs are bundled.
+SourceAssets/GameStyles/crossfire/*
+!SourceAssets/GameStyles/crossfire/iconpacks/
+!SourceAssets/GameStyles/crossfire/soundpacks/
+SourceAssets/GameStyles/crossfire/iconpacks/*
+!SourceAssets/GameStyles/crossfire/iconpacks/default/
+SourceAssets/GameStyles/crossfire/soundpacks/*
+!SourceAssets/GameStyles/crossfire/soundpacks/crossfire_swat_gr/
+Widget/Assets/KillConfirmCode/*
+!Widget/Assets/KillConfirmCode/Csol4/
+Widget/Assets/PackIcons/swat.png
+Widget/Assets/PackIcons/flying_tiger.png
+Widget/Assets/PackIcons/women.png
+Widget/Assets/PackIcons/cfsex.png
+Widget/Assets/PackIcons/bunny.png
+Widget/Assets/PackIcons/heart_judge.png
 
 # Local raw resource drop folder, not published to GitHub
 资源/
@@ -78,5 +95,7 @@ AGENTS.md
 Thumbs.db
 Desktop.ini
 .DS_Store
+__pycache__/
+*.pyc
 .vscode/
 .idea/

@@ -70,6 +70,11 @@
                         StepFrequency="5" />
                 </StackPanel>
             </Grid>
+
+            <ContentControl
+                x:Name="AdditionalSettingsHost"
+                HorizontalContentAlignment="Stretch"
+                Visibility="Collapsed" />
         </StackPanel>
     </Border>
 </UserControl>

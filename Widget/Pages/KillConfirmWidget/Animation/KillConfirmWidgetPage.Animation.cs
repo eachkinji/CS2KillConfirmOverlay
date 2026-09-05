@@ -133,6 +133,17 @@ namespace KillConfirmGameBar
                     + ", kills=" + killEvent.KillCount
                     + ", channel=" + killEvent.EventChannel);
             }
+
+            // Danmaku has its own event classifier and reaction policy. Route every
+            // service event before style-specific animation filtering so economy,
+            // objective, assist, death and kill reactions stay independent.
+            DanmakuOverlayControl?.TriggerGameEvent(killEvent);
+
+            if (string.Equals(killEvent.EventKind, "player_death", StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
             GameStyleMode style = GameStyleService.Current;
             if (!CanStyleConsumeEvent(style, killEvent))
             {
@@ -157,6 +168,7 @@ namespace KillConfirmGameBar
             }
 
             PlayBadgeAnimation(killEvent);
+
         }
 
         private void PlayPrimaryAnimation(KillEvent killEvent)
@@ -340,6 +352,13 @@ namespace KillConfirmGameBar
                 case GameStyleMode.DeltaForce:
                     PlayDeltaForcePrimaryAnimation(killEvent);
                     return;
+                case GameStyleMode.CustomModule:
+                    if (!killEvent.IsAssist && !killEvent.IsEconomyEvent && !IsBombObjectiveEvent(killEvent))
+                    {
+                        PlayAuxiliaryKillMarkIfEnabled(killEvent);
+                        LowerFeedbackAnimation.PlayCustomKill(killEvent.KillCount, killEvent.IsHeadshot);
+                    }
+                    break;
                 case GameStyleMode.Doubao:
                     PlayDoubaoPrimaryAnimation(killEvent);
                     return;
@@ -362,7 +381,10 @@ namespace KillConfirmGameBar
                 valorantPack = GetSelectedVoicePackPreset();
             }
 
-            LowerFeedbackAnimation.PlayValorantKill(valorantPack, killEvent.KillCount, killEvent.IsHeadshot);
+            LowerFeedbackAnimation.PlayNativeValorantKill(
+                valorantPack,
+                killEvent.KillCount,
+                killEvent.IsHeadshot);
         }
 
         private static string GetKillTargetDisplayName(KillEvent killEvent)

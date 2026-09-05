@@ -37,6 +37,12 @@
         <Setter Property="Foreground" Value="White" />
     </Style>
 
+    <Style x:Key="SettingsDownloadButtonStyle" TargetType="Button" BasedOn="{StaticResource SettingsHeaderButtonStyle}">
+        <Setter Property="Background" Value="#E6F5F2" />
+        <Setter Property="BorderBrush" Value="#74BCAF" />
+        <Setter Property="Foreground" Value="#086B5B" />
+    </Style>
+
     <Style x:Key="StudioTabButtonStyle" TargetType="Button">
         <Setter Property="Padding" Value="14,5" />
         <Setter Property="MinWidth" Value="100" />

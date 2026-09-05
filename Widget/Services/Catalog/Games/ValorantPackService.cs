@@ -9,54 +9,71 @@ namespace KillConfirmGameBar.Services
         public string Key { get; set; }
         public string Folder { get; set; }
         public string DisplayName { get; set; }
+        public string ChineseDisplayName { get; set; }
 
         /// <summary>
-        /// Emblem texture file name inside the pack's textures/ folder. Each Valorant
-        /// pack ships a distinct emblem (the pack's identifying badge); the file name is
-        /// not derivable from the folder (e.g. 00014_gaia_s_vengeance uses
-        /// killicon_valorant_gaia_emblem.png, and the bubblegum v1/v3 emblem files are
-        /// swapped), so it is declared explicitly per pack.
+        /// Emblem texture file name inside the native theme's textures folder.
         /// </summary>
         public string EmblemFile { get; set; }
+
+        /// <summary>
+        /// Whether the native audio shipped with this visual pack is available
+        /// in the core application. Only Base remains built in.
+        /// </summary>
+        public bool HasBuiltInAudio { get; set; }
+        public bool IsExternal { get; set; }
+        public string AssociationId { get; set; }
+        public string FolderPath { get; set; }
+        public ValorantVisualProfileInfo Profile { get; set; }
+    }
+
+    internal sealed class ValorantVisualProfileInfo
+    {
+        public string Accent { get; set; }
+        public string Emblem { get; set; }
+        public string Frame { get; set; }
+        public string Bar { get; set; }
+        public string BarHover { get; set; }
+        public string Ring { get; set; }
+        public string FrameDissolve { get; set; }
+        public string BadgeDissolve { get; set; }
+        public string Blade { get; set; }
+        public string SpecialFrame { get; set; }
+        public double HeadshotX { get; set; }
+        public double HeadshotY { get; set; }
+        public double SliceSize { get; set; }
     }
 
     internal static class ValorantPackService
     {
-        public const string DefaultKey = "valorant_00011_singularity_v1";
+        public const string DefaultKey = "valorant_00000_base";
 
-        // Pack(folder, displayName, emblemFile). The emblem file lives at
-        // Assets/GameStyles/valorant/killconfirm/{folder}/textures/{emblemFile}.
-        private static readonly ValorantPackInfo[] Packs =
+        // The public keys remain stable for saved settings. Their folders now point
+        // directly at the replacement tree built from the cooked VALORANT exports.
+        private static readonly ValorantPackInfo[] BuiltInPacks =
         {
-            Pack("00011_singularity_v1", "Singularity V1", "killicon_valorant_singularity_v1_emblem.png"),
-            Pack("00012_singularity_v2", "Singularity V2", "killicon_valorant_singularity_v2_emblem.png"),
-            Pack("00013_singularity_v3", "Singularity V3", "killicon_valorant_singularity_v3_emblem.png"),
-            Pack("00014_gaia_s_vengeance", "Gaia's Vengeance", "killicon_valorant_gaia_emblem.png"),
-            Pack("00015_gaia_s_vengeance_v1", "Gaia's Vengeance V1", "killicon_valorant_gaia_v1_emblem.png"),
-            Pack("00016_gaia_s_vengeance_v2", "Gaia's Vengeance V2", "killicon_valorant_gaia_v2_emblem.png"),
-            Pack("00017_gaia_s_vengeance_v3", "Gaia's Vengeance V3", "killicon_valorant_gaia_v3_emblem.png"),
-            Pack("00018_bubblegum_deathwish", "Bubblegum Deathwish", "killicon_valorant_bubblegum_deathwish_emblem.png"),
-            Pack("00019_bubblegum_deathwish_v1", "Bubblegum Deathwish V1", "killicon_valorant_bubblegum_deathwish_v3_emblem.png"),
-            Pack("00020_bubblegum_deathwish_v2", "Bubblegum Deathwish V2", "killicon_valorant_bubblegum_deathwish_v2_emblem.png"),
-            Pack("00021_bubblegum_deathwish_v3", "Bubblegum Deathwish V3", "killicon_valorant_bubblegum_deathwish_v1_emblem.png"),
-            Pack("00022_champions_2021", "Champions 2021", "killicon_valorant_champions_2021_emblem.png"),
-            Pack("00023_prelude_to_chaos_v1", "Prelude to Chaos V1", "killicon_valorant_prelude_to_chaos_v1_emblem.png"),
-            Pack("00024_prelude_to_chaos_v2", "Prelude to Chaos V2", "killicon_valorant_prelude_to_chaos_v2_emblem.png"),
-            Pack("00025_prelude_to_chaos_v3", "Prelude to Chaos V3", "killicon_valorant_prelude_to_chaos_v3_emblem.png"),
-            Pack("00026_primordium", "Primordium", "killicon_valorant_primordium_emblem.png"),
-            Pack("00027_primordium_v1", "Primordium V1", "killicon_valorant_primordium_v1_emblem.png"),
-            Pack("00028_primordium_v2", "Primordium V2", "killicon_valorant_primordium_v2_emblem.png"),
-            Pack("00029_primordium_v3", "Primordium V3", "killicon_valorant_primordium_v3_emblem.png"),
-            Pack("00030_radiant_crisis_001", "Radiant Crisis 001", "killicon_valorant_radiant_crisis_001_emblem.png"),
-            Pack("00031_rgx_11z_pro", "RGX 11z Pro", "killicon_valorant_rgx_11z_pro_emblem.png"),
-            Pack("00032_rgx_11z_pro_v1", "RGX 11z Pro V1", "killicon_valorant_rgx_11z_pro_v1_emblem.png"),
-            Pack("00033_rgx_11z_pro_v2", "RGX 11z Pro V2", "killicon_valorant_rgx_11z_pro_v2_emblem.png"),
-            Pack("00034_rgx_11z_pro_v3", "RGX 11z Pro V3", "killicon_valorant_rgx_11z_pro_v3_emblem.png"),
-            Pack("00009_prime", "Prime", "killicon_valorant_prime_emblem.png"),
-            Pack("00010_glitchpop", "Glitchpop", "killicon_valorant_glitchpop_emblem.png")
+            Pack("00000_base", "_native/themes/Base", "Base", "Base_Emblem.png", hasBuiltInAudio: true)
         };
 
-        public static IReadOnlyList<ValorantPackInfo> All => Packs;
+        private static readonly object PacksLock = new object();
+        private static IReadOnlyList<ValorantPackInfo> _packs = BuiltInPacks;
+
+        public static IReadOnlyList<ValorantPackInfo> All => _packs;
+
+        public static void RefreshExternalPacks()
+        {
+            IReadOnlyList<ValorantPackInfo> discovered = ValorantExternalAssetService.DiscoverExternalPacks();
+            var builtInKeys = new HashSet<string>(
+                BuiltInPacks.Select(pack => pack.Key),
+                StringComparer.OrdinalIgnoreCase);
+            ValorantPackInfo[] combined = BuiltInPacks
+                .Concat(discovered.Where(pack => !builtInKeys.Contains(pack.Key)))
+                .ToArray();
+            lock (PacksLock)
+            {
+                _packs = combined;
+            }
+        }
 
         public static bool IsValorantPackKey(string key)
         {
@@ -66,7 +83,7 @@ namespace KillConfirmGameBar.Services
 
         public static ValorantPackInfo Find(string key)
         {
-            return Packs.FirstOrDefault(pack =>
+            return All.FirstOrDefault(pack =>
                 string.Equals(pack.Key, key, StringComparison.OrdinalIgnoreCase));
         }
 
@@ -77,7 +94,23 @@ namespace KillConfirmGameBar.Services
 
         public static string GetDisplayName(string key)
         {
-            return Find(key)?.DisplayName ?? key;
+            ValorantPackInfo pack = Find(key);
+            if (pack == null)
+            {
+                return key;
+            }
+
+            string localized = LocalizationManager.Text(pack.Key);
+            if (!string.Equals(localized, pack.Key, StringComparison.Ordinal))
+            {
+                return localized;
+            }
+
+            return pack.IsExternal
+                && LocalizationManager.Current == UiLanguage.SimplifiedChinese
+                && !string.IsNullOrWhiteSpace(pack.ChineseDisplayName)
+                ? pack.ChineseDisplayName
+                : pack.DisplayName;
         }
 
         public static string GetEmblemFile(string key)
@@ -85,21 +118,50 @@ namespace KillConfirmGameBar.Services
             return Find(key)?.EmblemFile;
         }
 
+        public static string GetEmblemUri(string key)
+        {
+            ValorantPackInfo pack = Find(key);
+            string externalUri = ValorantExternalAssetService.GetExternalEmblemUri(pack);
+            if (!string.IsNullOrWhiteSpace(externalUri))
+            {
+                return externalUri;
+            }
+
+            return pack == null || string.IsNullOrWhiteSpace(pack.EmblemFile)
+                ? null
+                : $"ms-appx:///Assets/GameStyles/valorant/killconfirm/{pack.Folder}/textures/{pack.EmblemFile}";
+        }
+
         public static int GetDisplayOrder(string key)
         {
-            int index = Array.FindIndex(Packs, pack =>
-                string.Equals(pack.Key, key, StringComparison.OrdinalIgnoreCase));
+            IReadOnlyList<ValorantPackInfo> packs = All;
+            int index = -1;
+            for (int candidate = 0; candidate < packs.Count; candidate++)
+            {
+                if (string.Equals(packs[candidate].Key, key, StringComparison.OrdinalIgnoreCase))
+                {
+                    index = candidate;
+                    break;
+                }
+            }
             return index < 0 ? int.MaxValue : index;
         }
 
-        private static ValorantPackInfo Pack(string folder, string displayName, string emblemFile)
+        private static ValorantPackInfo Pack(
+            string keySuffix,
+            string folder,
+            string displayName,
+            string emblemFile,
+            bool hasBuiltInAudio = true)
         {
             return new ValorantPackInfo
             {
-                Key = "valorant_" + folder,
+                Key = "valorant_" + keySuffix,
                 Folder = folder,
                 DisplayName = displayName,
-                EmblemFile = emblemFile
+                EmblemFile = emblemFile,
+                HasBuiltInAudio = hasBuiltInAudio,
+                AssociationId = "valorant:base"
             };
         }
     }

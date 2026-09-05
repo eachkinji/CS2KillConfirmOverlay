@@ -1,0 +1,104 @@
+{
+  "schema_version": "2.0.0",
+  "pool_id": "supplemental_session_end_v2",
+  "event_label": "session_end",
+  "description": "GSI 会话结束专用的原库弹幕引用池。只收直播消失、下播、告别和反复刷新失望语义。",
+  "source": "Widget/Danmaku/6657_memes.json",
+  "line_policy": "render_newlines_as_spaces",
+  "selection_policy": {
+    "max_per_semantic_family_per_session": 1,
+    "recommended_dispatch_count": 4
+  },
+  "messages": [
+    {
+      "id": "session_end_src_001",
+      "source_index": 8585,
+      "source_text": "刷新🔄失望😞刷新🔄难过😫刷新🔄心碎💔刷新🔄崩溃😭刷新🔄玩宝宝你去哪了😭",
+      "sha256": "02ef89517d8c7730c3d524dcbad41f6f500e28adc0349dbc52bcd748b188eeb8",
+      "family": "refresh_disappointment",
+      "phase": "both",
+      "reason": "反复刷新后发现主播消失，结尾直接追问玩宝宝去哪了"
+    },
+    {
+      "id": "session_end_src_002",
+      "source_index": 8664,
+      "source_text": "刷新🔄失望😞刷新🔄难过😫刷新🔄心碎💔刷新🔄崩溃😭刷新🔄宝贝你去哪了😭",
+      "sha256": "a697169c908d44ef45774f7c986e34d2a5a775a7dcdcbea3cc9fbb6708cb78f2",
+      "family": "refresh_disappointment",
+      "phase": "both",
+      "reason": "反复刷新从失望到崩溃，追问宝贝去哪了"
+    },
+    {
+      "id": "session_end_src_003",
+      "source_index": 11268,
+      "source_text": "刷新🔄失望😞刷新🔄难过😫刷新🔄心碎💔刷新🔄崩溃😭刷新🔄宝宝你人呢😭",
+      "sha256": "2e2c8fe0c51268734581fbb1a492b9e377ccf32110df877567c750c1985bc675",
+      "family": "refresh_disappointment",
+      "phase": "both",
+      "reason": "GSI 消失后连续刷新并直接追问宝宝人呢"
+    },
+    {
+      "id": "session_end_src_004",
+      "source_index": 23089,
+      "source_text": "刷新🔄失望😞刷新🔄难过😫刷新🔄心碎💔刷新🔄崩溃😭刷新🔄",
+      "sha256": "bbf9fbf6c27359b86b8492b5c0e5b79467db845e24cf371dffc334ab6ab9fa23",
+      "family": "refresh_disappointment",
+      "phase": "burst",
+      "reason": "纯刷新失望崩溃模板，适合 GSI 刚断开的瞬间"
+    },
+    {
+      "id": "session_end_src_005",
+      "source_index": 69,
+      "source_text": "要。。。结束了吗，真短啊，我会怀念这段可以发言的美好时光，再见了各位",
+      "sha256": "ca87e01bd962d59845735631092974ed8b079e0464d873890bacc5f66b793df4",
+      "family": "farewell",
+      "phase": "aftermath",
+      "reason": "直接确认结束并向直播间观众告别"
+    },
+    {
+      "id": "session_end_src_006",
+      "source_index": 2419,
+      "source_text": "再见了机器👋再见了直播间里的各位👋我的青春结束了，cs已经大结局了😭",
+      "sha256": "d525c6e1a14fb32691794a673a0d77dc0a6e908bb54e1e15f0ba2e93b369e861",
+      "family": "farewell",
+      "phase": "aftermath",
+      "reason": "主播和直播间结束时的夸张告别弹幕"
+    },
+    {
+      "id": "session_end_src_007",
+      "source_index": 4933,
+      "source_text": "你不要下播好不好😭，除了你我没有朋友了😭，你要是下播了没人跟我说话😭我会疯的",
+      "sha256": "4b95e3d86145b2fb0aabecd6fe0199558e2e706871325977294e817e4855986e",
+      "family": "dont_leave",
+      "phase": "aftermath",
+      "reason": "GSI 结束后直接挽留下播主播"
+    },
+    {
+      "id": "session_end_src_008",
+      "source_index": 14236,
+      "source_text": "玩神你终于走了，我现实里没有一个朋友，没人和我说话，你下播了我就可以走向铁轨了",
+      "sha256": "777d460ce71c0e354fecd4a94bbf3400050bd7f44f816f2eaf736d2dc4fb04cf",
+      "family": "dont_leave",
+      "phase": "aftermath",
+      "reason": "主播下播后的黑色幽默式不舍反应"
+    },
+    {
+      "id": "session_end_src_009",
+      "source_index": 16943,
+      "source_text": "这直播间就是座坟啊，主播没了，直播间放着录播，孝子在外面上香",
+      "sha256": "3649950bbe70faff25c7978c87ffeba366d5cef09ce678c2816f0d23e8d9d690",
+      "family": "offline_meta",
+      "phase": "aftermath",
+      "reason": "主播消失、直播间转为录播后的氛围弹幕"
+    },
+    {
+      "id": "session_end_src_010",
+      "source_index": 17331,
+      "source_text": "玩机器下播了，弹幕气不气",
+      "sha256": "065d9b52bac0cae2f32b11b5537ec499830b55394f4b898f43e1cd547ff43eb9",
+      "family": "offline_meta",
+      "phase": "burst",
+      "reason": "主播刚下播时的短促直接反应"
+    }
+  ]
+}

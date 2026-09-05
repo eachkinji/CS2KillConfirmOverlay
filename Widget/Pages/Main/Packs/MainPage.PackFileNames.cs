@@ -27,7 +27,20 @@ namespace KillConfirmGameBar
         private static readonly string[] ValorantVoicePackImportFiles =
         {
             "1.wav", "2.wav", "3.wav", "4.wav", "5.wav",
-            "headshot.wav"
+            "kill_1.wav", "kill_2.wav", "kill_3.wav", "kill_4.wav", "kill_5.wav",
+            "一杀.wav", "二杀.wav", "双杀.wav", "三杀.wav", "四杀.wav", "五杀.wav",
+            "1杀.wav", "2杀.wav", "3杀.wav", "4杀.wav", "5杀.wav",
+            "headshot.wav", "爆头.wav",
+            "appear.wav", "transition.wav"
+        };
+
+        private static readonly string[] CustomModuleVoicePackImportFiles =
+        {
+            "1.wav", "1-headshot.wav",
+            "2.wav", "2-headshot.wav",
+            "3.wav", "3-headshot.wav",
+            "4.wav", "4-headshot.wav",
+            "5.wav", "5-headshot.wav"
         };
 
         private static readonly string[] DagoujiaoVoicePackImportFiles =
@@ -57,46 +70,7 @@ namespace KillConfirmGameBar
             "assist.wav"
         };
 
-        private static readonly string[] IconPackImportFiles =
-        {
-            "badge_multi1.png",
-            "badge_multi2.png",
-            "badge_multi3.png",
-            "badge_multi4.png",
-            "badge_multi5.png",
-            "badge_multi6.png",
-            "badge_headshot.png",
-            "badge_headshot_gold.png",
-            "badge_knife.png",
-            "FIRSTKILL.png",
-            "LASTKILL.png",
-            "KillMark_Upgrade1.png",
-            "KillMark_Upgrade2.png",
-            "KillMark_Upgrade3.png",
-            "multi2_fx.png",
-            "multi3_fx.png",
-            "multi4_fx.png",
-            "multi5_fx.png",
-            "multi6_fx.png",
-            "badge_knife_1.png",
-            "badge_knife_2.png",
-            "badge_knife_3.png",
-            "badge_assault1.png",
-            "badge_assault2.png",
-            "badge_assault3.png",
-            "badge_scout1.png",
-            "badge_scout2.png",
-            "badge_scout3.png",
-            "badge_sniper1.png",
-            "badge_sniper2.png",
-            "badge_sniper3.png",
-            "badge_elite1.png",
-            "badge_elite2.png",
-            "badge_elite3.png",
-            "badge_knife1.png",
-            "badge_knife2.png",
-            "badge_knife3.png"
-        };
+        private static readonly string[] IconPackImportFiles = Services.CrossfirePackFormat.Files;
 
         private static readonly string[] CsolIconPackImportFiles =
         {
@@ -168,6 +142,21 @@ namespace KillConfirmGameBar
             "killicon_scrolling_assist.png"
         };
 
+        private static readonly string[] OverwatchIconPackImportFiles =
+        {
+            "kill_icon_white.png", "kill_effect_sheet.png"
+        };
+
+        private static readonly string[] ModernWarfare2019IconPackImportFiles =
+        {
+            "killcon.png", "huiguangcod.png"
+        };
+
+        private static readonly string[] ApexIconPackImportFiles =
+        {
+            "hitmark.png"
+        };
+
         private static readonly string[] VoicePackHeadImageNames =
         {
             "pack_head.png",
@@ -178,6 +167,11 @@ namespace KillConfirmGameBar
 
         private static readonly string[] IconPackHeadImageNames =
         {
+            "pack_head.png",
+            "pack_head.jpg",
+            "pack_head.jpeg",
+            "pack_head.webp",
+            "pack_head.tga",
             "badge_headshot.png",
             "badge_headshot.jpg",
             "badge_headshot.jpeg",

@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Windows.Data.Json;
 using System.Threading.Tasks;
 using KillConfirmGameBar.Services;
 using Windows.Storage;
@@ -12,16 +14,16 @@ namespace KillConfirmGameBar
 {
     public sealed partial class MainPage
     {
-        // Valorant voice pack creation dialog. Valorant's built-in voice plays
-        // tier 1-5 streak voices plus a headshot voice, so the custom pack exposes
-        // those six slots (1.wav..5.wav + headshot.wav). The head image uses
-        // Valorant's own kill icon as the default cover.
+        // Keep the editor's slots aligned with the native Valorant audio layers.
         private async Task ShowCreateValorantVoicePackDialogAsync(
             string initialDisplayName = null,
             IReadOnlyDictionary<string, IReadOnlyList<StorageFile>> initialFiles = null,
             StorageFile initialHeadImageFile = null,
-            string defaultHeadPreviewUri = null)
+            string defaultHeadPreviewUri = null,
+            VoicePackItem editingItem = null)
         {
+            if (await TryBatchImportVoiceAsync(initialFiles, initialHeadImageFile, PackCatalogService.CreateValorantVoicePackAsync)) return;
+
             bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
             var slots = new (string FileName, string Label)[]
             {
@@ -30,17 +32,24 @@ namespace KillConfirmGameBar
                 ("3.wav", LocalizationManager.Text("ValorantSlot3")),
                 ("4.wav", LocalizationManager.Text("ValorantSlot4")),
                 ("5.wav", LocalizationManager.Text("ValorantSlot5")),
-                ("headshot.wav", LocalizationManager.Text("ValorantSlotHeadshot"))
+                ("headshot.wav", isChinese ? "通用爆头（分级爆头为空时使用）" : "Fallback headshot"),
+                ("headshot_1.wav", isChinese ? "1 杀爆头" : "Kill 1 headshot"),
+                ("headshot_2.wav", isChinese ? "2 杀爆头" : "Kill 2 headshot"),
+                ("headshot_3.wav", isChinese ? "3 杀爆头" : "Kill 3 headshot"),
+                ("headshot_4.wav", isChinese ? "4 杀爆头" : "Kill 4 headshot"),
+                ("headshot_5.wav", isChinese ? "5 杀爆头" : "Kill 5 headshot"),
+                ("appear.wav", isChinese ? "首次出现音效（appear）" : "Appear"),
+                ("transition.wav", isChinese ? "连杀切换音效（transition）" : "Transition")
             };
 
             var selectedFiles = CreateVoiceSelectionMap(initialFiles);
             StorageFile headImageFile = initialHeadImageFile;
 
             var layout = CreatePackDialogLayout(
-                LocalizationManager.Text("CreateVoicePack"),
+                isChinese ? (editingItem == null ? "创建瓦语音包" : "编辑瓦语音包") : "Valorant audio pack",
                 isChinese
-                    ? "分别选择 1～5 杀和爆头语音；留空或重置的项目使用默认内置 VAL 语音。"
-                    : "Choose Valorant voices for kills 1-5 and headshots. Empty or reset slots use the default built-in Valorant voice.",
+                    ? "支持连杀、分级爆头、出现和切换音效。连杀留空使用内置语音；爆头和出现/切换留空则不叠加。内置包另存副本，自定义包保存到原包。"
+                    : "Edit kill, headshot, appear and transition audio. Empty kill slots use Base; empty optional layers stay silent. Built-in packs save as copies.",
                 LocalizationManager.Text("VoicePackNamePlaceholder"),
                 initialDisplayName,
                 out var nameBox);
@@ -53,6 +62,27 @@ namespace KillConfirmGameBar
             layout.Children.Add(headCard);
 
             var slotContainer = new StackPanel { Spacing = 8 };
+            JsonArray enabledSlots = null;
+            if (editingItem != null)
+            {
+                var folder = await GetVoicePackFolderAsync(editingItem);
+                if (folder != null)
+                {
+                    var manifest = JsonObject.Parse(await FileIO.ReadTextAsync(await folder.GetFileAsync("manifest.json")));
+                    enabledSlots = manifest.GetNamedObject("audio", null)?.GetNamedArray("overlay_slots", null);
+                }
+            }
+            var overlays = new Dictionary<string, CheckBox>();
+            var overlayRow = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
+            slotContainer.Children.Add(new TextBlock { Text = isChinese ? "叠加出现 / 切换音效的连杀阶段" : "Enable appear / transition at", TextWrapping = TextWrapping.Wrap });
+            for (int kill = 1; kill <= 5; kill++)
+            {
+                var check = new CheckBox { Content = isChinese ? kill + " 杀" : "Kill " + kill,
+                    IsChecked = enabledSlots == null || enabledSlots.Any(value => value.ValueType == JsonValueType.String && value.GetString() == "kill_" + kill) };
+                overlays[kill + ".wav"] = check;
+                overlayRow.Children.Add(check);
+            }
+            slotContainer.Children.Add(overlayRow);
             foreach (var slot in slots)
             {
                 selectedFiles.TryGetValue(slot.FileName, out List<StorageFile> existingFiles);
@@ -72,7 +102,7 @@ namespace KillConfirmGameBar
             layout.Children.Add(scroll);
 
             ContentDialogResult result = await ShowPackDialogAsync(
-                layout, LocalizationManager.Text("Create"), LocalizationManager.Text("Cancel"));
+                layout, isChinese ? (editingItem?.IsBuiltIn == true ? "另存副本" : "保存") : "Save", LocalizationManager.Text("Cancel"));
             if (result != ContentDialogResult.Primary)
             {
                 return;
@@ -92,11 +122,16 @@ namespace KillConfirmGameBar
                 catch { }
             }
 
-            await PackCatalogService.CreateValorantVoicePackAsync(packName, new VoicePackBuildOptions
+            try
             {
-                SelectedFileGroups = AsReadOnlyVoiceSelection(selectedFiles),
-                HeadImageFile = headImageFile
-            });
+                await PackCatalogService.SaveValorantVoiceEditAsync(editingItem, packName, new VoicePackBuildOptions
+                {
+                    SelectedFileGroups = AsReadOnlyVoiceSelection(selectedFiles),
+                    HeadImageFile = headImageFile,
+                    CommonOverlayEnabled = overlays.ToDictionary(pair => pair.Key, pair => pair.Value.IsChecked == true)
+                });
+            }
+            catch (Exception ex) { await ShowMessageAsync(isChinese ? "保存失败，原包已保留" : "Save failed; original retained", ex.Message); }
         }
     }
 }

@@ -99,7 +99,7 @@ namespace KillConfirmGameBar
                     return new EventVoiceEditorDefinition
                     {
                         SoundsFolder = "battlefield2042",
-                        DefaultHeadPreviewUri = "ms-appx:///Assets/GameStyles/battlefield2042/killconfirm/textures/NormalSkull.png",
+                        DefaultHeadPreviewUri = "ms-appx:///Assets/GameLogos/battlefield2042.png",
                         ChineseHint = "分别为战地2042的普通击杀和爆头选择提示音。",
                         EnglishHint = "Choose separate cues for Battlefield 2042 normal kills and headshots.",
                         Slots = new[]
@@ -159,6 +159,8 @@ namespace KillConfirmGameBar
             IReadOnlyDictionary<string, IReadOnlyList<StorageFile>> initialFiles = null,
             StorageFile initialHeadImageFile = null)
         {
+            if (await TryBatchImportVoiceAsync(initialFiles, initialHeadImageFile, (name, options) => PackCatalogService.CreateEventVoicePackAsync(style, name, options))) return;
+
             EventVoiceEditorDefinition definition = GetEventVoiceEditorDefinition(style);
             if (style != GameStyleMode.Apex)
             {

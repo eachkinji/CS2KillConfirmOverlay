@@ -18,6 +18,8 @@ namespace KillConfirmGameBar
             StorageFile initialCommonOverlayFile = null,
             StorageFile initialHeadImageFile = null)
         {
+            if (await TryBatchImportVoiceAsync(initialFiles, initialHeadImageFile, PackCatalogService.CreateVoicePackAsync, initialCommonOverlayFile)) return;
+
             var slots = new[]
             {
                 ("common.wav", LocalizationManager.Text("SingleKill")),
@@ -49,7 +51,7 @@ namespace KillConfirmGameBar
                 out var nameBox);
 
             var headCard = await CreateHeadImageCardAsync(
-                "ms-appx:///Assets/KillConfirmCode/Original/badge_headshot.PNG",
+                CrossfireExternalAssetService.VisualUri("Original", "badge_headshot.PNG"),
                 headImageFile,
                 f => headImageFile = f,
                 () => headImageFile = null);

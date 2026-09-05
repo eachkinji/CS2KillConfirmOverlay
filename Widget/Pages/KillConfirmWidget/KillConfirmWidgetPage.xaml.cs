@@ -34,10 +34,9 @@ namespace KillConfirmGameBar
 {
     public sealed partial class KillConfirmWidgetPage : Page
     {
-        private static readonly Size DefaultWidgetSize = new Size(550, 600);
+        private static readonly Size DefaultWidgetSize = new Size(550, 560);
         private static readonly Size MinWidgetSize = new Size(50, 50);
         private static readonly Size MaxWidgetSize = new Size(3840, 2160);
-        private const double HostLayoutRefreshNudge = 2.0;
         private const double AnimationOffsetStep = 12.0;
         private const double MaxAnimationOffsetRatio = 0.45;
         // A bottom/top preset places the effect center on the 4/5 or 1/5
@@ -79,6 +78,10 @@ namespace KillConfirmGameBar
         };
         private static readonly string[] IconPackHeadImageNames =
         {
+            "pack_head.png",
+            "pack_head.jpg",
+            "pack_head.jpeg",
+            "pack_head.webp",
             "badge_headshot.png",
             "badgeex\\badge_headshot.png"
         };
@@ -175,8 +178,6 @@ namespace KillConfirmGameBar
         private const string PanelOffsetXSettingKey = "PanelOffsetX";
         private const string PanelOffsetYSettingKey = "PanelOffsetY";
         private const string PanelCollapsedSettingKey = "PanelCollapsed";
-        private const string FixedPanelBaselineMigrationKey = "FixedPanelBaselineAfterScaleRemovalV1";
-        private const string RemovedControlPanelScaleSettingKey = "ControlPanelUiScale";
         private static readonly Uri ServiceHealthUri = LocalServiceEndpoints.Build("/health");
         private static readonly Uri GsiStatusUri = LocalServiceEndpoints.Build("/gsi-status");
         private static readonly Uri ServiceShutdownUri = LocalServiceEndpoints.Build("/shutdown");
@@ -195,6 +196,7 @@ namespace KillConfirmGameBar
         private static readonly TimeSpan ServiceStartupPollInterval = TimeSpan.FromMilliseconds(250);
         private const string FreeServicePortParameterGroupId = "FreeServicePort";
         internal const string OpenRuntimeLogsParameterGroupId = "OpenRuntimeLogs";
+        internal const string OpenGameBarParameterGroupId = "OpenGameBar";
         internal const string ExitAllParameterGroupId = "ExitAll";
         internal const string OpenUninstallerParameterGroupId = "OpenUninstaller";
         private const string OpenSettingsWindowParameterGroupId = "OpenSettingsWindow";
@@ -256,11 +258,6 @@ namespace KillConfirmGameBar
         private bool _isPinned;
         private bool _clickThroughEnabled;
         private bool _hasGameBarSetupState;
-        private readonly SemaphoreSlim _widgetLayoutRefreshGate = new SemaphoreSlim(1, 1);
-        private int _widgetLayoutRefreshRequestVersion;
-        private bool _hostLayoutHandlersAttached;
-        private bool _isSynchronizingHostLayout;
-        private string _lastHostLayoutSignature = string.Empty;
         private bool _suppressVisualAdjustmentEvents;
         private bool _suppressVoicePackEvents;
         private bool _suppressIconPackEvents;
@@ -384,7 +381,6 @@ namespace KillConfirmGameBar
             GsiGameVersionSettingsStore.VersionChanged -= OnGsiGameVersionChanged;
             _controlPanelStateTimer?.Stop();
             _statusHintTimer?.Stop();
-            DetachHostLayoutHandlers();
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -407,11 +403,22 @@ namespace KillConfirmGameBar
                 _widget.WindowStateChanged += OnWidgetWindowStateChanged;
                 _widget.ClickThroughEnabledChanged += OnClickThroughEnabledChanged;
                 _widget.PinnedChanged += OnWidgetPinnedChanged;
-                _widget.WindowBoundsChanged += OnWidgetWindowBoundsChanged;
                 SyncWidgetPresentationState();
             }
 
-            AttachHostLayoutHandlers();
+            try
+            {
+                var display = Windows.Graphics.Display.DisplayInformation.GetForCurrentView();
+                display.DpiChanged -= OnDisplayChanged;
+                display.DpiChanged += OnDisplayChanged;
+                display.OrientationChanged -= OnDisplayChanged;
+                display.OrientationChanged += OnDisplayChanged;
+                Windows.Graphics.Display.DisplayInformation.DisplayContentsInvalidated -= OnDisplayContentsInvalidated;
+                Windows.Graphics.Display.DisplayInformation.DisplayContentsInvalidated += OnDisplayContentsInvalidated;
+            }
+            catch (Exception)
+            {
+            }
 
             LoadVisualAdjustmentSettings();
             LoadMoneyRewardModeSettings();
@@ -420,7 +427,6 @@ namespace KillConfirmGameBar
             _statusHintTimer.Start();
             StartAutoCloseGameExitMonitoring();
             ConfigureWidgetCapabilities();
-            _ = InitializeWidgetLayoutAsync();
             _ = InitializePackSelectorsAndServiceAsync();
             _ = LoadSavedCsFolderAsync();
             _ = CheckForUpdatesAsync(false);
@@ -428,10 +434,44 @@ namespace KillConfirmGameBar
             base.OnNavigatedTo(e);
         }
 
+        private void OnDisplayContentsInvalidated(object sender, object args)
+        {
+            OnDisplayChanged(null, args);
+        }
+
+        private async void OnDisplayChanged(Windows.Graphics.Display.DisplayInformation sender, object args)
+        {
+            if (!_isPageActive)
+            {
+                return;
+            }
+
+            try
+            {
+                await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+                {
+                    if (!_isPageActive) return;
+                    UpdateAnimationDragOutlineSize();
+                });
+            }
+            catch (Exception)
+            {
+            }
+        }
+
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
             _isPageActive = false;
-            Interlocked.Increment(ref _widgetLayoutRefreshRequestVersion);
+            try
+            {
+                var display = Windows.Graphics.Display.DisplayInformation.GetForCurrentView();
+                display.DpiChanged -= OnDisplayChanged;
+                display.OrientationChanged -= OnDisplayChanged;
+                Windows.Graphics.Display.DisplayInformation.DisplayContentsInvalidated -= OnDisplayContentsInvalidated;
+            }
+            catch (Exception)
+            {
+            }
             GameStyleService.Changed -= OnGameStyleServiceChanged;
             PackCatalogService.CatalogChanged -= OnPackCatalogChanged;
             _animationPreloadToken++;
@@ -448,10 +488,7 @@ namespace KillConfirmGameBar
                 _widget.WindowStateChanged -= OnWidgetWindowStateChanged;
                 _widget.ClickThroughEnabledChanged -= OnClickThroughEnabledChanged;
                 _widget.PinnedChanged -= OnWidgetPinnedChanged;
-                _widget.WindowBoundsChanged -= OnWidgetWindowBoundsChanged;
             }
-
-            DetachHostLayoutHandlers();
 
             _controlPanelStateTimer.Stop();
             _statusHintTimer.Stop();

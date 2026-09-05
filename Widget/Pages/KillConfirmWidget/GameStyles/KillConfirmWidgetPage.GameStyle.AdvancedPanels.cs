@@ -22,6 +22,7 @@ namespace KillConfirmGameBar
         private Battlefield2042AdvancedEffectsPanel _battlefield2042AdvancedEffectsPanel;
         private PubgAdvancedEffectsPanel _pubgAdvancedEffectsPanel;
         private DeltaForceAdvancedEffectsPanel _deltaForceAdvancedEffectsPanel;
+        private CustomModulePanel _customModulePanel;
         private DoubaoAdvancedEffectsPanel _doubaoAdvancedEffectsPanel;
         private DagoujiaoAdvancedEffectsPanel _dagoujiaoAdvancedEffectsPanel;
 
@@ -129,6 +130,14 @@ namespace KillConfirmGameBar
                 case GameStyleMode.DeltaForce:
                     panel = EnsureDeltaForceAdvancedEffectsPanel();
                     break;
+                case GameStyleMode.CustomModule:
+                    if (_customModulePanel == null)
+                    {
+                        _customModulePanel = new CustomModulePanel();
+                        _customModulePanel.StreakModeSelectionChanged += OnSharedStreakModeSelectionChanged;
+                    }
+                    panel = _customModulePanel;
+                    break;
                 case GameStyleMode.Doubao:
                     panel = EnsureDoubaoAdvancedEffectsPanel();
                     break;
@@ -163,6 +172,8 @@ namespace KillConfirmGameBar
                 GameStyleService.Current,
                 LocalizationManager.Current == UiLanguage.SimplifiedChinese,
                 GameThemePalette.ForMode(GameStyleService.Current));
+            PackTestSectionView.KillFeedbackAppearanceEditorControl.CrosshairOffsetChanged -= OnCrosshairOffsetSettingChanged;
+            PackTestSectionView.KillFeedbackAppearanceEditorControl.CrosshairOffsetChanged += OnCrosshairOffsetSettingChanged;
 
             ApplyAdvancedEffectsPanelLanguage();
             ApplyAdvancedEffectsPanelTheme();
@@ -391,6 +402,19 @@ namespace KillConfirmGameBar
                 LoadSharedStreakMode(GameStyleMode.Dagoujiao);
             }
             return _dagoujiaoAdvancedEffectsPanel;
+        }
+
+        private void OnCrosshairOffsetSettingChanged(object sender, System.EventArgs e)
+        {
+            if (KillFeedbackFrameDefinition.GetLegacyPrimaryLayer(GameStyleService.Current)
+                == KillFeedbackLayer.Crosshair)
+            {
+                ApplyLegacyPrimaryTransform();
+            }
+            else
+            {
+                ApplyLegacyAuxiliaryTransform();
+            }
         }
     }
 }

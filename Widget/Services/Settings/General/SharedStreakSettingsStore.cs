@@ -90,7 +90,7 @@ namespace KillConfirmGameBar.Services
             string value = settings[SettingKey(style)] as string;
             if (string.IsNullOrWhiteSpace(value))
             {
-                value = settings[LegacySharedSettingKey] as string;
+                value = style == GameStyleMode.CustomModule ? LifeMode : settings[LegacySharedSettingKey] as string;
             }
 
             return Normalize(value);
@@ -106,7 +106,7 @@ namespace KillConfirmGameBar.Services
             string normalized = Normalize(value);
             var settings = ApplicationData.Current.LocalSettings.Values;
             settings[SettingKey(style)] = normalized;
-            settings[LegacySharedSettingKey] = normalized;
+            if (style != GameStyleMode.CustomModule) settings[LegacySharedSettingKey] = normalized;
         }
 
         public static string Read(ComboBox selector, string fallback = LifeMode)

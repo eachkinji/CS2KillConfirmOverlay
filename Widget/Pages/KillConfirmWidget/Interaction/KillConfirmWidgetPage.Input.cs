@@ -90,7 +90,7 @@ namespace KillConfirmGameBar
                 // Dispatcher itself can become unavailable while Game Bar is
                 // tearing the page down. Do not let that lifecycle race escape
                 // an async-void event handler and terminate the widget process.
-                if (_isPageActive)
+if (_isPageActive)
                 {
                     App.LogCrash("Game style dispatch failed: " + ex);
                 }
@@ -115,6 +115,129 @@ namespace KillConfirmGameBar
             }
             catch (Exception)
             {
+            }
+        }
+
+        private async void OnFitScreenClick(object sender, RoutedEventArgs e)
+        {
+            await FitScreenAsync("visual-toolbar");
+        }
+
+        private async Task FitScreenAsync(string source = "visual-toolbar")
+        {
+            XboxGameBarWidget widget = _widget;
+            if (widget == null)
+            {
+                App.LogCrash("[FitScreen] widget is null! Button was clicked outside Game Bar widget context.");
+                ShowStatusHint(LocalizationManager.Current == UiLanguage.SimplifiedChinese ? "仅在 Game Bar 小组件中支持窗口改框" : "Widget resize only supported in Game Bar", Color.FromArgb(255, 234, 179, 8));
+                return;
+            }
+
+            try
+            {
+                double scale = 1.0;
+                double rawWidth = 0;
+                double rawHeight = 0;
+
+                try
+                {
+                    var display = Windows.Graphics.Display.DisplayInformation.GetForCurrentView();
+                    scale = display.RawPixelsPerViewPixel;
+                    if (scale <= 0)
+                    {
+                        scale = 1.0;
+                    }
+
+                    rawWidth = display.ScreenWidthInRawPixels;
+                    rawHeight = display.ScreenHeightInRawPixels;
+                }
+                catch (Exception ex)
+                {
+                    App.LogCrash("DisplayInformation query failed: " + ex.Message);
+                }
+
+                // Fallback 1: Query Window bounds if display resolution is missing
+                if (rawWidth <= 100 || rawHeight <= 100)
+                {
+                    try
+                    {
+                        var bounds = Window.Current?.Bounds;
+                        if (bounds.HasValue && bounds.Value.Width > 100 && bounds.Value.Height > 100)
+                        {
+                            rawWidth = bounds.Value.Width * scale;
+                            rawHeight = bounds.Value.Height * scale;
+                        }
+                    }
+                    catch (Exception)
+                    {
+                    }
+                }
+
+                // Fallback 2: Common 1080p fallback
+                if (rawWidth <= 100 || rawHeight <= 100)
+                {
+                    rawWidth = 1920.0;
+                    rawHeight = 1080.0;
+                }
+
+                double baseWidth = rawWidth / scale;
+                double baseHeight = rawHeight / scale;
+
+                widget.HorizontalResizeSupported = true;
+                widget.VerticalResizeSupported = true;
+                widget.MinWindowSize = new Size(50, 50);
+                widget.MaxWindowSize = new Size(Math.Max(3840, baseWidth + 500), Math.Max(2160, baseHeight + 500));
+
+                // 用户要求：高度锁定 85%，宽度尽可能大
+                double targetHeight = Math.Floor(baseHeight * 0.85);
+
+                // 宽度从 100% 满宽开始尽可能大向下探测
+                double[] widthFactors = new double[] { 1.00, 0.99, 0.98, 0.97, 0.96, 0.95, 0.94, 0.92, 0.90, 0.85, 0.80 };
+                var probeList = new System.Collections.Generic.List<Size>();
+
+                foreach (double wf in widthFactors)
+                {
+                    probeList.Add(new Size(Math.Floor(baseWidth * wf), targetHeight));
+                }
+                foreach (double wf in widthFactors)
+                {
+                    probeList.Add(new Size(Math.Floor(baseWidth * wf), Math.Floor(targetHeight * 0.95)));
+                }
+
+                bool accepted = false;
+                Size acceptedSize = probeList[0];
+
+                foreach (var candidate in probeList)
+                {
+                    if (candidate.Width < 200 || candidate.Height < 200)
+                    {
+                        continue;
+                    }
+
+                    accepted = await widget.TryResizeWindowAsync(candidate);
+                    acceptedSize = candidate;
+                    if (accepted)
+                    {
+                        break;
+                    }
+                }
+
+                // Small delay to allow Game Bar host window manager to apply the resize animation
+                await Task.Delay(120);
+                await widget.CenterWindowAsync();
+
+                Rect actual = Window.Current?.Bounds ?? new Rect(0, 0, acceptedSize.Width, acceptedSize.Height);
+                string diagMsg = $"[FitScreen] source={source}, requested={acceptedSize.Width:F0}x{acceptedSize.Height:F0} (base={baseWidth:F0}x{baseHeight:F0}, scale={scale:F2}), accepted={accepted}, actual={actual.Width:F0}x{actual.Height:F0}";
+                App.LogCrash(diagMsg);
+
+                ShowStatusHint(
+                    $"[伪全屏] 尺寸={acceptedSize.Width:0}×{acceptedSize.Height:0}, 铺满={accepted}",
+                    accepted ? Color.FromArgb(255, 5, 122, 85) : Color.FromArgb(255, 234, 179, 8));
+            }
+            catch (Exception ex)
+            {
+                App.LogCrash("FitScreen failed (" + source + "): " + ex.Message);
+                ShowStatusHint("伪全屏异常: " + ex.Message, Color.FromArgb(255, 185, 28, 28));
             }
         }
 
@@ -165,19 +288,7 @@ namespace KillConfirmGameBar
 
             SetFeedbackFramePlacement(KillFeedbackLayer.Crosshair, AnimationPlacementMode.Center);
 
-            if (_widget == null)
-            {
-                return;
-            }
-
-            try
-            {
-                await _widget.CenterWindowAsync();
-            }
-            catch (Exception ex)
-            {
-                App.Log("Center crosshair effect window failed: " + ex.Message);
-            }
+            await CenterWidgetWindowAsync("crosshair-center");
         }
 
         private void OnWindowTopClick(object sender, RoutedEventArgs e)

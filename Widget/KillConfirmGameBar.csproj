@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
 
@@ -18,12 +18,10 @@
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{A5A43C5B-DE2A-4C0C-9213-0A381AF9435A};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WindowsXamlEnableOverview>true</WindowsXamlEnableOverview>
-    <AppxPackageSigningEnabled Condition="'$(AppxPackageSigningEnabled)' == ''">false</AppxPackageSigningEnabled>
+    <AppxPackageSigningEnabled>true</AppxPackageSigningEnabled>
+    <PackageCertificateKeyFile>..\..\cer\TestXboxGameBar\TestXboxGameBar-CodeSigning.pfx</PackageCertificateKeyFile>
+    <PackageCertificatePassword>nPkhFb/cMGyREJM1kMD/TeD9QRvtaYvw6ZNq+Gp8QhPIckCE</PackageCertificatePassword>
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(GenerateAppxPackageOnBuild)' == 'false'">
-    <AppxPackageSigningEnabled>false</AppxPackageSigningEnabled>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
@@ -103,6 +101,37 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Danmaku\Engine\DanmakuEvent.cs" />
+    <Compile Include="Danmaku\Engine\DanmakuReactionPolicy.cs" />
+    <Compile Include="Danmaku\Engine\DanmakuEventPoolRepository.cs" />
+    <Compile Include="Danmaku\Engine\SemanticAnnotationRepository.cs" />
+    <Compile Include="Danmaku\Engine\SemanticProfileRepository.cs" />
+    <Compile Include="Danmaku\Engine\DanmakuSelectionHistory.cs" />
+    <Compile Include="Danmaku\Engine\DanmakuWeightEngine.cs" />
+    <Compile Include="Danmaku\Engine\DanmakuImpulseManager.cs" />
+    <Compile Include="Danmaku\Engine\DanmakuLiveScheduler.cs" />
+    <Compile Include="Danmaku\Engine\DanmakuSessionController.cs" />
+    <Compile Include="Danmaku\Engine\DanmakuBatchComposer.cs" />
+    <Compile Include="Danmaku\Engine\DanmakuPendingQueue.cs" />
+    <Compile Include="Danmaku\Engine\DanmakuMotion.cs" />
+    <Compile Include="Danmaku\Engine\DanmakuLaneLayout.cs" />
+    <Compile Include="Danmaku\DanmakuRepository.cs" />
+    <Compile Include="Danmaku\DanmakuSettingsStore.cs" />
+    <Compile Include="Danmaku\DanmakuOverlay.xaml.cs">
+      <DependentUpon>DanmakuOverlay.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Danmaku\DanmakuOptionsPanel.xaml.cs">
+      <DependentUpon>DanmakuOptionsPanel.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Services\Runtime\GsiStatusMonitor.cs" />
+    <Compile Include="Services\CustomModule\CustomSequenceFormat.cs" />
+    <Compile Include="Services\CustomModule\CustomSequencePackService.cs" />
+    <Compile Include="Services\CustomModule\CustomSequencePackService.Editing.cs" />
+    <Compile Include="Services\CustomModule\CustomSequencePackService.Video.cs" />
+    <Compile Include="Services\Catalog\PackCatalogService.CustomModule.cs" />
+    <Compile Include="Controls\Animations\CustomModule\CustomModuleAnimation.cs" />
+    <Compile Include="Controls\GameStyles\CustomModule\CustomModulePanel.cs" />
+    <Compile Include="Pages\Main\Packs\MainPage.CustomModule.cs" />
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
@@ -126,6 +155,8 @@
     <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.DoubaoVoice.cs" />
     <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.EventVoice.cs" />
     <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.ValorantVoice.cs" />
+    <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.ValorantIcon.cs" />
+    <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.CustomModuleVoice.cs" />
     <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.OverwatchVoice.cs" />
     <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.ModernWarfare2019Voice.cs" />
     <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.DoubaoIcon.cs" />
@@ -206,6 +237,9 @@
     <Compile Include="Controls\Animations\Core\KillConfirmAnimation.Models.cs" />
     <Compile Include="Controls\Animations\Core\KillConfirmAnimation.Assets.cs" />
     <Compile Include="Controls\Animations\Core\KillConfirmAnimation.AssetOverlays.cs" />
+    <Compile Include="Controls\Animations\Core\KillConfirmAnimation.CrossfireLayers.cs" />
+    <Compile Include="Controls\Animations\Core\CrossfireStyle2Motion.cs" />
+    <Compile Include="Controls\Animations\Core\KillConfirmAnimation.CrossfireStyle2.cs" />
     <Compile Include="Controls\Animations\Csol\CsolAnimation.Data.cs" />
     <Compile Include="Controls\Animations\Csol\CsolAnimation.Playback.cs" />
     <Compile Include="Controls\Animations\Csol\CsolAnimation.Resources.cs" />
@@ -292,8 +326,9 @@
     <Compile Include="Controls\Animations\Valorant\ValorantAnimation.Render.cs" />
     <Compile Include="Controls\Animations\Valorant\ValorantAnimation.Drawing.cs" />
     <Compile Include="Controls\Animations\Valorant\ValorantAnimation.Effects.cs" />
-    <Compile Include="Controls\Animations\Valorant\ValorantAnimation.Motion.cs" />
     <Compile Include="Controls\Animations\Valorant\ValorantAnimation.Profiles.cs" />
+    <Compile Include="Controls\Animations\Valorant\ValorantAnimation.NativeDrawing.cs" />
+    <Compile Include="Controls\Animations\Valorant\ValorantAnimation.CookedAfterglow.cs" />
     <Compile Include="Controls\GameStyles\Shared\AdvancedEffectsPanelSupport.cs" />
     <Compile Include="Controls\GameStyles\Shared\KillFeedbackAppearanceEditor.xaml.cs">
       <DependentUpon>KillFeedbackAppearanceEditor.xaml</DependentUpon>
@@ -303,6 +338,9 @@
     </Compile>
     <Compile Include="Controls\GameStyles\Shared\StreakWindowEditor.xaml.cs">
       <DependentUpon>StreakWindowEditor.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\GameStyles\Shared\CrosshairOffsetEditor.xaml.cs">
+      <DependentUpon>CrosshairOffsetEditor.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\GameStyles\Battlefield1\Battlefield1AdvancedEffectsPanel.xaml.cs">
       <DependentUpon>Battlefield1AdvancedEffectsPanel.xaml</DependentUpon>
@@ -429,6 +467,8 @@
     <Compile Include="Services\Settings\General\PortSettingsStore.cs" />
     <Compile Include="Services\Runtime\ServiceLauncher.cs" />
     <Compile Include="Services\Settings\Audio\AssistAudioSettingsStore.cs" />
+    <Compile Include="Services\Settings\Crosshair\CrosshairOffsetSettingsStore.cs" />
+    <Compile Include="Services\Settings\Games\ModernWarfare2019FeedOffsetSettingsStore.cs" />
     <Compile Include="Services\Settings\Games\ValorantPackSyncSettingsStore.cs" />
     <Compile Include="Services\Settings\Games\CrossfireGameplaySettingsStore.cs" />
     <Compile Include="Services\Settings\Games\CsolVoiceSettingsStore.cs" />
@@ -450,6 +490,8 @@
     <Compile Include="Services\Styling\GameStyleService.PackMappings.cs" />
     <Compile Include="Services\Styling\GameThemePalette.cs" />
     <Compile Include="Services\Catalog\Games\ValorantPackService.cs" />
+    <Compile Include="Services\Catalog\Games\ValorantExternalAssetService.cs" />
+    <Compile Include="Services\Catalog\Games\CrossfireExternalAssetService.cs" />
     <Compile Include="Services\Localization\LocalizationManager.cs" />
     <Compile Include="Services\Localization\LocalizationManager.English.Core.cs" />
     <Compile Include="Services\Localization\LocalizationManager.English.Widget.cs" />
@@ -457,17 +499,24 @@
     <Compile Include="Services\Localization\LocalizationManager.Chinese.Widget.cs" />
     <Compile Include="Services\Catalog\PackCatalogModels.cs" />
     <Compile Include="Services\Catalog\PackCatalogService.cs" />
+    <Compile Include="Services\Catalog\PackCatalogService.Order.cs" />
+    <Compile Include="Pages\Main\Packs\MainPage.PackOrder.cs" />
     <Compile Include="Services\Catalog\PackCatalogService.Icon.cs" />
     <Compile Include="Services\Catalog\PackCatalogService.Icon.Creation.cs" />
+    <Compile Include="Services\Catalog\CrossfirePackFormat.cs" />
     <Compile Include="Services\Catalog\PackCatalogService.Storage.cs" />
     <Compile Include="Services\Catalog\PackCatalogService.GameStorage.cs" />
     <Compile Include="Services\Catalog\PackCatalogService.Voice.cs" />
     <Compile Include="Services\Catalog\PackCatalogService.Voice.Creation.cs" />
+    <Compile Include="Services\Catalog\PackCatalogService.ValorantEditing.cs" />
     <Compile Include="Services\Catalog\Games\PackCatalogService.Overwatch.cs" />
     <Compile Include="Services\Catalog\Games\PackCatalogService.ModernWarfare2019.cs" />
     <Compile Include="Services\Settings\Games\DoubaoSettingsStore.cs" />
     <Compile Include="Helpers\ProcessPriorityBoost.cs" />
     <Compile Include="Helpers\TgaDecoder.cs" />
+    <Compile Include="Helpers\AudioSlotAliases.cs" />
+    <Compile Include="Services\Catalog\PackLibraryNavigation.cs" />
+    <Compile Include="Pages\Main\Packs\MainPage.PackLibrary.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
 
@@ -497,7 +546,7 @@
     <Content Include="Assets\bilibili.svg" />
     <Content Include="Assets\GitHub.png" />
     <Content Include="Assets\bilibili.png" />
-    <Content Include="Assets\KillConfirmCode\**\*">
+    <Content Include="Assets\KillConfirmCode\Csol4\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Assets\FluentIcons\*">
@@ -509,11 +558,30 @@
     <Content Include="Assets\GameLogos\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="..\SourceAssets\GameStyles\crossfire\iconpacks\default\**\*">
+      <Link>Assets\GameStyles\crossfire\iconpacks\default\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Assets\GameStyles\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="GameBar\Square44x44Logo.png" />
     <Content Include="KillConfirmService\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Danmaku\6657_memes.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Danmaku\EventPools\*.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Danmaku\Pools\semantic_event_profiles.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Danmaku\LifecyclePools\*.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Danmaku\Annotation\6657_annotations_v1.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
@@ -564,6 +632,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Controls\GameStyles\Shared\StreakWindowEditor.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\GameStyles\Shared\CrosshairOffsetEditor.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -724,6 +796,14 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Controls\Overlays\Update\UpdateOverlayView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Danmaku\DanmakuOverlay.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Danmaku\DanmakuOptionsPanel.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

@@ -7,6 +7,7 @@
     };
     let mut kill_event_to_send = None;
     let mut badge_only_event_to_send = None;
+    let mut death_event_to_send = None;
     let mut assist_event_to_send = None;
     let mut bomb_objective_event_to_send = None;
     let mut hostage_objective_event_to_send = None;
@@ -202,7 +203,7 @@
                     play_main_animation: pending_last_kill.kill_count == 1
                         && pending_last_kill.is_headshot,
                     animation_key: None,
-                    event_kind: Some("kill".to_string()),
+                    event_kind: Some("kill_confirmation".to_string()),
                     weapon_badge_key: pending_last_kill.weapon_badge_key.clone(),
                     weapon_name: pending_last_kill.weapon_name.clone(),
                     money_reward: pending_last_kill.money_reward,
@@ -435,6 +436,30 @@
         }
     }
 
+    if should_emit_player_death(is_initialized, death_reset, observed_player_is_local) {
+        death_event_to_send = Some(KillEvent {
+            event_channel: EventChannel::Combat,
+            kill_count: 0,
+            is_headshot: false,
+            is_knife_kill: false,
+            is_grenade_kill: false,
+            is_first_kill: false,
+            is_last_kill: false,
+            is_assist: false,
+            play_main_animation: false,
+            animation_key: None,
+            event_kind: Some("player_death".to_string()),
+            weapon_badge_key: None,
+            weapon_name: None,
+            money_reward: 0,
+            round_number: current_round,
+            money_epoch: current_money_epoch,
+            player_name: player_name.clone(),
+            target_name: None,
+            steamid: steamid.to_string(),
+        });
+    }
+
     if !can_emit_kill {
         pending_last_kill_for_next =
             advance_pending_last_kill_frame(pending_last_kill_for_next);
@@ -444,6 +469,7 @@
         pending_last_kill_for_next,
         kill_event_to_send,
         badge_only_event_to_send,
+        death_event_to_send,
         assist_event_to_send,
         bomb_objective_event_to_send,
         hostage_objective_event_to_send,

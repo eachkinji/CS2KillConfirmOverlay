@@ -20,8 +20,9 @@ namespace KillConfirmGameBar.Controls
 {
     public sealed partial class KillConfirmAnimation : UserControl
     {
-        private async void PlayInternal(Func<IProgress<int>, Task<AnimationAsset>> assetLoader)
+        private async void PlayInternal(Func<IProgress<int>, Task<AnimationAsset>> assetLoader, bool showLoading = true, AnimationAsset cachedAsset = null)
         {
+            _customSequencePlaying = false;
             int resourceGeneration = _resourceGeneration;
             _contentSizedViewport = false;
             _isBattlefield1CompactLayoutActive = false;
@@ -39,7 +40,7 @@ namespace KillConfirmGameBar.Controls
             bool isLoading = true;
             var progress = new Progress<int>(value =>
             {
-                if (isLoading && token == _playToken)
+                if (showLoading && isLoading && token == _playToken)
                 {
                     ShowLoadingProgress(value);
                 }
@@ -47,24 +48,27 @@ namespace KillConfirmGameBar.Controls
 
             try
             {
-                _ = ShowLoadingProgressIfStillLoadingAsync(token, progress);
-                AnimationAsset asset;
-                await PreloadGate.WaitAsync();
-                try
+                if (showLoading) _ = ShowLoadingProgressIfStillLoadingAsync(token, progress);
+                AnimationAsset asset = cachedAsset;
+                if (asset == null)
                 {
-                    if (resourceGeneration != _resourceGeneration)
+                    await PreloadGate.WaitAsync();
+                    try
                     {
-                        return;
+                        if (resourceGeneration != _resourceGeneration)
+                        {
+                            return;
+                        }
+                        asset = await assetLoader(progress);
                     }
-                    asset = await assetLoader(progress);
-                }
-                finally
-                {
-                    if (resourceGeneration != _resourceGeneration)
+                    finally
                     {
-                        ReleaseAllAnimationResourceCaches();
+                        if (resourceGeneration != _resourceGeneration)
+                        {
+                            ReleaseAllAnimationResourceCaches();
+                        }
+                        PreloadGate.Release();
                     }
-                    PreloadGate.Release();
                 }
 
                 if (token != _playToken || resourceGeneration != _resourceGeneration)
@@ -85,9 +89,11 @@ namespace KillConfirmGameBar.Controls
 
                 HideLoadingProgress();
                 Visibility = Visibility.Visible;
-                _timer.Interval = TimeSpan.FromMilliseconds(1000.0 / FrameSequenceFps);
-                ShowFrame(0);
+                double samplingFps = _currentCodeAsset != null && _mainAnimationStyle == 2
+                    ? Math.Max(30, Math.Min(60, _targetPlaybackFps)) : FrameSequenceFps;
+                _timer.Interval = TimeSpan.FromMilliseconds(1000.0 / samplingFps);
                 _playbackClock.Restart();
+                ShowFrame(0);
                 _timer.Start();
             }
             catch (Exception ex)

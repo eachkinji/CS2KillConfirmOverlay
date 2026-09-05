@@ -37,11 +37,6 @@ namespace KillConfirmGameBar
             // customized red-frame positions and sizes.
             ResetCurrentGameAnimationPlacement();
 
-            // This button is also the user's explicit recovery path for a stale
-            // Game Bar composition surface after a display-mode/resolution switch.
-            // The refresh performs a small host-window size nudge and restores the
-            // fixed size so Game Bar rebuilds both drawing and input bounds.
-            RequestFixedWidgetLayoutRefresh("manual-visual-reset");
         }
 
         private void LoadVisualAdjustmentSettings()
@@ -258,6 +253,10 @@ namespace KillConfirmGameBar
             {
                 _legacyPrimaryPlacement = AnimationPlacementMode.Manual;
             }
+            else if (style == GameStyleMode.CustomModule && string.Equals(placement, nameof(AnimationPlacementMode.Center), StringComparison.OrdinalIgnoreCase))
+            {
+                _legacyPrimaryPlacement = AnimationPlacementMode.Center;
+            }
             else
             {
                 _legacyPrimaryPlacement = GetDefaultAnimationPlacement(style);
@@ -400,6 +399,8 @@ namespace KillConfirmGameBar
             GameStyleMode style,
             string savedPlacement)
         {
+            // This new style has no legacy defaults to migrate; preserve choices made in the main app.
+            if (style == GameStyleMode.CustomModule) return;
             string revisionKey = AnimationPlacementDefaultsRevisionKey + "." + GameStyleService.ToStorageValue(style);
             if (localSettings.Values[revisionKey] is bool applied && applied)
             {

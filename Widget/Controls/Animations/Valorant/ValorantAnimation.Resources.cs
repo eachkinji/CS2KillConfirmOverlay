@@ -7,6 +7,7 @@ using KillConfirmGameBar.Services;
 using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.Effects;
 using Windows.Foundation;
+using Windows.Storage;
 using Windows.UI;
 
 namespace KillConfirmGameBar.Controls
@@ -30,9 +31,6 @@ namespace KillConfirmGameBar.Controls
                 KillCount = Math.Max(1, Math.Min(6, killCount)),
                 IsHeadshot = isHeadshot,
                 Accent = profile.Accent,
-                Brightness = profile.IsGaia ? ValorantGaiaBrightness : 1.0f,
-                Contrast = profile.IsGaia ? ValorantGaiaContrast : 1.0f,
-                SpinDirection = NextValorantSpinDirection(),
                 DemoProfile = profile,
                 Textures = textures
             };
@@ -43,7 +41,7 @@ namespace KillConfirmGameBar.Controls
                 {
                     FrameWidth = (int)ValorantFrameWidth,
                     FrameHeight = (int)ValorantFrameHeight,
-                    Frames = ValorantFrameCount,
+                    Frames = GetNativeValorantFrameCount(asset.KillCount),
                     Fps = FrameSequenceFps
                 },
                 asset);
@@ -140,6 +138,9 @@ namespace KillConfirmGameBar.Controls
         {
             string folder = ValorantPackService.GetFolder(packKey) ?? ValorantPackService.GetFolder(ValorantPackService.DefaultKey);
             string root = $"ms-appx:///Assets/GameStyles/valorant/killconfirm/{folder}";
+            const string nativeSupportRoot =
+                "ms-appx:///Assets/GameStyles/valorant/killconfirm/_native/shared";
+            const string nativeSupportFolder = "_native/shared";
             var textures = new ValorantTextureSet
             {
                 PackKey = packKey
@@ -148,26 +149,46 @@ namespace KillConfirmGameBar.Controls
             try
             {
                 progress?.Report(5);
-                textures.Frame = await LoadValorantTextureAsync(root, profile.Frame, cancellationToken);
+                textures.Frame = string.IsNullOrWhiteSpace(profile.Frame)
+                    ? await LoadValorantTextureAsync(packKey, nativeSupportRoot, nativeSupportFolder, "Base_FrameBG.png", cancellationToken)
+                    : await LoadValorantTextureAsync(packKey, root, folder, profile.Frame, cancellationToken);
                 progress?.Report(15);
-                textures.Emblem = await LoadValorantTextureAsync(root, profile.Emblem, cancellationToken);
+                textures.Emblem = await LoadValorantTextureAsync(packKey, root, folder, profile.Emblem, cancellationToken);
                 progress?.Report(25);
-                textures.Bar = await LoadValorantTextureAsync(root, profile.Bar, cancellationToken);
+                textures.Bar = await LoadValorantTextureAsync(packKey, root, folder, profile.Bar, cancellationToken);
+                textures.BarHover = await LoadValorantTextureAsync(packKey, root, folder, profile.BarHover, cancellationToken);
                 if (!string.IsNullOrWhiteSpace(profile.Blade))
                 {
-                    textures.Blade = await LoadValorantTextureAsync(root, profile.Blade, cancellationToken);
+                    textures.Blade = await LoadValorantTextureAsync(packKey, root, folder, profile.Blade, cancellationToken);
+                }
+                if (!string.IsNullOrWhiteSpace(profile.SpecialFrame))
+                {
+                    textures.SpecialFrame = await LoadValorantTextureAsync(packKey, root, folder, profile.SpecialFrame, cancellationToken);
                 }
 
                 progress?.Report(35);
-                textures.Headshot = await LoadValorantTextureAsync(root, "killicon_valorant_headshot.png", cancellationToken);
+                textures.Headshot = await LoadValorantTextureAsync(packKey, nativeSupportRoot, nativeSupportFolder, "Base_headshot.png", cancellationToken);
                 progress?.Report(45);
-                textures.BaseParticle = await LoadValorantTextureAsync(root, "killicon_valorant_particle_base_t1.png", cancellationToken);
+                textures.BaseParticle = await LoadValorantTextureAsync(packKey, nativeSupportRoot, nativeSupportFolder, "BaseT1_FX.png", cancellationToken);
                 progress?.Report(65);
-                textures.HeroFlame = await TryLoadValorantTextureAsync(root, "killicon_valorant_particle_hero_flame.png", cancellationToken);
+                textures.HeroFlame = await LoadValorantTextureAsync(packKey, nativeSupportRoot, nativeSupportFolder, "FB_HeroFlame.png", cancellationToken);
                 progress?.Report(78);
-                textures.LargeSparks = await LoadValorantTextureAsync(root, "killicon_valorant_particle_large_sparks.png", cancellationToken);
+                textures.LargeSparks = await LoadValorantTextureAsync(packKey, nativeSupportRoot, nativeSupportFolder, "FB_Large_Sparks.png", cancellationToken);
                 progress?.Report(92);
-                textures.XSparks = await LoadValorantTextureAsync(root, "killicon_valorant_particle_x_sparks.png", cancellationToken);
+                textures.XSparks = await LoadValorantTextureAsync(packKey, nativeSupportRoot, nativeSupportFolder, "FB_X_Sparks.png", cancellationToken);
+                textures.Ring = string.IsNullOrWhiteSpace(profile.Ring)
+                    ? await LoadValorantTextureAsync(packKey, nativeSupportRoot, nativeSupportFolder, "Base_RingBG.png", cancellationToken)
+                    : await LoadValorantTextureAsync(packKey, root, folder, profile.Ring, cancellationToken);
+                textures.RingDissolve = await LoadValorantTextureAsync(packKey, nativeSupportRoot, nativeSupportFolder, "T_Mask_Ramp_TopDown.png", cancellationToken);
+                textures.FrameDissolve = string.IsNullOrWhiteSpace(profile.FrameDissolve)
+                    ? await LoadValorantTextureAsync(packKey, nativeSupportRoot, nativeSupportFolder, "Base_FrameDissolve.png", cancellationToken)
+                    : await LoadValorantTextureAsync(packKey, root, folder, profile.FrameDissolve, cancellationToken);
+                textures.BadgeDissolve = string.IsNullOrWhiteSpace(profile.BadgeDissolve)
+                    ? await LoadValorantTextureAsync(packKey, nativeSupportRoot, nativeSupportFolder, "Base_Badge_Dissolve.png", cancellationToken)
+                    : await LoadValorantTextureAsync(packKey, root, folder, profile.BadgeDissolve, cancellationToken);
+                textures.Shadow = await LoadValorantTextureAsync(packKey, nativeSupportRoot, nativeSupportFolder, "UI_Hud_Killbanner_VignetteFlat.png", cancellationToken);
+                textures.BaseParticleT2 = await LoadValorantTextureAsync(packKey, nativeSupportRoot, nativeSupportFolder, "BaseT2_FX.png", cancellationToken);
+                textures.BaseParticleT3 = await LoadValorantTextureAsync(packKey, nativeSupportRoot, nativeSupportFolder, "BaseT3_FX.png", cancellationToken);
                 progress?.Report(100);
                 return textures;
             }
@@ -179,7 +200,9 @@ namespace KillConfirmGameBar.Controls
         }
 
         private static async Task<CanvasBitmap> LoadValorantTextureAsync(
-            string root,
+            string packKey,
+            string applicationRoot,
+            string externalFolder,
             string fileName,
             CancellationToken cancellationToken)
         {
@@ -189,7 +212,19 @@ namespace KillConfirmGameBar.Controls
             }
 
             cancellationToken.ThrowIfCancellationRequested();
-            CanvasBitmap bitmap = await LoadBitmapFromApplicationUriAsync(root + "/textures/" + fileName);
+            CanvasBitmap bitmap = null;
+            StorageFile externalFile = await ValorantExternalAssetService.TryGetVisualTextureAsync(
+                packKey,
+                externalFolder,
+                fileName);
+            if (externalFile != null)
+            {
+                bitmap = await LoadBitmapFromStorageFileAsync(externalFile);
+            }
+            else
+            {
+                bitmap = await LoadBitmapFromApplicationUriAsync(applicationRoot + "/textures/" + fileName);
+            }
             if (cancellationToken.IsCancellationRequested)
             {
                 bitmap?.Dispose();
@@ -200,13 +235,15 @@ namespace KillConfirmGameBar.Controls
         }
 
         private static async Task<CanvasBitmap> TryLoadValorantTextureAsync(
-            string root,
+            string packKey,
+            string applicationRoot,
+            string externalFolder,
             string fileName,
             CancellationToken cancellationToken)
         {
             try
             {
-                return await LoadValorantTextureAsync(root, fileName, cancellationToken);
+                return await LoadValorantTextureAsync(packKey, applicationRoot, externalFolder, fileName, cancellationToken);
             }
             catch (OperationCanceledException)
             {

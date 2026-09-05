@@ -1,0 +1,2057 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>6657 弹幕语义标注审阅系统 (GUI)</title>
+  <style>
+    :root {
+      --bg-primary: #0f172a;
+      --bg-secondary: #1e293b;
+      --bg-tertiary: #334155;
+      --bg-card: #1e293b;
+      --bg-input: #0f172a;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-accent: #38bdf8;
+      --border-color: #334155;
+      --border-focus: #38bdf8;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --success: #10b981;
+      --success-bg: rgba(16, 185, 129, 0.15);
+      --warning: #f59e0b;
+      --warning-bg: rgba(245, 158, 11, 0.15);
+      --danger: #ef4444;
+      --danger-bg: rgba(239, 68, 68, 0.15);
+      --purple: #a855f7;
+      --chip-bg: #1e293b;
+      --chip-border: #475569;
+      --chip-selected-bg: #0284c7;
+      --chip-selected-text: #ffffff;
+      --chip-danger-selected: #dc2626;
+      --radius-sm: 4px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Header */
+    header {
+      background-color: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-shrink: 0;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-badge {
+      font-size: 0.75rem;
+      background-color: var(--primary);
+      color: #fff;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-weight: 600;
+    }
+
+    .header-stats {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .stat-val {
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .progress-bar-wrap {
+      width: 140px;
+      height: 8px;
+      background: var(--bg-input);
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #10b981, #38bdf8);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 6px 14px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+      background-color: var(--bg-tertiary);
+      color: var(--text-main);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .btn:hover:not(:disabled) {
+      background-color: #475569;
+      border-color: #64748b;
+    }
+
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background-color: var(--primary-hover);
+      border-color: var(--primary-hover);
+    }
+
+    .btn-success {
+      background-color: var(--success);
+      border-color: var(--success);
+      color: #fff;
+    }
+
+    .btn-danger {
+      background-color: var(--danger);
+      border-color: var(--danger);
+      color: #fff;
+    }
+
+    .btn-sm {
+      padding: 4px 8px;
+      font-size: 0.78rem;
+    }
+
+    /* Main Container */
+    .app-main {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* Left Sidebar: List & Filters */
+    .sidebar {
+      width: 380px;
+      background-color: var(--bg-secondary);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .sidebar-filter-section {
+      padding: 12px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .search-box {
+      position: relative;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 7px 10px 7px 30px;
+      background-color: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      color: var(--text-main);
+      font-size: 0.85rem;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--border-focus);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 9px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .filter-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .select-sm {
+      width: 100%;
+      padding: 5px 8px;
+      background-color: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      color: var(--text-main);
+      font-size: 0.78rem;
+    }
+
+    .select-sm:focus {
+      outline: none;
+      border-color: var(--border-focus);
+    }
+
+    .quick-preset-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 2px;
+    }
+
+    .preset-chip {
+      padding: 3px 8px;
+      font-size: 0.72rem;
+      border-radius: 999px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s;
+    }
+
+    .preset-chip:hover {
+      border-color: var(--text-accent);
+      color: var(--text-main);
+    }
+
+    .preset-chip.active {
+      background: rgba(56, 189, 248, 0.2);
+      border-color: var(--text-accent);
+      color: var(--text-accent);
+      font-weight: 600;
+    }
+
+    /* List Area */
+    .sidebar-list-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .item-card {
+      padding: 9px 12px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all 0.12s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .item-card:hover {
+      border-color: #64748b;
+      background: #273549;
+    }
+
+    .item-card.active {
+      border-color: var(--text-accent);
+      background: rgba(56, 189, 248, 0.1);
+      box-shadow: 0 0 0 1px var(--text-accent);
+    }
+
+    .item-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .item-idx {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text-accent);
+    }
+
+    .badge-group {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .badge {
+      font-size: 0.7rem;
+      padding: 1px 6px;
+      border-radius: var(--radius-sm);
+      font-weight: 500;
+    }
+
+    .badge-pending { background: #475569; color: #cbd5e1; }
+    .badge-reviewed { background: #0284c7; color: #fff; }
+    .badge-approved { background: #059669; color: #fff; }
+    .badge-disputed { background: #b91c1c; color: #fff; }
+
+    .badge-safe { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+    .badge-sensitive { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+    .badge-toxic { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+
+    .item-card-text {
+      font-size: 0.85rem;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1.3;
+    }
+
+    .item-card-bottom {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+
+    .tag-sm {
+      font-size: 0.68rem;
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 1px 5px;
+      border-radius: var(--radius-sm);
+    }
+
+    .tag-flame {
+      border-color: rgba(239, 68, 68, 0.4);
+      color: #f87171;
+    }
+
+    /* List Pagination Footer */
+    .sidebar-footer {
+      padding: 8px 12px;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      background: var(--bg-secondary);
+    }
+
+    /* Right Main Editor Workspace */
+    .editor-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background-color: var(--bg-primary);
+      overflow-y: auto;
+      position: relative;
+    }
+
+    .editor-content {
+      padding: 20px 28px;
+      max-width: 1100px;
+      margin: 0 auto;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Raw Meme Box (Immutable) */
+    .raw-meme-card {
+      background: #182234;
+      border: 1px solid #2d3d54;
+      border-radius: var(--radius-lg);
+      padding: 16px 20px;
+      position: relative;
+      border-left: 4px solid #38bdf8;
+    }
+
+    .raw-meme-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .meme-index-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-accent);
+      font-family: var(--font-mono);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .raw-badge-readonly {
+      font-size: 0.72rem;
+      background: rgba(148, 163, 184, 0.2);
+      color: var(--text-muted);
+      padding: 2px 8px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .raw-meme-text {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #ffffff;
+      line-height: 1.5;
+      background: #0f172a;
+      padding: 12px 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+      user-select: text;
+    }
+
+    /* Editor Sections */
+    .form-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .section-title-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 8px;
+    }
+
+    .section-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-desc {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .chip-search-input {
+      padding: 4px 10px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      color: var(--text-main);
+      font-size: 0.78rem;
+      width: 180px;
+    }
+
+    .chip-search-input:focus {
+      outline: none;
+      border-color: var(--border-focus);
+    }
+
+    /* Chips Group */
+    .chips-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      max-height: 220px;
+      overflow-y: auto;
+      padding: 2px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 11px;
+      font-size: 0.8rem;
+      border-radius: var(--radius-md);
+      background-color: var(--chip-bg);
+      border: 1px solid var(--chip-border);
+      color: var(--text-main);
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.12s ease;
+    }
+
+    .chip:hover {
+      border-color: #94a3b8;
+      background-color: #334155;
+    }
+
+    .chip.selected {
+      background-color: var(--chip-selected-bg);
+      border-color: var(--chip-selected-bg);
+      color: var(--chip-selected-text);
+      font-weight: 600;
+      box-shadow: 0 0 6px rgba(2, 132, 199, 0.4);
+    }
+
+    .chip.flame-chip.selected {
+      background-color: var(--chip-danger-selected);
+      border-color: var(--chip-danger-selected);
+      color: #fff;
+      box-shadow: 0 0 6px rgba(220, 38, 38, 0.4);
+    }
+
+    .chip .chip-sub {
+      font-size: 0.7rem;
+      opacity: 0.8;
+      font-family: var(--font-mono);
+    }
+
+    /* Safety & Context Grid */
+    .two-col-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .radio-card-group {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 8px;
+    }
+
+    .radio-card {
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 8px 12px;
+      cursor: pointer;
+      transition: all 0.12s;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .radio-card:hover {
+      border-color: #64748b;
+    }
+
+    .radio-card.selected {
+      border-color: var(--text-accent);
+      background: rgba(56, 189, 248, 0.12);
+    }
+
+    .radio-card-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .radio-card-desc {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      line-height: 1.2;
+    }
+
+    /* Entity Editor Table */
+    .entity-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    .entity-table th {
+      text-align: left;
+      padding: 6px 10px;
+      background: var(--bg-input);
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-color);
+      font-size: 0.78rem;
+    }
+
+    .entity-table td {
+      padding: 6px 10px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .input-text {
+      width: 100%;
+      padding: 6px 10px;
+      background-color: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      color: var(--text-main);
+      font-size: 0.85rem;
+    }
+
+    .input-text:focus {
+      outline: none;
+      border-color: var(--border-focus);
+    }
+
+    /* Floating / Sticky Bottom Bar */
+    .bottom-bar {
+      position: sticky;
+      bottom: 0;
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border-color);
+      padding: 10px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      z-index: 10;
+      box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.4);
+    }
+
+    .status-feedback {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+    }
+
+    .dirty-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--warning-bg);
+      color: var(--warning);
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
+    .error-banner {
+      background: var(--danger-bg);
+      border: 1px solid var(--danger);
+      color: #fca5a5;
+      padding: 10px 16px;
+      border-radius: var(--radius-md);
+      font-size: 0.85rem;
+      display: none;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(2px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      visibility: hidden;
+      opacity: 0;
+      transition: all 0.2s;
+    }
+
+    .modal-overlay.open {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    .modal-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      max-width: 540px;
+      width: 90%;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .modal-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .kbd-list {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 8px;
+      font-size: 0.85rem;
+    }
+
+    kbd {
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--text-accent);
+      justify-self: start;
+    }
+
+    /* Jump Input */
+    .jump-input {
+      width: 70px;
+      padding: 4px 6px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <div class="brand-title">
+        <span>🎯 6657 弹幕语义标注审阅系统</span>
+        <span class="brand-badge">Taxonomy v1</span>
+      </div>
+    </div>
+
+    <div class="header-stats">
+      <div class="stat-item">
+        <span>全量总计:</span>
+        <span class="stat-val" id="stat-total">23,521</span>
+      </div>
+      <div class="stat-item">
+        <span>已审定:</span>
+        <span class="stat-val" id="stat-reviewed" style="color: var(--success);">0</span>
+      </div>
+      <div class="stat-item">
+        <span>待审核:</span>
+        <span class="stat-val" id="stat-pending" style="color: var(--warning);">0</span>
+      </div>
+      <div class="stat-item">
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-fill" id="stat-progress"></div>
+        </div>
+        <span id="stat-pct">0%</span>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn btn-sm" id="btn-help">⌨️ 快捷键说明</button>
+      <div style="display: flex; align-items: center; gap: 4px;">
+        <span style="font-size: 0.8rem; color: var(--text-muted);">跳至序号:</span>
+        <input type="number" id="jump-idx-input" class="jump-input" min="1" max="23521" placeholder="Index">
+        <button class="btn btn-sm" id="btn-jump">跳转</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- App Main Body -->
+  <div class="app-main">
+    
+    <!-- Sidebar: Filters & List -->
+    <aside class="sidebar">
+      
+      <div class="sidebar-filter-section">
+        <!-- Search Input -->
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="filter-query" class="search-input" placeholder="全局搜索: 原文 / 序号 / 实体 / 备注...">
+        </div>
+
+        <!-- Filter Dropdowns Grid -->
+        <div class="filter-grid">
+          <select id="filter-batch" class="select-sm">
+            <option value="">全部批次 (1~48)</option>
+          </select>
+          <select id="filter-review" class="select-sm">
+            <option value="">审核状态 (全部)</option>
+            <option value="pending">⏳ 待审核 pending</option>
+            <option value="reviewed">🔍 已复核 reviewed</option>
+            <option value="approved">✅ 已批准 approved</option>
+            <option value="disputed">❌ 存疑 disputed</option>
+          </select>
+          <select id="filter-target" class="select-sm">
+            <option value="">谈论主体 Target (全部)</option>
+          </select>
+          <select id="filter-stance" class="select-sm">
+            <option value="">立场 Stance (全部)</option>
+          </select>
+          <select id="filter-safety" class="select-sm">
+            <option value="">安全等级 Safety (全部)</option>
+            <option value="safe">🟢 安全 safe</option>
+            <option value="borderline_playful">🟡 擦边戏谑 borderline</option>
+            <option value="sensitive_flame">🟠 敏感攻击 sensitive</option>
+            <option value="toxic_vulgar">🔴 严重剧毒 toxic</option>
+          </select>
+          <select id="filter-topic" class="select-sm">
+            <option value="">话题 Topic (全部)</option>
+          </select>
+        </div>
+
+        <!-- Quick Presets -->
+        <div class="quick-preset-chips">
+          <span class="preset-chip" data-preset="">全部</span>
+          <span class="preset-chip" data-preset="flame_streamer">🔥 喷主播</span>
+          <span class="preset-chip" data-preset="safe_with_flame">🚨 安全但有攻击</span>
+          <span class="preset-chip" data-preset="toxic_or_sensitive">⚠️ 敏感/毒性</span>
+          <span class="preset-chip" data-preset="pending_review">⏳ 仅待审</span>
+          <span class="preset-chip" data-preset="has_entities">🏷️ 含有实体</span>
+          <span class="preset-chip" data-preset="low_confidence">📉 低置信度</span>
+        </div>
+      </div>
+
+      <!-- Item List -->
+      <div class="sidebar-list-container" id="items-list">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <!-- Sidebar Pagination Footer -->
+      <div class="sidebar-footer">
+        <span id="pagination-info">匹配 0 条 (第 1/1 页)</span>
+        <div style="display: flex; gap: 4px;">
+          <button class="btn btn-sm" id="btn-page-prev">上一页</button>
+          <button class="btn btn-sm" id="btn-page-next">下一页</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Right Workspace: Detail Editor -->
+    <main class="editor-container" id="editor-container">
+      
+      <div class="editor-content" id="editor-form" style="display: none;">
+        
+        <!-- Error Banner -->
+        <div class="error-banner" id="error-banner"></div>
+
+        <!-- Raw Meme Display (Strictly Immutable) -->
+        <div class="raw-meme-card">
+          <div class="raw-meme-header">
+            <div class="meme-index-title">
+              <span id="display-index">#00000</span>
+              <span class="badge badge-reviewed" id="display-batch-badge" style="font-size: 0.72rem;">Batch 001</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="raw-badge-readonly">🔒 源数据严格只读 (不可篡改)</span>
+              <button class="btn btn-sm" id="btn-copy-raw" title="复制弹幕原文">📋 复制</button>
+            </div>
+          </div>
+          <div class="raw-meme-text" id="display-raw-text"></div>
+        </div>
+
+        <!-- Dimension 1: Targets (多选) -->
+        <div class="form-section">
+          <div class="section-title-wrap">
+            <div class="section-title">
+              <span>🎯 指涉对象 / 谈论主体 (Targets)</span>
+              <span class="section-desc">弹幕在谈论谁 (多选)</span>
+            </div>
+            <input type="text" class="chip-search-input" id="search-targets" placeholder="过滤选项...">
+          </div>
+          <div class="chips-container" id="container-targets"></div>
+        </div>
+
+        <!-- Dimension 2: Stances (多选) -->
+        <div class="form-section">
+          <div class="section-title-wrap">
+            <div class="section-title">
+              <span>🎭 情感立场 / 态度倾向 (Stances)</span>
+              <span class="section-desc">说话者的语气与态度 (多选)</span>
+            </div>
+            <input type="text" class="chip-search-input" id="search-stances" placeholder="过滤选项...">
+          </div>
+          <div class="chips-container" id="container-stances"></div>
+        </div>
+
+        <!-- Dimension 3: Topics (多选) -->
+        <div class="form-section">
+          <div class="section-title-wrap">
+            <div class="section-title">
+              <span>💬 细粒度语义话题 (Topics)</span>
+              <span class="section-desc">具体涉及的主题与场景 (多选)</span>
+            </div>
+            <input type="text" class="chip-search-input" id="search-topics" placeholder="过滤选项...">
+          </div>
+          <div class="chips-container" id="container-topics"></div>
+        </div>
+
+        <!-- Two Columns: Formats & Culture -->
+        <div class="two-col-grid">
+          
+          <!-- Formats (多选) -->
+          <div class="form-section">
+            <div class="section-title-wrap">
+              <div class="section-title">
+                <span>📝 修辞表达形式 (Formats)</span>
+              </div>
+            </div>
+            <div class="chips-container" id="container-formats" style="max-height: 150px;"></div>
+          </div>
+
+          <!-- Culture (多选) -->
+          <div class="form-section">
+            <div class="section-title-wrap">
+              <div class="section-title">
+                <span>🌐 文化圈层梗源 (Culture)</span>
+              </div>
+            </div>
+            <div class="chips-container" id="container-culture" style="max-height: 150px;"></div>
+          </div>
+        </div>
+
+        <!-- Two Columns: Context & Safety -->
+        <div class="two-col-grid">
+          
+          <!-- Context (单选) -->
+          <div class="form-section">
+            <div class="section-title-wrap">
+              <div class="section-title">
+                <span>🧩 语境依赖度 (Context)</span>
+              </div>
+            </div>
+            <div class="radio-card-group" id="container-context"></div>
+          </div>
+
+          <!-- Safety (结构化) -->
+          <div class="form-section">
+            <div class="section-title-wrap">
+              <div class="section-title">
+                <span>🛡️ 安全控制 (Safety)</span>
+              </div>
+            </div>
+            <div>
+              <div style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 6px;">严重度等级 (Severity):</div>
+              <div class="radio-card-group" id="container-safety-severity" style="grid-template-columns: repeat(2, 1fr); margin-bottom: 10px;"></div>
+              
+              <div style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 6px;">风险特征标签 (Flags 多选):</div>
+              <div class="chips-container" id="container-safety-flags" style="max-height: 120px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dimension: Entities (专名实体列表) -->
+        <div class="form-section">
+          <div class="section-title-wrap">
+            <div class="section-title">
+              <span>🏷️ 专名实体列表 (Entities)</span>
+              <span class="section-desc">识别到的具体选手/战队/主播/角色规范名</span>
+            </div>
+            <div style="display: flex; gap: 6px;">
+              <select id="quick-entity-select" class="select-sm" style="width: 170px;">
+                <option value="">⚡ 快捷添加已知实体...</option>
+              </select>
+              <button class="btn btn-sm btn-primary" id="btn-add-entity">+ 手动添加实体</button>
+            </div>
+          </div>
+          <table class="entity-table">
+            <thead>
+              <tr>
+                <th style="width: 50%;">实体规范名 (Name)</th>
+                <th style="width: 40%;">类型 (Type)</th>
+                <th style="width: 10%; text-align: center;">操作</th>
+              </tr>
+            </thead>
+            <tbody id="entity-tbody">
+              <!-- Rendered rows -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Confidence & Review Section -->
+        <div class="form-section">
+          <div class="section-title-wrap">
+            <div class="section-title">
+              <span>⚖️ 置信度与审核控制 (Confidence & Review)</span>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <!-- Confidence Slider -->
+            <div>
+              <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px;">
+                <label for="input-confidence">标注置信度 (Confidence):</label>
+                <span id="display-confidence-val" style="font-weight: 700; color: var(--text-accent);">1.00</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <input type="range" id="slider-confidence" min="0" max="1" step="0.05" value="1.0" style="flex: 1;">
+                <input type="number" id="input-confidence" class="input-text" min="0" max="1" step="0.01" value="1.00" style="width: 70px;">
+              </div>
+            </div>
+
+            <!-- Review Status Radio -->
+            <div>
+              <div style="font-size: 0.8rem; margin-bottom: 4px;">审核状态 (Review Status):</div>
+              <div class="radio-card-group" id="container-review-status" style="grid-template-columns: repeat(2, 1fr);"></div>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 16px; margin-top: 8px;">
+            <div>
+              <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px;">
+                审核人 ID (Reviewer):
+              </label>
+              <input type="text" id="input-reviewer" class="input-text" placeholder="仅在已审核时填写">
+              <span style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; display: block;">
+                * 待审状态下严禁填写审核人 (防伪造)
+              </span>
+            </div>
+            <div>
+              <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px;">
+                审核意见 / 备注 (Comments):
+              </label>
+              <input type="text" id="input-comments" class="input-text" placeholder="可选填审核复核说明...">
+            </div>
+          </div>
+        </div>
+
+        <div style="height: 60px;"></div> <!-- Bottom spacer for sticky bar -->
+      </div>
+
+      <!-- Empty State -->
+      <div id="editor-empty" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--text-muted); gap: 12px;">
+        <div style="font-size: 3rem;">📋</div>
+        <div style="font-size: 1.1rem; font-weight: 600;">请从左侧列表选择一条弹幕开始审阅</div>
+        <div style="font-size: 0.85rem;">支持快捷键 Alt+← / Alt+→ 快速切换，Ctrl+S 保存</div>
+      </div>
+
+      <!-- Sticky Bottom Action Bar -->
+      <div class="bottom-bar" id="bottom-bar" style="display: none;">
+        <div class="status-feedback">
+          <span id="dirty-indicator" class="dirty-badge" style="display: none;">● 有未保存修改</span>
+          <span id="save-status-text" style="color: var(--text-muted); font-size: 0.82rem;">数据已就绪</span>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <button class="btn" id="btn-discard">撤销修改 (Esc)</button>
+          <button class="btn" id="btn-prev">上一条 (Alt+←)</button>
+          <button class="btn" id="btn-next">下一条 (Alt+→)</button>
+          <button class="btn btn-primary" id="btn-save">保存当前 (Ctrl+S)</button>
+          <button class="btn btn-success" id="btn-save-next">保存并下一条 (Ctrl+Enter)</button>
+        </div>
+      </div>
+    </main>
+
+  </div>
+
+  <!-- Help & Shortcuts Modal -->
+  <div class="modal-overlay" id="help-modal">
+    <div class="modal-card">
+      <div class="modal-title">⌨️ 快捷键与操作指南</div>
+      <div class="kbd-list">
+        <kbd>Ctrl + S</kbd> <span>保存当前条目修改</span>
+        <kbd>Ctrl + Enter</kbd> <span>保存当前条目并自动跳转下一条 (高效复审)</span>
+        <kbd>Alt + ←</kbd> <span>跳转到上一条</span>
+        <kbd>Alt + →</kbd> <span>跳转到下一条</span>
+        <kbd>Esc</kbd> <span>放弃当前未保存的修改，恢复初始数据</span>
+        <kbd>Ctrl + F</kbd> <span>快速聚焦左侧搜索输入框</span>
+      </div>
+      <div style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; border-top: 1px solid var(--border-color); padding-top: 10px;">
+        <strong>安全与合规规则：</strong><br>
+        1. 原始弹幕数据（23,521 条）严格只读，任何修改绝不破坏原文。<br>
+        2. 任何保存操作均在本地进行 Schema/Taxonomy 校验，并采用原子写入与自动备份机制。<br>
+        3. 待审状态下禁止伪造审核人 ID。
+      </div>
+      <div style="display: flex; justify-content: flex-end;">
+        <button class="btn btn-primary" id="btn-close-help">我知道了</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Global State
+    const state = {
+      meta: null,
+      stats: null,
+      items: [],
+      currentIndex: null,
+      currentItemData: null,
+      editBuffer: null,
+      isDirty: false,
+      currentPage: 1,
+      pageSize: 50,
+      totalPages: 1,
+      totalMatched: 0,
+      filters: {
+        query: "",
+        batch_id: "",
+        review_status: "",
+        target: "",
+        stance: "",
+        topic: "",
+        severity: "",
+        preset: ""
+      }
+    };
+
+    // DOM Elements
+    const elements = {
+      statTotal: document.getElementById('stat-total'),
+      statReviewed: document.getElementById('stat-reviewed'),
+      statPending: document.getElementById('stat-pending'),
+      statProgress: document.getElementById('stat-progress'),
+      statPct: document.getElementById('stat-pct'),
+      filterQuery: document.getElementById('filter-query'),
+      filterBatch: document.getElementById('filter-batch'),
+      filterReview: document.getElementById('filter-review'),
+      filterTarget: document.getElementById('filter-target'),
+      filterStance: document.getElementById('filter-stance'),
+      filterTopic: document.getElementById('filter-topic'),
+      filterSafety: document.getElementById('filter-safety'),
+      itemsList: document.getElementById('items-list'),
+      paginationInfo: document.getElementById('pagination-info'),
+      btnPagePrev: document.getElementById('btn-page-prev'),
+      btnPageNext: document.getElementById('btn-page-next'),
+      editorForm: document.getElementById('editor-form'),
+      editorEmpty: document.getElementById('editor-empty'),
+      bottomBar: document.getElementById('bottom-bar'),
+      errorBanner: document.getElementById('error-banner'),
+      displayIndex: document.getElementById('display-index'),
+      displayBatchBadge: document.getElementById('display-batch-badge'),
+      displayRawText: document.getElementById('display-raw-text'),
+      btnCopyRaw: document.getElementById('btn-copy-raw'),
+      btnSave: document.getElementById('btn-save'),
+      btnSaveNext: document.getElementById('btn-save-next'),
+      btnPrev: document.getElementById('btn-prev'),
+      btnNext: document.getElementById('btn-next'),
+      btnDiscard: document.getElementById('btn-discard'),
+      dirtyIndicator: document.getElementById('dirty-indicator'),
+      saveStatusText: document.getElementById('save-status-text'),
+      helpModal: document.getElementById('help-modal'),
+      btnHelp: document.getElementById('btn-help'),
+      btnCloseHelp: document.getElementById('btn-close-help'),
+      jumpIdxInput: document.getElementById('jump-idx-input'),
+      btnJump: document.getElementById('btn-jump'),
+      quickEntitySelect: document.getElementById('quick-entity-select'),
+      btnAddEntity: document.getElementById('btn-add-entity'),
+      entityTbody: document.getElementById('entity-tbody'),
+      sliderConfidence: document.getElementById('slider-confidence'),
+      inputConfidence: document.getElementById('input-confidence'),
+      displayConfidenceVal: document.getElementById('display-confidence-val'),
+      inputReviewer: document.getElementById('input-reviewer'),
+      inputComments: document.getElementById('input-comments')
+    };
+
+    // API Helpers
+    async function apiGet(endpoint) {
+      const resp = await fetch(endpoint);
+      if (!resp.ok) {
+        const data = await resp.json().catch(() => ({ error: resp.statusText }));
+        throw new Error(data.error || `HTTP ${resp.status}`);
+      }
+      return await resp.json();
+    }
+
+    async function apiPost(endpoint, body) {
+      const resp = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await resp.json().catch(() => ({ success: false, error: resp.statusText }));
+      if (!resp.ok || !data.success) {
+        throw new Error(data.errors ? data.errors.join('； ') : (data.error || `HTTP ${resp.status}`));
+      }
+      return data;
+    }
+
+    // Initialize App
+    async function init() {
+      try {
+        const metaRes = await apiGet('/api/meta');
+        state.meta = metaRes.data;
+        
+        populateFilterDropdowns();
+        setupQuickEntityOptions();
+        await refreshStats();
+        await loadItems();
+        setupEventListeners();
+      } catch (err) {
+        alert("初始化失败: " + err.message);
+      }
+    }
+
+    function populateFilterDropdowns() {
+      // Batches
+      const batches = state.meta.manifest_batches || [];
+      elements.filterBatch.innerHTML = '<option value="">全部批次 (1~48)</option>' +
+        batches.map(b => `<option value="${b.batch_id}">${b.batch_id} (${b.start_index}-${b.end_index})</option>`).join('');
+
+      // Taxonomy enums
+      const dims = state.meta.taxonomy.dimensions || {};
+      
+      // Targets
+      const targets = dims.targets?.items?.enum || [];
+      const targetDescs = dims.targets?.enum_descriptions || {};
+      elements.filterTarget.innerHTML = '<option value="">谈论主体 Target (全部)</option>' +
+        targets.map(t => `<option value="${t}">${targetDescs[t] ? targetDescs[t].split(' ')[0] : t} (${t})</option>`).join('');
+
+      // Stances
+      const stances = dims.stances?.items?.enum || [];
+      const stanceDescs = dims.stances?.enum_descriptions || {};
+      elements.filterStance.innerHTML = '<option value="">立场 Stance (全部)</option>' +
+        stances.map(s => `<option value="${s}">${stanceDescs[s] ? stanceDescs[s].split(' ')[0] : s} (${s})</option>`).join('');
+
+      // Topics
+      const topics = dims.topics?.items?.enum || [];
+      const topicDescs = dims.topics?.enum_descriptions || {};
+      elements.filterTopic.innerHTML = '<option value="">话题 Topic (全部)</option>' +
+        topics.map(tp => `<option value="${tp}">${topicDescs[tp] ? topicDescs[tp].split(' ')[0] : tp} (${tp})</option>`).join('');
+    }
+
+    function setupQuickEntityOptions() {
+      const ents = state.meta.canonical_entities || [];
+      elements.quickEntitySelect.innerHTML = '<option value="">⚡ 快捷添加已知实体...</option>' +
+        ents.map(e => `<option value="${encodeURIComponent(JSON.stringify(e))}">${e.name} [${e.type}]</option>`).join('');
+    }
+
+    async function refreshStats() {
+      try {
+        const res = await apiGet('/api/stats');
+        state.stats = res.data;
+        const total = state.stats.total || 23521;
+        const reviewed = (state.stats.review_counts?.reviewed || 0) + (state.stats.review_counts?.approved || 0);
+        const pending = state.stats.review_counts?.pending || 0;
+        const pct = ((reviewed / total) * 100).toFixed(1);
+
+        elements.statTotal.textContent = total.toLocaleString();
+        elements.statReviewed.textContent = reviewed.toLocaleString();
+        elements.statPending.textContent = pending.toLocaleString();
+        elements.statProgress.style.width = pct + '%';
+        elements.statPct.textContent = pct + '%';
+      } catch (e) {
+        console.error("Failed to load stats", e);
+      }
+    }
+
+    async function loadItems() {
+      const params = new URLSearchParams({
+        page: state.currentPage,
+        page_size: state.pageSize,
+        query: state.filters.query,
+        batch_id: state.filters.batch_id,
+        review_status: state.filters.review_status,
+        target: state.filters.target,
+        stance: state.filters.stance,
+        topic: state.filters.topic,
+        severity: state.filters.severity,
+        preset: state.filters.preset
+      });
+
+      try {
+        const res = await apiGet(`/api/items?${params.toString()}`);
+        state.items = res.data.items;
+        state.totalMatched = res.data.total_matched;
+        state.totalPages = res.data.total_pages;
+
+        renderSidebarList();
+        renderPagination();
+
+        // If current index is in this page, highlight it; if nothing selected, select first item
+        if (state.items.length > 0) {
+          if (!state.currentIndex || !state.items.some(it => it.index === state.currentIndex)) {
+            selectItem(state.items[0].index);
+          }
+        }
+      } catch (err) {
+        console.error("Load items error", err);
+      }
+    }
+
+    function renderSidebarList() {
+      if (state.items.length === 0) {
+        elements.itemsList.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-muted); font-size: 0.85rem;">未找到匹配条目</div>';
+        return;
+      }
+
+      elements.itemsList.innerHTML = state.items.map(item => {
+        const isActive = item.index === state.currentIndex;
+        const rStatus = item.review?.status || 'pending';
+        let rBadgeClass = 'badge-pending';
+        let rText = '待审';
+        if (rStatus === 'reviewed') { rBadgeClass = 'badge-reviewed'; rText = '已审'; }
+        else if (rStatus === 'approved') { rBadgeClass = 'badge-approved'; rText = '批准'; }
+        else if (rStatus === 'disputed') { rBadgeClass = 'badge-disputed'; rText = '存疑'; }
+
+        const sSev = item.safety?.severity || 'safe';
+        let sBadgeClass = 'badge-safe';
+        if (sSev === 'sensitive_flame') sBadgeClass = 'badge-sensitive';
+        else if (sSev === 'toxic_vulgar') sBadgeClass = 'badge-toxic';
+
+        const isFlame = (item.stances || []).some(st => st.startsWith('flame_'));
+
+        return `
+          <div class="item-card ${isActive ? 'active' : ''}" data-index="${item.index}">
+            <div class="item-card-top">
+              <span class="item-idx">#${String(item.index).padStart(5, '0')}</span>
+              <div class="badge-group">
+                <span class="badge ${rBadgeClass}">${rText}</span>
+                <span class="badge ${sBadgeClass}">${sSev === 'safe' ? '安全' : (sSev === 'sensitive_flame' ? '敏感' : (sSev === 'toxic_vulgar' ? '剧毒' : '擦边'))}</span>
+              </div>
+            </div>
+            <div class="item-card-text">${escapeHtml(item.raw_text)}</div>
+            <div class="item-card-bottom">
+              ${(item.targets || []).slice(0, 2).map(t => `<span class="tag-sm">${t}</span>`).join('')}
+              ${(item.stances || []).slice(0, 2).map(st => `<span class="tag-sm ${st.startsWith('flame_') ? 'tag-flame' : ''}">${st}</span>`).join('')}
+              ${item.entity_count > 0 ? `<span class="tag-sm" style="color: var(--purple);">🏷️ ${item.entity_count}</span>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Add click handlers
+      elements.itemsList.querySelectorAll('.item-card').forEach(el => {
+        el.addEventListener('click', () => {
+          const idx = parseInt(el.getAttribute('data-index'), 10);
+          confirmAndSwitchItem(idx);
+        });
+      });
+    }
+
+    function renderPagination() {
+      elements.paginationInfo.textContent = `匹配 ${state.totalMatched.toLocaleString()} 条 (第 ${state.currentPage}/${Math.max(1, state.totalPages)} 页)`;
+      elements.btnPagePrev.disabled = state.currentPage <= 1;
+      elements.btnPageNext.disabled = state.currentPage >= state.totalPages;
+    }
+
+    async function confirmAndSwitchItem(targetIndex) {
+      if (state.isDirty) {
+        const leave = confirm("当前条目有未保存的修改，是否放弃并切换？");
+        if (!leave) return;
+      }
+      await selectItem(targetIndex);
+    }
+
+    async function selectItem(index) {
+      try {
+        const res = await apiGet(`/api/item/${index}`);
+        state.currentIndex = index;
+        state.currentItemData = res.data;
+        state.editBuffer = JSON.parse(JSON.stringify(res.data.annotation));
+        state.isDirty = false;
+
+        renderSidebarList(); // update active highlight
+        renderEditor();
+        updateDirtyState(false);
+      } catch (e) {
+        alert("加载条目详情失败: " + e.message);
+      }
+    }
+
+    function renderEditor() {
+      if (!state.currentItemData) {
+        elements.editorForm.style.display = 'none';
+        elements.bottomBar.style.display = 'none';
+        elements.editorEmpty.style.display = 'flex';
+        return;
+      }
+
+      elements.editorEmpty.style.display = 'none';
+      elements.editorForm.style.display = 'flex';
+      elements.bottomBar.style.display = 'flex';
+      hideError();
+
+      // Top info
+      elements.displayIndex.textContent = `#${String(state.currentItemData.index).padStart(5, '0')}`;
+      elements.displayBatchBadge.textContent = `${state.currentItemData.batch_id}`;
+      elements.displayRawText.textContent = state.currentItemData.raw_text;
+
+      const dims = state.meta.taxonomy.dimensions || {};
+
+      // 1. Targets Chips
+      renderChips(
+        'container-targets',
+        dims.targets?.items?.enum || [],
+        dims.targets?.enum_descriptions || {},
+        state.editBuffer.targets || [],
+        (val, isSelected) => {
+          toggleArrayField('targets', val, isSelected);
+        }
+      );
+
+      // 2. Stances Chips
+      renderChips(
+        'container-stances',
+        dims.stances?.items?.enum || [],
+        dims.stances?.enum_descriptions || {},
+        state.editBuffer.stances || [],
+        (val, isSelected) => {
+          toggleArrayField('stances', val, isSelected);
+        },
+        true // is stance (flame styling)
+      );
+
+      // 3. Topics Chips
+      renderChips(
+        'container-topics',
+        dims.topics?.items?.enum || [],
+        dims.topics?.enum_descriptions || {},
+        state.editBuffer.topics || [],
+        (val, isSelected) => {
+          toggleArrayField('topics', val, isSelected);
+        }
+      );
+
+      // 4. Formats Chips
+      renderChips(
+        'container-formats',
+        dims.formats?.items?.enum || [],
+        dims.formats?.enum_descriptions || {},
+        state.editBuffer.formats || [],
+        (val, isSelected) => {
+          toggleArrayField('formats', val, isSelected);
+        }
+      );
+
+      // 5. Culture Chips
+      renderChips(
+        'container-culture',
+        dims.culture?.items?.enum || [],
+        dims.culture?.enum_descriptions || {},
+        state.editBuffer.culture || [],
+        (val, isSelected) => {
+          toggleArrayField('culture', val, isSelected);
+        }
+      );
+
+      // 6. Context Radio Cards
+      renderRadioCards(
+        'container-context',
+        dims.context?.enum || [],
+        dims.context?.enum_descriptions || {},
+        state.editBuffer.context,
+        (val) => {
+          state.editBuffer.context = val;
+          markDirty();
+          renderEditor();
+        }
+      );
+
+      // 7. Safety Severity
+      const safetyProps = dims.safety?.properties || {};
+      renderRadioCards(
+        'container-safety-severity',
+        safetyProps.severity?.enum || [],
+        dims.safety?.severity_descriptions || {},
+        state.editBuffer.safety?.severity || 'safe',
+        (val) => {
+          if (!state.editBuffer.safety) state.editBuffer.safety = { severity: 'safe', flags: ['none'] };
+          state.editBuffer.safety.severity = val;
+          if (val === 'safe') {
+            state.editBuffer.safety.flags = ['none'];
+          } else if (state.editBuffer.safety.flags.includes('none')) {
+            state.editBuffer.safety.flags = state.editBuffer.safety.flags.filter(f => f !== 'none');
+            if (state.editBuffer.safety.flags.length === 0) state.editBuffer.safety.flags = ['profanity'];
+          }
+          markDirty();
+          renderEditor();
+        }
+      );
+
+      // 8. Safety Flags
+      renderChips(
+        'container-safety-flags',
+        safetyProps.flags?.items?.enum || [],
+        dims.safety?.flag_descriptions || {},
+        state.editBuffer.safety?.flags || ['none'],
+        (val, isSelected) => {
+          if (!state.editBuffer.safety) state.editBuffer.safety = { severity: 'safe', flags: ['none'] };
+          let flags = state.editBuffer.safety.flags || [];
+          if (val === 'none') {
+            flags = ['none'];
+            state.editBuffer.safety.severity = 'safe';
+          } else {
+            flags = flags.filter(f => f !== 'none');
+            if (isSelected) {
+              if (!flags.includes(val)) flags.push(val);
+              if (state.editBuffer.safety.severity === 'safe') {
+                state.editBuffer.safety.severity = 'sensitive_flame';
+              }
+            } else {
+              flags = flags.filter(f => f !== val);
+              if (flags.length === 0) {
+                flags = ['none'];
+                state.editBuffer.safety.severity = 'safe';
+              }
+            }
+          }
+          state.editBuffer.safety.flags = flags;
+          markDirty();
+          renderEditor();
+        }
+      );
+
+      // 9. Entities Table
+      renderEntitiesTable();
+
+      // 10. Confidence & Review
+      const conf = state.editBuffer.confidence !== undefined ? state.editBuffer.confidence : 1.0;
+      elements.sliderConfidence.value = conf;
+      elements.inputConfidence.value = Number(conf).toFixed(2);
+      elements.displayConfidenceVal.textContent = Number(conf).toFixed(2);
+
+      const reviewProps = dims.review?.properties || {};
+      renderRadioCards(
+        'container-review-status',
+        reviewProps.status?.enum || [],
+        { pending: '待审', reviewed: '已复核', approved: '已批准', disputed: '存疑' },
+        state.editBuffer.review?.status || 'pending',
+        (val) => {
+          if (!state.editBuffer.review) state.editBuffer.review = { status: 'pending' };
+          state.editBuffer.review.status = val;
+          if (val === 'pending') {
+            delete state.editBuffer.review.reviewer;
+            elements.inputReviewer.value = '';
+            elements.inputReviewer.disabled = true;
+          } else {
+            elements.inputReviewer.disabled = false;
+            if (!elements.inputReviewer.value && state.editBuffer.review.reviewer) {
+              elements.inputReviewer.value = state.editBuffer.review.reviewer;
+            }
+          }
+          markDirty();
+          renderEditor();
+        }
+      );
+
+      const curStatus = state.editBuffer.review?.status || 'pending';
+      elements.inputReviewer.disabled = (curStatus === 'pending');
+      elements.inputReviewer.value = state.editBuffer.review?.reviewer || '';
+      elements.inputComments.value = state.editBuffer.review?.comments || '';
+    }
+
+    function renderChips(containerId, allEnums, descriptions, selectedList, onToggle, isStance = false) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+
+      container.innerHTML = allEnums.map(item => {
+        const isSelected = selectedList.includes(item);
+        const desc = descriptions[item] || item;
+        const shortDesc = desc.split(' ')[0] || item;
+        const isFlame = isStance && item.startsWith('flame_');
+
+        return `
+          <div class="chip ${isSelected ? 'selected' : ''} ${isFlame ? 'flame-chip' : ''}" data-val="${item}" title="${escapeHtml(desc)}">
+            <span>${shortDesc}</span>
+            <span class="chip-sub">${item}</span>
+          </div>
+        `;
+      }).join('');
+
+      container.querySelectorAll('.chip').forEach(el => {
+        el.addEventListener('click', () => {
+          const val = el.getAttribute('data-val');
+          const willSelect = !el.classList.contains('selected');
+          onToggle(val, willSelect);
+        });
+      });
+    }
+
+    function renderRadioCards(containerId, allEnums, descriptions, currentValue, onSelect) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+
+      container.innerHTML = allEnums.map(item => {
+        const isSelected = item === currentValue;
+        const desc = descriptions[item] || item;
+        return `
+          <div class="radio-card ${isSelected ? 'selected' : ''}" data-val="${item}">
+            <div class="radio-card-title">${item}</div>
+            <div class="radio-card-desc">${escapeHtml(desc)}</div>
+          </div>
+        `;
+      }).join('');
+
+      container.querySelectorAll('.radio-card').forEach(el => {
+        el.addEventListener('click', () => {
+          const val = el.getAttribute('data-val');
+          onSelect(val);
+        });
+      });
+    }
+
+    function renderEntitiesTable() {
+      const ents = state.editBuffer.entities || [];
+      const entityTypes = state.meta.taxonomy.dimensions?.entities?.items?.properties?.type?.enum || [
+        "streamer", "player", "team", "coach", "caster", "acg_character", "game_asset", "org", "other"
+      ];
+
+      if (ents.length === 0) {
+        elements.entityTbody.innerHTML = `
+          <tr>
+            <td colspan="3" style="text-align: center; color: var(--text-muted); padding: 12px; font-size: 0.8rem;">
+              暂无专名实体 (可点击右上角快捷添加或手动新增)
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      elements.entityTbody.innerHTML = ents.map((ent, idx) => `
+        <tr data-ent-idx="${idx}">
+          <td>
+            <input type="text" class="input-text ent-name-input" value="${escapeHtml(ent.name || '')}" placeholder="实体规范名">
+          </td>
+          <td>
+            <select class="select-sm ent-type-select" style="width: 100%;">
+              ${entityTypes.map(t => `<option value="${t}" ${ent.type === t ? 'selected' : ''}>${t}</option>`).join('')}
+            </select>
+          </td>
+          <td style="text-align: center;">
+            <button class="btn btn-sm btn-danger ent-del-btn" title="删除实体">✕</button>
+          </td>
+        </tr>
+      `).join('');
+
+      elements.entityTbody.querySelectorAll('.ent-name-input').forEach((input, idx) => {
+        input.addEventListener('input', (e) => {
+          state.editBuffer.entities[idx].name = e.target.value.trim();
+          markDirty();
+        });
+      });
+
+      elements.entityTbody.querySelectorAll('.ent-type-select').forEach((sel, idx) => {
+        sel.addEventListener('change', (e) => {
+          state.editBuffer.entities[idx].type = e.target.value;
+          markDirty();
+        });
+      });
+
+      elements.entityTbody.querySelectorAll('.ent-del-btn').forEach((btn, idx) => {
+        btn.addEventListener('click', () => {
+          state.editBuffer.entities.splice(idx, 1);
+          markDirty();
+          renderEntitiesTable();
+        });
+      });
+    }
+
+    function toggleArrayField(fieldName, value, isSelected) {
+      if (!Array.isArray(state.editBuffer[fieldName])) {
+        state.editBuffer[fieldName] = [];
+      }
+      let list = state.editBuffer[fieldName];
+      if (isSelected) {
+        if (!list.includes(value)) list.push(value);
+      } else {
+        list = list.filter(v => v !== value);
+        // Ensure not empty
+        if (list.length === 0) {
+          alert(`'${fieldName}' 必须至少保留一个标签。`);
+          return;
+        }
+      }
+      state.editBuffer[fieldName] = list;
+
+      // Smart coherence adjustments:
+      // If adding flame_streamer, ensure targets includes 'streamer'
+      if (fieldName === 'stances') {
+        const flameMap = {
+          flame_streamer: 'streamer',
+          flame_player: 'pro_player',
+          flame_team: 'pro_team',
+          flame_audience: 'chat_audience',
+          flame_caster_host: 'caster_host',
+          flame_external_figure: 'external_figure'
+        };
+        for (const [st, reqT] of Object.entries(flameMap)) {
+          if (list.includes(st) && !state.editBuffer.targets.includes(reqT)) {
+            state.editBuffer.targets.push(reqT);
+          }
+        }
+      }
+
+      markDirty();
+      renderEditor();
+    }
+
+    function markDirty() {
+      state.isDirty = true;
+      updateDirtyState(true);
+    }
+
+    function updateDirtyState(dirty) {
+      state.isDirty = dirty;
+      elements.dirtyIndicator.style.display = dirty ? 'inline-flex' : 'none';
+      elements.saveStatusText.textContent = dirty ? '存在未保存的修改' : '已与本地同步';
+    }
+
+    function showError(msg) {
+      elements.errorBanner.textContent = "❌ " + msg;
+      elements.errorBanner.style.display = 'block';
+    }
+
+    function hideError() {
+      elements.errorBanner.style.display = 'none';
+      elements.errorBanner.textContent = '';
+    }
+
+    async function saveCurrentItem() {
+      if (!state.currentIndex || !state.editBuffer) return false;
+
+      // Collect inputs
+      const conf = parseFloat(elements.inputConfidence.value);
+      state.editBuffer.confidence = isNaN(conf) ? 1.0 : Math.max(0, Math.min(1, conf));
+      
+      const rStatus = state.editBuffer.review?.status || 'pending';
+      const reviewer = elements.inputReviewer.value.trim();
+      const comments = elements.inputComments.value.trim();
+
+      state.editBuffer.review = { status: rStatus };
+      if (rStatus !== 'pending' && reviewer) {
+        state.editBuffer.review.reviewer = reviewer;
+      }
+      if (comments) {
+        state.editBuffer.review.comments = comments;
+      }
+
+      // Pre-check for pending reviewer anti-spoofing
+      if (rStatus === 'pending' && reviewer) {
+        showError("待审 (pending) 状态下禁止填写审核人 ID，请将状态修改为 reviewed/approved 或清空审核人。");
+        return false;
+      }
+
+      if ((rStatus === 'reviewed' || rStatus === 'approved') && !reviewer) {
+        showError(`状态为 ${rStatus} 时必须填写审核人 ID (Reviewer)。`);
+        return false;
+      }
+
+      elements.saveStatusText.textContent = '正在安全校验并保存中...';
+      try {
+        const res = await apiPost(`/api/item/${state.currentIndex}`, state.editBuffer);
+        state.currentItemData = res.data;
+        state.editBuffer = JSON.parse(JSON.stringify(res.data.annotation));
+        updateDirtyState(false);
+        elements.saveStatusText.textContent = '✅ 保存成功，已同步至批次与合并文件';
+        hideError();
+        await refreshStats();
+        // Update item in sidebar array
+        const it = state.items.find(x => x.index === state.currentIndex);
+        if (it) {
+          it.targets = state.editBuffer.targets;
+          it.stances = state.editBuffer.stances;
+          it.topics = state.editBuffer.topics;
+          it.safety = state.editBuffer.safety;
+          it.review = state.editBuffer.review;
+          it.confidence = state.editBuffer.confidence;
+          renderSidebarList();
+        }
+        return true;
+      } catch (err) {
+        showError("保存失败: " + err.message);
+        elements.saveStatusText.textContent = '❌ 保存失败';
+        return false;
+      }
+    }
+
+    async function saveAndNext() {
+      const saved = await saveCurrentItem();
+      if (saved) {
+        navigateNext();
+      }
+    }
+
+    function navigatePrev() {
+      if (!state.currentIndex) return;
+      if (state.currentIndex > 1) {
+        confirmAndSwitchItem(state.currentIndex - 1);
+      }
+    }
+
+    function navigateNext() {
+      if (!state.currentIndex) return;
+      if (state.currentIndex < 23521) {
+        confirmAndSwitchItem(state.currentIndex + 1);
+      }
+    }
+
+    function setupEventListeners() {
+      // Filter changes
+      let debounceTimer = null;
+      elements.filterQuery.addEventListener('input', () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+          state.filters.query = elements.filterQuery.value.trim();
+          state.currentPage = 1;
+          loadItems();
+        }, 300);
+      });
+
+      ['filterBatch', 'filterReview', 'filterTarget', 'filterStance', 'filterTopic', 'filterSafety'].forEach(id => {
+        elements[id].addEventListener('change', () => {
+          state.filters.batch_id = elements.filterBatch.value;
+          state.filters.review_status = elements.filterReview.value;
+          state.filters.target = elements.filterTarget.value;
+          state.filters.stance = elements.filterStance.value;
+          state.filters.topic = elements.filterTopic.value;
+          state.filters.severity = elements.filterSafety.value;
+          state.currentPage = 1;
+          loadItems();
+        });
+      });
+
+      // Quick Preset chips
+      document.querySelectorAll('.preset-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          document.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          state.filters.preset = chip.getAttribute('data-preset') || '';
+          state.currentPage = 1;
+          loadItems();
+        });
+      });
+
+      // Pagination buttons
+      elements.btnPagePrev.addEventListener('click', () => {
+        if (state.currentPage > 1) {
+          state.currentPage--;
+          loadItems();
+        }
+      });
+
+      elements.btnPageNext.addEventListener('click', () => {
+        if (state.currentPage < state.totalPages) {
+          state.currentPage++;
+          loadItems();
+        }
+      });
+
+      // Jump Index
+      elements.btnJump.addEventListener('click', () => {
+        const val = parseInt(elements.jumpIdxInput.value, 10);
+        if (val >= 1 && val <= 23521) {
+          confirmAndSwitchItem(val);
+        } else {
+          alert("请输入有效序号 (1 ~ 23521)");
+        }
+      });
+      elements.jumpIdxInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') elements.btnJump.click();
+      });
+
+      // Copy raw text
+      elements.btnCopyRaw.addEventListener('click', () => {
+        if (state.currentItemData?.raw_text) {
+          navigator.clipboard.writeText(state.currentItemData.raw_text);
+          elements.btnCopyRaw.textContent = '✅ 已复制';
+          setTimeout(() => elements.btnCopyRaw.textContent = '📋 复制', 1200);
+        }
+      });
+
+      // Save & Navigation Actions
+      elements.btnSave.addEventListener('click', () => saveCurrentItem());
+      elements.btnSaveNext.addEventListener('click', () => saveAndNext());
+      elements.btnPrev.addEventListener('click', () => navigatePrev());
+      elements.btnNext.addEventListener('click', () => navigateNext());
+      elements.btnDiscard.addEventListener('click', () => {
+        if (state.currentItemData) {
+          state.editBuffer = JSON.parse(JSON.stringify(state.currentItemData.annotation));
+          updateDirtyState(false);
+          renderEditor();
+        }
+      });
+
+      // Entity Add
+      elements.btnAddEntity.addEventListener('click', () => {
+        if (!state.editBuffer.entities) state.editBuffer.entities = [];
+        state.editBuffer.entities.push({ name: '', type: 'streamer' });
+        markDirty();
+        renderEntitiesTable();
+      });
+
+      elements.quickEntitySelect.addEventListener('change', () => {
+        const val = elements.quickEntitySelect.value;
+        if (!val) return;
+        try {
+          const ent = JSON.parse(decodeURIComponent(val));
+          if (!state.editBuffer.entities) state.editBuffer.entities = [];
+          if (!state.editBuffer.entities.some(e => e.name === ent.name)) {
+            state.editBuffer.entities.push({ name: ent.name, type: ent.type });
+            markDirty();
+            renderEntitiesTable();
+          }
+        } catch (e) {}
+        elements.quickEntitySelect.value = '';
+      });
+
+      // Confidence slider sync
+      elements.sliderConfidence.addEventListener('input', (e) => {
+        const v = parseFloat(e.target.value);
+        elements.inputConfidence.value = v.toFixed(2);
+        elements.displayConfidenceVal.textContent = v.toFixed(2);
+        state.editBuffer.confidence = v;
+        markDirty();
+      });
+      elements.inputConfidence.addEventListener('input', (e) => {
+        const v = parseFloat(e.target.value);
+        if (!isNaN(v)) {
+          elements.sliderConfidence.value = v;
+          elements.displayConfidenceVal.textContent = v.toFixed(2);
+          state.editBuffer.confidence = v;
+          markDirty();
+        }
+      });
+
+      // Review Inputs
+      elements.inputReviewer.addEventListener('input', markDirty);
+      elements.inputComments.addEventListener('input', markDirty);
+
+      // Search filters for chips
+      setupChipSearch('search-targets', 'container-targets');
+      setupChipSearch('search-stances', 'container-stances');
+      setupChipSearch('search-topics', 'container-topics');
+
+      // Help Modal
+      elements.btnHelp.addEventListener('click', () => elements.helpModal.classList.add('open'));
+      elements.btnCloseHelp.addEventListener('click', () => elements.helpModal.classList.remove('open'));
+      elements.helpModal.addEventListener('click', (e) => {
+        if (e.target === elements.helpModal) elements.helpModal.classList.remove('open');
+      });
+
+      // Global Shortcuts
+      window.addEventListener('keydown', (e) => {
+        // Ctrl+S : Save
+        if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+          e.preventDefault();
+          saveCurrentItem();
+          return;
+        }
+
+        // Ctrl+Enter : Save and Next
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+          e.preventDefault();
+          saveAndNext();
+          return;
+        }
+
+        // Alt + Left : Prev
+        if (e.altKey && e.key === 'ArrowLeft') {
+          e.preventDefault();
+          navigatePrev();
+          return;
+        }
+
+        // Alt + Right : Next
+        if (e.altKey && e.key === 'ArrowRight') {
+          e.preventDefault();
+          navigateNext();
+          return;
+        }
+
+        // Esc : Discard or close modal
+        if (e.key === 'Escape') {
+          if (elements.helpModal.classList.contains('open')) {
+            elements.helpModal.classList.remove('open');
+          } else if (state.isDirty) {
+            elements.btnDiscard.click();
+          }
+          return;
+        }
+
+        // Ctrl+F : Focus search
+        if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+          if (document.activeElement !== elements.filterQuery) {
+            e.preventDefault();
+            elements.filterQuery.focus();
+            elements.filterQuery.select();
+          }
+        }
+      });
+    }
+
+    function setupChipSearch(inputId, containerId) {
+      const input = document.getElementById(inputId);
+      const container = document.getElementById(containerId);
+      if (!input || !container) return;
+
+      input.addEventListener('input', () => {
+        const q = input.value.trim().toLowerCase();
+        container.querySelectorAll('.chip').forEach(chip => {
+          const text = chip.textContent.toLowerCase();
+          chip.style.display = (!q || text.includes(q)) ? 'inline-flex' : 'none';
+        });
+      });
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // Launch
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>

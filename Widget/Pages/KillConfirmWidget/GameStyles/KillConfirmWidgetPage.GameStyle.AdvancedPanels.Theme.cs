@@ -14,6 +14,7 @@ namespace KillConfirmGameBar
         private void ApplyAdvancedEffectsPanelTheme()
         {
             GameThemePalette theme = GameThemePalette.Current;
+            _customModulePanel?.ApplyTheme(theme);
             PackTestSectionView.AdvancedEffectsFlyoutCard.Background = new SolidColorBrush(theme.Shell);
             PackTestSectionView.AdvancedEffectsFlyoutCard.BorderBrush = new SolidColorBrush(theme.SoftBorder);
             PackTestSectionView.AdvancedEffectsGameCard.Background = new SolidColorBrush(theme.Panel);
@@ -117,6 +118,7 @@ namespace KillConfirmGameBar
         private void ApplyAdvancedEffectsPanelLanguage()
         {
             bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            _customModulePanel?.ApplyLanguage(isChinese);
             PackTestSectionView.AdvancedEffectsGameTitleText.Text = LocalizationManager.Text("GameEffectsTitle");
             PackTestSectionView.AdvancedEffectsExperienceTitleText.Text = isChinese ? "游戏体验增强" : "Game experience";
             PackTestSectionView.AdvancedEffectsRuntimeTitleText.Text = isChinese ? "软件与维护" : "App & maintenance";

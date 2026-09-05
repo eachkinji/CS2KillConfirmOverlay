@@ -115,6 +115,27 @@ mod tests {
 
     #[test]
     fn soundpack_alias_resolves_game_specific_presets() {
+        assert_eq!(super::resolve_soundpack_alias("custommodule"), Some("custommodule"));
+        assert_eq!(super::resolve_soundpack_alias("CUSTOMMODULE"), Some("custommodule"));
+        let source_sounds = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../SourceAssets/GameStyles/custommodule/soundpacks");
+        let custommodule = crate::soundpack::Preset::load_from_sounds_root(
+            "custommodule",
+            &source_sounds,
+        )
+        .unwrap();
+        assert_eq!(custommodule.preset_name, "custommodule");
+        assert!(custommodule.base_dir.ends_with("custommodule"));
+        assert_eq!(
+            custommodule
+                .manifest
+                .unwrap()
+                .audio
+                .unwrap()
+                .slots
+                .len(),
+            5
+        );
         assert_eq!(super::resolve_soundpack_alias("csol4"), Some("csol4"));
         assert_eq!(super::resolve_soundpack_alias("csol"), Some("csol4"));
         assert_eq!(super::resolve_soundpack_alias("CSOL4"), Some("csol4"));

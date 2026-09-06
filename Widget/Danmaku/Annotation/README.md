@@ -72,7 +72,7 @@ python Widget/Danmaku/Annotation/validate_annotations.py --check-coverage --merg
 
 **使用 PowerShell 脚本一键启动：**
 ```powershell
-.\Start-DanmakuAnnotationGui.ps1
+.\Tools/Danmaku/Start-DanmakuAnnotationGui.ps1
 ```
 
 **或者使用 Python 启动：**

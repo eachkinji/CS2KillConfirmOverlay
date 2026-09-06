@@ -17,7 +17,7 @@
 从仓库外部的素材备份生成这些包：
 
 ```powershell
-python .\Build-CrossfireExternalPacks.py --source 'D:\icon\CF独立资源\源素材' --output 'D:\icon\CF独立资源\独立包'
+python .\Tools/Crossfire/Build-CrossfireExternalPacks.py --source 'D:\icon\CF独立资源\源素材' --output 'D:\icon\CF独立资源\独立包'
 .\Tests\Regression\Test-CrossfireExternalPacks.ps1 -PackagesPath 'D:\icon\CF独立资源\独立包'
 ```
 
@@ -94,7 +94,7 @@ python .\Build-CrossfireExternalPacks.py --source 'D:\icon\CF独立资源\源素
 ## 整理本地素材
 
 ```powershell
-python .\Build-CrossfirePacks.py --source 'D:\icon\全部击杀图标与徽章' --output 'D:\icon\CF图标包'
+python .\Tools/Crossfire/Build-CrossfirePacks.py --source 'D:\icon\全部击杀图标与徽章' --output 'D:\icon\CF图标包'
 .\Tests\Regression\Test-CrossfirePackLayers.ps1 -PackagesPath 'D:\icon\CF图标包'
 ```
 

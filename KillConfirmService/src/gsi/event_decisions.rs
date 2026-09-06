@@ -69,12 +69,7 @@
 
     if is_initialized && can_emit_kill {
         let is_headshot = current_hs_kills > origin_hs_kills;
-        let weapon_context = resolve_weapon_kill_context(
-            current_weapon_context.as_ref(),
-            previous_active_weapon.as_ref(),
-            &previous_weapon_ammo,
-            &current_weapon_ammo,
-        );
+        let weapon_context = current_weapon_context.as_ref();
         let KillWeaponFeedback {
             is_knife_kill,
             is_grenade_kill,

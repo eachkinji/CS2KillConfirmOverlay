@@ -159,28 +159,6 @@ fn is_knife_weapon(weapon_type: Option<&WeaponType>, weapon_name: &WeaponName) -
         )
 }
 
-fn resolve_weapon_kill_context<'a>(
-    current: Option<&'a WeaponKillContext>,
-    previous_active: Option<&'a WeaponKillContext>,
-    previous_ammo: &HashMap<String, u16>,
-    current_ammo: &HashMap<String, u16>,
-) -> Option<&'a WeaponKillContext> {
-    let current = current?;
-    if !current.is_knife {
-        return Some(current);
-    }
-
-    let Some(previous) = previous_active.filter(|weapon| !weapon.is_knife) else {
-        return Some(current);
-    };
-    let fired_before_switching = previous_ammo
-        .get(&previous.inventory_key)
-        .zip(current_ammo.get(&previous.inventory_key))
-        .map(|(before, after)| after < before)
-        .unwrap_or(false);
-    fired_before_switching.then_some(previous).or(Some(current))
-}
-
 fn resolve_grenade_kill(
     weapon: Option<&WeaponKillContext>,
     grenade: Option<&ActiveGrenadeTracker>,

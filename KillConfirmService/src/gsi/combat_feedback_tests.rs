@@ -6,11 +6,41 @@ use std::path::Path;
 
 fn knife(mode: &Mode) -> WeaponKillContext {
     WeaponKillContext {
-        inventory_key: "weapon_1".to_string(),
         is_knife: true,
         badge_key: Some("knife".to_string()),
         name: "Knife".to_string(),
         money_reward: money_rules::weapon_kill_reward(&WeaponName::KnifeCT, mode),
+    }
+}
+
+#[test]
+fn ordinary_kill_feedback_uses_the_held_weapon_without_cash_inference() {
+    let now = Instant::now();
+    for weapon in [
+        knife(&Mode::Competitive),
+        WeaponKillContext {
+            is_knife: false,
+            badge_key: Some("scout".into()),
+            name: "MP9".into(),
+            money_reward: 600,
+        },
+        WeaponKillContext {
+            is_knife: false,
+            badge_key: Some("sniper".into()),
+            name: "AWP".into(),
+            money_reward: 100,
+        },
+    ] {
+        for (before, after) in [(Some(1000), 1300), (Some(16000), 16000), (None, 0)] {
+            let feedback = resolve_kill_weapon_feedback(
+                Some(&weapon), None, false, before, after, &Mode::Competitive, now,
+            );
+            assert_eq!(feedback.is_knife_kill, weapon.is_knife);
+            assert!(!feedback.is_grenade_kill);
+            assert_eq!(feedback.weapon_name, Some(weapon.name.clone()));
+            assert_eq!(feedback.weapon_badge_key, weapon.badge_key);
+            assert_eq!(feedback.rule_money_reward, weapon.money_reward);
+        }
     }
 }
 
@@ -199,11 +229,10 @@ fn detected_special_kills_reach_crossfire_audio_and_icon_routing() {
     let now = Instant::now();
     let base = "sounds/crossfire_swat_gr";
     let manifest = PackManifest::load_from_dir(&Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/crossfire/crossfire_swat_gr")).unwrap();
-    let ammo = HashMap::from([("weapon_1".to_string(), 0)]);
     let mut fixtures = Vec::new();
     for mode in [Mode::Casual, Mode::Competitive] {
         let knife = knife(&mode);
-        let weapon = resolve_weapon_kill_context(Some(&knife), Some(&knife), &ammo, &ammo);
+        let weapon = Some(&knife);
         for kind in ["knife", "grenade"] {
             let grenade =
                 (kind == "grenade").then(|| thrown_grenade(now - Duration::from_secs(1), false));

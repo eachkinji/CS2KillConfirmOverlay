@@ -32,8 +32,6 @@ pub struct TrackedPlayerState {
     pub last_round_phase: Option<TrackedRoundPhase>,
     pub has_first_kill_in_round: bool,
     pub pending_last_kill: Option<PendingLastKill>,
-    pub last_active_weapon: Option<WeaponKillContext>,
-    pub last_weapon_ammo: HashMap<String, u16>,
     pub last_weapons: HashMap<String, (WeaponName, u16)>,
     pub active_grenade: Option<ActiveGrenadeTracker>,
 }
@@ -56,8 +54,6 @@ impl Default for TrackedPlayerState {
             last_round_phase: None,
             has_first_kill_in_round: false,
             pending_last_kill: None,
-            last_active_weapon: None,
-            last_weapon_ammo: HashMap::new(),
             last_weapons: HashMap::new(),
             active_grenade: None,
         }

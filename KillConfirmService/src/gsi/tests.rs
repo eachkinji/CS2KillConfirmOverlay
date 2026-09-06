@@ -1,14 +1,14 @@
 #[cfg(test)]
 mod tests {
     use super::{
-        CrossfireStreakMode, DelayedLastKillDecision, WeaponKillContext,
+        CrossfireStreakMode, DelayedLastKillDecision,
         advance_pending_last_kill_frame,
         can_read_observed_combat_events, classify_delayed_last_kill, detect_bomb_defused_action,
         detect_bomb_planted_action, detect_gun_fired, detect_thrown_grenade,
         has_observed_player_changed, is_knife_weapon, is_local_observed_player,
         normalize_cs2_map_mode, opponent_team_display_name, pending_last_kill_is_confirmable,
         resolve_crossfire_streak_count, resolve_observed_player_id, resolve_player_death_count,
-        resolve_player_kill_delta, resolve_weapon_kill_context, should_emit_player_death,
+        resolve_player_kill_delta, should_emit_player_death,
         should_emit_player_kill, should_reset_stored_streak,
     };
     use crate::state::PendingLastKill;
@@ -47,73 +47,7 @@ mod tests {
     }
 
     #[test]
-    fn weapon_kill_context_keeps_knife_and_weapon_metadata_together() {
-        let gun = WeaponKillContext {
-            inventory_key: "weapon_0".to_string(),
-            is_knife: false,
-            badge_key: Some("assault".to_string()),
-            name: "ak47".to_string(),
-            money_reward: 300,
-        };
-        let knife = WeaponKillContext {
-            inventory_key: "weapon_1".to_string(),
-            is_knife: true,
-            badge_key: Some("knife".to_string()),
-            name: "knife_karambit".to_string(),
-            money_reward: 1500,
-        };
-
-        let previous_ammo = HashMap::from([("weapon_0".to_string(), 30)]);
-        let fired_ammo = HashMap::from([
-            ("weapon_0".to_string(), 29),
-            ("weapon_1".to_string(), 0),
-        ]);
-        let unchanged_ammo = HashMap::from([
-            ("weapon_0".to_string(), 30),
-            ("weapon_1".to_string(), 0),
-        ]);
-
-        assert_eq!(
-            resolve_weapon_kill_context(
-                Some(&knife),
-                Some(&gun),
-                &previous_ammo,
-                &fired_ammo,
-            ),
-            Some(&gun)
-        );
-        assert_eq!(
-            resolve_weapon_kill_context(
-                Some(&knife),
-                Some(&gun),
-                &previous_ammo,
-                &unchanged_ammo,
-            ),
-            Some(&knife)
-        );
-        assert_eq!(
-            resolve_weapon_kill_context(
-                Some(&gun),
-                Some(&knife),
-                &unchanged_ammo,
-                &fired_ammo,
-            ),
-            Some(&gun)
-        );
-        assert_eq!(
-            resolve_weapon_kill_context(None, Some(&gun), &previous_ammo, &fired_ammo),
-            None
-        );
-        // Ordinary knife kills keep the knife active across several GSI samples.
-        for previous in [Some(&knife), None] {
-            assert_eq!(
-                resolve_weapon_kill_context(
-                    Some(&knife), previous, &unchanged_ammo, &unchanged_ammo,
-                ),
-                Some(&knife),
-                "Holding the knife must not erase the kill's weapon context"
-            );
-        }
+    fn knife_type_and_names_are_recognized() {
         assert!(is_knife_weapon(None, &WeaponName::KnifeKarambit));
         assert!(is_knife_weapon(Some(&WeaponType::Knife), &WeaponName::AK47));
         assert!(!is_knife_weapon(None, &WeaponName::AK47));

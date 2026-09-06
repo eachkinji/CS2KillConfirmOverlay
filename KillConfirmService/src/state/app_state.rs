@@ -12,7 +12,6 @@ pub struct PendingLastKill {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct WeaponKillContext {
-    pub inventory_key: String,
     pub is_knife: bool,
     pub badge_key: Option<String>,
     pub name: String,

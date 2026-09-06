@@ -76,6 +76,36 @@ The project has grown from a simple kill-confirm sound tool into a configurable 
       如果你需要更丰富的个性化修改，包括准心、击杀音效与图标、HUD 配色、局内视角和道具瞄点，请访问 <a href="https://github.com/gufan0000/cs2-customizer"><code>gufan0000/cs2-customizer</code></a>。本项目与其深度联动，可以配合形成更完整的 CS2 自定义体验。
     </td>
   </tr>
+  <tr>
+    <td align="center" width="120">
+      <a href="https://github.com/sb6657-cn/sb6657">
+        <img src="https://avatars.githubusercontent.com/u/317176004?v=4&amp;s=160" width="80" alt="6657 · sb6657" /><br />
+        <strong>6657 · sb6657</strong>
+      </a>
+    </td>
+    <td>
+      <strong>6657 danmaku and community memes</strong><br /><br />
+      Thanks to <a href="https://sb6657.cn/home">sb6657</a> and its community for collecting and creating classic quotes and memes. Their community work informed our 6657 danmaku content and style, while the open-source AI meme interface provided a reference for the curation workflow.
+      <br /><br />
+      <strong>6657 弹幕与社区梗文化</strong><br /><br />
+      感谢 <a href="https://sb6657.cn/home">sb6657 玩机器烂梗收集</a>及社区的语录整理与创作。本项目的 6657 弹幕内容与风格参考了这些社区积累，并参考其开源 AI 造梗界面的交互流程。
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="120">
+      <a href="https://github.com/MinecraftGD656/gd656killicon">
+        <img src="https://avatars.githubusercontent.com/u/192985822?v=4&amp;s=160" width="80" alt="MinecraftGD656" /><br />
+        <strong>MinecraftGD656</strong>
+      </a>
+    </td>
+    <td>
+      <strong>Minecraft kill feedback: gd656killicon</strong><br /><br />
+      Thanks to MinecraftGD656 for <a href="https://github.com/MinecraftGD656/gd656killicon"><code>gd656killicon</code></a>, an open-source reference for kill-feedback implementations. This Minecraft mod offers kill feedback inspired by multiple games and extensive customization options.
+      <br /><br />
+      <strong>Minecraft 击杀反馈：gd656killicon</strong><br /><br />
+      感谢 MinecraftGD656 的开源项目 <a href="https://github.com/MinecraftGD656/gd656killicon"><code>gd656killicon</code></a> 为击杀反馈的实现提供参考。该 Minecraft 模组支持多种游戏风格的击杀反馈与丰富的自定义配置，欢迎关注。
+    </td>
+  </tr>
 </table>
 
 ## Highlights
@@ -182,7 +212,6 @@ Package-ready resources are refreshed from `SourceAssets` during the build.
 
 ## Additional credits
 
-- [`gd656killicon`](https://github.com/MinecraftGD656/gd656killicon) by MinecraftGD656.
 - [Steam Workshop item 2721562982](https://steamcommunity.com/sharedfiles/filedetails/?id=2721562982).
 
 This project incorporates AI-generated code.

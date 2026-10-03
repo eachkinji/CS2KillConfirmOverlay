@@ -63,12 +63,19 @@ fn open_settings_window() -> Result<(), String> {
     let app_shell_target = format!("shell:AppsFolder\\{}!App", current_package_family_name());
     log(&format!("launch target: {app_shell_target}"));
 
-    let child = Command::new("explorer.exe")
-        .arg(&app_shell_target)
+    // In the AppModel-launched full-trust helper context, creating explorer.exe
+    // directly (CreateProcess or ShellExecuteW, relative or full path) fails
+    // with ACCESS_DENIED. Delegating the activation to the shell through
+    // `cmd /c start` works reliably.
+    let comspec = env::var("SystemRoot")
+        .map(|root| format!("{root}\\System32\\cmd.exe"))
+        .unwrap_or_else(|_| "cmd.exe".to_string());
+    let child = Command::new(comspec)
+        .args(["/c", "start", "", &app_shell_target])
         .creation_flags(CREATE_NO_WINDOW)
         .spawn()
         .map_err(|error| format!("failed to start explorer for app entry: {error}"))?;
-    log(&format!("explorer app-entry spawned. pid={}", child.id()));
+    log(&format!("explorer app-entry launched via cmd start. pid={}", child.id()));
 
     focus_settings_window()?;
     Ok(())

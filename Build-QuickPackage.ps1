@@ -381,6 +381,9 @@ Copy-FfmpegDependency $PackagedFfmpegRoot
 if (-not (Test-Path -LiteralPath (Join-Path $PackagedFfmpegRoot 'ffmpeg.exe'))) { throw "FFmpeg 依赖准备失败" }
 Write-Host "  已准备精简分发的 LGPL FFmpeg（仅 ffmpeg.exe）。" -ForegroundColor DarkGray
 
+# Independent desktop host is self-contained and always ships beside the legacy widget.
+& (Join-Path $PSScriptRoot "CompatibilityHost/Build-CompatibilityHost.ps1") -Configuration $Configuration -Platform $Platform
+
 # 3. 编译打包 MSIX Bundle。正式与开发安装都必须使用 Bundle，确保
 # 已由 Bundle 注册的主包和语言资源包可以沿用 Windows 的正常升级链。
 Write-Host "`n[2/4] 调用 MSBuild 编译打包 MSIX Bundle ($Configuration/$Platform)..." -ForegroundColor Yellow
@@ -477,6 +480,8 @@ try {
     finally {
         $reader.Dispose()
     }
+
+    & (Join-Path $PSScriptRoot 'CompatibilityHost/Packaging/Assert-CompatibilityBundle.ps1') -Archive $archive -ManifestText $packagedManifestText
 
     $requiredManifestMarkers = @(
         'windows.fullTrustProcess',

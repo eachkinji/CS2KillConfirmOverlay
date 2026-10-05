@@ -164,6 +164,7 @@ pub(crate) fn exit_all_processes() {
     let current_pid = std::process::id();
     let image_names = [
         "KillConfirmGameBar.exe",
+        "KillConfirmCompatibility.exe",
         "killconfirm-settings-launcher.exe",
         "KillConfirmOverlay.exe",
         "TestXboxGameBar.exe",

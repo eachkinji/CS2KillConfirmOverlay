@@ -100,6 +100,7 @@ namespace KillConfirmGameBar
             UpdateTabBtn(HomeTabGeneralButton, _activeHomeTab == "general", theme);
             UpdateTabBtn(HomeTabPortButton, _activeHomeTab == "port", theme);
             UpdateTabBtn(HomeTabDisplayButton, _activeHomeTab == "display", theme);
+            UpdateTabBtn(HomeTabCompatibilityButton, _activeHomeTab == "compatibility", theme);
             UpdateTabBtn(HomeTabAboutButton, _activeHomeTab == "about", theme);
         }
 

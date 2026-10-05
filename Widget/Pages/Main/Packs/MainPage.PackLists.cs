@@ -49,6 +49,7 @@ namespace KillConfirmGameBar
             _isSettingsPageLoaded = true;
             GameStyleService.Changed += OnGameStyleServiceChanged;
             PackCatalogService.CatalogChanged += OnCatalogChanged;
+            await Features.CompatibilityDisplay.CompatibilityDisplayRuntime.EnsureStartedAsync();
             await EnsureActivePackListLoadedAsync();
         }
 

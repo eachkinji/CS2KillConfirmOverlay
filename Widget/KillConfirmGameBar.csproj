@@ -101,6 +101,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\CompatibilityHost\Contracts\DisplayConfiguration.cs"><Link>Features\CompatibilityDisplay\Contracts\DisplayConfiguration.cs</Link></Compile>
+    <Compile Include="..\CompatibilityHost\Contracts\DisplayFiles.cs"><Link>Features\CompatibilityDisplay\Contracts\DisplayFiles.cs</Link></Compile>
+    <Compile Include="..\CompatibilityHost\Integration\CompatibilityDisplayRuntime.cs"><Link>Features\CompatibilityDisplay\Integration\CompatibilityDisplayRuntime.cs</Link></Compile>
+    <Compile Include="..\CompatibilityHost\Integration\CompatibilityDisplayPanel.xaml.cs"><Link>Features\CompatibilityDisplay\Integration\CompatibilityDisplayPanel.xaml.cs</Link></Compile>
+    <Compile Include="..\CompatibilityHost\Integration\MainPage.CompatibilityDisplay.cs"><Link>Features\CompatibilityDisplay\Integration\MainPage.CompatibilityDisplay.cs</Link></Compile>
+    <Page Include="..\CompatibilityHost\Integration\CompatibilityDisplayPanel.xaml"><Link>Features\CompatibilityDisplay\Integration\CompatibilityDisplayPanel.xaml</Link><Generator>MSBuild:Compile</Generator><SubType>Designer</SubType></Page>
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="Danmaku\Engine\DanmakuEvent.cs" />
     <Compile Include="Danmaku\Engine\DanmakuReactionPolicy.cs" />
     <Compile Include="Danmaku\Engine\DanmakuEventPoolRepository.cs" />

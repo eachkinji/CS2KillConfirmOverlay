@@ -11,6 +11,11 @@ namespace KillConfirmGameBar
     {
         private void UpdateControlPanelVisibility()
         {
+            Visibility feedbackVisibility = Features.CompatibilityDisplay.CompatibilityDisplayRuntime.IsEnabled ? Visibility.Collapsed : Visibility.Visible;
+            CrosshairFeedbackLayer.Visibility = feedbackVisibility;
+            LowerFeedbackLayer.Visibility = feedbackVisibility;
+            UpperFeedbackLayer.Visibility = feedbackVisibility;
+            DanmakuOverlayControl.Visibility = feedbackVisibility;
             bool showControlPanel = IsControlPanelVisible();
 
             ControlPanel.Visibility = showControlPanel ? Visibility.Visible : Visibility.Collapsed;

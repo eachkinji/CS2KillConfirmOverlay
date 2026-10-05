@@ -141,17 +141,19 @@ function Confirm-PrerequisiteInstall {
 function Install-RequiredComponents {
     param([switch]$Confirmed)
 
-    Write-InstallLog "Checking required Microsoft UI XAML, VCLibs, .NET Native, and Xbox Game Bar packages..."
+    $requiredPrerequisites = @($Prerequisites | Where-Object { $_.PackageName -ne "Microsoft.XboxGamingOverlay" })
+
+    Write-InstallLog "Checking required Microsoft UI XAML, VCLibs, and .NET Native packages (Xbox Game Bar is optional)..."
     if (-not (Test-Path -LiteralPath $PrerequisiteRoot -PathType Container)) {
         Add-InstallResult -Status Error -Item "离线依赖目录" -Detail "未找到：$PrerequisiteRoot"
         return
     }
 
-    $missingPrerequisites = @($Prerequisites |
+    $missingPrerequisites = @($requiredPrerequisites |
         Sort-Object Order |
         Where-Object { -not (Test-PrerequisiteInstalled -Prerequisite $_) })
 
-    foreach ($prerequisite in ($Prerequisites | Sort-Object Order)) {
+    foreach ($prerequisite in ($requiredPrerequisites | Sort-Object Order)) {
         $installed = Get-InstalledPrerequisitePackage -Prerequisite $prerequisite
         if ($installed) {
             Write-InstallLog ("Prerequisite detected: {0} {1} ({2})" -f $prerequisite.PackageName, $installed.Version, $installed.Architecture)
@@ -162,8 +164,8 @@ function Install-RequiredComponents {
     }
 
     if ($missingPrerequisites.Count -eq 0) {
-        Write-InstallLog "All required Microsoft UI XAML, VCLibs, .NET Native, and Xbox Game Bar packages are already installed."
-        foreach ($prerequisite in ($Prerequisites | Sort-Object Order)) {
+        Write-InstallLog "All required Microsoft UI XAML, VCLibs, and .NET Native packages are already installed."
+        foreach ($prerequisite in ($requiredPrerequisites | Sort-Object Order)) {
             $installed = Get-InstalledPrerequisitePackage -Prerequisite $prerequisite
             Add-InstallResult -Status Success -Item $prerequisite.ChineseDisplayName -Detail ("已安装，版本 {0}" -f $installed.Version)
         }
@@ -205,7 +207,7 @@ function Install-RequiredComponents {
         }
     }
 
-    foreach ($prerequisite in ($Prerequisites | Sort-Object Order)) {
+    foreach ($prerequisite in ($requiredPrerequisites | Sort-Object Order)) {
         if (Test-PrerequisiteInstalled -Prerequisite $prerequisite) {
             Write-InstallLog ("Prerequisite already satisfies requirement: {0}" -f $prerequisite.PackageName)
             $installed = Get-InstalledPrerequisitePackage -Prerequisite $prerequisite
@@ -220,7 +222,7 @@ function Install-RequiredComponents {
         }
 
         try {
-            Write-InstallLog ("Installing prerequisite {0}/{1}: {2} (minimum {3})" -f $prerequisite.Order, $Prerequisites.Count, $prerequisite.PackageName, $prerequisite.MinimumVersion)
+            Write-InstallLog ("Installing prerequisite {0}/{1}: {2} (minimum {3})" -f $prerequisite.Order, $requiredPrerequisites.Count, $prerequisite.PackageName, $prerequisite.MinimumVersion)
             Write-InstallLog "Windows 正在部署该组件，较慢的电脑可能需要几分钟。请不要关闭安装进度窗口。"
             Add-AppxPackageCompat -PackagePath $packagePath -ForceUpdate
 

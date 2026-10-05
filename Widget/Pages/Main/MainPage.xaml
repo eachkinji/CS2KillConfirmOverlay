@@ -204,6 +204,11 @@
                                 Content="进阶设置"
                                 Click="OnHomeTabDisplayClick" />
                             <Button
+                                x:Name="HomeTabCompatibilityButton"
+                                Style="{StaticResource StudioTabButtonStyle}"
+                                Content="兼容显示"
+                                Click="OnHomeTabCompatibilityClick" />
+                            <Button
                                 x:Name="HomeTabAboutButton"
                                 Style="{StaticResource StudioTabButtonStyle}"
                                 Content="关于本版本"

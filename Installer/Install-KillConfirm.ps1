@@ -143,32 +143,18 @@ try {
         Add-InstallResult -Status Success -Item "外部前置依赖" -Detail "无依赖更新版按设计不检查、不安装离线依赖"
     }
 
-    if ($InstallPrerequisites) {
-        Write-InstallStage -Number 2 -Total 7 -Name "Xbox Game Bar 检测" -Detail "确认版本和可用状态"
-        try {
-            Confirm-XboxGameBarAvailable
-            Add-InstallResult -Status Success -Item "Xbox Game Bar 可用性" -Detail "已检测到 Xbox Game Bar"
-        }
-        catch {
-            Add-InstallResult -Status Error -Item "Xbox Game Bar 可用性" -Detail ((Get-ErrorReason $_) + "；已打开商店页面，并继续尝试安装主程序")
-        }
-
-        Write-InstallStage -Number 3 -Total 7 -Name "Game Bar 环境修复" -Detail "检查策略、快捷键和服务状态"
-        try {
-            Repair-XboxGameBarEnvironment
-        }
-        catch {
-            Add-InstallResult -Status Error -Item "Game Bar 环境修复" -Detail ((Get-ErrorReason $_) + "；已继续安装 Kill Confirm 主程序")
-        }
+    Write-InstallStage -Number 2 -Total 7 -Name "显示方式检测" -Detail "Game Bar 或兼容显示"
+    $compatibilityFallback = -not (Test-XboxGameBarAvailable)
+    if ($compatibilityFallback) {
+        Add-InstallResult -Status Success -Item "显示方式" -Detail "Game Bar 不可用，使用独立兼容显示；无需安装 Game Bar"
     }
     else {
-        Write-InstallStage -Number 2 -Total 7 -Name "Xbox Game Bar 检测" -Detail "无依赖更新版按设计跳过"
-        Write-InstallLog "Dependency-free installer: Xbox Game Bar availability detection is disabled."
-        Add-InstallResult -Status Success -Item "Xbox Game Bar 可用性检查" -Detail "无依赖更新版按设计不执行"
-
-        Write-InstallStage -Number 3 -Total 7 -Name "Game Bar 环境修复" -Detail "无依赖更新版按设计跳过"
-        Write-InstallLog "Dependency-free installer: Xbox Game Bar environment repair is disabled."
-        Add-InstallResult -Status Success -Item "Game Bar 环境修复" -Detail "无依赖更新版按设计不执行"
+        Add-InstallResult -Status Success -Item "显示方式" -Detail "Game Bar 可用，也可在高级设置开启兼容显示"
+    }
+    Write-InstallStage -Number 3 -Total 7 -Name "Game Bar 环境" -Detail "兼容显示无需此项"
+    if ($InstallPrerequisites -and -not $compatibilityFallback) {
+        try { Repair-XboxGameBarEnvironment }
+        catch { Add-InstallResult -Status Warning -Item "Game Bar 环境修复" -Detail ((Get-ErrorReason $_) + "；可使用兼容显示") }
     }
 
     Write-InstallStage -Number 4 -Total 7 -Name "主程序安装" -Detail "安装证书、MSIX 依赖和 Kill Confirm Overlay"
@@ -213,7 +199,12 @@ try {
         Add-InstallResult -Status Warning -Item "本机回环通信权限" -Detail "已通过命令行参数跳过"
     }
 
-    if ($OpenGameBar) {
+    if ($compatibilityFallback) {
+        . (Join-Path $ScriptRoot "Scripts/CompatibilityDisplay/Install-CompatibilityDisplay.ps1")
+        Initialize-CompatibilityDisplayFallback
+    }
+
+    if ($OpenGameBar -and -not $compatibilityFallback) {
         try {
             Start-Sleep -Milliseconds 800
             Start-Process "ms-gamebar:" | Out-Null

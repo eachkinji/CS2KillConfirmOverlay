@@ -73,4 +73,9 @@
       <_AppxUploadBundleMainPackageMapInputs Include="$(_FilteredUploadPackageLayoutFilePath)" />
     </ItemGroup>
   </Target>
+  <ItemGroup>
+    <Content Include="..\Widget\CompatibilityHost\**\*">
+      <Link>CompatibilityHost\%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </Content>
+  </ItemGroup>
 </Project>

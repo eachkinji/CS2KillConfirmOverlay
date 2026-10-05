@@ -1,0 +1,9 @@
+global using Colors = Microsoft.UI.Colors;
+global using FontWeights = Microsoft.UI.Text.FontWeights;
+global using CanvasControl = KillConfirmCompatibility.Desktop.Rendering.DesktopCanvas;
+global using CanvasDrawEventArgs = KillConfirmCompatibility.Desktop.Rendering.DesktopDrawEventArgs;
+global using ApplicationData = KillConfirmCompatibility.Desktop.Runtime.DesktopStorage;
+global using ApplicationDataContainer = KillConfirmCompatibility.Desktop.Runtime.DesktopSettings;
+global using CoreDispatcher = KillConfirmCompatibility.Desktop.Runtime.DesktopDispatcher;
+global using CoreDispatcherPriority = KillConfirmCompatibility.Desktop.Runtime.DesktopDispatcherPriority;
+global using CompositionTarget = System.Windows.Media.CompositionTarget;

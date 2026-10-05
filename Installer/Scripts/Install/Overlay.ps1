@@ -5,6 +5,7 @@ function Get-OverlayRuntimeProcesses {
         "TestXboxGameBar",
         "KillConfirmOverlay",
         "KillConfirmGameBar",
+        "KillConfirmCompatibility",
         "GameBar",
         "GameBarFTServer",
         "GameBarPresenceWriter",

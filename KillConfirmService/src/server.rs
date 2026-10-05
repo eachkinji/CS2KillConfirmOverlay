@@ -96,6 +96,11 @@ pub(crate) async fn run(mut args: Args) -> Result<()> {
         return Ok(());
     }
 
+    if args.open_compatibility_display {
+        crate::infrastructure::compatibility::launch()?;
+        return Ok(());
+    }
+
     if args.exit_all {
         exit_all_processes();
         return Ok(());

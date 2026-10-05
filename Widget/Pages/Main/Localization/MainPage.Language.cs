@@ -82,6 +82,7 @@ namespace KillConfirmGameBar
             if (HomeTabPortButton != null) HomeTabPortButton.Content = LocalizationManager.Text("HomeTabPort");
             if (HomeTabDisplayButton != null) HomeTabDisplayButton.Content = LocalizationManager.Text("HomeTabDisplay");
             if (HomeTabAboutButton != null) HomeTabAboutButton.Content = LocalizationManager.Text("HomeTabAbout");
+            if (HomeTabCompatibilityButton != null) HomeTabCompatibilityButton.Content = LocalizationManager.Current == UiLanguage.SimplifiedChinese ? "兼容显示" : "Compatibility display";
 
             string gameTabPrefix = currentMode == GameStyleMode.Csol
                 ? "Csol"

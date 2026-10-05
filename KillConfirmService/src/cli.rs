@@ -65,6 +65,10 @@ pub struct Args {
     #[arg(long, default_value = "false")]
     pub open_game_bar: bool,
 
+    /// launch the independent desktop compatibility display, then exit
+    #[arg(long, default_value = "false")]
+    pub open_compatibility_display: bool,
+
     /// terminate every Kill Confirm Overlay foreground and background process
     #[arg(long, default_value = "false")]
     pub exit_all: bool,

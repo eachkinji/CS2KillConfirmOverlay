@@ -3,6 +3,9 @@ Widget/bin/
 Widget/obj/
 Package/bin/
 Package/obj/
+CompatibilityHost/bin/
+CompatibilityHost/obj/
+Widget/CompatibilityHost/
 target/
 Output/
 Package/AppPackages/

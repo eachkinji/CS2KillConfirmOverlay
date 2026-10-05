@@ -123,6 +123,7 @@ namespace KillConfirmGameBar
 
         private void HandleKillEvent(KillEvent killEvent)
         {
+            if (Features.CompatibilityDisplay.CompatibilityDisplayRuntime.IsEnabled) return;
             if (killEvent.PublishedUnixMs > 0)
             {
                 ulong nowMs = (ulong)DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();

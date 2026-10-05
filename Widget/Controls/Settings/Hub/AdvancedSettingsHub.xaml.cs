@@ -90,6 +90,7 @@ namespace KillConfirmGameBar.Controls.Settings
                 : "Choose the Counter-Strike version, main-window close behavior, and program priority.";
 
             HubPortSettingsView?.ApplyLanguage();
+            HubCompatibilityDisplayPanel?.ApplyLanguage();
 
             HubDisplayCardTitle.Text = isChinese ? "进阶设置" : "ADVANCED SETTINGS";
             HubDisplayCardDescription.Text = isChinese
@@ -167,6 +168,7 @@ namespace KillConfirmGameBar.Controls.Settings
             if (HubGeneralCardSecondaryDescription != null) HubGeneralCardSecondaryDescription.Foreground = new SolidColorBrush(theme.MutedText);
 
             HubPortSettingsView?.ApplyTheme(theme);
+            HubCompatibilityDisplayPanel?.ApplyTheme(theme);
 
             if (HubDisplayCardTitle != null) HubDisplayCardTitle.Foreground = new SolidColorBrush(theme.Text);
             if (HubDisplayCardDescription != null) HubDisplayCardDescription.Foreground = new SolidColorBrush(theme.MutedText);
@@ -426,6 +428,7 @@ namespace KillConfirmGameBar.Controls.Settings
             if (HubPortSettingsView != null) HubPortSettingsView.Visibility = tab == TabPort ? Visibility.Visible : Visibility.Collapsed;
             if (HubDisplayView != null) HubDisplayView.Visibility = tab == TabDisplay ? Visibility.Visible : Visibility.Collapsed;
             if (HubAboutView != null) HubAboutView.Visibility = tab == TabAbout ? Visibility.Visible : Visibility.Collapsed;
+            if (HubCompatibilityDisplayPanel != null) HubCompatibilityDisplayPanel.Visibility = tab == "compatibility" ? Visibility.Visible : Visibility.Collapsed;
 
             if (tab == TabPort)
             {

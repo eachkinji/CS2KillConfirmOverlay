@@ -97,22 +97,22 @@ english.CertificateWarningText=Please note: the next steps will add a new person
 chinesesimplified.CertificateWarningText=请记住：接下来的步骤将会给你的电脑添加新证书，该证书是个人签名证书，请确认后再继续。
 english.PrerequisiteWarningText=Please note: the installer will check required system dependencies. Follow the instructions shown on screen to complete any required actions.
 chinesesimplified.PrerequisiteWarningText=请记住：接下来的步骤将会检查你的系统依赖，请按照界面提示执行相关操作。
-english.UpdateOnlyWarningText=This is the dependency-free update package. It will not check or repair Xbox Game Bar and will not install offline prerequisites. Use it only on a computer where the app already works correctly.
-chinesesimplified.UpdateOnlyWarningText=这是无依赖更新包，不会检测或修复 Xbox Game Bar，也不会安装离线前置依赖。请仅在软件原本可以正常运行的电脑上使用。
-english.GameBarUsageText=After installation, press Win+G to open Xbox Game Bar and use this program.
-chinesesimplified.GameBarUsageText=请记住：安装结束后，按 Win+G 打开 Game Bar 界面并使用本程序。
+english.UpdateOnlyWarningText=This is the dependency-free update package. It will not repair Xbox Game Bar or install offline prerequisites. Use it only on a computer where the app already works correctly.
+chinesesimplified.UpdateOnlyWarningText=这是无依赖更新包，不会修复 Xbox Game Bar，也不会安装离线前置依赖。请仅在软件原本可以正常运行的电脑上使用。
+english.GameBarUsageText=Use Xbox Game Bar, or open the app from Start and enable Compatibility display in Advanced Settings. Game Bar is optional.
+chinesesimplified.GameBarUsageText=可按 Win+G 使用 Game Bar，或从开始菜单打开本程序，在高级设置启用兼容显示。Game Bar 为可选组件。
 english.AcknowledgeButtonText=I understand
 chinesesimplified.AcknowledgeButtonText=我清楚了
 english.AcknowledgedButtonText=Understood
 chinesesimplified.AcknowledgedButtonText=已确认
 english.AcknowledgeRequiredText=Please click "I understand" before starting the installation.
 chinesesimplified.AcknowledgeRequiredText=请先点击“我清楚了”，然后才能开始安装。
-english.FinishedGameBarText=The installation pass is complete. Refer to the installation result and log. If the main app is marked successful, press Win+G to use it.
-chinesesimplified.FinishedGameBarText=安装流程已执行完毕，请以安装结果及日志为准。主程序显示 ✅ 后，可按 Win+G 使用插件。
+english.FinishedGameBarText=Installation complete. Check the result and log, then use Game Bar or open the app from Start to configure Compatibility display.
+chinesesimplified.FinishedGameBarText=安装流程已执行完毕，请以结果及日志为准。可使用 Game Bar，或从开始菜单打开本程序设置兼容显示。
 english.FinishedTutorialText=Need help? Click here to view the tutorial.
 chinesesimplified.FinishedTutorialText=如有不懂，请点击这里查看教程。
-english.FinishedPinWarningText=Important: turn off click-through mode and pin the widget window before use.
-chinesesimplified.FinishedPinWarningText=重要：一定要关闭“单击浏览”，一定要点击图钉固定窗口！
+english.FinishedPinWarningText=Game Bar mode: turn off click-through mode and pin the widget window before use.
+chinesesimplified.FinishedPinWarningText=Game Bar 模式：请关闭“单击浏览”，并点击图钉固定窗口。
 
 [InstallDelete]
 Type: filesandordirs; Name: "{app}\Payload"
@@ -127,7 +127,7 @@ Source: "Assets\KillConfirmOverlay.ico"; DestDir: "{app}"; Flags: ignoreversion
 Source: "Assets\GameBarPinGuide.png"; Flags: dontcopy
 
 [UninstallRun]
-Filename: "{sys}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -Command ""Get-Process -Name cskillconfirm,TestXboxGameBar,KillConfirmOverlay,KillConfirmGameBar,GameBar,GameBarFTServer,GameBarPresenceWriter -ErrorAction SilentlyContinue | Stop-Process -Force; Start-Sleep -Milliseconds 800; $p = Get-AppxPackage -Name KillConfirmGameBar.Overlay -ErrorAction SilentlyContinue | Sort-Object Version -Descending | Select-Object -First 1; if ($p) {{ CheckNetIsolation.exe LoopbackExempt -d \""-n=$($p.PackageFamilyName)\"" 2>$null; $p | Remove-AppxPackage -ErrorAction SilentlyContinue }"""; Flags: runhidden waituntilterminated; RunOnceId: "RemoveAppxPackage"
+Filename: "{sys}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -Command ""Get-Process -Name cskillconfirm,KillConfirmCompatibility,TestXboxGameBar,KillConfirmOverlay,KillConfirmGameBar,GameBar,GameBarFTServer,GameBarPresenceWriter -ErrorAction SilentlyContinue | Stop-Process -Force; Start-Sleep -Milliseconds 800; $p = Get-AppxPackage -Name KillConfirmGameBar.Overlay -ErrorAction SilentlyContinue | Sort-Object Version -Descending | Select-Object -First 1; if ($p) {{ CheckNetIsolation.exe LoopbackExempt -d \""-n=$($p.PackageFamilyName)\"" 2>$null; $p | Remove-AppxPackage -ErrorAction SilentlyContinue }"""; Flags: runhidden waituntilterminated; RunOnceId: "RemoveAppxPackage"
 
 [Code]
 #include "Scripts\Setup\InstallLog.iss"

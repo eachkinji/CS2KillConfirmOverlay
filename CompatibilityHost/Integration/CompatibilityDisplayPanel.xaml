@@ -1,0 +1,53 @@
+<UserControl
+    x:Class="KillConfirmGameBar.Features.CompatibilityDisplay.CompatibilityDisplayPanel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Spacing="16" MaxWidth="1480">
+            <Border x:Name="ModeCard" Padding="20" Background="White" BorderBrush="#E5E5E5" BorderThickness="1" CornerRadius="8">
+                <StackPanel Spacing="10">
+                    <TextBlock x:Name="TitleText" Text="兼容显示" FontSize="20" FontWeight="SemiBold" />
+                    <TextBlock x:Name="DescriptionText" Text="直接在桌面透明窗口中显示特效，适用于窗口和无边框全屏，无需启动 Game Bar。" TextWrapping="Wrap" Foreground="#666666" />
+                    <ToggleSwitch x:Name="EnabledToggle" Header="开启兼容显示" Toggled="OnEnabledToggled" />
+                    <TextBlock x:Name="StatusText" Text="未开启" TextWrapping="Wrap" Foreground="#666666" />
+                    <Button x:Name="RestartButton" Content="启动 / 重试" Click="OnRestartClick" />
+                </StackPanel>
+            </Border>
+            <Border x:Name="ScreenCard" Padding="20" Background="White" BorderBrush="#E5E5E5" BorderThickness="1" CornerRadius="8">
+                <StackPanel Spacing="12">
+                    <TextBlock x:Name="ScreenTitle" Text="显示范围" FontSize="16" FontWeight="SemiBold" />
+                    <ToggleSwitch x:Name="FollowToggle" Header="自动跟随游戏窗口" Toggled="OnGeneralChanged" />
+                    <ToggleSwitch x:Name="HideToggle" Header="切出游戏时隐藏" Toggled="OnGeneralChanged" />
+                    <ComboBox x:Name="ScreenSelector" Header="显示器（预览及未跟随窗口时使用）" MinWidth="320" SelectionChanged="OnScreenChanged" />
+                    <ComboBox x:Name="FpsSelector" Header="动画帧率" MinWidth="150" SelectionChanged="OnGeneralSelectionChanged">
+                        <ComboBoxItem Content="60 FPS" Tag="60" /><ComboBoxItem Content="30 FPS" Tag="30" />
+                    </ComboBox>
+                    <TextBlock x:Name="ShortcutText" Text="Ctrl+Alt+O：显示/隐藏 · Ctrl+Alt+L：进入/结束布局编辑" TextWrapping="Wrap" Foreground="#666666" />
+                </StackPanel>
+            </Border>
+            <Border x:Name="LayoutCard" Padding="20" Background="White" BorderBrush="#E5E5E5" BorderThickness="1" CornerRadius="8">
+                <StackPanel Spacing="12">
+                    <TextBlock x:Name="LayoutTitle" Text="元素布局" FontSize="16" FontWeight="SemiBold" />
+                    <TextBlock x:Name="LayoutDescription" Text="每种显示风格独立保存兼容布局。编辑时可直接拖动、滚轮缩放，完成后恢复鼠标穿透。" TextWrapping="Wrap" Foreground="#666666" />
+                    <ComboBox x:Name="StyleSelector" Header="显示风格" MinWidth="320" SelectionChanged="OnStyleChanged" />
+                    <ComboBox x:Name="ElementSelector" Header="元素" MinWidth="200" SelectionChanged="OnElementChanged" />
+                    <ToggleSwitch x:Name="ElementVisibleToggle" Header="显示这个元素" Toggled="OnElementVisibleChanged" />
+                    <Slider x:Name="HorizontalSlider" Header="横向位置（%）" Minimum="0" Maximum="100" StepFrequency="0.1" ValueChanged="OnPlacementChanged" />
+                    <Slider x:Name="VerticalSlider" Header="纵向位置（%）" Minimum="0" Maximum="100" StepFrequency="0.1" ValueChanged="OnPlacementChanged" />
+                    <Slider x:Name="ScaleSlider" Header="缩放（%）" Minimum="10" Maximum="400" StepFrequency="1" ValueChanged="OnPlacementChanged" />
+                    <TextBlock x:Name="PlacementText" Foreground="#666666" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button x:Name="EditButton" Content="编辑屏幕布局" Click="OnEditClick" />
+                        <Button x:Name="PreviewButton" Content="播放测试效果" Click="OnPreviewClick" />
+                        <Button x:Name="CenterButton" Content="居中" Click="OnCenterClick" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button x:Name="ResetElementButton" Content="重置这个元素" Click="OnResetElementClick" />
+                        <Button x:Name="ResetStyleButton" Content="恢复当前风格布局" Click="OnResetStyleClick" />
+                    </StackPanel>
+                    <TextBlock x:Name="PreviewDescription" Text="测试预览只显示画面，不播放击杀音频。按 Esc 或点击“保存并结束”退出屏幕编辑。" TextWrapping="Wrap" Foreground="#666666" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

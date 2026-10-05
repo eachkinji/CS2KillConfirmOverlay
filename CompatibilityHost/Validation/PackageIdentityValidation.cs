@@ -37,6 +37,7 @@ namespace KillConfirmCompatibility.Validation
             if (child.ExitCode != 0 || File.ReadAllText(Path.Combine(output, "child-identity.txt")) != package.Id.FamilyName) throw new Exception("Child process lost package identity.");
             if (!(choices["CompatibilityDisplay.ValidationCounter"] is int counter) || counter != 2) throw new Exception("LocalSettings changes are not visible across processes.");
             choices.Remove("CompatibilityDisplay.ValidationCounter");
+            await ModeStopValidation.RunAsync(output);
             File.WriteAllText(Path.Combine(output, "package.txt"), "PASS: packaged full-trust startup, inherited child identity, ms-appx Win2D assets, live cross-process LocalSettings; no Game Bar dependency");
         }
     }

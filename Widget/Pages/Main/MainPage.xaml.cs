@@ -29,6 +29,7 @@ namespace KillConfirmGameBar
         public MainPage()
         {
             InitializeComponent();
+            InitializeCompatibilityWorkspace();
             ApplyLanguage();
             Loaded += OnLoaded;
             Unloaded += OnUnloaded;
@@ -100,7 +101,6 @@ namespace KillConfirmGameBar
             UpdateTabBtn(HomeTabGeneralButton, _activeHomeTab == "general", theme);
             UpdateTabBtn(HomeTabPortButton, _activeHomeTab == "port", theme);
             UpdateTabBtn(HomeTabDisplayButton, _activeHomeTab == "display", theme);
-            UpdateTabBtn(HomeTabCompatibilityButton, _activeHomeTab == "compatibility", theme);
             UpdateTabBtn(HomeTabAboutButton, _activeHomeTab == "about", theme);
         }
 
@@ -134,6 +134,7 @@ namespace KillConfirmGameBar
 
         private void OnGameStyleServiceChanged(object sender, GameStyleMode mode)
         {
+            if (HandleCompatibilityGameStyleChanged(mode)) return;
             if (!_isSettingsPageLoaded)
             {
                 return;

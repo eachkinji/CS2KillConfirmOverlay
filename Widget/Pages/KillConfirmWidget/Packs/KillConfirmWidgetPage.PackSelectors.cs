@@ -92,6 +92,7 @@ namespace KillConfirmGameBar
 
         private async Task InitializePackSelectorsAndServiceAsync()
         {
+            if (Features.CompatibilityDisplay.CompatibilityDisplayRuntime.IsEnabled) return;
             try
             {
                 await InitializePackSelectorsAsync();

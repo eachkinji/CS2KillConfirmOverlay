@@ -28,6 +28,7 @@ namespace KillConfirmCompatibility
             CrosshairFeedbackAnimation.ReleaseAnimationResourcesForPackChange();
             UpperFeedbackAnimation.ReleaseAnimationResourcesForPackChange();
             string pack = GetSelectedIconPack();
+            var requestStyle = GameStyleService.Current;
             KillConfirmAnimation.ConfigureIconPack(pack);
             var values = ApplicationData.Current.LocalSettings.Values;
             KillConfirmAnimation.ConfigureEliteEffectLevel(values["KillEliteEffect"] is int elite ? elite : 0);
@@ -39,7 +40,7 @@ namespace KillConfirmCompatibility
                 await PackCatalogService.ReloadForCompatibilityAsync();
                 bool imported = PackCatalogService.IsImportedIconPackKey(pack);
                 IconPackItem item = imported ? await PackCatalogService.RefreshImportedIconPackCapabilitiesAsync(pack) : null;
-                if (GetSelectedIconPack() != pack) return;
+                if (GetSelectedIconPack() != pack || requestStyle != GameStyleService.Current) return;
                 KillConfirmAnimation.ConfigureCustomPackOverlayCapabilities(item?.HasKillFxOverlay == true, item?.HasEliteOverlay == true, item?.HasWeaponBadgeOverlay == true);
                 KillConfirmAnimation.ConfigureKillFxMode(values["KillFxEnabled"] is int fx ? fx : imported ? (item?.HasKillFxOverlay == true ? 1 : 0) : 1);
                 ConfigurationError = GameStyleService.Current == GameStyleMode.Crossfire && await PackCatalogService.GetImportedIconFolderAsync(pack) == null

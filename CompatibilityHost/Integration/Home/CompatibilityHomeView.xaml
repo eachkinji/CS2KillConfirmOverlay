@@ -1,0 +1,37 @@
+<UserControl x:Class="KillConfirmGameBar.Features.CompatibilityDisplay.CompatibilityHomeView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:KillConfirmGameBar.Features.CompatibilityDisplay">
+    <StackPanel Spacing="16">
+        <Border x:Name="GameCard" Padding="24" CornerRadius="16" BorderThickness="1">
+            <Grid ColumnSpacing="24">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                <StackPanel Spacing="8">
+                    <TextBlock x:Name="GameTitle" FontSize="24" FontWeight="SemiBold"/>
+                    <TextBlock x:Name="GameHint" TextWrapping="Wrap"/>
+                    <ComboBox x:Name="GameSelector" MinWidth="280" SelectionChanged="OnGameChanged"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="8">
+                    <Button x:Name="EditScreenButton" Content="编辑屏幕" Click="OnEditScreenClick" Padding="24,12"/>
+                    <Button x:Name="EffectsButton" Content="战斗与视效设置" Click="OnOpenEffectsClick" Padding="24,12"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+        <local:PackTestView x:Name="PackTestSectionView" VoicePackSelectionChanged="OnVoicePackSelectionChanged"
+            IconPackSelectionChanged="OnIconPackSelectionChanged" AudioVolumeSelectionChanged="OnAudioVolumeSelectionChanged"
+            AdvancedEffectsRequested="OnOpenEffectsClick" TestEventRequested="OnTestEventClick"
+            RepeatTestRequested="OnRepeatTestClick" ReloadAudioRequested="OnReloadAudioClick" />
+        <Border x:Name="StatusCard" Padding="20" CornerRadius="16" BorderThickness="1">
+            <StackPanel Spacing="12">
+                <TextBlock x:Name="StatusTitle" Text="运行状态" FontSize="18" FontWeight="SemiBold"/>
+                <TextBlock x:Name="StatusText" TextWrapping="Wrap"/>
+                <TextBlock x:Name="GsiText" TextWrapping="Wrap"/>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button x:Name="RetryButton" Content="重试服务" Click="OnRetryClick"/>
+                    <Button x:Name="CfgButton" Content="安装 / 修复游戏配置" Click="OnInstallCfgClick"/>
+                    <Button x:Name="CopyButton" Content="复制诊断" Click="OnCopyClick"/>
+                    <Button x:Name="LogsButton" Content="打开日志" Click="OnLogsClick"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+    </StackPanel>
+</UserControl>

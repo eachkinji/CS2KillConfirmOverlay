@@ -8,6 +8,7 @@ namespace KillConfirmGameBar
     {
         private void ApplyLanguage()
         {
+            if (_isCompatibilityPageSelected) { ApplyCompatibilityWorkspace(); return; }
             TitleText.Text = LocalizationManager.Text("MainTitle");
             bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
             CustomModuleStyleItem.Content = isChinese ? "自定义" : "Custom";
@@ -82,7 +83,6 @@ namespace KillConfirmGameBar
             if (HomeTabPortButton != null) HomeTabPortButton.Content = LocalizationManager.Text("HomeTabPort");
             if (HomeTabDisplayButton != null) HomeTabDisplayButton.Content = LocalizationManager.Text("HomeTabDisplay");
             if (HomeTabAboutButton != null) HomeTabAboutButton.Content = LocalizationManager.Text("HomeTabAbout");
-            if (HomeTabCompatibilityButton != null) HomeTabCompatibilityButton.Content = LocalizationManager.Current == UiLanguage.SimplifiedChinese ? "兼容显示" : "Compatibility display";
 
             string gameTabPrefix = currentMode == GameStyleMode.Csol
                 ? "Csol"

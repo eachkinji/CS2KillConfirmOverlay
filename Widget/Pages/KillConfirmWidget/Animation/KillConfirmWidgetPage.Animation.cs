@@ -15,6 +15,7 @@ namespace KillConfirmGameBar
     {
         private async Task WarmStartupAnimationCacheAsync(int delayMs = StartupPreloadDelayMs)
         {
+            if (Features.CompatibilityDisplay.CompatibilityDisplayRuntime.IsEnabled) return;
             int token = ++_animationPreloadToken;
             UpdateAnimationCacheProgress(0);
 

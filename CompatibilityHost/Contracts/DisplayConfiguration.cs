@@ -16,6 +16,10 @@ namespace KillConfirmCompatibility.Contracts
         [DataMember] public long EditRequest { get; set; }
         [DataMember] public long TestRequest { get; set; }
         [DataMember] public long RestartRequest { get; set; }
+        [DataMember] public long AssetRevision { get; set; }
+        [DataMember] public long ModeRequest { get; set; }
+        [DataMember] public string TestPreset { get; set; } = "three";
+        [DataMember] public bool TestAudio { get; set; }
         [DataMember] public Dictionary<string, LayoutProfile> Layouts { get; set; } = new Dictionary<string, LayoutProfile>();
         [OnDeserializing]
         private void SetDefaults(StreamingContext context)
@@ -85,5 +89,20 @@ namespace KillConfirmCompatibility.Contracts
         [DataMember] public string Screen { get; set; }
         [DataMember] public string Error { get; set; }
         [DataMember] public string[] Screens { get; set; }
+        [DataMember] public string Style { get; set; }
+        [DataMember] public bool Loading { get; set; }
+    }
+    [DataContract]
+    public sealed class GameBarDisplayStatus
+    {
+        [DataMember] public long Timestamp { get; set; }
+        [DataMember] public bool Blocked { get; set; }
+    }
+    [DataContract]
+    public sealed class DisplayStopResult
+    {
+        [DataMember] public long ModeRequest { get; set; }
+        [DataMember] public bool Stopped { get; set; }
+        [DataMember] public string Error { get; set; }
     }
 }

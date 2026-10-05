@@ -40,6 +40,7 @@ namespace KillConfirmGameBar
 
         private void ApplyGameStyleUi()
         {
+            if (_isCompatibilityPageSelected) { ApplyCompatibilityWorkspace(); return; }
             GameStyleMode mode = GameStyleService.Current;
             SyncGameStyleSelector();
             bool valorant = mode == GameStyleMode.Valorant;
@@ -255,7 +256,7 @@ namespace KillConfirmGameBar
 
                 if (GameStyleSidebarSelector != null)
                 {
-                    string sidebarKey = _isHomePageSelected ? "home" : key;
+                    string sidebarKey = _isCompatibilityPageSelected ? "compatibility" : _isHomePageSelected ? "home" : key;
                     foreach (object item in GameStyleSidebarSelector.MenuItems)
                     {
                         if (item is NavigationViewItem sidebarItem && sidebarItem.Tag is string tag && string.Equals(tag, sidebarKey, System.StringComparison.OrdinalIgnoreCase))
@@ -296,6 +297,9 @@ namespace KillConfirmGameBar
 
             if (e.SelectedItem is NavigationViewItem selected && selected.Tag is string key)
             {
+                if (string.Equals(key, "compatibility", StringComparison.OrdinalIgnoreCase)) { SelectCompatibilityWorkspace(); return; }
+                _isCompatibilityPageSelected = false;
+                CompatibilityPageContent.Content = null;
                 if (string.Equals(key, "home", StringComparison.OrdinalIgnoreCase))
                 {
                     _isHomePageSelected = true;
@@ -311,16 +315,17 @@ namespace KillConfirmGameBar
 
         private void UpdateSettingsPageVisibility()
         {
+            CompatibilityPageContent.Visibility = _isCompatibilityPageSelected ? Visibility.Visible : Visibility.Collapsed;
             if (HomePageContent != null)
             {
-                HomePageContent.Visibility = _isHomePageSelected
+                HomePageContent.Visibility = _isHomePageSelected && !_isCompatibilityPageSelected
                     ? Visibility.Visible
                     : Visibility.Collapsed;
             }
 
             if (GamePageContent != null)
             {
-                GamePageContent.Visibility = _isHomePageSelected
+                GamePageContent.Visibility = _isHomePageSelected || _isCompatibilityPageSelected
                     ? Visibility.Collapsed
                     : Visibility.Visible;
             }

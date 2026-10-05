@@ -9,6 +9,10 @@ $output = Join-Path $repository ('Output/CompatibilityIdentity-' + (Get-Date -Fo
 $layout = Join-Path $output 'package'
 New-Item -ItemType Directory -Path (Join-Path $layout 'Assets/KillConfirmCode/Csol4') -Force | Out-Null
 Copy-Item -LiteralPath (Join-Path $repository 'Widget/CompatibilityHost') -Destination $layout -Recurse
+Copy-Item -LiteralPath (Join-Path $layout 'CompatibilityHost/KillConfirmCompatibility.exe') -Destination (Join-Path $layout 'CompatibilityHost/ProbeSupervisor.exe')
+Copy-Item -LiteralPath (Join-Path $layout 'CompatibilityHost/KillConfirmCompatibility.exe') -Destination (Join-Path $layout 'CompatibilityHost/ForeignProbe.exe')
+New-Item -ItemType Directory -Path (Join-Path $layout 'KillConfirmService') -Force | Out-Null
+Copy-Item -LiteralPath (Join-Path $repository 'KillConfirmService/target/release/cskillconfirm.exe') -Destination (Join-Path $layout 'KillConfirmService/cskillconfirm.exe')
 $legacyCanvas = Join-Path $repository 'Widget/bin/x64/Debug/Microsoft.Graphics.Canvas.dll'
 if (Test-Path -LiteralPath $legacyCanvas) { Copy-Item -LiteralPath $legacyCanvas -Destination $layout }
 Copy-Item -LiteralPath (Join-Path $repository 'Widget/Assets/KillConfirmCode/Csol4/3kill.png') -Destination (Join-Path $layout 'Assets/KillConfirmCode/Csol4/3kill.png')
@@ -21,7 +25,7 @@ foreach ($name in @('StoreLogo.png', 'Square150x150Logo.scale-200.png', 'Square4
   <Properties><DisplayName>Compatibility validation</DisplayName><PublisherDisplayName>Validation</PublisherDisplayName><Logo>Assets\StoreLogo.png</Logo></Properties>
   <Resources><Resource Language="en-us" /></Resources>
   <Dependencies><TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.19041.0" MaxVersionTested="10.0.26100.0" /></Dependencies>
-  <Applications><Application Id="Probe" Executable="CompatibilityHost\KillConfirmCompatibility.exe" EntryPoint="Windows.FullTrustApplication"><uap:VisualElements AppListEntry="none" DisplayName="Validation" Description="Validation" BackgroundColor="transparent" Square150x150Logo="Assets\Square150x150Logo.png" Square44x44Logo="Assets\Square44x44Logo.png" /></Application></Applications>
+  <Applications><Application Id="Probe" Executable="CompatibilityHost\ProbeSupervisor.exe" EntryPoint="Windows.FullTrustApplication"><uap:VisualElements AppListEntry="none" DisplayName="Validation" Description="Validation" BackgroundColor="transparent" Square150x150Logo="Assets\Square150x150Logo.png" Square44x44Logo="Assets\Square44x44Logo.png" /></Application></Applications>
   <Capabilities><rescap:Capability Name="runFullTrust" /></Capabilities>
   <Extensions><Extension Category="windows.activatableClass.inProcessServer"><InProcessServer><Path>Microsoft.Graphics.Canvas.dll</Path><ActivatableClass ActivatableClassId="Microsoft.Graphics.Canvas.CanvasDevice" ThreadingModel="both" /><ActivatableClass ActivatableClassId="Microsoft.Graphics.Canvas.CanvasBitmap" ThreadingModel="both" /></InProcessServer></Extension></Extensions>
 </Package>
@@ -49,6 +53,7 @@ try {
     if (-not $process.WaitForExit(30000)) { $process.Kill(); throw 'Identity probe timed out.' }
     if (-not (Test-Path -LiteralPath (Join-Path $output 'package.txt'))) { throw (Get-Content -LiteralPath (Join-Path $output 'package-failure.txt') -Raw -ErrorAction SilentlyContinue) }
     Get-Content -LiteralPath (Join-Path $output 'package.txt')
+    Get-Content -LiteralPath (Join-Path $output 'mode-stop.txt')
     Write-Host "Identity artifacts: $output"
 }
 finally {

@@ -1,6 +1,8 @@
 using System;
 using System.IO;
 using System.Runtime.Serialization.Json;
+using System.Runtime.InteropServices;
+using System.ComponentModel;
 using System.Threading;
 
 namespace KillConfirmCompatibility.Contracts
@@ -32,8 +34,11 @@ namespace KillConfirmCompatibility.Contracts
             {
                 using (var stream = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None))
                     Serializer(typeof(T)).WriteObject(stream, value);
-                if (File.Exists(path)) File.Replace(temporary, path, null);
-                else File.Move(temporary, path);
+                // File.Replace performs metadata merging and fails for UWP app-data
+                // files (ERROR_INVALID_PARAMETER). Rename with replace preserves
+                // atomic reads without transferring the destination's metadata.
+                if (!MoveFileEx(temporary, path, 0x1 | 0x8))
+                    throw new IOException("Cannot replace compatibility data.", new Win32Exception(Marshal.GetLastWin32Error()));
             }
             finally { if (File.Exists(temporary)) File.Delete(temporary); }
         }
@@ -57,5 +62,8 @@ namespace KillConfirmCompatibility.Contracts
         }
         private static DataContractJsonSerializer Serializer(Type type) =>
             new DataContractJsonSerializer(type, new DataContractJsonSerializerSettings { UseSimpleDictionaryFormat = true });
+        [DllImport("kernel32.dll", EntryPoint = "MoveFileExW", CharSet = CharSet.Unicode, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool MoveFileEx(string source, string destination, uint flags);
     }
 }

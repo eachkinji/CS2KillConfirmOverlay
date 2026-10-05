@@ -91,7 +91,7 @@ namespace KillConfirmCompatibility.Desktop.Runtime
         private Window BuildToolbar()
         {
             var row = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(10) };
-            row.Children.Add(new TextBlock { Text = "拖动元素 · 滚轮缩放 · 方向键微调 · Esc 结束", Foreground = Brushes.White, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 15, 0) });
+            row.Children.Add(new TextBlock { Text = "屏幕编辑   ·   拖动移动 / 右下角缩放   ·   右键更多操作   ·   Esc 保存", Foreground = Brushes.White, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 15, 0) });
             var test = new Button { Content = "预览", Padding = new Thickness(12, 5, 12, 5), Margin = new Thickness(0, 0, 8, 0) };
             test.Click += (s, e) => Preview(); row.Children.Add(test);
             var finish = new Button { Content = "保存并结束", Padding = new Thickness(12, 5, 12, 5) };
@@ -137,12 +137,12 @@ namespace KillConfirmCompatibility.Desktop.Runtime
                     _style = style;
                 }
                 if (!_surfaces.Any(surface => surface.IsDragging)) _layout = _configuration.GetLayout(_style);
-                string signature = _style + "|" + DesktopStorage.Current.LocalSettings.Values["KillIconPack." + _style] + "|" + DesktopStorage.Current.LocalSettings.Values["KillEliteEffect"] + "|" + DesktopStorage.Current.LocalSettings.Values["KillWeaponBadge"] + "|" + DesktopStorage.Current.LocalSettings.Values["KillFxEnabled"] + "|" + DesktopStorage.Current.LocalSettings.Values["MainAnimationStyle"] + "|" + File.GetLastWriteTimeUtc(Path.Combine(DesktopStorage.Current.LocalFolder.Path, "pack-catalog.json")).Ticks;
+                string signature = _style + "|" + _configuration.AssetRevision + "|" + DesktopStorage.Current.LocalSettings.Values["KillIconPack." + _style] + "|" + DesktopStorage.Current.LocalSettings.Values["KillEliteEffect"] + "|" + DesktopStorage.Current.LocalSettings.Values["KillWeaponBadge"] + "|" + DesktopStorage.Current.LocalSettings.Values["KillFxEnabled"] + "|" + DesktopStorage.Current.LocalSettings.Values["MainAnimationStyle"] + "|" + File.GetLastWriteTimeUtc(Path.Combine(DesktopStorage.Current.LocalFolder.Path, "pack-catalog.json")).Ticks;
                 if (_lastSignature != signature && _applyingConfiguration.IsCompleted) { _applyingConfiguration = _presenter.ApplyConfigurationAsync(); _lastSignature = signature; _renderError = null; }
                 if (_applyingConfiguration.IsCompleted)
                 {
                     if (_configuration.EditRequest != _editRequest) { _editRequest = _configuration.EditRequest; BeginEditing(); }
-                    if (_configuration.TestRequest != _testRequest) { _testRequest = _configuration.TestRequest; Preview(); }
+                    if (_configuration.TestRequest != _testRequest) { _testRequest = _configuration.TestRequest; Preview(true); }
                 }
                 _frameTimer.Interval = TimeSpan.FromSeconds(1.0 / _configuration.FramesPerSecond);
                 var screens = NativeWindows.Screens();
@@ -156,6 +156,8 @@ namespace KillConfirmCompatibility.Desktop.Runtime
                 if (_configuration.FollowGame && hasGame) bounds = gameBounds;
                 bool gameActive = NativeWindows.IsGameWindow(NativeWindows.GetForegroundWindow());
                 _visible = !_hidden && (_editing || DateTimeOffset.UtcNow < _previewUntil || !_configuration.HideWhenInactive || gameActive);
+                var gameBar = DisplayFiles.Read<GameBarDisplayStatus>(Path.Combine(Path.GetDirectoryName(_configurationPath), "gamebar-status.json"));
+                if (gameBar != null && !gameBar.Blocked && DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - gameBar.Timestamp < 5000) _visible = false;
                 var visibility = KillFeedbackVisibilitySettingsStore.Load(GameStyleService.Current);
                 foreach (OverlaySurface surface in _surfaces)
                 {
@@ -182,7 +184,7 @@ namespace KillConfirmCompatibility.Desktop.Runtime
                 if (DateTimeOffset.UtcNow >= _nextStatus)
                 {
                     _nextStatus = DateTimeOffset.UtcNow.AddSeconds(1);
-                    DisplayFiles.Write(_statusPath, new DisplayStatus { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), ProcessId = Environment.ProcessId, Connected = _events.ConnectionState == KillEventConnectionState.Connected, Editing = _editing, Visible = _visible, Screen = monitor.Device, Screens = screens.Select(s => s.Device).ToArray(), Error = _renderError ?? _presenter.ConfigurationError ?? _service.Error });
+                    DisplayFiles.Write(_statusPath, new DisplayStatus { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), ProcessId = Environment.ProcessId, Connected = _events.ConnectionState == KillEventConnectionState.Connected, Editing = _editing, Visible = _visible, Style = _style, Loading = !_applyingConfiguration.IsCompleted, Screen = monitor.Device, Screens = screens.Select(s => s.Device).ToArray(), Error = _renderError ?? _presenter.ConfigurationError ?? _service.Error });
                 }
             }
             catch (Exception error) { _renderError = error.Message; App.Log("Compatibility state: " + error); }
@@ -205,11 +207,25 @@ namespace KillConfirmCompatibility.Desktop.Runtime
         }
         private void BeginEditing() { _hidden = false; _editing = true; _toolbar.Show(); Preview(); }
         private void EndEditing() { SaveLayout(); _editing = false; _toolbar.Hide(); }
-        private void Preview()
+        private void Preview(bool requested = false)
         {
             _previewUntil = DateTimeOffset.UtcNow.AddSeconds(5); _hidden = false;
-            _presenter.HandleKillEvent(new KillEvent { KillCount = 3, IsHeadshot = true, PlayMainAnimation = true, EventChannel = "combat", EventKind = "kill", AnimationKey = "multi3", TargetName = "预览玩家", WeaponName = "AK-47", MoneyReward = 300 });
+            var preset = PreviewEvents.Create(requested ? _configuration.TestPreset : "three");
+            if (requested && _configuration.TestAudio && !_editing) _ = SendAudioPreviewAsync(preset);
+            else _presenter.HandleKillEvent(preset);
             if (DanmakuSettingsStore.IsEnabled) _danmaku.TriggerBarrage(5, 3);
+        }
+        private async System.Threading.Tasks.Task SendAudioPreviewAsync(KillEvent preset)
+        {
+            try
+            {
+                await _service.EnsureRegisteredAsync();
+                if (_closing || !_configuration.Enabled) return;
+                using var client = await LocalServiceAuth.CreateHttpClientAsync();
+                using var response = await client.GetAsync(PreviewEvents.UriFor(preset));
+                response.EnsureSuccessStatusCode();
+            }
+            catch (Exception error) { _renderError = error.Message; App.Log("Compatibility test: " + error); }
         }
         private IntPtr HotkeyMessage(IntPtr window, int message, IntPtr wparam, IntPtr lparam, ref bool handled)
         {
@@ -223,6 +239,7 @@ namespace KillConfirmCompatibility.Desktop.Runtime
             if (_closing) return; _closing = true;
             _frameTimer.Stop(); _stateTimer.Stop(); _events?.Dispose(); _danmaku.RaiseUnloaded();
             NativeWindows.UnregisterHotKey(_hotkeys.Handle, 1); NativeWindows.UnregisterHotKey(_hotkeys.Handle, 2); _hotkeys.Dispose();
+            await _applyingConfiguration;
             foreach (var surface in _surfaces) surface.Dispose(); _toolbar.Close();
             await _service.ReleaseAsync();
             try { DisplayFiles.Write(_statusPath, new DisplayStatus { Timestamp = 0, ProcessId = 0 }); } catch { }

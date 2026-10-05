@@ -11,6 +11,7 @@ namespace KillConfirmGameBar
     {
         private void UpdateControlPanelVisibility()
         {
+            if (ApplyCompatibilityModeGuard()) return;
             Visibility feedbackVisibility = Features.CompatibilityDisplay.CompatibilityDisplayRuntime.IsEnabled ? Visibility.Collapsed : Visibility.Visible;
             CrosshairFeedbackLayer.Visibility = feedbackVisibility;
             LowerFeedbackLayer.Visibility = feedbackVisibility;

@@ -54,6 +54,7 @@ namespace KillConfirmGameBar
 
         private void StartKillEventClient()
         {
+            if (Features.CompatibilityDisplay.CompatibilityDisplayRuntime.IsEnabled) return;
             if (_eventClient != null)
             {
                 return;

@@ -69,6 +69,10 @@ pub struct Args {
     #[arg(long, default_value = "false")]
     pub open_compatibility_display: bool,
 
+    /// stop only this package's independent desktop display, then exit
+    #[arg(long, default_value = "false")]
+    pub close_compatibility_display: bool,
+
     /// terminate every Kill Confirm Overlay foreground and background process
     #[arg(long, default_value = "false")]
     pub exit_all: bool,

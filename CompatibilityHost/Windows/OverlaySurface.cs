@@ -5,6 +5,7 @@ using System;
 using System.Numerics;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
@@ -18,6 +19,10 @@ namespace KillConfirmCompatibility.Desktop.Windowing
         private readonly Image _image = new();
         private readonly Border _frame;
         private readonly TextBlock _label;
+        private readonly Thumb _resize;
+        private readonly string _labelText;
+        private double _resizeStartScale, _resizeWidth, _resizeHeight, _resizeX, _resizeY;
+        private bool _resizing;
         private CanvasRenderTarget _target;
         private WriteableBitmap _bitmap;
         private IntPtr _handle;
@@ -32,18 +37,36 @@ namespace KillConfirmCompatibility.Desktop.Windowing
         public Func<bool> DirtyOverride { get; set; }
         public Action<CanvasDrawingSession, double, double> DrawOverride { get; set; }
         public string ElementKey { get; }
-        public bool IsDragging => _dragStart.HasValue;
+        public bool IsDragging => _dragStart.HasValue || _resizing;
         public OverlaySurface(string key, string label, KillConfirmAnimation animation)
         {
-            ElementKey = key; _animation = animation;
+            ElementKey = key; _animation = animation; _labelText = label;
             Title = "Kill Confirm Compatibility · " + label;
             WindowStyle = WindowStyle.None; AllowsTransparency = true; Background = Brushes.Transparent;
             ShowInTaskbar = false; ShowActivated = false; Topmost = true; ResizeMode = ResizeMode.NoResize;
             Width = 1; Height = 1;
             var grid = new Grid(); grid.Children.Add(_image);
-            _frame = new Border { BorderBrush = Brushes.Orange, BorderThickness = new Thickness(2), Background = new SolidColorBrush(Color.FromArgb(15, 255, 180, 30)), Visibility = System.Windows.Visibility.Collapsed };
-            _label = new TextBlock { Text = label, Foreground = Brushes.White, Background = Brushes.Black, FontSize = 13, HorizontalAlignment = System.Windows.HorizontalAlignment.Left, VerticalAlignment = System.Windows.VerticalAlignment.Top, Padding = new Thickness(5) };
+            _frame = new Border { BorderBrush = new SolidColorBrush(Color.FromRgb(77, 173, 255)), BorderThickness = new Thickness(2), CornerRadius = new CornerRadius(5), Background = new SolidColorBrush(Color.FromArgb(24, 77, 173, 255)), Visibility = System.Windows.Visibility.Collapsed };
+            _label = new TextBlock { Text = label, Foreground = Brushes.White, Background = new SolidColorBrush(Color.FromRgb(25, 43, 67)), FontSize = 12, HorizontalAlignment = System.Windows.HorizontalAlignment.Left, VerticalAlignment = System.Windows.VerticalAlignment.Top, Padding = new Thickness(7, 4, 7, 4) };
             _frame.Child = _label; grid.Children.Add(_frame); Content = grid;
+            _resize = new Thumb { Width = 18, Height = 18, HorizontalAlignment = System.Windows.HorizontalAlignment.Right, VerticalAlignment = System.Windows.VerticalAlignment.Bottom, Cursor = Cursors.SizeNWSE, Background = new SolidColorBrush(Color.FromRgb(77, 173, 255)), Visibility = System.Windows.Visibility.Collapsed };
+            grid.Children.Add(_resize);
+            _resize.DragStarted += (s,e) => { _resizing = true; _resizeStartScale = _layout.Scale; _resizeWidth = ActualWidth; _resizeHeight = ActualHeight; _resizeX = _resizeY = 0; };
+            _resize.DragDelta += (s,e) => {
+                _resizeX += e.HorizontalChange; _resizeY += e.VerticalChange;
+                _layout.Scale = _resizeStartScale * Math.Max(0.1, 1 + (_resizeX * _resizeWidth + _resizeY * _resizeHeight) / Math.Max(1, _resizeWidth * _resizeWidth + _resizeHeight * _resizeHeight));
+                _layout.Normalize(); Place(_bounds, _layout, _desiredVisible, _editing);
+            };
+            _resize.DragCompleted += (s,e) => { _resizing = false; LayoutChanged?.Invoke(); };
+            var menu = new ContextMenu();
+            var center = new MenuItem { Header = "居中" }; center.Click += (s,e) => { if (_layout == null) return; _layout.X = _layout.Y = 0.5; UpdateLayoutPlacement(); }; menu.Items.Add(center);
+            var reset = new MenuItem { Header = "恢复这个元素的位置与大小" }; reset.Click += (s,e) => {
+                if (_layout == null) return;
+                var fresh = new DisplayConfiguration().GetLayout(KillConfirmCompatibility.Services.GameStyleService.ToStorageValue(KillConfirmCompatibility.Services.GameStyleService.Current)).GetElement(ElementKey);
+                _layout.X = fresh.X; _layout.Y = fresh.Y; _layout.Scale = fresh.Scale; UpdateLayoutPlacement();
+            }; menu.Items.Add(reset);
+            var visible = new MenuItem { Header = "显示 / 隐藏这个元素" }; visible.Click += (s,e) => { if (_layout == null) return; _layout.Visible = !_layout.Visible; UpdateLayoutPlacement(); }; menu.Items.Add(visible);
+            _frame.ContextMenu = menu;
             SourceInitialized += (s, e) => { _handle = new WindowInteropHelper(this).Handle; NativeWindows.SetInputMode(_handle, _editing); };
             MouseLeftButtonDown += BeginDrag; MouseMove += MoveDrag; MouseLeftButtonUp += EndDrag;
             LostMouseCapture += (s, e) => { if (_dragStart.HasValue) { _dragStart = null; LayoutChanged?.Invoke(); } };
@@ -53,12 +76,14 @@ namespace KillConfirmCompatibility.Desktop.Windowing
         }
         public void Place(NativeWindows.Rect bounds, ElementLayout layout, bool visible, bool editing, double badgeOffset = 0)
         {
-            _bounds = bounds; _layout = layout; _desiredVisible = visible && layout.Visible;
+            _bounds = bounds; _layout = layout; _desiredVisible = visible && (editing || layout.Visible);
             if (_editing != editing)
             {
                 _editing = editing; NativeWindows.SetInputMode(_handle, editing);
                 _frame.Visibility = editing ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
+                _resize.Visibility = _frame.Visibility;
             }
+            if (editing) _label.Text = $"{_labelText} · {layout.Scale:P0}" + (layout.Visible ? "" : " · 已隐藏");
             double dpi = Math.Max(96, NativeWindows.GetDpiForWindow(_handle)) / 96.0;
             double width = Math.Max(80, FixedSize?.Width ?? _animation.DisplayViewportWidth) * layout.Scale;
             double height = Math.Max(50, FixedSize?.Height ?? _animation.DisplayViewportHeight) * layout.Scale;
@@ -99,9 +124,10 @@ namespace KillConfirmCompatibility.Desktop.Windowing
         }
         private void BeginDrag(object sender, MouseButtonEventArgs e)
         {
-            if (!_editing || _layout == null || !NativeWindows.GetCursorPos(out var point)) return;
+            if (!_editing || _layout == null || _resizing || e.OriginalSource == _resize || !NativeWindows.GetCursorPos(out var point)) return;
             _dragStart = point; _startX = _layout.X; _startY = _layout.Y; CaptureMouse(); Activate(); e.Handled = true;
         }
+        private void UpdateLayoutPlacement() { Place(_bounds, _layout, true, _editing); LayoutChanged?.Invoke(); }
         private void MoveDrag(object sender, MouseEventArgs e)
         {
             if (!_dragStart.HasValue || !NativeWindows.GetCursorPos(out var point)) return;

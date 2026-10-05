@@ -37,6 +37,7 @@ namespace KillConfirmGameBar
 
         private async void OnGameStyleServiceChanged(object sender, GameStyleMode mode)
         {
+            if (Features.CompatibilityDisplay.CompatibilityDisplayRuntime.IsEnabled) return;
             if (!_isPageActive)
             {
                 return;

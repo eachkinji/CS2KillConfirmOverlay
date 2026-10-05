@@ -41,6 +41,7 @@ $ManifestPath = Join-Path $Root "Package\Package.appxmanifest"
 $InstallerScript = Join-Path $Root "Installer\KillConfirmGameBar.iss"
 $InstallerPayloadScript = Join-Path $Root "Installer\Install-KillConfirm.ps1"
 $InstallerPayloadModuleRoot = Join-Path $Root "Installer\Scripts\Install"
+$InstallerCompatibilityModuleRoot = Join-Path $Root "Installer\Scripts\CompatibilityDisplay"
 $InstallerPayloadReadme = Join-Path $Root "Installer\README.txt"
 
 if (-not (Test-Path $ManifestPath)) {
@@ -54,6 +55,9 @@ if (-not (Test-Path $InstallerPayloadScript)) {
 }
 if (-not (Test-Path -LiteralPath $InstallerPayloadModuleRoot -PathType Container)) {
     throw "未找到安装载荷模块目录: $InstallerPayloadModuleRoot"
+}
+if (-not (Test-Path -LiteralPath $InstallerCompatibilityModuleRoot -PathType Container)) {
+    throw "未找到兼容显示安装模块目录: $InstallerCompatibilityModuleRoot"
 }
 
 $installerScriptSource = Get-Content -LiteralPath $InstallerScript -Raw -Encoding UTF8
@@ -76,6 +80,7 @@ if ($InstallerPayloadModuleFiles.Count -eq 0) {
     throw "安装载荷模块目录为空: $InstallerPayloadModuleRoot"
 }
 $InstallerPayloadScripts = @($InstallerPayloadScript) + @($InstallerPayloadModuleFiles.FullName)
+$InstallerPayloadScripts += @(Get-ChildItem -LiteralPath $InstallerCompatibilityModuleRoot -File -Filter '*.ps1' | Sort-Object Name | ForEach-Object FullName)
 
 foreach ($payloadScriptPath in $InstallerPayloadScripts) {
     $parseTokens = $null
@@ -234,8 +239,7 @@ $PrerequisiteFileNames = @(
     "vclibs.appx",
     "vclibs2.appx",
     "Microsoft.NET.Native.Framework.2.2.x64.appx",
-    "Microsoft.NET.Native.Runtime.2.2.x64.appx",
-    "gamebar.AppxBundle"
+    "Microsoft.NET.Native.Runtime.2.2.x64.appx"
 )
 
 if (-not $SkipWithDependencies) {
@@ -271,7 +275,7 @@ foreach ($targetRoot in @($TransferRoot, $NoDepsTransferRoot)) {
             "Install-KillConfirm.ps1"
         }
         else {
-            Join-Path "Scripts\Install" (Split-Path -Leaf $payloadScriptPath)
+            $payloadScriptPath.Substring((Join-Path $Root 'Installer').Length + 1)
         }
         $payloadTargetPath = Join-Path $targetRoot $payloadRelativePath
         $payloadTargetDirectory = Split-Path -Parent $payloadTargetPath

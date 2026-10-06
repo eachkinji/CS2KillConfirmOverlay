@@ -25,7 +25,9 @@ namespace KillConfirmGameBar.Services
                     return _cache;
                 }
 
+#if !SHARED_WIDGET_RUNTIME
                 ValorantPackService.RefreshExternalPacks();
+#endif
 
                 bool mustSave = false;
                 StorageFolder localFolder = ApplicationData.Current.LocalFolder;
@@ -45,8 +47,10 @@ namespace KillConfirmGameBar.Services
                 }
 
                 MergeMissingBuiltIns(_cache);
+#if !SHARED_WIDGET_RUNTIME
                 RefreshExternalValorantEntries(_cache);
                 CrossfireExternalAssetService.RefreshCatalog(_cache);
+#endif
                 mustSave |= RefreshBuiltInMetadata(_cache);
                 mustSave |= RemoveRetiredBuiltIns(_cache);
                 mustSave |= ApplyBuiltInVisibilityDefaultsIfNeeded(_cache);

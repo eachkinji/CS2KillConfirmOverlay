@@ -1,5 +1,6 @@
 ﻿param(
     [switch]$SkipLoopback = $false,
+    [switch]$SkipGameBar = $false,
     [switch]$SkipGsiConfig = $false,
     [switch]$OpenGameBar = $false,
     [switch]$InstallPrerequisites = $false,
@@ -86,6 +87,7 @@ $InstallMetadataLines = @(
 $InstallModuleRoot = Join-Path $ScriptRoot "Scripts\Install"
 $InstallModules = @(
     "Common.ps1",
+    "Desktop.ps1",
     "Appx.ps1",
     "Prerequisites.ps1",
     "GameBar.ps1",
@@ -129,43 +131,27 @@ try {
             -Detail "声明为 $DeclaredInstallerVariant，实际执行 $EffectiveInstallerVariant；请保留本日志并检查打包参数"
     }
 
-    Write-InstallStage -Number 1 -Total 7 -Name "前置依赖" -Detail $(if ($InstallPrerequisites) { "检测并按需安装 Microsoft 运行组件" } else { "无依赖更新版，跳过离线依赖安装" })
-    if ($InstallPrerequisites) {
-        try {
-            Install-RequiredComponents -Confirmed:$PrerequisitesConfirmed
-        }
-        catch {
-            Add-InstallResult -Status Error -Item "外部前置依赖检查" -Detail ((Get-ErrorReason $_) + "；已继续安装 Game Bar 检查、主程序和后续配置")
-        }
-    }
-    else {
-        Write-InstallLog "Dependency-free installer selected. Prerequisite detection and installation are disabled."
-        Add-InstallResult -Status Success -Item "外部前置依赖" -Detail "无依赖更新版按设计不检查、不安装离线依赖"
-    }
-
-    Write-InstallStage -Number 2 -Total 7 -Name "显示方式检测" -Detail "Game Bar 或兼容显示"
-    $compatibilityFallback = -not (Test-XboxGameBarAvailable)
+    Write-InstallStage -Number 1 -Total 7 -Name "普通主程序" -Detail "控制面板、后台与兼容显示"
+    Install-DesktopApplication
+    $compatibilityFallback = -not (Test-OptionalGameBarEnvironment)
+    Write-InstallStage -Number 2 -Total 7 -Name "显示方式检测" -Detail "Game Bar 为可选组件"
     if ($compatibilityFallback) {
-        Add-InstallResult -Status Success -Item "显示方式" -Detail "Game Bar 不可用，使用独立兼容显示；无需安装 Game Bar"
+        Add-InstallResult -Status Warning -Item "可选 Game Bar" -Detail "已跳过：未选择安装、Game Bar 不可用或防火墙服务不可用；控制面板与兼容显示已正常安装"
     }
-    else {
-        Add-InstallResult -Status Success -Item "显示方式" -Detail "Game Bar 可用，也可在高级设置开启兼容显示"
-    }
-    Write-InstallStage -Number 3 -Total 7 -Name "Game Bar 环境" -Detail "兼容显示无需此项"
+    Write-InstallStage -Number 3 -Total 7 -Name "Game Bar 前置依赖" -Detail "兼容显示不需要此项"
     if ($InstallPrerequisites -and -not $compatibilityFallback) {
-        try { Repair-XboxGameBarEnvironment }
-        catch { Add-InstallResult -Status Warning -Item "Game Bar 环境修复" -Detail ((Get-ErrorReason $_) + "；可使用兼容显示") }
+        try { Install-RequiredComponents -Confirmed:$PrerequisitesConfirmed }
+        catch { Add-InstallResult -Status Warning -Item "Game Bar 前置依赖" -Detail ((Get-ErrorReason $_) + "；兼容显示可直接使用") }
     }
-
-    Write-InstallStage -Number 4 -Total 7 -Name "主程序安装" -Detail "安装证书、MSIX 依赖和 Kill Confirm Overlay"
-    try {
-        Install-OverlayPackage
-        Test-OverlayPackageInstalled
-    }
-    catch {
-        $mainAlreadyReported = @($InstallResults | Where-Object { $_.Item -eq "Kill Confirm Overlay 主程序" -and $_.Status -eq "Error" }).Count -gt 0
-        if (-not $mainAlreadyReported) {
-            Add-InstallResult -Status Error -Item "Kill Confirm Overlay 主程序" -Detail ((Get-ErrorReason $_) + "；后续 CFG 和回环配置仍会继续执行")
+    Write-InstallStage -Number 4 -Total 7 -Name "可选 Game Bar 小组件" -Detail "独立 MSIX；失败不影响普通主程序"
+    if (-not $compatibilityFallback) {
+        try { Install-OverlayPackage; Test-OverlayPackageInstalled }
+        catch {
+            $compatibilityFallback = $true
+            # The optional installer retains its detailed diagnostics; classify them
+            # as warnings so a failed widget is never reported as a failed main app.
+            foreach ($result in $InstallResults) { if ($result.Item -eq "Kill Confirm Overlay 主程序") { $result.Item="可选 Game Bar 小组件"; if($result.Status -eq "Error") { $result.Status="Warning" } } }
+            Add-InstallResult -Status Warning -Item "可选 Game Bar 小组件" -Detail ((Get-ErrorReason $_) + "；可直接使用兼容显示")
         }
     }
 
@@ -183,7 +169,7 @@ try {
     }
 
     Write-InstallStage -Number 6 -Total 7 -Name "本机通信权限" -Detail $(if ($SkipLoopback) { "已通过参数跳过" } else { "配置 Widget 与本地服务通信" })
-    if (-not $SkipLoopback) {
+    if (-not $SkipLoopback -and -not $compatibilityFallback) {
         try {
             if (-not $PackageFamilyName) {
                 Update-InstalledPackageContext | Out-Null
@@ -192,7 +178,7 @@ try {
             Add-InstallResult -Status Success -Item "本机回环通信权限" -Detail "已写入并从系统列表回读确认；Widget 可以访问 127.0.0.1 上的伴随服务"
         }
         catch {
-            Add-InstallResult -Status Error -Item "本机回环通信权限" -Detail (Get-ErrorReason $_)
+            Add-InstallResult -Status Warning -Item "本机回环通信权限" -Detail (Get-ErrorReason $_)
         }
     }
     else {

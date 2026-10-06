@@ -184,6 +184,11 @@ pub(crate) fn exit_all_processes() {
             if pid == current_pid {
                 continue;
             }
+            let Some(path)=super::process::process_image_path(pid) else {continue;};
+            let root=env::current_exe().ok().and_then(|p|p.parent()?.parent().map(Path::to_path_buf));
+            let ordinary=root.as_ref().is_some_and(|p|path.starts_with(p));
+            let widget=path.parent().and_then(|p|p.file_name()).is_some_and(|n|n.to_string_lossy().starts_with("KillConfirmGameBar.Overlay_"));
+            if !ordinary && !widget { continue; }
 
             let output = match hidden_command("taskkill")
                 .args(["/PID", &pid.to_string(), "/T", "/F"])

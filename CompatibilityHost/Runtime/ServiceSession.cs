@@ -32,6 +32,11 @@ namespace KillConfirmCompatibility.Desktop.Runtime
                 if (_lastVoice != voice || _lastPort != LocalServiceEndpoints.Port)
                 {
                     var preset = new JsonObject { ["preset"] = JsonValue.CreateStringValue(voice) };
+                    if (PackCatalogService.IsImportedVoicePackKey(voice))
+                    {
+                        var folder = await PackCatalogService.GetImportedVoiceFolderAsync(voice);
+                        if (folder != null) preset["custom_path"] = JsonValue.CreateStringValue(folder.Path);
+                    }
                     using var presetContent = new HttpStringContent(preset.Stringify(), UnicodeEncoding.Utf8, "application/json");
                     using var changed = await client.PostAsync(LocalServiceEndpoints.Build("/soundpack"), presetContent);
                     changed.EnsureSuccessStatusCode(); _lastVoice = voice; _lastPort = LocalServiceEndpoints.Port;
@@ -63,11 +68,14 @@ namespace KillConfirmCompatibility.Desktop.Runtime
         }
         private static void LaunchService()
         {
-            string root = global::Windows.ApplicationModel.Package.Current.InstalledLocation.Path;
+            string root = Contracts.RuntimePaths.InstallRoot;
             string path = Path.Combine(root, "KillConfirmService", "cskillconfirm.exe");
             var start = new ProcessStartInfo(path) { UseShellExecute = false, CreateNoWindow = true, WorkingDirectory = Path.GetDirectoryName(path) };
             start.ArgumentList.Add("--port"); start.ArgumentList.Add(LocalServiceEndpoints.Port.ToString());
-            start.ArgumentList.Add("--exit-with-ui"); start.ArgumentList.Add("--preset"); start.ArgumentList.Add(ReadVoice());
+            start.Environment["KILLCONFIRM_DATA_ROOT"] = Contracts.RuntimePaths.DataRoot;
+            start.Environment["KILLCONFIRM_INSTALL_ROOT"] = root;
+            // Imported ids are selected through /soundpack after startup.
+            start.ArgumentList.Add("--exit-with-ui"); start.ArgumentList.Add("--preset"); start.ArgumentList.Add("valorant_00000_base");
             using var process = Process.Start(start);
             App.Log("Service started by compatibility host.");
         }

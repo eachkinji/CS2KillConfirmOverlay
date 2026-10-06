@@ -45,6 +45,17 @@ namespace KillConfirmGameBar.Services
                     [UpdatedTicksKey] = now.UtcDateTime.Ticks
                 };
                 ApplicationData.Current.LocalSettings.Values[StateKey] = state;
+#if SHARED_WIDGET_RUNTIME
+                string folder=System.IO.Path.Combine(ApplicationData.Current.LocalFolder.Path,"CompatibilityDisplay");
+                System.IO.Directory.CreateDirectory(folder);
+                var json=new Windows.Data.Json.JsonObject {
+                    ["Active"]=Windows.Data.Json.JsonValue.CreateBooleanValue((bool)state[ActiveKey]),
+                    ["Pinned"]=Windows.Data.Json.JsonValue.CreateBooleanValue((bool)state[PinnedKey]),
+                    ["ClickThroughEnabled"]=Windows.Data.Json.JsonValue.CreateBooleanValue((bool)state[ClickThroughKey]),
+                    ["UpdatedUtcTicks"]=Windows.Data.Json.JsonValue.CreateNumberValue((long)state[UpdatedTicksKey])
+                };
+                System.IO.File.WriteAllText(System.IO.Path.Combine(folder,"gamebar-runtime.json"),json.Stringify());
+#endif
                 _lastPinned = isPinned;
                 _lastClickThroughEnabled = isClickThroughEnabled;
                 _lastPublishedAtUtc = now;
@@ -67,6 +78,17 @@ namespace KillConfirmGameBar.Services
                     [UpdatedTicksKey] = now.UtcDateTime.Ticks
                 };
                 ApplicationData.Current.LocalSettings.Values[StateKey] = state;
+#if SHARED_WIDGET_RUNTIME
+                string folder=System.IO.Path.Combine(ApplicationData.Current.LocalFolder.Path,"CompatibilityDisplay");
+                System.IO.Directory.CreateDirectory(folder);
+                var json=new Windows.Data.Json.JsonObject {
+                    ["Active"]=Windows.Data.Json.JsonValue.CreateBooleanValue((bool)state[ActiveKey]),
+                    ["Pinned"]=Windows.Data.Json.JsonValue.CreateBooleanValue((bool)state[PinnedKey]),
+                    ["ClickThroughEnabled"]=Windows.Data.Json.JsonValue.CreateBooleanValue((bool)state[ClickThroughKey]),
+                    ["UpdatedUtcTicks"]=Windows.Data.Json.JsonValue.CreateNumberValue((long)state[UpdatedTicksKey])
+                };
+                System.IO.File.WriteAllText(System.IO.Path.Combine(folder,"gamebar-runtime.json"),json.Stringify());
+#endif
                 _lastPublishedAtUtc = now;
             }
             catch (Exception)
@@ -79,12 +101,19 @@ namespace KillConfirmGameBar.Services
             try
             {
                 var result = new GameBarRuntimeStatus();
+#if DESKTOP_CONTROL_PANEL
+                string path=System.IO.Path.Combine(ApplicationData.Current.LocalFolder.Path,"CompatibilityDisplay","gamebar-runtime.json");
+                if(!System.IO.File.Exists(path)) return result;
+                var raw=Windows.Data.Json.JsonObject.Parse(System.IO.File.ReadAllText(path));
+                var state=new ApplicationDataCompositeValue { [ActiveKey]=raw[ActiveKey].GetBoolean(),[PinnedKey]=raw[PinnedKey].GetBoolean(),[ClickThroughKey]=raw[ClickThroughKey].GetBoolean(),[UpdatedTicksKey]=(long)raw[UpdatedTicksKey].GetNumber() };
+#else
                 if (!(ApplicationData.Current.LocalSettings.Values[StateKey]
                     is ApplicationDataCompositeValue state))
                 {
                     return result;
                 }
 
+#endif
                 bool active = ReadBool(state, ActiveKey);
                 long ticks = ReadLong(state, UpdatedTicksKey);
                 if (ticks <= 0)

@@ -241,7 +241,7 @@ namespace KillConfirmGameBar.Controls
         private static async Task<CanvasBitmap> LoadBitmapFromApplicationUriAsync(string uriText)
         {
             var uri = new Uri(uriText);
-            StorageFile file = await StorageFile.GetFileFromApplicationUriAsync(uri);
+            StorageFile file = await SharedResources.AssetFileAsync(uri);
             return await LoadBitmapFromStorageFileAsync(file);
         }
 

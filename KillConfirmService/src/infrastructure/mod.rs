@@ -8,3 +8,4 @@ pub mod compatibility;
 pub mod signal;
 pub mod steam;
 pub mod watchers;
+pub mod shared;

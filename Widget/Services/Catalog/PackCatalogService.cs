@@ -26,5 +26,6 @@ namespace KillConfirmGameBar.Services
         private static PackCatalog _cache;
 
         public static event EventHandler CatalogChanged;
+        internal static void ResetSharedCache() { _cache=null; CatalogChanged?.Invoke(null,EventArgs.Empty); }
     }
 }

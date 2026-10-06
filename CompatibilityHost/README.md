@@ -8,13 +8,13 @@
 - Win2D 激活工厂绑定宿主自己的 DLL，避免安装包根目录注册的旧 UWP Win2D 被新宿主加载。原 Game Bar 进程的组件注册保持不变。
 - `Renderer/` 是独立的渲染基线，包含现有 15 种风格及弹幕。后续兼容显示的渲染改动只在这里维护，不回写 Game Bar 渲染器。
 - `Contracts/` 定义新配置；`Integration/` 是独立模块，仅编译到设置应用，不编译到桌面宿主。`Integration/Home` 和 `Integration/Controls` 保存独立的主页逻辑与各游戏设置界面，不加载旧渲染控件。
-- 位置、缩放、显示器及显示开关独立存放于包的 `LocalState/CompatibilityDisplay/display.json`。运行状态写入同目录的 `status.json`；并发更新使用锁和原子替换。
+- 位置、缩放、显示器及显示开关存放于 `%LOCALAPPDATA%/KillConfirmOverlay/UserData/CompatibilityDisplay/display.json`。运行状态写入同目录的 `status.json`；并发更新使用锁和原子替换。
 - 两种显示方式共用已有游戏事件、音频服务和用户选择的资源包。资源目录只读，兼容宿主不执行旧资源库的迁移或目录保存。
 - 旧文件只接入设置入口、启动参数、模式互斥和打包；没有加入兼容渲染分支。安装集成单独放在 `Installer/Scripts/CompatibilityDisplay/`，服务启动桥接单独放在 `infrastructure/compatibility.rs`。
 
 ## 布局与运行
 
-主页顶部提供模式选择与使用步骤。Game Bar 模式提供打开 Game Bar 的入口，兼容显示模式依次提供「素材与测试」「战斗与视效」「屏幕与布局」。素材与测试包含游戏切换、带缩略图的图标/语音包选择、游戏独立音量、完整事件测试与循环测试、弹幕测试、音频重载、服务/GSI 状态、配置修复和诊断。战斗与视效包括全部 15 种游戏的连杀、助攻、金钱、CF 精英/FX/徽章等专属选项。通用设置、服务端口、进阶设置及版本信息由独立的「高级设置」导航入口承载。
+主页顶部提供模式选择与使用步骤。Game Bar 模式提供打开 Game Bar 的入口，兼容显示模式依次提供「素材与测试」「战斗与视效」；屏幕与布局选项放在素材与测试中。素材与测试包含游戏切换、带缩略图的图标/语音包选择、游戏独立音量、完整事件测试与循环测试、弹幕测试、音频重载、服务/GSI 状态、配置修复和诊断。战斗与视效包括全部 15 种游戏的连杀、助攻、金钱、CF 精英/FX/徽章等专属选项。通用设置、服务端口、进阶设置及版本信息由独立的「高级设置」导航入口承载。
 
 各风格分别保存准星、下方反馈、上方反馈（MW2019）、弹幕区域的位置和缩放。下方徽章跟随下方反馈。位置和大小通过「编辑屏幕」直接操作：拖动移动、右下角手柄或滚轮缩放、方向键微调、Shift 加速、Enter/Esc 保存退出。右键可居中、隐藏或重置元素；设置页可重置当前游戏的布局，没有位置/大小滑条。
 
@@ -28,7 +28,7 @@ Win2D 绘制透明图像，再提交到 WPF 透明窗口。仅更新发生变化
 
 ## 构建与验证
 
-`Build-CompatibilityHost.ps1` 自包含发布，不要求用户额外安装 .NET。快速及完整安装包均通过打包项目独立携带此宿主。
+`ControlPanel/Build-DesktopPayload.ps1` 发布原控制面板与兼容宿主，合并为一份普通安装目录，共用运行库、素材、音频与后台。控制面板复用原 XAML 和业务逻辑，只有桌面 API 适配层，不维护第二套面板。主程序不需要 MSIX、Game Bar、商店或防火墙服务。可选 MSIX 仅包含小组件和小型启动桥接，图片通过已认证的本地后台按需读取缓存。
 
 ```powershell
 ./CompatibilityHost/Validation/Test-CompatibilityDisplay.ps1 -CrossfirePack '路径/穿越火线—原版—图标包.zip'
@@ -36,6 +36,12 @@ Win2D 绘制透明图像，再提交到 WPF 透明窗口。仅更新发生变化
 
 验证使用独立临时配置和资源副本，检查配置边界、并发更新、风格隔离、损坏配置、原生鼠标/焦点标志，并将 15 种风格的实际 Win2D 像素导出为 PNG。CF 资源仍按原来的独立资源包分发方式提供。
 
-同一验证还检查弹幕像素、跨进程设置变化、认证连接、后台服务注册、切出游戏隐藏，以及关闭后的退出和注销。`Validation/Test-PackageIdentity.ps1` 使用独立临时包验证子进程继承包身份、资源访问和渲染 DLL 隔离，并用挂起的测试进程验证服务只关闭本包宿主、保留其他进程、返回对应请求的关闭确认及清空 PID。完成后移除测试包。
+同一验证还检查弹幕像素、跨进程设置变化、认证连接、后台注册、切出隐藏，以及关闭后的退出和注销。
 
-`Validation/Test-CompatibilityWorkspace.ps1 -Configuration Release` 从实际 MSIX 提取独立的临时测试包，验证默认主页、两种模式指引、高级设置与游戏卡片的独立导航、三个兼容显示 tab、15 种游戏页面、连续 60 次游戏切换和显示设置隔离。它只在专用测试包身份下运行，完成后移除测试包，不修改现有安装的设置。
+`ControlPanel/Test-Standalone.ps1` 检查原主页、高级设置、15 种游戏页面、60 次切换、真实播放、弹幕、对话框、弹出层与模式互斥，并确认控制面板、兼容宿主、后台均无包身份。
+
+`ControlPanel/Test-WidgetBridge.ps1` 注册独立测试包，检查桥接启动的后台无包身份、共享配置、图片字节、认证与资源目录权限，最后删除测试包。此测试不等于实际 Game Bar 画面验证。
+
+`CompatibilityHost/Validation/Test-InstallerFallback.ps1` 模拟无防火墙服务、无 Game Bar 及跳过 MSIX 的安装路径，不修改本机防火墙。
+
+旧的 `Test-PackageIdentity.ps1` 和 `Test-CompatibilityWorkspace.ps1` 仅对应 49 版整包架构，不作为 51 版验证入口。当前验证均隔离配置。

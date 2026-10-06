@@ -141,7 +141,7 @@ namespace KillConfirmGameBar.Services
                         {
                             try
                             {
-                                file = await StorageFile.GetFileFromApplicationUriAsync(
+                                file = await SharedResources.AssetFileAsync(
                                     new Uri($"ms-appx:///Assets/GameStyles/doubao/killconfirm/textures/{slotName}"));
                             }
                             catch { }
@@ -191,7 +191,7 @@ namespace KillConfirmGameBar.Services
                         {
                             try
                             {
-                                file = await StorageFile.GetFileFromApplicationUriAsync(
+                                file = await SharedResources.AssetFileAsync(
                                     new Uri($"ms-appx:///KillConfirmService/sounds/doubao/{slotName}"));
                             }
                             catch { }

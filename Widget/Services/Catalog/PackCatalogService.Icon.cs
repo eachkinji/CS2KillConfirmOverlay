@@ -97,9 +97,7 @@ namespace KillConfirmGameBar.Services
             {
                 try
                 {
-                    StorageFolder installed = Windows.ApplicationModel.Package.Current.InstalledLocation;
-                    return await installed.GetFolderAsync(
-                        @"Assets\GameStyles\custommodule\iconpacks\custommodule");
+                    return await SharedResources.AssetFolderAsync("Assets/GameStyles/custommodule/iconpacks/custommodule");
                 }
                 catch
                 {
@@ -112,7 +110,7 @@ namespace KillConfirmGameBar.Services
 
             try
             {
-                return await StorageFolder.GetFolderFromPathAsync(item.FolderPath);
+                return await SharedResources.ImportedFolderAsync(item.FolderPath);
             }
             catch
             {

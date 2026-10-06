@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     快速 MSIX Bundle 打包与本地部署脚本
     快速增量编译 Rust、同步素材、构建并签名 MSIX，支持一键安装到本机测试。
@@ -381,8 +381,22 @@ Copy-FfmpegDependency $PackagedFfmpegRoot
 if (-not (Test-Path -LiteralPath (Join-Path $PackagedFfmpegRoot 'ffmpeg.exe'))) { throw "FFmpeg 依赖准备失败" }
 Write-Host "  已准备精简分发的 LGPL FFmpeg（仅 ffmpeg.exe）。" -ForegroundColor DarkGray
 
-# Independent desktop host is self-contained and always ships beside the legacy widget.
-& (Join-Path $PSScriptRoot "CompatibilityHost/Build-CompatibilityHost.ps1") -Configuration $Configuration -Platform $Platform
+# Ordinary installation is built separately from the optional widget.
+& (Join-Path $Root 'ControlPanel/Build-DesktopPayload.ps1') -Configuration $Configuration -Platform $Platform -OutputDir (Join-Path $OutputDir 'Standalone') -MsBuildPath $MsBuildPath
+$bridgeRoot=Join-Path $WidgetRoot 'Bridge'
+New-Item -ItemType Directory -Path $bridgeRoot -Force | Out-Null
+Copy-Item -LiteralPath (Join-Path $ServiceRoot 'target/release/killconfirm-widget-bridge.exe') -Destination $bridgeRoot -Force
+if (-not $DisableSigning) {
+    foreach ($executable in @(
+        (Join-Path $OutputDir 'Standalone/KillConfirmGameBar.exe'),
+        (Join-Path $OutputDir 'Standalone/KillConfirmCompatibility.exe'),
+        (Join-Path $OutputDir 'Standalone/KillConfirmService/cskillconfirm.exe'),
+        (Join-Path $OutputDir 'Standalone/KillConfirmService/killconfirm-settings-launcher.exe'),
+        (Join-Path $bridgeRoot 'killconfirm-widget-bridge.exe'))) {
+        & $SignToolPath sign /fd SHA256 /f $CertificatePfxPath /p $CertificatePassword $executable
+        if ($LASTEXITCODE -ne 0) { throw 'Ordinary executable signing failed.' }
+    }
+}
 
 # 3. 编译打包 MSIX Bundle。正式与开发安装都必须使用 Bundle，确保
 # 已由 Bundle 注册的主包和语言资源包可以沿用 Windows 的正常升级链。
@@ -465,10 +479,7 @@ try {
         $false)
 
     $manifestEntry = $archive.Entries | Where-Object { $_.FullName -eq "AppxManifest.xml" } | Select-Object -First 1
-    $serviceEntry = $archive.Entries | Where-Object { $_.FullName -eq "KillConfirmService/cskillconfirm.exe" } | Select-Object -First 1
-    $ffmpegEntry = $archive.Entries | Where-Object { $_.FullName -eq "KillConfirmService/ffmpeg/ffmpeg.exe" } | Select-Object -First 1
-    $ffmpegLicenseEntry = $archive.Entries | Where-Object { $_.FullName -eq "KillConfirmService/ffmpeg/LICENSE.txt" } | Select-Object -First 1
-    $ffmpegSourceEntry = $archive.Entries | Where-Object { $_.FullName -eq "KillConfirmService/ffmpeg/SOURCE.txt" } | Select-Object -First 1
+    $bridgeEntry = $archive.GetEntry('Bridge/killconfirm-widget-bridge.exe')
     if (-not $manifestEntry) {
         throw "MSIX Bundle 的主应用包缺少 AppxManifest.xml"
     }
@@ -482,26 +493,8 @@ try {
     }
 
     & (Join-Path $PSScriptRoot 'CompatibilityHost/Packaging/Assert-CompatibilityBundle.ps1') -Archive $archive -ManifestText $packagedManifestText
+    if (-not $bridgeEntry) { throw 'Game Bar bridge is missing.' }
 
-    $requiredManifestMarkers = @(
-        'windows.fullTrustProcess',
-        'KillConfirmService\cskillconfirm.exe',
-        'GroupId="ServicePort10087"',
-        'Name="runFullTrust"'
-    )
-    foreach ($marker in $requiredManifestMarkers) {
-        if (-not $packagedManifestText.Contains($marker)) {
-            throw "MSIX 后台服务注册不完整，缺少清单标记: $marker"
-        }
-    }
-    if (-not $serviceEntry) {
-        throw "MSIX Bundle 的主应用包缺少 KillConfirmService/cskillconfirm.exe"
-    }
-    if (-not $ffmpegEntry -or $ffmpegEntry.Length -lt 50MB -or -not $ffmpegLicenseEntry -or -not $ffmpegSourceEntry) {
-        throw "MSIX Bundle 的主应用包缺少完整的 FFmpeg 运行文件、许可证或源码信息"
-    }
-
-    & (Join-Path $Root "Tests\Regression\Test-CrossfireEventIcons.ps1") -PackageArchive $archive
 }
 finally {
     if ($archive) {
@@ -546,97 +539,18 @@ if (-not $DisableSigning) {
     Write-Host "  签名证书: $FinalCerPath" -ForegroundColor White
 }
 
-# 5. 本地一键安装
+# Install the complete ordinary application, not the widget alone.
 if ($Install) {
-    Write-Host "`n----------------------------------------------------------" -ForegroundColor Cyan
-    Write-Host " 开始自动本地部署与配置..." -ForegroundColor Cyan
-    Write-Host "----------------------------------------------------------" -ForegroundColor Cyan
-
-    # 终止旧进程
-    $processNames = @("cskillconfirm", "TestXboxGameBar", "KillConfirmGameBar", "GameBar", "GameBarFTServer", "GameBarPresenceWriter")
-    Get-Process -Name $processNames -ErrorAction SilentlyContinue | Stop-Process -Force
-    Start-Sleep -Milliseconds 600
-
-    # 导入证书到当前用户证书库
-    if (Test-Path $FinalCerPath) {
-        try {
-            Import-Certificate -FilePath $FinalCerPath -CertStoreLocation "Cert:\CurrentUser\TrustedPeople" -ErrorAction Stop | Out-Null
-            Write-Host " [√] 证书已导入到当前用户 TrustedPeople 证书库" -ForegroundColor Green
-        }
-        catch {
-            Write-Warning "证书自动导入提示: $($_.Exception.Message)"
-        }
+    $fullOutput=Join-Path $Root 'Output/LocalInstall'
+    $fullArgs=@{Configuration=$Configuration;Platform=$Platform;SkipRust=$true;SkipWithDependencies=$true;OutputDir=$fullOutput}
+    foreach($name in @('MsBuildPath','CertificatePfxPath','CertificatePassword','CertificateThumbprint','CertificateCerPath')) {
+        $value=Get-Variable -Name $name -ValueOnly
+        if($value) {$fullArgs[$name]=$value}
     }
-
-    # 安装 MSIX Bundle
-    Write-Host " 正在安装 MSIX Bundle 到系统..." -ForegroundColor Yellow
-    $addParams = @{
-        Path = $FinalPackagePath
-        ForceUpdateFromAnyVersion = $true
-        DeferRegistrationWhenPackagesAreInUse = $true
-        ErrorAction = "Stop"
-    }
-    try {
-        Add-AppxPackage @addParams
-        Write-Host " [√] MSIX Bundle 安装成功！" -ForegroundColor Green
-    }
-    catch {
-        Write-Host " [X] MSIX Bundle 安装失败: $($_.Exception.Message)" -ForegroundColor Red
-        throw
-    }
-
-    # 配置网络回环豁免权限
-    try {
-        $checkNetPath = if ($env:SystemRoot -and (Test-Path (Join-Path $env:SystemRoot "System32\CheckNetIsolation.exe"))) { Join-Path $env:SystemRoot "System32\CheckNetIsolation.exe" } else { "C:\Windows\System32\CheckNetIsolation.exe" }
-        if (-not (Test-Path $checkNetPath)) { $checkNetPath = "CheckNetIsolation.exe" }
-        & $checkNetPath LoopbackExempt -a "-n=$PackageFamilyName" | Out-Null
-        Write-Host " [√] 本机回环通信权限 (LoopbackExempt) 已配置" -ForegroundColor Green
-    }
-    catch {
-        Write-Warning "配置 LoopbackExempt 失败: $($_.Exception.Message)"
-    }
-
-    # 检查/写入 CS2 GSI 配置
-    try {
-        $steamReg = Get-ItemProperty -Path "HKCU:\Software\Valve\Steam" -ErrorAction SilentlyContinue
-        $steamPath = if ($steamReg -and $steamReg.SteamPath) { $steamReg.SteamPath -replace "/", "\" } else { "${env:ProgramFiles(x86)}\Steam" }
-        $vdfPath = Join-Path $steamPath "steamapps\libraryfolders.vdf"
-        $libraries = @($steamPath)
-        if (Test-Path $vdfPath) {
-            foreach ($line in (Get-Content $vdfPath)) {
-                if ($line -match '^\s*"path"\s+"([^"]+)"') {
-                    $p = $matches[1] -replace "\\\\", "\"
-                    if (Test-Path $p) { $libraries += $p }
-                }
-            }
-        }
-
-        $cs2CfgWritten = $false
-        foreach ($lib in $libraries) {
-            $cfgDir = Join-Path $lib "steamapps\common\Counter-Strike Global Offensive\game\csgo\cfg"
-            if (Test-Path $cfgDir) {
-                $gsiSource = Join-Path $ServiceRoot "gsi\gamestate_integration_killconfirm.cfg"
-                if (Test-Path $gsiSource) {
-                    Copy-Item -LiteralPath $gsiSource -Destination (Join-Path $cfgDir "gamestate_integration_killconfirm.cfg") -Force
-                    Write-Host " [√] CS2 GSI 配置文件已写入: $cfgDir" -ForegroundColor Green
-                    $cs2CfgWritten = $true
-                    break
-                }
-            }
-        }
-        if (-not $cs2CfgWritten) {
-            Write-Host " [i] 未检测到 CS2 cfg 目录，可在插件设置界面手动写入 GSI 配置" -ForegroundColor DarkGray
-        }
-    }
-    catch {
-        Write-Warning "自动写入 GSI 异常: $($_.Exception.Message)"
-    }
-
-    Write-Host "`n==========================================================" -ForegroundColor Green
-    Write-Host " 本地安装部署完成！按 Win+G 即可在 Game Bar 中使用最新版本。" -ForegroundColor Green
-    Write-Host "==========================================================" -ForegroundColor Green
-}
-else {
-    Write-Host "`n提示: 若要一键打包并直接安装到本机，可带 -Install 参数运行:" -ForegroundColor Cyan
-    Write-Host "  .\Build-QuickPackage.ps1 -Install`n" -ForegroundColor White
+    & (Join-Path $Root 'Build-FullPackage.ps1') @fullArgs
+    $setup=Get-ChildItem -LiteralPath $fullOutput -File -Filter '*.exe' | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+    if(!$setup) {throw 'Full ordinary installer was not generated.'}
+    Start-Process -FilePath $setup.FullName -Wait
+} else {
+    Write-Host '普通控制面板、兼容显示和共享资源已生成；用户安装包请运行 Build-FullPackage.ps1。'
 }

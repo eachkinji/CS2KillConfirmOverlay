@@ -5,8 +5,8 @@ using Windows.Storage;
 
 namespace KillConfirmCompatibility.Desktop.Runtime
 {
-    // Production uses the package's existing resource selections. Standalone
-    // rendering tests use an isolated temporary profile, never the user's data.
+    // Production shares ordinary UserData with the original control panel.
+    // Rendering tests use an isolated profile, never the user's data.
     internal sealed class DesktopStorage
     {
         private static DesktopStorage _current;
@@ -20,10 +20,12 @@ namespace KillConfirmCompatibility.Desktop.Runtime
         {
             if (TestDataRoot == null)
             {
-                var data = global::Windows.Storage.ApplicationData.Current;
-                LocalSettings = new DesktopSettings(data.LocalSettings.Values);
-                LocalFolder = data.LocalFolder;
-                TemporaryFolder = data.TemporaryFolder;
+                string root = Contracts.RuntimePaths.DataRoot;
+                Directory.CreateDirectory(root);
+                LocalSettings = new DesktopSettings(new Contracts.FileSettings(Path.Combine(root, Contracts.FileSettings.FileName)));
+                LocalFolder = StorageFolder.GetFolderFromPathAsync(root).AsTask().GetAwaiter().GetResult();
+                TemporaryFolder = LocalFolder;
+                AssetsRoot ??= Contracts.RuntimePaths.InstallRoot;
             }
             else
             {
@@ -43,7 +45,7 @@ namespace KillConfirmCompatibility.Desktop.Runtime
     }
     internal sealed class DesktopSettings
     {
-        public DesktopSettings(IPropertySet values) { Values = new SafeSettings(values); }
+        public DesktopSettings(System.Collections.Generic.IDictionary<string, object> values) { Values = new SafeSettings(values); }
         public System.Collections.Generic.IDictionary<string, object> Values { get; }
     }
 }

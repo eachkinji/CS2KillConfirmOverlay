@@ -1,3 +1,4 @@
+using KillConfirmGameBar.Services;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -160,7 +161,7 @@ namespace KillConfirmGameBar.Danmaku.Engine
         {
             try
             {
-                StorageFile file = await StorageFile.GetFileFromApplicationUriAsync(
+                StorageFile file = await SharedResources.AssetFileAsync(
                     new Uri("ms-appx:///Danmaku/Pools/semantic_event_profiles.json"));
                 string text = await FileIO.ReadTextAsync(file);
                 JsonObject root;

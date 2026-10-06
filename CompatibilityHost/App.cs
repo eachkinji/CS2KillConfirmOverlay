@@ -46,7 +46,8 @@ namespace KillConfirmCompatibility
                 application.Run(); return;
             }
             Log("Compatibility host started.");
-            using var singleInstance = new System.Threading.Mutex(true, "Local\\KillConfirmCompatibility." + Windows.ApplicationModel.Package.Current.Id.FamilyName, out bool first);
+            string profile = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(Contracts.RuntimePaths.DataRoot.ToUpperInvariant()))).Substring(0,16);
+            using var singleInstance = new System.Threading.Mutex(true, "Local\\KillConfirmCompatibility." + profile, out bool first);
             if (!first) return;
             Desktop.Runtime.HostController controller = null;
             application.Startup += (s, e) =>
@@ -59,7 +60,7 @@ namespace KillConfirmCompatibility
         }
         internal static void Log(string message)
         {
-            string directory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "KillConfirmOverlay", "Logs");
+            string directory = Path.Combine(Contracts.RuntimePaths.DataRoot, "Logs");
             try
             {
                 Directory.CreateDirectory(directory);

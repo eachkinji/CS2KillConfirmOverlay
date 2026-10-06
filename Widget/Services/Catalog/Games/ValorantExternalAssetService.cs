@@ -387,7 +387,7 @@ namespace KillConfirmGameBar.Services
             try
             {
                 string fullPath = Path.GetFullPath(candidate);
-                return IsChildPath(root, fullPath) ? await StorageFile.GetFileFromPathAsync(fullPath) : null;
+                return IsChildPath(root, fullPath) ? await SharedResources.FileFromPathAsync(fullPath) : null;
             }
             catch
             {
@@ -397,6 +397,9 @@ namespace KillConfirmGameBar.Services
 
         private static bool ProfileTexturesExist(string folderPath, ValorantExternalProfileManifest profile)
         {
+#if SHARED_WIDGET_RUNTIME
+            return true; // The broker validates and reads textures when requested.
+#else
             string textureRoot = Path.Combine(folderPath, TextureFolderName);
             return new[]
                 {
@@ -405,6 +408,7 @@ namespace KillConfirmGameBar.Services
                 }
                 .Where(fileName => !string.IsNullOrWhiteSpace(fileName))
                 .All(fileName => File.Exists(Path.Combine(textureRoot, fileName)));
+#endif
         }
 
         private static bool IsSupportedAudioFile(StorageFile file)

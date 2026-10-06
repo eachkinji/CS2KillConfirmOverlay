@@ -5,6 +5,9 @@ Package/bin/
 Package/obj/
 CompatibilityHost/bin/
 CompatibilityHost/obj/
+ControlPanel/bin/
+ControlPanel/obj/
+ControlPanel/Generated/
 Widget/CompatibilityHost/
 target/
 Output/
@@ -96,3 +99,5 @@ __pycache__/
 *.pyc
 .vscode/
 .idea/
+
+Widget/Bridge/

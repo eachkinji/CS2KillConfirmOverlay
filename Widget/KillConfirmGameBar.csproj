@@ -819,5 +819,19 @@
     <VisualStudioVersion>14.0</VisualStudioVersion>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <DefineConstants>$(DefineConstants);SHARED_WIDGET_RUNTIME</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Services\Runtime\SharedRuntime.cs" />
+    <Compile Include="Services\Runtime\SharedResources.cs" />
+    <Compile Remove="Pages\Main\**\*.cs;..\CompatibilityHost\Integration\**\*.cs" />
+    <Page Remove="Pages\Main\**\*.xaml;..\CompatibilityHost\Integration\**\*.xaml" />
+    <Compile Include="..\CompatibilityHost\Integration\CompatibilityDisplayRuntime.cs"><Link>Features\CompatibilityDisplay\CompatibilityDisplayRuntime.cs</Link></Compile>
+    <Compile Include="..\CompatibilityHost\Integration\KillConfirmWidgetPage.DisplayMode.cs"><Link>Features\CompatibilityDisplay\KillConfirmWidgetPage.DisplayMode.cs</Link></Compile>
+    <Content Remove="Assets\**\*;Danmaku\**\*;KillConfirmService\**\*;CompatibilityHost\**\*" />
+    <Content Include="Assets\FluentIcons\*;Assets\PackIcons\*;Assets\GameLogos\*;Assets\*.png;Assets\*.jpg" />
+    <Content Include="Bridge\killconfirm-widget-bridge.exe" />
+  </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\WindowsXaml\v$(VisualStudioVersion)\Microsoft.Windows.UI.Xaml.CSharp.targets" />
 </Project>

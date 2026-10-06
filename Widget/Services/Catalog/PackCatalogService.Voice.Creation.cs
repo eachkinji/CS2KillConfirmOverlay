@@ -97,7 +97,7 @@ namespace KillConfirmGameBar.Services
                 string fileName = stem + ".wav";
                 try
                 {
-                    StorageFile builtIn = await StorageFile.GetFileFromApplicationUriAsync(
+                    StorageFile builtIn = await SharedResources.AssetFileAsync(
                         new Uri("ms-appx:///KillConfirmService/sounds/"
                             + ValorantPackService.DefaultKey + "/" + fileName));
                     await builtIn.CopyAsync(packFolder, fileName, NameCollisionOption.ReplaceExisting);

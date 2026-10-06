@@ -98,7 +98,7 @@ namespace KillConfirmGameBar.Services
                 string fileName = normalized.Substring("builtin:".Length);
                 try
                 {
-                    return await StorageFile.GetFileFromApplicationUriAsync(new Uri(
+                    return await SharedResources.AssetFileAsync(new Uri(
                         "ms-appx:///KillConfirmService/sounds/dagoujiao/" + fileName));
                 }
                 catch

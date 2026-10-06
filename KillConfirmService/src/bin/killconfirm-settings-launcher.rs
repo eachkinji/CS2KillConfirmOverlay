@@ -20,36 +20,7 @@ use windows_sys::Win32::UI::WindowsAndMessaging::{
 
 const CREATE_NO_WINDOW: u32 = 0x08000000;
 
-#[link(name = "kernel32")]
-unsafe extern "system" {
-    fn GetCurrentPackageFamilyName(
-        packageFamilyNameLength: *mut u32,
-        packageFamilyName: *mut u16,
-    ) -> i32;
-}
-
-fn current_package_family_name() -> String {
-    unsafe {
-        let mut length = 0u32;
-        let rc = GetCurrentPackageFamilyName(&mut length, std::ptr::null_mut());
-        if rc == 122 {
-            let mut buf = vec![0u16; length as usize];
-            let rc = GetCurrentPackageFamilyName(&mut length, buf.as_mut_ptr());
-            if rc == 0 {
-                if let Some(pos) = buf.iter().position(|&x| x == 0) {
-                    buf.truncate(pos);
-                }
-                if let Ok(name) = String::from_utf16(&buf) {
-                    return name;
-                }
-            }
-        }
-    }
-    // Fallback to currently installed package family name
-    "KillConfirmGameBar.Overlay_5jgcw66eyez0m".to_string()
-}
-
-const SETTINGS_WINDOW_TITLE: &str = "Kill Confirm Overlay Advanced Settings";
+const SETTINGS_WINDOW_TITLE: &str = "Kill Confirm Overlay";
 
 fn main() {
     log("settings launcher entry");
@@ -60,11 +31,9 @@ fn main() {
 }
 
 fn open_settings_window() -> Result<(), String> {
-    let app_shell_target = format!("shell:AppsFolder\\{}!App", current_package_family_name());
-    log(&format!("launch target: {app_shell_target}"));
-
-    let child = Command::new("explorer.exe")
-        .arg(&app_shell_target)
+    let executable=env::current_exe().map_err(|e|e.to_string())?;
+    let root=executable.parent().and_then(|p|p.parent()).ok_or("missing installation directory")?;
+    let child = Command::new(root.join("KillConfirmGameBar.exe"))
         .creation_flags(CREATE_NO_WINDOW)
         .spawn()
         .map_err(|error| format!("failed to start explorer for app entry: {error}"))?;
@@ -210,11 +179,11 @@ fn trace_log_path(file_name: &str) -> Option<PathBuf> {
 }
 
 fn runtime_log_dir() -> PathBuf {
+    if let Some(root)=env::var_os("KILLCONFIRM_DATA_ROOT") { return PathBuf::from(root); }
     if let Ok(local_app_data) = env::var("LOCALAPPDATA") {
         return PathBuf::from(local_app_data)
-            .join("Packages")
-            .join(current_package_family_name())
-            .join("LocalState");
+            .join("KillConfirmOverlay")
+            .join("UserData");
     }
 
     env::current_exe()

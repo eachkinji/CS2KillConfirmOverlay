@@ -1,5 +1,4 @@
-using System;
-using System.Collections.Generic;
+using KillConfirmGameBar.Services;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -368,7 +367,7 @@ namespace KillConfirmGameBar.Danmaku.Engine
         {
             try
             {
-                StorageFile file = await StorageFile.GetFileFromApplicationUriAsync(
+                StorageFile file = await SharedResources.AssetFileAsync(
                     new Uri("ms-appx:///Danmaku/Annotation/6657_annotations_v1.json"));
                 string jsonText = await FileIO.ReadTextAsync(file);
                 JsonObject root;

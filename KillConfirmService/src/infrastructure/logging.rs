@@ -21,40 +21,12 @@ pub fn developer_logging_enabled() -> bool {
     DEVELOPER_LOGGING_ENABLED.load(Ordering::Acquire)
 }
 
-#[link(name = "kernel32")]
-unsafe extern "system" {
-    fn GetCurrentPackageFamilyName(
-        packageFamilyNameLength: *mut u32,
-        packageFamilyName: *mut u16,
-    ) -> i32;
-}
-
-fn current_package_family_name() -> String {
-    unsafe {
-        let mut length = 0u32;
-        let rc = GetCurrentPackageFamilyName(&mut length, std::ptr::null_mut());
-        if rc == 122 {
-            let mut buf = vec![0u16; length as usize];
-            let rc = GetCurrentPackageFamilyName(&mut length, buf.as_mut_ptr());
-            if rc == 0 {
-                if let Some(pos) = buf.iter().position(|&x| x == 0) {
-                    buf.truncate(pos);
-                }
-                if let Ok(name) = String::from_utf16(&buf) {
-                    return name;
-                }
-            }
-        }
-    }
-    "KillConfirmGameBar.Overlay_5jgcw66eyez0m".to_string()
-}
-
 pub(crate) fn local_state_dir() -> PathBuf {
+    if let Some(root) = env::var_os("KILLCONFIRM_DATA_ROOT") { return PathBuf::from(root); }
     if let Ok(local_app_data) = env::var("LOCALAPPDATA") {
         return PathBuf::from(local_app_data)
-            .join("Packages")
-            .join(current_package_family_name())
-            .join("LocalState");
+            .join("KillConfirmOverlay")
+            .join("UserData");
     }
     env::current_exe()
         .ok()

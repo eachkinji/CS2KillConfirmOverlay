@@ -285,7 +285,7 @@ namespace KillConfirmGameBar
 
             if (!string.IsNullOrWhiteSpace(iconUri))
             {
-                image.Source = new BitmapImage(new Uri(iconUri));
+                _=SharedResources.ApplyImageAsync(image,iconUri);
             }
 
             var label = new TextBlock
@@ -334,7 +334,7 @@ namespace KillConfirmGameBar
 
             try
             {
-                StorageFolder folder = await StorageFolder.GetFolderFromPathAsync(folderPath);
+                StorageFolder folder = await SharedResources.ImportedFolderAsync(folderPath);
                 foreach (string candidateName in candidateNames)
                 {
                     StorageFile file = await TryGetNestedFileAsync(folder, candidateName);
@@ -386,7 +386,7 @@ namespace KillConfirmGameBar
         {
             if (string.Equals(key, "custommodule", StringComparison.OrdinalIgnoreCase))
             {
-                return "ms-appx:///Assets/GameStyles/custommodule/iconpacks/custommodule/pack_head.webp";
+                return SharedResources.CachedAssetUri("Assets/GameStyles/custommodule/iconpacks/custommodule/pack_head.webp");
             }
             if (GameStyleService.IsCustomModuleKey(key)) return null;
             if (ValorantPackService.IsValorantPackKey(key))
@@ -414,31 +414,31 @@ namespace KillConfirmGameBar
                 case "crossfire_heart_judge_bl":
                     return new Uri(System.IO.Path.Combine(CrossfireExternalAssetService.PackPath(key, true), "pack_head.png")).AbsoluteUri;
                 case "bf1":
-                    return "ms-appx:///Assets/GameStyles/battlefield1/killconfirm/textures/killicon_battlefield1_headshot.png";
+                    return SharedResources.CachedAssetUri("Assets/GameStyles/battlefield1/killconfirm/textures/killicon_battlefield1_headshot.png");
                 case "bf5":
-                    return "ms-appx:///Assets/GameStyles/battlefield5/killconfirm/textures/killicon_battlefield5_headshot.png";
+                    return SharedResources.CachedAssetUri("Assets/GameStyles/battlefield5/killconfirm/textures/killicon_battlefield5_headshot.png");
                 case "bf4":
-                    return "ms-appx:///Assets/GameStyles/battlefield4/killconfirm/textures/killicon_battlefield1_headshot.png";
+                    return SharedResources.CachedAssetUri("Assets/GameStyles/battlefield4/killconfirm/textures/killicon_battlefield1_headshot.png");
                 case "battlefield2042":
-                    return "ms-appx:///Assets/GameLogos/battlefield2042.png";
+                    return SharedResources.CachedAssetUri("Assets/GameLogos/battlefield2042.png");
                 case "pubg":
-                    return "ms-appx:///Assets/GameStyles/pubg/killconfirm/textures/killicon_scrolling_headshot.png";
+                    return SharedResources.CachedAssetUri("Assets/GameStyles/pubg/killconfirm/textures/killicon_scrolling_headshot.png");
                 case "deltaforce":
-                    return "ms-appx:///Assets/GameStyles/deltaforce/killconfirm/textures/killicon_df_headshot.png";
+                    return SharedResources.CachedAssetUri("Assets/GameStyles/deltaforce/killconfirm/textures/killicon_df_headshot.png");
                 case "doubao":
-                    return "ms-appx:///Assets/GameLogos/doubao.png";
+                    return SharedResources.CachedAssetUri("Assets/GameLogos/doubao.png");
                 case "dagoujiao":
-                    return "ms-appx:///Assets/GameLogos/dagoujiao.jpg";
+                    return SharedResources.CachedAssetUri("Assets/GameLogos/dagoujiao.jpg");
                 case "dagoujiao_animals":
-                    return "ms-appx:///Assets/GameStyles/dagoujiao/iconpacks/dagoujiao_animals/animals.jpg";
+                    return SharedResources.CachedAssetUri("Assets/GameStyles/dagoujiao/iconpacks/dagoujiao_animals/animals.jpg");
                 case "overwatch":
-                    return "ms-appx:///Assets/GameStyles/overwatch/killconfirm/textures/preview.png";
+                    return SharedResources.CachedAssetUri("Assets/GameStyles/overwatch/killconfirm/textures/preview.png");
                 case "modernwarfare2019":
-                    return "ms-appx:///Assets/GameLogos/modernwarfare2019.png";
+                    return SharedResources.CachedAssetUri("Assets/GameLogos/modernwarfare2019.png");
                 case "apex":
-                    return "ms-appx:///Assets/GameLogos/apex.png";
+                    return SharedResources.CachedAssetUri("Assets/GameLogos/apex.png");
                 case "csol4":
-                    return "ms-appx:///Assets/KillConfirmCode/Csol4/headshot_kill.png";
+                    return SharedResources.CachedAssetUri("Assets/KillConfirmCode/Csol4/headshot_kill.png");
                 default:
                     break;
             }
@@ -446,31 +446,31 @@ namespace KillConfirmGameBar
             switch (GameStyleService.GetStyleForPackKey(key))
             {
                 case GameStyleMode.Csol:
-                    return "ms-appx:///Assets/KillConfirmCode/Csol4/headshot_kill.png";
+                    return SharedResources.CachedAssetUri("Assets/KillConfirmCode/Csol4/headshot_kill.png");
                 case GameStyleMode.Valorant:
                     return GetValorantPackIconUri(ValorantPackService.DefaultKey);
                 case GameStyleMode.Battlefield1:
-                    return "ms-appx:///Assets/GameStyles/battlefield1/killconfirm/textures/killicon_battlefield1_default.png";
+                    return SharedResources.CachedAssetUri("Assets/GameStyles/battlefield1/killconfirm/textures/killicon_battlefield1_default.png");
                 case GameStyleMode.Battlefield5:
-                    return "ms-appx:///Assets/GameStyles/battlefield5/killconfirm/textures/killicon_battlefield5_default.png";
+                    return SharedResources.CachedAssetUri("Assets/GameStyles/battlefield5/killconfirm/textures/killicon_battlefield5_default.png");
                 case GameStyleMode.Battlefield4:
-                    return "ms-appx:///Assets/GameStyles/battlefield4/killconfirm/textures/killicon_battlefield1_default.png";
+                    return SharedResources.CachedAssetUri("Assets/GameStyles/battlefield4/killconfirm/textures/killicon_battlefield1_default.png");
                 case GameStyleMode.Battlefield2042:
-                    return "ms-appx:///Assets/GameLogos/battlefield2042.png";
+                    return SharedResources.CachedAssetUri("Assets/GameLogos/battlefield2042.png");
                 case GameStyleMode.Pubg:
-                    return "ms-appx:///Assets/GameStyles/pubg/killconfirm/textures/killicon_scrolling_default.png";
+                    return SharedResources.CachedAssetUri("Assets/GameStyles/pubg/killconfirm/textures/killicon_scrolling_default.png");
                 case GameStyleMode.DeltaForce:
-                    return "ms-appx:///Assets/GameStyles/deltaforce/killconfirm/textures/killicon_df_default.png";
+                    return SharedResources.CachedAssetUri("Assets/GameStyles/deltaforce/killconfirm/textures/killicon_df_default.png");
                 case GameStyleMode.Doubao:
-                    return "ms-appx:///Assets/GameLogos/doubao.png";
+                    return SharedResources.CachedAssetUri("Assets/GameLogos/doubao.png");
                 case GameStyleMode.Dagoujiao:
-                    return "ms-appx:///Assets/GameLogos/dagoujiao.jpg";
+                    return SharedResources.CachedAssetUri("Assets/GameLogos/dagoujiao.jpg");
                 case GameStyleMode.Overwatch:
-                    return "ms-appx:///Assets/GameStyles/overwatch/killconfirm/textures/preview.png";
+                    return SharedResources.CachedAssetUri("Assets/GameStyles/overwatch/killconfirm/textures/preview.png");
                 case GameStyleMode.ModernWarfare2019:
-                    return "ms-appx:///Assets/GameLogos/modernwarfare2019.png";
+                    return SharedResources.CachedAssetUri("Assets/GameLogos/modernwarfare2019.png");
                 case GameStyleMode.Apex:
-                    return "ms-appx:///Assets/GameLogos/apex.png";
+                    return SharedResources.CachedAssetUri("Assets/GameLogos/apex.png");
                 default:
                     return CrossfireExternalAssetService.VisualUri("Original", "badge_headshot.PNG");
             }

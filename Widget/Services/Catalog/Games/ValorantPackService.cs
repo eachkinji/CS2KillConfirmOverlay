@@ -121,6 +121,9 @@ namespace KillConfirmGameBar.Services
         public static string GetEmblemUri(string key)
         {
             ValorantPackInfo pack = Find(key);
+#if SHARED_WIDGET_RUNTIME
+            if(pack?.IsExternal==true) return "ms-appdata:///local/Packs/valorant/icon_packs/"+pack.Key+"/textures/"+pack.EmblemFile;
+#endif
             string externalUri = ValorantExternalAssetService.GetExternalEmblemUri(pack);
             if (!string.IsNullOrWhiteSpace(externalUri))
             {
@@ -129,7 +132,7 @@ namespace KillConfirmGameBar.Services
 
             return pack == null || string.IsNullOrWhiteSpace(pack.EmblemFile)
                 ? null
-                : $"ms-appx:///Assets/GameStyles/valorant/killconfirm/{pack.Folder}/textures/{pack.EmblemFile}";
+                : SharedResources.CachedAssetUri($"Assets/GameStyles/valorant/killconfirm/{pack.Folder}/textures/{pack.EmblemFile}");
         }
 
         public static int GetDisplayOrder(string key)

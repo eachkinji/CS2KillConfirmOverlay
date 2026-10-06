@@ -1,3 +1,4 @@
+using KillConfirmGameBar.Services;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -193,7 +194,7 @@ namespace KillConfirmGameBar.Danmaku.Engine
 
         private static async Task<JsonObject> ReadPoolFileAsync(string directoryName, string fileName)
         {
-            StorageFile file = await StorageFile.GetFileFromApplicationUriAsync(
+            StorageFile file = await SharedResources.AssetFileAsync(
                 new Uri("ms-appx:///Danmaku/" + directoryName + "/" + fileName));
             string jsonText = await FileIO.ReadTextAsync(file);
             JsonObject root;

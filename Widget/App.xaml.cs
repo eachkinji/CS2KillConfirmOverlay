@@ -39,38 +39,14 @@ namespace KillConfirmGameBar
             Log("App constructed.");
         }
 
-        protected override void OnLaunched(LaunchActivatedEventArgs e)
+        protected override async void OnLaunched(LaunchActivatedEventArgs e)
         {
-            try
-            {
-                Log("OnLaunched.");
-                Frame rootFrame = Window.Current.Content as Frame;
-
-                if (rootFrame == null)
-                {
-                    rootFrame = CreateRootFrame();
-                    Window.Current.Content = rootFrame;
-                }
-
-                if (!e.PrelaunchActivated)
-                {
-                    if (rootFrame.Content == null)
-                    {
-                        rootFrame.Navigate(typeof(MainPage), e.Arguments);
-                    }
-
-                    ApplySettingsWindowTitle();
-                    ConfigureWindowCloseHandling(false);
-                    Window.Current.Activate();
-                }
-            }
-            catch (Exception ex)
-            {
-                ShowFallback("Launch failed", ex);
-            }
+            if(e.PrelaunchActivated) return;
+            await KillConfirmWidgetPage.TryLaunchFullTrustHelperAsync("OpenSettingsWindow");
+            Exit();
         }
 
-        protected override void OnActivated(IActivatedEventArgs args)
+        protected override async void OnActivated(IActivatedEventArgs args)
         {
             try
             {
@@ -93,17 +69,8 @@ namespace KillConfirmGameBar
                 {
                     if (args.Kind == ActivationKind.Protocol)
                     {
-                        Frame guideFrame = Window.Current.Content as Frame;
-                        if (guideFrame == null)
-                        {
-                            guideFrame = CreateRootFrame();
-                            Window.Current.Content = guideFrame;
-                        }
-
-                        guideFrame.Navigate(typeof(MainPage));
-                        ApplySettingsWindowTitle();
-                        ConfigureWindowCloseHandling(false);
-                        Window.Current.Activate();
+                        await KillConfirmWidgetPage.TryLaunchFullTrustHelperAsync("OpenSettingsWindow");
+                        Exit();
                         return;
                     }
 
@@ -119,6 +86,7 @@ namespace KillConfirmGameBar
                     return;
                 }
 
+                await Services.SharedRuntime.InitializeAsync();
                 var rootFrame = CreateRootFrame();
                 Window.Current.Content = rootFrame;
 

@@ -1,3 +1,4 @@
+using KillConfirmGameBar.Services;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -49,7 +50,7 @@ namespace KillConfirmGameBar.Danmaku
         {
             try
             {
-                StorageFile file = await StorageFile.GetFileFromApplicationUriAsync(
+                StorageFile file = await SharedResources.AssetFileAsync(
                     new Uri("ms-appx:///Danmaku/6657_memes.json"));
                 string jsonText = await FileIO.ReadTextAsync(file);
                 JsonArray root;

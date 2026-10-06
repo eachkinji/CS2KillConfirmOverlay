@@ -257,6 +257,7 @@ if (-not $SkipWithDependencies) {
 
 # 复制 Overlay 主程序与证书
 foreach ($targetRoot in @($TransferRoot, $NoDepsTransferRoot)) {
+    Copy-Item -LiteralPath (Join-Path $QuickOutputDir 'Standalone') -Destination (Join-Path $targetRoot 'Standalone') -Recurse -Force
     $overlayDir = Join-Path $targetRoot "OverlayPackage"
     New-Item -ItemType Directory -Force -Path $overlayDir | Out-Null
     Copy-Item -LiteralPath $bundleFile.FullName -Destination (Join-Path $overlayDir $bundleFile.Name) -Force

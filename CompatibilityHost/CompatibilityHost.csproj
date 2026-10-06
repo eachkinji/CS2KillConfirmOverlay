@@ -14,6 +14,7 @@
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../Common/*.cs" Link="Common/%(Filename)%(Extension)" />
     <Compile Remove="Integration/**/*.cs" />
     <Page Remove="Integration/**/*.xaml" />
     <PackageReference Include="Microsoft.Graphics.Win2D" Version="1.4.0" />

@@ -1,14 +1,10 @@
-param(
+﻿param(
     [Parameter(Mandatory)][IO.Compression.ZipArchive]$Archive,
     [Parameter(Mandatory)][string]$ManifestText
 )
-$ErrorActionPreference = 'Stop'
-foreach ($name in @('KillConfirmCompatibility.exe', 'KillConfirmCompatibility.dll', 'Microsoft.Graphics.Canvas.dll', 'Microsoft.Graphics.Canvas.Interop.dll', 'WinRT.Runtime.dll', 'PresentationFramework.dll', 'coreclr.dll')) {
-    $entry = $Archive.GetEntry("CompatibilityHost/$name")
-    if (-not $entry -or $entry.Length -eq 0) { throw "Independent compatibility runtime is missing: CompatibilityHost/$name" }
+$ErrorActionPreference='Stop'
+if(!$Archive.GetEntry('Bridge/killconfirm-widget-bridge.exe') -or !$ManifestText.Contains('Bridge\killconfirm-widget-bridge.exe')) {throw 'Optional Game Bar launch bridge is missing.'}
+foreach($entry in $Archive.Entries) {
+    if($entry.FullName -match '^(CompatibilityHost/|KillConfirmService/|Assets/GameStyles/|Assets/KillConfirmCode/|Pages/Main/)' -or $entry.FullName -match '(^|/)(cskillconfirm|KillConfirmCompatibility)\.exe$') {throw "Ordinary runtime/resource duplicated inside widget: $($entry.FullName)"}
 }
-if (-not $ManifestText.Contains('GroupId="CompatibilityDisplay"') -or -not $ManifestText.Contains('--open-compatibility-display')) {
-    throw 'Compatibility launch registration is missing from the packaged manifest.'
-}
-if ($Archive.GetEntry('CompatibilityHost/KillConfirmGameBar.exe')) { throw 'Legacy widget files were mixed into the compatibility host.' }
-Write-Host '  Independent compatibility executable, renderer and runtime verified.' -ForegroundColor DarkGray
+Write-Host '  Widget-only MSIX verified; ordinary control panel, service, renderer and large resources are external.'

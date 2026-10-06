@@ -9,7 +9,6 @@ pub(crate) fn launch() -> Result<()> {
         .and_then(|directory| directory.parent())
         .context("cannot locate package root")?;
     let host = root
-        .join("CompatibilityHost")
         .join("KillConfirmCompatibility.exe");
     let mut command = Command::new(&host);
     command.current_dir(
@@ -36,7 +35,7 @@ pub(crate) fn stop() -> Result<()> {
     if config["Enabled"].as_bool() != Some(false) { return Ok(()); }
     let service = env::current_exe()?;
     let expected = service.parent().and_then(|p| p.parent()).context("cannot locate package")?
-        .join("CompatibilityHost").join("KillConfirmCompatibility.exe");
+        .join("KillConfirmCompatibility.exe");
     std::thread::sleep(Duration::from_millis(500));
     let result = stop_matching_host(&expected, &config_path, request);
     fs::create_dir_all(&folder)?;

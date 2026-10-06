@@ -1,4 +1,4 @@
-#define MyAppPublisher "KillConfirmGameBar"
+﻿#define MyAppPublisher "KillConfirmGameBar"
 #define MyAppExeName "Install-KillConfirm.ps1"
 
 #ifndef MyAppVersion
@@ -99,8 +99,8 @@ english.PrerequisiteWarningText=Please note: the installer will check required s
 chinesesimplified.PrerequisiteWarningText=请记住：接下来的步骤将会检查你的系统依赖，请按照界面提示执行相关操作。
 english.UpdateOnlyWarningText=This is the dependency-free update package. It will not repair Xbox Game Bar or install offline prerequisites. Use it only on a computer where the app already works correctly.
 chinesesimplified.UpdateOnlyWarningText=这是无依赖更新包，不会修复 Xbox Game Bar，也不会安装离线前置依赖。请仅在软件原本可以正常运行的电脑上使用。
-english.GameBarUsageText=Use Xbox Game Bar, or open the app from Start and enable Compatibility display in Advanced Settings. Game Bar is optional.
-chinesesimplified.GameBarUsageText=可按 Win+G 使用 Game Bar，或从开始菜单打开本程序，在高级设置启用兼容显示。Game Bar 为可选组件。
+english.GameBarUsageText=Use Xbox Game Bar, or open the app from Start and enable Compatibility display on the home page. Game Bar is optional.
+chinesesimplified.GameBarUsageText=可按 Win+G 使用 Game Bar，或从开始菜单打开本程序，在主页选择兼容显示。Game Bar 为可选组件。
 english.AcknowledgeButtonText=I understand
 chinesesimplified.AcknowledgeButtonText=我清楚了
 english.AcknowledgedButtonText=Understood
@@ -114,15 +114,24 @@ chinesesimplified.FinishedTutorialText=如有不懂，请点击这里查看教�
 english.FinishedPinWarningText=Game Bar mode: turn off click-through mode and pin the widget window before use.
 chinesesimplified.FinishedPinWarningText=Game Bar 模式：请关闭“单击浏览”，并点击图钉固定窗口。
 
+[Tasks]
+Name: "gamebar"; Description: "同时安装可选 Game Bar 小组件（失败仍可使用兼容显示）"; Flags: checkedonce
+
+[Icons]
+Name: "{group}\{cm:ControlPanelShortcutName}"; Filename: "{app}\KillConfirmGameBar.exe"; IconFilename: "{app}\KillConfirmOverlay.ico"
+Name: "{autodesktop}\{cm:ControlPanelShortcutName}"; Filename: "{app}\KillConfirmGameBar.exe"; IconFilename: "{app}\KillConfirmOverlay.ico"
+
 [InstallDelete]
 Type: filesandordirs; Name: "{app}\Payload"
+Type: filesandordirs; Name: "{app}\Desktop"
 Type: files; Name: "{group}\{cm:ControlPanelShortcutName}.lnk"
 Type: files; Name: "{group}\Open Xbox Game Bar.lnk"
 Type: dirifempty; Name: "{group}"
 Type: files; Name: "{autodesktop}\{cm:ControlPanelShortcutName}.lnk"
 
 [Files]
-Source: "{#TransferRoot}\*"; DestDir: "{app}\Payload"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#TransferRoot}\*"; DestDir: "{app}\Payload"; Excludes: "Standalone\*"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#TransferRoot}\Standalone\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "Assets\KillConfirmOverlay.ico"; DestDir: "{app}"; Flags: ignoreversion
 Source: "Assets\GameBarPinGuide.png"; Flags: dontcopy
 
@@ -370,6 +379,7 @@ begin
     Params := Params + ' -InstallPrerequisites -PrerequisitesConfirmed';
 #endif
 
+    if not WizardIsTaskSelected('gamebar') then Params := Params + ' -SkipGameBar';
     if not ExecInstallWithLog(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'), Params, ExpandConstant('{app}\Payload'), ResultCode) then
     begin
       AppendInstallLog(ExpandConstant('{cm:InstallScriptLaunchFailed}'));

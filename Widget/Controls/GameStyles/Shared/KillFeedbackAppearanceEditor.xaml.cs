@@ -69,39 +69,15 @@ namespace KillConfirmGameBar.Controls.GameStyles
                     isChinese,
                     theme);
 
-                DanmakuRowTitle.Text = isChinese ? "游戏事件弹幕" : "Game Event Danmaku";
-                DanmakuRowHint.Text = isChinese
-                    ? "游戏事件触发 5–7 条分类弹幕，单条最长 5 秒"
-                    : "Game events trigger 5–7 categorized comments, up to 5 seconds each";
-                DanmakuTestBtn.Content = isChinese ? "测试弹幕" : "Test";
-                DanmakuToggle.IsOn = KillConfirmGameBar.Danmaku.DanmakuSettingsStore.IsEnabled;
-
                 EditorCard.Background = new SolidColorBrush(theme.Card);
                 EditorCard.BorderBrush = new SolidColorBrush(theme.SoftBorder);
                 TitleText.Foreground = new SolidColorBrush(theme.Text);
                 HintText.Foreground = new SolidColorBrush(theme.MutedText);
-                DanmakuRowTitle.Foreground = new SolidColorBrush(theme.Text);
-                DanmakuRowHint.Foreground = new SolidColorBrush(theme.MutedText);
             }
             finally
             {
                 _suppressChanges = false;
             }
-        }
-
-        private void OnDanmakuToggled(object sender, RoutedEventArgs e)
-        {
-            if (_suppressChanges)
-            {
-                return;
-            }
-
-            KillConfirmGameBar.Danmaku.DanmakuSettingsStore.IsEnabled = DanmakuToggle.IsOn;
-        }
-
-        private void OnDanmakuTestClick(object sender, RoutedEventArgs e)
-        {
-            KillConfirmGameBar.Danmaku.DanmakuSettingsStore.RequestTest();
         }
 
         private void OnSettingsChanged(object sender, EventArgs e)

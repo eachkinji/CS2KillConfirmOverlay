@@ -18,12 +18,20 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay.Controls.Danmaku
         {
             InitializeComponent();
             Loaded += OnLoaded;
+            Unloaded += (s, e) => DanmakuSettingsStore.TestFeedbackChanged -= OnTestFeedback;
         }
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
+            DanmakuSettingsStore.TestFeedbackChanged += OnTestFeedback;
             SyncFromStore();
             _ = LoadEventPreviewAsync();
+        }
+
+        private void OnTestFeedback(string message)
+        {
+            TestFeedbackText.Text = message;
+            TestFeedbackText.Visibility = Visibility.Visible;
         }
 
         public void RefreshSettings()

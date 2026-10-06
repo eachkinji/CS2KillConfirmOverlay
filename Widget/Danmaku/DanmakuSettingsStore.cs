@@ -73,6 +73,8 @@ namespace KillConfirmGameBar.Danmaku
         public static event Action KillTestRequested;
         public static event Action DeathTestRequested;
         public static event Action<string> EventTestRequested;
+        public static event Action<string> TestFeedbackChanged;
+        private static bool _desktopTestInProgress;
 
         public static bool IsEnabled
         {
@@ -387,16 +389,19 @@ namespace KillConfirmGameBar.Danmaku
 
         public static void RequestTest()
         {
+            if (RouteDesktopTest("kill")) return;
             TestRequested?.Invoke();
         }
 
         public static void RequestKillTest()
         {
+            if (RouteDesktopTest("kill")) return;
             KillTestRequested?.Invoke();
         }
 
         public static void RequestDeathTest()
         {
+            if (RouteDesktopTest("death")) return;
             DeathTestRequested?.Invoke();
         }
 
@@ -404,8 +409,28 @@ namespace KillConfirmGameBar.Danmaku
         {
             if (!string.IsNullOrWhiteSpace(eventKey))
             {
+                if (RouteDesktopTest(eventKey.Trim())) return;
                 EventTestRequested?.Invoke(eventKey.Trim());
             }
+        }
+        private static bool RouteDesktopTest(string eventKey)
+        {
+            if (!Features.CompatibilityDisplay.CompatibilityDisplayRuntime.Load().Enabled) return false;
+            if (!_desktopTestInProgress) RunDesktopTestAsync(eventKey);
+            return true;
+        }
+        private static async void RunDesktopTestAsync(string eventKey)
+        {
+            _desktopTestInProgress = true;
+            bool zh = Services.LocalizationManager.Current == Services.UiLanguage.SimplifiedChinese;
+            try
+            {
+                TestFeedbackChanged?.Invoke(zh ? "正在准备弹幕预览…" : "Preparing danmaku preview…");
+                await Features.CompatibilityDisplay.CompatibilityDisplayRuntime.TestDanmakuAsync(eventKey);
+                TestFeedbackChanged?.Invoke(zh ? "弹幕已在屏幕上预览，无需启动游戏。" : "Danmaku previewed on screen. No game is needed.");
+            }
+            catch (Exception error) { TestFeedbackChanged?.Invoke(error.Message); App.Log("Desktop danmaku test: " + error); }
+            finally { _desktopTestInProgress = false; }
         }
     }
 }

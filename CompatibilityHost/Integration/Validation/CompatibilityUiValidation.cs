@@ -90,6 +90,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             Width = 640; await CaptureUiAsync("home-compact"); Width = double.NaN;
             HomeView.ValidateStatusCards();
             await HomeView.ValidatePlaybackButtonAsync();
+            await HomeView.ValidateDanmakuButtonAsync();
             _tab = "home"; ApplyTab();
             CompatibilityDisplayRuntime.Update(c => c.Enabled = false);
             ApplyModeGuide(false);
@@ -109,6 +110,40 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
     public sealed partial class CompatibilityHomeView
     {
         internal static bool IsUiValidation => Package.Current.Id.Name == "KillConfirmCompatibility.UIValidation";
+        internal async Task ValidateDanmakuButtonAsync()
+        {
+            bool previousEnabled = Danmaku.DanmakuSettingsStore.IsEnabled;
+            try
+            {
+                Danmaku.DanmakuSettingsStore.IsEnabled = false;
+                Danmaku.DanmakuSettingsStore.RequestTest();
+                if (!PackTestSectionView.TestFeedbackText.Text.Contains("开启游戏事件弹幕")) throw new Exception("Disabled danmaku test did not explain how to enable it.");
+                Danmaku.DanmakuSettingsStore.IsEnabled = true;
+                foreach (string failure in new string[] { null, "弹幕区域已隐藏（测试）" })
+                {
+                    KillConfirmCompatibility.Contracts.DisplayFiles.Write(CompatibilityDisplayRuntime.StatusPath,
+                        new KillConfirmCompatibility.Contracts.DisplayStatus { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), ProcessId = 1 });
+                    var previous = CompatibilityDisplayRuntime.Load();
+                    Danmaku.DanmakuSettingsStore.RequestEventTest("death");
+                    var request = CompatibilityDisplayRuntime.Load();
+                    if (request.DanmakuTestRequest <= previous.DanmakuTestRequest || request.DanmakuTestEvent != "death" || request.TestRequest != previous.TestRequest)
+                        throw new Exception("Danmaku test did not send its own selected-event request.");
+                    KillConfirmCompatibility.Contracts.DisplayFiles.Write(CompatibilityDisplayRuntime.StatusPath,
+                        new KillConfirmCompatibility.Contracts.DisplayStatus { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), ProcessId = 1, LastDanmakuTestRequest = request.DanmakuTestRequest, DanmakuTestError = failure });
+                    await Task.Delay(250);
+                    if (failure == null ? !PackTestSectionView.TestFeedbackText.Text.Contains("弹幕已在屏幕上预览") : PackTestSectionView.TestFeedbackText.Text != failure)
+                        throw new Exception("Danmaku test did not show the display acknowledgement/error.");
+                }
+                CompatibilityDisplayRuntime.Update(c => c.Enabled = false);
+                bool localTest = false;
+                Action handler = () => localTest = true;
+                Danmaku.DanmakuSettingsStore.TestRequested += handler;
+                try { Danmaku.DanmakuSettingsStore.RequestTest(); }
+                finally { Danmaku.DanmakuSettingsStore.TestRequested -= handler; }
+                if (!localTest) throw new Exception("Game Bar danmaku tests were redirected to the desktop host.");
+            }
+            finally { Danmaku.DanmakuSettingsStore.IsEnabled = previousEnabled; }
+        }
         internal void ValidateStatusCards()
         {
             bool zh = LocalizationManager.Current == UiLanguage.SimplifiedChinese;

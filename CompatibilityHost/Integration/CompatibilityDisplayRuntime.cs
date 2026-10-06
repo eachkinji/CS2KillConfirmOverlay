@@ -50,6 +50,30 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             finally { ModeGate.Release(); }
         }
         public static DisplayStatus ReadStatus() => DisplayFiles.Read<DisplayStatus>(StatusPath);
+        public static async Task TestDanmakuAsync(string eventKey)
+        {
+            bool zh = Services.LocalizationManager.Current == Services.UiLanguage.SimplifiedChinese;
+            if (!Danmaku.DanmakuSettingsStore.IsEnabled)
+                throw new InvalidOperationException(zh ? "请先在高级设置中开启游戏事件弹幕。" : "Enable game event danmaku in Advanced settings first.");
+            if (!Load().Enabled) throw new InvalidOperationException(zh ? "显示模式已切换，弹幕预览已取消。" : "Display mode changed. Danmaku preview cancelled.");
+            if (!await EnsureStartedAsync())
+                throw new InvalidOperationException(zh ? "无法启动兼容显示，请重试连接。" : "Could not start desktop display. Retry the connection.");
+            long request = 0;
+            Update(c => { c.DanmakuTestEvent = eventKey; c.DanmakuTestRequest = request = Math.Max(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), c.DanmakuTestRequest + 1); });
+            var deadline = DateTimeOffset.UtcNow.AddSeconds(35);
+            while (Load().Enabled && DateTimeOffset.UtcNow < deadline)
+            {
+                var status = ReadStatus();
+                if (IsRunning(status) && status.LastDanmakuTestRequest == request)
+                {
+                    if (!string.IsNullOrWhiteSpace(status.DanmakuTestError)) throw new InvalidOperationException(status.DanmakuTestError);
+                    return;
+                }
+                if (Load().DanmakuTestRequest != request) throw new InvalidOperationException(zh ? "已有新的弹幕测试，当前预览已取消。" : "A newer danmaku test replaced this preview.");
+                await Task.Delay(100);
+            }
+            throw new InvalidOperationException(zh ? "弹幕预览未完成，请检查显示模式和弹幕区域显隐。" : "Danmaku preview did not complete. Check the display mode and area visibility.");
+        }
         public static bool IsRunning(DisplayStatus status) => status != null && status.ProcessId > 0
             && Math.Abs(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - status.Timestamp) < 5000;
         public static async Task<bool> EnsureSelectedModeAsync()

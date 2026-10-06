@@ -63,6 +63,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             _isPageActive = true;
             GameStyleService.Changed += OnStyleChanged;
             PackCatalogService.CatalogChanged += OnPackCatalogChanged;
+            Danmaku.DanmakuSettingsStore.TestFeedbackChanged += OnDanmakuTestFeedback;
             _statusTimer.Start();
             if (!IsUiValidation) GsiStatusMonitor.Instance.StartMonitoring();
             await RefreshGameAsync(++_revision);
@@ -72,6 +73,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             _isPageActive = false; ++_revision; StopRepeating(); _statusTimer.Stop();
             if (!IsUiValidation) GsiStatusMonitor.Instance.StopMonitoring();
             GameStyleService.Changed -= OnStyleChanged; PackCatalogService.CatalogChanged -= OnPackCatalogChanged;
+            Danmaku.DanmakuSettingsStore.TestFeedbackChanged -= OnDanmakuTestFeedback;
         }
         private async void OnGameChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -219,6 +221,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             PackTestSectionView.TestFeedbackText.Text = message;
             PackTestSectionView.TestFeedbackText.Visibility = Visibility.Visible;
         }
+        private void OnDanmakuTestFeedback(string message) => ShowTestFeedback(message);
         private async Task PlayTestAsync(bool audio = true)
         {
             bool zh = LocalizationManager.Current == UiLanguage.SimplifiedChinese;

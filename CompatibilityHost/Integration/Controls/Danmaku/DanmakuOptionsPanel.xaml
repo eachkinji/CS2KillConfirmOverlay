@@ -61,6 +61,7 @@
                         Padding="10,6"
                         Content="测试所选事件弹幕"
                         Click="OnEventTestClick" />
+                    <TextBlock x:Name="TestFeedbackText" Visibility="Collapsed" FontSize="12" TextWrapping="Wrap" />
                     <TextBlock
                         x:Name="EventQuotaText"
                         FontSize="11"

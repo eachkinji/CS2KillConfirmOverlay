@@ -21,6 +21,8 @@ namespace KillConfirmCompatibility.Contracts
         [DataMember] public long ModeRequest { get; set; }
         [DataMember] public string TestPreset { get; set; } = "three";
         [DataMember] public bool TestAudio { get; set; }
+        [DataMember] public long DanmakuTestRequest { get; set; }
+        [DataMember] public string DanmakuTestEvent { get; set; } = "kill";
         [DataMember] public Dictionary<string, LayoutProfile> Layouts { get; set; } = new Dictionary<string, LayoutProfile>();
         [OnDeserializing]
         private void SetDefaults(StreamingContext context)
@@ -94,6 +96,8 @@ namespace KillConfirmCompatibility.Contracts
         [DataMember] public bool Loading { get; set; }
         [DataMember] public long LastTestRequest { get; set; }
         [DataMember] public string TestError { get; set; }
+        [DataMember] public long LastDanmakuTestRequest { get; set; }
+        [DataMember] public string DanmakuTestError { get; set; }
     }
     [DataContract]
     public sealed class GameBarDisplayStatus

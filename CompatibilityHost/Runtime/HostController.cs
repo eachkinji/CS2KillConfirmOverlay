@@ -35,6 +35,8 @@ namespace KillConfirmCompatibility.Desktop.Runtime
         private long _editRequest, _testRequest, _restartRequest;
         private long _completedTestRequest;
         private string _testError;
+        private long _danmakuTestRequest, _completedDanmakuTestRequest;
+        private string _danmakuTestError;
         private bool _lastDanmakuEnabled;
         private string _style, _lastSignature, _renderError;
         private bool _editing, _hidden, _closing, _visible;
@@ -43,6 +45,7 @@ namespace KillConfirmCompatibility.Desktop.Runtime
         private DateTimeOffset _nextFind, _nextRegister, _nextStatus, _previewUntil;
         private int _lastPort;
         internal bool HasRenderedPreviewPixels => _surfaces.Any(surface => surface.ElementKey != "Danmaku" && surface.HasRenderedPixels);
+        internal bool HasRenderedDanmakuPixels => _surfaces.Any(surface => surface.ElementKey == "Danmaku" && surface.HasRenderedPixels);
         internal string PreviewDiagnostics => string.Join("; ", _surfaces.Select(surface => surface.ElementKey + ": visible=" + surface.IsVisible + ", pixels=" + surface.HasRenderedPixels + ", size=" + surface.ActualWidth + "x" + surface.ActualHeight));
         public HostController(bool shutdownApplicationOnClose = true)
         {
@@ -57,6 +60,7 @@ namespace KillConfirmCompatibility.Desktop.Runtime
             long now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             _editRequest = now - _configuration.EditRequest > 10000 ? _configuration.EditRequest : 0;
             _testRequest = now - _configuration.TestRequest > 10000 ? _configuration.TestRequest : 0;
+            _danmakuTestRequest = now - _configuration.DanmakuTestRequest > 10000 ? _configuration.DanmakuTestRequest : 0;
             KillFeedbackVisibilitySettingsStore.ApplyDesktopVisibility = (style, values) =>
             {
                 var profile = _configuration.GetLayout(GameStyleService.ToStorageValue(style));
@@ -151,6 +155,7 @@ namespace KillConfirmCompatibility.Desktop.Runtime
                     if (_configuration.EditRequest != _editRequest) { _editRequest = _configuration.EditRequest; BeginEditing(); }
                 }
                 if (_configuration.TestRequest != _testRequest) { _previewUntil = DateTimeOffset.UtcNow.AddSeconds(5); _hidden = false; }
+                if (_configuration.DanmakuTestRequest != _danmakuTestRequest) { _previewUntil = DateTimeOffset.UtcNow.AddSeconds(5); _hidden = false; }
                 _frameTimer.Interval = TimeSpan.FromSeconds(1.0 / _configuration.FramesPerSecond);
                 var screens = NativeWindows.Screens();
                 if (screens.Length == 0) return;
@@ -186,6 +191,11 @@ namespace KillConfirmCompatibility.Desktop.Runtime
                     _testRequest = _configuration.TestRequest;
                     Preview(true);
                 }
+                if (_configuration.DanmakuTestRequest != _danmakuTestRequest)
+                {
+                    _danmakuTestRequest = _configuration.DanmakuTestRequest;
+                    _ = PreviewDanmakuAsync(_danmakuTestRequest, _configuration.DanmakuTestEvent);
+                }
                 if (_editing)
                 {
                     new WindowInteropHelper(_toolbar).EnsureHandle();
@@ -196,7 +206,7 @@ namespace KillConfirmCompatibility.Desktop.Runtime
                 if (DateTimeOffset.UtcNow >= _nextStatus)
                 {
                     _nextStatus = DateTimeOffset.UtcNow.AddSeconds(1);
-                    DisplayFiles.Write(_statusPath, new DisplayStatus { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), ProcessId = Environment.ProcessId, Connected = _events.ConnectionState == KillEventConnectionState.Connected, Editing = _editing, Visible = _visible, Style = _style, Loading = !_applyingConfiguration.IsCompleted, Screen = monitor.Device, Screens = screens.Select(s => s.Device).ToArray(), Error = _renderError ?? _presenter.ConfigurationError ?? _service.Error, LastTestRequest = _completedTestRequest, TestError = _testError });
+                    DisplayFiles.Write(_statusPath, new DisplayStatus { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), ProcessId = Environment.ProcessId, Connected = _events.ConnectionState == KillEventConnectionState.Connected, Editing = _editing, Visible = _visible, Style = _style, Loading = !_applyingConfiguration.IsCompleted, Screen = monitor.Device, Screens = screens.Select(s => s.Device).ToArray(), Error = _renderError ?? _presenter.ConfigurationError ?? _service.Error, LastTestRequest = _completedTestRequest, TestError = _testError, LastDanmakuTestRequest = _completedDanmakuTestRequest, DanmakuTestError = _danmakuTestError });
                 }
             }
             catch (Exception error) { _renderError = error.Message; App.Log("Compatibility state: " + error); }
@@ -246,6 +256,35 @@ namespace KillConfirmCompatibility.Desktop.Runtime
             if (request != _testRequest) return;
             _completedTestRequest = request; _testError = error;
             _nextStatus = DateTimeOffset.MinValue;
+        }
+        private async System.Threading.Tasks.Task PreviewDanmakuAsync(long request, string eventKey)
+        {
+            string error = null;
+            try
+            {
+                if (!DanmakuSettingsStore.IsEnabled) throw new InvalidOperationException("请先在高级设置中开启游戏事件弹幕。");
+                if (!_layout.Danmaku.Visible) throw new InvalidOperationException("弹幕区域已隐藏，请在编辑屏幕中显示弹幕区域。");
+                var context = Danmaku.Engine.DanmakuEventClassifier.CreateTestFromKey(eventKey ?? "kill");
+                if ((context.Kind == Danmaku.Engine.DanmakuEventKind.Death && !DanmakuSettingsStore.TriggerOnDeath)
+                    || (Danmaku.Engine.DanmakuEventClassifier.IsKillReaction(context.Kind) && !DanmakuSettingsStore.TriggerOnKill)
+                    || (Danmaku.Engine.DanmakuEventClassifier.IsRoundReaction(context.Kind) && !DanmakuSettingsStore.TriggerOnRound)
+                    || (Danmaku.Engine.DanmakuEventClassifier.IsObjectiveReaction(context.Kind) && !DanmakuSettingsStore.TriggerOnObjective))
+                    throw new InvalidOperationException("当前事件的弹幕触发规则已关闭，请在高级设置中开启后测试。");
+                _surfaces.First(surface => surface.ElementKey == "Danmaku").ResetPreviewPixels();
+                DanmakuSettingsStore.RequestEventTest(eventKey ?? "kill");
+                var deadline = DateTimeOffset.UtcNow.AddSeconds(30);
+                while (!_closing && _configuration.Enabled && request == _danmakuTestRequest && !HasRenderedDanmakuPixels && DateTimeOffset.UtcNow < deadline)
+                {
+                    _previewUntil = DateTimeOffset.UtcNow.AddSeconds(5);
+                    await System.Threading.Tasks.Task.Delay(50);
+                }
+                if (_closing || !_configuration.Enabled || request != _danmakuTestRequest) return;
+                if (!HasRenderedDanmakuPixels) throw new InvalidOperationException("弹幕未显示，请检查弹幕区域显隐和显示模式。");
+                _previewUntil = DateTimeOffset.UtcNow.AddSeconds(Math.Max(5, DanmakuSettingsStore.DurationSeconds));
+            }
+            catch (Exception failure) { error = failure.Message; App.Log("Compatibility danmaku test: " + failure); }
+            if (request != _danmakuTestRequest || _closing) return;
+            _completedDanmakuTestRequest = request; _danmakuTestError = error; _nextStatus = DateTimeOffset.MinValue;
         }
         private void ResetPreview()
         {

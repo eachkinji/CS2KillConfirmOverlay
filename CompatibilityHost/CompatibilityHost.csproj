@@ -8,7 +8,6 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AssemblyName>KillConfirmCompatibility</AssemblyName>
     <RootNamespace>KillConfirmCompatibility</RootNamespace>
-    <Version>4.5.1.50</Version>
     <PlatformTarget>x64</PlatformTarget>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <WindowsPackageType>None</WindowsPackageType>

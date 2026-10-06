@@ -68,7 +68,7 @@ namespace KillConfirmCompatibility.Contracts
                 change(current); current.Normalize(); Write(path, current);
             }
         }
-        internal static FileStream AcquireFileLock(string path)
+        private static FileStream AcquireFileLock(string path)
         {
             for (int attempt = 0; ; attempt++)
             {

@@ -59,7 +59,6 @@ namespace KillConfirmCompatibility.Desktop.Runtime
             await GsiGameVersionSettingsStore.SyncAsync();
             await InterruptPreviousKillAudioSettingsStore.SyncAsync();
             if (style == GameStyleMode.Dagoujiao) await DagoujiaoSettingsStore.SyncServiceAsync();
-            if (style == GameStyleMode.Doubao) await DoubaoSettingsStore.SyncAsync();
         }
         private static async Task SendAsync(string path, JsonObject json)
         {

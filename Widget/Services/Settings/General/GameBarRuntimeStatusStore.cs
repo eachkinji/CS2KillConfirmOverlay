@@ -45,7 +45,6 @@ namespace KillConfirmGameBar.Services
                     [UpdatedTicksKey] = now.UtcDateTime.Ticks
                 };
                 ApplicationData.Current.LocalSettings.Values[StateKey] = state;
-                PublishDesktopState(true, isPinned, isClickThroughEnabled, now);
                 _lastPinned = isPinned;
                 _lastClickThroughEnabled = isClickThroughEnabled;
                 _lastPublishedAtUtc = now;
@@ -68,19 +67,11 @@ namespace KillConfirmGameBar.Services
                     [UpdatedTicksKey] = now.UtcDateTime.Ticks
                 };
                 ApplicationData.Current.LocalSettings.Values[StateKey] = state;
-                PublishDesktopState(false, _lastPinned ?? false, _lastClickThroughEnabled ?? false, now);
                 _lastPublishedAtUtc = now;
             }
             catch (Exception)
             {
             }
-        }
-
-        private static void PublishDesktopState(bool active, bool pinned, bool clickThrough, DateTimeOffset now)
-        {
-            string path = System.IO.Path.Combine(ApplicationData.Current.LocalFolder.Path, KillConfirmCompatibility.Contracts.DisplayFiles.FolderName, "widget-status.json");
-            KillConfirmCompatibility.Contracts.DisplayFiles.Write(path, new KillConfirmCompatibility.Contracts.WidgetStatusSnapshot
-            { Timestamp = now.ToUnixTimeMilliseconds(), Active = active, Pinned = pinned, ClickThrough = clickThrough });
         }
 
         internal static GameBarRuntimeStatus Read()

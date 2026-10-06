@@ -28,25 +28,15 @@ namespace KillConfirmCompatibility.Desktop.Runtime
                 using var content = new HttpStringContent(json.Stringify(), UnicodeEncoding.Utf8, "application/json");
                 using var response = await client.PostAsync(LocalServiceEndpoints.Build("/client/register"), content);
                 response.EnsureSuccessStatusCode();
-                Error = null;
                 string voice = ReadVoice();
-                try
+                if (_lastVoice != voice || _lastPort != LocalServiceEndpoints.Port)
                 {
-                  if (_lastVoice != voice || _lastPort != LocalServiceEndpoints.Port)
-                  {
                     var preset = new JsonObject { ["preset"] = JsonValue.CreateStringValue(voice) };
-                    var pack = await PackCatalogService.GetVoicePackAsync(voice);
-                    if (pack != null && !pack.IsBuiltIn && !string.IsNullOrWhiteSpace(pack.FolderPath))
-                    {
-                        preset["custom_path"] = JsonValue.CreateStringValue(pack.FolderPath);
-                        preset["display_name"] = JsonValue.CreateStringValue(pack.DisplayName ?? voice);
-                    }
                     using var presetContent = new HttpStringContent(preset.Stringify(), UnicodeEncoding.Utf8, "application/json");
                     using var changed = await client.PostAsync(LocalServiceEndpoints.Build("/soundpack"), presetContent);
                     changed.EnsureSuccessStatusCode(); _lastVoice = voice; _lastPort = LocalServiceEndpoints.Port;
-                  }
                 }
-                catch (Exception error) { Error = "语音素材未就绪：" + error.Message; }
+                Error = null;
                 string signature = ServiceConfiguration.Signature;
                 if (signature != _lastConfiguration)
                 {
@@ -73,14 +63,11 @@ namespace KillConfirmCompatibility.Desktop.Runtime
         }
         private static void LaunchService()
         {
-            string root = DesktopEnvironment.InstallRoot;
+            string root = global::Windows.ApplicationModel.Package.Current.InstalledLocation.Path;
             string path = Path.Combine(root, "KillConfirmService", "cskillconfirm.exe");
             var start = new ProcessStartInfo(path) { UseShellExecute = false, CreateNoWindow = true, WorkingDirectory = Path.GetDirectoryName(path) };
-            start.Environment["KILLCONFIRM_DATA_ROOT"] = DesktopStorage.Current.LocalFolder.Path;
             start.ArgumentList.Add("--port"); start.ArgumentList.Add(LocalServiceEndpoints.Port.ToString());
-            // A persisted custom preset needs /soundpack's custom_path. Start
-            // with an included preset, then apply that selection after register.
-            start.ArgumentList.Add("--exit-with-ui"); start.ArgumentList.Add("--preset"); start.ArgumentList.Add("valorant_00000_base");
+            start.ArgumentList.Add("--exit-with-ui"); start.ArgumentList.Add("--preset"); start.ArgumentList.Add(ReadVoice());
             using var process = Process.Start(start);
             App.Log("Service started by compatibility host.");
         }

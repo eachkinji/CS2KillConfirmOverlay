@@ -23,9 +23,9 @@ namespace KillConfirmCompatibility.Desktop.Runtime
             if (economy.TryGetValue(key, out int money)) { e.KillCount = 0; e.AnimationKey = e.EventKind = key; e.EventChannel = "economy"; e.MoneyReward = money; e.WeaponName = key == "bomb_plant" ? "C4" : key == "bomb_defuse" ? "Defuse Kit" : key.StartsWith("hostage") ? "Hostage" : "AK-47"; }
             return e;
         }
-        public static Uri UriFor(KillEvent e, bool audio = true)
+        public static Uri UriFor(KillEvent e)
         {
-            var query = new List<string> { "audio=" + (audio ? "true" : "false"), "event_kind=" + System.Uri.EscapeDataString(e.EventKind ?? "kill"), "player_name=" + System.Uri.EscapeDataString(e.PlayerName), "target_name=" + System.Uri.EscapeDataString(e.TargetName), "weapon_name=" + System.Uri.EscapeDataString(e.WeaponName), "money_reward=" + e.MoneyReward };
+            var query = new List<string> { "audio=true", "event_kind=" + System.Uri.EscapeDataString(e.EventKind ?? "kill"), "player_name=" + System.Uri.EscapeDataString(e.PlayerName), "target_name=" + System.Uri.EscapeDataString(e.TargetName), "weapon_name=" + System.Uri.EscapeDataString(e.WeaponName), "money_reward=" + e.MoneyReward };
             if (!string.IsNullOrEmpty(e.SteamId)) query.Add("steamid=" + System.Uri.EscapeDataString(e.SteamId));
             if (e.IsHeadshot) query.Add("headshot=true"); if (e.IsKnifeKill) query.Add("knife=true"); if (e.IsGrenadeKill) query.Add("grenade=true");
             if (e.IsFirstKill) query.Add("first=true"); if (e.IsLastKill) query.Add("last=true"); if (e.IsAssist) query.Add("assist=true");

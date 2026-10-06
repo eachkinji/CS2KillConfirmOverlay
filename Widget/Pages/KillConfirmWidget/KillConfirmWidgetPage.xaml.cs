@@ -392,8 +392,6 @@ namespace KillConfirmGameBar
             // crashes while trying to access that page's Dispatcher.
             GameStyleService.Changed -= OnGameStyleServiceChanged;
             GameStyleService.Changed += OnGameStyleServiceChanged;
-            Features.CompatibilityDisplay.SharedSettingsBridge.SettingsChanged -= OnDesktopSettingsChanged;
-            Features.CompatibilityDisplay.SharedSettingsBridge.SettingsChanged += OnDesktopSettingsChanged;
             PackCatalogService.CatalogChanged -= OnPackCatalogChanged;
             PackCatalogService.CatalogChanged += OnPackCatalogChanged;
             GsiGameVersionSettingsStore.VersionChanged += OnGsiGameVersionChanged;
@@ -464,7 +462,6 @@ namespace KillConfirmGameBar
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
             _isPageActive = false;
-            Features.CompatibilityDisplay.SharedSettingsBridge.SettingsChanged -= OnDesktopSettingsChanged;
             try
             {
                 var display = Windows.Graphics.Display.DisplayInformation.GetForCurrentView();

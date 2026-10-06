@@ -60,19 +60,6 @@ fn main() {
 }
 
 fn open_settings_window() -> Result<(), String> {
-    if let Ok(local) = env::var("LOCALAPPDATA") {
-        let marker = std::path::Path::new(&local).join("KillConfirmOverlay").join("DesktopData").join("desktop-location.txt");
-        if let Ok(path) = fs::read_to_string(marker) {
-            let path = path.trim();
-            if std::path::Path::new(path).is_file() {
-                // Let the ordinary Explorer shell create the desktop process;
-                // a direct child of the packaged helper inherits MSIX identity.
-                Command::new("explorer.exe").arg(path).creation_flags(CREATE_NO_WINDOW).spawn()
-                    .map_err(|error| format!("failed to open desktop control panel: {error}"))?;
-                return Ok(());
-            }
-        }
-    }
     let app_shell_target = format!("shell:AppsFolder\\{}!App", current_package_family_name());
     log(&format!("launch target: {app_shell_target}"));
 

@@ -2,7 +2,6 @@
     [switch]$SkipLoopback = $false,
     [switch]$SkipGsiConfig = $false,
     [switch]$OpenGameBar = $false,
-    [switch]$RetryGameBarOnly,
     [switch]$InstallPrerequisites = $false,
     [switch]$PrerequisitesConfirmed = $false,
     [string]$InstallerVariant = "Unknown",
@@ -91,8 +90,7 @@ $InstallModules = @(
     "Prerequisites.ps1",
     "GameBar.ps1",
     "Overlay.ps1",
-    "Cs2.ps1",
-    "Desktop.ps1"
+    "Cs2.ps1"
 )
 foreach ($moduleName in $InstallModules) {
     $modulePath = Join-Path $InstallModuleRoot $moduleName
@@ -131,32 +129,48 @@ try {
             -Detail "声明为 $DeclaredInstallerVariant，实际执行 $EffectiveInstallerVariant；请保留本日志并检查打包参数"
     }
 
-    Write-InstallStage -Number 1 -Total 7 -Name "桌面主程序" -Detail "控制面板和兼容显示，无需 MSIX"
-    if (-not $RetryGameBarOnly) {
-        try { Stop-OverlayRuntimeForUpdate }
-        catch { Add-InstallResult -Status Warning -Item '关闭旧程序' -Detail ((Get-ErrorReason $_) + '；继续安装桌面主程序') }
-    }
-    Install-DesktopControlPanel
-    Write-InstallStage -Number 2 -Total 7 -Name "显示方式检测" -Detail "兼容显示已就绪，检测可选 Game Bar"
-    $firewall = Get-Service -Name MpsSvc -ErrorAction SilentlyContinue
-    $canInstallWidget = $null -ne $firewall -and $firewall.Status -eq 'Running'
-    Write-InstallStage -Number 3 -Total 7 -Name "Game Bar 可选依赖" -Detail "失败不影响桌面模式"
-    if ($InstallPrerequisites -and $canInstallWidget) {
-        $optionalResultsStart = $InstallResults.Count
-        try { Install-RequiredComponents -Confirmed:$PrerequisitesConfirmed; Repair-XboxGameBarEnvironment }
-        catch { Add-InstallResult -Status Warning -Item 'Game Bar 可选依赖' -Detail ((Get-ErrorReason $_) + '；兼容显示不受影响') }
-        for ($optionalIndex = $optionalResultsStart; $optionalIndex -lt $InstallResults.Count; $optionalIndex++) {
-            if ($InstallResults[$optionalIndex].Status -eq 'Error') { $InstallResults[$optionalIndex].Status = 'Warning' }
+    Write-InstallStage -Number 1 -Total 7 -Name "前置依赖" -Detail $(if ($InstallPrerequisites) { "检测并按需安装 Microsoft 运行组件" } else { "无依赖更新版，跳过离线依赖安装" })
+    if ($InstallPrerequisites) {
+        try {
+            Install-RequiredComponents -Confirmed:$PrerequisitesConfirmed
+        }
+        catch {
+            Add-InstallResult -Status Error -Item "外部前置依赖检查" -Detail ((Get-ErrorReason $_) + "；已继续安装 Game Bar 检查、主程序和后续配置")
         }
     }
-    Write-InstallStage -Number 4 -Total 7 -Name "Game Bar 可选小组件" -Detail "尝试 MSIX，桌面主程序始终保留"
-    $widgetInstalled = Install-OptionalGameBarWidget
-    $compatibilityFallback = -not $widgetInstalled
-    $RuntimeLogRoot = Join-Path $env:LOCALAPPDATA 'KillConfirmOverlay\DesktopData'
-    if ($compatibilityFallback) { Enable-DesktopCompatibilityDefault }
+    else {
+        Write-InstallLog "Dependency-free installer selected. Prerequisite detection and installation are disabled."
+        Add-InstallResult -Status Success -Item "外部前置依赖" -Detail "无依赖更新版按设计不检查、不安装离线依赖"
+    }
+
+    Write-InstallStage -Number 2 -Total 7 -Name "显示方式检测" -Detail "Game Bar 或兼容显示"
+    $compatibilityFallback = -not (Test-XboxGameBarAvailable)
+    if ($compatibilityFallback) {
+        Add-InstallResult -Status Success -Item "显示方式" -Detail "Game Bar 不可用，使用独立兼容显示；无需安装 Game Bar"
+    }
+    else {
+        Add-InstallResult -Status Success -Item "显示方式" -Detail "Game Bar 可用，也可在高级设置开启兼容显示"
+    }
+    Write-InstallStage -Number 3 -Total 7 -Name "Game Bar 环境" -Detail "兼容显示无需此项"
+    if ($InstallPrerequisites -and -not $compatibilityFallback) {
+        try { Repair-XboxGameBarEnvironment }
+        catch { Add-InstallResult -Status Warning -Item "Game Bar 环境修复" -Detail ((Get-ErrorReason $_) + "；可使用兼容显示") }
+    }
+
+    Write-InstallStage -Number 4 -Total 7 -Name "主程序安装" -Detail "安装证书、MSIX 依赖和 Kill Confirm Overlay"
+    try {
+        Install-OverlayPackage
+        Test-OverlayPackageInstalled
+    }
+    catch {
+        $mainAlreadyReported = @($InstallResults | Where-Object { $_.Item -eq "Kill Confirm Overlay 主程序" -and $_.Status -eq "Error" }).Count -gt 0
+        if (-not $mainAlreadyReported) {
+            Add-InstallResult -Status Error -Item "Kill Confirm Overlay 主程序" -Detail ((Get-ErrorReason $_) + "；后续 CFG 和回环配置仍会继续执行")
+        }
+    }
 
     Write-InstallStage -Number 5 -Total 7 -Name "CS2 GSI 配置" -Detail $(if ($SkipGsiConfig) { "已通过参数跳过" } else { "查找 CS2 并写入当前 CFG" })
-    if (-not $SkipGsiConfig -and -not $RetryGameBarOnly) {
+    if (-not $SkipGsiConfig) {
         try {
             Install-Cs2GsiConfig
         }
@@ -169,7 +183,7 @@ try {
     }
 
     Write-InstallStage -Number 6 -Total 7 -Name "本机通信权限" -Detail $(if ($SkipLoopback) { "已通过参数跳过" } else { "配置 Widget 与本地服务通信" })
-    if (-not $SkipLoopback -and $widgetInstalled) {
+    if (-not $SkipLoopback) {
         try {
             if (-not $PackageFamilyName) {
                 Update-InstalledPackageContext | Out-Null
@@ -178,11 +192,16 @@ try {
             Add-InstallResult -Status Success -Item "本机回环通信权限" -Detail "已写入并从系统列表回读确认；Widget 可以访问 127.0.0.1 上的伴随服务"
         }
         catch {
-            Add-InstallResult -Status Warning -Item "Game Bar 回环通信权限" -Detail ((Get-ErrorReason $_) + "；兼容显示不需要此权限")
+            Add-InstallResult -Status Error -Item "本机回环通信权限" -Detail (Get-ErrorReason $_)
         }
     }
     else {
-        Add-InstallResult -Status Success -Item "桌面通信" -Detail "兼容显示直接连接本地服务，无需 UWP 回环豁免"
+        Add-InstallResult -Status Warning -Item "本机回环通信权限" -Detail "已通过命令行参数跳过"
+    }
+
+    if ($compatibilityFallback) {
+        . (Join-Path $ScriptRoot "Scripts/CompatibilityDisplay/Install-CompatibilityDisplay.ps1")
+        Initialize-CompatibilityDisplayFallback
     }
 
     if ($OpenGameBar -and -not $compatibilityFallback) {

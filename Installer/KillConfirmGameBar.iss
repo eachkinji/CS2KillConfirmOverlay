@@ -1,4 +1,4 @@
-﻿#define MyAppPublisher "KillConfirmGameBar"
+#define MyAppPublisher "KillConfirmGameBar"
 #define MyAppExeName "Install-KillConfirm.ps1"
 
 #ifndef MyAppVersion
@@ -35,9 +35,6 @@
 AppId={{E0DF6407-CB2E-43D0-8B51-8C8924F50AA1}
 AppName={cm:InstallerDisplayName}
 AppVersion={#MyAppVersion}
-VersionInfoVersion={#MyAppVersion}
-VersionInfoDescription=Kill Confirm Overlay installer
-VersionInfoProductName=Kill Confirm Overlay
 AppPublisher={#MyAppPublisher}
 DefaultDirName={autopf}\Kill Confirm Overlay
 DefaultGroupName=Kill Confirm Overlay
@@ -96,14 +93,14 @@ english.BeginnerGuideText=If you are new to this, start by watching the tutorial
 chinesesimplified.BeginnerGuideText=如果你是小白，请从此步骤开始观看教学视频：
 english.TutorialLinkText=Open the Bilibili installation tutorial
 chinesesimplified.TutorialLinkText=点击打开 Bilibili 安装教学视频
-english.CertificateWarningText=The desktop app runs without MSIX. Installing the optional Game Bar widget adds its personal signing certificate.
-chinesesimplified.CertificateWarningText=桌面主程序无需 MSIX。安装可选的 Game Bar 小组件时，会添加其个人签名证书。
+english.CertificateWarningText=Please note: the next steps will add a new personal signing certificate to your computer. Continue only after you understand and accept this change.
+chinesesimplified.CertificateWarningText=请记住：接下来的步骤将会给你的电脑添加新证书，该证书是个人签名证书，请确认后再继续。
 english.PrerequisiteWarningText=Please note: the installer will check required system dependencies. Follow the instructions shown on screen to complete any required actions.
 chinesesimplified.PrerequisiteWarningText=请记住：接下来的步骤将会检查你的系统依赖，请按照界面提示执行相关操作。
-english.UpdateOnlyWarningText=The desktop app includes its runtime. This package skips optional Game Bar prerequisite repair. Compatibility display works independently.
-chinesesimplified.UpdateOnlyWarningText=桌面版已包含运行库。此安装包跳过 Game Bar 离线依赖修复，兼容显示仍可独立使用。
-english.GameBarUsageText=Open the desktop control panel from Start and select a display mode on Home. Game Bar is optional; a widget installation failure leaves compatibility display usable.
-chinesesimplified.GameBarUsageText=从开始菜单打开桌面控制面板，在主页选择显示方式。Game Bar 小组件安装失败时，仍可使用兼容显示。
+english.UpdateOnlyWarningText=This is the dependency-free update package. It will not repair Xbox Game Bar or install offline prerequisites. Use it only on a computer where the app already works correctly.
+chinesesimplified.UpdateOnlyWarningText=这是无依赖更新包，不会修复 Xbox Game Bar，也不会安装离线前置依赖。请仅在软件原本可以正常运行的电脑上使用。
+english.GameBarUsageText=Use Xbox Game Bar, or open the app from Start and enable Compatibility display in Advanced Settings. Game Bar is optional.
+chinesesimplified.GameBarUsageText=可按 Win+G 使用 Game Bar，或从开始菜单打开本程序，在高级设置启用兼容显示。Game Bar 为可选组件。
 english.AcknowledgeButtonText=I understand
 chinesesimplified.AcknowledgeButtonText=我清楚了
 english.AcknowledgedButtonText=Understood
@@ -125,17 +122,9 @@ Type: dirifempty; Name: "{group}"
 Type: files; Name: "{autodesktop}\{cm:ControlPanelShortcutName}.lnk"
 
 [Files]
-Source: "{#TransferRoot}\*"; DestDir: "{app}\Payload"; Excludes: "Desktop\*"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "{#TransferRoot}\Desktop\*"; DestDir: "{app}\Desktop"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#TransferRoot}\*"; DestDir: "{app}\Payload"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "Assets\KillConfirmOverlay.ico"; DestDir: "{app}"; Flags: ignoreversion
 Source: "Assets\GameBarPinGuide.png"; Flags: dontcopy
-
-[Icons]
-Name: "{group}\{cm:ControlPanelShortcutName}"; Filename: "{app}\Desktop\KillConfirmCompatibility.exe"; Parameters: "--control-panel"; IconFilename: "{app}\KillConfirmOverlay.ico"
-Name: "{autodesktop}\{cm:ControlPanelShortcutName}"; Filename: "{app}\Desktop\KillConfirmCompatibility.exe"; Parameters: "--control-panel"; IconFilename: "{app}\KillConfirmOverlay.ico"
-
-[Run]
-Filename: "{app}\Desktop\KillConfirmCompatibility.exe"; Parameters: "--control-panel"; Description: "打开 Kill Confirm Overlay"; Flags: nowait postinstall skipifsilent runasoriginaluser
 
 [UninstallRun]
 Filename: "{sys}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -Command ""Get-Process -Name cskillconfirm,KillConfirmCompatibility,TestXboxGameBar,KillConfirmOverlay,KillConfirmGameBar,GameBar,GameBarFTServer,GameBarPresenceWriter -ErrorAction SilentlyContinue | Stop-Process -Force; Start-Sleep -Milliseconds 800; $p = Get-AppxPackage -Name KillConfirmGameBar.Overlay -ErrorAction SilentlyContinue | Sort-Object Version -Descending | Select-Object -First 1; if ($p) {{ CheckNetIsolation.exe LoopbackExempt -d \""-n=$($p.PackageFamilyName)\"" 2>$null; $p | Remove-AppxPackage -ErrorAction SilentlyContinue }"""; Flags: runhidden waituntilterminated; RunOnceId: "RemoveAppxPackage"

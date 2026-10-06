@@ -1,11 +1,5 @@
 # 兼容显示
 
-从 4.5.1.50 起，EXE 安装包先安装普通桌面应用，再尝试可选 Game Bar MSIX。桌面控制面板、透明窗口、事件服务、运行库和素材随安装包提供；缺少防火墙服务、商店、Game Bar 或无法部署 MSIX 时，兼容显示仍可运行。Game Bar 继续使用其原生小组件，系统支持时可在同一控制面板切换。
-
-`DesktopUI/` 是免包身份的 WPF 控制面板。`Runtime/DesktopStorage.cs` 将主配置、导入素材和认证文件放在 `%LOCALAPPDATA%\KillConfirmOverlay\DesktopData`；卸载可选小组件不会删除此目录。首次启动尝试迁移旧 LocalState 与 WinRT 设置；失败不会阻止桌面启动。`ProfileMirror` 将所需数据同步到小组件沙箱，按设置键合并修改并映射资源路径。`SharedSettingsBridge` 在小组件内同步普通 JSON 与 WinRT 设置。屏幕选择、跟随、切出隐藏和帧率共用；元素布局按游戏保存。
-
-完整打包另外保留同内容的 `Output/<输出目录>/Desktop`，可直接运行其中 EXE。Game Bar 补装入口需要安装包的 `Payload` 目录；仅复制 Desktop 目录时，应重新运行 EXE 安装器补装。
-
 这是独立的桌面透明窗口宿主，适用于窗口和无边框全屏。在控制面板默认打开的「主页」选择「兼容显示模式」开启，无需安装或运行 Xbox Game Bar。主页同时提供 Game Bar 模式的使用指引；通用配置集中在左侧第二项「高级设置」，与各游戏卡片平级。独占全屏不在支持范围内。
 
 ## 文件隔离
@@ -14,8 +8,8 @@
 - Win2D 激活工厂绑定宿主自己的 DLL，避免安装包根目录注册的旧 UWP Win2D 被新宿主加载。原 Game Bar 进程的组件注册保持不变。
 - `Renderer/` 是独立的渲染基线，包含现有 15 种风格及弹幕。后续兼容显示的渲染改动只在这里维护，不回写 Game Bar 渲染器。
 - `Contracts/` 定义新配置；`Integration/` 是独立模块，仅编译到设置应用，不编译到桌面宿主。`Integration/Home` 和 `Integration/Controls` 保存独立的主页逻辑与各游戏设置界面，不加载旧渲染控件。
-- 位置、缩放、显示器及显示开关存放于桌面 `DesktopData/CompatibilityDisplay/display.json`，并镜像到小组件 LocalState。桌面运行状态写入主数据目录的 `status.json`；并发更新使用锁和原子替换。
-- 两种显示方式共用游戏事件、音频服务和资源选择。桌面控制面板可导入素材；兼容渲染器保留独立基线。
+- 位置、缩放、显示器及显示开关独立存放于包的 `LocalState/CompatibilityDisplay/display.json`。运行状态写入同目录的 `status.json`；并发更新使用锁和原子替换。
+- 两种显示方式共用已有游戏事件、音频服务和用户选择的资源包。资源目录只读，兼容宿主不执行旧资源库的迁移或目录保存。
 - 旧文件只接入设置入口、启动参数、模式互斥和打包；没有加入兼容渲染分支。安装集成单独放在 `Installer/Scripts/CompatibilityDisplay/`，服务启动桥接单独放在 `infrastructure/compatibility.rs`。
 
 ## 布局与运行
@@ -33,8 +27,6 @@
 Win2D 绘制透明图像，再提交到 WPF 透明窗口。仅更新发生变化的元素，渲染尺寸有上限；这一实现包含像素回读，仍需在游戏实机上确认不同显卡、DPI、多屏及反作弊环境的表现。没有注入或修改游戏进程。
 
 ## 构建与验证
-
-`KillConfirmCompatibility.exe --validate-desktop <输出目录> <素材根目录>` 验证普通进程没有包身份、设置并发写入与双向同步、缺少 Game Bar 的真实服务连接、导入语音包、预览和弹幕像素，以及 15 种游戏配置页面。测试数据只写到指定输出目录。`Validation/Test-DesktopInstaller.ps1` 在隔离目录模拟 Game Bar 缺失、防火墙服务缺失、MSIX 部署失败及正常安装，不修改系统服务。
 
 `Build-CompatibilityHost.ps1` 自包含发布，不要求用户额外安装 .NET。快速及完整安装包均通过打包项目独立携带此宿主。
 

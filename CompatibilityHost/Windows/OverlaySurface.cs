@@ -34,6 +34,7 @@ namespace KillConfirmCompatibility.Desktop.Windowing
         public Action LayoutChanged;
         public Action FinishEditing;
         public Size? FixedSize { get; set; }
+        public bool PreserveRenderAspectRatio { get; set; }
         public Func<bool> DirtyOverride { get; set; }
         public Action<CanvasDrawingSession, double, double> DrawOverride { get; set; }
         public string ElementKey { get; }
@@ -109,8 +110,9 @@ namespace KillConfirmCompatibility.Desktop.Windowing
             if (!_editing) Opacity = Math.Clamp(_animation.Opacity, 0, 1);
             RefreshVisibility();
             if (!IsVisible) return;
-            int width = Math.Clamp((int)Math.Ceiling(ActualWidth * VisualTreeHelper.GetDpi(this).DpiScaleX), 1, 1536);
-            int height = Math.Clamp((int)Math.Ceiling(ActualHeight * VisualTreeHelper.GetDpi(this).DpiScaleY), 1, 1024);
+            var dpi = VisualTreeHelper.GetDpi(this);
+            var size = CalculateRenderSize(ActualWidth * dpi.DpiScaleX, ActualHeight * dpi.DpiScaleY, PreserveRenderAspectRatio);
+            int width = (int)size.Width, height = (int)size.Height;
             if (!(DirtyOverride?.Invoke() ?? _animation.IsFrameDirty) && _bitmap != null && _bitmap.PixelWidth == width && _bitmap.PixelHeight == height) return;
             if (_target == null || (int)_target.SizeInPixels.Width != width || (int)_target.SizeInPixels.Height != height)
             {
@@ -127,6 +129,12 @@ namespace KillConfirmCompatibility.Desktop.Windowing
             for (int index = 3; index < pixels.Length; index += 4)
                 if (pixels[index] != 0) { _hasRenderedPixels = true; break; }
             _bitmap.WritePixels(new Int32Rect(0, 0, width, height), pixels, width * 4, 0);
+        }
+        internal static Size CalculateRenderSize(double width, double height, bool preserveAspectRatio)
+        {
+            width = Math.Max(1, width); height = Math.Max(1, height);
+            double scale = preserveAspectRatio ? Math.Min(1, Math.Min(1536 / width, 1024 / height)) : 1;
+            return new Size(Math.Clamp((int)Math.Round(width * scale), 1, 1536), Math.Clamp((int)Math.Round(height * scale), 1, 1024));
         }
         private void BeginDrag(object sender, MouseButtonEventArgs e)
         {

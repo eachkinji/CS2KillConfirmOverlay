@@ -7,7 +7,7 @@ namespace KillConfirmCompatibility.Contracts
     [DataContract]
     public sealed class DisplayConfiguration
     {
-        [DataMember] public int Version { get; set; } = 1;
+        [DataMember] public int Version { get; set; } = 2;
         // First use starts in Game Bar; an explicitly saved mode remains selected.
         [DataMember] public bool Enabled { get; set; } = false;
         [DataMember] public bool FollowGame { get; set; } = true;
@@ -47,6 +47,16 @@ namespace KillConfirmCompatibility.Contracts
             FramesPerSecond = FramesPerSecond <= 30 ? 30 : 60;
             ScreenName = ScreenName ?? "";
             if (Layouts == null) Layouts = new Dictionary<string, LayoutProfile>();
+            if (Version < 2)
+            {
+                foreach (var profile in Layouts.Values)
+                {
+                    var danmaku = profile?.Danmaku;
+                    if (danmaku != null && danmaku.X == 0.5 && danmaku.Y == 0.2 && danmaku.Scale == 1)
+                        danmaku.Y = 0.5;
+                }
+                Version = 2;
+            }
             foreach (LayoutProfile profile in Layouts.Values) profile?.Normalize();
         }
     }
@@ -56,14 +66,14 @@ namespace KillConfirmCompatibility.Contracts
         [DataMember] public ElementLayout Crosshair { get; set; } = new ElementLayout { X = 0.5, Y = 0.5 };
         [DataMember] public ElementLayout Lower { get; set; } = new ElementLayout { X = 0.5, Y = 0.8 };
         [DataMember] public ElementLayout Upper { get; set; } = new ElementLayout { X = 0.5, Y = 0.2 };
-        [DataMember] public ElementLayout Danmaku { get; set; } = new ElementLayout { X = 0.5, Y = 0.2 };
+        [DataMember] public ElementLayout Danmaku { get; set; } = new ElementLayout { X = 0.5, Y = 0.5 };
         public ElementLayout GetElement(string key) => key == "Crosshair" ? Crosshair : key == "Upper" ? Upper : key == "Danmaku" ? Danmaku : Lower;
         public void Normalize()
         {
             if (Crosshair == null) Crosshair = new ElementLayout { X = 0.5, Y = 0.5 };
             if (Lower == null) Lower = new ElementLayout { X = 0.5, Y = 0.8 };
             if (Upper == null) Upper = new ElementLayout { X = 0.5, Y = 0.2 };
-            if (Danmaku == null) Danmaku = new ElementLayout { X = 0.5, Y = 0.2 };
+            if (Danmaku == null) Danmaku = new ElementLayout { X = 0.5, Y = 0.5 };
             Crosshair.Normalize(); Lower.Normalize(); Upper.Normalize(); Danmaku.Normalize();
         }
     }

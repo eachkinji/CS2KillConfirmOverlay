@@ -5,6 +5,7 @@ using KillConfirmCompatibility.Danmaku;
 using KillConfirmCompatibility.Danmaku.Engine;
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace KillConfirmCompatibility.Validation
@@ -20,7 +21,7 @@ namespace KillConfirmCompatibility.Validation
             string folder = Path.Combine(DesktopStorage.Current.LocalFolder.Path, DisplayFiles.FolderName);
             string config = Path.Combine(folder, DisplayFiles.ConfigurationName);
             string statusPath = Path.Combine(folder, DisplayFiles.StatusName);
-            DisplayFiles.Write(config, new DisplayConfiguration { Enabled = true, HideWhenInactive = true });
+            DisplayFiles.Write(config, new DisplayConfiguration { Enabled = true, HideWhenInactive = true, FollowGame = false });
             var host = new HostController(shutdownApplicationOnClose: false);
             try
             {
@@ -88,6 +89,10 @@ namespace KillConfirmCompatibility.Validation
                     }
                     if (status?.LastDanmakuTestRequest != danmakuRequest || !string.IsNullOrWhiteSpace(status.DanmakuTestError) || !host.HasRenderedDanmakuPixels)
                         throw new Exception("Independent desktop danmaku test failed: " + eventKey + ", error=" + status?.DanmakuTestError);
+                    var screen = KillConfirmCompatibility.Desktop.Windowing.NativeWindows.Screens().First(s => s.Device == status.Screen).Monitor;
+                    var viewport = host.DanmakuBounds;
+                    if (Math.Abs(viewport.Left - screen.Left) > 1 || Math.Abs(viewport.Top - screen.Top) > 1 || Math.Abs(viewport.Width - screen.Width) > 1 || Math.Abs(viewport.Height - screen.Height) > 1)
+                        throw new Exception("Default danmaku viewport does not cover the target monitor.");
                 }
                 danmakuRequest++;
                 DisplayFiles.Update(config, current => { current.GetLayout("crossfire").Danmaku.Visible = false; current.DanmakuTestRequest = danmakuRequest; });

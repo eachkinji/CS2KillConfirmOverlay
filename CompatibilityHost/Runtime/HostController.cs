@@ -47,6 +47,10 @@ namespace KillConfirmCompatibility.Desktop.Runtime
         private int _lastPort;
         internal bool HasRenderedPreviewPixels => _surfaces.Any(surface => surface.ElementKey != "Danmaku" && surface.HasRenderedPixels);
         internal bool HasRenderedDanmakuPixels => _surfaces.Any(surface => surface.ElementKey == "Danmaku" && surface.HasRenderedPixels);
+        internal NativeWindows.Rect DanmakuBounds
+        {
+            get { NativeWindows.GetWindowRect(new WindowInteropHelper(_surfaces.First(surface => surface.ElementKey == "Danmaku")).Handle, out var bounds); return bounds; }
+        }
         internal string PreviewDiagnostics => string.Join("; ", _surfaces.Select(surface => surface.ElementKey + ": visible=" + surface.IsVisible + ", pixels=" + surface.HasRenderedPixels + ", size=" + surface.ActualWidth + "x" + surface.ActualHeight));
         public HostController(bool shutdownApplicationOnClose = true)
         {
@@ -55,6 +59,11 @@ namespace KillConfirmCompatibility.Desktop.Runtime
             _configurationPath = Path.Combine(folder, DisplayFiles.ConfigurationName);
             _statusPath = Path.Combine(folder, DisplayFiles.StatusName);
             _configuration = DisplayFiles.Read<DisplayConfiguration>(_configurationPath) ?? new DisplayConfiguration();
+            if (_configuration.Version < 2)
+            {
+                DisplayFiles.Update(_configurationPath, c => { });
+                _configuration = DisplayFiles.Read<DisplayConfiguration>(_configurationPath) ?? _configuration;
+            }
             _configuration.Normalize();
             _restartRequest = _configuration.RestartRequest;
             _lastDanmakuEnabled = DanmakuSettingsStore.IsEnabled;
@@ -69,19 +78,22 @@ namespace KillConfirmCompatibility.Desktop.Runtime
                 values.LowerEnabled = profile.Lower.Visible;
                 values.UpperEnabled = profile.Upper.Visible;
             };
-            AddSurface("Crosshair", "准星反馈", _presenter.CrosshairFeedbackAnimation);
-            AddSurface("Lower", "下方反馈", _presenter.LowerFeedbackAnimation);
-            AddSurface("Badge", "徽章", _presenter.LowerBadgeAnimation);
-            AddSurface("Upper", "上方反馈", _presenter.UpperFeedbackAnimation);
             var danmakuSurface = AddSurface("Danmaku", "弹幕区域", _danmakuState);
+            danmakuSurface.PreserveRenderAspectRatio = true;
             danmakuSurface.DirtyOverride = () => _danmaku.IsFrameDirty;
             danmakuSurface.DrawOverride = (session, w, h) =>
             {
-                session.Transform = Matrix3x2.CreateScale((float)(w / Math.Max(1, _danmaku.Width)), (float)(h / Math.Max(1, _danmaku.Height)));
+                float scale = (float)Math.Min(w / Math.Max(1, _danmaku.Width), h / Math.Max(1, _danmaku.Height));
+                session.Transform = Matrix3x2.CreateScale(scale);
                 _danmaku.DrawDesktopFrame(session);
             };
             _presenter.DanmakuEvent = _danmaku.TriggerGameEvent;
             _danmaku.RaiseLoaded();
+            // Keep the full-screen editor behind the smaller feedback elements.
+            AddSurface("Crosshair", "准星反馈", _presenter.CrosshairFeedbackAnimation);
+            AddSurface("Lower", "下方反馈", _presenter.LowerFeedbackAnimation);
+            AddSurface("Badge", "徽章", _presenter.LowerBadgeAnimation);
+            AddSurface("Upper", "上方反馈", _presenter.UpperFeedbackAnimation);
             _toolbar = BuildToolbar();
             _hotkeys = new HwndSource(new HwndSourceParameters("KillConfirmCompatibilityHotkeys") { ParentWindow = new IntPtr(-3), Width = 0, Height = 0 });
             _hotkeys.AddHook(HotkeyMessage);
@@ -181,7 +193,7 @@ namespace KillConfirmCompatibility.Desktop.Runtime
                     if (key == "Danmaku")
                     {
                         double dpi = Math.Max(96, NativeWindows.GetDpiForWindow(new WindowInteropHelper(surface).Handle)) / 96.0;
-                        surface.FixedSize = new Size(bounds.Width * 0.9 / dpi, bounds.Height * 0.3 / dpi);
+                        surface.FixedSize = new Size(bounds.Width / dpi, bounds.Height / dpi);
                         _danmaku.Width = surface.FixedSize.Value.Width; _danmaku.Height = surface.FixedSize.Value.Height;
                         _danmakuState.Visibility = global::Windows.UI.Xaml.Visibility.Visible;
                     }

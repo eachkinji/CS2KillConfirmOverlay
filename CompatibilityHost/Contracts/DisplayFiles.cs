@@ -64,6 +64,7 @@ namespace KillConfirmCompatibility.Contracts
             using (var gate = AcquireFileLock(path + ".lock"))
             {
                 DisplayConfiguration current = Read<DisplayConfiguration>(path) ?? new DisplayConfiguration();
+                current.Normalize();
                 change(current); current.Normalize(); Write(path, current);
             }
         }

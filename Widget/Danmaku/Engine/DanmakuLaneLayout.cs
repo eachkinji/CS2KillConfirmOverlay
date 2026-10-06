@@ -46,36 +46,22 @@ namespace KillConfirmGameBar.Danmaku.Engine
                     break;
             }
 
-            double totalLength = 0;
-            for (int i = 0; i < bands.Count; i++)
+            // Reserve real line height before choosing tracks. Dense events in
+            // a short area must queue horizontally instead of overlapping rows.
+            double lineHeight = Math.Max(20, fontSize * 1.35 + 4);
+            var candidates = new List<float>();
+            foreach (var band in bands)
             {
-                totalLength += bands[i].Length;
+                int count = Math.Max(1, (int)Math.Floor(band.Length / lineHeight) + 1);
+                double start = band.Start + (band.Length - (count - 1) * lineHeight) / 2;
+                for (int i = 0; i < count; i++) candidates.Add((float)(start + i * lineHeight));
             }
-
-            if (totalLength <= 0)
-            {
-                var fallback = new List<float>(laneCount);
-                for (int i = 0; i < laneCount; i++)
-                {
-                    fallback.Add(12 + (i * (float)Math.Max(20, fontSize + 4)));
-                }
-                return fallback;
-            }
-
+            laneCount = Math.Min(laneCount, candidates.Count);
             var lanes = new List<float>(laneCount);
-            for (int lane = 0; lane < laneCount; lane++)
+            for (int i = 0; i < laneCount; i++)
             {
-                double cursor = totalLength * ((lane + 0.5) / laneCount);
-                for (int bandIndex = 0; bandIndex < bands.Count; bandIndex++)
-                {
-                    LaneBand band = bands[bandIndex];
-                    if (cursor <= band.Length || bandIndex == bands.Count - 1)
-                    {
-                        lanes.Add((float)Math.Min(band.End, band.Start + cursor));
-                        break;
-                    }
-                    cursor -= band.Length;
-                }
+                int index = Math.Min(candidates.Count - 1, (int)((i + 0.5) * candidates.Count / laneCount));
+                lanes.Add(candidates[index]);
             }
             return lanes;
         }

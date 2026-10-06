@@ -26,6 +26,7 @@ namespace KillConfirmCompatibility.Desktop.Windowing
         [DllImport("user32.dll")] private static extern bool IsWindowVisible(IntPtr window);
         [DllImport("user32.dll")] private static extern bool IsIconic(IntPtr window);
         [DllImport("user32.dll")] private static extern bool GetClientRect(IntPtr window, out Rect rect);
+        [DllImport("user32.dll")] internal static extern bool GetWindowRect(IntPtr window, out Rect rect);
         [DllImport("user32.dll")] private static extern bool ClientToScreen(IntPtr window, ref Point point);
         [DllImport("user32.dll", EntryPoint = "GetWindowLongPtrW")] private static extern IntPtr GetWindowLongPtr64(IntPtr window, int index);
         [DllImport("user32.dll", EntryPoint = "SetWindowLongPtrW")] private static extern IntPtr SetWindowLongPtr64(IntPtr window, int index, IntPtr value);

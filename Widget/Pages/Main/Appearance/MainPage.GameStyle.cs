@@ -35,12 +35,12 @@ namespace KillConfirmGameBar
 
         private bool _suppressGameStyleEvents;
         private bool _suppressCrossfireSettingEvents;
-        private bool _isHomePageSelected = true;
+        private bool _isSettingsWorkspaceSelected = true;
         private int _gameStyleNavigationRevision;
 
         private void ApplyGameStyleUi()
         {
-            if (_isCompatibilityPageSelected) { ApplyCompatibilityWorkspace(); return; }
+            if (_isHomePageSelected) { ApplyCompatibilityWorkspace(); return; }
             GameStyleMode mode = GameStyleService.Current;
             SyncGameStyleSelector();
             bool valorant = mode == GameStyleMode.Valorant;
@@ -55,7 +55,7 @@ namespace KillConfirmGameBar
             bool overwatch = mode == GameStyleMode.Overwatch;
             bool modernWarfare2019 = mode == GameStyleMode.ModernWarfare2019;
             bool apex = mode == GameStyleMode.Apex;
-            GameThemePalette theme = _isHomePageSelected ? GameThemePalette.Home : GameThemePalette.ForMode(mode);
+            GameThemePalette theme = _isSettingsWorkspaceSelected ? GameThemePalette.Home : GameThemePalette.ForMode(mode);
 
             Visibility iconCreationVisibility = overwatch || modernWarfare2019 || apex ? Visibility.Collapsed : Visibility.Visible;
             if (ImportIconZipButton != null) ImportIconZipButton.Visibility = iconCreationVisibility;
@@ -65,7 +65,7 @@ namespace KillConfirmGameBar
             VoiceCollectionsCard.Visibility = Visibility.Visible;
 
             UpdateSettingsPageVisibility();
-            if (_isHomePageSelected)
+            if (_isSettingsWorkspaceSelected)
             {
                 if (GameAdvancedSettingsPanelHost != null)
                 {
@@ -77,17 +77,17 @@ namespace KillConfirmGameBar
                 MountGameAdvancedSettingsPanel();
             }
 
-            if (HomeWorkspaceTabBar != null)
+            if (AdvancedSettingsTabBar != null)
             {
-                HomeWorkspaceTabBar.Visibility = _isHomePageSelected ? Visibility.Visible : Visibility.Collapsed;
+                AdvancedSettingsTabBar.Visibility = _isSettingsWorkspaceSelected ? Visibility.Visible : Visibility.Collapsed;
             }
 
             if (GameWorkspaceTabBar != null)
             {
-                GameWorkspaceTabBar.Visibility = !_isHomePageSelected ? Visibility.Visible : Visibility.Collapsed;
+                GameWorkspaceTabBar.Visibility = !_isSettingsWorkspaceSelected ? Visibility.Visible : Visibility.Collapsed;
             }
 
-            if (_isHomePageSelected)
+            if (_isSettingsWorkspaceSelected)
             {
                 ApplyHomeActiveTab();
                 SettingsRootGrid.Background = CreateSettingsBackground(mode, true);
@@ -256,7 +256,7 @@ namespace KillConfirmGameBar
 
                 if (GameStyleSidebarSelector != null)
                 {
-                    string sidebarKey = _isCompatibilityPageSelected ? "compatibility" : _isHomePageSelected ? "home" : key;
+                    string sidebarKey = _isHomePageSelected ? "home" : _isSettingsWorkspaceSelected ? "advanced" : key;
                     foreach (object item in GameStyleSidebarSelector.MenuItems)
                     {
                         if (item is NavigationViewItem sidebarItem && sidebarItem.Tag is string tag && string.Equals(tag, sidebarKey, System.StringComparison.OrdinalIgnoreCase))
@@ -297,35 +297,36 @@ namespace KillConfirmGameBar
 
             if (e.SelectedItem is NavigationViewItem selected && selected.Tag is string key)
             {
-                if (string.Equals(key, "compatibility", StringComparison.OrdinalIgnoreCase)) { SelectCompatibilityWorkspace(); return; }
-                _isCompatibilityPageSelected = false;
+                if (string.Equals(key, "home", StringComparison.OrdinalIgnoreCase)) { SelectCompatibilityWorkspace(); return; }
+                _isHomePageSelected = false;
                 CompatibilityPageContent.Content = null;
-                if (string.Equals(key, "home", StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(key, "advanced", StringComparison.OrdinalIgnoreCase))
                 {
-                    _isHomePageSelected = true;
+                    _isSettingsWorkspaceSelected = true;
                     BeginGameStyleTransition();
                     ApplyGameStyleUi();
+                    ApplyLanguage();
                     return;
                 }
 
-                _isHomePageSelected = false;
+                _isSettingsWorkspaceSelected = false;
                 SelectGameStyle(key);
             }
         }
 
         private void UpdateSettingsPageVisibility()
         {
-            CompatibilityPageContent.Visibility = _isCompatibilityPageSelected ? Visibility.Visible : Visibility.Collapsed;
-            if (HomePageContent != null)
+            CompatibilityPageContent.Visibility = _isHomePageSelected ? Visibility.Visible : Visibility.Collapsed;
+            if (AdvancedSettingsContent != null)
             {
-                HomePageContent.Visibility = _isHomePageSelected && !_isCompatibilityPageSelected
+                AdvancedSettingsContent.Visibility = _isSettingsWorkspaceSelected && !_isHomePageSelected
                     ? Visibility.Visible
                     : Visibility.Collapsed;
             }
 
             if (GamePageContent != null)
             {
-                GamePageContent.Visibility = _isHomePageSelected || _isCompatibilityPageSelected
+                GamePageContent.Visibility = _isSettingsWorkspaceSelected || _isHomePageSelected
                     ? Visibility.Collapsed
                     : Visibility.Visible;
             }

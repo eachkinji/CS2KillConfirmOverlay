@@ -60,12 +60,12 @@
                         </Style>
                     </NavigationView.Resources>
                     <NavigationView.MenuItems>
-                        <NavigationViewItem x:Name="HomeSidebarItem" AutomationProperties.Name="主页" Tag="home" ToolTipService.ToolTip="系统设置">
+                        <NavigationViewItem x:Name="HomeSidebarItem" AutomationProperties.Name="主页" Tag="home" ToolTipService.ToolTip="主页">
                             <NavigationViewItem.Icon>
                                 <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE80F;" />
                             </NavigationViewItem.Icon>
                         </NavigationViewItem>
-                        <NavigationViewItem x:Name="CompatibilitySidebarItem" Tag="compatibility" AutomationProperties.Name="兼容显示" ToolTipService.ToolTip="兼容显示"><NavigationViewItem.Icon><FontIcon Glyph="&#xE7F4;" /></NavigationViewItem.Icon></NavigationViewItem>
+                        <NavigationViewItem x:Name="AdvancedSettingsSidebarItem" Tag="advanced" AutomationProperties.Name="高级设置" ToolTipService.ToolTip="高级设置"><NavigationViewItem.Icon><FontIcon Glyph="&#xE713;" /></NavigationViewItem.Icon></NavigationViewItem>
                         <NavigationViewItem AutomationProperties.Name="CrossFire" Tag="crossfire" ToolTipService.ToolTip="CrossFire">
                             <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/crossfire.png" /></NavigationViewItem.Icon>
                         </NavigationViewItem>
@@ -151,7 +151,7 @@
                                 FontSize="20"
                                 FontWeight="SemiBold"
                                 Foreground="#0067C0"
-                                Text="Kill Confirm Overlay 控制面板" />
+                                Text="主页" />
                         </Border>
 
                         <!-- Hidden compatibility anchor -->
@@ -177,9 +177,9 @@
                         </StackPanel>
                     </Grid>
 
-                    <!-- Home Dedicated Navigation Tab Bar (Distinct Fluent 2 Tabs) -->
+                    <!-- Advanced settings navigation, independent of home and game configuration. -->
                     <Border
-                        x:Name="HomeWorkspaceTabBar"
+                        x:Name="AdvancedSettingsTabBar"
                         Grid.Row="1"
                         MaxWidth="1480"
                         Padding="3"
@@ -248,9 +248,9 @@
                     </Border>
 
                     <ContentControl x:Name="CompatibilityPageContent" Grid.Row="2" Visibility="Collapsed" HorizontalContentAlignment="Stretch" />
-                    <!-- Home View -->
+                    <!-- Advanced settings workspace -->
                     <Grid
-                        x:Name="HomePageContent"
+                        x:Name="AdvancedSettingsContent"
                         Grid.Row="2"
                         MaxWidth="1480"
                         HorizontalAlignment="Stretch">

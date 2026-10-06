@@ -1,9 +1,8 @@
-﻿<UserControl
+<UserControl
     x:Class="KillConfirmGameBar.Features.CompatibilityDisplay.PackTestView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:gameStyles="using:KillConfirmGameBar.Features.CompatibilityDisplay.Controls.GameStyles"
-    xmlns:settings="using:KillConfirmGameBar.Features.CompatibilityDisplay.Controls.Settings"
     xmlns:primitives="using:Windows.UI.Xaml.Controls.Primitives"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -162,122 +161,7 @@
                                             </StackPanel>
                                         </Border>
 
-                                        <Border
-                                            x:Name="AdvancedEffectsExperienceCard" x:FieldModifier="public"
-                                            Padding="12"
-                                            BorderThickness="1"
-                                            CornerRadius="18">
-                                            <StackPanel Spacing="10">
-                                                <TextBlock
-                                                    x:Name="AdvancedEffectsExperienceTitleText" x:FieldModifier="public"
-                                                    FontSize="16"
-                                                    FontWeight="Bold"
-                                                    Text="游戏体验增强" />
-                                                <settings:GeneralSettingsOptionsPanel x:Name="AdvancedEffectsExperiencePanel" x:FieldModifier="public" />
-                                            </StackPanel>
-                                        </Border>
 
-                                        <Border
-                                            x:Name="AdvancedEffectsRuntimeCard" x:FieldModifier="public"
-                                            Padding="12"
-                                            BorderThickness="1"
-                                            CornerRadius="18">
-                                            <StackPanel Spacing="10">
-                                                <TextBlock
-                                                    x:Name="AdvancedEffectsRuntimeTitleText" x:FieldModifier="public"
-                                                    FontSize="16"
-                                                    FontWeight="Bold"
-                                                    Text="软件与维护" />
-                                                <settings:RuntimeMaintenancePanel x:Name="AdvancedEffectsRuntimePanel" x:FieldModifier="public" />
-                                            </StackPanel>
-                                        </Border>
-
-                                        <Border
-                                            x:Name="AdvancedEffectsCreditsCard" x:FieldModifier="public"
-                                            Padding="12"
-                                            BorderThickness="1"
-                                            CornerRadius="18">
-                                            <StackPanel Spacing="10">
-                                                <TextBlock
-                                                    x:Name="AdvancedEffectsCreditsTitleText" x:FieldModifier="public"
-                                                    FontSize="16"
-                                                    FontWeight="Bold"
-                                                    Text="作者与致谢" />
-                                                <Border
-                                                    x:Name="AdvancedEffectsAuthorCard" x:FieldModifier="public"
-                                                    Padding="10"
-                                                    BorderThickness="1"
-                                                    CornerRadius="12">
-                                                    <Grid ColumnSpacing="10">
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="46" />
-                                                            <ColumnDefinition Width="*" />
-                                                        </Grid.ColumnDefinitions>
-                                                        <Border
-                                                            x:Name="AdvancedEffectsAuthorAvatarFrame" x:FieldModifier="public"
-                                                            Width="46"
-                                                            Height="46"
-                                                            BorderThickness="1"
-                                                            CornerRadius="23">
-                                                            <Image
-                                                                Source="ms-appx:///Assets/DeveloperAvatar.jpg"
-                                                                Stretch="UniformToFill" />
-                                                        </Border>
-                                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                                            <TextBlock
-                                                                x:Name="AdvancedEffectsAuthorNameText" x:FieldModifier="public"
-                                                                FontSize="13"
-                                                                FontWeight="SemiBold"
-                                                                Text="Zac · eachkinji" />
-                                                            <TextBlock
-                                                                x:Name="AdvancedEffectsAuthorDescriptionText" x:FieldModifier="public"
-                                                                FontSize="10"
-                                                                Text="Kill Confirm Overlay 作者与维护者" />
-                                                        </StackPanel>
-                                                    </Grid>
-                                                </Border>
-                                                <Grid ColumnSpacing="6" RowSpacing="6">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*" />
-                                                        <ColumnDefinition Width="*" />
-                                                    </Grid.ColumnDefinitions>
-                                                    <Grid.RowDefinitions>
-                                                        <RowDefinition Height="Auto" />
-                                                        <RowDefinition Height="Auto" />
-                                                    </Grid.RowDefinitions>
-                                                    <HyperlinkButton
-                                                        x:Name="AdvancedEffectsAuthorGitHubButton" x:FieldModifier="public"
-                                                        HorizontalContentAlignment="Center"
-                                                        NavigateUri="https://github.com/eachkinji"
-                                                        Content="GitHub · eachkinji" />
-                                                    <HyperlinkButton
-                                                        x:Name="AdvancedEffectsAuthorBilibiliButton" x:FieldModifier="public"
-                                                        Grid.Column="1"
-                                                        HorizontalContentAlignment="Center"
-                                                        NavigateUri="https://space.bilibili.com/18017622"
-                                                        Content="B站 · Zac不想烤肉" />
-                                                    <HyperlinkButton
-                                                        x:Name="AdvancedEffectsProjectButton" x:FieldModifier="public"
-                                                        Grid.Row="1"
-                                                        HorizontalContentAlignment="Center"
-                                                        NavigateUri="https://github.com/eachkinji/CS2KillConfirmOverlay"
-                                                        Content="项目主页" />
-                                                    <HyperlinkButton
-                                                        x:Name="AdvancedEffectsDownloadButton" x:FieldModifier="public"
-                                                        Grid.Row="1"
-                                                        Grid.Column="1"
-                                                        HorizontalContentAlignment="Center"
-                                                        NavigateUri="https://pan.quark.cn/s/1f3cfbcf8d5f?pwd=7Twv"
-                                                        Content="下载与更新 · 7Twv" />
-                                                </Grid>
-                                                <TextBlock
-                                                    x:Name="AdvancedEffectsCreditsBodyText" x:FieldModifier="public"
-                                                    FontSize="12"
-                                                    LineHeight="17"
-                                                    TextWrapping="Wrap" />
-                                                <settings:CreditsCommunityPanel x:Name="AdvancedEffectsCreditsCommunityPanel" x:FieldModifier="public" />
-                                            </StackPanel>
-                                        </Border>
                                     </StackPanel>
                                 </ScrollViewer>
                             </Border>

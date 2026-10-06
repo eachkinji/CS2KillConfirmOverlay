@@ -1,4 +1,4 @@
-﻿using KillConfirmGameBar.Features.CompatibilityDisplay.Controls.GameStyles;
+using KillConfirmGameBar.Features.CompatibilityDisplay.Controls.GameStyles;
 using KillConfirmGameBar.Services;
 using Windows.Storage;
 using Windows.UI.Xaml;
@@ -20,25 +20,6 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             PackTestSectionView.AdvancedEffectsGameCard.Background = new SolidColorBrush(theme.Panel);
             PackTestSectionView.AdvancedEffectsGameCard.BorderBrush = new SolidColorBrush(theme.Border);
             PackTestSectionView.AdvancedEffectsGameTitleText.Foreground = new SolidColorBrush(theme.Text);
-            PackTestSectionView.AdvancedEffectsExperienceCard.Background = new SolidColorBrush(theme.Panel);
-            PackTestSectionView.AdvancedEffectsExperienceCard.BorderBrush = new SolidColorBrush(theme.Border);
-            PackTestSectionView.AdvancedEffectsExperienceTitleText.Foreground = new SolidColorBrush(theme.Text);
-            PackTestSectionView.AdvancedEffectsRuntimeCard.Background = new SolidColorBrush(theme.Panel);
-            PackTestSectionView.AdvancedEffectsRuntimeCard.BorderBrush = new SolidColorBrush(theme.Border);
-            PackTestSectionView.AdvancedEffectsRuntimeTitleText.Foreground = new SolidColorBrush(theme.Text);
-            PackTestSectionView.AdvancedEffectsCreditsCard.Background = new SolidColorBrush(theme.Panel);
-            PackTestSectionView.AdvancedEffectsCreditsCard.BorderBrush = new SolidColorBrush(theme.Border);
-            PackTestSectionView.AdvancedEffectsCreditsTitleText.Foreground = new SolidColorBrush(theme.Text);
-            PackTestSectionView.AdvancedEffectsCreditsBodyText.Foreground = new SolidColorBrush(theme.MutedText);
-            PackTestSectionView.AdvancedEffectsAuthorCard.Background = theme.Brush(theme.SubtleField);
-            PackTestSectionView.AdvancedEffectsAuthorCard.BorderBrush = theme.Brush(theme.SoftBorder);
-            PackTestSectionView.AdvancedEffectsAuthorAvatarFrame.Background = theme.Brush(theme.Card);
-            PackTestSectionView.AdvancedEffectsAuthorAvatarFrame.BorderBrush = theme.Brush(theme.SoftBorder);
-            PackTestSectionView.AdvancedEffectsAuthorNameText.Foreground = theme.Brush(theme.Text);
-            PackTestSectionView.AdvancedEffectsAuthorDescriptionText.Foreground = theme.Brush(theme.MutedText);
-            PackTestSectionView.AdvancedEffectsCreditsCommunityPanel.ApplyTheme(theme);
-            PackTestSectionView.AdvancedEffectsExperiencePanel.ApplyTheme(theme);
-            PackTestSectionView.AdvancedEffectsRuntimePanel.ApplyTheme(theme);
             if (_crossfireAdvancedEffectsPanel != null)
             {
                 _crossfireAdvancedEffectsPanel.ApplyTheme(theme);
@@ -120,23 +101,6 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
             _customModulePanel?.ApplyLanguage(isChinese);
             PackTestSectionView.AdvancedEffectsGameTitleText.Text = LocalizationManager.Text("GameEffectsTitle");
-            PackTestSectionView.AdvancedEffectsExperienceTitleText.Text = isChinese ? "游戏体验增强" : "Game experience";
-            PackTestSectionView.AdvancedEffectsRuntimeTitleText.Text = isChinese ? "软件与维护" : "App & maintenance";
-            PackTestSectionView.AdvancedEffectsCreditsTitleText.Text = isChinese ? "作者与致谢" : "Author & credits";
-            PackTestSectionView.AdvancedEffectsAuthorNameText.Text = "Zac · eachkinji";
-            PackTestSectionView.AdvancedEffectsAuthorDescriptionText.Text = isChinese
-                ? "Kill Confirm Overlay 作者与维护者"
-                : "Author and maintainer of Kill Confirm Overlay";
-            PackTestSectionView.AdvancedEffectsAuthorGitHubButton.Content = "GitHub · eachkinji";
-            PackTestSectionView.AdvancedEffectsAuthorBilibiliButton.Content = isChinese ? "B站 · Zac不想烤肉" : "Bilibili · Zac";
-            PackTestSectionView.AdvancedEffectsProjectButton.Content = isChinese ? "项目主页" : "Project home";
-            PackTestSectionView.AdvancedEffectsDownloadButton.Content = isChinese ? "下载与更新 · 7Twv" : "Download & update · 7Twv";
-            PackTestSectionView.AdvancedEffectsCreditsBodyText.Text = isChinese
-                ? "感谢 st0nie 提供 cskillconfirm 的开发思路与基础代码，并感谢 gufan0000 的 CS2 Customizer 与本项目持续联动。"
-                : "Thanks to st0nie for the ideas and foundation from cskillconfirm, and to gufan0000 for the ongoing CS2 Customizer collaboration.";
-            PackTestSectionView.AdvancedEffectsCreditsCommunityPanel.ApplyLanguage();
-            PackTestSectionView.AdvancedEffectsExperiencePanel.ApplyLanguage();
-            PackTestSectionView.AdvancedEffectsRuntimePanel.ApplyLanguage();
             if (_crossfireAdvancedEffectsPanel != null)
             {
                 _crossfireAdvancedEffectsPanel.ApplyLanguage(isChinese);

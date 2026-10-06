@@ -60,7 +60,7 @@ namespace KillConfirmGameBar
 
         private void ApplyHomeActiveTab()
         {
-            if (!_isHomePageSelected)
+            if (!_isSettingsWorkspaceSelected)
             {
                 return;
             }
@@ -75,7 +75,7 @@ namespace KillConfirmGameBar
 
         private void ApplyGameActiveTab()
         {
-            if (_isHomePageSelected)
+            if (_isSettingsWorkspaceSelected)
             {
                 return;
             }
@@ -97,7 +97,7 @@ namespace KillConfirmGameBar
 
         private void UpdateHomeTabButtonsTheme()
         {
-            GameThemePalette theme = _isHomePageSelected ? GameThemePalette.Home : GameThemePalette.Current;
+            GameThemePalette theme = _isSettingsWorkspaceSelected ? GameThemePalette.Home : GameThemePalette.Current;
             UpdateTabBtn(HomeTabGeneralButton, _activeHomeTab == "general", theme);
             UpdateTabBtn(HomeTabPortButton, _activeHomeTab == "port", theme);
             UpdateTabBtn(HomeTabDisplayButton, _activeHomeTab == "display", theme);
@@ -144,7 +144,7 @@ namespace KillConfirmGameBar
             _ = Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, async () =>
             {
                 if (!_isSettingsPageLoaded
-                    || _isHomePageSelected
+                    || _isSettingsWorkspaceSelected
                     || navigationRevision != System.Threading.Volatile.Read(ref _gameStyleNavigationRevision)
                     || GameStyleService.Current != mode)
                 {

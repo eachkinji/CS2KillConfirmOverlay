@@ -74,7 +74,7 @@ namespace KillConfirmGameBar
 
         private async Task EnsureActivePackListLoadedAsync()
         {
-            if (!_isSettingsPageLoaded || _isHomePageSelected)
+            if (!_isSettingsPageLoaded || _isSettingsWorkspaceSelected)
             {
                 return;
             }
@@ -101,7 +101,7 @@ namespace KillConfirmGameBar
         private bool IsPackListReloadCurrent(int reloadVersion, GameStyleMode style)
         {
             return _isSettingsPageLoaded
-                && !_isHomePageSelected
+                && !_isSettingsWorkspaceSelected
                 && reloadVersion == Volatile.Read(ref _packListReloadVersion)
                 && GameStyleService.Current == style;
         }

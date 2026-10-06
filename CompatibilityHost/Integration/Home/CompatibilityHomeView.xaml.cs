@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -49,10 +49,6 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             foreach (GameStyleMode style in Enum.GetValues(typeof(GameStyleMode)))
                 GameSelector.Items.Add(new ComboBoxItem { Content = GameStyleService.ToDisplayName(style), Tag = GameStyleService.ToStorageValue(style) });
             PackTestSectionView.AdvancedEffectsFlyout.Content = null;
-            PackTestSectionView.AdvancedEffectsAuthorGitHubButton.Click += async (s,e) => await Windows.System.Launcher.LaunchUriAsync(new Uri("https://github.com/eachkinji"));
-            PackTestSectionView.AdvancedEffectsAuthorBilibiliButton.Click += async (s,e) => await Windows.System.Launcher.LaunchUriAsync(new Uri("https://space.bilibili.com/18017622"));
-            PackTestSectionView.AdvancedEffectsProjectButton.Click += async (s,e) => await Windows.System.Launcher.LaunchUriAsync(new Uri("https://github.com/eachkinji/CS2KillConfirmOverlay"));
-            PackTestSectionView.AdvancedEffectsDownloadButton.Click += async (s,e) => await Windows.System.Launcher.LaunchUriAsync(new Uri("https://pan.quark.cn/s/1f3cfbcf8d5f?pwd=7Twv"));
             _suppressGameStyleEvents = false;
             Loaded += OnLoaded; Unloaded += OnUnloaded;
             _statusTimer.Tick += (s, e) => RefreshStatus();

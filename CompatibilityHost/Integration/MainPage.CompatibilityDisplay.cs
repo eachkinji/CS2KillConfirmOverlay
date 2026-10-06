@@ -9,23 +9,22 @@ namespace KillConfirmGameBar
     {
         private void InitializeCompatibilityWorkspace()
         {
-            ToolTipService.SetToolTip(CompatibilitySidebarItem, LocalizationManager.Current == UiLanguage.SimplifiedChinese ? "兼容显示" : "Compatibility display");
             InitializeCompatibilityUiValidation();
         }
-        private bool _isCompatibilityPageSelected;
+        private bool _isHomePageSelected = true;
         private CompatibilityDisplayPanel _compatibilityWorkspace;
         private bool HandleCompatibilityGameStyleChanged(GameStyleMode mode)
         {
-            if (!_isCompatibilityPageSelected) return false;
+            if (!_isHomePageSelected) return false;
             _ = Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => {
-                if (_isSettingsPageLoaded && _isCompatibilityPageSelected && GameStyleService.Current == mode) ApplyCompatibilityWorkspace();
+                if (_isSettingsPageLoaded && _isHomePageSelected && GameStyleService.Current == mode) ApplyCompatibilityWorkspace();
             });
             return true;
         }
         private void SelectCompatibilityWorkspace()
         {
-            _isCompatibilityPageSelected = true;
             _isHomePageSelected = true;
+            _isSettingsWorkspaceSelected = true;
             BeginGameStyleTransition();
             ApplyCompatibilityWorkspace();
         }
@@ -33,13 +32,13 @@ namespace KillConfirmGameBar
         {
             SyncGameStyleSelector();
             UpdateSettingsPageVisibility();
-            HomeWorkspaceTabBar.Visibility = GameWorkspaceTabBar.Visibility = Visibility.Collapsed;
+            AdvancedSettingsTabBar.Visibility = GameWorkspaceTabBar.Visibility = Visibility.Collapsed;
             BackgroundDecoration.Visibility = Visibility.Collapsed;
             var theme = GameThemePalette.ForMode(GameStyleService.Current);
             SettingsRootGrid.Background = CreateSettingsBackground(GameStyleService.Current, true);
             ApplyGameStyleSidebarTheme(theme);
             ApplyPageTitleTheme(theme);
-            TitleText.Text = LocalizationManager.Current == UiLanguage.SimplifiedChinese ? "兼容显示" : "Compatibility display";
+            TitleText.Text = LocalizationManager.Current == UiLanguage.SimplifiedChinese ? "主页" : "Home";
             if (_compatibilityWorkspace == null) _compatibilityWorkspace = new CompatibilityDisplayPanel();
             if (CompatibilityPageContent.Content != _compatibilityWorkspace) CompatibilityPageContent.Content = _compatibilityWorkspace;
             _compatibilityWorkspace.ApplyLanguage();

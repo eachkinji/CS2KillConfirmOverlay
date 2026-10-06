@@ -68,7 +68,7 @@ function Install-OverlayPackage {
 
     $deferMainUpdate = $false
     try {
-        Stop-OverlayRuntimeForUpdate
+        if (-not $RetryGameBarOnly) { Stop-OverlayRuntimeForUpdate }
     }
     catch {
         # A stale widget or Game Bar process should not prevent the installer

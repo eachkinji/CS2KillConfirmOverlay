@@ -5,8 +5,8 @@ using Windows.Storage;
 
 namespace KillConfirmCompatibility.Desktop.Runtime
 {
-    // Production uses the package's existing resource selections. Standalone
-    // rendering tests use an isolated temporary profile, never the user's data.
+    // Production uses ordinary desktop data and optionally migrates existing
+    // widget selections. Validation profiles never touch the user's data.
     internal sealed class DesktopStorage
     {
         private static DesktopStorage _current;
@@ -18,19 +18,29 @@ namespace KillConfirmCompatibility.Desktop.Runtime
         public StorageFolder TemporaryFolder { get; }
         private DesktopStorage()
         {
-            if (TestDataRoot == null)
+            if (TestDataRoot == null && DesktopEnvironment.HasPackageIdentity && global::Windows.ApplicationModel.Package.Current.Id.Name != "KillConfirmGameBar.Overlay")
             {
                 var data = global::Windows.Storage.ApplicationData.Current;
+                LocalFolder = data.LocalFolder; TemporaryFolder = data.TemporaryFolder;
                 LocalSettings = new DesktopSettings(data.LocalSettings.Values);
-                LocalFolder = data.LocalFolder;
-                TemporaryFolder = data.TemporaryFolder;
+            }
+            else if (TestDataRoot == null)
+            {
+                ProfileMirror.Initialize();
+                string root = DesktopEnvironment.DataRoot;
+                Directory.CreateDirectory(root);
+                LocalFolder = StorageFolder.GetFolderFromPathAsync(root).AsTask().GetAwaiter().GetResult();
+                TemporaryFolder = LocalFolder;
+                LocalSettings = new DesktopSettings(new FileSettings(Path.Combine(root, Contracts.SharedSettingsFile.FileName)));
+                AssetsRoot ??= DesktopEnvironment.InstallRoot;
             }
             else
             {
-                Directory.CreateDirectory(TestDataRoot);
-                LocalFolder = StorageFolder.GetFolderFromPathAsync(Path.GetFullPath(TestDataRoot)).AsTask().GetAwaiter().GetResult();
+                string root = TestDataRoot;
+                Directory.CreateDirectory(root);
+                LocalFolder = StorageFolder.GetFolderFromPathAsync(Path.GetFullPath(root)).AsTask().GetAwaiter().GetResult();
                 TemporaryFolder = LocalFolder;
-                LocalSettings = new DesktopSettings(new PropertySet());
+                LocalSettings = new DesktopSettings((IPropertySet)new PropertySet());
             }
         }
         public static async System.Threading.Tasks.Task<StorageFile> AssetFileAsync(Uri uri)
@@ -44,6 +54,7 @@ namespace KillConfirmCompatibility.Desktop.Runtime
     internal sealed class DesktopSettings
     {
         public DesktopSettings(IPropertySet values) { Values = new SafeSettings(values); }
+        public DesktopSettings(System.Collections.Generic.IDictionary<string, object> values) { Values = values; }
         public System.Collections.Generic.IDictionary<string, object> Values { get; }
     }
 }

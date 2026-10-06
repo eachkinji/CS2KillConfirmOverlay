@@ -6,6 +6,8 @@ namespace KillConfirmGameBar.Services
     {
         public static GameStyleMode GetStyleForPackKey(string key)
         {
+            foreach (GameStyleMode game in System.Enum.GetValues(typeof(GameStyleMode)))
+                if (key != null && key.StartsWith("custom_" + ToStorageValue(game) + "_", System.StringComparison.OrdinalIgnoreCase)) return game;
             if (IsCustomModuleKey(key)) return GameStyleMode.CustomModule;
             if (string.IsNullOrEmpty(key))
             {

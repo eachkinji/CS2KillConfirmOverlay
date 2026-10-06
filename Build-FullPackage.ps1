@@ -257,6 +257,35 @@ if (-not $SkipWithDependencies) {
 
 # 复制 Overlay 主程序与证书
 foreach ($targetRoot in @($TransferRoot, $NoDepsTransferRoot)) {
+    # The desktop application is a complete unpackaged, self-contained payload.
+    # Nothing here is registered with AppX; MSIX is only the optional widget.
+    $desktopRoot = Join-Path $targetRoot 'Desktop'
+    New-Item -ItemType Directory -Path $desktopRoot -Force | Out-Null
+    Copy-Item -Path (Join-Path $Root 'Widget/CompatibilityHost/*') -Destination $desktopRoot -Recurse -Force
+    foreach ($directory in @('Assets', 'KillConfirmService')) {
+        Copy-Item -LiteralPath (Join-Path $Root "Widget/$directory") -Destination $desktopRoot -Recurse -Force
+    }
+    $danmakuRoot = Join-Path $desktopRoot 'Danmaku'
+    New-Item -ItemType Directory -Path $danmakuRoot -Force | Out-Null
+    foreach ($directory in @('EventPools', 'EventFitAnnotationV2')) {
+        Copy-Item -LiteralPath (Join-Path $Root "Widget/Danmaku/$directory") -Destination $danmakuRoot -Recurse -Force
+    }
+    Copy-Item -Path (Join-Path $Root 'Widget/Danmaku/*.json') -Destination $danmakuRoot -Force
+    # App-local C++ DLLs are extracted as ordinary files. They do not require
+    # installing a VCLibs framework package or starting deployment services.
+    $desktopVc = Join-Path $Root 'Vclibs/vclibs.appx'
+    if (-not (Test-Path -LiteralPath $desktopVc)) { throw 'Desktop C++ runtime payload is missing.' }
+    $desktopVcArchive = [IO.Compression.ZipFile]::OpenRead($desktopVc)
+    try {
+        foreach ($entry in $desktopVcArchive.Entries | Where-Object { $_.Name -match '\.dll$' }) {
+            [IO.Compression.ZipFileExtensions]::ExtractToFile($entry, (Join-Path $desktopRoot $entry.Name), $true)
+        }
+    } finally { $desktopVcArchive.Dispose() }
+    foreach ($required in @('KillConfirmCompatibility.exe', 'coreclr.dll', 'Microsoft.Graphics.Canvas.dll', 'KillConfirmService/cskillconfirm.exe')) {
+        if (-not (Test-Path -LiteralPath (Join-Path $desktopRoot $required))) { throw "Desktop payload missing: $required" }
+    }
+    & $SignToolPath sign /fd SHA256 /f $CertificatePfxPath /p $CertificatePassword (Join-Path $desktopRoot 'KillConfirmCompatibility.exe')
+    if ($LASTEXITCODE -ne 0) { throw 'Desktop application signing failed.' }
     $overlayDir = Join-Path $targetRoot "OverlayPackage"
     New-Item -ItemType Directory -Force -Path $overlayDir | Out-Null
     Copy-Item -LiteralPath $bundleFile.FullName -Destination (Join-Path $overlayDir $bundleFile.Name) -Force
@@ -383,6 +412,8 @@ Write-Host " 正在生成: $noName ..." -ForegroundColor Cyan
 Invoke-InnoCompile -TransferPath $NoDepsTransferRoot -InternalSuffix "_NoDeps" -FinalFileName $noName -SkipPrerequisites $true
 
 # 清理临时中间目录
+# Keep the same ordinary desktop payload for unpackaged validation and portable use.
+Copy-Item -LiteralPath (Join-Path $NoDepsTransferRoot 'Desktop') -Destination $OutputDir -Recurse -Force
 Remove-Item -LiteralPath $QuickOutputDir -Recurse -Force -ErrorAction SilentlyContinue
 Remove-Item -LiteralPath $TransferRoot -Recurse -Force -ErrorAction SilentlyContinue
 Remove-Item -LiteralPath $NoDepsTransferRoot -Recurse -Force -ErrorAction SilentlyContinue

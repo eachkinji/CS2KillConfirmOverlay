@@ -18,7 +18,7 @@ namespace KillConfirmGameBar
         private long _displayModePublished;
         private bool ApplyCompatibilityModeGuard()
         {
-            bool blocked = CompatibilityDisplayRuntime.IsEnabled;
+            bool blocked = CompatibilityDisplayRuntime.IsEnabled || CompatibilityDisplayRuntime.Load().Enabled;
             if (blocked && !_displayModeBlocked)
             {
                 _displayModeBlocked = true;

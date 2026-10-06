@@ -47,6 +47,7 @@ namespace KillConfirmCompatibility.Desktop.Runtime
         private int _lastPort;
         internal bool HasRenderedPreviewPixels => _surfaces.Any(surface => surface.ElementKey != "Danmaku" && surface.HasRenderedPixels);
         internal bool HasRenderedDanmakuPixels => _surfaces.Any(surface => surface.ElementKey == "Danmaku" && surface.HasRenderedPixels);
+        internal bool IsClosed => _closing;
         internal NativeWindows.Rect DanmakuBounds
         {
             get { NativeWindows.GetWindowRect(new WindowInteropHelper(_surfaces.First(surface => surface.ElementKey == "Danmaku")).Handle, out var bounds); return bounds; }
@@ -143,6 +144,7 @@ namespace KillConfirmCompatibility.Desktop.Runtime
             if (_closing) return;
             try
             {
+                if (!DesktopEnvironment.HasPackageIdentity || global::Windows.ApplicationModel.Package.Current.Id.Name == "KillConfirmGameBar.Overlay") ProfileMirror.Synchronize();
                 DisplayConfiguration next = DisplayFiles.Read<DisplayConfiguration>(_configurationPath);
                 if (next != null) { next.Normalize(); _configuration = next; }
                 if (!_configuration.Enabled) { _ = CloseAsync(); return; }
@@ -181,7 +183,9 @@ namespace KillConfirmCompatibility.Desktop.Runtime
                 if (_configuration.FollowGame && hasGame) bounds = gameBounds;
                 bool gameActive = NativeWindows.IsGameWindow(NativeWindows.GetForegroundWindow());
                 _visible = !_hidden && (_editing || DateTimeOffset.UtcNow < _previewUntil || !_configuration.HideWhenInactive || gameActive);
-                var gameBar = DisplayFiles.Read<GameBarDisplayStatus>(Path.Combine(Path.GetDirectoryName(_configurationPath), "gamebar-status.json"));
+                string widgetStatusRoot = DesktopStorage.TestDataRoot != null || (DesktopEnvironment.ProfileRoot != null && DesktopEnvironment.WidgetRootOverride == null) ? Path.GetDirectoryName(_configurationPath)
+                    : !DesktopEnvironment.HasPackageIdentity || global::Windows.ApplicationModel.Package.Current.Id.Name == "KillConfirmGameBar.Overlay" ? Path.Combine(DesktopEnvironment.WidgetDataRoot, DisplayFiles.FolderName) : Path.GetDirectoryName(_configurationPath);
+                var gameBar = DisplayFiles.Read<GameBarDisplayStatus>(Path.Combine(widgetStatusRoot, "gamebar-status.json"));
                 if (gameBar != null && !gameBar.Blocked && DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - gameBar.Timestamp < 5000) _visible = false;
                 var visibility = KillFeedbackVisibilitySettingsStore.Load(GameStyleService.Current);
                 foreach (OverlaySurface surface in _surfaces)

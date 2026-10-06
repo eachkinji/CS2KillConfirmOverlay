@@ -27,6 +27,22 @@ namespace KillConfirmCompatibility
             }
             var application = new System.Windows.Application();
             application.ShutdownMode = System.Windows.ShutdownMode.OnExplicitShutdown;
+            if (args.Length == 3 && args[0] == "--validate-desktop")
+            {
+                application.Startup += async (s, e) =>
+                {
+                    try { await Validation.DesktopValidation.RunAsync(args[1], args[2]); application.Shutdown(0); }
+                    catch (Exception error) { Directory.CreateDirectory(args[1]); File.WriteAllText(Path.Combine(args[1], "desktop-failure.txt"), error.ToString()); application.Shutdown(1); }
+                };
+                application.Run(); return;
+            }
+            if (Array.IndexOf(args, "--control-panel") >= 0 || (!Desktop.Runtime.DesktopEnvironment.HasPackageIdentity && args.Length == 0))
+            {
+                using var panelInstance = new System.Threading.Mutex(true, Desktop.Runtime.DesktopEnvironment.InstanceName("control-panel"), out bool firstPanel);
+                if (!firstPanel) { BringControlPanelForward(); return; }
+                application.Startup += (s, e) => new Desktop.UI.DesktopControlPanel().Show();
+                application.Run(); return;
+            }
             if (args.Length == 2 && (args[0] == "--package-probe" || args[0] == "--package-child"))
             {
                 application.Startup += async (s, e) =>
@@ -46,7 +62,7 @@ namespace KillConfirmCompatibility
                 application.Run(); return;
             }
             Log("Compatibility host started.");
-            using var singleInstance = new System.Threading.Mutex(true, "Local\\KillConfirmCompatibility." + Windows.ApplicationModel.Package.Current.Id.FamilyName, out bool first);
+            using var singleInstance = new System.Threading.Mutex(true, Desktop.Runtime.DesktopEnvironment.InstanceName("overlay"), out bool first);
             if (!first) return;
             Desktop.Runtime.HostController controller = null;
             application.Startup += (s, e) =>
@@ -71,5 +87,13 @@ namespace KillConfirmCompatibility
         }
         internal static void LogCrash(string context, Exception error) => Log(context + ": " + error);
         internal static void LogCrash(string message) => Log(message);
+        [System.Runtime.InteropServices.DllImport("user32.dll")] private static extern bool SetForegroundWindow(IntPtr window);
+        [System.Runtime.InteropServices.DllImport("user32.dll")] private static extern bool ShowWindow(IntPtr window, int command);
+        private static void BringControlPanelForward()
+        {
+            foreach (var process in System.Diagnostics.Process.GetProcessesByName("KillConfirmCompatibility"))
+                using (process)
+                    try { if (process.MainWindowTitle == "Kill Confirm Overlay" && process.MainWindowHandle != IntPtr.Zero) { ShowWindow(process.MainWindowHandle, 9); SetForegroundWindow(process.MainWindowHandle); return; } } catch { }
+        }
     }
 }

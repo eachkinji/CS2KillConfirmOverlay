@@ -33,17 +33,25 @@ namespace KillConfirmGameBar
         public App()
         {
             InitializeComponent();
+            Features.CompatibilityDisplay.SharedSettingsBridge.Start();
             UnhandledException += OnUnhandledException;
             Suspending += OnSuspending;
             ProcessPriorityBoost.EnsureProcessBoosted();
             Log("App constructed.");
         }
 
-        protected override void OnLaunched(LaunchActivatedEventArgs e)
+        protected override async void OnLaunched(LaunchActivatedEventArgs e)
         {
             try
             {
                 Log("OnLaunched.");
+                if (Windows.ApplicationModel.Package.Current.Id.Name == "KillConfirmGameBar.Overlay" &&
+                    await Windows.Storage.ApplicationData.Current.LocalFolder.TryGetItemAsync("desktop-location.txt") != null &&
+                    await KillConfirmWidgetPage.TryLaunchFullTrustHelperAsync("OpenSettingsWindow"))
+                {
+                    if (!_currentWindowIsWidget) Application.Current.Exit();
+                    return;
+                }
                 Frame rootFrame = Window.Current.Content as Frame;
 
                 if (rootFrame == null)

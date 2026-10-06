@@ -105,6 +105,7 @@
     <Page Include="..\CompatibilityHost\Integration\**\*.xaml"><Link>Features\CompatibilityDisplay\Integration\%(RecursiveDir)%(Filename)%(Extension)</Link><Generator>MSBuild:Compile</Generator><SubType>Designer</SubType></Page>
     <Compile Include="..\CompatibilityHost\Contracts\DisplayConfiguration.cs"><Link>Features\CompatibilityDisplay\Contracts\DisplayConfiguration.cs</Link></Compile>
     <Compile Include="..\CompatibilityHost\Contracts\DisplayFiles.cs"><Link>Features\CompatibilityDisplay\Contracts\DisplayFiles.cs</Link></Compile>
+    <Compile Include="..\CompatibilityHost\Contracts\SharedSettings.cs"><Link>Features\CompatibilityDisplay\Contracts\SharedSettings.cs</Link></Compile>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Danmaku\Engine\DanmakuEvent.cs" />

@@ -50,7 +50,13 @@ fn current_package_family_name() -> String {
 }
 
 pub(crate) fn local_state_dir() -> PathBuf {
+    if let Some(root) = env::var_os("KILLCONFIRM_DATA_ROOT") {
+        let root = PathBuf::from(root);
+        if root.is_absolute() { return root; }
+    }
     if let Ok(local_app_data) = env::var("LOCALAPPDATA") {
+        let desktop = PathBuf::from(&local_app_data).join("KillConfirmOverlay").join("DesktopData");
+        if desktop.join("desktop-location.txt").is_file() { return desktop; }
         return PathBuf::from(local_app_data)
             .join("Packages")
             .join(current_package_family_name())

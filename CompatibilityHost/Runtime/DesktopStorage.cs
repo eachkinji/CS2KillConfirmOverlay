@@ -46,8 +46,9 @@ namespace KillConfirmCompatibility.Desktop.Runtime
         public static async System.Threading.Tasks.Task<StorageFile> AssetFileAsync(Uri uri)
         {
             if (AssetsRoot == null) return await StorageFile.GetFileFromApplicationUriAsync(uri);
-            string path = Path.GetFullPath(Path.Combine(AssetsRoot, Uri.UnescapeDataString(uri.AbsolutePath).TrimStart('/').Replace('/', Path.DirectorySeparatorChar)));
-            if (!path.StartsWith(Path.GetFullPath(AssetsRoot) + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException("Asset path escapes root.");
+            string root = Path.GetFullPath(AssetsRoot).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            string path = Path.GetFullPath(Path.Combine(root, Uri.UnescapeDataString(uri.AbsolutePath).TrimStart('/').Replace('/', Path.DirectorySeparatorChar)));
+            if (!path.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException("Asset path escapes root.");
             return await StorageFile.GetFileFromPathAsync(path);
         }
     }

@@ -19,7 +19,10 @@ namespace KillConfirmCompatibility.Validation
             Directory.CreateDirectory(output);
             if (DesktopEnvironment.HasPackageIdentity) throw new Exception("Standalone validation inherited package identity.");
             DesktopEnvironment.ProfileRoot = Path.Combine(output, "desktop-data");
-            DesktopEnvironment.InstallRootOverride = assets; DesktopStorage.AssetsRoot = assets;
+            DesktopEnvironment.InstallRootOverride = assets;
+            // AppContext.BaseDirectory, used by a normal double-click launch,
+            // ends in a separator. Validate that exact resource-root shape.
+            DesktopStorage.AssetsRoot = Path.GetFullPath(assets).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
             var values = new FileSettings(Path.Combine(DesktopEnvironment.ProfileRoot, SharedSettingsFile.FileName));
             values["GameStyleMode"] = "valorant"; values["LocalService.Port"] = 10094;
             values["TypedInt"] = 42; values["TypedDouble"] = 1.25; values["TypedBool"] = true;

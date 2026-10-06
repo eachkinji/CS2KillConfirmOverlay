@@ -69,9 +69,31 @@ namespace KillConfirmCompatibility.Validation
             Parallel.For(0, 30, index => DisplayFiles.Update(path, current => current.GetLayout("profile" + index).Lower.X = 0.25));
             var loaded = DisplayFiles.Read<DisplayConfiguration>(path);
             if (!loaded.Enabled || loaded.Layouts.Count != 31 || loaded.GetLayout("valorant").Lower.X != 0.5) throw new Exception("Concurrent layout updates were lost or leaked across styles.");
+            using (var ready = new System.Threading.ManualResetEventSlim())
+            {
+                var reader = Task.Run(() => {
+                    using var locked = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                    ready.Set();
+                    System.Threading.Thread.Sleep(100);
+                });
+                if (!ready.Wait(3000)) throw new Exception("Could not create the transient file lock.");
+                loaded.ModeRequest = 123;
+                DisplayFiles.Write(path, loaded);
+                reader.GetAwaiter().GetResult();
+                if (DisplayFiles.Read<DisplayConfiguration>(path)?.ModeRequest != 123) throw new Exception("Atomic write did not recover from a transient replacement lock.");
+            }
+            using (var locked = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            {
+                loaded.ModeRequest = 456;
+                bool failed = false;
+                try { DisplayFiles.Write(path, loaded); }
+                catch (IOException) { failed = true; }
+                if (!failed || DisplayFiles.Read<DisplayConfiguration>(path)?.ModeRequest != 123) throw new Exception("A persistent lock lost the previous valid configuration.");
+            }
+            if (Directory.GetFiles(Path.GetDirectoryName(path), Path.GetFileName(path) + ".*.tmp").Length != 0) throw new Exception("Replacement failure leaked temporary files.");
             File.WriteAllText(path, "{ broken json");
             if (DisplayFiles.Read<DisplayConfiguration>(path) != null) throw new Exception("Malformed configuration was not rejected.");
-            File.WriteAllText(Path.Combine(output, "contracts.txt"), "PASS: bounds, concurrent updates, independent profiles, malformed configuration");
+            File.WriteAllText(Path.Combine(output, "contracts.txt"), "PASS: bounds, concurrent updates, independent profiles, transient replacement-lock recovery, persistent lock preserves valid data, temporary file cleanup, malformed configuration");
         }
         private static void ValidateNativeWindow()
         {

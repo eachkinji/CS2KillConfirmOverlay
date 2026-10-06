@@ -33,6 +33,18 @@ namespace KillConfirmCompatibility.Validation
                 }
                 if (status?.Connected != true || status.Visible || status.ProcessId != Environment.ProcessId) throw new Exception("Host failed to connect or hide while the game is inactive.");
                 if (service.Count("/client/register") == 0 || service.Count("/soundpack") == 0 || service.Count("/gsi-game/settings") == 0 || service.MissingAuthentication) throw new Exception("Authenticated service registration/settings failed.");
+                // Force the status writer to exhaust its retries, then release the
+                // lock. Recovery must clear the I/O fault without poisoning rendering.
+                long previousHeartbeat = status.Timestamp;
+                using (var locked = new FileStream(statusPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                    await Task.Delay(1500);
+                for (int attempt = 0; attempt < 40; attempt++)
+                {
+                    await Task.Delay(100);
+                    status = DisplayFiles.Read<DisplayStatus>(statusPath);
+                    if (status?.Timestamp > previousHeartbeat) break;
+                }
+                if (status?.Timestamp <= previousHeartbeat || !string.IsNullOrWhiteSpace(status?.Error)) throw new Exception("Recovered status write remained a permanent display error: " + status?.Error);
                 // This fixture deliberately never broadcasts test events. A click
                 // must still draw real desktop pixels while the game is inactive.
                 long previewRequest = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();

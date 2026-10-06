@@ -40,6 +40,7 @@ namespace KillConfirmCompatibility.Desktop.Runtime
         private bool _lastDanmakuEnabled;
         private string _style, _lastSignature, _renderError;
         private bool _editing, _hidden, _closing, _visible;
+        private bool _statusWriteFailed;
         private readonly bool _shutdownApplicationOnClose;
         private IntPtr _gameWindow;
         private DateTimeOffset _nextFind, _nextRegister, _nextStatus, _previewUntil;
@@ -206,7 +207,24 @@ namespace KillConfirmCompatibility.Desktop.Runtime
                 if (DateTimeOffset.UtcNow >= _nextStatus)
                 {
                     _nextStatus = DateTimeOffset.UtcNow.AddSeconds(1);
-                    DisplayFiles.Write(_statusPath, new DisplayStatus { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), ProcessId = Environment.ProcessId, Connected = _events.ConnectionState == KillEventConnectionState.Connected, Editing = _editing, Visible = _visible, Style = _style, Loading = !_applyingConfiguration.IsCompleted, Screen = monitor.Device, Screens = screens.Select(s => s.Device).ToArray(), Error = _renderError ?? _presenter.ConfigurationError ?? _service.Error, LastTestRequest = _completedTestRequest, TestError = _testError, LastDanmakuTestRequest = _completedDanmakuTestRequest, DanmakuTestError = _danmakuTestError });
+                    try
+                    {
+                        DisplayFiles.Write(_statusPath, new DisplayStatus { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), ProcessId = Environment.ProcessId, Connected = _events.ConnectionState == KillEventConnectionState.Connected, Editing = _editing, Visible = _visible, Style = _style, Loading = !_applyingConfiguration.IsCompleted, Screen = monitor.Device, Screens = screens.Select(s => s.Device).ToArray(), Error = _renderError ?? _presenter.ConfigurationError ?? _service.Error, LastTestRequest = _completedTestRequest, TestError = _testError, LastDanmakuTestRequest = _completedDanmakuTestRequest, DanmakuTestError = _danmakuTestError });
+                        if (_statusWriteFailed) App.Log("Compatibility status write recovered.");
+                        _statusWriteFailed = false;
+                    }
+                    catch (IOException failure)
+                    {
+                        // A failed heartbeat is not a rendering failure. The next
+                        // successful write must report the current display state.
+                        if (!_statusWriteFailed) App.Log("Compatibility status write: " + failure);
+                        _statusWriteFailed = true;
+                    }
+                    catch (UnauthorizedAccessException failure)
+                    {
+                        if (!_statusWriteFailed) App.Log("Compatibility status write: " + failure);
+                        _statusWriteFailed = true;
+                    }
                 }
             }
             catch (Exception error) { _renderError = error.Message; App.Log("Compatibility state: " + error); }

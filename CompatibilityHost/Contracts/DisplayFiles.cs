@@ -37,10 +37,25 @@ namespace KillConfirmCompatibility.Contracts
                 // File.Replace performs metadata merging and fails for UWP app-data
                 // files (ERROR_INVALID_PARAMETER). Rename with replace preserves
                 // atomic reads without transferring the destination's metadata.
-                if (!MoveFileEx(temporary, path, 0x1 | 0x8))
-                    throw new IOException("Cannot replace compatibility data.", new Win32Exception(Marshal.GetLastWin32Error()));
+                for (int attempt = 0; ; attempt++)
+                {
+                    if (MoveFileEx(temporary, path, 0x1 | 0x8)) break;
+                    int error = Marshal.GetLastWin32Error();
+                    // A reader or scanner can briefly deny replacement even though
+                    // this process can write the directory. Retain the old file and
+                    // retry the same complete temporary file; never truncate it.
+                    if (attempt >= 8 || (error != 5 && error != 32 && error != 33))
+                        throw new IOException("兼容显示数据暂时无法保存，请稍后重试。",
+                            new Win32Exception(error, "Replacing " + path));
+                    Thread.Sleep(25);
+                }
             }
-            finally { if (File.Exists(temporary)) File.Delete(temporary); }
+            finally
+            {
+                try { if (File.Exists(temporary)) File.Delete(temporary); }
+                catch (IOException) { }
+                catch (UnauthorizedAccessException) { }
+            }
         }
         public static void Update(string path, Action<DisplayConfiguration> change)
         {

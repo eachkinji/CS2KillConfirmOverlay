@@ -38,6 +38,9 @@ namespace KillConfirmCompatibility.Desktop.Windowing
         public Action<CanvasDrawingSession, double, double> DrawOverride { get; set; }
         public string ElementKey { get; }
         public bool IsDragging => _dragStart.HasValue || _resizing;
+        private bool _hasRenderedPixels;
+        internal bool HasRenderedPixels => IsVisible && Opacity > 0 && _hasRenderedPixels;
+        internal void ResetPreviewPixels() => _hasRenderedPixels = false;
         public OverlaySurface(string key, string label, KillConfirmAnimation animation)
         {
             ElementKey = key; _animation = animation; _labelText = label;
@@ -120,6 +123,9 @@ namespace KillConfirmCompatibility.Desktop.Windowing
                 if (DrawOverride == null) _animation.DrawDesktopFrame(session, width, height);
                 else DrawOverride(session, width, height);
             byte[] pixels = _target.GetPixelBytes();
+            _hasRenderedPixels = false;
+            for (int index = 3; index < pixels.Length; index += 4)
+                if (pixels[index] != 0) { _hasRenderedPixels = true; break; }
             _bitmap.WritePixels(new Int32Rect(0, 0, width, height), pixels, width * 4, 0);
         }
         private void BeginDrag(object sender, MouseButtonEventArgs e)

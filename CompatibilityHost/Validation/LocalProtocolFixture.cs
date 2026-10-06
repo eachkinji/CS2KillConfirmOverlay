@@ -19,6 +19,7 @@ namespace KillConfirmCompatibility.Validation
         private int _missingAuthentication;
         internal int Port => ((IPEndPoint)_listener.LocalEndpoint).Port;
         internal bool MissingAuthentication => _missingAuthentication != 0;
+        internal bool FailTests { get; set; }
         internal int Count(string path) => _requests.TryGetValue(path, out int count) ? count : 0;
         internal LocalProtocolFixture() { _listener.Start(); _ = AcceptAsync(); }
         private async Task AcceptAsync()
@@ -59,7 +60,8 @@ namespace KillConfirmCompatibility.Validation
                 if (path == "/events") await Task.Delay(200, _stop.Token);
                 string json = path == "/events" ? "{\"cursor\":0,\"events\":[],\"dropped\":0}"
                     : path == "/gsi-status" ? "{\"posts\":1,\"last_post_age_ms\":100,\"parse_errors\":0}" : "{}";
-                byte[] response = Encoding.ASCII.GetBytes("HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nConnection: close\r\nContent-Length: " + json.Length + "\r\n\r\n" + json);
+                string responseStatus = FailTests && path.StartsWith("/test/") ? "500 Internal Server Error" : "200 OK";
+                byte[] response = Encoding.ASCII.GetBytes("HTTP/1.1 " + responseStatus + "\r\nContent-Type: application/json\r\nConnection: close\r\nContent-Length: " + json.Length + "\r\n\r\n" + json);
                 await stream.WriteAsync(response, _stop.Token);
             }
             catch (IOException) { }

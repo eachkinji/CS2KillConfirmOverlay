@@ -33,6 +33,8 @@ namespace KillConfirmCompatibility.Desktop.Runtime
         private DisplayConfiguration _configuration;
         private LayoutProfile _layout;
         private long _editRequest, _testRequest, _restartRequest;
+        private long _completedTestRequest;
+        private string _testError;
         private bool _lastDanmakuEnabled;
         private string _style, _lastSignature, _renderError;
         private bool _editing, _hidden, _closing, _visible;
@@ -40,6 +42,8 @@ namespace KillConfirmCompatibility.Desktop.Runtime
         private IntPtr _gameWindow;
         private DateTimeOffset _nextFind, _nextRegister, _nextStatus, _previewUntil;
         private int _lastPort;
+        internal bool HasRenderedPreviewPixels => _surfaces.Any(surface => surface.ElementKey != "Danmaku" && surface.HasRenderedPixels);
+        internal string PreviewDiagnostics => string.Join("; ", _surfaces.Select(surface => surface.ElementKey + ": visible=" + surface.IsVisible + ", pixels=" + surface.HasRenderedPixels + ", size=" + surface.ActualWidth + "x" + surface.ActualHeight));
         public HostController(bool shutdownApplicationOnClose = true)
         {
             _shutdownApplicationOnClose = shutdownApplicationOnClose;
@@ -109,6 +113,9 @@ namespace KillConfirmCompatibility.Desktop.Runtime
             _events = new KillEventClient(new DesktopDispatcher());
             _events.KillReceived += (s, ev) =>
             {
+                // The host draws its own preview locally. The audio endpoint also
+                // broadcasts it, so discard that echo rather than playing twice.
+                if (ev.SteamId?.StartsWith(PreviewEvents.SteamIdPrefix, StringComparison.Ordinal) == true) return;
                 if (_closing || _hidden || !_visible || _editing || !_applyingConfiguration.IsCompleted) return;
                 try { _presenter.HandleKillEvent(ev); } catch (Exception error) { _renderError = error.Message; App.Log("Compatibility event failed: " + error); }
             };
@@ -142,8 +149,8 @@ namespace KillConfirmCompatibility.Desktop.Runtime
                 if (_applyingConfiguration.IsCompleted)
                 {
                     if (_configuration.EditRequest != _editRequest) { _editRequest = _configuration.EditRequest; BeginEditing(); }
-                    if (_configuration.TestRequest != _testRequest) { _testRequest = _configuration.TestRequest; Preview(true); }
                 }
+                if (_configuration.TestRequest != _testRequest) { _previewUntil = DateTimeOffset.UtcNow.AddSeconds(5); _hidden = false; }
                 _frameTimer.Interval = TimeSpan.FromSeconds(1.0 / _configuration.FramesPerSecond);
                 var screens = NativeWindows.Screens();
                 if (screens.Length == 0) return;
@@ -174,6 +181,11 @@ namespace KillConfirmCompatibility.Desktop.Runtime
                     }
                     surface.Place(bounds, element, _visible && supported && (enabled || _editing), _editing && key != "Badge", key == "Badge" ? -128 : 0);
                 }
+                if (_applyingConfiguration.IsCompleted && _visible && _configuration.TestRequest != _testRequest)
+                {
+                    _testRequest = _configuration.TestRequest;
+                    Preview(true);
+                }
                 if (_editing)
                 {
                     new WindowInteropHelper(_toolbar).EnsureHandle();
@@ -184,7 +196,7 @@ namespace KillConfirmCompatibility.Desktop.Runtime
                 if (DateTimeOffset.UtcNow >= _nextStatus)
                 {
                     _nextStatus = DateTimeOffset.UtcNow.AddSeconds(1);
-                    DisplayFiles.Write(_statusPath, new DisplayStatus { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), ProcessId = Environment.ProcessId, Connected = _events.ConnectionState == KillEventConnectionState.Connected, Editing = _editing, Visible = _visible, Style = _style, Loading = !_applyingConfiguration.IsCompleted, Screen = monitor.Device, Screens = screens.Select(s => s.Device).ToArray(), Error = _renderError ?? _presenter.ConfigurationError ?? _service.Error });
+                    DisplayFiles.Write(_statusPath, new DisplayStatus { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), ProcessId = Environment.ProcessId, Connected = _events.ConnectionState == KillEventConnectionState.Connected, Editing = _editing, Visible = _visible, Style = _style, Loading = !_applyingConfiguration.IsCompleted, Screen = monitor.Device, Screens = screens.Select(s => s.Device).ToArray(), Error = _renderError ?? _presenter.ConfigurationError ?? _service.Error, LastTestRequest = _completedTestRequest, TestError = _testError });
                 }
             }
             catch (Exception error) { _renderError = error.Message; App.Log("Compatibility state: " + error); }
@@ -211,21 +223,72 @@ namespace KillConfirmCompatibility.Desktop.Runtime
         {
             _previewUntil = DateTimeOffset.UtcNow.AddSeconds(5); _hidden = false;
             var preset = PreviewEvents.Create(requested ? _configuration.TestPreset : "three");
-            if (requested && _configuration.TestAudio && !_editing) _ = SendAudioPreviewAsync(preset);
-            else _presenter.HandleKillEvent(preset);
+            long request = requested ? _testRequest : 0;
+            try
+            {
+                if (requested && !string.IsNullOrWhiteSpace(_presenter.ConfigurationError))
+                    throw new InvalidOperationException(_presenter.ConfigurationError);
+                // A preview must not depend on the background event connection or
+                // on the previous tick's inactive-game visibility state.
+                if (requested) ResetPreview();
+                _presenter.HandleKillEvent(preset);
+                if (requested)
+                {
+                    preset.SteamId = PreviewEvents.SteamIdPrefix + request;
+                    _ = CompletePreviewAsync(preset, request, _configuration.TestAudio && !_editing);
+                }
+            }
+            catch (Exception error) { if (requested) CompleteTest(request, error.Message); else App.Log("Compatibility preview: " + error); }
             if (DanmakuSettingsStore.IsEnabled) _danmaku.TriggerBarrage(5, 3);
         }
-        private async System.Threading.Tasks.Task SendAudioPreviewAsync(KillEvent preset)
+        private void CompleteTest(long request, string error)
+        {
+            if (request != _testRequest) return;
+            _completedTestRequest = request; _testError = error;
+            _nextStatus = DateTimeOffset.MinValue;
+        }
+        private void ResetPreview()
+        {
+            _presenter.CrosshairFeedbackAnimation.StopDesktopPlayback();
+            _presenter.LowerFeedbackAnimation.StopDesktopPlayback();
+            _presenter.LowerBadgeAnimation.StopDesktopPlayback();
+            _presenter.UpperFeedbackAnimation.StopDesktopPlayback();
+            foreach (var surface in _surfaces) surface.ResetPreviewPixels();
+        }
+        private async System.Threading.Tasks.Task CompletePreviewAsync(KillEvent preset, long request, bool audio)
         {
             try
             {
-                await _service.EnsureRegisteredAsync();
-                if (_closing || !_configuration.Enabled) return;
-                using var client = await LocalServiceAuth.CreateHttpClientAsync();
-                using var response = await client.GetAsync(PreviewEvents.UriFor(preset));
-                response.EnsureSuccessStatusCode();
+                var deadline = DateTimeOffset.UtcNow.AddSeconds(30);
+                string signature = _lastSignature;
+                while (!_closing && _configuration.Enabled && request == _testRequest && !HasRenderedPreviewPixels && DateTimeOffset.UtcNow < deadline)
+                {
+                    if (signature != _lastSignature && _applyingConfiguration.IsCompleted)
+                    {
+                        signature = _lastSignature;
+                        if (!string.IsNullOrWhiteSpace(_presenter.ConfigurationError)) throw new InvalidOperationException(_presenter.ConfigurationError);
+                        ResetPreview();
+                        _presenter.HandleKillEvent(preset);
+                    }
+                    // Loading an uncached pack can outlast the ordinary preview
+                    // window. Keep it visible until actual animation pixels arrive.
+                    _previewUntil = DateTimeOffset.UtcNow.AddSeconds(5);
+                    await System.Threading.Tasks.Task.Delay(50);
+                }
+                if (_closing || !_configuration.Enabled || request != _testRequest) return;
+                if (!HasRenderedPreviewPixels) throw new InvalidOperationException("当前测试没有可显示的画面，请检查图标包和战斗与视效中的击杀提示开关。");
+                _previewUntil = DateTimeOffset.UtcNow.AddSeconds(5);
+                if (audio)
+                {
+                    await _service.EnsureRegisteredAsync();
+                    if (_closing || !_configuration.Enabled || request != _testRequest) return;
+                    using var client = await LocalServiceAuth.CreateHttpClientAsync();
+                    using var response = await client.GetAsync(PreviewEvents.UriFor(preset));
+                    response.EnsureSuccessStatusCode();
+                }
+                CompleteTest(request, null);
             }
-            catch (Exception error) { _renderError = error.Message; App.Log("Compatibility test: " + error); }
+            catch (Exception error) { CompleteTest(request, HasRenderedPreviewPixels ? "画面已预览，但音频测试请求失败：" + error.Message : error.Message); App.Log("Compatibility test: " + error); }
         }
         private IntPtr HotkeyMessage(IntPtr window, int message, IntPtr wparam, IntPtr lparam, ref bool handled)
         {

@@ -83,6 +83,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             HomeView.QueueRapidValidationChanges(styles);
             await Task.Delay(500);
             await HomeView.ValidateGameAsync(styles.Last());
+            await HomeView.ValidatePlaybackButtonAsync();
             _tab = "home"; ApplyTab();
             CompatibilityDisplayRuntime.Update(c => c.Enabled = false);
             ApplyModeGuide(false);
@@ -102,6 +103,27 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
     public sealed partial class CompatibilityHomeView
     {
         internal static bool IsUiValidation => Package.Current.Id.Name == "KillConfirmCompatibility.UIValidation";
+        internal async Task ValidatePlaybackButtonAsync()
+        {
+            foreach (string testError in new string[] { null, "图标包缺失（测试）" })
+            {
+                var previous = CompatibilityDisplayRuntime.Load();
+                KillConfirmCompatibility.Contracts.DisplayFiles.Write(CompatibilityDisplayRuntime.StatusPath,
+                    new KillConfirmCompatibility.Contracts.DisplayStatus { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), ProcessId = 1 });
+                OnTestEventClick(this, new RoutedEventArgs());
+                var request = CompatibilityDisplayRuntime.Load();
+                if (request.TestRequest <= previous.TestRequest || !request.TestAudio || request.TestPreset != (string)((ComboBoxItem)PackTestSectionView.TestPresetSelector.SelectedItem).Tag)
+                    throw new Exception("Playback button did not send the selected visual/audio test request");
+                if (PackTestSectionView.SendTestButton.IsEnabled) throw new Exception("Playback button allowed overlapping requests");
+                KillConfirmCompatibility.Contracts.DisplayFiles.Write(CompatibilityDisplayRuntime.StatusPath,
+                    new KillConfirmCompatibility.Contracts.DisplayStatus { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), ProcessId = 1, LastTestRequest = request.TestRequest, TestError = testError });
+                for (int attempt = 0; attempt < 40 && _testInProgress; attempt++) await Task.Delay(50);
+                if (_testInProgress || !PackTestSectionView.SendTestButton.IsEnabled || PackTestSectionView.TestFeedbackText.Visibility != Visibility.Visible)
+                    throw new Exception("Playback button did not finish with inline feedback");
+                if (testError != null && PackTestSectionView.TestFeedbackText.Text != testError)
+                    throw new Exception("Playback failure was hidden from the user");
+            }
+        }
         internal async Task ValidateGameAsync(GameStyleMode style)
         {
             GameSelector.SelectedItem = GameSelector.Items.OfType<ComboBoxItem>().Single(i => (string)i.Tag == GameStyleService.ToStorageValue(style));

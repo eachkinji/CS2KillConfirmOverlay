@@ -329,6 +329,7 @@
                     Foreground="#1B1F31" />
             </Button>
             </Grid>
+            <TextBlock x:Name="TestFeedbackText" x:FieldModifier="public" TextWrapping="Wrap" Visibility="Collapsed"/>
         </StackPanel>
         </Grid>
     </Border>

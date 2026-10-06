@@ -91,6 +91,8 @@ namespace KillConfirmCompatibility.Contracts
         [DataMember] public string[] Screens { get; set; }
         [DataMember] public string Style { get; set; }
         [DataMember] public bool Loading { get; set; }
+        [DataMember] public long LastTestRequest { get; set; }
+        [DataMember] public string TestError { get; set; }
     }
     [DataContract]
     public sealed class GameBarDisplayStatus

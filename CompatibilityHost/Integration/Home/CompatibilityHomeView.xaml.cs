@@ -27,6 +27,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         private readonly SemaphoreSlim _serviceGate = new SemaphoreSlim(1, 1);
         private readonly DispatcherTimer _statusTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
         private CancellationTokenSource _repeat;
+        private bool _testInProgress;
         private int _revision;
         private string _lastRefreshError;
         public event EventHandler EffectsRequested;
@@ -79,6 +80,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         private async void OnStyleChanged(object sender, GameStyleMode style)
         {
             int revision = ++_revision; StopRepeating();
+            PackTestSectionView.TestFeedbackText.Visibility = Visibility.Collapsed;
             try { await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, async () => await RefreshGameAsync(revision)); }
             catch (Exception error) { App.Log("Compatibility game dispatch: " + error); }
         }
@@ -129,6 +131,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             Foreground = theme.Brush(theme.Text);
             foreach (var card in new[] { GameCard, StatusCard, PackTestSectionView.PackTestCard }) { card.Background = theme.Brush(theme.Card); card.BorderBrush = theme.Brush(theme.SoftBorder); }
             GameHint.Foreground = StatusText.Foreground = GsiText.Foreground = theme.Brush(theme.MutedText);
+            PackTestSectionView.TestFeedbackText.Foreground = theme.Brush(theme.MutedText);
             EditScreenButton.Background = theme.Brush(theme.Accent); EditScreenButton.Foreground = theme.Brush(theme.AccentText);
             PackTestSectionView.PackTestHeaderBorder.Background = theme.Brush(theme.Accent);
             PackTestSectionView.PackTestHeaderBorder.BorderBrush = theme.Brush(theme.Border);
@@ -152,7 +155,10 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             if (_lastRefreshError != null) StatusText.Text += "\n" + _lastRefreshError;
             var gsi = GsiStatusMonitor.Instance.CurrentSnapshot;
             GsiText.Text = $"SVC {(gsi.ServiceReachable ? "●" : "○")}   GSI {(gsi.IsGreen ? "●" : "○")}   {LocalServiceEndpoints.BaseUri}   ·   GSI {gsi.Posts:0}";
-            EditScreenButton.IsEnabled = PackTestSectionView.SendTestButton.IsEnabled = PackTestSectionView.RepeatTestButton.IsEnabled = CompatibilityDisplayRuntime.Load().Enabled;
+            bool enabled = CompatibilityDisplayRuntime.Load().Enabled;
+            EditScreenButton.IsEnabled = enabled;
+            PackTestSectionView.SendTestButton.IsEnabled = enabled && _packSelectorsInitialized && !_testInProgress;
+            PackTestSectionView.RepeatTestButton.IsEnabled = enabled && _packSelectorsInitialized && (!_testInProgress || _repeat != null);
         }
         private async Task EnsureServiceAvailableAsync()
         {
@@ -179,16 +185,46 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             CompatibilityDisplayRuntime.Update(c => c.EditRequest = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
             await CompatibilityDisplayRuntime.EnsureStartedAsync();
         }
-        private async void OnTestEventClick(object sender, RoutedEventArgs e) { StopRepeating(); try { await PlayTestAsync(); } catch (Exception error) { StatusText.Text = error.Message; } }
+        private async void OnTestEventClick(object sender, RoutedEventArgs e) { StopRepeating(); try { await PlayTestAsync(); } catch (Exception error) { ShowTestFeedback(error.Message); } }
+        private void ShowTestFeedback(string message)
+        {
+            PackTestSectionView.TestFeedbackText.Text = message;
+            PackTestSectionView.TestFeedbackText.Visibility = Visibility.Visible;
+        }
         private async Task PlayTestAsync()
         {
-            if (!CompatibilityDisplayRuntime.Load().Enabled || !_packSelectorsInitialized) return;
+            bool zh = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            if (!CompatibilityDisplayRuntime.Load().Enabled) throw new InvalidOperationException(zh ? "请先在主页选择兼容显示模式。" : "Select desktop display mode on Home first.");
+            if (!_packSelectorsInitialized) throw new InvalidOperationException(zh ? "素材正在加载，请稍后再测试。" : "Packs are loading. Try again shortly.");
+            if (_testInProgress) return;
+            _testInProgress = true;
+            RefreshStatus();
             int revision = _revision;
-            await EnsureServiceAvailableAsync();
-            if (!_isPageActive || revision != _revision || !CompatibilityDisplayRuntime.Load().Enabled) return;
-            string preset = (PackTestSectionView.TestPresetSelector.SelectedItem as ComboBoxItem)?.Tag as string ?? "one";
-            CompatibilityDisplayRuntime.Update(c => { c.TestPreset = preset; c.TestAudio = true; c.TestRequest = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(); });
-            await CompatibilityDisplayRuntime.EnsureStartedAsync();
+            try
+            {
+                ShowTestFeedback(zh ? "正在准备画面与音频测试…" : "Preparing the visual and audio test…");
+                await EnsureServiceAvailableAsync();
+                if (!_isPageActive || revision != _revision || !CompatibilityDisplayRuntime.Load().Enabled) return;
+                if (!await CompatibilityDisplayRuntime.EnsureStartedAsync()) throw new InvalidOperationException(zh ? "无法启动兼容显示，请点击重试服务。" : "Could not start desktop display. Retry the service.");
+                string preset = (PackTestSectionView.TestPresetSelector.SelectedItem as ComboBoxItem)?.Tag as string ?? "one";
+                long request = 0;
+                CompatibilityDisplayRuntime.Update(c => { c.TestPreset = preset; c.TestAudio = true; c.TestRequest = request = Math.Max(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), c.TestRequest + 1); });
+                var deadline = DateTimeOffset.UtcNow.AddSeconds(40);
+                while (_isPageActive && revision == _revision && CompatibilityDisplayRuntime.Load().Enabled && DateTimeOffset.UtcNow < deadline)
+                {
+                    var status = CompatibilityDisplayRuntime.ReadStatus();
+                    if (CompatibilityDisplayRuntime.IsRunning(status) && status.LastTestRequest == request)
+                    {
+                        if (!string.IsNullOrWhiteSpace(status.TestError)) throw new InvalidOperationException(status.TestError);
+                        ShowTestFeedback(zh ? "画面已预览，音频测试已触发。无需启动游戏。" : "Visuals previewed and audio test triggered. No game is needed.");
+                        return;
+                    }
+                    await Task.Delay(100);
+                }
+                if (_isPageActive && revision == _revision && CompatibilityDisplayRuntime.Load().Enabled)
+                    throw new TimeoutException(zh ? "显示端未确认播放，请查看运行状态并点击重试服务。" : "The display did not confirm playback. Check its runtime status and retry the service.");
+            }
+            finally { _testInProgress = false; if (_isPageActive) RefreshStatus(); }
         }
         private async void OnRepeatTestClick(object sender, RoutedEventArgs e)
         {
@@ -196,7 +232,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             var repeat = _repeat = new CancellationTokenSource();
             try { while (_isPageActive && CompatibilityDisplayRuntime.Load().Enabled && !repeat.IsCancellationRequested) { await PlayTestAsync(); await Task.Delay(2000, repeat.Token); } }
             catch (OperationCanceledException) { }
-            catch (Exception error) { StatusText.Text = error.Message; }
+            catch (Exception error) { ShowTestFeedback(error.Message); }
             finally { if (_repeat == repeat) _repeat = null; repeat.Dispose(); }
         }
         private void StopRepeating() { _repeat?.Cancel(); _repeat = null; }

@@ -247,24 +247,20 @@ namespace KillConfirmCompatibility.Services
             };
         }
 
-        private static async Task<bool> ContainsAnyFileAsync(StorageFolder folder, params string[] fileNames)
+        private static Task<bool> ContainsAnyFileAsync(StorageFolder folder, params string[] fileNames)
         {
             foreach (string name in fileNames)
             {
                 foreach (string candidate in ExpandIconFileCandidates(name))
                 {
-                    try
-                    {
-                        await folder.GetFileAsync(candidate);
-                        return true;
-                    }
-                    catch
-                    {
-                    }
+                    // The desktop host can inspect local files directly. Avoid
+                    // hundreds of WinRT exceptions for absent optional layers
+                    // while the requested preview waits for pack configuration.
+                    if (File.Exists(Path.Combine(folder.Path, candidate))) return Task.FromResult(true);
                 }
             }
 
-            return false;
+            return Task.FromResult(false);
         }
 
         private static IEnumerable<string> ExpandIconFileCandidates(string fileName)

@@ -267,7 +267,7 @@ foreach ($targetRoot in @($TransferRoot, $NoDepsTransferRoot)) {
     }
     $danmakuRoot = Join-Path $desktopRoot 'Danmaku'
     New-Item -ItemType Directory -Path $danmakuRoot -Force | Out-Null
-    foreach ($directory in @('EventPools', 'EventFitAnnotationV2')) {
+    foreach ($directory in @('EventPools', 'EventFitAnnotationV2', 'LifecyclePools', 'Pools', 'Annotation')) {
         Copy-Item -LiteralPath (Join-Path $Root "Widget/Danmaku/$directory") -Destination $danmakuRoot -Recurse -Force
     }
     Copy-Item -Path (Join-Path $Root 'Widget/Danmaku/*.json') -Destination $danmakuRoot -Force
@@ -283,6 +283,9 @@ foreach ($targetRoot in @($TransferRoot, $NoDepsTransferRoot)) {
     } finally { $desktopVcArchive.Dispose() }
     foreach ($required in @('KillConfirmCompatibility.exe', 'coreclr.dll', 'Microsoft.Graphics.Canvas.dll', 'KillConfirmService/cskillconfirm.exe')) {
         if (-not (Test-Path -LiteralPath (Join-Path $desktopRoot $required))) { throw "Desktop payload missing: $required" }
+    }
+    foreach ($required in @('Danmaku/6657_memes.json', 'Danmaku/LifecyclePools/opening_wait.json', 'Danmaku/LifecyclePools/session_end.json', 'Danmaku/Pools/semantic_event_profiles.json', 'Danmaku/Annotation/6657_annotations_v1.json')) {
+        if (-not (Test-Path -LiteralPath (Join-Path $desktopRoot $required))) { throw "Desktop danmaku payload missing: $required" }
     }
     & $SignToolPath sign /fd SHA256 /f $CertificatePfxPath /p $CertificatePassword (Join-Path $desktopRoot 'KillConfirmCompatibility.exe')
     if ($LASTEXITCODE -ne 0) { throw 'Desktop application signing failed.' }
@@ -318,6 +321,14 @@ foreach ($targetRoot in @($TransferRoot, $NoDepsTransferRoot)) {
 }
 
 # 复制离线前置组件（有依赖版）
+# Validate the staged ordinary EXE with staged assets before distributing it.
+# Source-tree tests alone cannot catch omitted resource directories.
+$desktopValidationRoot = Join-Path $OutputDir ('DesktopValidation-' + [Guid]::NewGuid().ToString('N'))
+$stagedDesktop = Join-Path $NoDepsTransferRoot 'Desktop'
+$desktopValidation = Start-Process -FilePath (Join-Path $stagedDesktop 'KillConfirmCompatibility.exe') -ArgumentList @('--validate-desktop', ('"' + $desktopValidationRoot + '"'), ('"' + $stagedDesktop + '"')) -WindowStyle Hidden -PassThru
+if (-not $desktopValidation.WaitForExit(60000)) { $desktopValidation.Kill(); throw 'Staged desktop validation timed out.' }
+if ($desktopValidation.ExitCode -ne 0) { throw (Get-Content -LiteralPath (Join-Path $desktopValidationRoot 'desktop-failure.txt') -Raw) }
+Get-Content -LiteralPath (Join-Path $desktopValidationRoot 'desktop-pass.txt')
 $prereqTargetDir = Join-Path $TransferRoot "Prerequisites"
 New-Item -ItemType Directory -Force -Path $prereqTargetDir | Out-Null
 if (Test-Path $PrerequisiteSourceRoot) {

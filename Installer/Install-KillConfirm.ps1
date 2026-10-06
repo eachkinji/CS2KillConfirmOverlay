@@ -132,6 +132,10 @@ try {
     }
 
     Write-InstallStage -Number 1 -Total 7 -Name "桌面主程序" -Detail "控制面板和兼容显示，无需 MSIX"
+    if (-not $RetryGameBarOnly) {
+        try { Stop-OverlayRuntimeForUpdate }
+        catch { Add-InstallResult -Status Warning -Item '关闭旧程序' -Detail ((Get-ErrorReason $_) + '；继续安装桌面主程序') }
+    }
     Install-DesktopControlPanel
     Write-InstallStage -Number 2 -Total 7 -Name "显示方式检测" -Detail "兼容显示已就绪，检测可选 Game Bar"
     $firewall = Get-Service -Name MpsSvc -ErrorAction SilentlyContinue

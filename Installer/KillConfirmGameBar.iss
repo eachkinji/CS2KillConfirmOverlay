@@ -35,6 +35,9 @@
 AppId={{E0DF6407-CB2E-43D0-8B51-8C8924F50AA1}
 AppName={cm:InstallerDisplayName}
 AppVersion={#MyAppVersion}
+VersionInfoVersion={#MyAppVersion}
+VersionInfoDescription=Kill Confirm Overlay installer
+VersionInfoProductName=Kill Confirm Overlay
 AppPublisher={#MyAppPublisher}
 DefaultDirName={autopf}\Kill Confirm Overlay
 DefaultGroupName=Kill Confirm Overlay

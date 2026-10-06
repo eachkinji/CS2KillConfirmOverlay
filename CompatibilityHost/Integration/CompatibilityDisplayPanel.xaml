@@ -39,6 +39,162 @@
                 <Border x:Name="ModeStatusBadge" CornerRadius="6" Padding="12,8"><StackPanel Orientation="Horizontal" Spacing="8"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE73E;" FontSize="14"/><TextBlock x:Name="StatusText" FontSize="12" TextWrapping="Wrap"/></StackPanel></Border>
             </StackPanel>
         </Border>
+        <StackPanel x:Name="GameBarStatusSection" Spacing="6" Visibility="Collapsed">
+            <TextBlock
+                x:Name="GameBarStatusTitle"
+                FontSize="16" FontWeight="SemiBold"
+                Text="GAME BAR 使用状态" />
+            <TextBlock
+                x:Name="GameBarStatusDescription"
+                Margin="2,0,2,6"
+                FontSize="12" TextWrapping="Wrap"
+                Text="打开 Win+G 后，这里会实时显示固定与单击浏览状态。" />
+            <Border
+                x:Name="GameBarStatusCard"
+                Style="{StaticResource SettingsSectionCardStyle}">
+                <Grid RowSpacing="12">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="1" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Spacing="2">
+                            <TextBlock
+                                x:Name="GameBarCardTitle"
+                                FontSize="13" FontWeight="SemiBold"
+                                Text="Kill Confirm Overlay 小组件" />
+                            <TextBlock
+                                x:Name="GameBarCardSummary"
+                                FontSize="12" TextWrapping="Wrap"
+                                Text="等待小组件上报状态" />
+                        </StackPanel>
+                        <Button
+                            x:Name="OpenGameBarButton"
+                            Grid.Column="1"
+                            VerticalAlignment="Center"
+                            Style="{StaticResource SettingsPrimaryButtonStyle}"
+                            Click="OnOpenGameBarClick"
+                            ><StackPanel Orientation="Horizontal" Spacing="8"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7FC;" FontSize="15"/><TextBlock x:Name="OpenGameBarLabel" Text="打开 Game Bar"/></StackPanel></Button>
+                    </Grid>
+
+                    <Border
+                        Grid.Row="1"
+                        Height="1"
+                        Background="#E5E5E5" />
+
+                    <Grid Grid.Row="2" ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="26" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock
+                            x:Name="WidgetStatusGlyph"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            FontSize="18"
+                            FontWeight="Bold"
+                            Foreground="#6E6E6E"
+                            Text="?" />
+                        <StackPanel Grid.Column="1" Spacing="1">
+                            <TextBlock
+                                x:Name="WidgetStatusTitle"
+                                FontSize="13" FontWeight="SemiBold"
+                                Text="小组件状态" />
+                            <TextBlock
+                                x:Name="WidgetStatusDetail"
+                                FontSize="12" TextWrapping="Wrap"
+                                Text="请按 Win+G 打开 Kill Confirm Overlay" />
+                        </StackPanel>
+                        <TextBlock
+                            x:Name="WidgetStatusBadge"
+                            Grid.Column="2"
+                            VerticalAlignment="Center"
+                            FontSize="12"
+                            FontWeight="SemiBold"
+                            Foreground="#6E6E6E"
+                            Text="未检测" />
+                    </Grid>
+
+                    <Grid Grid.Row="3" ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="26" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock
+                            x:Name="PinStatusGlyph"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            FontSize="18"
+                            FontWeight="Bold"
+                            Foreground="#6E6E6E"
+                            Text="?" />
+                        <StackPanel Grid.Column="1" Spacing="1">
+                            <TextBlock
+                                x:Name="PinStatusTitle"
+                                FontSize="13" FontWeight="SemiBold"
+                                Text="固定窗口" />
+                            <TextBlock
+                                x:Name="PinStatusDetail"
+                                FontSize="12" TextWrapping="Wrap"
+                                Text="等待小组件状态" />
+                        </StackPanel>
+                        <TextBlock
+                            x:Name="PinStatusBadge"
+                            Grid.Column="2"
+                            VerticalAlignment="Center"
+                            FontSize="12"
+                            FontWeight="SemiBold"
+                            Foreground="#6E6E6E"
+                            Text="未知" />
+                    </Grid>
+
+                    <Grid Grid.Row="4" ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="26" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock
+                            x:Name="ClickThroughStatusGlyph"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            FontSize="18"
+                            FontWeight="Bold"
+                            Foreground="#6E6E6E"
+                            Text="?" />
+                        <StackPanel Grid.Column="1" Spacing="1">
+                            <TextBlock
+                                x:Name="ClickThroughStatusTitle"
+                                FontSize="13" FontWeight="SemiBold"
+                                Text="单击浏览" />
+                            <TextBlock
+                                x:Name="ClickThroughStatusDetail"
+                                FontSize="12" TextWrapping="Wrap"
+                                Text="等待小组件状态" />
+                        </StackPanel>
+                        <TextBlock
+                            x:Name="ClickThroughStatusBadge"
+                            Grid.Column="2"
+                            VerticalAlignment="Center"
+                            FontSize="12"
+                            FontWeight="SemiBold"
+                            Foreground="#6E6E6E"
+                            Text="未知" />
+                    </Grid>
+                </Grid>
+            </Border>
+        </StackPanel>
+
         <Border x:Name="GuideCard" Style="{StaticResource SettingsSectionCardStyle}">
             <StackPanel Spacing="14">
                 <StackPanel Orientation="Horizontal" Spacing="8"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8F2;" FontSize="18" Foreground="#0067C0"/><TextBlock x:Name="GuideTitle" FontSize="16" FontWeight="SemiBold"/></StackPanel>
@@ -49,7 +205,6 @@
                     <StackPanel Grid.Column="1" Spacing="8"><StackPanel Orientation="Horizontal" Spacing="8"><FontIcon x:Name="StepTwoIcon" FontFamily="Segoe MDL2 Assets" Glyph="&#xE718;" FontSize="16" Foreground="#0067C0"/><TextBlock x:Name="StepTwoTitle" FontWeight="SemiBold" FontSize="13"/></StackPanel><TextBlock x:Name="StepTwoText" FontSize="12" TextWrapping="Wrap" LineHeight="18"/></StackPanel>
                     <StackPanel Grid.Column="2" Spacing="8"><StackPanel Orientation="Horizontal" Spacing="8"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE73E;" FontSize="16" Foreground="#0067C0"/><TextBlock x:Name="StepThreeTitle" FontWeight="SemiBold" FontSize="13"/></StackPanel><TextBlock x:Name="StepThreeText" FontSize="12" TextWrapping="Wrap" LineHeight="18"/></StackPanel>
                 </Grid>
-                <Button x:Name="OpenGameBarButton" Style="{StaticResource SettingsPrimaryButtonStyle}" Click="OnOpenGameBarClick" Padding="16,9" Visibility="Collapsed"><StackPanel Orientation="Horizontal" Spacing="8"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7FC;" FontSize="15"/><TextBlock x:Name="OpenGameBarLabel" Text="打开 Game Bar"/></StackPanel></Button>
             </StackPanel>
         </Border>
         <Border x:Name="TabBar" Padding="3" CornerRadius="6" BorderThickness="1" HorizontalAlignment="Left">

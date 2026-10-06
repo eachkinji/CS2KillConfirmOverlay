@@ -55,23 +55,6 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             catch (Exception error) { StatusText.Text = error.Message; App.Log("Display mode switch: " + error); }
             finally { _switching = false; CompatibilityMode.IsEnabled = GameBarMode.IsEnabled = true; ApplyModeGuide(CompatibilityDisplayRuntime.Load().Enabled); }
         }
-        private async void OnOpenGameBarClick(object sender, RoutedEventArgs e)
-        {
-            OpenGameBarButton.IsEnabled = false;
-            try
-            {
-                if (!await CompatibilityDisplayRuntime.EnsureSelectedModeAsync())
-                {
-                    RefreshStatus();
-                    return;
-                }
-                if (!await KillConfirmWidgetPage.TryLaunchFullTrustHelperAsync("OpenGameBar"))
-                    StatusText.Text = LocalizationManager.Current == UiLanguage.SimplifiedChinese
-                        ? "无法打开 Game Bar，请按 Win + G 手动打开。" : "Could not open Game Bar. Press Win + G to open it manually.";
-            }
-            catch (Exception error) { StatusText.Text = error.Message; App.Log("Open Game Bar from home: " + error); }
-            finally { OpenGameBarButton.IsEnabled = !CompatibilityDisplayRuntime.IsEnabled; }
-        }
         private void OnTabClick(object sender, RoutedEventArgs e) { _tab = (string)((Button)sender).Tag; ApplyTab(); }
         private void OnEffectsRequested(object sender, EventArgs e) { _tab = "effects"; ApplyTab(); }
         private void ApplyTab()
@@ -109,6 +92,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             bool zh = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
             var config = CompatibilityDisplayRuntime.Load(); var status = CompatibilityDisplayRuntime.ReadStatus();
             ApplyModeGuide(config.Enabled);
+            if (!config.Enabled) RefreshGameBarStatus();
             StatusText.Text = config.Enabled ? (status?.Editing == true ? (zh ? "正在编辑屏幕 · 完成后恢复鼠标穿透" : "Editing screen · Finish to restore click-through") : CompatibilityDisplayRuntime.IsRunning(status) ? (zh ? "兼容显示运行中 · Game Bar 显示已暂停" : "Desktop display running · Game Bar display paused") : (zh ? "等待兼容显示启动" : "Waiting for desktop display")) : (CompatibilityDisplayRuntime.IsEnabled ? (zh ? "正在停止兼容显示 · Game Bar 暂停中" : "Stopping desktop display · Game Bar paused") : (zh ? "Game Bar 显示已启用 · 兼容显示已关闭" : "Game Bar display enabled · Desktop display stopped"));
             EditButton.IsEnabled = PreviewButton.IsEnabled = ResetButton.IsEnabled = config.Enabled;
             var screens = status?.Screens ?? new string[0];
@@ -147,6 +131,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             HideToggle.Header = zh ? "切出游戏时隐藏" : "Hide when game loses focus";
             ScreenSelector.Header = zh ? "显示器（预览与固定显示）" : "Monitor (preview and fixed display)";
             FpsSelector.Header = zh ? "动画帧率" : "Animation frame rate";
+            ApplyGameBarStatusLanguage();
             HomeView.ApplyLanguage(); ApplyModeGuide(CompatibilityDisplayRuntime.Load().Enabled);
         }
         private void ApplyModeGuide(bool compatibility)
@@ -176,7 +161,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                 CompatibilityModeCard.Background = _theme.Brush(compatibility ? _theme.AccentSoft : _theme.Card);
                 CompatibilityModeCard.BorderBrush = _theme.Brush(compatibility ? _theme.Accent : _theme.SoftBorder);
             }
-            OpenGameBarButton.Visibility = compatibility ? Visibility.Collapsed : Visibility.Visible;
+            GameBarStatusSection.Visibility = compatibility ? Visibility.Collapsed : Visibility.Visible;
             OpenGameBarButton.IsEnabled = !_switching && !CompatibilityDisplayRuntime.IsEnabled;
             TabBar.Visibility = CompatibilityWorkspace.Visibility = compatibility ? Visibility.Visible : Visibility.Collapsed;
         }
@@ -190,6 +175,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             ModeStatusBadge.Background = theme.Brush(theme.AccentSoft);
             StatusText.Foreground = theme.Brush(theme.Accent);
             foreach (var text in new[] { DescriptionText, GameBarModeHint, CompatibilityModeHint, GuideDescription, LayoutHint, ShortcutText, ScreenScopeHint, StepOneText, StepTwoText, StepThreeText }) text.Foreground = theme.Brush(theme.MutedText);
+            ApplyGameBarStatusTheme(theme);
             HomeView.ApplyTheme(theme); ApplyTab(); ApplyModeGuide(CompatibilityDisplayRuntime.Load().Enabled);
         }
     }

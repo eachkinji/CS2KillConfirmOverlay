@@ -55,11 +55,11 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         {
             if (CompatibilityDisplayRuntime.Load().Enabled || GameBarMode.IsChecked != true) throw new Exception("First use did not default to Game Bar");
             ApplyModeGuide(false);
-            if (OpenGameBarButton.Visibility != Visibility.Visible || TabBar.Visibility != Visibility.Collapsed || CompatibilityWorkspace.Visibility != Visibility.Collapsed) throw new Exception("Game Bar guide exposes desktop-only controls");
+            if (GameBarStatusSection.Visibility != Visibility.Visible || TabBar.Visibility != Visibility.Collapsed || CompatibilityWorkspace.Visibility != Visibility.Collapsed) throw new Exception("Game Bar guide exposes desktop-only controls");
             await CaptureUiAsync("home-gamebar");
             CompatibilityDisplayRuntime.Update(c => c.Enabled = true);
             ApplyModeGuide(true);
-            if (OpenGameBarButton.Visibility != Visibility.Collapsed || TabBar.Visibility != Visibility.Visible || CompatibilityWorkspace.Visibility != Visibility.Visible) throw new Exception("Desktop mode did not expose its guide and workspace");
+            if (GameBarStatusSection.Visibility != Visibility.Collapsed || TabBar.Visibility != Visibility.Visible || CompatibilityWorkspace.Visibility != Visibility.Visible) throw new Exception("Desktop mode did not expose its guide and workspace");
             var styles = Enum.GetValues(typeof(GameStyleMode)).Cast<GameStyleMode>().ToArray();
             foreach (var style in styles)
             {

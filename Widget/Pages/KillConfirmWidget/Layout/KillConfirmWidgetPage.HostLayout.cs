@@ -359,9 +359,21 @@ namespace KillConfirmGameBar
             SyncWidgetPresentationState();
         }
 
+#if SHARED_WIDGET_RUNTIME
+        private long _sharedSettingsRevision=-1;
+#endif
         private void OnControlPanelStateTimerTick(object sender, object e)
         {
             SyncWidgetPresentationState();
+#if SHARED_WIDGET_RUNTIME
+            if (_sharedSettingsRevision != SharedRuntime.SettingsRevision)
+            {
+                _sharedSettingsRevision=SharedRuntime.SettingsRevision;
+                LoadVisualAdjustmentSettings();
+                LoadMoneyRewardModeSettings();
+                OnGameStyleServiceChanged(null,GameStyleService.Current);
+            }
+#endif
             if (!string.Equals(
                     _loadedCsGameVersion,
                     GsiGameVersionSettingsStore.Load(),

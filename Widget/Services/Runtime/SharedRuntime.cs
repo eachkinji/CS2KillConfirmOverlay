@@ -14,7 +14,8 @@ namespace KillConfirmGameBar.Services
     internal static class SharedRuntime
     {
         private static bool Applying,Busy;
-        private static string Catalog,Display;
+        private static string Catalog,Display,Settings;
+        public static long SettingsRevision { get; private set; }
         private static readonly Dictionary<string,JsonValue> Pending=new Dictionary<string,JsonValue>();
         private static HashSet<string> PrimaryKeys=new HashSet<string>();
         private static DispatcherTimer Timer;
@@ -69,6 +70,8 @@ namespace KillConfirmGameBar.Services
                     {
                         response.EnsureSuccessStatusCode();
                         var snapshot=JsonObject.Parse(await response.Content.ReadAsStringAsync());
+                        string settings=snapshot["settings"].Stringify();
+                        if(settings!=Settings) { Settings=settings; SettingsRevision++; }
                         SharedResources.RemoteDataRoot=snapshot["dataRoot"].GetString();
                         Applying=true;
                         try
@@ -76,14 +79,17 @@ namespace KillConfirmGameBar.Services
                             var currentKeys=new HashSet<string>();
                             if(snapshot["settings"].ValueType==JsonValueType.Object) foreach(var pair in snapshot["settings"].GetObject()) {
                                 currentKeys.Add(pair.Key);
-                                if(!Pending.ContainsKey(pair.Key)) ApplicationData.Current.LocalSettings.Values[pair.Key]=Scalar(pair.Value.GetObject());
+                                if(!Pending.ContainsKey(pair.Key)) {
+                                    object value=Scalar(pair.Value.GetObject());
+                                    if(!ApplicationData.Current.LocalSettings.Values.TryGetValue(pair.Key,out object previous) || !Equals(previous,value)) ApplicationData.Current.LocalSettings.Values[pair.Key]=value;
+                                }
                             }
                             foreach(string key in PrimaryKeys) if(!currentKeys.Contains(key) && !Pending.ContainsKey(key)) ApplicationData.Current.LocalSettings.Values.Remove(key);
                             PrimaryKeys=currentKeys;
                             string catalog=snapshot["catalog"].Stringify();
                             if(catalog!="null" && catalog!=Catalog) {File.WriteAllText(Path.Combine(ApplicationData.Current.LocalFolder.Path,"pack-catalog.json"),catalog); Catalog=catalog; PackCatalogService.ResetSharedCache(); SharedResources.Invalidate();}
                             string display=snapshot["display"].Stringify();
-                            if(display!="null" && display!=Display) {string folder=Path.Combine(ApplicationData.Current.LocalFolder.Path,"CompatibilityDisplay");Directory.CreateDirectory(folder);File.WriteAllText(Path.Combine(folder,"display.json"),display); Display=display;SharedResources.Invalidate();}
+                            if(display!="null" && display!=Display) {string folder=Path.Combine(ApplicationData.Current.LocalFolder.Path,"CompatibilityDisplay");Directory.CreateDirectory(folder);File.WriteAllText(Path.Combine(folder,"display.json"),display); Display=display;SharedResources.Invalidate();SettingsRevision++;}
                         }
                         finally {Applying=false;}
                     }

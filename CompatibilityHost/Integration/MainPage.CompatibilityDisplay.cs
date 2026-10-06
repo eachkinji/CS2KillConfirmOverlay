@@ -34,7 +34,7 @@ namespace KillConfirmGameBar
             UpdateSettingsPageVisibility();
             AdvancedSettingsTabBar.Visibility = GameWorkspaceTabBar.Visibility = Visibility.Collapsed;
             BackgroundDecoration.Visibility = Visibility.Collapsed;
-            var theme = GameThemePalette.ForMode(GameStyleService.Current);
+            var theme = GameThemePalette.Home;
             SettingsRootGrid.Background = CreateSettingsBackground(GameStyleService.Current, true);
             ApplyGameStyleSidebarTheme(theme);
             ApplyPageTitleTheme(theme);

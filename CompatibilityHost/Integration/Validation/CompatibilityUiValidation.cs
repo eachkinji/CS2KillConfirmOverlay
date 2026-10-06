@@ -39,7 +39,7 @@ namespace KillConfirmGameBar
                     await Task.Delay(100);
                     if (!_isHomePageSelected || CompatibilityPageContent.Content != _compatibilityWorkspace) throw new Exception("Home page did not remount");
                     await _compatibilityWorkspace.ValidateCurrentGameAsync();
-                    await FileIO.WriteTextAsync(await ApplicationData.Current.LocalFolder.CreateFileAsync("ui-pass.txt", CreationCollisionOption.ReplaceExisting), "PASS: default mode-selection home, both mode guides, peer advanced settings with four tabs, independent game navigation, three desktop tabs, all 15 game panels, 60 rapid game changes, selectors, isolated appearance settings and navigation lifecycle.");
+                    await FileIO.WriteTextAsync(await ApplicationData.Current.LocalFolder.CreateFileAsync("ui-pass.txt", CreationCollisionOption.ReplaceExisting), "PASS: default mode-selection home, both mode guides, peer advanced settings with four tabs, independent game navigation, Game Bar default, two shared-style home tabs, integrated screen layout, detailed runtime status, playback feedback, all 15 game panels, 60 rapid game changes, selectors, isolated appearance settings and navigation lifecycle.");
                 }
                 catch (Exception error) { await FileIO.WriteTextAsync(await ApplicationData.Current.LocalFolder.CreateFileAsync("ui-failure.txt", CreationCollisionOption.ReplaceExisting), error.ToString()); }
             };
@@ -53,6 +53,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         internal Task ValidateCurrentGameAsync() => HomeView.ValidateGameAsync(GameStyleService.Current);
         internal async Task ValidateUiAsync()
         {
+            if (CompatibilityDisplayRuntime.Load().Enabled || GameBarMode.IsChecked != true) throw new Exception("First use did not default to Game Bar");
             ApplyModeGuide(false);
             if (OpenGameBarButton.Visibility != Visibility.Visible || TabBar.Visibility != Visibility.Collapsed || CompatibilityWorkspace.Visibility != Visibility.Collapsed) throw new Exception("Game Bar guide exposes desktop-only controls");
             await CaptureUiAsync("home-gamebar");
@@ -64,15 +65,17 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             {
                 await HomeView.ValidateGameAsync(style);
                 await Task.Delay(20);
-                if (_theme.Accent != GameThemePalette.ForMode(style).Accent) throw new Exception("Compatibility workspace theme did not follow game: " + style);
+                if (_theme.Accent != GameThemePalette.Home.Accent) throw new Exception("Home palette differs from Advanced settings: " + style);
+                if (HomeView.ScreenLayoutContent != DisplayView || DisplayView.Visibility != Visibility.Visible) throw new Exception("Screen controls are not embedded under Packs & testing");
+                if (((StackPanel)TabBar.Child).Children.Count != 2) throw new Exception("Screen layout still has a separate tab");
                 if (style == GameStyleMode.Crossfire || style == GameStyleMode.ModernWarfare2019)
                 {
                     _tab = "home"; ApplyTab();
                     await CaptureUiAsync(GameStyleService.ToStorageValue(style));
                 }
-                foreach (var tab in new[] { "home", "effects", "display" }) {
+                foreach (var tab in new[] { "home", "effects" }) {
                     _tab = tab; ApplyTab(); await Task.Delay(20);
-                    if ((_tab == "home") != (HomeView.Visibility == Visibility.Visible) || (_tab == "effects") != (EffectsView.Visibility == Visibility.Visible) || (_tab == "display") != (DisplayView.Visibility == Visibility.Visible)) throw new Exception("Desktop tab routing failed: " + tab);
+                    if ((_tab == "home") != (HomeView.Visibility == Visibility.Visible) || (_tab == "effects") != (EffectsView.Visibility == Visibility.Visible)) throw new Exception("Desktop tab routing failed: " + tab);
                 }
                 var before = KillFeedbackVisibilitySettingsStore.Load(style);
                 var desktop = CompatibilityAppearanceStore.Load(style);
@@ -83,6 +86,9 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             HomeView.QueueRapidValidationChanges(styles);
             await Task.Delay(500);
             await HomeView.ValidateGameAsync(styles.Last());
+            _tab = "home"; ApplyTab();
+            Width = 640; await CaptureUiAsync("home-compact"); Width = double.NaN;
+            HomeView.ValidateStatusCards();
             await HomeView.ValidatePlaybackButtonAsync();
             _tab = "home"; ApplyTab();
             CompatibilityDisplayRuntime.Update(c => c.Enabled = false);
@@ -103,16 +109,32 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
     public sealed partial class CompatibilityHomeView
     {
         internal static bool IsUiValidation => Package.Current.Id.Name == "KillConfirmCompatibility.UIValidation";
+        internal void ValidateStatusCards()
+        {
+            bool zh = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            var config = new KillConfirmCompatibility.Contracts.DisplayConfiguration { Enabled = true };
+            var status = new KillConfirmCompatibility.Contracts.DisplayStatus { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), ProcessId = 1, Connected = true, Style = GameStyleService.ToStorageValue(GameStyleService.Current) };
+            UpdateStatusCards(config, status, new GsiStatusSnapshot(true, false, 0, null, 0));
+            if (DisplayStateText.Text != (zh ? "已就绪" : "Ready") || ServiceStateText.Text != (zh ? "已连接" : "Connected") || GameDataText.Text != (zh ? "等待游戏数据" : "Waiting for game data")) throw new Exception("Inactive game was reported as a display/service failure");
+            status.Error = "图标包缺失（测试）";
+            UpdateStatusCards(config, status, GsiStatusSnapshot.Offline);
+            if (StatusText.Text != status.Error || DisplayStateText.Text != (zh ? "需要处理" : "Needs attention")) throw new Exception("Missing resources were not shown as an actionable status");
+            config.Enabled = false;
+            UpdateStatusCards(config, status, GsiStatusSnapshot.Offline);
+            if (StatusText.Text == status.Error || DisplayStateText.Text != (zh ? "Game Bar 模式" : "Game Bar mode")) throw new Exception("Game Bar mode retained a stale desktop error");
+            RefreshStatus();
+        }
         internal async Task ValidatePlaybackButtonAsync()
         {
-            foreach (string testError in new string[] { null, "图标包缺失（测试）" })
+            foreach (var testCase in new[] { Tuple.Create((string)null, true), Tuple.Create("图标包缺失（测试）", true), Tuple.Create((string)null, false) })
             {
+                string testError = testCase.Item1; bool audio = testCase.Item2;
                 var previous = CompatibilityDisplayRuntime.Load();
                 KillConfirmCompatibility.Contracts.DisplayFiles.Write(CompatibilityDisplayRuntime.StatusPath,
                     new KillConfirmCompatibility.Contracts.DisplayStatus { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), ProcessId = 1 });
-                OnTestEventClick(this, new RoutedEventArgs());
+                if (audio) OnTestEventClick(this, new RoutedEventArgs()); else _ = PreviewVisualAsync();
                 var request = CompatibilityDisplayRuntime.Load();
-                if (request.TestRequest <= previous.TestRequest || !request.TestAudio || request.TestPreset != (string)((ComboBoxItem)PackTestSectionView.TestPresetSelector.SelectedItem).Tag)
+                if (request.TestRequest <= previous.TestRequest || request.TestAudio != audio || request.TestPreset != (string)((ComboBoxItem)PackTestSectionView.TestPresetSelector.SelectedItem).Tag)
                     throw new Exception("Playback button did not send the selected visual/audio test request");
                 if (PackTestSectionView.SendTestButton.IsEnabled) throw new Exception("Playback button allowed overlapping requests");
                 KillConfirmCompatibility.Contracts.DisplayFiles.Write(CompatibilityDisplayRuntime.StatusPath,

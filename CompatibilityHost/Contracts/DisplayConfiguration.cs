@@ -8,7 +8,8 @@ namespace KillConfirmCompatibility.Contracts
     public sealed class DisplayConfiguration
     {
         [DataMember] public int Version { get; set; } = 1;
-        [DataMember] public bool Enabled { get; set; }
+        // First use starts in Game Bar; an explicitly saved mode remains selected.
+        [DataMember] public bool Enabled { get; set; } = false;
         [DataMember] public bool FollowGame { get; set; } = true;
         [DataMember] public bool HideWhenInactive { get; set; } = true;
         [DataMember] public string ScreenName { get; set; } = "";

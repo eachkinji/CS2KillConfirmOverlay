@@ -1,62 +1,95 @@
 <UserControl x:Class="KillConfirmGameBar.Features.CompatibilityDisplay.CompatibilityDisplayPanel"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:KillConfirmGameBar.Features.CompatibilityDisplay">
-    <StackPanel Spacing="20" MaxWidth="1480">
-        <Border x:Name="ModeCard" CornerRadius="16" BorderThickness="1" Padding="24">
-            <Grid ColumnSpacing="24">
-                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                <StackPanel Spacing="8">
-                    <TextBlock x:Name="TitleText" Text="选择显示模式" FontSize="28" FontWeight="SemiBold"/>
-                    <TextBlock x:Name="DescriptionText" Text="先选择一种显示方式，再按下方指引开始使用。通用配置位于左侧第二个卡片「高级设置」。" TextWrapping="Wrap"/>
-                    <TextBlock x:Name="StatusText" TextWrapping="Wrap"/>
-                </StackPanel>
-                <StackPanel Grid.Column="1" Spacing="10" VerticalAlignment="Center">
-                    <RadioButton x:Name="CompatibilityMode" GroupName="DisplayBackend" Content="兼容显示模式" Checked="OnModeChanged"/>
-                    <RadioButton x:Name="GameBarMode" GroupName="DisplayBackend" Content="Game Bar 模式" Checked="OnModeChanged"/>
-                </StackPanel>
-            </Grid>
-        </Border>
-        <Border x:Name="GuideCard" CornerRadius="16" BorderThickness="1" Padding="24">
-            <StackPanel Spacing="12">
-                <TextBlock x:Name="GuideTitle" FontSize="20" FontWeight="SemiBold"/>
-                <TextBlock x:Name="GuideDescription" TextWrapping="Wrap"/>
-                <TextBlock x:Name="GuideSteps" TextWrapping="Wrap" LineHeight="28"/>
-                <Button x:Name="OpenGameBarButton" Content="打开 Game Bar" Click="OnOpenGameBarClick" Padding="24,12" Visibility="Collapsed"/>
+    <UserControl.Resources>
+        <ResourceDictionary><ResourceDictionary.MergedDictionaries>
+            <ResourceDictionary Source="ms-appx:///Controls/Settings/SettingsWorkspace.Styles.xaml"/>
+        </ResourceDictionary.MergedDictionaries></ResourceDictionary>
+    </UserControl.Resources>
+    <StackPanel Spacing="16" MaxWidth="1480">
+        <Border x:Name="ModeCard" Style="{StaticResource SettingsSectionCardStyle}">
+            <StackPanel Spacing="16">
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                    <Border Background="#EBF3FC" CornerRadius="6" Width="40" Height="40" VerticalAlignment="Top"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE80F;" FontSize="20" Foreground="#0067C0"/></Border>
+                    <StackPanel Grid.Column="1" Spacing="6">
+                        <TextBlock x:Name="TitleText" Text="开始使用" FontSize="24" FontWeight="SemiBold"/>
+                        <TextBlock x:Name="DescriptionText" FontSize="13" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Grid>
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                    <Border x:Name="GameBarModeCard" CornerRadius="6" BorderThickness="1" Padding="12">
+                        <RadioButton x:Name="GameBarMode" GroupName="DisplayBackend" IsChecked="True" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Checked="OnModeChanged">
+                            <StackPanel Spacing="6">
+                                <StackPanel Orientation="Horizontal" Spacing="8"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7FC;" FontSize="18"/><TextBlock x:Name="GameBarModeTitle" Text="Game Bar 模式" FontWeight="SemiBold"/><Border Background="#EBF3FC" CornerRadius="4" Padding="6,2"><TextBlock x:Name="RecommendedText" Text="默认推荐" FontSize="11" Foreground="#0067C0"/></Border></StackPanel>
+                                <TextBlock x:Name="GameBarModeHint" FontSize="12" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </RadioButton>
+                    </Border>
+                    <Border x:Name="CompatibilityModeCard" Grid.Column="1" CornerRadius="6" BorderThickness="1" Padding="12">
+                        <RadioButton x:Name="CompatibilityMode" GroupName="DisplayBackend" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Checked="OnModeChanged">
+                            <StackPanel Spacing="6">
+                                <StackPanel Orientation="Horizontal" Spacing="8"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7F4;" FontSize="18"/><TextBlock x:Name="CompatibilityModeTitle" Text="兼容显示模式" FontWeight="SemiBold"/></StackPanel>
+                                <TextBlock x:Name="CompatibilityModeHint" FontSize="12" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </RadioButton>
+                    </Border>
+                </Grid>
+                <Border x:Name="ModeStatusBadge" CornerRadius="6" Padding="12,8"><StackPanel Orientation="Horizontal" Spacing="8"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE73E;" FontSize="14"/><TextBlock x:Name="StatusText" FontSize="12" TextWrapping="Wrap"/></StackPanel></Border>
             </StackPanel>
         </Border>
-        <Border x:Name="TabBar" Padding="4" CornerRadius="10">
-            <StackPanel Orientation="Horizontal" Spacing="6">
-                <Button x:Name="HomeTab" Tag="home" Content="素材与测试" Click="OnTabClick" Padding="24,10"/>
-                <Button x:Name="EffectsTab" Tag="effects" Content="战斗与视效" Click="OnTabClick" Padding="24,10"/>
-                <Button x:Name="DisplayTab" Tag="display" Content="屏幕与布局" Click="OnTabClick" Padding="24,10"/>
+        <Border x:Name="GuideCard" Style="{StaticResource SettingsSectionCardStyle}">
+            <StackPanel Spacing="14">
+                <StackPanel Orientation="Horizontal" Spacing="8"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8F2;" FontSize="18" Foreground="#0067C0"/><TextBlock x:Name="GuideTitle" FontSize="16" FontWeight="SemiBold"/></StackPanel>
+                <TextBlock x:Name="GuideDescription" FontSize="12" TextWrapping="Wrap"/>
+                <Grid ColumnSpacing="16">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                    <StackPanel Spacing="8"><StackPanel Orientation="Horizontal" Spacing="8"><FontIcon x:Name="StepOneIcon" FontFamily="Segoe MDL2 Assets" Glyph="&#xE7FC;" FontSize="16" Foreground="#0067C0"/><TextBlock x:Name="StepOneTitle" FontWeight="SemiBold" FontSize="13"/></StackPanel><TextBlock x:Name="StepOneText" FontSize="12" TextWrapping="Wrap" LineHeight="18"/></StackPanel>
+                    <StackPanel Grid.Column="1" Spacing="8"><StackPanel Orientation="Horizontal" Spacing="8"><FontIcon x:Name="StepTwoIcon" FontFamily="Segoe MDL2 Assets" Glyph="&#xE718;" FontSize="16" Foreground="#0067C0"/><TextBlock x:Name="StepTwoTitle" FontWeight="SemiBold" FontSize="13"/></StackPanel><TextBlock x:Name="StepTwoText" FontSize="12" TextWrapping="Wrap" LineHeight="18"/></StackPanel>
+                    <StackPanel Grid.Column="2" Spacing="8"><StackPanel Orientation="Horizontal" Spacing="8"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE73E;" FontSize="16" Foreground="#0067C0"/><TextBlock x:Name="StepThreeTitle" FontWeight="SemiBold" FontSize="13"/></StackPanel><TextBlock x:Name="StepThreeText" FontSize="12" TextWrapping="Wrap" LineHeight="18"/></StackPanel>
+                </Grid>
+                <Button x:Name="OpenGameBarButton" Style="{StaticResource SettingsPrimaryButtonStyle}" Click="OnOpenGameBarClick" Padding="16,9" Visibility="Collapsed"><StackPanel Orientation="Horizontal" Spacing="8"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7FC;" FontSize="15"/><TextBlock x:Name="OpenGameBarLabel" Text="打开 Game Bar"/></StackPanel></Button>
+            </StackPanel>
+        </Border>
+        <Border x:Name="TabBar" Padding="3" CornerRadius="6" BorderThickness="1" HorizontalAlignment="Left">
+            <StackPanel Orientation="Horizontal" Spacing="4">
+                <Button x:Name="HomeTab" Tag="home" Style="{StaticResource StudioTabActiveButtonStyle}" Click="OnTabClick"><StackPanel Orientation="Horizontal" Spacing="7"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8B7;" FontSize="13"/><TextBlock x:Name="HomeTabLabel" Text="素材与测试"/></StackPanel></Button>
+                <Button x:Name="EffectsTab" Tag="effects" Style="{StaticResource StudioTabButtonStyle}" Click="OnTabClick"><StackPanel Orientation="Horizontal" Spacing="7"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7C1;" FontSize="13"/><TextBlock x:Name="EffectsTabLabel" Text="战斗与视效"/></StackPanel></Button>
             </StackPanel>
         </Border>
         <Grid x:Name="CompatibilityWorkspace">
             <local:CompatibilityHomeView x:Name="HomeView" EffectsRequested="OnEffectsRequested"/>
             <ContentControl x:Name="EffectsView" Visibility="Collapsed" HorizontalContentAlignment="Stretch"/>
-            <StackPanel x:Name="DisplayView" Visibility="Collapsed" Spacing="16">
-                <Border x:Name="LayoutCard" CornerRadius="16" BorderThickness="1" Padding="24">
-                    <StackPanel Spacing="14">
-                        <TextBlock x:Name="LayoutTitle" Text="在屏幕上编辑布局" FontSize="20" FontWeight="SemiBold"/>
-                        <TextBlock x:Name="LayoutHint" Text="拖动元素移动位置，拖动右下角调整大小；也可以用滚轮缩放、方向键微调。每个游戏单独保存。" TextWrapping="Wrap"/>
-                        <StackPanel Orientation="Horizontal" Spacing="10">
-                            <Button x:Name="EditButton" Content="编辑屏幕" Click="OnEditClick" Padding="24,12"/>
-                            <Button x:Name="PreviewButton" Content="预览画面" Click="OnPreviewClick" Padding="24,12"/>
-                            <Button x:Name="ResetButton" Content="恢复当前游戏布局" Click="OnResetClick" Padding="24,12"/>
+        </Grid>
+        <ContentControl x:Name="LayoutContentSource" Visibility="Collapsed">
+            <StackPanel x:Name="DisplayView" Spacing="16">
+                <Border x:Name="LayoutCard" Style="{StaticResource SettingsSectionCardStyle}">
+                    <StackPanel Spacing="12">
+                        <StackPanel Orientation="Horizontal" Spacing="8"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7F4;" FontSize="18" Foreground="#0067C0"/><TextBlock x:Name="LayoutTitle" Text="屏幕与布局" FontSize="16" FontWeight="SemiBold"/></StackPanel>
+                        <TextBlock x:Name="LayoutHint" FontSize="12" TextWrapping="Wrap"/>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button x:Name="EditButton" Style="{StaticResource SettingsPrimaryButtonStyle}" Click="OnEditClick"><StackPanel Orientation="Horizontal" Spacing="7"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE70F;" FontSize="14"/><TextBlock x:Name="EditLabel" Text="编辑屏幕"/></StackPanel></Button>
+                            <Button x:Name="PreviewButton" Style="{StaticResource SettingsHeaderButtonStyle}" Click="OnPreviewClick"><StackPanel Orientation="Horizontal" Spacing="7"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE768;" FontSize="14"/><TextBlock x:Name="PreviewLabel" Text="预览画面"/></StackPanel></Button>
+                            <Button x:Name="ResetButton" Style="{StaticResource SettingsHeaderButtonStyle}" Click="OnResetClick"><StackPanel Orientation="Horizontal" Spacing="7"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE777;" FontSize="14"/><TextBlock x:Name="ResetLabel" Text="恢复当前游戏布局"/></StackPanel></Button>
                         </StackPanel>
-                        <TextBlock x:Name="ShortcutText" Text="Ctrl+Alt+L 编辑 / 结束 · Ctrl+Alt+O 显示 / 隐藏 · Enter 或 Esc 保存并结束" TextWrapping="Wrap"/>
+                        <TextBlock x:Name="ShortcutText" FontSize="12" TextWrapping="Wrap"/>
                     </StackPanel>
                 </Border>
-                <Border x:Name="ScreenCard" CornerRadius="16" BorderThickness="1" Padding="24">
-                    <StackPanel Spacing="14">
-                        <TextBlock x:Name="ScreenTitle" Text="显示范围与性能" FontSize="20" FontWeight="SemiBold"/>
-                        <ToggleSwitch x:Name="FollowToggle" Header="自动跟随游戏窗口" Toggled="OnGeneralChanged"/>
-                        <ToggleSwitch x:Name="HideToggle" Header="切出游戏时隐藏" Toggled="OnGeneralChanged"/>
-                        <ComboBox x:Name="ScreenSelector" Header="显示器（预览与固定显示）" MinWidth="320" SelectionChanged="OnScreenChanged"/>
-                        <ComboBox x:Name="FpsSelector" Header="动画帧率" MinWidth="180" SelectionChanged="OnFpsChanged"><ComboBoxItem Content="60 FPS"/><ComboBoxItem Content="30 FPS"/></ComboBox>
+                <Border x:Name="ScreenCard" Style="{StaticResource SettingsSectionCardStyle}">
+                    <StackPanel Spacing="12">
+                        <StackPanel Orientation="Horizontal" Spacing="8"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7F8;" FontSize="18" Foreground="#0067C0"/><TextBlock x:Name="ScreenTitle" Text="显示范围与性能" FontSize="16" FontWeight="SemiBold"/></StackPanel>
+                        <TextBlock x:Name="ScreenScopeHint" FontSize="12" TextWrapping="Wrap"/>
+                        <Grid ColumnSpacing="20" RowSpacing="14">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                            <ToggleSwitch x:Name="FollowToggle" Header="自动跟随游戏窗口" Toggled="OnGeneralChanged"/>
+                            <ToggleSwitch x:Name="HideToggle" Grid.Column="1" Header="切出游戏时隐藏" Toggled="OnGeneralChanged"/>
+                            <ComboBox x:Name="ScreenSelector" Grid.Row="1" Header="显示器（预览与固定显示）" HorizontalAlignment="Stretch" SelectionChanged="OnScreenChanged"/>
+                            <ComboBox x:Name="FpsSelector" Grid.Row="1" Grid.Column="1" Header="动画帧率" HorizontalAlignment="Stretch" SelectionChanged="OnFpsChanged"><ComboBoxItem Content="60 FPS"/><ComboBoxItem Content="30 FPS"/></ComboBox>
+                        </Grid>
                     </StackPanel>
                 </Border>
             </StackPanel>
-        </Grid>
+        </ContentControl>
     </StackPanel>
 </UserControl>

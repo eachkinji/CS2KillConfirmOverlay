@@ -60,7 +60,7 @@ fn run()->Result<(),String> {
             _=>return Err("unknown bridge command".into())
         }
     }
-    if !data.join("settings.json").exists() { start(&root.join("KillConfirmGameBar.exe"),&["--initialize-profile".into()],true)?; }
+    if !data.join("settings.json").exists() || !data.join("pack-catalog.json").exists() { start(&root.join("KillConfirmGameBar.exe"),&["--initialize-profile".into()],true)?; }
     // A packaged settings cache can contain an older port. The ordinary profile
     // is authoritative, including when the panel changed it while Game Bar was closed.
     if let Ok(saved)=fs::read_to_string(data.join("widget_port.txt")) {

@@ -40,7 +40,7 @@ fn allowed_path(query: &ResourceQuery) -> Result<PathBuf,StatusCode> {
     let install=install_root().ok_or(StatusCode::NOT_FOUND)?;
     let supplied=if query.asset { install.join(&query.path) } else { PathBuf::from(&query.path) };
     let path=supplied.canonicalize().map_err(|_|StatusCode::NOT_FOUND)?;
-    let mut allowed=vec![install.join("Assets"),install.join("Danmaku"),install.join("KillConfirmService/sounds"),root.join("Packs"),root.join("DoubaoImages"),root.join("DagoujiaoImages")];
+    let mut allowed=vec![install.join("Assets"),install.join("Danmaku"),install.join("DefaultPacks"),install.join("KillConfirmService/sounds"),root.join("Packs"),root.join("DoubaoImages"),root.join("DagoujiaoImages")];
     // A user can import an existing external folder through the original picker.
     let catalog=read_json(&root.join("pack-catalog.json"));
     if let Some(items)=catalog["IconPacks"].as_array() {

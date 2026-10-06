@@ -21,7 +21,7 @@ internal static class DesktopPlatform
         try
         {
             var installed=new Windows.Management.Deployment.PackageManager().FindPackagesForUser("").ToArray();
-            return installed.Any(p=>p.Id.Name=="Microsoft.XboxGamingOverlay") && installed.Any(p=>p.Id.Name=="KillConfirmGameBar.Overlay" && new Version(p.Id.Version.Major,p.Id.Version.Minor,p.Id.Version.Build,p.Id.Version.Revision)>=new Version(4,5,1,51));
+            return installed.Any(p=>p.Id.Name=="Microsoft.XboxGamingOverlay") && installed.Any(p=>p.Id.Name=="KillConfirmGameBar.Overlay" && new Version(p.Id.Version.Major,p.Id.Version.Minor,p.Id.Version.Build,p.Id.Version.Revision)>=new Version(4,5,1,52));
         }
         catch { return false; }
     }
@@ -75,7 +75,7 @@ internal sealed class DesktopPackage
 internal sealed class DesktopPackageId
 {
     public string Name => DesktopPlatform.IsUiValidation ? "KillConfirmCompatibility.UIValidation" : "KillConfirmGameBar.ControlPanel";
-    public Windows.ApplicationModel.PackageVersion Version => new() { Major=4, Minor=5, Build=1, Revision=51 };
+    public Windows.ApplicationModel.PackageVersion Version => new() { Major=4, Minor=5, Build=1, Revision=52 };
 }
 internal sealed class DesktopData
 {
@@ -89,6 +89,7 @@ internal sealed class DesktopData
         Directory.CreateDirectory(root);
         KillConfirmCompatibility.Contracts.LegacyMigration.Import();
         LocalSettings=new DesktopLocalSettings(Path.Combine(root,KillConfirmCompatibility.Contracts.FileSettings.FileName));
+        KillConfirmCompatibility.Contracts.BundledPacks.Register((KillConfirmCompatibility.Contracts.FileSettings)LocalSettings.Values);
         LocalFolder=StorageFolder.GetFolderFromPathAsync(root).AsTask().GetAwaiter().GetResult();
     }
     public async Task ClearAsync(ApplicationDataLocality locality)

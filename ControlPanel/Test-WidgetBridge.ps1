@@ -53,10 +53,18 @@ try {
     }
     $snapshot=Invoke-RestMethod "$base/shared/state" -Headers $headers
     if($snapshot.settings.'BridgeTest.int'.Text -ne '17') {throw 'Shared settings merge failed.'}
+    $defaultIcon=@($snapshot.catalog.IconPacks | Where-Object Key -EQ 'default')
+    $defaultVoice=@($snapshot.catalog.VoicePacks | Where-Object Key -EQ 'crossfire_swat_gr')
+    if($defaultIcon.Count -ne 1 -or $defaultVoice.Count -ne 1 -or !$defaultIcon[0].FolderPath.StartsWith((Join-Path $Payload 'DefaultPacks'),[StringComparison]::OrdinalIgnoreCase)) {throw 'Fresh widget profile did not discover the shared default CF packs.'}
+    if(Test-Path -LiteralPath (Join-Path $data 'Packs/crossfire')) {throw 'Default CF packs were duplicated into UserData.'}
     $asset='Assets/GameStyles/overwatch/killconfirm/textures/kill_icon_white.png'
     $file=Join-Path $output 'shared-texture.png'
     Invoke-WebRequest "$base/shared/resource?asset=true&path=$([Uri]::EscapeDataString($asset))" -Headers $headers -OutFile $file
     if((Get-FileHash $file).Hash -ne (Get-FileHash (Join-Path $Payload $asset)).Hash) {throw 'Shared texture differs from ordinary resources.'}
+    $defaultAsset='DefaultPacks/crossfire/icon_packs/default/badge_multi1.png'
+    $defaultFile=Join-Path $output 'default-cf-texture.png'
+    Invoke-WebRequest "$base/shared/resource?asset=true&path=$([Uri]::EscapeDataString($defaultAsset))" -Headers $headers -OutFile $defaultFile
+    if((Get-FileHash $defaultFile).Hash -ne (Get-FileHash (Join-Path $Payload $defaultAsset)).Hash) {throw 'Default CF texture broker read failed.'}
     foreach($request in @(@{Url="$base/shared/state";Headers=@{};Code=401},@{Url="$base/shared/resource?asset=true&path=KillConfirmGameBar.exe";Headers=$headers;Code=403})) {
         try {Invoke-WebRequest $request.Url -Headers $request.Headers | Out-Null;throw 'Resource access unexpectedly succeeded.'}
         catch {if([int]$_.Exception.Response.StatusCode -ne $request.Code) {throw}}

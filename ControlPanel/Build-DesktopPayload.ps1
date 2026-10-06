@@ -49,6 +49,11 @@ foreach($file in Get-ChildItem -LiteralPath $renderer -Recurse -File) {
 foreach($resource in @('Assets','Danmaku')) {
     Copy-Item -LiteralPath (Join-Path $repository "Widget/$resource") -Destination (Join-Path $OutputDir $resource) -Recurse -Force
 }
+$defaultPacks=Join-Path $repository 'SourceAssets/DefaultPacks'
+foreach($required in @('crossfire/icon_packs/default/manifest.json','crossfire/icon_packs/default/badge_multi1.png','crossfire/voice_packs/crossfire_swat_gr/manifest.json','crossfire/voice_packs/crossfire_swat_gr/common.wav')) {
+    if(!(Test-Path -LiteralPath (Join-Path $defaultPacks $required) -PathType Leaf)) {throw "Required default CF resource missing: $required"}
+}
+Copy-Item -LiteralPath $defaultPacks -Destination (Join-Path $OutputDir 'DefaultPacks') -Recurse -Force
 $service=Join-Path $OutputDir 'KillConfirmService'
 New-Item -ItemType Directory -Path $service -Force | Out-Null
 foreach($binary in @('cskillconfirm.exe','killconfirm-settings-launcher.exe')) {

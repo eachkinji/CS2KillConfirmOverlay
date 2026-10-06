@@ -22,7 +22,9 @@ namespace KillConfirmCompatibility.Desktop.Runtime
             {
                 string root = Contracts.RuntimePaths.DataRoot;
                 Directory.CreateDirectory(root);
-                LocalSettings = new DesktopSettings(new Contracts.FileSettings(Path.Combine(root, Contracts.FileSettings.FileName)));
+                var settings=new Contracts.FileSettings(Path.Combine(root, Contracts.FileSettings.FileName));
+                Contracts.BundledPacks.Register(settings);
+                LocalSettings = new DesktopSettings(settings);
                 LocalFolder = StorageFolder.GetFolderFromPathAsync(root).AsTask().GetAwaiter().GetResult();
                 TemporaryFolder = LocalFolder;
                 AssetsRoot ??= Contracts.RuntimePaths.InstallRoot;

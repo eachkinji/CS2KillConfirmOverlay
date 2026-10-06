@@ -75,6 +75,23 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             var status=CompatibilityDisplayRuntime.ReadStatus();
             if(!CompatibilityDisplayRuntime.IsRunning(status) || status.LastTestRequest!=CompatibilityDisplayRuntime.Load().TestRequest || !string.IsNullOrWhiteSpace(status.TestError)) throw new Exception("Real visual playback was not acknowledged.");
             PackageIdentity.AssertNone(status.ProcessId);
+            GameStyleService.Current=GameStyleMode.Crossfire;
+            await Task.Delay(1500);
+            var defaultIcon=await PackCatalogService.GetIconPackAsync("default");
+            var defaultVoice=await PackCatalogService.GetVoicePackAsync("crossfire_swat_gr");
+            string expected=Path.Combine(KillConfirmCompatibility.Contracts.RuntimePaths.InstallRoot,"DefaultPacks","crossfire");
+            if(defaultIcon==null || defaultVoice==null || !defaultIcon.FolderPath.StartsWith(expected,StringComparison.OrdinalIgnoreCase) || !defaultVoice.FolderPath.StartsWith(expected,StringComparison.OrdinalIgnoreCase)) throw new Exception("Fresh installation is missing the shared default CF icon or voice pack.");
+            if(Directory.Exists(Path.Combine(DesktopPlatform.Data.LocalFolder.Path,"Packs","crossfire"))) throw new Exception("Default CF resources were duplicated into UserData.");
+            await EnsureServiceAvailableAsync();
+            await PlayTestAsync(true);
+            status=CompatibilityDisplayRuntime.ReadStatus();
+            if(status?.Style!="crossfire" || status.LastTestRequest!=CompatibilityDisplayRuntime.Load().TestRequest || !string.IsNullOrWhiteSpace(status.TestError) || !string.IsNullOrWhiteSpace(status.Error)) throw new Exception("Default CF visual/audio playback failed: "+status?.Error+" / "+status?.TestError);
+            if(defaultIcon.OwnsFolder || defaultVoice.OwnsFolder) throw new Exception("Shared installation defaults must not be treated as deletable user files.");
+            var source=await Windows.Storage.StorageFolder.GetFolderFromPathAsync(defaultIcon.FolderPath);
+            if(!await CrossfireExternalAssetService.TryInstallAsync(source,false)) throw new Exception("Default CF override import was rejected.");
+            var imported=await PackCatalogService.GetIconPackAsync("default");
+            string userPack=Path.Combine(DesktopPlatform.Data.LocalFolder.Path,"Packs","crossfire","icon_packs","default");
+            if(imported?.FolderPath!=userPack || !imported.OwnsFolder || !File.Exists(Path.Combine(defaultIcon.FolderPath,"badge_multi1.png"))) throw new Exception("Import did not prefer the user's pack or modified the shared installation default.");
             using(var client=await LocalServiceAuth.CreateHttpClientAsync())
             using(var response=await client.GetAsync(LocalServiceEndpoints.Build("/shared/identity")))
             {

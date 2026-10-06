@@ -12,12 +12,12 @@ public partial class App : Application
         UnhandledException += (s,e) => { LogCrash(e.Exception.ToString()); };
         try { InitializeComponent(); } catch(Exception error) { LogCrash("Panel resources",error); throw; }
     }
-    protected override void OnLaunched(LaunchActivatedEventArgs args)
+    protected override async void OnLaunched(LaunchActivatedEventArgs args)
     {
         try
         {
             var commandLine=Environment.GetCommandLineArgs();
-            if(commandLine.Contains("--initialize-profile")) { DesktopPlatform.Data.LocalSettings.Values["Profile.Initialized"]=true; Exit(); return; }
+            if(commandLine.Contains("--initialize-profile")) { DesktopPlatform.Data.LocalSettings.Values["Profile.Initialized"]=true; await Services.PackCatalogService.GetVisibleIconPacksAsync(); Exit(); return; }
             int waiting=Array.IndexOf(commandLine,"--wait-for-pid");
             if(waiting>=0 && waiting+1<commandLine.Length && int.TryParse(commandLine[waiting+1],out int oldPid))
                 try { System.Diagnostics.Process.GetProcessById(oldPid).WaitForExit(5000); } catch(ArgumentException) { }

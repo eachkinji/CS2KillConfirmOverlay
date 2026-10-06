@@ -9,7 +9,7 @@ using Windows.Storage;
 
 namespace KillConfirmGameBar.Services
 {
-    // Stable keys preserve saved CF selections; resources are installed separately.
+    // Default resources are shared from the ordinary installation; imported packs override them.
     internal static class CrossfireExternalAssetService
     {
         internal static readonly string[] IconKeys = { "default", "vip", "angelic_beast", "anniversary_10", "anniversary_15", "cfpl", "rankmach_2019_1", "rankmach_2019_2" };
@@ -18,7 +18,13 @@ namespace KillConfirmGameBar.Services
         public static bool IsVoiceKey(string key) => !string.IsNullOrWhiteSpace(key) && key.StartsWith("crossfire_", StringComparison.OrdinalIgnoreCase);
         public static string Root => Path.Combine(ApplicationData.Current.LocalFolder.Path, "Packs", "crossfire");
         public static int Revision { get; private set; }
-        public static string PackPath(string key, bool voice = false) => Path.Combine(Root, voice ? "voice_packs" : "icon_packs", key);
+        private static string BundledRoot => ApplicationData.Current.LocalSettings.Values["Crossfire.BundledRoot"] as string;
+        public static string PackPath(string key, bool voice = false)
+        {
+            string imported=Path.Combine(Root,voice ? "voice_packs" : "icon_packs",key);
+            if(Directory.Exists(imported) || string.IsNullOrWhiteSpace(BundledRoot)) return imported;
+            return Path.Combine(BundledRoot,voice ? "voice_packs" : "icon_packs",key);
+        }
 
         public static string VisualUri(string folder, string file)
         {
@@ -55,32 +61,37 @@ namespace KillConfirmGameBar.Services
 
         private static IEnumerable<Tuple<string, Manifest>> Discover(bool voice)
         {
-            string root = Path.Combine(Root, voice ? "voice_packs" : "icon_packs");
-            if (!Directory.Exists(root)) yield break;
-            foreach (string folder in Directory.EnumerateDirectories(root))
+            var found=new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach(string baseRoot in new[]{Root,BundledRoot})
             {
-                Manifest m = null;
-                try { m = Read(folder); } catch { }
-                if (Valid(m) && m.Id == Path.GetFileName(folder) && (m.Kind == "crossfire_voice") == voice)
-                    yield return Tuple.Create(folder, m);
+                if(string.IsNullOrWhiteSpace(baseRoot)) continue;
+                string root = Path.Combine(baseRoot, voice ? "voice_packs" : "icon_packs");
+                if (!Directory.Exists(root)) continue;
+                foreach (string folder in Directory.EnumerateDirectories(root))
+                {
+                    Manifest m = null;
+                    try { m = Read(folder); } catch { }
+                    if (Valid(m) && m.Id == Path.GetFileName(folder) && (m.Kind == "crossfire_voice") == voice && found.Add(m.Id))
+                        yield return Tuple.Create(folder, m);
+                }
             }
         }
 
         public static void RefreshCatalog(PackCatalog catalog)
         {
-            // Retire the old built-ins even when their external package is absent.
+            // Reconcile installed defaults and user imports while preserving stable selection keys.
             var icons = catalog.IconPacks.Where(p => !IsIconKey(p.Key)).ToList();
             var voices = catalog.VoicePacks.Where(p => !IsVoiceKey(p.Key)).ToList();
             icons.AddRange(Discover(false).Select(p => new IconPackItem {
                 Key = p.Item2.Id, DisplayName = p.Item2.Name, FolderPath = p.Item1,
-                IsBuiltIn = false, IsVisibleInWidget = true, OwnsFolder = true,
+                IsBuiltIn = false, IsVisibleInWidget = true, OwnsFolder = p.Item1.StartsWith(Root+Path.DirectorySeparatorChar,StringComparison.OrdinalIgnoreCase),
                 HasKillFxOverlay = File.Exists(Path.Combine(p.Item1, "multi2_fx.png")),
                 HasEliteOverlay = File.Exists(Path.Combine(p.Item1, "KillMark_Upgrade1.png")),
                 HasWeaponBadgeOverlay = File.Exists(Path.Combine(p.Item1, "badge_assault1.png"))
             }));
             voices.AddRange(Discover(true).Select(p => new VoicePackItem {
                 Key = p.Item2.Id, DisplayName = p.Item2.Name, FolderPath = p.Item1,
-                IsBuiltIn = false, IsVisibleInWidget = true, OwnsFolder = true
+                IsBuiltIn = false, IsVisibleInWidget = true, OwnsFolder = p.Item1.StartsWith(Root+Path.DirectorySeparatorChar,StringComparison.OrdinalIgnoreCase)
             }));
             catalog.IconPacks = icons;
             catalog.VoicePacks = voices;
@@ -100,7 +111,7 @@ namespace KillConfirmGameBar.Services
                 throw new InvalidDataException("CF 资源包缺少主要素材。");
 
             await Task.Run(() => {
-                string target = PackPath(manifest.Id, voice);
+                string target = Path.Combine(Root,voice ? "voice_packs" : "icon_packs",manifest.Id);
                 if (Directory.Exists(target))
                 {
                     Manifest existing;

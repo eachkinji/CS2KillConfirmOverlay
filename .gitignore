@@ -38,7 +38,7 @@ Widget/Assets/KillConfirm/
 Widget/KillConfirmService/
 KillConfirmService/sounds/
 
-# CF resources are distributed separately, including the original packs.
+# Other CF packs remain external; bundled defaults live in SourceAssets/DefaultPacks.
 SourceAssets/GameStyles/crossfire/
 Widget/Assets/KillConfirmCode/*
 !Widget/Assets/KillConfirmCode/Csol4/

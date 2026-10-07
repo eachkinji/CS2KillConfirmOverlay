@@ -99,8 +99,8 @@ english.PrerequisiteWarningText=Please note: the installer will check required s
 chinesesimplified.PrerequisiteWarningText=请记住：接下来的步骤将会检查你的系统依赖，请按照界面提示执行相关操作。
 english.UpdateOnlyWarningText=This is the dependency-free update package. It will not repair Xbox Game Bar or install offline prerequisites. Use it only on a computer where the app already works correctly.
 chinesesimplified.UpdateOnlyWarningText=这是无依赖更新包，不会修复 Xbox Game Bar，也不会安装离线前置依赖。请仅在软件原本可以正常运行的电脑上使用。
-english.GameBarUsageText=Use Xbox Game Bar, or open the app from Start and enable Compatibility display on the home page. Game Bar is optional.
-chinesesimplified.GameBarUsageText=可按 Win+G 使用 Game Bar，或从开始菜单打开本程序，在主页选择兼容显示。Game Bar 为可选组件。
+english.GameBarUsageText=The installer automatically checks whether Game Bar can be installed. If unavailable, the control panel and Compatibility display remain usable. Choose your display mode on the home page.
+chinesesimplified.GameBarUsageText=安装器会自动检测并尝试安装 Game Bar 小组件；环境不支持或安装失败时，仍可使用控制面板和兼容显示。安装后可在主页选择显示模式。
 english.AcknowledgeButtonText=I understand
 chinesesimplified.AcknowledgeButtonText=我清楚了
 english.AcknowledgedButtonText=Understood
@@ -113,9 +113,6 @@ english.FinishedTutorialText=Need help? Click here to view the tutorial.
 chinesesimplified.FinishedTutorialText=如有不懂，请点击这里查看教程。
 english.FinishedPinWarningText=Game Bar mode: turn off click-through mode and pin the widget window before use.
 chinesesimplified.FinishedPinWarningText=Game Bar 模式：请关闭“单击浏览”，并点击图钉固定窗口。
-
-[Tasks]
-Name: "gamebar"; Description: "同时安装可选 Game Bar 小组件（失败仍可使用兼容显示）"; Flags: checkedonce
 
 [Icons]
 Name: "{group}\{cm:ControlPanelShortcutName}"; Filename: "{app}\KillConfirmGameBar.exe"; IconFilename: "{app}\KillConfirmOverlay.ico"
@@ -379,7 +376,6 @@ begin
     Params := Params + ' -InstallPrerequisites -PrerequisitesConfirmed';
 #endif
 
-    if not WizardIsTaskSelected('gamebar') then Params := Params + ' -SkipGameBar';
     if not ExecInstallWithLog(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'), Params, ExpandConstant('{app}\Payload'), ResultCode) then
     begin
       AppendInstallLog(ExpandConstant('{cm:InstallScriptLaunchFailed}'));

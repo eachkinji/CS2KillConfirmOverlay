@@ -136,7 +136,7 @@ try {
     $compatibilityFallback = -not (Test-OptionalGameBarEnvironment)
     Write-InstallStage -Number 2 -Total 7 -Name "显示方式检测" -Detail "Game Bar 为可选组件"
     if ($compatibilityFallback) {
-        Add-InstallResult -Status Warning -Item "可选 Game Bar" -Detail "已跳过：未选择安装、Game Bar 不可用或防火墙服务不可用；控制面板与兼容显示已正常安装"
+        Add-InstallResult -Status Warning -Item "可选 Game Bar" -Detail "已跳过 Game Bar 小组件；控制面板与兼容显示已正常安装（Game Bar 或防火墙服务不可用时会自动跳过）"
     }
     Write-InstallStage -Number 3 -Total 7 -Name "Game Bar 前置依赖" -Detail "兼容显示不需要此项"
     if ($InstallPrerequisites -and -not $compatibilityFallback) {

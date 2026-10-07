@@ -1,4 +1,4 @@
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Windows.Foundation;
 using Windows.Storage;
@@ -75,7 +75,7 @@ internal sealed class DesktopPackage
 internal sealed class DesktopPackageId
 {
     public string Name => DesktopPlatform.IsUiValidation ? "KillConfirmCompatibility.UIValidation" : "KillConfirmGameBar.ControlPanel";
-    public Windows.ApplicationModel.PackageVersion Version => new() { Major=4, Minor=5, Build=1, Revision=52 };
+    public Windows.ApplicationModel.PackageVersion Version => new() { Major=4, Minor=5, Build=1, Revision=53 };
 }
 internal sealed class DesktopData
 {

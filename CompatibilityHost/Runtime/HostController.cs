@@ -46,6 +46,8 @@ namespace KillConfirmCompatibility.Desktop.Runtime
         private DateTimeOffset _nextFind, _nextRegister, _nextStatus, _previewUntil;
         private int _lastPort;
         internal bool HasRenderedPreviewPixels => _surfaces.Any(surface => surface.ElementKey != "Danmaku" && surface.HasRenderedPixels);
+        internal bool HasRenderedLowerPixels => _surfaces.Any(surface => surface.ElementKey == "Lower" && surface.HasRenderedPixels);
+        internal long CurrentPreviewRequest => _testRequest;
         internal bool HasRenderedDanmakuPixels => _surfaces.Any(surface => surface.ElementKey == "Danmaku" && surface.HasRenderedPixels);
         internal NativeWindows.Rect DanmakuBounds
         {

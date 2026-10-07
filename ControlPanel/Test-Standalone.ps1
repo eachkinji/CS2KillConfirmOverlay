@@ -9,7 +9,7 @@ function Invoke-PanelCheck([string]$name,[string]$flag,[string]$result) {
     $start=[Diagnostics.ProcessStartInfo]::new((Join-Path $Payload 'KillConfirmGameBar.exe'))
     $start.UseShellExecute=$false
     $start.Environment['KILLCONFIRM_DATA_ROOT']=$profile
-    $start.Environment['KILLCONFIRM_INSTALL_ROOT']=$Payload
+    $start.Environment['KILLCONFIRM_INSTALL_ROOT']=$Payload.TrimEnd([IO.Path]::DirectorySeparatorChar)+[IO.Path]::DirectorySeparatorChar
     $start.Environment[$flag]='1'
     $process=[Diagnostics.Process]::Start($start)
     if(!$process.WaitForExit(60000)) {$process.Kill();throw "$name timed out."}

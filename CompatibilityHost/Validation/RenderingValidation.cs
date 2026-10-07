@@ -19,7 +19,14 @@ namespace KillConfirmCompatibility.Validation
         {
             Directory.CreateDirectory(outputDirectory);
             DesktopStorage.TestDataRoot = Path.Combine(outputDirectory, "isolated-profile");
-            DesktopStorage.AssetsRoot = Path.GetFullPath(assetsRoot);
+            // AppContext.BaseDirectory in a real installation ends in a separator.
+            DesktopStorage.AssetsRoot = Path.GetFullPath(assetsRoot).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+            var rootAsset = new Uri("ms-appx:///Assets/GameStyles/valorant/killconfirm/_native/shared/textures/Base_FrameBG.png");
+            await DesktopStorage.AssetFileAsync(rootAsset);
+            bool traversalRejected=false;
+            try { await DesktopStorage.AssetFileAsync(new Uri("ms-appx:///Assets/%2e%2e%2f%2e%2e%2foutside.png")); }
+            catch(InvalidDataException) { traversalRejected=true; }
+            if(!traversalRejected) throw new Exception("Asset traversal was not rejected.");
             ValidateConfiguration(outputDirectory);
             ValidateNativeWindow();
             var presenter = new FeedbackPresenter();

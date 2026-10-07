@@ -75,6 +75,11 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             var status=CompatibilityDisplayRuntime.ReadStatus();
             if(!CompatibilityDisplayRuntime.IsRunning(status) || status.LastTestRequest!=CompatibilityDisplayRuntime.Load().TestRequest || !string.IsNullOrWhiteSpace(status.TestError)) throw new Exception("Real visual playback was not acknowledged.");
             PackageIdentity.AssertNone(status.ProcessId);
+            GameStyleService.Current=GameStyleMode.Valorant;
+            await Task.Delay(1500);
+            await PlayTestAsync(true);
+            status=CompatibilityDisplayRuntime.ReadStatus();
+            if(status?.Style!="valorant" || status.LastTestRequest!=CompatibilityDisplayRuntime.Load().TestRequest || !string.IsNullOrWhiteSpace(status.TestError) || !string.IsNullOrWhiteSpace(status.Error)) throw new Exception("Installed-root Valorant visual/audio playback failed: "+status?.Error+" / "+status?.TestError);
             GameStyleService.Current=GameStyleMode.Crossfire;
             await Task.Delay(1500);
             var defaultIcon=await PackCatalogService.GetIconPackAsync("default");

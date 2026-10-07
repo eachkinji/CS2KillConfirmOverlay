@@ -30,8 +30,12 @@ try {
 finally { $archive.Dispose() }
 $executable = Join-Path $repository "CompatibilityHost/bin/$Configuration/net8.0-windows10.0.19041.0/win-x64/KillConfirmCompatibility.exe"
 $arguments = @('--validate', ('"' + $OutputDirectory + '"'), ('"' + (Join-Path $repository 'Widget') + '"'))
-$process = Start-Process -FilePath $executable -ArgumentList $arguments -WindowStyle Hidden -PassThru
-if (-not $process.WaitForExit(120000)) { $process.Kill(); throw 'Compatibility validation timed out.' }
+$start=[Diagnostics.ProcessStartInfo]::new($executable)
+$start.UseShellExecute=$false
+$start.Arguments=$arguments -join ' '
+$start.Environment['KILLCONFIRM_DATA_ROOT']=Join-Path $OutputDirectory 'isolated-profile'
+$process=[Diagnostics.Process]::Start($start)
+if (-not $process.WaitForExit(240000)) { $process.Kill(); throw 'Compatibility validation timed out.' }
 if ($process.ExitCode -ne 0) { throw (Get-Content -LiteralPath (Join-Path $OutputDirectory 'failure.txt') -Raw) }
 Get-Content -LiteralPath (Join-Path $OutputDirectory 'contracts.txt')
 Get-Content -LiteralPath (Join-Path $OutputDirectory 'results.txt')

@@ -117,19 +117,26 @@ namespace KillConfirmCompatibility.Validation
                 DisplayFiles.Write(gameBarStatus, new GameBarDisplayStatus { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), Blocked = true });
                 await Task.Delay(1200);
                 if (DisplayFiles.Read<DisplayStatus>(statusPath)?.Visible != true) throw new Exception("Desktop stayed hidden after Game Bar stopped.");
+                File.WriteAllText(Path.Combine(output,"lower-layers.txt"),string.Empty);
                 foreach (GameStyleMode style in Enum.GetValues(typeof(GameStyleMode)))
                 {
                     GameStyleService.Current = style;
-                    DisplayFiles.Update(config, current => { current.TestPreset = "one_hs"; current.TestAudio = false; current.TestRequest = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(); });
-                    for (int attempt = 0; attempt < 100; attempt++)
+                    long styleRequest=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                    bool lowerRendered=false;
+                    DisplayFiles.Update(config, current => { current.TestPreset = "one_hs"; current.TestAudio = false; current.TestRequest = styleRequest; });
+                    for (int attempt = 0; attempt < 650; attempt++)
                     {
                         await Task.Delay(50);
                         var configured = DisplayFiles.Read<DisplayStatus>(statusPath);
-                        if (configured?.Style == GameStyleService.ToStorageValue(style) && !configured.Loading) break;
+                        if(host.CurrentPreviewRequest==styleRequest && host.HasRenderedLowerPixels) lowerRendered=true;
+                        if (configured?.Style == GameStyleService.ToStorageValue(style) && configured.LastTestRequest==styleRequest && (lowerRendered || !string.IsNullOrWhiteSpace(configured.TestError))) break;
                     }
                     var styleStatus = DisplayFiles.Read<DisplayStatus>(statusPath);
                     if (styleStatus?.Style != GameStyleService.ToStorageValue(style) || styleStatus.Loading)
                         throw new Exception("Live style switch failed: " + style + ", actual=" + styleStatus?.Style + ", loading=" + styleStatus?.Loading + ", error=" + styleStatus?.Error);
+                    if(styleStatus.LastTestRequest!=styleRequest || !string.IsNullOrWhiteSpace(styleStatus.TestError) || !lowerRendered)
+                        throw new Exception("Live lower animation failed: "+style+", error="+styleStatus.TestError+", "+host.PreviewDiagnostics);
+                    File.AppendAllText(Path.Combine(output,"lower-layers.txt"),style+": PASS actual lower-layer pixels"+Environment.NewLine);
                 }
                 for (int pass = 0; pass < 4; pass++) foreach (GameStyleMode style in Enum.GetValues(typeof(GameStyleMode))) { GameStyleService.Current = style; await Task.Delay(20); }
                 GameStyleService.Current = GameStyleMode.Csol;

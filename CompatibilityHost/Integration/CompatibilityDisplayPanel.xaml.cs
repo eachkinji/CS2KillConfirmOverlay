@@ -19,7 +19,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         {
             InitializeComponent();
             foreach (GameStyleMode style in Enum.GetValues(typeof(GameStyleMode)))
-                MainGameSelector.Items.Add(new ComboBoxItem { Content = GameStyleService.ToDisplayName(style), Tag = GameStyleService.ToStorageValue(style) });
+                MainGameSelector.Items.Add(new ComboBoxItem { Content = MainPage.CreateMaterialGameSelectorContent(style, GameStyleService.ToDisplayName(style)), Tag = GameStyleService.ToStorageValue(style) });
             EffectsView.Content = HomeView.EffectsContent;
             LayoutContentSource.Content = null;
             HomeView.SetLayoutContent(DisplayView);
@@ -137,6 +137,9 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         {
             bool zh = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
             bool wasLoading = _loading; _loading = true;
+            foreach (ComboBoxItem gameItem in MainGameSelector.Items)
+                if (gameItem.Content is StackPanel content && gameItem.Tag is string key)
+                    content.Children.OfType<TextBlock>().First().Text = GameStyleService.ToDisplayName(GameStyleService.FromKey(key));
             MainGameSelector.SelectedItem = MainGameSelector.Items.OfType<ComboBoxItem>().FirstOrDefault(item => (string)item.Tag == GameStyleService.ToStorageValue(GameStyleService.Current));
             _loading = wasLoading;
             ToolTipService.SetToolTip(MainGameSelector, zh ? "效果风格" : "Effect style");

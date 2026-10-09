@@ -17,17 +17,19 @@ namespace KillConfirmGameBar
     public sealed partial class MainPage
     {
 
-        private static FrameworkElement CreateMaterialGameSelectorContent(GameStyleMode style, string name)
+        internal static FrameworkElement CreateMaterialGameSelectorContent(GameStyleMode style, string name)
         {
             string key = GameStyleService.ToStorageValue(style);
             string extension = style == GameStyleMode.Dagoujiao ? "jpg" : "png";
+            string logoUri = style == GameStyleMode.CustomModule
+                ? "ms-appx:///Assets/Square44x44Logo.scale-200.png"
+                : $"ms-appx:///Assets/GameLogos/{key}.{extension}";
             var image = new Image
             {
                 Width = 34,
                 Height = 22,
                 Stretch = Stretch.Uniform,
-                Source = new BitmapImage(new Uri(
-                    $"ms-appx:///Assets/GameLogos/{key}.{extension}"))
+                Source = new BitmapImage(new Uri(logoUri))
             };
             var logoBackground = new Border
             {

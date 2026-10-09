@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using Windows.Data.Json;
 using Windows.Storage.Streams;
@@ -58,9 +59,9 @@ namespace KillConfirmGameBar.Services
             return launched && await RegisterCurrentProcessWithRetryAsync();
         }
 
-        public static Task<bool> RegisterCurrentProcessAsync()
+        public static Task<bool> RegisterCurrentProcessAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            return SendProcessLifetimeRequestAsync("/client/register");
+            return SendProcessLifetimeRequestAsync("/client/register", cancellationToken);
         }
 
         public static Task<bool> UnregisterCurrentProcessAsync()
@@ -85,7 +86,7 @@ namespace KillConfirmGameBar.Services
             return false;
         }
 
-        private static async Task<bool> SendProcessLifetimeRequestAsync(string path)
+        private static async Task<bool> SendProcessLifetimeRequestAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
         {
             try
             {
@@ -98,7 +99,7 @@ namespace KillConfirmGameBar.Services
                     request.Stringify(),
                     UnicodeEncoding.Utf8,
                     "application/json"))
-                using (HttpResponseMessage response = await client.PostAsync(LocalServiceEndpoints.Build(path), content))
+                using (HttpResponseMessage response = await client.PostAsync(LocalServiceEndpoints.Build(path), content).AsTask(cancellationToken))
                 {
                     return response.IsSuccessStatusCode;
                 }

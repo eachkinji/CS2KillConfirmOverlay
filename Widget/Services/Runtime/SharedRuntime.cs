@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Threading;
@@ -27,30 +28,43 @@ namespace KillConfirmGameBar.Services
             {
                 try
                 {
-                    for (int i = 0; i < 48; i++)
+                    var startupClock = Stopwatch.StartNew();
+                    var nextLaunch = TimeSpan.FromSeconds(2);
+                    while (true)
                     {
                         try
                         {
                             LocalServiceAuth.InvalidateCachedToken();
                             string portPath = Path.Combine(ApplicationData.Current.LocalFolder.Path, "widget_port.txt");
                             if (File.Exists(portPath) && int.TryParse(File.ReadAllText(portPath).Trim(), out int port)) PortSettingsStore.SavePort(port);
+                            startupTimeout.Token.ThrowIfCancellationRequested();
                             await PollAsync(startupTimeout.Token);
+                            if (!await ServiceLauncher.RegisterCurrentProcessAsync(startupTimeout.Token))
+                                throw new IOException("The companion exited before widget registration completed.");
                             break;
                         }
                         catch
                         {
-                            if (i == 47) throw;
+                            startupTimeout.Token.ThrowIfCancellationRequested();
+                            // A previous companion can still own the port while shutting down.
+                            // Relaunch after failed connections so its successful no-op launch
+                            // cannot leave this widget waiting for a process that has exited.
+                            if (startupClock.Elapsed >= nextLaunch)
+                            {
+                                App.LogCrash("Retrying companion launch after startup connection failure.");
+                                await KillConfirmWidgetPage.TryLaunchFullTrustHelperAsync(ServiceLauncher.ResolveGroupId(LocalServiceEndpoints.Port,DeveloperModeSettingsStore.IsEnabled));
+                                nextLaunch = startupClock.Elapsed + TimeSpan.FromSeconds(2);
+                            }
                             await Task.Delay(250, startupTimeout.Token);
                         }
                     }
                 }
                 catch (OperationCanceledException)
                 {
-                    throw new TimeoutException("无法连接本地后台。请重新运行安装器修复 Game Bar 本机通信权限。 / Local companion connection timed out; rerun the installer to repair Game Bar loopback access.");
+                    throw new TimeoutException("后台连接超时，请关闭小组件后重试。 / Companion connection timed out. Close the widget and try again.");
                 }
             }
             App.LogCrash("Widget shared state connected.");
-            await ServiceLauncher.RegisterCurrentProcessAsync();
             await SharedResources.InitializeAsync();
             ApplicationData.Current.LocalSettings.Values.MapChanged += OnSettingChanged;
             Timer=new DispatcherTimer { Interval=TimeSpan.FromSeconds(1) };

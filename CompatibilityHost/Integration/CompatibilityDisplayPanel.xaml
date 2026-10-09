@@ -10,12 +10,12 @@
         <Border x:Name="ModeCard" Style="{StaticResource SettingsSectionCardStyle}">
             <StackPanel Spacing="16">
                 <Grid ColumnSpacing="12">
-                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                     <Border Background="#EBF3FC" CornerRadius="6" Width="40" Height="40" VerticalAlignment="Top"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE80F;" FontSize="20" Foreground="#0067C0"/></Border>
                     <StackPanel Grid.Column="1" Spacing="6">
-                        <TextBlock x:Name="TitleText" Text="开始使用" FontSize="24" FontWeight="SemiBold"/>
-                        <TextBlock x:Name="DescriptionText" FontSize="13" TextWrapping="Wrap"/>
+                        <TextBlock x:Name="TitleText" Text="显示模式" FontSize="20" FontWeight="SemiBold"/>
                     </StackPanel>
+                    <ComboBox x:Name="MainGameSelector" Grid.Column="2" MinWidth="200" VerticalAlignment="Center" SelectionChanged="OnMainGameChanged"/>
                 </Grid>
                 <Grid ColumnSpacing="12">
                     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
@@ -36,19 +36,19 @@
                         </RadioButton>
                     </Border>
                 </Grid>
-                <Border x:Name="ModeStatusBadge" CornerRadius="6" Padding="12,8"><StackPanel Orientation="Horizontal" Spacing="8"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE73E;" FontSize="14"/><TextBlock x:Name="StatusText" FontSize="12" TextWrapping="Wrap"/></StackPanel></Border>
+                <Border x:Name="ModeStatusBadge" CornerRadius="6" Padding="12,10">
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE73E;" FontSize="14"/><TextBlock x:Name="StatusText" FontSize="13" TextWrapping="Wrap"/></StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                            <Button x:Name="HomePreviewButton" Style="{StaticResource SettingsPrimaryButtonStyle}" Visibility="Collapsed" Click="OnHomePreviewClick"><StackPanel Orientation="Horizontal" Spacing="7"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE768;" FontSize="14"/><TextBlock x:Name="HomePreviewLabel" Text="预览效果"/></StackPanel></Button>
+                            <Button x:Name="OpenGameBarButton" Style="{StaticResource SettingsPrimaryButtonStyle}" Click="OnOpenGameBarClick"><StackPanel Orientation="Horizontal" Spacing="7"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7FC;" FontSize="14"/><TextBlock x:Name="OpenGameBarLabel" Text="打开 Game Bar"/></StackPanel></Button>
+                        </StackPanel>
+                    </Grid>
+                </Border>
             </StackPanel>
         </Border>
         <StackPanel x:Name="GameBarStatusSection" Spacing="6" Visibility="Collapsed">
-            <TextBlock
-                x:Name="GameBarStatusTitle"
-                FontSize="16" FontWeight="SemiBold"
-                Text="GAME BAR 使用状态" />
-            <TextBlock
-                x:Name="GameBarStatusDescription"
-                Margin="2,0,2,6"
-                FontSize="12" TextWrapping="Wrap"
-                Text="打开 Win+G 后，这里会实时显示固定与单击浏览状态。" />
             <Border
                 x:Name="GameBarStatusCard"
                 Style="{StaticResource SettingsSectionCardStyle}">
@@ -62,34 +62,11 @@
                     </Grid.RowDefinitions>
 
                     <Grid ColumnSpacing="12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Spacing="2">
-                            <TextBlock
-                                x:Name="GameBarCardTitle"
-                                FontSize="13" FontWeight="SemiBold"
-                                Text="Kill Confirm Overlay 小组件" />
-                            <TextBlock
-                                x:Name="GameBarCardSummary"
-                                FontSize="12" TextWrapping="Wrap"
-                                Text="等待小组件上报状态" />
-                        </StackPanel>
-                        <Button
-                            x:Name="OpenGameBarButton"
-                            Grid.Column="1"
-                            VerticalAlignment="Center"
-                            Style="{StaticResource SettingsPrimaryButtonStyle}"
-                            Click="OnOpenGameBarClick"
-                            ><StackPanel Orientation="Horizontal" Spacing="8"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7FC;" FontSize="15"/><TextBlock x:Name="OpenGameBarLabel" Text="打开 Game Bar"/></StackPanel></Button>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <StackPanel Spacing="4"><TextBlock x:Name="GameBarCardTitle" FontSize="14" FontWeight="SemiBold" Text="小组件"/><TextBlock x:Name="GameBarCardSummary" FontSize="12" TextWrapping="Wrap"/></StackPanel>
+                        <Button x:Name="GameBarDetailsButton" Grid.Column="1" Style="{StaticResource SettingsHeaderButtonStyle}" VerticalAlignment="Center" Click="OnGameBarDetailsClick"><StackPanel Orientation="Horizontal" Spacing="7"><TextBlock x:Name="GameBarDetailsLabel" Text="状态详情"/><FontIcon x:Name="GameBarDetailsChevron" FontFamily="Segoe MDL2 Assets" Glyph="&#xE70D;" FontSize="10"/></StackPanel></Button>
                     </Grid>
-
-                    <Border
-                        Grid.Row="1"
-                        Height="1"
-                        Background="#E5E5E5" />
-
+                    <StackPanel x:Name="GameBarDetails" Grid.Row="2" Spacing="12" Visibility="Collapsed">
                     <Grid Grid.Row="2" ColumnSpacing="10">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="26" />
@@ -191,22 +168,11 @@
                             Foreground="#6E6E6E"
                             Text="未知" />
                     </Grid>
+                    </StackPanel>
                 </Grid>
             </Border>
         </StackPanel>
 
-        <Border x:Name="GuideCard" Style="{StaticResource SettingsSectionCardStyle}">
-            <StackPanel Spacing="14">
-                <StackPanel Orientation="Horizontal" Spacing="8"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8F2;" FontSize="18" Foreground="#0067C0"/><TextBlock x:Name="GuideTitle" FontSize="16" FontWeight="SemiBold"/></StackPanel>
-                <TextBlock x:Name="GuideDescription" FontSize="12" TextWrapping="Wrap"/>
-                <Grid ColumnSpacing="16">
-                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                    <StackPanel Spacing="8"><StackPanel Orientation="Horizontal" Spacing="8"><FontIcon x:Name="StepOneIcon" FontFamily="Segoe MDL2 Assets" Glyph="&#xE7FC;" FontSize="16" Foreground="#0067C0"/><TextBlock x:Name="StepOneTitle" FontWeight="SemiBold" FontSize="13"/></StackPanel><TextBlock x:Name="StepOneText" FontSize="12" TextWrapping="Wrap" LineHeight="18"/></StackPanel>
-                    <StackPanel Grid.Column="1" Spacing="8"><StackPanel Orientation="Horizontal" Spacing="8"><FontIcon x:Name="StepTwoIcon" FontFamily="Segoe MDL2 Assets" Glyph="&#xE718;" FontSize="16" Foreground="#0067C0"/><TextBlock x:Name="StepTwoTitle" FontWeight="SemiBold" FontSize="13"/></StackPanel><TextBlock x:Name="StepTwoText" FontSize="12" TextWrapping="Wrap" LineHeight="18"/></StackPanel>
-                    <StackPanel Grid.Column="2" Spacing="8"><StackPanel Orientation="Horizontal" Spacing="8"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE73E;" FontSize="16" Foreground="#0067C0"/><TextBlock x:Name="StepThreeTitle" FontWeight="SemiBold" FontSize="13"/></StackPanel><TextBlock x:Name="StepThreeText" FontSize="12" TextWrapping="Wrap" LineHeight="18"/></StackPanel>
-                </Grid>
-            </StackPanel>
-        </Border>
         <Border x:Name="TabBar" Padding="3" CornerRadius="6" BorderThickness="1" HorizontalAlignment="Left">
             <StackPanel Orientation="Horizontal" Spacing="4">
                 <Button x:Name="HomeTab" Tag="home" Style="{StaticResource StudioTabActiveButtonStyle}" Click="OnTabClick"><StackPanel Orientation="Horizontal" Spacing="7"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8B7;" FontSize="13"/><TextBlock x:Name="HomeTabLabel" Text="素材与测试"/></StackPanel></Button>

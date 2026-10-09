@@ -11,7 +11,7 @@
     <PlatformTarget>x64</PlatformTarget>
     <RootNamespace>KillConfirmGameBar</RootNamespace>
     <AssemblyName>KillConfirmGameBar</AssemblyName>
-    <Version>4.5.1.54</Version>
+    <Version>4.5.1.55</Version>
     <EnableDefaultPageItems>false</EnableDefaultPageItems>
     <DefaultItemExcludes>$(DefaultItemExcludes);obj/**;bin/**;Generated/**</DefaultItemExcludes>
     <EnableDefaultApplicationDefinition>false</EnableDefaultApplicationDefinition>

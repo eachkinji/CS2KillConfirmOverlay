@@ -15,13 +15,9 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         private void ApplyGameBarStatusLanguage()
         {
             bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
-            GameBarStatusTitle.Text = isChinese ? "GAME BAR 使用状态" : "GAME BAR STATUS";
-            GameBarStatusDescription.Text = isChinese
-                ? "打开 Win+G 后，这里会实时显示固定与单击浏览状态。"
-                : "Open Win+G to see the live pin and click-through state.";
             GameBarCardTitle.Text = isChinese
-                ? "Kill Confirm Overlay 小组件"
-                : "Kill Confirm Overlay widget";
+                ? "小组件状态"
+                : "Widget status";
             WidgetStatusTitle.Text = isChinese ? "小组件状态" : "Widget status";
             PinStatusTitle.Text = isChinese ? "固定窗口" : "Pin widget";
             ClickThroughStatusTitle.Text = isChinese ? "单击浏览" : "Click-through";
@@ -32,8 +28,6 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
 
         private void ApplyGameBarStatusTheme(GameThemePalette theme)
         {
-            if (GameBarStatusTitle != null) GameBarStatusTitle.Foreground = theme.Brush(theme.Text);
-            if (GameBarStatusDescription != null) GameBarStatusDescription.Foreground = theme.Brush(theme.MutedText);
             if (GameBarStatusCard != null)
             {
                 GameBarStatusCard.Background = theme.Brush(theme.Card);
@@ -61,8 +55,8 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             if (!status.IsAvailable)
             {
                 SetGameBarCardSummary(isChinese
-                    ? "等待小组件上报状态"
-                    : "Waiting for the widget to report its state");
+                    ? "未打开"
+                    : "Not open");
                 SetGameBarStatusRow(
                     WidgetStatusGlyph,
                     WidgetStatusDetail,
@@ -89,8 +83,8 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
 
             bool ready = status.IsPinned && status.IsClickThroughEnabled;
             SetGameBarCardSummary(ready
-                ? (isChinese ? "Game Bar 配置正确" : "Game Bar is configured correctly")
-                : (isChinese ? "还有项目需要处理" : "Some setup steps still need attention"));
+                ? (isChinese ? "已就绪" : "Ready")
+                : (isChinese ? "需要处理" : "Needs attention"));
             SetGameBarStatusRow(
                 WidgetStatusGlyph,
                 WidgetStatusDetail,

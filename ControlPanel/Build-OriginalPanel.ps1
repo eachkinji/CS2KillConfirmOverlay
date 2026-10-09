@@ -48,7 +48,7 @@ foreach ($taskItem in $taskProject.SelectNodes('//m:Compile|//m:Page', $taskName
             if($taskFile.Name -eq 'CompatibilityDisplayPanel.xaml.cs') {
                 $taskText=$taskText.Replace('GameBarMode.IsChecked = !compatibility;', 'GameBarMode.IsChecked = !compatibility; GameBarMode.IsEnabled = DesktopPlatform.GameBarAvailable;')
                 $taskText=$taskText.Replace('OpenGameBarButton.IsEnabled = !_switching', 'OpenGameBarButton.IsEnabled = DesktopPlatform.GameBarAvailable && !_switching')
-                $taskText=$taskText.Replace('HomeView.ApplyLanguage(); ApplyModeGuide(', 'if (!DesktopPlatform.GameBarAvailable) GameBarModeHint.Text = zh ? "未安装可用的 Game Bar 小组件，可直接使用兼容显示。" : "Game Bar widget is unavailable. Desktop display works directly."; HomeView.ApplyLanguage(); ApplyModeGuide(')
+                $taskText=$taskText.Replace('HomeView.ApplyLanguage(); ApplyModeSelection(', 'if (!DesktopPlatform.GameBarAvailable) GameBarModeHint.Text = zh ? "不可用 · 使用兼容显示" : "Unavailable · use desktop display"; HomeView.ApplyLanguage(); ApplyModeSelection(')
             }
         } elseif ($taskText.Contains('FlyoutBase.AttachedFlyout')) {
             if (!$taskText.Contains('xmlns:primitives=')) { $taskText = $taskText.Replace('xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"', 'xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:primitives="using:Microsoft.UI.Xaml.Controls.Primitives"') }

@@ -9,13 +9,17 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
 {
     public sealed partial class CompatibilityDisplayPanel : UserControl
     {
-        private bool _loading = true, _switching;
-        private string _tab = "home", _screenSignature;
+        private bool _loading = true, _switching, _previewing;
+        private string _previewNotice;
+        private DateTimeOffset _previewNoticeUntil;
+        private string _tab = "", _screenSignature;
         private GameThemePalette _theme;
         private readonly DispatcherTimer _statusTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
         public CompatibilityDisplayPanel()
         {
             InitializeComponent();
+            foreach (GameStyleMode style in Enum.GetValues(typeof(GameStyleMode)))
+                MainGameSelector.Items.Add(new ComboBoxItem { Content = GameStyleService.ToDisplayName(style), Tag = GameStyleService.ToStorageValue(style) });
             EffectsView.Content = HomeView.EffectsContent;
             LayoutContentSource.Content = null;
             HomeView.SetLayoutContent(DisplayView);
@@ -39,6 +43,11 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         }
         private void OnUnloaded(object sender, RoutedEventArgs e) { _statusTimer.Stop(); GameStyleService.Changed -= OnPanelGameChanged; }
         private void OnPanelGameChanged(object sender, GameStyleMode style) { ApplyLanguage(); RefreshStatus(); }
+        private async void OnMainGameChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_loading || !(MainGameSelector.SelectedItem is ComboBoxItem item) || !(item.Tag is string key)) return;
+            await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => GameStyleService.Current = GameStyleService.FromKey(key));
+        }
         private async void OnModeChanged(object sender, RoutedEventArgs e)
         {
             if (_loading || _switching) return;
@@ -53,9 +62,9 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                     : (compatibility ? "Desktop display could not start. Retry the service under Packs & testing." : "Desktop display has not confirmed shutdown. Game Bar remains paused. Retry switching modes.");
             }
             catch (Exception error) { StatusText.Text = error.Message; App.Log("Display mode switch: " + error); }
-            finally { _switching = false; CompatibilityMode.IsEnabled = GameBarMode.IsEnabled = true; ApplyModeGuide(CompatibilityDisplayRuntime.Load().Enabled); }
+            finally { _switching = false; CompatibilityMode.IsEnabled = GameBarMode.IsEnabled = true; ApplyModeSelection(CompatibilityDisplayRuntime.Load().Enabled); }
         }
-        private void OnTabClick(object sender, RoutedEventArgs e) { _tab = (string)((Button)sender).Tag; ApplyTab(); }
+        private void OnTabClick(object sender, RoutedEventArgs e) { string selected = (string)((Button)sender).Tag; _tab = _tab == selected ? "" : selected; ApplyTab(); }
         private void OnEffectsRequested(object sender, EventArgs e) { _tab = "effects"; ApplyTab(); }
         private void ApplyTab()
         {
@@ -78,6 +87,19 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         private void OnFpsChanged(object sender, SelectionChangedEventArgs e) { if (!_loading) CompatibilityDisplayRuntime.Update(c => c.FramesPerSecond = FpsSelector.SelectedIndex == 1 ? 30 : 60); }
         private void OnScreenChanged(object sender, SelectionChangedEventArgs e) { if (!_loading) CompatibilityDisplayRuntime.Update(c => c.ScreenName = (ScreenSelector.SelectedItem as ComboBoxItem)?.Tag as string ?? ""); }
         private async void OnEditClick(object sender, RoutedEventArgs e) => await RequestAsync(true);
+        private async void OnHomePreviewClick(object sender, RoutedEventArgs e)
+        {
+            if (_previewing) return;
+            _previewing = true; RefreshStatus();
+            try { await HomeView.PreviewVisualAsync(); _previewNotice = HomeView.PreviewFeedback; _previewNoticeUntil = DateTimeOffset.UtcNow.AddSeconds(8); }
+            finally { _previewing = false; RefreshStatus(); }
+        }
+        private void OnGameBarDetailsClick(object sender, RoutedEventArgs e)
+        {
+            bool expanded = GameBarDetails.Visibility != Visibility.Visible;
+            GameBarDetails.Visibility = expanded ? Visibility.Visible : Visibility.Collapsed;
+            GameBarDetailsChevron.Glyph = expanded ? "\uE70E" : "\uE70D";
+        }
         private async void OnPreviewClick(object sender, RoutedEventArgs e) => await HomeView.PreviewVisualAsync();
         private async Task RequestAsync(bool edit)
         {
@@ -91,9 +113,14 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             if (_switching && !force) return;
             bool zh = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
             var config = CompatibilityDisplayRuntime.Load(); var status = CompatibilityDisplayRuntime.ReadStatus();
-            ApplyModeGuide(config.Enabled);
+            ApplyModeSelection(config.Enabled);
             if (!config.Enabled) RefreshGameBarStatus();
-            StatusText.Text = config.Enabled ? (status?.Editing == true ? (zh ? "正在编辑屏幕 · 完成后恢复鼠标穿透" : "Editing screen · Finish to restore click-through") : CompatibilityDisplayRuntime.IsRunning(status) ? (zh ? "兼容显示运行中 · Game Bar 显示已暂停" : "Desktop display running · Game Bar display paused") : (zh ? "等待兼容显示启动" : "Waiting for desktop display")) : (CompatibilityDisplayRuntime.IsEnabled ? (zh ? "正在停止兼容显示 · Game Bar 暂停中" : "Stopping desktop display · Game Bar paused") : (zh ? "Game Bar 显示已启用 · 兼容显示已关闭" : "Game Bar display enabled · Desktop display stopped"));
+            string problem = config.Enabled && CompatibilityDisplayRuntime.IsRunning(status) ? status.Error : null;
+            StatusText.Text = _previewing ? (zh ? "正在预览…" : "Previewing…") : DateTimeOffset.UtcNow < _previewNoticeUntil ? _previewNotice :
+                !config.Enabled ? (zh ? "Game Bar 已选择" : "Game Bar selected") : !string.IsNullOrWhiteSpace(problem) ? (zh ? "需要处理 · 展开连接详情" : "Needs attention · see connection details") :
+                status?.Editing == true ? (zh ? "编辑布局中" : "Editing layout") : !CompatibilityDisplayRuntime.IsRunning(status) ? (zh ? "正在启动…" : "Starting…") :
+                status.Loading ? (zh ? "加载素材中…" : "Loading packs…") : (zh ? "已就绪" : "Ready");
+            HomePreviewButton.IsEnabled = config.Enabled && !_switching && !_previewing && HomeView.CanPreview;
             EditButton.IsEnabled = PreviewButton.IsEnabled = ResetButton.IsEnabled = config.Enabled;
             var screens = status?.Screens ?? new string[0];
             string signature = string.Join("|", screens) + config.ScreenName;
@@ -109,32 +136,37 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         public void ApplyLanguage()
         {
             bool zh = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
-            TitleText.Text = zh ? "开始使用" : "Get started";
-            DescriptionText.Text = zh ? "选择显示方式，按指引完成设置。通用选项在「高级设置」，各游戏的详细配置在左侧游戏卡片。" : "Choose a display mode and follow the guide. General options are in Advanced settings; game-specific options are in the game cards on the left.";
-            GameBarModeTitle.Text = zh ? "Game Bar 模式" : "Game Bar mode";
-            GameBarModeHint.Text = zh ? "通过 Xbox Game Bar 显示，在游戏中固定组件。" : "Display effects through a pinned Xbox Game Bar widget.";
-            CompatibilityModeTitle.Text = zh ? "兼容显示模式" : "Desktop display mode";
-            CompatibilityModeHint.Text = zh ? "直接显示在屏幕上，适用于窗口与无边框全屏。" : "Show effects directly in windowed or borderless games.";
-            RecommendedText.Text = zh ? "默认推荐" : "Default";
+            bool wasLoading = _loading; _loading = true;
+            MainGameSelector.SelectedItem = MainGameSelector.Items.OfType<ComboBoxItem>().FirstOrDefault(item => (string)item.Tag == GameStyleService.ToStorageValue(GameStyleService.Current));
+            _loading = wasLoading;
+            ToolTipService.SetToolTip(MainGameSelector, zh ? "效果风格" : "Effect style");
+            TitleText.Text = zh ? "显示模式" : "Display mode";
+            GameBarModeTitle.Text = zh ? "Game Bar" : "Game Bar";
+            GameBarModeHint.Text = zh ? "游戏内小组件" : "In-game widget";
+            CompatibilityModeTitle.Text = zh ? "兼容显示" : "Desktop display";
+            CompatibilityModeHint.Text = zh ? "直接显示在屏幕上" : "Effects on your screen";
+            RecommendedText.Text = zh ? "推荐" : "Recommended";
+            HomePreviewLabel.Text = zh ? "预览效果" : "Preview effects";
+            GameBarDetailsLabel.Text = zh ? "状态详情" : "Status details";
             HomeTabLabel.Text = zh ? "素材与测试" : "Packs & testing";
             EffectsTabLabel.Text = zh ? "战斗与视效" : "Combat & effects";
             OpenGameBarLabel.Text = zh ? "打开 Game Bar" : "Open Game Bar";
             LayoutTitle.Text = zh ? "屏幕与布局" : "Screen & layout";
-            LayoutHint.Text = zh ? "当前游戏：" + GameStyleService.ToDisplayName(GameStyleService.Current) + "。位置、大小和元素显隐独立保存，切换游戏后自动恢复。拖动移动，拖动右下角或滚轮缩放，方向键微调。" : "Current game: " + GameStyleService.ToDisplayName(GameStyleService.Current) + ". Position, size and visibility are saved per game. Drag to move, resize with the handle or mouse wheel, and fine-tune with arrow keys.";
+            LayoutHint.Text = zh ? "当前风格：" + GameStyleService.ToDisplayName(GameStyleService.Current) : "Current style: " + GameStyleService.ToDisplayName(GameStyleService.Current);
             EditLabel.Text = zh ? "编辑屏幕" : "Edit screen";
             PreviewLabel.Text = zh ? "预览画面" : "Preview visuals";
             ResetLabel.Text = zh ? "恢复当前游戏布局" : "Reset game layout";
             ScreenTitle.Text = zh ? "显示范围与性能" : "Display area & performance";
-            ScreenScopeHint.Text = zh ? "以下选项为所有游戏共用，不影响各游戏独立保存的元素布局。" : "These options are shared across all games. Element layouts remain independent.";
+            ScreenScopeHint.Text = zh ? "所有风格共用" : "Shared across styles";
             ShortcutText.Text = zh ? "Ctrl + Alt + L 编辑 / 结束 · Ctrl + Alt + O 显示 / 隐藏 · Enter 或 Esc 保存" : "Ctrl + Alt + L edit / finish · Ctrl + Alt + O show / hide · Enter or Esc save";
             FollowToggle.Header = zh ? "自动跟随游戏窗口" : "Follow game window";
             HideToggle.Header = zh ? "切出游戏时隐藏" : "Hide when game loses focus";
             ScreenSelector.Header = zh ? "显示器（预览与固定显示）" : "Monitor (preview and fixed display)";
             FpsSelector.Header = zh ? "动画帧率" : "Animation frame rate";
             ApplyGameBarStatusLanguage();
-            HomeView.ApplyLanguage(); ApplyModeGuide(CompatibilityDisplayRuntime.Load().Enabled);
+            HomeView.ApplyLanguage(); ApplyModeSelection(CompatibilityDisplayRuntime.Load().Enabled);
         }
-        private void ApplyModeGuide(bool compatibility)
+        private void ApplyModeSelection(bool compatibility)
         {
             bool wasLoading = _loading;
             _loading = true;
@@ -142,18 +174,6 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             GameBarMode.IsChecked = !compatibility;
             _loading = wasLoading;
             bool zh = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
-            GuideTitle.Text = compatibility ? (zh ? "兼容显示使用指引" : "Desktop display guide") : (zh ? "Game Bar 使用指引" : "Game Bar guide");
-            GuideDescription.Text = compatibility
-                ? (zh ? "在窗口或无边框全屏中使用。素材、播放测试和屏幕布局都在下方「素材与测试」。" : "Use windowed or borderless mode. Packs, playback tests and screen layouts are all under Packs & testing below.")
-                : (zh ? "首次使用默认选择 Game Bar。用 Win + G 打开并固定组件，即可在游戏中显示效果。两种显示模式不能同时启用。" : "Game Bar is the default for first use. Open it with Win + G and pin the widget to show effects in games. Only one display mode can be active.");
-            StepOneIcon.Glyph = compatibility ? "\uE8B7" : "\uE7FC";
-            StepTwoIcon.Glyph = compatibility ? "\uE70F" : "\uE718";
-            StepOneTitle.Text = compatibility ? (zh ? "1. 选择素材并测试" : "1. Choose packs & test") : (zh ? "1. 打开组件" : "1. Open the widget");
-            StepOneText.Text = compatibility ? (zh ? "选择游戏风格、图标包和语音包，点击播放确认画面。无需先启动游戏。" : "Choose a game style and packs, then play a test. No game is needed.") : (zh ? "点击下方按钮或按 Win + G，找到 Kill Confirm Overlay 组件。" : "Use the button below or press Win + G to find Kill Confirm Overlay.");
-            StepTwoTitle.Text = compatibility ? (zh ? "2. 调整屏幕布局" : "2. Adjust the layout") : (zh ? "2. 测试并固定" : "2. Test & pin");
-            StepTwoText.Text = compatibility ? (zh ? "在素材与测试中点击编辑屏幕，调整位置和大小，按 Enter 或 Esc 保存。" : "Select Edit screen under Packs & testing. Adjust the position and size, then press Enter or Esc to save.") : (zh ? "在组件中选择游戏风格和素材，发送测试，点击图钉固定组件。" : "Choose a style and packs in the widget, test the effects, and pin it.");
-            StepThreeTitle.Text = zh ? "3. 进入游戏" : "3. Start the game";
-            StepThreeText.Text = compatibility ? (zh ? "启动 CS2。若没有游戏数据，可在运行状态中安装或修复游戏配置。" : "Start CS2. If game data is missing, repair its configuration under Runtime status.") : (zh ? "启动 CS2。需要调整效果时，使用左侧的游戏卡片；通用选项在高级设置。" : "Start CS2. Adjust effects using the game cards on the left and general options in Advanced settings.");
             if (_theme != null)
             {
                 GameBarModeCard.Background = _theme.Brush(compatibility ? _theme.Card : _theme.AccentSoft);
@@ -162,6 +182,8 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                 CompatibilityModeCard.BorderBrush = _theme.Brush(compatibility ? _theme.Accent : _theme.SoftBorder);
             }
             GameBarStatusSection.Visibility = compatibility ? Visibility.Collapsed : Visibility.Visible;
+            OpenGameBarButton.Visibility = compatibility ? Visibility.Collapsed : Visibility.Visible;
+            HomePreviewButton.Visibility = compatibility ? Visibility.Visible : Visibility.Collapsed;
             OpenGameBarButton.IsEnabled = !_switching && !CompatibilityDisplayRuntime.IsEnabled;
             TabBar.Visibility = CompatibilityWorkspace.Visibility = compatibility ? Visibility.Visible : Visibility.Collapsed;
         }
@@ -170,13 +192,14 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             // Home uses the same neutral workspace palette as Advanced settings.
             _theme = GameThemePalette.Home; theme = _theme;
             Foreground = theme.Brush(theme.Text);
-            foreach (var card in new[] { ModeCard, GuideCard, LayoutCard, ScreenCard }) { card.Background = theme.Brush(theme.Card); card.BorderBrush = theme.Brush(theme.SoftBorder); }
+            foreach (var card in new[] { ModeCard, LayoutCard, ScreenCard }) { card.Background = theme.Brush(theme.Card); card.BorderBrush = theme.Brush(theme.SoftBorder); }
             TabBar.Background = theme.Brush(theme.SubtleField); TabBar.BorderBrush = theme.Brush(theme.Border);
             ModeStatusBadge.Background = theme.Brush(theme.AccentSoft);
             StatusText.Foreground = theme.Brush(theme.Accent);
-            foreach (var text in new[] { DescriptionText, GameBarModeHint, CompatibilityModeHint, GuideDescription, LayoutHint, ShortcutText, ScreenScopeHint, StepOneText, StepTwoText, StepThreeText }) text.Foreground = theme.Brush(theme.MutedText);
+            foreach (var text in new[] { GameBarModeHint, CompatibilityModeHint, LayoutHint, ShortcutText, ScreenScopeHint }) text.Foreground = theme.Brush(theme.MutedText);
+            MainGameSelector.Background = theme.Brush(theme.Field); MainGameSelector.Foreground = theme.Brush(theme.Text); MainGameSelector.BorderBrush = theme.Brush(theme.Border); MainGameSelector.CornerRadius = new CornerRadius(4);
             ApplyGameBarStatusTheme(theme);
-            HomeView.ApplyTheme(theme); ApplyTab(); ApplyModeGuide(CompatibilityDisplayRuntime.Load().Enabled);
+            HomeView.ApplyTheme(theme); ApplyTab(); ApplyModeSelection(CompatibilityDisplayRuntime.Load().Enabled);
         }
     }
 }

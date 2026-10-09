@@ -34,6 +34,14 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         private DateTimeOffset _actionNoticeUntil;
         public event EventHandler EffectsRequested;
         public UIElement EffectsContent => PackTestSectionView.AdvancedEffectsFlyoutCard;
+        internal bool CanPreview => _packSelectorsInitialized && !_testInProgress;
+        internal string PreviewFeedback => PackTestSectionView.TestFeedbackText.Text;
+        private void OnConnectionDetailsClick(object sender, RoutedEventArgs e)
+        {
+            bool expanded = ConnectionDetails.Visibility != Visibility.Visible;
+            ConnectionDetails.Visibility = expanded ? Visibility.Visible : Visibility.Collapsed;
+            ConnectionDetailsChevron.Glyph = expanded ? "\uE70E" : "\uE70D";
+        }
         internal UIElement ScreenLayoutContent => PackTestSectionView.LayoutContentHost.Content as UIElement;
         internal void SetLayoutContent(UIElement content) => PackTestSectionView.LayoutContentHost.Content = content;
         private const string IconPackSettingKey = "KillIconPack", VoicePackSettingKey = "VoicePack", EliteEffectSettingKey = "KillEliteEffect", KillFxSettingKey = "KillFxEnabled", WeaponBadgeSettingKey = "KillWeaponBadge", MainAnimationStyleSettingKey = "MainAnimationStyle";
@@ -122,10 +130,10 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             GameTitle.Text = GameStyleService.ToDisplayName(GameStyleService.Current);
             GameHint.Text = zh ? "图标、语音与战斗规则使用当前游戏配置；屏幕布局为兼容显示独立保存。" : "Packs, voice and combat rules follow the selected game. Desktop layouts are saved separately.";
             EffectsLabel.Text = zh ? "战斗与视效" : "Combat & effects";
-            StatusTitle.Text = zh ? "运行状态" : "Runtime status"; RetryLabel.Text = zh ? "重试连接" : "Retry connection";
+            StatusTitle.Text = zh ? "连接详情" : "Connection details"; RetryLabel.Text = zh ? "重试连接" : "Retry connection";
             CfgLabel.Text = zh ? "修复游戏配置" : "Repair game config"; CopyLabel.Text = zh ? "复制诊断" : "Copy diagnostics"; LogsLabel.Text = zh ? "打开日志" : "Open logs";
             DisplayStateLabel.Text = zh ? "显示端" : "Display"; ServiceStateLabel.Text = zh ? "后台服务" : "Service"; GameDataLabel.Text = zh ? "游戏数据" : "Game data";
-            PackTestSectionView.PackHintText.Text = zh ? "先选择素材和测试事件，再播放确认效果。屏幕位置与大小可以在本卡片下方编辑。" : "Choose packs and a test event, then play to check the effect. Edit screen position and size below.";
+            PackTestSectionView.PackHintText.Visibility = Visibility.Collapsed;
             PackTestSectionView.VoicePackLabel.Text = zh ? "语音包" : "Voice pack"; PackTestSectionView.IconPackLabel.Text = zh ? "图标包" : "Icon pack";
             PackTestSectionView.TestPresetLabel.Text = zh ? "测试事件" : "Test event"; PackTestSectionView.VolumeLabel.Text = zh ? "播放音量" : "Volume";
             PackTestSectionView.SendTestLabel.Text = zh ? "播放画面与音频" : "Play visuals & audio";
@@ -184,7 +192,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             var theme = GameThemePalette.Home;
             RuntimeNoticeBorder.Background = theme.Brush(string.IsNullOrWhiteSpace(problem) ? theme.SubtleField : theme.WarningField);
             StatusText.Foreground = theme.Brush(string.IsNullOrWhiteSpace(problem) ? theme.MutedText : theme.WarningText);
-            StatusText.Text = !string.IsNullOrWhiteSpace(problem) ? problem : DateTimeOffset.UtcNow < _actionNoticeUntil ? _actionNotice : (zh ? "无需启动游戏也能测试画面。实际击杀效果需要接收游戏数据；没有数据时，请安装或修复游戏配置。" : "Preview works without a running game. Live kill effects need game data; repair the game configuration if data is missing.");
+            StatusText.Text = !string.IsNullOrWhiteSpace(problem) ? problem : DateTimeOffset.UtcNow < _actionNoticeUntil ? _actionNotice : (zh ? "连接正常" : "Connection healthy");
         }
         private static void PaintStatusBadge(Border badge, TextBlock value, bool healthy, bool waiting)
         {

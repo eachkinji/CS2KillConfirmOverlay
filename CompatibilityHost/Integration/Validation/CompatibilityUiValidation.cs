@@ -39,7 +39,7 @@ namespace KillConfirmGameBar
                     await Task.Delay(100);
                     if (!_isHomePageSelected || CompatibilityPageContent.Content != _compatibilityWorkspace) throw new Exception("Home page did not remount");
                     await _compatibilityWorkspace.ValidateCurrentGameAsync();
-                    await FileIO.WriteTextAsync(await ApplicationData.Current.LocalFolder.CreateFileAsync("ui-pass.txt", CreationCollisionOption.ReplaceExisting), "PASS: default mode-selection home, both mode guides, peer advanced settings with four tabs, independent game navigation, Game Bar default, two shared-style home tabs, integrated screen layout, detailed runtime status, playback feedback, all 15 game panels, 60 rapid game changes, selectors, isolated appearance settings and navigation lifecycle.");
+                    await FileIO.WriteTextAsync(await ApplicationData.Current.LocalFolder.CreateFileAsync("ui-pass.txt", CreationCollisionOption.ReplaceExisting), "PASS: default mode-selection home, compact mode actions, peer advanced settings with four tabs, independent game navigation, Game Bar default, two shared-style home tabs, integrated screen layout, detailed runtime status, playback feedback, all 15 game panels, 60 rapid game changes, selectors, isolated appearance settings and navigation lifecycle.");
                 }
                 catch (Exception error) { await FileIO.WriteTextAsync(await ApplicationData.Current.LocalFolder.CreateFileAsync("ui-failure.txt", CreationCollisionOption.ReplaceExisting), error.ToString()); }
             };
@@ -54,12 +54,20 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         internal async Task ValidateUiAsync()
         {
             if (CompatibilityDisplayRuntime.Load().Enabled || GameBarMode.IsChecked != true) throw new Exception("First use did not default to Game Bar");
-            ApplyModeGuide(false);
-            if (GameBarStatusSection.Visibility != Visibility.Visible || TabBar.Visibility != Visibility.Collapsed || CompatibilityWorkspace.Visibility != Visibility.Collapsed) throw new Exception("Game Bar guide exposes desktop-only controls");
+            ApplyModeSelection(false);
+            if (GameBarStatusSection.Visibility != Visibility.Visible || TabBar.Visibility != Visibility.Collapsed || CompatibilityWorkspace.Visibility != Visibility.Collapsed) throw new Exception("Game Bar mode exposes desktop-only controls");
+            if (GameBarDetails.Visibility != Visibility.Collapsed || HomePreviewButton.Visibility != Visibility.Collapsed || OpenGameBarButton.Visibility != Visibility.Visible) throw new Exception("Game Bar home did not keep its action and collapsed details.");
             await CaptureUiAsync("home-gamebar");
             CompatibilityDisplayRuntime.Update(c => c.Enabled = true);
-            ApplyModeGuide(true);
-            if (GameBarStatusSection.Visibility != Visibility.Collapsed || TabBar.Visibility != Visibility.Visible || CompatibilityWorkspace.Visibility != Visibility.Visible) throw new Exception("Desktop mode did not expose its guide and workspace");
+            ApplyModeSelection(true);
+            if (GameBarStatusSection.Visibility != Visibility.Collapsed || TabBar.Visibility != Visibility.Visible || CompatibilityWorkspace.Visibility != Visibility.Visible) throw new Exception("Desktop mode did not expose its actions and workspace");
+            if (HomePreviewButton.Visibility != Visibility.Visible || OpenGameBarButton.Visibility != Visibility.Collapsed || HomeView.Visibility != Visibility.Collapsed) throw new Exception("Desktop home does not start with compact actions.");
+            for (int attempt = 0; attempt < 60 && !HomeView.CanPreview; attempt++) await Task.Delay(50);
+            RefreshStatus();
+            if (!HomePreviewButton.IsEnabled) throw new Exception("Home preview needs the hidden configuration panel to be opened first.");
+            await CaptureUiAsync("home-desktop");
+            await ValidateHomePreviewAsync();
+            _tab = "home"; ApplyTab();
             var styles = Enum.GetValues(typeof(GameStyleMode)).Cast<GameStyleMode>().ToArray();
             foreach (var style in styles)
             {
@@ -90,10 +98,24 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             Width = 640; await CaptureUiAsync("home-compact"); Width = double.NaN;
             HomeView.ValidateStatusCards();
             await HomeView.ValidatePlaybackButtonAsync();
+            await ValidateHomePreviewAsync();
             await HomeView.ValidateDanmakuButtonAsync();
             _tab = "home"; ApplyTab();
             CompatibilityDisplayRuntime.Update(c => c.Enabled = false);
-            ApplyModeGuide(false);
+            ApplyModeSelection(false);
+        }
+        private async Task ValidateHomePreviewAsync()
+        {
+            KillConfirmCompatibility.Contracts.DisplayFiles.Write(CompatibilityDisplayRuntime.StatusPath,
+                new KillConfirmCompatibility.Contracts.DisplayStatus { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), ProcessId = 1 });
+            var previous = CompatibilityDisplayRuntime.Load();
+            OnHomePreviewClick(this, new RoutedEventArgs());
+            var preview = CompatibilityDisplayRuntime.Load();
+            if (preview.TestRequest <= previous.TestRequest || preview.TestAudio) throw new Exception("Home preview did not request its visual playback.");
+            KillConfirmCompatibility.Contracts.DisplayFiles.Write(CompatibilityDisplayRuntime.StatusPath,
+                new KillConfirmCompatibility.Contracts.DisplayStatus { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), ProcessId = 1, LastTestRequest = preview.TestRequest });
+            for (int attempt = 0; attempt < 40 && _previewing; attempt++) await Task.Delay(50);
+            if (_previewing || StatusText.Text != HomeView.PreviewFeedback) throw new Exception("Home preview did not show playback feedback beside its action.");
         }
         private async Task CaptureUiAsync(string name)
         {
@@ -130,9 +152,14 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                         throw new Exception("Danmaku test did not send its own selected-event request.");
                     KillConfirmCompatibility.Contracts.DisplayFiles.Write(CompatibilityDisplayRuntime.StatusPath,
                         new KillConfirmCompatibility.Contracts.DisplayStatus { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), ProcessId = 1, LastDanmakuTestRequest = request.DanmakuTestRequest, DanmakuTestError = failure });
-                    await Task.Delay(250);
+                    for (int attempt = 0; attempt < 40; attempt++)
+                    {
+                        bool acknowledged = failure == null ? PackTestSectionView.TestFeedbackText.Text.Contains("弹幕已在屏幕上预览") : PackTestSectionView.TestFeedbackText.Text == failure;
+                        if (acknowledged) break;
+                        await Task.Delay(50);
+                    }
                     if (failure == null ? !PackTestSectionView.TestFeedbackText.Text.Contains("弹幕已在屏幕上预览") : PackTestSectionView.TestFeedbackText.Text != failure)
-                        throw new Exception("Danmaku test did not show the display acknowledgement/error.");
+                        throw new Exception("Danmaku test did not show the display acknowledgement/error: " + PackTestSectionView.TestFeedbackText.Text);
                 }
                 CompatibilityDisplayRuntime.Update(c => c.Enabled = false);
                 bool localTest = false;

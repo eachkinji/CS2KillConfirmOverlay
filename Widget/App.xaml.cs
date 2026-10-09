@@ -168,7 +168,9 @@ namespace KillConfirmGameBar
             object sender,
             SystemNavigationCloseRequestedPreviewEventArgs e)
         {
-            if (Services.CloseBehaviorSettingsStore.KeepRunningAfterSettingsClose)
+            // The unpackaged panel owns the close-all preference. A Game Bar
+            // widget close must not terminate a newly reopened widget or panel.
+            if (_currentWindowIsWidget || Services.CloseBehaviorSettingsStore.KeepRunningAfterSettingsClose)
             {
                 return;
             }
@@ -198,16 +200,15 @@ namespace KillConfirmGameBar
                 _systemNavigationPreview = null;
             }
 
-            if (!Services.CloseBehaviorSettingsStore.KeepRunningAfterSettingsClose)
-            {
-                await RequestFullExitAsync();
-            }
-            else if (_currentWindowIsWidget)
+            _gameBarWidget = null;
+            if (_currentWindowIsWidget)
             {
                 await ShutdownCompanionFromCurrentFrameAsync();
             }
-
-            _gameBarWidget = null;
+            else if (!Services.CloseBehaviorSettingsStore.KeepRunningAfterSettingsClose)
+            {
+                await RequestFullExitAsync();
+            }
             Log(_currentWindowIsWidget ? "Widget window closed." : "Settings window closed.");
         }
 
@@ -259,8 +260,8 @@ namespace KillConfirmGameBar
                 // Suspending is the last reliable callback UWP receives during
                 // normal app shutdown. Always release this process's service
                 // lease; the companion also watches the PID for crash/kill cases.
-                await ShutdownCompanionFromCurrentFrameAsync();
                 _gameBarWidget = null;
+                await ShutdownCompanionFromCurrentFrameAsync();
                 Log("App suspending.");
             }
             finally
@@ -360,7 +361,7 @@ namespace KillConfirmGameBar
                 RotateLogIfNeeded(logPath);
 
                 string line = string.Format(
-                    "[{0:yyyy-MM-dd HH:mm:ss.fff}] pid={1} {2}{3}",
+                    "[{0:yyyy-MM-dd HH:mm:ss.fff}] thread={1} {2}{3}",
                     DateTimeOffset.Now,
                     Environment.CurrentManagedThreadId,
                     message,

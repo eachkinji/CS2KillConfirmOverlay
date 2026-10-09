@@ -86,16 +86,24 @@ namespace KillConfirmGameBar
                     return;
                 }
 
-                await Services.SharedRuntime.InitializeAsync();
                 var rootFrame = CreateRootFrame();
                 Window.Current.Content = rootFrame;
 
                 _gameBarWidget = new XboxGameBarWidget(widgetArgs, Window.Current.CoreWindow, rootFrame);
                 ConfigureWindowCloseHandling(true);
 
-                rootFrame.Navigate(typeof(KillConfirmWidgetPage), _gameBarWidget);
+                var loadingPanel = new StackPanel { Spacing = 12, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
+                loadingPanel.Children.Add(new ProgressRing { IsActive = true, Width = 32, Height = 32 });
+                loadingPanel.Children.Add(new TextBlock { Text = "正在连接后台… / Connecting…", HorizontalAlignment = HorizontalAlignment.Center });
+                rootFrame.Content = loadingPanel;
                 Window.Current.Activate();
-                Log("Widget window activated.");
+                LogCrash("Widget window activated before companion initialization.");
+
+                var activeWidget = _gameBarWidget;
+                await Services.SharedRuntime.InitializeAsync();
+                if (_gameBarWidget != activeWidget) return;
+                rootFrame.Navigate(typeof(KillConfirmWidgetPage), activeWidget);
+                LogCrash("Widget page ready.");
             }
             catch (Exception ex)
             {

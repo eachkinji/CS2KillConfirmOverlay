@@ -187,15 +187,15 @@ function Install-OverlayPackage {
             throw "MSIX Bundle 安装命令执行完成，但已注册版本仍为 $installedVersion，目标版本为 $($packageIdentity.Version)。"
         }
     }
-    $serviceExecutable = Join-Path $installedPackage.InstallLocation "KillConfirmService\cskillconfirm.exe"
-    if (-not (Test-Path -LiteralPath $serviceExecutable -PathType Leaf)) {
-        throw "MSIX 已注册，但后台服务文件不存在：$serviceExecutable"
-    }
     Add-InstallResult -Status Success -Item "Kill Confirm Overlay 主程序" -Detail ("安装成功，版本 {0}" -f $installedPackage.Version)
 }
 
 function Test-OverlayPackageInstalled {
     $package = Update-InstalledPackageContext
+    $bridgeExecutable = Join-Path $package.InstallLocation "Bridge\killconfirm-widget-bridge.exe"
+    if (-not (Test-Path -LiteralPath $bridgeExecutable -PathType Leaf)) {
+        throw "Game Bar 小组件已注册，但启动桥接程序不存在：$bridgeExecutable"
+    }
 
     Write-InstallLog "MSIX package registered: $($package.PackageFamilyName)"
     Write-InstallLog "Package full name: $($package.PackageFullName)"

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Windows.Data.Json;
 using Windows.Foundation.Collections;
@@ -22,11 +23,33 @@ namespace KillConfirmGameBar.Services
         public static async Task InitializeAsync()
         {
             await KillConfirmWidgetPage.TryLaunchFullTrustHelperAsync(ServiceLauncher.ResolveGroupId(LocalServiceEndpoints.Port,DeveloperModeSettingsStore.IsEnabled));
-            for(int i=0;i<48;i++)
+            using (var startupTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(20)))
             {
-                try { LocalServiceAuth.InvalidateCachedToken(); string portPath=Path.Combine(ApplicationData.Current.LocalFolder.Path,"widget_port.txt"); if(File.Exists(portPath) && int.TryParse(File.ReadAllText(portPath).Trim(),out int port)) PortSettingsStore.SavePort(port); await PollAsync(); break; }
-                catch { if(i==47) throw; await Task.Delay(250); }
+                try
+                {
+                    for (int i = 0; i < 48; i++)
+                    {
+                        try
+                        {
+                            LocalServiceAuth.InvalidateCachedToken();
+                            string portPath = Path.Combine(ApplicationData.Current.LocalFolder.Path, "widget_port.txt");
+                            if (File.Exists(portPath) && int.TryParse(File.ReadAllText(portPath).Trim(), out int port)) PortSettingsStore.SavePort(port);
+                            await PollAsync(startupTimeout.Token);
+                            break;
+                        }
+                        catch
+                        {
+                            if (i == 47) throw;
+                            await Task.Delay(250, startupTimeout.Token);
+                        }
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    throw new TimeoutException("无法连接本地后台。请重新运行安装器修复 Game Bar 本机通信权限。 / Local companion connection timed out; rerun the installer to repair Game Bar loopback access.");
+                }
             }
+            App.LogCrash("Widget shared state connected.");
             await ServiceLauncher.RegisterCurrentProcessAsync();
             await SharedResources.InitializeAsync();
             ApplicationData.Current.LocalSettings.Values.MapChanged += OnSettingChanged;
@@ -53,7 +76,7 @@ namespace KillConfirmGameBar.Services
             using(var content=new HttpStringContent(json.Stringify(),UnicodeEncoding.Utf8,"application/json"))
             using(var response=await client.PostAsync(LocalServiceEndpoints.Build(path),content)) response.EnsureSuccessStatusCode();
         }
-        private static async Task PollAsync()
+        private static async Task PollAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             if(Busy) return; Busy=true;
             try
@@ -66,10 +89,10 @@ namespace KillConfirmGameBar.Services
                         await PostAsync(client,"/shared/setting",new JsonObject { ["key"]=JsonValue.CreateStringValue(key),["value"]=saved ?? JsonValue.CreateNullValue() });
                         if(Pending.TryGetValue(key,out var now) && ReferenceEquals(saved,now)) Pending.Remove(key);
                     }
-                    using(var response=await client.GetAsync(LocalServiceEndpoints.Build("/shared/state")))
+                    using(var response=await client.GetAsync(LocalServiceEndpoints.Build("/shared/state")).AsTask(cancellationToken))
                     {
                         response.EnsureSuccessStatusCode();
-                        var snapshot=JsonObject.Parse(await response.Content.ReadAsStringAsync());
+                        var snapshot=JsonObject.Parse(await response.Content.ReadAsStringAsync().AsTask(cancellationToken));
                         string settings=snapshot["settings"].Stringify();
                         if(settings!=Settings) { Settings=settings; SettingsRevision++; }
                         SharedResources.RemoteDataRoot=snapshot["dataRoot"].GetString();

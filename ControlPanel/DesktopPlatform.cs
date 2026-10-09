@@ -75,7 +75,7 @@ internal sealed class DesktopPackage
 internal sealed class DesktopPackageId
 {
     public string Name => DesktopPlatform.IsUiValidation ? "KillConfirmCompatibility.UIValidation" : "KillConfirmGameBar.ControlPanel";
-    public Windows.ApplicationModel.PackageVersion Version => new() { Major=4, Minor=5, Build=1, Revision=55 };
+    public Windows.ApplicationModel.PackageVersion Version => new() { Major=4, Minor=5, Build=1, Revision=56 };
 }
 internal sealed class DesktopData
 {

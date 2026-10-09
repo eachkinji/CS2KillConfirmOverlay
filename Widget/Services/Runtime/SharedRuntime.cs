@@ -73,7 +73,9 @@ namespace KillConfirmGameBar.Services
         }
         private static void OnSettingChanged(IObservableMap<string,object> map,IMapChangedEventArgs<string> args)
         {
-            if(Applying) return;
+            // Only the ordinary panel selects the display mode. A delayed
+            // widget settings event must never overwrite its mode selection.
+            if(Applying || args.Key == "CompatibilityDisplay.Enabled") return;
             if(!map.TryGetValue(args.Key,out object value)) { Pending[args.Key]=null; return; }
             string kind=value is bool ? "bool" : value is int ? "int" : value is long ? "long" : value is float ? "float" : value is double ? "double" : value is string ? "string" : null;
             if(kind==null) return;

@@ -10,6 +10,9 @@ namespace KillConfirmCompatibility.Contracts
         [DataMember] public int Version { get; set; } = 2;
         // First use starts in Game Bar; an explicitly saved mode remains selected.
         [DataMember] public bool Enabled { get; set; } = false;
+        // Remain blocked until the desktop renderer confirms shutdown.
+        [DataMember] public bool GameBarBlocked { get; set; }
+        public bool BlocksGameBar => Enabled || GameBarBlocked;
         [DataMember] public bool FollowGame { get; set; } = true;
         [DataMember] public bool HideWhenInactive { get; set; } = true;
         [DataMember] public string ScreenName { get; set; } = "";

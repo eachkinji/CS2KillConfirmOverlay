@@ -14,7 +14,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         private static readonly System.Threading.SemaphoreSlim ModeGate = new System.Threading.SemaphoreSlim(1, 1);
         public static string ConfigurationPath => Path.Combine(ApplicationData.Current.LocalFolder.Path, DisplayFiles.FolderName, DisplayFiles.ConfigurationName);
         public static string StatusPath => Path.Combine(ApplicationData.Current.LocalFolder.Path, DisplayFiles.FolderName, DisplayFiles.StatusName);
-        public static bool IsEnabled => ApplicationData.Current.LocalSettings.Values[EnabledKey] is bool enabled && enabled;
+        public static bool IsEnabled => Load().BlocksGameBar;
         public static DisplayConfiguration Load()
         {
             var config = DisplayFiles.Read<DisplayConfiguration>(ConfigurationPath) ?? new DisplayConfiguration();
@@ -31,7 +31,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             {
                 ApplicationData.Current.LocalSettings.Values[EnabledKey] = true;
                 long request = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                Update(c => { c.Enabled = compatibility; c.ModeRequest = request; });
+                Update(c => { c.Enabled = compatibility; c.GameBarBlocked = true; c.ModeRequest = request; });
                 if (compatibility) return await EnsureStartedAsync();
                 await KillConfirmWidgetPage.TryLaunchFullTrustHelperAsync("StopCompatibilityDisplay");
                 for (int i = 0; i < 100; i++)
@@ -40,6 +40,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                     var stopped = DisplayFiles.Read<DisplayStopResult>(Path.Combine(Path.GetDirectoryName(ConfigurationPath), "stop-result.json"));
                     if ((stopped?.ModeRequest == request && stopped.Stopped) || (status != null && status.ProcessId == 0))
                     {
+                        Update(c => c.GameBarBlocked = false);
                         ApplicationData.Current.LocalSettings.Values[EnabledKey] = false;
                         return true;
                     }

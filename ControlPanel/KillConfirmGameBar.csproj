@@ -11,7 +11,7 @@
     <PlatformTarget>x64</PlatformTarget>
     <RootNamespace>KillConfirmGameBar</RootNamespace>
     <AssemblyName>KillConfirmGameBar</AssemblyName>
-    <Version>4.5.1.58</Version>
+    <Version>$([System.Text.RegularExpressions.Regex]::Match($([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)..\Package\Package.appxmanifest')), 'Version=&quot;([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)&quot;').Groups[1].Value)</Version>
     <EnableDefaultPageItems>false</EnableDefaultPageItems>
     <DefaultItemExcludes>$(DefaultItemExcludes);obj/**;bin/**;Generated/**</DefaultItemExcludes>
     <EnableDefaultApplicationDefinition>false</EnableDefaultApplicationDefinition>

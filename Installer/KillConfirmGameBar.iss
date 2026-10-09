@@ -39,6 +39,8 @@ AppPublisher={#MyAppPublisher}
 DefaultDirName={autopf}\Kill Confirm Overlay
 DefaultGroupName=Kill Confirm Overlay
 DisableProgramGroupPage=yes
+AlwaysShowComponentsList=yes
+UsePreviousSetupType=no
 OutputDir=..\Output
 OutputBaseFilename=KillConfirmGameBar_Setup_{#MyAppVersion}{#InstallerOutputSuffix}
 SetupIconFile=Assets\KillConfirmOverlay.ico
@@ -93,14 +95,14 @@ english.BeginnerGuideText=If you are new to this, start by watching the tutorial
 chinesesimplified.BeginnerGuideText=如果你是小白，请从此步骤开始观看教学视频：
 english.TutorialLinkText=Open the Bilibili installation tutorial
 chinesesimplified.TutorialLinkText=点击打开 Bilibili 安装教学视频
-english.CertificateWarningText=Please note: the next steps will add a new personal signing certificate to your computer. Continue only after you understand and accept this change.
-chinesesimplified.CertificateWarningText=请记住：接下来的步骤将会给你的电脑添加新证书，该证书是个人签名证书，请确认后再继续。
+english.CertificateWarningText=Selecting the Game Bar widget includes its personal signing certificate and local communication permission. Unselect the widget to install only the ordinary main program.
+chinesesimplified.CertificateWarningText=勾选 Game Bar 小组件时会安装个人签名证书并配置本机通信权限；取消小组件勾选可只安装普通主程序。
 english.PrerequisiteWarningText=Please note: the installer will check required system dependencies. Follow the instructions shown on screen to complete any required actions.
 chinesesimplified.PrerequisiteWarningText=请记住：接下来的步骤将会检查你的系统依赖，请按照界面提示执行相关操作。
 english.UpdateOnlyWarningText=This is the dependency-free update package. It will not repair Xbox Game Bar or install offline prerequisites. Use it only on a computer where the app already works correctly.
 chinesesimplified.UpdateOnlyWarningText=这是无依赖更新包，不会修复 Xbox Game Bar，也不会安装离线前置依赖。请仅在软件原本可以正常运行的电脑上使用。
-english.GameBarUsageText=The installer automatically checks whether Game Bar can be installed. If unavailable, the control panel and Compatibility display remain usable. Choose your display mode on the home page.
-chinesesimplified.GameBarUsageText=安装器会自动检测并尝试安装 Game Bar 小组件；环境不支持或安装失败时，仍可使用控制面板和兼容显示。安装后可在主页选择显示模式。
+english.GameBarUsageText=You can unselect optional components before installation. App deployment waits at most 120 seconds; a timeout skips remaining Game Bar deployments while keeping the ordinary panel and Compatibility display usable.
+chinesesimplified.GameBarUsageText=安装前可单独取消可选项目。Windows 应用部署最多等待 120 秒，超时会跳过剩余 Game Bar 部署；控制面板和兼容显示仍可使用。
 english.AcknowledgeButtonText=I understand
 chinesesimplified.AcknowledgeButtonText=我清楚了
 english.AcknowledgedButtonText=Understood
@@ -114,9 +116,41 @@ chinesesimplified.FinishedTutorialText=如有不懂，请点击这里查看教�
 english.FinishedPinWarningText=Game Bar mode: turn off click-through mode and pin the widget window before use.
 chinesesimplified.FinishedPinWarningText=Game Bar 模式：请关闭“单击浏览”，并点击图钉固定窗口。
 
+english.CompleteInstallation=Full installation (recommended)
+chinesesimplified.CompleteInstallation=完整安装（推荐）
+english.CustomInstallation=Choose individual components
+chinesesimplified.CustomInstallation=自定义安装项目
+english.MainComponent=Control panel, companion, Compatibility display and bundled assets (required)
+chinesesimplified.MainComponent=控制面板、后台、兼容显示及内置素材（必装）
+english.WidgetComponent=Kill Confirm Game Bar widget (includes certificate and loopback permission)
+chinesesimplified.WidgetComponent=Game Bar 小组件（含证书和本机通信权限）
+english.DependenciesComponent=Offline Game Bar components (installed only when needed)
+chinesesimplified.DependenciesComponent=Game Bar 离线组件（按需安装）
+english.GsiComponent=CS2 game event configuration (GSI)
+chinesesimplified.GsiComponent=CS2 游戏事件配置（GSI）
+english.DesktopIconComponent=Desktop shortcut
+chinesesimplified.DesktopIconComponent=桌面快捷方式
+
 [Icons]
 Name: "{group}\{cm:ControlPanelShortcutName}"; Filename: "{app}\KillConfirmGameBar.exe"; IconFilename: "{app}\KillConfirmOverlay.ico"
-Name: "{autodesktop}\{cm:ControlPanelShortcutName}"; Filename: "{app}\KillConfirmGameBar.exe"; IconFilename: "{app}\KillConfirmOverlay.ico"
+Name: "{autodesktop}\{cm:ControlPanelShortcutName}"; Filename: "{app}\KillConfirmGameBar.exe"; IconFilename: "{app}\KillConfirmOverlay.ico"; Components: desktopicon
+
+[Types]
+Name: "full"; Description: "{cm:CompleteInstallation}"
+Name: "custom"; Description: "{cm:CustomInstallation}"; Flags: iscustom
+
+[Components]
+Name: "main"; Description: "{cm:MainComponent}"; Types: full custom; Flags: fixed
+Name: "widget"; Description: "{cm:WidgetComponent}"; Types: full; Flags: checkablealone
+Name: "widget\dependencies"; Description: "{cm:DependenciesComponent}"; Types: full; Flags: checkablealone
+Name: "widget\dependencies\xaml"; Description: "Microsoft UI XAML 2.8 (x64)"; Types: full
+Name: "widget\dependencies\vcdesktop"; Description: "Visual C++ UWP Desktop (x64)"; Types: full
+Name: "widget\dependencies\vcuwp"; Description: "Visual C++ UWP (x64)"; Types: full
+Name: "widget\dependencies\netframework"; Description: ".NET Native Framework 2.2 (x64)"; Types: full
+Name: "widget\dependencies\netruntime"; Description: ".NET Native Runtime 2.2 (x64)"; Types: full
+Name: "widget\dependencies\gamebar"; Description: "Xbox Game Bar"; Types: full
+Name: "gsi"; Description: "{cm:GsiComponent}"; Types: full
+Name: "desktopicon"; Description: "{cm:DesktopIconComponent}"; Types: full
 
 [InstallDelete]
 Type: filesandordirs; Name: "{app}\Payload"
@@ -137,6 +171,7 @@ Filename: "{sys}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-NoProfile
 
 [Code]
 #include "Scripts\Setup\InstallLog.iss"
+#include "Scripts\Setup\InstallComponents.iss"
 
 var
   InstallConfirmPage: TWizardPage;
@@ -375,6 +410,7 @@ begin
 #if SkipPrerequisites == "0"
     Params := Params + ' -InstallPrerequisites -PrerequisitesConfirmed';
 #endif
+    Params := Params + GetSelectedComponentParameters();
 
     if not ExecInstallWithLog(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'), Params, ExpandConstant('{app}\Payload'), ResultCode) then
     begin

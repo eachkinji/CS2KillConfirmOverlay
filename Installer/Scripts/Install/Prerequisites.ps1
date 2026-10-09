@@ -1,6 +1,7 @@
 ﻿# Offline prerequisite definitions and installation.
 $Prerequisites = @(
     [pscustomobject]@{
+        Component = "xaml"
         Order = 1
         DisplayName = "Microsoft UI XAML Framework 2.8 (x64)"
         ChineseDisplayName = (ConvertFrom-Utf8Base64 -Value "TWljcm9zb2Z0IFVJIFhBTUwgMi44IOahhuaetiAoeDY0KQ==")
@@ -10,6 +11,7 @@ $Prerequisites = @(
         FileName = "Microsoft.UI.Xaml.Appx"
     },
     [pscustomobject]@{
+        Component = "vcdesktop"
         Order = 2
         DisplayName = "Microsoft Visual C++ UWP Desktop Runtime (x64)"
         ChineseDisplayName = (ConvertFrom-Utf8Base64 -Value "TWljcm9zb2Z0IFZpc3VhbCBDKysgVVdQIERlc2t0b3Ag6L+Q6KGM5bqTICh4NjQp")
@@ -19,6 +21,7 @@ $Prerequisites = @(
         FileName = "vclibs.appx"
     },
     [pscustomobject]@{
+        Component = "vcuwp"
         Order = 3
         DisplayName = "Microsoft Visual C++ UWP Runtime (x64)"
         ChineseDisplayName = (ConvertFrom-Utf8Base64 -Value "TWljcm9zb2Z0IFZpc3VhbCBDKysgVVdQIOi/kOihjOW6kyAoeDY0KQ==")
@@ -28,7 +31,8 @@ $Prerequisites = @(
         FileName = "vclibs2.appx"
     },
     [pscustomobject]@{
-        Order = 4
+        Component = "gamebar"
+        Order = 6
         DisplayName = "Xbox Game Bar"
         ChineseDisplayName = "Xbox Game Bar"
         PackageName = "Microsoft.XboxGamingOverlay"
@@ -37,7 +41,8 @@ $Prerequisites = @(
         FileName = "gamebar.AppxBundle"
     },
     [pscustomobject]@{
-        Order = 5
+        Component = "netframework"
+        Order = 4
         DisplayName = "Microsoft .NET Native Framework 2.2 (x64)"
         ChineseDisplayName = (ConvertFrom-Utf8Base64 -Value "TWljcm9zb2Z0IC5ORVQgTmF0aXZlIOahhuaetiAyLjIgKHg2NCk=")
         PackageName = "Microsoft.NET.Native.Framework.2.2"
@@ -46,7 +51,8 @@ $Prerequisites = @(
         FileName = "Microsoft.NET.Native.Framework.2.2.x64.appx"
     },
     [pscustomobject]@{
-        Order = 6
+        Component = "netruntime"
+        Order = 5
         DisplayName = "Microsoft .NET Native Runtime 2.2 (x64)"
         ChineseDisplayName = (ConvertFrom-Utf8Base64 -Value "TWljcm9zb2Z0IC5ORVQgTmF0aXZlIOi/kOihjOaXtiAyLjIgKHg2NCk=")
         PackageName = "Microsoft.NET.Native.Runtime.2.2"
@@ -141,7 +147,12 @@ function Confirm-PrerequisiteInstall {
 function Install-RequiredComponents {
     param([switch]$Confirmed)
 
-    $requiredPrerequisites = @($Prerequisites | Where-Object { $_.PackageName -ne "Microsoft.XboxGamingOverlay" })
+    foreach ($prerequisite in $Prerequisites) {
+        if ($SkippedPrerequisites -contains $prerequisite.Component) {
+            Add-InstallResult -Status Warning -Item $prerequisite.ChineseDisplayName -Detail "已按安装前的项目选择跳过"
+        }
+    }
+    $requiredPrerequisites = @($Prerequisites | Where-Object { $SkippedPrerequisites -notcontains $_.Component })
 
     Write-InstallLog "Checking required Microsoft UI XAML, VCLibs, and .NET Native packages (Xbox Game Bar is optional)..."
     if (-not (Test-Path -LiteralPath $PrerequisiteRoot -PathType Container)) {
@@ -223,7 +234,7 @@ function Install-RequiredComponents {
 
         try {
             Write-InstallLog ("Installing prerequisite {0}/{1}: {2} (minimum {3})" -f $prerequisite.Order, $requiredPrerequisites.Count, $prerequisite.PackageName, $prerequisite.MinimumVersion)
-            Write-InstallLog "Windows 正在部署该组件，较慢的电脑可能需要几分钟。请不要关闭安装进度窗口。"
+            Write-InstallLog "Windows 正在部署该可选组件，最多等待 120 秒；超时自动继续兼容版安装。"
             Add-AppxPackageCompat -PackagePath $packagePath -ForceUpdate
 
             if (-not (Test-PrerequisiteInstalled -Prerequisite $prerequisite)) {
@@ -235,7 +246,8 @@ function Install-RequiredComponents {
             Add-InstallResult -Status Success -Item $prerequisite.ChineseDisplayName -Detail ("安装成功，版本 {0}" -f $installed.Version)
         }
         catch {
-            Add-InstallResult -Status Error -Item $prerequisite.ChineseDisplayName -Detail ((Get-ErrorReason $_) + "；已继续安装下一个组件")
+            Add-InstallResult -Status Warning -Item $prerequisite.ChineseDisplayName -Detail ((Get-ErrorReason $_) + "；兼容显示可直接使用")
+            if ($script:AppxDeploymentTimedOut) { throw }
         }
     }
 

@@ -14,7 +14,7 @@ function Test-OptionalGameBarEnvironment {
     try {
         $firewall = Get-Service -Name MpsSvc -ErrorAction Stop
         if ($firewall.Status -ne 'Running') { return $false }
-        return (Test-XboxGameBarAvailable)
+        return (Test-XboxGameBarAvailable) -or ($InstallPrerequisites -and $SkippedPrerequisites -notcontains "gamebar")
     }
     catch { return $false }
 }

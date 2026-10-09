@@ -212,6 +212,54 @@ function Import-PackageCertificate {
     return [pscustomobject]@{ ImportedCount = $importedCount; LastFailure = $lastFailure }
 }
 
+function Invoke-AppxDeploymentWorker {
+    param(
+        [hashtable]$Parameters,
+        [ValidateRange(1,600)][int]$TimeoutSeconds=120,
+        [string]$WorkerPath=(Join-Path $PSScriptRoot 'AppxDeploymentWorker.ps1')
+    )
+    $folder=Join-Path $env:TEMP ('KillConfirm-Appx-'+[guid]::NewGuid().ToString('N'))
+    New-Item -ItemType Directory -Path $folder | Out-Null
+    $requestPath=Join-Path $folder 'request.json'
+    $resultPath=Join-Path $folder 'result.json'
+    $process=New-Object System.Diagnostics.Process
+    try {
+        $Parameters | ConvertTo-Json | Set-Content -LiteralPath $requestPath -Encoding UTF8
+        $invocation="& '"+$WorkerPath.Replace("'","''")+"' -RequestPath '"+$requestPath.Replace("'","''")+"' -ResultPath '"+$resultPath.Replace("'","''")+"'"
+        $encoded=[Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($invocation))
+        $process.StartInfo.FileName=Join-Path $env:WINDIR 'System32/WindowsPowerShell/v1.0/powershell.exe'
+        $process.StartInfo.Arguments="-NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand $encoded"
+        $process.StartInfo.UseShellExecute=$false
+        $process.StartInfo.CreateNoWindow=$true
+        if(!$process.Start()){throw '无法启动应用部署进程。'}
+        $clock=[Diagnostics.Stopwatch]::StartNew()
+        $nextHeartbeat=15
+        while(!$process.WaitForExit(250)) {
+            if($clock.Elapsed.TotalSeconds -ge $TimeoutSeconds) {
+                $script:AppxDeploymentTimedOut=$true
+                throw [TimeoutException]::new("Windows 应用部署等待已超过 $TimeoutSeconds 秒，已停止本次等待并跳过剩余 Game Bar 部署；控制面板和兼容显示可正常使用。Windows 可能仍在处理已提交的部署，请稍后重试可选项目。")
+            }
+            if($clock.Elapsed.TotalSeconds -ge $nextHeartbeat) {
+                Write-InstallLog ("Windows 应用部署等待：{0}/{1} 秒；超时将自动跳过 Game Bar 部署。" -f [int]$clock.Elapsed.TotalSeconds,$TimeoutSeconds)
+                $nextHeartbeat+=15
+            }
+        }
+        if(!(Test-Path -LiteralPath $resultPath -PathType Leaf)){throw "应用部署进程退出但未返回结果（退出码 $($process.ExitCode)）。"}
+        $result=Get-Content -LiteralPath $resultPath -Raw -Encoding UTF8 | ConvertFrom-Json
+        if(!$result.Success) {
+            Write-InstallLog ("AppX deployment failed: {0}; ActivityId={1}" -f $result.Message,$result.ActivityId)
+            if($result.Details){Add-Content -LiteralPath $LogPath -Value $result.Details -Encoding UTF8}
+            throw [InvalidOperationException]::new([string]$result.Message)
+        }
+    }
+    finally {
+        try {if($process.Id -and !$process.HasExited){$process.Kill();[void]$process.WaitForExit(1000)}} catch {}
+        $process.Dispose()
+        Remove-Item -LiteralPath $requestPath,$resultPath -Force -ErrorAction SilentlyContinue
+        Remove-Item -LiteralPath $folder -ErrorAction SilentlyContinue
+    }
+}
+
 function Add-AppxPackageCompat {
     param(
         [string]$PackagePath,
@@ -219,6 +267,7 @@ function Add-AppxPackageCompat {
         [switch]$DeferWhenInUse
     )
 
+    if($script:AppxDeploymentTimedOut){throw [TimeoutException]::new('已停止本次 Game Bar 部署等待；不再提交后续组件。')}
     $command = Get-Command Add-AppxPackage -ErrorAction Stop
     $addPackageParams = @{
         Path = $PackagePath
@@ -235,13 +284,7 @@ function Add-AppxPackageCompat {
     Write-InstallLog ("Add-AppxPackage switches: ForceUpdateFromAnyVersion={0}; DeferRegistrationWhenPackagesAreInUse={1}" -f `
         $addPackageParams.ContainsKey("ForceUpdateFromAnyVersion"), `
         $addPackageParams.ContainsKey("DeferRegistrationWhenPackagesAreInUse"))
-    Write-InstallLog "正在等待 Windows 应用部署服务完成；此步骤可能持续数分钟。"
-    try {
-        Add-AppxPackage @addPackageParams
-        Write-InstallLog "Add-AppxPackage succeeded: $(Split-Path -Leaf $PackagePath)"
-    }
-    catch {
-        Write-AppxFailureDetails -ErrorRecord $_
-        throw
-    }
+    Write-InstallLog "正在等待 Windows 应用部署服务完成；最多等待 120 秒，超时自动跳过剩余 Game Bar 部署。"
+    Invoke-AppxDeploymentWorker -Parameters $addPackageParams
+    Write-InstallLog "Add-AppxPackage succeeded: $(Split-Path -Leaf $PackagePath)"
 }

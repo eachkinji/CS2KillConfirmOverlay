@@ -2,6 +2,7 @@
     [switch]$SkipLoopback = $false,
     [switch]$SkipGameBar = $false,
     [switch]$SkipGsiConfig = $false,
+    [string]$SkipPrerequisitesList = "",
     [switch]$OpenGameBar = $false,
     [switch]$InstallPrerequisites = $false,
     [switch]$PrerequisitesConfirmed = $false,
@@ -27,6 +28,8 @@ $LogPath = Join-Path $env:TEMP "KillConfirmGameBar_Install.log"
 $ResultPath = Join-Path $env:TEMP "KillConfirmGameBar_Install_Result.txt"
 $StatusPath = Join-Path $env:TEMP "KillConfirmGameBar_Install_Status.ini"
 $RuntimeLogRoot = $null
+$SkippedPrerequisites = @($SkipPrerequisitesList.Split(',') | Where-Object { $_ } )
+$script:AppxDeploymentTimedOut = $false
 $InstallResults = New-Object System.Collections.Generic.List[object]
 $InstallSessionId = [guid]::NewGuid().ToString("D")
 $InstallStartedAt = Get-Date
@@ -141,7 +144,14 @@ try {
     Write-InstallStage -Number 3 -Total 7 -Name "Game Bar 前置依赖" -Detail "兼容显示不需要此项"
     if ($InstallPrerequisites -and -not $compatibilityFallback) {
         try { Install-RequiredComponents -Confirmed:$PrerequisitesConfirmed }
-        catch { Add-InstallResult -Status Warning -Item "Game Bar 前置依赖" -Detail ((Get-ErrorReason $_) + "；兼容显示可直接使用") }
+        catch {
+            Add-InstallResult -Status Warning -Item "Game Bar 前置依赖" -Detail ((Get-ErrorReason $_) + "；兼容显示可直接使用")
+            if ($script:AppxDeploymentTimedOut) { $compatibilityFallback = $true }
+        }
+    }
+    if (-not $compatibilityFallback -and -not (Test-XboxGameBarAvailable)) {
+        $compatibilityFallback = $true
+        Add-InstallResult -Status Warning -Item "可选 Game Bar 小组件" -Detail "Xbox Game Bar 未安装或不可用，已跳过小组件；可直接使用兼容显示"
     }
     Write-InstallStage -Number 4 -Total 7 -Name "可选 Game Bar 小组件" -Detail "独立 MSIX；失败不影响普通主程序"
     if (-not $compatibilityFallback) {

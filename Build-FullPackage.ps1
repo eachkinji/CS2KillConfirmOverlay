@@ -9,9 +9,6 @@
 .PARAMETER Platform
     目标架构: x64 (默认)。
 
-.PARAMETER SkipWithDependencies
-    仅生成无依赖的轻量更新安装包（跳过打包体积较大的离线运行库）。
-
 .PARAMETER SkipRust
     跳过未变化的 Rust 服务编译，复用现有 Release 二进制以加快打包。
 
@@ -23,7 +20,6 @@ param(
     [string]$Configuration = "Release",
     [ValidateSet("x64", "x86", "arm64")]
     [string]$Platform = "x64",
-    [switch]$SkipWithDependencies,
     [switch]$SkipRust,
     [string]$MsBuildPath = "",
     [string]$CertificatePfxPath = "",
@@ -122,6 +118,13 @@ if (-not $OutputDir) {
     $OutputDir = Join-Path $Root "Output"
 }
 $OutputDir = [System.IO.Path]::GetFullPath($OutputDir)
+function Assert-TemporaryBuildPath([string]$Path) {
+    $resolved=[IO.Path]::GetFullPath($Path)
+    $prefix=$OutputDir.TrimEnd('\','/')+[IO.Path]::DirectorySeparatorChar
+    if (-not $resolved.StartsWith($prefix,[StringComparison]::OrdinalIgnoreCase)) {
+        throw "临时构建目录越界：$resolved"
+    }
+}
 New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null
 
 Write-Host "==========================================================" -ForegroundColor Cyan
@@ -132,6 +135,7 @@ Write-Host "==========================================================" -Foregro
 # 1. 首先通过快速打包脚本构建最新的 MSIX 与签名文件
 Write-Host "`n[第 1 步/3] 构建核心应用 MSIX 包与二进制..." -ForegroundColor Yellow
 $QuickOutputDir = Join-Path $OutputDir "TempQuickPackage"
+Assert-TemporaryBuildPath $QuickOutputDir
 if (Test-Path -LiteralPath $QuickOutputDir -PathType Container) {
     Remove-Item -LiteralPath $QuickOutputDir -Recurse -Force
 }
@@ -226,15 +230,16 @@ if (-not $SignToolPath) {
 # 2. 准备 Transfer 安装环境目录
 Write-Host "`n[第 2 步/3] 组装依赖与安装组件..." -ForegroundColor Yellow
 $TransferRoot = Join-Path $OutputDir "TempTransfer_WithDeps"
-$NoDepsTransferRoot = Join-Path $OutputDir "TempTransfer_NoDeps"
 
-foreach ($dir in @($TransferRoot, $NoDepsTransferRoot)) {
+foreach ($dir in @($TransferRoot)) {
+    Assert-TemporaryBuildPath $dir
     if (Test-Path $dir) { Remove-Item -LiteralPath $dir -Recurse -Force }
     New-Item -ItemType Directory -Force -Path $dir | Out-Null
 }
 
 $PrerequisiteSourceRoot = if (Test-Path (Join-Path $Root "Vclibs")) { Join-Path $Root "Vclibs" } else { Join-Path $WorkspaceRoot "Vclibs" }
 $PrerequisiteFileNames = @(
+    "gamebar.AppxBundle",
     "Microsoft.UI.Xaml.Appx",
     "vclibs.appx",
     "vclibs2.appx",
@@ -242,21 +247,19 @@ $PrerequisiteFileNames = @(
     "Microsoft.NET.Native.Runtime.2.2.x64.appx"
 )
 
-if (-not $SkipWithDependencies) {
-    if (-not (Test-Path -LiteralPath $PrerequisiteSourceRoot -PathType Container)) {
-        throw "离线依赖目录不存在：$PrerequisiteSourceRoot"
-    }
-    $missingPrerequisiteFiles = @($PrerequisiteFileNames | Where-Object {
-        $candidatePath = Join-Path $PrerequisiteSourceRoot $_
-        (-not (Test-Path -LiteralPath $candidatePath -PathType Leaf)) -or ((Get-Item -LiteralPath $candidatePath).Length -le 0)
-    })
-    if ($missingPrerequisiteFiles.Count -gt 0) {
-        throw "有依赖版安装包缺少离线组件：$($missingPrerequisiteFiles -join '、')"
-    }
+if (-not (Test-Path -LiteralPath $PrerequisiteSourceRoot -PathType Container)) {
+    throw "离线依赖目录不存在：$PrerequisiteSourceRoot"
+}
+$missingPrerequisiteFiles = @($PrerequisiteFileNames | Where-Object {
+    $candidatePath = Join-Path $PrerequisiteSourceRoot $_
+    (-not (Test-Path -LiteralPath $candidatePath -PathType Leaf)) -or ((Get-Item -LiteralPath $candidatePath).Length -le 0)
+})
+if ($missingPrerequisiteFiles.Count -gt 0) {
+    throw "新人安装包缺少离线组件：$($missingPrerequisiteFiles -join '、')"
 }
 
 # 复制 Overlay 主程序与证书
-foreach ($targetRoot in @($TransferRoot, $NoDepsTransferRoot)) {
+foreach ($targetRoot in @($TransferRoot)) {
     Copy-Item -LiteralPath (Join-Path $QuickOutputDir 'Standalone') -Destination (Join-Path $targetRoot 'Standalone') -Recurse -Force
     $overlayDir = Join-Path $targetRoot "OverlayPackage"
     New-Item -ItemType Directory -Force -Path $overlayDir | Out-Null
@@ -321,11 +324,10 @@ function Invoke-InnoCompile {
     param(
         [string]$TransferPath,
         [string]$InternalSuffix,
-        [string]$FinalFileName,
-        [bool]$SkipPrerequisites
+        [string]$FinalFileName
     )
 
-    $installerVariant = if ($SkipPrerequisites) { "NoDependencies" } else { "WithDependencies" }
+    $installerVariant = "WithDependencies"
 
     $rawFile = Join-Path $Root ("Output\KillConfirmGameBar_Setup_{0}{1}.exe" -f $Version, $InternalSuffix)
     $finalOutput = Join-Path $OutputDir $FinalFileName
@@ -339,7 +341,7 @@ function Invoke-InnoCompile {
         ("/DMyAppVersion={0}" -f $Version),
         ("/DTransferRoot={0}" -f $TransferPath),
         ("/DInstallerOutputSuffix={0}" -f $InternalSuffix),
-        ("/DSkipPrerequisites={0}" -f $(if ($SkipPrerequisites) { 1 } else { 0 })),
+        "/DSkipPrerequisites=0",
         ("/DInstallerVariant={0}" -f $installerVariant),
         ("/DInstallerBuildTimeUtc={0}" -f $InstallerBuildTimeUtc),
         ("/DInstallerSourceCommit={0}" -f $InstallerSourceCommit),
@@ -347,7 +349,7 @@ function Invoke-InnoCompile {
     )
 
     Write-Host (" Inno installer metadata: Variant={0}; SkipPrerequisites={1}; Version={2}; BuildUtc={3}; Commit={4}" -f `
-        $installerVariant, $SkipPrerequisites, $Version, $InstallerBuildTimeUtc, $InstallerSourceCommit)
+        $installerVariant, $false, $Version, $InstallerBuildTimeUtc, $InstallerSourceCommit)
     & $InnoCompilerPath @innoArgs
     if ($LASTEXITCODE -ne 0) {
         throw "Inno Setup 编译失败 (ExitCode: $LASTEXITCODE)"
@@ -373,20 +375,15 @@ function Invoke-InnoCompile {
     }
 }
 
-if (-not $SkipWithDependencies) {
-    $withName = "KillConfirmGameBar_Setup_{0}_有依赖-新人用.exe" -f $Version
-    Write-Host " 正在生成: $withName ..." -ForegroundColor Cyan
-    Invoke-InnoCompile -TransferPath $TransferRoot -InternalSuffix "_WithDeps" -FinalFileName $withName -SkipPrerequisites $false
-}
-
-$noName = "KillConfirmGameBar_Setup_{0}_无依赖-更新用.exe" -f $Version
-Write-Host " 正在生成: $noName ..." -ForegroundColor Cyan
-Invoke-InnoCompile -TransferPath $NoDepsTransferRoot -InternalSuffix "_NoDeps" -FinalFileName $noName -SkipPrerequisites $true
+$withName = "KillConfirmGameBar_Setup_{0}_有依赖-新人用.exe" -f $Version
+Write-Host " 正在生成: $withName ..." -ForegroundColor Cyan
+Invoke-InnoCompile -TransferPath $TransferRoot -InternalSuffix "_WithDeps" -FinalFileName $withName
 
 # 清理临时中间目录
+Assert-TemporaryBuildPath $QuickOutputDir
+Assert-TemporaryBuildPath $TransferRoot
 Remove-Item -LiteralPath $QuickOutputDir -Recurse -Force -ErrorAction SilentlyContinue
 Remove-Item -LiteralPath $TransferRoot -Recurse -Force -ErrorAction SilentlyContinue
-Remove-Item -LiteralPath $NoDepsTransferRoot -Recurse -Force -ErrorAction SilentlyContinue
 
 Write-Host "`n==========================================================" -ForegroundColor Green
 Write-Host " Release 安装包打包完成！" -ForegroundColor Green

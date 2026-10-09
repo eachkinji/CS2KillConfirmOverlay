@@ -129,6 +129,11 @@ function Install-OverlayPackage {
         $dependencyName = Split-Path -Leaf $dependency
         $identity = Get-AppxIdentityFromPackageFile -PackagePath $dependency
         if ($identity) {
+            $definition = $Prerequisites | Where-Object { $_.PackageName -eq $identity.Name } | Select-Object -First 1
+            if ($definition -and $SkippedPrerequisites -contains $definition.Component) {
+                Write-InstallLog "Dependency deselected by user: $dependencyName"
+                continue
+            }
             Write-InstallLog "Dependency identity: $dependencyName => $($identity.Name) $($identity.Version)"
         }
         if (Test-AppxPackageInstalled -PackagePath $dependency) {
@@ -146,7 +151,8 @@ function Install-OverlayPackage {
             Add-InstallResult -Status Success -Item ("主程序依赖：{0}" -f $dependencyName) -Detail "安装并验证成功"
         }
         catch {
-            Add-InstallResult -Status Error -Item ("主程序依赖：{0}" -f $dependencyName) -Detail ((Get-ErrorReason $_) + "；已继续安装其他依赖和主程序")
+            Add-InstallResult -Status Warning -Item ("小组件依赖：{0}" -f $dependencyName) -Detail (Get-ErrorReason $_)
+            if ($script:AppxDeploymentTimedOut) { throw }
         }
     }
 

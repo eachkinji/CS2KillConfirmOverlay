@@ -7,6 +7,10 @@ $OverlayRoot = Join-Path $ScriptRoot 'OverlayPackage'
 $packageRoot = Join-Path $fixture 'RegisteredWidget'
 New-Item -ItemType Directory -Path $OverlayRoot,(Join-Path $packageRoot 'Bridge') -Force | Out-Null
 foreach ($name in @('widget.msixbundle','widget.cer')) { Set-Content -LiteralPath (Join-Path $OverlayRoot $name) -Value 'fixture' }
+New-Item -ItemType Directory -Path (Join-Path $OverlayRoot 'Dependencies/x64') -Force | Out-Null
+Set-Content -LiteralPath (Join-Path $OverlayRoot 'Dependencies/x64/xaml.appx') -Value 'deselected fixture'
+$Prerequisites=@([pscustomobject]@{Component='xaml';PackageName='Microsoft.UI.Xaml.2.8'})
+$SkippedPrerequisites=@('xaml')
 $bridge = Join-Path $packageRoot 'Bridge/killconfirm-widget-bridge.exe'
 Set-Content -LiteralPath $bridge -Value 'fixture'
 $script:registered = [pscustomobject]@{Version='4.5.1.55';Status='Ok';InstallLocation=$packageRoot;PackageFamilyName='WidgetFixture';PackageFullName='WidgetFixture_56'}
@@ -17,7 +21,7 @@ $results = [Collections.Generic.List[object]]::new()
 function Write-InstallLog { param($Message) }
 function Add-InstallResult { param($Status,$Item,$Detail); $results.Add([pscustomobject]@{Status=$Status;Item=$Item;Detail=$Detail}) }
 function Import-PackageCertificate { param($CertificatePath); [pscustomobject]@{ImportedCount=1} }
-function Get-AppxIdentityFromPackageFile { param($PackagePath); [pscustomobject]@{Name='WidgetFixture';Version=[version]'4.5.1.56'} }
+function Get-AppxIdentityFromPackageFile { param($PackagePath); if($PackagePath.EndsWith('xaml.appx')){[pscustomobject]@{Name='Microsoft.UI.Xaml.2.8';Version=[version]'8.2310.30001.0'}}else{[pscustomobject]@{Name='WidgetFixture';Version=[version]'4.5.1.56'}} }
 function Get-AppxPackage { param($Name); $script:registered }
 function Get-InstalledOverlayPackage { $script:registered }
 function Update-InstalledPackageContext { $script:registered }

@@ -39,6 +39,16 @@ namespace KillConfirmCompatibility.Desktop.Runtime
         }
         public static async System.Threading.Tasks.Task<StorageFile> AssetFileAsync(Uri uri)
         {
+            if (uri.IsFile) return await StorageFile.GetFileFromPathAsync(uri.LocalPath);
+            if (uri.Scheme == "ms-appdata")
+            {
+                string relative = Uri.UnescapeDataString(uri.AbsolutePath);
+                if (!relative.StartsWith("/local/", StringComparison.Ordinal)) throw new InvalidDataException("Unsupported app-data resource path.");
+                string data = Path.GetFullPath(Current.LocalFolder.Path).TrimEnd(Path.DirectorySeparatorChar);
+                string local = Path.GetFullPath(Path.Combine(data, relative.Substring("/local/".Length).Replace('/', Path.DirectorySeparatorChar)));
+                if (!local.StartsWith(data + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException("Asset path escapes data root.");
+                return await StorageFile.GetFileFromPathAsync(local);
+            }
             if (AssetsRoot == null) return await StorageFile.GetFileFromApplicationUriAsync(uri);
             string root = Path.TrimEndingDirectorySeparator(Path.GetFullPath(AssetsRoot));
             string path = Path.GetFullPath(Path.Combine(root, Uri.UnescapeDataString(uri.AbsolutePath).TrimStart('/').Replace('/', Path.DirectorySeparatorChar)));

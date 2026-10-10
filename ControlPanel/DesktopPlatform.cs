@@ -39,6 +39,16 @@ internal static class DesktopPlatform
     }
     internal static async Task<StorageFile> AssetFileAsync(Uri uri)
     {
+        if (uri.IsFile) return await StorageFile.GetFileFromPathAsync(uri.LocalPath);
+        if (uri.Scheme == "ms-appdata")
+        {
+            string relative = Uri.UnescapeDataString(uri.AbsolutePath);
+            if (!relative.StartsWith("/local/", StringComparison.Ordinal)) throw new IOException("Unsupported app-data resource path");
+            string data = Path.GetFullPath(KillConfirmCompatibility.Contracts.RuntimePaths.DataRoot).TrimEnd(Path.DirectorySeparatorChar);
+            string local = Path.GetFullPath(Path.Combine(data, relative.Substring("/local/".Length).Replace('/', Path.DirectorySeparatorChar)));
+            if (!local.StartsWith(data + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)) throw new IOException("Resource path escapes data root");
+            return await StorageFile.GetFileFromPathAsync(local);
+        }
         var root = Path.GetFullPath(AppContext.BaseDirectory).TrimEnd(Path.DirectorySeparatorChar);
         var path = Path.GetFullPath(Path.Combine(root, Uri.UnescapeDataString(uri.AbsolutePath).TrimStart('/').Replace('/', Path.DirectorySeparatorChar)));
         if (!path.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)) throw new IOException("Resource path escapes installation root");

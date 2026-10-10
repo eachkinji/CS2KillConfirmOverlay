@@ -11,7 +11,7 @@
   <Identity
     Name="KillConfirmGameBar.Overlay"
     Publisher="CN=TestXboxGameBar"
-    Version="5.0.1.1" />
+    Version="5.0.1.2" />
 
   <mp:PhoneIdentity PhoneProductId="8f70c4bd-4270-4a4f-a7d1-91ae48dbe9f4" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
 
@@ -34,6 +34,7 @@
       Executable="$targetnametoken$.exe"
       EntryPoint="KillConfirmGameBar.App">
       <uap:VisualElements
+        AppListEntry="none"
         DisplayName="ms-resource:AppDisplayName"
         Square150x150Logo="Assets\Square150x150Logo.png"
         Square44x44Logo="Assets\Square44x44Logo.png"

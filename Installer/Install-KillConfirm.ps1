@@ -95,6 +95,7 @@ $InstallModules = @(
     "Prerequisites.ps1",
     "GameBar.ps1",
     "Overlay.ps1",
+    "LegacyUpgrade.ps1",
     "Cs2.ps1"
 )
 foreach ($moduleName in $InstallModules) {
@@ -136,6 +137,7 @@ try {
 
     Write-InstallStage -Number 1 -Total 7 -Name "普通主程序" -Detail "控制面板、后台与兼容显示"
     Install-DesktopApplication
+    Complete-LegacyControlPanelUpgrade
     $compatibilityFallback = -not (Test-OptionalGameBarEnvironment)
     Write-InstallStage -Number 2 -Total 7 -Name "显示方式检测" -Detail "Game Bar 为可选组件"
     if ($compatibilityFallback) {

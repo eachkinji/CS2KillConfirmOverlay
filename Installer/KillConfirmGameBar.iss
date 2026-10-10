@@ -444,6 +444,7 @@ begin
     if CompareText(InstallStatus, 'Error') = 0 then
     begin
       PromptText := ExpandConstant('{cm:InstallCompletedError}');
+      WizardForm.FinishedLabel.Caption := PromptText;
       PromptType := mbError;
     end
     else if CompareText(InstallStatus, 'Warning') = 0 then

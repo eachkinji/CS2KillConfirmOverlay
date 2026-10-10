@@ -237,6 +237,9 @@ function Invoke-AppxDeploymentWorker {
         while(!$process.WaitForExit(250)) {
             if($clock.Elapsed.TotalSeconds -ge $TimeoutSeconds) {
                 $script:AppxDeploymentTimedOut=$true
+                if ($Parameters.Operation -eq 'Remove') {
+                    throw [TimeoutException]::new("旧控制面板卸载等待超过 $TimeoutSeconds 秒，升级未完成；已迁移的数据和备份均保留。Windows 可能仍在处理卸载，请关闭旧程序后重新运行安装器。")
+                }
                 throw [TimeoutException]::new("Windows 应用部署等待已超过 $TimeoutSeconds 秒，已停止本次等待并跳过剩余 Game Bar 部署；控制面板和兼容显示可正常使用。Windows 可能仍在处理已提交的部署，请稍后重试可选项目。")
             }
             if($clock.Elapsed.TotalSeconds -ge $nextHeartbeat) {

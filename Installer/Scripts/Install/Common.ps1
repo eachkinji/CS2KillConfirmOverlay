@@ -114,7 +114,7 @@ function Show-InstallSummary {
         "",
         $title,
         "",
-        "安装流程已经执行完毕，不会因为单项失败而跳过后续安装。",
+        "安装流程已结束。旧数据迁移或旧控制面板移除失败时会停止升级，详细结果如下。",
         "成功 $successCount 项，提示 $warningCount 项，失败 $errorCount 项。",
         ""
     )

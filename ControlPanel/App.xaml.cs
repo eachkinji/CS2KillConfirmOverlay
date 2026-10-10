@@ -17,6 +17,8 @@ public partial class App : Application
         try
         {
             var commandLine=Environment.GetCommandLineArgs();
+            if (await LegacyProfileValidation.RunAsync(commandLine)) { Exit(); return; }
+            if (await LegacyUpgradeCommand.RunAsync(commandLine)) { Exit(); return; }
             if(commandLine.Contains("--initialize-profile")) { DesktopPlatform.Data.LocalSettings.Values["Profile.Initialized"]=true; await Services.PackCatalogService.GetVisibleIconPacksAsync(); Exit(); return; }
             int waiting=Array.IndexOf(commandLine,"--wait-for-pid");
             if(waiting>=0 && waiting+1<commandLine.Length && int.TryParse(commandLine[waiting+1],out int oldPid))

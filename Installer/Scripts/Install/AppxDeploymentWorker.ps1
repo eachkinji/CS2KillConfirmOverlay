@@ -6,7 +6,11 @@ $parameters=@{Path=[string]$request.Path;ErrorAction='Stop'}
 if($request.ForceUpdateFromAnyVersion){$parameters.ForceUpdateFromAnyVersion=$true}
 if($request.DeferRegistrationWhenPackagesAreInUse){$parameters.DeferRegistrationWhenPackagesAreInUse=$true}
 try {
-    Add-AppxPackage @parameters
+    if ($request.Operation -eq 'Remove') {
+        if ([string]$request.PackageFullName -notmatch '^KillConfirmGameBar\.Overlay_.*_5jgcw66eyez0m$') {throw 'Unexpected package removal identity.'}
+        Remove-AppxPackage -Package ([string]$request.PackageFullName) -ErrorAction Stop
+    }
+    else { Add-AppxPackage @parameters }
     $result=@{Success=$true}
 }
 catch {

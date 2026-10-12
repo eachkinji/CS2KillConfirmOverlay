@@ -10,7 +10,7 @@ namespace KillConfirmGameBar.Services
             {
             ["GeneralSettingsTitle"] = "\u901a\u7528\u8bbe\u7f6e",
             ["GameEffectsTitle"] = "\u6e38\u620f\u7279\u6548",
-            ["CloseBehaviorLabel"] = "\u5173\u95ed\u4e3b\u7a97\u53e3\u65f6",
+            ["CloseBehaviorLabel"] = "Game Bar 模式关闭面板时",
             ["CloseWindowTray"] = "\u5173\u95ed\u7a97\u53e3 / \u4fdd\u6301\u540e\u53f0\u8fd0\u884c",
             ["CloseWindowExit"] = "\u76f4\u63a5\u9000\u51fa\u7a0b\u5e8f",
             ["AutoCloseOnGameExitLabel"] = "\u9000\u51fa\u6e38\u620f\u540e\u81ea\u52a8\u5173\u95ed",

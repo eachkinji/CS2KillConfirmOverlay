@@ -190,10 +190,14 @@ pub(crate) fn exit_all_processes() {
             let widget=path.parent().and_then(|p|p.file_name()).is_some_and(|n|n.to_string_lossy().starts_with("KillConfirmGameBar.Overlay_"));
             if !ordinary && !widget { continue; }
 
-            let output = match hidden_command("taskkill")
-                .args(["/PID", &pid.to_string(), "/T", "/F"])
-                .output()
-            {
+            let mut terminate = hidden_command("taskkill");
+            terminate.args(["/PID", &pid.to_string(), "/F"]);
+            // The panel launches this exit helper as its child. Killing the
+            // panel's tree would kill us before the renderer/service are stopped.
+            if image_name != "KillConfirmGameBar.exe" {
+                terminate.arg("/T");
+            }
+            let output = match terminate.output() {
                 Ok(output) => output,
                 Err(error) => {
                     service_log(&format!(

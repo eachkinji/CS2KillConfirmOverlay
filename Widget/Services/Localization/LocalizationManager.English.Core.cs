@@ -10,7 +10,7 @@ namespace KillConfirmGameBar.Services
             {
             ["GeneralSettingsTitle"] = "General settings",
             ["GameEffectsTitle"] = "Game effects",
-            ["CloseBehaviorLabel"] = "When closing the main window",
+            ["CloseBehaviorLabel"] = "When closing the panel in Game Bar mode",
             ["CloseWindowTray"] = "Close the window / keep running in background",
             ["CloseWindowExit"] = "Exit the application",
             ["AutoCloseOnGameExitLabel"] = "Auto-close after the game exits",

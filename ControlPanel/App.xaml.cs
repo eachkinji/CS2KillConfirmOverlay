@@ -6,6 +6,7 @@ public partial class App : Application
     private Window _window;
     private System.Threading.Mutex _instance;
     private System.Threading.EventWaitHandle _activate;
+    private int _fullExitStarted;
     public App()
     {
         Log("Desktop application initializing original panel resources.");
@@ -37,20 +38,21 @@ public partial class App : Application
                 Services.GameStyleService.Current=Services.GameStyleMode.Overwatch;
                 Features.CompatibilityDisplay.CompatibilityDisplayRuntime.Update(c=>{c.Enabled=true;c.FollowGame=false;c.HideWhenInactive=false;});
             }
-            if(!DesktopPlatform.IsUiValidation) DesktopPlatform.SelectAvailableMode();
+            if(!DesktopPlatform.IsUiValidation && !CloseValidation.IsEnabled) DesktopPlatform.SelectAvailableMode();
             Log("Creating original MainPage.");
             _window.Content = new Frame { Content = new MainPage() };
             _window.AppWindow.Resize(new Windows.Graphics.SizeInt32(1180, 820));
             _window.Activate();
             _window.AppWindow.Closing += (s,e) => {
                 e.Cancel=true;
-                if(Services.CloseBehaviorSettingsStore.KeepRunningAfterSettingsClose) _window.AppWindow.Hide();
+                if(!Features.CompatibilityDisplay.CompatibilityDisplayRuntime.IsEnabled && Services.CloseBehaviorSettingsStore.KeepRunningAfterSettingsClose) _window.AppWindow.Hide();
                 else _=RequestFullExitAsync();
             };
+            if(CloseValidation.IsEnabled) _=CloseValidation.RunAsync(_window);
             if(DesktopPlatform.IsRuntimeValidation)
                 _= ((MainPage)((Frame)_window.Content).Content).RunStandaloneValidationAsync();
-            _window.Closed += async (s,e) => { await Services.ServiceLauncher.UnregisterCurrentProcessAsync(); _activate?.Dispose(); _instance?.Dispose(); };
             var activationTimer=new DispatcherTimer { Interval=TimeSpan.FromMilliseconds(200) };
+            _window.Closed += async (s,e) => { activationTimer.Stop(); await Services.ServiceLauncher.UnregisterCurrentProcessAsync(); _activate?.Dispose(); _instance?.Dispose(); };
             activationTimer.Tick += (s,e) => { if(_activate.WaitOne(0)) { _window.AppWindow.Show(); _window.Activate(); } };
             activationTimer.Start();
             if(DesktopPlatform.IsUiValidation)
@@ -80,5 +82,15 @@ public partial class App : Application
     }
     public static void LogCrash(string message) => Log(message);
     public static void LogCrash(string context, Exception error) => Log(context + ": " + error);
-    public static async Task<bool> RequestFullExitAsync() { await Services.ServiceLauncher.UnregisterCurrentProcessAsync(); await KillConfirmWidgetPage.TryLaunchFullTrustHelperAsync("ExitAll"); Current.Exit(); return true; }
+    public static async Task<bool> RequestFullExitAsync()
+    {
+        var application=(App)Current;
+        if(System.Threading.Interlocked.Exchange(ref application._fullExitStarted,1)!=0) return true;
+        try
+        {
+            await Services.ServiceLauncher.UnregisterCurrentProcessAsync();
+            return await KillConfirmWidgetPage.TryLaunchFullTrustHelperAsync("ExitAll");
+        }
+        finally { Current.Exit(); }
+    }
 }

@@ -145,9 +145,9 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             ToolTipService.SetToolTip(MainGameSelector, zh ? "效果风格" : "Effect style");
             TitleText.Text = zh ? "显示模式" : "Display mode";
             GameBarModeTitle.Text = zh ? "Game Bar" : "Game Bar";
-            GameBarModeHint.Text = zh ? "游戏内小组件" : "In-game widget";
+            GameBarModeHint.Text = zh ? "支持全屏独占使用" : "Supports exclusive fullscreen";
             CompatibilityModeTitle.Text = zh ? "兼容显示" : "Desktop display";
-            CompatibilityModeHint.Text = zh ? "直接显示在屏幕上" : "Effects on your screen";
+            CompatibilityModeHint.Text = zh ? "支持全屏窗口化使用" : "Supports borderless fullscreen";
             RecommendedText.Text = zh ? "推荐" : "Recommended";
             HomePreviewLabel.Text = zh ? "预览效果" : "Preview effects";
             GameBarDetailsLabel.Text = zh ? "状态详情" : "Status details";

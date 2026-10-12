@@ -47,6 +47,8 @@ namespace KillConfirmCompatibility.Desktop.Runtime
         private int _lastPort;
         internal bool HasRenderedPreviewPixels => _surfaces.Any(surface => surface.ElementKey != "Danmaku" && surface.HasRenderedPixels);
         internal bool HasRenderedLowerPixels => _surfaces.Any(surface => surface.ElementKey == "Lower" && surface.HasRenderedPixels);
+        internal bool HasRenderedOverwatchCard => HasRenderedLowerPixels && _presenter.LowerFeedbackAnimation.HasOverwatchCardContent;
+        internal OverlaySurface LowerSurface => _surfaces.First(surface => surface.ElementKey == "Lower");
         internal long CurrentPreviewRequest => _testRequest;
         internal bool HasRenderedDanmakuPixels => _surfaces.Any(surface => surface.ElementKey == "Danmaku" && surface.HasRenderedPixels);
         internal NativeWindows.Rect DanmakuBounds
@@ -328,16 +330,30 @@ namespace KillConfirmCompatibility.Desktop.Runtime
         }
         private async System.Threading.Tasks.Task CompletePreviewAsync(KillEvent preset, long request, bool audio)
         {
+            bool requireOverwatchCard = _style == "overwatch" && _layout.Lower.Visible && preset.IsCombatEvent && (preset.PlayMainAnimation || preset.IsAssist);
+            bool rendered() => HasRenderedPreviewPixels && (!requireOverwatchCard || HasRenderedOverwatchCard);
             try
             {
                 var deadline = DateTimeOffset.UtcNow.AddSeconds(30);
+                var retryAt = DateTimeOffset.UtcNow.AddSeconds(4);
+                bool retried = false;
                 string signature = _lastSignature;
-                while (!_closing && _configuration.Enabled && request == _testRequest && !HasRenderedPreviewPixels && DateTimeOffset.UtcNow < deadline)
+                while (!_closing && _configuration.Enabled && request == _testRequest && !rendered() && DateTimeOffset.UtcNow < deadline)
                 {
+                    if (requireOverwatchCard && _presenter.LowerFeedbackAnimation.DesktopPlaybackError is string lowerError)
+                        throw new InvalidOperationException("下方击杀卡片加载失败：" + lowerError);
                     if (signature != _lastSignature && _applyingConfiguration.IsCompleted)
                     {
                         signature = _lastSignature;
                         if (!string.IsNullOrWhiteSpace(_presenter.ConfigurationError)) throw new InvalidOperationException(_presenter.ConfigurationError);
+                        ResetPreview();
+                        _presenter.HandleKillEvent(preset);
+                    }
+                    // A cancelled asynchronous load may leave the crosshair
+                    // playing alone. Replay once after configuration settles.
+                    if (requireOverwatchCard && !retried && DateTimeOffset.UtcNow >= retryAt && _applyingConfiguration.IsCompleted)
+                    {
+                        retried = true;
                         ResetPreview();
                         _presenter.HandleKillEvent(preset);
                     }
@@ -347,7 +363,7 @@ namespace KillConfirmCompatibility.Desktop.Runtime
                     await System.Threading.Tasks.Task.Delay(50);
                 }
                 if (_closing || !_configuration.Enabled || request != _testRequest) return;
-                if (!HasRenderedPreviewPixels) throw new InvalidOperationException("当前测试没有可显示的画面，请检查图标包和战斗与视效中的击杀提示开关。");
+                if (!rendered()) throw new InvalidOperationException(requireOverwatchCard ? "下方击杀卡片未显示，请检查图标包或重试。" : "当前测试没有可显示的画面，请检查图标包和战斗与视效中的击杀提示开关。");
                 _previewUntil = DateTimeOffset.UtcNow.AddSeconds(5);
                 if (audio)
                 {
@@ -359,7 +375,7 @@ namespace KillConfirmCompatibility.Desktop.Runtime
                 }
                 CompleteTest(request, null);
             }
-            catch (Exception error) { CompleteTest(request, HasRenderedPreviewPixels ? "画面已预览，但音频测试请求失败：" + error.Message : error.Message); App.Log("Compatibility test: " + error); }
+            catch (Exception error) { CompleteTest(request, rendered() ? "画面已预览，但音频测试请求失败：" + error.Message : error.Message); App.Log("Compatibility test: " + error); }
         }
         private IntPtr HotkeyMessage(IntPtr window, int message, IntPtr wparam, IntPtr lparam, ref bool handled)
         {

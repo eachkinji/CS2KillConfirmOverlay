@@ -27,6 +27,15 @@ namespace KillConfirmCompatibility
             }
             var application = new System.Windows.Application();
             application.ShutdownMode = System.Windows.ShutdownMode.OnExplicitShutdown;
+            if (args.Length == 3 && args[0] == "--validate-overwatch")
+            {
+                application.Startup += async (s, e) =>
+                {
+                    try { await Validation.OverwatchValidation.RunAsync(args[1], args[2]); application.Shutdown(0); }
+                    catch (Exception error) { File.WriteAllText(Path.Combine(args[1], "failure.txt"), error.ToString()); application.Shutdown(1); }
+                };
+                application.Run(); return;
+            }
             if (args.Length == 2 && (args[0] == "--package-probe" || args[0] == "--package-child"))
             {
                 application.Startup += async (s, e) =>

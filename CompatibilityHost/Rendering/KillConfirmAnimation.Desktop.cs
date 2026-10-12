@@ -21,15 +21,22 @@ namespace KillConfirmCompatibility.Controls
             Visibility = Windows.UI.Xaml.Visibility.Collapsed;
         }
         public bool IsFrameDirty => SpriteCanvas.IsDirty;
+        internal string DesktopPlaybackError { get; private set; }
+        internal bool HasOverwatchCardContent { get; private set; }
+        private void ReportDesktopPlaybackFailure(Exception error) => DesktopPlaybackError = error.Message;
         public void DrawDesktopFrame(CanvasDrawingSession session, double width, double height)
         {
+            HasOverwatchCardContent = false;
             session.Transform = System.Numerics.Matrix3x2.CreateScale((float)(width / Math.Max(1, SpriteCanvas.Width)), (float)(height / Math.Max(1, SpriteCanvas.Height)));
             OnSpriteCanvasDraw(SpriteCanvas, new DesktopDrawEventArgs(session));
             SpriteCanvas.MarkPresented();
         }
         public void StopDesktopPlayback()
         {
+            DesktopPlaybackError = null;
+            HasOverwatchCardContent = false;
             _timer.Stop();
+            _playbackClock.Stop();
             ++_playToken;
             Visibility = Windows.UI.Xaml.Visibility.Collapsed;
             SpriteCanvas.Invalidate();

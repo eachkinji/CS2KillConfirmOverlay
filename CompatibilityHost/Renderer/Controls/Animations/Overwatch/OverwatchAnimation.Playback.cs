@@ -92,10 +92,12 @@ namespace KillConfirmCompatibility.Controls
                     drawCard,
                     isAssist);
             }
-            catch
+            catch (Exception error)
             {
+                App.Log("Overwatch playback failed (card=" + drawCard + "): " + error);
                 if (token == _playToken)
                 {
+                    ReportDesktopPlaybackFailure(error);
                     ResetOverwatchState();
                     Visibility = Visibility.Collapsed;
                 }

@@ -130,6 +130,7 @@ namespace KillConfirmCompatibility.Controls
                     (float)textY,
                     Color.FromArgb(textAlpha, 255, 255, 255),
                     textFormat);
+                HasOverwatchCardContent = true;
             }
         }
 

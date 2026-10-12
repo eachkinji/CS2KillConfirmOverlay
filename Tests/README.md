@@ -13,6 +13,7 @@
 pwsh -NoProfile -File .\Tests\Regression\Test-GsiConfigConsistency.ps1
 pwsh -NoProfile -File .\Tests\Regression\Test-LegacyProfileTransfer.ps1
 pwsh -NoProfile -File .\Tests\Regression\Test-LegacyPanelUpgrade.ps1
+pwsh -NoProfile -File .\CompatibilityHost\Validation\Test-OverwatchPreview.ps1
 pwsh -NoProfile -File .\Tests\CustomSequences\Test-CustomSequences.ps1
 ```
 

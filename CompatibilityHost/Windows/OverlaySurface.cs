@@ -42,6 +42,14 @@ namespace KillConfirmCompatibility.Desktop.Windowing
         private bool _hasRenderedPixels;
         internal bool HasRenderedPixels => IsVisible && Opacity > 0 && _hasRenderedPixels;
         internal void ResetPreviewPixels() => _hasRenderedPixels = false;
+        internal void SavePreviewImage(string path)
+        {
+            if (_bitmap == null) throw new InvalidOperationException("No rendered bitmap.");
+            var encoder = new PngBitmapEncoder();
+            encoder.Frames.Add(BitmapFrame.Create(_bitmap));
+            using var stream = System.IO.File.Create(path);
+            encoder.Save(stream);
+        }
         public OverlaySurface(string key, string label, KillConfirmAnimation animation)
         {
             ElementKey = key; _animation = animation; _labelText = label;

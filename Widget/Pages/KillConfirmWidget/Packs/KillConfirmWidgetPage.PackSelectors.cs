@@ -29,7 +29,9 @@ namespace KillConfirmGameBar
             {
                 await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, async () =>
                 {
-                    if (_isPageActive)
+                    if (!_isPageActive) return;
+                    App.NoteAction("catalog refresh style=" + GameStyleService.Current);
+                    try
                     {
                         bool valorantEdited = GameStyleService.Current == GameStyleMode.Valorant
                             && _lastValorantEditRevision != ValorantPackEditing.Revision;
@@ -52,6 +54,11 @@ namespace KillConfirmGameBar
                         }
                         await InitializePackSelectorsAsync();
                         if (valorantEdited) await SyncSelectedVoicePackAsync();
+                        App.NoteAction("catalog refresh done");
+                    }
+                    catch (Exception ex)
+                    {
+                        App.LogCrash("Pack catalog refresh failed after [" + "style=" + GameStyleService.Current + "]: " + ex);
                     }
                 });
             }
@@ -67,6 +74,7 @@ namespace KillConfirmGameBar
         private async Task InitializePackSelectorsAsync()
         {
             await _packSelectorInitializationLock.WaitAsync();
+            App.NoteAction("initialize selectors style=" + GameStyleService.Current);
             bool previousVoiceSuppression = _suppressVoicePackEvents;
             bool previousIconSuppression = _suppressIconPackEvents;
             _packSelectorsInitialized = false;
@@ -89,10 +97,16 @@ namespace KillConfirmGameBar
                 }
                 ApplyGameStyleUi();
                 _packSelectorsInitialized = true;
+                App.NoteAction("selectors initialized voice=" + PackTestSectionView.VoicePackSelector.Items.Count
+                    + " icon=" + PackTestSectionView.IconPackSelector.Items.Count);
                 if (_isPageActive)
                 {
                     _ = WarmStartupAnimationCacheAsync(0);
                 }
+            }
+            catch (Exception ex)
+            {
+                App.LogCrash("Initialize pack selectors failed: " + ex);
             }
             finally
             {
@@ -340,6 +354,7 @@ namespace KillConfirmGameBar
 
         private async Task OpenPackLibraryAsync(bool voice, SelectionChangedEventArgs e)
         {
+            App.NoteAction("open pack library voice=" + voice);
             var selector = voice ? PackTestSectionView.VoicePackSelector : PackTestSectionView.IconPackSelector;
             bool previous = voice ? _suppressVoicePackEvents : _suppressIconPackEvents;
             if (voice) _suppressVoicePackEvents = true;
@@ -347,9 +362,16 @@ namespace KillConfirmGameBar
             try
             {
                 // This is a navigation action; restore the real selection before any await.
-                selector.SelectedItem = e.RemovedItems.OfType<ComboBoxItem>()
-                    .FirstOrDefault(item => !Equals(item.Tag, PackLibraryNavigation.AddMoreTag))
-                    ?? selector.Items.OfType<ComboBoxItem>().FirstOrDefault();
+                ComboBoxItem restore = e.RemovedItems.OfType<ComboBoxItem>()
+                    .FirstOrDefault(item => !Equals(item.Tag, PackLibraryNavigation.AddMoreTag)
+                        && selector.Items.Contains(item))
+                    ?? selector.Items.OfType<ComboBoxItem>()
+                        .FirstOrDefault(item => !Equals(item.Tag, PackLibraryNavigation.AddMoreTag));
+                if (restore != null) selector.SelectedItem = restore;
+            }
+            catch (Exception ex)
+            {
+                App.LogCrash("Pack library selection restore failed: " + ex);
             }
             finally
             {

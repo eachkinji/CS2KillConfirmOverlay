@@ -21,6 +21,7 @@ namespace KillConfirmGameBar
 
             try
             {
+                App.NoteAction("voice selection tag=" + ((PackTestSectionView.VoicePackSelector.SelectedItem as ComboBoxItem)?.Tag as string));
                 if (Equals((PackTestSectionView.VoicePackSelector.SelectedItem as ComboBoxItem)?.Tag, PackLibraryNavigation.AddMoreTag))
                 {
                     await OpenPackLibraryAsync(true, e);
@@ -52,27 +53,34 @@ namespace KillConfirmGameBar
                 return;
             }
 
-            if (Equals((PackTestSectionView.IconPackSelector.SelectedItem as ComboBoxItem)?.Tag, PackLibraryNavigation.AddMoreTag))
+            try
             {
-                await OpenPackLibraryAsync(false, e);
-                return;
+                App.NoteAction("icon selection tag=" + ((PackTestSectionView.IconPackSelector.SelectedItem as ComboBoxItem)?.Tag as string));
+                if (Equals((PackTestSectionView.IconPackSelector.SelectedItem as ComboBoxItem)?.Tag, PackLibraryNavigation.AddMoreTag))
+                {
+                    await OpenPackLibraryAsync(false, e);
+                    return;
+                }
+                string iconPack = GetSelectedIconPack();
+                SavePackSettingForStyle(IconPackSettingKey, GameStyleService.Current, iconPack);
+                if (TrySyncValorantVoicePackForIconSelection(iconPack))
+                {
+                    _ = SyncValorantVoicePackAfterIconSelectionAsync();
+                }
+
+                ConfigureAnimationIconPack(iconPack);
+
+                // For custom packs, detect each overlay capability independently.
+                _ = ApplyCustomPackOverlaySupportAsync(iconPack);
+
+                UpdateEliteEffectSelectorState();
+                UpdateKillFxSelectorState();
+                UpdateWeaponBadgeSelectorState();
             }
-            string iconPack = GetSelectedIconPack();
-            SavePackSettingForStyle(IconPackSettingKey, GameStyleService.Current, iconPack);
-            if (TrySyncValorantVoicePackForIconSelection(iconPack))
+            catch (Exception ex)
             {
-                _ = SyncValorantVoicePackAfterIconSelectionAsync();
+                App.Log("Icon pack selection failed: " + ex);
             }
-
-            ConfigureAnimationIconPack(iconPack);
-
-            // For custom packs, detect each overlay capability independently.
-            _ = ApplyCustomPackOverlaySupportAsync(iconPack);
-
-            UpdateEliteEffectSelectorState();
-            UpdateKillFxSelectorState();
-            UpdateWeaponBadgeSelectorState();
-
         }
 
         private async Task SyncValorantVoicePackAfterIconSelectionAsync()
@@ -151,7 +159,10 @@ namespace KillConfirmGameBar
                     }
                 }
 
-                PackTestSectionView.IconPackSelector.SelectedIndex = 0;
+                if (PackTestSectionView.IconPackSelector.Items.Count > 0)
+                {
+                    PackTestSectionView.IconPackSelector.SelectedIndex = 0;
+                }
             }
             finally
             {

@@ -82,6 +82,7 @@ public partial class App : Application
     }
     public static void LogCrash(string message) => Log(message);
     public static void LogCrash(string context, Exception error) => Log(context + ": " + error);
+    internal static void NoteAction(string action) { }
     public static async Task<bool> RequestFullExitAsync()
     {
         var application=(App)Current;

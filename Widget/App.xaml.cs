@@ -288,9 +288,15 @@ namespace KillConfirmGameBar
             }
         }
 
+       private static string _lastAction = "";
+       internal static void NoteAction(string action)
+       {
+           _lastAction = DateTimeOffset.Now.ToString("HH:mm:ss.fff") + " " + action;
+       }
+
        private void OnUnhandledException(object sender, Windows.UI.Xaml.UnhandledExceptionEventArgs e)
        {
-            LogCrash("Unhandled exception: " + e.Exception);
+            LogCrash("Unhandled exception after [" + _lastAction + "]: " + e.Exception);
            ShowFallback("Unhandled exception", e.Exception);
            e.Handled = true;
        }

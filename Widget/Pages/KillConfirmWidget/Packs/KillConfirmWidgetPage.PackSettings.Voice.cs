@@ -131,7 +131,10 @@ namespace KillConfirmGameBar
                     }
                 }
 
-                PackTestSectionView.VoicePackSelector.SelectedIndex = 0;
+                if (PackTestSectionView.VoicePackSelector.Items.Count > 0)
+                {
+                    PackTestSectionView.VoicePackSelector.SelectedIndex = 0;
+                }
             }
             finally
             {

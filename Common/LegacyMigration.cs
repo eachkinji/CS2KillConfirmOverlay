@@ -45,11 +45,11 @@ namespace KillConfirmCompatibility.Contracts
                     {
                         string target=Path.Combine(root,Path.GetRelativePath(sourceRoot,file));
                         Directory.CreateDirectory(Path.GetDirectoryName(target));
-                        if(!File.Exists(target)) File.Copy(file,target);
+                        if(!File.Exists(target)) SafeFileCopy.Copy(file,target);
                     }
                 }
                 foreach(string name in new[]{"pack-catalog.json","service-auth-token.txt","widget_port.txt","port_search.txt"})
-                    if(File.Exists(Path.Combine(sourceRoot,name)) && !File.Exists(Path.Combine(root,name))) File.Copy(Path.Combine(sourceRoot,name),Path.Combine(root,name));
+                    if(File.Exists(Path.Combine(sourceRoot,name)) && !File.Exists(Path.Combine(root,name))) SafeFileCopy.Copy(Path.Combine(sourceRoot,name),Path.Combine(root,name));
                 }
                 bool settingsImported=desktopImported || !Directory.Exists(old);
                 if(readPackageSettings)

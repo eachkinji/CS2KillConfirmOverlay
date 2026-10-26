@@ -178,7 +178,7 @@ namespace KillConfirmCompatibility.Contracts
         private static void CopyVerified(string source, string target)
         {
             Directory.CreateDirectory(Path.GetDirectoryName(target));
-            File.Copy(source, target, true);
+            SafeFileCopy.Copy(source, target);
             using var original = File.OpenRead(source);
             using var copied = File.OpenRead(target);
             if (!SHA256.HashData(original).SequenceEqual(SHA256.HashData(copied))) throw new IOException("Migration file verification failed: " + Path.GetFileName(source));

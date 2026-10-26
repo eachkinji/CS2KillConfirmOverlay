@@ -9,6 +9,7 @@ $project=@'
  <ItemGroup>
   <Compile Include="../../../Tests/Regression/LegacyProfileTransferHarness.cs" />
   <Compile Include="../../../Common/LegacyProfileTransfer.cs" />
+  <Compile Include="../../../Common/SafeFileCopy.cs" />
   <Compile Include="../../../Common/FileSettings.cs" />
   <Compile Include="../../../CompatibilityHost/Contracts/DisplayFiles.cs" />
   <Compile Include="../../../CompatibilityHost/Contracts/DisplayConfiguration.cs" />

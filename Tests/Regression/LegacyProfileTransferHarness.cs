@@ -24,6 +24,15 @@ internal static class Program
         File.WriteAllBytes(Path.Combine(install, "Assets", "LegacyVoice", "voice.wav"), new byte[] { 8, 9 });
         Directory.CreateDirectory(external);
         File.WriteAllBytes(Path.Combine(external, "image.png"), new byte[] { 4, 5 });
+        string encryptedAsset = Path.Combine(old, "BombAudio", "encrypted.bin");
+        File.WriteAllBytes(encryptedAsset, new byte[] { 7, 17, 27 });
+        bool encryptedFixture = false;
+        try
+        {
+            File.Encrypt(encryptedAsset);
+            encryptedFixture = (File.GetAttributes(encryptedAsset) & FileAttributes.Encrypted) != 0;
+        }
+        catch { }
         JsonObject Pack(string key, string path) => new() { ["Key"] = key, ["FolderPath"] = path, ["DisplayName"] = key, ["IsBuiltIn"] = false, ["IsVisibleInWidget"] = true };
         var oldCatalog = new JsonObject {
             ["IconPacks"] = new JsonArray(Pack("imported_icon", Path.Combine(old, "Packs/valorant/icon_packs/imported")), Pack("external_icon", external)),
@@ -43,6 +52,13 @@ internal static class Program
             ["FileUri"] = new Uri(Path.GetFullPath(Path.Combine(old, "BombAudio/asset.bin"))).AbsoluteUri,
             ["GameBarRuntimeStatus"] = new object() };
         LegacyProfileTransfer.Prepare(current, old, install, backup, legacySettings);
+        if (encryptedFixture)
+        {
+            string migratedEncrypted = Path.Combine(current, "BombAudio/encrypted.bin");
+            Check(File.Exists(migratedEncrypted) && File.ReadAllBytes(migratedEncrypted).SequenceEqual(new byte[] { 7, 17, 27 }), "EFS-encrypted source was not migrated");
+            Check((File.GetAttributes(migratedEncrypted) & FileAttributes.Encrypted) == 0, "migration copy kept an unusable encrypted attribute");
+            Check(File.Exists(Path.Combine(backup, "LocalState/BombAudio/encrypted.bin")), "EFS-encrypted backup missing");
+        }
         settings = new FileSettings(Path.Combine(current, "settings.json"));
         Check(Equals(settings["Volume"], 42) && Equals(settings["AudioEnabled"], true) && Equals(settings["Double"], 0.75) && Equals(settings["Long"], 1234567890123L), "typed settings/current choices were lost");
         Check((string)settings["IconPack"] == "imported_icon" && (string)settings["VoicePack"] == "imported_voice", "selected pack keys changed");

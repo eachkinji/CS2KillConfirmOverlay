@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -30,21 +30,14 @@ namespace KillConfirmGameBar.Services
 
         public static async Task<IReadOnlyList<IconPackItem>> GetVisibleIconPacksAsync()
         {
-            var catalog = await LoadAsync();
-            IEnumerable<IconPackItem> visible = catalog.IconPacks
-                .Where(p => p.IsVisibleInWidget && GameStyleService.IsVisibleForCurrentStyle(p.Key))
-                .ToList();
-            if (GameStyleService.Current == GameStyleMode.Valorant)
-            {
-                visible = visible.OrderBy(p => ValorantPackService.GetDisplayOrder(p.Key));
-            }
-            return visible.ToList();
+            return (await GetAllIconPacksAsync())
+                .Where(p => p.IsVisibleInWidget && GameStyleService.IsVisibleForCurrentStyle(p.Key)).ToList();
         }
 
         public static async Task<IReadOnlyList<IconPackItem>> GetAllIconPacksAsync()
         {
             var catalog = await LoadAsync();
-            return catalog.IconPacks.ToList();
+            return OrderPacks(catalog.IconPacks, p => p.Key, catalog.IconPackOrder);
         }
 
         public static async Task<IconPackItem> GetIconPackAsync(string key)
@@ -310,6 +303,11 @@ namespace KillConfirmGameBar.Services
                         await folder.DeleteAsync();
                     }
                     catch { }
+                }
+                if (CrossfireExternalAssetService.IsIconKey(key))
+                {
+                    CrossfireExternalAssetService.RefreshCatalog(catalog);
+                    ApplyVisibilityOverrides(catalog);
                 }
                 await SaveAsync(catalog);
             }

@@ -61,10 +61,7 @@ namespace KillConfirmGameBar.Services
             await SaveAsync(catalog);
         }
 
-        // Valorant voice packs. Valorant's built-in voice plays tier 1-5 streak
-        // voices and a headshot voice (its sound.lua caps kills at 5), so a custom
-        // Valorant pack exposes those same six slots on the manifest's generic
-        // kill_1..kill_5 / headshot keys.
+        // The native Valorant player consumes all thirteen independent slots.
         public static readonly IReadOnlyDictionary<string, string> ValorantVoiceSlotMapping =
             new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
@@ -73,7 +70,14 @@ namespace KillConfirmGameBar.Services
                 { "3", "kill_3" },
                 { "4", "kill_4" },
                 { "5", "kill_5" },
-                { "headshot", "headshot" }
+                { "headshot", "headshot" },
+                { "headshot_1", "headshot_1" },
+                { "headshot_2", "headshot_2" },
+                { "headshot_3", "headshot_3" },
+                { "headshot_4", "headshot_4" },
+                { "headshot_5", "headshot_5" },
+                { "appear", "appear" },
+                { "transition", "transition" }
             };
 
         public static async Task CreateValorantVoicePackAsync(string displayName, VoicePackBuildOptions options)
@@ -89,6 +93,7 @@ namespace KillConfirmGameBar.Services
             // Valorant cue, including when this pack is exported or imported.
             foreach (string stem in ValorantVoiceSlotMapping.Keys)
             {
+                if (!int.TryParse(stem, out int kill) || kill < 1 || kill > 5) continue;
                 if ((await FindAudioFileNamesAsync(packFolder, stem)).Count > 0)
                 {
                     continue;
@@ -135,7 +140,7 @@ namespace KillConfirmGameBar.Services
                 displayName,
                 "valorant",
                 ValorantVoiceSlotMapping,
-                commonOverlayEnabled: null);
+                commonOverlayEnabled: options.CommonOverlayEnabled);
 
             var catalog = await LoadAsync();
             catalog.VoicePacks.Add(new VoicePackItem
@@ -308,7 +313,12 @@ namespace KillConfirmGameBar.Services
             var slotsObj = new Windows.Data.Json.JsonObject();
             foreach (var pair in slotMapping)
             {
-                IReadOnlyList<string> fileNames = await FindAudioFileNamesAsync(packFolder, pair.Key);
+                IReadOnlyList<string> fileNames = string.Equals(gameStyle, "valorant", StringComparison.OrdinalIgnoreCase)
+                    ? (await packFolder.GetFilesAsync()).Where(file =>
+                        SupportedAudioExtensions.Contains(file.FileType, StringComparer.OrdinalIgnoreCase)
+                        && string.Equals(Helpers.AudioSlotAliases.ExtractBaseStem(file.Name), pair.Key, StringComparison.OrdinalIgnoreCase))
+                        .OrderBy(file => file.Name, StringComparer.OrdinalIgnoreCase).Select(file => file.Name).ToList()
+                    : await FindAudioFileNamesAsync(packFolder, pair.Key);
                 if (fileNames.Count == 1)
                 {
                     slotsObj[pair.Value] = Windows.Data.Json.JsonValue.CreateStringValue(fileNames[0]);
@@ -322,6 +332,8 @@ namespace KillConfirmGameBar.Services
                     }
                     slotsObj[pair.Value] = variants;
                 }
+                else if (string.Equals(gameStyle, "valorant", StringComparison.OrdinalIgnoreCase))
+                    slotsObj[pair.Value] = new Windows.Data.Json.JsonArray();
             }
 
             if (string.Equals(gameStyle, "crossfire", StringComparison.OrdinalIgnoreCase))
@@ -357,6 +369,17 @@ namespace KillConfirmGameBar.Services
                 ["slot_gains"] = new Windows.Data.Json.JsonObject(),
                 ["overlay_slots"] = overlaySlotsArray
             };
+            if (string.Equals(gameStyle, "valorant", StringComparison.OrdinalIgnoreCase))
+            {
+                for (int kill = 1; kill <= 5; kill++)
+                    if (commonOverlayEnabled == null || (commonOverlayEnabled.TryGetValue(kill + ".wav", out bool enabled) && enabled))
+                        overlaySlotsArray.Add(Windows.Data.Json.JsonValue.CreateStringValue("kill_" + kill));
+                audioObj["slot_gains"] = new Windows.Data.Json.JsonObject
+                {
+                    ["appear"] = Windows.Data.Json.JsonValue.CreateNumberValue(0.3),
+                    ["transition"] = Windows.Data.Json.JsonValue.CreateNumberValue(0.3)
+                };
+            }
             var manifestObj = new Windows.Data.Json.JsonObject
             {
                 ["id"] = Windows.Data.Json.JsonValue.CreateStringValue(packFolder.Name),

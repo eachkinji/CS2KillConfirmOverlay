@@ -44,6 +44,8 @@ namespace KillConfirmGameBar.Danmaku.Engine
         public DanmakuMessageRole Role { get; set; }
         public int EventPriority { get; set; }
         public bool IsEventReaction { get; set; }
+        public DateTimeOffset NotBefore { get; set; }
+        public DateTimeOffset? ExpiresAt { get; set; }
     }
 
     internal static class DanmakuEventClassifier

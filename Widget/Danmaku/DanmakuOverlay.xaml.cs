@@ -297,7 +297,7 @@ namespace KillConfirmGameBar.Danmaku
             int? customVisibleLimit,
             double? customMaximumFlightSeconds)
         {
-            int visibleLimit = customVisibleLimit ?? Random.Next(10, 21);
+            int visibleLimit = DanmakuReactionPolicies.EventTotalCount;
             double maximumFlightSeconds = DanmakuReactionPolicies.ClampFlightSeconds(
                 customMaximumFlightSeconds ?? DanmakuSettingsStore.DurationSeconds);
 
@@ -314,7 +314,7 @@ namespace KillConfirmGameBar.Danmaku
                 maximumFlightSeconds,
                 Random);
             _pendingQueue.Enqueue(messages, flightDuration);
-            _eventDensityUntil = DateTimeOffset.UtcNow.AddSeconds(5.0);
+            _eventDensityUntil = DateTimeOffset.UtcNow.AddSeconds(DanmakuReactionPolicies.EventDurationSeconds);
             StartRendering();
         }
 

@@ -174,17 +174,10 @@ namespace KillConfirmGameBar.Danmaku.Engine
                     strengthRatio);
             }
 
-            double baseSeconds = isInitialBurst
-                ? dynamics.BurstIntervalSeconds
-                : dynamics.AftermathIntervalSeconds;
-            double eventMultiplier = DanmakuSettingsStore.ResolveEventIntervalMultiplier(
-                DanmakuSettingsStore.EventIntensity);
-            double jitterRatio = isInitialBurst ? 0.10 : 0.22;
-            double jitter = 1.0 + ((_random.NextDouble() * 2.0 - 1.0) * jitterRatio);
-            double nextSeconds = baseSeconds * eventMultiplier * jitter;
-            nextSeconds = isInitialBurst
-                ? Math.Max(0.15, Math.Min(0.25, nextSeconds))
-                : Math.Max(0.20, Math.Min(0.38, nextSeconds));
+            // Two rapid reactions, then three spaced follow-ups. Intensity must
+            // not extend the two-second event or increase its five-message budget.
+            double nextSeconds = impulse.DispatchCount == 0
+                ? dynamics.BurstIntervalSeconds : dynamics.AftermathIntervalSeconds;
 
             TimeSpan impulseInterval = TimeSpan.FromSeconds(nextSeconds);
             _impulseManager.RecordDispatch(impulse, now, impulseInterval);
@@ -196,7 +189,8 @@ namespace KillConfirmGameBar.Danmaku.Engine
                 Text = selection.Text,
                 Role = DanmakuMessageRole.Core,
                 EventPriority = DanmakuReactionPolicies.Resolve(impulse.Kind).Priority,
-                IsEventReaction = true
+                IsEventReaction = true,
+                ExpiresAt = impulse.StartTime + impulse.Duration
             };
 
             string diagnostic = isInitialBurst

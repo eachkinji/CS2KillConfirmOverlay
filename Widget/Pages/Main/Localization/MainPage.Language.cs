@@ -9,6 +9,8 @@ namespace KillConfirmGameBar
         private void ApplyLanguage()
         {
             bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            ApplyPackLibraryLanguage();
+            CustomModuleStyleItem.Content = isChinese ? "自定义" : "Custom";
             ToolTipService.SetToolTip(HomeSidebarItem, isChinese ? "主页" : "Home");
             ToolTipService.SetToolTip(AdvancedSettingsSidebarItem, isChinese ? "高级设置" : "Advanced settings");
             Windows.UI.Xaml.Automation.AutomationProperties.SetName(HomeSidebarItem, isChinese ? "主页" : "Home");
@@ -223,16 +225,16 @@ namespace KillConfirmGameBar
 
                 case GameStyleMode.Valorant:
                     body = isChinese
-                        ? "VALORANT 提供 1～5 杀和爆头语音；开启配套选择后，语音和图标会自动使用同一系列。"
-                        : "VALORANT provides voices for kills 1–5 and headshots. With pairing enabled, voice and icon packs automatically use the same series.";
+                        ? "VALORANT 支持 1～5 杀、分级爆头、出现和切换音效；开启配套选择后，语音和图标会自动使用同一系列。"
+                        : "VALORANT supports kills 1–5, tiered headshots, appear and transition audio. Pairing selects the matching icon and voice series.";
                     voice = isChinese
-                        ? "1.wav ~ 5.wav = 1至5级连杀语音\nheadshot.wav = 爆头语音"
-                        : "1.wav ~ 5.wav = streak tiers 1 through 5\nheadshot.wav = headshot voice";
-                    iconSummary = isChinese ? "自定义图标包暂未开放；可选用内置皮肤图标包。" : "Custom icon packs are not available yet; built-in skin icon packs remain selectable.";
+                        ? "1.wav～5.wav：连杀语音\nheadshot_1.wav～headshot_5.wav：分级爆头\nheadshot.wav：通用爆头回退\nappear.wav：首次出现\ntransition.wav：连杀切换"
+                        : "1.wav–5.wav: kill tiers\nheadshot_1.wav–headshot_5.wav: tiered headshots\nheadshot.wav: fallback headshot\nappear.wav: first appearance\ntransition.wav: subsequent kills";
+                    iconSummary = isChinese ? "可编辑图标纹理、主题颜色、爆头偏移和连杀标记尺寸；内置包另存副本。" : "Edit textures, accent, headshot offsets and kill marker size. Built-in packs save as copies.";
                     iconFull = isChinese
                         ? "开启配套选择：选择语音或图标时会自动匹配同系列资源。\n关闭配套选择：语音和图标可以分别选择。"
                         : "Pairing on: choosing a voice or icon pack also selects the matching series.\nPairing off: voice and icon packs can be chosen separately.";
-                    fileHint = isChinese ? "每项可以选择多段音频，播放时会随机使用其中一段；未设置的项目保持原样。" : "Each item can contain multiple audio files; one is chosen at random. Items you do not set remain unchanged.";
+                    fileHint = isChinese ? "每项可选多段音频随机播放。连杀留空使用基础语音；爆头、出现和切换留空则不叠加。" : "Each slot supports random variants. Empty kill slots use Base; empty headshot, appear and transition layers stay silent.";
                     break;
 
                 case GameStyleMode.Battlefield1:

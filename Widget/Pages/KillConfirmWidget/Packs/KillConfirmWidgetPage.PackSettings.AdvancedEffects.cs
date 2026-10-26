@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using KillConfirmGameBar.Services;
 using Windows.Storage;
@@ -85,7 +85,7 @@ namespace KillConfirmGameBar
             }
 
             int mode = GetSelectedKillFxMode();
-            ApplicationData.Current.LocalSettings.Values[KillFxSettingKey] = mode;
+            ApplicationData.Current.LocalSettings.Values[GetPackKillFxSettingKey()] = mode;
             Controls.KillConfirmAnimation.ConfigureKillFxMode(mode);
             WarmStartupAnimationCacheIfActive();
         }
@@ -139,10 +139,15 @@ namespace KillConfirmGameBar
             UpdateEliteEffectSelectorState();
         }
 
+        private string GetPackKillFxSettingKey() => KillFxSettingKey + ":" + GetSelectedIconPack();
+
         private void LoadKillFxSetting()
         {
             int mode = GetDefaultKillFxModeForSelectedPack();
-            object stored = ApplicationData.Current.LocalSettings.Values[KillFxSettingKey];
+            // A previous pack's Original setting must not override this pack's own multiFX.
+            object stored = ApplicationData.Current.LocalSettings.Values[GetPackKillFxSettingKey()];
+            if (stored == null && !Controls.KillConfirmAnimation.GetCustomPackHasKillFx())
+                stored = ApplicationData.Current.LocalSettings.Values[KillFxSettingKey];
             if (stored is int intValue)
             {
                 mode = NormalizeKillFxMode(intValue);

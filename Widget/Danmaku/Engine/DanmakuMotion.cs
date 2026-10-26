@@ -9,26 +9,15 @@ namespace KillConfirmGameBar.Danmaku.Engine
             double configuredMaximumSeconds,
             Random random)
         {
-            double maximum = DanmakuReactionPolicies.ClampFlightSeconds(configuredMaximumSeconds);
+            double maximum = Math.Max(12.0, DanmakuReactionPolicies.ClampFlightSeconds(configuredMaximumSeconds));
             double duration;
             switch (speed)
             {
+                case DanmakuSpeedMode.Leisurely: duration = 18.0; break;
+                case DanmakuSpeedMode.Drifting: duration = 24.0; break;
+                case DanmakuSpeedMode.Slowest: duration = 30.0; break;
                 case DanmakuSpeedMode.UltraSlow:
-                    duration = 11.0 + (random.NextDouble() * 1.0);
-                    break;
-                case DanmakuSpeedMode.VerySlow:
-                    duration = 7.4 + (random.NextDouble() * 0.8);
-                    break;
-                case DanmakuSpeedMode.Fast:
-                    duration = 2.8 + (random.NextDouble() * 0.5);
-                    break;
-                case DanmakuSpeedMode.Slow:
-                    duration = 4.6 + (random.NextDouble() * 0.4);
-                    break;
-                case DanmakuSpeedMode.Normal:
-                default:
-                    duration = 3.8 + (random.NextDouble() * 0.6);
-                    break;
+                default: duration = 12.0; break;
             }
             return Math.Min(maximum, duration);
         }

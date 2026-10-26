@@ -478,20 +478,7 @@ if ($sExpired -ne 0.0) { throw "Strength at t=11s must be 0.0" }
 if (-not $imp.IsExpired($t0.AddSeconds(10.0))) { throw "Impulse must be expired at t=10s." }
 Write-Host "  -> Impulse decay behavior verified: 2.0 -> 1.0 (50%) -> 0.2 (10%) -> 0.0 (expired)."
 
-Write-Host "`n[Behavior 2.4] Testing Initial Burst Followed by Event Aftermath..."
-$burstInterval = 0.25
-$aftermathInterval = 0.9
-for ($dispatch = 0; $dispatch -lt 5; $dispatch++) {
-    $interval = $h::CalculatePhaseInterval($dispatch, 5, $burstInterval, $aftermathInterval)
-    if ([Math]::Abs($interval - $burstInterval) -gt 0.001) {
-        throw "Dispatch $dispatch must remain in the initial burst phase."
-    }
-}
-$afterBurst = $h::CalculatePhaseInterval(5, 5, $burstInterval, $aftermathInterval)
-if ([Math]::Abs($afterBurst - $aftermathInterval) -gt 0.001) {
-    throw "Dispatches after the burst must use the aftermath interval."
-}
-Write-Host "  -> Five rapid burst dispatches transition into a slower continuing aftermath."
+& (Join-Path $PSScriptRoot 'Test-DanmakuPacing.ps1')
 
 Write-Host "`n[Behavior 2.5] Testing Weight Clamping Lower and Upper Bounds..."
 if (($h::ClampWeight(0.0001)) -ne 0.05) { throw "Lower clamp bound must be 0.05" }
@@ -552,29 +539,7 @@ if (-not $ok2 -or $receiver.PendingQueue.Count -ne 2) {
 }
 Write-Host "  -> Cross-session delayed dispatch validation and generation token isolation verified."
 
-Write-Host "`n[Behavior 2.8] Testing Full Event Burst Beside Saturated Ambient Lanes..."
-$ambientVisible = 7
-$eventBurst = 5
-$eventMaximumVisible = 12
-if (($ambientVisible + $eventBurst) -gt $eventMaximumVisible) {
-    throw 'A full five-message event burst must fit while all seven ambient lanes are occupied.'
-}
-
-# Every impulse starts with its own history. Repeated game events therefore
-# receive the same strong, polarity-checked anchor quota instead of exhausting
-# one application-wide 64-message deduplication window.
-for ($eventNumber = 1; $eventNumber -le 3; $eventNumber++) {
-    $perEventHistory = [Collections.Generic.HashSet[int]]::new()
-    foreach ($index in @(6616, 22101, 58, 1282, 1607)) {
-        if (-not $perEventHistory.Add($index)) {
-            throw "Event $eventNumber repeated a kill anchor inside its own burst."
-        }
-    }
-    if ($perEventHistory.Count -ne 5) {
-        throw "Event $eventNumber did not receive all five strong kill reactions."
-    }
-}
-Write-Host "  -> Three consecutive events each retain five fresh strong reactions; 7 ambient + 5 event items fit together."
+# Event quotas, queue expiry and the nine-item cap are covered by Test-DanmakuPacing above.
 
 Write-Host "`n[Behavior 2.9] Testing GSI Session Opening Phase (Real 6657 Text Evaluation: 12 Samples Across 3 Sessions)..."
 $proBlacklist = "NiKo|niko|s1mple|simple|donk|ZywOo|zywoo|载物|dev1ce|device|地外丝|karrigan|大表哥|表猪|m0NESY|m0nesy|小孩|sh1ro|若子|broky|ropz|twistzz|总监|aleksib|小李子|jL|b1t|electronic|cadian|点子哥|snax|fallen|tarik|shroud|Shroud|kennyS|coldzera|flusha|stewie2k|swag|tenz|ququ|QUQU|佳代子|伟伟|马西西|冬瓜强|玩播|茄子|老汤|马圣|阿杜|dupreeh|FaZe|faze|Falcons|falcons|猎鹰|Vitality|小蜜蜂|Spirit|绿龙|Navi|NaVi|NAVI|MOUZ|mouz|老鼠|G2|g2|Astralis|Heroic|Virtus|VP|Cloud9|C9|Liquid|液体|Complexity|coL|FURIA|黑豹|BLG|blg|TES|tes|T1|t1|EDG|edg|MyGO|mygo|原神|鸣潮|崩铁|明日方舟|绝区零|无畏契约|瓦罗兰特|王者荣耀|英雄联盟|LOL|DOTA|刀塔|星铁|黑神话|郑哲伟|刘培祥|陈彦川|枫哥|峰哥|黄眉|爱弥斯|爱音|喵梦|丰川|初华|海铃|爱拍|陈子豪|灰泽满|思诺心仪|长崎|素世|祥子|睦|高松灯|千早|乐奈"

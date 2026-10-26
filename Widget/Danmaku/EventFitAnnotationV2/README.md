@@ -88,7 +88,7 @@ python Widget/Danmaku/EventFitAnnotationV2/validate_supplemental_death_flame_sou
 
 ## 当前运行时：千条事件池 V4
 
-当前事件池位于 `../EventPools/`：16类事件各自一个独立 JSON，每个文件至少1000条。所有条目均为 `context_rewrite`，并保留 `source_index`、可在对应原文中逐字找到的 `source_excerpt`、单行 `text` 和 `template_id`。运行时会回查 `6657_memes.json` 并强制检查每池最低数量、文本唯一性及来源一致性。
+当前事件池位于 `../EventPools/`：16类事件各自一个独立 JSON，普通击杀、首杀、爆头、刀杀、投掷物击杀、多杀、高连杀、末杀、助攻、阵亡、回合胜利、回合失败、下包、拆包、人质交互和人质救出各精选100条，16池共1600条。所有条目均为 `context_rewrite`，并保留 `source_index`、可在对应原文中逐字找到的 `source_excerpt`、单行 `text` 等来源记录；精选池另有 `intent`、`family` 和 `derivation_note`。运行时会回查 `6657_memes.json` 并强制检查每池最低数量、文本唯一性及来源一致性。
 
 事件派发只读取这16个事件池，不再读取原生小池，也不再使用全量语义库作为事件兜底。全量语义标注仍用于日常氛围选择以及事件池生成时的素材过滤。开场与结束数据独立位于 `../LifecyclePools/`。
 

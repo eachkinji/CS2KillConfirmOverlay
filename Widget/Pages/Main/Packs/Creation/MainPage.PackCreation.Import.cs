@@ -202,15 +202,29 @@ namespace KillConfirmGameBar
 
         private async Task ImportDroppedPackZipsAsync(DragEventArgs e, bool isVoice)
         {
+            if (!e.DataView.Contains(StandardDataFormats.StorageItems)) return;
             e.Handled = true;
+            e.AcceptedOperation = DataPackageOperation.None;
             if (_packZipDropInProgress) return;
             var deferral = e.GetDeferral();
             SetPackImportBusy(true);
             try
             {
-                var items = await e.DataView.GetStorageItemsAsync();
-                var files = items.OfType<StorageFile>()
-                    .Where(file => string.Equals(file.FileType, ".zip", StringComparison.OrdinalIgnoreCase)).ToList();
+                List<StorageFile> files;
+                try
+                {
+                    var items = await e.DataView.GetStorageItemsAsync();
+                    files = items.OfType<StorageFile>()
+                        .Where(file => string.Equals(file.FileType, ".zip", StringComparison.OrdinalIgnoreCase)).ToList();
+                    e.AcceptedOperation = files.Count > 0 ? DataPackageOperation.Copy : DataPackageOperation.None;
+                }
+                finally
+                {
+                    // Release the OS drag image as soon as we own the file references.
+                    // Extraction and dialogs must not keep the native drop pending.
+                    deferral.Complete();
+                }
+                await Task.Yield();
                 if (files.Count == 0)
                     throw new InvalidDataException(LocalizationManager.Current == UiLanguage.SimplifiedChinese
                         ? (isVoice ? "请选择音频包文件。" : "请选择图标包文件。")
@@ -224,13 +238,13 @@ namespace KillConfirmGameBar
             finally
             {
                 SetPackImportBusy(false);
-                deferral.Complete();
             }
         }
 
         private async void OnCreateIconPackClick(object sender, RoutedEventArgs e)
         {
             if (GameStyleService.Current == GameStyleMode.CustomModule) { await ShowCustomModuleEditorAsync(null); return; }
+            if (GameStyleService.Current == GameStyleMode.Valorant) { await ShowValorantIconEditorAsync(); return; }
             if (await GuardIconPackCreationAsync())
             {
                 return;

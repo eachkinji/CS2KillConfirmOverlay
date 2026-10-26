@@ -125,8 +125,8 @@
 
             <StackPanel Spacing="3">
                 <TextBlock x:Name="EventIntensityLabel" FontSize="11" FontWeight="SemiBold" Text="事件响应强度" />
-                <TextBlock x:Name="EventIntensityHint" FontSize="10" Foreground="#888888" Text="击杀、阵亡等事件发生后，控制短时弹幕加速幅度" TextWrapping="Wrap" />
-                <ComboBox x:Name="EventIntensitySelector" HorizontalAlignment="Stretch" SelectionChanged="OnEventIntensitySelectionChanged">
+                <TextBlock x:Name="EventIntensityHint" FontSize="10" Foreground="#888888" Text="固定快速发送 2 条，再跟 3 条；2 秒后不再补发，同屏最多 9 条" TextWrapping="Wrap" />
+                <ComboBox x:Name="EventIntensitySelector" Visibility="Collapsed" HorizontalAlignment="Stretch" SelectionChanged="OnEventIntensitySelectionChanged">
                     <ComboBoxItem Tag="0">克制（事件后也保持较慢）</ComboBoxItem>
                     <ComboBoxItem Tag="1">标准</ComboBoxItem>
                     <ComboBoxItem Tag="2">热闹（事件后明显加速）</ComboBoxItem>
@@ -138,14 +138,14 @@
             <StackPanel Spacing="3">
                 <TextBlock x:Name="CountLabel" FontSize="11" FontWeight="SemiBold" Text="同屏弹幕上限" />
                 <ComboBox x:Name="CountSelector" HorizontalAlignment="Stretch" SelectionChanged="OnCountSelectionChanged">
-                    <ComboBoxItem Tag="5">5 条（清爽）</ComboBoxItem><ComboBoxItem Tag="6">6 条</ComboBoxItem><ComboBoxItem Tag="7">7 条（推荐）</ComboBoxItem>
+                    <ComboBoxItem Tag="5">5 条（清爽）</ComboBoxItem><ComboBoxItem Tag="6">6 条</ComboBoxItem><ComboBoxItem Tag="7">7 条（推荐）</ComboBoxItem><ComboBoxItem Tag="8">8 条</ComboBoxItem><ComboBoxItem Tag="9">9 条（最高）</ComboBoxItem>
                 </ComboBox>
             </StackPanel>
 
             <StackPanel Spacing="3">
                 <TextBlock x:Name="DurationLabel" FontSize="11" FontWeight="SemiBold" Text="单条最长飞行时间" />
                 <ComboBox x:Name="DurationSelector" HorizontalAlignment="Stretch" SelectionChanged="OnDurationSelectionChanged">
-                    <ComboBoxItem Tag="3">3 秒（快速）</ComboBoxItem><ComboBoxItem Tag="5">5 秒</ComboBoxItem><ComboBoxItem Tag="8">8 秒（很慢）</ComboBoxItem><ComboBoxItem Tag="12">12 秒（极慢）</ComboBoxItem><ComboBoxItem Tag="15">15 秒（最长）</ComboBoxItem>
+                    <ComboBoxItem Tag="15">15 秒</ComboBoxItem><ComboBoxItem Tag="20">20 秒</ComboBoxItem><ComboBoxItem Tag="25">25 秒</ComboBoxItem><ComboBoxItem Tag="30">30 秒（最长）</ComboBoxItem>
                 </ComboBox>
             </StackPanel>
 
@@ -159,7 +159,7 @@
             <StackPanel Spacing="3">
                 <TextBlock x:Name="SpeedLabel" FontSize="11" FontWeight="SemiBold" Text="单条飞行速度" />
                 <ComboBox x:Name="SpeedSelector" HorizontalAlignment="Stretch" SelectionChanged="OnSpeedSelectionChanged">
-                    <ComboBoxItem Tag="0">平缓（约 5 秒）</ComboBoxItem><ComboBoxItem Tag="1">标准（约 4.5 秒）</ComboBoxItem><ComboBoxItem Tag="2">快速（约 3.2 秒）</ComboBoxItem><ComboBoxItem Tag="3">很慢（约 8 秒）</ComboBoxItem><ComboBoxItem Tag="4">极慢（约 12 秒）</ComboBoxItem>
+                    <ComboBoxItem Tag="4">慢速（约 12 秒）</ComboBoxItem><ComboBoxItem Tag="5">更慢（约 18 秒）</ComboBoxItem><ComboBoxItem Tag="6">缓缓飘过（约 24 秒）</ComboBoxItem><ComboBoxItem Tag="7">最慢（约 30 秒）</ComboBoxItem>
                 </ComboBox>
             </StackPanel>
 

@@ -314,7 +314,7 @@ namespace KillConfirmGameBar.Danmaku.Engine
             _impulseManager.AddImpulse(context, profile, DateTimeOffset.Now);
             _schedulerWakeSignal.Release();
 
-            App.Log($"[DanmakuImpulse] Injected: kind={context.Kind}, duration={profile.ImpulseDurationSeconds:F1}s, strength={profile.ImpulseStrength:F2}");
+            App.Log($"[DanmakuImpulse] Injected: kind={context.Kind}, duration={DanmakuReactionPolicies.EventDurationSeconds:F1}s, strength={profile.ImpulseStrength:F2}");
         }
 
         private void OnGsiGreenStateChanged(bool isGreen)

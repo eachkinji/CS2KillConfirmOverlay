@@ -27,7 +27,7 @@ namespace KillConfirmGameBar.Danmaku.Engine
             Kind = context.Kind;
             Profile = profile ?? throw new ArgumentNullException(nameof(profile));
             StartTime = startTime;
-            Duration = TimeSpan.FromSeconds(profile.ImpulseDurationSeconds);
+            Duration = TimeSpan.FromSeconds(DanmakuReactionPolicies.EventDurationSeconds);
             InitialStrength = profile.ImpulseStrength;
             NextDispatchTime = startTime;
         }
@@ -51,7 +51,7 @@ namespace KillConfirmGameBar.Danmaku.Engine
 
         public bool IsExpired(DateTimeOffset now)
         {
-            return (now - StartTime) >= Duration;
+            return DispatchCount >= DanmakuReactionPolicies.EventTotalCount || (now - StartTime) >= Duration;
         }
 
         public bool IsInInitialBurst(DanmakuEventDynamics dynamics)

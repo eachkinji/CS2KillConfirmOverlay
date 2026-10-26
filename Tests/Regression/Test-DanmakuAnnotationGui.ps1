@@ -4,7 +4,7 @@
     Regression and Functional Test Suite for 6657 Danmaku Annotation Web GUI.
 .DESCRIPTION
     Validates:
-    1. Existence of GUI files (server.py, start_gui.py, gui/index.html, Start-DanmakuAnnotationGui.ps1).
+    1. Existence of GUI files (server.py, start_gui.py, gui/index.html, Tools/Danmaku/Start-DanmakuAnnotationGui.ps1).
     2. Python unit and integration test suite execution (test_annotation_server.py).
     3. Untouched raw source (6657_memes.json) SHA256 integrity.
     4. Full validator infra self-check & coverage consistency.
@@ -28,9 +28,9 @@ foreach ($file in $requiredGuiFiles) {
     }
 }
 
-$launcherScript = Join-Path $RepositoryRoot 'Start-DanmakuAnnotationGui.ps1'
+$launcherScript = Join-Path $RepositoryRoot 'Tools/Danmaku/Start-DanmakuAnnotationGui.ps1'
 if (-not (Test-Path -LiteralPath $launcherScript)) {
-    throw "Annotation GUI root launcher missing: Start-DanmakuAnnotationGui.ps1"
+    throw "Annotation GUI launcher missing: Tools/Danmaku/Start-DanmakuAnnotationGui.ps1"
 }
 Write-Host "  -> All GUI component files exist." -ForegroundColor Green
 

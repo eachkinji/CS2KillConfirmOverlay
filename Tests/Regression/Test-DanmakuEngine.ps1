@@ -53,8 +53,9 @@ if ($poolData.Count -ne 16) {
 }
 foreach ($key in $expectedPoolKeys) {
     $entries = @($poolData[$key].entries)
-    if ($entries.Count -lt 1000) {
-        throw "Event pool requires at least 1000 source-derived entries: $key"
+    $expectedCount = if ($key -in @('kill', 'first_kill', 'headshot', 'knife_kill', 'grenade_kill', 'multi_kill', 'epic_streak', 'last_kill', 'assist', 'death', 'round_win', 'round_loss', 'bomb_plant', 'bomb_defuse', 'hostage_interact', 'hostage_rescue')) { 100 } else { 1000 }
+    if ($entries.Count -ne $expectedCount) {
+        throw "Event pool requires $expectedCount source-derived entries: $key"
     }
     $seen = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
     foreach ($entry in $entries) {
@@ -76,10 +77,10 @@ if (Test-Path -LiteralPath (Join-Path $engineRoot 'DanmakuCoreMessages.cs')) {
 
 $policy = Get-Content -Raw -LiteralPath (Join-Path $engineRoot 'DanmakuReactionPolicy.cs')
 if ($policy -notmatch 'MinimumVisibleCount\s*=\s*5' -or
-    $policy -notmatch 'MaximumVisibleCount\s*=\s*7' -or
-    $policy -notmatch 'EventMaximumVisibleCount\s*=\s*12' -or
-    $policy -notmatch 'MaximumFlightSeconds\s*=\s*15\.0') {
-    throw 'Danmaku 5–7 ambient / 12 event-visible / 15-second lifetime invariants are missing.'
+    $policy -notmatch 'MaximumVisibleCount\s*=\s*9' -or
+    $policy -notmatch 'EventMaximumVisibleCount\s*=\s*9' -or
+    $policy -notmatch 'MaximumFlightSeconds\s*=\s*30\.0') {
+    throw 'Danmaku 5–9 ambient / 9 event-visible / 30-second lifetime invariants are missing.'
 }
 
 $settingsSource = Get-Content -Raw -LiteralPath (Join-Path $RepositoryRoot 'Widget/Danmaku/DanmakuSettingsStore.cs')
@@ -95,7 +96,7 @@ if ($settingsSource -notmatch 'DanmakuDispatchPace\.VerySlow:\s*return 4\.0' -or
     $schedulerSource -notmatch 'EventAftermath:' -or
     $schedulerSource -notmatch 'SelectEventDanmaku' -or
     $weightEngineSource -notmatch 'GetEventEntries' -or
-    $eventPoolSource -notmatch 'MinimumEventPoolSize\s*=\s*1000' -or
+    $eventPoolSource -notmatch 'MinimumEventPoolSize\s*=\s*100' -or
     $eventPoolSource -notmatch 'EventPoolDirectoryName\s*=\s*"EventPools"' -or
     $schedulerSource -notmatch '_nextAmbientDispatchTime' -or
     $schedulerSource -notmatch 'ResolveDelayUntilNextWork' -or
@@ -118,21 +119,21 @@ if ($impulseSource -match 'imp\.Kind\s*==\s*context\.Kind' -or
 
 $expectedPolicies = [ordered]@{
     Assist          = @(2, 3, 35)
-    Death           = @(3, 2, 60)
-    Kill            = @(3, 2, 55)
-    FirstKill       = @(3, 2, 65)
-    Headshot        = @(4, 2, 75)
-    GrenadeKill     = @(4, 2, 80)
-    KnifeKill       = @(4, 2, 85)
-    MultiKill       = @(4, 2, 90)
-    EpicStreak      = @(5, 2, 100)
-    LastKill        = @(5, 2, 100)
-    BombPlant       = @(4, 2, 85)
-    BombDefuse      = @(4, 2, 90)
-    RoundWin        = @(3, 2, 70)
-    RoundLoss       = @(3, 2, 70)
-    HostageInteract = @(3, 2, 75)
-    HostageRescue   = @(4, 2, 85)
+    Death           = @(2, 3, 60)
+    Kill            = @(2, 3, 55)
+    FirstKill       = @(2, 3, 65)
+    Headshot        = @(2, 3, 75)
+    GrenadeKill     = @(2, 3, 80)
+    KnifeKill       = @(2, 3, 85)
+    MultiKill       = @(2, 3, 90)
+    EpicStreak      = @(2, 3, 100)
+    LastKill        = @(2, 3, 100)
+    BombPlant       = @(2, 3, 85)
+    BombDefuse      = @(2, 3, 90)
+    RoundWin        = @(2, 3, 70)
+    RoundLoss       = @(2, 3, 70)
+    HostageInteract = @(2, 3, 75)
+    HostageRescue   = @(2, 3, 85)
 }
 foreach ($entry in $expectedPolicies.GetEnumerator()) {
     $core, $water, $priority = $entry.Value
@@ -223,10 +224,10 @@ if ($composer -notmatch 'SelectEventDanmaku' -or
 }
 $laneLayout = Get-Content -Raw -LiteralPath (Join-Path $engineRoot 'DanmakuLaneLayout.cs')
 if ($laneLayout -notmatch 'EventMaximumVisibleCount' -or
-    $policy -notmatch 'EventMaximumActiveCount\s*=\s*24' -or
+    $policy -notmatch 'EventMaximumActiveCount\s*=\s*9' -or
     $overlay -notmatch 'FindAvailableLane' -or
     $overlay -notmatch 'HasActiveEventReaction' -or
-    $policy -notmatch 'case DanmakuEventKind\.Kill:\s*return new DanmakuEventDynamics\(5,\s*0\.22,\s*1\.10\)') {
+    $policy -notmatch 'new DanmakuEventDynamics\(DanmakuReactionPolicies\.EventBurstCount,\s*0\.20,\s*0\.45\)') {
     throw 'Event barrages must reuse safe lanes, retain event density while active, and expose rapid reactions.'
 }
 if ($schedulerSource -notmatch 'SelectEventDanmaku' -or
@@ -264,4 +265,4 @@ if ($project -notmatch [regex]::Escape('Danmaku\EventPools\*.json') -or
     throw 'The 16 large event pool files and lifecycle pools are not packaged exclusively.'
 }
 
-'PASS: all 16 large source-derived event pool files contain at least 1000 validated entries; every event owns fresh reaction history; five-message kill/death bursts fit beside seven ambient items; concurrent impulses leave aftermath; rendered text is single-line.'
+'PASS: all 16 source-derived event pools contain 100 curated entries each (1600 total); every event owns fresh reaction history; each event has two burst and three aftermath messages with a hard nine-item display cap; rendered text is single-line.'

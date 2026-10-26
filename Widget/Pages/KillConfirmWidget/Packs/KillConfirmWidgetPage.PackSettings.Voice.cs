@@ -86,7 +86,8 @@ namespace KillConfirmGameBar
         private string GetSelectedVoicePackPreset()
         {
             if (PackTestSectionView.VoicePackSelector.SelectedItem is ComboBoxItem item
-                && item.Tag is string tag)
+                && item.Tag is string tag
+                && tag != PackLibraryNavigation.AddMoreTag)
             {
                 return tag;
             }

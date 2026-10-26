@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using KillConfirmGameBar.Services;
 using KillConfirmGameBar.Controls.Settings;
 using KillConfirmGameBar.Controls.GameStyles;
@@ -339,21 +339,23 @@ namespace KillConfirmGameBar
             button.Foreground = new SolidColorBrush(primary ? Colors.White : theme.Text);
         }
 
-        private static void ApplyPackCardTheme(Panel panel, GameThemePalette theme)
+        private static void ApplyPackCardTheme(GridView panel, GameThemePalette theme)
         {
             if (panel == null)
             {
                 return;
             }
 
-            foreach (UIElement child in panel.Children)
+            for (int i = 0; i < panel.Items.Count; i++)
             {
-                ApplyThemeToElement(child, theme);
+                if (panel.ContainerFromIndex(i) is GridViewItem container && container.ContentTemplateRoot != null)
+                    ApplyThemeToElement(container.ContentTemplateRoot, theme);
             }
         }
 
         private static void ApplyThemeToElement(DependencyObject element, GameThemePalette theme)
         {
+            if (element is FrameworkElement decoration && Equals(decoration.Tag, "PackDecoration")) return;
             if (element is Border border)
             {
                 border.Background = new SolidColorBrush(theme.Card);

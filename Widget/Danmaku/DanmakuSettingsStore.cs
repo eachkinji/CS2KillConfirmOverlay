@@ -20,7 +20,10 @@ namespace KillConfirmGameBar.Danmaku
         Normal = 1, // 标准 (约 4.5s)
         Fast = 2,   // 快速 (约 3.2s)
         VerySlow = 3, // 很慢 (约 8s)
-        UltraSlow = 4 // 极慢 (约 12s)
+        UltraSlow = 4, // 约 12s；旧的快速档迁移到此档
+        Leisurely = 5, // 约 18s
+        Drifting = 6, // 约 24s
+        Slowest = 7 // 约 30s
     }
 
     public enum DanmakuDispatchPace
@@ -64,7 +67,7 @@ namespace KillConfirmGameBar.Danmaku
         public const string EventIntensitySettingKey = "DanmakuEventIntensity";
 
         public const int DefaultCount = 7;
-        public const double DefaultDurationSeconds = 5.0;
+        public const double DefaultDurationSeconds = 15.0;
         public const int DefaultFontSize = 16;
 
         public static event Action<bool> EnabledChanged;
@@ -185,13 +188,13 @@ namespace KillConfirmGameBar.Danmaku
                 object value = ApplicationData.Current.LocalSettings.Values[DurationSettingKey];
                 if (value is double dblVal && dblVal > 0)
                 {
-                    return DanmakuReactionPolicies.ClampFlightSeconds(dblVal);
+                    return Math.Max(MinimumDurationForSpeed(Speed), DanmakuReactionPolicies.ClampFlightSeconds(dblVal));
                 }
-                return DefaultDurationSeconds;
+                return Math.Max(DefaultDurationSeconds, MinimumDurationForSpeed(Speed));
             }
             set
             {
-                double clamped = DanmakuReactionPolicies.ClampFlightSeconds(value);
+                double clamped = Math.Max(MinimumDurationForSpeed(Speed), DanmakuReactionPolicies.ClampFlightSeconds(value));
                 ApplicationData.Current.LocalSettings.Values[DurationSettingKey] = clamped;
                 SettingsChanged?.Invoke();
             }
@@ -295,14 +298,31 @@ namespace KillConfirmGameBar.Danmaku
                 object value = ApplicationData.Current.LocalSettings.Values[SpeedSettingKey];
                 if (value is int intVal && Enum.IsDefined(typeof(DanmakuSpeedMode), intVal))
                 {
-                    return (DanmakuSpeedMode)intVal;
+                    return NormalizeSpeed((DanmakuSpeedMode)intVal);
                 }
-                return DanmakuSpeedMode.Normal;
+                return DanmakuSpeedMode.UltraSlow;
             }
             set
             {
-                ApplicationData.Current.LocalSettings.Values[SpeedSettingKey] = (int)value;
+                ApplicationData.Current.LocalSettings.Values[SpeedSettingKey] = (int)NormalizeSpeed(value);
                 SettingsChanged?.Invoke();
+            }
+        }
+
+        private static DanmakuSpeedMode NormalizeSpeed(DanmakuSpeedMode speed)
+        {
+            return speed >= DanmakuSpeedMode.UltraSlow && speed <= DanmakuSpeedMode.Slowest
+                ? speed : DanmakuSpeedMode.UltraSlow;
+        }
+
+        public static double MinimumDurationForSpeed(DanmakuSpeedMode speed)
+        {
+            switch (speed)
+            {
+                case DanmakuSpeedMode.Leisurely: return 20.0;
+                case DanmakuSpeedMode.Drifting: return 25.0;
+                case DanmakuSpeedMode.Slowest: return 30.0;
+                default: return 15.0;
             }
         }
 

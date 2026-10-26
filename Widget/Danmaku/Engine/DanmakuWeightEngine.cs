@@ -554,7 +554,7 @@ namespace KillConfirmGameBar.Danmaku.Engine
                 }
             }
 
-            // The event pools are intentionally large (1000+ each). Reuse only
+            // Event pools contain at least 100 entries. Reuse only
             // after every fresh choice available to the current histories is gone.
             if (available.Count == 0 && sessionHistory != null)
             {

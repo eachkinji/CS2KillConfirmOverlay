@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
 
@@ -161,6 +161,7 @@
     <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.DoubaoVoice.cs" />
     <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.EventVoice.cs" />
     <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.ValorantVoice.cs" />
+    <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.ValorantIcon.cs" />
     <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.CustomModuleVoice.cs" />
     <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.OverwatchVoice.cs" />
     <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.ModernWarfare2019Voice.cs" />
@@ -504,6 +505,8 @@
     <Compile Include="Services\Localization\LocalizationManager.Chinese.Widget.cs" />
     <Compile Include="Services\Catalog\PackCatalogModels.cs" />
     <Compile Include="Services\Catalog\PackCatalogService.cs" />
+    <Compile Include="Services\Catalog\PackCatalogService.Order.cs" />
+    <Compile Include="Pages\Main\Packs\MainPage.PackOrder.cs" />
     <Compile Include="Services\Catalog\PackCatalogService.Icon.cs" />
     <Compile Include="Services\Catalog\PackCatalogService.Icon.Creation.cs" />
     <Compile Include="Services\Catalog\CrossfirePackFormat.cs" />
@@ -511,12 +514,15 @@
     <Compile Include="Services\Catalog\PackCatalogService.GameStorage.cs" />
     <Compile Include="Services\Catalog\PackCatalogService.Voice.cs" />
     <Compile Include="Services\Catalog\PackCatalogService.Voice.Creation.cs" />
+    <Compile Include="Services\Catalog\PackCatalogService.ValorantEditing.cs" />
     <Compile Include="Services\Catalog\Games\PackCatalogService.Overwatch.cs" />
     <Compile Include="Services\Catalog\Games\PackCatalogService.ModernWarfare2019.cs" />
     <Compile Include="Services\Settings\Games\DoubaoSettingsStore.cs" />
     <Compile Include="Helpers\ProcessPriorityBoost.cs" />
     <Compile Include="Helpers\TgaDecoder.cs" />
     <Compile Include="Helpers\AudioSlotAliases.cs" />
+    <Compile Include="Services\Catalog\PackLibraryNavigation.cs" />
+    <Compile Include="Pages\Main\Packs\MainPage.PackLibrary.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
 
@@ -556,6 +562,10 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Assets\GameLogos\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\SourceAssets\GameStyles\crossfire\iconpacks\default\**\*">
+      <Link>Assets\GameStyles\crossfire\iconpacks\default\%(RecursiveDir)%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Assets\GameStyles\**\*">

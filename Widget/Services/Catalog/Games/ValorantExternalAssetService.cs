@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Threading.Tasks;
+using Windows.Data.Json;
 using Windows.Storage;
 
 namespace KillConfirmGameBar.Services
@@ -18,6 +19,7 @@ namespace KillConfirmGameBar.Services
         public const string IconPackageKind = "valorant_icon";
         public const string VoicePackageKind = "valorant_voice";
         private const string TextureFolderName = "textures";
+        private static readonly object VoiceRepairLock = new object();
 
         public static async Task<StorageFile> TryGetVisualTextureAsync(
             string packKey,
@@ -69,6 +71,9 @@ namespace KillConfirmGameBar.Services
                     {
                         continue;
                     }
+
+                    try { RepairMissingVoiceSlots(folderPath); }
+                    catch (Exception ex) { App.Log("VALORANT voice slot repair failed: " + ex.Message); }
 
                     result.Add(new VoicePackItem
                     {
@@ -168,6 +173,10 @@ namespace KillConfirmGameBar.Services
                 manifest.Id,
                 CreationCollisionOption.ReplaceExisting);
             await CopyFolderContentsAsync(packageFolder, target);
+            if (string.Equals(expectedKind, VoicePackageKind, StringComparison.Ordinal))
+            {
+                RepairMissingVoiceSlots(target.Path);
+            }
 
             return new ValorantPackageInstallResult
             {
@@ -176,6 +185,71 @@ namespace KillConfirmGameBar.Services
                 DisplayName = LocalizedDisplayName(manifest),
                 PackageKind = expectedKind
             };
+        }
+
+        internal static void RepairMissingVoiceSlots(string folderPath)
+        {
+            string baseRoot = Path.Combine(Windows.ApplicationModel.Package.Current.InstalledLocation.Path,
+                "KillConfirmService", "sounds", ValorantPackService.DefaultKey);
+            lock (VoiceRepairLock) { RepairMissingVoiceSlots(folderPath, baseRoot); }
+        }
+
+        internal static void RepairMissingVoiceSlots(string folderPath, string baseRoot)
+        {
+            string manifestPath = Path.Combine(folderPath, "manifest.json");
+            JsonObject manifest = JsonObject.Parse(File.ReadAllText(manifestPath).TrimStart('\uFEFF'));
+            JsonObject audio = manifest.GetNamedObject("audio", new JsonObject());
+            JsonObject slots = audio.GetNamedObject("slots", new JsonObject());
+            JsonObject fallbacks = audio.GetNamedObject("fallback_slots", new JsonObject());
+            var files = Directory.GetFiles(folderPath).Where(path => IsSupportedAudioExtension(Path.GetExtension(path))).ToList();
+            bool changed = false;
+            for (int kill = 1; kill <= 5; kill++)
+            {
+                string slot = "kill_" + kill;
+                IJsonValue value;
+                if (!slots.TryGetValue(slot, out value)) slots.TryGetValue(kill.ToString(), out value);
+                var names = new List<string>();
+                if (value?.ValueType == JsonValueType.String) names.Add(value.GetString());
+                else if (value?.ValueType == JsonValueType.Array)
+                    names.AddRange(value.GetArray().Where(v => v.ValueType == JsonValueType.String).Select(v => v.GetString()));
+                if (names.Any(name => IsExistingPackAudio(folderPath, name))) continue;
+
+                var aliases = Helpers.AudioSlotAliases.GetStemAliases(kill.ToString(), slot);
+                var matches = files.Where(path => aliases.Contains(
+                    Helpers.AudioSlotAliases.ExtractBaseStem(path), StringComparer.OrdinalIgnoreCase)).ToList();
+                if (matches.Count == 0)
+                {
+                    string source = Path.Combine(baseRoot, kill + ".wav");
+                    string target = Path.Combine(folderPath, slot + ".wav");
+                    // Never overwrite an existing user recording.
+                    File.Copy(source, target, false);
+                    matches.Add(target);
+                    files.Add(target);
+                    fallbacks[slot] = JsonValue.CreateStringValue(ValorantPackService.DefaultKey);
+                }
+
+                var resolved = new JsonArray();
+                foreach (string path in matches) resolved.Add(JsonValue.CreateStringValue(Path.GetFileName(path)));
+                slots[slot] = resolved;
+                changed = true;
+            }
+            if (!changed) return;
+            audio["slots"] = slots;
+            audio["fallback_slots"] = fallbacks;
+            manifest["audio"] = audio;
+            string backup = manifestPath + ".before-slot-repair";
+            if (!File.Exists(backup)) File.Copy(manifestPath, backup);
+            File.WriteAllText(manifestPath, manifest.Stringify());
+        }
+
+        private static bool IsExistingPackAudio(string folderPath, string name)
+        {
+            try
+            {
+                string path = Path.GetFullPath(Path.Combine(folderPath, name));
+                return IsChildPath(folderPath, path) && IsSupportedAudioExtension(Path.GetExtension(path)) && File.Exists(path);
+            }
+            catch { return false; }
         }
 
         public static async Task<bool> IsPackageKindAsync(StorageFolder sourceFolder, string expectedKind)
@@ -271,6 +345,9 @@ namespace KillConfirmGameBar.Services
                 return serializer.ReadObject(stream) as ValorantExternalPackManifest;
             }
         }
+
+        internal static bool ValidateIconFolder(string folderPath)
+            => TryCreateIconPackInfo(folderPath, ReadManifest(folderPath), out _, requireFolderNameMatch: false);
 
         private static bool TryCreateIconPackInfo(
             string folderPath,

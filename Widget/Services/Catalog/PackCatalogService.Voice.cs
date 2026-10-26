@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -108,21 +108,14 @@ namespace KillConfirmGameBar.Services
 
         public static async Task<IReadOnlyList<VoicePackItem>> GetVisibleVoicePacksAsync()
         {
-            var catalog = await LoadAsync();
-            IEnumerable<VoicePackItem> visible = catalog.VoicePacks
-                .Where(p => p.IsVisibleInWidget && GameStyleService.IsVisibleForCurrentStyle(p.Key))
-                .ToList();
-            if (GameStyleService.Current == GameStyleMode.Valorant)
-            {
-                visible = visible.OrderBy(p => ValorantPackService.GetDisplayOrder(p.Key));
-            }
-            return visible.ToList();
+            return (await GetAllVoicePacksAsync())
+                .Where(p => p.IsVisibleInWidget && GameStyleService.IsVisibleForCurrentStyle(p.Key)).ToList();
         }
 
         public static async Task<IReadOnlyList<VoicePackItem>> GetAllVoicePacksAsync()
         {
             var catalog = await LoadAsync();
-            return catalog.VoicePacks.ToList();
+            return OrderPacks(catalog.VoicePacks, p => p.Key, catalog.VoicePackOrder);
         }
 
         public static async Task<VoicePackItem> GetVoicePackAsync(string key)
@@ -241,6 +234,11 @@ namespace KillConfirmGameBar.Services
                         await folder.DeleteAsync();
                     }
                     catch { }
+                }
+                if (CrossfireExternalAssetService.IsVoiceKey(key))
+                {
+                    CrossfireExternalAssetService.RefreshCatalog(catalog);
+                    ApplyVisibilityOverrides(catalog);
                 }
                 await SaveAsync(catalog);
             }

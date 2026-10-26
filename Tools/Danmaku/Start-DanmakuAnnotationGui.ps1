@@ -16,7 +16,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$repoRoot = [IO.Path]::GetFullPath($PSScriptRoot)
+$repoRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
 $startScript = Join-Path $repoRoot 'Widget/Danmaku/Annotation/start_gui.py'
 
 if (-not (Test-Path -LiteralPath $startScript)) {

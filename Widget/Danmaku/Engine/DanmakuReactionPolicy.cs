@@ -21,14 +21,17 @@ namespace KillConfirmGameBar.Danmaku.Engine
     internal static class DanmakuReactionPolicies
     {
         public const int MinimumVisibleCount = 5;
-        public const int MaximumVisibleCount = 7;
-        public const int EventMaximumVisibleCount = 12;
+        public const int MaximumVisibleCount = 9;
+        public const int EventMaximumVisibleCount = 9;
         // Event barrages may share a lane once the preceding message has moved far
         // enough ahead. Keep the lane count readable while allowing several
         // closely-spaced game events to become visible without waiting for a full
         // flight to finish.
-        public const int EventMaximumActiveCount = 24;
-        public const double MaximumFlightSeconds = 15.0;
+        public const int EventMaximumActiveCount = 9;
+        public const double MaximumFlightSeconds = 30.0;
+        public const int EventBurstCount = 2;
+        public const int EventTotalCount = 5;
+        public const double EventDurationSeconds = 2.0;
 
         public static DanmakuReactionPolicy Resolve(DanmakuEventKind kind)
         {
@@ -37,35 +40,35 @@ namespace KillConfirmGameBar.Danmaku.Engine
                 case DanmakuEventKind.Assist:
                     return new DanmakuReactionPolicy(2, 3, 35);
                 case DanmakuEventKind.Death:
-                    return new DanmakuReactionPolicy(3, 2, 60);
+                    return new DanmakuReactionPolicy(2, 3, 60);
                 case DanmakuEventKind.Kill:
-                    return new DanmakuReactionPolicy(3, 2, 55);
+                    return new DanmakuReactionPolicy(2, 3, 55);
                 case DanmakuEventKind.FirstKill:
-                    return new DanmakuReactionPolicy(3, 2, 65);
+                    return new DanmakuReactionPolicy(2, 3, 65);
                 case DanmakuEventKind.Headshot:
-                    return new DanmakuReactionPolicy(4, 2, 75);
+                    return new DanmakuReactionPolicy(2, 3, 75);
                 case DanmakuEventKind.GrenadeKill:
-                    return new DanmakuReactionPolicy(4, 2, 80);
+                    return new DanmakuReactionPolicy(2, 3, 80);
                 case DanmakuEventKind.KnifeKill:
-                    return new DanmakuReactionPolicy(4, 2, 85);
+                    return new DanmakuReactionPolicy(2, 3, 85);
                 case DanmakuEventKind.MultiKill:
-                    return new DanmakuReactionPolicy(4, 2, 90);
+                    return new DanmakuReactionPolicy(2, 3, 90);
                 case DanmakuEventKind.EpicStreak:
-                    return new DanmakuReactionPolicy(5, 2, 100);
+                    return new DanmakuReactionPolicy(2, 3, 100);
                 case DanmakuEventKind.LastKill:
-                    return new DanmakuReactionPolicy(5, 2, 100);
+                    return new DanmakuReactionPolicy(2, 3, 100);
                 case DanmakuEventKind.BombPlant:
-                    return new DanmakuReactionPolicy(4, 2, 85);
+                    return new DanmakuReactionPolicy(2, 3, 85);
                 case DanmakuEventKind.BombDefuse:
-                    return new DanmakuReactionPolicy(4, 2, 90);
+                    return new DanmakuReactionPolicy(2, 3, 90);
                 case DanmakuEventKind.RoundWin:
-                    return new DanmakuReactionPolicy(3, 2, 70);
+                    return new DanmakuReactionPolicy(2, 3, 70);
                 case DanmakuEventKind.RoundLoss:
-                    return new DanmakuReactionPolicy(3, 2, 70);
+                    return new DanmakuReactionPolicy(2, 3, 70);
                 case DanmakuEventKind.HostageInteract:
-                    return new DanmakuReactionPolicy(3, 2, 75);
+                    return new DanmakuReactionPolicy(2, 3, 75);
                 case DanmakuEventKind.HostageRescue:
-                    return new DanmakuReactionPolicy(4, 2, 85);
+                    return new DanmakuReactionPolicy(2, 3, 85);
                 case DanmakuEventKind.General:
                 default:
                     return new DanmakuReactionPolicy(2, 3, 10);
@@ -168,26 +171,7 @@ namespace KillConfirmGameBar.Danmaku.Engine
 
         public static DanmakuEventDynamics ResolveDynamics(DanmakuEventKind kind)
         {
-            switch (kind)
-            {
-                case DanmakuEventKind.EpicStreak: return new DanmakuEventDynamics(7, 0.20, 0.85);
-                case DanmakuEventKind.KnifeKill:
-                case DanmakuEventKind.MultiKill:
-                case DanmakuEventKind.LastKill: return new DanmakuEventDynamics(5, 0.25, 0.95);
-                case DanmakuEventKind.Death: return new DanmakuEventDynamics(5, 0.25, 0.90);
-                case DanmakuEventKind.FirstKill:
-                case DanmakuEventKind.Headshot:
-                case DanmakuEventKind.RoundWin:
-                case DanmakuEventKind.RoundLoss:
-                case DanmakuEventKind.BombDefuse:
-                case DanmakuEventKind.HostageRescue: return new DanmakuEventDynamics(4, 0.30, 1.05);
-                case DanmakuEventKind.Kill: return new DanmakuEventDynamics(5, 0.22, 1.10);
-                case DanmakuEventKind.GrenadeKill: return new DanmakuEventDynamics(4, 0.28, 1.10);
-                case DanmakuEventKind.Assist: return new DanmakuEventDynamics(3, 0.40, 1.25);
-                case DanmakuEventKind.BombPlant: return new DanmakuEventDynamics(3, 0.45, 1.30);
-                case DanmakuEventKind.HostageInteract:
-                default: return new DanmakuEventDynamics(2, 0.50, 1.40);
-            }
+            return new DanmakuEventDynamics(DanmakuReactionPolicies.EventBurstCount, 0.20, 0.45);
         }
     }
 }

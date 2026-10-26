@@ -22,10 +22,10 @@ namespace KillConfirmGameBar.Danmaku.Engine
             }
 
             DanmakuReactionPolicy policy = DanmakuReactionPolicies.Resolve(context.Kind);
-            int targetCount = visibleLimit >= 10 && visibleLimit <= 20
-                ? visibleLimit
-                : _random.Next(10, 21);
-            int coreCount = Math.Max(7, (int)(targetCount * 0.75));
+            int targetCount = DanmakuReactionPolicies.EventTotalCount;
+            int coreCount = DanmakuReactionPolicies.EventBurstCount;
+            DateTimeOffset now = DateTimeOffset.UtcNow;
+            DanmakuEventDynamics dynamics = DanmakuEventSemantics.ResolveDynamics(context.Kind);
             var result = new List<DanmakuMessage>(targetCount);
             var eventHistory = new DanmakuSelectionHistory();
             for (int i = 0; i < targetCount; i++)
@@ -47,7 +47,9 @@ namespace KillConfirmGameBar.Danmaku.Engine
                     Text = selection.Text,
                     Role = role,
                     EventPriority = policy.Priority,
-                    IsEventReaction = true
+                    IsEventReaction = true,
+                    NotBefore = now.AddSeconds(i == 0 ? 0 : dynamics.BurstIntervalSeconds + (i - 1) * dynamics.AftermathIntervalSeconds),
+                    ExpiresAt = now.AddSeconds(DanmakuReactionPolicies.EventDurationSeconds)
                 });
             }
 

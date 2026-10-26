@@ -95,12 +95,12 @@ namespace KillConfirmGameBar.Danmaku
 
             DanmakuEventContext context = DanmakuEventClassifier.CreateTestFromKey(GetSelectedEventKey());
             DanmakuReactionPolicy policy = DanmakuReactionPolicies.Resolve(context.Kind);
-            int total = Math.Min(DanmakuSettingsStore.Count, policy.TotalCount);
+            int total = DanmakuReactionPolicies.EventTotalCount;
             int core = Math.Min(policy.CoreCount, total);
             int water = total - core;
             int poolCount = DanmakuEventPoolRepository.GetEventEntries(context.Kind).Count;
 
-            EventQuotaText.Text = $"事件池 {poolCount} 条 · 本次反应 {total} 条（核心轨道 {core} · 氛围轨道 {water}）";
+            EventQuotaText.Text = $"事件池 {poolCount} 条 · 2 秒内 {total} 条（快速 {core} · 后续 {water}）";
             CoreExampleText.Text = "事件池示例：" + FormatExamples(
                 DanmakuEventPoolRepository.GetEventTexts(context.Kind, 0, 3));
             WaterExampleText.Text = "更多示例：" + FormatExamples(
@@ -211,6 +211,7 @@ namespace KillConfirmGameBar.Danmaku
                 && double.TryParse(item.Tag?.ToString(), out double value))
             {
                 DanmakuSettingsStore.DurationSeconds = value;
+                SelectComboItemByTag(DurationSelector, ((int)DanmakuSettingsStore.DurationSeconds).ToString());
             }
         }
 
@@ -231,16 +232,9 @@ namespace KillConfirmGameBar.Danmaku
                 && int.TryParse(item.Tag?.ToString(), out int value))
             {
                 DanmakuSettingsStore.Speed = (DanmakuSpeedMode)value;
-                if (value == (int)DanmakuSpeedMode.VerySlow && DanmakuSettingsStore.DurationSeconds < 8.0)
-                {
-                    DanmakuSettingsStore.DurationSeconds = 8.0;
-                    SelectComboItemByTag(DurationSelector, "8");
-                }
-                else if (value == (int)DanmakuSpeedMode.UltraSlow && DanmakuSettingsStore.DurationSeconds < 12.0)
-                {
-                    DanmakuSettingsStore.DurationSeconds = 12.0;
-                    SelectComboItemByTag(DurationSelector, "12");
-                }
+                // Keep the cap high enough for the selected slower flight mode.
+                DanmakuSettingsStore.DurationSeconds = DanmakuSettingsStore.DurationSeconds;
+                SelectComboItemByTag(DurationSelector, ((int)DanmakuSettingsStore.DurationSeconds).ToString());
             }
         }
 

@@ -98,6 +98,9 @@ namespace KillConfirmGameBar
                     }
 
                     var matches = Helpers.AudioSlotAliases.MatchSlotAudioFiles(audioFiles, mapping.Key, mapping.Value);
+                    if (mapping.Key == "headshot" && sourceStemToManifestSlot.ContainsKey("headshot_1"))
+                        matches = matches.Where(file => !string.Equals(Helpers.AudioSlotAliases.ExtractBaseStem(file.Name), "headshot_1", StringComparison.OrdinalIgnoreCase)
+                            && !string.Equals(Helpers.AudioSlotAliases.ExtractBaseStem(file.Name), "headshot1", StringComparison.OrdinalIgnoreCase)).ToList();
                     if (matches.Count > 0)
                     {
                         result[slotKey] = matches;

@@ -16,13 +16,26 @@ namespace KillConfirmGameBar.Danmaku.Engine
         public const int MaximumPendingCount = 42;
         private readonly List<DanmakuQueueItem> _items = new List<DanmakuQueueItem>();
         private long _nextSequence;
+        private readonly Func<DateTimeOffset> _clock;
 
-        public int Count { get { return _items.Count; } }
+        public DanmakuPendingQueue(Func<DateTimeOffset> clock = null)
+        {
+            _clock = clock ?? (() => DateTimeOffset.UtcNow);
+        }
+
+        private void PruneExpired()
+        {
+            DateTimeOffset now = _clock();
+            _items.RemoveAll(item => item.Message.ExpiresAt.HasValue && item.Message.ExpiresAt.Value <= now);
+        }
+
+        public int Count { get { PruneExpired(); return _items.Count; } }
 
         public bool HasEventReaction
         {
             get
             {
+                PruneExpired();
                 for (int i = 0; i < _items.Count; i++)
                 {
                     if (_items[i].Message != null && _items[i].Message.IsEventReaction)
@@ -41,6 +54,7 @@ namespace KillConfirmGameBar.Danmaku.Engine
                 return;
             }
 
+            PruneExpired();
             for (int i = 0; i < messages.Count; i++)
             {
                 DanmakuMessage message = messages[i];
@@ -101,6 +115,7 @@ namespace KillConfirmGameBar.Danmaku.Engine
 
             int bestIndex = FindMostImportantIndex();
 
+            if (bestIndex < 0) { item = null; return false; }
             item = _items[bestIndex];
             _items.RemoveAt(bestIndex);
             return true;
@@ -113,18 +128,14 @@ namespace KillConfirmGameBar.Danmaku.Engine
 
         private int FindMostImportantIndex()
         {
-            if (_items.Count == 0)
+            PruneExpired();
+            DateTimeOffset now = _clock();
+            int bestIndex = -1;
+            for (int i = 0; i < _items.Count; i++)
             {
-                return -1;
-            }
-
-            int bestIndex = 0;
-            for (int i = 1; i < _items.Count; i++)
-            {
-                if (IsMoreImportant(_items[i], _items[bestIndex]))
-                {
+                if (_items[i].Message.NotBefore > now) continue;
+                if (bestIndex < 0 || IsMoreImportant(_items[i], _items[bestIndex]))
                     bestIndex = i;
-                }
             }
             return bestIndex;
         }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using KillConfirmGameBar.Services;
 using KillConfirmGameBar.Controls.Settings;
 using KillConfirmGameBar.Controls.GameStyles;
@@ -181,10 +181,6 @@ namespace KillConfirmGameBar
             ApplyButtonTheme(ImportIconZipButton, theme, false);
             ApplyButtonTheme(BatchImportIconZipButton, theme, false);
             ApplyButtonTheme(BatchImportVoiceZipButton, theme, false);
-            ApplyButtonTheme(VoicePackPreviousButton, theme, false);
-            ApplyButtonTheme(VoicePackNextButton, theme, false);
-            ApplyButtonTheme(IconPackPreviousButton, theme, false);
-            ApplyButtonTheme(IconPackNextButton, theme, false);
             ApplyButtonTheme(CreateVoicePackButton, theme, true);
             ApplyButtonTheme(CreateIconPackButton, theme, true);
             ApplyButtonTheme(IconSpecToggleButton, theme, false);
@@ -349,6 +345,7 @@ namespace KillConfirmGameBar
 
         private void BeginGameStyleTransition()
         {
+            ResetNativePackDrag();
             System.Threading.Interlocked.Increment(ref _gameStyleNavigationRevision);
             System.Threading.Interlocked.Increment(ref _packListReloadVersion);
             _loadedVoicePackStyle = null;
@@ -360,8 +357,8 @@ namespace KillConfirmGameBar
                 GameAdvancedSettingsPanelHost.Content = null;
             }
 
-            VoicePackListPanel?.Children.Clear();
-            IconPackListPanel?.Children.Clear();
+            if (VoicePackListPanel != null) VoicePackListPanel.ItemsSource = null;
+            if (IconPackListPanel != null) IconPackListPanel.ItemsSource = null;
             if (VoiceVisibleCountText != null)
             {
                 VoiceVisibleCountText.Text = string.Empty;

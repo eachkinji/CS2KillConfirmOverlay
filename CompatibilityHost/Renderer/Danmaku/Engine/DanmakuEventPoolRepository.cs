@@ -22,7 +22,7 @@ namespace KillConfirmCompatibility.Danmaku.Engine
     {
         internal const string EventPoolDirectoryName = "EventPools";
         internal const string LifecyclePoolDirectoryName = "LifecyclePools";
-        internal const int MinimumEventPoolSize = 1000;
+        internal const int MinimumEventPoolSize = 100;
 
         private static readonly object SyncRoot = new object();
         private static IReadOnlyList<DanmakuEventPoolEntry> _openingEntries = Array.Empty<DanmakuEventPoolEntry>();

@@ -48,12 +48,12 @@
         "stream_context"
       ],
       "mix_ratio": {
-        "core": 0.50,
+        "core": 0.5,
         "semantic": 0.25,
         "atmosphere": 0.15,
-        "ambient": 0.10
+        "ambient": 0.1
       },
-      "impulse_duration_seconds": 4.5,
+      "impulse_duration_seconds": 2.0,
       "impulse_burst_interval_seconds": 1.2,
       "impulse_strength": 1.0
     },
@@ -77,12 +77,12 @@
         "stream_context"
       ],
       "mix_ratio": {
-        "core": 0.50,
+        "core": 0.5,
         "semantic": 0.25,
         "atmosphere": 0.15,
-        "ambient": 0.10
+        "ambient": 0.1
       },
-      "impulse_duration_seconds": 5.0,
+      "impulse_duration_seconds": 2.0,
       "impulse_burst_interval_seconds": 1.1,
       "impulse_strength": 1.2
     },
@@ -105,12 +105,12 @@
         "stream_context"
       ],
       "mix_ratio": {
-        "core": 0.50,
+        "core": 0.5,
         "semantic": 0.25,
         "atmosphere": 0.15,
-        "ambient": 0.10
+        "ambient": 0.1
       },
-      "impulse_duration_seconds": 5.0,
+      "impulse_duration_seconds": 2.0,
       "impulse_burst_interval_seconds": 1.0,
       "impulse_strength": 1.3
     },
@@ -134,12 +134,12 @@
         "stream_context"
       ],
       "mix_ratio": {
-        "core": 0.50,
+        "core": 0.5,
         "semantic": 0.25,
         "atmosphere": 0.15,
-        "ambient": 0.10
+        "ambient": 0.1
       },
-      "impulse_duration_seconds": 7.0,
+      "impulse_duration_seconds": 2.0,
       "impulse_burst_interval_seconds": 0.9,
       "impulse_strength": 1.5
     },
@@ -162,12 +162,12 @@
         "stream_context"
       ],
       "mix_ratio": {
-        "core": 0.50,
+        "core": 0.5,
         "semantic": 0.25,
         "atmosphere": 0.15,
-        "ambient": 0.10
+        "ambient": 0.1
       },
-      "impulse_duration_seconds": 5.5,
+      "impulse_duration_seconds": 2.0,
       "impulse_burst_interval_seconds": 1.0,
       "impulse_strength": 1.3
     },
@@ -190,12 +190,12 @@
         "stream_context"
       ],
       "mix_ratio": {
-        "core": 0.50,
+        "core": 0.5,
         "semantic": 0.25,
         "atmosphere": 0.15,
-        "ambient": 0.10
+        "ambient": 0.1
       },
-      "impulse_duration_seconds": 8.0,
+      "impulse_duration_seconds": 2.0,
       "impulse_burst_interval_seconds": 0.85,
       "impulse_strength": 1.6
     },
@@ -219,12 +219,12 @@
         "pro_scene_history"
       ],
       "mix_ratio": {
-        "core": 0.50,
+        "core": 0.5,
         "semantic": 0.25,
         "atmosphere": 0.15,
-        "ambient": 0.10
+        "ambient": 0.1
       },
-      "impulse_duration_seconds": 10.0,
+      "impulse_duration_seconds": 2.0,
       "impulse_burst_interval_seconds": 0.8,
       "impulse_strength": 2.0
     },
@@ -249,12 +249,12 @@
         "pro_scene_history"
       ],
       "mix_ratio": {
-        "core": 0.50,
+        "core": 0.5,
         "semantic": 0.25,
         "atmosphere": 0.15,
-        "ambient": 0.10
+        "ambient": 0.1
       },
-      "impulse_duration_seconds": 9.0,
+      "impulse_duration_seconds": 2.0,
       "impulse_burst_interval_seconds": 0.9,
       "impulse_strength": 1.8
     },
@@ -277,12 +277,12 @@
         "stream_context"
       ],
       "mix_ratio": {
-        "core": 0.50,
+        "core": 0.5,
         "semantic": 0.25,
         "atmosphere": 0.15,
-        "ambient": 0.10
+        "ambient": 0.1
       },
-      "impulse_duration_seconds": 4.0,
+      "impulse_duration_seconds": 2.0,
       "impulse_burst_interval_seconds": 1.3,
       "impulse_strength": 0.8
     },
@@ -308,12 +308,12 @@
         "stream_context"
       ],
       "mix_ratio": {
-        "core": 0.50,
+        "core": 0.5,
         "semantic": 0.25,
         "atmosphere": 0.15,
-        "ambient": 0.10
+        "ambient": 0.1
       },
-      "impulse_duration_seconds": 5.0,
+      "impulse_duration_seconds": 2.0,
       "impulse_burst_interval_seconds": 1.1,
       "impulse_strength": 1.2
     },
@@ -338,12 +338,12 @@
         "pro_scene_history"
       ],
       "mix_ratio": {
-        "core": 0.50,
+        "core": 0.5,
         "semantic": 0.25,
         "atmosphere": 0.15,
-        "ambient": 0.10
+        "ambient": 0.1
       },
-      "impulse_duration_seconds": 6.5,
+      "impulse_duration_seconds": 2.0,
       "impulse_burst_interval_seconds": 1.0,
       "impulse_strength": 1.4
     },
@@ -370,12 +370,12 @@
         "pro_scene_history"
       ],
       "mix_ratio": {
-        "core": 0.50,
+        "core": 0.5,
         "semantic": 0.25,
         "atmosphere": 0.15,
-        "ambient": 0.10
+        "ambient": 0.1
       },
-      "impulse_duration_seconds": 6.5,
+      "impulse_duration_seconds": 2.0,
       "impulse_burst_interval_seconds": 1.0,
       "impulse_strength": 1.4
     },
@@ -398,12 +398,12 @@
         "stream_context"
       ],
       "mix_ratio": {
-        "core": 0.50,
+        "core": 0.5,
         "semantic": 0.25,
         "atmosphere": 0.15,
-        "ambient": 0.10
+        "ambient": 0.1
       },
-      "impulse_duration_seconds": 5.0,
+      "impulse_duration_seconds": 2.0,
       "impulse_burst_interval_seconds": 1.1,
       "impulse_strength": 1.1
     },
@@ -426,12 +426,12 @@
         "stream_context"
       ],
       "mix_ratio": {
-        "core": 0.50,
+        "core": 0.5,
         "semantic": 0.25,
         "atmosphere": 0.15,
-        "ambient": 0.10
+        "ambient": 0.1
       },
-      "impulse_duration_seconds": 5.5,
+      "impulse_duration_seconds": 2.0,
       "impulse_burst_interval_seconds": 1.0,
       "impulse_strength": 1.2
     },
@@ -454,12 +454,12 @@
         "stream_context"
       ],
       "mix_ratio": {
-        "core": 0.50,
+        "core": 0.5,
         "semantic": 0.25,
         "atmosphere": 0.15,
-        "ambient": 0.10
+        "ambient": 0.1
       },
-      "impulse_duration_seconds": 4.5,
+      "impulse_duration_seconds": 2.0,
       "impulse_burst_interval_seconds": 1.2,
       "impulse_strength": 1.0
     },
@@ -483,12 +483,12 @@
         "pro_scene_history"
       ],
       "mix_ratio": {
-        "core": 0.50,
+        "core": 0.5,
         "semantic": 0.25,
         "atmosphere": 0.15,
-        "ambient": 0.10
+        "ambient": 0.1
       },
-      "impulse_duration_seconds": 5.5,
+      "impulse_duration_seconds": 2.0,
       "impulse_burst_interval_seconds": 1.0,
       "impulse_strength": 1.2
     }

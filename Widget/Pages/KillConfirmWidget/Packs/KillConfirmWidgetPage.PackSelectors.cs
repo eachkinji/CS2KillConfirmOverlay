@@ -16,6 +16,7 @@ namespace KillConfirmGameBar
     public sealed partial class KillConfirmWidgetPage
     {
         private int _lastCrossfirePackRevision = -1;
+        private int _lastValorantEditRevision;
 
         private async void OnPackCatalogChanged(object sender, EventArgs e)
         {
@@ -30,6 +31,16 @@ namespace KillConfirmGameBar
                 {
                     if (_isPageActive)
                     {
+                        bool valorantEdited = GameStyleService.Current == GameStyleMode.Valorant
+                            && _lastValorantEditRevision != ValorantPackEditing.Revision;
+                        if (valorantEdited)
+                        {
+                            _lastValorantEditRevision = ValorantPackEditing.Revision;
+                            LowerFeedbackAnimation?.ReleaseAnimationResourcesForPackChange();
+                            LowerBadgeAnimation?.ReleaseAnimationResourcesForPackChange();
+                            CrosshairFeedbackAnimation?.ReleaseAnimationResourcesForPackChange();
+                            UpperFeedbackAnimation?.ReleaseAnimationResourcesForPackChange();
+                        }
                         if (GameStyleService.Current == GameStyleMode.Crossfire
                             && _lastCrossfirePackRevision != CrossfireExternalAssetService.Revision)
                         {
@@ -40,6 +51,7 @@ namespace KillConfirmGameBar
                             UpperFeedbackAnimation?.ReleaseAnimationResourcesForPackChange();
                         }
                         await InitializePackSelectorsAsync();
+                        if (valorantEdited) await SyncSelectedVoicePackAsync();
                     }
                 });
             }
@@ -178,6 +190,7 @@ namespace KillConfirmGameBar
                     GetVoicePackIconUri(fallback)));
             }
 
+            PackTestSectionView.VoicePackSelector.Items.Add(CreateAddMorePackItem(true));
             SelectVoicePackPreset(preferredPreset);
         }
 
@@ -234,6 +247,7 @@ namespace KillConfirmGameBar
                     GetIconPackIconUri(fallback)));
             }
 
+            PackTestSectionView.IconPackSelector.Items.Add(CreateAddMorePackItem(false));
             SelectIconPack(preferredIconPack);
         }
 
@@ -313,6 +327,45 @@ namespace KillConfirmGameBar
                 Background = new SolidColorBrush(theme.Field),
                 BorderBrush = new SolidColorBrush(theme.Border)
             };
+        }
+
+        private static ComboBoxItem CreateAddMorePackItem(bool voice)
+        {
+            bool chinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            string text = chinese
+                ? (voice ? "＋ 添加更多语音包" : "＋ 添加更多图标包")
+                : (voice ? "+ Add more audio packs" : "+ Add more icon packs");
+            return CreatePackComboBoxItem(text, PackLibraryNavigation.AddMoreTag, null);
+        }
+
+        private async Task OpenPackLibraryAsync(bool voice, SelectionChangedEventArgs e)
+        {
+            var selector = voice ? PackTestSectionView.VoicePackSelector : PackTestSectionView.IconPackSelector;
+            bool previous = voice ? _suppressVoicePackEvents : _suppressIconPackEvents;
+            if (voice) _suppressVoicePackEvents = true;
+            else _suppressIconPackEvents = true;
+            try
+            {
+                // This is a navigation action; restore the real selection before any await.
+                selector.SelectedItem = e.RemovedItems.OfType<ComboBoxItem>()
+                    .FirstOrDefault(item => !Equals(item.Tag, PackLibraryNavigation.AddMoreTag))
+                    ?? selector.Items.OfType<ComboBoxItem>().FirstOrDefault();
+            }
+            finally
+            {
+                if (voice) _suppressVoicePackEvents = previous;
+                else _suppressIconPackEvents = previous;
+            }
+            PackLibraryNavigation.Request(GameStyleService.Current, voice);
+            try
+            {
+                string group = DeveloperModeSettingsStore.IsEnabled
+                    ? OpenSettingsWindowDeveloperParameterGroupId : OpenSettingsWindowParameterGroupId;
+                if (await TryLaunchFullTrustHelperAsync(group)) return;
+            }
+            catch (Exception ex) { App.Log("Open pack library failed: " + ex.Message); }
+            PackLibraryNavigation.Clear();
+            ShowGuideOpenFailedHint();
         }
 
         private static Image FindPackItemImage(ComboBoxItem item)

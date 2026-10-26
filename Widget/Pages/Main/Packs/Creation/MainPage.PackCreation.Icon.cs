@@ -306,8 +306,8 @@ namespace KillConfirmGameBar
 
         // BF4 / PUBG 的击杀提示是纯文本 HUD（见 KillConfirmAnimation.Battlefield4.cs /
         // .Pubg.cs 的 ClearXxxIconCache 注释），不绘制任何击杀图标，因此没有图标包可
-        // 自定义。Valorant 虽然绘制图标，但自定义图标包尚未开放。阻止这三者在图标包
-        // 创建/导入时落到 Crossfire 兜底分支——那会生成一个属于 Crossfire 的包并出现
+        // 自定义。阻止这两者在图标包创建/导入时落到 Crossfire 兜底分支——
+        // 那会生成一个属于 Crossfire 的包并出现
         // 在 Crossfire 的管理列表里（"不适配本游戏"的包）。
         private static bool IsIconlessGame(GameStyleMode style)
         {
@@ -317,8 +317,7 @@ namespace KillConfirmGameBar
 
         private static bool IsIconPackCreationUnavailable(GameStyleMode style)
         {
-            return IsIconlessGame(style)
-                || style == GameStyleMode.Valorant;
+            return IsIconlessGame(style);
         }
 
         private async Task<bool> GuardIconPackCreationAsync()
@@ -332,16 +331,6 @@ namespace KillConfirmGameBar
                     isChinese
                         ? "该游戏的击杀提示为纯文本样式，不绘制击杀图标，因此不支持自定义图标包。"
                         : "This game uses a text-only kill feed and draws no kill icons, so custom icon packs are not supported.");
-                return true;
-            }
-
-            if (style == GameStyleMode.Valorant)
-            {
-                await ShowMessageAsync(
-                    isChinese ? "暂未开放" : "Not available yet",
-                    isChinese
-                        ? "Valorant 自定义图标包暂未开放，敬请期待。"
-                        : "Custom Valorant icon packs are not available yet.");
                 return true;
             }
 

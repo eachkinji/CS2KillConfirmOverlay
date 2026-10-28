@@ -1,4 +1,4 @@
-using Windows.UI;
+﻿using Windows.UI;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
 
@@ -11,9 +11,10 @@ namespace KillConfirmGameBar.Pages.Main.Appearance
             InitializeComponent();
         }
 
-        internal void ApplyPalette(Brush heroBrush, Color highlight, Color frame, Color accent)
+        internal void ApplyPalette(Brush heroBrush, Color highlight, Color frame, Color accent, double heroOpacity = 0.20)
         {
             HeroSlash.Fill = heroBrush;
+            HeroSlash.Opacity = heroOpacity;
             HeroSlashLight.Fill = new SolidColorBrush(highlight);
 
             var frameBrush = new SolidColorBrush(frame);

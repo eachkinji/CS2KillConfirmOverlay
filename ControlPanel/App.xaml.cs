@@ -1,5 +1,10 @@
+﻿using System.Runtime.InteropServices;
+using Microsoft.UI.Text;
+using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
+using Windows.UI;
 namespace KillConfirmGameBar;
 public partial class App : Application
 {
@@ -40,9 +45,25 @@ public partial class App : Application
             }
             if(!DesktopPlatform.IsUiValidation && !CloseValidation.IsEnabled) DesktopPlatform.SelectAvailableMode();
             Log("Creating original MainPage.");
-            _window.Content = new Frame { Content = new MainPage() };
-            _window.AppWindow.Resize(new Windows.Graphics.SizeInt32(1180, 820));
+            var mainPage = new MainPage();
+            var frame = new Frame { Content = mainPage };
+            var root = new Grid();
+            root.Children.Add(frame);
+            root.Children.Add(CreateTitleBar(mainPage));
+            _window.Content = root;
             _window.Activate();
+            ApplyFramelessChrome();
+            mainPage.ApplyDesktopWindowChrome();
+            // AppWindow.Resize takes physical pixels; keep the same amount of
+            // content on high-DPI displays by scaling the logical design size.
+            double scale = GetDpiForWindow(WinRT.Interop.WindowNative.GetWindowHandle(_window)) / 96.0;
+            if (scale <= 0) scale = 1.0;
+            var work = Microsoft.UI.Windowing.DisplayArea.GetFromWindowId(
+                _window.AppWindow.Id, Microsoft.UI.Windowing.DisplayAreaFallback.Primary).WorkArea;
+            int width = Math.Min((int)(1180 * scale), (int)(work.Width * 0.94));
+            int height = Math.Min((int)(820 * scale), (int)(work.Height * 0.94));
+            _window.AppWindow.Resize(new Windows.Graphics.SizeInt32(width, height));
+
             _window.AppWindow.Closing += (s,e) => {
                 e.Cancel=true;
                 if(!Features.CompatibilityDisplay.CompatibilityDisplayRuntime.IsEnabled && Services.CloseBehaviorSettingsStore.KeepRunningAfterSettingsClose) _window.AppWindow.Hide();
@@ -50,7 +71,7 @@ public partial class App : Application
             };
             if(CloseValidation.IsEnabled) _=CloseValidation.RunAsync(_window);
             if(DesktopPlatform.IsRuntimeValidation)
-                _= ((MainPage)((Frame)_window.Content).Content).RunStandaloneValidationAsync();
+                _= mainPage.RunStandaloneValidationAsync();
             var activationTimer=new DispatcherTimer { Interval=TimeSpan.FromMilliseconds(200) };
             _window.Closed += async (s,e) => { activationTimer.Stop(); await Services.ServiceLauncher.UnregisterCurrentProcessAsync(); _activate?.Dispose(); _instance?.Dispose(); };
             activationTimer.Tick += (s,e) => { if(_activate.WaitOne(0)) { _window.AppWindow.Show(); _window.Activate(); } };
@@ -69,6 +90,144 @@ public partial class App : Application
         }
         catch(Exception error) { LogCrash("Panel startup",error); Exit(); }
     }
+    private const int WM_NCLBUTTONDOWN = 0xA1;
+    private const int HTCAPTION = 0x2;
+
+    [DllImport("user32.dll")]
+    private static extern bool ReleaseCapture();
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
+
+    [DllImport("user32.dll")]
+    private static extern uint GetDpiForWindow(IntPtr hwnd);
+
+    private void ApplyFramelessChrome()
+    {
+        try
+        {
+            // Keep the resize border, drop the system title bar so the page
+            // wash reaches the window edge and our own dots own the chrome.
+            if (_window.AppWindow.Presenter is OverlappedPresenter presenter)
+                presenter.SetBorderAndTitleBar(true, false);
+        }
+        catch (Exception error)
+        {
+            Log("Custom window chrome unavailable: " + error.Message);
+        }
+    }
+
+    private FrameworkElement CreateTitleBar(MainPage page)
+    {
+        var bar = new Grid
+        {
+            Height = 44,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            VerticalAlignment = VerticalAlignment.Top,
+            Background = new SolidColorBrush(Color.FromArgb(0, 0, 0, 0))
+        };
+        bar.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        bar.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+        var dragArea = new Grid { Background = new SolidColorBrush(Color.FromArgb(0, 0, 0, 0)) };
+        dragArea.Children.Add(new TextBlock
+        {
+            Text = "Kill Confirm Overlay",
+            FontSize = 13,
+            FontWeight = FontWeights.SemiBold,
+            Foreground = new SolidColorBrush(Color.FromArgb(255, 58, 58, 60)),
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(20, 0, 0, 0),
+            IsHitTestVisible = false
+        });
+        dragArea.PointerPressed += OnTitleBarPointerPressed;
+        dragArea.DoubleTapped += (s, e) => ToggleMaximize();
+        bar.Children.Add(dragArea);
+
+        var dots = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            Spacing = 10,
+            Margin = new Thickness(0, 0, 16, 0),
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        Grid.SetColumn(dots, 1);
+        dots.Children.Add(CreateTrafficLight(
+            Color.FromArgb(255, 95, 217, 126), Color.FromArgb(255, 52, 199, 89),
+            "", Color.FromArgb(255, 255, 255, 255), "设置",
+            page.ShowSettingsWorkspace));
+        dots.Children.Add(CreateTrafficLight(
+            Color.FromArgb(255, 255, 216, 77), Color.FromArgb(255, 255, 204, 0),
+            "", Color.FromArgb(255, 90, 64, 0), "最小化",
+            MinimizeWindow));
+        dots.Children.Add(CreateTrafficLight(
+            Color.FromArgb(255, 255, 107, 98), Color.FromArgb(255, 255, 59, 48),
+            "", Color.FromArgb(255, 255, 255, 255), "关闭",
+            () => _window.Close()));
+        bar.Children.Add(dots);
+        return bar;
+    }
+
+    private static Border CreateTrafficLight(Color top, Color bottom, string glyph, Color glyphColor, string tip, Action action)
+    {
+        var dot = new Border
+        {
+            Width = 22,
+            Height = 22,
+            CornerRadius = new CornerRadius(11),
+            BorderThickness = new Thickness(0.5),
+            BorderBrush = new SolidColorBrush(Color.FromArgb(31, 0, 0, 0)),
+            Background = new RadialGradientBrush
+            {
+                GradientOrigin = new Windows.Foundation.Point(0.3, 0.25),
+                Center = new Windows.Foundation.Point(0.5, 0.5),
+                RadiusX = 0.85,
+                RadiusY = 0.85,
+                GradientStops =
+                {
+                    new GradientStop { Color = top, Offset = 0 },
+                    new GradientStop { Color = bottom, Offset = 1 }
+                }
+            },
+            Child = new FontIcon
+            {
+                FontFamily = new FontFamily("Segoe MDL2 Assets"),
+                FontSize = 10,
+                Glyph = glyph,
+                Foreground = new SolidColorBrush(glyphColor)
+            }
+        };
+        ToolTipService.SetToolTip(dot, tip);
+        dot.Tapped += (s, e) => { e.Handled = true; action(); };
+        dot.PointerEntered += (s, e) => dot.Opacity = 0.88;
+        dot.PointerExited += (s, e) => dot.Opacity = 1;
+        return dot;
+    }
+
+    private void OnTitleBarPointerPressed(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        if (sender is not UIElement source) return;
+        if (!e.GetCurrentPoint(source).Properties.IsLeftButtonPressed) return;
+        ReleaseCapture();
+        SendMessage(
+            WinRT.Interop.WindowNative.GetWindowHandle(_window),
+            WM_NCLBUTTONDOWN,
+            (IntPtr)HTCAPTION,
+            IntPtr.Zero);
+    }
+
+    private void MinimizeWindow()
+    {
+        if (_window.AppWindow.Presenter is OverlappedPresenter presenter) presenter.Minimize();
+    }
+
+    private void ToggleMaximize()
+    {
+        if (_window.AppWindow.Presenter is not OverlappedPresenter presenter) return;
+        if (presenter.State == OverlappedPresenterState.Maximized) presenter.Restore();
+        else presenter.Maximize();
+    }
+
     public static void Log(string message)
     {
         System.Diagnostics.Debug.WriteLine(message);

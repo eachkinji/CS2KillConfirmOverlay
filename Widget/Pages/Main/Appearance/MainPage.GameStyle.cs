@@ -91,40 +91,14 @@ namespace KillConfirmGameBar
             {
                 ApplyHomeActiveTab();
                 SettingsRootGrid.Background = CreateSettingsBackground(mode, true);
-                BackgroundDecoration.Visibility = Visibility.Collapsed;
             }
             else
             {
                 ApplyGameActiveTab();
                 SettingsRootGrid.Background = CreateSettingsBackground(mode, false);
-                BackgroundDecoration.Visibility = Visibility.Visible;
-                BackgroundDecoration.ApplyPalette(
-                    CreateHeroSlashBrush(mode),
-                    battlefield5 ? Color.FromArgb(255, 119, 243, 255) :
-                    battlefield2042 ? Color.FromArgb(255, 109, 255, 255) :
-                    battlefield4 ? Color.FromArgb(255, 125, 211, 252) :
-                    battlefield1 ? Color.FromArgb(255, 255, 218, 166) :
-                    valorant ? Color.FromArgb(255, 255, 170, 178) :
-                    csol ? Color.FromArgb(255, 255, 168, 150) :
-                    isDagoujiao ? Color.FromArgb(255, 233, 213, 255) :
-                    overwatch ? Color.FromArgb(255, 255, 205, 168) :
-                    modernWarfare2019 ? Color.FromArgb(255, 177, 231, 244) :
-                    Color.FromArgb(255, 255, 240, 213),
-                    battlefield5 ? Color.FromArgb(255, 58, 137, 166) :
-                    battlefield2042 ? Color.FromArgb(255, 60, 128, 146) :
-                    battlefield4 ? Color.FromArgb(255, 56, 120, 160) :
-                    battlefield1 ? Color.FromArgb(255, 88, 110, 126) :
-                    valorant ? Color.FromArgb(255, 59, 78, 102) :
-                    csol ? Color.FromArgb(255, 120, 37, 42) :
-                    isDagoujiao ? Color.FromArgb(255, 107, 33, 168) :
-                    overwatch ? Color.FromArgb(255, 67, 77, 88) :
-                    modernWarfare2019 ? Color.FromArgb(255, 48, 93, 107) :
-                    Color.FromArgb(255, 196, 196, 196),
-                    fixedPreset || csol ? theme.Accent :
-                    valorant ? theme.Secondary :
-                    isDagoujiao ? theme.Accent :
-                    Color.FromArgb(255, 207, 107, 0));
             }
+
+            UpdateBackgroundDecoration(mode, !_isSettingsWorkspaceSelected);
 
             bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
             string gameName = isChinese ? GameStyleService.ToDisplayName(mode) : mode.ToString();
@@ -201,7 +175,7 @@ namespace KillConfirmGameBar
             if (card != null)
             {
                 // One layer of glass: translucent white over the page wash.
-                card.Background = new SolidColorBrush(Color.FromArgb(184, 255, 255, 255));
+                card.Background = GameThemePalette.Glass(0.55);
                 card.BorderBrush = new SolidColorBrush(Color.FromArgb(166, 255, 255, 255));
                 card.CornerRadius = new CornerRadius(20);
             }
@@ -220,11 +194,54 @@ namespace KillConfirmGameBar
             SetText(TitleText, theme.Text);
         }
 
+        private void UpdateBackgroundDecoration(GameStyleMode mode, bool gameTint = true)
+        {
+            var theme = GameThemePalette.ForMode(mode);
+            bool valorant = mode == GameStyleMode.Valorant;
+            bool csol = mode == GameStyleMode.Csol;
+            bool battlefield1 = mode == GameStyleMode.Battlefield1;
+            bool battlefield5 = mode == GameStyleMode.Battlefield5;
+            bool battlefield4 = mode == GameStyleMode.Battlefield4;
+            bool battlefield2042 = mode == GameStyleMode.Battlefield2042;
+            bool fixedPreset = GameStyleService.IsModPresetGameKey(GameStyleService.ToStorageValue(mode));
+            bool isDagoujiao = mode == GameStyleMode.Dagoujiao;
+            bool overwatch = mode == GameStyleMode.Overwatch;
+            bool modernWarfare2019 = mode == GameStyleMode.ModernWarfare2019;
+            BackgroundDecoration.Visibility = Visibility.Visible;
+            BackgroundDecoration.ApplyPalette(
+                CreateHeroSlashBrush(mode),
+                battlefield5 ? Color.FromArgb(255, 119, 243, 255) :
+                battlefield2042 ? Color.FromArgb(255, 109, 255, 255) :
+                battlefield4 ? Color.FromArgb(255, 125, 211, 252) :
+                battlefield1 ? Color.FromArgb(255, 255, 218, 166) :
+                valorant ? Color.FromArgb(255, 255, 170, 178) :
+                csol ? Color.FromArgb(255, 255, 168, 150) :
+                isDagoujiao ? Color.FromArgb(255, 233, 213, 255) :
+                overwatch ? Color.FromArgb(255, 255, 205, 168) :
+                modernWarfare2019 ? Color.FromArgb(255, 177, 231, 244) :
+                Color.FromArgb(255, 255, 240, 213),
+                battlefield5 ? Color.FromArgb(255, 58, 137, 166) :
+                battlefield2042 ? Color.FromArgb(255, 60, 128, 146) :
+                battlefield4 ? Color.FromArgb(255, 56, 120, 160) :
+                battlefield1 ? Color.FromArgb(255, 88, 110, 126) :
+                valorant ? Color.FromArgb(255, 59, 78, 102) :
+                csol ? Color.FromArgb(255, 120, 37, 42) :
+                isDagoujiao ? Color.FromArgb(255, 107, 33, 168) :
+                overwatch ? Color.FromArgb(255, 67, 77, 88) :
+                modernWarfare2019 ? Color.FromArgb(255, 48, 93, 107) :
+                Color.FromArgb(255, 196, 196, 196),
+                fixedPreset || csol ? theme.Accent :
+                valorant ? theme.Secondary :
+                isDagoujiao ? theme.Accent :
+                Color.FromArgb(255, 207, 107, 0),
+                gameTint ? 0.20 : 0.0);
+        }
+
         private static void ApplyCardTheme(Border card, GameThemePalette theme)
         {
             if (card != null)
             {
-                card.Background = new SolidColorBrush(Color.FromArgb(184, 255, 255, 255));
+                card.Background = GameThemePalette.Glass(0.55);
                 card.BorderBrush = new SolidColorBrush(Color.FromArgb(166, 255, 255, 255));
                 card.CornerRadius = new CornerRadius(20);
             }
@@ -376,7 +393,7 @@ namespace KillConfirmGameBar
         {
             if (GameModeSidebar != null)
             {
-                GameModeSidebar.Background = new SolidColorBrush(Color.FromArgb(242, 246, 247, 250));
+                GameModeSidebar.Background = GameThemePalette.Glass(0.66);
                 GameModeSidebar.BorderBrush = new SolidColorBrush(Color.FromArgb(217, 255, 255, 255));
             }
 

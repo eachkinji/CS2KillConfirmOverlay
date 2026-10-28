@@ -25,6 +25,15 @@ namespace KillConfirmGameBar.Services
 
         public SolidColorBrush Brush(Color color) => new SolidColorBrush(color);
 
+        // Real backdrop glass for page-level surfaces. Tint is fixed white so
+        // every game keeps the same contrast; only the wash behind it changes.
+        public static AcrylicBrush Glass(double tintOpacity = 0.55) => new AcrylicBrush
+        {
+            TintColor = Color.FromArgb(255, 255, 255, 255),
+            TintOpacity = tintOpacity,
+            FallbackColor = Color.FromArgb(255, 242, 243, 247)
+        };
+
         public static GameThemePalette Current => ForMode(GameStyleService.Current);
 
         public static GameThemePalette ForMode(GameStyleMode mode)

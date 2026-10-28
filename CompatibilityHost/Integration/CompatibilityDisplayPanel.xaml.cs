@@ -180,9 +180,9 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             bool zh = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
             if (_theme != null)
             {
-                GameBarModeCard.Background = _theme.Brush(compatibility ? _theme.Card : _theme.AccentSoft);
+                GameBarModeCard.Background = compatibility ? GameThemePalette.Glass(0.55) : _theme.Brush(_theme.AccentSoft);
                 GameBarModeCard.BorderBrush = _theme.Brush(compatibility ? CardStrokeColor : AccentBorderColor(_theme));
-                CompatibilityModeCard.Background = _theme.Brush(compatibility ? _theme.AccentSoft : _theme.Card);
+                CompatibilityModeCard.Background = compatibility ? _theme.Brush(_theme.AccentSoft) : GameThemePalette.Glass(0.55);
                 CompatibilityModeCard.BorderBrush = _theme.Brush(compatibility ? AccentBorderColor(_theme) : CardStrokeColor);
             }
             GameBarStatusSection.Visibility = compatibility ? Visibility.Collapsed : Visibility.Visible;
@@ -203,7 +203,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             Foreground = theme.Brush(theme.Text);
             foreach (var card in new[] { ModeCard, LayoutCard, ScreenCard })
             {
-                card.Background = theme.Brush(theme.Card);
+                card.Background = GameThemePalette.Glass(0.55);
                 card.BorderBrush = theme.Brush(CardStrokeColor);
             }
             GameBarModeCard.CornerRadius = new CornerRadius(14);

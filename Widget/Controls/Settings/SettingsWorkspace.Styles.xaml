@@ -1,4 +1,4 @@
-<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!--
       Shared design tokens for the panel UI.
@@ -6,9 +6,22 @@
       inside a card uses a flatter semi-transparent white so the two do not
       stack into grey. Accent blue is reserved for primary actions and links.
     -->
-    <SolidColorBrush x:Key="GlassCardBrush" Color="#B8FFFFFF" />
+    <!--
+      One layer of real backdrop glass for page-level surfaces. Inner sections
+      stay on flat translucent white so blur never stacks into grey.
+    -->
+    <AcrylicBrush
+        x:Key="GlassCardBrush"
+        TintColor="#FFFFFF"
+        TintOpacity="0.44"
+        FallbackColor="#F2F3F7" />
+    <AcrylicBrush
+        x:Key="GlassPanelBrush"
+        TintColor="#FFFFFF"
+        TintOpacity="0.56"
+        FallbackColor="#F6F7FA" />
     <SolidColorBrush x:Key="GlassCardHoverBrush" Color="#D9FFFFFF" />
-    <SolidColorBrush x:Key="GlassCardStrokeBrush" Color="#A6FFFFFF" />
+    <SolidColorBrush x:Key="GlassCardStrokeBrush" Color="#B3FFFFFF" />
     <SolidColorBrush x:Key="GlassFieldBrush" Color="#99FFFFFF" />
     <SolidColorBrush x:Key="GlassFieldStrokeBrush" Color="#0F000000" />
     <SolidColorBrush x:Key="GlassSectionBrush" Color="#70FFFFFF" />
@@ -28,8 +41,8 @@
     <SolidColorBrush x:Key="WarningBrush" Color="#FF9500" />
     <SolidColorBrush x:Key="DangerBrush" Color="#FF3B30" />
 
-    <SolidColorBrush x:Key="GlassPanelBrush" Color="#F2F6F7FA" />
     <SolidColorBrush x:Key="GlassPanelBorderBrush" Color="#D9FFFFFF" />
+
 
     <Style x:Key="PanelFontTextStyle" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="Segoe UI Variable Text" />
@@ -37,11 +50,11 @@
     </Style>
 
     <Style x:Key="SettingsSectionCardStyle" TargetType="Border">
-        <Setter Property="Padding" Value="20,18"/>
+        <Setter Property="Padding" Value="24,20"/>
         <Setter Property="Background" Value="{StaticResource GlassCardBrush}"/>
         <Setter Property="BorderBrush" Value="{StaticResource GlassCardStrokeBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="CornerRadius" Value="20"/>
+        <Setter Property="CornerRadius" Value="24"/>
     </Style>
 
     <Style x:Key="SettingsHeaderButtonStyle" TargetType="Button">
@@ -52,7 +65,7 @@
         <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
         <Setter Property="BorderBrush" Value="Transparent"/>
         <Setter Property="BorderThickness" Value="0"/>
-        <Setter Property="CornerRadius" Value="14"/>
+        <Setter Property="CornerRadius" Value="16"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
         <Setter Property="FontSize" Value="13"/>
         <Setter Property="FontFamily" Value="Segoe UI Variable Text"/>
@@ -80,7 +93,7 @@
         <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
         <Setter Property="BorderBrush" Value="Transparent"/>
         <Setter Property="BorderThickness" Value="0"/>
-        <Setter Property="CornerRadius" Value="11"/>
+        <Setter Property="CornerRadius" Value="13"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
         <Setter Property="FontSize" Value="13"/>
         <Setter Property="FontFamily" Value="Segoe UI Variable Text"/>
@@ -136,7 +149,7 @@
         <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource AccentBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="CornerRadius" Value="14" />
         <Setter Property="FontSize" Value="12" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="FontFamily" Value="Segoe UI Variable Text" />
@@ -144,7 +157,7 @@
 
     <!-- Inline field/section surfaces used inside glass cards. -->
     <Style x:Key="GlassSectionSurfaceStyle" TargetType="Border">
-        <Setter Property="Padding" Value="14,12" />
+        <Setter Property="Padding" Value="16,14" />
         <Setter Property="Background" Value="{StaticResource GlassSectionBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource DividerBrush}" />
         <Setter Property="BorderThickness" Value="1" />
@@ -156,7 +169,7 @@
         <Setter Property="BorderBrush" Value="{StaticResource GlassFieldStrokeBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
-        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="CornerRadius" Value="14" />
         <Setter Property="Padding" Value="11,7" />
         <Setter Property="MinHeight" Value="34" />
         <Setter Property="FontSize" Value="13" />
@@ -172,7 +185,7 @@
         <Setter Property="Background" Value="{StaticResource GlassFieldBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource GlassFieldStrokeBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="CornerRadius" Value="14" />
         <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
         <Setter Property="HorizontalAlignment" Value="Stretch" />
     </Style>

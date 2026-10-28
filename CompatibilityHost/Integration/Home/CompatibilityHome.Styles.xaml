@@ -50,7 +50,7 @@
             <Setter Property="Foreground" Value="#1C1C1E" />
             <Setter Property="BorderBrush" Value="#1F000000" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="CornerRadius" Value="14" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
@@ -153,7 +153,7 @@
             <Setter Property="Foreground" Value="#1C1C1E" />
             <Setter Property="BorderBrush" Value="#1F000000" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="CornerRadius" Value="14" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
@@ -261,7 +261,7 @@
         </Style>
 
         <!-- Fluent 2 Design System Brushes -->
-        <SolidColorBrush x:Key="FluentCardBackground" Color="#E6FFFFFF" />
+        <AcrylicBrush x:Key="FluentCardBackground" TintColor="#FFFFFF" TintOpacity="0.60" FallbackColor="#F4F5F8" />
         <SolidColorBrush x:Key="FluentCardSubBackground" Color="#99FFFFFF" />
         <SolidColorBrush x:Key="FluentCardBorder" Color="#1A000000" />
         <SolidColorBrush x:Key="FluentDivider" Color="#12000000" />
@@ -280,7 +280,7 @@
             <Setter Property="Background" Value="{StaticResource FluentCardBackground}" />
             <Setter Property="BorderBrush" Value="{StaticResource FluentCardBorder}" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="16" />
+            <Setter Property="CornerRadius" Value="20" />
         </Style>
 
         <Style x:Key="FluentHeroCardStyle" TargetType="Border">
@@ -288,7 +288,7 @@
             <Setter Property="Background" Value="{StaticResource FluentCardBackground}" />
             <Setter Property="BorderBrush" Value="{StaticResource FluentCardBorder}" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="16" />
+            <Setter Property="CornerRadius" Value="20" />
         </Style>
 
         <Style x:Key="FluentSectionHeaderStyle" TargetType="TextBlock">
@@ -328,7 +328,7 @@
             <Setter Property="Background" Value="{StaticResource FluentAccent}" />
             <Setter Property="BorderBrush" Value="{StaticResource FluentAccent}" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="CornerRadius" Value="14" />
             <Setter Property="Foreground" Value="White" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="FontSize" Value="12" />
@@ -341,7 +341,7 @@
             <Setter Property="Background" Value="#E6FFFFFF" />
             <Setter Property="BorderBrush" Value="#1F000000" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="CornerRadius" Value="14" />
             <Setter Property="Foreground" Value="#1C1C1E" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="FontSize" Value="12" />
@@ -352,7 +352,7 @@
             <Setter Property="BorderBrush" Value="#1F000000" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Foreground" Value="#1C1C1E" />
-            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="CornerRadius" Value="14" />
             <Setter Property="Padding" Value="10,6" />
             <Setter Property="MinHeight" Value="32" />
             <Setter Property="FontSize" Value="13" />
@@ -363,7 +363,7 @@
             <Setter Property="Background" Value="{StaticResource FluentCardBackground}" />
             <Setter Property="BorderBrush" Value="{StaticResource FluentCardBorder}" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="16" />
+            <Setter Property="CornerRadius" Value="20" />
         </Style>
 
         <Style x:Key="CompactCircleIconStyle" TargetType="Border">
@@ -389,7 +389,7 @@
             <Setter Property="Background" Value="#E6FFFFFF" />
             <Setter Property="BorderBrush" Value="#1F000000" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="CornerRadius" Value="14" />
             <Setter Property="Foreground" Value="#1C1C1E" />
             <Setter Property="HorizontalAlignment" Value="Stretch" />
         </Style>

@@ -1,4 +1,4 @@
-using KillConfirmGameBar.Features.CompatibilityDisplay;
+﻿using KillConfirmGameBar.Features.CompatibilityDisplay;
 using KillConfirmGameBar.Services;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -33,9 +33,9 @@ namespace KillConfirmGameBar
             SyncGameStyleSelector();
             UpdateSettingsPageVisibility();
             AdvancedSettingsTabBar.Visibility = GameWorkspaceTabBar.Visibility = Visibility.Collapsed;
-            BackgroundDecoration.Visibility = Visibility.Collapsed;
             var theme = GameThemePalette.Home;
             SettingsRootGrid.Background = CreateSettingsBackground(GameStyleService.Current, true);
+            UpdateBackgroundDecoration(GameStyleService.Current, false);
             ApplyGameStyleSidebarTheme(theme);
             ApplyPageTitleTheme(theme);
             TitleText.Text = LocalizationManager.Current == UiLanguage.SimplifiedChinese ? "主页" : "Home";

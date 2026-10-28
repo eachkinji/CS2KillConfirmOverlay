@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -129,6 +129,24 @@ namespace KillConfirmGameBar
                 btn.Foreground = new SolidColorBrush(Color.FromArgb(255, 110, 110, 115));
                 btn.BorderBrush = new SolidColorBrush(Colors.Transparent);
                 btn.BorderThickness = new Thickness(0);
+            }
+        }
+
+        // Desktop-only chrome: the custom title bar floats over the page, so
+        // the shell content is pushed below it while the wash still fills it.
+        public void ApplyDesktopWindowChrome()
+        {
+            if (ShellContentGrid != null)
+            {
+                ShellContentGrid.Margin = new Thickness(0, 44, 0, 0);
+            }
+        }
+
+        public void ShowSettingsWorkspace()
+        {
+            if (GameStyleSidebarSelector != null && AdvancedSettingsSidebarItem != null)
+            {
+                GameStyleSidebarSelector.SelectedItem = AdvancedSettingsSidebarItem;
             }
         }
 

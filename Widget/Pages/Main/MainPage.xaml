@@ -33,7 +33,7 @@
     <Grid x:Name="SettingsRootGrid" Background="{StaticResource MainBackgroundGradient}">
         <appearance:MainPageBackgroundView x:Name="BackgroundDecoration" IsHitTestVisible="False" />
 
-        <Grid>
+        <Grid x:Name="ShellContentGrid">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="64" />
                 <ColumnDefinition Width="*" />

@@ -35,7 +35,7 @@
 
         <Grid x:Name="ShellContentGrid">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="64" />
+                <ColumnDefinition Width="236" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
@@ -43,7 +43,7 @@
             <Border
                 x:Name="GameModeSidebar"
                 Grid.Column="0"
-                Width="56"
+                Width="220"
                 Margin="10,14,6,14"
                 Padding="0"
                 HorizontalAlignment="Center"
@@ -57,11 +57,11 @@
                     Background="Transparent"
                     CompactPaneLength="52"
                     IsBackButtonVisible="Collapsed"
-                    IsPaneOpen="False"
+                    IsPaneOpen="True"
                     IsPaneToggleButtonVisible="False"
                     IsSettingsVisible="False"
-                    OpenPaneLength="52"
-                    PaneDisplayMode="LeftCompact"
+                    OpenPaneLength="208"
+                    PaneDisplayMode="Left"
                     SelectionChanged="OnGameStyleSidebarSelectionChanged">
                     <NavigationView.Resources>
                         <SolidColorBrush x:Key="NavigationViewItemBackgroundSelected" Color="#1F007AFF" />
@@ -74,64 +74,65 @@
                             <Setter Property="HorizontalScrollBarVisibility" Value="Hidden" />
                         </Style>
                         <Style TargetType="NavigationViewItem">
-                            <Setter Property="Width" Value="48" />
-                            <Setter Property="Padding" Value="6,0,0,0" />
+                            <Setter Property="Width" Value="198" />
+                            <Setter Property="Padding" Value="10,0,0,0" />
                             <Setter Property="Margin" Value="0,2" />
                             <Setter Property="CornerRadius" Value="14" />
                             <Setter Property="HorizontalAlignment" Value="Center" />
-                            <Setter Property="HorizontalContentAlignment" Value="Center" />
+                            <Setter Property="HorizontalContentAlignment" Value="Left" />
+                            <Setter Property="FontSize" Value="13" />
                         </Style>
                     </NavigationView.Resources>
                     <NavigationView.MenuItems>
-                        <NavigationViewItem x:Name="HomeSidebarItem" AutomationProperties.Name="主页" Tag="home" ToolTipService.ToolTip="主页">
+                        <NavigationViewItem x:Name="HomeSidebarItem" AutomationProperties.Name="主页" Tag="home" Content="主页" ToolTipService.ToolTip="主页">
                             <NavigationViewItem.Icon>
                                 <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE80F;" />
                             </NavigationViewItem.Icon>
                         </NavigationViewItem>
-                        <NavigationViewItem x:Name="AdvancedSettingsSidebarItem" Tag="advanced" AutomationProperties.Name="高级设置" ToolTipService.ToolTip="高级设置"><NavigationViewItem.Icon><FontIcon Glyph="&#xE713;" /></NavigationViewItem.Icon></NavigationViewItem>
-                        <NavigationViewItem AutomationProperties.Name="CrossFire" Tag="crossfire" ToolTipService.ToolTip="CrossFire">
+                        <NavigationViewItem x:Name="AdvancedSettingsSidebarItem" Tag="advanced" Content="高级设置" AutomationProperties.Name="高级设置" ToolTipService.ToolTip="高级设置"><NavigationViewItem.Icon><FontIcon Glyph="&#xE713;" /></NavigationViewItem.Icon></NavigationViewItem>
+                        <NavigationViewItem AutomationProperties.Name="CrossFire" Tag="crossfire" Content="CrossFire" ToolTipService.ToolTip="CrossFire">
                             <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/crossfire.png" /></NavigationViewItem.Icon>
                         </NavigationViewItem>
-                        <NavigationViewItem AutomationProperties.Name="CSOL" Tag="csol" ToolTipService.ToolTip="CSOL">
+                        <NavigationViewItem AutomationProperties.Name="CSOL" Tag="csol" Content="CSOL" ToolTipService.ToolTip="CSOL">
                             <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/csol.png" /></NavigationViewItem.Icon>
                         </NavigationViewItem>
-                        <NavigationViewItem AutomationProperties.Name="Valorant" Tag="valorant" ToolTipService.ToolTip="Valorant">
+                        <NavigationViewItem AutomationProperties.Name="Valorant" Tag="valorant" Content="Valorant" ToolTipService.ToolTip="Valorant">
                             <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/valorant.png" /></NavigationViewItem.Icon>
                         </NavigationViewItem>
-                        <NavigationViewItem AutomationProperties.Name="Overwatch" Tag="overwatch" ToolTipService.ToolTip="Overwatch">
+                        <NavigationViewItem AutomationProperties.Name="Overwatch" Tag="overwatch" Content="Overwatch" ToolTipService.ToolTip="Overwatch">
                             <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/overwatch.png" /></NavigationViewItem.Icon>
                         </NavigationViewItem>
-                        <NavigationViewItem AutomationProperties.Name="Modern Warfare 2019" Tag="modernwarfare2019" ToolTipService.ToolTip="Modern Warfare 2019">
+                        <NavigationViewItem AutomationProperties.Name="Modern Warfare 2019" Tag="modernwarfare2019" Content="Modern Warfare" ToolTipService.ToolTip="Modern Warfare 2019">
                             <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/modernwarfare2019.png" /></NavigationViewItem.Icon>
                         </NavigationViewItem>
-                        <NavigationViewItem AutomationProperties.Name="Apex Legends" Tag="apex" ToolTipService.ToolTip="Apex Legends">
+                        <NavigationViewItem AutomationProperties.Name="Apex Legends" Tag="apex" Content="Apex Legends" ToolTipService.ToolTip="Apex Legends">
                             <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/apex.png" /></NavigationViewItem.Icon>
                         </NavigationViewItem>
-                        <NavigationViewItem AutomationProperties.Name="Battlefield 1" Tag="battlefield1" ToolTipService.ToolTip="Battlefield 1">
+                        <NavigationViewItem AutomationProperties.Name="Battlefield 1" Tag="battlefield1" Content="Battlefield 1" ToolTipService.ToolTip="Battlefield 1">
                             <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/battlefield1.png" /></NavigationViewItem.Icon>
                         </NavigationViewItem>
-                        <NavigationViewItem AutomationProperties.Name="Battlefield V" Tag="battlefield5" ToolTipService.ToolTip="Battlefield V">
+                        <NavigationViewItem AutomationProperties.Name="Battlefield V" Tag="battlefield5" Content="Battlefield V" ToolTipService.ToolTip="Battlefield V">
                             <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/battlefield5.png" /></NavigationViewItem.Icon>
                         </NavigationViewItem>
-                        <NavigationViewItem AutomationProperties.Name="Battlefield 4" Tag="battlefield4" ToolTipService.ToolTip="Battlefield 4">
+                        <NavigationViewItem AutomationProperties.Name="Battlefield 4" Tag="battlefield4" Content="Battlefield 4" ToolTipService.ToolTip="Battlefield 4">
                             <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/battlefield4.png" /></NavigationViewItem.Icon>
                         </NavigationViewItem>
-                        <NavigationViewItem AutomationProperties.Name="Battlefield 2042" Tag="battlefield2042" ToolTipService.ToolTip="Battlefield 2042">
+                        <NavigationViewItem AutomationProperties.Name="Battlefield 2042" Tag="battlefield2042" Content="Battlefield 2042" ToolTipService.ToolTip="Battlefield 2042">
                             <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/battlefield2042.png" /></NavigationViewItem.Icon>
                         </NavigationViewItem>
-                        <NavigationViewItem AutomationProperties.Name="PUBG" Tag="pubg" ToolTipService.ToolTip="PUBG">
+                        <NavigationViewItem AutomationProperties.Name="PUBG" Tag="pubg" Content="PUBG" ToolTipService.ToolTip="PUBG">
                             <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/pubg.png" /></NavigationViewItem.Icon>
                         </NavigationViewItem>
-                        <NavigationViewItem AutomationProperties.Name="Delta Force" Tag="deltaforce" ToolTipService.ToolTip="Delta Force">
+                        <NavigationViewItem AutomationProperties.Name="Delta Force" Tag="deltaforce" Content="Delta Force" ToolTipService.ToolTip="Delta Force">
                             <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/deltaforce.png" /></NavigationViewItem.Icon>
                         </NavigationViewItem>
-                        <NavigationViewItem AutomationProperties.Name="豆包" Tag="doubao" ToolTipService.ToolTip="豆包">
+                        <NavigationViewItem AutomationProperties.Name="豆包" Tag="doubao" Content="豆包" ToolTipService.ToolTip="豆包">
                             <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/doubao.png" /></NavigationViewItem.Icon>
                         </NavigationViewItem>
-                        <NavigationViewItem AutomationProperties.Name="大狗叫" Tag="dagoujiao" ToolTipService.ToolTip="大狗叫">
+                        <NavigationViewItem AutomationProperties.Name="大狗叫" Tag="dagoujiao" Content="大狗叫" ToolTipService.ToolTip="大狗叫">
                             <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/dagoujiao.jpg" /></NavigationViewItem.Icon>
                         </NavigationViewItem>
-                        <NavigationViewItem AutomationProperties.Name="自定义" Tag="custommodule" ToolTipService.ToolTip="自定义">
+                        <NavigationViewItem AutomationProperties.Name="自定义" Tag="custommodule" Content="自定义" ToolTipService.ToolTip="自定义">
                             <NavigationViewItem.Icon><FontIcon FontFamily="Microsoft YaHei UI" FontSize="10" Glyph="自定义" /></NavigationViewItem.Icon>
                         </NavigationViewItem>
                     </NavigationView.MenuItems>

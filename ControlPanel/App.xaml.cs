@@ -54,15 +54,12 @@ public partial class App : Application
             _window.Activate();
             ApplyFramelessChrome();
             mainPage.ApplyDesktopWindowChrome();
-            // AppWindow.Resize takes physical pixels; keep the same amount of
-            // content on high-DPI displays by scaling the logical design size.
-            double scale = GetDpiForWindow(WinRT.Interop.WindowNative.GetWindowHandle(_window)) / 96.0;
-            if (scale <= 0) scale = 1.0;
-            var work = Microsoft.UI.Windowing.DisplayArea.GetFromWindowId(
-                _window.AppWindow.Id, Microsoft.UI.Windowing.DisplayAreaFallback.Primary).WorkArea;
-            int width = Math.Min((int)(1180 * scale), (int)(work.Width * 0.94));
-            int height = Math.Min((int)(820 * scale), (int)(work.Height * 0.94));
-            _window.AppWindow.Resize(new Windows.Graphics.SizeInt32(width, height));
+            ResizePanelWindow();
+            // The frameless presenter settles one layout pass after activation;
+            // repeat the resize once so the window cannot collapse to content size.
+            var settle = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
+            settle.Tick += (s, e) => { settle.Stop(); ResizePanelWindow(); };
+            settle.Start();
 
             _window.AppWindow.Closing += (s,e) => {
                 e.Cancel=true;
@@ -101,6 +98,20 @@ public partial class App : Application
 
     [DllImport("user32.dll")]
     private static extern uint GetDpiForWindow(IntPtr hwnd);
+
+    private void ResizePanelWindow()
+    {
+        // AppWindow.Resize takes physical pixels; keep the same amount of
+        // content on high-DPI displays by scaling the logical design size.
+        double scale = GetDpiForWindow(WinRT.Interop.WindowNative.GetWindowHandle(_window)) / 96.0;
+        if (scale <= 0) scale = 1.0;
+        var work = Microsoft.UI.Windowing.DisplayArea.GetFromWindowId(
+            _window.AppWindow.Id, Microsoft.UI.Windowing.DisplayAreaFallback.Primary).WorkArea;
+        int width = Math.Min((int)(1180 * scale), (int)(work.Width * 0.94));
+        int height = Math.Min((int)(820 * scale), (int)(work.Height * 0.94));
+        _window.AppWindow.Resize(new Windows.Graphics.SizeInt32(width, height));
+        _window.AppWindow.Show();
+    }
 
     private void ApplyFramelessChrome()
     {

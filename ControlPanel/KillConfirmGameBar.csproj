@@ -25,6 +25,8 @@
     <Compile Remove="Generated/**/*.cs" />
     <Compile Include="../Common/*.cs" Link="Runtime/%(Filename)%(Extension)" />
     <ApplicationDefinition Include="App.xaml" />
+    <!-- ms-appx:///Assets/... resolves next to the exe for unpackaged runs. -->
+    <Content Include="../Widget/Assets/**/*" Link="Assets/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <Target Name="AdaptOriginalControlPanel" BeforeTargets="PrepareForBuild">
     <Exec Command="pwsh -NoProfile -File &quot;$(MSBuildProjectDirectory)/Build-OriginalPanel.ps1&quot;" />

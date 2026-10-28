@@ -20,7 +20,7 @@
                 <TextBlock
                     x:Name="PanelSubtitle"
                     FontSize="11"
-                    Foreground="#888888"
+                    Foreground="#8E8E93"
                     Text="GSI 绿色状态自动启停持续弹幕；语义池负责日常内容，游戏事件会临时调整内容权重与发送节奏"
                     TextWrapping="Wrap" />
             </StackPanel>
@@ -68,8 +68,8 @@
                         FontWeight="SemiBold"
                         Text="本次反应：核心 3 条 · 划水 2 条 · 共 5 条"
                         TextWrapping="Wrap" />
-                    <TextBlock x:Name="CoreExampleText" FontSize="10" Foreground="#AAAAAA" Text="核心示例：加载中…" TextWrapping="Wrap" />
-                    <TextBlock x:Name="WaterExampleText" FontSize="10" Foreground="#AAAAAA" Text="划水示例：加载中…" TextWrapping="Wrap" />
+                    <TextBlock x:Name="CoreExampleText" FontSize="10" Foreground="#8E8E93" Text="核心示例：加载中…" TextWrapping="Wrap" />
+                    <TextBlock x:Name="WaterExampleText" FontSize="10" Foreground="#8E8E93" Text="划水示例：加载中…" TextWrapping="Wrap" />
                 </StackPanel>
             </Border>
 
@@ -79,7 +79,7 @@
                 <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                 <StackPanel Spacing="2">
                     <TextBlock x:Name="TriggerOnKillLabel" FontSize="11" FontWeight="SemiBold" Text="战斗事件" />
-                    <TextBlock x:Name="TriggerOnKillHint" FontSize="10" Foreground="#888888" Text="击杀、首杀、特殊击杀、连杀与助攻" TextWrapping="Wrap" />
+                    <TextBlock x:Name="TriggerOnKillHint" FontSize="10" Foreground="#8E8E93" Text="击杀、首杀、特殊击杀、连杀与助攻" TextWrapping="Wrap" />
                 </StackPanel>
                 <ToggleSwitch x:Name="TriggerOnKillToggle" Grid.Column="1" MinWidth="0" OffContent="关" OnContent="开" Toggled="OnTriggerOnKillToggled" />
             </Grid>
@@ -88,7 +88,7 @@
                 <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                 <StackPanel Spacing="2">
                     <TextBlock x:Name="TriggerOnDeathLabel" FontSize="11" FontWeight="SemiBold" Text="阵亡事件" />
-                    <TextBlock x:Name="TriggerOnDeathHint" FontSize="10" Foreground="#888888" Text="阵亡后触发对应吐槽弹幕" TextWrapping="Wrap" />
+                    <TextBlock x:Name="TriggerOnDeathHint" FontSize="10" Foreground="#8E8E93" Text="阵亡后触发对应吐槽弹幕" TextWrapping="Wrap" />
                 </StackPanel>
                 <ToggleSwitch x:Name="TriggerOnDeathToggle" Grid.Column="1" MinWidth="0" OffContent="关" OnContent="开" Toggled="OnTriggerOnDeathToggled" />
             </Grid>
@@ -97,7 +97,7 @@
                 <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                 <StackPanel Spacing="2">
                     <TextBlock x:Name="TriggerOnRoundLabel" FontSize="11" FontWeight="SemiBold" Text="回合结果事件" />
-                    <TextBlock x:Name="TriggerOnRoundHint" FontSize="10" Foreground="#888888" Text="回合胜利与回合失败" TextWrapping="Wrap" />
+                    <TextBlock x:Name="TriggerOnRoundHint" FontSize="10" Foreground="#8E8E93" Text="回合胜利与回合失败" TextWrapping="Wrap" />
                 </StackPanel>
                 <ToggleSwitch x:Name="TriggerOnRoundToggle" Grid.Column="1" MinWidth="0" OffContent="关" OnContent="开" Toggled="OnTriggerOnRoundToggled" />
             </Grid>
@@ -106,7 +106,7 @@
                 <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                 <StackPanel Spacing="2">
                     <TextBlock x:Name="TriggerOnObjectiveLabel" FontSize="11" FontWeight="SemiBold" Text="目标任务事件" />
-                    <TextBlock x:Name="TriggerOnObjectiveHint" FontSize="10" Foreground="#888888" Text="安包、拆包、人质互动与救援" TextWrapping="Wrap" />
+                    <TextBlock x:Name="TriggerOnObjectiveHint" FontSize="10" Foreground="#8E8E93" Text="安包、拆包、人质互动与救援" TextWrapping="Wrap" />
                 </StackPanel>
                 <ToggleSwitch x:Name="TriggerOnObjectiveToggle" Grid.Column="1" MinWidth="0" OffContent="关" OnContent="开" Toggled="OnTriggerOnObjectiveToggled" />
             </Grid>
@@ -115,7 +115,7 @@
 
             <StackPanel Spacing="3">
                 <TextBlock x:Name="DispatchPaceLabel" FontSize="11" FontWeight="SemiBold" Text="持续发送频率" />
-                <TextBlock x:Name="DispatchPaceHint" FontSize="10" Foreground="#888888" Text="控制每条弹幕出现的间隔，与单条飞行速度互不影响" TextWrapping="Wrap" />
+                <TextBlock x:Name="DispatchPaceHint" FontSize="10" Foreground="#8E8E93" Text="控制每条弹幕出现的间隔，与单条飞行速度互不影响" TextWrapping="Wrap" />
                 <ComboBox x:Name="DispatchPaceSelector" HorizontalAlignment="Stretch" SelectionChanged="OnDispatchPaceSelectionChanged">
                     <ComboBoxItem Tag="0">标准（约 2–5 秒/条）</ComboBoxItem>
                     <ComboBoxItem Tag="1">舒缓（约 4–10 秒/条，默认）</ComboBoxItem>
@@ -125,7 +125,7 @@
 
             <StackPanel Spacing="3">
                 <TextBlock x:Name="EventIntensityLabel" FontSize="11" FontWeight="SemiBold" Text="事件响应强度" />
-                <TextBlock x:Name="EventIntensityHint" FontSize="10" Foreground="#888888" Text="击杀、阵亡等事件发生后，控制短时弹幕加速幅度" TextWrapping="Wrap" />
+                <TextBlock x:Name="EventIntensityHint" FontSize="10" Foreground="#8E8E93" Text="击杀、阵亡等事件发生后，控制短时弹幕加速幅度" TextWrapping="Wrap" />
                 <ComboBox x:Name="EventIntensitySelector" HorizontalAlignment="Stretch" SelectionChanged="OnEventIntensitySelectionChanged">
                     <ComboBoxItem Tag="0">克制（事件后也保持较慢）</ComboBoxItem>
                     <ComboBoxItem Tag="1">标准</ComboBoxItem>
@@ -181,7 +181,7 @@
                 <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                 <StackPanel Spacing="2">
                     <TextBlock x:Name="OutlineLabel" FontSize="11" FontWeight="SemiBold" Text="文字黑色描边" />
-                    <TextBlock x:Name="OutlineHint" FontSize="10" Foreground="#888888" Text="提高复杂画面中的文字可读性" TextWrapping="Wrap" />
+                    <TextBlock x:Name="OutlineHint" FontSize="10" Foreground="#8E8E93" Text="提高复杂画面中的文字可读性" TextWrapping="Wrap" />
                 </StackPanel>
                 <ToggleSwitch x:Name="OutlineToggle" Grid.Column="1" MinWidth="0" OffContent="关" OnContent="开" Toggled="OnOutlineToggled" />
             </Grid>
@@ -190,7 +190,7 @@
                 <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                 <StackPanel Spacing="2">
                     <TextBlock x:Name="BackgroundLabel" FontSize="11" FontWeight="SemiBold" Text="胶囊背景底框" />
-                    <TextBlock x:Name="BackgroundHint" FontSize="10" Foreground="#888888" Text="为每条弹幕增加深色半透明底框" TextWrapping="Wrap" />
+                    <TextBlock x:Name="BackgroundHint" FontSize="10" Foreground="#8E8E93" Text="为每条弹幕增加深色半透明底框" TextWrapping="Wrap" />
                 </StackPanel>
                 <ToggleSwitch x:Name="BackgroundToggle" Grid.Column="1" MinWidth="0" OffContent="关" OnContent="开" Toggled="OnBackgroundToggled" />
             </Grid>

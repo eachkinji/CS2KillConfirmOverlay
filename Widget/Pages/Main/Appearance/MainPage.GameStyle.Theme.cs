@@ -161,75 +161,11 @@ namespace KillConfirmGameBar
                 EndPoint = new Windows.Foundation.Point(1, 1)
             };
 
-            if (isHomePage)
-            {
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 248, 250, 252), Offset = 0.0 });
-                brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 238, 242, 246), Offset = 1.0 });
-                return brush;
-            }
-
-            switch (mode)
-            {
-                case GameStyleMode.Battlefield5:
-                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 5, 21, 38), Offset = 0 });
-                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 16, 62, 92), Offset = 1 });
-                    break;
-                case GameStyleMode.Valorant:
-                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 10, 14, 22), Offset = 0 });
-                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 22, 28, 42), Offset = 1 });
-                    break;
-                case GameStyleMode.Battlefield1:
-                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 12, 21, 28), Offset = 0 });
-                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 44, 59, 69), Offset = 1 });
-                    break;
-                case GameStyleMode.Battlefield4:
-                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 9, 20, 31), Offset = 0 });
-                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 24, 55, 80), Offset = 1 });
-                    break;
-                case GameStyleMode.Battlefield2042:
-                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 4, 16, 24), Offset = 0 });
-                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 20, 68, 82), Offset = 0.58 });
-                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 61, 16, 35), Offset = 1 });
-                    break;
-                case GameStyleMode.Pubg:
-                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 26, 24, 17), Offset = 0 });
-                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 74, 61, 30), Offset = 1 });
-                    break;
-                case GameStyleMode.Apex:
-                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 28, 20, 20), Offset = 0 });
-                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 76, 31, 30), Offset = 1 });
-                    break;
-                case GameStyleMode.Overwatch:
-                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 38, 48, 58), Offset = 0 });
-                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 79, 87, 96), Offset = 1 });
-                    break;
-                case GameStyleMode.ModernWarfare2019:
-                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 16, 30, 35), Offset = 0 });
-                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 39, 74, 84), Offset = 1 });
-                    break;
-                case GameStyleMode.DeltaForce:
-                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 9, 21, 19), Offset = 0 });
-                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 37, 69, 47), Offset = 1 });
-                    break;
-                case GameStyleMode.Doubao:
-                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 10, 15, 30), Offset = 0 });
-                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 25, 35, 65), Offset = 1 });
-                    break;
-                case GameStyleMode.Dagoujiao:
-                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 20, 10, 30), Offset = 0 });
-                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 45, 20, 65), Offset = 1 });
-                    break;
-                case GameStyleMode.Csol:
-                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 25, 10, 12), Offset = 0 });
-                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 50, 18, 22), Offset = 1 });
-                    break;
-                case GameStyleMode.Crossfire:
-                default:
-                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 242, 243, 242), Offset = 0 });
-                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 216, 217, 216), Offset = 1 });
-                    break;
-            }
-
+            // One light wash for every workspace. Per-game colour lives in the
+            // background blobs, so cards keep exactly one contrast level.
+            brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 247, 247, 250), Offset = 0.0 });
+            brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 237, 238, 243), Offset = 0.55 });
+            brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 231, 232, 238), Offset = 1.0 });
             return brush;
         }
 
@@ -304,7 +240,7 @@ namespace KillConfirmGameBar
                     brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 88, 28, 135), Offset = 1 });
                     break;
                 case GameStyleMode.Csol:
-                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 220, 38, 38), Offset = 0 });
+                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 255, 59, 48), Offset = 0 });
                     brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 153, 27, 27), Offset = 0.58 });
                     brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 69, 10, 10), Offset = 1 });
                     break;
@@ -370,7 +306,7 @@ namespace KillConfirmGameBar
                 string role = button.Tag as string;
                 if (string.Equals(role, "PackDelete", StringComparison.Ordinal))
                 {
-                    button.Background = new SolidColorBrush(Color.FromArgb(255, 254, 242, 242));
+                    button.Background = new SolidColorBrush(Color.FromArgb(26, 255, 59, 48));
                     button.Foreground = new SolidColorBrush(Color.FromArgb(255, 196, 43, 28));
                     button.BorderBrush = new SolidColorBrush(Color.FromArgb(255, 252, 209, 209));
                 }

@@ -159,7 +159,7 @@ namespace KillConfirmGameBar
                 Height = 27,
                 Padding = isDelete ? new Thickness(6, 3, 6, 3) : new Thickness(9, 3, 9, 3),
                 FontSize = 11,
-                Background = new SolidColorBrush(isDelete ? Color.FromArgb(255, 254, 242, 242) : theme.Field),
+                Background = new SolidColorBrush(isDelete ? Color.FromArgb(26, 255, 59, 48) : theme.Field),
                 Foreground = new SolidColorBrush(isDelete ? Color.FromArgb(255, 196, 43, 28) : theme.Accent),
                 BorderBrush = new SolidColorBrush(isDelete ? Color.FromArgb(255, 252, 209, 209) : theme.AccentSoft),
                 BorderThickness = new Thickness(1),
@@ -187,7 +187,7 @@ namespace KillConfirmGameBar
             var title = new TextBlock
             {
                 Text = PackCatalogService.GetVoicePackDisplayName(item),
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 29, 34, 51)),
+                Foreground = new SolidColorBrush(Color.FromArgb(255, 28, 28, 30)),
                 FontSize = 13,
                 FontWeight = Windows.UI.Text.FontWeights.SemiBold,
                 TextTrimming = TextTrimming.CharacterEllipsis
@@ -195,7 +195,7 @@ namespace KillConfirmGameBar
             var meta = new TextBlock
             {
                 Text = item.IsBuiltIn ? LocalizationManager.Text("BuiltIn") : LocalizationManager.Text("Custom"),
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 106, 110, 122)),
+                Foreground = new SolidColorBrush(Color.FromArgb(255, 110, 110, 115)),
                 FontSize = 11,
                 TextTrimming = TextTrimming.CharacterEllipsis
             };
@@ -346,7 +346,7 @@ namespace KillConfirmGameBar
             var title = new TextBlock
             {
                 Text = PackCatalogService.GetIconPackDisplayName(item),
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 29, 34, 51)),
+                Foreground = new SolidColorBrush(Color.FromArgb(255, 28, 28, 30)),
                 FontSize = 13,
                 FontWeight = Windows.UI.Text.FontWeights.SemiBold,
                 TextTrimming = TextTrimming.CharacterEllipsis
@@ -354,7 +354,7 @@ namespace KillConfirmGameBar
             var meta = new TextBlock
             {
                 Text = item.IsBuiltIn ? LocalizationManager.Text("BuiltIn") : LocalizationManager.Text("Custom"),
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 106, 110, 122)),
+                Foreground = new SolidColorBrush(Color.FromArgb(255, 110, 110, 115)),
                 FontSize = 11,
                 TextTrimming = TextTrimming.CharacterEllipsis
             };

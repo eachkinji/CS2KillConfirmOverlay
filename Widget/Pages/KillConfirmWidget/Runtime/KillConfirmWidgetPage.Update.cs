@@ -267,8 +267,8 @@ namespace KillConfirmGameBar
             if (_updateCheckInProgress)
             {
                 background = theme.SubtleField;
-                border = valorant ? theme.Secondary : Color.FromArgb(255, 185, 220, 236);
-                foreground = valorant ? theme.Secondary : Color.FromArgb(255, 46, 136, 184);
+                border = valorant ? theme.Secondary : Color.FromArgb(61, 0, 122, 255);
+                foreground = valorant ? theme.Secondary : Color.FromArgb(255, 0, 122, 255);
             }
             else if (_updateAvailabilityState == UpdateAvailabilityState.UpdateAvailable)
             {
@@ -300,7 +300,7 @@ namespace KillConfirmGameBar
         {
             if (_updateCheckInProgress)
             {
-                return Color.FromArgb(255, 46, 136, 184);
+                return Color.FromArgb(255, 0, 122, 255);
             }
 
             switch (_updateAvailabilityState)

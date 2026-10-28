@@ -119,14 +119,14 @@ namespace KillConfirmGameBar
             if (isActive)
             {
                 btn.Background = new SolidColorBrush(Color.FromArgb(255, 255, 255, 255));
-                btn.Foreground = new SolidColorBrush(Color.FromArgb(255, 27, 27, 27));
-                btn.BorderBrush = new SolidColorBrush(Color.FromArgb(255, 209, 209, 209));
-                btn.BorderThickness = new Thickness(1);
+                btn.Foreground = new SolidColorBrush(Color.FromArgb(255, 28, 28, 30));
+                btn.BorderBrush = new SolidColorBrush(Color.FromArgb(0, 0, 0, 0));
+                btn.BorderThickness = new Thickness(0);
             }
             else
             {
                 btn.Background = new SolidColorBrush(Colors.Transparent);
-                btn.Foreground = new SolidColorBrush(Color.FromArgb(255, 97, 97, 97));
+                btn.Foreground = new SolidColorBrush(Color.FromArgb(255, 110, 110, 115));
                 btn.BorderBrush = new SolidColorBrush(Colors.Transparent);
                 btn.BorderThickness = new Thickness(0);
             }

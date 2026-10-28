@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using KillConfirmGameBar.Services;
 using Windows.UI;
@@ -26,7 +26,7 @@ namespace KillConfirmGameBar
                 Text = (zh ? "选择素材 - " : "Select material - ") + (slotDisplayName ?? typeName),
                 FontSize = 16,
                 FontWeight = Windows.UI.Text.FontWeights.Bold,
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 29, 34, 51))
+                Foreground = new SolidColorBrush(Color.FromArgb(255, 28, 28, 30))
             });
             titlePanel.Children.Add(new TextBlock
             {
@@ -34,7 +34,7 @@ namespace KillConfirmGameBar
                     ? (zh ? "按游戏查看语音包文件夹；可跨包多选，播放时随机取一个。" : "Browse voice-pack folders by game; multiple picks play at random.")
                     : (zh ? "按游戏查看素材包文件夹；切换游戏即可跨游戏选择。" : "Browse pack folders by game; switch games for cross-game material."),
                 FontSize = 11,
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 106, 110, 122)),
+                Foreground = new SolidColorBrush(Color.FromArgb(255, 110, 110, 115)),
                 TextWrapping = TextWrapping.WrapWholeWords
             });
             titleGrid.Children.Add(titlePanel);
@@ -66,8 +66,8 @@ namespace KillConfirmGameBar
             gameSelector = new ComboBox
             {
                 HorizontalAlignment = HorizontalAlignment.Stretch,
-                Background = new SolidColorBrush(Color.FromArgb(255, 255, 255, 252)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 213, 208, 196)),
+                Background = new SolidColorBrush(Color.FromArgb(247, 255, 255, 255)),
+                BorderBrush = new SolidColorBrush(Color.FromArgb(31, 0, 0, 0)),
                 CornerRadius = new CornerRadius(8)
             };
             var gameStyles = new[]
@@ -95,8 +95,8 @@ namespace KillConfirmGameBar
             searchBox = new TextBox
             {
                 PlaceholderText = zh ? "搜索文件夹或文件..." : "Search folders or files...",
-                Background = new SolidColorBrush(Color.FromArgb(255, 255, 255, 252)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 213, 208, 196)),
+                Background = new SolidColorBrush(Color.FromArgb(247, 255, 255, 255)),
+                BorderBrush = new SolidColorBrush(Color.FromArgb(31, 0, 0, 0)),
                 CornerRadius = new CornerRadius(8)
             };
             Grid.SetColumn(searchBox, 1);
@@ -138,7 +138,7 @@ namespace KillConfirmGameBar
             {
                 VerticalAlignment = VerticalAlignment.Center,
                 FontSize = 10,
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 46, 136, 184))
+                Foreground = new SolidColorBrush(Color.FromArgb(255, 0, 122, 255))
             };
             Grid.SetColumn(selectionText, 2);
             navigation.Children.Add(selectionText);
@@ -154,7 +154,7 @@ namespace KillConfirmGameBar
                 VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
                 HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
                 Background = new SolidColorBrush(Color.FromArgb(255, 248, 249, 251)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 226, 221, 211)),
+                BorderBrush = new SolidColorBrush(Color.FromArgb(38, 0, 0, 0)),
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(10),
                 Padding = new Thickness(6),
@@ -179,9 +179,9 @@ namespace KillConfirmGameBar
                     : (zh ? "从电脑选择文件..." : "Choose a local file..."),
                 FontSize = 11,
                 Padding = new Thickness(10, 5, 10, 5),
-                Background = new SolidColorBrush(Color.FromArgb(255, 236, 247, 252)),
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 46, 136, 184)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 185, 220, 236)),
+                Background = new SolidColorBrush(Color.FromArgb(26, 0, 122, 255)),
+                Foreground = new SolidColorBrush(Color.FromArgb(255, 0, 122, 255)),
+                BorderBrush = new SolidColorBrush(Color.FromArgb(61, 0, 122, 255)),
                 CornerRadius = new CornerRadius(8)
             };
             toolbar.Children.Add(browseButton);
@@ -190,9 +190,9 @@ namespace KillConfirmGameBar
                 Content = zh ? "清空此项" : "Clear item",
                 FontSize = 11,
                 Padding = new Thickness(10, 5, 10, 5),
-                Background = new SolidColorBrush(Color.FromArgb(255, 254, 242, 242)),
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 220, 38, 38)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 254, 202, 202)),
+                Background = new SolidColorBrush(Color.FromArgb(26, 255, 59, 48)),
+                Foreground = new SolidColorBrush(Color.FromArgb(255, 255, 59, 48)),
+                BorderBrush = new SolidColorBrush(Color.FromArgb(61, 255, 59, 48)),
                 CornerRadius = new CornerRadius(8)
             };
             Grid.SetColumn(clearButton, 1);

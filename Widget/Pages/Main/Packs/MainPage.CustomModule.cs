@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -44,9 +44,9 @@ namespace KillConfirmGameBar
             return new ToggleButton
             {
                 Content = content, MinHeight = 38, HorizontalAlignment = HorizontalAlignment.Stretch,
-                Background = new SolidColorBrush(Color.FromArgb(255, 255, 255, 252)),
+                Background = new SolidColorBrush(Color.FromArgb(247, 255, 255, 255)),
                 Foreground = new SolidColorBrush(Color.FromArgb(255, 58, 63, 76)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 213, 208, 196)),
+                BorderBrush = new SolidColorBrush(Color.FromArgb(31, 0, 0, 0)),
                 BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(12)
             };
         }
@@ -58,11 +58,11 @@ namespace KillConfirmGameBar
                 bool active = index == selected;
                 buttons[index].IsChecked = active;
                 buttons[index].Background = new SolidColorBrush(active
-                    ? Color.FromArgb(255, 226, 244, 251) : Color.FromArgb(255, 255, 255, 252));
+                    ? Color.FromArgb(255, 226, 244, 251) : Color.FromArgb(247, 255, 255, 255));
                 buttons[index].Foreground = new SolidColorBrush(active
                     ? Color.FromArgb(255, 24, 116, 158) : Color.FromArgb(255, 58, 63, 76));
                 buttons[index].BorderBrush = new SolidColorBrush(active
-                    ? Color.FromArgb(255, 81, 170, 207) : Color.FromArgb(255, 213, 208, 196));
+                    ? Color.FromArgb(255, 81, 170, 207) : Color.FromArgb(31, 0, 0, 0));
             }
         }
 
@@ -350,7 +350,7 @@ namespace KillConfirmGameBar
                 Width = width,
                 MaxHeight = Math.Max(420, Window.Current.Bounds.Height - 50),
                 Padding = new Thickness(18),
-                Background = new SolidColorBrush(Color.FromArgb(255, 250, 250, 247)),
+                Background = new SolidColorBrush(Color.FromArgb(247, 255, 255, 255)),
                 BorderBrush = new SolidColorBrush(GameThemePalette.Current.AccentSoft),
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(20),
@@ -587,7 +587,7 @@ namespace KillConfirmGameBar
                         row.Hold = new TextBox { Header = chinese ? "末帧停留（秒）" : "Last-frame hold (s)", Width = 165 };
                         var timing = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
                         timing.Children.Add(row.Fps); timing.Children.Add(row.Hold); card.Children.Add(timing);
-                        var borderedCard = new Border { Padding = new Thickness(12), CornerRadius = new CornerRadius(16), Background = new SolidColorBrush(Color.FromArgb(255, 255, 255, 252)), BorderBrush = new SolidColorBrush(Color.FromArgb(255, 226, 221, 211)), BorderThickness = new Thickness(1), Child = card };
+                        var borderedCard = new Border { Padding = new Thickness(12), CornerRadius = new CornerRadius(16), Background = new SolidColorBrush(Color.FromArgb(247, 255, 255, 255)), BorderBrush = new SolidColorBrush(Color.FromArgb(38, 0, 0, 0)), BorderThickness = new Thickness(1), Child = card };
                         bool switchingMode = false;
                         void RefreshMode()
                         {

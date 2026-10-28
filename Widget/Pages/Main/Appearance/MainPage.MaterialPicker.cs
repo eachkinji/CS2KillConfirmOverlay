@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -92,8 +92,8 @@ namespace KillConfirmGameBar
                 Padding = new Thickness(18),
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center,
-                Background = new SolidColorBrush(Color.FromArgb(255, 250, 250, 247)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 213, 208, 196)),
+                Background = new SolidColorBrush(Color.FromArgb(247, 255, 255, 255)),
+                BorderBrush = new SolidColorBrush(Color.FromArgb(31, 0, 0, 0)),
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(18)
             };
@@ -268,9 +268,9 @@ namespace KillConfirmGameBar
                             Width = 28,
                             Height = 28,
                             Padding = new Thickness(0),
-                            Background = new SolidColorBrush(Color.FromArgb(255, 236, 247, 252)),
-                            Foreground = new SolidColorBrush(Color.FromArgb(255, 46, 136, 184)),
-                            BorderBrush = new SolidColorBrush(Color.FromArgb(255, 185, 220, 236)),
+                            Background = new SolidColorBrush(Color.FromArgb(26, 0, 122, 255)),
+                            Foreground = new SolidColorBrush(Color.FromArgb(255, 0, 122, 255)),
+                            BorderBrush = new SolidColorBrush(Color.FromArgb(61, 0, 122, 255)),
                             CornerRadius = new CornerRadius(14)
                         };
                         play.Click += async (_, __) => await PlayPreviewAsync(file);
@@ -307,9 +307,9 @@ namespace KillConfirmGameBar
                         FontSize = 10,
                         Padding = new Thickness(8, 3, 8, 3),
                         Background = new SolidColorBrush(selected
-                            ? Color.FromArgb(255, 46, 136, 184)
+                            ? Color.FromArgb(255, 0, 122, 255)
                             : Color.FromArgb(255, 240, 240, 240)),
-                        Foreground = new SolidColorBrush(selected ? Colors.White : Color.FromArgb(255, 29, 34, 51)),
+                        Foreground = new SolidColorBrush(selected ? Colors.White : Color.FromArgb(255, 28, 28, 30)),
                         CornerRadius = new CornerRadius(6)
                     };
                     select.Click += (_, __) =>
@@ -321,16 +321,16 @@ namespace KillConfirmGameBar
                             bool nowSelected = selection.ContainsKey(id);
                             select.Content = nowSelected ? (zh ? "取消选择" : "Remove") : (zh ? "加入" : "Add");
                             select.Background = new SolidColorBrush(nowSelected
-                                ? Color.FromArgb(255, 46, 136, 184)
+                                ? Color.FromArgb(255, 0, 122, 255)
                                 : Color.FromArgb(255, 240, 240, 240));
                             select.Foreground = new SolidColorBrush(nowSelected
                                 ? Colors.White
-                                : Color.FromArgb(255, 29, 34, 51));
+                                : Color.FromArgb(255, 28, 28, 30));
                             fileCard.Background = new SolidColorBrush(nowSelected
                                 ? Color.FromArgb(255, 230, 244, 255)
                                 : Colors.White);
                             fileCard.BorderBrush = new SolidColorBrush(nowSelected
-                                ? Color.FromArgb(255, 46, 136, 184)
+                                ? Color.FromArgb(255, 0, 122, 255)
                                 : Color.FromArgb(255, 230, 230, 230));
                         }
                         else
@@ -347,7 +347,7 @@ namespace KillConfirmGameBar
                         ? Color.FromArgb(255, 230, 244, 255)
                         : Colors.White);
                     fileCard.BorderBrush = new SolidColorBrush(selected
-                        ? Color.FromArgb(255, 46, 136, 184)
+                        ? Color.FromArgb(255, 0, 122, 255)
                         : Color.FromArgb(255, 230, 230, 230));
                     itemsPanel.Children.Add(fileCard);
                 }

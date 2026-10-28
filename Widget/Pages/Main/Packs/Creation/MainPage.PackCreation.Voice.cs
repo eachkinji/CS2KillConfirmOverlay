@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using KillConfirmGameBar.Services;
@@ -64,9 +64,9 @@ namespace KillConfirmGameBar
                 Width = 118,
                 MinWidth = 118,
                 FontSize = 11,
-                Background = new SolidColorBrush(Color.FromArgb(255, 255, 255, 252)),
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 29, 34, 51)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 213, 208, 196)),
+                Background = new SolidColorBrush(Color.FromArgb(247, 255, 255, 255)),
+                Foreground = new SolidColorBrush(Color.FromArgb(255, 28, 28, 30)),
+                BorderBrush = new SolidColorBrush(Color.FromArgb(31, 0, 0, 0)),
                 CornerRadius = new CornerRadius(14)
             };
             commonOverlayMode.Items.Add(new ComboBoxItem
@@ -93,7 +93,7 @@ namespace KillConfirmGameBar
                 Text = customCommonOverlayFile?.Name
                     ?? LocalizationManager.Text("UseBuiltInCommon"),
                 FontSize = 12,
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 106, 110, 122)),
+                Foreground = new SolidColorBrush(Color.FromArgb(255, 110, 110, 115)),
                 TextTrimming = TextTrimming.CharacterEllipsis,
                 VerticalAlignment = VerticalAlignment.Center
             };
@@ -104,9 +104,9 @@ namespace KillConfirmGameBar
                 FontFamily = new FontFamily("Segoe MDL2 Assets"),
                 MinWidth = 30,
                 Padding = new Thickness(5, 4, 5, 4),
-                Background = new SolidColorBrush(Color.FromArgb(255, 236, 247, 252)),
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 46, 136, 184)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 185, 220, 236)),
+                Background = new SolidColorBrush(Color.FromArgb(26, 0, 122, 255)),
+                Foreground = new SolidColorBrush(Color.FromArgb(255, 0, 122, 255)),
+                BorderBrush = new SolidColorBrush(Color.FromArgb(61, 0, 122, 255)),
                 CornerRadius = new CornerRadius(12)
             };
             commonOverlayPreviewButton.Click += async (_, __) =>
@@ -129,9 +129,9 @@ namespace KillConfirmGameBar
                 Padding = new Thickness(5, 4, 5, 4),
                 FontSize = 11,
                 IsEnabled = !useBuiltInCommonOverlay,
-                Background = new SolidColorBrush(Color.FromArgb(255, 236, 247, 252)),
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 46, 136, 184)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 185, 220, 236)),
+                Background = new SolidColorBrush(Color.FromArgb(26, 0, 122, 255)),
+                Foreground = new SolidColorBrush(Color.FromArgb(255, 0, 122, 255)),
+                BorderBrush = new SolidColorBrush(Color.FromArgb(61, 0, 122, 255)),
                 CornerRadius = new CornerRadius(12)
             };
             commonOverlayBrowseButton.Click += async (_, __) =>
@@ -173,9 +173,9 @@ namespace KillConfirmGameBar
                 MinWidth = 62,
                 Padding = new Thickness(6, 4, 6, 4),
                 FontSize = 11,
-                Background = new SolidColorBrush(Color.FromArgb(255, 46, 136, 184)),
+                Background = new SolidColorBrush(Color.FromArgb(255, 0, 122, 255)),
                 Foreground = new SolidColorBrush(Colors.White),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 58, 156, 207)),
+                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 61, 155, 255)),
                 CornerRadius = new CornerRadius(12)
             };
             overlayOnButton.Click += (_, __) =>
@@ -191,9 +191,9 @@ namespace KillConfirmGameBar
                 MinWidth = 62,
                 Padding = new Thickness(6, 4, 6, 4),
                 FontSize = 11,
-                Background = new SolidColorBrush(Color.FromArgb(255, 255, 255, 252)),
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 29, 34, 51)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 213, 208, 196)),
+                Background = new SolidColorBrush(Color.FromArgb(247, 255, 255, 255)),
+                Foreground = new SolidColorBrush(Color.FromArgb(255, 28, 28, 30)),
+                BorderBrush = new SolidColorBrush(Color.FromArgb(31, 0, 0, 0)),
                 CornerRadius = new CornerRadius(12)
             };
             overlayOffButton.Click += (_, __) =>
@@ -243,10 +243,10 @@ namespace KillConfirmGameBar
                         MinWidth = 0,
                         Padding = new Thickness(0)
                     };
-                    overlayCheckBox.Resources["CheckBoxCheckBackgroundFillChecked"] = new SolidColorBrush(Color.FromArgb(255, 46, 136, 184));
-                    overlayCheckBox.Resources["CheckBoxCheckBackgroundStrokeChecked"] = new SolidColorBrush(Color.FromArgb(255, 185, 220, 236));
+                    overlayCheckBox.Resources["CheckBoxCheckBackgroundFillChecked"] = new SolidColorBrush(Color.FromArgb(255, 0, 122, 255));
+                    overlayCheckBox.Resources["CheckBoxCheckBackgroundStrokeChecked"] = new SolidColorBrush(Color.FromArgb(61, 0, 122, 255));
                     overlayCheckBox.Resources["CheckBoxCheckBackgroundFillUnchecked"] = new SolidColorBrush(Color.FromArgb(255, 255, 253, 252));
-                    overlayCheckBox.Resources["CheckBoxCheckBackgroundStrokeUnchecked"] = new SolidColorBrush(Color.FromArgb(255, 213, 208, 196));
+                    overlayCheckBox.Resources["CheckBoxCheckBackgroundStrokeUnchecked"] = new SolidColorBrush(Color.FromArgb(31, 0, 0, 0));
                     overlayCheckBox.Resources["CheckBoxCheckGlyphForegroundChecked"] = new SolidColorBrush(Colors.White);
 
                     var overlayToggle = new Grid
@@ -264,7 +264,7 @@ namespace KillConfirmGameBar
                         Text = LocalizationManager.Text("LayerCommon"),
                         FontSize = 11,
                         FontWeight = Windows.UI.Text.FontWeights.SemiBold,
-                        Foreground = new SolidColorBrush(Color.FromArgb(255, 29, 34, 51)),
+                        Foreground = new SolidColorBrush(Color.FromArgb(255, 28, 28, 30)),
                         VerticalAlignment = VerticalAlignment.Center,
                         TextTrimming = TextTrimming.CharacterEllipsis
                     };

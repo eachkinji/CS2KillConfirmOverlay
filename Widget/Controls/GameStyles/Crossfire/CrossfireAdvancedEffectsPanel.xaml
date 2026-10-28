@@ -1,4 +1,4 @@
-<UserControl
+﻿<UserControl
     x:Class="KillConfirmGameBar.Controls.GameStyles.CrossfireAdvancedEffectsPanel"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -41,7 +41,7 @@
         <!-- Section 1: Visual FX & Badges (Style Panel Host) -->
         <StackPanel Spacing="6">
             <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,2,0,0">
-                <Border Width="3" Height="14" Background="#2E88B8" CornerRadius="1" VerticalAlignment="Center" />
+                <Border Width="3" Height="14" Background="#007AFF" CornerRadius="1" VerticalAlignment="Center" />
                 <TextBlock
                     x:Name="VisualEffectsGroupLabel"
                     FontSize="12"

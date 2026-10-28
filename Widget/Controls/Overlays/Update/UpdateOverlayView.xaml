@@ -15,7 +15,7 @@
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
                 Background="#FFFAF7F0"
-                BorderBrush="#E2DDD3"
+                BorderBrush="#26000000"
                 BorderThickness="1"
                 CornerRadius="24">
                 <Grid RowSpacing="14">
@@ -36,7 +36,7 @@
                                 x:FieldModifier="public"
                                 FontSize="24"
                                 FontWeight="Bold"
-                                Foreground="#1B1F31"
+                                Foreground="#1C1C1E"
                                 Text="鍙戠幇鏇存柊" />
                             <TextBlock
                                 x:Name="UpdateDialogVersionText"
@@ -54,22 +54,22 @@
                             Height="30"
                             MinWidth="30"
                             Padding="0"
-                            Background="#FFFDFC"
-                            BorderBrush="#D5D0C4"
+                            Background="#FBFBFD"
+                            BorderBrush="#1F000000"
                             BorderThickness="1"
                             Click="OnCloseUpdateOverlayClick"
                             CornerRadius="15"
                             FontSize="13"
                             HorizontalContentAlignment="Center"
                             VerticalContentAlignment="Center"
-                            Foreground="#1B1F31">
+                            Foreground="#1C1C1E">
                             <FontIcon
                                 FontFamily="Segoe MDL2 Assets"
                                 FontSize="12"
                                 Glyph="&#xE711;"
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center"
-                                Foreground="#1B1F31" />
+                                Foreground="#1C1C1E" />
                         </Button>
                     </Grid>
 
@@ -78,7 +78,7 @@
                         x:FieldModifier="public"
                         Grid.Row="1"
                         FontSize="13"
-                        Foreground="#4B5563"
+                        Foreground="#6E6E73"
                         LineHeight="20"
                         TextWrapping="WrapWholeWords" />
 
@@ -91,8 +91,8 @@
                             x:Name="AboutCard"
                             x:FieldModifier="public"
                             Padding="12"
-                            Background="#FFFDFC"
-                            BorderBrush="#E2DDD3"
+                            Background="#FBFBFD"
+                            BorderBrush="#26000000"
                             BorderThickness="1"
                             CornerRadius="16">
                         <StackPanel Spacing="7">
@@ -112,7 +112,7 @@
                                         Width="30"
                                         Height="30"
                                         Background="#F3F8FB"
-                                        BorderBrush="#D5D0C4"
+                                        BorderBrush="#1F000000"
                                         BorderThickness="1"
                                         CornerRadius="15">
                                         <Image
@@ -128,7 +128,7 @@
                                         FontFamily="Segoe UI"
                                         FontSize="13"
                                         FontWeight="SemiBold"
-                                        Foreground="#1B1F31"
+                                        Foreground="#1C1C1E"
                                         LineHeight="17"
                                         Text="作者：Zac" />
                                 </StackPanel>
@@ -139,13 +139,13 @@
                                     Width="104"
                                     Height="28"
                                     MinWidth="104"
-                                    Background="#FFFDFC"
-                                    BorderBrush="#D5D0C4"
+                                    Background="#FBFBFD"
+                                    BorderBrush="#1F000000"
                                     BorderThickness="1"
                                     Click="OnOpenAuthorGitHubClick"
                                     CornerRadius="10"
                                     FontSize="12"
-                                    Foreground="#1B1F31">
+                                    Foreground="#1C1C1E">
                                     <StackPanel
                                         HorizontalAlignment="Center"
                                         Orientation="Horizontal"
@@ -169,13 +169,13 @@
                                     Width="116"
                                     Height="28"
                                     MinWidth="116"
-                                    Background="#FFFDFC"
-                                    BorderBrush="#D5D0C4"
+                                    Background="#FBFBFD"
+                                    BorderBrush="#1F000000"
                                     BorderThickness="1"
                                     Click="OnOpenBilibiliClick"
                                     CornerRadius="10"
                                     FontSize="12"
-                                    Foreground="#1B1F31">
+                                    Foreground="#1C1C1E">
                                     <StackPanel
                                         HorizontalAlignment="Center"
                                         Orientation="Horizontal"
@@ -203,7 +203,7 @@
                                 BorderThickness="1"
                                 Click="OnOpenDownloadLinkClick"
                                 CornerRadius="10"
-                                Foreground="#1B1F31">
+                                Foreground="#1C1C1E">
                                 <StackPanel
                                     HorizontalAlignment="Center"
                                     Orientation="Horizontal"
@@ -233,21 +233,21 @@
                                     VerticalAlignment="Center"
                                     FontSize="12"
                                     FontWeight="Bold"
-                                    Foreground="#1B1F31" />
+                                    Foreground="#1C1C1E" />
                                 <Button
                                     x:Name="UpdateCopyQuarkButton"
                                     x:FieldModifier="public"
                                     Grid.Column="1"
                                     Height="28"
                                     MinWidth="112"
-                                    Background="#FFFDFC"
+                                    Background="#FBFBFD"
                                     BorderBrush="#B9DCEC"
                                     BorderThickness="1"
                                     Click="OnCopyQuarkUpdateClick"
                                     Content="复制网盘链接"
                                     CornerRadius="10"
                                     FontSize="12"
-                                    Foreground="#1B1F31" />
+                                    Foreground="#1C1C1E" />
                             </Grid>
                             <settings:CreditsCommunityPanel
                                 x:Name="UpdateCreditsCommunityPanel"
@@ -263,7 +263,7 @@
                                     VerticalAlignment="Center"
                                     FontSize="12"
                                     FontWeight="Bold"
-                                    Foreground="#1B1F31"
+                                    Foreground="#1C1C1E"
                                     Text="最新版本说明" />
                                 <Button
                                     x:Name="UpdateReleaseToggleButton"
@@ -273,14 +273,14 @@
                                     Height="24"
                                     MinWidth="56"
                                     Padding="0"
-                                    Background="#FFFDFC"
-                                    BorderBrush="#D5D0C4"
+                                    Background="#FBFBFD"
+                                    BorderBrush="#1F000000"
                                     BorderThickness="1"
                                     Click="OnToggleReleaseNotesClick"
                                     Content="展开"
                                     CornerRadius="8"
                                     FontSize="11"
-                                    Foreground="#1B1F31" />
+                                    Foreground="#1C1C1E" />
                             </Grid>
                             <ScrollViewer
                                 x:Name="UpdateReleaseScrollViewer"
@@ -292,7 +292,7 @@
                                     x:Name="UpdateReleaseInfoText"
                                     x:FieldModifier="public"
                                     FontSize="11"
-                                    Foreground="#4B5563"
+                                    Foreground="#6E6E73"
                                     LineHeight="17"
                                     TextWrapping="WrapWholeWords" />
                             </ScrollViewer>

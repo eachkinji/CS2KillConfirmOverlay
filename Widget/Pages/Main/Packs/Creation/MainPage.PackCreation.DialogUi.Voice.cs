@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -39,9 +39,9 @@ namespace KillConfirmGameBar
                 FontFamily = new FontFamily("Segoe MDL2 Assets"),
                 MinWidth = 30,
                 Padding = new Thickness(5, 4, 5, 4),
-                Background = new SolidColorBrush(Color.FromArgb(255, 236, 247, 252)),
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 46, 136, 184)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 185, 220, 236)),
+                Background = new SolidColorBrush(Color.FromArgb(26, 0, 122, 255)),
+                Foreground = new SolidColorBrush(Color.FromArgb(255, 0, 122, 255)),
+                BorderBrush = new SolidColorBrush(Color.FromArgb(61, 0, 122, 255)),
                 CornerRadius = new CornerRadius(12)
             };
             playButton.Click += async (_, __) =>
@@ -60,14 +60,14 @@ namespace KillConfirmGameBar
             {
                 Text = slotDisplayName,
                 FontWeight = Windows.UI.Text.FontWeights.SemiBold,
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 29, 34, 51)),
+                Foreground = new SolidColorBrush(Color.FromArgb(255, 28, 28, 30)),
                 FontSize = 12,
                 TextTrimming = TextTrimming.CharacterEllipsis
             });
             var fileText = new TextBlock
             {
                 FontSize = 12,
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 106, 110, 122)),
+                Foreground = new SolidColorBrush(Color.FromArgb(255, 110, 110, 115)),
                 TextTrimming = TextTrimming.CharacterEllipsis
             };
             info.Children.Add(fileText);
@@ -77,7 +77,7 @@ namespace KillConfirmGameBar
                 {
                     Text = hint,
                     FontSize = 9,
-                    Foreground = new SolidColorBrush(Color.FromArgb(255, 106, 110, 122)),
+                    Foreground = new SolidColorBrush(Color.FromArgb(255, 110, 110, 115)),
                     LineHeight = 11,
                     MaxLines = 2,
                     TextWrapping = TextWrapping.WrapWholeWords
@@ -92,9 +92,9 @@ namespace KillConfirmGameBar
                 MinWidth = 56,
                 Padding = new Thickness(5, 4, 5, 4),
                 FontSize = 10,
-                Background = new SolidColorBrush(Color.FromArgb(255, 236, 247, 252)),
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 46, 136, 184)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 185, 220, 236)),
+                Background = new SolidColorBrush(Color.FromArgb(26, 0, 122, 255)),
+                Foreground = new SolidColorBrush(Color.FromArgb(255, 0, 122, 255)),
+                BorderBrush = new SolidColorBrush(Color.FromArgb(61, 0, 122, 255)),
                 CornerRadius = new CornerRadius(12)
             };
             Grid.SetColumn(selectButton, 2);
@@ -105,9 +105,9 @@ namespace KillConfirmGameBar
                 MinWidth = 56,
                 Padding = new Thickness(5, 4, 5, 4),
                 FontSize = 10,
-                Background = new SolidColorBrush(Color.FromArgb(255, 254, 242, 242)),
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 220, 38, 38)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 254, 202, 202)),
+                Background = new SolidColorBrush(Color.FromArgb(26, 255, 59, 48)),
+                Foreground = new SolidColorBrush(Color.FromArgb(255, 255, 59, 48)),
+                BorderBrush = new SolidColorBrush(Color.FromArgb(61, 255, 59, 48)),
                 CornerRadius = new CornerRadius(12)
             };
             Grid.SetColumn(resetButton, 3);
@@ -153,8 +153,8 @@ namespace KillConfirmGameBar
             return Task.FromResult(new Border
             {
                 Padding = new Thickness(8, 6, 8, 6),
-                Background = new SolidColorBrush(Color.FromArgb(255, 255, 255, 252)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 226, 221, 211)),
+                Background = new SolidColorBrush(Color.FromArgb(247, 255, 255, 255)),
+                BorderBrush = new SolidColorBrush(Color.FromArgb(38, 0, 0, 0)),
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(14),
                 Child = row
@@ -199,7 +199,7 @@ namespace KillConfirmGameBar
                 CloseButtonStyle = CreateDialogCloseButtonStyle(),
                 RequestedTheme = ElementTheme.Light,
                 Background = new SolidColorBrush(Colors.Transparent),
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 29, 34, 51))
+                Foreground = new SolidColorBrush(Color.FromArgb(255, 28, 28, 30))
             };
             return await dialog.ShowAsync();
         }

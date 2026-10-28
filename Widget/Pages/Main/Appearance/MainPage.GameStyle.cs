@@ -147,29 +147,29 @@ namespace KillConfirmGameBar
 
             ApplyPageTitleTheme(theme);
             SetText(GameStyleLabelText, theme.Text);
-            SetText(GameEffectsTitleText, Color.FromArgb(255, 27, 27, 27));
-            SetText(VoiceCollectionsTitleText, Color.FromArgb(255, 27, 27, 27));
-            SetText(VoiceCollectionsHintText, Color.FromArgb(255, 97, 97, 97));
-            SetText(IconCollectionsTitleText, Color.FromArgb(255, 27, 27, 27));
-            SetText(IconCollectionsHintText, Color.FromArgb(255, 97, 97, 97));
-            SetText(VoiceVisibleCountText, Color.FromArgb(255, 0, 103, 192));
-            SetText(IconVisibleCountText, Color.FromArgb(255, 0, 103, 192));
-            SetText(StructureTitleText, Color.FromArgb(255, 27, 27, 27));
-            SetText(StructureBodyText, Color.FromArgb(255, 97, 97, 97));
-            SetText(StructureImportFolderTitleText, Color.FromArgb(255, 27, 27, 27));
-            SetText(StructureImportFolderBodyText, Color.FromArgb(255, 97, 97, 97));
-            SetText(StructureVoiceSpecTitleText, Color.FromArgb(255, 27, 27, 27));
-            SetText(StructureVoiceSpecBodyText, Color.FromArgb(255, 66, 66, 66));
-            SetText(StructureIconSpecTitleText, Color.FromArgb(255, 27, 27, 27));
-            SetText(StructureIconSpecSummaryText, Color.FromArgb(255, 0, 103, 192));
-            SetText(StructureIconSpecFullText, Color.FromArgb(255, 66, 66, 66));
-            SetText(StructureImportZipTitleText, Color.FromArgb(255, 27, 27, 27));
-            SetText(StructureImportZipBodyText, Color.FromArgb(255, 97, 97, 97));
-            SetText(StructureCreatorTitleText, Color.FromArgb(255, 27, 27, 27));
-            SetText(StructureCreatorBodyText, Color.FromArgb(255, 97, 97, 97));
-            SetText(StructureFileHintText, Color.FromArgb(255, 66, 66, 66));
-            SetText(TipsTitleText, Color.FromArgb(255, 27, 27, 27));
-            SetText(TipsBodyText, Color.FromArgb(255, 97, 97, 97));
+            SetText(GameEffectsTitleText, Color.FromArgb(255, 28, 28, 30));
+            SetText(VoiceCollectionsTitleText, Color.FromArgb(255, 28, 28, 30));
+            SetText(VoiceCollectionsHintText, Color.FromArgb(255, 110, 110, 115));
+            SetText(IconCollectionsTitleText, Color.FromArgb(255, 28, 28, 30));
+            SetText(IconCollectionsHintText, Color.FromArgb(255, 110, 110, 115));
+            SetText(VoiceVisibleCountText, Color.FromArgb(255, 0, 122, 255));
+            SetText(IconVisibleCountText, Color.FromArgb(255, 0, 122, 255));
+            SetText(StructureTitleText, Color.FromArgb(255, 28, 28, 30));
+            SetText(StructureBodyText, Color.FromArgb(255, 110, 110, 115));
+            SetText(StructureImportFolderTitleText, Color.FromArgb(255, 28, 28, 30));
+            SetText(StructureImportFolderBodyText, Color.FromArgb(255, 110, 110, 115));
+            SetText(StructureVoiceSpecTitleText, Color.FromArgb(255, 28, 28, 30));
+            SetText(StructureVoiceSpecBodyText, Color.FromArgb(255, 58, 58, 60));
+            SetText(StructureIconSpecTitleText, Color.FromArgb(255, 28, 28, 30));
+            SetText(StructureIconSpecSummaryText, Color.FromArgb(255, 0, 122, 255));
+            SetText(StructureIconSpecFullText, Color.FromArgb(255, 58, 58, 60));
+            SetText(StructureImportZipTitleText, Color.FromArgb(255, 28, 28, 30));
+            SetText(StructureImportZipBodyText, Color.FromArgb(255, 110, 110, 115));
+            SetText(StructureCreatorTitleText, Color.FromArgb(255, 28, 28, 30));
+            SetText(StructureCreatorBodyText, Color.FromArgb(255, 110, 110, 115));
+            SetText(StructureFileHintText, Color.FromArgb(255, 58, 58, 60));
+            SetText(TipsTitleText, Color.FromArgb(255, 28, 28, 30));
+            SetText(TipsBodyText, Color.FromArgb(255, 110, 110, 115));
 
             ApplySectionTheme(GameEffectsCard, theme);
             ApplyCardTheme(VoicePackCollectionsCard, theme);
@@ -200,8 +200,10 @@ namespace KillConfirmGameBar
         {
             if (card != null)
             {
-                card.Background = new SolidColorBrush(Color.FromArgb(255, 255, 255, 255));
-                card.BorderBrush = new SolidColorBrush(Color.FromArgb(255, 229, 229, 229));
+                // One layer of glass: translucent white over the page wash.
+                card.Background = new SolidColorBrush(Color.FromArgb(184, 255, 255, 255));
+                card.BorderBrush = new SolidColorBrush(Color.FromArgb(166, 255, 255, 255));
+                card.CornerRadius = new CornerRadius(20);
             }
         }
 
@@ -209,21 +211,22 @@ namespace KillConfirmGameBar
         {
             if (PageTitleSurface != null)
             {
-                // Keep the title on an opaque theme-colored surface so the
-                // decorative game background can never reduce its contrast.
-                PageTitleSurface.Background = new SolidColorBrush(theme.AccentSoft);
-                PageTitleSurface.BorderBrush = new SolidColorBrush(theme.Accent);
+                PageTitleSurface.Background = new SolidColorBrush(Colors.Transparent);
+                PageTitleSurface.BorderBrush = new SolidColorBrush(Colors.Transparent);
+                PageTitleSurface.CornerRadius = new CornerRadius(0);
             }
 
-            SetText(TitleText, theme.AccentText);
+            // The page title is content, not an action: keep it on primary text.
+            SetText(TitleText, theme.Text);
         }
 
         private static void ApplyCardTheme(Border card, GameThemePalette theme)
         {
             if (card != null)
             {
-                card.Background = new SolidColorBrush(Color.FromArgb(255, 255, 255, 255));
-                card.BorderBrush = new SolidColorBrush(Color.FromArgb(255, 229, 229, 229));
+                card.Background = new SolidColorBrush(Color.FromArgb(184, 255, 255, 255));
+                card.BorderBrush = new SolidColorBrush(Color.FromArgb(166, 255, 255, 255));
+                card.CornerRadius = new CornerRadius(20);
             }
         }
 
@@ -373,8 +376,8 @@ namespace KillConfirmGameBar
         {
             if (GameModeSidebar != null)
             {
-                GameModeSidebar.Background = new SolidColorBrush(theme.Panel);
-                GameModeSidebar.BorderBrush = new SolidColorBrush(theme.Border);
+                GameModeSidebar.Background = new SolidColorBrush(Color.FromArgb(242, 246, 247, 250));
+                GameModeSidebar.BorderBrush = new SolidColorBrush(Color.FromArgb(217, 255, 255, 255));
             }
 
             if (GameStyleSidebarSelector == null)

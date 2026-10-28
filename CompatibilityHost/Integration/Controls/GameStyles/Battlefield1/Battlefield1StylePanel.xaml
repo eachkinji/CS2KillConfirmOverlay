@@ -6,7 +6,7 @@
     <Border
         x:Name="Card"
         Padding="10"
-        Background="#1E2C36"
+        Background="#1C1C1E"
         BorderBrush="#F28F32"
         BorderThickness="1"
         Visibility="Collapsed"

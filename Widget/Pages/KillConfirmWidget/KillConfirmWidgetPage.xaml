@@ -285,16 +285,16 @@
 
         <Border
             x:Name="ControlPanel"
-            Margin="5"
-            Padding="4"
+            Margin="6"
+            Padding="6"
             HorizontalAlignment="Center"
             VerticalAlignment="Top"
             Width="452"
             MaxWidth="452"
-            Background="#F4FAFAF7"
-            BorderBrush="#E2DDD3"
+            Background="#F2F6F7FA"
+            BorderBrush="#B3FFFFFF"
             BorderThickness="1"
-            CornerRadius="18">
+            CornerRadius="22">
             <Grid>
                 <Grid x:Name="MainPanelContent" RowSpacing="3">
                 <Grid.RowDefinitions>

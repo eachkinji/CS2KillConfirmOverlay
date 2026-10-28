@@ -1,7 +1,8 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
 using KillConfirmGameBar.Services;
+using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
@@ -180,9 +181,9 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             if (_theme != null)
             {
                 GameBarModeCard.Background = _theme.Brush(compatibility ? _theme.Card : _theme.AccentSoft);
-                GameBarModeCard.BorderBrush = _theme.Brush(compatibility ? _theme.SoftBorder : _theme.Accent);
+                GameBarModeCard.BorderBrush = _theme.Brush(compatibility ? CardStrokeColor : AccentBorderColor(_theme));
                 CompatibilityModeCard.Background = _theme.Brush(compatibility ? _theme.AccentSoft : _theme.Card);
-                CompatibilityModeCard.BorderBrush = _theme.Brush(compatibility ? _theme.Accent : _theme.SoftBorder);
+                CompatibilityModeCard.BorderBrush = _theme.Brush(compatibility ? AccentBorderColor(_theme) : CardStrokeColor);
             }
             GameBarStatusSection.Visibility = compatibility ? Visibility.Collapsed : Visibility.Visible;
             OpenGameBarButton.Visibility = compatibility ? Visibility.Collapsed : Visibility.Visible;
@@ -190,17 +191,31 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             OpenGameBarButton.IsEnabled = !_switching && !CompatibilityDisplayRuntime.IsEnabled;
             TabBar.Visibility = CompatibilityWorkspace.Visibility = compatibility ? Visibility.Visible : Visibility.Collapsed;
         }
+        private static Color CardStrokeColor => Color.FromArgb(166, 255, 255, 255);
+
+        private static Color AccentBorderColor(GameThemePalette theme) =>
+            Color.FromArgb(115, theme.Accent.R, theme.Accent.G, theme.Accent.B);
+
         internal void ApplyTheme(GameThemePalette theme)
         {
             // Home uses the same neutral workspace palette as Advanced settings.
             _theme = GameThemePalette.Home; theme = _theme;
             Foreground = theme.Brush(theme.Text);
-            foreach (var card in new[] { ModeCard, LayoutCard, ScreenCard }) { card.Background = theme.Brush(theme.Card); card.BorderBrush = theme.Brush(theme.SoftBorder); }
-            TabBar.Background = theme.Brush(theme.SubtleField); TabBar.BorderBrush = theme.Brush(theme.Border);
+            foreach (var card in new[] { ModeCard, LayoutCard, ScreenCard })
+            {
+                card.Background = theme.Brush(theme.Card);
+                card.BorderBrush = theme.Brush(CardStrokeColor);
+            }
+            GameBarModeCard.CornerRadius = new CornerRadius(14);
+            CompatibilityModeCard.CornerRadius = new CornerRadius(14);
+            TabBar.Background = theme.Brush(Color.FromArgb(31, 120, 120, 128));
+            TabBar.BorderBrush = theme.Brush(Colors.Transparent);
+            TabBar.CornerRadius = new CornerRadius(14);
             ModeStatusBadge.Background = theme.Brush(theme.AccentSoft);
+            ModeStatusBadge.CornerRadius = new CornerRadius(14);
             StatusText.Foreground = theme.Brush(theme.Accent);
             foreach (var text in new[] { GameBarModeHint, CompatibilityModeHint, LayoutHint, ShortcutText, ScreenScopeHint }) text.Foreground = theme.Brush(theme.MutedText);
-            MainGameSelector.Background = theme.Brush(theme.Field); MainGameSelector.Foreground = theme.Brush(theme.Text); MainGameSelector.BorderBrush = theme.Brush(theme.Border); MainGameSelector.CornerRadius = new CornerRadius(4);
+            MainGameSelector.Background = theme.Brush(theme.Field); MainGameSelector.Foreground = theme.Brush(theme.Text); MainGameSelector.BorderBrush = theme.Brush(Color.FromArgb(15, 0, 0, 0)); MainGameSelector.CornerRadius = new CornerRadius(12);
             ApplyGameBarStatusTheme(theme);
             HomeView.ApplyTheme(theme); ApplyTab(); ApplyModeSelection(CompatibilityDisplayRuntime.Load().Enabled);
         }

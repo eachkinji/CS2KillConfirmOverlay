@@ -6,55 +6,15 @@
         <ResourceDictionary Source="ms-appx:///Pages/KillConfirmWidget/KillConfirmWidgetPage.Styles.xaml" />
     </ResourceDictionary.MergedDictionaries>
 
-    <LinearGradientBrush x:Key="MainBackgroundGradient" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Color="#F9F9F9" Offset="0.0" />
-        <GradientStop Color="#F3F3F3" Offset="1.0" />
+    <!-- Cool light wash; the coloured blobs live in MainPageBackgroundView. -->
+    <LinearGradientBrush x:Key="MainBackgroundGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#F7F7FA" Offset="0.0" />
+        <GradientStop Color="#EDEEF3" Offset="0.55" />
+        <GradientStop Color="#E7E8EE" Offset="1.0" />
     </LinearGradientBrush>
 
-    <Style x:Key="SettingsCaptionTextStyle" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="12" />
-        <Setter Property="Foreground" Value="#616161" />
-        <Setter Property="TextWrapping" Value="WrapWholeWords" />
-        <Setter Property="LineHeight" Value="16" />
-    </Style>
-
-    <Style x:Key="SettingsSectionTitleTextStyle" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="16" />
-        <Setter Property="FontWeight" Value="SemiBold" />
-        <Setter Property="Foreground" Value="#1B1B1B" />
-    </Style>
-
-    <Style x:Key="MethodStepBodyTextStyle" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="12" />
-        <Setter Property="Foreground" Value="#616161" />
-        <Setter Property="TextWrapping" Value="WrapWholeWords" />
-        <Setter Property="LineHeight" Value="16" />
-    </Style>
-
-    <Style x:Key="MethodStepDetailTitleTextStyle" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="12" />
-        <Setter Property="FontWeight" Value="SemiBold" />
-        <Setter Property="Foreground" Value="#1B1B1B" />
-    </Style>
-
-    <Style x:Key="MethodStepMonoTextStyle" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="11" />
-        <Setter Property="Foreground" Value="#424242" />
-        <Setter Property="TextWrapping" Value="WrapWholeWords" />
-        <Setter Property="FontFamily" Value="Consolas" />
-        <Setter Property="LineHeight" Value="16" />
-    </Style>
-
-    <Style x:Key="MethodInlineButtonStyle" TargetType="Button">
-        <Setter Property="Padding" Value="8,4" />
-        <Setter Property="MinWidth" Value="0" />
-        <Setter Property="Background" Value="#EBF3FC" />
-        <Setter Property="Foreground" Value="#0067C0" />
-        <Setter Property="BorderBrush" Value="#CCE4F7" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="4" />
-        <Setter Property="FontSize" Value="11" />
-        <Setter Property="FontWeight" Value="SemiBold" />
-    </Style>
+    <SolidColorBrush x:Key="MainCardBrush" Color="#B8FFFFFF" />
+    <SolidColorBrush x:Key="MainCardStrokeBrush" Color="#A6FFFFFF" />
+    <SolidColorBrush x:Key="MainNestedSurfaceBrush" Color="#70FFFFFF" />
 
 </ResourceDictionary>

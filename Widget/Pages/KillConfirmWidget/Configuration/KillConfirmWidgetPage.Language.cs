@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using KillConfirmGameBar.Services;
 using Windows.UI;
 using Windows.UI.Xaml;
@@ -33,9 +33,9 @@ namespace KillConfirmGameBar
 
                 HeaderStatusSection.LanguageEnglishChip.Background = isChinese
                     ? new SolidColorBrush(Color.FromArgb(0, 0, 0, 0))
-                    : new SolidColorBrush(Color.FromArgb(255, 46, 136, 184));
+                    : new SolidColorBrush(Color.FromArgb(255, 0, 122, 255));
                 HeaderStatusSection.LanguageChineseChip.Background = isChinese
-                    ? new SolidColorBrush(Color.FromArgb(255, 46, 136, 184))
+                    ? new SolidColorBrush(Color.FromArgb(255, 0, 122, 255))
                     : new SolidColorBrush(Color.FromArgb(0, 0, 0, 0));
 
                 HeaderStatusSection.LanguageEnglishText.Foreground = isChinese

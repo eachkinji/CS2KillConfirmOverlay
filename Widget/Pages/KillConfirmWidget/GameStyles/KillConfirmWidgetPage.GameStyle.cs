@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using KillConfirmGameBar.Controls.GameStyles;
 using KillConfirmGameBar.Services;
 using Windows.Storage;
@@ -122,7 +122,7 @@ namespace KillConfirmGameBar
             ApplyAdvancedEffectsPanelTheme();
             VisualSettingsSectionView.VisualCard.Background = Brush(card);
             VisualSettingsSectionView.VisualCard.BorderBrush = Brush(theme.SoftBorder);
-            VisualSettingsSectionView.VisualHeaderBorder.Background = Brush(crossfire ? Color.FromArgb(255, 46, 136, 184) : theme.Secondary);
+            VisualSettingsSectionView.VisualHeaderBorder.Background = Brush(crossfire ? Color.FromArgb(255, 0, 122, 255) : theme.Secondary);
             VisualSettingsSectionView.VisualHeaderBorder.BorderBrush = Brush(crossfire ? Color.FromArgb(255, 37, 111, 152) : theme.Border);
 
             StatusDetailsSection.CfgStatusText.Foreground = Brush(text);

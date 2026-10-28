@@ -1,4 +1,4 @@
-<UserControl x:Class="KillConfirmGameBar.Features.CompatibilityDisplay.PackTestView"
+﻿<UserControl x:Class="KillConfirmGameBar.Features.CompatibilityDisplay.PackTestView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:gameStyles="using:KillConfirmGameBar.Features.CompatibilityDisplay.Controls.GameStyles"
     xmlns:primitives="using:Windows.UI.Xaml.Controls.Primitives">
@@ -7,10 +7,10 @@
         <ResourceDictionary Source="ms-appx:///Controls/Settings/SettingsWorkspace.Styles.xaml"/>
     </ResourceDictionary.MergedDictionaries></ResourceDictionary></UserControl.Resources>
     <Grid x:Name="PackTestSection" x:FieldModifier="public">
-        <Border x:Name="PackTestCard" x:FieldModifier="public" Background="White" BorderBrush="#E5E5E5" BorderThickness="1" CornerRadius="8">
+        <Border x:Name="PackTestCard" x:FieldModifier="public" Background="White" BorderBrush="#E5E5EA" BorderThickness="1" CornerRadius="8">
             <StackPanel>
-                <Border x:Name="PackTestHeaderBorder" x:FieldModifier="public" Padding="18,16" BorderBrush="#F0F0F0" BorderThickness="0,0,0,1">
-                    <StackPanel Orientation="Horizontal" Spacing="8"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8B7;" FontSize="18" Foreground="#0067C0"/><TextBlock x:Name="PackTestHeaderText" x:FieldModifier="public" Text="素材与测试" FontSize="16" FontWeight="SemiBold"/></StackPanel>
+                <Border x:Name="PackTestHeaderBorder" x:FieldModifier="public" Padding="18,16" BorderBrush="#F0F0F5" BorderThickness="0,0,0,1">
+                    <StackPanel Orientation="Horizontal" Spacing="8"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8B7;" FontSize="18" Foreground="#007AFF"/><TextBlock x:Name="PackTestHeaderText" x:FieldModifier="public" Text="素材与测试" FontSize="16" FontWeight="SemiBold"/></StackPanel>
                 </Border>
                 <StackPanel Margin="18,16" Spacing="16">
                     <TextBlock x:Name="PackHintText" x:FieldModifier="public" TextWrapping="Wrap" FontSize="12"/>
@@ -61,8 +61,8 @@
                                 HorizontalAlignment="Stretch"
 
                                 Padding="12"
-                                Background="#FAFAF7"
-                                BorderBrush="#E2DDD3"
+                                Background="#F7F7FA"
+                                BorderBrush="#26000000"
                                 BorderThickness="1"
                                 CornerRadius="16">
                                 <ScrollViewer

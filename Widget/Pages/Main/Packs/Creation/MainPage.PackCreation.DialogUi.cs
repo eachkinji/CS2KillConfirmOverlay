@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -42,8 +42,8 @@ namespace KillConfirmGameBar
             return new Border
             {
                 Padding = new Thickness(14),
-                Background = new SolidColorBrush(Color.FromArgb(255, 250, 250, 247)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 226, 221, 211)),
+                Background = new SolidColorBrush(Color.FromArgb(247, 255, 255, 255)),
+                BorderBrush = new SolidColorBrush(Color.FromArgb(38, 0, 0, 0)),
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(24),
                 Child = content
@@ -53,9 +53,9 @@ namespace KillConfirmGameBar
         private static Style CreateDialogPrimaryButtonStyle()
         {
             var style = new Style(typeof(Button));
-            style.Setters.Add(new Setter(Control.BackgroundProperty, new SolidColorBrush(Color.FromArgb(255, 46, 136, 184))));
+            style.Setters.Add(new Setter(Control.BackgroundProperty, new SolidColorBrush(Color.FromArgb(255, 0, 122, 255))));
             style.Setters.Add(new Setter(Control.ForegroundProperty, new SolidColorBrush(Colors.White)));
-            style.Setters.Add(new Setter(Control.BorderBrushProperty, new SolidColorBrush(Color.FromArgb(255, 58, 156, 207))));
+            style.Setters.Add(new Setter(Control.BorderBrushProperty, new SolidColorBrush(Color.FromArgb(255, 61, 155, 255))));
             style.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(1)));
             style.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(18, 8, 18, 8)));
             style.Setters.Add(new Setter(Control.FontWeightProperty, Windows.UI.Text.FontWeights.SemiBold));
@@ -66,9 +66,9 @@ namespace KillConfirmGameBar
         private static Style CreateDialogCloseButtonStyle()
         {
             var style = new Style(typeof(Button));
-            style.Setters.Add(new Setter(Control.BackgroundProperty, new SolidColorBrush(Color.FromArgb(255, 255, 255, 252))));
-            style.Setters.Add(new Setter(Control.ForegroundProperty, new SolidColorBrush(Color.FromArgb(255, 29, 34, 51))));
-            style.Setters.Add(new Setter(Control.BorderBrushProperty, new SolidColorBrush(Color.FromArgb(255, 213, 208, 196))));
+            style.Setters.Add(new Setter(Control.BackgroundProperty, new SolidColorBrush(Color.FromArgb(247, 255, 255, 255))));
+            style.Setters.Add(new Setter(Control.ForegroundProperty, new SolidColorBrush(Color.FromArgb(255, 28, 28, 30))));
+            style.Setters.Add(new Setter(Control.BorderBrushProperty, new SolidColorBrush(Color.FromArgb(31, 0, 0, 0))));
             style.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(1)));
             style.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(18, 8, 18, 8)));
             style.Setters.Add(new Setter(Control.FontWeightProperty, Windows.UI.Text.FontWeights.SemiBold));
@@ -126,9 +126,9 @@ namespace KillConfirmGameBar
             {
                 PlaceholderText = nameBoxPlaceholder,
                 Text = initialDisplayName ?? string.Empty,
-                Background = new SolidColorBrush(Color.FromArgb(255, 255, 255, 252)),
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 29, 34, 51)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 213, 208, 196)),
+                Background = new SolidColorBrush(Color.FromArgb(247, 255, 255, 255)),
+                Foreground = new SolidColorBrush(Color.FromArgb(255, 28, 28, 30)),
+                BorderBrush = new SolidColorBrush(Color.FromArgb(31, 0, 0, 0)),
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(14)
             };
@@ -139,12 +139,12 @@ namespace KillConfirmGameBar
                 Text = titleText,
                 FontSize = 22,
                 FontWeight = Windows.UI.Text.FontWeights.Bold,
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 29, 34, 51))
+                Foreground = new SolidColorBrush(Color.FromArgb(255, 28, 28, 30))
             });
             layout.Children.Add(new TextBlock
             {
                 Text = descriptionText,
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 85, 89, 102)),
+                Foreground = new SolidColorBrush(Color.FromArgb(255, 58, 58, 60)),
                 TextWrapping = TextWrapping.WrapWholeWords,
                 FontSize = 12
             });
@@ -163,8 +163,8 @@ namespace KillConfirmGameBar
             var card = new Border
             {
                 Padding = new Thickness(8),
-                Background = new SolidColorBrush(Color.FromArgb(255, 255, 255, 252)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 226, 221, 211)),
+                Background = new SolidColorBrush(Color.FromArgb(247, 255, 255, 255)),
+                BorderBrush = new SolidColorBrush(Color.FromArgb(38, 0, 0, 0)),
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(18)
             };
@@ -189,13 +189,13 @@ namespace KillConfirmGameBar
                 Text = LocalizationManager.Text("CustomHeadImage"),
                 FontSize = 12,
                 FontWeight = Windows.UI.Text.FontWeights.SemiBold,
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 29, 34, 51))
+                Foreground = new SolidColorBrush(Color.FromArgb(255, 28, 28, 30))
             });
             var headFileText = new TextBlock
             {
                 Text = initialHeadImageFile != null ? initialHeadImageFile.Name : LocalizationManager.Text("CustomHeadImageHint"),
                 FontSize = 10,
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 106, 110, 122)),
+                Foreground = new SolidColorBrush(Color.FromArgb(255, 110, 110, 115)),
                 TextTrimming = TextTrimming.CharacterEllipsis
             };
             textPanel.Children.Add(headFileText);
@@ -207,9 +207,9 @@ namespace KillConfirmGameBar
                 Content = LocalizationManager.Text("ChooseImage"),
                 Padding = new Thickness(8, 4, 8, 4),
                 FontSize = 11,
-                Background = new SolidColorBrush(Color.FromArgb(255, 236, 247, 252)),
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 46, 136, 184)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 185, 220, 236)),
+                Background = new SolidColorBrush(Color.FromArgb(26, 0, 122, 255)),
+                Foreground = new SolidColorBrush(Color.FromArgb(255, 0, 122, 255)),
+                BorderBrush = new SolidColorBrush(Color.FromArgb(61, 0, 122, 255)),
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(14)
             };
@@ -221,9 +221,9 @@ namespace KillConfirmGameBar
                 Content = LocalizationManager.Current == UiLanguage.SimplifiedChinese ? "清除" : "Clear",
                 Padding = new Thickness(8, 4, 8, 4),
                 FontSize = 11,
-                Background = new SolidColorBrush(Color.FromArgb(255, 254, 242, 242)),
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 220, 38, 38)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 254, 202, 202)),
+                Background = new SolidColorBrush(Color.FromArgb(26, 255, 59, 48)),
+                Foreground = new SolidColorBrush(Color.FromArgb(255, 255, 59, 48)),
+                BorderBrush = new SolidColorBrush(Color.FromArgb(61, 255, 59, 48)),
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(14)
             };
@@ -281,9 +281,9 @@ namespace KillConfirmGameBar
                     FontFamily = new FontFamily("Segoe MDL2 Assets"),
                     MinWidth = 30,
                     Padding = new Thickness(5, 4, 5, 4),
-                    Background = new SolidColorBrush(Color.FromArgb(255, 236, 247, 252)),
-                    Foreground = new SolidColorBrush(Color.FromArgb(255, 46, 136, 184)),
-                    BorderBrush = new SolidColorBrush(Color.FromArgb(255, 185, 220, 236)),
+                    Background = new SolidColorBrush(Color.FromArgb(26, 0, 122, 255)),
+                    Foreground = new SolidColorBrush(Color.FromArgb(255, 0, 122, 255)),
+                    BorderBrush = new SolidColorBrush(Color.FromArgb(61, 0, 122, 255)),
                     CornerRadius = new CornerRadius(12)
                 };
                 playButton.Click += async (_, __) =>
@@ -323,7 +323,7 @@ namespace KillConfirmGameBar
             {
                 Text = slotDisplayName,
                 FontWeight = Windows.UI.Text.FontWeights.SemiBold,
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 29, 34, 51)),
+                Foreground = new SolidColorBrush(Color.FromArgb(255, 28, 28, 30)),
                 FontSize = 12,
                 TextTrimming = TextTrimming.CharacterEllipsis
             });
@@ -331,7 +331,7 @@ namespace KillConfirmGameBar
             {
                 Text = existingFile?.Name ?? LocalizationManager.Text("NotSelected"),
                 FontSize = 12,
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 106, 110, 122)),
+                Foreground = new SolidColorBrush(Color.FromArgb(255, 110, 110, 115)),
                 TextTrimming = TextTrimming.CharacterEllipsis
             };
             infoPanel.Children.Add(fileText);
@@ -341,7 +341,7 @@ namespace KillConfirmGameBar
                 {
                     Text = hint,
                     FontSize = 9,
-                    Foreground = new SolidColorBrush(Color.FromArgb(255, 106, 110, 122)),
+                    Foreground = new SolidColorBrush(Color.FromArgb(255, 110, 110, 115)),
                     LineHeight = 11,
                     MaxLines = 2,
                     TextWrapping = TextWrapping.WrapWholeWords
@@ -356,9 +356,9 @@ namespace KillConfirmGameBar
                 MinWidth = 56,
                 Padding = new Thickness(5, 4, 5, 4),
                 FontSize = 10,
-                Background = new SolidColorBrush(Color.FromArgb(255, 236, 247, 252)),
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 46, 136, 184)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 185, 220, 236)),
+                Background = new SolidColorBrush(Color.FromArgb(26, 0, 122, 255)),
+                Foreground = new SolidColorBrush(Color.FromArgb(255, 0, 122, 255)),
+                BorderBrush = new SolidColorBrush(Color.FromArgb(61, 0, 122, 255)),
                 CornerRadius = new CornerRadius(12)
             };
             Grid.SetColumn(selectButton, 2);
@@ -370,9 +370,9 @@ namespace KillConfirmGameBar
                 MinWidth = 56,
                 Padding = new Thickness(5, 4, 5, 4),
                 FontSize = 10,
-                Background = new SolidColorBrush(Color.FromArgb(255, 254, 242, 242)),
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 220, 38, 38)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 254, 202, 202)),
+                Background = new SolidColorBrush(Color.FromArgb(26, 255, 59, 48)),
+                Foreground = new SolidColorBrush(Color.FromArgb(255, 255, 59, 48)),
+                BorderBrush = new SolidColorBrush(Color.FromArgb(61, 255, 59, 48)),
                 CornerRadius = new CornerRadius(12)
             };
             Grid.SetColumn(resetButton, 3);
@@ -429,8 +429,8 @@ namespace KillConfirmGameBar
             return new Border
             {
                 Padding = new Thickness(8, 6, 8, 6),
-                Background = new SolidColorBrush(Color.FromArgb(255, 255, 255, 252)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 226, 221, 211)),
+                Background = new SolidColorBrush(Color.FromArgb(247, 255, 255, 255)),
+                BorderBrush = new SolidColorBrush(Color.FromArgb(38, 0, 0, 0)),
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(14),
                 Child = row

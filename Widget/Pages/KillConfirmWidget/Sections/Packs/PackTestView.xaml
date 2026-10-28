@@ -1,4 +1,4 @@
-<UserControl
+﻿<UserControl
     x:Class="KillConfirmGameBar.PackTestView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -21,8 +21,8 @@
     <Border
         x:Name="PackTestCard" x:FieldModifier="public"
         Padding="0"
-        Background="#FAFAF7"
-        BorderBrush="#E2DDD3"
+        Background="#F7F7FA"
+        BorderBrush="#26000000"
         BorderThickness="1"
         CornerRadius="16">
         <Grid>
@@ -100,9 +100,9 @@
                     Style="{StaticResource PackAccentComboBoxStyle}"
                     HorizontalContentAlignment="Left"
                     SelectionChanged="OnIconPackSelectionChanged">
-                    <ComboBoxItem x:Name="DefaultIconPackItem" x:FieldModifier="public" Tag="default" Foreground="#1B1F31">Default</ComboBoxItem>
-                    <ComboBoxItem x:Name="VipIconPackItem" x:FieldModifier="public" Tag="vip" Foreground="#1B1F31">VIP</ComboBoxItem>
-                    <ComboBoxItem x:Name="CustomIconPackItem" x:FieldModifier="public" Tag="angelic_beast" Foreground="#1B1F31">Custom</ComboBoxItem>
+                    <ComboBoxItem x:Name="DefaultIconPackItem" x:FieldModifier="public" Tag="default" Foreground="#1C1C1E">Default</ComboBoxItem>
+                    <ComboBoxItem x:Name="VipIconPackItem" x:FieldModifier="public" Tag="vip" Foreground="#1C1C1E">VIP</ComboBoxItem>
+                    <ComboBoxItem x:Name="CustomIconPackItem" x:FieldModifier="public" Tag="angelic_beast" Foreground="#1C1C1E">Custom</ComboBoxItem>
                 </ComboBox>
 
                 <Button
@@ -135,8 +135,8 @@
                                 Width="440"
                                 MaxHeight="720"
                                 Padding="12"
-                                Background="#FAFAF7"
-                                BorderBrush="#E2DDD3"
+                                Background="#F7F7FA"
+                                BorderBrush="#26000000"
                                 BorderThickness="1"
                                 CornerRadius="16">
                                 <ScrollViewer
@@ -412,7 +412,7 @@
                     FontWeight="Bold"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
-                    Foreground="#1B1F31" />
+                    Foreground="#1C1C1E" />
             </Button>
 
             <Button
@@ -427,7 +427,7 @@
                     Glyph="&#xE8BD;"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
-                    Foreground="#1B1F31" />
+                    Foreground="#1C1C1E" />
             </Button>
 
             <Button
@@ -442,7 +442,7 @@
                     Glyph="&#xE72C;"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
-                    Foreground="#1B1F31" />
+                    Foreground="#1C1C1E" />
             </Button>
             </Grid>
         </StackPanel>

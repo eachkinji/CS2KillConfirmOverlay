@@ -43,15 +43,15 @@
             <Border
                 x:Name="GameModeSidebar"
                 Grid.Column="0"
-                Width="54"
-                Margin="5,12,5,12"
+                Width="56"
+                Margin="10,14,6,14"
                 Padding="0"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Stretch"
-                Background="#FFFFFF"
-                BorderBrush="#E5E5E5"
+                Background="{StaticResource GlassPanelBrush}"
+                BorderBrush="{StaticResource GlassPanelBorderBrush}"
                 BorderThickness="1"
-                CornerRadius="8">
+                CornerRadius="20">
                 <NavigationView
                     x:Name="GameStyleSidebarSelector"
                     Background="Transparent"
@@ -64,9 +64,20 @@
                     PaneDisplayMode="LeftCompact"
                     SelectionChanged="OnGameStyleSidebarSelectionChanged">
                     <NavigationView.Resources>
+                        <SolidColorBrush x:Key="NavigationViewItemBackgroundSelected" Color="#1F007AFF" />
+                        <SolidColorBrush x:Key="NavigationViewItemBackgroundSelectedPointerOver" Color="#29007AFF" />
+                        <SolidColorBrush x:Key="NavigationViewItemBackgroundSelectedPressed" Color="#33007AFF" />
+                        <SolidColorBrush x:Key="NavigationViewItemForegroundSelected" Color="#007AFF" />
+                        <SolidColorBrush x:Key="NavigationViewSelectionIndicatorForeground" Color="#007AFF" />
+                        <Style TargetType="ScrollViewer">
+                            <Setter Property="VerticalScrollBarVisibility" Value="Hidden" />
+                            <Setter Property="HorizontalScrollBarVisibility" Value="Hidden" />
+                        </Style>
                         <Style TargetType="NavigationViewItem">
-                            <Setter Property="Width" Value="52" />
-                            <Setter Property="Padding" Value="7,0,0,0" />
+                            <Setter Property="Width" Value="48" />
+                            <Setter Property="Padding" Value="6,0,0,0" />
+                            <Setter Property="Margin" Value="0,2" />
+                            <Setter Property="CornerRadius" Value="14" />
                             <Setter Property="HorizontalAlignment" Value="Center" />
                             <Setter Property="HorizontalContentAlignment" Value="Center" />
                         </Style>
@@ -129,7 +140,7 @@
 
             <!-- Main Content Area -->
             <ScrollViewer x:Name="PackLibraryScrollViewer" Grid.Column="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Background="Transparent">
-                <Grid Padding="18,14,22,24" RowSpacing="12">
+                <Grid Padding="22,18,26,30" RowSpacing="14">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
@@ -141,7 +152,7 @@
                         x:Name="PageTitleHeader"
                         MaxWidth="1480"
                         HorizontalAlignment="Stretch"
-                        Padding="2,0"
+                        Padding="4,0"
                         Canvas.ZIndex="10">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -151,18 +162,18 @@
                         <Border
                             x:Name="PageTitleSurface"
                             Grid.ColumnSpan="2"
-                            Padding="10,4,12,5"
+                            Padding="0,2,0,2"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
-                            Background="#EBF3FC"
-                            BorderBrush="#0067C0"
-                            BorderThickness="4,0,0,0"
-                            CornerRadius="4">
+                            Background="Transparent"
+                            BorderThickness="0"
+                            CornerRadius="10">
                             <TextBlock
                                 x:Name="TitleText"
-                                FontSize="20"
+                                FontFamily="Segoe UI Variable Text"
+                                FontSize="22"
                                 FontWeight="SemiBold"
-                                Foreground="#0067C0"
+                                Foreground="{StaticResource TextPrimaryBrush}"
                                 Text="主页" />
                         </Border>
 
@@ -194,12 +205,12 @@
                         x:Name="AdvancedSettingsTabBar"
                         Grid.Row="1"
                         MaxWidth="1480"
-                        Padding="3"
+                        Padding="4"
                         HorizontalAlignment="Left"
-                        Background="#E8F0F8"
-                        BorderBrush="#CFDEEC"
-                        BorderThickness="1"
-                        CornerRadius="6">
+                        Background="{StaticResource GlassTrackBrush}"
+                        BorderBrush="Transparent"
+                        BorderThickness="0"
+                        CornerRadius="14">
                         <StackPanel Orientation="Horizontal" Spacing="4">
                             <Button
                                 x:Name="HomeTabGeneralButton"
@@ -229,12 +240,12 @@
                         x:Name="GameWorkspaceTabBar"
                         Grid.Row="1"
                         MaxWidth="1480"
-                        Padding="3"
+                        Padding="4"
                         HorizontalAlignment="Left"
-                        Background="#EBEBEB"
-                        BorderBrush="#E0E0E0"
-                        BorderThickness="1"
-                        CornerRadius="6">
+                        Background="{StaticResource GlassTrackBrush}"
+                        BorderBrush="Transparent"
+                        BorderThickness="0"
+                        CornerRadius="14">
                         <StackPanel Orientation="Horizontal" Spacing="4">
                             <Button
                                 x:Name="GameTabCombatButton"
@@ -348,7 +359,7 @@
                                     x:Name="VoiceVisibleCountText"
                                     FontSize="13"
                                     FontWeight="SemiBold"
-                                    Foreground="#2E88B8" />
+                                    Foreground="{StaticResource AccentBrush}" />
 
                                 <GridView x:Name="VoicePackListPanel" Margin="0,0,0,24"
                                     MaxHeight="540" SelectionMode="None" IsItemClickEnabled="False"
@@ -366,7 +377,7 @@
                                     </GridView.ItemsPanel>
                                 </GridView>
                                 <Grid MinHeight="156" Background="Transparent">
-                                    <Rectangle Stroke="#8D9AA8" StrokeThickness="1.5" StrokeDashArray="4,3" RadiusX="10" RadiusY="10" IsHitTestVisible="False" />
+                                    <Rectangle Stroke="#C7C7CC" StrokeThickness="1.5" StrokeDashArray="4,3" RadiusX="16" RadiusY="16" IsHitTestVisible="False" />
                                     <StackPanel Margin="24" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
                                         <TextBlock x:Name="VoicePackDropHint" TextAlignment="Center" TextWrapping="Wrap" Style="{StaticResource SettingsCaptionTextStyle}" FontSize="14" FontWeight="SemiBold" />
                                         <TextBlock x:Name="VoicePackDownloadHint" TextAlignment="Center" TextWrapping="Wrap" Style="{StaticResource SettingsCaptionTextStyle}" />
@@ -430,7 +441,7 @@
                                     x:Name="IconVisibleCountText"
                                     FontSize="13"
                                     FontWeight="SemiBold"
-                                    Foreground="#2E88B8" />
+                                    Foreground="{StaticResource AccentBrush}" />
 
                                 <GridView x:Name="IconPackListPanel" Margin="0,0,0,24"
                                     MaxHeight="540" SelectionMode="None" IsItemClickEnabled="False"
@@ -448,7 +459,7 @@
                                     </GridView.ItemsPanel>
                                 </GridView>
                                 <Grid MinHeight="156" Background="Transparent">
-                                    <Rectangle Stroke="#8D9AA8" StrokeThickness="1.5" StrokeDashArray="4,3" RadiusX="10" RadiusY="10" IsHitTestVisible="False" />
+                                    <Rectangle Stroke="#C7C7CC" StrokeThickness="1.5" StrokeDashArray="4,3" RadiusX="16" RadiusY="16" IsHitTestVisible="False" />
                                     <StackPanel Margin="24" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
                                         <TextBlock x:Name="IconPackDropHint" TextAlignment="Center" TextWrapping="Wrap" Style="{StaticResource SettingsCaptionTextStyle}" FontSize="14" FontWeight="SemiBold" />
                                         <TextBlock x:Name="IconPackDownloadHint" TextAlignment="Center" TextWrapping="Wrap" Style="{StaticResource SettingsCaptionTextStyle}" />
@@ -479,7 +490,7 @@
                                     </Grid.ColumnDefinitions>
 
                                     <!-- Audio Slot Spec Box -->
-                                    <Border Padding="14,12" Background="#FAFAFA" BorderBrush="#E5E5E5" BorderThickness="1" CornerRadius="6">
+                                    <Border Padding="14,12" Background="{StaticResource GlassSectionBrush}" BorderBrush="{StaticResource DividerBrush}" BorderThickness="1" CornerRadius="14">
                                         <StackPanel Spacing="8">
                                             <TextBlock x:Name="StructureVoiceSpecTitleText" Style="{StaticResource MethodStepDetailTitleTextStyle}" FontSize="13" Text="提示音文件说明" />
                                             <TextBlock x:Name="StructureVoiceSpecBodyText" Style="{StaticResource MethodStepMonoTextStyle}" FontSize="11" />
@@ -487,10 +498,10 @@
                                     </Border>
 
                                     <!-- Icon Slot Spec Box -->
-                                    <Border Grid.Column="1" Padding="14,12" Background="#FAFAFA" BorderBrush="#E5E5E5" BorderThickness="1" CornerRadius="6">
+                                    <Border Grid.Column="1" Padding="14,12" Background="{StaticResource GlassSectionBrush}" BorderBrush="{StaticResource DividerBrush}" BorderThickness="1" CornerRadius="14">
                                         <StackPanel Spacing="8">
                                             <TextBlock x:Name="StructureIconSpecTitleText" Style="{StaticResource MethodStepDetailTitleTextStyle}" FontSize="13" Text="图标文件说明" />
-                                            <TextBlock x:Name="StructureIconSpecSummaryText" Style="{StaticResource MethodStepBodyTextStyle}" FontSize="11" Foreground="#0067C0" />
+                                            <TextBlock x:Name="StructureIconSpecSummaryText" Style="{StaticResource MethodStepBodyTextStyle}" FontSize="11" Foreground="{StaticResource AccentBrush}" />
                                             <Button
                                                 x:Name="IconSpecToggleButton"
                                                 Style="{StaticResource MethodInlineButtonStyle}"
@@ -505,8 +516,8 @@
                                     </Border>
                                 </Grid>
 
-                                <Border Padding="12,10" Background="#F3F3F3" BorderBrush="#E5E5E5" BorderThickness="1" CornerRadius="6">
-                                    <TextBlock x:Name="StructureFileHintText" Style="{StaticResource MethodStepBodyTextStyle}" FontSize="11" Foreground="#424242" />
+                                <Border Padding="12,10" Background="{StaticResource GlassSectionBrush}" BorderBrush="{StaticResource DividerBrush}" BorderThickness="1" CornerRadius="14">
+                                    <TextBlock x:Name="StructureFileHintText" Style="{StaticResource MethodStepBodyTextStyle}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" />
                                 </Border>
 
                                 <!-- Hidden compatibility anchors for theme / language code-behind -->
@@ -528,25 +539,25 @@
 
                         <Border x:Name="CsolGuideCard" Style="{StaticResource SettingsSectionCardStyle}" Visibility="Collapsed">
                             <StackPanel Spacing="12">
-                                <TextBlock x:Name="CsolStructureTitleText" FontSize="18" FontWeight="SemiBold" Foreground="#1B1B1B" />
-                                <TextBlock x:Name="CsolStructureBodyText" FontSize="12" Foreground="#616161" TextWrapping="WrapWholeWords" />
-                                <Border Background="#FAFAFA" BorderBrush="#E5E5E5" BorderThickness="1" CornerRadius="6" Padding="12">
+                                <TextBlock x:Name="CsolStructureTitleText" FontSize="18" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" />
+                                <TextBlock x:Name="CsolStructureBodyText" FontSize="12" Foreground="{StaticResource TextTertiaryBrush}" TextWrapping="WrapWholeWords" />
+                                <Border Background="{StaticResource GlassSectionBrush}" BorderBrush="{StaticResource DividerBrush}" BorderThickness="1" CornerRadius="14" Padding="12">
                                     <StackPanel Spacing="6">
-                                        <TextBlock x:Name="CsolStructureVoiceSpecTitle" FontSize="13" FontWeight="SemiBold" Foreground="#1B1B1B" />
-                                        <TextBlock x:Name="CsolStructureVoiceSpecBody" FontSize="11" Foreground="#424242" FontFamily="Consolas" TextWrapping="WrapWholeWords" />
+                                        <TextBlock x:Name="CsolStructureVoiceSpecTitle" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" />
+                                        <TextBlock x:Name="CsolStructureVoiceSpecBody" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" FontFamily="Consolas" TextWrapping="WrapWholeWords" />
                                     </StackPanel>
                                 </Border>
-                                <Border Background="#FAFAFA" BorderBrush="#E5E5E5" BorderThickness="1" CornerRadius="6" Padding="12">
+                                <Border Background="{StaticResource GlassSectionBrush}" BorderBrush="{StaticResource DividerBrush}" BorderThickness="1" CornerRadius="14" Padding="12">
                                     <StackPanel Spacing="6">
-                                        <TextBlock x:Name="CsolStructureIconSpecTitle" FontSize="13" FontWeight="SemiBold" Foreground="#1B1B1B" />
-                                        <TextBlock x:Name="CsolStructureIconSpecBody" FontSize="11" Foreground="#424242" FontFamily="Consolas" TextWrapping="WrapWholeWords" />
+                                        <TextBlock x:Name="CsolStructureIconSpecTitle" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" />
+                                        <TextBlock x:Name="CsolStructureIconSpecBody" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" FontFamily="Consolas" TextWrapping="WrapWholeWords" />
                                     </StackPanel>
                                 </Border>
-                                <TextBlock x:Name="CsolStructureImportZipTitle" FontSize="13" FontWeight="SemiBold" Foreground="#1B1B1B" />
-                                <TextBlock x:Name="CsolStructureImportZipBody" FontSize="12" Foreground="#616161" TextWrapping="WrapWholeWords" />
-                                <TextBlock x:Name="CsolStructureCreatorTitle" FontSize="13" FontWeight="SemiBold" Foreground="#1B1B1B" />
-                                <TextBlock x:Name="CsolStructureCreatorBody" FontSize="12" Foreground="#616161" TextWrapping="WrapWholeWords" />
-                                <TextBlock x:Name="CsolStructureFileHint" FontSize="11" Foreground="#0067C0" TextWrapping="WrapWholeWords" />
+                                <TextBlock x:Name="CsolStructureImportZipTitle" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" />
+                                <TextBlock x:Name="CsolStructureImportZipBody" FontSize="12" Foreground="{StaticResource TextTertiaryBrush}" TextWrapping="WrapWholeWords" />
+                                <TextBlock x:Name="CsolStructureCreatorTitle" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" />
+                                <TextBlock x:Name="CsolStructureCreatorBody" FontSize="12" Foreground="{StaticResource TextTertiaryBrush}" TextWrapping="WrapWholeWords" />
+                                <TextBlock x:Name="CsolStructureFileHint" FontSize="11" Foreground="{StaticResource AccentBrush}" TextWrapping="WrapWholeWords" />
                             </StackPanel>
                         </Border>
                     </Grid>

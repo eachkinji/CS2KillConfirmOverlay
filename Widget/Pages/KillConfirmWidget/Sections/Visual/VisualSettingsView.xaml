@@ -1,4 +1,4 @@
-<UserControl
+﻿<UserControl
     x:Class="KillConfirmGameBar.VisualSettingsView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -18,8 +18,8 @@
     <Border
         x:Name="VisualCard" x:FieldModifier="public"
         Padding="0"
-        Background="#FAFAF7"
-        BorderBrush="#E2DDD3"
+        Background="#F7F7FA"
+        BorderBrush="#26000000"
         BorderThickness="1"
         CornerRadius="16">
         <Grid>
@@ -31,7 +31,7 @@
             <Border
                 x:Name="VisualHeaderBorder" x:FieldModifier="public"
                 Grid.Row="0"
-                Background="#2E88B8"
+                Background="#007AFF"
                 BorderBrush="#256F98"
                 BorderThickness="0,0,0,1"
                 CornerRadius="16,16,0,0"
@@ -67,7 +67,7 @@
         Click="OnResizeClick"
         ToolTipService.ToolTip="Default size">
         <Grid Style="{StaticResource CompactIconHostStyle}">
-            <PathIcon Foreground="#1B5F82" Style="{StaticResource FluentTinyPathIconStyle}" Data="M4 4H9V5.5H5.5V9H4V4ZM15 4H20V9H18.5V5.5H15V4ZM4 15H5.5V18.5H9V20H4V15ZM18.5 15H20V20H15V18.5H18.5V15Z" />
+            <PathIcon Foreground="#0A6FDB" Style="{StaticResource FluentTinyPathIconStyle}" Data="M4 4H9V5.5H5.5V9H4V4ZM15 4H20V9H18.5V5.5H15V4ZM4 15H5.5V18.5H9V20H4V15ZM18.5 15H20V20H15V18.5H18.5V15Z" />
         </Grid>
     </Button>
 
@@ -78,7 +78,7 @@
         Click="OnFitScreenClick"
         ToolTipService.ToolTip="一键伪全屏 (Fit screen)">
         <Grid Style="{StaticResource CompactIconHostStyle}">
-            <PathIcon Foreground="#1B5F82" Style="{StaticResource FluentTinyPathIconStyle}" Data="M3 3H8.5V4.5H4.5V8.5H3V3ZM15.5 3H21V8.5H19.5V4.5H15.5V3ZM3 15.5H4.5V19.5H8.5V21H3V15.5ZM19.5 15.5H21V21H15.5V19.5H19.5V15.5ZM8 8H16V16H8V8Z" />
+            <PathIcon Foreground="#0A6FDB" Style="{StaticResource FluentTinyPathIconStyle}" Data="M3 3H8.5V4.5H4.5V8.5H3V3ZM15.5 3H21V8.5H19.5V4.5H15.5V3ZM3 15.5H4.5V19.5H8.5V21H3V15.5ZM19.5 15.5H21V21H15.5V19.5H19.5V15.5ZM8 8H16V16H8V8Z" />
         </Grid>
     </Button>
 
@@ -89,7 +89,7 @@
         Click="OnCenterClick"
         ToolTipService.ToolTip="Center window">
         <Grid Style="{StaticResource CompactIconHostStyle}">
-            <PathIcon Foreground="#1B5F82" Style="{StaticResource FluentTinyPathIconStyle}" Data="M11.25 2H12.75V5.04C15.96 5.38 18.62 8.04 18.96 11.25H22V12.75H18.96C18.62 15.96 15.96 18.62 12.75 18.96V22H11.25V18.96C8.04 18.62 5.38 15.96 5.04 12.75H2V11.25H5.04C5.38 8.04 8.04 5.38 11.25 5.04V2ZM12 6.5C8.96 6.5 6.5 8.96 6.5 12C6.5 15.04 8.96 17.5 12 17.5C15.04 17.5 17.5 15.04 17.5 12C17.5 8.96 15.04 6.5 12 6.5ZM12 9.5C13.38 9.5 14.5 10.62 14.5 12C14.5 13.38 13.38 14.5 12 14.5C10.62 14.5 9.5 13.38 9.5 12C9.5 10.62 10.62 9.5 12 9.5Z" />
+            <PathIcon Foreground="#0A6FDB" Style="{StaticResource FluentTinyPathIconStyle}" Data="M11.25 2H12.75V5.04C15.96 5.38 18.62 8.04 18.96 11.25H22V12.75H18.96C18.62 15.96 15.96 18.62 12.75 18.96V22H11.25V18.96C8.04 18.62 5.38 15.96 5.04 12.75H2V11.25H5.04C5.38 8.04 8.04 5.38 11.25 5.04V2ZM12 6.5C8.96 6.5 6.5 8.96 6.5 12C6.5 15.04 8.96 17.5 12 17.5C15.04 17.5 17.5 15.04 17.5 12C17.5 8.96 15.04 6.5 12 6.5ZM12 9.5C13.38 9.5 14.5 10.62 14.5 12C14.5 13.38 13.38 14.5 12 14.5C10.62 14.5 9.5 13.38 9.5 12C9.5 10.62 10.62 9.5 12 9.5Z" />
         </Grid>
     </Button>
 

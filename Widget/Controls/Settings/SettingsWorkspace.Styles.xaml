@@ -1,48 +1,179 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+      Shared design tokens for the panel UI.
+      One layer of translucency: page-level cards are frosted white; anything
+      inside a card uses a flatter semi-transparent white so the two do not
+      stack into grey. Accent blue is reserved for primary actions and links.
+    -->
+    <SolidColorBrush x:Key="GlassCardBrush" Color="#B8FFFFFF" />
+    <SolidColorBrush x:Key="GlassCardHoverBrush" Color="#D9FFFFFF" />
+    <SolidColorBrush x:Key="GlassCardStrokeBrush" Color="#A6FFFFFF" />
+    <SolidColorBrush x:Key="GlassFieldBrush" Color="#99FFFFFF" />
+    <SolidColorBrush x:Key="GlassFieldStrokeBrush" Color="#0F000000" />
+    <SolidColorBrush x:Key="GlassSectionBrush" Color="#70FFFFFF" />
+    <SolidColorBrush x:Key="GlassTrackBrush" Color="#1F787880" />
+    <SolidColorBrush x:Key="GhostButtonBrush" Color="#24787880" />
+    <SolidColorBrush x:Key="GhostButtonHoverBrush" Color="#3D787880" />
+    <SolidColorBrush x:Key="DividerBrush" Color="#14000000" />
+
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="#1C1C1E" />
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="#3A3A3C" />
+    <SolidColorBrush x:Key="TextTertiaryBrush" Color="#8E8E93" />
+
+    <SolidColorBrush x:Key="AccentBrush" Color="#007AFF" />
+    <SolidColorBrush x:Key="AccentSoftBrush" Color="#1A007AFF" />
+    <SolidColorBrush x:Key="AccentBorderBrush" Color="#3D007AFF" />
+    <SolidColorBrush x:Key="SuccessBrush" Color="#34C759" />
+    <SolidColorBrush x:Key="WarningBrush" Color="#FF9500" />
+    <SolidColorBrush x:Key="DangerBrush" Color="#FF3B30" />
+
+    <SolidColorBrush x:Key="GlassPanelBrush" Color="#F2F6F7FA" />
+    <SolidColorBrush x:Key="GlassPanelBorderBrush" Color="#D9FFFFFF" />
+
+    <Style x:Key="PanelFontTextStyle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="Segoe UI Variable Text" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+    </Style>
+
     <Style x:Key="SettingsSectionCardStyle" TargetType="Border">
-        <Setter Property="Padding" Value="18,16"/>
-        <Setter Property="Background" Value="#FFFFFF"/>
-        <Setter Property="BorderBrush" Value="#E5E5E5"/>
+        <Setter Property="Padding" Value="20,18"/>
+        <Setter Property="Background" Value="{StaticResource GlassCardBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource GlassCardStrokeBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="CornerRadius" Value="20"/>
     </Style>
+
     <Style x:Key="SettingsHeaderButtonStyle" TargetType="Button">
-        <Setter Property="Padding" Value="12,5"/>
+        <Setter Property="Padding" Value="14,7"/>
         <Setter Property="MinWidth" Value="84"/>
-        <Setter Property="MinHeight" Value="32"/>
-        <Setter Property="Background" Value="#FFFFFF"/>
-        <Setter Property="Foreground" Value="#1B1B1B"/>
-        <Setter Property="BorderBrush" Value="#D1D1D1"/>
-        <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="CornerRadius" Value="4"/>
+        <Setter Property="MinHeight" Value="34"/>
+        <Setter Property="Background" Value="{StaticResource GhostButtonBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="CornerRadius" Value="14"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
-        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="FontFamily" Value="Segoe UI Variable Text"/>
     </Style>
+
     <Style x:Key="SettingsPrimaryButtonStyle" TargetType="Button" BasedOn="{StaticResource SettingsHeaderButtonStyle}">
-        <Setter Property="Background" Value="#0067C0"/>
-        <Setter Property="BorderBrush" Value="#0067C0"/>
+        <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
         <Setter Property="Foreground" Value="White"/>
     </Style>
+
     <Style x:Key="SettingsDownloadButtonStyle" TargetType="Button" BasedOn="{StaticResource SettingsHeaderButtonStyle}">
-        <Setter Property="Background" Value="#E6F5F2"/>
-        <Setter Property="BorderBrush" Value="#74BCAF"/>
-        <Setter Property="Foreground" Value="#086B5B"/>
+        <Setter Property="Background" Value="{StaticResource AccentSoftBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource AccentBorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
     </Style>
+
+    <!-- Segmented-control tabs: transparent buttons on a soft grey track. -->
     <Style x:Key="StudioTabButtonStyle" TargetType="Button">
-        <Setter Property="Padding" Value="14,5"/>
+        <Setter Property="Padding" Value="14,6"/>
         <Setter Property="MinWidth" Value="100"/>
-        <Setter Property="MinHeight" Value="30"/>
+        <Setter Property="MinHeight" Value="32"/>
         <Setter Property="Background" Value="Transparent"/>
-        <Setter Property="Foreground" Value="#616161"/>
+        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
         <Setter Property="BorderThickness" Value="0"/>
-        <Setter Property="CornerRadius" Value="4"/>
+        <Setter Property="CornerRadius" Value="11"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
-        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="FontFamily" Value="Segoe UI Variable Text"/>
     </Style>
+
     <Style x:Key="StudioTabActiveButtonStyle" TargetType="Button" BasedOn="{StaticResource StudioTabButtonStyle}">
         <Setter Property="Background" Value="#FFFFFF"/>
-        <Setter Property="BorderBrush" Value="#D1D1D1"/>
-        <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="Foreground" Value="#1B1B1B"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+    </Style>
+
+    <Style x:Key="SettingsCaptionTextStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Foreground" Value="{StaticResource TextTertiaryBrush}" />
+        <Setter Property="TextWrapping" Value="WrapWholeWords" />
+        <Setter Property="LineHeight" Value="18" />
+        <Setter Property="FontFamily" Value="Segoe UI Variable Text" />
+    </Style>
+
+    <Style x:Key="SettingsSectionTitleTextStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="17" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="FontFamily" Value="Segoe UI Variable Text" />
+    </Style>
+
+    <Style x:Key="MethodStepBodyTextStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+        <Setter Property="TextWrapping" Value="WrapWholeWords" />
+        <Setter Property="LineHeight" Value="18" />
+        <Setter Property="FontFamily" Value="Segoe UI Variable Text" />
+    </Style>
+
+    <Style x:Key="MethodStepDetailTitleTextStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="FontFamily" Value="Segoe UI Variable Text" />
+    </Style>
+
+    <Style x:Key="MethodStepMonoTextStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+        <Setter Property="TextWrapping" Value="WrapWholeWords" />
+        <Setter Property="FontFamily" Value="Consolas" />
+        <Setter Property="LineHeight" Value="17" />
+    </Style>
+
+    <Style x:Key="MethodInlineButtonStyle" TargetType="Button">
+        <Setter Property="Padding" Value="10,5" />
+        <Setter Property="MinWidth" Value="0" />
+        <Setter Property="Background" Value="{StaticResource AccentSoftBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource AccentBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="FontFamily" Value="Segoe UI Variable Text" />
+    </Style>
+
+    <!-- Inline field/section surfaces used inside glass cards. -->
+    <Style x:Key="GlassSectionSurfaceStyle" TargetType="Border">
+        <Setter Property="Padding" Value="14,12" />
+        <Setter Property="Background" Value="{StaticResource GlassSectionBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource DividerBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="14" />
+    </Style>
+
+    <Style x:Key="GlassFieldStyle" TargetType="TextBox">
+        <Setter Property="Background" Value="{StaticResource GlassFieldBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource GlassFieldStrokeBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="Padding" Value="11,7" />
+        <Setter Property="MinHeight" Value="34" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontFamily" Value="Segoe UI Variable Text" />
+    </Style>
+
+    <Style x:Key="GlassComboBoxStyle" TargetType="ComboBox">
+        <Setter Property="MinHeight" Value="34" />
+        <Setter Property="Height" Value="34" />
+        <Setter Property="Padding" Value="11,0,28,0" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontFamily" Value="Segoe UI Variable Text" />
+        <Setter Property="Background" Value="{StaticResource GlassFieldBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource GlassFieldStrokeBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
     </Style>
 </ResourceDictionary>

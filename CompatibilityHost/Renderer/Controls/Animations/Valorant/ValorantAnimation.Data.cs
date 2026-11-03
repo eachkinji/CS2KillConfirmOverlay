@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Threading;
@@ -22,8 +22,6 @@ namespace KillConfirmCompatibility.Controls
         private static string _valorantLoadingPackKey = string.Empty;
         private static Task<ValorantTextureSet> _valorantTextureLoadTask;
         private static CancellationTokenSource _valorantTextureLoadCancellation;
-        private ShadowEffect _valorantShadowEffect;
-        private ColorMatrixEffect _valorantColorMatrixEffect;
 
     }
 }

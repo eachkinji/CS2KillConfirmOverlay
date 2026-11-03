@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -20,7 +20,7 @@ namespace KillConfirmGameBar
         {
             if (string.Equals(key, "custommodule", StringComparison.OrdinalIgnoreCase))
             {
-                return "ms-appx:///Assets/GameStyles/custommodule/iconpacks/custommodule/pack_head.webp";
+                return "ms-appx:///Assets/GameLogos/custommodule.png";
             }
             if (GameStyleService.IsCustomModuleKey(key)) return null;
             if (ValorantPackService.IsValorantPackKey(key))
@@ -146,9 +146,11 @@ namespace KillConfirmGameBar
             }
         }
 
-        private static string GetValorantPackIconUri(string key)
+        private static string GetValorantPackIconUri(string key, string associationId = null)
         {
-            string emblemUri = ValorantPackService.GetEmblemUri(key);
+            string effectiveKey = ValorantPackService.Find(key) != null ? key
+                : ValorantExternalAssetService.FindIconPackKeyByAssociation(associationId ?? ValorantExternalAssetService.GetAssociationIdForVoicePack(key));
+            string emblemUri = ValorantPackService.GetEmblemUri(effectiveKey ?? ValorantPackService.DefaultKey);
             if (!string.IsNullOrWhiteSpace(emblemUri))
             {
                 return emblemUri;

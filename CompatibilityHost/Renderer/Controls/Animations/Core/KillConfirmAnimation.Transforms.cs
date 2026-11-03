@@ -45,7 +45,11 @@ namespace KillConfirmCompatibility.Controls
                 scaledWidth,
                 scaledHeight);
 
-            var source = new Rect(0, 0, image.SizeInPixels.Width, image.SizeInPixels.Height);
+            var source = Desktop.Rendering.DesktopBitmapBounds.Get(image);
+            if (source.Width <= 0 || source.Height <= 0) return;
+            target = new Rect(target.X + source.X * scaledWidth / imageWidth,
+                target.Y + source.Y * scaledHeight / imageHeight,
+                source.Width * scaledWidth / imageWidth, source.Height * scaledHeight / imageHeight);
             drawingSession.DrawImage(image, target, source, (float)Math.Max(0.0, Math.Min(1.0, opacity)));
         }
 

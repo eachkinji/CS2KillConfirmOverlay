@@ -504,6 +504,7 @@
     <Compile Include="Services\Localization\LocalizationManager.Chinese.Core.cs" />
     <Compile Include="Services\Localization\LocalizationManager.Chinese.Widget.cs" />
     <Compile Include="Services\Catalog\PackCatalogModels.cs" />
+    <Compile Include="Services\Catalog\PackSelectorItem.cs" />
     <Compile Include="Services\Catalog\PackCatalogService.cs" />
     <Compile Include="Services\Catalog\PackCatalogService.Order.cs" />
     <Compile Include="Pages\Main\Packs\MainPage.PackOrder.cs" />
@@ -527,7 +528,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <AppxManifest Include="Package.appxmanifest">
+    <AppxManifest Include="Package.appxmanifest" Condition="'$(WidgetSwitchValidation)' != 'true'">
       <SubType>Designer</SubType>
     </AppxManifest>
   </ItemGroup>
@@ -844,4 +845,11 @@
     <Content Include="Bridge\killconfirm-widget-bridge.exe" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\WindowsXaml\v$(VisualStudioVersion)\Microsoft.Windows.UI.Xaml.CSharp.targets" />
+  <PropertyGroup Condition="'$(WidgetSwitchValidation)' == 'true'">
+    <DefineConstants>$(DefineConstants);WIDGET_SWITCH_VALIDATION</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(WidgetSwitchValidation)' == 'true'">
+    <AppxManifest Include="Validation\Package.appxmanifest" />
+    <Compile Include="Validation\GameSwitchValidation.cs" />
+  </ItemGroup>
 </Project>

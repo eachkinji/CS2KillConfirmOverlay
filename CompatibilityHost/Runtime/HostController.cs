@@ -1,4 +1,4 @@
-using KillConfirmCompatibility.Contracts;
+﻿using KillConfirmCompatibility.Contracts;
 using KillConfirmCompatibility.Controls;
 using KillConfirmCompatibility.Danmaku;
 using KillConfirmCompatibility.Desktop.Windowing;
@@ -23,10 +23,13 @@ namespace KillConfirmCompatibility.Desktop.Runtime
         private readonly KillConfirmAnimation _danmakuState = new();
         private readonly List<OverlaySurface> _surfaces = new();
         private readonly ServiceSession _service = new();
-        private readonly DispatcherTimer _frameTimer = new(DispatcherPriority.Render);
+        private readonly Desktop.Rendering.FrameCadence _frameCadence = new();
+        private readonly Desktop.Rendering.DesktopFrameClock _frameClock;
         private readonly DispatcherTimer _stateTimer = new() { Interval = TimeSpan.FromMilliseconds(250) };
         private readonly string _configurationPath, _statusPath;
         private readonly Window _toolbar;
+        private readonly Dictionary<string, Button> _editorButtons = new();
+        private string _selectedEditKey = "Lower";
         private readonly HwndSource _hotkeys;
         private KillEventClient _events;
         private System.Threading.Tasks.Task _applyingConfiguration = System.Threading.Tasks.Task.CompletedTask;
@@ -41,21 +44,25 @@ namespace KillConfirmCompatibility.Desktop.Runtime
         private string _style, _lastSignature, _renderError;
         private bool _editing, _hidden, _closing, _visible;
         private bool _statusWriteFailed;
+        private System.Threading.Tasks.Task _statusWrite = System.Threading.Tasks.Task.CompletedTask;
         private readonly bool _shutdownApplicationOnClose;
         private IntPtr _gameWindow;
         private DateTimeOffset _nextFind, _nextRegister, _nextStatus, _previewUntil;
         private int _lastPort;
+        internal long PresentationCallbacks { get; private set; }
+        internal long PresentedCallbacks { get; private set; }
         internal bool HasRenderedPreviewPixels => _surfaces.Any(surface => surface.ElementKey != "Danmaku" && surface.HasRenderedPixels);
         internal bool HasRenderedLowerPixels => _surfaces.Any(surface => surface.ElementKey == "Lower" && surface.HasRenderedPixels);
         internal bool HasRenderedOverwatchCard => HasRenderedLowerPixels && _presenter.LowerFeedbackAnimation.HasOverwatchCardContent;
         internal OverlaySurface LowerSurface => _surfaces.First(surface => surface.ElementKey == "Lower");
+        internal IReadOnlyList<OverlaySurface> AuditSurfaces => _surfaces;
         internal long CurrentPreviewRequest => _testRequest;
         internal bool HasRenderedDanmakuPixels => _surfaces.Any(surface => surface.ElementKey == "Danmaku" && surface.HasRenderedPixels);
         internal NativeWindows.Rect DanmakuBounds
         {
             get { NativeWindows.GetWindowRect(new WindowInteropHelper(_surfaces.First(surface => surface.ElementKey == "Danmaku")).Handle, out var bounds); return bounds; }
         }
-        internal string PreviewDiagnostics => string.Join("; ", _surfaces.Select(surface => surface.ElementKey + ": visible=" + surface.IsVisible + ", pixels=" + surface.HasRenderedPixels + ", size=" + surface.ActualWidth + "x" + surface.ActualHeight));
+        internal string PreviewDiagnostics => string.Join("; ", _surfaces.Select(surface => surface.ElementKey + ": visible=" + surface.IsPresentationVisible + ", pixels=" + surface.HasRenderedPixels + ", size=" + surface.PresentationWindowSize));
         public HostController(bool shutdownApplicationOnClose = true)
         {
             _shutdownApplicationOnClose = shutdownApplicationOnClose;
@@ -89,12 +96,12 @@ namespace KillConfirmCompatibility.Desktop.Runtime
             {
                 float scale = (float)Math.Min(w / Math.Max(1, _danmaku.Width), h / Math.Max(1, _danmaku.Height));
                 session.Transform = Matrix3x2.CreateScale(scale);
-                _danmaku.DrawDesktopFrame(session);
+                _danmaku.DrawDesktopFrame(session, clearTarget: false);
             };
             _presenter.DanmakuEvent = _danmaku.TriggerGameEvent;
             _danmaku.RaiseLoaded();
             // Keep the full-screen editor behind the smaller feedback elements.
-            AddSurface("Crosshair", "准星反馈", _presenter.CrosshairFeedbackAnimation);
+            AddSurface("Crosshair", "中间反馈", _presenter.CrosshairFeedbackAnimation);
             AddSurface("Lower", "下方反馈", _presenter.LowerFeedbackAnimation);
             AddSurface("Badge", "徽章", _presenter.LowerBadgeAnimation);
             AddSurface("Upper", "上方反馈", _presenter.UpperFeedbackAnimation);
@@ -104,29 +111,71 @@ namespace KillConfirmCompatibility.Desktop.Runtime
             NativeWindows.RegisterHotKey(_hotkeys.Handle, 1, 0x4003, 0x4F);
             NativeWindows.RegisterHotKey(_hotkeys.Handle, 2, 0x4003, 0x4C);
             StartEvents();
-            _frameTimer.Tick += RenderFrame;
+            _frameClock = new Desktop.Rendering.DesktopFrameClock(Dispatcher.CurrentDispatcher, RenderFrame);
             _stateTimer.Tick += UpdateState;
-            _frameTimer.Start(); _stateTimer.Start(); UpdateState(null, EventArgs.Empty);
+            _stateTimer.Start(); UpdateState(null, EventArgs.Empty);
         }
         private OverlaySurface AddSurface(string key, string label, KillConfirmAnimation animation)
         {
+            animation.UseDesktopFrameClock();
             var surface = new OverlaySurface(key, label, animation) { LayoutChanged = SaveLayout, FinishEditing = EndEditing };
             _surfaces.Add(surface); return surface;
         }
         private Window BuildToolbar()
         {
-            var row = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(10) };
-            row.Children.Add(new TextBlock { Text = "屏幕编辑   ·   拖动移动 / 右下角缩放   ·   右键更多操作   ·   Esc 保存", Foreground = Brushes.White, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 15, 0) });
-            var test = new Button { Content = "预览", Padding = new Thickness(12, 5, 12, 5), Margin = new Thickness(0, 0, 8, 0) };
+            var panel = new StackPanel { Margin = new Thickness(12) };
+            panel.Children.Add(new TextBlock { Text = "屏幕编辑 · 先选择区域，重叠时也只移动选中的框", Foreground = Brushes.White, FontWeight = System.Windows.FontWeights.SemiBold, Margin = new Thickness(0, 0, 0, 10) });
+            var row = new WrapPanel();
+            foreach (var item in new[] { ("Upper", "上方"), ("Crosshair", "中间"), ("Lower", "下方"), ("Danmaku", "弹幕") })
+            {
+                string key = item.Item1;
+                var button = new Button { Content = item.Item2, Tag = item.Item2, MinWidth = 72, Padding = new Thickness(10, 6, 10, 6), Margin = new Thickness(0, 0, 8, 4), BorderThickness = new Thickness(2), BorderBrush = new SolidColorBrush(OverlaySurface.EditorColor(key)) };
+                button.Click += (s, e) => SelectEditorElement(key);
+                _editorButtons.Add(key, button); row.Children.Add(button);
+            }
+            var test = new Button { Content = "预览", Padding = new Thickness(12, 6, 12, 6), Margin = new Thickness(8, 0, 8, 4) };
             test.Click += (s, e) => Preview(); row.Children.Add(test);
-            var finish = new Button { Content = "保存并结束", Padding = new Thickness(12, 5, 12, 5) };
+            var finish = new Button { Content = "保存并结束", Padding = new Thickness(12, 6, 12, 6), Margin = new Thickness(0, 0, 0, 4) };
             finish.Click += (s, e) => EndEditing(); row.Children.Add(finish);
-            var toolbar = new Window { Title = "兼容显示布局编辑", WindowStyle = WindowStyle.None, ResizeMode = ResizeMode.NoResize, ShowInTaskbar = false, Topmost = true, SizeToContent = SizeToContent.WidthAndHeight, Background = new SolidColorBrush(Color.FromRgb(32, 35, 42)), Content = row };
+            panel.Children.Add(row);
+            panel.Children.Add(new TextBlock { Text = "拖动移动 · 滚轮 / 右下角缩放 · 方向键微调 · 右键更多 · Esc 保存", Foreground = new SolidColorBrush(Color.FromRgb(200, 208, 220)), FontSize = 11, Margin = new Thickness(0, 4, 0, 0), TextWrapping = TextWrapping.Wrap });
+            // A taskbar entry keeps the selector reachable even when a large
+            // overlay covers the panel or the user switches to another app.
+            var toolbar = new Window { Title = "兼容显示布局编辑", WindowStyle = WindowStyle.None, ResizeMode = ResizeMode.NoResize, ShowInTaskbar = true, Topmost = true, SizeToContent = SizeToContent.WidthAndHeight, MaxWidth = 640, Background = new SolidColorBrush(Color.FromRgb(24, 31, 44)), Content = panel };
             toolbar.PreviewKeyDown += (s, e) =>
             {
                 if (e.Key == System.Windows.Input.Key.Escape || e.Key == System.Windows.Input.Key.Enter) { EndEditing(); e.Handled = true; }
+                else _surfaces.FirstOrDefault(surface => surface.ElementKey == _selectedEditKey)?.HandleEditorKey(e);
             };
+            toolbar.Closing += (s, e) => { if (!_closing) { e.Cancel = true; EndEditing(); } };
             return toolbar;
+        }
+        internal void SelectEditorElement(string key)
+        {
+            if (!_editorButtons.ContainsKey(key) || (key == "Upper" && GameStyleService.Current != GameStyleMode.ModernWarfare2019)) return;
+            _selectedEditKey = key;
+            RefreshEditorSelection();
+        }
+        private void RefreshEditorSelection()
+        {
+            bool upperSupported = GameStyleService.Current == GameStyleMode.ModernWarfare2019;
+            if (!upperSupported && _selectedEditKey == "Upper") _selectedEditKey = "Lower";
+            foreach (var pair in _editorButtons)
+            {
+                bool selected = pair.Key == _selectedEditKey;
+                pair.Value.IsEnabled = pair.Key != "Upper" || upperSupported;
+                pair.Value.ToolTip = pair.Value.IsEnabled ? "选择后只操作这个区域，其他框不会拦截鼠标。" : "当前游戏没有上方反馈。";
+                pair.Value.Content = (selected ? "✓ " : "") + (string)pair.Value.Tag;
+                pair.Value.Background = selected ? new SolidColorBrush(OverlaySurface.EditorColor(pair.Key)) : new SolidColorBrush(Color.FromRgb(32, 42, 58));
+                pair.Value.Foreground = selected ? new SolidColorBrush(Color.FromRgb(15, 23, 42)) : new SolidColorBrush(OverlaySurface.EditorColor(pair.Key));
+            }
+            foreach (var surface in _surfaces) surface.SetEditorSelected(_editing && surface.ElementKey == _selectedEditKey);
+            var selectedSurface = _surfaces.FirstOrDefault(surface => surface.ElementKey == _selectedEditKey);
+            if (_editing && selectedSurface != null)
+            {
+                NativeWindows.SetWindowPos(new WindowInteropHelper(selectedSurface).Handle, new IntPtr(-1), 0, 0, 0, 0, 0x1 | 0x2 | 0x10);
+                if (_toolbar.IsVisible) NativeWindows.SetWindowPos(new WindowInteropHelper(_toolbar).Handle, new IntPtr(-1), 0, 0, 0, 0, 0x1 | 0x2 | 0x10);
+            }
         }
         private void StartEvents()
         {
@@ -173,7 +222,6 @@ namespace KillConfirmCompatibility.Desktop.Runtime
                 }
                 if (_configuration.TestRequest != _testRequest) { _previewUntil = DateTimeOffset.UtcNow.AddSeconds(5); _hidden = false; }
                 if (_configuration.DanmakuTestRequest != _danmakuTestRequest) { _previewUntil = DateTimeOffset.UtcNow.AddSeconds(5); _hidden = false; }
-                _frameTimer.Interval = TimeSpan.FromSeconds(1.0 / _configuration.FramesPerSecond);
                 var screens = NativeWindows.Screens();
                 if (screens.Length == 0) return;
                 var monitor = screens.FirstOrDefault(s => s.Device == _configuration.ScreenName);
@@ -184,6 +232,12 @@ namespace KillConfirmCompatibility.Desktop.Runtime
                 bool hasGame = NativeWindows.TryGameBounds(_gameWindow, out var gameBounds);
                 if (_configuration.FollowGame && hasGame) bounds = gameBounds;
                 bool gameActive = NativeWindows.IsGameWindow(NativeWindows.GetForegroundWindow());
+                // A preview's visibility grace must not cut off a running outro.
+                // Valorant penta/overkill uses a seven-second animation clock.
+                if (DateTimeOffset.UtcNow < _previewUntil &&
+                    (_presenter.LowerFeedbackAnimation.IsDesktopPlaying || _presenter.CrosshairFeedbackAnimation.IsDesktopPlaying ||
+                     _presenter.UpperFeedbackAnimation.IsDesktopPlaying || _presenter.LowerBadgeAnimation.IsDesktopPlaying))
+                    _previewUntil = new DateTimeOffset(Math.Max(_previewUntil.Ticks, DateTimeOffset.UtcNow.AddSeconds(1).Ticks), TimeSpan.Zero);
                 _visible = !_hidden && (_editing || DateTimeOffset.UtcNow < _previewUntil || !_configuration.HideWhenInactive || gameActive);
                 var gameBar = DisplayFiles.Read<GameBarDisplayStatus>(Path.Combine(Path.GetDirectoryName(_configurationPath), "gamebar-status.json"));
                 if (gameBar != null && !gameBar.Blocked && DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - gameBar.Timestamp < 5000) _visible = false;
@@ -215,43 +269,46 @@ namespace KillConfirmCompatibility.Desktop.Runtime
                 }
                 if (_editing)
                 {
+                    RefreshEditorSelection();
                     new WindowInteropHelper(_toolbar).EnsureHandle();
                     NativeWindows.SetWindowPos(new WindowInteropHelper(_toolbar).Handle, new IntPtr(-1), bounds.Left + 20, bounds.Top + 20, 0, 0, 0x1 | 0x10);
                 }
                 if (LocalServiceEndpoints.Port != _lastPort) StartEvents();
                 if (DateTimeOffset.UtcNow >= _nextRegister) { _nextRegister = DateTimeOffset.UtcNow.AddSeconds(3); _ = _service.EnsureRegisteredAsync(); }
-                if (DateTimeOffset.UtcNow >= _nextStatus)
+                if (DateTimeOffset.UtcNow >= _nextStatus && _statusWrite.IsCompleted)
                 {
                     _nextStatus = DateTimeOffset.UtcNow.AddSeconds(1);
-                    try
-                    {
-                        DisplayFiles.Write(_statusPath, new DisplayStatus { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), ProcessId = Environment.ProcessId, Connected = _events.ConnectionState == KillEventConnectionState.Connected, Editing = _editing, Visible = _visible, Style = _style, Loading = !_applyingConfiguration.IsCompleted, Screen = monitor.Device, Screens = screens.Select(s => s.Device).ToArray(), Error = _renderError ?? _presenter.ConfigurationError ?? _service.Error, LastTestRequest = _completedTestRequest, TestError = _testError, LastDanmakuTestRequest = _completedDanmakuTestRequest, DanmakuTestError = _danmakuTestError });
-                        if (_statusWriteFailed) App.Log("Compatibility status write recovered.");
-                        _statusWriteFailed = false;
-                    }
-                    catch (IOException failure)
-                    {
-                        // A failed heartbeat is not a rendering failure. The next
-                        // successful write must report the current display state.
-                        if (!_statusWriteFailed) App.Log("Compatibility status write: " + failure);
-                        _statusWriteFailed = true;
-                    }
-                    catch (UnauthorizedAccessException failure)
-                    {
-                        if (!_statusWriteFailed) App.Log("Compatibility status write: " + failure);
-                        _statusWriteFailed = true;
-                    }
+                    _statusWrite = WriteStatusAsync(new DisplayStatus { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), ProcessId = Environment.ProcessId, Connected = _events.ConnectionState == KillEventConnectionState.Connected, Editing = _editing, Visible = _visible, Style = _style, Loading = !_applyingConfiguration.IsCompleted, Screen = monitor.Device, Screens = screens.Select(s => s.Device).ToArray(), Error = _renderError ?? _presenter.ConfigurationError ?? _service.Error, LastTestRequest = _completedTestRequest, TestError = _testError, LastDanmakuTestRequest = _completedDanmakuTestRequest, DanmakuTestError = _danmakuTestError });
                 }
             }
             catch (Exception error) { _renderError = error.Message; App.Log("Compatibility state: " + error); }
         }
-        private void RenderFrame(object sender, EventArgs args)
+        private async System.Threading.Tasks.Task WriteStatusAsync(DisplayStatus snapshot)
         {
+            // Replacement retries can block for 200 ms while scanners/readers
+            // hold the file. Never do that work on the animation/UI thread.
+            try
+            {
+                await System.Threading.Tasks.Task.Run(() => DisplayFiles.Write(_statusPath, snapshot));
+                if (_statusWriteFailed) App.Log("Compatibility status write recovered.");
+                _statusWriteFailed = false;
+            }
+            catch (Exception failure) when (failure is IOException || failure is UnauthorizedAccessException)
+            {
+                if (!_statusWriteFailed) App.Log("Compatibility status write: " + failure);
+                _statusWriteFailed = true;
+            }
+        }
+        private void RenderFrame(TimeSpan timestamp)
+        {
+            PresentationCallbacks++;
+            if (_closing || !_frameCadence.ShouldPresent(timestamp, DisplayConfiguration.PresentationFramesPerSecond)) return;
+            PresentedCallbacks++;
             try { _danmaku.AdvanceDesktopFrame(); }
             catch (Exception error) { _renderError = error.Message; App.Log("Compatibility danmaku: " + error); }
             foreach (OverlaySurface surface in _surfaces)
             {
-                try { surface.Render(); }
+                try { surface.AdvanceAndRender(); }
                 catch (Exception error) { _renderError = error.Message; App.Log("Compatibility drawing: " + error); }
             }
         }
@@ -261,8 +318,8 @@ namespace KillConfirmCompatibility.Desktop.Runtime
             string style = _style; LayoutProfile layout = _layout;
             DisplayFiles.Update(_configurationPath, config => config.Layouts[style] = layout);
         }
-        private void BeginEditing() { _hidden = false; _editing = true; _toolbar.Show(); Preview(); }
-        private void EndEditing() { SaveLayout(); _editing = false; _toolbar.Hide(); }
+        private void BeginEditing() { _hidden = false; _editing = true; _toolbar.Show(); RefreshEditorSelection(); Preview(); }
+        private void EndEditing() { SaveLayout(); _editing = false; _toolbar.Hide(); RefreshEditorSelection(); }
         private void Preview(bool requested = false)
         {
             _previewUntil = DateTimeOffset.UtcNow.AddSeconds(5); _hidden = false;
@@ -387,11 +444,13 @@ namespace KillConfirmCompatibility.Desktop.Runtime
         public async System.Threading.Tasks.Task CloseAsync()
         {
             if (_closing) return; _closing = true;
-            _frameTimer.Stop(); _stateTimer.Stop(); _events?.Dispose(); _danmaku.RaiseUnloaded();
+            _frameClock.Dispose();
+            _stateTimer.Stop(); _events?.Dispose(); _danmaku.RaiseUnloaded();
             NativeWindows.UnregisterHotKey(_hotkeys.Handle, 1); NativeWindows.UnregisterHotKey(_hotkeys.Handle, 2); _hotkeys.Dispose();
             await _applyingConfiguration;
             foreach (var surface in _surfaces) surface.Dispose(); _toolbar.Close();
             await _service.ReleaseAsync();
+            await _statusWrite; // A stale in-flight heartbeat must not overwrite the stopped status.
             try { DisplayFiles.Write(_statusPath, new DisplayStatus { Timestamp = 0, ProcessId = 0 }); } catch { }
             if (_shutdownApplicationOnClose) System.Windows.Application.Current.Shutdown();
         }

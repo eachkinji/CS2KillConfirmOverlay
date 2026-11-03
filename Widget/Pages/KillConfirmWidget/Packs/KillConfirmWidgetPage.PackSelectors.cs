@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -52,8 +52,7 @@ namespace KillConfirmGameBar
                             CrosshairFeedbackAnimation?.ReleaseAnimationResourcesForPackChange();
                             UpperFeedbackAnimation?.ReleaseAnimationResourcesForPackChange();
                         }
-                        await InitializePackSelectorsAsync();
-                        if (valorantEdited) await SyncSelectedVoicePackAsync();
+                        QueueGameStyleRefresh();
                         App.NoteAction("catalog refresh done");
                     }
                     catch (Exception ex)
@@ -74,7 +73,9 @@ namespace KillConfirmGameBar
         private async Task InitializePackSelectorsAsync()
         {
             await _packSelectorInitializationLock.WaitAsync();
-            App.NoteAction("initialize selectors style=" + GameStyleService.Current);
+            if (!_isPageActive) { _packSelectorInitializationLock.Release(); return; }
+            GameStyleMode requestStyle = GameStyleService.Current;
+            App.NoteAction("initialize selectors style=" + requestStyle);
             bool previousVoiceSuppression = _suppressVoicePackEvents;
             bool previousIconSuppression = _suppressIconPackEvents;
             _packSelectorsInitialized = false;
@@ -83,7 +84,9 @@ namespace KillConfirmGameBar
             try
             {
                 await PopulateVoicePackSelectorAsync();
+                if (!_isPageActive || requestStyle != GameStyleService.Current) return;
                 await PopulateIconPackSelectorAsync();
+                if (!_isPageActive || requestStyle != GameStyleService.Current) return;
                 LoadIconPackSetting();
                 LoadEliteEffectSetting();
                 LoadKillFxSetting();
@@ -189,10 +192,11 @@ namespace KillConfirmGameBar
                 }
             }
 
+            if (!_isPageActive || style != GameStyleService.Current) return;
             PackTestSectionView.VoicePackSelector.Items.Clear();
             foreach (VoicePackItem pack in visiblePacks)
             {
-                PackTestSectionView.VoicePackSelector.Items.Add(await CreateVoicePackComboBoxItemAsync(pack));
+                PackTestSectionView.VoicePackSelector.Items.Add(CreateVoicePackComboBoxItem(pack));
             }
 
             if (PackTestSectionView.VoicePackSelector.Items.Count == 0)
@@ -246,10 +250,11 @@ namespace KillConfirmGameBar
                 }
             }
 
+            if (!_isPageActive || style != GameStyleService.Current) return;
             PackTestSectionView.IconPackSelector.Items.Clear();
             foreach (IconPackItem pack in visiblePacks)
             {
-                PackTestSectionView.IconPackSelector.Items.Add(await CreateIconPackComboBoxItemAsync(pack));
+                PackTestSectionView.IconPackSelector.Items.Add(CreateIconPackComboBoxItem(pack));
             }
 
             if (PackTestSectionView.IconPackSelector.Items.Count == 0)
@@ -265,85 +270,28 @@ namespace KillConfirmGameBar
             SelectIconPack(preferredIconPack);
         }
 
-        private async Task<ComboBoxItem> CreateVoicePackComboBoxItemAsync(VoicePackItem pack)
+        private PackSelectorItem CreateVoicePackComboBoxItem(VoicePackItem pack)
         {
             string key = pack?.Key ?? string.Empty;
-            ComboBoxItem item = CreatePackComboBoxItem(
-                PackCatalogService.GetVoicePackDisplayName(pack),
-                key,
-                GetVoicePackIconUri(key));
-
-            if (pack != null && !pack.IsBuiltIn)
-            {
-                Image image = item.Tag as string != null ? FindPackItemImage(item) : null;
-                await TryApplyPackFolderImageAsync(image, pack.FolderPath, VoicePackHeadImageNames);
-            }
-
-            return item;
+            bool customHead = pack != null && !pack.IsBuiltIn && !ValorantPackService.IsValorantPackKey(key);
+            return new PackSelectorItem(PackCatalogService.GetVoicePackDisplayName(pack), key,
+                GetVoicePackIconUri(key, pack?.AssociationId), customHead ? pack.FolderPath : null,
+                customHead ? VoicePackHeadImageNames : null);
         }
 
-        private async Task<ComboBoxItem> CreateIconPackComboBoxItemAsync(IconPackItem pack)
+        private PackSelectorItem CreateIconPackComboBoxItem(IconPackItem pack)
         {
             string key = pack?.Key ?? string.Empty;
-            ComboBoxItem item = CreatePackComboBoxItem(
-                PackCatalogService.GetIconPackDisplayName(pack),
-                key,
-                GetIconPackIconUri(key));
-
-            if (pack != null && !pack.IsBuiltIn)
-            {
-                Image image = FindPackItemImage(item);
-                await TryApplyPackFolderImageAsync(image, pack.FolderPath, IconPackHeadImageNames);
-            }
-
-            return item;
+            bool customHead = pack != null && !pack.IsBuiltIn && !ValorantPackService.IsValorantPackKey(key);
+            return new PackSelectorItem(PackCatalogService.GetIconPackDisplayName(pack), key,
+                GetIconPackIconUri(key), customHead ? pack.FolderPath : null,
+                customHead ? IconPackHeadImageNames : null);
         }
 
-        private static ComboBoxItem CreatePackComboBoxItem(string text, string tag, string iconUri)
-        {
-            GameThemePalette theme = GameThemePalette.Current;
-            var image = new Image
-            {
-                Width = 12,
-                Height = 12,
-                Stretch = Stretch.Uniform,
-                VerticalAlignment = VerticalAlignment.Center,
-                Margin = new Thickness(0, 0, 5, 0)
-            };
+        private static PackSelectorItem CreatePackComboBoxItem(string text, string tag, string iconUri)
+            => new PackSelectorItem(text, tag, iconUri);
 
-            if (!string.IsNullOrWhiteSpace(iconUri))
-            {
-                _=SharedResources.ApplyImageAsync(image,iconUri);
-            }
-
-            var label = new TextBlock
-            {
-                Text = text ?? string.Empty,
-                FontSize = 9,
-                Foreground = new SolidColorBrush(theme.Text),
-                TextTrimming = TextTrimming.CharacterEllipsis,
-                VerticalAlignment = VerticalAlignment.Center
-            };
-
-            var panel = new StackPanel
-            {
-                Orientation = Orientation.Horizontal,
-                VerticalAlignment = VerticalAlignment.Center
-            };
-            panel.Children.Add(image);
-            panel.Children.Add(label);
-
-            return new ComboBoxItem
-            {
-                Content = panel,
-                Tag = tag,
-                Foreground = new SolidColorBrush(theme.Text),
-                Background = new SolidColorBrush(theme.Field),
-                BorderBrush = new SolidColorBrush(theme.Border)
-            };
-        }
-
-        private static ComboBoxItem CreateAddMorePackItem(bool voice)
+        private static PackSelectorItem CreateAddMorePackItem(bool voice)
         {
             bool chinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
             string text = chinese
@@ -362,10 +310,10 @@ namespace KillConfirmGameBar
             try
             {
                 // This is a navigation action; restore the real selection before any await.
-                ComboBoxItem restore = e.RemovedItems.OfType<ComboBoxItem>()
+                PackSelectorItem restore = e.RemovedItems.OfType<PackSelectorItem>()
                     .FirstOrDefault(item => !Equals(item.Tag, PackLibraryNavigation.AddMoreTag)
                         && selector.Items.Contains(item))
-                    ?? selector.Items.OfType<ComboBoxItem>()
+                    ?? selector.Items.OfType<PackSelectorItem>()
                         .FirstOrDefault(item => !Equals(item.Tag, PackLibraryNavigation.AddMoreTag));
                 if (restore != null) selector.SelectedItem = restore;
             }
@@ -390,83 +338,16 @@ namespace KillConfirmGameBar
             ShowGuideOpenFailedHint();
         }
 
-        private static Image FindPackItemImage(ComboBoxItem item)
-        {
-            if (item?.Content is StackPanel panel)
-            {
-                return panel.Children.OfType<Image>().FirstOrDefault();
-            }
-
-            return null;
-        }
-
-        private static async Task TryApplyPackFolderImageAsync(Image image, string folderPath, IReadOnlyList<string> candidateNames)
-        {
-            if (image == null || string.IsNullOrWhiteSpace(folderPath) || candidateNames == null)
-            {
-                return;
-            }
-
-            try
-            {
-                StorageFolder folder = await SharedResources.ImportedFolderAsync(folderPath);
-                foreach (string candidateName in candidateNames)
-                {
-                    StorageFile file = await TryGetNestedFileAsync(folder, candidateName);
-                    if (file == null)
-                    {
-                        continue;
-                    }
-
-                    var bitmap = new BitmapImage();
-                    using (IRandomAccessStream stream = await file.OpenReadAsync())
-                    {
-                        await bitmap.SetSourceAsync(stream);
-                    }
-
-                    image.Source = bitmap;
-                    return;
-                }
-            }
-            catch
-            {
-            }
-        }
-
-        private static async Task<StorageFile> TryGetNestedFileAsync(StorageFolder root, string relativePath)
-        {
-            if (root == null || string.IsNullOrWhiteSpace(relativePath))
-            {
-                return null;
-            }
-
-            try
-            {
-                string[] parts = relativePath.Split(new[] { '\\', '/' }, StringSplitOptions.RemoveEmptyEntries);
-                StorageFolder folder = root;
-                for (int i = 0; i < parts.Length - 1; i++)
-                {
-                    folder = await folder.GetFolderAsync(parts[i]);
-                }
-
-                return await folder.GetFileAsync(parts[parts.Length - 1]);
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
-        private static string GetVoicePackIconUri(string key)
+        private static string GetVoicePackIconUri(string key, string associationId = null)
         {
             if (string.Equals(key, "custommodule", StringComparison.OrdinalIgnoreCase))
             {
-                return SharedResources.CachedAssetUri("Assets/GameStyles/custommodule/iconpacks/custommodule/pack_head.webp");
+                return SharedResources.CachedAssetUri("Assets/GameLogos/custommodule.png");
             }
             if (GameStyleService.IsCustomModuleKey(key)) return null;
             if (ValorantPackService.IsValorantPackKey(key))
             {
-                return GetValorantPackIconUri(key);
+                return GetValorantPackIconUri(key, associationId);
             }
 
             switch ((key ?? string.Empty).Trim().ToLowerInvariant())

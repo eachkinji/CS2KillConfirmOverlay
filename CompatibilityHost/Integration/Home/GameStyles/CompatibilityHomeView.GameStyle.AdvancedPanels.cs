@@ -196,12 +196,6 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             }
         }
 
-        private void OnAdvancedEffectsButtonClick(object sender, RoutedEventArgs e)
-        {
-            MountAdvancedEffectsPanel();
-            FlyoutBase.ShowAttachedFlyout(PackTestSectionView.AdvancedEffectsButton);
-        }
-
         private CrossfireAdvancedEffectsPanel EnsureCrossfireAdvancedEffectsPanel()
         {
             if (_crossfireAdvancedEffectsPanel == null)

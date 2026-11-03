@@ -44,6 +44,7 @@ namespace KillConfirmCompatibility.Controls
         private double _overwatchSelectionViewportHeight = OverwatchCardHeight;
         private double _overwatchSelectionViewportCenterOffsetX;
         private double _overwatchSelectionViewportCenterOffsetY;
+        private double _overwatchLastUpdateMs;
 
 
         private sealed class OverwatchFeedItem
@@ -52,6 +53,7 @@ namespace KillConfirmCompatibility.Controls
             public bool IsAssist { get; set; }
             public double SpawnTimeMs { get; set; }
             public double CurrentCenterY { get; set; }
+            public CanvasTextLayout TextLayout { get; set; }
         }
     }
 }

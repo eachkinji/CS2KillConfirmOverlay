@@ -147,7 +147,9 @@ namespace KillConfirmCompatibility.Controls
             _isOverwatchActive = true;
             _drawOverwatchCrosshair = drawCrosshair;
             _drawOverwatchCard = drawCard;
+            foreach (var item in _overwatchFeedItems) item.TextLayout?.Dispose();
             _overwatchFeedItems.Clear();
+            _overwatchLastUpdateMs = 0;
             _overwatchSelectionViewportCenterOffsetX = 0;
             _overwatchSelectionViewportCenterOffsetY = 0;
             if (drawCard)
@@ -185,6 +187,7 @@ namespace KillConfirmCompatibility.Controls
             _isOverwatchActive = false;
             _drawOverwatchCrosshair = false;
             _drawOverwatchCard = false;
+            foreach (var item in _overwatchFeedItems) item.TextLayout?.Dispose();
             _overwatchFeedItems.Clear();
             _overwatchSelectionViewportCenterOffsetX = 0;
             _overwatchSelectionViewportCenterOffsetY = 0;

@@ -17,6 +17,9 @@ namespace KillConfirmGameBar.Services
 
         public static async Task<HttpClient> CreateHttpClientAsync()
         {
+#if WIDGET_SWITCH_VALIDATION
+            return new HttpClient(new WidgetProtocolFixture());
+#else
             string token = await GetTokenAsync();
             var client = new HttpClient();
             if (!client.DefaultRequestHeaders.TryAppendWithoutValidation(HeaderName, token))
@@ -26,6 +29,7 @@ namespace KillConfirmGameBar.Services
             }
 
             return client;
+#endif
         }
 
 

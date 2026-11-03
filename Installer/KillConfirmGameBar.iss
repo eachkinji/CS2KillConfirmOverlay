@@ -230,6 +230,7 @@ var
   TutorialLink: TNewStaticText;
 begin
   InitializeInstallLog();
+  InitializeComponentListLayout();
   InstallConfirmed := False;
   InstallConfirmPage := CreateCustomPage(
     wpReady,

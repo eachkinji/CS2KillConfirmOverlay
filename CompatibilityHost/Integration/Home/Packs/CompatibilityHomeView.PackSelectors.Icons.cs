@@ -20,9 +20,9 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         {
             if (string.Equals(key, "custommodule", StringComparison.OrdinalIgnoreCase))
             {
-                return "ms-appx:///Assets/GameStyles/custommodule/iconpacks/custommodule/pack_head.webp";
+                return "ms-appx:///Assets/GameLogos/custommodule.png";
             }
-            if (GameStyleService.IsCustomModuleKey(key)) return null;
+            if (GameStyleService.IsCustomModuleKey(key)) return "ms-appx:///Assets/GameLogos/custommodule.png";
             if (ValorantPackService.IsValorantPackKey(key))
             {
                 return GetValorantPackIconUri(key);
@@ -146,9 +146,11 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             }
         }
 
-        private static string GetValorantPackIconUri(string key)
+        private static string GetValorantPackIconUri(string key, string associationId = null)
         {
-            string emblemUri = ValorantPackService.GetEmblemUri(key);
+            string effectiveKey = ValorantPackService.Find(key) != null ? key
+                : ValorantExternalAssetService.FindIconPackKeyByAssociation(associationId ?? ValorantExternalAssetService.GetAssociationIdForVoicePack(key));
+            string emblemUri = ValorantPackService.GetEmblemUri(effectiveKey ?? ValorantPackService.DefaultKey);
             if (!string.IsNullOrWhiteSpace(emblemUri))
             {
                 return emblemUri;

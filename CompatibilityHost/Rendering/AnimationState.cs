@@ -25,12 +25,20 @@ namespace Windows.UI.Xaml
     public sealed class DispatcherTimer
     {
         private readonly global::System.Windows.Threading.DispatcherTimer _timer = new();
+        private bool _externalClock, _enabled;
         public DispatcherTimer() { _timer.Tick += (s, e) => Tick?.Invoke(this, e); }
         public TimeSpan Interval { get => _timer.Interval; set => _timer.Interval = value; }
-        public bool IsEnabled => _timer.IsEnabled;
+        public bool IsEnabled => _externalClock ? _enabled : _timer.IsEnabled;
         public event EventHandler<object> Tick;
-        public void Start() => _timer.Start();
-        public void Stop() => _timer.Stop();
+        public void Start() { _enabled = true; if (!_externalClock) _timer.Start(); }
+        public void Stop() { _enabled = false; _timer.Stop(); }
+        internal void UseExternalClock()
+        {
+            _enabled = IsEnabled;
+            _timer.Stop();
+            _externalClock = true;
+        }
+        internal void Advance() { if (_externalClock && _enabled) Tick?.Invoke(this, EventArgs.Empty); }
     }
 }
 namespace Windows.UI.Xaml.Controls

@@ -42,6 +42,11 @@ namespace KillConfirmGameBar
         protected override async void OnLaunched(LaunchActivatedEventArgs e)
         {
             if(e.PrelaunchActivated) return;
+#if WIDGET_SWITCH_VALIDATION
+            await KillConfirmWidgetPage.ValidateGameSwitchAsync();
+            Exit();
+            return;
+#endif
             await KillConfirmWidgetPage.TryLaunchFullTrustHelperAsync("OpenSettingsWindow");
             Exit();
         }

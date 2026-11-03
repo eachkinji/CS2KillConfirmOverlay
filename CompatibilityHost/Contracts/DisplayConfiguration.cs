@@ -7,6 +7,7 @@ namespace KillConfirmCompatibility.Contracts
     [DataContract]
     public sealed class DisplayConfiguration
     {
+        public const int PresentationFramesPerSecond = 60;
         [DataMember] public int Version { get; set; } = 2;
         // First use starts in Game Bar; an explicitly saved mode remains selected.
         [DataMember] public bool Enabled { get; set; } = false;
@@ -16,7 +17,9 @@ namespace KillConfirmCompatibility.Contracts
         [DataMember] public bool FollowGame { get; set; } = true;
         [DataMember] public bool HideWhenInactive { get; set; } = true;
         [DataMember] public string ScreenName { get; set; } = "";
-        [DataMember] public int FramesPerSecond { get; set; } = 60;
+        // Keep the serialized field for older installations, but retire the
+        // selectable limit. Old 30 FPS settings must not become a hidden cap.
+        [DataMember] public int FramesPerSecond { get; set; } = PresentationFramesPerSecond;
         [DataMember] public long EditRequest { get; set; }
         [DataMember] public long TestRequest { get; set; }
         [DataMember] public long RestartRequest { get; set; }
@@ -47,7 +50,7 @@ namespace KillConfirmCompatibility.Contracts
         }
         public void Normalize()
         {
-            FramesPerSecond = FramesPerSecond <= 30 ? 30 : 60;
+            FramesPerSecond = PresentationFramesPerSecond;
             ScreenName = ScreenName ?? "";
             if (Layouts == null) Layouts = new Dictionary<string, LayoutProfile>();
             if (Version < 2)

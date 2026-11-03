@@ -18,13 +18,7 @@ namespace KillConfirmCompatibility.Controls
             OverwatchFeedItem item,
             double elapsedMs)
         {
-            using (CanvasTextFormat textFormat = CreateOverwatchCardTextFormat())
-            using (CanvasTextLayout textLayout = new CanvasTextLayout(
-                CanvasDevice.GetSharedDevice(),
-                GetOverwatchFeedText(item.TargetName, item.IsAssist),
-                textFormat,
-                1000,
-                (float)OverwatchCardHeight))
+            CanvasTextLayout textLayout = GetOverwatchCardTextLayout(item);
             {
                 double textWidth = Math.Ceiling(Math.Max(1, textLayout.LayoutBounds.Width));
                 double cardWidth = OverwatchCardLeftPadding
@@ -124,12 +118,7 @@ namespace KillConfirmCompatibility.Controls
                     Math.Min(255, Math.Round(contentOpacity * 255)));
                 double textX = iconX + OverwatchCardIconSize + OverwatchCardIconGap;
                 double textY = cardY + ((OverwatchCardHeight - OverwatchCardTextFontSize) / 2.0) - 2;
-                drawingSession.DrawText(
-                    GetOverwatchFeedText(item.TargetName, item.IsAssist),
-                    (float)textX,
-                    (float)textY,
-                    Color.FromArgb(textAlpha, 255, 255, 255),
-                    textFormat);
+                drawingSession.DrawTextLayout(textLayout, new Vector2((float)textX, (float)textY), Color.FromArgb(textAlpha, 255, 255, 255));
                 HasOverwatchCardContent = true;
             }
         }
@@ -158,6 +147,7 @@ namespace KillConfirmCompatibility.Controls
             });
             while (_overwatchFeedItems.Count > OverwatchMaximumCardCount)
             {
+                _overwatchFeedItems[0].TextLayout?.Dispose();
                 _overwatchFeedItems.RemoveAt(0);
             }
         }
@@ -175,7 +165,7 @@ namespace KillConfirmCompatibility.Controls
             {
                 maximumWidth = Math.Max(
                     maximumWidth,
-                    MeasureOverwatchCardWidth(item.TargetName, item.IsAssist));
+                    MeasureOverwatchCardWidth(item));
             }
 
             double height = (count * OverwatchCardHeight) + ((count - 1) * OverwatchCardGap);
@@ -202,23 +192,21 @@ namespace KillConfirmCompatibility.Controls
             };
         }
 
-        private static double MeasureOverwatchCardWidth(string targetName, bool isAssist)
+        private static CanvasTextLayout GetOverwatchCardTextLayout(OverwatchFeedItem item)
         {
+            if (item.TextLayout != null) return item.TextLayout;
             using (CanvasTextFormat format = CreateOverwatchCardTextFormat())
-            using (CanvasTextLayout layout = new CanvasTextLayout(
-                CanvasDevice.GetSharedDevice(),
-                GetOverwatchFeedText(targetName, isAssist),
-                format,
-                1000,
-                (float)OverwatchCardHeight))
-            {
-                double textWidth = Math.Ceiling(Math.Max(1, layout.LayoutBounds.Width));
+                return item.TextLayout = new CanvasTextLayout(CanvasDevice.GetSharedDevice(), GetOverwatchFeedText(item.TargetName, item.IsAssist), format, 1000, (float)OverwatchCardHeight);
+        }
+
+        private static double MeasureOverwatchCardWidth(OverwatchFeedItem item)
+        {
+                double textWidth = Math.Ceiling(Math.Max(1, GetOverwatchCardTextLayout(item).LayoutBounds.Width));
                 return OverwatchCardLeftPadding
                     + OverwatchCardIconSize
                     + OverwatchCardIconGap
                     + textWidth
                     + OverwatchCardRightPadding;
-            }
         }
 
         private static string GetOverwatchFeedText(string targetName, bool isAssist)

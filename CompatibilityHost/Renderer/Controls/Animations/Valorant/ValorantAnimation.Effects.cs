@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Threading;
@@ -90,7 +90,6 @@ namespace KillConfirmCompatibility.Controls
                 drawingSession.Blend = CanvasBlend.Add;
             }
 
-            EnsureValorantEffects();
             double blurScale = Math.Max(0.01, blur * ValorantDemoVfxScale);
             double sourceUnitsPerTargetUnit = Math.Max(
                 source.Width / Math.Max(1.0, target.Width),
@@ -108,11 +107,19 @@ namespace KillConfirmCompatibility.Controls
                 source.Y - sourcePadding,
                 source.Width + sourcePadding * 2.0,
                 source.Height + sourcePadding * 2.0);
-            _valorantShadowEffect.Source = image;
-            _valorantShadowEffect.ShadowColor = Color.FromArgb(255, color.R, color.G, color.B);
-            _valorantShadowEffect.BlurAmount = (float)Math.Min(250.0, sourceBlur);
+            // Command lists retain effect graphs until replay. Each draw must
+            // own its effect: mutating a shared instance also changes earlier
+            // draws (including their source texture, tint and blur bounds).
+            using var shadow = new ShadowEffect
+            {
+                Source = image,
+                ShadowColor = Color.FromArgb(255, color.R, color.G, color.B),
+                BlurAmount = (float)Math.Min(250.0, sourceBlur),
+                Optimization = EffectOptimization.Speed,
+                CacheOutput = false
+            };
             drawingSession.DrawImage(
-                _valorantShadowEffect,
+                shadow,
                 shadowTarget,
                 shadowSource,
                 (float)Clamp01(opacity),
@@ -121,48 +128,16 @@ namespace KillConfirmCompatibility.Controls
             drawingSession.Blend = previousBlend;
         }
 
-        private void EnsureValorantEffects()
-        {
-            if (_valorantShadowEffect == null)
-            {
-                _valorantShadowEffect = new ShadowEffect
-                {
-                    Optimization = EffectOptimization.Speed,
-                    CacheOutput = false
-                };
-            }
-
-            if (_valorantColorMatrixEffect == null)
-            {
-                _valorantColorMatrixEffect = new ColorMatrixEffect
-                {
-                    CacheOutput = false
-                };
-            }
-        }
-
-        private void ReleaseValorantEffects()
-        {
-            _valorantShadowEffect?.Dispose();
-            _valorantShadowEffect = null;
-            _valorantColorMatrixEffect?.Dispose();
-            _valorantColorMatrixEffect = null;
-        }
-
         private void DrawBrightnessContrastImage(CanvasDrawingSession drawingSession, CanvasBitmap image, Rect target, Rect source, double opacity, float brightness, float contrast = 1.0f)
         {
-            EnsureValorantEffects();
-            _valorantColorMatrixEffect.Source = image;
-            _valorantColorMatrixEffect.ColorMatrix = CreateBrightnessContrastMatrix(brightness, contrast);
-            drawingSession.DrawImage(_valorantColorMatrixEffect, target, source, (float)Clamp01(opacity), GetValorantImageInterpolation(target, source));
+            using var effect = new ColorMatrixEffect { Source = image, ColorMatrix = CreateBrightnessContrastMatrix(brightness, contrast), CacheOutput = false };
+            drawingSession.DrawImage(effect, target, source, (float)Clamp01(opacity), GetValorantImageInterpolation(target, source));
         }
 
         private void DrawMultiplyTintImage(CanvasDrawingSession drawingSession, CanvasBitmap image, Rect target, Rect source, Color tint, double opacity)
         {
-            EnsureValorantEffects();
-            _valorantColorMatrixEffect.Source = image;
-            _valorantColorMatrixEffect.ColorMatrix = CreateMultiplyTintMatrix(tint);
-            drawingSession.DrawImage(_valorantColorMatrixEffect, target, source, (float)Clamp01(opacity), GetValorantImageInterpolation(target, source));
+            using var effect = new ColorMatrixEffect { Source = image, ColorMatrix = CreateMultiplyTintMatrix(tint), CacheOutput = false };
+            drawingSession.DrawImage(effect, target, source, (float)Clamp01(opacity), GetValorantImageInterpolation(target, source));
         }
 
         private static Matrix5x4 CreateBrightnessContrastMatrix(float brightness, float contrast)

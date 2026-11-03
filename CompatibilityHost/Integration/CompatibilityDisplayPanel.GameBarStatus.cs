@@ -4,6 +4,7 @@ using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
+using Windows.UI.Xaml.Shapes;
 
 namespace KillConfirmGameBar.Features.CompatibilityDisplay
 {
@@ -58,21 +59,21 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                     ? "未打开"
                     : "Not open");
                 SetGameBarStatusRow(
-                    WidgetStatusGlyph,
+                    WidgetStatusDot,
                     WidgetStatusDetail,
                     WidgetStatusBadge,
                     null,
                     isChinese ? "请按 Win+G 打开 Kill Confirm Overlay" : "Press Win+G and open Kill Confirm Overlay",
                     isChinese ? "未检测" : "Not detected");
                 SetGameBarStatusRow(
-                    PinStatusGlyph,
+                    PinStatusDot,
                     PinStatusDetail,
                     PinStatusBadge,
                     null,
                     isChinese ? "等待小组件状态" : "Waiting for widget state",
                     isChinese ? "未知" : "Unknown");
                 SetGameBarStatusRow(
-                    ClickThroughStatusGlyph,
+                    ClickThroughStatusDot,
                     ClickThroughStatusDetail,
                     ClickThroughStatusBadge,
                     null,
@@ -86,14 +87,14 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                 ? (isChinese ? "已就绪" : "Ready")
                 : (isChinese ? "需要处理" : "Needs attention"));
             SetGameBarStatusRow(
-                WidgetStatusGlyph,
+                WidgetStatusDot,
                 WidgetStatusDetail,
                 WidgetStatusBadge,
                 true,
                 isChinese ? "正在接收实时状态" : "Receiving live state",
                 isChinese ? "运行中" : "Running");
             SetGameBarStatusRow(
-                PinStatusGlyph,
+                PinStatusDot,
                 PinStatusDetail,
                 PinStatusBadge,
                 status.IsPinned,
@@ -104,7 +105,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                     ? (isChinese ? "已固定" : "Pinned")
                     : (isChinese ? "未固定" : "Not pinned"));
             SetGameBarStatusRow(
-                ClickThroughStatusGlyph,
+                ClickThroughStatusDot,
                 ClickThroughStatusDetail,
                 ClickThroughStatusBadge,
                 status.IsClickThroughEnabled,
@@ -117,7 +118,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         }
 
         private static void SetGameBarStatusRow(
-            TextBlock glyph,
+            Ellipse dot,
             TextBlock detail,
             TextBlock badge,
             bool? success,
@@ -125,12 +126,11 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             string badgeText)
         {
             Color color = !success.HasValue
-                ? Color.FromArgb(255, 110, 110, 110)
+                ? Color.FromArgb(255, 142, 142, 147)
                 : success.Value
-                    ? Color.FromArgb(255, 16, 124, 16)
-                    : Color.FromArgb(255, 196, 43, 28);
-            glyph.Text = !success.HasValue ? "?" : success.Value ? "✓" : "×";
-            glyph.Foreground = new SolidColorBrush(color);
+                    ? Color.FromArgb(255, 52, 199, 89)
+                    : Color.FromArgb(255, 255, 59, 48);
+            dot.Fill = new SolidColorBrush(color);
             detail.Text = detailText;
             badge.Text = badgeText;
             badge.Foreground = new SolidColorBrush(color);

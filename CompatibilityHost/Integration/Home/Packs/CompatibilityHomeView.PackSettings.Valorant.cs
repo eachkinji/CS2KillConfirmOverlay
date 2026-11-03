@@ -58,7 +58,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
 
             foreach (object option in selector.Items)
             {
-                if (option is ComboBoxItem item
+                if (option is PackSelectorItem item
                     && item.Tag is string tag
                     && string.Equals(tag, key, StringComparison.OrdinalIgnoreCase))
                 {

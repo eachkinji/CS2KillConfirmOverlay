@@ -103,7 +103,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
 
         private string GetSelectedIconPack()
         {
-            if (PackTestSectionView.IconPackSelector?.SelectedItem is ComboBoxItem item
+            if (PackTestSectionView.IconPackSelector?.SelectedItem is PackSelectorItem item
                 && item.Tag is string tag
                 && !string.IsNullOrWhiteSpace(tag))
             {
@@ -131,7 +131,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             {
                 foreach (object option in PackTestSectionView.IconPackSelector.Items)
                 {
-                    if (option is ComboBoxItem item
+                    if (option is PackSelectorItem item
                         && item.Tag is string tag
                         && string.Equals(tag, iconPack, StringComparison.OrdinalIgnoreCase))
                     {

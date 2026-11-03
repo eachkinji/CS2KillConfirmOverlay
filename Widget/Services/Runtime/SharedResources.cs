@@ -38,6 +38,9 @@ namespace KillConfirmGameBar.Services
         public static async Task<StorageFile> AssetFileAsync(Uri uri)
         {
             if(uri.IsFile) return await FileFromPathAsync(uri.LocalPath);
+            if(uri.Scheme=="ms-appdata" && uri.AbsolutePath.StartsWith("/local/",StringComparison.OrdinalIgnoreCase))
+                return await FileFromPathAsync(Path.Combine(ApplicationData.Current.LocalFolder.Path,
+                    Uri.UnescapeDataString(uri.AbsolutePath.Substring("/local/".Length)).Replace('/',Path.DirectorySeparatorChar)));
             string relative=Uri.UnescapeDataString(uri.AbsolutePath).TrimStart('/');
             string target=Path.GetFullPath(Path.Combine(CacheRoot,relative.Replace('/',Path.DirectorySeparatorChar)));
             if(!target.StartsWith(CacheRoot+Path.DirectorySeparatorChar,StringComparison.OrdinalIgnoreCase)) throw new IOException("Invalid shared asset path.");
@@ -52,8 +55,11 @@ namespace KillConfirmGameBar.Services
                 if(!File.Exists(path)) await DownloadAsync(Path.Combine(RemoteDataRoot,path.Substring(local.Length+1)),false,path);
                 return await StorageFile.GetFileFromPathAsync(path);
             }
-            var folder=await ImportedFolderAsync(Path.GetDirectoryName(path));
-            return await folder.GetFileAsync(Path.GetFileName(path));
+            // A single thumbnail or texture must not fetch its entire pack.
+            // ImportedFolderAsync remains available to callers needing a listing.
+            string target=Path.Combine(CacheRoot,"Files",Hash(path),Path.GetFileName(path));
+            if(!File.Exists(target)) await DownloadAsync(path,false,target);
+            return await StorageFile.GetFileFromPathAsync(target);
         }
         private static async Task DownloadAsync(string source,bool asset,string destination)
         {
@@ -115,9 +121,6 @@ namespace KillConfirmGameBar.Services
             if(!string.IsNullOrWhiteSpace(RemoteDataRoot))
                 try { await FetchFolderAsync(Path.Combine(RemoteDataRoot,"Packs"),false,true,Path.Combine(ApplicationData.Current.LocalFolder.Path,"Packs")); } catch(Exception error) { App.Log("Shared pack manifests: "+error.Message); }
             ValorantPackService.RefreshExternalPacks();
-            foreach(var pack in ValorantPackService.All)
-                if(!string.IsNullOrWhiteSpace(pack.EmblemFile))
-                    try { await AssetFileAsync(new Uri("ms-appx:///Assets/GameStyles/valorant/killconfirm/"+pack.Folder+"/textures/"+pack.EmblemFile)); } catch { }
         }
     }
 }

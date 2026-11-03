@@ -48,6 +48,7 @@ namespace KillConfirmCompatibility.Controls
 
         private double GetRenderResolutionScale()
         {
+            if (_desktopRasterScale > 0) return _desktopRasterScale;
             bool isValorant = IsValorantPresentationConfigured;
             double requestedScale = isValorant
                 ? GetBaseDisplayFit() * _presentationScale

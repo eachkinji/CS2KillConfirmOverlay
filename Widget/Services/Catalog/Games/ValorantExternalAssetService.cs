@@ -101,8 +101,21 @@ namespace KillConfirmGameBar.Services
                 return "valorant:base";
             }
 
-            return DiscoverExternalVoicePacks().FirstOrDefault(pack =>
-                string.Equals(pack.Key, key, StringComparison.OrdinalIgnoreCase))?.AssociationId;
+            // Resolving one thumbnail must not enumerate and repair every
+            // voice pack. A 195-pack library otherwise performs 195 full scans
+            // on the UI thread while constructing its selector.
+            if (!IsSafePackKey(key)) return null;
+            try
+            {
+                string folderPath = Path.Combine(GetVoicePacksRootPath(), key);
+                var manifest = ReadManifest(folderPath);
+                return IsValidCommonManifest(manifest, key, VoicePackageKind)
+                    && string.Equals(manifest.GameStyle, "valorant", StringComparison.OrdinalIgnoreCase)
+                    ? manifest.AssociationId.Trim().ToLowerInvariant() : null;
+            }
+            catch (IOException) { return null; }
+            catch (UnauthorizedAccessException) { return null; }
+            catch (SerializationException) { return null; }
         }
 
         public static string FindVoicePackKeyByAssociation(string associationId)

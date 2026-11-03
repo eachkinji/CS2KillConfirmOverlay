@@ -153,7 +153,7 @@
                         x:Name="PageTitleHeader"
                         MaxWidth="1480"
                         HorizontalAlignment="Stretch"
-                        Padding="4,0"
+                        Padding="0"
                         Canvas.ZIndex="10">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -163,19 +163,37 @@
                         <Border
                             x:Name="PageTitleSurface"
                             Grid.ColumnSpan="2"
-                            Padding="0,2,0,2"
-                            HorizontalAlignment="Left"
+                            Padding="0"
+                            HorizontalAlignment="Stretch"
                             VerticalAlignment="Center"
                             Background="Transparent"
                             BorderThickness="0"
                             CornerRadius="10">
-                            <TextBlock
-                                x:Name="TitleText"
-                                FontFamily="Segoe UI Variable Text"
-                                FontSize="22"
-                                FontWeight="SemiBold"
-                                Foreground="{StaticResource TextPrimaryBrush}"
-                                Text="主页" />
+                            <Grid x:Name="PageTitleBody" Padding="4,2" ColumnSpacing="0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Border x:Name="PageTitleAccent" Width="4" Height="36"
+                                    Margin="0,0,16,0" CornerRadius="2" VerticalAlignment="Center"
+                                    Visibility="Collapsed" />
+                                <Border x:Name="PageTitleLogoSurface" Grid.Column="1" Width="52" Height="52"
+                                    Margin="0,0,16,0" CornerRadius="14" VerticalAlignment="Center"
+                                    Visibility="Collapsed">
+                                    <Image x:Name="PageTitleGameLogo" Width="38" Height="38" Stretch="Uniform" />
+                                </Border>
+                                <TextBlock
+                                    x:Name="TitleText"
+                                    Grid.Column="2"
+                                    VerticalAlignment="Center"
+                                    TextWrapping="Wrap"
+                                    FontFamily="Segoe UI Variable Text"
+                                    FontSize="22"
+                                    FontWeight="SemiBold"
+                                    Foreground="{StaticResource TextPrimaryBrush}"
+                                    Text="主页" />
+                            </Grid>
                         </Border>
 
                         <!-- Hidden compatibility anchor -->

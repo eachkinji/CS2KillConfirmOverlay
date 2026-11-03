@@ -387,7 +387,10 @@ namespace KillConfirmCompatibility.Services
             try
             {
                 string fullPath = Path.GetFullPath(candidate);
-                return IsChildPath(root, fullPath) ? await StorageFile.GetFileFromPathAsync(fullPath) : null;
+                // Built-in packs normally have no external override. Avoid a
+                // failing WinRT file-open for every texture during first play.
+                return IsChildPath(root, fullPath) && File.Exists(fullPath)
+                    ? await StorageFile.GetFileFromPathAsync(fullPath) : null;
             }
             catch
             {

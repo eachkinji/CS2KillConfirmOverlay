@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -116,7 +116,6 @@ namespace KillConfirmCompatibility.Controls
                 Visibility = Visibility.Collapsed;
             }
 
-            ReleaseValorantEffects();
             ReleaseValorantTextureCache();
             SpriteCanvas?.Invalidate();
         }
@@ -145,7 +144,6 @@ namespace KillConfirmCompatibility.Controls
             ResetApexFeedState();
             ResetModernWarfare2019State();
             Visibility = Visibility.Collapsed;
-            ReleaseValorantEffects();
             ReleaseAllAnimationResourceCaches();
             SpriteCanvas?.Invalidate();
         }

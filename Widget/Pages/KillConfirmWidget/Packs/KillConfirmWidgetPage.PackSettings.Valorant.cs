@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using KillConfirmGameBar.Controls.GameStyles;
 using KillConfirmGameBar.Services;
 using Windows.UI.Xaml;
@@ -58,7 +58,7 @@ namespace KillConfirmGameBar
 
             foreach (object option in selector.Items)
             {
-                if (option is ComboBoxItem item
+                if (option is PackSelectorItem item
                     && item.Tag is string tag
                     && string.Equals(tag, key, StringComparison.OrdinalIgnoreCase))
                 {

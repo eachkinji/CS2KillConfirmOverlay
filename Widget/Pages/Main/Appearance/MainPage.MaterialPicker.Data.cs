@@ -31,13 +31,15 @@ namespace KillConfirmGameBar
                 Stretch = Stretch.Uniform,
                 Source = new BitmapImage(new Uri(logoUri))
             };
+            // White-on-transparent logos vanish on the light selector; only those get a dark chip.
+            bool darkBackdrop = style == GameStyleMode.ModernWarfare2019 || style == GameStyleMode.Battlefield5;
             var logoBackground = new Border
             {
                 Width = 42,
                 Height = 26,
                 Padding = new Thickness(4, 2, 4, 2),
                 CornerRadius = new CornerRadius(4),
-                Background = new SolidColorBrush(Color.FromArgb(255, 52, 56, 64)),
+                Background = new SolidColorBrush(darkBackdrop ? Color.FromArgb(217, 52, 56, 64) : Colors.Transparent),
                 Child = image
             };
             var text = new TextBlock

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using KillConfirmGameBar.Services;
 using Windows.Data.Json;
@@ -85,7 +85,7 @@ namespace KillConfirmGameBar
 
         private string GetSelectedVoicePackPreset()
         {
-            if (PackTestSectionView.VoicePackSelector.SelectedItem is ComboBoxItem item
+            if (PackTestSectionView.VoicePackSelector.SelectedItem is PackSelectorItem item
                 && item.Tag is string tag
                 && tag != PackLibraryNavigation.AddMoreTag)
             {
@@ -122,7 +122,7 @@ namespace KillConfirmGameBar
             {
                 foreach (object option in PackTestSectionView.VoicePackSelector.Items)
                 {
-                    if (option is ComboBoxItem item
+                    if (option is PackSelectorItem item
                         && item.Tag is string tag
                         && string.Equals(tag, preset, StringComparison.OrdinalIgnoreCase))
                     {

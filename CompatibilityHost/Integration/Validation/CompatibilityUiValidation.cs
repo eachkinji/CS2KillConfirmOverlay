@@ -9,8 +9,11 @@ using KillConfirmGameBar.Features.CompatibilityDisplay;
 using KillConfirmGameBar.Services;
 using Windows.ApplicationModel;
 using Windows.Storage;
+using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Media;
+using Windows.UI.Xaml.Shapes;
 
 namespace KillConfirmGameBar
 {
@@ -22,6 +25,13 @@ namespace KillConfirmGameBar
             Loaded += async (s,e) => {
                 try
                 {
+#if DESKTOP_CONTROL_PANEL
+                    if (Environment.GetEnvironmentVariable("KILLCONFIRM_STARTUP_VALIDATION") == "1")
+                    {
+                        await ValidateLargeLibraryStartupAsync();
+                        return;
+                    }
+#endif
                     await Task.Delay(500);
                     if (!_isHomePageSelected || GameStyleSidebarSelector.SelectedItem != HomeSidebarItem) throw new Exception("Control panel did not open on the mode-selection home");
                     if (GameStyleSidebarSelector.MenuItems[0] != HomeSidebarItem || GameStyleSidebarSelector.MenuItems[1] != AdvancedSettingsSidebarItem) throw new Exception("Home and advanced settings are not the first two peer navigation items");
@@ -39,7 +49,7 @@ namespace KillConfirmGameBar
                     await Task.Delay(100);
                     if (!_isHomePageSelected || CompatibilityPageContent.Content != _compatibilityWorkspace) throw new Exception("Home page did not remount");
                     await _compatibilityWorkspace.ValidateCurrentGameAsync();
-                    await FileIO.WriteTextAsync(await ApplicationData.Current.LocalFolder.CreateFileAsync("ui-pass.txt", CreationCollisionOption.ReplaceExisting), "PASS: default mode-selection home, compact mode actions, peer advanced settings with four tabs, independent game navigation, Game Bar default, two shared-style home tabs, integrated screen layout, detailed runtime status, playback feedback, all 15 game panels, 60 rapid game changes, selectors, isolated appearance settings and navigation lifecycle.");
+                    await FileIO.WriteTextAsync(await ApplicationData.Current.LocalFolder.CreateFileAsync("ui-pass.txt", CreationCollisionOption.ReplaceExisting), "PASS: default mode-selection home, compact mode actions, peer advanced settings with four tabs, independent game navigation, Game Bar default with widget traffic lights, mode-switched status strip with display / service / data / packs lights, packs and testing as the main page, current-game settings jump, page-style screen layout and display performance cards, playback feedback, all 15 game panels, 60 rapid game changes, selectors, isolated appearance settings and navigation lifecycle.");
                 }
                 catch (Exception error) { await FileIO.WriteTextAsync(await ApplicationData.Current.LocalFolder.CreateFileAsync("ui-failure.txt", CreationCollisionOption.ReplaceExisting), error.ToString()); }
             };
@@ -55,35 +65,33 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         {
             if (CompatibilityDisplayRuntime.Load().Enabled || GameBarMode.IsChecked != true) throw new Exception("First use did not default to Game Bar");
             ApplyModeSelection(false);
-            if (GameBarStatusSection.Visibility != Visibility.Visible || TabBar.Visibility != Visibility.Collapsed || CompatibilityWorkspace.Visibility != Visibility.Collapsed) throw new Exception("Game Bar mode exposes desktop-only controls");
-            if (GameBarDetails.Visibility != Visibility.Collapsed || HomePreviewButton.Visibility != Visibility.Collapsed || OpenGameBarButton.Visibility != Visibility.Visible) throw new Exception("Game Bar home did not keep its action and collapsed details.");
+            if (GameBarStatusSection.Visibility != Visibility.Visible || HomeView.Visibility != Visibility.Collapsed) throw new Exception("Game Bar mode exposes desktop-only controls");
+            if (GameBarDetails.Visibility != Visibility.Visible || HomePreviewButton.Visibility != Visibility.Collapsed || OpenGameBarButton.Visibility != Visibility.Visible) throw new Exception("Game Bar home did not keep its action and status rows.");
             await CaptureUiAsync("home-gamebar");
             CompatibilityDisplayRuntime.Update(c => c.Enabled = true);
             ApplyModeSelection(true);
-            if (GameBarStatusSection.Visibility != Visibility.Collapsed || TabBar.Visibility != Visibility.Visible || CompatibilityWorkspace.Visibility != Visibility.Visible) throw new Exception("Desktop mode did not expose its actions and workspace");
-            if (HomePreviewButton.Visibility != Visibility.Visible || OpenGameBarButton.Visibility != Visibility.Collapsed || HomeView.Visibility != Visibility.Collapsed) throw new Exception("Desktop home does not start with compact actions.");
+            if (GameBarStatusSection.Visibility != Visibility.Collapsed || HomeView.Visibility != Visibility.Visible) throw new Exception("Desktop mode did not expose its actions and workspace");
+            if (HomePreviewButton.Visibility != Visibility.Visible || OpenGameBarButton.Visibility != Visibility.Collapsed || HomeView.Visibility != Visibility.Visible) throw new Exception("Desktop home does not start with compact actions.");
             for (int attempt = 0; attempt < 60 && !HomeView.CanPreview; attempt++) await Task.Delay(50);
             RefreshStatus();
-            if (!HomePreviewButton.IsEnabled) throw new Exception("Home preview needs the hidden configuration panel to be opened first.");
+            UpdateStatusLights(true, true, false, true, false, true);
+            if (!IsLight(StatusSvcLight, StatusGreen) || !IsLight(StatusCfgLight, StatusGreen) || !IsLight(StatusGsiLight, StatusGray) || !IsLight(StatusAniLight, StatusGreen)) throw new Exception("Healthy status lights were not painted");
+            UpdateStatusLights(true, true, true, false, false, false);
+            if (!IsLight(StatusCfgLight, StatusRed) || !IsLight(StatusSvcLight, StatusAmber)) throw new Exception("Actionable status lights were not painted");
+            RefreshStatus();
             await CaptureUiAsync("home-desktop");
             await ValidateHomePreviewAsync();
-            _tab = "home"; ApplyTab();
             var styles = Enum.GetValues(typeof(GameStyleMode)).Cast<GameStyleMode>().ToArray();
             foreach (var style in styles)
             {
                 await HomeView.ValidateGameAsync(style);
                 await Task.Delay(20);
                 if (_theme.Accent != GameThemePalette.Home.Accent) throw new Exception("Home palette differs from Advanced settings: " + style);
-                if (HomeView.ScreenLayoutContent != DisplayView || DisplayView.Visibility != Visibility.Visible) throw new Exception("Screen controls are not embedded under Packs & testing");
-                if (((StackPanel)TabBar.Child).Children.Count != 2) throw new Exception("Screen layout still has a separate tab");
+                if (HomeView.ScreenLayoutContent != DisplayView || DisplayView.Visibility != Visibility.Visible) throw new Exception("Screen and performance section is not under the mode card");
+                if (ScreenCard.Visibility != Visibility.Visible) throw new Exception("Compact screen and performance section is not visible");
                 if (style == GameStyleMode.Crossfire || style == GameStyleMode.ModernWarfare2019)
                 {
-                    _tab = "home"; ApplyTab();
                     await CaptureUiAsync(GameStyleService.ToStorageValue(style));
-                }
-                foreach (var tab in new[] { "home", "effects" }) {
-                    _tab = tab; ApplyTab(); await Task.Delay(20);
-                    if ((_tab == "home") != (HomeView.Visibility == Visibility.Visible) || (_tab == "effects") != (EffectsView.Visibility == Visibility.Visible)) throw new Exception("Desktop tab routing failed: " + tab);
                 }
                 var before = KillFeedbackVisibilitySettingsStore.Load(style);
                 var desktop = CompatibilityAppearanceStore.Load(style);
@@ -94,13 +102,12 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             HomeView.QueueRapidValidationChanges(styles);
             await Task.Delay(500);
             await HomeView.ValidateGameAsync(styles.Last());
-            _tab = "home"; ApplyTab();
             Width = 640; await CaptureUiAsync("home-compact"); Width = double.NaN;
             HomeView.ValidateStatusCards();
             await HomeView.ValidatePlaybackButtonAsync();
             await ValidateHomePreviewAsync();
+            if (!HomeView.HasGameSettingsJump) throw new Exception("Current game settings jump is missing from the packs page");
             await HomeView.ValidateDanmakuButtonAsync();
-            _tab = "home"; ApplyTab();
             CompatibilityDisplayRuntime.Update(c => c.Enabled = false);
             ApplyModeSelection(false);
         }
@@ -111,7 +118,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             var previous = CompatibilityDisplayRuntime.Load();
             OnHomePreviewClick(this, new RoutedEventArgs());
             var preview = CompatibilityDisplayRuntime.Load();
-            if (preview.TestRequest <= previous.TestRequest || preview.TestAudio) throw new Exception("Home preview did not request its visual playback.");
+            if (preview.TestRequest <= previous.TestRequest || !preview.TestAudio) throw new Exception("Home preview did not request full visual and audio playback.");
             KillConfirmCompatibility.Contracts.DisplayFiles.Write(CompatibilityDisplayRuntime.StatusPath,
                 new KillConfirmCompatibility.Contracts.DisplayStatus { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), ProcessId = 1, LastTestRequest = preview.TestRequest });
             for (int attempt = 0; attempt < 40 && _previewing; attempt++) await Task.Delay(50);
@@ -173,21 +180,23 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         }
         internal void ValidateStatusCards()
         {
-            bool zh = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
             var config = new KillConfirmCompatibility.Contracts.DisplayConfiguration { Enabled = true };
             var status = new KillConfirmCompatibility.Contracts.DisplayStatus { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), ProcessId = 1, Connected = true, Style = GameStyleService.ToStorageValue(GameStyleService.Current) };
             UpdateStatusCards(config, status, new GsiStatusSnapshot(true, false, 0, null, 0));
-            if (DisplayStateText.Text != (zh ? "已就绪" : "Ready") || ServiceStateText.Text != (zh ? "已连接" : "Connected") || GameDataText.Text != (zh ? "等待游戏数据" : "Waiting for game data")) throw new Exception("Inactive game was reported as a display/service failure");
+            if (RuntimeNoticeBorder.Visibility == Visibility.Visible) throw new Exception("Healthy connection showed an error notice");
             status.Error = "图标包缺失（测试）";
             UpdateStatusCards(config, status, GsiStatusSnapshot.Offline);
-            if (StatusText.Text != status.Error || DisplayStateText.Text != (zh ? "需要处理" : "Needs attention")) throw new Exception("Missing resources were not shown as an actionable status");
+            if (StatusText.Text != status.Error || RuntimeNoticeBorder.Visibility != Visibility.Visible) throw new Exception("Missing resources were not shown as an actionable status");
             config.Enabled = false;
             UpdateStatusCards(config, status, GsiStatusSnapshot.Offline);
-            if (StatusText.Text == status.Error || DisplayStateText.Text != (zh ? "Game Bar 模式" : "Game Bar mode")) throw new Exception("Game Bar mode retained a stale desktop error");
+            if (RuntimeNoticeBorder.Visibility == Visibility.Visible) throw new Exception("Game Bar mode retained a stale desktop error");
             RefreshStatus();
         }
         internal async Task ValidatePlaybackButtonAsync()
         {
+            if (string.IsNullOrWhiteSpace(PackTestSectionView.SendTestLabel.Text) ||
+                !double.IsNaN(PackTestSectionView.SendTestButton.Width) || PackTestSectionView.SendTestButton.MinWidth < 112)
+                throw new Exception("Playback button must fit its full localized label.");
             foreach (var testCase in new[] { Tuple.Create((string)null, true), Tuple.Create("图标包缺失（测试）", true), Tuple.Create((string)null, false) })
             {
                 string testError = testCase.Item1; bool audio = testCase.Item2;
@@ -197,13 +206,12 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                 if (audio) OnTestEventClick(this, new RoutedEventArgs()); else _ = PreviewVisualAsync();
                 var request = CompatibilityDisplayRuntime.Load();
                 if (request.TestRequest <= previous.TestRequest || request.TestAudio != audio || request.TestPreset != (string)((ComboBoxItem)PackTestSectionView.TestPresetSelector.SelectedItem).Tag)
-                    throw new Exception("Playback button did not send the selected visual/audio test request");
-                if (PackTestSectionView.SendTestButton.IsEnabled) throw new Exception("Playback button allowed overlapping requests");
+                    throw new Exception("Playback test did not send the selected visual/audio test request");
                 KillConfirmCompatibility.Contracts.DisplayFiles.Write(CompatibilityDisplayRuntime.StatusPath,
                     new KillConfirmCompatibility.Contracts.DisplayStatus { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), ProcessId = 1, LastTestRequest = request.TestRequest, TestError = testError });
                 for (int attempt = 0; attempt < 40 && _testInProgress; attempt++) await Task.Delay(50);
-                if (_testInProgress || !PackTestSectionView.SendTestButton.IsEnabled || PackTestSectionView.TestFeedbackText.Visibility != Visibility.Visible)
-                    throw new Exception("Playback button did not finish with inline feedback");
+                if (_testInProgress || PackTestSectionView.TestFeedbackText.Visibility != Visibility.Visible)
+                    throw new Exception("Playback test did not finish with inline feedback");
                 if (testError != null && PackTestSectionView.TestFeedbackText.Text != testError)
                     throw new Exception("Playback failure was hidden from the user");
             }

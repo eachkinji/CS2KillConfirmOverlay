@@ -16,9 +16,6 @@ namespace KillConfirmGameBar
             Windows.UI.Xaml.Automation.AutomationProperties.SetName(HomeSidebarItem, isChinese ? "主页" : "Home");
             Windows.UI.Xaml.Automation.AutomationProperties.SetName(AdvancedSettingsSidebarItem, isChinese ? "高级设置" : "Advanced settings");
             if (_isHomePageSelected) { ApplyCompatibilityWorkspace(); return; }
-            TitleText.Text = _isSettingsWorkspaceSelected
-                ? (isChinese ? "高级设置" : "Advanced settings")
-                : LocalizationManager.Text("MainTitle");
             CustomModuleStyleItem.Content = isChinese ? "自定义" : "Custom";
 
             GameEffectsTitleText.Text = LocalizationManager.Text("GameEffectsTitle");

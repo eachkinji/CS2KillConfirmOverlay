@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -8,10 +8,12 @@ using KillConfirmCompatibility.Contracts;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Data.Json;
 using Windows.Storage;
+using Windows.UI;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
+using Windows.UI.Xaml.Shapes;
 using Windows.Web.Http;
 
 namespace KillConfirmGameBar.Features.CompatibilityDisplay
@@ -30,20 +32,20 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         private CancellationTokenSource _repeat;
         private bool _testInProgress;
         private int _revision;
-        private string _lastRefreshError, _actionNotice;
+        private string _lastRefreshError, _actionNotice, _gsiSummary, _displaySummary, _serviceSummary;
         private DateTimeOffset _actionNoticeUntil;
-        public event EventHandler EffectsRequested;
-        public UIElement EffectsContent => PackTestSectionView.AdvancedEffectsFlyoutCard;
+        internal Action OpenGameSettings { get; set; }
         internal bool CanPreview => _packSelectorsInitialized && !_testInProgress;
         internal string PreviewFeedback => PackTestSectionView.TestFeedbackText.Text;
-        private void OnConnectionDetailsClick(object sender, RoutedEventArgs e)
-        {
-            bool expanded = ConnectionDetails.Visibility != Visibility.Visible;
-            ConnectionDetails.Visibility = expanded ? Visibility.Visible : Visibility.Collapsed;
-            ConnectionDetailsChevron.Glyph = expanded ? "\uE70E" : "\uE70D";
-        }
-        internal UIElement ScreenLayoutContent => PackTestSectionView.LayoutContentHost.Content as UIElement;
-        internal void SetLayoutContent(UIElement content) => PackTestSectionView.LayoutContentHost.Content = content;
+        internal bool HasGameSettingsJump => PackTestSectionView.GameSettingsButton != null;
+        internal bool PacksReady => _packSelectorsInitialized && PackTestSectionView.VoicePackSelector.SelectedItem != null;
+        internal bool PacksInitialized => _packSelectorsInitialized;
+        internal void RequestRetry() => OnRetryClick(this, new RoutedEventArgs());
+        internal void RepairGameConfig() => OnInstallCfgClick(this, new RoutedEventArgs());
+        internal void CopyDiagnostics() => OnCopyClick(this, new RoutedEventArgs());
+        internal void OpenRuntimeLogs() => OnLogsClick(this, new RoutedEventArgs());
+        internal UIElement ScreenLayoutContent => LayoutHost.Content as UIElement;
+        internal void SetLayoutContent(UIElement content) => LayoutHost.Content = content;
         private const string IconPackSettingKey = "KillIconPack", VoicePackSettingKey = "VoicePack", EliteEffectSettingKey = "KillEliteEffect", KillFxSettingKey = "KillFxEnabled", WeaponBadgeSettingKey = "KillWeaponBadge", MainAnimationStyleSettingKey = "MainAnimationStyle";
         private const string MoneyRewardModeSettingKey = "MoneyRewardMode", DefaultMoneyRewardMode = "delta", AudioVolumeSettingKey = "AudioVolume";
         internal const string OpenRuntimeLogsParameterGroupId = "OpenRuntimeLogs";
@@ -129,39 +131,37 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             bool zh = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
             GameTitle.Text = GameStyleService.ToDisplayName(GameStyleService.Current);
             GameHint.Text = zh ? "图标、语音与战斗规则使用当前游戏配置；屏幕布局为兼容显示独立保存。" : "Packs, voice and combat rules follow the selected game. Desktop layouts are saved separately.";
-            EffectsLabel.Text = zh ? "战斗与视效" : "Combat & effects";
-            StatusTitle.Text = zh ? "连接详情" : "Connection details"; RetryLabel.Text = zh ? "重试连接" : "Retry connection";
-            CfgLabel.Text = zh ? "修复游戏配置" : "Repair game config"; CopyLabel.Text = zh ? "复制诊断" : "Copy diagnostics"; LogsLabel.Text = zh ? "打开日志" : "Open logs";
-            DisplayStateLabel.Text = zh ? "显示端" : "Display"; ServiceStateLabel.Text = zh ? "后台服务" : "Service"; GameDataLabel.Text = zh ? "游戏数据" : "Game data";
+            EffectsLabel.Text = zh ? "当前游戏设置" : "Game settings";
+            ToolTipService.SetToolTip(PackTestSectionView.GameSettingsButton, zh ? "打开当前游戏设置" : "Open current game settings");
             PackTestSectionView.PackHintText.Visibility = Visibility.Collapsed;
+            PackTestSectionView.GameSettingsLabel.Text = zh ? "当前游戏设置" : "Game settings";
             PackTestSectionView.VoicePackLabel.Text = zh ? "语音包" : "Voice pack"; PackTestSectionView.IconPackLabel.Text = zh ? "图标包" : "Icon pack";
             PackTestSectionView.TestPresetLabel.Text = zh ? "测试事件" : "Test event"; PackTestSectionView.VolumeLabel.Text = zh ? "播放音量" : "Volume";
-            PackTestSectionView.SendTestLabel.Text = zh ? "播放画面与音频" : "Play visuals & audio";
-            PackTestSectionView.RepeatTestLabel.Text = zh ? "循环播放" : "Repeat test";
-            PackTestSectionView.ReloadAudioLabel.Text = zh ? "重载音频" : "Reload audio"; PackTestSectionView.DanmakuTestLabel.Text = zh ? "测试弹幕" : "Test danmaku";
-            PackTestSectionView.PackTestHeaderText.Text = zh ? "素材与测试" : "Packs & testing";
+            PackTestSectionView.SendTestLabel.Text = zh ? "播放画面与音频" : "Play visuals and audio";
+            PackTestSectionView.PackTestHeaderText.Text = zh ? "素材和测试" : "Packs & testing";
             var presetLabels = new Dictionary<string,string> { ["one"] = "1 杀", ["one_hs"] = "1 杀爆头", ["one_knife"] = "1 杀刀杀", ["one_grenade"] = "1 杀雷杀", ["one_first"] = "首杀", ["one_last"] = "尾杀", ["assist"] = "助攻", ["gold_first"] = "爆头首杀", ["gold_last"] = "爆头尾杀", ["two"] = "2 杀", ["three"] = "3 杀", ["four"] = "4 杀", ["five"] = "5 杀", ["six"] = "6 杀", ["seven"] = "7 杀", ["eight"] = "8 杀", ["nine"] = "9 杀", ["badge_first"] = "首杀徽章", ["badge_last"] = "尾杀徽章", ["bomb_plant"] = "C4 下包", ["bomb_defuse"] = "C4 拆包", ["hostage_interact"] = "人质接触", ["hostage_rescue"] = "人质救出", ["round_win"] = "回合胜利", ["round_loss"] = "回合失败" };
             foreach (var item in PackTestSectionView.TestPresetSelector.Items.OfType<ComboBoxItem>()) { string key = (string)item.Tag; item.Content = zh && presetLabels.ContainsKey(key) ? presetLabels[key] : key.Replace('_', ' '); }
             ToolTipService.SetToolTip(PackTestSectionView.VoicePackSelector, LocalizationManager.Text("VoicePackLabel"));
             ToolTipService.SetToolTip(PackTestSectionView.IconPackSelector, LocalizationManager.Text("IconPackLabel"));
             ToolTipService.SetToolTip(PackTestSectionView.SendTestButton, zh ? "播放画面与音频" : "Test visuals and audio");
+            ToolTipService.SetToolTip(PackTestSectionView.RepeatTestButton, _repeat != null ? (zh ? "停止循环" : "Stop repeat") : (zh ? "循环播放" : "Repeat test"));
+            ToolTipService.SetToolTip(PackTestSectionView.ReloadAudioButton, zh ? "重载音频" : "Reload audio");
+            ToolTipService.SetToolTip(PackTestSectionView.DanmakuTestButton, zh ? "测试弹幕" : "Test danmaku");
             ApplyAdvancedEffectsPanelLanguage(); RefreshStatus();
         }
         internal void ApplyTheme(GameThemePalette theme)
         {
             theme = GameThemePalette.Home;
             Foreground = theme.Brush(theme.Text);
-            foreach (var card in new[] { GameCard, StatusCard, PackTestSectionView.PackTestCard }) { card.Background = theme.Brush(theme.Card); card.BorderBrush = theme.Brush(theme.SoftBorder); }
-            foreach (var text in new[] { GameHint, GsiText, DisplayStateHint, ServiceStateHint, ServiceEndpointText, PackTestSectionView.PackHintText, PackTestSectionView.TestFeedbackText }) text.Foreground = theme.Brush(theme.MutedText);
-            PackTestSectionView.PackTestHeaderBorder.Background = theme.Brush(theme.Card);
-            PackTestSectionView.PackTestHeaderBorder.BorderBrush = theme.Brush(theme.SoftBorder);
-            PackTestSectionView.PackTestHeaderText.Foreground = theme.Brush(theme.Text);
+            foreach (var card in new[] { GameCard, PackTestSectionView.PackTestCard }) { card.Background = theme.Brush(theme.Card); card.BorderBrush = theme.Brush(theme.SoftBorder); }
+            foreach (var text in new[] { GameHint, PackTestSectionView.PackHintText, PackTestSectionView.TestFeedbackText }) text.Foreground = theme.Brush(theme.MutedText);
             foreach (var selector in new[] { GameSelector, PackTestSectionView.VoicePackSelector, PackTestSectionView.IconPackSelector, PackTestSectionView.AudioVolumeSelector, PackTestSectionView.TestPresetSelector })
             { selector.Background = theme.Brush(theme.Field); selector.Foreground = theme.Brush(theme.Text); selector.BorderBrush = theme.Brush(theme.Border); selector.CornerRadius = new CornerRadius(4); }
             PackTestSectionView.IconPackSelector.IsEnabled = GameStyleService.Current != GameStyleMode.Overwatch && GameStyleService.Current != GameStyleMode.ModernWarfare2019 && GameStyleService.Current != GameStyleMode.Apex;
             foreach (var icon in new[] { PackTestSectionView.VoicePackIcon, PackTestSectionView.IconPackIcon, PackTestSectionView.VolumeIcon, PackTestSectionView.TestPresetIcon }) icon.Foreground = theme.Brush(theme.Accent);
             ApplyAdvancedEffectsPanelTheme(); RefreshStatus();
         }
+        internal void RefreshStatusNow() => RefreshStatus();
         private void RefreshStatus()
         {
             UpdateStatusCards(CompatibilityDisplayRuntime.Load(), CompatibilityDisplayRuntime.ReadStatus(), GsiStatusMonitor.Instance.CurrentSnapshot);
@@ -169,7 +169,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             PackTestSectionView.SendTestButton.IsEnabled = enabled && _packSelectorsInitialized && !_testInProgress;
             PackTestSectionView.RepeatTestButton.IsEnabled = enabled && _packSelectorsInitialized && (!_testInProgress || _repeat != null);
             bool zh = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
-            PackTestSectionView.RepeatTestLabel.Text = _repeat != null ? (zh ? "停止循环" : "Stop repeat") : (zh ? "循环播放" : "Repeat test");
+            ToolTipService.SetToolTip(PackTestSectionView.RepeatTestButton, _repeat != null ? (zh ? "停止循环" : "Stop repeat") : (zh ? "循环播放" : "Repeat test"));
         }
         private void UpdateStatusCards(DisplayConfiguration config, DisplayStatus status, GsiStatusSnapshot gsi)
         {
@@ -177,29 +177,25 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             bool running = config.Enabled && CompatibilityDisplayRuntime.IsRunning(status);
             bool serviceOnline = gsi.ServiceReachable || (running && status.Connected);
             string problem = (running && status.Style == GameStyleService.ToStorageValue(GameStyleService.Current) ? status.Error : null) ?? _lastRefreshError;
-            DisplayStateText.Text = !config.Enabled ? (zh ? "Game Bar 模式" : "Game Bar mode") : !running ? (zh ? "等待启动" : "Starting") : status.Loading ? (zh ? "加载素材中" : "Loading packs") : !string.IsNullOrWhiteSpace(problem) ? (zh ? "需要处理" : "Needs attention") : status.Editing ? (zh ? "编辑布局中" : "Editing layout") : (zh ? "已就绪" : "Ready");
-            DisplayStateHint.Text = !config.Enabled ? (zh ? "打开并固定 Game Bar 组件" : "Open and pin the Game Bar widget") : !running ? (zh ? "点击重试连接以启动显示端" : "Retry the connection to start the display") : status.Editing ? (zh ? "Enter 或 Esc 保存并结束" : "Enter or Esc to save and finish") : status.Visible ? (zh ? "正在屏幕上显示" : "Visible on screen") : (zh ? "等待游戏或播放测试" : "Waiting for a game or preview");
-            ServiceStateText.Text = serviceOnline ? (zh ? "已连接" : "Connected") : (zh ? "等待连接" : "Connecting");
-            ServiceStateHint.Text = serviceOnline ? (zh ? "音频与事件服务可用" : "Audio and event service available") : (zh ? "可点击重试连接" : "Select Retry connection");
-            GameDataText.Text = gsi.IsGreen ? (zh ? "已连接" : "Connected") : (zh ? "等待游戏数据" : "Waiting for game data");
-            GsiText.Text = gsi.Posts > 0
-                ? (zh ? "已接收 " + gsi.Posts.ToString("0") + " 次" : gsi.Posts.ToString("0") + " updates received") + (gsi.LastPostAgeMs.HasValue ? (zh ? " · 上次 " : " · Last ") + Math.Max(0, gsi.LastPostAgeMs.Value / 1000).ToString("0") + (zh ? " 秒前" : "s ago") : "")
-                : (zh ? "启动 CS2 后自动接收；预览无需游戏数据" : "Start CS2 to receive data. Preview works without it.");
-            ServiceEndpointText.Text = (zh ? "本地服务：" : "Local service: ") + LocalServiceEndpoints.BaseUri;
-            PaintStatusBadge(DisplayStateBadge, DisplayStateText, running && string.IsNullOrWhiteSpace(problem), !config.Enabled || (running && status.Loading));
-            PaintStatusBadge(ServiceStateBadge, ServiceStateText, serviceOnline, false);
-            PaintStatusBadge(GameDataBadge, GameDataText, gsi.IsGreen, !gsi.IsGreen);
+            string displayText = !config.Enabled ? (zh ? "Game Bar 模式" : "Game Bar mode") : !running ? (zh ? "等待启动" : "Starting") : status.Loading ? (zh ? "加载素材中" : "Loading packs") : !string.IsNullOrWhiteSpace(problem) ? (zh ? "需要处理" : "Needs attention") : status.Editing ? (zh ? "编辑布局中" : "Editing layout") : (zh ? "已就绪" : "Ready");
+            string serviceText = serviceOnline ? (zh ? "已连接" : "Connected") : (zh ? "等待连接" : "Connecting");
+            _displaySummary = displayText; _serviceSummary = serviceText;
+            _gsiSummary = gsi.Posts > 0
+                ? gsi.Posts.ToString("0") + (zh ? " 次" : " updates") + (gsi.LastPostAgeMs.HasValue ? " · " + Math.Max(0, gsi.LastPostAgeMs.Value / 1000).ToString("0") + (zh ? " 秒前" : "s ago") : "")
+                : (zh ? "启动 CS2 后自动接收" : "Start CS2 to receive data");
+            bool notice = !string.IsNullOrWhiteSpace(problem) || DateTimeOffset.UtcNow < _actionNoticeUntil;
+            RuntimeNoticeBorder.Visibility = notice ? Visibility.Visible : Visibility.Collapsed;
             var theme = GameThemePalette.Home;
             RuntimeNoticeBorder.Background = theme.Brush(string.IsNullOrWhiteSpace(problem) ? theme.SubtleField : theme.WarningField);
             StatusText.Foreground = theme.Brush(string.IsNullOrWhiteSpace(problem) ? theme.MutedText : theme.WarningText);
-            StatusText.Text = !string.IsNullOrWhiteSpace(problem) ? problem : DateTimeOffset.UtcNow < _actionNoticeUntil ? _actionNotice : (zh ? "连接正常" : "Connection healthy");
+            StatusText.Text = !string.IsNullOrWhiteSpace(problem) ? problem : _actionNotice;
+            SetStatusLight(ConnectionNoticeDot, !string.IsNullOrWhiteSpace(problem) ? StatusRed : StatusAmber);
         }
-        private static void PaintStatusBadge(Border badge, TextBlock value, bool healthy, bool waiting)
-        {
-            var theme = GameThemePalette.Home;
-            badge.Background = theme.Brush(healthy ? theme.AccentSoft : waiting ? theme.SubtleField : theme.WarningField);
-            value.Foreground = theme.Brush(healthy ? theme.Accent : waiting ? theme.MutedText : theme.WarningText);
-        }
+        private static readonly Color StatusGreen = Color.FromArgb(255, 52, 199, 89);
+        private static readonly Color StatusAmber = Color.FromArgb(255, 255, 159, 10);
+        private static readonly Color StatusRed = Color.FromArgb(255, 255, 59, 48);
+        private static readonly Color StatusGray = Color.FromArgb(255, 142, 142, 147);
+        private static void SetStatusLight(Ellipse light, Color color) { if (light != null) light.Fill = new SolidColorBrush(color); }
         private void ShowRuntimeNotice(string message)
         {
             _actionNotice = message; _actionNoticeUntil = DateTimeOffset.UtcNow.AddSeconds(10); RefreshStatus();
@@ -222,7 +218,8 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         }
         private Task WarmStartupAnimationCacheAsync(int delayMs = 0) { CompatibilityRenderPreferences.Invalidate(); return Task.CompletedTask; }
 
-        private void OnOpenEffectsClick(object sender, RoutedEventArgs e) => EffectsRequested?.Invoke(this, EventArgs.Empty);
+        private void OnOpenGameSettings(object sender, RoutedEventArgs e) => OpenGameSettings?.Invoke();
+        private void OnGameSettingsRequested(object sender, RoutedEventArgs e) => OpenGameSettings?.Invoke();
         private async void OnTestEventClick(object sender, RoutedEventArgs e) { StopRepeating(); try { await PlayTestAsync(); } catch (Exception error) { ShowTestFeedback(error.Message); } }
         private void ShowTestFeedback(string message)
         {
@@ -270,11 +267,16 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             StopRepeating();
             try { await PlayTestAsync(false); } catch (Exception error) { ShowTestFeedback(error.Message); }
         }
+        internal async Task PreviewAllAsync()
+        {
+            StopRepeating();
+            try { await PlayTestAsync(true); } catch (Exception error) { ShowTestFeedback(error.Message); }
+        }
         private async void OnRepeatTestClick(object sender, RoutedEventArgs e)
         {
             if (_repeat != null) { StopRepeating(); return; }
             var repeat = _repeat = new CancellationTokenSource();
-            try { while (_isPageActive && CompatibilityDisplayRuntime.Load().Enabled && !repeat.IsCancellationRequested) { await PlayTestAsync(); await Task.Delay(2000, repeat.Token); } }
+            try { while (_isPageActive && CompatibilityDisplayRuntime.Load().Enabled && !repeat.IsCancellationRequested) { await PlayTestAsync(); await Task.Delay(GameStyleService.Current == GameStyleMode.Valorant ? 7500 : 3500, repeat.Token); } }
             catch (OperationCanceledException) { }
             catch (Exception error) { ShowTestFeedback(error.Message); }
             finally { if (_repeat == repeat) _repeat = null; repeat.Dispose(); if (_isPageActive) RefreshStatus(); }
@@ -287,7 +289,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         }
         private async void OnRetryClick(object sender, RoutedEventArgs e) { try { await EnsureServiceAvailableAsync(); await CompatibilityDisplayRuntime.EnsureStartedAsync(); ShowRuntimeNotice(LocalizationManager.Current == UiLanguage.SimplifiedChinese ? "已重试服务连接。" : "Service connection retried."); } catch (Exception error) { ShowRuntimeNotice(error.Message); } }
         private async void OnLogsClick(object sender, RoutedEventArgs e) { if (!await KillConfirmWidgetPage.TryLaunchFullTrustHelperAsync(OpenRuntimeLogsParameterGroupId)) ShowRuntimeNotice(LocalizationManager.Current == UiLanguage.SimplifiedChinese ? "无法打开日志，请重试。" : "Could not open logs. Try again."); }
-        private void OnCopyClick(object sender, RoutedEventArgs e) { var data = new DataPackage(); data.SetText("Display=" + DisplayStateText.Text + "\nService=" + ServiceStateText.Text + "\n" + ServiceEndpointText.Text + "\n" + StatusText.Text + "\n" + GsiText.Text + "\nGame=" + GameStyleService.Current); Clipboard.SetContent(data); ShowRuntimeNotice(LocalizationManager.Current == UiLanguage.SimplifiedChinese ? "诊断信息已复制。" : "Diagnostics copied."); }
+        private void OnCopyClick(object sender, RoutedEventArgs e) { var data = new DataPackage(); data.SetText("Display=" + _displaySummary + "\nService=" + _serviceSummary + "\n" + LocalServiceEndpoints.BaseUri + "\n" + StatusText.Text + "\n" + _gsiSummary + "\nGame=" + GameStyleService.Current); Clipboard.SetContent(data); ShowRuntimeNotice(LocalizationManager.Current == UiLanguage.SimplifiedChinese ? "诊断信息已复制。" : "Diagnostics copied."); }
         private async void OnInstallCfgClick(object sender, RoutedEventArgs e)
         {
             try

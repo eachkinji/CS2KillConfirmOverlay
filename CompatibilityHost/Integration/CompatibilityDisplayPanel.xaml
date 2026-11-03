@@ -4,18 +4,18 @@
     <UserControl.Resources>
         <ResourceDictionary><ResourceDictionary.MergedDictionaries>
             <ResourceDictionary Source="ms-appx:///Controls/Settings/SettingsWorkspace.Styles.xaml"/>
+            <ResourceDictionary Source="ms-appx:///Features/CompatibilityDisplay/Integration/Home/CompatibilityHome.Styles.xaml"/>
         </ResourceDictionary.MergedDictionaries></ResourceDictionary>
     </UserControl.Resources>
     <StackPanel Spacing="16" MaxWidth="1480">
         <Border x:Name="ModeCard" Style="{StaticResource SettingsSectionCardStyle}">
             <StackPanel Spacing="16">
                 <Grid ColumnSpacing="12">
-                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                     <Border Background="#EAF3FF" CornerRadius="12" Width="40" Height="40" VerticalAlignment="Top"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE80F;" FontSize="20" Foreground="#007AFF"/></Border>
                     <StackPanel Grid.Column="1" Spacing="6">
                         <TextBlock x:Name="TitleText" Text="显示模式" FontSize="20" FontWeight="SemiBold"/>
                     </StackPanel>
-                    <ComboBox x:Name="MainGameSelector" Grid.Column="2" MinWidth="200" VerticalAlignment="Center" SelectionChanged="OnMainGameChanged"/>
                 </Grid>
                 <Grid ColumnSpacing="12">
                     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
@@ -39,7 +39,14 @@
                 <Border x:Name="ModeStatusBadge" CornerRadius="6" Padding="12,10">
                     <Grid ColumnSpacing="12">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE73E;" FontSize="14"/><TextBlock x:Name="StatusText" FontSize="13" TextWrapping="Wrap"/></StackPanel>
+                        <Grid ColumnSpacing="8" VerticalAlignment="Center">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE73E;" FontSize="14" VerticalAlignment="Top" Margin="0,3,0,0"/>
+                            <StackPanel Grid.Column="1" Spacing="4">
+                                <TextBlock x:Name="StatusText" FontSize="13" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                                <TextBlock x:Name="ModeUsageHint" FontSize="12" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Grid>
                         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
                             <Button x:Name="HomePreviewButton" Style="{StaticResource SettingsPrimaryButtonStyle}" Visibility="Collapsed" Click="OnHomePreviewClick"><StackPanel Orientation="Horizontal" Spacing="7"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE768;" FontSize="14"/><TextBlock x:Name="HomePreviewLabel" Text="预览效果"/></StackPanel></Button>
                             <Button x:Name="OpenGameBarButton" Style="{StaticResource SettingsPrimaryButtonStyle}" Click="OnOpenGameBarClick"><StackPanel Orientation="Horizontal" Spacing="7"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7FC;" FontSize="14"/><TextBlock x:Name="OpenGameBarLabel" Text="打开 Game Bar"/></StackPanel></Button>
@@ -48,11 +55,44 @@
                 </Border>
             </StackPanel>
         </Border>
+
+        <Border x:Name="StatusBar" Style="{StaticResource SettingsSectionCardStyle}" Padding="18,9">
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                <Grid ColumnSpacing="4" VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="50"/><ColumnDefinition Width="50"/><ColumnDefinition Width="50"/><ColumnDefinition Width="50"/></Grid.ColumnDefinitions>
+                    <StackPanel Orientation="Horizontal" Spacing="5">
+                        <Ellipse x:Name="StatusSvcLight" Width="8" Height="8" VerticalAlignment="Center" Fill="#8E8E93"/>
+                        <TextBlock Text="SVC" FontSize="10" FontWeight="SemiBold" CharacterSpacing="60" Foreground="#6E6E73" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="5">
+                        <Ellipse x:Name="StatusCfgLight" Width="8" Height="8" VerticalAlignment="Center" Fill="#8E8E93"/>
+                        <TextBlock Text="CFG" FontSize="10" FontWeight="SemiBold" CharacterSpacing="60" Foreground="#6E6E73" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="5">
+                        <Ellipse x:Name="StatusGsiLight" Width="8" Height="8" VerticalAlignment="Center" Fill="#8E8E93"/>
+                        <TextBlock Text="GSI" FontSize="10" FontWeight="SemiBold" CharacterSpacing="60" Foreground="#6E6E73" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="5">
+                        <Ellipse x:Name="StatusAniLight" Width="8" Height="8" VerticalAlignment="Center" Fill="#8E8E93"/>
+                        <TextBlock Text="ANI" FontSize="10" FontWeight="SemiBold" CharacterSpacing="60" Foreground="#6E6E73" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Grid>
+                <StackPanel x:Name="StatusActions" Grid.Column="2" Orientation="Horizontal" Spacing="2" VerticalAlignment="Center">
+                    <Button x:Name="StatusRetryButton" Style="{StaticResource StatusStripIconButtonStyle}" Click="OnStatusRetryClick" ToolTipService.ToolTip="重试连接" AutomationProperties.Name="Retry connection"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE72C;" FontSize="12"/></Button>
+                    <Button x:Name="StatusRepairButton" Style="{StaticResource StatusStripIconButtonStyle}" Click="OnStatusRepairClick" ToolTipService.ToolTip="修复游戏配置" AutomationProperties.Name="Repair game config"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE90F;" FontSize="12"/></Button>
+                    <Button x:Name="StatusCopyButton" Style="{StaticResource StatusStripIconButtonStyle}" Click="OnStatusCopyClick" ToolTipService.ToolTip="复制诊断" AutomationProperties.Name="Copy diagnostics"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8C8;" FontSize="12"/></Button>
+                    <Button x:Name="StatusLogsButton" Style="{StaticResource StatusStripIconButtonStyle}" Click="OnStatusLogsClick" ToolTipService.ToolTip="打开日志" AutomationProperties.Name="Open logs"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8A5;" FontSize="12"/></Button>
+                </StackPanel>
+                <ComboBox x:Name="MainGameSelector" Grid.Column="3" MinWidth="150" MaxWidth="220" VerticalAlignment="Center" SelectionChanged="OnMainGameChanged"/>
+            </Grid>
+        </Border>
+
         <StackPanel x:Name="GameBarStatusSection" Spacing="6" Visibility="Collapsed">
             <Border
                 x:Name="GameBarStatusCard"
-                Style="{StaticResource SettingsSectionCardStyle}">
-                <Grid RowSpacing="12">
+                Style="{StaticResource ModeSectionCardStyle}">
+                <Grid RowSpacing="10">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="1" />
@@ -61,152 +101,134 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <Grid ColumnSpacing="12">
+                    <Grid ColumnSpacing="12" Margin="14,10,14,0">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                        <StackPanel Spacing="4"><TextBlock x:Name="GameBarCardTitle" FontSize="14" FontWeight="SemiBold" Text="小组件"/><TextBlock x:Name="GameBarCardSummary" FontSize="12" TextWrapping="Wrap"/></StackPanel>
-                        <Button x:Name="GameBarDetailsButton" Grid.Column="1" Style="{StaticResource SettingsHeaderButtonStyle}" VerticalAlignment="Center" Click="OnGameBarDetailsClick"><StackPanel Orientation="Horizontal" Spacing="7"><TextBlock x:Name="GameBarDetailsLabel" Text="状态详情"/><FontIcon x:Name="GameBarDetailsChevron" FontFamily="Segoe MDL2 Assets" Glyph="&#xE70D;" FontSize="10"/></StackPanel></Button>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <Border Width="28" Height="28" CornerRadius="8" Background="#EAF3FF" VerticalAlignment="Center">
+                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7FC;" FontSize="14" Foreground="#007AFF"/>
+                            </Border>
+                            <StackPanel VerticalAlignment="Center" Spacing="1"><TextBlock x:Name="GameBarCardTitle" FontSize="14" FontWeight="SemiBold" Text="小组件状态"/><TextBlock x:Name="GameBarCardSummary" FontSize="11" TextWrapping="Wrap"/></StackPanel>
+                        </StackPanel>
+                        <Button x:Name="GameBarDetailsButton" Grid.Column="1" Style="{StaticResource SettingsHeaderButtonStyle}" VerticalAlignment="Center" Click="OnGameBarDetailsClick"><StackPanel Orientation="Horizontal" Spacing="7"><TextBlock x:Name="GameBarDetailsLabel" Text="状态详情"/><FontIcon x:Name="GameBarDetailsChevron" FontFamily="Segoe MDL2 Assets" Glyph="&#xE70E;" FontSize="10"/></StackPanel></Button>
                     </Grid>
-                    <StackPanel x:Name="GameBarDetails" Grid.Row="2" Spacing="12" Visibility="Collapsed">
-                    <Grid Grid.Row="2" ColumnSpacing="10">
+                    <StackPanel x:Name="GameBarDetails" Grid.Row="2" Margin="14,0,14,12" Spacing="10">
+                    <Grid ColumnSpacing="10">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="26" />
+                            <ColumnDefinition Width="28" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <TextBlock
-                            x:Name="WidgetStatusGlyph"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center"
-                            FontSize="18"
-                            FontWeight="Bold"
-                            Foreground="#6E6E73"
-                            Text="?" />
+                        <FontIcon x:Name="WidgetStatusIcon" HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="Segoe MDL2 Assets" Glyph="&#xE7FC;" FontSize="15" Foreground="#007AFF" />
                         <StackPanel Grid.Column="1" Spacing="1">
-                            <TextBlock
-                                x:Name="WidgetStatusTitle"
-                                FontSize="13" FontWeight="SemiBold"
-                                Text="小组件状态" />
-                            <TextBlock
-                                x:Name="WidgetStatusDetail"
-                                FontSize="12" TextWrapping="Wrap"
-                                Text="请按 Win+G 打开 Kill Confirm Overlay" />
+                            <TextBlock x:Name="WidgetStatusTitle" FontSize="13" FontWeight="SemiBold" Text="小组件" />
+                            <TextBlock x:Name="WidgetStatusDetail" FontSize="11" TextWrapping="Wrap" Text="请按 Win+G 打开 Kill Confirm Overlay" />
                         </StackPanel>
-                        <TextBlock
-                            x:Name="WidgetStatusBadge"
-                            Grid.Column="2"
-                            VerticalAlignment="Center"
-                            FontSize="12"
-                            FontWeight="SemiBold"
-                            Foreground="#6E6E73"
-                            Text="未检测" />
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                            <Ellipse x:Name="WidgetStatusDot" Width="9" Height="9" Fill="#8E8E93" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="WidgetStatusBadge" FontSize="11" FontWeight="SemiBold" Foreground="#6E6E73" Text="未检测" />
+                        </StackPanel>
                     </Grid>
 
-                    <Grid Grid.Row="3" ColumnSpacing="10">
+                    <Grid ColumnSpacing="10">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="26" />
+                            <ColumnDefinition Width="28" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <TextBlock
-                            x:Name="PinStatusGlyph"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center"
-                            FontSize="18"
-                            FontWeight="Bold"
-                            Foreground="#6E6E73"
-                            Text="?" />
+                        <FontIcon x:Name="PinStatusIcon" HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="Segoe MDL2 Assets" Glyph="&#xE718;" FontSize="15" Foreground="#007AFF" />
                         <StackPanel Grid.Column="1" Spacing="1">
-                            <TextBlock
-                                x:Name="PinStatusTitle"
-                                FontSize="13" FontWeight="SemiBold"
-                                Text="固定窗口" />
-                            <TextBlock
-                                x:Name="PinStatusDetail"
-                                FontSize="12" TextWrapping="Wrap"
-                                Text="等待小组件状态" />
+                            <TextBlock x:Name="PinStatusTitle" FontSize="13" FontWeight="SemiBold" Text="固定窗口" />
+                            <TextBlock x:Name="PinStatusDetail" FontSize="11" TextWrapping="Wrap" Text="等待小组件状态" />
                         </StackPanel>
-                        <TextBlock
-                            x:Name="PinStatusBadge"
-                            Grid.Column="2"
-                            VerticalAlignment="Center"
-                            FontSize="12"
-                            FontWeight="SemiBold"
-                            Foreground="#6E6E73"
-                            Text="未知" />
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                            <Ellipse x:Name="PinStatusDot" Width="9" Height="9" Fill="#8E8E93" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="PinStatusBadge" FontSize="11" FontWeight="SemiBold" Foreground="#6E6E73" Text="未知" />
+                        </StackPanel>
                     </Grid>
 
-                    <Grid Grid.Row="4" ColumnSpacing="10">
+                    <Grid ColumnSpacing="10">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="26" />
+                            <ColumnDefinition Width="28" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <TextBlock
-                            x:Name="ClickThroughStatusGlyph"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center"
-                            FontSize="18"
-                            FontWeight="Bold"
-                            Foreground="#6E6E73"
-                            Text="?" />
+                        <FontIcon x:Name="ClickThroughStatusIcon" HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="Segoe MDL2 Assets" Glyph="&#xE7C9;" FontSize="15" Foreground="#007AFF" />
                         <StackPanel Grid.Column="1" Spacing="1">
-                            <TextBlock
-                                x:Name="ClickThroughStatusTitle"
-                                FontSize="13" FontWeight="SemiBold"
-                                Text="单击浏览" />
-                            <TextBlock
-                                x:Name="ClickThroughStatusDetail"
-                                FontSize="12" TextWrapping="Wrap"
-                                Text="等待小组件状态" />
+                            <TextBlock x:Name="ClickThroughStatusTitle" FontSize="13" FontWeight="SemiBold" Text="单击浏览" />
+                            <TextBlock x:Name="ClickThroughStatusDetail" FontSize="11" TextWrapping="Wrap" Text="等待小组件状态" />
                         </StackPanel>
-                        <TextBlock
-                            x:Name="ClickThroughStatusBadge"
-                            Grid.Column="2"
-                            VerticalAlignment="Center"
-                            FontSize="12"
-                            FontWeight="SemiBold"
-                            Foreground="#6E6E73"
-                            Text="未知" />
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                            <Ellipse x:Name="ClickThroughStatusDot" Width="9" Height="9" Fill="#8E8E93" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="ClickThroughStatusBadge" FontSize="11" FontWeight="SemiBold" Foreground="#6E6E73" Text="未知" />
+                        </StackPanel>
                     </Grid>
                     </StackPanel>
                 </Grid>
             </Border>
         </StackPanel>
 
-        <Border x:Name="TabBar" Padding="3" CornerRadius="6" BorderThickness="1" HorizontalAlignment="Left">
-            <StackPanel Orientation="Horizontal" Spacing="4">
-                <Button x:Name="HomeTab" Tag="home" Style="{StaticResource StudioTabActiveButtonStyle}" Click="OnTabClick"><StackPanel Orientation="Horizontal" Spacing="7"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8B7;" FontSize="13"/><TextBlock x:Name="HomeTabLabel" Text="素材与测试"/></StackPanel></Button>
-                <Button x:Name="EffectsTab" Tag="effects" Style="{StaticResource StudioTabButtonStyle}" Click="OnTabClick"><StackPanel Orientation="Horizontal" Spacing="7"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7C1;" FontSize="13"/><TextBlock x:Name="EffectsTabLabel" Text="战斗与视效"/></StackPanel></Button>
-            </StackPanel>
-        </Border>
-        <Grid x:Name="CompatibilityWorkspace">
-            <local:CompatibilityHomeView x:Name="HomeView" EffectsRequested="OnEffectsRequested"/>
-            <ContentControl x:Name="EffectsView" Visibility="Collapsed" HorizontalContentAlignment="Stretch"/>
-        </Grid>
+        <local:CompatibilityHomeView x:Name="HomeView" Visibility="Collapsed"/>
+
         <ContentControl x:Name="LayoutContentSource" Visibility="Collapsed">
             <StackPanel x:Name="DisplayView" Spacing="16">
-                <Border x:Name="LayoutCard" Style="{StaticResource SettingsSectionCardStyle}">
-                    <StackPanel Spacing="12">
-                        <StackPanel Orientation="Horizontal" Spacing="8"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7F4;" FontSize="18" Foreground="#007AFF"/><TextBlock x:Name="LayoutTitle" Text="屏幕与布局" FontSize="16" FontWeight="SemiBold"/></StackPanel>
-                        <TextBlock x:Name="LayoutHint" FontSize="12" TextWrapping="Wrap"/>
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <Button x:Name="EditButton" Style="{StaticResource SettingsPrimaryButtonStyle}" Click="OnEditClick"><StackPanel Orientation="Horizontal" Spacing="7"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE70F;" FontSize="14"/><TextBlock x:Name="EditLabel" Text="编辑屏幕"/></StackPanel></Button>
-                            <Button x:Name="PreviewButton" Style="{StaticResource SettingsHeaderButtonStyle}" Click="OnPreviewClick"><StackPanel Orientation="Horizontal" Spacing="7"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE768;" FontSize="14"/><TextBlock x:Name="PreviewLabel" Text="预览画面"/></StackPanel></Button>
-                            <Button x:Name="ResetButton" Style="{StaticResource SettingsHeaderButtonStyle}" Click="OnResetClick"><StackPanel Orientation="Horizontal" Spacing="7"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE777;" FontSize="14"/><TextBlock x:Name="ResetLabel" Text="恢复当前游戏布局"/></StackPanel></Button>
-                        </StackPanel>
-                        <TextBlock x:Name="ShortcutText" FontSize="12" TextWrapping="Wrap"/>
-                    </StackPanel>
-                </Border>
                 <Border x:Name="ScreenCard" Style="{StaticResource SettingsSectionCardStyle}">
                     <StackPanel Spacing="12">
-                        <StackPanel Orientation="Horizontal" Spacing="8"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7F8;" FontSize="18" Foreground="#007AFF"/><TextBlock x:Name="ScreenTitle" Text="显示范围与性能" FontSize="16" FontWeight="SemiBold"/></StackPanel>
-                        <TextBlock x:Name="ScreenScopeHint" FontSize="12" TextWrapping="Wrap"/>
-                        <Grid ColumnSpacing="20" RowSpacing="14">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7F8;" FontSize="18" Foreground="#007AFF"/>
+                                <TextBlock x:Name="ScreenTitle" FontSize="16" FontWeight="SemiBold" Text="显示范围"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal" Spacing="5">
+                                    <Ellipse x:Name="VisibilityLight" Width="8" Height="8" VerticalAlignment="Center" Fill="#8E8E93"/>
+                                    <TextBlock x:Name="VisibilityText" FontSize="11" Foreground="#8E8E93" Text="待机"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Grid>
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <TextBlock x:Name="LayoutHint" FontSize="11" VerticalAlignment="Center"/>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                                <Button x:Name="EditButton" Style="{StaticResource SettingsPrimaryButtonStyle}" Click="OnEditClick" ToolTipService.ToolTip="编辑屏幕" AutomationProperties.Name="Edit screen"><StackPanel Orientation="Horizontal" Spacing="7"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE70F;" FontSize="13"/><TextBlock x:Name="EditLabel" Text="编辑屏幕"/></StackPanel></Button>
+                                <Button x:Name="ResetButton" Style="{StaticResource SettingsHeaderButtonStyle}" Click="OnResetClick" ToolTipService.ToolTip="恢复当前游戏布局" AutomationProperties.Name="Reset game layout"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE777;" FontSize="13"/></Button>
+                            </StackPanel>
+                        </Grid>
+                        <Grid ColumnSpacing="16" RowSpacing="8">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-                            <ToggleSwitch x:Name="FollowToggle" Header="自动跟随游戏窗口" Toggled="OnGeneralChanged"/>
-                            <ToggleSwitch x:Name="HideToggle" Grid.Column="1" Header="切出游戏时隐藏" Toggled="OnGeneralChanged"/>
-                            <ComboBox x:Name="ScreenSelector" Grid.Row="1" Header="显示器（预览与固定显示）" HorizontalAlignment="Stretch" SelectionChanged="OnScreenChanged"/>
-                            <ComboBox x:Name="FpsSelector" Grid.Row="1" Grid.Column="1" Header="动画帧率" HorizontalAlignment="Stretch" SelectionChanged="OnFpsChanged"><ComboBoxItem Content="60 FPS"/><ComboBoxItem Content="30 FPS"/></ComboBox>
+                            <ToggleSwitch x:Name="FollowToggle" Header="自动跟随游戏窗口" Toggled="OnGeneralChanged">
+                                <ToggleSwitch.Resources>
+                                    <SolidColorBrush x:Key="ToggleSwitchFillOn" Color="#007AFF"/>
+                                    <SolidColorBrush x:Key="ToggleSwitchFillOnPointerOver" Color="#007AFF"/>
+                                    <SolidColorBrush x:Key="ToggleSwitchFillOnPressed" Color="#007AFF"/>
+                                    <SolidColorBrush x:Key="ToggleSwitchFillOnDisabled" Color="#66007AFF"/>
+                                    <SolidColorBrush x:Key="ToggleSwitchStrokeOn" Color="#007AFF"/>
+                                    <SolidColorBrush x:Key="ToggleSwitchStrokeOnPointerOver" Color="#007AFF"/>
+                                    <SolidColorBrush x:Key="ToggleSwitchStrokeOnPressed" Color="#007AFF"/>
+                                    <SolidColorBrush x:Key="ToggleSwitchStrokeOnDisabled" Color="#66007AFF"/>
+                                    <SolidColorBrush x:Key="ToggleSwitchKnobFillOn" Color="#FFFFFF"/>
+                                    <SolidColorBrush x:Key="ToggleSwitchKnobFillOnPointerOver" Color="#FFFFFF"/>
+                                    <SolidColorBrush x:Key="ToggleSwitchKnobFillOnPressed" Color="#FFFFFF"/>
+                                    <SolidColorBrush x:Key="ToggleSwitchKnobFillOnDisabled" Color="#FFFFFF"/>
+                                </ToggleSwitch.Resources>
+                            </ToggleSwitch>
+                            <ToggleSwitch x:Name="HideToggle" Grid.Column="1" Header="切出游戏时隐藏" Toggled="OnGeneralChanged">
+                                <ToggleSwitch.Resources>
+                                    <SolidColorBrush x:Key="ToggleSwitchFillOn" Color="#007AFF"/>
+                                    <SolidColorBrush x:Key="ToggleSwitchFillOnPointerOver" Color="#007AFF"/>
+                                    <SolidColorBrush x:Key="ToggleSwitchFillOnPressed" Color="#007AFF"/>
+                                    <SolidColorBrush x:Key="ToggleSwitchFillOnDisabled" Color="#66007AFF"/>
+                                    <SolidColorBrush x:Key="ToggleSwitchStrokeOn" Color="#007AFF"/>
+                                    <SolidColorBrush x:Key="ToggleSwitchStrokeOnPointerOver" Color="#007AFF"/>
+                                    <SolidColorBrush x:Key="ToggleSwitchStrokeOnPressed" Color="#007AFF"/>
+                                    <SolidColorBrush x:Key="ToggleSwitchStrokeOnDisabled" Color="#66007AFF"/>
+                                    <SolidColorBrush x:Key="ToggleSwitchKnobFillOn" Color="#FFFFFF"/>
+                                    <SolidColorBrush x:Key="ToggleSwitchKnobFillOnPointerOver" Color="#FFFFFF"/>
+                                    <SolidColorBrush x:Key="ToggleSwitchKnobFillOnPressed" Color="#FFFFFF"/>
+                                    <SolidColorBrush x:Key="ToggleSwitchKnobFillOnDisabled" Color="#FFFFFF"/>
+                                </ToggleSwitch.Resources>
+                            </ToggleSwitch>
+                            <ComboBox x:Name="ScreenSelector" Grid.Row="1" Grid.ColumnSpan="2" Header="显示器（预览与固定显示）" HorizontalAlignment="Stretch" SelectionChanged="OnScreenChanged"/>
                         </Grid>
                     </StackPanel>
                 </Border>

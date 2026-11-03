@@ -7,103 +7,118 @@
         <ResourceDictionary Source="ms-appx:///Controls/Settings/SettingsWorkspace.Styles.xaml"/>
     </ResourceDictionary.MergedDictionaries></ResourceDictionary></UserControl.Resources>
     <Grid x:Name="PackTestSection" x:FieldModifier="public">
-        <Border x:Name="PackTestCard" x:FieldModifier="public" Background="White" BorderBrush="#E5E5EA" BorderThickness="1" CornerRadius="8">
-            <StackPanel>
-                <Border x:Name="PackTestHeaderBorder" x:FieldModifier="public" Padding="18,16" BorderBrush="#F0F0F5" BorderThickness="0,0,0,1">
-                    <StackPanel Orientation="Horizontal" Spacing="8"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8B7;" FontSize="18" Foreground="#007AFF"/><TextBlock x:Name="PackTestHeaderText" x:FieldModifier="public" Text="素材与测试" FontSize="16" FontWeight="SemiBold"/></StackPanel>
-                </Border>
-                <StackPanel Margin="18,16" Spacing="16">
-                    <TextBlock x:Name="PackHintText" x:FieldModifier="public" TextWrapping="Wrap" FontSize="12"/>
-                    <Grid ColumnSpacing="16" RowSpacing="12">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-                        <StackPanel Spacing="7"><StackPanel Orientation="Horizontal" Spacing="7"><FontIcon x:Name="VoicePackIcon" x:FieldModifier="public" FontFamily="Segoe MDL2 Assets" Glyph="&#xE720;" FontSize="14"/><TextBlock x:Name="VoicePackLabel" x:FieldModifier="public" Text="语音包" FontSize="12"/></StackPanel><ComboBox x:Name="VoicePackSelector" x:FieldModifier="public" HorizontalAlignment="Stretch" FontSize="13" SelectionChanged="OnVoicePackSelectionChanged"/></StackPanel>
-                        <StackPanel Grid.Column="1" Spacing="7"><StackPanel Orientation="Horizontal" Spacing="7"><FontIcon x:Name="IconPackIcon" x:FieldModifier="public" FontFamily="Segoe MDL2 Assets" Glyph="&#xE8B9;" FontSize="14"/><TextBlock x:Name="IconPackLabel" x:FieldModifier="public" Text="图标包" FontSize="12"/></StackPanel><ComboBox x:Name="IconPackSelector" x:FieldModifier="public" HorizontalAlignment="Stretch" FontSize="13" SelectionChanged="OnIconPackSelectionChanged"/></StackPanel>
-                        <StackPanel Grid.Row="1" Spacing="7"><StackPanel Orientation="Horizontal" Spacing="7"><FontIcon x:Name="TestPresetIcon" x:FieldModifier="public" FontFamily="Segoe MDL2 Assets" Glyph="&#xE768;" FontSize="14"/><TextBlock x:Name="TestPresetLabel" x:FieldModifier="public" Text="测试事件" FontSize="12"/></StackPanel><ComboBox x:Name="TestPresetSelector" x:FieldModifier="public" HorizontalAlignment="Stretch" FontSize="13" SelectedIndex="0"><ComboBoxItem Tag="one">one</ComboBoxItem><ComboBoxItem Tag="one_hs">one hs</ComboBoxItem><ComboBoxItem Tag="one_knife">one knife</ComboBoxItem><ComboBoxItem Tag="one_grenade">one grenade</ComboBoxItem><ComboBoxItem Tag="one_first">one first</ComboBoxItem><ComboBoxItem Tag="one_last">one last</ComboBoxItem><ComboBoxItem Tag="assist">assist</ComboBoxItem><ComboBoxItem Tag="gold_first">gold first</ComboBoxItem><ComboBoxItem Tag="gold_last">gold last</ComboBoxItem><ComboBoxItem Tag="two">two</ComboBoxItem><ComboBoxItem Tag="three">three</ComboBoxItem><ComboBoxItem Tag="four">four</ComboBoxItem><ComboBoxItem Tag="five">five</ComboBoxItem><ComboBoxItem Tag="six">six</ComboBoxItem><ComboBoxItem Tag="seven">seven</ComboBoxItem><ComboBoxItem Tag="eight">eight</ComboBoxItem><ComboBoxItem Tag="nine">nine</ComboBoxItem><ComboBoxItem Tag="badge_first">badge first</ComboBoxItem><ComboBoxItem Tag="badge_last">badge last</ComboBoxItem><ComboBoxItem Tag="bomb_plant">bomb plant</ComboBoxItem><ComboBoxItem Tag="bomb_defuse">bomb defuse</ComboBoxItem><ComboBoxItem Tag="hostage_interact">hostage interact</ComboBoxItem><ComboBoxItem Tag="hostage_rescue">hostage rescue</ComboBoxItem><ComboBoxItem Tag="round_win">round win</ComboBoxItem><ComboBoxItem Tag="round_loss">round loss</ComboBoxItem></ComboBox></StackPanel>
-                        <StackPanel Grid.Row="1" Grid.Column="1" Spacing="7"><StackPanel Orientation="Horizontal" Spacing="7"><FontIcon x:Name="VolumeIcon" x:FieldModifier="public" FontFamily="Segoe MDL2 Assets" Glyph="&#xE767;" FontSize="14"/><TextBlock x:Name="VolumeLabel" x:FieldModifier="public" Text="播放音量" FontSize="12"/></StackPanel><ComboBox x:Name="AudioVolumeSelector" x:FieldModifier="public" HorizontalAlignment="Stretch" FontSize="13" SelectionChanged="OnAudioVolumeSelectionChanged"><ComboBoxItem Tag="0">0%</ComboBoxItem><ComboBoxItem Tag="10">10%</ComboBoxItem><ComboBoxItem Tag="20">20%</ComboBoxItem><ComboBoxItem Tag="30">30%</ComboBoxItem><ComboBoxItem Tag="40">40%</ComboBoxItem><ComboBoxItem Tag="50">50%</ComboBoxItem><ComboBoxItem Tag="60">60%</ComboBoxItem><ComboBoxItem Tag="70">70%</ComboBoxItem><ComboBoxItem Tag="80">80%</ComboBoxItem><ComboBoxItem Tag="90">90%</ComboBoxItem><ComboBoxItem Tag="100">100%</ComboBoxItem><ComboBoxItem Tag="110">110%</ComboBoxItem><ComboBoxItem Tag="120">120%</ComboBoxItem><ComboBoxItem Tag="130">130%</ComboBoxItem><ComboBoxItem Tag="140">140%</ComboBoxItem><ComboBoxItem Tag="150">150%</ComboBoxItem><ComboBoxItem Tag="160">160%</ComboBoxItem><ComboBoxItem Tag="170">170%</ComboBoxItem><ComboBoxItem Tag="180">180%</ComboBoxItem><ComboBoxItem Tag="190">190%</ComboBoxItem><ComboBoxItem Tag="200">200%</ComboBoxItem></ComboBox></StackPanel>
+        <Border x:Name="PackTestCard" x:FieldModifier="public" Style="{StaticResource SettingsSectionCardStyle}">
+            <StackPanel Spacing="12">
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8B7;" FontSize="18" Foreground="#007AFF"/>
+                        <TextBlock x:Name="PackTestHeaderText" x:FieldModifier="public" FontSize="16" FontWeight="SemiBold" Text="素材和测试"/>
+                    </StackPanel>
+                    <Button x:Name="GameSettingsButton" x:FieldModifier="public" Grid.Column="1" Style="{StaticResource SettingsHeaderButtonStyle}" Click="OnGameSettingsClick">
+                        <StackPanel Orientation="Horizontal" Spacing="7">
+                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE713;" FontSize="13"/>
+                            <TextBlock x:Name="GameSettingsLabel" x:FieldModifier="public" Text="当前游戏设置"/>
+                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE72A;" FontSize="10"/>
+                        </StackPanel>
+                    </Button>
+                </Grid>
+                <StackPanel Spacing="10">
+                    <TextBlock x:Name="PackHintText" x:FieldModifier="public" Visibility="Collapsed" TextWrapping="Wrap" FontSize="12"/>
+                    <Grid RowSpacing="12">
+                        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <StackPanel Spacing="5"><StackPanel Orientation="Horizontal" Spacing="7"><FontIcon x:Name="VoicePackIcon" x:FieldModifier="public" FontFamily="Segoe MDL2 Assets" Glyph="&#xE720;" FontSize="12"/><TextBlock x:Name="VoicePackLabel" x:FieldModifier="public" Style="{StaticResource ModeSectionFieldLabelStyle}" Text="语音包"/></StackPanel><ComboBox x:Name="VoicePackSelector" x:FieldModifier="public" HorizontalAlignment="Stretch" FontSize="12" SelectionChanged="OnVoicePackSelectionChanged"/></StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="5"><StackPanel Orientation="Horizontal" Spacing="7"><FontIcon x:Name="IconPackIcon" x:FieldModifier="public" FontFamily="Segoe MDL2 Assets" Glyph="&#xE8B9;" FontSize="12"/><TextBlock x:Name="IconPackLabel" x:FieldModifier="public" Style="{StaticResource ModeSectionFieldLabelStyle}" Text="图标包"/></StackPanel><ComboBox x:Name="IconPackSelector" x:FieldModifier="public" HorizontalAlignment="Stretch" FontSize="12" SelectionChanged="OnIconPackSelectionChanged"/></StackPanel>
+                        </Grid>
+                        <Grid Grid.Row="1" ColumnSpacing="12">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <StackPanel Spacing="5"><StackPanel Orientation="Horizontal" Spacing="7"><FontIcon x:Name="VolumeIcon" x:FieldModifier="public" FontFamily="Segoe MDL2 Assets" Glyph="&#xE767;" FontSize="12"/><TextBlock x:Name="VolumeLabel" x:FieldModifier="public" Style="{StaticResource ModeSectionFieldLabelStyle}" Text="播放音量"/></StackPanel><ComboBox x:Name="AudioVolumeSelector" x:FieldModifier="public" HorizontalAlignment="Stretch" FontSize="12" SelectionChanged="OnAudioVolumeSelectionChanged"><ComboBoxItem Tag="0">0%</ComboBoxItem><ComboBoxItem Tag="10">10%</ComboBoxItem><ComboBoxItem Tag="20">20%</ComboBoxItem><ComboBoxItem Tag="30">30%</ComboBoxItem><ComboBoxItem Tag="40">40%</ComboBoxItem><ComboBoxItem Tag="50">50%</ComboBoxItem><ComboBoxItem Tag="60">60%</ComboBoxItem><ComboBoxItem Tag="70">70%</ComboBoxItem><ComboBoxItem Tag="80">80%</ComboBoxItem><ComboBoxItem Tag="90">90%</ComboBoxItem><ComboBoxItem Tag="100">100%</ComboBoxItem><ComboBoxItem Tag="110">110%</ComboBoxItem><ComboBoxItem Tag="120">120%</ComboBoxItem><ComboBoxItem Tag="130">130%</ComboBoxItem><ComboBoxItem Tag="140">140%</ComboBoxItem><ComboBoxItem Tag="150">150%</ComboBoxItem><ComboBoxItem Tag="160">160%</ComboBoxItem><ComboBoxItem Tag="170">170%</ComboBoxItem><ComboBoxItem Tag="180">180%</ComboBoxItem><ComboBoxItem Tag="190">190%</ComboBoxItem><ComboBoxItem Tag="200">200%</ComboBoxItem></ComboBox></StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="5"><StackPanel Orientation="Horizontal" Spacing="7"><FontIcon x:Name="TestPresetIcon" x:FieldModifier="public" FontFamily="Segoe MDL2 Assets" Glyph="&#xE768;" FontSize="12"/><TextBlock x:Name="TestPresetLabel" x:FieldModifier="public" Style="{StaticResource ModeSectionFieldLabelStyle}" Text="测试事件"/></StackPanel><ComboBox x:Name="TestPresetSelector" x:FieldModifier="public" HorizontalAlignment="Stretch" FontSize="12" SelectedIndex="0"><ComboBoxItem Tag="one">one</ComboBoxItem><ComboBoxItem Tag="one_hs">one hs</ComboBoxItem><ComboBoxItem Tag="one_knife">one knife</ComboBoxItem><ComboBoxItem Tag="one_grenade">one grenade</ComboBoxItem><ComboBoxItem Tag="one_first">one first</ComboBoxItem><ComboBoxItem Tag="one_last">one last</ComboBoxItem><ComboBoxItem Tag="assist">assist</ComboBoxItem><ComboBoxItem Tag="gold_first">gold first</ComboBoxItem><ComboBoxItem Tag="gold_last">gold last</ComboBoxItem><ComboBoxItem Tag="two">two</ComboBoxItem><ComboBoxItem Tag="three">three</ComboBoxItem><ComboBoxItem Tag="four">four</ComboBoxItem><ComboBoxItem Tag="five">five</ComboBoxItem><ComboBoxItem Tag="six">six</ComboBoxItem><ComboBoxItem Tag="seven">seven</ComboBoxItem><ComboBoxItem Tag="eight">eight</ComboBoxItem><ComboBoxItem Tag="nine">nine</ComboBoxItem><ComboBoxItem Tag="badge_first">badge first</ComboBoxItem><ComboBoxItem Tag="badge_last">badge last</ComboBoxItem><ComboBoxItem Tag="bomb_plant">bomb plant</ComboBoxItem><ComboBoxItem Tag="bomb_defuse">bomb defuse</ComboBoxItem><ComboBoxItem Tag="hostage_interact">hostage interact</ComboBoxItem><ComboBoxItem Tag="hostage_rescue">hostage rescue</ComboBoxItem><ComboBoxItem Tag="round_win">round win</ComboBoxItem><ComboBoxItem Tag="round_loss">round loss</ComboBoxItem></ComboBox></StackPanel>
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,0,2">
+                                <Button x:Name="SendTestButton" x:FieldModifier="public" Style="{StaticResource SettingsPrimaryButtonStyle}" MinWidth="112" Padding="12,5" Height="32" Click="OnTestEventClick" ToolTipService.ToolTip="播放画面与音频" AutomationProperties.Name="Play visuals and audio"><StackPanel Orientation="Horizontal" Spacing="6"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE768;" FontSize="13" Foreground="White"/><TextBlock x:Name="SendTestLabel" x:FieldModifier="public" Text="播放画面与音频"/></StackPanel></Button>
+                                <Button x:Name="RepeatTestButton" x:FieldModifier="public" Style="{StaticResource ModeIconButtonStyle}" Click="OnRepeatTestClick" ToolTipService.ToolTip="循环播放" AutomationProperties.Name="Repeat test"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8EE;" FontSize="13" Foreground="#3A3A3C"/></Button>
+                                <Button x:Name="ReloadAudioButton" x:FieldModifier="public" Style="{StaticResource ModeIconButtonStyle}" Click="OnReloadAudioClick" ToolTipService.ToolTip="重载音频" AutomationProperties.Name="Reload audio"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE72C;" FontSize="13" Foreground="#3A3A3C"/></Button>
+                                <Button x:Name="DanmakuTestButton" x:FieldModifier="public" Style="{StaticResource ModeIconButtonStyle}" Click="OnDanmakuTestClick" ToolTipService.ToolTip="测试弹幕" AutomationProperties.Name="Test danmaku"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8BD;" FontSize="13" Foreground="#3A3A3C"/></Button>
+                            </StackPanel>
+                        </Grid>
                     </Grid>
-                    <Grid ColumnSpacing="8" RowSpacing="8">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-                        <Button x:Name="SendTestButton" x:FieldModifier="public" Style="{StaticResource SettingsPrimaryButtonStyle}" HorizontalAlignment="Stretch" MinHeight="36" Click="OnTestEventClick"><StackPanel Orientation="Horizontal" Spacing="7"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE768;" FontSize="14"/><TextBlock x:Name="SendTestLabel" x:FieldModifier="public" Text="播放画面与音频"/></StackPanel></Button>
-                        <Button x:Name="RepeatTestButton" x:FieldModifier="public" Grid.Column="1" Style="{StaticResource SettingsHeaderButtonStyle}" HorizontalAlignment="Stretch" MinHeight="36" Click="OnRepeatTestClick"><StackPanel Orientation="Horizontal" Spacing="7"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8EE;" FontSize="14"/><TextBlock x:Name="RepeatTestLabel" x:FieldModifier="public" Text="循环播放"/></StackPanel></Button>
-                        <Button x:Name="ReloadAudioButton" x:FieldModifier="public" Grid.Row="1" Style="{StaticResource SettingsHeaderButtonStyle}" HorizontalAlignment="Stretch" MinHeight="36" Click="OnReloadAudioClick"><StackPanel Orientation="Horizontal" Spacing="7"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE72C;" FontSize="14"/><TextBlock x:Name="ReloadAudioLabel" x:FieldModifier="public" Text="重载音频"/></StackPanel></Button>
-                        <Button x:Name="DanmakuTestButton" x:FieldModifier="public" Grid.Row="1" Grid.Column="1" Style="{StaticResource SettingsHeaderButtonStyle}" HorizontalAlignment="Stretch" MinHeight="36" Click="OnDanmakuTestClick"><StackPanel Orientation="Horizontal" Spacing="7"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8BD;" FontSize="14"/><TextBlock x:Name="DanmakuTestLabel" x:FieldModifier="public" Text="测试弹幕"/></StackPanel></Button>
-                    </Grid>
-                    <TextBlock x:Name="TestFeedbackText" x:FieldModifier="public" TextWrapping="Wrap" FontSize="12" Visibility="Collapsed"/>
-                    <ContentControl x:Name="LayoutContentHost" x:FieldModifier="public" HorizontalContentAlignment="Stretch"/>
+                    <TextBlock x:Name="TestFeedbackText" x:FieldModifier="public" TextWrapping="Wrap" FontSize="11" Visibility="Collapsed"/>
+                    <Button
+                        x:Name="AdvancedEffectsButton" x:FieldModifier="public"
+                        Visibility="Collapsed"
+                        Width="34"
+                        Height="32"
+                        Margin="4,0,0,0"
+                        Style="{StaticResource PackImportantIconButtonStyle}"
+                        AutomationProperties.Name="Advanced effects"
+                        Click="OnAdvancedEffectsButtonClick"
+                        ToolTipService.ToolTip="Advanced effects">
+                        <primitives:FlyoutBase.AttachedFlyout>
+                            <Flyout x:Name="AdvancedEffectsFlyout" x:FieldModifier="public" Placement="Bottom">
+                                <Flyout.FlyoutPresenterStyle>
+                                    <Style TargetType="FlyoutPresenter">
+                                        <Setter Property="Padding" Value="0" />
+                                        <Setter Property="Background" Value="Transparent" />
+                                        <Setter Property="BorderThickness" Value="0" />
+                                        <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Disabled" />
+                                        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+                                        <Setter Property="ScrollViewer.VerticalScrollMode" Value="Disabled" />
+                                        <Setter Property="ScrollViewer.HorizontalScrollMode" Value="Disabled" />
+                                        <Setter Property="MaxWidth" Value="520" />
+                                        <Setter Property="MaxHeight" Value="800" />
+                                    </Style>
+                                </Flyout.FlyoutPresenterStyle>
+                                <Border
+                                    x:Name="AdvancedEffectsFlyoutCard" x:FieldModifier="public"
+                                    HorizontalAlignment="Stretch"
+
+                                    Padding="12"
+                                    Background="#F7F7FA"
+                                    BorderBrush="#26000000"
+                                    BorderThickness="1"
+                                    CornerRadius="16">
+                                    <ScrollViewer
+                                        VerticalScrollBarVisibility="Auto"
+                                        VerticalScrollMode="Auto"
+                                        ZoomMode="Disabled">
+                                        <StackPanel Spacing="10">
+                                            <Border
+                                                x:Name="AdvancedEffectsGameCard" x:FieldModifier="public"
+                                                Padding="12"
+                                                BorderThickness="1"
+                                                CornerRadius="18">
+                                                <StackPanel Spacing="10">
+                                                    <TextBlock
+                                                        x:Name="AdvancedEffectsGameTitleText" x:FieldModifier="public"
+                                                        FontSize="16"
+                                                        FontWeight="Bold"
+                                                        Text="Game effects" />
+                                                    <gameStyles:KillFeedbackAppearanceEditor
+                                                        x:Name="KillFeedbackAppearanceEditorControl"
+                                                        x:FieldModifier="public" />
+                                                    <ContentControl x:Name="AdvancedEffectsPanelHost" x:FieldModifier="public" />
+                                                </StackPanel>
+                                            </Border>
+
+
+                                        </StackPanel>
+                                    </ScrollViewer>
+                                </Border>
+                            </Flyout>
+                        </primitives:FlyoutBase.AttachedFlyout>
+                        <Grid Style="{StaticResource IconHostStyle}">
+                            <FontIcon
+                                FontFamily="Segoe MDL2 Assets"
+                                FontSize="12"
+                                Glyph="&#xE7C1;"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Foreground="#FFFFFF" />
+                        </Grid>
+                    </Button>
                 </StackPanel>
-                <Button
-                    x:Name="AdvancedEffectsButton" x:FieldModifier="public"
-                    Visibility="Collapsed"
-                    Width="34"
-                    Height="32"
-                    Margin="4,0,0,0"
-                    Style="{StaticResource PackImportantIconButtonStyle}"
-                    AutomationProperties.Name="Advanced effects"
-                    Click="OnAdvancedEffectsButtonClick"
-                    ToolTipService.ToolTip="Advanced effects">
-                    <primitives:FlyoutBase.AttachedFlyout>
-                        <Flyout x:Name="AdvancedEffectsFlyout" x:FieldModifier="public" Placement="Bottom">
-                            <Flyout.FlyoutPresenterStyle>
-                                <Style TargetType="FlyoutPresenter">
-                                    <Setter Property="Padding" Value="0" />
-                                    <Setter Property="Background" Value="Transparent" />
-                                    <Setter Property="BorderThickness" Value="0" />
-                                    <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Disabled" />
-                                    <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
-                                    <Setter Property="ScrollViewer.VerticalScrollMode" Value="Disabled" />
-                                    <Setter Property="ScrollViewer.HorizontalScrollMode" Value="Disabled" />
-                                    <Setter Property="MaxWidth" Value="520" />
-                                    <Setter Property="MaxHeight" Value="800" />
-                                </Style>
-                            </Flyout.FlyoutPresenterStyle>
-                            <Border
-                                x:Name="AdvancedEffectsFlyoutCard" x:FieldModifier="public"
-                                HorizontalAlignment="Stretch"
-
-                                Padding="12"
-                                Background="#F7F7FA"
-                                BorderBrush="#26000000"
-                                BorderThickness="1"
-                                CornerRadius="16">
-                                <ScrollViewer
-                                    VerticalScrollBarVisibility="Auto"
-                                    VerticalScrollMode="Auto"
-                                    ZoomMode="Disabled">
-                                    <StackPanel Spacing="10">
-                                        <Border
-                                            x:Name="AdvancedEffectsGameCard" x:FieldModifier="public"
-                                            Padding="12"
-                                            BorderThickness="1"
-                                            CornerRadius="18">
-                                            <StackPanel Spacing="10">
-                                                <TextBlock
-                                                    x:Name="AdvancedEffectsGameTitleText" x:FieldModifier="public"
-                                                    FontSize="16"
-                                                    FontWeight="Bold"
-                                                    Text="Game effects" />
-                                                <gameStyles:KillFeedbackAppearanceEditor
-                                                    x:Name="KillFeedbackAppearanceEditorControl"
-                                                    x:FieldModifier="public" />
-                                                <ContentControl x:Name="AdvancedEffectsPanelHost" x:FieldModifier="public" />
-                                            </StackPanel>
-                                        </Border>
-
-
-                                    </StackPanel>
-                                </ScrollViewer>
-                            </Border>
-                        </Flyout>
-                    </primitives:FlyoutBase.AttachedFlyout>
-                    <Grid Style="{StaticResource IconHostStyle}">
-                        <FontIcon
-                            FontFamily="Segoe MDL2 Assets"
-                            FontSize="12"
-                            Glyph="&#xE7C1;"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center"
-                            Foreground="#FFFFFF" />
-                    </Grid>
-                </Button>
             </StackPanel>
         </Border>
     </Grid>

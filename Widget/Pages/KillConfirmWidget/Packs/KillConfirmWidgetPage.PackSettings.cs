@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using KillConfirmGameBar.Services;
 using Windows.Data.Json;
@@ -21,8 +21,8 @@ namespace KillConfirmGameBar
 
             try
             {
-                App.NoteAction("voice selection tag=" + ((PackTestSectionView.VoicePackSelector.SelectedItem as ComboBoxItem)?.Tag as string));
-                if (Equals((PackTestSectionView.VoicePackSelector.SelectedItem as ComboBoxItem)?.Tag, PackLibraryNavigation.AddMoreTag))
+                App.NoteAction("voice selection tag=" + ((PackTestSectionView.VoicePackSelector.SelectedItem as PackSelectorItem)?.Tag as string));
+                if (Equals((PackTestSectionView.VoicePackSelector.SelectedItem as PackSelectorItem)?.Tag, PackLibraryNavigation.AddMoreTag))
                 {
                     await OpenPackLibraryAsync(true, e);
                     return;
@@ -55,8 +55,8 @@ namespace KillConfirmGameBar
 
             try
             {
-                App.NoteAction("icon selection tag=" + ((PackTestSectionView.IconPackSelector.SelectedItem as ComboBoxItem)?.Tag as string));
-                if (Equals((PackTestSectionView.IconPackSelector.SelectedItem as ComboBoxItem)?.Tag, PackLibraryNavigation.AddMoreTag))
+                App.NoteAction("icon selection tag=" + ((PackTestSectionView.IconPackSelector.SelectedItem as PackSelectorItem)?.Tag as string));
+                if (Equals((PackTestSectionView.IconPackSelector.SelectedItem as PackSelectorItem)?.Tag, PackLibraryNavigation.AddMoreTag))
                 {
                     await OpenPackLibraryAsync(false, e);
                     return;
@@ -121,7 +121,7 @@ namespace KillConfirmGameBar
 
         private string GetSelectedIconPack()
         {
-            if (PackTestSectionView.IconPackSelector?.SelectedItem is ComboBoxItem item
+            if (PackTestSectionView.IconPackSelector?.SelectedItem is PackSelectorItem item
                 && item.Tag is string tag
                 && tag != PackLibraryNavigation.AddMoreTag
                 && !string.IsNullOrWhiteSpace(tag))
@@ -150,7 +150,7 @@ namespace KillConfirmGameBar
             {
                 foreach (object option in PackTestSectionView.IconPackSelector.Items)
                 {
-                    if (option is ComboBoxItem item
+                    if (option is PackSelectorItem item
                         && item.Tag is string tag
                         && string.Equals(tag, iconPack, StringComparison.OrdinalIgnoreCase))
                     {

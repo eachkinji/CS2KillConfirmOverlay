@@ -234,7 +234,7 @@ namespace KillConfirmCompatibility.Danmaku
         private void OnDanmakuCanvasDraw(CanvasControl sender, CanvasDrawEventArgs args)
         {
             var session = args.DrawingSession;
-            session.Clear(Colors.Transparent);
+            // The desktop render-target owner clears before replaying commands.
 
             CanvasTextFormat format = _cachedTextFormat;
             if (format == null || _activeList.Count == 0)

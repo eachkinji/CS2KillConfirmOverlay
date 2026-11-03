@@ -8,6 +8,7 @@ using Windows.UI;
 namespace KillConfirmGameBar;
 public partial class App : Application
 {
+    private FrameworkElement _titleDragArea;
     private Window _window;
     private System.Threading.Mutex _instance;
     private System.Threading.EventWaitHandle _activate;
@@ -70,8 +71,14 @@ public partial class App : Application
             if(DesktopPlatform.IsRuntimeValidation)
                 _= mainPage.RunStandaloneValidationAsync();
             var activationTimer=new DispatcherTimer { Interval=TimeSpan.FromMilliseconds(200) };
-            _window.Closed += async (s,e) => { activationTimer.Stop(); await Services.ServiceLauncher.UnregisterCurrentProcessAsync(); _activate?.Dispose(); _instance?.Dispose(); };
-            activationTimer.Tick += (s,e) => { if(_activate.WaitOne(0)) { _window.AppWindow.Show(); _window.Activate(); } };
+            _window.Closed += async (s,e) => {
+                activationTimer.Stop();
+                var activation = _activate; _activate = null;
+                activation?.Dispose();
+                await Services.ServiceLauncher.UnregisterCurrentProcessAsync();
+                _instance?.Dispose();
+            };
+            activationTimer.Tick += (s,e) => { if(_activate?.WaitOne(0) == true) { _window.AppWindow.Show(); _window.Activate(); } };
             activationTimer.Start();
             if(DesktopPlatform.IsUiValidation)
             {
@@ -87,15 +94,6 @@ public partial class App : Application
         }
         catch(Exception error) { LogCrash("Panel startup",error); Exit(); }
     }
-    private const int WM_NCLBUTTONDOWN = 0xA1;
-    private const int HTCAPTION = 0x2;
-
-    [DllImport("user32.dll")]
-    private static extern bool ReleaseCapture();
-
-    [DllImport("user32.dll")]
-    private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
-
     [DllImport("user32.dll")]
     private static extern uint GetDpiForWindow(IntPtr hwnd);
 
@@ -121,6 +119,8 @@ public partial class App : Application
             // wash reaches the window edge and our own dots own the chrome.
             if (_window.AppWindow.Presenter is OverlappedPresenter presenter)
                 presenter.SetBorderAndTitleBar(true, false);
+            UpdateTitleDragRegion();
+            _window.AppWindow.Changed += (s, e) => UpdateTitleDragRegion();
         }
         catch (Exception error)
         {
@@ -151,8 +151,12 @@ public partial class App : Application
             Margin = new Thickness(20, 0, 0, 0),
             IsHitTestVisible = false
         });
-        dragArea.PointerPressed += OnTitleBarPointerPressed;
-        dragArea.DoubleTapped += (s, e) => ToggleMaximize();
+        _titleDragArea = dragArea;
+        dragArea.Loaded += (s, e) => {
+            UpdateTitleDragRegion();
+            if (dragArea.XamlRoot != null) dragArea.XamlRoot.Changed += (root, args) => UpdateTitleDragRegion();
+        };
+        dragArea.SizeChanged += (s, e) => UpdateTitleDragRegion();
         bar.Children.Add(dragArea);
 
         var dots = new StackPanel
@@ -215,16 +219,17 @@ public partial class App : Application
         return dot;
     }
 
-    private void OnTitleBarPointerPressed(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    private void UpdateTitleDragRegion()
     {
-        if (sender is not UIElement source) return;
-        if (!e.GetCurrentPoint(source).Properties.IsLeftButtonPressed) return;
-        ReleaseCapture();
-        SendMessage(
-            WinRT.Interop.WindowNative.GetWindowHandle(_window),
-            WM_NCLBUTTONDOWN,
-            (IntPtr)HTCAPTION,
-            IntPtr.Zero);
+        if (_titleDragArea?.XamlRoot == null || _titleDragArea.ActualWidth <= 0) return;
+        var origin = _titleDragArea.TransformToVisual((UIElement)_window.Content).TransformPoint(new Windows.Foundation.Point());
+        double scale = _titleDragArea.XamlRoot.RasterizationScale;
+        var rect = new Windows.Graphics.RectInt32((int)Math.Round(origin.X * scale), (int)Math.Round(origin.Y * scale),
+            (int)Math.Round(_titleDragArea.ActualWidth * scale), (int)Math.Round(_titleDragArea.ActualHeight * scale));
+        // Native caption handling owns press/move/release, double-click and
+        // snapping. Do not start a second modal move loop from PointerPressed.
+        Microsoft.UI.Input.InputNonClientPointerSource.GetForWindowId(_window.AppWindow.Id)
+            .SetRegionRects(Microsoft.UI.Input.NonClientRegionKind.Caption, new[] { rect });
     }
 
     private void MinimizeWindow()

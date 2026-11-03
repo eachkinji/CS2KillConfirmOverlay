@@ -16,6 +16,19 @@ namespace KillConfirmCompatibility.Validation
         {
             using var service = new LocalProtocolFixture();
             DesktopStorage.Current.LocalSettings.Values[PortSettingsStore.PortKey] = service.Port;
+            var registration = new ServiceSession();
+            await registration.EnsureRegisteredAsync();
+            using (var replacement = new LocalProtocolFixture())
+            {
+                DesktopStorage.Current.LocalSettings.Values[PortSettingsStore.PortKey] = replacement.Port;
+                await registration.EnsureRegisteredAsync();
+                if (replacement.Count("/gsi-game/settings") == 0) throw new Exception("Changing service port did not resend gameplay configuration.");
+                await registration.ReleaseAsync();
+                int count = replacement.Count("/client/register");
+                await registration.EnsureRegisteredAsync();
+                if (replacement.Count("/client/register") != count) throw new Exception("Closed service session registered again.");
+            }
+            DesktopStorage.Current.LocalSettings.Values[PortSettingsStore.PortKey] = service.Port;
             DesktopStorage.Current.LocalSettings.Values[DanmakuSettingsStore.EnabledSettingKey] = false;
             GameStyleService.Current = GameStyleMode.Csol;
             string folder = Path.Combine(DesktopStorage.Current.LocalFolder.Path, DisplayFiles.FolderName);
@@ -37,8 +50,15 @@ namespace KillConfirmCompatibility.Validation
                 // Force the status writer to exhaust its retries, then release the
                 // lock. Recovery must clear the I/O fault without poisoning rendering.
                 long previousHeartbeat = status.Timestamp;
+                var responsiveness = System.Diagnostics.Stopwatch.StartNew();
+                double previousTick = 0, worstDelay = 0;
+                var probe = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(15) };
+                probe.Tick += (s, e) => { double now = responsiveness.Elapsed.TotalMilliseconds; worstDelay = Math.Max(worstDelay, now - previousTick); previousTick = now; };
+                probe.Start();
                 using (var locked = new FileStream(statusPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                     await Task.Delay(1500);
+                probe.Stop();
+                if (worstDelay >= 180) throw new Exception("Locked heartbeat blocked the UI thread: " + worstDelay + " ms");
                 for (int attempt = 0; attempt < 40; attempt++)
                 {
                     await Task.Delay(100);

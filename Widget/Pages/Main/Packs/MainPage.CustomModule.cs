@@ -483,7 +483,7 @@ namespace KillConfirmGameBar
                     ? null
                     : await TryGetCustomPackHeadImageAsync(original.Path);
                 layout.Children.Add(await CreateHeadImageCardAsync(
-                    "ms-appx:///Assets/GameStyles/custommodule/iconpacks/custommodule/pack_head.webp",
+                    "ms-appx:///Assets/GameLogos/custommodule.png",
                     headImageFile,
                     file => headImageFile = file,
                     () => headImageFile = null,

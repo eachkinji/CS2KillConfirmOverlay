@@ -8,6 +8,8 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         public PackTestView()
         {
             InitializeComponent();
+            KillConfirmGameBar.Services.PackSelectorItem.Configure(VoicePackSelector, false);
+            KillConfirmGameBar.Services.PackSelectorItem.Configure(IconPackSelector, false);
         }
 
         public event SelectionChangedEventHandler VoicePackSelectionChanged;
@@ -17,12 +19,16 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         public event RoutedEventHandler TestEventRequested;
         public event RoutedEventHandler RepeatTestRequested;
         public event RoutedEventHandler ReloadAudioRequested;
+        public event RoutedEventHandler GameSettingsRequested;
 
         private void OnVoicePackSelectionChanged(object sender, SelectionChangedEventArgs e)
             => VoicePackSelectionChanged?.Invoke(sender, e);
 
         private void OnIconPackSelectionChanged(object sender, SelectionChangedEventArgs e)
             => IconPackSelectionChanged?.Invoke(sender, e);
+
+        private void OnGameSettingsClick(object sender, RoutedEventArgs e)
+            => GameSettingsRequested?.Invoke(sender, e);
 
         private void OnAdvancedEffectsButtonClick(object sender, RoutedEventArgs e)
             => AdvancedEffectsRequested?.Invoke(sender, e);

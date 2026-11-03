@@ -85,7 +85,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
 
         private string GetSelectedVoicePackPreset()
         {
-            if (PackTestSectionView.VoicePackSelector.SelectedItem is ComboBoxItem item
+            if (PackTestSectionView.VoicePackSelector.SelectedItem is PackSelectorItem item
                 && item.Tag is string tag)
             {
                 return tag;
@@ -121,7 +121,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             {
                 foreach (object option in PackTestSectionView.VoicePackSelector.Items)
                 {
-                    if (option is ComboBoxItem item
+                    if (option is PackSelectorItem item
                         && item.Tag is string tag
                         && string.Equals(tag, preset, StringComparison.OrdinalIgnoreCase))
                     {

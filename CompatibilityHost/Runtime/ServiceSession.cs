@@ -12,6 +12,8 @@ namespace KillConfirmCompatibility.Desktop.Runtime
     internal sealed class ServiceSession
     {
         private bool _busy;
+        private bool _closing;
+        private readonly System.Threading.CancellationTokenSource _lifetime = new();
         private DateTimeOffset _lastLaunch = DateTimeOffset.MinValue;
         private string _lastVoice;
         private int _lastPort;
@@ -19,15 +21,19 @@ namespace KillConfirmCompatibility.Desktop.Runtime
         public string Error { get; private set; }
         public async Task EnsureRegisteredAsync()
         {
-            if (_busy) return;
+            if (_busy || _closing) return;
             _busy = true;
             try
             {
+                using var timeout = System.Threading.CancellationTokenSource.CreateLinkedTokenSource(_lifetime.Token);
+                timeout.CancelAfter(TimeSpan.FromSeconds(5));
                 using var client = await LocalServiceAuth.CreateHttpClientAsync();
                 var json = new JsonObject { ["pid"] = JsonValue.CreateNumberValue(Environment.ProcessId) };
                 using var content = new HttpStringContent(json.Stringify(), UnicodeEncoding.Utf8, "application/json");
-                using var response = await client.PostAsync(LocalServiceEndpoints.Build("/client/register"), content);
+                using var response = await client.PostAsync(LocalServiceEndpoints.Build("/client/register"), content).AsTask(timeout.Token);
                 response.EnsureSuccessStatusCode();
+                if (_closing) return;
+                if (_lastPort != LocalServiceEndpoints.Port) _lastConfiguration = null;
                 string voice = ReadVoice();
                 if (_lastVoice != voice || _lastPort != LocalServiceEndpoints.Port)
                 {
@@ -38,7 +44,7 @@ namespace KillConfirmCompatibility.Desktop.Runtime
                         if (folder != null) preset["custom_path"] = JsonValue.CreateStringValue(folder.Path);
                     }
                     using var presetContent = new HttpStringContent(preset.Stringify(), UnicodeEncoding.Utf8, "application/json");
-                    using var changed = await client.PostAsync(LocalServiceEndpoints.Build("/soundpack"), presetContent);
+                    using var changed = await client.PostAsync(LocalServiceEndpoints.Build("/soundpack"), presetContent).AsTask(timeout.Token);
                     changed.EnsureSuccessStatusCode(); _lastVoice = voice; _lastPort = LocalServiceEndpoints.Port;
                 }
                 Error = null;
@@ -51,6 +57,7 @@ namespace KillConfirmCompatibility.Desktop.Runtime
             }
             catch (Exception error)
             {
+                if (_closing) return;
                 Error = error.Message;
                 if (DateTimeOffset.UtcNow - _lastLaunch > TimeSpan.FromSeconds(15))
                 {
@@ -81,12 +88,15 @@ namespace KillConfirmCompatibility.Desktop.Runtime
         }
         public async Task ReleaseAsync()
         {
+            _closing = true;
+            _lifetime.Cancel();
             try
             {
+                using var timeout = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(3));
                 using var client = await LocalServiceAuth.CreateHttpClientAsync();
                 var json = new JsonObject { ["pid"] = JsonValue.CreateNumberValue(Environment.ProcessId) };
                 using var content = new HttpStringContent(json.Stringify(), UnicodeEncoding.Utf8, "application/json");
-                using var response = await client.PostAsync(LocalServiceEndpoints.Build("/client/unregister"), content);
+                using var response = await client.PostAsync(LocalServiceEndpoints.Build("/client/unregister"), content).AsTask(timeout.Token);
             }
             catch (Exception error) { App.Log("Compatibility service release: " + error.Message); }
         }

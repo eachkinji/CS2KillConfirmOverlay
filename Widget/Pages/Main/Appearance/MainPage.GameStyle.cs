@@ -10,6 +10,7 @@ using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
+using Windows.UI.Xaml.Media.Imaging;
 using Windows.Web.Http;
 
 namespace KillConfirmGameBar
@@ -183,15 +184,81 @@ namespace KillConfirmGameBar
 
         private void ApplyPageTitleTheme(GameThemePalette theme)
         {
-            if (PageTitleSurface != null)
+            bool gamePage = !_isHomePageSelected && !_isSettingsWorkspaceSelected;
+            bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            PageTitleAccent.Visibility = PageTitleLogoSurface.Visibility = gamePage ? Visibility.Visible : Visibility.Collapsed;
+            PageTitleBody.Padding = gamePage ? new Thickness(20, 14, 24, 14) : new Thickness(4, 2, 4, 2);
+            PageTitleSurface.BorderThickness = new Thickness(gamePage ? 1 : 0);
+            PageTitleSurface.CornerRadius = new CornerRadius(gamePage ? 18 : 0);
+            TitleText.FontSize = gamePage ? 24 : 22;
+            if (gamePage)
             {
+                GameStyleMode mode = GameStyleService.Current;
+                TitleText.Text = GetGamePageTitle(mode, isChinese);
+                string extension = mode == GameStyleMode.Dagoujiao ? "jpg" : "png";
+                var logoUri = new Uri("ms-appx:///Assets/GameLogos/" + GameStyleService.ToStorageValue(mode) + "." + extension);
+                if (!(PageTitleGameLogo.Source is BitmapImage currentLogo) || currentLogo.UriSource != logoUri)
+                    PageTitleGameLogo.Source = new BitmapImage(logoUri) { DecodePixelWidth = 152 };
+                // These two logos are white on transparent; give them a dark tile.
+                bool darkLogo = mode == GameStyleMode.ModernWarfare2019 || mode == GameStyleMode.Battlefield5;
+                PageTitleLogoSurface.Background = new SolidColorBrush(darkLogo
+                    ? Color.FromArgb(255, 37, 43, 52) : Color.FromArgb(224, 255, 255, 255));
+                PageTitleAccent.Background = theme.Brush(theme.Accent);
+                PageTitleSurface.BorderBrush = new SolidColorBrush(Color.FromArgb(64, theme.Accent.R, theme.Accent.G, theme.Accent.B));
+                var background = new LinearGradientBrush
+                {
+                    StartPoint = new Windows.Foundation.Point(0, 0),
+                    EndPoint = new Windows.Foundation.Point(1, 1)
+                };
+                background.GradientStops.Add(new GradientStop { Offset = 0, Color = Color.FromArgb(245, 255, 255, 255) });
+                background.GradientStops.Add(new GradientStop { Offset = 1, Color = Color.FromArgb(235,
+                    (byte)(235 + theme.Accent.R * 20 / 255),
+                    (byte)(235 + theme.Accent.G * 20 / 255),
+                    (byte)(235 + theme.Accent.B * 20 / 255)) });
+                PageTitleSurface.Background = background;
+            }
+            else
+            {
+                TitleText.Text = _isHomePageSelected ? (isChinese ? "主页" : "Home") : (isChinese ? "高级设置" : "Advanced settings");
+                PageTitleGameLogo.Source = null;
                 PageTitleSurface.Background = new SolidColorBrush(Colors.Transparent);
                 PageTitleSurface.BorderBrush = new SolidColorBrush(Colors.Transparent);
-                PageTitleSurface.CornerRadius = new CornerRadius(0);
             }
-
-            // The page title is content, not an action: keep it on primary text.
             SetText(TitleText, theme.Text);
+        }
+
+        private static string GetGamePageTitle(GameStyleMode mode, bool isChinese)
+        {
+            if (isChinese)
+            {
+                switch (mode)
+                {
+                    case GameStyleMode.Crossfire: return "CrossFire · 穿越火线";
+                    case GameStyleMode.Csol: return "CSOL · 反恐精英 Online";
+                    case GameStyleMode.Pubg: return "PUBG · 绝地求生";
+                    case GameStyleMode.DeltaForce: return "三角洲行动";
+                    default: return GameStyleService.ToDisplayName(mode);
+                }
+            }
+            switch (mode)
+            {
+                case GameStyleMode.Crossfire: return "CrossFire";
+                case GameStyleMode.Csol: return "Counter-Strike Online";
+                case GameStyleMode.Valorant: return "VALORANT";
+                case GameStyleMode.Overwatch: return "Overwatch";
+                case GameStyleMode.ModernWarfare2019: return "Call of Duty: Modern Warfare 2019";
+                case GameStyleMode.Apex: return "Apex Legends";
+                case GameStyleMode.Battlefield1: return "Battlefield 1";
+                case GameStyleMode.Battlefield5: return "Battlefield V";
+                case GameStyleMode.Battlefield4: return "Battlefield 4";
+                case GameStyleMode.Battlefield2042: return "Battlefield 2042";
+                case GameStyleMode.Pubg: return "PUBG: Battlegrounds";
+                case GameStyleMode.DeltaForce: return "Delta Force";
+                case GameStyleMode.Doubao: return "Doubao";
+                case GameStyleMode.Dagoujiao: return "Big Dog Bark";
+                case GameStyleMode.CustomModule: return "Custom";
+                default: return GameStyleService.ToDisplayName(mode);
+            }
         }
 
         private void UpdateBackgroundDecoration(GameStyleMode mode, bool gameTint = true)

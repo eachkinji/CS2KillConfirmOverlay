@@ -10,7 +10,7 @@ namespace KillConfirmGameBar
     public sealed partial class MainPage
     {
         private const string CustomModuleDefaultLogoUri =
-            "ms-appx:///Assets/GameStyles/custommodule/iconpacks/custommodule/pack_head.webp";
+            "ms-appx:///Assets/GameLogos/custommodule.png";
 
         private async Task ShowCreateCustomModuleVoicePackDialogAsync(
             string initialDisplayName = null,

@@ -5,6 +5,7 @@ using KillConfirmGameBar.Services;
 using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Shapes;
 
 namespace KillConfirmGameBar.Features.CompatibilityDisplay
 {
@@ -13,15 +14,16 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         private bool _loading = true, _switching, _previewing;
         private string _previewNotice;
         private DateTimeOffset _previewNoticeUntil;
-        private string _tab = "", _screenSignature;
+        private string _screenSignature;
         private GameThemePalette _theme;
+        internal Action OpenGameSettings { get; set; }
         private readonly DispatcherTimer _statusTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
         public CompatibilityDisplayPanel()
         {
             InitializeComponent();
             foreach (GameStyleMode style in Enum.GetValues(typeof(GameStyleMode)))
                 MainGameSelector.Items.Add(new ComboBoxItem { Content = MainPage.CreateMaterialGameSelectorContent(style, GameStyleService.ToDisplayName(style)), Tag = GameStyleService.ToStorageValue(style) });
-            EffectsView.Content = HomeView.EffectsContent;
+            HomeView.OpenGameSettings = () => OpenGameSettings?.Invoke();
             LayoutContentSource.Content = null;
             HomeView.SetLayoutContent(DisplayView);
             Loaded += OnLoaded; Unloaded += OnUnloaded;
@@ -38,7 +40,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             _loading = true;
             var c = CompatibilityDisplayRuntime.Load();
             CompatibilityMode.IsChecked = c.Enabled; GameBarMode.IsChecked = !c.Enabled;
-            FollowToggle.IsOn = c.FollowGame; HideToggle.IsOn = c.HideWhenInactive; FpsSelector.SelectedIndex = c.FramesPerSecond == 30 ? 1 : 0;
+            FollowToggle.IsOn = c.FollowGame; HideToggle.IsOn = c.HideWhenInactive;
             _loading = false; ApplyLanguage(); ApplyTheme(GameThemePalette.Home); RefreshStatus();
             if (!CompatibilityHomeView.IsUiValidation) _statusTimer.Start();
         }
@@ -65,34 +67,17 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             catch (Exception error) { StatusText.Text = error.Message; App.Log("Display mode switch: " + error); }
             finally { _switching = false; CompatibilityMode.IsEnabled = GameBarMode.IsEnabled = true; ApplyModeSelection(CompatibilityDisplayRuntime.Load().Enabled); }
         }
-        private void OnTabClick(object sender, RoutedEventArgs e) { string selected = (string)((Button)sender).Tag; _tab = _tab == selected ? "" : selected; ApplyTab(); }
-        private void OnEffectsRequested(object sender, EventArgs e) { _tab = "effects"; ApplyTab(); }
-        private void ApplyTab()
-        {
-            HomeView.Visibility = _tab == "home" ? Visibility.Visible : Visibility.Collapsed;
-            EffectsView.Visibility = _tab == "effects" ? Visibility.Visible : Visibility.Collapsed;
-            if (_theme == null) return;
-            foreach (var button in new[] { HomeTab, EffectsTab })
-            {
-                bool selected = (string)button.Tag == _tab;
-                button.Style = (Style)Resources[selected ? "StudioTabActiveButtonStyle" : "StudioTabButtonStyle"];
-                button.ClearValue(Control.BackgroundProperty);
-                button.ClearValue(Control.ForegroundProperty);
-                button.ClearValue(Control.BorderThicknessProperty);
-            }
-        }
         private void OnGeneralChanged(object sender, RoutedEventArgs e)
         {
             if (!_loading) CompatibilityDisplayRuntime.Update(c => { c.FollowGame = FollowToggle.IsOn; c.HideWhenInactive = HideToggle.IsOn; });
         }
-        private void OnFpsChanged(object sender, SelectionChangedEventArgs e) { if (!_loading) CompatibilityDisplayRuntime.Update(c => c.FramesPerSecond = FpsSelector.SelectedIndex == 1 ? 30 : 60); }
         private void OnScreenChanged(object sender, SelectionChangedEventArgs e) { if (!_loading) CompatibilityDisplayRuntime.Update(c => c.ScreenName = (ScreenSelector.SelectedItem as ComboBoxItem)?.Tag as string ?? ""); }
         private async void OnEditClick(object sender, RoutedEventArgs e) => await RequestAsync(true);
         private async void OnHomePreviewClick(object sender, RoutedEventArgs e)
         {
             if (_previewing) return;
             _previewing = true; RefreshStatus();
-            try { await HomeView.PreviewVisualAsync(); _previewNotice = HomeView.PreviewFeedback; _previewNoticeUntil = DateTimeOffset.UtcNow.AddSeconds(8); }
+            try { await HomeView.PreviewAllAsync(); _previewNotice = HomeView.PreviewFeedback; _previewNoticeUntil = DateTimeOffset.UtcNow.AddSeconds(8); }
             finally { _previewing = false; RefreshStatus(); }
         }
         private void OnGameBarDetailsClick(object sender, RoutedEventArgs e)
@@ -101,7 +86,6 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             GameBarDetails.Visibility = expanded ? Visibility.Visible : Visibility.Collapsed;
             GameBarDetailsChevron.Glyph = expanded ? "\uE70E" : "\uE70D";
         }
-        private async void OnPreviewClick(object sender, RoutedEventArgs e) => await HomeView.PreviewVisualAsync();
         private async Task RequestAsync(bool edit)
         {
             if (!CompatibilityDisplayRuntime.Load().Enabled) return;
@@ -118,11 +102,25 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             if (!config.Enabled) RefreshGameBarStatus();
             string problem = config.Enabled && CompatibilityDisplayRuntime.IsRunning(status) ? status.Error : null;
             StatusText.Text = _previewing ? (zh ? "正在预览…" : "Previewing…") : DateTimeOffset.UtcNow < _previewNoticeUntil ? _previewNotice :
-                !config.Enabled ? (zh ? "Game Bar 已选择" : "Game Bar selected") : !string.IsNullOrWhiteSpace(problem) ? (zh ? "需要处理 · 展开连接详情" : "Needs attention · see connection details") :
+                !config.Enabled ? (zh ? "Game Bar 已选择" : "Game Bar selected") : !string.IsNullOrWhiteSpace(problem) ? (zh ? "需要处理" : "Needs attention") :
                 status?.Editing == true ? (zh ? "编辑布局中" : "Editing layout") : !CompatibilityDisplayRuntime.IsRunning(status) ? (zh ? "正在启动…" : "Starting…") :
                 status.Loading ? (zh ? "加载素材中…" : "Loading packs…") : (zh ? "已就绪" : "Ready");
             HomePreviewButton.IsEnabled = config.Enabled && !_switching && !_previewing && HomeView.CanPreview;
-            EditButton.IsEnabled = PreviewButton.IsEnabled = ResetButton.IsEnabled = config.Enabled;
+            EditButton.IsEnabled = ResetButton.IsEnabled = config.Enabled;
+            bool runningNow = config.Enabled && CompatibilityDisplayRuntime.IsRunning(status);
+            bool editing = runningNow && status?.Editing == true;
+            bool visible = runningNow && status?.Visible == true;
+            bool hasProblem = !string.IsNullOrWhiteSpace(problem);
+            var gsi = GsiStatusMonitor.Instance.CurrentSnapshot;
+            bool serviceOnline = gsi.ServiceReachable || (runningNow && status.Connected);
+            UpdateStatusLights(config.Enabled, runningNow, hasProblem, serviceOnline, gsi.IsGreen, HomeView.PacksReady);
+            ToolTipService.SetToolTip(StatusSvcLight, serviceOnline ? (zh ? "后台服务已连接" : "Service connected") : (zh ? "后台服务等待连接" : "Service connecting"));
+            ToolTipService.SetToolTip(StatusCfgLight, !config.Enabled ? (zh ? "Game Bar 模式" : "Game Bar mode") : runningNow && !hasProblem ? (zh ? "显示端已就绪" : "Display ready") : hasProblem ? problem : (zh ? "显示端启动中" : "Display starting"));
+            ToolTipService.SetToolTip(StatusGsiLight, gsi.IsGreen ? (zh ? "正在接收游戏数据" : "Receiving game data") : (zh ? "等待游戏数据" : "Waiting for game data"));
+            ToolTipService.SetToolTip(StatusAniLight, HomeView.PacksReady ? (zh ? "素材已加载" : "Packs loaded") : (zh ? "素材加载中" : "Loading packs"));
+            SetStatusLight(VisibilityLight, visible ? StatusGreen : StatusGray);
+            VisibilityText.Text = zh ? (visible ? "显示中" : "待机") : (visible ? "Visible" : "Idle");
+            if (config.Enabled) HomeView.RefreshStatusNow();
             var screens = status?.Screens ?? new string[0];
             string signature = string.Join("|", screens) + config.ScreenName;
             if (_screenSignature != signature)
@@ -152,21 +150,19 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             RecommendedText.Text = zh ? "推荐" : "Recommended";
             HomePreviewLabel.Text = zh ? "预览效果" : "Preview effects";
             GameBarDetailsLabel.Text = zh ? "状态详情" : "Status details";
-            HomeTabLabel.Text = zh ? "素材与测试" : "Packs & testing";
-            EffectsTabLabel.Text = zh ? "战斗与视效" : "Combat & effects";
             OpenGameBarLabel.Text = zh ? "打开 Game Bar" : "Open Game Bar";
-            LayoutTitle.Text = zh ? "屏幕与布局" : "Screen & layout";
+            ToolTipService.SetToolTip(StatusRetryButton, zh ? "重试连接" : "Retry connection");
+            ToolTipService.SetToolTip(StatusRepairButton, zh ? "修复游戏配置" : "Repair game config");
+            ToolTipService.SetToolTip(StatusCopyButton, zh ? "复制诊断" : "Copy diagnostics");
+            ToolTipService.SetToolTip(StatusLogsButton, zh ? "打开日志" : "Open logs");
             LayoutHint.Text = zh ? "当前风格：" + GameStyleService.ToDisplayName(GameStyleService.Current) : "Current style: " + GameStyleService.ToDisplayName(GameStyleService.Current);
             EditLabel.Text = zh ? "编辑屏幕" : "Edit screen";
-            PreviewLabel.Text = zh ? "预览画面" : "Preview visuals";
-            ResetLabel.Text = zh ? "恢复当前游戏布局" : "Reset game layout";
-            ScreenTitle.Text = zh ? "显示范围与性能" : "Display area & performance";
-            ScreenScopeHint.Text = zh ? "所有风格共用" : "Shared across styles";
-            ShortcutText.Text = zh ? "Ctrl + Alt + L 编辑 / 结束 · Ctrl + Alt + O 显示 / 隐藏 · Enter 或 Esc 保存" : "Ctrl + Alt + L edit / finish · Ctrl + Alt + O show / hide · Enter or Esc save";
+            ToolTipService.SetToolTip(ResetButton, zh ? "恢复当前游戏布局" : "Reset game layout");
+            ToolTipService.SetToolTip(EditButton, zh ? "编辑屏幕 · Ctrl+Alt+L 开始 / 结束 · Enter 或 Esc 保存" : "Edit screen · Ctrl+Alt+L start / finish · Enter or Esc saves");
+            ScreenTitle.Text = zh ? "显示范围" : "Display area";
             FollowToggle.Header = zh ? "自动跟随游戏窗口" : "Follow game window";
             HideToggle.Header = zh ? "切出游戏时隐藏" : "Hide when game loses focus";
             ScreenSelector.Header = zh ? "显示器（预览与固定显示）" : "Monitor (preview and fixed display)";
-            FpsSelector.Header = zh ? "动画帧率" : "Animation frame rate";
             ApplyGameBarStatusLanguage();
             HomeView.ApplyLanguage(); ApplyModeSelection(CompatibilityDisplayRuntime.Load().Enabled);
         }
@@ -186,10 +182,14 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                 CompatibilityModeCard.BorderBrush = _theme.Brush(compatibility ? AccentBorderColor(_theme) : CardStrokeColor);
             }
             GameBarStatusSection.Visibility = compatibility ? Visibility.Collapsed : Visibility.Visible;
+            HomeView.Visibility = compatibility ? Visibility.Visible : Visibility.Collapsed;
+            StatusActions.Visibility = compatibility ? Visibility.Visible : Visibility.Collapsed;
             OpenGameBarButton.Visibility = compatibility ? Visibility.Collapsed : Visibility.Visible;
             HomePreviewButton.Visibility = compatibility ? Visibility.Visible : Visibility.Collapsed;
+            ModeUsageHint.Text = compatibility
+                ? (zh ? "请打开游戏使用。也可以先点击右侧按钮预览效果。" : "Open your game to use the overlay, or preview the effects first.")
+                : (zh ? "请按 Win+G 打开 Game Bar，启用并固定 Kill Confirm Overlay 小组件，然后打开游戏使用。" : "Press Win+G to open Game Bar, open and pin the Kill Confirm Overlay widget, then launch your game.");
             OpenGameBarButton.IsEnabled = !_switching && !CompatibilityDisplayRuntime.IsEnabled;
-            TabBar.Visibility = CompatibilityWorkspace.Visibility = compatibility ? Visibility.Visible : Visibility.Collapsed;
         }
         private static Color CardStrokeColor => Color.FromArgb(166, 255, 255, 255);
 
@@ -201,23 +201,38 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             // Home uses the same neutral workspace palette as Advanced settings.
             _theme = GameThemePalette.Home; theme = _theme;
             Foreground = theme.Brush(theme.Text);
-            foreach (var card in new[] { ModeCard, LayoutCard, ScreenCard })
+            foreach (var card in new[] { ModeCard, StatusBar, ScreenCard })
             {
                 card.Background = GameThemePalette.Glass(0.55);
                 card.BorderBrush = theme.Brush(CardStrokeColor);
             }
             GameBarModeCard.CornerRadius = new CornerRadius(14);
             CompatibilityModeCard.CornerRadius = new CornerRadius(14);
-            TabBar.Background = theme.Brush(Color.FromArgb(31, 120, 120, 128));
-            TabBar.BorderBrush = theme.Brush(Colors.Transparent);
-            TabBar.CornerRadius = new CornerRadius(14);
             ModeStatusBadge.Background = theme.Brush(theme.AccentSoft);
             ModeStatusBadge.CornerRadius = new CornerRadius(14);
             StatusText.Foreground = theme.Brush(theme.Accent);
-            foreach (var text in new[] { GameBarModeHint, CompatibilityModeHint, LayoutHint, ShortcutText, ScreenScopeHint }) text.Foreground = theme.Brush(theme.MutedText);
+            ModeUsageHint.Foreground = theme.Brush(theme.Text);
+            foreach (var text in new[] { GameBarModeHint, CompatibilityModeHint, LayoutHint }) text.Foreground = theme.Brush(theme.MutedText);
             MainGameSelector.Background = theme.Brush(theme.Field); MainGameSelector.Foreground = theme.Brush(theme.Text); MainGameSelector.BorderBrush = theme.Brush(Color.FromArgb(15, 0, 0, 0)); MainGameSelector.CornerRadius = new CornerRadius(12);
             ApplyGameBarStatusTheme(theme);
-            HomeView.ApplyTheme(theme); ApplyTab(); ApplyModeSelection(CompatibilityDisplayRuntime.Load().Enabled);
+            HomeView.ApplyTheme(theme); ApplyModeSelection(CompatibilityDisplayRuntime.Load().Enabled);
         }
+        private static readonly Color StatusGreen = Color.FromArgb(255, 52, 199, 89);
+        private static readonly Color StatusAmber = Color.FromArgb(255, 255, 159, 10);
+        private static readonly Color StatusRed = Color.FromArgb(255, 255, 59, 48);
+        private static readonly Color StatusGray = Color.FromArgb(255, 142, 142, 147);
+        private static void SetStatusLight(Ellipse light, Color color) { if (light != null) light.Fill = new Windows.UI.Xaml.Media.SolidColorBrush(color); }
+        private static bool IsLight(Ellipse light, Color color) => light.Fill is Windows.UI.Xaml.Media.SolidColorBrush brush && brush.Color == color;
+        private void UpdateStatusLights(bool enabled, bool running, bool problem, bool serviceOnline, bool gameData, bool packsReady)
+        {
+            SetStatusLight(StatusSvcLight, serviceOnline ? StatusGreen : StatusAmber);
+            SetStatusLight(StatusCfgLight, !enabled ? StatusGray : running && !problem ? StatusGreen : problem ? StatusRed : StatusAmber);
+            SetStatusLight(StatusGsiLight, gameData ? StatusGreen : StatusGray);
+            SetStatusLight(StatusAniLight, packsReady ? StatusGreen : StatusAmber);
+        }
+        private void OnStatusRetryClick(object sender, RoutedEventArgs e) => HomeView.RequestRetry();
+        private void OnStatusRepairClick(object sender, RoutedEventArgs e) => HomeView.RepairGameConfig();
+        private void OnStatusCopyClick(object sender, RoutedEventArgs e) => HomeView.CopyDiagnostics();
+        private void OnStatusLogsClick(object sender, RoutedEventArgs e) => HomeView.OpenRuntimeLogs();
     }
 }

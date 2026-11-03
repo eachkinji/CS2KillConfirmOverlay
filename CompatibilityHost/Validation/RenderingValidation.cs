@@ -1,4 +1,4 @@
-using KillConfirmCompatibility.Contracts;
+﻿using KillConfirmCompatibility.Contracts;
 using KillConfirmCompatibility.Controls;
 using KillConfirmCompatibility.Desktop.Runtime;
 using KillConfirmCompatibility.Desktop.Windowing;
@@ -73,7 +73,7 @@ namespace KillConfirmCompatibility.Validation
             legacy.GetLayout("custom").Danmaku.Scale = 1.4;
             legacy.GetLayout("default").Lower.X = 0.23;
             legacy.Normalize(); legacy.Normalize();
-            if (legacy.Version != 2 || legacy.GetLayout("default").Danmaku.Y != 0.5 || legacy.GetLayout("custom").Danmaku.X != 0.7 || legacy.GetLayout("custom").Danmaku.Scale != 1.4 || legacy.GetLayout("default").Lower.X != 0.23 || legacy.FollowGame || legacy.FramesPerSecond != 30 || legacy.ScreenName != "retained-monitor")
+            if (legacy.Version != 2 || legacy.GetLayout("default").Danmaku.Y != 0.5 || legacy.GetLayout("custom").Danmaku.X != 0.7 || legacy.GetLayout("custom").Danmaku.Scale != 1.4 || legacy.GetLayout("default").Lower.X != 0.23 || legacy.FollowGame || legacy.FramesPerSecond != 60 || legacy.ScreenName != "retained-monitor")
                 throw new Exception("Default danmaku migration changed custom layouts or shared settings.");
             string path = Path.Combine(output, "contracts", DisplayFiles.ConfigurationName);
             var config = new DisplayConfiguration { Enabled = true };
@@ -115,7 +115,7 @@ namespace KillConfirmCompatibility.Validation
             foreach (var viewport in new[] { new System.Windows.Size(1920, 1080), new System.Windows.Size(3840, 2160), new System.Windows.Size(5120, 1440), new System.Windows.Size(1440, 2560) })
             {
                 var target = OverlaySurface.CalculateRenderSize(viewport.Width, viewport.Height, true);
-                if (target.Width > 1536 || target.Height > 1024 || Math.Abs(target.Width / target.Height - viewport.Width / viewport.Height) > 0.005)
+                if (target.Width != viewport.Width || target.Height != viewport.Height || Math.Abs(target.Width / target.Height - viewport.Width / viewport.Height) > 0.005)
                     throw new Exception("Danmaku render texture distorted the screen aspect ratio: " + viewport);
             }
             using var surface = new OverlaySurface("Test", "Validation", new KillConfirmAnimation());

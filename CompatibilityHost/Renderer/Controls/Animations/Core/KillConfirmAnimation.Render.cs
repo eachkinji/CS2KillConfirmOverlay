@@ -23,7 +23,8 @@ namespace KillConfirmCompatibility.Controls
 
         private void OnSpriteCanvasDraw(CanvasControl sender, CanvasDrawEventArgs args)
         {
-            args.DrawingSession.Clear(Colors.Transparent);
+            // The desktop target is cleared by its owner. Recording a Clear in
+            // a command list would make its bounds cover the entire plane.
             bool usesAppearanceEffect = Math.Abs(_appearanceBrightness - 1.0) > 0.001
                 || Math.Abs(_appearanceContrast - 1.0) > 0.001;
             if (!usesAppearanceEffect)

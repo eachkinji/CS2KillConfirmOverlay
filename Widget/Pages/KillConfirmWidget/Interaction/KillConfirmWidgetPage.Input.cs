@@ -1,4 +1,4 @@
-using Microsoft.Gaming.XboxGameBar;
+﻿using Microsoft.Gaming.XboxGameBar;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,23 +35,42 @@ namespace KillConfirmGameBar
     public sealed partial class KillConfirmWidgetPage : Page
     {
 
+        private int _gameStyleRefreshVersion;
+        private bool _gameStyleRefreshRunning;
+
         private async void OnGameStyleServiceChanged(object sender, GameStyleMode mode)
         {
-            if (Features.CompatibilityDisplay.CompatibilityDisplayRuntime.IsEnabled) return;
-            if (!_isPageActive)
-            {
-                return;
-            }
-
+            if (!_isPageActive || Features.CompatibilityDisplay.CompatibilityDisplayRuntime.IsEnabled) return;
             try
             {
-                await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, async () =>
-                {
-                    if (!_isPageActive)
-                    {
-                        return;
-                    }
+                await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, QueueGameStyleRefresh);
+            }
+            catch (Exception ex)
+            {
+                if (_isPageActive) App.LogCrash("Game style dispatch failed: " + ex);
+            }
+        }
 
+        private void QueueGameStyleRefresh()
+        {
+            ++_gameStyleRefreshVersion;
+            if (!_gameStyleRefreshRunning) _ = RefreshGameStyleAsync();
+        }
+
+        private bool IsGameStyleRefreshCurrent(int revision, GameStyleMode mode)
+            => _isPageActive && revision == _gameStyleRefreshVersion
+                && mode == GameStyleService.Current
+                && !Features.CompatibilityDisplay.CompatibilityDisplayRuntime.IsEnabled;
+
+        private async Task RefreshGameStyleAsync()
+        {
+            _gameStyleRefreshRunning = true;
+            try
+            {
+                while (_isPageActive && !Features.CompatibilityDisplay.CompatibilityDisplayRuntime.IsEnabled)
+                {
+                    int revision = _gameStyleRefreshVersion;
+                    GameStyleMode mode = GameStyleService.Current;
                     try
                     {
                         _animationPreloadToken++;
@@ -60,42 +79,29 @@ namespace KillConfirmGameBar
                         CrosshairFeedbackAnimation?.ReleaseAnimationResourcesForPackChange();
                         UpperFeedbackAnimation?.ReleaseAnimationResourcesForPackChange();
                         _suppressGameStyleEvents = true;
-                        try
-                        {
-                            SelectGameStyleItem(mode);
-                        }
-                        finally
-                        {
-                            _suppressGameStyleEvents = false;
-                        }
-
+                        try { SelectGameStyleItem(mode); }
+                        finally { _suppressGameStyleEvents = false; }
                         LoadAnimationPlacementSettings();
                         ApplyGameStyleUi();
-                        await ReloadAudioVolumeForCurrentGameAsync();
                         await InitializePackSelectorsAsync();
+                        if (!IsGameStyleRefreshCurrent(revision, mode)) continue;
+                        await ReloadAudioVolumeForCurrentGameAsync();
+                        if (!IsGameStyleRefreshCurrent(revision, mode)) continue;
                         await SyncSelectedVoicePackAsync();
+                        if (!IsGameStyleRefreshCurrent(revision, mode)) continue;
                         await SyncCrossfireGameplaySettingsAsync();
+                        if (!IsGameStyleRefreshCurrent(revision, mode)) continue;
                         await SyncCsolGameplaySettingsAsync();
+                        if (!IsGameStyleRefreshCurrent(revision, mode)) continue;
                         await SyncDagoujiaoSettingsAsync();
+                        if (!IsGameStyleRefreshCurrent(revision, mode)) continue;
                         await SyncSharedStreakSettingsAsync();
-                        await WarmStartupAnimationCacheAsync(0);
                     }
-                    catch (Exception ex)
-                    {
-                        App.LogCrash("Game style switch failed: " + ex);
-                    }
-                });
-            }
-            catch (Exception ex)
-            {
-                // Dispatcher itself can become unavailable while Game Bar is
-                // tearing the page down. Do not let that lifecycle race escape
-                // an async-void event handler and terminate the widget process.
-if (_isPageActive)
-                {
-                    App.LogCrash("Game style dispatch failed: " + ex);
+                    catch (Exception ex) { App.LogCrash("Game style switch failed: " + ex); }
+                    if (revision == _gameStyleRefreshVersion && mode == GameStyleService.Current) break;
                 }
             }
+            finally { _gameStyleRefreshRunning = false; }
         }
 
         private void OnKillReceived(object sender, KillEvent e)

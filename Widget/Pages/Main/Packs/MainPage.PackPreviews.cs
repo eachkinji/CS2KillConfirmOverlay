@@ -113,13 +113,13 @@ namespace KillConfirmGameBar
         {
             if (ValorantPackService.IsValorantPackKey(item?.Key))
             {
-                return GetValorantVoicePackEmblemUri(item.Key);
+                return GetValorantVoicePackEmblemUri(item.Key, item.AssociationId);
             }
 
             switch ((item?.Key ?? string.Empty).Trim().ToLowerInvariant())
             {
                 case "custommodule":
-                    return "ms-appx:///Assets/GameStyles/custommodule/iconpacks/custommodule/pack_head.webp";
+                    return "ms-appx:///Assets/GameLogos/custommodule.png";
                 case "crossfire_swat_gr":
                 case "crossfire_swat_bl":
                     return new Uri(System.IO.Path.Combine(CrossfireExternalAssetService.PackPath(item.Key, true), "pack_head.png")).AbsoluteUri;
@@ -198,12 +198,12 @@ namespace KillConfirmGameBar
             }
         }
 
-        private static string GetValorantVoicePackEmblemUri(string key)
+        private static string GetValorantVoicePackEmblemUri(string key, string associationId = null)
         {
             string effectiveKey = ValorantPackService.Find(key) != null
                 ? key
                 : ValorantExternalAssetService.FindIconPackKeyByAssociation(
-                    ValorantExternalAssetService.GetAssociationIdForVoicePack(key));
+                    associationId ?? ValorantExternalAssetService.GetAssociationIdForVoicePack(key));
             if (string.IsNullOrWhiteSpace(effectiveKey))
             {
                 effectiveKey = ValorantPackService.DefaultKey;
@@ -221,7 +221,7 @@ namespace KillConfirmGameBar
 
             if (string.Equals(item?.Key, "custommodule", StringComparison.OrdinalIgnoreCase))
             {
-                return "ms-appx:///Assets/GameStyles/custommodule/iconpacks/custommodule/pack_head.webp";
+                return "ms-appx:///Assets/GameLogos/custommodule.png";
             }
             if (GameStyleService.IsCustomModuleKey(item?.Key)) return null;
             GameStyleMode style = GameStyleService.GetStyleForPackKey(item?.Key);

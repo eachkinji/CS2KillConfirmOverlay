@@ -1,4 +1,5 @@
-﻿using KillConfirmGameBar.Features.CompatibilityDisplay;
+﻿using System;
+using KillConfirmGameBar.Features.CompatibilityDisplay;
 using KillConfirmGameBar.Services;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -38,11 +39,24 @@ namespace KillConfirmGameBar
             UpdateBackgroundDecoration(GameStyleService.Current, false);
             ApplyGameStyleSidebarTheme(theme);
             ApplyPageTitleTheme(theme);
-            TitleText.Text = LocalizationManager.Current == UiLanguage.SimplifiedChinese ? "主页" : "Home";
             if (_compatibilityWorkspace == null) _compatibilityWorkspace = new CompatibilityDisplayPanel();
+            _compatibilityWorkspace.OpenGameSettings = OpenCurrentGameSettings;
             if (CompatibilityPageContent.Content != _compatibilityWorkspace) CompatibilityPageContent.Content = _compatibilityWorkspace;
             _compatibilityWorkspace.ApplyLanguage();
             _compatibilityWorkspace.ApplyTheme(theme);
+        }
+        internal void OpenCurrentGameSettings()
+        {
+            if (GameStyleSidebarSelector == null) return;
+            string key = GameStyleService.ToStorageValue(GameStyleService.Current);
+            foreach (object item in GameStyleSidebarSelector.MenuItems)
+            {
+                if (item is NavigationViewItem sidebarItem && sidebarItem.Tag is string tag && string.Equals(tag, key, StringComparison.OrdinalIgnoreCase))
+                {
+                    GameStyleSidebarSelector.SelectedItem = sidebarItem;
+                    return;
+                }
+            }
         }
     }
 }

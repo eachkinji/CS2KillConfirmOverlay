@@ -16,3 +16,16 @@ begin
     if not WizardIsComponentSelected('widget\dependencies\gamebar') then SkippedPrerequisites := SkippedPrerequisites + 'gamebar,';
     if SkippedPrerequisites <> '' then Result := Result + ' -SkipPrerequisitesList "' + SkippedPrerequisites + '"';
 end;
+
+procedure InitializeComponentListLayout();
+var
+  CheckOffset: Integer;
+begin
+  { Inno 6 reserves an unscaled 13px bitmap width, while Windows draws the
+    themed check box at the current DPI. Compensate before measuring rows:
+    13 + Offset - themed width must leave the normal scaled 4px inset. }
+  CheckOffset := ScaleX(17) - 13;
+  if CheckOffset < ScaleX(4) then
+    CheckOffset := ScaleX(4);
+  WizardForm.ComponentsList.Offset := CheckOffset;
+end;

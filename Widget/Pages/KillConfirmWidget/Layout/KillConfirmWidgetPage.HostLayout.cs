@@ -360,7 +360,7 @@ namespace KillConfirmGameBar
         }
 
 #if SHARED_WIDGET_RUNTIME
-        private long _sharedSettingsRevision=-1;
+        private long _sharedSettingsRevision=SharedRuntime.SettingsRevision;
 #endif
         private void OnControlPanelStateTimerTick(object sender, object e)
         {

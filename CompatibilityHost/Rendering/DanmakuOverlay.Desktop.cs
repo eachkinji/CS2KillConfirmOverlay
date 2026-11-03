@@ -12,8 +12,9 @@ namespace KillConfirmCompatibility.Danmaku
         {
             if (_isRendering) OnCompositionRendering(null, null);
         }
-        public void DrawDesktopFrame(CanvasDrawingSession session)
+        public void DrawDesktopFrame(CanvasDrawingSession session, bool clearTarget = true)
         {
+            if (clearTarget) session.Clear(Colors.Transparent);
             OnDanmakuCanvasDraw(DanmakuCanvas, new DesktopDrawEventArgs(session));
             DanmakuCanvas.MarkPresented();
         }

@@ -25,42 +25,10 @@ namespace KillConfirmGameBar.Services
                     return _cache;
                 }
 
-#if !SHARED_WIDGET_RUNTIME
-                ValorantPackService.RefreshExternalPacks();
-#endif
-
-                bool mustSave = false;
-                StorageFolder localFolder = ApplicationData.Current.LocalFolder;
-                try
-                {
-                    StorageFile file = await localFolder.GetFileAsync(CatalogFileName);
-                    using (var stream = await file.OpenStreamForReadAsync())
-                    {
-                        var serializer = new DataContractJsonSerializer(typeof(PackCatalog));
-                        _cache = (PackCatalog)serializer.ReadObject(stream);
-                    }
-                }
-                catch
-                {
-                    _cache = CreateDefaultCatalog();
-                    mustSave = true;
-                }
-
-                MergeMissingBuiltIns(_cache);
-#if !SHARED_WIDGET_RUNTIME
-                RefreshExternalValorantEntries(_cache);
-                CrossfireExternalAssetService.RefreshCatalog(_cache);
-#endif
-                mustSave |= RefreshBuiltInMetadata(_cache);
-                mustSave |= RemoveRetiredBuiltIns(_cache);
-                mustSave |= ApplyBuiltInVisibilityDefaultsIfNeeded(_cache);
-                ApplyVisibilityOverrides(_cache);
-                EnsureAtLeastOneVisibleVoice(_cache);
-                EnsureAtLeastOneVisibleIcon(_cache);
-                if (mustSave)
-                {
-                    await SaveCoreAsync(_cache, notify: false);
-                }
+                // Directory scans, manifest parsing and legacy voice repairs
+                // can take seconds in an imported library. Keep the first
+                // window paint responsive and publish only the complete catalog.
+                _cache = await Task.Run(LoadCoreAsync);
 
                 if (!_legacyMigrationTriggered)
                 {
@@ -74,6 +42,40 @@ namespace KillConfirmGameBar.Services
             {
                 CatalogIoLock.Release();
             }
+        }
+
+        private static async Task<PackCatalog> LoadCoreAsync()
+        {
+#if !SHARED_WIDGET_RUNTIME
+            ValorantPackService.RefreshExternalPacks();
+#endif
+            bool mustSave = false;
+            PackCatalog catalog;
+            StorageFolder localFolder = ApplicationData.Current.LocalFolder;
+            try
+            {
+                StorageFile file = await localFolder.GetFileAsync(CatalogFileName);
+                using (var stream = await file.OpenStreamForReadAsync())
+                    catalog = (PackCatalog)new DataContractJsonSerializer(typeof(PackCatalog)).ReadObject(stream);
+            }
+            catch
+            {
+                catalog = CreateDefaultCatalog();
+                mustSave = true;
+            }
+            MergeMissingBuiltIns(catalog);
+#if !SHARED_WIDGET_RUNTIME
+            RefreshExternalValorantEntries(catalog);
+            CrossfireExternalAssetService.RefreshCatalog(catalog);
+#endif
+            mustSave |= RefreshBuiltInMetadata(catalog);
+            mustSave |= RemoveRetiredBuiltIns(catalog);
+            mustSave |= ApplyBuiltInVisibilityDefaultsIfNeeded(catalog);
+            ApplyVisibilityOverrides(catalog);
+            EnsureAtLeastOneVisibleVoice(catalog);
+            EnsureAtLeastOneVisibleIcon(catalog);
+            if (mustSave) await SaveCoreAsync(catalog, notify: false);
+            return catalog;
         }
 
         private static async Task SaveAsync(PackCatalog catalog)
@@ -220,7 +222,8 @@ namespace KillConfirmGameBar.Services
                 catalog.IconPacks = new List<IconPackItem>();
             }
 
-            foreach (VoicePackItem item in CreateDefaultCatalog().VoicePacks)
+            var defaults = CreateDefaultCatalog();
+            foreach (VoicePackItem item in defaults.VoicePacks)
             {
                 if (!catalog.VoicePacks.Any(entry => string.Equals(entry.Key, item.Key, StringComparison.OrdinalIgnoreCase)))
                 {
@@ -228,7 +231,7 @@ namespace KillConfirmGameBar.Services
                 }
             }
 
-            foreach (IconPackItem item in CreateDefaultCatalog().IconPacks)
+            foreach (IconPackItem item in defaults.IconPacks)
             {
                 if (!catalog.IconPacks.Any(entry => string.Equals(entry.Key, item.Key, StringComparison.OrdinalIgnoreCase)))
                 {

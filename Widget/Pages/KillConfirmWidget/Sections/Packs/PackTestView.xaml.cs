@@ -1,4 +1,4 @@
-using Windows.UI.Xaml;
+﻿using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
 namespace KillConfirmGameBar
@@ -8,6 +8,8 @@ namespace KillConfirmGameBar
         public PackTestView()
         {
             InitializeComponent();
+            KillConfirmGameBar.Services.PackSelectorItem.Configure(VoicePackSelector, true);
+            KillConfirmGameBar.Services.PackSelectorItem.Configure(IconPackSelector, true);
         }
 
         public event SelectionChangedEventHandler VoicePackSelectionChanged;

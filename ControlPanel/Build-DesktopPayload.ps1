@@ -46,8 +46,18 @@ foreach($file in Get-ChildItem -LiteralPath $renderer -Recurse -File) {
         Copy-Item -LiteralPath $file.FullName -Destination $target
     }
 }
-foreach($resource in @('Assets','Danmaku')) {
-    Copy-Item -LiteralPath (Join-Path $repository "Widget/$resource") -Destination (Join-Path $OutputDir $resource) -Recurse -Force
+# Assets are already published by the project. Copying the directory into the
+# existing Assets destination creates Assets/Assets and ships every image twice.
+# Ship only runtime danmaku data, not annotation tools, batches or source files.
+$danmakuSource=Join-Path $repository 'Widget/Danmaku'
+$danmakuFiles=@('6657_memes.json','Annotation/6657_annotations_v1.json','Pools/semantic_event_profiles.json')
+foreach($folder in @('EventPools','LifecyclePools')) {
+    $danmakuFiles+=@(Get-ChildItem -LiteralPath (Join-Path $danmakuSource $folder) -File -Filter '*.json' | ForEach-Object { "$folder/$($_.Name)" })
+}
+foreach($relative in $danmakuFiles) {
+    $target=Join-Path $OutputDir "Danmaku/$relative"
+    New-Item -ItemType Directory -Path (Split-Path $target -Parent) -Force | Out-Null
+    Copy-Item -LiteralPath (Join-Path $danmakuSource $relative) -Destination $target -Force
 }
 $defaultPacks=Join-Path $repository 'SourceAssets/DefaultPacks'
 foreach($required in @('crossfire/icon_packs/default/manifest.json','crossfire/icon_packs/default/badge_multi1.png','crossfire/voice_packs/crossfire_swat_gr/manifest.json','crossfire/voice_packs/crossfire_swat_gr/common.wav')) {
@@ -69,4 +79,5 @@ $vc=Get-ChildItem -LiteralPath (Join-Path $visualStudio 'VC/Redist/MSVC') -Direc
 $crt=Get-ChildItem -LiteralPath (Join-Path $vc.FullName 'x64') -Directory -Filter 'Microsoft.VC*.CRT' | Select-Object -First 1 -ExpandProperty FullName
 if(!(Test-Path -LiteralPath $crt)) {throw 'App-local Visual C++ runtime not found.'}
 Copy-Item -Path (Join-Path $crt '*.dll') -Destination $OutputDir -Force
+& (Join-Path $PSScriptRoot 'Assert-DesktopPayloadResources.ps1') -Payload $OutputDir
 Write-Host "Original control panel + shared service/display/resources: $OutputDir"

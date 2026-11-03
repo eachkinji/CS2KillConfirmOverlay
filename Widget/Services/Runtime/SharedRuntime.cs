@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -6,7 +6,6 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.Data.Json;
-using Windows.Foundation.Collections;
 using Windows.Storage;
 using Windows.Storage.Streams;
 using Windows.UI.Xaml;
@@ -15,12 +14,23 @@ namespace KillConfirmGameBar.Services
 {
     internal static class SharedRuntime
     {
-        private static bool Applying,Busy;
-        private static string Catalog,Display,Settings;
+        private static bool Busy;
+        private static Dictionary<string,object> ObservedLocalSettings;
+        private static string Catalog,Display;
         public static long SettingsRevision { get; private set; }
         private static readonly Dictionary<string,JsonValue> Pending=new Dictionary<string,JsonValue>();
         private static HashSet<string> PrimaryKeys=new HashSet<string>();
         private static DispatcherTimer Timer;
+#if WIDGET_SWITCH_VALIDATION
+        internal static string ValidationPendingKeys => string.Join(",", Pending.Keys);
+        internal static readonly List<string> ValidationAppliedKeys = new List<string>();
+        internal static async Task InitializeValidationAsync()
+        {
+            await PollAsync();
+            await SharedResources.InitializeAsync();
+        }
+        internal static Task PollValidationAsync() => PollAsync();
+#endif
         public static async Task InitializeAsync()
         {
             await KillConfirmWidgetPage.TryLaunchFullTrustHelperAsync(ServiceLauncher.ResolveGroupId(LocalServiceEndpoints.Port,DeveloperModeSettingsStore.IsEnabled));
@@ -66,21 +76,39 @@ namespace KillConfirmGameBar.Services
             }
             App.LogCrash("Widget shared state connected.");
             await SharedResources.InitializeAsync();
-            ApplicationData.Current.LocalSettings.Values.MapChanged += OnSettingChanged;
             Timer=new DispatcherTimer { Interval=TimeSpan.FromSeconds(1) };
             Timer.Tick += async (s,e) => { try { await PollAsync(); } catch(Exception error) { App.Log("Shared runtime: "+error.Message); } };
             Timer.Start();
         }
-        private static void OnSettingChanged(IObservableMap<string,object> map,IMapChangedEventArgs<string> args)
+        private static JsonValue SerializeSetting(object value)
         {
-            // Only the ordinary panel selects the display mode. A delayed
-            // widget settings event must never overwrite its mode selection.
-            if(Applying || args.Key == "CompatibilityDisplay.Enabled") return;
-            if(!map.TryGetValue(args.Key,out object value)) { Pending[args.Key]=null; return; }
             string kind=value is bool ? "bool" : value is int ? "int" : value is long ? "long" : value is float ? "float" : value is double ? "double" : value is string ? "string" : null;
-            if(kind==null) return;
+            if(kind==null) return null;
             var scalar=new JsonObject { ["Kind"]=JsonValue.CreateStringValue(kind),["Text"]=JsonValue.CreateStringValue(Convert.ToString(value,CultureInfo.InvariantCulture)) };
-            Pending[args.Key]=JsonValue.Parse(scalar.Stringify());
+            return JsonValue.Parse(scalar.Stringify());
+        }
+        private static Dictionary<string,object> ReadLocalSettings()
+            => new Dictionary<string,object>(ApplicationData.Current.LocalSettings.Values);
+
+        private static void CaptureLocalChanges()
+        {
+            // LocalSettings writes did not raise MapChanged in the packaged
+            // runtime. Compare actual values instead of relying on that event
+            // so game/pack choices cannot be overwritten by the next remote poll.
+            if(ObservedLocalSettings==null) return; // Initial remote state wins.
+            var current=ReadLocalSettings();
+            foreach(var pair in current)
+            {
+                if(pair.Key=="CompatibilityDisplay.Enabled") continue;
+                if(!ObservedLocalSettings.TryGetValue(pair.Key,out object previous) || !Equals(previous,pair.Value))
+                {
+                    var scalar=SerializeSetting(pair.Value);
+                    if(scalar!=null) Pending[pair.Key]=scalar;
+                }
+            }
+            foreach(string key in ObservedLocalSettings.Keys)
+                if(key!="CompatibilityDisplay.Enabled" && !current.ContainsKey(key)) Pending[key]=null;
+            ObservedLocalSettings=current;
         }
         private static object Scalar(JsonObject value)
         {
@@ -97,6 +125,7 @@ namespace KillConfirmGameBar.Services
             if(Busy) return; Busy=true;
             try
             {
+                CaptureLocalChanges();
                 using(var client=await LocalServiceAuth.CreateHttpClientAsync())
                 {
                     foreach(string key in new List<string>(Pending.Keys))
@@ -109,10 +138,10 @@ namespace KillConfirmGameBar.Services
                     {
                         response.EnsureSuccessStatusCode();
                         var snapshot=JsonObject.Parse(await response.Content.ReadAsStringAsync().AsTask(cancellationToken));
-                        string settings=snapshot["settings"].Stringify();
-                        if(settings!=Settings) { Settings=settings; SettingsRevision++; }
+                        bool settingsChanged=false;
                         SharedResources.RemoteDataRoot=snapshot["dataRoot"].GetString();
-                        Applying=true;
+                        // Keep edits made while the HTTP requests were in flight.
+                        CaptureLocalChanges();
                         try
                         {
                             var currentKeys=new HashSet<string>();
@@ -120,17 +149,28 @@ namespace KillConfirmGameBar.Services
                                 currentKeys.Add(pair.Key);
                                 if(!Pending.ContainsKey(pair.Key)) {
                                     object value=Scalar(pair.Value.GetObject());
-                                    if(!ApplicationData.Current.LocalSettings.Values.TryGetValue(pair.Key,out object previous) || !Equals(previous,value)) ApplicationData.Current.LocalSettings.Values[pair.Key]=value;
+                                    if(!ApplicationData.Current.LocalSettings.Values.TryGetValue(pair.Key,out object previous) || !Equals(previous,value)) {
+#if WIDGET_SWITCH_VALIDATION
+                                        ValidationAppliedKeys.Add(pair.Key);
+#endif
+                                        ApplicationData.Current.LocalSettings.Values[pair.Key]=value;
+                                        settingsChanged=true;
+                                    }
                                 }
                             }
-                            foreach(string key in PrimaryKeys) if(!currentKeys.Contains(key) && !Pending.ContainsKey(key)) ApplicationData.Current.LocalSettings.Values.Remove(key);
+                            foreach(string key in PrimaryKeys) if(!currentKeys.Contains(key) && !Pending.ContainsKey(key)) {
+                                if(ApplicationData.Current.LocalSettings.Values.Remove(key)) settingsChanged=true;
+                            }
                             PrimaryKeys=currentKeys;
                             string catalog=snapshot["catalog"].Stringify();
                             if(catalog!="null" && catalog!=Catalog) {File.WriteAllText(Path.Combine(ApplicationData.Current.LocalFolder.Path,"pack-catalog.json"),catalog); Catalog=catalog; PackCatalogService.ResetSharedCache(); SharedResources.Invalidate();}
                             string display=snapshot["display"].Stringify();
                             if(display!="null" && display!=Display) {string folder=Path.Combine(ApplicationData.Current.LocalFolder.Path,"CompatibilityDisplay");Directory.CreateDirectory(folder);File.WriteAllText(Path.Combine(folder,"display.json"),display); Display=display;SharedResources.Invalidate();SettingsRevision++;}
                         }
-                        finally {Applying=false;}
+                        finally {ObservedLocalSettings=ReadLocalSettings();}
+                        // Acknowledging our own writes must not reset all animation
+                        // resources and start a second game transition.
+                        if(settingsChanged) SettingsRevision++;
                     }
                     string status=Path.Combine(ApplicationData.Current.LocalFolder.Path,"CompatibilityDisplay","gamebar-runtime.json");
                     string guard=Path.Combine(ApplicationData.Current.LocalFolder.Path,"CompatibilityDisplay","gamebar-status.json");

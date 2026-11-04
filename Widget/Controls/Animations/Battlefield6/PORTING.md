@@ -41,7 +41,10 @@ the presentation requests a sharper level automatically rather than stretching a
 low-resolution thumbnail. Text formats and layouts are cached for the playback session.
 The cached icon glow uses Win2D premultiplied source-over composition; upstream uses
 additive blending. Offsets, opacity and timing are retained, with a slightly softer
-glow where translucent copies overlap. Text retains upstream's eight offset copies.
+glow where translucent copies overlap. Text glow does not copy upstream's eight hard offset
+copies: they fit Minecraft's pixel font but leave stepped ghost edges around scaled anti-aliased
+text. Each glow is baked once per text/scale as a Gaussian halo with the coverage those copies
+reach (`1 - (1 - intensity)^8`) and a blur radius of `glow_size`, then drawn under the text.
 
 The nine partial files separate constants, models, assets, playback, state/timeline, drawing
 primitives, layer rendering, adaptive raster caching and text layout caching. Their compatibility-renderer counterparts are identical except

@@ -112,9 +112,13 @@ namespace KillConfirmCompatibility.Controls
         {
             if (string.IsNullOrEmpty(text) || alpha <= 0) return;
             CanvasTextLayout layout = GetBattlefield6TextLayout(text, format);
-            Color glowColor = Battlefield6WithAlpha(glow, alpha * intensity);
-            foreach (var offset in Battlefield6GlowOffsets)
-                ds.DrawTextLayout(layout, (float)(x + offset.X * spread), (float)(y + offset.Y * spread), glowColor);
+            Battlefield6TextGlow cached = GetBattlefield6TextGlow(ds, text, format, layout, glow, intensity, spread);
+            if (cached != null)
+            {
+                Rect bounds = cached.Bounds;
+                ds.DrawImage(cached.Surface, new Rect(x + bounds.X, y + bounds.Y, bounds.Width, bounds.Height),
+                    cached.Surface.Bounds, (float)Clamp01(alpha), CanvasImageInterpolation.Linear);
+            }
             ds.DrawTextLayout(layout, (float)x, (float)y, Battlefield6WithAlpha(color, alpha));
         }
     }

@@ -301,3 +301,14 @@ pub async fn audio_volume(
         service: "kill-confirm-gamebar",
     })
 }
+
+fn unix_time_ms() -> u64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|value| value.as_millis() as u64)
+        .unwrap_or(0)
+}
+
+fn zero_to_none(value: u64) -> Option<u64> {
+    if value == 0 { None } else { Some(value) }
+}

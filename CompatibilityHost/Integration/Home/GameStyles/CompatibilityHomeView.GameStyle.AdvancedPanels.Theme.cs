@@ -69,6 +69,10 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             {
                 _battlefield2042AdvancedEffectsPanel.ApplyTheme(theme);
             }
+            if (_battlefield6AdvancedEffectsPanel != null)
+            {
+                _battlefield6AdvancedEffectsPanel.ApplyTheme(theme);
+            }
 
             if (_pubgAdvancedEffectsPanel != null)
             {
@@ -150,6 +154,10 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             {
                 _battlefield2042AdvancedEffectsPanel.ApplyLanguage(isChinese);
             }
+            if (_battlefield6AdvancedEffectsPanel != null)
+            {
+                _battlefield6AdvancedEffectsPanel.ApplyLanguage(isChinese);
+            }
 
             if (_pubgAdvancedEffectsPanel != null)
             {
@@ -196,6 +204,10 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             else if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _battlefield2042AdvancedEffectsPanel)
             {
                 _battlefield2042AdvancedEffectsPanel.SelectMoneyRewardMode(mode, DefaultMoneyRewardMode);
+            }
+            else if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _battlefield6AdvancedEffectsPanel)
+            {
+                _battlefield6AdvancedEffectsPanel.SelectMoneyRewardMode(mode, DefaultMoneyRewardMode);
             }
             else if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _pubgAdvancedEffectsPanel)
             {

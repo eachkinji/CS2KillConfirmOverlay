@@ -10,7 +10,7 @@ namespace KillConfirmGameBar
 {
     public sealed partial class MainPage
     {
-        private static Grid CreateMaterialPickerTitle(
+        private Grid CreateMaterialPickerTitle(
             bool zh,
             bool allowMultiple,
             string slotDisplayName,
@@ -54,7 +54,7 @@ namespace KillConfirmGameBar
             return titleGrid;
         }
 
-        private static Grid CreateMaterialPickerFilters(
+        private Grid CreateMaterialPickerFilters(
             bool zh,
             GameStyleMode currentGame,
             out ComboBox gameSelector,
@@ -74,7 +74,7 @@ namespace KillConfirmGameBar
             {
                 GameStyleMode.Crossfire, GameStyleMode.Csol, GameStyleMode.Valorant,
                 GameStyleMode.Battlefield1, GameStyleMode.Battlefield5,
-                GameStyleMode.Battlefield4, GameStyleMode.Battlefield2042,
+                GameStyleMode.Battlefield4, GameStyleMode.Battlefield2042, GameStyleMode.Battlefield6,
                 GameStyleMode.Pubg, GameStyleMode.DeltaForce,
                 GameStyleMode.Doubao, GameStyleMode.Dagoujiao,
                 GameStyleMode.Overwatch, GameStyleMode.Apex,
@@ -104,7 +104,7 @@ namespace KillConfirmGameBar
             return filterGrid;
         }
 
-        private static Grid CreateMaterialPickerNavigation(
+        private Grid CreateMaterialPickerNavigation(
             bool zh,
             out Button backButton,
             out TextBlock breadcrumb,
@@ -138,7 +138,7 @@ namespace KillConfirmGameBar
             {
                 VerticalAlignment = VerticalAlignment.Center,
                 FontSize = 10,
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 0, 122, 255))
+                Foreground = new SolidColorBrush(SettingsTheme.Accent)
             };
             Grid.SetColumn(selectionText, 2);
             navigation.Children.Add(selectionText);
@@ -163,7 +163,7 @@ namespace KillConfirmGameBar
             return scrollViewer;
         }
 
-        private static Grid CreateMaterialPickerToolbar(
+        private Grid CreateMaterialPickerToolbar(
             bool zh,
             bool allowMultiple,
             out Button browseButton,
@@ -180,7 +180,7 @@ namespace KillConfirmGameBar
                 FontSize = 11,
                 Padding = new Thickness(10, 5, 10, 5),
                 Background = new SolidColorBrush(Color.FromArgb(26, 0, 122, 255)),
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 0, 122, 255)),
+                Foreground = new SolidColorBrush(SettingsTheme.Accent),
                 BorderBrush = new SolidColorBrush(Color.FromArgb(61, 0, 122, 255)),
                 CornerRadius = new CornerRadius(8)
             };
@@ -200,7 +200,7 @@ namespace KillConfirmGameBar
             return toolbar;
         }
 
-        private static Grid CreateMaterialPickerFooter(
+        private Grid CreateMaterialPickerFooter(
             bool zh,
             out Button confirmButton,
             out Button cancelButton)

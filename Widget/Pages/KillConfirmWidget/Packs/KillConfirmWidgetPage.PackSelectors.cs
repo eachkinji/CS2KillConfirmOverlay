@@ -326,9 +326,9 @@ namespace KillConfirmGameBar
                 if (voice) _suppressVoicePackEvents = previous;
                 else _suppressIconPackEvents = previous;
             }
-            PackLibraryNavigation.Request(GameStyleService.Current, voice);
             try
             {
+                await PackLibraryNavigation.RequestSharedAsync(GameStyleService.Current, voice);
                 string group = DeveloperModeSettingsStore.IsEnabled
                     ? OpenSettingsWindowDeveloperParameterGroupId : OpenSettingsWindowParameterGroupId;
                 if (await TryLaunchFullTrustHelperAsync(group)) return;
@@ -377,6 +377,8 @@ namespace KillConfirmGameBar
                     return SharedResources.CachedAssetUri("Assets/GameStyles/battlefield4/killconfirm/textures/killicon_battlefield1_headshot.png");
                 case "battlefield2042":
                     return SharedResources.CachedAssetUri("Assets/GameLogos/battlefield2042.png");
+                case "battlefield6":
+                    return SharedResources.CachedAssetUri("Assets/GameStyles/battlefield6/killconfirm/textures/killicon_battlefield6_default.png");
                 case "pubg":
                     return SharedResources.CachedAssetUri("Assets/GameStyles/pubg/killconfirm/textures/killicon_scrolling_headshot.png");
                 case "deltaforce":
@@ -413,6 +415,8 @@ namespace KillConfirmGameBar
                     return SharedResources.CachedAssetUri("Assets/GameStyles/battlefield4/killconfirm/textures/killicon_battlefield1_default.png");
                 case GameStyleMode.Battlefield2042:
                     return SharedResources.CachedAssetUri("Assets/GameLogos/battlefield2042.png");
+                case GameStyleMode.Battlefield6:
+                    return SharedResources.CachedAssetUri("Assets/GameStyles/battlefield6/killconfirm/textures/killicon_battlefield6_default.png");
                 case GameStyleMode.Pubg:
                     return SharedResources.CachedAssetUri("Assets/GameStyles/pubg/killconfirm/textures/killicon_scrolling_default.png");
                 case GameStyleMode.DeltaForce:

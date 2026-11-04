@@ -40,7 +40,7 @@ namespace KillConfirmGameBar
                 MinWidth = 30,
                 Padding = new Thickness(5, 4, 5, 4),
                 Background = new SolidColorBrush(Color.FromArgb(26, 0, 122, 255)),
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 0, 122, 255)),
+                Foreground = new SolidColorBrush(SettingsTheme.Accent),
                 BorderBrush = new SolidColorBrush(Color.FromArgb(61, 0, 122, 255)),
                 CornerRadius = new CornerRadius(12)
             };
@@ -93,7 +93,7 @@ namespace KillConfirmGameBar
                 Padding = new Thickness(5, 4, 5, 4),
                 FontSize = 10,
                 Background = new SolidColorBrush(Color.FromArgb(26, 0, 122, 255)),
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 0, 122, 255)),
+                Foreground = new SolidColorBrush(SettingsTheme.Accent),
                 BorderBrush = new SolidColorBrush(Color.FromArgb(61, 0, 122, 255)),
                 CornerRadius = new CornerRadius(12)
             };
@@ -185,7 +185,7 @@ namespace KillConfirmGameBar
         }
 
         // 统一确认流程：外壳 + 按钮 Style + ShowAsync。
-        private static async Task<ContentDialogResult> ShowPackDialogAsync(
+        private async Task<ContentDialogResult> ShowPackDialogAsync(
             UIElement content,
             string primaryText,
             string closeText)
@@ -201,6 +201,7 @@ namespace KillConfirmGameBar
                 Background = new SolidColorBrush(Colors.Transparent),
                 Foreground = new SolidColorBrush(Color.FromArgb(255, 28, 28, 30))
             };
+            ControlTheme.Apply(dialog, SettingsTheme);
             return await dialog.ShowAsync();
         }
 

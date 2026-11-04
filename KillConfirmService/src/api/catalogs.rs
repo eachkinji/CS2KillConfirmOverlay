@@ -76,6 +76,10 @@ const SOUND_PACK_OPTIONS: &[SoundPackOption] = &[
         display_name: "Battlefield 2042",
     },
     SoundPackOption {
+        preset: "battlefield6",
+        display_name: "Battlefield 6",
+    },
+    SoundPackOption {
         preset: "pubg",
         display_name: "PUBG",
     },

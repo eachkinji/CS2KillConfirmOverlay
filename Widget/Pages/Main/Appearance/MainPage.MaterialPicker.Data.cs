@@ -23,7 +23,9 @@ namespace KillConfirmGameBar
             string extension = style == GameStyleMode.Dagoujiao ? "jpg" : "png";
             string logoUri = style == GameStyleMode.CustomModule
                 ? "ms-appx:///Assets/Square44x44Logo.scale-200.png"
-                : $"ms-appx:///Assets/GameLogos/{key}.{extension}";
+                : style == GameStyleMode.Battlefield6
+                    ? "ms-appx:///Assets/GameStyles/battlefield6/killconfirm/textures/killicon_battlefield6_default.png"
+                    : $"ms-appx:///Assets/GameLogos/{key}.{extension}";
             var image = new Image
             {
                 Width = 34,
@@ -32,7 +34,8 @@ namespace KillConfirmGameBar
                 Source = new BitmapImage(new Uri(logoUri))
             };
             // White-on-transparent logos vanish on the light selector; only those get a dark chip.
-            bool darkBackdrop = style == GameStyleMode.ModernWarfare2019 || style == GameStyleMode.Battlefield5;
+            bool darkBackdrop = style == GameStyleMode.ModernWarfare2019 || style == GameStyleMode.Battlefield5
+                || style == GameStyleMode.Battlefield6;
             var logoBackground = new Border
             {
                 Width = 42,

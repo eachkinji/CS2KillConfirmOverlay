@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Numerics;
@@ -129,6 +129,7 @@ namespace KillConfirmGameBar.Controls
             _isBattlefield4HudActive = false;
             _isPubgHudActive = false;
             _isDeltaForceHudActive = false;
+            ResetBattlefield6HudState();
             _isBattlefield2042HudActive = true;
             _contentSizedViewport = false;
             _isBattlefield1CompactLayoutActive = false;
@@ -405,6 +406,7 @@ namespace KillConfirmGameBar.Controls
                 && !IsBattlefield5MoneyVisible(now))
             {
                 ResetBattlefield2042HudState();
+            ResetBattlefield6HudState();
                 _timer.Stop();
                 _playbackClock.Stop();
                 Visibility = Windows.UI.Xaml.Visibility.Collapsed;

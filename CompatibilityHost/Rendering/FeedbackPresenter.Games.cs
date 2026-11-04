@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using KillConfirmCompatibility.Services;
 using Windows.UI.Xaml;
 
@@ -216,6 +216,7 @@ namespace KillConfirmCompatibility
                 || style == GameStyleMode.Battlefield5
                 || style == GameStyleMode.Battlefield4
                 || style == GameStyleMode.Battlefield2042
+                || style == GameStyleMode.Battlefield6
                 || style == GameStyleMode.Pubg
                 || style == GameStyleMode.DeltaForce;
         }

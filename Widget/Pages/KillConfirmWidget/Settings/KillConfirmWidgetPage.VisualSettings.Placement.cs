@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using KillConfirmGameBar.Services;
 using Windows.Storage;
@@ -156,6 +156,7 @@ namespace KillConfirmGameBar
                 case GameStyleMode.Battlefield5:
                 case GameStyleMode.Battlefield4:
                 case GameStyleMode.Battlefield2042:
+                case GameStyleMode.Battlefield6:
                 case GameStyleMode.Pubg:
                 case GameStyleMode.DeltaForce:
                 case GameStyleMode.CustomModule:
@@ -351,6 +352,9 @@ namespace KillConfirmGameBar
                     break;
                 case GameStyleMode.Battlefield2042:
                     suffix = "Battlefield2042";
+                    break;
+                case GameStyleMode.Battlefield6:
+                    suffix = "Battlefield6";
                     break;
                 case GameStyleMode.Pubg:
                     suffix = "Pubg";

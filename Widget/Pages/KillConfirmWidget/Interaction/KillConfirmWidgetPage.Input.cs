@@ -490,6 +490,11 @@ namespace KillConfirmGameBar
                     height = LowerFeedbackAnimation?.Battlefield2042LowerSelectionViewportHeight ?? 170;
                     centerOffsetY = LowerFeedbackAnimation?.Battlefield2042LowerSelectionViewportCenterOffsetY ?? 45;
                     return;
+                case GameStyleMode.Battlefield6:
+                    width = LowerFeedbackAnimation?.Battlefield6SelectionViewportWidth ?? 607;
+                    height = LowerFeedbackAnimation?.Battlefield6SelectionViewportHeight ?? 260;
+                    centerOffsetY = LowerFeedbackAnimation?.Battlefield6SelectionViewportCenterOffsetY ?? 0;
+                    return;
                 case GameStyleMode.Pubg:
                     width = LowerFeedbackAnimation?.PubgLowerSelectionViewportWidth ?? 420;
                     height = LowerFeedbackAnimation?.PubgLowerSelectionViewportHeight ?? 125;

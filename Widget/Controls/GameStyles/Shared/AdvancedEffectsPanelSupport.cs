@@ -1,4 +1,4 @@
-using KillConfirmGameBar.Services;
+﻿using KillConfirmGameBar.Services;
 using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -168,7 +168,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
                 loadedHandler = (sender, args) =>
                 {
                     element.Loaded -= loadedHandler;
-                    ApplySoftenedTreeCore(element, GameThemePalette.Current);
+                    ApplySoftenedTreeCore(element, theme);
                 };
                 element.Loaded += loadedHandler;
             }

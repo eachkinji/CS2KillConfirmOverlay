@@ -125,6 +125,8 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                     return _battlefield4AdvancedEffectsPanel?.GetSelectedStreakMode(fallback) ?? fallback;
                 case GameStyleMode.Battlefield2042:
                     return _battlefield2042AdvancedEffectsPanel?.GetSelectedStreakMode(fallback) ?? fallback;
+                case GameStyleMode.Battlefield6:
+                    return _battlefield6AdvancedEffectsPanel?.GetSelectedStreakMode(fallback) ?? fallback;
                 case GameStyleMode.Pubg:
                     return _pubgAdvancedEffectsPanel?.GetSelectedStreakMode(fallback) ?? fallback;
                 case GameStyleMode.Apex:
@@ -164,6 +166,9 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                     break;
                 case GameStyleMode.Battlefield2042:
                     _battlefield2042AdvancedEffectsPanel?.SelectStreakMode(value);
+                    break;
+                case GameStyleMode.Battlefield6:
+                    _battlefield6AdvancedEffectsPanel?.SelectStreakMode(value);
                     break;
                 case GameStyleMode.Pubg:
                     _pubgAdvancedEffectsPanel?.SelectStreakMode(value);

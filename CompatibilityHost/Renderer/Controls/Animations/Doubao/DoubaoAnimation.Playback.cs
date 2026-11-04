@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using KillConfirmCompatibility.Services;
@@ -68,6 +68,7 @@ namespace KillConfirmCompatibility.Controls
             ResetBattlefield5ScrollingState();
             ResetBattlefield4HudState();
             ResetBattlefield2042HudState();
+            ResetBattlefield6HudState();
             ResetPubgHudState();
             ResetDeltaForceHudState();
             _contentSizedViewport = false;

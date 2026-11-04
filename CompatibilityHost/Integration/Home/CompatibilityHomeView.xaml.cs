@@ -36,6 +36,8 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         private DateTimeOffset _actionNoticeUntil;
         internal Action OpenGameSettings { get; set; }
         internal bool CanPreview => _packSelectorsInitialized && !_testInProgress;
+        internal bool IsPreviewing => _testInProgress;
+        internal event Action PreviewChanged;
         internal string PreviewFeedback => PackTestSectionView.TestFeedbackText.Text;
         internal bool HasGameSettingsJump => PackTestSectionView.GameSettingsButton != null;
         internal bool PacksReady => _packSelectorsInitialized && PackTestSectionView.VoicePackSelector.SelectedItem != null;
@@ -220,31 +222,36 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
 
         private void OnOpenGameSettings(object sender, RoutedEventArgs e) => OpenGameSettings?.Invoke();
         private void OnGameSettingsRequested(object sender, RoutedEventArgs e) => OpenGameSettings?.Invoke();
-        private async void OnTestEventClick(object sender, RoutedEventArgs e) { StopRepeating(); try { await PlayTestAsync(); } catch (Exception error) { ShowTestFeedback(error.Message); } }
+        private async void OnTestEventClick(object sender, RoutedEventArgs e) => await PreviewAsync();
         private void ShowTestFeedback(string message)
         {
             PackTestSectionView.TestFeedbackText.Text = message;
             PackTestSectionView.TestFeedbackText.Visibility = Visibility.Visible;
+            PreviewChanged?.Invoke();
         }
         private void OnDanmakuTestFeedback(string message) => ShowTestFeedback(message);
-        private async Task PlayTestAsync(bool audio = true)
+        private async Task PlayTestAsync()
         {
             bool zh = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            string preset = (PackTestSectionView.TestPresetSelector.SelectedItem as ComboBoxItem)?.Tag as string ?? "one";
+            if (!KillConfirmCompatibility.Contracts.PreviewEventSupport.IsSupported(GameStyleService.ToStorageValue(GameStyleService.Current), preset))
+                throw new InvalidOperationException(KillConfirmCompatibility.Contracts.PreviewEventSupport.UnsupportedMessage(zh));
             if (!CompatibilityDisplayRuntime.Load().Enabled) throw new InvalidOperationException(zh ? "请先在主页选择兼容显示模式。" : "Select desktop display mode on Home first.");
             if (!_packSelectorsInitialized) throw new InvalidOperationException(zh ? "素材正在加载，请稍后再测试。" : "Packs are loading. Try again shortly.");
             if (_testInProgress) return;
             _testInProgress = true;
             RefreshStatus();
+            PreviewChanged?.Invoke();
             int revision = _revision;
             try
             {
-                ShowTestFeedback(audio ? (zh ? "正在准备画面与音频测试…" : "Preparing the visual and audio test…") : (zh ? "正在准备画面预览…" : "Preparing the visual preview…"));
-                await EnsureServiceAvailableAsync();
+                ShowTestFeedback(zh ? "正在准备画面与音频测试…" : "Preparing the visual and audio test…");
+                // The display host owns service registration and configuration.
+                // Queue visuals immediately; audio prepares alongside asset loading.
                 if (!_isPageActive || revision != _revision || !CompatibilityDisplayRuntime.Load().Enabled) return;
                 if (!await CompatibilityDisplayRuntime.EnsureStartedAsync()) throw new InvalidOperationException(zh ? "无法启动兼容显示，请点击重试服务。" : "Could not start desktop display. Retry the service.");
-                string preset = (PackTestSectionView.TestPresetSelector.SelectedItem as ComboBoxItem)?.Tag as string ?? "one";
                 long request = 0;
-                CompatibilityDisplayRuntime.Update(c => { c.TestPreset = preset; c.TestAudio = audio; c.TestRequest = request = Math.Max(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), c.TestRequest + 1); });
+                CompatibilityDisplayRuntime.Update(c => { c.TestPreset = preset; c.TestAudio = true; c.TestRequest = request = Math.Max(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), c.TestRequest + 1); });
                 var deadline = DateTimeOffset.UtcNow.AddSeconds(40);
                 while (_isPageActive && revision == _revision && CompatibilityDisplayRuntime.Load().Enabled && DateTimeOffset.UtcNow < deadline)
                 {
@@ -252,7 +259,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                     if (CompatibilityDisplayRuntime.IsRunning(status) && status.LastTestRequest == request)
                     {
                         if (!string.IsNullOrWhiteSpace(status.TestError)) throw new InvalidOperationException(status.TestError);
-                        ShowTestFeedback(audio ? (zh ? "画面已预览，音频测试已触发。无需启动游戏。" : "Visuals previewed and audio test triggered. No game is needed.") : (zh ? "画面已预览。无需启动游戏。" : "Visuals previewed. No game is needed."));
+                        ShowTestFeedback(zh ? "画面已预览，音频测试已触发。无需启动游戏。" : "Visuals previewed and audio test triggered. No game is needed.");
                         return;
                     }
                     await Task.Delay(100);
@@ -260,17 +267,12 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                 if (_isPageActive && revision == _revision && CompatibilityDisplayRuntime.Load().Enabled)
                     throw new TimeoutException(zh ? "显示端未确认播放，请查看运行状态并点击重试服务。" : "The display did not confirm playback. Check its runtime status and retry the service.");
             }
-            finally { _testInProgress = false; if (_isPageActive) RefreshStatus(); }
+            finally { _testInProgress = false; if (_isPageActive) RefreshStatus(); PreviewChanged?.Invoke(); }
         }
-        internal async Task PreviewVisualAsync()
+        internal async Task PreviewAsync()
         {
             StopRepeating();
-            try { await PlayTestAsync(false); } catch (Exception error) { ShowTestFeedback(error.Message); }
-        }
-        internal async Task PreviewAllAsync()
-        {
-            StopRepeating();
-            try { await PlayTestAsync(true); } catch (Exception error) { ShowTestFeedback(error.Message); }
+            try { await PlayTestAsync(); } catch (Exception error) { ShowTestFeedback(error.Message); }
         }
         private async void OnRepeatTestClick(object sender, RoutedEventArgs e)
         {

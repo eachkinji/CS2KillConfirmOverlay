@@ -60,7 +60,7 @@ namespace KillConfirmGameBar
                 return;
             }
 
-            GameStyleMode style = GameStyleService.Current;
+            GameStyleMode style = SettingsGameStyle;
             bool loadVoice = _activeGameTab == "voice" && _loadedVoicePackStyle != style;
             bool loadIcon = _activeGameTab == "icon" && _loadedIconPackStyle != style;
             if (!loadVoice && !loadIcon)
@@ -84,7 +84,7 @@ namespace KillConfirmGameBar
             return _isSettingsPageLoaded
                 && !_isSettingsWorkspaceSelected
                 && reloadVersion == Volatile.Read(ref _packListReloadVersion)
-                && GameStyleService.Current == style;
+                && SettingsGameStyle == style;
         }
 
         private async Task ReloadPackListsAsync(
@@ -139,9 +139,9 @@ namespace KillConfirmGameBar
             return count;
         }
 
-        private static Button CreatePackActionButton(string text, string role)
+        private Button CreatePackActionButton(string text, string role)
         {
-            GameThemePalette theme = GameThemePalette.Current;
+            GameThemePalette theme = SettingsTheme;
             bool isDelete = string.Equals(role, "PackDelete", StringComparison.Ordinal);
             bool isExport = string.Equals(role, "PackExport", StringComparison.Ordinal);
             var button = new Button
@@ -416,6 +416,13 @@ namespace KillConfirmGameBar
                         packFolder,
                         "NormalSkullSprite.png", "HeadshotSkullSprite.png", "AssistSprite.png");
                     await ShowCreateBattlefield2042IconPackDialogAsync(packName, existingFiles, existingHeadImage);
+                }
+                else if (packStyle == GameStyleMode.Battlefield6)
+                {
+                    var existingFiles = await CollectFilesFromPackFolderAsync(
+                        packFolder,
+                        Battlefield6IconPackImportFiles);
+                    await ShowCreateBattlefield6IconPackDialogAsync(packName, existingFiles, existingHeadImage);
                 }
                 else if (packStyle == GameStyleMode.DeltaForce)
                 {

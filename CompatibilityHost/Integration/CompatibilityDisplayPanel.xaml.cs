@@ -11,12 +11,15 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
 {
     public sealed partial class CompatibilityDisplayPanel : UserControl
     {
-        private bool _loading = true, _switching, _previewing;
+        private bool _loading = true, _switching;
+        private bool _previewing => HomeView.IsPreviewing;
         private string _previewNotice;
         private DateTimeOffset _previewNoticeUntil;
         private string _screenSignature;
         private GameThemePalette _theme;
         internal Action OpenGameSettings { get; set; }
+        internal Action OpenAboutVersion { get; set; }
+        internal Action<GameStyleMode, bool> OpenPackLibrary { get; set; }
         private readonly DispatcherTimer _statusTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
         public CompatibilityDisplayPanel()
         {
@@ -24,6 +27,12 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             foreach (GameStyleMode style in Enum.GetValues(typeof(GameStyleMode)))
                 MainGameSelector.Items.Add(new ComboBoxItem { Content = MainPage.CreateMaterialGameSelectorContent(style, GameStyleService.ToDisplayName(style)), Tag = GameStyleService.ToStorageValue(style) });
             HomeView.OpenGameSettings = () => OpenGameSettings?.Invoke();
+            HomeView.OpenPackLibrary = (style, voice) => OpenPackLibrary?.Invoke(style, voice);
+            HomeView.PreviewChanged += () => {
+                _previewNotice = HomeView.PreviewFeedback;
+                _previewNoticeUntil = DateTimeOffset.UtcNow.AddSeconds(8);
+                RefreshStatus();
+            };
             LayoutContentSource.Content = null;
             HomeView.SetLayoutContent(DisplayView);
             Loaded += OnLoaded; Unloaded += OnUnloaded;
@@ -37,6 +46,9 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
             GameStyleService.Changed += OnPanelGameChanged;
+            VersionUpdateService.Changed += OnUpdateStateChanged;
+            OnUpdateStateChanged(null, EventArgs.Empty);
+            _ = VersionUpdateService.CheckAsync();
             _loading = true;
             var c = CompatibilityDisplayRuntime.Load();
             CompatibilityMode.IsChecked = c.Enabled; GameBarMode.IsChecked = !c.Enabled;
@@ -44,7 +56,9 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             _loading = false; ApplyLanguage(); ApplyTheme(GameThemePalette.Home); RefreshStatus();
             if (!CompatibilityHomeView.IsUiValidation) _statusTimer.Start();
         }
-        private void OnUnloaded(object sender, RoutedEventArgs e) { _statusTimer.Stop(); GameStyleService.Changed -= OnPanelGameChanged; }
+        private void OnUnloaded(object sender, RoutedEventArgs e) { _statusTimer.Stop(); GameStyleService.Changed -= OnPanelGameChanged; VersionUpdateService.Changed -= OnUpdateStateChanged; }
+        private void OnUpdateStatusClick(object sender, RoutedEventArgs e) => OpenAboutVersion?.Invoke();
+        private void OnUpdateStateChanged(object sender, EventArgs e) => UpdateStatusText.Text = VersionUpdateService.StatusText(LocalizationManager.Current == UiLanguage.SimplifiedChinese);
         private void OnPanelGameChanged(object sender, GameStyleMode style) { ApplyLanguage(); RefreshStatus(); }
         private async void OnMainGameChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -73,13 +87,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         }
         private void OnScreenChanged(object sender, SelectionChangedEventArgs e) { if (!_loading) CompatibilityDisplayRuntime.Update(c => c.ScreenName = (ScreenSelector.SelectedItem as ComboBoxItem)?.Tag as string ?? ""); }
         private async void OnEditClick(object sender, RoutedEventArgs e) => await RequestAsync(true);
-        private async void OnHomePreviewClick(object sender, RoutedEventArgs e)
-        {
-            if (_previewing) return;
-            _previewing = true; RefreshStatus();
-            try { await HomeView.PreviewAllAsync(); _previewNotice = HomeView.PreviewFeedback; _previewNoticeUntil = DateTimeOffset.UtcNow.AddSeconds(8); }
-            finally { _previewing = false; RefreshStatus(); }
-        }
+        private async void OnHomePreviewClick(object sender, RoutedEventArgs e) => await HomeView.PreviewAsync();
         private void OnGameBarDetailsClick(object sender, RoutedEventArgs e)
         {
             bool expanded = GameBarDetails.Visibility != Visibility.Visible;
@@ -134,6 +142,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         }
         public void ApplyLanguage()
         {
+            OnUpdateStateChanged(null, EventArgs.Empty);
             bool zh = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
             bool wasLoading = _loading; _loading = true;
             foreach (ComboBoxItem gameItem in MainGameSelector.Items)

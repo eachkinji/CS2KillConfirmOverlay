@@ -1,4 +1,4 @@
-# Compile the existing control-panel sources; Generated is never an independent UI.
+﻿# Compile the existing control-panel sources; Generated is never an independent UI.
 $ErrorActionPreference = 'Stop'
 $taskRepository = Split-Path $PSScriptRoot -Parent
 $taskWidget = Join-Path $taskRepository 'Widget'
@@ -17,6 +17,7 @@ foreach ($taskItem in $taskProject.SelectNodes('//m:Compile|//m:Page', $taskName
     } else { $taskBase = Split-Path $taskPattern -Parent; $taskFiles = @(Get-Item -LiteralPath $taskPattern) }
     foreach ($taskFile in $taskFiles) {
         $taskRelative = [IO.Path]::GetRelativePath($taskWidget, $taskFile.FullName).Replace('\','/')
+        if ($taskRelative.StartsWith('../Common/')) { continue }
         if ($taskRelative -in @('App.xaml.cs','Properties/AssemblyInfo.cs','Services/Runtime/SharedRuntime.cs','Services/Runtime/SharedResources.cs') -or $taskRelative.StartsWith('Pages/KillConfirmWidget/') -and !$taskRelative.EndsWith('.Styles.xaml') -or $taskRelative.StartsWith('Controls/Animations/') -or $taskRelative.EndsWith('DanmakuOverlay.xaml') -or $taskRelative.EndsWith('DanmakuOverlay.xaml.cs')) { continue }
         if ($taskRelative.StartsWith('../CompatibilityHost/Integration/')) {
             $taskSub = $taskRelative.Substring('../CompatibilityHost/Integration/'.Length)
@@ -27,6 +28,10 @@ foreach ($taskItem in $taskProject.SelectNodes('//m:Compile|//m:Page', $taskName
         }
         $taskText = [IO.File]::ReadAllText($taskFile.FullName)
         $taskText = $taskText.Replace('Windows.UI.Xaml', 'Microsoft.UI.Xaml')
+        if ($taskFile.Extension -eq '.xaml' -and $taskText -match '<ComboBox[\s>]') {
+            $taskText = $taskText.Replace('xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"', 'xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:desktopControls="using:KillConfirmGameBar"')
+            $taskText = [regex]::Replace($taskText, '(<\/?)ComboBox(?=[\s>])', '$1desktopControls:DesktopComboBox')
+        }
         foreach ($taskXamlRoot in @('Pages','Controls','Features')) { $taskText=$taskText.Replace('ms-appx:///'+$taskXamlRoot+'/', 'ms-appx:///Generated/'+$taskXamlRoot+'/') }
         if ($taskFile.Extension -eq '.cs') {
             $taskText = $taskText.Replace('Windows.UI.Xaml', 'Microsoft.UI.Xaml')
@@ -36,6 +41,7 @@ foreach ($taskItem in $taskProject.SelectNodes('//m:Compile|//m:Page', $taskName
             $taskText = $taskText.Replace('Windows.UI.Text.FontWeights', 'Microsoft.UI.Text.FontWeights')
             $taskText = $taskText.Replace('Windows.UI.Core.WindowSizeChangedEventArgs', 'Microsoft.UI.Xaml.WindowSizeChangedEventArgs')
             $taskText = $taskText.Replace('new MediaElement', 'new DesktopMediaElement')
+            $taskText = [regex]::Replace($taskText, 'new ComboBox\b', 'new DesktopComboBox')
             $taskText = $taskText.Replace('StorageApplicationPermissions.FutureAccessList.Clear();', '// Ordinary desktop file access has no UWP future-access grants.')
             $taskText = $taskText.Replace('CoreApplication.RequestRestartAsync', 'DesktopPlatform.RestartAsync')
             $taskText = $taskText.Replace('StorageFile.GetFileFromApplicationUriAsync', 'DesktopPlatform.AssetFileAsync')

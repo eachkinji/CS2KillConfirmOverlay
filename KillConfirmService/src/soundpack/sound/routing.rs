@@ -123,6 +123,7 @@ fn supports_economy_audio_events(preset_name: &str) -> bool {
             | "bf5"
             | "bf4"
             | "battlefield2042"
+            | "battlefield6"
             | "pubg"
             | "deltaforce"
             | "modernwarfare2019"
@@ -131,6 +132,7 @@ fn supports_economy_audio_events(preset_name: &str) -> bool {
         || normalized.starts_with("custom_battlefield5_voice_")
         || normalized.starts_with("custom_battlefield4_voice_")
         || normalized.starts_with("custom_battlefield2042_voice_")
+        || normalized.starts_with("custom_battlefield6_voice_")
         || normalized.starts_with("custom_pubg_voice_")
         || normalized.starts_with("custom_deltaforce_voice_")
         || normalized.starts_with("custom_modernwarfare2019_voice_")
@@ -143,11 +145,12 @@ fn supports_event_sound_routing(preset_name: &str) -> bool {
     let normalized = preset_name.trim().to_ascii_lowercase();
     matches!(
         normalized.as_str(),
-        "bf1" | "bf5" | "bf4" | "battlefield2042" | "deltaforce"
+        "bf1" | "bf5" | "bf4" | "battlefield2042" | "battlefield6" | "deltaforce"
     ) || normalized.starts_with("custom_battlefield1_voice_")
         || normalized.starts_with("custom_battlefield5_voice_")
         || normalized.starts_with("custom_battlefield4_voice_")
         || normalized.starts_with("custom_battlefield2042_voice_")
+        || normalized.starts_with("custom_battlefield6_voice_")
         || normalized.starts_with("custom_deltaforce_voice_")
 }
 

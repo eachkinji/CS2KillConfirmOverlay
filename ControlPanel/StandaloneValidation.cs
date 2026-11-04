@@ -71,13 +71,13 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         internal async Task RunStandaloneValidationAsync()
         {
             await EnsureServiceAvailableAsync();
-            await PlayTestAsync(false);
+            await PlayTestAsync();
             var status=CompatibilityDisplayRuntime.ReadStatus();
             if(!CompatibilityDisplayRuntime.IsRunning(status) || status.LastTestRequest!=CompatibilityDisplayRuntime.Load().TestRequest || !string.IsNullOrWhiteSpace(status.TestError)) throw new Exception("Real visual playback was not acknowledged.");
             PackageIdentity.AssertNone(status.ProcessId);
             GameStyleService.Current=GameStyleMode.Valorant;
             await Task.Delay(1500);
-            await PlayTestAsync(true);
+            await PlayTestAsync();
             status=CompatibilityDisplayRuntime.ReadStatus();
             if(status?.Style!="valorant" || status.LastTestRequest!=CompatibilityDisplayRuntime.Load().TestRequest || !string.IsNullOrWhiteSpace(status.TestError) || !string.IsNullOrWhiteSpace(status.Error)) throw new Exception("Installed-root Valorant visual/audio playback failed: "+status?.Error+" / "+status?.TestError);
             GameStyleService.Current=GameStyleMode.Crossfire;
@@ -88,7 +88,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             if(defaultIcon==null || defaultVoice==null || !defaultIcon.FolderPath.StartsWith(expected,StringComparison.OrdinalIgnoreCase) || !defaultVoice.FolderPath.StartsWith(expected,StringComparison.OrdinalIgnoreCase)) throw new Exception("Fresh installation is missing the shared default CF icon or voice pack.");
             if(Directory.Exists(Path.Combine(DesktopPlatform.Data.LocalFolder.Path,"Packs","crossfire"))) throw new Exception("Default CF resources were duplicated into UserData.");
             await EnsureServiceAvailableAsync();
-            await PlayTestAsync(true);
+            await PlayTestAsync();
             status=CompatibilityDisplayRuntime.ReadStatus();
             if(status?.Style!="crossfire" || status.LastTestRequest!=CompatibilityDisplayRuntime.Load().TestRequest || !string.IsNullOrWhiteSpace(status.TestError) || !string.IsNullOrWhiteSpace(status.Error)) throw new Exception("Default CF visual/audio playback failed: "+status?.Error+" / "+status?.TestError);
             if(defaultIcon.OwnsFolder || defaultVoice.OwnsFolder) throw new Exception("Shared installation defaults must not be treated as deletable user files.");

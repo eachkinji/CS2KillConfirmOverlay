@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using Microsoft.Graphics.Canvas;
@@ -87,6 +87,7 @@ namespace KillConfirmCompatibility.Controls
             _isBattlefield5ScrollingActive = true;
             _isBattlefield4HudActive = false;
             _isBattlefield2042HudActive = false;
+            ResetBattlefield6HudState();
             _isPubgHudActive = false;
             _isDeltaForceHudActive = false;
             _currentMetadata = new SpriteMetadata

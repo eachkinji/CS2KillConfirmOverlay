@@ -21,37 +21,37 @@ namespace KillConfirmGameBar
 
         private async void OnCreateVoicePackClick(object sender, RoutedEventArgs e)
         {
-            if (GameStyleService.Current == GameStyleMode.CustomModule)
+            if (SettingsGameStyle == GameStyleMode.CustomModule)
             {
                 await ShowCreateCustomModuleVoicePackDialogAsync();
             }
-            else if (GameStyleService.Current == GameStyleMode.Dagoujiao)
+            else if (SettingsGameStyle == GameStyleMode.Dagoujiao)
             {
                 await ShowCreateDagoujiaoVoicePackDialogAsync();
             }
-            else if (GameStyleService.Current == GameStyleMode.Doubao)
+            else if (SettingsGameStyle == GameStyleMode.Doubao)
             {
                 await ShowCreateDoubaoVoicePackDialogAsync();
             }
-            else if (GameStyleService.Current == GameStyleMode.Csol)
+            else if (SettingsGameStyle == GameStyleMode.Csol)
             {
                 await ShowCreateCsolVoicePackDialogAsync();
             }
-            else if (GameStyleService.Current == GameStyleMode.Valorant)
+            else if (SettingsGameStyle == GameStyleMode.Valorant)
             {
                 await ShowCreateValorantVoicePackDialogAsync();
             }
-            else if (GameStyleService.Current == GameStyleMode.Overwatch)
+            else if (SettingsGameStyle == GameStyleMode.Overwatch)
             {
                 await ShowCreateOverwatchVoicePackDialogAsync();
             }
-            else if (GameStyleService.Current == GameStyleMode.ModernWarfare2019)
+            else if (SettingsGameStyle == GameStyleMode.ModernWarfare2019)
             {
                 await ShowCreateModernWarfare2019VoicePackDialogAsync();
             }
-            else if (IsEventVoiceGame(GameStyleService.Current))
+            else if (IsEventVoiceGame(SettingsGameStyle))
             {
-                await ShowCreateEventVoicePackDialogAsync(GameStyleService.Current);
+                await ShowCreateEventVoicePackDialogAsync(SettingsGameStyle);
             }
             else
             {
@@ -66,11 +66,11 @@ namespace KillConfirmGameBar
 
         private async Task ImportVoiceZipForCurrentStyleAsync()
         {
-            if (GameStyleService.Current == GameStyleMode.Valorant)
+            if (SettingsGameStyle == GameStyleMode.Valorant)
             {
                 await ImportValorantPackageFromZipAsync(ValorantExternalAssetService.VoicePackageKind);
             }
-            else if (GameStyleService.Current == GameStyleMode.CustomModule)
+            else if (SettingsGameStyle == GameStyleMode.CustomModule)
             {
                 await ImportPackFromZipAsync(
                     CustomModuleVoicePackImportFiles,
@@ -82,7 +82,7 @@ namespace KillConfirmGameBar
                             await TryGetCustomPackHeadImageAsync(folder.Path));
                     });
             }
-            else if (GameStyleService.Current == GameStyleMode.Dagoujiao)
+            else if (SettingsGameStyle == GameStyleMode.Dagoujiao)
             {
                 await ImportPackFromZipAsync(
                     DagoujiaoVoicePackImportFiles,
@@ -94,7 +94,7 @@ namespace KillConfirmGameBar
                             await TryGetCustomPackHeadImageAsync(folder.Path));
                     });
             }
-            else if (GameStyleService.Current == GameStyleMode.Doubao)
+            else if (SettingsGameStyle == GameStyleMode.Doubao)
             {
                 await ImportPackFromZipAsync(
                     DoubaoVoicePackImportFiles,
@@ -105,7 +105,7 @@ namespace KillConfirmGameBar
                             await CollectVoiceFileGroupsFromManifestAsync(folder, PackCatalogService.DoubaoSlotMapping));
                     });
             }
-            else if (GameStyleService.Current == GameStyleMode.Csol)
+            else if (SettingsGameStyle == GameStyleMode.Csol)
             {
                 await ImportPackFromZipAsync(
                     CsolVoicePackImportFiles,
@@ -117,7 +117,7 @@ namespace KillConfirmGameBar
                             await TryGetCustomPackHeadImageAsync(folder.Path));
                     });
             }
-            else if (GameStyleService.Current == GameStyleMode.Overwatch)
+            else if (SettingsGameStyle == GameStyleMode.Overwatch)
             {
                 await ImportPackFromZipAsync(
                     OverwatchVoicePackImportFiles,
@@ -129,7 +129,7 @@ namespace KillConfirmGameBar
                             await TryGetCustomPackHeadImageAsync(folder.Path));
                     });
             }
-            else if (GameStyleService.Current == GameStyleMode.ModernWarfare2019)
+            else if (SettingsGameStyle == GameStyleMode.ModernWarfare2019)
             {
                 await ImportPackFromZipAsync(
                     ModernWarfare2019VoicePackImportFiles,
@@ -141,14 +141,14 @@ namespace KillConfirmGameBar
                             await TryGetCustomPackHeadImageAsync(folder.Path));
                     });
             }
-            else if (IsEventVoiceGame(GameStyleService.Current))
+            else if (IsEventVoiceGame(SettingsGameStyle))
             {
                 await ImportPackFromZipAsync(
                     EventVoicePackImportFiles,
                     async (folder, files) =>
                     {
                         await ShowCreateEventVoicePackDialogAsync(
-                            GameStyleService.Current,
+                            SettingsGameStyle,
                             folder.DisplayName,
                             await CollectVoiceFileGroupsFromManifestAsync(folder, PackCatalogService.EventSlotMapping),
                             await TryGetCustomPackHeadImageAsync(folder.Path));
@@ -176,8 +176,8 @@ namespace KillConfirmGameBar
 
         private async Task ImportIconZipForCurrentStyleAsync()
         {
-            if (GameStyleService.Current == GameStyleMode.CustomModule) { await ImportCustomModuleAsync(true); return; }
-            if (GameStyleService.Current == GameStyleMode.Valorant)
+            if (SettingsGameStyle == GameStyleMode.CustomModule) { await ImportCustomModuleAsync(true); return; }
+            if (SettingsGameStyle == GameStyleMode.Valorant)
             {
                 await ImportValorantPackageFromZipAsync(ValorantExternalAssetService.IconPackageKind);
                 return;
@@ -187,7 +187,7 @@ namespace KillConfirmGameBar
                 return;
             }
 
-            if (GameStyleService.Current == GameStyleMode.Dagoujiao)
+            if (SettingsGameStyle == GameStyleMode.Dagoujiao)
             {
                 await ImportPackFromZipAsync(
                     DagoujiaoIconPackImportFiles,
@@ -198,7 +198,7 @@ namespace KillConfirmGameBar
                             await TryGetCustomPackHeadImageAsync(folder.Path));
                     });
             }
-            else if (GameStyleService.Current == GameStyleMode.Doubao)
+            else if (SettingsGameStyle == GameStyleMode.Doubao)
             {
                 await ImportPackFromZipAsync(
                     DoubaoIconPackImportFiles,
@@ -209,7 +209,7 @@ namespace KillConfirmGameBar
                             await TryGetCustomPackHeadImageAsync(folder.Path));
                     });
             }
-            else if (GameStyleService.Current == GameStyleMode.Csol)
+            else if (SettingsGameStyle == GameStyleMode.Csol)
             {
                 await ImportPackFromZipAsync(
                     CsolIconPackImportFiles,
@@ -220,7 +220,7 @@ namespace KillConfirmGameBar
                             await TryGetCustomPackHeadImageAsync(folder.Path));
                     });
             }
-            else if (GameStyleService.Current == GameStyleMode.Battlefield1)
+            else if (SettingsGameStyle == GameStyleMode.Battlefield1)
             {
                 await ImportPackFromZipAsync(
                     Battlefield1IconPackImportFiles,
@@ -231,7 +231,7 @@ namespace KillConfirmGameBar
                             await TryGetCustomPackHeadImageAsync(folder.Path));
                     });
             }
-            else if (GameStyleService.Current == GameStyleMode.Battlefield5)
+            else if (SettingsGameStyle == GameStyleMode.Battlefield5)
             {
                 await ImportPackFromZipAsync(
                     Battlefield5IconPackImportFiles,
@@ -242,7 +242,7 @@ namespace KillConfirmGameBar
                             await TryGetCustomPackHeadImageAsync(folder.Path));
                     });
             }
-            else if (GameStyleService.Current == GameStyleMode.Battlefield2042)
+            else if (SettingsGameStyle == GameStyleMode.Battlefield2042)
             {
                 await ImportPackFromZipAsync(
                     Battlefield2042IconPackImportFiles,
@@ -253,7 +253,18 @@ namespace KillConfirmGameBar
                             await TryGetCustomPackHeadImageAsync(folder.Path));
                     });
             }
-            else if (GameStyleService.Current == GameStyleMode.DeltaForce)
+            else if (SettingsGameStyle == GameStyleMode.Battlefield6)
+            {
+                await ImportPackFromZipAsync(
+                    Battlefield6IconPackImportFiles,
+                    async (folder, files) =>
+                    {
+                        await ShowCreateBattlefield6IconPackDialogAsync(
+                            folder.DisplayName, files,
+                            await TryGetCustomPackHeadImageAsync(folder.Path));
+                    });
+            }
+            else if (SettingsGameStyle == GameStyleMode.DeltaForce)
             {
                 await ImportPackFromZipAsync(
                     DeltaForceIconPackImportFiles,
@@ -264,21 +275,21 @@ namespace KillConfirmGameBar
                             await TryGetCustomPackHeadImageAsync(folder.Path));
                     });
             }
-            else if (GameStyleService.Current == GameStyleMode.Overwatch)
+            else if (SettingsGameStyle == GameStyleMode.Overwatch)
             {
                 await ImportPackFromZipAsync(
                     OverwatchIconPackImportFiles,
                     async (folder, files) => await ShowCreateOverwatchIconPackDialogAsync(
                         folder.DisplayName, files, await TryGetCustomPackHeadImageAsync(folder.Path)));
             }
-            else if (GameStyleService.Current == GameStyleMode.ModernWarfare2019)
+            else if (SettingsGameStyle == GameStyleMode.ModernWarfare2019)
             {
                 await ImportPackFromZipAsync(
                     ModernWarfare2019IconPackImportFiles,
                     async (folder, files) => await ShowCreateModernWarfare2019IconPackDialogAsync(
                         folder.DisplayName, files, await TryGetCustomPackHeadImageAsync(folder.Path)));
             }
-            else if (GameStyleService.Current == GameStyleMode.Apex)
+            else if (SettingsGameStyle == GameStyleMode.Apex)
             {
                 await ImportPackFromZipAsync(
                     ApexIconPackImportFiles,

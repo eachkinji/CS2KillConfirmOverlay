@@ -59,6 +59,7 @@ mod tests {
     include!("tests/core.rs");
     include!("tests/csol.rs");
     include!("tests/battlefield1.rs");
+    include!("tests/battlefield6.rs");
     include!("tests/apex.rs");
     include!("tests/valorant.rs");
     include!("tests/custommodule.rs");

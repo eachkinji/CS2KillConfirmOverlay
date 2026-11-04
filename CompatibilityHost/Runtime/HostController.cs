@@ -327,6 +327,8 @@ namespace KillConfirmCompatibility.Desktop.Runtime
             long request = requested ? _testRequest : 0;
             try
             {
+                if (requested && !PreviewEventSupport.IsSupported(_style, _configuration.TestPreset))
+                    throw new InvalidOperationException(PreviewEventSupport.UnsupportedMessage(true));
                 if (requested && !string.IsNullOrWhiteSpace(_presenter.ConfigurationError))
                     throw new InvalidOperationException(_presenter.ConfigurationError);
                 // A preview must not depend on the background event connection or
@@ -387,6 +389,7 @@ namespace KillConfirmCompatibility.Desktop.Runtime
         }
         private async System.Threading.Tasks.Task CompletePreviewAsync(KillEvent preset, long request, bool audio)
         {
+            var audioReady = audio ? _service.EnsureRegisteredAsync() : System.Threading.Tasks.Task.CompletedTask;
             bool requireOverwatchCard = _style == "overwatch" && _layout.Lower.Visible && preset.IsCombatEvent && (preset.PlayMainAnimation || preset.IsAssist);
             bool rendered() => HasRenderedPreviewPixels && (!requireOverwatchCard || HasRenderedOverwatchCard);
             try
@@ -424,7 +427,7 @@ namespace KillConfirmCompatibility.Desktop.Runtime
                 _previewUntil = DateTimeOffset.UtcNow.AddSeconds(5);
                 if (audio)
                 {
-                    await _service.EnsureRegisteredAsync();
+                    await audioReady;
                     if (_closing || !_configuration.Enabled || request != _testRequest) return;
                     using var client = await LocalServiceAuth.CreateHttpClientAsync();
                     using var response = await client.GetAsync(PreviewEvents.UriFor(preset));

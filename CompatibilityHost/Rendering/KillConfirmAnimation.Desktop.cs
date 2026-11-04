@@ -62,6 +62,7 @@ namespace KillConfirmCompatibility.Controls
             HasOverwatchCardContent = false;
             _timer.Stop();
             ResetOverwatchState();
+            ResetBattlefield6HudState();
             _playbackClock.Stop();
             ++_playToken;
             Visibility = Windows.UI.Xaml.Visibility.Collapsed;

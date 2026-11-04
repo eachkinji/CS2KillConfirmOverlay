@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using KillConfirmGameBar.Services;
@@ -269,6 +269,15 @@ namespace KillConfirmGameBar
         {
             if (preset == null)
             {
+                return;
+            }
+
+            string presetKey = (PackTestSectionView.TestPresetSelector.SelectedItem as ComboBoxItem)?.Tag as string ?? "one";
+            if (!KillConfirmCompatibility.Contracts.PreviewEventSupport.IsSupported(GameStyleService.ToStorageValue(GameStyleService.Current), presetKey))
+            {
+                _isRepeatTestLooping = false;
+                UpdateRepeatTestButtonVisuals();
+                ShowStatusHint(KillConfirmCompatibility.Contracts.PreviewEventSupport.UnsupportedMessage(LocalizationManager.Current == UiLanguage.SimplifiedChinese), GameThemePalette.Current.Accent);
                 return;
             }
 

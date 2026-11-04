@@ -11,7 +11,8 @@ namespace KillConfirmCompatibility.Desktop.Runtime
 {
     internal sealed class ServiceSession
     {
-        private bool _busy;
+        private Task _registration = Task.CompletedTask;
+        private DateTimeOffset _registeredAt;
         private bool _closing;
         private readonly System.Threading.CancellationTokenSource _lifetime = new();
         private DateTimeOffset _lastLaunch = DateTimeOffset.MinValue;
@@ -21,8 +22,18 @@ namespace KillConfirmCompatibility.Desktop.Runtime
         public string Error { get; private set; }
         public async Task EnsureRegisteredAsync()
         {
-            if (_busy || _closing) return;
-            _busy = true;
+            if (_closing) return;
+            // Concurrent preview/heartbeat callers join the same registration.
+            // Recheck after it finishes in case the user switched packs meanwhile.
+            while (!_registration.IsCompleted) await _registration;
+            if (_closing) return;
+            if (Error == null && DateTimeOffset.UtcNow - _registeredAt < TimeSpan.FromSeconds(2)
+                && _lastPort == LocalServiceEndpoints.Port && _lastVoice == ReadVoice()
+                && _lastConfiguration == ServiceConfiguration.Signature) return;
+            await (_registration = RegisterAsync());
+        }
+        private async Task RegisterAsync()
+        {
             try
             {
                 using var timeout = System.Threading.CancellationTokenSource.CreateLinkedTokenSource(_lifetime.Token);
@@ -54,6 +65,7 @@ namespace KillConfirmCompatibility.Desktop.Runtime
                     try { await ServiceConfiguration.ApplyAsync(); _lastConfiguration = signature; }
                     catch (Exception error) { Error = "Settings: " + error.Message; }
                 }
+                if (Error == null) _registeredAt = DateTimeOffset.UtcNow;
             }
             catch (Exception error)
             {
@@ -65,7 +77,6 @@ namespace KillConfirmCompatibility.Desktop.Runtime
                     try { LaunchService(); } catch (Exception launchError) { Error = launchError.Message; App.Log("Service launch failed: " + launchError); }
                 }
             }
-            finally { _busy = false; }
         }
         private static string ReadVoice()
         {

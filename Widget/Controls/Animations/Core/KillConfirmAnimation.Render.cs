@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
 using Microsoft.Graphics.Canvas;
@@ -144,6 +144,11 @@ namespace KillConfirmGameBar.Controls
             if (_isBattlefield2042HudActive)
             {
                 DrawBattlefield2042HudFrame(drawingSession);
+                return;
+            }
+            if (_isBattlefield6HudActive)
+            {
+                DrawBattlefield6HudFrame(drawingSession);
                 return;
             }
             if (_isPubgHudActive)
@@ -386,6 +391,12 @@ namespace KillConfirmGameBar.Controls
             if (_isBattlefield2042HudActive)
             {
                 UpdateBattlefield2042HudFrame();
+                return;
+            }
+
+            if (_isBattlefield6HudActive)
+            {
+                UpdateBattlefield6HudFrame();
                 return;
             }
 

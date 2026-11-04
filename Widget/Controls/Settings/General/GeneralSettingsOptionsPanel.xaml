@@ -51,21 +51,6 @@
             <Setter Property="LineHeight" Value="15" />
         </Style>
 
-        <!-- Fluent 2 ComboBox -->
-        <Style x:Key="FluentComboBoxStyle" TargetType="ComboBox">
-            <Setter Property="Height" Value="32" />
-            <Setter Property="MinWidth" Value="160" />
-            <Setter Property="Padding" Value="10,0,24,0" />
-            <Setter Property="FontFamily" Value="Segoe UI" />
-            <Setter Property="FontSize" Value="12" />
-            <Setter Property="Foreground" Value="{StaticResource FluentTitleText}" />
-            <Setter Property="Background" Value="#FFFFFF" />
-            <Setter Property="BorderBrush" Value="#E0E0E5" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="4" />
-            <Setter Property="VerticalAlignment" Value="Center" />
-        </Style>
-
         <!-- Fluent 2 Secondary Action Button -->
         <Style x:Key="FluentActionBtnStyle" TargetType="Button">
             <Setter Property="Padding" Value="10,4" />
@@ -74,7 +59,7 @@
             <Setter Property="Background" Value="#FFFFFF" />
             <Setter Property="BorderBrush" Value="#E0E0E5" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="CornerRadius" Value="8" />
             <Setter Property="Foreground" Value="{StaticResource FluentTitleText}" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="FontSize" Value="11" />
@@ -84,308 +69,111 @@
         <Style x:Key="CompactChoiceCardStyle" TargetType="Border" BasedOn="{StaticResource FluentCardStyle}" />
         <Style x:Key="CompactCircleIconStyle" TargetType="Border" BasedOn="{StaticResource FluentIconStyle}" />
         <Style x:Key="CompactChoiceLabelStyle" TargetType="TextBlock" BasedOn="{StaticResource FluentCardTitle}" />
-        <Style x:Key="CompactSettingsComboBoxStyle" TargetType="ComboBox" BasedOn="{StaticResource FluentComboBoxStyle}" />
+        <Style x:Key="DetailsStripStyle" TargetType="Button">
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="MinHeight" Value="30" />
+            <Setter Property="Padding" Value="12,5" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Background" Value="#F2F6FC" />
+            <Setter Property="Foreground" Value="#007AFF" />
+            <Setter Property="BorderThickness" Value="0" />
+        </Style>
     </UserControl.Resources>
 
-    <StackPanel Spacing="8">
-        <!-- 1. Spectated Player Kill Effects Card -->
+    <StackPanel x:Name="ExperienceRows" Spacing="8">
         <Border Style="{StaticResource FluentCardStyle}">
-            <Grid ColumnSpacing="12">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-
-                <Border Style="{StaticResource FluentIconStyle}">
-                    <FontIcon
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center"
-                        FontFamily="Segoe MDL2 Assets"
-                        FontSize="14"
-                        Foreground="{StaticResource FluentBodyText}"
-                        Glyph="&#xE7B3;" />
-                </Border>
-
-                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                    <TextBlock
-                        x:Name="SpectatedKillEffectsLabelText"
-                        Style="{StaticResource FluentCardTitle}"
-                        Text="观战玩家击杀特效" />
-                    <TextBlock
-                        x:Name="SpectatedKillEffectsHintText"
-                        Style="{StaticResource FluentCardHint}"
-                        Text="在死亡观战队友或 GOTV 录像时是否同步触发击杀动画" />
+            <StackPanel Spacing="8">
+            <Grid ColumnSpacing="16" MinHeight="46">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                <Border Style="{StaticResource FluentIconStyle}"><FontIcon Glyph="&#xE7B3;" FontSize="16" FontFamily="Segoe MDL2 Assets"/></Border>
+                <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
+                    <TextBlock x:Name="SpectatedKillEffectsLabelText" Style="{StaticResource FluentCardTitle}"/>
+                    <TextBlock x:Name="SpectatedKillEffectsHintText" Style="{StaticResource FluentCardHint}"/>
                 </StackPanel>
-
-                <ToggleSwitch
-                    x:Name="SpectatedKillEffectsToggle"
-                    Grid.Column="2"
-                    VerticalAlignment="Center"
-                    MinWidth="0"
-                    OffContent="关"
-                    OnContent="开"
-                    Toggled="OnSpectatedKillEffectsToggled" />
+                <ToggleSwitch x:Name="SpectatedKillEffectsToggle" Grid.Column="2" MinWidth="0" VerticalAlignment="Center" OffContent="关" OnContent="开" Toggled="OnSpectatedKillEffectsToggled"/>
             </Grid>
-        </Border>
-
-        <!-- 2. 6657 Kill Danmaku Card -->
-        <Border Style="{StaticResource FluentCardStyle}">
-            <StackPanel Spacing="10">
-                <Grid ColumnSpacing="12" RowSpacing="8">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-
-                    <Border Grid.RowSpan="2" Style="{StaticResource FluentIconStyle}">
-                        <FontIcon
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center"
-                            FontFamily="Segoe MDL2 Assets"
-                            FontSize="14"
-                            Foreground="{StaticResource FluentBodyText}"
-                            Glyph="&#xE8BD;" />
-                    </Border>
-
-                    <StackPanel Grid.Column="1" Spacing="2">
-                        <TextBlock
-                            x:Name="Danmaku6657LabelText"
-                            Style="{StaticResource FluentCardTitle}"
-                            Text="游戏事件弹幕" />
-                        <TextBlock
-                            x:Name="Danmaku6657HintText"
-                            Style="{StaticResource FluentCardHint}"
-                            Text="按游戏事件显示 5–7 条分类弹幕，已发出的弹幕会完整飞出屏幕" />
-                    </StackPanel>
-
-                    <StackPanel
-                        Grid.Row="1"
-                        Grid.Column="1"
-                        HorizontalAlignment="Right"
-                        Orientation="Horizontal"
-                        Spacing="8">
-                        <Button
-                            x:Name="Danmaku6657TestButton"
-                            Style="{StaticResource FluentActionBtnStyle}"
-                            Content="测试所选事件"
-                            Click="OnDanmaku6657TestClick"
-                            ToolTipService.ToolTip="测试高级设置中当前选中的事件弹幕" />
-
-                        <ToggleSwitch
-                            x:Name="Danmaku6657Toggle"
-                            VerticalAlignment="Center"
-                            MinWidth="0"
-                            OffContent="关"
-                            OnContent="开"
-                            Toggled="OnDanmaku6657Toggled" />
-                    </StackPanel>
-                </Grid>
-
-                <danmaku:DanmakuOptionsPanel
-                    x:Name="DanmakuSettingsOptions"
-                    Margin="0,2,0,0" />
             </StackPanel>
         </Border>
-
-        <!-- 4. Auto-Close on Game Exit Card -->
         <Border Style="{StaticResource FluentCardStyle}">
-            <Grid ColumnSpacing="12">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-
-                <Border Style="{StaticResource FluentIconStyle}">
-                    <FontIcon
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center"
-                        FontFamily="Segoe MDL2 Assets"
-                        FontSize="14"
-                        Foreground="{StaticResource FluentBodyText}"
-                        Glyph="&#xE73E;" />
-                </Border>
-
-                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                    <TextBlock
-                        x:Name="AutoCloseOnGameExitLabelText"
-                        Style="{StaticResource FluentCardTitle}"
-                        Text="游戏退出后自动关闭" />
-                    <TextBlock
-                        x:Name="AutoCloseOnGameExitHintText"
-                        Style="{StaticResource FluentCardHint}"
-                        Text="检测到 CS2 或 CS:GO 进程退出后，自动结束伴随服务与小组件" />
+            <StackPanel Spacing="8">
+            <Grid ColumnSpacing="16" MinHeight="46">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                <Border Style="{StaticResource FluentIconStyle}"><FontIcon Glyph="&#xE8BD;" FontSize="16" FontFamily="Segoe MDL2 Assets"/></Border>
+                <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
+                    <TextBlock x:Name="Danmaku6657LabelText" Style="{StaticResource FluentCardTitle}"/>
+                    <TextBlock x:Name="Danmaku6657HintText" Style="{StaticResource FluentCardHint}"/>
                 </StackPanel>
-
-                <ToggleSwitch
-                    x:Name="AutoCloseOnGameExitToggle"
-                    Grid.Column="2"
-                    VerticalAlignment="Center"
-                    MinWidth="0"
-                    OffContent="关"
-                    OnContent="开"
-                    Toggled="OnAutoCloseOnGameExitToggled" />
+                <ToggleSwitch x:Name="Danmaku6657Toggle" Grid.Column="2" MinWidth="0" VerticalAlignment="Center" OffContent="关" OnContent="开" Toggled="OnDanmaku6657Toggled"/>
             </Grid>
-        </Border>
-
-        <!-- 5. Interrupt Previous Kill Voice Card -->
-        <Border Style="{StaticResource FluentCardStyle}">
-            <Grid ColumnSpacing="12">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-
-                <Border Style="{StaticResource FluentIconStyle}">
-                    <FontIcon
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center"
-                        FontFamily="Segoe MDL2 Assets"
-                        FontSize="14"
-                        Foreground="{StaticResource FluentBodyText}"
-                        Glyph="&#xE74D;" />
-                </Border>
-
-                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                    <TextBlock
-                        x:Name="InterruptPreviousKillAudioLabelText"
-                        Style="{StaticResource FluentCardTitle}"
-                        Text="打断上一条击杀语音" />
-                    <TextBlock
-                        x:Name="InterruptPreviousKillAudioHintText"
-                        Style="{StaticResource FluentCardHint}"
-                        Text="连续击杀时立即播放最新击杀语音，防止多段长语音重叠混音" />
-                </StackPanel>
-
-                <ToggleSwitch
-                    x:Name="InterruptPreviousKillAudioToggle"
-                    Grid.Column="2"
-                    VerticalAlignment="Center"
-                    MinWidth="0"
-                    OffContent="关"
-                    OnContent="开"
-                    Toggled="OnInterruptPreviousKillAudioToggled" />
-            </Grid>
-        </Border>
-
-        <!-- Global streak audio gain -->
-        <Border Style="{StaticResource FluentCardStyle}">
-            <StackPanel Spacing="10">
-                <Grid ColumnSpacing="12">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-
-                    <Border Style="{StaticResource FluentIconStyle}">
-                        <FontIcon
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center"
-                            FontFamily="Segoe MDL2 Assets"
-                            FontSize="14"
-                            Foreground="{StaticResource FluentBodyText}"
-                            Glyph="&#xE9D9;" />
-                    </Border>
-
-                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                        <TextBlock
-                            x:Name="StreakGainLabelText"
-                            Style="{StaticResource FluentCardTitle}"
-                            Text="连杀音量递增" />
-                        <TextBlock
-                            x:Name="StreakGainHintText"
-                            Style="{StaticResource FluentCardHint}"
-                            Text="对所有游戏和语音包生效，连杀越多音量越高" />
-                    </StackPanel>
-
-                    <ToggleSwitch
-                        x:Name="StreakGainToggle"
-                        Grid.Column="2"
-                        VerticalAlignment="Center"
-                        MinWidth="0"
-                        OffContent="关"
-                        OnContent="开"
-                        Toggled="OnStreakGainToggled" />
+            <Button x:Name="DanmakuDetailsButton" Style="{StaticResource DetailsStripStyle}" Click="OnDetailsClick" Tag="Danmaku">
+                <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                    <TextBlock x:Name="DanmakuDetailsText" Text="展开详细设置" FontSize="11" VerticalAlignment="Center"/>
+                    <FontIcon x:Name="DanmakuDetailsChevron" Grid.Column="1" FontFamily="Segoe MDL2 Assets" Glyph="&#xE70D;" FontSize="10" VerticalAlignment="Center"/>
                 </Grid>
-
-                <Border
-                    Background="{StaticResource FluentCardSubBackground}"
-                    BorderBrush="{StaticResource FluentDivider}"
-                    BorderThickness="1"
-                    CornerRadius="6"
-                    Padding="14,12">
-                    <Grid ColumnSpacing="18">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-
-                        <StackPanel Spacing="3">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <TextBlock
-                                    x:Name="StreakGainStepLabelText"
-                                    FontSize="11"
-                                    Foreground="{StaticResource FluentTitleText}"
-                                    Text="每次击杀增加" />
-                                <TextBlock
-                                    x:Name="StreakGainStepValueText"
-                                    Grid.Column="1"
-                                    FontSize="11"
-                                    FontWeight="SemiBold"
-                                    Foreground="{StaticResource FluentAccent}"
-                                    Text="7%" />
-                            </Grid>
-                            <Slider
-                                x:Name="StreakGainStepSlider"
-                                Minimum="0"
-                                Maximum="100"
-                                StepFrequency="1"
-                                ValueChanged="OnStreakGainValueChanged" />
-                        </StackPanel>
-
-                        <StackPanel Grid.Column="1" Spacing="3">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <TextBlock
-                                    x:Name="StreakGainMaximumLabelText"
-                                    FontSize="11"
-                                    Foreground="{StaticResource FluentTitleText}"
-                                    Text="最高音量" />
-                                <TextBlock
-                                    x:Name="StreakGainMaximumValueText"
-                                    Grid.Column="1"
-                                    FontSize="11"
-                                    FontWeight="SemiBold"
-                                    Foreground="{StaticResource FluentAccent}"
-                                    Text="150%" />
-                            </Grid>
-                            <Slider
-                                x:Name="StreakGainMaximumSlider"
-                                Grid.Column="1"
-                                Minimum="100"
-                                Maximum="400"
-                                StepFrequency="5"
-                                ValueChanged="OnStreakGainValueChanged" />
-                        </StackPanel>
-                    </Grid>
-                </Border>
+            </Button>
+            <StackPanel x:Name="DanmakuDetailsContent" Spacing="12" Margin="0,4,0,2" Visibility="Collapsed">
+                <danmaku:DanmakuOptionsPanel x:Name="DanmakuSettingsOptions"/>
+                <Button x:Name="Danmaku6657TestButton" Click="OnDanmaku6657TestClick" HorizontalAlignment="Left" Style="{StaticResource FluentActionBtnStyle}"/>
+            </StackPanel>
             </StackPanel>
         </Border>
-
-        <settings:BombAudioOptionsPanel x:Name="BombAudioPanel" />
+        <Border Style="{StaticResource FluentCardStyle}">
+            <StackPanel Spacing="8">
+            <Grid ColumnSpacing="16" MinHeight="46">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                <Border Style="{StaticResource FluentIconStyle}"><FontIcon Glyph="&#xE8BB;" FontSize="16" FontFamily="Segoe MDL2 Assets"/></Border>
+                <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
+                    <TextBlock x:Name="AutoCloseOnGameExitLabelText" Style="{StaticResource FluentCardTitle}"/>
+                    <TextBlock x:Name="AutoCloseOnGameExitHintText" Style="{StaticResource FluentCardHint}"/>
+                </StackPanel>
+                <ToggleSwitch x:Name="AutoCloseOnGameExitToggle" Grid.Column="2" MinWidth="0" VerticalAlignment="Center" OffContent="关" OnContent="开" Toggled="OnAutoCloseOnGameExitToggled"/>
+            </Grid>
+            </StackPanel>
+        </Border>
+        <Border Style="{StaticResource FluentCardStyle}">
+            <StackPanel Spacing="8">
+            <Grid ColumnSpacing="16" MinHeight="46">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                <Border Style="{StaticResource FluentIconStyle}"><FontIcon Glyph="&#xE767;" FontSize="16" FontFamily="Segoe MDL2 Assets"/></Border>
+                <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
+                    <TextBlock x:Name="InterruptPreviousKillAudioLabelText" Style="{StaticResource FluentCardTitle}"/>
+                    <TextBlock x:Name="InterruptPreviousKillAudioHintText" Style="{StaticResource FluentCardHint}"/>
+                </StackPanel>
+                <ToggleSwitch x:Name="InterruptPreviousKillAudioToggle" Grid.Column="2" MinWidth="0" VerticalAlignment="Center" OffContent="关" OnContent="开" Toggled="OnInterruptPreviousKillAudioToggled"/>
+            </Grid>
+            </StackPanel>
+        </Border>
+        <Border Style="{StaticResource FluentCardStyle}">
+            <StackPanel Spacing="8">
+            <Grid ColumnSpacing="16" MinHeight="46">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                <Border Style="{StaticResource FluentIconStyle}"><FontIcon Glyph="&#xE995;" FontSize="16" FontFamily="Segoe MDL2 Assets"/></Border>
+                <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
+                    <TextBlock x:Name="StreakGainLabelText" Style="{StaticResource FluentCardTitle}"/>
+                    <TextBlock x:Name="StreakGainHintText" Style="{StaticResource FluentCardHint}"/>
+                </StackPanel>
+                <ToggleSwitch x:Name="StreakGainToggle" Grid.Column="2" MinWidth="0" VerticalAlignment="Center" OffContent="关" OnContent="开" Toggled="OnStreakGainToggled"/>
+            </Grid>
+            <Button x:Name="StreakGainDetailsButton" Style="{StaticResource DetailsStripStyle}" Click="OnDetailsClick" Tag="StreakGain">
+                <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                    <TextBlock x:Name="StreakGainDetailsText" Text="展开详细设置" FontSize="11" VerticalAlignment="Center"/>
+                    <FontIcon x:Name="StreakGainDetailsChevron" Grid.Column="1" FontFamily="Segoe MDL2 Assets" Glyph="&#xE70D;" FontSize="10" VerticalAlignment="Center"/>
+                </Grid>
+            </Button>
+            <Grid x:Name="StreakGainDetailsContent" Visibility="Collapsed" ColumnSpacing="24" Margin="12,8,12,4">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                <StackPanel Spacing="6">
+                    <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBlock x:Name="StreakGainStepLabelText"/><TextBlock x:Name="StreakGainStepValueText" Grid.Column="1"/></Grid>
+                    <Slider x:Name="StreakGainStepSlider" Minimum="0" Maximum="100" StepFrequency="1" ValueChanged="OnStreakGainValueChanged"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Spacing="6">
+                    <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBlock x:Name="StreakGainMaximumLabelText"/><TextBlock x:Name="StreakGainMaximumValueText" Grid.Column="1"/></Grid>
+                    <Slider x:Name="StreakGainMaximumSlider" Minimum="100" Maximum="400" StepFrequency="5" ValueChanged="OnStreakGainValueChanged"/>
+                </StackPanel>
+            </Grid>
+            </StackPanel>
+        </Border>
+        <settings:BombAudioOptionsPanel x:Name="BombAudioPanel"/>
     </StackPanel>
 </UserControl>

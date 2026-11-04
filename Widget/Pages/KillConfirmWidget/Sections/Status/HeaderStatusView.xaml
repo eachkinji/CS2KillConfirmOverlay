@@ -342,6 +342,7 @@
             <ComboBoxItem x:Name="Battlefield5StyleItem" x:FieldModifier="public" Tag="battlefield5">BF5</ComboBoxItem>
             <ComboBoxItem x:Name="Battlefield4StyleItem" x:FieldModifier="public" Tag="battlefield4">BF4</ComboBoxItem>
             <ComboBoxItem x:Name="Battlefield2042StyleItem" x:FieldModifier="public" Tag="battlefield2042">2042</ComboBoxItem>
+            <ComboBoxItem x:Name="Battlefield6StyleItem" x:FieldModifier="public" Tag="battlefield6">6</ComboBoxItem>
             <ComboBoxItem x:Name="PubgStyleItem" x:FieldModifier="public" Tag="pubg">PUBG</ComboBoxItem>
             <ComboBoxItem x:Name="DeltaForceStyleItem" x:FieldModifier="public" Tag="deltaforce">DF</ComboBoxItem>
             <ComboBoxItem x:Name="DoubaoStyleItem" x:FieldModifier="public" Tag="doubao">豆包</ComboBoxItem>

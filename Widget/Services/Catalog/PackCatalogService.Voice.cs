@@ -46,6 +46,7 @@ namespace KillConfirmGameBar.Services
                 || key.StartsWith("custom_battlefield5_voice_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_battlefield4_voice_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_battlefield2042_voice_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("custom_battlefield6_voice_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_deltaforce_voice_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_pubg_voice_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_valorant_voice_", StringComparison.OrdinalIgnoreCase)
@@ -64,6 +65,7 @@ namespace KillConfirmGameBar.Services
                 || key.StartsWith("custom_battlefield5_voice_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_battlefield4_voice_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_battlefield2042_voice_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("custom_battlefield6_voice_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_deltaforce_voice_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_pubg_voice_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_apex_voice_", StringComparison.OrdinalIgnoreCase);
@@ -81,6 +83,8 @@ namespace KillConfirmGameBar.Services
                     return ("battlefield4", "custom_battlefield4_voice_");
                 case GameStyleMode.Battlefield2042:
                     return ("battlefield2042", "custom_battlefield2042_voice_");
+                case GameStyleMode.Battlefield6:
+                    return ("battlefield6", "custom_battlefield6_voice_");
                 case GameStyleMode.DeltaForce:
                     return ("deltaforce", "custom_deltaforce_voice_");
                 case GameStyleMode.Pubg:

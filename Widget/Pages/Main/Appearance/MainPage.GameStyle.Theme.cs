@@ -53,12 +53,13 @@ namespace KillConfirmGameBar
 
         private async void OnStreakModeSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            GameStyleMode style = GameStyleService.Current;
+            GameStyleMode style = SettingsGameStyle;
             string mode = SharedStreakSettingsStore.LifeMode;
             if (sender is Battlefield1AdvancedEffectsPanel p1) mode = p1.GetSelectedStreakMode(mode);
             else if (sender is Battlefield5AdvancedEffectsPanel p5) mode = p5.GetSelectedStreakMode(mode);
             else if (sender is Battlefield4AdvancedEffectsPanel p4) mode = p4.GetSelectedStreakMode(mode);
             else if (sender is Battlefield2042AdvancedEffectsPanel p2042) mode = p2042.GetSelectedStreakMode(mode);
+            else if (sender is Battlefield6AdvancedEffectsPanel p6) mode = p6.GetSelectedStreakMode(mode);
             else if (sender is DeltaForceAdvancedEffectsPanel pDF) mode = pDF.GetSelectedStreakMode(mode);
             else if (sender is PubgAdvancedEffectsPanel pPubg) mode = pPubg.GetSelectedStreakMode(mode);
             else if (sender is ApexAdvancedEffectsPanel pApex) mode = pApex.GetSelectedStreakMode(mode);
@@ -106,7 +107,7 @@ namespace KillConfirmGameBar
 
         private void ApplyGameAdvancedSettingsPanelTheme()
         {
-            GameThemePalette theme = GameThemePalette.Current;
+            GameThemePalette theme = SettingsTheme;
             _customModulePanel?.ApplyTheme(theme);
             if (_crossfireAdvancedEffectsPanel != null) _crossfireAdvancedEffectsPanel.ApplyTheme(theme);
             if (_csolAdvancedEffectsPanel != null) _csolAdvancedEffectsPanel.ApplyTheme(theme);
@@ -118,6 +119,7 @@ namespace KillConfirmGameBar
             if (_battlefield5AdvancedEffectsPanel != null) _battlefield5AdvancedEffectsPanel.ApplyTheme(theme);
             if (_battlefield4AdvancedEffectsPanel != null) _battlefield4AdvancedEffectsPanel.ApplyTheme(theme);
             if (_battlefield2042AdvancedEffectsPanel != null) _battlefield2042AdvancedEffectsPanel.ApplyTheme(theme);
+            if (_battlefield6AdvancedEffectsPanel != null) _battlefield6AdvancedEffectsPanel.ApplyTheme(theme);
             if (_pubgAdvancedEffectsPanel != null) _pubgAdvancedEffectsPanel.ApplyTheme(theme);
             if (_deltaForceAdvancedEffectsPanel != null) _deltaForceAdvancedEffectsPanel.ApplyTheme(theme);
             if (_doubaoAdvancedEffectsPanel != null) _doubaoAdvancedEffectsPanel.ApplyTheme(theme);
@@ -147,6 +149,7 @@ namespace KillConfirmGameBar
             if (_battlefield5AdvancedEffectsPanel != null) _battlefield5AdvancedEffectsPanel.ApplyLanguage(isChinese);
             if (_battlefield4AdvancedEffectsPanel != null) _battlefield4AdvancedEffectsPanel.ApplyLanguage(isChinese);
             if (_battlefield2042AdvancedEffectsPanel != null) _battlefield2042AdvancedEffectsPanel.ApplyLanguage(isChinese);
+            if (_battlefield6AdvancedEffectsPanel != null) _battlefield6AdvancedEffectsPanel.ApplyLanguage(isChinese);
             if (_pubgAdvancedEffectsPanel != null) _pubgAdvancedEffectsPanel.ApplyLanguage(isChinese);
             if (_deltaForceAdvancedEffectsPanel != null) _deltaForceAdvancedEffectsPanel.ApplyLanguage(isChinese);
             if (_doubaoAdvancedEffectsPanel != null) _doubaoAdvancedEffectsPanel.ApplyLanguage(isChinese);
@@ -203,6 +206,11 @@ namespace KillConfirmGameBar
                     brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 34, 221, 221), Offset = 0 });
                     brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 255, 79, 82), Offset = 0.58 });
                     brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 72, 23, 48), Offset = 1 });
+                    break;
+                case GameStyleMode.Battlefield6:
+                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 238, 175, 126), Offset = 0 });
+                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 212, 96, 37), Offset = 0.58 });
+                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 87, 108, 88), Offset = 1 });
                     break;
                 case GameStyleMode.Pubg:
                     brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 245, 182, 66), Offset = 0 });

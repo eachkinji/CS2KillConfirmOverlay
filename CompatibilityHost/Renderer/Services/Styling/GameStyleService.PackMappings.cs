@@ -26,6 +26,10 @@ namespace KillConfirmCompatibility.Services
             {
                 return GameStyleMode.Battlefield2042;
             }
+            if (key.StartsWith("custom_battlefield6_icon_", System.StringComparison.OrdinalIgnoreCase))
+            {
+                return GameStyleMode.Battlefield6;
+            }
             if (key.StartsWith("custom_deltaforce_icon_", System.StringComparison.OrdinalIgnoreCase))
             {
                 return GameStyleMode.DeltaForce;
@@ -48,6 +52,10 @@ namespace KillConfirmCompatibility.Services
             if (key.StartsWith("custom_battlefield2042_voice_", System.StringComparison.OrdinalIgnoreCase))
             {
                 return GameStyleMode.Battlefield2042;
+            }
+            if (key.StartsWith("custom_battlefield6_voice_", System.StringComparison.OrdinalIgnoreCase))
+            {
+                return GameStyleMode.Battlefield6;
             }
             if (key.StartsWith("custom_deltaforce_voice_", System.StringComparison.OrdinalIgnoreCase))
             {
@@ -124,6 +132,10 @@ namespace KillConfirmCompatibility.Services
             {
                 return GameStyleMode.Battlefield2042;
             }
+            if (IsBattlefield6Key(key))
+            {
+                return GameStyleMode.Battlefield6;
+            }
 
             if (IsDeltaForceKey(key))
             {
@@ -168,6 +180,8 @@ namespace KillConfirmCompatibility.Services
                     return "bf4";
                 case GameStyleMode.Battlefield2042:
                     return "battlefield2042";
+                case GameStyleMode.Battlefield6:
+                    return "battlefield6";
                 case GameStyleMode.Pubg:
                     return "pubg";
                 case GameStyleMode.DeltaForce:
@@ -206,6 +220,8 @@ namespace KillConfirmCompatibility.Services
                     return "bf4";
                 case GameStyleMode.Battlefield2042:
                     return "battlefield2042";
+                case GameStyleMode.Battlefield6:
+                    return "battlefield6";
                 case GameStyleMode.Pubg:
                     return "pubg";
                 case GameStyleMode.DeltaForce:

@@ -31,7 +31,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay.Controls.Settings
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
             RefreshSettings();
-            ApplyTheme(GameThemePalette.Current);
+            ApplyTheme(GameThemePalette.Home);
         }
 
         internal void ApplyLanguage()
@@ -54,8 +54,23 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay.Controls.Settings
             ToolTipService.SetToolTip(BombTimerAudioPreviewButton, LocalizationManager.Text("BombAudioPreview"));
             ToolTipService.SetToolTip(BombExplodedAudioPreviewButton, LocalizationManager.Text("BombAudioPreview"));
             ToolTipService.SetToolTip(BombDefusedAudioPreviewButton, LocalizationManager.Text("BombAudioPreview"));
+            UpdateBombDetailsLabel();
             UpdateFullEffectPreviewButtonText();
             UpdateBombAudioStatusTexts();
+        }
+
+        private void OnBombDetailsClick(object sender, RoutedEventArgs e)
+        {
+            BombDetailsContent.Visibility = BombDetailsContent.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
+            UpdateBombDetailsLabel();
+        }
+
+        private void UpdateBombDetailsLabel()
+        {
+            bool zh = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            bool expanded = BombDetailsContent.Visibility == Visibility.Visible;
+            BombDetailsText.Text = expanded ? (zh ? "收起详细设置" : "Hide detailed settings") : (zh ? "展开详细设置" : "Show detailed settings");
+            BombDetailsChevron.Glyph = expanded ? "\uE70E" : "\uE70D";
         }
 
         internal void ApplyTheme(GameThemePalette theme)

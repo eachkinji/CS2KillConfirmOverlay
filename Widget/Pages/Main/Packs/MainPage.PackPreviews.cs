@@ -145,6 +145,8 @@ namespace KillConfirmGameBar
                     return "ms-appx:///Assets/GameStyles/battlefield4/killconfirm/textures/killicon_battlefield1_headshot.png";
                 case "battlefield2042":
                     return "ms-appx:///Assets/GameLogos/battlefield2042.png";
+                case "battlefield6":
+                    return "ms-appx:///Assets/GameStyles/battlefield6/killconfirm/textures/killicon_battlefield6_default.png";
                 case "pubg":
                     return "ms-appx:///Assets/GameStyles/pubg/killconfirm/textures/killicon_scrolling_headshot.png";
                 case "deltaforce":
@@ -181,6 +183,8 @@ namespace KillConfirmGameBar
                     return "ms-appx:///Assets/GameStyles/battlefield4/killconfirm/textures/killicon_battlefield1_default.png";
                 case GameStyleMode.Battlefield2042:
                     return "ms-appx:///Assets/GameLogos/battlefield2042.png";
+                case GameStyleMode.Battlefield6:
+                    return "ms-appx:///Assets/GameStyles/battlefield6/killconfirm/textures/killicon_battlefield6_default.png";
                 case GameStyleMode.Pubg:
                     return "ms-appx:///Assets/GameStyles/pubg/killconfirm/textures/killicon_scrolling_default.png";
                 case GameStyleMode.DeltaForce:
@@ -241,6 +245,10 @@ namespace KillConfirmGameBar
             {
                 return "ms-appx:///Assets/GameLogos/battlefield2042.png";
             }
+            if (style == GameStyleMode.Battlefield6)
+            {
+                return "ms-appx:///Assets/GameStyles/battlefield6/killconfirm/textures/killicon_battlefield6_default.png";
+            }
             switch ((item?.Key ?? string.Empty).Trim().ToLowerInvariant())
             {
                 case "vip":
@@ -265,6 +273,8 @@ namespace KillConfirmGameBar
                     return "ms-appx:///Assets/GameStyles/battlefield4/killconfirm/textures/killicon_battlefield1_headshot.png";
                 case "battlefield2042":
                     return "ms-appx:///Assets/GameLogos/battlefield2042.png";
+                case "battlefield6":
+                    return "ms-appx:///Assets/GameStyles/battlefield6/killconfirm/textures/killicon_battlefield6_default.png";
                 case "pubg":
                     return "ms-appx:///Assets/GameStyles/pubg/killconfirm/textures/killicon_scrolling_headshot.png";
                 case "deltaforce":

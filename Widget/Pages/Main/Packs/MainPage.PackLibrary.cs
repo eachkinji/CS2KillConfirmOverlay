@@ -10,17 +10,24 @@ namespace KillConfirmGameBar
         public void ApplyPendingPackLibraryNavigation()
         {
             if (!_isSettingsPageLoaded || !PackLibraryNavigation.TryTake(out string game, out string tab)) return;
+            OpenPackLibrary(GameStyleService.FromKey(game), tab == "voice");
+        }
+
+        internal void OpenPackLibrary(GameStyleMode style, bool voice)
+        {
             _isHomePageSelected = false;
-            _activeGameTab = tab;
-            SelectGameStyle(game);
+            _isSettingsWorkspaceSelected = false;
+            CompatibilityPageContent.Content = null;
+            _activeGameTab = voice ? "voice" : "icon";
+            SelectGameStyle(GameStyleService.ToStorageValue(style));
             ApplyLanguage();
-            SelectGameTab(tab);
+            SelectGameTab(_activeGameTab);
         }
 
         private void ApplyPackLibraryLanguage()
         {
             bool chinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
-            bool hasDownload = PackLibraryNavigation.DownloadUrl(GameStyleService.Current, true) != null;
+            bool hasDownload = PackLibraryNavigation.DownloadUrl(SettingsGameStyle, true) != null;
             DownloadVoicePackButton.Content = chinese ? "音频包下载" : "Download audio packs";
             DownloadIconPackButton.Content = chinese ? "图标包下载" : "Download icon packs";
             DownloadVoicePackButton.Visibility = DownloadIconPackButton.Visibility =
@@ -39,7 +46,7 @@ namespace KillConfirmGameBar
 
         private async void OnDownloadPackClick(object sender, RoutedEventArgs e)
         {
-            string url = PackLibraryNavigation.DownloadUrl(GameStyleService.Current, sender == DownloadVoicePackButton);
+            string url = PackLibraryNavigation.DownloadUrl(SettingsGameStyle, sender == DownloadVoicePackButton);
             if (url == null) return;
             try
             {

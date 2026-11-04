@@ -184,6 +184,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                     GetVoicePackIconUri(fallback)));
             }
 
+            PackTestSectionView.VoicePackSelector.Items.Add(CreateAddMorePackItem(true));
             SelectVoicePackPreset(preferredPreset);
         }
 
@@ -247,6 +248,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                     GetIconPackIconUri(fallback)));
             }
 
+            PackTestSectionView.IconPackSelector.Items.Add(CreateAddMorePackItem(false));
             SelectIconPack(preferredIconPack);
         }
 
@@ -310,6 +312,8 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                     return "ms-appx:///Assets/GameStyles/battlefield4/killconfirm/textures/killicon_battlefield1_headshot.png";
                 case "battlefield2042":
                     return "ms-appx:///Assets/GameLogos/battlefield2042.png";
+                case "battlefield6":
+                    return "ms-appx:///Assets/GameStyles/battlefield6/killconfirm/textures/killicon_battlefield6_default.png";
                 case "pubg":
                     return "ms-appx:///Assets/GameStyles/pubg/killconfirm/textures/killicon_scrolling_headshot.png";
                 case "deltaforce":
@@ -346,6 +350,8 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                     return "ms-appx:///Assets/GameStyles/battlefield4/killconfirm/textures/killicon_battlefield1_default.png";
                 case GameStyleMode.Battlefield2042:
                     return "ms-appx:///Assets/GameLogos/battlefield2042.png";
+                case GameStyleMode.Battlefield6:
+                    return "ms-appx:///Assets/GameStyles/battlefield6/killconfirm/textures/killicon_battlefield6_default.png";
                 case GameStyleMode.Pubg:
                     return "ms-appx:///Assets/GameStyles/pubg/killconfirm/textures/killicon_scrolling_default.png";
                 case GameStyleMode.DeltaForce:
@@ -363,6 +369,33 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                 default:
                     return CrossfireExternalAssetService.VisualUri("Original", "badge_headshot.PNG");
             }
+        }
+        private static PackSelectorItem CreateAddMorePackItem(bool voice)
+        {
+            bool chinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            string text = chinese
+                ? (voice ? "＋ 添加更多语音包" : "＋ 添加更多图标包")
+                : (voice ? "+ Add more audio packs" : "+ Add more icon packs");
+            return CreatePackComboBoxItem(text, PackLibraryNavigation.AddMoreTag, null);
+        }
+
+        internal Action<GameStyleMode, bool> OpenPackLibrary { get; set; }
+
+        private bool TryOpenPackLibrary(bool voice, SelectionChangedEventArgs e)
+        {
+            var selector = voice ? PackTestSectionView.VoicePackSelector : PackTestSectionView.IconPackSelector;
+            if (!Equals((selector.SelectedItem as PackSelectorItem)?.Tag, PackLibraryNavigation.AddMoreTag)) return false;
+            bool previous = voice ? _suppressVoicePackEvents : _suppressIconPackEvents;
+            if (voice) _suppressVoicePackEvents = true; else _suppressIconPackEvents = true;
+            try
+            {
+                selector.SelectedItem = e.RemovedItems.OfType<PackSelectorItem>()
+                    .FirstOrDefault(item => !Equals(item.Tag, PackLibraryNavigation.AddMoreTag) && selector.Items.Contains(item))
+                    ?? selector.Items.OfType<PackSelectorItem>().FirstOrDefault(item => !Equals(item.Tag, PackLibraryNavigation.AddMoreTag));
+            }
+            finally { if (voice) _suppressVoicePackEvents = previous; else _suppressIconPackEvents = previous; }
+            OpenPackLibrary?.Invoke(GameStyleService.Current, voice);
+            return true;
         }
     }
 }

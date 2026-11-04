@@ -82,7 +82,7 @@ The project has grown from a simple kill-confirm sound tool into a configurable 
 
 - **Xbox Game Bar overlay** — open, position, scale, and pin the widget with `Win + G`.
 - **Context-aware kill events** — normal kills, headshots, knife kills, first kills, final kills, assists, streaks, and spectated-teammate events.
-- **Eleven built-in presentation styles** — CrossFire, CSOL, VALORANT, Battlefield 1, Battlefield V, Battlefield 4, Battlefield 2042, PUBG, Delta Force, Doubao, and Dagoujiao.
+- **Fifteen built-in presentation styles** — CrossFire, CSOL, VALORANT, Overwatch, Modern Warfare, Apex Legends, Battlefield 1, Battlefield V, Battlefield 4, Battlefield 2042, Battlefield 6, PUBG, Delta Force, Doubao, and Dagoujiao, plus custom modules. Battlefield 6 is available in both Game Bar and compatibility display; source attribution is retained with its independent assets.
 - **Flexible streak logic** — life-based, round-based, and looped streak windows with a configurable loop point from 2 to 50 kills.
 - **Custom images and audio** — choose bundled assets or import supported images and voice lines for individual events and styles.
 - **Custom Module** — import CS2 Customizer kill-icon ZIPs or legacy frame folders, preview and tune playback, and export compatible packs. See the [format and usage guide (Chinese)](docs/CustomModule.md).

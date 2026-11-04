@@ -29,6 +29,7 @@ namespace KillConfirmGameBar
         public MainPage()
         {
             InitializeComponent();
+            ControlTheme.Apply(this, GameThemePalette.Home);
             InitializeCompatibilityWorkspace();
             ApplyLanguage();
             Loaded += OnLoaded;
@@ -84,7 +85,7 @@ namespace KillConfirmGameBar
             bool isVoice = _activeGameTab == "voice";
             bool isIcon = _activeGameTab == "icon";
             bool isGuide = _activeGameTab == "guide";
-            bool isSpecialGuide = GameStyleService.Current == GameStyleMode.Csol || GameStyleService.Current == GameStyleMode.Dagoujiao;
+            bool isSpecialGuide = SettingsGameStyle == GameStyleMode.Csol || SettingsGameStyle == GameStyleMode.Dagoujiao;
 
             if (GameEffectsCard != null) GameEffectsCard.Visibility = isCombat ? Visibility.Visible : Visibility.Collapsed;
             if (VoicePackCollectionsCard != null) VoicePackCollectionsCard.Visibility = isVoice ? Visibility.Visible : Visibility.Collapsed;
@@ -97,7 +98,7 @@ namespace KillConfirmGameBar
 
         private void UpdateHomeTabButtonsTheme()
         {
-            GameThemePalette theme = _isSettingsWorkspaceSelected ? GameThemePalette.Home : GameThemePalette.Current;
+            GameThemePalette theme = _isSettingsWorkspaceSelected ? GameThemePalette.Home : SettingsTheme;
             UpdateTabBtn(HomeTabGeneralButton, _activeHomeTab == "general", theme);
             UpdateTabBtn(HomeTabPortButton, _activeHomeTab == "port", theme);
             UpdateTabBtn(HomeTabDisplayButton, _activeHomeTab == "display", theme);
@@ -106,7 +107,7 @@ namespace KillConfirmGameBar
 
         private void UpdateGameTabButtonsTheme()
         {
-            GameThemePalette theme = GameThemePalette.Current;
+            GameThemePalette theme = SettingsTheme;
             UpdateTabBtn(GameTabCombatButton, _activeGameTab == "combat", theme);
             UpdateTabBtn(GameTabVoiceButton, _activeGameTab == "voice", theme);
             UpdateTabBtn(GameTabIconButton, _activeGameTab == "icon", theme);
@@ -152,7 +153,11 @@ namespace KillConfirmGameBar
 
         private void OnGameStyleServiceChanged(object sender, GameStyleMode mode)
         {
-            if (HandleCompatibilityGameStyleChanged(mode)) return;
+            HandleCompatibilityGameStyleChanged(mode);
+        }
+
+        private void RefreshSettingsGamePage(GameStyleMode mode)
+        {
             if (!_isSettingsPageLoaded)
             {
                 return;
@@ -164,7 +169,7 @@ namespace KillConfirmGameBar
                 if (!_isSettingsPageLoaded
                     || _isSettingsWorkspaceSelected
                     || navigationRevision != System.Threading.Volatile.Read(ref _gameStyleNavigationRevision)
-                    || GameStyleService.Current != mode)
+                    || SettingsGameStyle != mode)
                 {
                     return;
                 }

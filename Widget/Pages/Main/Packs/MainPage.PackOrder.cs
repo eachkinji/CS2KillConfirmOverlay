@@ -114,7 +114,7 @@ namespace KillConfirmGameBar
             _nativePackDragGrid = grid;
             _nativePackDragItems = items;
             _nativePackDragBefore = items.Select(item => item.Key).ToArray();
-            _nativePackDragStyle = GameStyleService.Current;
+            _nativePackDragStyle = SettingsGameStyle;
             _packOrderMoveInProgress = true;
             App.Log("Native pack drag starting: " + ((PackCardEntry)e.Items[0]).Key);
             // No DataPackage, preview, deferral or pointer handling: native GridView owns the drag.
@@ -128,7 +128,7 @@ namespace KillConfirmGameBar
             bool reload = false;
             try
             {
-                if (!ReferenceEquals(sender.ItemsSource, items) || _nativePackDragStyle != GameStyleService.Current) return;
+                if (!ReferenceEquals(sender.ItemsSource, items) || _nativePackDragStyle != SettingsGameStyle) return;
                 // The native collection is authoritative, including cancellation/no-op drops.
                 if (items.Select(item => item.Key).SequenceEqual(_nativePackDragBefore, StringComparer.OrdinalIgnoreCase)) return;
                 if (e.Items.Count != 1 || !(e.Items[0] is PackCardEntry moved)) { reload = true; return; }

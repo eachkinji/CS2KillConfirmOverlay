@@ -19,6 +19,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                 return;
             }
 
+            if (TryOpenPackLibrary(true, e)) return;
             try
             {
                 string preset = GetSelectedVoicePackPreset();
@@ -47,6 +48,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                 return;
             }
 
+            if (TryOpenPackLibrary(false, e)) return;
             string iconPack = GetSelectedIconPack();
             SavePackSettingForStyle(IconPackSettingKey, GameStyleService.Current, iconPack);
             if (TrySyncValorantVoicePackForIconSelection(iconPack))

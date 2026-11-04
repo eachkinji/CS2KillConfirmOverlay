@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -35,7 +35,7 @@ namespace KillConfirmGameBar
             InitializeComponent();
             UnhandledException += OnUnhandledException;
             Suspending += OnSuspending;
-            ProcessPriorityBoost.EnsureProcessBoosted();
+
             Log("App constructed.");
         }
 
@@ -173,9 +173,9 @@ namespace KillConfirmGameBar
             object sender,
             SystemNavigationCloseRequestedPreviewEventArgs e)
         {
-            // The unpackaged panel owns the close-all preference. A Game Bar
+            // The unpackaged panel owns mode-specific closure. A Game Bar
             // widget close must not terminate a newly reopened widget or panel.
-            if (_currentWindowIsWidget || Services.CloseBehaviorSettingsStore.KeepRunningAfterSettingsClose)
+            if (_currentWindowIsWidget || !Features.CompatibilityDisplay.CompatibilityDisplayRuntime.IsEnabled)
             {
                 return;
             }
@@ -210,7 +210,7 @@ namespace KillConfirmGameBar
             {
                 await ShutdownCompanionFromCurrentFrameAsync();
             }
-            else if (!Services.CloseBehaviorSettingsStore.KeepRunningAfterSettingsClose)
+            else if (Features.CompatibilityDisplay.CompatibilityDisplayRuntime.IsEnabled)
             {
                 await RequestFullExitAsync();
             }

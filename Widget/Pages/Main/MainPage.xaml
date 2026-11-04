@@ -39,7 +39,7 @@
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
-            <!-- Native compact, icon-only NavigationView for game workspaces. -->
+            <!-- Navigation-only sidebar; page content lives in the adjacent column. -->
             <Border
                 x:Name="GameModeSidebar"
                 Grid.Column="0"
@@ -64,6 +64,11 @@
                     PaneDisplayMode="Left"
                     SelectionChanged="OnGameStyleSidebarSelectionChanged">
                     <NavigationView.Resources>
+                        <!-- Hide NavigationView's unused content card beside the menu. -->
+                        <SolidColorBrush x:Key="NavigationViewContentBackground" Color="Transparent" />
+                        <SolidColorBrush x:Key="NavigationViewContentGridBorderBrush" Color="Transparent" />
+                        <Thickness x:Key="NavigationViewContentGridBorderThickness">0</Thickness>
+                        <CornerRadius x:Key="NavigationViewContentGridCornerRadius">0</CornerRadius>
                         <SolidColorBrush x:Key="NavigationViewItemBackgroundSelected" Color="#1F007AFF" />
                         <SolidColorBrush x:Key="NavigationViewItemBackgroundSelectedPointerOver" Color="#29007AFF" />
                         <SolidColorBrush x:Key="NavigationViewItemBackgroundSelectedPressed" Color="#33007AFF" />
@@ -119,6 +124,9 @@
                         </NavigationViewItem>
                         <NavigationViewItem AutomationProperties.Name="Battlefield 2042" Tag="battlefield2042" Content="Battlefield 2042" ToolTipService.ToolTip="Battlefield 2042">
                             <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/battlefield2042.png" /></NavigationViewItem.Icon>
+                        </NavigationViewItem>
+                        <NavigationViewItem AutomationProperties.Name="Battlefield 6" Tag="battlefield6" Content="Battlefield 6" ToolTipService.ToolTip="Battlefield 6">
+                            <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="True" UriSource="ms-appx:///Assets/GameStyles/battlefield6/killconfirm/textures/killicon_battlefield6_default.png" /></NavigationViewItem.Icon>
                         </NavigationViewItem>
                         <NavigationViewItem AutomationProperties.Name="PUBG" Tag="pubg" Content="PUBG" ToolTipService.ToolTip="PUBG">
                             <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/pubg.png" /></NavigationViewItem.Icon>
@@ -210,6 +218,7 @@
                                 <ComboBoxItem x:Name="Battlefield5StyleItem" Tag="battlefield5">Battlefield V (战地5)</ComboBoxItem>
                                 <ComboBoxItem x:Name="Battlefield4StyleItem" Tag="battlefield4">Battlefield 4 (战地4)</ComboBoxItem>
                                 <ComboBoxItem x:Name="Battlefield2042StyleItem" Tag="battlefield2042">Battlefield 2042 (战地2042)</ComboBoxItem>
+                                <ComboBoxItem x:Name="Battlefield6StyleItem" Tag="battlefield6">Battlefield 6 (战地6)</ComboBoxItem>
                                 <ComboBoxItem x:Name="PubgStyleItem" Tag="pubg">PUBG (绝地求生)</ComboBoxItem>
                                 <ComboBoxItem x:Name="DeltaForceStyleItem" Tag="deltaforce">Delta Force (三角洲行动)</ComboBoxItem>
                                 <ComboBoxItem x:Name="DoubaoStyleItem" Tag="doubao">Doubao (豆包)</ComboBoxItem>

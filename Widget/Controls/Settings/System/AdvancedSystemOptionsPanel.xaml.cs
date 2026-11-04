@@ -10,36 +10,29 @@ namespace KillConfirmGameBar.Controls.Settings
 {
     public sealed partial class AdvancedSystemOptionsPanel : UserControl
     {
-        private bool _suppressCloseBehaviorEvents;
         private bool _suppressGsiGameVersionEvents;
 
         public AdvancedSystemOptionsPanel()
         {
             InitializeComponent();
-            InitializeProcessPrioritySettings();
             ApplyLanguage();
             RefreshSettings();
             Loaded += OnLoaded;
         }
 
-        private async void OnLoaded(object sender, RoutedEventArgs e)
+        private void OnLoaded(object sender, RoutedEventArgs e)
         {
             RefreshSettings();
-            ApplyTheme(GameThemePalette.Current);
-            await RefreshProcessPriorityStateAsync();
+            ApplyTheme(GameThemePalette.Home);
         }
 
         internal void ApplyLanguage()
         {
-            CloseBehaviorLabelText.Text = LocalizationManager.Text("CloseBehaviorLabel");
-            CloseWindowTrayItem.Content = LocalizationManager.Text("CloseWindowTray");
-            CloseWindowExitItem.Content = LocalizationManager.Text("CloseWindowExit");
             GsiGameVersionLabelText.Text = LocalizationManager.Text("GsiGameVersionLabel");
             GsiGameVersionHintText.Text = LocalizationManager.Text("GsiGameVersionHint");
             GsiGameVersionCs2Item.Content = LocalizationManager.Text("GsiGameVersionCs2");
             GsiGameVersionCsgoLegacyItem.Content =
                 LocalizationManager.Text("GsiGameVersionCsgoLegacy");
-            ApplyProcessPriorityLanguage();
         }
 
         internal void ApplyTheme(GameThemePalette theme)
@@ -50,19 +43,12 @@ namespace KillConfirmGameBar.Controls.Settings
             }
 
             GsiGameVersionHintText.Foreground = new SolidColorBrush(theme.MutedText);
-            ProcessPriorityHintText.Foreground = new SolidColorBrush(theme.MutedText);
-            ProcessPriorityPersistenceHintText.Foreground = new SolidColorBrush(theme.MutedText);
-            GameBarPriorityStatusText.Foreground = new SolidColorBrush(theme.MutedText);
-            GameBarFtServerPriorityStatusText.Foreground = new SolidColorBrush(theme.MutedText);
-            KillConfirmWidgetPriorityStatusText.Foreground = new SolidColorBrush(theme.MutedText);
             AdvancedEffectsPanelSupport.ApplySoftenedTree(this, theme);
         }
 
         internal void RefreshSettings()
         {
-            SelectCloseBehavior();
             SelectGsiGameVersion();
-            SelectProcessPrioritySettings();
         }
 
         private void SelectGsiGameVersion()
@@ -97,33 +83,6 @@ namespace KillConfirmGameBar.Controls.Settings
                 {
                     App.Log("Set GSI game version failed: " + ex);
                 }
-            }
-        }
-
-        private void SelectCloseBehavior()
-        {
-            _suppressCloseBehaviorEvents = true;
-            try
-            {
-                SelectTaggedItem(CloseBehaviorSelector, CloseBehaviorSettingsStore.Load());
-            }
-            finally
-            {
-                _suppressCloseBehaviorEvents = false;
-            }
-        }
-
-        private void OnCloseBehaviorSelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (_suppressCloseBehaviorEvents)
-            {
-                return;
-            }
-
-            if (CloseBehaviorSelector.SelectedItem is ComboBoxItem selected
-                && selected.Tag is string mode)
-            {
-                CloseBehaviorSettingsStore.Save(mode);
             }
         }
 

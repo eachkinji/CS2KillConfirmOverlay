@@ -206,7 +206,6 @@ namespace KillConfirmGameBar
             await SyncSharedStreakSettingsAsync();
             await SyncSpectatedKillEffectsAsync();
             await SyncGsiGameVersionAsync();
-            await SyncProcessPrioritySettingsAsync();
             await SyncInterruptPreviousKillAudioAsync();
             await SyncStreakGainSettingsAsync();
         }
@@ -232,18 +231,6 @@ namespace KillConfirmGameBar
             catch (Exception ex)
             {
                 App.Log("Sync interrupt previous kill audio failed: " + ex);
-            }
-        }
-
-        private static async Task SyncProcessPrioritySettingsAsync()
-        {
-            try
-            {
-                await ProcessPrioritySettingsStore.ApplyPersistedAsync();
-            }
-            catch (Exception ex)
-            {
-                App.Log("Apply persisted process priorities failed: " + ex);
             }
         }
 

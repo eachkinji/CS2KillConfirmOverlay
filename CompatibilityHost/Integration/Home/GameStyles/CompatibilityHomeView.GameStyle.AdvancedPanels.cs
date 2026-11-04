@@ -34,6 +34,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _battlefield5AdvancedEffectsPanel) return _battlefield5AdvancedEffectsPanel?.MoneyRewardModeSelectorControl;
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _battlefield4AdvancedEffectsPanel) return _battlefield4AdvancedEffectsPanel?.MoneyRewardModeSelectorControl;
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _battlefield2042AdvancedEffectsPanel) return _battlefield2042AdvancedEffectsPanel?.MoneyRewardModeSelectorControl;
+                if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _battlefield6AdvancedEffectsPanel) return _battlefield6AdvancedEffectsPanel?.MoneyRewardModeSelectorControl;
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _deltaForceAdvancedEffectsPanel) return _deltaForceAdvancedEffectsPanel?.MoneyRewardModeSelectorControl;
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _pubgAdvancedEffectsPanel) return _pubgAdvancedEffectsPanel?.MoneyRewardModeSelectorControl;
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _apexAdvancedEffectsPanel) return _apexAdvancedEffectsPanel?.MoneyRewardModeSelectorControl;
@@ -50,6 +51,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _battlefield5AdvancedEffectsPanel) return _battlefield5AdvancedEffectsPanel?.MoneyRewardModeLabelControl;
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _battlefield4AdvancedEffectsPanel) return _battlefield4AdvancedEffectsPanel?.MoneyRewardModeLabelControl;
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _battlefield2042AdvancedEffectsPanel) return _battlefield2042AdvancedEffectsPanel?.MoneyRewardModeLabelControl;
+                if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _battlefield6AdvancedEffectsPanel) return _battlefield6AdvancedEffectsPanel?.MoneyRewardModeLabelControl;
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _deltaForceAdvancedEffectsPanel) return _deltaForceAdvancedEffectsPanel?.MoneyRewardModeLabelControl;
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _pubgAdvancedEffectsPanel) return _pubgAdvancedEffectsPanel?.MoneyRewardModeLabelControl;
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _apexAdvancedEffectsPanel) return _apexAdvancedEffectsPanel?.MoneyRewardModeLabelControl;
@@ -66,6 +68,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _battlefield5AdvancedEffectsPanel) return _battlefield5AdvancedEffectsPanel?.MoneyRewardDeltaItemControl;
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _battlefield4AdvancedEffectsPanel) return _battlefield4AdvancedEffectsPanel?.MoneyRewardDeltaItemControl;
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _battlefield2042AdvancedEffectsPanel) return _battlefield2042AdvancedEffectsPanel?.MoneyRewardDeltaItemControl;
+                if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _battlefield6AdvancedEffectsPanel) return _battlefield6AdvancedEffectsPanel?.MoneyRewardDeltaItemControl;
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _deltaForceAdvancedEffectsPanel) return _deltaForceAdvancedEffectsPanel?.MoneyRewardDeltaItemControl;
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _pubgAdvancedEffectsPanel) return _pubgAdvancedEffectsPanel?.MoneyRewardDeltaItemControl;
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _apexAdvancedEffectsPanel) return _apexAdvancedEffectsPanel?.MoneyRewardDeltaItemControl;
@@ -82,6 +85,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _battlefield5AdvancedEffectsPanel) return _battlefield5AdvancedEffectsPanel?.MoneyRewardRulesItemControl;
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _battlefield4AdvancedEffectsPanel) return _battlefield4AdvancedEffectsPanel?.MoneyRewardRulesItemControl;
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _battlefield2042AdvancedEffectsPanel) return _battlefield2042AdvancedEffectsPanel?.MoneyRewardRulesItemControl;
+                if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _battlefield6AdvancedEffectsPanel) return _battlefield6AdvancedEffectsPanel?.MoneyRewardRulesItemControl;
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _deltaForceAdvancedEffectsPanel) return _deltaForceAdvancedEffectsPanel?.MoneyRewardRulesItemControl;
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _pubgAdvancedEffectsPanel) return _pubgAdvancedEffectsPanel?.MoneyRewardRulesItemControl;
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _apexAdvancedEffectsPanel) return _apexAdvancedEffectsPanel?.MoneyRewardRulesItemControl;
@@ -123,6 +127,9 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                     break;
                 case GameStyleMode.Battlefield2042:
                     panel = EnsureBattlefield2042AdvancedEffectsPanel();
+                    break;
+                case GameStyleMode.Battlefield6:
+                    panel = EnsureBattlefield6AdvancedEffectsPanel();
                     break;
                 case GameStyleMode.Pubg:
                     panel = EnsurePubgAdvancedEffectsPanel();

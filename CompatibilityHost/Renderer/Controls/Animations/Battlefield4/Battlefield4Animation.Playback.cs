@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
@@ -62,6 +62,7 @@ namespace KillConfirmCompatibility.Controls
             _isPubgHudActive = false;
             _isDeltaForceHudActive = false;
             _isBattlefield2042HudActive = false;
+            ResetBattlefield6HudState();
             _isBattlefield4HudActive = true;
             _contentSizedViewport = false;
             _isBattlefield1CompactLayoutActive = false;

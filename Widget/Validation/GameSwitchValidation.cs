@@ -10,6 +10,9 @@ using Windows.Data.Json;
 using Windows.Storage;
 using Windows.Storage.Streams;
 using Windows.UI.Xaml;
+using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Controls.Primitives;
+using Windows.UI.Xaml.Media;
 using Windows.Web.Http;
 using Windows.Web.Http.Filters;
 using Windows.Foundation;
@@ -88,15 +91,30 @@ namespace KillConfirmGameBar
             KillConfirmWidgetPage page = null;
             try
             {
+                // Keep the isolated test active while its async fixture is prepared.
+                Window.Current.Content = new Grid();
+                Window.Current.Activate();
+                stage("initializing widget protocol");
                 PortSettingsStore.SavePort(10095);
                 await SharedRuntime.InitializeValidationAsync();
+                stage("constructing widget page");
                 page = new KillConfirmWidgetPage();
                 Window.Current.Content = page;
                 Window.Current.Activate();
                 page._isPageActive = true;
+                page._isWidgetVisible = true;
+                page._displayMode = Microsoft.Gaming.XboxGameBar.XboxGameBarDisplayMode.Foreground;
                 GameStyleService.Changed += page.OnGameStyleServiceChanged;
                 page.UpdateControlPanelVisibility();
+                stage("initializing selectors");
                 await page.InitializePackSelectorsAsync();
+                stage("decoding contributor avatars");
+                await page.UpdateOverlay.UpdateCreditsCommunityPanel.LoadAvatarsAsync();
+                if (!page.UpdateOverlay.UpdateCreditsCommunityPanel.AvatarsReady)
+                    throw new Exception("Update-page contributor avatars did not decode.");
+                if (page.PanelCollapseBar.ActualHeight < 24 || page.PanelCollapseBar.CornerRadius.TopLeft > 8)
+                    throw new Exception("Collapse button is still an oval.");
+                report.AppendLine("PASS: all four contributor avatars decoded; collapse button uses a 26-DIP rounded rectangle.");
                 foreach (GameStyleMode mode in Enum.GetValues(typeof(GameStyleMode)))
                 {
                     var clock = Stopwatch.StartNew();
@@ -104,8 +122,16 @@ namespace KillConfirmGameBar
                     await page.WaitForValidationSwitchAsync(mode);
                     report.AppendLine(mode + ": " + clock.ElapsedMilliseconds + " ms; voice="
                         + page.GetSelectedVoicePackPreset() + "; icon=" + page.GetSelectedIconPack());
+                    foreach (var selector in new[] { page.HeaderStatusSection.GameStyleSelector,
+                        page.PackTestSectionView.VoicePackSelector, page.PackTestSectionView.IconPackSelector })
+                        if (selector.IsEnabled && selector.Visibility == Visibility.Visible)
+                            report.AppendLine(await ValidateDropdownAsync(selector));
                     stage("sequential switches");
                 }
+                page.SelectGameStyleItem(GameStyleMode.Battlefield6);
+                await page.WaitForValidationSwitchAsync(GameStyleMode.Battlefield6);
+                stage("Battlefield 6 animation validation");
+                await page.LowerFeedbackAnimation.ValidateBattlefield6Async(root);
                 foreach (GameStyleMode mode in Enum.GetValues(typeof(GameStyleMode)))
                 {
                     page.SelectGameStyleItem(mode);
@@ -154,7 +180,16 @@ namespace KillConfirmGameBar
                 int sounds = Directory.EnumerateFiles(SharedResources.CacheRoot, "*", SearchOption.AllDirectories)
                     .Count(path => new[] { ".wav", ".mp3", ".m4a" }.Contains(Path.GetExtension(path).ToLowerInvariant()));
                 if (sounds != 0) throw new Exception("Selectors downloaded " + sounds + " unnecessary audio files.");
-                report.AppendLine("PASS: all 15 UWP game selections, rapid switching, imported thumbnails, bidirectional game synchronization, local echo suppression, edits during requests and failed-write retry; zero audio downloads for selectors.");
+                foreach (bool voice in new[] { true, false })
+                {
+                    await PackLibraryNavigation.RequestSharedAsync(GameStyleMode.Valorant, voice);
+                    var handoff = JsonObject.Parse(WidgetProtocolFixture.RemoteSettings["PendingPackLibraryNavigation"].GetObject()["Text"].GetString());
+                    if (handoff["game"].GetString() != "valorant" || handoff["tab"].GetString() != (voice ? "voice" : "icon")) throw new Exception("UWP Add more did not reach the desktop shared store.");
+                    if (GameStyleService.Current != GameStyleMode.Overwatch) throw new Exception("Library handoff changed the active game.");
+                    WidgetProtocolFixture.RemoteSettings.Remove("PendingPackLibraryNavigation");
+                }
+                report.AppendLine("PASS: UWP voice/icon library requests reach the desktop scalar settings store before activation without changing the active game.");
+                report.AppendLine("PASS: all UWP game selections, rapid switching, imported thumbnails, bidirectional game synchronization, local echo suppression, edits during requests and failed-write retry; zero audio downloads for selectors.");
                 File.WriteAllText(Path.Combine(root, "switch-pass.txt"), report.ToString());
             }
             catch (Exception error) { File.WriteAllText(Path.Combine(root, "switch-failure.txt"), report + "\n" + error); }
@@ -178,6 +213,45 @@ namespace KillConfirmGameBar
                 || GameStyleService.GetStyleForPackKey(GetSelectedIconPack()) != mode)
                 throw new Exception("Game/selector mismatch: requested=" + mode + "; current=" + GameStyleService.Current
                     + "; voice=" + GetSelectedVoicePackPreset() + "; icon=" + GetSelectedIconPack());
+        }
+
+        private static async Task<string> ValidateDropdownAsync(ComboBox selector)
+        {
+            selector.StartBringIntoView(new BringIntoViewOptions { AnimationDesired = false });
+            await Task.Delay(120);
+            var clock = Stopwatch.StartNew();
+            try
+            {
+                selector.IsDropDownOpen = true;
+                await Task.Delay(300);
+                var panel = selector.ItemsPanelRoot;
+                if (!(panel is CarouselPanel)) throw new Exception("Unsupported UWP dropdown panel: " + selector.Name);
+                var popup = VisualTreeHelper.GetOpenPopupsForXamlRoot(selector.XamlRoot).FirstOrDefault(p =>
+                {
+                    for (DependencyObject current = panel; current != null; current = VisualTreeHelper.GetParent(current))
+                        if (current == p.Child) return true;
+                    return false;
+                });
+                if (!(popup?.Child is FrameworkElement child)) throw new Exception("UWP dropdown not visible: " + selector.Name);
+                var anchor = selector.TransformToVisual(null).TransformBounds(new Rect(0, 0, selector.ActualWidth, selector.ActualHeight));
+                var bounds = child.TransformToVisual(null).TransformBounds(new Rect(0, 0, child.ActualWidth, child.ActualHeight));
+                double overlap = Math.Min(anchor.Right, bounds.Right) - Math.Max(anchor.Left, bounds.Left);
+                if (bounds.Width < anchor.Width - 8 || bounds.Width > Math.Max(anchor.Width + 80, 480)
+                    || overlap < anchor.Width * .75 || bounds.Height < 20 || bounds.Height > selector.XamlRoot.Size.Height)
+                    throw new Exception($"UWP dropdown geometry {selector.Name}: anchor={anchor}; popup={bounds}.");
+                int realized = 0, visible = 0;
+                for (int i = 0; i < selector.Items.Count; i++)
+                    if (selector.ContainerFromIndex(i) is ComboBoxItem row && VisualTreeHelper.GetParent(row) != null)
+                    {
+                        realized++;
+                        var rowBounds = row.TransformToVisual(child).TransformBounds(new Rect(0, 0, row.ActualWidth, row.ActualHeight));
+                        if (rowBounds.Bottom > 0 && rowBounds.Top < child.ActualHeight && rowBounds.Width > 20 && rowBounds.Height >= 16) visible++;
+                    }
+                if (visible == 0 || (selector.Items.Count > 100 && realized >= selector.Items.Count / 2))
+                    throw new Exception($"UWP dropdown rows invalid: {selector.Name}; visible={visible}; realized={realized}/{selector.Items.Count}.");
+                return $"{selector.Name}: popup={bounds.Width:F0}x{bounds.Height:F0}; visible={visible}; realized={realized}/{selector.Items.Count}; settled={clock.ElapsedMilliseconds} ms.";
+            }
+            finally { selector.IsDropDownOpen = false; }
         }
     }
 }

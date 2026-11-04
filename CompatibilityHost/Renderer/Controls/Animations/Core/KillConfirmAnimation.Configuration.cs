@@ -37,6 +37,7 @@ namespace KillConfirmCompatibility.Controls
             ClearBattlefieldIconCache();
             ClearBattlefield4IconCache();
             ClearBattlefield2042IconCache();
+            ClearBattlefield6IconCache();
             ClearPubgIconCache();
             ClearDeltaForceIconCache();
             ClearDoubaoIconCache();
@@ -71,6 +72,7 @@ namespace KillConfirmCompatibility.Controls
                 && !GameStyleService.IsBattlefield5Key(normalized)
                 && !GameStyleService.IsBattlefield4Key(normalized)
                 && !GameStyleService.IsBattlefield2042Key(normalized)
+                && !GameStyleService.IsBattlefield6Key(normalized)
                 && !GameStyleService.IsPubgKey(normalized)
                 && !GameStyleService.IsDeltaForceKey(normalized)
                 && !GameStyleService.IsCustomModuleKey(normalized)
@@ -136,6 +138,7 @@ namespace KillConfirmCompatibility.Controls
             ResetBattlefield5ScrollingState();
             ResetBattlefield4HudState();
             ResetBattlefield2042HudState();
+            ResetBattlefield6HudState();
             ResetPubgHudState();
             ResetDeltaForceHudState();
             ResetDoubaoState();
@@ -196,6 +199,7 @@ namespace KillConfirmCompatibility.Controls
             ClearBattlefieldIconCache();
             ClearBattlefield4IconCache();
             ClearBattlefield2042IconCache();
+            ClearBattlefield6IconCache();
             ClearPubgIconCache();
             ClearDeltaForceIconCache();
             ClearDoubaoIconCache();

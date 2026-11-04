@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -29,6 +29,7 @@ namespace KillConfirmGameBar.Controls
             ResetBattlefield5ScrollingState();
             ResetBattlefield4HudState();
             ResetBattlefield2042HudState();
+            ResetBattlefield6HudState();
             ResetPubgHudState();
             ResetDeltaForceHudState();
             ResetDoubaoState();

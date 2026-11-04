@@ -45,6 +45,7 @@ public partial class App : Application
                 Features.CompatibilityDisplay.CompatibilityDisplayRuntime.Update(c=>{c.Enabled=true;c.FollowGame=false;c.HideWhenInactive=false;});
             }
             if(!DesktopPlatform.IsUiValidation && !CloseValidation.IsEnabled) DesktopPlatform.SelectAvailableMode();
+            if (DesktopPlatform.IsUiValidation) UpdateValidation.Configure();
             Log("Creating original MainPage.");
             var mainPage = new MainPage();
             var frame = new Frame { Content = mainPage };
@@ -64,8 +65,7 @@ public partial class App : Application
 
             _window.AppWindow.Closing += (s,e) => {
                 e.Cancel=true;
-                if(!Features.CompatibilityDisplay.CompatibilityDisplayRuntime.IsEnabled && Services.CloseBehaviorSettingsStore.KeepRunningAfterSettingsClose) _window.AppWindow.Hide();
-                else _=RequestFullExitAsync();
+                _=ClosePanelAsync();
             };
             if(CloseValidation.IsEnabled) _=CloseValidation.RunAsync(_window);
             if(DesktopPlatform.IsRuntimeValidation)
@@ -78,16 +78,17 @@ public partial class App : Application
                 await Services.ServiceLauncher.UnregisterCurrentProcessAsync();
                 _instance?.Dispose();
             };
-            activationTimer.Tick += (s,e) => { if(_activate?.WaitOne(0) == true) { _window.AppWindow.Show(); _window.Activate(); } };
+            activationTimer.Tick += (s,e) => { if(_activate?.WaitOne(0) == true) { mainPage.ApplyPendingPackLibraryNavigation(); _window.AppWindow.Show(); _window.Activate(); } };
             activationTimer.Start();
             if(DesktopPlatform.IsUiValidation)
             {
-                var deadline=DateTimeOffset.UtcNow.AddSeconds(90);
+                bool inspect = Environment.GetEnvironmentVariable("KILLCONFIRM_UI_INSPECTION") == "1";
+                var deadline=DateTimeOffset.UtcNow.AddSeconds(inspect ? 1800 : 120);
                 var timer=new DispatcherTimer { Interval=TimeSpan.FromMilliseconds(100) };
                 timer.Tick += (s,e) =>
                 {
                     var root=DesktopPlatform.Data.LocalFolder.Path;
-                    if(File.Exists(Path.Combine(root,"ui-pass.txt")) || File.Exists(Path.Combine(root,"ui-failure.txt")) || DateTimeOffset.UtcNow>deadline) { timer.Stop(); Exit(); }
+                    if((!inspect && (File.Exists(Path.Combine(root,"ui-pass.txt")) || File.Exists(Path.Combine(root,"ui-failure.txt")))) || DateTimeOffset.UtcNow>deadline) { timer.Stop(); Exit(); }
                 };
                 timer.Start();
             }
@@ -258,6 +259,18 @@ public partial class App : Application
     public static void LogCrash(string message) => Log(message);
     public static void LogCrash(string context, Exception error) => Log(context + ": " + error);
     internal static void NoteAction(string action) { }
+    internal static async Task ClosePanelAsync()
+    {
+        if (Features.CompatibilityDisplay.CompatibilityDisplayRuntime.IsEnabled)
+            await RequestFullExitAsync();
+        else
+        {
+            // Release only this UI client; the Game Bar widget owns its own lifetime.
+            await Services.ServiceLauncher.UnregisterCurrentProcessAsync();
+            Current.Exit();
+        }
+    }
+
     public static async Task<bool> RequestFullExitAsync()
     {
         var application=(App)Current;

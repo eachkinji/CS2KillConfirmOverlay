@@ -83,13 +83,23 @@
         <Style x:Key="CompactCircleIconStyle" TargetType="Border" BasedOn="{StaticResource FluentIconStyle}" />
         <Style x:Key="CompactChoiceLabelStyle" TargetType="TextBlock" BasedOn="{StaticResource FluentCardTitle}" />
         <Style x:Key="CompactSettingsComboBoxStyle" TargetType="ComboBox" BasedOn="{StaticResource FluentComboBoxStyle}" />
+        <Style x:Key="DetailsStripStyle" TargetType="Button">
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="MinHeight" Value="30" />
+            <Setter Property="Padding" Value="12,5" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Background" Value="#F2F6FC" />
+            <Setter Property="Foreground" Value="#007AFF" />
+            <Setter Property="BorderThickness" Value="0" />
+        </Style>
     </UserControl.Resources>
 
         <!-- 6. Bomb Audio Settings Card (Expander Structure) -->
         <Border Style="{StaticResource FluentCardStyle}">
             <StackPanel Spacing="10">
                 <!-- Master Toggle Header -->
-                <Grid ColumnSpacing="12">
+                <Grid ColumnSpacing="16" MinHeight="46">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
@@ -127,8 +137,15 @@
                         Toggled="OnBombAudioToggled" />
                 </Grid>
 
+            <Button x:Name="BombDetailsButton" Style="{StaticResource DetailsStripStyle}" Click="OnBombDetailsClick" Tag="Bomb">
+                <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                    <TextBlock x:Name="BombDetailsText" Text="展开详细设置" FontSize="11" VerticalAlignment="Center"/>
+                    <FontIcon x:Name="BombDetailsChevron" Grid.Column="1" FontFamily="Segoe MDL2 Assets" Glyph="&#xE70D;" FontSize="10" VerticalAlignment="Center"/>
+                </Grid>
+            </Button>
+
                 <!-- Detailed Parameters & Sound Importer -->
-                <Border
+                <Border x:Name="BombDetailsContent" Visibility="Collapsed"
                     Background="{StaticResource FluentCardSubBackground}"
                     BorderBrush="{StaticResource FluentDivider}"
                     BorderThickness="1"

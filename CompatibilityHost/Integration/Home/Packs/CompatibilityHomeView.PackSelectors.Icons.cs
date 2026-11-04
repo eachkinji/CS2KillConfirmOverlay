@@ -52,6 +52,8 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                     return "ms-appx:///Assets/GameStyles/battlefield4/killconfirm/textures/killicon_battlefield1_headshot.png";
                 case "battlefield2042":
                     return "ms-appx:///Assets/GameLogos/battlefield2042.png";
+                case "battlefield6":
+                    return "ms-appx:///Assets/GameStyles/battlefield6/killconfirm/textures/killicon_battlefield6_default.png";
                 case "pubg":
                     return "ms-appx:///Assets/GameStyles/pubg/killconfirm/textures/killicon_scrolling_headshot.png";
                 case "deltaforce":
@@ -88,6 +90,8 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                     return "Battlefield 4";
                 case "battlefield2042":
                     return "Battlefield 2042";
+                case "battlefield6":
+                    return "Battlefield 6";
                 case "pubg":
                     return "PUBG";
                 case "deltaforce":
@@ -123,6 +127,8 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                     return "Battlefield 4";
                 case "battlefield2042":
                     return "Battlefield 2042";
+                case "battlefield6":
+                    return "Battlefield 6";
                 case "pubg":
                     return "PUBG";
                 case "deltaforce":

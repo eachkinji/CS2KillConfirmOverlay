@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -37,6 +37,7 @@ namespace KillConfirmGameBar.Controls
             ClearBattlefieldIconCache();
             ClearBattlefield4IconCache();
             ClearBattlefield2042IconCache();
+            ClearBattlefield6IconCache();
             ClearPubgIconCache();
             ClearDeltaForceIconCache();
             ClearDoubaoIconCache();
@@ -71,6 +72,7 @@ namespace KillConfirmGameBar.Controls
                 && !GameStyleService.IsBattlefield5Key(normalized)
                 && !GameStyleService.IsBattlefield4Key(normalized)
                 && !GameStyleService.IsBattlefield2042Key(normalized)
+                && !GameStyleService.IsBattlefield6Key(normalized)
                 && !GameStyleService.IsPubgKey(normalized)
                 && !GameStyleService.IsDeltaForceKey(normalized)
                 && !GameStyleService.IsCustomModuleKey(normalized)
@@ -137,6 +139,7 @@ namespace KillConfirmGameBar.Controls
             ResetBattlefield5ScrollingState();
             ResetBattlefield4HudState();
             ResetBattlefield2042HudState();
+            ResetBattlefield6HudState();
             ResetPubgHudState();
             ResetDeltaForceHudState();
             ResetDoubaoState();
@@ -198,6 +201,7 @@ namespace KillConfirmGameBar.Controls
             ClearBattlefieldIconCache();
             ClearBattlefield4IconCache();
             ClearBattlefield2042IconCache();
+            ClearBattlefield6IconCache();
             ClearPubgIconCache();
             ClearDeltaForceIconCache();
             ClearDoubaoIconCache();

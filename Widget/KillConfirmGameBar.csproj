@@ -130,6 +130,9 @@
       <DependentUpon>DanmakuOptionsPanel.xaml</DependentUpon>
     </Compile>
     <Compile Include="Services\Runtime\GsiStatusMonitor.cs" />
+    <Compile Include="Services\Runtime\VersionUpdateService.cs" />
+    <Compile Include="Services\Styling\ControlTheme.cs" />
+    <Compile Include="..\Common\PreviewEventSupport.cs" Link="Services\Runtime\PreviewEventSupport.cs" />
     <Compile Include="Services\CustomModule\CustomSequenceFormat.cs" />
     <Compile Include="Services\CustomModule\CustomSequencePackService.cs" />
     <Compile Include="Services\CustomModule\CustomSequencePackService.Editing.cs" />
@@ -435,7 +438,6 @@
     <Compile Include="Controls\Settings\System\AdvancedSystemOptionsPanel.xaml.cs">
       <DependentUpon>AdvancedSystemOptionsPanel.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\Settings\System\AdvancedSystemOptionsPanel.ProcessPriority.cs" />
     <Compile Include="Controls\Settings\Shared\SettingsPanelSupport.cs" />
     <Compile Include="Controls\Settings\Shared\SharedStreakSettingsPanelSupport.cs" />
     <Compile Include="Controls\Settings\Battlefield1\Battlefield1AdvancedSettingsPanel.xaml.cs">
@@ -481,13 +483,11 @@
     <Compile Include="Services\Settings\Games\DagoujiaoSettingsStore.cs" />
     <Compile Include="Services\Settings\Games\DagoujiaoSettingsStore.ServiceSync.cs" />
     <Compile Include="Services\Settings\Audio\BombAudioSettingsStore.cs" />
-    <Compile Include="Services\Settings\General\ProcessPrioritySettingsStore.cs" />
     <Compile Include="Services\Settings\General\SharedStreakSettingsStore.cs" />
     <Compile Include="Services\Settings\General\KillFeedbackVisibilitySettingsStore.cs" />
     <Compile Include="Services\Settings\General\DeveloperModeSettingsStore.cs" />
     <Compile Include="Services\Settings\Games\GsiGameVersionSettingsStore.cs" />
     <Compile Include="Services\Settings\General\StreakGainSettingsStore.cs" />
-    <Compile Include="Services\Settings\General\CloseBehaviorSettingsStore.cs" />
     <Compile Include="Services\Settings\General\AutoCloseOnGameExitSettingsStore.cs" />
     <Compile Include="Services\Settings\General\GameBarRuntimeStatusStore.cs" />
     <Compile Include="Services\Settings\Audio\InterruptPreviousKillAudioSettingsStore.cs" />
@@ -519,7 +519,6 @@
     <Compile Include="Services\Catalog\Games\PackCatalogService.Overwatch.cs" />
     <Compile Include="Services\Catalog\Games\PackCatalogService.ModernWarfare2019.cs" />
     <Compile Include="Services\Settings\Games\DoubaoSettingsStore.cs" />
-    <Compile Include="Helpers\ProcessPriorityBoost.cs" />
     <Compile Include="Helpers\TgaDecoder.cs" />
     <Compile Include="Helpers\AudioSlotAliases.cs" />
     <Compile Include="Services\Catalog\PackLibraryNavigation.cs" />
@@ -830,6 +829,34 @@
     <VisualStudioVersion>14.0</VisualStudioVersion>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Include="Services\Catalog\PackCatalogService.Battlefield6.cs" />
+    <Compile Include="Services\Styling\GameThemePalette.Battlefield6.cs" />
+    <Compile Include="Pages\Main\Appearance\MainPage.Battlefield6.cs" />
+    <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.Battlefield6.cs" />
+    <Compile Include="Pages\KillConfirmWidget\Animation\KillConfirmWidgetPage.Animation.Battlefield6.cs" />
+    <Compile Include="Pages\KillConfirmWidget\GameStyles\KillConfirmWidgetPage.GameStyle.Battlefield6.cs" />
+    <Page Include="Controls\GameStyles\Battlefield6\Battlefield6AdvancedEffectsPanel.xaml"><Generator>MSBuild:Compile</Generator><SubType>Designer</SubType></Page>
+    <Compile Include="Controls\GameStyles\Battlefield6\Battlefield6AdvancedEffectsPanel.xaml.cs" />
+    <Page Include="Controls\GameStyles\Battlefield6\Battlefield6StylePanel.xaml"><Generator>MSBuild:Compile</Generator><SubType>Designer</SubType></Page>
+    <Compile Include="Controls\GameStyles\Battlefield6\Battlefield6StylePanel.xaml.cs" />
+    <Compile Include="Controls\Animations\Battlefield6\Battlefield6Animation.Assets.cs" />
+    <Compile Include="Controls\Animations\Battlefield6\Battlefield6Animation.Data.cs" />
+    <Compile Include="Controls\Animations\Battlefield6\Battlefield6Animation.Models.cs" />
+    <Compile Include="Controls\Animations\Battlefield6\Battlefield6Animation.Playback.cs" />
+    <Compile Include="Controls\Animations\Battlefield6\Battlefield6Animation.State.cs" />
+    <Compile Include="Controls\Animations\Battlefield6\Battlefield6Animation.TextCache.cs" />
+    <Compile Include="Controls\Animations\Battlefield6\Battlefield6Animation.RasterCache.cs" />
+    <Compile Include="..\CompatibilityHost\Integration\Home\GameStyles\CompatibilityHomeView.GameStyle.Battlefield6.cs" />
+    <Page Include="..\CompatibilityHost\Integration\Controls\GameStyles\Battlefield6\Battlefield6AdvancedEffectsPanel.xaml"><Generator>MSBuild:Compile</Generator><SubType>Designer</SubType></Page>
+    <Compile Include="..\CompatibilityHost\Integration\Controls\GameStyles\Battlefield6\Battlefield6AdvancedEffectsPanel.xaml.cs" />
+    <Page Include="..\CompatibilityHost\Integration\Controls\GameStyles\Battlefield6\Battlefield6StylePanel.xaml"><Generator>MSBuild:Compile</Generator><SubType>Designer</SubType></Page>
+    <Compile Include="..\CompatibilityHost\Integration\Controls\GameStyles\Battlefield6\Battlefield6StylePanel.xaml.cs" />
+    <Compile Include="Pages\KillConfirmWidget\Animation\KillConfirmWidgetPage.Animation.Battlefield.cs" />
+    <Compile Include="Controls\Animations\Battlefield6\Battlefield6Animation.Drawing.cs" />
+    <Compile Include="Controls\Animations\Battlefield6\Battlefield6Animation.Render.cs" />
+  </ItemGroup>
+
   <PropertyGroup>
     <DefineConstants>$(DefineConstants);SHARED_WIDGET_RUNTIME</DefineConstants>
   </PropertyGroup>
@@ -851,5 +878,6 @@
   <ItemGroup Condition="'$(WidgetSwitchValidation)' == 'true'">
     <AppxManifest Include="Validation\Package.appxmanifest" />
     <Compile Include="Validation\GameSwitchValidation.cs" />
+    <Compile Include="Validation\Battlefield6Validation.cs" />
   </ItemGroup>
 </Project>

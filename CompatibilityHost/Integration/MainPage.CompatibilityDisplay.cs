@@ -35,15 +35,23 @@ namespace KillConfirmGameBar
             UpdateSettingsPageVisibility();
             AdvancedSettingsTabBar.Visibility = GameWorkspaceTabBar.Visibility = Visibility.Collapsed;
             var theme = GameThemePalette.Home;
+            ControlTheme.Apply(this, theme);
             SettingsRootGrid.Background = CreateSettingsBackground(GameStyleService.Current, true);
             UpdateBackgroundDecoration(GameStyleService.Current, false);
             ApplyGameStyleSidebarTheme(theme);
             ApplyPageTitleTheme(theme);
             if (_compatibilityWorkspace == null) _compatibilityWorkspace = new CompatibilityDisplayPanel();
             _compatibilityWorkspace.OpenGameSettings = OpenCurrentGameSettings;
+            _compatibilityWorkspace.OpenAboutVersion = OpenAboutVersion;
+            _compatibilityWorkspace.OpenPackLibrary = OpenPackLibrary;
             if (CompatibilityPageContent.Content != _compatibilityWorkspace) CompatibilityPageContent.Content = _compatibilityWorkspace;
             _compatibilityWorkspace.ApplyLanguage();
             _compatibilityWorkspace.ApplyTheme(theme);
+        }
+        internal void OpenAboutVersion()
+        {
+            GameStyleSidebarSelector.SelectedItem = AdvancedSettingsSidebarItem;
+            SelectHomeTab("about");
         }
         internal void OpenCurrentGameSettings()
         {

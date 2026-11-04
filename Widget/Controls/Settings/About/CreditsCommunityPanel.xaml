@@ -31,7 +31,7 @@
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
                         <Border Width="36" Height="36" CornerRadius="18">
-                            <Image Source="ms-appx:///Assets/Credits/st0nie.png" Stretch="UniformToFill" />
+                            <Image x:Name="St0nieCommunityAvatar" Width="36" Height="36" Stretch="UniformToFill" />
                         </Border>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
                             <TextBlock x:Name="St0nieCommunityNameText" FontSize="11" FontWeight="SemiBold" Text="ston · st0nie" />
@@ -57,7 +57,7 @@
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
                         <Border Width="36" Height="36" CornerRadius="18">
-                            <Image Source="ms-appx:///Assets/Credits/gufan0000.png" Stretch="UniformToFill" />
+                            <Image x:Name="GufanCommunityAvatar" Width="36" Height="36" Stretch="UniformToFill" />
                         </Border>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
                             <TextBlock x:Name="GufanCommunityNameText" FontSize="11" FontWeight="SemiBold" Text="gufan0000" />
@@ -96,7 +96,7 @@
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
                         <Border Width="30" Height="30" CornerRadius="15">
-                            <Image Source="ms-appx:///Assets/Credits/st0nie.png" Stretch="UniformToFill" />
+                            <Image x:Name="St0nieContributorAvatar" Width="30" Height="30" Stretch="UniformToFill" />
                         </Border>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
                             <TextBlock x:Name="St0nieContributorNameText" FontSize="10" FontWeight="SemiBold" Text="Ston Jia · st0nie" />
@@ -122,7 +122,7 @@
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
                         <Border Width="30" Height="30" CornerRadius="15">
-                            <Image Source="ms-appx:///Assets/Credits/system32ovo.png" Stretch="UniformToFill" />
+                            <Image x:Name="System32ContributorAvatar" Width="30" Height="30" Stretch="UniformToFill" />
                         </Border>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
                             <TextBlock x:Name="System32ContributorNameText" FontSize="10" FontWeight="SemiBold" Text="XingKong1024ovo · system32ovo" TextWrapping="WrapWholeWords" />

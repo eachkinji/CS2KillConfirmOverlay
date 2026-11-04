@@ -1,4 +1,8 @@
-using System;
+﻿using System;
+using System.Threading.Tasks;
+using Windows.Data.Json;
+using Windows.Storage.Streams;
+using Windows.Web.Http;
 using Windows.Storage;
 
 namespace KillConfirmGameBar.Services
@@ -23,15 +27,32 @@ namespace KillConfirmGameBar.Services
             }
         }
 
+        private static string CreateRequest(GameStyleMode style, bool voice)
+            => new JsonObject
+            {
+                ["game"] = JsonValue.CreateStringValue(GameStyleService.ToStorageValue(style)),
+                ["tab"] = JsonValue.CreateStringValue(voice ? "voice" : "icon"),
+                ["created"] = JsonValue.CreateNumberValue(DateTimeOffset.UtcNow.ToUnixTimeSeconds())
+            }.Stringify();
+
         public static void Request(GameStyleMode style, bool voice)
+            => ApplicationData.Current.LocalSettings.Values[RequestKey] = CreateRequest(style, voice);
+
+        // Hand off before activating the desktop panel. Composite LocalSettings values
+        // are process-local and cannot travel through the scalar settings bridge.
+        public static async Task RequestSharedAsync(GameStyleMode style, bool voice)
         {
-            ApplicationData.Current.LocalSettings.Values[RequestKey] =
-                new ApplicationDataCompositeValue
-                {
-                    ["game"] = GameStyleService.ToStorageValue(style),
-                    ["tab"] = voice ? "voice" : "icon",
-                    ["created"] = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
-                };
+#if DESKTOP_CONTROL_PANEL
+            Request(style, voice);
+            await Task.CompletedTask;
+#else
+            var scalar = new JsonObject { ["Kind"] = JsonValue.CreateStringValue("string"), ["Text"] = JsonValue.CreateStringValue(CreateRequest(style, voice)) };
+            var request = new JsonObject { ["key"] = JsonValue.CreateStringValue(RequestKey), ["value"] = scalar };
+            using (var client = await LocalServiceAuth.CreateHttpClientAsync())
+            using (var body = new HttpStringContent(request.Stringify(), UnicodeEncoding.Utf8, "application/json"))
+            using (var response = await client.PostAsync(LocalServiceEndpoints.Build("/shared/setting"), body))
+                response.EnsureSuccessStatusCode();
+#endif
         }
 
         public static void Clear() => ApplicationData.Current.LocalSettings.Values.Remove(RequestKey);
@@ -39,12 +60,12 @@ namespace KillConfirmGameBar.Services
         public static bool TryTake(out string game, out string tab)
         {
             game = tab = null;
-            var request = ApplicationData.Current.LocalSettings.Values[RequestKey] as ApplicationDataCompositeValue;
+            if (!ApplicationData.Current.LocalSettings.Values.TryGetValue(RequestKey, out object value)) return false;
             Clear();
-            if (request == null || !(request["created"] is long created)
-                || Math.Abs(DateTimeOffset.UtcNow.ToUnixTimeSeconds() - created) > 120) return false;
-            game = request["game"] as string;
-            tab = request["tab"] as string;
+            if (!(value is string text) || !JsonObject.TryParse(text, out JsonObject request)) return false;
+            if (Math.Abs(DateTimeOffset.UtcNow.ToUnixTimeSeconds() - request.GetNamedNumber("created", 0)) > 120) return false;
+            game = request.GetNamedString("game", "");
+            tab = request.GetNamedString("tab", "");
             return !string.IsNullOrEmpty(game) && (tab == "voice" || tab == "icon");
         }
     }

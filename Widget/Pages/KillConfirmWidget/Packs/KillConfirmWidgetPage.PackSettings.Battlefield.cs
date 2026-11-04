@@ -34,6 +34,10 @@ namespace KillConfirmGameBar
                 case "bf2042":
                 case "2042":
                     return "battlefield2042";
+                case "battlefield6":
+                case "battlefield_6":
+                case "bf6":
+                    return "battlefield6";
                 case "delta":
                 case "df":
                     return "deltaforce";
@@ -54,6 +58,7 @@ namespace KillConfirmGameBar
                 || (GameStyleService.Current == GameStyleMode.Battlefield5 && GameStyleService.IsBattlefield5Key(packKey))
                 || (GameStyleService.Current == GameStyleMode.Battlefield4 && GameStyleService.IsBattlefield4Key(packKey))
                 || (GameStyleService.Current == GameStyleMode.Battlefield2042 && GameStyleService.IsBattlefield2042Key(packKey))
+                || (GameStyleService.Current == GameStyleMode.Battlefield6 && GameStyleService.IsBattlefield6Key(packKey))
                 || (GameStyleService.Current == GameStyleMode.Pubg && GameStyleService.IsPubgKey(packKey))
                 || (GameStyleService.Current == GameStyleMode.DeltaForce && GameStyleService.IsDeltaForceKey(packKey))
                 || (GameStyleService.Current == GameStyleMode.Doubao && GameStyleService.IsDoubaoKey(packKey))

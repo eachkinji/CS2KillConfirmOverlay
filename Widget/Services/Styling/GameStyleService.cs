@@ -18,7 +18,8 @@ namespace KillConfirmGameBar.Services
         DeltaForce,
         Doubao,
         Dagoujiao,
-        CustomModule
+        CustomModule,
+        Battlefield6
     }
 
     internal static partial class GameStyleService
@@ -65,6 +66,8 @@ namespace KillConfirmGameBar.Services
                     return "battlefield4";
                 case GameStyleMode.Battlefield2042:
                     return "battlefield2042";
+                case GameStyleMode.Battlefield6:
+                    return "battlefield6";
                 case GameStyleMode.Pubg:
                     return "pubg";
                 case GameStyleMode.DeltaForce:
@@ -103,6 +106,8 @@ namespace KillConfirmGameBar.Services
                     return "战地4";
                 case GameStyleMode.Battlefield2042:
                     return "战地2042";
+                case GameStyleMode.Battlefield6:
+                    return "战地6";
                 case GameStyleMode.Pubg:
                     return "PUBG";
                 case GameStyleMode.DeltaForce:
@@ -152,6 +157,10 @@ namespace KillConfirmGameBar.Services
                 case "bf2042":
                 case "2042":
                     return GameStyleMode.Battlefield2042;
+                case "battlefield6":
+                case "battlefield_6":
+                case "bf6":
+                    return GameStyleMode.Battlefield6;
                 case "pubg":
                     return GameStyleMode.Pubg;
                 case "deltaforce":
@@ -237,6 +246,7 @@ namespace KillConfirmGameBar.Services
                 || mode == GameStyleMode.Battlefield5
                 || mode == GameStyleMode.Battlefield4
                 || mode == GameStyleMode.Battlefield2042
+                || mode == GameStyleMode.Battlefield6
                 || mode == GameStyleMode.DeltaForce;
         }
 
@@ -276,6 +286,14 @@ namespace KillConfirmGameBar.Services
                 || string.Equals(value, "battlefield_2042", System.StringComparison.OrdinalIgnoreCase)
                 || string.Equals(value, "bf2042", System.StringComparison.OrdinalIgnoreCase)
                 || string.Equals(value, "2042", System.StringComparison.OrdinalIgnoreCase);
+        }
+
+        public static bool IsBattlefield6Key(string key)
+        {
+            string value = (key ?? string.Empty).Trim();
+            return string.Equals(value, "battlefield6", System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "battlefield_6", System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "bf6", System.StringComparison.OrdinalIgnoreCase);
         }
 
         public static bool IsDeltaForceKey(string key)
@@ -323,6 +341,7 @@ namespace KillConfirmGameBar.Services
                 || IsBattlefield5Key(key)
                 || IsBattlefield4Key(key)
                 || IsBattlefield2042Key(key)
+                || IsBattlefield6Key(key)
                 || IsPubgKey(key)
                 || IsDeltaForceKey(key)
                 || IsDoubaoKey(key)

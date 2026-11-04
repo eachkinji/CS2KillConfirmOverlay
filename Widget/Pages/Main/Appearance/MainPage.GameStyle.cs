@@ -34,6 +34,8 @@ namespace KillConfirmGameBar
         private DoubaoAdvancedEffectsPanel _doubaoAdvancedEffectsPanel;
         private DagoujiaoAdvancedEffectsPanel _dagoujiaoAdvancedEffectsPanel;
 
+        private GameStyleMode SettingsGameStyle = GameStyleService.Current;
+        private GameThemePalette SettingsTheme => _isHomePageSelected || _isSettingsWorkspaceSelected ? GameThemePalette.Home : GameThemePalette.ForMode(SettingsGameStyle);
         private bool _suppressGameStyleEvents;
         private bool _suppressCrossfireSettingEvents;
         private bool _isSettingsWorkspaceSelected = true;
@@ -42,7 +44,7 @@ namespace KillConfirmGameBar
         private void ApplyGameStyleUi()
         {
             if (_isHomePageSelected) { ApplyCompatibilityWorkspace(); return; }
-            GameStyleMode mode = GameStyleService.Current;
+            GameStyleMode mode = SettingsGameStyle;
             SyncGameStyleSelector();
             bool valorant = mode == GameStyleMode.Valorant;
             bool csol = mode == GameStyleMode.Csol;
@@ -57,6 +59,8 @@ namespace KillConfirmGameBar
             bool modernWarfare2019 = mode == GameStyleMode.ModernWarfare2019;
             bool apex = mode == GameStyleMode.Apex;
             GameThemePalette theme = _isSettingsWorkspaceSelected ? GameThemePalette.Home : GameThemePalette.ForMode(mode);
+
+            ControlTheme.Apply(this, theme);
 
             Visibility iconCreationVisibility = overwatch || modernWarfare2019 || apex ? Visibility.Collapsed : Visibility.Visible;
             if (ImportIconZipButton != null) ImportIconZipButton.Visibility = iconCreationVisibility;
@@ -127,8 +131,8 @@ namespace KillConfirmGameBar
             SetText(VoiceCollectionsHintText, Color.FromArgb(255, 110, 110, 115));
             SetText(IconCollectionsTitleText, Color.FromArgb(255, 28, 28, 30));
             SetText(IconCollectionsHintText, Color.FromArgb(255, 110, 110, 115));
-            SetText(VoiceVisibleCountText, Color.FromArgb(255, 0, 122, 255));
-            SetText(IconVisibleCountText, Color.FromArgb(255, 0, 122, 255));
+            SetText(VoiceVisibleCountText, theme.Accent);
+            SetText(IconVisibleCountText, theme.Accent);
             SetText(StructureTitleText, Color.FromArgb(255, 28, 28, 30));
             SetText(StructureBodyText, Color.FromArgb(255, 110, 110, 115));
             SetText(StructureImportFolderTitleText, Color.FromArgb(255, 28, 28, 30));
@@ -136,7 +140,7 @@ namespace KillConfirmGameBar
             SetText(StructureVoiceSpecTitleText, Color.FromArgb(255, 28, 28, 30));
             SetText(StructureVoiceSpecBodyText, Color.FromArgb(255, 58, 58, 60));
             SetText(StructureIconSpecTitleText, Color.FromArgb(255, 28, 28, 30));
-            SetText(StructureIconSpecSummaryText, Color.FromArgb(255, 0, 122, 255));
+            SetText(StructureIconSpecSummaryText, theme.Accent);
             SetText(StructureIconSpecFullText, Color.FromArgb(255, 58, 58, 60));
             SetText(StructureImportZipTitleText, Color.FromArgb(255, 28, 28, 30));
             SetText(StructureImportZipBodyText, Color.FromArgb(255, 110, 110, 115));
@@ -193,14 +197,17 @@ namespace KillConfirmGameBar
             TitleText.FontSize = gamePage ? 24 : 22;
             if (gamePage)
             {
-                GameStyleMode mode = GameStyleService.Current;
+                GameStyleMode mode = SettingsGameStyle;
                 TitleText.Text = GetGamePageTitle(mode, isChinese);
                 string extension = mode == GameStyleMode.Dagoujiao ? "jpg" : "png";
-                var logoUri = new Uri("ms-appx:///Assets/GameLogos/" + GameStyleService.ToStorageValue(mode) + "." + extension);
+                var logoUri = new Uri(mode == GameStyleMode.Battlefield6
+                    ? "ms-appx:///Assets/GameStyles/battlefield6/killconfirm/textures/killicon_battlefield6_default.png"
+                    : "ms-appx:///Assets/GameLogos/" + GameStyleService.ToStorageValue(mode) + "." + extension);
                 if (!(PageTitleGameLogo.Source is BitmapImage currentLogo) || currentLogo.UriSource != logoUri)
                     PageTitleGameLogo.Source = new BitmapImage(logoUri) { DecodePixelWidth = 152 };
-                // These two logos are white on transparent; give them a dark tile.
-                bool darkLogo = mode == GameStyleMode.ModernWarfare2019 || mode == GameStyleMode.Battlefield5;
+                // White-on-transparent logos need a dark tile on the light page.
+                bool darkLogo = mode == GameStyleMode.ModernWarfare2019 || mode == GameStyleMode.Battlefield5
+                    || mode == GameStyleMode.Battlefield6;
                 PageTitleLogoSurface.Background = new SolidColorBrush(darkLogo
                     ? Color.FromArgb(255, 37, 43, 52) : Color.FromArgb(224, 255, 255, 255));
                 PageTitleAccent.Background = theme.Brush(theme.Accent);
@@ -252,6 +259,7 @@ namespace KillConfirmGameBar
                 case GameStyleMode.Battlefield5: return "Battlefield V";
                 case GameStyleMode.Battlefield4: return "Battlefield 4";
                 case GameStyleMode.Battlefield2042: return "Battlefield 2042";
+                case GameStyleMode.Battlefield6: return "Battlefield 6";
                 case GameStyleMode.Pubg: return "PUBG: Battlegrounds";
                 case GameStyleMode.DeltaForce: return "Delta Force";
                 case GameStyleMode.Doubao: return "Doubao";
@@ -279,6 +287,7 @@ namespace KillConfirmGameBar
                 CreateHeroSlashBrush(mode),
                 battlefield5 ? Color.FromArgb(255, 119, 243, 255) :
                 battlefield2042 ? Color.FromArgb(255, 109, 255, 255) :
+                mode == GameStyleMode.Battlefield6 ? Color.FromArgb(255, 238, 175, 126) :
                 battlefield4 ? Color.FromArgb(255, 125, 211, 252) :
                 battlefield1 ? Color.FromArgb(255, 255, 218, 166) :
                 valorant ? Color.FromArgb(255, 255, 170, 178) :
@@ -289,6 +298,7 @@ namespace KillConfirmGameBar
                 Color.FromArgb(255, 255, 240, 213),
                 battlefield5 ? Color.FromArgb(255, 58, 137, 166) :
                 battlefield2042 ? Color.FromArgb(255, 60, 128, 146) :
+                mode == GameStyleMode.Battlefield6 ? Color.FromArgb(255, 93, 120, 101) :
                 battlefield4 ? Color.FromArgb(255, 56, 120, 160) :
                 battlefield1 ? Color.FromArgb(255, 88, 110, 126) :
                 valorant ? Color.FromArgb(255, 59, 78, 102) :
@@ -324,7 +334,7 @@ namespace KillConfirmGameBar
             _suppressGameStyleEvents = true;
             try
             {
-                string key = GameStyleService.ToStorageValue(GameStyleService.Current);
+                string key = GameStyleService.ToStorageValue(SettingsGameStyle);
                 if (GameStyleSelector != null)
                 {
                     foreach (object item in GameStyleSelector.Items)
@@ -419,15 +429,8 @@ namespace KillConfirmGameBar
         {
             GameStyleMode newMode = GameStyleService.FromKey(key);
             BeginGameStyleTransition();
-            if (GameStyleService.Current != newMode)
-            {
-                GameStyleService.Current = newMode;
-                return;
-            }
-
-            // Setting the same mode does not raise GameStyleService.Changed.
-            // Route it through the same guarded refresh path as a real mode change.
-            OnGameStyleServiceChanged(null, newMode);
+            SettingsGameStyle = newMode;
+            RefreshSettingsGamePage(newMode);
         }
 
         private void BeginGameStyleTransition()
@@ -458,6 +461,7 @@ namespace KillConfirmGameBar
 
         private void ApplyGameStyleSidebarTheme(GameThemePalette theme)
         {
+            ControlTheme.Apply(GameStyleSidebarSelector, theme);
             if (GameModeSidebar != null)
             {
                 GameModeSidebar.Background = GameThemePalette.Glass(0.66);
@@ -490,7 +494,7 @@ namespace KillConfirmGameBar
             }
 
             object panel;
-            switch (GameStyleService.Current)
+            switch (SettingsGameStyle)
             {
                 case GameStyleMode.Overwatch:
                     panel = EnsureOverwatchAdvancedSettingsPanel();
@@ -515,6 +519,9 @@ namespace KillConfirmGameBar
                     break;
                 case GameStyleMode.Battlefield2042:
                     panel = EnsureBattlefield2042AdvancedSettingsPanel();
+                    break;
+                case GameStyleMode.Battlefield6:
+                    panel = EnsureBattlefield6AdvancedSettingsPanel();
                     break;
                 case GameStyleMode.Pubg:
                     panel = EnsurePubgAdvancedSettingsPanel();
@@ -560,9 +567,9 @@ namespace KillConfirmGameBar
             }
 
             KillFeedbackAppearanceEditorControl?.Configure(
-                GameStyleService.Current,
+                SettingsGameStyle,
                 LocalizationManager.Current == UiLanguage.SimplifiedChinese,
-                GameThemePalette.ForMode(GameStyleService.Current));
+                GameThemePalette.ForMode(SettingsGameStyle));
 
             ApplyGameAdvancedSettingsPanelLanguage();
         }

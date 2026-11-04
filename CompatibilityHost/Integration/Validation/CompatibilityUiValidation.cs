@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -26,6 +26,8 @@ namespace KillConfirmGameBar
                 try
                 {
 #if DESKTOP_CONTROL_PANEL
+                    if (Environment.GetEnvironmentVariable("KILLCONFIRM_UI_INSPECTION") == "1") return;
+                    if (Environment.GetEnvironmentVariable("KILLCONFIRM_SETTINGS_VALIDATION") == "1") { await ValidateSettingsAndUpdatesAsync(); return; }
                     if (Environment.GetEnvironmentVariable("KILLCONFIRM_STARTUP_VALIDATION") == "1")
                     {
                         await ValidateLargeLibraryStartupAsync();
@@ -49,7 +51,10 @@ namespace KillConfirmGameBar
                     await Task.Delay(100);
                     if (!_isHomePageSelected || CompatibilityPageContent.Content != _compatibilityWorkspace) throw new Exception("Home page did not remount");
                     await _compatibilityWorkspace.ValidateCurrentGameAsync();
-                    await FileIO.WriteTextAsync(await ApplicationData.Current.LocalFolder.CreateFileAsync("ui-pass.txt", CreationCollisionOption.ReplaceExisting), "PASS: default mode-selection home, compact mode actions, peer advanced settings with four tabs, independent game navigation, Game Bar default with widget traffic lights, mode-switched status strip with display / service / data / packs lights, packs and testing as the main page, current-game settings jump, page-style screen layout and display performance cards, playback feedback, all 15 game panels, 60 rapid game changes, selectors, isolated appearance settings and navigation lifecycle.");
+#if DESKTOP_CONTROL_PANEL
+                    await ValidateNavigationAndThemesAsync();
+#endif
+                    await FileIO.WriteTextAsync(await ApplicationData.Current.LocalFolder.CreateFileAsync("ui-pass.txt", CreationCollisionOption.ReplaceExisting), "PASS: default mode-selection home, compact mode actions, peer advanced settings with four tabs, independent game navigation, Game Bar default with widget traffic lights, mode-switched status strip with display / service / data / packs lights, packs and testing as the main page, current-game settings jump, page-style screen layout and display performance cards, playback feedback, all game panels, four rounds of rapid game changes, selectors, isolated appearance settings and navigation lifecycle.");
                 }
                 catch (Exception error) { await FileIO.WriteTextAsync(await ApplicationData.Current.LocalFolder.CreateFileAsync("ui-failure.txt", CreationCollisionOption.ReplaceExisting), error.ToString()); }
             };
@@ -199,13 +204,13 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                 throw new Exception("Playback button must fit its full localized label.");
             foreach (var testCase in new[] { Tuple.Create((string)null, true), Tuple.Create("图标包缺失（测试）", true), Tuple.Create((string)null, false) })
             {
-                string testError = testCase.Item1; bool audio = testCase.Item2;
+                string testError = testCase.Item1; bool useButton = testCase.Item2;
                 var previous = CompatibilityDisplayRuntime.Load();
                 KillConfirmCompatibility.Contracts.DisplayFiles.Write(CompatibilityDisplayRuntime.StatusPath,
                     new KillConfirmCompatibility.Contracts.DisplayStatus { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), ProcessId = 1 });
-                if (audio) OnTestEventClick(this, new RoutedEventArgs()); else _ = PreviewVisualAsync();
+                if (useButton) OnTestEventClick(this, new RoutedEventArgs()); else _ = PreviewAsync();
                 var request = CompatibilityDisplayRuntime.Load();
-                if (request.TestRequest <= previous.TestRequest || request.TestAudio != audio || request.TestPreset != (string)((ComboBoxItem)PackTestSectionView.TestPresetSelector.SelectedItem).Tag)
+                if (request.TestRequest <= previous.TestRequest || !request.TestAudio || request.TestPreset != (string)((ComboBoxItem)PackTestSectionView.TestPresetSelector.SelectedItem).Tag)
                     throw new Exception("Playback test did not send the selected visual/audio test request");
                 KillConfirmCompatibility.Contracts.DisplayFiles.Write(CompatibilityDisplayRuntime.StatusPath,
                     new KillConfirmCompatibility.Contracts.DisplayStatus { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), ProcessId = 1, LastTestRequest = request.TestRequest, TestError = testError });
@@ -222,7 +227,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             int attempts = 0;
             while ((!_packSelectorsInitialized || GameStyleService.Current != style) && ++attempts < 400) await Task.Delay(25);
             if (!_packSelectorsInitialized || GameStyleService.Current != style) throw new Exception("Game switch failed: " + style + "; active=" + _isPageActive + "; current=" + GameStyleService.Current + "; revision=" + _revision + "; error=" + _lastRefreshError);
-            if (GameSelector.Items.Count != 15 || PackTestSectionView.VoicePackSelector.SelectedItem == null || PackTestSectionView.IconPackSelector.SelectedItem == null || PackTestSectionView.AdvancedEffectsPanelHost.Content == null) throw new Exception("Incomplete game home: " + style);
+            if (GameSelector.Items.Count != Enum.GetValues(typeof(GameStyleMode)).Length || PackTestSectionView.VoicePackSelector.SelectedItem == null || PackTestSectionView.IconPackSelector.SelectedItem == null || PackTestSectionView.AdvancedEffectsPanelHost.Content == null) throw new Exception("Incomplete game home: " + style);
         }
         internal void QueueRapidValidationChanges(GameStyleMode[] styles)
         {

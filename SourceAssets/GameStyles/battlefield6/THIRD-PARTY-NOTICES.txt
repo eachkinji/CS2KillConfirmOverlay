@@ -1,0 +1,36 @@
+Battlefield 6 effect attribution
+
+Source: https://github.com/MinecraftGD656/gd656killicon
+Upstream author: Minecraft_GD656 (gradle.properties: mod_authors)
+Revision: 10d367eb6ddb158d2f5e3e250d2cf825d9b95a12
+Upstream licensing declaration: README.md and gradle.properties (mod_license=MIT).
+The upstream checkout has no separate LICENSE file. The standard MIT terms below
+are included with this port; the author attribution above is retained.
+
+Reference preset: src/main/resources/assets/gd656killicon/presets/official/00037.json
+Reference renderers: ScrollingIconRenderer, SubtitleRenderer, BonusListRenderer,
+ScoreSubtitleRenderer. The C#/Win2D implementation is a platform adaptation.
+Textures: textures/killicon_battlefield6_*.png (all 10 originals, unchanged).
+Audio: killsound_bf6.ogg, headshotkillsound_bf6.ogg, assistsound_bf6.ogg,
+hitsound_bf6.ogg. The playback pack contains PCM WAV conversions; original OGG
+files remain in SourceAssets/GameStyles/battlefield6/audio-source.
+
+MIT License
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+of the Software, and to permit persons to whom the Software is furnished to do
+so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.

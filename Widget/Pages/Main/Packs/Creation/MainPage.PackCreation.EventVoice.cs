@@ -33,6 +33,7 @@ namespace KillConfirmGameBar
                 || style == GameStyleMode.Battlefield5
                 || style == GameStyleMode.Battlefield4
                 || style == GameStyleMode.Battlefield2042
+                || style == GameStyleMode.Battlefield6
                 || style == GameStyleMode.DeltaForce
                 || style == GameStyleMode.Pubg
                 || style == GameStyleMode.Apex;
@@ -106,6 +107,20 @@ namespace KillConfirmGameBar
                         {
                             Slot("normal.wav", "普通击杀", "Normal kill", "normal.wav"),
                             Slot("headshot.wav", "爆头", "Headshot", "headshot.wav")
+                        }
+                    };
+                case GameStyleMode.Battlefield6:
+                    return new EventVoiceEditorDefinition
+                    {
+                        SoundsFolder = "battlefield6",
+                        DefaultHeadPreviewUri = "ms-appx:///Assets/GameStyles/battlefield6/killconfirm/textures/killicon_battlefield6_default.png",
+                        ChineseHint = "分别为战地6的普通击杀、爆头和助攻选择提示音。",
+                        EnglishHint = "Choose separate cues for Battlefield 6 normal kills, headshots, and assists.",
+                        Slots = new[]
+                        {
+                            Slot("normal.wav", "普通击杀", "Normal kill", "normal.wav"),
+                            Slot("headshot.wav", "爆头", "Headshot", "headshot.wav"),
+                            Slot("assist.wav", "助攻", "Assist", "assist.wav")
                         }
                     };
                 case GameStyleMode.Pubg:

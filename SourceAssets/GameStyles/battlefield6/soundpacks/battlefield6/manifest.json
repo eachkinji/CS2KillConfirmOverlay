@@ -1,0 +1,17 @@
+{
+  "id": "battlefield6",
+  "name": "Battlefield 6",
+  "game_style": "battlefield6",
+  "version": "1.0",
+  "author": "MinecraftGD656 / gd656killicon",
+  "audio": {
+    "base_gain": 1.0,
+    "slots": {
+      "kill_1": "normal.wav",
+      "headshot": "headshot.wav",
+      "assist": "assist.wav",
+      "hit": "hit.wav"
+    },
+    "overlay_slots": []
+  }
+}

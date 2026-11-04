@@ -7,6 +7,7 @@ internal static class KillConfirmWidgetPage
     public const string OpenRuntimeLogsParameterGroupId="OpenRuntimeLogs";
     public static Task<bool> TryLaunchFullTrustHelperAsync(string group)
     {
+        if (DesktopPlatform.IsUiValidation) return Task.FromResult(true);
         try
         {
             string root=KillConfirmCompatibility.Contracts.RuntimePaths.InstallRoot;

@@ -203,13 +203,21 @@ namespace KillConfirmGameBar
                 Source = new BitmapImage(new Uri(logoUri))
             };
 
+            FrameworkElement logo = image;
+            if (logoUri.IndexOf("/battlefield6/", StringComparison.OrdinalIgnoreCase) >= 0)
+                logo = new Border
+                {
+                    Background = Brush(Color.FromArgb(217, 52, 56, 64)),
+                    CornerRadius = new CornerRadius(4),
+                    Child = image
+                };
             item.Content = new Grid
             {
                 Width = 30,
                 Height = 18,
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center,
-                Children = { image }
+                Children = { logo }
             };
             ToolTipService.SetToolTip(item, text);
         }

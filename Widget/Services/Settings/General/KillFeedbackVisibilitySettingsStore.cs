@@ -130,6 +130,8 @@ namespace KillConfirmGameBar.Services
                     return "Battlefield4KillFeedback";
                 case GameStyleMode.Battlefield2042:
                     return "Battlefield2042KillFeedback";
+                case GameStyleMode.Battlefield6:
+                    return "Battlefield6KillFeedback";
                 case GameStyleMode.DeltaForce:
                     return "DeltaForceKillFeedback";
                 case GameStyleMode.Crossfire:

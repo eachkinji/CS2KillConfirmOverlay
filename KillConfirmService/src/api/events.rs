@@ -249,6 +249,7 @@ fn resolve_soundpack_alias(value: &str) -> Option<&'static str> {
         "bf5" | "battlefield5" | "battlefield_5" => Some("bf5"),
         "bf4" | "battlefield4" | "battlefield_4" => Some("bf4"),
         "bf2042" | "battlefield2042" | "battlefield_2042" | "2042" => Some("battlefield2042"),
+        "bf6" | "battlefield6" | "battlefield_6" => Some("battlefield6"),
         "pubg" | "pubg_elimination" | "pubg_subtitle" => Some("pubg"),
         "delta" | "df" | "deltaforce" | "delta_force" => Some("deltaforce"),
         "dagoujiao" | "da_gou_jiao" => Some("dagoujiao"),

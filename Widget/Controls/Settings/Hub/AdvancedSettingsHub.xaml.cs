@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using KillConfirmGameBar.Services;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -18,11 +18,15 @@ namespace KillConfirmGameBar.Controls.Settings
         {
             InitializeComponent();
             Loaded += OnLoaded;
+            Unloaded += (sender, args) => VersionUpdateService.Changed -= OnVersionStateChanged;
         }
         private async void OnLoaded(object sender, RoutedEventArgs e)
         {
             ApplyLanguage();
-            ApplyTheme(GameThemePalette.Current);
+            ApplyTheme(GameThemePalette.Home);
+            VersionUpdateService.Changed += OnVersionStateChanged;
+            OnVersionStateChanged(null, EventArgs.Empty);
+            _ = VersionUpdateService.CheckAsync();
             await HubPortSettingsView.InitializeAsync();
         }
 
@@ -55,20 +59,14 @@ namespace KillConfirmGameBar.Controls.Settings
                 ? "游戏与系统选项"
                 : "GAME & SYSTEM";
             HubGeneralCardSecondaryDescription.Text = isChinese
-                ? "设置 Counter-Strike 版本、主窗口关闭方式和程序运行优先级。"
-                : "Choose the Counter-Strike version, main-window close behavior, and program priority.";
+                ? "选择要监听的 Counter-Strike 版本。"
+                : "Choose the Counter-Strike version to monitor.";
 
             HubPortSettingsView?.ApplyLanguage();
 
             HubDisplayCardTitle.Text = isChinese ? "进阶设置" : "ADVANCED SETTINGS";
-            HubDisplayCardDescription.Text = isChinese
-                ? "可在这里调整 Counter-Strike 版本和软件维护选项。"
-                : "Adjust the Counter-Strike version and app maintenance options here.";
 
             HubAboutTitle.Text = isChinese ? "关于本版本" : "ABOUT THIS BUILD";
-            HubAboutBody.Text = isChinese
-                ? "Kill Confirm Overlay 是 Xbox Game Bar 的击杀提示工具，可根据比赛中的击杀信息显示动画并播放语音。程序不会修改游戏文件或游戏进程。"
-                : "Kill Confirm Overlay is a kill-feedback tool for Xbox Game Bar. It shows animations and plays audio from match information without modifying game files or the game process.";
             var packageVersion = Windows.ApplicationModel.Package.Current.Id.Version;
             string versionText = $"{packageVersion.Major}.{packageVersion.Minor}.{packageVersion.Build}.{packageVersion.Revision}";
             HubAboutVersion.Text = isChinese
@@ -77,14 +75,14 @@ namespace KillConfirmGameBar.Controls.Settings
             HubExitAllButton.Content = isChinese ? "完全退出本程序" : "Exit completely";
             HubUninstallButton.Content = isChinese ? "卸载" : "Uninstall";
 
-            HubAboutUpdateTitle.Text = isChinese ? "更新信息" : "WHAT'S NEW";
-            HubAboutUpdateBody.Text = isChinese
-                ? "· 新增：全新高级设置页面与端口快速切换\n"
-                    + "· 新增：C4 炸弹倒计时与音效自定义、面板配色自定义、CSOL 资源包导入\n"
-                    + "· 优化：设置页签重组为「游戏体验增强」与「进阶设置」，常用体验选项一键直达"
-                : "• New: redesigned advanced settings page with quick port switching\n"
-                    + "• New: C4 bomb timer audio customization, panel color customizer, CSOL pack import\n"
-                    + "• Improved: settings tabs reorganized into Game Experience and Advanced";
+            HubAboutUpdateTitle.Text = isChinese ? "公开版本更新说明" : "Public release notes";
+            HubUpdateStepsTitle.Text = isChinese ? "如何更新" : "How to update";
+            HubUpdateSteps.Text = isChinese
+                ? "1  打开下载页面，下载最新版本的 EXE 安装包。\n2  点击上方“完全退出本程序”，再运行安装包。\n3  按安装向导覆盖安装，无需先卸载；个人配置会保留。\n4  重新打开控制面板。使用 Game Bar 时，按 Win + G 打开小组件。"
+                : "1  Open the download page and get the latest EXE installer.\n2  Choose Exit completely above, then run the installer.\n3  Install over the existing version; no uninstall is needed and settings are retained.\n4  Reopen the panel. For Game Bar, press Win + G and open the widget.";
+            HubCheckUpdateButton.Content = isChinese ? "检查更新" : "Check again";
+            HubCopyUpdateLinkButton.Content = isChinese ? "复制网盘链接与提取码" : "Copy download link and code";
+            OnVersionStateChanged(null, EventArgs.Empty);
 
             HubAboutCreditsTitle.Text = isChinese ? "作者与致谢" : "AUTHOR & CREDITS";
             HubAuthorNameText.Text = "Zac · eachkinji";
@@ -117,17 +115,9 @@ namespace KillConfirmGameBar.Controls.Settings
             HubPortSettingsView?.ApplyTheme(theme);
 
             if (HubDisplayCardTitle != null) HubDisplayCardTitle.Foreground = new SolidColorBrush(theme.Text);
-            if (HubDisplayCardDescription != null) HubDisplayCardDescription.Foreground = new SolidColorBrush(theme.MutedText);
 
             if (HubAboutTitle != null) HubAboutTitle.Foreground = new SolidColorBrush(theme.Text);
-            if (HubAboutBody != null) HubAboutBody.Foreground = new SolidColorBrush(theme.MutedText);
             if (HubAboutVersion != null) HubAboutVersion.Foreground = new SolidColorBrush(theme.SubtleText);
-            if (HubUninstallButton != null)
-            {
-                HubUninstallButton.Background = theme.Brush(theme.Card);
-                HubUninstallButton.BorderBrush = theme.Brush(theme.SoftBorder);
-                HubUninstallButton.Foreground = theme.Brush(theme.Text);
-            }
             if (HubAppActionsStatusText != null) HubAppActionsStatusText.Foreground = theme.Brush(theme.MutedText);
             if (HubAboutUpdateTitle != null) HubAboutUpdateTitle.Foreground = new SolidColorBrush(theme.Text);
             if (HubAboutUpdateBody != null) HubAboutUpdateBody.Foreground = new SolidColorBrush(theme.MutedText);
@@ -159,6 +149,35 @@ namespace KillConfirmGameBar.Controls.Settings
             {
                 HubAdvancedSystemOptionsPanel.ApplyTheme(theme);
             }
+        }
+        private void OnAboutHeaderSizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            bool narrow = e.NewSize.Width < 520;
+            Grid.SetColumn(HubVersionActions, narrow ? 0 : 1);
+            Grid.SetRow(HubVersionActions, narrow ? 1 : 0);
+            Grid.SetColumnSpan(HubVersionActions, narrow ? 2 : 1);
+        }
+
+        private async void OnCheckUpdateClick(object sender, RoutedEventArgs e) => await VersionUpdateService.CheckAsync(true);
+        private void OnCopyUpdateLinkClick(object sender, RoutedEventArgs e)
+        {
+            var data = new Windows.ApplicationModel.DataTransfer.DataPackage();
+            data.SetText(VersionUpdateService.DownloadUrl + "\n提取码 / Code: " + VersionUpdateService.DownloadCode);
+            Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(data);
+            HubUpdateLinkFeedback.Text = LocalizationManager.Current == UiLanguage.SimplifiedChinese ? "下载链接与提取码已复制。" : "Download link and code copied.";
+            HubUpdateLinkFeedback.Visibility = Visibility.Visible;
+        }
+        private void OnVersionStateChanged(object sender, EventArgs e)
+        {
+            bool zh = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            HubVersionStatus.Text = VersionUpdateService.StatusText(zh);
+            HubCheckUpdateButton.IsEnabled = VersionUpdateService.State != VersionUpdateState.Checking;
+            string latest = string.IsNullOrEmpty(VersionUpdateService.LatestVersion) ? (zh ? "尚未获取" : "Not available") : VersionUpdateService.LatestVersion;
+            HubVersionDetail.Text = (zh ? "当前版本 " : "Installed ") + VersionUpdateService.CurrentVersion + (zh ? "  ·  GitHub 公开版本 " : "  ·  Public release ") + latest;
+            if (VersionUpdateService.State == VersionUpdateState.Ahead) HubVersionDetail.Text += zh ? "\n当前版本高于 GitHub 公开版，暂不需要更新。" : "\nYour installed version is newer than the public release; no update is needed.";
+            if (VersionUpdateService.State == VersionUpdateState.Unavailable) HubVersionDetail.Text += zh ? "\n网络连接失败，可重试检查或直接打开下载页面。" : "\nConnection failed. Retry or open the download page.";
+            if (VersionUpdateService.CheckedAt.HasValue) HubVersionDetail.Text += (zh ? "\n上次检查 " : "\nLast checked ") + VersionUpdateService.CheckedAt.Value.ToLocalTime().ToString("MM-dd HH:mm");
+            HubAboutUpdateBody.Text = string.IsNullOrWhiteSpace(VersionUpdateService.ReleaseNotes) ? (zh ? "检查更新后显示公开版本的更新说明。" : "Check for updates to load public release notes.") : VersionUpdateService.ReleaseNotes;
         }
         private void OnHubTabGeneralClick(object sender, RoutedEventArgs e) => SwitchTab(TabGeneral);
         private void OnHubTabPortClick(object sender, RoutedEventArgs e) => SwitchTab(TabPort);

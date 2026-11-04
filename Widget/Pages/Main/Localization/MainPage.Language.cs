@@ -20,7 +20,7 @@ namespace KillConfirmGameBar
 
             GameEffectsTitleText.Text = LocalizationManager.Text("GameEffectsTitle");
             AdvancedSettingsHubControl.ApplyLanguage();
-            GameStyleMode currentMode = GameStyleService.Current;
+            GameStyleMode currentMode = SettingsGameStyle;
             string gameName = isChinese ? GameStyleService.ToDisplayName(currentMode) : currentMode.ToString();
 
             if (currentMode == GameStyleMode.Dagoujiao)
@@ -266,6 +266,14 @@ namespace KillConfirmGameBar
                     fileHint = isChinese ? "普通击杀和爆头都可以添加多段音频，播放时会随机选择一段。" : "Normal kills and headshots can each use multiple files; one is chosen at random when played.";
                     break;
 
+                case GameStyleMode.Battlefield6:
+                    body = isChinese ? "战地6可以分别设置普通击杀、爆头和助攻提示音。" : "Battlefield 6 lets you set separate cues for normal kills, headshots, and assists.";
+                    voice = isChinese ? "normal.wav = 普通击杀\nheadshot.wav = 爆头\nassist.wav = 助攻" : "normal.wav = normal kill\nheadshot.wav = headshot\nassist.wav = assist";
+                    iconSummary = isChinese ? "可分别设置击杀、爆头、爆炸、载具、助攻、占点和救援等事件图标。" : "Set separate icons for kills, headshots, explosions, vehicles, assists, captures, and revives.";
+                    iconFull = "killicon_battlefield6_default.png\nkillicon_battlefield6_headshot.png\nkillicon_battlefield6_assist.png\nkillicon_battlefield6_explosion.png\nkillicon_battlefield6_crit.png\nkillicon_battlefield6_destroyvehicle.png\nkillicon_battlefield6_capture.png\nkillicon_battlefield6_vehicle_destroy_assist.png\nkillicon_battlefield6_medic.png\nkillicon_battlefield6_spot_assist.png";
+                    fileHint = isChinese ? "普通击杀、爆头和助攻都可以添加多段音频，播放时会随机选择一段。" : "Normal kills, headshots, and assists can each use multiple files; one is chosen at random when played.";
+                    break;
+
                 case GameStyleMode.Pubg:
                     body = isChinese ? "PUBG 内置样式为文字淘汰提示，默认没有击杀音频。" : "PUBG uses a text elimination notice and has no built-in kill audio.";
                     voice = isChinese ? "normal.wav = 可选淘汰提示音（留空即静音）" : "normal.wav = optional elimination cue (empty means silent)";
@@ -314,7 +322,7 @@ namespace KillConfirmGameBar
                 return;
             }
 
-            if (GameStyleService.Current == GameStyleMode.Dagoujiao)
+            if (SettingsGameStyle == GameStyleMode.Dagoujiao)
             {
                 if (CsolStructureTitleText != null) CsolStructureTitleText.Text = LocalizationManager.Text("DagoujiaoStructureTitle");
                 if (CsolStructureBodyText != null) CsolStructureBodyText.Text = LocalizationManager.Text("DagoujiaoStructureBody");

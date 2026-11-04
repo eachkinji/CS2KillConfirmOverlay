@@ -15,9 +15,9 @@ namespace KillConfirmGameBar
 {
     public sealed partial class MainPage
     {
-        private static ContentDialog CreatePackStatusDialog(string title, UIElement content, string closeText = null)
+        private ContentDialog CreatePackStatusDialog(string title, UIElement content, string closeText = null)
         {
-            var theme = GameThemePalette.Current;
+            var theme = SettingsTheme;
             var layout = new StackPanel { Spacing = 18, MinWidth = 340, MaxWidth = 500, Margin = new Thickness(10) };
             layout.Children.Add(new TextBlock
             {
@@ -28,13 +28,15 @@ namespace KillConfirmGameBar
             var shell = CreatePackDialogShell(layout);
             shell.Background = new SolidColorBrush(theme.Panel);
             shell.BorderBrush = new SolidColorBrush(theme.Border);
-            return new ContentDialog
+            var dialog = new ContentDialog
             {
                 Content = shell, CloseButtonText = closeText ?? string.Empty,
                 CloseButtonStyle = CreateDialogCloseButtonStyle(),
                 RequestedTheme = ElementTheme.Light, Background = new SolidColorBrush(Colors.Transparent),
                 Foreground = new SolidColorBrush(theme.Text)
             };
+            ControlTheme.Apply(dialog, theme);
+            return dialog;
         }
 
         private static Border CreatePackDialogShell(UIElement content)
@@ -50,10 +52,10 @@ namespace KillConfirmGameBar
             };
         }
 
-        private static Style CreateDialogPrimaryButtonStyle()
+        private Style CreateDialogPrimaryButtonStyle()
         {
             var style = new Style(typeof(Button));
-            style.Setters.Add(new Setter(Control.BackgroundProperty, new SolidColorBrush(Color.FromArgb(255, 0, 122, 255))));
+            style.Setters.Add(new Setter(Control.BackgroundProperty, new SolidColorBrush(SettingsTheme.Accent)));
             style.Setters.Add(new Setter(Control.ForegroundProperty, new SolidColorBrush(Colors.White)));
             style.Setters.Add(new Setter(Control.BorderBrushProperty, new SolidColorBrush(Color.FromArgb(255, 61, 155, 255))));
             style.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(1)));
@@ -208,7 +210,7 @@ namespace KillConfirmGameBar
                 Padding = new Thickness(8, 4, 8, 4),
                 FontSize = 11,
                 Background = new SolidColorBrush(Color.FromArgb(26, 0, 122, 255)),
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 0, 122, 255)),
+                Foreground = new SolidColorBrush(SettingsTheme.Accent),
                 BorderBrush = new SolidColorBrush(Color.FromArgb(61, 0, 122, 255)),
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(14)
@@ -282,7 +284,7 @@ namespace KillConfirmGameBar
                     MinWidth = 30,
                     Padding = new Thickness(5, 4, 5, 4),
                     Background = new SolidColorBrush(Color.FromArgb(26, 0, 122, 255)),
-                    Foreground = new SolidColorBrush(Color.FromArgb(255, 0, 122, 255)),
+                    Foreground = new SolidColorBrush(SettingsTheme.Accent),
                     BorderBrush = new SolidColorBrush(Color.FromArgb(61, 0, 122, 255)),
                     CornerRadius = new CornerRadius(12)
                 };
@@ -357,7 +359,7 @@ namespace KillConfirmGameBar
                 Padding = new Thickness(5, 4, 5, 4),
                 FontSize = 10,
                 Background = new SolidColorBrush(Color.FromArgb(26, 0, 122, 255)),
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 0, 122, 255)),
+                Foreground = new SolidColorBrush(SettingsTheme.Accent),
                 BorderBrush = new SolidColorBrush(Color.FromArgb(61, 0, 122, 255)),
                 CornerRadius = new CornerRadius(12)
             };

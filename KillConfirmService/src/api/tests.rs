@@ -2,10 +2,8 @@
 mod tests {
     use super::{
         BombAudioSettingsRequest, CrossfireSettingsRequest, CsolSettingsRequest, DagoujiaoSettingsRequest,
-        HIGH_PRIORITY_CLASS, PROCESS_PRIORITY_TARGETS, ProcessPriority, is_expected_process_path,
-        priority_name, resolve_bomb_audio_speed_range,
+        resolve_bomb_audio_speed_range,
     };
-    use std::path::Path;
 
     #[test]
     fn crossfire_priority_defaults_and_explicit_choices_are_independent() {
@@ -27,29 +25,6 @@ mod tests {
                 assert_eq!(request.grenade_special_audio_priority, grenade);
             }
         }
-    }
-
-    #[test]
-    fn process_priority_values_map_to_windows_priority_classes() {
-        let high = ProcessPriority::from_str("high").unwrap();
-        assert_eq!(high.class(), HIGH_PRIORITY_CLASS);
-        assert_eq!(priority_name(high.class()), "high");
-        assert!(ProcessPriority::from_str("unsupported").is_none());
-    }
-
-    #[test]
-    fn process_priority_targets_reject_same_named_executables_outside_expected_packages() {
-        let game_bar = &PROCESS_PRIORITY_TARGETS[0];
-        assert!(is_expected_process_path(
-            game_bar,
-            Path::new(
-                r"C:\Program Files\WindowsApps\Microsoft.XboxGamingOverlay_1.0_x64__8wekyb3d8bbwe\GameBar.exe"
-            )
-        ));
-        assert!(!is_expected_process_path(
-            game_bar,
-            Path::new(r"C:\Temp\GameBar.exe")
-        ));
     }
 
     #[test]
@@ -115,6 +90,10 @@ mod tests {
 
     #[test]
     fn soundpack_alias_resolves_game_specific_presets() {
+        for alias in ["bf6", "battlefield6", "battlefield_6", "BATTLEFIELD6"] {
+            assert_eq!(super::resolve_soundpack_alias(alias), Some("battlefield6"));
+        }
+        assert!(super::SOUND_PACK_OPTIONS.iter().any(|pack| pack.preset == "battlefield6"));
         assert_eq!(super::resolve_soundpack_alias("custommodule"), Some("custommodule"));
         assert_eq!(super::resolve_soundpack_alias("CUSTOMMODULE"), Some("custommodule"));
         let source_sounds = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))

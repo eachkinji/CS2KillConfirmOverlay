@@ -57,6 +57,7 @@ namespace KillConfirmGameBar.Services
                 || key.StartsWith("custom_battlefield1_icon_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_battlefield5_icon_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_battlefield2042_icon_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("custom_battlefield6_icon_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_deltaforce_icon_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_overwatch_icon_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_modernwarfare2019_icon_", StringComparison.OrdinalIgnoreCase)

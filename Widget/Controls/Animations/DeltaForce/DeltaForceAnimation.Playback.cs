@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Numerics;
@@ -38,6 +38,7 @@ namespace KillConfirmGameBar.Controls
             _isBattlefield4HudActive = false;
             _isPubgHudActive = false;
             _isBattlefield2042HudActive = false;
+            ResetBattlefield6HudState();
             _isDeltaForceHudActive = true;
             _contentSizedViewport = false;
             _isBattlefield1CompactLayoutActive = false;

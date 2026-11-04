@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using KillConfirmGameBar.Controls.GameStyles;
 using KillConfirmGameBar.Services;
@@ -31,7 +31,7 @@ namespace KillConfirmGameBar.Controls.Settings
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
             RefreshSettings();
-            ApplyTheme(GameThemePalette.Current);
+            ApplyTheme(GameThemePalette.Home);
         }
 
         internal void ApplyLanguage()
@@ -63,6 +63,7 @@ namespace KillConfirmGameBar.Controls.Settings
                 LocalizationManager.Text("InterruptPreviousKillAudioHint");
             InterruptPreviousKillAudioToggle.OffContent = LocalizationManager.Text("Off");
             InterruptPreviousKillAudioToggle.OnContent = LocalizationManager.Text("On");
+            RefreshDetailsLabels();
             StreakGainLabelText.Text = isChinese ? "连杀音量递增" : "Streak volume gain";
             StreakGainHintText.Text = isChinese
                 ? "对所有游戏和语音包生效，连杀越多音量越高"
@@ -98,6 +99,7 @@ namespace KillConfirmGameBar.Controls.Settings
             SelectAutoCloseOnGameExit();
             SelectInterruptPreviousKillAudio();
             SelectStreakGainSettings();
+            RefreshDetailsLabels();
         }
 
         private void SelectDanmaku6657()
@@ -106,7 +108,7 @@ namespace KillConfirmGameBar.Controls.Settings
             try
             {
                 Danmaku6657Toggle.IsOn = KillConfirmGameBar.Danmaku.DanmakuSettingsStore.IsEnabled;
-                DanmakuSettingsOptions.Visibility = Danmaku6657Toggle.IsOn ? Visibility.Visible : Visibility.Collapsed;
+                DanmakuSettingsOptions.IsEnabled = Danmaku6657Toggle.IsOn;
                 DanmakuSettingsOptions.RefreshSettings();
             }
             finally
@@ -123,7 +125,7 @@ namespace KillConfirmGameBar.Controls.Settings
             }
 
             KillConfirmGameBar.Danmaku.DanmakuSettingsStore.IsEnabled = Danmaku6657Toggle.IsOn;
-            DanmakuSettingsOptions.Visibility = Danmaku6657Toggle.IsOn ? Visibility.Visible : Visibility.Collapsed;
+            DanmakuSettingsOptions.IsEnabled = Danmaku6657Toggle.IsOn;
         }
 
         private void OnDanmaku6657TestClick(object sender, RoutedEventArgs e)
@@ -136,8 +138,7 @@ namespace KillConfirmGameBar.Controls.Settings
             _suppressSpectatedKillEffectsEvents = true;
             try
             {
-                SpectatedKillEffectsToggle.IsOn =
-                    SharedStreakSettingsStore.LoadSpectatedKillEffects();
+                SpectatedKillEffectsToggle.IsOn = SharedStreakSettingsStore.LoadSpectatedKillEffects();
             }
             finally
             {
@@ -295,5 +296,25 @@ namespace KillConfirmGameBar.Controls.Settings
             }
         }
 
+        private void OnDetailsClick(object sender, RoutedEventArgs e)
+        {
+            var content = (sender == DanmakuDetailsButton) ? (FrameworkElement)DanmakuDetailsContent : StreakGainDetailsContent;
+            content.Visibility = content.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
+            RefreshDetailsLabels();
+        }
+
+        private void RefreshDetailsLabels()
+        {
+            bool zh = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            UpdateDetailsLabel(DanmakuDetailsContent, DanmakuDetailsText, DanmakuDetailsChevron, zh);
+            UpdateDetailsLabel(StreakGainDetailsContent, StreakGainDetailsText, StreakGainDetailsChevron, zh);
+        }
+
+        private static void UpdateDetailsLabel(FrameworkElement content, TextBlock label, FontIcon chevron, bool zh)
+        {
+            bool expanded = content.Visibility == Visibility.Visible;
+            label.Text = expanded ? (zh ? "收起详细设置" : "Hide detailed settings") : (zh ? "展开详细设置" : "Show detailed settings");
+            chevron.Glyph = expanded ? "\uE70E" : "\uE70D";
+        }
     }
 }

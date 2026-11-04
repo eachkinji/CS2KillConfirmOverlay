@@ -1,6 +1,7 @@
 param(
     [Parameter(Mandatory)][string]$Payload,
-    [string]$ProfileSource=(Join-Path $env:LOCALAPPDATA 'KillConfirmOverlay/UserData')
+    [string]$ProfileSource=(Join-Path $env:LOCALAPPDATA 'KillConfirmOverlay/UserData'),
+    [switch]$Inspect
 )
 $ErrorActionPreference='Stop'
 $repository=Split-Path $PSScriptRoot -Parent
@@ -32,8 +33,10 @@ $start.Environment['KILLCONFIRM_DATA_ROOT']=$profile
 $start.Environment['KILLCONFIRM_INSTALL_ROOT']=$Payload
 $start.Environment['KILLCONFIRM_UI_VALIDATION']='1'
 $start.Environment['KILLCONFIRM_STARTUP_VALIDATION']='1'
+if ($Inspect) { $start.Environment['KILLCONFIRM_UI_INSPECTION']='1' }
 $process=[Diagnostics.Process]::Start($start)
-if(!$process.WaitForExit(45000)) {$process.Kill();throw 'Large-library startup timed out.'}
+if ($Inspect) { Write-Output "Inspection PID: $($process.Id); isolated profile: $profile"; return }
+if(!$process.WaitForExit(115000)) {$process.Kill();throw 'Large-library startup/dropdown validation timed out.'}
 $pass=Join-Path $profile 'ui-pass.txt'
 if(!(Test-Path -LiteralPath $pass)) {throw (Get-Content -LiteralPath (Join-Path $profile 'ui-failure.txt') -Raw)}
 Get-Content -LiteralPath $pass

@@ -1,14 +1,44 @@
 ﻿using KillConfirmGameBar.Services;
+using System;
+using System.Threading.Tasks;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Media.Imaging;
 
 namespace KillConfirmGameBar.Features.CompatibilityDisplay.Controls.Settings
 {
     public sealed partial class CreditsCommunityPanel : UserControl
     {
+        private Task _avatars;
+        internal bool AvatarsReady => St0nieCommunityAvatar.Source is BitmapImage a && a.PixelWidth > 0
+            && GufanCommunityAvatar.Source is BitmapImage b && b.PixelWidth > 0
+            && St0nieContributorAvatar.Source is BitmapImage c && c.PixelWidth > 0
+            && System32ContributorAvatar.Source is BitmapImage d && d.PixelWidth > 0;
         public CreditsCommunityPanel()
         {
             InitializeComponent();
             ApplyLanguage();
+            Loaded += async (s, e) => await (_avatars ?? (_avatars = LoadAvatarsAsync()));
+        }
+
+        internal async Task LoadAvatarsAsync()
+        {
+            await Task.WhenAll(
+                LoadAvatarAsync(St0nieCommunityAvatar, "st0nie.jpg"),
+                LoadAvatarAsync(GufanCommunityAvatar, "gufan0000.png"),
+                LoadAvatarAsync(St0nieContributorAvatar, "st0nie.jpg"),
+                LoadAvatarAsync(System32ContributorAvatar, "system32ovo.png"));
+        }
+
+        private static async Task LoadAvatarAsync(Image image, string filename)
+        {
+            try
+            {
+                var file = await SharedResources.AssetFileAsync(new Uri("ms-appx:///Assets/Credits/" + filename));
+                var bitmap = new BitmapImage { DecodePixelWidth = 144 };
+                using (var stream = await file.OpenReadAsync()) await bitmap.SetSourceAsync(stream);
+                image.Source = bitmap;
+            }
+            catch (Exception error) { App.Log("Credit avatar " + filename + ": " + error.Message); }
         }
 
         public void ApplyLanguage()

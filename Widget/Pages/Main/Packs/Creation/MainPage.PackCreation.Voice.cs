@@ -105,7 +105,7 @@ namespace KillConfirmGameBar
                 MinWidth = 30,
                 Padding = new Thickness(5, 4, 5, 4),
                 Background = new SolidColorBrush(Color.FromArgb(26, 0, 122, 255)),
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 0, 122, 255)),
+                Foreground = new SolidColorBrush(SettingsTheme.Accent),
                 BorderBrush = new SolidColorBrush(Color.FromArgb(61, 0, 122, 255)),
                 CornerRadius = new CornerRadius(12)
             };
@@ -130,7 +130,7 @@ namespace KillConfirmGameBar
                 FontSize = 11,
                 IsEnabled = !useBuiltInCommonOverlay,
                 Background = new SolidColorBrush(Color.FromArgb(26, 0, 122, 255)),
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 0, 122, 255)),
+                Foreground = new SolidColorBrush(SettingsTheme.Accent),
                 BorderBrush = new SolidColorBrush(Color.FromArgb(61, 0, 122, 255)),
                 CornerRadius = new CornerRadius(12)
             };
@@ -173,7 +173,7 @@ namespace KillConfirmGameBar
                 MinWidth = 62,
                 Padding = new Thickness(6, 4, 6, 4),
                 FontSize = 11,
-                Background = new SolidColorBrush(Color.FromArgb(255, 0, 122, 255)),
+                Background = new SolidColorBrush(SettingsTheme.Accent),
                 Foreground = new SolidColorBrush(Colors.White),
                 BorderBrush = new SolidColorBrush(Color.FromArgb(255, 61, 155, 255)),
                 CornerRadius = new CornerRadius(12)
@@ -243,7 +243,7 @@ namespace KillConfirmGameBar
                         MinWidth = 0,
                         Padding = new Thickness(0)
                     };
-                    overlayCheckBox.Resources["CheckBoxCheckBackgroundFillChecked"] = new SolidColorBrush(Color.FromArgb(255, 0, 122, 255));
+                    overlayCheckBox.Resources["CheckBoxCheckBackgroundFillChecked"] = new SolidColorBrush(SettingsTheme.Accent);
                     overlayCheckBox.Resources["CheckBoxCheckBackgroundStrokeChecked"] = new SolidColorBrush(Color.FromArgb(61, 0, 122, 255));
                     overlayCheckBox.Resources["CheckBoxCheckBackgroundFillUnchecked"] = new SolidColorBrush(Color.FromArgb(255, 255, 253, 252));
                     overlayCheckBox.Resources["CheckBoxCheckBackgroundStrokeUnchecked"] = new SolidColorBrush(Color.FromArgb(31, 0, 0, 0));
@@ -279,7 +279,7 @@ namespace KillConfirmGameBar
                 };
 
                 var row = await CreateVoiceSlotRowAsync(
-                    slot.Item1, slot.Item2, GameStyleService.Current,
+                    slot.Item1, slot.Item2, SettingsGameStyle,
                     selectedFiles, existingFiles, hint: hint, attachExtraColumn: attachOverlay);
                 slotPanel.Children.Add(row);
             }

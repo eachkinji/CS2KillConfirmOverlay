@@ -269,7 +269,7 @@ namespace KillConfirmGameBar
                             Height = 28,
                             Padding = new Thickness(0),
                             Background = new SolidColorBrush(Color.FromArgb(26, 0, 122, 255)),
-                            Foreground = new SolidColorBrush(Color.FromArgb(255, 0, 122, 255)),
+                            Foreground = new SolidColorBrush(SettingsTheme.Accent),
                             BorderBrush = new SolidColorBrush(Color.FromArgb(61, 0, 122, 255)),
                             CornerRadius = new CornerRadius(14)
                         };
@@ -307,7 +307,7 @@ namespace KillConfirmGameBar
                         FontSize = 10,
                         Padding = new Thickness(8, 3, 8, 3),
                         Background = new SolidColorBrush(selected
-                            ? Color.FromArgb(255, 0, 122, 255)
+                            ? SettingsTheme.Accent
                             : Color.FromArgb(255, 240, 240, 240)),
                         Foreground = new SolidColorBrush(selected ? Colors.White : Color.FromArgb(255, 28, 28, 30)),
                         CornerRadius = new CornerRadius(6)
@@ -321,7 +321,7 @@ namespace KillConfirmGameBar
                             bool nowSelected = selection.ContainsKey(id);
                             select.Content = nowSelected ? (zh ? "取消选择" : "Remove") : (zh ? "加入" : "Add");
                             select.Background = new SolidColorBrush(nowSelected
-                                ? Color.FromArgb(255, 0, 122, 255)
+                                ? SettingsTheme.Accent
                                 : Color.FromArgb(255, 240, 240, 240));
                             select.Foreground = new SolidColorBrush(nowSelected
                                 ? Colors.White
@@ -330,7 +330,7 @@ namespace KillConfirmGameBar
                                 ? Color.FromArgb(255, 230, 244, 255)
                                 : Colors.White);
                             fileCard.BorderBrush = new SolidColorBrush(nowSelected
-                                ? Color.FromArgb(255, 0, 122, 255)
+                                ? SettingsTheme.Accent
                                 : Color.FromArgb(255, 230, 230, 230));
                         }
                         else
@@ -347,7 +347,7 @@ namespace KillConfirmGameBar
                         ? Color.FromArgb(255, 230, 244, 255)
                         : Colors.White);
                     fileCard.BorderBrush = new SolidColorBrush(selected
-                        ? Color.FromArgb(255, 0, 122, 255)
+                        ? SettingsTheme.Accent
                         : Color.FromArgb(255, 230, 230, 230));
                     itemsPanel.Children.Add(fileCard);
                 }

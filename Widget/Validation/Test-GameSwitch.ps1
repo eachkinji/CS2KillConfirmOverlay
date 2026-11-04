@@ -29,6 +29,16 @@ interface ISwitchActivation { [PreserveSig] int ActivateApplication([MarshalAs(U
 public static class SwitchActivation {
  public static uint Activate(string id) {var type=Type.GetTypeFromCLSID(new Guid("45BA127D-10A8-46EA-8AB7-56EA9078943C"));var activation=(ISwitchActivation)Activator.CreateInstance(type);uint pid;Marshal.ThrowExceptionForHR(activation.ActivateApplication(id,"",0,out pid));return pid;}
 }
+[ComImport,Guid("F27C3930-8029-4AD1-94E3-3DBA417810C1"),InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+interface ISwitchDebugSettings {
+ [PreserveSig] int EnableDebugging([MarshalAs(UnmanagedType.LPWStr)] string name,IntPtr debugger,IntPtr environment);
+ [PreserveSig] int DisableDebugging([MarshalAs(UnmanagedType.LPWStr)] string name);
+}
+public static class SwitchLifetime {
+ static ISwitchDebugSettings Settings() {return (ISwitchDebugSettings)Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid("B1AEC16F-2383-4852-B0E9-8F0B1DC66B4D")));}
+ public static void Enable(string name) {Marshal.ThrowExceptionForHR(Settings().EnableDebugging(name,IntPtr.Zero,IntPtr.Zero));}
+ public static void Disable(string name) {Marshal.ThrowExceptionForHR(Settings().DisableDebugging(name));}
+}
 '@
 $service=$null; $package=$null; $widgetProcessId=0
 try {
@@ -36,6 +46,9 @@ try {
     $dependencies=@(Get-ChildItem -LiteralPath (Join-Path $testPackage.DirectoryName 'Dependencies/x64') -File -Filter '*.appx' | ForEach-Object FullName)
     Add-AppxPackage -Path $testPackage.FullName -DependencyPath $dependencies
     $package=Get-AppxPackage -Name $name -ErrorAction Stop
+    # Only the isolated test package: prevent Windows suspending the test when
+    # another window takes focus. Restore normal lifetime handling in finally.
+    [SwitchLifetime]::Enable($package.PackageFullName)
     $cache=Join-Path $env:LOCALAPPDATA "Packages/$($package.PackageFamilyName)/LocalState"
     $fixture=Join-Path $cache 'Fixture'
     New-Item -ItemType Directory -Path $fixture -Force | Out-Null
@@ -56,6 +69,10 @@ try {
             [IO.File]::WriteAllText((Join-Path $output $file),[IO.File]::ReadAllText((Join-Path $cache $file)))
         }
     }
+    foreach($file in Get-ChildItem -LiteralPath $cache -File -Filter 'battlefield6-*') {
+        # AppContainer files can carry EFS metadata unsupported by the artifact drive.
+        [IO.File]::WriteAllBytes((Join-Path $output $file.Name), [IO.File]::ReadAllBytes($file.FullName))
+    }
     if(!(Test-Path -LiteralPath (Join-Path $output 'switch-pass.txt'))) {
         if(Test-Path -LiteralPath (Join-Path $output 'switch-failure.txt')) {throw (Get-Content -LiteralPath (Join-Path $output 'switch-failure.txt') -Raw)}
         throw 'UWP game-switch validation timed out.'
@@ -66,6 +83,7 @@ finally {
     if($widgetProcessId -gt 0) {Stop-Process -Id $widgetProcessId -ErrorAction SilentlyContinue}
     if($service -and !$service.HasExited) {$service.Kill()}
     if($package -and $package.Name -eq $name) {
+        [SwitchLifetime]::Disable($package.PackageFullName)
         Remove-AppxPackage -Package $package.PackageFullName
     }
     Write-Output "Artifacts: $output"

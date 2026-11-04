@@ -3,11 +3,11 @@ use crate::api::{
     crossfire_settings, cs2_root, csol_settings, dagoujiao_settings, developer_settings,
     doubao_settings, event_sound_settings, events_poll, extract_video_frames, gsi_game_settings,
     gsi_status, health, install_counter_strike_cfg, interrupt_previous_kill_audio_settings,
-    money_mode, port, prepare_video_preview, preview_bomb_audio_endpoint, process_priorities,
+    money_mode, port, prepare_video_preview, preview_bomb_audio_endpoint,
     register_ui_process, set_audio_device, set_bomb_audio_settings, set_crossfire_settings,
     set_csol_settings, set_dagoujiao_settings, set_developer_settings, set_doubao_settings,
     set_event_sound_settings, set_gsi_game_settings, set_interrupt_previous_kill_audio_settings,
-    set_money_mode, set_process_priority, set_spectator_settings, set_streak_gain_settings,
+    set_money_mode, set_spectator_settings, set_streak_gain_settings,
     set_streak_settings, shutdown, spectator_settings, streak_gain_settings, streak_settings,
     test_event, unregister_ui_process,
 };
@@ -21,7 +21,7 @@ use crate::infrastructure::logging::{
 use crate::infrastructure::playback::{get_output_stream_with_name, list_host_devices};
 use crate::infrastructure::ports::{bind_with_fallback, free_local_port};
 use crate::infrastructure::runtime::{
-    boost_process_priority, exit_all_processes, launch_settings_launcher,
+    exit_all_processes, launch_settings_launcher,
     normalize_working_directory, open_game_bar, open_uninstaller, open_url,
 };
 use crate::infrastructure::signal::shutdown_signal;
@@ -65,11 +65,6 @@ const AUTHOR_BILIBILI_URL: &str = "https://space.bilibili.com/18017622";
 pub(crate) async fn run(mut args: Args) -> Result<()> {
     service_log("service starting");
 
-    if args.boost_priority {
-        boost_process_priority();
-    } else {
-        service_log("process priority boost skipped (default; pass --boost-priority to opt in)");
-    }
 
     tracing_subscriber::registry()
         // Developer mode is an in-app diagnostic contract: always retain
@@ -344,10 +339,6 @@ pub(crate) async fn run(mut args: Args) -> Result<()> {
         .route(
             "/developer/settings",
             get(developer_settings).post(set_developer_settings),
-        )
-        .route(
-            "/process-priority",
-            get(process_priorities).post(set_process_priority),
         )
         .route("/video/extract", post(extract_video_frames))
         .route("/video/preview", post(prepare_video_preview))

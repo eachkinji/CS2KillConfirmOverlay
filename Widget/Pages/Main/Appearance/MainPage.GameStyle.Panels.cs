@@ -451,6 +451,7 @@ namespace KillConfirmGameBar
             else if (sender is Battlefield5AdvancedEffectsPanel p5) mode = p5.GetSelectedMoneyRewardMode("delta");
             else if (sender is Battlefield4AdvancedEffectsPanel p4) mode = p4.GetSelectedMoneyRewardMode("delta");
             else if (sender is Battlefield2042AdvancedEffectsPanel p2042) mode = p2042.GetSelectedMoneyRewardMode("delta");
+            else if (sender is Battlefield6AdvancedEffectsPanel p6) mode = p6.GetSelectedMoneyRewardMode("delta");
             else if (sender is DeltaForceAdvancedEffectsPanel pDF) mode = pDF.GetSelectedMoneyRewardMode("delta");
             else if (sender is PubgAdvancedEffectsPanel pPubg) mode = pPubg.GetSelectedMoneyRewardMode("delta");
             else if (sender is ApexAdvancedEffectsPanel pApex) mode = pApex.GetSelectedMoneyRewardMode("delta");

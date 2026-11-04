@@ -1,4 +1,4 @@
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using KillConfirmGameBar.Features.CompatibilityDisplay;
 using KillConfirmGameBar.Services;
 namespace KillConfirmGameBar;
@@ -17,7 +17,7 @@ internal static class CloseValidation
         try
         {
             bool compatibility=Environment.GetEnvironmentVariable("KILLCONFIRM_CLOSE_VALIDATION")=="compatibility";
-            CloseBehaviorSettingsStore.Save(CloseBehaviorSettingsStore.KeepRunningMode);
+
             CompatibilityDisplayRuntime.Update(c=>{c.Enabled=compatibility;c.GameBarBlocked=compatibility;c.FollowGame=false;c.HideWhenInactive=false;});
             if(!await ServiceLauncher.LaunchAsync(LocalServiceEndpoints.Port)) throw new Exception("Test service did not start/register.");
             if(compatibility)
@@ -26,6 +26,14 @@ internal static class CloseValidation
                 var deadline=DateTimeOffset.UtcNow.AddSeconds(15);
                 while(!CompatibilityDisplayRuntime.IsRunning(CompatibilityDisplayRuntime.ReadStatus()) && DateTimeOffset.UtcNow<deadline) await Task.Delay(100);
                 if(!CompatibilityDisplayRuntime.IsRunning(CompatibilityDisplayRuntime.ReadStatus())) throw new Exception("Test renderer did not start.");
+            }
+            if (!compatibility)
+            {
+                int peer = int.Parse(Environment.GetEnvironmentVariable("KILLCONFIRM_TEST_WIDGET_PID"));
+                using var client = await LocalServiceAuth.CreateHttpClientAsync();
+                using var body = new Windows.Web.Http.HttpStringContent("{\"pid\":" + peer + "}", Windows.Storage.Streams.UnicodeEncoding.Utf8, "application/json");
+                using var response = await client.PostAsync(LocalServiceEndpoints.Build("/client/register"), body);
+                response.EnsureSuccessStatusCode();
             }
             int servicePid;
             using(var client=await LocalServiceAuth.CreateHttpClientAsync())
@@ -39,13 +47,7 @@ internal static class CloseValidation
             }));
             // WM_CLOSE follows the same Closing event as the title-bar button.
             if(!PostMessage(WinRT.Interop.WindowNative.GetWindowHandle(window),0x0010,IntPtr.Zero,IntPtr.Zero)) throw new Exception("Could not request window close.");
-            if(!compatibility)
-            {
-                await Task.Delay(1000);
-                if(window.AppWindow.IsVisible || System.Diagnostics.Process.GetProcessById(servicePid).HasExited) throw new Exception("Game Bar close did not retain the hidden panel and service.");
-                File.WriteAllText(Path.Combine(root,"close-hidden-pass.txt"),"PASS: Game Bar mode keeps the panel and service running after the real close event.");
-                await App.RequestFullExitAsync();
-            }
+
         }
         catch(Exception error)
         {

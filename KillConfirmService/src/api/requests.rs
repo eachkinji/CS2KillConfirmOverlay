@@ -245,11 +245,6 @@ pub struct DeveloperSettingsRequest {
     pub enabled: bool,
 }
 
-#[derive(Debug, Deserialize)]
-pub struct ProcessPriorityRequest {
-    pub target: String,
-    pub priority: String,
-}
 
 #[derive(Debug, Serialize)]
 pub struct SoundPackResponse {
@@ -374,20 +369,7 @@ pub struct DeveloperSettingsResponse {
     pub enabled: bool,
 }
 
-#[derive(Debug, Serialize)]
-pub struct ProcessPriorityStatus {
-    pub target: &'static str,
-    pub process_name: &'static str,
-    pub running: bool,
-    pub instances: usize,
-    pub priority: String,
-    pub error: String,
-}
 
-#[derive(Debug, Serialize)]
-pub struct ProcessPriorityResponse {
-    pub processes: Vec<ProcessPriorityStatus>,
-}
 
 #[derive(Debug, Serialize)]
 pub struct Cs2RootResponse {

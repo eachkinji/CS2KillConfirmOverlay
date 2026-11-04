@@ -78,6 +78,9 @@
                         <TextBlock Text="ANI" FontSize="10" FontWeight="SemiBold" CharacterSpacing="60" Foreground="#6E6E73" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Grid>
+                <Button x:Name="UpdateStatusButton" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center" Padding="12,7" CornerRadius="10" Background="#10007AFF" BorderThickness="0" Click="OnUpdateStatusClick" ToolTipService.ToolTip="更新状态与关于本版本">
+                    <StackPanel Orientation="Horizontal" Spacing="8"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE895;" FontSize="13" Foreground="#007AFF"/><TextBlock x:Name="UpdateStatusText" FontSize="12" TextTrimming="CharacterEllipsis" MaxWidth="210"/></StackPanel>
+                </Button>
                 <StackPanel x:Name="StatusActions" Grid.Column="2" Orientation="Horizontal" Spacing="2" VerticalAlignment="Center">
                     <Button x:Name="StatusRetryButton" Style="{StaticResource StatusStripIconButtonStyle}" Click="OnStatusRetryClick" ToolTipService.ToolTip="重试连接" AutomationProperties.Name="Retry connection"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE72C;" FontSize="12"/></Button>
                     <Button x:Name="StatusRepairButton" Style="{StaticResource StatusStripIconButtonStyle}" Click="OnStatusRepairClick" ToolTipService.ToolTip="修复游戏配置" AutomationProperties.Name="Repair game config"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE90F;" FontSize="12"/></Button>

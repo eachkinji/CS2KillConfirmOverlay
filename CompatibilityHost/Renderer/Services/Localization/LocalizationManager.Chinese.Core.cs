@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace KillConfirmCompatibility.Services
 {
@@ -10,9 +10,6 @@ namespace KillConfirmCompatibility.Services
             {
             ["GeneralSettingsTitle"] = "\u901a\u7528\u8bbe\u7f6e",
             ["GameEffectsTitle"] = "\u6e38\u620f\u7279\u6548",
-            ["CloseBehaviorLabel"] = "\u5173\u95ed\u4e3b\u7a97\u53e3\u65f6",
-            ["CloseWindowTray"] = "\u5173\u95ed\u7a97\u53e3 / \u4fdd\u6301\u540e\u53f0\u8fd0\u884c",
-            ["CloseWindowExit"] = "\u76f4\u63a5\u9000\u51fa\u7a0b\u5e8f",
             ["AutoCloseOnGameExitLabel"] = "\u9000\u51fa\u6e38\u620f\u540e\u81ea\u52a8\u5173\u95ed",
             ["AutoCloseOnGameExitHint"] = "\u5f00\u542f\u540e\uff0c\u68c0\u6d4b\u5230 CS2 \u6216 CS:GO \u5df2\u9000\u51fa\u65f6\uff0c\u672c\u63d2\u4ef6\u4f1a\u81ea\u52a8\u53d6\u6d88\u56fa\u5b9a\u5e76\u5173\u95ed\uff0c\u65e0\u9700\u624b\u52a8\u5173\u95ed\u3002",
             ["InterruptPreviousKillAudioLabel"] = "\u6253\u65ad\u4e0a\u4e00\u6bb5\u51fb\u6740\u8bed\u97f3",
@@ -59,23 +56,6 @@ namespace KillConfirmCompatibility.Services
             ["CsolIconPackCreationHint"] = "选择 CSOL 的 1～10 杀、爆头、近战、复仇、首杀和助攻图标。",
             ["CsolVoicePackNamePlaceholder"] = "输入 CSOL 语音包名称",
             ["CsolIconPackNamePlaceholder"] = "输入 CSOL 图标包名称",
-            ["ProcessPriorityTitle"] = "程序运行优先级",
-            ["ProcessPriorityHint"] = "调整悬浮窗相关程序的运行优先级。大多数情况下保持“正常”即可。",
-            ["ProcessPriorityPersistenceHint"] = "开启后，每次启动都会自动应用所选优先级。",
-            ["ProcessPriorityRealtime"] = "\u5b9e\u65f6",
-            ["ProcessPriorityHigh"] = "\u9ad8",
-            ["ProcessPriorityAboveNormal"] = "\u9ad8\u4e8e\u6b63\u5e38",
-            ["ProcessPriorityNormal"] = "\u6b63\u5e38",
-            ["ProcessPriorityBelowNormal"] = "\u4f4e\u4e8e\u6b63\u5e38",
-            ["ProcessPriorityIdle"] = "\u4f4e",
-            ["ProcessPriorityMixed"] = "\u6df7\u5408",
-            ["ProcessPriorityUnknown"] = "\u672a\u77e5",
-            ["ProcessPriorityCurrentPrefix"] = "\u5f53\u524d\uff1a",
-            ["ProcessPriorityReading"] = "\u6b63\u5728\u8bfb\u53d6...",
-            ["ProcessPriorityApplying"] = "\u6b63\u5728\u5e94\u7528...",
-            ["ProcessPriorityNotRunning"] = "\u672a\u8fd0\u884c",
-            ["ProcessPriorityServiceUnavailable"] = "\u670d\u52a1\u4e0d\u53ef\u7528",
-            ["ProcessPriorityApplyFailed"] = "\u4fee\u6539\u5931\u8d25",
             ["Refresh"] = "\u5237\u65b0",
             ["RuntimeTitle"] = "软件与维护",
             ["RuntimeDescription"] = "选择音频输出、管理日志，或将软件恢复为默认设置。",

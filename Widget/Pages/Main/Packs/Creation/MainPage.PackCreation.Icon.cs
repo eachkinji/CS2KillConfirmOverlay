@@ -322,7 +322,7 @@ namespace KillConfirmGameBar
 
         private async Task<bool> GuardIconPackCreationAsync()
         {
-            GameStyleMode style = GameStyleService.Current;
+            GameStyleMode style = SettingsGameStyle;
             bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
             if (IsIconlessGame(style))
             {

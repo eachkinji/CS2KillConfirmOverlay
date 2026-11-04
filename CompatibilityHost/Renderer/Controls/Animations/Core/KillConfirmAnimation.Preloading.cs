@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -122,6 +122,11 @@ namespace KillConfirmCompatibility.Controls
             if (GameStyleService.IsBattlefield2042Key(_iconPack))
             {
                 return PreloadBattlefield2042AnimationsAsync(progress);
+            }
+
+            if (GameStyleService.IsBattlefield6Key(_iconPack) || GameStyleService.Current == GameStyleMode.Battlefield6)
+            {
+                return PreloadBattlefield6AnimationsAsync(progress);
             }
 
             if (GameStyleService.IsPubgKey(_iconPack))

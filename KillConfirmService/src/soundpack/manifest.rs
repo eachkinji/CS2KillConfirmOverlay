@@ -604,6 +604,7 @@ impl PackManifest {
                 | "battlefield1"
                 | "battlefield5"
                 | "battlefield2042"
+                | "battlefield6"
                 | "deltaforce"
                 | "valorant"
                 | "modernwarfare2019"

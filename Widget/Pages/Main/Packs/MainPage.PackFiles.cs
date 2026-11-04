@@ -143,7 +143,7 @@ namespace KillConfirmGameBar
 
         private async Task ShowMessageAsync(string title, string message)
         {
-            var theme = GameThemePalette.Current;
+            var theme = SettingsTheme;
             var body = new TextBlock { Text = message, TextWrapping = TextWrapping.Wrap, FontSize = 14, Foreground = new SolidColorBrush(theme.Text) };
             var scroll = new ScrollViewer { Content = body, MaxHeight = 320, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled };
             var dialog = CreatePackStatusDialog(title, scroll,
@@ -425,6 +425,10 @@ namespace KillConfirmGameBar
                     if (string.Equals(key, "battlefield2042", StringComparison.OrdinalIgnoreCase))
                     {
                         return await installed.GetFolderAsync(@"Assets\GameStyles\battlefield2042\killconfirm\textures");
+                    }
+                    if (string.Equals(key, "battlefield6", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return await installed.GetFolderAsync(@"Assets\GameStyles\battlefield6\killconfirm\textures");
                     }
                     if (string.Equals(key, "pubg", StringComparison.OrdinalIgnoreCase))
                     {

@@ -186,7 +186,23 @@ namespace KillConfirmCompatibility.Desktop.Windowing
             };
             _resize.DragCompleted += (s,e) => { _resizing = false; LayoutChanged?.Invoke(); };
             var menu = new ContextMenu();
-            var center = new MenuItem { Header = "居中" }; center.Click += (s,e) => { if (_layout == null) return; _layout.X = _layout.Y = 0.5; UpdateLayoutPlacement(); }; menu.Items.Add(center);
+            void AddFrameCommand(string text, string command)
+            {
+                var item = new MenuItem { Header = text, Tag = command };
+                item.Click += (s, e) => ApplyEditorCommand(command);
+                menu.Items.Add(item);
+            }
+            AddFrameCommand("上半 1/5", "top");
+            AddFrameCommand("居中", "center");
+            AddFrameCommand("下半 1/5", "bottom");
+            menu.Items.Add(new Separator());
+            AddFrameCommand("放大", "larger");
+            AddFrameCommand("缩小", "smaller");
+            AddFrameCommand("上移", "up");
+            AddFrameCommand("下移", "down");
+            AddFrameCommand("左移", "left");
+            AddFrameCommand("右移", "right");
+            menu.Items.Add(new Separator());
             var reset = new MenuItem { Header = "恢复这个元素的位置与大小" }; reset.Click += (s,e) => {
                 if (_layout == null) return;
                 var fresh = new DisplayConfiguration().GetLayout(KillConfirmCompatibility.Services.GameStyleService.ToStorageValue(KillConfirmCompatibility.Services.GameStyleService.Current)).GetElement(ElementKey);
@@ -200,6 +216,30 @@ namespace KillConfirmCompatibility.Desktop.Windowing
             MouseWheel += ChangeScale;
             KeyDown += OnKey;
             new WindowInteropHelper(this).EnsureHandle();
+        }
+        internal void ApplyEditorCommand(string command)
+        {
+            if (!_editing || !_editorSelected || _layout == null) return;
+            double dpi = Math.Max(96, NativeWindows.GetDpiForWindow(_handle)) / 96.0;
+            // Match UWP's 12-DIP nudge and 10% scale step. Positions are relative
+            // to the selected game/display area, so multiple monitors stay correct.
+            double dx = 12 * dpi / Math.Max(1, _bounds.Width);
+            double dy = 12 * dpi / Math.Max(1, _bounds.Height);
+            switch (command)
+            {
+                case "top": _layout.X = .5; _layout.Y = .2; break;
+                case "center": _layout.X = _layout.Y = .5; break;
+                case "bottom": _layout.X = .5; _layout.Y = .8; break;
+                case "larger": _layout.Scale *= 1.1; break;
+                case "smaller": _layout.Scale /= 1.1; break;
+                case "up": _layout.Y -= dy; break;
+                case "down": _layout.Y += dy; break;
+                case "left": _layout.X -= dx; break;
+                case "right": _layout.X += dx; break;
+                default: return;
+            }
+            _layout.Normalize();
+            UpdateLayoutPlacement();
         }
         internal void SetEditorSelected(bool selected)
         {

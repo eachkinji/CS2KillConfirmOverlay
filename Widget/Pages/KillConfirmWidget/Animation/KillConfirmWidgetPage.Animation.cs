@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using KillConfirmGameBar.Services;
@@ -348,6 +348,9 @@ namespace KillConfirmGameBar
                 case GameStyleMode.Battlefield2042:
                     PlayBattlefield2042PrimaryAnimation(killEvent);
                     return;
+                case GameStyleMode.Battlefield6:
+                    PlayBattlefield6PrimaryAnimation(killEvent);
+                    break;
                 case GameStyleMode.Pubg:
                     PlayPubgPrimaryAnimation(killEvent);
                     return;
@@ -397,107 +400,10 @@ namespace KillConfirmGameBar
                 : targetName.Trim();
         }
 
-        private void PlayBattlefield1PrimaryAnimation(KillEvent killEvent)
-        {
-            PlayBattlefieldKillMarkIfEnabled(killEvent);
-            LowerFeedbackAnimation.PlayBattlefield1Kill(
-                killEvent.KillCount,
-                killEvent.IsHeadshot,
-                killEvent.IsKnifeKill,
-                killEvent.IsAssist,
-                GetKillTargetDisplayName(killEvent),
-                GetBattlefieldWeaponLabel(killEvent),
-                killEvent.MoneyReward,
-                GetBattlefieldEventKind(killEvent),
-                killEvent.RoundNumber,
-                killEvent.MoneyEpoch);
-        }
 
-        private void PlayBattlefield5PrimaryAnimation(KillEvent killEvent)
-        {
-            PlayBattlefieldKillMarkIfEnabled(killEvent);
-            LowerFeedbackAnimation.PlayBattlefield5Kill(
-                killEvent.KillCount,
-                killEvent.IsHeadshot,
-                killEvent.IsKnifeKill,
-                killEvent.IsAssist,
-                GetKillTargetDisplayName(killEvent),
-                GetBattlefieldWeaponLabel(killEvent),
-                killEvent.MoneyReward,
-                GetBattlefieldEventKind(killEvent),
-                killEvent.RoundNumber,
-                killEvent.MoneyEpoch);
-        }
 
-        private void PlayBattlefield4PrimaryAnimation(KillEvent killEvent)
-        {
-            PlayBattlefieldKillMarkIfEnabled(killEvent);
-            LowerFeedbackAnimation.PlayBattlefield4Kill(
-                killEvent.KillCount,
-                killEvent.IsHeadshot,
-                killEvent.IsKnifeKill,
-                killEvent.IsAssist,
-                GetKillTargetDisplayName(killEvent),
-                GetBattlefieldWeaponLabel(killEvent),
-                killEvent.MoneyReward,
-                GetBattlefieldEventKind(killEvent),
-                killEvent.RoundNumber,
-                killEvent.MoneyEpoch);
-        }
 
-        private void PlayBattlefield2042PrimaryAnimation(KillEvent killEvent)
-        {
-            PlayBattlefieldKillMarkIfEnabled(killEvent);
-            LowerFeedbackAnimation.PlayBattlefield2042Kill(
-                killEvent.KillCount,
-                killEvent.IsHeadshot,
-                killEvent.IsKnifeKill,
-                killEvent.IsGrenadeKill,
-                killEvent.IsAssist,
-                GetKillTargetDisplayName(killEvent),
-                GetBattlefieldWeaponLabel(killEvent),
-                killEvent.MoneyReward,
-                GetBattlefieldEventKind(killEvent),
-                killEvent.RoundNumber,
-                killEvent.MoneyEpoch);
-        }
 
-        private void PlayPubgPrimaryAnimation(KillEvent killEvent)
-        {
-            PlayAuxiliaryKillMarkIfEnabled(killEvent);
-            LowerFeedbackAnimation.PlayPubgKill(
-                killEvent.KillCount,
-                killEvent.IsHeadshot,
-                killEvent.IsKnifeKill,
-                killEvent.IsAssist,
-                GetKillTargetDisplayName(killEvent),
-                GetBattlefieldWeaponLabel(killEvent),
-                killEvent.MoneyReward,
-                GetBattlefieldEventKind(killEvent),
-                killEvent.RoundNumber,
-                killEvent.MoneyEpoch);
-        }
-
-        private void PlayDeltaForcePrimaryAnimation(KillEvent killEvent)
-        {
-            PlayBattlefieldKillMarkIfEnabled(killEvent);
-            LowerFeedbackAnimation.PlayDeltaForceKill(
-                killEvent.KillCount,
-                killEvent.IsHeadshot,
-                killEvent.IsKnifeKill,
-                killEvent.IsAssist,
-                GetKillTargetDisplayName(killEvent),
-                GetBattlefieldWeaponLabel(killEvent),
-                killEvent.MoneyReward,
-                GetBattlefieldEventKind(killEvent),
-                killEvent.RoundNumber,
-                killEvent.MoneyEpoch);
-        }
-
-        private void PlayBattlefieldKillMarkIfEnabled(KillEvent killEvent)
-        {
-            PlayAuxiliaryKillMarkIfEnabled(killEvent);
-        }
 
         private void PlayAuxiliaryKillMarkIfEnabled(KillEvent killEvent)
         {
@@ -584,6 +490,7 @@ namespace KillConfirmGameBar
                 || style == GameStyleMode.Battlefield5
                 || style == GameStyleMode.Battlefield4
                 || style == GameStyleMode.Battlefield2042
+                || style == GameStyleMode.Battlefield6
                 || style == GameStyleMode.Pubg
                 || style == GameStyleMode.DeltaForce;
         }

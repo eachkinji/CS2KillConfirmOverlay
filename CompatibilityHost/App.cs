@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 
 namespace KillConfirmCompatibility
@@ -27,6 +27,15 @@ namespace KillConfirmCompatibility
             }
             var application = new System.Windows.Application();
             application.ShutdownMode = System.Windows.ShutdownMode.OnExplicitShutdown;
+            if (args.Length == 3 && args[0] == "--validate-interactions")
+            {
+                application.Startup += async (s, e) =>
+                {
+                    try { await Validation.InteractionValidation.RunAsync(args[1], args[2]); application.Shutdown(0); }
+                    catch (Exception error) { Directory.CreateDirectory(args[1]); File.WriteAllText(Path.Combine(args[1], "failure.txt"), error.ToString()); application.Shutdown(1); }
+                };
+                application.Run(); return;
+            }
             if (args.Length == 3 && args[0] == "--validate-valorant-composition")
             {
                 application.Startup += async (s, e) =>
@@ -41,6 +50,15 @@ namespace KillConfirmCompatibility
                 application.Startup += async (s, e) =>
                 {
                     try { await Validation.FrameRateAudit.RunAsync(args[1], args[2]); application.Shutdown(0); }
+                    catch (Exception error) { Directory.CreateDirectory(args[1]); File.WriteAllText(Path.Combine(args[1], "failure.txt"), error.ToString()); application.Shutdown(1); }
+                };
+                application.Run(); return;
+            }
+            if (args.Length == 3 && args[0] == "--validate-battlefield6")
+            {
+                application.Startup += async (s, e) =>
+                {
+                    try { await Validation.Battlefield6Validation.RunAsync(args[1], args[2]); application.Shutdown(0); }
                     catch (Exception error) { Directory.CreateDirectory(args[1]); File.WriteAllText(Path.Combine(args[1], "failure.txt"), error.ToString()); application.Shutdown(1); }
                 };
                 application.Run(); return;

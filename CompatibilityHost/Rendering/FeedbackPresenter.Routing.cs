@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using KillConfirmCompatibility.Services;
 using Windows.UI.Xaml;
 
@@ -231,6 +231,9 @@ namespace KillConfirmCompatibility
                 case GameStyleMode.Battlefield2042:
                     PlayBattlefield2042PrimaryAnimation(killEvent);
                     return;
+                case GameStyleMode.Battlefield6:
+                    PlayBattlefield6PrimaryAnimation(killEvent);
+                    break;
                 case GameStyleMode.Pubg:
                     PlayPubgPrimaryAnimation(killEvent);
                     return;

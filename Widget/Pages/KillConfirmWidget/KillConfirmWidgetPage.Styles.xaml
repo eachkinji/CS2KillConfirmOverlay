@@ -92,7 +92,8 @@
 
         <Style x:Key="PanelToggleBarButtonStyle" TargetType="Button">
             <Setter Property="Width" Value="72" />
-            <Setter Property="Height" Value="18" />
+            <Setter Property="Height" Value="26" />
+            <Setter Property="MinHeight" Value="26" />
             <Setter Property="MinWidth" Value="0" />
             <Setter Property="Padding" Value="4,0" />
             <Setter Property="HorizontalAlignment" Value="Center" />
@@ -102,7 +103,7 @@
             <Setter Property="Foreground" Value="#3A3A3C" />
             <Setter Property="BorderBrush" Value="#1F000000" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="999" />
+            <Setter Property="CornerRadius" Value="6" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">

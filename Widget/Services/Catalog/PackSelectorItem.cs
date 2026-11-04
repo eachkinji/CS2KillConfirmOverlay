@@ -11,7 +11,7 @@ using Windows.UI.Xaml.Media.Imaging;
 namespace KillConfirmGameBar.Services
 {
     // Store data, not pre-created ComboBoxItem visual trees. The popup realizes
-    // only visible rows; thumbnail binding never delays selection or population.
+    // visible/nearby rows; thumbnail binding never delays selection or population.
     public sealed class PackSelectorItem : INotifyPropertyChanged
     {
         private static readonly SemaphoreSlim ThumbnailGate = new SemaphoreSlim(4, 4);
@@ -83,15 +83,17 @@ namespace KillConfirmGameBar.Services
             string iconSize = compact ? "12" : "18";
             string hostSize = compact ? "16" : "24";
             selector.MaxDropDownHeight = 320;
-            selector.ItemsPanel = (Windows.UI.Xaml.Controls.ItemsPanelTemplate)XamlReader.Load(
-                "<ItemsPanelTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'><VirtualizingStackPanel/></ItemsPanelTemplate>");
+            // ComboBox requires its native CarouselPanel for popup measurement,
+            // placement and scrolling. It already virtualizes the rows; replacing
+            // it with VirtualizingStackPanel breaks both WinUI and UWP popups.
             selector.ItemTemplate = (Windows.UI.Xaml.DataTemplate)XamlReader.Load(
                 "<DataTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'>" +
-                "<StackPanel Orientation='Horizontal' Spacing='6' VerticalAlignment='Center'>" +
+                "<Grid ColumnSpacing='6' VerticalAlignment='Center'>" +
+                "<Grid.ColumnDefinitions><ColumnDefinition Width='Auto'/><ColumnDefinition Width='*'/></Grid.ColumnDefinitions>" +
                 "<Border Width='" + hostSize + "' Height='" + hostSize + "' CornerRadius='4' Background='#663A3F47'>" +
                 "<Image Width='" + iconSize + "' Height='" + iconSize + "' Stretch='Uniform' Source='{Binding Thumbnail}'/></Border>" +
-                "<TextBlock Text='{Binding Text}' FontSize='" + (compact ? "9" : "13") +
-                "' TextTrimming='CharacterEllipsis' VerticalAlignment='Center'/></StackPanel></DataTemplate>");
+                "<TextBlock Grid.Column='1' Text='{Binding Text}' FontSize='" + (compact ? "9" : "13") +
+                "' TextTrimming='CharacterEllipsis' VerticalAlignment='Center'/></Grid></DataTemplate>");
         }
     }
 }

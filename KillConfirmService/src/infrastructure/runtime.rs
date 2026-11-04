@@ -18,58 +18,6 @@ use windows_sys::Win32::UI::WindowsAndMessaging::SW_SHOWNORMAL;
 const UNINSTALL_REGISTRY_KEY: &str = r"HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{E0DF6407-CB2E-43D0-8B51-8C8924F50AA1}_is1";
 const CREATE_NO_WINDOW: u32 = 0x08000000;
 
-/// Win32 types and constants for process priority + power throttling control.
-const HIGH_PRIORITY_CLASS: u32 = 0x00000080;
-const PROCESS_POWER_THROTTLING: u32 = 11;
-const PROCESS_POWER_THROTTLING_EXECUTION_SPEED: u32 = 0x00000001;
-
-#[repr(C)]
-struct ProcessPowerThrottlingState {
-    version: u32,
-    control_mask: u32,
-    state_mask: u32,
-}
-
-#[link(name = "kernel32")]
-unsafe extern "system" {
-    fn SetPriorityClass(process: *mut std::ffi::c_void, priority_class: u32) -> i32;
-    fn GetCurrentProcess() -> *mut std::ffi::c_void;
-    fn SetProcessInformation(
-        process: *mut std::ffi::c_void,
-        process_information_class: u32,
-        process_information: *mut ProcessPowerThrottlingState,
-        process_information_size: u32,
-    ) -> i32;
-}
-
-pub(crate) fn boost_process_priority() {
-    unsafe {
-        let process = GetCurrentProcess();
-        if SetPriorityClass(process, HIGH_PRIORITY_CLASS) != 0 {
-            service_log("service process priority raised to High");
-        } else {
-            service_log("SetPriorityClass failed");
-        }
-        let state = ProcessPowerThrottlingState {
-            version: 1,
-            control_mask: PROCESS_POWER_THROTTLING_EXECUTION_SPEED,
-            state_mask: 0,
-        };
-        let size = std::mem::size_of::<ProcessPowerThrottlingState>() as u32;
-        if SetProcessInformation(
-            process,
-            PROCESS_POWER_THROTTLING,
-            &state as *const _ as *mut _,
-            size,
-        ) != 0
-        {
-            service_log("service power throttling disabled");
-        } else {
-            service_log("SetProcessInformation(PowerThrottling) failed");
-        }
-    }
-}
-
 pub(crate) fn is_process_running(pid: u32) -> bool {
     let handle = unsafe { OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, 0, pid) };
     if handle.is_null() {
@@ -187,7 +135,10 @@ pub(crate) fn exit_all_processes() {
             let Some(path)=super::process::process_image_path(pid) else {continue;};
             let root=env::current_exe().ok().and_then(|p|p.parent()?.parent().map(Path::to_path_buf));
             let ordinary=root.as_ref().is_some_and(|p|path.starts_with(p));
-            let widget=path.parent().and_then(|p|p.file_name()).is_some_and(|n|n.to_string_lossy().starts_with("KillConfirmGameBar.Overlay_"));
+            // Isolated close validation must never terminate the user's installed widget.
+            let isolated_close = env::var_os("KILLCONFIRM_CLOSE_VALIDATION").is_some()
+                && env::var_os("KILLCONFIRM_DATA_ROOT").is_some();
+            let widget=!isolated_close && path.parent().and_then(|p|p.file_name()).is_some_and(|n|n.to_string_lossy().starts_with("KillConfirmGameBar.Overlay_"));
             if !ordinary && !widget { continue; }
 
             let mut terminate = hidden_command("taskkill");

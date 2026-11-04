@@ -21,10 +21,6 @@ namespace KillConfirmGameBar.Pages.Main.Appearance
             FrameStripeOne.Stroke = frameBrush;
             FrameStripeTwo.Stroke = frameBrush;
 
-            var accentBrush = new SolidColorBrush(accent);
-            AccentLineOne.Fill = accentBrush;
-            AccentLineTwo.Fill = accentBrush;
-            AccentLineThree.Fill = accentBrush;
         }
     }
 }

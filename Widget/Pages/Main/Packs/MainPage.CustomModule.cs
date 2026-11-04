@@ -323,7 +323,7 @@ namespace KillConfirmGameBar
             fields.Children.Add(startBox); fields.Children.Add(endBox); fields.Children.Add(fpsBox); fields.Children.Add(presets);
             var buttons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, HorizontalAlignment = HorizontalAlignment.Right };
             var cancel = new Button { Content = LocalizationManager.Text("Cancel"), Padding = new Thickness(16, 7, 16, 7), CornerRadius = new CornerRadius(14) };
-            var confirm = new Button { Content = chinese ? "使用此片段" : "Use clip", Padding = new Thickness(16, 7, 16, 7), CornerRadius = new CornerRadius(14), Background = new SolidColorBrush(GameThemePalette.Current.Accent), Foreground = new SolidColorBrush(Colors.White) };
+            var confirm = new Button { Content = chinese ? "使用此片段" : "Use clip", Padding = new Thickness(16, 7, 16, 7), CornerRadius = new CornerRadius(14), Background = new SolidColorBrush(SettingsTheme.Accent), Foreground = new SolidColorBrush(Colors.White) };
             buttons.Children.Add(cancel); buttons.Children.Add(confirm);
 
             var layout = new StackPanel { Spacing = 10 };
@@ -351,7 +351,7 @@ namespace KillConfirmGameBar
                 MaxHeight = Math.Max(420, Window.Current.Bounds.Height - 50),
                 Padding = new Thickness(18),
                 Background = new SolidColorBrush(Color.FromArgb(247, 255, 255, 255)),
-                BorderBrush = new SolidColorBrush(GameThemePalette.Current.AccentSoft),
+                BorderBrush = new SolidColorBrush(SettingsTheme.AccentSoft),
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(20),
                 Child = new ScrollViewer { Content = layout, VerticalScrollBarVisibility = ScrollBarVisibility.Auto }

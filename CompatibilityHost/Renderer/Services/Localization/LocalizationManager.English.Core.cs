@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace KillConfirmCompatibility.Services
 {
@@ -10,9 +10,6 @@ namespace KillConfirmCompatibility.Services
             {
             ["GeneralSettingsTitle"] = "General settings",
             ["GameEffectsTitle"] = "Game effects",
-            ["CloseBehaviorLabel"] = "When closing the main window",
-            ["CloseWindowTray"] = "Close the window / keep running in background",
-            ["CloseWindowExit"] = "Exit the application",
             ["AutoCloseOnGameExitLabel"] = "Auto-close after the game exits",
             ["AutoCloseOnGameExitHint"] = "When enabled, the overlay unpins and closes itself after detecting that CS2 or CS:GO has exited, so you do not have to close it manually.",
             ["InterruptPreviousKillAudioLabel"] = "Interrupt previous kill voice",
@@ -59,23 +56,6 @@ namespace KillConfirmCompatibility.Services
             ["CsolIconPackCreationHint"] = "Choose CSOL images for kill streaks 1-10, headshot, melee, revenge, first kill, and assist.",
             ["CsolVoicePackNamePlaceholder"] = "CSOL voice pack name",
             ["CsolIconPackNamePlaceholder"] = "CSOL icon pack name",
-            ["ProcessPriorityTitle"] = "Program priority",
-            ["ProcessPriorityHint"] = "Adjust the priority of programs used by the Game Bar widget. Normal is recommended for most users.",
-            ["ProcessPriorityPersistenceHint"] = "When enabled, the selected priorities are applied automatically each time the app starts.",
-            ["ProcessPriorityRealtime"] = "Realtime",
-            ["ProcessPriorityHigh"] = "High",
-            ["ProcessPriorityAboveNormal"] = "Above normal",
-            ["ProcessPriorityNormal"] = "Normal",
-            ["ProcessPriorityBelowNormal"] = "Below normal",
-            ["ProcessPriorityIdle"] = "Low",
-            ["ProcessPriorityMixed"] = "Mixed",
-            ["ProcessPriorityUnknown"] = "Unknown",
-            ["ProcessPriorityCurrentPrefix"] = "Current: ",
-            ["ProcessPriorityReading"] = "Reading...",
-            ["ProcessPriorityApplying"] = "Applying...",
-            ["ProcessPriorityNotRunning"] = "Not running",
-            ["ProcessPriorityServiceUnavailable"] = "Service unavailable",
-            ["ProcessPriorityApplyFailed"] = "Change failed",
             ["Refresh"] = "Refresh",
             ["RuntimeTitle"] = "App & maintenance",
             ["RuntimeDescription"] = "Choose the audio output, manage logs, or restore the app to its default settings.",

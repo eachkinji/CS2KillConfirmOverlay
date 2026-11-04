@@ -1,7 +1,7 @@
 use std::{
     collections::HashMap,
     fs,
-    path::{Path as FilePath, PathBuf},
+    path::PathBuf,
     sync::Arc,
     sync::atomic::Ordering,
     time::{Duration, SystemTime, UNIX_EPOCH},
@@ -15,18 +15,15 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 use tracing::error;
-use windows_sys::Win32::Foundation::{CloseHandle, GetLastError};
-use windows_sys::Win32::System::Threading::{
-    GetPriorityClass, OpenProcess, PROCESS_QUERY_LIMITED_INFORMATION, PROCESS_SET_INFORMATION,
-    SetPriorityClass,
-};
+
+
 
 use crate::infrastructure::logging::{
     developer_logging_enabled, local_state_dir, perf_trace, service_log,
     set_developer_logging_enabled,
 };
 use crate::infrastructure::playback::{get_output_stream_with_name, output_device_names};
-use crate::infrastructure::process::{process_image_path, system_process_ids};
+
 use crate::infrastructure::steam::{detect_counter_strike_root, detect_cs2_root};
 use crate::soundpack::Preset;
 use crate::soundpack::sound::{
@@ -46,6 +43,6 @@ include!("core_endpoints.rs");
 include!("settings.rs");
 include!("event_settings.rs");
 include!("events.rs");
-include!("process_priority.rs");
+
 include!("video_import.rs");
 include!("tests.rs");

@@ -195,34 +195,3 @@ pub async fn set_developer_settings(
         enabled: request.enabled,
     })
 }
-
-pub async fn process_priorities() -> Json<ProcessPriorityResponse> {
-    Json(ProcessPriorityResponse {
-        processes: PROCESS_PRIORITY_TARGETS
-            .iter()
-            .map(|target| read_process_priority_status(target, None))
-            .collect(),
-    })
-}
-
-pub async fn set_process_priority(
-    Json(request): Json<ProcessPriorityRequest>,
-) -> Result<Json<ProcessPriorityStatus>, (StatusCode, String)> {
-    let Some(target) = PROCESS_PRIORITY_TARGETS
-        .iter()
-        .find(|target| target.key.eq_ignore_ascii_case(request.target.trim()))
-    else {
-        return Err((
-            StatusCode::BAD_REQUEST,
-            "unsupported process target".to_string(),
-        ));
-    };
-    let Some(priority) = ProcessPriority::from_str(&request.priority) else {
-        return Err((
-            StatusCode::BAD_REQUEST,
-            "unsupported process priority".to_string(),
-        ));
-    };
-
-    Ok(Json(read_process_priority_status(target, Some(priority))))
-}

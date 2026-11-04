@@ -3,7 +3,7 @@ using Windows.UI.Xaml.Media;
 
 namespace KillConfirmGameBar.Services
 {
-    internal sealed class GameThemePalette
+    internal sealed partial class GameThemePalette
     {
         public Color Shell { get; set; }
         public Color Panel { get; set; }
@@ -56,6 +56,8 @@ namespace KillConfirmGameBar.Services
                     return Battlefield4;
                 case GameStyleMode.Battlefield2042:
                     return Battlefield2042;
+                case GameStyleMode.Battlefield6:
+                    return Battlefield6;
                 case GameStyleMode.Pubg:
                     return Pubg;
                 case GameStyleMode.DeltaForce:

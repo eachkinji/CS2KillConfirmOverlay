@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using KillConfirmCompatibility.Services;
@@ -59,7 +59,8 @@ namespace KillConfirmCompatibility.Controls
                 ResetDoubaoState(); ResetDagoujiaoState(); ResetOverwatchState();
                 ResetApexFeedState(); ResetModernWarfare2019State();
                 ResetBattlefield5ScrollingState(); ResetBattlefield4HudState();
-                ResetBattlefield2042HudState(); ResetPubgHudState(); ResetDeltaForceHudState();
+                ResetBattlefield2042HudState();
+            ResetBattlefield6HudState(); ResetPubgHudState(); ResetDeltaForceHudState();
                 _currentCodeAsset = null; _currentValorantAsset = null;
                 _currentBattlefieldAsset = null; _currentCsolAsset = null;
                 _isBattlefieldTextOverlayActive = false;

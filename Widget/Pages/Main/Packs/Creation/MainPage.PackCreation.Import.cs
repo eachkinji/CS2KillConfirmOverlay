@@ -78,15 +78,15 @@ namespace KillConfirmGameBar
         {
             if (files.Count == 0) return;
             bool chinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
-            if (!isVoice && GameStyleService.Current != GameStyleMode.CustomModule
-                && GameStyleService.Current != GameStyleMode.Valorant
+            if (!isVoice && SettingsGameStyle != GameStyleMode.CustomModule
+                && SettingsGameStyle != GameStyleMode.Valorant
                 && await GuardIconPackCreationAsync()) return;
             _batchPackImport = batch;
             _packImportNotes.Clear();
             PackImportQueueResult result = null;
             string title = chinese ? (isVoice ? "批量导入音频包" : "批量导入图标包")
                 : (isVoice ? "Import audio packs" : "Import icon packs");
-            var theme = GameThemePalette.Current;
+            var theme = SettingsTheme;
             var progress = new TextBlock { TextWrapping = TextWrapping.Wrap, FontSize = 14, Foreground = new SolidColorBrush(theme.Text) };
             var progressBar = new ProgressBar { Minimum = 0, Maximum = files.Count, Height = 6, Foreground = new SolidColorBrush(theme.Accent), Background = new SolidColorBrush(theme.AccentSoft) };
             var status = new StackPanel { Spacing = 16 };
@@ -125,7 +125,7 @@ namespace KillConfirmGameBar
             }
             if (batch)
             {
-                if (GameStyleService.Current == GameStyleMode.Valorant)
+                if (SettingsGameStyle == GameStyleMode.Valorant)
                     await PackCatalogService.RefreshValorantExternalPacksAsync();
                 string summary = chinese ? $"导入完成：成功 {result.Succeeded} 个，失败 {result.Failures.Count} 个。"
                     : $"Import complete: {result.Succeeded} succeeded, {result.Failures.Count} failed.";
@@ -243,50 +243,54 @@ namespace KillConfirmGameBar
 
         private async void OnCreateIconPackClick(object sender, RoutedEventArgs e)
         {
-            if (GameStyleService.Current == GameStyleMode.CustomModule) { await ShowCustomModuleEditorAsync(null); return; }
-            if (GameStyleService.Current == GameStyleMode.Valorant) { await ShowValorantIconEditorAsync(); return; }
+            if (SettingsGameStyle == GameStyleMode.CustomModule) { await ShowCustomModuleEditorAsync(null); return; }
+            if (SettingsGameStyle == GameStyleMode.Valorant) { await ShowValorantIconEditorAsync(); return; }
             if (await GuardIconPackCreationAsync())
             {
                 return;
             }
 
-            if (GameStyleService.Current == GameStyleMode.Dagoujiao)
+            if (SettingsGameStyle == GameStyleMode.Dagoujiao)
             {
                 await ShowCreateDagoujiaoIconPackDialogAsync();
             }
-            else if (GameStyleService.Current == GameStyleMode.Doubao)
+            else if (SettingsGameStyle == GameStyleMode.Doubao)
             {
                 await ShowCreateDoubaoIconPackDialogAsync();
             }
-            else if (GameStyleService.Current == GameStyleMode.Csol)
+            else if (SettingsGameStyle == GameStyleMode.Csol)
             {
                 await ShowCreateCsolIconPackDialogAsync();
             }
-            else if (GameStyleService.Current == GameStyleMode.Battlefield1)
+            else if (SettingsGameStyle == GameStyleMode.Battlefield1)
             {
                 await ShowCreateBattlefield1IconPackDialogAsync();
             }
-            else if (GameStyleService.Current == GameStyleMode.Battlefield5)
+            else if (SettingsGameStyle == GameStyleMode.Battlefield5)
             {
                 await ShowCreateBattlefield5IconPackDialogAsync();
             }
-            else if (GameStyleService.Current == GameStyleMode.Battlefield2042)
+            else if (SettingsGameStyle == GameStyleMode.Battlefield2042)
             {
                 await ShowCreateBattlefield2042IconPackDialogAsync();
             }
-            else if (GameStyleService.Current == GameStyleMode.DeltaForce)
+            else if (SettingsGameStyle == GameStyleMode.Battlefield6)
+            {
+                await ShowCreateBattlefield6IconPackDialogAsync();
+            }
+            else if (SettingsGameStyle == GameStyleMode.DeltaForce)
             {
                 await ShowCreateDeltaForceIconPackDialogAsync();
             }
-            else if (GameStyleService.Current == GameStyleMode.Overwatch)
+            else if (SettingsGameStyle == GameStyleMode.Overwatch)
             {
                 await ShowCreateOverwatchIconPackDialogAsync(null, null, null);
             }
-            else if (GameStyleService.Current == GameStyleMode.ModernWarfare2019)
+            else if (SettingsGameStyle == GameStyleMode.ModernWarfare2019)
             {
                 await ShowCreateModernWarfare2019IconPackDialogAsync(null, null, null);
             }
-            else if (GameStyleService.Current == GameStyleMode.Apex)
+            else if (SettingsGameStyle == GameStyleMode.Apex)
             {
                 await ShowCreateApexIconPackDialogAsync(null, null, null);
             }
@@ -312,7 +316,7 @@ namespace KillConfirmGameBar
             {
                 extractedFolder = await ExtractZipToTemporaryFolderAsync(zipFile);
                 StorageFolder bestFolder = await FindBestPackFolderAsync(extractedFolder, recognizedFileNames);
-                if (GameStyleService.Current == GameStyleMode.Crossfire
+                if (SettingsGameStyle == GameStyleMode.Crossfire
                     && await CrossfireExternalAssetService.TryInstallAsync(bestFolder,
                         !recognizedFileNames.Any(name => name.EndsWith(".png", StringComparison.OrdinalIgnoreCase))))
                     return;

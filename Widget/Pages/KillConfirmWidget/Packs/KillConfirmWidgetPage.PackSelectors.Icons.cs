@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -18,6 +18,8 @@ namespace KillConfirmGameBar
 
         private static string GetIconPackIconUri(string key)
         {
+            var calabiyau = KillConfirmCompatibility.Contracts.CalabiyauPacks.Find(key);
+            if (calabiyau != null) return "ms-appx:///Assets/GameLogos/calabiyau.png";
             if (string.Equals(key, "custommodule", StringComparison.OrdinalIgnoreCase))
             {
                 return "ms-appx:///Assets/GameLogos/custommodule.png";
@@ -58,6 +60,8 @@ namespace KillConfirmGameBar
                     return "ms-appx:///Assets/GameStyles/pubg/killconfirm/textures/killicon_scrolling_headshot.png";
                 case "deltaforce":
                     return "ms-appx:///Assets/GameStyles/deltaforce/killconfirm/textures/killicon_df_headshot.png";
+                case "calabiyau":
+                    return "ms-appx:///Assets/GameLogos/calabiyau.png";
                 case "doubao":
                     return "ms-appx:///Assets/GameLogos/doubao.png";
                 case "dagoujiao":
@@ -98,6 +102,8 @@ namespace KillConfirmGameBar
                     return "Delta Force";
                 case "custommodule":
                     return "瓦默认音效/图标";
+                case "calabiyau":
+                    return "卡拉彼丘（无音效）";
                 case "doubao":
                     return "豆包";
                 case "dagoujiao":
@@ -117,6 +123,8 @@ namespace KillConfirmGameBar
 
         private static string GetFallbackIconPackDisplayName(string key)
         {
+            var calabiyau = KillConfirmCompatibility.Contracts.CalabiyauPacks.Find(key);
+            if (calabiyau != null) return calabiyau.DisplayName;
             switch ((key ?? string.Empty).Trim().ToLowerInvariant())
             {
                 case "bf1":
@@ -135,6 +143,8 @@ namespace KillConfirmGameBar
                     return "Delta Force";
                 case "custommodule":
                     return "瓦默认音效/图标";
+                case "calabiyau":
+                    return "卡拉彼丘 · 默认击杀";
                 case "doubao":
                     return "豆包";
                 case "dagoujiao":

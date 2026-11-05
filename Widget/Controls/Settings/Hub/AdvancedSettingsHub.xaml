@@ -1,4 +1,4 @@
-﻿<UserControl
+<UserControl
     x:Class="KillConfirmGameBar.Controls.Settings.AdvancedSettingsHub"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -237,6 +237,41 @@
                         <settings:AdvancedSystemOptionsPanel x:Name="HubAdvancedSystemOptionsPanel" />
                     </StackPanel>
 
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="安装与存储" Style="{StaticResource FluentSectionHeaderStyle}" />
+                        <Border Style="{StaticResource FluentSettingsCardStyle}">
+                            <Grid ColumnSpacing="12">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                                <Border Style="{StaticResource FluentIconContainerStyle}" VerticalAlignment="Top">
+                                    <FontIcon Glyph="&#xE7F8;" FontFamily="Segoe MDL2 Assets" FontSize="14" Foreground="{StaticResource FluentBodyText}" />
+                                </Border>
+                                <StackPanel Grid.Column="1" Spacing="7">
+                                    <TextBlock Text="程序安装位置" Style="{StaticResource FluentCardTitleStyle}" />
+                                    <TextBlock Text="在安装器中更换位置；更新后自动沿用现有设置。" Style="{StaticResource FluentCardDescriptionStyle}" />
+                                    <TextBlock x:Name="HubInstallPath" FontSize="12" Foreground="{StaticResource FluentBodyText}" TextWrapping="Wrap" IsTextSelectionEnabled="True" />
+                                    <Button Content="打开安装文件夹" Style="{StaticResource FluentSecondaryButtonStyle}" Click="OnOpenInstallFolder" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                        <Border Style="{StaticResource FluentSettingsCardStyle}">
+                            <Grid ColumnSpacing="12">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                                <Border Style="{StaticResource FluentIconContainerStyle}" VerticalAlignment="Top" Background="{StaticResource FluentAccentLight}">
+                                    <FontIcon Glyph="&#xE8B7;" FontFamily="Segoe MDL2 Assets" FontSize="14" Foreground="{StaticResource FluentAccent}" />
+                                </Border>
+                                <StackPanel Grid.Column="1" Spacing="7">
+                                    <TextBlock Text="素材包存放位置" Style="{StaticResource FluentCardTitleStyle}" />
+                                    <TextBlock Text="图标包、音效包、语音包和自定义素材统一存放。更换位置会迁移并校验已有素材。" Style="{StaticResource FluentCardDescriptionStyle}" />
+                                    <TextBlock x:Name="HubMaterialPath" FontSize="12" Foreground="{StaticResource FluentBodyText}" TextWrapping="Wrap" IsTextSelectionEnabled="True" />
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <Button x:Name="HubMaterialMove" Content="更换位置" Style="{StaticResource FluentPrimaryButtonStyle}" Click="OnMoveMaterialLibrary" />
+                                        <Button Content="打开文件夹" Style="{StaticResource FluentSecondaryButtonStyle}" Click="OnOpenMaterialLibrary" />
+                                    </StackPanel>
+                                    <TextBlock x:Name="HubMaterialStatus" Style="{StaticResource FluentCardDescriptionStyle}" Visibility="Collapsed" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
                     <!-- Runtime & Maintenance Options -->
                     <StackPanel Spacing="6">
                         <TextBlock

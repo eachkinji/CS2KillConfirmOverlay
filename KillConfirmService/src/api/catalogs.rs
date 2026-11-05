@@ -11,6 +11,7 @@ pub struct MoneyModeOption {
 }
 
 const SOUND_PACK_OPTIONS: &[SoundPackOption] = &[
+    SoundPackOption { preset: "calabiyau", display_name: "Strinova default sound effects" },
     SoundPackOption {
         preset: "custommodule",
         display_name: "Custom Module (silent)",

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using KillConfirmGameBar.Services;
 using Windows.Data.Json;
@@ -13,129 +13,27 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
     {
         private void LoadVoicePackSetting()
         {
-            GameStyleMode style = GameStyleService.Current;
-            string preset = LoadPackSettingForStyle(
-                VoicePackSettingKey,
-                style,
-                GameStyleService.DefaultVoicePackKey(style));
-
-            if (!TryApplyValorantVoicePackLoadOverride(ref preset)
-                && GameStyleService.GetStyleForPackKey(preset) != style)
-            {
-                preset = GameStyleService.DefaultVoicePackKey(style);
-            }
-
-            preset = NormalizeVoicePackPreset(preset);
-            SelectVoicePackPreset(preset);
-            preset = GetSelectedVoicePackPreset();
-            SavePackSettingForStyle(VoicePackSettingKey, style, preset);
+            LoadAudioChannelControls();
         }
 
         private async Task SyncSelectedVoicePackAsync()
         {
-            try
-            {
-                GameStyleMode requestStyle = GameStyleService.Current;
-                string preset = GetEffectiveSelectedVoicePackPreset();
-                if (string.IsNullOrWhiteSpace(preset))
-                {
-                    return;
-                }
-
-                VoicePackItem selectedPack = await PackCatalogService.GetVoicePackAsync(preset);
-                var request = new JsonObject
-                {
-                    ["preset"] = JsonValue.CreateStringValue(preset)
-                };
-                if (selectedPack != null
-                    && !selectedPack.IsBuiltIn
-                    && !string.IsNullOrWhiteSpace(selectedPack.FolderPath))
-                {
-                    request["custom_path"] = JsonValue.CreateStringValue(selectedPack.FolderPath);
-                    request["display_name"] = JsonValue.CreateStringValue(selectedPack.DisplayName ?? preset);
-                }
-
-                using (var client = await LocalServiceAuth.CreateHttpClientAsync())
-                using (var content = new HttpStringContent(
-                    request.Stringify(),
-                    UnicodeEncoding.Utf8,
-                    "application/json"))
-                using (HttpResponseMessage response = await client.PostAsync(SoundPackUri, content))
-                {
-                    if (response.IsSuccessStatusCode)
-                    {
-                        string responseText = await response.Content.ReadAsStringAsync();
-                        ApplyVoicePackResponse(responseText, requestStyle, preset);
-                        if (requestStyle == GameStyleMode.Dagoujiao)
-                        {
-                            await DagoujiaoSettingsStore.SyncActiveVoicePackAudioAsync(preset);
-                        }
-                    }
-                    else
-                    {
-                        App.Log("Voice pack sync failed: HTTP " + (int)response.StatusCode);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                App.Log("Voice pack sync failed without changing SVC health: " + ex);
-            }
+            await SyncAudioChannelsAsync();
         }
 
         private string GetSelectedVoicePackPreset()
         {
-            if (PackTestSectionView.VoicePackSelector.SelectedItem is PackSelectorItem item
-                && item.Tag is string tag)
-            {
-                return tag;
-            }
-
-            GameStyleMode style = GameStyleService.Current;
-            return LoadPackSettingForStyle(
-                VoicePackSettingKey,
-                style,
-                GameStyleService.DefaultVoicePackKey(style));
+            return SelectedAudioPack(PackTestSectionView.VoicePackSelector);
         }
 
         private string GetEffectiveSelectedVoicePackPreset()
         {
-            string valorantPreset = GetValorantEffectiveSelectedVoicePackPreset();
-            if (!string.IsNullOrWhiteSpace(valorantPreset))
-            {
-                return valorantPreset;
-            }
-
-            string selectedPreset = GetSelectedVoicePackPreset();
-            return GameStyleService.GetStyleForPackKey(selectedPreset) == GameStyleService.Current
-                ? selectedPreset
-                : GameStyleService.DefaultVoicePackKey(GameStyleService.Current);
+            return GetSelectedVoicePackPreset();
         }
 
         private void SelectVoicePackPreset(string preset)
         {
-            preset = NormalizeVoicePackPreset(preset);
-            bool previousSuppression = _suppressVoicePackEvents;
-            _suppressVoicePackEvents = true;
-            try
-            {
-                foreach (object option in PackTestSectionView.VoicePackSelector.Items)
-                {
-                    if (option is PackSelectorItem item
-                        && item.Tag is string tag
-                        && string.Equals(tag, preset, StringComparison.OrdinalIgnoreCase))
-                    {
-                        PackTestSectionView.VoicePackSelector.SelectedItem = item;
-                        return;
-                    }
-                }
-
-                PackTestSectionView.VoicePackSelector.SelectedIndex = 0;
-            }
-            finally
-            {
-                _suppressVoicePackEvents = previousSuppression;
-            }
+            SelectAudioPack(PackTestSectionView.VoicePackSelector, preset);
         }
 
         private void ApplyVoicePackResponse(string responseText, GameStyleMode requestStyle, string requestedPreset)

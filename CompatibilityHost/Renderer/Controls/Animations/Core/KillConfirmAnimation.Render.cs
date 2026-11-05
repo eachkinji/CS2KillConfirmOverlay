@@ -70,6 +70,7 @@ namespace KillConfirmCompatibility.Controls
 
         private void DrawCurrentAnimationFrame(CanvasDrawingSession drawingSession)
         {
+            if (_isCalabiyauActive) { DrawCalabiyauFrame(drawingSession); return; }
             if (_customSequencePlaying) { DrawCustomSequenceFrame(drawingSession); return; }
             if (_isModernWarfare2019Active)
             {
@@ -341,6 +342,7 @@ namespace KillConfirmCompatibility.Controls
 
         private void OnTick(object sender, object e)
         {
+            if (_isCalabiyauActive) { UpdateCalabiyauFrame(); return; }
             if (_customSequencePlaying) { UpdateCustomSequenceFrame(); return; }
             if (_isModernWarfare2019Active)
             {

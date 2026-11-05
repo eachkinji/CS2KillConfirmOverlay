@@ -31,9 +31,9 @@ namespace KillConfirmGameBar
             StorageFile headImageFile = initialHeadImageFile;
 
             var layout = CreatePackDialogLayout(
-                LocalizationManager.Text("CreateVoicePack"),
-                LocalizationManager.Text("DagoujiaoVoiceCollectionsHint"),
-                LocalizationManager.Text("VoicePackNamePlaceholder"),
+                AudioPackText("CreateVoicePack"),
+                AudioPackText("DagoujiaoVoiceCollectionsHint"),
+                AudioPackText("VoicePackNamePlaceholder"),
                 initialDisplayName,
                 out var nameBox);
 
@@ -71,7 +71,7 @@ namespace KillConfirmGameBar
             }
 
             string packName = string.IsNullOrWhiteSpace(nameBox.Text)
-                ? "大狗叫语音包"
+                ? "大狗叫音效包"
                 : nameBox.Text.Trim();
 
             await FillBuiltInVoiceDefaultsAsync(

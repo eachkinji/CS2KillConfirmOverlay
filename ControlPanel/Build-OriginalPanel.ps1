@@ -18,6 +18,9 @@ foreach ($taskItem in $taskProject.SelectNodes('//m:Compile|//m:Page', $taskName
     foreach ($taskFile in $taskFiles) {
         $taskRelative = [IO.Path]::GetRelativePath($taskWidget, $taskFile.FullName).Replace('\','/')
         if ($taskRelative.StartsWith('../Common/')) { continue }
+        # Validation items belong to the isolated widget/native test hosts.
+        # This XML adapter does not evaluate MSBuild ItemGroup conditions.
+        if ($taskRelative.StartsWith('Validation/')) { continue }
         if ($taskRelative -in @('App.xaml.cs','Properties/AssemblyInfo.cs','Services/Runtime/SharedRuntime.cs','Services/Runtime/SharedResources.cs') -or $taskRelative.StartsWith('Pages/KillConfirmWidget/') -and !$taskRelative.EndsWith('.Styles.xaml') -or $taskRelative.StartsWith('Controls/Animations/') -or $taskRelative.EndsWith('DanmakuOverlay.xaml') -or $taskRelative.EndsWith('DanmakuOverlay.xaml.cs')) { continue }
         if ($taskRelative.StartsWith('../CompatibilityHost/Integration/')) {
             $taskSub = $taskRelative.Substring('../CompatibilityHost/Integration/'.Length)

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace KillConfirmCompatibility.Services
 {
@@ -12,8 +12,8 @@ namespace KillConfirmCompatibility.Services
             ["GameEffectsTitle"] = "Game effects",
             ["AutoCloseOnGameExitLabel"] = "Auto-close after the game exits",
             ["AutoCloseOnGameExitHint"] = "When enabled, the overlay unpins and closes itself after detecting that CS2 or CS:GO has exited, so you do not have to close it manually.",
-            ["InterruptPreviousKillAudioLabel"] = "Interrupt previous kill voice",
-            ["InterruptPreviousKillAudioHint"] = "When enabled, a new kill voice line stops the previous one so multi-kills do not stack into a jumbled chorus.",
+            ["InterruptPreviousKillAudioLabel"] = "Interrupt previous kill sound effect",
+            ["InterruptPreviousKillAudioHint"] = "A new kill sound effect stops the previous effect. Character dialogue uses its own interruption setting.",
             ["GsiGameVersionLabel"] = "Counter-Strike version",
             ["GsiGameVersionHint"] = "Choose the Counter-Strike version you currently use. After switching, the app checks the game folder and match status again.",
             ["GsiGameVersionCs2"] = "Counter-Strike 2 (Default)",
@@ -37,12 +37,12 @@ namespace KillConfirmCompatibility.Services
             ["BombAudioFullPreview"] = "Preview full effect",
             ["BombAudioStopPreview"] = "Stop preview",
             ["DoubaoEffectsTitle"] = "Doubao Effects",
-            ["DoubaoEffectsHint"] = "Configure streak mode and customize images and voice for kills 1 through 5.",
+            ["DoubaoEffectsHint"] = "Configure streak mode and customize images and sound effect for kills 1 through 5.",
             ["DoubaoPerKillImages"] = "Per-kill images",
-            ["DoubaoPerKillAudios"] = "Per-kill voice",
+            ["DoubaoPerKillAudios"] = "Per-kill sound effect",
             ["DoubaoKillImage"] = "Kill {0} image",
             ["DoubaoKillAudio"] = "Kill {0} audio",
-            ["CsolVoicePack"] = "CSOL voice pack",
+            ["CsolVoicePack"] = "CSOL sound effect pack",
             ["CsolIconPack"] = "CSOL icon pack",
             ["CreateCsolVoicePack"] = "Create CSOL voice pack",
             ["CreateCsolIconPack"] = "Create CSOL icon pack",
@@ -50,11 +50,11 @@ namespace KillConfirmCompatibility.Services
             ["ImportCsolIconPack"] = "Import CSOL icon pack",
             ["ImportCsolVoiceMaterial"] = "Import CSOL voice material",
             ["ImportCsolIconMaterial"] = "Import CSOL icon material",
-            ["ImportCsolVoiceZip"] = "Import audio pack",
+            ["ImportCsolVoiceZip"] = "Import sound effect pack",
             ["ImportCsolIconZip"] = "Import icon pack",
             ["CsolVoicePackCreationHint"] = "Choose CSOL audio for kill streaks 1-10, headshot, knife, grenade, revenge, assist, and C4 plant/defuse events. CSOL does not use separate first-kill audio.",
             ["CsolIconPackCreationHint"] = "Choose CSOL images for kill streaks 1-10, headshot, melee, revenge, first kill, and assist.",
-            ["CsolVoicePackNamePlaceholder"] = "CSOL voice pack name",
+            ["CsolVoicePackNamePlaceholder"] = "CSOL sound effect pack name",
             ["CsolIconPackNamePlaceholder"] = "CSOL icon pack name",
             ["Refresh"] = "Refresh",
             ["RuntimeTitle"] = "App & maintenance",

@@ -355,7 +355,7 @@ foreach ($styleFolder in (Get-ChildItem -LiteralPath $SourceGameStylesRoot -Dire
     foreach ($soundPack in (Get-ChildItem -LiteralPath $soundPacksRoot -Directory)) {
         $normalizedPackName = $soundPack.Name.ToLowerInvariant()
         if ($copiedSoundPackNames.ContainsKey($normalizedPackName)) {
-            throw "内置语音包目录名重复: $($soundPack.Name)"
+            throw "内置音频包目录名重复: $($soundPack.Name)"
         }
 
         $destination = Join-Path $PackagedSoundsRoot $soundPack.Name
@@ -366,9 +366,9 @@ foreach ($styleFolder in (Get-ChildItem -LiteralPath $SourceGameStylesRoot -Dire
     }
 }
 if ($copiedSoundPackCount -eq 0) {
-    throw "SourceAssets 中未找到任何内置语音包。"
+    throw "SourceAssets 中未找到任何内置音频包。"
 }
-Write-Host "  已从 SourceAssets 同步 $copiedSoundPackCount 个内置语音包。" -ForegroundColor DarkGray
+Write-Host "  已从 SourceAssets 同步 $copiedSoundPackCount 个内置音频包。" -ForegroundColor DarkGray
 
 $PackagedFfmpegRoot = Join-Path $PackagedServiceRoot "ffmpeg"
 $resolvedFfmpegRoot = [IO.Path]::GetFullPath($PackagedFfmpegRoot)
@@ -388,7 +388,7 @@ New-Item -ItemType Directory -Path $bridgeRoot -Force | Out-Null
 Copy-Item -LiteralPath (Join-Path $ServiceRoot 'target/release/killconfirm-widget-bridge.exe') -Destination $bridgeRoot -Force
 if (-not $DisableSigning) {
     foreach ($executable in @(
-        (Join-Path $OutputDir 'Standalone/KillConfirmGameBar.exe'),
+        (Join-Path $OutputDir 'Standalone/KillConfirmControlPanel.exe'),
         (Join-Path $OutputDir 'Standalone/KillConfirmCompatibility.exe'),
         (Join-Path $OutputDir 'Standalone/KillConfirmService/cskillconfirm.exe'),
         (Join-Path $OutputDir 'Standalone/KillConfirmService/killconfirm-settings-launcher.exe'),

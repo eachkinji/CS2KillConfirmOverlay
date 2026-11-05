@@ -47,8 +47,12 @@ pub async fn set_soundpack(
     };
 
     {
+        let mut channels = app_state.audio_channels.write().await;
         let mut current = app_state.preset.write().await;
+        crate::soundpack::sound::stop_audio_sink_group(&app_state.kill_audio_sinks);
+        crate::soundpack::sound::stop_audio_sink_group(&app_state.character_voice_sinks);
         *current = preset;
+        *channels = None;
     }
 
     service_log(&format!(
@@ -178,7 +182,7 @@ pub async fn test_event(
         let app_state_clone = app_state.clone();
         let event_clone = event.clone();
         tokio::spawn(async move {
-            let result = play_audio(
+            let result = crate::soundpack::sound::play_audio_filtered(
                 app_state_clone,
                 event_clone.kill_count,
                 event_clone.is_headshot,
@@ -191,6 +195,7 @@ pub async fn test_event(
                 event_clone.event_kind.clone(),
                 event_clone.event_channel,
                 event_clone.play_main_animation,
+                query.audio_channel.and_then(|channel| channel.filter()),
             )
             .await;
 

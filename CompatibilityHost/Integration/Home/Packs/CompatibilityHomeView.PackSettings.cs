@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using KillConfirmGameBar.Services;
 using Windows.Data.Json;
@@ -14,12 +14,13 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
     {
         private async void OnVoicePackSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (_suppressVoicePackEvents || !_packSelectorsInitialized)
+            if (_suppressVoicePackEvents || _suppressAudioChannelEvents || !_packSelectorsInitialized)
             {
                 return;
             }
 
-            if (TryOpenPackLibrary(true, e)) return;
+            if (Equals((PackTestSectionView.VoicePackSelector.SelectedItem as PackSelectorItem)?.Tag, PackLibraryNavigation.AddMoreTag))
+            { await OpenAudioLibraryAsync(AudioPackKind.SoundEffect, e); return; }
             try
             {
                 string preset = GetSelectedVoicePackPreset();
@@ -28,9 +29,8 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                     return;
                 }
 
-                SavePackSettingForStyle(VoicePackSettingKey, GameStyleService.Current, preset);
-                TrySyncValorantIconPackForVoiceSelection(preset);
-                TrySyncBattlefieldIconPackForVoiceSelection(preset);
+                SaveAudioSelections();
+                await TrySyncIconForSoundEffectSelectionAsync(preset);
 
                 await EnsureServiceAvailableAsync();
                 await SyncSelectedVoicePackAsync();
@@ -41,30 +41,25 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             }
         }
 
-        private void OnIconPackSelectionChanged(object sender, SelectionChangedEventArgs e)
+        private async void OnIconPackSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (_suppressIconPackEvents || !_packSelectorsInitialized)
-            {
-                return;
-            }
-
+            if (_suppressIconPackEvents || !_packSelectorsInitialized) return;
             if (TryOpenPackLibrary(false, e)) return;
-            string iconPack = GetSelectedIconPack();
-            SavePackSettingForStyle(IconPackSettingKey, GameStyleService.Current, iconPack);
-            if (TrySyncValorantVoicePackForIconSelection(iconPack))
+            try
             {
-                _ = SyncValorantVoicePackAfterIconSelectionAsync();
+                GameStyleMode selectionStyle = GameStyleService.Current;
+                string iconPack = GetSelectedIconPack();
+                SavePackSettingForStyle(IconPackSettingKey, selectionStyle, iconPack);
+                bool linked = await TrySyncSoundEffectForIconSelectionAsync(iconPack);
+                if (selectionStyle != GameStyleService.Current || !string.Equals(GetSelectedIconPack(), iconPack, StringComparison.OrdinalIgnoreCase)) return;
+                if (linked) _ = SyncValorantVoicePackAfterIconSelectionAsync();
+                ConfigureAnimationIconPack(iconPack);
+                _ = ApplyCustomPackOverlaySupportAsync(iconPack);
+                UpdateEliteEffectSelectorState();
+                UpdateKillFxSelectorState();
+                UpdateWeaponBadgeSelectorState();
             }
-
-            ConfigureAnimationIconPack(iconPack);
-
-            // For custom packs, detect each overlay capability independently.
-            _ = ApplyCustomPackOverlaySupportAsync(iconPack);
-
-            UpdateEliteEffectSelectorState();
-            UpdateKillFxSelectorState();
-            UpdateWeaponBadgeSelectorState();
-
+            catch (Exception ex) { App.Log("Icon pack selection failed: " + ex); }
         }
 
         private async Task SyncValorantVoicePackAfterIconSelectionAsync()

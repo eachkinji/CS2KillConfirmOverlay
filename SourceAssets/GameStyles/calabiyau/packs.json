@@ -1,0 +1,8374 @@
+[
+  {
+    "key": "calabiyau_10403201",
+    "name": "光辉之冕",
+    "group": "Audrey",
+    "variant": "10403201",
+    "source": "WBP_IconFeedbackPage_PC_10403201",
+    "lower": "iconpacks/10403201/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 5,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 10
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 16
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 22
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 29
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 35
+      }
+    ],
+    "draws": {
+      "sprites": 36,
+      "materials": 26454,
+      "meshes": 0,
+      "particles": 23324
+    }
+  },
+  {
+    "key": "calabiyau_10403202",
+    "name": "光辉之冕-幽暗",
+    "group": "Audrey",
+    "variant": "10403202",
+    "source": "WBP_IconFeedbackPage_PC_10403202",
+    "lower": "iconpacks/10403202/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 5,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 11
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 16
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 21
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 29
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 34
+      }
+    ],
+    "draws": {
+      "sprites": 36,
+      "materials": 25997,
+      "meshes": 0,
+      "particles": 22867
+    }
+  },
+  {
+    "key": "calabiyau_10403203",
+    "name": "光辉之冕-猩红",
+    "group": "Audrey",
+    "variant": "10403203",
+    "source": "WBP_IconFeedbackPage_PC_10403203",
+    "lower": "iconpacks/10403203/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 5,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 11
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 16
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 21
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 29
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 33
+      }
+    ],
+    "draws": {
+      "sprites": 36,
+      "materials": 26171,
+      "meshes": 0,
+      "particles": 23041
+    }
+  },
+  {
+    "key": "calabiyau_10403204",
+    "name": "光辉之冕-湛蓝",
+    "group": "Audrey",
+    "variant": "10403204",
+    "source": "WBP_IconFeedbackPage_PC_10403204",
+    "lower": "iconpacks/10403204/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 5,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 10
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 16
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 22
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 28
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 34
+      }
+    ],
+    "draws": {
+      "sprites": 36,
+      "materials": 25987,
+      "meshes": 0,
+      "particles": 22857
+    }
+  },
+  {
+    "key": "calabiyau_10403205",
+    "name": "光辉之冕-闪耀",
+    "group": "Audrey",
+    "variant": "10403205",
+    "source": "WBP_IconFeedbackPage_PC_10403205",
+    "lower": "iconpacks/10403205/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 5,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 10
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 16
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 22
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 29
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 34
+      }
+    ],
+    "draws": {
+      "sprites": 36,
+      "materials": 26154,
+      "meshes": 0,
+      "particles": 23024
+    }
+  },
+  {
+    "key": "calabiyau_10602201",
+    "name": "盛世强音",
+    "group": "BaiMo",
+    "variant": "10602201",
+    "source": "WBP_IconFeedbackPage_PC_10602201",
+    "lower": "iconpacks/10602201/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 7,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 13
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 18
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 35
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 37
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 36
+      }
+    ],
+    "draws": {
+      "sprites": 13,
+      "materials": 23238,
+      "meshes": 0,
+      "particles": 18820
+    }
+  },
+  {
+    "key": "calabiyau_10602202",
+    "name": "盛世强音-迷幻电波",
+    "group": "BaiMo",
+    "variant": "10602202",
+    "source": "WBP_IconFeedbackPage_PC_10602202",
+    "lower": "iconpacks/10602202/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 7,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 12
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 18
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 36
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 36
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 36
+      }
+    ],
+    "draws": {
+      "sprites": 13,
+      "materials": 23121,
+      "meshes": 0,
+      "particles": 18626
+    }
+  },
+  {
+    "key": "calabiyau_10602203",
+    "name": "盛世强音-虚实之间",
+    "group": "BaiMo",
+    "variant": "10602203",
+    "source": "WBP_IconFeedbackPage_PC_10602203",
+    "lower": "iconpacks/10602203/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 7,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 12
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 17
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 37
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 37
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 37
+      }
+    ],
+    "draws": {
+      "sprites": 13,
+      "materials": 23146,
+      "meshes": 0,
+      "particles": 18553
+    }
+  },
+  {
+    "key": "calabiyau_10602204",
+    "name": "盛世强音-冰川探险",
+    "group": "BaiMo",
+    "variant": "10602204",
+    "source": "WBP_IconFeedbackPage_PC_10602204",
+    "lower": "iconpacks/10602204/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 7,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 12
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 18
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 36
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 36
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 36
+      }
+    ],
+    "draws": {
+      "sprites": 13,
+      "materials": 23146,
+      "meshes": 0,
+      "particles": 18652
+    }
+  },
+  {
+    "key": "calabiyau_10602205",
+    "name": "盛世强音-红温警告",
+    "group": "BaiMo",
+    "variant": "10602205",
+    "source": "WBP_IconFeedbackPage_PC_10602205",
+    "lower": "iconpacks/10602205/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 7,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 12
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 18
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 35
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 37
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 36
+      }
+    ],
+    "draws": {
+      "sprites": 13,
+      "materials": 22807,
+      "meshes": 0,
+      "particles": 18312
+    }
+  },
+  {
+    "key": "calabiyau_10305201",
+    "name": "绯天锦火",
+    "group": "Chiyo",
+    "variant": "10305201",
+    "source": "WBP_IconFeedbackPage_PC_10305201",
+    "lower": "iconpacks/10305201/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 7,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 10
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 19
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 22
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 22
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 27
+      }
+    ],
+    "draws": {
+      "sprites": 22,
+      "materials": 29679,
+      "meshes": 2529,
+      "particles": 23570
+    }
+  },
+  {
+    "key": "calabiyau_10305202",
+    "name": "绯天锦火-照叶",
+    "group": "Chiyo",
+    "variant": "10305202",
+    "source": "WBP_IconFeedbackPage_PC_10305202",
+    "lower": "iconpacks/10305202/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 6,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 10
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 19
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 22
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 22
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 27
+      }
+    ],
+    "draws": {
+      "sprites": 22,
+      "materials": 29679,
+      "meshes": 2529,
+      "particles": 23570
+    }
+  },
+  {
+    "key": "calabiyau_10305203",
+    "name": "绯天锦火-茜空",
+    "group": "Chiyo",
+    "variant": "10305203",
+    "source": "WBP_IconFeedbackPage_PC_10305203",
+    "lower": "iconpacks/10305203/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 6,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 10
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 19
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 22
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 22
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 27
+      }
+    ],
+    "draws": {
+      "sprites": 22,
+      "materials": 29679,
+      "meshes": 2529,
+      "particles": 23570
+    }
+  },
+  {
+    "key": "calabiyau_10305204",
+    "name": "绯天锦火-墨月",
+    "group": "Chiyo",
+    "variant": "10305204",
+    "source": "WBP_IconFeedbackPage_PC_10305204",
+    "lower": "iconpacks/10305204/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 6,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 10
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 19
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 22
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 22
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 27
+      }
+    ],
+    "draws": {
+      "sprites": 22,
+      "materials": 29679,
+      "meshes": 2529,
+      "particles": 23570
+    }
+  },
+  {
+    "key": "calabiyau_10305205",
+    "name": "绯天锦火-兰汀",
+    "group": "Chiyo",
+    "variant": "10305205",
+    "source": "WBP_IconFeedbackPage_PC_10305205",
+    "lower": "iconpacks/10305205/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 6,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 10
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 19
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 22
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 22
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 27
+      }
+    ],
+    "draws": {
+      "sprites": 22,
+      "materials": 29679,
+      "meshes": 2529,
+      "particles": 23570
+    }
+  },
+  {
+    "key": "calabiyau_10604201",
+    "name": "闪赫重锥",
+    "group": "Cielle",
+    "variant": "10604201",
+    "source": "WBP_IconFeedbackPage_PC_10604201",
+    "lower": "iconpacks/10604201/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 4,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 9
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 14
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 17
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 17
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 24
+      }
+    ],
+    "draws": {
+      "sprites": 34,
+      "materials": 6586,
+      "meshes": 2102,
+      "particles": 4176
+    }
+  },
+  {
+    "key": "calabiyau_10604202",
+    "name": "闪赫重锥-咆哮",
+    "group": "Cielle",
+    "variant": "10604202",
+    "source": "WBP_IconFeedbackPage_PC_10604202",
+    "lower": "iconpacks/10604202/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 4,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 9
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 14
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 17
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 17
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 24
+      }
+    ],
+    "draws": {
+      "sprites": 35,
+      "materials": 6586,
+      "meshes": 2102,
+      "particles": 4176
+    }
+  },
+  {
+    "key": "calabiyau_10604203",
+    "name": "闪赫重锥-雏音",
+    "group": "Cielle",
+    "variant": "10604203",
+    "source": "WBP_IconFeedbackPage_PC_10604203",
+    "lower": "iconpacks/10604203/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 4,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 9
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 14
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 17
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 17
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 24
+      }
+    ],
+    "draws": {
+      "sprites": 35,
+      "materials": 6583,
+      "meshes": 2102,
+      "particles": 4173
+    }
+  },
+  {
+    "key": "calabiyau_10604204",
+    "name": "闪赫重锥-浅唱",
+    "group": "Cielle",
+    "variant": "10604204",
+    "source": "WBP_IconFeedbackPage_PC_10604204",
+    "lower": "iconpacks/10604204/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 4,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 9
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 14
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 17
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 17
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 24
+      }
+    ],
+    "draws": {
+      "sprites": 35,
+      "materials": 6582,
+      "meshes": 2102,
+      "particles": 4172
+    }
+  },
+  {
+    "key": "calabiyau_10604205",
+    "name": "闪赫重锥-轰鸣",
+    "group": "Cielle",
+    "variant": "10604205",
+    "source": "WBP_IconFeedbackPage_PC_10604205",
+    "lower": "iconpacks/10604205/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 4,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 9
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 14
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 17
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 17
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 24
+      }
+    ],
+    "draws": {
+      "sprites": 35,
+      "materials": 6586,
+      "meshes": 2102,
+      "particles": 4176
+    }
+  },
+  {
+    "key": "calabiyau_10603201",
+    "name": "烈焰天穹",
+    "group": "Eika",
+    "variant": "10603201",
+    "source": "WBP_IconFeedbackPage_PC_10603201",
+    "lower": "iconpacks/10603201/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 6,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 14
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 19
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 24
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 29
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 30
+      }
+    ],
+    "draws": {
+      "sprites": 27,
+      "materials": 16477,
+      "meshes": 0,
+      "particles": 14058
+    }
+  },
+  {
+    "key": "calabiyau_10603202",
+    "name": "烈焰天穹-锚定",
+    "group": "Eika",
+    "variant": "10603202",
+    "source": "WBP_IconFeedbackPage_PC_10603202",
+    "lower": "iconpacks/10603202/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 6,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 14
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 19
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 25
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 29
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 31
+      }
+    ],
+    "draws": {
+      "sprites": 27,
+      "materials": 16902,
+      "meshes": 0,
+      "particles": 14620
+    }
+  },
+  {
+    "key": "calabiyau_10603203",
+    "name": "烈焰天穹-探索",
+    "group": "Eika",
+    "variant": "10603203",
+    "source": "WBP_IconFeedbackPage_PC_10603203",
+    "lower": "iconpacks/10603203/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 6,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 14
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 19
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 24
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 29
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 31
+      }
+    ],
+    "draws": {
+      "sprites": 27,
+      "materials": 17040,
+      "meshes": 0,
+      "particles": 14621
+    }
+  },
+  {
+    "key": "calabiyau_10603204",
+    "name": "烈焰天穹-核准",
+    "group": "Eika",
+    "variant": "10603204",
+    "source": "WBP_IconFeedbackPage_PC_10603204",
+    "lower": "iconpacks/10603204/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 6,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 14
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 19
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 24
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 29
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 31
+      }
+    ],
+    "draws": {
+      "sprites": 27,
+      "materials": 16689,
+      "meshes": 0,
+      "particles": 14270
+    }
+  },
+  {
+    "key": "calabiyau_10603205",
+    "name": "烈焰天穹-迸裂",
+    "group": "Eika",
+    "variant": "10603205",
+    "source": "WBP_IconFeedbackPage_PC_10603205",
+    "lower": "iconpacks/10603205/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 6,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 14
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 19
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 24
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 29
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 31
+      }
+    ],
+    "draws": {
+      "sprites": 27,
+      "materials": 17332,
+      "meshes": 0,
+      "particles": 14913
+    }
+  },
+  {
+    "key": "calabiyau_10603206",
+    "name": "窃厄谜火",
+    "group": "Eika1",
+    "variant": "10603206",
+    "source": "WBP_IconFeedbackPage_PC_10603206",
+    "lower": "iconpacks/10603206/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 6,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 16
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 21
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 26
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 26
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 35
+      }
+    ],
+    "draws": {
+      "sprites": 22,
+      "materials": 58633,
+      "meshes": 0,
+      "particles": 57758
+    }
+  },
+  {
+    "key": "calabiyau_10603207",
+    "name": "窃厄谜火-水晶灯",
+    "group": "Eika1",
+    "variant": "10603207",
+    "source": "WBP_IconFeedbackPage_PC_10603207",
+    "lower": "iconpacks/10603207/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 6,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 15
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 21
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 27
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 27
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 34
+      }
+    ],
+    "draws": {
+      "sprites": 22,
+      "materials": 58510,
+      "meshes": 0,
+      "particles": 57635
+    }
+  },
+  {
+    "key": "calabiyau_10603208",
+    "name": "窃厄谜火-打火匣",
+    "group": "Eika1",
+    "variant": "10603208",
+    "source": "WBP_IconFeedbackPage_PC_10603208",
+    "lower": "iconpacks/10603208/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 6,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 15
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 20
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 26
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 26
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 34
+      }
+    ],
+    "draws": {
+      "sprites": 22,
+      "materials": 58462,
+      "meshes": 0,
+      "particles": 57587
+    }
+  },
+  {
+    "key": "calabiyau_10603209",
+    "name": "窃厄谜火-蓝风笛",
+    "group": "Eika1",
+    "variant": "10603209",
+    "source": "WBP_IconFeedbackPage_PC_10603209",
+    "lower": "iconpacks/10603209/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 7,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 17
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 22
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 26
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 26
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 36
+      }
+    ],
+    "draws": {
+      "sprites": 23,
+      "materials": 59272,
+      "meshes": 0,
+      "particles": 58397
+    }
+  },
+  {
+    "key": "calabiyau_10603210",
+    "name": "窃厄谜火-糖果屋",
+    "group": "Eika1",
+    "variant": "10603210",
+    "source": "WBP_IconFeedbackPage_PC_10603210",
+    "lower": "iconpacks/10603210/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 6,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 15
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 21
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 26
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 26
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 36
+      }
+    ],
+    "draws": {
+      "sprites": 22,
+      "materials": 58322,
+      "meshes": 0,
+      "particles": 57447
+    }
+  },
+  {
+    "key": "calabiyau_10108201",
+    "name": "沧浪鲨影",
+    "group": "Feisha",
+    "variant": "10108201",
+    "source": "WBP_IconFeedbackPage_PC_10108201",
+    "lower": "iconpacks/10108201/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 8,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 13
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 20
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 25
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 29
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 37
+      }
+    ],
+    "draws": {
+      "sprites": 32,
+      "materials": 5327,
+      "meshes": 0,
+      "particles": 3892
+    }
+  },
+  {
+    "key": "calabiyau_10108202",
+    "name": "沧浪鲨影-荡漾",
+    "group": "Feisha",
+    "variant": "10108202",
+    "source": "WBP_IconFeedbackPage_PC_10108202",
+    "lower": "iconpacks/10108202/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 8,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 13
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 21
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 25
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 29
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 37
+      }
+    ],
+    "draws": {
+      "sprites": 32,
+      "materials": 5449,
+      "meshes": 0,
+      "particles": 4013
+    }
+  },
+  {
+    "key": "calabiyau_10108203",
+    "name": "沧浪鲨影-明亮",
+    "group": "Feisha",
+    "variant": "10108203",
+    "source": "WBP_IconFeedbackPage_PC_10108203",
+    "lower": "iconpacks/10108203/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 9,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 14
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 22
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 27
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 30
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 38
+      }
+    ],
+    "draws": {
+      "sprites": 32,
+      "materials": 5436,
+      "meshes": 0,
+      "particles": 4014
+    }
+  },
+  {
+    "key": "calabiyau_10108204",
+    "name": "沧浪鲨影-跃动",
+    "group": "Feisha",
+    "variant": "10108204",
+    "source": "WBP_IconFeedbackPage_PC_10108204",
+    "lower": "iconpacks/10108204/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 9,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 14
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 22
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 26
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 30
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 38
+      }
+    ],
+    "draws": {
+      "sprites": 32,
+      "materials": 5214,
+      "meshes": 0,
+      "particles": 3778
+    }
+  },
+  {
+    "key": "calabiyau_10108205",
+    "name": "沧浪鲨影-辉映",
+    "group": "Feisha",
+    "variant": "10108205",
+    "source": "WBP_IconFeedbackPage_PC_10108205",
+    "lower": "iconpacks/10108205/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 9,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 14
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 21
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 26
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 30
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 38
+      }
+    ],
+    "draws": {
+      "sprites": 32,
+      "materials": 5216,
+      "meshes": 0,
+      "particles": 3780
+    }
+  },
+  {
+    "key": "calabiyau_10502201",
+    "name": "浮生万相",
+    "group": "Flavia",
+    "variant": "10502201",
+    "source": "WBP_IconFeedbackPage_PC_10502201",
+    "lower": "iconpacks/10502201/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 5,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 13
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 19
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 22
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 26
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 29
+      }
+    ],
+    "draws": {
+      "sprites": 45,
+      "materials": 11916,
+      "meshes": 0,
+      "particles": 6811
+    }
+  },
+  {
+    "key": "calabiyau_10502202",
+    "name": "浮生万相-流光",
+    "group": "Flavia",
+    "variant": "10502202",
+    "source": "WBP_IconFeedbackPage_PC_10502202",
+    "lower": "iconpacks/10502202/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 5,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 13
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 19
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 22
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 26
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 29
+      }
+    ],
+    "draws": {
+      "sprites": 45,
+      "materials": 11797,
+      "meshes": 0,
+      "particles": 6692
+    }
+  },
+  {
+    "key": "calabiyau_10502203",
+    "name": "浮生万相-夜露",
+    "group": "Flavia",
+    "variant": "10502203",
+    "source": "WBP_IconFeedbackPage_PC_10502203",
+    "lower": "iconpacks/10502203/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 5,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 13
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 19
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 22
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 26
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 29
+      }
+    ],
+    "draws": {
+      "sprites": 45,
+      "materials": 11810,
+      "meshes": 0,
+      "particles": 6705
+    }
+  },
+  {
+    "key": "calabiyau_10502204",
+    "name": "浮生万相-血月",
+    "group": "Flavia",
+    "variant": "10502204",
+    "source": "WBP_IconFeedbackPage_PC_10502204",
+    "lower": "iconpacks/10502204/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 5,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 13
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 19
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 22
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 26
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 29
+      }
+    ],
+    "draws": {
+      "sprites": 45,
+      "materials": 11995,
+      "meshes": 0,
+      "particles": 6890
+    }
+  },
+  {
+    "key": "calabiyau_10502205",
+    "name": "浮生万相-翠星",
+    "group": "Flavia",
+    "variant": "10502205",
+    "source": "WBP_IconFeedbackPage_PC_10502205",
+    "lower": "iconpacks/10502205/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 5,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 13
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 19
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 22
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 27
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 30
+      }
+    ],
+    "draws": {
+      "sprites": 45,
+      "materials": 12669,
+      "meshes": 0,
+      "particles": 7564
+    }
+  },
+  {
+    "key": "calabiyau_10502206",
+    "name": "幽焚蚀影",
+    "group": "Flavia1",
+    "variant": "10502206",
+    "source": "WBP_IconFeedbackPage_PC_10502206",
+    "lower": "iconpacks/10502206/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 4,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 11
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 16
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 26
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 26
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 35
+      }
+    ],
+    "draws": {
+      "sprites": 23,
+      "materials": 20247,
+      "meshes": 0,
+      "particles": 18763
+    }
+  },
+  {
+    "key": "calabiyau_10502207",
+    "name": "幽焚蚀影-幻魇",
+    "group": "Flavia1",
+    "variant": "10502207",
+    "source": "WBP_IconFeedbackPage_PC_10502207",
+    "lower": "iconpacks/10502207/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 4,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 11
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 16
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 25
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 25
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 32
+      }
+    ],
+    "draws": {
+      "sprites": 20,
+      "materials": 20050,
+      "meshes": 0,
+      "particles": 18566
+    }
+  },
+  {
+    "key": "calabiyau_10502208",
+    "name": "幽焚蚀影-沧溟",
+    "group": "Flavia1",
+    "variant": "10502208",
+    "source": "WBP_IconFeedbackPage_PC_10502208",
+    "lower": "iconpacks/10502208/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 4,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 12
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 17
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 24
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 24
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 31
+      }
+    ],
+    "draws": {
+      "sprites": 20,
+      "materials": 20527,
+      "meshes": 0,
+      "particles": 19043
+    }
+  },
+  {
+    "key": "calabiyau_10502209",
+    "name": "幽焚蚀影-绯缎",
+    "group": "Flavia1",
+    "variant": "10502209",
+    "source": "WBP_IconFeedbackPage_PC_10502209",
+    "lower": "iconpacks/10502209/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 4,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 11
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 16
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 25
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 25
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 32
+      }
+    ],
+    "draws": {
+      "sprites": 20,
+      "materials": 20507,
+      "meshes": 0,
+      "particles": 19023
+    }
+  },
+  {
+    "key": "calabiyau_10502210",
+    "name": "幽焚蚀影-玄烛",
+    "group": "Flavia1",
+    "variant": "10502210",
+    "source": "WBP_IconFeedbackPage_PC_10502210",
+    "lower": "iconpacks/10502210/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 4,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 11
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 16
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 25
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 25
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 32
+      }
+    ],
+    "draws": {
+      "sprites": 20,
+      "materials": 20378,
+      "meshes": 0,
+      "particles": 18894
+    }
+  },
+  {
+    "key": "calabiyau_10111201",
+    "name": "幽荆昙梦",
+    "group": "Fragrans",
+    "variant": "10111201",
+    "source": "WBP_IconFeedbackPage_PC_10111201",
+    "lower": "iconpacks/10111201/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 8,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 13
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 18
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 24
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 24
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 29
+      }
+    ],
+    "draws": {
+      "sprites": 23,
+      "materials": 8270,
+      "meshes": 0,
+      "particles": 6095
+    }
+  },
+  {
+    "key": "calabiyau_10111202",
+    "name": "幽荆昙梦-覆梦",
+    "group": "Fragrans",
+    "variant": "10111202",
+    "source": "WBP_IconFeedbackPage_PC_10111202",
+    "lower": "iconpacks/10111202/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 8,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 13
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 18
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 25
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 26
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 29
+      }
+    ],
+    "draws": {
+      "sprites": 23,
+      "materials": 9123,
+      "meshes": 0,
+      "particles": 6948
+    }
+  },
+  {
+    "key": "calabiyau_10111203",
+    "name": "幽荆昙梦-幽星",
+    "group": "Fragrans",
+    "variant": "10111203",
+    "source": "WBP_IconFeedbackPage_PC_10111203",
+    "lower": "iconpacks/10111203/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 8,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 13
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 18
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 25
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 25
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 29
+      }
+    ],
+    "draws": {
+      "sprites": 23,
+      "materials": 8451,
+      "meshes": 0,
+      "particles": 6276
+    }
+  },
+  {
+    "key": "calabiyau_10111204",
+    "name": "幽荆昙梦-瑰刺",
+    "group": "Fragrans",
+    "variant": "10111204",
+    "source": "WBP_IconFeedbackPage_PC_10111204",
+    "lower": "iconpacks/10111204/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 8,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 13
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 18
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 25
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 25
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 29
+      }
+    ],
+    "draws": {
+      "sprites": 23,
+      "materials": 8309,
+      "meshes": 0,
+      "particles": 6134
+    }
+  },
+  {
+    "key": "calabiyau_10111205",
+    "name": "幽荆昙梦-华蕾",
+    "group": "Fragrans",
+    "variant": "10111205",
+    "source": "WBP_IconFeedbackPage_PC_10111205",
+    "lower": "iconpacks/10111205/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 8,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 13
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 18
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 25
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 25
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 29
+      }
+    ],
+    "draws": {
+      "sprites": 23,
+      "materials": 8447,
+      "meshes": 0,
+      "particles": 6272
+    }
+  },
+  {
+    "key": "calabiyau_10112201",
+    "name": "邃羽焓枝",
+    "group": "Galatea",
+    "variant": "10112201",
+    "source": "WBP_IconFeedbackPage_PC_10112201",
+    "lower": "iconpacks/10112201/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 8,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 13
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 18
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 21
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 21
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 26
+      }
+    ],
+    "draws": {
+      "sprites": 28,
+      "materials": 3292,
+      "meshes": 0,
+      "particles": 1621
+    }
+  },
+  {
+    "key": "calabiyau_10112202",
+    "name": "邃羽焓枝-翠鸮",
+    "group": "Galatea",
+    "variant": "10112202",
+    "source": "WBP_IconFeedbackPage_PC_10112202",
+    "lower": "iconpacks/10112202/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 8,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 14
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 18
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 21
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 21
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 24
+      }
+    ],
+    "draws": {
+      "sprites": 27,
+      "materials": 3384,
+      "meshes": 0,
+      "particles": 1713
+    }
+  },
+  {
+    "key": "calabiyau_10112203",
+    "name": "邃羽焓枝-白鹞",
+    "group": "Galatea",
+    "variant": "10112203",
+    "source": "WBP_IconFeedbackPage_PC_10112203",
+    "lower": "iconpacks/10112203/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 8,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 13
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 18
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 21
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 21
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 24
+      }
+    ],
+    "draws": {
+      "sprites": 27,
+      "materials": 3414,
+      "meshes": 0,
+      "particles": 1743
+    }
+  },
+  {
+    "key": "calabiyau_10112204",
+    "name": "邃羽焓枝-茜鹮",
+    "group": "Galatea",
+    "variant": "10112204",
+    "source": "WBP_IconFeedbackPage_PC_10112204",
+    "lower": "iconpacks/10112204/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 8,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 13
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 18
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 21
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 21
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 24
+      }
+    ],
+    "draws": {
+      "sprites": 27,
+      "materials": 3423,
+      "meshes": 0,
+      "particles": 1752
+    }
+  },
+  {
+    "key": "calabiyau_10112205",
+    "name": "邃羽焓枝-霞鸢",
+    "group": "Galatea",
+    "variant": "10112205",
+    "source": "WBP_IconFeedbackPage_PC_10112205",
+    "lower": "iconpacks/10112205/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 8,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 13
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 18
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 21
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 21
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 25
+      }
+    ],
+    "draws": {
+      "sprites": 27,
+      "materials": 3391,
+      "meshes": 0,
+      "particles": 1720
+    }
+  },
+  {
+    "key": "calabiyau_10106102",
+    "name": "蔷薇骑士",
+    "group": "HuiXing",
+    "variant": "10106102",
+    "source": "WBP_IconFeedbackPage_PC_10106102",
+    "lower": "iconpacks/10106102/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 4,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 8
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 16
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 17
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 18
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 19
+      }
+    ],
+    "draws": {
+      "sprites": 26,
+      "materials": 5968,
+      "meshes": 0,
+      "particles": 4131
+    }
+  },
+  {
+    "key": "calabiyau_10106201",
+    "name": "蔷薇骑士—真红",
+    "group": "HuiXing",
+    "variant": "10106201",
+    "source": "WBP_IconFeedbackPage_PC_10106201",
+    "lower": "iconpacks/10106201/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 4,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 8
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 16
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 18
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 19
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 20
+      }
+    ],
+    "draws": {
+      "sprites": 26,
+      "materials": 6205,
+      "meshes": 0,
+      "particles": 4368
+    }
+  },
+  {
+    "key": "calabiyau_10106202",
+    "name": "蔷薇骑士—真金",
+    "group": "HuiXing",
+    "variant": "10106202",
+    "source": "WBP_IconFeedbackPage_PC_10106202",
+    "lower": "iconpacks/10106202/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 4,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 8
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 16
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 17
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 19
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 20
+      }
+    ],
+    "draws": {
+      "sprites": 26,
+      "materials": 5975,
+      "meshes": 0,
+      "particles": 4138
+    }
+  },
+  {
+    "key": "calabiyau_10106203",
+    "name": "蔷薇骑士—耀紫",
+    "group": "HuiXing",
+    "variant": "10106203",
+    "source": "WBP_IconFeedbackPage_PC_10106203",
+    "lower": "iconpacks/10106203/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 4,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 8
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 16
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 18
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 17
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 19
+      }
+    ],
+    "draws": {
+      "sprites": 26,
+      "materials": 5867,
+      "meshes": 0,
+      "particles": 4030
+    }
+  },
+  {
+    "key": "calabiyau_10106204",
+    "name": "蔷薇骑士—苍蓝",
+    "group": "HuiXing",
+    "variant": "10106204",
+    "source": "WBP_IconFeedbackPage_PC_10106204",
+    "lower": "iconpacks/10106204/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 4,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 8
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 16
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 17
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 19
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 20
+      }
+    ],
+    "draws": {
+      "sprites": 26,
+      "materials": 5846,
+      "meshes": 0,
+      "particles": 4009
+    }
+  },
+  {
+    "key": "calabiyau_10106206",
+    "name": "岁始拂香",
+    "group": "HuiXing1",
+    "variant": "10106206",
+    "source": "WBP_IconFeedbackPage_PC_10106206",
+    "lower": "iconpacks/10106206/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 3,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 10
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 17
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 25
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 26
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 40
+      }
+    ],
+    "draws": {
+      "sprites": 27,
+      "materials": 23256,
+      "meshes": 0,
+      "particles": 19752
+    }
+  },
+  {
+    "key": "calabiyau_10106207",
+    "name": "岁始拂香-狂香",
+    "group": "HuiXing1",
+    "variant": "10106207",
+    "source": "WBP_IconFeedbackPage_PC_10106207",
+    "lower": "iconpacks/10106207/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 3,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 11
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 17
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 25
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 26
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 40
+      }
+    ],
+    "draws": {
+      "sprites": 27,
+      "materials": 23444,
+      "meshes": 0,
+      "particles": 19752
+    }
+  },
+  {
+    "key": "calabiyau_10106208",
+    "name": "岁始拂香-素艳",
+    "group": "HuiXing1",
+    "variant": "10106208",
+    "source": "WBP_IconFeedbackPage_PC_10106208",
+    "lower": "iconpacks/10106208/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 3,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 11
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 16
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 29
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 30
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 39
+      }
+    ],
+    "draws": {
+      "sprites": 27,
+      "materials": 23604,
+      "meshes": 0,
+      "particles": 19576
+    }
+  },
+  {
+    "key": "calabiyau_10106209",
+    "name": "岁始拂香-惜月",
+    "group": "HuiXing1",
+    "variant": "10106209",
+    "source": "WBP_IconFeedbackPage_PC_10106209",
+    "lower": "iconpacks/10106209/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 3,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 11
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 16
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 29
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 30
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 39
+      }
+    ],
+    "draws": {
+      "sprites": 27,
+      "materials": 24187,
+      "meshes": 0,
+      "particles": 20159
+    }
+  },
+  {
+    "key": "calabiyau_10106210",
+    "name": "岁始拂香-含薰",
+    "group": "HuiXing1",
+    "variant": "10106210",
+    "source": "WBP_IconFeedbackPage_PC_10106210",
+    "lower": "iconpacks/10106210/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 3,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 11
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 16
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 25
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 25
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 39
+      }
+    ],
+    "draws": {
+      "sprites": 27,
+      "materials": 23315,
+      "meshes": 0,
+      "particles": 19623
+    }
+  },
+  {
+    "key": "calabiyau_10201201",
+    "name": "灵魂鸣响",
+    "group": "Kanami",
+    "variant": "10201201",
+    "source": "WBP_IconFeedbackPage_PC_10201201",
+    "lower": "iconpacks/10201201/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 5,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 12
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 17
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 20
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 21
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 26
+      }
+    ],
+    "draws": {
+      "sprites": 34,
+      "materials": 10474,
+      "meshes": 0,
+      "particles": 9873
+    }
+  },
+  {
+    "key": "calabiyau_10201202",
+    "name": "灵魂鸣响-永恒旋律",
+    "group": "Kanami",
+    "variant": "10201202",
+    "source": "WBP_IconFeedbackPage_PC_10201202",
+    "lower": "iconpacks/10201202/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 5,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 12
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 17
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 20
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 21
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 26
+      }
+    ],
+    "draws": {
+      "sprites": 34,
+      "materials": 10672,
+      "meshes": 0,
+      "particles": 10071
+    }
+  },
+  {
+    "key": "calabiyau_10201203",
+    "name": "灵魂鸣响-金辉印记",
+    "group": "Kanami",
+    "variant": "10201203",
+    "source": "WBP_IconFeedbackPage_PC_10201203",
+    "lower": "iconpacks/10201203/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 5,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 12
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 17
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 20
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 21
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 26
+      }
+    ],
+    "draws": {
+      "sprites": 34,
+      "materials": 10605,
+      "meshes": 0,
+      "particles": 10004
+    }
+  },
+  {
+    "key": "calabiyau_10201204",
+    "name": "灵魂鸣响-暗影律动",
+    "group": "Kanami",
+    "variant": "10201204",
+    "source": "WBP_IconFeedbackPage_PC_10201204",
+    "lower": "iconpacks/10201204/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 5,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 12
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 17
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 20
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 21
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 26
+      }
+    ],
+    "draws": {
+      "sprites": 34,
+      "materials": 10507,
+      "meshes": 0,
+      "particles": 9906
+    }
+  },
+  {
+    "key": "calabiyau_10201205",
+    "name": "灵魂鸣响-澄澈天空",
+    "group": "Kanami",
+    "variant": "10201205",
+    "source": "WBP_IconFeedbackPage_PC_10201205",
+    "lower": "iconpacks/10201205/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 5,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 12
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 17
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 20
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 21
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 26
+      }
+    ],
+    "draws": {
+      "sprites": 34,
+      "materials": 10624,
+      "meshes": 0,
+      "particles": 10023
+    }
+  },
+  {
+    "key": "calabiyau_10201206",
+    "name": "梦律颤音",
+    "group": "Kanami1",
+    "variant": "10201206",
+    "source": "WBP_IconFeedbackPage_PC_10201206",
+    "lower": "iconpacks/10201206/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 8,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 17
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 23
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 38
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 38
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 55
+      }
+    ],
+    "draws": {
+      "sprites": 31,
+      "materials": 46336,
+      "meshes": 0,
+      "particles": 41617
+    }
+  },
+  {
+    "key": "calabiyau_10201207",
+    "name": "梦律颤音-即兴",
+    "group": "Kanami1",
+    "variant": "10201207",
+    "source": "WBP_IconFeedbackPage_PC_10201207",
+    "lower": "iconpacks/10201207/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 7,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 20
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 26
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 37
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 37
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 51
+      }
+    ],
+    "draws": {
+      "sprites": 29,
+      "materials": 45661,
+      "meshes": 0,
+      "particles": 40114
+    }
+  },
+  {
+    "key": "calabiyau_10201208",
+    "name": "梦律颤音-咏叹",
+    "group": "Kanami1",
+    "variant": "10201208",
+    "source": "WBP_IconFeedbackPage_PC_10201208",
+    "lower": "iconpacks/10201208/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 8,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 17
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 23
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 37
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 38
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 54
+      }
+    ],
+    "draws": {
+      "sprites": 31,
+      "materials": 45942,
+      "meshes": 0,
+      "particles": 41223
+    }
+  },
+  {
+    "key": "calabiyau_10201209",
+    "name": "梦律颤音-对白",
+    "group": "Kanami1",
+    "variant": "10201209",
+    "source": "WBP_IconFeedbackPage_PC_10201209",
+    "lower": "iconpacks/10201209/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 8,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 17
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 23
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 38
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 38
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 54
+      }
+    ],
+    "draws": {
+      "sprites": 31,
+      "materials": 47053,
+      "meshes": 0,
+      "particles": 42334
+    }
+  },
+  {
+    "key": "calabiyau_10201210",
+    "name": "梦律颤音-幻想",
+    "group": "Kanami1",
+    "variant": "10201210",
+    "source": "WBP_IconFeedbackPage_PC_10201210",
+    "lower": "iconpacks/10201210/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 7,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 20
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 26
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 37
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 37
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 53
+      }
+    ],
+    "draws": {
+      "sprites": 29,
+      "materials": 45601,
+      "meshes": 0,
+      "particles": 40054
+    }
+  },
+  {
+    "key": "calabiyau_10202201",
+    "name": "天穹之心",
+    "group": "Kokona",
+    "variant": "10202201",
+    "source": "WBP_IconFeedbackPage_PC_10202201",
+    "lower": "iconpacks/10202201/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 3,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 9
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 15
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 20
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 23
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 28
+      }
+    ],
+    "draws": {
+      "sprites": 24,
+      "materials": 35488,
+      "meshes": 0,
+      "particles": 32236
+    }
+  },
+  {
+    "key": "calabiyau_10202202",
+    "name": "天穹之心-黑曜形态",
+    "group": "Kokona",
+    "variant": "10202202",
+    "source": "WBP_IconFeedbackPage_PC_10202202",
+    "lower": "iconpacks/10202202/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 3,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 10
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 15
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 21
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 25
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 29
+      }
+    ],
+    "draws": {
+      "sprites": 24,
+      "materials": 35177,
+      "meshes": 0,
+      "particles": 31921
+    }
+  },
+  {
+    "key": "calabiyau_10202203",
+    "name": "天穹之心-海蓝形态",
+    "group": "Kokona",
+    "variant": "10202203",
+    "source": "WBP_IconFeedbackPage_PC_10202203",
+    "lower": "iconpacks/10202203/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 3,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 9
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 15
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 20
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 23
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 26
+      }
+    ],
+    "draws": {
+      "sprites": 24,
+      "materials": 35210,
+      "meshes": 0,
+      "particles": 31956
+    }
+  },
+  {
+    "key": "calabiyau_10202204",
+    "name": "天穹之心-翠玉形态",
+    "group": "Kokona",
+    "variant": "10202204",
+    "source": "WBP_IconFeedbackPage_PC_10202204",
+    "lower": "iconpacks/10202204/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 3,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 9
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 15
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 21
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.502,
+        "textures": 24
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 27
+      }
+    ],
+    "draws": {
+      "sprites": 24,
+      "materials": 35085,
+      "meshes": 0,
+      "particles": 31828
+    }
+  },
+  {
+    "key": "calabiyau_10202205",
+    "name": "天穹之心-樱花形态",
+    "group": "Kokona",
+    "variant": "10202205",
+    "source": "WBP_IconFeedbackPage_PC_10202205",
+    "lower": "iconpacks/10202205/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 3,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 9
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 15
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 20
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 24
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 26
+      }
+    ],
+    "draws": {
+      "sprites": 24,
+      "materials": 35301,
+      "meshes": 0,
+      "particles": 32044
+    }
+  },
+  {
+    "key": "calabiyau_10104201",
+    "name": "一剪梅",
+    "group": "Lawei",
+    "variant": "10104201",
+    "source": "WBP_IconFeedbackPage_PC_10104201",
+    "lower": "iconpacks/10104201/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 3,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 9
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 17
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 19
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 21
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 22
+      }
+    ],
+    "draws": {
+      "sprites": 38,
+      "materials": 4670,
+      "meshes": 0,
+      "particles": 3096
+    }
+  },
+  {
+    "key": "calabiyau_10104202",
+    "name": "一剪梅—傲雪",
+    "group": "Lawei",
+    "variant": "10104202",
+    "source": "WBP_IconFeedbackPage_PC_10104202",
+    "lower": "iconpacks/10104202/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 3,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 9
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 17
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 19
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 21
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 22
+      }
+    ],
+    "draws": {
+      "sprites": 38,
+      "materials": 4431,
+      "meshes": 0,
+      "particles": 2857
+    }
+  },
+  {
+    "key": "calabiyau_10104203",
+    "name": "一剪梅—常青",
+    "group": "Lawei",
+    "variant": "10104203",
+    "source": "WBP_IconFeedbackPage_PC_10104203",
+    "lower": "iconpacks/10104203/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 3,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 9
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 17
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 19
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 21
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 22
+      }
+    ],
+    "draws": {
+      "sprites": 38,
+      "materials": 4275,
+      "meshes": 0,
+      "particles": 2701
+    }
+  },
+  {
+    "key": "calabiyau_10104204",
+    "name": "一剪梅—相思",
+    "group": "Lawei",
+    "variant": "10104204",
+    "source": "WBP_IconFeedbackPage_PC_10104204",
+    "lower": "iconpacks/10104204/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 3,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 9
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 17
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 19
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 21
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 22
+      }
+    ],
+    "draws": {
+      "sprites": 38,
+      "materials": 4491,
+      "meshes": 0,
+      "particles": 2917
+    }
+  },
+  {
+    "key": "calabiyau_10104205",
+    "name": "一剪梅—入画",
+    "group": "Lawei",
+    "variant": "10104205",
+    "source": "WBP_IconFeedbackPage_PC_10104205",
+    "lower": "iconpacks/10104205/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 3,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 9
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 17
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 19
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 21
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 22
+      }
+    ],
+    "draws": {
+      "sprites": 38,
+      "materials": 4420,
+      "meshes": 0,
+      "particles": 2846
+    }
+  },
+  {
+    "key": "calabiyau_10301001",
+    "name": "彩绘",
+    "group": "Maddelena",
+    "variant": "10301001",
+    "source": "WBP_IconFeedbackPage_PC_10301001",
+    "lower": "iconpacks/10301001/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 6,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 13
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 18
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 22
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 24
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 29
+      }
+    ],
+    "draws": {
+      "sprites": 32,
+      "materials": 5024,
+      "meshes": 0,
+      "particles": 4046
+    }
+  },
+  {
+    "key": "calabiyau_10301002",
+    "name": "秘纹",
+    "group": "Maddelena",
+    "variant": "10301002",
+    "source": "WBP_IconFeedbackPage_PC_10301002",
+    "lower": "iconpacks/10301002/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 6,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 13
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 18
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 21
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 25
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 30
+      }
+    ],
+    "draws": {
+      "sprites": 32,
+      "materials": 4986,
+      "meshes": 0,
+      "particles": 4008
+    }
+  },
+  {
+    "key": "calabiyau_10301003",
+    "name": "多维",
+    "group": "Maddelena",
+    "variant": "10301003",
+    "source": "WBP_IconFeedbackPage_PC_10301003",
+    "lower": "iconpacks/10301003/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 6,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 13
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 18
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 21
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 25
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 30
+      }
+    ],
+    "draws": {
+      "sprites": 32,
+      "materials": 4968,
+      "meshes": 0,
+      "particles": 3990
+    }
+  },
+  {
+    "key": "calabiyau_10301004",
+    "name": "热情",
+    "group": "Maddelena",
+    "variant": "10301004",
+    "source": "WBP_IconFeedbackPage_PC_10301004",
+    "lower": "iconpacks/10301004/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 6,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 13
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 18
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 22
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 24
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 29
+      }
+    ],
+    "draws": {
+      "sprites": 32,
+      "materials": 5111,
+      "meshes": 0,
+      "particles": 4133
+    }
+  },
+  {
+    "key": "calabiyau_10301005",
+    "name": "错觉",
+    "group": "Maddelena",
+    "variant": "10301005",
+    "source": "WBP_IconFeedbackPage_PC_10301005",
+    "lower": "iconpacks/10301005/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 6,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 13
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 18
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 21
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 25
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 30
+      }
+    ],
+    "draws": {
+      "sprites": 32,
+      "materials": 4928,
+      "meshes": 0,
+      "particles": 3950
+    }
+  },
+  {
+    "key": "calabiyau_10105201",
+    "name": "万象回响",
+    "group": "Meredith",
+    "variant": "10105201",
+    "source": "WBP_IconFeedbackPage_PC_10105201",
+    "lower": "iconpacks/10105201/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 13,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 11
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 17
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 18
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 22
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 27
+      }
+    ],
+    "draws": {
+      "sprites": 25,
+      "materials": 2923,
+      "meshes": 0,
+      "particles": 0
+    }
+  },
+  {
+    "key": "calabiyau_10105202",
+    "name": "万象回响-陈述",
+    "group": "Meredith",
+    "variant": "10105202",
+    "source": "WBP_IconFeedbackPage_PC_10105202",
+    "lower": "iconpacks/10105202/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 13,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 11
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 17
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 18
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 22
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 26
+      }
+    ],
+    "draws": {
+      "sprites": 25,
+      "materials": 2921,
+      "meshes": 0,
+      "particles": 0
+    }
+  },
+  {
+    "key": "calabiyau_10105203",
+    "name": "万象回响-探寻",
+    "group": "Meredith",
+    "variant": "10105203",
+    "source": "WBP_IconFeedbackPage_PC_10105203",
+    "lower": "iconpacks/10105203/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 13,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 11
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 17
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 18
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 22
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 26
+      }
+    ],
+    "draws": {
+      "sprites": 25,
+      "materials": 2921,
+      "meshes": 0,
+      "particles": 0
+    }
+  },
+  {
+    "key": "calabiyau_10105204",
+    "name": "万象回响-剖析",
+    "group": "Meredith",
+    "variant": "10105204",
+    "source": "WBP_IconFeedbackPage_PC_10105204",
+    "lower": "iconpacks/10105204/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 13,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 11
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 17
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 18
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 22
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 26
+      }
+    ],
+    "draws": {
+      "sprites": 25,
+      "materials": 2921,
+      "meshes": 0,
+      "particles": 0
+    }
+  },
+  {
+    "key": "calabiyau_10105205",
+    "name": "万象回响-轰鸣",
+    "group": "Meredith",
+    "variant": "10105205",
+    "source": "WBP_IconFeedbackPage_PC_10105205",
+    "lower": "iconpacks/10105205/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 13,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 11
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 17
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 18
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 22
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 26
+      }
+    ],
+    "draws": {
+      "sprites": 25,
+      "materials": 2921,
+      "meshes": 0,
+      "particles": 0
+    }
+  },
+  {
+    "key": "calabiyau_10101201",
+    "name": "靛蓝逐罪",
+    "group": "Michele",
+    "variant": "10101201",
+    "source": "WBP_IconFeedbackPage_PC_10101201",
+    "lower": "iconpacks/10101201/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 2,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 7
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 13
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 19
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 25
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 27
+      }
+    ],
+    "draws": {
+      "sprites": 33,
+      "materials": 6227,
+      "meshes": 0,
+      "particles": 4538
+    }
+  },
+  {
+    "key": "calabiyau_10101202",
+    "name": "靛蓝逐罪—苍银",
+    "group": "Michele",
+    "variant": "10101202",
+    "source": "WBP_IconFeedbackPage_PC_10101202",
+    "lower": "iconpacks/10101202/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 2,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 7
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 13
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 19
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 24
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 26
+      }
+    ],
+    "draws": {
+      "sprites": 33,
+      "materials": 5385,
+      "meshes": 0,
+      "particles": 3696
+    }
+  },
+  {
+    "key": "calabiyau_10101203",
+    "name": "靛蓝逐罪—焰紫",
+    "group": "Michele",
+    "variant": "10101203",
+    "source": "WBP_IconFeedbackPage_PC_10101203",
+    "lower": "iconpacks/10101203/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 2,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 7
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 13
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 20
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 25
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 28
+      }
+    ],
+    "draws": {
+      "sprites": 33,
+      "materials": 5940,
+      "meshes": 0,
+      "particles": 4251
+    }
+  },
+  {
+    "key": "calabiyau_10101204",
+    "name": "靛蓝逐罪—深林",
+    "group": "Michele",
+    "variant": "10101204",
+    "source": "WBP_IconFeedbackPage_PC_10101204",
+    "lower": "iconpacks/10101204/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 2,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 7
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 13
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 20
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 25
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 29
+      }
+    ],
+    "draws": {
+      "sprites": 33,
+      "materials": 6057,
+      "meshes": 0,
+      "particles": 4368
+    }
+  },
+  {
+    "key": "calabiyau_10101205",
+    "name": "靛蓝逐罪—群青",
+    "group": "Michele",
+    "variant": "10101205",
+    "source": "WBP_IconFeedbackPage_PC_10101205",
+    "lower": "iconpacks/10101205/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 2,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 7
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 13
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 20
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 24
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 28
+      }
+    ],
+    "draws": {
+      "sprites": 33,
+      "materials": 6061,
+      "meshes": 0,
+      "particles": 4372
+    }
+  },
+  {
+    "key": "calabiyau_10101206",
+    "name": "妙妙幻翼",
+    "group": "Michele1",
+    "variant": "10101206",
+    "source": "WBP_IconFeedbackPage_PC_10101206",
+    "lower": "iconpacks/10101206/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 4,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 11
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 17
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 23
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 23
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 32
+      }
+    ],
+    "draws": {
+      "sprites": 21,
+      "materials": 32152,
+      "meshes": 0,
+      "particles": 29382
+    }
+  },
+  {
+    "key": "calabiyau_10101207",
+    "name": "妙妙幻翼-星彩",
+    "group": "Michele1",
+    "variant": "10101207",
+    "source": "WBP_IconFeedbackPage_PC_10101207",
+    "lower": "iconpacks/10101207/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 5,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 12
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 18
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 23
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 23
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 32
+      }
+    ],
+    "draws": {
+      "sprites": 21,
+      "materials": 32152,
+      "meshes": 0,
+      "particles": 29382
+    }
+  },
+  {
+    "key": "calabiyau_10101208",
+    "name": "妙妙幻翼-霁虹",
+    "group": "Michele1",
+    "variant": "10101208",
+    "source": "WBP_IconFeedbackPage_PC_10101208",
+    "lower": "iconpacks/10101208/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 4,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 11
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 17
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 23
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 23
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 32
+      }
+    ],
+    "draws": {
+      "sprites": 21,
+      "materials": 32152,
+      "meshes": 0,
+      "particles": 29382
+    }
+  },
+  {
+    "key": "calabiyau_10101209",
+    "name": "妙妙幻翼-霓夜",
+    "group": "Michele1",
+    "variant": "10101209",
+    "source": "WBP_IconFeedbackPage_PC_10101209",
+    "lower": "iconpacks/10101209/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 4,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 11
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 17
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 23
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 23
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 32
+      }
+    ],
+    "draws": {
+      "sprites": 21,
+      "materials": 32152,
+      "meshes": 0,
+      "particles": 29382
+    }
+  },
+  {
+    "key": "calabiyau_10101210",
+    "name": "妙妙幻翼-夕风",
+    "group": "Michele1",
+    "variant": "10101210",
+    "source": "WBP_IconFeedbackPage_PC_10101210",
+    "lower": "iconpacks/10101210/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 4,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 11
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 17
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 23
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 23
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 31
+      }
+    ],
+    "draws": {
+      "sprites": 21,
+      "materials": 32152,
+      "meshes": 0,
+      "particles": 29382
+    }
+  },
+  {
+    "key": "calabiyau_10102201",
+    "name": "鸣雷奔霆",
+    "group": "Ming",
+    "variant": "10102201",
+    "source": "WBP_IconFeedbackPage_PC_10102201",
+    "lower": "iconpacks/10102201/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 3,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 9
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 15
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 16
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 17
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 23
+      }
+    ],
+    "draws": {
+      "sprites": 25,
+      "materials": 4252,
+      "meshes": 0,
+      "particles": 3867
+    }
+  },
+  {
+    "key": "calabiyau_10102202",
+    "name": "鸣雷奔霆—奔涌",
+    "group": "Ming",
+    "variant": "10102202",
+    "source": "WBP_IconFeedbackPage_PC_10102202",
+    "lower": "iconpacks/10102202/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 3,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 9
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 14
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 16
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 17
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 23
+      }
+    ],
+    "draws": {
+      "sprites": 25,
+      "materials": 4379,
+      "meshes": 0,
+      "particles": 3994
+    }
+  },
+  {
+    "key": "calabiyau_10102203",
+    "name": "鸣雷奔霆—朱砂",
+    "group": "Ming",
+    "variant": "10102203",
+    "source": "WBP_IconFeedbackPage_PC_10102203",
+    "lower": "iconpacks/10102203/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 3,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 9
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 14
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 16
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 17
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 23
+      }
+    ],
+    "draws": {
+      "sprites": 25,
+      "materials": 4308,
+      "meshes": 0,
+      "particles": 3923
+    }
+  },
+  {
+    "key": "calabiyau_10102204",
+    "name": "鸣雷奔霆—苍茫",
+    "group": "Ming",
+    "variant": "10102204",
+    "source": "WBP_IconFeedbackPage_PC_10102204",
+    "lower": "iconpacks/10102204/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 3,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 9
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 14
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 16
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 17
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 23
+      }
+    ],
+    "draws": {
+      "sprites": 25,
+      "materials": 4307,
+      "meshes": 0,
+      "particles": 3922
+    }
+  },
+  {
+    "key": "calabiyau_10102205",
+    "name": "鸣雷奔霆—青铜",
+    "group": "Ming",
+    "variant": "10102205",
+    "source": "WBP_IconFeedbackPage_PC_10102205",
+    "lower": "iconpacks/10102205/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 3,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 9
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.5,
+        "textures": 14
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.5,
+        "textures": 16
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.5,
+        "textures": 16
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.5,
+        "textures": 22
+      }
+    ],
+    "draws": {
+      "sprites": 25,
+      "materials": 3852,
+      "meshes": 0,
+      "particles": 3467
+    }
+  },
+  {
+    "key": "calabiyau_10102206",
+    "name": "致命轮盘",
+    "group": "Ming1",
+    "variant": "10102206",
+    "source": "WBP_IconFeedbackPage_PC_10102206",
+    "lower": "iconpacks/10102206/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.517,
+    "textures": 10,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.517,
+        "textures": 17
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.517,
+        "textures": 24
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.517,
+        "textures": 30
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.517,
+        "textures": 31
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.517,
+        "textures": 36
+      }
+    ],
+    "draws": {
+      "sprites": 28,
+      "materials": 13147,
+      "meshes": 0,
+      "particles": 10450
+    }
+  },
+  {
+    "key": "calabiyau_10102207",
+    "name": "致命轮盘-炽光",
+    "group": "Ming1",
+    "variant": "10102207",
+    "source": "WBP_IconFeedbackPage_PC_10102207",
+    "lower": "iconpacks/10102207/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.517,
+    "textures": 10,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.517,
+        "textures": 16
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.517,
+        "textures": 24
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.517,
+        "textures": 29
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.517,
+        "textures": 31
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.517,
+        "textures": 38
+      }
+    ],
+    "draws": {
+      "sprites": 30,
+      "materials": 13213,
+      "meshes": 0,
+      "particles": 10516
+    }
+  },
+  {
+    "key": "calabiyau_10102208",
+    "name": "致命轮盘-冷银",
+    "group": "Ming1",
+    "variant": "10102208",
+    "source": "WBP_IconFeedbackPage_PC_10102208",
+    "lower": "iconpacks/10102208/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.517,
+    "textures": 9,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.517,
+        "textures": 16
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.517,
+        "textures": 23
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.517,
+        "textures": 30
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.517,
+        "textures": 30
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.517,
+        "textures": 35
+      }
+    ],
+    "draws": {
+      "sprites": 28,
+      "materials": 13304,
+      "meshes": 0,
+      "particles": 10607
+    }
+  },
+  {
+    "key": "calabiyau_10102209",
+    "name": "致命轮盘-迷辉",
+    "group": "Ming1",
+    "variant": "10102209",
+    "source": "WBP_IconFeedbackPage_PC_10102209",
+    "lower": "iconpacks/10102209/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.517,
+    "textures": 9,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.517,
+        "textures": 15
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.517,
+        "textures": 23
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.517,
+        "textures": 29
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.517,
+        "textures": 30
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.517,
+        "textures": 35
+      }
+    ],
+    "draws": {
+      "sprites": 28,
+      "materials": 13156,
+      "meshes": 0,
+      "particles": 10459
+    }
+  },
+  {
+    "key": "calabiyau_10102210",
+    "name": "致命轮盘-幽灵",
+    "group": "Ming1",
+    "variant": "10102210",
+    "source": "WBP_IconFeedbackPage_PC_10102210",
+    "lower": "iconpacks/10102210/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.517,
+    "textures": 9,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.517,
+        "textures": 15
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.517,
+        "textures": 23
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.517,
+        "textures": 29
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.517,
+        "textures": 32
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.517,
+        "textures": 36
+      }
+    ],
+    "draws": {
+      "sprites": 28,
+      "materials": 13257,
+      "meshes": 0,
+      "particles": 10560
+    }
+  },
+  {
+    "key": "calabiyau_10304201",
+    "name": "守誓挽歌",
+    "group": "Nobunaga",
+    "variant": "10304201",
+    "source": "WBP_IconFeedbackPage_PC_10304201",
+    "lower": "iconpacks/10304201/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 5,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 12
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 17
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 20
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 22
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 28
+      }
+    ],
+    "draws": {
+      "sprites": 21,
+      "materials": 9517,
+      "meshes": 0,
+      "particles": 7957
+    }
+  },
+  {
+    "key": "calabiyau_10304202",
+    "name": "守誓挽歌-皓金",
+    "group": "Nobunaga",
+    "variant": "10304202",
+    "source": "WBP_IconFeedbackPage_PC_10304202",
+    "lower": "iconpacks/10304202/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 5,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 12
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 17
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 20
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 21
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 29
+      }
+    ],
+    "draws": {
+      "sprites": 21,
+      "materials": 9517,
+      "meshes": 0,
+      "particles": 7957
+    }
+  },
+  {
+    "key": "calabiyau_10304203",
+    "name": "守誓挽歌-冥紫",
+    "group": "Nobunaga",
+    "variant": "10304203",
+    "source": "WBP_IconFeedbackPage_PC_10304203",
+    "lower": "iconpacks/10304203/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 5,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 12
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 17
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 20
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 21
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 29
+      }
+    ],
+    "draws": {
+      "sprites": 21,
+      "materials": 9557,
+      "meshes": 0,
+      "particles": 7997
+    }
+  },
+  {
+    "key": "calabiyau_10304204",
+    "name": "守誓挽歌-霜蓝",
+    "group": "Nobunaga",
+    "variant": "10304204",
+    "source": "WBP_IconFeedbackPage_PC_10304204",
+    "lower": "iconpacks/10304204/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 5,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 12
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 17
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 20
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 21
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 29
+      }
+    ],
+    "draws": {
+      "sprites": 21,
+      "materials": 9734,
+      "meshes": 0,
+      "particles": 8174
+    }
+  },
+  {
+    "key": "calabiyau_10304205",
+    "name": "守誓挽歌-焚红",
+    "group": "Nobunaga",
+    "variant": "10304205",
+    "source": "WBP_IconFeedbackPage_PC_10304205",
+    "lower": "iconpacks/10304205/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 5,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 12
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 17
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 19
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 21
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 29
+      }
+    ],
+    "draws": {
+      "sprites": 21,
+      "materials": 9510,
+      "meshes": 0,
+      "particles": 7950
+    }
+  },
+  {
+    "key": "calabiyau_10113201",
+    "name": "奈落花唱",
+    "group": "Yugiri",
+    "variant": "10113201",
+    "source": "WBP_IconFeedbackPage_PC_10113201",
+    "lower": "iconpacks/10113201/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 7,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 11
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 16
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 21
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 21
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 25
+      }
+    ],
+    "draws": {
+      "sprites": 23,
+      "materials": 16821,
+      "meshes": 1623,
+      "particles": 13123
+    }
+  },
+  {
+    "key": "calabiyau_10113202",
+    "name": "奈落花唱-泷夜叉",
+    "group": "Yugiri",
+    "variant": "10113202",
+    "source": "WBP_IconFeedbackPage_PC_10113202",
+    "lower": "iconpacks/10113202/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 7,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 11
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 16
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 21
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 21
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 25
+      }
+    ],
+    "draws": {
+      "sprites": 23,
+      "materials": 17005,
+      "meshes": 1623,
+      "particles": 13307
+    }
+  },
+  {
+    "key": "calabiyau_10113203",
+    "name": "奈落花唱-不知火",
+    "group": "Yugiri",
+    "variant": "10113203",
+    "source": "WBP_IconFeedbackPage_PC_10113203",
+    "lower": "iconpacks/10113203/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 7,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 11
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 16
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 21
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 21
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 25
+      }
+    ],
+    "draws": {
+      "sprites": 23,
+      "materials": 17094,
+      "meshes": 1623,
+      "particles": 13396
+    }
+  },
+  {
+    "key": "calabiyau_10113204",
+    "name": "奈落花唱-青行灯",
+    "group": "Yugiri",
+    "variant": "10113204",
+    "source": "WBP_IconFeedbackPage_PC_10113204",
+    "lower": "iconpacks/10113204/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 7,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 12
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 17
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 21
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 21
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 26
+      }
+    ],
+    "draws": {
+      "sprites": 23,
+      "materials": 17322,
+      "meshes": 1623,
+      "particles": 13624
+    }
+  },
+  {
+    "key": "calabiyau_10113205",
+    "name": "奈落花唱-姑获鸟",
+    "group": "Yugiri",
+    "variant": "10113205",
+    "source": "WBP_IconFeedbackPage_PC_10113205",
+    "lower": "iconpacks/10113205/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 7,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 11
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 16
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 21
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 21
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 25
+      }
+    ],
+    "draws": {
+      "sprites": 23,
+      "materials": 16711,
+      "meshes": 1623,
+      "particles": 13013
+    }
+  },
+  {
+    "key": "calabiyau_10501201",
+    "name": "圆舞曲",
+    "group": "Yvette",
+    "variant": "10501201",
+    "source": "WBP_IconFeedbackPage_PC_10501201",
+    "lower": "iconpacks/10501201/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.5,
+    "textures": 4,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.5,
+        "textures": 10
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.522,
+        "textures": 16
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.518,
+        "textures": 19
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.518,
+        "textures": 22
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.519,
+        "textures": 24
+      }
+    ],
+    "draws": {
+      "sprites": 26,
+      "materials": 30571,
+      "meshes": 0,
+      "particles": 27488
+    }
+  },
+  {
+    "key": "calabiyau_10501202",
+    "name": "圆舞曲—剖白",
+    "group": "Yvette",
+    "variant": "10501202",
+    "source": "WBP_IconFeedbackPage_PC_10501202",
+    "lower": "iconpacks/10501202/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.518,
+    "textures": 4,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.518,
+        "textures": 10
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.518,
+        "textures": 16
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.518,
+        "textures": 18
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.518,
+        "textures": 22
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.518,
+        "textures": 24
+      }
+    ],
+    "draws": {
+      "sprites": 26,
+      "materials": 30689,
+      "meshes": 0,
+      "particles": 27589
+    }
+  },
+  {
+    "key": "calabiyau_10501203",
+    "name": "圆舞曲—赞美",
+    "group": "Yvette",
+    "variant": "10501203",
+    "source": "WBP_IconFeedbackPage_PC_10501203",
+    "lower": "iconpacks/10501203/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.519,
+    "textures": 4,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.519,
+        "textures": 10
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.518,
+        "textures": 16
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.518,
+        "textures": 18
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.518,
+        "textures": 22
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.518,
+        "textures": 24
+      }
+    ],
+    "draws": {
+      "sprites": 26,
+      "materials": 30630,
+      "meshes": 0,
+      "particles": 27530
+    }
+  },
+  {
+    "key": "calabiyau_10501204",
+    "name": "圆舞曲—歌颂",
+    "group": "Yvette",
+    "variant": "10501204",
+    "source": "WBP_IconFeedbackPage_PC_10501204",
+    "lower": "iconpacks/10501204/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.518,
+    "textures": 4,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.518,
+        "textures": 10
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.518,
+        "textures": 16
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.518,
+        "textures": 18
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.518,
+        "textures": 22
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.518,
+        "textures": 24
+      }
+    ],
+    "draws": {
+      "sprites": 26,
+      "materials": 30926,
+      "meshes": 0,
+      "particles": 27825
+    }
+  },
+  {
+    "key": "calabiyau_10501205",
+    "name": "圆舞曲—咏叹",
+    "group": "Yvette",
+    "variant": "10501205",
+    "source": "WBP_IconFeedbackPage_PC_10501205",
+    "lower": "iconpacks/10501205/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.518,
+    "textures": 4,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.518,
+        "textures": 10
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.518,
+        "textures": 16
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.518,
+        "textures": 18
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.518,
+        "textures": 22
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.518,
+        "textures": 25
+      }
+    ],
+    "draws": {
+      "sprites": 26,
+      "materials": 30820,
+      "meshes": 0,
+      "particles": 27726
+    }
+  },
+  {
+    "key": "calabiyau_10306201",
+    "name": "星律时弦",
+    "group": "Crossbow",
+    "variant": "10306201",
+    "source": "WBP_IconFeedbackPage_PC_10306201",
+    "lower": "iconpacks/10306201/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 5,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 13
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 18
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 23
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 25
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 33
+      }
+    ],
+    "draws": {
+      "sprites": 23,
+      "materials": 12132,
+      "meshes": 274,
+      "particles": 10506
+    }
+  },
+  {
+    "key": "calabiyau_10306202",
+    "name": "星律时弦-日珥",
+    "group": "Crossbow",
+    "variant": "10306202",
+    "source": "WBP_IconFeedbackPage_PC_10306202",
+    "lower": "iconpacks/10306202/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 5,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 13
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 18
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 23
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 25
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 33
+      }
+    ],
+    "draws": {
+      "sprites": 23,
+      "materials": 12491,
+      "meshes": 274,
+      "particles": 10865
+    }
+  },
+  {
+    "key": "calabiyau_10306203",
+    "name": "星律时弦-星尘",
+    "group": "Crossbow",
+    "variant": "10306203",
+    "source": "WBP_IconFeedbackPage_PC_10306203",
+    "lower": "iconpacks/10306203/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 5,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 13
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 18
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 23
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 25
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 33
+      }
+    ],
+    "draws": {
+      "sprites": 23,
+      "materials": 12483,
+      "meshes": 274,
+      "particles": 10857
+    }
+  },
+  {
+    "key": "calabiyau_10306204",
+    "name": "星律时弦-朔月",
+    "group": "Crossbow",
+    "variant": "10306204",
+    "source": "WBP_IconFeedbackPage_PC_10306204",
+    "lower": "iconpacks/10306204/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 5,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 13
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 18
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 23
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 25
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 32
+      }
+    ],
+    "draws": {
+      "sprites": 23,
+      "materials": 12528,
+      "meshes": 274,
+      "particles": 10902
+    }
+  },
+  {
+    "key": "calabiyau_10306205",
+    "name": "星律时弦-极光",
+    "group": "Crossbow",
+    "variant": "10306205",
+    "source": "WBP_IconFeedbackPage_PC_10306205",
+    "lower": "iconpacks/10306205/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 5,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 13
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 18
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 23
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 25
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 33
+      }
+    ],
+    "draws": {
+      "sprites": 23,
+      "materials": 12722,
+      "meshes": 274,
+      "particles": 11096
+    }
+  },
+  {
+    "key": "calabiyau_12307201",
+    "name": "炽焱狂龙",
+    "group": "Fire",
+    "variant": "12307201",
+    "source": "WBP_IconFeedbackPage_PC_12307201",
+    "lower": "iconpacks/12307201/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 13,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 16
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 22
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 24
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 25
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 29
+      }
+    ],
+    "draws": {
+      "sprites": 23,
+      "materials": 16965,
+      "meshes": 3604,
+      "particles": 11147
+    }
+  },
+  {
+    "key": "calabiyau_12307202",
+    "name": "炽焱狂龙-黯灭",
+    "group": "Fire",
+    "variant": "12307202",
+    "source": "WBP_IconFeedbackPage_PC_12307202",
+    "lower": "iconpacks/12307202/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 13,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 16
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 22
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 24
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 24
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 28
+      }
+    ],
+    "draws": {
+      "sprites": 23,
+      "materials": 16823,
+      "meshes": 3604,
+      "particles": 11005
+    }
+  },
+  {
+    "key": "calabiyau_12307203",
+    "name": "炽焱狂龙-蚀绝",
+    "group": "Fire",
+    "variant": "12307203",
+    "source": "WBP_IconFeedbackPage_PC_12307203",
+    "lower": "iconpacks/12307203/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 13,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 16
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 22
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 24
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 25
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 29
+      }
+    ],
+    "draws": {
+      "sprites": 23,
+      "materials": 16974,
+      "meshes": 3604,
+      "particles": 11156
+    }
+  },
+  {
+    "key": "calabiyau_12307204",
+    "name": "炽焱狂龙-焚祸",
+    "group": "Fire",
+    "variant": "12307204",
+    "source": "WBP_IconFeedbackPage_PC_12307204",
+    "lower": "iconpacks/12307204/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 12,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 16
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 22
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 24
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 24
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 28
+      }
+    ],
+    "draws": {
+      "sprites": 23,
+      "materials": 17080,
+      "meshes": 3604,
+      "particles": 11262
+    }
+  },
+  {
+    "key": "calabiyau_12307205",
+    "name": "炽焱狂龙-净殒",
+    "group": "Fire",
+    "variant": "12307205",
+    "source": "WBP_IconFeedbackPage_PC_12307205",
+    "lower": "iconpacks/12307205/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 13,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 16
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 22
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 24
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 24
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 28
+      }
+    ],
+    "draws": {
+      "sprites": 23,
+      "materials": 17002,
+      "meshes": 3604,
+      "particles": 11184
+    }
+  },
+  {
+    "key": "calabiyau_15201201",
+    "name": "虹曜之刃",
+    "group": "Lightsaber",
+    "variant": "15201201",
+    "source": "WBP_IconFeedbackPage_PC_15201201",
+    "lower": "iconpacks/15201201/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 14,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 20
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 25
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 28
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 28
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 35
+      }
+    ],
+    "draws": {
+      "sprites": 25,
+      "materials": 17889,
+      "meshes": 6312,
+      "particles": 11099
+    }
+  },
+  {
+    "key": "calabiyau_15201202",
+    "name": "虹曜之刃-星徊",
+    "group": "Lightsaber",
+    "variant": "15201202",
+    "source": "WBP_IconFeedbackPage_PC_15201202",
+    "lower": "iconpacks/15201202/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 14,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 20
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 25
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 28
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 28
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 33
+      }
+    ],
+    "draws": {
+      "sprites": 25,
+      "materials": 17829,
+      "meshes": 6492,
+      "particles": 10859
+    }
+  },
+  {
+    "key": "calabiyau_15201203",
+    "name": "虹曜之刃-荒炽",
+    "group": "Lightsaber",
+    "variant": "15201203",
+    "source": "WBP_IconFeedbackPage_PC_15201203",
+    "lower": "iconpacks/15201203/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 14,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 20
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 25
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 28
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 28
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 33
+      }
+    ],
+    "draws": {
+      "sprites": 25,
+      "materials": 17638,
+      "meshes": 6492,
+      "particles": 10668
+    }
+  },
+  {
+    "key": "calabiyau_15201204",
+    "name": "虹曜之刃-霄鸣",
+    "group": "Lightsaber",
+    "variant": "15201204",
+    "source": "WBP_IconFeedbackPage_PC_15201204",
+    "lower": "iconpacks/15201204/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 14,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 20
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 25
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 28
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 28
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 35
+      }
+    ],
+    "draws": {
+      "sprites": 25,
+      "materials": 18097,
+      "meshes": 6492,
+      "particles": 11127
+    }
+  },
+  {
+    "key": "calabiyau_15201205",
+    "name": "虹曜之刃-岚驰",
+    "group": "Lightsaber",
+    "variant": "15201205",
+    "source": "WBP_IconFeedbackPage_PC_15201205",
+    "lower": "iconpacks/15201205/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 15,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 20
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 25
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 27
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 28
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 35
+      }
+    ],
+    "draws": {
+      "sprites": 25,
+      "materials": 18085,
+      "meshes": 6492,
+      "particles": 11115
+    }
+  },
+  {
+    "key": "calabiyau_15201206",
+    "name": "绮色群星",
+    "group": "Lightsaber",
+    "variant": "15201206",
+    "source": "WBP_IconFeedbackPage_PC_15201206",
+    "lower": "iconpacks/15201206/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 11,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 20
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 26
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 28
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 28
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 30
+      }
+    ],
+    "draws": {
+      "sprites": 19,
+      "materials": 12692,
+      "meshes": 5947,
+      "particles": 6267
+    }
+  },
+  {
+    "key": "calabiyau_15401201",
+    "name": "殁星视界",
+    "group": "Sickle",
+    "variant": "15401201",
+    "source": "WBP_IconFeedbackPage_PC_15401201",
+    "lower": "iconpacks/15401201/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 5,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 15
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 20
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 33
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 34
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 45
+      }
+    ],
+    "draws": {
+      "sprites": 21,
+      "materials": 16272,
+      "meshes": 0,
+      "particles": 12805
+    }
+  },
+  {
+    "key": "calabiyau_15401202",
+    "name": "殁星视界-坍火",
+    "group": "Sickle",
+    "variant": "15401202",
+    "source": "WBP_IconFeedbackPage_PC_15401202",
+    "lower": "iconpacks/15401202/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 5,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 15
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 20
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 33
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 33
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 44
+      }
+    ],
+    "draws": {
+      "sprites": 21,
+      "materials": 16161,
+      "meshes": 0,
+      "particles": 12694
+    }
+  },
+  {
+    "key": "calabiyau_15401203",
+    "name": "殁星视界-飞星",
+    "group": "Sickle",
+    "variant": "15401203",
+    "source": "WBP_IconFeedbackPage_PC_15401203",
+    "lower": "iconpacks/15401203/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 5,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 15
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 20
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 32
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 32
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 42
+      }
+    ],
+    "draws": {
+      "sprites": 21,
+      "materials": 16230,
+      "meshes": 0,
+      "particles": 12763
+    }
+  },
+  {
+    "key": "calabiyau_15401204",
+    "name": "殁星视界-晶辉",
+    "group": "Sickle",
+    "variant": "15401204",
+    "source": "WBP_IconFeedbackPage_PC_15401204",
+    "lower": "iconpacks/15401204/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 5,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 15
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 20
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 33
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 33
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 43
+      }
+    ],
+    "draws": {
+      "sprites": 21,
+      "materials": 16094,
+      "meshes": 0,
+      "particles": 12627
+    }
+  },
+  {
+    "key": "calabiyau_15401205",
+    "name": "殁星视界-终彩",
+    "group": "Sickle",
+    "variant": "15401205",
+    "source": "WBP_IconFeedbackPage_PC_15401205",
+    "lower": "iconpacks/15401205/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 5,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 15
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 20
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 33
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 34
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 45
+      }
+    ],
+    "draws": {
+      "sprites": 21,
+      "materials": 16272,
+      "meshes": 0,
+      "particles": 12805
+    }
+  },
+  {
+    "key": "calabiyau_12201201",
+    "name": "世宙星声",
+    "group": "Spary",
+    "variant": "12201201",
+    "source": "WBP_IconFeedbackPage_PC_12201201",
+    "lower": "iconpacks/12201201/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 5,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 13
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 19
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 24
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 24
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 30
+      }
+    ],
+    "draws": {
+      "sprites": 33,
+      "materials": 49883,
+      "meshes": 0,
+      "particles": 47603
+    }
+  },
+  {
+    "key": "calabiyau_12201202",
+    "name": "世宙星声-彗行迹",
+    "group": "Spary",
+    "variant": "12201202",
+    "source": "WBP_IconFeedbackPage_PC_12201202",
+    "lower": "iconpacks/12201202/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 5,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 13
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 18
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 23
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 23
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 29
+      }
+    ],
+    "draws": {
+      "sprites": 33,
+      "materials": 49208,
+      "meshes": 0,
+      "particles": 46928
+    }
+  },
+  {
+    "key": "calabiyau_12201203",
+    "name": "世宙星声-红移景",
+    "group": "Spary",
+    "variant": "12201203",
+    "source": "WBP_IconFeedbackPage_PC_12201203",
+    "lower": "iconpacks/12201203/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 5,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 13
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 19
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 23
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 24
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 31
+      }
+    ],
+    "draws": {
+      "sprites": 33,
+      "materials": 49881,
+      "meshes": 0,
+      "particles": 47601
+    }
+  },
+  {
+    "key": "calabiyau_12201204",
+    "name": "世宙星声-新星波",
+    "group": "Spary",
+    "variant": "12201204",
+    "source": "WBP_IconFeedbackPage_PC_12201204",
+    "lower": "iconpacks/12201204/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 5,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 13
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 19
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 24
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 24
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 30
+      }
+    ],
+    "draws": {
+      "sprites": 33,
+      "materials": 50035,
+      "meshes": 0,
+      "particles": 47755
+    }
+  },
+  {
+    "key": "calabiyau_12201205",
+    "name": "世宙星声-氢离光",
+    "group": "Spary",
+    "variant": "12201205",
+    "source": "WBP_IconFeedbackPage_PC_12201205",
+    "lower": "iconpacks/12201205/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 5,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 13
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 19
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 24
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 24
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 30
+      }
+    ],
+    "draws": {
+      "sprites": 33,
+      "materials": 49428,
+      "meshes": 0,
+      "particles": 47148
+    }
+  },
+  {
+    "key": "calabiyau_15701201",
+    "name": "镇魂歌",
+    "group": "WeaponGreatSword",
+    "variant": "15701201",
+    "source": "WBP_IconFeedbackPage_PC_15701201",
+    "lower": "iconpacks/15701201/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 6,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 16
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 21
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 30
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 30
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 35
+      }
+    ],
+    "draws": {
+      "sprites": 26,
+      "materials": 18469,
+      "meshes": 0,
+      "particles": 13881
+    }
+  },
+  {
+    "key": "calabiyau_15701202",
+    "name": "镇魂歌-渊誓",
+    "group": "WeaponGreatSword",
+    "variant": "15701202",
+    "source": "WBP_IconFeedbackPage_PC_15701202",
+    "lower": "iconpacks/15701202/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 6,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 16
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 21
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 29
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 29
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 36
+      }
+    ],
+    "draws": {
+      "sprites": 26,
+      "materials": 17792,
+      "meshes": 0,
+      "particles": 13204
+    }
+  },
+  {
+    "key": "calabiyau_15701203",
+    "name": "镇魂歌-灵契",
+    "group": "WeaponGreatSword",
+    "variant": "15701203",
+    "source": "WBP_IconFeedbackPage_PC_15701203",
+    "lower": "iconpacks/15701203/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 6,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 16
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 21
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 30
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 30
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 35
+      }
+    ],
+    "draws": {
+      "sprites": 26,
+      "materials": 18001,
+      "meshes": 0,
+      "particles": 13413
+    }
+  },
+  {
+    "key": "calabiyau_15701204",
+    "name": "镇魂歌-烬祈",
+    "group": "WeaponGreatSword",
+    "variant": "15701204",
+    "source": "WBP_IconFeedbackPage_PC_15701204",
+    "lower": "iconpacks/15701204/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 6,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 16
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 21
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 30
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 30
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 35
+      }
+    ],
+    "draws": {
+      "sprites": 26,
+      "materials": 18828,
+      "meshes": 0,
+      "particles": 14240
+    }
+  },
+  {
+    "key": "calabiyau_15701205",
+    "name": "镇魂歌-苍祭",
+    "group": "WeaponGreatSword",
+    "variant": "15701205",
+    "source": "WBP_IconFeedbackPage_PC_15701205",
+    "lower": "iconpacks/15701205/lower-1.json.gz",
+    "crosshair": "crosshair.json.gz",
+    "scope": "UMG sprites, Cascade particles, mesh geometry, reconstructed materials, native star/count widgets",
+    "excluded": [],
+    "duration": 3.0,
+    "textures": 6,
+    "revision": 4,
+    "clips": [
+      {
+        "count": 1,
+        "scene": "Anim_Normal",
+        "duration": 3.0,
+        "textures": 16
+      },
+      {
+        "count": 2,
+        "scene": "Anim_MaxCount",
+        "duration": 3.0,
+        "textures": 21
+      },
+      {
+        "count": 3,
+        "scene": "Anim_MaxCount_3",
+        "duration": 3.0,
+        "textures": 30
+      },
+      {
+        "count": 4,
+        "scene": "Anim_MaxCount_4",
+        "duration": 3.0,
+        "textures": 30
+      },
+      {
+        "count": 5,
+        "scene": "Anim_MaxCount_5",
+        "duration": 3.0,
+        "textures": 36
+      }
+    ],
+    "draws": {
+      "sprites": 26,
+      "materials": 18391,
+      "meshes": 0,
+      "particles": 13803
+    }
+  }
+]

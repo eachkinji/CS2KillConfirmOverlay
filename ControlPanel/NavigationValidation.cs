@@ -65,7 +65,7 @@ namespace KillConfirmGameBar
                 await _compatibilityWorkspace.ValidateCurrentGameAsync();
                 _compatibilityWorkspace.ValidateAddMore(voice);
                 await Task.Delay(100);
-                if (_isHomePageSelected || _isSettingsWorkspaceSelected || SettingsGameStyle != playback || _activeGameTab != (voice ? "voice" : "icon") || GameStyleService.Current != playback)
+                if (_isHomePageSelected || _isSettingsWorkspaceSelected || SettingsGameStyle != playback || _activeGameTab != (voice ? "sound_effect" : "icon") || GameStyleService.Current != playback)
                     throw new Exception("Desktop Add more did not open the correct library independently.");
             }
             // The same serialized handoff is consumed on first load and every activation.

@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="KillConfirmGameBar.Features.CompatibilityDisplay.CompatibilityHomeView"
+<UserControl x:Class="KillConfirmGameBar.Features.CompatibilityDisplay.CompatibilityHomeView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:KillConfirmGameBar.Features.CompatibilityDisplay">
     <UserControl.Resources><ResourceDictionary><ResourceDictionary.MergedDictionaries>
@@ -20,7 +20,7 @@
 
         <Border x:Name="RuntimeNoticeBorder" CornerRadius="8" Padding="10,7" Visibility="Collapsed"><StackPanel Orientation="Horizontal" Spacing="7"><Ellipse x:Name="ConnectionNoticeDot" Width="7" Height="7" VerticalAlignment="Center" Fill="#8E8E93"/><TextBlock x:Name="StatusText" FontSize="11" TextWrapping="Wrap" LineHeight="16"/></StackPanel></Border>
 
-        <local:PackTestView x:Name="PackTestSectionView" VoicePackSelectionChanged="OnVoicePackSelectionChanged"
+        <local:PackTestView x:Name="PackTestSectionView" VoicePackSelectionChanged="OnVoicePackSelectionChanged" CharacterVoicePackSelectionChanged="OnCharacterVoicePackSelectionChanged" AudioChannelSettingsChanged="OnAudioChannelSettingsChanged"
             IconPackSelectionChanged="OnIconPackSelectionChanged" AudioVolumeSelectionChanged="OnAudioVolumeSelectionChanged"
             GameSettingsRequested="OnGameSettingsRequested"
             TestEventRequested="OnTestEventClick" RepeatTestRequested="OnRepeatTestClick" ReloadAudioRequested="OnReloadAudioClick"/>

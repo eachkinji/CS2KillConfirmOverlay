@@ -33,7 +33,7 @@ fn main() {
 fn open_settings_window() -> Result<(), String> {
     let executable=env::current_exe().map_err(|e|e.to_string())?;
     let root=executable.parent().and_then(|p|p.parent()).ok_or("missing installation directory")?;
-    let child = Command::new(root.join("KillConfirmGameBar.exe"))
+    let child = Command::new(root.join("KillConfirmControlPanel.exe"))
         .creation_flags(CREATE_NO_WINDOW)
         .spawn()
         .map_err(|error| format!("failed to start explorer for app entry: {error}"))?;

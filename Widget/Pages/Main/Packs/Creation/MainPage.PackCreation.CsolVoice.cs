@@ -12,7 +12,7 @@ namespace KillConfirmGameBar
 {
     public sealed partial class MainPage
     {
-        // CSOL voice pack creation dialog.
+        // CSOL sound effect pack creation dialog.
         // Slot rows driven by CSOL's actual asset layout: 1.wav..10.wav (kill
         // streak 1-10), headshot.wav, knife.wav, revenge.wav (last-kill revenge
         // voice), assist.wav (assist). CSOL has no dedicated first-kill voice.

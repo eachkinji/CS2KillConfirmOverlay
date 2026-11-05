@@ -15,6 +15,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../Common/*.cs" Link="Common/%(Filename)%(Extension)" />
+    <Compile Include="../Widget/Validation/CalabiyauDefaultRenderValidation.cs" Link="Validation/CalabiyauDefaultRenderValidation.cs" />
     <Compile Remove="Integration/**/*.cs" />
     <Page Remove="Integration/**/*.xaml" />
     <PackageReference Include="Microsoft.Graphics.Win2D" Version="1.4.0" />

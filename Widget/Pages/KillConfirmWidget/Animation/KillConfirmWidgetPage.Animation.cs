@@ -357,6 +357,13 @@ namespace KillConfirmGameBar
                 case GameStyleMode.DeltaForce:
                     PlayDeltaForcePrimaryAnimation(killEvent);
                     return;
+                case GameStyleMode.Calabiyau:
+                    if (GameStyleService.IsCalabiyauKillEvent(killEvent))
+                    {
+                        PlayAuxiliaryKillMarkIfEnabled(killEvent);
+                        LowerFeedbackAnimation.PlayCalabiyauKill(killEvent.KillCount, killEvent.IsHeadshot, killEvent.IsKnifeKill, killEvent.IsGrenadeKill, killEvent.PublishedUnixMs);
+                    }
+                    return;
                 case GameStyleMode.CustomModule:
                     if (!killEvent.IsAssist && !killEvent.IsEconomyEvent && !IsBombObjectiveEvent(killEvent))
                     {
@@ -408,6 +415,7 @@ namespace KillConfirmGameBar
         private void PlayAuxiliaryKillMarkIfEnabled(KillEvent killEvent)
         {
             GameStyleMode style = GameStyleService.Current;
+            if (style == GameStyleMode.Calabiyau && !GameStyleService.IsCalabiyauKillEvent(killEvent)) return;
             if (!GameStyleService.IsAuxiliaryKillMarkStyle(style)
                 || killEvent == null
                 || !killEvent.IsCombatEvent
@@ -425,8 +433,10 @@ namespace KillConfirmGameBar
                     CrosshairFeedbackAnimation,
                     visibility,
                     KillFeedbackLayer.Crosshair);
-                CrosshairFeedbackAnimation.PlayModernWarfare2019KillMarkOnly(
-                    killEvent.IsHeadshot);
+                if (style == GameStyleMode.Calabiyau)
+                    CrosshairFeedbackAnimation.PlayCalabiyauCrosshairKill(killEvent.PublishedUnixMs);
+                else
+                    CrosshairFeedbackAnimation.PlayModernWarfare2019KillMarkOnly(killEvent.IsHeadshot);
             }
         }
 

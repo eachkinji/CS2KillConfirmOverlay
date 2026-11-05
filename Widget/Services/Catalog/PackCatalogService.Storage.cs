@@ -67,8 +67,18 @@ namespace KillConfirmGameBar.Services
 #if !SHARED_WIDGET_RUNTIME
             RefreshExternalValorantEntries(catalog);
             CrossfireExternalAssetService.RefreshCatalog(catalog);
+            mustSave |= catalog.IconPacks.Any(p => p.IsBuiltIn && KillConfirmCompatibility.Contracts.CalabiyauPackage.IsExternalKey(p.Key));
+            mustSave |= catalog.IconPacks.Any(p => KillConfirmCompatibility.Contracts.CalabiyauPacks.Find(p.Key) is var known && known != null && p.DisplayName != known.DisplayName);
+            CalabiyauExternalAssetService.RefreshCatalog(catalog);
 #endif
             mustSave |= RefreshBuiltInMetadata(catalog);
+            mustSave |= MigrateAudioPackMetadata(catalog);
+            foreach (var item in catalog.IconPacks)
+            {
+                var pack = KillConfirmCompatibility.Contracts.CalabiyauPacks.Find(item.Key);
+                if (pack != null && item.DisplayName != pack.DisplayName)
+                { item.DisplayName = pack.DisplayName; mustSave = true; }
+            }
             mustSave |= RemoveRetiredBuiltIns(catalog);
             mustSave |= ApplyBuiltInVisibilityDefaultsIfNeeded(catalog);
             ApplyVisibilityOverrides(catalog);
@@ -133,6 +143,7 @@ namespace KillConfirmGameBar.Services
                     CreateBuiltInVoice("battlefield6", "Battlefield 6", true),
                     CreateBuiltInVoice("pubg", "PUBG", true),
                     CreateBuiltInVoice("deltaforce", "Delta Force", true),
+                    CreateBuiltInVoice("calabiyau", "默认击杀", true),
                     CreateBuiltInVoice("doubao", "豆包", true),
                     CreateBuiltInVoice("dagoujiao", "大狗叫", true),
                     CreateBuiltInVoice(DagoujiaoAnimalsPackKey, "Animals", true),
@@ -152,6 +163,7 @@ namespace KillConfirmGameBar.Services
                     CreateBuiltInIcon("battlefield6", "Battlefield 6", true),
                     CreateBuiltInIcon("pubg", "PUBG", true),
                     CreateBuiltInIcon("deltaforce", "Delta Force", true),
+                    CreateBuiltInIcon("calabiyau", "卡拉彼丘 · 默认击杀", true),
                     CreateBuiltInIcon("doubao", "豆包", true),
                     CreateBuiltInIcon("dagoujiao", "大狗叫", true),
                     CreateBuiltInIcon(DagoujiaoAnimalsPackKey, "Animals", true),
@@ -161,6 +173,8 @@ namespace KillConfirmGameBar.Services
                     CreateBuiltInIcon("apex", "Apex Legends", true)
                 }
             };
+
+
 
             foreach (ValorantPackInfo pack in ValorantPackService.All)
             {
@@ -306,9 +320,29 @@ namespace KillConfirmGameBar.Services
             await SaveAsync(catalog);
         }
 
+        public static async Task RefreshCalabiyauExternalPacksAsync()
+        {
+            PackCatalog catalog = await LoadAsync();
+            CalabiyauExternalAssetService.RefreshCatalog(catalog);
+            ApplyVisibilityOverrides(catalog);
+            await SaveAsync(catalog);
+        }
+
         private static bool RefreshBuiltInMetadata(PackCatalog catalog)
         {
             bool changed = false;
+            var calabiyauAudio = catalog.VoicePacks.FirstOrDefault(item => item.IsBuiltIn
+                && string.Equals(item.Key, "calabiyau", StringComparison.OrdinalIgnoreCase));
+            if (calabiyauAudio != null)
+            {
+                if (calabiyauAudio.DisplayName != "默认击杀")
+                { calabiyauAudio.DisplayName = "默认击杀"; changed = true; }
+                if (calabiyauAudio.AudioKind != AudioPackKind.SoundEffect)
+                { calabiyauAudio.AudioKind = AudioPackKind.SoundEffect; changed = true; }
+                if (calabiyauAudio.AssociatedIconKeys == null || !calabiyauAudio.AssociatedIconKeys.Contains("calabiyau"))
+                { calabiyauAudio.AssociatedIconKeys = new List<string> { "calabiyau" }; changed = true; }
+            }
+
             foreach (VoicePackItem valorantVoice in catalog.VoicePacks.Where(item =>
                 item.IsBuiltIn && string.Equals(item.Key, ValorantPackService.DefaultKey, StringComparison.OrdinalIgnoreCase)))
             {
@@ -353,7 +387,8 @@ namespace KillConfirmGameBar.Services
         {
             int removedIcons = catalog.IconPacks.RemoveAll(item =>
                 item.IsBuiltIn
-                && (string.Equals(item.Key, "legacy", StringComparison.OrdinalIgnoreCase)
+                && (KillConfirmCompatibility.Contracts.CalabiyauPackage.IsExternalKey(item.Key)
+                    || string.Equals(item.Key, "legacy", StringComparison.OrdinalIgnoreCase)
                     || (ValorantPackService.IsValorantPackKey(item.Key)
                         && ValorantPackService.Find(item.Key) == null)));
             int removedVoices = catalog.VoicePacks.RemoveAll(item =>

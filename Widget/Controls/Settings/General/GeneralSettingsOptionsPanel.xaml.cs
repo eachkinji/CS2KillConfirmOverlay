@@ -66,8 +66,8 @@ namespace KillConfirmGameBar.Controls.Settings
             RefreshDetailsLabels();
             StreakGainLabelText.Text = isChinese ? "连杀音量递增" : "Streak volume gain";
             StreakGainHintText.Text = isChinese
-                ? "对所有游戏和语音包生效，连杀越多音量越高"
-                : "Applies to every game and voice pack; higher streaks play louder.";
+                ? "对所有游戏的音效包与语音包生效，连杀越多音量越高"
+                : "Applies to sound effects and character voices in every game; higher streaks play louder.";
             StreakGainStepLabelText.Text = isChinese ? "每次击杀增加" : "Gain per kill";
             StreakGainMaximumLabelText.Text = isChinese ? "最高音量" : "Maximum volume";
             StreakGainToggle.OffContent = LocalizationManager.Text("Off");

@@ -1,9 +1,30 @@
 param([Parameter(Mandatory)][string]$Payload)
 $ErrorActionPreference='Stop'
+$calabiyauRoot = Join-Path $Payload 'Assets/GameStyles/calabiyau'
+$defaultCalabiyauTextures = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+foreach($count in 1..6) {
+    $clipPath = Join-Path $calabiyauRoot "killconfirm/default-lower-$count.json.gz"
+    if(!(Test-Path -LiteralPath $clipPath -PathType Leaf)) {throw "Missing built-in Calabiyau scene: $clipPath"}
+    $compressed = [IO.File]::OpenRead($clipPath)
+    $gzip = [IO.Compression.GZipStream]::new($compressed,[IO.Compression.CompressionMode]::Decompress)
+    $reader = [IO.StreamReader]::new($gzip,[Text.Encoding]::UTF8)
+    try {$clip = $reader.ReadToEnd() | ConvertFrom-Json}
+    finally {$reader.Dispose(); $gzip.Dispose(); $compressed.Dispose()}
+    foreach($texture in $clip.textures) {
+        if($texture -match '[/\\:]' -or !$texture.EndsWith('.png',[StringComparison]::OrdinalIgnoreCase)) {throw 'Invalid built-in texture reference.'}
+        if($texture -like 'fx-*' -and $texture -notmatch '^fx-(add-)?default-\d+\.png$') {throw "External theme referenced by built-in scene: $texture"}
+        if(!(Test-Path -LiteralPath (Join-Path $calabiyauRoot "textures/$texture") -PathType Leaf)) {throw "Missing built-in texture: $texture"}
+        [void]$defaultCalabiyauTextures.Add($texture)
+    }
+}
+$externalCalabiyau = @(Get-ChildItem -LiteralPath (Join-Path $calabiyauRoot 'iconpacks') -Recurse -File -ErrorAction SilentlyContinue)
+$externalCalabiyau += @(Get-ChildItem -LiteralPath (Join-Path $calabiyauRoot 'textures') -File -Filter 'fx-*.png' -ErrorAction SilentlyContinue |
+    Where-Object {!$defaultCalabiyauTextures.Contains($_.Name)})
+if ($externalCalabiyau.Count -gt 0) { throw 'Calabiyau external themes leaked into the basic installer.' }
 $repository=Split-Path $PSScriptRoot -Parent
 $source=Join-Path $repository 'Widget/Assets'
 $assets=Join-Path $Payload 'Assets'
-foreach($app in @('KillConfirmGameBar','KillConfirmCompatibility')) {
+foreach($app in @('KillConfirmControlPanel','KillConfirmCompatibility')) {
     $runtimePath=Join-Path $Payload "$app.runtimeconfig.json"
     $runtime=(Get-Content -LiteralPath $runtimePath -Raw | ConvertFrom-Json).runtimeOptions
     if($runtime.framework -or $runtime.frameworks -or !$runtime.includedFrameworks) {

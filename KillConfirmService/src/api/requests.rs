@@ -8,6 +8,7 @@ pub struct TestEventQuery {
     pub last: Option<bool>,
     pub main: Option<bool>,
     pub audio: Option<bool>,
+    pub audio_channel: Option<crate::soundpack::channels::AudioPreviewChannel>,
     pub animation: Option<String>,
     pub event_kind: Option<String>,
     pub weapon_badge: Option<String>,

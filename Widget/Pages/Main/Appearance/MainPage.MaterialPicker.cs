@@ -426,7 +426,7 @@ namespace KillConfirmGameBar
                 IReadOnlyList<VoicePackItem> packs = await PackCatalogService.GetAllVoicePacksAsync();
                 MaterialFolderItem[] resolved = await Task.WhenAll(
                     packs
-                        .Where(pack => IsPackInMaterialCategory(gameKey, pack.Key))
+                        .Where(pack => PackCatalogService.GetAudioPackStyle(pack) == GameStyleService.FromKey(gameKey))
                         .Select(async pack =>
                         {
                             StorageFolder folder = await GetVoicePackFolderAsync(pack);

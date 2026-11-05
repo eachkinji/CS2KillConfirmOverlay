@@ -240,6 +240,13 @@ namespace KillConfirmCompatibility
                 case GameStyleMode.DeltaForce:
                     PlayDeltaForcePrimaryAnimation(killEvent);
                     return;
+                case GameStyleMode.Calabiyau:
+                    if (GameStyleService.IsCalabiyauKillEvent(killEvent))
+                    {
+                        PlayAuxiliaryKillMarkIfEnabled(killEvent);
+                        LowerFeedbackAnimation.PlayCalabiyauKill(killEvent.KillCount, killEvent.IsHeadshot, killEvent.IsKnifeKill, killEvent.IsGrenadeKill, killEvent.PublishedUnixMs);
+                    }
+                    return;
                 case GameStyleMode.CustomModule:
                     if (!killEvent.IsAssist && !killEvent.IsEconomyEvent && !IsBombObjectiveEvent(killEvent))
                     {

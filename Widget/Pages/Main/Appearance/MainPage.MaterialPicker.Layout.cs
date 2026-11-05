@@ -31,7 +31,7 @@ namespace KillConfirmGameBar
             titlePanel.Children.Add(new TextBlock
             {
                 Text = allowMultiple
-                    ? (zh ? "按游戏查看语音包文件夹；可跨包多选，播放时随机取一个。" : "Browse voice-pack folders by game; multiple picks play at random.")
+                    ? (zh ? "按游戏查看音效包与语音包文件夹；可跨包多选，播放时随机取一个。" : "Browse sound effect and character voice folders by game; multiple picks play at random.")
                     : (zh ? "按游戏查看素材包文件夹；切换游戏即可跨游戏选择。" : "Browse pack folders by game; switch games for cross-game material."),
                 FontSize = 11,
                 Foreground = new SolidColorBrush(Color.FromArgb(255, 110, 110, 115)),
@@ -70,16 +70,7 @@ namespace KillConfirmGameBar
                 BorderBrush = new SolidColorBrush(Color.FromArgb(31, 0, 0, 0)),
                 CornerRadius = new CornerRadius(8)
             };
-            var gameStyles = new[]
-            {
-                GameStyleMode.Crossfire, GameStyleMode.Csol, GameStyleMode.Valorant,
-                GameStyleMode.Battlefield1, GameStyleMode.Battlefield5,
-                GameStyleMode.Battlefield4, GameStyleMode.Battlefield2042, GameStyleMode.Battlefield6,
-                GameStyleMode.Pubg, GameStyleMode.DeltaForce,
-                GameStyleMode.Doubao, GameStyleMode.Dagoujiao,
-                GameStyleMode.Overwatch, GameStyleMode.Apex,
-                GameStyleMode.ModernWarfare2019
-            };
+            var gameStyles = Enum.GetValues(typeof(GameStyleMode)).Cast<GameStyleMode>();
             foreach (GameStyleMode style in gameStyles.OrderBy(style => style == currentGame ? 0 : 1))
             {
                 string name = GameStyleService.ToDisplayName(style);
@@ -175,7 +166,7 @@ namespace KillConfirmGameBar
             browseButton = new Button
             {
                 Content = allowMultiple
-                    ? (zh ? "从电脑多选语音..." : "Choose audio files...")
+                    ? (zh ? "从电脑多选音频..." : "Choose audio files...")
                     : (zh ? "从电脑选择文件..." : "Choose a local file..."),
                 FontSize = 11,
                 Padding = new Thickness(10, 5, 10, 5),

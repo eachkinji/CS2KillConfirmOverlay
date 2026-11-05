@@ -90,6 +90,18 @@ mod tests {
 
     #[test]
     fn soundpack_alias_resolves_game_specific_presets() {
+        assert_eq!(super::resolve_soundpack_alias("calabiyau"), Some("calabiyau"));
+        assert_eq!(super::resolve_soundpack_alias("CALABIYAU"), Some("calabiyau"));
+        let calabiyau_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../SourceAssets/GameStyles/calabiyau/soundpacks");
+        let calabiyau = crate::soundpack::Preset::load_from_sounds_root("calabiyau", &calabiyau_root).unwrap();
+        let manifest = calabiyau.manifest.unwrap();
+        assert_eq!(manifest.game_style.as_deref(), Some("calabiyau"));
+        assert_eq!(manifest.audio_kind.as_deref(), Some("sound_effect"));
+        let audio = manifest.audio.unwrap();
+        for count in 1..=5 {
+            assert!(audio.slots.contains_key(&format!("kill_{count}")));
+        }
         for alias in ["bf6", "battlefield6", "battlefield_6", "BATTLEFIELD6"] {
             assert_eq!(super::resolve_soundpack_alias(alias), Some("battlefield6"));
         }

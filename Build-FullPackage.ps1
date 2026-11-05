@@ -348,6 +348,12 @@ function Invoke-InnoCompile {
         $InstallerScript
     )
 
+    # Large animation libraries can exceed Inno's 4.2 GB embedded-archive
+    # limit. Keep the signed launcher and its data slices together.
+    $payloadBytes = (Get-ChildItem -LiteralPath $TransferPath -Recurse -File | Measure-Object Length -Sum).Sum
+    $largeAssetPayload = $payloadBytes -gt 3800000000
+    if ($largeAssetPayload) { $innoArgs = @('/DLargeAssetPayload=1') + $innoArgs }
+
     Write-Host (" Inno installer metadata: Variant={0}; SkipPrerequisites={1}; Version={2}; BuildUtc={3}; Commit={4}" -f `
         $installerVariant, $false, $Version, $InstallerBuildTimeUtc, $InstallerSourceCommit)
     & $InnoCompilerPath @innoArgs
@@ -359,6 +365,18 @@ function Invoke-InnoCompile {
         throw "Inno Setup 返回成功，但没有生成预期产物：$rawFile"
     }
     Move-Item -LiteralPath $rawFile -Destination $finalOutput -Force
+    if ($largeAssetPayload) {
+        $slicePrefix = [System.IO.Path]::GetFileNameWithoutExtension($rawFile) + '-'
+        $slices = @(Get-ChildItem -LiteralPath (Split-Path -Parent $rawFile) -Filter ($slicePrefix + '*.bin') -File)
+        if ($slices.Count -eq 0) { throw 'Large installer is missing its data slices.' }
+        # Inno locates slices from the running launcher's filename. Rename
+        # their prefix together with the launcher, preserving disk suffixes.
+        $finalSlicePrefix = [System.IO.Path]::GetFileNameWithoutExtension($finalOutput) + '-'
+        foreach ($slice in $slices) {
+            $finalSliceName = $finalSlicePrefix + $slice.Name.Substring($slicePrefix.Length)
+            Move-Item -LiteralPath $slice.FullName -Destination (Join-Path $OutputDir $finalSliceName) -Force
+        }
+    }
     if (-not (Test-Path -LiteralPath $finalOutput -PathType Leaf)) {
         throw "最终安装包移动后不存在：$finalOutput"
     }

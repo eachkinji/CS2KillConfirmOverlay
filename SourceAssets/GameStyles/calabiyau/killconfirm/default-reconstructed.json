@@ -1,0 +1,137 @@
+{
+  "version": 1,
+  "source": "F:\\KillConfirm FIX\\workshop\\CalabiyauResearch\\preview\\parsed\\extracted\\PM\\Content\\PaperMan\\UI\\BP\\PC\\InGame\\HUDPC\\FeedBack\\WBP_IconFeedbackPage.json",
+  "clips": [
+    {
+      "count": 1,
+      "animation": "Anim_Normal",
+      "duration": 3.5,
+      "star_indices": [],
+      "star_times": [],
+      "textures": 9,
+      "clip_bytes": 6962
+    },
+    {
+      "count": 2,
+      "animation": "Anim_MaxCount",
+      "duration": 3.5,
+      "star_indices": [
+        1,
+        3
+      ],
+      "star_times": [
+        0.7,
+        0.7999999999999999
+      ],
+      "textures": 14,
+      "clip_bytes": 15247
+    },
+    {
+      "count": 3,
+      "animation": "Anim_MaxCount_3",
+      "duration": 3.5,
+      "star_indices": [
+        1,
+        2,
+        3
+      ],
+      "star_times": [
+        0.7,
+        0.7999999999999999,
+        0.8999999999999999
+      ],
+      "textures": 16,
+      "clip_bytes": 23458
+    },
+    {
+      "count": 4,
+      "animation": "Anim_MaxCount_4",
+      "duration": 3.5,
+      "star_indices": [
+        0,
+        1,
+        3,
+        4
+      ],
+      "star_times": [
+        0.7,
+        0.7999999999999999,
+        0.8999999999999999,
+        1.0
+      ],
+      "textures": 16,
+      "clip_bytes": 26024
+    },
+    {
+      "count": 5,
+      "animation": "Anim_MaxCount_5",
+      "duration": 3.5,
+      "star_indices": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "star_times": [
+        0.7,
+        0.7999999999999999,
+        0.8999999999999999,
+        1.0,
+        1.1
+      ],
+      "textures": 17,
+      "clip_bytes": 28862
+    },
+    {
+      "count": 6,
+      "animation": "Anim_MaxCount_5",
+      "duration": 3.5,
+      "star_indices": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "star_times": [
+        0.7,
+        0.7999999999999999,
+        0.8999999999999999,
+        1.0,
+        1.1
+      ],
+      "textures": 23,
+      "clip_bytes": 36136
+    }
+  ],
+  "textures": {
+    "034f3528079085b8d86f7254.png": 18217,
+    "037eb42610822c6ce204ef06.png": 222,
+    "08c98472557fa4884e6f433d.png": 1413,
+    "1b8eb2d848222ebf23ec271a.png": 151,
+    "1ea896cd046c787ed8060dbc.png": 1365,
+    "29a6d5d80c767a3e5f4f8d2d.png": 3054,
+    "47c821e689b70a85b929b9db.png": 1092,
+    "5693b67c168dc5b02ed55323.png": 641,
+    "61deaf5e1d8b876a4c8f3a48.png": 4978,
+    "653b74e9e8aa05817f42ced2.png": 555,
+    "65c8faf92a7862ad0179fe49.png": 1060,
+    "8b1396a58869cd0cae6dc08b.png": 791,
+    "a326df204f2e867f5fe1a65e.png": 810,
+    "b0cffab45cb490d238e481f3.png": 2155,
+    "b382089880ba4a390b6bbd74.png": 1002,
+    "event-count.png": 1027,
+    "event-icon.png": 5076,
+    "event-label.png": 6135,
+    "fx-add-default-0.png": 1143808,
+    "fx-add-default-1.png": 495627,
+    "fx-add-default-2.png": 56323,
+    "fx-default-0.png": 898243,
+    "fx-default-1.png": 191890,
+    "label-37-1-0.png": 9557
+  },
+  "texture_bytes": 2845192,
+  "clip_bytes": 136689,
+  "count_policy": "Original Normal has no stars; 2..5 use native MaxCount branches. Six-plus uses five stars and a product compatibility counter."
+}

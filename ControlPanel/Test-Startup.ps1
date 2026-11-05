@@ -1,4 +1,4 @@
-param(
+﻿param(
     [Parameter(Mandatory)][string]$Payload,
     [string]$ProfileSource=(Join-Path $env:LOCALAPPDATA 'KillConfirmOverlay/UserData'),
     [switch]$Inspect
@@ -26,7 +26,7 @@ $catalog=(Get-Content -LiteralPath $catalogPath -Raw).Replace($ProfileSource.Rep
 [IO.File]::WriteAllText($catalogPath,$catalog)
 New-Item -ItemType Directory -Path (Join-Path $profile 'CompatibilityDisplay') -Force | Out-Null
 [IO.File]::WriteAllText((Join-Path $profile 'CompatibilityDisplay/display.json'), '{"Enabled":true,"FollowGame":false,"HideWhenInactive":false}')
-$start=[Diagnostics.ProcessStartInfo]::new((Join-Path $Payload 'KillConfirmGameBar.exe'))
+$start=[Diagnostics.ProcessStartInfo]::new((Join-Path $Payload 'KillConfirmControlPanel.exe'))
 $start.UseShellExecute=$false
 $start.WindowStyle=[Diagnostics.ProcessWindowStyle]::Hidden
 $start.Environment['KILLCONFIRM_DATA_ROOT']=$profile

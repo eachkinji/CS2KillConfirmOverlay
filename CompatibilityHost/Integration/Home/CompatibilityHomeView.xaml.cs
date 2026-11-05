@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -51,7 +51,6 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         private const string IconPackSettingKey = "KillIconPack", VoicePackSettingKey = "VoicePack", EliteEffectSettingKey = "KillEliteEffect", KillFxSettingKey = "KillFxEnabled", WeaponBadgeSettingKey = "KillWeaponBadge", MainAnimationStyleSettingKey = "MainAnimationStyle";
         private const string MoneyRewardModeSettingKey = "MoneyRewardMode", DefaultMoneyRewardMode = "delta", AudioVolumeSettingKey = "AudioVolume";
         internal const string OpenRuntimeLogsParameterGroupId = "OpenRuntimeLogs";
-        private static Uri SoundPackUri => LocalServiceEndpoints.Build("/soundpack");
         private static Uri MoneyRewardModeUri => LocalServiceEndpoints.Build("/money/mode");
         private static Uri CrossfireSettingsUri => LocalServiceEndpoints.Build("/crossfire/settings");
         private static Uri CsolSettingsUri => LocalServiceEndpoints.Build("/csol/settings");
@@ -132,7 +131,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         {
             bool zh = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
             GameTitle.Text = GameStyleService.ToDisplayName(GameStyleService.Current);
-            GameHint.Text = zh ? "图标、语音与战斗规则使用当前游戏配置；屏幕布局为兼容显示独立保存。" : "Packs, voice and combat rules follow the selected game. Desktop layouts are saved separately.";
+            GameHint.Text = zh ? "图标、音效、角色语音与战斗规则使用当前游戏配置；屏幕布局为兼容显示独立保存。" : "Icons, sound effects, character voices and combat rules follow the selected game. Desktop layouts are saved separately.";
             EffectsLabel.Text = zh ? "当前游戏设置" : "Game settings";
             ToolTipService.SetToolTip(PackTestSectionView.GameSettingsButton, zh ? "打开当前游戏设置" : "Open current game settings");
             PackTestSectionView.PackHintText.Visibility = Visibility.Collapsed;
@@ -150,6 +149,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             ToolTipService.SetToolTip(PackTestSectionView.ReloadAudioButton, zh ? "重载音频" : "Reload audio");
             ToolTipService.SetToolTip(PackTestSectionView.DanmakuTestButton, zh ? "测试弹幕" : "Test danmaku");
             ApplyAdvancedEffectsPanelLanguage(); RefreshStatus();
+            ApplyAudioChannelLanguage();
         }
         internal void ApplyTheme(GameThemePalette theme)
         {
@@ -157,10 +157,10 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             Foreground = theme.Brush(theme.Text);
             foreach (var card in new[] { GameCard, PackTestSectionView.PackTestCard }) { card.Background = theme.Brush(theme.Card); card.BorderBrush = theme.Brush(theme.SoftBorder); }
             foreach (var text in new[] { GameHint, PackTestSectionView.PackHintText, PackTestSectionView.TestFeedbackText }) text.Foreground = theme.Brush(theme.MutedText);
-            foreach (var selector in new[] { GameSelector, PackTestSectionView.VoicePackSelector, PackTestSectionView.IconPackSelector, PackTestSectionView.AudioVolumeSelector, PackTestSectionView.TestPresetSelector })
+            foreach (var selector in new[] { GameSelector, PackTestSectionView.VoicePackSelector, PackTestSectionView.IconPackSelector, PackTestSectionView.CharacterVoicePackSelector, PackTestSectionView.SoundEffectVolumeSelector, PackTestSectionView.CharacterVoiceVolumeSelector, PackTestSectionView.AudioVolumeSelector, PackTestSectionView.TestPresetSelector })
             { selector.Background = theme.Brush(theme.Field); selector.Foreground = theme.Brush(theme.Text); selector.BorderBrush = theme.Brush(theme.Border); selector.CornerRadius = new CornerRadius(4); }
             PackTestSectionView.IconPackSelector.IsEnabled = GameStyleService.Current != GameStyleMode.Overwatch && GameStyleService.Current != GameStyleMode.ModernWarfare2019 && GameStyleService.Current != GameStyleMode.Apex;
-            foreach (var icon in new[] { PackTestSectionView.VoicePackIcon, PackTestSectionView.IconPackIcon, PackTestSectionView.VolumeIcon, PackTestSectionView.TestPresetIcon }) icon.Foreground = theme.Brush(theme.Accent);
+            foreach (var icon in new[] { PackTestSectionView.VoicePackIcon, PackTestSectionView.CharacterVoicePackIcon, PackTestSectionView.IconPackIcon, PackTestSectionView.VolumeIcon, PackTestSectionView.TestPresetIcon }) icon.Foreground = theme.Brush(theme.Accent);
             ApplyAdvancedEffectsPanelTheme(); RefreshStatus();
         }
         internal void RefreshStatusNow() => RefreshStatus();

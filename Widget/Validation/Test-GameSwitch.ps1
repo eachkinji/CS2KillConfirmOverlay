@@ -1,24 +1,48 @@
-﻿param([string]$Payload='Output/ClarityPanel-5.0.1.21')
+﻿param([string]$Payload='', [string]$CatalogProfile='', [switch]$AudioChannelsOnly, [switch]$CalabiyauRenderOnly, [string]$PackagePath='')
 $ErrorActionPreference='Stop'
 $repository=Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
-$Payload=[IO.Path]::GetFullPath((Join-Path $repository $Payload))
+if (!$Payload) { $Payload = 'C:\Program Files\Kill Confirm Overlay' }
+$Payload=[IO.Path]::GetFullPath($(if ([IO.Path]::IsPathRooted($Payload)) {$Payload} else {Join-Path $repository $Payload}))
 $name='KillConfirmGameBar.SwitchValidation'
 if(Get-AppxPackage -Name $name -ErrorAction SilentlyContinue) {throw 'A game-switch validation package already exists.'}
 $output=Join-Path $repository ('Output/WidgetSwitch-'+(Get-Date -Format 'yyyyMMdd-HHmmss'))
 $profile=Join-Path $output 'profile'
 New-Item -ItemType Directory -Path $profile -Force | Out-Null
-$source=Join-Path $env:LOCALAPPDATA 'KillConfirmOverlay/UserData'
+if ($AudioChannelsOnly -and !$CatalogProfile) { throw 'Audio UI validation requires an isolated CatalogProfile.' }
+$source = if ($CatalogProfile) { [IO.Path]::GetFullPath($CatalogProfile) } else { Join-Path $env:LOCALAPPDATA 'KillConfirmOverlay/UserData' }
 foreach($file in @('settings.json','pack-catalog.json')) {Copy-Item -LiteralPath (Join-Path $source $file) -Destination $profile}
-& robocopy (Join-Path $source 'Packs/valorant') (Join-Path $profile 'Packs/valorant') /E /R:1 /W:1 /NFL /NDL /NJH /NJS /NP | Out-Null
-if($LASTEXITCODE -ge 8) {throw 'Could not copy fixture packs.'}
 $catalogPath=Join-Path $profile 'pack-catalog.json'
-[IO.File]::WriteAllText($catalogPath,([IO.File]::ReadAllText($catalogPath).Replace($source.Replace('\','\\'),$profile.Replace('\','\\'))))
+$catalog=Get-Content -LiteralPath $catalogPath -Raw | ConvertFrom-Json -AsHashtable
+# Copy only packs referenced by this explicit fixture. This also supports a
+# resource library moved away from the historical UserData/Packs directory.
+foreach ($kind in @('IconPacks','VoicePacks')) {
+    foreach ($pack in $catalog[$kind]) {
+        if (!$pack['FolderPath'] -or !(Test-Path -LiteralPath $pack['FolderPath'] -PathType Container)) { continue }
+        $packDestination=Join-Path $profile ('Packs/fixture/' + $pack['Key'])
+        & robocopy $pack['FolderPath'] $packDestination /E /R:1 /W:1 /NFL /NDL /NJH /NJS /NP | Out-Null
+        if($LASTEXITCODE -ge 8) {throw 'Could not copy referenced fixture pack.'}
+        $pack['FolderPath']=$packDestination
+    }
+}
+if ($AudioChannelsOnly) {
+    foreach ($kind in @('sfx','voice')) {
+        $key='calabiyau_'+$kind+'_fixture'
+        $folder=Join-Path $profile ('Packs/fixture/'+$key)
+        New-Item -ItemType Directory -Path $folder -Force | Out-Null
+        $item=@{Key=$key; DisplayName=$(if($kind -eq 'sfx'){'卡拉彼丘 · 测试音效'}else{'卡拉彼丘 · 测试角色'}); FolderPath=$folder; IsBuiltIn=$false; IsVisibleInWidget=$true; OwnsFolder=$true; GameStyle='calabiyau'; AudioKind=$(if($kind -eq 'sfx'){0}else{1}); AssociatedIconKeys=@('calabiyau')}
+        $catalog['VoicePacks'] += $item
+    }
+}
+[IO.File]::WriteAllText($catalogPath,($catalog | ConvertTo-Json -Depth 20 -Compress))
 $settingsPath=Join-Path $profile 'settings.json'
 $settings=Get-Content -LiteralPath $settingsPath -Raw | ConvertFrom-Json -AsHashtable
+foreach ($key in @($settings.Keys | Where-Object { $_ -like 'AudioChannels.v2.*' })) { $settings.Remove($key) }
 $settings['LocalService.Port']=@{Kind='int';Text='10095'}
 $settings['GameStyleMode']=@{Kind='string';Text='crossfire'}
+$settings['VoicePack.crossfire']=@{Kind='string';Text='crossfire_swat_gr'}
+$settings['VoicePack']=@{Kind='string';Text='crossfire_swat_gr'}
 $settings['CompatibilityDisplay.Enabled']=@{Kind='bool';Text='False'}
-[IO.File]::WriteAllText($settingsPath,($settings | ConvertTo-Json -Depth 10 -Compress))
+[IO.File]::WriteAllText($settingsPath,($settings | ConvertTo-Json -Depth 20 -Compress))
 New-Item -ItemType Directory -Path (Join-Path $profile 'CompatibilityDisplay') -Force | Out-Null
 [IO.File]::WriteAllText((Join-Path $profile 'CompatibilityDisplay/display.json'),'{"Enabled":false,"GameBarBlocked":false}')
 Add-Type -TypeDefinition @'
@@ -42,9 +66,12 @@ public static class SwitchLifetime {
 '@
 $service=$null; $package=$null; $widgetProcessId=0
 try {
-    $testPackage=Get-ChildItem -LiteralPath (Join-Path $repository 'Output/WidgetSwitchValidation') -Recurse -File -Filter '*.msix' | Select-Object -First 1
+    $testPackage=if($PackagePath) { Get-Item -LiteralPath $PackagePath } else { Get-ChildItem -LiteralPath (Join-Path $repository 'Output/WidgetSwitchValidation') -Recurse -File -Filter '*.msix' | Sort-Object LastWriteTime -Descending | Select-Object -First 1 }
+    if (!$testPackage) { throw 'Build the isolated WidgetSwitchValidation package first.' }
     $dependencies=@(Get-ChildItem -LiteralPath (Join-Path $testPackage.DirectoryName 'Dependencies/x64') -File -Filter '*.appx' | ForEach-Object FullName)
-    Add-AppxPackage -Path $testPackage.FullName -DependencyPath $dependencies
+    # Use the frameworks already installed for the production widget. Reapplying
+    # dependency packages can demand closing Game Bar and unrelated Windows apps.
+    Add-AppxPackage -Path $testPackage.FullName
     $package=Get-AppxPackage -Name $name -ErrorAction Stop
     # Only the isolated test package: prevent Windows suspending the test when
     # another window takes focus. Restore normal lifetime handling in finally.
@@ -52,6 +79,8 @@ try {
     $cache=Join-Path $env:LOCALAPPDATA "Packages/$($package.PackageFamilyName)/LocalState"
     $fixture=Join-Path $cache 'Fixture'
     New-Item -ItemType Directory -Path $fixture -Force | Out-Null
+    if ($AudioChannelsOnly) { [IO.File]::WriteAllText((Join-Path $fixture 'audio-channels-only'),'1') }
+    if ($CalabiyauRenderOnly) { [IO.File]::WriteAllText((Join-Path $fixture 'calabiyau-render-only'),'1') }
     & robocopy $profile (Join-Path $fixture 'Data') /E /R:1 /W:1 /NFL /NDL /NJH /NJS /NP | Out-Null
     & robocopy (Join-Path $Payload 'Assets') (Join-Path $fixture 'Payload/Assets') /E /R:1 /W:1 /NFL /NDL /NJH /NJS /NP | Out-Null
     & robocopy (Join-Path $Payload 'DefaultPacks') (Join-Path $fixture 'Payload/DefaultPacks') /E /R:1 /W:1 /NFL /NDL /NJH /NJS /NP | Out-Null
@@ -69,7 +98,7 @@ try {
             [IO.File]::WriteAllText((Join-Path $output $file),[IO.File]::ReadAllText((Join-Path $cache $file)))
         }
     }
-    foreach($file in Get-ChildItem -LiteralPath $cache -File -Filter 'battlefield6-*') {
+    foreach($file in Get-ChildItem -LiteralPath $cache -File | Where-Object {$_.Name -like 'battlefield6-*' -or $_.Name -like 'audio-menu-*' -or $_.Name -like 'calabiyau-*'}) {
         # AppContainer files can carry EFS metadata unsupported by the artifact drive.
         [IO.File]::WriteAllBytes((Join-Path $output $file.Name), [IO.File]::ReadAllBytes($file.FullName))
     }

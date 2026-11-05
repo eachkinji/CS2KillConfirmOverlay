@@ -1,4 +1,4 @@
-# A split-version upgrade must retire the old packaged control panel even when
+﻿# A split-version upgrade must retire the old packaged control panel even when
 # the optional Game Bar components were deselected or cannot be deployed.
 function Get-LegacyControlPanelPackage {
     foreach ($package in @(Get-AppxPackage -Name $PackageName -ErrorAction Stop)) {
@@ -24,7 +24,7 @@ function Invoke-LegacyProfilePreparation {
     try {
         @{PackageFullName=$Package.PackageFullName;InstallLocation=$Package.InstallLocation} |
             ConvertTo-Json | Set-Content -LiteralPath $requestPath -Encoding UTF8
-        $process.StartInfo.FileName=Join-Path $ordinaryRoot 'KillConfirmGameBar.exe'
+        $process.StartInfo.FileName=Join-Path $ordinaryRoot 'KillConfirmControlPanel.exe'
         $process.StartInfo.Arguments='--prepare-legacy-upgrade "'+$requestPath+'" "'+$resultPath+'"'
         $process.StartInfo.UseShellExecute=$false
         $process.StartInfo.CreateNoWindow=$true

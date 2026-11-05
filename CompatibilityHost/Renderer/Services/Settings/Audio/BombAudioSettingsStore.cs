@@ -102,8 +102,7 @@ namespace KillConfirmCompatibility.Services
             }
 
             string folderName = PathKeyFor(kind).Replace("BombAudio.", string.Empty);
-            StorageFolder folder = await ApplicationData.Current.LocalFolder
-                .CreateFolderAsync("BombAudio", CreationCollisionOption.OpenIfExists);
+            StorageFolder folder = await ResourceLibraryPaths.LegacyFolderAsync("BombAudio");
             string fileName = string.Format(
                 "{0}_{1}{2}",
                 folderName,

@@ -303,6 +303,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
                 <sections:HeaderStatusView
@@ -328,6 +329,8 @@
                     Grid.Row="2"
                     Margin="0,5,0,0"
                     VoicePackSelectionChanged="OnVoicePackSelectionChanged"
+                    CharacterVoicePackSelectionChanged="OnCharacterVoicePackSelectionChanged"
+                    AudioChannelSettingsChanged="OnAudioChannelSettingsChanged"
                     IconPackSelectionChanged="OnIconPackSelectionChanged"
                     AdvancedEffectsRequested="OnAdvancedEffectsButtonClick"
                     AudioVolumeSelectionChanged="OnAudioVolumeSelectionChanged"
@@ -350,9 +353,11 @@
                     ContrastSelectionChanged="OnContrastSelectionChanged"
                     PlaybackFpsSelectionChanged="OnPlaybackFpsSelectionChanged" />
 
+                <ContentControl x:Name="AudioSettingsHost" Grid.Row="4" Margin="0,5,0,0" HorizontalContentAlignment="Stretch"/>
+
                 <Button
                     x:Name="PanelCollapseBar"
-                    Grid.Row="4"
+                    Grid.Row="5"
                     Margin="0,3,0,0"
                     Style="{StaticResource PanelToggleBarButtonStyle}"
                     Click="OnCollapsePanelToggle"

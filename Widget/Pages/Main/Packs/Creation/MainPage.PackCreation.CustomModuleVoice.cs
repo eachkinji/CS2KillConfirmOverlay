@@ -37,11 +37,11 @@ namespace KillConfirmGameBar
             var selectedFiles = CreateVoiceSelectionMap(initialFiles);
             StorageFile headImageFile = initialHeadImageFile;
             var layout = CreatePackDialogLayout(
-                LocalizationManager.Text("CreateVoicePack"),
+                AudioPackText("CreateVoicePack"),
                 isChinese
-                    ? "与 CS2 Customizer 一致，共 10 种事件：1～5 杀分别支持普通和爆头语音。空槽按同级普通语音、1 杀爆头、1 杀普通语音的顺序回退。"
+                    ? "与 CS2 Customizer 一致，共 10 种事件：1～5 杀分别支持普通和爆头音效。空槽按同级普通音效、1 杀爆头、1 杀普通音效的顺序回退。"
                     : "Matches CS2 Customizer with 10 events: normal and headshot audio for kills 1-5. Empty slots fall back through same-level normal, kill-1 headshot, then kill-1 normal.",
-                LocalizationManager.Text("VoicePackNamePlaceholder"),
+                AudioPackText("VoicePackNamePlaceholder"),
                 initialDisplayName,
                 out var nameBox);
 
@@ -81,7 +81,7 @@ namespace KillConfirmGameBar
             }
 
             string packName = string.IsNullOrWhiteSpace(nameBox.Text)
-                ? (isChinese ? "自定义语音包" : "Custom voice pack")
+                ? (isChinese ? "自定义音效包" : "Custom sound effect pack")
                 : nameBox.Text.Trim();
 
             if (headImageFile == null)

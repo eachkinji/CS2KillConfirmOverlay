@@ -1,4 +1,5 @@
 pub mod gain;
+pub mod channels;
 pub mod manifest;
 mod preset;
 pub mod sound;

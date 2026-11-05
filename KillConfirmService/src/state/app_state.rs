@@ -35,6 +35,8 @@ pub struct AppState {
     pub selected_output_device_name: RwLock<String>,
     pub args: Args,
     pub preset: RwLock<Preset>,
+    /// None retains the legacy single-pack API; Some is an atomic pair of selections.
+    pub audio_channels: RwLock<Option<crate::soundpack::channels::AudioChannelPresets>>,
     pub volume_percent: AtomicU32,
     pub streak_gain_enabled: AtomicBool,
     pub streak_gain_step_percent: AtomicU32,
@@ -72,6 +74,8 @@ pub struct AppState {
     pub bomb_audio_sink: std::sync::Mutex<Option<Arc<rodio::Sink>>>,
     pub stop_previous_kill_audio: AtomicBool,
     pub kill_audio_sinks: std::sync::Mutex<Vec<Arc<Sink>>>,
+    pub character_voice_sinks: std::sync::Mutex<Vec<Arc<Sink>>>,
+    pub audio_slot_cooldowns: std::sync::Mutex<HashMap<String, std::time::Instant>>,
     pub spectated_kill_effects_enabled: AtomicBool,
     pub bomb_audio_paths: std::sync::Mutex<BombAudioPaths>,
     pub gsi_game_version: AtomicU8,

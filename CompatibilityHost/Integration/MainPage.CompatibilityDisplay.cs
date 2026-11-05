@@ -44,6 +44,8 @@ namespace KillConfirmGameBar
             _compatibilityWorkspace.OpenGameSettings = OpenCurrentGameSettings;
             _compatibilityWorkspace.OpenAboutVersion = OpenAboutVersion;
             _compatibilityWorkspace.OpenPackLibrary = OpenPackLibrary;
+            _compatibilityWorkspace.OpenAudioPackLibrary = (style, kind) =>
+                OpenPackLibrary(style, kind == AudioPackKind.CharacterVoice ? "voice" : "sound_effect");
             if (CompatibilityPageContent.Content != _compatibilityWorkspace) CompatibilityPageContent.Content = _compatibilityWorkspace;
             _compatibilityWorkspace.ApplyLanguage();
             _compatibilityWorkspace.ApplyTheme(theme);

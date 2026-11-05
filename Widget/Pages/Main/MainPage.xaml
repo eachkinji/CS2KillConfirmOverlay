@@ -140,6 +140,9 @@
                         <NavigationViewItem AutomationProperties.Name="大狗叫" Tag="dagoujiao" Content="大狗叫" ToolTipService.ToolTip="大狗叫">
                             <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/dagoujiao.jpg" /></NavigationViewItem.Icon>
                         </NavigationViewItem>
+                        <NavigationViewItem AutomationProperties.Name="卡拉彼丘" Tag="calabiyau" Content="卡拉彼丘" ToolTipService.ToolTip="卡拉彼丘">
+                            <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/calabiyau.png" /></NavigationViewItem.Icon>
+                        </NavigationViewItem>
                         <NavigationViewItem AutomationProperties.Name="自定义" Tag="custommodule" Content="自定义" ToolTipService.ToolTip="自定义">
                             <NavigationViewItem.Icon><FontIcon FontFamily="Microsoft YaHei UI" FontSize="10" Glyph="自定义" /></NavigationViewItem.Icon>
                         </NavigationViewItem>
@@ -223,6 +226,7 @@
                                 <ComboBoxItem x:Name="DeltaForceStyleItem" Tag="deltaforce">Delta Force (三角洲行动)</ComboBoxItem>
                                 <ComboBoxItem x:Name="DoubaoStyleItem" Tag="doubao">Doubao (豆包)</ComboBoxItem>
                                 <ComboBoxItem x:Name="DagoujiaoStyleItem" Tag="dagoujiao">Big Dog Bark (大狗叫)</ComboBoxItem>
+                                <ComboBoxItem x:Name="CalabiyauStyleItem" Tag="calabiyau">卡拉彼丘 / Strinova</ComboBoxItem>
                                 <ComboBoxItem x:Name="CustomModuleStyleItem" Tag="custommodule">自定义</ComboBoxItem>
                             </ComboBox>
                         </StackPanel>
@@ -280,6 +284,11 @@
                                 Style="{StaticResource StudioTabActiveButtonStyle}"
                                 Content="战斗与视效"
                                 Click="OnGameTabCombatClick" />
+                            <Button
+                                x:Name="GameTabSoundEffectButton"
+                                Style="{StaticResource StudioTabButtonStyle}"
+                                Content="音效包库"
+                                Click="OnGameTabSoundEffectClick" />
                             <Button
                                 x:Name="GameTabVoiceButton"
                                 Style="{StaticResource StudioTabButtonStyle}"

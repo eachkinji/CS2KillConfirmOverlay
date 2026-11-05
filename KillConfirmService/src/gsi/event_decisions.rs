@@ -143,29 +143,9 @@
             steamid: steamid.to_string(),
         });
 
-        let app_state_clone = app_state.clone();
-
-        tokio::spawn(async move {
-            let result = play_audio(
-                app_state_clone,
-                event_kill_count,
-                is_headshot,
-                is_first_kill,
-                is_knife_kill,
-                is_grenade_kill,
-                is_last_kill,
-                false,
-                money_reward,
-                Some("kill".to_string()),
-                EventChannel::Combat,
-                true,
-            )
-            .await;
-
-            if let Err(e) = result {
-                error!("Failed to play audio: {}", e);
-            }
-        });
+        if !publish_before_kill_audio {
+            spawn_player_kill_audio(app_state.clone(), kill_event_to_send.as_ref().unwrap().clone());
+        }
         debug!(
             "player: {}, kills: {}, headshot: {}, knife: {}, grenade: {}, first: {}, last: {}",
             ply.name.as_deref().unwrap_or(""),

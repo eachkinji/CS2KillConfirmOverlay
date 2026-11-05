@@ -6,6 +6,17 @@ namespace KillConfirmCompatibility.Services
     {
         public static GameStyleMode GetStyleForPackKey(string key)
         {
+            // Typed audio imports use a stable per-game prefix. Keep old pack ids
+            // unchanged so saved selections and external archives remain valid.
+            if (!string.IsNullOrWhiteSpace(key))
+            {
+                foreach (GameStyleMode style in System.Enum.GetValues(typeof(GameStyleMode)))
+                {
+                    if (key.StartsWith("custom_" + ToStorageValue(style) + "_audio_", System.StringComparison.OrdinalIgnoreCase))
+                        return style;
+                }
+            }
+            if (IsCalabiyauKey(key)) return GameStyleMode.Calabiyau;
             if (IsCustomModuleKey(key)) return GameStyleMode.CustomModule;
             if (string.IsNullOrEmpty(key))
             {
@@ -186,6 +197,8 @@ namespace KillConfirmCompatibility.Services
                     return "pubg";
                 case GameStyleMode.DeltaForce:
                     return "deltaforce";
+                case GameStyleMode.Calabiyau:
+                    return "calabiyau";
                 case GameStyleMode.CustomModule:
                     return "custommodule";
                 case GameStyleMode.Doubao:
@@ -226,6 +239,8 @@ namespace KillConfirmCompatibility.Services
                     return "pubg";
                 case GameStyleMode.DeltaForce:
                     return "deltaforce";
+                case GameStyleMode.Calabiyau:
+                    return "calabiyau";
                 case GameStyleMode.CustomModule:
                     return "custommodule";
                 case GameStyleMode.Doubao:

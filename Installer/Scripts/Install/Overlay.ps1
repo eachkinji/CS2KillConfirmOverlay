@@ -1,17 +1,11 @@
 ﻿# Overlay process shutdown, package installation, and verification.
 function Get-OverlayRuntimeProcesses {
-    $processNames = @(
-        "cskillconfirm",
-        "TestXboxGameBar",
-        "KillConfirmOverlay",
-        "KillConfirmGameBar",
-        "KillConfirmCompatibility",
-        "GameBar",
-        "GameBarFTServer",
-        "GameBarPresenceWriter",
-        "GameBarElevatedFT_Alias"
-    )
-    return @(Get-Process -Name $processNames -ErrorAction SilentlyContinue)
+    $names=@('KillConfirmControlPanel','KillConfirmGameBar','KillConfirmCompatibility','cskillconfirm','killconfirm-settings-launcher','KillConfirmOverlay','TestXboxGameBar')
+    $root=[IO.Path]::GetFullPath((Split-Path -Parent $ScriptRoot)).TrimEnd('\')+'\'
+    return @(Get-Process -Name $names -ErrorAction SilentlyContinue | Where-Object {
+        $path=$_.Path
+        $path -and ($path.StartsWith($root,[StringComparison]::OrdinalIgnoreCase) -or (Split-Path (Split-Path $path -Parent) -Leaf) -like 'KillConfirmGameBar.Overlay_*')
+    })
 }
 
 function Stop-OverlayRuntimeForUpdate {
@@ -20,12 +14,12 @@ function Stop-OverlayRuntimeForUpdate {
         $runningProcesses = @(Get-OverlayRuntimeProcesses)
         if ($runningProcesses.Count -eq 0) {
             if ($attempt -eq 1) {
-                Write-InstallLog "No Kill Confirm/Game Bar processes needed stopping."
+                Write-InstallLog "No KillConfirm processes needed stopping."
             }
             else {
-                Write-InstallLog "Kill Confirm and Xbox Game Bar processes are fully stopped."
+                Write-InstallLog "KillConfirm processes are fully stopped."
             }
-            Add-InstallResult -Status Success -Item "关闭正在运行的旧程序" -Detail "已确认小组件、后台服务和 Xbox Game Bar 均已退出"
+            Add-InstallResult -Status Success -Item "关闭正在运行的旧程序" -Detail "已确认本程序控制面板、小组件和后台服务 均已退出"
             return
         }
 
@@ -181,6 +175,7 @@ function Install-OverlayPackage {
     Add-AppxPackageCompat `
         -PackagePath $packageFile.FullName `
         -ForceUpdate `
+        -CloseTargetApplications `
         -DeferWhenInUse:$deferMainUpdate
     $installedPackage = Get-InstalledOverlayPackage
     if ($packageIdentity) {

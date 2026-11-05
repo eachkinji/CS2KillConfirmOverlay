@@ -19,6 +19,11 @@ KillConfirmGameBar_Transfer_*.zip
 Widget/BundleArtifacts/
 Package/BundleArtifacts/
 
+# Optional asset packs are distributed separately from the source repository.
+*.zip
+*.7z
+*.rar
+
 # Release upload logs
 .release-upload-*.log
 *.msix
@@ -101,3 +106,61 @@ __pycache__/
 .idea/
 
 Widget/Bridge/
+
+# Calabiyau runtime: only built-in assets, matching the source allowlist.
+/Widget/Assets/GameStyles/calabiyau/*
+!/Widget/Assets/GameStyles/calabiyau/killconfirm/
+/Widget/Assets/GameStyles/calabiyau/killconfirm/*
+!/Widget/Assets/GameStyles/calabiyau/soundpacks/
+/Widget/Assets/GameStyles/calabiyau/soundpacks/*
+!/Widget/Assets/GameStyles/calabiyau/textures/
+/Widget/Assets/GameStyles/calabiyau/textures/*
+!/Widget/Assets/GameStyles/calabiyau/killconfirm/textures/
+/Widget/Assets/GameStyles/calabiyau/killconfirm/textures/*
+!/Widget/Assets/GameStyles/calabiyau/soundpacks/calabiyau/
+/Widget/Assets/GameStyles/calabiyau/soundpacks/calabiyau/*
+!/Widget/Assets/GameStyles/calabiyau/textures/event-*.png
+!/Widget/Assets/GameStyles/calabiyau/textures/label-*.png
+!/Widget/Assets/GameStyles/calabiyau/crosshair.json.gz
+!/Widget/Assets/GameStyles/calabiyau/killconfirm/default-lower-1.json.gz
+!/Widget/Assets/GameStyles/calabiyau/killconfirm/default-lower-2.json.gz
+!/Widget/Assets/GameStyles/calabiyau/killconfirm/default-lower-3.json.gz
+!/Widget/Assets/GameStyles/calabiyau/killconfirm/default-lower-4.json.gz
+!/Widget/Assets/GameStyles/calabiyau/killconfirm/default-lower-5.json.gz
+!/Widget/Assets/GameStyles/calabiyau/killconfirm/default-lower-6.json.gz
+!/Widget/Assets/GameStyles/calabiyau/killconfirm/default-reconstructed.json
+!/Widget/Assets/GameStyles/calabiyau/killconfirm/textures/REAC_Main.png
+!/Widget/Assets/GameStyles/calabiyau/killconfirm/textures/REAC_Main01.png
+!/Widget/Assets/GameStyles/calabiyau/killconfirm/textures/REAC_Main02.png
+!/Widget/Assets/GameStyles/calabiyau/killconfirm/textures/REAC_Main03.png
+!/Widget/Assets/GameStyles/calabiyau/killconfirm/textures/REAC_Main04.png
+!/Widget/Assets/GameStyles/calabiyau/killconfirm/textures/REAC_Main05.png
+!/Widget/Assets/GameStyles/calabiyau/killconfirm/textures/REAC_Main1.png
+!/Widget/Assets/GameStyles/calabiyau/killconfirm/textures/React9.png
+!/Widget/Assets/GameStyles/calabiyau/soundpacks/calabiyau/1kill.wav
+!/Widget/Assets/GameStyles/calabiyau/soundpacks/calabiyau/2kill.wav
+!/Widget/Assets/GameStyles/calabiyau/soundpacks/calabiyau/3kill.wav
+!/Widget/Assets/GameStyles/calabiyau/soundpacks/calabiyau/4kill.wav
+!/Widget/Assets/GameStyles/calabiyau/soundpacks/calabiyau/5kill.wav
+!/Widget/Assets/GameStyles/calabiyau/soundpacks/calabiyau/manifest.json
+!/Widget/Assets/GameStyles/calabiyau/textures/034f3528079085b8d86f7254.png
+!/Widget/Assets/GameStyles/calabiyau/textures/037eb42610822c6ce204ef06.png
+!/Widget/Assets/GameStyles/calabiyau/textures/08c98472557fa4884e6f433d.png
+!/Widget/Assets/GameStyles/calabiyau/textures/1137eb22f9923349e083fffe.png
+!/Widget/Assets/GameStyles/calabiyau/textures/1b8eb2d848222ebf23ec271a.png
+!/Widget/Assets/GameStyles/calabiyau/textures/1ea896cd046c787ed8060dbc.png
+!/Widget/Assets/GameStyles/calabiyau/textures/29a6d5d80c767a3e5f4f8d2d.png
+!/Widget/Assets/GameStyles/calabiyau/textures/47c821e689b70a85b929b9db.png
+!/Widget/Assets/GameStyles/calabiyau/textures/5693b67c168dc5b02ed55323.png
+!/Widget/Assets/GameStyles/calabiyau/textures/61deaf5e1d8b876a4c8f3a48.png
+!/Widget/Assets/GameStyles/calabiyau/textures/653b74e9e8aa05817f42ced2.png
+!/Widget/Assets/GameStyles/calabiyau/textures/65c8faf92a7862ad0179fe49.png
+!/Widget/Assets/GameStyles/calabiyau/textures/8b1396a58869cd0cae6dc08b.png
+!/Widget/Assets/GameStyles/calabiyau/textures/a326df204f2e867f5fe1a65e.png
+!/Widget/Assets/GameStyles/calabiyau/textures/b0cffab45cb490d238e481f3.png
+!/Widget/Assets/GameStyles/calabiyau/textures/b382089880ba4a390b6bbd74.png
+!/Widget/Assets/GameStyles/calabiyau/textures/fx-add-default-0.png
+!/Widget/Assets/GameStyles/calabiyau/textures/fx-add-default-1.png
+!/Widget/Assets/GameStyles/calabiyau/textures/fx-add-default-2.png
+!/Widget/Assets/GameStyles/calabiyau/textures/fx-default-0.png
+!/Widget/Assets/GameStyles/calabiyau/textures/fx-default-1.png

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -26,6 +26,7 @@ namespace KillConfirmGameBar
                 try
                 {
 #if DESKTOP_CONTROL_PANEL
+                    if (Environment.GetEnvironmentVariable("KILLCONFIRM_AUDIO_CHANNEL_VALIDATION") == "1") { await ValidateAudioChannelsAsync(); return; }
                     if (Environment.GetEnvironmentVariable("KILLCONFIRM_UI_INSPECTION") == "1") return;
                     if (Environment.GetEnvironmentVariable("KILLCONFIRM_SETTINGS_VALIDATION") == "1") { await ValidateSettingsAndUpdatesAsync(); return; }
                     if (Environment.GetEnvironmentVariable("KILLCONFIRM_STARTUP_VALIDATION") == "1")

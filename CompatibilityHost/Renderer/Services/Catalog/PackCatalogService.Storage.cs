@@ -47,7 +47,9 @@ namespace KillConfirmCompatibility.Services
                 MergeMissingBuiltIns(_cache);
                 RefreshExternalValorantEntries(_cache);
                 CrossfireExternalAssetService.RefreshCatalog(_cache);
+                CalabiyauExternalAssetService.RefreshCatalog(_cache);
                 mustSave |= RefreshBuiltInMetadata(_cache);
+                mustSave |= MigrateAudioPackMetadata(_cache);
                 mustSave |= RemoveRetiredBuiltIns(_cache);
                 ApplyVisibilityOverrides(_cache);
                 EnsureAtLeastOneVisibleVoice(_cache);
@@ -119,6 +121,7 @@ namespace KillConfirmCompatibility.Services
                     CreateBuiltInVoice("battlefield6", "Battlefield 6", true),
                     CreateBuiltInVoice("pubg", "PUBG", true),
                     CreateBuiltInVoice("deltaforce", "Delta Force", true),
+                    CreateBuiltInVoice("calabiyau", "默认击杀", true),
                     CreateBuiltInVoice("doubao", "豆包", true),
                     CreateBuiltInVoice("dagoujiao", "大狗叫", true),
                     CreateBuiltInVoice(DagoujiaoAnimalsPackKey, "Animals", true),
@@ -138,6 +141,7 @@ namespace KillConfirmCompatibility.Services
                     CreateBuiltInIcon("battlefield6", "Battlefield 6", true),
                     CreateBuiltInIcon("pubg", "PUBG", true),
                     CreateBuiltInIcon("deltaforce", "Delta Force", true),
+                    CreateBuiltInIcon("calabiyau", "卡拉彼丘 · 默认击杀", true),
                     CreateBuiltInIcon("doubao", "豆包", true),
                     CreateBuiltInIcon("dagoujiao", "大狗叫", true),
                     CreateBuiltInIcon(DagoujiaoAnimalsPackKey, "Animals", true),
@@ -147,6 +151,8 @@ namespace KillConfirmCompatibility.Services
                     CreateBuiltInIcon("apex", "Apex Legends", true)
                 }
             };
+
+
 
             foreach (ValorantPackInfo pack in ValorantPackService.All)
             {
@@ -291,9 +297,29 @@ namespace KillConfirmCompatibility.Services
             await SaveAsync(catalog);
         }
 
+        public static async Task RefreshCalabiyauExternalPacksAsync()
+        {
+            PackCatalog catalog = await LoadAsync();
+            CalabiyauExternalAssetService.RefreshCatalog(catalog);
+            ApplyVisibilityOverrides(catalog);
+            await SaveAsync(catalog);
+        }
+
         private static bool RefreshBuiltInMetadata(PackCatalog catalog)
         {
             bool changed = false;
+            var calabiyauAudio = catalog.VoicePacks.FirstOrDefault(item => item.IsBuiltIn
+                && string.Equals(item.Key, "calabiyau", StringComparison.OrdinalIgnoreCase));
+            if (calabiyauAudio != null)
+            {
+                if (calabiyauAudio.DisplayName != "默认击杀")
+                { calabiyauAudio.DisplayName = "默认击杀"; changed = true; }
+                if (calabiyauAudio.AudioKind != AudioPackKind.SoundEffect)
+                { calabiyauAudio.AudioKind = AudioPackKind.SoundEffect; changed = true; }
+                if (calabiyauAudio.AssociatedIconKeys == null || !calabiyauAudio.AssociatedIconKeys.Contains("calabiyau"))
+                { calabiyauAudio.AssociatedIconKeys = new List<string> { "calabiyau" }; changed = true; }
+            }
+
             foreach (VoicePackItem valorantVoice in catalog.VoicePacks.Where(item =>
                 item.IsBuiltIn && string.Equals(item.Key, ValorantPackService.DefaultKey, StringComparison.OrdinalIgnoreCase)))
             {
@@ -338,7 +364,8 @@ namespace KillConfirmCompatibility.Services
         {
             int removedIcons = catalog.IconPacks.RemoveAll(item =>
                 item.IsBuiltIn
-                && (string.Equals(item.Key, "legacy", StringComparison.OrdinalIgnoreCase)
+                && (KillConfirmCompatibility.Contracts.CalabiyauPackage.IsExternalKey(item.Key)
+                    || string.Equals(item.Key, "legacy", StringComparison.OrdinalIgnoreCase)
                     || (ValorantPackService.IsValorantPackKey(item.Key)
                         && ValorantPackService.Find(item.Key) == null)));
             int removedVoices = catalog.VoicePacks.RemoveAll(item =>

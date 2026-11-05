@@ -58,6 +58,7 @@ namespace KillConfirmCompatibility.Controls
         }
         public void StopDesktopPlayback()
         {
+            _isCalabiyauActive = false;
             DesktopPlaybackError = null;
             HasOverwatchCardContent = false;
             _timer.Stop();

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -75,6 +75,7 @@ namespace KillConfirmGameBar.Controls
                 && !GameStyleService.IsBattlefield6Key(normalized)
                 && !GameStyleService.IsPubgKey(normalized)
                 && !GameStyleService.IsDeltaForceKey(normalized)
+                && !GameStyleService.IsCalabiyauKey(normalized)
                 && !GameStyleService.IsCustomModuleKey(normalized)
                 && !GameStyleService.IsDoubaoKey(normalized)
                 && !GameStyleService.IsDagoujiaoKey(normalized)
@@ -156,6 +157,9 @@ namespace KillConfirmGameBar.Controls
         private static void ReleaseAllAnimationResourceCaches()
         {
             var bitmaps = new HashSet<CanvasBitmap>();
+            foreach (CanvasBitmap bitmap in CalabiyauTextures.Values) bitmaps.Add(bitmap);
+            CalabiyauTextures.Clear();
+            CalabiyauClips.Clear();
             foreach (Code2KillAsset asset in CodeKillCache.Values)
             {
                 if (asset?.Main != null) bitmaps.Add(asset.Main);

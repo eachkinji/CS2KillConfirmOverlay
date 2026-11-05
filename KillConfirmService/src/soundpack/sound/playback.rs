@@ -12,9 +12,121 @@ pub async fn play_audio(
     event_channel: EventChannel,
     play_main_audio: bool,
 ) -> Result<()> {
+    play_audio_filtered(
+        app_state_clone,
+        kill_count,
+        is_headshot,
+        is_first_kill,
+        is_knife_kill,
+        is_grenade_kill,
+        is_last_kill,
+        is_assist,
+        money_reward,
+        event_kind,
+        event_channel,
+        play_main_audio,
+        None,
+    )
+    .await
+}
+
+pub async fn play_audio_filtered(
+    app_state_clone: Arc<AppState>,
+    kill_count: u16,
+    is_headshot: bool,
+    is_first_kill: bool,
+    is_knife_kill: bool,
+    is_grenade_kill: bool,
+    is_last_kill: bool,
+    is_assist: bool,
+    money_reward: u16,
+    event_kind: Option<String>,
+    event_channel: EventChannel,
+    play_main_audio: bool,
+    filter: Option<crate::soundpack::channels::AudioChannelKind>,
+) -> Result<()> {
+    use crate::soundpack::channels::{AudioChannelKind, AudioChannelPresets};
+    // Retain the read guard until both channels have queued their layers. Pack
+    // changes cannot allow a late decoder to start the just-replaced pack.
+    let configured = app_state_clone.audio_channels.read().await;
+    let channels = match configured.as_ref() {
+        Some(channels) => channels.clone(),
+        None => AudioChannelPresets::legacy(
+            app_state_clone.preset.read().await.clone(),
+            app_state_clone
+                .stop_previous_kill_audio
+                .load(Ordering::Relaxed),
+        ),
+    };
+    let mut jobs = JoinSet::new();
+    for (kind, channel) in [
+        (AudioChannelKind::SoundEffect, channels.sound_effect),
+        (AudioChannelKind::CharacterVoice, channels.character_voice),
+    ] {
+        let Some(channel) = channel else { continue };
+        if !channel.selection.enabled || filter.is_some_and(|selected| selected != kind) {
+            continue;
+        }
+        let app_state_clone = app_state_clone.clone();
+        let event_kind = event_kind.clone();
+        jobs.spawn(async move {
+            play_audio_channel(
+                app_state_clone,
+                kill_count,
+                is_headshot,
+                is_first_kill,
+                is_knife_kill,
+                is_grenade_kill,
+                is_last_kill,
+                is_assist,
+                money_reward,
+                event_kind,
+                event_channel,
+                play_main_audio,
+                kind,
+                channel,
+            )
+            .await
+        });
+    }
+    let mut first_error = None;
+    for result in jobs.join_all().await {
+        if let Err(error) = result {
+            service_log(&format!("audio channel playback failed: {error}"));
+            first_error.get_or_insert(error);
+        }
+    }
+    drop(configured);
+    if let Some(error) = first_error {
+        return Err(error);
+    }
+    Ok(())
+}
+
+async fn play_audio_channel(
+    app_state_clone: Arc<AppState>,
+    kill_count: u16,
+    is_headshot: bool,
+    is_first_kill: bool,
+    is_knife_kill: bool,
+    is_grenade_kill: bool,
+    is_last_kill: bool,
+    is_assist: bool,
+    money_reward: u16,
+    event_kind: Option<String>,
+    event_channel: EventChannel,
+    play_main_audio: bool,
+    audio_kind: crate::soundpack::channels::AudioChannelKind,
+    channel: crate::soundpack::channels::LoadedAudioChannel,
+) -> Result<()> {
+    let preset = &channel.preset;
+    let selection = &channel.selection;
+    let generic_event_audio = preset
+        .manifest
+        .as_ref()
+        .is_some_and(|manifest| manifest.uses_generic_event_audio());
     if event_channel == EventChannel::Economy {
-        let preset = app_state_clone.preset.read().await;
-        if !supports_economy_audio_events(&preset.preset_name) {
+        if !supports_economy_audio_pack(preset) {
             debug!(
                 "economy audio ignored by combat-only sound pack: {}",
                 preset.preset_name
@@ -38,21 +150,27 @@ pub async fn play_audio(
         return Ok(());
     };
 
-    let volume = app_state_clone.volume_percent.load(Ordering::Relaxed) as f32 / 100.0;
+    let volume = app_state_clone.volume_percent.load(Ordering::Relaxed) as f32 / 100.0
+        * selection.volume_percent as f32
+        / 100.0;
 
     let mixer = {
         let stream_handle = app_state_clone.stream_handle.read().await;
         stream_handle.mixer().to_owned()
     };
 
-    let (sound_entries, dagoujiao_playback_speed) = {
-        let preset = app_state_clone.preset.read().await;
+    let (sound_entries, dagoujiao_playback_speed, timing_slot) = {
         let use_crossfire_audio_settings = app_state_clone
             .crossfire_mode_active
             .load(Ordering::Relaxed)
-            && uses_crossfire_audio_rules(&preset.preset_name);
-        let use_csol_audio_settings =
-            is_pack_style(&preset.preset_name, preset.manifest.as_ref(), "csol");
+            && audio_kind == crate::soundpack::channels::AudioChannelKind::CharacterVoice
+            && !generic_event_audio
+            && (uses_crossfire_audio_rules(&preset.preset_name)
+                || is_pack_style(&preset.preset_name, preset.manifest.as_ref(), "crossfire"));
+        let use_csol_audio_settings = audio_kind
+            == crate::soundpack::channels::AudioChannelKind::SoundEffect
+            && !generic_event_audio
+            && is_pack_style(&preset.preset_name, preset.manifest.as_ref(), "csol");
         let effective_first_kill = resolve_special_kill_audio_flag(
             is_first_kill,
             use_crossfire_audio_settings,
@@ -76,7 +194,9 @@ pub async fn play_audio(
         };
 
         let event_sound_route = if event_channel == EventChannel::Combat
-            && supports_event_sound_routing(&preset.preset_name)
+            && audio_kind == crate::soundpack::channels::AudioChannelKind::SoundEffect
+            && !generic_event_audio
+            && supports_event_sound_pack(preset)
         {
             let settings = app_state_clone.event_sound_settings.read().await;
             settings.active.then(|| {
@@ -143,9 +263,12 @@ pub async fn play_audio(
         // Custom packs use generated keys (for example
         // custom_dagoujiao_voice_<guid>), so identify game-specific routing by
         // the manifest style as well as the built-in preset name.
-        let is_dagoujiao =
-            is_pack_style(&preset.preset_name, preset.manifest.as_ref(), "dagoujiao");
-        let is_doubao = is_pack_style(&preset.preset_name, preset.manifest.as_ref(), "doubao");
+        let is_dagoujiao = audio_kind == crate::soundpack::channels::AudioChannelKind::SoundEffect
+            && !generic_event_audio
+            && is_pack_style(&preset.preset_name, preset.manifest.as_ref(), "dagoujiao");
+        let is_doubao = audio_kind == crate::soundpack::channels::AudioChannelKind::SoundEffect
+            && !generic_event_audio
+            && is_pack_style(&preset.preset_name, preset.manifest.as_ref(), "doubao");
         let epic_kill_count = app_state_clone
             .dagoujiao_epic_kill_count
             .load(Ordering::Relaxed)
@@ -243,7 +366,16 @@ pub async fn play_audio(
                 dagoujiao_speed = 1.0;
             }
         }
-        (sound_entries, dagoujiao_speed)
+        let timing_slot = preset.manifest.as_ref().and_then(|manifest| {
+            if generic_event_audio
+                || audio_kind == crate::soundpack::channels::AudioChannelKind::CharacterVoice
+            {
+                manifest.character_voice_audio_slot(&ctx)
+            } else {
+                manifest.calabiyau_audio_slot(ctx.kill_count, ctx.is_headshot)
+            }
+        });
+        (sound_entries, dagoujiao_speed, timing_slot)
     };
 
     debug!(
@@ -255,31 +387,55 @@ pub async fn play_audio(
         return Ok(());
     }
 
-    let interrupt_previous = app_state_clone
-        .stop_previous_kill_audio
-        .load(Ordering::Relaxed);
-
-    // When interruption is enabled, each layer gets its own sink so main and
-    // overlay audio remain simultaneous. The sinks are registered as one event
-    // group, and the next kill stops that entire prior group.
-    let kill_sinks = if interrupt_previous {
-        match install_kill_sink_group(
-            &app_state_clone.kill_audio_sinks,
-            &mixer,
-            sound_entries.len(),
-        ) {
-            Ok(sinks) => Some(sinks),
-            Err(error) => {
-                error!("Failed to install kill sink group, falling back to mixer: {error}");
-                service_log(&format!(
-                    "kill sink group install failed, falling back to mixer: {error}"
-                ));
-                None
+    let delay = if is_pack_style(&preset.preset_name, preset.manifest.as_ref(), "calabiyau") {
+        let timing = preset.manifest.as_ref().and_then(|manifest| {
+            let slot = timing_slot.as_ref()?;
+            let audio = manifest.audio.as_ref()?;
+            Some((
+                slot.clone(),
+                *audio.slot_delays_ms.get(slot).unwrap_or(&0),
+                *audio.slot_cooldowns_ms.get(slot).unwrap_or(&0),
+            ))
+        });
+        if let Some((slot, delay_ms, cooldown_ms)) = timing {
+            let key = format!(
+                "{:?}:{}:{}:{slot}",
+                audio_kind, preset.preset_name, preset.base_dir
+            );
+            let mut cooldowns = app_state_clone
+                .audio_slot_cooldowns
+                .lock()
+                .map_err(|_| anyhow::anyhow!("audio cooldown mutex poisoned"))?;
+            if !reserve_audio_slot(
+                &mut cooldowns,
+                key,
+                Duration::from_millis(cooldown_ms.min(300_000)),
+                std::time::Instant::now(),
+            ) {
+                return Ok(());
             }
+            Duration::from_millis(delay_ms.min(30_000))
+        } else {
+            Duration::ZERO
         }
     } else {
-        None
+        Duration::ZERO
     };
+
+    let active_sinks = match audio_kind {
+        crate::soundpack::channels::AudioChannelKind::SoundEffect => {
+            &app_state_clone.kill_audio_sinks
+        }
+        crate::soundpack::channels::AudioChannelKind::CharacterVoice => {
+            &app_state_clone.character_voice_sinks
+        }
+    };
+    let kill_sinks = install_audio_sink_group(
+        active_sinks,
+        &mixer,
+        sound_entries.len(),
+        selection.interrupt_previous,
+    )?;
 
     let mut tasks = JoinSet::new();
 
@@ -287,10 +443,7 @@ pub async fn play_audio(
         let file_path = entry.path;
         let entry_gain = entry.gain;
         let mixer_clone = mixer.clone();
-        let kill_sink_clone = kill_sinks
-            .as_ref()
-            .and_then(|sinks| sinks.get(entry_index))
-            .cloned();
+        let kill_sink_clone = kill_sinks.get(entry_index).cloned();
         let uses_battlefield2042_rules = uses_battlefield2042_audio_rules(&file_path);
         let final_gain = compute_final_playback_gain(
             &file_path,
@@ -305,12 +458,29 @@ pub async fn play_audio(
                 .streak_gain_maximum_percent
                 .load(Ordering::Relaxed),
         );
+        let channel_state = app_state_clone.clone();
         tasks.spawn(async move {
             if uses_battlefield2042_rules {
                 sleep(Duration::from_millis(BATTLEFIELD_2042_KILL_AUDIO_DELAY_MS)).await;
             }
             if let Some(sink) = kill_sink_clone {
-                add_file_to_sink(&file_path, &sink, final_gain, dagoujiao_playback_speed).await
+                let active_sinks = match audio_kind {
+                    crate::soundpack::channels::AudioChannelKind::SoundEffect => {
+                        &channel_state.kill_audio_sinks
+                    }
+                    crate::soundpack::channels::AudioChannelKind::CharacterVoice => {
+                        &channel_state.character_voice_sinks
+                    }
+                };
+                add_file_to_sink(
+                    &file_path,
+                    &sink,
+                    active_sinks,
+                    final_gain,
+                    dagoujiao_playback_speed,
+                    delay,
+                )
+                .await
             } else {
                 add_file_to_mixer(
                     &file_path,
@@ -341,4 +511,27 @@ pub async fn play_audio(
     }
 
     Ok(())
+}
+
+fn reserve_audio_slot(
+    cooldowns: &mut HashMap<String, std::time::Instant>,
+    key: String,
+    cooldown: Duration,
+    now: std::time::Instant,
+) -> bool {
+    if cooldown.is_zero() {
+        return true;
+    }
+    if cooldowns
+        .get(&key)
+        .is_some_and(|previous| now.saturating_duration_since(*previous) < cooldown)
+    {
+        return false;
+    }
+    // Only the current packs are normally present, but prune old timestamps
+    // so repeatedly switching imported packs cannot grow state indefinitely.
+    cooldowns
+        .retain(|_, previous| now.saturating_duration_since(*previous) < Duration::from_secs(300));
+    cooldowns.insert(key, now);
+    true
 }

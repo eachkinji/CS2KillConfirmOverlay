@@ -2,6 +2,7 @@
   "id": "crossfire_swat_gr",
   "name": "斯沃特 (保卫者)",
   "game_style": "crossfire",
+  "audio_kind": "character_voice",
   "version": "1.0",
   "audio": {
     "base_gain": 1.0,
@@ -24,5 +25,5 @@
   },
   "package_kind": "crossfire_voice",
   "format_version": 1,
-  "display_name_zh_cn": "穿越火线—斯沃特—保卫者—音频包"
+  "display_name_zh_cn": "穿越火线—斯沃特—保卫者—语音包"
 }

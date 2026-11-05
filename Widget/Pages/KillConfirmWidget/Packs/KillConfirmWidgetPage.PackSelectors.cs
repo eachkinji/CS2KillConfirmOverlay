@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -93,11 +93,9 @@ namespace KillConfirmGameBar
                 LoadWeaponBadgeSetting();
                 LoadMainAnimationStyleSetting();
                 LoadVoicePackSetting();
-                if (GameStyleService.Current == GameStyleMode.Valorant
-                    && ValorantPackSyncSettingsStore.Load())
-                {
-                    TrySyncValorantIconPackForVoiceSelection(GetSelectedVoicePackPreset());
-                }
+                // An explicitly disabled or temporarily missing sound pack stays disabled on reload.
+                if (GetSelectedVoicePackPreset() != "none")
+                    await TrySyncSoundEffectForIconSelectionAsync(GetSelectedIconPack());
                 ApplyGameStyleUi();
                 _packSelectorsInitialized = true;
                 App.NoteAction("selectors initialized voice=" + PackTestSectionView.VoicePackSelector.Items.Count
@@ -156,60 +154,7 @@ namespace KillConfirmGameBar
 
         private async Task PopulateVoicePackSelectorAsync()
         {
-            GameStyleMode style = GameStyleService.Current;
-            string preferredPreset = LoadPackSettingForStyle(
-                VoicePackSettingKey,
-                style,
-                GameStyleService.DefaultVoicePackKey(style));
-
-            var visiblePacks = (await PackCatalogService.GetVisibleVoicePacksAsync()).ToList();
-            if (!visiblePacks.Any(pack => string.Equals(pack.Key, preferredPreset, StringComparison.OrdinalIgnoreCase)))
-            {
-                VoicePackItem preferredPack = await PackCatalogService.GetVoicePackAsync(preferredPreset);
-                if (preferredPack != null && GameStyleService.GetStyleForPackKey(preferredPack.Key) == style)
-                {
-                    visiblePacks.Insert(0, preferredPack);
-                }
-                else
-                {
-                    string fallback = GameStyleService.DefaultVoicePackKey(style);
-                    preferredPreset = fallback;
-                    VoicePackItem fallbackPack = visiblePacks.FirstOrDefault(
-                        pack => string.Equals(pack.Key, fallback, StringComparison.OrdinalIgnoreCase));
-                    if (fallbackPack == null)
-                    {
-                        fallbackPack = await PackCatalogService.GetVoicePackAsync(fallback);
-                    }
-                    else
-                    {
-                        visiblePacks.Remove(fallbackPack);
-                    }
-
-                    if (fallbackPack != null)
-                    {
-                        visiblePacks.Insert(0, fallbackPack);
-                    }
-                }
-            }
-
-            if (!_isPageActive || style != GameStyleService.Current) return;
-            PackTestSectionView.VoicePackSelector.Items.Clear();
-            foreach (VoicePackItem pack in visiblePacks)
-            {
-                PackTestSectionView.VoicePackSelector.Items.Add(CreateVoicePackComboBoxItem(pack));
-            }
-
-            if (PackTestSectionView.VoicePackSelector.Items.Count == 0)
-            {
-                string fallback = GameStyleService.DefaultVoicePackKey(style);
-                PackTestSectionView.VoicePackSelector.Items.Add(CreatePackComboBoxItem(
-                    GetFallbackVoicePackDisplayName(fallback),
-                    fallback,
-                    GetVoicePackIconUri(fallback)));
-            }
-
-            PackTestSectionView.VoicePackSelector.Items.Add(CreateAddMorePackItem(true));
-            SelectVoicePackPreset(preferredPreset);
+            await PopulateAudioPackSelectorsAsync();
         }
 
         private async Task PopulateIconPackSelectorAsync()
@@ -295,8 +240,8 @@ namespace KillConfirmGameBar
         {
             bool chinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
             string text = chinese
-                ? (voice ? "＋ 添加更多语音包" : "＋ 添加更多图标包")
-                : (voice ? "+ Add more audio packs" : "+ Add more icon packs");
+                ? (voice ? "＋ 添加更多音效包" : "＋ 添加更多图标包")
+                : (voice ? "+ Add more sound effect packs" : "+ Add more icon packs");
             return CreatePackComboBoxItem(text, PackLibraryNavigation.AddMoreTag, null);
         }
 
@@ -383,6 +328,8 @@ namespace KillConfirmGameBar
                     return SharedResources.CachedAssetUri("Assets/GameStyles/pubg/killconfirm/textures/killicon_scrolling_headshot.png");
                 case "deltaforce":
                     return SharedResources.CachedAssetUri("Assets/GameStyles/deltaforce/killconfirm/textures/killicon_df_headshot.png");
+                case "calabiyau":
+                    return SharedResources.CachedAssetUri("Assets/GameLogos/calabiyau.png");
                 case "doubao":
                     return SharedResources.CachedAssetUri("Assets/GameLogos/doubao.png");
                 case "dagoujiao":

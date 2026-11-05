@@ -472,7 +472,7 @@ namespace KillConfirmGameBar
         {
             await ExportPackFolderAsync(
                 await GetVoicePackFolderAsync(item),
-                PackCatalogService.GetVoicePackDisplayName(item));
+                PackCatalogService.GetVoicePackDisplayName(item), item);
         }
 
         private async Task ExportIconPackAsync(IconPackItem item)
@@ -482,7 +482,7 @@ namespace KillConfirmGameBar
                 PackCatalogService.GetIconPackDisplayName(item));
         }
 
-        private async Task ExportPackFolderAsync(StorageFolder sourceFolder, string displayName)
+        private async Task ExportPackFolderAsync(StorageFolder sourceFolder, string displayName, VoicePackItem audioItem = null)
         {
             bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
             if (sourceFolder == null)
@@ -498,7 +498,7 @@ namespace KillConfirmGameBar
                 SuggestedStartLocation = PickerLocationId.Downloads,
                 SuggestedFileName = SanitizeExportFileName(displayName)
             };
-            picker.FileTypeChoices.Add("Audio / icon pack", new List<string> { ".zip" });
+            picker.FileTypeChoices.Add(isChinese ? "素材包" : "Resource pack", new List<string> { ".zip" });
             StorageFile destination = await picker.PickSaveFileAsync();
             if (destination == null)
             {
@@ -511,9 +511,11 @@ namespace KillConfirmGameBar
             try
             {
                 using (Stream stream = await temporaryZip.OpenStreamForWriteAsync())
-                using (var archive = new ZipArchive(stream, ZipArchiveMode.Create))
                 {
-                    await AddFolderToArchiveAsync(archive, sourceFolder, string.Empty);
+                    if (audioItem != null)
+                        await PackCatalogService.WriteAudioPackArchiveAsync(sourceFolder, audioItem, stream);
+                    else using (var archive = new ZipArchive(stream, ZipArchiveMode.Create))
+                        await AddFolderToArchiveAsync(archive, sourceFolder, string.Empty);
                 }
 
                 await temporaryZip.CopyAndReplaceAsync(destination);
@@ -524,7 +526,7 @@ namespace KillConfirmGameBar
             }
         }
 
-        private static async Task AddFolderToArchiveAsync(ZipArchive archive, StorageFolder folder, string relativePath)
+        private static async Task AddFolderToArchiveAsync(ZipArchive archive, StorageFolder folder, string relativePath, string audioManifest = null)
         {
             foreach (StorageFile file in await folder.GetFilesAsync())
             {
@@ -532,6 +534,12 @@ namespace KillConfirmGameBar
                     ? file.Name
                     : relativePath + "/" + file.Name;
                 ZipArchiveEntry entry = archive.CreateEntry(entryName, CompressionLevel.Optimal);
+                if (audioManifest != null && string.IsNullOrEmpty(relativePath)
+                    && string.Equals(file.Name, "manifest.json", StringComparison.OrdinalIgnoreCase))
+                {
+                    using (var writer = new StreamWriter(entry.Open())) await writer.WriteAsync(audioManifest);
+                    continue;
+                }
                 using (Stream input = await file.OpenStreamForReadAsync())
                 using (Stream output = entry.Open())
                 {

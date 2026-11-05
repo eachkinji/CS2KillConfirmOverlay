@@ -116,13 +116,18 @@ namespace KillConfirmGameBar.Controls
             double renderWidth = Math.Ceiling(_logicalFrameWidth * renderScale);
             double renderHeight = Math.Ceiling(_logicalFrameHeight * renderScale);
             bool directValorantPresentation = IsValorantPresentationConfigured;
+            bool fixedCalabiyauPresentation = _isCalabiyauActive;
 
-            Width = directValorantPresentation ? renderWidth : double.NaN;
-            Height = directValorantPresentation ? renderHeight : double.NaN;
-            HorizontalAlignment = directValorantPresentation
+            // Calabiyau's transparent 768px canvas is padding for moving
+            // particles, not a request to fit the entire animation to the
+            // widget window. A stretching Viewbox shrank the actual emblem
+            // when Game Bar was smaller than that padding, unlike desktop.
+            Width = directValorantPresentation ? renderWidth : fixedCalabiyauPresentation ? displayWidth : double.NaN;
+            Height = directValorantPresentation ? renderHeight : fixedCalabiyauPresentation ? displayHeight : double.NaN;
+            HorizontalAlignment = directValorantPresentation || fixedCalabiyauPresentation
                 ? HorizontalAlignment.Center
                 : HorizontalAlignment.Stretch;
-            VerticalAlignment = directValorantPresentation
+            VerticalAlignment = directValorantPresentation || fixedCalabiyauPresentation
                 ? VerticalAlignment.Center
                 : VerticalAlignment.Stretch;
 
@@ -137,8 +142,8 @@ namespace KillConfirmGameBar.Controls
                 PlaybackViewbox.Stretch = Stretch.Uniform;
                 PlaybackViewbox.HorizontalAlignment = HorizontalAlignment.Stretch;
                 PlaybackViewbox.VerticalAlignment = VerticalAlignment.Stretch;
-                PlaybackViewbox.Width = double.NaN;
-                PlaybackViewbox.Height = double.NaN;
+                PlaybackViewbox.Width = fixedCalabiyauPresentation ? displayWidth : double.NaN;
+                PlaybackViewbox.Height = fixedCalabiyauPresentation ? displayHeight : double.NaN;
                 PlaybackViewbox.MaxWidth = directValorantPresentation ? renderWidth : _displayViewportWidth;
                 PlaybackViewbox.MaxHeight = directValorantPresentation ? renderHeight : _displayViewportHeight;
             }

@@ -19,8 +19,7 @@ namespace KillConfirmGameBar.Services
         {
             if (input.VideoEnd <= input.VideoStart || input.VideoStart < 0 || input.VideoEnd - input.VideoStart > 20)
                 throw new InvalidDataException("Video range must be 0–20 seconds / 视频截取时长须为 0～20 秒。");
-            StorageFolder root = await ApplicationData.Current.LocalFolder.CreateFolderAsync(
-                "CustomVideoImport", CreationCollisionOption.OpenIfExists);
+            StorageFolder root = await ResourceLibraryPaths.FolderAsync("_staging/CustomVideoImport");
             StorageFolder staging = await root.CreateFolderAsync(Guid.NewGuid().ToString("N"), CreationCollisionOption.FailIfExists);
             try
             {

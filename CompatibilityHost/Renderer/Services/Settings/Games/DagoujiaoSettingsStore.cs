@@ -240,9 +240,7 @@ namespace KillConfirmCompatibility.Services
             }).ToList();
             try
             {
-                StorageFolder folder = await ApplicationData.Current.LocalFolder.CreateFolderAsync(
-                    ImportedFolderName,
-                    CreationCollisionOption.OpenIfExists);
+                StorageFolder folder = await ResourceLibraryPaths.LegacyFolderAsync(ImportedFolderName);
                 foreach (StorageFile file in await folder.GetFilesAsync())
                 {
                     if (IsSupportedImageExtension(file.FileType))
@@ -266,9 +264,7 @@ namespace KillConfirmCompatibility.Services
         public static async Task<string> ImportImageAsync(StorageFile source)
         {
             if (source == null || !IsSupportedImageExtension(source.FileType)) return null;
-            StorageFolder folder = await ApplicationData.Current.LocalFolder.CreateFolderAsync(
-                ImportedFolderName,
-                CreationCollisionOption.OpenIfExists);
+            StorageFolder folder = await ResourceLibraryPaths.LegacyFolderAsync(ImportedFolderName);
             string fileName = Guid.NewGuid().ToString("N") + source.FileType.ToLowerInvariant();
             await source.CopyAsync(folder, fileName, NameCollisionOption.ReplaceExisting);
             Changed?.Invoke(null, EventArgs.Empty);
@@ -285,9 +281,7 @@ namespace KillConfirmCompatibility.Services
             }).ToList();
             try
             {
-                StorageFolder folder = await ApplicationData.Current.LocalFolder.CreateFolderAsync(
-                    ImportedAudioFolderName,
-                    CreationCollisionOption.OpenIfExists);
+                StorageFolder folder = await ResourceLibraryPaths.LegacyFolderAsync(ImportedAudioFolderName);
                 foreach (StorageFile file in await folder.GetFilesAsync())
                 {
                     if (IsSupportedAudioExtension(file.FileType))
@@ -311,9 +305,7 @@ namespace KillConfirmCompatibility.Services
         public static async Task<string> ImportAudioAsync(StorageFile source)
         {
             if (source == null || !IsSupportedAudioExtension(source.FileType)) return null;
-            StorageFolder folder = await ApplicationData.Current.LocalFolder.CreateFolderAsync(
-                ImportedAudioFolderName,
-                CreationCollisionOption.OpenIfExists);
+            StorageFolder folder = await ResourceLibraryPaths.LegacyFolderAsync(ImportedAudioFolderName);
             string fileName = Guid.NewGuid().ToString("N") + source.FileType.ToLowerInvariant();
             await source.CopyAsync(folder, fileName, NameCollisionOption.ReplaceExisting);
             Changed?.Invoke(null, EventArgs.Empty);
@@ -330,7 +322,7 @@ namespace KillConfirmCompatibility.Services
             if (fileName.IndexOfAny(new[] { '\\', '/', ':' }) >= 0) return null;
             try
             {
-                StorageFolder folder = await ApplicationData.Current.LocalFolder.GetFolderAsync(ImportedAudioFolderName);
+                StorageFolder folder = await ResourceLibraryPaths.LegacyFolderAsync(ImportedAudioFolderName);
                 return await folder.GetFileAsync(fileName);
             }
             catch
@@ -374,7 +366,7 @@ namespace KillConfirmCompatibility.Services
             if (fileName.IndexOfAny(new[] { '\\', '/', ':' }) >= 0) return null;
             try
             {
-                StorageFolder folder = await ApplicationData.Current.LocalFolder.GetFolderAsync(ImportedFolderName);
+                StorageFolder folder = await ResourceLibraryPaths.LegacyFolderAsync(ImportedFolderName);
                 return await folder.GetFileAsync(fileName);
             }
             catch

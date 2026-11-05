@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using KillConfirmGameBar.Services;
@@ -20,6 +20,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         internal Action OpenGameSettings { get; set; }
         internal Action OpenAboutVersion { get; set; }
         internal Action<GameStyleMode, bool> OpenPackLibrary { get; set; }
+        internal Action<GameStyleMode, AudioPackKind> OpenAudioPackLibrary { get; set; }
         private readonly DispatcherTimer _statusTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
         public CompatibilityDisplayPanel()
         {
@@ -28,6 +29,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                 MainGameSelector.Items.Add(new ComboBoxItem { Content = MainPage.CreateMaterialGameSelectorContent(style, GameStyleService.ToDisplayName(style)), Tag = GameStyleService.ToStorageValue(style) });
             HomeView.OpenGameSettings = () => OpenGameSettings?.Invoke();
             HomeView.OpenPackLibrary = (style, voice) => OpenPackLibrary?.Invoke(style, voice);
+            HomeView.OpenAudioPackLibrary = (style, kind) => OpenAudioPackLibrary?.Invoke(style, kind);
             HomeView.PreviewChanged += () => {
                 _previewNotice = HomeView.PreviewFeedback;
                 _previewNoticeUntil = DateTimeOffset.UtcNow.AddSeconds(8);

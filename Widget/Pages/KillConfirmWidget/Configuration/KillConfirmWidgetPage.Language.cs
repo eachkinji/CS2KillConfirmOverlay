@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using KillConfirmGameBar.Services;
 using Windows.UI;
 using Windows.UI.Xaml;
@@ -101,6 +101,7 @@ namespace KillConfirmGameBar
             SetGameStyleItemContent(HeaderStatusSection.PubgStyleItem, "PUBG", "ms-appx:///Assets/GameLogos/pubg.png");
             SetGameStyleItemContent(HeaderStatusSection.DeltaForceStyleItem, "Delta", "ms-appx:///Assets/GameLogos/deltaforce.png");
             HeaderStatusSection.CustomModuleStyleItem.Content = LocalizationManager.Current == UiLanguage.SimplifiedChinese ? "自定义" : "Custom";
+            SetGameStyleItemContent(HeaderStatusSection.CalabiyauStyleItem, "卡拉彼丘", "ms-appx:///Assets/GameLogos/calabiyau.png");
             SetGameStyleItemContent(HeaderStatusSection.DoubaoStyleItem, "豆包", "ms-appx:///Assets/GameLogos/doubao.png");
             SetGameStyleItemContent(HeaderStatusSection.DagoujiaoStyleItem, "大狗叫", "ms-appx:///Assets/GameLogos/dagoujiao.jpg");
             PackTestSectionView.PackTestHeaderText.Text = LocalizationManager.Text("PackTestHeader");
@@ -209,6 +210,7 @@ namespace KillConfirmGameBar
             UpdateGsiStatus(true, _gsiRecentlySeen, _lastGsiPosts, null, _lastGsiParseErrors);
             ApplyGameStyleUi();
             UpdateUpdateButtonVisualState();
+            ApplyAudioChannelLanguage();
         }
 
         private void ApplyTestPresetLabels()

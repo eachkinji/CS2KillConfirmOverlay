@@ -29,11 +29,11 @@ namespace KillConfirmGameBar
             StorageFile headImageFile = initialHeadImageFile;
 
             var layout = CreatePackDialogLayout(
-                isChinese ? "新建 MW2019 击杀音效包" : "Create MW2019 kill audio pack",
+                isChinese ? "新建 MW2019 击杀音效包" : "Create MW2019 kill sound effect pack",
                 isChinese
                     ? "分别为 MW2019 的普通击杀、爆头、C4 安包和拆包选择音效；普通命中及未配置的目标事件保持静音。"
                     : "Choose separate MW2019 cues for normal kills, headshots, C4 plants, and defuses; regular hits and unconfigured objective events stay silent.",
-                LocalizationManager.Text("VoicePackNamePlaceholder"),
+                AudioPackText("VoicePackNamePlaceholder"),
                 initialDisplayName,
                 out var nameBox);
 
@@ -86,7 +86,7 @@ namespace KillConfirmGameBar
             }
 
             string packName = string.IsNullOrWhiteSpace(nameBox.Text)
-                ? (isChinese ? "MW2019 击杀音效包" : "MW2019 kill audio pack")
+                ? (isChinese ? "MW2019 击杀音效包" : "MW2019 kill sound effect pack")
                 : nameBox.Text.Trim();
 
             await FillBuiltInVoiceDefaultsAsync(

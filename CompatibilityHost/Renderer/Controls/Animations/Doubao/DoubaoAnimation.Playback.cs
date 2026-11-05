@@ -80,6 +80,7 @@ namespace KillConfirmCompatibility.Controls
             _currentDoubaoBitmap = bitmap;
             _currentDoubaoFlashBitmap = flash;
             _doubaoKillCount = killCount;
+            _isCalabiyauActive = false;
             _isDoubaoActive = true;
             _currentMetadata = new SpriteMetadata
             {
@@ -100,6 +101,7 @@ namespace KillConfirmCompatibility.Controls
 
         private void ResetDoubaoState()
         {
+            _isCalabiyauActive = false;
             _isDoubaoActive = false;
             _currentDoubaoBitmap = null;
             _currentDoubaoFlashBitmap = null;

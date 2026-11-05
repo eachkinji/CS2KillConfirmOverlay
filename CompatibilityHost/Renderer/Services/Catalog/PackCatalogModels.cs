@@ -4,6 +4,12 @@ using Windows.Storage;
 
 namespace KillConfirmCompatibility.Services
 {
+    public enum AudioPackKind
+    {
+        SoundEffect,
+        CharacterVoice
+    }
+
     [DataContract]
     public sealed class PackCatalog
     {
@@ -12,11 +18,29 @@ namespace KillConfirmCompatibility.Services
 
         [DataMember]
         public List<IconPackItem> IconPacks { get; set; } = new List<IconPackItem>();
+
+        // Keep order separate from discovered entries, which are rebuilt on refresh.
+        [DataMember]
+        public List<string> VoicePackOrder { get; set; } = new List<string>();
+
+        [DataMember]
+        public List<string> IconPackOrder { get; set; } = new List<string>();
     }
 
     [DataContract]
     public sealed class VoicePackItem
     {
+        // Null is the legacy schema: CF contained character voices, all other
+        // games contained sound effects. Keep old ids and catalog fields intact.
+        [DataMember(EmitDefaultValue = false)]
+        public AudioPackKind? AudioKind { get; set; }
+
+        [DataMember(EmitDefaultValue = false)]
+        public string GameStyle { get; set; }
+
+        [DataMember(EmitDefaultValue = false)]
+        public List<string> AssociatedIconKeys { get; set; } = new List<string>();
+
         [DataMember]
         public string Key { get; set; }
 

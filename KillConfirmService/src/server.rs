@@ -197,6 +197,7 @@ pub(crate) async fn run(mut args: Args) -> Result<()> {
         selected_output_device_name: RwLock::new(args.device.clone()),
         args: args.clone(),
         preset: RwLock::new(preset),
+        audio_channels: RwLock::new(None),
         volume_percent: AtomicU32::new(initial_volume_percent),
         streak_gain_enabled: AtomicBool::new(true),
         streak_gain_step_percent: AtomicU32::new(DEFAULT_STREAK_GAIN_STEP_PERCENT),
@@ -241,6 +242,8 @@ pub(crate) async fn run(mut args: Args) -> Result<()> {
         bomb_audio_sink: std::sync::Mutex::new(None),
         stop_previous_kill_audio: AtomicBool::new(true),
         kill_audio_sinks: std::sync::Mutex::new(Vec::new()),
+        character_voice_sinks: std::sync::Mutex::new(Vec::new()),
+        audio_slot_cooldowns: std::sync::Mutex::new(HashMap::new()),
         spectated_kill_effects_enabled: AtomicBool::new(false),
         bomb_audio_paths: std::sync::Mutex::new(Default::default()),
         gsi_game_version: AtomicU8::new(GsiGameVersion::DEFAULT.as_u8()),
@@ -293,6 +296,7 @@ pub(crate) async fn run(mut args: Args) -> Result<()> {
         .route("/audio/devices", get(audio_devices))
         .route("/audio/device", post(set_audio_device))
         .route("/audio/volume", post(audio_volume))
+        .route("/audio/channels", get(api::audio_channels).post(api::set_audio_channels))
         .route(
             "/audio/streak-gain",
             get(streak_gain_settings).post(set_streak_gain_settings),

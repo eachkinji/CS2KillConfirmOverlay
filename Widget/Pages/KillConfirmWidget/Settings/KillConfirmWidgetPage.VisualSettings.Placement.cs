@@ -159,6 +159,7 @@ namespace KillConfirmGameBar
                 case GameStyleMode.Battlefield6:
                 case GameStyleMode.Pubg:
                 case GameStyleMode.DeltaForce:
+                case GameStyleMode.Calabiyau:
                 case GameStyleMode.CustomModule:
                 case GameStyleMode.Doubao:
                 case GameStyleMode.Dagoujiao:
@@ -364,6 +365,9 @@ namespace KillConfirmGameBar
                     break;
                 case GameStyleMode.Doubao:
                     suffix = "Doubao";
+                    break;
+                case GameStyleMode.Calabiyau:
+                    suffix = "Calabiyau";
                     break;
                 case GameStyleMode.CustomModule:
                     suffix = "CustomModule";

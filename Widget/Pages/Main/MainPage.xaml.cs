@@ -43,6 +43,7 @@ namespace KillConfirmGameBar
 
         private void OnGameTabCombatClick(object sender, RoutedEventArgs e) => SelectGameTab("combat");
         private void OnGameTabVoiceClick(object sender, RoutedEventArgs e) => SelectGameTab("voice");
+        private void OnGameTabSoundEffectClick(object sender, RoutedEventArgs e) => SelectGameTab("sound_effect");
         private void OnGameTabIconClick(object sender, RoutedEventArgs e) => SelectGameTab("icon");
         private void OnGameTabGuideClick(object sender, RoutedEventArgs e) => SelectGameTab("guide");
 
@@ -55,6 +56,7 @@ namespace KillConfirmGameBar
         public void SelectGameTab(string tab)
         {
             _activeGameTab = tab;
+            ApplyPackLibraryLanguage();
             ApplyGameActiveTab();
             _ = EnsureActivePackListLoadedAsync();
         }
@@ -82,7 +84,7 @@ namespace KillConfirmGameBar
             }
 
             bool isCombat = _activeGameTab == "combat";
-            bool isVoice = _activeGameTab == "voice";
+            bool isVoice = _activeGameTab == "voice" || _activeGameTab == "sound_effect";
             bool isIcon = _activeGameTab == "icon";
             bool isGuide = _activeGameTab == "guide";
             bool isSpecialGuide = SettingsGameStyle == GameStyleMode.Csol || SettingsGameStyle == GameStyleMode.Dagoujiao;
@@ -110,6 +112,7 @@ namespace KillConfirmGameBar
             GameThemePalette theme = SettingsTheme;
             UpdateTabBtn(GameTabCombatButton, _activeGameTab == "combat", theme);
             UpdateTabBtn(GameTabVoiceButton, _activeGameTab == "voice", theme);
+            UpdateTabBtn(GameTabSoundEffectButton, _activeGameTab == "sound_effect", theme);
             UpdateTabBtn(GameTabIconButton, _activeGameTab == "icon", theme);
             UpdateTabBtn(GameTabGuideButton, _activeGameTab == "guide", theme);
         }

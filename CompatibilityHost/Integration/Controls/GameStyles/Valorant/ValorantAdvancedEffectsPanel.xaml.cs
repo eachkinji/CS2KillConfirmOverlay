@@ -1,4 +1,4 @@
-﻿using KillConfirmGameBar.Services;
+using KillConfirmGameBar.Services;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
@@ -46,7 +46,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay.Controls.GameStyles
             AssistAudioLabel.Text = isChinese ? "助攻音效" : "Assist audio";
             AssistAudioToggle.OnContent = isChinese ? "有声音（common）" : "Sound (common)";
             AssistAudioToggle.OffContent = isChinese ? "无声音（默认）" : "Muted (default)";
-            PackSyncLabel.Text = isChinese ? "语音包与图标包同步" : "Voice / icon pack sync";
+            PackSyncLabel.Text = isChinese ? "音效包与图标包联动" : "Link sound effects and icons";
             PackSyncToggle.OnContent = isChinese ? "同步（默认）" : "Paired (default)";
             PackSyncToggle.OffContent = isChinese ? "自由搭配" : "Independent";
             AdvancedEffectsPanelSupport.ApplyKillMarkLanguage(VisualEffectsTitle, KillMarkEffectLabel, KillMarkEffectToggle, isChinese);

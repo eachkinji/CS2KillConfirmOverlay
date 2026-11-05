@@ -151,6 +151,8 @@ namespace KillConfirmGameBar
                     return "ms-appx:///Assets/GameStyles/pubg/killconfirm/textures/killicon_scrolling_headshot.png";
                 case "deltaforce":
                     return "ms-appx:///Assets/GameStyles/deltaforce/killconfirm/textures/killicon_df_headshot.png";
+                case "calabiyau":
+                    return "ms-appx:///Assets/GameLogos/calabiyau.png";
                 case "doubao":
                     return "ms-appx:///Assets/GameLogos/doubao.png";
                 case "dagoujiao":
@@ -218,6 +220,9 @@ namespace KillConfirmGameBar
 
         private static string GetIconPackIconUri(IconPackItem item)
         {
+            var calabiyau = KillConfirmCompatibility.Contracts.CalabiyauPacks.Find(item?.Key);
+            if (calabiyau != null) return item.IsBuiltIn || string.IsNullOrWhiteSpace(item.FolderPath)
+                ? "ms-appx:///Assets/GameLogos/calabiyau.png" : new Uri(System.IO.Path.Combine(item.FolderPath, "pack_head.png")).AbsoluteUri;
             if (ValorantPackService.IsValorantPackKey(item?.Key))
             {
                 return GetValorantVoicePackEmblemUri(item.Key);
@@ -279,6 +284,8 @@ namespace KillConfirmGameBar
                     return "ms-appx:///Assets/GameStyles/pubg/killconfirm/textures/killicon_scrolling_headshot.png";
                 case "deltaforce":
                     return "ms-appx:///Assets/GameStyles/deltaforce/killconfirm/textures/killicon_df_headshot.png";
+                case "calabiyau":
+                    return "ms-appx:///Assets/GameLogos/calabiyau.png";
                 case "doubao":
                     return "ms-appx:///Assets/GameLogos/doubao.png";
                 case "dagoujiao":

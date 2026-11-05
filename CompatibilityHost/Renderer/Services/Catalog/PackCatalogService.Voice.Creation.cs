@@ -362,6 +362,8 @@ namespace KillConfirmCompatibility.Services
                 ["id"] = Windows.Data.Json.JsonValue.CreateStringValue(packFolder.Name),
                 ["name"] = Windows.Data.Json.JsonValue.CreateStringValue(displayName),
                 ["game_style"] = Windows.Data.Json.JsonValue.CreateStringValue(gameStyle),
+                ["audio_kind"] = Windows.Data.Json.JsonValue.CreateStringValue(
+                    string.Equals(gameStyle, "crossfire", StringComparison.OrdinalIgnoreCase) ? "character_voice" : "sound_effect"),
                 ["version"] = Windows.Data.Json.JsonValue.CreateStringValue("1.0"),
                 ["audio"] = audioObj
             };

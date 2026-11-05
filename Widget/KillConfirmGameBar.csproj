@@ -132,6 +132,12 @@
     <Compile Include="Services\Runtime\GsiStatusMonitor.cs" />
     <Compile Include="Services\Runtime\VersionUpdateService.cs" />
     <Compile Include="Services\Styling\ControlTheme.cs" />
+    <Compile Include="Controls\Animations\Calabiyau\CalabiyauAnimation.cs" />
+    <Compile Include="..\Common\CalabiyauMotion.cs" Link="Services\Runtime\CalabiyauMotion.cs" />
+    <Compile Include="..\Common\CalabiyauPacks.cs" Link="Services\Runtime\CalabiyauPacks.cs" />
+    <Compile Include="Services\Catalog\Games\CalabiyauExternalAssetService.cs" />
+    <Compile Include="..\Common\CalabiyauPackage.cs" Link="Services\Runtime\CalabiyauPackage.cs" />
+    <Compile Include="..\Common\CalabiyauClip.cs" Link="Services\Runtime\CalabiyauClip.cs" />
     <Compile Include="..\Common\PreviewEventSupport.cs" Link="Services\Runtime\PreviewEventSupport.cs" />
     <Compile Include="Services\CustomModule\CustomSequenceFormat.cs" />
     <Compile Include="Services\CustomModule\CustomSequencePackService.cs" />
@@ -163,6 +169,7 @@
     <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.DagoujiaoIcon.cs" />
     <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.DoubaoVoice.cs" />
     <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.EventVoice.cs" />
+    <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.Audio.cs" />
     <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.ValorantVoice.cs" />
     <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.ValorantIcon.cs" />
     <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.CustomModuleVoice.cs" />
@@ -220,6 +227,7 @@
     <Compile Include="Pages\KillConfirmWidget\Packs\KillConfirmWidgetPage.PackSettings.Valorant.cs" />
     <Compile Include="Pages\KillConfirmWidget\Packs\KillConfirmWidgetPage.PackSettings.Battlefield.cs" />
     <Compile Include="Pages\KillConfirmWidget\Packs\KillConfirmWidgetPage.PackSettings.Voice.cs" />
+    <Compile Include="Pages\KillConfirmWidget\Packs\KillConfirmWidgetPage.AudioChannels.cs" />
     <Compile Include="Pages\KillConfirmWidget\Packs\KillConfirmWidgetPage.PackSettings.AdvancedEffects.cs" />
     <Compile Include="Pages\KillConfirmWidget\Packs\KillConfirmWidgetPage.PackSettings.AdvancedEffects.Defaults.cs" />
     <Compile Include="Pages\KillConfirmWidget\Animation\KillConfirmWidgetPage.Animation.cs" />
@@ -483,6 +491,7 @@
     <Compile Include="Services\Settings\Games\DagoujiaoSettingsStore.cs" />
     <Compile Include="Services\Settings\Games\DagoujiaoSettingsStore.ServiceSync.cs" />
     <Compile Include="Services\Settings\Audio\BombAudioSettingsStore.cs" />
+    <Compile Include="Services\Settings\Audio\AudioChannelSettingsStore.cs" />
     <Compile Include="Services\Settings\General\SharedStreakSettingsStore.cs" />
     <Compile Include="Services\Settings\General\KillFeedbackVisibilitySettingsStore.cs" />
     <Compile Include="Services\Settings\General\DeveloperModeSettingsStore.cs" />
@@ -512,8 +521,11 @@
     <Compile Include="Services\Catalog\PackCatalogService.Icon.Creation.cs" />
     <Compile Include="Services\Catalog\CrossfirePackFormat.cs" />
     <Compile Include="Services\Catalog\PackCatalogService.Storage.cs" />
+    <Compile Include="Services\Catalog\ResourceLibraryPaths.cs" />
+    <Compile Include="Controls\Settings\Hub\AdvancedSettingsHub.Storage.cs" />
     <Compile Include="Services\Catalog\PackCatalogService.GameStorage.cs" />
     <Compile Include="Services\Catalog\PackCatalogService.Voice.cs" />
+    <Compile Include="Services\Catalog\PackCatalogService.Audio.cs" />
     <Compile Include="Services\Catalog\PackCatalogService.Voice.Creation.cs" />
     <Compile Include="Services\Catalog\PackCatalogService.ValorantEditing.cs" />
     <Compile Include="Services\Catalog\Games\PackCatalogService.Overwatch.cs" />
@@ -879,5 +891,7 @@
     <AppxManifest Include="Validation\Package.appxmanifest" />
     <Compile Include="Validation\GameSwitchValidation.cs" />
     <Compile Include="Validation\Battlefield6Validation.cs" />
+    <Compile Include="Validation\CalabiyauRenderValidation.cs" />
+      <Compile Include="Validation\CalabiyauDefaultRenderValidation.cs" />
   </ItemGroup>
 </Project>

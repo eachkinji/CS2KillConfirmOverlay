@@ -12,6 +12,14 @@ namespace KillConfirmGameBar.Services
         internal const string AddMoreTag = "__add_more_packs";
         private const string RequestKey = "PendingPackLibraryNavigation";
 
+        internal static string LegacyAudioTab(GameStyleMode style)
+            => style == GameStyleMode.Crossfire ? "voice" : "sound_effect";
+
+        public static string DownloadUrl(GameStyleMode style, AudioPackKind kind)
+            => (style == GameStyleMode.Crossfire && kind == AudioPackKind.CharacterVoice)
+                || (style == GameStyleMode.Valorant && kind == AudioPackKind.SoundEffect)
+                ? DownloadUrl(style, true) : null;
+
         public static string DownloadUrl(GameStyleMode style, bool voice)
         {
             switch (style)
@@ -27,26 +35,35 @@ namespace KillConfirmGameBar.Services
             }
         }
 
-        private static string CreateRequest(GameStyleMode style, bool voice)
+        private static string CreateRequest(GameStyleMode style, string tab)
             => new JsonObject
             {
                 ["game"] = JsonValue.CreateStringValue(GameStyleService.ToStorageValue(style)),
-                ["tab"] = JsonValue.CreateStringValue(voice ? "voice" : "icon"),
+                ["tab"] = JsonValue.CreateStringValue(tab),
                 ["created"] = JsonValue.CreateNumberValue(DateTimeOffset.UtcNow.ToUnixTimeSeconds())
             }.Stringify();
 
         public static void Request(GameStyleMode style, bool voice)
-            => ApplicationData.Current.LocalSettings.Values[RequestKey] = CreateRequest(style, voice);
+            => ApplicationData.Current.LocalSettings.Values[RequestKey] = CreateRequest(style, voice ? LegacyAudioTab(style) : "icon");
+
+        public static void Request(GameStyleMode style, AudioPackKind kind)
+            => ApplicationData.Current.LocalSettings.Values[RequestKey] = CreateRequest(style, kind == AudioPackKind.CharacterVoice ? "voice" : "sound_effect");
 
         // Hand off before activating the desktop panel. Composite LocalSettings values
         // are process-local and cannot travel through the scalar settings bridge.
-        public static async Task RequestSharedAsync(GameStyleMode style, bool voice)
+        public static Task RequestSharedAsync(GameStyleMode style, bool voice)
+            => RequestSharedCoreAsync(style, voice ? LegacyAudioTab(style) : "icon");
+
+        public static Task RequestSharedAsync(GameStyleMode style, AudioPackKind kind)
+            => RequestSharedCoreAsync(style, kind == AudioPackKind.CharacterVoice ? "voice" : "sound_effect");
+
+        private static async Task RequestSharedCoreAsync(GameStyleMode style, string tab)
         {
 #if DESKTOP_CONTROL_PANEL
-            Request(style, voice);
+            ApplicationData.Current.LocalSettings.Values[RequestKey] = CreateRequest(style, tab);
             await Task.CompletedTask;
 #else
-            var scalar = new JsonObject { ["Kind"] = JsonValue.CreateStringValue("string"), ["Text"] = JsonValue.CreateStringValue(CreateRequest(style, voice)) };
+            var scalar = new JsonObject { ["Kind"] = JsonValue.CreateStringValue("string"), ["Text"] = JsonValue.CreateStringValue(CreateRequest(style, tab)) };
             var request = new JsonObject { ["key"] = JsonValue.CreateStringValue(RequestKey), ["value"] = scalar };
             using (var client = await LocalServiceAuth.CreateHttpClientAsync())
             using (var body = new HttpStringContent(request.Stringify(), UnicodeEncoding.Utf8, "application/json"))
@@ -66,7 +83,7 @@ namespace KillConfirmGameBar.Services
             if (Math.Abs(DateTimeOffset.UtcNow.ToUnixTimeSeconds() - request.GetNamedNumber("created", 0)) > 120) return false;
             game = request.GetNamedString("game", "");
             tab = request.GetNamedString("tab", "");
-            return !string.IsNullOrEmpty(game) && (tab == "voice" || tab == "icon");
+            return !string.IsNullOrEmpty(game) && (tab == "voice" || tab == "sound_effect" || tab == "icon");
         }
     }
 }

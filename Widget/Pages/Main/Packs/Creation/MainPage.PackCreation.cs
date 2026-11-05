@@ -21,6 +21,11 @@ namespace KillConfirmGameBar
 
         private async void OnCreateVoicePackClick(object sender, RoutedEventArgs e)
         {
+            if (UsesGenericAudioEditor)
+            {
+                await ShowCreateGenericAudioPackDialogAsync(SettingsGameStyle, ActiveAudioPackKind);
+                return;
+            }
             if (SettingsGameStyle == GameStyleMode.CustomModule)
             {
                 await ShowCreateCustomModuleVoicePackDialogAsync();
@@ -66,6 +71,7 @@ namespace KillConfirmGameBar
 
         private async Task ImportVoiceZipForCurrentStyleAsync()
         {
+            if (await TryImportTypedAudioZipAsync()) return;
             if (SettingsGameStyle == GameStyleMode.Valorant)
             {
                 await ImportValorantPackageFromZipAsync(ValorantExternalAssetService.VoicePackageKind);
@@ -176,6 +182,7 @@ namespace KillConfirmGameBar
 
         private async Task ImportIconZipForCurrentStyleAsync()
         {
+            if (SettingsGameStyle == GameStyleMode.Calabiyau) { await ImportCalabiyauPackageFromZipAsync(); return; }
             if (SettingsGameStyle == GameStyleMode.CustomModule) { await ImportCustomModuleAsync(true); return; }
             if (SettingsGameStyle == GameStyleMode.Valorant)
             {

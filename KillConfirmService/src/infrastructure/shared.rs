@@ -18,9 +18,13 @@ pub async fn identity() -> Json<Value> {
     let code=unsafe {GetCurrentPackageFullName(&mut length,std::ptr::null_mut())};
     Json(json!({"pid":std::process::id(),"packageIdentityCode":code}))
 }
+fn library_root(root: &Path) -> PathBuf {
+    read_json(&root.join("settings.json"))["ResourceLibrary.Root"]["Text"].as_str()
+        .filter(|value| !value.trim().is_empty()).map(PathBuf::from).unwrap_or_else(|| root.join("Packs"))
+}
 pub async fn snapshot() -> Json<Value> {
     let root=super::logging::local_state_dir();
-    Json(json!({"dataRoot":root.to_string_lossy(),"settings":read_json(&root.join("settings.json")),
+    Json(json!({"dataRoot":root.to_string_lossy(),"installRoot":install_root().map(|p| p.to_string_lossy().into_owned()),"libraryRoot":library_root(&root).to_string_lossy(),"settings":read_json(&root.join("settings.json")),
         "display":read_json(&root.join("CompatibilityDisplay/display.json")),
         "catalog":read_json(&root.join("pack-catalog.json"))}))
 }
@@ -40,14 +44,52 @@ fn allowed_path(query: &ResourceQuery) -> Result<PathBuf,StatusCode> {
     let install=install_root().ok_or(StatusCode::NOT_FOUND)?;
     let supplied=if query.asset { install.join(&query.path) } else { PathBuf::from(&query.path) };
     let path=supplied.canonicalize().map_err(|_|StatusCode::NOT_FOUND)?;
-    let mut allowed=vec![install.join("Assets"),install.join("Danmaku"),install.join("DefaultPacks"),install.join("KillConfirmService/sounds"),root.join("Packs"),root.join("DoubaoImages"),root.join("DagoujiaoImages")];
+    let mut allowed=vec![install.join("Assets"),install.join("Danmaku"),install.join("DefaultPacks"),install.join("KillConfirmService/sounds"),library_root(&root),root.join("Packs"),root.join("DoubaoAudio"),root.join("DagoujiaoAudio"),root.join("DoubaoImages"),root.join("DagoujiaoImages")];
     // A user can import an existing external folder through the original picker.
     let catalog=read_json(&root.join("pack-catalog.json"));
-    if let Some(items)=catalog["IconPacks"].as_array() {
-        for item in items { if let Some(folder)=item["FolderPath"].as_str() { allowed.push(PathBuf::from(folder)); } }
-    }
-    if allowed.iter().filter_map(|p|p.canonicalize().ok()).any(|base|path.starts_with(base)) { Ok(path) }
+    allowed.extend(catalog_resource_roots(&catalog));
+    if path_within_resource_roots(&path, &allowed) { Ok(path) }
     else { Err(StatusCode::FORBIDDEN) }
+}
+
+fn catalog_resource_roots(catalog: &Value) -> Vec<PathBuf> {
+    // Both audio categories retain the legacy VoicePacks array. Only folders
+    // already selected/imported by the user extend the resource allow-list.
+    ["IconPacks", "VoicePacks"].into_iter()
+        .filter_map(|key| catalog[key].as_array())
+        .flatten()
+        .filter_map(|item| item["FolderPath"].as_str())
+        .filter(|folder| !folder.trim().is_empty())
+        .map(PathBuf::from).collect()
+}
+
+fn path_within_resource_roots(path: &Path, roots: &[PathBuf]) -> bool {
+    roots.iter().filter_map(|root| root.canonicalize().ok()).any(|root| path.starts_with(root))
+}
+
+#[cfg(test)]
+mod audio_resource_tests {
+    use super::*;
+
+    #[test]
+    fn external_audio_folder_is_allowed_without_exposing_neighboring_files() {
+        let temporary = env::temp_dir().join(format!("killconfirm-audio-broker-{}-{}", std::process::id(),
+            std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos()));
+        let voice = temporary.join("user-selected-voice");
+        let icon = temporary.join("user-selected-icon");
+        let neighbor = temporary.join("unselected");
+        for folder in [&voice, &icon, &neighbor] { fs::create_dir_all(folder).unwrap(); }
+        let catalog = json!({"VoicePacks":[{"FolderPath":voice},{"FolderPath":""}],
+            "IconPacks":[{"FolderPath":icon}],"unrelated":[{"FolderPath":neighbor}]});
+        let allowed = catalog_resource_roots(&catalog);
+        assert_eq!(allowed.len(), 2);
+        assert!(path_within_resource_roots(&voice.canonicalize().unwrap().join("pack_head.png"), &allowed));
+        assert!(path_within_resource_roots(&icon.canonicalize().unwrap().join("preview.png"), &allowed));
+        assert!(!path_within_resource_roots(&neighbor.canonicalize().unwrap().join("private.txt"), &allowed));
+        assert!(!path_within_resource_roots(&temporary.canonicalize().unwrap(), &allowed));
+        for folder in [&voice, &icon, &neighbor] { fs::remove_dir(folder).unwrap(); }
+        fs::remove_dir(temporary).unwrap();
+    }
 }
 pub async fn resource(Query(query): Query<ResourceQuery>) -> Result<Vec<u8>,StatusCode> {
     let path=allowed_path(&query)?;

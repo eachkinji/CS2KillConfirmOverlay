@@ -1,4 +1,4 @@
-param([string]$Payload='', [switch]$RuntimeOnly)
+﻿param([string]$Payload='', [switch]$RuntimeOnly)
 $ErrorActionPreference='Stop'
 $repository=Split-Path $PSScriptRoot -Parent
 if(!$Payload) {$Payload=Join-Path $repository 'Output/StandaloneTest'}
@@ -6,7 +6,7 @@ $Payload=[IO.Path]::GetFullPath($Payload)
 $output=Join-Path $repository ('Output/StandaloneValidation-'+(Get-Date -Format 'yyyyMMdd-HHmmss'))
 function Invoke-PanelCheck([string]$name,[string]$flag,[string]$result) {
     $profile=Join-Path $output $name
-    $start=[Diagnostics.ProcessStartInfo]::new((Join-Path $Payload 'KillConfirmGameBar.exe'))
+    $start=[Diagnostics.ProcessStartInfo]::new((Join-Path $Payload 'KillConfirmControlPanel.exe'))
     $start.UseShellExecute=$false
     $start.Environment['KILLCONFIRM_DATA_ROOT']=$profile
     $start.Environment['KILLCONFIRM_INSTALL_ROOT']=$Payload.TrimEnd([IO.Path]::DirectorySeparatorChar)+[IO.Path]::DirectorySeparatorChar

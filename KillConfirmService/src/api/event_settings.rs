@@ -116,17 +116,17 @@ pub async fn set_interrupt_previous_kill_audio_settings(
     State(app_state): State<Arc<AppState>>,
     Json(request): Json<InterruptPreviousKillAudioRequest>,
 ) -> Json<InterruptPreviousKillAudioResponse> {
-    let previous = app_state
+    app_state
         .stop_previous_kill_audio
-        .swap(request.enabled, Ordering::Relaxed);
-
-    if previous && !request.enabled {
-        // The user just turned the setting off: drop any held kill sinks so the
-        // next play_audio() call doesn't accidentally stop a still-playing voice.
-        if let Ok(mut active) = app_state.kill_audio_sinks.lock() {
-            active.clear();
+        .store(request.enabled, Ordering::Relaxed);
+    if let Some(channels) = app_state.audio_channels.write().await.as_mut() {
+        if let Some(effects) = channels.sound_effect.as_mut() {
+            effects.selection.interrupt_previous = request.enabled;
         }
     }
+
+    // Keep live sinks tracked even when overlap is enabled. The next event
+    // respects the new policy, and changing packs can still stop old audio.
 
     service_log(&format!(
         "stop previous kill audio on new kill: {}",

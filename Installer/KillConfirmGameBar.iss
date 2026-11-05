@@ -1,4 +1,4 @@
-﻿#define MyAppPublisher "KillConfirmGameBar"
+#define MyAppPublisher "KillConfirmGameBar"
 #define MyAppExeName "Install-KillConfirm.ps1"
 
 #ifndef MyAppVersion
@@ -37,8 +37,12 @@ AppName={cm:InstallerDisplayName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
 DefaultDirName={autopf}\Kill Confirm Overlay
+AppendDefaultDirName=no
 DefaultGroupName=Kill Confirm Overlay
 DisableProgramGroupPage=yes
+DisableDirPage=no
+CloseApplications=yes
+RestartApplications=no
 AlwaysShowComponentsList=yes
 UsePreviousSetupType=no
 OutputDir=..\Output
@@ -46,6 +50,10 @@ OutputBaseFilename=KillConfirmGameBar_Setup_{#MyAppVersion}{#InstallerOutputSuff
 SetupIconFile=Assets\KillConfirmOverlay.ico
 Compression=lzma2
 SolidCompression=yes
+#ifdef LargeAssetPayload
+DiskSpanning=yes
+DiskSliceSize=2100000000
+#endif
 WizardStyle=modern
 PrivilegesRequired=admin
 ArchitecturesAllowed=x64compatible
@@ -132,8 +140,8 @@ english.DesktopIconComponent=Desktop shortcut
 chinesesimplified.DesktopIconComponent=桌面快捷方式
 
 [Icons]
-Name: "{group}\{cm:ControlPanelShortcutName}"; Filename: "{app}\KillConfirmGameBar.exe"; IconFilename: "{app}\KillConfirmOverlay.ico"
-Name: "{autodesktop}\{cm:ControlPanelShortcutName}"; Filename: "{app}\KillConfirmGameBar.exe"; IconFilename: "{app}\KillConfirmOverlay.ico"; Components: desktopicon
+Name: "{group}\{cm:ControlPanelShortcutName}"; Filename: "{app}\KillConfirmControlPanel.exe"; IconFilename: "{app}\KillConfirmOverlay.ico"
+Name: "{autodesktop}\{cm:ControlPanelShortcutName}"; Filename: "{app}\KillConfirmControlPanel.exe"; IconFilename: "{app}\KillConfirmOverlay.ico"; Components: desktopicon
 
 [Types]
 Name: "full"; Description: "{cm:CompleteInstallation}"
@@ -153,6 +161,15 @@ Name: "gsi"; Description: "{cm:GsiComponent}"; Types: full
 Name: "desktopicon"; Description: "{cm:DesktopIconComponent}"; Types: full
 
 [InstallDelete]
+Type: files; Name: "{app}\KillConfirmGameBar.exe"
+Type: files; Name: "{app}\KillConfirmGameBar.dll"
+Type: files; Name: "{app}\KillConfirmGameBar.deps.json"
+Type: files; Name: "{app}\KillConfirmGameBar.runtimeconfig.json"
+
+; Remove the former all-in-one Calabiyau library; user-imported Packs live outside {app}.
+Type: filesandordirs; Name: "{app}\Assets\GameStyles\calabiyau\iconpacks"
+Type: filesandordirs; Name: "{app}\Assets\GameStyles\calabiyau\textures"
+Type: files; Name: "{app}\Assets\GameStyles\calabiyau\packs.json"
 Type: filesandordirs; Name: "{app}\Payload"
 Type: filesandordirs; Name: "{app}\Desktop"
 Type: files; Name: "{group}\{cm:ControlPanelShortcutName}.lnk"
@@ -161,19 +178,28 @@ Type: dirifempty; Name: "{group}"
 Type: files; Name: "{autodesktop}\{cm:ControlPanelShortcutName}.lnk"
 
 [Files]
+Source: "Stop-RuntimeForUpdate.ps1"; Flags: dontcopy
+Source: "Stop-RuntimeForUpdate.ps1"; DestDir: "{app}\Payload\Scripts"; Flags: ignoreversion
 Source: "{#TransferRoot}\*"; DestDir: "{app}\Payload"; Excludes: "Standalone\*"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#TransferRoot}\Standalone\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "Assets\KillConfirmOverlay.ico"; DestDir: "{app}"; Flags: ignoreversion
 Source: "Assets\GameBarPinGuide.png"; Flags: dontcopy
 
 [UninstallRun]
-Filename: "{sys}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -Command ""Get-Process -Name cskillconfirm,KillConfirmCompatibility,TestXboxGameBar,KillConfirmOverlay,KillConfirmGameBar,GameBar,GameBarFTServer,GameBarPresenceWriter -ErrorAction SilentlyContinue | Stop-Process -Force; Start-Sleep -Milliseconds 800; $p = Get-AppxPackage -Name KillConfirmGameBar.Overlay -ErrorAction SilentlyContinue | Sort-Object Version -Descending | Select-Object -First 1; if ($p) {{ CheckNetIsolation.exe LoopbackExempt -d \""-n=$($p.PackageFamilyName)\"" 2>$null; $p | Remove-AppxPackage -ErrorAction SilentlyContinue }"""; Flags: runhidden waituntilterminated; RunOnceId: "RemoveAppxPackage"
+Filename: "{sys}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-NoProfile -NonInteractive -ExecutionPolicy Bypass -File ""{app}\Payload\Scripts\Stop-RuntimeForUpdate.ps1"" -InstallRoot ""{app}"""; Flags: runhidden waituntilterminated; RunOnceId: "StopKillConfirmRuntime"
+Filename: "{sys}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -Command ""$p = Get-AppxPackage -Name KillConfirmGameBar.Overlay -ErrorAction SilentlyContinue | Sort-Object Version -Descending | Select-Object -First 1; if ($p) {{ CheckNetIsolation.exe LoopbackExempt -d \""-n=$($p.PackageFamilyName)\"" 2>$null; $p | Remove-AppxPackage -ErrorAction SilentlyContinue }"""; Flags: runhidden waituntilterminated; RunOnceId: "RemoveAppxPackage"
 
 [Code]
 #include "Scripts\Setup\InstallLog.iss"
 #include "Scripts\Setup\InstallComponents.iss"
 
 var
+  MaterialPage: TInputDirWizardPage;
+  MaterialPrevious: AnsiString;
+  MaterialAutomatic: String;
+  InstallPrevious: String;
+  InstallPathHint, MaterialPathHint: TNewStaticText;
+  OriginalInstallChange: TNotifyEvent;
   InstallConfirmPage: TWizardPage;
   InstallConfirmButton: TNewButton;
   InstallConfirmed: Boolean;
@@ -223,14 +249,93 @@ begin
   TopPosition := TopPosition + TextLabel.Height + ScaleY(8);
 end;
 
+function ChildLocation(Path, Child, Previous: String): String;
+begin
+  Path := RemoveBackslashUnlessRoot(Trim(Path));
+  if (CompareText(Path, RemoveBackslashUnlessRoot(Previous)) = 0) or
+    (CompareText(ExtractFileName(Path), Child) = 0) then Result := Path
+  else Result := AddBackslash(Path) + Child;
+end;
+
+procedure UpdateLocationHints();
+begin
+  if InstallPathHint = nil then Exit;
+  if (InstallPrevious <> '') and (CompareText(RemoveBackslashUnlessRoot(WizardDirValue()), RemoveBackslashUnlessRoot(InstallPrevious)) <> 0) then
+    InstallPathHint.Caption := '更新并更换安装位置：' + InstallPrevious + #13#10 + '→ ' + WizardDirValue() + #13#10 + '新安装将自动沿用现有配置和素材索引，快捷方式会更新到新位置。'
+  else InstallPathHint.Caption := '选择磁盘或父文件夹后，自动使用 Kill Confirm Overlay 下级文件夹。更新会保留现有配置。';
+  if MaterialPathHint = nil then Exit;
+  if (MaterialPrevious <> '') and (CompareText(RemoveBackslashUnlessRoot(MaterialPage.Values[0]), RemoveBackslashUnlessRoot(UTF8Decode(MaterialPrevious))) <> 0) then
+    MaterialPathHint.Caption := '将迁移素材及关联配置：' + UTF8Decode(MaterialPrevious) + #13#10 + '→ ' + MaterialPage.Values[0] + #13#10 + '复制并校验成功后更新路径、清理旧素材；失败时保留原素材。'
+  else MaterialPathHint.Caption := '最终素材位置：' + MaterialPage.Values[0] + #13#10 + '选择父文件夹后自动使用 KillConfirm素材包 下级文件夹，也可以直接编辑完整路径。';
+end;
+
+procedure InstallLocationChanged(Sender: TObject);
+begin
+  UpdateLocationHints();
+  OriginalInstallChange(Sender);
+end;
+
+procedure MaterialLocationChanged(Sender: TObject);
+begin
+  UpdateLocationHints();
+end;
+
+procedure BrowseInstallLocation(Sender: TObject);
+var Selected: String;
+begin
+  Selected := WizardForm.DirEdit.Text;
+  if BrowseForFolder('选择程序存放位置（自动创建 Kill Confirm Overlay 下级文件夹）', Selected, False) then
+    WizardForm.DirEdit.Text := ChildLocation(Selected, 'Kill Confirm Overlay', InstallPrevious);
+  UpdateLocationHints();
+end;
+
+procedure BrowseMaterialLocation(Sender: TObject);
+var Selected: String;
+begin
+  Selected := MaterialPage.Values[0];
+  if BrowseForFolder('选择素材存放位置（自动创建 KillConfirm素材包 下级文件夹）', Selected, False) then
+    MaterialPage.Values[0] := ChildLocation(Selected, 'KillConfirm素材包', UTF8Decode(MaterialPrevious));
+  UpdateLocationHints();
+end;
+
 procedure InitializeWizard();
 var
   TopPosition: Integer;
   BeginnerLabel: TNewStaticText;
   TutorialLink: TNewStaticText;
+  PreviousRoot: AnsiString;
 begin
   InitializeInstallLog();
   InitializeComponentListLayout();
+  MaterialPage := CreateInputDirPage(wpSelectDir, '素材包存放位置',
+    '选择图标包、语音包和自定义素材的位置',
+    '默认跟随安装盘。更换位置会迁移已有素材及关联配置；安装前会关闭正在运行的 KillConfirm 程序。', False, 'KillConfirm素材包');
+  MaterialPage.Add('素材文件夹：');
+  MaterialPrevious := '';
+  LoadStringFromFile(ExpandConstant('{localappdata}\KillConfirmOverlay\UserData\resource-library.txt'), MaterialPrevious);
+  MaterialPrevious := Trim(MaterialPrevious);
+  MaterialAutomatic := AddBackslash(ExtractFileDrive(WizardDirValue())) + 'KillConfirm素材包';
+  if MaterialPrevious <> '' then MaterialPage.Values[0] := UTF8Decode(MaterialPrevious)
+  else MaterialPage.Values[0] := MaterialAutomatic;
+  PreviousRoot := '';
+  LoadStringFromFile(ExpandConstant('{localappdata}\KillConfirmOverlay\install-root.txt'), PreviousRoot);
+  InstallPrevious := Trim(UTF8Decode(PreviousRoot));
+  WizardForm.DirBrowseButton.OnClick := @BrowseInstallLocation;
+  MaterialPage.Buttons[0].OnClick := @BrowseMaterialLocation;
+  OriginalInstallChange := WizardForm.DirEdit.OnChange;
+  WizardForm.DirEdit.OnChange := @InstallLocationChanged;
+  MaterialPage.Edits[0].OnChange := @MaterialLocationChanged;
+  InstallPathHint := TNewStaticText.Create(WizardForm);
+  InstallPathHint.Parent := WizardForm.SelectDirPage;
+  InstallPathHint.SetBounds(WizardForm.DirEdit.Left, WizardForm.DirEdit.Top + WizardForm.DirEdit.Height + ScaleY(12), WizardForm.DirEdit.Width + WizardForm.DirBrowseButton.Width + ScaleX(10), ScaleY(78));
+  InstallPathHint.AutoSize := False;
+  InstallPathHint.WordWrap := True;
+  MaterialPathHint := TNewStaticText.Create(MaterialPage);
+  MaterialPathHint.Parent := MaterialPage.Surface;
+  MaterialPathHint.SetBounds(0, MaterialPage.Edits[0].Top + MaterialPage.Edits[0].Height + ScaleY(18), MaterialPage.SurfaceWidth, ScaleY(90));
+  MaterialPathHint.AutoSize := False;
+  MaterialPathHint.WordWrap := True;
+  UpdateLocationHints();
   InstallConfirmed := False;
   InstallConfirmPage := CreateCustomPage(
     wpReady,
@@ -329,6 +434,12 @@ end;
 
 procedure CurPageChanged(CurPageID: Integer);
 begin
+  if (CurPageID = MaterialPage.ID) and (MaterialPrevious = '') and (MaterialPage.Values[0] = MaterialAutomatic) then
+  begin
+    MaterialAutomatic := AddBackslash(ExtractFileDrive(WizardDirValue())) + 'KillConfirm素材包';
+    MaterialPage.Values[0] := MaterialAutomatic;
+  end;
+  UpdateLocationHints();
   if CurPageID = InstallConfirmPage.ID then
   begin
     WizardForm.NextButton.Enabled := InstallConfirmed;
@@ -339,14 +450,68 @@ begin
   end;
 end;
 
-function NextButtonClick(CurPageID: Integer): Boolean;
+function UpdateReadyMemo(Space, NewLine, MemoUserInfoInfo, MemoDirInfo, MemoTypeInfo, MemoComponentsInfo, MemoGroupInfo, MemoTasksInfo: String): String;
+begin
+  Result := MemoDirInfo + NewLine + NewLine + '素材包存放位置：' + NewLine + Space + MaterialPage.Values[0] + NewLine + NewLine;
+  if (InstallPrevious <> '') and (CompareText(RemoveBackslashUnlessRoot(WizardDirValue()), RemoveBackslashUnlessRoot(InstallPrevious)) <> 0) then
+    Result := Result + '程序更换位置：自动沿用现有配置，更新快捷方式。' + NewLine;
+  if (MaterialPrevious <> '') and (CompareText(RemoveBackslashUnlessRoot(MaterialPage.Values[0]), RemoveBackslashUnlessRoot(UTF8Decode(MaterialPrevious))) <> 0) then
+    Result := Result + '素材更换位置：迁移素材及关联配置；校验成功后清理旧素材。' + NewLine;
+  Result := Result + NewLine + MemoComponentsInfo + NewLine + MemoTasksInfo;
+end;
+
+function MaterialFolderIsEmpty(Path: String): Boolean;
+var Entry: TFindRec;
 begin
   Result := True;
+  if FindFirst(AddBackslash(Path) + '*', Entry) then
+  begin
+    try
+      repeat
+        if (Entry.Name <> '.') and (Entry.Name <> '..') then Result := False;
+      until not FindNext(Entry);
+    finally
+      FindClose(Entry);
+    end;
+  end;
+end;
+
+function NextButtonClick(CurPageID: Integer): Boolean;
+var Path: String;
+begin
+  Result := True;
+  if CurPageID = MaterialPage.ID then
+  begin
+    Path := Trim(MaterialPage.Values[0]);
+    if (Path = '') or (ExtractFileDrive(Path) = '') or
+      (CompareText(AddBackslash(Path), AddBackslash(ExtractFileDrive(Path))) = 0) then
+    begin
+      MsgBox('请选择独立的素材文件夹，不能直接选择磁盘根目录。', mbError, MB_OK);
+      Result := False;
+    end
+    else if (CompareText(Path, UTF8Decode(MaterialPrevious)) <> 0) and not MaterialFolderIsEmpty(Path) then
+    begin
+      MsgBox('目标文件夹不是空的。请选择新的素材目录，已有素材会自动迁移。', mbError, MB_OK);
+      Result := False;
+    end;
+  end;
   if (CurPageID = InstallConfirmPage.ID) and (not InstallConfirmed) then
   begin
     MsgBox(ExpandConstant('{cm:AcknowledgeRequiredText}'), mbInformation, MB_OK);
     Result := False;
   end;
+end;
+
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+var ResultCode: Integer;
+begin
+  Result := '';
+  ExtractTemporaryFile('Stop-RuntimeForUpdate.ps1');
+  if not Exec(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'),
+    '-NoProfile -NonInteractive -ExecutionPolicy Bypass -File "' + ExpandConstant('{tmp}\Stop-RuntimeForUpdate.ps1') +
+    '" -InstallRoot "' + ExpandConstant('{app}') + '"', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
+    Result := '无法启动程序关闭检查，请关闭 KillConfirm 后重试。'
+  else if ResultCode <> 0 then Result := 'KillConfirm 仍在运行，未开始覆盖文件。请关闭后重试。';
 end;
 
 function InitializeSetup(): Boolean;
@@ -407,7 +572,8 @@ begin
       ' -InstallerVersion "{#MyAppVersion}"' +
       ' -InstallerBuildTimeUtc "{#InstallerBuildTimeUtc}"' +
       ' -InstallerSourceCommit "{#InstallerSourceCommit}"' +
-      ' -InstallerSourcePath "' + ExpandConstant('{srcexe}') + '"';
+      ' -InstallerSourcePath "' + ExpandConstant('{srcexe}') + '"' +
+      ' -MaterialRoot "' + MaterialPage.Values[0] + '"';
 #if SkipPrerequisites == "0"
     Params := Params + ' -InstallPrerequisites -PrerequisitesConfirmed';
 #endif

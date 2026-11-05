@@ -4,6 +4,12 @@ using Windows.Storage;
 
 namespace KillConfirmGameBar.Services
 {
+    public enum AudioPackKind
+    {
+        SoundEffect,
+        CharacterVoice
+    }
+
     [DataContract]
     public sealed class PackCatalog
     {
@@ -24,6 +30,17 @@ namespace KillConfirmGameBar.Services
     [DataContract]
     public sealed class VoicePackItem
     {
+        // Null is the legacy schema: CF contained character voices, all other
+        // games contained sound effects. Keep old ids and catalog fields intact.
+        [DataMember(EmitDefaultValue = false)]
+        public AudioPackKind? AudioKind { get; set; }
+
+        [DataMember(EmitDefaultValue = false)]
+        public string GameStyle { get; set; }
+
+        [DataMember(EmitDefaultValue = false)]
+        public List<string> AssociatedIconKeys { get; set; } = new List<string>();
+
         [DataMember]
         public string Key { get; set; }
 

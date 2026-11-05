@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using KillConfirmGameBar.Services;
 using KillConfirmGameBar.Controls.Settings;
 using KillConfirmGameBar.Controls.GameStyles;
@@ -65,7 +65,11 @@ namespace KillConfirmGameBar
             Visibility iconCreationVisibility = overwatch || modernWarfare2019 || apex ? Visibility.Collapsed : Visibility.Visible;
             if (ImportIconZipButton != null) ImportIconZipButton.Visibility = iconCreationVisibility;
             if (BatchImportIconZipButton != null) BatchImportIconZipButton.Visibility = iconCreationVisibility;
-            if (CreateIconPackButton != null) CreateIconPackButton.Visibility = iconCreationVisibility;
+            if (CreateIconPackButton != null) CreateIconPackButton.Visibility = mode == GameStyleMode.Calabiyau ? Visibility.Collapsed : iconCreationVisibility;
+            Visibility voiceCreationVisibility = Visibility.Visible;
+            ImportVoiceZipButton.Visibility = voiceCreationVisibility;
+            BatchImportVoiceZipButton.Visibility = voiceCreationVisibility;
+            CreateVoicePackButton.Visibility = voiceCreationVisibility;
             VoicePackCollectionsCard.Visibility = Visibility.Visible;
             VoiceCollectionsCard.Visibility = Visibility.Visible;
 
@@ -173,6 +177,7 @@ namespace KillConfirmGameBar
             ApplyGameStyleSidebarTheme(theme);
             AdvancedSettingsHubControl.ApplyTheme(theme);
             ApplyGameAdvancedSettingsPanelTheme();
+            ApplyPackLibraryLanguage();
         }
 
         private static void ApplySectionTheme(Border card, GameThemePalette theme)
@@ -264,6 +269,7 @@ namespace KillConfirmGameBar
                 case GameStyleMode.DeltaForce: return "Delta Force";
                 case GameStyleMode.Doubao: return "Doubao";
                 case GameStyleMode.Dagoujiao: return "Big Dog Bark";
+                case GameStyleMode.Calabiyau: return "Strinova";
                 case GameStyleMode.CustomModule: return "Custom";
                 default: return GameStyleService.ToDisplayName(mode);
             }
@@ -528,6 +534,11 @@ namespace KillConfirmGameBar
                     break;
                 case GameStyleMode.DeltaForce:
                     panel = EnsureDeltaForceAdvancedSettingsPanel();
+                    break;
+                case GameStyleMode.Calabiyau:
+                    panel = new TextBlock { Text = LocalizationManager.Current == UiLanguage.SimplifiedChinese
+                        ? "默认击杀动画 · 3.5 秒。当前版本不含音效、粒子和连杀星级。"
+                        : "Default kill animation · 3.5 s. Audio, particles and streak stars are not included.", TextWrapping = TextWrapping.Wrap };
                     break;
                 case GameStyleMode.CustomModule:
                     if (_customModulePanel == null)

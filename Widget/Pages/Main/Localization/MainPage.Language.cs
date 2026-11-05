@@ -116,8 +116,8 @@ namespace KillConfirmGameBar
             TipsTitleText.Text = LocalizationManager.Text("TipsTitle");
             TipsBodyText.Text = currentMode == GameStyleMode.Valorant
                 ? (isChinese
-                    ? "VALORANT 默认让语音包与图标包保持配套；关闭后可以分别选择。"
-                    : "VALORANT pairs voice and icon packs by default. Turn pairing off to choose them separately.")
+                    ? "VALORANT 默认让音效包与图标包保持配套；关闭后可以分别选择。"
+                    : "VALORANT pairs sound effect and icon packs by default. Turn pairing off to choose them separately.")
                 : LocalizationManager.Text("TipsBody");
 
             ApplyGameStyleUi();
@@ -290,6 +290,13 @@ namespace KillConfirmGameBar
                     fileHint = isChinese ? "普通击杀、爆头、暴击和助攻可以分别添加音频；同一项有多段时会随机播放。" : "Normal kills, headshots, critical hits, and assists can use separate audio; multiple files in one item play randomly.";
                     break;
 
+                case GameStyleMode.Calabiyau:
+                    body = isChinese ? "内置默认击杀反馈；其他主题 ZIP 可单个、批量或拖放导入，导入后在图标包列表选择。击杀类型和击杀数决定对应的图标、动画与星标。卡拉彼丘原生准心与下方反馈独立开关。" : "Default feedback is built in. Import theme ZIPs individually, in batches or by drag and drop, then select them from the icon library. Kill type and count select the icon, animation and stars. Native Calabiyau crosshair and lower feedback have independent switches.";
+                    voice = isChinese ? "音效包保存主体和装饰音效，可与图标包联动；语音包保存角色台词，独立选择和关闭。" : "Sound effect packs contain body and decoration sounds and can pair with icons. Voice packs contain independently selected character dialogue.";
+                    iconSummary = isChinese ? "原始透明贴图与 3.5 秒动画曲线。" : "Original transparent textures and a 3.5-second timeline.";
+                    iconFull = "REAC_Main / REAC_Main1 / REAC_Main01–05 / React9";
+                    fileHint = isChinese ? "三个素材库分别管理图标、配套音效和角色台词。整包导入保留原始时序；同系列图标变体可共用音效包。" : "Three libraries manage icons, matching sound effects and character voices. Pack imports preserve timing; icon variants can share one sound effect pack.";
+                    break;
                 case GameStyleMode.Doubao:
                     body = isChinese ? "豆包按 1～5 杀逐杀使用独立语音与图标。" : "Doubao uses separate voice and icon assets for kills 1 through 5.";
                     voice = isChinese ? "1kill.wav ~ 5kill.wav = 1杀至5杀独立语音" : "1kill.wav ~ 5kill.wav = individual kill 1-5 voices";
@@ -308,12 +315,24 @@ namespace KillConfirmGameBar
                     break;
             }
 
-            StructureBodyText.Text = body;
+            if (style != GameStyleMode.Crossfire && style != GameStyleMode.Calabiyau)
+            {
+                body = NormalizeSoundEffectTerminology(body);
+                voice = NormalizeSoundEffectTerminology(voice);
+                iconFull = NormalizeSoundEffectTerminology(iconFull);
+                fileHint = NormalizeSoundEffectTerminology(fileHint);
+            }
+            StructureBodyText.Text = body + (isChinese
+                ? "\n素材分为图标包、音效包和语音包；角色语音可在语音包库中独立导入或新建。"
+                : "\nPacks are separated into icons, sound effects and character voices. Import or create character dialogue in the voice library.");
             StructureVoiceSpecBodyText.Text = voice;
             StructureIconSpecSummaryText.Text = iconSummary;
             StructureIconSpecFullText.Text = iconFull;
             StructureFileHintText.Text = fileHint;
         }
+
+        private static string NormalizeSoundEffectTerminology(string text)
+            => text.Replace("语音", "音效").Replace("Voice", "Sound effect").Replace("voice", "sound effect");
 
         private void ApplyCsolGuideCardLanguage()
         {

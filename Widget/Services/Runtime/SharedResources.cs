@@ -19,6 +19,8 @@ namespace KillConfirmGameBar.Services
         private static readonly SemaphoreSlim Gate=new SemaphoreSlim(1,1);
         private static readonly ConcurrentDictionary<string,Lazy<Task<StorageFolder>>> Folders=new ConcurrentDictionary<string,Lazy<Task<StorageFolder>>>();
         public static string RemoteDataRoot { get; set; }
+        public static string RemoteInstallRoot { get; set; }
+        public static string RemoteLibraryRoot { get; set; }
         public static string CacheRoot => Path.Combine(ApplicationData.Current.LocalFolder.Path,"SharedResources-v51");
         public static StorageFolder PackageRoot => StorageFolder.GetFolderFromPathAsync(CacheRoot).AsTask().GetAwaiter().GetResult();
         public static string CachedAssetUri(string relative) => "ms-appx:///"+relative.Replace('\\','/');
@@ -52,7 +54,10 @@ namespace KillConfirmGameBar.Services
             string local=ApplicationData.Current.LocalFolder.Path;
             if(path.StartsWith(local+Path.DirectorySeparatorChar,StringComparison.OrdinalIgnoreCase))
             {
-                if(!File.Exists(path)) await DownloadAsync(Path.Combine(RemoteDataRoot,path.Substring(local.Length+1)),false,path);
+                string relative = path.Substring(local.Length + 1);
+                string remote = relative.StartsWith("Packs\\", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(RemoteLibraryRoot)
+                    ? Path.Combine(RemoteLibraryRoot, relative.Substring(6)) : Path.Combine(RemoteDataRoot, relative);
+                if(!File.Exists(path)) await DownloadAsync(remote,false,path);
                 return await StorageFile.GetFileFromPathAsync(path);
             }
             // A single thumbnail or texture must not fetch its entire pack.
@@ -116,10 +121,24 @@ namespace KillConfirmGameBar.Services
         public static async Task InitializeAsync()
         {
             Directory.CreateDirectory(CacheRoot);
+            // Retain a bounded cache between sessions; the authoritative library
+            // remains on the user's selected drive. Never prune a live folder.
+            try
+            {
+                var files = new DirectoryInfo(CacheRoot).EnumerateFiles("*", SearchOption.AllDirectories)
+                    .Where(f => !f.Name.EndsWith(".json", StringComparison.OrdinalIgnoreCase)).OrderBy(f => f.LastWriteTimeUtc).ToList();
+                long bytes = files.Sum(f => f.Length);
+                foreach (var file in files)
+                {
+                    if (bytes <= 256L * 1024 * 1024) break;
+                    try { long length = file.Length; file.Delete(); bytes -= length; } catch (IOException) { }
+                }
+            }
+            catch (Exception error) { App.Log("Resource cache cleanup: " + error.Message); }
             // Catalog discovery needs manifests; rendering obtains textures lazily.
             await FetchFolderAsync("Assets",true,true);
             if(!string.IsNullOrWhiteSpace(RemoteDataRoot))
-                try { await FetchFolderAsync(Path.Combine(RemoteDataRoot,"Packs"),false,true,Path.Combine(ApplicationData.Current.LocalFolder.Path,"Packs")); } catch(Exception error) { App.Log("Shared pack manifests: "+error.Message); }
+                try { await FetchFolderAsync(RemoteLibraryRoot ?? Path.Combine(RemoteDataRoot,"Packs"),false,true,Path.Combine(ApplicationData.Current.LocalFolder.Path,"Packs")); } catch(Exception error) { App.Log("Shared pack manifests: "+error.Message); }
             ValorantPackService.RefreshExternalPacks();
         }
     }

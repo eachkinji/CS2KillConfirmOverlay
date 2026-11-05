@@ -1,0 +1,4256 @@
+{
+  "duration": 3.5,
+  "tickRate": 60000,
+  "displayRate": 20,
+  "animation": "Anim_Normal",
+  "source": "WBP_IconFeedbackPage.uasset",
+  "tracks": [
+    {
+      "widget": "CanvasPanel_Injured",
+      "slot": "None",
+      "type": "MovieSceneFloatTrack",
+      "property": "RenderOpacity",
+      "mask": null,
+      "curves": {
+        "FloatCurve": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 180000
+            },
+            {
+              "Value": 210000
+            }
+          ],
+          "Values": [
+            {
+              "Value": 1.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 0.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        }
+      }
+    },
+    {
+      "widget": "MainBG",
+      "slot": "None",
+      "type": "MovieSceneColorTrack",
+      "property": "ColorAndOpacity",
+      "mask": null,
+      "curves": {
+        "AlphaCurve": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 20000
+            },
+            {
+              "Value": 25000
+            }
+          ],
+          "Values": [
+            {
+              "Value": 0.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 1.0,
+              "Tangent": {
+                "ArriveTangent": 0.000125,
+                "LeaveTangent": 0.000125,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        }
+      }
+    },
+    {
+      "widget": "Frame",
+      "slot": "None",
+      "type": "MovieSceneFloatTrack",
+      "property": "RenderOpacity",
+      "mask": null,
+      "curves": {
+        "FloatCurve": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 25000
+            },
+            {
+              "Value": 30000
+            },
+            {
+              "Value": 40000
+            },
+            {
+              "Value": 50000
+            },
+            {
+              "Value": 75000
+            }
+          ],
+          "Values": [
+            {
+              "Value": 0.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 1.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 1.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 0.5,
+              "Tangent": {
+                "ArriveTangent": -5e-05,
+                "LeaveTangent": -5e-05,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 0.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        }
+      }
+    },
+    {
+      "widget": "Frame",
+      "slot": "None",
+      "type": "MovieScene2DTransformTrack",
+      "property": "RenderTransform",
+      "mask": 24,
+      "curves": {
+        "Translation": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 25000
+            }
+          ],
+          "Values": [
+            {
+              "Value": 0.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        },
+        "Translation[1]": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 25000
+            }
+          ],
+          "Values": [
+            {
+              "Value": 0.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        },
+        "Rotation": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 25000
+            }
+          ],
+          "Values": [
+            {
+              "Value": 0.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        },
+        "Scale": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 30000
+            },
+            {
+              "Value": 35000
+            },
+            {
+              "Value": 40000
+            }
+          ],
+          "Values": [
+            {
+              "Value": 0.9,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 1.1,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 1.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        },
+        "Scale[1]": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 30000
+            },
+            {
+              "Value": 35000
+            },
+            {
+              "Value": 40000
+            }
+          ],
+          "Values": [
+            {
+              "Value": 0.9,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 1.1,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 1.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        },
+        "Shear": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 25000
+            }
+          ],
+          "Values": [
+            {
+              "Value": 0.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        },
+        "Shear[1]": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 25000
+            }
+          ],
+          "Values": [
+            {
+              "Value": 0.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        }
+      }
+    },
+    {
+      "widget": "BigFrame",
+      "slot": "None",
+      "type": "MovieSceneFloatTrack",
+      "property": "RenderOpacity",
+      "mask": null,
+      "curves": {
+        "FloatCurve": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 35000
+            },
+            {
+              "Value": 40000
+            },
+            {
+              "Value": 45000
+            },
+            {
+              "Value": 90000
+            }
+          ],
+          "Values": [
+            {
+              "Value": 0.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 1.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 0.3,
+              "Tangent": {
+                "ArriveTangent": -2e-05,
+                "LeaveTangent": -2e-05,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 0.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        }
+      }
+    },
+    {
+      "widget": "BigFrame",
+      "slot": "None",
+      "type": "MovieScene2DTransformTrack",
+      "property": "RenderTransform",
+      "mask": 24,
+      "curves": {
+        "Translation": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 35000
+            }
+          ],
+          "Values": [
+            {
+              "Value": 0.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        },
+        "Translation[1]": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 35000
+            }
+          ],
+          "Values": [
+            {
+              "Value": 0.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        },
+        "Rotation": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 35000
+            }
+          ],
+          "Values": [
+            {
+              "Value": 0.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        },
+        "Scale": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 35000
+            },
+            {
+              "Value": 40000
+            },
+            {
+              "Value": 90000
+            }
+          ],
+          "Values": [
+            {
+              "Value": 0.9,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 1.0,
+              "Tangent": {
+                "ArriveTangent": 1.1e-05,
+                "LeaveTangent": 1.1e-05,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 1
+            },
+            {
+              "Value": 1.2,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        },
+        "Scale[1]": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 35000
+            },
+            {
+              "Value": 40000
+            },
+            {
+              "Value": 90000
+            }
+          ],
+          "Values": [
+            {
+              "Value": 0.9,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 1.0,
+              "Tangent": {
+                "ArriveTangent": 1.1e-05,
+                "LeaveTangent": 1.1e-05,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 1
+            },
+            {
+              "Value": 1.2,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        },
+        "Shear": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 35000
+            }
+          ],
+          "Values": [
+            {
+              "Value": 0.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        },
+        "Shear[1]": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 35000
+            }
+          ],
+          "Values": [
+            {
+              "Value": 0.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        }
+      }
+    },
+    {
+      "widget": "SideLinex4",
+      "slot": "None",
+      "type": "MovieSceneFloatTrack",
+      "property": "RenderOpacity",
+      "mask": null,
+      "curves": {
+        "FloatCurve": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 10000
+            },
+            {
+              "Value": 15000
+            },
+            {
+              "Value": 30000
+            },
+            {
+              "Value": 60000
+            },
+            {
+              "Value": 90000
+            },
+            {
+              "Value": 120000
+            }
+          ],
+          "Values": [
+            {
+              "Value": 0.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 1.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 1.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 0.3,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 0.3,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 0.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        }
+      }
+    },
+    {
+      "widget": "SideLinex4",
+      "slot": "None",
+      "type": "MovieSceneByteTrack",
+      "property": "Visibility",
+      "mask": null,
+      "curves": {
+        "ByteCurve": {
+          "Times": [
+            {
+              "Value": 1
+            },
+            {
+              "Value": 120000
+            }
+          ],
+          "Values": [
+            4,
+            1
+          ],
+          "Enum": {
+            "ObjectName": "Enum'ESlateVisibility'",
+            "ObjectPath": "/Script/UMG"
+          }
+        }
+      }
+    },
+    {
+      "widget": "SideLinex4",
+      "slot": "CanvasPanelSlot_7",
+      "type": "MovieSceneMarginTrack",
+      "property": "LayoutData.Offsets",
+      "mask": null,
+      "curves": {
+        "RightCurve": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 15000
+            },
+            {
+              "Value": 20000
+            },
+            {
+              "Value": 25000
+            }
+          ],
+          "Values": [
+            {
+              "Value": 52.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 140.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 126.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        },
+        "BottomCurve": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 14999
+            },
+            {
+              "Value": 20000
+            },
+            {
+              "Value": 25000
+            }
+          ],
+          "Values": [
+            {
+              "Value": 96.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 96.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 102.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        }
+      }
+    },
+    {
+      "widget": "Dotx4",
+      "slot": "None",
+      "type": "MovieSceneFloatTrack",
+      "property": "RenderOpacity",
+      "mask": null,
+      "curves": {
+        "FloatCurve": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 0
+            },
+            {
+              "Value": 5000
+            },
+            {
+              "Value": 60000
+            },
+            {
+              "Value": 90000
+            },
+            {
+              "Value": 95000
+            },
+            {
+              "Value": 100000
+            },
+            {
+              "Value": 105000
+            },
+            {
+              "Value": 110000
+            },
+            {
+              "Value": 115000
+            },
+            {
+              "Value": 120000
+            }
+          ],
+          "Values": [
+            {
+              "Value": 0.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 1.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 1.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 0.4,
+              "Tangent": {
+                "ArriveTangent": -1.1e-05,
+                "LeaveTangent": -1.1e-05,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 0.8,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 0.3,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 0.8,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 0.3,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 0.9,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 0.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        }
+      }
+    },
+    {
+      "widget": "Dotx4",
+      "slot": "None",
+      "type": "MovieSceneByteTrack",
+      "property": "Visibility",
+      "mask": null,
+      "curves": {
+        "ByteCurve": {
+          "Times": [
+            {
+              "Value": 1
+            },
+            {
+              "Value": 120000
+            }
+          ],
+          "Values": [
+            4,
+            1
+          ],
+          "Enum": {
+            "ObjectName": "Enum'ESlateVisibility'",
+            "ObjectPath": "/Script/UMG"
+          }
+        }
+      }
+    },
+    {
+      "widget": "Dotx4",
+      "slot": "CanvasPanelSlot_8",
+      "type": "MovieSceneMarginTrack",
+      "property": "LayoutData.Offsets",
+      "mask": null,
+      "curves": {
+        "RightCurve": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 10002
+            },
+            {
+              "Value": 15001
+            },
+            {
+              "Value": 20001
+            }
+          ],
+          "Values": [
+            {
+              "Value": 18.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 80.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 70.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        },
+        "BottomCurve": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 1
+            },
+            {
+              "Value": 5001
+            },
+            {
+              "Value": 10001
+            }
+          ],
+          "Values": [
+            {
+              "Value": 18.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 128.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 114.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        }
+      }
+    },
+    {
+      "widget": "WidgetSwitcher_Icon",
+      "slot": "None",
+      "type": "MovieSceneFloatTrack",
+      "property": "RenderOpacity",
+      "mask": null,
+      "curves": {
+        "FloatCurve": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 25000
+            },
+            {
+              "Value": 30000
+            }
+          ],
+          "Values": [
+            {
+              "Value": 0.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 1.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        }
+      }
+    },
+    {
+      "widget": "WidgetSwitcher_Icon",
+      "slot": "None",
+      "type": "MovieScene2DTransformTrack",
+      "property": "RenderTransform",
+      "mask": 24,
+      "curves": {
+        "Translation": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 30000
+            }
+          ],
+          "Values": [
+            {
+              "Value": 0.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        },
+        "Translation[1]": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 30000
+            }
+          ],
+          "Values": [
+            {
+              "Value": 0.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        },
+        "Rotation": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 30000
+            }
+          ],
+          "Values": [
+            {
+              "Value": 0.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        },
+        "Scale": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 30000
+            },
+            {
+              "Value": 35000
+            },
+            {
+              "Value": 45000
+            }
+          ],
+          "Values": [
+            {
+              "Value": 1.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 1.3,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 1.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        },
+        "Scale[1]": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 30000
+            },
+            {
+              "Value": 35000
+            },
+            {
+              "Value": 45000
+            }
+          ],
+          "Values": [
+            {
+              "Value": 1.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 1.3,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 1.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        },
+        "Shear": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 30000
+            }
+          ],
+          "Values": [
+            {
+              "Value": 0.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        },
+        "Shear[1]": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 30000
+            }
+          ],
+          "Values": [
+            {
+              "Value": 0.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        }
+      }
+    },
+    {
+      "widget": "Textsets",
+      "slot": "None",
+      "type": "MovieScene2DTransformTrack",
+      "property": "RenderTransform",
+      "mask": 9,
+      "curves": {
+        "Translation": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 45000
+            },
+            {
+              "Value": 50000
+            },
+            {
+              "Value": 55000
+            },
+            {
+              "Value": 60000
+            }
+          ],
+          "Values": [
+            {
+              "Value": -30.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 18.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": -3.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 0.0,
+              "Tangent": {
+                "ArriveTangent": -0.0012,
+                "LeaveTangent": -0.0012,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        },
+        "Translation[1]": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 45000
+            },
+            {
+              "Value": 50000
+            }
+          ],
+          "Values": [
+            {
+              "Value": 0.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 0.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        },
+        "Rotation": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 50000
+            }
+          ],
+          "Values": [
+            {
+              "Value": 0.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        },
+        "Scale": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 45000
+            },
+            {
+              "Value": 50000
+            },
+            {
+              "Value": 55000
+            },
+            {
+              "Value": 60000
+            }
+          ],
+          "Values": [
+            {
+              "Value": 2.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 0.9,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 1.05,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 1.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        },
+        "Scale[1]": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 50000
+            }
+          ],
+          "Values": [
+            {
+              "Value": 1.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        },
+        "Shear": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 50000
+            }
+          ],
+          "Values": [
+            {
+              "Value": 0.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        },
+        "Shear[1]": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 50000
+            }
+          ],
+          "Values": [
+            {
+              "Value": 0.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        }
+      }
+    },
+    {
+      "widget": "Textsets",
+      "slot": "None",
+      "type": "MovieSceneFloatTrack",
+      "property": "RenderOpacity",
+      "mask": null,
+      "curves": {
+        "FloatCurve": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 45000
+            },
+            {
+              "Value": 50000
+            }
+          ],
+          "Values": [
+            {
+              "Value": 0.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 1.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        }
+      }
+    },
+    {
+      "widget": "Image_74",
+      "slot": "None",
+      "type": "MovieSceneFloatTrack",
+      "property": "RenderOpacity",
+      "mask": null,
+      "curves": {
+        "FloatCurve": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 50000
+            },
+            {
+              "Value": 55000
+            },
+            {
+              "Value": 58000
+            },
+            {
+              "Value": 60000
+            },
+            {
+              "Value": 70000
+            }
+          ],
+          "Values": [
+            {
+              "Value": 0.3,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 0.3,
+              "Tangent": {
+                "ArriveTangent": -0.0001,
+                "LeaveTangent": -0.0001,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 0.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 1.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 0.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        }
+      }
+    },
+    {
+      "widget": "Image_74",
+      "slot": "None",
+      "type": "MovieScene2DTransformTrack",
+      "property": "RenderTransform",
+      "mask": 1,
+      "curves": {
+        "Translation": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 50000
+            },
+            {
+              "Value": 55000
+            },
+            {
+              "Value": 58000
+            }
+          ],
+          "Values": [
+            {
+              "Value": 18.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": -24.0,
+              "Tangent": {
+                "ArriveTangent": -0.0016,
+                "LeaveTangent": -0.0016,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 0.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        },
+        "Rotation": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 55000
+            }
+          ],
+          "Values": [
+            {
+              "Value": 0.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        },
+        "Scale": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 50000
+            },
+            {
+              "Value": 55000
+            },
+            {
+              "Value": 60000
+            },
+            {
+              "Value": 65000
+            }
+          ],
+          "Values": [
+            {
+              "Value": 0.1,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 0.4,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 1.4,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 1.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        },
+        "Scale[1]": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 55000
+            },
+            {
+              "Value": 60000
+            },
+            {
+              "Value": 65000
+            }
+          ],
+          "Values": [
+            {
+              "Value": 1.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 0.8,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 1.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        },
+        "Shear": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 55000
+            }
+          ],
+          "Values": [
+            {
+              "Value": 0.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        },
+        "Shear[1]": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 55000
+            }
+          ],
+          "Values": [
+            {
+              "Value": 0.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        }
+      }
+    },
+    {
+      "widget": "MainWhite",
+      "slot": "None",
+      "type": "MovieSceneFloatTrack",
+      "property": "RenderOpacity",
+      "mask": null,
+      "curves": {
+        "FloatCurve": {
+          "PreInfinityExtrap": "RCCE_Constant",
+          "PostInfinityExtrap": "RCCE_Constant",
+          "Times": [
+            {
+              "Value": 25000
+            },
+            {
+              "Value": 30000
+            },
+            {
+              "Value": 35000
+            },
+            {
+              "Value": 45000
+            }
+          ],
+          "Values": [
+            {
+              "Value": 0.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 1.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 0.3,
+              "Tangent": {
+                "ArriveTangent": -6.7e-05,
+                "LeaveTangent": -6.7e-05,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            },
+            {
+              "Value": 0.0,
+              "Tangent": {
+                "ArriveTangent": 0.0,
+                "LeaveTangent": 0.0,
+                "ArriveTangentWeight": 0.0,
+                "LeaveTangentWeight": 0.0,
+                "TangentWeightMode": 0
+              },
+              "InterpMode": 2,
+              "TangentMode": 0
+            }
+          ],
+          "DefaultValue": 0.0,
+          "bHasDefaultValue": false,
+          "TickResolution": {
+            "Numerator": 60000,
+            "Denominator": 1
+          },
+          "bShowCurve": false,
+          "StructFallback": null
+        }
+      }
+    },
+    {
+      "widget": "CanvasPanel_Root",
+      "slot": "None",
+      "type": "MovieSceneByteTrack",
+      "property": "Visibility",
+      "mask": null,
+      "curves": {
+        "ByteCurve": {
+          "Times": [
+            {
+              "Value": 0
+            },
+            {
+              "Value": 210000
+            }
+          ],
+          "Values": [
+            3,
+            1
+          ],
+          "Enum": {
+            "ObjectName": "Enum'ESlateVisibility'",
+            "ObjectPath": "/Script/UMG"
+          }
+        }
+      }
+    },
+    {
+      "widget": "Panel_Stars",
+      "slot": "None",
+      "type": "MovieSceneByteTrack",
+      "property": "Visibility",
+      "mask": null,
+      "curves": {
+        "ByteCurve": {
+          "Times": [
+            {
+              "Value": 0
+            }
+          ],
+          "Values": [
+            1
+          ],
+          "Enum": {
+            "ObjectName": "Enum'ESlateVisibility'",
+            "ObjectPath": "/Script/UMG"
+          }
+        }
+      }
+    },
+    {
+      "widget": "ParticleSystemWidget_434",
+      "slot": "None",
+      "type": "MovieSceneByteTrack",
+      "property": "Visibility",
+      "mask": null,
+      "curves": {
+        "ByteCurve": {
+          "Times": [
+            {
+              "Value": 157935
+            }
+          ],
+          "Values": [
+            1
+          ],
+          "Enum": {
+            "ObjectName": "Enum'ESlateVisibility'",
+            "ObjectPath": "/Script/UMG"
+          }
+        }
+      }
+    },
+    {
+      "widget": "Image_1",
+      "slot": "None",
+      "type": "MovieSceneByteTrack",
+      "property": "Visibility",
+      "mask": null,
+      "curves": {
+        "ByteCurve": {
+          "Times": [
+            {
+              "Value": 159055
+            }
+          ],
+          "Values": [
+            1
+          ],
+          "Enum": {
+            "ObjectName": "Enum'ESlateVisibility'",
+            "ObjectPath": "/Script/UMG"
+          }
+        }
+      }
+    },
+    {
+      "widget": "s1",
+      "slot": "None",
+      "type": "MovieSceneByteTrack",
+      "property": "Visibility",
+      "mask": null,
+      "curves": {
+        "ByteCurve": {
+          "Times": [
+            {
+              "Value": 194392
+            }
+          ],
+          "Values": [
+            1
+          ],
+          "Enum": {
+            "ObjectName": "Enum'ESlateVisibility'",
+            "ObjectPath": "/Script/UMG"
+          }
+        }
+      }
+    },
+    {
+      "widget": "s2",
+      "slot": "None",
+      "type": "MovieSceneByteTrack",
+      "property": "Visibility",
+      "mask": null,
+      "curves": {
+        "ByteCurve": {
+          "Times": [
+            {
+              "Value": 190432
+            }
+          ],
+          "Values": [
+            1
+          ],
+          "Enum": {
+            "ObjectName": "Enum'ESlateVisibility'",
+            "ObjectPath": "/Script/UMG"
+          }
+        }
+      }
+    },
+    {
+      "widget": "s3",
+      "slot": "None",
+      "type": "MovieSceneByteTrack",
+      "property": "Visibility",
+      "mask": null,
+      "curves": {
+        "ByteCurve": {
+          "Times": [
+            {
+              "Value": 198214
+            }
+          ],
+          "Values": [
+            1
+          ],
+          "Enum": {
+            "ObjectName": "Enum'ESlateVisibility'",
+            "ObjectPath": "/Script/UMG"
+          }
+        }
+      }
+    }
+  ],
+  "widgets": {
+    "CanvasPanel_Injured": {
+      "type": "CanvasPanel",
+      "properties": {
+        "Slots": [
+          {
+            "ObjectName": "CanvasPanelSlot'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured.CanvasPanelSlot_0'",
+            "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.24"
+          },
+          {
+            "ObjectName": "CanvasPanelSlot'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured.CanvasPanelSlot_14'",
+            "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.30"
+          },
+          {
+            "ObjectName": "CanvasPanelSlot'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured.CanvasPanelSlot_4'",
+            "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.35"
+          },
+          {
+            "ObjectName": "CanvasPanelSlot'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured.CanvasPanelSlot_1'",
+            "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.25"
+          },
+          {
+            "ObjectName": "CanvasPanelSlot'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured.CanvasPanelSlot_6'",
+            "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.36"
+          },
+          {
+            "ObjectName": "CanvasPanelSlot'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured.CanvasPanelSlot_7'",
+            "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.37"
+          },
+          {
+            "ObjectName": "CanvasPanelSlot'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured.CanvasPanelSlot_8'",
+            "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.38"
+          },
+          {
+            "ObjectName": "CanvasPanelSlot'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured.CanvasPanelSlot_9'",
+            "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.39"
+          },
+          {
+            "ObjectName": "CanvasPanelSlot'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured.CanvasPanelSlot_11'",
+            "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.27"
+          },
+          {
+            "ObjectName": "CanvasPanelSlot'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured.CanvasPanelSlot_3'",
+            "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.34"
+          },
+          {
+            "ObjectName": "CanvasPanelSlot'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured.CanvasPanelSlot_10'",
+            "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.26"
+          },
+          {
+            "ObjectName": "CanvasPanelSlot'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured.CanvasPanelSlot_12'",
+            "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.28"
+          },
+          {
+            "ObjectName": "CanvasPanelSlot'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured.CanvasPanelSlot_13'",
+            "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.29"
+          },
+          {
+            "ObjectName": "CanvasPanelSlot'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured.CanvasPanelSlot_16'",
+            "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.32"
+          },
+          {
+            "ObjectName": "CanvasPanelSlot'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured.CanvasPanelSlot_2'",
+            "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.33"
+          },
+          {
+            "ObjectName": "CanvasPanelSlot'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured.CanvasPanelSlot_15'",
+            "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.31"
+          }
+        ],
+        "Slot": {
+          "ObjectName": "CanvasPanelSlot'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Root.CanvasPanelSlot_1'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.42"
+        },
+        "bIsVariable": true,
+        "Visibility": "ESlateVisibility::HitTestInvisible",
+        "RenderOpacity": 0.0
+      },
+      "slot": {
+        "LayoutData": {
+          "Offsets": {
+            "Right": 94.0,
+            "Bottom": 106.0
+          },
+          "Anchors": {
+            "Minimum": {
+              "X": 0.5,
+              "Y": 0.5
+            },
+            "Maximum": {
+              "X": 0.5,
+              "Y": 0.5
+            }
+          },
+          "Alignment": {
+            "X": 0.5,
+            "Y": 0.5
+          }
+        },
+        "Parent": {
+          "ObjectName": "CanvasPanel'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Root'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.4"
+        },
+        "Content": {
+          "ObjectName": "CanvasPanel'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.2"
+        }
+      }
+    },
+    "CanvasPanel_Kill": {
+      "type": "CanvasPanel",
+      "properties": {
+        "Slots": [
+          {
+            "ObjectName": "CanvasPanelSlot'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Kill.CanvasPanelSlot_33'",
+            "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.40"
+          }
+        ],
+        "Slot": {
+          "ObjectName": "CanvasPanelSlot'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Root.CanvasPanelSlot_2'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.43"
+        },
+        "RenderTransformPivot": {
+          "X": 0.5,
+          "Y": 0.0
+        }
+      },
+      "slot": {
+        "LayoutData": {
+          "Offsets": {
+            "Top": -40.0,
+            "Right": 94.0,
+            "Bottom": 24.0
+          },
+          "Anchors": {
+            "Minimum": {
+              "X": 0.5,
+              "Y": 0.0
+            },
+            "Maximum": {
+              "X": 0.5,
+              "Y": 0.0
+            }
+          },
+          "Alignment": {
+            "X": 0.5,
+            "Y": 0.5
+          }
+        },
+        "Parent": {
+          "ObjectName": "CanvasPanel'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Root'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.4"
+        },
+        "Content": {
+          "ObjectName": "CanvasPanel'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Kill'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.3"
+        }
+      }
+    },
+    "CanvasPanel_Root": {
+      "type": "CanvasPanel",
+      "properties": {
+        "Slots": [
+          {
+            "ObjectName": "CanvasPanelSlot'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Root.CanvasPanelSlot_2'",
+            "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.43"
+          },
+          {
+            "ObjectName": "CanvasPanelSlot'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Root.CanvasPanelSlot_1'",
+            "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.42"
+          },
+          {
+            "ObjectName": "CanvasPanelSlot'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Root.CanvasPanelSlot_0'",
+            "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.41"
+          }
+        ],
+        "Visibility": "ESlateVisibility::Collapsed"
+      },
+      "slot": {}
+    },
+    "Overlay_Revenge": {
+      "type": "CanvasPanel",
+      "properties": {
+        "Slots": [
+          {
+            "ObjectName": "CanvasPanelSlot'WBP_IconFeedbackPage_C:WidgetTree.Overlay_Revenge.CanvasPanelSlot_0'",
+            "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.44"
+          }
+        ],
+        "Slot": {
+          "ObjectName": "CanvasPanelSlot'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Kill.CanvasPanelSlot_33'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.40"
+        },
+        "Visibility": "ESlateVisibility::Collapsed"
+      },
+      "slot": {
+        "LayoutData": {
+          "Offsets": {
+            "Right": 0.0,
+            "Bottom": 24.0
+          },
+          "Anchors": {
+            "Minimum": {
+              "X": 0.0,
+              "Y": 1.0
+            },
+            "Maximum": {
+              "X": 1.0,
+              "Y": 1.0
+            }
+          },
+          "Alignment": {
+            "X": 0.0,
+            "Y": 1.0
+          }
+        },
+        "Parent": {
+          "ObjectName": "CanvasPanel'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Kill'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.3"
+        },
+        "Content": {
+          "ObjectName": "CanvasPanel'WBP_IconFeedbackPage_C:WidgetTree.Overlay_Revenge'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.5"
+        }
+      }
+    },
+    "Textsets": {
+      "type": "CanvasPanel",
+      "properties": {
+        "Slots": [
+          {
+            "ObjectName": "CanvasPanelSlot'WBP_IconFeedbackPage_C:WidgetTree.Textsets.CanvasPanelSlot_1'",
+            "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.46"
+          },
+          {
+            "ObjectName": "CanvasPanelSlot'WBP_IconFeedbackPage_C:WidgetTree.Textsets.CanvasPanelSlot_0'",
+            "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.45"
+          }
+        ],
+        "Slot": {
+          "ObjectName": "CanvasPanelSlot'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured.CanvasPanelSlot_4'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.35"
+        }
+      },
+      "slot": {
+        "LayoutData": {
+          "Offsets": {
+            "Top": 6.0
+          },
+          "Anchors": {
+            "Minimum": {
+              "X": 0.5,
+              "Y": 0.0
+            },
+            "Maximum": {
+              "X": 0.5,
+              "Y": 0.0
+            }
+          },
+          "Alignment": {
+            "X": 0.5,
+            "Y": 0.5
+          }
+        },
+        "bAutoSize": true,
+        "Parent": {
+          "ObjectName": "CanvasPanel'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.2"
+        },
+        "Content": {
+          "ObjectName": "CanvasPanel'WBP_IconFeedbackPage_C:WidgetTree.Textsets'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.6"
+        }
+      }
+    },
+    "Panel_Stars": {
+      "type": "HorizontalBox",
+      "properties": {
+        "Slots": [
+          {
+            "ObjectName": "HorizontalBoxSlot'WBP_IconFeedbackPage_C:WidgetTree.Panel_Stars.HorizontalBoxSlot_8'",
+            "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.117"
+          },
+          {
+            "ObjectName": "HorizontalBoxSlot'WBP_IconFeedbackPage_C:WidgetTree.Panel_Stars.HorizontalBoxSlot_6'",
+            "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.115"
+          },
+          {
+            "ObjectName": "HorizontalBoxSlot'WBP_IconFeedbackPage_C:WidgetTree.Panel_Stars.HorizontalBoxSlot_5'",
+            "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.114"
+          },
+          {
+            "ObjectName": "HorizontalBoxSlot'WBP_IconFeedbackPage_C:WidgetTree.Panel_Stars.HorizontalBoxSlot_7'",
+            "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.116"
+          },
+          {
+            "ObjectName": "HorizontalBoxSlot'WBP_IconFeedbackPage_C:WidgetTree.Panel_Stars.HorizontalBoxSlot_4'",
+            "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.113"
+          }
+        ],
+        "Slot": {
+          "ObjectName": "CanvasPanelSlot'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured.CanvasPanelSlot_3'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.34"
+        },
+        "Visibility": "ESlateVisibility::Collapsed"
+      },
+      "slot": {
+        "LayoutData": {
+          "Offsets": {
+            "Top": 2.0,
+            "Bottom": 100.0
+          },
+          "Anchors": {
+            "Minimum": {
+              "X": 0.5,
+              "Y": 1.0
+            },
+            "Maximum": {
+              "X": 0.5,
+              "Y": 1.0
+            }
+          },
+          "Alignment": {
+            "X": 0.5,
+            "Y": 1.0
+          }
+        },
+        "bAutoSize": true,
+        "Parent": {
+          "ObjectName": "CanvasPanel'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.2"
+        },
+        "Content": {
+          "ObjectName": "HorizontalBox'WBP_IconFeedbackPage_C:WidgetTree.Panel_Stars'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.110"
+        }
+      }
+    },
+    "BigFrame": {
+      "type": "Image",
+      "properties": {
+        "Brush": {
+          "ImageSize": {
+            "X": 168.0,
+            "Y": 190.0
+          },
+          "ResourceObject": {
+            "ObjectName": "PaperSprite'SPR_UI_HUDPC_REAC_Main05'",
+            "ObjectPath": "/Game/PaperMan/UI/Atlas/PC/InGame/HUDPC/Frames/SPR_UI_HUDPC_REAC_Main05"
+          }
+        },
+        "Slot": {
+          "ObjectName": "CanvasPanelSlot'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured.CanvasPanelSlot_6'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.36"
+        },
+        "bIsVariable": false,
+        "RenderOpacity": 0.0
+      },
+      "slot": {
+        "LayoutData": {
+          "Offsets": {
+            "Right": 0.0,
+            "Bottom": 0.0
+          },
+          "Anchors": {
+            "Minimum": {
+              "X": 0.5,
+              "Y": 0.5
+            },
+            "Maximum": {
+              "X": 0.5,
+              "Y": 0.5
+            }
+          },
+          "Alignment": {
+            "X": 0.5,
+            "Y": 0.5
+          }
+        },
+        "bAutoSize": true,
+        "Parent": {
+          "ObjectName": "CanvasPanel'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.2"
+        },
+        "Content": {
+          "ObjectName": "Image'WBP_IconFeedbackPage_C:WidgetTree.BigFrame'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.129"
+        }
+      }
+    },
+    "Dotx4": {
+      "type": "Image",
+      "properties": {
+        "Brush": {
+          "ImageSize": {
+            "X": 18.0,
+            "Y": 18.0
+          },
+          "Margin": {
+            "Left": 0.5,
+            "Top": 0.5,
+            "Right": 0.5,
+            "Bottom": 0.5
+          },
+          "ResourceObject": {
+            "ObjectName": "PaperSprite'SPR_UI_HUDPC_REAC_Main03'",
+            "ObjectPath": "/Game/PaperMan/UI/Atlas/PC/InGame/HUDPC/Frames/SPR_UI_HUDPC_REAC_Main03"
+          },
+          "DrawAs": "ESlateBrushDrawType::Box"
+        },
+        "Slot": {
+          "ObjectName": "CanvasPanelSlot'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured.CanvasPanelSlot_8'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.38"
+        },
+        "bIsVariable": false
+      },
+      "slot": {
+        "LayoutData": {
+          "Offsets": {
+            "Right": 70.0,
+            "Bottom": 114.0
+          },
+          "Anchors": {
+            "Minimum": {
+              "X": 0.5,
+              "Y": 0.5
+            },
+            "Maximum": {
+              "X": 0.5,
+              "Y": 0.5
+            }
+          },
+          "Alignment": {
+            "X": 0.5,
+            "Y": 0.5
+          }
+        },
+        "Parent": {
+          "ObjectName": "CanvasPanel'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.2"
+        },
+        "Content": {
+          "ObjectName": "Image'WBP_IconFeedbackPage_C:WidgetTree.Dotx4'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.130"
+        }
+      }
+    },
+    "Frame": {
+      "type": "Image",
+      "properties": {
+        "Brush": {
+          "ImageSize": {
+            "X": 104.0,
+            "Y": 114.0
+          },
+          "ResourceObject": {
+            "ObjectName": "PaperSprite'SPR_UI_HUDPC_REAC_Main01'",
+            "ObjectPath": "/Game/PaperMan/UI/Atlas/PC/InGame/HUDPC/Frames/SPR_UI_HUDPC_REAC_Main01"
+          }
+        },
+        "Slot": {
+          "ObjectName": "CanvasPanelSlot'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured.CanvasPanelSlot_1'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.25"
+        },
+        "bIsVariable": false,
+        "RenderOpacity": 0.0
+      },
+      "slot": {
+        "LayoutData": {
+          "Offsets": {
+            "Right": 0.0,
+            "Bottom": 0.0
+          },
+          "Anchors": {
+            "Minimum": {
+              "X": 0.5,
+              "Y": 0.5
+            },
+            "Maximum": {
+              "X": 0.5,
+              "Y": 0.5
+            }
+          },
+          "Alignment": {
+            "X": 0.5,
+            "Y": 0.5
+          }
+        },
+        "bAutoSize": true,
+        "Parent": {
+          "ObjectName": "CanvasPanel'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.2"
+        },
+        "Content": {
+          "ObjectName": "Image'WBP_IconFeedbackPage_C:WidgetTree.Frame'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.131"
+        }
+      }
+    },
+    "Image_1": {
+      "type": "Image",
+      "properties": {
+        "Brush": {
+          "ResourceObject": {
+            "ObjectName": "MaterialInstanceConstant'MI_Ui_Cbn_022'",
+            "ObjectPath": "/Game/PaperMan/Effects/Materials/UI/MI_Ui_Cbn_022"
+          }
+        },
+        "Slot": {
+          "ObjectName": "CanvasPanelSlot'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured.CanvasPanelSlot_13'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.29"
+        },
+        "Visibility": "ESlateVisibility::Collapsed"
+      },
+      "slot": {
+        "LayoutData": {
+          "Offsets": {
+            "Bottom": 100.0
+          },
+          "Anchors": {
+            "Minimum": {
+              "X": 0.5,
+              "Y": 0.5
+            },
+            "Maximum": {
+              "X": 0.5,
+              "Y": 0.5
+            }
+          },
+          "Alignment": {
+            "X": 0.5,
+            "Y": 0.5
+          }
+        },
+        "Parent": {
+          "ObjectName": "CanvasPanel'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.2"
+        },
+        "Content": {
+          "ObjectName": "Image'WBP_IconFeedbackPage_C:WidgetTree.Image_1'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.132"
+        }
+      }
+    },
+    "Image_2": {
+      "type": "Image",
+      "properties": {
+        "Brush": {
+          "ResourceObject": {
+            "ObjectName": "MaterialInstanceConstant'MI_Ui_Cbn_023'",
+            "ObjectPath": "/Game/PaperMan/Effects/Materials/UI/MI_Ui_Cbn_023"
+          }
+        },
+        "Slot": {
+          "ObjectName": "CanvasPanelSlot'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured.CanvasPanelSlot_16'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.32"
+        },
+        "Visibility": "ESlateVisibility::Collapsed"
+      },
+      "slot": {
+        "LayoutData": {
+          "Offsets": {
+            "Bottom": 100.0
+          },
+          "Anchors": {
+            "Minimum": {
+              "X": 0.5,
+              "Y": 0.5
+            },
+            "Maximum": {
+              "X": 0.5,
+              "Y": 0.5
+            }
+          },
+          "Alignment": {
+            "X": 0.5,
+            "Y": 0.5
+          }
+        },
+        "Parent": {
+          "ObjectName": "CanvasPanel'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.2"
+        },
+        "Content": {
+          "ObjectName": "Image'WBP_IconFeedbackPage_C:WidgetTree.Image_2'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.133"
+        }
+      }
+    },
+    "Image_74": {
+      "type": "Image",
+      "properties": {
+        "Brush": {
+          "ImageSize": {
+            "X": 20.0,
+            "Y": 20.0
+          },
+          "Margin": {
+            "Left": 0.5,
+            "Top": 0.5,
+            "Right": 0.5,
+            "Bottom": 0.5
+          },
+          "ResourceObject": {
+            "ObjectName": "PaperSprite'SPR_UI_HUDPC_Growth_bg'",
+            "ObjectPath": "/Game/PaperMan/UI/Atlas/PC/InGame/HUDPC/Frames/SPR_UI_HUDPC_Growth_bg"
+          },
+          "DrawAs": "ESlateBrushDrawType::Box"
+        },
+        "Slot": {
+          "ObjectName": "CanvasPanelSlot'WBP_IconFeedbackPage_C:WidgetTree.Textsets.CanvasPanelSlot_0'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.45"
+        },
+        "RenderOpacity": 0.0
+      },
+      "slot": {
+        "LayoutData": {
+          "Offsets": {
+            "Left": -4.0,
+            "Top": 1.0,
+            "Right": -4.0,
+            "Bottom": 3.0
+          },
+          "Anchors": {
+            "Maximum": {
+              "X": 1.0,
+              "Y": 1.0
+            }
+          },
+          "Alignment": {
+            "X": 0.5,
+            "Y": 0.5
+          }
+        },
+        "ZOrder": 1,
+        "Parent": {
+          "ObjectName": "CanvasPanel'WBP_IconFeedbackPage_C:WidgetTree.Textsets'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.6"
+        },
+        "Content": {
+          "ObjectName": "Image'WBP_IconFeedbackPage_C:WidgetTree.Image_74'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.134"
+        }
+      }
+    },
+    "Image_FeedbackIcon": {
+      "type": "Image",
+      "properties": {
+        "Brush": {
+          "ImageSize": {
+            "X": 67.0,
+            "Y": 69.0
+          },
+          "ResourceObject": {
+            "ObjectName": "PaperSprite'SPR_UI_HUDPC_React9'",
+            "ObjectPath": "/Game/PaperMan/UI/Atlas/PC/InGame/HUDPC/Frames/SPR_UI_HUDPC_React9"
+          }
+        },
+        "Slot": {
+          "ObjectName": "CanvasPanelSlot'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured.CanvasPanelSlot_14'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.30"
+        }
+      },
+      "slot": {
+        "LayoutData": {
+          "Offsets": {
+            "Right": 67.0,
+            "Bottom": 69.0
+          },
+          "Anchors": {
+            "Minimum": {
+              "X": 0.5,
+              "Y": 0.5
+            },
+            "Maximum": {
+              "X": 0.5,
+              "Y": 0.5
+            }
+          },
+          "Alignment": {
+            "X": 0.5,
+            "Y": 0.5
+          }
+        },
+        "bAutoSize": true,
+        "Parent": {
+          "ObjectName": "CanvasPanel'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.2"
+        },
+        "Content": {
+          "ObjectName": "Image'WBP_IconFeedbackPage_C:WidgetTree.Image_FeedbackIcon'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.135"
+        }
+      }
+    },
+    "MainBG": {
+      "type": "Image",
+      "properties": {
+        "Brush": {
+          "ImageSize": {
+            "X": 94.0,
+            "Y": 106.0
+          },
+          "ResourceObject": {
+            "ObjectName": "PaperSprite'SPR_UI_HUDPC_REAC_Main1'",
+            "ObjectPath": "/Game/PaperMan/UI/Atlas/PC/InGame/HUDPC/Frames/SPR_UI_HUDPC_REAC_Main1"
+          }
+        },
+        "ColorAndOpacity": {
+          "R": 1.0,
+          "G": 1.0,
+          "B": 1.0,
+          "A": 0.8,
+          "Hex": "CCFFFFFF"
+        },
+        "Slot": {
+          "ObjectName": "CanvasPanelSlot'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured.CanvasPanelSlot_0'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.24"
+        },
+        "bIsVariable": false
+      },
+      "slot": {
+        "LayoutData": {
+          "Offsets": {
+            "Right": 0.0,
+            "Bottom": 0.0
+          },
+          "Anchors": {
+            "Minimum": {
+              "X": 0.5,
+              "Y": 0.5
+            },
+            "Maximum": {
+              "X": 0.5,
+              "Y": 0.5
+            }
+          },
+          "Alignment": {
+            "X": 0.5,
+            "Y": 0.5
+          }
+        },
+        "bAutoSize": true,
+        "Parent": {
+          "ObjectName": "CanvasPanel'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.2"
+        },
+        "Content": {
+          "ObjectName": "Image'WBP_IconFeedbackPage_C:WidgetTree.MainBG'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.136"
+        }
+      }
+    },
+    "MainWhite": {
+      "type": "Image",
+      "properties": {
+        "Brush": {
+          "ImageSize": {
+            "X": 94.0,
+            "Y": 106.0
+          },
+          "ResourceObject": {
+            "ObjectName": "PaperSprite'SPR_UI_HUDPC_REAC_Main'",
+            "ObjectPath": "/Game/PaperMan/UI/Atlas/PC/InGame/HUDPC/Frames/SPR_UI_HUDPC_REAC_Main"
+          }
+        },
+        "Slot": {
+          "ObjectName": "CanvasPanelSlot'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured.CanvasPanelSlot_10'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.26"
+        },
+        "bIsVariable": false,
+        "RenderOpacity": 0.0
+      },
+      "slot": {
+        "LayoutData": {
+          "Offsets": {
+            "Right": 0.0,
+            "Bottom": 0.0
+          },
+          "Anchors": {
+            "Minimum": {
+              "X": 0.5,
+              "Y": 0.5
+            },
+            "Maximum": {
+              "X": 0.5,
+              "Y": 0.5
+            }
+          },
+          "Alignment": {
+            "X": 0.5,
+            "Y": 0.5
+          }
+        },
+        "bAutoSize": true,
+        "Parent": {
+          "ObjectName": "CanvasPanel'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.2"
+        },
+        "Content": {
+          "ObjectName": "Image'WBP_IconFeedbackPage_C:WidgetTree.MainWhite'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.137"
+        }
+      }
+    },
+    "SideLinex2": {
+      "type": "Image",
+      "properties": {
+        "Brush": {
+          "ImageSize": {
+            "X": 54.0,
+            "Y": 60.0
+          },
+          "Margin": {
+            "Left": 0.5,
+            "Top": 0.5,
+            "Right": 0.5,
+            "Bottom": 0.5
+          },
+          "ResourceObject": {
+            "ObjectName": "PaperSprite'SPR_UI_HUDPC_REAC_Main04'",
+            "ObjectPath": "/Game/PaperMan/UI/Atlas/PC/InGame/HUDPC/Frames/SPR_UI_HUDPC_REAC_Main04"
+          },
+          "DrawAs": "ESlateBrushDrawType::Box"
+        },
+        "Slot": {
+          "ObjectName": "CanvasPanelSlot'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured.CanvasPanelSlot_9'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.39"
+        },
+        "bIsVariable": false,
+        "RenderOpacity": 0.0
+      },
+      "slot": {
+        "LayoutData": {
+          "Offsets": {
+            "Right": 140.0,
+            "Bottom": 112.0
+          },
+          "Anchors": {
+            "Minimum": {
+              "X": 0.5,
+              "Y": 0.5
+            },
+            "Maximum": {
+              "X": 0.5,
+              "Y": 0.5
+            }
+          },
+          "Alignment": {
+            "X": 0.5,
+            "Y": 0.5
+          }
+        },
+        "Parent": {
+          "ObjectName": "CanvasPanel'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.2"
+        },
+        "Content": {
+          "ObjectName": "Image'WBP_IconFeedbackPage_C:WidgetTree.SideLinex2'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.138"
+        }
+      }
+    },
+    "SideLinex4": {
+      "type": "Image",
+      "properties": {
+        "Brush": {
+          "ImageSize": {
+            "X": 54.0,
+            "Y": 96.0
+          },
+          "Margin": {
+            "Left": 0.5,
+            "Top": 0.5,
+            "Right": 0.5,
+            "Bottom": 0.5
+          },
+          "ResourceObject": {
+            "ObjectName": "PaperSprite'SPR_UI_HUDPC_REAC_Main02'",
+            "ObjectPath": "/Game/PaperMan/UI/Atlas/PC/InGame/HUDPC/Frames/SPR_UI_HUDPC_REAC_Main02"
+          },
+          "DrawAs": "ESlateBrushDrawType::Box"
+        },
+        "Slot": {
+          "ObjectName": "CanvasPanelSlot'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured.CanvasPanelSlot_7'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.37"
+        },
+        "bIsVariable": false,
+        "RenderOpacity": 0.4
+      },
+      "slot": {
+        "LayoutData": {
+          "Offsets": {
+            "Right": 126.0,
+            "Bottom": 102.0
+          },
+          "Anchors": {
+            "Minimum": {
+              "X": 0.5,
+              "Y": 0.5
+            },
+            "Maximum": {
+              "X": 0.5,
+              "Y": 0.5
+            }
+          },
+          "Alignment": {
+            "X": 0.5,
+            "Y": 0.5
+          }
+        },
+        "Parent": {
+          "ObjectName": "CanvasPanel'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.2"
+        },
+        "Content": {
+          "ObjectName": "Image'WBP_IconFeedbackPage_C:WidgetTree.SideLinex4'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.139"
+        }
+      }
+    },
+    "Spark": {
+      "type": "Image",
+      "properties": {
+        "Brush": {
+          "ImageSize": {
+            "X": 336.0,
+            "Y": 388.0
+          },
+          "ResourceObject": {
+            "ObjectName": "MaterialInstanceConstant'M_FeedBackSpark'",
+            "ObjectPath": "/Game/PaperMan/UI/Material/M_FeedBackSpark"
+          }
+        },
+        "Slot": {
+          "ObjectName": "CanvasPanelSlot'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured.CanvasPanelSlot_11'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.27"
+        },
+        "RenderOpacity": 0.0
+      },
+      "slot": {
+        "LayoutData": {
+          "Offsets": {
+            "Right": 336.0,
+            "Bottom": 388.0
+          },
+          "Anchors": {
+            "Minimum": {
+              "X": 0.5,
+              "Y": 0.5
+            },
+            "Maximum": {
+              "X": 0.5,
+              "Y": 0.5
+            }
+          },
+          "Alignment": {
+            "X": 0.5,
+            "Y": 0.5
+          }
+        },
+        "ZOrder": 1,
+        "Parent": {
+          "ObjectName": "CanvasPanel'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.2"
+        },
+        "Content": {
+          "ObjectName": "Image'WBP_IconFeedbackPage_C:WidgetTree.Spark'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.140"
+        }
+      }
+    },
+    "ParticleSystemWidget_434": {
+      "type": "ParticleSystemWidget",
+      "properties": {
+        "ParticleSystemTemplate": {
+          "ObjectName": "ParticleSystem'FX_UI_ScreenEffect_jishatubiao_01'",
+          "ObjectPath": "/Game/PaperMan/Effects/FX_NE/UI/ScreenEffect/FX_UI_ScreenEffect_jishatubiao_01"
+        },
+        "Slot": {
+          "ObjectName": "CanvasPanelSlot'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured.CanvasPanelSlot_12'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.28"
+        },
+        "Visibility": "ESlateVisibility::Collapsed"
+      },
+      "slot": {
+        "LayoutData": {
+          "Offsets": {
+            "Bottom": 100.0
+          },
+          "Anchors": {
+            "Minimum": {
+              "X": 0.5,
+              "Y": 0.5
+            },
+            "Maximum": {
+              "X": 0.5,
+              "Y": 0.5
+            }
+          },
+          "Alignment": {
+            "X": 0.5,
+            "Y": 0.5
+          }
+        },
+        "Parent": {
+          "ObjectName": "CanvasPanel'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.2"
+        },
+        "Content": {
+          "ObjectName": "ParticleSystemWidget'WBP_IconFeedbackPage_C:WidgetTree.ParticleSystemWidget_434'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.954"
+        }
+      }
+    },
+    "s1": {
+      "type": "ParticleSystemWidget",
+      "properties": {
+        "ParticleSystemTemplate": {
+          "ObjectName": "ParticleSystem'FX_UI_ScreenEffect_jishatubiao_02'",
+          "ObjectPath": "/Game/PaperMan/Effects/FX_NE/UI/ScreenEffect/FX_UI_ScreenEffect_jishatubiao_02"
+        },
+        "Slot": {
+          "ObjectName": "CanvasPanelSlot'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured.CanvasPanelSlot_2'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.33"
+        },
+        "Visibility": "ESlateVisibility::Collapsed"
+      },
+      "slot": {
+        "LayoutData": {
+          "Offsets": {
+            "Bottom": 100.0
+          },
+          "Anchors": {
+            "Minimum": {
+              "X": 0.5,
+              "Y": 0.5
+            },
+            "Maximum": {
+              "X": 0.5,
+              "Y": 0.5
+            }
+          },
+          "Alignment": {
+            "X": 0.5,
+            "Y": 0.5
+          }
+        },
+        "Parent": {
+          "ObjectName": "CanvasPanel'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.2"
+        },
+        "Content": {
+          "ObjectName": "ParticleSystemWidget'WBP_IconFeedbackPage_C:WidgetTree.s1'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.955"
+        }
+      }
+    },
+    "s3": {
+      "type": "ParticleSystemWidget",
+      "properties": {
+        "ParticleSystemTemplate": {
+          "ObjectName": "ParticleSystem'FX_UI_ScreenEffect_jishatubiao_03'",
+          "ObjectPath": "/Game/PaperMan/Effects/FX_NE/UI/ScreenEffect/FX_UI_ScreenEffect_jishatubiao_03"
+        },
+        "Slot": {
+          "ObjectName": "CanvasPanelSlot'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured.CanvasPanelSlot_15'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.31"
+        },
+        "Visibility": "ESlateVisibility::Collapsed"
+      },
+      "slot": {
+        "LayoutData": {
+          "Offsets": {
+            "Bottom": 100.0
+          },
+          "Anchors": {
+            "Minimum": {
+              "X": 0.5,
+              "Y": 0.5
+            },
+            "Maximum": {
+              "X": 0.5,
+              "Y": 0.5
+            }
+          },
+          "Alignment": {
+            "X": 0.5,
+            "Y": 0.5
+          }
+        },
+        "Parent": {
+          "ObjectName": "CanvasPanel'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Injured'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.2"
+        },
+        "Content": {
+          "ObjectName": "ParticleSystemWidget'WBP_IconFeedbackPage_C:WidgetTree.s3'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.956"
+        }
+      }
+    },
+    "Text_FeedbackTypeName": {
+      "type": "TextBlock",
+      "properties": {
+        "Text": {
+          "CultureInvariantString": "道具击倒"
+        },
+        "ColorAndOpacity": {
+          "SpecifiedColor": {
+            "R": 0.723055,
+            "G": 0.723055,
+            "B": 0.723055,
+            "A": 1.0,
+            "Hex": "DDDDDD"
+          }
+        },
+        "Font": {
+          "FontObject": {
+            "ObjectName": "Font'CALABI-YAU'",
+            "ObjectPath": "/Game/PaperMan/UI/Fonts/CALABI-YAU"
+          },
+          "OutlineSettings": {
+            "OutlineSize": 2
+          },
+          "Size": 14
+        },
+        "Slot": {
+          "ObjectName": "CanvasPanelSlot'WBP_IconFeedbackPage_C:WidgetTree.Textsets.CanvasPanelSlot_1'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.46"
+        }
+      },
+      "slot": {
+        "bAutoSize": true,
+        "Parent": {
+          "ObjectName": "CanvasPanel'WBP_IconFeedbackPage_C:WidgetTree.Textsets'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.6"
+        },
+        "Content": {
+          "ObjectName": "TextBlock'WBP_IconFeedbackPage_C:WidgetTree.Text_FeedbackTypeName'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.962"
+        }
+      }
+    },
+    "TextBlock_97": {
+      "type": "TextBlock",
+      "properties": {
+        "Text": {
+          "TableId": "/Game/PaperMan/UI/StringTable/ST_UIGlobal.ST_UIGlobal",
+          "Key": "FlameOfRevenge",
+          "SourceString": null,
+          "LocalizedString": ""
+        },
+        "ColorAndOpacity": {
+          "SpecifiedColor": {
+            "R": 1.0,
+            "G": 0.887923,
+            "B": 0.445201,
+            "A": 1.0,
+            "Hex": "FFF2B2"
+          }
+        },
+        "Font": {
+          "FontObject": {
+            "ObjectName": "Font'CALABI-YAU'",
+            "ObjectPath": "/Game/PaperMan/UI/Fonts/CALABI-YAU"
+          },
+          "OutlineSettings": {
+            "OutlineColor": {
+              "R": 0.313989,
+              "G": 0.074214,
+              "B": 0.004391,
+              "A": 1.0,
+              "Hex": "984D0E"
+            }
+          },
+          "Size": 16
+        },
+        "ShadowOffset": {
+          "X": 0.0,
+          "Y": 0.0
+        },
+        "Justification": "ETextJustify::Center",
+        "Slot": {
+          "ObjectName": "CanvasPanelSlot'WBP_IconFeedbackPage_C:WidgetTree.Overlay_Revenge.CanvasPanelSlot_0'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.44"
+        }
+      },
+      "slot": {
+        "LayoutData": {
+          "Offsets": {
+            "Right": 200.0,
+            "Bottom": 22.0
+          },
+          "Anchors": {
+            "Minimum": {
+              "X": 0.5,
+              "Y": 1.0
+            },
+            "Maximum": {
+              "X": 0.5,
+              "Y": 1.0
+            }
+          },
+          "Alignment": {
+            "X": 0.5,
+            "Y": 1.0
+          }
+        },
+        "Parent": {
+          "ObjectName": "CanvasPanel'WBP_IconFeedbackPage_C:WidgetTree.Overlay_Revenge'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.5"
+        },
+        "Content": {
+          "ObjectName": "TextBlock'WBP_IconFeedbackPage_C:WidgetTree.TextBlock_97'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.963"
+        }
+      }
+    },
+    "UW_Kill": {
+      "type": "WBP_FeedBackSets_Count_C",
+      "properties": {
+        "Slot": {
+          "ObjectName": "CanvasPanelSlot'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Root.CanvasPanelSlot_0'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.41"
+        }
+      },
+      "slot": {
+        "LayoutData": {
+          "Offsets": {
+            "Top": 81.5068
+          },
+          "Anchors": {
+            "Minimum": {
+              "X": 0.5,
+              "Y": 0.5
+            },
+            "Maximum": {
+              "X": 0.5,
+              "Y": 0.5
+            }
+          },
+          "Alignment": {
+            "X": 0.5,
+            "Y": 0.5
+          }
+        },
+        "Parent": {
+          "ObjectName": "CanvasPanel'WBP_IconFeedbackPage_C:WidgetTree.CanvasPanel_Root'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.4"
+        },
+        "Content": {
+          "ObjectName": "WBP_FeedBackSets_Count_C'WBP_IconFeedbackPage_C:WidgetTree.UW_Kill'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.967"
+        }
+      }
+    },
+    "WBP_FeedBackSets_Star_1": {
+      "type": "WBP_FeedBackSets_Star_C",
+      "properties": {
+        "Slot": {
+          "ObjectName": "HorizontalBoxSlot'WBP_IconFeedbackPage_C:WidgetTree.Panel_Stars.HorizontalBoxSlot_5'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.114"
+        }
+      },
+      "slot": {
+        "Padding": {
+          "Top": 6.0
+        },
+        "Size": {
+          "SizeRule": "ESlateSizeRule::Fill"
+        },
+        "HorizontalAlignment": "HAlign_Center",
+        "VerticalAlignment": "VAlign_Center",
+        "Parent": {
+          "ObjectName": "HorizontalBox'WBP_IconFeedbackPage_C:WidgetTree.Panel_Stars'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.110"
+        },
+        "Content": {
+          "ObjectName": "WBP_FeedBackSets_Star_C'WBP_IconFeedbackPage_C:WidgetTree.WBP_FeedBackSets_Star_1'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.969"
+        }
+      }
+    },
+    "WBP_FeedBackSets_Star_2": {
+      "type": "WBP_FeedBackSets_Star_C",
+      "properties": {
+        "Slot": {
+          "ObjectName": "HorizontalBoxSlot'WBP_IconFeedbackPage_C:WidgetTree.Panel_Stars.HorizontalBoxSlot_6'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.115"
+        }
+      },
+      "slot": {
+        "Padding": {
+          "Right": 1.0
+        },
+        "Size": {
+          "SizeRule": "ESlateSizeRule::Fill"
+        },
+        "HorizontalAlignment": "HAlign_Center",
+        "VerticalAlignment": "VAlign_Center",
+        "Parent": {
+          "ObjectName": "HorizontalBox'WBP_IconFeedbackPage_C:WidgetTree.Panel_Stars'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.110"
+        },
+        "Content": {
+          "ObjectName": "WBP_FeedBackSets_Star_C'WBP_IconFeedbackPage_C:WidgetTree.WBP_FeedBackSets_Star_2'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.970"
+        }
+      }
+    },
+    "WBP_FeedBackSets_Star_3": {
+      "type": "WBP_FeedBackSets_Star_C",
+      "properties": {
+        "Slot": {
+          "ObjectName": "HorizontalBoxSlot'WBP_IconFeedbackPage_C:WidgetTree.Panel_Stars.HorizontalBoxSlot_7'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.116"
+        }
+      },
+      "slot": {
+        "Padding": {
+          "Left": 1.0
+        },
+        "Size": {
+          "SizeRule": "ESlateSizeRule::Fill"
+        },
+        "HorizontalAlignment": "HAlign_Center",
+        "VerticalAlignment": "VAlign_Center",
+        "Parent": {
+          "ObjectName": "HorizontalBox'WBP_IconFeedbackPage_C:WidgetTree.Panel_Stars'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.110"
+        },
+        "Content": {
+          "ObjectName": "WBP_FeedBackSets_Star_C'WBP_IconFeedbackPage_C:WidgetTree.WBP_FeedBackSets_Star_3'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.971"
+        }
+      }
+    },
+    "WBP_FeedBackSets_Star_4": {
+      "type": "WBP_FeedBackSets_Star_C",
+      "properties": {
+        "Slot": {
+          "ObjectName": "HorizontalBoxSlot'WBP_IconFeedbackPage_C:WidgetTree.Panel_Stars.HorizontalBoxSlot_8'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.117"
+        }
+      },
+      "slot": {
+        "Padding": {
+          "Bottom": 8.0
+        },
+        "Size": {
+          "SizeRule": "ESlateSizeRule::Fill"
+        },
+        "HorizontalAlignment": "HAlign_Center",
+        "VerticalAlignment": "VAlign_Center",
+        "Parent": {
+          "ObjectName": "HorizontalBox'WBP_IconFeedbackPage_C:WidgetTree.Panel_Stars'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.110"
+        },
+        "Content": {
+          "ObjectName": "WBP_FeedBackSets_Star_C'WBP_IconFeedbackPage_C:WidgetTree.WBP_FeedBackSets_Star_4'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.972"
+        }
+      }
+    },
+    "WBP_FeedBackSets_Star_5": {
+      "type": "WBP_FeedBackSets_Star_C",
+      "properties": {
+        "Slot": {
+          "ObjectName": "HorizontalBoxSlot'WBP_IconFeedbackPage_C:WidgetTree.Panel_Stars.HorizontalBoxSlot_4'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.113"
+        }
+      },
+      "slot": {
+        "Padding": {
+          "Bottom": 8.0
+        },
+        "Size": {
+          "SizeRule": "ESlateSizeRule::Fill"
+        },
+        "HorizontalAlignment": "HAlign_Center",
+        "VerticalAlignment": "VAlign_Center",
+        "Parent": {
+          "ObjectName": "HorizontalBox'WBP_IconFeedbackPage_C:WidgetTree.Panel_Stars'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.110"
+        },
+        "Content": {
+          "ObjectName": "WBP_FeedBackSets_Star_C'WBP_IconFeedbackPage_C:WidgetTree.WBP_FeedBackSets_Star_5'",
+          "ObjectPath": "extracted/PM/Content/PaperMan/UI/BP/PC/InGame/HUDPC/FeedBack/WBP_IconFeedbackPage.973"
+        }
+      }
+    }
+  },
+  "limitations": [
+    "No Unreal particle or material shader execution.",
+    "Legacy WidgetSwitcher_Icon track is mapped to Image_FeedbackIcon.",
+    "Icon selection and kill count are manual preview inputs; runtime event logic is not reconstructed."
+  ]
+}

@@ -19,6 +19,23 @@ fn is_pack_style(preset_name: &str, manifest: Option<&PackManifest>, expected_st
             .unwrap_or(false)
 }
 
+fn has_calabiyau_audio_channel(channels: &crate::soundpack::channels::AudioChannelPresets) -> bool {
+    [&channels.sound_effect, &channels.character_voice]
+        .into_iter()
+        .flatten()
+        .any(|channel| channel.selection.enabled
+            && is_pack_style(&channel.preset.preset_name, channel.preset.manifest.as_ref(), "calabiyau"))
+}
+
+pub(crate) async fn uses_calabiyau_kill_audio(app_state: &AppState) -> bool {
+    let configured = app_state.audio_channels.read().await;
+    if let Some(channels) = configured.as_ref() {
+        return has_calabiyau_audio_channel(channels);
+    }
+    let preset = app_state.preset.read().await;
+    is_pack_style(&preset.preset_name, preset.manifest.as_ref(), "calabiyau")
+}
+
 fn resolve_dagoujiao_sound_name(
     kill_count: u16,
     is_headshot: bool,
@@ -152,6 +169,22 @@ fn supports_event_sound_routing(preset_name: &str) -> bool {
         || normalized.starts_with("custom_battlefield2042_voice_")
         || normalized.starts_with("custom_battlefield6_voice_")
         || normalized.starts_with("custom_deltaforce_voice_")
+}
+
+fn supports_economy_audio_pack(preset: &crate::soundpack::Preset) -> bool {
+    supports_economy_audio_events(&preset.preset_name)
+        || preset.manifest.as_ref().and_then(|manifest| manifest.game_style.as_deref())
+            .is_some_and(|style| matches!(style.to_ascii_lowercase().as_str(),
+                "crossfire" | "csol" | "battlefield1" | "battlefield4" | "battlefield5"
+                | "battlefield2042" | "battlefield6" | "pubg" | "deltaforce" | "modernwarfare2019"))
+}
+
+fn supports_event_sound_pack(preset: &crate::soundpack::Preset) -> bool {
+    supports_event_sound_routing(&preset.preset_name)
+        || preset.manifest.as_ref().and_then(|manifest| manifest.game_style.as_deref())
+            .is_some_and(|style| matches!(style.to_ascii_lowercase().as_str(),
+                "battlefield1" | "battlefield4" | "battlefield5" | "battlefield2042"
+                | "battlefield6" | "deltaforce"))
 }
 
 fn resolve_special_kill_audio_flag(

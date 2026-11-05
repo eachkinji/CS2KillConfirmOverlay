@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -140,6 +140,8 @@ namespace KillConfirmGameBar.Services
                         var snapshot=JsonObject.Parse(await response.Content.ReadAsStringAsync().AsTask(cancellationToken));
                         bool settingsChanged=false;
                         SharedResources.RemoteDataRoot=snapshot["dataRoot"].GetString();
+                        SharedResources.RemoteInstallRoot=snapshot.ContainsKey("installRoot") && snapshot["installRoot"].ValueType==Windows.Data.Json.JsonValueType.String ? snapshot["installRoot"].GetString() : null;
+                        SharedResources.RemoteLibraryRoot=snapshot.ContainsKey("libraryRoot") ? snapshot["libraryRoot"].GetString() : null;
                         // Keep edits made while the HTTP requests were in flight.
                         CaptureLocalChanges();
                         try

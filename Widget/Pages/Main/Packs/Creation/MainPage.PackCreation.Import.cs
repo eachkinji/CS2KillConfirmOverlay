@@ -40,6 +40,7 @@ namespace KillConfirmGameBar
             CreateVoicePackButton.IsEnabled = !busy;
             CreateIconPackButton.IsEnabled = !busy;
             GameStyleSidebarSelector.IsEnabled = !busy;
+            GameWorkspaceTabBar.IsHitTestVisible = !busy;
             if (!busy)
             {
                 _loadedVoicePackStyle = null;
@@ -84,8 +85,8 @@ namespace KillConfirmGameBar
             _batchPackImport = batch;
             _packImportNotes.Clear();
             PackImportQueueResult result = null;
-            string title = chinese ? (isVoice ? "批量导入音频包" : "批量导入图标包")
-                : (isVoice ? "Import audio packs" : "Import icon packs");
+            string title = chinese ? (isVoice ? "批量导入" + ActiveAudioPackLabel : "批量导入图标包")
+                : (isVoice ? "Import " + ActiveAudioPackLabel + "s" : "Import icon packs");
             var theme = SettingsTheme;
             var progress = new TextBlock { TextWrapping = TextWrapping.Wrap, FontSize = 14, Foreground = new SolidColorBrush(theme.Text) };
             var progressBar = new ProgressBar { Minimum = 0, Maximum = files.Count, Height = 6, Foreground = new SolidColorBrush(theme.Accent), Background = new SolidColorBrush(theme.AccentSoft) };
@@ -174,7 +175,7 @@ namespace KillConfirmGameBar
             ConfigurePackZipDragOver(e, isVoice: false);
         }
 
-        private static void ConfigurePackZipDragOver(DragEventArgs e, bool isVoice)
+        private void ConfigurePackZipDragOver(DragEventArgs e, bool isVoice)
         {
             if (!e.DataView.Contains(StandardDataFormats.StorageItems))
             {
@@ -184,8 +185,8 @@ namespace KillConfirmGameBar
             bool chinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
             e.AcceptedOperation = DataPackageOperation.Copy;
             e.DragUIOverride.Caption = chinese
-                ? (isVoice ? "释放以导入音频包" : "释放以导入图标包")
-                : (isVoice ? "Drop to import audio packs" : "Drop to import icon packs");
+                ? (isVoice ? "释放以导入" + ActiveAudioPackLabel : "释放以导入图标包")
+                : (isVoice ? "Drop to import " + ActiveAudioPackLabel + "s" : "Drop to import icon packs");
             e.DragUIOverride.IsCaptionVisible = true;
             e.Handled = true;
         }
@@ -227,7 +228,7 @@ namespace KillConfirmGameBar
                 await Task.Yield();
                 if (files.Count == 0)
                     throw new InvalidDataException(LocalizationManager.Current == UiLanguage.SimplifiedChinese
-                        ? (isVoice ? "请选择音频包文件。" : "请选择图标包文件。")
+                        ? (isVoice ? "请选择" + ActiveAudioPackLabel + "文件。" : "请选择图标包文件。")
                         : "Select pack files to import.");
                 await ImportSelectedPackFilesAsync(files, isVoice, files.Count > 1);
             }
@@ -356,6 +357,24 @@ namespace KillConfirmGameBar
             }
         }
 
+        private async Task ImportCalabiyauPackageFromZipAsync()
+        {
+            StorageFile zip = _providedPackZipFile ?? await PickSingleFileAsync(new[] { ".zip" });
+            if (zip == null) return;
+            StorageFolder extracted = null;
+            try
+            {
+                extracted = await ExtractZipToTemporaryFolderAsync(zip);
+                string name = await CalabiyauExternalAssetService.InstallAsync(extracted);
+                if (!_batchPackImport) await ShowMessageAsync("卡拉彼丘图标包已导入", name);
+            }
+            finally
+            {
+                if (extracted != null)
+                    try { await extracted.DeleteAsync(StorageDeleteOption.PermanentDelete); } catch { }
+            }
+        }
+
         private async Task ImportValorantPackageFromZipAsync(string packageKind)
         {
             StorageFile zipFile = _providedPackZipFile
@@ -383,8 +402,8 @@ namespace KillConfirmGameBar
                     {
                         throw new InvalidDataException(
                             LocalizationManager.Current == UiLanguage.SimplifiedChinese
-                                ? "音频包中没有找到 1～5 杀或爆头语音。"
-                                : "No kill 1-5 or headshot audio was found in the audio pack.");
+                                ? "音效包中没有找到 1～5 杀或爆头音效。"
+                                : "No kill 1-5 or headshot audio was found in the sound effect pack.");
                     }
 
                     await ShowCreateValorantVoicePackDialogAsync(

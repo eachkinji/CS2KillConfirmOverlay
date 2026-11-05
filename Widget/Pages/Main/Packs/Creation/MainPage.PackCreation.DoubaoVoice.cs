@@ -32,9 +32,9 @@ namespace KillConfirmGameBar
             StorageFile headImageFile = initialHeadImageFile;
 
             var layout = CreatePackDialogLayout(
-                LocalizationManager.Text("CreateVoicePack"),
-                LocalizationManager.Text("DoubaoVoiceCollectionsHint"),
-                LocalizationManager.Text("VoicePackNamePlaceholder"),
+                AudioPackText("CreateVoicePack"),
+                AudioPackText("DoubaoVoiceCollectionsHint"),
+                AudioPackText("VoicePackNamePlaceholder"),
                 initialDisplayName,
                 out var nameBox);
 
@@ -72,7 +72,7 @@ namespace KillConfirmGameBar
             }
 
             string packName = string.IsNullOrWhiteSpace(nameBox.Text)
-                ? "豆包语音包"
+                ? "豆包音效包"
                 : nameBox.Text.Trim();
 
             await FillBuiltInVoiceDefaultsAsync(

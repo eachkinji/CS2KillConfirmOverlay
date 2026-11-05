@@ -134,6 +134,7 @@ namespace KillConfirmCompatibility
         private void PlayAuxiliaryKillMarkIfEnabled(KillEvent killEvent)
         {
             GameStyleMode style = GameStyleService.Current;
+            if (style == GameStyleMode.Calabiyau && !GameStyleService.IsCalabiyauKillEvent(killEvent)) return;
             if (!GameStyleService.IsAuxiliaryKillMarkStyle(style)
                 || killEvent == null
                 || !killEvent.IsCombatEvent
@@ -151,8 +152,10 @@ namespace KillConfirmCompatibility
                     CrosshairFeedbackAnimation,
                     visibility,
                     KillFeedbackLayer.Crosshair);
-                CrosshairFeedbackAnimation.PlayModernWarfare2019KillMarkOnly(
-                    killEvent.IsHeadshot);
+                if (style == GameStyleMode.Calabiyau)
+                    CrosshairFeedbackAnimation.PlayCalabiyauCrosshairKill(killEvent.PublishedUnixMs);
+                else
+                    CrosshairFeedbackAnimation.PlayModernWarfare2019KillMarkOnly(killEvent.IsHeadshot);
             }
         }
 

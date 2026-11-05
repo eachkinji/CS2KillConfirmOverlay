@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -31,13 +31,28 @@ namespace KillConfirmGameBar.Services
                     ? item.DisplayName
                     : localized;
             }
-            return item.DisplayName;
+            string displayName = item.DisplayName;
+            // Normalize the category suffix of official legacy packs only. User
+            // supplied names remain untouched.
+            bool official = CrossfireExternalAssetService.IsVoiceKey(item.Key)
+                || item.Key.StartsWith("valorant_voice_", StringComparison.OrdinalIgnoreCase);
+            if (official && !string.IsNullOrWhiteSpace(displayName))
+            {
+                string suffix = GetAudioPackKind(item) == AudioPackKind.CharacterVoice ? "语音包" : "音效包";
+                foreach (string oldSuffix in new[] { "音频包", "语音包" })
+                    if (displayName.EndsWith(oldSuffix, StringComparison.Ordinal))
+                        return displayName.Substring(0, displayName.Length - oldSuffix.Length) + suffix;
+            }
+            return displayName;
         }
 
         public static bool IsImportedVoicePackKey(string key)
         {
             if (string.IsNullOrWhiteSpace(key)) return false;
-            return CrossfireExternalAssetService.IsVoiceKey(key) || key.StartsWith("custom_voice_", StringComparison.OrdinalIgnoreCase)
+            return key.IndexOf("_audio_", StringComparison.OrdinalIgnoreCase) >= 0
+                || key.StartsWith("calabiyau_sfx_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("calabiyau_voice_", StringComparison.OrdinalIgnoreCase)
+                || CrossfireExternalAssetService.IsVoiceKey(key) || key.StartsWith("custom_voice_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_module_voice_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_csol_voice_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_dagoujiao_voice_", StringComparison.OrdinalIgnoreCase)

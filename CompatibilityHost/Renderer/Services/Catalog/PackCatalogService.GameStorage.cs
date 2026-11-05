@@ -13,7 +13,7 @@ namespace KillConfirmCompatibility.Services
         public static async Task<StorageFolder> GetGameRootFolderAsync(string gameKey)
         {
             string key = string.IsNullOrWhiteSpace(gameKey) ? "crossfire" : gameKey.Trim().ToLowerInvariant();
-            StorageFolder packsRoot = await ApplicationData.Current.LocalFolder.CreateFolderAsync("Packs", CreationCollisionOption.OpenIfExists);
+            StorageFolder packsRoot = await ResourceLibraryPaths.FolderAsync();
             return await packsRoot.CreateFolderAsync(key, CreationCollisionOption.OpenIfExists);
         }
 

@@ -34,7 +34,7 @@ mod tests {
     use std::path::{Path, PathBuf};
 
     use super::{
-        install_kill_sink_group, is_pack_style, manifest_slot_pick, resolve_assist_audio_routing,
+        install_kill_sink_group, install_audio_sink_group, reserve_audio_slot, is_pack_style, manifest_slot_pick, resolve_assist_audio_routing,
         resolve_dagoujiao_audio_path, resolve_dagoujiao_playback_speed,
         resolve_dagoujiao_sound_name, resolve_special_kill_audio_flag,
         supports_economy_audio_events, supports_event_sound_routing,
@@ -57,6 +57,7 @@ mod tests {
     }
 
     include!("tests/core.rs");
+    include!("tests/audio_channels.rs");
     include!("tests/csol.rs");
     include!("tests/battlefield1.rs");
     include!("tests/battlefield6.rs");

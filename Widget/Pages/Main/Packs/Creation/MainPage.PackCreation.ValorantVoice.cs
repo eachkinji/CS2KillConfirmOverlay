@@ -46,11 +46,11 @@ namespace KillConfirmGameBar
             StorageFile headImageFile = initialHeadImageFile;
 
             var layout = CreatePackDialogLayout(
-                isChinese ? (editingItem == null ? "创建瓦语音包" : "编辑瓦语音包") : "Valorant audio pack",
+                isChinese ? (editingItem == null ? "创建瓦音效包" : "编辑瓦音效包") : "Valorant sound effect pack",
                 isChinese
-                    ? "支持连杀、分级爆头、出现和切换音效。连杀留空使用内置语音；爆头和出现/切换留空则不叠加。内置包另存副本，自定义包保存到原包。"
+                    ? "支持连杀、分级爆头、出现和切换音效。连杀留空使用内置音效；爆头和出现/切换留空则不叠加。内置包另存副本，自定义包保存到原包。"
                     : "Edit kill, headshot, appear and transition audio. Empty kill slots use Base; empty optional layers stay silent. Built-in packs save as copies.",
-                LocalizationManager.Text("VoicePackNamePlaceholder"),
+                AudioPackText("VoicePackNamePlaceholder"),
                 initialDisplayName,
                 out var nameBox);
 
@@ -109,7 +109,7 @@ namespace KillConfirmGameBar
             }
 
             string packName = string.IsNullOrWhiteSpace(nameBox.Text)
-                ? "无畏契约语音包"
+                ? "无畏契约音效包"
                 : nameBox.Text.Trim();
 
             if (headImageFile == null)

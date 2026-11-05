@@ -1,4 +1,4 @@
-﻿<UserControl
+<UserControl
     x:Class="KillConfirmGameBar.Features.CompatibilityDisplay.Controls.GameStyles.ValorantStylePanel"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
@@ -19,7 +19,7 @@
             <TextBlock
                 FontSize="10"
                 Foreground="#D8E5EF"
-                Text="选择 VALORANT 语音包和图标包，设置连杀与爆头提示效果。"
+                Text="选择 VALORANT 音效包和图标包，设置连杀与爆头提示效果。"
                 TextWrapping="WrapWholeWords" />
         </StackPanel>
     </Border>

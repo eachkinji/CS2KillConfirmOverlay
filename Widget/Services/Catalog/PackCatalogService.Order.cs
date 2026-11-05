@@ -25,11 +25,14 @@ namespace KillConfirmGameBar.Services
             await CatalogIoLock.WaitAsync();
             try
             {
-                GameStyleMode style = GameStyleService.GetStyleForPackKey(key);
+                var audioItem = voice ? catalog.VoicePacks.FirstOrDefault(p => string.Equals(p.Key, key, StringComparison.OrdinalIgnoreCase)) : null;
+                GameStyleMode style = voice ? GetAudioPackStyle(audioItem) : GameStyleService.GetStyleForPackKey(key);
+                AudioPackKind kind = GetAudioPackKind(audioItem);
                 var keys = voice
-                    ? OrderPacks(catalog.VoicePacks, p => p.Key, catalog.VoicePackOrder).Select(p => p.Key)
+                    ? OrderPacks(catalog.VoicePacks, p => p.Key, catalog.VoicePackOrder)
+                        .Where(p => GetAudioPackStyle(p) == style && GetAudioPackKind(p) == kind).Select(p => p.Key)
                     : OrderPacks(catalog.IconPacks, p => p.Key, catalog.IconPackOrder).Select(p => p.Key);
-                var group = keys.Where(id => GameStyleService.GetStyleForPackKey(id) == style).ToList();
+                var group = keys.Where(id => voice || GameStyleService.GetStyleForPackKey(id) == style).ToList();
                 int index = group.FindIndex(id => string.Equals(id, key, StringComparison.OrdinalIgnoreCase));
                 int target = group.FindIndex(id => string.Equals(id, targetKey, StringComparison.OrdinalIgnoreCase));
                 if (index < 0 || target < 0) return -1;
@@ -42,7 +45,7 @@ namespace KillConfirmGameBar.Services
                 group.Insert(target, sourceKey);
                 List<string> previous = voice ? catalog.VoicePackOrder : catalog.IconPackOrder;
                 var next = (previous ?? new List<string>())
-                    .Where(id => !string.IsNullOrEmpty(id) && GameStyleService.GetStyleForPackKey(id) != style).ToList();
+                    .Where(id => !string.IsNullOrEmpty(id) && !group.Contains(id, StringComparer.OrdinalIgnoreCase)).ToList();
                 next.AddRange(group);
                 if (voice) catalog.VoicePackOrder = next;
                 else catalog.IconPackOrder = next;

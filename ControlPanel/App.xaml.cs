@@ -24,6 +24,20 @@ public partial class App : Application
         try
         {
             var commandLine=Environment.GetCommandLineArgs();
+            int materialArgument = Array.IndexOf(commandLine, "--set-material-root");
+            if (materialArgument >= 0)
+            {
+                try
+                {
+                    if (materialArgument + 1 >= commandLine.Length) throw new ArgumentException("Missing material folder.");
+                    KillConfirmCompatibility.Contracts.LegacyMigration.Import();
+                    await Task.Run(() => KillConfirmCompatibility.Contracts.ResourceLibrary.Migrate(
+                        KillConfirmCompatibility.Contracts.RuntimePaths.DataRoot, commandLine[materialArgument + 1]));
+                    Environment.ExitCode = 0;
+                }
+                catch (Exception error) { LogCrash("Material migration", error); Environment.ExitCode = 1; }
+                Exit(); return;
+            }
             if (await LegacyProfileValidation.RunAsync(commandLine)) { Exit(); return; }
             if (await LegacyUpgradeCommand.RunAsync(commandLine)) { Exit(); return; }
             if(commandLine.Contains("--initialize-profile")) { DesktopPlatform.Data.LocalSettings.Values["Profile.Initialized"]=true; await Services.PackCatalogService.GetVisibleIconPacksAsync(); Exit(); return; }
@@ -35,7 +49,7 @@ public partial class App : Application
             _instance=new System.Threading.Mutex(true,"Local\\KillConfirmPanel."+profile,out bool first);
             if(!first) { _activate.Set(); Exit(); return; }
             Log("Creating desktop window.");
-            _window = new Window { Title = "Kill Confirm Overlay" };
+            _window = new Window { Title = "Kill Confirm Overlay 控制面板" };
             Log("Initializing ordinary storage.");
             DesktopPlatform.Initialize(_window);
             if(DesktopPlatform.IsRuntimeValidation)
@@ -144,7 +158,7 @@ public partial class App : Application
         var dragArea = new Grid { Background = new SolidColorBrush(Color.FromArgb(0, 0, 0, 0)) };
         dragArea.Children.Add(new TextBlock
         {
-            Text = "Kill Confirm Overlay",
+            Text = "Kill Confirm Overlay 控制面板",
             FontSize = 13,
             FontWeight = FontWeights.SemiBold,
             Foreground = new SolidColorBrush(Color.FromArgb(255, 58, 58, 60)),
@@ -277,9 +291,18 @@ public partial class App : Application
         if(System.Threading.Interlocked.Exchange(ref application._fullExitStarted,1)!=0) return true;
         try
         {
-            await Services.ServiceLauncher.UnregisterCurrentProcessAsync();
-            return await KillConfirmWidgetPage.TryLaunchFullTrustHelperAsync("ExitAll");
+            await RuntimeSession.StopAsync();
+            Current.Exit();
+            return true;
         }
-        finally { Current.Exit(); }
+        catch (Exception error)
+        {
+            LogCrash("Exit failed", error);
+            System.Threading.Interlocked.Exchange(ref application._fullExitStarted, 0);
+            var dialog = new ContentDialog { XamlRoot = application._window.Content.XamlRoot,
+                Title = "未能完全退出", Content = error.Message, CloseButtonText = "确定" };
+            await dialog.ShowAsync();
+            return false;
+        }
     }
 }

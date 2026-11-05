@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using KillConfirmGameBar.Services;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -23,6 +23,7 @@ namespace KillConfirmGameBar.Controls.Settings
         private async void OnLoaded(object sender, RoutedEventArgs e)
         {
             ApplyLanguage();
+            RefreshMaterialLibrary();
             ApplyTheme(GameThemePalette.Home);
             VersionUpdateService.Changed += OnVersionStateChanged;
             OnVersionStateChanged(null, EventArgs.Empty);
@@ -78,8 +79,8 @@ namespace KillConfirmGameBar.Controls.Settings
             HubAboutUpdateTitle.Text = isChinese ? "公开版本更新说明" : "Public release notes";
             HubUpdateStepsTitle.Text = isChinese ? "如何更新" : "How to update";
             HubUpdateSteps.Text = isChinese
-                ? "1  打开下载页面，下载最新版本的 EXE 安装包。\n2  点击上方“完全退出本程序”，再运行安装包。\n3  按安装向导覆盖安装，无需先卸载；个人配置会保留。\n4  重新打开控制面板。使用 Game Bar 时，按 Win + G 打开小组件。"
-                : "1  Open the download page and get the latest EXE installer.\n2  Choose Exit completely above, then run the installer.\n3  Install over the existing version; no uninstall is needed and settings are retained.\n4  Reopen the panel. For Game Bar, press Win + G and open the widget.";
+                ? "1  打开下载页面，下载最新版本的 EXE 安装包。\n2  运行安装包；安装器会关闭正在运行的本程序。\n3  按安装向导覆盖安装，无需先卸载；个人配置会保留。\n4  重新打开控制面板。使用 Game Bar 时，按 Win + G 打开小组件。"
+                : "1  Open the download page and get the latest EXE installer.\n2  Run the installer; it closes running KillConfirm processes.\n3  Install over the existing version; no uninstall is needed and settings are retained.\n4  Reopen the panel. For Game Bar, press Win + G and open the widget.";
             HubCheckUpdateButton.Content = isChinese ? "检查更新" : "Check again";
             HubCopyUpdateLinkButton.Content = isChinese ? "复制网盘链接与提取码" : "Copy download link and code";
             OnVersionStateChanged(null, EventArgs.Empty);

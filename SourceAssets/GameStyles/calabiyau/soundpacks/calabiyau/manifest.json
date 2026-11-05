@@ -1,0 +1,58 @@
+{
+  "format_version": 1,
+  "package_kind": "audio",
+  "id": "calabiyau",
+  "name": "默认击杀",
+  "display_name": "默认击杀",
+  "game_style": "calabiyau",
+  "audio_kind": "sound_effect",
+  "version": "1.0",
+  "associated_icon_keys": [
+    "calabiyau"
+  ],
+  "audio": {
+    "base_gain": 1.0,
+    "slots": {
+      "kill_1": "1kill.wav",
+      "kill_2": "2kill.wav",
+      "kill_3": "3kill.wav",
+      "kill_4": "4kill.wav",
+      "kill_5": "5kill.wav"
+    },
+    "overlay_slots": []
+  },
+  "source_events": {
+    "kill_1": "UI_kill_One",
+    "kill_2": "UI_kill_Two",
+    "kill_3": "UI_kill_Three",
+    "kill_4": "UI_kill_Four",
+    "kill_5": "UI_kill_Five"
+  },
+  "files": [
+    {
+      "path": "1kill.wav",
+      "bytes": 358636,
+      "sha256": "28c1b30161bdc7cffd7757262db10e794691e853c5f410d886be6df94afda842"
+    },
+    {
+      "path": "2kill.wav",
+      "bytes": 358636,
+      "sha256": "a38f0e77777eb3439a2269600cf9a17ad9a700142dda06c0d2e13e40e0f8b54e"
+    },
+    {
+      "path": "3kill.wav",
+      "bytes": 358636,
+      "sha256": "e9f63483838e5fa56525068b7fe637e27493e0f4ee9d61602a71b95f38274e24"
+    },
+    {
+      "path": "4kill.wav",
+      "bytes": 393916,
+      "sha256": "45676ac38c5668497d018654e5190f014a6f342366ed5530e9598403df3e94da"
+    },
+    {
+      "path": "5kill.wav",
+      "bytes": 561852,
+      "sha256": "b33d3b5bdffc077a0c242132bd10f89c53f0c24f25a7404cee0d40a76b991127"
+    }
+  ]
+}

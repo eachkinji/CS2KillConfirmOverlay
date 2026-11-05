@@ -137,6 +137,11 @@ namespace KillConfirmGameBar
                 case GameStyleMode.DeltaForce:
                     panel = EnsureDeltaForceAdvancedEffectsPanel();
                     break;
+                case GameStyleMode.Calabiyau:
+                    panel = new TextBlock { Text = LocalizationManager.Current == UiLanguage.SimplifiedChinese
+                        ? "默认效果内置；其他主题需先导入图标包，随击杀数显示对应动画和星标。准心使用卡拉彼丘击杀反馈，下方与准心可以独立开关。"
+                        : "Choose each theme variant separately. Animations and stars follow the kill count. Native Calabiyau kill crosshair and lower feedback have independent switches.", TextWrapping = TextWrapping.Wrap };
+                    break;
                 case GameStyleMode.CustomModule:
                     if (_customModulePanel == null)
                     {

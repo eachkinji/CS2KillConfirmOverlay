@@ -1,4 +1,4 @@
-param([string]$Payload='')
+﻿param([string]$Payload='')
 $ErrorActionPreference='Stop'
 $repository=Split-Path $PSScriptRoot -Parent
 if(!$Payload) {$Payload=Join-Path $repository 'Output/StandaloneTest'}
@@ -65,7 +65,16 @@ try {
     $defaultFile=Join-Path $output 'default-cf-texture.png'
     Invoke-WebRequest "$base/shared/resource?asset=true&path=$([Uri]::EscapeDataString($defaultAsset))" -Headers $headers -OutFile $defaultFile
     if((Get-FileHash $defaultFile).Hash -ne (Get-FileHash (Join-Path $Payload $defaultAsset)).Hash) {throw 'Default CF texture broker read failed.'}
-    foreach($request in @(@{Url="$base/shared/state";Headers=@{};Code=401},@{Url="$base/shared/resource?asset=true&path=KillConfirmGameBar.exe";Headers=$headers;Code=403})) {
+    $library=Join-Path $output '外置素材库'
+    New-Item -ItemType Directory -Path $library -Force | Out-Null
+    Copy-Item -LiteralPath (Join-Path $Payload $defaultAsset) -Destination (Join-Path $library 'fixture.png')
+    Invoke-RestMethod "$base/shared/setting" -Headers $headers -Method Post -ContentType 'application/json; charset=utf-8' -Body ([Text.Encoding]::UTF8.GetBytes((@{key='ResourceLibrary.Root';value=@{Kind='string';Text=$library}}|ConvertTo-Json -Depth 4))) | Out-Null
+    $snapshot=Invoke-RestMethod "$base/shared/state" -Headers $headers
+    if($snapshot.libraryRoot -ne $library){throw 'Configured material directory missing from widget snapshot.'}
+    $relocated=Join-Path $output 'relocated.png'
+    Invoke-WebRequest "$base/shared/resource?path=$([Uri]::EscapeDataString((Join-Path $library 'fixture.png')))" -Headers $headers -OutFile $relocated
+    if((Get-FileHash $relocated).Hash -ne (Get-FileHash $defaultFile).Hash){throw 'Relocated material broker read failed.'}
+    foreach($request in @(@{Url="$base/shared/state";Headers=@{};Code=401},@{Url="$base/shared/resource?asset=true&path=KillConfirmControlPanel.exe";Headers=$headers;Code=403})) {
         try {Invoke-WebRequest $request.Url -Headers $request.Headers | Out-Null;throw 'Resource access unexpectedly succeeded.'}
         catch {if([int]$_.Exception.Response.StatusCode -ne $request.Code) {throw}}
     }

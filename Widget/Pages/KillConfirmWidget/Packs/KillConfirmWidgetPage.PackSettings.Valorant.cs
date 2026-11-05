@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using KillConfirmGameBar.Controls.GameStyles;
 using KillConfirmGameBar.Services;
 using Windows.UI.Xaml;
@@ -114,6 +114,13 @@ namespace KillConfirmGameBar
 
             bool enabled = panel.GetPackSyncEnabled(true);
             ValorantPackSyncSettingsStore.Save(enabled);
+            var audioPreferences = CurrentAudioPreferences();
+            audioPreferences.LinkIconAndSound = enabled;
+            AudioChannelSettingsStore.Save(GameStyleService.Current, audioPreferences);
+            bool previousAudioSuppression = _suppressAudioChannelEvents;
+            _suppressAudioChannelEvents = true;
+            PackTestSectionView.LinkIconSoundCheckBox.IsChecked = enabled;
+            _suppressAudioChannelEvents = previousAudioSuppression;
             if (!enabled || GameStyleService.Current != GameStyleMode.Valorant)
             {
                 return;

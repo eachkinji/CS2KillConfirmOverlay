@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using KillConfirmGameBar.Services;
 using Windows.UI.Xaml;
@@ -48,12 +48,12 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay.Controls.GameStyles
                 ? "集中设置连杀时间、特殊击杀优先级，以及独立的首杀和尾杀效果。"
                 : "Configure kill-streak timing, special-event priority, and separate first/last-kill effects.";
             CoverageText.Text = isChinese
-                ? "CSOL 语音包可以分别设置 1～10 杀语音。"
-                : "The CSOL pack now plays distinct streak voices from 1 through 10 kills.";
+                ? "CSOL 音效包可以分别设置 1～10 杀音效。"
+                : "CSOL sound effect packs support separate cues for 1 through 10 kills.";
             ResetButtonText.Text = isChinese ? "恢复默认" : "Reset";
             ToolTipService.SetToolTip(ResetButton, isChinese ? "恢复 CSOL 默认设置" : "Restore CSOL defaults");
             StreakEditor.ApplyLanguage(isChinese);
-            PriorityLabel.Text = isChinese ? "语音优先级" : "Voice priority";
+            PriorityLabel.Text = isChinese ? "音效优先级" : "Sound effect priority";
             PrioritySpecialItem.Content = isChinese ? "特殊优先" : "Special first";
             PriorityStreakItem.Content = isChinese ? "连杀优先" : "Kill-streak first";
             FirstKillIconLabel.Text = isChinese ? "首杀图标" : "First-kill icon";

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -17,6 +17,7 @@ namespace KillConfirmGameBar
         private int _packListReloadVersion;
         private bool _packOrderMoveInProgress;
         private GameStyleMode? _loadedVoicePackStyle;
+        private AudioPackKind? _loadedAudioPackKind;
         private GameStyleMode? _loadedIconPackStyle;
 
         private async void OnLoaded(object sender, RoutedEventArgs e)
@@ -61,7 +62,14 @@ namespace KillConfirmGameBar
             }
 
             GameStyleMode style = SettingsGameStyle;
-            bool loadVoice = _activeGameTab == "voice" && _loadedVoicePackStyle != style;
+            // The same virtualized card surface renders two independent libraries.
+            // Clear it before awaiting another kind so stale voices never appear
+            // under the sound-effect heading (or vice versa).
+            if ((_activeGameTab == "voice" || _activeGameTab == "sound_effect")
+                && _loadedAudioPackKind != ActiveAudioPackKind)
+                VoicePackListPanel.ItemsSource = null;
+            bool loadVoice = (_activeGameTab == "voice" || _activeGameTab == "sound_effect")
+                && (_loadedVoicePackStyle != style || _loadedAudioPackKind != ActiveAudioPackKind);
             bool loadIcon = _activeGameTab == "icon" && _loadedIconPackStyle != style;
             if (!loadVoice && !loadIcon)
             {
@@ -100,13 +108,14 @@ namespace KillConfirmGameBar
 
             if (loadVoice)
             {
-                var items = (await PackCatalogService.GetAllVoicePacksAsync())
-                    .Where(item => GameStyleService.GetStyleForPackKey(item.Key) == style).ToList();
-                if (!IsPackListReloadCurrent(reloadVersion, style)) return;
+                AudioPackKind kind = ActiveAudioPackKind;
+                var items = (await PackCatalogService.GetAudioPacksAsync(style, kind)).ToList();
+                if (!IsPackListReloadCurrent(reloadVersion, style) || kind != ActiveAudioPackKind) return;
                 VoicePackListPanel.ItemsSource = new System.Collections.ObjectModel.ObservableCollection<PackCardEntry>(
                     items.Select((item, index) => new PackCardEntry { Voice = item, Ordinal = index + 1 }));
                 VoiceVisibleCountText.Text = string.Format(LocalizationManager.Text("VisibleCount"), CountVisible(items));
                 _loadedVoicePackStyle = style;
+                _loadedAudioPackKind = kind;
             }
             if (loadIcon)
             {
@@ -204,7 +213,15 @@ namespace KillConfirmGameBar
             {
                 StorageFolder packFolder = await GetVoicePackFolderAsync(item);
                 string packName = PackCatalogService.GetVoicePackDisplayName(item);
-                GameStyleMode packStyle = GameStyleService.GetStyleForPackKey(item.Key);
+                GameStyleMode packStyle = PackCatalogService.GetAudioPackStyle(item);
+
+                if (IsGenericAudioPack(item))
+                {
+                    await ShowCreateGenericAudioPackDialogAsync(packStyle, PackCatalogService.GetAudioPackKind(item), packName,
+                        await CollectVoiceFileGroupsFromManifestAsync(packFolder, PackCatalogService.GenericAudioSlotMapping),
+                        packFolder != null ? await TryGetCustomPackHeadImageAsync(packFolder.Path) : null);
+                    return;
+                }
 
                 if (packStyle == GameStyleMode.CustomModule)
                 {
@@ -359,6 +376,7 @@ namespace KillConfirmGameBar
                 TextTrimming = TextTrimming.CharacterEllipsis
             };
             var editButton = CreatePackActionButton(LocalizationManager.Text("Edit"), "PackEdit");
+            if (GameStyleService.IsCalabiyauKey(item.Key)) editButton.Visibility = Visibility.Collapsed;
             editButton.Click += async (_, __) =>
             {
                 StorageFolder packFolder = await GetIconPackFolderAsync(item);

@@ -27,7 +27,7 @@ use crate::infrastructure::playback::{get_output_stream_with_name, output_device
 use crate::infrastructure::steam::{detect_counter_strike_root, detect_cs2_root};
 use crate::soundpack::Preset;
 use crate::soundpack::sound::{
-    play_audio, preview_bomb_audio, refresh_bomb_audio_volume, stop_bomb_audio, warm_audio_cache,
+    preview_bomb_audio, refresh_bomb_audio_volume, stop_bomb_audio, warm_audio_cache,
 };
 
 use crate::state::{
@@ -42,6 +42,7 @@ include!("catalogs.rs");
 include!("core_endpoints.rs");
 include!("settings.rs");
 include!("event_settings.rs");
+include!("audio_channels.rs");
 include!("events.rs");
 
 include!("video_import.rs");

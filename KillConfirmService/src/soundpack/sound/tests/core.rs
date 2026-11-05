@@ -1,4 +1,40 @@
     #[test]
+    fn effect_interrupt_does_not_stop_character_voice_and_overlap_is_tracked() {
+        use rodio::Source;
+        use std::sync::Mutex;
+        use std::time::Duration;
+        let (mixer, mut source) = rodio::mixer::mixer(2, 48_000);
+        let effects = Mutex::new(Vec::new());
+        let voices = Mutex::new(Vec::new());
+        let voice = install_audio_sink_group(&voices, &mixer, 1, false).unwrap();
+        voice[0].append(rodio::source::SineWave::new(300.0).take_duration(Duration::from_secs(5)));
+        let old_effect = install_audio_sink_group(&effects, &mixer, 1, true).unwrap();
+        old_effect[0].append(rodio::source::SineWave::new(440.0).take_duration(Duration::from_secs(5)));
+        let _new_effect = install_audio_sink_group(&effects, &mixer, 1, true).unwrap();
+        for _ in 0..128 { let _ = source.next(); }
+        assert!(old_effect[0].empty());
+        assert!(!voice[0].empty());
+        let _second_voice = install_audio_sink_group(&voices, &mixer, 1, false).unwrap();
+        assert_eq!(voices.lock().unwrap().len(), 2);
+        assert!(!voice[0].empty());
+        super::stop_audio_sink_group(&voices);
+        for _ in 0..4096 { let _ = source.next(); }
+        assert!(voice[0].empty());
+    }
+
+    #[test]
+    fn role_cooldowns_are_per_slot_and_do_not_suppress_a_later_streak() {
+        use std::{collections::HashMap, time::{Duration, Instant}};
+        let mut cooldowns = HashMap::new();
+        let now = Instant::now();
+        let ten = Duration::from_secs(10);
+        assert!(reserve_audio_slot(&mut cooldowns, "voice:role:kill_1".into(), ten, now));
+        assert!(!reserve_audio_slot(&mut cooldowns, "voice:role:kill_1".into(), ten, now + Duration::from_secs(1)));
+        assert!(reserve_audio_slot(&mut cooldowns, "voice:role:kill_2".into(), ten, now + Duration::from_secs(1)));
+        assert!(reserve_audio_slot(&mut cooldowns, "voice:role:kill_1".into(), ten, now + ten));
+    }
+
+    #[test]
     fn interrupt_group_keeps_layers_parallel_and_stops_the_previous_event_together() {
         use rodio::Source;
         use std::sync::{Arc, Mutex};

@@ -10,7 +10,7 @@ foreach($mode in @('compatibility','gamebar')) {
     $listener.Start(); $port=$listener.LocalEndpoint.Port; $listener.Stop()
     $settings=@{'LocalService.Port'=@{Kind='int';Text=$port.ToString()}}
     [IO.File]::WriteAllText((Join-Path $profile 'settings.json'),($settings | ConvertTo-Json -Compress))
-    $start=[Diagnostics.ProcessStartInfo]::new((Join-Path $Payload 'KillConfirmGameBar.exe'))
+    $start=[Diagnostics.ProcessStartInfo]::new((Join-Path $Payload 'KillConfirmControlPanel.exe'))
     $start.UseShellExecute=$false
     $start.WindowStyle='Hidden'
     $start.Environment['KILLCONFIRM_TEST_WIDGET_PID']=$PID.ToString()

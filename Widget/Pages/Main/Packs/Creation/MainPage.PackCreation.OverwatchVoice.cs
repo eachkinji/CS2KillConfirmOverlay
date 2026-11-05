@@ -26,11 +26,11 @@ namespace KillConfirmGameBar
             StorageFile headImageFile = initialHeadImageFile;
 
             var layout = CreatePackDialogLayout(
-                isChinese ? "新建 OverWatch 语音包" : "Create OverWatch voice pack",
+                isChinese ? "新建 OverWatch 音效包" : "Create OverWatch sound effect pack",
                 isChinese
                     ? "选择守望先锋的击杀音效。普通击杀、爆头、近战和助攻都会使用它，也可以选择多条音频随机播放。"
                     : "Choose the Overwatch kill cue. Normal kills, headshots, melee kills, and assists all use it; multiple files may be selected for random playback.",
-                LocalizationManager.Text("VoicePackNamePlaceholder"),
+                AudioPackText("VoicePackNamePlaceholder"),
                 initialDisplayName,
                 out var nameBox);
 
@@ -59,7 +59,7 @@ namespace KillConfirmGameBar
             }
 
             string packName = string.IsNullOrWhiteSpace(nameBox.Text)
-                ? (isChinese ? "OverWatch 语音包" : "OverWatch voice pack")
+                ? (isChinese ? "OverWatch 音效包" : "OverWatch sound effect pack")
                 : nameBox.Text.Trim();
 
             await FillBuiltInVoiceDefaultsAsync(

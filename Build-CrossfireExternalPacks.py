@@ -57,8 +57,9 @@ def build(source, output):
             shutil.copytree(folder, dest)
             manifest = json.loads((dest / "manifest.json").read_text(encoding="utf-8-sig"))
             name = manifest["name"].replace(" (", "—").replace("(", "—").replace(")", "")
-            title = "穿越火线—" + name + "—音频包"
-            manifest.update(package_kind="crossfire_voice", format_version=1, display_name_zh_cn=title)
+            title = "穿越火线—" + name + "—语音包"
+            manifest.update(package_kind="crossfire_voice", audio_kind="character_voice",
+                            format_version=1, display_name_zh_cn=title)
             (dest / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
             character = folder.name.removeprefix("crossfire_").removesuffix("_gr").removesuffix("_bl")
             head = source / "PackIcons" / ({"v_sex": "cfsex"}.get(character, character) + ".png")

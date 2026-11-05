@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace KillConfirmCompatibility.Services
 {
@@ -12,8 +12,8 @@ namespace KillConfirmCompatibility.Services
             ["GameEffectsTitle"] = "\u6e38\u620f\u7279\u6548",
             ["AutoCloseOnGameExitLabel"] = "\u9000\u51fa\u6e38\u620f\u540e\u81ea\u52a8\u5173\u95ed",
             ["AutoCloseOnGameExitHint"] = "\u5f00\u542f\u540e\uff0c\u68c0\u6d4b\u5230 CS2 \u6216 CS:GO \u5df2\u9000\u51fa\u65f6\uff0c\u672c\u63d2\u4ef6\u4f1a\u81ea\u52a8\u53d6\u6d88\u56fa\u5b9a\u5e76\u5173\u95ed\uff0c\u65e0\u9700\u624b\u52a8\u5173\u95ed\u3002",
-            ["InterruptPreviousKillAudioLabel"] = "\u6253\u65ad\u4e0a\u4e00\u6bb5\u51fb\u6740\u8bed\u97f3",
-            ["InterruptPreviousKillAudioHint"] = "\u5f00\u542f\u540e\uff0c\u4e0b\u4e00\u6b21\u51fb\u6740\u8bed\u97f3\u4f1a\u81ea\u52a8\u505c\u6b62\u4e0a\u4e00\u6bb5\uff0c\u8fde\u6740\u65f6\u4e0d\u4f1a\u53e0\u6210\u4e00\u7247\u4e71\u97f3\u3002",
+            ["InterruptPreviousKillAudioLabel"] = "打断上一段击杀音效",
+            ["InterruptPreviousKillAudioHint"] = "开启后，新的击杀音效会停止上一段音效；角色语音由独立的语音打断设置控制。",
             ["GsiGameVersionLabel"] = "Counter-Strike 版本",
             ["GsiGameVersionHint"] = "选择当前使用的 Counter-Strike 版本。切换后，应用会重新检测游戏文件夹和比赛状态。",
             ["GsiGameVersionCs2"] = "Counter-Strike 2\uff08\u9ed8\u8ba4\uff09",
@@ -37,12 +37,12 @@ namespace KillConfirmCompatibility.Services
             ["BombAudioFullPreview"] = "\u5b8c\u6574\u6548\u679c\u8bd5\u542c",
             ["BombAudioStopPreview"] = "\u505c\u6b62\u8bd5\u542c",
             ["DoubaoEffectsTitle"] = "\u8c46\u5305\u9ad8\u7ea7\u7279\u6548",
-            ["DoubaoEffectsHint"] = "\u8bbe\u7f6e\u8fde\u6740\u6a21\u5f0f\uff0c\u5e76\u4e3a 1\uff5e5 \u6740\u81ea\u5b9a\u4e49\u72ec\u7acb\u56fe\u7247\u4e0e\u8bed\u97f3\u3002",
+            ["DoubaoEffectsHint"] = "\u8bbe\u7f6e\u8fde\u6740\u6a21\u5f0f\uff0c\u5e76\u4e3a 1\uff5e5 \u6740\u81ea\u5b9a\u4e49\u72ec\u7acb\u56fe\u7247\u4e0e\u97f3\u6548\u3002",
             ["DoubaoPerKillImages"] = "\u9010\u6740\u56fe\u7247",
-            ["DoubaoPerKillAudios"] = "\u9010\u6740\u8bed\u97f3",
+            ["DoubaoPerKillAudios"] = "\u9010\u6740\u97f3\u6548",
             ["DoubaoKillImage"] = "{0} \u6740\u56fe\u7247",
-            ["DoubaoKillAudio"] = "{0} \u6740\u8bed\u97f3",
-            ["CsolVoicePack"] = "CSOL \u8bed\u97f3\u5305",
+            ["DoubaoKillAudio"] = "{0} \u6740\u97f3\u6548",
+            ["CsolVoicePack"] = "CSOL \u97f3\u6548\u5305",
             ["CsolIconPack"] = "CSOL \u56fe\u6807\u5305",
             ["CreateCsolVoicePack"] = "\u521b\u5efa CSOL \u8bed\u97f3\u5305",
             ["CreateCsolIconPack"] = "\u521b\u5efa CSOL \u56fe\u6807\u5305",
@@ -50,11 +50,11 @@ namespace KillConfirmCompatibility.Services
             ["ImportCsolIconPack"] = "\u5bfc\u5165 CSOL \u56fe\u6807\u5305",
             ["ImportCsolVoiceMaterial"] = "导入 CSOL 语音素材",
             ["ImportCsolIconMaterial"] = "导入 CSOL 图标素材",
-            ["ImportCsolVoiceZip"] = "导入音频包",
+            ["ImportCsolVoiceZip"] = "导入音效包",
             ["ImportCsolIconZip"] = "导入图标包",
-            ["CsolVoicePackCreationHint"] = "选择 CSOL 的 1～10 杀、爆头、刀杀、手雷、复仇、助攻以及 C4 安包/拆包语音。CSOL 不使用单独的首杀语音。",
+            ["CsolVoicePackCreationHint"] = "选择 CSOL 的 1～10 杀、爆头、刀杀、手雷、复仇、助攻以及 C4 安包/拆包音效。CSOL 不使用单独的首杀音效。",
             ["CsolIconPackCreationHint"] = "选择 CSOL 的 1～10 杀、爆头、近战、复仇、首杀和助攻图标。",
-            ["CsolVoicePackNamePlaceholder"] = "输入 CSOL 语音包名称",
+            ["CsolVoicePackNamePlaceholder"] = "输入 CSOL 音效包名称",
             ["CsolIconPackNamePlaceholder"] = "输入 CSOL 图标包名称",
             ["Refresh"] = "\u5237\u65b0",
             ["RuntimeTitle"] = "软件与维护",

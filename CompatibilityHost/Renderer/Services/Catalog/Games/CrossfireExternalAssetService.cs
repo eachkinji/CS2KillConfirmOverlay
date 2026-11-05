@@ -16,7 +16,7 @@ namespace KillConfirmCompatibility.Services
         private static readonly string[] LegacyFolders = { "Original", "Vip", "AngelicBeast", "Anniversary10", "Anniversary15", "CFPL", "Rankmach2019_1", "Rankmach2019_2" };
         public static bool IsIconKey(string key) => IconKeys.Contains(key ?? "", StringComparer.OrdinalIgnoreCase);
         public static bool IsVoiceKey(string key) => !string.IsNullOrWhiteSpace(key) && key.StartsWith("crossfire_", StringComparison.OrdinalIgnoreCase);
-        public static string Root => Path.Combine(ApplicationData.Current.LocalFolder.Path, "Packs", "crossfire");
+        public static string Root => Path.Combine(ResourceLibraryPaths.Root, "crossfire");
         public static int Revision { get; private set; }
         private static string BundledRoot => ApplicationData.Current.LocalSettings.Values["Crossfire.BundledRoot"] as string;
         public static string PackPath(string key, bool voice = false)

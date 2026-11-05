@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using KillConfirmGameBar.Services;
 using Windows.Data.Json;
@@ -14,7 +14,7 @@ namespace KillConfirmGameBar
     {
         private async void OnVoicePackSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (_suppressVoicePackEvents || !_packSelectorsInitialized)
+            if (_suppressVoicePackEvents || _suppressAudioChannelEvents || !_packSelectorsInitialized)
             {
                 return;
             }
@@ -24,7 +24,7 @@ namespace KillConfirmGameBar
                 App.NoteAction("voice selection tag=" + ((PackTestSectionView.VoicePackSelector.SelectedItem as PackSelectorItem)?.Tag as string));
                 if (Equals((PackTestSectionView.VoicePackSelector.SelectedItem as PackSelectorItem)?.Tag, PackLibraryNavigation.AddMoreTag))
                 {
-                    await OpenPackLibraryAsync(true, e);
+                    await OpenAudioLibraryAsync(AudioPackKind.SoundEffect, e);
                     return;
                 }
                 string preset = GetSelectedVoicePackPreset();
@@ -33,9 +33,8 @@ namespace KillConfirmGameBar
                     return;
                 }
 
-                SavePackSettingForStyle(VoicePackSettingKey, GameStyleService.Current, preset);
-                TrySyncValorantIconPackForVoiceSelection(preset);
-                TrySyncBattlefieldIconPackForVoiceSelection(preset);
+                SaveAudioSelections();
+                await TrySyncIconForSoundEffectSelectionAsync(preset);
 
                 await EnsureServiceAvailableAsync();
                 await SyncSelectedVoicePackAsync();
@@ -61,9 +60,12 @@ namespace KillConfirmGameBar
                     await OpenPackLibraryAsync(false, e);
                     return;
                 }
+                GameStyleMode selectionStyle = GameStyleService.Current;
                 string iconPack = GetSelectedIconPack();
                 SavePackSettingForStyle(IconPackSettingKey, GameStyleService.Current, iconPack);
-                if (TrySyncValorantVoicePackForIconSelection(iconPack))
+                bool linked = await TrySyncSoundEffectForIconSelectionAsync(iconPack);
+                if (selectionStyle != GameStyleService.Current || !string.Equals(GetSelectedIconPack(), iconPack, StringComparison.OrdinalIgnoreCase)) return;
+                if (linked)
                 {
                     _ = SyncValorantVoicePackAfterIconSelectionAsync();
                 }

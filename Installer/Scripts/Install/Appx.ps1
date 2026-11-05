@@ -267,7 +267,8 @@ function Add-AppxPackageCompat {
     param(
         [string]$PackagePath,
         [switch]$ForceUpdate,
-        [switch]$DeferWhenInUse
+        [switch]$DeferWhenInUse,
+        [switch]$CloseTargetApplications
     )
 
     if($script:AppxDeploymentTimedOut){throw [TimeoutException]::new('已停止本次 Game Bar 部署等待；不再提交后续组件。')}
@@ -280,13 +281,20 @@ function Add-AppxPackageCompat {
     if ($ForceUpdate -and $command.Parameters.ContainsKey("ForceUpdateFromAnyVersion")) {
         $addPackageParams.ForceUpdateFromAnyVersion = $true
     }
-    if ($DeferWhenInUse -and $command.Parameters.ContainsKey("DeferRegistrationWhenPackagesAreInUse")) {
+    # The widget can remain suspended without a process visible to Get-Process.
+    # Let deployment close only the target package; framework consumers must
+    # never be stopped when installing shared prerequisites.
+    if ($CloseTargetApplications -and $command.Parameters.ContainsKey("ForceTargetApplicationShutdown")) {
+        $addPackageParams.ForceTargetApplicationShutdown = $true
+    }
+    elseif ($DeferWhenInUse -and $command.Parameters.ContainsKey("DeferRegistrationWhenPackagesAreInUse")) {
         $addPackageParams.DeferRegistrationWhenPackagesAreInUse = $true
     }
     Write-InstallLog "Add-AppxPackage path: $PackagePath"
-    Write-InstallLog ("Add-AppxPackage switches: ForceUpdateFromAnyVersion={0}; DeferRegistrationWhenPackagesAreInUse={1}" -f `
+    Write-InstallLog ("Add-AppxPackage switches: ForceUpdateFromAnyVersion={0}; DeferRegistrationWhenPackagesAreInUse={1}; ForceTargetApplicationShutdown={2}" -f `
         $addPackageParams.ContainsKey("ForceUpdateFromAnyVersion"), `
-        $addPackageParams.ContainsKey("DeferRegistrationWhenPackagesAreInUse"))
+        $addPackageParams.ContainsKey("DeferRegistrationWhenPackagesAreInUse"), `
+        $addPackageParams.ContainsKey("ForceTargetApplicationShutdown"))
     Write-InstallLog "正在等待 Windows 应用部署服务完成；最多等待 120 秒，超时自动跳过剩余 Game Bar 部署。"
     Invoke-AppxDeploymentWorker -Parameters $addPackageParams
     Write-InstallLog "Add-AppxPackage succeeded: $(Split-Path -Leaf $PackagePath)"

@@ -73,7 +73,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             {
                 await ValidateGameAsync(mode);
                 foreach (var selector in new[] { PackTestSectionView.VoicePackSelector,
-                    PackTestSectionView.IconPackSelector, PackTestSectionView.AudioVolumeSelector, PackTestSectionView.TestPresetSelector })
+                    PackTestSectionView.IconPackSelector, PackTestSectionView.CharacterVoicePackSelector, PackTestSectionView.AudioVolumeSelector, PackTestSectionView.SoundEffectVolumeSelector, PackTestSectionView.CharacterVoiceVolumeSelector, PackTestSectionView.TestPresetSelector })
                 {
                     if (!selector.IsEnabled || selector.Visibility != Visibility.Visible) continue;
                     report.AppendLine(mode + ": " + await ValidateDropdownAsync(selector));

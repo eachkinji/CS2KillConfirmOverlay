@@ -49,6 +49,10 @@ pub struct PackManifest {
     pub id: Option<String>,
     pub name: Option<String>,
     pub game_style: Option<String>,
+    /// Audio library category. Legacy packs without this field are migrated by game style.
+    pub audio_kind: Option<String>,
+    /// Generic user-created event packs opt out of native game-specific routing.
+    pub audio_routing: Option<String>,
     pub version: Option<String>,
     pub author: Option<String>,
     pub audio: Option<AudioConfig>,
@@ -107,6 +111,10 @@ pub struct AudioConfig {
     pub slots: HashMap<String, SlotFiles>,
     #[serde(default)]
     pub slot_gains: HashMap<String, f32>,
+    #[serde(default)]
+    pub slot_delays_ms: HashMap<String, u64>,
+    #[serde(default)]
+    pub slot_cooldowns_ms: HashMap<String, u64>,
     #[serde(default)]
     pub overlay_slots: Option<Vec<String>>,
 }
@@ -243,6 +251,42 @@ pub(crate) fn default_valorant_sounds_dir(sounds_root: &Path) -> PathBuf {
 }
 
 impl PackManifest {
+    pub fn uses_generic_event_audio(&self) -> bool {
+        self.audio_routing.as_deref().is_some_and(|routing| routing.eq_ignore_ascii_case("generic_event"))
+    }
+
+    pub fn character_voice_audio_slot(&self, ctx: &SoundContext) -> Option<String> {
+        let audio = self.audio.as_ref()?;
+        let count = ctx.kill_count.clamp(1, 6);
+        let headshot = format!("headshot_{count}");
+        let numbered = format!("kill_{count}");
+        let mut candidates = Vec::new();
+        if ctx.is_grenade_kill { candidates.push("grenade"); }
+        if ctx.is_knife_kill { candidates.push("knife"); }
+        if ctx.is_headshot { candidates.extend([headshot.as_str(), "headshot"]); }
+        if ctx.is_last_kill { candidates.push("last_kill"); }
+        if ctx.is_first_kill { candidates.push("first_kill"); }
+        candidates.extend([numbered.as_str(), "kill_1", "common"]);
+        candidates.into_iter().find(|slot|
+            audio.slots.get(*slot).is_some_and(|files| !files.as_slice().is_empty()))
+            .map(str::to_string)
+    }
+
+    /// Select one complete native event mix; its internal delays stay in the WAV.
+    pub fn calabiyau_audio_slot(&self, kill_count: u16, is_headshot: bool) -> Option<String> {
+        let audio = self.audio.as_ref()?;
+        let is_voice = self.audio_kind.as_deref().is_some_and(|kind|
+            kind.eq_ignore_ascii_case("voice") || kind.eq_ignore_ascii_case("character_voice"));
+        let count = kill_count.clamp(1, if is_voice { 6 } else { 5 });
+        let has = |slot: &str| audio.slots.get(slot).is_some_and(|files| !files.as_slice().is_empty());
+        let headshot = format!("headshot_{count}");
+        let normal = format!("kill_{count}");
+        if is_headshot && has(&headshot) { Some(headshot) }
+        else if has(&normal) { Some(normal) }
+        else if has("kill_1") { Some("kill_1".into()) }
+        else { None }
+    }
+
     /// Load manifest.json from a given directory path and auto-populate unmapped slots
     pub fn load_from_dir(dir_path: &Path) -> Result<Self> {
         let manifest_path = dir_path.join("manifest.json");
@@ -292,12 +336,16 @@ impl PackManifest {
             id: Some(folder_name.clone()),
             name: Some(folder_name),
             game_style: Some("crossfire".to_string()),
+            audio_kind: None,
+            audio_routing: None,
             version: Some("1.0".to_string()),
             author: None,
             audio: Some(AudioConfig {
                 base_gain: 1.0,
                 slots: HashMap::new(),
                 slot_gains: HashMap::new(),
+                slot_delays_ms: HashMap::new(),
+                slot_cooldowns_ms: HashMap::new(),
                 overlay_slots: None,
             }),
             icons: None,
@@ -310,6 +358,10 @@ impl PackManifest {
     /// Repair sparse custom Valorant manifests in memory. Older creators saved
     /// only selected slots despite promising built-in audio for empty slots.
     pub(crate) fn fill_valorant_audio_defaults(&mut self, default_pack_dir: &Path) -> Result<()> {
+        if self.uses_generic_event_audio() || self.audio_kind.as_deref().is_some_and(|kind|
+            kind.eq_ignore_ascii_case("character_voice") || kind.eq_ignore_ascii_case("voice")) {
+            return Ok(());
+        }
         if !self
             .game_style
             .as_deref()
@@ -461,6 +513,27 @@ impl PackManifest {
         let game_style = self.game_style.as_deref().unwrap_or_default();
         let is_valorant = game_style.eq_ignore_ascii_case("valorant");
         let is_custommodule = game_style.eq_ignore_ascii_case("custommodule");
+        let is_character_voice = self.audio_kind.as_deref().is_some_and(|kind|
+            kind.eq_ignore_ascii_case("character_voice") || kind.eq_ignore_ascii_case("voice"));
+        if self.uses_generic_event_audio() || (is_character_voice && !game_style.eq_ignore_ascii_case("crossfire")) {
+            if ctx.event_channel != EventChannel::Combat || ctx.is_assist
+                || !ctx.play_main_audio || ctx.kill_count < 1 { return entries; }
+            if let Some(slot) = self.character_voice_audio_slot(ctx) {
+                push_slot(&mut entries, &slot, None);
+            }
+            return entries;
+        }
+
+        if game_style.eq_ignore_ascii_case("calabiyau") {
+            if ctx.event_channel != EventChannel::Combat || ctx.is_assist
+                || !ctx.play_main_audio || ctx.kill_count < 1 {
+                return entries;
+            }
+            if let Some(slot) = self.calabiyau_audio_slot(ctx.kill_count, ctx.is_headshot) {
+                push_slot(&mut entries, &slot, None);
+            }
+            return entries;
+        }
 
         // CF plant/defuse uses exactly the common (kill_1) cue, including its
         // configured gain/pick, but no overlay or streak voice. CSOL has no

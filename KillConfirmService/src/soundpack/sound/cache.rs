@@ -52,22 +52,9 @@ async fn read_audio_bytes(file_name: &str) -> Result<Arc<[u8]>> {
 }
 
 pub async fn warm_audio_cache(app_state: Arc<AppState>) {
-    let base_dir = {
-        let preset = app_state.preset.read().await;
-        preset.base_dir.clone()
-    };
-
-    if let Ok(mut entries) = tokio::fs::read_dir(&base_dir).await {
-        while let Ok(Some(entry)) = entries.next_entry().await {
-            let path = entry.path();
-            if !is_supported_audio_path(&path) {
-                continue;
-            }
-
-            if let Some(path_text) = path.to_str() {
-                let _ = read_audio_bytes(path_text).await;
-            }
-        }
+    let channels = crate::soundpack::channels::channel_snapshot(&app_state).await;
+    for channel in [channels.sound_effect, channels.character_voice].into_iter().flatten() {
+        warm_preset_audio_cache(&channel.preset).await;
     }
 
     let bomb_paths = app_state
@@ -87,5 +74,23 @@ pub async fn warm_audio_cache(app_state: Arc<AppState>) {
         resolve_bomb_audio_path(BOMB_DEFUSED_AUDIO_FILE, &bomb_paths.2),
     ] {
         let _ = read_audio_bytes(&file_name).await;
+    }
+}
+
+pub async fn warm_preset_audio_cache(preset: &crate::soundpack::Preset) {
+    if let Ok(mut entries) = tokio::fs::read_dir(&preset.base_dir).await {
+        while let Ok(Some(entry)) = entries.next_entry().await {
+            let path = entry.path();
+            if is_supported_audio_path(&path) {
+                if let Some(path_text) = path.to_str() { let _ = read_audio_bytes(path_text).await; }
+            }
+        }
+    }
+    // Imported role packs may store clips under per-event subdirectories.
+    if let Some(audio) = preset.manifest.as_ref().and_then(|manifest| manifest.audio.as_ref()) {
+        for name in audio.slots.values().flat_map(|slot| slot.as_slice()) {
+            let path = Path::new(&preset.base_dir).join(name);
+            if let Some(path_text) = path.to_str() { let _ = read_audio_bytes(path_text).await; }
+        }
     }
 }

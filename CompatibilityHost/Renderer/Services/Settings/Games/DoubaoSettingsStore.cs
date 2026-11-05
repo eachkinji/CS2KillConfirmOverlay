@@ -126,7 +126,7 @@ namespace KillConfirmCompatibility.Services
                     return await StorageFile.GetFileFromPathAsync(key);
                 }
                 StorageFolder root = ApplicationData.Current.LocalFolder;
-                StorageFolder folder = await root.CreateFolderAsync(ImportedFolderName, CreationCollisionOption.OpenIfExists);
+                StorageFolder folder = await ResourceLibraryPaths.LegacyFolderAsync(ImportedFolderName);
                 return await folder.GetFileAsync(key);
             }
             catch
@@ -150,7 +150,7 @@ namespace KillConfirmCompatibility.Services
             try
             {
                 StorageFolder root = ApplicationData.Current.LocalFolder;
-                StorageFolder folder = await root.CreateFolderAsync(ImportedAudioFolderName, CreationCollisionOption.OpenIfExists);
+                StorageFolder folder = await ResourceLibraryPaths.LegacyFolderAsync(ImportedAudioFolderName);
                 StorageFile file = await folder.GetFileAsync(key);
                 return file?.Path ?? string.Empty;
             }
@@ -169,8 +169,7 @@ namespace KillConfirmCompatibility.Services
                 throw new InvalidOperationException("Only .png, .jpg, .jpeg, and .webp images are supported.");
             }
 
-            StorageFolder folder = await ApplicationData.Current.LocalFolder
-                .CreateFolderAsync(ImportedFolderName, CreationCollisionOption.OpenIfExists);
+            StorageFolder folder = await ResourceLibraryPaths.LegacyFolderAsync(ImportedFolderName);
             string fileName = $"doubao_kill_{killCount}_{Guid.NewGuid():N}{ext}";
             StorageFile copied = await file.CopyAsync(folder, fileName, NameCollisionOption.ReplaceExisting);
 
@@ -189,8 +188,7 @@ namespace KillConfirmCompatibility.Services
                 throw new InvalidOperationException("Only .wav, .mp3, and .m4a audio files are supported.");
             }
 
-            StorageFolder folder = await ApplicationData.Current.LocalFolder
-                .CreateFolderAsync(ImportedAudioFolderName, CreationCollisionOption.OpenIfExists);
+            StorageFolder folder = await ResourceLibraryPaths.LegacyFolderAsync(ImportedAudioFolderName);
             string fileName = $"doubao_audio_{killCount}_{Guid.NewGuid():N}{ext}";
             StorageFile copied = await file.CopyAsync(folder, fileName, NameCollisionOption.ReplaceExisting);
 

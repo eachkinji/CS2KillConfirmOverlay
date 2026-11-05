@@ -27,6 +27,7 @@ namespace KillConfirmGameBar
         private static JsonObject _settings;
         internal static Action BeforeSnapshotReturn;
         internal static bool FailNextWrite;
+        internal static JsonObject AudioChannels;
         internal static JsonObject RemoteSettings => _settings;
         public void Dispose() { }
         public IAsyncOperationWithProgress<HttpResponseMessage, HttpProgress> SendRequestAsync(HttpRequestMessage request)
@@ -73,6 +74,11 @@ namespace KillConfirmGameBar
                     }
                     else response.StatusCode = HttpStatusCode.NotFound;
                 }
+                else if (path == "/audio/channels" && request.Content != null)
+                {
+                    AudioChannels = JsonObject.Parse(await request.Content.ReadAsStringAsync());
+                    json = AudioChannels.Stringify();
+                }
                 else if (path.Contains("sound") && request.Content != null)
                     json = await request.Content.ReadAsStringAsync();
                 response.Content = new HttpStringContent(json, Windows.Storage.Streams.UnicodeEncoding.Utf8, "application/json");
@@ -97,6 +103,19 @@ namespace KillConfirmGameBar
                 stage("initializing widget protocol");
                 PortSettingsStore.SavePort(10095);
                 await SharedRuntime.InitializeValidationAsync();
+                if (File.Exists(Path.Combine(root, "Fixture", "calabiyau-render-only")))
+                {
+                    var host = new Grid { Width = 452, Height = 360, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
+                    var animation = new Controls.KillConfirmAnimation();
+                    host.Children.Add(animation);
+                    Window.Current.Content = host;
+                    Window.Current.Activate();
+                    await Task.Delay(100);
+                    stage("Calabiyau rendering, preload and layout validation");
+                    await animation.ValidateCalabiyauRenderingAsync(root, host, report);
+                    File.WriteAllText(Path.Combine(root, "switch-pass.txt"), report.ToString());
+                    return;
+                }
                 stage("constructing widget page");
                 page = new KillConfirmWidgetPage();
                 Window.Current.Content = page;
@@ -108,6 +127,12 @@ namespace KillConfirmGameBar
                 page.UpdateControlPanelVisibility();
                 stage("initializing selectors");
                 await page.InitializePackSelectorsAsync();
+                if (File.Exists(Path.Combine(root, "Fixture", "audio-channels-only")))
+                {
+                    await page.ValidateAudioChannelsUiAsync(root, report, stage);
+                    File.WriteAllText(Path.Combine(root, "switch-pass.txt"), report.ToString());
+                    return;
+                }
                 stage("decoding contributor avatars");
                 await page.UpdateOverlay.UpdateCreditsCommunityPanel.LoadAvatarsAsync();
                 if (!page.UpdateOverlay.UpdateCreditsCommunityPanel.AvatarsReady)
@@ -123,7 +148,7 @@ namespace KillConfirmGameBar
                     report.AppendLine(mode + ": " + clock.ElapsedMilliseconds + " ms; voice="
                         + page.GetSelectedVoicePackPreset() + "; icon=" + page.GetSelectedIconPack());
                     foreach (var selector in new[] { page.HeaderStatusSection.GameStyleSelector,
-                        page.PackTestSectionView.VoicePackSelector, page.PackTestSectionView.IconPackSelector })
+                        page.PackTestSectionView.VoicePackSelector, page.PackTestSectionView.IconPackSelector, page.PackTestSectionView.CharacterVoicePackSelector })
                         if (selector.IsEnabled && selector.Visibility == Visibility.Visible)
                             report.AppendLine(await ValidateDropdownAsync(selector));
                     stage("sequential switches");
@@ -184,7 +209,7 @@ namespace KillConfirmGameBar
                 {
                     await PackLibraryNavigation.RequestSharedAsync(GameStyleMode.Valorant, voice);
                     var handoff = JsonObject.Parse(WidgetProtocolFixture.RemoteSettings["PendingPackLibraryNavigation"].GetObject()["Text"].GetString());
-                    if (handoff["game"].GetString() != "valorant" || handoff["tab"].GetString() != (voice ? "voice" : "icon")) throw new Exception("UWP Add more did not reach the desktop shared store.");
+                    if (handoff["game"].GetString() != "valorant" || handoff["tab"].GetString() != (voice ? "sound_effect" : "icon")) throw new Exception("UWP Add more did not reach the desktop shared store.");
                     if (GameStyleService.Current != GameStyleMode.Overwatch) throw new Exception("Library handoff changed the active game.");
                     WidgetProtocolFixture.RemoteSettings.Remove("PendingPackLibraryNavigation");
                 }
@@ -209,10 +234,117 @@ namespace KillConfirmGameBar
                 await Task.Delay(25);
             }
             if (GameStyleService.Current != mode || GetSelectedGameStyle() != mode
-                || GameStyleService.GetStyleForPackKey(GetSelectedVoicePackPreset()) != mode
+                || (GetSelectedVoicePackPreset() != "none" && PackCatalogService.GetAudioPackStyle(_soundEffectChoices.FirstOrDefault(p => p.Key == GetSelectedVoicePackPreset())) != mode)
                 || GameStyleService.GetStyleForPackKey(GetSelectedIconPack()) != mode)
                 throw new Exception("Game/selector mismatch: requested=" + mode + "; current=" + GameStyleService.Current
                     + "; voice=" + GetSelectedVoicePackPreset() + "; icon=" + GetSelectedIconPack());
+        }
+
+        private async Task ValidateAudioChannelsUiAsync(string root, StringBuilder report, Action<string> stage)
+        {
+            if (GameStyleService.Current != GameStyleMode.Crossfire || GetSelectedVoicePackPreset() != "none"
+                || SelectedAudioPack(PackTestSectionView.CharacterVoicePackSelector) != "crossfire_swat_gr")
+                throw new Exception("UWP CF legacy selection was not migrated into character voice.");
+            if (!(PackTestSectionView.AudioVolumeSelector.SelectedItem is ComboBoxItem))
+                throw new Exception("Initial UWP master volume is blank before navigation.");
+            await SyncAudioChannelsAsync();
+            if (WidgetProtocolFixture.AudioChannels?["sound_effect"].ValueType != JsonValueType.Null
+                || WidgetProtocolFixture.AudioChannels["character_voice"].GetObject().GetNamedString("preset") != "crossfire_swat_gr")
+                throw new Exception("UWP did not post migrated CF audio channels atomically.");
+            await CaptureAudioMenuAsync(root, "audio-menu-crossfire.png");
+            foreach (GameStyleMode mode in Enum.GetValues(typeof(GameStyleMode)))
+            {
+                stage("three-pack UWP selectors: " + mode);
+                SelectGameStyleItem(mode);
+                await WaitForValidationSwitchAsync(mode);
+                foreach (var pair in new[] { Tuple.Create(PackTestSectionView.VoicePackSelector, AudioPackKind.SoundEffect),
+                    Tuple.Create(PackTestSectionView.CharacterVoicePackSelector, AudioPackKind.CharacterVoice) })
+                {
+                    if (pair.Item1.SelectedItem == null || !pair.Item1.Items.OfType<PackSelectorItem>().Any(i => i.Tag == "none"))
+                        throw new Exception("UWP audio selector lacks independent None: " + mode);
+                    foreach (var option in pair.Item1.Items.OfType<PackSelectorItem>().Where(i => i.Tag != "none" && i.Tag != PackLibraryNavigation.AddMoreTag))
+                    {
+                        var item = await PackCatalogService.GetVoicePackAsync(option.Tag);
+                        if (PackCatalogService.GetAudioPackKind(item) != pair.Item2 || PackCatalogService.GetAudioPackStyle(item) != mode)
+                            throw new Exception("Wrong audio category in UWP selector: " + mode + "/" + option.Tag);
+                    }
+                }
+            }
+            SelectGameStyleItem(GameStyleMode.Calabiyau);
+            await WaitForValidationSwitchAsync(GameStyleMode.Calabiyau);
+            SelectAudioPack(PackTestSectionView.VoicePackSelector, "calabiyau_sfx_fixture");
+            SelectAudioPack(PackTestSectionView.CharacterVoicePackSelector, "calabiyau_voice_fixture");
+            SetChannelVolume(PackTestSectionView.SoundEffectVolumeSelector, 70);
+            SetChannelVolume(PackTestSectionView.CharacterVoiceVolumeSelector, 130);
+            SaveAudioSelections();
+            await SyncAudioChannelsAsync();
+            var channels = WidgetProtocolFixture.AudioChannels;
+            if (channels["sound_effect"].GetObject().GetNamedString("preset") != "calabiyau_sfx_fixture"
+                || channels["character_voice"].GetObject().GetNamedString("preset") != "calabiyau_voice_fixture"
+                || channels["sound_effect"].GetObject().GetNamedNumber("volume_percent") != 70
+                || channels["character_voice"].GetObject().GetNamedNumber("volume_percent") != 130)
+                throw new Exception("UWP independent channel choice/volume request is incorrect.");
+            await InitializePackSelectorsAsync();
+            if (SelectedAudioPack(PackTestSectionView.CharacterVoicePackSelector) != "calabiyau_voice_fixture"
+                || ChannelVolume(PackTestSectionView.CharacterVoiceVolumeSelector) != 130)
+                throw new Exception("UWP role voice setting did not survive selector reload.");
+            UpdateLayout(); await Task.Delay(100);
+            var visuals = VisualSettingsSectionView.TransformToVisual(ControlPanel).TransformBounds(new Rect(0, 0, VisualSettingsSectionView.ActualWidth, VisualSettingsSectionView.ActualHeight));
+            var audio = AudioSettingsHost.TransformToVisual(ControlPanel).TransformBounds(new Rect(0, 0, AudioSettingsHost.ActualWidth, AudioSettingsHost.ActualHeight));
+            if (audio.Y < visuals.Bottom || AudioSettingsHost.Content != PackTestSectionView.AudioSettingsCard || audio.Height < 60)
+                throw new Exception("UWP audio controls are not below visual settings.");
+            foreach (var selector in new[] { PackTestSectionView.VoicePackSelector, PackTestSectionView.IconPackSelector, PackTestSectionView.CharacterVoicePackSelector,
+                PackTestSectionView.AudioVolumeSelector, PackTestSectionView.SoundEffectVolumeSelector, PackTestSectionView.CharacterVoiceVolumeSelector })
+            {
+                var bounds = selector.TransformToVisual(ControlPanel).TransformBounds(new Rect(0, 0, selector.ActualWidth, selector.ActualHeight));
+                if (bounds.Left < 0 || bounds.Right > ControlPanel.ActualWidth + 1 || bounds.Width < 50 || bounds.Height < 20)
+                    throw new Exception("UWP three-pack/audio control is clipped: " + selector.Name + "/" + bounds);
+                report.AppendLine(await ValidateDropdownAsync(selector));
+            }
+            await CaptureAudioMenuAsync(root, "audio-menu-calabiyau.png");
+            var disabled = CurrentAudioPreferences(); disabled.SoundEffectPack = "none"; disabled.LinkIconAndSound = true;
+            AudioChannelSettingsStore.Save(GameStyleMode.Calabiyau, disabled);
+            await InitializePackSelectorsAsync();
+            if (GetSelectedVoicePackPreset() != "none" || SelectedAudioPack(PackTestSectionView.CharacterVoicePackSelector) != "calabiyau_voice_fixture")
+                throw new Exception("UWP startup linkage overwrote explicit None or independent character voice.");
+            await SyncAudioChannelsAsync();
+            if (WidgetProtocolFixture.AudioChannels["sound_effect"].ValueType != JsonValueType.Null)
+                throw new Exception("UWP None did not disable the SFX channel.");
+            foreach (AudioPackKind kind in Enum.GetValues(typeof(AudioPackKind)))
+            {
+                await PackLibraryNavigation.RequestSharedAsync(GameStyleMode.Calabiyau, kind);
+                var handoff = JsonObject.Parse(WidgetProtocolFixture.RemoteSettings["PendingPackLibraryNavigation"].GetObject()["Text"].GetString());
+                if (handoff.GetNamedString("tab") != (kind == AudioPackKind.SoundEffect ? "sound_effect" : "voice"))
+                    throw new Exception("UWP typed audio library request targeted the wrong library.");
+            }
+            await SharedRuntime.PollValidationAsync();
+            if (!WidgetProtocolFixture.RemoteSettings.ContainsKey("AudioChannels.v2.calabiyau"))
+                throw new Exception("UWP audio preferences did not reach the shared settings store.");
+            int downloadedAudio = Directory.EnumerateFiles(SharedResources.CacheRoot, "*", SearchOption.AllDirectories)
+                .Count(path => new[] { ".wav", ".mp3", ".m4a" }.Contains(Path.GetExtension(path).ToLowerInvariant()));
+            if (downloadedAudio != 0) throw new Exception("Audio selector metadata downloaded sound media unnecessarily.");
+            report.AppendLine("PASS: actual UWP three-pack controls across all games, CF migration, atomic dual-channel requests, independent volumes and role voice persistence, None across linked reload, typed library handoff and shared-state persistence; audio card below visuals with no clipping; zero audio downloads. Actual menu screenshots captured.");
+        }
+
+        private async Task CaptureAudioMenuAsync(string root, string name)
+        {
+            UpdateLayout(); await Task.Delay(100);
+            var volumeBoxes = new[] { PackTestSectionView.AudioVolumeSelector, PackTestSectionView.SoundEffectVolumeSelector, PackTestSectionView.CharacterVoiceVolumeSelector };
+            var volumeRows = volumeBoxes.Select(box => box.TransformToVisual(ControlPanel).TransformBounds(new Rect(0, 0, box.ActualWidth, box.ActualHeight))).ToArray();
+            if (volumeBoxes.Any(box => box.SelectedItem == null) || volumeRows.Max(b => b.Top) - volumeRows.Min(b => b.Top) > 0.5
+                || volumeRows.Max(b => b.Height) - volumeRows.Min(b => b.Height) > 0.5)
+                throw new Exception("UWP volume fields are empty or not aligned: " + string.Join(";", volumeRows.Select(b => b.ToString())));
+            var bitmap = new Windows.UI.Xaml.Media.Imaging.RenderTargetBitmap();
+            await bitmap.RenderAsync(ControlPanel);
+            var pixels = await bitmap.GetPixelsAsync();
+            var file = await ApplicationData.Current.LocalFolder.CreateFileAsync(name, CreationCollisionOption.ReplaceExisting);
+            using (var stream = await file.OpenAsync(FileAccessMode.ReadWrite))
+            {
+                var encoder = await Windows.Graphics.Imaging.BitmapEncoder.CreateAsync(Windows.Graphics.Imaging.BitmapEncoder.PngEncoderId, stream);
+                encoder.SetPixelData(Windows.Graphics.Imaging.BitmapPixelFormat.Bgra8, Windows.Graphics.Imaging.BitmapAlphaMode.Premultiplied,
+                    (uint)bitmap.PixelWidth, (uint)bitmap.PixelHeight, 96, 96, pixels.ToArray());
+                await encoder.FlushAsync();
+            }
         }
 
         private static async Task<string> ValidateDropdownAsync(ComboBox selector)

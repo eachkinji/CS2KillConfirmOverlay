@@ -336,7 +336,7 @@ namespace KillConfirmGameBar.Services
 
         private static string GetValorantRootPath()
         {
-            return Path.Combine(ApplicationData.Current.LocalFolder.Path, "Packs", "valorant");
+            return Path.Combine(ResourceLibraryPaths.Root, "valorant");
         }
 
         private static IEnumerable<string> EnumeratePackageFolders(string root)

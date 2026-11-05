@@ -79,6 +79,7 @@ namespace KillConfirmGameBar.Controls
 
         private Task PreloadCurrentPackAnimationsCoreAsync(IProgress<int> progress)
         {
+            if (GameStyleService.IsCalabiyauKey(_iconPack)) return PreloadCalabiyauAsync(progress);
             if (GameStyleService.IsCustomModuleKey(_iconPack)) return PreloadCustomSequenceAsync(progress);
             if (GameStyleService.IsModernWarfare2019Key(_iconPack)
                 || GameStyleService.Current == GameStyleMode.ModernWarfare2019)

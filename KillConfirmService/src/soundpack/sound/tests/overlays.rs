@@ -17,12 +17,16 @@
             id: Some("custom".to_string()),
             name: Some("custom".to_string()),
             game_style: Some("crossfire".to_string()),
+            audio_kind: None,
+            audio_routing: None,
             version: Some("1.0".to_string()),
             author: None,
             audio: Some(AudioConfig {
                 base_gain: 1.0,
                 slots,
                 slot_gains: HashMap::new(),
+                slot_delays_ms: HashMap::new(),
+                slot_cooldowns_ms: HashMap::new(),
                 overlay_slots: Some(vec!["kill_1".to_string()]), // Only kill_1 has overlay enabled, kill_2 is disabled
             }),
             icons: None,

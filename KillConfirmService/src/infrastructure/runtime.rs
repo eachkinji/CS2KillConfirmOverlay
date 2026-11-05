@@ -112,6 +112,7 @@ pub(crate) fn exit_all_processes() {
     let current_pid = std::process::id();
     let image_names = [
         "KillConfirmGameBar.exe",
+        "KillConfirmControlPanel.exe",
         "KillConfirmCompatibility.exe",
         "killconfirm-settings-launcher.exe",
         "KillConfirmOverlay.exe",
@@ -145,7 +146,7 @@ pub(crate) fn exit_all_processes() {
             terminate.args(["/PID", &pid.to_string(), "/F"]);
             // The panel launches this exit helper as its child. Killing the
             // panel's tree would kill us before the renderer/service are stopped.
-            if image_name != "KillConfirmGameBar.exe" {
+            if image_name != "KillConfirmGameBar.exe" && image_name != "KillConfirmControlPanel.exe" {
                 terminate.arg("/T");
             }
             let output = match terminate.output() {

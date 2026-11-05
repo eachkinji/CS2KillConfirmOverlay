@@ -6,6 +6,7 @@ use std::path::{Path, PathBuf};
 use super::manifest::{default_valorant_sounds_dir, PackManifest};
 
 /// Preset holds a declarative PackManifest describing a sound pack's materials.
+#[derive(Clone)]
 pub struct Preset {
     pub manifest: Option<PackManifest>,
     pub preset_name: String,

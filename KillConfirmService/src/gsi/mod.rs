@@ -26,6 +26,28 @@ use crate::state::{
 };
 
 include!("combat.rs");
+
+fn spawn_player_kill_audio(app_state: Arc<AppState>, event: KillEvent) {
+    tokio::spawn(async move {
+        if let Err(error) = play_audio(
+            app_state,
+            event.kill_count,
+            event.is_headshot,
+            event.is_first_kill,
+            event.is_knife_kill,
+            event.is_grenade_kill,
+            event.is_last_kill,
+            event.is_assist,
+            event.money_reward,
+            event.event_kind,
+            event.event_channel,
+            event.play_main_animation,
+        ).await {
+            error!("Failed to play audio: {}", error);
+        }
+    });
+}
+
 include!("update.rs");
 include!("parsing.rs");
 include!("tests.rs");

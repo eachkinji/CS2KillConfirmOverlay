@@ -321,6 +321,11 @@ pub async fn update(
         None
     };
 
+    // Calabiyau's baked visual timeline uses event publication as its anchor.
+    // Do not start its audio before the state write below: contention there
+    // would otherwise advance all of the original star cues before the visual.
+    let publish_before_kill_audio = can_emit_kill
+        && crate::soundpack::sound::uses_calabiyau_kill_audio(&app_state).await;
     let (
         pending_last_kill_for_next,
         kill_event_to_send,
@@ -388,7 +393,11 @@ pub async fn update(
     if let Some(kill_event) = kill_event_to_send {
         let gsi_total_ms = gsi_start.elapsed().as_millis();
         perf_trace(&format!("GSI kill_event: handler_ms={gsi_total_ms}"));
+        let deferred_audio = publish_before_kill_audio.then(|| kill_event.clone());
         app_state.events.publish(kill_event).await;
+        if let Some(audio_event) = deferred_audio {
+            spawn_player_kill_audio(app_state.clone(), audio_event);
+        }
     }
 
     if let Some(badge_only_event) = badge_only_event_to_send {

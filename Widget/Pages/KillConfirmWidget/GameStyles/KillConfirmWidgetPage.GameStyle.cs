@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using KillConfirmGameBar.Controls.GameStyles;
 using KillConfirmGameBar.Services;
 using Windows.Storage;
@@ -140,6 +140,17 @@ namespace KillConfirmGameBar
             SetButtonTheme(StatusDetailsSection.CfgInstallButton, theme.Accent, actionBorder, Colors.White);
 
             SetComboTheme(PackTestSectionView.VoicePackSelector, text, field, border);
+            SetComboTheme(PackTestSectionView.CharacterVoicePackSelector, text, field, border);
+            SetComboTheme(PackTestSectionView.SoundEffectVolumeSelector, text, field, border);
+            SetComboTheme(PackTestSectionView.CharacterVoiceVolumeSelector, text, field, border);
+            PackTestSectionView.AudioSettingsCard.Background = Brush(card);
+            PackTestSectionView.AudioSettingsCard.BorderBrush = Brush(border);
+            PackTestSectionView.AudioSettingsHeaderBorder.Background = Brush(secondary);
+            PackTestSectionView.CharacterVoicePackIcon.Foreground = Brush(text);
+            PackTestSectionView.MasterVolumeLabel.Foreground = Brush(text);
+            PackTestSectionView.SoundEffectVolumeLabel.Foreground = Brush(text);
+            PackTestSectionView.CharacterVoiceVolumeLabel.Foreground = Brush(text);
+            PackTestSectionView.LinkIconSoundCheckBox.Foreground = Brush(text);
             SetComboTheme(PackTestSectionView.IconPackSelector, text, field, border);
             PackTestSectionView.VoicePackSelector.IsEnabled = true;
             PackTestSectionView.IconPackSelector.IsEnabled = GameStyleService.Current != GameStyleMode.Overwatch

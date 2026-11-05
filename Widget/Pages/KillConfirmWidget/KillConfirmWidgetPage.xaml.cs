@@ -181,7 +181,6 @@ namespace KillConfirmGameBar
         private static readonly Uri ServiceHealthUri = LocalServiceEndpoints.Build("/health");
         private static readonly Uri GsiStatusUri = LocalServiceEndpoints.Build("/gsi-status");
         private static readonly Uri ServiceShutdownUri = LocalServiceEndpoints.Build("/shutdown");
-        private static readonly Uri SoundPackUri = LocalServiceEndpoints.Build("/soundpack");
         private static readonly Uri AudioReloadUri = LocalServiceEndpoints.Build("/audio/reload");
         private static readonly Uri AudioVolumeUri = LocalServiceEndpoints.Build("/audio/volume");
         private static readonly Uri AudioDeviceUri = LocalServiceEndpoints.Build("/audio/device");
@@ -324,6 +323,8 @@ namespace KillConfirmGameBar
             _suppressVoicePackEvents = true;
             _suppressIconPackEvents = true;
             InitializeComponent();
+            AudioSettingsHost.Content = PackTestSectionView.DetachAudioSettings();
+            LoadAudioVolumeSelection();
             InitializeGameBarSetupGuideImage();
             _suppressGameStyleEvents = false;
             _suppressVoicePackEvents = false;

@@ -19,7 +19,8 @@ namespace KillConfirmCompatibility.Services
         Doubao,
         Dagoujiao,
         CustomModule,
-        Battlefield6
+        Battlefield6,
+        Calabiyau
     }
 
     internal static partial class GameStyleService
@@ -72,6 +73,8 @@ namespace KillConfirmCompatibility.Services
                     return "pubg";
                 case GameStyleMode.DeltaForce:
                     return "deltaforce";
+                case GameStyleMode.Calabiyau:
+                    return "calabiyau";
                 case GameStyleMode.CustomModule:
                     return "custommodule";
                 case GameStyleMode.Doubao:
@@ -112,6 +115,8 @@ namespace KillConfirmCompatibility.Services
                     return "PUBG";
                 case GameStyleMode.DeltaForce:
                     return "三角洲";
+                case GameStyleMode.Calabiyau:
+                    return "卡拉彼丘";
                 case GameStyleMode.CustomModule:
                     return "自定义";
                 case GameStyleMode.Doubao:
@@ -167,6 +172,10 @@ namespace KillConfirmCompatibility.Services
                 case "delta":
                 case "df":
                     return GameStyleMode.DeltaForce;
+                case "calabiyau":
+                case "strinova":
+                case "卡拉彼丘":
+                    return GameStyleMode.Calabiyau;
                 case "custommodule":
                     return GameStyleMode.CustomModule;
                 case "doubao":
@@ -235,6 +244,7 @@ namespace KillConfirmCompatibility.Services
                 || mode == GameStyleMode.Pubg
                 || mode == GameStyleMode.Csol
                 || mode == GameStyleMode.Valorant
+                || mode == GameStyleMode.Calabiyau
                 || mode == GameStyleMode.CustomModule
                 || mode == GameStyleMode.Doubao
                 || mode == GameStyleMode.Dagoujiao;
@@ -304,6 +314,23 @@ namespace KillConfirmCompatibility.Services
                 || string.Equals(value, "df", System.StringComparison.OrdinalIgnoreCase);
         }
 
+        public static bool IsCalabiyauKey(string key)
+        {
+            return string.Equals(key, "calabiyau", System.StringComparison.OrdinalIgnoreCase)
+                || (key ?? "").StartsWith("calabiyau_sfx_", System.StringComparison.OrdinalIgnoreCase)
+                || (key ?? "").StartsWith("calabiyau_voice_", System.StringComparison.OrdinalIgnoreCase)
+                || (key ?? "").StartsWith("custom_calabiyau_audio_", System.StringComparison.OrdinalIgnoreCase)
+                || KillConfirmCompatibility.Contracts.CalabiyauPacks.Find(key) != null;
+        }
+
+        public static bool IsCalabiyauKillEvent(KillEvent value)
+        {
+            return value != null && value.IsCombatEvent && !value.IsAssist && value.KillCount > 0
+                && (string.IsNullOrEmpty(value.EventKind)
+                    || string.Equals(value.EventKind, "kill", System.StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(value.EventKind, "kill_confirmation", System.StringComparison.OrdinalIgnoreCase));
+        }
+
         public static bool IsCustomModuleKey(string key)
         {
             return string.Equals(key, "custommodule", System.StringComparison.OrdinalIgnoreCase)
@@ -337,7 +364,8 @@ namespace KillConfirmCompatibility.Services
 
         public static bool IsModPresetGameKey(string key)
         {
-            return IsBattlefield1Key(key)
+            return IsCalabiyauKey(key)
+                || IsBattlefield1Key(key)
                 || IsBattlefield5Key(key)
                 || IsBattlefield4Key(key)
                 || IsBattlefield2042Key(key)

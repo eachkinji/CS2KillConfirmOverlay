@@ -4,6 +4,7 @@ $ProgressPreference='SilentlyContinue'
 $request=Get-Content -LiteralPath $RequestPath -Raw -Encoding UTF8 | ConvertFrom-Json
 $parameters=@{Path=[string]$request.Path;ErrorAction='Stop'}
 if($request.ForceUpdateFromAnyVersion){$parameters.ForceUpdateFromAnyVersion=$true}
+if($request.ForceTargetApplicationShutdown){$parameters.ForceTargetApplicationShutdown=$true}
 if($request.DeferRegistrationWhenPackagesAreInUse){$parameters.DeferRegistrationWhenPackagesAreInUse=$true}
 try {
     if ($request.Operation -eq 'Remove') {

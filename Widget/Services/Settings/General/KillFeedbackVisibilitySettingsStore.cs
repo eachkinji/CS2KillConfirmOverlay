@@ -114,6 +114,8 @@ namespace KillConfirmGameBar.Services
         {
             switch (style)
             {
+                case GameStyleMode.Calabiyau:
+                    return "CalabiyauKillFeedback";
                 case GameStyleMode.CustomModule:
                     return "CustomModuleKillFeedback";
                 case GameStyleMode.ModernWarfare2019:

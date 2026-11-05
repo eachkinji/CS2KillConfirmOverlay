@@ -1,4 +1,5 @@
 ﻿param(
+    [string]$MaterialRoot = "",
     [switch]$SkipLoopback = $false,
     [switch]$SkipGameBar = $false,
     [switch]$SkipGsiConfig = $false,
@@ -138,6 +139,7 @@ try {
     Write-InstallStage -Number 1 -Total 7 -Name "普通主程序" -Detail "控制面板、后台与兼容显示"
     Install-DesktopApplication
     Complete-LegacyControlPanelUpgrade
+    Initialize-MaterialLibrary
     $compatibilityFallback = -not (Test-OptionalGameBarEnvironment)
     Write-InstallStage -Number 2 -Total 7 -Name "显示方式检测" -Detail "Game Bar 为可选组件"
     if ($compatibilityFallback) {

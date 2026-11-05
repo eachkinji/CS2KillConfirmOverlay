@@ -25,7 +25,11 @@ function Get-AppxIdentityFromPackageFile { param($PackagePath); if($PackagePath.
 function Get-AppxPackage { param($Name); $script:registered }
 function Get-InstalledOverlayPackage { $script:registered }
 function Update-InstalledPackageContext { $script:registered }
-function Add-AppxPackageCompat { param($PackagePath,[switch]$ForceUpdate,[switch]$DeferWhenInUse); $script:registrations++; $script:registered.Version='4.5.1.56' }
+function Add-AppxPackageCompat {
+    param($PackagePath,[switch]$ForceUpdate,[switch]$DeferWhenInUse,[switch]$CloseTargetApplications)
+    if (!$CloseTargetApplications) { throw 'Widget update must request target-package shutdown.' }
+    $script:registrations++; $script:registered.Version='4.5.1.56'
+}
 function Enable-LoopbackExemptionVerified { param($AppPackageFamilyName); $script:loopbacks++ }
 . (Join-Path $repository 'Installer/Scripts/Install/Overlay.ps1')
 function Stop-OverlayRuntimeForUpdate { }

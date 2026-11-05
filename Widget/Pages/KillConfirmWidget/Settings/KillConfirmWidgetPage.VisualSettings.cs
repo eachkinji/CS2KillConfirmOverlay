@@ -39,14 +39,23 @@ namespace KillConfirmGameBar
 
         }
 
+        // Populate before the page is navigated so the first visible frame always
+        // shows the saved volume (or 100%). Selection changes here must not write
+        // settings or start the service while the control tree is initializing.
+        private void LoadAudioVolumeSelection()
+        {
+            double value = ReadAudioVolumeSetting(ApplicationData.Current.LocalSettings);
+            if (double.IsNaN(value) || double.IsInfinity(value)) value = DefaultAudioVolumeValue;
+            value = Math.Max(0, Math.Min(200, value));
+            bool previous = _suppressVisualAdjustmentEvents;
+            _suppressVisualAdjustmentEvents = true;
+            try { SelectPercentageOption(PackTestSectionView.AudioVolumeSelector, value); }
+            finally { _suppressVisualAdjustmentEvents = previous; }
+        }
+
         private void LoadVisualAdjustmentSettings()
         {
-            ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
-            double audioVolume = ReadAudioVolumeSetting(localSettings);
-
-            _suppressVisualAdjustmentEvents = true;
-            SelectPercentageOption(PackTestSectionView.AudioVolumeSelector, audioVolume);
-            _suppressVisualAdjustmentEvents = false;
+            LoadAudioVolumeSelection();
 
             // Global visual controls were removed. Keep the legacy renderer at
             // its neutral 60 FPS baseline; per-layer appearance is applied by
@@ -142,16 +151,7 @@ namespace KillConfirmGameBar
 
         private async Task ReloadAudioVolumeForCurrentGameAsync()
         {
-            double volume = ReadAudioVolumeSetting(ApplicationData.Current.LocalSettings);
-            _suppressVisualAdjustmentEvents = true;
-            try
-            {
-                SelectPercentageOption(PackTestSectionView.AudioVolumeSelector, volume);
-            }
-            finally
-            {
-                _suppressVisualAdjustmentEvents = false;
-            }
+            LoadAudioVolumeSelection();
 
             // The service owns one live output gain. Reapply the newly selected
             // game's persisted gain whenever the game style changes.

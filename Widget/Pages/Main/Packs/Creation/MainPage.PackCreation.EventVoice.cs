@@ -63,7 +63,7 @@ namespace KillConfirmGameBar
                     {
                         SoundsFolder = "bf1",
                         DefaultHeadPreviewUri = "ms-appx:///Assets/GameStyles/battlefield1/killconfirm/textures/killicon_battlefield1_default.png",
-                        ChineseHint = "战地1只使用普通击杀和爆头提示音，不需要设置连杀、刀杀或助攻语音。",
+                        ChineseHint = "战地1只使用普通击杀和爆头提示音，不需要设置连杀、刀杀或助攻音效。",
                         EnglishHint = "Battlefield 1 uses normal-kill and headshot cues only.",
                         Slots = new[]
                         {
@@ -76,7 +76,7 @@ namespace KillConfirmGameBar
                     {
                         SoundsFolder = "bf5",
                         DefaultHeadPreviewUri = "ms-appx:///Assets/GameStyles/battlefield5/killconfirm/textures/killicon_battlefield5_default.png",
-                        ChineseHint = "战地5只使用普通击杀和爆头提示音，不需要设置连杀语音。",
+                        ChineseHint = "战地5只使用普通击杀和爆头提示音，不需要设置连杀音效。",
                         EnglishHint = "Battlefield 5 uses normal-kill and headshot cues only.",
                         Slots = new[]
                         {
@@ -89,7 +89,7 @@ namespace KillConfirmGameBar
                     {
                         SoundsFolder = "bf4",
                         DefaultHeadPreviewUri = "ms-appx:///Assets/GameStyles/battlefield4/killconfirm/textures/killicon_battlefield1_default.png",
-                        ChineseHint = "战地4只使用一段得分/击杀提示音，不需要设置爆头或连杀语音。",
+                        ChineseHint = "战地4只使用一段得分/击杀提示音，不需要设置爆头或连杀音效。",
                         EnglishHint = "Battlefield 4 uses one score/kill cue.",
                         Slots = new[]
                         {
@@ -179,7 +179,7 @@ namespace KillConfirmGameBar
             EventVoiceEditorDefinition definition = GetEventVoiceEditorDefinition(style);
             if (style != GameStyleMode.Apex)
             {
-                definition.ChineseHint += " 也可以为 C4 安包和拆包配置独立提示音，留空则保持语音包静音。";
+                definition.ChineseHint += " 也可以为 C4 安包和拆包配置独立提示音，留空则保持音效包静音。";
                 definition.EnglishHint += " Optional C4 plant and defuse cues stay silent when left empty.";
                 definition.Slots = definition.Slots.Concat(new[]
                 {
@@ -192,9 +192,9 @@ namespace KillConfirmGameBar
             StorageFile headImageFile = initialHeadImageFile;
 
             var layout = CreatePackDialogLayout(
-                LocalizationManager.Text("CreateVoicePack"),
+                AudioPackText("CreateVoicePack"),
                 isChinese ? definition.ChineseHint : definition.EnglishHint,
-                LocalizationManager.Text("VoicePackNamePlaceholder"),
+                AudioPackText("VoicePackNamePlaceholder"),
                 initialDisplayName,
                 out var nameBox);
 
@@ -230,7 +230,7 @@ namespace KillConfirmGameBar
             if (result != ContentDialogResult.Primary) return;
 
             string packName = string.IsNullOrWhiteSpace(nameBox.Text)
-                ? GameStyleService.ToDisplayName(style) + (isChinese ? "语音包" : " voice pack")
+                ? GameStyleService.ToDisplayName(style) + (isChinese ? "音效包" : " sound effect pack")
                 : nameBox.Text.Trim();
             var defaultSlots = definition.Slots
                 .Select(slot => (

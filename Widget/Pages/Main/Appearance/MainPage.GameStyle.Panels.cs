@@ -237,19 +237,27 @@ namespace KillConfirmGameBar
                 _valorantAdvancedEffectsPanel = new ValorantAdvancedEffectsPanel();
                 _valorantAdvancedEffectsPanel.SelectAssistAudio(
                     AssistAudioSettingsStore.Load(GameStyleMode.Valorant));
-                _valorantAdvancedEffectsPanel.SelectPackSync(
-                    ValorantPackSyncSettingsStore.Load());
                 _valorantAdvancedEffectsPanel.StreakModeSelectionChanged += OnStreakModeSelectionChanged;
                 _valorantAdvancedEffectsPanel.AssistAudioToggled += OnValorantAssistAudioToggled;
-                _valorantAdvancedEffectsPanel.PackSyncToggled += OnValorantPackSyncToggled;
             }
             string streak = SharedStreakSettingsStore.Load(GameStyleMode.Valorant);
             _valorantAdvancedEffectsPanel.SelectStreakMode(streak);
             _valorantAdvancedEffectsPanel.SelectAssistAudio(
                 AssistAudioSettingsStore.Load(GameStyleMode.Valorant));
-            _valorantAdvancedEffectsPanel.SelectPackSync(
-                ValorantPackSyncSettingsStore.Load());
             return _valorantAdvancedEffectsPanel;
+        }
+
+        private CalabiyauAdvancedEffectsPanel EnsureCalabiyauAdvancedSettingsPanel()
+        {
+            if (_calabiyauAdvancedEffectsPanel == null)
+            {
+                _calabiyauAdvancedEffectsPanel = new CalabiyauAdvancedEffectsPanel();
+                _calabiyauAdvancedEffectsPanel.StreakModeSelectionChanged += OnStreakModeSelectionChanged;
+            }
+            _calabiyauAdvancedEffectsPanel.SelectStreakMode(
+                SharedStreakSettingsStore.Load(GameStyleMode.Calabiyau));
+            _calabiyauAdvancedEffectsPanel.RefreshSettings();
+            return _calabiyauAdvancedEffectsPanel;
         }
 
         private OverwatchAdvancedEffectsPanel EnsureOverwatchAdvancedSettingsPanel()

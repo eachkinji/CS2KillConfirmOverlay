@@ -291,6 +291,23 @@ pub struct CsolSettingsResponse {
 }
 
 #[derive(Debug, Deserialize)]
+pub struct SanguoshaSettingsRequest {
+    #[serde(default = "default_true")]
+    pub headshot_special_audio_priority: bool,
+    #[serde(default = "default_true")]
+    pub knife_special_audio_priority: bool,
+    #[serde(default = "default_true")]
+    pub grenade_special_audio_priority: bool,
+}
+
+#[derive(Debug, Serialize)]
+pub struct SanguoshaSettingsResponse {
+    pub headshot_special_audio_priority: bool,
+    pub knife_special_audio_priority: bool,
+    pub grenade_special_audio_priority: bool,
+}
+
+#[derive(Debug, Deserialize)]
 pub struct DagoujiaoSettingsRequest {
     pub epic_kill_count: u32,
     pub headshot_priority: bool,

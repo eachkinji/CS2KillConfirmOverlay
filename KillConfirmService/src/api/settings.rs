@@ -168,6 +168,48 @@ pub async fn set_crossfire_settings(
     Ok(Json(crossfire_settings_response(&app_state)))
 }
 
+pub async fn sanguosha_settings(
+    State(app_state): State<Arc<AppState>>,
+) -> Json<SanguoshaSettingsResponse> {
+    Json(SanguoshaSettingsResponse {
+        headshot_special_audio_priority: app_state
+            .sanguosha_headshot_special_audio_priority
+            .load(Ordering::Relaxed),
+        knife_special_audio_priority: app_state
+            .sanguosha_knife_special_audio_priority
+            .load(Ordering::Relaxed),
+        grenade_special_audio_priority: app_state
+            .sanguosha_grenade_special_audio_priority
+            .load(Ordering::Relaxed),
+    })
+}
+
+pub async fn set_sanguosha_settings(
+    State(app_state): State<Arc<AppState>>,
+    Json(request): Json<SanguoshaSettingsRequest>,
+) -> Json<SanguoshaSettingsResponse> {
+    app_state
+        .sanguosha_headshot_special_audio_priority
+        .store(request.headshot_special_audio_priority, Ordering::Relaxed);
+    app_state
+        .sanguosha_knife_special_audio_priority
+        .store(request.knife_special_audio_priority, Ordering::Relaxed);
+    app_state
+        .sanguosha_grenade_special_audio_priority
+        .store(request.grenade_special_audio_priority, Ordering::Relaxed);
+    service_log(&format!(
+        "Sanguosha settings: headshot_priority={}, knife_priority={}, grenade_priority={}",
+        request.headshot_special_audio_priority,
+        request.knife_special_audio_priority,
+        request.grenade_special_audio_priority
+    ));
+    Json(SanguoshaSettingsResponse {
+        headshot_special_audio_priority: request.headshot_special_audio_priority,
+        knife_special_audio_priority: request.knife_special_audio_priority,
+        grenade_special_audio_priority: request.grenade_special_audio_priority,
+    })
+}
+
 pub async fn csol_settings(State(app_state): State<Arc<AppState>>) -> Json<CsolSettingsResponse> {
     Json(csol_settings_response(&app_state).await)
 }

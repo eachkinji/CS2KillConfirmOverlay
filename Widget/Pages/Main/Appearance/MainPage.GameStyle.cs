@@ -33,6 +33,7 @@ namespace KillConfirmGameBar
         private CustomModulePanel _customModulePanel;
         private DoubaoAdvancedEffectsPanel _doubaoAdvancedEffectsPanel;
         private DagoujiaoAdvancedEffectsPanel _dagoujiaoAdvancedEffectsPanel;
+        private CalabiyauAdvancedEffectsPanel _calabiyauAdvancedEffectsPanel;
 
         private GameStyleMode SettingsGameStyle = GameStyleService.Current;
         private GameThemePalette SettingsTheme => _isHomePageSelected || _isSettingsWorkspaceSelected ? GameThemePalette.Home : GameThemePalette.ForMode(SettingsGameStyle);
@@ -538,9 +539,7 @@ namespace KillConfirmGameBar
                     panel = EnsureDeltaForceAdvancedSettingsPanel();
                     break;
                 case GameStyleMode.Calabiyau:
-                    panel = new TextBlock { Text = LocalizationManager.Current == UiLanguage.SimplifiedChinese
-                        ? "默认击杀动画 · 3.5 秒。当前版本不含音效、粒子和连杀星级。"
-                        : "Default kill animation · 3.5 s. Audio, particles and streak stars are not included.", TextWrapping = TextWrapping.Wrap };
+                    panel = EnsureCalabiyauAdvancedSettingsPanel();
                     break;
                 case GameStyleMode.CustomModule:
                     if (_customModulePanel == null)

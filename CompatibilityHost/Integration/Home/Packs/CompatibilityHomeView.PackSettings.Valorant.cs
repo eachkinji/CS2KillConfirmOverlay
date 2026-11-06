@@ -105,17 +105,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             return true;
         }
 
-        private async void OnValorantPackSyncToggled(object sender, RoutedEventArgs e)
-        {
-            if (!(sender is ValorantAdvancedEffectsPanel panel)) return;
-            try
-            {
-                var preferences = AudioChannelSettingsStore.Load(GameStyleMode.Valorant);
-                await AudioChannelSettingsStore.SetBehaviorAsync(GameStyleMode.Valorant,
-                    panel.GetPackSyncEnabled(true), preferences.CharacterVoiceInterrupt);
-            }
-            catch (Exception ex) { App.Log("Valorant pack linkage failed: " + ex); }
-        }
+
 
     }
 }

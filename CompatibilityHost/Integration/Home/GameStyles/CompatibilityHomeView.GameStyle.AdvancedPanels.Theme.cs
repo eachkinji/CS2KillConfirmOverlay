@@ -99,6 +99,11 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                 _dagoujiaoAdvancedEffectsPanel.ApplyTheme(theme);
             }
 
+            if (_calabiyauAdvancedEffectsPanel != null)
+            {
+                _calabiyauAdvancedEffectsPanel.ApplyTheme(theme);
+            }
+
             AdvancedEffectsPanelSupport.ApplySoftenedTree(PackTestSectionView.AdvancedEffectsPanelHost, theme);
             AdvancedEffectsPanelSupport.ApplySoftenedTree(
                 PackTestSectionView.AdvancedEffectsPanelHost.Content as DependencyObject,
@@ -187,6 +192,11 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             if (_dagoujiaoAdvancedEffectsPanel != null)
             {
                 _dagoujiaoAdvancedEffectsPanel.ApplyLanguage(isChinese);
+            }
+
+            if (_calabiyauAdvancedEffectsPanel != null)
+            {
+                _calabiyauAdvancedEffectsPanel.ApplyLanguage(isChinese);
             }
         }
 

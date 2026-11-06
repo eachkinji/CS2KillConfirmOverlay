@@ -128,21 +128,75 @@
                             </NavigationViewItem.Icon>
                         </NavigationViewItem>
                         <NavigationViewItem x:Name="AdvancedSettingsSidebarItem" Tag="advanced" Content="高级设置" AutomationProperties.Name="高级设置" ToolTipService.ToolTip="高级设置"><NavigationViewItem.Icon><FontIcon Glyph="&#xE713;" /></NavigationViewItem.Icon></NavigationViewItem>
-                        <NavigationViewItemHeader x:Name="SidebarFavoritesHeader" Content="常用" />
+
+                        <NavigationViewItemHeader Style="{StaticResource SidebarGroupHeaderStyle}">
+                            <Button x:Name="SidebarTraditionalButton" Tag="traditional" Click="OnSidebarGroupClick" Style="{StaticResource SidebarGroupButtonStyle}">
+                                <Grid>
+                                    <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
+                                        <Image Width="18" Height="18" Stretch="Uniform" Source="ms-appx:///Assets/CategoryLogos/traditional.png" />
+                                        <TextBlock x:Name="SidebarTraditionalLabel" Text="传统射击  ·  3" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                    <FontIcon x:Name="SidebarTraditionalChevron" FontFamily="Segoe MDL2 Assets" Glyph="&#xE70D;" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                </Grid>
+                            </Button>
+                        </NavigationViewItemHeader>
                         <NavigationViewItem AutomationProperties.Name="CrossFire" Tag="crossfire" Content="CrossFire" ToolTipService.ToolTip="CrossFire">
                             <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/crossfire.png" /></NavigationViewItem.Icon>
+                        </NavigationViewItem>
+                        <NavigationViewItem AutomationProperties.Name="CSOL" Tag="csol" Content="CSOL" ToolTipService.ToolTip="CSOL">
+                            <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/csol.png" /></NavigationViewItem.Icon>
                         </NavigationViewItem>
                         <NavigationViewItem AutomationProperties.Name="Valorant" Tag="valorant" Content="Valorant" ToolTipService.ToolTip="Valorant">
                             <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/valorant.png" /></NavigationViewItem.Icon>
                         </NavigationViewItem>
+
+                        <NavigationViewItemHeader Style="{StaticResource SidebarGroupHeaderStyle}">
+                            <Button x:Name="SidebarHeroButton" Tag="hero" Click="OnSidebarGroupClick" Style="{StaticResource SidebarGroupButtonStyle}">
+                                <Grid>
+                                    <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
+                                        <Image Width="18" Height="18" Stretch="Uniform" Source="ms-appx:///Assets/CategoryLogos/hero.png" />
+                                        <TextBlock x:Name="SidebarHeroLabel" Text="英雄射击  ·  3" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                    <FontIcon x:Name="SidebarHeroChevron" FontFamily="Segoe MDL2 Assets" Glyph="&#xE70D;" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                </Grid>
+                            </Button>
+                        </NavigationViewItemHeader>
+                        <NavigationViewItem AutomationProperties.Name="Overwatch" Tag="overwatch" Content="Overwatch" ToolTipService.ToolTip="Overwatch">
+                            <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/overwatch.png" /></NavigationViewItem.Icon>
+                        </NavigationViewItem>
+                        <NavigationViewItem AutomationProperties.Name="Apex Legends" Tag="apex" Content="Apex Legends" ToolTipService.ToolTip="Apex Legends">
+                            <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/apex.png" /></NavigationViewItem.Icon>
+                        </NavigationViewItem>
                         <NavigationViewItem AutomationProperties.Name="卡拉彼丘" Tag="calabiyau" Content="卡拉彼丘" ToolTipService.ToolTip="卡拉彼丘">
                             <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/calabiyau.png" /></NavigationViewItem.Icon>
                         </NavigationViewItem>
+
+                        <NavigationViewItemHeader Style="{StaticResource SidebarGroupHeaderStyle}">
+                            <Button x:Name="SidebarSurvivalButton" Tag="survival" Click="OnSidebarGroupClick" Style="{StaticResource SidebarGroupButtonStyle}">
+                                <Grid>
+                                    <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
+                                        <Image Width="18" Height="18" Stretch="Uniform" Source="ms-appx:///Assets/CategoryLogos/survival.png" />
+                                        <TextBlock x:Name="SidebarSurvivalLabel" Text="求生搜打撤  ·  2" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                    <FontIcon x:Name="SidebarSurvivalChevron" FontFamily="Segoe MDL2 Assets" Glyph="&#xE70D;" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                </Grid>
+                            </Button>
+                        </NavigationViewItemHeader>
+                        <NavigationViewItem AutomationProperties.Name="PUBG" Tag="pubg" Content="PUBG" ToolTipService.ToolTip="PUBG">
+                            <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/pubg.png" /></NavigationViewItem.Icon>
+                        </NavigationViewItem>
+                        <NavigationViewItem AutomationProperties.Name="Delta Force" Tag="deltaforce" Content="Delta Force" ToolTipService.ToolTip="Delta Force">
+                            <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/deltaforce.png" /></NavigationViewItem.Icon>
+                        </NavigationViewItem>
+
                         <NavigationViewItemHeader Style="{StaticResource SidebarGroupHeaderStyle}">
                             <Button x:Name="SidebarBattlefieldButton" Tag="battlefield" Click="OnSidebarGroupClick" Style="{StaticResource SidebarGroupButtonStyle}">
                                 <Grid>
-                                    <TextBlock x:Name="SidebarBattlefieldLabel" Text="战地系列  ·  5" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" />
-                                    <FontIcon x:Name="SidebarBattlefieldChevron" FontFamily="Segoe MDL2 Assets" Glyph="&#xE76C;" FontSize="10" HorizontalAlignment="Right" />
+                                    <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
+                                        <Image Width="18" Height="18" Stretch="Uniform" Source="ms-appx:///Assets/CategoryLogos/battlefield.png" />
+                                        <TextBlock x:Name="SidebarBattlefieldLabel" Text="战地系列  ·  5" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                    <FontIcon x:Name="SidebarBattlefieldChevron" FontFamily="Segoe MDL2 Assets" Glyph="&#xE70D;" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center" />
                                 </Grid>
                             </Button>
                         </NavigationViewItemHeader>
@@ -161,45 +215,50 @@
                         <NavigationViewItem AutomationProperties.Name="Battlefield 6" Tag="battlefield6" Content="Battlefield 6" ToolTipService.ToolTip="Battlefield 6">
                             <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/battlefield6.png" /></NavigationViewItem.Icon>
                         </NavigationViewItem>
+
                         <NavigationViewItemHeader Style="{StaticResource SidebarGroupHeaderStyle}">
-                            <Button x:Name="SidebarShootersButton" Tag="shooters" Click="OnSidebarGroupClick" Style="{StaticResource SidebarGroupButtonStyle}">
+                            <Button x:Name="SidebarCodButton" Tag="cod" Click="OnSidebarGroupClick" Style="{StaticResource SidebarGroupButtonStyle}">
                                 <Grid>
-                                    <TextBlock x:Name="SidebarShootersLabel" Text="其他射击游戏  ·  6" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" />
-                                    <FontIcon x:Name="SidebarShootersChevron" FontFamily="Segoe MDL2 Assets" Glyph="&#xE76C;" FontSize="10" HorizontalAlignment="Right" />
+                                    <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
+                                        <Image Width="18" Height="18" Stretch="Uniform" Source="ms-appx:///Assets/CategoryLogos/cod.png" />
+                                        <TextBlock x:Name="SidebarCodLabel" Text="使命召唤系列  ·  1" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                    <FontIcon x:Name="SidebarCodChevron" FontFamily="Segoe MDL2 Assets" Glyph="&#xE70D;" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center" />
                                 </Grid>
                             </Button>
                         </NavigationViewItemHeader>
-                        <NavigationViewItem AutomationProperties.Name="CSOL" Tag="csol" Content="CSOL" ToolTipService.ToolTip="CSOL">
-                            <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/csol.png" /></NavigationViewItem.Icon>
-                        </NavigationViewItem>
-                        <NavigationViewItem AutomationProperties.Name="Overwatch" Tag="overwatch" Content="Overwatch" ToolTipService.ToolTip="Overwatch">
-                            <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/overwatch.png" /></NavigationViewItem.Icon>
-                        </NavigationViewItem>
                         <NavigationViewItem AutomationProperties.Name="Modern Warfare 2019" Tag="modernwarfare2019" Content="Modern Warfare" ToolTipService.ToolTip="Modern Warfare 2019">
                             <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/modernwarfare2019.png" /></NavigationViewItem.Icon>
                         </NavigationViewItem>
-                        <NavigationViewItem AutomationProperties.Name="Apex Legends" Tag="apex" Content="Apex Legends" ToolTipService.ToolTip="Apex Legends">
-                            <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/apex.png" /></NavigationViewItem.Icon>
-                        </NavigationViewItem>
-                        <NavigationViewItem AutomationProperties.Name="PUBG" Tag="pubg" Content="PUBG" ToolTipService.ToolTip="PUBG">
-                            <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/pubg.png" /></NavigationViewItem.Icon>
-                        </NavigationViewItem>
-                        <NavigationViewItem AutomationProperties.Name="Delta Force" Tag="deltaforce" Content="Delta Force" ToolTipService.ToolTip="Delta Force">
-                            <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/deltaforce.png" /></NavigationViewItem.Icon>
-                        </NavigationViewItem>
+
                         <NavigationViewItemHeader Style="{StaticResource SidebarGroupHeaderStyle}">
-                            <Button x:Name="SidebarOthersButton" Tag="others" Click="OnSidebarGroupClick" Style="{StaticResource SidebarGroupButtonStyle}">
+                            <Button x:Name="SidebarCardMobaButton" Tag="cardmoba" Click="OnSidebarGroupClick" Style="{StaticResource SidebarGroupButtonStyle}">
                                 <Grid>
-                                    <TextBlock x:Name="SidebarOthersLabel" Text="其他 / 自定义  ·  3" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" />
-                                    <FontIcon x:Name="SidebarOthersChevron" FontFamily="Segoe MDL2 Assets" Glyph="&#xE76C;" FontSize="10" HorizontalAlignment="Right" />
+                                    <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
+                                        <Image Width="18" Height="18" Stretch="Uniform" Source="ms-appx:///Assets/CategoryLogos/cardmoba.png" />
+                                        <TextBlock x:Name="SidebarCardMobaLabel" Text="棋牌MOBA  ·  1" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                    <FontIcon x:Name="SidebarCardMobaChevron" FontFamily="Segoe MDL2 Assets" Glyph="&#xE70D;" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                </Grid>
+                            </Button>
+                        </NavigationViewItemHeader>
+                        <NavigationViewItem AutomationProperties.Name="三国杀" Tag="sanguosha" Content="三国杀" ToolTipService.ToolTip="三国杀">
+                            <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/sanguosha.png" /></NavigationViewItem.Icon>
+                        </NavigationViewItem>
+
+                        <NavigationViewItemHeader Style="{StaticResource SidebarGroupHeaderStyle}">
+                            <Button x:Name="SidebarMemeButton" Tag="meme" Click="OnSidebarGroupClick" Style="{StaticResource SidebarGroupButtonStyle}">
+                                <Grid>
+                                    <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
+                                        <Image Width="18" Height="18" Stretch="Uniform" Source="ms-appx:///Assets/CategoryLogos/meme.png" />
+                                        <TextBlock x:Name="SidebarMemeLabel" Text="MEME/自定义  ·  3" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                    <FontIcon x:Name="SidebarMemeChevron" FontFamily="Segoe MDL2 Assets" Glyph="&#xE70D;" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center" />
                                 </Grid>
                             </Button>
                         </NavigationViewItemHeader>
                         <NavigationViewItem AutomationProperties.Name="豆包" Tag="doubao" Content="豆包" ToolTipService.ToolTip="豆包">
                             <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/doubao.png" /></NavigationViewItem.Icon>
-                        </NavigationViewItem>
-                        <NavigationViewItem AutomationProperties.Name="三国杀" Tag="sanguosha" Content="三国杀" ToolTipService.ToolTip="三国杀">
-                            <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/sanguosha.png" /></NavigationViewItem.Icon>
                         </NavigationViewItem>
                         <NavigationViewItem AutomationProperties.Name="大狗叫" Tag="dagoujiao" Content="大狗叫" ToolTipService.ToolTip="大狗叫">
                             <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/dagoujiao.jpg" /></NavigationViewItem.Icon>
@@ -276,19 +335,19 @@
                                 <ComboBoxItem x:Name="CsolStyleItem" Tag="csol">CSOL (反恐精英Online)</ComboBoxItem>
                                 <ComboBoxItem x:Name="ValorantStyleItem" Tag="valorant">Valorant (无畏契约)</ComboBoxItem>
                                 <ComboBoxItem x:Name="OverwatchStyleItem" Tag="overwatch">OverWatch (守望先锋)</ComboBoxItem>
-                                <ComboBoxItem x:Name="ModernWarfare2019StyleItem" Tag="modernwarfare2019">Modern Warfare 2019 (使命召唤：现代战争)</ComboBoxItem>
                                 <ComboBoxItem x:Name="ApexStyleItem" Tag="apex">Apex Legends (Apex 英雄)</ComboBoxItem>
-                                <ComboBoxItem x:Name="Battlefield1StyleItem" Tag="battlefield1">Battlefield 1 (战地1)</ComboBoxItem>
-                                <ComboBoxItem x:Name="Battlefield5StyleItem" Tag="battlefield5">Battlefield V (战地5)</ComboBoxItem>
-                                <ComboBoxItem x:Name="Battlefield4StyleItem" Tag="battlefield4">Battlefield 4 (战地4)</ComboBoxItem>
-                                <ComboBoxItem x:Name="Battlefield2042StyleItem" Tag="battlefield2042">Battlefield 2042 (战地2042)</ComboBoxItem>
-                                <ComboBoxItem x:Name="Battlefield6StyleItem" Tag="battlefield6">Battlefield 6 (战地6)</ComboBoxItem>
+                                <ComboBoxItem x:Name="CalabiyauStyleItem" Tag="calabiyau">卡拉彼丘 / Strinova</ComboBoxItem>
                                 <ComboBoxItem x:Name="PubgStyleItem" Tag="pubg">PUBG (绝地求生)</ComboBoxItem>
                                 <ComboBoxItem x:Name="DeltaForceStyleItem" Tag="deltaforce">Delta Force (三角洲行动)</ComboBoxItem>
-                                <ComboBoxItem x:Name="DoubaoStyleItem" Tag="doubao">Doubao (豆包)</ComboBoxItem>
+                                <ComboBoxItem x:Name="Battlefield4StyleItem" Tag="battlefield4">Battlefield 4 (战地4)</ComboBoxItem>
+                                <ComboBoxItem x:Name="Battlefield1StyleItem" Tag="battlefield1">Battlefield 1 (战地1)</ComboBoxItem>
+                                <ComboBoxItem x:Name="Battlefield5StyleItem" Tag="battlefield5">Battlefield V (战地5)</ComboBoxItem>
+                                <ComboBoxItem x:Name="Battlefield2042StyleItem" Tag="battlefield2042">Battlefield 2042 (战地2042)</ComboBoxItem>
+                                <ComboBoxItem x:Name="Battlefield6StyleItem" Tag="battlefield6">Battlefield 6 (战地6)</ComboBoxItem>
+                                <ComboBoxItem x:Name="ModernWarfare2019StyleItem" Tag="modernwarfare2019">Modern Warfare 2019 (使命召唤：现代战争)</ComboBoxItem>
                                 <ComboBoxItem x:Name="SanguoshaStyleItem" Tag="sanguosha">Sanguosha (三国杀)</ComboBoxItem>
+                                <ComboBoxItem x:Name="DoubaoStyleItem" Tag="doubao">Doubao (豆包)</ComboBoxItem>
                                 <ComboBoxItem x:Name="DagoujiaoStyleItem" Tag="dagoujiao">Big Dog Bark (大狗叫)</ComboBoxItem>
-                                <ComboBoxItem x:Name="CalabiyauStyleItem" Tag="calabiyau">卡拉彼丘 / Strinova</ComboBoxItem>
                                 <ComboBoxItem x:Name="CustomModuleStyleItem" Tag="custommodule">自定义</ComboBoxItem>
                             </ComboBox>
                         </StackPanel>

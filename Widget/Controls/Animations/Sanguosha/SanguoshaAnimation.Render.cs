@@ -3,7 +3,6 @@ using System.Numerics;
 using KillConfirmCompatibility.Contracts;
 using Microsoft.Graphics.Canvas;
 using Windows.Foundation;
-using Windows.UI;
 
 namespace KillConfirmGameBar.Controls
 {
@@ -16,20 +15,28 @@ namespace KillConfirmGameBar.Controls
             SanguoshaClip clip = assets.Clip;
             double elapsedMs = SanguoshaElapsedMs;
             if (elapsedMs >= clip.Length.TotalMilliseconds) return;
-            var stage = new Rect(0, 0, clip.DesignWidth, clip.DesignHeight);
 
             Matrix3x2 previous = drawingSession.Transform;
-            float pixelScale = Math.Max(0.05f, new Vector2(previous.M11, previous.M12).Length() * drawingSession.Dpi / 96f);
             if (_sanguoshaRenderer == null) _sanguoshaRenderer = new SanguoshaFrameRenderer();
             int frame = clip.FrameAt(TimeSpan.FromMilliseconds(elapsedMs));
-            CanvasRenderTarget composed = _sanguoshaRenderer.Render(
-                drawingSession.Device, clip, assets.Pages, frame, pixelScale);
 
             float shakeX = 0, shakeY = 0;
             _sanguoshaShake?.Offset(elapsedMs, out shakeX, out shakeY);
+            Matrix3x2 shakenTransform = Matrix3x2.CreateTranslation(shakeX, shakeY) * previous;
+
+            if (!clip.HasScreen)
+            {
+                _sanguoshaRenderer.RenderDirect(drawingSession, clip, assets.Pages, frame, shakenTransform);
+                return;
+            }
+
+            var stage = new Rect(0, 0, clip.DesignWidth, clip.DesignHeight);
+            float pixelScale = Math.Max(0.05f, new Vector2(previous.M11, previous.M12).Length() * drawingSession.Dpi / 96f);
+            CanvasRenderTarget composed = _sanguoshaRenderer.Render(
+                drawingSession.Device, clip, assets.Pages, frame, pixelScale);
             try
             {
-                drawingSession.Transform = Matrix3x2.CreateTranslation(shakeX, shakeY) * previous;
+                drawingSession.Transform = shakenTransform;
                 drawingSession.DrawImage(
                     composed,
                     stage,

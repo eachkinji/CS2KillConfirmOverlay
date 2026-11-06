@@ -43,14 +43,6 @@ namespace KillConfirmGameBar
                 SharedStreakSettingsStore.Load(style));
         }
 
-        private void OnValorantPackSyncToggled(object sender, RoutedEventArgs e)
-        {
-            if (sender is ValorantAdvancedEffectsPanel panel)
-            {
-                ValorantPackSyncSettingsStore.Save(panel.GetPackSyncEnabled(true));
-            }
-        }
-
         private async void OnStreakModeSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             GameStyleMode style = SettingsGameStyle;
@@ -68,6 +60,7 @@ namespace KillConfirmGameBar
             else if (sender is DoubaoAdvancedEffectsPanel pDoubao) mode = pDoubao.GetSelectedStreakMode(mode);
             else if (sender is SanguoshaAdvancedEffectsPanel pSanguosha) mode = pSanguosha.GetSelectedStreakMode(mode);
             else if (sender is DagoujiaoAdvancedEffectsPanel pDagoujiao) mode = pDagoujiao.GetSelectedStreakMode(mode);
+            else if (sender is CalabiyauAdvancedEffectsPanel pCalabiyau) mode = pCalabiyau.GetSelectedStreakMode(mode);
 
             SharedStreakSettingsStore.Save(style, mode);
             await TrySyncSharedStreakSettingsAsync(style, mode);
@@ -126,6 +119,7 @@ namespace KillConfirmGameBar
             if (_doubaoAdvancedEffectsPanel != null) _doubaoAdvancedEffectsPanel.ApplyTheme(theme);
             if (_sanguoshaAdvancedEffectsPanel != null) _sanguoshaAdvancedEffectsPanel.ApplyTheme(theme);
             if (_dagoujiaoAdvancedEffectsPanel != null) _dagoujiaoAdvancedEffectsPanel.ApplyTheme(theme);
+            if (_calabiyauAdvancedEffectsPanel != null) _calabiyauAdvancedEffectsPanel.ApplyTheme(theme);
             AdvancedEffectsPanelSupport.ApplySoftenedTree(GameAdvancedSettingsPanelHost, theme);
             AdvancedEffectsPanelSupport.ApplySoftenedTree(
                 GameAdvancedSettingsPanelHost.Content as DependencyObject,
@@ -157,6 +151,7 @@ namespace KillConfirmGameBar
             if (_doubaoAdvancedEffectsPanel != null) _doubaoAdvancedEffectsPanel.ApplyLanguage(isChinese);
             if (_sanguoshaAdvancedEffectsPanel != null) _sanguoshaAdvancedEffectsPanel.ApplyLanguage(isChinese);
             if (_dagoujiaoAdvancedEffectsPanel != null) _dagoujiaoAdvancedEffectsPanel.ApplyLanguage(isChinese);
+            if (_calabiyauAdvancedEffectsPanel != null) _calabiyauAdvancedEffectsPanel.ApplyLanguage(isChinese);
         }
 
         private static Brush CreateSettingsBackground(GameStyleMode mode, bool isHomePage)

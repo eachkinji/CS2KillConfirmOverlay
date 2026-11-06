@@ -8,65 +8,104 @@ namespace KillConfirmGameBar
 {
     public sealed partial class MainPage
     {
-        private bool _sidebarShootersExpanded;
+        private bool _sidebarTraditionalExpanded = true;
+        private bool _sidebarHeroExpanded = true;
+        private bool _sidebarSurvivalExpanded = true;
         private bool _sidebarBattlefieldExpanded = true;
-        private bool _sidebarOthersExpanded;
+        private bool _sidebarCodExpanded = true;
+        private bool _sidebarCardMobaExpanded = true;
+        private bool _sidebarMemeExpanded = true;
 
         private static string SidebarGroup(string key)
         {
-            switch (key)
+            if (string.IsNullOrWhiteSpace(key) || key == "home" || key == "advanced")
             {
-                case "csol": case "overwatch": case "modernwarfare2019":
-                case "apex": case "pubg": case "deltaforce": return "shooters";
-                case "battlefield4": case "battlefield1": case "battlefield5":
-                case "battlefield2042": case "battlefield6": return "battlefield";
-                case "doubao": case "sanguosha": case "dagoujiao": case "custommodule": return "others";
-                default: return null;
+                return null;
             }
+
+            return GameStyleService.ToCategoryKey(GameStyleService.FromKey(key));
+        }
+
+        private bool IsSidebarGroupExpanded(string group)
+        {
+            switch (group)
+            {
+                case "traditional": return _sidebarTraditionalExpanded;
+                case "hero": return _sidebarHeroExpanded;
+                case "survival": return _sidebarSurvivalExpanded;
+                case "battlefield": return _sidebarBattlefieldExpanded;
+                case "cod": return _sidebarCodExpanded;
+                case "cardmoba": return _sidebarCardMobaExpanded;
+                case "meme": return _sidebarMemeExpanded;
+                default: return true;
+            }
+        }
+
+        private void SetSidebarGroupExpanded(string group, bool expanded)
+        {
+            switch (group)
+            {
+                case "traditional": _sidebarTraditionalExpanded = expanded; break;
+                case "hero": _sidebarHeroExpanded = expanded; break;
+                case "survival": _sidebarSurvivalExpanded = expanded; break;
+                case "battlefield": _sidebarBattlefieldExpanded = expanded; break;
+                case "cod": _sidebarCodExpanded = expanded; break;
+                case "cardmoba": _sidebarCardMobaExpanded = expanded; break;
+                case "meme": _sidebarMemeExpanded = expanded; break;
+            }
+        }
+
+        private void SetAllSidebarGroupsExpanded(bool expanded)
+        {
+            _sidebarTraditionalExpanded = expanded;
+            _sidebarHeroExpanded = expanded;
+            _sidebarSurvivalExpanded = expanded;
+            _sidebarBattlefieldExpanded = expanded;
+            _sidebarCodExpanded = expanded;
+            _sidebarCardMobaExpanded = expanded;
+            _sidebarMemeExpanded = expanded;
         }
 
         private void OnSidebarGroupClick(object sender, RoutedEventArgs e)
         {
-            if (!(sender is Button button)) return;
-            switch (button.Tag as string)
-            {
-                case "shooters": _sidebarShootersExpanded = !_sidebarShootersExpanded; break;
-                case "battlefield": _sidebarBattlefieldExpanded = !_sidebarBattlefieldExpanded; break;
-                case "others": _sidebarOthersExpanded = !_sidebarOthersExpanded; break;
-            }
+            if (!(sender is Button button) || !(button.Tag is string group)) return;
+            SetSidebarGroupExpanded(group, !IsSidebarGroupExpanded(group));
             ApplySidebarGroups();
         }
 
         // Library handoffs and programmatic navigation reveal their selected game too.
         private void RevealSidebarGame(string key)
         {
-            switch (SidebarGroup(key))
-            {
-                case "shooters": _sidebarShootersExpanded = true; break;
-                case "battlefield": _sidebarBattlefieldExpanded = true; break;
-                case "others": _sidebarOthersExpanded = true; break;
-                default: return;
-            }
+            string group = SidebarGroup(key);
+            if (string.IsNullOrEmpty(group)) return;
+            SetSidebarGroupExpanded(group, true);
             ApplySidebarGroups();
         }
 
         private void ApplySidebarGroups()
         {
-            if (GameStyleSidebarSelector == null || SidebarFavoritesHeader == null) return;
+            if (GameStyleSidebarSelector == null || SidebarTraditionalButton == null) return;
             bool zh = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
-            SidebarFavoritesHeader.Content = zh ? "常用" : "Favorites";
-            UpdateSidebarGroupButton(SidebarShootersButton, SidebarShootersLabel, SidebarShootersChevron,
-                zh ? "其他射击游戏" : "Other shooters", 6, _sidebarShootersExpanded, zh);
+            UpdateSidebarGroupButton(SidebarTraditionalButton, SidebarTraditionalLabel, SidebarTraditionalChevron,
+                GameStyleService.ToCategoryDisplayName("traditional", zh), 3, _sidebarTraditionalExpanded, zh);
+            UpdateSidebarGroupButton(SidebarHeroButton, SidebarHeroLabel, SidebarHeroChevron,
+                GameStyleService.ToCategoryDisplayName("hero", zh), 3, _sidebarHeroExpanded, zh);
+            UpdateSidebarGroupButton(SidebarSurvivalButton, SidebarSurvivalLabel, SidebarSurvivalChevron,
+                GameStyleService.ToCategoryDisplayName("survival", zh), 2, _sidebarSurvivalExpanded, zh);
             UpdateSidebarGroupButton(SidebarBattlefieldButton, SidebarBattlefieldLabel, SidebarBattlefieldChevron,
-                zh ? "战地系列" : "Battlefield", 5, _sidebarBattlefieldExpanded, zh);
-            UpdateSidebarGroupButton(SidebarOthersButton, SidebarOthersLabel, SidebarOthersChevron,
-                zh ? "其他 / 自定义" : "More / Custom", 3, _sidebarOthersExpanded, zh);
+                GameStyleService.ToCategoryDisplayName("battlefield", zh), 5, _sidebarBattlefieldExpanded, zh);
+            UpdateSidebarGroupButton(SidebarCodButton, SidebarCodLabel, SidebarCodChevron,
+                GameStyleService.ToCategoryDisplayName("cod", zh), 1, _sidebarCodExpanded, zh);
+            UpdateSidebarGroupButton(SidebarCardMobaButton, SidebarCardMobaLabel, SidebarCardMobaChevron,
+                GameStyleService.ToCategoryDisplayName("cardmoba", zh), 1, _sidebarCardMobaExpanded, zh);
+            UpdateSidebarGroupButton(SidebarMemeButton, SidebarMemeLabel, SidebarMemeChevron,
+                GameStyleService.ToCategoryDisplayName("meme", zh), 3, _sidebarMemeExpanded, zh);
+
             foreach (object entry in GameStyleSidebarSelector.MenuItems)
             {
                 if (!(entry is NavigationViewItem item) || !(item.Tag is string key)) continue;
                 string group = SidebarGroup(key);
-                bool visible = group == null || (group == "shooters" ? _sidebarShootersExpanded
-                    : group == "battlefield" ? _sidebarBattlefieldExpanded : _sidebarOthersExpanded);
+                bool visible = group == null || IsSidebarGroupExpanded(group);
                 item.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
                 string label;
                 switch (key)
@@ -96,6 +135,7 @@ namespace KillConfirmGameBar
         private static void UpdateSidebarGroupButton(Button button, TextBlock label, FontIcon chevron,
             string name, int count, bool expanded, bool zh)
         {
+            if (button == null || label == null || chevron == null) return;
             label.Text = name + "  ·  " + count;
             chevron.Glyph = expanded ? "\uE70D" : "\uE76C";
             string action = zh ? (expanded ? "收起" : "展开") : (expanded ? "Collapse " : "Expand ");

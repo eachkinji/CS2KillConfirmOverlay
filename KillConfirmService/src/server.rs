@@ -4,7 +4,8 @@ use crate::api::{
     doubao_settings, event_sound_settings, events_poll, extract_video_frames, gsi_game_settings,
     gsi_status, health, install_counter_strike_cfg, interrupt_previous_kill_audio_settings,
     money_mode, port, prepare_video_preview, preview_bomb_audio_endpoint,
-    register_ui_process, set_audio_device, set_bomb_audio_settings, set_crossfire_settings,
+    register_ui_process, sanguosha_settings, set_audio_device, set_bomb_audio_settings, set_crossfire_settings,
+    set_sanguosha_settings,
     set_csol_settings, set_dagoujiao_settings, set_developer_settings, set_doubao_settings,
     set_event_sound_settings, set_gsi_game_settings, set_interrupt_previous_kill_audio_settings,
     set_money_mode, set_spectator_settings, set_streak_gain_settings,
@@ -214,6 +215,9 @@ pub(crate) async fn run(mut args: Args) -> Result<()> {
         crossfire_headshot_special_audio_priority: AtomicBool::new(false),
         crossfire_knife_special_audio_priority: AtomicBool::new(true),
         crossfire_grenade_special_audio_priority: AtomicBool::new(true),
+        sanguosha_headshot_special_audio_priority: AtomicBool::new(true),
+        sanguosha_knife_special_audio_priority: AtomicBool::new(true),
+        sanguosha_grenade_special_audio_priority: AtomicBool::new(true),
         assist_audio_enabled: AtomicBool::new(false),
         assist_audio_setting_active: AtomicBool::new(true),
         event_sound_settings: RwLock::new(EventSoundSettings::default()),
@@ -315,6 +319,7 @@ pub(crate) async fn run(mut args: Args) -> Result<()> {
             get(crossfire_settings).post(set_crossfire_settings),
         )
         .route("/csol/settings", get(csol_settings).post(set_csol_settings))
+        .route("/sanguosha/settings", get(sanguosha_settings).post(set_sanguosha_settings))
         .route(
             "/dagoujiao/settings",
             get(dagoujiao_settings).post(set_dagoujiao_settings),

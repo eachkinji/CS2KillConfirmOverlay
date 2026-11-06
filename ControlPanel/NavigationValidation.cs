@@ -18,20 +18,19 @@ namespace KillConfirmGameBar
         {
             GameStyleMode playback = GameStyleService.Current;
             int toggles = 0, thumbs = 0;
-            var favorites = GameStyleSidebarSelector.MenuItems.OfType<NavigationViewItem>()
+            var traditionalFirst = GameStyleSidebarSelector.MenuItems.OfType<NavigationViewItem>()
                 .Select(i => i.Tag as string).Where(key => key != "home" && key != "advanced")
                 .Take(3).ToArray();
-            if (!favorites.SequenceEqual(new[] { "crossfire", "valorant", "calabiyau" }))
-                throw new Exception("Sidebar favorites are not CrossFire, VALORANT, Strinova.");
-            foreach (var groupButton in new[] { SidebarShootersButton, SidebarBattlefieldButton, SidebarOthersButton })
+            if (!traditionalFirst.SequenceEqual(new[] { "crossfire", "csol", "valorant" }))
+                throw new Exception("Sidebar traditional shooters are not CrossFire, CSOL, VALORANT.");
+            foreach (var groupButton in new[] { SidebarTraditionalButton, SidebarHeroButton, SidebarSurvivalButton, SidebarBattlefieldButton, SidebarCodButton, SidebarCardMobaButton, SidebarMemeButton })
                 if (!IsVisibleWithin(groupButton, GameModeSidebar) || !IsEnabledWithin(groupButton, GameModeSidebar))
                     throw new Exception("Sidebar group button is not rendered and enabled: " + groupButton.Name);
             await UpdateValidation.CaptureAsync(GameModeSidebar, "sidebar-grouped");
             foreach (GameStyleMode style in Enum.GetValues(typeof(GameStyleMode)))
             {
-                // Exercise a library handoff into a collapsed series, as well
-                // as selection among the three permanently visible favorites.
-                _sidebarShootersExpanded = _sidebarBattlefieldExpanded = _sidebarOthersExpanded = false;
+                // Exercise a library handoff into a collapsed series.
+                SetAllSidebarGroupsExpanded(false);
                 ApplySidebarGroups();
                 var item = GameStyleSidebarSelector.MenuItems.OfType<NavigationViewItem>()
                     .First(i => Equals(i.Tag, GameStyleService.ToStorageValue(style)));

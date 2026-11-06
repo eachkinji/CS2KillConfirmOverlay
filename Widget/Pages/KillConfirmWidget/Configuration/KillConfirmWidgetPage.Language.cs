@@ -100,7 +100,7 @@ namespace KillConfirmGameBar
             SetGameStyleItemContent(HeaderStatusSection.Battlefield6StyleItem, "BF6", "ms-appx:///Assets/GameLogos/battlefield6.png");
             SetGameStyleItemContent(HeaderStatusSection.PubgStyleItem, "PUBG", "ms-appx:///Assets/GameLogos/pubg.png");
             SetGameStyleItemContent(HeaderStatusSection.DeltaForceStyleItem, "Delta", "ms-appx:///Assets/GameLogos/deltaforce.png");
-            HeaderStatusSection.CustomModuleStyleItem.Content = LocalizationManager.Current == UiLanguage.SimplifiedChinese ? "自定义" : "Custom";
+            SetGameStyleItemContent(HeaderStatusSection.CustomModuleStyleItem, LocalizationManager.Current == UiLanguage.SimplifiedChinese ? "自定义" : "Custom", "ms-appx:///Assets/Square44x44Logo.scale-200.png");
             SetGameStyleItemContent(HeaderStatusSection.CalabiyauStyleItem, "卡拉彼丘", "ms-appx:///Assets/GameLogos/calabiyau.png");
             SetGameStyleItemContent(HeaderStatusSection.DoubaoStyleItem, "豆包", "ms-appx:///Assets/GameLogos/doubao.png");
             SetGameStyleItemContent(HeaderStatusSection.SanguoshaStyleItem, "三国杀", "ms-appx:///Assets/GameLogos/sanguosha.png");

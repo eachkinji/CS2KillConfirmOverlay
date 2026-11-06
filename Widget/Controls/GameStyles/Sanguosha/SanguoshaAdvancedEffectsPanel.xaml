@@ -13,12 +13,13 @@
             <StackPanel VerticalAlignment="Center" Spacing="2">
                 <TextBlock
                     x:Name="TitleText"
-                    FontSize="13"
+                    FontSize="15"
                     FontWeight="Bold"
                     Text="Sanguosha Kill Broadcast" />
                 <TextBlock
                     x:Name="HintText"
-                    FontSize="10"
+                    FontSize="10.5"
+                    Opacity="0.78"
                     TextWrapping="WrapWholeWords" />
             </StackPanel>
             <Button
@@ -40,5 +41,124 @@
         <local:StreakWindowEditor
             x:Name="StreakEditor"
             SettingsChanged="OnStreakModeSelectionChanged" />
+
+        <StackPanel Spacing="6">
+            <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,2,0,0">
+                <Border Width="3" Height="14" Background="#E05252" CornerRadius="1" VerticalAlignment="Center" />
+                <TextBlock
+                    x:Name="PrioritiesGroupLabel"
+                    FontSize="12"
+                    FontWeight="Bold"
+                    VerticalAlignment="Center"
+                    Text="爆头、刀杀与雷杀提示优先级" />
+            </StackPanel>
+            <TextBlock
+                x:Name="PrioritiesHintText"
+                FontSize="10.5"
+                Opacity="0.75"
+                TextWrapping="WrapWholeWords"
+                Text="2 连杀起比较优先级；单杀仍显示、播放对应击杀提示。声音与图标独立设置。" />
+            <Grid RowSpacing="8" ColumnSpacing="8">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource CompactChoiceCardStyle}">
+                    <StackPanel Spacing="5">
+                        <StackPanel Orientation="Horizontal" Spacing="5">
+                            <Border Style="{StaticResource CompactCircleIconStyle}">
+                                <FontIcon FontSize="11" Foreground="White" Glyph="&#xE8D6;" />
+                            </Border>
+                            <TextBlock x:Name="HeadshotAudioPriorityLabel" Style="{StaticResource CompactChoiceLabelStyle}" VerticalAlignment="Center" Text="Headshot audio" />
+                        </StackPanel>
+                        <ComboBox x:Name="HeadshotAudioPrioritySelector" Style="{StaticResource CompactSettingsComboBoxStyle}" SelectionChanged="OnPrioritySelectionChanged">
+                            <ComboBoxItem x:Name="HeadshotSpecialPriorityItem" Tag="special">Headshot priority</ComboBoxItem>
+                            <ComboBoxItem x:Name="HeadshotStreakPriorityItem" Tag="streak">Kill-streak priority</ComboBoxItem>
+                        </ComboBox>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource CompactChoiceCardStyle}">
+                    <StackPanel Spacing="5">
+                        <StackPanel Orientation="Horizontal" Spacing="5">
+                            <Border Style="{StaticResource CompactCircleIconStyle}">
+                                <FontIcon FontSize="11" Foreground="White" Glyph="&#xE91F;" />
+                            </Border>
+                            <TextBlock x:Name="HeadshotIconPriorityLabel" Style="{StaticResource CompactChoiceLabelStyle}" VerticalAlignment="Center" Text="Headshot icon" />
+                        </StackPanel>
+                        <ComboBox x:Name="HeadshotIconPrioritySelector" Style="{StaticResource CompactSettingsComboBoxStyle}" SelectionChanged="OnPrioritySelectionChanged">
+                            <ComboBoxItem x:Name="HeadshotIconSpecialPriorityItem" Tag="special">Headshot priority</ComboBoxItem>
+                            <ComboBoxItem x:Name="HeadshotIconStreakPriorityItem" Tag="streak">Kill-streak priority</ComboBoxItem>
+                        </ComboBox>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource CompactChoiceCardStyle}">
+                    <StackPanel Spacing="5">
+                        <StackPanel Orientation="Horizontal" Spacing="5">
+                            <Border Style="{StaticResource CompactCircleIconStyle}">
+                                <FontIcon FontSize="11" Foreground="White" Glyph="&#xE767;" />
+                            </Border>
+                            <TextBlock x:Name="KnifeAudioPriorityLabel" Style="{StaticResource CompactChoiceLabelStyle}" VerticalAlignment="Center" Text="Knife-kill audio" />
+                        </StackPanel>
+                        <ComboBox x:Name="KnifeAudioPrioritySelector" Style="{StaticResource CompactSettingsComboBoxStyle}" SelectionChanged="OnPrioritySelectionChanged">
+                            <ComboBoxItem x:Name="KnifeSpecialPriorityItem" Tag="special">Knife-kill priority</ComboBoxItem>
+                            <ComboBoxItem x:Name="KnifeStreakPriorityItem" Tag="streak">Kill-streak priority</ComboBoxItem>
+                        </ComboBox>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource CompactChoiceCardStyle}">
+                    <StackPanel Spacing="5">
+                        <StackPanel Orientation="Horizontal" Spacing="5">
+                            <Border Style="{StaticResource CompactCircleIconStyle}">
+                                <FontIcon FontSize="11" Foreground="White" Glyph="&#xE7F4;" />
+                            </Border>
+                            <TextBlock x:Name="KnifeIconPriorityLabel" Style="{StaticResource CompactChoiceLabelStyle}" VerticalAlignment="Center" Text="Knife-kill icon" />
+                        </StackPanel>
+                        <ComboBox x:Name="KnifeIconPrioritySelector" Style="{StaticResource CompactSettingsComboBoxStyle}" SelectionChanged="OnPrioritySelectionChanged">
+                            <ComboBoxItem x:Name="KnifeIconSpecialPriorityItem" Tag="special">Knife-kill priority</ComboBoxItem>
+                            <ComboBoxItem x:Name="KnifeIconStreakPriorityItem" Tag="streak">Kill-streak priority</ComboBoxItem>
+                        </ComboBox>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="2" Grid.Column="0" Style="{StaticResource CompactChoiceCardStyle}">
+                    <StackPanel Spacing="5">
+                        <StackPanel Orientation="Horizontal" Spacing="5">
+                            <Border Style="{StaticResource CompactCircleIconStyle}">
+                                <FontIcon FontSize="11" Foreground="White" Glyph="&#xE767;" />
+                            </Border>
+                            <TextBlock x:Name="GrenadeAudioPriorityLabel" Style="{StaticResource CompactChoiceLabelStyle}" VerticalAlignment="Center" Text="Grenade-kill audio" />
+                        </StackPanel>
+                        <ComboBox x:Name="GrenadeAudioPrioritySelector" Style="{StaticResource CompactSettingsComboBoxStyle}" SelectionChanged="OnPrioritySelectionChanged">
+                            <ComboBoxItem x:Name="GrenadeSpecialPriorityItem" Tag="special">Grenade-kill priority</ComboBoxItem>
+                            <ComboBoxItem x:Name="GrenadeStreakPriorityItem" Tag="streak">Kill-streak priority</ComboBoxItem>
+                        </ComboBox>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="2" Grid.Column="1" Style="{StaticResource CompactChoiceCardStyle}">
+                    <StackPanel Spacing="5">
+                        <StackPanel Orientation="Horizontal" Spacing="5">
+                            <Border Style="{StaticResource CompactCircleIconStyle}">
+                                <FontIcon FontSize="11" Foreground="White" Glyph="&#xE7F4;" />
+                            </Border>
+                            <TextBlock x:Name="GrenadeIconPriorityLabel" Style="{StaticResource CompactChoiceLabelStyle}" VerticalAlignment="Center" Text="Grenade-kill icon" />
+                        </StackPanel>
+                        <ComboBox x:Name="GrenadeIconPrioritySelector" Style="{StaticResource CompactSettingsComboBoxStyle}" SelectionChanged="OnPrioritySelectionChanged">
+                            <ComboBoxItem x:Name="GrenadeIconSpecialPriorityItem" Tag="special">Grenade-kill priority</ComboBoxItem>
+                            <ComboBoxItem x:Name="GrenadeIconStreakPriorityItem" Tag="streak">Kill-streak priority</ComboBoxItem>
+                        </ComboBox>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </StackPanel>
     </StackPanel>
 </UserControl>

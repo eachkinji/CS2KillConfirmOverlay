@@ -15,23 +15,48 @@ namespace KillConfirmCompatibility.Controls
     //    color.a *= v_color.a, color.rgb *= v_color.rgb  =>  texel * (r*a, g*a, b*a, a);
     //  * BlendMode normal = (ONE, ONE_MINUS_SRC_ALPHA), "light" = (ONE, ONE),
     //    screen = (ONE, ONE_MINUS_SRC_COLOR), all applied to every channel.
-    // Laya renders into its own transparent stage canvas, so the frame is composed into a
-    // private render target and only then placed over the modal background.
     internal sealed class SanguoshaFrameRenderer : IDisposable
     {
         private CanvasRenderTarget _accumulate;
         private CanvasRenderTarget _spare;
         private CanvasRenderTarget _screenLayer;
+        private readonly List<CropEffect> _crops = new List<CropEffect>();
         private readonly List<ColorMatrixEffect> _tints = new List<ColorMatrixEffect>();
         private int _tintCursor;
+
+        // Direct hardware sprite-batch path used during live HUD playback when a clip contains
+        // no Screen-blend draws (all 22 built-in Sanguosha clips have HasScreen == false).
+        // Avoids allocating/clearing/blitting 3 full-screen offscreen CanvasRenderTargets per frame.
+        public void RenderDirect(CanvasDrawingSession session, SanguoshaClip clip, CanvasBitmap[] pages, int frame, Matrix3x2 baseTransform)
+        {
+            if (clip?.Frames == null || clip.Frames.Length == 0) return;
+            SanguoshaDraw[] draws = clip.Frames[Math.Max(0, Math.Min(clip.Frames.Length - 1, frame))];
+            _tintCursor = 0;
+            Matrix3x2 previous = session.Transform;
+            try
+            {
+                for (int i = 0; i < draws.Length; i++)
+                {
+                    DrawCommand(session, clip, pages, ref draws[i], baseTransform);
+                }
+            }
+            finally
+            {
+                session.Transform = previous;
+                ReleaseFrameEffectSources();
+            }
+        }
 
         public CanvasRenderTarget Render(CanvasDevice device, SanguoshaClip clip, CanvasBitmap[] pages, int frame, float pixelScale)
         {
             int width = Math.Max(1, (int)Math.Ceiling(clip.DesignWidth * pixelScale));
             int height = Math.Max(1, (int)Math.Ceiling(clip.DesignHeight * pixelScale));
             Ensure(ref _accumulate, device, width, height);
-            Ensure(ref _spare, device, width, height);
-            Ensure(ref _screenLayer, device, width, height);
+            if (clip.HasScreen)
+            {
+                Ensure(ref _spare, device, width, height);
+                Ensure(ref _screenLayer, device, width, height);
+            }
             _tintCursor = 0;
 
             SanguoshaDraw[] draws = clip.Frames[Math.Max(0, Math.Min(clip.Frames.Length - 1, frame))];
@@ -83,13 +108,14 @@ namespace KillConfirmCompatibility.Controls
             finally
             {
                 session?.Dispose();
+                ReleaseFrameEffectSources();
             }
             return _accumulate;
         }
 
         private void DrawCommand(CanvasDrawingSession session, SanguoshaClip clip, CanvasBitmap[] pages, ref SanguoshaDraw d, Matrix3x2 toPixels)
         {
-            if (d.A <= 0) return;
+            if ((d.Rgba >> 24) == 0) return;
             SanguoshaRegion r = clip.Regions[d.Region];
             CanvasBitmap page = pages[r.Page];
             if (page == null) return;
@@ -118,15 +144,20 @@ namespace KillConfirmCompatibility.Controls
             session.Transform = affine * toPixels;
             var source = new Rect(minX, minY, maxX - minX, maxY - minY);
             CanvasComposite composite = d.Blend == SanguoshaBlend.Light ? CanvasComposite.Add : CanvasComposite.SourceOver;
-            if (d.Rgba == 0xFFFFFFFFu)
+
+            // Fast hardware sprite-batch path when RGB is untinted white (255,255,255) and only alpha varies.
+            // Covers ~88% of all non-opaque draws in Sanguosha clips without invoking Direct2D's effect graph.
+            if ((d.Rgba & 0x00FFFFFFu) == 0x00FFFFFFu)
             {
-                session.DrawImage(page, Vector2.Zero, source, 1f, CanvasImageInterpolation.Linear, composite);
+                session.DrawImage(page, Vector2.Zero, source, d.A, CanvasImageInterpolation.Linear, composite);
                 return;
             }
 
             float a = d.A;
-            ColorMatrixEffect tint = NextTint();
-            tint.Source = page;
+            ColorMatrixEffect tint = NextTint(out CropEffect crop);
+            crop.Source = page;
+            crop.SourceRectangle = source;
+            tint.Source = crop;
             // Straight mode: the matrix multiplies the premultiplied texel directly,
             // exactly like Laya's fragment shader (no un-premultiply round trip).
             tint.AlphaMode = CanvasAlphaMode.Straight;
@@ -134,12 +165,26 @@ namespace KillConfirmCompatibility.Controls
             session.DrawImage(tint, Vector2.Zero, source, 1f, CanvasImageInterpolation.Linear, composite);
         }
 
-        // Effects stay referenced by Direct2D until the session flushes, so every draw in a
+        // Effects stay referenced by Direct2D until the session flushes, so every tinted draw in a
         // frame gets its own instance; the pool is reused on the next frame.
-        private ColorMatrixEffect NextTint()
+        private ColorMatrixEffect NextTint(out CropEffect crop)
         {
-            if (_tintCursor == _tints.Count) _tints.Add(new ColorMatrixEffect { ClampOutput = false });
+            if (_tintCursor == _tints.Count)
+            {
+                _crops.Add(new CropEffect { BorderMode = EffectBorderMode.Hard });
+                _tints.Add(new ColorMatrixEffect { ClampOutput = false });
+            }
+            crop = _crops[_tintCursor];
             return _tints[_tintCursor++];
+        }
+
+        private void ReleaseFrameEffectSources()
+        {
+            for (int i = 0; i < _tintCursor; i++)
+            {
+                _tints[i].Source = null;
+                _crops[i].Source = null;
+            }
         }
 
         internal static bool SolveAffine(
@@ -179,7 +224,10 @@ namespace KillConfirmCompatibility.Controls
             _spare?.Dispose(); _spare = null;
             _screenLayer?.Dispose(); _screenLayer = null;
             foreach (ColorMatrixEffect tint in _tints) tint.Dispose();
+            foreach (CropEffect crop in _crops) crop.Dispose();
             _tints.Clear();
+            _crops.Clear();
+            _tintCursor = 0;
         }
     }
 }

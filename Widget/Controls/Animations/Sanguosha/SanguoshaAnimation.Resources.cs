@@ -52,24 +52,64 @@ namespace KillConfirmGameBar.Controls
                 clip = SanguoshaClip.Read(stream);
 
             var pages = new CanvasBitmap[clip.Pages.Length];
-            var addedPages = new List<string>();
-            try
+            var pageRels = new string[clip.Pages.Length];
+            var missingIndices = new List<int>();
+            lock (SanguoshaPageCache)
             {
                 for (int i = 0; i < pages.Length; i++)
                 {
                     string pageFileRel = clip.Pages[i].File.IndexOf('/') >= 0
                         ? clip.Pages[i].File
                         : (name + "/" + clip.Pages[i].File);
+                    pageRels[i] = pageFileRel;
                     if (!SanguoshaPageCache.TryGetValue(pageFileRel, out pages[i]))
                     {
-                        StorageFile pageFile = await SanguoshaAssetFileAsync(pageFileRel);
-                        pages[i] = await LoadBitmapFromStorageFileAsync(pageFile);
-                        if (pages[i] != null)
+                        missingIndices.Add(i);
+                    }
+                }
+            }
+
+            var addedPages = new List<string>();
+            try
+            {
+                if (missingIndices.Count > 0)
+                {
+                    var loadTasks = new Task<CanvasBitmap>[missingIndices.Count];
+                    for (int m = 0; m < missingIndices.Count; m++)
+                    {
+                        string rel = pageRels[missingIndices[m]];
+                        loadTasks[m] = Task.Run(async () =>
                         {
-                            SanguoshaPageCache.Add(pageFileRel, pages[i]);
-                            addedPages.Add(pageFileRel);
+                            StorageFile pageFile = await SanguoshaAssetFileAsync(rel);
+                            return await LoadBitmapFromStorageFileAsync(pageFile);
+                        });
+                    }
+
+                    CanvasBitmap[] loadedBitmaps = await Task.WhenAll(loadTasks);
+                    lock (SanguoshaPageCache)
+                    {
+                        for (int m = 0; m < missingIndices.Count; m++)
+                        {
+                            int idx = missingIndices[m];
+                            string rel = pageRels[idx];
+                            CanvasBitmap bmp = loadedBitmaps[m];
+                            if (SanguoshaPageCache.TryGetValue(rel, out CanvasBitmap existing))
+                            {
+                                bmp?.Dispose();
+                                pages[idx] = existing;
+                            }
+                            else if (bmp != null)
+                            {
+                                SanguoshaPageCache.Add(rel, bmp);
+                                addedPages.Add(rel);
+                                pages[idx] = bmp;
+                            }
                         }
                     }
+                }
+
+                for (int i = 0; i < pages.Length; i++)
+                {
                     if (pages[i] == null
                         || pages[i].SizeInPixels.Width != clip.Pages[i].Width
                         || pages[i].SizeInPixels.Height != clip.Pages[i].Height)
@@ -78,10 +118,16 @@ namespace KillConfirmGameBar.Controls
             }
             catch
             {
-                foreach (string path in addedPages)
+                lock (SanguoshaPageCache)
                 {
-                    SanguoshaPageCache[path].Dispose();
-                    SanguoshaPageCache.Remove(path);
+                    foreach (string path in addedPages)
+                    {
+                        if (SanguoshaPageCache.TryGetValue(path, out CanvasBitmap bmp))
+                        {
+                            bmp.Dispose();
+                            SanguoshaPageCache.Remove(path);
+                        }
+                    }
                 }
                 throw;
             }
@@ -119,7 +165,11 @@ namespace KillConfirmGameBar.Controls
 
         private static void ReleaseUnusedSanguoshaPages(IEnumerable<CanvasBitmap> pages)
         {
-            var retained = new HashSet<CanvasBitmap>(SanguoshaPageCache.Values);
+            HashSet<CanvasBitmap> retained;
+            lock (SanguoshaPageCache)
+            {
+                retained = new HashSet<CanvasBitmap>(SanguoshaPageCache.Values);
+            }
             lock (SanguoshaTiersOnScreen)
                 foreach (SanguoshaTierAssets active in SanguoshaTiersOnScreen)
                     foreach (CanvasBitmap bitmap in active.Pages) retained.Add(bitmap);
@@ -157,10 +207,14 @@ namespace KillConfirmGameBar.Controls
                 all = SanguoshaTiers.Values.ToList();
                 SanguoshaTiers.Clear();
             }
-            var pages = new HashSet<CanvasBitmap>(SanguoshaPageCache.Values);
+            HashSet<CanvasBitmap> pages;
+            lock (SanguoshaPageCache)
+            {
+                pages = new HashSet<CanvasBitmap>(SanguoshaPageCache.Values);
+                SanguoshaPageCache.Clear();
+            }
             foreach (SanguoshaTierAssets tier in all)
                 foreach (CanvasBitmap bitmap in tier.Pages) pages.Add(bitmap);
-            SanguoshaPageCache.Clear();
             ReleaseUnusedSanguoshaPages(pages);
         }
     }

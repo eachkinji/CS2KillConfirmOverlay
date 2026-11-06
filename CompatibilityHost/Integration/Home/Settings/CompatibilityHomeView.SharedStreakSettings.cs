@@ -145,6 +145,8 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                     return _dagoujiaoAdvancedEffectsPanel?.GetSelectedStreakMode(fallback) ?? fallback;
                 case GameStyleMode.Csol:
                     return _csolAdvancedEffectsPanel?.GetSelectedStreakMode(fallback) ?? fallback;
+                case GameStyleMode.Calabiyau:
+                    return _calabiyauAdvancedEffectsPanel?.GetSelectedStreakMode(fallback) ?? fallback;
                 default:
                     return fallback;
             }
@@ -197,6 +199,9 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                     break;
                 case GameStyleMode.Csol:
                     _csolAdvancedEffectsPanel?.SelectStreakMode(value);
+                    break;
+                case GameStyleMode.Calabiyau:
+                    _calabiyauAdvancedEffectsPanel?.SelectStreakMode(value);
                     break;
             }
         }

@@ -203,10 +203,24 @@ namespace KillConfirmGameBar
                 return;
             }
 
+            bool zh = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            GameStyleMode style = GameStyleService.FromKey(item.Tag as string);
+            string categoryKey = GameStyleService.ToCategoryKey(style);
+            string categoryName = GameStyleService.ToCategoryDisplayName(categoryKey, zh);
+
+            var categoryIcon = new Image
+            {
+                Width = 11,
+                Height = 11,
+                VerticalAlignment = VerticalAlignment.Center,
+                Stretch = Stretch.Uniform,
+                Source = new BitmapImage(new Uri(GameStyleService.ToCategoryLogoUri(categoryKey)))
+            };
+
             var image = new Image
             {
-                Width = 22,
-                Height = 18,
+                Width = 20,
+                Height = 16,
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center,
                 Stretch = Stretch.Uniform,
@@ -221,15 +235,17 @@ namespace KillConfirmGameBar
                     CornerRadius = new CornerRadius(4),
                     Child = image
                 };
-            item.Content = new Grid
+            var row = new StackPanel
             {
-                Width = 30,
-                Height = 18,
+                Orientation = Orientation.Horizontal,
+                Spacing = 3,
                 HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
-                Children = { logo }
+                VerticalAlignment = VerticalAlignment.Center
             };
-            ToolTipService.SetToolTip(item, text);
+            row.Children.Add(categoryIcon);
+            row.Children.Add(logo);
+            item.Content = row;
+            ToolTipService.SetToolTip(item, "[" + categoryName + "] " + text);
         }
 
         private static SolidColorBrush Brush(Color color)

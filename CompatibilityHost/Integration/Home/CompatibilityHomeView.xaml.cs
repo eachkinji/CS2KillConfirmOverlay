@@ -64,7 +64,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             _suppressGameStyleEvents = true;
             InitializeComponent();
             foreach (GameStyleMode style in Enum.GetValues(typeof(GameStyleMode)))
-                GameSelector.Items.Add(new ComboBoxItem { Content = GameStyleService.ToDisplayName(style), Tag = GameStyleService.ToStorageValue(style) });
+                GameSelector.Items.Add(new ComboBoxItem { Content = MainPage.CreateMaterialGameSelectorContent(style, GameStyleService.ToDisplayName(style)), Tag = GameStyleService.ToStorageValue(style) });
             PackTestSectionView.AdvancedEffectsFlyout.Content = null;
             _suppressGameStyleEvents = false;
             Loaded += OnLoaded; Unloaded += OnUnloaded;
@@ -133,6 +133,8 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         public void ApplyLanguage()
         {
             bool zh = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            foreach (ComboBoxItem gameItem in GameSelector.Items.OfType<ComboBoxItem>())
+                MainPage.UpdateMaterialGameSelectorItemLanguage(gameItem);
             GameTitle.Text = GameStyleService.ToDisplayName(GameStyleService.Current);
             GameHint.Text = zh ? "图标、音效、角色语音与战斗规则使用当前游戏配置；屏幕布局为兼容显示独立保存。" : "Icons, sound effects, character voices and combat rules follow the selected game. Desktop layouts are saved separately.";
             EffectsLabel.Text = zh ? "当前游戏设置" : "Game settings";
@@ -222,7 +224,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                 if (!healthy && !await ServiceLauncher.LaunchAsync(LocalServiceEndpoints.Port)) throw new InvalidOperationException("无法启动后台服务");
                 if (!_isPageActive) return;
                 await SyncSelectedVoicePackAsync();
-                await SyncCrossfireGameplaySettingsAsync(); await SyncCsolGameplaySettingsAsync(); await SyncSharedStreakSettingsAsync();
+                await SyncCrossfireGameplaySettingsAsync(); await SyncCsolGameplaySettingsAsync(); await SyncSanguoshaGameplaySettingsAsync(); await SyncSharedStreakSettingsAsync();
                 await SyncMoneyRewardModeAsync(); await SyncSpectatedKillEffectsAsync(); await SyncDagoujiaoSettingsAsync(); await SyncDoubaoSettingsAsync();
             }
             finally { _serviceGate.Release(); }

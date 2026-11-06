@@ -491,6 +491,7 @@
     <Compile Include="Services\Settings\Games\ModernWarfare2019FeedOffsetSettingsStore.cs" />
     <Compile Include="Services\Settings\Games\ValorantPackSyncSettingsStore.cs" />
     <Compile Include="Services\Settings\Games\CrossfireGameplaySettingsStore.cs" />
+    <Compile Include="Services\Settings\Games\SanguoshaGameplaySettingsStore.cs" />
     <Compile Include="Services\Settings\Games\CsolVoiceSettingsStore.cs" />
     <Compile Include="Services\Settings\Games\DagoujiaoSettingsStore.cs" />
     <Compile Include="Services\Settings\Games\DagoujiaoSettingsStore.ServiceSync.cs" />
@@ -578,6 +579,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Assets\GameLogos\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\CategoryLogos\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="..\SourceAssets\GameStyles\crossfire\iconpacks\default\**\*">
@@ -882,6 +886,8 @@
     <Compile Include="Controls\Animations\Sanguosha\SanguoshaFrameRenderer.cs" />
     <Page Include="Controls\GameStyles\Sanguosha\SanguoshaAdvancedEffectsPanel.xaml"><Generator>MSBuild:Compile</Generator><SubType>Designer</SubType></Page>
     <Compile Include="Controls\GameStyles\Sanguosha\SanguoshaAdvancedEffectsPanel.xaml.cs" />
+    <Page Include="Controls\GameStyles\Calabiyau\CalabiyauAdvancedEffectsPanel.xaml"><Generator>MSBuild:Compile</Generator><SubType>Designer</SubType></Page>
+    <Compile Include="Controls\GameStyles\Calabiyau\CalabiyauAdvancedEffectsPanel.xaml.cs" />
     <Compile Include="Pages\KillConfirmWidget\Animation\KillConfirmWidgetPage.Animation.Sanguosha.cs" />
     <Compile Include="Pages\KillConfirmWidget\GameStyles\KillConfirmWidgetPage.GameStyle.Sanguosha.cs" />
     <Compile Include="Pages\Main\Appearance\MainPage.Sanguosha.cs" />
@@ -898,7 +904,7 @@
     <Compile Include="..\CompatibilityHost\Integration\CompatibilityDisplayRuntime.cs"><Link>Features\CompatibilityDisplay\CompatibilityDisplayRuntime.cs</Link></Compile>
     <Compile Include="..\CompatibilityHost\Integration\KillConfirmWidgetPage.DisplayMode.cs"><Link>Features\CompatibilityDisplay\KillConfirmWidgetPage.DisplayMode.cs</Link></Compile>
     <Content Remove="Assets\**\*;Danmaku\**\*;KillConfirmService\**\*;CompatibilityHost\**\*" />
-    <Content Include="Assets\FluentIcons\*;Assets\PackIcons\*;Assets\GameLogos\*;Assets\*.png;Assets\*.jpg" />
+    <Content Include="Assets\FluentIcons\*;Assets\PackIcons\*;Assets\GameLogos\*;Assets\CategoryLogos\*;Assets\*.png;Assets\*.jpg" />
     <Content Include="Bridge\killconfirm-widget-bridge.exe" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\WindowsXaml\v$(VisualStudioVersion)\Microsoft.Windows.UI.Xaml.CSharp.targets" />

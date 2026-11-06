@@ -231,13 +231,8 @@ namespace KillConfirmGameBar.Services
             ["pubg"] = "PUBG",
             ["deltaforce"] = "Delta Force",
             ["doubao"] = "Doubao",
-            ["sanguosha"] = "Sanguosha · 10th Anniv. Broadcast",
-            ["sanguosha_guanjie"] = "Sanguosha · Officer Rank Weapons",
-            ["sanguosha_zzq"] = "Sanguosha · Auto Chess & Luanwu",
-            ["sanguosha_badge"] = "Sanguosha · Compact Badges",
-            ["sanguosha_equip"] = "Sanguosha · Classic Equips & Stamps",
-            ["sanguosha_general"] = "Sanguosha · Divine Generals & Xu Sheng",
-            ["sanguosha_card"] = "Sanguosha · Classic Cards & Weapons",
+            ["sanguosha"] = "Sanguosha · 10th Anniv. Kill Broadcast",
+            ["sanguosha_guanjie"] = "Sanguosha · Official Rank Divine Weapons",
             ["dagoujiao"] = "Big Dog Bark",
 
             // Built-in Icon Names

@@ -87,7 +87,7 @@
                     <Button x:Name="StatusCopyButton" Style="{StaticResource StatusStripIconButtonStyle}" Click="OnStatusCopyClick" ToolTipService.ToolTip="复制诊断" AutomationProperties.Name="Copy diagnostics"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8C8;" FontSize="12"/></Button>
                     <Button x:Name="StatusLogsButton" Style="{StaticResource StatusStripIconButtonStyle}" Click="OnStatusLogsClick" ToolTipService.ToolTip="打开日志" AutomationProperties.Name="Open logs"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8A5;" FontSize="12"/></Button>
                 </StackPanel>
-                <ComboBox x:Name="MainGameSelector" Grid.Column="3" MinWidth="150" MaxWidth="220" VerticalAlignment="Center" SelectionChanged="OnMainGameChanged"/>
+                <ComboBox x:Name="MainGameSelector" Grid.Column="3" MinWidth="180" MaxWidth="280" VerticalAlignment="Center" SelectionChanged="OnMainGameChanged"/>
             </Grid>
         </Border>
 

@@ -25,6 +25,7 @@ namespace KillConfirmGameBar
         private CustomModulePanel _customModulePanel;
         private DoubaoAdvancedEffectsPanel _doubaoAdvancedEffectsPanel;
         private DagoujiaoAdvancedEffectsPanel _dagoujiaoAdvancedEffectsPanel;
+        private CalabiyauAdvancedEffectsPanel _calabiyauAdvancedEffectsPanel;
 
         private ComboBox MoneyRewardModeSelector
         {
@@ -138,9 +139,7 @@ namespace KillConfirmGameBar
                     panel = EnsureDeltaForceAdvancedEffectsPanel();
                     break;
                 case GameStyleMode.Calabiyau:
-                    panel = new TextBlock { Text = LocalizationManager.Current == UiLanguage.SimplifiedChinese
-                        ? "默认效果内置；其他主题需先导入图标包，随击杀数显示对应动画和星标。准心使用卡拉彼丘击杀反馈，下方与准心可以独立开关。"
-                        : "Choose each theme variant separately. Animations and stars follow the kill count. Native Calabiyau kill crosshair and lower feedback have independent switches.", TextWrapping = TextWrapping.Wrap };
+                    panel = EnsureCalabiyauAdvancedEffectsPanel();
                     break;
                 case GameStyleMode.CustomModule:
                     if (_customModulePanel == null)
@@ -260,15 +259,24 @@ namespace KillConfirmGameBar
                 _valorantAdvancedEffectsPanel.SetStylePanel(new ValorantStylePanel());
                 _valorantAdvancedEffectsPanel.SelectAssistAudio(
                     AssistAudioSettingsStore.Load(GameStyleMode.Valorant));
-                _valorantAdvancedEffectsPanel.SelectPackSync(
-                    ValorantPackSyncSettingsStore.Load());
                 _valorantAdvancedEffectsPanel.StreakModeSelectionChanged += OnSharedStreakModeSelectionChanged;
                 _valorantAdvancedEffectsPanel.AssistAudioToggled += OnValorantAssistAudioToggled;
-                _valorantAdvancedEffectsPanel.PackSyncToggled += OnValorantPackSyncToggled;
                 LoadSharedStreakMode(GameStyleMode.Valorant);
             }
 
             return _valorantAdvancedEffectsPanel;
+        }
+
+        private CalabiyauAdvancedEffectsPanel EnsureCalabiyauAdvancedEffectsPanel()
+        {
+            if (_calabiyauAdvancedEffectsPanel == null)
+            {
+                _calabiyauAdvancedEffectsPanel = new CalabiyauAdvancedEffectsPanel();
+                _calabiyauAdvancedEffectsPanel.StreakModeSelectionChanged += OnSharedStreakModeSelectionChanged;
+                LoadSharedStreakMode(GameStyleMode.Calabiyau);
+            }
+
+            return _calabiyauAdvancedEffectsPanel;
         }
 
         private OverwatchAdvancedEffectsPanel EnsureOverwatchAdvancedEffectsPanel()

@@ -51,6 +51,44 @@ namespace KillConfirmGameBar
                 VerticalAlignment = VerticalAlignment.Center,
                 TextTrimming = TextTrimming.CharacterEllipsis
             };
+
+            bool zh = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            string categoryKey = GameStyleService.ToCategoryKey(style);
+            var categoryIcon = new Image
+            {
+                Width = 13,
+                Height = 13,
+                Stretch = Stretch.Uniform,
+                VerticalAlignment = VerticalAlignment.Center,
+                Source = new BitmapImage(new Uri(GameStyleService.ToCategoryLogoUri(categoryKey)))
+            };
+            var categoryText = new TextBlock
+            {
+                Tag = "category",
+                Text = GameStyleService.ToCategoryDisplayName(categoryKey, zh),
+                FontSize = 11,
+                Opacity = 0.78,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            var categoryRow = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                Spacing = 4,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            categoryRow.Children.Add(categoryIcon);
+            categoryRow.Children.Add(categoryText);
+            var categoryBadge = new Border
+            {
+                Tag = "categoryBadge",
+                Margin = new Thickness(4, 0, 0, 0),
+                Padding = new Thickness(6, 2, 6, 2),
+                CornerRadius = new CornerRadius(6),
+                Background = new SolidColorBrush(Color.FromArgb(24, 120, 130, 145)),
+                VerticalAlignment = VerticalAlignment.Center,
+                Child = categoryRow
+            };
+
             var content = new StackPanel
             {
                 Orientation = Orientation.Horizontal,
@@ -59,7 +97,31 @@ namespace KillConfirmGameBar
             };
             content.Children.Add(logoBackground);
             content.Children.Add(text);
+            content.Children.Add(categoryBadge);
             return content;
+        }
+
+        internal static void UpdateMaterialGameSelectorItemLanguage(ComboBoxItem gameItem)
+        {
+            if (!(gameItem?.Content is StackPanel content) || !(gameItem.Tag is string key)) return;
+            GameStyleMode style = GameStyleService.FromKey(key);
+            TextBlock nameBlock = content.Children.OfType<TextBlock>().FirstOrDefault();
+            if (nameBlock != null)
+            {
+                nameBlock.Text = GameStyleService.ToDisplayName(style);
+            }
+
+            bool zh = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            string categoryKey = GameStyleService.ToCategoryKey(style);
+            Border badge = content.Children.OfType<Border>().FirstOrDefault(b => Equals(b.Tag, "categoryBadge"));
+            if (badge?.Child is StackPanel categoryRow)
+            {
+                TextBlock categoryText = categoryRow.Children.OfType<TextBlock>().FirstOrDefault();
+                if (categoryText != null)
+                {
+                    categoryText.Text = GameStyleService.ToCategoryDisplayName(categoryKey, zh);
+                }
+            }
         }
 
         private static bool IsPackInMaterialCategory(string gameKey, string packKey)
@@ -118,18 +180,10 @@ namespace KillConfirmGameBar
         private static bool IsSupportedMaterialFile(StorageFile file, bool isAudio)
         {
             if (file == null) return false;
-            string extension = file.FileType ?? string.Empty;
-            if (isAudio)
-            {
-                return extension.Equals(".wav", StringComparison.OrdinalIgnoreCase)
-                    || extension.Equals(".mp3", StringComparison.OrdinalIgnoreCase)
-                    || extension.Equals(".m4a", StringComparison.OrdinalIgnoreCase);
-            }
-            return extension.Equals(".png", StringComparison.OrdinalIgnoreCase)
-                || extension.Equals(".tga", StringComparison.OrdinalIgnoreCase)
-                || extension.Equals(".jpg", StringComparison.OrdinalIgnoreCase)
-                || extension.Equals(".jpeg", StringComparison.OrdinalIgnoreCase)
-                || extension.Equals(".webp", StringComparison.OrdinalIgnoreCase);
+            string extension = System.IO.Path.GetExtension(file.Name)?.ToLowerInvariant() ?? string.Empty;
+            return isAudio
+                ? extension == ".wav" || extension == ".mp3" || extension == ".m4a"
+                : extension == ".png" || extension == ".jpg" || extension == ".jpeg" || extension == ".webp" || extension == ".tga";
         }
     }
 }

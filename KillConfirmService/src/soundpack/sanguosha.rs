@@ -1,6 +1,6 @@
 //! 三国杀 (Sanguosha): `NewKillEffect.playKillEffect(n)` plays one broadcast voice
 //! per kill tier (`newkill_shoupo` … `newkill_qipo`, `newkill_shenweizhengqiankun` for 8+ kills,
-//! `newkill_wanfumodi` for headshot, `kill_effect_sound` for knife, and `fireHurtSound2` for grenade).
+//! `newkill_wanfumodi` for headshot, `newkill_shenyimiaoshou` for knife, and `newkill_qingnangjishi` for grenade).
 
 use super::manifest::{PackManifest, SoundContext};
 use crate::state::EventChannel;
@@ -26,13 +26,14 @@ impl PackManifest {
         }
         let audio = self.audio.as_ref()?;
         let has = |slot: &str| audio.slots.get(slot).is_some_and(|files| !files.as_slice().is_empty());
-        if ctx.is_knife_kill && has("knife") {
+        let single_kill = ctx.kill_count <= 1;
+        if ctx.is_knife_kill && (single_kill || ctx.knife_priority) && has("knife") {
             return Some("knife".into());
         }
-        if ctx.is_grenade_kill && has("grenade") {
+        if ctx.is_grenade_kill && (single_kill || ctx.grenade_priority) && has("grenade") {
             return Some("grenade".into());
         }
-        if ctx.is_headshot && has("headshot") {
+        if ctx.is_headshot && !ctx.is_knife_kill && !ctx.is_grenade_kill && (single_kill || ctx.headshot_priority) && has("headshot") {
             return Some("headshot".into());
         }
         let tier = format!("kill_{}", ctx.kill_count.clamp(1, MAX_TIER));

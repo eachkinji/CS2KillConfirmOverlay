@@ -51,7 +51,9 @@ namespace KillConfirmGameBar.Controls
             bool isValorant = IsValorantPresentationConfigured;
             double requestedScale = isValorant
                 ? GetBaseDisplayFit() * _presentationScale
-                : Math.Max(1.0, Math.Min(4.0, _renderResolutionScale));
+                : _isSanguoshaActive
+                    ? GetBaseDisplayFit() * Math.Max(2.0, Math.Min(4.0, _renderResolutionScale * 2.0))
+                    : Math.Max(1.0, Math.Min(4.0, _renderResolutionScale));
             double pixelWidthAtScaleOne = Math.Max(1.0, _logicalFrameWidth);
             double pixelHeightAtScaleOne = Math.Max(1.0, _logicalFrameHeight);
             double maxPixelWidth = isValorant ? ValorantMaxCanvasPixelWidth : MaxCanvasPixelWidth;

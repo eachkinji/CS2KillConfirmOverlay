@@ -232,12 +232,7 @@ namespace KillConfirmCompatibility.Services
             ["deltaforce"] = "\u4e09\u89d2\u6d32\u884c\u52a8",
             ["doubao"] = "\u8c46\u5305",
             ["sanguosha"] = "三国杀 · 十周年连破播报",
-            ["sanguosha_guanjie"] = "三国杀 · 官阶七阶神兵",
-            ["sanguosha_zzq"] = "三国杀 · 自走棋与乱武",
-            ["sanguosha_badge"] = "三国杀 · 紧凑无框徽章",
-            ["sanguosha_equip"] = "三国杀 · 神兵装备与印章",
-            ["sanguosha_general"] = "三国杀 · 神将与界徐盛台词",
-            ["sanguosha_card"] = "三国杀 · 经典杀闪与神兵音效",
+            ["sanguosha_guanjie"] = "三国杀 · 官阶破敌神兵",
             ["dagoujiao"] = "\u5927\u72d7\u53eb",
 
             // Built-in Icon Names

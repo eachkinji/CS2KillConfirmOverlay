@@ -249,15 +249,33 @@ async fn play_audio_channel(
             special_voice_priority: app_state_clone
                 .csol_special_voice_priority
                 .load(Ordering::Relaxed),
-            headshot_priority: app_state_clone
-                .crossfire_headshot_special_audio_priority
-                .load(Ordering::Relaxed),
-            knife_priority: app_state_clone
-                .crossfire_knife_special_audio_priority
-                .load(Ordering::Relaxed),
-            grenade_priority: app_state_clone
-                .crossfire_grenade_special_audio_priority
-                .load(Ordering::Relaxed),
+            headshot_priority: if is_pack_style(&preset.preset_name, preset.manifest.as_ref(), "sanguosha") {
+                app_state_clone
+                    .sanguosha_headshot_special_audio_priority
+                    .load(Ordering::Relaxed)
+            } else {
+                app_state_clone
+                    .crossfire_headshot_special_audio_priority
+                    .load(Ordering::Relaxed)
+            },
+            knife_priority: if is_pack_style(&preset.preset_name, preset.manifest.as_ref(), "sanguosha") {
+                app_state_clone
+                    .sanguosha_knife_special_audio_priority
+                    .load(Ordering::Relaxed)
+            } else {
+                app_state_clone
+                    .crossfire_knife_special_audio_priority
+                    .load(Ordering::Relaxed)
+            },
+            grenade_priority: if is_pack_style(&preset.preset_name, preset.manifest.as_ref(), "sanguosha") {
+                app_state_clone
+                    .sanguosha_grenade_special_audio_priority
+                    .load(Ordering::Relaxed)
+            } else {
+                app_state_clone
+                    .crossfire_grenade_special_audio_priority
+                    .load(Ordering::Relaxed)
+            },
         };
 
         // Custom packs use generated keys (for example

@@ -5,11 +5,6 @@ namespace KillConfirmGameBar.Services
     {
         public const string SanguoshaPackKey = "sanguosha";
         public const string SanguoshaGuanjiePackKey = "sanguosha_guanjie";
-        public const string SanguoshaZzqPackKey = "sanguosha_zzq";
-        public const string SanguoshaBadgePackKey = "sanguosha_badge";
-        public const string SanguoshaEquipPackKey = "sanguosha_equip";
-        public const string SanguoshaGeneralVoicePackKey = "sanguosha_general";
-        public const string SanguoshaCardVoicePackKey = "sanguosha_card";
         public const int SanguoshaMaxStreakTier = 8;
         public const int SanguoshaHeadshotTier = 9;
         public const int SanguoshaKnifeTier = 10;
@@ -31,16 +26,6 @@ namespace KillConfirmGameBar.Services
             {
                 case SanguoshaGuanjiePackKey:
                     return "Assets/GameStyles/sanguosha/previews/sanguosha_guanjie.png";
-                case SanguoshaZzqPackKey:
-                    return "Assets/GameStyles/sanguosha/previews/sanguosha_zzq.png";
-                case SanguoshaBadgePackKey:
-                    return "Assets/GameStyles/sanguosha/previews/sanguosha_badge.png";
-                case SanguoshaEquipPackKey:
-                    return "Assets/GameStyles/sanguosha/previews/sanguosha_equip.png";
-                case SanguoshaGeneralVoicePackKey:
-                    return "Assets/GameStyles/sanguosha/previews/sanguosha_general.png";
-                case SanguoshaCardVoicePackKey:
-                    return "Assets/GameStyles/sanguosha/previews/sanguosha_card.png";
                 default:
                     return "Assets/GameLogos/sanguosha.png";
             }
@@ -69,9 +54,11 @@ namespace KillConfirmGameBar.Services
         public static int SanguoshaTier(KillEvent killEvent)
         {
             if (killEvent == null) return 1;
-            if (killEvent.IsKnifeKill) return SanguoshaKnifeTier;
-            if (killEvent.IsGrenadeKill) return SanguoshaGrenadeTier;
-            if (killEvent.IsHeadshot) return SanguoshaHeadshotTier;
+            SanguoshaGameplaySettingsValues settings = SanguoshaGameplaySettingsStore.Load();
+            bool singleKill = killEvent.KillCount < 2;
+            if (killEvent.IsKnifeKill && (singleKill || settings.KnifeSpecialIconPriority)) return SanguoshaKnifeTier;
+            if (killEvent.IsGrenadeKill && (singleKill || settings.GrenadeSpecialIconPriority)) return SanguoshaGrenadeTier;
+            if (killEvent.IsHeadshot && !killEvent.IsKnifeKill && !killEvent.IsGrenadeKill && (singleKill || settings.HeadshotSpecialIconPriority)) return SanguoshaHeadshotTier;
             return System.Math.Max(1, System.Math.Min(SanguoshaMaxStreakTier, killEvent.KillCount));
         }
     }

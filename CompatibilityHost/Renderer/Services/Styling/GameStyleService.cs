@@ -8,20 +8,20 @@ namespace KillConfirmCompatibility.Services
         Csol,
         Valorant,
         Overwatch,
-        ModernWarfare2019,
         Apex,
-        Battlefield1,
-        Battlefield5,
-        Battlefield4,
-        Battlefield2042,
+        Calabiyau,
         Pubg,
         DeltaForce,
+        Battlefield4,
+        Battlefield1,
+        Battlefield5,
+        Battlefield2042,
+        Battlefield6,
+        ModernWarfare2019,
+        Sanguosha,
         Doubao,
         Dagoujiao,
-        CustomModule,
-        Battlefield6,
-        Calabiyau,
-        Sanguosha
+        CustomModule
     }
 
     internal static partial class GameStyleService
@@ -386,6 +386,74 @@ namespace KillConfirmCompatibility.Services
                 || IsOverwatchKey(key)
                 || IsModernWarfare2019Key(key)
                 || IsApexKey(key);
+        }
+
+        public static string ToCategoryKey(GameStyleMode mode)
+        {
+            switch (mode)
+            {
+                case GameStyleMode.Crossfire:
+                case GameStyleMode.Csol:
+                case GameStyleMode.Valorant:
+                    return "traditional";
+                case GameStyleMode.Overwatch:
+                case GameStyleMode.Apex:
+                case GameStyleMode.Calabiyau:
+                    return "hero";
+                case GameStyleMode.Pubg:
+                case GameStyleMode.DeltaForce:
+                    return "survival";
+                case GameStyleMode.Battlefield4:
+                case GameStyleMode.Battlefield1:
+                case GameStyleMode.Battlefield5:
+                case GameStyleMode.Battlefield2042:
+                case GameStyleMode.Battlefield6:
+                    return "battlefield";
+                case GameStyleMode.ModernWarfare2019:
+                    return "cod";
+                case GameStyleMode.Sanguosha:
+                    return "cardmoba";
+                default:
+                    return "meme";
+            }
+        }
+
+        public static string ToCategoryDisplayName(string categoryKey, bool isChinese)
+        {
+            switch (categoryKey)
+            {
+                case "traditional":
+                    return isChinese ? "传统射击" : "Traditional Shooters";
+                case "hero":
+                    return isChinese ? "英雄射击" : "Hero Shooters";
+                case "survival":
+                    return isChinese ? "求生搜打撤" : "Survival & Extraction";
+                case "battlefield":
+                    return isChinese ? "战地系列" : "Battlefield Series";
+                case "cod":
+                    return isChinese ? "使命召唤系列" : "Call of Duty Series";
+                case "cardmoba":
+                    return isChinese ? "棋牌MOBA" : "Card & MOBA";
+                default:
+                    return isChinese ? "MEME/自定义" : "MEME / Custom";
+            }
+        }
+
+        public static string ToCategoryLogoUri(string categoryKey)
+        {
+            switch (categoryKey)
+            {
+                case "traditional":
+                case "hero":
+                case "survival":
+                case "battlefield":
+                case "cod":
+                case "cardmoba":
+                case "meme":
+                    return "ms-appx:///Assets/CategoryLogos/" + categoryKey + ".png";
+                default:
+                    return "ms-appx:///Assets/CategoryLogos/meme.png";
+            }
         }
 
     }

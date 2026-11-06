@@ -201,6 +201,7 @@ namespace KillConfirmGameBar
             await SyncAudioDeviceAsync();
             await SyncCrossfireGameplaySettingsAsync();
             await SyncCsolGameplaySettingsAsync();
+            await SyncSanguoshaGameplaySettingsAsync();
             await SyncDagoujiaoSettingsAsync();
             await SyncBombAudioSettingsAsync();
             await SyncSharedStreakSettingsAsync();

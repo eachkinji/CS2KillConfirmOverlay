@@ -44,6 +44,13 @@ namespace KillConfirmCompatibility.Desktop.Runtime
                 ["special_voice_priority"] = JsonValue.CreateBooleanValue(csol.SpecialVoicePriority),
                 ["last_kill_special_audio"] = JsonValue.CreateBooleanValue(csol.LastKillSpecialAudio)
             });
+            SanguoshaGameplaySettingsValues sgs = SanguoshaGameplaySettingsStore.Load();
+            await SendAsync("/sanguosha/settings", new JsonObject
+            {
+                ["headshot_special_audio_priority"] = JsonValue.CreateBooleanValue(sgs.HeadshotSpecialAudioPriority),
+                ["knife_special_audio_priority"] = JsonValue.CreateBooleanValue(sgs.KnifeSpecialAudioPriority),
+                ["grenade_special_audio_priority"] = JsonValue.CreateBooleanValue(sgs.GrenadeSpecialAudioPriority)
+            });
             string key = "KillStreakMode_" + GameStyleService.ToStorageValue(style);
             string streak = Text(key, style == GameStyleMode.CustomModule ? "life" : Text("SharedStreakMode", "life"));
             await SendAsync("/streak/settings", new JsonObject

@@ -48,11 +48,12 @@ namespace KillConfirmCompatibility.Controls
 
         private double GetRenderResolutionScale()
         {
-            if (_desktopRasterScale > 0) return _desktopRasterScale;
             bool isValorant = IsValorantPresentationConfigured;
             double requestedScale = isValorant
                 ? GetBaseDisplayFit() * _presentationScale
-                : Math.Max(1.0, Math.Min(4.0, _renderResolutionScale));
+                : _isSanguoshaActive
+                    ? GetBaseDisplayFit() * Math.Max(2.0, Math.Min(4.0, _renderResolutionScale * 2.0))
+                    : Math.Max(1.0, Math.Min(4.0, _renderResolutionScale));
             double pixelWidthAtScaleOne = Math.Max(1.0, _logicalFrameWidth);
             double pixelHeightAtScaleOne = Math.Max(1.0, _logicalFrameHeight);
             double maxPixelWidth = isValorant ? ValorantMaxCanvasPixelWidth : MaxCanvasPixelWidth;
@@ -117,13 +118,18 @@ namespace KillConfirmCompatibility.Controls
             double renderWidth = Math.Ceiling(_logicalFrameWidth * renderScale);
             double renderHeight = Math.Ceiling(_logicalFrameHeight * renderScale);
             bool directValorantPresentation = IsValorantPresentationConfigured;
+            bool fixedCalabiyauPresentation = _isCalabiyauActive;
 
-            Width = directValorantPresentation ? renderWidth : double.NaN;
-            Height = directValorantPresentation ? renderHeight : double.NaN;
-            HorizontalAlignment = directValorantPresentation
+            // Calabiyau's transparent 768px canvas is padding for moving
+            // particles, not a request to fit the entire animation to the
+            // widget window. A stretching Viewbox shrank the actual emblem
+            // when Game Bar was smaller than that padding, unlike desktop.
+            Width = directValorantPresentation ? renderWidth : fixedCalabiyauPresentation ? displayWidth : double.NaN;
+            Height = directValorantPresentation ? renderHeight : fixedCalabiyauPresentation ? displayHeight : double.NaN;
+            HorizontalAlignment = directValorantPresentation || fixedCalabiyauPresentation
                 ? HorizontalAlignment.Center
                 : HorizontalAlignment.Stretch;
-            VerticalAlignment = directValorantPresentation
+            VerticalAlignment = directValorantPresentation || fixedCalabiyauPresentation
                 ? VerticalAlignment.Center
                 : VerticalAlignment.Stretch;
 
@@ -138,8 +144,8 @@ namespace KillConfirmCompatibility.Controls
                 PlaybackViewbox.Stretch = Stretch.Uniform;
                 PlaybackViewbox.HorizontalAlignment = HorizontalAlignment.Stretch;
                 PlaybackViewbox.VerticalAlignment = VerticalAlignment.Stretch;
-                PlaybackViewbox.Width = double.NaN;
-                PlaybackViewbox.Height = double.NaN;
+                PlaybackViewbox.Width = fixedCalabiyauPresentation ? displayWidth : double.NaN;
+                PlaybackViewbox.Height = fixedCalabiyauPresentation ? displayHeight : double.NaN;
                 PlaybackViewbox.MaxWidth = directValorantPresentation ? renderWidth : _displayViewportWidth;
                 PlaybackViewbox.MaxHeight = directValorantPresentation ? renderHeight : _displayViewportHeight;
             }

@@ -14,7 +14,7 @@ using Windows.Storage;
 
 namespace KillConfirmCompatibility.Validation;
 
-// Replays every 首破..七破 SGSD clip through the production Win2D renderer and, when a
+// Replays every 首破..七破 & 官阶破敌神兵 SGSD clip through the production Win2D renderer and, when a
 // reference folder is supplied, compares the result with frames rendered by Sanguosha's own
 // LayaAir/Spine runtime (premultiplied RGBA PNGs from tools/bake_server.py --page bake.html).
 internal static class SanguoshaValidation
@@ -22,15 +22,9 @@ internal static class SanguoshaValidation
     private static readonly string[] Tiers =
     {
         "shoupo", "lianpo", "sanpo", "sipo", "wupo", "liupo", "qipo",
-        "shenweizhengqiankun", "wanfumodi", "podi", "miaosha",
-        "guanjie2", "guanjie3", "guanjie4", "guanjie5", "guanjie6", "guanjie7",
-        "dashatesha", "shoujidonghua_chuizi", "shoujidonghua_jian", "shoujidonghua_fuzi2",
-        "zzq_shousha", "zzq_lianpo", "zzq_sanpo", "lianzhan4", "lianzhan5", "lianzhan6", "lianzhan7",
-        "zzq_wanrendi", "zzq_sha", "zzq_shajue",
-        "badge_1", "badge_2", "badge_3", "badge_4", "badge_5", "badge_6", "badge_7",
-        "badge_8", "badge_9", "badge_10", "badge_11",
-        "equip_1", "equip_2", "equip_3", "equip_4", "equip_5", "equip_6", "equip_7",
-        "equip_8", "equip_9", "equip_10", "equip_11"
+        "shenweizhengqiankun", "wanfumodi", "shenyimiaoshou", "qingnangjishi",
+        "podi", "guanjie2", "guanjie3", "guanjie4", "guanjie5", "guanjie6", "guanjie7",
+        "dashatesha", "shoujidonghua_chuizi", "shoujidonghua_jian", "shoujidonghua_fuzi2"
     };
 
     internal static async Task RunAsync(string output, string assets, string reference = null)

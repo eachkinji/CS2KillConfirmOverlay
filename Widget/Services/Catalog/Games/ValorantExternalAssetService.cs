@@ -19,6 +19,36 @@ namespace KillConfirmGameBar.Services
         public const string IconPackageKind = "valorant_icon";
         public const string VoicePackageKind = "valorant_voice";
         private const string TextureFolderName = "textures";
+
+        internal const string ResourceRevisionPrefix = "Valorant.ResourceRevision.";
+
+        public static string GetResourceRevision(string packKey)
+        {
+            if (!IsSafePackKey(packKey)) return string.Empty;
+            return ApplicationData.Current.LocalSettings.Values.TryGetValue(ResourceRevisionPrefix + packKey.ToLowerInvariant(), out object value)
+                ? value as string ?? string.Empty : string.Empty;
+        }
+
+        private static readonly Dictionary<string,string> ObservedResourceRevisions = new Dictionary<string,string>(StringComparer.OrdinalIgnoreCase);
+        internal static void RefreshResourceMetadataIfChanged(string packKey)
+        {
+            if (!IsSafePackKey(packKey)) return;
+            string revision = GetResourceRevision(packKey);
+            lock (ObservedResourceRevisions)
+            {
+                if (ObservedResourceRevisions.TryGetValue(packKey, out string previous) && previous == revision) return;
+                ValorantPackService.RefreshExternalPacks();
+                ObservedResourceRevisions[packKey] = revision;
+            }
+        }
+
+        internal static void MarkResourcesChanged(string packKey)
+        {
+            if (!IsSafePackKey(packKey)) return;
+            ApplicationData.Current.LocalSettings.Values[ResourceRevisionPrefix + packKey.ToLowerInvariant()] = Guid.NewGuid().ToString("N");
+            ValorantPackEditing.NotifyResourceChange();
+        }
+
         private static readonly object VoiceRepairLock = new object();
 
         public static async Task<StorageFile> TryGetVisualTextureAsync(
@@ -32,6 +62,13 @@ namespace KillConfirmGameBar.Services
             }
 
             string candidate = Path.Combine(GetIconPacksRootPath(), packKey, TextureFolderName, fileName);
+            return await TryGetFileUnderRootAsync(GetIconPacksRootPath(), candidate);
+        }
+
+        public static async Task<StorageFile> TryGetNativeAnimationAsync(string packKey)
+        {
+            if (!IsSafePackKey(packKey)) return null;
+            string candidate = Path.Combine(GetIconPacksRootPath(), packKey, "native_animation.json");
             return await TryGetFileUnderRootAsync(GetIconPacksRootPath(), candidate);
         }
 
@@ -191,6 +228,8 @@ namespace KillConfirmGameBar.Services
                 RepairMissingVoiceSlots(target.Path);
             }
 
+            if (string.Equals(expectedKind, IconPackageKind, StringComparison.Ordinal)) MarkResourcesChanged(manifest.Id);
+
             return new ValorantPackageInstallResult
             {
                 Id = manifest.Id.ToLowerInvariant(),
@@ -330,8 +369,9 @@ namespace KillConfirmGameBar.Services
                 return null;
             }
 
-            return "ms-appdata:///local/Packs/valorant/icon_packs/"
-                + pack.Key + "/textures/" + pack.EmblemFile;
+            // The library may have been moved to another drive. Resolve the
+            // same file we validated instead of rebuilding the legacy C: URI.
+            return new Uri(emblemPath).AbsoluteUri;
         }
 
         private static string GetValorantRootPath()

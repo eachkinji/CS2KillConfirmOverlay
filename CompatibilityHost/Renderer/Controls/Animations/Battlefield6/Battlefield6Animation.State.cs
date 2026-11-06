@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using Microsoft.Graphics.Canvas.Text;
 
 namespace KillConfirmCompatibility.Controls
 {
@@ -76,7 +77,7 @@ namespace KillConfirmCompatibility.Controls
                 state.Icons.Add(new Battlefield6Icon { Bitmap = item.Bitmap, Headshot = item.Headshot, StartMs = now, MoveStartMs = now });
             if (item.HasVictim && !string.IsNullOrEmpty(item.Victim))
             {
-                state.Victim = FitBattlefield6Text(item.Victim, 190);
+                state.Victim = FitBattlefield6Text(item.Victim, 190, _battlefield6TextFormat);
                 state.VictimWidth = MeasureBattlefield6TextWidth(state.Victim, _battlefield6TextFormat);
                 state.VictimStartMs = now;
                 state.VictimIsRescue = item.Rescue;
@@ -92,9 +93,9 @@ namespace KillConfirmCompatibility.Controls
             }
             else { merged.Count++; }
             string suffix = merged.Count > 1 ? " ×" + merged.Count.ToString(CultureInfo.InvariantCulture) : string.Empty;
-            double suffixWidth = MeasureBattlefield6TextWidth(suffix, _battlefield6TextFormat);
-            merged.Text = FitBattlefield6Text(merged.Label, Math.Max(10, 58 - suffixWidth)) + suffix;
-            merged.Width = MeasureBattlefield6TextWidth(merged.Text, _battlefield6TextFormat);
+            double suffixWidth = MeasureBattlefield6TextWidth(suffix, _battlefield6BonusFormat);
+            merged.Text = FitBattlefield6Text(merged.Label, Math.Max(10, 58 - suffixWidth), _battlefield6BonusFormat) + suffix;
+            merged.Width = MeasureBattlefield6TextWidth(merged.Text, _battlefield6BonusFormat);
             state.NextBonusFadeMs = now + Battlefield6TextHoldMs;
 
             bool resetScore = state.Round != item.Round || state.Epoch != item.Epoch || !IsBattlefield6ScoreVisible(now)
@@ -110,14 +111,14 @@ namespace KillConfirmCompatibility.Controls
             }
         }
 
-        private string FitBattlefield6Text(string text, double maxWidth)
+        private string FitBattlefield6Text(string text, double maxWidth, CanvasTextFormat format)
         {
-            if (MeasureBattlefield6TextWidth(text, _battlefield6TextFormat) <= maxWidth) return text;
+            if (MeasureBattlefield6TextWidth(text, format) <= maxWidth) return text;
             int length = Math.Min(text.Length, 48);
             while (length > 1)
             {
                 string shortened = text.Substring(0, --length) + "…";
-                if (MeasureBattlefield6TextWidth(shortened, _battlefield6TextFormat) <= maxWidth) return shortened;
+                if (MeasureBattlefield6TextWidth(shortened, format) <= maxWidth) return shortened;
             }
             return "…";
         }

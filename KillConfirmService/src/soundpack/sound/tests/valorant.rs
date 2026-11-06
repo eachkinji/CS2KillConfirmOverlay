@@ -337,3 +337,99 @@
             kill2[0].path
         );
     }
+
+    #[test]
+    fn valorant_external_overkill_routes_sixth_slots_and_preserves_fallbacks() {
+        use crate::soundpack::manifest::{PackManifest, SlotFiles};
+        use crate::soundpack::SoundContext;
+        use crate::state::EventChannel;
+        use std::collections::HashMap;
+        use std::fs;
+
+        let temp = TestTempDir::new("valorant_overkill");
+        let folder = temp.path();
+        fs::write(folder.join("manifest.json"), r#"{
+            "game_style":"valorant",
+            "audio":{"base_gain":1.0,"slots":{},
+                "slot_gains":{"kill_6":0.8,"headshot_6":0.6,"transition":0.3},
+                "overlay_slots":["kill_5","kill_6"]}
+        }"#).unwrap();
+        for file in ["kill_1.wav", "kill_5.wav", "kill_6.wav", "headshot_5.wav", "headshot_6.wav", "transition.wav"] {
+            fs::write(folder.join(file), b"RIFFdummyWAVE").unwrap();
+        }
+        let mut manifest = PackManifest::load_from_dir(folder).unwrap();
+        assert_eq!(manifest.audio.as_ref().unwrap().slots["headshot_6"], SlotFiles::Single("headshot_6.wav".into()));
+        let base = folder.to_string_lossy().into_owned();
+        let mut ctx = SoundContext {
+            kill_count: 6, is_headshot: false, is_first_kill: false,
+            is_knife_kill: false, is_grenade_kill: false, is_last_kill: false,
+            is_assist: false, play_main_audio: true, money_reward: 0,
+            event_kind: None, event_channel: EventChannel::Combat,
+            preset_name: "valorant_voice_test".into(), master_name: "valorant_voice_test".into(),
+            variant: None, base_dir: base.clone(), voice_picks: HashMap::new(),
+            special_voice_priority: false, headshot_priority: false,
+            knife_priority: false, grenade_priority: true,
+        };
+        for count in [6, 8, u16::MAX] {
+            ctx.kill_count = count;
+            for headshot in [false, true] {
+                ctx.is_headshot = headshot;
+                let entries = manifest.resolve_audio(&ctx, &base);
+                assert_eq!(entries.len(), if headshot { 3 } else { 2 });
+                assert!(entries[0].path.ends_with("kill_6.wav"));
+                assert!((entries[0].gain - 0.8).abs() < f32::EPSILON);
+                assert!(entries[1].path.ends_with("transition.wav"));
+                assert!((entries[1].gain - 0.3).abs() < f32::EPSILON);
+                if headshot {
+                    assert!(entries[2].path.ends_with("headshot_6.wav"));
+                    assert!((entries[2].gain - 0.6).abs() < f32::EPSILON);
+                }
+            }
+        }
+        // Most native overkill packs provide no independent headshot sixth
+        // cue: keep their kill_6 rather than overlaying the old headshot_5.
+        for invalid in [SlotFiles::Multiple(Vec::new()), SlotFiles::Single(String::new()), SlotFiles::Single("missing.wav".into())] {
+            manifest.audio.as_mut().unwrap().slots.insert("headshot_6".into(), invalid);
+            let entries = manifest.resolve_audio(&ctx, &base);
+            assert_eq!(entries.len(), 2);
+            assert!(entries[0].path.ends_with("kill_6.wav"));
+        }
+        for invalid in [SlotFiles::Multiple(Vec::new()), SlotFiles::Single(String::new()), SlotFiles::Single("missing.wav".into())] {
+            manifest.audio.as_mut().unwrap().slots.insert("kill_6".into(), invalid.clone());
+            manifest.audio.as_mut().unwrap().slots.insert("headshot_6".into(), invalid);
+            let entries = manifest.resolve_audio(&ctx, &base);
+            assert_eq!(entries.len(), 3);
+            assert!(entries[0].path.ends_with("kill_5.wav"));
+            assert!(entries[2].path.ends_with("headshot_5.wav"));
+        }
+        manifest.audio.as_mut().unwrap().slots.remove("kill_6");
+        manifest.audio.as_mut().unwrap().slots.remove("headshot_6");
+        let entries = manifest.resolve_audio(&ctx, &base);
+        assert!(entries[0].path.ends_with("kill_5.wav"));
+        assert!(entries[2].path.ends_with("headshot_5.wav"));
+        // Headshot sixth may be supplied independently of the normal sixth.
+        manifest.audio.as_mut().unwrap().slots.insert("headshot_6".into(), SlotFiles::Single("headshot_6.wav".into()));
+        let entries = manifest.resolve_audio(&ctx, &base);
+        assert!(entries[0].path.ends_with("kill_5.wav"));
+        assert!(entries[2].path.ends_with("headshot_6.wav"));
+        ctx.kill_count = 5;
+        let entries = manifest.resolve_audio(&ctx, &base);
+        assert!(entries[0].path.ends_with("kill_5.wav"));
+        assert!(entries[2].path.ends_with("headshot_5.wav"));
+        ctx.play_main_audio = false;
+        ctx.is_headshot = false;
+        assert!(manifest.resolve_audio(&ctx, &base).is_empty());
+    }
+
+    #[test]
+    fn valorant_sixth_headshot_autodiscovery_does_not_change_other_styles() {
+        use crate::soundpack::manifest::PackManifest;
+        use std::fs;
+        let temp = TestTempDir::new("non_valorant_headshot_six");
+        fs::write(temp.path().join("headshot_6.wav"), b"RIFFdummyWAVE").unwrap();
+        for style in ["crossfire", "csol", "calabiyau", "custommodule"] {
+            let mut manifest = PackManifest { game_style: Some(style.into()), ..Default::default() };
+            manifest.auto_populate_slots_from_dir(temp.path());
+            assert!(!manifest.audio.unwrap().slots.contains_key("headshot_6"), "{style}");
+        }
+    }

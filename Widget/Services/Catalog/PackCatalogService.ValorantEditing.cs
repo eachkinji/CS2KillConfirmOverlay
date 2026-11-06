@@ -74,6 +74,7 @@ namespace KillConfirmGameBar.Services
     internal static class ValorantPackEditing
     {
         public static int Revision { get; private set; }
+        internal static void NotifyResourceChange() { Revision++; }
         private static readonly System.Threading.SemaphoreSlim EditLock = new System.Threading.SemaphoreSlim(1, 1);
 
         internal static void SetName(JsonObject manifest, string name)

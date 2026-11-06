@@ -48,7 +48,7 @@ namespace KillConfirmCompatibility.Controls
 
         private void ApplyBattlefield1CompositionViewport(BattlefieldKillAsset asset)
         {
-            using (var textFormat = CreateBattlefieldTextFormat())
+            using (var textFormat = CreateBattlefieldInfantryTextFormat())
             {
                 Rect cardBounds = MeasureBattlefield1CardBounds(asset, textFormat);
                 double cardWidth = Math.Ceiling(Math.Max(1, cardBounds.Width));

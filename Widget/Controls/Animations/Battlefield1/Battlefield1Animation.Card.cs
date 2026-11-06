@@ -53,7 +53,7 @@ namespace KillConfirmGameBar.Controls
 
             try
             {
-                using (CanvasTextFormat textFormat = CreateBattlefieldTextFormat())
+                using (CanvasTextFormat textFormat = CreateBattlefieldInfantryTextFormat())
                 {
                     double labelScale = 1.18;
                     double rewardScale = 1.55;
@@ -168,7 +168,7 @@ namespace KillConfirmGameBar.Controls
             string victimName = string.IsNullOrWhiteSpace(asset.PlayerName) ? "Unknown" : asset.PlayerName;
             string healthText = string.IsNullOrWhiteSpace(asset.HealthText) ? "?" : asset.HealthText;
 
-            using (CanvasTextFormat textFormat = CreateBattlefieldTextFormat())
+            using (CanvasTextFormat textFormat = CreateBattlefieldInfantryTextFormat())
             {
                 Battlefield1CardLayout layout = CreateBattlefield1CardLayout(asset, textFormat);
                 double cardCenterX = layout.CardBounds.X + (layout.CardBounds.Width / 2.0);

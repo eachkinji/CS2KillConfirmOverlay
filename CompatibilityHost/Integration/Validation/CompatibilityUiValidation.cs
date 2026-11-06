@@ -26,6 +26,13 @@ namespace KillConfirmGameBar
                 try
                 {
 #if DESKTOP_CONTROL_PANEL
+                    if (Environment.GetEnvironmentVariable("KILLCONFIRM_SIDEBAR_VALIDATION") == "1")
+                    {
+                        await Task.Delay(500);
+                        await ValidateNavigationAndThemesAsync(sidebarOnly: true);
+                        return;
+                    }
+                    if (Environment.GetEnvironmentVariable("KILLCONFIRM_SCROLL_VALIDATION") == "1") { await ValidatePackScrollingAsync(); return; }
                     if (Environment.GetEnvironmentVariable("KILLCONFIRM_AUDIO_CHANNEL_VALIDATION") == "1") { await ValidateAudioChannelsAsync(); return; }
                     if (Environment.GetEnvironmentVariable("KILLCONFIRM_UI_INSPECTION") == "1") return;
                     if (Environment.GetEnvironmentVariable("KILLCONFIRM_SETTINGS_VALIDATION") == "1") { await ValidateSettingsAndUpdatesAsync(); return; }

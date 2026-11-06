@@ -88,9 +88,9 @@ namespace KillConfirmCompatibility.Controls
                 if (bonus.FadeStartMs >= 0) alpha *= Battlefield6Blink((now - bonus.FadeStartMs) / Battlefield6BonusFadeMs);
                 double x = Battlefield6TextX + bonus.X - bonus.Width;
                 ds.DrawRectangle(new Rect(x - 2, state.BonusY - 1, bonus.Width + 4, 11),
-                    Battlefield6WithAlpha(Colors.White, alpha), 0.5f);
+                    Battlefield6WithAlpha(Colors.White, alpha), 0.25f);
                 DrawBattlefield6Text(ds, bonus.Text, x, state.BonusY, Colors.White, alpha,
-                    _battlefield6TextFormat, Color.FromArgb(255, 180, 180, 180), 0.3, 0.5);
+                    _battlefield6BonusFormat, Color.FromArgb(255, 180, 180, 180), 0.3, 0.5);
             }
         }
 
@@ -112,6 +112,15 @@ namespace KillConfirmCompatibility.Controls
         {
             if (string.IsNullOrEmpty(text) || alpha <= 0) return;
             CanvasTextLayout layout = GetBattlefield6TextLayout(text, format);
+            // Upstream y is the top of a Minecraft font line (9 units, baseline 7 down). DirectWrite
+            // lines carry far more top leading (worse with CJK fallback), which dropped every BF6
+            // text 2-4 units: names sank, bonus glyphs spilled out of their box and the score sat
+            // below the icon. Pin the real baseline and ink-left edge to the upstream line box.
+            double baseline = ReferenceEquals(format, _battlefield6ScoreFormat)
+                ? Battlefield6ScoreBaseline : Battlefield6TextBaseline;
+            CanvasLineMetrics[] lines = layout.LineMetrics;
+            y += baseline - (lines.Length > 0 ? lines[0].Baseline : format.FontSize * 0.8);
+            x -= layout.DrawBounds.X;
             Battlefield6TextGlow cached = GetBattlefield6TextGlow(ds, text, format, layout, glow, intensity, spread);
             if (cached != null)
             {

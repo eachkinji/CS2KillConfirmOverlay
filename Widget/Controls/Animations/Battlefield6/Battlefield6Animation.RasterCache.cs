@@ -51,6 +51,13 @@ namespace KillConfirmGameBar.Controls
                 {
                     result.Base = CreateBattlefield6RasterLevel(source, level);
                     result.OwnsBase = !ReferenceEquals(result.Base, source);
+                    if (Battlefield6TintedSources.Contains(source))
+                    {
+                        CanvasBitmap tinted = TintBattlefield6Skull(result.Base);
+                        if (result.OwnsBase) result.Base.Dispose();
+                        result.Base = tinted;
+                        result.OwnsBase = true;
+                    }
                     double padding = level / 8.0;
                     result.Glow = new CanvasRenderTarget(source.Device,
                         (float)(level + padding * 2), (float)(level + padding * 2), 96);
@@ -61,17 +68,37 @@ namespace KillConfirmGameBar.Controls
                         foreach (var offset in Battlefield6GlowOffsets)
                         {
                             DrawBattlefield6RasterCopy(glow, result.Base, padding + offset.X * spread,
-                                padding + offset.Y * spread, level, 0.016f);
+                                padding + offset.Y * spread, level, 0.016f * Battlefield6IconGlowScale);
                             DrawBattlefield6RasterCopy(glow, result.Base, padding + offset.X * spread * 0.55,
-                                padding + offset.Y * spread * 0.55, level, 0.011f);
+                                padding + offset.Y * spread * 0.55, level, 0.011f * Battlefield6IconGlowScale);
                         }
-                        DrawBattlefield6RasterCopy(glow, result.Base, padding, padding, level, 0.009f);
+                        DrawBattlefield6RasterCopy(glow, result.Base, padding, padding, level, 0.009f * Battlefield6IconGlowScale);
                     }
                     levels[level] = result;
                     return result;
                 }
                 catch { result.Dispose(); throw; }
             }
+        }
+
+        private static CanvasBitmap TintBattlefield6Skull(CanvasBitmap source)
+        {
+            // Runs on the downsampled level (normally 64-256 px), not the 2048 px original.
+            // Only near-neutral pixels are tinted, so the orange headshot skull keeps its colour.
+            // Pixel data is premultiplied; scaling RGB alone keeps it valid.
+            Color[] pixels = source.GetPixelColors();
+            Color grey = Battlefield6SkullGrey;
+            for (int i = 0; i < pixels.Length; i++)
+            {
+                Color c = pixels[i];
+                if (c.A == 0 || Math.Min(c.R, Math.Min(c.G, c.B)) * 4 < c.A * 3) continue;
+                c.R = (byte)(c.R * grey.R / 255);
+                c.G = (byte)(c.G * grey.G / 255);
+                c.B = (byte)(c.B * grey.B / 255);
+                pixels[i] = c;
+            }
+            return CanvasBitmap.CreateFromColors(source.Device, pixels,
+                (int)source.SizeInPixels.Width, (int)source.SizeInPixels.Height, source.Dpi);
         }
 
         private static CanvasBitmap CreateBattlefield6RasterLevel(CanvasBitmap source, int level)

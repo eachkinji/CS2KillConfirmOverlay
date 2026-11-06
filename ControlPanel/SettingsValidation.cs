@@ -48,7 +48,7 @@ namespace KillConfirmGameBar
             await UpdateValidation.CaptureAsync(this, "settings-about");
             SelectCompatibilityWorkspace(); await Task.Delay(200);
             await UpdateValidation.CaptureAsync(this, "settings-home");
-            File.WriteAllText(Path.Combine(DesktopPlatform.Data.LocalFolder.Path, "ui-pass.txt"), "PASS: six switch rows and inline detail expansion/collapse; boolean/slider persistence; colored About actions beside version; removed selectors; Home update navigation; newer/equal/older release comparison; failed/malformed response; in-flight request coalescing and retry; About update instructions and release data.");
+            File.WriteAllText(Path.Combine(DesktopPlatform.Data.LocalFolder.Path, "ui-pass.txt"), "PASS: eight settings rows and inline detail expansion/collapse; audio behavior controls persist independently for CrossFire and Strinova; pack selections, channel volumes and explicit none preserved; game hints, reload and stale-game protection; boolean/slider persistence; colored About actions beside version; removed selectors; Home update navigation; newer/equal/older release comparison; failed/malformed response; in-flight request coalescing and retry; About update instructions and release data. Audio backend delivery is not asserted by this isolated UI fixture.");
         }
     }
 }
@@ -104,7 +104,7 @@ namespace KillConfirmGameBar.Controls.Settings
         internal async Task ValidateCompactExperienceAsync()
         {
             RefreshSettings(); UpdateLayout();
-            if (ExperienceRows.Children.Count != 6 || ExperienceRows.Children.OfType<FrameworkElement>().Any(r => r.ActualHeight > 150))
+            if (ExperienceRows.Children.Count != 8 || ExperienceRows.Children.OfType<FrameworkElement>().Any(r => r.ActualHeight > 150))
                 throw new Exception("Detail sections should start collapsed.");
             if (DanmakuDetailsButton.Flyout != null || StreakGainDetailsButton.Flyout != null)
                 throw new Exception("Settings still use popup details.");
@@ -114,8 +114,9 @@ namespace KillConfirmGameBar.Controls.Settings
             AutoCloseOnGameExitToggle.IsOn = original;
             foreach (var button in new[] { DanmakuDetailsButton, StreakGainDetailsButton })
             {
-                int row = button == DanmakuDetailsButton ? 1 : 4;
-                var card = (FrameworkElement)ExperienceRows.Children[row];
+                var card = FindExperienceCard(button);
+                int row = ExperienceRows.Children.IndexOf(card);
+                if (row < 0 || row + 1 >= ExperienceRows.Children.Count) throw new Exception("Inline settings card has no following row: " + button.Name);
                 var following = (FrameworkElement)ExperienceRows.Children[row + 1];
                 var content = button == DanmakuDetailsButton ? (FrameworkElement)DanmakuDetailsContent : StreakGainDetailsContent;
                 double closedHeight = card.ActualHeight;
@@ -140,6 +141,141 @@ namespace KillConfirmGameBar.Controls.Settings
                     throw new Exception("Collapsing details left a blank area: " + button.Name);
             }
             await BombAudioPanel.ValidateInlineDetailsAsync();
+            await ValidateAudioBehaviorControlsAsync();
+        }
+
+        private FrameworkElement FindExperienceCard(FrameworkElement child)
+        {
+            FrameworkElement current = child;
+            while (current != null && current.Parent != ExperienceRows)
+                current = current.Parent as FrameworkElement
+                    ?? Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(current) as FrameworkElement;
+            return current ?? throw new Exception("Setting is outside ExperienceRows: " + child.Name);
+        }
+
+        private async Task ValidateAudioBehaviorControlsAsync()
+        {
+            GameStyleMode originalStyle = GameStyleService.Current;
+            AudioChannelPreferences originalCf = AudioChannelSettingsStore.Load(GameStyleMode.Crossfire);
+            AudioChannelPreferences originalCalabiyau = AudioChannelSettingsStore.Load(GameStyleMode.Calabiyau);
+            var cf = new AudioChannelPreferences
+            {
+                SoundEffectPack = "none", CharacterVoicePack = "crossfire_swat_gr",
+                SoundEffectVolume = 37, CharacterVoiceVolume = 143,
+                LinkIconAndSound = true, CharacterVoiceInterrupt = true
+            };
+            var calabiyau = new AudioChannelPreferences
+            {
+                SoundEffectPack = GameStyleService.DefaultVoicePackKey(GameStyleMode.Calabiyau), CharacterVoicePack = "none",
+                SoundEffectVolume = 74, CharacterVoiceVolume = 128,
+                LinkIconAndSound = true, CharacterVoiceInterrupt = false
+            };
+            try
+            {
+                AudioChannelSettingsStore.Save(GameStyleMode.Crossfire, cf);
+                AudioChannelSettingsStore.Save(GameStyleMode.Calabiyau, calabiyau);
+                GameStyleService.Current = GameStyleMode.Crossfire;
+                RefreshSettings();
+                AssertAudioBehaviorControls(GameStyleMode.Crossfire, true, true);
+                await SetBehaviorToggleAsync(LinkIconSoundToggle, false, GameStyleMode.Crossfire);
+                await SetBehaviorToggleAsync(CharacterVoiceInterruptToggle, false, GameStyleMode.Crossfire);
+                AssertAudioPreferences(GameStyleMode.Crossfire, cf, false, false);
+                AssertAudioPreferences(GameStyleMode.Calabiyau, calabiyau, true, false);
+
+                // Changing the active game must refresh both switches without
+                // persisting the previous game's displayed values into it.
+                GameStyleService.Current = GameStyleMode.Calabiyau;
+                AssertAudioBehaviorControls(GameStyleMode.Calabiyau, true, false);
+                await SetBehaviorToggleAsync(CharacterVoiceInterruptToggle, true, GameStyleMode.Calabiyau);
+                await SetBehaviorToggleAsync(LinkIconSoundToggle, false, GameStyleMode.Calabiyau);
+                AssertAudioPreferences(GameStyleMode.Calabiyau, calabiyau, false, true);
+                AssertAudioPreferences(GameStyleMode.Crossfire, cf, false, false);
+                RefreshSettings();
+                AssertAudioBehaviorControls(GameStyleMode.Calabiyau, false, true);
+                await UpdateValidation.CaptureAsync(FindExperienceCard(LinkIconSoundToggle), "advanced-link-icon-sound");
+                await UpdateValidation.CaptureAsync(FindExperienceCard(CharacterVoiceInterruptToggle), "advanced-character-voice-interrupt");
+
+                GameStyleService.Current = GameStyleMode.Crossfire;
+                AssertAudioBehaviorControls(GameStyleMode.Crossfire, false, false);
+                // CrossFire has character voice packs, so enabling icon/SFX
+                // linking must not replace the selected voice or explicit no-SFX.
+                await SetBehaviorToggleAsync(LinkIconSoundToggle, true, GameStyleMode.Crossfire);
+                AssertAudioPreferences(GameStyleMode.Crossfire, cf, true, false);
+                AssertAudioPreferences(GameStyleMode.Calabiyau, calabiyau, false, true);
+
+                OnUnloaded(this, new RoutedEventArgs());
+                GameStyleService.Current = GameStyleMode.Calabiyau;
+                CharacterVoiceInterruptToggle.IsOn = true;
+                AssertAudioBehaviorControls(GameStyleMode.Calabiyau, false, true);
+                AssertAudioPreferences(GameStyleMode.Calabiyau, calabiyau, false, true);
+                AssertAudioPreferences(GameStyleMode.Crossfire, cf, true, false);
+                OnLoaded(this, new RoutedEventArgs());
+                AssertAudioBehaviorControls(GameStyleMode.Calabiyau, false, true);
+
+                // Reload and return to the other game using the actual event path.
+                GameStyleService.Current = GameStyleMode.Crossfire;
+                AssertAudioBehaviorControls(GameStyleMode.Crossfire, true, false);
+                RefreshSettings();
+                AssertAudioBehaviorControls(GameStyleMode.Crossfire, true, false);
+
+                // Simulate a second process changing only linking. Save does not
+                // notify this General instance, so its link switch remains stale.
+                var remoteCf = AudioChannelSettingsStore.Load(GameStyleMode.Crossfire);
+                remoteCf.LinkIconAndSound = false;
+                AudioChannelSettingsStore.Save(GameStyleMode.Crossfire, remoteCf);
+                AssertAudioBehaviorControls(GameStyleMode.Crossfire, true, false);
+                await SetBehaviorToggleAsync(CharacterVoiceInterruptToggle, true, GameStyleMode.Crossfire);
+                AssertAudioPreferences(GameStyleMode.Crossfire, cf, false, true);
+                AssertAudioPreferences(GameStyleMode.Calabiyau, calabiyau, false, true);
+                AssertAudioBehaviorControls(GameStyleMode.Crossfire, false, true);
+                File.WriteAllText(Path.Combine(DesktopPlatform.Data.LocalFolder.Path, "audio-behavior-ui-pass.txt"),
+                    "PASS: actual General ToggleSwitch controls saved both per-game behaviors; CrossFire/Strinova isolation, preserved sound/voice selections and volumes, explicit none, game-name hints, refresh/reload, stale game-state protection, and a voice-only change preserved a remotely saved link value despite stale UI. BehaviorChanged confirms local persistence only; no backend delivery assertion.");
+            }
+            finally
+            {
+                AudioChannelSettingsStore.Save(GameStyleMode.Crossfire, originalCf);
+                AudioChannelSettingsStore.Save(GameStyleMode.Calabiyau, originalCalabiyau);
+                GameStyleService.Current = originalStyle;
+                OnLoaded(this, new RoutedEventArgs());
+            }
+        }
+
+        private static async Task SetBehaviorToggleAsync(ToggleSwitch toggle, bool value, GameStyleMode style)
+        {
+            if (toggle.IsOn == value) throw new Exception("Audio behavior fixture did not change the switch: " + toggle.Name);
+            var saved = new TaskCompletionSource<bool>();
+            EventHandler<GameStyleMode> handler = (sender, changedStyle) =>
+            {
+                if (changedStyle == style) saved.TrySetResult(true);
+            };
+            AudioChannelSettingsStore.BehaviorChanged += handler;
+            try
+            {
+                toggle.IsOn = value;
+                if (await Task.WhenAny(saved.Task, Task.Delay(10000)) != saved.Task)
+                    throw new Exception("Audio behavior switch did not save: " + toggle.Name);
+                await saved.Task;
+            }
+            finally { AudioChannelSettingsStore.BehaviorChanged -= handler; }
+        }
+
+        private void AssertAudioBehaviorControls(GameStyleMode style, bool link, bool interrupt)
+        {
+            if (GameStyleService.Current != style || LinkIconSoundToggle.IsOn != link || CharacterVoiceInterruptToggle.IsOn != interrupt)
+                throw new Exception("Audio behavior controls do not match active game: " + style);
+            string gameName = LocalizationManager.Current == UiLanguage.SimplifiedChinese
+                ? GameStyleService.ToDisplayName(style) : style == GameStyleMode.Calabiyau ? "Strinova" : style.ToString();
+            if (!LinkIconSoundHintText.Text.Contains(gameName) || !CharacterVoiceInterruptHintText.Text.Contains(gameName))
+                throw new Exception("Audio behavior hints do not identify active game: " + style);
+        }
+
+        private static void AssertAudioPreferences(GameStyleMode style, AudioChannelPreferences original, bool link, bool interrupt)
+        {
+            var saved = AudioChannelSettingsStore.Load(style);
+            if (saved.LinkIconAndSound != link || saved.CharacterVoiceInterrupt != interrupt
+                || saved.SoundEffectPack != original.SoundEffectPack || saved.CharacterVoicePack != original.CharacterVoicePack
+                || saved.SoundEffectVolume != original.SoundEffectVolume || saved.CharacterVoiceVolume != original.CharacterVoiceVolume)
+                throw new Exception("Audio behavior changed another setting or game: " + style);
         }
     }
     public sealed partial class BombAudioOptionsPanel

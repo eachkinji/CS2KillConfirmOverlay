@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Threading;
@@ -20,6 +20,7 @@ namespace KillConfirmCompatibility.Controls
         private static readonly object ValorantTextureCacheLock = new object();
         private static ValorantTextureSet _valorantCachedTextures;
         private static string _valorantLoadingPackKey = string.Empty;
+        private static string _valorantLoadingResourceRevision = string.Empty;
         private static Task<ValorantTextureSet> _valorantTextureLoadTask;
         private static CancellationTokenSource _valorantTextureLoadCancellation;
 

@@ -30,7 +30,13 @@ class EffectScene(Scene):
         self.count=count;self.nested={};self.labels={};self.dynamic=None;self.native_sprite=None
         cdo=next((o for o in self.data if o['Name'].startswith('Default__')),{}).get('Properties',{})
         configs=cdo.get('StarConfig',[])
-        self.star_indices=configs[min(len(configs)-1,count-1)]['Numbers'] if configs else list(range(min(count,5)))
+        config=configs[min(len(configs)-1,count-1)] if configs else {}
+        self.star_indices=config.get('Numbers',list(range(min(count,5))))
+        # This correction is verified only for the five Flavia moon themes.
+        # Keep other families' bake behavior unchanged until separately checked.
+        variant=self.path.stem.removeprefix('WBP_IconFeedbackPage_PC_')
+        custom=config.get('CustomAnimationNames',[]) if variant in ('10502201','10502202','10502203','10502204','10502205') else []
+        self.star_animations={int(item['Key']):item['Value'] for item in custom}
         self.star_delay=cdo.get('DelayPlayStarAnimation',.7);self.star_step=cdo.get('DelayPlayStarAnimationEachOne',.07)
         for name,tracks in self.tracks.items():
             times=[]
@@ -52,16 +58,57 @@ class EffectScene(Scene):
         foreground=self.count>5 and item[1]=='WBP_FeedBackSets_Count'
         return (1 if foreground else 0,item[0])
 
+    def image_paint_layer(self,obj,layer):
+        # Flavia's custom PMImage paints above the same-Z Moon images, while
+        # the next Canvas Z group (BG_1's silver rings) remains in front.
+        # Calibrated against original gameplay BV1fTwVeYECN at 492/498/507/513s;
+        # the cooked slot alone does not encode this native widget behavior.
+        # Do not generalize this to every PMImage: its native code is unavailable.
+        variant=self.path.stem.removeprefix('WBP_IconFeedbackPage_PC_')
+        if variant in ('10502201','10502202','10502203','10502204','10502205') and obj['Type']=='PMImage' and obj['Name']=='Image_FeedbackIcon':
+            return layer+1
+        return layer
+
+    def star_index(self,obj):
+        return next(i for i,(child,_) in enumerate(self.children(self.nodes['Panel_Stars'])) if child['Name']==obj['Name'])
+
+    def child_clip_rect(self,obj,w,h,matrix,inherited):
+        # Ming's roulette explicitly clips its moving symbols to the authored
+        # 190x43 (196x43 for 10102207) CanvasPanel_0. This is source data,
+        # not a timed hide heuristic; dimensions come from arranged geometry.
+        variant=self.path.stem.removeprefix('WBP_IconFeedbackPage_PC_')
+        if variant not in ('10102206','10102207','10102208','10102209','10102210'):
+            return inherited
+        if obj['Type']!='CanvasPanel' or obj.get('Properties',{}).get('Clipping')!='EWidgetClipping::ClipToBounds':
+            return inherited
+        # All five authored windows are axis aligned after their parent scale.
+        # Reject a future rotated/sheared window rather than use its larger AABB.
+        if abs(matrix[1])>1e-7 or abs(matrix[2])>1e-7:
+            raise ValueError('Unsupported rotated clipping window: '+obj['Name'])
+        xs=(matrix[4],matrix[4]+w*matrix[0]);ys=(matrix[5],matrix[5]+h*matrix[3])
+        clip=(min(xs),min(ys),max(xs),max(ys))
+        if inherited is not None:
+            clip=(max(clip[0],inherited[0]),max(clip[1],inherited[1]),min(clip[2],inherited[2]),min(clip[3],inherited[3]))
+        return clip
+
+    def child_animation(self,obj):
+        if 'Star_' not in obj['Type']:return 'Anim_ComboKill'
+        settings=self.star_animations.get(self.star_index(obj),{})
+        # Current exports specify one forward pass at normal speed. Reject new
+        # unsupported playback settings instead of silently baking the wrong arc.
+        assert settings.get('StartTime',0)==0 and settings.get('NumLoopsToPlay',1)==1 and settings.get('PlaySpeed',1)==1 and settings.get('PlayMode','EUMGSequencePlayMode::Forward')=='EUMGSequencePlayMode::Forward',settings
+        return settings.get('AnimName','Anim_StarShowUp')
+
     def child_scene(self,obj):
         kind=obj['Type']
-        if kind not in self.nested:
+        anim=self.child_animation(obj);key=(kind,anim)
+        if key not in self.nested:
             filename=kind[:-2]+'.json'
             path=next((self.assets.research/'yugiri-json').rglob(filename),None)
             if path is None:
                 path=next((self.assets.research/'preview/parsed').rglob(filename))
-            anim='Anim_StarShowUp' if 'Star_' in kind else 'Anim_ComboKill'
-            self.nested[kind]=EffectScene(path,self.assets,self.fx,anim,self.kill_type,self.count,'CanvasPanel_0')
-        return self.nested[kind]
+            self.nested[key]=EffectScene(path,self.assets,self.fx,anim,self.kill_type,self.count,'CanvasPanel_0')
+        return self.nested[key]
 
     def desired(self,obj):
         if obj['Type'].startswith('WBP_'):return self.child_scene(obj).desired(self.child_scene(obj).root)
@@ -113,7 +160,7 @@ class EffectScene(Scene):
         if obj['Type'].startswith('WBP_'):
             child=self.child_scene(obj);local_time=time
             if 'Star_' in obj['Type']:
-                siblings=self.children(self.nodes['Panel_Stars']);index=next(i for i,(o,s) in enumerate(siblings) if o['Name']==obj['Name'])
+                index=self.star_index(obj)
                 if index not in self.star_indices:return layer
                 local_time-=self.star_delay+self.star_indices.index(index)*self.star_step
             elif self.count<=5:
@@ -126,7 +173,7 @@ class EffectScene(Scene):
             child.paint_queue=self.paint_queue
             # UUserWidget is wrapped by SObjectWidget/SCompoundWidget, whose
             # content starts one Slate layer above its caller.
-            maximum=child.paint(child.root,{},(w,h),matrix,alpha,local_time,output,True,layer+1)
+            maximum=child.paint(child.root,{},(w,h),matrix,alpha,local_time,output,True,layer+1,clip_rect=self.current_clip)
             self.omitted.update(child.omitted)
             return maximum
         elif obj['Type']=='TextBlock':

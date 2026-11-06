@@ -41,7 +41,7 @@ public sealed class FeedbackIsolationChecks
     private const int BattlefieldFrameWidth = 607, BattlefieldFrameHeight = 260, Battlefield1FrameCount = 282, FrameSequenceFps = 60;
     private bool _isBattlefieldTextOverlayActive, _isBattlefield5ScrollingActive, _isBattlefield4HudActive,
         _isBattlefield2042HudActive, _isPubgHudActive, _isDeltaForceHudActive, _contentSizedViewport, _isBattlefield1CompactLayoutActive;
-    private int _playToken, _currentFrame, viewportChanges, textEvents;
+    private int _playToken, _currentFrame, viewportChanges, textEvents, battlefield6Resets;
     private double _battlefieldPrimaryStartTimeMs;
     private object _currentCsolAsset, _currentCodeAsset, _currentValorantAsset;
     private BattlefieldKillAsset _currentBattlefieldAsset;
@@ -85,6 +85,7 @@ public sealed class FeedbackIsolationChecks
     private void ApplyBattlefield1CompositionViewport(BattlefieldKillAsset asset) { viewportChanges++; _isBattlefield1CompactLayoutActive = true; }
     private void HideLoadingProgress() {}
     private void ResetBattlefield5ScrollingState() { _isBattlefield5ScrollingActive = false; }
+    private void ResetBattlefield6HudState() { battlefield6Resets++; }
     private void UpdateBattlefield5TextItems(double now) {}
     private bool HasBattlefieldTextOverlayVisible(double now) { return overlayVisible; }
     private void AddBattlefield1TextOverlayEvent(int count, bool headshot, bool knife, bool assist, string target, string weapon,
@@ -134,6 +135,7 @@ public sealed class FeedbackIsolationChecks
                 "Reward resized or reset the card viewport: " + kind);
             Check(app.loads.Count == 0 && app.textEvents == 1 && app.lastEvent == kind && app.lastReward == 300,
                 "Reward did not update only the waterfall: " + kind);
+            Check(app.battlefield6Resets == 1, "BF6 cleanup must run once on BF1 entry, not for each reward.");
             app._playbackClock.Ms = 1250;
             app.UpdateBattlefield1CompositeFrame();
             Check(app._currentFrame == 60 && app._currentBattlefieldAsset == asset.BattlefieldAsset, "Card no longer progresses independently.");

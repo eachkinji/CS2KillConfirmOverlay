@@ -66,6 +66,12 @@ namespace KillConfirmCompatibility.Desktop.Runtime
         public HostController(bool shutdownApplicationOnClose = true)
         {
             _shutdownApplicationOnClose = shutdownApplicationOnClose;
+            if (_shutdownApplicationOnClose)
+            {
+                if (PanelLifetime.ReadLive("panel") == null)
+                    throw new InvalidOperationException("Compatibility display requires its control panel owner.");
+                PanelLifetime.PublishCurrent("renderer");
+            }
             string folder = Path.Combine(DesktopStorage.Current.LocalFolder.Path, DisplayFiles.FolderName);
             _configurationPath = Path.Combine(folder, DisplayFiles.ConfigurationName);
             _statusPath = Path.Combine(folder, DisplayFiles.StatusName);
@@ -196,6 +202,13 @@ namespace KillConfirmCompatibility.Desktop.Runtime
             if (_closing) return;
             try
             {
+                if (_shutdownApplicationOnClose && PanelLifetime.ReadLive("panel") == null)
+                {
+                    App.Log("Control panel owner exited; releasing compatibility session.");
+                    _service.StopRegistering();
+                    _ = CloseAsync();
+                    return;
+                }
                 DisplayConfiguration next = DisplayFiles.Read<DisplayConfiguration>(_configurationPath);
                 if (next != null) { next.Normalize(); _configuration = next; }
                 if (!_configuration.Enabled) { _ = CloseAsync(); return; }
@@ -447,15 +460,29 @@ namespace KillConfirmCompatibility.Desktop.Runtime
         public async System.Threading.Tasks.Task CloseAsync()
         {
             if (_closing) return; _closing = true;
-            _frameClock.Dispose();
-            _stateTimer.Stop(); _events?.Dispose(); _danmaku.RaiseUnloaded();
-            NativeWindows.UnregisterHotKey(_hotkeys.Handle, 1); NativeWindows.UnregisterHotKey(_hotkeys.Handle, 2); _hotkeys.Dispose();
-            await _applyingConfiguration;
-            foreach (var surface in _surfaces) surface.Dispose(); _toolbar.Close();
-            await _service.ReleaseAsync();
-            await _statusWrite; // A stale in-flight heartbeat must not overwrite the stopped status.
-            try { DisplayFiles.Write(_statusPath, new DisplayStatus { Timestamp = 0, ProcessId = 0 }); } catch { }
-            if (_shutdownApplicationOnClose) System.Windows.Application.Current.Shutdown();
+            _service.StopRegistering();
+            try
+            {
+                _frameClock.Dispose();
+                _stateTimer.Stop(); _events?.Dispose(); _danmaku.RaiseUnloaded();
+                NativeWindows.UnregisterHotKey(_hotkeys.Handle, 1); NativeWindows.UnregisterHotKey(_hotkeys.Handle, 2); _hotkeys.Dispose();
+                // Release the service before waiting on texture/configuration work.
+                await _service.ReleaseAsync();
+                await _applyingConfiguration.WaitAsync(TimeSpan.FromSeconds(5));
+                foreach (var surface in _surfaces) surface.Dispose(); _toolbar.Close();
+                await _statusWrite.WaitAsync(TimeSpan.FromSeconds(3));
+            }
+            catch (Exception error) { App.Log("Compatibility close: " + error); }
+            finally
+            {
+                await _service.ReleaseAsync();
+                try { DisplayFiles.Write(_statusPath, new DisplayStatus { Timestamp = 0, ProcessId = 0 }); } catch { }
+                if (_shutdownApplicationOnClose)
+                {
+                    try { PanelLifetime.RevokeCurrent("renderer"); } catch { }
+                    System.Windows.Application.Current.Shutdown();
+                }
+            }
         }
     }
 }

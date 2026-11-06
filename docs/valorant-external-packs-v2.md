@@ -65,3 +65,19 @@ before saving, so the name and individual slots can still be reviewed.
 
 The internal FModel conversion tool is maintained with the private VALORANT
 resource repository rather than the public application source tree.
+
+Icon packages may additionally contain `native_animation.json` at the package
+root. Its own `format_version: 1` describes per-kill source texture layers,
+CanvasPanel geometry, scalar MovieScene channels, and the actual Blueprint
+`PlayAnimation` parameters. The normal v2 static profile remains required for
+library previews and older application versions. Packages without this optional
+file continue to use the existing common animation.
+
+Native layers load only the current kill tier's textures and release them when
+the tier or pack changes. Texture names are shared within a tier; no full-frame
+video or pre-rendered animation is required. Importing a replacement with the
+same package id invalidates both the decoded texture cache and the Game Bar
+resource broker cache.
+
+See [native animation coverage and evidence](valorant-native-animation.md) for
+the supported source structures, playback evidence, and remaining limits.

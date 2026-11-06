@@ -25,6 +25,7 @@ namespace KillConfirmGameBar.Controls
                 : ValorantPackService.DefaultKey;
             ValorantDemoProfile profile = GetValorantDemoProfile(normalizedKey);
             ValorantTextureSet textures = await GetOrLoadValorantTextureSetAsync(normalizedKey, profile, progress);
+            await PrepareValorantNativeTierAsync(textures, killCount);
             var asset = new ValorantKillAsset
             {
                 PackKey = normalizedKey,
@@ -41,7 +42,9 @@ namespace KillConfirmGameBar.Controls
                 {
                     FrameWidth = (int)ValorantFrameWidth,
                     FrameHeight = (int)ValorantFrameHeight,
-                    Frames = GetNativeValorantFrameCount(asset.KillCount),
+                    Frames = Math.Max(GetNativeValorantFrameCount(asset.KillCount),
+                        (int)Math.Ceiling((1803.2667 / GetNativeAfterglowPlaybackSpeed(asset.KillCount)
+                            + (textures.NativeAnimation?.ActiveTier?.OutroDuration ?? 0)) * FrameSequenceFps / 1000.0)),
                     Fps = FrameSequenceFps
                 },
                 asset);
@@ -52,9 +55,11 @@ namespace KillConfirmGameBar.Controls
             ValorantDemoProfile profile,
             IProgress<int> progress)
         {
+            string resourceRevision = ValorantExternalAssetService.GetResourceRevision(packKey);
             lock (ValorantTextureCacheLock)
             {
                 if (_valorantCachedTextures != null
+                    && string.Equals(_valorantCachedTextures.ResourceRevision, resourceRevision, StringComparison.Ordinal)
                     && string.Equals(_valorantCachedTextures.PackKey, packKey, StringComparison.OrdinalIgnoreCase))
                 {
                     progress?.Report(100);
@@ -62,6 +67,7 @@ namespace KillConfirmGameBar.Controls
                 }
 
                 if (_valorantTextureLoadTask != null
+                    && string.Equals(_valorantLoadingResourceRevision, resourceRevision, StringComparison.Ordinal)
                     && string.Equals(_valorantLoadingPackKey, packKey, StringComparison.OrdinalIgnoreCase))
                 {
                     return _valorantTextureLoadTask;
@@ -73,11 +79,13 @@ namespace KillConfirmGameBar.Controls
                 var cancellation = new CancellationTokenSource();
                 _valorantTextureLoadCancellation = cancellation;
                 _valorantLoadingPackKey = packKey;
+                _valorantLoadingResourceRevision = resourceRevision;
                 _valorantTextureLoadTask = LoadAndPublishValorantTextureSetAsync(
                     packKey,
                     profile,
                     progress,
-                    cancellation);
+                    cancellation,
+                    resourceRevision);
                 return _valorantTextureLoadTask;
             }
         }
@@ -86,7 +94,8 @@ namespace KillConfirmGameBar.Controls
             string packKey,
             ValorantDemoProfile profile,
             IProgress<int> progress,
-            CancellationTokenSource cancellation)
+            CancellationTokenSource cancellation,
+            string resourceRevision)
         {
             ValorantTextureSet loaded = null;
             try
@@ -95,12 +104,14 @@ namespace KillConfirmGameBar.Controls
                     packKey,
                     profile,
                     progress,
-                    cancellation.Token);
+                    cancellation.Token,
+                    resourceRevision);
                 cancellation.Token.ThrowIfCancellationRequested();
 
                 lock (ValorantTextureCacheLock)
                 {
-                    if (!ReferenceEquals(_valorantTextureLoadCancellation, cancellation))
+                    if (!ReferenceEquals(_valorantTextureLoadCancellation, cancellation)
+                        || !string.Equals(ValorantExternalAssetService.GetResourceRevision(packKey), resourceRevision, StringComparison.Ordinal))
                     {
                         throw new OperationCanceledException();
                     }
@@ -110,6 +121,7 @@ namespace KillConfirmGameBar.Controls
                     _valorantTextureLoadTask = null;
                     _valorantTextureLoadCancellation = null;
                     _valorantLoadingPackKey = string.Empty;
+                    _valorantLoadingResourceRevision = string.Empty;
                     return _valorantCachedTextures;
                 }
             }
@@ -123,6 +135,7 @@ namespace KillConfirmGameBar.Controls
                         _valorantTextureLoadTask = null;
                         _valorantTextureLoadCancellation = null;
                         _valorantLoadingPackKey = string.Empty;
+                        _valorantLoadingResourceRevision = string.Empty;
                     }
                 }
 
@@ -134,7 +147,8 @@ namespace KillConfirmGameBar.Controls
             string packKey,
             ValorantDemoProfile profile,
             IProgress<int> progress,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            string resourceRevision)
         {
             string folder = ValorantPackService.GetFolder(packKey) ?? ValorantPackService.GetFolder(ValorantPackService.DefaultKey);
             string root = $"ms-appx:///Assets/GameStyles/valorant/killconfirm/{folder}";
@@ -143,11 +157,13 @@ namespace KillConfirmGameBar.Controls
             const string nativeSupportFolder = "_native/shared";
             var textures = new ValorantTextureSet
             {
-                PackKey = packKey
+                PackKey = packKey,
+                ResourceRevision = resourceRevision
             };
 
             try
             {
+                textures.NativeAnimation = await LoadValorantNativeAnimationAsync(packKey);
                 progress?.Report(5);
                 textures.Frame = string.IsNullOrWhiteSpace(profile.Frame)
                     ? await LoadValorantTextureAsync(packKey, nativeSupportRoot, nativeSupportFolder, "Base_FrameBG.png", cancellationToken)
@@ -265,6 +281,7 @@ namespace KillConfirmGameBar.Controls
                 _valorantTextureLoadCancellation = null;
                 _valorantTextureLoadTask = null;
                 _valorantLoadingPackKey = string.Empty;
+                _valorantLoadingResourceRevision = string.Empty;
                 cached = _valorantCachedTextures;
                 _valorantCachedTextures = null;
             }
@@ -279,6 +296,7 @@ namespace KillConfirmGameBar.Controls
             _valorantTextureLoadCancellation = null;
             _valorantTextureLoadTask = null;
             _valorantLoadingPackKey = string.Empty;
+            _valorantLoadingResourceRevision = string.Empty;
             cancellation?.Cancel();
         }
 

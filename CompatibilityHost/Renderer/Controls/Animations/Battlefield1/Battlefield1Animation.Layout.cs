@@ -107,7 +107,7 @@ namespace KillConfirmCompatibility.Controls
 
         private void ApplyBattlefield1TextOnlyViewport()
         {
-            using (var textFormat = CreateBattlefieldTextFormat())
+            using (var textFormat = CreateBattlefieldInfantryTextFormat())
             {
                 double bonusWidth = MeasureBattlefield1BonusColumnWidth(null, textFormat);
                 double moneyWidth = MeasureBattlefield1MoneyColumnWidth(null, textFormat);

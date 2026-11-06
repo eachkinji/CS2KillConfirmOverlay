@@ -85,8 +85,8 @@ english.OpenInstallLogQuestion=Would you like to open the installation diagnosti
 chinesesimplified.OpenInstallLogQuestion=是否现在打开安装诊断日志？
 english.InstallCompletedSuccess=Installation completed successfully.
 chinesesimplified.InstallCompletedSuccess=安装已成功完成。
-english.InstallCompletedWarning=Installation completed with non-blocking notices. The main program can still be used; open the log only if you want to review the notices.
-chinesesimplified.InstallCompletedWarning=安装已完成，但存在非阻断提示。主程序仍可正常使用；如需查看提示详情，可选择打开日志。
+english.InstallCompletedWarning=Installation completed with notices. Review the installation result for details.
+chinesesimplified.InstallCompletedWarning=安装已完成，部分项目有提示。请查看安装结果。
 english.InstallCompletedError=Installation finished, but one or more items failed. Review the log for details.
 chinesesimplified.InstallCompletedError=安装流程已结束，但存在失败项。建议打开日志查看详情。
 english.InstallCompletedUnknown=Installation finished, but no structured result was returned. You may open the log for details.
@@ -99,26 +99,26 @@ english.ConfirmPageTitle=Before you install
 chinesesimplified.ConfirmPageTitle=安装前请确认
 english.ConfirmPageDescription=Please read the following information carefully before starting the installation.
 chinesesimplified.ConfirmPageDescription=开始安装前，请仔细阅读以下说明。
-english.BeginnerGuideText=If you are new to this, start by watching the tutorial video:
-chinesesimplified.BeginnerGuideText=如果你是小白，请从此步骤开始观看教学视频：
+english.BeginnerGuideText=For first-time setup, watch the installation tutorial:
+chinesesimplified.BeginnerGuideText=首次使用可查看安装教程：
 english.TutorialLinkText=Open the Bilibili installation tutorial
 chinesesimplified.TutorialLinkText=点击打开 Bilibili 安装教学视频
-english.CertificateWarningText=Selecting the Game Bar widget includes its personal signing certificate and local communication permission. Unselect the widget to install only the ordinary main program.
-chinesesimplified.CertificateWarningText=勾选 Game Bar 小组件时会安装个人签名证书并配置本机通信权限；取消小组件勾选可只安装普通主程序。
-english.PrerequisiteWarningText=Please note: the installer will check required system dependencies. Follow the instructions shown on screen to complete any required actions.
-chinesesimplified.PrerequisiteWarningText=请记住：接下来的步骤将会检查你的系统依赖，请按照界面提示执行相关操作。
-english.UpdateOnlyWarningText=This is the dependency-free update package. It will not repair Xbox Game Bar or install offline prerequisites. Use it only on a computer where the app already works correctly.
-chinesesimplified.UpdateOnlyWarningText=这是无依赖更新包，不会修复 Xbox Game Bar，也不会安装离线前置依赖。请仅在软件原本可以正常运行的电脑上使用。
-english.GameBarUsageText=You can unselect optional components before installation. App deployment waits at most 120 seconds; a timeout skips remaining Game Bar deployments while keeping the ordinary panel and Compatibility display usable.
-chinesesimplified.GameBarUsageText=安装前可单独取消可选项目。Windows 应用部署最多等待 120 秒，超时会跳过剩余 Game Bar 部署；控制面板和兼容显示仍可使用。
+english.CertificateWarningText=Selecting the Game Bar widget also installs its personal signing certificate.
+chinesesimplified.CertificateWarningText=选择 Game Bar 小组件会安装个人签名证书。
+english.UpdateOnlyWarningText=This update package excludes offline dependencies. Use it on a computer where the app already works.
+chinesesimplified.UpdateOnlyWarningText=此更新包不含离线依赖，适用于软件已可正常运行的电脑。
 english.AcknowledgeButtonText=I understand
 chinesesimplified.AcknowledgeButtonText=我清楚了
 english.AcknowledgedButtonText=Understood
 chinesesimplified.AcknowledgedButtonText=已确认
 english.AcknowledgeRequiredText=Please click "I understand" before starting the installation.
 chinesesimplified.AcknowledgeRequiredText=请先点击“我清楚了”，然后才能开始安装。
-english.FinishedGameBarText=Installation complete. Check the result and log, then use Game Bar or open the app from Start to configure Compatibility display.
-chinesesimplified.FinishedGameBarText=安装流程已执行完毕，请以结果及日志为准。可使用 Game Bar，或从开始菜单打开本程序设置兼容显示。
+english.OpenProgramText=Open app
+chinesesimplified.OpenProgramText=打开程序
+english.OpenProgramMissing=The control panel was not installed successfully. Review the installation result and try again.
+chinesesimplified.OpenProgramMissing=控制面板未成功安装，请查看安装结果后重试。
+english.OpenProgramFailed=Could not open the control panel. Try opening Kill Confirm Overlay from the Start menu.
+chinesesimplified.OpenProgramFailed=无法打开控制面板，请从开始菜单打开 Kill Confirm Overlay。
 english.FinishedTutorialText=Need help? Click here to view the tutorial.
 chinesesimplified.FinishedTutorialText=如有不懂，请点击这里查看教程。
 english.FinishedPinWarningText=Game Bar mode: turn off click-through mode and pin the widget window before use.
@@ -180,6 +180,7 @@ Type: files; Name: "{autodesktop}\{cm:ControlPanelShortcutName}.lnk"
 [Files]
 Source: "Stop-RuntimeForUpdate.ps1"; Flags: dontcopy
 Source: "Stop-RuntimeForUpdate.ps1"; DestDir: "{app}\Payload\Scripts"; Flags: ignoreversion
+Source: "Launch-ControlPanel.ps1"; DestDir: "{app}\Payload\Scripts"; Flags: ignoreversion
 Source: "{#TransferRoot}\*"; DestDir: "{app}\Payload"; Excludes: "Standalone\*"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#TransferRoot}\Standalone\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "Assets\KillConfirmOverlay.ico"; DestDir: "{app}"; Flags: ignoreversion
@@ -199,14 +200,47 @@ var
   MaterialAutomatic: String;
   InstallPrevious: String;
   InstallPathHint, MaterialPathHint: TNewStaticText;
-  OriginalInstallChange: TNotifyEvent;
   InstallConfirmPage: TWizardPage;
   InstallConfirmButton: TNewButton;
   InstallConfirmed: Boolean;
-  FinishedGameBarLabel: TNewStaticText;
+  FinishedOpenProgramButton: TNewButton;
+  FinishedResultText: String;
+  FinishedResultIsError: Boolean;
   FinishedTutorialLink: TNewStaticText;
   FinishedPinWarningLabel: TNewStaticText;
   FinishedGuideImage: TBitmapImage;
+
+procedure OpenInstalledProgramClick(Sender: TObject);
+var
+  Params: String;
+  ResultCode: Integer;
+begin
+  if not FinishedOpenProgramButton.Visible then Exit;
+  if not FileExists(ExpandConstant('{app}\KillConfirmControlPanel.exe')) then
+  begin
+    MsgBox(ExpandConstant('{cm:OpenProgramMissing}'), mbError, MB_OK);
+    Exit;
+  end;
+  FinishedOpenProgramButton.Enabled := False;
+  try
+    // Setup is elevated. Use its original user's token, and let the launcher
+    // reject a still-elevated token (e.g. Setup started from an admin terminal).
+    Params := '-NoProfile -NonInteractive -ExecutionPolicy Bypass -File "' +
+      ExpandConstant('{app}\Payload\Scripts\Launch-ControlPanel.ps1') +
+      '" -InstallRoot "' + ExpandConstant('{app}') + '"';
+    ResultCode := 0;
+    if not ExecAsOriginalUser(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'),
+      Params, ExpandConstant('{app}'), SW_HIDE, ewWaitUntilTerminated, ResultCode) or (ResultCode <> 0) then
+    begin
+      Log('Control panel launch failed: ' + IntToStr(ResultCode));
+      MsgBox(ExpandConstant('{cm:OpenProgramFailed}'), mbError, MB_OK);
+    end;
+  except
+    Log('Control panel launch failed: ' + GetExceptionMessage);
+    MsgBox(ExpandConstant('{cm:OpenProgramFailed}'), mbError, MB_OK);
+  end;
+  FinishedOpenProgramButton.Enabled := FileExists(ExpandConstant('{app}\KillConfirmControlPanel.exe'));
+end;
 
 procedure TutorialLinkClick(Sender: TObject);
 var
@@ -261,18 +295,19 @@ procedure UpdateLocationHints();
 begin
   if InstallPathHint = nil then Exit;
   if (InstallPrevious <> '') and (CompareText(RemoveBackslashUnlessRoot(WizardDirValue()), RemoveBackslashUnlessRoot(InstallPrevious)) <> 0) then
-    InstallPathHint.Caption := '更新并更换安装位置：' + InstallPrevious + #13#10 + '→ ' + WizardDirValue() + #13#10 + '新安装将自动沿用现有配置和素材索引，快捷方式会更新到新位置。'
-  else InstallPathHint.Caption := '选择磁盘或父文件夹后，自动使用 Kill Confirm Overlay 下级文件夹。更新会保留现有配置。';
+    InstallPathHint.Caption := '安装位置将更改：' + InstallPrevious + #13#10 + '→ ' + WizardDirValue() + #13#10 + '将沿用现有配置，并更新快捷方式。'
+  else InstallPathHint.Caption := '';
+  InstallPathHint.Visible := InstallPathHint.Caption <> '';
   if MaterialPathHint = nil then Exit;
   if (MaterialPrevious <> '') and (CompareText(RemoveBackslashUnlessRoot(MaterialPage.Values[0]), RemoveBackslashUnlessRoot(UTF8Decode(MaterialPrevious))) <> 0) then
-    MaterialPathHint.Caption := '将迁移素材及关联配置：' + UTF8Decode(MaterialPrevious) + #13#10 + '→ ' + MaterialPage.Values[0] + #13#10 + '复制并校验成功后更新路径、清理旧素材；失败时保留原素材。'
-  else MaterialPathHint.Caption := '最终素材位置：' + MaterialPage.Values[0] + #13#10 + '选择父文件夹后自动使用 KillConfirm素材包 下级文件夹，也可以直接编辑完整路径。';
+    MaterialPathHint.Caption := '将迁移素材及关联配置：' + UTF8Decode(MaterialPrevious) + #13#10 + '→ ' + MaterialPage.Values[0] + #13#10 + '迁移成功后清理旧素材。'
+  else MaterialPathHint.Caption := '';
+  MaterialPathHint.Visible := MaterialPathHint.Caption <> '';
 end;
 
 procedure InstallLocationChanged(Sender: TObject);
 begin
   UpdateLocationHints();
-  OriginalInstallChange(Sender);
 end;
 
 procedure MaterialLocationChanged(Sender: TObject);
@@ -284,7 +319,7 @@ procedure BrowseInstallLocation(Sender: TObject);
 var Selected: String;
 begin
   Selected := WizardForm.DirEdit.Text;
-  if BrowseForFolder('选择程序存放位置（自动创建 Kill Confirm Overlay 下级文件夹）', Selected, False) then
+  if BrowseForFolder('选择程序存放位置', Selected, True) then
     WizardForm.DirEdit.Text := ChildLocation(Selected, 'Kill Confirm Overlay', InstallPrevious);
   UpdateLocationHints();
 end;
@@ -293,7 +328,7 @@ procedure BrowseMaterialLocation(Sender: TObject);
 var Selected: String;
 begin
   Selected := MaterialPage.Values[0];
-  if BrowseForFolder('选择素材存放位置（自动创建 KillConfirm素材包 下级文件夹）', Selected, False) then
+  if BrowseForFolder('选择素材存放位置', Selected, True) then
     MaterialPage.Values[0] := ChildLocation(Selected, 'KillConfirm素材包', UTF8Decode(MaterialPrevious));
   UpdateLocationHints();
 end;
@@ -308,8 +343,8 @@ begin
   InitializeInstallLog();
   InitializeComponentListLayout();
   MaterialPage := CreateInputDirPage(wpSelectDir, '素材包存放位置',
-    '选择图标包、语音包和自定义素材的位置',
-    '默认跟随安装盘。更换位置会迁移已有素材及关联配置；安装前会关闭正在运行的 KillConfirm 程序。', False, 'KillConfirm素材包');
+    '选择图标包、音效包、语音包和自定义素材的位置',
+    '', False, 'KillConfirm素材包');
   MaterialPage.Add('素材文件夹：');
   MaterialPrevious := '';
   LoadStringFromFile(ExpandConstant('{localappdata}\KillConfirmOverlay\UserData\resource-library.txt'), MaterialPrevious);
@@ -322,7 +357,6 @@ begin
   InstallPrevious := Trim(UTF8Decode(PreviousRoot));
   WizardForm.DirBrowseButton.OnClick := @BrowseInstallLocation;
   MaterialPage.Buttons[0].OnClick := @BrowseMaterialLocation;
-  OriginalInstallChange := WizardForm.DirEdit.OnChange;
   WizardForm.DirEdit.OnChange := @InstallLocationChanged;
   MaterialPage.Edits[0].OnChange := @MaterialLocationChanged;
   InstallPathHint := TNewStaticText.Create(WizardForm);
@@ -366,12 +400,9 @@ begin
   TopPosition := TutorialLink.Top + TutorialLink.Height + ScaleY(18);
 
   AddConfirmPageText(ExpandConstant('{cm:CertificateWarningText}'), TopPosition);
-#if SkipPrerequisites == "0"
-  AddConfirmPageText(ExpandConstant('{cm:PrerequisiteWarningText}'), TopPosition);
-#else
+#if SkipPrerequisites == "1"
   AddConfirmPageText(ExpandConstant('{cm:UpdateOnlyWarningText}'), TopPosition);
 #endif
-  AddConfirmPageText(ExpandConstant('{cm:GameBarUsageText}'), TopPosition);
 
   InstallConfirmButton := TNewButton.Create(InstallConfirmPage);
   InstallConfirmButton.Parent := InstallConfirmPage.Surface;
@@ -383,12 +414,16 @@ begin
   InstallConfirmButton.OnClick := @InstallConfirmButtonClick;
 
   ExtractTemporaryFile('GameBarPinGuide.png');
-  WizardForm.FinishedLabel.Visible := False;
+  FinishedResultText := ExpandConstant('{cm:InstallCompletedUnknown}');
+  FinishedResultIsError := False;
+  WizardForm.FinishedLabel.Visible := True;
+  WizardForm.FinishedLabel.Height := ScaleY(42);
 
   FinishedPinWarningLabel := TNewStaticText.Create(WizardForm.FinishedPage);
   FinishedPinWarningLabel.Parent := WizardForm.FinishedPage;
   FinishedPinWarningLabel.Left := WizardForm.FinishedLabel.Left;
-  FinishedPinWarningLabel.Top := WizardForm.FinishedLabel.Top;
+  FinishedPinWarningLabel.Top := WizardForm.FinishedLabel.Top
+    + WizardForm.FinishedLabel.Height + ScaleY(8);
   FinishedPinWarningLabel.Width := WizardForm.FinishedLabel.Width;
   FinishedPinWarningLabel.Height := ScaleY(38);
   FinishedPinWarningLabel.AutoSize := False;
@@ -402,38 +437,53 @@ begin
   FinishedGuideImage.Left := WizardForm.FinishedLabel.Left;
   FinishedGuideImage.Top := FinishedPinWarningLabel.Top
     + FinishedPinWarningLabel.Height + ScaleY(5);
-  FinishedGuideImage.Width := ScaleX(220);
-  FinishedGuideImage.Height := ScaleY(184);
+  FinishedGuideImage.Width := ScaleX(180);
+  FinishedGuideImage.Height := ScaleY(150);
   FinishedGuideImage.Stretch := True;
   FinishedGuideImage.PngImage.LoadFromFile(
     ExpandConstant('{tmp}\GameBarPinGuide.png'));
 
-  FinishedGameBarLabel := TNewStaticText.Create(WizardForm.FinishedPage);
-  FinishedGameBarLabel.Parent := WizardForm.FinishedPage;
-  FinishedGameBarLabel.Left := WizardForm.FinishedLabel.Left;
-  FinishedGameBarLabel.Top := FinishedGuideImage.Top
-    + FinishedGuideImage.Height + ScaleY(6);
-  FinishedGameBarLabel.Width := WizardForm.FinishedLabel.Width;
-  FinishedGameBarLabel.Height := ScaleY(30);
-  FinishedGameBarLabel.AutoSize := False;
-  FinishedGameBarLabel.WordWrap := True;
-  FinishedGameBarLabel.Caption := ExpandConstant('{cm:FinishedGameBarText}');
-
   FinishedTutorialLink := TNewStaticText.Create(WizardForm.FinishedPage);
   FinishedTutorialLink.Parent := WizardForm.FinishedPage;
   FinishedTutorialLink.Left := WizardForm.FinishedLabel.Left;
-  FinishedTutorialLink.Top := FinishedGameBarLabel.Top
-    + FinishedGameBarLabel.Height + ScaleY(6);
+  FinishedTutorialLink.Top := FinishedGuideImage.Top
+    + FinishedGuideImage.Height + ScaleY(10);
   FinishedTutorialLink.AutoSize := True;
   FinishedTutorialLink.Caption := ExpandConstant('{cm:FinishedTutorialText}');
   FinishedTutorialLink.Font.Color := clBlue;
   FinishedTutorialLink.Font.Style := [fsUnderline];
   FinishedTutorialLink.Cursor := crHand;
   FinishedTutorialLink.OnClick := @TutorialLinkClick;
+
+  // An explicit action beside Finish; never a postinstall checkbox or autorun.
+  FinishedOpenProgramButton := TNewButton.Create(WizardForm);
+  FinishedOpenProgramButton.Parent := WizardForm;
+  FinishedOpenProgramButton.Width := ScaleX(110);
+  FinishedOpenProgramButton.Height := WizardForm.NextButton.Height;
+  FinishedOpenProgramButton.Left := WizardForm.NextButton.Left
+    - FinishedOpenProgramButton.Width - ScaleX(8);
+  FinishedOpenProgramButton.Top := WizardForm.NextButton.Top;
+  FinishedOpenProgramButton.Anchors := [akRight, akBottom];
+  FinishedOpenProgramButton.Caption := ExpandConstant('{cm:OpenProgramText}');
+  FinishedOpenProgramButton.OnClick := @OpenInstalledProgramClick;
+  FinishedOpenProgramButton.Visible := False;
 end;
 
 procedure CurPageChanged(CurPageID: Integer);
 begin
+  FinishedOpenProgramButton.Visible := CurPageID = wpFinished;
+  if CurPageID = wpFinished then
+  begin
+    FinishedOpenProgramButton.Enabled := FileExists(ExpandConstant('{app}\KillConfirmControlPanel.exe'));
+    WizardForm.FinishedLabel.Caption := FinishedResultText;
+    if FinishedResultIsError then WizardForm.FinishedLabel.Font.Color := clRed;
+    FinishedPinWarningLabel.Visible := WizardIsComponentSelected('widget');
+    FinishedGuideImage.Visible := FinishedPinWarningLabel.Visible;
+    if FinishedGuideImage.Visible then
+      FinishedTutorialLink.Top := FinishedGuideImage.Top + FinishedGuideImage.Height + ScaleY(10)
+    else
+      FinishedTutorialLink.Top := WizardForm.FinishedLabel.Top + WizardForm.FinishedLabel.Height + ScaleY(10);
+  end;
   if (CurPageID = MaterialPage.ID) and (MaterialPrevious = '') and (MaterialPage.Values[0] = MaterialAutomatic) then
   begin
     MaterialAutomatic := AddBackslash(ExtractFileDrive(WizardDirValue())) + 'KillConfirm素材包';
@@ -582,6 +632,8 @@ begin
     if not ExecInstallWithLog(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'), Params, ExpandConstant('{app}\Payload'), ResultCode) then
     begin
       AppendInstallLog(ExpandConstant('{cm:InstallScriptLaunchFailed}'));
+      FinishedResultText := ExpandConstant('{cm:InstallScriptLaunchFailed}');
+      FinishedResultIsError := True;
       PromptText := ExpandConstant('{cm:InstallScriptLaunchFailed}') + #13#10 + #13#10 + ExpandConstant('{cm:OpenInstallLogQuestion}');
       if MsgBox(PromptText, mbError, MB_YESNO) = IDYES then
       begin
@@ -596,6 +648,8 @@ begin
     if ResultCode <> 0 then
     begin
       AppendInstallLog(ExpandConstant('{cm:InstallScriptFailed}') + ' ' + IntToStr(ResultCode));
+      FinishedResultText := ExpandConstant('{cm:InstallScriptFailed}') + ' ' + IntToStr(ResultCode);
+      FinishedResultIsError := True;
       PromptText := ExpandConstant('{cm:InstallScriptFailed}') + ' ' + IntToStr(ResultCode) + #13#10 + #13#10 + ExpandConstant('{cm:OpenInstallLogQuestion}');
       if MsgBox(PromptText, mbError, MB_YESNO) = IDYES then
       begin
@@ -611,7 +665,6 @@ begin
     if CompareText(InstallStatus, 'Error') = 0 then
     begin
       PromptText := ExpandConstant('{cm:InstallCompletedError}');
-      WizardForm.FinishedLabel.Caption := PromptText;
       PromptType := mbError;
     end
     else if CompareText(InstallStatus, 'Warning') = 0 then
@@ -631,13 +684,19 @@ begin
     end;
 
     AppendInstallLog(PromptText);
-    PromptText := PromptText + #13#10 + #13#10 + ExpandConstant('{cm:OpenInstallLogQuestion}');
-    if MsgBox(PromptText, PromptType, MB_YESNO) = IDYES then
+    FinishedResultText := PromptText;
+    FinishedResultIsError := CompareText(InstallStatus, 'Error') = 0;
+    // Successful installations end quietly on the completion page.
+    if CompareText(InstallStatus, 'Success') <> 0 then
     begin
-      if FileExists(ResultPath) then
-        ShellExec('', ResultPath, '', '', SW_SHOWNORMAL, ewNoWait, OpenResult)
-      else if FileExists(LogPath) then
-        ShellExec('', LogPath, '', '', SW_SHOWNORMAL, ewNoWait, OpenResult);
+      PromptText := PromptText + #13#10 + #13#10 + ExpandConstant('{cm:OpenInstallLogQuestion}');
+      if MsgBox(PromptText, PromptType, MB_YESNO) = IDYES then
+      begin
+        if FileExists(ResultPath) then
+          ShellExec('', ResultPath, '', '', SW_SHOWNORMAL, ewNoWait, OpenResult)
+        else if FileExists(LogPath) then
+          ShellExec('', LogPath, '', '', SW_SHOWNORMAL, ewNoWait, OpenResult);
+      end;
     end;
   end;
 end;

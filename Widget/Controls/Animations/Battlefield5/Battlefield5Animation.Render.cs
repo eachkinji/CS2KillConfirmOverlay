@@ -26,7 +26,7 @@ namespace KillConfirmGameBar.Controls
                 DrawBattlefield5HeadshotRing(drawingSession, icon, currentTimeMs, centerY);
             }
 
-            using (CanvasTextFormat textFormat = CreateBattlefieldTextFormat())
+            using (CanvasTextFormat textFormat = CreateBattlefieldInfantryTextFormat())
             {
                 DrawBattlefield5KillFeed(drawingSession, textFormat, currentTimeMs, BattlefieldFrameWidth / 2.0 - 1.0, BattlefieldFrameHeight - Battlefield5KillFeedYOffset);
                 DrawBattlefield5MoneyScore(drawingSession, textFormat, currentTimeMs, BattlefieldFrameWidth / 2.0, BattlefieldFrameHeight - Battlefield5ScoreYOffset);
@@ -71,7 +71,7 @@ namespace KillConfirmGameBar.Controls
             double size = Battlefield5BaseIconSize * scale;
             var target = new Rect(centerX - (size / 2.0), centerY - (size / 2.0), size, size);
             var source = new Rect(0, 0, icon.SizeInPixels.Width, icon.SizeInPixels.Height);
-            drawingSession.DrawImage(icon, target, source, (float)Clamp01(alpha), CanvasImageInterpolation.NearestNeighbor);
+            drawingSession.DrawImage(icon, target, source, (float)Clamp01(alpha), CanvasImageInterpolation.Linear);
         }
 
         private static void DrawBattlefield5HeadshotRing(CanvasDrawingSession drawingSession, Battlefield5ScrollIcon icon, double currentTimeMs, double centerY)

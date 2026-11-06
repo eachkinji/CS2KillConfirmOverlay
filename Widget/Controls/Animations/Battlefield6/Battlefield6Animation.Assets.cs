@@ -57,9 +57,13 @@ namespace KillConfirmGameBar.Controls
             try
             {
                 bitmap = await TryLoadIconFromPackFolderAsync(file);
+                bool builtIn = false;
                 if (bitmap == null && generation == _resourceGeneration)
+                {
                     bitmap = await LoadBitmapFromApplicationUriAsync(
                         "ms-appx:///Assets/GameStyles/battlefield6/killconfirm/textures/" + file);
+                    builtIn = bitmap != null;
+                }
                 lock (Battlefield6IconCache)
                 {
                     if (generation != _resourceGeneration || assetGeneration != _battlefield6AssetGeneration)
@@ -68,6 +72,8 @@ namespace KillConfirmGameBar.Controls
                         return null;
                     }
                     if (bitmap != null) Battlefield6IconCache[key] = bitmap;
+                    // Only built-in art is tinted; imported packs keep their own colours.
+                    if (builtIn) Battlefield6TintedSources.Add(bitmap);
                 }
                 return bitmap;
             }
@@ -88,6 +94,7 @@ namespace KillConfirmGameBar.Controls
                 foreach (CanvasBitmap bitmap in Battlefield6IconCache.Values) bitmap?.Dispose();
                 Battlefield6IconCache.Clear();
                 Battlefield6IconLoads.Clear();
+                Battlefield6TintedSources.Clear();
             }
         }
     }

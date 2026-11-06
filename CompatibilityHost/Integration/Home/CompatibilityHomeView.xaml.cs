@@ -73,6 +73,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         {
             _isPageActive = true;
             GameStyleService.Changed += OnStyleChanged;
+            AudioChannelSettingsStore.BehaviorChanged += OnAudioBehaviorPreferencesChanged;
             PackCatalogService.CatalogChanged += OnPackCatalogChanged;
             Danmaku.DanmakuSettingsStore.TestFeedbackChanged += OnDanmakuTestFeedback;
             _statusTimer.Start();
@@ -84,6 +85,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             _isPageActive = false; ++_revision; StopRepeating(); _statusTimer.Stop();
             if (!IsUiValidation) GsiStatusMonitor.Instance.StopMonitoring();
             GameStyleService.Changed -= OnStyleChanged; PackCatalogService.CatalogChanged -= OnPackCatalogChanged;
+            AudioChannelSettingsStore.BehaviorChanged -= OnAudioBehaviorPreferencesChanged;
             Danmaku.DanmakuSettingsStore.TestFeedbackChanged -= OnDanmakuTestFeedback;
         }
         private async void OnGameChanged(object sender, SelectionChangedEventArgs e)

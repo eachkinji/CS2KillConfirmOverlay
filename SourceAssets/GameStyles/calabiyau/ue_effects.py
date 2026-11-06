@@ -61,7 +61,7 @@ class Effects:
         self.pngs={'/Game/'+str(f.with_suffix('')).replace('\\','/').split('/PM/Content/',1)[1]:f for f in (research/'yugiri-render-input').rglob('*.png')}
         self.stats={'sprites':0,'materials':0,'meshes':0,'particles':0}
         self.meshes={}
-        self.dirty=None;self.uniforms={}
+        self.dirty=None;self.uniforms={};self.clip_rect=None
         self.sprite_program=self.ctx.program(vertex_shader=VERTEX,fragment_shader=COMMON+'''
 uniform sampler2D image;uniform bool srgb;
 void main(){vec4 c=texture(image,uv);if(srgb)c.rgb=linearize(c.rgb); c*=tint*vc; c.a=clamp(c.a,0,1);frag=vec4(c.rgb*c.a,c.a);}
@@ -125,7 +125,16 @@ rgb=mix(rgb*12.92,1.055*pow(rgb,vec3(1./2.4))-.055,step(vec3(.0031308),rgb));fra
         self.dirty=rect if self.dirty is None else (min(rect[0],self.dirty[0]),min(rect[1],self.dirty[1]),max(rect[2],self.dirty[2]),max(rect[3],self.dirty[3]))
         buffer=self.ctx.buffer(data.tobytes())
         vao=self.ctx.vertex_array(program,[(buffer,'2f 2f 4f','pos','texcoord','vertex_color')])
-        vao.render(moderngl.TRIANGLES);vao.release();buffer.release()
+        # Raster previews share the authored parent clip with the native command
+        # path. The delivered v2 commands retain floating-point clip boundaries.
+        if self.clip_rect is not None:
+            left,top,right,bottom=self.clip_rect
+            left,top=math.ceil(left),math.ceil(top);right,bottom=math.floor(right),math.floor(bottom)
+            self.ctx.scissor=(left,self.height-bottom,max(0,right-left),max(0,bottom-top))
+        try:vao.render(moderngl.TRIANGLES)
+        finally:
+            self.ctx.scissor=None
+            vao.release();buffer.release()
 
     @staticmethod
     def quad(x,y,w,h,u0=0,v0=0,u1=1,v1=1):

@@ -19,14 +19,10 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             => CharacterVoicePackSelectionChanged?.Invoke(sender, e);
         private void OnAudioChannelVolumeSelectionChanged(object sender, SelectionChangedEventArgs e)
             => AudioChannelSettingsChanged?.Invoke(sender, new RoutedEventArgs());
-        private void OnAudioChannelSettingsChanged(object sender, RoutedEventArgs e)
-            => AudioChannelSettingsChanged?.Invoke(sender, e);
         public void ApplyAudioLanguage(bool zh)
         {
             SoundEffectVolumeLabel.Text = zh ? "音效音量" : "Sound effects";
             CharacterVoiceVolumeLabel.Text = zh ? "语音音量" : "Character voice";
-            CharacterVoiceInterruptCheckBox.Content = zh ? "新击杀打断上一句语音" : "Interrupt previous voice";
-            LinkIconSoundCheckBox.Content = zh ? "图标与音效联动" : "Link icons and sound effects";
             VoicePackLabel.Text = zh ? "音效包" : "Sound effect pack";
             CharacterVoicePackLabel.Text = zh ? "语音包" : "Voice pack";
             VolumeLabel.Text = zh ? "总音量" : "Master volume";

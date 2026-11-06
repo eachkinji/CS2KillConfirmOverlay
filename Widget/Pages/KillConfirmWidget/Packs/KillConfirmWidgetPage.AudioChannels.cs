@@ -64,10 +64,9 @@ namespace KillConfirmGameBar
                 SelectAudioPack(PackTestSectionView.CharacterVoicePackSelector, settings.CharacterVoicePack);
                 SetChannelVolume(PackTestSectionView.SoundEffectVolumeSelector, settings.SoundEffectVolume);
                 SetChannelVolume(PackTestSectionView.CharacterVoiceVolumeSelector, settings.CharacterVoiceVolume);
-                PackTestSectionView.LinkIconSoundCheckBox.IsChecked = settings.LinkIconAndSound;
-                PackTestSectionView.CharacterVoiceInterruptCheckBox.IsChecked = settings.CharacterVoiceInterrupt;
             }
             finally { _suppressAudioChannelEvents = previous; }
+            PackTestSectionView.AdvancedEffectsExperiencePanel.RefreshSettings();
             ApplyAudioChannelLanguage();
         }
 
@@ -106,8 +105,6 @@ namespace KillConfirmGameBar
             settings.CharacterVoicePack = SelectedAudioPack(PackTestSectionView.CharacterVoicePackSelector);
             settings.SoundEffectVolume = ChannelVolume(PackTestSectionView.SoundEffectVolumeSelector);
             settings.CharacterVoiceVolume = ChannelVolume(PackTestSectionView.CharacterVoiceVolumeSelector);
-            settings.CharacterVoiceInterrupt = PackTestSectionView.CharacterVoiceInterruptCheckBox.IsChecked == true;
-            settings.LinkIconAndSound = PackTestSectionView.LinkIconSoundCheckBox.IsChecked == true;
             AudioChannelSettingsStore.Save(GameStyleService.Current, settings);
             string legacy = GameStyleService.Current == GameStyleMode.Crossfire ? settings.CharacterVoicePack : settings.SoundEffectPack;
             if (legacy != "none") SavePackSettingForStyle(VoicePackSettingKey, GameStyleService.Current, legacy);
@@ -119,42 +116,21 @@ namespace KillConfirmGameBar
             try
             {
                 if (!_isPageActive || !_packSelectorsInitialized) return;
-                GameStyleMode style = GameStyleService.Current;
-                var settings = CurrentAudioPreferences();
-                IJsonValue effects = await MakeAudioChannelRequestAsync(settings.SoundEffectPack, settings.SoundEffectVolume, AudioPackKind.SoundEffect, style, InterruptPreviousKillAudioSettingsStore.Load());
-                IJsonValue voice = await MakeAudioChannelRequestAsync(settings.CharacterVoicePack, settings.CharacterVoiceVolume, AudioPackKind.CharacterVoice, style, settings.CharacterVoiceInterrupt);
-                if (!_isPageActive || style != GameStyleService.Current) return;
-                var request = new JsonObject { ["sound_effect"] = effects, ["character_voice"] = voice };
-                using (var client = await LocalServiceAuth.CreateHttpClientAsync())
-                using (var content = new HttpStringContent(request.Stringify(), UnicodeEncoding.Utf8, "application/json"))
-                using (var response = await client.PostAsync(LocalServiceEndpoints.Build("/audio/channels"), content))
-                    response.EnsureSuccessStatusCode();
-                if (style == GameStyleMode.Dagoujiao && settings.SoundEffectPack != "none")
-                    await DagoujiaoSettingsStore.SyncActiveVoicePackAudioAsync(settings.SoundEffectPack);
+                await AudioChannelSettingsStore.SyncAsync(GameStyleService.Current);
             }
             catch (Exception ex) { App.Log("Audio channel sync failed: " + ex); }
             finally { _audioChannelSyncGate.Release(); }
         }
 
-        private static async Task<IJsonValue> MakeAudioChannelRequestAsync(string key, int volume, AudioPackKind kind, GameStyleMode style, bool interruptPrevious)
+        private async void OnAudioBehaviorPreferencesChanged(object sender, GameStyleMode style)
         {
-            if (string.IsNullOrWhiteSpace(key) || key == "none") return JsonValue.CreateNullValue();
-            var pack = await PackCatalogService.GetVoicePackAsync(key);
-            if (pack == null || PackCatalogService.GetAudioPackStyle(pack) != style || PackCatalogService.GetAudioPackKind(pack) != kind)
-                return JsonValue.CreateNullValue();
-            var channel = new JsonObject
+            if (!_isPageActive || !_packSelectorsInitialized || style != GameStyleService.Current) return;
+            try
             {
-                ["preset"] = JsonValue.CreateStringValue(key),
-                ["volume_percent"] = JsonValue.CreateNumberValue(volume),
-                ["enabled"] = JsonValue.CreateBooleanValue(true),
-                ["interrupt_previous"] = JsonValue.CreateBooleanValue(interruptPrevious)
-            };
-            if (!pack.IsBuiltIn && !string.IsNullOrWhiteSpace(pack.FolderPath))
-            {
-                channel["custom_path"] = JsonValue.CreateStringValue(pack.FolderPath);
-                channel["display_name"] = JsonValue.CreateStringValue(pack.DisplayName ?? key);
+                await PopulateAudioPackSelectorsAsync();
+                if (_isPageActive && style == GameStyleService.Current) LoadAudioChannelControls();
             }
-            return channel;
+            catch (Exception ex) { App.Log("Refresh audio behavior controls failed: " + ex); }
         }
 
         private async void OnCharacterVoicePackSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -177,12 +153,6 @@ namespace KillConfirmGameBar
             try
             {
                 SaveAudioSelections();
-                if (ReferenceEquals(sender, PackTestSectionView.LinkIconSoundCheckBox))
-                {
-                    if (GameStyleService.Current == GameStyleMode.Valorant)
-                        ValorantPackSyncSettingsStore.Save(PackTestSectionView.LinkIconSoundCheckBox.IsChecked == true);
-                    await TrySyncSoundEffectForIconSelectionAsync(GetSelectedIconPack());
-                }
                 await SyncAudioChannelsAsync();
             }
             catch (Exception ex) { App.Log("Audio settings: " + ex); }

@@ -39,7 +39,9 @@ namespace KillConfirmCompatibility.Controls
                 _battlefield6ScoreLayoutText = text;
                 return _battlefield6ScoreLayout;
             }
-            if (_battlefield6TextLayouts.TryGetValue(text, out CanvasTextLayout layout)) return layout;
+            // Victim and bonus lines use different fonts; the same string must not share a layout.
+            string layoutKey = (ReferenceEquals(format, _battlefield6BonusFormat) ? "b|" : "t|") + text;
+            if (_battlefield6TextLayouts.TryGetValue(layoutKey, out CanvasTextLayout layout)) return layout;
             // Bound distinct victims and temporary long-name trimming candidates per session.
             if (_battlefield6TextLayouts.Count >= 128)
             {
@@ -47,7 +49,7 @@ namespace KillConfirmCompatibility.Controls
                 _battlefield6TextLayouts.Clear();
             }
             layout = new CanvasTextLayout(CanvasDevice.GetSharedDevice(), text, format, 1000, 100);
-            _battlefield6TextLayouts[text] = layout;
+            _battlefield6TextLayouts[layoutKey] = layout;
             return layout;
         }
 
@@ -63,7 +65,8 @@ namespace KillConfirmCompatibility.Controls
             int pixelsPerUnit = 1;
             while (pixelsPerUnit < scale && pixelsPerUnit < 16) pixelsPerUnit *= 2;
             bool score = ReferenceEquals(format, _battlefield6ScoreFormat);
-            string key = $"{glow}|{intensity:R}|{spread:R}|{pixelsPerUnit}|{text}";
+            string font = ReferenceEquals(format, _battlefield6BonusFormat) ? "b" : "t";
+            string key = $"{font}|{glow}|{intensity:R}|{spread:R}|{pixelsPerUnit}|{text}";
             if (score)
             {
                 if (_battlefield6ScoreGlow != null && key == _battlefield6ScoreGlowKey) return _battlefield6ScoreGlow;

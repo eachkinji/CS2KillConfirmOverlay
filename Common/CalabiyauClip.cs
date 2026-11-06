@@ -8,6 +8,7 @@ namespace KillConfirmCompatibility.Contracts
 {
     // Version 1 commands: texture, destination XYWH, source XYWH, affine matrix
     // M11/M12/M21/M22/M31/M32, RGB multiplier, opacity. Baked at 60 Hz from UMG.
+    // Version 2 optionally appends an axis-aligned XYWH clip in canvas space.
     [DataContract]
     public sealed class CalabiyauClip
     {
@@ -35,7 +36,7 @@ namespace KillConfirmCompatibility.Contracts
                 }
                 json.Position = 0;
                 var clip = (CalabiyauClip)new DataContractJsonSerializer(typeof(CalabiyauClip)).ReadObject(json);
-                if (clip == null || clip.Version != 1 || clip.Fps != 60 || clip.Duration <= 0 || clip.Duration > 15
+                if (clip == null || (clip.Version != 1 && clip.Version != 2) || clip.Fps != 60 || clip.Duration <= 0 || clip.Duration > 15
                     || clip.Width <= 0 || clip.Width > 4096 || clip.Height <= 0 || clip.Height > 4096
                     || clip.Textures == null || clip.Frames == null || clip.Frames.Length != (int)Math.Ceiling(clip.Duration * clip.Fps))
                     throw new InvalidDataException("Invalid Calabiyau animation header.");
@@ -49,12 +50,15 @@ namespace KillConfirmCompatibility.Contracts
                     if (frame == null) throw new InvalidDataException("Missing Calabiyau frame.");
                     foreach (float[] command in frame)
                     {
-                        if (command == null || command.Length != 19 || command[0] < 0 || command[0] >= clip.Textures.Length || command[0] != (int)command[0])
+                        if (command == null || (command.Length != 19 && !(clip.Version == 2 && command.Length == 23))
+                            || command[0] < 0 || command[0] >= clip.Textures.Length || command[0] != (int)command[0])
                             throw new InvalidDataException("Invalid Calabiyau sprite command.");
                         foreach (float value in command)
                             if (float.IsNaN(value) || float.IsInfinity(value)) throw new InvalidDataException("Invalid Calabiyau coordinate.");
                         if (command[18] < 0 || command[18] > 1)
                             throw new InvalidDataException("Invalid Calabiyau opacity.");
+                        if (command.Length == 23 && (command[21] < 0 || command[22] < 0))
+                            throw new InvalidDataException("Invalid Calabiyau clipping rectangle.");
                     }
                 }
                 return clip;

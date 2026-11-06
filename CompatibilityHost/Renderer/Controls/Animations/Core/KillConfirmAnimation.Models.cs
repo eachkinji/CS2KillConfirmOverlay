@@ -108,6 +108,8 @@ namespace KillConfirmCompatibility.Controls
             private bool _disposed;
 
             public string PackKey { get; set; }
+            public ValorantNativeAnimation NativeAnimation { get; set; }
+            public string ResourceRevision { get; set; }
             public CanvasBitmap Frame { get; set; }
             public CanvasBitmap Emblem { get; set; }
             public CanvasBitmap Bar { get; set; }
@@ -135,6 +137,8 @@ namespace KillConfirmCompatibility.Controls
                 }
 
                 _disposed = true;
+                NativeAnimation?.Dispose();
+                NativeAnimation = null;
                 Frame?.Dispose();
                 Emblem?.Dispose();
                 Bar?.Dispose();

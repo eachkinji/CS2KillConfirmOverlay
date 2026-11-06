@@ -54,11 +54,11 @@ namespace KillConfirmCompatibility
                 };
                 application.Run(); return;
             }
-            if (args.Length == 3 && args[0] == "--validate-calabiyau-library")
+            if ((args.Length == 3 || args.Length == 4) && args[0] == "--validate-calabiyau-library")
             {
                 application.Startup += async (s, e) =>
                 {
-                    try { await Validation.CalabiyauLibraryValidation.RunAsync(args[1], args[2]); application.Shutdown(0); }
+                    try { await Validation.CalabiyauLibraryValidation.RunAsync(args[1], args[2], args.Length == 4 ? args[3] : null); application.Shutdown(0); }
                     catch (Exception error) { Directory.CreateDirectory(args[1]); File.WriteAllText(Path.Combine(args[1], "failure.txt"), error.ToString()); application.Shutdown(1); }
                 };
                 application.Run(); return;
@@ -68,6 +68,15 @@ namespace KillConfirmCompatibility
                 application.Startup += async (s, e) =>
                 {
                     try { await Validation.CalabiyauValidation.RunAsync(args[1], args[2], args[3]); application.Shutdown(0); }
+                    catch (Exception error) { Directory.CreateDirectory(args[1]); File.WriteAllText(Path.Combine(args[1], "failure.txt"), error.ToString()); application.Shutdown(1); }
+                };
+                application.Run(); return;
+            }
+            if (args.Length == 3 && args[0] == "--validate-battlefield-original-styles")
+            {
+                application.Startup += async (s, e) =>
+                {
+                    try { await Validation.BattlefieldOriginalStyleValidation.RunAsync(args[1], args[2]); application.Shutdown(0); }
                     catch (Exception error) { Directory.CreateDirectory(args[1]); File.WriteAllText(Path.Combine(args[1], "failure.txt"), error.ToString()); application.Shutdown(1); }
                 };
                 application.Run(); return;

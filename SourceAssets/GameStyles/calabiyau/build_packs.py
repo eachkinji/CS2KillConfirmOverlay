@@ -133,12 +133,14 @@ class Scene:
         self.desired_cache = {}
         self.paint_queue = None
 
-    def submit_paint(self, layer, obj, time, callback):
+    def submit_paint(self, layer, obj, time, callback, clip_rect=None):
         # Slate sorts all draw elements by their final LayerId, not by widget
         # tree traversal. A same-Z canvas sibling can paint below a nested
         # child visited earlier. Keep insertion order only within one layer.
         def draw():
             self.current, self.time = obj, time
+            self.current_clip = clip_rect
+            if hasattr(self, 'fx'):self.fx.clip_rect = clip_rect
             callback()
         if self.paint_queue is None:
             draw()
@@ -147,6 +149,12 @@ class Scene:
 
     def paint_order_key(self, item):
         return (item[0],)
+
+    def image_paint_layer(self, obj, layer):
+        return layer
+
+    def child_clip_rect(self, obj, w, h, matrix, inherited):
+        return inherited
 
     def paint_ordered(self, parent_size, matrix, time, output):
         queue = []
@@ -225,7 +233,7 @@ class Scene:
                 v[field] = sample(section.get(key), time, v[field])
         return v
 
-    def paint(self, obj, slot, parent_size, parent_matrix, opacity, time, output, root=False, layer=0):
+    def paint(self, obj, slot, parent_size, parent_matrix, opacity, time, output, root=False, layer=0, clip_rect=None):
         p, kind = obj.get('Properties', {}), obj['Type']
         if kind not in ('CanvasPanel', 'Overlay', 'HorizontalBox', 'Image', 'PMImage', 'ProgressBar', 'SizeBox', 'ScaleBox', 'Border', 'Spacer','WidgetSwitcher') and not (hasattr(self, 'paint_extra') and (kind in ('SimpleMeshWidget','ParticleSystemWidget','TextBlock') or kind.startswith('WBP_'))):
             self.omitted.add(kind)
@@ -260,9 +268,11 @@ class Scene:
         matrix = mul(matrix, (1, math.tan(math.radians(v['shy'])), math.tan(math.radians(v['shx'])), 1, 0, 0))
         matrix = mul(matrix, (math.cos(a), math.sin(a), -math.sin(a), math.cos(a), 0, 0))
         matrix = mul(mul(matrix, translate(x+pivot[0]+v['tx'], y+pivot[1]+v['ty'])), parent_matrix)
+        clip_rect = self.child_clip_rect(obj, w, h, matrix, clip_rect)
         max_layer = layer
         if hasattr(self, 'paint_extra'):
             if kind.startswith('WBP_'):
+                self.current_clip = clip_rect
                 max_layer = max(max_layer, self.paint_extra(obj, v, w, h, matrix, alpha, time, output, layer))
             elif kind in ('SimpleMeshWidget','ParticleSystemWidget','TextBlock'):
                 draw_layer=layer
@@ -273,19 +283,21 @@ class Scene:
                     shadow=p.get('ShadowColorAndOpacity',{}).get('A',0)>0 and any(xy(p.get('ShadowOffset',{}),1))
                     draw_layer+= (0 if p.get('bSimpleTextMode',False) else 2)+(1 if shadow else 0)
                     max_layer=draw_layer
-                self.submit_paint(draw_layer, obj, time, lambda:self.paint_extra(obj, v, w, h, matrix, alpha, time, output, draw_layer))
+                self.submit_paint(draw_layer, obj, time, lambda:self.paint_extra(obj, v, w, h, matrix, alpha, time, output, draw_layer), clip_rect)
         if kind in ('Image', 'PMImage'):
-            self.submit_paint(layer, obj, time, lambda:self.brush(p.get('Brush', {}), w, h, matrix, alpha, v, output))
+            draw_layer = self.image_paint_layer(obj, layer)
+            max_layer = max(max_layer, draw_layer)
+            self.submit_paint(draw_layer, obj, time, lambda:self.brush(p.get('Brush', {}), w, h, matrix, alpha, v, output), clip_rect)
         elif kind == 'ProgressBar':
             style = p.get('WidgetStyle', {})
-            self.submit_paint(layer, obj, time, lambda:self.brush(style.get('BackgroundImage', {}), w, h, matrix, alpha, v, output))
+            self.submit_paint(layer, obj, time, lambda:self.brush(style.get('BackgroundImage', {}), w, h, matrix, alpha, v, output), clip_rect)
             fraction = max(0, min(1, v['percent']))
             fill_color = p.get('FillColorAndOpacity', {})
             fv = dict(v, **{k:v[k]*fill_color.get(k.upper(), 1) for k in ('r','g','b','a')})
-            self.submit_paint(layer+1, obj, time, lambda:self.brush(style.get('FillImage', {}), w, h, matrix, alpha, fv, output, fraction, p.get('BarFillType', '')))
+            self.submit_paint(layer+1, obj, time, lambda:self.brush(style.get('FillImage', {}), w, h, matrix, alpha, fv, output, fraction, p.get('BarFillType', '')), clip_rect)
             max_layer = layer + (1 if fraction > 0 else 0)
         elif kind == 'Border':
-            self.submit_paint(layer, obj, time, lambda:self.brush(p.get('Background', {}), w, h, matrix, alpha, v, output))
+            self.submit_paint(layer, obj, time, lambda:self.brush(p.get('Background', {}), w, h, matrix, alpha, v, output), clip_rect)
         children = self.children(obj)
         cursor = 0
         fixed = sum(self.desired(c)[0]+s.get('Padding',{}).get('Left',0)+s.get('Padding',{}).get('Right',0)
@@ -324,7 +336,7 @@ class Scene:
                 elif valign.endswith('Bottom'): cy += h-pt-pb-outh
                 childslot = {'LayoutData': {'Offsets': {'Left':cx,'Top':cy,'Right':outw,'Bottom':outh}}}
                 if kind == 'HorizontalBox': cursor += available_w
-            max_layer = max(max_layer, self.paint(child, childslot, (w, h), matrix, alpha, time, output, layer=child_layer))
+            max_layer = max(max_layer, self.paint(child, childslot, (w, h), matrix, alpha, time, output, layer=child_layer, clip_rect=clip_rect))
             if child_visible:visible_children += 1
         return max_layer
 

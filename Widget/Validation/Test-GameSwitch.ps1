@@ -68,6 +68,13 @@ $service=$null; $package=$null; $widgetProcessId=0
 try {
     $testPackage=if($PackagePath) { Get-Item -LiteralPath $PackagePath } else { Get-ChildItem -LiteralPath (Join-Path $repository 'Output/WidgetSwitchValidation') -Recurse -File -Filter '*.msix' | Sort-Object LastWriteTime -Descending | Select-Object -First 1 }
     if (!$testPackage) { throw 'Build the isolated WidgetSwitchValidation package first.' }
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    $archive=[IO.Compression.ZipFile]::OpenRead($testPackage.FullName)
+    try {
+        $manifestReader=[IO.StreamReader]::new($archive.GetEntry('AppxManifest.xml').Open())
+        try { [xml]$testManifest=$manifestReader.ReadToEnd() } finally { $manifestReader.Dispose() }
+        if ($testManifest.Package.Identity.Name -ne $name) { throw 'Refusing to deploy a non-isolated package for validation; rebuild the validation package.' }
+    } finally { $archive.Dispose() }
     $dependencies=@(Get-ChildItem -LiteralPath (Join-Path $testPackage.DirectoryName 'Dependencies/x64') -File -Filter '*.appx' | ForEach-Object FullName)
     # Use the frameworks already installed for the production widget. Reapplying
     # dependency packages can demand closing Game Bar and unrelated Windows apps.

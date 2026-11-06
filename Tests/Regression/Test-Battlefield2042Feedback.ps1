@@ -170,9 +170,23 @@ if (-not ('Battlefield2042FeedbackChecks' -as [type])) {
 }
 [Battlefield2042FeedbackChecks]::Run()
 
-$routing = Get-Content -Raw (Join-Path $RepositoryRoot 'Widget/Pages/KillConfirmWidget/Animation/KillConfirmWidgetPage.Animation.cs')
-if ($routing -notmatch 'PlayBattlefield2042Kill\(\s*killEvent.KillCount,\s*killEvent.IsHeadshot,\s*killEvent.IsKnifeKill,\s*killEvent.IsGrenadeKill,') {
-    throw '2042 event flags are not forwarded to playback.'
+# The style switch now delegates to a game-specific partial. Verify both legs
+# of that path, and keep checking the actual argument order at the playback call.
+$routes = @(
+    @('Widget/Pages/KillConfirmWidget/Animation/KillConfirmWidgetPage.Animation.cs',
+      'Widget/Pages/KillConfirmWidget/Animation/KillConfirmWidgetPage.Animation.Battlefield.cs'),
+    @('CompatibilityHost/Rendering/FeedbackPresenter.Routing.cs',
+      'CompatibilityHost/Rendering/FeedbackPresenter.Games.cs')
+)
+foreach ($route in $routes) {
+    $dispatch = Get-Content -Raw (Join-Path $RepositoryRoot $route[0])
+    $primary = Get-Method (Get-Content -Raw (Join-Path $RepositoryRoot $route[1])) 'PlayBattlefield2042PrimaryAnimation'
+    if ($dispatch -notmatch 'case GameStyleMode\.Battlefield2042:\s*PlayBattlefield2042PrimaryAnimation\(killEvent\);\s*return;') {
+        throw "2042 style does not dispatch to its primary helper: $($route[0])"
+    }
+    if ($primary -notmatch 'LowerFeedbackAnimation\.PlayBattlefield2042Kill\(\s*killEvent.KillCount,\s*killEvent.IsHeadshot,\s*killEvent.IsKnifeKill,\s*killEvent.IsGrenadeKill,\s*killEvent.IsAssist,\s*GetKillTargetDisplayName\(killEvent\),\s*GetBattlefieldWeaponLabel\(killEvent\),\s*killEvent.MoneyReward,\s*GetBattlefieldEventKind\(killEvent\),\s*killEvent.RoundNumber,\s*killEvent.MoneyEpoch\);') {
+        throw "2042 event flags and reward scope are not forwarded to playback: $($route[1])"
+    }
 }
 $feed = Get-Content -Raw (Join-Path $root 'Battlefield2042/Battlefield2042Animation.Feed.cs')
 if ($feed -notmatch 'ResolveBattlefield2042MoneyTotalX\(\)' -or $feed -notmatch 'ResolveBattlefield2042MoneyTotalScale\(') {

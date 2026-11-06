@@ -45,6 +45,7 @@ namespace KillConfirmCompatibility.Controls
                 null, null, new[] { 2, 2, 2, 2 });
             if (holderOpacity <= 0)
             {
+                DrawValorantNativeLayers(ds, asset, realMs);
                 return;
             }
 
@@ -78,6 +79,8 @@ namespace KillConfirmCompatibility.Controls
             DrawCookedFrame(ds, asset, ms, realMs, playbackSpeed, cx, cy, holderOpacity);
             DrawCookedWheel(ds, asset, kills, ms, playbackSpeed, cx, cy, holderOpacity);
             DrawCookedBadge(ds, asset, ms, realMs, playbackSpeed, cx, cy, holderOpacity);
+            // OptionalEffects is a sibling after GlobalHolder, not its child.
+            DrawValorantNativeLayers(ds, asset, realMs);
         }
 
         private void DrawCookedFrame(
@@ -94,10 +97,13 @@ namespace KillConfirmCompatibility.Controls
                     CookedChildElapsedMs(ms, 1803.2667, playbackSpeed),
                     0.0,
                     300.0);
-            DrawNativeDissolvedImage(ds, asset.Frame, asset.Textures.FrameDissolve,
+            var nativeTier = asset.Textures.NativeAnimation?.ActiveTier;
+            CanvasBitmap frameImage = nativeTier != null ? nativeTier.Get(nativeTier.Frame) : asset.Frame;
+            CanvasBitmap frameMask = nativeTier?.Get(nativeTier.FrameDissolve) ?? asset.Textures.FrameDissolve;
+            DrawNativeDissolvedImage(ds, frameImage, frameMask,
                 cx, cy,
-                asset.Frame.SizeInPixels.Width * CookedAfterglowUmgScale,
-                asset.Frame.SizeInPixels.Height * CookedAfterglowUmgScale,
+                (frameImage?.SizeInPixels.Width ?? 0) * CookedAfterglowUmgScale,
+                (frameImage?.SizeInPixels.Height ?? 0) * CookedAfterglowUmgScale,
                 dissolve, opacity);
 
             DrawNativeHazardFrame(ds, asset, ms, realMs, playbackSpeed, cx, cy, opacity);
@@ -108,7 +114,7 @@ namespace KillConfirmCompatibility.Controls
             double realMs, double playbackSpeed,
             double cx, double cy, double opacity)
         {
-            if (asset.SpecialFrame == null || asset.Blade == null)
+            if (asset.Textures.NativeAnimation != null || asset.SpecialFrame == null || asset.Blade == null)
             {
                 return;
             }
@@ -169,10 +175,12 @@ namespace KillConfirmCompatibility.Controls
                 badgeTint = CookedHeadshotColor(hsMs, false);
             }
 
-            DrawNativeDissolvedTintedImage(ds, asset.Emblem, asset.Textures.BadgeDissolve,
+            var nativeTier = asset.Textures.NativeAnimation?.ActiveTier;
+            CanvasBitmap emblemImage = nativeTier != null ? nativeTier.Get(nativeTier.Emblem) : asset.Emblem;
+            DrawNativeDissolvedTintedImage(ds, emblemImage, asset.Textures.BadgeDissolve,
                 cx, cy,
-                asset.Emblem.SizeInPixels.Width * CookedAfterglowUmgScale,
-                asset.Emblem.SizeInPixels.Height * CookedAfterglowUmgScale,
+                (emblemImage?.SizeInPixels.Width ?? 0) * CookedAfterglowUmgScale,
+                (emblemImage?.SizeInPixels.Height ?? 0) * CookedAfterglowUmgScale,
                 scale, dissolve, badgeTint, opacity);
 
             if (!asset.IsHeadshot || hsMs < 0)
@@ -317,7 +325,7 @@ namespace KillConfirmCompatibility.Controls
             double stateMs = CookedChildElapsedMs(
                 ms, CookedAfterglowEventMs, playbackSpeed);
             double ringReveal = CookedProgress(stateMs, 0.0, 500.0);
-            DrawNativeDissolvedImage(ds, asset.Textures.Ring, asset.Textures.RingDissolve,
+            DrawNativeDissolvedImage(ds, asset.Textures.NativeAnimation?.HideRing == true ? null : asset.Textures.Ring, asset.Textures.RingDissolve,
                 cx, cy,
                 asset.Textures.Ring.SizeInPixels.Width * unit,
                 asset.Textures.Ring.SizeInPixels.Height * unit,
@@ -326,6 +334,7 @@ namespace KillConfirmCompatibility.Controls
             double spin = CookedWheelAngle(
                 CookedChildElapsedMs(ms, CookedAfterglowSpinMs, playbackSpeed),
                 kills);
+            if (asset.Textures.NativeAnimation?.HidePips == true) return;
             for (int i = 0; i < kills; i++)
             {
                 double baseAngle = kills == 2 ? 90.0 - (i * 180.0) : i * (-360.0 / kills);

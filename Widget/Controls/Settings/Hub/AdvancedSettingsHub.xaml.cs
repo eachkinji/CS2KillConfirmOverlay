@@ -252,6 +252,11 @@ namespace KillConfirmGameBar.Controls.Settings
             if (HubDisplayView != null) HubDisplayView.Visibility = tab == TabDisplay ? Visibility.Visible : Visibility.Collapsed;
             if (HubAboutView != null) HubAboutView.Visibility = tab == TabAbout ? Visibility.Visible : Visibility.Collapsed;
 
+            if (tab == TabGeneral)
+            {
+                HubGeneralOptionsPanel.RefreshSettings();
+            }
+
             if (tab == TabPort)
             {
                 _ = HubPortSettingsView.RefreshPortStateAsync();

@@ -15,6 +15,12 @@ namespace KillConfirmGameBar
     {
         private async Task ValidateAudioLibraryFilesAsync()
         {
+            string valorantLibrary = Environment.GetEnvironmentVariable("KILLCONFIRM_VALORANT_COVER_LIBRARY");
+            if (!string.IsNullOrWhiteSpace(valorantLibrary))
+            {
+                await ValidateValorantExternalCoversAsync(valorantLibrary);
+                return;
+            }
             if (!DesktopPlatform.IsUiValidation) throw new InvalidOperationException("Audio library validation requires an isolated UI profile.");
             string profile = Path.GetFullPath(DesktopPlatform.Data.LocalFolder.Path).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
             if (!Path.GetFullPath(ResourceLibraryPaths.Root).StartsWith(profile, StringComparison.OrdinalIgnoreCase))

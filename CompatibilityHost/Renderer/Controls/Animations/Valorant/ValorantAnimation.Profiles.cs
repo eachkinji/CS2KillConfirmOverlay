@@ -11,6 +11,7 @@ namespace KillConfirmCompatibility.Controls
 
         private static ValorantDemoProfile GetValorantDemoProfile(string packKey)
         {
+            ValorantExternalAssetService.RefreshResourceMetadataIfChanged(packKey);
             ValorantVisualProfileInfo external = ValorantPackService.Find(packKey)?.Profile;
             if (external != null)
             {

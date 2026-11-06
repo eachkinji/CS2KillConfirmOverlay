@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using KillConfirmGameBar.Services;
 using Windows.UI;
@@ -39,6 +40,8 @@ namespace KillConfirmGameBar
             public Task Loading;
         }
 
+        private readonly SemaphoreSlim _packCardBuildGate = new SemaphoreSlim(4, 4);
+
         private GridView _nativePackDragGrid;
         private ObservableCollection<PackCardEntry> _nativePackDragItems;
         private string[] _nativePackDragBefore;
@@ -55,11 +58,13 @@ namespace KillConfirmGameBar
             if (sender is ContentControl host) await EnsurePackCardHostAsync(host);
         }
 
-        private void OnPackCardHostUnloaded(object sender, RoutedEventArgs e)
+        private async void OnPackCardHostUnloaded(object sender, RoutedEventArgs e)
         {
             if (!(sender is ContentControl host)) return;
             host.Tag = null; // Invalidates an in-flight load before releasing the visual.
-            host.Content = null;
+            await Task.Yield();
+            try { if (host.Tag == null) host.Content = null; }
+            catch (Exception ex) { App.Log("Release pack card failed: " + ex.Message); }
         }
 
         private async Task EnsurePackCardHostAsync(ContentControl host)
@@ -68,9 +73,6 @@ namespace KillConfirmGameBar
             {
                 var entry = host.DataContext as PackCardEntry;
                 if (host.Tag is PackCardHostLoad active && ReferenceEquals(active.Entry, entry)) return;
-                host.Tag = null;
-                host.Content = null;
-                if (entry == null) return;
                 var load = new PackCardHostLoad { Entry = entry };
                 host.Tag = load;
                 load.Loading = LoadPackCardHostAsync(host, load);
@@ -81,9 +83,19 @@ namespace KillConfirmGameBar
 
         private async Task LoadPackCardHostAsync(ContentControl host, PackCardHostLoad load)
         {
+            // DataContextChanged runs inside GridView's container recycling pass.
+            // Starting a Windows.Storage operation here can pump the STA and
+            // reenter that pass, causing WinUI's native E_UNEXPECTED fail-fast.
+            // Always leave the callback before touching the visual or cover I/O.
+            await Task.Yield();
             PackCardEntry entry = load.Entry;
+            if (!ReferenceEquals(host.Tag, load) || !ReferenceEquals(host.DataContext, entry)) return;
+            if (entry == null) { host.Content = null; return; }
+            await _packCardBuildGate.WaitAsync();
             try
             {
+                if (!ReferenceEquals(host.Tag, load) || !ReferenceEquals(host.DataContext, entry)) return;
+                host.Content = null;
                 // A visual belongs to this template instance, never to the shared data item.
                 UIElement content = entry.IsVoice
                     ? await BuildVoicePackRowAsync(entry.Voice, entry.Ordinal - 1)
@@ -103,6 +115,7 @@ namespace KillConfirmGameBar
                 host.Content = new TextBlock { Text = entry.Voice?.DisplayName ?? entry.Icon?.DisplayName,
                     TextWrapping = TextWrapping.Wrap, Margin = new Thickness(12) };
             }
+            finally { _packCardBuildGate.Release(); }
         }
 
         private void OnNativePackDragStarting(object sender, DragItemsStartingEventArgs e)

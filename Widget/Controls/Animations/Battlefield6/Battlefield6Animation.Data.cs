@@ -21,6 +21,10 @@ namespace KillConfirmGameBar.Controls
         private const double Battlefield6BonusY = Battlefield6FrameHeight / 2 + 66;
         private const double Battlefield6ScoreX = Battlefield6FrameWidth / 2 - 59;
         private const double Battlefield6ScoreY = Battlefield6FrameHeight / 2 + 38;
+        // Baselines below each line's top, in GUI units: Minecraft's 9-unit font line puts the
+        // baseline 7 down; 7.5 centres CJK ideographs in the 11-unit bonus box. Score = 7 x 1.5.
+        private const double Battlefield6TextBaseline = 7.5;
+        private const double Battlefield6ScoreBaseline = 10.5;
         private const double Battlefield6IconSize = 64 * 0.29679677;
         private const double Battlefield6IconSpacing = Battlefield6IconSize * 0.8;
         private const double Battlefield6IconDelayMs = 100;
@@ -54,6 +58,12 @@ namespace KillConfirmGameBar.Controls
         private int _battlefield6Session;
         private CanvasTextFormat _battlefield6TextFormat;
         private CanvasTextFormat _battlefield6ScoreFormat;
+        private CanvasTextFormat _battlefield6BonusFormat;
+        // Original BF6 (not the upstream mod) draws the kill skull light blue-grey with almost
+        // no bloom; built-in near-white icon pixels are tinted to this and the halo is cut.
+        private static readonly Color Battlefield6SkullGrey = Color.FromArgb(255, 200, 208, 216);
+        private const float Battlefield6IconGlowScale = 0.4f;
+        private static readonly HashSet<CanvasBitmap> Battlefield6TintedSources = new HashSet<CanvasBitmap>();
 
         // Fixed for every entry/exit phase; selection bounds must never rescale playback.
         public double Battlefield6SelectionViewportWidth => Battlefield6FrameWidth;
@@ -70,16 +80,24 @@ namespace KillConfirmGameBar.Controls
 
         private void EnsureBattlefield6TextFormats()
         {
+            // Matches the original BF6 HUD: medium-weight victim name, thin DIN-style score and
+            // bonus ribbon. Bahnschrift (DIN 1451) ships with Windows; CJK falls back to YaHei.
             if (_battlefield6TextFormat == null)
                 _battlefield6TextFormat = new CanvasTextFormat
                 {
-                    FontFamily = "Segoe UI", FontSize = 9, FontWeight = FontWeights.Bold,
+                    FontFamily = "Segoe UI", FontSize = 9, FontWeight = FontWeights.Medium,
+                    WordWrapping = CanvasWordWrapping.NoWrap
+                };
+            if (_battlefield6BonusFormat == null)
+                _battlefield6BonusFormat = new CanvasTextFormat
+                {
+                    FontFamily = "Bahnschrift", FontSize = 9, FontWeight = FontWeights.Light,
                     WordWrapping = CanvasWordWrapping.NoWrap
                 };
             if (_battlefield6ScoreFormat == null)
                 _battlefield6ScoreFormat = new CanvasTextFormat
                 {
-                    FontFamily = "Segoe UI", FontSize = 13.5f, FontWeight = FontWeights.Bold,
+                    FontFamily = "Bahnschrift", FontSize = 13.5f, FontWeight = FontWeights.Light,
                     WordWrapping = CanvasWordWrapping.NoWrap
                 };
         }

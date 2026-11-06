@@ -48,6 +48,11 @@ public partial class App : Application
             _activate=new System.Threading.EventWaitHandle(false,System.Threading.EventResetMode.AutoReset,"Local\\KillConfirmPanel.Activate."+profile);
             _instance=new System.Threading.Mutex(true,"Local\\KillConfirmPanel."+profile,out bool first);
             if(!first) { _activate.Set(); Exit(); return; }
+            // Publish before constructing WinUI: native fail-fast does not invoke
+            // managed Closing/UnhandledException handlers, but the renderer can
+            // still observe this exact process identity disappearing.
+            if (!DesktopPlatform.IsUiValidation)
+                KillConfirmCompatibility.Contracts.PanelLifetime.PublishCurrent("panel");
             Log("Creating desktop window.");
             _window = new Window { Title = "Kill Confirm Overlay 控制面板" };
             Log("Initializing ordinary storage.");
@@ -75,6 +80,7 @@ public partial class App : Application
             // repeat the resize once so the window cannot collapse to content size.
             var settle = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
             settle.Tick += (s, e) => { settle.Stop(); ResizePanelWindow(); };
+            _window.Closed += (s, e) => settle.Stop();
             settle.Start();
 
             _window.AppWindow.Closing += (s,e) => {
@@ -114,16 +120,18 @@ public partial class App : Application
 
     private void ResizePanelWindow()
     {
+        var appWindow = _window?.AppWindow;
+        if (appWindow == null) return;
         // AppWindow.Resize takes physical pixels; keep the same amount of
         // content on high-DPI displays by scaling the logical design size.
         double scale = GetDpiForWindow(WinRT.Interop.WindowNative.GetWindowHandle(_window)) / 96.0;
         if (scale <= 0) scale = 1.0;
         var work = Microsoft.UI.Windowing.DisplayArea.GetFromWindowId(
-            _window.AppWindow.Id, Microsoft.UI.Windowing.DisplayAreaFallback.Primary).WorkArea;
+            appWindow.Id, Microsoft.UI.Windowing.DisplayAreaFallback.Primary).WorkArea;
         int width = Math.Min((int)(1180 * scale), (int)(work.Width * 0.94));
         int height = Math.Min((int)(820 * scale), (int)(work.Height * 0.94));
-        _window.AppWindow.Resize(new Windows.Graphics.SizeInt32(width, height));
-        _window.AppWindow.Show();
+        appWindow.Resize(new Windows.Graphics.SizeInt32(width, height));
+        appWindow.Show();
     }
 
     private void ApplyFramelessChrome()

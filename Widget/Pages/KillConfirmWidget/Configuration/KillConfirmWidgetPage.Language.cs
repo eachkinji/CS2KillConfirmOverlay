@@ -97,7 +97,7 @@ namespace KillConfirmGameBar
             SetGameStyleItemContent(HeaderStatusSection.Battlefield5StyleItem, "BF5", "ms-appx:///Assets/GameLogos/battlefield5.png");
             SetGameStyleItemContent(HeaderStatusSection.Battlefield4StyleItem, "BF4", "ms-appx:///Assets/GameLogos/battlefield4.png");
             SetGameStyleItemContent(HeaderStatusSection.Battlefield2042StyleItem, "2042", "ms-appx:///Assets/GameLogos/battlefield2042.png");
-            SetGameStyleItemContent(HeaderStatusSection.Battlefield6StyleItem, "BF6", "ms-appx:///Assets/GameStyles/battlefield6/killconfirm/textures/killicon_battlefield6_default.png");
+            SetGameStyleItemContent(HeaderStatusSection.Battlefield6StyleItem, "BF6", "ms-appx:///Assets/GameLogos/battlefield6.png");
             SetGameStyleItemContent(HeaderStatusSection.PubgStyleItem, "PUBG", "ms-appx:///Assets/GameLogos/pubg.png");
             SetGameStyleItemContent(HeaderStatusSection.DeltaForceStyleItem, "Delta", "ms-appx:///Assets/GameLogos/deltaforce.png");
             HeaderStatusSection.CustomModuleStyleItem.Content = LocalizationManager.Current == UiLanguage.SimplifiedChinese ? "自定义" : "Custom";

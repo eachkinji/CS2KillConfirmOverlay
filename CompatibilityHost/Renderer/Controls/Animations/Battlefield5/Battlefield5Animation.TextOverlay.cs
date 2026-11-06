@@ -140,7 +140,7 @@ namespace KillConfirmCompatibility.Controls
             double moneyY = BattlefieldFrameHeight - Battlefield5ScoreYOffset;
             double bonusY = BattlefieldFrameHeight - Battlefield5BonusListYOffset;
 
-            using (CanvasTextFormat textFormat = CreateBattlefieldTextFormat())
+            using (CanvasTextFormat textFormat = CreateBattlefieldInfantryTextFormat())
             {
                 DrawBattlefield5KillFeed(
                     drawingSession,

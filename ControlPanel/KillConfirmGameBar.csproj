@@ -39,4 +39,17 @@
       </Page>
     </ItemGroup>
   </Target>
+  <!-- Adapted Page items are added during the build, after the SDK gathers
+       publish content. Carry their compiled XAML and resource index into a
+       direct dotnet publish too, not just Build-DesktopPayload.ps1. -->
+  <Target Name="PublishOriginalPanelXaml" AfterTargets="Publish">
+    <ItemGroup>
+      <_OriginalPanelXaml Include="$(TargetDir)**/*.xbf" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_OriginalPanelXaml)"
+          DestinationFiles="@(_OriginalPanelXaml->'$(PublishDir)%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(TargetDir)$(AssemblyName).pri"
+          DestinationFolder="$(PublishDir)" SkipUnchangedFiles="true" />
+  </Target>
 </Project>

@@ -15,7 +15,7 @@ namespace KillConfirmCompatibility.Controls
         private void DrawBattlefield1TextOverlayFrame(CanvasDrawingSession drawingSession)
         {
             double currentTimeMs = _playbackClock.Elapsed.TotalMilliseconds;
-            using (CanvasTextFormat textFormat = CreateBattlefieldTextFormat())
+            using (CanvasTextFormat textFormat = CreateBattlefieldInfantryTextFormat())
             {
                 double moneyY = _isBattlefield1CompactLayoutActive
                     ? _battlefield1CompactMoneyY

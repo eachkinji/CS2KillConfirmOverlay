@@ -148,6 +148,32 @@
             <StackPanel Spacing="8">
             <Grid ColumnSpacing="16" MinHeight="46">
                 <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                <Border Style="{StaticResource FluentIconStyle}"><FontIcon Glyph="&#xE71B;" FontSize="16" FontFamily="Segoe MDL2 Assets"/></Border>
+                <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
+                    <TextBlock x:Name="LinkIconSoundLabelText" Style="{StaticResource FluentCardTitle}"/>
+                    <TextBlock x:Name="LinkIconSoundHintText" Style="{StaticResource FluentCardHint}"/>
+                </StackPanel>
+                <ToggleSwitch x:Name="LinkIconSoundToggle" Grid.Column="2" MinWidth="0" VerticalAlignment="Center" OffContent="关" OnContent="开" Toggled="OnAudioBehaviorToggled"/>
+            </Grid>
+            </StackPanel>
+        </Border>
+        <Border Style="{StaticResource FluentCardStyle}">
+            <StackPanel Spacing="8">
+            <Grid ColumnSpacing="16" MinHeight="46">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                <Border Style="{StaticResource FluentIconStyle}"><FontIcon Glyph="&#xE720;" FontSize="16" FontFamily="Segoe MDL2 Assets"/></Border>
+                <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
+                    <TextBlock x:Name="CharacterVoiceInterruptLabelText" Style="{StaticResource FluentCardTitle}"/>
+                    <TextBlock x:Name="CharacterVoiceInterruptHintText" Style="{StaticResource FluentCardHint}"/>
+                </StackPanel>
+                <ToggleSwitch x:Name="CharacterVoiceInterruptToggle" Grid.Column="2" MinWidth="0" VerticalAlignment="Center" OffContent="关" OnContent="开" Toggled="OnAudioBehaviorToggled"/>
+            </Grid>
+            </StackPanel>
+        </Border>
+        <Border Style="{StaticResource FluentCardStyle}">
+            <StackPanel Spacing="8">
+            <Grid ColumnSpacing="16" MinHeight="46">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                 <Border Style="{StaticResource FluentIconStyle}"><FontIcon Glyph="&#xE995;" FontSize="16" FontFamily="Segoe MDL2 Assets"/></Border>
                 <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
                     <TextBlock x:Name="StreakGainLabelText" Style="{StaticResource FluentCardTitle}"/>

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
@@ -205,6 +205,9 @@ namespace KillConfirmCompatibility.Controls
         }
 
         private static void DrawCalabiyauClipEventAt(CanvasDrawingSession session, CalabiyauClip clip, double seconds, string eventType, int killCount)
+            => DrawCalabiyauClipEventAtSampling(session, clip, seconds, eventType, killCount, false);
+
+        private static void DrawCalabiyauClipEventAtSampling(CanvasDrawingSession session, CalabiyauClip clip, double seconds, string eventType, int killCount, bool originalSampling)
         {
             if (seconds < 0 || seconds >= clip.Duration) return;
             int frame = Math.Min(clip.Frames.Length - 1, (int)(seconds * clip.Fps));
@@ -218,43 +221,55 @@ namespace KillConfirmCompatibility.Controls
                     // entire deferred Direct2D command list.
                     if (c[18] <= 0 || c[3] <= 0 || c[4] <= 0 ||
                         Math.Abs((double)c[9] * c[12] - (double)c[10] * c[11]) < 1e-8) continue;
+                    if (c.Length == 23 && (c[21] <= 0 || c[22] <= 0)) continue;
                     string texture = clip.Textures[(int)c[0]];
                     if (texture == "event-icon.png") texture = "event-icon-" + eventType + ".png";
                     else if (texture == "event-label.png") texture = "event-label-" + eventType + ".png";
                     else if (texture == "event-count.png") texture = "event-count-" + killCount + ".png";
                     if (!CalabiyauTextures.TryGetValue(texture, out CanvasBitmap bitmap)) continue;
-                    session.Transform = new Matrix3x2(c[9], c[10], c[11], c[12], c[13], c[14]) * previous;
-                    var destination = new Rect(c[1], c[2], c[3], c[4]);
-                    var source = new Rect(c[5], c[6], c[7], c[8]);
-                    bool eventIcon = texture.StartsWith("event-icon-", StringComparison.Ordinal);
-                    bool eventCount = texture.StartsWith("event-count-", StringComparison.Ordinal);
-                    if (eventIcon || eventCount || texture.StartsWith("event-label-", StringComparison.Ordinal) || texture.StartsWith("label-", StringComparison.Ordinal))
-                        source = new Rect(0, 0, bitmap.Size.Width, bitmap.Size.Height);
-                    if (eventIcon)
+                    // The UMG clipping window belongs to the canvas, not to the
+                    // moving sprite. Keep it fixed while replacing dynamic icons.
+                    session.Transform = previous;
+                    using (var clipLayer = c.Length == 23
+                        ? session.CreateLayer(1.0f, new Rect(c[19], c[20], c[21], c[22])) : null)
                     {
-                        double fit = Math.Min(destination.Width / source.Width, destination.Height / source.Height);
-                        double width = source.Width * fit, height = source.Height * fit;
-                        destination = new Rect(destination.X + (destination.Width - width) / 2, destination.Y + (destination.Height - height) / 2, width, height);
+                        session.Transform = new Matrix3x2(c[9], c[10], c[11], c[12], c[13], c[14]) * previous;
+                        var destination = new Rect(c[1], c[2], c[3], c[4]);
+                        var source = new Rect(c[5], c[6], c[7], c[8]);
+                        bool eventIcon = texture.StartsWith("event-icon-", StringComparison.Ordinal);
+                        bool eventCount = texture.StartsWith("event-count-", StringComparison.Ordinal);
+                        if (eventIcon || eventCount || texture.StartsWith("event-label-", StringComparison.Ordinal) || texture.StartsWith("label-", StringComparison.Ordinal))
+                            source = new Rect(0, 0, bitmap.Size.Width, bitmap.Size.Height);
+                        if (eventIcon)
+                        {
+                            double fit = Math.Min(destination.Width / source.Width, destination.Height / source.Height);
+                            double width = source.Width * fit, height = source.Height * fit;
+                            destination = new Rect(destination.X + (destination.Width - width) / 2, destination.Y + (destination.Height - height) / 2, width, height);
+                        }
+                        else if (eventCount)
+                            destination = new Rect(destination.X, destination.Y, destination.Height * source.Width / source.Height, destination.Height);
+                        bool effectAtlas = texture.StartsWith("fx-", StringComparison.Ordinal);
+                        if (!originalSampling && !effectAtlas)
+                            destination = SnapCalabiyauSprite(destination, session.Transform, session.Dpi);
+                        var interpolation = originalSampling
+                            ? (effectAtlas ? CanvasImageInterpolation.Linear : CanvasImageInterpolation.HighQualityCubic)
+                            : CalabiyauInterpolation(destination, source, session.Transform, session.Dpi, effectAtlas);
+                        var composite = texture.StartsWith("fx-add-", StringComparison.Ordinal) ? CanvasComposite.Add : CanvasComposite.SourceOver;
+                        if (c[15] == 1 && c[16] == 1 && c[17] == 1)
+                        {
+                            session.DrawImage(bitmap, destination, source, c[18], interpolation, composite);
+                            continue;
+                        }
+                        // Each draw must retain its own effect graph. The UWP
+                        // renderer can evaluate effects after subsequent draws;
+                        // mutating one shared Source makes labels become digits.
+                        using (var tint = new ColorMatrixEffect
+                        {
+                            Source = bitmap,
+                            ColorMatrix = new Matrix5x4 { M11 = c[15], M22 = c[16], M33 = c[17], M44 = 1 }
+                        })
+                            session.DrawImage(tint, destination, source, c[18], interpolation, composite);
                     }
-                    else if (eventCount)
-                        destination = new Rect(destination.X, destination.Y, destination.Height * source.Width / source.Height, destination.Height);
-                    bool effectAtlas = texture.StartsWith("fx-", StringComparison.Ordinal);
-                    var interpolation = effectAtlas ? CanvasImageInterpolation.Linear : CanvasImageInterpolation.HighQualityCubic;
-                    var composite = texture.StartsWith("fx-add-", StringComparison.Ordinal) ? CanvasComposite.Add : CanvasComposite.SourceOver;
-                    if (c[15] == 1 && c[16] == 1 && c[17] == 1)
-                    {
-                        session.DrawImage(bitmap, destination, source, c[18], interpolation, composite);
-                        continue;
-                    }
-                    // Each draw must retain its own effect graph. The UWP
-                    // renderer can evaluate effects after subsequent draws;
-                    // mutating one shared Source makes labels become digits.
-                    using (var tint = new ColorMatrixEffect
-                    {
-                        Source = bitmap,
-                        ColorMatrix = new Matrix5x4 { M11 = c[15], M22 = c[16], M33 = c[17], M44 = 1 }
-                    })
-                        session.DrawImage(tint, destination, source, c[18], interpolation, composite);
                 }
             }
             finally { session.Transform = previous; }

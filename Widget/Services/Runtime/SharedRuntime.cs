@@ -18,6 +18,7 @@ namespace KillConfirmGameBar.Services
         private static Dictionary<string,object> ObservedLocalSettings;
         private static string Catalog,Display;
         public static long SettingsRevision { get; private set; }
+        private static readonly HashSet<string> PendingValorantMetadata=new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private static readonly Dictionary<string,JsonValue> Pending=new Dictionary<string,JsonValue>();
         private static HashSet<string> PrimaryKeys=new HashSet<string>();
         private static DispatcherTimer Timer;
@@ -157,6 +158,8 @@ namespace KillConfirmGameBar.Services
 #endif
                                         ApplicationData.Current.LocalSettings.Values[pair.Key]=value;
                                         settingsChanged=true;
+                                        if(pair.Key.StartsWith(ValorantExternalAssetService.ResourceRevisionPrefix,StringComparison.Ordinal))
+                                            PendingValorantMetadata.Add(pair.Key.Substring(ValorantExternalAssetService.ResourceRevisionPrefix.Length));
                                     }
                                 }
                             }
@@ -170,6 +173,11 @@ namespace KillConfirmGameBar.Services
                             if(display!="null" && display!=Display) {string folder=Path.Combine(ApplicationData.Current.LocalFolder.Path,"CompatibilityDisplay");Directory.CreateDirectory(folder);File.WriteAllText(Path.Combine(folder,"display.json"),display); Display=display;SharedResources.Invalidate();SettingsRevision++;}
                         }
                         finally {ObservedLocalSettings=ReadLocalSettings();}
+                        foreach(string packKey in new List<string>(PendingValorantMetadata))
+                        {
+                            try { await SharedResources.RefreshValorantPackageMetadataAsync(packKey); PendingValorantMetadata.Remove(packKey); }
+                            catch(Exception error) { App.Log("Shared VALORANT manifest refresh: "+error.Message); }
+                        }
                         // Acknowledging our own writes must not reset all animation
                         // resources and start a second game transition.
                         if(settingsChanged) SettingsRevision++;

@@ -127,6 +127,8 @@ namespace KillConfirmCompatibility.Controls
             _battlefield6TextFormat = null;
             _battlefield6ScoreFormat?.Dispose();
             _battlefield6ScoreFormat = null;
+            _battlefield6BonusFormat?.Dispose();
+            _battlefield6BonusFormat = null;
         }
     }
 }

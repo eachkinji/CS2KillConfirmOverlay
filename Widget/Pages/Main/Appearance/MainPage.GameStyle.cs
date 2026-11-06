@@ -205,14 +205,12 @@ namespace KillConfirmGameBar
                 GameStyleMode mode = SettingsGameStyle;
                 TitleText.Text = GetGamePageTitle(mode, isChinese);
                 string extension = mode == GameStyleMode.Dagoujiao ? "jpg" : "png";
-                var logoUri = new Uri(mode == GameStyleMode.Battlefield6
-                    ? "ms-appx:///Assets/GameStyles/battlefield6/killconfirm/textures/killicon_battlefield6_default.png"
-                    : "ms-appx:///Assets/GameLogos/" + GameStyleService.ToStorageValue(mode) + "." + extension);
+                var logoUri = new Uri("ms-appx:///Assets/GameLogos/" + GameStyleService.ToStorageValue(mode) + "." + extension);
                 if (!(PageTitleGameLogo.Source is BitmapImage currentLogo) || currentLogo.UriSource != logoUri)
                     PageTitleGameLogo.Source = new BitmapImage(logoUri) { DecodePixelWidth = 152 };
-                // White-on-transparent logos need a dark tile on the light page.
-                bool darkLogo = mode == GameStyleMode.ModernWarfare2019 || mode == GameStyleMode.Battlefield5
-                    || mode == GameStyleMode.Battlefield6;
+                // White-on-transparent logos need a dark tile on the light page
+                // (the BF6 logo carries its own dark tile).
+                bool darkLogo = mode == GameStyleMode.ModernWarfare2019 || mode == GameStyleMode.Battlefield5;
                 PageTitleLogoSurface.Background = new SolidColorBrush(darkLogo
                     ? Color.FromArgb(255, 37, 43, 52) : Color.FromArgb(224, 255, 255, 255));
                 PageTitleAccent.Background = theme.Brush(theme.Accent);
@@ -356,6 +354,7 @@ namespace KillConfirmGameBar
                 if (GameStyleSidebarSelector != null)
                 {
                     string sidebarKey = _isHomePageSelected ? "home" : _isSettingsWorkspaceSelected ? "advanced" : key;
+                    RevealSidebarGame(sidebarKey);
                     foreach (object item in GameStyleSidebarSelector.MenuItems)
                     {
                         if (item is NavigationViewItem sidebarItem && sidebarItem.Tag is string tag && string.Equals(tag, sidebarKey, System.StringComparison.OrdinalIgnoreCase))
@@ -488,7 +487,7 @@ namespace KillConfirmGameBar
 
                 bool selected = item.IsSelected;
                 item.Foreground = new SolidColorBrush(selected ? theme.Accent : theme.MutedText);
-                item.Opacity = selected ? 1.0 : 0.82;
+                item.Opacity = 1.0;
             }
         }
 

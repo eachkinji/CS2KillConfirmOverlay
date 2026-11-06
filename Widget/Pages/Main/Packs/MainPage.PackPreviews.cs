@@ -26,10 +26,29 @@ namespace KillConfirmGameBar
 
             if (!string.IsNullOrWhiteSpace(uri))
             {
-                image.Source = new BitmapImage(new Uri(uri));
+                var source = new Uri(uri);
+                if (source.IsFile)
+                {
+                    var bitmap = new BitmapImage();
+                    image.Source = bitmap;
+                    _ = LoadExternalPackPreviewAsync(bitmap, source);
+                }
+                else image.Source = new BitmapImage(source);
             }
 
             return image;
+        }
+
+        private static async Task LoadExternalPackPreviewAsync(BitmapImage bitmap, Uri source)
+        {
+            try
+            {
+                // XAML URI loading does not reliably open external library files.
+                // Fill this bitmap in place so a later custom cover still wins.
+                StorageFile file = await SharedResources.AssetFileAsync(source);
+                using (var stream = await file.OpenReadAsync()) await bitmap.SetSourceAsync(stream);
+            }
+            catch { }
         }
 
         private static async Task TryApplyCustomPackPreviewAsync(Image image, string folderPath, IReadOnlyList<string> candidateNames)

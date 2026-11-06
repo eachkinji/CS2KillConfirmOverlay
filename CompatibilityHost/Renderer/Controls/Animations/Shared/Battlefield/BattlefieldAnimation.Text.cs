@@ -26,6 +26,18 @@ namespace KillConfirmCompatibility.Controls
             };
         }
 
+        // BF1 and BFV use a lighter hierarchy than the older shared bold HUD.
+        // Segoe UI is a local fallback, not a claim to ship the games' typeface.
+        private static CanvasTextFormat CreateBattlefieldInfantryTextFormat()
+        {
+            return new CanvasTextFormat
+            {
+                FontFamily = BattlefieldFontFamily,
+                FontSize = BattlefieldTextLineHeight,
+                FontWeight = FontWeights.Normal
+            };
+        }
+
         private static double MeasureBattlefieldTextWidth(string text, CanvasTextFormat format)
         {
             Rect bounds = MeasureBattlefieldTextBounds(text, format);

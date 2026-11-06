@@ -48,6 +48,10 @@ namespace KillConfirmGameBar.Services
 
         private async Task LoadThumbnailAsync()
         {
+            // Thumbnail is read by XAML while realizing/recycling a dropdown
+            // row. Even the start of a WinRT file operation can pump messages;
+            // leave the binding getter before issuing it to avoid reentrancy.
+            await Task.Yield();
             await ThumbnailGate.WaitAsync();
             try
             {

@@ -35,13 +35,23 @@ class Bake:
     def __init__(self,scene,atlas,additive_atlas):
         self.scene=scene;self.atlas=atlas;self.additive_atlas=additive_atlas;self.additive=False
         self.textures=[];self.commands=[];self.last_material=scene.fx.stats['materials'];self.files={}
-    def command(self,name,dest,source,matrix=IDENTITY,tint=(1,1,1,1)):
+    def command(self,name,dest,source,matrix=IDENTITY,tint=(1,1,1,1),clip_rect=None):
+        if clip_rect is not None:
+            left,top,right,bottom=clip_rect
+            if right<=left or bottom<=top:return
+            x,y,w,h=dest
+            corners=[(px*matrix[0]+py*matrix[2]+matrix[4],px*matrix[1]+py*matrix[3]+matrix[5]) for px,py in ((x,y),(x+w,y),(x+w,y+h),(x,y+h))]
+            if max(p[0] for p in corners)<=left or min(p[0] for p in corners)>=right or max(p[1] for p in corners)<=top or min(p[1] for p in corners)>=bottom:return
         if name not in self.textures:self.textures.append(name)
         color=[12.92*c if c<=.0031308 else 1.055*max(0,c)**(1/2.4)-.055 for c in tint[:3]]
         # Cubic UMG fades can overshoot. Slate clamps alpha at compositing;
         # exported Win2D draw commands must already use its valid [0, 1] range.
         opacity=max(0,min(1,tint[3]))
-        self.commands.append([round(float(n),5) for n in [self.textures.index(name),*dest,*source,*matrix,*color,opacity]])
+        command=[self.textures.index(name),*dest,*source,*matrix,*color,opacity]
+        # V2 keeps source pixels and live event replacement intact. The renderer
+        # clips after fitting the selected event texture, in scene coordinates.
+        if clip_rect is not None:command.extend((left,top,right-left,bottom-top))
+        self.commands.append([round(float(n),5) for n in command])
     def flush(self):
         if self.last_material==self.scene.fx.stats['materials']:return
         self.last_material=self.scene.fx.stats['materials']
@@ -66,14 +76,14 @@ class Bake:
                 name=hashlib.sha256(file.read_bytes()).hexdigest()[:24]+'.png';target=HERE/'textures'/name
                 if not target.exists():shutil.copy2(file,target)
             self.files[file]=name
-        self.command(self.files[file],dest,source,matrix,tint)
+        self.command(self.files[file],dest,source,matrix,tint,getattr(self.scene.fx,'clip_rect',None))
     def dynamic(self,name,file,dest,source,matrix,tint):
         self.flush()
         if name=='event-label.png':
             x,y,w,h=dest;dest=(x+w/2-64,y,128,32);source=(0,0,128,32)
         elif name=='event-icon.png':source=(0,0,96,96)
         elif name=='event-count.png':source=(0,0,80,40)
-        self.command(name,dest,source,matrix,tint)
+        self.command(name,dest,source,matrix,tint,getattr(self.scene.fx,'clip_rect',None))
     def run(self):
         self.scene.dynamic=self.dynamic;self.scene.native_sprite=self.sprite;frames=[]
         original=self.scene.fx.effect
@@ -88,7 +98,8 @@ class Bake:
                 self.scene.paint_ordered((120,122),translate(self.scene.fx.width/2-60,self.scene.fx.height/2-61),i/60,[])
                 self.flush();frames.append(self.commands)
         finally:self.scene.fx.effect=original
-        return dict(version=1,fps=60,duration=self.scene.duration,width=self.scene.fx.width,height=self.scene.fx.height,textures=self.textures,frames=frames)
+        version=2 if self.scene.path.stem.removeprefix('WBP_IconFeedbackPage_PC_') in ('10102206','10102207','10102208','10102209','10102210') else 1
+        return dict(version=version,fps=60,duration=self.scene.duration,width=self.scene.fx.width,height=self.scene.fx.height,textures=self.textures,frames=frames)
 
 
 def dynamic_textures(research,assets):
@@ -122,7 +133,9 @@ def main():
     for index,path in enumerate(files):
         if index%args.shards!=args.shard:continue
         start=time.monotonic();variant=path.stem.rsplit('_',1)[1];folder=HERE/'iconpacks'/variant;folder.mkdir(exist_ok=True,parents=True)
-        if args.resume and (folder/'reconstructed.json').exists() and read(folder/'reconstructed.json').get('revision')==7:continue
+        revision=8 if variant in ('10502201','10502202','10502203','10502204','10502205') else 7
+        if variant in ('10102206','10102207','10102208','10102209','10102210'):revision=9
+        if args.resume and (folder/'reconstructed.json').exists() and read(folder/'reconstructed.json').get('revision')==revision:continue
         atlas=Atlas(variant);additive_atlas=Atlas('add-'+variant);available={o['Name'] for o in read(path) if o['Type']=='MovieScene'};clips=[];before=dict(fx.stats)
         for count in range(1,7):
             anim='Anim_Normal' if count==1 else 'Anim_MaxCount_'+str(min(count,5))
@@ -132,6 +145,7 @@ def main():
             if omitted:raise RuntimeError(variant+' omitted '+str(omitted))
             if count==5:clip['overkill']='lower-6.json.gz'
             write_clip(folder/('lower-'+str(count)+'.json.gz'),clip);clips.append({'count':count,'scene':anim,'duration':clip['duration'],'textures':len(clip['textures'])})
+            print(variant,'clip',str(count)+'/6',round(time.monotonic()-start,1),'seconds',flush=True)
             if count==5:
                 scene.dynamic=None;scene.native_sprite=None
                 preview=scene.render(min(1.8,scene.duration-.1));bounds=preview.getchannel('A').point(lambda a:255 if a>12 else 0).getbbox()
@@ -140,7 +154,11 @@ def main():
                 preview.save(folder/'preview.png')
         atlas.flush();additive_atlas.flush()
         stats={k:fx.stats[k]-before[k] for k in before}
-        manifest={'revision':7,'variant':variant,'clips':clips,'draws':stats,'source':str(path),'paint_order':'Slate LayerId with ExplicitCanvasChildZOrder enabled; over-five compatibility counter on its own foreground plane','count_policy':'Native tiers 1..5 do not activate UW_Kill; optional sixth scene preserves a readable count for Kill Confirm overkill events','shader':'Reconstructed M_UI_Basic / M_UI_Diffuse parameter operations; not Unreal shader bytecode.'}
+        manifest={'revision':revision,'variant':variant,'clips':clips,'draws':stats,'source':str(path),'paint_order':'Slate LayerId with ExplicitCanvasChildZOrder enabled; over-five compatibility counter on its own foreground plane','count_policy':'Native tiers 1..5 do not activate UW_Kill; optional sixth scene preserves a readable count for Kill Confirm overkill events','shader':'Reconstructed M_UI_Basic / M_UI_Diffuse parameter operations; not Unreal shader bytecode.'}
+        if revision==8:
+            manifest['native_widget_reference']='Flavia PMImage plane calibrated to BV1fTwVeYECN at 492/498/507/513s; Moon behind icon, BG_1 rings in front. CustomAnimationNames selects the authored moon phase for each count.'
+        if revision==9:
+            manifest['clipping']='Authored CanvasPanel_0 ClipToBounds (190x43 local units; 196x43 for 10102207), transformed with parent geometry; v2 scene-coordinate clip rectangles preserve original sprites and dynamic event icons. Requires Kill Confirm 5.0.1.43.'
         (folder/'reconstructed.json').write_text(json.dumps(manifest,indent=2),encoding='utf8')
         print(index+1,len(files),variant,round(time.monotonic()-start,1),'seconds',atlas.pages+1,'atlases',stats,flush=True)
         # Textures uploaded for other themes need not remain resident during baking.

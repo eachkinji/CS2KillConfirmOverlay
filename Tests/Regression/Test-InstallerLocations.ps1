@@ -26,7 +26,6 @@ var MaterialPage: TInputDirWizardPage;
     MaterialPrevious: AnsiString;
     MaterialAutomatic, InstallPrevious: String;
     InstallPathHint, MaterialPathHint: TNewStaticText;
-    OriginalInstallChange: TNotifyEvent;
 procedure ExitProcess(Code: Integer); external 'ExitProcess@kernel32.dll stdcall';
 $helpers
 procedure Check(Value: Boolean; Message: String);
@@ -43,6 +42,11 @@ $initialize
   Check(ChildLocation('F:\', 'KillConfirm素材包', UTF8Decode(MaterialPrevious))='F:\KillConfirm素材包', 'material drive child');
   Check(ChildLocation('F:\Games\KillConfirm素材包', 'KillConfirm素材包', UTF8Decode(MaterialPrevious))='F:\Games\KillConfirm素材包', 'no duplicate child');
   Check(ChildLocation('C:\Old\KillConfirm素材包', 'KillConfirm素材包', UTF8Decode(MaterialPrevious))='C:\Old\KillConfirm素材包', 'keep current folder');
+  WizardForm.DirEdit.Text := InstallPrevious;
+  MaterialPage.Values[0] := UTF8Decode(MaterialPrevious);
+  UpdateLocationHints();
+  Check((InstallPathHint.Caption='') and not InstallPathHint.Visible, 'no redundant unchanged install hint');
+  Check((MaterialPathHint.Caption='') and not MaterialPathHint.Visible, 'no redundant unchanged material hint');
   WizardForm.DirEdit.Text := ChildLocation('F:\', 'Kill Confirm Overlay', InstallPrevious);
   MaterialPage.Values[0] := ChildLocation('F:\', 'KillConfirm素材包', UTF8Decode(MaterialPrevious));
   UpdateLocationHints();

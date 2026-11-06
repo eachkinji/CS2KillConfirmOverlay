@@ -15,6 +15,8 @@ namespace KillConfirmGameBar.Controls.Settings
         private bool _suppressDanmaku6657Events;
         private bool _suppressAutoCloseOnGameExitEvents;
         private bool _suppressInterruptPreviousKillAudioEvents;
+        private bool _suppressAudioBehaviorEvents = true;
+        private GameStyleMode _audioBehaviorStyle;
         private bool _suppressStreakGainEvents = true;
         private readonly DispatcherTimer _streakGainSyncTimer = new DispatcherTimer();
 
@@ -26,12 +28,33 @@ namespace KillConfirmGameBar.Controls.Settings
             ApplyLanguage();
             RefreshSettings();
             Loaded += OnLoaded;
+            Unloaded += OnUnloaded;
         }
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
+            GameStyleService.Changed -= OnGameStyleChanged;
+            GameStyleService.Changed += OnGameStyleChanged;
+            AudioChannelSettingsStore.BehaviorChanged -= OnAudioBehaviorChanged;
+            AudioChannelSettingsStore.BehaviorChanged += OnAudioBehaviorChanged;
             RefreshSettings();
             ApplyTheme(GameThemePalette.Home);
+        }
+
+        private void OnUnloaded(object sender, RoutedEventArgs e)
+        {
+            GameStyleService.Changed -= OnGameStyleChanged;
+            AudioChannelSettingsStore.BehaviorChanged -= OnAudioBehaviorChanged;
+        }
+
+        private void OnGameStyleChanged(object sender, GameStyleMode style)
+        {
+            SelectAudioBehavior();
+        }
+
+        private void OnAudioBehaviorChanged(object sender, GameStyleMode style)
+        {
+            if (style == GameStyleService.Current) SelectAudioBehavior();
         }
 
         internal void ApplyLanguage()
@@ -63,6 +86,7 @@ namespace KillConfirmGameBar.Controls.Settings
                 LocalizationManager.Text("InterruptPreviousKillAudioHint");
             InterruptPreviousKillAudioToggle.OffContent = LocalizationManager.Text("Off");
             InterruptPreviousKillAudioToggle.OnContent = LocalizationManager.Text("On");
+            ApplyAudioBehaviorLanguage();
             RefreshDetailsLabels();
             StreakGainLabelText.Text = isChinese ? "连杀音量递增" : "Streak volume gain";
             StreakGainHintText.Text = isChinese
@@ -87,6 +111,8 @@ namespace KillConfirmGameBar.Controls.Settings
             BombAudioPanel?.ApplyTheme(theme);
             AutoCloseOnGameExitHintText.Foreground = new SolidColorBrush(theme.MutedText);
             InterruptPreviousKillAudioHintText.Foreground = new SolidColorBrush(theme.MutedText);
+            LinkIconSoundHintText.Foreground = new SolidColorBrush(theme.MutedText);
+            CharacterVoiceInterruptHintText.Foreground = new SolidColorBrush(theme.MutedText);
             StreakGainHintText.Foreground = new SolidColorBrush(theme.MutedText);
             AdvancedEffectsPanelSupport.ApplySoftenedTree(this, theme);
         }
@@ -98,6 +124,7 @@ namespace KillConfirmGameBar.Controls.Settings
             BombAudioPanel?.RefreshSettings();
             SelectAutoCloseOnGameExit();
             SelectInterruptPreviousKillAudio();
+            SelectAudioBehavior();
             SelectStreakGainSettings();
             RefreshDetailsLabels();
         }
@@ -217,6 +244,65 @@ namespace KillConfirmGameBar.Controls.Settings
             {
                 // The local value is authoritative and will be synchronized at service startup.
                 App.Log("Set interrupt previous kill audio failed: " + ex);
+            }
+        }
+
+        private void ApplyAudioBehaviorLanguage()
+        {
+            bool zh = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            GameStyleMode style = GameStyleService.Current;
+            string gameName = zh ? GameStyleService.ToDisplayName(style)
+                : style == GameStyleMode.Calabiyau ? "Strinova" : style.ToString();
+            LinkIconSoundLabelText.Text = zh ? "图标与音效联动" : "Link icons and sound effects";
+            LinkIconSoundHintText.Text = zh
+                ? $"当前游戏：{gameName}。切换图标包时同步切换配套音效包；角色语音保持独立。"
+                : $"Current game: {gameName}. Changing an icon pack also selects its matching sound effects; character voices stay independent.";
+            CharacterVoiceInterruptLabelText.Text = zh ? "新语音打断上一句" : "New voice interrupts the previous line";
+            CharacterVoiceInterruptHintText.Text = zh
+                ? $"当前游戏：{gameName}。仅当新的角色语音可播放时，才打断上一句；关闭后允许语音重叠。"
+                : $"Current game: {gameName}. A new playable character voice interrupts the previous line. Turn off to allow voices to overlap.";
+            LinkIconSoundToggle.OffContent = LocalizationManager.Text("Off");
+            LinkIconSoundToggle.OnContent = LocalizationManager.Text("On");
+            CharacterVoiceInterruptToggle.OffContent = LocalizationManager.Text("Off");
+            CharacterVoiceInterruptToggle.OnContent = LocalizationManager.Text("On");
+        }
+
+        private void SelectAudioBehavior()
+        {
+            _suppressAudioBehaviorEvents = true;
+            try
+            {
+                _audioBehaviorStyle = GameStyleService.Current;
+                AudioChannelPreferences settings = AudioChannelSettingsStore.Load(_audioBehaviorStyle);
+                LinkIconSoundToggle.IsOn = settings.LinkIconAndSound;
+                CharacterVoiceInterruptToggle.IsOn = settings.CharacterVoiceInterrupt;
+                ApplyAudioBehaviorLanguage();
+            }
+            finally
+            {
+                _suppressAudioBehaviorEvents = false;
+            }
+        }
+
+        private async void OnAudioBehaviorToggled(object sender, RoutedEventArgs e)
+        {
+            if (_suppressAudioBehaviorEvents) return;
+            if (_audioBehaviorStyle != GameStyleService.Current)
+            {
+                SelectAudioBehavior();
+                return;
+            }
+
+            try
+            {
+                await AudioChannelSettingsStore.SetBehaviorAsync(
+                    _audioBehaviorStyle,
+                    ReferenceEquals(sender, LinkIconSoundToggle) ? (bool?)LinkIconSoundToggle.IsOn : null,
+                    ReferenceEquals(sender, CharacterVoiceInterruptToggle) ? (bool?)CharacterVoiceInterruptToggle.IsOn : null);
+            }
+            catch (Exception ex)
+            {
+                App.Log("Set audio behavior failed: " + ex);
             }
         }
 

@@ -10,9 +10,14 @@ HERE = Path(__file__).resolve().parent
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('validation', type=Path)
+    parser.add_argument('--variants', help='Comma-separated variants for a focused native validation')
     args = parser.parse_args()
     assert (args.validation/'pass.txt').is_file(), 'Run --validate-calabiyau successfully first'
     packs = json.loads((HERE/'packs.json').read_text(encoding='utf8'))
+    if args.variants:
+        selected = set(args.variants.split(','))
+        packs = [pack for pack in packs if pack['variant'] in selected]
+        assert {pack['variant'] for pack in packs} == selected, 'Unknown variant requested'
     groups = {}
     for pack in packs:
         image = Image.open(args.validation/'variants'/(pack['variant']+'.png')).convert('RGBA')

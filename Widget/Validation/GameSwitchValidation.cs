@@ -1,4 +1,4 @@
-﻿#if WIDGET_SWITCH_VALIDATION
+#if WIDGET_SWITCH_VALIDATION
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -244,7 +244,10 @@ namespace KillConfirmGameBar
         {
             if (GameStyleService.Current != GameStyleMode.Crossfire || GetSelectedVoicePackPreset() != "none"
                 || SelectedAudioPack(PackTestSectionView.CharacterVoicePackSelector) != "crossfire_swat_gr")
-                throw new Exception("UWP CF legacy selection was not migrated into character voice.");
+                throw new Exception("UWP CF legacy selection was not migrated into character voice: game=" + GameStyleService.Current
+                    + "; sfx=" + GetSelectedVoicePackPreset() + "; voice=" + SelectedAudioPack(PackTestSectionView.CharacterVoicePackSelector)
+                    + "; stored voice=" + CurrentAudioPreferences().CharacterVoicePack + "; choices="
+                    + string.Join(",", PackTestSectionView.CharacterVoicePackSelector.Items.OfType<PackSelectorItem>().Select(p => p.Tag)));
             if (!(PackTestSectionView.AudioVolumeSelector.SelectedItem is ComboBoxItem))
                 throw new Exception("Initial UWP master volume is blank before navigation.");
             await SyncAudioChannelsAsync();
@@ -302,6 +305,22 @@ namespace KillConfirmGameBar
                 report.AppendLine(await ValidateDropdownAsync(selector));
             }
             await CaptureAudioMenuAsync(root, "audio-menu-calabiyau.png");
+            if (PackTestSectionView.FindName("LinkIconSoundCheckBox") != null
+                || PackTestSectionView.FindName("CharacterVoiceInterruptCheckBox") != null)
+                throw new Exception("Advanced behavior switches remain on the main pack surface.");
+            // Advanced settings must apply even when the primary page is inactive.
+            _isPageActive = false;
+            try { await PackTestSectionView.AdvancedEffectsExperiencePanel.ValidateAudioBehaviorAdvancedAsync(); }
+            finally { _isPageActive = true; }
+            await InitializePackSelectorsAsync();
+            var advancedSaved = CurrentAudioPreferences();
+            if (advancedSaved.LinkIconAndSound || advancedSaved.CharacterVoiceInterrupt
+                || advancedSaved.SoundEffectVolume != 70 || advancedSaved.CharacterVoiceVolume != 130
+                || advancedSaved.SoundEffectPack != "calabiyau_sfx_fixture" || advancedSaved.CharacterVoicePack != "calabiyau_voice_fixture")
+                throw new Exception("Returning from advanced settings overwrote behavior, selected packs or volumes.");
+            await SyncAudioChannelsAsync();
+            report.AppendLine("PASS: both switches live only in Advanced settings; their real ToggleSwitch events persist without the main page and immediately send voice interruption to the backend; packs/volumes survive reload.");
+
             var disabled = CurrentAudioPreferences(); disabled.SoundEffectPack = "none"; disabled.LinkIconAndSound = true;
             AudioChannelSettingsStore.Save(GameStyleMode.Calabiyau, disabled);
             await InitializePackSelectorsAsync();
@@ -384,6 +403,36 @@ namespace KillConfirmGameBar
                 return $"{selector.Name}: popup={bounds.Width:F0}x{bounds.Height:F0}; visible={visible}; realized={realized}/{selector.Items.Count}; settled={clock.ElapsedMilliseconds} ms.";
             }
             finally { selector.IsDropDownOpen = false; }
+        }
+    }
+}
+
+namespace KillConfirmGameBar.Controls.Settings
+{
+    public sealed partial class GeneralSettingsOptionsPanel
+    {
+        internal async Task ValidateAudioBehaviorAdvancedAsync()
+        {
+            RefreshSettings();
+            if (!LinkIconSoundHintText.Text.Contains(GameStyleService.ToDisplayName(GameStyleMode.Calabiyau)))
+                throw new Exception("Advanced audio settings did not identify the active game.");
+            LinkIconSoundToggle.IsOn = false;
+            CharacterVoiceInterruptToggle.IsOn = false;
+            bool applied = false;
+            for (int attempt = 0; attempt < 100; attempt++)
+            {
+                var saved = AudioChannelSettingsStore.Load(GameStyleMode.Calabiyau);
+                var channels = WidgetProtocolFixture.AudioChannels;
+                applied = !saved.LinkIconAndSound && !saved.CharacterVoiceInterrupt
+                    && channels != null && channels["character_voice"].ValueType == JsonValueType.Object
+                    && !channels["character_voice"].GetObject().GetNamedBoolean("interrupt_previous", true);
+                if (applied) break;
+                await Task.Delay(20);
+            }
+            if (!applied) throw new Exception("Advanced settings did not apply without an active main page.");
+            RefreshSettings();
+            if (LinkIconSoundToggle.IsOn || CharacterVoiceInterruptToggle.IsOn)
+                throw new Exception("Advanced switches reverted after refreshing.");
         }
     }
 }

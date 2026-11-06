@@ -160,6 +160,7 @@ const STANDARD_SLOT_STEMS: &[(&str, &[&str])] = &[
     ("headshot_3", &["headshot_3", "3-headshot", "3_headshot", "kill_3_headshot"]),
     ("headshot_4", &["headshot_4", "4-headshot", "4_headshot", "kill_4_headshot"]),
     ("headshot_5", &["headshot_5", "5-headshot", "5_headshot", "kill_5_headshot"]),
+    ("headshot_6", &["headshot_6", "6-headshot", "6_headshot", "kill_6_headshot"]),
     ("headshot", &["headshot", "headshot_kill"]),
     ("knife", &["knife", "melee"]),
     ("first_and_last", &["first_and_last", "firstandlast", "revenge"]),
@@ -306,12 +307,14 @@ impl PackManifest {
 
     /// Auto-populate missing audio slots from files that actually exist in the directory
     pub fn auto_populate_slots_from_dir(&mut self, dir_path: &Path) {
+        let is_valorant = self.game_style.as_deref().is_some_and(|style| style.eq_ignore_ascii_case("valorant"));
         let audio = self.audio.get_or_insert_with(|| AudioConfig {
             base_gain: 1.0,
             ..AudioConfig::default()
         });
 
         for &(slot, stems) in STANDARD_SLOT_STEMS {
+            if slot == "headshot_6" && !is_valorant { continue; }
             if let Some(existing) = audio.slots.get(slot) {
                 if !existing.as_slice().is_empty() {
                     continue;
@@ -565,7 +568,23 @@ impl PackManifest {
         // at kill 1. A headshot adds headshot.wav to that same event group; it
         // never replaces the numbered cue.
         if is_valorant && ctx.play_main_audio && ctx.kill_count >= 1 {
-            let count = ctx.kill_count.clamp(1, 5);
+            // Native external packs can provide an overkill cue. An absent,
+            // empty or stale optional sixth slot must preserve the old tier-5
+            // route instead of suppressing audio or falling back to kill_1.
+            let has_sixth_slot = |slot: &str| audio.slots.get(slot).is_some_and(|files| {
+                !files.as_slice().is_empty() && files.as_slice().iter().all(|filename| {
+                    !filename.trim().is_empty() && {
+                        let path = Path::new(filename);
+                        (if path.is_absolute() { path.to_path_buf() }
+                         else { Path::new(base_dir).join(path) }).is_file()
+                    }
+                })
+            });
+            let count = if ctx.kill_count >= 6 && has_sixth_slot("kill_6") {
+                6
+            } else {
+                ctx.kill_count.clamp(1, 5)
+            };
             let slot = format!("kill_{count}");
             if !push_slot(&mut entries, &slot, None) {
                 push_slot(&mut entries, "kill_1", None);
@@ -590,8 +609,14 @@ impl PackManifest {
                 }
             }
             if ctx.is_headshot {
-                let headshot_slot = format!("headshot_{count}");
-                if !push_slot(&mut entries, &headshot_slot, None) {
+                let headshot_slot = if ctx.kill_count >= 6 && has_sixth_slot("headshot_6") {
+                    Some("headshot_6".to_string())
+                } else if count < 6 {
+                    Some(format!("headshot_{count}"))
+                } else {
+                    None
+                };
+                if !headshot_slot.is_some_and(|slot| push_slot(&mut entries, &slot, None)) {
                     push_slot(&mut entries, "headshot", None);
                 }
             }

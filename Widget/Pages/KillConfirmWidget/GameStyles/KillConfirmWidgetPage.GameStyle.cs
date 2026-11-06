@@ -150,7 +150,6 @@ namespace KillConfirmGameBar
             PackTestSectionView.MasterVolumeLabel.Foreground = Brush(text);
             PackTestSectionView.SoundEffectVolumeLabel.Foreground = Brush(text);
             PackTestSectionView.CharacterVoiceVolumeLabel.Foreground = Brush(text);
-            PackTestSectionView.LinkIconSoundCheckBox.Foreground = Brush(text);
             SetComboTheme(PackTestSectionView.IconPackSelector, text, field, border);
             PackTestSectionView.VoicePackSelector.IsEnabled = true;
             PackTestSectionView.IconPackSelector.IsEnabled = GameStyleService.Current != GameStyleMode.Overwatch

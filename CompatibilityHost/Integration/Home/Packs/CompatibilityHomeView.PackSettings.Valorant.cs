@@ -105,29 +105,17 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             return true;
         }
 
-        private void OnValorantPackSyncToggled(object sender, RoutedEventArgs e)
+        private async void OnValorantPackSyncToggled(object sender, RoutedEventArgs e)
         {
-            if (!(sender is ValorantAdvancedEffectsPanel panel))
+            if (!(sender is ValorantAdvancedEffectsPanel panel)) return;
+            try
             {
-                return;
+                var preferences = AudioChannelSettingsStore.Load(GameStyleMode.Valorant);
+                await AudioChannelSettingsStore.SetBehaviorAsync(GameStyleMode.Valorant,
+                    panel.GetPackSyncEnabled(true), preferences.CharacterVoiceInterrupt);
             }
-
-            bool enabled = panel.GetPackSyncEnabled(true);
-            ValorantPackSyncSettingsStore.Save(enabled);
-            var audioPreferences = CurrentAudioPreferences();
-            audioPreferences.LinkIconAndSound = enabled;
-            AudioChannelSettingsStore.Save(GameStyleService.Current, audioPreferences);
-            bool previousAudioSuppression = _suppressAudioChannelEvents;
-            _suppressAudioChannelEvents = true;
-            PackTestSectionView.LinkIconSoundCheckBox.IsChecked = enabled;
-            _suppressAudioChannelEvents = previousAudioSuppression;
-            if (!enabled || GameStyleService.Current != GameStyleMode.Valorant)
-            {
-                return;
-            }
-
-            string voicePack = GetSelectedVoicePackPreset();
-            TrySyncValorantIconPackForVoiceSelection(voicePack);
+            catch (Exception ex) { App.Log("Valorant pack linkage failed: " + ex); }
         }
+
     }
 }

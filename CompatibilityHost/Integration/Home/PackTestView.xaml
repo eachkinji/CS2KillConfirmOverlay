@@ -48,12 +48,10 @@
                     </Grid>
 
                     <Grid ColumnSpacing="12">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                         <StackPanel Spacing="5"><TextBlock x:Name="SoundEffectVolumeLabel" x:FieldModifier="public" Text="音效音量" Style="{StaticResource ModeSectionFieldLabelStyle}"/><ComboBox x:Name="SoundEffectVolumeSelector" x:FieldModifier="public" HorizontalAlignment="Stretch" FontSize="12" SelectionChanged="OnAudioChannelVolumeSelectionChanged"/></StackPanel>
                         <StackPanel Grid.Column="1" Spacing="5"><TextBlock x:Name="CharacterVoiceVolumeLabel" x:FieldModifier="public" Text="语音音量" Style="{StaticResource ModeSectionFieldLabelStyle}"/><ComboBox x:Name="CharacterVoiceVolumeSelector" x:FieldModifier="public" HorizontalAlignment="Stretch" FontSize="12" SelectionChanged="OnAudioChannelVolumeSelectionChanged"/></StackPanel>
-                        <CheckBox x:Name="LinkIconSoundCheckBox" x:FieldModifier="public" Grid.Column="2" VerticalAlignment="Bottom" FontSize="12" Content="图标与音效联动" Checked="OnAudioChannelSettingsChanged" Unchecked="OnAudioChannelSettingsChanged"/>
                     </Grid>
-                    <CheckBox x:Name="CharacterVoiceInterruptCheckBox" x:FieldModifier="public" FontSize="12" Content="新击杀打断上一句语音" Checked="OnAudioChannelSettingsChanged" Unchecked="OnAudioChannelSettingsChanged"/>
                     <TextBlock x:Name="TestFeedbackText" x:FieldModifier="public" TextWrapping="Wrap" FontSize="11" Visibility="Collapsed"/>
                     <Button
                         x:Name="AdvancedEffectsButton" x:FieldModifier="public"

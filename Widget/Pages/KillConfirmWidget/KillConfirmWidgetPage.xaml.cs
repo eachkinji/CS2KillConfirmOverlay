@@ -378,6 +378,7 @@ namespace KillConfirmGameBar
             // objects after their COM wrappers have been released.
             _isPageActive = false;
             GameStyleService.Changed -= OnGameStyleServiceChanged;
+            AudioChannelSettingsStore.BehaviorChanged -= OnAudioBehaviorPreferencesChanged;
             PackCatalogService.CatalogChanged -= OnPackCatalogChanged;
             GsiGameVersionSettingsStore.VersionChanged -= OnGsiGameVersionChanged;
             _controlPanelStateTimer?.Stop();
@@ -392,7 +393,9 @@ namespace KillConfirmGameBar
             // after its XAML COM objects have been released and a later event
             // crashes while trying to access that page's Dispatcher.
             GameStyleService.Changed -= OnGameStyleServiceChanged;
+            AudioChannelSettingsStore.BehaviorChanged -= OnAudioBehaviorPreferencesChanged;
             GameStyleService.Changed += OnGameStyleServiceChanged;
+            AudioChannelSettingsStore.BehaviorChanged += OnAudioBehaviorPreferencesChanged;
             PackCatalogService.CatalogChanged -= OnPackCatalogChanged;
             PackCatalogService.CatalogChanged += OnPackCatalogChanged;
             GsiGameVersionSettingsStore.VersionChanged += OnGsiGameVersionChanged;
@@ -474,6 +477,7 @@ namespace KillConfirmGameBar
             {
             }
             GameStyleService.Changed -= OnGameStyleServiceChanged;
+            AudioChannelSettingsStore.BehaviorChanged -= OnAudioBehaviorPreferencesChanged;
             PackCatalogService.CatalogChanged -= OnPackCatalogChanged;
             _animationPreloadToken++;
             LowerFeedbackAnimation?.ReleaseAnimationResourcesForPackChange();

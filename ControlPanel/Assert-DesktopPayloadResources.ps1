@@ -1,5 +1,11 @@
 param([Parameter(Mandatory)][string]$Payload)
 $ErrorActionPreference='Stop'
+foreach($viewResource in @('App.xbf','Generated/Pages/Main/MainPage.xbf','KillConfirmControlPanel.pri')) {
+    $viewPath=Join-Path $Payload $viewResource
+    if(!(Test-Path -LiteralPath $viewPath -PathType Leaf) -or (Get-Item -LiteralPath $viewPath).Length -eq 0) {
+        throw "Missing compiled control-panel resource: $viewResource"
+    }
+}
 $calabiyauRoot = Join-Path $Payload 'Assets/GameStyles/calabiyau'
 $defaultCalabiyauTextures = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
 foreach($count in 1..6) {

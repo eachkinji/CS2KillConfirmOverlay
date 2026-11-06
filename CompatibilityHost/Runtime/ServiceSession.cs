@@ -14,6 +14,7 @@ namespace KillConfirmCompatibility.Desktop.Runtime
         private Task _registration = Task.CompletedTask;
         private DateTimeOffset _registeredAt;
         private bool _closing;
+        private bool _released;
         private readonly System.Threading.CancellationTokenSource _lifetime = new();
         private DateTimeOffset _lastLaunch = DateTimeOffset.MinValue;
         private string _lastVoice;
@@ -39,6 +40,7 @@ namespace KillConfirmCompatibility.Desktop.Runtime
                 using var timeout = System.Threading.CancellationTokenSource.CreateLinkedTokenSource(_lifetime.Token);
                 timeout.CancelAfter(TimeSpan.FromSeconds(5));
                 using var client = await LocalServiceAuth.CreateHttpClientAsync();
+                if (_closing) return;
                 var json = new JsonObject { ["pid"] = JsonValue.CreateNumberValue(Environment.ProcessId) };
                 using var content = new HttpStringContent(json.Stringify(), UnicodeEncoding.Utf8, "application/json");
                 using var response = await client.PostAsync(LocalServiceEndpoints.Build("/client/register"), content).AsTask(timeout.Token);
@@ -99,8 +101,9 @@ namespace KillConfirmCompatibility.Desktop.Runtime
         }
         public async Task ReleaseAsync()
         {
-            _closing = true;
-            _lifetime.Cancel();
+            StopRegistering();
+            if (_released) return;
+            _released = true;
             try
             {
                 using var timeout = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(3));
@@ -110,6 +113,11 @@ namespace KillConfirmCompatibility.Desktop.Runtime
                 using var response = await client.PostAsync(LocalServiceEndpoints.Build("/client/unregister"), content).AsTask(timeout.Token);
             }
             catch (Exception error) { App.Log("Compatibility service release: " + error.Message); }
+        }
+        public void StopRegistering()
+        {
+            _closing = true;
+            _lifetime.Cancel();
         }
     }
 }

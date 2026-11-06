@@ -17,6 +17,7 @@ namespace KillConfirmGameBar.Services
     internal static class SharedResources
     {
         private static readonly SemaphoreSlim Gate=new SemaphoreSlim(1,1);
+        private static readonly SemaphoreSlim RevisionGate=new SemaphoreSlim(1,1);
         private static readonly ConcurrentDictionary<string,Lazy<Task<StorageFolder>>> Folders=new ConcurrentDictionary<string,Lazy<Task<StorageFolder>>>();
         public static string RemoteDataRoot { get; set; }
         public static string RemoteInstallRoot { get; set; }
@@ -57,15 +58,61 @@ namespace KillConfirmGameBar.Services
                 string relative = path.Substring(local.Length + 1);
                 string remote = relative.StartsWith("Packs\\", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(RemoteLibraryRoot)
                     ? Path.Combine(RemoteLibraryRoot, relative.Substring(6)) : Path.Combine(RemoteDataRoot, relative);
-                if(!File.Exists(path)) await DownloadAsync(remote,false,path);
+                await EnsureCurrentFileAsync(remote,path,GetValorantRevision(path));
                 return await StorageFile.GetFileFromPathAsync(path);
             }
             // A single thumbnail or texture must not fetch its entire pack.
             // ImportedFolderAsync remains available to callers needing a listing.
             string target=Path.Combine(CacheRoot,"Files",Hash(path),Path.GetFileName(path));
-            if(!File.Exists(target)) await DownloadAsync(path,false,target);
+            await EnsureCurrentFileAsync(path,target,GetValorantRevision(path));
             return await StorageFile.GetFileFromPathAsync(target);
         }
+        private static string GetValorantRevision(string path)
+        {
+            string[] roots = { ValorantExternalAssetService.GetIconPacksRootPath(),
+                string.IsNullOrEmpty(RemoteLibraryRoot) ? null : Path.Combine(RemoteLibraryRoot,"valorant","icon_packs") };
+            foreach (string root in roots)
+            {
+                if (string.IsNullOrEmpty(root)) continue;
+                string prefix = Path.GetFullPath(root).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+                string full = Path.GetFullPath(path);
+                if (!full.StartsWith(prefix,StringComparison.OrdinalIgnoreCase)) continue;
+                string relative = full.Substring(prefix.Length);
+                int separator = relative.IndexOf(Path.DirectorySeparatorChar);
+                if (separator > 0) return ValorantExternalAssetService.GetResourceRevision(relative.Substring(0,separator));
+            }
+            return string.Empty;
+        }
+
+        private static async Task EnsureCurrentFileAsync(string source,string destination,string revision)
+        {
+            // Keep one cached copy per path. A reimport replaces only files of
+            // that pack on demand, including unchanged native_ texture names.
+            await RevisionGate.WaitAsync();
+            try
+            {
+                string marker=destination+".valorant-revision";
+                bool current=File.Exists(destination) && (string.IsNullOrEmpty(revision)
+                    || (File.Exists(marker) && File.ReadAllText(marker)==revision));
+                if (current) return;
+                await DownloadAsync(source,false,destination);
+                if (!string.IsNullOrEmpty(revision)) File.WriteAllText(marker,revision);
+            }
+            finally { RevisionGate.Release(); }
+        }
+
+        internal static async Task RefreshValorantPackageMetadataAsync(string packKey)
+        {
+            if (string.IsNullOrEmpty(ValorantExternalAssetService.GetResourceRevision(packKey))) return;
+            string sourceRoot=RemoteLibraryRoot ?? Path.Combine(RemoteDataRoot,"Packs");
+            string source=Path.Combine(sourceRoot,"valorant","icon_packs",packKey,"manifest.json");
+            string target=Path.Combine(ValorantExternalAssetService.GetIconPacksRootPath(),packKey,"manifest.json");
+            await EnsureCurrentFileAsync(source,target,ValorantExternalAssetService.GetResourceRevision(packKey));
+            ValorantPackService.RefreshExternalPacks();
+            ValorantPackEditing.NotifyResourceChange();
+            PackCatalogService.ResetSharedCache();
+        }
+
         private static async Task DownloadAsync(string source,bool asset,string destination)
         {
             await Gate.WaitAsync();

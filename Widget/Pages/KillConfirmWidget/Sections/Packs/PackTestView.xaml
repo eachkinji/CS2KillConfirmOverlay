@@ -236,10 +236,7 @@
                     <ComboBox x:Name="SoundEffectVolumeSelector" x:FieldModifier="public" Width="90" Style="{StaticResource NarrowComboBoxStyle}" SelectionChanged="OnAudioChannelVolumeSelectionChanged" Grid.Column="1" Grid.Row="1"/>
                     <ComboBox x:Name="CharacterVoiceVolumeSelector" x:FieldModifier="public" Width="90" Style="{StaticResource NarrowComboBoxStyle}" SelectionChanged="OnAudioChannelVolumeSelectionChanged" Grid.Column="2" Grid.Row="1"/>
                 </Grid>
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8">
-                    <CheckBox x:Name="CharacterVoiceInterruptCheckBox" x:FieldModifier="public" FontSize="10" Content="新击杀打断上一句语音" Checked="OnAudioChannelSettingsChanged" Unchecked="OnAudioChannelSettingsChanged"/>
-                    <CheckBox x:Name="LinkIconSoundCheckBox" x:FieldModifier="public" HorizontalAlignment="Center" Margin="0,0,0,4" FontSize="10" Content="图标与音效联动" Checked="OnAudioChannelSettingsChanged" Unchecked="OnAudioChannelSettingsChanged"/>
-                </StackPanel>
+
             </StackPanel>
         </Border>
     </Grid>

@@ -366,6 +366,9 @@ namespace KillConfirmGameBar
                 case GameStyleMode.Doubao:
                     suffix = "Doubao";
                     break;
+                case GameStyleMode.Sanguosha:
+                    suffix = "Sanguosha";
+                    break;
                 case GameStyleMode.Calabiyau:
                     suffix = "Calabiyau";
                     break;

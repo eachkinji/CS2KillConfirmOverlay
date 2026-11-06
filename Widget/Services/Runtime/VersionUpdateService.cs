@@ -25,6 +25,10 @@ namespace KillConfirmGameBar.Services
         {
             get { var v = Package.Current.Id.Version; return new Version(v.Major, v.Minor, v.Build, v.Revision); }
         }
+        internal static string DisplayVersion
+        {
+            get { var v = CurrentVersion; return v.ToString(v.Revision != 0 ? 4 : v.Build != 0 ? 3 : 2); }
+        }
         internal static Task CheckAsync(bool force = false)
         {
             if (_checking != null && !_checking.IsCompleted) return _checking;
@@ -76,8 +80,8 @@ namespace KillConfirmGameBar.Services
             {
                 case VersionUpdateState.Checking: return zh ? "正在检查更新…" : "Checking for updates…";
                 case VersionUpdateState.UpdateAvailable: return (zh ? "有新版本 " : "Update available: ") + LatestVersion;
-                case VersionUpdateState.UpToDate: return zh ? "已是最新版本" : "Up to date";
-                case VersionUpdateState.Ahead: return zh ? "当前版本较新" : "Ahead of public release";
+                case VersionUpdateState.UpToDate:
+                case VersionUpdateState.Ahead: return zh ? "已是最新版本" : "Up to date";
                 case VersionUpdateState.Unavailable: return zh ? "暂时无法检查更新" : "Update check unavailable";
                 default: return zh ? "检查更新 · 关于本版本" : "Updates · About this build";
             }

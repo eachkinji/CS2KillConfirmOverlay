@@ -64,6 +64,7 @@ namespace KillConfirmCompatibility.Controls
             _isDeltaForceHudActive = false;
             _isBattlefield2042HudActive = false;
             ResetBattlefield6HudState();
+            ResetSanguoshaState();
             _isPubgHudActive = true;
             _contentSizedViewport = false;
             _isBattlefield1CompactLayoutActive = false;

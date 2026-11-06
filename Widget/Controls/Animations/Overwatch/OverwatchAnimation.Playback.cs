@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Threading.Tasks;
@@ -20,88 +20,28 @@ namespace KillConfirmGameBar.Controls
 
         public void PlayOverwatchLowerThirdKill(string targetName, bool isAssist = false)
         {
-            if (_isOverwatchActive
-                && _drawOverwatchCard
-                && _playbackClock.IsRunning
-                && _overwatchKillIconBitmap != null)
-            {
-                PrepareOverwatchPlayback(
-                    targetName,
-                    drawCrosshair: false,
-                    drawCard: true,
-                    isAssist: isAssist);
-                return;
-            }
-
-            PlayOverwatchMode(
-                targetName,
-                drawCrosshair: false,
-                drawCard: true,
-                isAssist: isAssist);
+            PlayOverwatchMode(targetName, drawCrosshair: false, drawCard: true, isAssist: isAssist);
         }
 
-        private async void PlayOverwatchMode(
+        private void PlayOverwatchMode(
             string targetName,
             bool drawCrosshair,
             bool drawCard,
             bool isAssist = false)
         {
-            int generation = _resourceGeneration;
-            int token = ++_playToken;
-            string normalizedTargetName = NormalizeOverwatchTargetName(targetName);
-
-            try
+            QueuePreparedPlayback("Overwatch", () =>
             {
-                CanvasBitmap effectSheet;
-                CanvasBitmap killIcon;
-                await PreloadGate.WaitAsync();
-                try
-                {
-                    if (generation != _resourceGeneration || token != _playToken)
-                    {
-                        return;
-                    }
-
-                    effectSheet = drawCrosshair
-                        ? await LoadOverwatchEffectSheetBitmapAsync()
-                        : null;
-                    killIcon = drawCard
-                        ? await LoadOverwatchKillIconBitmapAsync()
-                        : null;
-                }
-                finally
-                {
-                    if (generation != _resourceGeneration)
-                    {
-                        ReleaseAllAnimationResourceCaches();
-                    }
-                    PreloadGate.Release();
-                }
-
-                if ((drawCrosshair && effectSheet == null)
-                    || (drawCard && killIcon == null)
-                    || generation != _resourceGeneration
-                    || token != _playToken)
-                {
-                    return;
-                }
+                if ((drawCrosshair && _overwatchEffectSheetBitmap == null)
+                    || (drawCard && _overwatchKillIconBitmap == null))
+                    throw new InvalidOperationException("Overwatch resources were not preloaded.");
 
                 PrepareOverwatchPlayback(
-                    normalizedTargetName,
+                    NormalizeOverwatchTargetName(targetName),
                     drawCrosshair,
                     drawCard,
                     isAssist);
-            }
-            catch
-            {
-                if (token == _playToken)
-                {
-                    ResetOverwatchState();
-                    Visibility = Visibility.Collapsed;
-                }
-            }
+            });
         }
-
 
         private void PrepareOverwatchPlayback(
             string targetName,
@@ -131,6 +71,7 @@ namespace KillConfirmGameBar.Controls
             ResetBattlefield4HudState();
             ResetBattlefield2042HudState();
             ResetBattlefield6HudState();
+            ResetSanguoshaState();
             ResetPubgHudState();
             ResetDeltaForceHudState();
             ResetDoubaoState();

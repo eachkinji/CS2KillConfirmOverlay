@@ -17,14 +17,10 @@ namespace KillConfirmCompatibility.Controls
         private async Task PreloadOverwatchAnimationsAsync(IProgress<int> progress)
         {
             progress?.Report(0);
-            try
-            {
-                await LoadOverwatchEffectSheetBitmapAsync();
-                await LoadOverwatchKillIconBitmapAsync();
-            }
-            catch
-            {
-            }
+            if (await LoadOverwatchEffectSheetBitmapAsync() == null)
+                throw new InvalidOperationException("Overwatch effect sheet could not be preloaded.");
+            if (await LoadOverwatchKillIconBitmapAsync() == null)
+                throw new InvalidOperationException("Overwatch kill icon could not be preloaded.");
             progress?.Report(100);
         }
 

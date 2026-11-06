@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using KillConfirmCompatibility.Services;
@@ -23,13 +23,15 @@ namespace KillConfirmCompatibility.Controls
 
         private CustomSequenceAsset _customSequence;
         private string _customSequenceKey;
+        private static readonly Dictionary<string, CustomSequenceAsset> CustomSequenceAssets = new Dictionary<string, CustomSequenceAsset>();
+        private static readonly Dictionary<string, string> CustomSequenceSlots = new Dictionary<string, string>();
         private bool _customSequencePlaying;
         private CustomSequenceState _customState;
         public event EventHandler<string> CustomSequenceStatusChanged;
 
         public async void PlayCustomKill(int kills, bool headshot, string packKey = null)
         {
-            int token = ++_playToken;
+            int token = BeginReplacementPlayback();
             int generation = _resourceGeneration;
             _timer.Stop();
             _playbackClock.Stop();
@@ -39,28 +41,18 @@ namespace KillConfirmCompatibility.Controls
             if (!GameStyleService.IsCustomModuleKey(key)) return;
             try
             {
-                await PreloadGate.WaitAsync();
-                try
+                await WaitForCurrentPackPreloadAsync();
+                if (token != _playToken || generation != _resourceGeneration) return;
+                if (!SelectPreloadedCustomSequence(key, Math.Max(1, Math.Min(5, kills)), headshot))
                 {
-                    if (token != _playToken || generation != _resourceGeneration) return;
-                    bool ready = await LoadCustomSequenceAsync(key, Math.Max(1, Math.Min(5, kills)), headshot);
-                    if (token != _playToken || generation != _resourceGeneration)
-                    {
-                        ReleaseCustomSequence();
-                        return;
-                    }
-                    if (!ready)
-                    {
-                        CustomSequenceStatusChanged?.Invoke(this, "Missing animation for this level / 当前等级没有可播放的素材。");
-                        return;
-                    }
+                    CustomSequenceStatusChanged?.Invoke(this, "Missing animation for this level / 当前等级没有可播放的素材。");
+                    return;
                 }
-                finally { PreloadGate.Release(); }
                 ResetDoubaoState(); ResetDagoujiaoState(); ResetOverwatchState();
                 ResetApexFeedState(); ResetModernWarfare2019State();
                 ResetBattlefield5ScrollingState(); ResetBattlefield4HudState();
                 ResetBattlefield2042HudState();
-            ResetBattlefield6HudState(); ResetPubgHudState(); ResetDeltaForceHudState();
+            ResetBattlefield6HudState(); ResetSanguoshaState(); ResetPubgHudState(); ResetDeltaForceHudState();
                 _currentCodeAsset = null; _currentValorantAsset = null;
                 _currentBattlefieldAsset = null; _currentCsolAsset = null;
                 _isBattlefieldTextOverlayActive = false;
@@ -87,14 +79,32 @@ namespace KillConfirmCompatibility.Controls
             }
         }
 
+        private static string CustomSequenceRequestKey(string key, int level, bool headshot)
+            => key + ":" + level + ":" + headshot;
+
+        private bool SelectPreloadedCustomSequence(string key, int level, bool headshot)
+        {
+            if (!CustomSequenceSlots.TryGetValue(CustomSequenceRequestKey(key, level, headshot), out string cacheKey))
+                throw new InvalidOperationException("Custom animation slot was not preloaded.");
+            _customSequenceKey = cacheKey;
+            _customSequence = cacheKey == null ? null : CustomSequenceAssets[cacheKey];
+            return _customSequence != null;
+        }
+
         private async Task<bool> LoadCustomSequenceAsync(string key, int level, bool headshot)
         {
+            string request = CustomSequenceRequestKey(key, level, headshot);
+            if (CustomSequenceSlots.ContainsKey(request)) return SelectPreloadedCustomSequence(key, level, headshot);
             StorageFolder folder = await PackCatalogService.GetImportedIconFolderAsync(key);
-            if (folder == null) return false;
+            if (folder == null) throw new System.IO.FileNotFoundException("The selected custom icon pack is not installed.");
             string slot = await CustomSequencePackService.ResolveSlotAsync(folder, level, headshot);
-            if (slot == null) return false;
+            if (slot == null) { CustomSequenceSlots[request] = null; return false; }
             string cacheKey = key + "/" + folder.Path + "/" + slot;
-            if (_customSequence != null && _customSequenceKey == cacheKey) return true;
+            if (CustomSequenceAssets.ContainsKey(cacheKey))
+            {
+                CustomSequenceSlots[request] = cacheKey;
+                return SelectPreloadedCustomSequence(key, level, headshot);
+            }
             var next = new CustomSequenceAsset { Metadata = await CustomSequencePackService.ReadMetadataAsync(folder, slot) };
             try
             {
@@ -120,7 +130,8 @@ namespace KillConfirmCompatibility.Controls
                         }
                     }
                 });
-                _customSequence?.Dispose();
+                CustomSequenceAssets.Add(cacheKey, next);
+                CustomSequenceSlots[request] = cacheKey;
                 _customSequence = next;
                 _customSequenceKey = cacheKey;
                 return true;
@@ -131,8 +142,14 @@ namespace KillConfirmCompatibility.Controls
         private async Task PreloadCustomSequenceAsync(IProgress<int> progress)
         {
             progress?.Report(0);
-            // Keep only one level's textures resident, not all 10 variants.
-            await LoadCustomSequenceAsync(_iconPack, 1, false);
+            for (int level = 1; level <= 5; level++)
+            {
+                await LoadCustomSequenceAsync(_iconPack, level, false);
+                await LoadCustomSequenceAsync(_iconPack, level, true);
+                progress?.Report(level * 19);
+            }
+            _customSequence = null;
+            _customSequenceKey = null;
             progress?.Report(100);
         }
 
@@ -181,8 +198,14 @@ namespace KillConfirmCompatibility.Controls
         private void ReleaseCustomSequence()
         {
             _customSequencePlaying = false;
-            _customSequence?.Dispose();
             _customSequence = null; _customSequenceKey = null;
+        }
+
+        private static void ClearCustomSequenceCache()
+        {
+            foreach (CustomSequenceAsset asset in CustomSequenceAssets.Values) asset.Dispose();
+            CustomSequenceAssets.Clear();
+            CustomSequenceSlots.Clear();
         }
     }
 }

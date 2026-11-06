@@ -139,6 +139,8 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                     return _customModulePanel?.GetSelectedStreakMode(fallback) ?? SharedStreakSettingsStore.Load(GameStyleMode.CustomModule);
                 case GameStyleMode.Doubao:
                     return _doubaoAdvancedEffectsPanel?.GetSelectedStreakMode(fallback) ?? fallback;
+                case GameStyleMode.Sanguosha:
+                    return _sanguoshaAdvancedEffectsPanel?.GetSelectedStreakMode(fallback) ?? fallback;
                 case GameStyleMode.Dagoujiao:
                     return _dagoujiaoAdvancedEffectsPanel?.GetSelectedStreakMode(fallback) ?? fallback;
                 case GameStyleMode.Csol:
@@ -186,6 +188,9 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                     _customModulePanel?.SelectStreakMode(value); break;
                 case GameStyleMode.Doubao:
                     _doubaoAdvancedEffectsPanel?.SelectStreakMode(value);
+                    break;
+                case GameStyleMode.Sanguosha:
+                    _sanguoshaAdvancedEffectsPanel?.SelectStreakMode(value);
                     break;
                 case GameStyleMode.Dagoujiao:
                     _dagoujiaoAdvancedEffectsPanel?.SelectStreakMode(value);

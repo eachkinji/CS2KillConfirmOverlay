@@ -66,6 +66,7 @@ namespace KillConfirmGameBar
             else if (sender is ModernWarfare2019AdvancedEffectsPanel pMw) mode = pMw.GetSelectedStreakMode(mode);
             else if (sender is ValorantAdvancedEffectsPanel pVal) mode = pVal.GetSelectedStreakMode(mode);
             else if (sender is DoubaoAdvancedEffectsPanel pDoubao) mode = pDoubao.GetSelectedStreakMode(mode);
+            else if (sender is SanguoshaAdvancedEffectsPanel pSanguosha) mode = pSanguosha.GetSelectedStreakMode(mode);
             else if (sender is DagoujiaoAdvancedEffectsPanel pDagoujiao) mode = pDagoujiao.GetSelectedStreakMode(mode);
 
             SharedStreakSettingsStore.Save(style, mode);
@@ -123,6 +124,7 @@ namespace KillConfirmGameBar
             if (_pubgAdvancedEffectsPanel != null) _pubgAdvancedEffectsPanel.ApplyTheme(theme);
             if (_deltaForceAdvancedEffectsPanel != null) _deltaForceAdvancedEffectsPanel.ApplyTheme(theme);
             if (_doubaoAdvancedEffectsPanel != null) _doubaoAdvancedEffectsPanel.ApplyTheme(theme);
+            if (_sanguoshaAdvancedEffectsPanel != null) _sanguoshaAdvancedEffectsPanel.ApplyTheme(theme);
             if (_dagoujiaoAdvancedEffectsPanel != null) _dagoujiaoAdvancedEffectsPanel.ApplyTheme(theme);
             AdvancedEffectsPanelSupport.ApplySoftenedTree(GameAdvancedSettingsPanelHost, theme);
             AdvancedEffectsPanelSupport.ApplySoftenedTree(
@@ -153,6 +155,7 @@ namespace KillConfirmGameBar
             if (_pubgAdvancedEffectsPanel != null) _pubgAdvancedEffectsPanel.ApplyLanguage(isChinese);
             if (_deltaForceAdvancedEffectsPanel != null) _deltaForceAdvancedEffectsPanel.ApplyLanguage(isChinese);
             if (_doubaoAdvancedEffectsPanel != null) _doubaoAdvancedEffectsPanel.ApplyLanguage(isChinese);
+            if (_sanguoshaAdvancedEffectsPanel != null) _sanguoshaAdvancedEffectsPanel.ApplyLanguage(isChinese);
             if (_dagoujiaoAdvancedEffectsPanel != null) _dagoujiaoAdvancedEffectsPanel.ApplyLanguage(isChinese);
         }
 
@@ -236,6 +239,11 @@ namespace KillConfirmGameBar
                     brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 102, 214, 134), Offset = 0 });
                     brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 255, 135, 40), Offset = 0.58 });
                     brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 24, 58, 43), Offset = 1 });
+                    break;
+                case GameStyleMode.Sanguosha:
+                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 214, 170, 92), Offset = 0 });
+                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 176, 38, 32), Offset = 0.58 });
+                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 48, 14, 12), Offset = 1 });
                     break;
                 case GameStyleMode.Doubao:
                     brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 59, 130, 246), Offset = 0 });

@@ -1,0 +1,19 @@
+Sanguosha (三国杀) attribution
+
+Game: 三国杀十周年 / Sanguosha 10th Anniversary (Steam app 1180320, web client
+https://web.sanguosha.com/10/pc/). All animation data, atlas images and voices belong to
+their rights holder (游卡 / Yoka Games). They are included unchanged for non-commercial
+community use with this unofficial project; see the repository disclaimer.
+
+Original files used:
+  res/assets/animate/battle/killEffect/{shoupo,lianpo,sanpo,sipo,wupo,liupo,qipo}.skel/.atlas
+  res/assets/animate/battle/killEffect/<name>[_N].png        -> killconfirm/<name>/ (unchanged)
+  res/assets/runtime/voice/effect/newkill_<name>.mp3          -> soundpacks/sanguosha/Nkill.mp3 (unchanged)
+  Steam library logo (logo_schinese.png), glyph 殺 cropped    -> Widget/Assets/GameLogos/sanguosha.png
+
+Runtime used only offline to compute draw commands (not redistributed):
+  libs/min/laya.sgs: LayaAir 2.x (laya.core, laya.ani, laya.spine) and
+  Spine Runtimes 4.0 (spine-core-4.0.min.js, Esoteric Software).
+
+Client logic reproduced (from sgsGame): NewKillEffect.effectNameConf / soundNameConf,
+NewKillEffect.modalBg (alpha 0.7), delayShake -> ShakeTool.StartShake([stage], 0.5, 10, 8).

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using Windows.Data.Json;
 using Windows.Storage.Streams;
@@ -16,7 +16,8 @@ namespace KillConfirmGameBar.Services
             => style == GameStyleMode.Crossfire ? "voice" : "sound_effect";
 
         public static string DownloadUrl(GameStyleMode style, AudioPackKind kind)
-            => (style == GameStyleMode.Crossfire && kind == AudioPackKind.CharacterVoice)
+            => style == GameStyleMode.Calabiyau
+                || (style == GameStyleMode.Crossfire && kind == AudioPackKind.CharacterVoice)
                 || (style == GameStyleMode.Valorant && kind == AudioPackKind.SoundEffect)
                 ? DownloadUrl(style, true) : null;
 
@@ -24,6 +25,8 @@ namespace KillConfirmGameBar.Services
         {
             switch (style)
             {
+                case GameStyleMode.Calabiyau:
+                    return "https://pan.quark.cn/s/5c75f3b4da67?pwd=SpYj";
                 case GameStyleMode.Crossfire:
                     return voice ? "https://pan.quark.cn/s/f93adc47c434?pwd=JEcL"
                         : "https://pan.quark.cn/s/070d14fa9438?pwd=YwFG";

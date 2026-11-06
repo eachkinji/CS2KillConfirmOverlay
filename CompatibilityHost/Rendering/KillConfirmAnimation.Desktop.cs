@@ -58,16 +58,9 @@ namespace KillConfirmCompatibility.Controls
         }
         public void StopDesktopPlayback()
         {
-            _isCalabiyauActive = false;
             DesktopPlaybackError = null;
             HasOverwatchCardContent = false;
-            _timer.Stop();
-            ResetOverwatchState();
-            ResetBattlefield6HudState();
-            _playbackClock.Stop();
-            ++_playToken;
-            Visibility = Windows.UI.Xaml.Visibility.Collapsed;
-            SpriteCanvas.Invalidate();
+            BeginReplacementPlayback();
         }
     }
 }

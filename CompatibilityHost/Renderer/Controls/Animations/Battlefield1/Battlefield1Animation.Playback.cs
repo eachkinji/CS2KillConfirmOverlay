@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Numerics;
@@ -24,48 +24,51 @@ namespace KillConfirmCompatibility.Controls
             int roundNumber,
             int moneyEpoch)
         {
-            string normalizedEventKind = NormalizeBattlefieldEventKind(isAssist, eventKind);
-            bool isTextOnly = IsBattlefieldTextOnlyEvent(isAssist, normalizedEventKind);
-            double currentTimeMs = PrepareBattlefield1TextOverlayPlayback();
-
-            AddBattlefield1TextOverlayEvent(
-                killCount,
-                isHeadshot,
-                isKnifeKill,
-                isAssist,
-                playerName,
-                weaponLabel,
-                moneyReward,
-                normalizedEventKind,
-                roundNumber,
-                moneyEpoch,
-                currentTimeMs);
-
-            if (isTextOnly)
+            QueuePreparedPlayback("Battlefield1", () =>
             {
-                // Rewards/assists update only the waterfall. Keep the card's
-                // asset, frame, clock, viewport and any pending load intact.
-                if (_currentBattlefieldAsset == null)
-                {
-                    ApplyBattlefield1TextOnlyViewport();
-                }
-                SpriteCanvas.Invalidate();
-                return;
-            }
+                string normalizedEventKind = NormalizeBattlefieldEventKind(isAssist, eventKind);
+                bool isTextOnly = IsBattlefieldTextOnlyEvent(isAssist, normalizedEventKind);
+                double currentTimeMs = PrepareBattlefield1TextOverlayPlayback();
 
-            int token = ++_playToken;
-            LoadBattlefield1PrimaryAsync(
-                token,
-                killCount,
-                isHeadshot,
-                isKnifeKill,
-                isAssist,
-                playerName,
-                weaponLabel,
-                moneyReward,
-                normalizedEventKind,
-                roundNumber,
-                moneyEpoch);
+                AddBattlefield1TextOverlayEvent(
+                    killCount,
+                    isHeadshot,
+                    isKnifeKill,
+                    isAssist,
+                    playerName,
+                    weaponLabel,
+                    moneyReward,
+                    normalizedEventKind,
+                    roundNumber,
+                    moneyEpoch,
+                    currentTimeMs);
+
+                if (isTextOnly)
+                {
+                    // Rewards/assists update only the waterfall. Keep the card's
+                    // asset, frame, clock, viewport and any pending load intact.
+                    if (_currentBattlefieldAsset == null)
+                    {
+                        ApplyBattlefield1TextOnlyViewport();
+                    }
+                    SpriteCanvas.Invalidate();
+                    return;
+                }
+
+                int token = _playToken;
+                LoadBattlefield1PrimaryAsync(
+                    token,
+                    killCount,
+                    isHeadshot,
+                    isKnifeKill,
+                    isAssist,
+                    playerName,
+                    weaponLabel,
+                    moneyReward,
+                    normalizedEventKind,
+                    roundNumber,
+                    moneyEpoch);
+            });
         }
 
         private async void LoadBattlefield1PrimaryAsync(
@@ -124,7 +127,6 @@ namespace KillConfirmCompatibility.Controls
             }
 
             // Initialize once on entry, not for each independently arriving reward.
-            _playToken++;
             _currentBattlefieldAsset = null;
             _currentFrame = 0;
             if (_isBattlefield5ScrollingActive)
@@ -137,6 +139,7 @@ namespace KillConfirmCompatibility.Controls
             _isBattlefield4HudActive = false;
             _isBattlefield2042HudActive = false;
             ResetBattlefield6HudState();
+            ResetSanguoshaState();
             _isPubgHudActive = false;
             _isDeltaForceHudActive = false;
             _contentSizedViewport = false;

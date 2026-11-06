@@ -158,6 +158,11 @@ namespace KillConfirmGameBar.Services
                 return GameStyleMode.Doubao;
             }
 
+            if (IsSanguoshaKey(key))
+            {
+                return GameStyleMode.Sanguosha;
+            }
+
             if (IsApexKey(key))
             {
                 return GameStyleMode.Apex;
@@ -203,6 +208,8 @@ namespace KillConfirmGameBar.Services
                     return "custommodule";
                 case GameStyleMode.Doubao:
                     return "doubao";
+                case GameStyleMode.Sanguosha:
+                    return "sanguosha";
                 case GameStyleMode.Dagoujiao:
                     return "dagoujiao";
                 case GameStyleMode.Csol:
@@ -245,6 +252,8 @@ namespace KillConfirmGameBar.Services
                     return "custommodule";
                 case GameStyleMode.Doubao:
                     return "doubao";
+                case GameStyleMode.Sanguosha:
+                    return "sanguosha";
                 case GameStyleMode.Dagoujiao:
                     return "dagoujiao";
                 case GameStyleMode.Csol:

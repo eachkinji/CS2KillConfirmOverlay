@@ -73,21 +73,10 @@ namespace KillConfirmGameBar
         private async Task<bool> TryImportTypedAudioZipAsync()
         {
             if (_providedPackZipFile == null) return false;
-            if (!UsesGenericAudioEditor)
-            {
-                bool typed = false;
-                using (var stream = await _providedPackZipFile.OpenStreamForReadAsync())
-                using (var archive = new ZipArchive(stream, ZipArchiveMode.Read))
-                {
-                    foreach (var entry in archive.Entries.Where(e => string.Equals(Path.GetFileName(e.FullName), "manifest.json", StringComparison.OrdinalIgnoreCase)))
-                    {
-                        using (var reader = new StreamReader(entry.Open()))
-                            if (JsonObject.TryParse(await reader.ReadToEndAsync(), out JsonObject json)
-                                && PackCatalogService.TryParseAudioKind(json.GetNamedString("audio_kind", ""), out _)) { typed = true; break; }
-                    }
-                }
-                if (!typed) return false;
-            }
+            var classification = await ReadPackImportClassificationAsync(_providedPackZipFile);
+            classification.Validate(GameStyleService.ToStorageValue(SettingsGameStyle), true);
+            bool typed = PackCatalogService.TryParseAudioKind(classification.AudioKind, out AudioPackKind declared);
+            if (!UsesGenericAudioEditor && !typed) return false;
             var extracted = await ExtractZipToTemporaryFolderAsync(_providedPackZipFile);
             try
             {
@@ -109,9 +98,21 @@ namespace KillConfirmGameBar
                     return true;
                 }
                 var manifest = JsonObject.Parse(await FileIO.ReadTextAsync(await folder.GetFileAsync("manifest.json")));
-                bool typed = PackCatalogService.TryParseAudioKind(manifest.GetNamedString("audio_kind", ""), out AudioPackKind declared);
-                if (!typed && !UsesGenericAudioEditor) return false;
-                await PackCatalogService.ImportAudioManifestPackAsync(folder, SettingsGameStyle, ActiveAudioPackKind);
+                // Keep native keys/associations when routing old packages whose
+                // package_kind predates audio_kind. No wrong-library copy.
+                string packageKind = manifest.GetNamedString("package_kind", "");
+                bool explicitKind = PackCatalogService.TryParseAudioKind(manifest.GetNamedString("audio_kind", ""), out _);
+                if (!explicitKind && string.Equals(packageKind, "valorant_voice", StringComparison.OrdinalIgnoreCase))
+                {
+                    await ValorantExternalAssetService.InstallPackageAsync(folder, ValorantExternalAssetService.VoicePackageKind);
+                    await PackCatalogService.RefreshValorantExternalPacksAsync();
+                }
+                else if (!explicitKind && string.Equals(packageKind, "crossfire_voice", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (!await CrossfireExternalAssetService.TryInstallAsync(folder, true))
+                        throw new InvalidDataException("无效的 CF 语音包 / Invalid Crossfire voice pack.");
+                }
+                else await PackCatalogService.ImportAudioManifestPackAsync(folder, SettingsGameStyle, ActiveAudioPackKind);
                 if (typed && declared != ActiveAudioPackKind)
                 {
                     _packImportNotes.Add(_providedPackZipFile.Name + (LocalizationManager.Current == UiLanguage.SimplifiedChinese

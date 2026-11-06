@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Numerics;
@@ -29,20 +29,23 @@ namespace KillConfirmCompatibility.Controls
             int roundNumber,
             int moneyEpoch)
         {
-            string normalizedEventKind = NormalizeBattlefieldEventKind(isAssist, eventKind);
-            PrepareBattlefield2042HudPlayback();
-            AddBattlefield2042Event(
-                Math.Max(0, killCount),
-                isHeadshot,
-                isKnifeKill,
-                isGrenadeKill,
-                isAssist,
-                playerName,
-                string.IsNullOrWhiteSpace(weaponLabel) ? string.Empty : ResolveBattlefieldWeaponName(weaponLabel),
-                NormalizeBattlefieldMoneyReward(moneyReward),
-                normalizedEventKind,
-                Math.Max(0, roundNumber),
-                Math.Max(0, moneyEpoch));
+            QueuePreparedPlayback("Battlefield2042", () =>
+            {
+                string normalizedEventKind = NormalizeBattlefieldEventKind(isAssist, eventKind);
+                PrepareBattlefield2042HudPlayback();
+                AddBattlefield2042Event(
+                    Math.Max(0, killCount),
+                    isHeadshot,
+                    isKnifeKill,
+                    isGrenadeKill,
+                    isAssist,
+                    playerName,
+                    string.IsNullOrWhiteSpace(weaponLabel) ? string.Empty : ResolveBattlefieldWeaponName(weaponLabel),
+                    NormalizeBattlefieldMoneyReward(moneyReward),
+                    normalizedEventKind,
+                    Math.Max(0, roundNumber),
+                    Math.Max(0, moneyEpoch));
+            });
         }
         private async Task PreloadBattlefield2042AnimationsAsync(IProgress<int> progress)
         {
@@ -63,13 +66,8 @@ namespace KillConfirmCompatibility.Controls
             progress?.Report(0);
             for (int i = 0; i < files.Length; i++)
             {
-                try
-                {
-                    await LoadBattlefield2042IconAsync(files[i]);
-                }
-                catch
-                {
-                }
+                if (await LoadBattlefield2042IconAsync(files[i]) == null)
+                    throw new InvalidOperationException("Battlefield 2042 icon could not be prepared: " + files[i]);
 
                 int percent = (int)Math.Round((i + 1) * 100.0 / files.Length);
                 progress?.Report(Math.Max(1, Math.Min(100, percent)));
@@ -89,6 +87,12 @@ namespace KillConfirmCompatibility.Controls
                 Battlefield2042IconCache.TryGetValue(cacheKey, out CanvasBitmap cached);
                 return cached;
             }
+        }
+
+        private static CanvasBitmap GetPreparedBattlefield2042Icon(string iconFileName)
+        {
+            return GetCachedBattlefield2042Icon(iconFileName)
+                ?? throw new InvalidOperationException("Battlefield 2042 icon was not preloaded: " + iconFileName);
         }
 
         private static async Task<CanvasBitmap> LoadBattlefield2042IconAsync(string iconFileName)
@@ -130,6 +134,7 @@ namespace KillConfirmCompatibility.Controls
             _isPubgHudActive = false;
             _isDeltaForceHudActive = false;
             ResetBattlefield6HudState();
+            ResetSanguoshaState();
             _isBattlefield2042HudActive = true;
             _contentSizedViewport = false;
             _isBattlefield1CompactLayoutActive = false;
@@ -160,7 +165,7 @@ namespace KillConfirmCompatibility.Controls
             }
         }
 
-        private async void AddBattlefield2042Event(
+        private void AddBattlefield2042Event(
             int killCount,
             bool isHeadshot,
             bool isKnifeKill,
@@ -238,7 +243,7 @@ namespace KillConfirmCompatibility.Controls
             CanvasBitmap icon = null;
             try
             {
-                icon = await LoadBattlefield2042IconAsync(
+                icon = GetPreparedBattlefield2042Icon(
                     GetBattlefield2042IconFileName(isHeadshot, isAssist));
             }
             catch
@@ -407,6 +412,7 @@ namespace KillConfirmCompatibility.Controls
             {
                 ResetBattlefield2042HudState();
             ResetBattlefield6HudState();
+            ResetSanguoshaState();
                 _timer.Stop();
                 _playbackClock.Stop();
                 Visibility = Windows.UI.Xaml.Visibility.Collapsed;

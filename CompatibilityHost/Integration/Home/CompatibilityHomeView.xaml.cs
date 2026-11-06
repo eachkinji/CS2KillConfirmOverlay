@@ -35,7 +35,8 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         private string _lastRefreshError, _actionNotice, _gsiSummary, _displaySummary, _serviceSummary;
         private DateTimeOffset _actionNoticeUntil;
         internal Action OpenGameSettings { get; set; }
-        internal bool CanPreview => _packSelectorsInitialized && !_testInProgress;
+        internal bool CanPreview => _packSelectorsInitialized && !_testInProgress
+            && IsPreviewPrepared(CompatibilityDisplayRuntime.Load(), CompatibilityDisplayRuntime.ReadStatus());
         internal bool IsPreviewing => _testInProgress;
         internal event Action PreviewChanged;
         internal string PreviewFeedback => PackTestSectionView.TestFeedbackText.Text;
@@ -168,13 +169,19 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         internal void RefreshStatusNow() => RefreshStatus();
         private void RefreshStatus()
         {
-            UpdateStatusCards(CompatibilityDisplayRuntime.Load(), CompatibilityDisplayRuntime.ReadStatus(), GsiStatusMonitor.Instance.CurrentSnapshot);
-            bool enabled = CompatibilityDisplayRuntime.Load().Enabled;
-            PackTestSectionView.SendTestButton.IsEnabled = enabled && _packSelectorsInitialized && !_testInProgress;
-            PackTestSectionView.RepeatTestButton.IsEnabled = enabled && _packSelectorsInitialized && (!_testInProgress || _repeat != null);
+            var config = CompatibilityDisplayRuntime.Load();
+            var status = CompatibilityDisplayRuntime.ReadStatus();
+            UpdateStatusCards(config, status, GsiStatusMonitor.Instance.CurrentSnapshot);
+            bool ready = _packSelectorsInitialized && IsPreviewPrepared(config, status);
+            PackTestSectionView.SendTestButton.IsEnabled = ready && !_testInProgress;
+            PackTestSectionView.RepeatTestButton.IsEnabled = config.Enabled && (_repeat != null || (ready && !_testInProgress));
             bool zh = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
             ToolTipService.SetToolTip(PackTestSectionView.RepeatTestButton, _repeat != null ? (zh ? "停止循环" : "Stop repeat") : (zh ? "循环播放" : "Repeat test"));
         }
+        private static bool IsPreviewPrepared(DisplayConfiguration config, DisplayStatus status)
+            => config.Enabled && CompatibilityDisplayRuntime.IsRunning(status) && !status.Loading
+                && status.Style == GameStyleService.ToStorageValue(GameStyleService.Current)
+                && status.AssetRevision == config.AssetRevision && string.IsNullOrWhiteSpace(status.Error);
         private void UpdateStatusCards(DisplayConfiguration config, DisplayStatus status, GsiStatusSnapshot gsi)
         {
             bool zh = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
@@ -240,6 +247,8 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                 throw new InvalidOperationException(KillConfirmCompatibility.Contracts.PreviewEventSupport.UnsupportedMessage(zh));
             if (!CompatibilityDisplayRuntime.Load().Enabled) throw new InvalidOperationException(zh ? "请先在主页选择兼容显示模式。" : "Select desktop display mode on Home first.");
             if (!_packSelectorsInitialized) throw new InvalidOperationException(zh ? "素材正在加载，请稍后再测试。" : "Packs are loading. Try again shortly.");
+            if (!IsPreviewPrepared(CompatibilityDisplayRuntime.Load(), CompatibilityDisplayRuntime.ReadStatus()))
+                throw new InvalidOperationException(zh ? "图标资源尚未预载完成，请等待显示状态就绪后再测试。" : "Icon resources are not prepared yet. Wait until the display is ready before testing.");
             if (_testInProgress) return;
             _testInProgress = true;
             RefreshStatus();
@@ -249,9 +258,11 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             {
                 ShowTestFeedback(zh ? "正在准备画面与音频测试…" : "Preparing the visual and audio test…");
                 // The display host owns service registration and configuration.
-                // Queue visuals immediately; audio prepares alongside asset loading.
+                // Only publish a test after the selected configuration is prepared.
                 if (!_isPageActive || revision != _revision || !CompatibilityDisplayRuntime.Load().Enabled) return;
                 if (!await CompatibilityDisplayRuntime.EnsureStartedAsync()) throw new InvalidOperationException(zh ? "无法启动兼容显示，请点击重试服务。" : "Could not start desktop display. Retry the service.");
+                if (!IsPreviewPrepared(CompatibilityDisplayRuntime.Load(), CompatibilityDisplayRuntime.ReadStatus()))
+                    throw new InvalidOperationException(zh ? "素材配置已变更，请等待预载完成后重试。" : "The pack configuration changed. Wait for preparation before testing.");
                 long request = 0;
                 CompatibilityDisplayRuntime.Update(c => { c.TestPreset = preset; c.TestAudio = true; c.TestRequest = request = Math.Max(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), c.TestRequest + 1); });
                 var deadline = DateTimeOffset.UtcNow.AddSeconds(40);

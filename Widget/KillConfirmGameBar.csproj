@@ -140,6 +140,7 @@
     <Compile Include="..\Common\CalabiyauPackage.cs" Link="Services\Runtime\CalabiyauPackage.cs" />
     <Compile Include="..\Common\CalabiyauClip.cs" Link="Services\Runtime\CalabiyauClip.cs" />
     <Compile Include="..\Common\PreviewEventSupport.cs" Link="Services\Runtime\PreviewEventSupport.cs" />
+    <Compile Include="..\Common\PackImportClassification.cs" Link="Services\Runtime\PackImportClassification.cs" />
     <Compile Include="Services\CustomModule\CustomSequenceFormat.cs" />
     <Compile Include="Services\CustomModule\CustomSequencePackService.cs" />
     <Compile Include="Services\CustomModule\CustomSequencePackService.Editing.cs" />
@@ -870,6 +871,20 @@
     <Compile Include="Pages\KillConfirmWidget\Animation\KillConfirmWidgetPage.Animation.Battlefield.cs" />
     <Compile Include="Controls\Animations\Battlefield6\Battlefield6Animation.Drawing.cs" />
     <Compile Include="Controls\Animations\Battlefield6\Battlefield6Animation.Render.cs" />
+    <!-- Sanguosha (三国杀): original Spine broadcast replay, self-contained files -->
+    <Compile Include="..\Common\SanguoshaClip.cs" Link="Services\Runtime\SanguoshaClip.cs" />
+    <Compile Include="Services\Styling\GameStyleService.Sanguosha.cs" />
+    <Compile Include="Services\Styling\GameThemePalette.Sanguosha.cs" />
+    <Compile Include="Controls\Animations\Sanguosha\SanguoshaAnimation.Data.cs" />
+    <Compile Include="Controls\Animations\Sanguosha\SanguoshaAnimation.Resources.cs" />
+    <Compile Include="Controls\Animations\Sanguosha\SanguoshaAnimation.Playback.cs" />
+    <Compile Include="Controls\Animations\Sanguosha\SanguoshaAnimation.Render.cs" />
+    <Compile Include="Controls\Animations\Sanguosha\SanguoshaFrameRenderer.cs" />
+    <Page Include="Controls\GameStyles\Sanguosha\SanguoshaAdvancedEffectsPanel.xaml"><Generator>MSBuild:Compile</Generator><SubType>Designer</SubType></Page>
+    <Compile Include="Controls\GameStyles\Sanguosha\SanguoshaAdvancedEffectsPanel.xaml.cs" />
+    <Compile Include="Pages\KillConfirmWidget\Animation\KillConfirmWidgetPage.Animation.Sanguosha.cs" />
+    <Compile Include="Pages\KillConfirmWidget\GameStyles\KillConfirmWidgetPage.GameStyle.Sanguosha.cs" />
+    <Compile Include="Pages\Main\Appearance\MainPage.Sanguosha.cs" />
   </ItemGroup>
 
   <PropertyGroup>

@@ -20,7 +20,8 @@ namespace KillConfirmGameBar.Services
         Dagoujiao,
         CustomModule,
         Battlefield6,
-        Calabiyau
+        Calabiyau,
+        Sanguosha
     }
 
     internal static partial class GameStyleService
@@ -81,6 +82,8 @@ namespace KillConfirmGameBar.Services
                     return "doubao";
                 case GameStyleMode.Dagoujiao:
                     return "dagoujiao";
+                case GameStyleMode.Sanguosha:
+                    return "sanguosha";
                 case GameStyleMode.Csol:
                     return "csol";
                 case GameStyleMode.Crossfire:
@@ -123,6 +126,8 @@ namespace KillConfirmGameBar.Services
                     return "豆包";
                 case GameStyleMode.Dagoujiao:
                     return "大狗叫";
+                case GameStyleMode.Sanguosha:
+                    return "三国杀";
                 case GameStyleMode.Csol:
                     return "CSOL";
                 case GameStyleMode.Crossfire:
@@ -184,6 +189,10 @@ namespace KillConfirmGameBar.Services
                 case "dagoujiao":
                 case "大狗叫":
                     return GameStyleMode.Dagoujiao;
+                case "sanguosha":
+                case "三国杀":
+                case "sgs":
+                    return GameStyleMode.Sanguosha;
                 case "csol":
                     return GameStyleMode.Csol;
                 case "crossfire":
@@ -373,6 +382,7 @@ namespace KillConfirmGameBar.Services
                 || IsPubgKey(key)
                 || IsDeltaForceKey(key)
                 || IsDoubaoKey(key)
+                || IsSanguoshaKey(key)
                 || IsOverwatchKey(key)
                 || IsModernWarfare2019Key(key)
                 || IsApexKey(key);

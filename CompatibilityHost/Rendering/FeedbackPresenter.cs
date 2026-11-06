@@ -43,8 +43,7 @@ namespace KillConfirmCompatibility
                 if (GetSelectedIconPack() != pack || requestStyle != GameStyleService.Current) return;
                 KillConfirmAnimation.ConfigureCustomPackOverlayCapabilities(item?.HasKillFxOverlay == true, item?.HasEliteOverlay == true, item?.HasWeaponBadgeOverlay == true);
                 KillConfirmAnimation.ConfigureKillFxMode(values["KillFxEnabled"] is int fx ? fx : imported ? (item?.HasKillFxOverlay == true ? 1 : 0) : 1);
-                if (requestStyle == GameStyleMode.Calabiyau)
-                    await LowerFeedbackAnimation.PreloadCurrentPackAnimationsAsync(null);
+                await LowerFeedbackAnimation.PreloadCurrentPackAnimationsAsync(null);
                 ConfigurationError = GameStyleService.Current == GameStyleMode.Crossfire && await PackCatalogService.GetImportedIconFolderAsync(pack) == null
                     ? "当前 CF 图标包未安装，请在图标库导入资源包。" : null;
             }

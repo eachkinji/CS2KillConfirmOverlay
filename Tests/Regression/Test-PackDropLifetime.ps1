@@ -40,6 +40,7 @@ class DragEventArgs {
  public Deferral GetDeferral() => Deferral;
 }
 public class DropRegression {
+ string ActiveAudioPackLabel => "音效包";
  bool _packZipDropInProgress;
  DragEventArgs current;
  int imports, errors;

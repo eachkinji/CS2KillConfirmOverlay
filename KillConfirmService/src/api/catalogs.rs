@@ -101,6 +101,22 @@ const SOUND_PACK_OPTIONS: &[SoundPackOption] = &[
         display_name: "豆包",
     },
     SoundPackOption {
+        preset: "sanguosha",
+        display_name: "三国杀 · 十周年连破播报",
+    },
+    SoundPackOption {
+        preset: "sanguosha_general",
+        display_name: "三国杀 · 神将与界徐盛台词",
+    },
+    SoundPackOption {
+        preset: "sanguosha_zzq",
+        display_name: "三国杀 · 自走棋与乱武语音",
+    },
+    SoundPackOption {
+        preset: "sanguosha_card",
+        display_name: "三国杀 · 经典杀闪与神兵音效",
+    },
+    SoundPackOption {
         preset: "csol4",
         display_name: "CSOL 10杀",
     },

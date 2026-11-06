@@ -257,6 +257,9 @@ namespace KillConfirmCompatibility
                 case GameStyleMode.Doubao:
                     PlayDoubaoPrimaryAnimation(killEvent);
                     return;
+                case GameStyleMode.Sanguosha:
+                    PlaySanguoshaPrimaryAnimation(killEvent);
+                    return;
                 case GameStyleMode.Dagoujiao:
                     PlayDagoujiaoPrimaryAnimation(killEvent);
                     return;

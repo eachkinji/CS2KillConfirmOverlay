@@ -17,24 +17,14 @@ namespace KillConfirmGameBar.Controls
             progress?.Report(0);
             for (int killCount = 1; killCount <= 5; killCount++)
             {
-                try
-                {
-                    await LoadDoubaoKillBitmapAsync(killCount);
-                }
-                catch
-                {
-                }
+                if (await LoadDoubaoKillBitmapAsync(killCount) == null)
+                    throw new System.IO.InvalidDataException("Doubao image could not be prepared.");
 
                 progress?.Report(killCount * 18);
             }
 
-            try
-            {
-                await LoadDoubaoFlashBitmapAsync();
-            }
-            catch
-            {
-            }
+            if (await LoadDoubaoFlashBitmapAsync() == null)
+                throw new System.IO.InvalidDataException("Doubao flash could not be prepared.");
             progress?.Report(100);
         }
 
@@ -77,6 +67,13 @@ namespace KillConfirmGameBar.Controls
                 DoubaoKillCache[cacheKey] = loaded;
                 return loaded;
             }
+        }
+
+        private static CanvasBitmap GetPreparedDoubaoKillBitmap(int killCount)
+        {
+            int normalized = Math.Max(1, Math.Min(5, killCount));
+            lock (DoubaoKillCache)
+                return DoubaoKillCache.TryGetValue($"{normalized}:{_iconPack}", out CanvasBitmap bitmap) ? bitmap : null;
         }
 
         // The flash overlay is a single shared asset (not per-icon-pack), so it is cached

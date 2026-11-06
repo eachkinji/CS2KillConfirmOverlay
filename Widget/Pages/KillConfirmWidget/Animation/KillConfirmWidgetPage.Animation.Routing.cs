@@ -283,6 +283,17 @@ namespace KillConfirmGameBar
 
             try
             {
+                // Configuration starts preparation. A test may wait for that work,
+                // but must never create a load on its playback path.
+                int preloadToken = _animationPreloadToken;
+                if (LowerFeedbackAnimation == null || (!LowerFeedbackAnimation.IsCurrentPackPreloaded
+                    && !LowerFeedbackAnimation.IsCurrentPackPreloading))
+                {
+                    ShowStatusHint(LocalizationManager.Text(_animationCacheFailed ? "AnimationCacheFailed" : "AnimationCacheLoading"), GameThemePalette.Current.Accent);
+                    return;
+                }
+                await LowerFeedbackAnimation.WaitForCurrentPackPreloadAsync();
+                if (!_isPageActive || preloadToken != _animationPreloadToken || !LowerFeedbackAnimation.IsCurrentPackPreloaded) return;
                 await EnsureServiceAvailableAsync();
                 if (!await WaitForKillEventConnectionAsync(TimeSpan.FromSeconds(3)))
                 {
@@ -291,6 +302,8 @@ namespace KillConfirmGameBar
                 }
 
                 await SyncSelectedVoicePackAsync();
+
+                if (!_isPageActive || preloadToken != _animationPreloadToken || !LowerFeedbackAnimation.IsCurrentPackPreloaded) return;
 
                 using (var client = await LocalServiceAuth.CreateHttpClientAsync())
                 using (HttpResponseMessage response = await client.GetAsync(new Uri(BuildTestEventUri(preset))))

@@ -23,7 +23,7 @@ namespace KillConfirmCompatibility.Controls
                 case KillFxMode.Off:
                     return null;
                 case KillFxMode.Original:
-                    return await LoadCodeKillBitmapAsync(fileName, folder, null, false, false);
+                    return await LoadCodeKillBitmapAsync(fileName, folder, null, false, false, optional: true);
                 case KillFxMode.Pack:
                 default:
                     if (PackCatalogService.IsImportedIconPackKey(_iconPack))
@@ -31,7 +31,7 @@ namespace KillConfirmCompatibility.Controls
                         return await TryLoadImportedIconBitmapAsync(fileName);
                     }
 
-                    return await LoadCodeKillBitmapAsync(fileName, folder, null, false);
+                    return await LoadCodeKillBitmapAsync(fileName, folder, null, false, optional: true);
             }
         }
 
@@ -241,7 +241,7 @@ namespace KillConfirmCompatibility.Controls
         private static async Task<CanvasBitmap> LoadBitmapFromApplicationUriAsync(string uriText)
         {
             var uri = new Uri(uriText);
-            StorageFile file = await Desktop.Runtime.DesktopStorage.AssetFileAsync(uri);
+            StorageFile file = await KillConfirmCompatibility.Desktop.Runtime.DesktopStorage.AssetFileAsync(uri);
             return await LoadBitmapFromStorageFileAsync(file);
         }
 

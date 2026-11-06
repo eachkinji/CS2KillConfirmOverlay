@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using Microsoft.Graphics.Canvas;
@@ -11,7 +11,7 @@ namespace KillConfirmGameBar.Controls
 {
     public sealed partial class KillConfirmAnimation
     {
-        private async void QueueBattlefield5ScrollingKill(
+        private void QueueBattlefield5ScrollingKill(
             int killCount,
             bool isHeadshot,
             bool isKnifeKill,
@@ -23,14 +23,49 @@ namespace KillConfirmGameBar.Controls
             int roundNumber,
             int moneyEpoch)
         {
-            int generation = _battlefield5Generation;
-            int killType = ResolveBattlefieldKillType(isHeadshot, isKnifeKill, isAssist);
-            string normalizedEventKind = NormalizeBattlefieldEventKind(isAssist, eventKind);
-            if (IsBattlefieldTextOnlyEvent(isAssist, normalizedEventKind))
+            QueuePreparedPlayback("Battlefield5", () =>
             {
-                AddBattlefield5TextEvent(new Battlefield5ScrollIcon(
+                int generation = _battlefield5Generation;
+                int killType = ResolveBattlefieldKillType(isHeadshot, isKnifeKill, isAssist);
+                string normalizedEventKind = NormalizeBattlefieldEventKind(isAssist, eventKind);
+                if (IsBattlefieldTextOnlyEvent(isAssist, normalizedEventKind))
+                {
+                    AddBattlefield5TextEvent(new Battlefield5ScrollIcon(
+                        killType,
+                        null,
+                        Battlefield5DisplaySeconds * 1000,
+                        Math.Max(0, killCount),
+                        string.IsNullOrWhiteSpace(playerName) ? string.Empty : playerName.Trim(),
+                        ResolveBattlefieldWeaponName(weaponLabel),
+                        Math.Max(0, moneyReward),
+                        normalizedEventKind,
+                        Math.Max(0, roundNumber),
+                        Math.Max(0, moneyEpoch)),
+                        _playbackClock.IsRunning ? _playbackClock.Elapsed.TotalMilliseconds : 0);
+                    StartBattlefield5Scrolling();
+                    return;
+                }
+
+                string iconFileName = GetBattlefieldIconFileName("bf5", isHeadshot, isAssist, isKnifeKill);
+
+                CanvasBitmap icon;
+                try
+                {
+                    icon = GetPreparedBattlefieldIcon("bf5", iconFileName);
+                }
+                catch
+                {
+                    return;
+                }
+
+                if (generation != _battlefield5Generation)
+                {
+                    return;
+                }
+
+                _battlefield5ScrollState.PendingIcons.Add(new Battlefield5ScrollIcon(
                     killType,
-                    null,
+                    icon,
                     Battlefield5DisplaySeconds * 1000,
                     Math.Max(0, killCount),
                     string.IsNullOrWhiteSpace(playerName) ? string.Empty : playerName.Trim(),
@@ -38,46 +73,14 @@ namespace KillConfirmGameBar.Controls
                     Math.Max(0, moneyReward),
                     normalizedEventKind,
                     Math.Max(0, roundNumber),
-                    Math.Max(0, moneyEpoch)),
-                    _playbackClock.IsRunning ? _playbackClock.Elapsed.TotalMilliseconds : 0);
+                    Math.Max(0, moneyEpoch)));
+                if (_battlefield5ScrollState.PendingIcons.Count > Battlefield5MaxPendingIcons)
+                {
+                    _battlefield5ScrollState.PendingIcons.RemoveAt(0);
+                }
+
                 StartBattlefield5Scrolling();
-                return;
-            }
-
-            string iconFileName = GetBattlefieldIconFileName("bf5", isHeadshot, isAssist, isKnifeKill);
-
-            CanvasBitmap icon;
-            try
-            {
-                icon = await LoadBattlefieldIconAsync("bf5", iconFileName);
-            }
-            catch
-            {
-                return;
-            }
-
-            if (generation != _battlefield5Generation)
-            {
-                return;
-            }
-
-            _battlefield5ScrollState.PendingIcons.Add(new Battlefield5ScrollIcon(
-                killType,
-                icon,
-                Battlefield5DisplaySeconds * 1000,
-                Math.Max(0, killCount),
-                string.IsNullOrWhiteSpace(playerName) ? string.Empty : playerName.Trim(),
-                ResolveBattlefieldWeaponName(weaponLabel),
-                Math.Max(0, moneyReward),
-                normalizedEventKind,
-                Math.Max(0, roundNumber),
-                Math.Max(0, moneyEpoch)));
-            if (_battlefield5ScrollState.PendingIcons.Count > Battlefield5MaxPendingIcons)
-            {
-                _battlefield5ScrollState.PendingIcons.RemoveAt(0);
-            }
-
-            StartBattlefield5Scrolling();
+            });
         }
 
         private void StartBattlefield5Scrolling()
@@ -88,6 +91,7 @@ namespace KillConfirmGameBar.Controls
             _isBattlefield4HudActive = false;
             _isBattlefield2042HudActive = false;
             ResetBattlefield6HudState();
+            ResetSanguoshaState();
             _isPubgHudActive = false;
             _isDeltaForceHudActive = false;
             _currentMetadata = new SpriteMetadata
@@ -105,7 +109,6 @@ namespace KillConfirmGameBar.Controls
 
             ApplyViewportSize(BattlefieldFrameWidth, BattlefieldFrameHeight);
 
-            _playToken++;
             HideLoadingProgress();
             Visibility = Windows.UI.Xaml.Visibility.Visible;
             _timer.Interval = TimeSpan.FromMilliseconds(1000.0 / FrameSequenceFps);

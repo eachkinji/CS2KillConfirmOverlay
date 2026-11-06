@@ -6,53 +6,56 @@ namespace KillConfirmCompatibility.Controls
 {
     public sealed partial class KillConfirmAnimation
     {
-        public async void PlayBattlefield6Kill(int killCount, bool isHeadshot, bool isKnifeKill,
+        public void PlayBattlefield6Kill(int killCount, bool isHeadshot, bool isKnifeKill,
             bool isGrenadeKill, bool isAssist, string playerName, string weaponLabel,
             int moneyReward, string eventKind, int roundNumber, int moneyEpoch)
         {
-            PrepareBattlefield6HudPlayback();
-            int session = _battlefield6Session;
-            int token = _playToken;
-            int generation = _resourceGeneration;
-            string kind = NormalizeBattlefieldEventKind(isAssist, eventKind);
-            bool round = IsRoundBonusEvent(kind);
-            bool objective = IsObjectiveBonusEvent(kind);
-            var item = new Battlefield6Event
+            QueuePreparedPlayback("Battlefield6", () =>
             {
-                Headshot = isHeadshot && !isAssist && !objective && !round,
-                Rescue = kind == "hostage_rescue",
-                HasVictim = !objective && !round,
-                Victim = string.IsNullOrWhiteSpace(playerName) ? string.Empty : playerName.Trim(),
-                Label = ResolveBattlefield6Label(kind, isHeadshot, isKnifeKill, isGrenadeKill),
-                Reward = Math.Max(0, moneyReward), Round = Math.Max(0, roundNumber), Epoch = Math.Max(0, moneyEpoch)
-            };
-            _battlefield6HudState.Pending.Enqueue(item);
-            while (_battlefield6HudState.Pending.Count > Battlefield6MaxPending)
-                _battlefield6HudState.Pending.Dequeue();
-
-            try
-            {
-                if (!round)
+                PrepareBattlefield6HudPlayback();
+                int session = _battlefield6Session;
+                int token = _playToken;
+                int generation = _resourceGeneration;
+                string kind = NormalizeBattlefieldEventKind(isAssist, eventKind);
+                bool round = IsRoundBonusEvent(kind);
+                bool objective = IsObjectiveBonusEvent(kind);
+                var item = new Battlefield6Event
                 {
-                    string suffix = item.Rescue ? "medic" : objective ? "capture" : isAssist ? "assist"
-                        : isHeadshot ? "headshot" : isGrenadeKill ? "explosion" : "default";
-                    CanvasBitmap bitmap = await LoadBattlefield6IconAsync("killicon_battlefield6_" + suffix + ".png");
-                    if (!_isBattlefield6HudActive || session != _battlefield6Session
-                        || token != _playToken || generation != _resourceGeneration) return;
-                    item.Bitmap = bitmap;
+                    Headshot = isHeadshot && !isAssist && !objective && !round,
+                    Rescue = kind == "hostage_rescue",
+                    HasVictim = !objective && !round,
+                    Victim = string.IsNullOrWhiteSpace(playerName) ? string.Empty : playerName.Trim(),
+                    Label = ResolveBattlefield6Label(kind, isHeadshot, isKnifeKill, isGrenadeKill),
+                    Reward = Math.Max(0, moneyReward), Round = Math.Max(0, roundNumber), Epoch = Math.Max(0, moneyEpoch)
+                };
+                _battlefield6HudState.Pending.Enqueue(item);
+                while (_battlefield6HudState.Pending.Count > Battlefield6MaxPending)
+                    _battlefield6HudState.Pending.Dequeue();
+
+                try
+                {
+                    if (!round)
+                    {
+                        string suffix = item.Rescue ? "medic" : objective ? "capture" : isAssist ? "assist"
+                            : isHeadshot ? "headshot" : isGrenadeKill ? "explosion" : "default";
+                        CanvasBitmap bitmap = GetPreparedBattlefield6Icon("killicon_battlefield6_" + suffix + ".png");
+                        if (!_isBattlefield6HudActive || session != _battlefield6Session
+                            || token != _playToken || generation != _resourceGeneration) return;
+                        item.Bitmap = bitmap;
+                    }
+                    item.Ready = true;
+                    UpdateBattlefield6HudFrame();
                 }
-                item.Ready = true;
-                UpdateBattlefield6HudFrame();
-            }
-            catch (Exception ex)
-            {
-                if (session != _battlefield6Session || token != _playToken
-                    || generation != _resourceGeneration) return;
-                // A missing custom image must not leave the queue permanently waiting.
-                item.Ready = true;
-                App.Log("Battlefield 6 asset load failed: " + ex);
-                UpdateBattlefield6HudFrame();
-            }
+                catch (Exception ex)
+                {
+                    if (session != _battlefield6Session || token != _playToken
+                        || generation != _resourceGeneration) return;
+                    // A missing custom image must not leave the queue permanently waiting.
+                    item.Ready = true;
+                    App.Log("Battlefield 6 asset load failed: " + ex);
+                    UpdateBattlefield6HudFrame();
+                }
+            });
         }
 
         private static string ResolveBattlefield6Label(string kind, bool headshot, bool knife, bool grenade)
@@ -81,7 +84,6 @@ namespace KillConfirmCompatibility.Controls
         private void PrepareBattlefield6HudPlayback()
         {
             if (_isBattlefield6HudActive) return;
-            _playToken++;
             _battlefield6Session++;
             _battlefield6HudState.Clear();
             _customSequencePlaying = false;
@@ -96,6 +98,7 @@ namespace KillConfirmCompatibility.Controls
             ResetOverwatchState();
             ResetApexFeedState();
             ResetModernWarfare2019State();
+            ResetSanguoshaState();
             _isBattlefield6HudActive = true;
             _contentSizedViewport = false;
             _isBattlefield1CompactLayoutActive = false;

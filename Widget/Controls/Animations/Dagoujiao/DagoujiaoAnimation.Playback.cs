@@ -16,40 +16,17 @@ namespace KillConfirmGameBar.Controls
         public async void PlayDagoujiaoKill(int killCount, bool isHeadshot)
         {
             int generation = _resourceGeneration;
-            int token = ++_playToken;
-            DagoujiaoSettingsValues settings = DagoujiaoSettingsStore.Load();
-            string imageKey = DagoujiaoSettingsStore.ResolveImageKey(settings, killCount, isHeadshot);
-            double progress = DagoujiaoSettingsStore.ResolveProgress(killCount, settings.EpicKillCount);
-            double baseScale = Lerp(settings.InitialScale, settings.MaximumScale, progress);
-            if (killCount >= settings.EpicKillCount && !(isHeadshot && settings.HeadshotPriority))
-            {
-                baseScale = settings.MaximumScale;
-            }
+            int token = BeginReplacementPlayback();
 
             try
             {
-                Task<double> durationTask = DagoujiaoSettingsStore.GetPlaybackDurationMillisecondsAsync(
-                    settings,
-                    killCount,
-                    isHeadshot);
-                CanvasBitmap bitmap;
-                await PreloadGate.WaitAsync();
-                try
-                {
-                    if (generation != _resourceGeneration || token != _playToken) return;
-                    bitmap = await LoadDagoujiaoImageForKillAsync(settings, killCount, isHeadshot);
-                }
-                finally
-                {
-                    if (generation != _resourceGeneration) ReleaseAllAnimationResourceCaches();
-                    PreloadGate.Release();
-                }
-
-                if (bitmap == null || generation != _resourceGeneration || token != _playToken) return;
-                double durationMs = await durationTask;
+                await WaitForCurrentPackPreloadAsync();
                 if (generation != _resourceGeneration || token != _playToken) return;
-                PrepareDagoujiaoPlayback(bitmap, imageKey, settings.Opacity, baseScale, durationMs);
+                var prepared = GetPreparedDagoujiaoPlayback(killCount, isHeadshot);
+                if (prepared == null) return;
+                PrepareDagoujiaoPlayback(prepared.Bitmap, prepared.ImageKey, prepared.Opacity, prepared.Scale, prepared.Duration);
             }
+            catch (OperationCanceledException) { }
             catch (Exception ex)
             {
                 // A missing/invalid built-in image must be diagnosable even when
@@ -79,6 +56,7 @@ namespace KillConfirmGameBar.Controls
             ResetBattlefield4HudState();
             ResetBattlefield2042HudState();
             ResetBattlefield6HudState();
+            ResetSanguoshaState();
             ResetPubgHudState();
             ResetDeltaForceHudState();
             ResetDoubaoState();

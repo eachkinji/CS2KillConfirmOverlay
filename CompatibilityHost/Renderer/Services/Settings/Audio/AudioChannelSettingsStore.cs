@@ -233,6 +233,7 @@ namespace KillConfirmCompatibility.Services
                 case "battlefield6": case "battlefield_6": case "bf6": return "battlefield6";
                 case "delta": case "df": return "deltaforce";
                 case "doubao": case "豆包": return "doubao";
+                case "sanguosha": case "三国杀": case "sgs": return "sanguosha";
                 case "dagoujiao": case "大狗叫": return "dagoujiao";
                 default: return preset?.Trim();
             }

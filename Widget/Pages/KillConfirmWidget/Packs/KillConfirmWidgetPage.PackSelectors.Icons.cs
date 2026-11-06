@@ -25,6 +25,7 @@ namespace KillConfirmGameBar
                 return "ms-appx:///Assets/GameLogos/custommodule.png";
             }
             if (GameStyleService.IsCustomModuleKey(key)) return null;
+            if (GameStyleService.IsSanguoshaKey(key)) return GameStyleService.SanguoshaPreviewUri(key);
             if (ValorantPackService.IsValorantPackKey(key))
             {
                 return GetValorantPackIconUri(key);
@@ -64,6 +65,8 @@ namespace KillConfirmGameBar
                     return "ms-appx:///Assets/GameLogos/calabiyau.png";
                 case "doubao":
                     return "ms-appx:///Assets/GameLogos/doubao.png";
+                case "sanguosha":
+                    return "ms-appx:///Assets/GameLogos/sanguosha.png";
                 case "dagoujiao":
                     return "ms-appx:///Assets/GameLogos/dagoujiao.jpg";
                 case "dagoujiao_animals":
@@ -106,6 +109,8 @@ namespace KillConfirmGameBar
                     return "卡拉彼丘（无音效）";
                 case "doubao":
                     return "豆包";
+                case "sanguosha":
+                    return "三国杀";
                 case "dagoujiao":
                     return "大狗叫";
                 case "overwatch":
@@ -147,6 +152,8 @@ namespace KillConfirmGameBar
                     return "卡拉彼丘 · 默认击杀";
                 case "doubao":
                     return "豆包";
+                case "sanguosha":
+                    return "三国杀";
                 case "dagoujiao":
                     return "大狗叫";
                 case "overwatch":

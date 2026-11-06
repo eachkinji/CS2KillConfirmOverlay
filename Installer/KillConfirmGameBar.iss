@@ -2,7 +2,7 @@
 #define MyAppExeName "Install-KillConfirm.ps1"
 
 #ifndef MyAppVersion
-  #define MyAppVersion "4.5.1.0"
+  #define MyAppVersion "5.9.0.0"
 #endif
 
 #ifndef TransferRoot
@@ -35,6 +35,8 @@
 AppId={{E0DF6407-CB2E-43D0-8B51-8C8924F50AA1}
 AppName={cm:InstallerDisplayName}
 AppVersion={#MyAppVersion}
+VersionInfoVersion={#MyAppVersion}
+VersionInfoProductVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
 DefaultDirName={autopf}\Kill Confirm Overlay
 AppendDefaultDirName=no

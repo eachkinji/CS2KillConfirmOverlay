@@ -198,6 +198,9 @@
                         <NavigationViewItem AutomationProperties.Name="豆包" Tag="doubao" Content="豆包" ToolTipService.ToolTip="豆包">
                             <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/doubao.png" /></NavigationViewItem.Icon>
                         </NavigationViewItem>
+                        <NavigationViewItem AutomationProperties.Name="三国杀" Tag="sanguosha" Content="三国杀" ToolTipService.ToolTip="三国杀">
+                            <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/sanguosha.png" /></NavigationViewItem.Icon>
+                        </NavigationViewItem>
                         <NavigationViewItem AutomationProperties.Name="大狗叫" Tag="dagoujiao" Content="大狗叫" ToolTipService.ToolTip="大狗叫">
                             <NavigationViewItem.Icon><BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/GameLogos/dagoujiao.jpg" /></NavigationViewItem.Icon>
                         </NavigationViewItem>
@@ -283,6 +286,7 @@
                                 <ComboBoxItem x:Name="PubgStyleItem" Tag="pubg">PUBG (绝地求生)</ComboBoxItem>
                                 <ComboBoxItem x:Name="DeltaForceStyleItem" Tag="deltaforce">Delta Force (三角洲行动)</ComboBoxItem>
                                 <ComboBoxItem x:Name="DoubaoStyleItem" Tag="doubao">Doubao (豆包)</ComboBoxItem>
+                                <ComboBoxItem x:Name="SanguoshaStyleItem" Tag="sanguosha">Sanguosha (三国杀)</ComboBoxItem>
                                 <ComboBoxItem x:Name="DagoujiaoStyleItem" Tag="dagoujiao">Big Dog Bark (大狗叫)</ComboBoxItem>
                                 <ComboBoxItem x:Name="CalabiyauStyleItem" Tag="calabiyau">卡拉彼丘 / Strinova</ComboBoxItem>
                                 <ComboBoxItem x:Name="CustomModuleStyleItem" Tag="custommodule">自定义</ComboBoxItem>

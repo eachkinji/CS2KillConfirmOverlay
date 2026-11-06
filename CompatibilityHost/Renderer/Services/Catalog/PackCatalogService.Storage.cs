@@ -49,6 +49,7 @@ namespace KillConfirmCompatibility.Services
                 CrossfireExternalAssetService.RefreshCatalog(_cache);
                 CalabiyauExternalAssetService.RefreshCatalog(_cache);
                 mustSave |= RefreshBuiltInMetadata(_cache);
+                mustSave |= RefreshSanguoshaBuiltInMetadata(_cache);
                 mustSave |= MigrateAudioPackMetadata(_cache);
                 mustSave |= RemoveRetiredBuiltIns(_cache);
                 ApplyVisibilityOverrides(_cache);
@@ -123,6 +124,10 @@ namespace KillConfirmCompatibility.Services
                     CreateBuiltInVoice("deltaforce", "Delta Force", true),
                     CreateBuiltInVoice("calabiyau", "默认击杀", true),
                     CreateBuiltInVoice("doubao", "豆包", true),
+                    CreateBuiltInVoice("sanguosha", "三国杀 · 十周年连破播报", true),
+                    CreateBuiltInVoice(GameStyleService.SanguoshaGeneralVoicePackKey, "三国杀 · 神将与界徐盛台词", true),
+                    CreateBuiltInVoice(GameStyleService.SanguoshaZzqPackKey, "三国杀 · 自走棋与乱武语音", true),
+                    CreateBuiltInVoice(GameStyleService.SanguoshaCardVoicePackKey, "三国杀 · 经典杀闪与神兵音效", true),
                     CreateBuiltInVoice("dagoujiao", "大狗叫", true),
                     CreateBuiltInVoice(DagoujiaoAnimalsPackKey, "Animals", true),
                     CreateBuiltInVoice("overwatch", "OverWatch", true),
@@ -143,6 +148,11 @@ namespace KillConfirmCompatibility.Services
                     CreateBuiltInIcon("deltaforce", "Delta Force", true),
                     CreateBuiltInIcon("calabiyau", "卡拉彼丘 · 默认击杀", true),
                     CreateBuiltInIcon("doubao", "豆包", true),
+                    CreateBuiltInIcon("sanguosha", "三国杀 · 十周年连破播报", true),
+                    CreateBuiltInIcon(GameStyleService.SanguoshaGuanjiePackKey, "三国杀 · 官阶七阶神兵", true),
+                    CreateBuiltInIcon(GameStyleService.SanguoshaZzqPackKey, "三国杀 · 自走棋与乱武", true),
+                    CreateBuiltInIcon(GameStyleService.SanguoshaBadgePackKey, "三国杀 · 紧凑无框徽章", true),
+                    CreateBuiltInIcon(GameStyleService.SanguoshaEquipPackKey, "三国杀 · 神兵装备与印章", true),
                     CreateBuiltInIcon("dagoujiao", "大狗叫", true),
                     CreateBuiltInIcon(DagoujiaoAnimalsPackKey, "Animals", true),
                     CreateBuiltInIcon("overwatch", "OverWatch", true),
@@ -357,6 +367,16 @@ namespace KillConfirmCompatibility.Services
                 changed = true;
             }
 
+            return changed;
+        }
+
+        private static bool RefreshSanguoshaBuiltInMetadata(PackCatalog catalog)
+        {
+            bool changed = false;
+            var sgsVoice = catalog.VoicePacks.FirstOrDefault(p => p.IsBuiltIn && string.Equals(p.Key, "sanguosha", StringComparison.OrdinalIgnoreCase));
+            if (sgsVoice != null && sgsVoice.DisplayName != "三国杀 · 十周年连破播报") { sgsVoice.DisplayName = "三国杀 · 十周年连破播报"; changed = true; }
+            var sgsIcon = catalog.IconPacks.FirstOrDefault(p => p.IsBuiltIn && string.Equals(p.Key, "sanguosha", StringComparison.OrdinalIgnoreCase));
+            if (sgsIcon != null && sgsIcon.DisplayName != "三国杀 · 十周年连破播报") { sgsIcon.DisplayName = "三国杀 · 十周年连破播报"; changed = true; }
             return changed;
         }
 

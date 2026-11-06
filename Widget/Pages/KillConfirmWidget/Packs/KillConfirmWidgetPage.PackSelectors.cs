@@ -332,6 +332,8 @@ namespace KillConfirmGameBar
                     return SharedResources.CachedAssetUri("Assets/GameLogos/calabiyau.png");
                 case "doubao":
                     return SharedResources.CachedAssetUri("Assets/GameLogos/doubao.png");
+                case "sanguosha":
+                    return SharedResources.CachedAssetUri(GameStyleService.SanguoshaPreviewAssetPath(key));
                 case "dagoujiao":
                     return SharedResources.CachedAssetUri("Assets/GameLogos/dagoujiao.jpg");
                 case "dagoujiao_animals":
@@ -370,6 +372,8 @@ namespace KillConfirmGameBar
                     return SharedResources.CachedAssetUri("Assets/GameStyles/deltaforce/killconfirm/textures/killicon_df_default.png");
                 case GameStyleMode.Doubao:
                     return SharedResources.CachedAssetUri("Assets/GameLogos/doubao.png");
+                case GameStyleMode.Sanguosha:
+                    return SharedResources.CachedAssetUri(GameStyleService.SanguoshaPreviewAssetPath(key));
                 case GameStyleMode.Dagoujiao:
                     return SharedResources.CachedAssetUri("Assets/GameLogos/dagoujiao.jpg");
                 case GameStyleMode.Overwatch:

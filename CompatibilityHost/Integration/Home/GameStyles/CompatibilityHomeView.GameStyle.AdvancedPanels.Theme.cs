@@ -89,6 +89,11 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                 _doubaoAdvancedEffectsPanel.ApplyTheme(theme);
             }
 
+            if (_sanguoshaAdvancedEffectsPanel != null)
+            {
+                _sanguoshaAdvancedEffectsPanel.ApplyTheme(theme);
+            }
+
             if (_dagoujiaoAdvancedEffectsPanel != null)
             {
                 _dagoujiaoAdvancedEffectsPanel.ApplyTheme(theme);
@@ -172,6 +177,11 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             if (_doubaoAdvancedEffectsPanel != null)
             {
                 _doubaoAdvancedEffectsPanel.ApplyLanguage(isChinese);
+            }
+
+            if (_sanguoshaAdvancedEffectsPanel != null)
+            {
+                _sanguoshaAdvancedEffectsPanel.ApplyLanguage(isChinese);
             }
 
             if (_dagoujiaoAdvancedEffectsPanel != null)

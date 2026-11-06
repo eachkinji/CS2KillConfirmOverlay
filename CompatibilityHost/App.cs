@@ -81,11 +81,38 @@ namespace KillConfirmCompatibility
                 };
                 application.Run(); return;
             }
+            if ((args.Length == 3 || args.Length == 4) && args[0] == "--validate-sanguosha")
+            {
+                application.Startup += async (s, e) =>
+                {
+                    try { await Validation.SanguoshaValidation.RunAsync(args[1], args[2], args.Length == 4 ? args[3] : null); application.Shutdown(0); }
+                    catch (Exception error) { Directory.CreateDirectory(args[1]); File.WriteAllText(Path.Combine(args[1], "failure.txt"), error.ToString()); application.Shutdown(1); }
+                };
+                application.Run(); return;
+            }
             if (args.Length == 3 && args[0] == "--validate-battlefield6")
             {
                 application.Startup += async (s, e) =>
                 {
                     try { await Validation.Battlefield6Validation.RunAsync(args[1], args[2]); application.Shutdown(0); }
+                    catch (Exception error) { Directory.CreateDirectory(args[1]); File.WriteAllText(Path.Combine(args[1], "failure.txt"), error.ToString()); application.Shutdown(1); }
+                };
+                application.Run(); return;
+            }
+            if (args.Length == 3 && args[0] == "--validate-builtin-preloading")
+            {
+                application.Startup += async (s, e) =>
+                {
+                    try { await Controls.KillConfirmAnimation.ValidateBuiltinPreloadingAsync(args[1], args[2]); application.Shutdown(0); }
+                    catch (Exception error) { Directory.CreateDirectory(args[1]); File.WriteAllText(Path.Combine(args[1], "failure.txt"), error.ToString()); application.Shutdown(1); }
+                };
+                application.Run(); return;
+            }
+            if (args.Length == 3 && args[0] == "--validate-animation-replacement")
+            {
+                application.Startup += async (s, e) =>
+                {
+                    try { await Controls.KillConfirmAnimation.ValidateAnimationReplacementAsync(args[1], args[2]); application.Shutdown(0); }
                     catch (Exception error) { Directory.CreateDirectory(args[1]); File.WriteAllText(Path.Combine(args[1], "failure.txt"), error.ToString()); application.Shutdown(1); }
                 };
                 application.Run(); return;

@@ -10,12 +10,13 @@ namespace KillConfirmGameBar.Controls
 {
     public sealed partial class KillConfirmAnimation
     {
-        private async Task<AnimationAsset> LoadCsolKillAssetAsync(int killCount, string specialKey, IProgress<int> progress = null)
+        private async Task<AnimationAsset> LoadCsolKillAssetAsync(int killCount, string specialKey, IProgress<int> progress = null, bool requireCached = false)
         {
             string normalizedSpecialKey = (specialKey ?? string.Empty).Trim().ToLowerInvariant();
             string cacheKey = (_iconPack ?? "csol4") + ":csol4";
             if (!CsolKillCache.TryGetValue(cacheKey, out CsolKillAsset baseAsset))
             {
+                if (requireCached) throw new InvalidOperationException("CSOL resources were not preloaded.");
                 StorageFolder customFolder = null;
                 if (PackCatalogService.IsImportedIconPackKey(_iconPack))
                 {

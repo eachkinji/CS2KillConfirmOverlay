@@ -90,6 +90,11 @@ namespace KillConfirmGameBar.Controls
                 DrawDoubaoFrame(drawingSession);
                 return;
             }
+            if (_isSanguoshaActive)
+            {
+                DrawSanguoshaFrame(drawingSession);
+                return;
+            }
             if (_isDagoujiaoActive)
             {
                 DrawDagoujiaoFrame(drawingSession);
@@ -363,6 +368,12 @@ namespace KillConfirmGameBar.Controls
             if (_isDoubaoActive)
             {
                 UpdateDoubaoFrame();
+                return;
+            }
+
+            if (_isSanguoshaActive)
+            {
+                UpdateSanguoshaFrame();
                 return;
             }
 

@@ -261,6 +261,8 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                     return "ms-appx:///Assets/GameLogos/calabiyau.png";
                 case "doubao":
                     return "ms-appx:///Assets/GameLogos/doubao.png";
+                case "sanguosha":
+                    return GameStyleService.SanguoshaPreviewUri(key);
                 case "dagoujiao":
                     return "ms-appx:///Assets/GameLogos/dagoujiao.jpg";
                 case "dagoujiao_animals":
@@ -299,6 +301,8 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                     return "ms-appx:///Assets/GameStyles/deltaforce/killconfirm/textures/killicon_df_default.png";
                 case GameStyleMode.Doubao:
                     return "ms-appx:///Assets/GameLogos/doubao.png";
+                case GameStyleMode.Sanguosha:
+                    return GameStyleService.SanguoshaPreviewUri(key);
                 case GameStyleMode.Dagoujiao:
                     return "ms-appx:///Assets/GameLogos/dagoujiao.jpg";
                 case GameStyleMode.Overwatch:

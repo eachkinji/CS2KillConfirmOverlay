@@ -527,6 +527,13 @@ impl PackManifest {
             return entries;
         }
 
+        if self.is_sanguosha_style() {
+            if let Some(slot) = self.sanguosha_audio_slot(ctx) {
+                push_slot(&mut entries, &slot, None);
+            }
+            return entries;
+        }
+
         if game_style.eq_ignore_ascii_case("calabiyau") {
             if ctx.event_channel != EventChannel::Combat || ctx.is_assist
                 || !ctx.play_main_audio || ctx.kill_count < 1 {

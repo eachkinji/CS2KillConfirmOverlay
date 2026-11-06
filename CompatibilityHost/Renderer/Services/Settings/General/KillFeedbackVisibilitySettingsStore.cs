@@ -154,6 +154,8 @@ namespace KillConfirmCompatibility.Services
                     return "ValorantKillFeedback";
                 case GameStyleMode.Doubao:
                     return "DoubaoKillFeedback";
+                case GameStyleMode.Sanguosha:
+                    return "SanguoshaKillFeedback";
                 case GameStyleMode.Dagoujiao:
                     return "DagoujiaoKillFeedback";
                 default:

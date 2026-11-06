@@ -24,9 +24,24 @@ namespace KillConfirmGameBar.Controls
                 if (generation != _resourceGeneration) return;
                 CanvasBitmap bitmap = await LoadBattlefield6IconAsync(Battlefield6IconFiles[i]);
                 if (generation != _resourceGeneration) return;
-                if (bitmap != null) GetBattlefield6RasterIcon(bitmap, 128);
+                if (bitmap == null) throw new InvalidOperationException("Battlefield 6 icon could not be prepared: " + Battlefield6IconFiles[i]);
+                GetBattlefield6RasterIcon(bitmap, 64);
+                GetBattlefield6RasterIcon(bitmap, 128);
                 progress?.Report((i + 1) * 100 / Battlefield6IconFiles.Length);
             }
+        }
+
+        private static CanvasBitmap GetPreparedBattlefield6Icon(string file)
+        {
+            if (!PackCatalogService.IsImportedIconPackKey(_iconPack)
+                && (file == "killicon_battlefield6_explosion.png" || file == "killicon_battlefield6_crit.png"))
+                file = "killicon_battlefield6_default.png";
+            lock (Battlefield6IconCache)
+            {
+                string key = _resourceGeneration + ":" + _battlefield6AssetGeneration + ":battlefield6:" + _iconPack + ":" + file;
+                if (Battlefield6IconCache.TryGetValue(key, out CanvasBitmap bitmap)) return bitmap;
+            }
+            throw new InvalidOperationException("Battlefield 6 icon was not preloaded: " + file);
         }
 
         private static Task<CanvasBitmap> LoadBattlefield6IconAsync(string file)

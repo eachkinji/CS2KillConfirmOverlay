@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>html,body{margin:0;padding:0;background:transparent;overflow:hidden}</style>
+<script>window.format = '';</script>
+<script src="/engine/laya.core.min.js"></script>
+<script src="/engine/laya.ani.min.js"></script>
+<script src="/engine/spine-core-4.0.min.js"></script>
+<script src="/engine/laya.spine.min.js"></script>
+</head>
+<body>
+<script>
+// Records the exact draw calls the game's own LayaAir SpineSkeletonRenderer issues for
+// every frame (texture page, quad vertices, UVs, Laya blend mode and the final packed
+// RGBA vertex colour that Laya uploads).  The application replays these lists with Win2D.
+(async function () {
+  const q = new URLSearchParams(location.search);
+  const anims = q.get('anims').split(',');
+  const fps = Number(q.get('fps') || 60);
+  const log = (m) => fetch('/log', { method: 'POST', body: String(m) });
+  window.onerror = (m, s, l, c, e) => log('ERR ' + m + ' @' + s + ':' + l + ' ' + (e && e.stack));
+
+  Config.isAlpha = true;
+  Laya.init(1600, 900, Laya.WebGL);
+  Laya.stage.scaleMode = 'noscale';
+  Laya.stage.bgColor = null;
+  const ctx = Laya.Render._context;
+
+  function load(name) {
+    return new Promise((res, rej) => {
+      const t = new Laya.SpineTemplet(Laya.SpineVersion.v4_0);
+      t.on(Laya.Event.COMPLETE, null, () => res(t));
+      t.on(Laya.Event.ERROR, null, (e) => rej(new Error('load ' + name + ' ' + e)));
+      t.loadAni('/anim/' + name + '.skel');
+    });
+  }
+  const r3 = (v) => Math.round(v * 1000) / 1000;
+  const r7 = (v) => Math.round(v * 1e7) / 1e7;
+
+  for (const name of anims) {
+    const templet = await load(name);
+    const dic = templet._textureDic;
+    const pageNames = Object.keys(dic).filter(k => k !== 'root');
+    const pages = pageNames.map(k => ({ file: k, width: dic[k].sourceWidth || dic[k].width, height: dic[k].sourceHeight || dic[k].height }));
+    const texToPage = new Map(pageNames.map((k, i) => [dic[k], i]));
+    const regions = [], regionKey = new Map();
+    const blendIds = { normal: 0, light: 1, screen: 2, multiply: 3 };
+
+    const sk = templet.buildArmature();
+    sk.pos(800, 450);
+    Laya.stage.addChild(sk);
+    sk.play(0, false);
+    sk.timer.clear(sk, sk._update);
+    const anim = templet.skeletonData.animations[0];
+    sk.state.clearTracks();
+    sk.skeleton.setToSetupPose();
+    sk.state.setAnimation(0, anim.name, false);
+
+    let current = null, maxSkew = 0, badIndex = 0;
+    const g = sk.graphics;
+    const orig = g.drawTriangles;
+    g.drawTriangles = function (tex, x, y, verts, uvs, idx, mat, alpha, filter, blend, color) {
+      const page = texToPage.get(tex);
+      if (page === undefined) log('unknown texture in ' + name);
+      if (verts.length !== 8 || idx.length !== 6 || idx[0] !== 0 || idx[1] !== 1 || idx[2] !== 2 || idx[3] !== 2 || idx[4] !== 3 || idx[5] !== 0) badIndex++;
+      const key = page + ':' + Array.from(uvs).map(r7).join(',');
+      let rid = regionKey.get(key);
+      if (rid === undefined) { rid = regions.length; regionKey.set(key, rid); regions.push([page, ...Array.from(uvs).map(r7)]); }
+      // parallelogram check: v0 + v2 == v1 + v3
+      const sx = verts[0] + verts[4] - verts[2] - verts[6], sy = verts[1] + verts[5] - verts[3] - verts[7];
+      maxSkew = Math.max(maxSkew, Math.abs(sx), Math.abs(sy));
+      const rgba = ctx._mixRGBandAlpha(color, ctx._shader2D.ALPHA * alpha) >>> 0;
+      current.push([rid, blendIds[blend] ?? -1, rgba, ...Array.from(verts).map(r3)]);
+      return orig.apply(this, arguments);
+    };
+
+    const events = [];
+    for (const tl of anim.timelines) if (tl.events) for (const ev of tl.events) events.push({ name: ev.data.name, time: ev.time, intValue: ev.intValue, floatValue: ev.floatValue, stringValue: ev.stringValue || null });
+    const frames = [];
+    const count = Math.round(anim.duration * fps) + 1;
+    for (let i = 0; i < count; i++) {
+      current = [];
+      sk.state.update(i === 0 ? 0 : 1 / fps);
+      sk.state.apply(sk.skeleton);
+      sk.skeleton.updateWorldTransform();
+      g.clear();
+      sk.skeletonRenderer.draw(sk.skeleton, -1, -1, sk, dic);
+      frames.push(current);
+    }
+    const sd = templet.skeletonData;
+    await fetch('/drawlist?anim=' + name, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+      format: 'sanguosha-spine-drawlist', version: 1, anim: name, animation: anim.name, duration: anim.duration, fps,
+      design: { width: 1600, height: 900, originX: 800, originY: 450 },
+      skeleton: { spine: sd.version, hash: sd.hash, x: sd.x, y: sd.y, width: sd.width, height: sd.height, fps: sd.fps },
+      pages, regions, events, frames,
+      check: { maxParallelogramError: maxSkew, nonQuadDraws: badIndex }
+    }) });
+    log(name + ' recorded frames=' + frames.length + ' regions=' + regions.length + ' skew=' + maxSkew + ' bad=' + badIndex);
+    sk.destroy();
+  }
+  await fetch('/done', { method: 'POST' });
+})().catch(e => fetch('/log', { method: 'POST', body: 'FATAL ' + e.stack }).then(() => fetch('/done', { method: 'POST' })));
+</script>
+</body>
+</html>

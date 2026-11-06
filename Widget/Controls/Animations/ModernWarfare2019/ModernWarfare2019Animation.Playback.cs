@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Numerics;
@@ -20,103 +20,108 @@ namespace KillConfirmGameBar.Controls
             int killCount,
             int moneyReward)
         {
-            int normalizedKillCount = Math.Max(1, killCount);
-            int normalizedReward = Math.Max(0, moneyReward);
-            if (normalizedKillCount <= 1
-                || normalizedKillCount <= _modernWarfare2019LastMoneyKillCount)
+            QueuePreparedPlayback("ModernWarfare2019", () =>
             {
-                _modernWarfare2019AccumulatedMoney = normalizedReward;
-            }
-            else
-            {
-                _modernWarfare2019AccumulatedMoney = (int)Math.Min(
-                    int.MaxValue,
-                    (long)_modernWarfare2019AccumulatedMoney + normalizedReward);
-            }
-            _modernWarfare2019LastMoneyKillCount = normalizedKillCount;
-            ++_playToken;
-            PrepareModernWarfare2019Playback(
-                drawPrimary: true,
-                drawLowerBanner: false,
-                drawUpperBanner: false,
-                isHeadshot: isHeadshot,
-                killCount: normalizedKillCount,
-                moneyReward: _modernWarfare2019AccumulatedMoney);
-            EnsureModernWarfare2019MoneyGlowReadyAsync();
+                int normalizedKillCount = Math.Max(1, killCount);
+                int normalizedReward = Math.Max(0, moneyReward);
+                if (normalizedKillCount <= 1
+                    || normalizedKillCount <= _modernWarfare2019LastMoneyKillCount)
+                {
+                    _modernWarfare2019AccumulatedMoney = normalizedReward;
+                }
+                else
+                {
+                    _modernWarfare2019AccumulatedMoney = (int)Math.Min(
+                        int.MaxValue,
+                        (long)_modernWarfare2019AccumulatedMoney + normalizedReward);
+                }
+                _modernWarfare2019LastMoneyKillCount = normalizedKillCount;
+                PrepareModernWarfare2019Playback(
+                    drawPrimary: true,
+                    drawLowerBanner: false,
+                    drawUpperBanner: false,
+                    isHeadshot: isHeadshot,
+                    killCount: normalizedKillCount,
+                    moneyReward: _modernWarfare2019AccumulatedMoney);
+            });
         }
 
         public void PlayModernWarfare2019KillMarkOnly(bool isHeadshot)
         {
-            ++_playToken;
-            PrepareModernWarfare2019Playback(
-                drawPrimary: true,
-                drawLowerBanner: false,
-                drawUpperBanner: false,
-                isHeadshot: isHeadshot,
-                killCount: 1,
-                moneyReward: 0,
-                killMarkOnly: true);
+            QueuePreparedPlayback("ModernWarfare2019", () =>
+            {
+                PrepareModernWarfare2019Playback(
+                    drawPrimary: true,
+                    drawLowerBanner: false,
+                    drawUpperBanner: false,
+                    isHeadshot: isHeadshot,
+                    killCount: 1,
+                    moneyReward: 0,
+                    killMarkOnly: true);
+            });
         }
 
         public void PlayModernWarfare2019Assist()
         {
-            ++_playToken;
-            PrepareModernWarfare2019Playback(
-                drawPrimary: true,
-                drawLowerBanner: false,
-                drawUpperBanner: false,
-                isHeadshot: false,
-                killCount: 0,
-                moneyReward: 0,
-                isAssist: true);
+            QueuePreparedPlayback("ModernWarfare2019", () =>
+            {
+                PrepareModernWarfare2019Playback(
+                    drawPrimary: true,
+                    drawLowerBanner: false,
+                    drawUpperBanner: false,
+                    isHeadshot: false,
+                    killCount: 0,
+                    moneyReward: 0,
+                    isAssist: true);
+            });
         }
 
         public void PlayModernWarfare2019Objective(string eventKind, int moneyReward)
         {
-            int normalizedReward = Math.Max(0, moneyReward);
-
-            // A final kill and its round-win/loss economy event are published
-            // back-to-back from the same GSI snapshot. Restarting the primary
-            // presentation for the settlement event used to replace the fresh
-            // kill marker before its first visible frame. Merge the settlement
-            // reward/feed into the active kill presentation instead.
-            if (IsModernWarfare2019RoundSettlement(eventKind)
-                && _isModernWarfare2019Active
-                && _drawModernWarfare2019Primary
-                && !_modernWarfare2019KillMarkOnly
-                && !_modernWarfare2019IsAssist
-                && !_modernWarfare2019IsObjective
-                && _playbackClock.IsRunning
-                && _playbackClock.Elapsed.TotalMilliseconds < ModernWarfare2019MarkerEndMs)
+            QueuePreparedPlayback("ModernWarfare2019", () =>
             {
-                _modernWarfare2019AccumulatedMoney = (int)Math.Min(
-                    int.MaxValue,
-                    (long)_modernWarfare2019AccumulatedMoney + normalizedReward);
-                _modernWarfare2019MoneyReward = _modernWarfare2019AccumulatedMoney;
-                QueueModernWarfare2019FeedItems(
-                    false,
-                    0,
-                    false,
-                    eventKind,
-                    DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
-                EnsureModernWarfare2019MoneyGlowReadyAsync();
-                SpriteCanvas.Invalidate();
-                return;
-            }
+                int normalizedReward = Math.Max(0, moneyReward);
 
-            _modernWarfare2019AccumulatedMoney = normalizedReward;
-            ++_playToken;
-            PrepareModernWarfare2019Playback(
-                drawPrimary: true,
-                drawLowerBanner: false,
-                drawUpperBanner: false,
-                isHeadshot: false,
-                killCount: 0,
-                moneyReward: normalizedReward,
-                isAssist: false,
-                killMarkOnly: false,
-                objectiveEventKind: eventKind);
-            EnsureModernWarfare2019MoneyGlowReadyAsync();
+                // A final kill and its round-win/loss economy event are published
+                // back-to-back from the same GSI snapshot. Restarting the primary
+                // presentation for the settlement event used to replace the fresh
+                // kill marker before its first visible frame. Merge the settlement
+                // reward/feed into the active kill presentation instead.
+                if (IsModernWarfare2019RoundSettlement(eventKind)
+                    && _isModernWarfare2019Active
+                    && _drawModernWarfare2019Primary
+                    && !_modernWarfare2019KillMarkOnly
+                    && !_modernWarfare2019IsAssist
+                    && !_modernWarfare2019IsObjective
+                    && _playbackClock.IsRunning
+                    && _playbackClock.Elapsed.TotalMilliseconds < ModernWarfare2019MarkerEndMs)
+                {
+                    _modernWarfare2019AccumulatedMoney = (int)Math.Min(
+                        int.MaxValue,
+                        (long)_modernWarfare2019AccumulatedMoney + normalizedReward);
+                    _modernWarfare2019MoneyReward = _modernWarfare2019AccumulatedMoney;
+                    QueueModernWarfare2019FeedItems(
+                        false,
+                        0,
+                        false,
+                        eventKind,
+                        DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
+                    SpriteCanvas.Invalidate();
+                    return;
+                }
+
+                _modernWarfare2019AccumulatedMoney = normalizedReward;
+                PrepareModernWarfare2019Playback(
+                    drawPrimary: true,
+                    drawLowerBanner: false,
+                    drawUpperBanner: false,
+                    isHeadshot: false,
+                    killCount: 0,
+                    moneyReward: normalizedReward,
+                    isAssist: false,
+                    killMarkOnly: false,
+                    objectiveEventKind: eventKind);
+            });
         }
 
         private static bool IsModernWarfare2019RoundSettlement(string eventKind)
@@ -127,27 +132,30 @@ namespace KillConfirmGameBar.Controls
 
         public void PlayModernWarfare2019LowerKill(int killCount)
         {
-            ++_playToken;
-            PrepareModernWarfare2019Playback(
-                drawPrimary: false,
-                drawLowerBanner: true,
-                drawUpperBanner: false,
-                isHeadshot: false,
-                killCount: killCount,
-                moneyReward: 0);
+            QueuePreparedPlayback("ModernWarfare2019", () =>
+            {
+                PrepareModernWarfare2019Playback(
+                    drawPrimary: false,
+                    drawLowerBanner: true,
+                    drawUpperBanner: false,
+                    isHeadshot: false,
+                    killCount: killCount,
+                    moneyReward: 0);
+            });
         }
 
         public void PlayModernWarfare2019UpperKill(int killCount)
         {
-            ++_playToken;
-            PrepareModernWarfare2019Playback(
-                drawPrimary: false,
-                drawLowerBanner: false,
-                drawUpperBanner: true,
-                isHeadshot: false,
-                killCount: killCount,
-                moneyReward: 0);
-            EnsureModernWarfare2019UpperIconReadyAsync();
+            QueuePreparedPlayback("ModernWarfare2019", () =>
+            {
+                PrepareModernWarfare2019Playback(
+                    drawPrimary: false,
+                    drawLowerBanner: false,
+                    drawUpperBanner: true,
+                    isHeadshot: false,
+                    killCount: killCount,
+                    moneyReward: 0);
+            });
         }
 
         private void PrepareModernWarfare2019Playback(
@@ -168,6 +176,7 @@ namespace KillConfirmGameBar.Controls
             ResetBattlefield4HudState();
             ResetBattlefield2042HudState();
             ResetBattlefield6HudState();
+            ResetSanguoshaState();
             ResetPubgHudState();
             ResetDeltaForceHudState();
             ResetDoubaoState();

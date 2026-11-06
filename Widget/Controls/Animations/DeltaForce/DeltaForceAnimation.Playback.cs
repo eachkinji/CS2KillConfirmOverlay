@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Numerics;
@@ -16,18 +16,21 @@ namespace KillConfirmGameBar.Controls
     {
         public void PlayDeltaForceKill(int killCount, bool isHeadshot, bool isKnifeKill, bool isAssist, string playerName, string weaponLabel, int moneyReward, string eventKind, int roundNumber, int moneyEpoch)
         {
-            PrepareDeltaForceHudPlayback();
-            AddDeltaForceEvent(
-                Math.Max(0, killCount),
-                isHeadshot,
-                isKnifeKill,
-                isAssist,
-                string.IsNullOrWhiteSpace(playerName) ? "Enemy" : playerName.Trim(),
-                ResolveBattlefieldWeaponName(weaponLabel),
-                Math.Max(0, moneyReward),
-                NormalizeBattlefieldEventKind(isAssist, eventKind),
-                Math.Max(0, roundNumber),
-                Math.Max(0, moneyEpoch));
+            QueuePreparedPlayback("DeltaForce", () =>
+            {
+                PrepareDeltaForceHudPlayback();
+                AddDeltaForceEvent(
+                    Math.Max(0, killCount),
+                    isHeadshot,
+                    isKnifeKill,
+                    isAssist,
+                    string.IsNullOrWhiteSpace(playerName) ? "Enemy" : playerName.Trim(),
+                    ResolveBattlefieldWeaponName(weaponLabel),
+                    Math.Max(0, moneyReward),
+                    NormalizeBattlefieldEventKind(isAssist, eventKind),
+                    Math.Max(0, roundNumber),
+                    Math.Max(0, moneyEpoch));
+            });
         }
 
 
@@ -39,6 +42,7 @@ namespace KillConfirmGameBar.Controls
             _isPubgHudActive = false;
             _isBattlefield2042HudActive = false;
             ResetBattlefield6HudState();
+            ResetSanguoshaState();
             _isDeltaForceHudActive = true;
             _contentSizedViewport = false;
             _isBattlefield1CompactLayoutActive = false;
@@ -69,7 +73,7 @@ namespace KillConfirmGameBar.Controls
             }
         }
 
-        private async void AddDeltaForceEvent(int killCount, bool isHeadshot, bool isKnifeKill, bool isAssist, string playerName, string weaponName, int reward, string eventKind, int roundNumber, int moneyEpoch)
+        private void AddDeltaForceEvent(int killCount, bool isHeadshot, bool isKnifeKill, bool isAssist, string playerName, string weaponName, int reward, string eventKind, int roundNumber, int moneyEpoch)
         {
             double now = _playbackClock.IsRunning ? _playbackClock.Elapsed.TotalMilliseconds : 0;
             int moneyReward = NormalizeBattlefieldMoneyReward(reward);
@@ -92,7 +96,7 @@ namespace KillConfirmGameBar.Controls
 
             try
             {
-                CanvasBitmap icon = await LoadDeltaForceIconAsync(iconFileName);
+                CanvasBitmap icon = GetPreparedDeltaForceIcon(iconFileName);
                 if (_isDeltaForceHudActive && icon != null)
                 {
                     _deltaForceHudState.PendingIcons.Enqueue(

@@ -63,6 +63,7 @@ namespace KillConfirmGameBar.Controls
             _isDeltaForceHudActive = false;
             _isBattlefield2042HudActive = false;
             ResetBattlefield6HudState();
+            ResetSanguoshaState();
             _isBattlefield4HudActive = true;
             _contentSizedViewport = false;
             _isBattlefield1CompactLayoutActive = false;

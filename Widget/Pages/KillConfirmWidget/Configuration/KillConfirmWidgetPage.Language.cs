@@ -103,6 +103,7 @@ namespace KillConfirmGameBar
             HeaderStatusSection.CustomModuleStyleItem.Content = LocalizationManager.Current == UiLanguage.SimplifiedChinese ? "自定义" : "Custom";
             SetGameStyleItemContent(HeaderStatusSection.CalabiyauStyleItem, "卡拉彼丘", "ms-appx:///Assets/GameLogos/calabiyau.png");
             SetGameStyleItemContent(HeaderStatusSection.DoubaoStyleItem, "豆包", "ms-appx:///Assets/GameLogos/doubao.png");
+            SetGameStyleItemContent(HeaderStatusSection.SanguoshaStyleItem, "三国杀", "ms-appx:///Assets/GameLogos/sanguosha.png");
             SetGameStyleItemContent(HeaderStatusSection.DagoujiaoStyleItem, "大狗叫", "ms-appx:///Assets/GameLogos/dagoujiao.jpg");
             PackTestSectionView.PackTestHeaderText.Text = LocalizationManager.Text("PackTestHeader");
             VisualSettingsSectionView.VisualHeaderText.Text = LocalizationManager.Text("VisualHeader");

@@ -18,7 +18,8 @@ namespace KillConfirmCompatibility.Controls
         private async Task PreloadApexAnimationsAsync(IProgress<int> progress)
         {
             progress?.Report(15);
-            await LoadApexHitmarkBitmapAsync();
+            if (await LoadApexHitmarkBitmapAsync() == null)
+                throw new InvalidOperationException("Apex hitmark could not be preloaded.");
             progress?.Report(100);
         }
 
@@ -56,39 +57,6 @@ namespace KillConfirmCompatibility.Controls
             }
 
             return _apexHitmarkBitmap;
-        }
-
-        private async void EnsureApexHitmarkReadyAsync()
-        {
-            if (_apexHitmarkBitmap != null)
-            {
-                return;
-            }
-
-            int generation = _resourceGeneration;
-            try
-            {
-                await PreloadGate.WaitAsync();
-                try
-                {
-                    if (generation == _resourceGeneration)
-                    {
-                        await LoadApexHitmarkBitmapAsync();
-                    }
-                }
-                finally
-                {
-                    PreloadGate.Release();
-                }
-
-                if (generation == _resourceGeneration && _isApexFeedActive)
-                {
-                    SpriteCanvas.Invalidate();
-                }
-            }
-            catch
-            {
-            }
         }
 
 

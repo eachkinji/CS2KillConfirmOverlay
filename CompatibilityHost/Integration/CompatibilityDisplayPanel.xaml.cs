@@ -158,7 +158,6 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             GameBarModeHint.Text = zh ? "支持全屏独占使用" : "Supports exclusive fullscreen";
             CompatibilityModeTitle.Text = zh ? "兼容显示" : "Desktop display";
             CompatibilityModeHint.Text = zh ? "支持全屏窗口化使用" : "Supports borderless fullscreen";
-            RecommendedText.Text = zh ? "推荐" : "Recommended";
             HomePreviewLabel.Text = zh ? "预览效果" : "Preview effects";
             GameBarDetailsLabel.Text = zh ? "状态详情" : "Status details";
             OpenGameBarLabel.Text = zh ? "打开 Game Bar" : "Open Game Bar";

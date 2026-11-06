@@ -298,6 +298,13 @@ namespace KillConfirmGameBar
                     iconFull = "REAC_Main / REAC_Main1 / REAC_Main01–05 / React9";
                     fileHint = isChinese ? "三个素材库分别管理图标、配套音效和角色台词。整包导入保留原始时序；同系列图标变体可共用音效包。" : "Three libraries manage icons, matching sound effects and character voices. Pack imports preserve timing; icon variants can share one sound effect pack.";
                     break;
+                case GameStyleMode.Sanguosha:
+                    body = isChinese ? "三国杀直接回放游戏原版连破播报：首破、连破、三破、四破、五破、六破、七破，第 7 杀以后保持七破。" : "Sanguosha replays the game's original broadcasts: First Strike through Seven Kills; kills beyond 7 keep the seven-kill broadcast.";
+                    voice = isChinese ? "1kill.mp3 ~ 7kill.mp3 = 原版 newkill_shoupo ~ newkill_qipo 播报语音" : "1kill.mp3 ~ 7kill.mp3 = original newkill_shoupo ~ newkill_qipo voices";
+                    iconSummary = isChinese ? "动画由原版 Spine 4.0 骨骼数据与原版图集逐帧回放。" : "Animations replay the original Spine 4.0 skeleton data and atlases frame by frame.";
+                    iconFull = isChinese ? "killconfirm/<shoupo~qipo>/*.sgsd.gz + 原版图集页" : "killconfirm/<shoupo~qipo>/*.sgsd.gz + original atlas pages";
+                    fileHint = isChinese ? "素材来自三国杀十周年客户端，未重新绘制或重新编码。" : "Assets come from the Sanguosha 10th-anniversary client without redrawing or re-encoding.";
+                    break;
                 case GameStyleMode.Doubao:
                     body = isChinese ? "豆包按 1～5 杀逐杀使用独立语音与图标。" : "Doubao uses separate voice and icon assets for kills 1 through 5.";
                     voice = isChinese ? "1kill.wav ~ 5kill.wav = 1杀至5杀独立语音" : "1kill.wav ~ 5kill.wav = individual kill 1-5 voices";

@@ -16,7 +16,7 @@ namespace KillConfirmCompatibility.Controls
 {
     public sealed partial class KillConfirmAnimation
     {
-        private async Task<AnimationAsset> LoadBattlefieldKillAssetAsync(
+        private Task<AnimationAsset> LoadBattlefieldKillAssetAsync(
             string styleKey,
             int killCount,
             bool isHeadshot,
@@ -35,10 +35,10 @@ namespace KillConfirmCompatibility.Controls
             progress?.Report(35);
 
             bool isTextOnly = IsBattlefieldTextOnlyEvent(isAssist, eventKind);
-            CanvasBitmap icon = isTextOnly ? null : await LoadBattlefieldIconAsync(normalizedStyle, iconFileName);
+            CanvasBitmap icon = isTextOnly ? null : GetPreparedBattlefieldIcon(normalizedStyle, iconFileName);
 
             progress?.Report(100);
-            return new AnimationAsset(
+            return Task.FromResult(new AnimationAsset(
                 new SpriteMetadata
                 {
                     FrameWidth = (int)BattlefieldFrameWidth,
@@ -64,7 +64,7 @@ namespace KillConfirmCompatibility.Controls
                     HealthText = isAssist ? "0" : Math.Max(1, killCount).ToString(),
                     MoneyReward = Math.Max(0, moneyReward),
                     Icon = icon
-                });
+                }));
         }
 
         private async Task PreloadBattlefieldAnimationsAsync(string styleKey, IProgress<int> progress)
@@ -87,17 +87,22 @@ namespace KillConfirmCompatibility.Controls
             progress?.Report(0);
             for (int i = 0; i < iconFiles.Length; i++)
             {
-                try
-                {
-                    await LoadBattlefieldIconAsync(normalizedStyle, iconFiles[i]);
-                }
-                catch
-                {
-                }
+                if (await LoadBattlefieldIconAsync(normalizedStyle, iconFiles[i]) == null)
+                    throw new InvalidOperationException("Battlefield icon could not be prepared: " + iconFiles[i]);
 
                 int percent = (int)Math.Round((i + 1) * 100.0 / iconFiles.Length);
                 progress?.Report(Math.Max(1, Math.Min(100, percent)));
             }
+        }
+
+        private static CanvasBitmap GetPreparedBattlefieldIcon(string styleKey, string iconFileName)
+        {
+            string style = string.Equals(styleKey, "bf5", StringComparison.OrdinalIgnoreCase) ? "bf5" : "bf1";
+            lock (BattlefieldIconCache)
+            {
+                if (BattlefieldIconCache.TryGetValue(style + "/" + iconFileName + ":" + _iconPack, out CanvasBitmap bitmap) && bitmap != null) return bitmap;
+            }
+            throw new InvalidOperationException("Battlefield icon was not preloaded: " + iconFileName);
         }
 
         private static async Task<CanvasBitmap> LoadBattlefieldIconAsync(string styleKey, string iconFileName)

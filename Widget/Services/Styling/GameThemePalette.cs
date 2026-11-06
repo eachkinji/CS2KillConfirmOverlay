@@ -66,6 +66,8 @@ namespace KillConfirmGameBar.Services
                     return Home;
                 case GameStyleMode.Doubao:
                     return Doubao;
+                case GameStyleMode.Sanguosha:
+                    return Sanguosha;
                 case GameStyleMode.Dagoujiao:
                     return Dagoujiao;
                 case GameStyleMode.Csol:

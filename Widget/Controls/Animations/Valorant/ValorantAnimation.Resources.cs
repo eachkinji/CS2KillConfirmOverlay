@@ -14,7 +14,7 @@ namespace KillConfirmGameBar.Controls
 {
     public sealed partial class KillConfirmAnimation
     {
-        private async Task<AnimationAsset> LoadValorantKillAssetAsync(
+        private Task<AnimationAsset> LoadValorantKillAssetAsync(
             string packKey,
             int killCount,
             bool isHeadshot,
@@ -24,8 +24,15 @@ namespace KillConfirmGameBar.Controls
                 ? packKey.Trim().ToLowerInvariant()
                 : ValorantPackService.DefaultKey;
             ValorantDemoProfile profile = GetValorantDemoProfile(normalizedKey);
-            ValorantTextureSet textures = await GetOrLoadValorantTextureSetAsync(normalizedKey, profile, progress);
-            await PrepareValorantNativeTierAsync(textures, killCount);
+            ValorantTextureSet textures;
+            lock (ValorantTextureCacheLock)
+            {
+                textures = _valorantCachedTextures;
+                if (textures == null || !string.Equals(textures.PackKey, normalizedKey, StringComparison.OrdinalIgnoreCase)
+                    || textures.ResourceRevision != ValorantExternalAssetService.GetResourceRevision(normalizedKey))
+                    throw new InvalidOperationException("VALORANT resources were not preloaded.");
+            }
+            SelectPreparedValorantNativeTier(textures, killCount);
             var asset = new ValorantKillAsset
             {
                 PackKey = normalizedKey,
@@ -37,7 +44,7 @@ namespace KillConfirmGameBar.Controls
             };
 
             progress?.Report(100);
-            return new AnimationAsset(
+            return Task.FromResult(new AnimationAsset(
                 new SpriteMetadata
                 {
                     FrameWidth = (int)ValorantFrameWidth,
@@ -47,7 +54,7 @@ namespace KillConfirmGameBar.Controls
                             + (textures.NativeAnimation?.ActiveTier?.OutroDuration ?? 0)) * FrameSequenceFps / 1000.0)),
                     Fps = FrameSequenceFps
                 },
-                asset);
+                asset));
         }
 
         private static Task<ValorantTextureSet> GetOrLoadValorantTextureSetAsync(

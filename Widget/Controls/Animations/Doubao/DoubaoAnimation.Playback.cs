@@ -16,31 +16,13 @@ namespace KillConfirmGameBar.Controls
         {
             int normalizedKillCount = Math.Max(1, Math.Min(5, killCount));
             int generation = _resourceGeneration;
-            int token = ++_playToken;
+            int token = BeginReplacementPlayback();
 
             try
             {
-                CanvasBitmap bitmap;
-                CanvasBitmap flash;
-                await PreloadGate.WaitAsync();
-                try
-                {
-                    if (generation != _resourceGeneration || token != _playToken)
-                    {
-                        return;
-                    }
-
-                    bitmap = await LoadDoubaoKillBitmapAsync(normalizedKillCount);
-                    flash = await LoadDoubaoFlashBitmapAsync();
-                }
-                finally
-                {
-                    if (generation != _resourceGeneration)
-                    {
-                        ReleaseAllAnimationResourceCaches();
-                    }
-                    PreloadGate.Release();
-                }
+                await WaitForCurrentPackPreloadAsync();
+                CanvasBitmap bitmap = GetPreparedDoubaoKillBitmap(normalizedKillCount);
+                CanvasBitmap flash = _doubaoFlashBitmapCache;
 
                 if (bitmap == null || generation != _resourceGeneration || token != _playToken)
                 {
@@ -69,6 +51,7 @@ namespace KillConfirmGameBar.Controls
             ResetBattlefield4HudState();
             ResetBattlefield2042HudState();
             ResetBattlefield6HudState();
+            ResetSanguoshaState();
             ResetPubgHudState();
             ResetDeltaForceHudState();
             _contentSizedViewport = false;

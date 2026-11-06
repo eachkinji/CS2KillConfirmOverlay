@@ -115,33 +115,24 @@ namespace KillConfirmCompatibility.Controls
             var loadingClock = System.Diagnostics.Stopwatch.StartNew();
             double transportSeconds = publishedUnixMs > 0 && publishedUnixMs < (ulong)requestedAt
                 ? (requestedAt - (double)publishedUnixMs) / 1000.0 : 0;
-            int generation = _resourceGeneration, token = ++_playToken;
+            int generation = _resourceGeneration, token = BeginReplacementPlayback();
             CalabiyauClip clip = null;
             try
             {
-                await PreloadGate.WaitAsync();
-                try
+                await WaitForCurrentPackPreloadAsync();
+                if (generation != _resourceGeneration || token != _playToken) return;
+                string path;
+                if (crosshair) path = "crosshair.json.gz";
+                else
                 {
-                    if (generation != _resourceGeneration || token != _playToken) return;
-                    if (crosshair) clip = await LoadCalabiyauClipAsync("crosshair.json.gz");
-                    else
-                    {
-                        await PreloadCalabiyauAsync(null);
-                        CalabiyauPack pack = CalabiyauPacks.Find(_iconPack);
-                        if (pack != null)
-                        {
-                            clip = await LoadCalabiyauClipAsync(pack.ClipPath(killCount), true);
-                            if (killCount > 5 && clip.OverkillClip != null)
-                                clip = await LoadCalabiyauClipAsync(clip.OverkillClip, true);
-                        }
-                        else clip = await LoadCalabiyauClipAsync(DefaultCalabiyauClipPath(killCount));
-                    }
+                    CalabiyauPack pack = CalabiyauPacks.Find(_iconPack);
+                    path = pack != null ? pack.ClipPath(killCount) : DefaultCalabiyauClipPath(killCount);
                 }
-                finally
-                {
-                    if (generation != _resourceGeneration) ReleaseAllAnimationResourceCaches();
-                    PreloadGate.Release();
-                }
+                if (!CalabiyauClips.TryGetValue(path, out clip))
+                    throw new InvalidOperationException("Calabiyau animation was not preloaded: " + path);
+                if (!crosshair && killCount > 5 && clip.OverkillClip != null
+                    && !CalabiyauClips.TryGetValue(clip.OverkillClip, out clip))
+                    throw new InvalidOperationException("Calabiyau overkill animation was not preloaded.");
                 if (generation != _resourceGeneration || token != _playToken) return;
                 _timer.Stop();
                 _playbackClock.Stop();
@@ -149,7 +140,7 @@ namespace KillConfirmCompatibility.Controls
                 ResetDoubaoState(); ResetDagoujiaoState(); ResetOverwatchState();
                 ResetApexFeedState(); ResetModernWarfare2019State();
                 ResetBattlefield5ScrollingState(); ResetBattlefield4HudState();
-                ResetBattlefield2042HudState(); ResetBattlefield6HudState();
+                ResetBattlefield2042HudState(); ResetBattlefield6HudState(); ResetSanguoshaState();
                 ResetPubgHudState(); ResetDeltaForceHudState();
                 _isBattlefieldTextOverlayActive = false;
                 _currentCodeAsset = null; _currentValorantAsset = null;

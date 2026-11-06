@@ -115,7 +115,7 @@ namespace KillConfirmGameBar
                 var queue = await PackImportQueue.RunAsync(archives, file => file.Name, async (file, index) =>
                 {
                     _providedPackZipFile = file;
-                    RequireAudio(await TryImportTypedAudioZipAsync(), "Typed batch pack was not handled by the production ZIP importer.");
+                    await ImportProvidedPackZipAsync(true);
                 });
                 RequireAudio(queue.Succeeded == 2 && queue.Failures.Count == 1, "Mixed batch stopped after a bad ZIP or counted a failure as success.");
             }
@@ -126,8 +126,82 @@ namespace KillConfirmGameBar
                 "Mixed batch placed character dialogue in sound effects or retained a failed pack.");
             RequireAudio(_activeGameTab == "sound_effect", "A mixed batch changed its requested library during processing.");
             results.Add("PASS: production ZIP queue imports voice and SFX by declared type from the wrong library, isolates a bad middle ZIP and continues.");
+            await ValidatePackImportRoutingAsync(fixtureRoot, results);
             await ValidateRealCalabiyauAudioPacksAsync(fixtureRoot, results);
             File.WriteAllLines(Path.Combine(profile, "audio-library-validation.txt"), results);
+        }
+
+        private async Task ValidatePackImportRoutingAsync(string fixtureRoot, List<string> results)
+        {
+            var native = new List<Tuple<StorageFile, GameStyleMode, string, AudioPackKind>>();
+            foreach (bool crossfire in new[] { true, false })
+            {
+                string game = crossfire ? "crossfire" : "valorant";
+                string id = crossfire ? "crossfire_validation_native" : "valorant_voice_validation_native";
+                var folder = await MakeAudioFixtureAsync(fixtureRoot, game + "-native", id, game, null, game + " native validation", 51);
+                string path = Path.Combine(folder.Path, "manifest.json");
+                var manifest = JsonObject.Parse(File.ReadAllText(path));
+                manifest["package_kind"] = JsonValue.CreateStringValue(game + "_voice");
+                manifest["format_version"] = JsonValue.CreateNumberValue(2);
+                manifest["association_id"] = JsonValue.CreateStringValue(game + ":validation_native");
+                manifest["display_name_zh_cn"] = JsonValue.CreateStringValue(game + " native validation");
+                manifest["display_name"] = JsonValue.CreateStringValue(game + " native validation");
+                File.WriteAllText(path, manifest.Stringify());
+                File.WriteAllBytes(Path.Combine(folder.Path, "pack_head.png"), Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aX1kAAAAASUVORK5CYII="));
+                for (int count = 1; count <= 5; count++) File.WriteAllBytes(Path.Combine(folder.Path, count + ".wav"), AudioFixtureWave(51));
+                string zip = Path.Combine(fixtureRoot, game + "-native.zip");
+                ZipFile.CreateFromDirectory(folder.Path, zip);
+                native.Add(Tuple.Create(await StorageFile.GetFileFromPathAsync(zip), crossfire ? GameStyleMode.Crossfire : GameStyleMode.Valorant,
+                    id, crossfire ? AudioPackKind.CharacterVoice : AudioPackKind.SoundEffect));
+            }
+            foreach (var test in native)
+            {
+                // First install normally; then single and batch wrong-library
+                // imports must update that native id, never create a wrong copy.
+                foreach (int pass in new[] { 0, 1, 2 })
+                {
+                    bool correctLibrary = pass == 0;
+                    string tab = (test.Item4 == AudioPackKind.CharacterVoice) == correctLibrary ? "voice" : "sound_effect";
+                    OpenPackLibrary(test.Item2, tab);
+                    _batchPackImport = pass != 1;
+                    _providedPackZipFile = test.Item1;
+                    try { await ImportProvidedPackZipAsync(true); }
+                    finally { _providedPackZipFile = null; _batchPackImport = false; }
+                    var packs = (await PackCatalogService.GetAllVoicePacksAsync()).Where(p => p.DisplayName == GameStyleService.ToStorageValue(test.Item2) + " native validation").ToList();
+                    RequireAudio(packs.Count == 1 && packs[0].Key == test.Item3 && PackCatalogService.GetAudioPackKind(packs[0]) == test.Item4,
+                        "Legacy wrong-library import duplicated or misclassified the native pack.");
+                    if (pass == 1) RequireAudio(_activeGameTab == (test.Item4 == AudioPackKind.CharacterVoice ? "voice" : "sound_effect"), "Single native import did not switch to its actual audio library.");
+                    if (pass == 2) RequireAudio(_activeGameTab == tab, "Batch import changed the requested tab.");
+                }
+            }
+            var iconFolder = Path.Combine(fixtureRoot, "legacy-icon");
+            Directory.CreateDirectory(iconFolder);
+            File.WriteAllText(Path.Combine(iconFolder, "manifest.json"), "{\"game\":\"crossfire\",\"kind\":\"icon\"}");
+            File.WriteAllBytes(Path.Combine(iconFolder, "badge_multi1.png"), new byte[] { 1 });
+            string iconZip = Path.Combine(fixtureRoot, "legacy-icon.zip");
+            ZipFile.CreateFromDirectory(iconFolder, iconZip);
+            var rejects = new[] {
+                Tuple.Create(native[0].Item1, GameStyleMode.Valorant, "sound_effect", true),
+                Tuple.Create(native[1].Item1, GameStyleMode.Crossfire, "voice", true),
+                Tuple.Create(native[0].Item1, GameStyleMode.Crossfire, "icon", false),
+                Tuple.Create(await StorageFile.GetFileFromPathAsync(iconZip), GameStyleMode.Crossfire, "voice", true),
+                Tuple.Create(await StorageFile.GetFileFromPathAsync(iconZip), GameStyleMode.Calabiyau, "icon", false)
+            };
+            foreach (var test in rejects)
+            {
+                OpenPackLibrary(test.Item2, test.Item3);
+                string[] before = Directory.GetFiles(ResourceLibraryPaths.Root, "*", SearchOption.AllDirectories).OrderBy(p => p).ToArray();
+                string[] keys = (await PackCatalogService.GetAllVoicePacksAsync()).Select(p => p.Key + "|" + p.FolderPath).ToArray();
+                _providedPackZipFile = test.Item1;
+                bool rejected = false;
+                try { await ImportProvidedPackZipAsync(test.Item4); }
+                catch (InvalidDataException) { rejected = true; }
+                finally { _providedPackZipFile = null; }
+                RequireAudio(rejected && before.SequenceEqual(Directory.GetFiles(ResourceLibraryPaths.Root, "*", SearchOption.AllDirectories).OrderBy(p => p))
+                    && keys.SequenceEqual((await PackCatalogService.GetAllVoicePacksAsync()).Select(p => p.Key + "|" + p.FolderPath)),
+                    "Wrong-game/media ZIP reached a fallback or modified the library.");
+            }
+            results.Add("PASS: shared picker/drop ZIP entry rejects wrong games and icon/audio swaps before writes; legacy CF/VALORANT single and batch imports retain native IDs and correct audio libraries.");
         }
 
         private async Task ValidateRealCalabiyauAudioPacksAsync(string fixtureRoot, List<string> results)

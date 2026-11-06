@@ -153,6 +153,9 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                 case GameStyleMode.Doubao:
                     panel = EnsureDoubaoAdvancedEffectsPanel();
                     break;
+                case GameStyleMode.Sanguosha:
+                    panel = EnsureSanguoshaAdvancedEffectsPanel();
+                    break;
                 case GameStyleMode.Dagoujiao:
                     panel = EnsureDagoujiaoAdvancedEffectsPanel();
                     break;

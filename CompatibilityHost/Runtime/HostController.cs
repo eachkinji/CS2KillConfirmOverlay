@@ -42,6 +42,7 @@ namespace KillConfirmCompatibility.Desktop.Runtime
         private string _danmakuTestError;
         private bool _lastDanmakuEnabled;
         private string _style, _lastSignature, _renderError;
+        private long _configuredAssetRevision = -1;
         private bool _editing, _hidden, _closing, _visible;
         private bool _statusWriteFailed;
         private System.Threading.Tasks.Task _statusWrite = System.Threading.Tasks.Task.CompletedTask;
@@ -192,7 +193,8 @@ namespace KillConfirmCompatibility.Desktop.Runtime
                 // The host draws its own preview locally. The audio endpoint also
                 // broadcasts it, so discard that echo rather than playing twice.
                 if (ev.SteamId?.StartsWith(PreviewEvents.SteamIdPrefix, StringComparison.Ordinal) == true) return;
-                if (_closing || _hidden || !_visible || _editing || !_applyingConfiguration.IsCompleted) return;
+                if (_closing || _hidden || !_visible || _editing || !_applyingConfiguration.IsCompleted
+                    || !_presenter.LowerFeedbackAnimation.IsCurrentPackPreloaded) return;
                 try { _presenter.HandleKillEvent(ev); } catch (Exception error) { _renderError = error.Message; App.Log("Compatibility event failed: " + error); }
             };
             _events.Start();
@@ -228,7 +230,7 @@ namespace KillConfirmCompatibility.Desktop.Runtime
                 }
                 if (!_surfaces.Any(surface => surface.IsDragging)) _layout = _configuration.GetLayout(_style);
                 string signature = _style + "|" + _configuration.AssetRevision + "|" + DesktopStorage.Current.LocalSettings.Values["KillIconPack." + _style] + "|" + DesktopStorage.Current.LocalSettings.Values["KillEliteEffect"] + "|" + DesktopStorage.Current.LocalSettings.Values["KillWeaponBadge"] + "|" + DesktopStorage.Current.LocalSettings.Values["KillFxEnabled"] + "|" + DesktopStorage.Current.LocalSettings.Values["MainAnimationStyle"] + "|" + File.GetLastWriteTimeUtc(Path.Combine(DesktopStorage.Current.LocalFolder.Path, "pack-catalog.json")).Ticks;
-                if (_lastSignature != signature && _applyingConfiguration.IsCompleted) { _applyingConfiguration = _presenter.ApplyConfigurationAsync(); _lastSignature = signature; _renderError = null; }
+                if (_lastSignature != signature && _applyingConfiguration.IsCompleted) { _configuredAssetRevision = _configuration.AssetRevision; _applyingConfiguration = _presenter.ApplyConfigurationAsync(); _lastSignature = signature; _renderError = null; }
                 if (_applyingConfiguration.IsCompleted)
                 {
                     if (_configuration.EditRequest != _editRequest) { _editRequest = _configuration.EditRequest; BeginEditing(); }
@@ -291,7 +293,7 @@ namespace KillConfirmCompatibility.Desktop.Runtime
                 if (DateTimeOffset.UtcNow >= _nextStatus && _statusWrite.IsCompleted)
                 {
                     _nextStatus = DateTimeOffset.UtcNow.AddSeconds(1);
-                    _statusWrite = WriteStatusAsync(new DisplayStatus { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), ProcessId = Environment.ProcessId, Connected = _events.ConnectionState == KillEventConnectionState.Connected, Editing = _editing, Visible = _visible, Style = _style, Loading = !_applyingConfiguration.IsCompleted, Screen = monitor.Device, Screens = screens.Select(s => s.Device).ToArray(), Error = _renderError ?? _presenter.ConfigurationError ?? _service.Error, LastTestRequest = _completedTestRequest, TestError = _testError, LastDanmakuTestRequest = _completedDanmakuTestRequest, DanmakuTestError = _danmakuTestError });
+                    _statusWrite = WriteStatusAsync(new DisplayStatus { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), ProcessId = Environment.ProcessId, Connected = _events.ConnectionState == KillEventConnectionState.Connected, Editing = _editing, Visible = _visible, Style = _style, Loading = !_applyingConfiguration.IsCompleted, AssetRevision = _configuredAssetRevision, Screen = monitor.Device, Screens = screens.Select(s => s.Device).ToArray(), Error = _renderError ?? _presenter.ConfigurationError ?? _service.Error, LastTestRequest = _completedTestRequest, TestError = _testError, LastDanmakuTestRequest = _completedDanmakuTestRequest, DanmakuTestError = _danmakuTestError });
                 }
             }
             catch (Exception error) { _renderError = error.Message; App.Log("Compatibility state: " + error); }

@@ -15,42 +15,104 @@ namespace KillConfirmGameBar.Controls
     {
         public static void InvalidateDagoujiaoImageCache()
         {
-            // Clear image cache when packs or settings change
-            ClearDagoujiaoImageCache();
+            // An active drawing session may still reference these images.
+            // Retain ownership until the normal resource release stops playback.
+            _resourceGeneration++;
+            lock (DagoujiaoImageCache)
+            {
+                foreach (CanvasBitmap bitmap in DagoujiaoImageCache.Values)
+                    if (bitmap != null) RetiredDagoujiaoBitmaps.Add(bitmap);
+                foreach (PreparedDagoujiaoPlayback prepared in DagoujiaoPreparedCache.Values)
+                    if (prepared.Bitmap != null) RetiredDagoujiaoBitmaps.Add(prepared.Bitmap);
+                DagoujiaoImageCache.Clear();
+                DagoujiaoPreparedCache.Clear();
+                _dagoujiaoPreparedEpicCount = 0;
+            }
             _startupPreloadTask = null;
+            _currentPackPreloadTask = null;
+            _currentPackPreloadSignature = null;
+        }
+
+        private sealed class PreparedDagoujiaoPlayback
+        {
+            public CanvasBitmap Bitmap;
+            public string ImageKey;
+            public double Opacity, Scale, Duration;
+        }
+
+        private static readonly Dictionary<int, PreparedDagoujiaoPlayback> DagoujiaoPreparedCache =
+            new Dictionary<int, PreparedDagoujiaoPlayback>();
+        private static readonly HashSet<CanvasBitmap> RetiredDagoujiaoBitmaps = new HashSet<CanvasBitmap>();
+        private static int _dagoujiaoPreparedEpicCount;
+
+        private static string DagoujiaoPreloadSettingsSignature()
+        {
+            var s = DagoujiaoSettingsStore.Load();
+            var values = new List<string> { s.EpicKillCount.ToString(), s.HeadshotPriority.ToString(),
+                s.Opacity.ToString("R"), s.InitialScale.ToString("R"), s.MaximumScale.ToString("R"),
+                s.InitialPlaybackSpeed.ToString("R"), s.MaximumPlaybackSpeed.ToString("R"), s.EpicPlaybackSpeed.ToString("R"),
+                s.HeadshotImageKey, s.EpicImageKey, s.CommonAudioKey, s.EpicAudioKey, s.HeadshotAudioKey };
+            for (int count = 1; count <= DagoujiaoSettingsStore.MaximumEpicKillCount; count++)
+                values.Add(s.KillImageKeys != null && s.KillImageKeys.TryGetValue(count, out string key) ? key : "");
+            return string.Join("|", values);
         }
 
         private async Task PreloadDagoujiaoAnimationsAsync(IProgress<int> progress)
         {
-            string[] defaults =
-            {
-                DagoujiaoSettingsStore.DefaultCommonImageKey,
-                DagoujiaoSettingsStore.DefaultHeadshotImageKey,
-                DagoujiaoSettingsStore.DefaultEpicImageKey
-            };
+            var settings = DagoujiaoSettingsStore.Load();
+            int epic = Math.Max(DagoujiaoSettingsStore.MinimumEpicKillCount,
+                Math.Min(DagoujiaoSettingsStore.MaximumEpicKillCount, settings.EpicKillCount));
+            StorageFolder customFolder = PackCatalogService.IsImportedIconPackKey(_iconPack)
+                ? await PackCatalogService.GetImportedIconFolderAsync(_iconPack) : null;
+            var prepared = new Dictionary<int, PreparedDagoujiaoPlayback>();
             progress?.Report(0);
-            for (int index = 0; index < defaults.Length; index++)
+            for (int count = 1; count <= epic; count++)
             {
-                try { await LoadDagoujiaoImageAsync(defaults[index]); }
-                catch { }
-                progress?.Report((index + 1) * 100 / defaults.Length);
+                foreach (bool headshot in new[] { false, true })
+                {
+                    CanvasBitmap bitmap = await LoadDagoujiaoImageForKillAsync(settings, count, headshot, customFolder);
+                    if (bitmap == null) throw new System.IO.InvalidDataException("Dagoujiao image could not be prepared.");
+                    double duration = await DagoujiaoSettingsStore.GetPlaybackDurationMillisecondsAsync(settings, count, headshot);
+                    double scale = Lerp(settings.InitialScale, settings.MaximumScale,
+                        DagoujiaoSettingsStore.ResolveProgress(count, epic));
+                    if (count >= epic && !(headshot && settings.HeadshotPriority)) scale = settings.MaximumScale;
+                    prepared[count * 2 + (headshot ? 1 : 0)] = new PreparedDagoujiaoPlayback {
+                        Bitmap = bitmap, ImageKey = DagoujiaoSettingsStore.ResolveImageKey(settings, count, headshot),
+                        Opacity = settings.Opacity, Scale = scale, Duration = duration
+                    };
+                }
+                progress?.Report(count * 100 / epic);
+            }
+            lock (DagoujiaoImageCache)
+            {
+                DagoujiaoPreparedCache.Clear();
+                foreach (var entry in prepared) DagoujiaoPreparedCache.Add(entry.Key, entry.Value);
+                _dagoujiaoPreparedEpicCount = epic;
             }
         }
 
-        private async Task<CanvasBitmap> LoadDagoujiaoImageForKillAsync(DagoujiaoSettingsValues settings, int killCount, bool isHeadshot)
+        private static PreparedDagoujiaoPlayback GetPreparedDagoujiaoPlayback(int killCount, bool headshot)
+        {
+            lock (DagoujiaoImageCache)
+            {
+                int count = Math.Max(1, Math.Min(_dagoujiaoPreparedEpicCount, killCount));
+                return DagoujiaoPreparedCache.TryGetValue(count * 2 + (headshot ? 1 : 0), out var value) ? value : null;
+            }
+        }
+
+        private async Task<CanvasBitmap> LoadDagoujiaoImageForKillAsync(DagoujiaoSettingsValues settings, int killCount, bool isHeadshot, StorageFolder customFolder)
         {
             if (string.Equals(
                 _iconPack,
                 PackCatalogService.DagoujiaoAnimalsPackKey,
                 StringComparison.OrdinalIgnoreCase))
             {
-                return await LoadBitmapFromApplicationUriAsync(
-                    "ms-appx:///Assets/GameStyles/dagoujiao/iconpacks/dagoujiao_animals/animals.jpg");
+                const string uri = "ms-appx:///Assets/GameStyles/dagoujiao/iconpacks/dagoujiao_animals/animals.jpg";
+                return await LoadCachedDagoujiaoBitmapAsync(uri, () => LoadBitmapFromApplicationUriAsync(uri));
             }
 
             if (PackCatalogService.IsImportedIconPackKey(_iconPack))
             {
-                StorageFolder customFolder = await PackCatalogService.GetImportedIconFolderAsync(_iconPack);
                 if (customFolder != null)
                 {
                     string targetFile = null;
@@ -91,16 +153,35 @@ namespace KillConfirmGameBar.Controls
         private static async Task<CanvasBitmap> TryLoadBitmapFromFolderAsync(StorageFolder folder, string fileName)
         {
             if (folder == null || string.IsNullOrWhiteSpace(fileName)) return null;
-            try
+            return await LoadCachedDagoujiaoBitmapAsync("file:" + folder.Path + "/" + fileName, async () =>
             {
-                StorageFile file = await folder.GetFileAsync(fileName);
-                if (file != null)
+                try
                 {
-                    return await LoadBitmapFromStorageFileAsync(file);
+                    StorageFile file = await folder.GetFileAsync(fileName);
+                    if (file != null) return await LoadBitmapFromStorageFileAsync(file);
                 }
+                catch { }
+                return null;
+            });
+        }
+
+        private static async Task<CanvasBitmap> LoadCachedDagoujiaoBitmapAsync(string key, Func<Task<CanvasBitmap>> load)
+        {
+            lock (DagoujiaoImageCache)
+                if (DagoujiaoImageCache.TryGetValue(key, out CanvasBitmap cached)) return cached;
+            CanvasBitmap loaded = await load();
+            lock (DagoujiaoImageCache)
+            {
+                if (DagoujiaoImageCache.TryGetValue(key, out CanvasBitmap cached))
+                {
+                    if (!ReferenceEquals(loaded, cached)) loaded?.Dispose();
+                    return cached;
+                }
+                // Cache misses too: a shared common/epic fallback should not
+                // probe the same absent file for every prepared event slot.
+                DagoujiaoImageCache[key] = loaded;
+                return loaded;
             }
-            catch { }
-            return null;
         }
 
         private static async Task<CanvasBitmap> LoadDagoujiaoImageAsync(string imageKey)
@@ -127,14 +208,14 @@ namespace KillConfirmGameBar.Controls
             }
             if (loaded == null && !string.Equals(normalizedKey, DagoujiaoSettingsStore.DefaultCommonImageKey, StringComparison.OrdinalIgnoreCase))
             {
-                return await LoadDagoujiaoImageAsync(DagoujiaoSettingsStore.DefaultCommonImageKey);
+                loaded = await LoadDagoujiaoImageAsync(DagoujiaoSettingsStore.DefaultCommonImageKey);
             }
 
             lock (DagoujiaoImageCache)
             {
                 if (DagoujiaoImageCache.TryGetValue(normalizedKey, out CanvasBitmap cached))
                 {
-                    loaded?.Dispose();
+                    if (!ReferenceEquals(loaded, cached)) loaded?.Dispose();
                     return cached;
                 }
                 DagoujiaoImageCache[normalizedKey] = loaded;
@@ -142,9 +223,28 @@ namespace KillConfirmGameBar.Controls
             }
         }
 
+        private static IEnumerable<CanvasBitmap> CollectDagoujiaoCachedBitmaps()
+        {
+            lock (DagoujiaoImageCache)
+            {
+                var owned = new HashSet<CanvasBitmap>(RetiredDagoujiaoBitmaps);
+                foreach (CanvasBitmap bitmap in DagoujiaoImageCache.Values)
+                    if (bitmap != null) owned.Add(bitmap);
+                foreach (PreparedDagoujiaoPlayback prepared in DagoujiaoPreparedCache.Values)
+                    if (prepared.Bitmap != null) owned.Add(prepared.Bitmap);
+                return owned;
+            }
+        }
+
         private static void ClearDagoujiaoImageCache()
         {
-            lock (DagoujiaoImageCache) DagoujiaoImageCache.Clear();
+            lock (DagoujiaoImageCache)
+            {
+                DagoujiaoImageCache.Clear();
+                DagoujiaoPreparedCache.Clear();
+                RetiredDagoujiaoBitmaps.Clear();
+                _dagoujiaoPreparedEpicCount = 0;
+            }
         }
 
     }

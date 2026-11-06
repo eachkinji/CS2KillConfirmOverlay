@@ -22,35 +22,58 @@ namespace KillConfirmGameBar.Controls
     {
         public Task PreloadStartupAnimationsAsync()
         {
-            if (_startupPreloadTask == null)
-            {
-                _startupPreloadTask = PreloadCurrentPackAnimationsAsync(null);
-            }
-
-            return _startupPreloadTask;
+            return PreloadCurrentPackAnimationsAsync(null);
         }
 
-        private static Task _cfPreloadTask;
-        private static string _cfPreloadSignature;
+        private static Task _currentPackPreloadTask;
+        private static string _currentPackPreloadSignature;
+
+        private static string CurrentPackPreloadSignature => _resourceGeneration + ":"
+            + GameStyleService.Current + ":" + GetCodeKillCacheKey("", "") + ":"
+            + (ValorantPackService.IsValorantPackKey(_iconPack)
+                ? ValorantExternalAssetService.GetResourceRevision(_iconPack) : "") + ":"
+            + (GameStyleService.IsDagoujiaoKey(_iconPack) ? DagoujiaoPreloadSettingsSignature() : "");
+
+        public bool IsCurrentPackPreloaded => _currentPackPreloadSignature == CurrentPackPreloadSignature
+            && _currentPackPreloadTask?.Status == TaskStatus.RanToCompletion;
+
+        public bool IsCurrentPackPreloading => _currentPackPreloadSignature == CurrentPackPreloadSignature
+            && _currentPackPreloadTask != null && !_currentPackPreloadTask.IsCompleted;
+
+        // Playback only joins preparation started by configuration/selection.
+        // It must never turn a cache miss into an on-demand disk/GPU load.
+        public async Task WaitForCurrentPackPreloadAsync()
+        {
+            string signature = CurrentPackPreloadSignature;
+            Task preparation = _currentPackPreloadTask;
+            if (preparation == null || _currentPackPreloadSignature != signature)
+                throw new InvalidOperationException("图标资源尚未开始预载，请等待素材准备完成。");
+            await preparation;
+            if (signature != CurrentPackPreloadSignature || !ReferenceEquals(preparation, _currentPackPreloadTask))
+                throw new OperationCanceledException("The selected icon resources changed during preparation.");
+        }
+
+        private async Task<bool> WaitForPreparedPlaybackAsync()
+        {
+            try { await WaitForCurrentPackPreloadAsync(); return true; }
+            catch (OperationCanceledException) { return false; }
+            catch (Exception error) { App.Log("Animation resources are not ready: " + error.Message); return false; }
+        }
 
         public async Task PreloadCurrentPackAnimationsAsync(IProgress<int> progress)
         {
-            if (GameStyleService.Current != GameStyleMode.Crossfire)
+            string signature = CurrentPackPreloadSignature;
+            if (_currentPackPreloadTask == null || _currentPackPreloadSignature != signature
+                || _currentPackPreloadTask.IsFaulted || _currentPackPreloadTask.IsCanceled)
             {
-                await PreloadCurrentPackAnimationsOnceAsync(progress);
-                return;
+                _currentPackPreloadSignature = signature;
+                _currentPackPreloadTask = PreloadCurrentPackAnimationsOnceAsync(signature, progress);
             }
-            string signature = _resourceGeneration + ":" + GetCodeKillCacheKey("", "");
-            if (_cfPreloadTask == null || _cfPreloadSignature != signature || _cfPreloadTask.IsFaulted || _cfPreloadTask.IsCanceled)
-            {
-                _cfPreloadSignature = signature;
-                _cfPreloadTask = PreloadCurrentPackAnimationsOnceAsync(progress);
-            }
-            await _cfPreloadTask;
+            await WaitForCurrentPackPreloadAsync();
             progress?.Report(100);
         }
 
-        private async Task PreloadCurrentPackAnimationsOnceAsync(IProgress<int> progress)
+        private async Task PreloadCurrentPackAnimationsOnceAsync(string signature, IProgress<int> progress)
         {
             int generation = _resourceGeneration;
             await PreloadGate.WaitAsync();
@@ -58,10 +81,11 @@ namespace KillConfirmGameBar.Controls
             {
                 if (generation != _resourceGeneration)
                 {
-                    return;
+                    throw new OperationCanceledException();
                 }
 
                 await PreloadCurrentPackAnimationsCoreAsync(progress);
+                if (signature != CurrentPackPreloadSignature) throw new OperationCanceledException();
             }
             finally
             {
@@ -71,7 +95,7 @@ namespace KillConfirmGameBar.Controls
                 if (generation != _resourceGeneration)
                 {
                     ReleaseCustomSequence();
-                    ReleaseAllAnimationResourceCaches();
+                    ReleaseAllAnimationResourceCaches(false);
                 }
                 PreloadGate.Release();
             }
@@ -143,6 +167,11 @@ namespace KillConfirmGameBar.Controls
             if (GameStyleService.IsDoubaoKey(_iconPack))
             {
                 return PreloadDoubaoAnimationsAsync(progress);
+            }
+
+            if (GameStyleService.IsSanguoshaKey(_iconPack))
+            {
+                return PreloadSanguoshaAsync(progress);
             }
 
             if (GameStyleService.IsDagoujiaoKey(_iconPack))
@@ -217,17 +246,13 @@ namespace KillConfirmGameBar.Controls
             var requests = GetCodeKillPreloadRequests();
 
             int loaded = 0;
+            bool hasPlayableMain = false;
             progress?.Report(0);
             foreach (Tuple<string, string> request in requests)
             {
                 if (signature != _resourceGeneration + ":" + GetCodeKillCacheKey("", "")) return;
-                try
-                {
-                    await LoadCodeKillAssetAsync(request.Item1, request.Item2, null);
-                }
-                catch
-                {
-                }
+                AnimationAsset prepared = await LoadCodeKillAssetAsync(request.Item1, request.Item2, null);
+                hasPlayableMain |= prepared?.CodeAsset?.Main != null;
 
                 loaded++;
                 int percent = requests.Count == 0
@@ -235,6 +260,9 @@ namespace KillConfirmGameBar.Controls
                     : (int)Math.Round(loaded * 100.0 / requests.Count);
                 progress?.Report(Math.Max(1, Math.Min(100, percent)));
             }
+            // Partial event/overlay packs are valid and may use original-pack
+            // fallback. Only an entirely unplayable result fails preparation.
+            if (!hasPlayableMain) throw new FileNotFoundException("CF 素材包没有可播放的击杀图标，请安装原版图标包或有效的图标素材。");
         }
 
         private async Task PreloadValorantAnimationsAsync(IProgress<int> progress)
@@ -244,7 +272,19 @@ namespace KillConfirmGameBar.Controls
                 : ValorantPackService.DefaultKey;
             progress?.Report(0);
             ValorantDemoProfile profile = GetValorantDemoProfile(packKey);
-            await GetOrLoadValorantTextureSetAsync(packKey, profile, progress);
+            ValorantTextureSet textures = await GetOrLoadValorantTextureSetAsync(packKey, profile, null);
+            if (textures.NativeAnimation != null)
+            {
+                int tiers = textures.NativeAnimation.Tiers.Length;
+                for (int tier = 1; tier <= tiers; tier++)
+                {
+                    await PrepareValorantNativeTierAsync(textures, tier);
+                    progress?.Report(tier * 99 / tiers);
+                }
+                // Preloading selects no visible animation; the first play picks
+                // its own resident tier without resolving any StorageFiles.
+                textures.NativeAnimation.ActiveTier = null;
+            }
             progress?.Report(100);
         }
 

@@ -179,6 +179,7 @@ namespace KillConfirmGameBar
 
         private void UpdateRepeatTestButtonVisuals()
         {
+            RefreshAnimationTestAvailability();
             SolidColorBrush highlight = _isRepeatTestLooping
                 ? new SolidColorBrush(Color.FromArgb(96, 245, 158, 11))
                 : null;
@@ -190,6 +191,15 @@ namespace KillConfirmGameBar
             {
                 PackTestSectionView.RepeatTestButton.Background = highlight;
             }
+        }
+
+        private void RefreshAnimationTestAvailability()
+        {
+            bool ready = _animationCacheReady && LowerFeedbackAnimation != null && LowerFeedbackAnimation.IsCurrentPackPreloaded;
+            if (MiniSendTestButton != null) MiniSendTestButton.IsEnabled = ready;
+            if (MiniRepeatTestButton != null) MiniRepeatTestButton.IsEnabled = ready || _isRepeatTestLooping;
+            if (PackTestSectionView?.SendTestButton != null) PackTestSectionView.SendTestButton.IsEnabled = ready;
+            if (PackTestSectionView?.RepeatTestButton != null) PackTestSectionView.RepeatTestButton.IsEnabled = ready || _isRepeatTestLooping;
         }
 
         private async void OnReloadAudioClick(object sender, RoutedEventArgs e)

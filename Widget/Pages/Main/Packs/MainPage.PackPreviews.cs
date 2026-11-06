@@ -174,6 +174,8 @@ namespace KillConfirmGameBar
                     return "ms-appx:///Assets/GameLogos/calabiyau.png";
                 case "doubao":
                     return "ms-appx:///Assets/GameLogos/doubao.png";
+                case "sanguosha":
+                    return GameStyleService.SanguoshaPreviewUri(item?.Key);
                 case "dagoujiao":
                     return "ms-appx:///Assets/GameLogos/dagoujiao.jpg";
                 case "dagoujiao_animals":
@@ -212,6 +214,8 @@ namespace KillConfirmGameBar
                     return "ms-appx:///Assets/GameStyles/deltaforce/killconfirm/textures/killicon_df_default.png";
                 case GameStyleMode.Doubao:
                     return "ms-appx:///Assets/GameLogos/doubao.png";
+                case GameStyleMode.Sanguosha:
+                    return GameStyleService.SanguoshaPreviewUri(item?.Key);
                 case GameStyleMode.Dagoujiao:
                     return "ms-appx:///Assets/GameLogos/dagoujiao.jpg";
                 case GameStyleMode.ModernWarfare2019:
@@ -253,6 +257,7 @@ namespace KillConfirmGameBar
             }
             if (GameStyleService.IsCustomModuleKey(item?.Key)) return null;
             GameStyleMode style = GameStyleService.GetStyleForPackKey(item?.Key);
+            if (style == GameStyleMode.Sanguosha) return GameStyleService.SanguoshaPreviewUri(item?.Key);
             if (style == GameStyleMode.Overwatch)
             {
                 return "ms-appx:///Assets/GameStyles/overwatch/killconfirm/textures/preview.png";
@@ -307,6 +312,8 @@ namespace KillConfirmGameBar
                     return "ms-appx:///Assets/GameLogos/calabiyau.png";
                 case "doubao":
                     return "ms-appx:///Assets/GameLogos/doubao.png";
+                case "sanguosha":
+                    return GameStyleService.SanguoshaPreviewUri(item?.Key);
                 case "dagoujiao":
                     return "ms-appx:///Assets/GameLogos/dagoujiao.jpg";
                 case "dagoujiao_animals":

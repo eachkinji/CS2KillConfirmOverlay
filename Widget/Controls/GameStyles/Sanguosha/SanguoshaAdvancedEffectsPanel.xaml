@@ -1,0 +1,44 @@
+<UserControl
+    x:Class="KillConfirmGameBar.Controls.GameStyles.SanguoshaAdvancedEffectsPanel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:KillConfirmGameBar.Controls.GameStyles">
+
+    <StackPanel Spacing="10">
+        <Grid ColumnSpacing="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel VerticalAlignment="Center" Spacing="2">
+                <TextBlock
+                    x:Name="TitleText"
+                    FontSize="13"
+                    FontWeight="Bold"
+                    Text="Sanguosha Kill Broadcast" />
+                <TextBlock
+                    x:Name="HintText"
+                    FontSize="10"
+                    TextWrapping="WrapWholeWords" />
+            </StackPanel>
+            <Button
+                x:Name="ResetButton"
+                Grid.Column="1"
+                MinWidth="88"
+                Height="34"
+                Padding="14,0"
+                VerticalAlignment="Top"
+                AutomationProperties.Name="Restore Sanguosha defaults"
+                Click="OnResetClick">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <FontIcon FontSize="12" Glyph="&#xE777;" />
+                    <TextBlock x:Name="ResetButtonText" Text="Reset" />
+                </StackPanel>
+            </Button>
+        </Grid>
+
+        <local:StreakWindowEditor
+            x:Name="StreakEditor"
+            SettingsChanged="OnStreakModeSelectionChanged" />
+    </StackPanel>
+</UserControl>

@@ -92,6 +92,11 @@ namespace KillConfirmCompatibility.Controls
                 DrawDoubaoFrame(drawingSession);
                 return;
             }
+            if (_isSanguoshaActive)
+            {
+                DrawSanguoshaFrame(drawingSession);
+                return;
+            }
             if (_isDagoujiaoActive)
             {
                 DrawDagoujiaoFrame(drawingSession);
@@ -365,6 +370,12 @@ namespace KillConfirmCompatibility.Controls
             if (_isDoubaoActive)
             {
                 UpdateDoubaoFrame();
+                return;
+            }
+
+            if (_isSanguoshaActive)
+            {
+                UpdateSanguoshaFrame();
                 return;
             }
 

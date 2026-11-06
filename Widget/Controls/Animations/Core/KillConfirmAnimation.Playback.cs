@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -20,16 +20,72 @@ namespace KillConfirmGameBar.Controls
 {
     public sealed partial class KillConfirmAnimation : UserControl
     {
-        private async void PlayInternal(Func<IProgress<int>, Task<AnimationAsset>> assetLoader, bool showLoading = true, AnimationAsset cachedAsset = null)
+        private string _preparedPlaybackQueueKind;
+        private int _preparedPlaybackQueueToken = -1;
+        private int _preparedPlaybackQueueGeneration = -1;
+        private Task _preparedPlaybackQueue = Task.CompletedTask;
+
+        // Feed events retain their order while preparation runs. A new game,
+        // resource generation, or replacement/stop cancels the obsolete queue.
+        private void QueuePreparedPlayback(string kind, Action playback)
         {
+            if (_preparedPlaybackQueueKind != kind
+                || _preparedPlaybackQueueToken != _playToken
+                || _preparedPlaybackQueueGeneration != _resourceGeneration)
+            {
+                _preparedPlaybackQueueKind = kind;
+                _preparedPlaybackQueueToken = ++_playToken;
+                _preparedPlaybackQueueGeneration = _resourceGeneration;
+                _preparedPlaybackQueue = Task.CompletedTask;
+            }
+
+            _preparedPlaybackQueue = RunPreparedPlaybackAsync(
+                _preparedPlaybackQueue, _preparedPlaybackQueueToken,
+                _preparedPlaybackQueueGeneration, playback);
+        }
+
+        private async Task RunPreparedPlaybackAsync(
+            Task previous, int token, int generation, Action playback)
+        {
+            try
+            {
+                await previous;
+                if (token != _playToken || generation != _resourceGeneration) return;
+                await WaitForCurrentPackPreloadAsync();
+                if (token != _playToken || generation != _resourceGeneration) return;
+                playback();
+            }
+            catch (OperationCanceledException) { }
+            catch (Exception error)
+            {
+                App.Log("Queued animation playback failed: " + error);
+            }
+        }
+
+        // A replacement owns the canvas immediately, including while it waits for
+        // a preload. Leaving the previous asset active lets layout/loading redraw
+        // that old frame at the new viewport and lets its timer outlive the event.
+        private int BeginReplacementPlayback()
+        {
+            int token = ++_playToken;
+            _timer.Stop();
+            _playbackClock.Stop();
             _customSequencePlaying = false;
-            int resourceGeneration = _resourceGeneration;
+            _isCalabiyauActive = false;
+            _isBattlefieldTextOverlayActive = false;
             _contentSizedViewport = false;
             _isBattlefield1CompactLayoutActive = false;
+            _currentMetadata = null;
+            _currentCodeAsset = null;
+            _currentValorantAsset = null;
+            _currentBattlefieldAsset = null;
+            _currentCsolAsset = null;
+            _currentFrame = 0;
             ResetBattlefield5ScrollingState();
             ResetBattlefield4HudState();
             ResetBattlefield2042HudState();
             ResetBattlefield6HudState();
+            ResetSanguoshaState();
             ResetPubgHudState();
             ResetDeltaForceHudState();
             ResetDoubaoState();
@@ -37,48 +93,42 @@ namespace KillConfirmGameBar.Controls
             ResetOverwatchState();
             ResetApexFeedState();
             ResetModernWarfare2019State();
-            int token = ++_playToken;
-            bool isLoading = true;
-            var progress = new Progress<int>(value =>
-            {
-                if (showLoading && isLoading && token == _playToken)
-                {
-                    ShowLoadingProgress(value);
-                }
-            });
+            HideLoadingProgress();
+            Visibility = Visibility.Collapsed;
+            SpriteCanvas.Invalidate();
+            return token;
+        }
 
+        private async void PlayInternal(Func<IProgress<int>, Task<AnimationAsset>> assetLoader, bool showLoading = true, AnimationAsset cachedAsset = null)
+        {
+            int token = BeginReplacementPlayback();
+            int resourceGeneration = _resourceGeneration;
             try
             {
-                if (showLoading) _ = ShowLoadingProgressIfStillLoadingAsync(token, progress);
+                // Configuration starts the preload. Playback only waits for it;
+                // it must not resize the old image into a Loading viewport.
+                await WaitForCurrentPackPreloadAsync();
+                if (token != _playToken || resourceGeneration != _resourceGeneration) return;
                 AnimationAsset asset = cachedAsset;
                 if (asset == null)
                 {
                     await PreloadGate.WaitAsync();
                     try
                     {
-                        if (resourceGeneration != _resourceGeneration)
-                        {
-                            return;
-                        }
-                        asset = await assetLoader(progress);
+                        if (token != _playToken || resourceGeneration != _resourceGeneration) return;
+                        asset = await assetLoader(null);
                     }
                     finally
                     {
                         if (resourceGeneration != _resourceGeneration)
                         {
-                            ReleaseAllAnimationResourceCaches();
+                            ReleaseAllAnimationResourceCaches(false);
                         }
                         PreloadGate.Release();
                     }
                 }
 
-                if (token != _playToken || resourceGeneration != _resourceGeneration)
-                {
-                    return;
-                }
-
-                isLoading = false;
-                _timer.Stop();
+                if (token != _playToken || resourceGeneration != _resourceGeneration || asset == null) return;
                 _currentMetadata = asset.Metadata;
                 _currentCodeAsset = asset.CodeAsset;
                 _currentValorantAsset = asset.ValorantAsset;
@@ -87,8 +137,6 @@ namespace KillConfirmGameBar.Controls
                 _currentFrame = 0;
 
                 ApplyViewportSize(asset.Metadata.FrameWidth, asset.Metadata.FrameHeight);
-
-                HideLoadingProgress();
                 Visibility = Visibility.Visible;
                 double samplingFps = _currentCodeAsset != null && _mainAnimationStyle == 2
                     ? Math.Max(30, Math.Min(60, _targetPlaybackFps)) : FrameSequenceFps;
@@ -100,9 +148,10 @@ namespace KillConfirmGameBar.Controls
             catch (Exception ex)
             {
                 App.Log("Animation asset load/playback failed: " + ex);
-                isLoading = false;
-                HideLoadingProgress();
-                Visibility = Visibility.Collapsed;
+                // A superseded load can fail after a newer cached event has
+                // started. It no longer owns the canvas or the playback timer.
+                if (token != _playToken || resourceGeneration != _resourceGeneration) return;
+                BeginReplacementPlayback();
             }
         }
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Numerics;
@@ -16,60 +16,65 @@ namespace KillConfirmGameBar.Controls
     {
         public void PlayApexCrosshairKill(bool isHeadshot, int moneyReward, int killCount)
         {
-            PrepareApexPlayback(drawCards: false, drawCrosshair: true);
+            QueuePreparedPlayback("Apex", () =>
+            {
+                PrepareApexPlayback(drawCards: false, drawCrosshair: true);
 
-            double now = _playbackClock.Elapsed.TotalMilliseconds;
-            int normalizedKillCount = Math.Max(1, killCount);
-            int normalizedReward = Math.Max(0, moneyReward);
-            if (normalizedKillCount <= 1 || normalizedKillCount <= _apexLastMoneyKillCount)
-            {
-                _apexAccumulatedMoney = normalizedReward;
-            }
-            else
-            {
-                _apexAccumulatedMoney = (int)Math.Min(
-                    int.MaxValue,
-                    (long)_apexAccumulatedMoney + normalizedReward);
-            }
-            _apexLastMoneyKillCount = normalizedKillCount;
-            _apexCrosshairEffect = new ApexCrosshairEffect
-            {
-                IsHeadshot = isHeadshot,
-                MoneyReward = _apexAccumulatedMoney,
-                SpawnTimeMs = now
-            };
-            EnsureApexHitmarkReadyAsync();
-            SpriteCanvas.Invalidate();
+                double now = _playbackClock.Elapsed.TotalMilliseconds;
+                int normalizedKillCount = Math.Max(1, killCount);
+                int normalizedReward = Math.Max(0, moneyReward);
+                if (normalizedKillCount <= 1 || normalizedKillCount <= _apexLastMoneyKillCount)
+                {
+                    _apexAccumulatedMoney = normalizedReward;
+                }
+                else
+                {
+                    _apexAccumulatedMoney = (int)Math.Min(
+                        int.MaxValue,
+                        (long)_apexAccumulatedMoney + normalizedReward);
+                }
+                _apexLastMoneyKillCount = normalizedKillCount;
+                _apexCrosshairEffect = new ApexCrosshairEffect
+                {
+                    IsHeadshot = isHeadshot,
+                    MoneyReward = _apexAccumulatedMoney,
+                    SpawnTimeMs = now
+                };
+                SpriteCanvas.Invalidate();
+            });
         }
 
         public void PlayApexFeedCard(bool isAssist, string targetName, int moneyReward)
         {
-            PrepareApexPlayback(drawCards: true, drawCrosshair: false);
-
-            double now = _playbackClock.Elapsed.TotalMilliseconds;
-            var item = new ApexFeedItem
+            QueuePreparedPlayback("Apex", () =>
             {
-                IsAssist = isAssist,
-                TargetName = string.IsNullOrWhiteSpace(targetName) ? "敌方玩家" : targetName.Trim(),
-                MoneyReward = Math.Max(0, moneyReward),
-                SpawnTimeMs = now,
-                CurrentY = ApexCardBottomY
-            };
-            _apexFeedState.Items.Add(item);
+                PrepareApexPlayback(drawCards: true, drawCrosshair: false);
 
-            if (_apexFeedState.Items.Count > ApexMaxCards)
-            {
-                ApexFeedItem oldest = _apexFeedState.Items[0];
-                if (oldest.ExitStartTimeMs < 0)
+                double now = _playbackClock.Elapsed.TotalMilliseconds;
+                var item = new ApexFeedItem
                 {
-                    oldest.ExitStartTimeMs = now;
-                    _apexFeedState.LastExitStartTimeMs = now;
+                    IsAssist = isAssist,
+                    TargetName = string.IsNullOrWhiteSpace(targetName) ? "敌方玩家" : targetName.Trim(),
+                    MoneyReward = Math.Max(0, moneyReward),
+                    SpawnTimeMs = now,
+                    CurrentY = ApexCardBottomY
+                };
+                _apexFeedState.Items.Add(item);
+
+                if (_apexFeedState.Items.Count > ApexMaxCards)
+                {
+                    ApexFeedItem oldest = _apexFeedState.Items[0];
+                    if (oldest.ExitStartTimeMs < 0)
+                    {
+                        oldest.ExitStartTimeMs = now;
+                        _apexFeedState.LastExitStartTimeMs = now;
+                    }
                 }
-            }
 
-            UpdateApexCardSelectionBounds();
+                UpdateApexCardSelectionBounds();
 
-            SpriteCanvas.Invalidate();
+                SpriteCanvas.Invalidate();
+            });
         }
 
 
@@ -88,6 +93,7 @@ namespace KillConfirmGameBar.Controls
             ResetBattlefield4HudState();
             ResetBattlefield2042HudState();
             ResetBattlefield6HudState();
+            ResetSanguoshaState();
             ResetPubgHudState();
             ResetDeltaForceHudState();
             ResetDoubaoState();

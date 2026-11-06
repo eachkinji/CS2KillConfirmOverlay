@@ -20,7 +20,7 @@ namespace KillConfirmGameBar
                 case "apex": case "pubg": case "deltaforce": return "shooters";
                 case "battlefield4": case "battlefield1": case "battlefield5":
                 case "battlefield2042": case "battlefield6": return "battlefield";
-                case "doubao": case "dagoujiao": case "custommodule": return "others";
+                case "doubao": case "sanguosha": case "dagoujiao": case "custommodule": return "others";
                 default: return null;
             }
         }

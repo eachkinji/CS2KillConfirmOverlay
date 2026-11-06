@@ -196,7 +196,7 @@ namespace KillConfirmCompatibility.Controls
             string action = assetName.Trim().ToLowerInvariant();
             string badge = SupportsWeaponBadgeForAsset(action) ? NormalizeWeaponBadgeKey(weaponBadgeKey) : string.Empty;
             CodeKillCache.TryGetValue(GetCodeKillCacheKey(action, badge), out Code2KillAsset cached);
-            PlayInternal(progress => LoadCodeKillAssetAsync(action, badge, progress), false,
+            PlayInternal(progress => LoadCodeKillAssetAsync(action, badge, progress, requireCached: true), false,
                 cached == null ? null : CreateCodeKillAnimationAsset(cached));
         }
 
@@ -216,7 +216,6 @@ namespace KillConfirmCompatibility.Controls
 
         public void PlayBattlefield5Kill(int killCount, bool isHeadshot, bool isKnifeKill, bool isAssist, string playerName, string weaponLabel, int moneyReward, string eventKind, int roundNumber, int moneyEpoch)
         {
-            _playToken++;
             _contentSizedViewport = false;
             _isBattlefield1CompactLayoutActive = false;
             _isBattlefieldTextOverlayActive = false;

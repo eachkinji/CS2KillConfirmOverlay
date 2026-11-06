@@ -416,8 +416,7 @@ namespace KillConfirmGameBar
         {
             try
             {
-                PackageVersion version = Package.Current.Id.Version;
-                return $"{version.Major}.{version.Minor}.{version.Build}";
+                return VersionUpdateService.DisplayVersion;
             }
             catch (Exception)
             {
@@ -443,8 +442,7 @@ namespace KillConfirmGameBar
         {
             try
             {
-                PackageVersion version = Package.Current.Id.Version;
-                return $"{version.Major}.{version.Minor}.{version.Build}";
+                return VersionUpdateService.DisplayVersion;
             }
             catch (Exception)
             {

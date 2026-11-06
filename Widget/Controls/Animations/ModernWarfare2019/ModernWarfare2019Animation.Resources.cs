@@ -18,9 +18,11 @@ namespace KillConfirmGameBar.Controls
         private static async Task PreloadModernWarfare2019AnimationsAsync(IProgress<int> progress)
         {
             progress?.Report(20);
-            await LoadModernWarfare2019UpperIconBitmapAsync();
+            if (await LoadModernWarfare2019UpperIconBitmapAsync() == null)
+                throw new InvalidOperationException("MW2019 upper icon could not be preloaded.");
             progress?.Report(60);
-            await LoadModernWarfare2019MoneyGlowBitmapAsync();
+            if (await LoadModernWarfare2019MoneyGlowBitmapAsync() == null)
+                throw new InvalidOperationException("MW2019 money glow could not be preloaded.");
             progress?.Report(100);
         }
 
@@ -70,75 +72,5 @@ namespace KillConfirmGameBar.Controls
             return _modernWarfare2019MoneyGlowBitmap;
         }
 
-        private async void EnsureModernWarfare2019MoneyGlowReadyAsync()
-        {
-            if (_modernWarfare2019MoneyGlowBitmap != null)
-            {
-                return;
-            }
-
-            int generation = _resourceGeneration;
-            try
-            {
-                await PreloadGate.WaitAsync();
-                try
-                {
-                    if (generation == _resourceGeneration)
-                    {
-                        await LoadModernWarfare2019MoneyGlowBitmapAsync();
-                    }
-                }
-                finally
-                {
-                    PreloadGate.Release();
-                }
-
-                if (generation == _resourceGeneration
-                    && _isModernWarfare2019Active
-                    && _drawModernWarfare2019Primary)
-                {
-                    SpriteCanvas.Invalidate();
-                }
-            }
-            catch
-            {
-            }
-        }
-
-        private async void EnsureModernWarfare2019UpperIconReadyAsync()
-        {
-            if (_modernWarfare2019UpperIconBitmap != null)
-            {
-                SpriteCanvas.Invalidate();
-                return;
-            }
-
-            int generation = _resourceGeneration;
-            try
-            {
-                await PreloadGate.WaitAsync();
-                try
-                {
-                    if (generation == _resourceGeneration)
-                    {
-                        await LoadModernWarfare2019UpperIconBitmapAsync();
-                    }
-                }
-                finally
-                {
-                    PreloadGate.Release();
-                }
-
-                if (generation == _resourceGeneration
-                    && _isModernWarfare2019Active
-                    && _drawModernWarfare2019UpperBanner)
-                {
-                    SpriteCanvas.Invalidate();
-                }
-            }
-            catch
-            {
-            }
-        }
     }
 }

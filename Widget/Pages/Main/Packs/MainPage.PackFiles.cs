@@ -438,6 +438,10 @@ namespace KillConfirmGameBar
                     {
                         return await installed.GetFolderAsync(@"Assets\GameStyles\deltaforce\killconfirm\textures");
                     }
+                    if (GameStyleService.IsSanguoshaKey(key))
+                    {
+                        return await installed.GetFolderAsync(@"Assets\GameStyles\sanguosha\killconfirm");
+                    }
                     if (string.Equals(key, "doubao", StringComparison.OrdinalIgnoreCase))
                     {
                         return await installed.GetFolderAsync(@"Assets\GameStyles\doubao\killconfirm\textures");

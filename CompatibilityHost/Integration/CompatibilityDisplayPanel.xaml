@@ -22,7 +22,7 @@
                     <Border x:Name="GameBarModeCard" CornerRadius="6" BorderThickness="1" Padding="12">
                         <RadioButton x:Name="GameBarMode" GroupName="DisplayBackend" IsChecked="True" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Checked="OnModeChanged">
                             <StackPanel Spacing="6">
-                                <StackPanel Orientation="Horizontal" Spacing="8"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7FC;" FontSize="18"/><TextBlock x:Name="GameBarModeTitle" Text="Game Bar 模式" FontWeight="SemiBold"/><Border Background="#EAF3FF" CornerRadius="8" Padding="7,2"><TextBlock x:Name="RecommendedText" Text="默认推荐" FontSize="11" Foreground="#007AFF"/></Border></StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="8"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7FC;" FontSize="18"/><TextBlock x:Name="GameBarModeTitle" Text="Game Bar 模式" FontWeight="SemiBold"/></StackPanel>
                                 <TextBlock x:Name="GameBarModeHint" FontSize="12" TextWrapping="Wrap"/>
                             </StackPanel>
                         </RadioButton>

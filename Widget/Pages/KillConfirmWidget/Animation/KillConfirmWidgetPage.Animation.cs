@@ -13,7 +13,7 @@ namespace KillConfirmGameBar
 {
     public sealed partial class KillConfirmWidgetPage
     {
-        private async Task WarmStartupAnimationCacheAsync(int delayMs = StartupPreloadDelayMs)
+        private async Task WarmStartupAnimationCacheAsync(int delayMs = 0)
         {
             if (Features.CompatibilityDisplay.CompatibilityDisplayRuntime.IsEnabled) return;
             int token = ++_animationPreloadToken;
@@ -21,11 +21,6 @@ namespace KillConfirmGameBar
 
             try
             {
-                if (delayMs > 0)
-                {
-                    await Task.Delay(delayMs);
-                }
-
                 if (!_isPageActive || token != _animationPreloadToken)
                 {
                     return;
@@ -33,7 +28,7 @@ namespace KillConfirmGameBar
 
                 var progress = new Progress<int>(value =>
                 {
-                    if (token == _animationPreloadToken)
+                    if (token == _animationPreloadToken && LowerFeedbackAnimation.IsCurrentPackPreloading)
                     {
                         UpdateAnimationCacheProgress(value);
                     }
@@ -41,7 +36,7 @@ namespace KillConfirmGameBar
 
                 await LowerFeedbackAnimation.PreloadCurrentPackAnimationsAsync(progress);
 
-                if (_isPageActive && token == _animationPreloadToken)
+                if (_isPageActive && token == _animationPreloadToken && LowerFeedbackAnimation.IsCurrentPackPreloaded)
                 {
                     UpdateAnimationCacheReady();
                 }
@@ -58,16 +53,13 @@ namespace KillConfirmGameBar
 
         private void UpdateAnimationCacheProgress(int percent)
         {
-            int value = Math.Max(0, Math.Min(100, percent));
+            // Individual loaders can report 100 before the next tier starts.
+            // Only the completed preparation task may declare the pack ready.
+            int value = Math.Max(0, Math.Min(99, percent));
             _animationCacheProgress = value;
             _animationCacheReady = false;
             _animationCacheFailed = false;
-
-            if (value >= 100)
-            {
-                UpdateAnimationCacheReady();
-                return;
-            }
+            RefreshAnimationTestAvailability();
 
             HeaderStatusSection.AnimationCacheDot.Visibility = Visibility.Visible;
             Color loadingColor = GetAnimationCacheLoadingColor();
@@ -83,6 +75,7 @@ namespace KillConfirmGameBar
             _animationCacheProgress = 100;
             _animationCacheReady = true;
             _animationCacheFailed = false;
+            RefreshAnimationTestAvailability();
             HeaderStatusSection.AnimationCacheDot.Visibility = Visibility.Visible;
             HeaderStatusSection.AnimationCacheDot.Background = new SolidColorBrush(Color.FromArgb(255, 52, 211, 153));
             HeaderStatusSection.AnimationCacheBadgeText.Text = "ANI";
@@ -95,6 +88,7 @@ namespace KillConfirmGameBar
         {
             _animationCacheReady = false;
             _animationCacheFailed = true;
+            RefreshAnimationTestAvailability();
             HeaderStatusSection.AnimationCacheDot.Visibility = Visibility.Visible;
             Color failedColor = GetAnimationCacheFailedColor();
             HeaderStatusSection.AnimationCacheDot.Background = new SolidColorBrush(failedColor);
@@ -122,7 +116,7 @@ namespace KillConfirmGameBar
             return IsDark(theme.Field) ? Color.FromArgb(255, 248, 113, 113) : Color.FromArgb(255, 185, 28, 28);
         }
 
-        private void HandleKillEvent(KillEvent killEvent)
+        private async void HandleKillEvent(KillEvent killEvent)
         {
             if (Features.CompatibilityDisplay.CompatibilityDisplayRuntime.IsEnabled) return;
             if (killEvent.PublishedUnixMs > 0)
@@ -151,6 +145,17 @@ namespace KillConfirmGameBar
             {
                 return;
             }
+
+            // Live events use the same preparation contract as test playback.
+            // Danmaku above remains independent of icon readiness.
+            int preparationToken = _animationPreloadToken;
+            try { await LowerFeedbackAnimation.WaitForCurrentPackPreloadAsync(); }
+            catch (Exception error)
+            {
+                App.Log("Icon event is not ready for playback: " + error.Message);
+                return;
+            }
+            if (!_isPageActive || preparationToken != _animationPreloadToken || style != GameStyleService.Current) return;
 
             bool isCrossfireObjective = style == GameStyleMode.Crossfire && IsBombObjectiveEvent(killEvent);
             bool isModernWarfare2019Objective = style == GameStyleMode.ModernWarfare2019
@@ -373,6 +378,9 @@ namespace KillConfirmGameBar
                     break;
                 case GameStyleMode.Doubao:
                     PlayDoubaoPrimaryAnimation(killEvent);
+                    return;
+                case GameStyleMode.Sanguosha:
+                    PlaySanguoshaPrimaryAnimation(killEvent);
                     return;
                 case GameStyleMode.Dagoujiao:
                     PlayDagoujiaoPrimaryAnimation(killEvent);

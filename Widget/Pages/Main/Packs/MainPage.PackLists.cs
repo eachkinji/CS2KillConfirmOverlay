@@ -209,6 +209,7 @@ namespace KillConfirmGameBar
                 TextTrimming = TextTrimming.CharacterEllipsis
             };
             var editButton = CreatePackActionButton(LocalizationManager.Text("Edit"), "PackEdit");
+            if (item.IsBuiltIn && GameStyleService.IsSanguoshaKey(item.Key)) editButton.Visibility = Visibility.Collapsed;
             editButton.Click += async (_, __) =>
             {
                 StorageFolder packFolder = await GetVoicePackFolderAsync(item);
@@ -376,7 +377,8 @@ namespace KillConfirmGameBar
                 TextTrimming = TextTrimming.CharacterEllipsis
             };
             var editButton = CreatePackActionButton(LocalizationManager.Text("Edit"), "PackEdit");
-            if (GameStyleService.IsCalabiyauKey(item.Key)) editButton.Visibility = Visibility.Collapsed;
+            if (item.IsBuiltIn && GameStyleService.IsSanguoshaKey(item.Key)) editButton.Visibility = Visibility.Collapsed;
+            if (GameStyleService.IsCalabiyauKey(item.Key) || GameStyleService.IsSanguoshaKey(item.Key)) editButton.Visibility = Visibility.Collapsed;
             editButton.Click += async (_, __) =>
             {
                 StorageFolder packFolder = await GetIconPackFolderAsync(item);

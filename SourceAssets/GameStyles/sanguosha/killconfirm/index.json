@@ -1,0 +1,441 @@
+{
+  "format": "sanguosha-killconfirm",
+  "version": 1,
+  "tiers": [
+    {
+      "tier": 1,
+      "animation": "shoupo",
+      "files": {
+        "shoupo.sgsd.gz": "964bcbc244e92f2ca4a33117722b8ed4728b7147c4e9b7f05a6dc1353957ddfd",
+        "shoupo.png": "f44ba30592655829b992026ac10c4047c25d0b97720f81f854efb51bdae6fbb2",
+        "shoupo_3.png": "47fea2938fe1726f1ab0c3ad4663d63ed3b7d5d062c3e3357b88fcd9174b24d6",
+        "shoupo_2.png": "25d81e69c7ddad223ec5d08183e6cf6c713ef19d6ef4a465d851e02cec1ba34a"
+      }
+    },
+    {
+      "tier": 2,
+      "animation": "lianpo",
+      "files": {
+        "lianpo.sgsd.gz": "439bd09a751f078ffff9a2d3b701d0bced624e635eb3549c046d3ec61dfb732d",
+        "lianpo.png": "0d96782c2e394c0bd788cd2950d5556c37f4a23534f782303bb704e6a6ad879d",
+        "lianpo_2.png": "bf7a2c7699035bc8129f43f45795c7316445a41a7aaacc377cec1342b5b34cd0",
+        "lianpo_3.png": "d8592b2de3ec9ec4a37040c8a857a783fdc1c086302246d11c66e05382276062"
+      }
+    },
+    {
+      "tier": 3,
+      "animation": "sanpo",
+      "files": {
+        "sanpo.sgsd.gz": "4c7f7e7a912f9659c4fd483dd826e473bac60b5b3f3d0bca5e387c245d0c3d08",
+        "sanpo.png": "09b7d860abecc360a0fae3742e5cda00a4c9bbad8308faa5cb59cc6fc7cb273f",
+        "sanpo_2.png": "b10012cc4d6323e6c6bcf75091ec0f78bcb4d326c9f18227da5884d12a47f988",
+        "sanpo_3.png": "0a4b73ce3c30412d7ba69433e15eb76304a0ed56a76d838c3be6fecedd477524"
+      }
+    },
+    {
+      "tier": 4,
+      "animation": "sipo",
+      "files": {
+        "sipo.sgsd.gz": "0bfdefe8426d096b9e4b196716e1db0c06f58740b8dd16f5dd78ad8059cf73d2",
+        "sipo.png": "e6c39fc266f907a4c62370af08012077f22269a6cf937187d5c382ad581c02af",
+        "sipo_2.png": "1d27e8a9dbec9f02504f70bbb4a0de3dafd14f385aad7ca7b86dfa38119c85ab",
+        "sipo_3.png": "c9b5202433846981b6662a11e1da65b08ad4cdcace99d8b4f776adc3776c1edd"
+      }
+    },
+    {
+      "tier": 5,
+      "animation": "wupo",
+      "files": {
+        "wupo.sgsd.gz": "1775afeb0d303efa44490e9a692c122e861515dd9f7c3695316885ef628a5281",
+        "wupo.png": "4042a42fcc4c630f24299e8c39367b0758f3e424499bd69c46edd3ebe1d9f248",
+        "wupo_3.png": "3c24b6056eafbbfb24324d987aab2c07bd3afa6a422b233c09b7c9da11d01c6d",
+        "wupo_2.png": "c0b5e03cedf8eb139d5cbf7aa92a619ff0dd0051701adaefc12aedb00ce49c42",
+        "wupo_4.png": "208837651a69d73411627614850a395e659b6027d5117c06e8d87948da7b16cd",
+        "wupo_5.png": "a1f425e164e0beb4cbbfd851ffdfac89f2118daba360acef1137e3951401cd31"
+      }
+    },
+    {
+      "tier": 6,
+      "animation": "liupo",
+      "files": {
+        "liupo.sgsd.gz": "f5fb0b974e7aafae6a60eabd1e90151405bcd5d5e27e8fd5bf02dde21a7fbb6f",
+        "liupo.png": "75d5833e3d0dbfaa79a2d78b1b238eccd77156f7f6d8d980935a83482afc4bdd",
+        "liupo_3.png": "1bb3cff486f707354f3d92751ba8d2fff5d4838ad5115a87db2116de476a1249",
+        "liupo_4.png": "ef9f341b9130d3ccc7aafb5b4deeefe911399f51ab828fdbb6e2de166b8e6274",
+        "liupo_2.png": "766bd5225ca034e136de07b706f2d2c431b621ec93063519fd18b9d4affbd870",
+        "liupo_6.png": "bdf7dd499a690e3327ed7a083bf1a368ebd947a8ee3ee883f0ef58e43cbbbeff",
+        "liupo_5.png": "7de2a47f0691ae3b9c2eefb16949bbb6355695308f70c661da9e26fa98f162d1"
+      }
+    },
+    {
+      "tier": 7,
+      "animation": "qipo",
+      "files": {
+        "qipo.sgsd.gz": "3cd9eda20472c60be25fcda86fbe2ee29427ab3ba21a0288940087b8f8551fae",
+        "qipo.png": "e4cf6f8a2e57c871cfc30d916c4caf0a79b57e226ad8d688792824b65dfa84b0",
+        "qipo_2.png": "7c8519b2674c74303116e39329ae5535fe61416ce12d38c7d059b3513ce296bf",
+        "qipo_3.png": "4bfad6dfa9557956ca722908da26cc9bcbf878258d87b1b598bdb77e0de80b9c",
+        "qipo_6.png": "bb9e4b134c89cf4812ac4666f70d276f18d7df45d0c6cba581511f330fb28fc0",
+        "qipo_4.png": "b45771faaa01b44d372ce9c3281f54957e70d2129eff3d56ed3ff95873c52b3c",
+        "qipo_5.png": "ab4cdd01ce9f41d4049ace1558eed30e79f0242a31c1f3bcd1b794f683410c2a"
+      }
+    },
+    {
+      "tier": 8,
+      "animation": "shenweizhengqiankun",
+      "files": {
+        "shenweizhengqiankun.sgsd.gz": "c33619e906f993838195fac16b91279370bcdb552418c3d4fdc5d04d6c1eb775",
+        "shenweizhengqiankun_5.png": "d3241d74272d911f5debf0759e831e336cb62c887667c56e8d5a71906ab38d5d",
+        "shenweizhengqiankun_3.png": "bfedadd18f30f1c3efc9b6b38fc05a64946c13b41558fb5b9bf9f948b28dd9e2",
+        "shenweizhengqiankun_2.png": "54e89e8e0d234176ddffa28ea37c8081f2aa641b90c4a7693e4bf615fc3de28c",
+        "shenweizhengqiankun.png": "e8759ae32df6febea5e121aba2ea87b5d4f217562dd46b9e672b3d436fcad93a",
+        "shenweizhengqiankun_4.png": "7e815e743ec07d89c5a6f8f7f29ac4f97b31120a11018a1fcccd0a4fbeb32034",
+        "shenweizhengqiankun_hero.png": "ed3b9c415e185b3460523438e9106148e89b7212d0dbab6b9b1ee5686692b8e3"
+      }
+    },
+    {
+      "tier": 9,
+      "animation": "wanfumodi",
+      "files": {
+        "wanfumodi.sgsd.gz": "92bf080e3072ff4206d3b1a2fda7b9359a0b04350f0d6673a63b83ea6ce5677a",
+        "wanfumodi.png": "e6edfab923cf4abacb7fe165dc76e5adea85f3703659d7d9ab497dab1b281a2d",
+        "wanfumodi_hero.png": "40d561c34ed80a329b9887f0a706ac5a80122f0150190f97caa28c2981a6814f"
+      }
+    },
+    {
+      "tier": 10,
+      "animation": "podi",
+      "files": {
+        "podi.sgsd.gz": "85d3c1e3db9783888080b12e042bf92ffc9e158615045b4a477d9f024a91dbeb",
+        "SF_guanjie_eff_jisha.png": "35e871deee84b7d297e55d574960a54681ce3bb50cfd90d6b622924ccd05b2ac",
+        "jisha.png": "fc65ffd68df0f39c4987ac27080b888f03282f1d85baa5709dd29b9fa7afb5b1"
+      }
+    },
+    {
+      "tier": 11,
+      "animation": "miaosha",
+      "files": {
+        "miaosha.sgsd.gz": "a8dc85477a9ef0028145ca4e7c07a386b284cbfbb71324dd1d93f50ed0d3bdb5",
+        "SF_nianshou_miaosha.png": "315f3cd65f9449ee4cb43ff66afccc29e86e5ffabe57dd775efb09dc69c64b42",
+        "SF_nianshou_miaosha_2.png": "327b831d1bc4757aaaa382ae61967e772f4bc263a97809edda7baa9ae1922a22"
+      }
+    },
+    {
+      "tier": 12,
+      "animation": "guanjie2",
+      "files": {
+        "guanjie2.sgsd.gz": "ce3fc3540fdfc2956dc375935ad526438c782607eeec3715d948e676d9f27f29"
+      }
+    },
+    {
+      "tier": 13,
+      "animation": "guanjie3",
+      "files": {
+        "guanjie3.sgsd.gz": "86a64cac887b1ae5ec6db915b841e30498e4480cf30f9a1724d6062b20899342"
+      }
+    },
+    {
+      "tier": 14,
+      "animation": "guanjie4",
+      "files": {
+        "guanjie4.sgsd.gz": "cb98d556b3a14e242186c5d2bc9dccc2d0b5eb248857dbc8a5cf4b60990ad264"
+      }
+    },
+    {
+      "tier": 15,
+      "animation": "guanjie5",
+      "files": {
+        "guanjie5.sgsd.gz": "6f5331210ade5e09f3414e545b9d477583ae31c04a01e2078d4f99ce9786d6bb"
+      }
+    },
+    {
+      "tier": 16,
+      "animation": "guanjie6",
+      "files": {
+        "guanjie6.sgsd.gz": "514054e0dc85f72a8025321bca360696097f4291ce1ca9b828c35c9e601db699"
+      }
+    },
+    {
+      "tier": 17,
+      "animation": "guanjie7",
+      "files": {
+        "guanjie7.sgsd.gz": "36a51b6ae783ecc74fc280ff45f09492e4662c71a8721cd481fce8deaebfc873"
+      }
+    },
+    {
+      "tier": 18,
+      "animation": "dashatesha",
+      "files": {
+        "dashatesha.sgsd.gz": "22837ba66cd9fd912a790e0866bffa91df7893c3f4480a0e15535124a91cdf67",
+        "SF_wenhe_eff_dashatesha.png": "d5a1fb6dac82d17be9059828728bacca1f9f15ea8fe843e2110dc214a1b3b366"
+      }
+    },
+    {
+      "tier": 19,
+      "animation": "shoujidonghua_jian",
+      "files": {
+        "shoujidonghua_jian.sgsd.gz": "9ea2b867b9d785120869959d6aab9feb4bb11546aff3c6b8bf6ea1a80d704119",
+        "shoujidonghua_jian_2.png": "59a8ef06f25b6c75788f8a0e0b83ca23a1fa1235ee8f610c2e181759757b1d0f",
+        "shoujidonghua_jian.png": "2d5c9a60b89bd717df9d5cec5035c802e86b8da89d86f0e7d6f864e853650067"
+      }
+    },
+    {
+      "tier": 20,
+      "animation": "shoujidonghua_fuzi2",
+      "files": {
+        "shoujidonghua_fuzi2.sgsd.gz": "ce2106a4733fea752d7882743c7d2832f233f908b796799373d1d2ce22f4dd67",
+        "shoujidonghua_fuzi2_2.png": "316fff21708677aba23a7430d6108b7c5a6209c5c7c417a0008e35d346506cda",
+        "shoujidonghua_fuzi2.png": "8069324416aa2535ee2477a5f7420db6275441f61545dca50117e88a2e792fbd",
+        "shoujidonghua_fuzi2_3.png": "a814d63628fd3581f400d1945b0d16f804337b27a65673646d89eb2cc312400a"
+      }
+    },
+    {
+      "tier": 21,
+      "animation": "shoujidonghua_chuizi",
+      "files": {
+        "shoujidonghua_chuizi.sgsd.gz": "b2a657a0fcf7ea68039ea71621d541a3fd0934e1071e386cdb94c7b70d145a17",
+        "shoujidonghua_chuizi.png": "831905c87abd2a37390535aae7337feec5deef1ea30734cbb187df5f1b277311",
+        "shoujidonghua_chuizi_4.png": "a59cae544b663cb194316ec41ffe974e91829d5aa4ec10ac9b806222c26d9345",
+        "shoujidonghua_chuizi_2.png": "76d7b5746ad8b96886df95a8c91c5f5022a96400962ed6ff9008baf330634457",
+        "shoujidonghua_chuizi_3.png": "b578c006759471e78f3d8ad805f59e2398b64d20dd2f216ee44ae8c4192e0dfd"
+      }
+    },
+    {
+      "tier": 22,
+      "animation": "zzq_shousha",
+      "files": {
+        "zzq_shousha.sgsd.gz": "9e9b191d0e8bd424c432c92fb3075edb24e63cdbc1aec17a4068b279fc81cdbc",
+        "zzq_shousha.png": "92ae991d90211a140d6d04735b5318ee6cc616e5d9a88e2dc3c4fca1d0fe33cd",
+        "zzq_shousha2.png": "9124abe1146e442db5cfacc3773a2a491a17e87799f67ec789fe1b2271ebd18b"
+      }
+    },
+    {
+      "tier": 23,
+      "animation": "zzq_lianpo",
+      "files": {
+        "zzq_lianpo.sgsd.gz": "a746f55b0c90887b9039d17f4ee65636c697ff86a0700e73317a98e0aa3cae86",
+        "zzq_lianpo.png": "ffb5b2474ce774eccd42db1fb1036224ec00566d198294ccacdbb8f2675c0790"
+      }
+    },
+    {
+      "tier": 24,
+      "animation": "zzq_sanpo",
+      "files": {
+        "zzq_sanpo.sgsd.gz": "2770065d47641035c4d00c20d47ffc0c7b967144d5fa75ca67fff7c44763fb99",
+        "zzq_sanpo.png": "41694592af835b24e0d2b1ca2984ee9fcd4a141a2edf58c588ea49bef3030ce2"
+      }
+    },
+    {
+      "tier": 25,
+      "animation": "lianzhan4",
+      "files": {
+        "lianzhan4.sgsd.gz": "080ac1aed2dbf9ebfaf739741cb50aaca03ec505f314e93b8b196ba485f9efac",
+        "SF_eff_lianzhan_lv2.png": "08b5a6660922c12c1454911805f28491cf666d9b43f838d4f0a784a35b279f84",
+        "SF_eff_lianzhan_zi.png": "fb906f9f39a8dd835aff0d1be25e8a12e17141bf194177211ef30727d62475a2"
+      }
+    },
+    {
+      "tier": 26,
+      "animation": "lianzhan5",
+      "files": {
+        "lianzhan5.sgsd.gz": "794606fa10699d80cd00041200ee02e237006da21f128317c1cb7b8c2b9d9b97",
+        "SF_eff_lianzhan_lv4.png": "03bf70d5fec35119e4ca41e6475de6b93942b5e1ba57c9a85d43db55f81fcc23"
+      }
+    },
+    {
+      "tier": 27,
+      "animation": "lianzhan6",
+      "files": {
+        "lianzhan6.sgsd.gz": "720e9ec2894fea87f699f6cf3e45b74faa0939fcd1071083fc6c39af2c0e5ccb",
+        "SF_eff_lianzhan_lv6.png": "81a122103b1762bc049e5b0279674afde0e777e380b1b5b230c18a73093b6c51"
+      }
+    },
+    {
+      "tier": 28,
+      "animation": "lianzhan7",
+      "files": {
+        "lianzhan7.sgsd.gz": "08b54d00ef5d397c4c9dd1c07caf69ac349ce51550b4367103dd016b460c179e"
+      }
+    },
+    {
+      "tier": 29,
+      "animation": "zzq_wanrendi",
+      "files": {
+        "zzq_wanrendi.sgsd.gz": "cf86752e04ea8429f9a013b7a3c276aa696fe1e62546c56af0f0505aecdb87b0",
+        "zzq_wanrendi.png": "24ff42b13d07c2d636dd95c276baac2aea54ac09a4b1fb841aa3932b80c6269a"
+      }
+    },
+    {
+      "tier": 30,
+      "animation": "zzq_sha",
+      "files": {
+        "zzq_sha.sgsd.gz": "5e31b8e76f1138cf3ba733f3d921ca26a20a6db8cdfcc34bf3dd7817ada22e36",
+        "zzq_sha.png": "1fda43f1b0de1200ad3f4fca5cef6fb698519b52aad5f660a9311bb953deb757"
+      }
+    },
+    {
+      "tier": 31,
+      "animation": "zzq_shajue",
+      "files": {
+        "zzq_shajue.sgsd.gz": "e2d736a64246d8e0f537e27469dd2ee6791f54af2e129f0b8460b2c07bad923b",
+        "zzq_shajue.png": "9f7dc8fa94fe7e5bc6cc16750380916122200031d0ffb64015d00506925ca7a6"
+      }
+    },
+    {
+      "tier": 32,
+      "animation": "badge_1",
+      "files": {
+        "badge_1.sgsd.gz": "1e1c882897ac443411985c2c4e2309deb9d105332cb8415609422b685284ae3e",
+        "badge_atlas.png": "991b5bd49d3c9dc11bef98c2711260bfe1f9bc2a30b018a4261e349a3b49194f"
+      }
+    },
+    {
+      "tier": 33,
+      "animation": "badge_2",
+      "files": {
+        "badge_2.sgsd.gz": "eeaebc3388cb1ecce6390a465e210e1eed85464b06ce44a970087f57b7411a3e"
+      }
+    },
+    {
+      "tier": 34,
+      "animation": "badge_3",
+      "files": {
+        "badge_3.sgsd.gz": "cdf1918a1ef12dd708632bd637d8fc7fb38ed5fc0c5fb438bfd7a2afe9e3695b"
+      }
+    },
+    {
+      "tier": 35,
+      "animation": "badge_4",
+      "files": {
+        "badge_4.sgsd.gz": "230f50fa918024b0af175f6d7efaae65d04561dcaecfaa6abc4830b4ec1b59cf"
+      }
+    },
+    {
+      "tier": 36,
+      "animation": "badge_5",
+      "files": {
+        "badge_5.sgsd.gz": "be589faf29f1b8916ac05ffd37e8afb1c6ecc5ed2773c629e477fcfa476d49d6"
+      }
+    },
+    {
+      "tier": 37,
+      "animation": "badge_6",
+      "files": {
+        "badge_6.sgsd.gz": "6b0704dcf2c001a9dfe4747f0dd694e36a2459260329bda88213e546a4e37376"
+      }
+    },
+    {
+      "tier": 38,
+      "animation": "badge_7",
+      "files": {
+        "badge_7.sgsd.gz": "5ba786333264e307e06a8688e69f7b6e024cc545a0899d13e3751ef33ea78cf2"
+      }
+    },
+    {
+      "tier": 39,
+      "animation": "badge_8",
+      "files": {
+        "badge_8.sgsd.gz": "671a4858e80b1a0d4c6151764f270425c607afbe516ed4d51bdf974c37e41189"
+      }
+    },
+    {
+      "tier": 40,
+      "animation": "badge_9",
+      "files": {
+        "badge_9.sgsd.gz": "919383ee257c2fa04deb24029b75157a36d333f8d2a2ff642cb1648140722282"
+      }
+    },
+    {
+      "tier": 41,
+      "animation": "badge_10",
+      "files": {
+        "badge_10.sgsd.gz": "ebe78bf0d5c507659873238db45c266891b23f08e6f18663efd88c43ad9e88d9"
+      }
+    },
+    {
+      "tier": 42,
+      "animation": "badge_11",
+      "files": {
+        "badge_11.sgsd.gz": "6b00c9949c2813bbc286f6a5f0cfaef2c218ce5b4d881f1a9aff0cdc8e059b46"
+      }
+    },
+    {
+      "tier": 43,
+      "animation": "equip_1",
+      "files": {
+        "equip_1.sgsd.gz": "1978d7c3a2883cf43473d0a07a64f0bf4b356d57f87601b760ea84269b090af8",
+        "equip_atlas.png": "4f8287d988b43e5d6ab38a9ad47cb12e96b7fd23ba05f0dc3093ae770bdfa145"
+      }
+    },
+    {
+      "tier": 44,
+      "animation": "equip_2",
+      "files": {
+        "equip_2.sgsd.gz": "0911ad28055bfbff22360c96fbbdf6e9b81d787252a61254f12e50b15ef2617d"
+      }
+    },
+    {
+      "tier": 45,
+      "animation": "equip_3",
+      "files": {
+        "equip_3.sgsd.gz": "d0a508197d0123110c4dc9c5daf73cf6e11b5011174d65d9689745946186a4b8"
+      }
+    },
+    {
+      "tier": 46,
+      "animation": "equip_4",
+      "files": {
+        "equip_4.sgsd.gz": "02487b9239bebe743ae0b31d9f77a54988bab72e0cda22cc789cdaaf60d3e1a1"
+      }
+    },
+    {
+      "tier": 47,
+      "animation": "equip_5",
+      "files": {
+        "equip_5.sgsd.gz": "9130329a74a757556e94dd033a2281a8bfbfd73b92e458e7414b4c4c4c393306"
+      }
+    },
+    {
+      "tier": 48,
+      "animation": "equip_6",
+      "files": {
+        "equip_6.sgsd.gz": "1ae94a73ece12426cae0a8790e9c145b7ce7a84bda120db29219be435db20c05"
+      }
+    },
+    {
+      "tier": 49,
+      "animation": "equip_7",
+      "files": {
+        "equip_7.sgsd.gz": "ea142f45cb0dc4e21cf18aa9f50efec5d009dd8d5c2d52af60495bfaeb89fb0f"
+      }
+    },
+    {
+      "tier": 50,
+      "animation": "equip_8",
+      "files": {
+        "equip_8.sgsd.gz": "b1cde96bb1382121eb3fd4ffd70500423d755fa03ba1bc5d20e10d8b0fce5854"
+      }
+    },
+    {
+      "tier": 51,
+      "animation": "equip_9",
+      "files": {
+        "equip_9.sgsd.gz": "afac2f99bee22271b16f749fa9dd90237cabe3c06f13fd51bded62324b0d159c"
+      }
+    },
+    {
+      "tier": 52,
+      "animation": "equip_10",
+      "files": {
+        "equip_10.sgsd.gz": "c701dc6e610372b81ed34b3e36384899d2fb8f5009c6acb9c767059555e667a2"
+      }
+    },
+    {
+      "tier": 53,
+      "animation": "equip_11",
+      "files": {
+        "equip_11.sgsd.gz": "771bd69c8f4a7727e10f0d475379560b5fea687901baf1c379f1a179934b89f6"
+      }
+    }
+  ]
+}

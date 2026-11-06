@@ -68,8 +68,7 @@ namespace KillConfirmGameBar.Controls.Settings
             HubDisplayCardTitle.Text = isChinese ? "进阶设置" : "ADVANCED SETTINGS";
 
             HubAboutTitle.Text = isChinese ? "关于本版本" : "ABOUT THIS BUILD";
-            var packageVersion = Windows.ApplicationModel.Package.Current.Id.Version;
-            string versionText = $"{packageVersion.Major}.{packageVersion.Minor}.{packageVersion.Build}.{packageVersion.Revision}";
+            string versionText = VersionUpdateService.DisplayVersion;
             HubAboutVersion.Text = isChinese
                 ? $"当前版本 {versionText}"
                 : $"Current version {versionText}";
@@ -174,7 +173,7 @@ namespace KillConfirmGameBar.Controls.Settings
             HubVersionStatus.Text = VersionUpdateService.StatusText(zh);
             HubCheckUpdateButton.IsEnabled = VersionUpdateService.State != VersionUpdateState.Checking;
             string latest = string.IsNullOrEmpty(VersionUpdateService.LatestVersion) ? (zh ? "尚未获取" : "Not available") : VersionUpdateService.LatestVersion;
-            HubVersionDetail.Text = (zh ? "当前版本 " : "Installed ") + VersionUpdateService.CurrentVersion + (zh ? "  ·  GitHub 公开版本 " : "  ·  Public release ") + latest;
+            HubVersionDetail.Text = (zh ? "当前版本 " : "Installed ") + VersionUpdateService.DisplayVersion + (zh ? "  ·  GitHub 公开版本 " : "  ·  Public release ") + latest;
             if (VersionUpdateService.State == VersionUpdateState.Ahead) HubVersionDetail.Text += zh ? "\n当前版本高于 GitHub 公开版，暂不需要更新。" : "\nYour installed version is newer than the public release; no update is needed.";
             if (VersionUpdateService.State == VersionUpdateState.Unavailable) HubVersionDetail.Text += zh ? "\n网络连接失败，可重试检查或直接打开下载页面。" : "\nConnection failed. Retry or open the download page.";
             if (VersionUpdateService.CheckedAt.HasValue) HubVersionDetail.Text += (zh ? "\n上次检查 " : "\nLast checked ") + VersionUpdateService.CheckedAt.Value.ToLocalTime().ToString("MM-dd HH:mm");

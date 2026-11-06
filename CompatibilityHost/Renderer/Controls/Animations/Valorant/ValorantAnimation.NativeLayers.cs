@@ -34,7 +34,8 @@ namespace KillConfirmCompatibility.Controls
                 {
                     IsDisposed = true;
                     Generation++;
-                    ActiveTier?.ReleaseTextures();
+                    if (Tiers != null)
+                        foreach (var tier in Tiers) tier?.ReleaseTextures();
                     ActiveTier = null;
                 }
             }
@@ -174,6 +175,20 @@ namespace KillConfirmCompatibility.Controls
             }
         }
 
+        private static void SelectPreparedValorantNativeTier(ValorantTextureSet textures, int kills)
+        {
+            var animation = textures.NativeAnimation;
+            if (animation == null) return;
+            lock (animation)
+            {
+                var tier = animation.Tiers[Math.Max(0, Math.Min(animation.Tiers.Length - 1, kills - 1))];
+                if (animation.IsDisposed || tier.Bitmaps == null)
+                    throw new InvalidOperationException("VALORANT native tier was not preloaded.");
+                animation.Generation++;
+                animation.ActiveTier = tier;
+            }
+        }
+
         private static async Task PrepareValorantNativeTierAsync(ValorantTextureSet textures, int kills,
             Func<string, Task<CanvasBitmap>> loadTexture = null)
         {
@@ -185,7 +200,11 @@ namespace KillConfirmCompatibility.Controls
             {
                 if (animation.IsDisposed) throw new OperationCanceledException();
                 generation = ++animation.Generation;
-                if (ReferenceEquals(animation.ActiveTier, tier)) return;
+                if (tier.Bitmaps != null)
+                {
+                    animation.ActiveTier = tier;
+                    return;
+                }
             }
             var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             if (tier.Emblem != null) names.Add(tier.Emblem);
@@ -215,7 +234,6 @@ namespace KillConfirmCompatibility.Controls
                     tier.Transforms = new Matrix3x2[tier.Nodes.Length];
                     tier.Opacities = new double[tier.Nodes.Length];
                     tier.Sample = new double[12];
-                    animation.ActiveTier?.ReleaseTextures();
                     tier.Bitmaps = loaded;
                     animation.ActiveTier = tier;
                 }

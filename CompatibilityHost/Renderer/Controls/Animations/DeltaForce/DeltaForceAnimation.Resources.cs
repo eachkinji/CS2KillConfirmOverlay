@@ -27,13 +27,8 @@ namespace KillConfirmCompatibility.Controls
             progress?.Report(0);
             for (int i = 0; i < files.Length; i++)
             {
-                try
-                {
-                    await LoadDeltaForceIconAsync(files[i]);
-                }
-                catch
-                {
-                }
+                if (await LoadDeltaForceIconAsync(files[i]) == null)
+                    throw new InvalidOperationException("Delta Force icon could not be prepared: " + files[i]);
 
                 progress?.Report((int)Math.Round((i + 1) * 100.0 / files.Length));
             }
@@ -42,6 +37,15 @@ namespace KillConfirmCompatibility.Controls
         private static void ClearDeltaForceIconCache()
         {
             DeltaForceIconCache.Clear();
+        }
+
+        private static CanvasBitmap GetPreparedDeltaForceIcon(string iconFileName)
+        {
+            lock (DeltaForceIconCache)
+            {
+                if (DeltaForceIconCache.TryGetValue("deltaforce/" + iconFileName + ":" + _iconPack, out CanvasBitmap bitmap) && bitmap != null) return bitmap;
+            }
+            throw new InvalidOperationException("Delta Force icon was not preloaded: " + iconFileName);
         }
 
         private static async Task<CanvasBitmap> LoadDeltaForceIconAsync(string iconFileName)

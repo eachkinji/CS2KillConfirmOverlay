@@ -58,6 +58,9 @@ public class PreloadProbe {
   _killFxMode=2;Check(key!=GetCodeKillCacheKey("headshot","elite"),"FX settings collided");_killFxMode=1;
   _customPackHasKillFx=false;Check(key!=GetCodeKillCacheKey("headshot","elite"),"Capability refresh collided");_customPackHasKillFx=true;
   Check(CodeKillCache.ContainsKey(key),"Returning to previous settings discarded warm assets");
+  int beforeCold=mainLoads;CodeKillCache.Clear();bool refused=false;
+  try {await p.LoadCodeKillAssetAsync("multi1",null,null,true);}catch(InvalidOperationException){refused=true;}
+  Check(refused&&mainLoads==beforeCold,"Playback cache miss performed an on-demand texture load");
   _mainAnimationStyle=1;Check(GetCodeKillPreloadRequests().Count==55,"Style 1 badge restrictions");
   _weaponBadgeMode=0;Check(GetCodeKillPreloadRequests().Count==25,"Badges disabled");
  }
@@ -70,6 +73,7 @@ Write-Host 'PASS: all supported events covered; 150 style 2 combinations; 25 mai
 
 # Exercise the production playback method with an occupied preload gate.
 $playback = Method (Get-Content -Raw "$core/KillConfirmAnimation.Playback.cs") 'PlayInternal'
+$replacement = Method (Get-Content -Raw "$core/KillConfirmAnimation.Playback.cs") 'BeginReplacementPlayback'
 $playbackSource = @'
 using System;
 using System.Threading;
@@ -81,12 +85,15 @@ public class PlaybackProbe {
  class Timer { public TimeSpan Interval; public void Start() {} public void Stop() {} }
  enum Visibility {Visible,Collapsed}
  Visibility VisibilityState;
- bool _customSequencePlaying=false,_contentSizedViewport=false,_isBattlefield1CompactLayoutActive=false;
+ bool _customSequencePlaying=false,_contentSizedViewport=false,_isBattlefield1CompactLayoutActive=false,_isCalabiyauActive=false,_isBattlefieldTextOverlayActive=false;
  int _resourceGeneration=0,_playToken=0,_currentFrame=0,_mainAnimationStyle=2,_targetPlaybackFps=60;
  const int FrameSequenceFps=60;
  Metadata _currentMetadata=null; object _currentCodeAsset=null,_currentValorantAsset=null,_currentBattlefieldAsset=null,_currentCsolAsset=null;
  Timer _timer=new Timer(); System.Diagnostics.Stopwatch _playbackClock=new System.Diagnostics.Stopwatch();
  SemaphoreSlim PreloadGate=new SemaphoreSlim(0,1);
+ class Canvas { public void Invalidate() {} }
+ Canvas SpriteCanvas=new Canvas();
+ Task WaitForCurrentPackPreloadAsync()=>Task.CompletedTask;
  int frames,loaders,loading;
  TaskCompletionSource<bool> shown=new TaskCompletionSource<bool>();
  static class App {public static void Log(string text) {throw new Exception(text);} }
@@ -94,7 +101,7 @@ public class PlaybackProbe {
  Task ShowLoadingProgressIfStillLoadingAsync(int token,IProgress<int> progress) {loading++;return Task.CompletedTask;}
  void HideLoadingProgress() {}
  void ApplyViewportSize(int width,int height) {}
- void ReleaseAllAnimationResourceCaches() {}
+ void ReleaseAllAnimationResourceCaches(bool invalidatePreload=true) {}
  void ShowFrame(int frame) {frames++;shown.TrySetResult(true);}
  public static async Task Verify() {
   var warm=new PlaybackProbe();
@@ -105,12 +112,16 @@ public class PlaybackProbe {
   if(cold.frames!=0||cold.loaders!=0||cold.loading!=0)throw new Exception("Cold playback bypassed serialization or displayed Loading");
   cold.PreloadGate.Release();
   if(await Task.WhenAny(cold.shown.Task,Task.Delay(2000))!=cold.shown.Task||cold.loaders!=1||cold.loading!=0)throw new Exception("Cold playback did not resume after preload");
+  var missing=new PlaybackProbe();missing.PreloadGate.Release();
+  missing.PlayInternal(p=>{missing.loaders++;return Task.FromResult<AnimationAsset>(null);},false);
+  if(missing.frames!=0||missing.loaders!=1||missing.loading!=0)throw new Exception("Prepared absent event must remain a no-op");
  }
 '@
-$resets = [regex]::Matches($playback,'\b(Reset\w+)\(\);') | ForEach-Object { "void $($_.Groups[1].Value)() {}" }
+$resets = [regex]::Matches($playback+$replacement,'\b(Reset\w+)\(\);') | ForEach-Object { "void $($_.Groups[1].Value)() {}" } | Select-Object -Unique
 # Only substitute the UI property name; control flow remains production code.
 $playback = $playback.Replace('Visibility = Visibility.', 'VisibilityState = Visibility.')
-$playbackSource += ($resets -join "`n") + "`n" + $playback + "`n}"
+$replacement = $replacement.Replace('Visibility = Visibility.', 'VisibilityState = Visibility.')
+$playbackSource += ($resets -join "`n") + "`n" + $replacement + "`n" + $playback + "`n}"
 Add-Type -TypeDefinition $playbackSource -WarningAction SilentlyContinue
 [PlaybackProbe]::Verify().GetAwaiter().GetResult()
 Write-Host 'PASS: cached playback runs immediately while preload gate is occupied; cold playback remains serialized; neither CF path displays Loading.'

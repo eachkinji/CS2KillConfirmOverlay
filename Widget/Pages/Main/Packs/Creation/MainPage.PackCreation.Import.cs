@@ -14,6 +14,8 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Imaging;
+using Windows.Data.Json;
+using KillConfirmCompatibility.Contracts;
 
 namespace KillConfirmGameBar
 {
@@ -111,8 +113,7 @@ namespace KillConfirmGameBar
                     progress.Text = $"{index + 1} / {files.Count}\n{file.Name}";
                     try
                     {
-                        if (isVoice) await ImportVoiceZipForCurrentStyleAsync();
-                        else await ImportIconZipForCurrentStyleAsync();
+                        await ImportProvidedPackZipAsync(isVoice);
                     }
                     finally { _providedPackZipFile = null; progressBar.Value = index + 1; }
                 });
@@ -136,6 +137,34 @@ namespace KillConfirmGameBar
             }
             else if (result.Failures.Count > 0)
                 await ShowMessageAsync(LocalizationManager.Text("ZipImportFailedTitle"), string.Join("\n", result.Failures));
+        }
+
+        private async Task ImportProvidedPackZipAsync(bool isVoice)
+        {
+            // Every picker/drop/batch uses this before legacy filename fallbacks
+            // or extraction can turn a foreign pack into a local custom pack.
+            var classification = await ReadPackImportClassificationAsync(_providedPackZipFile);
+            classification.Validate(GameStyleService.ToStorageValue(SettingsGameStyle), isVoice);
+            if (isVoice) await ImportVoiceZipForCurrentStyleAsync();
+            else await ImportIconZipForCurrentStyleAsync();
+        }
+
+        private static async Task<PackImportClassification> ReadPackImportClassificationAsync(StorageFile file)
+        {
+            using (var stream = await file.OpenStreamForReadAsync())
+            using (var archive = new ZipArchive(stream, ZipArchiveMode.Read))
+            {
+                JsonObject manifest = null;
+                foreach (var entry in archive.Entries.Where(e => string.Equals(Path.GetFileName(e.FullName), "manifest.json", StringComparison.OrdinalIgnoreCase)))
+                {
+                    if (manifest != null) throw new InvalidDataException("一个 ZIP 只能包含一个素材包 / Import one pack per ZIP.");
+                    using (var reader = new StreamReader(entry.Open())) manifest = JsonObject.Parse(await reader.ReadToEndAsync());
+                }
+                bool audioFiles = archive.Entries.Any(e => new[] { ".wav", ".mp3", ".ogg", ".flac", ".m4a" }.Contains(Path.GetExtension(e.FullName).ToLowerInvariant()));
+                bool imageFiles = archive.Entries.Any(e => !Path.GetFileNameWithoutExtension(e.FullName).Equals("pack_head", StringComparison.OrdinalIgnoreCase)
+                    && new[] { ".png", ".jpg", ".jpeg", ".bmp", ".tga", ".gif", ".webp" }.Contains(Path.GetExtension(e.FullName).ToLowerInvariant()));
+                return PackCatalogService.ReadImportClassification(manifest, audioFiles, imageFiles);
+            }
         }
 
         private async Task<bool> TryBatchImportIconAsync(

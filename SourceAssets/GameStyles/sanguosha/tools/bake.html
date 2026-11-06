@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>html,body{margin:0;padding:0;background:transparent;overflow:hidden}</style>
+<script>window.format = '';</script>
+<script src="/engine/laya.core.min.js"></script>
+<script src="/engine/laya.ani.min.js"></script>
+<script src="/engine/spine-core-4.0.min.js"></script>
+<script src="/engine/laya.spine.min.js"></script>
+</head>
+<body>
+<script>
+// Offline frame baker: plays the ORIGINAL Sanguosha .skel files with the game's own
+// LayaAir 2.x + Spine 4.0 runtime and reads back the premultiplied framebuffer.
+(async function () {
+  const q = new URLSearchParams(location.search);
+  const anims = q.get('anims').split(',');
+  const fps = Number(q.get('fps') || 60);
+  const W = Number(q.get('w') || 1600), H = Number(q.get('h') || 900);
+  const scale = Number(q.get('scale') || 1);
+  const log = (m) => fetch('/log', { method: 'POST', body: String(m) });
+  window.onerror = (m, s, l, c, e) => log('ERR ' + m + ' @' + s + ':' + l + ' ' + (e && e.stack));
+
+  Config.isAlpha = true;
+  Config.preserveDrawingBuffer = true;
+  Laya.init(W * scale, H * scale, Laya.WebGL);
+  Laya.stage.scaleMode = 'noscale';
+  Laya.stage.bgColor = null;
+  Laya.stage.frameRate = 'fast';
+
+  const canvas = document.querySelector('canvas');
+  const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
+  const pw = W * scale, ph = H * scale;
+  const pixels = new Uint8Array(pw * ph * 4);
+
+  function load(name) {
+    return new Promise((res, rej) => {
+      const t = new Laya.SpineTemplet(Laya.SpineVersion.v4_0);
+      t.on(Laya.Event.COMPLETE, null, () => res(t));
+      t.on(Laya.Event.ERROR, null, (e) => rej(new Error('load ' + name + ' ' + e)));
+      t.loadAni('/anim/' + name + '.skel');
+    });
+  }
+
+  for (const name of anims) {
+    const templet = await load(name);
+    const sk = templet.buildArmature();
+    sk.pos(pw / 2, ph / 2);
+    sk.scale(scale, scale);
+    Laya.stage.addChild(sk);
+    // Same call as NewKillEffect.playKillEffect -> playEffect(url, 0, false, mode 1, rate 1)
+    sk.play(0, false);
+    sk.timer.clear(sk, sk._update);          // take over the clock: deterministic stepping
+    const animName = templet.skeletonData.animations[0].name;
+    const anim = templet.skeletonData.animations[0];
+    sk.state.clearTracks();
+    sk.skeleton.setToSetupPose();
+    sk.state.setAnimation(0, animName, false);
+
+    const events = [];
+    for (const tl of anim.timelines) {
+      if (tl.events) for (const ev of tl.events) events.push({ name: ev.data.name, time: ev.time, audio: ev.data.audioPath || null, str: ev.stringValue || null });
+    }
+    const frames = Math.round(anim.duration * fps) + 1;
+    let minX = pw, minY = ph, maxX = -1, maxY = -1;
+    for (let i = 0; i < frames; i++) {
+      sk.state.update(i === 0 ? 0 : 1 / fps);
+      sk.state.apply(sk.skeleton);
+      sk.skeleton.updateWorldTransform();
+      sk.graphics.clear();
+      sk.skeletonRenderer.draw(sk.skeleton, -1, -1, sk, templet._textureDic);
+      Laya.stage._loop();
+      gl.finish();
+      gl.readPixels(0, 0, pw, ph, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+      const r = await fetch('/frame?anim=' + name + '&i=' + i + '&w=' + pw + '&h=' + ph, { method: 'POST', body: pixels });
+      if (!r.ok) throw new Error('frame post failed');
+    }
+    await fetch('/meta?anim=' + name, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+      anim: name, animation: animName, duration: anim.duration, fps, frames, width: pw, height: ph, scale,
+      originX: pw / 2, originY: ph / 2, events,
+      skeleton: { x: templet.skeletonData.x, y: templet.skeletonData.y, w: templet.skeletonData.width, h: templet.skeletonData.height, fps: templet.skeletonData.fps, version: templet.skeletonData.version }
+    }) });
+    sk.destroy();
+    Laya.stage._loop();
+  }
+  await fetch('/done', { method: 'POST' });
+})().catch(e => fetch('/log', { method: 'POST', body: 'FATAL ' + e.stack }).then(() => fetch('/done', { method: 'POST' })));
+</script>
+</body>
+</html>

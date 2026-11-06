@@ -45,6 +45,25 @@ namespace KillConfirmCompatibility.Controls
                 }
                 report.Add("PASS " + new[] { "dispose while loading", "same tier newer request completes first", "different tier old request completes last" }[scenario]);
             }
+            {
+                var tiers = new[] {
+                    new ValorantNativeTier { Emblem = "one.png", Nodes = Array.Empty<ValorantNativeNode>() },
+                    new ValorantNativeTier { Emblem = "two.png", Nodes = Array.Empty<ValorantNativeNode>() }
+                };
+                var native = new ValorantNativeAnimation { Tiers = tiers };
+                var textures = new ValorantTextureSet { PackKey = "resident", NativeAnimation = native };
+                int loads = 0;
+                Func<string, Task<CanvasBitmap>> loader = name => { loads++; return Task.FromResult(LifecyclePixel(33)); };
+                await PrepareValorantNativeTierAsync(textures, 1, loader);
+                await PrepareValorantNativeTierAsync(textures, 2, loader);
+                CanvasBitmap first = tiers[0].Get("one.png"), second = tiers[1].Get("two.png");
+                for (int i = 0; i < 10; i++) SelectPreparedValorantNativeTier(textures, i % 2 + 1);
+                LifecycleCheck(loads == 2, "Changing a preloaded native tier decoded another texture.");
+                LifecycleCheck(!LifecycleDisposed(first) && !LifecycleDisposed(second), "Selecting a tier disposed another prepared tier.");
+                textures.Dispose();
+                LifecycleCheck(LifecycleDisposed(first) && LifecycleDisposed(second), "Pack disposal leaked an inactive prepared tier.");
+                report.Add("PASS all prepared tiers remain resident; repeated tier changes do zero loads; pack disposal releases every tier");
+            }
             await ValidateValorantSameIdReimportAsync(output);
             report.Add("PASS same ID reimport: selected + played -> overwritten metadata and texture -> played without switching");
             File.WriteAllLines(Path.Combine(output, "native-lifecycle.txt"), report);
@@ -90,6 +109,7 @@ namespace KillConfirmCompatibility.Controls
                     string revision = ValorantExternalAssetService.GetResourceRevision(key);
                     LifecycleCheck(!string.IsNullOrEmpty(revision) && revision != oldRevision, "Reimport did not advance package revision.");
                     if (version == 1) ConfigureIconPack(key);
+                    await animation.PreloadCurrentPackAnimationsAsync(null);
                     animation.PlayNativeValorantKill(key, 1, false);
                     for (int attempt = 0; attempt < 1000 && animation._currentValorantAsset?.Textures?.ResourceRevision != revision; attempt++) await Task.Delay(10);
                     var active = animation._currentValorantAsset?.Textures;

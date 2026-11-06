@@ -44,6 +44,10 @@ namespace KillConfirmGameBar
                 case "doubao":
                 case "豆包":
                     return "doubao";
+                case "sanguosha":
+                case "sgs":
+                case "三国杀":
+                    return "sanguosha";
                 case "dagoujiao":
                 case "大狗叫":
                     return "dagoujiao";
@@ -62,6 +66,7 @@ namespace KillConfirmGameBar
                 || (GameStyleService.Current == GameStyleMode.Pubg && GameStyleService.IsPubgKey(packKey))
                 || (GameStyleService.Current == GameStyleMode.DeltaForce && GameStyleService.IsDeltaForceKey(packKey))
                 || (GameStyleService.Current == GameStyleMode.Doubao && GameStyleService.IsDoubaoKey(packKey))
+                || (GameStyleService.Current == GameStyleMode.Sanguosha && GameStyleService.IsSanguoshaKey(packKey))
                 || (GameStyleService.Current == GameStyleMode.Dagoujiao && GameStyleService.IsDagoujiaoKey(packKey))
                 || (GameStyleService.Current == GameStyleMode.Apex && GameStyleService.IsApexKey(packKey));
         }

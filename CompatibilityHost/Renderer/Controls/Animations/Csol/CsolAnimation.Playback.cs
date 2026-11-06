@@ -12,7 +12,7 @@ namespace KillConfirmCompatibility.Controls
     {
         public void PlayCsolKill(int killCount, string specialIconKey)
         {
-            PlayInternal(progress => LoadCsolKillAssetAsync(killCount, specialIconKey, progress));
+            PlayInternal(progress => LoadCsolKillAssetAsync(killCount, specialIconKey, progress, requireCached: true));
         }
 
         private async Task PreloadCsolAnimationsAsync(IProgress<int> progress)

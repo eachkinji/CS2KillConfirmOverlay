@@ -127,13 +127,13 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         private async Task ValidateHomePreviewAsync()
         {
             KillConfirmCompatibility.Contracts.DisplayFiles.Write(CompatibilityDisplayRuntime.StatusPath,
-                new KillConfirmCompatibility.Contracts.DisplayStatus { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), ProcessId = 1 });
+                new KillConfirmCompatibility.Contracts.DisplayStatus { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), ProcessId = 1, Style = GameStyleService.ToStorageValue(GameStyleService.Current), AssetRevision = CompatibilityDisplayRuntime.Load().AssetRevision });
             var previous = CompatibilityDisplayRuntime.Load();
             OnHomePreviewClick(this, new RoutedEventArgs());
             var preview = CompatibilityDisplayRuntime.Load();
             if (preview.TestRequest <= previous.TestRequest || !preview.TestAudio) throw new Exception("Home preview did not request full visual and audio playback.");
             KillConfirmCompatibility.Contracts.DisplayFiles.Write(CompatibilityDisplayRuntime.StatusPath,
-                new KillConfirmCompatibility.Contracts.DisplayStatus { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), ProcessId = 1, LastTestRequest = preview.TestRequest });
+                new KillConfirmCompatibility.Contracts.DisplayStatus { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), ProcessId = 1, Style = GameStyleService.ToStorageValue(GameStyleService.Current), AssetRevision = CompatibilityDisplayRuntime.Load().AssetRevision, LastTestRequest = preview.TestRequest });
             for (int attempt = 0; attempt < 40 && _previewing; attempt++) await Task.Delay(50);
             if (_previewing || StatusText.Text != HomeView.PreviewFeedback) throw new Exception("Home preview did not show playback feedback beside its action.");
         }
@@ -164,14 +164,14 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                 foreach (string failure in new string[] { null, "弹幕区域已隐藏（测试）" })
                 {
                     KillConfirmCompatibility.Contracts.DisplayFiles.Write(CompatibilityDisplayRuntime.StatusPath,
-                        new KillConfirmCompatibility.Contracts.DisplayStatus { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), ProcessId = 1 });
+                        new KillConfirmCompatibility.Contracts.DisplayStatus { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), ProcessId = 1, Style = GameStyleService.ToStorageValue(GameStyleService.Current), AssetRevision = CompatibilityDisplayRuntime.Load().AssetRevision });
                     var previous = CompatibilityDisplayRuntime.Load();
                     Danmaku.DanmakuSettingsStore.RequestEventTest("death");
                     var request = CompatibilityDisplayRuntime.Load();
                     if (request.DanmakuTestRequest <= previous.DanmakuTestRequest || request.DanmakuTestEvent != "death" || request.TestRequest != previous.TestRequest)
                         throw new Exception("Danmaku test did not send its own selected-event request.");
                     KillConfirmCompatibility.Contracts.DisplayFiles.Write(CompatibilityDisplayRuntime.StatusPath,
-                        new KillConfirmCompatibility.Contracts.DisplayStatus { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), ProcessId = 1, LastDanmakuTestRequest = request.DanmakuTestRequest, DanmakuTestError = failure });
+                        new KillConfirmCompatibility.Contracts.DisplayStatus { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), ProcessId = 1, Style = GameStyleService.ToStorageValue(GameStyleService.Current), AssetRevision = CompatibilityDisplayRuntime.Load().AssetRevision, LastDanmakuTestRequest = request.DanmakuTestRequest, DanmakuTestError = failure });
                     for (int attempt = 0; attempt < 40; attempt++)
                     {
                         bool acknowledged = failure == null ? PackTestSectionView.TestFeedbackText.Text.Contains("弹幕已在屏幕上预览") : PackTestSectionView.TestFeedbackText.Text == failure;
@@ -210,18 +210,34 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             if (string.IsNullOrWhiteSpace(PackTestSectionView.SendTestLabel.Text) ||
                 !double.IsNaN(PackTestSectionView.SendTestButton.Width) || PackTestSectionView.SendTestButton.MinWidth < 112)
                 throw new Exception("Playback button must fit its full localized label.");
+            // A click must not publish a test against a loading or stale host.
+            var selected = CompatibilityDisplayRuntime.Load();
+            foreach (bool loading in new[] { true, false })
+            {
+                KillConfirmCompatibility.Contracts.DisplayFiles.Write(CompatibilityDisplayRuntime.StatusPath,
+                    new KillConfirmCompatibility.Contracts.DisplayStatus {
+                        Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), ProcessId = 1,
+                        Style = GameStyleService.ToStorageValue(GameStyleService.Current),
+                        Loading = loading, AssetRevision = loading ? selected.AssetRevision : selected.AssetRevision - 1 });
+                RefreshStatus();
+                if (CanPreview || PackTestSectionView.SendTestButton.IsEnabled)
+                    throw new Exception("An unprepared configuration exposed the playback button.");
+                await PreviewAsync();
+                if (CompatibilityDisplayRuntime.Load().TestRequest != selected.TestRequest)
+                    throw new Exception("An unprepared playback click started a test.");
+            }
             foreach (var testCase in new[] { Tuple.Create((string)null, true), Tuple.Create("图标包缺失（测试）", true), Tuple.Create((string)null, false) })
             {
                 string testError = testCase.Item1; bool useButton = testCase.Item2;
                 var previous = CompatibilityDisplayRuntime.Load();
                 KillConfirmCompatibility.Contracts.DisplayFiles.Write(CompatibilityDisplayRuntime.StatusPath,
-                    new KillConfirmCompatibility.Contracts.DisplayStatus { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), ProcessId = 1 });
+                    new KillConfirmCompatibility.Contracts.DisplayStatus { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), ProcessId = 1, Style = GameStyleService.ToStorageValue(GameStyleService.Current), AssetRevision = CompatibilityDisplayRuntime.Load().AssetRevision });
                 if (useButton) OnTestEventClick(this, new RoutedEventArgs()); else _ = PreviewAsync();
                 var request = CompatibilityDisplayRuntime.Load();
                 if (request.TestRequest <= previous.TestRequest || !request.TestAudio || request.TestPreset != (string)((ComboBoxItem)PackTestSectionView.TestPresetSelector.SelectedItem).Tag)
                     throw new Exception("Playback test did not send the selected visual/audio test request");
                 KillConfirmCompatibility.Contracts.DisplayFiles.Write(CompatibilityDisplayRuntime.StatusPath,
-                    new KillConfirmCompatibility.Contracts.DisplayStatus { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), ProcessId = 1, LastTestRequest = request.TestRequest, TestError = testError });
+                    new KillConfirmCompatibility.Contracts.DisplayStatus { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), ProcessId = 1, Style = GameStyleService.ToStorageValue(GameStyleService.Current), AssetRevision = CompatibilityDisplayRuntime.Load().AssetRevision, LastTestRequest = request.TestRequest, TestError = testError });
                 for (int attempt = 0; attempt < 40 && _testInProgress; attempt++) await Task.Delay(50);
                 if (_testInProgress || PackTestSectionView.TestFeedbackText.Visibility != Visibility.Visible)
                     throw new Exception("Playback test did not finish with inline feedback");

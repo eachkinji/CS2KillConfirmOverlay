@@ -10,6 +10,7 @@ using System.IO.Compression;
 using System.Threading.Tasks;
 using Windows.Data.Json;
 using Windows.Storage;
+using KillConfirmCompatibility.Contracts;
 
 namespace KillConfirmGameBar.Services
 {
@@ -48,6 +49,16 @@ namespace KillConfirmGameBar.Services
                 || string.Equals(value, "voice", StringComparison.OrdinalIgnoreCase))
             { kind = AudioPackKind.CharacterVoice; return true; }
             return false;
+        }
+
+        internal static PackImportClassification ReadImportClassification(JsonObject manifest,
+            bool hasAudioFiles = false, bool hasImageFiles = false)
+        {
+            return PackImportClassification.Read(manifest?.GetNamedString("game_style", ""),
+                manifest?.GetNamedString("game", ""), manifest?.GetNamedString("package_kind", ""),
+                manifest?.GetNamedString("kind", ""), manifest?.GetNamedString("audio_kind", ""),
+                manifest != null && manifest.TryGetValue("audio", out IJsonValue audio) && audio.ValueType == JsonValueType.Object,
+                hasAudioFiles, hasImageFiles);
         }
 
         private static bool ApplyAudioManifestMetadata(VoicePackItem item, JsonObject manifest)
@@ -145,15 +156,14 @@ namespace KillConfirmGameBar.Services
             {
                 var manifestFile = await source.GetFileAsync("manifest.json");
                 var manifest = JsonObject.Parse(await FileIO.ReadTextAsync(manifestFile));
+                var classification = ReadImportClassification(manifest);
+                classification.Validate(GameStyleService.ToStorageValue(requestedStyle), true);
                 if (!manifest.TryGetValue("audio", out IJsonValue audio) || audio.ValueType != JsonValueType.Object)
                     throw new InvalidDataException("素材包缺少 audio 配置 / Missing audio configuration.");
                 if (audio.GetObject().TryGetValue("slots", out IJsonValue slots) && slots.ValueType == JsonValueType.Object)
                     foreach (var slot in slots.GetObject()) ValidateAudioSlotPaths(source.Path, slot.Value);
-                string gameKey = manifest.GetNamedString("game_style", GameStyleService.ToStorageValue(requestedStyle));
-                if (GameStyleService.FromKey(gameKey) != requestedStyle)
-                    throw new InvalidDataException("素材包所属游戏与当前页面不一致 / This pack belongs to another game.");
-                gameKey = GameStyleService.ToStorageValue(requestedStyle);
-                var kind = TryParseAudioKind(manifest.GetNamedString("audio_kind", ""), out AudioPackKind declared) ? declared : requestedKind;
+                string gameKey = GameStyleService.ToStorageValue(requestedStyle);
+                var kind = TryParseAudioKind(classification.AudioKind, out AudioPackKind declared) ? declared : requestedKind;
                 string displayName = manifest.GetNamedString("display_name_zh_cn",
                     manifest.GetNamedString("display_name", manifest.GetNamedString("name", source.Name)));
                 string declaredKey = manifest.GetNamedString("id", "");

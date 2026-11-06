@@ -266,6 +266,7 @@ namespace KillConfirmGameBar
                 case GameStyleMode.Pubg: return "PUBG: Battlegrounds";
                 case GameStyleMode.DeltaForce: return "Delta Force";
                 case GameStyleMode.Doubao: return "Doubao";
+                case GameStyleMode.Sanguosha: return "Sanguosha";
                 case GameStyleMode.Dagoujiao: return "Big Dog Bark";
                 case GameStyleMode.Calabiyau: return "Strinova";
                 case GameStyleMode.CustomModule: return "Custom";
@@ -292,6 +293,7 @@ namespace KillConfirmGameBar
                 battlefield5 ? Color.FromArgb(255, 119, 243, 255) :
                 battlefield2042 ? Color.FromArgb(255, 109, 255, 255) :
                 mode == GameStyleMode.Battlefield6 ? Color.FromArgb(255, 238, 175, 126) :
+                mode == GameStyleMode.Sanguosha ? Color.FromArgb(255, 240, 205, 140) :
                 battlefield4 ? Color.FromArgb(255, 125, 211, 252) :
                 battlefield1 ? Color.FromArgb(255, 255, 218, 166) :
                 valorant ? Color.FromArgb(255, 255, 170, 178) :
@@ -303,6 +305,7 @@ namespace KillConfirmGameBar
                 battlefield5 ? Color.FromArgb(255, 58, 137, 166) :
                 battlefield2042 ? Color.FromArgb(255, 60, 128, 146) :
                 mode == GameStyleMode.Battlefield6 ? Color.FromArgb(255, 93, 120, 101) :
+                mode == GameStyleMode.Sanguosha ? Color.FromArgb(255, 128, 28, 22) :
                 battlefield4 ? Color.FromArgb(255, 56, 120, 160) :
                 battlefield1 ? Color.FromArgb(255, 88, 110, 126) :
                 valorant ? Color.FromArgb(255, 59, 78, 102) :
@@ -549,6 +552,9 @@ namespace KillConfirmGameBar
                     break;
                 case GameStyleMode.Doubao:
                     panel = EnsureDoubaoAdvancedSettingsPanel();
+                    break;
+                case GameStyleMode.Sanguosha:
+                    panel = EnsureSanguoshaAdvancedSettingsPanel();
                     break;
                 case GameStyleMode.Dagoujiao:
                     panel = EnsureDagoujiaoAdvancedSettingsPanel();

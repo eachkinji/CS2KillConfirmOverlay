@@ -16,7 +16,7 @@ namespace KillConfirmGameBar.Controls
 {
     public sealed partial class KillConfirmAnimation
     {
-        private async Task<AnimationAsset> LoadCodeKillAssetAsync(string assetName, string weaponBadgeKey, IProgress<int> progress = null)
+        private async Task<AnimationAsset> LoadCodeKillAssetAsync(string assetName, string weaponBadgeKey, IProgress<int> progress = null, bool requireCached = false)
         {
             string normalizedAssetName = assetName.Trim().ToLowerInvariant();
             if (!TryGetCodeKillFiles(
@@ -37,11 +37,12 @@ namespace KillConfirmGameBar.Controls
             string cacheKey = GetCodeKillCacheKey(normalizedAssetName, normalizedWeaponBadgeKey);
             if (!CodeKillCache.TryGetValue(cacheKey, out Code2KillAsset asset))
             {
+                if (requireCached) throw new InvalidOperationException("CF animation was not preloaded: " + normalizedAssetName);
                 CodeKillCache.TryGetValue(GetCodeKillCacheKey(normalizedAssetName, string.Empty), out Code2KillAsset baseAsset);
                 if (baseAsset != null)
                 {
                     asset = new Code2KillAsset(baseAsset.Main, baseAsset.Fx, baseAsset.Overlay,
-                        await LoadWeaponBadgeOverlayBitmapAsync(normalizedAssetName, normalizedWeaponBadgeKey))
+                        baseAsset.Main == null ? null : await LoadWeaponBadgeOverlayBitmapAsync(normalizedAssetName, normalizedWeaponBadgeKey))
                     { Action = normalizedAssetName, EventOverlay = baseAsset.EventOverlay, Sequence = baseAsset.Sequence };
                 }
                 else
@@ -54,13 +55,13 @@ namespace KillConfirmGameBar.Controls
                         mainFolder,
                         alternatePackFolder);
                     progress?.Report(50);
-                    CanvasBitmap fx = string.IsNullOrWhiteSpace(fxFileName)
+                    CanvasBitmap fx = main == null || string.IsNullOrWhiteSpace(fxFileName)
                         ? null
                         : await LoadKillFxOverlayBitmapAsync(fxFileName, fxFolder);
-                    CanvasBitmap eliteOverlay = await LoadEliteOverlayBitmapAsync(normalizedAssetName);
-                    CanvasBitmap weaponBadgeOverlay = await LoadWeaponBadgeOverlayBitmapAsync(normalizedAssetName, normalizedWeaponBadgeKey);
+                    CanvasBitmap eliteOverlay = main == null ? null : await LoadEliteOverlayBitmapAsync(normalizedAssetName);
+                    CanvasBitmap weaponBadgeOverlay = main == null ? null : await LoadWeaponBadgeOverlayBitmapAsync(normalizedAssetName, normalizedWeaponBadgeKey);
                     asset = new Code2KillAsset(main, fx, eliteOverlay, weaponBadgeOverlay) { Action = normalizedAssetName };
-                    await LoadCrossfireExtraLayersAsync(asset, normalizedAssetName);
+                    if (main != null) await LoadCrossfireExtraLayersAsync(asset, normalizedAssetName);
                 }
                 if (generation != _resourceGeneration || cacheKey != GetCodeKillCacheKey(normalizedAssetName, normalizedWeaponBadgeKey))
                 {
@@ -86,6 +87,9 @@ namespace KillConfirmGameBar.Controls
 
         private static AnimationAsset CreateCodeKillAnimationAsset(Code2KillAsset asset)
         {
+            // A missing event is a prepared no-op, not a reason to load again or
+            // draw unrelated upgrade/weapon overlays without its main image.
+            if (asset.Main == null) return null;
             return new AnimationAsset(
                 new SpriteMetadata
                 {
@@ -280,7 +284,8 @@ namespace KillConfirmGameBar.Controls
             string alternatePackFolder,
             bool allowDefaultFallback,
             bool preferImported = true,
-            bool allowGenericKillFallback = true)
+            bool allowGenericKillFallback = true,
+            bool optional = false)
         {
             if (preferImported && PackCatalogService.IsImportedIconPackKey(_iconPack))
             {
@@ -295,32 +300,33 @@ namespace KillConfirmGameBar.Controls
             StorageFile file = original == null ? null : await TryGetImportedIconFileAsync(original, fileName);
             if (file == null && allowDefaultFallback && allowGenericKillFallback && original != null)
                 file = await TryGetImportedIconFileAsync(original, "badge_multi1.png");
-            if (file == null) throw new FileNotFoundException("CF 素材未安装：" + fileName);
-            return await LoadBitmapFromStorageFileAsync(file);
+            if (file == null)
+            {
+                if (optional) return null;
+                throw new FileNotFoundException("CF 素材未安装：" + fileName);
+            }
+            return await LoadBitmapFromStorageFileAsync(file)
+                ?? throw new InvalidDataException("CF 图标无法解码：" + fileName);
         }
 
         private static async Task<CanvasBitmap> TryLoadImportedIconBitmapAsync(string fileName)
         {
-            try
-            {
-                StorageFolder folder = await PackCatalogService.GetImportedIconFolderAsync(_iconPack);
-                if (folder == null)
-                {
-                    return null;
-                }
-
-                StorageFile file = await TryGetImportedIconFileAsync(folder, fileName);
-                if (file == null)
-                {
-                    return null;
-                }
-
-                return await LoadBitmapFromStorageFileAsync(file);
-            }
-            catch
+            StorageFolder folder = await PackCatalogService.GetImportedIconFolderAsync(_iconPack);
+            if (folder == null)
             {
                 return null;
             }
+
+            StorageFile file = await TryGetImportedIconFileAsync(folder, fileName);
+            if (file == null)
+            {
+                return null;
+            }
+
+            // Existence was resolved above. Decode/access/device failures must
+            // fail preparation, rather than being mistaken for an absent option.
+            return await LoadBitmapFromStorageFileAsync(file)
+                ?? throw new InvalidDataException("CF 图标无法解码：" + fileName);
         }
 
         private static readonly Dictionary<string, Task<Dictionary<string, StorageFile>>> ImportedCodeFileIndexes
@@ -388,7 +394,7 @@ namespace KillConfirmGameBar.Controls
                 }
 
                 return await LoadCodeKillBitmapAsync(defaultMainFileName, mainFolder, alternatePackFolder, true,
-                    allowGenericKillFallback: false);
+                    allowGenericKillFallback: false, optional: true);
             }
 
             // Missing event-specific art may use the original pack's matching
@@ -406,7 +412,7 @@ namespace KillConfirmGameBar.Controls
                 && !string.Equals(assetName, "smash", StringComparison.OrdinalIgnoreCase);
             return await LoadCodeKillBitmapAsync(
                 effectiveMainFileName, mainFolder, alternatePackFolder, true,
-                allowGenericKillFallback: allowGenericKillFallback);
+                allowGenericKillFallback: allowGenericKillFallback, optional: true);
         }
 
         private static async Task<CanvasBitmap> LoadOptionalOverlayBitmapAsync(
@@ -427,11 +433,11 @@ namespace KillConfirmGameBar.Controls
                 }
 
                 return allowOriginalFallback
-                    ? await LoadCodeKillBitmapAsync(fileName, folder, null, false, false)
+                    ? await LoadCodeKillBitmapAsync(fileName, folder, null, false, false, optional: true)
                     : null;
             }
 
-            return await LoadCodeKillBitmapAsync(fileName, folder, null, false);
+            return await LoadCodeKillBitmapAsync(fileName, folder, null, false, optional: true);
         }
 
     }

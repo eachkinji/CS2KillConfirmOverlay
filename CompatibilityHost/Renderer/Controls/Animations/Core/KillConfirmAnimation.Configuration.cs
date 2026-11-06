@@ -44,6 +44,7 @@ namespace KillConfirmCompatibility.Controls
             ClearDagoujiaoImageCache();
             ClearOverwatchIconCache();
             ClearModernWarfare2019IconCache();
+            ClearSanguoshaCache();
             return true;
         }
 
@@ -78,6 +79,7 @@ namespace KillConfirmCompatibility.Controls
                 && !GameStyleService.IsCalabiyauKey(normalized)
                 && !GameStyleService.IsCustomModuleKey(normalized)
                 && !GameStyleService.IsDoubaoKey(normalized)
+                && !GameStyleService.IsSanguoshaKey(normalized)
                 && !GameStyleService.IsDagoujiaoKey(normalized)
                 && !GameStyleService.IsOverwatchKey(normalized)
                 && !GameStyleService.IsApexKey(normalized)
@@ -140,6 +142,7 @@ namespace KillConfirmCompatibility.Controls
             ResetBattlefield4HudState();
             ResetBattlefield2042HudState();
             ResetBattlefield6HudState();
+            ResetSanguoshaState();
             ResetPubgHudState();
             ResetDeltaForceHudState();
             ResetDoubaoState();
@@ -152,8 +155,9 @@ namespace KillConfirmCompatibility.Controls
             SpriteCanvas?.Invalidate();
         }
 
-        private static void ReleaseAllAnimationResourceCaches()
+        private static void ReleaseAllAnimationResourceCaches(bool invalidatePreload = true)
         {
+            ClearCustomSequenceCache();
             var bitmaps = new HashSet<CanvasBitmap>();
             foreach (CanvasBitmap bitmap in CalabiyauTextures.Values) bitmaps.Add(bitmap);
             CalabiyauTextures.Clear();
@@ -179,6 +183,7 @@ namespace KillConfirmCompatibility.Controls
                 if (asset?.Revenge != null) bitmaps.Add(asset.Revenge);
                 if (asset?.FirstKill != null) bitmaps.Add(asset.FirstKill);
                 if (asset?.Assist != null) bitmaps.Add(asset.Assist);
+                if (asset?.GrenadeKill != null) bitmaps.Add(asset.GrenadeKill);
             }
             foreach (CanvasBitmap bitmap in BattlefieldIconCache.Values) bitmaps.Add(bitmap);
             foreach (CanvasBitmap bitmap in Battlefield2042IconCache.Values) bitmaps.Add(bitmap);
@@ -187,11 +192,9 @@ namespace KillConfirmCompatibility.Controls
             {
                 foreach (CanvasBitmap bitmap in DoubaoKillCache.Values) bitmaps.Add(bitmap);
             }
-            lock (DagoujiaoImageCache)
-            {
-                foreach (CanvasBitmap bitmap in DagoujiaoImageCache.Values) bitmaps.Add(bitmap);
-            }
+            foreach (CanvasBitmap bitmap in CollectDagoujiaoCachedBitmaps()) bitmaps.Add(bitmap);
             if (_overwatchEffectSheetBitmap != null) bitmaps.Add(_overwatchEffectSheetBitmap);
+            if (_overwatchKillIconBitmap != null) bitmaps.Add(_overwatchKillIconBitmap);
             if (_apexHitmarkBitmap != null) bitmaps.Add(_apexHitmarkBitmap);
             if (_modernWarfare2019UpperIconBitmap != null) bitmaps.Add(_modernWarfare2019UpperIconBitmap);
             if (_modernWarfare2019MoneyGlowBitmap != null) bitmaps.Add(_modernWarfare2019MoneyGlowBitmap);
@@ -211,14 +214,18 @@ namespace KillConfirmCompatibility.Controls
             ClearOverwatchIconCache();
             ClearApexHitmarkCache();
             ClearModernWarfare2019IconCache();
+            ClearSanguoshaCache();
             foreach (CanvasBitmap bitmap in bitmaps)
             {
                 bitmap?.Dispose();
             }
             ReleaseValorantTextureCache();
             _startupPreloadTask = null;
-            _cfPreloadTask = null;
-            _cfPreloadSignature = null;
+            if (invalidatePreload)
+            {
+                _currentPackPreloadTask = null;
+                _currentPackPreloadSignature = null;
+            }
         }
 
         public static void ConfigureEliteEffectLevel(int eliteLevel)

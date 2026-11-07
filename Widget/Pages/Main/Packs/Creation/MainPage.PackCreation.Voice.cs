@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using KillConfirmGameBar.Services;
@@ -61,13 +61,11 @@ namespace KillConfirmGameBar
 
             var commonOverlayMode = new ComboBox
             {
-                Width = 118,
-                MinWidth = 118,
-                FontSize = 11,
-                Background = new SolidColorBrush(Color.FromArgb(247, 255, 255, 255)),
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 28, 28, 30)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(31, 0, 0, 0)),
-                CornerRadius = new CornerRadius(14)
+                Style = PanelResource<Style>("PanelComboBoxStyle"),
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                Background = PanelResource<Brush>("PanelFieldBrush"),
+                Foreground = PanelResource<Brush>("PanelTextPrimaryBrush"),
+                BorderBrush = PanelResource<Brush>("PanelBorderBrush")
             };
             commonOverlayMode.Items.Add(new ComboBoxItem
             {
@@ -80,35 +78,34 @@ namespace KillConfirmGameBar
                 Tag = "custom"
             });
             commonOverlayMode.SelectedIndex = useBuiltInCommonOverlay ? 0 : 1;
-            var commonOverlayRow = new Grid { ColumnSpacing = 5 };
-            commonOverlayRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            commonOverlayRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            commonOverlayRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            // Localized action labels can be much wider than the old fixed columns.
+            // Keep source selection and bulk actions on separate rows in the 440px dialog.
+            var commonOverlayRow = new Grid { ColumnSpacing = 8 };
+            commonOverlayRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             commonOverlayRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             commonOverlayRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             commonOverlayRow.Children.Add(commonOverlayMode);
 
             var commonOverlayFileText = new TextBlock
             {
+                Style = PanelResource<Style>("PanelCaptionTextStyle"),
                 Text = customCommonOverlayFile?.Name
                     ?? LocalizationManager.Text("UseBuiltInCommon"),
-                FontSize = 12,
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 110, 110, 115)),
-                TextTrimming = TextTrimming.CharacterEllipsis,
+                Foreground = PanelResource<Brush>("PanelTextMutedBrush"),
+                TextWrapping = TextWrapping.NoWrap, TextTrimming = TextTrimming.CharacterEllipsis,
                 VerticalAlignment = VerticalAlignment.Center
             };
 
             var commonOverlayPreviewButton = new Button
             {
+                Style = PanelResource<Style>("PanelIconButtonStyle"),
                 Content = "",
                 FontFamily = new FontFamily("Segoe MDL2 Assets"),
-                MinWidth = 30,
-                Padding = new Thickness(5, 4, 5, 4),
-                Background = new SolidColorBrush(Color.FromArgb(26, 0, 122, 255)),
+                Background = PanelResource<Brush>("PanelAccentSoftBrush"),
                 Foreground = new SolidColorBrush(SettingsTheme.Accent),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(61, 0, 122, 255)),
-                CornerRadius = new CornerRadius(12)
+                BorderBrush = PanelResource<Brush>("PanelAccentBorderBrush")
             };
+            Windows.UI.Xaml.Automation.AutomationProperties.SetName(commonOverlayPreviewButton, LocalizationManager.Current == UiLanguage.SimplifiedChinese ? "试听" : "Preview audio");
             commonOverlayPreviewButton.Click += async (_, __) =>
             {
                 StorageFile previewFile = useBuiltInCommonOverlay
@@ -124,15 +121,13 @@ namespace KillConfirmGameBar
 
             var commonOverlayBrowseButton = new Button
             {
+                Style = PanelResource<Style>("PanelButtonStyle"),
                 Content = LocalizationManager.Text("ChooseFile"),
                 MinWidth = 54,
-                Padding = new Thickness(5, 4, 5, 4),
-                FontSize = 11,
                 IsEnabled = !useBuiltInCommonOverlay,
-                Background = new SolidColorBrush(Color.FromArgb(26, 0, 122, 255)),
+                Background = PanelResource<Brush>("PanelAccentSoftBrush"),
                 Foreground = new SolidColorBrush(SettingsTheme.Accent),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(61, 0, 122, 255)),
-                CornerRadius = new CornerRadius(12)
+                BorderBrush = PanelResource<Brush>("PanelAccentBorderBrush")
             };
             commonOverlayBrowseButton.Click += async (_, __) =>
             {
@@ -169,15 +164,12 @@ namespace KillConfirmGameBar
 
             var overlayOnButton = new Button
             {
+                Style = CreateDialogPrimaryButtonStyle(),
                 Content = LocalizationManager.Text("EnableAllOverlay"),
                 MinWidth = 62,
-                Padding = new Thickness(6, 4, 6, 4),
-                FontSize = 11,
                 Background = new SolidColorBrush(SettingsTheme.Accent),
                 Foreground = new SolidColorBrush(Colors.White),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 61, 155, 255)),
-                CornerRadius = new CornerRadius(12)
-            };
+                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 61, 155, 255))};
             overlayOnButton.Click += (_, __) =>
             {
                 foreach (CheckBox checkBox in overlayCheckBoxes)
@@ -187,14 +179,12 @@ namespace KillConfirmGameBar
             };
             var overlayOffButton = new Button
             {
+                Style = PanelResource<Style>("PanelButtonStyle"),
                 Content = LocalizationManager.Text("DisableAllOverlay"),
                 MinWidth = 62,
-                Padding = new Thickness(6, 4, 6, 4),
-                FontSize = 11,
-                Background = new SolidColorBrush(Color.FromArgb(247, 255, 255, 255)),
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 28, 28, 30)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(31, 0, 0, 0)),
-                CornerRadius = new CornerRadius(12)
+                Background = PanelResource<Brush>("PanelFieldBrush"),
+                Foreground = PanelResource<Brush>("PanelTextPrimaryBrush"),
+                BorderBrush = PanelResource<Brush>("PanelBorderBrush")
             };
             overlayOffButton.Click += (_, __) =>
             {
@@ -203,12 +193,17 @@ namespace KillConfirmGameBar
                     checkBox.IsChecked = false;
                 }
             };
-            Grid.SetColumn(overlayOnButton, 3);
-            commonOverlayRow.Children.Add(overlayOnButton);
-            Grid.SetColumn(overlayOffButton, 4);
-            commonOverlayRow.Children.Add(overlayOffButton);
+            var bulkOverlayRow = new Grid { ColumnSpacing = 8 };
+            bulkOverlayRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            bulkOverlayRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            overlayOnButton.HorizontalAlignment = HorizontalAlignment.Stretch;
+            overlayOffButton.HorizontalAlignment = HorizontalAlignment.Stretch;
+            bulkOverlayRow.Children.Add(overlayOnButton);
+            Grid.SetColumn(overlayOffButton, 1);
+            bulkOverlayRow.Children.Add(overlayOffButton);
             commonOverlayCard.Children.Add(commonOverlayRow);
             commonOverlayCard.Children.Add(commonOverlayFileText);
+            commonOverlayCard.Children.Add(bulkOverlayRow);
             layout.Children.Add(commonOverlayCard);
 
             var scroll = new ScrollViewer
@@ -234,7 +229,9 @@ namespace KillConfirmGameBar
 
                 Action<Grid> attachOverlay = grid =>
                 {
-                    grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(92) });
+                    grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                    grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                    grid.RowSpacing = 4;
                     var overlayCheckBox = new CheckBox
                     {
                         IsChecked = true,
@@ -244,9 +241,9 @@ namespace KillConfirmGameBar
                         Padding = new Thickness(0)
                     };
                     overlayCheckBox.Resources["CheckBoxCheckBackgroundFillChecked"] = new SolidColorBrush(SettingsTheme.Accent);
-                    overlayCheckBox.Resources["CheckBoxCheckBackgroundStrokeChecked"] = new SolidColorBrush(Color.FromArgb(61, 0, 122, 255));
+                    overlayCheckBox.Resources["CheckBoxCheckBackgroundStrokeChecked"] = PanelResource<Brush>("PanelAccentBorderBrush");
                     overlayCheckBox.Resources["CheckBoxCheckBackgroundFillUnchecked"] = new SolidColorBrush(Color.FromArgb(255, 255, 253, 252));
-                    overlayCheckBox.Resources["CheckBoxCheckBackgroundStrokeUnchecked"] = new SolidColorBrush(Color.FromArgb(31, 0, 0, 0));
+                    overlayCheckBox.Resources["CheckBoxCheckBackgroundStrokeUnchecked"] = PanelResource<Brush>("PanelBorderBrush");
                     overlayCheckBox.Resources["CheckBoxCheckGlyphForegroundChecked"] = new SolidColorBrush(Colors.White);
 
                     var overlayToggle = new Grid
@@ -261,16 +258,19 @@ namespace KillConfirmGameBar
 
                     var overlayLabel = new TextBlock
                     {
+                        Style = PanelResource<Style>("PanelTitleTextStyle"),
                         Text = LocalizationManager.Text("LayerCommon"),
-                        FontSize = 11,
-                        FontWeight = Windows.UI.Text.FontWeights.SemiBold,
-                        Foreground = new SolidColorBrush(Color.FromArgb(255, 28, 28, 30)),
+                        Foreground = PanelResource<Brush>("PanelTextPrimaryBrush"),
                         VerticalAlignment = VerticalAlignment.Center,
                         TextTrimming = TextTrimming.CharacterEllipsis
                     };
                     Grid.SetColumn(overlayLabel, 1);
                     overlayToggle.Children.Add(overlayLabel);
-                    Grid.SetColumn(overlayToggle, 4);
+                    Grid.SetColumn(overlayToggle, 1);
+                    Grid.SetColumnSpan(overlayToggle, 3);
+                    Grid.SetRow(overlayToggle, 1);
+                    overlayToggle.HorizontalAlignment = HorizontalAlignment.Left;
+                    Windows.UI.Xaml.Automation.AutomationProperties.SetName(overlayCheckBox, LocalizationManager.Text("LayerCommon"));
                     grid.Children.Add(overlayToggle);
 
                     overlayCheckBox.Checked += (_, __) => overlayEnabled[slot.Item1] = true;

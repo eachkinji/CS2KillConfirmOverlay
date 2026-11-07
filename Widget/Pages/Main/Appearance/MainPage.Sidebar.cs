@@ -1,146 +1,125 @@
-using System;
+﻿using System;
+using System.Linq;
+using KillConfirmGameBar.Services;
+using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Automation;
-using KillConfirmGameBar.Services;
+using Windows.UI.Xaml.Input;
+using Windows.UI.Xaml.Media;
+using Windows.UI.Xaml.Media.Imaging;
+using Windows.Foundation;
 
 namespace KillConfirmGameBar
 {
     public sealed partial class MainPage
     {
-        private bool _sidebarTraditionalExpanded = true;
-        private bool _sidebarHeroExpanded = true;
-        private bool _sidebarSurvivalExpanded = true;
-        private bool _sidebarBattlefieldExpanded = true;
-        private bool _sidebarCodExpanded = true;
-        private bool _sidebarCardMobaExpanded = true;
-        private bool _sidebarMemeExpanded = true;
-
-        private static string SidebarGroup(string key)
+        // Both docks are permanently icon-only; names are exposed through tooltips and automation.
+        private void InitializeSourceDock()
         {
-            if (string.IsNullOrWhiteSpace(key) || key == "home" || key == "advanced")
-            {
-                return null;
-            }
-
-            return GameStyleService.ToCategoryKey(GameStyleService.FromKey(key));
-        }
-
-        private bool IsSidebarGroupExpanded(string group)
-        {
-            switch (group)
-            {
-                case "traditional": return _sidebarTraditionalExpanded;
-                case "hero": return _sidebarHeroExpanded;
-                case "survival": return _sidebarSurvivalExpanded;
-                case "battlefield": return _sidebarBattlefieldExpanded;
-                case "cod": return _sidebarCodExpanded;
-                case "cardmoba": return _sidebarCardMobaExpanded;
-                case "meme": return _sidebarMemeExpanded;
-                default: return true;
-            }
-        }
-
-        private void SetSidebarGroupExpanded(string group, bool expanded)
-        {
-            switch (group)
-            {
-                case "traditional": _sidebarTraditionalExpanded = expanded; break;
-                case "hero": _sidebarHeroExpanded = expanded; break;
-                case "survival": _sidebarSurvivalExpanded = expanded; break;
-                case "battlefield": _sidebarBattlefieldExpanded = expanded; break;
-                case "cod": _sidebarCodExpanded = expanded; break;
-                case "cardmoba": _sidebarCardMobaExpanded = expanded; break;
-                case "meme": _sidebarMemeExpanded = expanded; break;
-            }
-        }
-
-        private void SetAllSidebarGroupsExpanded(bool expanded)
-        {
-            _sidebarTraditionalExpanded = expanded;
-            _sidebarHeroExpanded = expanded;
-            _sidebarSurvivalExpanded = expanded;
-            _sidebarBattlefieldExpanded = expanded;
-            _sidebarCodExpanded = expanded;
-            _sidebarCardMobaExpanded = expanded;
-            _sidebarMemeExpanded = expanded;
-        }
-
-        private void OnSidebarGroupClick(object sender, RoutedEventArgs e)
-        {
-            if (!(sender is Button button) || !(button.Tag is string group)) return;
-            SetSidebarGroupExpanded(group, !IsSidebarGroupExpanded(group));
-            ApplySidebarGroups();
-        }
-
-        // Library handoffs and programmatic navigation reveal their selected game too.
-        private void RevealSidebarGame(string key)
-        {
-            string group = SidebarGroup(key);
-            if (string.IsNullOrEmpty(group)) return;
-            SetSidebarGroupExpanded(group, true);
-            ApplySidebarGroups();
+            SidebarGameSources.SourceChanged += (s, source) => BackgroundDecoration.ApplySource(source);
+            BackgroundDecoration.ApplySource(GameSourceSettingsStore.Current);
         }
 
         private void ApplySidebarGroups()
         {
-            if (GameStyleSidebarSelector == null || SidebarTraditionalButton == null) return;
+            if (StyleSettingsSidebarItem == null) return;
             bool zh = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
-            UpdateSidebarGroupButton(SidebarTraditionalButton, SidebarTraditionalLabel, SidebarTraditionalChevron,
-                GameStyleService.ToCategoryDisplayName("traditional", zh), 3, _sidebarTraditionalExpanded, zh);
-            UpdateSidebarGroupButton(SidebarHeroButton, SidebarHeroLabel, SidebarHeroChevron,
-                GameStyleService.ToCategoryDisplayName("hero", zh), 3, _sidebarHeroExpanded, zh);
-            UpdateSidebarGroupButton(SidebarSurvivalButton, SidebarSurvivalLabel, SidebarSurvivalChevron,
-                GameStyleService.ToCategoryDisplayName("survival", zh), 2, _sidebarSurvivalExpanded, zh);
-            UpdateSidebarGroupButton(SidebarBattlefieldButton, SidebarBattlefieldLabel, SidebarBattlefieldChevron,
-                GameStyleService.ToCategoryDisplayName("battlefield", zh), 5, _sidebarBattlefieldExpanded, zh);
-            UpdateSidebarGroupButton(SidebarCodButton, SidebarCodLabel, SidebarCodChevron,
-                GameStyleService.ToCategoryDisplayName("cod", zh), 1, _sidebarCodExpanded, zh);
-            UpdateSidebarGroupButton(SidebarCardMobaButton, SidebarCardMobaLabel, SidebarCardMobaChevron,
-                GameStyleService.ToCategoryDisplayName("cardmoba", zh), 1, _sidebarCardMobaExpanded, zh);
-            UpdateSidebarGroupButton(SidebarMemeButton, SidebarMemeLabel, SidebarMemeChevron,
-                GameStyleService.ToCategoryDisplayName("meme", zh), 3, _sidebarMemeExpanded, zh);
-
-            foreach (object entry in GameStyleSidebarSelector.MenuItems)
+            foreach (var item in new[] { HomeSidebarItem, AdvancedSettingsSidebarItem, StyleSettingsSidebarItem })
             {
-                if (!(entry is NavigationViewItem item) || !(item.Tag is string key)) continue;
-                string group = SidebarGroup(key);
-                bool visible = group == null || IsSidebarGroupExpanded(group);
-                item.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
-                string label;
-                switch (key)
-                {
-                    case "home": label = zh ? "主页" : "Home"; break;
-                    case "advanced": label = zh ? "高级设置" : "Advanced settings"; break;
-                    case "valorant": label = zh ? "无畏契约" : "VALORANT"; break;
-                    case "calabiyau": label = zh ? "卡拉彼丘" : "Strinova"; break;
-                    case "modernwarfare2019": label = zh ? "使命召唤 · MW" : "Modern Warfare"; break;
-                    default:
-                        var mode = GameStyleService.FromKey(key);
-                        label = zh ? GameStyleService.ToDisplayName(mode) : GetGamePageTitle(mode, false);
-                        if (key == "crossfire") label = "CrossFire";
-                        if (key == "csol") label = "CSOL";
-                        if (key == "pubg") label = "PUBG";
-                        break;
-                }
+                string key = (string)item.Tag;
+                string label = key == "home" ? (zh ? "主页" : "Home") : key == "advanced"
+                    ? (zh ? "高级设置" : "Advanced settings") : (zh ? "游戏风格设置" : "Game styles");
                 item.Content = label;
                 AutomationProperties.SetName(item, label);
-                ToolTipService.SetToolTip(item, GetSidebarTooltip(key, label, zh));
+                ToolTipService.SetToolTip(item, label);
+            }
+            UpdateStylePicker();
+        }
+
+        private void UpdateStylePicker()
+        {
+            if (StylePicker == null || GameStyleSelector == null) return;
+            if (StylePicker.Children.Count == 0)
+            {
+                foreach (var item in GameStyleSelector.Items.OfType<ComboBoxItem>())
+                {
+                    string key = (string)item.Tag;
+                    var content = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10 };
+                    var tile = new Border { Width = 30, Height = 30, CornerRadius = new CornerRadius(15),
+                        Background = new SolidColorBrush(key == "modernwarfare2019" || key == "battlefield5"
+                            ? Color.FromArgb(255, 37, 43, 52) : Color.FromArgb(224, 255, 255, 255)) };
+                    if (key == "custommodule") tile.Child = new FontIcon { Glyph = "\uE713", FontSize = 20 };
+                    else tile.Child = new Image { Width = 26, Height = 26, Stretch = Stretch.Uniform,
+                        Source = new BitmapImage(new Uri("ms-appx:///Assets/GameLogos/" + key + (key == "dagoujiao" ? ".jpg" : ".png"))) { DecodePixelWidth = 78 } };
+                    content.Children.Add(tile);
+                    content.Children.Add(new TextBlock { VerticalAlignment = VerticalAlignment.Center,
+                        FontSize = 14, FontWeight = Windows.UI.Text.FontWeights.SemiBold, TextTrimming = TextTrimming.CharacterEllipsis, MaxWidth = 140 });
+                    var button = new Button { Tag = key, Content = content, Padding = new Thickness(6), Height = 46,
+                        Margin = new Thickness(3), CornerRadius = new CornerRadius(23), BorderThickness = new Thickness(2),
+                        HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Left };
+                    button.Click += OnStylePickerClick;
+                    StylePicker.Children.Add(button);
+                }
+            }
+            bool zh = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            var theme = GameThemePalette.ForMode(SettingsGameStyle);
+            foreach (var button in StylePicker.Children.OfType<Button>())
+            {
+                var mode = GameStyleService.FromKey((string)button.Tag);
+                bool selected = mode == SettingsGameStyle;
+                string label = GetGamePageTitle(mode, zh);
+                var text = (TextBlock)((StackPanel)button.Content).Children[1];
+                text.Text = label;
+                text.Visibility = selected ? Visibility.Visible : Visibility.Collapsed;
+                button.BorderBrush = new SolidColorBrush(selected ? theme.Accent : Colors.Transparent);
+                button.Background = new SolidColorBrush(selected ? Color.FromArgb(32, theme.Accent.R, theme.Accent.G, theme.Accent.B) : Color.FromArgb(120, 255, 255, 255));
+                button.Foreground = new SolidColorBrush(theme.Text);
+                AutomationProperties.SetName(button, label);
+                AutomationProperties.SetHelpText(button, selected ? (zh ? "当前风格设置" : "Current style settings") : "");
+                ToolTipService.SetToolTip(button, label);
             }
         }
 
-        private static string GetSidebarTooltip(string key, string label, bool zh)
-            => key == "modernwarfare2019" ? (zh ? "使命召唤：现代战争 2019" : "Call of Duty: Modern Warfare 2019") : label;
-
-        private static void UpdateSidebarGroupButton(Button button, TextBlock label, FontIcon chevron,
-            string name, int count, bool expanded, bool zh)
+        private void OnStylePickerClick(object sender, RoutedEventArgs e)
         {
-            if (button == null || label == null || chevron == null) return;
-            label.Text = name + "  ·  " + count;
-            chevron.Glyph = expanded ? "\uE70D" : "\uE76C";
-            string action = zh ? (expanded ? "收起" : "展开") : (expanded ? "Collapse " : "Expand ");
-            AutomationProperties.SetName(button, action + name);
-            ToolTipService.SetToolTip(button, action + name);
+            if (sender is Button button && button.Tag is string key)
+            {
+                SelectGameStyle(key);
+                ApplyLanguage();
+            }
+        }
+    }
+
+    // Keep natural chip widths, including the expanded selected name, at every window size.
+    public sealed class GameStyleWrapPanel : Panel
+    {
+        protected override Size MeasureOverride(Size availableSize)
+        {
+            foreach (var child in Children) child.Measure(new Size(availableSize.Width, double.PositiveInfinity));
+            return LayoutChips(availableSize.Width, false);
+        }
+
+        protected override Size ArrangeOverride(Size finalSize)
+        {
+            LayoutChips(finalSize.Width, true);
+            return finalSize;
+        }
+
+        private Size LayoutChips(double width, bool arrange)
+        {
+            double x = 0, y = 0, rowHeight = 0, usedWidth = 0;
+            foreach (var child in Children)
+            {
+                Size size = child.DesiredSize;
+                if (x > 0 && x + size.Width > width)
+                { y += rowHeight; x = 0; rowHeight = 0; }
+                if (arrange) child.Arrange(new Rect(x, y, size.Width, size.Height));
+                x += size.Width;
+                usedWidth = Math.Max(usedWidth, x);
+                rowHeight = Math.Max(rowHeight, size.Height);
+            }
+            return new Size(usedWidth, y + rowHeight);
         }
     }
 }

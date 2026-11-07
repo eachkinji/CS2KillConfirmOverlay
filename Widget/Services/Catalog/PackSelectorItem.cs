@@ -21,6 +21,12 @@ namespace KillConfirmGameBar.Services
         private BitmapImage _thumbnail;
         public string Text { get; }
         public string Tag { get; }
+        public string ActionGlyph => string.Equals(Tag, "none", StringComparison.OrdinalIgnoreCase)
+            ? "\uE711" : Tag == PackLibraryNavigation.AddMoreTag ? "\uE710" : string.Empty;
+        public Windows.UI.Xaml.Visibility GlyphVisibility => ActionGlyph.Length == 0
+            ? Windows.UI.Xaml.Visibility.Collapsed : Windows.UI.Xaml.Visibility.Visible;
+        public Windows.UI.Xaml.Visibility ThumbnailVisibility => ActionGlyph.Length == 0
+            ? Windows.UI.Xaml.Visibility.Visible : Windows.UI.Xaml.Visibility.Collapsed;
         public event PropertyChangedEventHandler PropertyChanged;
 
         public PackSelectorItem(string text, string tag, string iconUri,
@@ -37,7 +43,7 @@ namespace KillConfirmGameBar.Services
         {
             get
             {
-                if (!_thumbnailRequested)
+                if (!_thumbnailRequested && ActionGlyph.Length == 0)
                 {
                     _thumbnailRequested = true;
                     _ = LoadThumbnailAsync();
@@ -95,7 +101,8 @@ namespace KillConfirmGameBar.Services
                 "<Grid ColumnSpacing='6' VerticalAlignment='Center'>" +
                 "<Grid.ColumnDefinitions><ColumnDefinition Width='Auto'/><ColumnDefinition Width='*'/></Grid.ColumnDefinitions>" +
                 "<Border Width='" + hostSize + "' Height='" + hostSize + "' CornerRadius='4' Background='#663A3F47'>" +
-                "<Image Width='" + iconSize + "' Height='" + iconSize + "' Stretch='Uniform' Source='{Binding Thumbnail}'/></Border>" +
+                "<Grid><Image Width='" + iconSize + "' Height='" + iconSize + "' Stretch='Uniform' Source='{Binding Thumbnail}' Visibility='{Binding ThumbnailVisibility}'/>" +
+                "<Border CornerRadius='4' Background='#007AFF' Visibility='{Binding GlyphVisibility}'><FontIcon FontFamily='Segoe MDL2 Assets' FontSize='" + iconSize + "' Glyph='{Binding ActionGlyph}' Foreground='White'/></Border></Grid></Border>" +
                 "<TextBlock Grid.Column='1' Text='{Binding Text}' FontSize='" + (compact ? "9" : "13") +
                 "' TextTrimming='CharacterEllipsis' VerticalAlignment='Center'/></Grid></DataTemplate>");
         }

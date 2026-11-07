@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -60,8 +60,21 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
     public sealed partial class CompatibilityDisplayPanel
     {
         internal bool IsStartupReady => HomeView.PacksReady;
-        internal async Task<string> ValidatePackDropdownsAsync() =>
-            await CompatibilityHomeView.ValidateDropdownAsync(MainGameSelector) + "\n" + await HomeView.ValidatePackDropdownsAsync();
+        internal async Task<string> ValidatePackDropdownsAsync()
+        {
+            double cardHeight = StatusBar.ActualHeight, fieldHeight = MainGameSelector.ActualHeight;
+            string games = await CompatibilityHomeView.ValidateDropdownAsync(MainGameSelector, () =>
+            {
+                if (Math.Abs(StatusBar.ActualHeight - cardHeight) > 1 || Math.Abs(MainGameSelector.ActualHeight - fieldHeight) > 1)
+                    throw new Exception("Opening the game selector changed the status card height.");
+                var headers = MainGameSelector.Items.OfType<ComboBoxItem>().Where(GameSelectorPresentation.IsGameCategoryHeader).ToArray();
+                if (headers.Length != 7 || headers.Any(h => h.IsEnabled || h.IsTabStop || h.IsHitTestVisible))
+                    throw new Exception("Game dropdown category headers must be non-selectable.");
+                if (!(MainGameSelector.SelectedItem is ComboBoxItem selected) || !selected.IsEnabled)
+                    throw new Exception("Opening the game dropdown changed the selection to a category.");
+            });
+            return games + "\n" + await HomeView.ValidatePackDropdownsAsync();
+        }
     }
 
     public sealed partial class CompatibilityHomeView
@@ -73,7 +86,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             {
                 await ValidateGameAsync(mode);
                 foreach (var selector in new[] { PackTestSectionView.VoicePackSelector,
-                    PackTestSectionView.IconPackSelector, PackTestSectionView.CharacterVoicePackSelector, PackTestSectionView.AudioVolumeSelector, PackTestSectionView.SoundEffectVolumeSelector, PackTestSectionView.CharacterVoiceVolumeSelector, PackTestSectionView.TestPresetSelector })
+                    PackTestSectionView.IconPackSelector, PackTestSectionView.CharacterVoicePackSelector, PackTestSectionView.AudioVolumeSelector, PackTestSectionView.TestPresetSelector })
                 {
                     if (!selector.IsEnabled || selector.Visibility != Visibility.Visible) continue;
                     report.AppendLine(mode + ": " + await ValidateDropdownAsync(selector));
@@ -109,7 +122,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             return report.ToString();
         }
 
-        internal static async Task<string> ValidateDropdownAsync(ComboBox selector)
+        internal static async Task<string> ValidateDropdownAsync(ComboBox selector, Action inspectOpen = null)
         {
             selector.StartBringIntoView(new BringIntoViewOptions { AnimationDesired = false });
             await Task.Delay(120);
@@ -120,6 +133,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                 await Task.Delay(50);
                 double firstResponse = elapsed.Elapsed.TotalMilliseconds;
                 await Task.Delay(600);
+                inspectOpen?.Invoke();
                 var panel = selector.ItemsPanelRoot;
                 if (!(panel is CarouselPanel)) throw new Exception("Unsupported ComboBox panel: " + selector.Name + " / " + panel?.GetType().Name);
                 var popup = VisualTreeHelper.GetOpenPopupsForXamlRoot(selector.XamlRoot)
@@ -142,6 +156,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                     if (rowBounds.Bottom > 0 && rowBounds.Top < child.ActualHeight && rowBounds.Width > 20 && rowBounds.Height >= 20)
                     {
                         visible++;
+                        if (!row.IsEnabled) continue; // Group headers deliberately reject input.
                         double y = rowBounds.Top + rowBounds.Height / 2;
                         if (y < 4 || y > child.ActualHeight - 4) continue;
                         foreach (double x in new[] { rowBounds.Left + 8, rowBounds.Right - 8 })

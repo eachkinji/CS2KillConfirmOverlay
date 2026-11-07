@@ -2,6 +2,7 @@
     x:Class="KillConfirmGameBar.KillConfirmWidgetPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:sources="using:KillConfirmGameBar.Controls.GameSources"
     xmlns:controls="using:KillConfirmGameBar.Controls"
     xmlns:danmaku="using:KillConfirmGameBar.Danmaku"
     xmlns:settings="using:KillConfirmGameBar.Controls.Settings"
@@ -333,7 +334,7 @@
                     AudioChannelSettingsChanged="OnAudioChannelSettingsChanged"
                     IconPackSelectionChanged="OnIconPackSelectionChanged"
                     AdvancedEffectsRequested="OnAdvancedEffectsButtonClick"
-                    AudioVolumeSelectionChanged="OnAudioVolumeSelectionChanged"
+                    AudioVolumeSelectionChanged="OnAudioVolumeSelectionChanged" RasterQualitySelectionChanged="OnRasterQualitySelectionChanged"
                     TestEventRequested="OnTestEventClick"
                     RepeatTestRequested="OnRepeatTestClick"
                     ReloadAudioRequested="OnReloadAudioClick" />
@@ -353,12 +354,16 @@
                     ContrastSelectionChanged="OnContrastSelectionChanged"
                     PlaybackFpsSelectionChanged="OnPlaybackFpsSelectionChanged" />
 
-                <ContentControl x:Name="AudioSettingsHost" Grid.Row="4" Margin="0,5,0,0" HorizontalContentAlignment="Stretch"/>
-
+                <sources:GameSourceSelector
+                    x:Name="PanelGameSourceSelector"
+                    Grid.Row="4"
+                    Margin="0,5,0,0"
+                    HorizontalAlignment="Center"
+                    Compact="True" />
                 <Button
                     x:Name="PanelCollapseBar"
                     Grid.Row="5"
-                    Margin="0,3,0,0"
+                    Margin="0,1,0,1"
                     Style="{StaticResource PanelToggleBarButtonStyle}"
                     Click="OnCollapsePanelToggle"
                     ToolTipService.ToolTip="Collapse panel">
@@ -370,7 +375,7 @@
                         <TextBlock
                             x:Name="PanelCollapseBarText"
                             VerticalAlignment="Center"
-                            FontSize="9"
+                            FontSize="10"
                             FontWeight="Normal"
                             Text="Collapse" />
                     </StackPanel>
@@ -427,7 +432,7 @@
                         <TextBlock
                             x:Name="MiniPanelExpandBarText"
                             VerticalAlignment="Center"
-                            FontSize="9"
+                            FontSize="10"
                             FontWeight="Normal"
                             Text="Open" />
                     </StackPanel>

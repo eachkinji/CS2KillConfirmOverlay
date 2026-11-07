@@ -6,50 +6,44 @@
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="ms-appx:///Pages/KillConfirmWidget/KillConfirmWidgetPage.Styles.xaml" />
+            <ResourceDictionary Source="ms-appx:///Controls/Settings/PanelDesign.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
 
     <Border
         x:Name="Card"
-        Padding="18,16"
-        Background="{StaticResource FluentCardBackground}"
-        BorderBrush="{StaticResource FluentCardBorder}"
-        BorderThickness="1"
-        CornerRadius="8">
+        Background="{StaticResource PanelSectionBrush}"
+        BorderBrush="{StaticResource PanelBorderBrush}" Style="{StaticResource PanelSectionCardStyle}">
         <StackPanel Spacing="14">
             <StackPanel Spacing="4">
                 <TextBlock
                     x:Name="TitleText"
-                    FontSize="16"
-                    FontWeight="SemiBold"
-                    Foreground="{StaticResource FluentTitleText}"
-                    Text="Valorant 战斗设置" />
+                    Foreground="{StaticResource PanelTextPrimaryBrush}"
+                    Text="Valorant 战斗设置" Style="{StaticResource PanelSectionTitleTextStyle}" />
                 <TextBlock
                     x:Name="BodyText"
-                    FontSize="12"
                     LineHeight="16"
-                    Foreground="{StaticResource FluentMutedText}"
+                    Foreground="{StaticResource PanelTextMutedBrush}"
                     Visibility="Collapsed"
-                    TextWrapping="WrapWholeWords" />
+                    TextWrapping="WrapWholeWords" Style="{StaticResource PanelCaptionTextStyle}" />
             </StackPanel>
 
-            <Border Style="{StaticResource CompactChoiceCardStyle}">
+            <Border Style="{StaticResource PanelSectionCardStyle}">
                 <Grid ColumnSpacing="16">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <Border Style="{StaticResource CompactCircleIconStyle}">
+                    <Border Style="{StaticResource PanelAccentIconContainerStyle}">
                         <FontIcon FontSize="13" Foreground="White" Glyph="&#xE9D9;" />
                     </Border>
                     <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                        <TextBlock x:Name="StreakModeLabel" Style="{StaticResource CompactChoiceLabelStyle}" Text="连杀计算规则" />
-                        <TextBlock FontSize="12" Foreground="{StaticResource FluentMutedText}" Text="设置无畏契约击杀连杀窗口持续时间或按单回合生命周期计算。" />
+                        <TextBlock x:Name="StreakModeLabel" Style="{StaticResource PanelTitleTextStyle}" Text="连杀计算规则" />
+                        <TextBlock Foreground="{StaticResource PanelTextMutedBrush}" Text="设置无畏契约击杀连杀窗口持续时间或按单回合生命周期计算。" Style="{StaticResource PanelCaptionTextStyle}" />
                     </StackPanel>
-                    <ComboBox x:Name="StreakModeSelector" Grid.Column="2" MinWidth="140" Style="{StaticResource CompactSettingsComboBoxStyle}" SelectionChanged="OnStreakModeSelectionChanged">
+                    <ComboBox x:Name="StreakModeSelector" Grid.Column="2" MinWidth="140" Style="{StaticResource PanelComboBoxStyle}" SelectionChanged="OnStreakModeSelectionChanged">
                         <ComboBoxItem x:Name="StreakLifeItem" Tag="life">单回合持续至死亡</ComboBoxItem>
                         <ComboBoxItem x:Name="StreakTimed5Item" Tag="timed_5">5秒连杀窗口</ComboBoxItem>
                         <ComboBoxItem x:Name="StreakTimed10Item" Tag="timed_10">10秒连杀窗口</ComboBoxItem>
@@ -58,21 +52,21 @@
                 </Grid>
             </Border>
 
-            <Border Style="{StaticResource CompactChoiceCardStyle}">
+            <Border Style="{StaticResource PanelSectionCardStyle}">
                 <Grid ColumnSpacing="16">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <Border Style="{StaticResource CompactCircleIconStyle}">
+                    <Border Style="{StaticResource PanelAccentIconContainerStyle}">
                         <FontIcon FontSize="13" Foreground="White" Glyph="&#xE8B7;" />
                     </Border>
                     <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                        <TextBlock x:Name="ExternalAssetsLabel" Style="{StaticResource CompactChoiceLabelStyle}" Text="外部原生素材" />
-                        <TextBlock x:Name="ExternalAssetsHint" FontSize="12" Foreground="{StaticResource FluentMutedText}" TextWrapping="WrapWholeWords" Text="视觉素材和音频会优先从外部目录加载；增删素材包后重启应用刷新列表。" />
+                        <TextBlock x:Name="ExternalAssetsLabel" Style="{StaticResource PanelTitleTextStyle}" Text="外部原生素材" />
+                        <TextBlock x:Name="ExternalAssetsHint" Foreground="{StaticResource PanelTextMutedBrush}" TextWrapping="WrapWholeWords" Text="视觉素材和音频会优先从外部目录加载；增删素材包后重启应用刷新列表。" Style="{StaticResource PanelCaptionTextStyle}" />
                     </StackPanel>
-                    <Button x:Name="OpenExternalAssetsButton" Grid.Column="2" Style="{StaticResource FluentActionBtnStyle}" Click="OnOpenExternalAssetsClicked">
+                    <Button x:Name="OpenExternalAssetsButton" Grid.Column="2" Style="{StaticResource PanelButtonStyle}" Click="OnOpenExternalAssetsClicked">
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <FontIcon FontSize="12" Glyph="&#xE838;" />
                             <TextBlock x:Name="OpenExternalAssetsButtonText" Text="打开目录" />

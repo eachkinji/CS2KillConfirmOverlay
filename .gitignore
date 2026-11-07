@@ -8,6 +8,7 @@ CompatibilityHost/obj/
 ControlPanel/bin/
 ControlPanel/obj/
 ControlPanel/Generated/
+/Native/**/bin/
 Widget/CompatibilityHost/
 target/
 Output/
@@ -106,6 +107,10 @@ __pycache__/
 .idea/
 
 Widget/Bridge/
+
+# Retired experimental frame caches; keep original PNG/SGSD and baking tools.
+/SourceAssets/GameStyles/sanguosha/killconfirm/lz4/
+/Widget/Assets/GameStyles/sanguosha/killconfirm/lz4/
 
 # Calabiyau runtime: only built-in assets, matching the source allowlist.
 /Widget/Assets/GameStyles/calabiyau/*

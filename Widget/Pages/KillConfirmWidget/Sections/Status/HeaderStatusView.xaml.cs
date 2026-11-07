@@ -1,3 +1,5 @@
+﻿using System.Linq;
+using KillConfirmGameBar.Services;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
@@ -8,6 +10,25 @@ namespace KillConfirmGameBar
         public HeaderStatusView()
         {
             InitializeComponent();
+            GameSelectorPresentation.AddGameCategoryHeaders(GameStyleSelector);
+            GameStyleSelector.DropDownOpened += (s, e) => UpdateGameChoices(true);
+            GameStyleSelector.DropDownClosed += (s, e) => UpdateGameChoices(false);
+        }
+
+        private void UpdateGameChoices(bool expanded)
+        {
+            foreach (ComboBoxItem item in GameStyleSelector.Items.OfType<ComboBoxItem>())
+            {
+                if (GameSelectorPresentation.IsGameCategoryHeader(item))
+                {
+                    GameSelectorPresentation.UpdateMaterialGameSelectorItemLanguage(item);
+                    continue;
+                }
+                GameStyleMode style = GameStyleService.FromKey(item.Tag as string);
+                string name = GameStyleService.ToDisplayName(style);
+                item.Content = GameSelectorPresentation.CreateMaterialGameSelectorContent(style, name, !expanded, GameSelectorPresentation.WidgetGameLogoUri(style));
+                ToolTipService.SetToolTip(item, name);
+            }
         }
 
         public event RoutedEventHandler LanguageToggleRequested;

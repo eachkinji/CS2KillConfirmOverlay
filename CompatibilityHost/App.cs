@@ -27,6 +27,51 @@ namespace KillConfirmCompatibility
             }
             var application = new System.Windows.Application();
             application.ShutdownMode = System.Windows.ShutdownMode.OnExplicitShutdown;
+            if (args.Length == 3 && args[0] == "--validate-sanguosha-lz4-cache")
+            {
+                application.Startup += async (s, e) =>
+                {
+                    try { await Controls.KillConfirmAnimation.ValidateSanguoshaLz4CacheAsync(args[1], args[2]); application.Shutdown(0); }
+                    catch (Exception error) { Directory.CreateDirectory(args[1]); File.WriteAllText(Path.Combine(args[1], "failure.txt"), error.ToString()); application.Shutdown(1); }
+                };
+                application.Run(); return;
+            }
+            if (args.Length == 4 && args[0] == "--measure-sanguosha-lz4")
+            {
+                application.Startup += async (s, e) =>
+                {
+                    try { await Controls.KillConfirmAnimation.MeasureSanguoshaLz4Async(args[1], args[2], int.Parse(args[3])); application.Shutdown(0); }
+                    catch (Exception error) { Directory.CreateDirectory(args[1]); File.WriteAllText(Path.Combine(args[1], "failure.txt"), error.ToString()); application.Shutdown(1); }
+                };
+                application.Run(); return;
+            }
+            if (args.Length == 4 && args[0] == "--validate-sanguosha-lz4")
+            {
+                application.Startup += async (s, e) =>
+                {
+                    try { await Controls.KillConfirmAnimation.ValidateSanguoshaLz4Async(args[1], args[2], args[3]); application.Shutdown(0); }
+                    catch (Exception error) { Directory.CreateDirectory(args[1]); File.WriteAllText(Path.Combine(args[1], "failure.txt"), error.ToString()); application.Shutdown(1); }
+                };
+                application.Run(); return;
+            }
+            if ((args.Length == 4 || args.Length == 5) && args[0] == "--audit-pack-memory")
+            {
+                application.Startup += async (s, e) =>
+                {
+                    try { await Validation.PackMemoryAudit.RunAsync(args[1], args[2], args[3], args.Length == 5 ? args[4] : null); application.Shutdown(0); }
+                    catch (Exception error) { Directory.CreateDirectory(args[1]); File.WriteAllText(Path.Combine(args[1], "failure.txt"), error.ToString()); application.Shutdown(1); }
+                };
+                application.Run(); return;
+            }
+            if (args.Length == 2 && args[0] == "--validate-no-icons")
+            {
+                application.Startup += async (s, e) =>
+                {
+                    try { await Validation.NoIconValidation.RunAsync(args[1]); application.Shutdown(0); }
+                    catch (Exception error) { Directory.CreateDirectory(args[1]); File.WriteAllText(Path.Combine(args[1], "failure.txt"), error.ToString()); application.Shutdown(1); }
+                };
+                application.Run(); return;
+            }
             if (args.Length == 3 && args[0] == "--validate-interactions")
             {
                 application.Startup += async (s, e) =>
@@ -113,6 +158,15 @@ namespace KillConfirmCompatibility
                 application.Startup += async (s, e) =>
                 {
                     try { await Controls.KillConfirmAnimation.ValidateAnimationReplacementAsync(args[1], args[2]); application.Shutdown(0); }
+                    catch (Exception error) { Directory.CreateDirectory(args[1]); File.WriteAllText(Path.Combine(args[1], "failure.txt"), error.ToString()); application.Shutdown(1); }
+                };
+                application.Run(); return;
+            }
+            if (args.Length == 4 && args[0] == "--validate-lol-events")
+            {
+                application.Startup += async (s, e) =>
+                {
+                    try { await Controls.KillConfirmAnimation.ValidateLolEventRenderingAsync(args[1], args[2], args[3]); application.Shutdown(0); }
                     catch (Exception error) { Directory.CreateDirectory(args[1]); File.WriteAllText(Path.Combine(args[1], "failure.txt"), error.ToString()); application.Shutdown(1); }
                 };
                 application.Run(); return;

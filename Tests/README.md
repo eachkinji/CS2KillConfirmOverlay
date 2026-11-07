@@ -31,3 +31,17 @@ cargo test --manifest-path .\KillConfirmService\Cargo.toml
 ```
 
 测试生成物统一写入仓库根目录的 `Output/`，该目录不会提交到 Git。
+
+控制面板 UI 规范检查与隔离回归：
+
+```powershell
+python .\Tests\Regression\Test-PanelDesign.py
+pwsh -NoProfile -File .\Tests\Regression\Test-PanelUi.ps1 -Language zh-CN
+pwsh -NoProfile -File .\Tests\Regression\Test-PanelUi.ps1 -Language en-US
+```
+
+先构建 `ControlPanel/KillConfirmGameBar.csproj`。`Test-PanelUi.ps1` 默认使用 Debug
+桌面输出，或通过 `-Payload` 指定构建目录；每项检查使用独立数据目录。
+静态检查涵盖资源引用、可读字号和高度冲突，实际回归涵盖导航、游戏主题、
+640px 换行布局、设置及音频通道。规范与验证范围见
+[控制面板 UI 规范](../docs/control-panel-ui-standard.md)。

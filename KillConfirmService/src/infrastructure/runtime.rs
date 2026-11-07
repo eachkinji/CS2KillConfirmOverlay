@@ -121,83 +121,43 @@ pub(crate) fn exit_all_processes() {
     ];
 
     for image_name in image_names {
-        let pids = match process_ids_by_image_name(image_name) {
-            Ok(pids) => pids,
-            Err(error) => {
-                service_log(&format!("exit-all: failed to list {image_name}: {error}"));
-                continue;
-            }
-        };
+        let pids = super::process::process_ids_by_image_name(image_name);
 
         for pid in pids {
             if pid == current_pid {
                 continue;
             }
-            let Some(path)=super::process::process_image_path(pid) else {continue;};
-            let root=env::current_exe().ok().and_then(|p|p.parent()?.parent().map(Path::to_path_buf));
-            let ordinary=root.as_ref().is_some_and(|p|path.starts_with(p));
+            let Some(path) = super::process::process_image_path(pid) else {
+                continue;
+            };
+            let root = env::current_exe()
+                .ok()
+                .and_then(|p| p.parent()?.parent().map(Path::to_path_buf));
+            let ordinary = root.as_ref().is_some_and(|p| path.starts_with(p));
             // Isolated close validation must never terminate the user's installed widget.
             let isolated_close = env::var_os("KILLCONFIRM_CLOSE_VALIDATION").is_some()
                 && env::var_os("KILLCONFIRM_DATA_ROOT").is_some();
-            let widget=!isolated_close && path.parent().and_then(|p|p.file_name()).is_some_and(|n|n.to_string_lossy().starts_with("KillConfirmGameBar.Overlay_"));
-            if !ordinary && !widget { continue; }
+            let widget = !isolated_close
+                && path.parent().and_then(|p| p.file_name()).is_some_and(|n| {
+                    n.to_string_lossy()
+                        .starts_with("KillConfirmGameBar.Overlay_")
+                });
+            if !ordinary && !widget {
+                continue;
+            }
 
-            let mut terminate = hidden_command("taskkill");
-            terminate.args(["/PID", &pid.to_string(), "/F"]);
             // The panel launches this exit helper as its child. Killing the
             // panel's tree would kill us before the renderer/service are stopped.
-            if image_name != "KillConfirmGameBar.exe" && image_name != "KillConfirmControlPanel.exe" {
-                terminate.arg("/T");
-            }
-            let output = match terminate.output() {
-                Ok(output) => output,
-                Err(error) => {
-                    service_log(&format!(
-                        "exit-all: failed to terminate {image_name} pid={pid}: {error}"
-                    ));
-                    continue;
-                }
-            };
-
-            service_log(&format!(
-                "exit-all: terminated {image_name} pid={pid} exit={:?}",
-                output.status.code()
-            ));
-        }
-    }
-}
-
-fn process_ids_by_image_name(image_name: &str) -> Result<Vec<u32>> {
-    let filter = format!("IMAGENAME eq {image_name}");
-    let output = hidden_command("tasklist")
-        .args(["/FI", &filter, "/FO", "CSV", "/NH"])
-        .output()
-        .with_context(|| format!("failed to run tasklist for {image_name}"))?;
-
-    if !output.status.success() {
-        anyhow::bail!("tasklist returned {:?}", output.status.code());
-    }
-
-    let mut pids = Vec::new();
-    for line in String::from_utf8_lossy(&output.stdout).lines() {
-        let trimmed = line.trim();
-        if !trimmed.starts_with('"') {
-            continue;
-        }
-
-        let columns: Vec<&str> = trimmed.trim_matches('"').split("\",\"").collect();
-        if columns.len() < 2 || !columns[0].eq_ignore_ascii_case(image_name) {
-            continue;
-        }
-
-        if let Ok(pid) = columns[1].replace(',', "").parse::<u32>() {
-            if !pids.contains(&pid) {
-                pids.push(pid);
+            let include_children = image_name != "KillConfirmGameBar.exe"
+                && image_name != "KillConfirmControlPanel.exe";
+            match super::process::terminate_process(pid, Some(&path), include_children) {
+                Ok(()) => service_log(&format!("exit-all: terminated {image_name} pid={pid}")),
+                Err(error) => service_log(&format!(
+                    "exit-all: failed to terminate {image_name} pid={pid}: {error:#}"
+                )),
             }
         }
     }
-
-    Ok(pids)
 }
 
 pub(crate) fn open_uninstaller() -> Result<()> {

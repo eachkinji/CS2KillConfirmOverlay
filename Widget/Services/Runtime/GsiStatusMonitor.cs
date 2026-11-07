@@ -140,7 +140,7 @@ namespace KillConfirmGameBar.Services
             GsiStatusSnapshot newSnapshot;
             try
             {
-                var uri = LocalServiceEndpoints.Build("/gsi-status");
+                var uri = LocalServiceEndpoints.Build("/game-source/status");
                 using (var client = await LocalServiceAuth.CreateHttpClientAsync())
                 using (var response = await client.GetAsync(uri))
                 {

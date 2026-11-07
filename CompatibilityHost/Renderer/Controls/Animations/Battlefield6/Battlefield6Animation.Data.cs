@@ -85,19 +85,19 @@ namespace KillConfirmCompatibility.Controls
             if (_battlefield6TextFormat == null)
                 _battlefield6TextFormat = new CanvasTextFormat
                 {
-                    FontFamily = "Segoe UI", FontSize = 9, FontWeight = FontWeights.Medium,
+                    FontFamily = "Segoe UI", FontSize = 9, FontWeight = FontWeights.Bold,
                     WordWrapping = CanvasWordWrapping.NoWrap
                 };
             if (_battlefield6BonusFormat == null)
                 _battlefield6BonusFormat = new CanvasTextFormat
                 {
-                    FontFamily = "Bahnschrift", FontSize = 9, FontWeight = FontWeights.Light,
+                    FontFamily = "Bahnschrift", FontSize = 9, FontWeight = FontWeights.Bold,
                     WordWrapping = CanvasWordWrapping.NoWrap
                 };
             if (_battlefield6ScoreFormat == null)
                 _battlefield6ScoreFormat = new CanvasTextFormat
                 {
-                    FontFamily = "Bahnschrift", FontSize = 13.5f, FontWeight = FontWeights.Light,
+                    FontFamily = "Bahnschrift", FontSize = 13.5f, FontWeight = FontWeights.Bold,
                     WordWrapping = CanvasWordWrapping.NoWrap
                 };
         }

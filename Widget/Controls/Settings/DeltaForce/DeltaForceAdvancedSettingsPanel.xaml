@@ -6,33 +6,27 @@
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="ms-appx:///Pages/KillConfirmWidget/KillConfirmWidgetPage.Styles.xaml" />
+            <ResourceDictionary Source="ms-appx:///Controls/Settings/PanelDesign.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
 
     <Border
         x:Name="Card"
-        Padding="18,16"
-        Background="{StaticResource FluentCardBackground}"
-        BorderBrush="{StaticResource FluentCardBorder}"
-        BorderThickness="1"
-        CornerRadius="8">
+        Background="{StaticResource PanelSectionBrush}"
+        BorderBrush="{StaticResource PanelBorderBrush}" Style="{StaticResource PanelSectionCardStyle}">
         <StackPanel Spacing="14">
             <StackPanel Spacing="4">
                 <TextBlock
                     x:Name="TitleText"
-                    FontSize="16"
-                    FontWeight="SemiBold"
-                    Foreground="{StaticResource FluentTitleText}"
-                    Text="Delta Force 战斗设置" />
+                    Foreground="{StaticResource PanelTextPrimaryBrush}"
+                    Text="Delta Force 战斗设置" Style="{StaticResource PanelSectionTitleTextStyle}" />
                 <TextBlock
                     x:Name="BodyText"
-                    FontSize="12"
                     LineHeight="16"
-                    Foreground="{StaticResource FluentMutedText}"
+                    Foreground="{StaticResource PanelTextMutedBrush}"
                     Visibility="Collapsed"
-                    TextWrapping="WrapWholeWords" />
+                    TextWrapping="WrapWholeWords" Style="{StaticResource PanelCaptionTextStyle}" />
             </StackPanel>
         </StackPanel>
     </Border>

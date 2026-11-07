@@ -62,25 +62,11 @@ namespace KillConfirmGameBar
             {
                 SelectAudioPack(PackTestSectionView.VoicePackSelector, settings.SoundEffectPack);
                 SelectAudioPack(PackTestSectionView.CharacterVoicePackSelector, settings.CharacterVoicePack);
-                SetChannelVolume(PackTestSectionView.SoundEffectVolumeSelector, settings.SoundEffectVolume);
-                SetChannelVolume(PackTestSectionView.CharacterVoiceVolumeSelector, settings.CharacterVoiceVolume);
             }
             finally { _suppressAudioChannelEvents = previous; }
             PackTestSectionView.AdvancedEffectsExperiencePanel.RefreshSettings();
             ApplyAudioChannelLanguage();
         }
-
-        private static void SetChannelVolume(ComboBox selector, int value)
-        {
-            if (selector.Items.Count == 0)
-                for (int volume = 0; volume <= 200; volume += 10)
-                    selector.Items.Add(new ComboBoxItem { Content = volume + "%", Tag = volume.ToString() });
-            selector.SelectedItem = selector.Items.OfType<ComboBoxItem>().FirstOrDefault(i => Equals(i.Tag, value.ToString()))
-                ?? selector.Items.OfType<ComboBoxItem>().First(i => Equals(i.Tag, "100"));
-        }
-
-        private static int ChannelVolume(ComboBox selector) => selector.SelectedItem is ComboBoxItem item
-            && int.TryParse(item.Tag as string, out int volume) ? volume : 100;
 
         private static string SelectedAudioPack(ComboBox selector) => selector.SelectedItem is PackSelectorItem item
             && item.Tag is string key && key != PackLibraryNavigation.AddMoreTag ? key : "none";
@@ -103,8 +89,8 @@ namespace KillConfirmGameBar
             var settings = CurrentAudioPreferences();
             settings.SoundEffectPack = SelectedAudioPack(PackTestSectionView.VoicePackSelector);
             settings.CharacterVoicePack = SelectedAudioPack(PackTestSectionView.CharacterVoicePackSelector);
-            settings.SoundEffectVolume = ChannelVolume(PackTestSectionView.SoundEffectVolumeSelector);
-            settings.CharacterVoiceVolume = ChannelVolume(PackTestSectionView.CharacterVoiceVolumeSelector);
+            settings.SoundEffectVolume = 100;
+            settings.CharacterVoiceVolume = 100;
             AudioChannelSettingsStore.Save(GameStyleService.Current, settings);
             string legacy = GameStyleService.Current == GameStyleMode.Crossfire ? settings.CharacterVoicePack : settings.SoundEffectPack;
             if (legacy != "none") SavePackSettingForStyle(VoicePackSettingKey, GameStyleService.Current, legacy);
@@ -163,7 +149,7 @@ namespace KillConfirmGameBar
 
         private async Task<bool> TrySyncSoundEffectForIconSelectionAsync(string iconKey)
         {
-            if (!CurrentAudioPreferences().LinkIconAndSound) return false;
+            if (!CurrentAudioPreferences().LinkIconAndSound || GetSelectedIconPack() == "none") return false;
             GameStyleMode style = GameStyleService.Current;
             var icon = await PackCatalogService.GetIconPackAsync(iconKey);
             if (style != GameStyleService.Current || !string.Equals(GetSelectedIconPack(), iconKey, StringComparison.OrdinalIgnoreCase)) return false;
@@ -186,11 +172,12 @@ namespace KillConfirmGameBar
 
         private async Task<bool> TrySyncIconForSoundEffectSelectionAsync(string soundKey)
         {
-            if (!CurrentAudioPreferences().LinkIconAndSound) return false;
+            if (!CurrentAudioPreferences().LinkIconAndSound || GetSelectedIconPack() == "none") return false;
             var sound = _soundEffectChoices.FirstOrDefault(p => p.Key == soundKey);
             GameStyleMode style = GameStyleService.Current;
             var icons = await PackCatalogService.GetAllIconPacksAsync();
-            if (style != GameStyleService.Current || !string.Equals(GetSelectedVoicePackPreset(), soundKey, StringComparison.OrdinalIgnoreCase)) return false;
+            if (style != GameStyleService.Current || GetSelectedIconPack() == "none"
+                || !string.Equals(GetSelectedVoicePackPreset(), soundKey, StringComparison.OrdinalIgnoreCase)) return false;
             var current = icons.FirstOrDefault(p => p.Key == GetSelectedIconPack());
             var match = AudioMatchesIcon(sound, current) ? current : icons.FirstOrDefault(p => AudioMatchesIcon(sound, p));
             if (match == null) return false;

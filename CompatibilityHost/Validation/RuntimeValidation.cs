@@ -22,7 +22,7 @@ namespace KillConfirmCompatibility.Validation
             {
                 DesktopStorage.Current.LocalSettings.Values[PortSettingsStore.PortKey] = replacement.Port;
                 await registration.EnsureRegisteredAsync();
-                if (replacement.Count("/gsi-game/settings") == 0) throw new Exception("Changing service port did not resend gameplay configuration.");
+                if (replacement.Count("/game-source/settings") == 0) throw new Exception("Changing service port did not resend gameplay configuration.");
                 await registration.ReleaseAsync();
                 int count = replacement.Count("/client/register");
                 await registration.EnsureRegisteredAsync();
@@ -43,10 +43,10 @@ namespace KillConfirmCompatibility.Validation
                 {
                     await Task.Delay(100);
                     status = DisplayFiles.Read<DisplayStatus>(statusPath);
-                    if (status?.Connected == true && service.Count("/client/register") > 0 && service.Count("/gsi-game/settings") > 0) break;
+                    if (status?.Connected == true && service.Count("/client/register") > 0 && service.Count("/game-source/settings") > 0) break;
                 }
                 if (status?.Connected != true || status.Visible || status.ProcessId != Environment.ProcessId) throw new Exception("Host failed to connect or hide while the game is inactive.");
-                if (service.Count("/client/register") == 0 || service.Count("/soundpack") == 0 || service.Count("/gsi-game/settings") == 0 || service.MissingAuthentication) throw new Exception("Authenticated service registration/settings failed.");
+                if (service.Count("/client/register") == 0 || service.Count("/soundpack") == 0 || service.Count("/game-source/settings") == 0 || service.MissingAuthentication) throw new Exception("Authenticated service registration/settings failed.");
                 // Force the status writer to exhaust its retries, then release the
                 // lock. Recovery must clear the I/O fault without poisoning rendering.
                 long previousHeartbeat = status.Timestamp;

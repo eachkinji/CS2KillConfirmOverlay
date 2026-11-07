@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3"
+  xmlns:desktop="http://schemas.microsoft.com/appx/manifest/desktop/windows10"
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  IgnorableNamespaces="uap uap3 mp desktop rescap">
+
+  <Identity
+    Name="KillConfirm.NativeCanvasValidation"
+    Publisher="CN=TestXboxGameBar"
+    Version="1.0.0.0" />
+
+  <mp:PhoneIdentity PhoneProductId="8f70c4bd-4270-4a4f-a7d1-91ae48dbe9f4" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
+
+  <Properties>
+    <DisplayName>ms-resource:PackageDisplayName</DisplayName>
+    <PublisherDisplayName>KillConfirmGameBar</PublisherDisplayName>
+    <Logo>Assets\StoreLogo.png</Logo>
+  </Properties>
+
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Universal" MinVersion="10.0.18362.0" MaxVersionTested="10.0.26100.0" />
+  </Dependencies>
+
+  <Resources>
+    <Resource Language="x-generate" />
+  </Resources>
+
+  <Applications>
+    <Application Id="App"
+      Executable="$targetnametoken$.exe"
+      EntryPoint="KillConfirmGameBar.App">
+      <uap:VisualElements
+        AppListEntry="none"
+        DisplayName="ms-resource:AppDisplayName"
+        Square150x150Logo="Assets\Square150x150Logo.png"
+        Square44x44Logo="Assets\Square44x44Logo.png"
+        Description="ms-resource:AppDescription"
+        BackgroundColor="transparent">
+        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" />
+        <uap:SplashScreen Image="Assets\SplashScreen.png" />
+      </uap:VisualElements>
+
+      <Extensions>
+        <uap3:Extension Category="windows.appExtension">
+          <uap3:AppExtension
+            Name="microsoft.gameBarUIExtension"
+            Id="KillConfirmWidget"
+            DisplayName="ms-resource:GameBarDisplayName"
+            Description="ms-resource:AppDescription"
+            PublicFolder="GameBar">
+            <uap3:Properties>
+              <GameBarWidget Type="Standard">
+                <HomeMenuVisible>true</HomeMenuVisible>
+                <PinningSupported>true</PinningSupported>
+                <ActivateAfterInstall>false</ActivateAfterInstall>
+                <FavoriteAfterInstall>true</FavoriteAfterInstall>
+                <Window>
+                  <AllowForegroundTransparency>true</AllowForegroundTransparency>
+                  <Size>
+                    <Height>600</Height>
+                    <Width>550</Width>
+                    <MinHeight>80</MinHeight>
+                    <MinWidth>120</MinWidth>
+                    <MaxHeight>2160</MaxHeight>
+                    <MaxWidth>3840</MaxWidth>
+                  </Size>
+                  <ResizeSupported>
+                    <Horizontal>true</Horizontal>
+                    <Vertical>true</Vertical>
+                  </ResizeSupported>
+                </Window>
+              </GameBarWidget>
+            </uap3:Properties>
+          </uap3:AppExtension>
+        </uap3:Extension>
+        <uap:Extension Category="windows.protocol">
+          <uap:Protocol Name="killconfirmoverlay" />
+        </uap:Extension>
+        <desktop:Extension Category="windows.fullTrustProcess" Executable="Bridge\killconfirm-widget-bridge.exe">
+          <desktop:FullTrustProcess>
+            <desktop:ParameterGroup GroupId="CrossfirePreset" Parameters="--preset crossfire_swat_gr --exit-with-ui" />
+            <desktop:ParameterGroup GroupId="CrossfirePresetDeveloper" Parameters="--preset crossfire_swat_gr --developer-mode --exit-with-ui" />
+            <desktop:ParameterGroup GroupId="FreeServicePort" Parameters="--free-port 10087" />
+            <desktop:ParameterGroup GroupId="OpenRuntimeLogs" Parameters="--open-logs" />
+            <desktop:ParameterGroup GroupId="OpenGameBar" Parameters="--open-game-bar" />
+            <desktop:ParameterGroup GroupId="CompatibilityDisplay" Parameters="--open-compatibility-display" />
+            <desktop:ParameterGroup GroupId="StopCompatibilityDisplay" Parameters="--close-compatibility-display" />
+            <desktop:ParameterGroup GroupId="ExitAll" Parameters="--exit-all" />
+            <desktop:ParameterGroup GroupId="OpenUninstaller" Parameters="--open-uninstaller" />
+            <desktop:ParameterGroup GroupId="OpenSettingsWindow" Parameters="--open-settings-launcher" />
+            <desktop:ParameterGroup GroupId="OpenSettingsWindowDeveloper" Parameters="--open-settings-launcher --developer-mode" />
+            <desktop:ParameterGroup GroupId="OpenQuarkUpdate" Parameters="--open-quark-update" />
+            <desktop:ParameterGroup GroupId="OpenAuthorGitHub" Parameters="--open-author-github" />
+            <desktop:ParameterGroup GroupId="OpenAuthorBilibili" Parameters="--open-author-bilibili" />
+            <desktop:ParameterGroup GroupId="ServicePort10087" Parameters="--port 10087 --exit-with-ui" />
+            <desktop:ParameterGroup GroupId="ServicePort10087Developer" Parameters="--port 10087 --developer-mode --exit-with-ui" />
+            <desktop:ParameterGroup GroupId="ServicePort10088" Parameters="--port 10088 --exit-with-ui" />
+            <desktop:ParameterGroup GroupId="ServicePort10088Developer" Parameters="--port 10088 --developer-mode --exit-with-ui" />
+            <desktop:ParameterGroup GroupId="ServicePort10089" Parameters="--port 10089 --exit-with-ui" />
+            <desktop:ParameterGroup GroupId="ServicePort10089Developer" Parameters="--port 10089 --developer-mode --exit-with-ui" />
+            <desktop:ParameterGroup GroupId="ServicePort10090" Parameters="--port 10090 --exit-with-ui" />
+            <desktop:ParameterGroup GroupId="ServicePort10090Developer" Parameters="--port 10090 --developer-mode --exit-with-ui" />
+            <desktop:ParameterGroup GroupId="ServicePort10091" Parameters="--port 10091 --exit-with-ui" />
+            <desktop:ParameterGroup GroupId="ServicePort10091Developer" Parameters="--port 10091 --developer-mode --exit-with-ui" />
+            <desktop:ParameterGroup GroupId="ServicePort10092" Parameters="--port 10092 --exit-with-ui" />
+            <desktop:ParameterGroup GroupId="ServicePort10092Developer" Parameters="--port 10092 --developer-mode --exit-with-ui" />
+            <desktop:ParameterGroup GroupId="ServicePortCustom" Parameters="--port-from-file --exit-with-ui" />
+            <desktop:ParameterGroup GroupId="ServicePortCustomDeveloper" Parameters="--port-from-file --developer-mode --exit-with-ui" />
+          </desktop:FullTrustProcess>
+        </desktop:Extension>
+      </Extensions>
+    </Application>
+  </Applications>
+
+  <Extensions>
+    <Extension Category="windows.activatableClass.proxyStub">
+      <ProxyStub ClassId="00000355-0000-0000-C000-000000000046">
+        <Path>Microsoft.Gaming.XboxGameBar.winmd</Path>
+        <Interface Name="Microsoft.Gaming.XboxGameBar.Private.IXboxGameBarAppTargetHost" InterfaceId="38CDC43C-0A0E-4B3B-BBD3-A581AE220D53" />
+        <Interface Name="Microsoft.Gaming.XboxGameBar.Private.IXboxGameBarAppTargetInfo" InterfaceId="D7689E93-5587-47D1-A42E-78D16B2FA807" />
+        <Interface Name="Microsoft.Gaming.XboxGameBar.Private.IXboxGameBarActivityHost" InterfaceId="2B113C9B-E370-49B2-A20B-83E0F5737577" />
+        <Interface Name="Microsoft.Gaming.XboxGameBar.Private.IXboxGameBarHotkeyManagerHost" InterfaceId="F6225A53-B34C-4833-9511-AA377B43316F" />
+        <Interface Name="Microsoft.Gaming.XboxGameBar.Private.IXboxGameBarWidgetAuthHost" InterfaceId="DC263529-B12F-469E-BB35-B94069F5B15A" />
+        <Interface Name="Microsoft.Gaming.XboxGameBar.Private.IXboxGameBarWidgetControlHost" InterfaceId="C309CAC7-8435-4082-8F37-784523747047" />
+        <Interface Name="Microsoft.Gaming.XboxGameBar.Private.IXboxGameBarWidgetForegroundWorkerHost" InterfaceId="DDB52B57-FA83-420C-AFDE-6FA556E18B83" />
+        <Interface Name="Microsoft.Gaming.XboxGameBar.Private.IXboxGameBarWidgetForegroundWorkerPrivate" InterfaceId="42BACDFC-BB28-4E71-99B4-24C034C7B7E0" />
+        <Interface Name="Microsoft.Gaming.XboxGameBar.Private.IXboxGameBarNavigationKeyCombo" InterfaceId="5EEA3DBF-09BB-42A5-B491-CF561E33C172" />
+        <Interface Name="Microsoft.Gaming.XboxGameBar.Private.IXboxGameBarWidgetActivatedEventArgsPrivate" InterfaceId="782535A7-9407-4572-BFCB-316B4086F102" />
+        <Interface Name="Microsoft.Gaming.XboxGameBar.Private.IXboxGameBarWidgetHost" InterfaceId="5D12BC93-212B-4B9F-9091-76B73BF56525" />
+        <Interface Name="Microsoft.Gaming.XboxGameBar.Private.IXboxGameBarWidgetHost2" InterfaceId="28717C8B-D8E8-47A8-AF47-A1D5263BAE9B" />
+        <Interface Name="Microsoft.Gaming.XboxGameBar.Private.IXboxGameBarWidgetHost3" InterfaceId="3F5A3F12-C1E4-4942-B80D-3117BC948E29" />
+        <Interface Name="Microsoft.Gaming.XboxGameBar.Private.IXboxGameBarWidgetHost4" InterfaceId="FA696D9E-2501-4B01-B26F-4BB85344740F" />
+        <Interface Name="Microsoft.Gaming.XboxGameBar.Private.IXboxGameBarWidgetHost5" InterfaceId="A6C878CC-2B08-4B94-B1C3-222C6A913F3C" />
+        <Interface Name="Microsoft.Gaming.XboxGameBar.Private.IXboxGameBarWidgetHost6" InterfaceId="CE6F0D73-C44F-4BBD-9652-A0FC52C37A34" />
+        <Interface Name="Microsoft.Gaming.XboxGameBar.Private.IXboxGameBarWidgetNotificationHost" InterfaceId="6F68D392-E4A9-46F7-A024-5275BC2FE7BA" />
+        <Interface Name="Microsoft.Gaming.XboxGameBar.Private.IXboxGameBarWidgetNotificationPrivate" InterfaceId="C94C8DC8-C8B5-4560-AF6E-A588B558213A" />
+        <Interface Name="Microsoft.Gaming.XboxGameBar.Private.IXboxGameBarWidgetPrivate" InterfaceId="22ABA97F-FB0F-4439-9BDD-2C67B2D5AA8F" />
+        <Interface Name="Microsoft.Gaming.XboxGameBar.Private.IXboxGameBarWidgetPrivate2" InterfaceId="B2F7DB8C-7540-48DA-9B46-4E60CE0D9DEB" />
+        <Interface Name="Microsoft.Gaming.XboxGameBar.Private.IXboxGameBarWidgetPrivate3" InterfaceId="4FB89FB6-7CB8-489D-8408-2269E6C733A1" />
+        <Interface Name="Microsoft.Gaming.XboxGameBar.Private.IXboxGameBarWidgetPrivate4" InterfaceId="5638D65A-3733-48CC-90E5-984688D62786" />
+      </ProxyStub>
+    </Extension>
+  </Extensions>
+
+  <Capabilities>
+    <rescap:Capability Name="runFullTrust" />
+    <Capability Name="internetClient" />
+    <Capability Name="privateNetworkClientServer" />
+  </Capabilities>
+</Package>

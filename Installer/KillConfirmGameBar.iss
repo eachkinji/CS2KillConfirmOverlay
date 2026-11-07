@@ -1,8 +1,8 @@
-#define MyAppPublisher "KillConfirmGameBar"
+﻿#define MyAppPublisher "KillConfirmGameBar"
 #define MyAppExeName "Install-KillConfirm.ps1"
 
 #ifndef MyAppVersion
-  #define MyAppVersion "5.9.0.0"
+  #define MyAppVersion "5.9.2.3"
 #endif
 
 #ifndef TransferRoot
@@ -172,6 +172,20 @@ Type: files; Name: "{app}\KillConfirmGameBar.runtimeconfig.json"
 Type: filesandordirs; Name: "{app}\Assets\GameStyles\calabiyau\iconpacks"
 Type: filesandordirs; Name: "{app}\Assets\GameStyles\calabiyau\textures"
 Type: files; Name: "{app}\Assets\GameStyles\calabiyau\packs.json"
+; Retired Sanguosha built-ins must also disappear when upgrading an existing installation.
+Type: filesandordirs; Name: "{app}\Assets\GameStyles\sanguosha\killconfirm\podi"
+Type: filesandordirs; Name: "{app}\Assets\GameStyles\sanguosha\killconfirm\guanjie2"
+Type: filesandordirs; Name: "{app}\Assets\GameStyles\sanguosha\killconfirm\guanjie3"
+Type: filesandordirs; Name: "{app}\Assets\GameStyles\sanguosha\killconfirm\guanjie4"
+Type: filesandordirs; Name: "{app}\Assets\GameStyles\sanguosha\killconfirm\guanjie5"
+Type: filesandordirs; Name: "{app}\Assets\GameStyles\sanguosha\killconfirm\guanjie6"
+Type: filesandordirs; Name: "{app}\Assets\GameStyles\sanguosha\killconfirm\guanjie7"
+Type: filesandordirs; Name: "{app}\Assets\GameStyles\sanguosha\killconfirm\dashatesha"
+Type: filesandordirs; Name: "{app}\Assets\GameStyles\sanguosha\killconfirm\shoujidonghua_chuizi"
+Type: filesandordirs; Name: "{app}\Assets\GameStyles\sanguosha\killconfirm\shoujidonghua_jian"
+Type: filesandordirs; Name: "{app}\Assets\GameStyles\sanguosha\killconfirm\shoujidonghua_fuzi2"
+Type: files; Name: "{app}\Assets\GameStyles\sanguosha\previews\sanguosha_guanjie.png"
+Type: filesandordirs; Name: "{app}\KillConfirmService\sounds\sanguosha_guanjie"
 Type: filesandordirs; Name: "{app}\Payload"
 Type: filesandordirs; Name: "{app}\Desktop"
 Type: files; Name: "{group}\{cm:ControlPanelShortcutName}.lnk"

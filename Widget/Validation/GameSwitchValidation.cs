@@ -1,4 +1,4 @@
-#if WIDGET_SWITCH_VALIDATION
+﻿#if WIDGET_SWITCH_VALIDATION
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -137,9 +137,8 @@ namespace KillConfirmGameBar
                 await page.UpdateOverlay.UpdateCreditsCommunityPanel.LoadAvatarsAsync();
                 if (!page.UpdateOverlay.UpdateCreditsCommunityPanel.AvatarsReady)
                     throw new Exception("Update-page contributor avatars did not decode.");
-                if (page.PanelCollapseBar.ActualHeight < 24 || page.PanelCollapseBar.CornerRadius.TopLeft > 8)
-                    throw new Exception("Collapse button is still an oval.");
-                report.AppendLine("PASS: all four contributor avatars decoded; collapse button uses a 26-DIP rounded rectangle.");
+                page.ValidatePanelFooterLayout(report);
+                report.AppendLine("PASS: all four contributor avatars decoded.");
                 foreach (GameStyleMode mode in Enum.GetValues(typeof(GameStyleMode)))
                 {
                     var clock = Stopwatch.StartNew();
@@ -235,9 +234,49 @@ namespace KillConfirmGameBar
             }
             if (GameStyleService.Current != mode || GetSelectedGameStyle() != mode
                 || (GetSelectedVoicePackPreset() != "none" && PackCatalogService.GetAudioPackStyle(_soundEffectChoices.FirstOrDefault(p => p.Key == GetSelectedVoicePackPreset())) != mode)
-                || GameStyleService.GetStyleForPackKey(GetSelectedIconPack()) != mode)
+                || (GetSelectedIconPack() != "none" && GameStyleService.GetStyleForPackKey(GetSelectedIconPack()) != mode))
                 throw new Exception("Game/selector mismatch: requested=" + mode + "; current=" + GameStyleService.Current
                     + "; voice=" + GetSelectedVoicePackPreset() + "; icon=" + GetSelectedIconPack());
+        }
+
+        private void ValidatePanelFooterLayout(StringBuilder report)
+        {
+            // Use the real collapse path and let text scaling determine actual
+            // dimensions; the compact spec is a minimum, never a fixed box.
+            SetPanelCollapsed(false);
+            UpdateLayout();
+            foreach (Button button in new[] { PanelCollapseBar, MiniPanelExpandBar })
+            {
+                if (Math.Abs(button.MinWidth - 60) > 0.01 || Math.Abs(button.MinHeight - 22) > 0.01
+                    || !double.IsNaN(button.Width) || !double.IsNaN(button.Height)
+                    || Math.Abs(button.CornerRadius.TopLeft - 11) > 0.01
+                    || button.Padding.Left != 6 || button.Padding.Right != 6
+                    || button.Padding.Top != 0 || button.Padding.Bottom != 0)
+                    throw new Exception(button.Name + " must use the compact 60x22 minimum capsule without fixed dimensions.");
+            }
+            if (PanelCollapseBarText.FontSize != 10 || MiniPanelExpandBarText.FontSize != 10)
+                throw new Exception("Panel toggle labels must use the 10-DIP overlay caption size.");
+            Rect source = PanelGameSourceSelector.TransformToVisual(MainPanelContent).TransformBounds(
+                new Rect(0, 0, PanelGameSourceSelector.ActualWidth, PanelGameSourceSelector.ActualHeight));
+            Rect collapse = PanelCollapseBar.TransformToVisual(MainPanelContent).TransformBounds(
+                new Rect(0, 0, PanelCollapseBar.ActualWidth, PanelCollapseBar.ActualHeight));
+            double center = MainPanelContent.ActualWidth / 2;
+            if (source.Width <= 0 || source.Height <= 0 || collapse.Height < 21
+                || source.Bottom > collapse.Top + 1
+                || Math.Abs(source.X + source.Width / 2 - center) > 1.5
+                || Math.Abs(collapse.X + collapse.Width / 2 - center) > 1.5
+                || Grid.GetRow(PanelGameSourceSelector) != 4 || Grid.GetRow(PanelCollapseBar) != 5)
+                throw new Exception("Game mode selector must be centered above the compact collapse button.");
+            OnCollapsePanelToggle(PanelCollapseBar, new RoutedEventArgs());
+            UpdateLayout();
+            if (MainPanelContent.Visibility != Visibility.Collapsed || MiniPanel.Visibility != Visibility.Visible
+                || MiniPanelExpandBar.ActualWidth < 59 || MiniPanelExpandBar.ActualHeight < 21)
+                throw new Exception("Compact expand button is not visible after collapsing the panel.");
+            report.AppendLine($"PASS: centered game modes above collapse; capsule minima=60x22; collapse={collapse.Width:0.#}x{collapse.Height:0.#}; expand={MiniPanelExpandBar.ActualWidth:0.#}x{MiniPanelExpandBar.ActualHeight:0.#}.");
+            OnCollapsePanelToggle(MiniPanelExpandBar, new RoutedEventArgs());
+            UpdateLayout();
+            if (MainPanelContent.Visibility != Visibility.Visible || MiniPanel.Visibility != Visibility.Collapsed)
+                throw new Exception("Expand action did not restore the full panel.");
         }
 
         private async Task ValidateAudioChannelsUiAsync(string root, StringBuilder report, Action<string> stage)
@@ -277,27 +316,38 @@ namespace KillConfirmGameBar
             await WaitForValidationSwitchAsync(GameStyleMode.Calabiyau);
             SelectAudioPack(PackTestSectionView.VoicePackSelector, "calabiyau_sfx_fixture");
             SelectAudioPack(PackTestSectionView.CharacterVoicePackSelector, "calabiyau_voice_fixture");
-            SetChannelVolume(PackTestSectionView.SoundEffectVolumeSelector, 70);
-            SetChannelVolume(PackTestSectionView.CharacterVoiceVolumeSelector, 130);
             SaveAudioSelections();
             await SyncAudioChannelsAsync();
             var channels = WidgetProtocolFixture.AudioChannels;
             if (channels["sound_effect"].GetObject().GetNamedString("preset") != "calabiyau_sfx_fixture"
                 || channels["character_voice"].GetObject().GetNamedString("preset") != "calabiyau_voice_fixture"
-                || channels["sound_effect"].GetObject().GetNamedNumber("volume_percent") != 70
-                || channels["character_voice"].GetObject().GetNamedNumber("volume_percent") != 130)
+                || channels["sound_effect"].GetObject().GetNamedNumber("volume_percent") != 100
+                || channels["character_voice"].GetObject().GetNamedNumber("volume_percent") != 100)
                 throw new Exception("UWP independent channel choice/volume request is incorrect.");
             await InitializePackSelectorsAsync();
             if (SelectedAudioPack(PackTestSectionView.CharacterVoicePackSelector) != "calabiyau_voice_fixture"
-                || ChannelVolume(PackTestSectionView.CharacterVoiceVolumeSelector) != 130)
+                || CurrentAudioPreferences().CharacterVoiceVolume != 100)
                 throw new Exception("UWP role voice setting did not survive selector reload.");
             UpdateLayout(); await Task.Delay(100);
             var visuals = VisualSettingsSectionView.TransformToVisual(ControlPanel).TransformBounds(new Rect(0, 0, VisualSettingsSectionView.ActualWidth, VisualSettingsSectionView.ActualHeight));
-            var audio = AudioSettingsHost.TransformToVisual(ControlPanel).TransformBounds(new Rect(0, 0, AudioSettingsHost.ActualWidth, AudioSettingsHost.ActualHeight));
-            if (audio.Y < visuals.Bottom || AudioSettingsHost.Content != PackTestSectionView.AudioSettingsCard || audio.Height < 60)
-                throw new Exception("UWP audio controls are not below visual settings.");
+            var audio = PackTestSectionView.AudioVolumeSelector.TransformToVisual(ControlPanel).TransformBounds(new Rect(0, 0, PackTestSectionView.AudioVolumeSelector.ActualWidth, PackTestSectionView.AudioVolumeSelector.ActualHeight));
+            if (audio.Y < visuals.Top || audio.Bottom > visuals.Bottom || VisualSettingsSectionView.AudioVolumeHost.Content != PackTestSectionView.MasterVolumeControls)
+                throw new Exception("UWP master volume is not inside audio & visual settings.");
+            if (PackTestSectionView.FindName("MasterVolumeLabel") != null || PackTestSectionView.FindName("SoundEffectVolumeSelector") != null || PackTestSectionView.FindName("CharacterVoiceVolumeSelector") != null)
+                throw new Exception("UWP retired volume controls or master text label remain.");
+            string savedIcon = GetSelectedIconPack();
+            SavePackSettingForStyle(IconPackSettingKey, GameStyleService.Current, "none");
+            await InitializePackSelectorsAsync();
+            await LowerFeedbackAnimation.PreloadCurrentPackAnimationsAsync(null);
+            if (GetSelectedIconPack() != "none" || Controls.KillConfirmAnimation.IsIconFeedbackEnabled || !LowerFeedbackAnimation.IsCurrentPackPreloaded)
+                throw new Exception("UWP None icon selection did not persist as a ready, disabled renderer.");
+            foreach (var selector in new[] { PackTestSectionView.IconPackSelector, PackTestSectionView.VoicePackSelector, PackTestSectionView.CharacterVoicePackSelector })
+                foreach (var item in selector.Items.OfType<PackSelectorItem>().Where(i => i.Tag == "none" || i.Tag == PackLibraryNavigation.AddMoreTag))
+                    if (string.IsNullOrEmpty(item.ActionGlyph)) throw new Exception("Action row has no icon: " + item.Tag);
+            SavePackSettingForStyle(IconPackSettingKey, GameStyleService.Current, savedIcon);
+            await InitializePackSelectorsAsync();
             foreach (var selector in new[] { PackTestSectionView.VoicePackSelector, PackTestSectionView.IconPackSelector, PackTestSectionView.CharacterVoicePackSelector,
-                PackTestSectionView.AudioVolumeSelector, PackTestSectionView.SoundEffectVolumeSelector, PackTestSectionView.CharacterVoiceVolumeSelector })
+                PackTestSectionView.AudioVolumeSelector })
             {
                 var bounds = selector.TransformToVisual(ControlPanel).TransformBounds(new Rect(0, 0, selector.ActualWidth, selector.ActualHeight));
                 if (bounds.Left < 0 || bounds.Right > ControlPanel.ActualWidth + 1 || bounds.Width < 50 || bounds.Height < 20)
@@ -315,7 +365,7 @@ namespace KillConfirmGameBar
             await InitializePackSelectorsAsync();
             var advancedSaved = CurrentAudioPreferences();
             if (advancedSaved.LinkIconAndSound || advancedSaved.CharacterVoiceInterrupt
-                || advancedSaved.SoundEffectVolume != 70 || advancedSaved.CharacterVoiceVolume != 130
+                || advancedSaved.SoundEffectVolume != 100 || advancedSaved.CharacterVoiceVolume != 100
                 || advancedSaved.SoundEffectPack != "calabiyau_sfx_fixture" || advancedSaved.CharacterVoicePack != "calabiyau_voice_fixture")
                 throw new Exception("Returning from advanced settings overwrote behavior, selected packs or volumes.");
             await SyncAudioChannelsAsync();
@@ -342,13 +392,13 @@ namespace KillConfirmGameBar
             int downloadedAudio = Directory.EnumerateFiles(SharedResources.CacheRoot, "*", SearchOption.AllDirectories)
                 .Count(path => new[] { ".wav", ".mp3", ".m4a" }.Contains(Path.GetExtension(path).ToLowerInvariant()));
             if (downloadedAudio != 0) throw new Exception("Audio selector metadata downloaded sound media unnecessarily.");
-            report.AppendLine("PASS: actual UWP three-pack controls across all games, CF migration, atomic dual-channel requests, independent volumes and role voice persistence, None across linked reload, typed library handoff and shared-state persistence; audio card below visuals with no clipping; zero audio downloads. Actual menu screenshots captured.");
+            report.AppendLine("PASS: actual UWP three-pack controls across all games, CF migration, atomic dual-channel requests, master-only gain and role voice persistence, None across linked reload, typed library handoff and shared-state persistence; master volume inside audio & visual card with no clipping; zero audio downloads. Actual menu screenshots captured.");
         }
 
         private async Task CaptureAudioMenuAsync(string root, string name)
         {
             UpdateLayout(); await Task.Delay(100);
-            var volumeBoxes = new[] { PackTestSectionView.AudioVolumeSelector, PackTestSectionView.SoundEffectVolumeSelector, PackTestSectionView.CharacterVoiceVolumeSelector };
+            var volumeBoxes = new[] { PackTestSectionView.AudioVolumeSelector };
             var volumeRows = volumeBoxes.Select(box => box.TransformToVisual(ControlPanel).TransformBounds(new Rect(0, 0, box.ActualWidth, box.ActualHeight))).ToArray();
             if (volumeBoxes.Any(box => box.SelectedItem == null) || volumeRows.Max(b => b.Top) - volumeRows.Min(b => b.Top) > 0.5
                 || volumeRows.Max(b => b.Height) - volumeRows.Min(b => b.Height) > 0.5)
@@ -375,6 +425,15 @@ namespace KillConfirmGameBar
             {
                 selector.IsDropDownOpen = true;
                 await Task.Delay(300);
+                if (selector.Name == "GameStyleSelector")
+                {
+                    var headers = selector.Items.OfType<ComboBoxItem>().Where(GameSelectorPresentation.IsGameCategoryHeader).ToArray();
+                    if (headers.Length != 7 || headers.Any(h => h.IsEnabled || h.IsTabStop || h.IsHitTestVisible))
+                        throw new Exception("UWP game category headers are selectable.");
+                    if (selector.Items.OfType<ComboBoxItem>().Count(i => i.IsEnabled) != Enum.GetValues(typeof(GameStyleMode)).Length
+                        || !(selector.SelectedItem is ComboBoxItem game) || !game.IsEnabled)
+                        throw new Exception("UWP game list or selected game changed while opening groups.");
+                }
                 var panel = selector.ItemsPanelRoot;
                 if (!(panel is CarouselPanel)) throw new Exception("Unsupported UWP dropdown panel: " + selector.Name);
                 var popup = VisualTreeHelper.GetOpenPopupsForXamlRoot(selector.XamlRoot).FirstOrDefault(p =>

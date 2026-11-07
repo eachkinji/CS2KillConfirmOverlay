@@ -68,13 +68,42 @@ namespace KillConfirmCompatibility.Desktop.Windowing
             EnsureBitmap(crop.Width, crop.Height);
             if (sourceChanged || _revision != revision || _crop != crop)
                 _scaled.CopyPixels(crop, _bits, checked(_width * _height * 4), checked(_width * 4));
+            Commit(crop, placement, alpha);
+            _revision = revision;
+        }
+
+        // The caller supplies final physical-screen BGRA pixels. This path does
+        // no scaling, color conversion, WPF bitmap copy or GPU round trip.
+        internal void PresentPixels(byte[] pixels, int width, int height,
+            Int32Rect crop, NativeWindows.Rect placement, double opacity)
+        {
+            if (pixels == null || pixels.Length < checked(width * height * 4)
+                || crop.X < 0 || crop.Y < 0 || crop.Width <= 0 || crop.Height <= 0
+                || crop.X > width - crop.Width || crop.Y > height - crop.Height
+                || placement.Width != crop.Width || placement.Height != crop.Height)
+                throw new ArgumentException("Invalid physical feedback frame.");
+            EnsureBitmap(crop.Width, crop.Height);
+            int rowBytes = checked(crop.Width * 4);
+            if (crop.X == 0 && crop.Width == width)
+                Marshal.Copy(pixels, checked(crop.Y * width * 4), _bits, checked(rowBytes * crop.Height));
+            else
+                for (int row = 0; row < crop.Height; row++)
+                    Marshal.Copy(pixels, checked(((crop.Y + row) * width + crop.X) * 4),
+                        IntPtr.Add(_bits, checked(row * rowBytes)), rowBytes);
+            _source = _scaled = null;
+            _revision = -1;
+            Commit(crop, placement, (byte)Math.Round(Math.Clamp(opacity, 0, 1) * 255));
+        }
+
+        private void Commit(Int32Rect crop, NativeWindows.Rect placement, byte alpha)
+        {
             var destination = new NativeWindows.Point { X = placement.Left, Y = placement.Top };
             var size = new PixelSize { Width = _width, Height = _height };
             var origin = new NativeWindows.Point();
             var blend = new Blend { ConstantAlpha = alpha, AlphaFormat = 1 };
             if (!UpdateLayeredWindow(_window, IntPtr.Zero, ref destination, ref size, _dc, ref origin, 0, ref blend, 2))
                 throw new Win32Exception();
-            Placement = placement; _revision = revision; _crop = crop; _alpha = alpha;
+            Placement = placement; _crop = crop; _alpha = alpha;
             Show();
         }
 

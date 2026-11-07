@@ -58,7 +58,7 @@ namespace KillConfirmCompatibility.Desktop.Windowing
             {
                 using var process = Process.GetProcessById((int)id);
                 string name = process.ProcessName;
-                return name.Equals("cs2", StringComparison.OrdinalIgnoreCase) || name.Equals("csgo", StringComparison.OrdinalIgnoreCase);
+                return GameSources.GameWindowSource.Matches(Services.GameSourceSettingsStore.Current, name);
             }
             catch { return false; }
         }

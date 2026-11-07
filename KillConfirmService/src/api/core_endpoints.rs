@@ -78,6 +78,13 @@ pub async fn install_counter_strike_cfg(
         })?,
         None => GsiGameVersion::DEFAULT,
     };
+    let selected_source = app_state.game_source.read().await;
+    if selected_source.source.cs_version() != Some(version) {
+        return Err((
+            StatusCode::CONFLICT,
+            "CFG is only available for the selected CS source".into(),
+        ));
+    }
     let root = detect_counter_strike_root(version).ok_or_else(|| {
         (
             StatusCode::NOT_FOUND,

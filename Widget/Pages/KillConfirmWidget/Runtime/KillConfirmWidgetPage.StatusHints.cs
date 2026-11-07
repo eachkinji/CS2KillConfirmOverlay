@@ -47,6 +47,14 @@ namespace KillConfirmGameBar
         private IReadOnlyList<StatusHint> BuildStatusHints()
         {
             var hints = new List<StatusHint>();
+            if (GameSourceSettingsStore.IsLol) {
+                bool zh = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+                hints.Add(new StatusHint(_gsiRecentlySeen ? (zh ? "LOL 已连接 · 击杀英雄时播放当前素材" : "LOL connected · current pack plays on champion kills")
+                    : (zh ? "等待 LOL 对局 · 进入对局后自动连接" : "Waiting for a LOL match"), Color.FromArgb(255, 5, 122, 85)));
+                hints.Add(new StatusHint(GetServiceStatusHint(), GetServiceHintColor()));
+                hints.Add(new StatusHint(GetAnimationStatusHint(), GetAnimationHintColor()));
+                return hints;
+            }
 
             hints.Add(new StatusHint(LocalizationManager.Text("StatusAllLightsRequiredHint"), Color.FromArgb(255, 5, 122, 85)));
             hints.Add(new StatusHint(LocalizationManager.Text("UpdateButtonStatusHint"), Color.FromArgb(255, 180, 90, 0)));

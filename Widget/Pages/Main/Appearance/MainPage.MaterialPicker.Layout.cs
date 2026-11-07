@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using KillConfirmGameBar.Services;
 using Windows.UI;
@@ -23,32 +23,30 @@ namespace KillConfirmGameBar
             var titlePanel = new StackPanel { Spacing = 2 };
             titlePanel.Children.Add(new TextBlock
             {
+                Style = PanelResource<Style>("PanelSectionTitleTextStyle"),
                 Text = (zh ? "选择素材 - " : "Select material - ") + (slotDisplayName ?? typeName),
-                FontSize = 16,
-                FontWeight = Windows.UI.Text.FontWeights.Bold,
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 28, 28, 30))
+                TextWrapping = TextWrapping.WrapWholeWords,
+                Foreground = PanelResource<Brush>("PanelTextPrimaryBrush")
             });
             titlePanel.Children.Add(new TextBlock
             {
+                Style = PanelResource<Style>("PanelCaptionTextStyle"),
                 Text = allowMultiple
                     ? (zh ? "按游戏查看音效包与语音包文件夹；可跨包多选，播放时随机取一个。" : "Browse sound effect and character voice folders by game; multiple picks play at random.")
                     : (zh ? "按游戏查看素材包文件夹；切换游戏即可跨游戏选择。" : "Browse pack folders by game; switch games for cross-game material."),
-                FontSize = 11,
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 110, 110, 115)),
+                Foreground = PanelResource<Brush>("PanelTextMutedBrush"),
                 TextWrapping = TextWrapping.WrapWholeWords
             });
             titleGrid.Children.Add(titlePanel);
             closeButton = new Button
             {
+                Style = PanelResource<Style>("PanelIconButtonStyle"),
                 Content = "",
                 FontFamily = new FontFamily("Segoe MDL2 Assets"),
-                Width = 28,
-                Height = 28,
-                Padding = new Thickness(0),
                 Background = new SolidColorBrush(Colors.Transparent),
-                BorderThickness = new Thickness(0),
-                CornerRadius = new CornerRadius(14)
+                BorderThickness = new Thickness(0)
             };
+            Windows.UI.Xaml.Automation.AutomationProperties.SetName(closeButton, zh ? "关闭素材选择" : "Close material picker");
             Grid.SetColumn(closeButton, 1);
             titleGrid.Children.Add(closeButton);
             return titleGrid;
@@ -61,34 +59,35 @@ namespace KillConfirmGameBar
             out TextBox searchBox)
         {
             var filterGrid = new Grid { ColumnSpacing = 8 };
-            filterGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(238) });
+            filterGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             filterGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             gameSelector = new ComboBox
             {
+                Style = PanelResource<Style>("PanelComboBoxStyle"),
                 HorizontalAlignment = HorizontalAlignment.Stretch,
-                Background = new SolidColorBrush(Color.FromArgb(247, 255, 255, 255)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(31, 0, 0, 0)),
-                CornerRadius = new CornerRadius(8)
+                Background = PanelResource<Brush>("PanelFieldBrush"),
+                BorderBrush = PanelResource<Brush>("PanelBorderBrush")
             };
             var gameStyles = Enum.GetValues(typeof(GameStyleMode)).Cast<GameStyleMode>();
-            foreach (GameStyleMode style in gameStyles.OrderBy(style => style == currentGame ? 0 : 1))
+            foreach (GameStyleMode style in gameStyles)
             {
                 string name = GameStyleService.ToDisplayName(style);
                 if (style == currentGame) name += zh ? "（当前）" : " (Current)";
                 gameSelector.Items.Add(new ComboBoxItem
                 {
-                    Content = CreateMaterialGameSelectorContent(style, name),
+                    Content = GameSelectorPresentation.CreateMaterialGameSelectorContent(style, name),
                     Tag = GameStyleService.ToStorageValue(style)
                 });
             }
-            gameSelector.SelectedIndex = 0;
+            GameSelectorPresentation.AddGameCategoryHeaders(gameSelector);
+            gameSelector.SelectedItem = gameSelector.Items.OfType<ComboBoxItem>().First(i => (string)i.Tag == GameStyleService.ToStorageValue(currentGame));
             filterGrid.Children.Add(gameSelector);
             searchBox = new TextBox
             {
+                Style = PanelResource<Style>("PanelTextBoxStyle"),
                 PlaceholderText = zh ? "搜索文件夹或文件..." : "Search folders or files...",
-                Background = new SolidColorBrush(Color.FromArgb(247, 255, 255, 255)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(31, 0, 0, 0)),
-                CornerRadius = new CornerRadius(8)
+                Background = PanelResource<Brush>("PanelFieldBrush"),
+                BorderBrush = PanelResource<Brush>("PanelBorderBrush")
             };
             Grid.SetColumn(searchBox, 1);
             filterGrid.Children.Add(searchBox);
@@ -107,28 +106,25 @@ namespace KillConfirmGameBar
             navigation.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             backButton = new Button
             {
+                Style = PanelResource<Style>("PanelButtonStyle"),
                 Content = zh ? "← 返回文件夹" : "← Back to folders",
-                FontSize = 10,
-                Padding = new Thickness(8, 3, 8, 3),
                 Visibility = Visibility.Collapsed,
-                Background = new SolidColorBrush(Color.FromArgb(255, 240, 240, 240)),
-                CornerRadius = new CornerRadius(7)
+                Background = new SolidColorBrush(Color.FromArgb(255, 240, 240, 240))
             };
             navigation.Children.Add(backButton);
             breadcrumb = new TextBlock
             {
+                Style = PanelResource<Style>("PanelTitleTextStyle"),
                 VerticalAlignment = VerticalAlignment.Center,
-                FontSize = 11,
-                FontWeight = Windows.UI.Text.FontWeights.SemiBold,
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 70, 74, 86)),
+                Foreground = PanelResource<Brush>("PanelTextSecondaryBrush"),
                 TextTrimming = TextTrimming.CharacterEllipsis
             };
             Grid.SetColumn(breadcrumb, 1);
             navigation.Children.Add(breadcrumb);
             selectionText = new TextBlock
             {
+                Style = PanelResource<Style>("PanelCaptionTextStyle"),
                 VerticalAlignment = VerticalAlignment.Center,
-                FontSize = 10,
                 Foreground = new SolidColorBrush(SettingsTheme.Accent)
             };
             Grid.SetColumn(selectionText, 2);
@@ -145,9 +141,9 @@ namespace KillConfirmGameBar
                 VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
                 HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
                 Background = new SolidColorBrush(Color.FromArgb(255, 248, 249, 251)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(38, 0, 0, 0)),
+                BorderBrush = PanelResource<Brush>("PanelBorderBrush"),
                 BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(10),
+                CornerRadius = PanelResource<CornerRadius>("PanelSectionRadius"),
                 Padding = new Thickness(6),
                 Content = itemsPanel
             };
@@ -165,26 +161,22 @@ namespace KillConfirmGameBar
             toolbar.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             browseButton = new Button
             {
+                Style = PanelResource<Style>("PanelButtonStyle"),
                 Content = allowMultiple
                     ? (zh ? "从电脑多选音频..." : "Choose audio files...")
                     : (zh ? "从电脑选择文件..." : "Choose a local file..."),
-                FontSize = 11,
-                Padding = new Thickness(10, 5, 10, 5),
-                Background = new SolidColorBrush(Color.FromArgb(26, 0, 122, 255)),
+                Background = PanelResource<Brush>("PanelAccentSoftBrush"),
                 Foreground = new SolidColorBrush(SettingsTheme.Accent),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(61, 0, 122, 255)),
-                CornerRadius = new CornerRadius(8)
+                BorderBrush = PanelResource<Brush>("PanelAccentBorderBrush")
             };
             toolbar.Children.Add(browseButton);
             clearButton = new Button
             {
+                Style = PanelResource<Style>("PanelDangerButtonStyle"),
                 Content = zh ? "清空此项" : "Clear item",
-                FontSize = 11,
-                Padding = new Thickness(10, 5, 10, 5),
                 Background = new SolidColorBrush(Color.FromArgb(26, 255, 59, 48)),
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 255, 59, 48)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(61, 255, 59, 48)),
-                CornerRadius = new CornerRadius(8)
+                Foreground = PanelResource<Brush>("PanelDangerBrush"),
+                BorderBrush = new SolidColorBrush(Color.FromArgb(61, 255, 59, 48))
             };
             Grid.SetColumn(clearButton, 1);
             toolbar.Children.Add(clearButton);

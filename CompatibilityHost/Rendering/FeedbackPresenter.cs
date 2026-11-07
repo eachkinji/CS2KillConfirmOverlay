@@ -1,4 +1,4 @@
-﻿using KillConfirmCompatibility.Controls;
+using KillConfirmCompatibility.Controls;
 using KillConfirmCompatibility.Services;
 using System;
 using Windows.Storage;
@@ -19,7 +19,7 @@ namespace KillConfirmCompatibility
         {
             var values = ApplicationData.Current.LocalSettings.Values;
             string selected = values[key + "." + GameStyleService.ToStorageValue(GameStyleService.Current)] as string;
-            return string.IsNullOrWhiteSpace(selected) ? fallback : selected;
+            return string.IsNullOrWhiteSpace(selected) ? fallback : GameStyleService.NormalizeRetiredSanguoshaPackKey(selected);
         }
         public async System.Threading.Tasks.Task ApplyConfigurationAsync()
         {
@@ -44,7 +44,7 @@ namespace KillConfirmCompatibility
                 KillConfirmAnimation.ConfigureCustomPackOverlayCapabilities(item?.HasKillFxOverlay == true, item?.HasEliteOverlay == true, item?.HasWeaponBadgeOverlay == true);
                 KillConfirmAnimation.ConfigureKillFxMode(values["KillFxEnabled"] is int fx ? fx : imported ? (item?.HasKillFxOverlay == true ? 1 : 0) : 1);
                 await LowerFeedbackAnimation.PreloadCurrentPackAnimationsAsync(null);
-                ConfigurationError = GameStyleService.Current == GameStyleMode.Crossfire && await PackCatalogService.GetImportedIconFolderAsync(pack) == null
+                ConfigurationError = KillConfirmAnimation.IsIconFeedbackEnabled && GameStyleService.Current == GameStyleMode.Crossfire && await PackCatalogService.GetImportedIconFolderAsync(pack) == null
                     ? "当前 CF 图标包未安装，请在图标库导入资源包。" : null;
             }
             catch (Exception error) { ConfigurationError = error.Message; App.Log("Compatibility pack configuration: " + error); }

@@ -63,8 +63,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         {
             _suppressGameStyleEvents = true;
             InitializeComponent();
-            foreach (GameStyleMode style in Enum.GetValues(typeof(GameStyleMode)))
-                GameSelector.Items.Add(new ComboBoxItem { Content = MainPage.CreateMaterialGameSelectorContent(style, GameStyleService.ToDisplayName(style)), Tag = GameStyleService.ToStorageValue(style) });
+            GameSelectorPresentation.PopulateGroupedGameSelector(GameSelector);
             PackTestSectionView.AdvancedEffectsFlyout.Content = null;
             _suppressGameStyleEvents = false;
             Loaded += OnLoaded; Unloaded += OnUnloaded;
@@ -91,7 +90,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         }
         private async void OnGameChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (_suppressGameStyleEvents || !(GameSelector.SelectedItem is ComboBoxItem item) || !(item.Tag is string key)) return;
+            if (_suppressGameStyleEvents || !(GameSelector.SelectedItem is ComboBoxItem item) || !item.IsEnabled || !(item.Tag is string key)) return;
             GameStyleMode style = GameStyleService.FromKey(key);
             // Leave the native SelectionChanged callback before changing the shared game preference.
             try { await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => { if (_isPageActive) GameStyleService.Current = style; }); }
@@ -134,7 +133,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         {
             bool zh = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
             foreach (ComboBoxItem gameItem in GameSelector.Items.OfType<ComboBoxItem>())
-                MainPage.UpdateMaterialGameSelectorItemLanguage(gameItem);
+                GameSelectorPresentation.UpdateMaterialGameSelectorItemLanguage(gameItem);
             GameTitle.Text = GameStyleService.ToDisplayName(GameStyleService.Current);
             GameHint.Text = zh ? "图标、音效、角色语音与战斗规则使用当前游戏配置；屏幕布局为兼容显示独立保存。" : "Icons, sound effects, character voices and combat rules follow the selected game. Desktop layouts are saved separately.";
             EffectsLabel.Text = zh ? "当前游戏设置" : "Game settings";
@@ -160,11 +159,9 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         {
             theme = GameThemePalette.Home;
             Foreground = theme.Brush(theme.Text);
-            foreach (var card in new[] { GameCard, PackTestSectionView.PackTestCard }) { card.Background = theme.Brush(theme.Card); card.BorderBrush = theme.Brush(theme.SoftBorder); }
+            // Shared card styles own surface and geometry; only semantic colors vary.
             foreach (var text in new[] { GameHint, PackTestSectionView.PackHintText, PackTestSectionView.TestFeedbackText }) text.Foreground = theme.Brush(theme.MutedText);
-            foreach (var selector in new[] { GameSelector, PackTestSectionView.VoicePackSelector, PackTestSectionView.IconPackSelector, PackTestSectionView.CharacterVoicePackSelector, PackTestSectionView.SoundEffectVolumeSelector, PackTestSectionView.CharacterVoiceVolumeSelector, PackTestSectionView.AudioVolumeSelector, PackTestSectionView.TestPresetSelector })
-            { selector.Background = theme.Brush(theme.Field); selector.Foreground = theme.Brush(theme.Text); selector.BorderBrush = theme.Brush(theme.Border); selector.CornerRadius = new CornerRadius(4); }
-            PackTestSectionView.IconPackSelector.IsEnabled = GameStyleService.Current != GameStyleMode.Overwatch && GameStyleService.Current != GameStyleMode.ModernWarfare2019 && GameStyleService.Current != GameStyleMode.Apex;
+            PackTestSectionView.IconPackSelector.IsEnabled = true;
             foreach (var icon in new[] { PackTestSectionView.VoicePackIcon, PackTestSectionView.CharacterVoicePackIcon, PackTestSectionView.IconPackIcon, PackTestSectionView.VolumeIcon, PackTestSectionView.TestPresetIcon }) icon.Foreground = theme.Brush(theme.Accent);
             ApplyAdvancedEffectsPanelTheme(); RefreshStatus();
         }
@@ -195,7 +192,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             _displaySummary = displayText; _serviceSummary = serviceText;
             _gsiSummary = gsi.Posts > 0
                 ? gsi.Posts.ToString("0") + (zh ? " 次" : " updates") + (gsi.LastPostAgeMs.HasValue ? " · " + Math.Max(0, gsi.LastPostAgeMs.Value / 1000).ToString("0") + (zh ? " 秒前" : "s ago") : "")
-                : (zh ? "启动 CS2 后自动接收" : "Start CS2 to receive data");
+                : (zh ? "等待 " + GameSourceSettingsStore.DisplayName(GameSourceSettingsStore.Current) + " 对局" : "Waiting for " + GameSourceSettingsStore.DisplayName(GameSourceSettingsStore.Current));
             bool notice = !string.IsNullOrWhiteSpace(problem) || DateTimeOffset.UtcNow < _actionNoticeUntil;
             RuntimeNoticeBorder.Visibility = notice ? Visibility.Visible : Visibility.Collapsed;
             var theme = GameThemePalette.Home;
@@ -204,10 +201,10 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             StatusText.Text = !string.IsNullOrWhiteSpace(problem) ? problem : _actionNotice;
             SetStatusLight(ConnectionNoticeDot, !string.IsNullOrWhiteSpace(problem) ? StatusRed : StatusAmber);
         }
-        private static readonly Color StatusGreen = Color.FromArgb(255, 52, 199, 89);
-        private static readonly Color StatusAmber = Color.FromArgb(255, 255, 159, 10);
-        private static readonly Color StatusRed = Color.FromArgb(255, 255, 59, 48);
-        private static readonly Color StatusGray = Color.FromArgb(255, 142, 142, 147);
+        private Color StatusGreen => (Color)Resources["PanelSuccessColor"];
+        private Color StatusAmber => (Color)Resources["PanelWarningColor"];
+        private Color StatusRed => (Color)Resources["PanelDangerColor"];
+        private Color StatusGray => (Color)Resources["PanelTextMutedColor"];
         private static void SetStatusLight(Ellipse light, Color color) { if (light != null) light.Fill = new SolidColorBrush(color); }
         private void ShowRuntimeNotice(string message)
         {
@@ -237,7 +234,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         private void ShowTestFeedback(string message)
         {
             PackTestSectionView.TestFeedbackText.Text = message;
-            PackTestSectionView.TestFeedbackText.Visibility = Visibility.Visible;
+            PackTestSectionView.TestFeedbackText.Visibility = string.IsNullOrWhiteSpace(message) ? Visibility.Collapsed : Visibility.Visible;
             PreviewChanged?.Invoke();
         }
         private void OnDanmakuTestFeedback(string message) => ShowTestFeedback(message);
@@ -258,7 +255,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             int revision = _revision;
             try
             {
-                ShowTestFeedback(zh ? "正在准备画面与音频测试…" : "Preparing the visual and audio test…");
+                ShowTestFeedback(string.Empty);
                 // The display host owns service registration and configuration.
                 // Only publish a test after the selected configuration is prepared.
                 if (!_isPageActive || revision != _revision || !CompatibilityDisplayRuntime.Load().Enabled) return;
@@ -274,7 +271,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                     if (CompatibilityDisplayRuntime.IsRunning(status) && status.LastTestRequest == request)
                     {
                         if (!string.IsNullOrWhiteSpace(status.TestError)) throw new InvalidOperationException(status.TestError);
-                        ShowTestFeedback(zh ? "画面已预览，音频测试已触发。无需启动游戏。" : "Visuals previewed and audio test triggered. No game is needed.");
+                        ShowTestFeedback(string.Empty);
                         return;
                     }
                     await Task.Delay(100);
@@ -309,6 +306,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         private void OnCopyClick(object sender, RoutedEventArgs e) { var data = new DataPackage(); data.SetText("Display=" + _displaySummary + "\nService=" + _serviceSummary + "\n" + LocalServiceEndpoints.BaseUri + "\n" + StatusText.Text + "\n" + _gsiSummary + "\nGame=" + GameStyleService.Current); Clipboard.SetContent(data); ShowRuntimeNotice(LocalizationManager.Current == UiLanguage.SimplifiedChinese ? "诊断信息已复制。" : "Diagnostics copied."); }
         private async void OnInstallCfgClick(object sender, RoutedEventArgs e)
         {
+            if (GameSourceSettingsStore.IsLol) { ShowRuntimeNotice(LocalizationManager.Current == UiLanguage.SimplifiedChinese ? "LOL 无需安装 CFG，进入对局后自动连接。" : "LOL connects in a match without a CFG."); return; }
             try
             {
                 await EnsureServiceAvailableAsync();

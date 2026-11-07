@@ -130,6 +130,10 @@
       <DependentUpon>DanmakuOptionsPanel.xaml</DependentUpon>
     </Compile>
     <Compile Include="Services\Runtime\GsiStatusMonitor.cs" />
+    <Compile Include="Services\GameSources\GameSourceSettingsStore.cs" />
+    <Compile Include="Controls\GameSources\GameSourceSelector.xaml.cs"><DependentUpon>GameSourceSelector.xaml</DependentUpon></Compile>
+    <Page Include="Controls\GameSources\GameSourceSelector.xaml"><Generator>MSBuild:Compile</Generator></Page>
+    <Content Include="Assets\GameSources\**\*.png;Assets\GameSources\**\*.svg" />
     <Compile Include="Services\Runtime\VersionUpdateService.cs" />
     <Compile Include="Services\Styling\ControlTheme.cs" />
     <Compile Include="Controls\Animations\Calabiyau\CalabiyauAnimation.cs" />
@@ -140,6 +144,7 @@
     <Compile Include="..\Common\CalabiyauPackage.cs" Link="Services\Runtime\CalabiyauPackage.cs" />
     <Compile Include="..\Common\CalabiyauClip.cs" Link="Services\Runtime\CalabiyauClip.cs" />
     <Compile Include="..\Common\PreviewEventSupport.cs" Link="Services\Runtime\PreviewEventSupport.cs" />
+    <Compile Include="..\Common\AnimationRasterPolicy.cs" Link="Services\Runtime\AnimationRasterPolicy.cs" />
     <Compile Include="..\Common\PackImportClassification.cs" Link="Services\Runtime\PackImportClassification.cs" />
     <Compile Include="Services\CustomModule\CustomSequenceFormat.cs" />
     <Compile Include="Services\CustomModule\CustomSequencePackService.cs" />
@@ -500,12 +505,13 @@
     <Compile Include="Services\Settings\General\SharedStreakSettingsStore.cs" />
     <Compile Include="Services\Settings\General\KillFeedbackVisibilitySettingsStore.cs" />
     <Compile Include="Services\Settings\General\DeveloperModeSettingsStore.cs" />
-    <Compile Include="Services\Settings\Games\GsiGameVersionSettingsStore.cs" />
+    <Compile Include="Services\GameSources\CounterStrike\GsiGameVersionSettingsStore.cs" />
     <Compile Include="Services\Settings\General\StreakGainSettingsStore.cs" />
     <Compile Include="Services\Settings\General\AutoCloseOnGameExitSettingsStore.cs" />
     <Compile Include="Services\Settings\General\GameBarRuntimeStatusStore.cs" />
     <Compile Include="Services\Settings\Audio\InterruptPreviousKillAudioSettingsStore.cs" />
     <Compile Include="Services\Styling\GameStyleService.cs" />
+    <Compile Include="Services\Styling\GameSelectorPresentation.cs" />
     <Compile Include="Services\Styling\KillFeedbackFrameDefinition.cs" />
     <Compile Include="Services\Styling\GameStyleService.PackMappings.cs" />
     <Compile Include="Services\Styling\GameThemePalette.cs" />
@@ -544,7 +550,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <AppxManifest Include="Package.appxmanifest" Condition="'$(WidgetSwitchValidation)' != 'true'">
+    <AppxManifest Include="Package.appxmanifest" Condition="'$(WidgetSwitchValidation)' != 'true' and '$(NativeCanvasValidation)' != 'true'">
       <SubType>Designer</SubType>
     </AppxManifest>
   </ItemGroup>
@@ -621,6 +627,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="Controls\Settings\PanelDesign.xaml"><Generator>MSBuild:Compile</Generator><SubType>Designer</SubType></Page>
     <Page Include="Controls\Settings\SettingsWorkspace.Styles.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -877,12 +884,16 @@
     <Compile Include="Controls\Animations\Battlefield6\Battlefield6Animation.Render.cs" />
     <!-- Sanguosha (三国杀): original Spine broadcast replay, self-contained files -->
     <Compile Include="..\Common\SanguoshaClip.cs" Link="Services\Runtime\SanguoshaClip.cs" />
+    <Compile Include="..\Common\SanguoshaLz4Source.cs" Link="Services\Runtime\SanguoshaLz4Source.cs" />
+    <Compile Include="..\Common\SanguoshaLz4Playback.cs" Link="Services\Runtime\SanguoshaLz4Playback.cs" />
     <Compile Include="Services\Styling\GameStyleService.Sanguosha.cs" />
     <Compile Include="Services\Styling\GameThemePalette.Sanguosha.cs" />
     <Compile Include="Controls\Animations\Sanguosha\SanguoshaAnimation.Data.cs" />
     <Compile Include="Controls\Animations\Sanguosha\SanguoshaAnimation.Resources.cs" />
     <Compile Include="Controls\Animations\Sanguosha\SanguoshaAnimation.Playback.cs" />
     <Compile Include="Controls\Animations\Sanguosha\SanguoshaAnimation.Render.cs" />
+    <Compile Include="Controls\Animations\Sanguosha\SanguoshaAnimation.Lz4.cs" />
+    <Compile Include="Controls\Animations\Sanguosha\SanguoshaAnimatedSurface.cs" />
     <Compile Include="Controls\Animations\Sanguosha\SanguoshaFrameRenderer.cs" />
     <Page Include="Controls\GameStyles\Sanguosha\SanguoshaAdvancedEffectsPanel.xaml"><Generator>MSBuild:Compile</Generator><SubType>Designer</SubType></Page>
     <Compile Include="Controls\GameStyles\Sanguosha\SanguoshaAdvancedEffectsPanel.xaml.cs" />
@@ -904,18 +915,32 @@
     <Compile Include="..\CompatibilityHost\Integration\CompatibilityDisplayRuntime.cs"><Link>Features\CompatibilityDisplay\CompatibilityDisplayRuntime.cs</Link></Compile>
     <Compile Include="..\CompatibilityHost\Integration\KillConfirmWidgetPage.DisplayMode.cs"><Link>Features\CompatibilityDisplay\KillConfirmWidgetPage.DisplayMode.cs</Link></Compile>
     <Content Remove="Assets\**\*;Danmaku\**\*;KillConfirmService\**\*;CompatibilityHost\**\*" />
-    <Content Include="Assets\FluentIcons\*;Assets\PackIcons\*;Assets\GameLogos\*;Assets\CategoryLogos\*;Assets\*.png;Assets\*.jpg" />
+    <Content Include="Assets\FluentIcons\*;Assets\PackIcons\*;Assets\GameLogos\*;Assets\CategoryLogos\*;Assets\GameSources\**\*.png;Assets\GameSources\**\*.svg;Assets\*.png;Assets\*.jpg" />
     <Content Include="Bridge\killconfirm-widget-bridge.exe" />
   </ItemGroup>
+  <Import Project="..\Native\Lz4\Lz4.targets" />
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\WindowsXaml\v$(VisualStudioVersion)\Microsoft.Windows.UI.Xaml.CSharp.targets" />
   <PropertyGroup Condition="'$(WidgetSwitchValidation)' == 'true'">
     <DefineConstants>$(DefineConstants);WIDGET_SWITCH_VALIDATION</DefineConstants>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(SanguoshaLz4Validation)' == 'true'">
+    <DefineConstants>$(DefineConstants);SANGUOSHA_LZ4_VALIDATION</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(SanguoshaLz4Validation)' == 'true'">
+    <Compile Include="Validation\SanguoshaLz4Validation.cs" />
+  </ItemGroup>
   <ItemGroup Condition="'$(WidgetSwitchValidation)' == 'true'">
     <AppxManifest Include="Validation\Package.appxmanifest" />
     <Compile Include="Validation\GameSwitchValidation.cs" />
     <Compile Include="Validation\Battlefield6Validation.cs" />
     <Compile Include="Validation\CalabiyauRenderValidation.cs" />
       <Compile Include="Validation\CalabiyauDefaultRenderValidation.cs" />
+  </ItemGroup>
+  <PropertyGroup Condition="'$(NativeCanvasValidation)' == 'true'">
+    <DefineConstants>$(DefineConstants);NATIVE_CANVAS_VALIDATION</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(NativeCanvasValidation)' == 'true'">
+    <Compile Include="Validation\NativeCanvasValidation.cs" />
+    <AppxManifest Include="Validation\NativeCanvas.appxmanifest" />
   </ItemGroup>
 </Project>

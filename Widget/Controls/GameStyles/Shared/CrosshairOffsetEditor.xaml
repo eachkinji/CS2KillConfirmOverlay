@@ -6,7 +6,7 @@
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="ms-appx:///Pages/KillConfirmWidget/KillConfirmWidgetPage.Styles.xaml" />
+            <ResourceDictionary Source="ms-appx:///Controls/Settings/PanelDesign.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
@@ -22,16 +22,13 @@
             <TextBlock
                 x:Name="TitleLabel"
                 VerticalAlignment="Center"
-                FontSize="10"
-                FontWeight="SemiBold"
-                Text="准心中心微调" />
+                Text="准心中心微调" Style="{StaticResource PanelTitleTextStyle}" />
             <TextBlock
                 x:Name="CurrentValueText"
                 Grid.Column="1"
                 VerticalAlignment="Center"
-                FontSize="9"
                 FontWeight="SemiBold"
-                Text="X 0 · Y 0" />
+                Text="X 0 · Y 0" Style="{StaticResource PanelCaptionTextStyle}" />
         </Grid>
 
         <Grid x:Name="ResponsiveSettingsGrid" ColumnSpacing="18" RowSpacing="6">
@@ -47,8 +44,7 @@
             <StackPanel x:Name="PresetPanel" Spacing="6">
                 <TextBlock
                     x:Name="QuickPresetLabel"
-                    FontSize="9"
-                    Text="快速方案" />
+                    Text="快速方案" Style="{StaticResource PanelCaptionTextStyle}" />
                 <Grid ColumnSpacing="4">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -60,56 +56,41 @@
                     <Button
                         x:Name="DefaultPresetButton"
                         MinWidth="0"
-                        Height="28"
-                        Padding="3,0"
                         HorizontalAlignment="Stretch"
                         Click="OnPresetClick"
-                        FontSize="9"
-                        Style="{StaticResource FluentSecondaryButtonStyle}"
+                        Style="{StaticResource PanelButtonStyle}"
                         Tag="0|0" />
                     <Button
                         x:Name="Preset1Button"
                         Grid.Column="1"
                         MinWidth="0"
-                        Height="28"
-                        Padding="3,0"
                         HorizontalAlignment="Stretch"
                         Click="OnPresetClick"
-                        FontSize="9"
-                        Style="{StaticResource FluentSecondaryButtonStyle}"
+                        Style="{StaticResource PanelButtonStyle}"
                         Tag="0.25|0.25" />
                     <Button
                         x:Name="Preset2Button"
                         Grid.Column="2"
                         MinWidth="0"
-                        Height="28"
-                        Padding="3,0"
                         HorizontalAlignment="Stretch"
                         Click="OnPresetClick"
-                        FontSize="9"
-                        Style="{StaticResource FluentSecondaryButtonStyle}"
+                        Style="{StaticResource PanelButtonStyle}"
                         Tag="0.25|0.5" />
                     <Button
                         x:Name="Preset3Button"
                         Grid.Column="3"
                         MinWidth="0"
-                        Height="28"
-                        Padding="3,0"
                         HorizontalAlignment="Stretch"
                         Click="OnPresetClick"
-                        FontSize="9"
-                        Style="{StaticResource FluentSecondaryButtonStyle}"
+                        Style="{StaticResource PanelButtonStyle}"
                         Tag="0.5|0.25" />
                     <Button
                         x:Name="Preset4Button"
                         Grid.Column="4"
                         MinWidth="0"
-                        Height="28"
-                        Padding="3,0"
                         HorizontalAlignment="Stretch"
                         Click="OnPresetClick"
-                        FontSize="9"
-                        Style="{StaticResource FluentSecondaryButtonStyle}"
+                        Style="{StaticResource PanelButtonStyle}"
                         Tag="0.5|0.5" />
                 </Grid>
             </StackPanel>
@@ -117,8 +98,7 @@
             <StackPanel x:Name="ManualPanel" Grid.Column="1" Spacing="6">
                 <TextBlock
                     x:Name="ManualInputLabel"
-                    FontSize="9"
-                    Text="手动输入" />
+                    Text="手动输入" Style="{StaticResource PanelCaptionTextStyle}" />
                 <Grid ColumnSpacing="8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -127,35 +107,32 @@
                     <StackPanel Spacing="2">
                         <TextBlock
                             x:Name="OffsetXLabel"
-                            FontSize="9"
-                            Text="X 右移 (px)" />
+                            Text="X 右移 (px)" Style="{StaticResource PanelCaptionTextStyle}" />
                         <TextBox
                             x:Name="OffsetXBox"
                             KeyDown="OnOffsetKeyDown"
                             MaxLength="8"
                             LostFocus="OnOffsetXLostFocus"
                             PlaceholderText="0"
-                            Style="{StaticResource FluentInputStyle}" />
+                            Style="{StaticResource PanelTextBoxStyle}" />
                     </StackPanel>
                     <StackPanel Grid.Column="1" Spacing="2">
                         <TextBlock
                             x:Name="OffsetYLabel"
-                            FontSize="9"
-                            Text="Y 下移 (px)" />
+                            Text="Y 下移 (px)" Style="{StaticResource PanelCaptionTextStyle}" />
                         <TextBox
                             x:Name="OffsetYBox"
                             KeyDown="OnOffsetKeyDown"
                             MaxLength="8"
                             LostFocus="OnOffsetYLostFocus"
                             PlaceholderText="0"
-                            Style="{StaticResource FluentInputStyle}" />
+                            Style="{StaticResource PanelTextBoxStyle}" />
                     </StackPanel>
                 </Grid>
                 <TextBlock
                     x:Name="OffsetHint"
-                    FontSize="9"
                     Text="正值向右/下，负值向左/上；可输入小数。"
-                    TextWrapping="WrapWholeWords" />
+                    TextWrapping="WrapWholeWords" Style="{StaticResource PanelCaptionTextStyle}" />
             </StackPanel>
         </Grid>
     </StackPanel>

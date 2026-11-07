@@ -141,6 +141,13 @@ namespace KillConfirmGameBar
 
         private void UpdateCfgStatus(CfgDetectionState state, string label, string detail)
         {
+            HeaderStatusSection.CfgStatusBadge.Visibility = GameSourceSettingsStore.IsLol ? Visibility.Collapsed : Visibility.Visible;
+            if (GameSourceSettingsStore.IsLol) {
+                _cfgDetectionState = CfgDetectionState.Ready;
+                StatusDetailsSection.CfgActionRow.Visibility = Visibility.Collapsed;
+                UpdateStatusDetailRowVisibility();
+                return;
+            }
             _cfgDetectionState = state;
             _cfgStatusDetail = detail ?? string.Empty;
             StatusDetailsSection.CfgStatusText.Text = string.IsNullOrWhiteSpace(label) ? ResolveCfgStatusLabel(state) : label;
@@ -214,6 +221,7 @@ namespace KillConfirmGameBar
 
         private void UpdateGsiStatus(bool serviceReachable, bool recentlySeen, double posts, double? ageMs, double parseErrors)
         {
+            HeaderStatusSection.GsiBadgeText.Text = GameSourceSettingsStore.IsLol ? "LOL" : "GSI";
             _gsiRecentlySeen = recentlySeen;
 
             if (recentlySeen)

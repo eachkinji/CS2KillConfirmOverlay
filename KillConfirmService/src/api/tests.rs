@@ -137,10 +137,11 @@ mod tests {
         assert_eq!(super::resolve_soundpack_alias("doubao"), Some("doubao"));
         assert_eq!(super::resolve_soundpack_alias("DOU_BAO"), Some("doubao"));
         for preset in ["sanguosha", "sanguosha_guanjie"] {
-            assert_eq!(super::resolve_soundpack_alias(preset), Some(preset));
-            assert_eq!(super::resolve_soundpack_alias(&preset.to_ascii_uppercase()), Some(preset));
+            assert_eq!(super::resolve_soundpack_alias(preset), Some("sanguosha"));
+            assert_eq!(super::resolve_soundpack_alias(&preset.to_ascii_uppercase()), Some("sanguosha"));
         }
         assert_eq!(super::resolve_soundpack_alias("sgs"), Some("sanguosha"));
+        assert!(!super::SOUND_PACK_OPTIONS.iter().any(|pack| pack.preset == "sanguosha_guanjie"));
         assert_eq!(
             super::resolve_soundpack_alias("overwatch"),
             Some("overwatch")

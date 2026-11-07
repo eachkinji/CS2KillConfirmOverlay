@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -19,8 +19,7 @@ namespace KillConfirmGameBar
             await ValidateAudioLibraryFilesAsync();
             foreach (var style in Enum.GetValues(typeof(GameStyleMode)).Cast<GameStyleMode>())
             {
-                GameStyleSidebarSelector.SelectedItem = GameStyleSidebarSelector.MenuItems.OfType<NavigationViewItem>()
-                    .Single(item => Equals(item.Tag, GameStyleService.ToStorageValue(style)));
+                OpenPackLibrary(style, "combat");
                 await Task.Delay(60);
                 foreach (string tab in new[] { "icon", "sound_effect", "voice" })
                 {
@@ -40,7 +39,7 @@ namespace KillConfirmGameBar
                     throw new Exception("Audio selector did not navigate to its own library: " + expected);
             }
             File.WriteAllText(Path.Combine(DesktopPlatform.Data.LocalFolder.Path, "ui-pass.txt"),
-                "PASS: CF/non-CF legacy migration, explicit no-pack persistence, per-game independent volumes/voice interruption, metadata overrides, SFX-only associations, three selectors on one row across all games, separate typed libraries and Add more navigation. Screenshots: audio-packs-crossfire.png, audio-packs-calabiyau.png.");
+                "PASS: CF/non-CF legacy migration, explicit no-pack persistence, master-only volume with normalized channel gains, voice interruption, metadata overrides, SFX-only associations, three selectors on one row across all games, separate typed libraries and Add more navigation. Screenshots: audio-packs-crossfire.png, audio-packs-calabiyau.png.");
         }
     }
 }
@@ -76,8 +75,8 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             cf.CharacterVoiceInterrupt = false;
             AudioChannelSettingsStore.Save(GameStyleMode.Crossfire, cf);
             cf = AudioChannelSettingsStore.Load(GameStyleMode.Crossfire, "crossfire_swat_gr");
-            if (cf.CharacterVoicePack != "none" || cf.CharacterVoiceVolume != 70 || cf.SoundEffectVolume != 130 || cf.CharacterVoiceInterrupt)
-                throw new Exception("Explicit none or independent channel settings were overwritten by legacy migration.");
+            if (cf.CharacterVoicePack != "none" || cf.CharacterVoiceVolume != 100 || cf.SoundEffectVolume != 100 || cf.CharacterVoiceInterrupt)
+                throw new Exception("Explicit None/voice behavior changed, or retired channel gains were not reset to unity.");
             if (AudioChannelSettingsStore.Load(GameStyleMode.Valorant, "changed").SoundEffectPack != "valorant_fixture")
                 throw new Exception("One game's settings overwrote another game's audio selection.");
             foreach (var style in new[] { GameStyleMode.Crossfire, GameStyleMode.Valorant })
@@ -115,6 +114,18 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                             throw new Exception("Mixed audio kinds in selector: " + style + "/" + option.Tag);
                     }
                 }
+                var savedIcon = GetSelectedIconPack();
+                SavePackSettingForStyle(IconPackSettingKey, style, "none");
+                await InitializePackSelectorsAsync();
+                if (GetSelectedIconPack() != "none" || !PackTestSectionView.IconPackSelector.IsEnabled)
+                    throw new Exception("Icon None did not persist: " + style);
+                foreach (var selector in new[] { PackTestSectionView.IconPackSelector, PackTestSectionView.VoicePackSelector, PackTestSectionView.CharacterVoicePackSelector })
+                    foreach (var item in selector.Items.OfType<PackSelectorItem>().Where(i => i.Tag == "none" || i.Tag == PackLibraryNavigation.AddMoreTag))
+                        if (string.IsNullOrEmpty(item.ActionGlyph)) throw new Exception("Action row has no icon: " + item.Tag);
+                SavePackSettingForStyle(IconPackSettingKey, style, savedIcon);
+                await InitializePackSelectorsAsync();
+                if (PackTestSectionView.FindName("SoundEffectVolumeSelector") != null || PackTestSectionView.FindName("CharacterVoiceVolumeSelector") != null)
+                    throw new Exception("Retired channel volume controls remain visible.");
                 if (style == GameStyleMode.Crossfire || style == GameStyleMode.Calabiyau)
                     await UpdateValidation.CaptureAsync(PackTestSectionView, "audio-packs-" + GameStyleService.ToStorageValue(style));
                 if (style == GameStyleMode.Calabiyau)

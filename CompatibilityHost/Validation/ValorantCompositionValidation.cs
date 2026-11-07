@@ -105,6 +105,7 @@ namespace KillConfirmCompatibility.Controls
                 animation.ApplyViewportSize(ValorantFrameWidth, ValorantFrameHeight);
                 animation.Visibility = Windows.UI.Xaml.Visibility.Visible;
                 animation.Opacity = 1;
+                profile.Scale = 1 / (animation.DesktopDisplayFit * NativeWindows.GetDpiForWindow(new System.Windows.Interop.WindowInteropHelper(surface).Handle) / 96.0);
                 surface.Place(screen, profile, true, false);
                 var size = surface.PresentedSize;
                 using var reference = new CanvasRenderTarget(CanvasDevice.GetSharedDevice(), (int)size.Width, (int)size.Height, 96);
@@ -134,7 +135,7 @@ namespace KillConfirmCompatibility.Controls
                 }
             }
             File.WriteAllLines(Path.Combine(output, "native-timeline.csv"), report);
-            File.WriteAllText(Path.Combine(output, "native-pass.txt"), $"PASS: {report.Count - 1} actual native frames at {profile.Scale:P2} zoom match full-resolution direct rendering; no missing/added pixels, rescale, or anchor drift through the full six-kill entrance, particles, hold and outro.");
+            File.WriteAllText(Path.Combine(output, "native-pass.txt"), $"PASS: {report.Count - 1} native swap-chain frames at 1:1 display match direct rendering; no missing/added pixels, rescale, or anchor drift through the full six-kill entrance, particles, hold and outro.");
         }
 
         private static async Task SaveValorantNativeLayerAuditAsync(string output, KillConfirmAnimation animation, ValorantKillAsset asset)

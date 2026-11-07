@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -15,13 +15,30 @@ namespace KillConfirmGameBar
 {
     public sealed partial class MainPage
     {
+        // Detached dialogs and virtualized pack cards use the same design resources as XAML pages.
+        // This dictionary is loaded on the UI thread and never carries per-game mutable state.
+        private static ResourceDictionary _panelDesignResources;
+
+        private static T PanelResource<T>(string key)
+        {
+            if (_panelDesignResources == null)
+            {
+                _panelDesignResources = new ResourceDictionary
+                {
+                    Source = new Uri("ms-appx:///Controls/Settings/PanelDesign.xaml")
+                };
+            }
+            return (T)_panelDesignResources[key];
+        }
+
         private ContentDialog CreatePackStatusDialog(string title, UIElement content, string closeText = null)
         {
             var theme = SettingsTheme;
             var layout = new StackPanel { Spacing = 18, MinWidth = 340, MaxWidth = 500, Margin = new Thickness(10) };
             layout.Children.Add(new TextBlock
             {
-                Text = title, FontSize = 21, FontWeight = Windows.UI.Text.FontWeights.SemiBold,
+                Style = PanelResource<Style>("PanelPageTitleTextStyle"),
+                Text = title,
                 Foreground = new SolidColorBrush(theme.Text), TextWrapping = TextWrapping.Wrap
             });
             layout.Children.Add(content);
@@ -43,39 +60,26 @@ namespace KillConfirmGameBar
         {
             return new Border
             {
-                Padding = new Thickness(14),
-                Background = new SolidColorBrush(Color.FromArgb(247, 255, 255, 255)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(38, 0, 0, 0)),
+                Padding = PanelResource<Thickness>("PanelCardPadding"),
+                Background = PanelResource<Brush>("PanelFieldBrush"),
+                BorderBrush = PanelResource<Brush>("PanelBorderBrush"),
                 BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(24),
+                CornerRadius = PanelResource<CornerRadius>("PanelCardRadius"),
                 Child = content
             };
         }
 
         private Style CreateDialogPrimaryButtonStyle()
         {
-            var style = new Style(typeof(Button));
+            var style = new Style(typeof(Button)) { BasedOn = PanelResource<Style>("PanelPrimaryButtonStyle") };
             style.Setters.Add(new Setter(Control.BackgroundProperty, new SolidColorBrush(SettingsTheme.Accent)));
-            style.Setters.Add(new Setter(Control.ForegroundProperty, new SolidColorBrush(Colors.White)));
-            style.Setters.Add(new Setter(Control.BorderBrushProperty, new SolidColorBrush(Color.FromArgb(255, 61, 155, 255))));
-            style.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(1)));
-            style.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(18, 8, 18, 8)));
-            style.Setters.Add(new Setter(Control.FontWeightProperty, Windows.UI.Text.FontWeights.SemiBold));
-            style.Setters.Add(new Setter(Control.CornerRadiusProperty, new CornerRadius(16)));
+            style.Setters.Add(new Setter(Control.BorderBrushProperty, new SolidColorBrush(SettingsTheme.Accent)));
             return style;
         }
 
         private static Style CreateDialogCloseButtonStyle()
         {
-            var style = new Style(typeof(Button));
-            style.Setters.Add(new Setter(Control.BackgroundProperty, new SolidColorBrush(Color.FromArgb(247, 255, 255, 255))));
-            style.Setters.Add(new Setter(Control.ForegroundProperty, new SolidColorBrush(Color.FromArgb(255, 28, 28, 30))));
-            style.Setters.Add(new Setter(Control.BorderBrushProperty, new SolidColorBrush(Color.FromArgb(31, 0, 0, 0))));
-            style.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(1)));
-            style.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(18, 8, 18, 8)));
-            style.Setters.Add(new Setter(Control.FontWeightProperty, Windows.UI.Text.FontWeights.SemiBold));
-            style.Setters.Add(new Setter(Control.CornerRadiusProperty, new CornerRadius(16)));
-            return style;
+            return PanelResource<Style>("PanelButtonStyle");
         }
 
         private static async Task SetPreviewImageAsync(Image image, StorageFile file)
@@ -116,7 +120,7 @@ namespace KillConfirmGameBar
             }
         }
 
-        // 统一弹窗 layout：Width=440、标题 22、描述、姓名框。返回 layout 并通过 out 暴露 nameBox。
+        // 统一弹窗 layout：Width=440、共享页面标题、描述、名称框。返回 layout 并通过 out 暴露 nameBox。
         private static StackPanel CreatePackDialogLayout(
             string titleText,
             string descriptionText,
@@ -126,29 +130,28 @@ namespace KillConfirmGameBar
         {
             nameBox = new TextBox
             {
+                Style = PanelResource<Style>("PanelTextBoxStyle"),
                 PlaceholderText = nameBoxPlaceholder,
                 Text = initialDisplayName ?? string.Empty,
-                Background = new SolidColorBrush(Color.FromArgb(247, 255, 255, 255)),
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 28, 28, 30)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(31, 0, 0, 0)),
-                BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(14)
+                Background = PanelResource<Brush>("PanelFieldBrush"),
+                Foreground = PanelResource<Brush>("PanelTextPrimaryBrush"),
+                BorderBrush = PanelResource<Brush>("PanelBorderBrush"),
+                BorderThickness = new Thickness(1)
             };
 
             var layout = new StackPanel { Spacing = 12, Width = 440 };
             layout.Children.Add(new TextBlock
             {
+                Style = PanelResource<Style>("PanelPageTitleTextStyle"),
                 Text = titleText,
-                FontSize = 22,
-                FontWeight = Windows.UI.Text.FontWeights.Bold,
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 28, 28, 30))
+                Foreground = PanelResource<Brush>("PanelTextPrimaryBrush")
             });
             layout.Children.Add(new TextBlock
             {
+                Style = PanelResource<Style>("PanelCaptionTextStyle"),
                 Text = descriptionText,
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 58, 58, 60)),
-                TextWrapping = TextWrapping.WrapWholeWords,
-                FontSize = 12
+                Foreground = PanelResource<Brush>("PanelTextSecondaryBrush"),
+                TextWrapping = TextWrapping.WrapWholeWords
             });
             layout.Children.Add(nameBox);
             return layout;
@@ -165,10 +168,10 @@ namespace KillConfirmGameBar
             var card = new Border
             {
                 Padding = new Thickness(8),
-                Background = new SolidColorBrush(Color.FromArgb(247, 255, 255, 255)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(38, 0, 0, 0)),
+                Background = PanelResource<Brush>("PanelFieldBrush"),
+                BorderBrush = PanelResource<Brush>("PanelBorderBrush"),
                 BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(18)
+                CornerRadius = PanelResource<CornerRadius>("PanelSectionRadius")
             };
             var row = new Grid { ColumnSpacing = 8 };
             row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
@@ -188,17 +191,16 @@ namespace KillConfirmGameBar
             var textPanel = new StackPanel { Spacing = 0, VerticalAlignment = VerticalAlignment.Center };
             textPanel.Children.Add(new TextBlock
             {
+                Style = PanelResource<Style>("PanelTitleTextStyle"),
                 Text = LocalizationManager.Text("CustomHeadImage"),
-                FontSize = 12,
-                FontWeight = Windows.UI.Text.FontWeights.SemiBold,
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 28, 28, 30))
+                Foreground = PanelResource<Brush>("PanelTextPrimaryBrush")
             });
             var headFileText = new TextBlock
             {
+                Style = PanelResource<Style>("PanelCaptionTextStyle"),
                 Text = initialHeadImageFile != null ? initialHeadImageFile.Name : LocalizationManager.Text("CustomHeadImageHint"),
-                FontSize = 10,
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 110, 110, 115)),
-                TextTrimming = TextTrimming.CharacterEllipsis
+                Foreground = PanelResource<Brush>("PanelTextMutedBrush"),
+                TextWrapping = TextWrapping.WrapWholeWords, MaxLines = 2, TextTrimming = TextTrimming.CharacterEllipsis
             };
             textPanel.Children.Add(headFileText);
             Grid.SetColumn(textPanel, 1);
@@ -206,28 +208,24 @@ namespace KillConfirmGameBar
 
             var chooseButton = new Button
             {
+                Style = PanelResource<Style>("PanelCompactButtonStyle"),
                 Content = LocalizationManager.Text("ChooseImage"),
-                Padding = new Thickness(8, 4, 8, 4),
-                FontSize = 11,
-                Background = new SolidColorBrush(Color.FromArgb(26, 0, 122, 255)),
+                Background = PanelResource<Brush>("PanelAccentSoftBrush"),
                 Foreground = new SolidColorBrush(SettingsTheme.Accent),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(61, 0, 122, 255)),
-                BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(14)
+                BorderBrush = PanelResource<Brush>("PanelAccentBorderBrush"),
+                BorderThickness = new Thickness(1)
             };
             Grid.SetColumn(chooseButton, 2);
             row.Children.Add(chooseButton);
 
             var clearButton = new Button
             {
+                Style = PanelResource<Style>("PanelDangerCompactButtonStyle"),
                 Content = LocalizationManager.Current == UiLanguage.SimplifiedChinese ? "清除" : "Clear",
-                Padding = new Thickness(8, 4, 8, 4),
-                FontSize = 11,
                 Background = new SolidColorBrush(Color.FromArgb(26, 255, 59, 48)),
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 255, 59, 48)),
+                Foreground = PanelResource<Brush>("PanelDangerBrush"),
                 BorderBrush = new SolidColorBrush(Color.FromArgb(61, 255, 59, 48)),
-                BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(14)
+                BorderThickness = new Thickness(1)
             };
             Grid.SetColumn(clearButton, 3);
             row.Children.Add(clearButton);
@@ -256,7 +254,7 @@ namespace KillConfirmGameBar
 
         // 统一槽位行：[缩略图/播放][插槽名+文件名(+hint)][选择材料][重置]。
         // isAudio 决定第 1 列是播放按钮还是 30×30 缩略图。selectedFiles 由构建器直接读写。
-        // attachExtraColumn 供 CF 注入 overlay CheckBox 列。
+        // attachExtraColumn 供 CF 在独立第二行注入 overlay CheckBox，不挤占文件名宽度。
         private async Task<Border> CreateSlotRowAsync(
             string slotFileName,
             string slotDisplayName,
@@ -269,25 +267,24 @@ namespace KillConfirmGameBar
             Action<Grid> attachExtraColumn = null)
         {
             var row = new Grid { ColumnSpacing = 8 };
-            row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(34) });
+            row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(PanelResource<double>("PanelControlHeight")) });
             row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-            row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(56) });
-            row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(56) });
+            row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
             Image previewImage = null;
             if (isAudio)
             {
                 var playButton = new Button
                 {
+                    Style = PanelResource<Style>("PanelIconButtonStyle"),
                     Content = "",
                     FontFamily = new FontFamily("Segoe MDL2 Assets"),
-                    MinWidth = 30,
-                    Padding = new Thickness(5, 4, 5, 4),
-                    Background = new SolidColorBrush(Color.FromArgb(26, 0, 122, 255)),
+                    Background = PanelResource<Brush>("PanelAccentSoftBrush"),
                     Foreground = new SolidColorBrush(SettingsTheme.Accent),
-                    BorderBrush = new SolidColorBrush(Color.FromArgb(61, 0, 122, 255)),
-                    CornerRadius = new CornerRadius(12)
+                    BorderBrush = PanelResource<Brush>("PanelAccentBorderBrush")
                 };
+                Windows.UI.Xaml.Automation.AutomationProperties.SetName(playButton, LocalizationManager.Current == UiLanguage.SimplifiedChinese ? "试听" : "Preview audio");
                 playButton.Click += async (_, __) =>
                 {
                     if (selectedFiles.TryGetValue(slotFileName, out StorageFile f) && f != null)
@@ -323,28 +320,27 @@ namespace KillConfirmGameBar
             var infoPanel = new StackPanel { Spacing = 1, VerticalAlignment = VerticalAlignment.Center };
             infoPanel.Children.Add(new TextBlock
             {
+                Style = PanelResource<Style>("PanelTitleTextStyle"),
                 Text = slotDisplayName,
-                FontWeight = Windows.UI.Text.FontWeights.SemiBold,
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 28, 28, 30)),
-                FontSize = 12,
+                Foreground = PanelResource<Brush>("PanelTextPrimaryBrush"),
                 TextTrimming = TextTrimming.CharacterEllipsis
             });
             var fileText = new TextBlock
             {
+                Style = PanelResource<Style>("PanelCaptionTextStyle"),
                 Text = existingFile?.Name ?? LocalizationManager.Text("NotSelected"),
-                FontSize = 12,
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 110, 110, 115)),
-                TextTrimming = TextTrimming.CharacterEllipsis
+                Foreground = PanelResource<Brush>("PanelTextMutedBrush"),
+                TextWrapping = TextWrapping.NoWrap, TextTrimming = TextTrimming.CharacterEllipsis
             };
             infoPanel.Children.Add(fileText);
             if (!string.IsNullOrEmpty(hint))
             {
                 infoPanel.Children.Add(new TextBlock
                 {
+                    Style = PanelResource<Style>("PanelCaptionTextStyle"),
                     Text = hint,
-                    FontSize = 9,
-                    Foreground = new SolidColorBrush(Color.FromArgb(255, 110, 110, 115)),
-                    LineHeight = 11,
+                    Foreground = PanelResource<Brush>("PanelTextMutedBrush"),
+                    LineHeight = 18,
                     MaxLines = 2,
                     TextWrapping = TextWrapping.WrapWholeWords
                 });
@@ -354,28 +350,24 @@ namespace KillConfirmGameBar
 
             var selectButton = new Button
             {
+                Style = PanelResource<Style>("PanelCompactButtonStyle"),
                 Content = LocalizationManager.Current == UiLanguage.SimplifiedChinese ? "选择材料" : "Select Material",
                 MinWidth = 56,
-                Padding = new Thickness(5, 4, 5, 4),
-                FontSize = 10,
-                Background = new SolidColorBrush(Color.FromArgb(26, 0, 122, 255)),
+                Background = PanelResource<Brush>("PanelAccentSoftBrush"),
                 Foreground = new SolidColorBrush(SettingsTheme.Accent),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(61, 0, 122, 255)),
-                CornerRadius = new CornerRadius(12)
+                BorderBrush = PanelResource<Brush>("PanelAccentBorderBrush")
             };
             Grid.SetColumn(selectButton, 2);
             row.Children.Add(selectButton);
 
             var resetButton = new Button
             {
+                Style = PanelResource<Style>("PanelDangerCompactButtonStyle"),
                 Content = LocalizationManager.Current == UiLanguage.SimplifiedChinese ? "重置" : "Reset",
                 MinWidth = 56,
-                Padding = new Thickness(5, 4, 5, 4),
-                FontSize = 10,
                 Background = new SolidColorBrush(Color.FromArgb(26, 255, 59, 48)),
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 255, 59, 48)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(61, 255, 59, 48)),
-                CornerRadius = new CornerRadius(12)
+                Foreground = PanelResource<Brush>("PanelDangerBrush"),
+                BorderBrush = new SolidColorBrush(Color.FromArgb(61, 255, 59, 48))
             };
             Grid.SetColumn(resetButton, 3);
             row.Children.Add(resetButton);
@@ -431,10 +423,10 @@ namespace KillConfirmGameBar
             return new Border
             {
                 Padding = new Thickness(8, 6, 8, 6),
-                Background = new SolidColorBrush(Color.FromArgb(247, 255, 255, 255)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(38, 0, 0, 0)),
+                Background = PanelResource<Brush>("PanelFieldBrush"),
+                BorderBrush = PanelResource<Brush>("PanelBorderBrush"),
                 BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(14),
+                CornerRadius = PanelResource<CornerRadius>("PanelSectionRadius"),
                 Child = row
             };
         }

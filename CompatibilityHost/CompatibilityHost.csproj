@@ -21,4 +21,6 @@
     <Page Remove="Integration/**/*.xaml" />
     <PackageReference Include="Microsoft.Graphics.Win2D" Version="1.4.0" />
   </ItemGroup>
+  <Import Project="../Native/Lz4/Lz4.targets" />
+  <Import Project="../Native/Composition/Composition.targets" />
 </Project>

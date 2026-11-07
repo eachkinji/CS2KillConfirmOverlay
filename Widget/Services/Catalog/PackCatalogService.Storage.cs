@@ -147,7 +147,6 @@ namespace KillConfirmGameBar.Services
                     CreateBuiltInVoice("calabiyau", "默认击杀", true),
                     CreateBuiltInVoice("doubao", "豆包", true),
                     CreateBuiltInVoice("sanguosha", "三国杀 · 十周年连破播报", true),
-                    CreateBuiltInVoice(GameStyleService.SanguoshaGuanjiePackKey, "三国杀 · 官阶破敌神兵", true),
                     CreateBuiltInVoice("dagoujiao", "大狗叫", true),
                     CreateBuiltInVoice(DagoujiaoAnimalsPackKey, "Animals", true),
                     CreateBuiltInVoice("overwatch", "OverWatch", true),
@@ -169,7 +168,6 @@ namespace KillConfirmGameBar.Services
                     CreateBuiltInIcon("calabiyau", "卡拉彼丘 · 默认击杀", true),
                     CreateBuiltInIcon("doubao", "豆包", true),
                     CreateBuiltInIcon("sanguosha", "三国杀 · 十周年连破播报", true),
-                    CreateBuiltInIcon(GameStyleService.SanguoshaGuanjiePackKey, "三国杀 · 官阶破敌神兵", true),
                     CreateBuiltInIcon("dagoujiao", "大狗叫", true),
                     CreateBuiltInIcon(DagoujiaoAnimalsPackKey, "Animals", true),
                     CreateBuiltInIcon("overwatch", "OverWatch", true),
@@ -393,12 +391,8 @@ namespace KillConfirmGameBar.Services
             bool changed = false;
             var sgsVoice = catalog.VoicePacks.FirstOrDefault(p => p.IsBuiltIn && string.Equals(p.Key, "sanguosha", StringComparison.OrdinalIgnoreCase));
             if (sgsVoice != null && sgsVoice.DisplayName != "三国杀 · 十周年连破播报") { sgsVoice.DisplayName = "三国杀 · 十周年连破播报"; changed = true; }
-            var gjVoice = catalog.VoicePacks.FirstOrDefault(p => p.IsBuiltIn && string.Equals(p.Key, GameStyleService.SanguoshaGuanjiePackKey, StringComparison.OrdinalIgnoreCase));
-            if (gjVoice != null && gjVoice.DisplayName != "三国杀 · 官阶破敌神兵") { gjVoice.DisplayName = "三国杀 · 官阶破敌神兵"; changed = true; }
             var sgsIcon = catalog.IconPacks.FirstOrDefault(p => p.IsBuiltIn && string.Equals(p.Key, "sanguosha", StringComparison.OrdinalIgnoreCase));
             if (sgsIcon != null && sgsIcon.DisplayName != "三国杀 · 十周年连破播报") { sgsIcon.DisplayName = "三国杀 · 十周年连破播报"; changed = true; }
-            var gjIcon = catalog.IconPacks.FirstOrDefault(p => p.IsBuiltIn && string.Equals(p.Key, GameStyleService.SanguoshaGuanjiePackKey, StringComparison.OrdinalIgnoreCase));
-            if (gjIcon != null && gjIcon.DisplayName != "三国杀 · 官阶破敌神兵") { gjIcon.DisplayName = "三国杀 · 官阶破敌神兵"; changed = true; }
             return changed;
         }
 
@@ -408,6 +402,7 @@ namespace KillConfirmGameBar.Services
                 item.IsBuiltIn
                 && (KillConfirmCompatibility.Contracts.CalabiyauPackage.IsExternalKey(item.Key)
                     || string.Equals(item.Key, "legacy", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(item.Key, "sanguosha_guanjie", StringComparison.OrdinalIgnoreCase)
                     || string.Equals(item.Key, "sanguosha_equip", StringComparison.OrdinalIgnoreCase)
                     || string.Equals(item.Key, "sanguosha_zzq", StringComparison.OrdinalIgnoreCase)
                     || string.Equals(item.Key, "sanguosha_badge", StringComparison.OrdinalIgnoreCase)
@@ -415,7 +410,8 @@ namespace KillConfirmGameBar.Services
                         && ValorantPackService.Find(item.Key) == null)));
             int removedVoices = catalog.VoicePacks.RemoveAll(item =>
                 item.IsBuiltIn
-                && (string.Equals(item.Key, "sanguosha_general", StringComparison.OrdinalIgnoreCase)
+                && (string.Equals(item.Key, "sanguosha_guanjie", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(item.Key, "sanguosha_general", StringComparison.OrdinalIgnoreCase)
                     || string.Equals(item.Key, "sanguosha_card", StringComparison.OrdinalIgnoreCase)
                     || string.Equals(item.Key, "sanguosha_zzq", StringComparison.OrdinalIgnoreCase)));
             removedVoices += catalog.VoicePacks.RemoveAll(item =>

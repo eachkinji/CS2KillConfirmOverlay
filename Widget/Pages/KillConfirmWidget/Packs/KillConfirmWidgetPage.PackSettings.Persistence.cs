@@ -17,9 +17,10 @@ namespace KillConfirmGameBar
         {
             ApplicationDataContainer settings = ApplicationData.Current.LocalSettings;
             string scopedSettingKey = GetPackSettingKey(legacySettingKey, style);
-            string value = settings.Values[scopedSettingKey] as string;
+            string value = GameStyleService.NormalizeRetiredSanguoshaPackKey(settings.Values[scopedSettingKey] as string);
             if (IsPackSettingValidForStyle(value, style))
             {
+                settings.Values[scopedSettingKey] = value;
                 settings.Values[legacySettingKey] = value;
                 WritePackSelectionFile(legacySettingKey, style, value);
                 return value;
@@ -28,7 +29,7 @@ namespace KillConfirmGameBar
             // The text file is only a recovery/migration fallback. LocalSettings
             // is the authoritative value so a stale backup can never overwrite a
             // newer user selection during the next widget startup.
-            value = ReadPackSelectionFile(legacySettingKey, style);
+            value = GameStyleService.NormalizeRetiredSanguoshaPackKey(ReadPackSelectionFile(legacySettingKey, style));
             if (IsPackSettingValidForStyle(value, style))
             {
                 settings.Values[scopedSettingKey] = value;
@@ -37,8 +38,8 @@ namespace KillConfirmGameBar
             }
 
             // Migrate the old shared setting once when it belongs to this style.
-            value = settings.Values[legacySettingKey] as string;
-            if (IsPackSettingValidForStyle(value, style))
+            value = GameStyleService.NormalizeRetiredSanguoshaPackKey(settings.Values[legacySettingKey] as string);
+            if (!string.Equals(value, "none", StringComparison.OrdinalIgnoreCase) && IsPackSettingValidForStyle(value, style))
             {
                 settings.Values[scopedSettingKey] = value;
                 WritePackSelectionFile(legacySettingKey, style, value);
@@ -58,7 +59,7 @@ namespace KillConfirmGameBar
                 return;
             }
 
-            value = value.Trim();
+            value = GameStyleService.NormalizeRetiredSanguoshaPackKey(value.Trim());
             ApplicationDataContainer settings = ApplicationData.Current.LocalSettings;
             settings.Values[GetPackSettingKey(legacySettingKey, style)] = value;
 
@@ -75,7 +76,7 @@ namespace KillConfirmGameBar
         private static bool IsPackSettingValidForStyle(string value, GameStyleMode style)
         {
             return !string.IsNullOrWhiteSpace(value)
-                && GameStyleService.GetStyleForPackKey(value) == style;
+                && (string.Equals(value, "none", StringComparison.OrdinalIgnoreCase) || GameStyleService.GetStyleForPackKey(value) == style);
         }
 
         private static string ReadPackSelectionFile(string settingKey, GameStyleMode style)

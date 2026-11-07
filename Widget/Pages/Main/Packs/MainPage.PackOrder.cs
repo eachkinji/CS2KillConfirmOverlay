@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
@@ -218,8 +218,8 @@ namespace KillConfirmGameBar
             {
                 Width = 258, Height = 96, Padding = new Thickness(10, 8, 10, 8),
                 Background = new SolidColorBrush(Colors.White),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(255, 229, 229, 229)),
-                BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(8),
+                BorderBrush = PanelResource<Brush>("PanelBorderBrush"),
+                BorderThickness = new Thickness(1), CornerRadius = PanelResource<CornerRadius>("PanelSectionRadius"),
                 Margin = new Thickness(0, 0, 8, 8), Child = layers
             };
             card.Tag = number;

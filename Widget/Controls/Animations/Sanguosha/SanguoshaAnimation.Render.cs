@@ -15,10 +15,12 @@ namespace KillConfirmGameBar.Controls
             SanguoshaClip clip = assets.Clip;
             double elapsedMs = SanguoshaElapsedMs;
             if (elapsedMs >= clip.Length.TotalMilliseconds) return;
+            if (assets.Pages == null) return;
+            _sanguoshaRoute = "native-atlas";
 
             Matrix3x2 previous = drawingSession.Transform;
             if (_sanguoshaRenderer == null) _sanguoshaRenderer = new SanguoshaFrameRenderer();
-            int frame = clip.FrameAt(TimeSpan.FromMilliseconds(elapsedMs));
+            TimeSpan elapsed = TimeSpan.FromTicks((long)(elapsedMs * TimeSpan.TicksPerMillisecond));
 
             float shakeX = 0, shakeY = 0;
             _sanguoshaShake?.Offset(elapsedMs, out shakeX, out shakeY);
@@ -26,14 +28,14 @@ namespace KillConfirmGameBar.Controls
 
             if (!clip.HasScreen)
             {
-                _sanguoshaRenderer.RenderDirect(drawingSession, clip, assets.Pages, frame, shakenTransform);
+                _sanguoshaRenderer.RenderDirectAtTime(drawingSession, clip, assets.Pages, elapsed, shakenTransform);
                 return;
             }
 
             var stage = new Rect(0, 0, clip.DesignWidth, clip.DesignHeight);
             float pixelScale = Math.Max(0.05f, new Vector2(previous.M11, previous.M12).Length() * drawingSession.Dpi / 96f);
-            CanvasRenderTarget composed = _sanguoshaRenderer.Render(
-                drawingSession.Device, clip, assets.Pages, frame, pixelScale);
+            CanvasRenderTarget composed = _sanguoshaRenderer.RenderAtTime(
+                drawingSession.Device, clip, assets.Pages, elapsed, pixelScale);
             try
             {
                 drawingSession.Transform = shakenTransform;
@@ -52,6 +54,13 @@ namespace KillConfirmGameBar.Controls
 
         private void DisposeSanguoshaRenderer()
         {
+            DisposeSanguoshaLz4Playback();
+            if (_sanguoshaAnimatedSurface != null)
+            {
+                var surface = _sanguoshaAnimatedSurface; _sanguoshaAnimatedSurface = null;
+                Viewport.Children.Remove(surface.Control); surface.Dispose();
+            }
+            SpriteCanvas.Width = Viewport.Width; SpriteCanvas.Height = Viewport.Height; SpriteCanvas.Visibility = Windows.UI.Xaml.Visibility.Visible;
             _sanguoshaRenderer?.Dispose();
             _sanguoshaRenderer = null;
         }

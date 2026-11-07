@@ -4,6 +4,14 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:KillConfirmGameBar.Controls.GameStyles">
 
+    <UserControl.Resources>
+        <ResourceDictionary>
+        <ResourceDictionary.MergedDictionaries>
+            <ResourceDictionary Source="ms-appx:///Controls/Settings/PanelDesign.xaml" />
+        </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
     <StackPanel Spacing="10">
         <Grid ColumnSpacing="12">
             <Grid.ColumnDefinitions>
@@ -13,24 +21,19 @@
             <StackPanel Spacing="2">
                 <TextBlock
                     x:Name="TitleText"
-                    FontSize="16"
-                    FontWeight="Bold"
-                    Text="BF1 Effects" />
+                    Text="BF1 Effects" Style="{StaticResource PanelSectionTitleTextStyle}" />
                 <TextBlock
                     x:Name="HintText"
-                    FontSize="10"
                     Visibility="Collapsed"
-                    TextWrapping="WrapWholeWords" />
+                    TextWrapping="WrapWholeWords" Style="{StaticResource PanelCaptionTextStyle}" />
             </StackPanel>
             <Button
                 x:Name="ResetButton"
                 Grid.Column="1"
                 MinWidth="88"
-                Height="34"
-                Padding="14,0"
                 VerticalAlignment="Top"
                 AutomationProperties.Name="Restore BF1 defaults"
-                Click="OnResetButtonClick">
+                Click="OnResetButtonClick" Style="{StaticResource PanelPrimaryButtonStyle}">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                     <FontIcon FontSize="12" Glyph="&#xE777;" />
                     <TextBlock x:Name="ResetButtonText" Text="Reset" />
@@ -44,18 +47,18 @@
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
-            <Border Style="{StaticResource CompactChoiceCardStyle}">
+            <Border Style="{StaticResource PanelSectionCardStyle}">
                 <StackPanel Spacing="6">
                     <StackPanel Orientation="Horizontal" Spacing="6">
-                        <Border Style="{StaticResource CompactCircleIconStyle}">
+                        <Border Style="{StaticResource PanelAccentIconContainerStyle}">
                             <FontIcon FontSize="13" Foreground="White" Glyph="&#xE8C7;" />
                         </Border>
-                        <TextBlock x:Name="MoneyRewardModeLabel" Style="{StaticResource CompactChoiceLabelStyle}" VerticalAlignment="Center" Text="Money" />
+                        <TextBlock x:Name="MoneyRewardModeLabel" Style="{StaticResource PanelTitleTextStyle}" VerticalAlignment="Center" Text="Money" />
                     </StackPanel>
                     <ComboBox
                         x:Name="MoneyRewardModeSelector"
                         SelectedIndex="0"
-                        Style="{StaticResource CompactSettingsComboBoxStyle}"
+                        Style="{StaticResource PanelComboBoxStyle}"
                         SelectionChanged="OnMoneyRewardModeSelectionChanged"
                         ToolTipService.ToolTip="Money reward calculation">
                         <ComboBoxItem x:Name="MoneyRewardDeltaItem" Tag="delta">Actual money change (recommended)</ComboBoxItem>
@@ -69,15 +72,15 @@
                 SettingsChanged="OnStreakModeSelectionChanged" />
         </Grid>
 
-        <Border x:Name="VisualEffectsCard" Padding="12" BorderThickness="1" CornerRadius="8">
+        <Border x:Name="VisualEffectsCard" Style="{StaticResource PanelSectionCardStyle}">
             <StackPanel Spacing="8">
-                <TextBlock x:Name="VisualEffectsTitle" FontSize="12" FontWeight="SemiBold" />
+                <TextBlock x:Name="VisualEffectsTitle" Style="{StaticResource PanelTitleTextStyle}" />
                 <Grid ColumnSpacing="12">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <TextBlock x:Name="KillMarkEffectLabel" VerticalAlignment="Center" FontSize="10" TextWrapping="WrapWholeWords" />
+                    <TextBlock x:Name="KillMarkEffectLabel" VerticalAlignment="Center" TextWrapping="WrapWholeWords" Style="{StaticResource PanelCaptionTextStyle}" />
                     <ToggleSwitch x:Name="KillMarkEffectToggle" Grid.Column="1" MinWidth="0" Toggled="OnKillMarkEffectToggled" />
                 </Grid>
             </StackPanel>
@@ -87,16 +90,12 @@
 
         <Border
             x:Name="ImportLockedNotice"
-            Padding="9,6"
-            BorderThickness="1"
-            Visibility="Collapsed"
-            CornerRadius="12">
+            Visibility="Collapsed" Style="{StaticResource PanelSectionCardStyle}">
             <TextBlock
                 x:Name="ImportLockedText"
-                FontSize="10"
                 FontWeight="SemiBold"
                 Text="Battlefield 1 visuals stay built in; event sounds can be customized above."
-                TextWrapping="WrapWholeWords" />
+                TextWrapping="WrapWholeWords" Style="{StaticResource PanelCaptionTextStyle}" />
         </Border>
     </StackPanel>
 </UserControl>

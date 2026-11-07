@@ -3,11 +3,16 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
+    <UserControl.Resources>
+        <ResourceDictionary>
+        <ResourceDictionary.MergedDictionaries>
+            <ResourceDictionary Source="ms-appx:///Controls/Settings/PanelDesign.xaml" />
+        </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
     <Border
-        x:Name="Card"
-        Padding="10"
-        BorderThickness="1"
-        CornerRadius="9">
+        x:Name="Card" Style="{StaticResource PanelSectionCardStyle}">
         <StackPanel Spacing="8">
             <Grid ColumnSpacing="12">
                 <Grid.ColumnDefinitions>
@@ -17,9 +22,7 @@
                 <TextBlock
                     x:Name="LayerNameText"
                     VerticalAlignment="Center"
-                    FontSize="11"
-                    FontWeight="SemiBold"
-                    TextWrapping="WrapWholeWords" />
+                    TextWrapping="WrapWholeWords" Style="{StaticResource PanelTitleTextStyle}" />
                 <ToggleSwitch
                     x:Name="EnabledToggle"
                     Grid.Column="1"
@@ -35,9 +38,10 @@
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Spacing="2">
-                    <Grid>
-                        <TextBlock x:Name="BrightnessLabel" HorizontalAlignment="Left" FontSize="9" />
-                        <TextBlock x:Name="BrightnessValueText" HorizontalAlignment="Right" FontSize="9" FontWeight="SemiBold" />
+                    <Grid ColumnSpacing="8">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <TextBlock x:Name="BrightnessLabel" HorizontalAlignment="Left" Style="{StaticResource PanelCaptionTextStyle}" />
+                        <TextBlock x:Name="BrightnessValueText" Grid.Column="1" HorizontalAlignment="Right" FontWeight="SemiBold" Style="{StaticResource PanelCaptionTextStyle}" />
                     </Grid>
                     <Slider
                         x:Name="BrightnessSlider"
@@ -47,9 +51,10 @@
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Spacing="2">
-                    <Grid>
-                        <TextBlock x:Name="ContrastLabel" HorizontalAlignment="Left" FontSize="9" />
-                        <TextBlock x:Name="ContrastValueText" HorizontalAlignment="Right" FontSize="9" FontWeight="SemiBold" />
+                    <Grid ColumnSpacing="8">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <TextBlock x:Name="ContrastLabel" HorizontalAlignment="Left" Style="{StaticResource PanelCaptionTextStyle}" />
+                        <TextBlock x:Name="ContrastValueText" Grid.Column="1" HorizontalAlignment="Right" FontWeight="SemiBold" Style="{StaticResource PanelCaptionTextStyle}" />
                     </Grid>
                     <Slider
                         x:Name="ContrastSlider"
@@ -59,9 +64,10 @@
                 </StackPanel>
 
                 <StackPanel Grid.Column="2" Spacing="2">
-                    <Grid>
-                        <TextBlock x:Name="OpacityLabel" HorizontalAlignment="Left" FontSize="9" />
-                        <TextBlock x:Name="OpacityValueText" HorizontalAlignment="Right" FontSize="9" FontWeight="SemiBold" />
+                    <Grid ColumnSpacing="8">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <TextBlock x:Name="OpacityLabel" HorizontalAlignment="Left" Style="{StaticResource PanelCaptionTextStyle}" />
+                        <TextBlock x:Name="OpacityValueText" Grid.Column="1" HorizontalAlignment="Right" FontWeight="SemiBold" Style="{StaticResource PanelCaptionTextStyle}" />
                     </Grid>
                     <Slider
                         x:Name="OpacitySlider"

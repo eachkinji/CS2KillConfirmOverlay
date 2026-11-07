@@ -1,0 +1,40 @@
+[
+  {
+    "asset": "CounterStrike/cs2",
+    "url": "https://cdn.cloudflare.steamstatic.com/steamcommunity/public/images/apps/730/324b323045b09bace182f928f4104dfcd93cb7f3.ico",
+    "size": [
+      256,
+      256
+    ],
+    "sha256": "210221922b66853bbd674b9f8e919d9b46ad09703ae9fd46582f37a6aeefa0c6"
+  },
+  {
+    "asset": "CounterStrike/csgo",
+    "url": "https://blog.counter-strike.net/wp-content/themes/counterstrike_launch/favicon.ico",
+    "size": [
+      48,
+      48
+    ],
+    "sha256": "c54bf797e4a852cc91b2fb3b61b585d4d490d285f882ec8194b3f56b49f27e7f"
+  },
+  {
+    "asset": "LeagueOfLegends/lol",
+    "url": "https://lol.qq.com/favicon.ico",
+    "size": [
+      16,
+      16
+    ],
+    "sha256": "9397be89738d2bd5edce1e4093f31c39ccfd55e1675323253220ac7e485064de"
+  },
+  {
+    "asset": "LeagueOfLegends/lol.svg",
+    "url": "https://cmsassets.rgpub.io/sanity/images/dsfx7636/news_live/d3b7bd9decb1e1672dcb80be4f8bc1aa05490dc1-110x70.svg?accountingTag=LoL",
+    "sha256": "ef05825d9d8fe46ee7aeb70be1dc15ecb0925eb47e22d2dcf19049d9c9cb216b"
+  },
+  {
+    "asset": "Widget/Assets/GameSources/LeagueOfLegends/lol.png",
+    "source": "lol.svg",
+    "operation": "rasterized original vector at width 256, no recoloring",
+    "sha256": "978736afa285ab4ee8c00e75614d5e6a3ffbff4f77f4d599e7f0e843f0c25d87"
+  }
+]

@@ -3,7 +3,7 @@
 use axum::{Json, extract::Query, http::StatusCode};
 use serde::Deserialize;
 use serde_json::{Value, json};
-use std::{env, fs, path::{Path, PathBuf}};
+use std::{env, fs, io::{Read, Seek, SeekFrom}, path::{Path, PathBuf}};
 
 fn install_root() -> Option<PathBuf> {
     env::var_os("KILLCONFIRM_INSTALL_ROOT").map(PathBuf::from)
@@ -38,7 +38,12 @@ pub async fn gamebar_status(Json(value):Json<Value>)->Result<StatusCode,StatusCo
     Ok(StatusCode::NO_CONTENT)
 }
 #[derive(Deserialize)]
-pub struct ResourceQuery { pub path: String, #[serde(default)] pub asset: bool }
+pub struct ResourceQuery {
+    pub path: String,
+    #[serde(default)] pub asset: bool,
+    pub offset: Option<u64>,
+    pub length: Option<u32>,
+}
 fn allowed_path(query: &ResourceQuery) -> Result<PathBuf,StatusCode> {
     let root=super::logging::local_state_dir();
     let install=install_root().ok_or(StatusCode::NOT_FOUND)?;
@@ -94,8 +99,114 @@ mod audio_resource_tests {
 pub async fn resource(Query(query): Query<ResourceQuery>) -> Result<Vec<u8>,StatusCode> {
     let path=allowed_path(&query)?;
     if !path.is_file() { return Err(StatusCode::NOT_FOUND); }
-    if fs::metadata(&path).map_err(|_|StatusCode::NOT_FOUND)?.len()>32*1024*1024 { return Err(StatusCode::PAYLOAD_TOO_LARGE); }
-    fs::read(path).map_err(|_|StatusCode::NOT_FOUND)
+    let chunk_allowed=install_root().is_some_and(|install| is_sanguosha_lz4_resource(&path, &install));
+    read_resource_file(&path, chunk_allowed, query.offset, query.length)
+}
+
+const RESOURCE_FILE_LIMIT: u64 = 32 * 1024 * 1024;
+const SANGUOSHA_LZ4_FILE_LIMIT: u64 = 2 * 1024 * 1024 * 1024;
+const SANGUOSHA_LZ4_CHUNK_LIMIT: u32 = 4 * 1024 * 1024;
+
+fn is_sanguosha_lz4_resource(path: &Path, install: &Path) -> bool {
+    // `path` has already passed allowed_path and is canonical. A matching
+    // extension in another imported pack must not bypass the ordinary cap.
+    path.extension().and_then(|extension| extension.to_str())
+        .is_some_and(|extension| extension.eq_ignore_ascii_case("sgslz4"))
+        && install.join("Assets/GameStyles/sanguosha/killconfirm/lz4")
+            .canonicalize().ok().is_some_and(|root| path.starts_with(root))
+}
+
+fn resource_read_range(total: u64, chunk_allowed: bool, offset: Option<u64>, length: Option<u32>)
+    -> Result<(u64, u64), StatusCode>
+{
+    match (offset, length) {
+        (None, None) => {
+            if total > RESOURCE_FILE_LIMIT { return Err(StatusCode::PAYLOAD_TOO_LARGE); }
+            Ok((0, total))
+        }
+        (Some(offset), Some(length)) => {
+            if !chunk_allowed || length == 0 || length > SANGUOSHA_LZ4_CHUNK_LIMIT {
+                return Err(StatusCode::BAD_REQUEST);
+            }
+            if total > SANGUOSHA_LZ4_FILE_LIMIT { return Err(StatusCode::PAYLOAD_TOO_LARGE); }
+            if offset > total { return Err(StatusCode::RANGE_NOT_SATISFIABLE); }
+            // Subtraction after the offset check avoids overflowing offset+length.
+            // Exactly EOF is an empty successful block; a final partial block is valid.
+            Ok((offset, (total - offset).min(u64::from(length))))
+        }
+        _ => Err(StatusCode::BAD_REQUEST),
+    }
+}
+
+fn read_resource_file(path: &Path, chunk_allowed: bool, offset: Option<u64>, length: Option<u32>)
+    -> Result<Vec<u8>, StatusCode>
+{
+    let mut file=fs::File::open(path).map_err(|_|StatusCode::NOT_FOUND)?;
+    let total=file.metadata().map_err(|_|StatusCode::NOT_FOUND)?.len();
+    let (start, count)=resource_read_range(total, chunk_allowed, offset, length)?;
+    file.seek(SeekFrom::Start(start)).map_err(|_|StatusCode::NOT_FOUND)?;
+    let mut bytes=vec![0; count as usize];
+    // Metadata and reads use one handle. A truncated/changing file fails instead
+    // of publishing an incomplete cache entry; allocations never exceed the cap.
+    file.read_exact(&mut bytes).map_err(|_|StatusCode::NOT_FOUND)?;
+    Ok(bytes)
+}
+
+#[cfg(test)]
+mod sanguosha_lz4_resource_tests {
+    use super::*;
+
+    #[test]
+    fn ordinary_resources_keep_the_32_mib_limit() {
+        for allowed in [false, true] {
+            assert_eq!(resource_read_range(RESOURCE_FILE_LIMIT, allowed, None, None), Ok((0, RESOURCE_FILE_LIMIT)));
+            assert_eq!(resource_read_range(RESOURCE_FILE_LIMIT + 1, allowed, None, None), Err(StatusCode::PAYLOAD_TOO_LARGE));
+        }
+        assert_eq!(resource_read_range(10, false, Some(0), Some(10)), Err(StatusCode::BAD_REQUEST));
+    }
+
+    #[test]
+    fn chunk_ranges_cover_boundaries_and_reject_invalid_requests() {
+        let limit=u64::from(SANGUOSHA_LZ4_CHUNK_LIMIT);
+        assert_eq!(resource_read_range(limit + 3, true, Some(0), Some(SANGUOSHA_LZ4_CHUNK_LIMIT)), Ok((0, limit)));
+        assert_eq!(resource_read_range(limit + 3, true, Some(limit), Some(SANGUOSHA_LZ4_CHUNK_LIMIT)), Ok((limit, 3)));
+        assert_eq!(resource_read_range(limit, true, Some(limit), Some(1)), Ok((limit, 0)));
+        assert_eq!(resource_read_range(0, true, Some(0), Some(1)), Ok((0, 0)));
+        assert_eq!(resource_read_range(limit, true, Some(limit + 1), Some(1)), Err(StatusCode::RANGE_NOT_SATISFIABLE));
+        assert_eq!(resource_read_range(limit, true, Some(u64::MAX), Some(1)), Err(StatusCode::RANGE_NOT_SATISFIABLE));
+        assert_eq!(resource_read_range(limit, true, Some(0), Some(0)), Err(StatusCode::BAD_REQUEST));
+        assert_eq!(resource_read_range(limit, true, Some(0), Some(SANGUOSHA_LZ4_CHUNK_LIMIT + 1)), Err(StatusCode::BAD_REQUEST));
+        assert_eq!(resource_read_range(limit, true, Some(0), None), Err(StatusCode::BAD_REQUEST));
+        assert_eq!(resource_read_range(limit, true, None, Some(1)), Err(StatusCode::BAD_REQUEST));
+        assert_eq!(resource_read_range(SANGUOSHA_LZ4_FILE_LIMIT, true, Some(SANGUOSHA_LZ4_FILE_LIMIT), Some(1)), Ok((SANGUOSHA_LZ4_FILE_LIMIT, 0)));
+        assert_eq!(resource_read_range(SANGUOSHA_LZ4_FILE_LIMIT + 1, true, Some(0), Some(1)), Err(StatusCode::PAYLOAD_TOO_LARGE));
+    }
+
+    #[test]
+    fn chunk_reader_seeks_and_only_accepts_the_sanguosha_install_subtree() {
+        let temporary=env::temp_dir().join(format!("killconfirm-lz4-broker-{}-{}", std::process::id(),
+            std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos()));
+        let root=temporary.join("Assets/GameStyles/sanguosha/killconfirm/lz4");
+        fs::create_dir_all(&root).unwrap();
+        let path=root.join("test.sgslz4");
+        fs::write(&path, b"0123456789").unwrap();
+        let canonical=path.canonicalize().unwrap();
+        assert!(is_sanguosha_lz4_resource(&canonical, &temporary));
+        assert!(!is_sanguosha_lz4_resource(&canonical.with_extension("png"), &temporary));
+        assert!(!is_sanguosha_lz4_resource(&temporary.join("other.sgslz4"), &temporary));
+        assert_eq!(read_resource_file(&path, true, Some(3), Some(4)).unwrap(), b"3456");
+        assert_eq!(read_resource_file(&path, true, Some(8), Some(4)).unwrap(), b"89");
+        assert!(read_resource_file(&path, true, Some(10), Some(4)).unwrap().is_empty());
+        assert_eq!(read_resource_file(&path, false, None, None).unwrap(), b"0123456789");
+        assert_eq!(read_resource_file(&path, false, Some(0), Some(4)), Err(StatusCode::BAD_REQUEST));
+        fs::remove_file(path).unwrap();
+        let mut directory=root;
+        while directory != temporary {
+            fs::remove_dir(&directory).unwrap();
+            directory=directory.parent().unwrap().to_path_buf();
+        }
+        fs::remove_dir(temporary).unwrap();
+    }
 }
 pub async fn folder(Query(query): Query<ResourceQuery>) -> Result<Json<Value>,StatusCode> {
     let path=allowed_path(&query)?;

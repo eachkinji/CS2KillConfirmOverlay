@@ -1,0 +1,25 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <SanguoshaLz4Platform Condition="'$(PlatformTarget)' != ''">$(PlatformTarget)</SanguoshaLz4Platform>
+    <SanguoshaLz4Platform Condition="'$(SanguoshaLz4Platform)' == '' or '$(SanguoshaLz4Platform)' == 'AnyCPU'">$(Platform)</SanguoshaLz4Platform>
+    <SanguoshaLz4Platform Condition="'$(SanguoshaLz4Platform)' == '' or '$(SanguoshaLz4Platform)' == 'AnyCPU'">x64</SanguoshaLz4Platform>
+    <SanguoshaLz4Root>$(MSBuildThisFileDirectory)</SanguoshaLz4Root>
+    <SanguoshaLz4Runtime>desktop</SanguoshaLz4Runtime>
+    <SanguoshaLz4Runtime Condition="'$(TargetPlatformIdentifier)' == 'UAP'">uwp</SanguoshaLz4Runtime>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="$(SanguoshaLz4Root)bin\$(SanguoshaLz4Runtime)\$(SanguoshaLz4Platform)\KillConfirmLz4.dll">
+      <Link>KillConfirmLz4.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="$(SanguoshaLz4Root)LICENSE">
+      <Link>ThirdPartyLicenses\LZ4.txt</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+  <Target Name="BuildSanguoshaLz4Native" BeforeTargets="PrepareForBuild">
+    <Exec Command="powershell.exe -NoProfile -ExecutionPolicy Bypass -File &quot;$(SanguoshaLz4Root)Build-Lz4.ps1&quot; -Platform &quot;$(SanguoshaLz4Platform)&quot; -Runtime &quot;$(SanguoshaLz4Runtime)&quot;" />
+  </Target>
+</Project>

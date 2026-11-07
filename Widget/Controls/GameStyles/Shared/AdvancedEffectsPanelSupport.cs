@@ -1,4 +1,4 @@
-﻿using KillConfirmGameBar.Services;
+using KillConfirmGameBar.Services;
 using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -138,7 +138,6 @@ namespace KillConfirmGameBar.Controls.GameStyles
             comboBox.Background = Brush(field);
             comboBox.BorderBrush = Brush(border);
             comboBox.BorderThickness = new Thickness(1);
-            comboBox.CornerRadius = new CornerRadius(14);
             comboBox.RequestedTheme = IsDark(field) ? ElementTheme.Dark : ElementTheme.Light;
 
             foreach (object item in comboBox.Items)

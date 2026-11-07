@@ -179,7 +179,7 @@ namespace KillConfirmGameBar
         private const string PanelOffsetYSettingKey = "PanelOffsetY";
         private const string PanelCollapsedSettingKey = "PanelCollapsed";
         private static readonly Uri ServiceHealthUri = LocalServiceEndpoints.Build("/health");
-        private static readonly Uri GsiStatusUri = LocalServiceEndpoints.Build("/gsi-status");
+        private static readonly Uri GsiStatusUri = LocalServiceEndpoints.Build("/game-source/status");
         private static readonly Uri ServiceShutdownUri = LocalServiceEndpoints.Build("/shutdown");
         private static readonly Uri AudioReloadUri = LocalServiceEndpoints.Build("/audio/reload");
         private static readonly Uri AudioVolumeUri = LocalServiceEndpoints.Build("/audio/volume");
@@ -323,7 +323,7 @@ namespace KillConfirmGameBar
             _suppressVoicePackEvents = true;
             _suppressIconPackEvents = true;
             InitializeComponent();
-            AudioSettingsHost.Content = PackTestSectionView.DetachAudioSettings();
+            VisualSettingsSectionView.AudioVolumeHost.Content = PackTestSectionView.DetachAudioSettings();
             LoadAudioVolumeSelection();
             InitializeGameBarSetupGuideImage();
             _suppressGameStyleEvents = false;
@@ -380,7 +380,7 @@ namespace KillConfirmGameBar
             GameStyleService.Changed -= OnGameStyleServiceChanged;
             AudioChannelSettingsStore.BehaviorChanged -= OnAudioBehaviorPreferencesChanged;
             PackCatalogService.CatalogChanged -= OnPackCatalogChanged;
-            GsiGameVersionSettingsStore.VersionChanged -= OnGsiGameVersionChanged;
+            GameSourceSettingsStore.Changed -= OnGsiGameVersionChanged;
             _controlPanelStateTimer?.Stop();
             _statusHintTimer?.Stop();
         }
@@ -398,7 +398,7 @@ namespace KillConfirmGameBar
             AudioChannelSettingsStore.BehaviorChanged += OnAudioBehaviorPreferencesChanged;
             PackCatalogService.CatalogChanged -= OnPackCatalogChanged;
             PackCatalogService.CatalogChanged += OnPackCatalogChanged;
-            GsiGameVersionSettingsStore.VersionChanged += OnGsiGameVersionChanged;
+            GameSourceSettingsStore.Changed += OnGsiGameVersionChanged;
             _widget = e.Parameter as XboxGameBarWidget;
             if (_widget != null)
             {
@@ -484,7 +484,7 @@ namespace KillConfirmGameBar
             LowerBadgeAnimation?.ReleaseAnimationResourcesForPackChange();
             CrosshairFeedbackAnimation?.ReleaseAnimationResourcesForPackChange();
             UpperFeedbackAnimation?.ReleaseAnimationResourcesForPackChange();
-            GsiGameVersionSettingsStore.VersionChanged -= OnGsiGameVersionChanged;
+            GameSourceSettingsStore.Changed -= OnGsiGameVersionChanged;
             if (_widget != null)
             {
                 GameBarRuntimeStatusStore.MarkInactive();

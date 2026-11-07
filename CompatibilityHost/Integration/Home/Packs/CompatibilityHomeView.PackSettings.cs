@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using KillConfirmGameBar.Services;
 using Windows.Data.Json;
@@ -137,7 +138,10 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                     }
                 }
 
-                PackTestSectionView.IconPackSelector.SelectedIndex = 0;
+                PackTestSectionView.IconPackSelector.SelectedItem = PackTestSectionView.IconPackSelector.Items.OfType<PackSelectorItem>()
+                        .FirstOrDefault(item => Equals(item.Tag, GameStyleService.DefaultIconPackKey(GameStyleService.Current)))
+                        ?? PackTestSectionView.IconPackSelector.Items.OfType<PackSelectorItem>()
+                            .FirstOrDefault(item => item.Tag != "none" && item.Tag != PackLibraryNavigation.AddMoreTag);
             }
             finally
             {

@@ -1,0 +1,213 @@
+{
+  "verified_date": "2026-11-07",
+  "scope": "Seven genuine online category icons; authorized transparent game-logo updates for Battlefield 4/5/6/2042, Delta Force and PUBG. Battlefield 5 keeps its original transparent image and removes the UI backdrop.",
+  "categories": [
+    {
+      "category": "traditional",
+      "representative": "crossfire",
+      "source_page": "https://cf.qq.com/",
+      "asset_url": "https://cf.qq.com/favicon.ico",
+      "original_file": "SourceAssets/GameLogos/Web-20261107/crossfire.ico",
+      "original_sha256": "664fa34dcbf3e3e5dbcd1a19b978658b751c9151fe6662873b2ab18d36a8bc3f",
+      "runtime_file": "Widget/Assets/CategoryLogos/traditional.png",
+      "runtime_sha256": "c5b715f8d9312241c305f4b5511b2ec3cf43980c23aef7feacac3f4cf1369ca1",
+      "width": 32,
+      "height": 32,
+      "conversion": "ICO largest native image to RGBA PNG; unchanged decoded pixels",
+      "source_kind": "official website favicon"
+    },
+    {
+      "category": "hero",
+      "representative": "overwatch",
+      "source_page": "https://store.steampowered.com/app/2357570/",
+      "asset_url": "https://cdn.cloudflare.steamstatic.com/steamcommunity/public/images/apps/2357570/c05905cbf26020ffefcae9b39038d9ad523e2d68.ico",
+      "original_file": "SourceAssets/GameLogos/Web-20261107/overwatch.ico",
+      "original_sha256": "9583b72259fc64efbe93fcc9f4ca04683079d254c586d21c0f4d94ce27f41523",
+      "runtime_file": "Widget/Assets/CategoryLogos/hero.png",
+      "runtime_sha256": "d170251a48b78a72de76811683e269756c24c3392a10b1e0c50d7cf4c33d4b92",
+      "width": 256,
+      "height": 256,
+      "conversion": "ICO largest native image to RGBA PNG; unchanged decoded pixels",
+      "source_kind": "publisher-supplied Steam client icon"
+    },
+    {
+      "category": "survival",
+      "representative": "pubg",
+      "source_page": "https://store.steampowered.com/app/578080/",
+      "asset_url": "https://shared.fastly.steamstatic.com/community_assets/images/apps/578080/f962202b06de547cf47c156bdd7aaa5bf7f2cdbb.ico",
+      "original_file": "SourceAssets/GameLogos/Web-20261107/pubg.ico",
+      "original_sha256": "fd3ba77720c10192b633bbc1dd8fe7a7f21f7e8a59b1ff33eee4e22c22d9958d",
+      "runtime_file": "Widget/Assets/CategoryLogos/survival.png",
+      "runtime_sha256": "7ef921a70bdc627908517e95ea2b029b0b1c445c12e66e782fbd7c9f26237151",
+      "width": 256,
+      "height": 256,
+      "conversion": "ICO largest native image to RGBA PNG; unchanged decoded pixels",
+      "source_kind": "publisher-supplied Steam client icon"
+    },
+    {
+      "category": "battlefield",
+      "representative": "battlefield6",
+      "source_page": "https://store.steampowered.com/app/2807960/",
+      "asset_url": "https://shared.fastly.steamstatic.com/community_assets/images/apps/2807960/3059e94fb89816fe1929a238ac2b55e8be348408.ico",
+      "original_file": "SourceAssets/GameLogos/Web-20261107/battlefield6.ico",
+      "original_sha256": "c2a3e6e48378a74c623d25767373a2a43dec315e473736233b52f25d278b18c7",
+      "runtime_file": "Widget/Assets/CategoryLogos/battlefield.png",
+      "runtime_sha256": "f55ac6bf2ea29407bf4d5be7aebf80800f5fb36b25c5fb743938e14c15a17875",
+      "width": 256,
+      "height": 256,
+      "conversion": "ICO largest native image to RGBA PNG; unchanged decoded pixels",
+      "source_kind": "publisher-supplied Steam client icon"
+    },
+    {
+      "category": "cod",
+      "representative": "modernwarfare2019",
+      "source_page": "https://store.steampowered.com/app/2000950/",
+      "asset_url": "https://cdn.cloudflare.steamstatic.com/steamcommunity/public/images/apps/2000950/485450eba5e95e25805d9a34a668d5dc6b51d129.ico",
+      "original_file": "SourceAssets/GameLogos/Web-20261107/modernwarfare2019.ico",
+      "original_sha256": "ffcf9f8fdeaad5333527cf544c51e944a7586e900fd6e111843b27c2825e04ef",
+      "runtime_file": "Widget/Assets/CategoryLogos/cod.png",
+      "runtime_sha256": "ed792dc5ff0f25407d5fd9192a11e5c870c5993de650f0fb29e4b20bd660ab68",
+      "width": 256,
+      "height": 256,
+      "conversion": "ICO largest native image to RGBA PNG; unchanged decoded pixels",
+      "source_kind": "publisher-supplied Steam client icon"
+    },
+    {
+      "category": "cardmoba",
+      "representative": "sanguosha",
+      "source_page": "https://www.sanguosha.com/",
+      "asset_url": "https://www.sanguosha.com/assets/favicon.ico",
+      "original_file": "SourceAssets/GameLogos/Web-20261107/sanguosha.ico",
+      "original_sha256": "1e38c6861748fdc3c415f87572620365aa1642e09e2bb9c02928f838d5afc629",
+      "runtime_file": "Widget/Assets/CategoryLogos/cardmoba.png",
+      "runtime_sha256": "74f76b7c202b306967340136fca4f51a18f085b00a9bf5f01e4d8ff274fbfecb",
+      "width": 35,
+      "height": 35,
+      "conversion": "ICO largest native image to RGBA PNG; unchanged decoded pixels",
+      "source_kind": "official website favicon"
+    },
+    {
+      "category": "meme",
+      "representative": "doubao",
+      "source_page": "https://www.doubao.com/",
+      "asset_url": "https://lf-flow-web-cdn.doubao.com/obj/flow-doubao/favicon/new-doubao/192x192.png",
+      "original_file": "SourceAssets/GameLogos/Web-20261107/doubao.png",
+      "original_sha256": "dabb2abd94e3a6c11e7f1a42c9343839b6ef643c086751b71afbc68f615aec38",
+      "runtime_file": "Widget/Assets/CategoryLogos/meme.png",
+      "runtime_sha256": "dabb2abd94e3a6c11e7f1a42c9343839b6ef643c086751b71afbc68f615aec38",
+      "width": 192,
+      "height": 192,
+      "conversion": "none",
+      "source_kind": "official website favicon"
+    }
+  ],
+  "preserved_game_icons": [
+    {
+      "file": "Widget/Assets/GameLogos/apex.png",
+      "bytes": 64710,
+      "sha256": "1dff5061f3f14d656f374644133d5c780d75d95b9a6a8a18cc1c9572ebc017ef",
+      "action": "Preserved user-selected pre-task asset; no logo replacement authorized."
+    },
+    {
+      "file": "Widget/Assets/GameLogos/battlefield1.png",
+      "bytes": 46939,
+      "sha256": "c99b1ff0881c241e4cc16520622b66de849c2ecd5f642678ed195d9769f13967",
+      "action": "Preserved user-selected pre-task asset; no logo replacement authorized."
+    },
+    {
+      "file": "Widget/Assets/GameLogos/battlefield5.png",
+      "bytes": 34757,
+      "sha256": "c4c0c9dd8822401dd6e460281e2bce91e7269573e76b2f523fd00cf65d2e4527",
+      "action": "Preserved user-selected pre-task asset; no logo replacement authorized."
+    },
+    {
+      "file": "Widget/Assets/GameLogos/calabiyau.png",
+      "bytes": 7666,
+      "sha256": "7fe641663e7490073dd3a2446e7b4d54eaf64d9254a57077e307ef37304b5f56",
+      "action": "Preserved user-selected pre-task asset; no logo replacement authorized."
+    },
+    {
+      "file": "Widget/Assets/GameLogos/crossfire.png",
+      "bytes": 21879,
+      "sha256": "3e435774359fdbca461f6d25e09ed8cddb77558240bdb4f2e8275b4daf9ff909",
+      "action": "Preserved user-selected pre-task asset; no logo replacement authorized."
+    },
+    {
+      "file": "Widget/Assets/GameLogos/csol.png",
+      "bytes": 103085,
+      "sha256": "1e579a8905dd732b3e104aed1d11ac9b9a9563df14c112055a7eeaf4f19c1d00",
+      "action": "Preserved user-selected pre-task asset; no logo replacement authorized."
+    },
+    {
+      "file": "Widget/Assets/GameLogos/custommodule.png",
+      "bytes": 47374,
+      "sha256": "7f4bf788615b440ca9392f4b69246ff3d7561e028a564b626801fcf6167ba66d",
+      "action": "Preserved user-selected pre-task asset; no logo replacement authorized."
+    },
+    {
+      "file": "Widget/Assets/GameLogos/dagoujiao.jpg",
+      "bytes": 61596,
+      "sha256": "17d71bd81d82526b60d57b65be6904a3d87a07883e58afac89a5af35af74856d",
+      "action": "Preserved user-selected pre-task asset; no logo replacement authorized."
+    },
+    {
+      "file": "Widget/Assets/GameLogos/doubao.png",
+      "bytes": 146561,
+      "sha256": "288162cf04d8c609f1c0df8ca38ba01963e19f21d61af7578456a490fe278c8a",
+      "action": "Preserved user-selected pre-task asset; no logo replacement authorized."
+    },
+    {
+      "file": "Widget/Assets/GameLogos/modernwarfare2019.png",
+      "bytes": 957714,
+      "sha256": "205c920c399abb337472957c4eeab7de79d16356129e6f711c974efc6c3bc328",
+      "action": "Preserved user-selected pre-task asset; no logo replacement authorized."
+    },
+    {
+      "file": "Widget/Assets/GameLogos/overwatch.png",
+      "bytes": 90771,
+      "sha256": "b99a74cd22b2b34cc2e9831352fb2d5cece8c69f8b719b638dd633549925f58a",
+      "action": "Preserved user-selected pre-task asset; no logo replacement authorized."
+    },
+    {
+      "file": "Widget/Assets/GameLogos/sanguosha.png",
+      "bytes": 42121,
+      "sha256": "29c0b2f361281457444fecae6fd6792bc85c4994189edf2e29ddd8c6118922ae",
+      "action": "Preserved user-selected pre-task asset; no logo replacement authorized."
+    },
+    {
+      "file": "Widget/Assets/GameLogos/valorant.png",
+      "bytes": 2360,
+      "sha256": "2ec1b840102957ecd2d561a9127d11577cfed768022edff3f2c699b11116f231",
+      "action": "Preserved user-selected pre-task asset; no logo replacement authorized."
+    }
+  ],
+  "restoration": {
+    "changed_then_restored_count": 16,
+    "source": "Output/RealGameLogos20261107/previous-runtime",
+    "report": "Output/RealGameLogos20261107/game-logo-restoration.json",
+    "verification": "Historical checkpoint before the user authorized four further exceptions: all 16 initial replacements were restored byte-for-byte and SHA-256 checked against backups made before this task’s first asset edit. The four later authorized game-logo updates are recorded separately; the other 14 individual assets still match the pre-task baseline."
+  },
+  "reference_downloads": "Web-20261107 retains the seven category source assets plus unused official downloads as research evidence. It does not authorize changing other individual games. TransparentDeltaPubg-20261107 contains the later user-authorized Delta/PUBG sources and evidence.",
+  "authorized_game_icon_changes": [
+    {
+      "games": [
+        "deltaforce",
+        "pubg"
+      ],
+      "evidence": "SourceAssets/GameLogos/TransparentDeltaPubg-20261107/provenance.json",
+      "description": "Official transparent green Delta Force mark and official gold boxed PUBG mark; source bytes and exact conversion/crop are recorded in the evidence file."
+    },
+    {
+      "games": [
+        "battlefield4",
+        "battlefield2042"
+      ],
+      "evidence": "SourceAssets/GameLogos/TransparentBattlefield-20261107/provenance.json",
+      "description": "User-approved transparent Battlefield 4 original numeral and Battlefield 2042 square BF plus vertical 2042 mark matching the supplied reference; see separate source, pixel/alpha validation, and final hash evidence."
+    }
+  ],
+  "battlefield56_update": {
+    "evidence": "SourceAssets/GameLogos/TransparentBattlefield56-20261107/provenance.json",
+    "selector": "Both desktop and UWP use GameLogos with transparent containers; BF6 no longer references a kill skull."
+  }
+}

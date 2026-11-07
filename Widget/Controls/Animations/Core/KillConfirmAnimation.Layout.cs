@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
 using Microsoft.Graphics.Canvas;
@@ -46,25 +46,15 @@ namespace KillConfirmGameBar.Controls
             SpriteCanvas.Invalidate();
         }
 
-        private double GetRenderResolutionScale()
+        // Raster quality follows the selected longest edge, independent of zoom/DPI.
+        public void RefreshRasterQuality()
         {
-            bool isValorant = IsValorantPresentationConfigured;
-            double requestedScale = isValorant
-                ? GetBaseDisplayFit() * _presentationScale
-                : _isSanguoshaActive
-                    ? GetBaseDisplayFit() * Math.Max(2.0, Math.Min(4.0, _renderResolutionScale * 2.0))
-                    : Math.Max(1.0, Math.Min(4.0, _renderResolutionScale));
-            double pixelWidthAtScaleOne = Math.Max(1.0, _logicalFrameWidth);
-            double pixelHeightAtScaleOne = Math.Max(1.0, _logicalFrameHeight);
-            double maxPixelWidth = isValorant ? ValorantMaxCanvasPixelWidth : MaxCanvasPixelWidth;
-            double maxPixelHeight = isValorant ? ValorantMaxCanvasPixelHeight : MaxCanvasPixelHeight;
-            double maxPixelArea = isValorant ? ValorantMaxCanvasPixelArea : MaxCanvasPixelArea;
-            double maxScaleByWidth = maxPixelWidth / pixelWidthAtScaleOne;
-            double maxScaleByHeight = maxPixelHeight / pixelHeightAtScaleOne;
-            double maxScaleByArea = Math.Sqrt(
-                maxPixelArea / Math.Max(1.0, pixelWidthAtScaleOne * pixelHeightAtScaleOne));
-            return Math.Max(0.1, Math.Min(requestedScale, Math.Min(maxScaleByArea, Math.Min(maxScaleByWidth, maxScaleByHeight))));
+            ApplyViewportSize(_logicalFrameWidth, _logicalFrameHeight);
+            SpriteCanvas.Invalidate();
         }
+
+        private double GetRenderResolutionScale() =>
+            KillConfirmCompatibility.Contracts.AnimationRasterPolicy.Scale(_logicalFrameWidth, _logicalFrameHeight);
 
         private double GetBaseDisplayFit()
         {
@@ -115,17 +105,19 @@ namespace KillConfirmGameBar.Controls
             _displayViewportWidth = displayWidth;
             _displayViewportHeight = displayHeight;
             double renderScale = GetRenderResolutionScale();
-            double renderWidth = Math.Ceiling(_logicalFrameWidth * renderScale);
-            double renderHeight = Math.Ceiling(_logicalFrameHeight * renderScale);
+            double renderWidth = KillConfirmCompatibility.Contracts.AnimationRasterPolicy.Pixels(_logicalFrameWidth, renderScale);
+            double renderHeight = KillConfirmCompatibility.Contracts.AnimationRasterPolicy.Pixels(_logicalFrameHeight, renderScale);
             bool directValorantPresentation = IsValorantPresentationConfigured;
+            double valorantWidth = displayWidth * _presentationScale;
+            double valorantHeight = displayHeight * _presentationScale;
             bool fixedCalabiyauPresentation = _isCalabiyauActive;
 
             // Calabiyau's transparent 768px canvas is padding for moving
             // particles, not a request to fit the entire animation to the
             // widget window. A stretching Viewbox shrank the actual emblem
             // when Game Bar was smaller than that padding, unlike desktop.
-            Width = directValorantPresentation ? renderWidth : fixedCalabiyauPresentation ? displayWidth : double.NaN;
-            Height = directValorantPresentation ? renderHeight : fixedCalabiyauPresentation ? displayHeight : double.NaN;
+            Width = directValorantPresentation ? valorantWidth : fixedCalabiyauPresentation ? displayWidth : double.NaN;
+            Height = directValorantPresentation ? valorantHeight : fixedCalabiyauPresentation ? displayHeight : double.NaN;
             HorizontalAlignment = directValorantPresentation || fixedCalabiyauPresentation
                 ? HorizontalAlignment.Center
                 : HorizontalAlignment.Stretch;
@@ -135,6 +127,7 @@ namespace KillConfirmGameBar.Controls
 
             Viewport.Width = renderWidth;
             Viewport.Height = renderHeight;
+            UpdateNativeCanvasDpi();
             SpriteCanvas.Width = renderWidth;
             SpriteCanvas.Height = renderHeight;
             ViewportClip.Rect = new Rect(0, 0, renderWidth, renderHeight);
@@ -146,8 +139,8 @@ namespace KillConfirmGameBar.Controls
                 PlaybackViewbox.VerticalAlignment = VerticalAlignment.Stretch;
                 PlaybackViewbox.Width = fixedCalabiyauPresentation ? displayWidth : double.NaN;
                 PlaybackViewbox.Height = fixedCalabiyauPresentation ? displayHeight : double.NaN;
-                PlaybackViewbox.MaxWidth = directValorantPresentation ? renderWidth : _displayViewportWidth;
-                PlaybackViewbox.MaxHeight = directValorantPresentation ? renderHeight : _displayViewportHeight;
+                PlaybackViewbox.MaxWidth = directValorantPresentation ? valorantWidth : _displayViewportWidth;
+                PlaybackViewbox.MaxHeight = directValorantPresentation ? valorantHeight : _displayViewportHeight;
             }
 
             if (LoadingOverlay != null)

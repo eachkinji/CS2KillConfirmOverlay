@@ -19,27 +19,13 @@ namespace KillConfirmCompatibility.Controls
             "shenweizhengqiankun", "wanfumodi", "shenyimiaoshou", "qingnangjishi"
         };
 
-        // 官阶破敌神兵包：1..7 = 官阶一阶..七阶击杀特效 + 8+ = 大杀特杀 + 爆头/刀/雷 = 铁锤/宝剑/巨斧受击动画
-        private static readonly string[] SanguoshaGuanjieTierAnimations =
-        {
-            "podi", "guanjie2", "guanjie3", "guanjie4", "guanjie5", "guanjie6", "guanjie7",
-            "dashatesha", "shoujidonghua_chuizi", "shoujidonghua_jian", "shoujidonghua_fuzi2"
-        };
-
         private static string GetSanguoshaAnimationName(string packKey, int tier)
         {
             int index = Math.Max(0, Math.Min(SanguoshaTierAnimations.Length - 1, tier - 1));
-            switch ((packKey ?? string.Empty).Trim().ToLowerInvariant())
-            {
-                case Services.GameStyleService.SanguoshaGuanjiePackKey:
-                    return SanguoshaGuanjieTierAnimations[index];
-                default:
-                    return SanguoshaTierAnimations[index];
-            }
+            return SanguoshaTierAnimations[index];
         }
 
-        // Keep the selected pack's tiers resident until a pack change; no tier is
-        // evicted while that pack is ready for immediate event playback.
+        // Retain inexpensive clip metadata; only active fallback tiers own GPU atlases.
 
         private sealed class SanguoshaTierAssets
         {
@@ -47,6 +33,7 @@ namespace KillConfirmCompatibility.Controls
             public SanguoshaClip Clip;
             public CanvasBitmap[] Pages;
             public long LastUsed;
+            public System.Threading.Tasks.Task<string> SourceFingerprint;
         }
 
         private static readonly Dictionary<int, SanguoshaTierAssets> SanguoshaTiers = new Dictionary<int, SanguoshaTierAssets>();

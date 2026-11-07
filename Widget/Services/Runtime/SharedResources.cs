@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Data.Json;
 using Windows.Storage;
 using Windows.Storage.Streams;
@@ -118,6 +119,11 @@ namespace KillConfirmGameBar.Services
             await Gate.WaitAsync();
             try
             {
+            if (source.EndsWith(".sgslz4",StringComparison.OrdinalIgnoreCase))
+            {
+                await DownloadSanguoshaLz4Async(source,asset,destination);
+                return;
+            }
             using(var client=await LocalServiceAuth.CreateHttpClientAsync())
             using(var response=await client.GetAsync(LocalServiceEndpoints.Build("/shared/resource?asset="+asset.ToString().ToLowerInvariant()+"&path="+Uri.EscapeDataString(source))))
             {
@@ -134,6 +140,77 @@ namespace KillConfirmGameBar.Services
             }
             }
             finally {Gate.Release();}
+        }
+
+        // Called only while DownloadAsync owns Gate. Keep the ordinary resource
+        // download unchanged; a large animation is streamed in bounded requests.
+        private static async Task DownloadSanguoshaLz4Async(string source,bool asset,string destination)
+        {
+            const int chunkBytes=4*1024*1024;
+            Directory.CreateDirectory(Path.GetDirectoryName(destination));
+            string temporary=destination+"."+Guid.NewGuid().ToString("N")+".tmp";
+            try
+            {
+                using(var client=await LocalServiceAuth.CreateHttpClientAsync())
+                using(var output=new FileStream(temporary,FileMode.CreateNew,FileAccess.Write,FileShare.None,64*1024,true))
+                {
+                    var bytes=new byte[64*1024];
+                    long offset=0;
+                    while(true)
+                    {
+                        string route="/shared/resource?asset="+asset.ToString().ToLowerInvariant()
+                            +"&path="+Uri.EscapeDataString(source)
+                            +"&offset="+offset.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                            +"&length="+chunkBytes.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                        int received=0;
+                        using(var response=await client.GetAsync(LocalServiceEndpoints.Build(route),HttpCompletionOption.ResponseHeadersRead))
+                        {
+                            response.EnsureSuccessStatusCode();
+                            ulong? contentLength=response.Content.Headers.ContentLength;
+                            using(var input=await response.Content.ReadAsInputStreamAsync())
+                            using(var stream=input.AsStreamForRead())
+                            {
+                                received=await CopySanguoshaBlockAsync(stream,output,bytes,offset,contentLength);
+                            }
+                        }
+                        offset+=received;
+                        // Includes an empty EOF block when file size is a whole
+                        // multiple of 4 MiB; no whole-file byte array is created.
+                        if(received<chunkBytes) break;
+                    }
+                    await output.FlushAsync();
+                }
+                for(int attempt=0;!MoveFileEx(temporary,destination,9);attempt++)
+                {
+                    if(attempt>=8) throw new IOException("Shared animation cache is busy.");
+                    await Task.Delay(25);
+                }
+            }
+            finally {if(File.Exists(temporary)) File.Delete(temporary);}
+        }
+
+        private static async Task<int> CopySanguoshaBlockAsync(Stream input,Stream output,byte[] bytes,long offset,ulong? contentLength)
+        {
+            const int chunkBytes=4*1024*1024;
+            const long fileLimit=2L*1024*1024*1024;
+            // The broker returns a bounded Vec<byte> with an exact length.
+            // WinRT can silently accept a truncated chunked HTTP response, so
+            // require the broker's Content-Length for this resource type.
+            if(!contentLength.HasValue)
+                throw new IOException("Shared animation block is missing Content-Length.");
+            if(contentLength.Value>(ulong)chunkBytes)
+                throw new IOException("Shared animation block exceeds the download limit.");
+            int received=0, count;
+            while((count=await input.ReadAsync(bytes,0,bytes.Length))>0)
+            {
+                if(count>chunkBytes-received || offset+received+count>fileLimit)
+                    throw new IOException("Shared animation exceeds the download limit.");
+                await output.WriteAsync(bytes,0,count);
+                received+=count;
+            }
+            if(contentLength.Value!=(ulong)received)
+                throw new IOException("Shared animation block was truncated.");
+            return received;
         }
         [DllImport("kernel32.dll",EntryPoint="MoveFileExW",CharSet=CharSet.Unicode,SetLastError=true)]
         [return:MarshalAs(UnmanagedType.Bool)] private static extern bool MoveFileEx(string from,string to,uint flags);
@@ -174,12 +251,13 @@ namespace KillConfirmGameBar.Services
             {
                 var files = new DirectoryInfo(CacheRoot).EnumerateFiles("*", SearchOption.AllDirectories)
                     .Where(f => !f.Name.EndsWith(".json", StringComparison.OrdinalIgnoreCase)).OrderBy(f => f.LastWriteTimeUtc).ToList();
-                long bytes = files.Sum(f => f.Length);
-                foreach (var file in files)
-                {
-                    if (bytes <= 256L * 1024 * 1024) break;
-                    try { long length = file.Length; file.Delete(); bytes -= length; } catch (IOException) { }
-                }
+                string sanguoshaLz4Root=Path.GetFullPath(Path.Combine(CacheRoot,"Assets","GameStyles","sanguosha","killconfirm","lz4"))
+                    .TrimEnd(Path.DirectorySeparatorChar)+Path.DirectorySeparatorChar;
+                var sanguosha=files.Where(f=>f.FullName.StartsWith(sanguoshaLz4Root,StringComparison.OrdinalIgnoreCase)
+                    && f.Extension.Equals(".sgslz4",StringComparison.OrdinalIgnoreCase)).ToList();
+                var sanguoshaSet=new HashSet<string>(sanguosha.Select(f=>f.FullName),StringComparer.OrdinalIgnoreCase);
+                PruneCacheFiles(files.Where(f=>!sanguoshaSet.Contains(f.FullName)),256L*1024*1024);
+                PruneCacheFiles(sanguosha,8L*1024*1024*1024);
             }
             catch (Exception error) { App.Log("Resource cache cleanup: " + error.Message); }
             // Catalog discovery needs manifests; rendering obtains textures lazily.
@@ -187,6 +265,19 @@ namespace KillConfirmGameBar.Services
             if(!string.IsNullOrWhiteSpace(RemoteDataRoot))
                 try { await FetchFolderAsync(RemoteLibraryRoot ?? Path.Combine(RemoteDataRoot,"Packs"),false,true,Path.Combine(ApplicationData.Current.LocalFolder.Path,"Packs")); } catch(Exception error) { App.Log("Shared pack manifests: "+error.Message); }
             ValorantPackService.RefreshExternalPacks();
+        }
+
+        private static void PruneCacheFiles(IEnumerable<FileInfo> files,long limit)
+        {
+            // Inputs retain LastWriteTimeUtc ordering; JSON files were excluded
+            // before partitioning. Only SGS LZ4 cache entries get the new cap.
+            var ordered=files.ToList();
+            long bytes=ordered.Sum(f=>f.Length);
+            foreach(var file in ordered)
+            {
+                if(bytes<=limit) break;
+                try {long length=file.Length;file.Delete();bytes-=length;} catch(IOException) { }
+            }
         }
     }
 }

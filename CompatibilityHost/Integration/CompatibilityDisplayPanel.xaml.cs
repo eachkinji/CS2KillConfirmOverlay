@@ -25,8 +25,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         public CompatibilityDisplayPanel()
         {
             InitializeComponent();
-            foreach (GameStyleMode style in Enum.GetValues(typeof(GameStyleMode)))
-                MainGameSelector.Items.Add(new ComboBoxItem { Content = MainPage.CreateMaterialGameSelectorContent(style, GameStyleService.ToDisplayName(style)), Tag = GameStyleService.ToStorageValue(style) });
+            GameSelectorPresentation.PopulateGroupedGameSelector(MainGameSelector);
             HomeView.OpenGameSettings = () => OpenGameSettings?.Invoke();
             HomeView.OpenPackLibrary = (style, voice) => OpenPackLibrary?.Invoke(style, voice);
             HomeView.OpenAudioPackLibrary = (style, kind) => OpenAudioPackLibrary?.Invoke(style, kind);
@@ -58,13 +57,32 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             _loading = false; ApplyLanguage(); ApplyTheme(GameThemePalette.Home); RefreshStatus();
             if (!CompatibilityHomeView.IsUiValidation) _statusTimer.Start();
         }
+        private bool? _statusStripCompact;
+        private void OnStatusStripSizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (e.NewSize.Width <= 0) return;
+            // Four status labels, four actions and a 220px selector must not
+            // compete with the update label at compact desktop widths.
+            bool compact = e.NewSize.Width < 900;
+            if (_statusStripCompact == compact) return;
+            _statusStripCompact = compact;
+            StatusStripGrid.RowSpacing = compact ? 12 : 0;
+            Grid.SetColumnSpan(UpdateStatusButton, compact ? 3 : 1);
+            Grid.SetRow(StatusActions, compact ? 1 : 0);
+            Grid.SetColumn(StatusActions, compact ? 0 : 2);
+            Grid.SetRow(MainGameSelector, compact ? 1 : 0);
+            Grid.SetColumn(MainGameSelector, compact ? 1 : 3);
+            Grid.SetColumnSpan(MainGameSelector, compact ? 3 : 1);
+            MainGameSelector.HorizontalAlignment = HorizontalAlignment.Right;
+        }
+
         private void OnUnloaded(object sender, RoutedEventArgs e) { _statusTimer.Stop(); GameStyleService.Changed -= OnPanelGameChanged; VersionUpdateService.Changed -= OnUpdateStateChanged; }
         private void OnUpdateStatusClick(object sender, RoutedEventArgs e) => OpenAboutVersion?.Invoke();
         private void OnUpdateStateChanged(object sender, EventArgs e) => UpdateStatusText.Text = VersionUpdateService.StatusText(LocalizationManager.Current == UiLanguage.SimplifiedChinese);
         private void OnPanelGameChanged(object sender, GameStyleMode style) { ApplyLanguage(); RefreshStatus(); }
         private async void OnMainGameChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (_loading || !(MainGameSelector.SelectedItem is ComboBoxItem item) || !(item.Tag is string key)) return;
+            if (_loading || !(MainGameSelector.SelectedItem is ComboBoxItem item) || !item.IsEnabled || !(item.Tag is string key)) return;
             await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => GameStyleService.Current = GameStyleService.FromKey(key));
         }
         private async void OnModeChanged(object sender, RoutedEventArgs e)
@@ -121,6 +139,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             bool editing = runningNow && status?.Editing == true;
             bool visible = runningNow && status?.Visible == true;
             bool hasProblem = !string.IsNullOrWhiteSpace(problem);
+            StatusRepairButton.Visibility = GameSourceSettingsStore.IsLol ? Visibility.Collapsed : Visibility.Visible;
             var gsi = GsiStatusMonitor.Instance.CurrentSnapshot;
             bool serviceOnline = gsi.ServiceReachable || (runningNow && status.Connected);
             UpdateStatusLights(config.Enabled, runningNow, hasProblem, serviceOnline, gsi.IsGreen, HomeView.PacksReady);
@@ -148,7 +167,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             bool zh = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
             bool wasLoading = _loading; _loading = true;
             foreach (ComboBoxItem gameItem in MainGameSelector.Items)
-                MainPage.UpdateMaterialGameSelectorItemLanguage(gameItem);
+                GameSelectorPresentation.UpdateMaterialGameSelectorItemLanguage(gameItem);
             MainGameSelector.SelectedItem = MainGameSelector.Items.OfType<ComboBoxItem>().FirstOrDefault(item => (string)item.Tag == GameStyleService.ToStorageValue(GameStyleService.Current));
             _loading = wasLoading;
             ToolTipService.SetToolTip(MainGameSelector, zh ? "效果风格" : "Effect style");
@@ -185,9 +204,9 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             bool zh = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
             if (_theme != null)
             {
-                GameBarModeCard.Background = compatibility ? GameThemePalette.Glass(0.55) : _theme.Brush(_theme.AccentSoft);
+                GameBarModeCard.Background = compatibility ? _theme.Brush(_theme.SubtleField) : _theme.Brush(_theme.AccentSoft);
                 GameBarModeCard.BorderBrush = _theme.Brush(compatibility ? CardStrokeColor : AccentBorderColor(_theme));
-                CompatibilityModeCard.Background = compatibility ? _theme.Brush(_theme.AccentSoft) : GameThemePalette.Glass(0.55);
+                CompatibilityModeCard.Background = compatibility ? _theme.Brush(_theme.AccentSoft) : _theme.Brush(_theme.SubtleField);
                 CompatibilityModeCard.BorderBrush = _theme.Brush(compatibility ? AccentBorderColor(_theme) : CardStrokeColor);
             }
             GameBarStatusSection.Visibility = compatibility ? Visibility.Collapsed : Visibility.Visible;
@@ -210,26 +229,18 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             // Home uses the same neutral workspace palette as Advanced settings.
             _theme = GameThemePalette.Home; theme = _theme;
             Foreground = theme.Brush(theme.Text);
-            foreach (var card in new[] { ModeCard, StatusBar, ScreenCard })
-            {
-                card.Background = GameThemePalette.Glass(0.55);
-                card.BorderBrush = theme.Brush(CardStrokeColor);
-            }
-            GameBarModeCard.CornerRadius = new CornerRadius(14);
-            CompatibilityModeCard.CornerRadius = new CornerRadius(14);
+            // Geometry belongs to the shared panel styles; theme changes only colors.
             ModeStatusBadge.Background = theme.Brush(theme.AccentSoft);
-            ModeStatusBadge.CornerRadius = new CornerRadius(14);
             StatusText.Foreground = theme.Brush(theme.Accent);
             ModeUsageHint.Foreground = theme.Brush(theme.Text);
             foreach (var text in new[] { GameBarModeHint, CompatibilityModeHint, LayoutHint }) text.Foreground = theme.Brush(theme.MutedText);
-            MainGameSelector.Background = theme.Brush(theme.Field); MainGameSelector.Foreground = theme.Brush(theme.Text); MainGameSelector.BorderBrush = theme.Brush(Color.FromArgb(15, 0, 0, 0)); MainGameSelector.CornerRadius = new CornerRadius(12);
             ApplyGameBarStatusTheme(theme);
             HomeView.ApplyTheme(theme); ApplyModeSelection(CompatibilityDisplayRuntime.Load().Enabled);
         }
-        private static readonly Color StatusGreen = Color.FromArgb(255, 52, 199, 89);
-        private static readonly Color StatusAmber = Color.FromArgb(255, 255, 159, 10);
-        private static readonly Color StatusRed = Color.FromArgb(255, 255, 59, 48);
-        private static readonly Color StatusGray = Color.FromArgb(255, 142, 142, 147);
+        private Color StatusGreen => (Color)Resources["PanelSuccessColor"];
+        private Color StatusAmber => (Color)Resources["PanelWarningColor"];
+        private Color StatusRed => (Color)Resources["PanelDangerColor"];
+        private Color StatusGray => (Color)Resources["PanelTextMutedColor"];
         private static void SetStatusLight(Ellipse light, Color color) { if (light != null) light.Fill = new Windows.UI.Xaml.Media.SolidColorBrush(color); }
         private static bool IsLight(Ellipse light, Color color) => light.Fill is Windows.UI.Xaml.Media.SolidColorBrush brush && brush.Color == color;
         private void UpdateStatusLights(bool enabled, bool running, bool problem, bool serviceOnline, bool gameData, bool packsReady)

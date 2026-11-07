@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using KillConfirmGameBar.Controls.GameStyles;
 using KillConfirmGameBar.Services;
 using Windows.Storage;
@@ -20,6 +20,9 @@ namespace KillConfirmGameBar
             }
 
             _suppressGameStyleEvents = true;
+            foreach (object option in HeaderStatusSection.GameStyleSelector.Items)
+                if (option is ComboBoxItem header && GameSelectorPresentation.IsGameCategoryHeader(header))
+                    GameSelectorPresentation.UpdateMaterialGameSelectorItemLanguage(header);
             SelectGameStyleItem(GameStyleService.Current);
             _suppressGameStyleEvents = false;
         }
@@ -38,13 +41,18 @@ namespace KillConfirmGameBar
                 }
             }
 
-            HeaderStatusSection.GameStyleSelector.SelectedIndex = 0;
+            foreach (object option in HeaderStatusSection.GameStyleSelector.Items)
+                if (option is ComboBoxItem fallback && fallback.IsEnabled)
+                {
+                    HeaderStatusSection.GameStyleSelector.SelectedItem = fallback;
+                    break;
+                }
         }
 
         private GameStyleMode GetSelectedGameStyle()
         {
             if (HeaderStatusSection.GameStyleSelector?.SelectedItem is ComboBoxItem item
-                && item.Tag is string tag)
+                && item.IsEnabled && item.Tag is string tag)
             {
                 return GameStyleService.FromKey(tag);
             }
@@ -141,25 +149,17 @@ namespace KillConfirmGameBar
 
             SetComboTheme(PackTestSectionView.VoicePackSelector, text, field, border);
             SetComboTheme(PackTestSectionView.CharacterVoicePackSelector, text, field, border);
-            SetComboTheme(PackTestSectionView.SoundEffectVolumeSelector, text, field, border);
-            SetComboTheme(PackTestSectionView.CharacterVoiceVolumeSelector, text, field, border);
-            PackTestSectionView.AudioSettingsCard.Background = Brush(card);
-            PackTestSectionView.AudioSettingsCard.BorderBrush = Brush(border);
-            PackTestSectionView.AudioSettingsHeaderBorder.Background = Brush(secondary);
             PackTestSectionView.CharacterVoicePackIcon.Foreground = Brush(text);
-            PackTestSectionView.MasterVolumeLabel.Foreground = Brush(text);
-            PackTestSectionView.SoundEffectVolumeLabel.Foreground = Brush(text);
-            PackTestSectionView.CharacterVoiceVolumeLabel.Foreground = Brush(text);
             SetComboTheme(PackTestSectionView.IconPackSelector, text, field, border);
             PackTestSectionView.VoicePackSelector.IsEnabled = true;
-            PackTestSectionView.IconPackSelector.IsEnabled = GameStyleService.Current != GameStyleMode.Overwatch
-                && GameStyleService.Current != GameStyleMode.ModernWarfare2019
-                && GameStyleService.Current != GameStyleMode.Apex;
+            PackTestSectionView.IconPackSelector.IsEnabled = true;
             SetComboTheme(KillFxSelector, text, field, border);
             SetComboTheme(EliteEffectSelector, text, field, border);
             SetComboTheme(WeaponBadgeSelector, text, field, border);
             SetComboTheme(MainAnimationStyleSelector, text, field, border);
             SetComboTheme(PackTestSectionView.AudioVolumeSelector, text, field, border);
+            SetComboTheme(PackTestSectionView.RasterQualitySelector, text, field, border);
+            PackTestSectionView.RasterQualityIcon.Foreground = Brush(text);
             SetComboTheme(PackTestSectionView.TestPresetSelector, text, field, border);
             SetComboTheme(VisualSettingsSectionView.BrightnessSelector, text, field, secondary);
             SetComboTheme(VisualSettingsSectionView.ContrastSelector, text, field, secondary);
@@ -196,56 +196,13 @@ namespace KillConfirmGameBar
             UpdateControlPanelVisibility();
         }
 
-        private static void SetGameStyleItemContent(ComboBoxItem item, string text, string logoUri)
+        private void SetGameStyleItemContent(ComboBoxItem item, string text, string logoUri)
         {
-            if (item == null)
-            {
-                return;
-            }
-
-            bool zh = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            if (item == null) return;
             GameStyleMode style = GameStyleService.FromKey(item.Tag as string);
-            string categoryKey = GameStyleService.ToCategoryKey(style);
-            string categoryName = GameStyleService.ToCategoryDisplayName(categoryKey, zh);
-
-            var categoryIcon = new Image
-            {
-                Width = 11,
-                Height = 11,
-                VerticalAlignment = VerticalAlignment.Center,
-                Stretch = Stretch.Uniform,
-                Source = new BitmapImage(new Uri(GameStyleService.ToCategoryLogoUri(categoryKey)))
-            };
-
-            var image = new Image
-            {
-                Width = 20,
-                Height = 16,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
-                Stretch = Stretch.Uniform,
-                Source = new BitmapImage(new Uri(logoUri))
-            };
-
-            FrameworkElement logo = image;
-            if (logoUri.IndexOf("/battlefield6/", StringComparison.OrdinalIgnoreCase) >= 0)
-                logo = new Border
-                {
-                    Background = Brush(Color.FromArgb(217, 52, 56, 64)),
-                    CornerRadius = new CornerRadius(4),
-                    Child = image
-                };
-            var row = new StackPanel
-            {
-                Orientation = Orientation.Horizontal,
-                Spacing = 3,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center
-            };
-            row.Children.Add(categoryIcon);
-            row.Children.Add(logo);
-            item.Content = row;
-            ToolTipService.SetToolTip(item, "[" + categoryName + "] " + text);
+            item.Content = GameSelectorPresentation.CreateMaterialGameSelectorContent(style, GameStyleService.ToDisplayName(style),
+                !HeaderStatusSection.GameStyleSelector.IsDropDownOpen, logoUri);
+            ToolTipService.SetToolTip(item, text);
         }
 
         private static SolidColorBrush Brush(Color color)

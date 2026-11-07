@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -103,6 +103,7 @@ namespace KillConfirmGameBar.Controls
 
         private Task PreloadCurrentPackAnimationsCoreAsync(IProgress<int> progress)
         {
+            if (!IsIconFeedbackEnabled) return Task.CompletedTask;
             if (GameStyleService.IsCalabiyauKey(_iconPack)) return PreloadCalabiyauAsync(progress);
             if (GameStyleService.IsCustomModuleKey(_iconPack)) return PreloadCustomSequenceAsync(progress);
             if (GameStyleService.IsModernWarfare2019Key(_iconPack)
@@ -187,18 +188,8 @@ namespace KillConfirmGameBar.Controls
             return PreloadCodeKillAnimationsAsync(progress);
         }
 
-        public void SetRenderResolutionScale(double scale)
-        {
-            double normalized = Math.Max(1.0, Math.Min(4.0, scale));
-            if (Math.Abs(_renderResolutionScale - normalized) < 0.01)
-            {
-                return;
-            }
-
-            _renderResolutionScale = normalized;
-            ApplyViewportSize(_logicalFrameWidth, _logicalFrameHeight);
-            SpriteCanvas.Invalidate();
-        }
+        // Retained for callers/settings from older versions. Raster size is native now.
+        public void SetRenderResolutionScale(double scale) { }
 
         public void SetPresentationScale(double scale)
         {
@@ -214,7 +205,6 @@ namespace KillConfirmGameBar.Controls
             if (IsValorantPresentationConfigured)
             {
                 ApplyViewportSize(_logicalFrameWidth, _logicalFrameHeight);
-                SpriteCanvas.Invalidate();
             }
         }
 

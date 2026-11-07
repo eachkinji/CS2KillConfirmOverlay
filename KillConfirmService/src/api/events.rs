@@ -259,7 +259,7 @@ fn resolve_soundpack_alias(value: &str) -> Option<&'static str> {
         "delta" | "df" | "deltaforce" | "delta_force" => Some("deltaforce"),
         "dagoujiao" | "da_gou_jiao" => Some("dagoujiao"),
         "doubao" | "dou_bao" => Some("doubao"),
-        "sanguosha" | "sgs" | "san_guo_sha" => Some("sanguosha"),
+        "sanguosha" | "sgs" | "san_guo_sha" | "sanguosha_guanjie" => Some("sanguosha"),
         "csol4" | "csol" => Some("csol4"),
         "overwatch" | "overwatch2" | "overwatch_2" | "ow" | "ow2" => Some("overwatch"),
         "modernwarfare2019" | "modernwarfare" | "mw2019" | "mw19" => Some("modernwarfare2019"),

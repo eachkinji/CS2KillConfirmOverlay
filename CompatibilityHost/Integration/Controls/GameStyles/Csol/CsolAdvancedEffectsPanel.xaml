@@ -1,8 +1,16 @@
-﻿<UserControl
+<UserControl
     x:Class="KillConfirmGameBar.Features.CompatibilityDisplay.Controls.GameStyles.CsolAdvancedEffectsPanel"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:KillConfirmGameBar.Features.CompatibilityDisplay.Controls.GameStyles">
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+        <ResourceDictionary.MergedDictionaries>
+            <ResourceDictionary Source="ms-appx:///Controls/Settings/PanelDesign.xaml" />
+        </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
 
     <StackPanel Spacing="12">
         <Grid ColumnSpacing="12">
@@ -20,27 +28,22 @@
                         CornerRadius="2" />
                     <TextBlock
                         x:Name="TitleText"
-                        FontSize="16"
-                        FontWeight="Bold"
-                        Text="CSOL Effects" />
+                        Text="CSOL Effects" Style="{StaticResource PanelSectionTitleTextStyle}" />
                 </StackPanel>
                 <TextBlock
                     x:Name="HintText"
-                    FontSize="10"
                     MaxWidth="320"
                     HorizontalAlignment="Left"
                     Text="Configure kill-streak timing, special-event priority, and separate first/last-kill effects."
-                    TextWrapping="WrapWholeWords" />
+                    TextWrapping="WrapWholeWords" Style="{StaticResource PanelCaptionTextStyle}" />
             </StackPanel>
             <Button
                 x:Name="ResetButton"
                 Grid.Column="1"
                 MinWidth="88"
-                Height="34"
-                Padding="14,0"
                 VerticalAlignment="Top"
                 AutomationProperties.Name="Restore CSOL defaults"
-                Click="OnResetButtonClick">
+                Click="OnResetButtonClick" Style="{StaticResource PanelPrimaryButtonStyle}">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                     <FontIcon FontSize="12" Glyph="&#xE777;" />
                     <TextBlock x:Name="ResetButtonText" Text="Reset" />
@@ -49,10 +52,7 @@
         </Grid>
 
         <Border
-            x:Name="CoverageNotice"
-            Padding="10,7"
-            BorderThickness="1"
-            CornerRadius="8">
+            x:Name="CoverageNotice" Style="{StaticResource PanelSectionCardStyle}">
             <Grid ColumnSpacing="7">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
@@ -62,9 +62,8 @@
                 <TextBlock
                     x:Name="CoverageText"
                     Grid.Column="1"
-                    FontSize="11"
                     Text="The CSOL pack now plays distinct streak voices from 1 through 10 kills."
-                    TextWrapping="WrapWholeWords" />
+                    TextWrapping="WrapWholeWords" Style="{StaticResource PanelCaptionTextStyle}" />
             </Grid>
         </Border>
 
@@ -83,52 +82,52 @@
                 x:Name="StreakEditor"
                 SettingsChanged="OnVoiceSettingChanged" />
 
-            <Border Grid.Column="1" Style="{StaticResource CompactChoiceCardStyle}">
+            <Border Grid.Column="1" Style="{StaticResource PanelSectionCardStyle}">
                 <StackPanel Spacing="6">
                     <StackPanel Orientation="Horizontal" Spacing="6">
-                        <Border Style="{StaticResource CompactCircleIconStyle}"><FontIcon FontSize="13" Foreground="White" Glyph="&#xE8D6;" /></Border>
-                        <TextBlock x:Name="PriorityLabel" Style="{StaticResource CompactChoiceLabelStyle}" VerticalAlignment="Center" Text="Voice priority" />
+                        <Border Style="{StaticResource PanelAccentIconContainerStyle}"><FontIcon FontSize="13" Foreground="White" Glyph="&#xE8D6;" /></Border>
+                        <TextBlock x:Name="PriorityLabel" Style="{StaticResource PanelTitleTextStyle}" VerticalAlignment="Center" Text="Voice priority" />
                     </StackPanel>
-                    <ComboBox x:Name="PrioritySelector" Style="{StaticResource CompactSettingsComboBoxStyle}" SelectionChanged="OnVoiceSettingChanged" ToolTipService.ToolTip="Choose whether special-event or streak audio plays first">
+                    <ComboBox x:Name="PrioritySelector" Style="{StaticResource PanelComboBoxStyle}" SelectionChanged="OnVoiceSettingChanged" ToolTipService.ToolTip="Choose whether special-event or streak audio plays first">
                         <ComboBoxItem x:Name="PrioritySpecialItem" Tag="special">Special first</ComboBoxItem>
                         <ComboBoxItem x:Name="PriorityStreakItem" Tag="streak">Kill-streak first</ComboBoxItem>
                     </ComboBox>
                 </StackPanel>
             </Border>
 
-            <Border Grid.Row="1" Style="{StaticResource CompactChoiceCardStyle}">
+            <Border Grid.Row="1" Style="{StaticResource PanelSectionCardStyle}">
                 <StackPanel Spacing="6">
                     <StackPanel Orientation="Horizontal" Spacing="6">
-                        <Border Style="{StaticResource CompactCircleIconStyle}"><FontIcon FontSize="13" Foreground="White" Glyph="&#xE91F;" /></Border>
-                        <TextBlock x:Name="FirstKillIconLabel" Style="{StaticResource CompactChoiceLabelStyle}" VerticalAlignment="Center" Text="First-kill icon" />
+                        <Border Style="{StaticResource PanelAccentIconContainerStyle}"><FontIcon FontSize="13" Foreground="White" Glyph="&#xE91F;" /></Border>
+                        <TextBlock x:Name="FirstKillIconLabel" Style="{StaticResource PanelTitleTextStyle}" VerticalAlignment="Center" Text="First-kill icon" />
                     </StackPanel>
-                    <ComboBox x:Name="FirstKillIconSelector" Style="{StaticResource CompactSettingsComboBoxStyle}" SelectionChanged="OnVoiceSettingChanged" ToolTipService.ToolTip="Choose the first-kill icon">
+                    <ComboBox x:Name="FirstKillIconSelector" Style="{StaticResource PanelComboBoxStyle}" SelectionChanged="OnVoiceSettingChanged" ToolTipService.ToolTip="Choose the first-kill icon">
                         <ComboBoxItem x:Name="FirstKillIconFirstKillItem" Tag="firstkill">First kill</ComboBoxItem>
                         <ComboBoxItem x:Name="FirstKillIconRevengeItem" Tag="revenge">Revenge</ComboBoxItem>
                     </ComboBox>
                 </StackPanel>
             </Border>
 
-            <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource CompactChoiceCardStyle}">
+            <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource PanelSectionCardStyle}">
                 <StackPanel Spacing="6">
                     <StackPanel Orientation="Horizontal" Spacing="6">
-                        <Border Style="{StaticResource CompactCircleIconStyle}"><FontIcon FontSize="13" Foreground="White" Glyph="&#xE91F;" /></Border>
-                        <TextBlock x:Name="LastKillIconLabel" Style="{StaticResource CompactChoiceLabelStyle}" VerticalAlignment="Center" Text="Last-kill icon" />
+                        <Border Style="{StaticResource PanelAccentIconContainerStyle}"><FontIcon FontSize="13" Foreground="White" Glyph="&#xE91F;" /></Border>
+                        <TextBlock x:Name="LastKillIconLabel" Style="{StaticResource PanelTitleTextStyle}" VerticalAlignment="Center" Text="Last-kill icon" />
                     </StackPanel>
-                    <ComboBox x:Name="LastKillIconSelector" Style="{StaticResource CompactSettingsComboBoxStyle}" SelectionChanged="OnVoiceSettingChanged" ToolTipService.ToolTip="Choose the last-kill icon">
+                    <ComboBox x:Name="LastKillIconSelector" Style="{StaticResource PanelComboBoxStyle}" SelectionChanged="OnVoiceSettingChanged" ToolTipService.ToolTip="Choose the last-kill icon">
                         <ComboBoxItem x:Name="LastKillIconRevengeItem" Tag="revenge">Revenge</ComboBoxItem>
                         <ComboBoxItem x:Name="LastKillIconFirstKillItem" Tag="firstkill">First kill</ComboBoxItem>
                     </ComboBox>
                 </StackPanel>
             </Border>
 
-            <Border Grid.Row="2" Grid.ColumnSpan="2" Style="{StaticResource CompactChoiceCardStyle}">
+            <Border Grid.Row="2" Grid.ColumnSpan="2" Style="{StaticResource PanelSectionCardStyle}">
                 <StackPanel Spacing="6">
                     <StackPanel Orientation="Horizontal" Spacing="6">
-                        <Border Style="{StaticResource CompactCircleIconStyle}"><FontIcon FontSize="13" Foreground="White" Glyph="&#xE8D6;" /></Border>
-                        <TextBlock x:Name="LastKillAudioLabel" Style="{StaticResource CompactChoiceLabelStyle}" VerticalAlignment="Center" Text="Last-kill audio" />
+                        <Border Style="{StaticResource PanelAccentIconContainerStyle}"><FontIcon FontSize="13" Foreground="White" Glyph="&#xE8D6;" /></Border>
+                        <TextBlock x:Name="LastKillAudioLabel" Style="{StaticResource PanelTitleTextStyle}" VerticalAlignment="Center" Text="Last-kill audio" />
                     </StackPanel>
-                    <ComboBox x:Name="LastKillAudioSelector" Style="{StaticResource CompactSettingsComboBoxStyle}" SelectionChanged="OnVoiceSettingChanged">
+                    <ComboBox x:Name="LastKillAudioSelector" Style="{StaticResource PanelComboBoxStyle}" SelectionChanged="OnVoiceSettingChanged">
                         <ComboBoxItem x:Name="LastKillSpecialAudioItem" Tag="special">Last-kill sound</ComboBoxItem>
                         <ComboBoxItem x:Name="LastKillNormalAudioItem" Tag="normal">Normal kill sound</ComboBoxItem>
                     </ComboBox>
@@ -136,15 +135,15 @@
             </Border>
         </Grid>
 
-        <Border x:Name="VisualEffectsCard" Padding="12" BorderThickness="1" CornerRadius="8">
+        <Border x:Name="VisualEffectsCard" Style="{StaticResource PanelSectionCardStyle}">
             <StackPanel Spacing="8">
-                <TextBlock x:Name="VisualEffectsTitle" FontSize="12" FontWeight="SemiBold" />
+                <TextBlock x:Name="VisualEffectsTitle" Style="{StaticResource PanelTitleTextStyle}" />
                 <Grid ColumnSpacing="12">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <TextBlock x:Name="KillMarkEffectLabel" VerticalAlignment="Center" FontSize="10" TextWrapping="WrapWholeWords" />
+                    <TextBlock x:Name="KillMarkEffectLabel" VerticalAlignment="Center" TextWrapping="WrapWholeWords" Style="{StaticResource PanelCaptionTextStyle}" />
                     <ToggleSwitch x:Name="KillMarkEffectToggle" Grid.Column="1" MinWidth="0" Toggled="OnKillMarkEffectToggled" />
                 </Grid>
             </StackPanel>

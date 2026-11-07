@@ -1,4 +1,4 @@
-"""Stage the built-in Sanguosha (三国杀) multi-pack broadcast assets and voice packs."""
+"""Stage the built-in Sanguosha (三国杀) broadcast assets and voice pack."""
 import argparse
 import gzip
 import hashlib
@@ -13,9 +13,6 @@ TIERS = [
     # Pack 1: 十周年连破播报 (sanguosha)
     "shoupo", "lianpo", "sanpo", "sipo", "wupo", "liupo", "qipo",
     "shenweizhengqiankun", "wanfumodi", "shenyimiaoshou", "qingnangjishi",
-    # Pack 2: 官阶破敌神兵 (sanguosha_guanjie)
-    "podi", "guanjie2", "guanjie3", "guanjie4", "guanjie5", "guanjie6", "guanjie7",
-    "dashatesha", "shoujidonghua_chuizi", "shoujidonghua_jian", "shoujidonghua_fuzi2",
 ]
 
 SOUND_PACKS = {
@@ -33,22 +30,6 @@ SOUND_PACKS = {
             "headshot.mp3": ("headshot", "newkill_wanfumodi"),
             "knife.mp3": ("knife", "newkill_shenyimiaoshou"),
             "grenade.mp3": ("grenade", "newkill_qingnangjishi"),
-        },
-    ),
-    "sanguosha_guanjie": (
-        "三国杀 · 官阶破敌神兵",
-        {
-            "1kill.mp3": ("kill_1", "kill_effect_sound"),
-            "2kill.mp3": ("kill_2", "jiangjun_01"),
-            "3kill.mp3": ("kill_3", "weijiangjun_01"),
-            "4kill.mp3": ("kill_4", "cheqijiangjun_01"),
-            "5kill.mp3": ("kill_5", "piaoqijiangjun_01"),
-            "6kill.mp3": ("kill_6", "dajiangjun_01"),
-            "7kill.mp3": ("kill_7", "dasima_01"),
-            "8kill.mp3": ("kill_8", "dasima_02"),
-            "headshot.mp3": ("headshot", "hurtSound2"),
-            "knife.mp3": ("knife", "hurtSound"),
-            "grenade.mp3": ("grenade", "fireHurtSound2"),
         },
     ),
 }
@@ -132,20 +113,12 @@ def main():
     with open(os.path.join(source, "index.json"), "w", encoding="utf-8") as f:
         json.dump({"format": "sanguosha-killconfirm", "version": 1, "tiers": index}, f, ensure_ascii=False, indent=2)
 
-    previews_map = {
-        "sanguosha_guanjie.png": os.path.join(workshop_root, r"01_连破与击杀徽章_合成大图\03_官阶专属击杀徽章与经典破敌\07_大司马官阶_金瓜战锤_纯武器图标.png"),
-    }
+    # Preview images for retired built-in packs must not survive regeneration.
     for base_root in (
         os.path.join(ROOT, "Widget", "Assets", "GameStyles", "sanguosha", "previews"),
         os.path.join(ROOT, "SourceAssets", "GameStyles", "sanguosha", "previews"),
     ):
         shutil.rmtree(base_root, ignore_errors=True)
-        os.makedirs(base_root, exist_ok=True)
-        for dst_name, src_path in previews_map.items():
-            with Image.open(src_path) as im:
-                im_rgba = im.convert("RGBA")
-                im_rgba.thumbnail((256, 256), Image.LANCZOS)
-                im_rgba.save(os.path.join(base_root, dst_name), compress_level=6)
 
     soundpacks_root = os.path.join(ROOT, "SourceAssets", "GameStyles", "sanguosha", "soundpacks")
     shutil.rmtree(soundpacks_root, ignore_errors=True)
@@ -169,7 +142,7 @@ def main():
     logo = os.path.join(ROOT, "Widget", "Assets", "GameLogos", "sanguosha.png")
     if os.path.abspath(a.logo) != os.path.abspath(logo):
         shutil.copyfile(a.logo, logo)
-    print("staged", len(TIERS), "clips across 2 packs, and", len(SOUND_PACKS), "voice packs")
+    print("staged", len(TIERS), "clips, and", len(SOUND_PACKS), "voice packs")
 
 
 if __name__ == "__main__":

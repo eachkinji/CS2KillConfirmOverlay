@@ -163,7 +163,7 @@ namespace KillConfirmGameBar.Services
             ["ClassKnife"] = "Knife Class Badge (Overlay)",
             ["PackManager"] = "Icon / Voice Manager",
             ["PackTestHeader"] = "ICON / VOICE",
-            ["VisualHeader"] = "VISUAL SETTINGS",
+            ["VisualHeader"] = "AUDIO & VISUAL",
             ["GameStyleTitle"] = "Game style",
             ["GameStyleTooltip"] = "Switch between CrossFire UI and Valorant UI. Valorant mode hides CF-specific packs until Valorant assets are added.",
             ["GameStyleCrossfireShort"] = "CF",
@@ -232,7 +232,6 @@ namespace KillConfirmGameBar.Services
             ["deltaforce"] = "Delta Force",
             ["doubao"] = "Doubao",
             ["sanguosha"] = "Sanguosha · 10th Anniv. Kill Broadcast",
-            ["sanguosha_guanjie"] = "Sanguosha · Official Rank Divine Weapons",
             ["dagoujiao"] = "Big Dog Bark",
 
             // Built-in Icon Names

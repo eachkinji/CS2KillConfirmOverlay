@@ -41,7 +41,8 @@ foreach($runtimeFile in @('hostfxr.dll','hostpolicy.dll','coreclr.dll','System.P
     if(!(Test-Path -LiteralPath (Join-Path $Payload $runtimeFile) -PathType Leaf)) {throw "Missing bundled .NET runtime file: $runtimeFile"}
 }
 if(Test-Path -LiteralPath (Join-Path $assets 'Assets')) {throw 'Desktop payload contains duplicated Assets/Assets.'}
-$expected=@(Get-ChildItem -LiteralPath $source -Recurse -File)
+$expected=@(Get-ChildItem -LiteralPath $source -Recurse -File | Where-Object { [IO.Path]::GetRelativePath($source,$_.FullName).Replace('\','/') -notlike 'GameStyles/sanguosha/killconfirm/lz4/*' })
+if (Test-Path -LiteralPath (Join-Path $assets 'GameStyles/sanguosha/killconfirm/lz4')) { throw 'Retired experimental disk-frame caches leaked into installer.' }
 $actual=@(Get-ChildItem -LiteralPath $assets -Recurse -File)
 if($expected.Count -ne $actual.Count) {throw 'Desktop asset file count does not match the source.'}
 foreach($file in $expected) {

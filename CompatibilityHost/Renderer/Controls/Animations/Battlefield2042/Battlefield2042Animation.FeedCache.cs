@@ -247,13 +247,7 @@ namespace KillConfirmCompatibility.Controls
             }
         }
 
-        private float GetBattlefield2042GlowCacheDpi()
-        {
-            double physicalScale = Math.Max(
-                1.0,
-                GetRenderResolutionScale() * GetBattlefield2042DisplayDpiScale());
-            return (float)Math.Min(384.0, 96.0 * physicalScale);
-        }
+        private float GetBattlefield2042GlowCacheDpi() => 96f;
 
         private static double GetBattlefield2042DisplayDpiScale()
         {

@@ -14,6 +14,7 @@ namespace KillConfirmCompatibility.Controls
     {
         private const string SanguoshaAssetRoot = "ms-appx:///Assets/GameStyles/sanguosha/killconfirm/";
         private static readonly Dictionary<string, CanvasBitmap> SanguoshaPageCache = new Dictionary<string, CanvasBitmap>(StringComparer.OrdinalIgnoreCase);
+        private static readonly HashSet<SanguoshaTierAssets> SanguoshaCacheBuilds = new HashSet<SanguoshaTierAssets>();
 
         private static Task<StorageFile> SanguoshaAssetFileAsync(string relativePath)
         {
@@ -23,8 +24,8 @@ namespace KillConfirmCompatibility.Controls
         private static async Task PreloadSanguoshaAsync(IProgress<int> progress)
         {
             progress?.Report(0);
-            // All kill and event tiers belong to the selected pack's readiness.
-            // Do not defer a headshot/grenade or later streak to first playback.
+            // Index all tiers without keeping their atlas pages on the GPU.
+            // Only the current/recent atlas is retained; never bake disk frames.
             for (int tier = 1; tier <= GameStyleService.SanguoshaMaxKillTier; tier++)
             {
                 await LoadSanguoshaTierAsync(tier);
@@ -50,6 +51,23 @@ namespace KillConfirmCompatibility.Controls
             StorageFile clipFile = await SanguoshaAssetFileAsync(name + "/" + name + ".sgsd.gz");
             using (Stream stream = await clipFile.OpenStreamForReadAsync())
                 clip = SanguoshaClip.Read(stream);
+
+            var loaded = new SanguoshaTierAssets { Tier = tier, Clip = clip, Pages = Array.Empty<CanvasBitmap>() };
+            lock (SanguoshaTiers)
+            {
+                if (SanguoshaTiers.TryGetValue(tier, out SanguoshaTierAssets raced)) return raced;
+                loaded.LastUsed = ++_sanguoshaUseCounter;
+                SanguoshaTiers[tier] = loaded;
+            }
+            return loaded;
+        }
+
+        private static async Task EnsureSanguoshaPagesAsync(SanguoshaTierAssets assets)
+        {
+            assets.LastUsed = ++_sanguoshaUseCounter;
+            if (assets.Pages.Length != 0) return;
+            string name = GetSanguoshaAnimationName(_iconPack, assets.Tier);
+            SanguoshaClip clip = assets.Clip;
 
             var pages = new CanvasBitmap[clip.Pages.Length];
             var pageRels = new string[clip.Pages.Length];
@@ -85,7 +103,14 @@ namespace KillConfirmCompatibility.Controls
                         });
                     }
 
-                    CanvasBitmap[] loadedBitmaps = await Task.WhenAll(loadTasks);
+                    CanvasBitmap[] loadedBitmaps;
+                    try { loadedBitmaps = await Task.WhenAll(loadTasks); }
+                    catch
+                    {
+                        foreach (var task in loadTasks)
+                            if (task.Status == TaskStatus.RanToCompletion) task.Result?.Dispose();
+                        throw;
+                    }
                     lock (SanguoshaPageCache)
                     {
                         for (int m = 0; m < missingIndices.Count; m++)
@@ -132,28 +157,28 @@ namespace KillConfirmCompatibility.Controls
                 throw;
             }
 
-            var loaded = new SanguoshaTierAssets { Tier = tier, Clip = clip, Pages = pages };
-            List<SanguoshaTierAssets> evicted = new List<SanguoshaTierAssets>();
-            lock (SanguoshaTiers)
-            {
-                if (SanguoshaTiers.TryGetValue(tier, out SanguoshaTierAssets raced))
-                {
-                    evicted.Add(loaded);
-                    loaded = raced;
-                }
-                else
-                {
-                    SanguoshaTiers[tier] = loaded;
-                }
-                loaded.LastUsed = ++_sanguoshaUseCounter;
-            }
+            assets.Pages = pages;
+            TrimSanguoshaPages();
+        }
 
-            foreach (SanguoshaTierAssets old in evicted)
-            {
-                // A tier that is still on screen is released when its playback ends.
-                if (!IsSanguoshaTierOnScreen(old)) ReleaseUnusedSanguoshaPages(old.Pages);
-            }
-            return loaded;
+        private static void TrimSanguoshaPages()
+        {
+            var retained = new HashSet<CanvasBitmap>();
+            SanguoshaTierAssets warm;
+            lock (SanguoshaTiers) warm = SanguoshaTiers.Values.Where(t => t.Pages.Length != 0).OrderByDescending(t => t.LastUsed).FirstOrDefault();
+            if (warm != null) foreach (var page in warm.Pages) retained.Add(page);
+            lock (SanguoshaTiersOnScreen)
+                foreach (var active in SanguoshaTiersOnScreen.Concat(SanguoshaCacheBuilds))
+                    foreach (var page in active.Pages) retained.Add(page);
+            lock (SanguoshaPageCache)
+                foreach (var key in SanguoshaPageCache.Where(pair => !retained.Contains(pair.Value)).Select(pair => pair.Key).ToArray())
+                {
+                    SanguoshaPageCache[key].Dispose();
+                    SanguoshaPageCache.Remove(key);
+                }
+            lock (SanguoshaTiers)
+                foreach (var tier in SanguoshaTiers.Values)
+                    if (tier != warm && !IsSanguoshaTierOnScreen(tier) && !SanguoshaCacheBuilds.Contains(tier)) tier.Pages = Array.Empty<CanvasBitmap>();
         }
 
         private static readonly HashSet<SanguoshaTierAssets> SanguoshaTiersOnScreen = new HashSet<SanguoshaTierAssets>();
@@ -171,7 +196,7 @@ namespace KillConfirmCompatibility.Controls
                 retained = new HashSet<CanvasBitmap>(SanguoshaPageCache.Values);
             }
             lock (SanguoshaTiersOnScreen)
-                foreach (SanguoshaTierAssets active in SanguoshaTiersOnScreen)
+                foreach (SanguoshaTierAssets active in SanguoshaTiersOnScreen.Concat(SanguoshaCacheBuilds))
                     foreach (CanvasBitmap bitmap in active.Pages) retained.Add(bitmap);
             foreach (CanvasBitmap bitmap in new HashSet<CanvasBitmap>(pages))
                 if (bitmap != null && !retained.Contains(bitmap)) bitmap.Dispose();

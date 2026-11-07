@@ -1,4 +1,4 @@
-using Windows.UI.Xaml;
+﻿using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
 namespace KillConfirmGameBar
@@ -21,22 +21,26 @@ namespace KillConfirmGameBar
             => AudioChannelSettingsChanged?.Invoke(sender, new RoutedEventArgs());
         public void ApplyAudioLanguage(bool zh)
         {
-            SoundEffectVolumeLabel.Text = zh ? "音效音量" : "Sound effects";
-            CharacterVoiceVolumeLabel.Text = zh ? "语音音量" : "Character voice";
-            AudioSettingsHeaderText.Text = zh ? "音频设置" : "Audio settings";
-            MasterVolumeLabel.Text = zh ? "总音量" : "Master volume";
+            Windows.UI.Xaml.Automation.AutomationProperties.SetName(RasterQualitySelector, zh ? "清晰度" : "Render quality");
+            ToolTipService.SetToolTip(RasterQualitySelector, zh ? "清晰度" : "Render quality");
+            ToolTipService.SetToolTip(RasterQualityIcon, zh ? "清晰度" : "Render quality");
+            Windows.UI.Xaml.Automation.AutomationProperties.SetName(AudioVolumeSelector, zh ? "总音量" : "Master volume");
+            ToolTipService.SetToolTip(AudioVolumeSelector, zh ? "总音量" : "Master volume");
             PackTestHeaderText.Text = zh ? "图标包、音效包与语音包" : "Icons, sound effects & voices";
         }
 
         public UIElement DetachAudioSettings()
         {
-            PackTestSection.Children.Remove(AudioSettingsCard);
-            return AudioSettingsCard;
+            PackTestSection.Children.Remove(MasterVolumeControls);
+            return MasterVolumeControls;
         }
 
         public event SelectionChangedEventHandler VoicePackSelectionChanged;
         public event SelectionChangedEventHandler IconPackSelectionChanged;
         public event RoutedEventHandler AdvancedEffectsRequested;
+        public event SelectionChangedEventHandler RasterQualitySelectionChanged;
+        private void OnRasterQualitySelectionChanged(object sender, SelectionChangedEventArgs e)
+            => RasterQualitySelectionChanged?.Invoke(sender, e);
         public event SelectionChangedEventHandler AudioVolumeSelectionChanged;
         public event RoutedEventHandler TestEventRequested;
         public event RoutedEventHandler RepeatTestRequested;

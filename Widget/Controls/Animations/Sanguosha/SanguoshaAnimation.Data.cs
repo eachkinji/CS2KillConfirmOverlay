@@ -19,33 +19,24 @@ namespace KillConfirmGameBar.Controls
             "shenweizhengqiankun", "wanfumodi", "shenyimiaoshou", "qingnangjishi"
         };
 
-        // 官阶破敌神兵包：1..7 = 官阶一阶..七阶击杀特效 + 8+ = 大杀特杀 + 爆头/刀/雷 = 铁锤/宝剑/巨斧受击动画
-        private static readonly string[] SanguoshaGuanjieTierAnimations =
-        {
-            "podi", "guanjie2", "guanjie3", "guanjie4", "guanjie5", "guanjie6", "guanjie7",
-            "dashatesha", "shoujidonghua_chuizi", "shoujidonghua_jian", "shoujidonghua_fuzi2"
-        };
-
         private static string GetSanguoshaAnimationName(string packKey, int tier)
         {
             int index = Math.Max(0, Math.Min(SanguoshaTierAnimations.Length - 1, tier - 1));
-            switch ((packKey ?? string.Empty).Trim().ToLowerInvariant())
-            {
-                case Services.GameStyleService.SanguoshaGuanjiePackKey:
-                    return SanguoshaGuanjieTierAnimations[index];
-                default:
-                    return SanguoshaTierAnimations[index];
-            }
+            return SanguoshaTierAnimations[index];
         }
 
-        // Keep the selected pack's tiers resident until a pack change; no tier is
-        // evicted while that pack is ready for immediate event playback.
+        // Keep only small clip metadata for the selected pack. Atlas pages are
+        // temporary preparation/fallback resources of the current tier.
 
         private sealed class SanguoshaTierAssets
         {
             public int Tier;
             public SanguoshaClip Clip;
             public CanvasBitmap[] Pages;
+            public string Name;
+            public string SourceRevision;
+            public System.Threading.Tasks.Task PageLoadTask;
+            public int PreparationUsers;
             public long LastUsed;
         }
 
@@ -57,6 +48,22 @@ namespace KillConfirmGameBar.Controls
         private SanguoshaShake _sanguoshaShake;
         private double _sanguoshaStartOffsetMs;
         private SanguoshaFrameRenderer _sanguoshaRenderer;
+        private SanguoshaLz4Playback _sanguoshaLz4Playback;
+        private CanvasBitmap _sanguoshaLz4Bitmap;
+        private SanguoshaRasterProfile _sanguoshaLz4Profile;
+        private int _sanguoshaLz4UploadedFrame = -1;
+        private string _sanguoshaRoute = "idle";
+        private string _sanguoshaFallbackReason = "";
+        private int _sanguoshaPreparingToken;
+        private int _sanguoshaLz4Tier;
+        private bool _sanguoshaRetainWarmOnce;
+        private bool _sanguoshaRenderingAttached;
+        private long _sanguoshaLastCompositionTicks = -1;
+        private long _sanguoshaCompositionOriginTicks;
+        private double _sanguoshaNextPresentationMs;
+        private SanguoshaAnimatedSurface _sanguoshaAnimatedSurface;
+        internal string SanguoshaPlaybackRoute => _sanguoshaRoute;
+        internal string SanguoshaFallbackReason => _sanguoshaFallbackReason;
 
         private double SanguoshaElapsedMs => _sanguoshaStartOffsetMs + _playbackClock.Elapsed.TotalMilliseconds;
     }

@@ -1,0 +1,9 @@
+{
+  "SourceAssetRoot": "../../../Widget/Assets/GameStyles/sanguosha/killconfirm",
+  "Clips": ["shoupo", "lianpo", "sanpo", "sipo", "wupo", "liupo", "qipo", "shenweizhengqiankun", "wanfumodi", "shenyimiaoshou", "qingnangjishi"],
+  "ShakeMode": "production-seeded",
+  "Seed": 20261107,
+  "Variants": [
+    { "ProfileId": "uwp-2750x1548-s1p71875", "Width": 2750, "Height": 1548, "TargetDpi": 240, "WidthDips": 1100, "HeightDips": 619, "TransformKind": "explicit", "Matrix": [0.6875, 0, 0, 0.6875, 0, 0] }
+  ]
+}

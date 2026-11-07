@@ -42,6 +42,8 @@ namespace KillConfirmGameBar
             CreateVoicePackButton.IsEnabled = !busy;
             CreateIconPackButton.IsEnabled = !busy;
             GameStyleSidebarSelector.IsEnabled = !busy;
+            foreach (var entry in StylePicker.Children)
+                if (entry is Button styleButton) styleButton.IsEnabled = !busy;
             GameWorkspaceTabBar.IsHitTestVisible = !busy;
             if (!busy)
             {
@@ -90,15 +92,15 @@ namespace KillConfirmGameBar
             string title = chinese ? (isVoice ? "批量导入" + ActiveAudioPackLabel : "批量导入图标包")
                 : (isVoice ? "Import " + ActiveAudioPackLabel + "s" : "Import icon packs");
             var theme = SettingsTheme;
-            var progress = new TextBlock { TextWrapping = TextWrapping.Wrap, FontSize = 14, Foreground = new SolidColorBrush(theme.Text) };
+            var progress = new TextBlock { Style = PanelResource<Style>("PanelBodyTextStyle"), TextWrapping = TextWrapping.Wrap, Foreground = new SolidColorBrush(theme.Text) };
             var progressBar = new ProgressBar { Minimum = 0, Maximum = files.Count, Height = 6, Foreground = new SolidColorBrush(theme.Accent), Background = new SolidColorBrush(theme.AccentSoft) };
             var status = new StackPanel { Spacing = 16 };
             status.Children.Add(progress);
             status.Children.Add(progressBar);
             status.Children.Add(new TextBlock
             {
-                Text = chinese ? "正在整理包内素材，请稍候。完成后会显示导入结果。" : "Preparing pack files. Results will appear when the import finishes.",
-                FontSize = 12, Foreground = new SolidColorBrush(theme.MutedText), TextWrapping = TextWrapping.Wrap
+                Style = PanelResource<Style>("PanelCaptionTextStyle"),
+                Text = chinese ? "正在整理包内素材，请稍候。完成后会显示导入结果。" : "Preparing pack files. Results will appear when the import finishes.", Foreground = new SolidColorBrush(theme.MutedText), TextWrapping = TextWrapping.Wrap
             });
             var dialog = CreatePackStatusDialog(title, status);
             bool running = true;

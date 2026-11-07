@@ -133,7 +133,7 @@ namespace KillConfirmCompatibility.Validation
             }
             finally { await host.CloseAsync(); }
             await ValidateOverwatchCropAsync();
-            report.Add("PASS: one-pixel details remain exact at 100/200/300/400% zoom; four editor colors are distinct and only the selected overlapping frame accepts input; 60 FPS presentation target, unchanged aspect ratio, normal and enlarged previews without resolution caps.");
+            report.Add("PASS: source raster retains one-pixel details at 100/200/300/400% display zoom; four editor colors are distinct and only the selected overlapping frame accepts input; 60 FPS presentation target, unchanged aspect ratio, normal and enlarged previews reuse native raster resolution.");
             File.WriteAllLines(Path.Combine(output, "pass.txt"), report);
         }
 
@@ -173,7 +173,8 @@ namespace KillConfirmCompatibility.Validation
                 {
                     detail.Place(screen, new ElementLayout { X = 0.5, Y = 0.5, Scale = scale, Visible = true }, true, true);
                     detail.Render();
-                    var size = detail.PresentedSize;
+                    var size = detail.RasterSize;
+                    if (size.Width != 640 || size.Height != 400) throw new Exception("Zoom changed native canvas size.");
                     detail.ValidatePixelStripes((int)size.Width / 2 - 128, (int)size.Height / 2 + 8, 256);
                     detail.SavePreviewImage(Path.Combine(output, "native-detail-" + scale + "x.png"));
                 }

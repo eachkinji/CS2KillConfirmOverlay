@@ -49,7 +49,7 @@ namespace KillConfirmGameBar
                 StorageFile head = copy ? files["Base_Emblem.png"] : await TryGetCustomPackHeadImageAsync(source);
                 layout.Children.Add(await CreateHeadImageCardAsync(null, head, value => head = value, () => head = null));
                 var fields = new StackPanel { Spacing = 8 };
-                var accent = new TextBox { Header = chinese ? "主题颜色（#RRGGBB）" : "Accent (#RRGGBB)", Text = profile.GetNamedString("accent", "#FF4655") };
+                var accent = new TextBox { Style = PanelResource<Style>("PanelTextBoxStyle"), Header = chinese ? "主题颜色（#RRGGBB）" : "Accent (#RRGGBB)", Text = profile.GetNamedString("accent", "#FF4655") };
                 fields.Children.Add(accent);
                 var numbers = new Dictionary<string, TextBox>();
                 foreach (var field in new[] {
@@ -57,7 +57,7 @@ namespace KillConfirmGameBar
                     (Key: "headshot_y", Label: chinese ? "爆头图标垂直偏移" : "Headshot vertical offset", Default: -20.0),
                     (Key: "slice_size", Label: chinese ? "连杀标记尺寸" : "Kill marker size", Default: 147.0) })
                 {
-                    var box = new TextBox { Header = field.Label, Text = profile.GetNamedNumber(field.Key, field.Default).ToString(CultureInfo.InvariantCulture) };
+                    var box = new TextBox { Style = PanelResource<Style>("PanelTextBoxStyle"), Header = field.Label, Text = profile.GetNamedNumber(field.Key, field.Default).ToString(CultureInfo.InvariantCulture) };
                     numbers[field.Key] = box;
                     fields.Children.Add(box);
                 }

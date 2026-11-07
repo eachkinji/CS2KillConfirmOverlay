@@ -26,7 +26,7 @@ namespace KillConfirmCompatibility.Controls
         internal bool UsesCrossfireStyle2 => _currentCodeAsset != null && _mainAnimationStyle == 2;
         internal void UseDesktopFrameClock() => _timer.UseExternalClock();
         internal void AdvanceDesktopFrame() => _timer.Advance();
-        internal string DesktopPlaybackDiagnostics => $"playing={_timer.IsEnabled}; clock={_playbackClock.ElapsedMilliseconds}; loading={LoadingText.Text}; frame={_currentFrame}; viewport={_logicalFrameWidth}x{_logicalFrameHeight}";
+        internal string DesktopPlaybackDiagnostics => $"playing={_timer.IsEnabled}; clock={_playbackClock.ElapsedMilliseconds}; loading={LoadingText.Text}; frame={_currentFrame}; viewport={_logicalFrameWidth}x{_logicalFrameHeight}; sanguosha={DesktopSanguoshaPath}";
         internal string DesktopPlaybackError { get; private set; }
         internal bool HasOverwatchCardContent { get; private set; }
         internal Windows.Foundation.Rect DesktopRenderViewport => !_isOverwatchActive || (_drawOverwatchCard && _drawOverwatchCrosshair)
@@ -37,6 +37,17 @@ namespace KillConfirmCompatibility.Controls
                 ? new Windows.Foundation.Rect(0, 46, OverwatchFrameWidth, 314)
                 : new Windows.Foundation.Rect((OverwatchFrameWidth - OverwatchCellSize) / 2, (OverwatchFrameHeight - OverwatchCellSize) / 2, OverwatchCellSize, OverwatchCellSize);
         internal double DesktopDisplayFit => GetBaseDisplayFit();
+        internal Windows.Foundation.Size DesktopRasterSize
+        {
+            get
+            {
+                var viewport = DesktopRenderViewport;
+                double scale = GetRenderResolutionScale();
+                return new Windows.Foundation.Size(
+                    KillConfirmCompatibility.Contracts.AnimationRasterPolicy.Pixels(viewport.Width, scale),
+                    KillConfirmCompatibility.Contracts.AnimationRasterPolicy.Pixels(viewport.Height, scale));
+            }
+        }
         private void ReportDesktopPlaybackFailure(Exception error) => DesktopPlaybackError = error.Message;
         public void DrawDesktopFrame(CanvasDrawingSession session, double width, double height, bool cropEmptySpace = false, bool clearTarget = true)
         {
@@ -61,6 +72,7 @@ namespace KillConfirmCompatibility.Controls
             DesktopPlaybackError = null;
             HasOverwatchCardContent = false;
             BeginReplacementPlayback();
+            ResetDesktopSanguoshaLz4();
         }
     }
 }

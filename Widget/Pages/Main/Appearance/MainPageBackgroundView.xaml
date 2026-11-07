@@ -88,5 +88,45 @@
             Opacity="0.08"
             IsHitTestVisible="False" />
 
+        <!-- Data-source cue (CS2 / CSGO / LOL): a coloured wash and an oversized
+             wordmark anchored behind the source dock, independent of the style tint. -->
+        <Ellipse
+            x:Name="SourceWash"
+            Width="820" Height="700"
+            Margin="-360,0,0,-300"
+            HorizontalAlignment="Left" VerticalAlignment="Bottom"
+            Opacity="0"
+            IsHitTestVisible="False">
+            <Ellipse.Fill>
+                <RadialGradientBrush Center="0.5,0.5" GradientOrigin="0.45,0.55" RadiusX="0.5" RadiusY="0.5">
+                    <GradientStop x:Name="SourceWashInner" Color="#00FF8C1A" Offset="0" />
+                    <GradientStop x:Name="SourceWashOuter" Color="#00FF8C1A" Offset="1" />
+                </RadialGradientBrush>
+            </Ellipse.Fill>
+        </Ellipse>
+
+        <Rectangle
+            x:Name="SourceEdge"
+            Width="4"
+            HorizontalAlignment="Left" VerticalAlignment="Stretch"
+            Opacity="0"
+            IsHitTestVisible="False">
+            <Rectangle.Fill>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop x:Name="SourceEdgeTop" Color="#00FF8C1A" Offset="0" />
+                    <GradientStop x:Name="SourceEdgeMid" Color="#00FF8C1A" Offset="0.5" />
+                    <GradientStop x:Name="SourceEdgeBottom" Color="#00FF8C1A" Offset="1" />
+                </LinearGradientBrush>
+            </Rectangle.Fill>
+        </Rectangle>
+
+        <TextBlock
+            x:Name="SourceWatermark"
+            Margin="78,0,0,-34"
+            HorizontalAlignment="Left" VerticalAlignment="Bottom"
+            FontSize="200" FontWeight="Black" CharacterSpacing="-40"
+            Opacity="0"
+            IsHitTestVisible="False" />
+
     </Grid>
 </UserControl>

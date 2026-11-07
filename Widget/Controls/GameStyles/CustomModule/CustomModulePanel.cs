@@ -8,8 +8,8 @@ namespace KillConfirmGameBar.Controls.GameStyles
     // properties live in the custom icon pack editor.
     public sealed class CustomModulePanel : UserControl
     {
-        private readonly TextBlock _title = new TextBlock { FontSize = 15, FontWeight = Windows.UI.Text.FontWeights.SemiBold };
-        private readonly TextBlock _help = new TextBlock { TextWrapping = TextWrapping.Wrap, FontSize = 12 };
+        private readonly TextBlock _title = new TextBlock();
+        private readonly TextBlock _help = new TextBlock();
         private readonly StreakWindowEditor _streak = new StreakWindowEditor();
         private bool _suppress;
 
@@ -19,7 +19,10 @@ namespace KillConfirmGameBar.Controls.GameStyles
 
         public CustomModulePanel()
         {
-            var root = new StackPanel { Spacing = 10 };
+            Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new System.Uri("ms-appx:///Controls/Settings/PanelDesign.xaml") });
+            _title.Style = (Style)Resources["PanelSectionTitleTextStyle"];
+            _help.Style = (Style)Resources["PanelCaptionTextStyle"];
+            var root = new StackPanel { Spacing = 12 };
             foreach (UIElement control in new UIElement[] { _title, _help, _streak })
                 root.Children.Add(control);
             Content = root;

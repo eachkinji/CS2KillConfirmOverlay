@@ -2,6 +2,15 @@
 
 `Settings` contains application-wide settings panels and game-specific advanced settings panels.
 
+## Shared UI standard
+
+Use [the control-panel UI standard](../../../docs/control-panel-ui-standard.md)
+and `PanelDesign.xaml` for typography, spacing, surfaces, fields and buttons.
+Independent controls merge this dictionary locally; legacy style names use
+`BasedOn` aliases. Keep geometry out of `ApplyTheme`, and update the corresponding
+`CompatibilityHost/Integration/Controls` source when a shared control has a desktop copy.
+Run `python Tests/Regression/Test-PanelDesign.py` from the repository root after UI edits.
+
 ## Directory rules
 
 - Put each game-specific settings panel in `Settings/<Game>/`.

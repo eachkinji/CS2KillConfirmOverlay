@@ -1,4 +1,4 @@
-﻿<UserControl
+<UserControl
     x:Class="KillConfirmGameBar.Features.CompatibilityDisplay.Controls.GameStyles.StreakWindowEditor"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
@@ -6,19 +6,19 @@
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="ms-appx:///Features/CompatibilityDisplay/Integration/Home/CompatibilityHome.Styles.xaml" />
+            <ResourceDictionary Source="ms-appx:///Controls/Settings/PanelDesign.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <Border Style="{StaticResource CompactChoiceCardStyle}">
+    <Border Style="{StaticResource PanelSectionCardStyle}">
         <StackPanel Spacing="8">
             <Grid ColumnSpacing="8">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <Border Style="{StaticResource CompactCircleIconStyle}">
+                <Border Style="{StaticResource PanelAccentIconContainerStyle}">
                     <FontIcon
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
@@ -31,12 +31,12 @@
                     x:Name="StreakModeLabel"
                     Grid.Column="1"
                     VerticalAlignment="Center"
-                    Style="{StaticResource CompactChoiceLabelStyle}"
+                    Style="{StaticResource PanelTitleTextStyle}"
                     Text="击杀连杀窗口规则" />
             </Grid>
             <ComboBox
                 x:Name="StreakModeSelector"
-                Style="{StaticResource CompactSettingsComboBoxStyle}"
+                Style="{StaticResource PanelComboBoxStyle}"
                 SelectionChanged="OnStreakModeSelectionChanged">
                 <ComboBoxItem x:Name="StreakLifeItem" Tag="life">单命持续至死亡 (默认)</ComboBoxItem>
                 <ComboBoxItem x:Name="StreakTimed5Item" Tag="timed_5">5秒连杀窗口</ComboBoxItem>
@@ -57,9 +57,8 @@
                 </Grid.ColumnDefinitions>
                 <TextBox
                     x:Name="CustomSecondsBox"
-                    Style="{StaticResource FluentInputStyle}"
+                    Style="{StaticResource PanelTextBoxStyle}"
                     MaxLength="7"
-                    FontSize="12"
                     InputScope="Number"
                     LostFocus="OnCustomSecondsLostFocus"
                     PlaceholderText="1.0" />
@@ -67,9 +66,8 @@
                     x:Name="CustomSecondsHint"
                     Grid.Column="1"
                     VerticalAlignment="Center"
-                    FontSize="12"
-                    Foreground="{StaticResource FluentMutedText}"
-                    Text="秒 (0.1-300)" />
+                    Foreground="{StaticResource PanelTextMutedBrush}"
+                    Text="秒 (0.1-300)" Style="{StaticResource PanelCaptionTextStyle}" />
             </Grid>
 
             <Grid
@@ -83,15 +81,14 @@
                 <ComboBox
                     x:Name="LoopKillCountSelector"
                     MinWidth="90"
-                    Style="{StaticResource CompactSettingsComboBoxStyle}"
+                    Style="{StaticResource PanelComboBoxStyle}"
                     SelectionChanged="OnLoopKillCountSelectionChanged" />
                 <TextBlock
                     x:Name="LoopKillCountHint"
                     Grid.Column="1"
                     VerticalAlignment="Center"
-                    FontSize="12"
-                    Foreground="{StaticResource FluentMutedText}"
-                    Text="后重新从1杀计算" />
+                    Foreground="{StaticResource PanelTextMutedBrush}"
+                    Text="后重新从1杀计算" Style="{StaticResource PanelCaptionTextStyle}" />
             </Grid>
         </StackPanel>
     </Border>

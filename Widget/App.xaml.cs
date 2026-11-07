@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -42,6 +42,16 @@ namespace KillConfirmGameBar
         protected override async void OnLaunched(LaunchActivatedEventArgs e)
         {
             if(e.PrelaunchActivated) return;
+#if NATIVE_CANVAS_VALIDATION
+            await Controls.KillConfirmAnimation.ValidateNativeCanvasAsync();
+            Exit();
+            return;
+#endif
+#if SANGUOSHA_LZ4_VALIDATION
+            await Controls.KillConfirmAnimation.RunSanguoshaLz4ValidationAsync(e.Arguments);
+            Exit();
+            return;
+#endif
 #if WIDGET_SWITCH_VALIDATION
             await KillConfirmWidgetPage.ValidateGameSwitchAsync();
             Exit();

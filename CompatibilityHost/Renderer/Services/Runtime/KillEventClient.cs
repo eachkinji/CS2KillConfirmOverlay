@@ -217,6 +217,7 @@ namespace KillConfirmCompatibility.Services
             }
 
             JsonArray events = batch.GetNamedArray("events", new JsonArray());
+            if (events.Count > 0) await GameSourceSettingsStore.RefreshAsync();
             int delivered = 0;
             foreach (IJsonValue value in events)
             {
@@ -233,6 +234,7 @@ namespace KillConfirmCompatibility.Services
                 }
 
                 KillEvent killEvent = ParseKillEvent(json);
+                if (killEvent.SourceGeneration != GameSourceSettingsStore.Generation) { _cursor = eventId; continue; }
                 if (killEvent.PublishedUnixMs > 0)
                 {
                     ulong nowMs = (ulong)DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
@@ -302,6 +304,7 @@ namespace KillConfirmCompatibility.Services
                 PlayerName = json.GetNamedString("player_name", string.Empty),
                 TargetName = json.GetNamedString("target_name", string.Empty),
                 SteamId = json.GetNamedString("steamid", string.Empty),
+                SourceGeneration = ToUInt64(json.GetNamedNumber("source_generation", 0)),
                 PublishedUnixMs = ToUInt64(json.GetNamedNumber("published_unix_ms", 0))
             };
         }
@@ -310,13 +313,13 @@ namespace KillConfirmCompatibility.Services
         {
             if (_dispatcher == null)
             {
-                KillReceived?.Invoke(this, killEvent);
+                if (killEvent.SourceGeneration == GameSourceSettingsStore.Generation) KillReceived?.Invoke(this, killEvent);
                 return;
             }
 
             await _dispatcher.RunAsync(CoreDispatcherPriority.High, () =>
             {
-                KillReceived?.Invoke(this, killEvent);
+                if (killEvent.SourceGeneration == GameSourceSettingsStore.Generation) KillReceived?.Invoke(this, killEvent);
             });
         }
 

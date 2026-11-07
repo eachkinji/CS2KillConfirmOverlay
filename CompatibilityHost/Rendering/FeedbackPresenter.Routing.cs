@@ -24,6 +24,9 @@ namespace KillConfirmCompatibility
             // objective, assist, death and kill reactions stay independent.
             DanmakuEvent?.Invoke(killEvent);
 
+            // An explicitly disabled icon pack leaves audio and danmaku independent.
+            if (!Controls.KillConfirmAnimation.IsIconFeedbackEnabled) return;
+
             if (string.Equals(killEvent.EventKind, "player_death", StringComparison.OrdinalIgnoreCase))
             {
                 return;

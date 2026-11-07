@@ -4,20 +4,22 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:KillConfirmGameBar.Controls.GameStyles">
 
+    <UserControl.Resources>
+        <ResourceDictionary>
+        <ResourceDictionary.MergedDictionaries>
+            <ResourceDictionary Source="ms-appx:///Controls/Settings/PanelDesign.xaml" />
+        </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
     <Border
-        x:Name="EditorCard"
-        Padding="12"
-        BorderThickness="1"
-        CornerRadius="11">
+        x:Name="EditorCard" Style="{StaticResource PanelSectionCardStyle}">
         <StackPanel Spacing="8">
             <TextBlock
-                x:Name="TitleText"
-                FontSize="12"
-                FontWeight="SemiBold" />
+                x:Name="TitleText" Style="{StaticResource PanelTitleTextStyle}" />
             <TextBlock
                 x:Name="HintText"
-                FontSize="10"
-                TextWrapping="WrapWholeWords" />
+                TextWrapping="WrapWholeWords" Style="{StaticResource PanelCaptionTextStyle}" />
             <local:KillFeedbackAppearanceRow
                 x:Name="CrosshairRow"
                 CrosshairOffsetChanged="OnCrosshairOffsetChanged"

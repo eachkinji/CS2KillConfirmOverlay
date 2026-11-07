@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -26,6 +26,7 @@ namespace KillConfirmGameBar
                 try
                 {
 #if DESKTOP_CONTROL_PANEL
+                    if (Environment.GetEnvironmentVariable("KILLCONFIRM_GAME_SOURCE_VALIDATION") == "1") { await Task.Delay(500); await ValidateGameSourceUiAsync(); return; }
                     if (Environment.GetEnvironmentVariable("KILLCONFIRM_SIDEBAR_VALIDATION") == "1")
                     {
                         await Task.Delay(500);
@@ -51,8 +52,7 @@ namespace KillConfirmGameBar
                     await Task.Delay(100);
                     if (_isHomePageSelected || CompatibilityPageContent.Content != null || AdvancedSettingsTabBar.Visibility != Visibility.Visible || AdvancedSettingsContent.Visibility != Visibility.Visible) throw new Exception("Advanced settings did not replace the home workspace");
                     foreach (var tab in new[] { "general", "port", "display", "about" }) SelectHomeTab(tab);
-                    var gameItem = GameStyleSidebarSelector.MenuItems.OfType<NavigationViewItem>().First(i => (string)i.Tag == "crossfire");
-                    GameStyleSidebarSelector.SelectedItem = gameItem;
+                    OpenPackLibrary(GameStyleMode.Crossfire, "combat");
                     await Task.Delay(250);
                     if (_isSettingsWorkspaceSelected || GamePageContent.Visibility != Visibility.Visible) throw new Exception("Game configuration is not an independent destination");
                     GameStyleSidebarSelector.SelectedItem = HomeSidebarItem;
@@ -115,7 +115,10 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             HomeView.QueueRapidValidationChanges(styles);
             await Task.Delay(500);
             await HomeView.ValidateGameAsync(styles.Last());
-            Width = 640; await CaptureUiAsync("home-compact"); Width = double.NaN;
+            Width = 640;
+            await CaptureUiAsync("home-compact");
+            ValidateCompactHomeLayout();
+            Width = double.NaN;
             HomeView.ValidateStatusCards();
             await HomeView.ValidatePlaybackButtonAsync();
             await ValidateHomePreviewAsync();
@@ -124,6 +127,18 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             CompatibilityDisplayRuntime.Update(c => c.Enabled = false);
             ApplyModeSelection(false);
         }
+        private void ValidateCompactHomeLayout()
+        {
+            var selector = MainGameSelector.TransformToVisual(StatusStripGrid).TransformBounds(
+                new Windows.Foundation.Rect(0, 0, MainGameSelector.ActualWidth, MainGameSelector.ActualHeight));
+            var actions = StatusActions.TransformToVisual(StatusStripGrid).TransformBounds(
+                new Windows.Foundation.Rect(0, 0, StatusActions.ActualWidth, StatusActions.ActualHeight));
+            if (selector.Right > StatusStripGrid.ActualWidth + 1 || actions.Right > selector.Left
+                || Grid.GetRow(MainGameSelector) != 1 || Grid.GetRow(StatusActions) != 1)
+                throw new Exception("Compact status strip clips its actions or game selector.");
+            HomeView.ValidateCompactPlaybackLayout();
+        }
+
         private async Task ValidateHomePreviewAsync()
         {
             KillConfirmCompatibility.Contracts.DisplayFiles.Write(CompatibilityDisplayRuntime.StatusPath,
@@ -135,7 +150,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             KillConfirmCompatibility.Contracts.DisplayFiles.Write(CompatibilityDisplayRuntime.StatusPath,
                 new KillConfirmCompatibility.Contracts.DisplayStatus { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), ProcessId = 1, Style = GameStyleService.ToStorageValue(GameStyleService.Current), AssetRevision = CompatibilityDisplayRuntime.Load().AssetRevision, LastTestRequest = preview.TestRequest });
             for (int attempt = 0; attempt < 40 && _previewing; attempt++) await Task.Delay(50);
-            if (_previewing || StatusText.Text != HomeView.PreviewFeedback) throw new Exception("Home preview did not show playback feedback beside its action.");
+            if (_previewing || !string.IsNullOrEmpty(HomeView.PreviewFeedback)) throw new Exception("Completed preview retained an unnecessary success notice.");
         }
         private async Task CaptureUiAsync(string name)
         {
@@ -152,14 +167,28 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
     public sealed partial class CompatibilityHomeView
     {
         internal static bool IsUiValidation => Package.Current.Id.Name == "KillConfirmCompatibility.UIValidation";
+        internal void ValidateCompactPlaybackLayout()
+        {
+            var fields = new[] { PackTestSectionView.AudioVolumeSelector, PackTestSectionView.RasterQualitySelector, PackTestSectionView.TestPresetSelector };
+            var bounds = fields.Select(field => field.TransformToVisual(PackTestSectionView).TransformBounds(
+                new Windows.Foundation.Rect(0, 0, field.ActualWidth, field.ActualHeight))).ToArray();
+            var action = PackTestSectionView.SendTestButton.TransformToVisual(PackTestSectionView).TransformBounds(
+                new Windows.Foundation.Rect(0, 0, PackTestSectionView.SendTestButton.ActualWidth, PackTestSectionView.SendTestButton.ActualHeight));
+            if (bounds.Any(b => b.Width < 140 || b.Right > PackTestSectionView.ActualWidth + 1)
+                || action.Y < bounds.Max(b => b.Bottom) || action.Right > PackTestSectionView.ActualWidth + 1)
+                throw new Exception("Compact playback fields are clipped or actions did not move to the next row.");
+        }
         internal async Task ValidateDanmakuButtonAsync()
         {
             bool previousEnabled = Danmaku.DanmakuSettingsStore.IsEnabled;
+            bool zh = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            string disabledHint = zh ? "开启游戏事件弹幕" : "Enable game event danmaku";
+            string previewAcknowledgement = zh ? "弹幕已在屏幕上预览" : "Danmaku previewed on screen";
             try
             {
                 Danmaku.DanmakuSettingsStore.IsEnabled = false;
                 Danmaku.DanmakuSettingsStore.RequestTest();
-                if (!PackTestSectionView.TestFeedbackText.Text.Contains("开启游戏事件弹幕")) throw new Exception("Disabled danmaku test did not explain how to enable it.");
+                if (!PackTestSectionView.TestFeedbackText.Text.Contains(disabledHint)) throw new Exception("Disabled danmaku test did not explain how to enable it.");
                 Danmaku.DanmakuSettingsStore.IsEnabled = true;
                 foreach (string failure in new string[] { null, "弹幕区域已隐藏（测试）" })
                 {
@@ -174,11 +203,11 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                         new KillConfirmCompatibility.Contracts.DisplayStatus { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), ProcessId = 1, Style = GameStyleService.ToStorageValue(GameStyleService.Current), AssetRevision = CompatibilityDisplayRuntime.Load().AssetRevision, LastDanmakuTestRequest = request.DanmakuTestRequest, DanmakuTestError = failure });
                     for (int attempt = 0; attempt < 40; attempt++)
                     {
-                        bool acknowledged = failure == null ? PackTestSectionView.TestFeedbackText.Text.Contains("弹幕已在屏幕上预览") : PackTestSectionView.TestFeedbackText.Text == failure;
+                        bool acknowledged = failure == null ? PackTestSectionView.TestFeedbackText.Text.Contains(previewAcknowledgement) : PackTestSectionView.TestFeedbackText.Text == failure;
                         if (acknowledged) break;
                         await Task.Delay(50);
                     }
-                    if (failure == null ? !PackTestSectionView.TestFeedbackText.Text.Contains("弹幕已在屏幕上预览") : PackTestSectionView.TestFeedbackText.Text != failure)
+                    if (failure == null ? !PackTestSectionView.TestFeedbackText.Text.Contains(previewAcknowledgement) : PackTestSectionView.TestFeedbackText.Text != failure)
                         throw new Exception("Danmaku test did not show the display acknowledgement/error: " + PackTestSectionView.TestFeedbackText.Text);
                 }
                 CompatibilityDisplayRuntime.Update(c => c.Enabled = false);
@@ -239,9 +268,13 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                 KillConfirmCompatibility.Contracts.DisplayFiles.Write(CompatibilityDisplayRuntime.StatusPath,
                     new KillConfirmCompatibility.Contracts.DisplayStatus { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), ProcessId = 1, Style = GameStyleService.ToStorageValue(GameStyleService.Current), AssetRevision = CompatibilityDisplayRuntime.Load().AssetRevision, LastTestRequest = request.TestRequest, TestError = testError });
                 for (int attempt = 0; attempt < 40 && _testInProgress; attempt++) await Task.Delay(50);
-                if (_testInProgress || PackTestSectionView.TestFeedbackText.Visibility != Visibility.Visible)
-                    throw new Exception("Playback test did not finish with inline feedback");
-                if (testError != null && PackTestSectionView.TestFeedbackText.Text != testError)
+                if (_testInProgress)
+                    throw new Exception("Playback test did not finish");
+                if (testError == null && (PackTestSectionView.TestFeedbackText.Visibility != Visibility.Collapsed
+                    || !string.IsNullOrEmpty(PackTestSectionView.TestFeedbackText.Text)))
+                    throw new Exception("Successful playback retained the removed confirmation message");
+                if (testError != null && (PackTestSectionView.TestFeedbackText.Visibility != Visibility.Visible
+                    || PackTestSectionView.TestFeedbackText.Text != testError))
                     throw new Exception("Playback failure was hidden from the user");
             }
         }
@@ -251,7 +284,9 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             int attempts = 0;
             while ((!_packSelectorsInitialized || GameStyleService.Current != style) && ++attempts < 400) await Task.Delay(25);
             if (!_packSelectorsInitialized || GameStyleService.Current != style) throw new Exception("Game switch failed: " + style + "; active=" + _isPageActive + "; current=" + GameStyleService.Current + "; revision=" + _revision + "; error=" + _lastRefreshError);
-            if (GameSelector.Items.Count != Enum.GetValues(typeof(GameStyleMode)).Length || PackTestSectionView.VoicePackSelector.SelectedItem == null || PackTestSectionView.IconPackSelector.SelectedItem == null || PackTestSectionView.AdvancedEffectsPanelHost.Content == null) throw new Exception("Incomplete game home: " + style);
+            if (GameSelector.Items.OfType<ComboBoxItem>().Count(i => i.IsEnabled) != Enum.GetValues(typeof(GameStyleMode)).Length
+                || GameSelector.Items.OfType<ComboBoxItem>().Count(GameSelectorPresentation.IsGameCategoryHeader) != 7
+                || GameSelector.Items.OfType<ComboBoxItem>().Any(i => GameSelectorPresentation.IsGameCategoryHeader(i) && (i.IsEnabled || i.IsTabStop || i.IsHitTestVisible)) || PackTestSectionView.VoicePackSelector.SelectedItem == null || PackTestSectionView.IconPackSelector.SelectedItem == null || PackTestSectionView.AdvancedEffectsPanelHost.Content == null) throw new Exception("Incomplete game home: " + style);
         }
         internal void QueueRapidValidationChanges(GameStyleMode[] styles)
         {

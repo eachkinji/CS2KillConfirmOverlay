@@ -6,6 +6,7 @@ const EVENT_QUEUE_CAPACITY: usize = 1024;
 #[derive(Clone, Debug, Serialize)]
 pub struct SequencedKillEvent {
     pub id: u64,
+    pub source_generation: u64,
     #[serde(flatten)]
     pub event: KillEvent,
     #[serde(skip_serializing_if = "is_zero_u64")]
@@ -32,6 +33,8 @@ pub struct EventBatch {
 
 pub struct EventJournal {
     next_id: AtomicU64,
+    source_generation: AtomicU64,
+    discarded_through: AtomicU64,
     queue: Mutex<VecDeque<SequencedKillEvent>>,
     notify: Notify,
 }
@@ -40,6 +43,8 @@ impl Default for EventJournal {
     fn default() -> Self {
         Self {
             next_id: AtomicU64::new(0),
+            source_generation: AtomicU64::new(0),
+            discarded_through: AtomicU64::new(0),
             queue: Mutex::new(VecDeque::with_capacity(EVENT_QUEUE_CAPACITY)),
             notify: Notify::new(),
         }
@@ -47,6 +52,15 @@ impl Default for EventJournal {
 }
 
 impl EventJournal {
+    pub async fn reset_source(&self, generation: u64) {
+        let mut queue = self.queue.lock().await;
+        queue.clear();
+        self.discarded_through
+            .store(self.latest_cursor(), Ordering::Release);
+        self.source_generation.store(generation, Ordering::Release);
+        self.notify.notify_waiters();
+    }
+
     pub fn latest_cursor(&self) -> u64 {
         self.next_id.load(Ordering::Acquire)
     }
@@ -57,6 +71,7 @@ impl EventJournal {
         let id = self.next_id.fetch_add(1, Ordering::AcqRel) + 1;
         queue.push_back(SequencedKillEvent {
             id,
+            source_generation: self.source_generation.load(Ordering::Acquire),
             event,
             published_unix_ms,
         });
@@ -85,7 +100,8 @@ impl EventJournal {
 
     async fn events_after(&self, after: u64) -> Option<EventBatch> {
         let latest = self.next_id.load(Ordering::Acquire);
-        let effective_after = if after > latest { 0 } else { after };
+        let effective_after = (if after > latest { 0 } else { after })
+            .max(self.discarded_through.load(Ordering::Acquire));
         let queue = self.queue.lock().await;
         let oldest_id = queue.front().map(|event| event.id).unwrap_or(0);
         let events = queue

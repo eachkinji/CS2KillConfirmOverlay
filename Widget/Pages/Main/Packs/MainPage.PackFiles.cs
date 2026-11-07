@@ -144,7 +144,7 @@ namespace KillConfirmGameBar
         private async Task ShowMessageAsync(string title, string message)
         {
             var theme = SettingsTheme;
-            var body = new TextBlock { Text = message, TextWrapping = TextWrapping.Wrap, FontSize = 14, Foreground = new SolidColorBrush(theme.Text) };
+            var body = new TextBlock { Style = PanelResource<Style>("PanelBodyTextStyle"), Text = message, TextWrapping = TextWrapping.Wrap, Foreground = new SolidColorBrush(theme.Text) };
             var scroll = new ScrollViewer { Content = body, MaxHeight = 320, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled };
             var dialog = CreatePackStatusDialog(title, scroll,
                 LocalizationManager.Current == UiLanguage.SimplifiedChinese ? "知道了" : "OK");

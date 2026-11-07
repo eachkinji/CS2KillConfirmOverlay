@@ -3,6 +3,14 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
+    <UserControl.Resources>
+        <ResourceDictionary>
+        <ResourceDictionary.MergedDictionaries>
+            <ResourceDictionary Source="ms-appx:///Controls/Settings/PanelDesign.xaml" />
+        </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
     <Grid
         HorizontalAlignment="Stretch"
         RowSpacing="8"
@@ -16,14 +24,14 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <Border Style="{StaticResource CompactChoiceCardStyle}">
+        <Border Style="{StaticResource PanelSectionCardStyle}">
             <StackPanel Spacing="6">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <Border Style="{StaticResource CompactCircleIconStyle}">
+                    <Border Style="{StaticResource PanelAccentIconContainerStyle}">
                         <Viewbox
                             Width="13"
                             Height="13"
@@ -41,12 +49,12 @@
                         x:Name="KillFxLabelText"
                         Grid.Column="1"
                         VerticalAlignment="Center"
-                        Style="{StaticResource CompactChoiceLabelStyle}"
+                        Style="{StaticResource PanelTitleTextStyle}"
                         Text="Kill FX" />
                 </Grid>
                 <ComboBox
                     x:Name="KillFxSelector"
-                    Style="{StaticResource CompactSettingsComboBoxStyle}"
+                    Style="{StaticResource PanelComboBoxStyle}"
                     SelectedIndex="0">
                     <ComboBoxItem x:Name="KillFxPackItem" Tag="1">AUTO</ComboBoxItem>
                     <ComboBoxItem x:Name="KillFxOffItem" Tag="0">OFF</ComboBoxItem>
@@ -55,14 +63,14 @@
             </StackPanel>
         </Border>
 
-        <Border Grid.Column="1" Style="{StaticResource CompactChoiceCardStyle}">
+        <Border Grid.Column="1" Style="{StaticResource PanelSectionCardStyle}">
             <StackPanel Spacing="6">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <Border Style="{StaticResource CompactCircleIconStyle}">
+                    <Border Style="{StaticResource PanelAccentIconContainerStyle}">
                         <Viewbox
                             Width="13"
                             Height="13"
@@ -80,12 +88,12 @@
                         x:Name="EliteOverlayLabelText"
                         Grid.Column="1"
                         VerticalAlignment="Center"
-                        Style="{StaticResource CompactChoiceLabelStyle}"
+                        Style="{StaticResource PanelTitleTextStyle}"
                         Text="Elite overlay" />
                 </Grid>
                 <ComboBox
                     x:Name="EliteEffectSelector"
-                    Style="{StaticResource CompactSettingsComboBoxStyle}"
+                    Style="{StaticResource PanelComboBoxStyle}"
                     SelectedIndex="0">
                     <ComboBoxItem x:Name="EliteLevelOffItem" Tag="0">OFF</ComboBoxItem>
                     <ComboBoxItem x:Name="EliteLevel1Item" Tag="1">Elite 1</ComboBoxItem>
@@ -98,14 +106,14 @@
             </StackPanel>
         </Border>
 
-        <Border Grid.Row="1" Style="{StaticResource CompactChoiceCardStyle}">
+        <Border Grid.Row="1" Style="{StaticResource PanelSectionCardStyle}">
             <StackPanel Spacing="6">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <Border Style="{StaticResource CompactCircleIconStyle}">
+                    <Border Style="{StaticResource PanelAccentIconContainerStyle}">
                         <Viewbox
                             Width="13"
                             Height="13"
@@ -123,12 +131,12 @@
                         x:Name="WeaponBadgeLabelText"
                         Grid.Column="1"
                         VerticalAlignment="Center"
-                        Style="{StaticResource CompactChoiceLabelStyle}"
+                        Style="{StaticResource PanelTitleTextStyle}"
                         Text="Weapon badge" />
                 </Grid>
                 <ComboBox
                     x:Name="WeaponBadgeSelector"
-                    Style="{StaticResource CompactSettingsComboBoxStyle}"
+                    Style="{StaticResource PanelComboBoxStyle}"
                     SelectedIndex="0">
                     <ComboBoxItem x:Name="WeaponBadgeOnItem" Tag="1">AUTO</ComboBoxItem>
                     <ComboBoxItem x:Name="WeaponBadgeOffItem" Tag="0">OFF</ComboBoxItem>
@@ -137,14 +145,14 @@
             </StackPanel>
         </Border>
 
-        <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource CompactChoiceCardStyle}">
+        <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource PanelSectionCardStyle}">
             <StackPanel Spacing="6">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <Border Style="{StaticResource CompactCircleIconStyle}">
+                    <Border Style="{StaticResource PanelAccentIconContainerStyle}">
                         <Viewbox
                             Width="13"
                             Height="13"
@@ -162,12 +170,12 @@
                         x:Name="MainAnimationLabelText"
                         Grid.Column="1"
                         VerticalAlignment="Center"
-                        Style="{StaticResource CompactChoiceLabelStyle}"
+                        Style="{StaticResource PanelTitleTextStyle}"
                         Text="Main icon animation" />
                 </Grid>
                 <ComboBox
                     x:Name="MainAnimationStyleSelector"
-                    Style="{StaticResource CompactSettingsComboBoxStyle}"
+                    Style="{StaticResource PanelComboBoxStyle}"
                     SelectedIndex="0">
                     <ComboBoxItem x:Name="AnimationStyle1Item" Tag="1">Style 1</ComboBoxItem>
                     <ComboBoxItem x:Name="AnimationStyle2Item" Tag="2">Style 2</ComboBoxItem>

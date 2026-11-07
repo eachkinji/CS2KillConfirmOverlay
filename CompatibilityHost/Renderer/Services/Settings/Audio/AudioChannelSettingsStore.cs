@@ -42,19 +42,26 @@ namespace KillConfirmCompatibility.Services
             if (values.TryGetValue(Key(style), out object saved) && saved is string text
                 && JsonObject.TryParse(text, out JsonObject json))
             {
-                return new AudioChannelPreferences
+                var preferences = new AudioChannelPreferences
                 {
-                    SoundEffectPack = json.GetNamedString("sound_effect", "none"),
-                    CharacterVoicePack = json.GetNamedString("character_voice", "none"),
-                    SoundEffectVolume = Clamp(json.GetNamedNumber("sound_effect_volume", 100)),
-                    CharacterVoiceVolume = Clamp(json.GetNamedNumber("character_voice_volume", 100)),
+                    SoundEffectPack = GameStyleService.NormalizeRetiredSanguoshaPackKey(json.GetNamedString("sound_effect", "none")),
+                    CharacterVoicePack = GameStyleService.NormalizeRetiredSanguoshaPackKey(json.GetNamedString("character_voice", "none")),
+                    SoundEffectVolume = 100,
+                    CharacterVoiceVolume = 100,
                     CharacterVoiceInterrupt = json.GetNamedBoolean("voice_interrupt_previous", true),
                     LinkIconAndSound = json.GetNamedBoolean("link_icon_sound", false)
                 };
+                if (json.GetNamedNumber("sound_effect_volume", 100) != 100
+                    || json.GetNamedNumber("character_voice_volume", 100) != 100
+                    || preferences.SoundEffectPack != json.GetNamedString("sound_effect", "none")
+                    || preferences.CharacterVoicePack != json.GetNamedString("character_voice", "none"))
+                    Save(style, preferences);
+                return preferences;
             }
 
             // A separate versioned value makes migration idempotent, including an
             // explicit "none" selection. Keep the original selection for downgrades.
+            legacyPreset = GameStyleService.NormalizeRetiredSanguoshaPackKey(legacyPreset);
             var result = new AudioChannelPreferences
             {
                 SoundEffectPack = style == GameStyleMode.Crossfire ? "none" : legacyPreset ?? "none",
@@ -69,6 +76,8 @@ namespace KillConfirmCompatibility.Services
 
         public static void Save(GameStyleMode style, AudioChannelPreferences preferences)
         {
+            // Master volume is the sole gain control; retire old hidden per-channel attenuation.
+            preferences.SoundEffectVolume = preferences.CharacterVoiceVolume = 100;
             ApplicationData.Current.LocalSettings.Values[Key(style)] = Serialize(preferences);
         }
 

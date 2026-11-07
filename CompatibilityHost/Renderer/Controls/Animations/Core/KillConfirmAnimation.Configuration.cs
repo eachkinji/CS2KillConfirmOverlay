@@ -61,12 +61,14 @@ namespace KillConfirmCompatibility.Controls
             SpriteCanvas?.Invalidate();
         }
 
+        public static bool IsIconFeedbackEnabled => !string.Equals(_iconPack, "none", StringComparison.OrdinalIgnoreCase);
+
         public static void ConfigureIconPack(string iconPack)
         {
             string normalized = string.IsNullOrWhiteSpace(iconPack)
                 ? "default"
                 : iconPack.Trim().ToLowerInvariant();
-            if (normalized != "vip"
+            if (normalized != "none" && normalized != "vip"
                 && GetIconPackFolder(normalized) == null
                 && !ValorantPackService.IsValorantPackKey(normalized)
                 && !GameStyleService.IsBattlefield1Key(normalized)
@@ -127,6 +129,7 @@ namespace KillConfirmCompatibility.Controls
 
         public void ReleaseAnimationResourcesForPackChange()
         {
+            ResetDesktopSanguoshaLz4();
             ReleaseCustomSequence();
             _resourceGeneration++;
             _playToken++;
@@ -150,6 +153,7 @@ namespace KillConfirmCompatibility.Controls
             ResetOverwatchState();
             ResetApexFeedState();
             ResetModernWarfare2019State();
+            DisposeSanguoshaRenderer();
             Visibility = Visibility.Collapsed;
             ReleaseAllAnimationResourceCaches();
             SpriteCanvas?.Invalidate();

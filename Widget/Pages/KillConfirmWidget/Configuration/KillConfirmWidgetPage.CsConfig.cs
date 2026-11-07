@@ -89,7 +89,12 @@ namespace KillConfirmGameBar
         {
             _ = Dispatcher.RunAsync(
                 Windows.UI.Core.CoreDispatcherPriority.Normal,
-                () => { _ = LoadSavedCsFolderAsync(); });
+                () => {
+                    _autoCloseGameExitActiveDetected = false;
+                    _autoCloseGameExitSilentChecks = 0;
+                    _gsiRecentlySeen = false;
+                    _ = LoadSavedCsFolderAsync();
+                });
         }
 
         private async void OnSelectCsFolderClick(object sender, RoutedEventArgs e)
@@ -148,6 +153,10 @@ namespace KillConfirmGameBar
 
         private async Task LoadSavedCsFolderAsync()
         {
+            if (GameSourceSettingsStore.IsLol) {
+                UpdateCfgStatus(CfgDetectionState.Ready, "LOL", "Live Client Data API");
+                return;
+            }
             _loadedCsGameVersion = GsiGameVersionSettingsStore.Load();
             _csInstallFolder = null;
             _serviceDetectedCsRootPath = string.Empty;
@@ -174,6 +183,7 @@ namespace KillConfirmGameBar
 
         private async Task TryAutoDetectCsFolderAsync()
         {
+            if (GameSourceSettingsStore.IsLol) return;
             if (_csInstallFolder != null)
             {
                 return;
@@ -244,6 +254,7 @@ namespace KillConfirmGameBar
 
         private async Task RefreshCfgStatusAsync()
         {
+            if (GameSourceSettingsStore.IsLol) return;
             if (_csInstallFolder == null)
             {
                 UpdateCfgStatus(CfgDetectionState.NotSelected, null, LocalizationManager.Text("CfgSelectRootHint"));
@@ -290,6 +301,7 @@ namespace KillConfirmGameBar
 
         private async Task InstallCfgAsync()
         {
+            if (GameSourceSettingsStore.IsLol) return;
             if (_csInstallFolder == null && !string.IsNullOrWhiteSpace(_serviceDetectedCsRootPath))
             {
                 await InstallCfgThroughServiceAsync();
@@ -323,6 +335,7 @@ namespace KillConfirmGameBar
 
         private async Task InstallCfgThroughServiceAsync()
         {
+            if (GameSourceSettingsStore.IsLol) return;
             try
             {
                 UpdateCfgStatus(CfgDetectionState.Checking, LocalizationManager.Text("CfgAdding"), _serviceDetectedCsRootPath);

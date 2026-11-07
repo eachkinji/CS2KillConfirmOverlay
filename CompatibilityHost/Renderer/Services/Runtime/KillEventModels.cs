@@ -62,6 +62,7 @@ namespace KillConfirmCompatibility.Services
         public string TargetName { get; set; }
         public string SteamId { get; set; }
         public ulong PublishedUnixMs { get; set; }
+        public ulong SourceGeneration { get; set; }
 
         public bool IsCombatEvent
         {

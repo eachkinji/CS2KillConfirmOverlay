@@ -1,4 +1,4 @@
-﻿using KillConfirmCompatibility.Contracts;
+using KillConfirmCompatibility.Contracts;
 using KillConfirmCompatibility.Controls;
 using KillConfirmCompatibility.Danmaku;
 using KillConfirmCompatibility.Desktop.Windowing;
@@ -48,6 +48,7 @@ namespace KillConfirmCompatibility.Desktop.Runtime
         private System.Threading.Tasks.Task _statusWrite = System.Threading.Tasks.Task.CompletedTask;
         private readonly bool _shutdownApplicationOnClose;
         private IntPtr _gameWindow;
+        private string _windowGameSource;
         private DateTimeOffset _nextFind, _nextRegister, _nextStatus, _previewUntil;
         private int _lastPort;
         internal long PresentationCallbacks { get; private set; }
@@ -229,6 +230,13 @@ namespace KillConfirmCompatibility.Desktop.Runtime
                     _style = style;
                 }
                 if (!_surfaces.Any(surface => surface.IsDragging)) _layout = _configuration.GetLayout(_style);
+                int quality = Contracts.AnimationRasterPolicy.ReadForGame(DesktopStorage.Current.LocalSettings.Values, GameStyleService.ToStorageValue(GameStyleService.Current));
+                if (Contracts.AnimationRasterPolicy.MaxEdge != quality)
+                {
+                    Contracts.AnimationRasterPolicy.Configure(quality);
+                    _presenter.LowerFeedbackAnimation.RefreshRasterQuality(); _presenter.LowerBadgeAnimation.RefreshRasterQuality();
+                    _presenter.CrosshairFeedbackAnimation.RefreshRasterQuality(); _presenter.UpperFeedbackAnimation.RefreshRasterQuality();
+                }
                 string signature = _style + "|" + _configuration.AssetRevision + "|" + DesktopStorage.Current.LocalSettings.Values["KillIconPack." + _style] + "|" + DesktopStorage.Current.LocalSettings.Values["KillEliteEffect"] + "|" + DesktopStorage.Current.LocalSettings.Values["KillWeaponBadge"] + "|" + DesktopStorage.Current.LocalSettings.Values["KillFxEnabled"] + "|" + DesktopStorage.Current.LocalSettings.Values["MainAnimationStyle"] + "|" + File.GetLastWriteTimeUtc(Path.Combine(DesktopStorage.Current.LocalFolder.Path, "pack-catalog.json")).Ticks;
                 if (_lastSignature != signature && _applyingConfiguration.IsCompleted) { _configuredAssetRevision = _configuration.AssetRevision; _applyingConfiguration = _presenter.ApplyConfigurationAsync(); _lastSignature = signature; _renderError = null; }
                 if (_applyingConfiguration.IsCompleted)
@@ -243,6 +251,11 @@ namespace KillConfirmCompatibility.Desktop.Runtime
                 if (monitor.Size == 0) monitor = screens.FirstOrDefault(s => (s.Flags & 1) != 0);
                 if (monitor.Size == 0) monitor = screens[0];
                 NativeWindows.Rect bounds = monitor.Monitor;
+                if (_windowGameSource != GameSourceSettingsStore.Current) {
+                    _windowGameSource = GameSourceSettingsStore.Current;
+                    _gameWindow = IntPtr.Zero;
+                    _nextFind = DateTimeOffset.MinValue;
+                }
                 if (DateTimeOffset.UtcNow >= _nextFind) { _gameWindow = NativeWindows.FindGameWindow(); _nextFind = DateTimeOffset.UtcNow.AddSeconds(2); }
                 bool hasGame = NativeWindows.TryGameBounds(_gameWindow, out var gameBounds);
                 if (_configuration.FollowGame && hasGame) bounds = gameBounds;

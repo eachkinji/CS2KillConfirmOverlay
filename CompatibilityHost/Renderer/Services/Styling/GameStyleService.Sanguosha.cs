@@ -4,7 +4,6 @@ namespace KillConfirmCompatibility.Services
     internal static partial class GameStyleService
     {
         public const string SanguoshaPackKey = "sanguosha";
-        public const string SanguoshaGuanjiePackKey = "sanguosha_guanjie";
         public const int SanguoshaMaxStreakTier = 8;
         public const int SanguoshaHeadshotTier = 9;
         public const int SanguoshaKnifeTier = 10;
@@ -22,13 +21,14 @@ namespace KillConfirmCompatibility.Services
 
         public static string SanguoshaPreviewAssetPath(string key)
         {
-            switch ((key ?? string.Empty).Trim().ToLowerInvariant())
-            {
-                case SanguoshaGuanjiePackKey:
-                    return "Assets/GameStyles/sanguosha/previews/sanguosha_guanjie.png";
-                default:
-                    return "Assets/GameLogos/sanguosha.png";
-            }
+            return "Assets/GameLogos/sanguosha.png";
+        }
+
+        // Upgrade selections saved by releases that included the retired rank pack.
+        public static string NormalizeRetiredSanguoshaPackKey(string key)
+        {
+            return string.Equals((key ?? string.Empty).Trim(), "sanguosha_guanjie", System.StringComparison.OrdinalIgnoreCase)
+                ? SanguoshaPackKey : key;
         }
 
         public static string SanguoshaPreviewUri(string key)

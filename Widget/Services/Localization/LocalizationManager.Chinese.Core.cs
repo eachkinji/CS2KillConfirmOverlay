@@ -163,7 +163,7 @@ namespace KillConfirmGameBar.Services
             ["ClassKnife"] = "\u8fd1\u6218\u52cb\u7ae0\uff08\u9644\u52a0\u56fe\u6807\uff09",
             ["PackManager"] = "\u56fe\u6807 / \u8bed\u97f3\u5305\u7ba1\u7406",
             ["PackTestHeader"] = "\u56fe\u6807\u5305\u4e0e\u8bed\u97f3\u5305",
-            ["VisualHeader"] = "\u89c6\u89c9\u8bbe\u7f6e",
+            ["VisualHeader"] = "视听设置",
             ["GameStyleTitle"] = "\u6e38\u620f\u6837\u5f0f",
             ["GameStyleTooltip"] = "\u5207\u6362 CF \u754c\u9762\u548c\u74e6\u6d1b\u5170\u7279\u754c\u9762\u3002\u74e6\u6d1b\u5170\u7279\u6a21\u5f0f\u4f1a\u6682\u65f6\u9690\u85cf CF \u4e13\u5c5e\u5305\u3002",
             ["GameStyleCrossfireShort"] = "CF",
@@ -232,7 +232,6 @@ namespace KillConfirmGameBar.Services
             ["deltaforce"] = "\u4e09\u89d2\u6d32\u884c\u52a8",
             ["doubao"] = "\u8c46\u5305",
             ["sanguosha"] = "三国杀 · 十周年连破播报",
-            ["sanguosha_guanjie"] = "三国杀 · 官阶破敌神兵",
             ["dagoujiao"] = "\u5927\u72d7\u53eb",
 
             // Built-in Icon Names

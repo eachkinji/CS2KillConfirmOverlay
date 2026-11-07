@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -31,6 +31,7 @@ namespace KillConfirmGameBar
             InitializeComponent();
             ControlTheme.Apply(this, GameThemePalette.Home);
             InitializeCompatibilityWorkspace();
+            InitializeSourceDock();
             ApplyLanguage();
             Loaded += OnLoaded;
             Unloaded += OnUnloaded;
@@ -123,14 +124,14 @@ namespace KillConfirmGameBar
             if (isActive)
             {
                 btn.Background = new SolidColorBrush(Color.FromArgb(255, 255, 255, 255));
-                btn.Foreground = new SolidColorBrush(Color.FromArgb(255, 28, 28, 30));
+                btn.Foreground = new SolidColorBrush(PanelResource<Color>("PanelTextPrimaryColor"));
                 btn.BorderBrush = new SolidColorBrush(Color.FromArgb(0, 0, 0, 0));
                 btn.BorderThickness = new Thickness(0);
             }
             else
             {
                 btn.Background = new SolidColorBrush(Colors.Transparent);
-                btn.Foreground = new SolidColorBrush(Color.FromArgb(255, 110, 110, 115));
+                btn.Foreground = new SolidColorBrush(PanelResource<Color>("PanelTextMutedColor"));
                 btn.BorderBrush = new SolidColorBrush(Colors.Transparent);
                 btn.BorderThickness = new Thickness(0);
             }

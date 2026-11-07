@@ -1,0 +1,13 @@
+{
+  "battlefield6": {
+    "source": "https://drop-assets.ea.com/images/4kbsx0T0Nk4d0NoEPmjX9o/3de945f398cfe52d93ed365ae964ccc7/Logo_Wordmark_Secondary_White_Compressed.svg",
+    "localSource": "SourceAssets\\GameLogos\\battlefield6-wordmark-white.svg",
+    "treatment": "Exact original numeral path; monochrome dark fill for light UI; transparent background; vector rasterization at 256x256. No AI-generated artwork.",
+    "runtime": "Widget\\Assets\\GameLogos\\battlefield6.png",
+    "sha256": "da806f3a0841a44e410d387d8adb5a54b73e2b6790eea418272d36817e1de19d"
+  },
+  "battlefield5": {
+    "runtime": "Widget/Assets/GameLogos/battlefield5.png",
+    "treatment": "Preserved existing transparent V artwork; remove UI-added background only."
+  }
+}

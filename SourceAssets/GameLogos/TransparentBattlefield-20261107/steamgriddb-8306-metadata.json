@@ -1,0 +1,37 @@
+{
+  "id": 8306,
+  "style": "official",
+  "width": 0,
+  "height": 0,
+  "nsfw": false,
+  "humor": false,
+  "notes": null,
+  "language": "en",
+  "url": "https://cdn2.steamgriddb.com/icon/7fc9fd4c6654dea5be92c8ffd53bea1e.ico",
+  "thumb": "https://cdn2.steamgriddb.com/icon/7fc9fd4c6654dea5be92c8ffd53bea1e/32/256x256.png",
+  "lock": false,
+  "epilepsy": false,
+  "upvotes": 0,
+  "downvotes": 0,
+  "downloads": 114,
+  "hearts": 7,
+  "can_vote": false,
+  "date": 1633954177,
+  "mime": "image/vnd.microsoft.icon",
+  "is_animated": false,
+  "is_deleted": false,
+  "animation_type": null,
+  "processing": false,
+  "show_boop": true,
+  "author": {
+    "name": "Peggin",
+    "steam64": "76561198131438627",
+    "avatar": "https://avatars.steamstatic.com/0531c7da1055b9d84ee4d6227c0533e2c24950d2.jpg",
+    "badges": []
+  },
+  "extra_data": {
+    "32": {
+      "256": "https://cdn2.steamgriddb.com/icon/7fc9fd4c6654dea5be92c8ffd53bea1e/32/256x256.png"
+    }
+  }
+}

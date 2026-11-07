@@ -15,6 +15,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                 ? null
                 : ValorantExternalAssetService.FindIconPackKeyByAssociation(associationId);
             if (GameStyleService.Current != GameStyleMode.Valorant
+                || GetSelectedIconPack() == "none"
                 || !ValorantPackSyncSettingsStore.Load()
                 || string.IsNullOrWhiteSpace(iconPack)
                 || !HasPackOption(PackTestSectionView.IconPackSelector, iconPack))
@@ -37,6 +38,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                 ? null
                 : ValorantExternalAssetService.FindVoicePackKeyByAssociation(associationId);
             if (GameStyleService.Current != GameStyleMode.Valorant
+                || GetSelectedIconPack() == "none"
                 || !ValorantPackSyncSettingsStore.Load()
                 || string.IsNullOrWhiteSpace(voicePack)
                 || !HasPackOption(PackTestSectionView.VoicePackSelector, voicePack))

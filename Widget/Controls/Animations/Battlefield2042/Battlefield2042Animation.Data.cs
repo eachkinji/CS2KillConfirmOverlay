@@ -77,7 +77,7 @@ namespace KillConfirmGameBar.Controls
         {
             FontFamily = "Bahnschrift",
             FontSize = 12,
-            FontWeight = FontWeights.SemiBold
+            FontWeight = FontWeights.Bold
         };
 
         private static readonly Battlefield2042CurveKey[] Battlefield2042AnimSkullAlphaCurve =

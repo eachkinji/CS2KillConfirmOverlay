@@ -82,6 +82,8 @@ pub struct AppState {
     pub spectated_kill_effects_enabled: AtomicBool,
     pub bomb_audio_paths: std::sync::Mutex<BombAudioPaths>,
     pub gsi_game_version: AtomicU8,
+    pub game_source: RwLock<crate::game_sources::Selection>,
+    pub lol_status: RwLock<crate::game_sources::lol::Status>,
     pub events: EventJournal,
     pub ui_process_ids: RwLock<HashSet<u32>>,
     pub shutdown_tx: broadcast::Sender<()>,

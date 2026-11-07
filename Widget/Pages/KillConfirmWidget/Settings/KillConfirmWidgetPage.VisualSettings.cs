@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using KillConfirmGameBar.Services;
 using Windows.Storage;
@@ -10,6 +10,33 @@ namespace KillConfirmGameBar
 {
     public sealed partial class KillConfirmWidgetPage
     {
+        private void LoadRasterQuality()
+        {
+            var quality = KillConfirmCompatibility.Contracts.AnimationRasterPolicy.ReadForGame(ApplicationData.Current.LocalSettings.Values, GameStyleService.ToStorageValue(GameStyleService.Current));
+            bool previous = _suppressVisualAdjustmentEvents;
+            _suppressVisualAdjustmentEvents = true;
+            foreach (ComboBoxItem item in PackTestSectionView.RasterQualitySelector.Items)
+                if ((string)item.Tag == quality.ToString()) { PackTestSectionView.RasterQualitySelector.SelectedItem = item; break; }
+            _suppressVisualAdjustmentEvents = previous;
+            if (KillConfirmCompatibility.Contracts.AnimationRasterPolicy.MaxEdge != quality)
+            {
+                KillConfirmCompatibility.Contracts.AnimationRasterPolicy.Configure(quality);
+                LowerFeedbackAnimation?.RefreshRasterQuality(); LowerBadgeAnimation?.RefreshRasterQuality();
+                CrosshairFeedbackAnimation?.RefreshRasterQuality(); UpperFeedbackAnimation?.RefreshRasterQuality();
+            }
+        }
+        private void OnRasterQualitySelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_suppressVisualAdjustmentEvents || !(PackTestSectionView.RasterQualitySelector.SelectedItem is ComboBoxItem selected)) return;
+            int quality = KillConfirmCompatibility.Contracts.AnimationRasterPolicy.Normalize(selected.Tag);
+            ApplicationData.Current.LocalSettings.Values[KillConfirmCompatibility.Contracts.AnimationRasterPolicy.GameSettingKey(GameStyleService.ToStorageValue(GameStyleService.Current))] = quality;
+            if (KillConfirmCompatibility.Contracts.AnimationRasterPolicy.MaxEdge != quality)
+            {
+                KillConfirmCompatibility.Contracts.AnimationRasterPolicy.Configure(quality);
+                LowerFeedbackAnimation?.RefreshRasterQuality(); LowerBadgeAnimation?.RefreshRasterQuality();
+                CrosshairFeedbackAnimation?.RefreshRasterQuality(); UpperFeedbackAnimation?.RefreshRasterQuality();
+            }
+        }
         private void OnBrightnessSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             ApplyVisualAdjustmentSettings();
@@ -44,6 +71,7 @@ namespace KillConfirmGameBar
         // settings or start the service while the control tree is initializing.
         private void LoadAudioVolumeSelection()
         {
+            LoadRasterQuality();
             double value = ReadAudioVolumeSetting(ApplicationData.Current.LocalSettings);
             if (double.IsNaN(value) || double.IsInfinity(value)) value = DefaultAudioVolumeValue;
             value = Math.Max(0, Math.Min(200, value));

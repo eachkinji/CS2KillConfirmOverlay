@@ -23,19 +23,31 @@ namespace KillConfirmCompatibility.Controls
         private readonly List<CropEffect> _crops = new List<CropEffect>();
         private readonly List<ColorMatrixEffect> _tints = new List<ColorMatrixEffect>();
         private int _tintCursor;
+        private SanguoshaDraw[] _sampleBuffer;
+
+        public void RenderDirectAtTime(CanvasDrawingSession session, SanguoshaClip clip, CanvasBitmap[] pages, TimeSpan elapsed, Matrix3x2 baseTransform)
+        {
+            SanguoshaDraw[] draws = clip.SampleFrame(elapsed, ref _sampleBuffer, out int count);
+            RenderDirectFrame(session, clip, pages, draws, count, baseTransform);
+        }
 
         // Direct hardware sprite-batch path used during live HUD playback when a clip contains
-        // no Screen-blend draws (all 22 built-in Sanguosha clips have HasScreen == false).
+        // no Screen-blend draws (all 11 built-in Sanguosha clips have HasScreen == false).
         // Avoids allocating/clearing/blitting 3 full-screen offscreen CanvasRenderTargets per frame.
         public void RenderDirect(CanvasDrawingSession session, SanguoshaClip clip, CanvasBitmap[] pages, int frame, Matrix3x2 baseTransform)
         {
             if (clip?.Frames == null || clip.Frames.Length == 0) return;
             SanguoshaDraw[] draws = clip.Frames[Math.Max(0, Math.Min(clip.Frames.Length - 1, frame))];
+            RenderDirectFrame(session, clip, pages, draws, draws.Length, baseTransform);
+        }
+
+        private void RenderDirectFrame(CanvasDrawingSession session, SanguoshaClip clip, CanvasBitmap[] pages, SanguoshaDraw[] draws, int count, Matrix3x2 baseTransform)
+        {
             _tintCursor = 0;
             Matrix3x2 previous = session.Transform;
             try
             {
-                for (int i = 0; i < draws.Length; i++)
+                for (int i = 0; i < count; i++)
                 {
                     DrawCommand(session, clip, pages, ref draws[i], baseTransform);
                 }
@@ -43,11 +55,23 @@ namespace KillConfirmCompatibility.Controls
             finally
             {
                 session.Transform = previous;
-                ReleaseFrameEffectSources();
+                ReleaseUnusedFrameEffectSources(_tintCursor);
             }
         }
 
         public CanvasRenderTarget Render(CanvasDevice device, SanguoshaClip clip, CanvasBitmap[] pages, int frame, float pixelScale)
+        {
+            SanguoshaDraw[] draws = clip.Frames[Math.Max(0, Math.Min(clip.Frames.Length - 1, frame))];
+            return RenderFrame(device, clip, pages, draws, draws.Length, pixelScale);
+        }
+
+        public CanvasRenderTarget RenderAtTime(CanvasDevice device, SanguoshaClip clip, CanvasBitmap[] pages, TimeSpan elapsed, float pixelScale)
+        {
+            SanguoshaDraw[] draws = clip.SampleFrame(elapsed, ref _sampleBuffer, out int count);
+            return RenderFrame(device, clip, pages, draws, count, pixelScale);
+        }
+
+        private CanvasRenderTarget RenderFrame(CanvasDevice device, SanguoshaClip clip, CanvasBitmap[] pages, SanguoshaDraw[] draws, int count, float pixelScale)
         {
             int width = Math.Max(1, (int)Math.Ceiling(clip.DesignWidth * pixelScale));
             int height = Math.Max(1, (int)Math.Ceiling(clip.DesignHeight * pixelScale));
@@ -59,13 +83,12 @@ namespace KillConfirmCompatibility.Controls
             }
             _tintCursor = 0;
 
-            SanguoshaDraw[] draws = clip.Frames[Math.Max(0, Math.Min(clip.Frames.Length - 1, frame))];
             Matrix3x2 toPixels = Matrix3x2.CreateScale(pixelScale);
             CanvasDrawingSession session = _accumulate.CreateDrawingSession();
             try
             {
                 session.Clear(Colors.Transparent);
-                for (int i = 0; i < draws.Length; i++)
+                for (int i = 0; i < count; i++)
                 {
                     if (draws[i].Blend != SanguoshaBlend.Screen)
                     {
@@ -178,9 +201,14 @@ namespace KillConfirmCompatibility.Controls
             return _tints[_tintCursor++];
         }
 
-        private void ReleaseFrameEffectSources()
+        internal void ReleaseFrameEffectSources()
         {
-            for (int i = 0; i < _tintCursor; i++)
+            ReleaseUnusedFrameEffectSources(0);
+        }
+
+        private void ReleaseUnusedFrameEffectSources(int activeCount)
+        {
+            for (int i = activeCount; i < _tints.Count; i++)
             {
                 _tints[i].Source = null;
                 _crops[i].Source = null;
@@ -228,6 +256,7 @@ namespace KillConfirmCompatibility.Controls
             _tints.Clear();
             _crops.Clear();
             _tintCursor = 0;
+            _sampleBuffer = null;
         }
     }
 }

@@ -1,7 +1,9 @@
 using System;
+using System.Linq;
 using KillConfirmCompatibility.Contracts;
 using KillConfirmGameBar.Services;
 using Windows.UI.Xaml;
+using Windows.UI.Xaml.Media;
 
 namespace KillConfirmGameBar.Controls
 {
@@ -23,7 +25,10 @@ namespace KillConfirmGameBar.Controls
                 ? requestedAt - (double)publishedUnixMs : 0;
             int tier = GameStyleService.SanguoshaTier(killCount);
             int generation = _resourceGeneration;
-            int token = BeginReplacementPlayback();
+            _sanguoshaRetainWarmOnce = _sanguoshaLz4Tier == tier && IsSanguoshaLz4ConfigurationCurrent();
+            int token;
+            try { token = BeginReplacementPlayback(); }
+            finally { _sanguoshaRetainWarmOnce = false; }
 
             try
             {
@@ -37,6 +42,8 @@ namespace KillConfirmGameBar.Controls
                 }
 
                 if (assets == null || generation != _resourceGeneration || token != _playToken) return;
+                await EnsureSanguoshaPagesAsync(assets);
+                if (generation != _resourceGeneration || token != _playToken) { if (!IsSanguoshaTierOnScreen(assets)) ReleaseSanguoshaPages(assets); return; }
                 PrepareSanguoshaPlayback(assets, Math.Min(transportMs + loadingClock.Elapsed.TotalMilliseconds, 1000));
             }
             catch (Exception error)
@@ -80,7 +87,7 @@ namespace KillConfirmGameBar.Controls
 
             lock (SanguoshaTiersOnScreen) SanguoshaTiersOnScreen.Add(assets);
             _sanguoshaCurrent = assets;
-            _sanguoshaShake = new SanguoshaShake(assets.Clip, Environment.TickCount);
+            _sanguoshaShake = new SanguoshaShake(assets.Clip, 20261107);
             _sanguoshaStartOffsetMs = Math.Max(0, startOffsetMs);
             _isSanguoshaActive = true;
             _currentMetadata = new SpriteMetadata
@@ -97,42 +104,102 @@ namespace KillConfirmGameBar.Controls
             _timer.Interval = TimeSpan.FromMilliseconds(1000.0 / FrameSequenceFps);
             _playbackClock.Restart();
             SpriteCanvas.Invalidate();
-            _timer.Start();
+            StartSanguoshaFrameClock();
         }
 
-        private void ResetSanguoshaState() => ResetSanguoshaState(null);
+        private void ResetSanguoshaState() => ResetSanguoshaState(null, _sanguoshaRetainWarmOnce);
 
-        private void ResetSanguoshaState(SanguoshaTierAssets keep)
+        private void ResetSanguoshaState(SanguoshaTierAssets keep) => ResetSanguoshaState(keep, false);
+        private void ResetSanguoshaState(SanguoshaTierAssets keep, bool retainWarm)
         {
+            StopSanguoshaFrameClock();
+            if (keep == null && !retainWarm) DisposeSanguoshaLz4Playback();
             _isSanguoshaActive = false;
             _sanguoshaShake = null;
             _sanguoshaStartOffsetMs = 0;
+            if (keep == null) _sanguoshaRenderer?.ReleaseFrameEffectSources();
             SanguoshaTierAssets finished = _sanguoshaCurrent;
             _sanguoshaCurrent = null;
             if (finished == null || finished == keep) return;
             lock (SanguoshaTiersOnScreen) SanguoshaTiersOnScreen.Remove(finished);
-            bool stillCached;
-            lock (SanguoshaTiers)
-                stillCached = SanguoshaTiers.TryGetValue(finished.Tier, out SanguoshaTierAssets cached) && cached == finished;
-            if (!stillCached)
-                ReleaseUnusedSanguoshaPages(finished.Pages);
+            bool cached;
+            lock (SanguoshaTiers) cached = SanguoshaTiers.Values.Contains(finished);
+            if (cached) TrimNativeSanguoshaPages(); else ReleaseSanguoshaPages(finished);
+            if (retainWarm && _sanguoshaLz4Playback != null)
+            {
+                try { _sanguoshaLz4Playback.RequestFrame(0); }
+                catch (Exception error) { _sanguoshaFallbackReason = "warm prefetch: " + error.Message; DisposeSanguoshaLz4Playback(); }
+            }
         }
 
         private void UpdateSanguoshaFrame()
         {
             SanguoshaTierAssets assets = _sanguoshaCurrent;
+#if SANGUOSHA_LZ4_VALIDATION
+            if (_sanguoshaValidationLoop && assets != null && SanguoshaElapsedMs >= assets.Clip.Length.TotalMilliseconds)
+                _sanguoshaStartOffsetMs -= assets.Clip.Length.TotalMilliseconds;
+#endif
             // SgsSkeletonEffect.PLAY_COMPLETE at the end of the Spine animation also removes
             // the modal background (NewKillEffect.hideModalBg).
             if (assets == null || SanguoshaElapsedMs >= assets.Clip.Length.TotalMilliseconds)
             {
                 _timer.Stop();
                 _playbackClock.Stop();
-                ResetSanguoshaState();
+                ResetSanguoshaState(null, IsSanguoshaLz4ConfigurationCurrent());
                 Visibility = Visibility.Collapsed;
                 return;
             }
 
             SpriteCanvas.Invalidate();
+        }
+        private void StartSanguoshaFrameClock()
+        {
+            _timer.Stop(); StopSanguoshaFrameClock();
+            if (_sanguoshaLz4Playback != null && IsSanguoshaLz4ConfigurationCurrent())
+            {
+                if (_sanguoshaAnimatedSurface == null)
+                {
+                    _sanguoshaAnimatedSurface = new SanguoshaAnimatedSurface(Dispatcher);
+                    Viewport.Children.Insert(1, _sanguoshaAnimatedSurface.Control);
+                }
+                var profile = _sanguoshaLz4Profile; int token = _playToken;
+                SpriteCanvas.Visibility = Visibility.Collapsed; SpriteCanvas.Width = 0; SpriteCanvas.Height = 0;
+                _sanguoshaAnimatedSurface.Start(_sanguoshaLz4Playback, profile.Width, profile.Height, profile.WidthDips, profile.HeightDips,
+                    profile.Dpi, SanguoshaElapsedMs,
+                    () => { if (token == _playToken) { _playbackClock.Stop(); ResetSanguoshaState(null, true); Visibility = Visibility.Collapsed; } },
+                    error => { if (token == _playToken) { _sanguoshaFallbackReason = "animated decode: " + error.Message; DisposeSanguoshaLz4Playback(); RequestSanguoshaRasterChange(_sanguoshaCurrent); } });
+                return;
+            }
+            SpriteCanvas.Width = Viewport.Width; SpriteCanvas.Height = Viewport.Height; SpriteCanvas.Visibility = Visibility.Visible;
+            _sanguoshaLastCompositionTicks = -1; _sanguoshaNextPresentationMs = 0;
+            _sanguoshaRenderingAttached = true; CompositionTarget.Rendering += OnSanguoshaCompositionRendering;
+        }
+        private void StopSanguoshaFrameClock()
+        {
+            _sanguoshaAnimatedSurface?.Pause();
+            if (!_sanguoshaRenderingAttached) return;
+            CompositionTarget.Rendering -= OnSanguoshaCompositionRendering; _sanguoshaRenderingAttached = false;
+        }
+        private void OnSanguoshaAnimationUnloaded(object sender, RoutedEventArgs e)
+        {
+            if (!_isSanguoshaActive && _sanguoshaLz4Playback == null && _sanguoshaPreparingToken == 0 && !_sanguoshaRasterChangePending && !_sanguoshaPreloadPending) return;
+            _playToken++; _sanguoshaPreparationRevision++; _sanguoshaRetainWarmOnce = false;
+            if (_isSanguoshaActive) { _timer.Stop(); _playbackClock.Stop(); }
+            ResetSanguoshaState(); DisposeSanguoshaRenderer();
+        }
+        private void OnSanguoshaCompositionRendering(object sender, object value)
+        {
+            if (!_isSanguoshaActive) { StopSanguoshaFrameClock(); return; }
+            var rendering = value as RenderingEventArgs;
+            long stamp = rendering == null ? _playbackClock.Elapsed.Ticks : rendering.RenderingTime.Ticks;
+            if (stamp == _sanguoshaLastCompositionTicks) return;
+            if (_sanguoshaLastCompositionTicks < 0) _sanguoshaCompositionOriginTicks = stamp;
+            _sanguoshaLastCompositionTicks = stamp;
+            double ms = (stamp - _sanguoshaCompositionOriginTicks) / (double)TimeSpan.TicksPerMillisecond;
+            const double period = 1000.0 / 60;
+            if (ms + .1 < _sanguoshaNextPresentationMs) return;
+            _sanguoshaNextPresentationMs = (Math.Floor((ms + .1) / period) + 1) * period;
+            UpdateSanguoshaFrame();
         }
     }
 }

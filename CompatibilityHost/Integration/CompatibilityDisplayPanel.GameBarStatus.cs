@@ -117,7 +117,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                     : (isChinese ? "需要关闭" : "Action needed"));
         }
 
-        private static void SetGameBarStatusRow(
+        private void SetGameBarStatusRow(
             Ellipse dot,
             TextBlock detail,
             TextBlock badge,
@@ -126,10 +126,10 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             string badgeText)
         {
             Color color = !success.HasValue
-                ? Color.FromArgb(255, 142, 142, 147)
+                ? StatusGray
                 : success.Value
-                    ? Color.FromArgb(255, 52, 199, 89)
-                    : Color.FromArgb(255, 255, 59, 48);
+                    ? StatusGreen
+                    : StatusRed;
             dot.Fill = new SolidColorBrush(color);
             detail.Text = detailText;
             badge.Text = badgeText;

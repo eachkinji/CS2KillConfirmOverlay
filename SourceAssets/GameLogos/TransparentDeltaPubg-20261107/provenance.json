@@ -1,0 +1,77 @@
+{
+  "verified_date": "2026-11-07",
+  "scope": "Only Delta Force and PUBG individual game icons explicitly approved by the user. No other runtime assets modified by this asset step.",
+  "assets": [
+    {
+      "game": "deltaforce",
+      "source_page": "https://df.qq.com/",
+      "asset_url": "https://game.gtimg.cn/images/dfm/favicon.ico",
+      "source_file": "SourceAssets/GameLogos/TransparentDeltaPubg-20261107/delta-official-favicon.ico",
+      "source_sha256": "dc61539f542ab173eb89079fdb804761f35086fd5ae044068cbf44255b4d0f12",
+      "runtime_file": "Widget/Assets/GameLogos/deltaforce.png",
+      "runtime_sha256": "57d10f7f1b6bab85e3df6bca9d81645e414329fd20f316cfa90302fb75ac3cf6",
+      "size": [
+        128,
+        128
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "corner_alpha_tl_tr_bl_br": [
+        0,
+        0,
+        0,
+        4
+      ],
+      "fully_transparent_percent": 64.172,
+      "alpha_bbox": [
+        1,
+        7,
+        128,
+        128
+      ],
+      "transformation": "Largest native ICO image decoded to PNG; identical RGBA pixels, no resizing or recoloring.",
+      "before_backup": "Output/TransparentDeltaPubg-20261107/before/deltaforce.png",
+      "before_sha256": "f2bc671cc49dcefbda0a503b62f92555a2f6398313248429229df328844b1849"
+    },
+    {
+      "game": "pubg",
+      "source_page": "https://press.krafton.com/PUBG/Focus/Logo-PUBG-Battlegrounds",
+      "asset_url": "https://imgeucdn.gamespress.com/cdn/files/Krafton/2021/06/30085540-bde4d92c-9a8b-467c-9302-b149c374c795/PUBG_BG_Full_Flat_Color_2048.png?w=360&mode=max&otf=y&quality=90&format=png&bgcolor=transparent&sky=dbf1fe99a9b173747f8a7ad84ec637850230cbf9e2215fed04fdc4e4eb1b9017",
+      "source_file": "SourceAssets/GameLogos/TransparentDeltaPubg-20261107/pubg-official-color.png",
+      "source_sha256": "22b90ab691e6d383e2a6cd94c5c18c0b6bcdad6c994c2100ec9b28fcf8a6a387",
+      "runtime_file": "Widget/Assets/GameLogos/pubg.png",
+      "runtime_sha256": "55e5ffaa0ddd9a87e3dcc363b513bec5754f05eadf129200c30c7340a7fd4336",
+      "size": [
+        102,
+        57
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "corner_alpha_tl_tr_bl_br": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "fully_transparent_percent": 44.72,
+      "alpha_bbox": [
+        4,
+        2,
+        98,
+        53
+      ],
+      "transformation": "Exact rectangle [131, 0, 233, 57] from the official transparent 360 x 125 PNG. Complete existing boxed PUBG mark including registered-trademark symbol retained. Only separate BATTLEGROUNDS line excluded. No pixel recoloring, redraw, or resize.",
+      "before_backup": "Output/TransparentDeltaPubg-20261107/before/pubg.png",
+      "before_sha256": "7ea6fac4b9dad4ba5d226e17ca2c7f92c6b605d31fbe05580dfc91690f7efb3a"
+    }
+  ],
+  "notes": [
+    "Official source transparency retained. No AI images, synthetic logo outlines, tiles, or color replacement.",
+    "Delta bottom-right corner alpha 4 is native edge antialiasing from the diagonal mark, not an opaque background.",
+    "PUBG press-room public logo is a CDN-served PNG derivative of the publisher original. Raw downloaded bytes retained."
+  ]
+}

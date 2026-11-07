@@ -84,7 +84,7 @@ namespace KillConfirmCompatibility.Desktop.Runtime
         {
             var style = GameStyleService.Current;
             string voice = DesktopStorage.Current.LocalSettings.Values["VoicePack." + GameStyleService.ToStorageValue(style)] as string;
-            return string.IsNullOrWhiteSpace(voice) ? GameStyleService.DefaultVoicePackKey(style) : voice;
+            return string.IsNullOrWhiteSpace(voice) ? GameStyleService.DefaultVoicePackKey(style) : GameStyleService.NormalizeRetiredSanguoshaPackKey(voice);
         }
         private static void LaunchService()
         {

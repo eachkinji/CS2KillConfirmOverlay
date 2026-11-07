@@ -1,4 +1,4 @@
-using Windows.UI.Xaml;
+﻿using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
 namespace KillConfirmGameBar.Features.CompatibilityDisplay
@@ -13,6 +13,21 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             KillConfirmGameBar.Services.PackSelectorItem.Configure(IconPackSelector, false);
         }
 
+        private bool? _playbackControlsCompact;
+        private void OnPlaybackControlsSizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (e.NewSize.Width <= 0) return;
+            // Keep the three fields readable; move the entire action group as
+            // one unit so keyboard order and event handlers remain unchanged.
+            bool compact = e.NewSize.Width < 840;
+            if (_playbackControlsCompact == compact) return;
+            _playbackControlsCompact = compact;
+            PlaybackControlsGrid.RowSpacing = compact ? 12 : 0;
+            Grid.SetRow(PlaybackActions, compact ? 1 : 0);
+            Grid.SetColumn(PlaybackActions, compact ? 0 : 3);
+            Grid.SetColumnSpan(PlaybackActions, compact ? 4 : 1);
+        }
+
         public event SelectionChangedEventHandler CharacterVoicePackSelectionChanged;
         public event RoutedEventHandler AudioChannelSettingsChanged;
         private void OnCharacterVoicePackSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -21,8 +36,9 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             => AudioChannelSettingsChanged?.Invoke(sender, new RoutedEventArgs());
         public void ApplyAudioLanguage(bool zh)
         {
-            SoundEffectVolumeLabel.Text = zh ? "音效音量" : "Sound effects";
-            CharacterVoiceVolumeLabel.Text = zh ? "语音音量" : "Character voice";
+            Windows.UI.Xaml.Automation.AutomationProperties.SetName(RasterQualitySelector, zh ? "清晰度" : "Render quality");
+            ToolTipService.SetToolTip(RasterQualitySelector, zh ? "清晰度" : "Render quality");
+            RasterQualityLabel.Text = zh ? "清晰度" : "Render quality";
             VoicePackLabel.Text = zh ? "音效包" : "Sound effect pack";
             CharacterVoicePackLabel.Text = zh ? "语音包" : "Voice pack";
             VolumeLabel.Text = zh ? "总音量" : "Master volume";
@@ -31,6 +47,9 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         public event SelectionChangedEventHandler VoicePackSelectionChanged;
         public event SelectionChangedEventHandler IconPackSelectionChanged;
         public event RoutedEventHandler AdvancedEffectsRequested;
+        public event SelectionChangedEventHandler RasterQualitySelectionChanged;
+        private void OnRasterQualitySelectionChanged(object sender, SelectionChangedEventArgs e)
+            => RasterQualitySelectionChanged?.Invoke(sender, e);
         public event SelectionChangedEventHandler AudioVolumeSelectionChanged;
         public event RoutedEventHandler TestEventRequested;
         public event RoutedEventHandler RepeatTestRequested;

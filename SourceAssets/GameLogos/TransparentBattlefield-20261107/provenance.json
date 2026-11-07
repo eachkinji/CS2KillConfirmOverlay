@@ -1,0 +1,137 @@
+{
+  "created": "2026-11-07",
+  "scope": "Only Battlefield 4 and Battlefield 2042 authorized built-in game logos",
+  "items": [
+    {
+      "game": "battlefield4",
+      "source_url": "https://eaassets-a.akamaihd.net/battlelog/bb/bf4/logos/bf4-logo-large-37d340cd.png",
+      "source_page": "https://battlelog.battlefield.com/bf4/",
+      "source_file": "SourceAssets/GameLogos/TransparentBattlefield-20261107/official-bf4-large.png",
+      "source_sha256": "75471935871039fe5cf383075f59e06f9b4f80f1b499e4fff2d5514f2a1d58b3",
+      "source_dimensions": [
+        992,
+        185
+      ],
+      "extraction": "Unchanged rectangle from native transparent official PNG. No background removal, color edit, drawing, upscaling, or edge repair.",
+      "crop_box_exclusive": [
+        889,
+        0,
+        992,
+        185
+      ],
+      "output_file": "Widget/Assets/GameLogos/battlefield4.png",
+      "output_dimensions": [
+        103,
+        185
+      ],
+      "output_sha256": "d69e0165a9eb5d1764bceac30226797650fd890b329933c60f1a5f7ac5cd679d",
+      "backup_file": "F:\\KillConfirm FIX\\KillConfirm FIX\\Output\\BattlefieldNumberLogoSources-20261107\\backups\\battlefield4.png",
+      "backup_sha256": "60c9d500aaf44ac29e4d82c12768f66a261a8cd903b8f92856583c86c9a54b7c",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 8665,
+      "partial_alpha_pixels": 792,
+      "pixel_equality_to_source_rectangle": true,
+      "note": "Original small trademark mark retained inside rectangular region to preserve source pixels."
+    },
+    {
+      "game": "battlefield2042",
+      "source_url": "https://cdn2.steamgriddb.com/icon/7fc9fd4c6654dea5be92c8ffd53bea1e.ico",
+      "source_page": "https://www.steamgriddb.com/icon/8306",
+      "source_author": "Peggin (SteamGridDB uploader)",
+      "source_attribution": "Existing square BF plus vertical 2042 mark, tagged official by the SteamGridDB upload. Downloaded as an existing transparent ICO, matching the user reference; this is community-hosted source evidence, not a direct EA download.",
+      "source_file": "SourceAssets/GameLogos/TransparentBattlefield-20261107/steamgriddb-8306-original.ico",
+      "source_sha256": "d28a500acdf73cde1134ff1da9e8a56343dcd12a92b426959b24119d10812cb8",
+      "source_dimensions": [
+        256,
+        256
+      ],
+      "source_metadata_file": "SourceAssets/GameLogos/TransparentBattlefield-20261107/steamgriddb-8306-metadata.json",
+      "user_reference_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTEYKDHkyEovoCMiE58eKHDhlIMcaaWL7uTFeLoP8bAgw&s=10",
+      "user_reference_file": "SourceAssets/GameLogos/TransparentBattlefield-20261107/user-square-reference.jpg",
+      "extraction": "Decode original 256x256 RGBA ICO image and save unchanged pixels as PNG. No crop, recolor, background removal, redrawing, glyph rearrangement, or scaling.",
+      "output_file": "Widget/Assets/GameLogos/battlefield2042.png",
+      "output_dimensions": [
+        256,
+        256
+      ],
+      "output_sha256": "0e6e54de7edd7f67349fdd555ce56cefcd0984c76359683520a37e4225d34026",
+      "backup_file": "F:\\KillConfirm FIX\\KillConfirm FIX\\Output\\BattlefieldNumberLogoSources-20261107\\backups\\battlefield2042.png",
+      "backup_sha256": "a4295f6dc4978957764fd7277276d1f95ae6b359373862fe74f9d98220d8dd6b",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 35761,
+      "partial_alpha_pixels": 6858,
+      "corner_alpha": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pixel_equality_to_source_ico": true,
+      "pixel_equality_to_source_host_png": true,
+      "final_choice_reason": "Exact square BF plus vertical 2042 composition requested in the user-provided reference; replaces the rejected horizontal numeric extraction.",
+      "previous_mint_numeric_candidate": {
+        "game": "battlefield2042",
+        "source_url": "https://upload.wikimedia.org/wikipedia/commons/3/3b/Battlefield_2042_logo.svg",
+        "source_page": "https://commons.wikimedia.org/wiki/File:Battlefield_2042_logo.svg",
+        "source_file": "SourceAssets/GameLogos/TransparentBattlefield-20261107/commons-bf2042.svg",
+        "source_sha256": "52028eca092b344c7d68ca98dbe6b421b67cc1831e4e7d42f5a832ad4a2170b7",
+        "source_dimensions": [
+          500,
+          148
+        ],
+        "extraction": "Retained original numeric SVG path suffix verbatim (from M151.902 147.597 through final Z), and original fill #26FFDF. Set viewport to the numeric bounds and rasterized with resvg-py 0.5.0; no drawing, typeface replacement, recoloring, background, or edge repair.",
+        "output_file": "Widget/Assets/GameLogos/battlefield2042.png",
+        "output_dimensions": [
+          764,
+          131
+        ],
+        "output_sha256": "fc686c182e499f80fc10c9cc81c082b672094a7e317a154212c203949d62e15d",
+        "backup_file": "F:\\KillConfirm FIX\\KillConfirm FIX\\Output\\BattlefieldNumberLogoSources-20261107\\backups\\battlefield2042.png",
+        "backup_sha256": "a4295f6dc4978957764fd7277276d1f95ae6b359373862fe74f9d98220d8dd6b",
+        "alpha_min": 0,
+        "alpha_max": 255,
+        "transparent_pixels": 73979,
+        "partial_alpha_pixels": 2046,
+        "previous_official_white_candidate": {
+          "source_url": "https://drop-assets.ea.com/images/48oaw5wwZtHa3vQozWRBsK/d8c5f4b0c32698c9ebf7d2b0fb6fb520/Battlefield-2042-Primary-White-Logo.png",
+          "source_page": "https://www.ea.com/games/battlefield/battlefield-2042",
+          "source_file": "SourceAssets/GameLogos/TransparentBattlefield-20261107/official-bf2042-primary.png",
+          "source_sha256": "04aa2bcef1cdf34c425408731a74d980a8043cd0186e3080702bc1a3ee824e44",
+          "source_dimensions": [
+            1920,
+            566
+          ],
+          "crop_box_exclusive": [
+            581,
+            438,
+            1320,
+            566
+          ],
+          "output_sha256": "35ae02f5b35b007101651254e720698e8f5c2f69d914ce4095620d4d7481529d",
+          "output_dimensions": [
+            739,
+            128
+          ]
+        },
+        "source_author": "EA DICE (Wikimedia Commons metadata)",
+        "source_attribution": "Wikimedia Commons source attribution: Own work using EA Battlefield 2042 official website. This is the Commons-hosted original mint logo variant, not a direct EA CDN download.",
+        "retained_path_start": "M151.902 147.597",
+        "retained_path_end": "H320.059Z",
+        "retained_path_sha256": "e11a7d4dc6d0b040a2c1851a99c554350b6e8ccbf95f1295528c973a48f600aa",
+        "path_verbatim_match": true,
+        "original_fill": "#26FFDF",
+        "viewbox": [
+          151.902,
+          114.798,
+          191.1,
+          32.803
+        ],
+        "derived_svg_file": "SourceAssets/GameLogos/TransparentBattlefield-20261107/commons-bf2042-number-original-paths.svg",
+        "derived_svg_sha256": "58e3fb615bb3d17e6cec436669977b855aa3f53c8d357b122ca5d62fb03a4b18",
+        "final_choice_reason": "Original mint variant remains visible on the application light theme; official white candidate retained in evidence only."
+      }
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using Microsoft.Graphics.Canvas;
@@ -70,6 +70,7 @@ namespace KillConfirmCompatibility.Controls
 
         private void DrawCurrentAnimationFrame(CanvasDrawingSession drawingSession)
         {
+            if (!IsIconFeedbackEnabled) return;
             if (_isCalabiyauActive) { DrawCalabiyauFrame(drawingSession); return; }
             if (_customSequencePlaying) { DrawCustomSequenceFrame(drawingSession); return; }
             if (_isModernWarfare2019Active)
@@ -122,7 +123,7 @@ namespace KillConfirmCompatibility.Controls
             }
             if (_currentValorantAsset != null)
             {
-                DrawValorantKillFrame(drawingSession, _currentFrame);
+                DrawValorantKillFrame(drawingSession, _playbackClock.IsRunning ? _playbackClock.Elapsed.TotalSeconds * FrameSequenceFps : _currentFrame);
                 return;
             }
             if (_currentBattlefieldAsset != null)
@@ -456,7 +457,9 @@ namespace KillConfirmCompatibility.Controls
                 : TargetPlaybackFrames / Math.Max(1.0, _targetPlaybackFps);
             double playbackProgress = _playbackClock.Elapsed.TotalSeconds / targetDurationSeconds;
             int elapsedFrame = (int)Math.Floor(playbackProgress * _currentMetadata.Frames);
-            if (elapsedFrame <= _currentFrame)
+            // Procedural tracks interpolate at presentation time; do not gate them
+            // a second time on a rounded source-frame index.
+            if (elapsedFrame <= _currentFrame && _currentValorantAsset == null && _currentCsolAsset == null)
             {
                 return;
             }

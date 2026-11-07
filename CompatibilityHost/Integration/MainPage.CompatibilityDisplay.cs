@@ -57,16 +57,7 @@ namespace KillConfirmGameBar
         }
         internal void OpenCurrentGameSettings()
         {
-            if (GameStyleSidebarSelector == null) return;
-            string key = GameStyleService.ToStorageValue(GameStyleService.Current);
-            foreach (object item in GameStyleSidebarSelector.MenuItems)
-            {
-                if (item is NavigationViewItem sidebarItem && sidebarItem.Tag is string tag && string.Equals(tag, key, StringComparison.OrdinalIgnoreCase))
-                {
-                    GameStyleSidebarSelector.SelectedItem = sidebarItem;
-                    return;
-                }
-            }
+            OpenPackLibrary(GameStyleService.Current, "combat");
         }
     }
 }

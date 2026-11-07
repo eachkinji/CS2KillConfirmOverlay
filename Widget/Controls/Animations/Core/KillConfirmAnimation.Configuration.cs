@@ -57,16 +57,19 @@ namespace KillConfirmGameBar.Controls
         {
             _appearanceBrightness = Math.Max(0.5, Math.Min(1.5, brightness));
             _appearanceContrast = Math.Max(0.5, Math.Min(1.5, contrast));
+            InvalidateSanguoshaRasterConfiguration();
             Opacity = Math.Max(0.1, Math.Min(1.0, opacity));
             SpriteCanvas?.Invalidate();
         }
+
+        public static bool IsIconFeedbackEnabled => !string.Equals(_iconPack, "none", StringComparison.OrdinalIgnoreCase);
 
         public static void ConfigureIconPack(string iconPack)
         {
             string normalized = string.IsNullOrWhiteSpace(iconPack)
                 ? "default"
                 : iconPack.Trim().ToLowerInvariant();
-            if (normalized != "vip"
+            if (normalized != "none" && normalized != "vip"
                 && GetIconPackFolder(normalized) == null
                 && !ValorantPackService.IsValorantPackKey(normalized)
                 && !GameStyleService.IsBattlefield1Key(normalized)
@@ -151,6 +154,7 @@ namespace KillConfirmGameBar.Controls
             ResetOverwatchState();
             ResetApexFeedState();
             ResetModernWarfare2019State();
+            DisposeSanguoshaRenderer();
             Visibility = Visibility.Collapsed;
             ReleaseValorantEffects();
             ReleaseAllAnimationResourceCaches();

@@ -131,29 +131,29 @@ namespace KillConfirmGameBar
 
             ApplyPageTitleTheme(theme);
             SetText(GameStyleLabelText, theme.Text);
-            SetText(GameEffectsTitleText, Color.FromArgb(255, 28, 28, 30));
-            SetText(VoiceCollectionsTitleText, Color.FromArgb(255, 28, 28, 30));
-            SetText(VoiceCollectionsHintText, Color.FromArgb(255, 110, 110, 115));
-            SetText(IconCollectionsTitleText, Color.FromArgb(255, 28, 28, 30));
-            SetText(IconCollectionsHintText, Color.FromArgb(255, 110, 110, 115));
+            SetText(GameEffectsTitleText, PanelResource<Color>("PanelTextPrimaryColor"));
+            SetText(VoiceCollectionsTitleText, PanelResource<Color>("PanelTextPrimaryColor"));
+            SetText(VoiceCollectionsHintText, PanelResource<Color>("PanelTextMutedColor"));
+            SetText(IconCollectionsTitleText, PanelResource<Color>("PanelTextPrimaryColor"));
+            SetText(IconCollectionsHintText, PanelResource<Color>("PanelTextMutedColor"));
             SetText(VoiceVisibleCountText, theme.Accent);
             SetText(IconVisibleCountText, theme.Accent);
-            SetText(StructureTitleText, Color.FromArgb(255, 28, 28, 30));
-            SetText(StructureBodyText, Color.FromArgb(255, 110, 110, 115));
-            SetText(StructureImportFolderTitleText, Color.FromArgb(255, 28, 28, 30));
-            SetText(StructureImportFolderBodyText, Color.FromArgb(255, 110, 110, 115));
-            SetText(StructureVoiceSpecTitleText, Color.FromArgb(255, 28, 28, 30));
-            SetText(StructureVoiceSpecBodyText, Color.FromArgb(255, 58, 58, 60));
-            SetText(StructureIconSpecTitleText, Color.FromArgb(255, 28, 28, 30));
+            SetText(StructureTitleText, PanelResource<Color>("PanelTextPrimaryColor"));
+            SetText(StructureBodyText, PanelResource<Color>("PanelTextMutedColor"));
+            SetText(StructureImportFolderTitleText, PanelResource<Color>("PanelTextPrimaryColor"));
+            SetText(StructureImportFolderBodyText, PanelResource<Color>("PanelTextMutedColor"));
+            SetText(StructureVoiceSpecTitleText, PanelResource<Color>("PanelTextPrimaryColor"));
+            SetText(StructureVoiceSpecBodyText, PanelResource<Color>("PanelTextSecondaryColor"));
+            SetText(StructureIconSpecTitleText, PanelResource<Color>("PanelTextPrimaryColor"));
             SetText(StructureIconSpecSummaryText, theme.Accent);
-            SetText(StructureIconSpecFullText, Color.FromArgb(255, 58, 58, 60));
-            SetText(StructureImportZipTitleText, Color.FromArgb(255, 28, 28, 30));
-            SetText(StructureImportZipBodyText, Color.FromArgb(255, 110, 110, 115));
-            SetText(StructureCreatorTitleText, Color.FromArgb(255, 28, 28, 30));
-            SetText(StructureCreatorBodyText, Color.FromArgb(255, 110, 110, 115));
-            SetText(StructureFileHintText, Color.FromArgb(255, 58, 58, 60));
-            SetText(TipsTitleText, Color.FromArgb(255, 28, 28, 30));
-            SetText(TipsBodyText, Color.FromArgb(255, 110, 110, 115));
+            SetText(StructureIconSpecFullText, PanelResource<Color>("PanelTextSecondaryColor"));
+            SetText(StructureImportZipTitleText, PanelResource<Color>("PanelTextPrimaryColor"));
+            SetText(StructureImportZipBodyText, PanelResource<Color>("PanelTextMutedColor"));
+            SetText(StructureCreatorTitleText, PanelResource<Color>("PanelTextPrimaryColor"));
+            SetText(StructureCreatorBodyText, PanelResource<Color>("PanelTextMutedColor"));
+            SetText(StructureFileHintText, PanelResource<Color>("PanelTextSecondaryColor"));
+            SetText(TipsTitleText, PanelResource<Color>("PanelTextPrimaryColor"));
+            SetText(TipsBodyText, PanelResource<Color>("PanelTextMutedColor"));
 
             ApplySectionTheme(GameEffectsCard, theme);
             ApplyCardTheme(VoicePackCollectionsCard, theme);
@@ -187,8 +187,8 @@ namespace KillConfirmGameBar
             {
                 // One layer of glass: translucent white over the page wash.
                 card.Background = GameThemePalette.Glass(0.55);
-                card.BorderBrush = new SolidColorBrush(Color.FromArgb(166, 255, 255, 255));
-                card.CornerRadius = new CornerRadius(20);
+                card.BorderBrush = PanelResource<Brush>("PanelCardBorderBrush");
+                card.CornerRadius = PanelResource<CornerRadius>("PanelCardRadius");
             }
         }
 
@@ -196,45 +196,10 @@ namespace KillConfirmGameBar
         {
             bool gamePage = !_isHomePageSelected && !_isSettingsWorkspaceSelected;
             bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
-            PageTitleAccent.Visibility = PageTitleLogoSurface.Visibility = gamePage ? Visibility.Visible : Visibility.Collapsed;
-            PageTitleBody.Padding = gamePage ? new Thickness(20, 14, 24, 14) : new Thickness(4, 2, 4, 2);
-            PageTitleSurface.BorderThickness = new Thickness(gamePage ? 1 : 0);
-            PageTitleSurface.CornerRadius = new CornerRadius(gamePage ? 18 : 0);
-            TitleText.FontSize = gamePage ? 24 : 22;
-            if (gamePage)
-            {
-                GameStyleMode mode = SettingsGameStyle;
-                TitleText.Text = GetGamePageTitle(mode, isChinese);
-                string extension = mode == GameStyleMode.Dagoujiao ? "jpg" : "png";
-                var logoUri = new Uri("ms-appx:///Assets/GameLogos/" + GameStyleService.ToStorageValue(mode) + "." + extension);
-                if (!(PageTitleGameLogo.Source is BitmapImage currentLogo) || currentLogo.UriSource != logoUri)
-                    PageTitleGameLogo.Source = new BitmapImage(logoUri) { DecodePixelWidth = 152 };
-                // White-on-transparent logos need a dark tile on the light page
-                // (the BF6 logo carries its own dark tile).
-                bool darkLogo = mode == GameStyleMode.ModernWarfare2019 || mode == GameStyleMode.Battlefield5;
-                PageTitleLogoSurface.Background = new SolidColorBrush(darkLogo
-                    ? Color.FromArgb(255, 37, 43, 52) : Color.FromArgb(224, 255, 255, 255));
-                PageTitleAccent.Background = theme.Brush(theme.Accent);
-                PageTitleSurface.BorderBrush = new SolidColorBrush(Color.FromArgb(64, theme.Accent.R, theme.Accent.G, theme.Accent.B));
-                var background = new LinearGradientBrush
-                {
-                    StartPoint = new Windows.Foundation.Point(0, 0),
-                    EndPoint = new Windows.Foundation.Point(1, 1)
-                };
-                background.GradientStops.Add(new GradientStop { Offset = 0, Color = Color.FromArgb(245, 255, 255, 255) });
-                background.GradientStops.Add(new GradientStop { Offset = 1, Color = Color.FromArgb(235,
-                    (byte)(235 + theme.Accent.R * 20 / 255),
-                    (byte)(235 + theme.Accent.G * 20 / 255),
-                    (byte)(235 + theme.Accent.B * 20 / 255)) });
-                PageTitleSurface.Background = background;
-            }
-            else
-            {
-                TitleText.Text = _isHomePageSelected ? (isChinese ? "主页" : "Home") : (isChinese ? "高级设置" : "Advanced settings");
-                PageTitleGameLogo.Source = null;
-                PageTitleSurface.Background = new SolidColorBrush(Colors.Transparent);
-                PageTitleSurface.BorderBrush = new SolidColorBrush(Colors.Transparent);
-            }
+            PageTitleSurface.Visibility = gamePage ? Visibility.Collapsed : Visibility.Visible;
+            StylePickerSurface.Visibility = gamePage ? Visibility.Visible : Visibility.Collapsed;
+            TitleText.Text = _isHomePageSelected ? (isChinese ? "主页" : "Home") : (isChinese ? "高级设置" : "Advanced settings");
+            UpdateStylePicker();
             SetText(TitleText, theme.Text);
         }
 
@@ -327,8 +292,8 @@ namespace KillConfirmGameBar
             if (card != null)
             {
                 card.Background = GameThemePalette.Glass(0.55);
-                card.BorderBrush = new SolidColorBrush(Color.FromArgb(166, 255, 255, 255));
-                card.CornerRadius = new CornerRadius(20);
+                card.BorderBrush = PanelResource<Brush>("PanelCardBorderBrush");
+                card.CornerRadius = PanelResource<CornerRadius>("PanelCardRadius");
             }
         }
 
@@ -357,8 +322,7 @@ namespace KillConfirmGameBar
 
                 if (GameStyleSidebarSelector != null)
                 {
-                    string sidebarKey = _isHomePageSelected ? "home" : _isSettingsWorkspaceSelected ? "advanced" : key;
-                    RevealSidebarGame(sidebarKey);
+                    string sidebarKey = _isHomePageSelected ? "home" : _isSettingsWorkspaceSelected ? "advanced" : "styles";
                     foreach (object item in GameStyleSidebarSelector.MenuItems)
                     {
                         if (item is NavigationViewItem sidebarItem && sidebarItem.Tag is string tag && string.Equals(tag, sidebarKey, System.StringComparison.OrdinalIgnoreCase))
@@ -412,7 +376,7 @@ namespace KillConfirmGameBar
                 }
 
                 _isSettingsWorkspaceSelected = false;
-                SelectGameStyle(key);
+                SelectGameStyle(GameStyleService.ToStorageValue(SettingsGameStyle));
             }
         }
 

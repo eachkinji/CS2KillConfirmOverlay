@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using KillConfirmGameBar.Services;
@@ -135,6 +135,9 @@ namespace KillConfirmGameBar
             // objective, assist, death and kill reactions stay independent.
             DanmakuOverlayControl?.TriggerGameEvent(killEvent);
 
+            // An explicitly disabled icon pack leaves audio and danmaku independent.
+            if (!Controls.KillConfirmAnimation.IsIconFeedbackEnabled) return;
+
             if (string.Equals(killEvent.EventKind, "player_death", StringComparison.OrdinalIgnoreCase))
             {
                 return;
@@ -156,6 +159,7 @@ namespace KillConfirmGameBar
                 return;
             }
             if (!_isPageActive || preparationToken != _animationPreloadToken || style != GameStyleService.Current) return;
+            if (killEvent.SourceGeneration != 0 && killEvent.SourceGeneration != GameSourceSettingsStore.Generation) return;
 
             bool isCrossfireObjective = style == GameStyleMode.Crossfire && IsBombObjectiveEvent(killEvent);
             bool isModernWarfare2019Objective = style == GameStyleMode.ModernWarfare2019

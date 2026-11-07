@@ -1,0 +1,15 @@
+<Project>
+  <PropertyGroup>
+    <CompositionRoot>$(MSBuildThisFileDirectory)</CompositionRoot>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="$(CompositionRoot)bin\$(PlatformTarget)\KillConfirmComposition.dll">
+      <Link>KillConfirmComposition.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+  <Target Name="BuildCompositionNative" BeforeTargets="PrepareForBuild">
+    <Exec Command="powershell.exe -NoProfile -ExecutionPolicy Bypass -File &quot;$(CompositionRoot)Build-Composition.ps1&quot; -Platform &quot;$(PlatformTarget)&quot;" />
+  </Target>
+</Project>

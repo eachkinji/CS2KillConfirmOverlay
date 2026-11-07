@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using KillConfirmGameBar.Services;
 using Windows.Storage;
@@ -9,8 +9,24 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
 {
     public sealed partial class CompatibilityHomeView
     {
+        private void LoadRasterQuality()
+        {
+            var quality = KillConfirmCompatibility.Contracts.AnimationRasterPolicy.ReadForGame(ApplicationData.Current.LocalSettings.Values, GameStyleService.ToStorageValue(GameStyleService.Current));
+            bool previous = _suppressVisualAdjustmentEvents;
+            _suppressVisualAdjustmentEvents = true;
+            foreach (ComboBoxItem item in PackTestSectionView.RasterQualitySelector.Items)
+                if ((string)item.Tag == quality.ToString()) { PackTestSectionView.RasterQualitySelector.SelectedItem = item; break; }
+            _suppressVisualAdjustmentEvents = previous;
+        }
+        private void OnRasterQualitySelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_suppressVisualAdjustmentEvents || !(PackTestSectionView.RasterQualitySelector.SelectedItem is ComboBoxItem selected)) return;
+            int quality = KillConfirmCompatibility.Contracts.AnimationRasterPolicy.Normalize(selected.Tag);
+            ApplicationData.Current.LocalSettings.Values[KillConfirmCompatibility.Contracts.AnimationRasterPolicy.GameSettingKey(GameStyleService.ToStorageValue(GameStyleService.Current))] = quality;
+        }
         private void LoadVolume()
         {
+            LoadRasterQuality();
             _suppressVisualAdjustmentEvents = true;
             double volume = ReadDoubleSetting(ApplicationData.Current.LocalSettings, GetAnimationStyleSettingKey(AudioVolumeSettingKey), ReadDoubleSetting(ApplicationData.Current.LocalSettings, AudioVolumeSettingKey, 100));
             foreach (object option in PackTestSectionView.AudioVolumeSelector.Items)

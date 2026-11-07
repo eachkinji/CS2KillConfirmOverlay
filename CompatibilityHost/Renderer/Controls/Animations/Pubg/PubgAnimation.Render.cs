@@ -18,7 +18,7 @@ namespace KillConfirmCompatibility.Controls
             {
                 FontFamily = "Segoe UI",
                 FontSize = 12,
-                FontWeight = FontWeights.Normal
+                FontWeight = FontWeights.Bold
             })
             using (CanvasTextFormat comboFormat = new CanvasTextFormat
             {

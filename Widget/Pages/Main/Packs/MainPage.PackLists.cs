@@ -155,6 +155,7 @@ namespace KillConfirmGameBar
             bool isExport = string.Equals(role, "PackExport", StringComparison.Ordinal);
             var button = new Button
             {
+                Style = PanelResource<Style>(isDelete ? "PanelDangerCompactButtonStyle" : "PanelCompactButtonStyle"),
                 Tag = role,
                 Content = isDelete
                     ? (object)new FontIcon
@@ -165,14 +166,13 @@ namespace KillConfirmGameBar
                     }
                     : text,
                 MinWidth = isDelete ? 30 : (isExport ? 52 : 46),
-                Height = 27,
                 Padding = isDelete ? new Thickness(6, 3, 6, 3) : new Thickness(9, 3, 9, 3),
-                FontSize = 11,
+                FontSize = PanelResource<double>("PanelFontCaption"),
                 Background = new SolidColorBrush(isDelete ? Color.FromArgb(26, 255, 59, 48) : theme.Field),
                 Foreground = new SolidColorBrush(isDelete ? Color.FromArgb(255, 196, 43, 28) : theme.Accent),
                 BorderBrush = new SolidColorBrush(isDelete ? Color.FromArgb(255, 252, 209, 209) : theme.AccentSoft),
                 BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(14),
+                CornerRadius = PanelResource<CornerRadius>("PanelControlRadius"),
                 Margin = new Thickness(0, 0, 4, 0)
             };
             ToolTipService.SetToolTip(button, text);
@@ -196,16 +196,16 @@ namespace KillConfirmGameBar
             var title = new TextBlock
             {
                 Text = PackCatalogService.GetVoicePackDisplayName(item),
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 28, 28, 30)),
-                FontSize = 13,
+                Foreground = PanelResource<Brush>("PanelTextPrimaryBrush"),
+                FontSize = PanelResource<double>("PanelFontTitle"),
                 FontWeight = Windows.UI.Text.FontWeights.SemiBold,
                 TextTrimming = TextTrimming.CharacterEllipsis
             };
             var meta = new TextBlock
             {
                 Text = item.IsBuiltIn ? LocalizationManager.Text("BuiltIn") : LocalizationManager.Text("Custom"),
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 110, 110, 115)),
-                FontSize = 11,
+                Foreground = PanelResource<Brush>("PanelTextMutedBrush"),
+                FontSize = PanelResource<double>("PanelFontCaption"),
                 TextTrimming = TextTrimming.CharacterEllipsis
             };
             var editButton = CreatePackActionButton(LocalizationManager.Text("Edit"), "PackEdit");
@@ -311,9 +311,9 @@ namespace KillConfirmGameBar
             deleteButton.Click += async (_, __) => await PackCatalogService.RemoveCustomVoicePackAsync(item.Key);
             var content = new StackPanel
             {
-                Spacing = 1,
+                Spacing = 2,
                 VerticalAlignment = VerticalAlignment.Top,
-                Margin = new Thickness(0, 2, 0, 32)
+                Margin = new Thickness(0, 0, 0, 34)
             };
             content.Children.Add(title);
             content.Children.Add(meta);
@@ -364,16 +364,16 @@ namespace KillConfirmGameBar
             var title = new TextBlock
             {
                 Text = PackCatalogService.GetIconPackDisplayName(item),
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 28, 28, 30)),
-                FontSize = 13,
+                Foreground = PanelResource<Brush>("PanelTextPrimaryBrush"),
+                FontSize = PanelResource<double>("PanelFontTitle"),
                 FontWeight = Windows.UI.Text.FontWeights.SemiBold,
                 TextTrimming = TextTrimming.CharacterEllipsis
             };
             var meta = new TextBlock
             {
                 Text = item.IsBuiltIn ? LocalizationManager.Text("BuiltIn") : LocalizationManager.Text("Custom"),
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 110, 110, 115)),
-                FontSize = 11,
+                Foreground = PanelResource<Brush>("PanelTextMutedBrush"),
+                FontSize = PanelResource<double>("PanelFontCaption"),
                 TextTrimming = TextTrimming.CharacterEllipsis
             };
             var editButton = CreatePackActionButton(LocalizationManager.Text("Edit"), "PackEdit");
@@ -506,9 +506,9 @@ namespace KillConfirmGameBar
             deleteButton.Click += async (_, __) => await PackCatalogService.RemoveCustomIconPackAsync(item.Key);
             var content = new StackPanel
             {
-                Spacing = 1,
+                Spacing = 2,
                 VerticalAlignment = VerticalAlignment.Top,
-                Margin = new Thickness(0, 2, 0, 32)
+                Margin = new Thickness(0, 0, 0, 34)
             };
             content.Children.Add(title);
             content.Children.Add(meta);

@@ -1,4 +1,4 @@
-using Microsoft.Gaming.XboxGameBar;
+﻿using Microsoft.Gaming.XboxGameBar;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -209,7 +209,8 @@ namespace KillConfirmGameBar
 
         private void OnGameStyleSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (_suppressGameStyleEvents)
+            if (_suppressGameStyleEvents || !(HeaderStatusSection.GameStyleSelector.SelectedItem is ComboBoxItem selected)
+                || !selected.IsEnabled || GameSelectorPresentation.IsGameCategoryHeader(selected))
             {
                 return;
             }

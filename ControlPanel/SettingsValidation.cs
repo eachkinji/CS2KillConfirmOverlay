@@ -83,7 +83,7 @@ namespace KillConfirmGameBar.Controls.Settings
             {
                 VersionUpdateService.FetchOverride = () => Task.FromResult(UpdateValidation.Release(test.Item1));
                 await VersionUpdateService.CheckAsync(true);
-                if (VersionUpdateService.State != test.Item2 || HubVersionStatus.Text != VersionUpdateService.StatusText(true)) throw new Exception("Update state/render mismatch: " + test.Item2);
+                if (VersionUpdateService.State != test.Item2 || HubVersionStatus.Text != VersionUpdateService.StatusText(LocalizationManager.Current == UiLanguage.SimplifiedChinese)) throw new Exception("Update state/render mismatch: " + test.Item2);
             }
             foreach (bool malformed in new[] { false, true })
             {
@@ -96,7 +96,8 @@ namespace KillConfirmGameBar.Controls.Settings
             var first = VersionUpdateService.CheckAsync(true); var second = VersionUpdateService.CheckAsync(true);
             if (!ReferenceEquals(first, second) || requests != 1 || HubCheckUpdateButton.IsEnabled) throw new Exception("Concurrent update checks were not coalesced.");
             response.SetResult(UpdateValidation.Release("99.0.0.0")); await first;
-            if (!HubCheckUpdateButton.IsEnabled || !HubUpdateSteps.Text.Contains("覆盖安装") || HubAboutUpdateBody.Text.Length == 0) throw new Exception("About guidance or release notes missing.");
+            string installGuidance = LocalizationManager.Current == UiLanguage.SimplifiedChinese ? "覆盖安装" : "Install over the existing version";
+            if (!HubCheckUpdateButton.IsEnabled || !HubUpdateSteps.Text.Contains(installGuidance) || HubAboutUpdateBody.Text.Length == 0) throw new Exception("About guidance or release notes missing.");
         }
     }
     public sealed partial class GeneralSettingsOptionsPanel

@@ -103,7 +103,33 @@ namespace KillConfirmGameBar.Controls
 
             _timer = new DispatcherTimer();
             _timer.Tick += OnTick;
+            Unloaded += OnSanguoshaAnimationUnloaded;
+            Loaded += OnNativeCanvasLoaded;
+            Unloaded += OnNativeCanvasUnloaded;
         }
+
+        private Windows.Graphics.Display.DisplayInformation _nativeCanvasDisplay;
+        private void UpdateNativeCanvasDpi()
+        {
+            var display = _nativeCanvasDisplay ?? Windows.Graphics.Display.DisplayInformation.GetForCurrentView();
+            float scale = 96f / display.LogicalDpi;
+            if (Math.Abs(SpriteCanvas.DpiScale - scale) > .00001f) SpriteCanvas.DpiScale = scale;
+        }
+        private void OnNativeCanvasLoaded(object sender, RoutedEventArgs e)
+        {
+            if (_nativeCanvasDisplay == null)
+            {
+                _nativeCanvasDisplay = Windows.Graphics.Display.DisplayInformation.GetForCurrentView();
+                _nativeCanvasDisplay.DpiChanged += OnNativeCanvasDpiChanged;
+            }
+            UpdateNativeCanvasDpi();
+        }
+        private void OnNativeCanvasUnloaded(object sender, RoutedEventArgs e)
+        {
+            if (_nativeCanvasDisplay != null) _nativeCanvasDisplay.DpiChanged -= OnNativeCanvasDpiChanged;
+            _nativeCanvasDisplay = null;
+        }
+        private void OnNativeCanvasDpiChanged(Windows.Graphics.Display.DisplayInformation sender, object args) => UpdateNativeCanvasDpi();
 
         public event EventHandler LogicalViewportSizeChanged;
 

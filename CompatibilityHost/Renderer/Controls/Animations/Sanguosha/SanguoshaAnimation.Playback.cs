@@ -37,6 +37,8 @@ namespace KillConfirmCompatibility.Controls
                 }
 
                 if (assets == null || generation != _resourceGeneration || token != _playToken) return;
+                await EnsureSanguoshaPagesAsync(assets);
+                if (generation != _resourceGeneration || token != _playToken) return;
                 PrepareSanguoshaPlayback(assets, Math.Min(transportMs + loadingClock.Elapsed.TotalMilliseconds, 1000));
             }
             catch (Exception error)
@@ -80,9 +82,10 @@ namespace KillConfirmCompatibility.Controls
 
             lock (SanguoshaTiersOnScreen) SanguoshaTiersOnScreen.Add(assets);
             _sanguoshaCurrent = assets;
-            _sanguoshaShake = new SanguoshaShake(assets.Clip, Environment.TickCount);
+            _sanguoshaShake = new SanguoshaShake(assets.Clip, 20261107);
             _sanguoshaStartOffsetMs = Math.Max(0, startOffsetMs);
             _isSanguoshaActive = true;
+
             _currentMetadata = new SpriteMetadata
             {
                 FrameWidth = (int)SanguoshaFrameWidth,
@@ -104,13 +107,18 @@ namespace KillConfirmCompatibility.Controls
 
         private void ResetSanguoshaState(SanguoshaTierAssets keep)
         {
+            // One ready CPU frame pool may serve repeated events. An incomplete
+            // open, a different game, or explicit resource release closes it.
+            if (!RetainDesktopSanguoshaLz4()) ResetDesktopSanguoshaLz4();
             _isSanguoshaActive = false;
             _sanguoshaShake = null;
             _sanguoshaStartOffsetMs = 0;
+            if (keep == null) _sanguoshaRenderer?.ReleaseFrameEffectSources();
             SanguoshaTierAssets finished = _sanguoshaCurrent;
             _sanguoshaCurrent = null;
             if (finished == null || finished == keep) return;
             lock (SanguoshaTiersOnScreen) SanguoshaTiersOnScreen.Remove(finished);
+            TrimSanguoshaPages();
             bool stillCached;
             lock (SanguoshaTiers)
                 stillCached = SanguoshaTiers.TryGetValue(finished.Tier, out SanguoshaTierAssets cached) && cached == finished;

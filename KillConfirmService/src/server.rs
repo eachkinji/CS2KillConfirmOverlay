@@ -3,12 +3,11 @@ use crate::api::{
     crossfire_settings, cs2_root, csol_settings, dagoujiao_settings, developer_settings,
     doubao_settings, event_sound_settings, events_poll, extract_video_frames, gsi_game_settings,
     gsi_status, health, install_counter_strike_cfg, interrupt_previous_kill_audio_settings,
-    money_mode, port, prepare_video_preview, preview_bomb_audio_endpoint,
-    register_ui_process, sanguosha_settings, set_audio_device, set_bomb_audio_settings, set_crossfire_settings,
-    set_sanguosha_settings,
+    money_mode, port, prepare_video_preview, preview_bomb_audio_endpoint, register_ui_process,
+    sanguosha_settings, set_audio_device, set_bomb_audio_settings, set_crossfire_settings,
     set_csol_settings, set_dagoujiao_settings, set_developer_settings, set_doubao_settings,
     set_event_sound_settings, set_gsi_game_settings, set_interrupt_previous_kill_audio_settings,
-    set_money_mode, set_spectator_settings, set_streak_gain_settings,
+    set_money_mode, set_sanguosha_settings, set_spectator_settings, set_streak_gain_settings,
     set_streak_settings, shutdown, spectator_settings, streak_gain_settings, streak_settings,
     test_event, unregister_ui_process,
 };
@@ -22,8 +21,8 @@ use crate::infrastructure::logging::{
 use crate::infrastructure::playback::{get_output_stream_with_name, list_host_devices};
 use crate::infrastructure::ports::{bind_with_fallback, free_local_port};
 use crate::infrastructure::runtime::{
-    exit_all_processes, launch_settings_launcher,
-    normalize_working_directory, open_game_bar, open_uninstaller, open_url,
+    exit_all_processes, launch_settings_launcher, normalize_working_directory, open_game_bar,
+    open_uninstaller, open_url,
 };
 use crate::infrastructure::signal::shutdown_signal;
 use crate::infrastructure::watchers::{monitor_default_output_device, monitor_ui_processes};
@@ -65,7 +64,6 @@ const AUTHOR_BILIBILI_URL: &str = "https://space.bilibili.com/18017622";
 
 pub(crate) async fn run(mut args: Args) -> Result<()> {
     service_log("service starting");
-
 
     tracing_subscriber::registry()
         // Developer mode is an in-app diagnostic contract: always retain
@@ -184,6 +182,12 @@ pub(crate) async fn run(mut args: Args) -> Result<()> {
 
     let (shutdown_tx, shutdown_rx) = broadcast::channel(1);
 
+    let selection = crate::game_sources::Selection::load();
+    let initial_cs = selection
+        .source
+        .cs_version()
+        .unwrap_or(GsiGameVersion::DEFAULT);
+    let source_generation = selection.generation;
     let app_state = Arc::new(AppState {
         mutable: RwLock::new(Mutable {
             active_player: Default::default(),
@@ -250,7 +254,9 @@ pub(crate) async fn run(mut args: Args) -> Result<()> {
         audio_slot_cooldowns: std::sync::Mutex::new(HashMap::new()),
         spectated_kill_effects_enabled: AtomicBool::new(false),
         bomb_audio_paths: std::sync::Mutex::new(Default::default()),
-        gsi_game_version: AtomicU8::new(GsiGameVersion::DEFAULT.as_u8()),
+        gsi_game_version: AtomicU8::new(initial_cs.as_u8()),
+        game_source: RwLock::new(selection),
+        lol_status: RwLock::new(Default::default()),
         events: EventJournal::default(),
         ui_process_ids: RwLock::new(Default::default()),
         shutdown_tx,
@@ -262,6 +268,8 @@ pub(crate) async fn run(mut args: Args) -> Result<()> {
 
     service_log(&format!("active audio device: {}", output_device_name));
 
+    app_state.events.reset_source(source_generation).await;
+    tokio::spawn(crate::game_sources::lol::run(app_state.clone()));
     let watcher_state = app_state.clone();
     tokio::spawn(async move {
         monitor_default_output_device(watcher_state).await;
@@ -290,6 +298,14 @@ pub(crate) async fn run(mut args: Args) -> Result<()> {
         .route("/port", get(port))
         .route("/gsi-status", get(gsi_status))
         .route(
+            "/game-source/settings",
+            get(crate::game_sources::get_settings).post(crate::game_sources::set_settings),
+        )
+        .route(
+            "/game-source/status",
+            get(crate::game_sources::source_status),
+        )
+        .route(
             "/gsi-game/settings",
             get(gsi_game_settings).post(set_gsi_game_settings),
         )
@@ -300,7 +316,10 @@ pub(crate) async fn run(mut args: Args) -> Result<()> {
         .route("/audio/devices", get(audio_devices))
         .route("/audio/device", post(set_audio_device))
         .route("/audio/volume", post(audio_volume))
-        .route("/audio/channels", get(api::audio_channels).post(api::set_audio_channels))
+        .route(
+            "/audio/channels",
+            get(api::audio_channels).post(api::set_audio_channels),
+        )
         .route(
             "/audio/streak-gain",
             get(streak_gain_settings).post(set_streak_gain_settings),
@@ -319,7 +338,10 @@ pub(crate) async fn run(mut args: Args) -> Result<()> {
             get(crossfire_settings).post(set_crossfire_settings),
         )
         .route("/csol/settings", get(csol_settings).post(set_csol_settings))
-        .route("/sanguosha/settings", get(sanguosha_settings).post(set_sanguosha_settings))
+        .route(
+            "/sanguosha/settings",
+            get(sanguosha_settings).post(set_sanguosha_settings),
+        )
         .route(
             "/dagoujiao/settings",
             get(dagoujiao_settings).post(set_dagoujiao_settings),
@@ -352,12 +374,27 @@ pub(crate) async fn run(mut args: Args) -> Result<()> {
         .route("/video/extract", post(extract_video_frames))
         .route("/video/preview", post(prepare_video_preview))
         .route("/shutdown", post(shutdown))
-        .route("/shared/state", get(crate::infrastructure::shared::snapshot))
-        .route("/shared/identity", get(crate::infrastructure::shared::identity))
-        .route("/shared/resource", get(crate::infrastructure::shared::resource))
+        .route(
+            "/shared/state",
+            get(crate::infrastructure::shared::snapshot),
+        )
+        .route(
+            "/shared/identity",
+            get(crate::infrastructure::shared::identity),
+        )
+        .route(
+            "/shared/resource",
+            get(crate::infrastructure::shared::resource),
+        )
         .route("/shared/folder", get(crate::infrastructure::shared::folder))
-        .route("/shared/setting", post(crate::infrastructure::shared::setting))
-        .route("/shared/gamebar-status", post(crate::infrastructure::shared::gamebar_status))
+        .route(
+            "/shared/setting",
+            post(crate::infrastructure::shared::setting),
+        )
+        .route(
+            "/shared/gamebar-status",
+            post(crate::infrastructure::shared::gamebar_status),
+        )
         .route("/exit-all", post(exit_all_handler))
         .route("/soundpack", get(api::soundpack).post(api::set_soundpack))
         .route("/test/{kill_count}", get(test_event).post(test_event))

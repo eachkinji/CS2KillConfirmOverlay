@@ -20,7 +20,7 @@ namespace KillConfirmGameBar
         // so a brief GSI hiccup or a menu heartbeat gap cannot close the widget.
         private const int AutoCloseGameExitSustainedChecks = 2;
         private static readonly Uri AutoCloseGsiStatusUri =
-            new Uri(LocalServiceEndpoints.BuildPath("/gsi-status"));
+            new Uri(LocalServiceEndpoints.BuildPath("/game-source/status"));
 
         private DispatcherTimer _autoCloseGameExitTimer;
         private bool _autoCloseGameExitActiveDetected;
@@ -84,6 +84,13 @@ namespace KillConfirmGameBar
 
                     string responseText = await response.Content.ReadAsStringAsync();
                     JsonObject json = JsonObject.Parse(responseText);
+                    if (GameSourceSettingsStore.IsLol) {
+                        // A local API outage or return to the LOL lobby is not proof
+                        // that the game was exited. Do not close the widget in v1.
+                        _autoCloseGameExitActiveDetected = false;
+                        _autoCloseGameExitSilentChecks = 0;
+                        return;
+                    }
                     double posts = json.GetNamedNumber("posts", 0);
                     double? ageMs = TryGetJsonNumber(json, "last_post_age_ms");
                     bool gameActive =

@@ -59,7 +59,8 @@ namespace KillConfirmCompatibility.Validation
                 _requests.AddOrUpdate(path, 1, (key, count) => count + 1);
                 if (path == "/events") await Task.Delay(200, _stop.Token);
                 string json = path == "/events" ? "{\"cursor\":0,\"events\":[],\"dropped\":0}"
-                    : path == "/gsi-status" ? "{\"posts\":1,\"last_post_age_ms\":100,\"parse_errors\":0}" : "{}";
+                    : path == "/game-source/settings" ? "{\"source\":\"cs2\",\"generation\":1,\"initialized\":true}"
+                    : path == "/gsi-status" || path == "/game-source/status" ? "{\"posts\":1,\"last_post_age_ms\":100,\"parse_errors\":0}" : "{}";
                 string responseStatus = FailTests && path.StartsWith("/test/") ? "500 Internal Server Error" : "200 OK";
                 byte[] response = Encoding.ASCII.GetBytes("HTTP/1.1 " + responseStatus + "\r\nContent-Type: application/json\r\nCache-Control: no-store\r\nConnection: close\r\nContent-Length: " + json.Length + "\r\n\r\n" + json);
                 await stream.WriteAsync(response, _stop.Token);

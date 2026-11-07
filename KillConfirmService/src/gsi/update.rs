@@ -2,6 +2,11 @@ pub async fn update(
     State(app_state): State<Arc<AppState>>,
     body: Bytes,
 ) -> Result<StatusCode, ApiError> {
+    // Hold a source lease through processing/publication; switching waits for it.
+    let selected_source = app_state.game_source.read().await;
+    if selected_source.source == crate::game_sources::GameSource::Lol {
+        return Ok(StatusCode::OK);
+    }
     let gsi_start = Instant::now();
     let gsi_game_version =
         GsiGameVersion::from_u8(app_state.gsi_game_version.load(Ordering::Relaxed));
@@ -106,17 +111,18 @@ pub async fn update(
         .weapons
         .iter()
         .find(|(_, weapon)| matches!(weapon.state, WeaponState::Active));
-    let current_weapon_context = current_active_weapon.map(|(inventory_key, weapon)| WeaponKillContext {
-        inventory_key: inventory_key.clone(),
-        is_knife: is_knife_weapon(weapon.r#type.as_ref(), &weapon.name),
-        badge_key: weapon
-            .r#type
-            .clone()
-            .and_then(map_weapon_badge_key)
-            .map(str::to_string),
-        name: map_weapon_name(&weapon.name).to_string(),
-        money_reward: money_rules::weapon_kill_reward(&weapon.name, current_mode),
-    });
+    let current_weapon_context =
+        current_active_weapon.map(|(inventory_key, weapon)| WeaponKillContext {
+            inventory_key: inventory_key.clone(),
+            is_knife: is_knife_weapon(weapon.r#type.as_ref(), &weapon.name),
+            badge_key: weapon
+                .r#type
+                .clone()
+                .and_then(map_weapon_badge_key)
+                .map(str::to_string),
+            name: map_weapon_name(&weapon.name).to_string(),
+            money_reward: money_rules::weapon_kill_reward(&weapon.name, current_mode),
+        });
     let current_weapon_ammo = ply
         .weapons
         .iter()
@@ -324,8 +330,8 @@ pub async fn update(
     // Calabiyau's baked visual timeline uses event publication as its anchor.
     // Do not start its audio before the state write below: contention there
     // would otherwise advance all of the original star cues before the visual.
-    let publish_before_kill_audio = can_emit_kill
-        && crate::soundpack::sound::uses_calabiyau_kill_audio(&app_state).await;
+    let publish_before_kill_audio =
+        can_emit_kill && crate::soundpack::sound::uses_calabiyau_kill_audio(&app_state).await;
     let (
         pending_last_kill_for_next,
         kill_event_to_send,

@@ -1,0 +1,32 @@
+// Self-contained resource definitions: no SDK include paths or extra crates required.
+LANGUAGE 0x09, 0x01
+1 ICON "service.ico"
+
+1 VERSIONINFO
+ FILEVERSION @VERSION_COMMAS@
+ PRODUCTVERSION @VERSION_COMMAS@
+ FILEFLAGSMASK 0x3fL
+ FILEFLAGS 0x0L
+ FILEOS 0x40004L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904B0"
+        BEGIN
+            VALUE "CompanyName", "KillConfirmGameBar\0"
+            VALUE "FileDescription", "Kill Confirm Overlay Service\0"
+            VALUE "FileVersion", "@VERSION@\0"
+            VALUE "InternalName", "cskillconfirm\0"
+            VALUE "LegalCopyright", "Copyright (c) 2026\0"
+            VALUE "OriginalFilename", "cskillconfirm.exe\0"
+            VALUE "ProductName", "Kill Confirm Overlay\0"
+            VALUE "ProductVersion", "@VERSION@\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x0409, 1200
+    END
+END

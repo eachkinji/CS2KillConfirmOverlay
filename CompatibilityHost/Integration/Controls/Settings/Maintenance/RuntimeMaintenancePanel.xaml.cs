@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using KillConfirmGameBar.Features.CompatibilityDisplay.Controls.GameStyles;
 using KillConfirmGameBar.Services;
@@ -75,11 +75,9 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay.Controls.Settings
             OpenLogPathButton.Background = new SolidColorBrush(theme.SubtleField);
             OpenLogPathButton.BorderBrush = new SolidColorBrush(theme.SoftBorder);
             OpenLogPathButton.Foreground = new SolidColorBrush(theme.Text);
-            OpenLogPathButton.CornerRadius = new CornerRadius(14);
             ResetPluginButton.Background = new SolidColorBrush(theme.WarningField);
             ResetPluginButton.BorderBrush = new SolidColorBrush(theme.WarningBorder);
             ResetPluginButton.Foreground = new SolidColorBrush(theme.WarningText);
-            ResetPluginButton.CornerRadius = new CornerRadius(14);
             AdvancedEffectsPanelSupport.ApplySoftenedTree(this, theme);
         }
 

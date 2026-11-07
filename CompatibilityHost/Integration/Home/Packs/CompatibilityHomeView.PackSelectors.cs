@@ -136,7 +136,8 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                 GameStyleService.DefaultIconPackKey(style));
 
             var visiblePacks = (await PackCatalogService.GetVisibleIconPacksAsync()).ToList();
-            if (!visiblePacks.Any(pack => string.Equals(pack.Key, preferredIconPack, StringComparison.OrdinalIgnoreCase)))
+            if (!string.Equals(preferredIconPack, "none", StringComparison.OrdinalIgnoreCase)
+                && !visiblePacks.Any(pack => string.Equals(pack.Key, preferredIconPack, StringComparison.OrdinalIgnoreCase)))
             {
                 IconPackItem preferredPack = await PackCatalogService.GetIconPackAsync(preferredIconPack);
                 if (preferredPack != null && GameStyleService.GetStyleForPackKey(preferredPack.Key) == style)
@@ -187,6 +188,8 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                     GetIconPackIconUri(fallback)));
             }
 
+            PackTestSectionView.IconPackSelector.Items.Insert(0, CreatePackComboBoxItem(
+                LocalizationManager.Current == UiLanguage.SimplifiedChinese ? "无" : "None", "none", null));
             PackTestSectionView.IconPackSelector.Items.Add(CreateAddMorePackItem(false));
             SelectIconPack(preferredIconPack);
         }

@@ -31,7 +31,7 @@ namespace KillConfirmCompatibility.Controls
             return killCount >= 5 ? CookedAfterglowPentaPlaybackSpeed : 1.0;
         }
 
-        private void DrawNativeValorantFrame(CanvasDrawingSession ds, int frame, ValorantKillAsset asset)
+        private void DrawNativeValorantFrame(CanvasDrawingSession ds, double frame, ValorantKillAsset asset)
         {
             // StartAnimation selects 0.3 playback speed for penta/overkill and
             // 1.0 for kills 1-4. Events and all child animations remain on the

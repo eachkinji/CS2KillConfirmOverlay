@@ -1,4 +1,4 @@
-﻿using KillConfirmCompatibility.Contracts;
+using KillConfirmCompatibility.Contracts;
 using KillConfirmCompatibility.Controls;
 using Microsoft.Graphics.Canvas;
 using System;
@@ -37,11 +37,9 @@ namespace KillConfirmCompatibility.Desktop.Windowing
         private double _badgeOffset;
         private NativeWindows.Rect _fullPlacement;
         private NativeWindows.Rect? _lastCroppedPlacement;
-        private Int32Rect? _lastSourceCrop;
         private bool _croppedPresentation;
         private bool _rendering;
-        private LayeredFrameWindow _playbackWindow;
-        private long _pixelRevision;
+        private CompositionFrameWindow _playbackWindow;
         private Int32Rect _rasterRegion;
         private NativeWindows.Rect _renderedPlacement;
         private bool _editorSelected;
@@ -71,7 +69,7 @@ namespace KillConfirmCompatibility.Desktop.Windowing
         internal long PresentedFrames { get; private set; }
         internal Action FramePresented { get; set; }
         internal Size PresentedSize => new Size(Math.Max(0, _fullPlacement.Width), Math.Max(0, _fullPlacement.Height));
-        internal Size RasterSize => _bitmap == null ? default : new Size(_bitmap.PixelWidth, _bitmap.PixelHeight);
+        internal Size RasterSize => _target == null ? default : new Size(_target.SizeInPixels.Width, _target.SizeInPixels.Height);
         internal Size ContentSize => new Size(_animation.DesktopRenderViewport.Width, _animation.DesktopRenderViewport.Height);
         internal string PlaybackDiagnostics => _animation.DesktopPlaybackDiagnostics;
         internal bool IsPlaying => _animation.IsDesktopPlaying;
@@ -81,25 +79,15 @@ namespace KillConfirmCompatibility.Desktop.Windowing
         internal void ResetPreviewPixels() => _hasRenderedPixels = false;
         internal void ValidateCroppedPlacement(string screenshot = null)
         {
-            if (!_croppedPresentation || _bitmap == null) throw new InvalidOperationException("Cropped feedback frame was not presented.");
-            if (_playbackWindow == null || !_lastCroppedPlacement.HasValue) throw new InvalidOperationException("No atomic feedback frame was committed.");
+            if (!_croppedPresentation || _target == null || _playbackWindow == null)
+                throw new InvalidOperationException("No GPU feedback frame was presented.");
             NativeWindows.GetWindowRect(_playbackWindow.Handle, out var window);
-            if (!window.Equals(_lastCroppedPlacement.Value) || !_playbackWindow.Placement.Equals(window))
-                throw new InvalidOperationException("Committed feedback pixels and native window geometry differ.");
-            if (!_renderedPlacement.Equals(_fullPlacement)) throw new InvalidOperationException("A resized frame reused stale raster pixels.");
-            for (int y = 0; y < _bitmap.PixelHeight; y++)
-            for (int x = 0; x < _bitmap.PixelWidth; x++)
-                if (_pixels[(y * _bitmap.PixelWidth + x) * 4 + 3] != 0 &&
-                    (_fullPlacement.Left + _rasterRegion.X + x < window.Left ||
-                     _fullPlacement.Left + _rasterRegion.X + x + 1 > window.Right ||
-                     _fullPlacement.Top + _rasterRegion.Y + y < window.Top ||
-                     _fullPlacement.Top + _rasterRegion.Y + y + 1 > window.Bottom))
-                    throw new InvalidOperationException("Feedback window clipped a visible effect pixel.");
-            if (screenshot != null)
-            {
-                var encoder = new PngBitmapEncoder(); encoder.Frames.Add(BitmapFrame.Create(_playbackWindow.CopyPresentedBitmap()));
-                using var stream = System.IO.File.Create(screenshot); encoder.Save(stream);
-            }
+            if (!_playbackWindow.Placement.Equals(window)) throw new InvalidOperationException("Composition window geometry differs.");
+            if (!_renderedPlacement.Equals(_fullPlacement)) throw new InvalidOperationException("Stale visual placement.");
+            var expectedRaster = _animation.DesktopRasterSize;
+            if (RasterSize.Width != expectedRaster.Width || RasterSize.Height != expectedRaster.Height)
+                throw new InvalidOperationException("Presentation scale changed the fixed raster size.");
+            if (screenshot != null) SavePreviewImage(screenshot);
         }
         internal void ValidateCropLayoutTransitions()
         {
@@ -119,23 +107,56 @@ namespace KillConfirmCompatibility.Desktop.Windowing
             ValidateCroppedPlacement();
             Render(); ValidateCroppedPlacement();
         }
+        // Diagnostics and the interactive editor are the only CPU readback users.
+        private void ReadPreviewPixels()
+        {
+            if (_target == null) throw new InvalidOperationException("No rendered target.");
+            int width = (int)_target.SizeInPixels.Width, height = (int)_target.SizeInPixels.Height;
+            if (_pixels == null || _pixels.Length != width * height * 4)
+            {
+                _pixels = new byte[checked(width * height * 4)]; _pixelBuffer = _pixels.AsBuffer();
+            }
+            _target.GetPixelBytes(_pixelBuffer);
+            EnsureSanguoshaEditorBitmap(width, height);
+            _bitmap.WritePixels(new Int32Rect(0, 0, width, height), _pixels, width * 4, 0);
+        }
         internal void SavePreviewImage(string path)
         {
-            if (_bitmap == null) throw new InvalidOperationException("No rendered bitmap.");
-            var encoder = new PngBitmapEncoder();
-            encoder.Frames.Add(BitmapFrame.Create(_bitmap));
-            using var stream = System.IO.File.Create(path);
-            encoder.Save(stream);
+            ReadPreviewPixels();
+            var encoder = new PngBitmapEncoder(); encoder.Frames.Add(BitmapFrame.Create(_bitmap));
+            using var stream = System.IO.File.Create(path); encoder.Save(stream);
+        }
+        private BitmapSource CopyPresentedBitmap()
+        {
+            ReadPreviewPixels();
+            byte[] copied = _playbackWindow.ReadCopiedPixels(_target);
+            var snapshot = BitmapSource.Create(_bitmap.PixelWidth, _bitmap.PixelHeight, 96, 96, PixelFormats.Pbgra32, null, copied, _bitmap.PixelWidth * 4);
+            // Read the actual swap-chain buffer before Present; DWM scaling is separate.
+            if (_fullPlacement.Width != _bitmap.PixelWidth || _fullPlacement.Height != _bitmap.PixelHeight)
+                throw new InvalidOperationException("Pixel comparison requires 1:1 native presentation.");
+            var placement = _playbackWindow.Placement;
+            return new CroppedBitmap(snapshot, new Int32Rect(placement.Left - _fullPlacement.Left,
+                placement.Top - _fullPlacement.Top, placement.Width, placement.Height));
+        }
+        internal void ValidateNativeFrameCopy()
+        {
+            ReadPreviewPixels();
+            byte[] copied = _playbackWindow.ReadCopiedPixels(_target);
+            if (copied.Length != _pixels.Length) throw new InvalidOperationException("Swap-chain size differs.");
+            for (int i = 0; i < copied.Length; i++)
+                if (copied[i] != _pixels[i]) throw new InvalidOperationException("GPU copy changed pixel bytes.");
         }
         internal void ValidatePixelStripes(int startX, int startY, int count)
         {
-            if (_bitmap == null || !_renderedPlacement.Equals(_fullPlacement)) throw new InvalidOperationException("No current native-resolution raster.");
+            ReadPreviewPixels();
+            if (_pixels == null || !_renderedPlacement.Equals(_fullPlacement)) throw new InvalidOperationException("No current native-resolution raster.");
+            int rasterWidth = (int)RasterSize.Width, rasterHeight = (int)RasterSize.Height;
             for (int x = 0; x < count; x++)
             {
                 int localX = startX + x - _rasterRegion.X, localY = startY - _rasterRegion.Y;
-                if (localX < 0 || localX >= _bitmap.PixelWidth || localY < 0 || localY >= _bitmap.PixelHeight)
+                if (localX < 0 || localX >= rasterWidth || localY < 0 || localY >= rasterHeight)
                     throw new InvalidOperationException("Native-resolution detail was cropped.");
-                byte alpha = _pixels[(localY * _bitmap.PixelWidth + localX) * 4 + 3];
+                byte alpha = _pixels[(localY * rasterWidth + localX) * 4 + 3];
                 if (alpha != (x % 2 == 0 ? 255 : 0)) throw new InvalidOperationException("A one-pixel detail was blurred by resampling.");
             }
         }
@@ -143,7 +164,7 @@ namespace KillConfirmCompatibility.Desktop.Windowing
         {
             ValidateCroppedPlacement();
             if (_fullPlacement.Width != width || _fullPlacement.Height != height) throw new InvalidOperationException("Playback changed scale in the middle of a frame.");
-            var committed = _playbackWindow.CopyPresentedBitmap();
+            var committed = CopyPresentedBitmap();
             var actual = new byte[committed.PixelWidth * committed.PixelHeight * 4];
             committed.CopyPixels(actual, committed.PixelWidth * 4, 0);
             var placement = _playbackWindow.Placement;
@@ -272,6 +293,7 @@ namespace KillConfirmCompatibility.Desktop.Windowing
             {
                 if (!editing)
                 {
+                    _image.Source = null; _bitmap = null; _pixels = null; _pixelBuffer = null;
                     _dragStart = null;
                     if (_resize.IsDragging) _resize.CancelDrag();
                     _resizing = false;
@@ -308,7 +330,6 @@ namespace KillConfirmCompatibility.Desktop.Windowing
                 _image.VerticalAlignment = System.Windows.VerticalAlignment.Top;
                 _image.Stretch = Stretch.Fill;
                 _lastCroppedPlacement = null;
-                _lastSourceCrop = null;
                 NativeWindows.SetWindowPos(_handle, new IntPtr(-1), x, y, pixelsWide, pixelsHigh, 0x10);
             }
             else if (!previousPlacement.Equals(_fullPlacement))
@@ -318,8 +339,7 @@ namespace KillConfirmCompatibility.Desktop.Windowing
             }
             Opacity = editing ? 1 : Math.Clamp(_animation.Opacity, 0, 1);
             RefreshVisibility();
-            // Re-rasterize at the new physical size before committing pixels
-            // and placement together. Never stretch the previous small frame.
+            // Placement changes update the compositor transform, not the native raster.
             if (!_rendering && (!wasCropped || !previousPlacement.Equals(_fullPlacement))) Render();
         }
         private void OnViewportSizeChanged(object sender, EventArgs args)
@@ -356,63 +376,60 @@ namespace KillConfirmCompatibility.Desktop.Windowing
             if (!_editing) Opacity = Math.Clamp(_animation.Opacity, 0, 1);
             RefreshVisibility();
             if (_croppedPresentation ? !_desiredVisible || _animation.Visibility != global::Windows.UI.Xaml.Visibility.Visible : !IsVisible) return;
-            int fullWidth = Math.Max(1, _fullPlacement.Width), fullHeight = Math.Max(1, _fullPlacement.Height);
-            bool placementChanged = !_renderedPlacement.Equals(_fullPlacement);
-            if (!(DirtyOverride?.Invoke() ?? _animation.IsFrameDirty) && _bitmap != null && !placementChanged)
+            var viewport = _animation.DesktopRenderViewport;
+            // FixedSize is for the independently laid-out danmaku surface.
+            var raster = _animation.DesktopRasterSize;
+            int width = Math.Max(1, (int)Math.Ceiling(DrawOverride == null ? raster.Width : FixedSize?.Width ?? viewport.Width));
+            int height = Math.Max(1, (int)Math.Ceiling(DrawOverride == null ? raster.Height : FixedSize?.Height ?? viewport.Height));
+            bool recreated = _target == null || (int)_target.SizeInPixels.Width != width || (int)_target.SizeInPixels.Height != height;
+            if (recreated)
             {
-                if (_croppedPresentation) PresentCroppedFrame(_pixels, _bitmap.PixelWidth, _bitmap.PixelHeight);
-                UpdateEditorImage();
-                return;
-            }
-            long drawStart = System.Diagnostics.Stopwatch.GetTimestamp();
-            var device = CanvasDevice.GetSharedDevice();
-            // Record vector/text/image commands at the final screen scale. Their
-            // conservative bounds let us omit empty pixels without a low-res
-            // prepass, and without losing small details or effect fringes.
-            using var commands = new CanvasCommandList(device);
-            using (var recording = commands.CreateDrawingSession())
-                if (DrawOverride == null) _animation.DrawDesktopFrame(recording, fullWidth, fullHeight, cropEmptySpace: true, clearTarget: false);
-                else DrawOverride(recording, fullWidth, fullHeight);
-            var region = CalculateRasterRegion(commands.GetBounds(device), _fullPlacement, _bounds);
-            if (!placementChanged && Contains(_rasterRegion, region) &&
-                (long)_rasterRegion.Width * _rasterRegion.Height <= (long)region.Width * region.Height * 2)
-                region = _rasterRegion;
-            if (_rasterRegion != region) _lastSourceCrop = null;
-            _rasterRegion = region;
-            int width = region.Width, height = region.Height;
-            if (_target == null || (int)_target.SizeInPixels.Width != width || (int)_target.SizeInPixels.Height != height)
-            {
+                _playbackWindow?.Dispose(); _playbackWindow = null;
                 _target?.Dispose();
-                _lastSourceCrop = null;
-                _target = new CanvasRenderTarget(device, width, height, 96);
-                _bitmap = new WriteableBitmap(width, height, 96, 96, PixelFormats.Pbgra32, null);
-                _pixels = new byte[checked(width * height * 4)];
-                _pixelBuffer = _pixels.AsBuffer();
-                _image.Source = _bitmap;
+                _target = new CanvasRenderTarget(CanvasDevice.GetSharedDevice(), width, height, 96);
+                _bitmap = null; _image.Source = null; _pixels = null; _pixelBuffer = null;
+                _rasterRegion = new Int32Rect(0, 0, width, height);
             }
-            using (var session = _target.CreateDrawingSession())
+            bool dirty = recreated || (DirtyOverride?.Invoke() ?? _animation.IsFrameDirty);
+            if (dirty)
             {
-                session.Clear(Colors.Transparent);
-                session.Transform = Matrix3x2.CreateTranslation(-region.X, -region.Y);
-                session.DrawImage(commands);
+                long start = System.Diagnostics.Stopwatch.GetTimestamp();
+                using (var session = _target.CreateDrawingSession())
+                {
+                    session.Clear(Colors.Transparent);
+                    if (DrawOverride == null) _animation.DrawDesktopFrame(session, width, height, cropEmptySpace: true, clearTarget: false);
+                    else DrawOverride(session, width, height);
+                }
+                _hasRenderedPixels = true;
+                DrawMilliseconds += System.Diagnostics.Stopwatch.GetElapsedTime(start).TotalMilliseconds;
             }
             _renderedPlacement = _fullPlacement;
-            UpdateEditorImage();
-            long readStart = System.Diagnostics.Stopwatch.GetTimestamp();
-            _target.GetPixelBytes(_pixelBuffer);
-            long copyStart = System.Diagnostics.Stopwatch.GetTimestamp();
-            byte[] pixels = _pixels;
-            _hasRenderedPixels = false;
-            for (int index = 3; index < pixels.Length; index += 4)
-                if (pixels[index] != 0) { _hasRenderedPixels = true; break; }
-            _bitmap.WritePixels(new Int32Rect(0, 0, width, height), pixels, width * 4, 0);
-            _pixelRevision++;
-            if (_croppedPresentation) PresentCroppedFrame(pixels, width, height);
-            DrawMilliseconds += System.Diagnostics.Stopwatch.GetElapsedTime(drawStart, readStart).TotalMilliseconds;
-            ReadbackMilliseconds += System.Diagnostics.Stopwatch.GetElapsedTime(readStart, copyStart).TotalMilliseconds;
-            CopyMilliseconds += System.Diagnostics.Stopwatch.GetElapsedTime(copyStart).TotalMilliseconds;
-            PresentedFrames++;
-            FramePresented?.Invoke();
+            if (_croppedPresentation)
+            {
+                bool newWindow = _playbackWindow == null;
+                _playbackWindow ??= new CompositionFrameWindow(_target.Device, width, height);
+                if (dirty || newWindow) _playbackWindow.Present(_target);
+                _playbackWindow.Place(_fullPlacement, _bounds, _animation.Opacity);
+                _lastCroppedPlacement = _playbackWindow.Placement;
+            }
+            else
+            {
+                if (dirty || _bitmap == null)
+                {
+                    long start = System.Diagnostics.Stopwatch.GetTimestamp();
+                    ReadPreviewPixels();
+                    ReadbackMilliseconds += System.Diagnostics.Stopwatch.GetElapsedTime(start).TotalMilliseconds;
+                }
+                UpdateEditorImage();
+            }
+            if (dirty) { PresentedFrames++; FramePresented?.Invoke(); }
+        }
+
+        private void EnsureSanguoshaEditorBitmap(int width, int height)
+        {
+            if (_bitmap == null || _bitmap.PixelWidth != width || _bitmap.PixelHeight != height)
+                _bitmap = new WriteableBitmap(width, height, 96, 96, PixelFormats.Pbgra32, null);
+            _image.Source = _bitmap;
         }
         // Keep animation geometry unchanged, but do not make WPF composite a
         // 1100x900 transparent canvas (multiplied by desktop DPI) every frame.
@@ -430,32 +447,13 @@ namespace KillConfirmCompatibility.Desktop.Windowing
             right = Math.Min(width, (right + 18) / 16 * 16); bottom = Math.Min(height, (bottom + 18) / 16 * 16);
             return new Int32Rect(left, top, right - left, bottom - top);
         }
-        private void PresentCroppedFrame(byte[] pixels, int width, int height)
-        {
-            if (!_desiredVisible || _animation.Visibility != global::Windows.UI.Xaml.Visibility.Visible) { _playbackWindow?.Hide(); return; }
-            var crop = VisiblePixelBounds(pixels, width, height);
-            // Keep a small amount of spare transparent space while fading.
-            // Moving/resizing a layered HWND itself can stall composition.
-            if (_lastSourceCrop is Int32Rect previous && previous.X <= crop.X && previous.Y <= crop.Y &&
-                previous.X + previous.Width >= crop.X + crop.Width && previous.Y + previous.Height >= crop.Y + crop.Height &&
-                (long)previous.Width * previous.Height <= (long)crop.Width * crop.Height * 2)
-                crop = previous;
-            _lastSourceCrop = crop;
-            // One raster pixel is one physical screen pixel at every zoom.
-            int x = _rasterRegion.X + crop.X, y = _rasterRegion.Y + crop.Y;
-            var placement = new NativeWindows.Rect { Left = _fullPlacement.Left + x, Top = _fullPlacement.Top + y,
-                Right = _fullPlacement.Left + x + crop.Width, Bottom = _fullPlacement.Top + y + crop.Height };
-            _playbackWindow ??= new LayeredFrameWindow(Title + " · Playback");
-            _playbackWindow.Present(_bitmap, _pixelRevision, width, height, crop, placement, _animation.Opacity);
-            _lastCroppedPlacement = placement;
-        }
         private void UpdateEditorImage()
         {
             if (_croppedPresentation || _bitmap == null) return;
             var dpi = VisualTreeHelper.GetDpi(this);
-            _image.Width = _bitmap.PixelWidth / dpi.DpiScaleX;
-            _image.Height = _bitmap.PixelHeight / dpi.DpiScaleY;
-            _image.Margin = new Thickness(_rasterRegion.X / dpi.DpiScaleX, _rasterRegion.Y / dpi.DpiScaleY, 0, 0);
+            _image.Width = _fullPlacement.Width / dpi.DpiScaleX;
+            _image.Height = _fullPlacement.Height / dpi.DpiScaleY;
+            _image.Margin = new Thickness(0);
         }
         private static bool Contains(Int32Rect outer, Int32Rect inner) => outer.Width > 0 && outer.Height > 0 &&
             outer.X <= inner.X && outer.Y <= inner.Y && outer.X + outer.Width >= inner.X + inner.Width && outer.Y + outer.Height >= inner.Y + inner.Height;

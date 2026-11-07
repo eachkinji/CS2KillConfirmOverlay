@@ -23,7 +23,7 @@ namespace KillConfirmCompatibility.Desktop.Rendering
             _nextSeconds += interval;
             // After a stall, render the current animation time once; do not
             // replay missed frames or spend subsequent refreshes catching up.
-            if (_nextSeconds <= now) _nextSeconds = now + interval;
+            if (_nextSeconds <= now) _nextSeconds += (Math.Floor((now - _nextSeconds) / interval) + 1) * interval;
             return true;
         }
     }

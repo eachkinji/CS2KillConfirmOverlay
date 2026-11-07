@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -18,29 +18,30 @@ namespace KillConfirmGameBar
         {
             GameStyleMode playback = GameStyleService.Current;
             int toggles = 0, thumbs = 0;
-            var traditionalFirst = GameStyleSidebarSelector.MenuItems.OfType<NavigationViewItem>()
-                .Select(i => i.Tag as string).Where(key => key != "home" && key != "advanced")
-                .Take(3).ToArray();
-            if (!traditionalFirst.SequenceEqual(new[] { "crossfire", "csol", "valorant" }))
-                throw new Exception("Sidebar traditional shooters are not CrossFire, CSOL, VALORANT.");
-            foreach (var groupButton in new[] { SidebarTraditionalButton, SidebarHeroButton, SidebarSurvivalButton, SidebarBattlefieldButton, SidebarCodButton, SidebarCardMobaButton, SidebarMemeButton })
-                if (!IsVisibleWithin(groupButton, GameModeSidebar) || !IsEnabledWithin(groupButton, GameModeSidebar))
-                    throw new Exception("Sidebar group button is not rendered and enabled: " + groupButton.Name);
-            await UpdateValidation.CaptureAsync(GameModeSidebar, "sidebar-grouped");
+            if (GameStyleSidebarSelector.MenuItems.Count != 3 || GameStyleSidebarSelector.MenuItems[2] != StyleSettingsSidebarItem)
+                throw new Exception("Navigation must contain only Home, Advanced settings, Game styles.");
+            UpdateLayout();
+            ValidateCompactDocks();
+            if (NavigationDocks.VerticalAlignment != VerticalAlignment.Center)
+                throw new Exception("Docks are not centered.");
+            await CaptureNavigationAsync("navigation-home");
+            GameStyleSidebarSelector.SelectedItem = StyleSettingsSidebarItem;
+            await Task.Delay(100);
+            if (StylePickerSurface.Visibility != Visibility.Visible || PageTitleSurface.Visibility != Visibility.Collapsed)
+                throw new Exception("Style picker did not replace the large title.");
             foreach (GameStyleMode style in Enum.GetValues(typeof(GameStyleMode)))
             {
-                // Exercise a library handoff into a collapsed series.
-                SetAllSidebarGroupsExpanded(false);
-                ApplySidebarGroups();
-                var item = GameStyleSidebarSelector.MenuItems.OfType<NavigationViewItem>()
-                    .First(i => Equals(i.Tag, GameStyleService.ToStorageValue(style)));
-                GameStyleSidebarSelector.SelectedItem = item;
+                var item = StylePicker.Children.OfType<Button>().Single(i => Equals(i.Tag, GameStyleService.ToStorageValue(style)));
+                InvokeSourceButton(item);
                 await Task.Delay(100);
                 UpdateLayout();
-                if (GameStyleService.Current != playback || SettingsGameStyle != style || _isSettingsWorkspaceSelected)
-                    throw new Exception("Settings navigation changed playback mode: " + style);
-                if (item.Visibility != Visibility.Visible)
-                    throw new Exception("Settings navigation did not reveal its collapsed sidebar group: " + style);
+                if (GameStyleService.Current != playback || SettingsGameStyle != style || _isSettingsWorkspaceSelected
+                    || GameStyleSidebarSelector.SelectedItem != StyleSettingsSidebarItem)
+                    throw new Exception("Style settings navigation changed playback or destination: " + style);
+                var expandedLabels = StylePicker.Children.OfType<Button>().Where(b => ((StackPanel)b.Content).Children[1].Visibility == Visibility.Visible).ToArray();
+                if (expandedLabels.Length != 1 || expandedLabels[0] != item)
+                    throw new Exception("Only the selected style should show its name: " + style);
+                if (style == GameStyleMode.Crossfire) await CaptureNavigationAsync("navigation-styles");
                 var accent = GameThemePalette.ForMode(style).Accent;
                 // Collapsed rows retain measured descendants and template visual states.
                 // Inspect the whole visual ancestry, not just each child's local Visibility.
@@ -48,13 +49,13 @@ namespace KillConfirmGameBar
                     .Where(e => IsVisibleWithin(e, GamePageContent)).ToArray();
                 foreach (var toggle in visible.OfType<ToggleSwitch>().Where(t => !sidebarOnly && t.IsOn && IsEnabledWithin(t, GamePageContent)))
                 {
-                    if (!HasAccent(toggle, accent)) throw new Exception("Toggle still uses system accent: " + style + "/" + toggle.Name + " " + DescribeFills(toggle));
+                    if (!await WaitForAccentAsync(toggle, accent)) throw new Exception("Toggle still uses system accent: " + style + "/" + toggle.Name + " " + DescribeFills(toggle));
                     toggles++;
                 }
                 foreach (var slider in visible.OfType<Slider>().Where(t => !sidebarOnly && IsEnabledWithin(t, GamePageContent)))
                 {
                     var thumb = Descendants(slider).OfType<Thumb>().FirstOrDefault(t => IsVisibleWithin(t, slider));
-                    if (thumb == null || !HasAccent(thumb, accent)) throw new Exception("Slider thumb still uses system accent: " + style + "/" + slider.Name + " " + DescribeFills(slider));
+                    if (thumb == null || !await WaitForAccentAsync(thumb, accent)) throw new Exception("Slider thumb still uses system accent: " + style + "/" + slider.Name + " " + DescribeFills(slider));
                     thumbs++;
                 }
                 if (style == GameStyleMode.Battlefield6)
@@ -66,20 +67,16 @@ namespace KillConfirmGameBar
                     await UpdateValidation.CaptureAsync(GamePageContent, "battlefield6-settings");
                 }
             }
-            var battlefieldItem = GameStyleSidebarSelector.MenuItems.OfType<NavigationViewItem>()
-                .First(i => Equals(i.Tag, "battlefield6"));
-            GameStyleSidebarSelector.SelectedItem = battlefieldItem;
-            await Task.Delay(100);
-            OnSidebarGroupClick(SidebarBattlefieldButton, new RoutedEventArgs());
-            if (_sidebarBattlefieldExpanded || battlefieldItem.Visibility != Visibility.Collapsed
-                || SettingsGameStyle != GameStyleMode.Battlefield6 || GameStyleService.Current != playback)
-                throw new Exception("Collapsing Battlefield changed the settings destination or playback.");
+            // The docks are icon-only by design: nothing may widen them after interaction.
+            UpdateLayout();
+            ValidateCompactDocks();
+            SelectCompatibilityWorkspace();
             PackLibraryNavigation.Request(GameStyleMode.Battlefield6, false);
             ApplyPendingPackLibraryNavigation();
             await Task.Delay(100);
-            if (!_sidebarBattlefieldExpanded || battlefieldItem.Visibility != Visibility.Visible
-                || SettingsGameStyle != GameStyleMode.Battlefield6 || GameStyleService.Current != playback)
-                throw new Exception("Library handoff did not reveal the selected collapsed Battlefield group.");
+            if (SettingsGameStyle != GameStyleMode.Battlefield6 || GameStyleService.Current != playback
+                || GameStyleSidebarSelector.SelectedItem != StyleSettingsSidebarItem || _activeGameTab != "icon")
+                throw new Exception("Library handoff failed to select the style workspace.");
 
             foreach (var item in new[] { AdvancedSettingsSidebarItem, HomeSidebarItem })
             {
@@ -90,7 +87,8 @@ namespace KillConfirmGameBar
             if (sidebarOnly)
             {
                 File.WriteAllText(System.IO.Path.Combine(DesktopPlatform.Data.LocalFolder.Path, "ui-pass.txt"),
-                    $"PASS: visible/enabled group buttons; CrossFire, VALORANT, Strinova first; {Enum.GetValues(typeof(GameStyleMode)).Length} game pages reveal their collapsed groups without changing playback; group collapse keeps the settings destination; same-game library handoff reopens Battlefield; Home/advanced remain accessible. Theme colors are validated separately.");
+                    $"PASS: three navigation destinations; two centered icon-only docks with equal insets; {Enum.GetValues(typeof(GameStyleMode)).Length} clickable style icons with exactly one expanded name; large title removed; playback unchanged; library handoff and Home/advanced preserved.");
+                Application.Current.Exit();
                 return;
             }
             if (toggles == 0 || thumbs == 0) throw new Exception("Native theme checks did not exercise controls.");
@@ -118,8 +116,26 @@ namespace KillConfirmGameBar
             SelectCompatibilityWorkspace();
             await Task.Delay(300);
             await _compatibilityWorkspace.ValidateUnsupportedPreviewAsync();
-            File.WriteAllText(System.IO.Path.Combine(DesktopPlatform.Data.LocalFolder.Path, "navigation-pass.txt"), $"PASS: favorites order; group collapse preserves settings and playback; library handoff reveals collapsed selection; {Enum.GetValues(typeof(GameStyleMode)).Length} independent settings pages reveal collapsed groups; {toggles} native toggle fills and {thumbs} native slider thumbs match page themes; Home/advanced blue; voice/icon Add more preserves selection and opens library; repeated handoff consumed; unsupported preview rejected immediately without enqueue.");
+            File.WriteAllText(System.IO.Path.Combine(DesktopPlatform.Data.LocalFolder.Path, "navigation-pass.txt"), $"PASS: centered compact docks; independent style picker; library handoff preserves playback; {Enum.GetValues(typeof(GameStyleMode)).Length} independent settings pages; {toggles} native toggle fills and {thumbs} native slider thumbs match page themes; Home/advanced blue; voice/icon Add more preserves selection and opens library; repeated handoff consumed; unsupported preview rejected immediately without enqueue.");
         }
+        private void ValidateCompactDocks()
+        {
+            if (Math.Abs(GameModeSidebar.ActualWidth - 60) > 1 || GameStyleSidebarSelector.IsPaneOpen || Math.Abs(GameSourceDock.ActualWidth - 60) > 1)
+                throw new Exception($"Docks must stay icon-only: nav={GameModeSidebar.ActualWidth} source={GameSourceDock.ActualWidth} open={GameStyleSidebarSelector.IsPaneOpen}");
+            double top = HomeSidebarItem.TransformToVisual(GameModeSidebar).TransformPoint(new Windows.Foundation.Point(0, 0)).Y;
+            double bottom = GameModeSidebar.ActualHeight - StyleSettingsSidebarItem.TransformToVisual(GameModeSidebar)
+                .TransformPoint(new Windows.Foundation.Point(0, StyleSettingsSidebarItem.ActualHeight)).Y;
+            if (Math.Abs(top - bottom) > 1.5)
+                throw new Exception($"Navigation dock insets differ: top={top:0.#} bottom={bottom:0.#} dock={GameModeSidebar.ActualHeight:0.#} view={GameStyleSidebarSelector.ActualHeight:0.#}");
+        }
+        private async Task CaptureNavigationAsync(string name)
+        {
+            var previous = SettingsRootGrid.Clip;
+            SettingsRootGrid.Clip = new RectangleGeometry { Rect = new Windows.Foundation.Rect(0, 0, SettingsRootGrid.ActualWidth, SettingsRootGrid.ActualHeight) };
+            try { await UpdateValidation.CaptureAsync(SettingsRootGrid, name); }
+            finally { SettingsRootGrid.Clip = previous; }
+        }
+
         private static bool IsVisibleWithin(FrameworkElement element, DependencyObject scope)
         {
             if (element.ActualWidth <= 0 || element.ActualHeight <= 0) return false;
@@ -148,6 +164,19 @@ namespace KillConfirmGameBar
         private static bool HasAccent(DependencyObject root, Windows.UI.Color color) => Descendants(root).Any(n =>
             n is Shape shape && shape.Fill is SolidColorBrush fill && fill.Color.Equals(color)
             || n is Border border && border.Background is SolidColorBrush background && background.Color.Equals(color));
+        private static async Task<bool> WaitForAccentAsync(FrameworkElement element, Windows.UI.Color color)
+        {
+            // Cached appearance rows can change Disabled -> Normal when the next
+            // game's layer is enabled. IsEnabled changes before the native visual
+            // state has finished; require the actual expected fill within 500ms.
+            for (int attempt = 0; attempt < 10; attempt++)
+            {
+                if (HasAccent(element, color)) return true;
+                await Task.Delay(50);
+                element.UpdateLayout();
+            }
+            return HasAccent(element, color);
+        }
         private static string DescribeFills(DependencyObject root) => string.Join(",", Descendants(root).OfType<Shape>().Select(s => s.Name + "=" + (s.Fill as SolidColorBrush)?.Color));
     }
 }
@@ -185,7 +214,8 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                 selector.SelectedItem = selector.Items.OfType<ComboBoxItem>().First(i => Equals(i.Tag, key));
                 var clock = Stopwatch.StartNew();
                 await PreviewAsync();
-                if (clock.ElapsedMilliseconds >= 100 || IsPreviewing || CompatibilityDisplayRuntime.Load().TestRequest != request || !PreviewFeedback.Contains("不支持"))
+                string unsupported = KillConfirmCompatibility.Contracts.PreviewEventSupport.UnsupportedMessage(LocalizationManager.Current == UiLanguage.SimplifiedChinese);
+                if (clock.ElapsedMilliseconds >= 100 || IsPreviewing || CompatibilityDisplayRuntime.Load().TestRequest != request || !PreviewFeedback.Contains(unsupported))
                     throw new Exception("Unsupported preview waited or enqueued a request: " + key + "/" + PreviewFeedback);
             }
             selector.SelectedItem = saved;

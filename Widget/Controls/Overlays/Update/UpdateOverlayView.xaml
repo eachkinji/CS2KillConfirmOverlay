@@ -1,23 +1,25 @@
-﻿<UserControl
+<UserControl
     x:Class="KillConfirmGameBar.Controls.UpdateOverlayView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:settings="using:KillConfirmGameBar.Controls.Settings">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="ms-appx:///Controls/Settings/PanelDesign.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
         <Grid
             x:Name="Root"
             x:FieldModifier="public"
             Background="#99000000">
-            <Border
+            <Border Style="{StaticResource PanelCardStyle}"
                 x:Name="DialogCard"
                 x:FieldModifier="public"
-                Width="408"
-                Padding="22"
+                Width="520"
                 HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                Background="#FFFAF7F0"
-                BorderBrush="#26000000"
-                BorderThickness="1"
-                CornerRadius="24">
+                VerticalAlignment="Center">
                 <Grid RowSpacing="14">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -31,38 +33,23 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <StackPanel Spacing="4">
-                            <TextBlock
+                            <TextBlock Style="{StaticResource PanelPageTitleTextStyle}"
                                 x:Name="UpdateDialogTitleText"
                                 x:FieldModifier="public"
-                                FontSize="24"
-                                FontWeight="Bold"
-                                Foreground="#1C1C1E"
-                                Text="鍙戠幇鏇存柊" />
-                            <TextBlock
+                                Text="发现更新" />
+                            <TextBlock Style="{StaticResource PanelTitleTextStyle}"
                                 x:Name="UpdateDialogVersionText"
                                 x:FieldModifier="public"
-                                FontSize="13"
-                                FontWeight="SemiBold"
-                                Foreground="#8A6A36"
                                 Text="v..." />
                         </StackPanel>
-                        <Button
+                        <Button Style="{StaticResource PanelIconButtonStyle}"
                             x:Name="UpdateCloseButton"
+                            AutomationProperties.Name="关闭更新提示 / Close update"
                             x:FieldModifier="public"
                             Grid.Column="1"
-                            Width="30"
-                            Height="30"
-                            MinWidth="30"
-                            Padding="0"
-                            Background="#FBFBFD"
-                            BorderBrush="#1F000000"
-                            BorderThickness="1"
                             Click="OnCloseUpdateOverlayClick"
-                            CornerRadius="15"
-                            FontSize="13"
                             HorizontalContentAlignment="Center"
-                            VerticalContentAlignment="Center"
-                            Foreground="#1C1C1E">
+                            VerticalContentAlignment="Center">
                             <FontIcon
                                 FontFamily="Segoe MDL2 Assets"
                                 FontSize="12"
@@ -73,13 +60,10 @@
                         </Button>
                     </Grid>
 
-                    <TextBlock
+                    <TextBlock Style="{StaticResource PanelBodyTextStyle}"
                         x:Name="UpdateDialogBodyText"
                         x:FieldModifier="public"
                         Grid.Row="1"
-                        FontSize="13"
-                        Foreground="#6E6E73"
-                        LineHeight="20"
                         TextWrapping="WrapWholeWords" />
 
                     <ScrollViewer
@@ -87,14 +71,9 @@
                         MaxHeight="520"
                         HorizontalScrollBarVisibility="Disabled"
                         VerticalScrollBarVisibility="Auto">
-                        <Border
+                        <Border Style="{StaticResource PanelSectionCardStyle}"
                             x:Name="AboutCard"
-                            x:FieldModifier="public"
-                            Padding="12"
-                            Background="#FBFBFD"
-                            BorderBrush="#26000000"
-                            BorderThickness="1"
-                            CornerRadius="16">
+                            x:FieldModifier="public">
                         <StackPanel Spacing="7">
                             <Grid ColumnSpacing="8">
                                 <Grid.ColumnDefinitions>
@@ -121,31 +100,18 @@
                                             Source="ms-appx:///Assets/DeveloperAvatar.jpg"
                                             Stretch="UniformToFill" />
                                     </Border>
-                                    <TextBlock
+                                    <TextBlock Style="{StaticResource PanelTitleTextStyle}"
                                         x:Name="UpdateAboutText"
                                         x:FieldModifier="public"
                                         VerticalAlignment="Center"
-                                        FontFamily="Segoe UI"
-                                        FontSize="13"
-                                        FontWeight="SemiBold"
-                                        Foreground="#1C1C1E"
-                                        LineHeight="17"
                                         Text="作者：Zac" />
                                 </StackPanel>
-                                <Button
+                                <Button Style="{StaticResource PanelButtonStyle}"
                                     x:Name="UpdateAuthorGitHubButton"
                                     x:FieldModifier="public"
                                     Grid.Column="1"
                                     Width="104"
-                                    Height="28"
-                                    MinWidth="104"
-                                    Background="#FBFBFD"
-                                    BorderBrush="#1F000000"
-                                    BorderThickness="1"
-                                    Click="OnOpenAuthorGitHubClick"
-                                    CornerRadius="10"
-                                    FontSize="12"
-                                    Foreground="#1C1C1E">
+                                    Click="OnOpenAuthorGitHubClick">
                                     <StackPanel
                                         HorizontalAlignment="Center"
                                         Orientation="Horizontal"
@@ -155,27 +121,19 @@
                                             Height="14"
                                             Source="ms-appx:///Assets/GitHub.png"
                                             Stretch="Uniform" />
-                                        <TextBlock
+                                        <TextBlock Style="{StaticResource PanelBodyTextStyle}"
                                             x:Name="UpdateAuthorGitHubText"
                                             x:FieldModifier="public"
                                             VerticalAlignment="Center"
                                             Text="GitHub" />
                                     </StackPanel>
                                 </Button>
-                                <Button
+                                <Button Style="{StaticResource PanelButtonStyle}"
                                     x:Name="UpdateAuthorBilibiliButton"
                                     x:FieldModifier="public"
                                     Grid.Column="2"
                                     Width="116"
-                                    Height="28"
-                                    MinWidth="116"
-                                    Background="#FBFBFD"
-                                    BorderBrush="#1F000000"
-                                    BorderThickness="1"
-                                    Click="OnOpenBilibiliClick"
-                                    CornerRadius="10"
-                                    FontSize="12"
-                                    Foreground="#1C1C1E">
+                                    Click="OnOpenBilibiliClick">
                                     <StackPanel
                                         HorizontalAlignment="Center"
                                         Orientation="Horizontal"
@@ -185,7 +143,7 @@
                                             Height="14"
                                             Source="ms-appx:///Assets/bilibili.png"
                                             Stretch="Uniform" />
-                                        <TextBlock
+                                        <TextBlock Style="{StaticResource PanelBodyTextStyle}"
                                             x:Name="UpdateAuthorBilibiliText"
                                             x:FieldModifier="public"
                                             VerticalAlignment="Center"
@@ -193,17 +151,11 @@
                                     </StackPanel>
                                 </Button>
                             </Grid>
-                            <Button
+                            <Button Style="{StaticResource PanelButtonStyle}"
                                 x:Name="UpdateDownloadLinkButton"
                                 x:FieldModifier="public"
-                                Height="28"
                                 HorizontalAlignment="Stretch"
-                                Background="#F3F8FB"
-                                BorderBrush="#B9DCEC"
-                                BorderThickness="1"
-                                Click="OnOpenDownloadLinkClick"
-                                CornerRadius="10"
-                                Foreground="#1C1C1E">
+                                Click="OnOpenDownloadLinkClick">
                                 <StackPanel
                                     HorizontalAlignment="Center"
                                     Orientation="Horizontal"
@@ -213,12 +165,10 @@
                                         Height="18"
                                         Source="ms-appx:///Assets/Square44x44Logo.scale-200.png"
                                         Stretch="Uniform" />
-                                    <TextBlock
+                                    <TextBlock Style="{StaticResource PanelTitleTextStyle}"
                                         x:Name="UpdateDownloadLinkText"
                                         x:FieldModifier="public"
                                         VerticalAlignment="Center"
-                                        FontSize="12"
-                                        FontWeight="SemiBold"
                                         Text="项目下载更新链接" />
                                 </StackPanel>
                             </Button>
@@ -227,27 +177,16 @@
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
-                                <TextBlock
+                                <TextBlock Style="{StaticResource PanelTitleTextStyle}"
                                     x:Name="UpdateQuarkCodeText"
                                     x:FieldModifier="public"
-                                    VerticalAlignment="Center"
-                                    FontSize="12"
-                                    FontWeight="Bold"
-                                    Foreground="#1C1C1E" />
-                                <Button
+                                    VerticalAlignment="Center" />
+                                <Button Style="{StaticResource PanelButtonStyle}"
                                     x:Name="UpdateCopyQuarkButton"
                                     x:FieldModifier="public"
                                     Grid.Column="1"
-                                    Height="28"
-                                    MinWidth="112"
-                                    Background="#FBFBFD"
-                                    BorderBrush="#B9DCEC"
-                                    BorderThickness="1"
                                     Click="OnCopyQuarkUpdateClick"
-                                    Content="复制网盘链接"
-                                    CornerRadius="10"
-                                    FontSize="12"
-                                    Foreground="#1C1C1E" />
+                                    Content="复制网盘链接" />
                             </Grid>
                             <settings:CreditsCommunityPanel
                                 x:Name="UpdateCreditsCommunityPanel"
@@ -257,30 +196,18 @@
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
-                                <TextBlock
+                                <TextBlock Style="{StaticResource PanelTitleTextStyle}"
                                     x:Name="UpdateReleaseTitleText"
                                     x:FieldModifier="public"
                                     VerticalAlignment="Center"
-                                    FontSize="12"
-                                    FontWeight="Bold"
-                                    Foreground="#1C1C1E"
                                     Text="最新版本说明" />
-                                <Button
+                                <Button Style="{StaticResource PanelButtonStyle}"
                                     x:Name="UpdateReleaseToggleButton"
                                     x:FieldModifier="public"
                                     Grid.Column="1"
-                                    Width="56"
-                                    Height="24"
-                                    MinWidth="56"
-                                    Padding="0"
-                                    Background="#FBFBFD"
-                                    BorderBrush="#1F000000"
-                                    BorderThickness="1"
+                                    MinWidth="64"
                                     Click="OnToggleReleaseNotesClick"
-                                    Content="展开"
-                                    CornerRadius="8"
-                                    FontSize="11"
-                                    Foreground="#1C1C1E" />
+                                    Content="展开" />
                             </Grid>
                             <ScrollViewer
                                 x:Name="UpdateReleaseScrollViewer"
@@ -288,12 +215,9 @@
                                 MaxHeight="0"
                                 VerticalScrollBarVisibility="Auto"
                                 HorizontalScrollBarVisibility="Disabled">
-                                <TextBlock
+                                <TextBlock Style="{StaticResource PanelCaptionTextStyle}"
                                     x:Name="UpdateReleaseInfoText"
                                     x:FieldModifier="public"
-                                    FontSize="11"
-                                    Foreground="#6E6E73"
-                                    LineHeight="17"
                                     TextWrapping="WrapWholeWords" />
                             </ScrollViewer>
                             </StackPanel>

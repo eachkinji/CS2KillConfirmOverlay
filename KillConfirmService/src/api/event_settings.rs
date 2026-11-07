@@ -155,21 +155,13 @@ pub async fn set_gsi_game_settings(
         ));
     };
 
-    let previous = app_state
-        .gsi_game_version
-        .swap(version.as_u8(), Ordering::Relaxed);
-    if previous != version.as_u8() {
-        // A parser switch starts a new baseline. Never compare a Legacy sample
-        // against counters captured by the CS2 parser (or vice versa).
-        let mut mutable = app_state.mutable.write().await;
-        mutable.active_player = Default::default();
-        mutable.active_observed_player_id = None;
-        mutable.last_bomb_state = None;
-        mutable.last_bomb_player = None;
-        mutable.last_round_bomb_state = None;
+    let selected = app_state.game_source.read().await;
+    if selected.source.cs_version() != Some(version) {
+        return Err((
+            StatusCode::CONFLICT,
+            "Use /game-source/settings to switch games".into(),
+        ));
     }
-
-    service_log(&format!("GSI game version: {}", version.as_str()));
     Ok(Json(gsi_game_settings_response(&app_state)))
 }
 

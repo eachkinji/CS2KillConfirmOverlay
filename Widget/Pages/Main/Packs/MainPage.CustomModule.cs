@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -40,14 +40,16 @@ namespace KillConfirmGameBar
         {
             var content = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, HorizontalAlignment = HorizontalAlignment.Center };
             content.Children.Add(new FontIcon { Glyph = glyph, FontFamily = new FontFamily("Segoe MDL2 Assets"), FontSize = 13 });
-            content.Children.Add(new TextBlock { Text = label, FontSize = 11, VerticalAlignment = VerticalAlignment.Center });
+            content.Children.Add(new TextBlock { FontSize = PanelResource<double>("PanelFontBody"), FontFamily = PanelResource<FontFamily>("PanelFontFamily"), Text = label, VerticalAlignment = VerticalAlignment.Center });
             return new ToggleButton
             {
-                Content = content, MinHeight = 38, HorizontalAlignment = HorizontalAlignment.Stretch,
-                Background = new SolidColorBrush(Color.FromArgb(247, 255, 255, 255)),
+                Content = content, MinHeight = PanelResource<double>("PanelControlHeight"), HorizontalAlignment = HorizontalAlignment.Stretch,
+                Padding = PanelResource<Thickness>("PanelControlPadding"),
+                FontFamily = PanelResource<FontFamily>("PanelFontFamily"),
+                Background = PanelResource<Brush>("PanelFieldBrush"),
                 Foreground = new SolidColorBrush(Color.FromArgb(255, 58, 63, 76)),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(31, 0, 0, 0)),
-                BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(12)
+                BorderBrush = PanelResource<Brush>("PanelBorderBrush"),
+                BorderThickness = new Thickness(1), CornerRadius = PanelResource<CornerRadius>("PanelControlRadius")
             };
         }
 
@@ -188,11 +190,11 @@ namespace KillConfirmGameBar
             var seek = new Slider { Minimum = 0, Maximum = duration, StepFrequency = 0.01 };
             var startSlider = new Slider { Minimum = 0, Maximum = duration, Value = 0, StepFrequency = 0.01 };
             var endSlider = new Slider { Minimum = 0, Maximum = duration, Value = initialEnd, StepFrequency = 0.01 };
-            var startBox = new TextBox { Header = chinese ? "起点（秒）" : "Start (seconds)", Text = "0", Width = 150 };
-            var endBox = new TextBox { Header = chinese ? "终点（秒）" : "End (seconds)", Text = initialEnd.ToString("0.###", CultureInfo.InvariantCulture), Width = 150 };
-            var fpsBox = new TextBox { Header = "FPS (1–120)", Text = sourceFps.ToString(CultureInfo.InvariantCulture), Width = 130 };
-            var rangeText = new TextBlock { FontSize = 12, Foreground = new SolidColorBrush(Color.FromArgb(255, 86, 91, 104)) };
-            var warning = new TextBlock { FontSize = 12, Foreground = new SolidColorBrush(Color.FromArgb(255, 194, 93, 0)), TextWrapping = TextWrapping.Wrap };
+            var startBox = new TextBox { Style = PanelResource<Style>("PanelTextBoxStyle"), Header = chinese ? "起点（秒）" : "Start (seconds)", Text = "0", Width = 150 };
+            var endBox = new TextBox { Style = PanelResource<Style>("PanelTextBoxStyle"), Header = chinese ? "终点（秒）" : "End (seconds)", Text = initialEnd.ToString("0.###", CultureInfo.InvariantCulture), Width = 150 };
+            var fpsBox = new TextBox { Style = PanelResource<Style>("PanelTextBoxStyle"), Header = "FPS (1–120)", Text = sourceFps.ToString(CultureInfo.InvariantCulture), Width = 130 };
+            var rangeText = new TextBlock { Style = PanelResource<Style>("PanelCaptionTextStyle"), Foreground = PanelResource<Brush>("PanelTextSecondaryBrush") };
+            var warning = new TextBlock { Style = PanelResource<Style>("PanelCaptionTextStyle"), Foreground = new SolidColorBrush(Color.FromArgb(255, 194, 93, 0)), TextWrapping = TextWrapping.Wrap };
             var loop = new CheckBox { Content = chinese ? "循环预览所选区间" : "Loop selected range", IsChecked = true };
             bool internalSeek = false;
             bool previewingRange = false;
@@ -300,9 +302,8 @@ namespace KillConfirmGameBar
 
             var previewButton = new Button
             {
-                Content = chinese ? "预览所选区间" : "Preview selection",
-                Padding = new Thickness(14, 7, 14, 7),
-                CornerRadius = new CornerRadius(14)
+                Style = PanelResource<Style>("PanelButtonStyle"),
+                Content = chinese ? "预览所选区间" : "Preview selection"
             };
             previewButton.Click += (_, __) =>
             {
@@ -314,28 +315,29 @@ namespace KillConfirmGameBar
             var presets = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 5, VerticalAlignment = VerticalAlignment.Bottom };
             foreach (int fps in new[] { 24, 30, 60, 90, 120 })
             {
-                var button = new Button { Content = fps.ToString(CultureInfo.InvariantCulture), MinWidth = 44, Padding = new Thickness(7, 5, 7, 5), CornerRadius = new CornerRadius(12) };
+                var button = new Button { Style = PanelResource<Style>("PanelButtonStyle"), Content = fps.ToString(CultureInfo.InvariantCulture), MinWidth = 44 };
                 button.Click += (_, __) => fpsBox.Text = fps.ToString(CultureInfo.InvariantCulture);
                 presets.Children.Add(button);
             }
 
             var fields = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
-            fields.Children.Add(startBox); fields.Children.Add(endBox); fields.Children.Add(fpsBox); fields.Children.Add(presets);
+            fields.Children.Add(startBox); fields.Children.Add(endBox); fields.Children.Add(fpsBox);
             var buttons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, HorizontalAlignment = HorizontalAlignment.Right };
-            var cancel = new Button { Content = LocalizationManager.Text("Cancel"), Padding = new Thickness(16, 7, 16, 7), CornerRadius = new CornerRadius(14) };
-            var confirm = new Button { Content = chinese ? "使用此片段" : "Use clip", Padding = new Thickness(16, 7, 16, 7), CornerRadius = new CornerRadius(14), Background = new SolidColorBrush(SettingsTheme.Accent), Foreground = new SolidColorBrush(Colors.White) };
+            var cancel = new Button { Style = PanelResource<Style>("PanelButtonStyle"), Content = LocalizationManager.Text("Cancel") };
+            var confirm = new Button { Style = CreateDialogPrimaryButtonStyle(), Content = chinese ? "使用此片段" : "Use clip", Background = new SolidColorBrush(SettingsTheme.Accent), Foreground = new SolidColorBrush(Colors.White) };
             buttons.Children.Add(cancel); buttons.Children.Add(confirm);
 
             var layout = new StackPanel { Spacing = 10 };
-            layout.Children.Add(new TextBlock { Text = chinese ? "视频 / GIF 片段编辑" : "Video / GIF clip editor", FontSize = 19, FontWeight = Windows.UI.Text.FontWeights.SemiBold });
-            layout.Children.Add(new TextBlock { Text = video.Name + (chinese ? " · 可拖动播放器查看整段素材" : " · use the player to inspect the full source"), FontSize = 12, TextWrapping = TextWrapping.Wrap });
+            layout.Children.Add(new TextBlock { Style = PanelResource<Style>("PanelSectionTitleTextStyle"), Text = chinese ? "视频 / GIF 片段编辑" : "Video / GIF clip editor" });
+            layout.Children.Add(new TextBlock { Style = PanelResource<Style>("PanelCaptionTextStyle"), Text = video.Name + (chinese ? " · 可拖动播放器查看整段素材" : " · use the player to inspect the full source"), TextWrapping = TextWrapping.Wrap });
             layout.Children.Add(media);
             layout.Children.Add(seek);
-            layout.Children.Add(new TextBlock { Text = chinese ? "起点" : "Start", FontSize = 11 });
+            layout.Children.Add(new TextBlock { Style = PanelResource<Style>("PanelCaptionTextStyle"), Text = chinese ? "起点" : "Start" });
             layout.Children.Add(startSlider);
-            layout.Children.Add(new TextBlock { Text = chinese ? "终点" : "End", FontSize = 11 });
+            layout.Children.Add(new TextBlock { Style = PanelResource<Style>("PanelCaptionTextStyle"), Text = chinese ? "终点" : "End" });
             layout.Children.Add(endSlider);
             layout.Children.Add(fields);
+            layout.Children.Add(presets);
             layout.Children.Add(rangeText);
             layout.Children.Add(warning);
             var previewRow = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10 };
@@ -350,10 +352,10 @@ namespace KillConfirmGameBar
                 Width = width,
                 MaxHeight = Math.Max(420, Window.Current.Bounds.Height - 50),
                 Padding = new Thickness(18),
-                Background = new SolidColorBrush(Color.FromArgb(247, 255, 255, 255)),
+                Background = PanelResource<Brush>("PanelFieldBrush"),
                 BorderBrush = new SolidColorBrush(SettingsTheme.AccentSoft),
                 BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(20),
+                CornerRadius = PanelResource<CornerRadius>("PanelCardRadius"),
                 Child = new ScrollViewer { Content = layout, VerticalScrollBarVisibility = ScrollBarVisibility.Auto }
             };
             popup.HorizontalOffset = Math.Max(20, (Window.Current.Bounds.Width - width) / 2);
@@ -433,7 +435,7 @@ namespace KillConfirmGameBar
                     _packImportNotes.AddRange(warnings.Select(note => _providedPackZipFile.Name + ": " + note));
                     return;
                 }
-                var progressText = new TextBlock { Text = chinese ? "正在解析图标包…" : "Reading icon pack…", TextWrapping = TextWrapping.Wrap };
+                var progressText = new TextBlock { Style = PanelResource<Style>("PanelBodyTextStyle"), Text = chinese ? "正在解析图标包…" : "Reading icon pack…", TextWrapping = TextWrapping.Wrap };
                 var dialog = CreatePackStatusDialog(title, progressText);
                 bool running = true;
                 dialog.Closing += (s, e) => e.Cancel = running;
@@ -490,15 +492,15 @@ namespace KillConfirmGameBar
                     allowTga: false));
                 var status = new TextBlock
                 {
+                    Style = PanelResource<Style>("PanelCaptionTextStyle"),
                     Text = string.Join("\n", notes),
                     TextWrapping = TextWrapping.Wrap,
-                    FontSize = 12,
-                    Foreground = new SolidColorBrush(Color.FromArgb(255, 86, 91, 104))
+                    Foreground = PanelResource<Brush>("PanelTextSecondaryBrush")
                 };
                 var statusCard = new Border
                 {
                     Padding = new Thickness(10, 8, 10, 8),
-                    CornerRadius = new CornerRadius(10),
+                    CornerRadius = PanelResource<CornerRadius>("PanelSectionRadius"),
                     Background = new SolidColorBrush(Color.FromArgb(255, 245, 247, 250)),
                     BorderBrush = new SolidColorBrush(Color.FromArgb(255, 220, 224, 232)),
                     BorderThickness = new Thickness(1),
@@ -557,8 +559,8 @@ namespace KillConfirmGameBar
                         var header = new Grid();
                         header.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
                         header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-                        header.Children.Add(new TextBlock { Text = chinese ? level + " 杀" + (suffix == "" ? "" : " · 爆头") : "Kill " + level + (suffix == "" ? "" : " · Headshot"), FontWeight = Windows.UI.Text.FontWeights.SemiBold, FontSize = 14 });
-                        var clear = new Button { Content = "×", Padding = new Thickness(8, 2, 8, 2), FontSize = 14, Background = new SolidColorBrush(Colors.Transparent), BorderThickness = new Thickness(0) };
+                        header.Children.Add(new TextBlock { Style = PanelResource<Style>("PanelTitleTextStyle"), Text = chinese ? level + " 杀" + (suffix == "" ? "" : " · 爆头") : "Kill " + level + (suffix == "" ? "" : " · Headshot") });
+                        var clear = new Button { Style = PanelResource<Style>("PanelDangerButtonStyle"), Content = "×", Background = new SolidColorBrush(Colors.Transparent), BorderThickness = new Thickness(0) };
                         ToolTipService.SetToolTip(clear, chinese ? "清除这个击杀等级的素材" : "Clear this kill level");
                         Grid.SetColumn(clear, 1); header.Children.Add(clear); card.Children.Add(header);
                         var modeGrid = new Grid { ColumnSpacing = 6, RowSpacing = 6 };
@@ -577,17 +579,17 @@ namespace KillConfirmGameBar
                             modeGrid.Children.Add(modeButtons[mode]);
                         }
                         card.Children.Add(modeGrid);
-                        var description = new TextBlock { TextWrapping = TextWrapping.Wrap, FontSize = 12 };
+                        var description = new TextBlock { Style = PanelResource<Style>("PanelCaptionTextStyle"), TextWrapping = TextWrapping.Wrap };
                         card.Children.Add(description);
                         var actions = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
-                        var choose = new Button { Padding = new Thickness(12, 6, 12, 6), FontSize = 11, CornerRadius = new CornerRadius(12), Background = new SolidColorBrush(Color.FromArgb(255, 226, 244, 251)), Foreground = new SolidColorBrush(Color.FromArgb(255, 24, 116, 158)) };
-                        var folder = new Button { Padding = new Thickness(12, 6, 12, 6), FontSize = 11, CornerRadius = new CornerRadius(12) };
+                        var choose = new Button { Style = PanelResource<Style>("PanelButtonStyle"), Background = new SolidColorBrush(Color.FromArgb(255, 226, 244, 251)), Foreground = new SolidColorBrush(Color.FromArgb(255, 24, 116, 158)) };
+                        var folder = new Button { Style = PanelResource<Style>("PanelButtonStyle") };
                         actions.Children.Add(choose); actions.Children.Add(folder); card.Children.Add(actions);
-                        row.Fps = new TextBox { Header = "FPS (1–120)", Width = 130 };
-                        row.Hold = new TextBox { Header = chinese ? "末帧停留（秒）" : "Last-frame hold (s)", Width = 165 };
+                        row.Fps = new TextBox { Style = PanelResource<Style>("PanelTextBoxStyle"), Header = "FPS (1–120)", Width = 130 };
+                        row.Hold = new TextBox { Style = PanelResource<Style>("PanelTextBoxStyle"), Header = chinese ? "末帧停留（秒）" : "Last-frame hold (s)", Width = 165 };
                         var timing = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
                         timing.Children.Add(row.Fps); timing.Children.Add(row.Hold); card.Children.Add(timing);
-                        var borderedCard = new Border { Padding = new Thickness(12), CornerRadius = new CornerRadius(16), Background = new SolidColorBrush(Color.FromArgb(247, 255, 255, 255)), BorderBrush = new SolidColorBrush(Color.FromArgb(38, 0, 0, 0)), BorderThickness = new Thickness(1), Child = card };
+                        var borderedCard = new Border { Padding = new Thickness(12), CornerRadius = PanelResource<CornerRadius>("PanelSectionRadius"), Background = PanelResource<Brush>("PanelFieldBrush"), BorderBrush = PanelResource<Brush>("PanelBorderBrush"), BorderThickness = new Thickness(1), Child = card };
                         bool switchingMode = false;
                         void RefreshMode()
                         {

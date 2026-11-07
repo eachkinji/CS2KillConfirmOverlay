@@ -28,7 +28,7 @@ fn sanguosha_original_broadcast_voices_decode() {
     use rodio::Source;
     use std::{fs::File, io::BufReader};
 
-    for pack_id in ["sanguosha", "sanguosha_guanjie"] {
+    for pack_id in ["sanguosha"] {
         let folder = source_sound_pack("sanguosha", pack_id);
         let preset = crate::soundpack::Preset::load_from_sounds_root(pack_id, folder.parent().unwrap())
             .expect("load Sanguosha preset");

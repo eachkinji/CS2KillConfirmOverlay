@@ -105,10 +105,6 @@ const SOUND_PACK_OPTIONS: &[SoundPackOption] = &[
         display_name: "三国杀 · 十周年连破播报",
     },
     SoundPackOption {
-        preset: "sanguosha_guanjie",
-        display_name: "三国杀 · 官阶破敌神兵",
-    },
-    SoundPackOption {
         preset: "csol4",
         display_name: "CSOL 10杀",
     },

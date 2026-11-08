@@ -1,7 +1,8 @@
 #Requires -Version 7.0
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
-$source = Get-Content -Raw (Join-Path $root 'Widget/Pages/Main/Packs/Creation/MainPage.PackCreation.Import.cs')
+. (Join-Path $PSScriptRoot '..\Common\SourceView.ps1')
+$source = Get-Content -Raw (Resolve-SourcePath $root 'Widget/Pages/Main/Packs/Creation/MainPage.PackCreation.Import.cs')
 $start = $source.IndexOf('        private async Task ImportDroppedPackZipsAsync(')
 $method = $source.Substring($start, $source.IndexOf('        private async void OnCreateIconPackClick', $start) - $start)
 $shim = @'

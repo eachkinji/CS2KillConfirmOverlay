@@ -7,65 +7,16 @@ namespace KillConfirmCompatibility
     internal sealed partial class FeedbackPresenter
     {
         private static bool IsBombObjectiveEvent(KillEvent killEvent)
-        {
-            return killEvent != null
-                && (string.Equals(killEvent.EventKind, "bomb_plant", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(killEvent.EventKind, "bomb_defuse", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(killEvent.AnimationKey, "bomb_plant", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(killEvent.AnimationKey, "bomb_defuse", StringComparison.OrdinalIgnoreCase));
-        }
+            => FeedbackRoutingPolicy.IsBombObjectiveEvent(killEvent);
 
         private static bool CanStyleConsumeEvent(GameStyleMode style, KillEvent killEvent)
-        {
-            if (killEvent == null || (style == GameStyleMode.Csol && IsBombObjectiveEvent(killEvent)))
-            {
-                return false;
-            }
-
-            if (killEvent.IsCombatEvent)
-            {
-                return true;
-            }
-
-            if (style == GameStyleMode.Crossfire && IsBombObjectiveEvent(killEvent))
-            {
-                return true;
-            }
-
-            if (style == GameStyleMode.ModernWarfare2019)
-            {
-                string eventKind = killEvent.EventKind ?? killEvent.AnimationKey;
-                if (string.Equals(eventKind, "bomb_plant", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(eventKind, "bomb_defuse", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(eventKind, "hostage_interact", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(eventKind, "hostage_rescue", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(eventKind, "round_win", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(eventKind, "round_loss", StringComparison.OrdinalIgnoreCase))
-                {
-                    return true;
-                }
-            }
-
-            return killEvent.IsEconomyEvent && IsEconomyPresentationStyle(style);
-        }
+            => FeedbackRoutingPolicy.CanStyleConsumeEvent(style, killEvent);
 
         private static bool IsBattlefieldObjectiveEvent(string eventKind)
-        {
-            return string.Equals(eventKind, "bomb_plant", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(eventKind, "bomb_defuse", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(eventKind, "hostage_interact", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(eventKind, "hostage_rescue", StringComparison.OrdinalIgnoreCase);
-        }
+            => FeedbackRoutingPolicy.IsBattlefieldObjectiveEvent(eventKind);
 
         private static string GetBattlefieldEventKind(KillEvent killEvent)
-        {
-            if (!string.IsNullOrWhiteSpace(killEvent?.EventKind))
-            {
-                return killEvent.EventKind;
-            }
-
-            return killEvent?.IsAssist == true ? "assist" : "kill";
-        }
+            => FeedbackRoutingPolicy.GetBattlefieldEventKind(killEvent);
 
         private static string GetBattlefieldWeaponLabel(KillEvent killEvent)
         {
@@ -172,7 +123,7 @@ namespace KillConfirmCompatibility
                 {
                     return killEvent.AnimationKey;
                 }
-                bool useFirstOrLastEffect = (killEvent.IsFirstKill && settings.FirstKillEffectEnabled)
+                bool useFirstOrLastEffect = (killEvent.IsFirstKill && (settings.FirstKillEffectEnabled || killEvent.IsFromLol || GameSourceSettingsStore.IsLol))
                     || (killEvent.IsLastKill && settings.LastKillEffectEnabled);
                 return useFirstOrLastEffect ? "headshot_gold" : "headshot";
             }
@@ -223,10 +174,17 @@ namespace KillConfirmCompatibility
                 LowerBadgeAnimation.PlayCodeKill("assist");
                 return;
             }
+            if (killEvent.IsRevenge
+                || string.Equals(killEvent.WeaponBadgeKey, "revenge", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(killEvent.AnimationKey, "badge_revenge", StringComparison.OrdinalIgnoreCase))
+            {
+                LowerBadgeAnimation.PlayCodeKill("revenge");
+                return;
+            }
 
             if (killEvent.IsLastKill)
             {
-                if (!settings.LastKillEffectEnabled)
+                if (!settings.LastKillEffectEnabled && !killEvent.IsFromLol && !GameSourceSettingsStore.IsLol)
                 {
                     return;
                 }
@@ -237,7 +195,7 @@ namespace KillConfirmCompatibility
 
             if (killEvent.IsFirstKill)
             {
-                if (!settings.FirstKillEffectEnabled)
+                if (!settings.FirstKillEffectEnabled && !killEvent.IsFromLol && !GameSourceSettingsStore.IsLol)
                 {
                     return;
                 }

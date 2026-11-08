@@ -1,7 +1,8 @@
 param([string]$ReferenceEnginePath = '')
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
-$motion = Get-Content -Raw (Join-Path $root 'Widget/Controls/Animations/Core/CrossfireStyle2Motion.cs')
+. (Join-Path $PSScriptRoot '..\Common\SourceView.ps1')
+$motion = Get-Content -Raw (Resolve-SourcePath $root 'Widget/Controls/Animations/Core/CrossfireStyle2Motion.cs')
 $probe = @'
 public static class Style2Probe {
  public static double[] Sample(double time, bool flame) {

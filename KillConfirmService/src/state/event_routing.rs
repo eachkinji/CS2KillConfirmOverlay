@@ -5,6 +5,9 @@ pub enum EventChannel {
     Combat,
     /// CS economy/objective facts consumed only by score-oriented presentation styles.
     Economy,
+    /// Source facts recorded for consumers (e.g. every LOL Live Client event).
+    /// Never plays animation or audio; clients route it away from styles.
+    Observation,
 }
 
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]

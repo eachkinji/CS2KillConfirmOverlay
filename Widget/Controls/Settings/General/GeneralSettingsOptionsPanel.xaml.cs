@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using KillConfirmGameBar.Controls.GameStyles;
 using KillConfirmGameBar.Services;
@@ -12,6 +12,7 @@ namespace KillConfirmGameBar.Controls.Settings
     public sealed partial class GeneralSettingsOptionsPanel : UserControl
     {
         private bool _suppressSpectatedKillEffectsEvents;
+        private bool _suppressLolOptionsEvents;
         private bool _suppressDanmaku6657Events;
         private bool _suppressAutoCloseOnGameExitEvents;
         private bool _suppressInterruptPreviousKillAudioEvents;
@@ -36,7 +37,10 @@ namespace KillConfirmGameBar.Controls.Settings
             GameStyleService.Changed -= OnGameStyleChanged;
             GameStyleService.Changed += OnGameStyleChanged;
             AudioChannelSettingsStore.BehaviorChanged -= OnAudioBehaviorChanged;
+            GameSourceSettingsStore.Changed -= OnGameSourceChanged;
             AudioChannelSettingsStore.BehaviorChanged += OnAudioBehaviorChanged;
+            GameSourceSettingsStore.Changed -= OnGameSourceChanged;
+            GameSourceSettingsStore.Changed += OnGameSourceChanged;
             RefreshSettings();
             ApplyTheme(GameThemePalette.Home);
         }
@@ -45,8 +49,13 @@ namespace KillConfirmGameBar.Controls.Settings
         {
             GameStyleService.Changed -= OnGameStyleChanged;
             AudioChannelSettingsStore.BehaviorChanged -= OnAudioBehaviorChanged;
+            GameSourceSettingsStore.Changed -= OnGameSourceChanged;
         }
 
+        private void OnGameSourceChanged(object sender, EventArgs e)
+        {
+            _ = Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => { ApplyLanguage(); RefreshSettings(); });
+        }
         private void OnGameStyleChanged(object sender, GameStyleMode style)
         {
             SelectAudioBehavior();
@@ -66,6 +75,16 @@ namespace KillConfirmGameBar.Controls.Settings
             SpectatedKillEffectsToggle.OffContent = LocalizationManager.Text("Off");
             SpectatedKillEffectsToggle.OnContent = LocalizationManager.Text("On");
             bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            bool isLol = GameSourceSettingsStore.IsLol;
+            if (LolMultikillDependencyCard != null) LolMultikillDependencyCard.Visibility = isLol ? Visibility.Visible : Visibility.Collapsed;
+            if (LolMinionKillCard != null) LolMinionKillCard.Visibility = isLol ? Visibility.Visible : Visibility.Collapsed;
+            if (BombAudioPanel != null) BombAudioPanel.Visibility = isLol ? Visibility.Collapsed : Visibility.Visible;
+            if (LolMultikillDependencyLabelText != null) LolMultikillDependencyLabelText.Text = isChinese ? "连杀统计依赖官方 Multikill" : "Streak depends on official Multikill";
+            if (LolMultikillDependencyHintText != null) LolMultikillDependencyHintText.Text = isChinese ? "关闭（默认）时按本插件连杀规则累计；开启后仅在英雄联盟官方触发双杀/三杀/四杀/五杀时递进连杀。" : "When off (default), streaks follow overlay rules; when on, streaks advance only on official LOL Multikill events.";
+            if (LolMultikillDependencyToggle != null) { LolMultikillDependencyToggle.OffContent = LocalizationManager.Text("Off"); LolMultikillDependencyToggle.OnContent = LocalizationManager.Text("On"); }
+            if (LolMinionKillLabelText != null) LolMinionKillLabelText.Text = isChinese ? "补刀 / 小兵击杀解析" : "Minion / CS kill parsing";
+            if (LolMinionKillHintText != null) LolMinionKillHintText.Text = isChinese ? "开启后解析对局补刀数 (creepScore) 增长；特定游戏风格默认不把补刀计入英雄击杀特效。" : "Tracks creepScore (CS) increases in-match; hero-only styles ignore minion kills by default.";
+            if (LolMinionKillToggle != null) { LolMinionKillToggle.OffContent = LocalizationManager.Text("Off"); LolMinionKillToggle.OnContent = LocalizationManager.Text("On"); }
             Danmaku6657LabelText.Text = isChinese ? "游戏事件弹幕" : "Game Event Danmaku";
             Danmaku6657HintText.Text = isChinese
                 ? "根据战斗、目标与回合事件显示 5–7 条分类弹幕，单条最长 5 秒"
@@ -77,7 +96,7 @@ namespace KillConfirmGameBar.Controls.Settings
             AutoCloseOnGameExitLabelText.Text =
                 LocalizationManager.Text("AutoCloseOnGameExitLabel");
             AutoCloseOnGameExitHintText.Text =
-                LocalizationManager.Text("AutoCloseOnGameExitHint");
+                isLol ? (isChinese ? "开启后，检测到英雄联盟对局或客户端退出时，本插件会自动取消固定并关闭。" : "Automatically unpins and closes the overlay after League of Legends exits.") : LocalizationManager.Text("AutoCloseOnGameExitHint");
             AutoCloseOnGameExitToggle.OffContent = LocalizationManager.Text("Off");
             AutoCloseOnGameExitToggle.OnContent = LocalizationManager.Text("On");
             InterruptPreviousKillAudioLabelText.Text =
@@ -105,6 +124,8 @@ namespace KillConfirmGameBar.Controls.Settings
                 return;
             }
 
+            if (LolMultikillDependencyHintText != null) LolMultikillDependencyHintText.Foreground = new SolidColorBrush(theme.MutedText);
+            if (LolMinionKillHintText != null) LolMinionKillHintText.Foreground = new SolidColorBrush(theme.MutedText);
             SpectatedKillEffectsHintText.Foreground = new SolidColorBrush(theme.MutedText);
             Danmaku6657HintText.Foreground = new SolidColorBrush(theme.MutedText);
             DanmakuSettingsOptions?.ApplyTheme(theme);
@@ -119,6 +140,7 @@ namespace KillConfirmGameBar.Controls.Settings
 
         internal void RefreshSettings()
         {
+            SelectLolOptions();
             SelectSpectatedKillEffects();
             SelectDanmaku6657();
             BombAudioPanel?.RefreshSettings();
@@ -129,6 +151,28 @@ namespace KillConfirmGameBar.Controls.Settings
             RefreshDetailsLabels();
         }
 
+        private void SelectLolOptions()
+        {
+            _suppressLolOptionsEvents = true;
+            try
+            {
+                if (LolMultikillDependencyToggle != null) LolMultikillDependencyToggle.IsOn = GameSourceSettingsStore.LolDependOnMultikill;
+                if (LolMinionKillToggle != null) LolMinionKillToggle.IsOn = GameSourceSettingsStore.LolParseMinionKills;
+            }
+            finally { _suppressLolOptionsEvents = false; }
+        }
+        private async void OnLolMultikillDependencyToggled(object sender, RoutedEventArgs e)
+        {
+            if (_suppressLolOptionsEvents || LolMultikillDependencyToggle == null) return;
+            GameSourceSettingsStore.LolDependOnMultikill = LolMultikillDependencyToggle.IsOn;
+            try { await GameSourceSettingsStore.SyncLolSettingsAsync(); } catch (Exception ex) { App.Log("Sync LOL multikill setting failed: " + ex); }
+        }
+        private async void OnLolMinionKillToggled(object sender, RoutedEventArgs e)
+        {
+            if (_suppressLolOptionsEvents || LolMinionKillToggle == null) return;
+            GameSourceSettingsStore.LolParseMinionKills = LolMinionKillToggle.IsOn;
+            try { await GameSourceSettingsStore.SyncLolSettingsAsync(); } catch (Exception ex) { App.Log("Sync LOL minion setting failed: " + ex); }
+        }
         private void SelectDanmaku6657()
         {
             _suppressDanmaku6657Events = true;

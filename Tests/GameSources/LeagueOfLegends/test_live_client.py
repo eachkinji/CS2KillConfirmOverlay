@@ -147,10 +147,29 @@ def select(source, initialize=False):
     return result
 
 
-def events():
+def all_events():
     status, result = api("/events?after=0&wait_ms=250")
     assert status in (200, 204), result
     return result["events"] if status == 200 else []
+
+
+def events():
+    """Combat feedback only; LOL observation records are asserted separately."""
+    return [event for event in all_events() if event["event_channel"] == "combat"]
+
+
+def observations():
+    return [event for event in all_events() if event["event_channel"] == "observation"]
+
+
+def assert_observation(event, generation):
+    lol = event["detail"]["lol"]
+    assert event["schema"] == 2 and event["source"] == "lol", event
+    assert event["source_generation"] == generation, event
+    assert event["intent"]["kind"] == "observation" and not event["intent"]["play_main"], event
+    assert event["kill_count"] == 0 and not event["play_main_animation"], event
+    assert event["event_kind"] == "lol_" + lol["event"], event
+    return lol
 
 
 def configure_audio():
@@ -213,6 +232,12 @@ def assert_journal():
         assert event["player_name"] == "国服测试#一区", event
         assert event["play_main_animation"] and event["event_channel"] == "combat", event
         assert not any(event[key] for key in ("is_headshot", "is_knife_kill", "is_grenade_kill", "is_assist")), event
+        # Event contract v2 fields are appended to the same v1 event.
+        assert event["schema"] == 2 and event["source"] == "lol", event
+        assert event["intent"]["kind"] == "kill" and event["intent"]["tier"] == event["kill_count"], event
+        lol = event["detail"]["lol"]
+        assert lol["event"] == "champion_kill" and lol["local_role"] == "killer" and lol["relation"] == "self", event
+        assert lol.get("multikill", 1) == event["kill_count"], event
 
 
 def expect_more(*counts):
@@ -245,20 +270,46 @@ try:
                multikill(110.3, 2))  # unmatched marker cannot create a kill
     expect_more(1)
     no_extra()
+    recorded = [assert_observation(event, active_generation) for event in observations()]
+    assert [(item["event"], item["local_role"]) for item in recorded] == [
+        ("champion_kill", "none"), ("dragon_kill", "killer"), ("multikill", "killer")], recorded
+    assert recorded[0]["actor"] == "队友" and recorded[0]["victim"] == "敌人", recorded
+    assert recorded[1]["relation"] == "self" and recorded[2]["multikill"] == 2, recorded
     results.append("PASS: Chinese identity, self-only champion kill, dedup, no objective/multikill double-trigger")
+    results.append("PASS: teammate kill, dragon and unmatched marker are silent observation records with detail.lol")
+
+    observed_before = len(observations())
+    add_events({"EventName": "FirstBlood", "EventTime": 120.0, "Recipient": "队友"},
+               {"EventName": "Ace", "EventTime": 120.1, "Acer": "国服测试#一区", "AcingTeam": "ORDER"},
+               {"EventName": "BaronKill", "EventTime": 120.2, "KillerName": "队友", "Stolen": "True",
+                "Assisters": ["国服测试#一区"]},
+               {"EventName": "TurretKilled", "EventTime": 120.3, "KillerName": "Minion_T100L1S04N0024",
+                "TurretKilled": "Turret_T2_L_03_A", "Assisters": []},
+               {"EventName": "FutureEvent", "EventTime": 120.4, "Payload": {"x": 1}})
+    wait_until(lambda: len(observations()) >= observed_before + 5, description="LOL observation publication")
+    no_extra()
+    recorded = [assert_observation(event, active_generation) for event in observations()[observed_before:]]
+    assert [item["event"] for item in recorded] == [
+        "first_blood", "ace", "baron_kill", "turret_killed", "other"], recorded
+    assert recorded[1]["local_role"] == "acer" and recorded[2]["local_role"] == "assister", recorded
+    assert recorded[2]["stolen"] is True and recorded[3]["relation"] == "neutral", recorded
+    assert recorded[3]["structure"] == "Turret_T2_L_03_A", recorded
+    assert recorded[4]["riot_event_name"] == "FutureEvent" and recorded[4]["extra"]["Payload"]["x"] == 1, recorded
+    results.append("PASS: FirstBlood/Ace/Baron/Turret/unknown events recorded without animation or audio")
 
     add_events(kill(111), multikill(111, 2))
     expect_more(2)
-    pending = add_events(kill(112))
-    wait_sample(pending)  # first response contains ChampionKill without its marker
-    assert_journal()  # a buffered kill has not been published as a premature single
-    add_events(multikill(112, 3))
+    add_events(kill(112), multikill(112, 3))
     expect_more(3)
     add_events(kill(113), multikill(113, 4), kill(114), multikill(114, 5))
     expect_more(4, 5)
     no_extra()
     status, journal = api("/events?after=0&wait_ms=250")
-    assert status == 200 and [event["kill_count"] for event in journal["events"]] == [1, 2, 3, 4, 5], journal
+    assert status == 200, journal
+    (PROFILE / "journal-all-events.json").write_text(json.dumps(journal, ensure_ascii=False, indent=2), encoding="utf-8")
+    # The rendering replay consumes combat feedback only.
+    journal["events"] = [event for event in journal["events"] if event["event_channel"] == "combat"]
+    assert [event["kill_count"] for event in journal["events"]] == [1, 2, 3, 4, 5], journal
     (PROFILE / "journal-events.json").write_text(json.dumps(journal, ensure_ascii=False, indent=2), encoding="utf-8")
     results.append("PASS: official Multikill 2/3/4/5 in same/across polls; one event and both WAV routes per kill")
     results.append("Rendering replay events: " + str(PROFILE / "journal-events.json"))
@@ -285,14 +336,13 @@ try:
     assert api("/counter-strike/cfg?version=cs2", {})[0] == 409
     results.append("PASS: stale UI initialization cannot override LOL; CS-only config is blocked")
 
-    # The HTTP failure arrives before the marker deadline. Only the already-seen
-    # kill is flushed; events accumulated during the outage become a new baseline.
-    pending = add_events(kill(900))
-    wait_sample(pending)
+    # Observed kill is emitted immediately; events accumulated during an outage
+    # become a new baseline upon reconnect.
+    add_events(kill(900))
+    expect_more(1)
     with data_lock:
         available = False
     wait_until(lambda: api("/game-source/status")[1]["last_post_age_ms"] is None)
-    expect_more(1)
     add_events(kill(901), multikill(901, 4))
     with data_lock:
         available = True
@@ -302,8 +352,6 @@ try:
     expect_more(2)
     results.append("PASS: failure flushes only an observed pending kill; reconnect skips backlog; legacy alias still routes tier 2")
 
-    pending = add_events(kill(1000))
-    wait_sample(pending)
     select("csgo_legacy")
     epoch_counts.clear()
     add_events(multikill(1000, 3), kill(1001))

@@ -1,8 +1,9 @@
 #Requires -Version 7.0
 $ErrorActionPreference = 'Stop'
 $RepositoryRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
+. (Join-Path $PSScriptRoot '..\Common\SourceView.ps1')
 $danmakuRoot = Join-Path $RepositoryRoot 'Widget/Danmaku'
-$engineRoot = Join-Path $danmakuRoot 'Engine'
+$engineRoot = Resolve-SourceDirectory $RepositoryRoot 'Widget/Danmaku/Engine'
 
 Write-Host "================================================================="
 Write-Host "  PART 1: Static Structural, Packaging & Configuration Checks   "
@@ -19,7 +20,7 @@ $expectedModules = @(
     'SemanticProfileRepository.cs'
 )
 
-$gsiPath = Join-Path $RepositoryRoot 'Widget/Services/Runtime/GsiStatusMonitor.cs'
+$gsiPath = Resolve-SourcePath $RepositoryRoot 'Widget/Services/Runtime/GsiStatusMonitor.cs'
 if (-not (Test-Path -LiteralPath $gsiPath)) {
     throw "Missing GsiStatusMonitor.cs at $gsiPath"
 }

@@ -141,11 +141,20 @@ namespace KillConfirmGameBar
 
         private void UpdateCfgStatus(CfgDetectionState state, string label, string detail)
         {
-            HeaderStatusSection.CfgStatusBadge.Visibility = GameSourceSettingsStore.IsLol ? Visibility.Collapsed : Visibility.Visible;
-            if (GameSourceSettingsStore.IsLol) {
+            bool isLol = GameSourceSettingsStore.IsLol;
+            HeaderStatusSection.CfgStatusBadge.Visibility = isLol ? Visibility.Collapsed : Visibility.Visible;
+            if (HeaderStatusSection.CfgStatusColumn != null)
+            {
+                HeaderStatusSection.CfgStatusColumn.Width = isLol
+                    ? new GridLength(0)
+                    : new GridLength(1, GridUnitType.Star);
+            }
+            if (isLol)
+            {
                 _cfgDetectionState = CfgDetectionState.Ready;
                 StatusDetailsSection.CfgActionRow.Visibility = Visibility.Collapsed;
                 UpdateStatusDetailRowVisibility();
+                RefreshStatusHint(false);
                 return;
             }
             _cfgDetectionState = state;
@@ -221,28 +230,56 @@ namespace KillConfirmGameBar
 
         private void UpdateGsiStatus(bool serviceReachable, bool recentlySeen, double posts, double? ageMs, double parseErrors)
         {
-            HeaderStatusSection.GsiBadgeText.Text = GameSourceSettingsStore.IsLol ? "LOL" : "GSI";
+            bool isLol = GameSourceSettingsStore.IsLol;
+            bool zh = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            HeaderStatusSection.GsiBadgeText.Text = isLol ? "LOL" : "GSI";
+            if (HeaderStatusSection.CfgStatusColumn != null)
+            {
+                HeaderStatusSection.CfgStatusColumn.Width = isLol
+                    ? new GridLength(0)
+                    : new GridLength(1, GridUnitType.Star);
+            }
+            HeaderStatusSection.CfgStatusBadge.Visibility = isLol ? Visibility.Collapsed : Visibility.Visible;
             _gsiRecentlySeen = recentlySeen;
+
+            string title = isLol
+                ? (zh ? "LOL 对局状态" : "LOL Match Status")
+                : LocalizationManager.Text("GsiStatusTitle");
 
             if (recentlySeen)
             {
                 HeaderStatusSection.GsiDot.Background = new SolidColorBrush(Color.FromArgb(255, 52, 211, 153));
-                SetNamedToolTip(HeaderStatusSection.GsiStatusBadge, LocalizationManager.Text("GsiStatusTitle"), LocalizationManager.Text("GsiReceivingTooltip"));
+                SetNamedToolTip(
+                    HeaderStatusSection.GsiStatusBadge,
+                    title,
+                    isLol
+                        ? (zh ? "LOL 对局已连接 · 正在以 50ms 实时采集英雄联盟对局事件。" : "LOL match connected · polling Live Client Data at 50ms.")
+                        : LocalizationManager.Text("GsiReceivingTooltip"));
             }
             else if (serviceReachable && posts > 0)
             {
                 HeaderStatusSection.GsiDot.Background = new SolidColorBrush(Color.FromArgb(255, 180, 90, 0));
-                SetNamedToolTip(HeaderStatusSection.GsiStatusBadge, LocalizationManager.Text("GsiStatusTitle"), LocalizationManager.Text("GsiStaleTooltip"));
+                SetNamedToolTip(
+                    HeaderStatusSection.GsiStatusBadge,
+                    title,
+                    isLol
+                        ? (zh ? "上一局 LOL 对局已结束，等待进入下一场对局。" : "Previous LOL match ended. Waiting for the next match.")
+                        : LocalizationManager.Text("GsiStaleTooltip"));
             }
             else if (serviceReachable)
             {
                 HeaderStatusSection.GsiDot.Background = new SolidColorBrush(Color.FromArgb(255, 75, 85, 99));
-                SetNamedToolTip(HeaderStatusSection.GsiStatusBadge, LocalizationManager.Text("GsiStatusTitle"), LocalizationManager.Text("GsiWaitingTooltip"));
+                SetNamedToolTip(
+                    HeaderStatusSection.GsiStatusBadge,
+                    title,
+                    isLol
+                        ? (zh ? "等待进入 LOL 对局 · 进入英雄联盟对局或训练营后将自动连接（无需安装 CFG）。" : "Waiting for a LOL match · connects automatically once you enter a match or Practice Tool (no CFG needed).")
+                        : LocalizationManager.Text("GsiWaitingTooltip"));
             }
             else
             {
                 HeaderStatusSection.GsiDot.Background = new SolidColorBrush(Color.FromArgb(255, 185, 28, 28));
-                SetNamedToolTip(HeaderStatusSection.GsiStatusBadge, LocalizationManager.Text("GsiStatusTitle"), LocalizationManager.Text("ServiceOffline"));
+                SetNamedToolTip(HeaderStatusSection.GsiStatusBadge, title, LocalizationManager.Text("ServiceOffline"));
             }
 
             UpdateStatusDetailRowVisibility();

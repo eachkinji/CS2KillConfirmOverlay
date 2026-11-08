@@ -4,6 +4,7 @@ mod api;
 mod cli;
 mod csgo_legacy;
 mod economy;
+mod feedback;
 mod game_sources;
 mod gsi;
 mod infrastructure;

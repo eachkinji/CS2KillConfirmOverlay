@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using KillConfirmCompatibility.Services;
 using Windows.UI.Xaml;
 
@@ -8,6 +8,7 @@ namespace KillConfirmCompatibility
     {
         public void HandleKillEvent(KillEvent killEvent)
         {
+            if (!LolEventAdapter.TryPrepareForPlayback(killEvent, GameStyleService.Current, out killEvent)) return;
             if (killEvent.PublishedUnixMs > 0)
             {
                 ulong nowMs = (ulong)DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
@@ -27,7 +28,7 @@ namespace KillConfirmCompatibility
             // An explicitly disabled icon pack leaves audio and danmaku independent.
             if (!Controls.KillConfirmAnimation.IsIconFeedbackEnabled) return;
 
-            if (string.Equals(killEvent.EventKind, "player_death", StringComparison.OrdinalIgnoreCase))
+            if (FeedbackRoutingPolicy.IsIgnoredByStyles(killEvent))
             {
                 return;
             }
@@ -38,19 +39,7 @@ namespace KillConfirmCompatibility
                 return;
             }
 
-            bool isCrossfireObjective = style == GameStyleMode.Crossfire && IsBombObjectiveEvent(killEvent);
-            bool isModernWarfare2019Objective = style == GameStyleMode.ModernWarfare2019
-                && killEvent != null
-                && killEvent.IsEconomyEvent;
-
-            bool shouldPlayPrimaryAnimation = (killEvent.IsCombatEvent && killEvent.PlayMainAnimation)
-                || (IsEconomyPresentationStyle(style) && IsBattlefieldTextEvent(killEvent))
-                || (style == GameStyleMode.Csol && killEvent.IsCombatEvent)
-                || (style == GameStyleMode.ModernWarfare2019 && (killEvent.IsCombatEvent || isModernWarfare2019Objective))
-                || (style == GameStyleMode.Overwatch && killEvent.IsCombatEvent && killEvent.IsAssist)
-                || (style == GameStyleMode.Apex && killEvent.IsCombatEvent && killEvent.IsAssist)
-                || isCrossfireObjective;
-            if (shouldPlayPrimaryAnimation)
+            if (FeedbackRoutingPolicy.ShouldPlayPrimaryAnimation(style, killEvent))
             {
                 PlayPrimaryAnimation(killEvent);
             }
@@ -62,32 +51,7 @@ namespace KillConfirmCompatibility
         private void PlayPrimaryAnimation(KillEvent killEvent)
         {
             GameStyleMode style = GameStyleService.Current;
-            bool isCsolAssist = GameStyleService.Current == GameStyleMode.Csol
-                && killEvent != null
-                && killEvent.IsAssist;
-            bool isApexAssist = GameStyleService.Current == GameStyleMode.Apex
-                && killEvent != null
-                && killEvent.IsAssist;
-            bool isOverwatchAssist = GameStyleService.Current == GameStyleMode.Overwatch
-                && killEvent != null
-                && killEvent.IsAssist;
-            bool isModernWarfare2019Assist = GameStyleService.Current == GameStyleMode.ModernWarfare2019
-                && killEvent != null
-                && killEvent.IsAssist;
-            bool isCrossfireObjective = style == GameStyleMode.Crossfire && IsBombObjectiveEvent(killEvent);
-            bool isModernWarfare2019Objective = style == GameStyleMode.ModernWarfare2019
-                && killEvent != null
-                && killEvent.IsEconomyEvent;
-
-            if (!CanStyleConsumeEvent(GameStyleService.Current, killEvent)
-                || (killEvent.KillCount <= 0
-                    && !IsBattlefieldTextEvent(killEvent)
-                    && !isCsolAssist
-                    && !isApexAssist
-                    && !isOverwatchAssist
-                    && !isModernWarfare2019Assist
-                    && !isCrossfireObjective
-                    && !isModernWarfare2019Objective))
+            if (!FeedbackRoutingPolicy.PassesPrimaryGuard(style, killEvent))
             {
                 return;
             }
@@ -146,7 +110,7 @@ namespace KillConfirmCompatibility
                                 CrosshairFeedbackAnimation,
                                 visibility,
                                 KillFeedbackLayer.Crosshair);
-                            string eventKind = killEvent.EventKind ?? killEvent.AnimationKey;
+                            string eventKind = LolEventAdapter.IsLolObjectiveLabel(killEvent.WeaponName) ? killEvent.WeaponName : (killEvent.EventKind ?? killEvent.AnimationKey);
                             CrosshairFeedbackAnimation.PlayModernWarfare2019Objective(
                                 eventKind,
                                 killEvent.MoneyReward);

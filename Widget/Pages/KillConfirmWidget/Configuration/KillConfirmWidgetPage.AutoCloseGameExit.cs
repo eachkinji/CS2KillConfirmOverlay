@@ -84,7 +84,7 @@ namespace KillConfirmGameBar
 
                     string responseText = await response.Content.ReadAsStringAsync();
                     JsonObject json = JsonObject.Parse(responseText);
-                    if (GameSourceSettingsStore.IsLol) {
+                    if (false && GameSourceSettingsStore.IsLol) {
                         // A local API outage or return to the LOL lobby is not proof
                         // that the game was exited. Do not close the widget in v1.
                         _autoCloseGameExitActiveDetected = false;

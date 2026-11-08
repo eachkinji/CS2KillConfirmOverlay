@@ -145,6 +145,7 @@ fn supports_economy_audio_events(preset_name: &str) -> bool {
             | "deltaforce"
             | "modernwarfare2019"
             | "csol4"
+            | "sanguosha"
     ) || normalized.starts_with("custom_battlefield1_voice_")
         || normalized.starts_with("custom_battlefield5_voice_")
         || normalized.starts_with("custom_battlefield4_voice_")
@@ -175,7 +176,7 @@ fn supports_economy_audio_pack(preset: &crate::soundpack::Preset) -> bool {
     supports_economy_audio_events(&preset.preset_name)
         || preset.manifest.as_ref().and_then(|manifest| manifest.game_style.as_deref())
             .is_some_and(|style| matches!(style.to_ascii_lowercase().as_str(),
-                "crossfire" | "csol" | "battlefield1" | "battlefield4" | "battlefield5"
+                "crossfire" | "csol" | "sanguosha" | "battlefield1" | "battlefield4" | "battlefield5"
                 | "battlefield2042" | "battlefield6" | "pubg" | "deltaforce" | "modernwarfare2019"))
 }
 

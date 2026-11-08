@@ -34,18 +34,19 @@ mod tests {
     use std::path::{Path, PathBuf};
 
     use super::{
-        install_kill_sink_group, install_audio_sink_group, reserve_audio_slot, is_pack_style, manifest_slot_pick, resolve_assist_audio_routing,
-        resolve_dagoujiao_audio_path, resolve_dagoujiao_playback_speed,
-        resolve_dagoujiao_sound_name, resolve_special_kill_audio_flag,
-        supports_economy_audio_events, supports_event_sound_routing,
-        uses_battlefield2042_audio_rules, uses_crossfire_audio_rules,
+        install_audio_sink_group, install_kill_sink_group, is_pack_style, manifest_slot_pick,
+        reserve_audio_slot, resolve_assist_audio_routing, resolve_dagoujiao_audio_path,
+        resolve_dagoujiao_playback_speed, resolve_dagoujiao_sound_name,
+        resolve_special_kill_audio_flag, supports_economy_audio_events,
+        supports_event_sound_routing, uses_battlefield2042_audio_rules, uses_crossfire_audio_rules,
     };
 
     fn source_sound_pack(game_style: &str, pack_name: &str) -> PathBuf {
         if game_style == "crossfire" {
             // Routing fixtures contain JSON only; CF media ships separately.
             return Path::new(env!("CARGO_MANIFEST_DIR"))
-                .join("tests/fixtures/crossfire").join(pack_name);
+                .join("tests/fixtures/crossfire")
+                .join(pack_name);
         }
         Path::new(env!("CARGO_MANIFEST_DIR"))
             .join("..")

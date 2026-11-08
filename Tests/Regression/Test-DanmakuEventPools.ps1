@@ -1,6 +1,7 @@
 #Requires -Version 7.0
 $ErrorActionPreference = 'Stop'
 $RepositoryRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
+. (Join-Path $PSScriptRoot '..\Common\SourceView.ps1')
 $eventPoolDirectory = Join-Path $RepositoryRoot 'Widget/Danmaku/EventPools'
 $lifecyclePoolDirectory = Join-Path $RepositoryRoot 'Widget/Danmaku/LifecyclePools'
 $library = @(Get-Content -LiteralPath (Join-Path $RepositoryRoot 'Widget/Danmaku/6657_memes.json') -Raw -Encoding UTF8 | ConvertFrom-Json)
@@ -196,9 +197,9 @@ foreach ($eventName in $expectedEvents) {
 }
 
 $csproj = Get-Content -LiteralPath (Join-Path $RepositoryRoot 'Widget/KillConfirmGameBar.csproj') -Raw -Encoding UTF8
-$repositorySource = Get-Content -LiteralPath (Join-Path $RepositoryRoot 'Widget/Danmaku/Engine/DanmakuEventPoolRepository.cs') -Raw -Encoding UTF8
-$weightSource = Get-Content -LiteralPath (Join-Path $RepositoryRoot 'Widget/Danmaku/Engine/DanmakuWeightEngine.cs') -Raw -Encoding UTF8
-$schedulerSource = Get-Content -LiteralPath (Join-Path $RepositoryRoot 'Widget/Danmaku/Engine/DanmakuLiveScheduler.cs') -Raw -Encoding UTF8
+$repositorySource = Get-Content -LiteralPath (Resolve-SourcePath $RepositoryRoot 'Widget/Danmaku/Engine/DanmakuEventPoolRepository.cs') -Raw -Encoding UTF8
+$weightSource = Get-Content -LiteralPath (Resolve-SourcePath $RepositoryRoot 'Widget/Danmaku/Engine/DanmakuWeightEngine.cs') -Raw -Encoding UTF8
+$schedulerSource = Get-Content -LiteralPath (Resolve-SourcePath $RepositoryRoot 'Widget/Danmaku/Engine/DanmakuLiveScheduler.cs') -Raw -Encoding UTF8
 if ($csproj -notmatch 'Danmaku\\EventPools\\\*\.json' -or
     $csproj -notmatch 'Danmaku\\LifecyclePools\\\*\.json' -or
     $repositorySource -notmatch 'MinimumEventPoolSize\s*=\s*100' -or

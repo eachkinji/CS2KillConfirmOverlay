@@ -1,13 +1,14 @@
 #Requires -Version 7.0
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
-$source = Get-Content -Raw (Join-Path $root 'Widget/Services/Catalog/Games/ValorantExternalAssetService.cs')
+. (Join-Path $PSScriptRoot '..\Common\SourceView.ps1')
+$source = Get-Content -Raw (Resolve-SourcePath $root 'Widget/Services/Catalog/Games/ValorantExternalAssetService.cs')
 $start = $source.IndexOf('        internal static void RepairMissingVoiceSlots(string folderPath, string baseRoot)')
 $methods = $source.Substring($start, $source.IndexOf('        public static async Task<bool> IsPackageKindAsync', $start) - $start)
 foreach ($name in @('IsChildPath', 'IsSupportedAudioExtension')) {
     $methods += [regex]::Match($source, '(?ms)^        private static bool ' + $name + '\([^)]*\).*?^        \}').Value
 }
-$aliases = Get-Content -Raw (Join-Path $root 'Widget/Helpers/AudioSlotAliases.cs')
+$aliases = Get-Content -Raw (Resolve-SourcePath $root 'Widget/Helpers/AudioSlotAliases.cs')
 $aliases = [regex]::Replace($aliases, '(?m)^using [^;]+;\r?\n', '')
 $shim = @'
 using System;

@@ -37,13 +37,12 @@ namespace KillConfirmCompatibility.Controls
             byte[] sourceBytes = File.ReadAllBytes(journalPath);
             JsonObject journal = JsonObject.Parse(System.Text.Encoding.UTF8.GetString(sourceBytes));
             JsonArray sourceEvents = journal.GetNamedArray("events");
-            MethodInfo parse = typeof(KillEventClient).GetMethod("ParseKillEvent", BindingFlags.Static | BindingFlags.NonPublic)
-                ?? throw new MissingMethodException("Current KillEventClient.ParseKillEvent was not found.");
             var cases = new Dictionary<int, (KillEvent Event, ulong Id)>();
             foreach (IJsonValue value in sourceEvents)
             {
                 JsonObject json = value.GetObject();
-                var parsed = (KillEvent)parse.Invoke(null, new object[] { json });
+                var parsed = KillEventParser.Parse(json);
+                if (parsed.IsObservationEvent) continue; // records never render
                 if (parsed.KillCount >= 1 && parsed.KillCount <= 5 && !cases.ContainsKey(parsed.KillCount))
                     cases.Add(parsed.KillCount, (parsed, (ulong)json.GetNamedNumber("id", 0)));
             }

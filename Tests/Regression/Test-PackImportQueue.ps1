@@ -1,7 +1,8 @@
 #Requires -Version 7.0
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
-$source = [IO.File]::ReadAllText((Join-Path $root 'Widget/Pages/Main/Packs/Creation/MainPage.PackCreation.Import.cs'))
+. (Join-Path $PSScriptRoot '..\Common\SourceView.ps1')
+$source = [IO.File]::ReadAllText((Resolve-SourcePath $root 'Widget/Pages/Main/Packs/Creation/MainPage.PackCreation.Import.cs'))
 $queue = $source.Substring($source.IndexOf('    internal sealed class PackImportQueueResult'))
 $header = @'
 using System;

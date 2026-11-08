@@ -6,41 +6,41 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $RepositoryRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
+. (Join-Path $PSScriptRoot '..\Common\SourceView.ps1')
 
 # Run the real UI-independent loader methods with an in-memory bitmap store.
 # This covers selected-pack precedence and missing-file behavior, not just names.
-$assetSource = Get-Content -Raw -LiteralPath (Join-Path $RepositoryRoot 'Widget/Controls/Animations/Core/KillConfirmAnimation.Assets.cs')
-$overlaySource = Get-Content -Raw -LiteralPath (Join-Path $RepositoryRoot 'Widget/Controls/Animations/Core/KillConfirmAnimation.AssetOverlays.cs')
-$coreSource = Get-Content -Raw -LiteralPath (Join-Path $RepositoryRoot 'Widget/Controls/Animations/Core/KillConfirmAnimation.xaml.cs')
-$routingSource = Get-Content -Raw -LiteralPath (Join-Path $RepositoryRoot 'Widget/Pages/KillConfirmWidget/Animation/KillConfirmWidgetPage.Animation.Routing.cs')
-$animationSource = Get-Content -Raw -LiteralPath (Join-Path $RepositoryRoot 'Widget/Pages/KillConfirmWidget/Animation/KillConfirmWidgetPage.Animation.cs')
-$styleSource = Get-Content -Raw -LiteralPath (Join-Path $RepositoryRoot 'Widget/Services/Styling/GameStyleService.cs')
-$eventSource = Get-Content -Raw -LiteralPath (Join-Path $RepositoryRoot 'Widget/Services/Runtime/KillEventModels.cs')
-$eventClientSource = Get-Content -Raw -LiteralPath (Join-Path $RepositoryRoot 'Widget/Services/Runtime/KillEventClient.cs')
-$settingsSource = Get-Content -Raw -LiteralPath (Join-Path $RepositoryRoot 'Widget/Services/Settings/Games/CrossfireGameplaySettingsStore.cs')
+$assetSource = Get-Content -Raw -LiteralPath (Resolve-SourcePath $RepositoryRoot 'Widget/Controls/Animations/Core/KillConfirmAnimation.Assets.cs')
+$overlaySource = Get-Content -Raw -LiteralPath (Resolve-SourcePath $RepositoryRoot 'Widget/Controls/Animations/Core/KillConfirmAnimation.AssetOverlays.cs')
+$coreSource = Get-Content -Raw -LiteralPath (Resolve-SourcePath $RepositoryRoot 'Widget/Controls/Animations/Core/KillConfirmAnimation.xaml.cs')
+$routingSource = Get-Content -Raw -LiteralPath (Resolve-SourcePath $RepositoryRoot 'Widget/Pages/KillConfirmWidget/Animation/KillConfirmWidgetPage.Animation.Routing.cs')
+$policySource = Get-Content -Raw -LiteralPath (Resolve-SourcePath $RepositoryRoot 'Widget/Services/Runtime/FeedbackRoutingPolicy.cs')
+$styleSource = Get-Content -Raw -LiteralPath (Resolve-SourcePath $RepositoryRoot 'Widget/Services/Styling/GameStyleService.cs')
+$eventSource = Get-Content -Raw -LiteralPath (Resolve-SourcePath $RepositoryRoot 'Widget/Services/Runtime/KillEventContract.cs')
+$eventClientSource = Get-Content -Raw -LiteralPath (Resolve-SourcePath $RepositoryRoot 'Widget/Services/Runtime/KillEventParser.cs')
+$settingsSource = Get-Content -Raw -LiteralPath (Resolve-SourcePath $RepositoryRoot 'Widget/Services/Settings/Games/CrossfireGameplaySettingsStore.cs')
 $settingsModel = [regex]::Match($settingsSource, '(?ms)^    internal sealed class CrossfireGameplaySettingsValues\r?\n.*?^    \}').Value
 $settingsStore = [regex]::Match($settingsSource, '(?ms)^    internal static class CrossfireGameplaySettingsStore\r?\n.*?^    \}').Value
 if (-not $settingsModel -or -not $settingsStore) { throw 'CF settings model/store not found.' }
 $styleEnum = [regex]::Match($styleSource, '(?s)internal enum GameStyleMode\s*\{[^}]+\}').Value
-$eventModel = [regex]::Match($eventSource, '(?ms)^    public sealed class KillEvent\r?\n.*?^    \}').Value
-$eventChannels = [regex]::Match($eventSource, '(?ms)^    public static class KillEventChannels\r?\n.*?^    \}').Value
-if (-not $styleEnum -or -not $eventModel -or -not $eventChannels) { throw 'Event routing model not found.' }
+$eventModel = ($eventSource -replace '(?s)^.*?namespace KillConfirmGameBar\.Services\s*\{\r?\n', '' -replace '\}\s*$', '')
+$eventParser = [regex]::Match($eventClientSource, '(?ms)^    public static class KillEventParser\r?\n.*?^    \}').Value
+if (-not $styleEnum -or -not $eventModel -or -not $eventParser) { throw 'Event routing model not found.' }
 function Get-LoaderMethod([string]$Source, [string]$Name) {
-    $method = [regex]::Match($Source, '(?ms)^        private [^\r\n]+\b' + $Name + '\([^)]*\).*?^        \}')
+    $method = [regex]::Match($Source, '(?ms)^        (?:private|public|internal) [^\r\n]+\b' + $Name + '\([^)]*\).*?^        \}')
     if (-not $method.Success) { throw "Loader method not found: $Name" }
-    return $method.Value
+    return ($method.Value -replace '(?m)^        (?:public|internal) ', '        private ')
 }
 $methods = @(
     Get-LoaderMethod $assetSource 'TryGetCodeKillFiles'
     Get-LoaderMethod $assetSource 'LoadCodeKillBitmapAsync'
     Get-LoaderMethod $assetSource 'LoadMainCodeKillBitmapAsync'
     Get-LoaderMethod $overlaySource 'GetIconPackFolder'
-    Get-LoaderMethod $routingSource 'IsBombObjectiveEvent'
-    Get-LoaderMethod $routingSource 'CanStyleConsumeEvent'
+    Get-LoaderMethod $policySource 'IsRecordOnly'
+    Get-LoaderMethod $policySource 'IsBombObjectiveEvent'
+    Get-LoaderMethod $policySource 'CanStyleConsumeEvent'
     Get-LoaderMethod $routingSource 'ResolveCrossfirePrimaryAnimationKey'
-    Get-LoaderMethod $animationSource 'IsEconomyPresentationStyle'
-    Get-LoaderMethod $eventClientSource 'ParseKillEvent'
-    Get-LoaderMethod $eventClientSource 'ToUInt64'
+    Get-LoaderMethod $policySource 'IsEconomyPresentationStyle'
 )
 # The overload without arguments comes first; include the pack-key overload too.
 $folderOverload = [regex]::Match($overlaySource, '(?ms)^        private static string GetIconPackFolder\(string iconPack\).*?^        \}').Value
@@ -53,18 +53,59 @@ using System.IO;
 using System.Threading.Tasks;
 public static class CrossfireIconRegressionChecks
 {
-    // Platform JSON access shim; the real wire-event parser is compiled below.
-    private sealed class JsonObject
+    // Platform JSON access shim; the real wire-event parser (KillEventParser) is compiled below.
+    public enum JsonValueType { Null, Boolean, Number, String, Object, Array }
+    public interface IJsonValue
+    {
+        JsonValueType ValueType { get; }
+        string GetString();
+        double GetNumber();
+        bool GetBoolean();
+        JsonObject GetObject();
+        IEnumerable<IJsonValue> GetArray();
+    }
+    private sealed class ShimJsonValue : IJsonValue
+    {
+        private readonly object raw;
+        public ShimJsonValue(object raw) { this.raw = raw; }
+        public JsonValueType ValueType
+        {
+            get
+            {
+                if (raw == null) return JsonValueType.Null;
+                if (raw is bool) return JsonValueType.Boolean;
+                if (raw is string) return JsonValueType.String;
+                if (raw is IDictionary<string, object>) return JsonValueType.Object;
+                if (raw is System.Collections.IEnumerable) return JsonValueType.Array;
+                return JsonValueType.Number;
+            }
+        }
+        public string GetString() { return Convert.ToString(raw); }
+        public double GetNumber() { return Convert.ToDouble(raw); }
+        public bool GetBoolean() { return Convert.ToBoolean(raw); }
+        public JsonObject GetObject() { return new JsonObject((IDictionary<string, object>)raw); }
+        public IEnumerable<IJsonValue> GetArray()
+        {
+            foreach (object item in (System.Collections.IEnumerable)raw) yield return new ShimJsonValue(item);
+        }
+    }
+    public sealed class JsonObject
     {
         private readonly IDictionary<string, object> values;
         public JsonObject(IDictionary<string, object> values) { this.values = values; }
-        public bool GetNamedBoolean(string key, bool fallback)
-        { object value; return values.TryGetValue(key, out value) ? Convert.ToBoolean(value) : fallback; }
-        public string GetNamedString(string key, string fallback)
-        { object value; return values.TryGetValue(key, out value) ? Convert.ToString(value) : fallback; }
-        public double GetNamedNumber(string key, double fallback)
-        { object value; return values.TryGetValue(key, out value) ? Convert.ToDouble(value) : fallback; }
+        public bool TryGetValue(string key, out IJsonValue value)
+        {
+            object raw;
+            if (values != null && values.TryGetValue(key, out raw) && raw != null)
+            {
+                value = new ShimJsonValue(raw);
+                return true;
+            }
+            value = null;
+            return false;
+        }
     }
+    private static KillEvent ParseKillEvent(JsonObject json) { return KillEventParser.Parse(json); }
     // In-memory platform storage; production Load/Save code is compiled below.
     private static class ApplicationData
     {
@@ -261,7 +302,7 @@ public static class CrossfireIconRegressionChecks
             Available.Clear();
             Available.Add(Uri("Original", "badge_multi1.PNG"));
             bool rejected = false;
-            try { Resolve(item.Key, item.Value); } catch (FileNotFoundException) { rejected = true; }
+            try { rejected = Resolve(item.Key, item.Value) == null; } catch (FileNotFoundException) { rejected = true; }
             Check(rejected, "Missing event icon fell back to a single-kill icon: " + pack.Key + "/" + item.Key);
             count++;
         }
@@ -282,7 +323,7 @@ public static class CrossfireIconRegressionChecks
         Available.Clear();
         Available.Add(Uri("Original", "badge_multi1.PNG"));
         bool eliteRejected = false;
-        try { LoadMainCodeKillBitmapAsync("knife", "badge_knife.png", "badge_knife_2.png", "Knife", "Knife").GetAwaiter().GetResult(); }
+        try { eliteRejected = LoadMainCodeKillBitmapAsync("knife", "badge_knife.png", "badge_knife_2.png", "Knife", "Knife").GetAwaiter().GetResult() == null; }
         catch (FileNotFoundException) { eliteRejected = true; }
         Check(eliteRejected, "Missing elite knife masqueraded as an ordinary kill.");
         return "PASS: " + priorityCases + " persisted audio/icon priority cases; " + count + " event/pack combinations, selected icons, matching-original fallback, missing-event rejection and CF/CSOL objective filtering.";
@@ -292,7 +333,7 @@ __METHODS__
 '@
 if ($PSVersionTable.PSVersion.Major -ge 7) {
     if (-not ('CrossfireIconRegressionChecks' -as [type])) {
-        Add-Type -TypeDefinition $harness.Replace('__METHODS__', (($constants + $methods + $folderOverload + $styleEnum + $eventModel + $eventChannels + $settingsModel + $settingsStore) -join "`n"))
+        Add-Type -TypeDefinition $harness.Replace('__METHODS__', (($constants + $methods + $folderOverload + $styleEnum + $eventModel + $eventParser + $settingsModel + $settingsStore) -join "`n"))
     }
     [CrossfireIconRegressionChecks]::Run()
     if ($GsiEventsPath) {
@@ -315,7 +356,7 @@ else {
 }
 
 # Service reconnect must read saved choices, never overwrite them from a stale flyout.
-$syncSource = Get-Content -Raw -LiteralPath (Join-Path $RepositoryRoot 'Widget/Pages/KillConfirmWidget/Settings/KillConfirmWidgetPage.CrossfireGameplaySettings.cs')
+$syncSource = Get-Content -Raw -LiteralPath (Resolve-SourcePath $RepositoryRoot 'Widget/Pages/KillConfirmWidget/Settings/KillConfirmWidgetPage.CrossfireGameplaySettings.cs')
 $syncMethod = Get-LoaderMethod $syncSource 'SyncCrossfireGameplaySettingsAsync'
 if ($syncMethod -notmatch 'CrossfireGameplaySettingsStore.Load\(\)' -or $syncMethod -match '_crossfireAdvancedEffectsPanel|CrossfireGameplaySettingsStore.Save') {
     throw 'CF service sync can overwrite saved preferences from stale controls.'

@@ -135,7 +135,8 @@ async fn play_audio_channel(
         }
     }
 
-    let assist_audio_enabled = app_state_clone.assist_audio_enabled.load(Ordering::Relaxed);
+    let is_lol_assist = event_kind.as_deref() == Some("lol_assist");
+    let assist_audio_enabled = is_lol_assist || app_state_clone.assist_audio_enabled.load(Ordering::Relaxed);
     let assist_audio_setting_active = app_state_clone
         .assist_audio_setting_active
         .load(Ordering::Relaxed);
@@ -178,7 +179,10 @@ async fn play_audio_channel(
                 .crossfire_first_kill_special_audio
                 .load(Ordering::Relaxed),
         );
-        let effective_last_kill = if use_csol_audio_settings {
+        let is_lol_ace = event_kind.as_deref() == Some("lol_ace");
+        let effective_last_kill = if is_lol_ace {
+            is_last_kill
+        } else if use_csol_audio_settings {
             is_last_kill
                 && app_state_clone
                     .csol_last_kill_special_audio

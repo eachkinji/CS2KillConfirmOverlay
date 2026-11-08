@@ -1,11 +1,13 @@
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
+. (Join-Path $PSScriptRoot '..\Common\SourceView.ps1')
 $files = @('Widget/Services/Catalog/Games/CrossfireExternalAssetService.cs',
     'Widget/Services/Catalog/PackCatalogModels.cs', 'Widget/Services/Catalog/PackLibraryNavigation.cs')
 $code = ($files | ForEach-Object {
-    [regex]::Replace((Get-Content -LiteralPath (Join-Path $root $_) -Raw), '(?m)^using [^;]+;\r?\n', '')
+    [regex]::Replace((Get-Content -LiteralPath (Resolve-SourcePath $root $_) -Raw), '(?m)^using [^;]+;\r?\n', '')
 }) -join "`n"
 $shim = @'
+#define DESKTOP_CONTROL_PANEL
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,6 +16,28 @@ using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Threading.Tasks;
 using Windows.Storage;
+using Windows.Data.Json;
+namespace Windows.Data.Json {
+ public class JsonValue {
+  public object Raw;
+  public static JsonValue CreateStringValue(string s) => new JsonValue { Raw = s };
+  public static JsonValue CreateNumberValue(double n) => new JsonValue { Raw = n };
+ }
+ public class JsonObject : Dictionary<string, JsonValue> {
+  public string Stringify() => string.Join("|", this.Select(kv => kv.Key + "=" + kv.Value.Raw));
+  public static bool TryParse(string text, out JsonObject obj) {
+   obj = new JsonObject();
+   if (string.IsNullOrEmpty(text)) return false;
+   foreach (var part in text.Split('|')) {
+    var kv = part.Split(new[]{'='}, 2);
+    if (kv.Length == 2) obj[kv[0]] = new JsonValue { Raw = kv[1] };
+   }
+   return obj.Count > 0;
+  }
+  public double GetNamedNumber(string k, double d) => TryGetValue(k, out var v) && double.TryParse(Convert.ToString(v.Raw), out var n) ? n : d;
+  public string GetNamedString(string k, string d) => TryGetValue(k, out var v) ? Convert.ToString(v.Raw) : d;
+ }
+}
 namespace Windows.Storage {
  public class StorageFolder { public string Path; }
  public class StorageFile {
@@ -41,7 +65,10 @@ namespace Windows.ApplicationModel {
  }
 }
 namespace KillConfirmGameBar.Services {
- public enum GameStyleMode {Crossfire, Valorant, Csol}
+ public enum GameStyleMode {Crossfire, Valorant, Csol, Calabiyau}
+ internal static class ResourceLibraryPaths {
+  public static string Root => Path.Combine(ApplicationData.Current.LocalFolder.Path, "Packs");
+ }
  public static class GameStyleService { public static string ToStorageValue(GameStyleMode style)=>style.ToString().ToLowerInvariant(); }
  public static class PackCatalogService { public static Task RefreshCrossfireExternalPacksAsync()=>Task.CompletedTask; }
  public static class PackLibraryProbe {
@@ -83,11 +110,12 @@ namespace KillConfirmGameBar.Services {
     Check(PackLibraryNavigation.DownloadUrl(style,voice)==expected[index++],"Incorrect download target");
     PackLibraryNavigation.Request(style,voice);
     string game,tab;
-    Check(PackLibraryNavigation.TryTake(out game,out tab) && game==GameStyleService.ToStorageValue(style) && tab==(voice?"voice":"icon"),"Incorrect navigation target");
+    string expectedTab = voice ? (style == GameStyleMode.Crossfire ? "voice" : "sound_effect") : "icon";
+    Check(PackLibraryNavigation.TryTake(out game,out tab) && game==GameStyleService.ToStorageValue(style) && tab==expectedTab,"Incorrect navigation target");
     Check(!PackLibraryNavigation.TryTake(out game,out tab),"Request consumed twice");
    }
    PackLibraryNavigation.Request(GameStyleMode.Crossfire,true);
-   ((ApplicationDataCompositeValue)ApplicationData.Current.LocalSettings.Values["PendingPackLibraryNavigation"])["created"]=0L;
+   ApplicationData.Current.LocalSettings.Values["PendingPackLibraryNavigation"]="game=crossfire|tab=voice|created=0";
    string g,t;
    Check(!PackLibraryNavigation.TryTake(out g,out t),"Stale request reopened");
    Check(PackLibraryNavigation.DownloadUrl(GameStyleMode.Csol,true)==null,"Unknown download target");

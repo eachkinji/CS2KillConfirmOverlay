@@ -194,34 +194,9 @@ namespace KillConfirmCompatibility
         }
 
         private static bool IsBattlefieldTextEvent(KillEvent killEvent)
-        {
-            if (killEvent == null)
-            {
-                return false;
-            }
-
-            string eventKind = GetBattlefieldEventKind(killEvent);
-            if (killEvent.IsCombatEvent)
-            {
-                return killEvent.IsAssist
-                    || string.Equals(eventKind, "assist", StringComparison.OrdinalIgnoreCase);
-            }
-
-            return killEvent.IsEconomyEvent
-                && (string.Equals(eventKind, "round_win", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(eventKind, "round_loss", StringComparison.OrdinalIgnoreCase)
-                    || IsBattlefieldObjectiveEvent(eventKind));
-        }
+            => FeedbackRoutingPolicy.IsBattlefieldTextEvent(killEvent);
 
         private static bool IsEconomyPresentationStyle(GameStyleMode style)
-        {
-            return style == GameStyleMode.Battlefield1
-                || style == GameStyleMode.Battlefield5
-                || style == GameStyleMode.Battlefield4
-                || style == GameStyleMode.Battlefield2042
-                || style == GameStyleMode.Battlefield6
-                || style == GameStyleMode.Pubg
-                || style == GameStyleMode.DeltaForce;
-        }
+            => FeedbackRoutingPolicy.IsEconomyPresentationStyle(style);
     }
 }

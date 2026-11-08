@@ -1,6 +1,7 @@
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
-$source = Get-Content -Raw (Join-Path $root 'Widget/Pages/Main/Packs/MainPage.PackOrder.cs')
+. (Join-Path $PSScriptRoot '..\Common\SourceView.ps1')
+$source = Get-Content -Raw (Resolve-SourcePath $root 'Widget/Pages/Main/Packs/MainPage.PackOrder.cs')
 function Method($name) {
     $m=[regex]::Match($source,'(?ms)^        private [^\r\n]+\b'+$name+'\([^)]*\).*?^        \}')
     if(!$m.Success){throw "Missing method: $name"};$m.Value

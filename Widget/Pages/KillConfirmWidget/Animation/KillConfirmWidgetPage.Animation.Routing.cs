@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using KillConfirmGameBar.Services;
@@ -14,65 +14,16 @@ namespace KillConfirmGameBar
     public sealed partial class KillConfirmWidgetPage
     {
         private static bool IsBombObjectiveEvent(KillEvent killEvent)
-        {
-            return killEvent != null
-                && (string.Equals(killEvent.EventKind, "bomb_plant", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(killEvent.EventKind, "bomb_defuse", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(killEvent.AnimationKey, "bomb_plant", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(killEvent.AnimationKey, "bomb_defuse", StringComparison.OrdinalIgnoreCase));
-        }
+            => FeedbackRoutingPolicy.IsBombObjectiveEvent(killEvent);
 
         private static bool CanStyleConsumeEvent(GameStyleMode style, KillEvent killEvent)
-        {
-            if (killEvent == null || (style == GameStyleMode.Csol && IsBombObjectiveEvent(killEvent)))
-            {
-                return false;
-            }
-
-            if (killEvent.IsCombatEvent)
-            {
-                return true;
-            }
-
-            if (style == GameStyleMode.Crossfire && IsBombObjectiveEvent(killEvent))
-            {
-                return true;
-            }
-
-            if (style == GameStyleMode.ModernWarfare2019)
-            {
-                string eventKind = killEvent.EventKind ?? killEvent.AnimationKey;
-                if (string.Equals(eventKind, "bomb_plant", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(eventKind, "bomb_defuse", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(eventKind, "hostage_interact", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(eventKind, "hostage_rescue", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(eventKind, "round_win", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(eventKind, "round_loss", StringComparison.OrdinalIgnoreCase))
-                {
-                    return true;
-                }
-            }
-
-            return killEvent.IsEconomyEvent && IsEconomyPresentationStyle(style);
-        }
+            => FeedbackRoutingPolicy.CanStyleConsumeEvent(style, killEvent);
 
         private static bool IsBattlefieldObjectiveEvent(string eventKind)
-        {
-            return string.Equals(eventKind, "bomb_plant", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(eventKind, "bomb_defuse", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(eventKind, "hostage_interact", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(eventKind, "hostage_rescue", StringComparison.OrdinalIgnoreCase);
-        }
+            => FeedbackRoutingPolicy.IsBattlefieldObjectiveEvent(eventKind);
 
         private static string GetBattlefieldEventKind(KillEvent killEvent)
-        {
-            if (!string.IsNullOrWhiteSpace(killEvent?.EventKind))
-            {
-                return killEvent.EventKind;
-            }
-
-            return killEvent?.IsAssist == true ? "assist" : "kill";
-        }
+            => FeedbackRoutingPolicy.GetBattlefieldEventKind(killEvent);
 
         private static string GetBattlefieldWeaponLabel(KillEvent killEvent)
         {
@@ -179,7 +130,7 @@ namespace KillConfirmGameBar
                 {
                     return killEvent.AnimationKey;
                 }
-                bool useFirstOrLastEffect = (killEvent.IsFirstKill && settings.FirstKillEffectEnabled)
+                bool useFirstOrLastEffect = (killEvent.IsFirstKill && (settings.FirstKillEffectEnabled || killEvent.IsFromLol || GameSourceSettingsStore.IsLol))
                     || (killEvent.IsLastKill && settings.LastKillEffectEnabled);
                 return useFirstOrLastEffect ? "headshot_gold" : "headshot";
             }
@@ -230,10 +181,17 @@ namespace KillConfirmGameBar
                 LowerBadgeAnimation.PlayCodeKill("assist");
                 return;
             }
+            if (killEvent.IsRevenge
+                || string.Equals(killEvent.WeaponBadgeKey, "revenge", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(killEvent.AnimationKey, "badge_revenge", StringComparison.OrdinalIgnoreCase))
+            {
+                LowerBadgeAnimation.PlayCodeKill("revenge");
+                return;
+            }
 
             if (killEvent.IsLastKill)
             {
-                if (!settings.LastKillEffectEnabled)
+                if (!settings.LastKillEffectEnabled && !killEvent.IsFromLol && !GameSourceSettingsStore.IsLol)
                 {
                     return;
                 }
@@ -244,7 +202,7 @@ namespace KillConfirmGameBar
 
             if (killEvent.IsFirstKill)
             {
-                if (!settings.FirstKillEffectEnabled)
+                if (!settings.FirstKillEffectEnabled && !killEvent.IsFromLol && !GameSourceSettingsStore.IsLol)
                 {
                     return;
                 }
@@ -255,6 +213,27 @@ namespace KillConfirmGameBar
 
         private TestPreset GetSelectedTestPreset()
         {
+            if (PackTestSectionView.TestPresetSelector.SelectedItem is ComboBoxItem lolItem && lolItem.Tag is string lolTag)
+            {
+                bool isSanguosha = GameStyleService.Current == GameStyleMode.Sanguosha;
+                switch (lolTag.ToLowerInvariant())
+                {
+                    case "lol_first_blood": return new TestPreset(1, isHeadshot: true, isFirstKill: true, weaponName: "一血", moneyReward: 400);
+                    case "lol_shutdown": return new TestPreset(1, isHeadshot: true, weaponName: "终结", moneyReward: 600);
+                    case "lol_revenge": return new TestPreset(1, isHeadshot: isSanguosha, eventKind: "revenge", weaponName: "复仇", moneyReward: 300, weaponBadgeKey: "revenge");
+                    case "lol_assist": return isSanguosha
+                        ? new TestPreset(1, isKnifeKill: true, playMainAnimation: true, animationKey: "shenyimiaoshou", eventKind: "lol_assist", weaponName: "神医妙手", moneyReward: 150)
+                        : new TestPreset(0, isAssist: true, playMainAnimation: false, animationKey: "assist", eventKind: "lol_assist", weaponName: "助攻", moneyReward: 150);
+                    case "lol_dragon": return new TestPreset(1, isGrenadeKill: true, playMainAnimation: true, weaponName: "控龙", moneyReward: 300);
+                    case "lol_steal": return new TestPreset(1, isKnifeKill: !isSanguosha, isGrenadeKill: isSanguosha, playMainAnimation: true, eventKind: "lol_steal", weaponName: "抢龙", moneyReward: 500);
+                    case "lol_turret": return isSanguosha
+                        ? new TestPreset(1, playMainAnimation: true, animationKey: "podi", eventChannel: KillEventChannels.Combat, eventKind: "podi", weaponName: "破敌", moneyReward: 250)
+                        : new TestPreset(0, playMainAnimation: true, animationKey: "bomb_defuse", eventChannel: KillEventChannels.Economy, eventKind: "bomb_defuse", weaponName: "摧毁防御塔", moneyReward: 250);
+                    case "lol_ace": return isSanguosha
+                        ? new TestPreset(1, isHeadshot: true, isLastKill: true, playMainAnimation: true, eventKind: "lol_ace", weaponName: "团灭", moneyReward: 300)
+                        : new TestPreset(1, isLastKill: true, playMainAnimation: false, animationKey: "lastkill", eventKind: "lol_ace", weaponName: "团灭", moneyReward: 300);
+                }
+            }
             if (PackTestSectionView.TestPresetSelector.SelectedItem is ComboBoxItem item
                 && item.Tag is string tag
                 && TestPresets.TryGetValue(tag, out TestPreset preset))
@@ -394,6 +373,10 @@ namespace KillConfirmGameBar
             if (!string.IsNullOrWhiteSpace(preset.AnimationKey))
             {
                 query.Add("animation=" + Uri.EscapeDataString(preset.AnimationKey));
+            }
+            if (!string.IsNullOrWhiteSpace(preset.WeaponBadgeKey))
+            {
+                query.Add("weapon_badge=" + Uri.EscapeDataString(preset.WeaponBadgeKey));
             }
 
             string testWeaponName = !string.IsNullOrWhiteSpace(preset.WeaponName)

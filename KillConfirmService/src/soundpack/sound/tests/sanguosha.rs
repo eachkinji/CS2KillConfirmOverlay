@@ -45,6 +45,7 @@ fn sanguosha_original_broadcast_voices_decode() {
             "headshot.mp3",
             "knife.mp3",
             "grenade.mp3",
+            "podi.mp3",
         ] {
             let decoder = rodio::Decoder::try_from(BufReader::new(
                 File::open(folder.join(filename)).expect("original broadcast voice"),
@@ -97,6 +98,26 @@ fn sanguosha_maps_streaks_and_special_kills_to_original_voices() {
     let entries = manifest.resolve_audio(&grenade, "sounds/sanguosha");
     assert_eq!(entries.len(), 1);
     assert!(entries[0].path.ends_with("grenade.mp3"), "grenade: {}", entries[0].path);
+
+    let mut podi = sanguosha_context(1);
+    podi.event_kind = Some("podi".to_string());
+    let entries = manifest.resolve_audio(&podi, "sounds/sanguosha");
+    assert_eq!(entries.len(), 1);
+    assert!(entries[0].path.ends_with("podi.mp3"), "podi: {}", entries[0].path);
+
+    let mut lol_assist = sanguosha_context(1);
+    lol_assist.is_assist = true;
+    lol_assist.event_kind = Some("lol_assist".to_string());
+    let entries = manifest.resolve_audio(&lol_assist, "sounds/sanguosha");
+    assert_eq!(entries.len(), 1);
+    assert!(entries[0].path.ends_with("knife.mp3"), "lol_assist: {}", entries[0].path);
+
+    let mut lol_steal = sanguosha_context(1);
+    lol_steal.is_knife_kill = true;
+    lol_steal.event_kind = Some("lol_steal".to_string());
+    let entries = manifest.resolve_audio(&lol_steal, "sounds/sanguosha");
+    assert_eq!(entries.len(), 1);
+    assert!(entries[0].path.ends_with("grenade.mp3"), "lol_steal: {}", entries[0].path);
 }
 
 #[test]

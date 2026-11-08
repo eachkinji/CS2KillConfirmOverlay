@@ -93,6 +93,14 @@ namespace KillConfirmGameBar
                     _autoCloseGameExitActiveDetected = false;
                     _autoCloseGameExitSilentChecks = 0;
                     _gsiRecentlySeen = false;
+                    _lastGsiPosts = 0;
+                    ApplyTestPresetLabels();
+                    _ = SharedStreakSettingsStore.SyncSpectatedKillEffectsAsync();
+                    _ = InterruptPreviousKillAudioSettingsStore.SyncAsync();
+                    _ = StreakGainSettingsStore.SyncAsync();
+                    _ = GameSourceSettingsStore.SyncLolSettingsAsync();
+                    UpdateGsiStatus(_serviceConnectionState == KillEventConnectionState.Connected, false, 0, null, 0);
+                    _ = RefreshGsiStatusAsync();
                     _ = LoadSavedCsFolderAsync();
                 });
         }

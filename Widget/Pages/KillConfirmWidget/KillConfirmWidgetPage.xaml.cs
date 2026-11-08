@@ -173,7 +173,7 @@ namespace KillConfirmGameBar
         private const string FullTrustProcessLauncherRuntimeClass = "Windows.ApplicationModel.FullTrustProcessLauncher";
         private static readonly System.Guid FullTrustProcessLauncherStaticsGuid =
             new System.Guid("D784837F-1100-3C6B-A455-F6262CC331B6");
-        private const int GsiStatusRefreshMs = 10000;
+        private const int GsiStatusRefreshMs = 1000;
         private const double RecentGsiAgeMs = 120000;
         private const string PanelOffsetXSettingKey = "PanelOffsetX";
         private const string PanelOffsetYSettingKey = "PanelOffsetY";

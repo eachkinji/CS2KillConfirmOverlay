@@ -22,6 +22,33 @@
     </UserControl.Resources>
 
     <StackPanel x:Name="ExperienceRows" Spacing="8">
+        <Border x:Name="LolMultikillDependencyCard" Style="{StaticResource PanelSectionCardStyle}" Visibility="Collapsed">
+            <StackPanel Spacing="8">
+            <Grid ColumnSpacing="16" MinHeight="46">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                <Border Style="{StaticResource PanelIconContainerStyle}"><FontIcon Glyph="&#xE8EF;" FontSize="16" FontFamily="Segoe MDL2 Assets"/></Border>
+                <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
+                    <TextBlock x:Name="LolMultikillDependencyLabelText" Style="{StaticResource PanelTitleTextStyle}" Text="连杀统计依赖官方 Multikill"/>
+                    <TextBlock x:Name="LolMultikillDependencyHintText" Style="{StaticResource PanelCaptionTextStyle}"/>
+                </StackPanel>
+                <ToggleSwitch x:Name="LolMultikillDependencyToggle" Grid.Column="2" MinWidth="0" VerticalAlignment="Center" OffContent="关" OnContent="开" Toggled="OnLolMultikillDependencyToggled"/>
+            </Grid>
+            </StackPanel>
+        </Border>
+        <Border x:Name="LolMinionKillCard" Style="{StaticResource PanelSectionCardStyle}" Visibility="Collapsed">
+            <StackPanel Spacing="8">
+            <Grid ColumnSpacing="16" MinHeight="46">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                <Border Style="{StaticResource PanelIconContainerStyle}"><FontIcon Glyph="&#xE7FC;" FontSize="16" FontFamily="Segoe MDL2 Assets"/></Border>
+                <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
+                    <TextBlock x:Name="LolMinionKillLabelText" Style="{StaticResource PanelTitleTextStyle}" Text="补刀 / 小兵击杀解析"/>
+                    <TextBlock x:Name="LolMinionKillHintText" Style="{StaticResource PanelCaptionTextStyle}"/>
+                </StackPanel>
+                <ToggleSwitch x:Name="LolMinionKillToggle" Grid.Column="2" MinWidth="0" VerticalAlignment="Center" OffContent="关" OnContent="开" Toggled="OnLolMinionKillToggled"/>
+            </Grid>
+            </StackPanel>
+        </Border>
+        <!-- SpectatedKillEffectsCard below -->
         <Border Style="{StaticResource PanelSectionCardStyle}">
             <StackPanel Spacing="8">
             <Grid ColumnSpacing="16" MinHeight="46">

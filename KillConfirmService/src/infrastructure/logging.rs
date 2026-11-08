@@ -22,7 +22,9 @@ pub fn developer_logging_enabled() -> bool {
 }
 
 pub(crate) fn local_state_dir() -> PathBuf {
-    if let Some(root) = env::var_os("KILLCONFIRM_DATA_ROOT") { return PathBuf::from(root); }
+    if let Some(root) = env::var_os("KILLCONFIRM_DATA_ROOT") {
+        return PathBuf::from(root);
+    }
     if let Ok(local_app_data) = env::var("LOCALAPPDATA") {
         return PathBuf::from(local_app_data)
             .join("KillConfirmOverlay")

@@ -1,6 +1,10 @@
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, fs, path::{Path, PathBuf}};
+use std::{
+    collections::HashMap,
+    fs,
+    path::{Path, PathBuf},
+};
 
 use crate::state::EventChannel;
 
@@ -155,20 +159,42 @@ const STANDARD_SLOT_STEMS: &[(&str, &[&str])] = &[
     ("kill_10", &["kill_10", "10", "10kill"]),
     ("appear", &["appear"]),
     ("transition", &["transition"]),
-    ("headshot_1", &["headshot_1", "1-headshot", "1_headshot", "kill_1_headshot"]),
-    ("headshot_2", &["headshot_2", "2-headshot", "2_headshot", "kill_2_headshot"]),
-    ("headshot_3", &["headshot_3", "3-headshot", "3_headshot", "kill_3_headshot"]),
-    ("headshot_4", &["headshot_4", "4-headshot", "4_headshot", "kill_4_headshot"]),
-    ("headshot_5", &["headshot_5", "5-headshot", "5_headshot", "kill_5_headshot"]),
-    ("headshot_6", &["headshot_6", "6-headshot", "6_headshot", "kill_6_headshot"]),
+    (
+        "headshot_1",
+        &["headshot_1", "1-headshot", "1_headshot", "kill_1_headshot"],
+    ),
+    (
+        "headshot_2",
+        &["headshot_2", "2-headshot", "2_headshot", "kill_2_headshot"],
+    ),
+    (
+        "headshot_3",
+        &["headshot_3", "3-headshot", "3_headshot", "kill_3_headshot"],
+    ),
+    (
+        "headshot_4",
+        &["headshot_4", "4-headshot", "4_headshot", "kill_4_headshot"],
+    ),
+    (
+        "headshot_5",
+        &["headshot_5", "5-headshot", "5_headshot", "kill_5_headshot"],
+    ),
+    (
+        "headshot_6",
+        &["headshot_6", "6-headshot", "6_headshot", "kill_6_headshot"],
+    ),
     ("headshot", &["headshot", "headshot_kill"]),
     ("knife", &["knife", "melee"]),
-    ("first_and_last", &["first_and_last", "firstandlast", "revenge"]),
+    (
+        "first_and_last",
+        &["first_and_last", "firstandlast", "revenge"],
+    ),
     ("grenade", &["grenade", "grenade_kill"]),
     ("assist", &["assist"]),
     ("common_overlay", &["common_overlay"]),
     ("bomb_plant", &["bomb_plant"]),
     ("bomb_defuse", &["bomb_defuse"]),
+    ("podi", &["podi", "audio_podi"]),
     ("epic", &["epic"]),
     ("jiaojiaojiao", &["jiaojiaojiao"]),
 ];
@@ -206,7 +232,10 @@ fn find_slot_files_in_dir(dir_path: &Path, stems: &[&str]) -> Option<SlotFiles> 
                 Some(e) => e,
                 None => continue,
             };
-            if !STANDARD_AUDIO_EXTENSIONS.iter().any(|&e| e.eq_ignore_ascii_case(ext_str)) {
+            if !STANDARD_AUDIO_EXTENSIONS
+                .iter()
+                .any(|&e| e.eq_ignore_ascii_case(ext_str))
+            {
                 continue;
             }
             let file_stem = match path.file_stem().and_then(|s| s.to_str()) {
@@ -253,7 +282,9 @@ pub(crate) fn default_valorant_sounds_dir(sounds_root: &Path) -> PathBuf {
 
 impl PackManifest {
     pub fn uses_generic_event_audio(&self) -> bool {
-        self.audio_routing.as_deref().is_some_and(|routing| routing.eq_ignore_ascii_case("generic_event"))
+        self.audio_routing
+            .as_deref()
+            .is_some_and(|routing| routing.eq_ignore_ascii_case("generic_event"))
     }
 
     pub fn character_voice_audio_slot(&self, ctx: &SoundContext) -> Option<String> {
@@ -262,30 +293,57 @@ impl PackManifest {
         let headshot = format!("headshot_{count}");
         let numbered = format!("kill_{count}");
         let mut candidates = Vec::new();
-        if ctx.is_grenade_kill { candidates.push("grenade"); }
-        if ctx.is_knife_kill { candidates.push("knife"); }
-        if ctx.is_headshot { candidates.extend([headshot.as_str(), "headshot"]); }
-        if ctx.is_last_kill { candidates.push("last_kill"); }
-        if ctx.is_first_kill { candidates.push("first_kill"); }
+        if ctx.is_grenade_kill {
+            candidates.push("grenade");
+        }
+        if ctx.is_knife_kill {
+            candidates.push("knife");
+        }
+        if ctx.is_headshot {
+            candidates.extend([headshot.as_str(), "headshot"]);
+        }
+        if ctx.is_last_kill {
+            candidates.push("last_kill");
+        }
+        if ctx.is_first_kill {
+            candidates.push("first_kill");
+        }
         candidates.extend([numbered.as_str(), "kill_1", "common"]);
-        candidates.into_iter().find(|slot|
-            audio.slots.get(*slot).is_some_and(|files| !files.as_slice().is_empty()))
+        candidates
+            .into_iter()
+            .find(|slot| {
+                audio
+                    .slots
+                    .get(*slot)
+                    .is_some_and(|files| !files.as_slice().is_empty())
+            })
             .map(str::to_string)
     }
 
     /// Select one complete native event mix; its internal delays stay in the WAV.
     pub fn calabiyau_audio_slot(&self, kill_count: u16, is_headshot: bool) -> Option<String> {
         let audio = self.audio.as_ref()?;
-        let is_voice = self.audio_kind.as_deref().is_some_and(|kind|
-            kind.eq_ignore_ascii_case("voice") || kind.eq_ignore_ascii_case("character_voice"));
+        let is_voice = self.audio_kind.as_deref().is_some_and(|kind| {
+            kind.eq_ignore_ascii_case("voice") || kind.eq_ignore_ascii_case("character_voice")
+        });
         let count = kill_count.clamp(1, if is_voice { 6 } else { 5 });
-        let has = |slot: &str| audio.slots.get(slot).is_some_and(|files| !files.as_slice().is_empty());
+        let has = |slot: &str| {
+            audio
+                .slots
+                .get(slot)
+                .is_some_and(|files| !files.as_slice().is_empty())
+        };
         let headshot = format!("headshot_{count}");
         let normal = format!("kill_{count}");
-        if is_headshot && has(&headshot) { Some(headshot) }
-        else if has(&normal) { Some(normal) }
-        else if has("kill_1") { Some("kill_1".into()) }
-        else { None }
+        if is_headshot && has(&headshot) {
+            Some(headshot)
+        } else if has(&normal) {
+            Some(normal)
+        } else if has("kill_1") {
+            Some("kill_1".into())
+        } else {
+            None
+        }
     }
 
     /// Load manifest.json from a given directory path and auto-populate unmapped slots
@@ -307,14 +365,19 @@ impl PackManifest {
 
     /// Auto-populate missing audio slots from files that actually exist in the directory
     pub fn auto_populate_slots_from_dir(&mut self, dir_path: &Path) {
-        let is_valorant = self.game_style.as_deref().is_some_and(|style| style.eq_ignore_ascii_case("valorant"));
+        let is_valorant = self
+            .game_style
+            .as_deref()
+            .is_some_and(|style| style.eq_ignore_ascii_case("valorant"));
         let audio = self.audio.get_or_insert_with(|| AudioConfig {
             base_gain: 1.0,
             ..AudioConfig::default()
         });
 
         for &(slot, stems) in STANDARD_SLOT_STEMS {
-            if slot == "headshot_6" && !is_valorant { continue; }
+            if slot == "headshot_6" && !is_valorant {
+                continue;
+            }
             if let Some(existing) = audio.slots.get(slot) {
                 if !existing.as_slice().is_empty() {
                     continue;
@@ -361,8 +424,11 @@ impl PackManifest {
     /// Repair sparse custom Valorant manifests in memory. Older creators saved
     /// only selected slots despite promising built-in audio for empty slots.
     pub(crate) fn fill_valorant_audio_defaults(&mut self, default_pack_dir: &Path) -> Result<()> {
-        if self.uses_generic_event_audio() || self.audio_kind.as_deref().is_some_and(|kind|
-            kind.eq_ignore_ascii_case("character_voice") || kind.eq_ignore_ascii_case("voice")) {
+        if self.uses_generic_event_audio()
+            || self.audio_kind.as_deref().is_some_and(|kind| {
+                kind.eq_ignore_ascii_case("character_voice") || kind.eq_ignore_ascii_case("voice")
+            })
+        {
             return Ok(());
         }
         if !self
@@ -516,11 +582,19 @@ impl PackManifest {
         let game_style = self.game_style.as_deref().unwrap_or_default();
         let is_valorant = game_style.eq_ignore_ascii_case("valorant");
         let is_custommodule = game_style.eq_ignore_ascii_case("custommodule");
-        let is_character_voice = self.audio_kind.as_deref().is_some_and(|kind|
-            kind.eq_ignore_ascii_case("character_voice") || kind.eq_ignore_ascii_case("voice"));
-        if self.uses_generic_event_audio() || (is_character_voice && !game_style.eq_ignore_ascii_case("crossfire")) {
-            if ctx.event_channel != EventChannel::Combat || ctx.is_assist
-                || !ctx.play_main_audio || ctx.kill_count < 1 { return entries; }
+        let is_character_voice = self.audio_kind.as_deref().is_some_and(|kind| {
+            kind.eq_ignore_ascii_case("character_voice") || kind.eq_ignore_ascii_case("voice")
+        });
+        if self.uses_generic_event_audio()
+            || (is_character_voice && !game_style.eq_ignore_ascii_case("crossfire"))
+        {
+            if ctx.event_channel != EventChannel::Combat
+                || ctx.is_assist
+                || !ctx.play_main_audio
+                || ctx.kill_count < 1
+            {
+                return entries;
+            }
             if let Some(slot) = self.character_voice_audio_slot(ctx) {
                 push_slot(&mut entries, &slot, None);
             }
@@ -535,8 +609,11 @@ impl PackManifest {
         }
 
         if game_style.eq_ignore_ascii_case("calabiyau") {
-            if ctx.event_channel != EventChannel::Combat || ctx.is_assist
-                || !ctx.play_main_audio || ctx.kill_count < 1 {
+            if ctx.event_channel != EventChannel::Combat
+                || ctx.is_assist
+                || !ctx.play_main_audio
+                || ctx.kill_count < 1
+            {
                 return entries;
             }
             if let Some(slot) = self.calabiyau_audio_slot(ctx.kill_count, ctx.is_headshot) {
@@ -557,7 +634,9 @@ impl PackManifest {
                 .filter(|value| !value.is_empty())
             {
                 let is_bomb_objective = event_kind.eq_ignore_ascii_case("bomb_plant")
-                    || event_kind.eq_ignore_ascii_case("bomb_defuse");
+                    || event_kind.eq_ignore_ascii_case("bomb_defuse")
+                    || event_kind.eq_ignore_ascii_case("podi")
+                    || event_kind.eq_ignore_ascii_case("lol_structure");
                 if is_bomb_objective && game_style.eq_ignore_ascii_case("csol") {
                     return entries;
                 }
@@ -578,15 +657,22 @@ impl PackManifest {
             // Native external packs can provide an overkill cue. An absent,
             // empty or stale optional sixth slot must preserve the old tier-5
             // route instead of suppressing audio or falling back to kill_1.
-            let has_sixth_slot = |slot: &str| audio.slots.get(slot).is_some_and(|files| {
-                !files.as_slice().is_empty() && files.as_slice().iter().all(|filename| {
-                    !filename.trim().is_empty() && {
-                        let path = Path::new(filename);
-                        (if path.is_absolute() { path.to_path_buf() }
-                         else { Path::new(base_dir).join(path) }).is_file()
-                    }
+            let has_sixth_slot = |slot: &str| {
+                audio.slots.get(slot).is_some_and(|files| {
+                    !files.as_slice().is_empty()
+                        && files.as_slice().iter().all(|filename| {
+                            !filename.trim().is_empty() && {
+                                let path = Path::new(filename);
+                                (if path.is_absolute() {
+                                    path.to_path_buf()
+                                } else {
+                                    Path::new(base_dir).join(path)
+                                })
+                                .is_file()
+                            }
+                        })
                 })
-            });
+            };
             let count = if ctx.kill_count >= 6 && has_sixth_slot("kill_6") {
                 6
             } else {
@@ -597,7 +683,9 @@ impl PackManifest {
                 push_slot(&mut entries, "kill_1", None);
             }
             let overlay_enabled = match &audio.overlay_slots {
-                Some(list) => list.iter().any(|candidate| candidate.eq_ignore_ascii_case(&slot)),
+                Some(list) => list
+                    .iter()
+                    .any(|candidate| candidate.eq_ignore_ascii_case(&slot)),
                 None => count > 1,
             };
             if overlay_enabled {
@@ -609,7 +697,10 @@ impl PackManifest {
                 if entries.len() > before_overlay {
                     let overlay_path = entries.last().map(|entry| entry.path.clone());
                     if let Some(path) = overlay_path {
-                        if entries[..before_overlay].iter().any(|entry| entry.path == path) {
+                        if entries[..before_overlay]
+                            .iter()
+                            .any(|entry| entry.path == path)
+                        {
                             entries.pop();
                         }
                     }

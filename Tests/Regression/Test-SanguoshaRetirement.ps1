@@ -1,10 +1,11 @@
 #Requires -Version 7.0
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
+. (Join-Path $PSScriptRoot '..\Common\SourceView.ps1')
 $fixture = Join-Path $root ('Output/SanguoshaRetirement-' + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $fixture | Out-Null
-$style = [IO.File]::ReadAllText((Join-Path $root 'Widget/Services/Styling/GameStyleService.Sanguosha.cs'))
-$persistence = [IO.File]::ReadAllText((Join-Path $root 'Widget/Pages/KillConfirmWidget/Packs/KillConfirmWidgetPage.PackSettings.Persistence.cs'))
+$style = [IO.File]::ReadAllText((Resolve-SourcePath $root 'Widget/Services/Styling/GameStyleService.Sanguosha.cs'))
+$persistence = [IO.File]::ReadAllText((Resolve-SourcePath $root 'Widget/Pages/KillConfirmWidget/Packs/KillConfirmWidgetPage.PackSettings.Persistence.cs'))
 $desktopPersistence = [IO.File]::ReadAllText((Join-Path $root 'CompatibilityHost/Integration/Home/Packs/CompatibilityHomeView.PackSettings.Persistence.cs'))
 $harness = @'
 #pragma warning disable CS0649

@@ -297,9 +297,9 @@ namespace KillConfirmCompatibility.Danmaku
             int? customVisibleLimit,
             double? customMaximumFlightSeconds)
         {
-            int visibleLimit = customVisibleLimit ?? Random.Next(10, 21);
-            double maximumFlightSeconds = DanmakuReactionPolicies.ClampFlightSeconds(
-                customMaximumFlightSeconds ?? DanmakuSettingsStore.DurationSeconds);
+            int visibleLimit = DanmakuReactionPolicies.EventTotalCount;
+            double maximumFlightSeconds = Math.Max(DanmakuSettingsStore.MinimumDurationForSpeed(DanmakuSettingsStore.Speed),
+                DanmakuReactionPolicies.ClampFlightSeconds(customMaximumFlightSeconds ?? DanmakuSettingsStore.DurationSeconds));
 
             RefreshDrawingSettings();
 
@@ -314,7 +314,7 @@ namespace KillConfirmCompatibility.Danmaku
                 maximumFlightSeconds,
                 Random);
             _pendingQueue.Enqueue(messages, flightDuration);
-            _eventDensityUntil = DateTimeOffset.UtcNow.AddSeconds(5.0);
+            _eventDensityUntil = DateTimeOffset.UtcNow.AddSeconds(DanmakuReactionPolicies.EventDurationSeconds);
             StartRendering();
         }
 

@@ -1,6 +1,7 @@
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
-function ReadSource($path) { Get-Content -Raw -LiteralPath (Join-Path $root $path) }
+. (Join-Path $PSScriptRoot '..\Common\SourceView.ps1')
+function ReadSource($path) { Get-Content -Raw -LiteralPath (Resolve-SourcePath $root $path) }
 function Method($source, $name) {
     $m = [regex]::Match($source, '(?ms)^        (?:private|public) [^\r\n]+\b' + $name + '\([^)]*\).*?^        \}')
     if (-not $m.Success) { throw "Missing method: $name" }
@@ -38,6 +39,8 @@ namespace KillConfirmGameBar.Services {
   static SemaphoreSlim CatalogIoLock=new SemaphoreSlim(1,1);
   static MemoryStream saved;
   static int notifications;
+  static GameStyleMode GetAudioPackStyle(VoicePackItem item)=>GameStyleService.GetStyleForPackKey(item?.Key??"");
+  static AudioPackKind GetAudioPackKind(VoicePackItem item)=>AudioPackKind.CharacterVoice;
   static Task<PackCatalog> LoadAsync()=>Task.FromResult(catalog);
   static Task SaveCoreAsync(PackCatalog c,bool notify) {
    saved=new MemoryStream();new DataContractJsonSerializer(typeof(PackCatalog)).WriteObject(saved,c);
@@ -105,7 +108,7 @@ public class EffectsProbe {
  static bool hasOwnFx;
  static bool SupportsEliteOverlay()=>true;
  static Task<CanvasBitmap> TryLoadImportedIconBitmapAsync(string name)=>Task.FromResult(hasOwnFx?new CanvasBitmap{Source="pack:"+name}:null);
- static Task<CanvasBitmap> LoadCodeKillBitmapAsync(string name,string folder,string alt,bool fallback,bool imported=true)=>Task.FromResult(new CanvasBitmap{Source="original:"+name});
+ static Task<CanvasBitmap> LoadCodeKillBitmapAsync(string name,string folder,string alt,bool fallback,bool imported=true,bool allowGenericKillFallback=true,bool optional=false)=>Task.FromResult(new CanvasBitmap{Source="original:"+name});
  static Task<CanvasBitmap> LoadOptionalOverlayBitmapAsync(string name,string folder,bool original,bool fallback)=>Task.FromResult(new CanvasBitmap{Source=name});
  static void Check(bool ok,string message){if(!ok)throw new Exception(message);}
  public static async Task Verify() {

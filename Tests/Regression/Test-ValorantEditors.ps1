@@ -1,10 +1,11 @@
 #Requires -Version 7.0
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
-$creation = Get-Content -Raw (Join-Path $root 'Widget/Services/Catalog/PackCatalogService.Voice.Creation.cs')
-$editing = Get-Content -Raw (Join-Path $root 'Widget/Services/Catalog/PackCatalogService.ValorantEditing.cs')
+. (Join-Path $PSScriptRoot '..\Common\SourceView.ps1')
+$creation = Get-Content -Raw (Resolve-SourcePath $root 'Widget/Services/Catalog/PackCatalogService.Voice.Creation.cs')
+$editing = Get-Content -Raw (Resolve-SourcePath $root 'Widget/Services/Catalog/PackCatalogService.ValorantEditing.cs')
 $editing = [regex]::Replace($editing, '(?m)^using [^;]+;\r?\n', '')
-$aliases = Get-Content -Raw (Join-Path $root 'Widget/Helpers/AudioSlotAliases.cs')
+$aliases = Get-Content -Raw (Resolve-SourcePath $root 'Widget/Helpers/AudioSlotAliases.cs')
 $aliases = [regex]::Replace($aliases, '(?m)^using [^;]+;\r?\n', '')
 $methods = [regex]::Match($creation, '(?ms)^        public static readonly IReadOnlyDictionary<string, string> ValorantVoiceSlotMapping.*?^            \};').Value
 foreach ($name in @('WriteGeneratedVoiceManifestAsync','CopySelectedVoiceFilesAsync','GetAudioTargetFileName','FindAudioFileNamesAsync')) {

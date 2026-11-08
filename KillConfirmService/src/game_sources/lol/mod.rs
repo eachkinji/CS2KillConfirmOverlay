@@ -1,14 +1,23 @@
 //! Read-only Live Client Data API, including legacy CN player-name fields.
 //! No LCU credentials, injection, process memory, or Counter-Strike CFGs.
+mod events;
+mod mapping;
+mod snapshot;
 #[cfg(test)]
 mod tests;
+#[cfg(test)]
+mod tests_events;
 mod tracker;
 
+pub use events::LolDetail;
+#[cfg(test)]
+use mapping::combat_kill;
+
 use super::{GameSource, settings::now_ms};
-use crate::soundpack::sound::play_audio;
-use crate::state::{AppState, EventChannel, KillEvent};
+use crate::feedback::{AudioTiming, emit};
+use crate::state::AppState;
 use std::{sync::Arc, time::Duration};
-use tracker::{Snapshot, TrackedKill, Tracker};
+use tracker::{Observed, Snapshot, Tracker};
 
 #[derive(Default)]
 pub(crate) struct Status {
@@ -52,46 +61,58 @@ pub(crate) async fn run(state: Arc<AppState>) {
     let mut shutdown = state.shutdown_tx.subscribe();
     let mut tracker = Tracker::default();
     let mut generation = 0;
-    let mut delay = Duration::from_millis(350);
+    let mut delay = Duration::from_millis(50);
     loop {
         tokio::select! { _ = shutdown.recv() => break, _ = tokio::time::sleep(delay) => {} }
         let selected = state.game_source.read().await.clone();
         if selected.source != GameSource::Lol {
             tracker = Tracker::default();
             generation = 0;
-            delay = Duration::from_secs(1);
+            delay = Duration::from_millis(250);
             continue;
         }
+        let lol_cfg = super::settings::current_lol_config();
+        let active_poll_ms = lol_cfg.poll_interval_ms.clamp(20, 2000);
         if generation != selected.generation {
             tracker = Tracker::default();
             generation = selected.generation;
         }
+        tracker.set_require_official_multikill(lol_cfg.require_official_multikill);
+        tracker.set_creep_score_enabled(lol_cfg.creep_score_enabled);
         let result = read_sample(&client)
             .await
-            .and_then(|sample| tracker.observe(&sample));
+            .and_then(|sample| tracker.observe_detailed(&sample));
         // A completed HTTP response from the previous selection must never leak.
         let active = state.game_source.read().await;
         if active.source != GameSource::Lol || active.generation != generation {
             continue;
         }
         match result {
-            Ok(kills) => {
-                delay = Duration::from_millis(350);
+            Ok(observed) => {
+                delay = Duration::from_millis(active_poll_ms);
                 let mut status = state.lol_status.write().await;
                 status.samples += 1;
                 status.last_sample_ms = now_ms();
                 status.detail.clear();
                 drop(status);
-                publish_kills(&state, kills).await;
+                publish(&state, observed).await;
             }
             Err(error) => {
                 // These kills were already observed while this source was active.
                 // Flush only its short marker buffer before discarding the cursor;
                 // the next successful sample still establishes a fresh baseline.
-                publish_kills(&state, tracker.flush_pending()).await;
+                let kills = tracker.flush_pending_detailed();
+                publish(
+                    &state,
+                    Observed {
+                        kills,
+                        observations: Vec::new(),
+                    },
+                )
+                .await;
                 // Any reconnect re-baselines. No backlog bursts after a pause.
                 tracker = Tracker::default();
-                delay = Duration::from_secs(2);
+                delay = Duration::from_millis(250);
                 let mut status = state.lol_status.write().await;
                 status.errors += 1;
                 status.last_sample_ms = 0;
@@ -104,57 +125,46 @@ pub(crate) async fn run(state: Arc<AppState>) {
     }
 }
 
-async fn publish_kills(state: &Arc<AppState>, kills: Vec<TrackedKill>) {
-    for kill in kills {
-        let event = combat_kill(kill.player, kill.target, kill.kill_count);
-        // Publication first preserves the existing animation/audio timing contract.
-        // play_audio queues both configured channels; it does not wait for the
-        // resulting sound or voice to finish playing.
-        state.events.publish(event.clone()).await;
-        match play_audio(
-            state.clone(),
-            event.kill_count,
-            event.is_headshot,
-            event.is_first_kill,
-            event.is_knife_kill,
-            event.is_grenade_kill,
-            event.is_last_kill,
-            event.is_assist,
-            event.money_reward,
-            event.event_kind,
-            event.event_channel,
-            event.play_main_animation,
-        )
-        .await
-        {
-            Ok(()) => tracing::debug!("LOL combat audio queued: kill_count={}", event.kill_count),
-            Err(error) => crate::infrastructure::logging::service_log(&format!(
-                "LOL combat audio failed: kill_count={}, {error}", event.kill_count
-            )),
+async fn publish(state: &Arc<AppState>, observed: Observed) {
+    // Kills first: they are latency-sensitive feedback. Publication precedes
+    // audio (existing timing contract); `Await` only waits until both
+    // configured channels are queued, not until playback ends.
+    for kill in observed.kills {
+        let kill_count = kill.kill.kill_count;
+        let emitted = emit(state, mapping::kill_envelope(kill), AudioTiming::Await).await;
+        // Integration evidence (Tests/GameSources/LeagueOfLegends) reads this line.
+        if emitted.audio_queued {
+            tracing::debug!(
+                "LOL combat audio queued: kill_count={kill_count}, id={}",
+                emitted.id
+            );
+        } else {
+            crate::infrastructure::logging::service_log(&format!(
+                "LOL combat audio failed: kill_count={kill_count}, id={}",
+                emitted.id
+            ));
         }
     }
-}
-
-fn combat_kill(player: String, target: String, kill_count: u16) -> KillEvent {
-    KillEvent {
-        event_channel: EventChannel::Combat,
-        kill_count,
-        is_headshot: false,
-        is_knife_kill: false,
-        is_grenade_kill: false,
-        is_first_kill: false,
-        is_last_kill: false,
-        is_assist: false,
-        play_main_animation: true,
-        animation_key: None,
-        event_kind: Some("kill".into()),
-        weapon_badge_key: None,
-        weapon_name: None,
-        money_reward: 0,
-        round_number: 0,
-        money_epoch: 0,
-        player_name: player,
-        target_name: Some(target),
-        steamid: String::new(),
+    let has_first_brick = observed
+        .observations
+        .iter()
+        .any(|d| d.event == events::LolEventKind::FirstBrick);
+    for detail in observed.observations {
+        let skip_duplicate_turret_audio =
+            has_first_brick && detail.event == events::LolEventKind::TurretKilled;
+        let audio_req = if skip_duplicate_turret_audio {
+            None
+        } else {
+            mapping::observation_audio_request(&detail)
+        };
+        emit(
+            state,
+            mapping::observation_envelope(detail),
+            AudioTiming::None,
+        )
+        .await;
+        if let Some(request) = audio_req {
+            let _ = request.play(state.clone(), None).await;
+        }
     }
 }

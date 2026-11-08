@@ -14,6 +14,12 @@ namespace KillConfirmGameBar.Controls.GameStyles
         {
             InitializeComponent();
             RefreshKillMarkSetting();
+            Loaded += (s, e) => { GameSourceSettingsStore.Changed -= OnGameSourceChanged; GameSourceSettingsStore.Changed += OnGameSourceChanged; };
+            Unloaded += (s, e) => { GameSourceSettingsStore.Changed -= OnGameSourceChanged; };
+        }
+        private void OnGameSourceChanged(object sender, EventArgs e)
+        {
+            _ = Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => ApplyLanguage(LocalizationManager.Current == UiLanguage.SimplifiedChinese));
         }
 
         public event SelectionChangedEventHandler StreakModeSelectionChanged;
@@ -128,6 +134,29 @@ namespace KillConfirmGameBar.Controls.GameStyles
             AssistAudioToggle.OnContent = isChinese ? "有声音（common）" : "Sound (common)";
             AssistAudioToggle.OffContent = isChinese ? "无声音（默认）" : "Muted (default)";
             AdvancedEffectsPanelSupport.ApplyKillMarkLanguage(VisualEffectsTitle, KillMarkEffectLabel, KillMarkEffectToggle, isChinese);
+            if (GameSourceSettingsStore.IsLol)
+            {
+                TitleText.Text = isChinese ? "CF（穿越火线）战斗与视效 · 英雄联盟模式" : "CrossFire Combat & Effects · LOL Mode";
+                HintText.Text = isChinese ? "设置英雄联盟 (LOL) 对局事件触发 CF 反馈时的连杀规则、特殊事件（终结/抢龙/控龙/一血/团灭）提示优先级，以及画面特效和徽章。" : "Configure CrossFire streak rules, LOL special event priorities (Shutdown/Steal/Objective/First Blood/Ace), and visual FX.";
+                if (PrioritiesGroupLabel != null) PrioritiesGroupLabel.Text = isChinese ? "终结、抢龙与控龙提示优先级" : "Shutdown, Steal & Objective Priority";
+                HeadshotAudioPriorityLabel.Text = isChinese ? "终结 (Shutdown) 声音" : "Shutdown audio";
+                KnifeAudioPriorityLabel.Text = isChinese ? "抢龙 (Steal) 声音" : "Steal audio";
+                GrenadeAudioPriorityLabel.Text = isChinese ? "控龙 (Objective) 声音" : "Objective audio";
+                HeadshotSpecialPriorityItem.Content = isChinese ? "终结 (爆头) 优先" : "Shutdown priority";
+                KnifeSpecialPriorityItem.Content = isChinese ? "抢龙 (刀杀) 优先" : "Steal priority";
+                GrenadeSpecialPriorityItem.Content = isChinese ? "控龙 (雷杀) 优先" : "Objective priority";
+                HeadshotIconPriorityLabel.Text = isChinese ? "终结 (Shutdown) 图标" : "Shutdown icon";
+                KnifeIconPriorityLabel.Text = isChinese ? "抢龙 (Steal) 图标" : "Steal icon";
+                GrenadeIconPriorityLabel.Text = isChinese ? "控龙 (Objective) 图标" : "Objective icon";
+                HeadshotIconSpecialPriorityItem.Content = HeadshotSpecialPriorityItem.Content;
+                KnifeIconSpecialPriorityItem.Content = KnifeSpecialPriorityItem.Content;
+                GrenadeIconSpecialPriorityItem.Content = GrenadeSpecialPriorityItem.Content;
+                if (SpecialKillsGroupLabel != null) SpecialKillsGroupLabel.Text = isChinese ? "一血与团灭 (ACE)" : "First Blood & Team Ace";
+                FirstKillAudioLabel.Text = isChinese ? "一血 (First Blood) 语音" : "First Blood audio";
+                LastKillAudioLabel.Text = isChinese ? "团灭 (ACE) 语音" : "Team Ace audio";
+                FirstKillEffectLabel.Text = isChinese ? "一血 (First Blood) 特效" : "First Blood effect";
+                LastKillEffectLabel.Text = isChinese ? "团灭 (ACE) 特效" : "Team Ace effect";
+            }
             if (StylePanelHost.Content is CrossfireStylePanel stylePanel)
             {
                 stylePanel.ApplyLanguage(isChinese);

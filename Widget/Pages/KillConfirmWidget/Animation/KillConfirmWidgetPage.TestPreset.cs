@@ -50,7 +50,7 @@ namespace KillConfirmGameBar
                 string eventChannel = KillEventChannels.Combat,
                 string eventKind = null,
                 string weaponName = null,
-                int? moneyReward = null)
+                int? moneyReward = null, string weaponBadgeKey = null)
             {
                 KillCount = killCount;
                 IsHeadshot = isHeadshot;
@@ -65,6 +65,7 @@ namespace KillConfirmGameBar
                 EventKind = eventKind ?? (isAssist ? "assist" : "kill");
                 WeaponName = weaponName;
                 MoneyReward = moneyReward ?? (isAssist ? 0 : (isKnifeKill ? 1500 : 300));
+                WeaponBadgeKey = weaponBadgeKey;
             }
 
             public int KillCount { get; }
@@ -80,6 +81,7 @@ namespace KillConfirmGameBar
             public string EventKind { get; }
             public string WeaponName { get; }
             public int MoneyReward { get; }
+            public string WeaponBadgeKey { get; }
 
             public KillEvent ToKillEvent()
             {
@@ -97,6 +99,7 @@ namespace KillConfirmGameBar
                     AnimationKey = AnimationKey,
                     EventKind = EventKind,
                     WeaponName = WeaponName,
+                    WeaponBadgeKey = WeaponBadgeKey,
                     MoneyReward = MoneyReward
                 };
             }

@@ -63,9 +63,67 @@
                 HorizontalScrollBarVisibility="Disabled">
                 <StackPanel Spacing="12" MaxWidth="1480" HorizontalAlignment="Stretch">
                     <!-- Header Text Area -->
+                    <StackPanel Orientation="Horizontal" Spacing="8" Margin="2,4,2,0" VerticalAlignment="Center"><Ellipse Width="22" Height="22" VerticalAlignment="Center"><Ellipse.Fill><ImageBrush x:Name="HubPortGameLogoBrush" Stretch="UniformToFill" ImageSource="ms-appx:///Assets/GameSources/CounterStrike/cs2.png"/></Ellipse.Fill></Ellipse><TextBlock x:Name="HubPortTitleText" Style="{StaticResource PanelTitleTextStyle}" VerticalAlignment="Center" Text="LOCAL SERVICE PORT" /></StackPanel>
+                    <StackPanel Spacing="10" Margin="0,2,0,4">
+                        <Border x:Name="CsCfgSectionCard" Style="{StaticResource PanelSectionCardStyle}">
+                            <StackPanel Spacing="10">
+                                <Grid ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <Border Style="{StaticResource PanelIconContainerStyle}"><FontIcon FontFamily="Segoe MDL2 Assets" FontSize="14" Glyph="&#xE8B7;" Foreground="{StaticResource PanelAccentBrush}"/></Border>
+                                    <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
+                                        <TextBlock x:Name="CsRootTitleText" Style="{StaticResource PanelTitleTextStyle}" Text="游戏根目录与 CFG 配置"/>
+                                        <TextBlock x:Name="CsRootPathText" Style="{StaticResource PanelCaptionTextStyle}" IsTextSelectionEnabled="True" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <Button x:Name="CsSelectRootButton" Style="{StaticResource PanelButtonStyle}" Content="选择根目录" Click="OnCsSelectRootClick"/>
+                                        <Button x:Name="CsInstallCfgButton" Style="{StaticResource PanelPrimaryButtonStyle}" Content="一键写入 CFG" Click="OnCsInstallCfgClick"/>
+                                    </StackPanel>
+                                </Grid>
+                                <Border Background="{StaticResource PanelSectionBrush}" BorderBrush="{StaticResource PanelDividerBrush}" Style="{StaticResource PanelSectionCardStyle}" Padding="12,8">
+                                    <StackPanel Spacing="4">
+                                        <TextBlock x:Name="CsCfgDirPathText" FontFamily="Consolas" Style="{StaticResource PanelCaptionTextStyle}" IsTextSelectionEnabled="True" TextWrapping="Wrap"/>
+                                        <TextBlock x:Name="CsCfgStatusText" Style="{StaticResource PanelCaptionTextStyle}" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+                        <Border x:Name="LolPortSectionCard" Style="{StaticResource PanelSectionCardStyle}" Visibility="Collapsed">
+                            <StackPanel Spacing="10">
+                                <Grid ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <Border Style="{StaticResource PanelIconContainerStyle}"><FontIcon FontFamily="Segoe MDL2 Assets" FontSize="14" Glyph="&#xE8B7;" Foreground="{StaticResource PanelAccentBrush}"/></Border>
+                                    <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
+                                        <TextBlock x:Name="LolRootTitleText" Style="{StaticResource PanelTitleTextStyle}" Text="英雄联盟游戏根目录与 Live Client 端口"/>
+                                        <TextBlock x:Name="LolRootPathText" Style="{StaticResource PanelCaptionTextStyle}" IsTextSelectionEnabled="True" TextWrapping="Wrap"/>
+                                        <TextBlock x:Name="LolEndpointStatusText" FontFamily="Consolas" Style="{StaticResource PanelCaptionTextStyle}" IsTextSelectionEnabled="True" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                    <Button x:Name="LolSelectRootButton" Grid.Column="2" VerticalAlignment="Center" Style="{StaticResource PanelButtonStyle}" Content="选择根目录" Click="OnLolSelectRootClick"/>
+                                </Grid>
+                                <Grid ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <Border Style="{StaticResource PanelIconContainerStyle}"><FontIcon FontFamily="Segoe MDL2 Assets" FontSize="14" Glyph="&#xE945;" Foreground="{StaticResource PanelTextSecondaryBrush}"/></Border>
+                                    <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                                        <TextBlock x:Name="LolPollIntervalLabelText" Style="{StaticResource PanelTitleTextStyle}" Text="端口抓取速度调控 (Polling Interval)"/>
+                                        <TextBlock x:Name="LolPollIntervalHintText" Style="{StaticResource PanelCaptionTextStyle}" Text="默认 50ms 极速采集；支持 20–1000ms 自定义调节。"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <ComboBox x:Name="LolPollIntervalSelector" Style="{StaticResource PanelComboBoxStyle}" Width="150" SelectionChanged="OnLolPollIntervalSelectionChanged">
+                                            <ComboBoxItem Tag="50" Content="50ms (极速 · 推荐)"/>
+                                            <ComboBoxItem Tag="100" Content="100ms (标准)"/>
+                                            <ComboBoxItem Tag="250" Content="250ms (均衡)"/>
+                                            <ComboBoxItem Tag="500" Content="500ms (省电)"/>
+                                            <ComboBoxItem Tag="custom" Content="自定义 ms"/>
+                                        </ComboBox>
+                                        <TextBox x:Name="LolPollCustomInput" Style="{StaticResource PanelTextBoxStyle}" Width="84" FontFamily="Consolas" InputScope="Number" MaxLength="4" PlaceholderText="20-1000" Visibility="Collapsed"/>
+                                        <Button x:Name="LolPollCustomApplyButton" Style="{StaticResource PanelPrimaryButtonStyle}" Content="应用" Click="OnLolPollCustomApplyClick" Visibility="Collapsed"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
                     <StackPanel Spacing="2" Margin="2,4,2,4">
                         <TextBlock
-                            x:Name="HubPortTitleText"
+                            x:Name="HubPortTitleTextLegacy" Visibility="Collapsed"
                             Style="{StaticResource PanelTitleTextStyle}"
                             Text="LOCAL SERVICE PORT" />
                         <TextBlock

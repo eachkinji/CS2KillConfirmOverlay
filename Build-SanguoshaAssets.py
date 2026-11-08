@@ -12,7 +12,7 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 TIERS = [
     # Pack 1: 十周年连破播报 (sanguosha)
     "shoupo", "lianpo", "sanpo", "sipo", "wupo", "liupo", "qipo",
-    "shenweizhengqiankun", "wanfumodi", "shenyimiaoshou", "qingnangjishi",
+    "shenweizhengqiankun", "wanfumodi", "shenyimiaoshou", "qingnangjishi", "podi",
 ]
 
 SOUND_PACKS = {
@@ -30,6 +30,7 @@ SOUND_PACKS = {
             "headshot.mp3": ("headshot", "newkill_wanfumodi"),
             "knife.mp3": ("knife", "newkill_shenyimiaoshou"),
             "grenade.mp3": ("grenade", "newkill_qingnangjishi"),
+            "podi.mp3": ("podi", "audio_podi"),
         },
     ),
 }

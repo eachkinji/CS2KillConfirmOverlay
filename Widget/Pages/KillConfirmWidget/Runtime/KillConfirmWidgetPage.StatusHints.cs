@@ -49,8 +49,14 @@ namespace KillConfirmGameBar
             var hints = new List<StatusHint>();
             if (GameSourceSettingsStore.IsLol) {
                 bool zh = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
-                hints.Add(new StatusHint(_gsiRecentlySeen ? (zh ? "LOL 已连接 · 击杀英雄时播放当前素材" : "LOL connected · current pack plays on champion kills")
-                    : (zh ? "等待 LOL 对局 · 进入对局后自动连接" : "Waiting for a LOL match"), Color.FromArgb(255, 5, 122, 85)));
+                hints.Add(new StatusHint(
+                    _gsiRecentlySeen
+                        ? (zh ? "LOL 已连接 (50ms) · 击杀英雄立即触发反馈" : "LOL connected (50ms) · instant feedback on kills")
+                        : (zh ? "等待 LOL 对局 · 进入对局或训练营自动亮绿" : "Waiting for LOL match · connects automatically"),
+                    _gsiRecentlySeen ? Color.FromArgb(255, 5, 122, 85) : Color.FromArgb(255, 180, 90, 0)));
+                hints.Add(new StatusHint(
+                    zh ? "SVC / LOL / ANI 三灯全绿即就绪（LOL 免 CFG）。" : "All 3 lights (SVC / LOL / ANI) green means ready.",
+                    Color.FromArgb(255, 5, 122, 85)));
                 hints.Add(new StatusHint(GetServiceStatusHint(), GetServiceHintColor()));
                 hints.Add(new StatusHint(GetAnimationStatusHint(), GetAnimationHintColor()));
                 return hints;

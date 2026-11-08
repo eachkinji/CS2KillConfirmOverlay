@@ -289,6 +289,8 @@ namespace KillConfirmGameBar
             try
             {
                 await GsiGameVersionSettingsStore.SyncAsync();
+                await GameSourceSettingsStore.RefreshAsync();
+                await GameSourceSettingsStore.SyncLolSettingsAsync();
             }
             catch (Exception ex)
             {

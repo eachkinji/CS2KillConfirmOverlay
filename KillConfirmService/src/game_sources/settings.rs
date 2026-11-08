@@ -10,9 +10,164 @@ use axum::{
 use serde::{Deserialize, Serialize};
 use std::{
     fs,
-    sync::{Arc, atomic::Ordering},
+    path::Path,
+    sync::{Arc, OnceLock, RwLock, atomic::Ordering},
     time::{SystemTime, UNIX_EPOCH},
 };
+
+fn default_lol_poll_interval_ms() -> u64 {
+    50
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub(crate) struct LolConfig {
+    #[serde(default = "default_lol_poll_interval_ms")]
+    pub poll_interval_ms: u64,
+    #[serde(default)]
+    pub require_official_multikill: bool,
+    #[serde(default)]
+    pub creep_score_enabled: bool,
+    #[serde(default)]
+    pub install_path: String,
+}
+
+impl Default for LolConfig {
+    fn default() -> Self {
+        Self {
+            poll_interval_ms: 50,
+            require_official_multikill: false,
+            creep_score_enabled: false,
+            install_path: detect_lol_root(),
+        }
+    }
+}
+
+fn detect_lol_root() -> String {
+    let candidates = [
+        r"C:\WeGameApps\英雄联盟",
+        r"D:\WeGameApps\英雄联盟",
+        r"E:\WeGameApps\英雄联盟",
+        r"F:\WeGameApps\英雄联盟",
+        r"G:\WeGameApps\英雄联盟",
+        r"C:\Riot Games\League of Legends",
+        r"D:\Riot Games\League of Legends",
+        r"E:\Riot Games\League of Legends",
+        r"F:\Riot Games\League of Legends",
+    ];
+    for candidate in candidates {
+        let p = Path::new(candidate);
+        if p.exists() {
+            return candidate.to_string();
+        }
+    }
+    String::new()
+}
+
+static LOL_CONFIG: OnceLock<RwLock<LolConfig>> = OnceLock::new();
+
+fn lol_config_store() -> &'static RwLock<LolConfig> {
+    LOL_CONFIG.get_or_init(|| {
+        let path = local_state_dir().join("game-sources/lol-settings.json");
+        let mut loaded = fs::read(&path)
+            .ok()
+            .and_then(|bytes| serde_json::from_slice::<LolConfig>(&bytes).ok())
+            .unwrap_or_default();
+        loaded.poll_interval_ms = loaded.poll_interval_ms.clamp(20, 2000);
+        if loaded.install_path.trim().is_empty() {
+            loaded.install_path = detect_lol_root();
+        }
+        RwLock::new(loaded)
+    })
+}
+
+pub(crate) fn current_lol_config() -> LolConfig {
+    lol_config_store()
+        .read()
+        .map(|guard| guard.clone())
+        .unwrap_or_default()
+}
+
+#[derive(Deserialize)]
+pub(crate) struct LolConfigUpdate {
+    pub poll_interval_ms: Option<u64>,
+    pub require_official_multikill: Option<bool>,
+    pub creep_score_enabled: Option<bool>,
+    pub install_path: Option<String>,
+}
+
+pub(crate) async fn get_lol_settings() -> impl IntoResponse {
+    let mut cfg = current_lol_config();
+    if cfg.install_path.trim().is_empty() {
+        cfg.install_path = detect_lol_root();
+    }
+    (
+        [(CACHE_CONTROL, "no-store")],
+        Json(serde_json::json!({
+            "poll_interval_ms": cfg.poll_interval_ms,
+            "require_official_multikill": cfg.require_official_multikill,
+            "creep_score_enabled": cfg.creep_score_enabled,
+            "install_path": cfg.install_path,
+            "install_path_exists": !cfg.install_path.trim().is_empty() && Path::new(&cfg.install_path).exists(),
+            "endpoint": "https://127.0.0.1:2999/liveclientdata/allgamedata",
+            "port": 2999
+        })),
+    )
+}
+
+pub(crate) async fn set_lol_settings(
+    Json(update): Json<LolConfigUpdate>,
+) -> Result<impl IntoResponse, (StatusCode, String)> {
+    let mut next = current_lol_config();
+    if let Some(ms) = update.poll_interval_ms {
+        next.poll_interval_ms = ms.clamp(20, 2000);
+    }
+    if let Some(req_multi) = update.require_official_multikill {
+        next.require_official_multikill = req_multi;
+    }
+    if let Some(cs) = update.creep_score_enabled {
+        next.creep_score_enabled = cs;
+    }
+    if let Some(path) = update.install_path {
+        let trimmed = path.trim().to_string();
+        next.install_path = if trimmed.is_empty() {
+            detect_lol_root()
+        } else {
+            trimmed
+        };
+    }
+    let path = local_state_dir().join("game-sources/lol-settings.json");
+    let persist = || -> anyhow::Result<()> {
+        if let Some(parent) = path.parent() {
+            fs::create_dir_all(parent)?;
+        }
+        let temporary = path.with_extension("tmp");
+        fs::write(&temporary, serde_json::to_vec_pretty(&next)?)?;
+        fs::rename(temporary, &path)?;
+        Ok(())
+    };
+    persist().map_err(|error| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            format!("Cannot save LOL settings: {error}"),
+        )
+    })?;
+    if let Ok(mut guard) = lol_config_store().write() {
+        *guard = next.clone();
+    }
+    service_log(&format!(
+        "LOL settings updated: poll_interval_ms={}, require_official_multikill={}, creep_score_enabled={}, install_path={}",
+        next.poll_interval_ms, next.require_official_multikill, next.creep_score_enabled, next.install_path
+    ));
+    Ok(Json(serde_json::json!({
+        "poll_interval_ms": next.poll_interval_ms,
+        "require_official_multikill": next.require_official_multikill,
+        "creep_score_enabled": next.creep_score_enabled,
+        "install_path": next.install_path,
+        "install_path_exists": !next.install_path.trim().is_empty() && Path::new(&next.install_path).exists(),
+        "endpoint": "https://127.0.0.1:2999/liveclientdata/allgamedata",
+        "port": 2999
+    })))
+}
 
 pub(crate) fn now_ms() -> u64 {
     SystemTime::now()
@@ -84,7 +239,10 @@ pub(crate) async fn set_settings(
         *state.lol_status.write().await = Default::default();
         selected.source = request.source;
         selected.generation = selected.generation.saturating_add(1);
-        state.events.reset_source(selected.generation).await;
+        state
+            .events
+            .reset_source_to(selected.generation, selected.source)
+            .await;
     }
     if let Some(version) = request.source.cs_version() {
         state

@@ -1,4 +1,4 @@
-﻿<UserControl
+<UserControl
     x:Class="KillConfirmGameBar.HeaderStatusView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -230,16 +230,17 @@
             BorderBrush="#26000000"
             BorderThickness="1"
             CornerRadius="13" />
-        <Grid Grid.Column="0" Margin="7,0" ColumnSpacing="6">
+        <Grid x:Name="StatusLightsGrid" x:FieldModifier="public" Grid.Column="0" Margin="6,0" ColumnSpacing="0">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition x:Name="SvcStatusColumn" x:FieldModifier="public" Width="*" />
+                <ColumnDefinition x:Name="CfgStatusColumn" x:FieldModifier="public" Width="*" />
+                <ColumnDefinition x:Name="GsiStatusColumn" x:FieldModifier="public" Width="*" />
+                <ColumnDefinition x:Name="AniStatusColumn" x:FieldModifier="public" Width="*" />
             </Grid.ColumnDefinitions>
 
         <StackPanel
             x:Name="ConnectionStatusBadge" x:FieldModifier="public"
+            HorizontalAlignment="Center"
             Orientation="Horizontal"
             Spacing="4">
             <Border
@@ -251,6 +252,7 @@
                 CornerRadius="3.5" />
             <TextBlock
                 x:Name="ServiceBadgeText" x:FieldModifier="public"
+                TextLineBounds="Tight"
                 VerticalAlignment="Center"
                 FontSize="9"
                 FontWeight="SemiBold"
@@ -261,6 +263,7 @@
         <StackPanel
             x:Name="CfgStatusBadge" x:FieldModifier="public"
             Grid.Column="1"
+            HorizontalAlignment="Center"
             Orientation="Horizontal"
             Spacing="4">
             <Border
@@ -272,6 +275,7 @@
                 CornerRadius="3.5" />
             <TextBlock
                 x:Name="CfgBadgeText" x:FieldModifier="public"
+                TextLineBounds="Tight"
                 VerticalAlignment="Center"
                 FontSize="9"
                 FontWeight="SemiBold"
@@ -282,6 +286,7 @@
         <StackPanel
             x:Name="GsiStatusBadge" x:FieldModifier="public"
             Grid.Column="2"
+            HorizontalAlignment="Center"
             Orientation="Horizontal"
             Spacing="4">
             <Border
@@ -293,6 +298,7 @@
                 CornerRadius="3.5" />
             <TextBlock
                 x:Name="GsiBadgeText" x:FieldModifier="public"
+                TextLineBounds="Tight"
                 VerticalAlignment="Center"
                 FontSize="9"
                 FontWeight="SemiBold"
@@ -303,6 +309,7 @@
         <StackPanel
             x:Name="AnimationCacheStatusBadge" x:FieldModifier="public"
             Grid.Column="3"
+            HorizontalAlignment="Center"
             Orientation="Horizontal"
             Spacing="4">
             <Border
@@ -314,6 +321,7 @@
                 CornerRadius="3.5" />
             <TextBlock
                 x:Name="AnimationCacheBadgeText" x:FieldModifier="public"
+                TextLineBounds="Tight"
                 VerticalAlignment="Center"
                 FontSize="9"
                 FontWeight="SemiBold"

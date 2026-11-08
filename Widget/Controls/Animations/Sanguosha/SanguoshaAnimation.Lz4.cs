@@ -26,7 +26,7 @@ namespace KillConfirmGameBar.Controls
             internal double BrightnessBoost, ContrastBoost, AppearanceBrightness, AppearanceContrast;
             internal string Id => "uwp-" + Width + "x" + Height + "-s" + Scale.ToString("R", CultureInfo.InvariantCulture).Replace('.', 'p');
             internal string Signature => Id + ";dpi=" + Dpi.ToString("R", CultureInfo.InvariantCulture) + ";boost=" + BrightnessBoost.ToString("R", CultureInfo.InvariantCulture) + "," + ContrastBoost.ToString("R", CultureInfo.InvariantCulture)
-                + ";appearance=" + AppearanceBrightness.ToString("R", CultureInfo.InvariantCulture) + "," + AppearanceContrast.ToString("R", CultureInfo.InvariantCulture) + ";seed=20261107;renderer=3";
+                + ";appearance=" + AppearanceBrightness.ToString("R", CultureInfo.InvariantCulture) + "," + AppearanceContrast.ToString("R", CultureInfo.InvariantCulture) + ";seed=20261107;renderer=4";
             internal bool Neutral => BrightnessBoost == 0 && ContrastBoost == 0 && AppearanceBrightness == 1 && AppearanceContrast == 1;
         }
         private SanguoshaRasterProfile GetRequestedSanguoshaRasterProfile()

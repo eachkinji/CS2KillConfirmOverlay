@@ -18,7 +18,7 @@ namespace KillConfirmGameBar.Controls.Settings
         {
             InitializeComponent();
             Loaded += OnLoaded;
-            Unloaded += (sender, args) => VersionUpdateService.Changed -= OnVersionStateChanged;
+            Unloaded += (sender, args) => { VersionUpdateService.Changed -= OnVersionStateChanged; GameSourceSettingsStore.Changed -= OnGameSourceChanged; };
         }
         private async void OnLoaded(object sender, RoutedEventArgs e)
         {
@@ -26,11 +26,22 @@ namespace KillConfirmGameBar.Controls.Settings
             RefreshMaterialLibrary();
             ApplyTheme(GameThemePalette.Home);
             VersionUpdateService.Changed += OnVersionStateChanged;
+            GameSourceSettingsStore.Changed -= OnGameSourceChanged;
+            GameSourceSettingsStore.Changed += OnGameSourceChanged;
             OnVersionStateChanged(null, EventArgs.Empty);
             _ = VersionUpdateService.CheckAsync();
             await HubPortSettingsView.InitializeAsync();
         }
 
+        private void OnGameSourceChanged(object sender, EventArgs e)
+        {
+            _ = Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+            {
+                ApplyLanguage();
+                HubGeneralOptionsPanel?.RefreshSettings();
+                _ = HubPortSettingsView?.RefreshPortStateAsync();
+            });
+        }
         internal void ApplyLanguage()
         {
             bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
@@ -47,10 +58,13 @@ namespace KillConfirmGameBar.Controls.Settings
             if (HubTabDisplayButton != null) HubTabDisplayButton.Content = isChinese ? "进阶" : "Advanced";
             if (HubTabAboutButton != null) HubTabAboutButton.Content = isChinese ? "关于" : "About";
 
-            HubExperienceCardTitle.Text = isChinese ? "游戏体验增强" : "GAME EXPERIENCE";
-            HubExperienceCardDescription.Text = isChinese
+            string src = GameSourceSettingsStore.Current;
+            string fullName = GameSourceSettingsStore.FullDisplayName(src, isChinese);
+            if (HubExperienceGameLogoBrush != null) HubExperienceGameLogoBrush.ImageSource = new Windows.UI.Xaml.Media.Imaging.BitmapImage(new Uri(GameSourceSettingsStore.LogoUri(src)));
+            HubExperienceCardTitle.Text = isChinese ? $"{fullName} 体验增强" : $"{fullName} Experience";
+            HubExperienceCardDescription.Text = GameSourceSettingsStore.IsLol ? (isChinese ? $"当前为 {fullName} 独立体验设置：连杀官方 Multikill 依赖、小兵解析、弹幕、退出自动关闭与语音打断等（与 CS2 / CS:GO 独立保存）。" : $"Independent in-match experience options for {fullName} (saved separately from CS2 / CS:GO).") : (isChinese ? $"当前为 {fullName} 独立体验设置：" : $"Independent in-match experience options for {fullName}: ") + (isChinese
                 ? "观战击杀特效、游戏退出自动关闭、击杀语音打断与 C4 炸弹音效等对局体验选项。"
-                : "In-match experience options: spectated kill effects, auto-close on game exit, kill-voice interrupt, and C4 bomb audio.";
+                : "In-match experience options: spectated kill effects, auto-close on game exit, kill-voice interrupt, and C4 bomb audio.");
 
             HubGeneralCardTitle.Text = isChinese ? "软件与维护" : "APP & MAINTENANCE";
             HubGeneralCardDescription.Text = isChinese

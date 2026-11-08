@@ -396,102 +396,35 @@ pub async fn update(
         None => {}
     }
 
+    // Publication order is part of the client timing contract; every event goes
+    // through the shared dispatcher while this handler still holds the source lease.
+    use crate::feedback::{AudioRequest, AudioTiming, FeedbackEnvelope, emit, spawn_audio};
     if let Some(kill_event) = kill_event_to_send {
         let gsi_total_ms = gsi_start.elapsed().as_millis();
         perf_trace(&format!("GSI kill_event: handler_ms={gsi_total_ms}"));
-        let deferred_audio = publish_before_kill_audio.then(|| kill_event.clone());
-        app_state.events.publish(kill_event).await;
-        if let Some(audio_event) = deferred_audio {
-            spawn_player_kill_audio(app_state.clone(), audio_event);
+        let deferred_audio = publish_before_kill_audio.then(|| AudioRequest::from_event(&kill_event));
+        emit(
+            &app_state,
+            FeedbackEnvelope::counter_strike(kill_event),
+            AudioTiming::None,
+        )
+        .await;
+        if let Some(request) = deferred_audio {
+            spawn_audio(app_state.clone(), request);
         }
     }
 
-    if let Some(badge_only_event) = badge_only_event_to_send {
-        app_state.events.publish(badge_only_event).await;
-    }
-    if let Some(death_event) = death_event_to_send {
-        app_state.events.publish(death_event).await;
-    }
-    if let Some(bomb_objective_event) = bomb_objective_event_to_send {
-        let audio_event = bomb_objective_event.clone();
-        app_state.events.publish(bomb_objective_event).await;
-        let app_state_clone = app_state.clone();
-        tokio::spawn(async move {
-            let result = play_audio(
-                app_state_clone,
-                audio_event.kill_count,
-                audio_event.is_headshot,
-                audio_event.is_first_kill,
-                audio_event.is_knife_kill,
-                audio_event.is_grenade_kill,
-                audio_event.is_last_kill,
-                audio_event.is_assist,
-                audio_event.money_reward,
-                audio_event.event_kind.clone(),
-                audio_event.event_channel,
-                audio_event.play_main_animation,
-            )
-            .await;
-
-            if let Err(e) = result {
-                error!("Failed to play bomb objective audio: {}", e);
-            }
-        });
-    }
-    if let Some(hostage_objective_event) = hostage_objective_event_to_send {
-        app_state.events.publish(hostage_objective_event).await;
-    }
-    if let Some(assist_event) = assist_event_to_send {
-        let audio_event = assist_event.clone();
-        app_state.events.publish(assist_event).await;
-        let app_state_clone = app_state.clone();
-        tokio::spawn(async move {
-            let result = play_audio(
-                app_state_clone,
-                audio_event.kill_count,
-                audio_event.is_headshot,
-                audio_event.is_first_kill,
-                audio_event.is_knife_kill,
-                audio_event.is_grenade_kill,
-                audio_event.is_last_kill,
-                audio_event.is_assist,
-                audio_event.money_reward,
-                audio_event.event_kind.clone(),
-                audio_event.event_channel,
-                audio_event.play_main_animation,
-            )
-            .await;
-
-            if let Err(e) = result {
-                error!("Failed to play audio: {}", e);
-            }
-        });
-    }
-    if let Some(round_bonus_event) = round_bonus_event_to_send {
-        let audio_event = round_bonus_event.clone();
-        app_state.events.publish(round_bonus_event).await;
-        let app_state_clone = app_state.clone();
-        tokio::spawn(async move {
-            let result = play_audio(
-                app_state_clone,
-                audio_event.kill_count,
-                audio_event.is_headshot,
-                audio_event.is_first_kill,
-                audio_event.is_knife_kill,
-                audio_event.is_grenade_kill,
-                audio_event.is_last_kill,
-                audio_event.is_assist,
-                audio_event.money_reward,
-                audio_event.event_kind.clone(),
-                audio_event.event_channel,
-                audio_event.play_main_animation,
-            )
-            .await;
-
-            if let Err(e) = result {
-                error!("Failed to play audio: {}", e);
-            }
-        });
+    for (event, audio) in [
+        (badge_only_event_to_send, AudioTiming::None),
+        (death_event_to_send, AudioTiming::None),
+        (bomb_objective_event_to_send, AudioTiming::Spawn),
+        (hostage_objective_event_to_send, AudioTiming::None),
+        (assist_event_to_send, AudioTiming::Spawn),
+        (round_bonus_event_to_send, AudioTiming::Spawn),
+    ] {
+        if let Some(event) = event {
+            emit(&app_state, FeedbackEnvelope::counter_strike(event), audio).await;
+        }
     }
 
     Ok(StatusCode::OK)

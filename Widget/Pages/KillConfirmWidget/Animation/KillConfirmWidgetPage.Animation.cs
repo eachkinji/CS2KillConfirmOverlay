@@ -16,6 +16,7 @@ namespace KillConfirmGameBar
         private async Task WarmStartupAnimationCacheAsync(int delayMs = 0)
         {
             if (Features.CompatibilityDisplay.CompatibilityDisplayRuntime.IsEnabled) return;
+
             int token = ++_animationPreloadToken;
             UpdateAnimationCacheProgress(0);
 
@@ -119,6 +120,9 @@ namespace KillConfirmGameBar
         private async void HandleKillEvent(KillEvent killEvent)
         {
             if (Features.CompatibilityDisplay.CompatibilityDisplayRuntime.IsEnabled) return;
+
+
+            if (!LolEventAdapter.TryPrepareForPlayback(killEvent, GameStyleService.Current, out killEvent)) return;
             if (killEvent.PublishedUnixMs > 0)
             {
                 ulong nowMs = (ulong)DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
@@ -138,7 +142,7 @@ namespace KillConfirmGameBar
             // An explicitly disabled icon pack leaves audio and danmaku independent.
             if (!Controls.KillConfirmAnimation.IsIconFeedbackEnabled) return;
 
-            if (string.Equals(killEvent.EventKind, "player_death", StringComparison.OrdinalIgnoreCase))
+            if (FeedbackRoutingPolicy.IsIgnoredByStyles(killEvent))
             {
                 return;
             }
@@ -161,19 +165,7 @@ namespace KillConfirmGameBar
             if (!_isPageActive || preparationToken != _animationPreloadToken || style != GameStyleService.Current) return;
             if (killEvent.SourceGeneration != 0 && killEvent.SourceGeneration != GameSourceSettingsStore.Generation) return;
 
-            bool isCrossfireObjective = style == GameStyleMode.Crossfire && IsBombObjectiveEvent(killEvent);
-            bool isModernWarfare2019Objective = style == GameStyleMode.ModernWarfare2019
-                && killEvent != null
-                && killEvent.IsEconomyEvent;
-
-            bool shouldPlayPrimaryAnimation = (killEvent.IsCombatEvent && killEvent.PlayMainAnimation)
-                || (IsEconomyPresentationStyle(style) && IsBattlefieldTextEvent(killEvent))
-                || (style == GameStyleMode.Csol && killEvent.IsCombatEvent)
-                || (style == GameStyleMode.ModernWarfare2019 && (killEvent.IsCombatEvent || isModernWarfare2019Objective))
-                || (style == GameStyleMode.Overwatch && killEvent.IsCombatEvent && killEvent.IsAssist)
-                || (style == GameStyleMode.Apex && killEvent.IsCombatEvent && killEvent.IsAssist)
-                || isCrossfireObjective;
-            if (shouldPlayPrimaryAnimation)
+            if (FeedbackRoutingPolicy.ShouldPlayPrimaryAnimation(style, killEvent))
             {
                 PlayPrimaryAnimation(killEvent);
             }
@@ -185,32 +177,7 @@ namespace KillConfirmGameBar
         private void PlayPrimaryAnimation(KillEvent killEvent)
         {
             GameStyleMode style = GameStyleService.Current;
-            bool isCsolAssist = GameStyleService.Current == GameStyleMode.Csol
-                && killEvent != null
-                && killEvent.IsAssist;
-            bool isApexAssist = GameStyleService.Current == GameStyleMode.Apex
-                && killEvent != null
-                && killEvent.IsAssist;
-            bool isOverwatchAssist = GameStyleService.Current == GameStyleMode.Overwatch
-                && killEvent != null
-                && killEvent.IsAssist;
-            bool isModernWarfare2019Assist = GameStyleService.Current == GameStyleMode.ModernWarfare2019
-                && killEvent != null
-                && killEvent.IsAssist;
-            bool isCrossfireObjective = style == GameStyleMode.Crossfire && IsBombObjectiveEvent(killEvent);
-            bool isModernWarfare2019Objective = style == GameStyleMode.ModernWarfare2019
-                && killEvent != null
-                && killEvent.IsEconomyEvent;
-
-            if (!CanStyleConsumeEvent(GameStyleService.Current, killEvent)
-                || (killEvent.KillCount <= 0
-                    && !IsBattlefieldTextEvent(killEvent)
-                    && !isCsolAssist
-                    && !isApexAssist
-                    && !isOverwatchAssist
-                    && !isModernWarfare2019Assist
-                    && !isCrossfireObjective
-                    && !isModernWarfare2019Objective))
+            if (!FeedbackRoutingPolicy.PassesPrimaryGuard(style, killEvent))
             {
                 return;
             }
@@ -269,7 +236,7 @@ namespace KillConfirmGameBar
                                 CrosshairFeedbackAnimation,
                                 visibility,
                                 KillFeedbackLayer.Crosshair);
-                            string eventKind = killEvent.EventKind ?? killEvent.AnimationKey;
+                            string eventKind = LolEventAdapter.IsLolObjectiveLabel(killEvent.WeaponName) ? killEvent.WeaponName : (killEvent.EventKind ?? killEvent.AnimationKey);
                             CrosshairFeedbackAnimation.PlayModernWarfare2019Objective(
                                 eventKind,
                                 killEvent.MoneyReward);
@@ -487,34 +454,9 @@ namespace KillConfirmGameBar
         }
 
         private static bool IsBattlefieldTextEvent(KillEvent killEvent)
-        {
-            if (killEvent == null)
-            {
-                return false;
-            }
-
-            string eventKind = GetBattlefieldEventKind(killEvent);
-            if (killEvent.IsCombatEvent)
-            {
-                return killEvent.IsAssist
-                    || string.Equals(eventKind, "assist", StringComparison.OrdinalIgnoreCase);
-            }
-
-            return killEvent.IsEconomyEvent
-                && (string.Equals(eventKind, "round_win", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(eventKind, "round_loss", StringComparison.OrdinalIgnoreCase)
-                    || IsBattlefieldObjectiveEvent(eventKind));
-        }
+            => FeedbackRoutingPolicy.IsBattlefieldTextEvent(killEvent);
 
         private static bool IsEconomyPresentationStyle(GameStyleMode style)
-        {
-            return style == GameStyleMode.Battlefield1
-                || style == GameStyleMode.Battlefield5
-                || style == GameStyleMode.Battlefield4
-                || style == GameStyleMode.Battlefield2042
-                || style == GameStyleMode.Battlefield6
-                || style == GameStyleMode.Pubg
-                || style == GameStyleMode.DeltaForce;
-        }
+            => FeedbackRoutingPolicy.IsEconomyPresentationStyle(style);
     }
 }

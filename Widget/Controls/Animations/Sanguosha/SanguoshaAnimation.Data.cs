@@ -16,7 +16,7 @@ namespace KillConfirmGameBar.Controls
         private static readonly string[] SanguoshaTierAnimations =
         {
             "shoupo", "lianpo", "sanpo", "sipo", "wupo", "liupo", "qipo",
-            "shenweizhengqiankun", "wanfumodi", "shenyimiaoshou", "qingnangjishi"
+            "shenweizhengqiankun", "wanfumodi", "shenyimiaoshou", "qingnangjishi", "podi"
         };
 
         private static string GetSanguoshaAnimationName(string packKey, int tier)

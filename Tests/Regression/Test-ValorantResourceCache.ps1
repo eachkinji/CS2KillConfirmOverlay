@@ -1,7 +1,8 @@
 #Requires -Version 7.0
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
-$source = Get-Content -Raw (Join-Path $root 'Widget/Services/Runtime/SharedResources.cs')
+. (Join-Path $PSScriptRoot '..\Common\SourceView.ps1')
+$source = Get-Content -Raw (Resolve-SourcePath $root 'Widget/Services/Runtime/SharedResources.cs')
 $method = [regex]::Match($source, '(?ms)^        private static async Task EnsureCurrentFileAsync\([^\r\n]+\).*?^        \}').Value
 if (!$method) { throw 'Production shared resource revision method was not found.' }
 $shim = @'

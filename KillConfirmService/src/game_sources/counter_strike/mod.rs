@@ -1,6 +1,9 @@
 //! CS-only reset boundary. Existing CS parsers live in `gsi/` and `csgo_legacy/`.
 //! LOL never feeds synthetic payloads into either parser or installs a CS CFG.
+mod mapping;
+
 use crate::state::AppState;
+pub use mapping::CsDetail;
 use std::sync::atomic::Ordering;
 
 pub(crate) async fn reset(state: &AppState) {

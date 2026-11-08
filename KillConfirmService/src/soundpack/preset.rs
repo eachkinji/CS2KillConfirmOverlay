@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use super::manifest::{default_valorant_sounds_dir, PackManifest};
+use super::manifest::{PackManifest, default_valorant_sounds_dir};
 
 /// Preset holds a declarative PackManifest describing a sound pack's materials.
 #[derive(Clone)]

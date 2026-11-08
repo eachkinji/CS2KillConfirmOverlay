@@ -31,8 +31,11 @@ fn main() {
 }
 
 fn open_settings_window() -> Result<(), String> {
-    let executable=env::current_exe().map_err(|e|e.to_string())?;
-    let root=executable.parent().and_then(|p|p.parent()).ok_or("missing installation directory")?;
+    let executable = env::current_exe().map_err(|e| e.to_string())?;
+    let root = executable
+        .parent()
+        .and_then(|p| p.parent())
+        .ok_or("missing installation directory")?;
     let child = Command::new(root.join("KillConfirmControlPanel.exe"))
         .creation_flags(CREATE_NO_WINDOW)
         .spawn()
@@ -179,7 +182,9 @@ fn trace_log_path(file_name: &str) -> Option<PathBuf> {
 }
 
 fn runtime_log_dir() -> PathBuf {
-    if let Some(root)=env::var_os("KILLCONFIRM_DATA_ROOT") { return PathBuf::from(root); }
+    if let Some(root) = env::var_os("KILLCONFIRM_DATA_ROOT") {
+        return PathBuf::from(root);
+    }
     if let Ok(local_app_data) = env::var("LOCALAPPDATA") {
         return PathBuf::from(local_app_data)
             .join("KillConfirmOverlay")

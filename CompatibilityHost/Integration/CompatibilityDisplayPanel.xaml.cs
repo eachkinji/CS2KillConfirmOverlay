@@ -47,6 +47,8 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
             GameStyleService.Changed += OnPanelGameChanged;
+            GameSourceSettingsStore.Changed += OnGameSourceChanged;
+            GsiStatusMonitor.Instance.StatusUpdated += OnGsiStatusUpdated;
             VersionUpdateService.Changed += OnUpdateStateChanged;
             OnUpdateStateChanged(null, EventArgs.Empty);
             _ = VersionUpdateService.CheckAsync();
@@ -55,7 +57,12 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             CompatibilityMode.IsChecked = c.Enabled; GameBarMode.IsChecked = !c.Enabled;
             FollowToggle.IsOn = c.FollowGame; HideToggle.IsOn = c.HideWhenInactive;
             _loading = false; ApplyLanguage(); ApplyTheme(GameThemePalette.Home); RefreshStatus();
-            if (!CompatibilityHomeView.IsUiValidation) _statusTimer.Start();
+            if (!CompatibilityHomeView.IsUiValidation)
+            {
+                GsiStatusMonitor.Instance.StartMonitoring();
+                _ = GsiStatusMonitor.Instance.RefreshAsync();
+                _statusTimer.Start();
+            }
         }
         private bool? _statusStripCompact;
         private void OnStatusStripSizeChanged(object sender, SizeChangedEventArgs e)
@@ -76,10 +83,30 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             MainGameSelector.HorizontalAlignment = HorizontalAlignment.Right;
         }
 
-        private void OnUnloaded(object sender, RoutedEventArgs e) { _statusTimer.Stop(); GameStyleService.Changed -= OnPanelGameChanged; VersionUpdateService.Changed -= OnUpdateStateChanged; }
+        private void OnUnloaded(object sender, RoutedEventArgs e)
+        {
+            _statusTimer.Stop();
+            if (!CompatibilityHomeView.IsUiValidation) GsiStatusMonitor.Instance.StopMonitoring();
+            GameStyleService.Changed -= OnPanelGameChanged;
+            GameSourceSettingsStore.Changed -= OnGameSourceChanged;
+            GsiStatusMonitor.Instance.StatusUpdated -= OnGsiStatusUpdated;
+            VersionUpdateService.Changed -= OnUpdateStateChanged;
+        }
         private void OnUpdateStatusClick(object sender, RoutedEventArgs e) => OpenAboutVersion?.Invoke();
         private void OnUpdateStateChanged(object sender, EventArgs e) => UpdateStatusText.Text = VersionUpdateService.StatusText(LocalizationManager.Current == UiLanguage.SimplifiedChinese);
         private void OnPanelGameChanged(object sender, GameStyleMode style) { ApplyLanguage(); RefreshStatus(); }
+        private void OnGameSourceChanged(object sender, EventArgs e)
+        {
+            _ = Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+            {
+                ApplyLanguage();
+                RefreshStatus();
+            });
+        }
+        private void OnGsiStatusUpdated(GsiStatusSnapshot snapshot)
+        {
+            _ = Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => RefreshStatus());
+        }
         private async void OnMainGameChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_loading || !(MainGameSelector.SelectedItem is ComboBoxItem item) || !item.IsEnabled || !(item.Tag is string key)) return;
@@ -139,14 +166,45 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             bool editing = runningNow && status?.Editing == true;
             bool visible = runningNow && status?.Visible == true;
             bool hasProblem = !string.IsNullOrWhiteSpace(problem);
-            StatusRepairButton.Visibility = GameSourceSettingsStore.IsLol ? Visibility.Collapsed : Visibility.Visible;
+            bool isLol = GameSourceSettingsStore.IsLol;
+            StatusRepairButton.Visibility = isLol ? Visibility.Collapsed : Visibility.Visible;
+            if (StatusCfgBadge != null) StatusCfgBadge.Visibility = isLol ? Visibility.Collapsed : Visibility.Visible;
+            if (StatusCfgColumn != null) StatusCfgColumn.Width = isLol ? new GridLength(0) : new GridLength(50);
+            if (StatusSvcColumn != null) StatusSvcColumn.Width = new GridLength(isLol ? 66 : 50);
+            if (StatusGsiColumn != null) StatusGsiColumn.Width = new GridLength(isLol ? 66 : 50);
+            if (StatusAniColumn != null) StatusAniColumn.Width = new GridLength(isLol ? 66 : 50);
+            if (StatusGsiLabel != null) StatusGsiLabel.Text = isLol ? "LOL" : "GSI";
             var gsi = GsiStatusMonitor.Instance.CurrentSnapshot;
             bool serviceOnline = gsi.ServiceReachable || (runningNow && status.Connected);
             UpdateStatusLights(config.Enabled, runningNow, hasProblem, serviceOnline, gsi.IsGreen, HomeView.PacksReady);
-            ToolTipService.SetToolTip(StatusSvcLight, serviceOnline ? (zh ? "后台服务已连接" : "Service connected") : (zh ? "后台服务等待连接" : "Service connecting"));
-            ToolTipService.SetToolTip(StatusCfgLight, !config.Enabled ? (zh ? "Game Bar 模式" : "Game Bar mode") : runningNow && !hasProblem ? (zh ? "显示端已就绪" : "Display ready") : hasProblem ? problem : (zh ? "显示端启动中" : "Display starting"));
-            ToolTipService.SetToolTip(StatusGsiLight, gsi.IsGreen ? (zh ? "正在接收游戏数据" : "Receiving game data") : (zh ? "等待游戏数据" : "Waiting for game data"));
-            ToolTipService.SetToolTip(StatusAniLight, HomeView.PacksReady ? (zh ? "素材已加载" : "Packs loaded") : (zh ? "素材加载中" : "Loading packs"));
+            if (!gsi.IsGreen && gsi.ServiceReachable && gsi.Posts > 0)
+            {
+                SetStatusLight(StatusGsiLight, StatusAmber);
+            }
+            string svcTip = serviceOnline ? (zh ? "后台服务已连接" : "Service connected") : (zh ? "后台服务等待连接" : "Service connecting");
+            string cfgTip = !config.Enabled ? (zh ? "Game Bar 模式" : "Game Bar mode") : runningNow && !hasProblem ? (zh ? "显示端已就绪" : "Display ready") : hasProblem ? problem : (zh ? "显示端启动中" : "Display starting");
+            string gsiTip = isLol
+                ? (gsi.IsGreen
+                    ? (zh ? "LOL 对局已连接 · 正在以 50ms 实时采集英雄联盟对局数据" : "LOL match connected · polling Live Client Data at 50ms")
+                    : (gsi.ServiceReachable && gsi.Posts > 0)
+                        ? (zh ? "上一局 LOL 对局已结束，等待进入下一场对局" : "Previous LOL match ended, waiting for next match")
+                        : (zh ? "等待进入 LOL 对局 · 进入英雄联盟对局或训练营后自动连接（免 CFG）" : "Waiting for LOL match · connects automatically in-game (no CFG needed)"))
+                : (gsi.IsGreen
+                    ? (zh ? "正在接收 CS 游戏数据 (GSI)" : "Receiving CS game data (GSI)")
+                    : (zh ? "等待 CS 游戏数据 (GSI)" : "Waiting for CS game data (GSI)"));
+            string aniTip = HomeView.PacksReady ? (zh ? "素材已加载" : "Packs loaded") : (zh ? "素材加载中" : "Loading packs");
+            ToolTipService.SetToolTip(StatusSvcLight, svcTip);
+            ToolTipService.SetToolTip(StatusSvcBadge, svcTip);
+            ToolTipService.SetToolTip(StatusSvcLabel, svcTip);
+            ToolTipService.SetToolTip(StatusCfgLight, cfgTip);
+            ToolTipService.SetToolTip(StatusCfgBadge, cfgTip);
+            ToolTipService.SetToolTip(StatusCfgLabel, cfgTip);
+            ToolTipService.SetToolTip(StatusGsiLight, gsiTip);
+            ToolTipService.SetToolTip(StatusGsiBadge, gsiTip);
+            ToolTipService.SetToolTip(StatusGsiLabel, gsiTip);
+            ToolTipService.SetToolTip(StatusAniLight, aniTip);
+            ToolTipService.SetToolTip(StatusAniBadge, aniTip);
+            ToolTipService.SetToolTip(StatusAniLabel, aniTip);
             SetStatusLight(VisibilityLight, visible ? StatusGreen : StatusGray);
             VisibilityText.Text = zh ? (visible ? "显示中" : "待机") : (visible ? "Visible" : "Idle");
             if (config.Enabled) HomeView.RefreshStatusNow();
@@ -214,9 +272,22 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             StatusActions.Visibility = compatibility ? Visibility.Visible : Visibility.Collapsed;
             OpenGameBarButton.Visibility = compatibility ? Visibility.Collapsed : Visibility.Visible;
             HomePreviewButton.Visibility = compatibility ? Visibility.Visible : Visibility.Collapsed;
-            ModeUsageHint.Text = compatibility
-                ? (zh ? "请打开游戏使用。也可以先点击右侧按钮预览效果。" : "Open your game to use the overlay, or preview the effects first.")
-                : (zh ? "请按 Win+G 打开 Game Bar，启用并固定 Kill Confirm Overlay 小组件，然后打开游戏使用。" : "Press Win+G to open Game Bar, open and pin the Kill Confirm Overlay widget, then launch your game.");
+            bool isLol = GameSourceSettingsStore.IsLol;
+            if (CurrentSourceBadgeText != null)
+            {
+                CurrentSourceBadgeText.Text = isLol
+                    ? (zh ? "英雄联盟 LOL · Live Client 驱动" : "League of Legends · Live Client")
+                    : (GameSourceSettingsStore.Current == GsiGameVersionSettingsStore.CsgoLegacy
+                        ? (zh ? "CS:GO 模式 · GSI 驱动" : "CS:GO Mode · GSI")
+                        : (zh ? "CS2 模式 · GSI 驱动" : "CS2 Mode · GSI"));
+            }
+            ModeUsageHint.Text = isLol
+                ? (compatibility
+                    ? (zh ? "当前为英雄联盟 (LOL) 模式，打开游戏进入对局后将自动连接并实时触发击杀反馈。" : "League of Legends (LOL) mode active. Launch the game and enter a match to trigger kill feedback automatically.")
+                    : (zh ? "当前为英雄联盟 (LOL) 模式。请按 Win+G 打开并固定 Kill Confirm Overlay 小组件，打开游戏进入对局后自动触发反馈。" : "League of Legends (LOL) mode active. Press Win+G to pin Kill Confirm Overlay, then enter a LOL match."))
+                : (compatibility
+                    ? (GameSourceSettingsStore.Current == GsiGameVersionSettingsStore.CsgoLegacy ? (zh ? "当前为 CS:GO 模式，打开游戏进入对局后将自动连接并实时触发击杀反馈。" : "CS:GO mode active. Launch the game and enter a match to trigger kill feedback automatically.") : (zh ? "当前为 CS2 模式，打开游戏进入对局后将自动连接并实时触发击杀反馈。" : "CS2 mode active. Launch the game and enter a match to trigger kill feedback automatically."))
+                    : (GameSourceSettingsStore.Current == GsiGameVersionSettingsStore.CsgoLegacy ? (zh ? "当前为 CS:GO 模式。请按 Win+G 打开并固定 Kill Confirm Overlay 小组件，打开游戏进入对局后自动触发反馈。" : "CS:GO mode active. Press Win+G to pin Kill Confirm Overlay, then launch your game.") : (zh ? "当前为 CS2 模式。请按 Win+G 打开并固定 Kill Confirm Overlay 小组件，打开游戏进入对局后自动触发反馈。" : "CS2 mode active. Press Win+G to pin Kill Confirm Overlay, then launch your game.")));
             OpenGameBarButton.IsEnabled = !_switching && !CompatibilityDisplayRuntime.IsEnabled;
         }
         private static Color CardStrokeColor => Color.FromArgb(166, 255, 255, 255);

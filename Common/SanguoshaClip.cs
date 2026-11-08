@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -207,41 +207,59 @@ namespace KillConfirmCompatibility.Contracts
                 clip.Frames[f] = frame;
             }
             if (r.BaseStream.Position != r.BaseStream.Length) throw new InvalidDataException("Trailing Sanguosha clip data.");
-            // These authored full-stage flashes fade to opaque black. On a transparent
-            // HUD that masks the game for several frames; additive blending keeps the
-            // original bright flash while black contributes no colour or coverage.
-            string pageName = Path.GetFileNameWithoutExtension(clip.Pages[0].File);
-            if (pageName == "wupo" || pageName == "liupo" || pageName == "qipo")
-            {
-                var flashRegions = new HashSet<int>();
-                foreach (var frame in clip.Frames)
-                    foreach (var draw in frame)
-                        if (draw.Blend == SanguoshaBlend.Normal && (draw.Rgba & 0xFFFFFF) == 0 && (draw.Rgba >> 24) > 0
-                            && Math.Max(Math.Max(draw.X0, draw.X1), Math.Max(draw.X2, draw.X3)) - Math.Min(Math.Min(draw.X0, draw.X1), Math.Min(draw.X2, draw.X3)) >= clip.DesignWidth
-                            && Math.Max(Math.Max(draw.Y0, draw.Y1), Math.Max(draw.Y2, draw.Y3)) - Math.Min(Math.Min(draw.Y0, draw.Y1), Math.Min(draw.Y2, draw.Y3)) >= clip.DesignHeight)
-                            flashRegions.Add(draw.Region);
-                foreach (var frame in clip.Frames)
-                    for (int i = 0; i < frame.Length; i++)
-                        if (flashRegions.Contains(frame[i].Region))
-                        {
-                            // Additive alpha must fade with brightness too: otherwise
-                            // transparent black still becomes opaque in DWM composition.
-                            var draw = frame[i];
-                            uint brightness = Math.Max(draw.Rgba & 255, Math.Max((draw.Rgba >> 8) & 255, (draw.Rgba >> 16) & 255));
-                            uint alpha = (draw.Rgba >> 24) * brightness / 255;
-                            if (brightness > 0)
-                            {
-                                uint red = (draw.Rgba & 255) * 255 / brightness;
-                                uint green = ((draw.Rgba >> 8) & 255) * 255 / brightness;
-                                uint blue = ((draw.Rgba >> 16) & 255) * 255 / brightness;
-                                draw.Rgba = red | (green << 8) | (blue << 16) | (alpha << 24);
-                            }
-                            else draw.Rgba = 0;
-                            draw.Blend = SanguoshaBlend.Light;
-                            frame[i] = draw;
-                        }
-            }
+            StripFullStageFilterDraws(clip);
             return clip;
+        }
+
+        // Remove authored full-stage brown/green/black screen filters (shouji_tx4, shouji_tx5,
+        // white, 8/biankuang_00) so the overlay only renders the central emblem and effects
+        // without tinting the entire 1600x900 game viewport.
+        private static void StripFullStageFilterDraws(SanguoshaClip clip)
+        {
+            if (clip?.Pages == null || clip.Pages.Length == 0 || clip.Frames == null) return;
+            string pageName = Path.GetFileNameWithoutExtension(clip.Pages[0].File);
+            int idx = pageName.IndexOf('_');
+            if (idx > 0) pageName = pageName.Substring(0, idx);
+
+            HashSet<int> filterRegions = GetFullStageFilterRegions(pageName);
+            if (filterRegions == null || filterRegions.Count == 0) return;
+
+            for (int f = 0; f < clip.Frames.Length; f++)
+            {
+                SanguoshaDraw[] frame = clip.Frames[f];
+                if (frame == null || frame.Length == 0) continue;
+                int removeCount = 0;
+                for (int i = 0; i < frame.Length; i++)
+                {
+                    if (filterRegions.Contains(frame[i].Region)) removeCount++;
+                }
+                if (removeCount == 0) continue;
+                var filtered = new SanguoshaDraw[frame.Length - removeCount];
+                int dst = 0;
+                for (int i = 0; i < frame.Length; i++)
+                {
+                    if (!filterRegions.Contains(frame[i].Region))
+                        filtered[dst++] = frame[i];
+                }
+                clip.Frames[f] = filtered;
+            }
+        }
+
+        private static HashSet<int> GetFullStageFilterRegions(string clipName)
+        {
+            switch (clipName)
+            {
+                case "shoupo": return new HashSet<int> { 7, 9 };
+                case "lianpo": return new HashSet<int> { 10, 12 };
+                case "sanpo": return new HashSet<int> { 7, 15 };
+                case "sipo": return new HashSet<int> { 6, 14, 23 };
+                case "wupo": return new HashSet<int> { 10, 12, 94 };
+                case "liupo": return new HashSet<int> { 11, 13, 19 };
+                case "qipo": return new HashSet<int> { 16, 18, 25 };
+                case "shenyimiaoshou": return new HashSet<int> { 3 };
+                case "qingnangjishi": return new HashSet<int> { 6 };
+                default: return null;
+            }
         }
 
         private static string ReadString(BinaryReader r)

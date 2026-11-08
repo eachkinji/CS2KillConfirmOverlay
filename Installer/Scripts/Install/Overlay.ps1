@@ -1,4 +1,4 @@
-﻿# Overlay process shutdown, package installation, and verification.
+# Overlay process shutdown, package installation, and verification.
 function Get-OverlayRuntimeProcesses {
     $names=@('KillConfirmControlPanel','KillConfirmGameBar','KillConfirmCompatibility','cskillconfirm','killconfirm-settings-launcher','KillConfirmOverlay','TestXboxGameBar')
     $root=[IO.Path]::GetFullPath((Split-Path -Parent $ScriptRoot)).TrimEnd('\')+'\'
@@ -165,7 +165,7 @@ function Install-OverlayPackage {
             if ($installedVersion -gt $packageIdentity.Version) {
                 throw "检测到更高版本 $installedVersion；当前安装包版本为 $($packageIdentity.Version)，已拒绝降级。"
             }
-            if ($installedVersion -eq $packageIdentity.Version -and $installedStatus -eq "Ok") {
+            if ($false -and $installedVersion -eq $packageIdentity.Version -and $installedStatus -eq "Ok") {
                 Write-InstallLog "The same healthy MSIX version is already registered. Skipping package replacement and continuing repair steps."
                 Add-InstallResult -Status Success -Item "Kill Confirm Overlay 主程序" -Detail ("版本 {0} 已安装且状态正常；继续执行修复步骤" -f $installedVersion)
                 return

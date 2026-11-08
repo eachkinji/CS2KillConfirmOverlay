@@ -1,7 +1,8 @@
 #Requires -Version 7.0
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
-$source = Get-Content -Raw (Join-Path $root 'Widget/Services/Catalog/Games/ValorantExternalAssetService.cs')
+. (Join-Path $PSScriptRoot '..\Common\SourceView.ps1')
+$source = Get-Content -Raw (Resolve-SourcePath $root 'Widget/Services/Catalog/Games/ValorantExternalAssetService.cs')
 $methods = ''
 foreach ($name in @('ReadManifest','TryCreateIconPackInfo','IsValidCommonManifest','LocalizedDisplayName','ProfileTexturesExist','IsSafePackKey','IsSafeAssociationId','IsSafeFileName','IsOptionalSafeFileName','IsValidAccent')) {
     $m = [regex]::Match($source, '(?ms)^        private static [^\r\n]+\b' + $name + '\([^)]*\).*?^        \}').Value
@@ -11,7 +12,7 @@ foreach ($name in @('ReadManifest','TryCreateIconPackInfo','IsValidCommonManifes
 foreach ($name in @('ValorantExternalPackManifest','ValorantExternalProfileManifest')) {
     $methods += "`n" + [regex]::Match($source, '(?ms)^        \[DataContract\]\r?\n        private sealed class ' + $name + '.*?^        \}').Value
 }
-$models = Get-Content -Raw (Join-Path $root 'Widget/Services/Catalog/Games/ValorantPackService.cs')
+$models = Get-Content -Raw (Resolve-SourcePath $root 'Widget/Services/Catalog/Games/ValorantPackService.cs')
 $start = $models.IndexOf('    internal sealed class ValorantPackInfo')
 $models = $models.Substring($start, $models.IndexOf('    internal static class ValorantPackService') - $start)
 $harness = @'

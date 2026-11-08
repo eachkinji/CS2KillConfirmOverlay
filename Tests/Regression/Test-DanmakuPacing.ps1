@@ -1,13 +1,14 @@
 #Requires -Version 7.0
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
-$engine = Join-Path $root 'Widget/Danmaku/Engine'
+. (Join-Path $PSScriptRoot '..\Common\SourceView.ps1')
+$engine = Resolve-SourceDirectory $root 'Widget/Danmaku/Engine'
 # Compile production scheduling, queue, settings and motion; stub only platform
 # storage and text repositories so fake-clock checks do not require a UWP host.
 $sources = @('DanmakuReactionPolicy.cs','DanmakuImpulseManager.cs','DanmakuLiveScheduler.cs','DanmakuPendingQueue.cs','DanmakuBatchComposer.cs','DanmakuMotion.cs') | ForEach-Object { Get-Content -Raw (Join-Path $engine $_) }
 $eventSource = Get-Content -Raw (Join-Path $engine 'DanmakuEvent.cs')
 $sources += $eventSource.Substring(0,$eventSource.IndexOf('    internal static class DanmakuEventClassifier')) + "`n}"
-$sources += Get-Content -Raw (Join-Path $root 'Widget/Danmaku/DanmakuSettingsStore.cs')
+$sources += Get-Content -Raw (Resolve-SourcePath $root 'Widget/Danmaku/DanmakuSettingsStore.cs')
 $header = "using System; using System.Collections.Generic; using KillConfirmGameBar.Danmaku; using KillConfirmGameBar.Danmaku.Engine; using Windows.Storage; using Windows.UI.Text;`n"
 $code = $header + (($sources | ForEach-Object { $_ -replace '(?m)^using .*;\r?\n','' }) -join "`n")
 $code += @'

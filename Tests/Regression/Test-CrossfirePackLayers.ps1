@@ -1,16 +1,17 @@
 ﻿param([string]$PackagesPath = '')
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
+. (Join-Path $PSScriptRoot '..\Common\SourceView.ps1')
 function Method([string]$text, [string]$name) {
     $m = [regex]::Match($text, '(?ms)^        private [^\r\n]+\b' + $name + '\([^)]*\).*?^        \}')
     if (-not $m.Success) { throw "Method not found: $name" }
     $m.Value
 }
-$format = Get-Content -Raw (Join-Path $root 'Widget/Services/Catalog/CrossfirePackFormat.cs')
+$format = Get-Content -Raw (Resolve-SourcePath $root 'Widget/Services/Catalog/CrossfirePackFormat.cs')
 $format = [regex]::Replace($format, '(?m)^using [^;]+;\r?\n', '')
-$import = Get-Content -Raw (Join-Path $root 'Widget/Pages/Main/Packs/MainPage.PackFiles.cs')
-$helpers = Get-Content -Raw (Join-Path $root 'Widget/Pages/Main/Packs/MainPage.PackFiles.Manifest.cs')
-$layers = Get-Content -Raw (Join-Path $root 'Widget/Controls/Animations/Core/KillConfirmAnimation.CrossfireLayers.cs')
+$import = Get-Content -Raw (Resolve-SourcePath $root 'Widget/Pages/Main/Packs/MainPage.PackFiles.cs')
+$helpers = Get-Content -Raw (Resolve-SourcePath $root 'Widget/Pages/Main/Packs/MainPage.PackFiles.Manifest.cs')
+$layers = Get-Content -Raw (Resolve-SourcePath $root 'Widget/Controls/Animations/Core/KillConfirmAnimation.CrossfireLayers.cs')
 $collect = @('CollectRecognizedFilesAsync','TryGetIconFileVariantAsync','FindBestPackFolderAsync','FindBestPackFolderRecursiveAsync','CountRecognizedFilesAsync') | ForEach-Object { Method $import $_ }
 $collect += Method $helpers 'TryGetFileAsync'
 $layerMethods = @('LoadCrossfireExtraBitmapAsync','LoadCrossfireExtraLayersAsync','ClearCrossfireExtraCache') | ForEach-Object { Method $layers $_ }

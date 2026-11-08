@@ -3,11 +3,13 @@ pub(crate) mod counter_strike;
 pub(crate) mod lol;
 mod settings;
 
-pub(crate) use settings::{Selection, get_settings, set_settings, source_status};
+pub(crate) use settings::{
+    Selection, get_lol_settings, get_settings, set_lol_settings, set_settings, source_status,
+};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "snake_case")]
-pub(crate) enum GameSource {
+pub enum GameSource {
     Cs2,
     CsgoLegacy,
     Lol,

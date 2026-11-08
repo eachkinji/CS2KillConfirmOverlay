@@ -23,6 +23,7 @@ namespace KillConfirmGameBar.Services
         public string Tag { get; }
         public string ActionGlyph => string.Equals(Tag, "none", StringComparison.OrdinalIgnoreCase)
             ? "\uE711" : Tag == PackLibraryNavigation.AddMoreTag ? "\uE710" : string.Empty;
+        public string ActionBadgeBackground => Tag == PackLibraryNavigation.AddMoreTag ? "#F59E0B" : "#007AFF";
         public Windows.UI.Xaml.Visibility GlyphVisibility => ActionGlyph.Length == 0
             ? Windows.UI.Xaml.Visibility.Collapsed : Windows.UI.Xaml.Visibility.Visible;
         public Windows.UI.Xaml.Visibility ThumbnailVisibility => ActionGlyph.Length == 0
@@ -102,7 +103,7 @@ namespace KillConfirmGameBar.Services
                 "<Grid.ColumnDefinitions><ColumnDefinition Width='Auto'/><ColumnDefinition Width='*'/></Grid.ColumnDefinitions>" +
                 "<Border Width='" + hostSize + "' Height='" + hostSize + "' CornerRadius='4' Background='#663A3F47'>" +
                 "<Grid><Image Width='" + iconSize + "' Height='" + iconSize + "' Stretch='Uniform' Source='{Binding Thumbnail}' Visibility='{Binding ThumbnailVisibility}'/>" +
-                "<Border CornerRadius='4' Background='#007AFF' Visibility='{Binding GlyphVisibility}'><FontIcon FontFamily='Segoe MDL2 Assets' FontSize='" + iconSize + "' Glyph='{Binding ActionGlyph}' Foreground='White'/></Border></Grid></Border>" +
+                "<Border CornerRadius='4' Background='{Binding ActionBadgeBackground}' Visibility='{Binding GlyphVisibility}'><FontIcon FontFamily='Segoe MDL2 Assets' FontSize='" + iconSize + "' Glyph='{Binding ActionGlyph}' Foreground='White'/></Border></Grid></Border>" +
                 "<TextBlock Grid.Column='1' Text='{Binding Text}' FontSize='" + (compact ? "9" : "13") +
                 "' TextTrimming='CharacterEllipsis' VerticalAlignment='Center'/></Grid></DataTemplate>");
         }

@@ -16,8 +16,6 @@ use axum::{
 use serde::{Deserialize, Serialize};
 use tracing::error;
 
-
-
 use crate::infrastructure::logging::{
     developer_logging_enabled, local_state_dir, perf_trace, service_log,
     set_developer_logging_enabled,

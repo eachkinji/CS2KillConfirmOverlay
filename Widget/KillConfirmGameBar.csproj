@@ -107,51 +107,51 @@
     <Compile Include="..\CompatibilityHost\Contracts\DisplayFiles.cs"><Link>Features\CompatibilityDisplay\Contracts\DisplayFiles.cs</Link></Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Danmaku\Engine\DanmakuEvent.cs" />
-    <Compile Include="Danmaku\Engine\DanmakuReactionPolicy.cs" />
-    <Compile Include="Danmaku\Engine\DanmakuEventPoolRepository.cs" />
-    <Compile Include="Danmaku\Engine\SemanticAnnotationRepository.cs" />
-    <Compile Include="Danmaku\Engine\SemanticProfileRepository.cs" />
-    <Compile Include="Danmaku\Engine\DanmakuSelectionHistory.cs" />
-    <Compile Include="Danmaku\Engine\DanmakuWeightEngine.cs" />
-    <Compile Include="Danmaku\Engine\DanmakuImpulseManager.cs" />
-    <Compile Include="Danmaku\Engine\DanmakuLiveScheduler.cs" />
-    <Compile Include="Danmaku\Engine\DanmakuSessionController.cs" />
-    <Compile Include="Danmaku\Engine\DanmakuBatchComposer.cs" />
-    <Compile Include="Danmaku\Engine\DanmakuPendingQueue.cs" />
-    <Compile Include="Danmaku\Engine\DanmakuMotion.cs" />
-    <Compile Include="Danmaku\Engine\DanmakuLaneLayout.cs" />
-    <Compile Include="Danmaku\DanmakuRepository.cs" />
-    <Compile Include="Danmaku\DanmakuSettingsStore.cs" />
+    <Compile Include="..\Shared\Danmaku\Engine\DanmakuEvent.cs" Link="Danmaku\Engine\DanmakuEvent.cs" />
+    <Compile Include="..\Shared\Danmaku\Engine\DanmakuReactionPolicy.cs" Link="Danmaku\Engine\DanmakuReactionPolicy.cs" />
+    <Compile Include="..\Shared\Danmaku\Engine\DanmakuEventPoolRepository.cs" Link="Danmaku\Engine\DanmakuEventPoolRepository.cs" />
+    <Compile Include="..\Shared\Danmaku\Engine\SemanticAnnotationRepository.cs" Link="Danmaku\Engine\SemanticAnnotationRepository.cs" />
+    <Compile Include="..\Shared\Danmaku\Engine\SemanticProfileRepository.cs" Link="Danmaku\Engine\SemanticProfileRepository.cs" />
+    <Compile Include="..\Shared\Danmaku\Engine\DanmakuSelectionHistory.cs" Link="Danmaku\Engine\DanmakuSelectionHistory.cs" />
+    <Compile Include="..\Shared\Danmaku\Engine\DanmakuWeightEngine.cs" Link="Danmaku\Engine\DanmakuWeightEngine.cs" />
+    <Compile Include="..\Shared\Danmaku\Engine\DanmakuImpulseManager.cs" Link="Danmaku\Engine\DanmakuImpulseManager.cs" />
+    <Compile Include="..\Shared\Danmaku\Engine\DanmakuLiveScheduler.cs" Link="Danmaku\Engine\DanmakuLiveScheduler.cs" />
+    <Compile Include="..\Shared\Danmaku\Engine\DanmakuSessionController.cs" Link="Danmaku\Engine\DanmakuSessionController.cs" />
+    <Compile Include="..\Shared\Danmaku\Engine\DanmakuBatchComposer.cs" Link="Danmaku\Engine\DanmakuBatchComposer.cs" />
+    <Compile Include="..\Shared\Danmaku\Engine\DanmakuPendingQueue.cs" Link="Danmaku\Engine\DanmakuPendingQueue.cs" />
+    <Compile Include="..\Shared\Danmaku\Engine\DanmakuMotion.cs" Link="Danmaku\Engine\DanmakuMotion.cs" />
+    <Compile Include="..\Shared\Danmaku\Engine\DanmakuLaneLayout.cs" Link="Danmaku\Engine\DanmakuLaneLayout.cs" />
+    <Compile Include="..\Shared\Danmaku\DanmakuRepository.cs" Link="Danmaku\DanmakuRepository.cs" />
+    <Compile Include="..\Shared\Danmaku\DanmakuSettingsStore.cs" Link="Danmaku\DanmakuSettingsStore.cs" />
     <Compile Include="Danmaku\DanmakuOverlay.xaml.cs">
       <DependentUpon>DanmakuOverlay.xaml</DependentUpon>
     </Compile>
     <Compile Include="Danmaku\DanmakuOptionsPanel.xaml.cs">
       <DependentUpon>DanmakuOptionsPanel.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Services\Runtime\GsiStatusMonitor.cs" />
-    <Compile Include="Services\GameSources\GameSourceSettingsStore.cs" />
+    <Compile Include="..\Shared\Services\Runtime\GsiStatusMonitor.cs" Link="Services\Runtime\GsiStatusMonitor.cs" />
+    <Compile Include="..\Shared\Services\GameSources\GameSourceSettingsStore.cs" Link="Services\GameSources\GameSourceSettingsStore.cs" />
     <Compile Include="Controls\GameSources\GameSourceSelector.xaml.cs"><DependentUpon>GameSourceSelector.xaml</DependentUpon></Compile>
     <Page Include="Controls\GameSources\GameSourceSelector.xaml"><Generator>MSBuild:Compile</Generator></Page>
     <Content Include="Assets\GameSources\**\*.png;Assets\GameSources\**\*.svg" />
     <Compile Include="Services\Runtime\VersionUpdateService.cs" />
     <Compile Include="Services\Styling\ControlTheme.cs" />
-    <Compile Include="Controls\Animations\Calabiyau\CalabiyauAnimation.cs" />
-    <Compile Include="Controls\Animations\Calabiyau\CalabiyauAnimation.Sampling.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Calabiyau\CalabiyauAnimation.cs" Link="Controls\Animations\Calabiyau\CalabiyauAnimation.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Calabiyau\CalabiyauAnimation.Sampling.cs" Link="Controls\Animations\Calabiyau\CalabiyauAnimation.Sampling.cs" />
     <Compile Include="..\Common\CalabiyauMotion.cs" Link="Services\Runtime\CalabiyauMotion.cs" />
     <Compile Include="..\Common\CalabiyauPacks.cs" Link="Services\Runtime\CalabiyauPacks.cs" />
-    <Compile Include="Services\Catalog\Games\CalabiyauExternalAssetService.cs" />
+    <Compile Include="..\Shared\Services\Catalog\Games\CalabiyauExternalAssetService.cs" Link="Services\Catalog\Games\CalabiyauExternalAssetService.cs" />
     <Compile Include="..\Common\CalabiyauPackage.cs" Link="Services\Runtime\CalabiyauPackage.cs" />
     <Compile Include="..\Common\CalabiyauClip.cs" Link="Services\Runtime\CalabiyauClip.cs" />
     <Compile Include="..\Common\PreviewEventSupport.cs" Link="Services\Runtime\PreviewEventSupport.cs" />
     <Compile Include="..\Common\AnimationRasterPolicy.cs" Link="Services\Runtime\AnimationRasterPolicy.cs" />
     <Compile Include="..\Common\PackImportClassification.cs" Link="Services\Runtime\PackImportClassification.cs" />
-    <Compile Include="Services\CustomModule\CustomSequenceFormat.cs" />
-    <Compile Include="Services\CustomModule\CustomSequencePackService.cs" />
-    <Compile Include="Services\CustomModule\CustomSequencePackService.Editing.cs" />
-    <Compile Include="Services\CustomModule\CustomSequencePackService.Video.cs" />
-    <Compile Include="Services\Catalog\PackCatalogService.CustomModule.cs" />
-    <Compile Include="Controls\Animations\CustomModule\CustomModuleAnimation.cs" />
+    <Compile Include="..\Shared\Services\CustomModule\CustomSequenceFormat.cs" Link="Services\CustomModule\CustomSequenceFormat.cs" />
+    <Compile Include="..\Shared\Services\CustomModule\CustomSequencePackService.cs" Link="Services\CustomModule\CustomSequencePackService.cs" />
+    <Compile Include="..\Shared\Services\CustomModule\CustomSequencePackService.Editing.cs" Link="Services\CustomModule\CustomSequencePackService.Editing.cs" />
+    <Compile Include="..\Shared\Services\CustomModule\CustomSequencePackService.Video.cs" Link="Services\CustomModule\CustomSequencePackService.Video.cs" />
+    <Compile Include="..\Shared\Services\Catalog\PackCatalogService.CustomModule.cs" Link="Services\Catalog\PackCatalogService.CustomModule.cs" />
+    <Compile Include="..\Shared\Controls\Animations\CustomModule\CustomModuleAnimation.cs" Link="Controls\Animations\CustomModule\CustomModuleAnimation.cs" />
     <Compile Include="Controls\GameStyles\CustomModule\CustomModulePanel.cs" />
     <Compile Include="Pages\Main\Packs\MainPage.CustomModule.cs" />
     <Compile Include="App.xaml.cs">
@@ -256,105 +256,105 @@
     <Compile Include="Controls\Animations\Core\KillConfirmAnimation.xaml.cs">
       <DependentUpon>KillConfirmAnimation.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\Animations\Core\KillConfirmAnimation.Preloading.cs" />
-    <Compile Include="Controls\Animations\Core\KillConfirmAnimation.Configuration.cs" />
-    <Compile Include="Controls\Animations\Core\KillConfirmAnimation.Playback.cs" />
-    <Compile Include="Controls\Animations\Core\KillConfirmAnimation.Models.cs" />
-    <Compile Include="Controls\Animations\Core\KillConfirmAnimation.Assets.cs" />
-    <Compile Include="Controls\Animations\Core\KillConfirmAnimation.AssetOverlays.cs" />
-    <Compile Include="Controls\Animations\Core\KillConfirmAnimation.CrossfireLayers.cs" />
-    <Compile Include="Controls\Animations\Core\CrossfireStyle2Motion.cs" />
-    <Compile Include="Controls\Animations\Core\KillConfirmAnimation.CrossfireStyle2.cs" />
-    <Compile Include="Controls\Animations\Csol\CsolAnimation.Data.cs" />
-    <Compile Include="Controls\Animations\Csol\CsolAnimation.Playback.cs" />
-    <Compile Include="Controls\Animations\Csol\CsolAnimation.Resources.cs" />
-    <Compile Include="Controls\Animations\Csol\CsolAnimation.Render.cs" />
-    <Compile Include="Controls\Animations\Core\KillConfirmAnimation.Render.cs" />
-    <Compile Include="Controls\Animations\Core\KillConfirmAnimation.Layout.cs" />
-    <Compile Include="Controls\Animations\Core\KillConfirmAnimation.Transforms.cs" />
-    <Compile Include="Controls\Animations\Shared\Battlefield\BattlefieldAnimation.Data.cs" />
-    <Compile Include="Controls\Animations\Shared\Battlefield\BattlefieldAnimation.Resources.cs" />
-    <Compile Include="Controls\Animations\Shared\Battlefield\BattlefieldAnimation.Events.cs" />
-    <Compile Include="Controls\Animations\Shared\Battlefield\BattlefieldAnimation.Routing.cs" />
-    <Compile Include="Controls\Animations\Shared\Battlefield\BattlefieldAnimation.Text.cs" />
-    <Compile Include="Controls\Animations\Shared\Battlefield\BattlefieldAnimation.Drawing.cs" />
-    <Compile Include="Controls\Animations\Battlefield1\Battlefield1Animation.Data.cs" />
-    <Compile Include="Controls\Animations\Battlefield1\Battlefield1Animation.Playback.cs" />
-    <Compile Include="Controls\Animations\Battlefield1\Battlefield1Animation.State.cs" />
-    <Compile Include="Controls\Animations\Battlefield1\Battlefield1Animation.Overlay.cs" />
-    <Compile Include="Controls\Animations\Battlefield1\Battlefield1Animation.Card.cs" />
-    <Compile Include="Controls\Animations\Battlefield1\Battlefield1Animation.Layout.cs" />
-    <Compile Include="Controls\Animations\Battlefield5\Battlefield5Animation.Data.cs" />
-    <Compile Include="Controls\Animations\Battlefield5\Battlefield5Animation.Playback.cs" />
-    <Compile Include="Controls\Animations\Battlefield5\Battlefield5Animation.State.cs" />
-    <Compile Include="Controls\Animations\Battlefield5\Battlefield5Animation.Render.cs" />
-    <Compile Include="Controls\Animations\Battlefield5\Battlefield5Animation.Money.cs" />
-    <Compile Include="Controls\Animations\Battlefield5\Battlefield5Animation.Models.cs" />
-    <Compile Include="Controls\Animations\Battlefield5\Battlefield5Animation.TextOverlay.cs" />
-    <Compile Include="Controls\Animations\Battlefield4\Battlefield4Animation.Data.cs" />
-    <Compile Include="Controls\Animations\Battlefield4\Battlefield4Animation.Playback.cs" />
-    <Compile Include="Controls\Animations\Battlefield4\Battlefield4Animation.State.cs" />
-    <Compile Include="Controls\Animations\Battlefield4\Battlefield4Animation.Render.cs" />
-    <Compile Include="Controls\Animations\Battlefield4\Battlefield4Animation.Drawing.cs" />
-    <Compile Include="Controls\Animations\Battlefield2042\Battlefield2042Animation.Data.cs" />
-    <Compile Include="Controls\Animations\Battlefield2042\Battlefield2042Animation.Playback.cs" />
-    <Compile Include="Controls\Animations\Battlefield2042\Battlefield2042Animation.KillIcons.cs" />
-    <Compile Include="Controls\Animations\Battlefield2042\Battlefield2042Animation.IconCache.cs" />
-    <Compile Include="Controls\Animations\Battlefield2042\Battlefield2042Animation.Feed.cs" />
-    <Compile Include="Controls\Animations\Battlefield2042\Battlefield2042Animation.FeedLayout.cs" />
-    <Compile Include="Controls\Animations\Battlefield2042\Battlefield2042Animation.FeedCache.cs" />
-    <Compile Include="Controls\Animations\Battlefield2042\Battlefield2042Animation.Text.cs" />
-    <Compile Include="Controls\Animations\Battlefield2042\Battlefield2042Animation.Drawing.cs" />
-    <Compile Include="Controls\Animations\Battlefield2042\Battlefield2042Animation.Models.cs" />
-    <Compile Include="Controls\Animations\Pubg\PubgAnimation.Data.cs" />
-    <Compile Include="Controls\Animations\Pubg\PubgAnimation.Playback.cs" />
-    <Compile Include="Controls\Animations\Pubg\PubgAnimation.State.cs" />
-    <Compile Include="Controls\Animations\Pubg\PubgAnimation.Render.cs" />
-    <Compile Include="Controls\Animations\Pubg\PubgAnimation.Feed.cs" />
-    <Compile Include="Controls\Animations\Pubg\PubgAnimation.Combo.cs" />
-    <Compile Include="Controls\Animations\DeltaForce\DeltaForceAnimation.Data.cs" />
-    <Compile Include="Controls\Animations\DeltaForce\DeltaForceAnimation.Playback.cs" />
-    <Compile Include="Controls\Animations\DeltaForce\DeltaForceAnimation.Resources.cs" />
-    <Compile Include="Controls\Animations\DeltaForce\DeltaForceAnimation.State.cs" />
-    <Compile Include="Controls\Animations\DeltaForce\DeltaForceAnimation.Render.cs" />
-    <Compile Include="Controls\Animations\DeltaForce\DeltaForceAnimation.Drawing.cs" />
-    <Compile Include="Controls\Animations\Doubao\DoubaoAnimation.Data.cs" />
-    <Compile Include="Controls\Animations\Doubao\DoubaoAnimation.Playback.cs" />
-    <Compile Include="Controls\Animations\Doubao\DoubaoAnimation.Resources.cs" />
-    <Compile Include="Controls\Animations\Doubao\DoubaoAnimation.Render.cs" />
-    <Compile Include="Controls\Animations\Overwatch\OverwatchAnimation.Data.cs" />
-    <Compile Include="Controls\Animations\Overwatch\OverwatchAnimation.Playback.cs" />
-    <Compile Include="Controls\Animations\Overwatch\OverwatchAnimation.Resources.cs" />
-    <Compile Include="Controls\Animations\Overwatch\OverwatchAnimation.State.cs" />
-    <Compile Include="Controls\Animations\Overwatch\OverwatchAnimation.Render.cs" />
-    <Compile Include="Controls\Animations\Overwatch\OverwatchAnimation.Cards.cs" />
-    <Compile Include="Controls\Animations\ModernWarfare2019\ModernWarfare2019Animation.Data.cs" />
-    <Compile Include="Controls\Animations\ModernWarfare2019\ModernWarfare2019Animation.Playback.cs" />
-    <Compile Include="Controls\Animations\ModernWarfare2019\ModernWarfare2019Animation.Resources.cs" />
-    <Compile Include="Controls\Animations\ModernWarfare2019\ModernWarfare2019Animation.Marker.cs" />
-    <Compile Include="Controls\Animations\ModernWarfare2019\ModernWarfare2019Animation.MoneyFeed.cs" />
-    <Compile Include="Controls\Animations\ModernWarfare2019\ModernWarfare2019Animation.UpperBanner.cs" />
-    <Compile Include="Controls\Animations\ModernWarfare2019\ModernWarfare2019Animation.LowerBanner.cs" />
-    <Compile Include="Controls\Animations\Apex\ApexAnimation.Data.cs" />
-    <Compile Include="Controls\Animations\Apex\ApexAnimation.Playback.cs" />
-    <Compile Include="Controls\Animations\Apex\ApexAnimation.Resources.cs" />
-    <Compile Include="Controls\Animations\Apex\ApexAnimation.State.cs" />
-    <Compile Include="Controls\Animations\Apex\ApexAnimation.Render.cs" />
-    <Compile Include="Controls\Animations\Apex\ApexAnimation.Crosshair.cs" />
-    <Compile Include="Controls\Animations\Apex\ApexAnimation.Cards.cs" />
-    <Compile Include="Controls\Animations\Dagoujiao\DagoujiaoAnimation.Data.cs" />
-    <Compile Include="Controls\Animations\Dagoujiao\DagoujiaoAnimation.Playback.cs" />
-    <Compile Include="Controls\Animations\Dagoujiao\DagoujiaoAnimation.Resources.cs" />
-    <Compile Include="Controls\Animations\Dagoujiao\DagoujiaoAnimation.Render.cs" />
-    <Compile Include="Controls\Animations\Valorant\ValorantAnimation.Data.cs" />
-    <Compile Include="Controls\Animations\Valorant\ValorantAnimation.Resources.cs" />
-    <Compile Include="Controls\Animations\Valorant\ValorantAnimation.Render.cs" />
-    <Compile Include="Controls\Animations\Valorant\ValorantAnimation.Drawing.cs" />
-    <Compile Include="Controls\Animations\Valorant\ValorantAnimation.Effects.cs" />
-    <Compile Include="Controls\Animations\Valorant\ValorantAnimation.Profiles.cs" />
-    <Compile Include="Controls\Animations\Valorant\ValorantAnimation.NativeDrawing.cs" />
-    <Compile Include="Controls\Animations\Valorant\ValorantAnimation.NativeLayers.cs" />
-    <Compile Include="Controls\Animations\Valorant\ValorantAnimation.CookedAfterglow.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Core\KillConfirmAnimation.Preloading.cs" Link="Controls\Animations\Core\KillConfirmAnimation.Preloading.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Core\KillConfirmAnimation.Configuration.cs" Link="Controls\Animations\Core\KillConfirmAnimation.Configuration.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Core\KillConfirmAnimation.Playback.cs" Link="Controls\Animations\Core\KillConfirmAnimation.Playback.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Core\KillConfirmAnimation.Models.cs" Link="Controls\Animations\Core\KillConfirmAnimation.Models.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Core\KillConfirmAnimation.Assets.cs" Link="Controls\Animations\Core\KillConfirmAnimation.Assets.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Core\KillConfirmAnimation.AssetOverlays.cs" Link="Controls\Animations\Core\KillConfirmAnimation.AssetOverlays.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Core\KillConfirmAnimation.CrossfireLayers.cs" Link="Controls\Animations\Core\KillConfirmAnimation.CrossfireLayers.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Core\CrossfireStyle2Motion.cs" Link="Controls\Animations\Core\CrossfireStyle2Motion.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Core\KillConfirmAnimation.CrossfireStyle2.cs" Link="Controls\Animations\Core\KillConfirmAnimation.CrossfireStyle2.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Csol\CsolAnimation.Data.cs" Link="Controls\Animations\Csol\CsolAnimation.Data.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Csol\CsolAnimation.Playback.cs" Link="Controls\Animations\Csol\CsolAnimation.Playback.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Csol\CsolAnimation.Resources.cs" Link="Controls\Animations\Csol\CsolAnimation.Resources.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Csol\CsolAnimation.Render.cs" Link="Controls\Animations\Csol\CsolAnimation.Render.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Core\KillConfirmAnimation.Render.cs" Link="Controls\Animations\Core\KillConfirmAnimation.Render.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Core\KillConfirmAnimation.Layout.cs" Link="Controls\Animations\Core\KillConfirmAnimation.Layout.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Core\KillConfirmAnimation.Transforms.cs" Link="Controls\Animations\Core\KillConfirmAnimation.Transforms.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Shared\Battlefield\BattlefieldAnimation.Data.cs" Link="Controls\Animations\Shared\Battlefield\BattlefieldAnimation.Data.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Shared\Battlefield\BattlefieldAnimation.Resources.cs" Link="Controls\Animations\Shared\Battlefield\BattlefieldAnimation.Resources.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Shared\Battlefield\BattlefieldAnimation.Events.cs" Link="Controls\Animations\Shared\Battlefield\BattlefieldAnimation.Events.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Shared\Battlefield\BattlefieldAnimation.Routing.cs" Link="Controls\Animations\Shared\Battlefield\BattlefieldAnimation.Routing.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Shared\Battlefield\BattlefieldAnimation.Text.cs" Link="Controls\Animations\Shared\Battlefield\BattlefieldAnimation.Text.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Shared\Battlefield\BattlefieldAnimation.Drawing.cs" Link="Controls\Animations\Shared\Battlefield\BattlefieldAnimation.Drawing.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Battlefield1\Battlefield1Animation.Data.cs" Link="Controls\Animations\Battlefield1\Battlefield1Animation.Data.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Battlefield1\Battlefield1Animation.Playback.cs" Link="Controls\Animations\Battlefield1\Battlefield1Animation.Playback.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Battlefield1\Battlefield1Animation.State.cs" Link="Controls\Animations\Battlefield1\Battlefield1Animation.State.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Battlefield1\Battlefield1Animation.Overlay.cs" Link="Controls\Animations\Battlefield1\Battlefield1Animation.Overlay.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Battlefield1\Battlefield1Animation.Card.cs" Link="Controls\Animations\Battlefield1\Battlefield1Animation.Card.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Battlefield1\Battlefield1Animation.Layout.cs" Link="Controls\Animations\Battlefield1\Battlefield1Animation.Layout.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Battlefield5\Battlefield5Animation.Data.cs" Link="Controls\Animations\Battlefield5\Battlefield5Animation.Data.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Battlefield5\Battlefield5Animation.Playback.cs" Link="Controls\Animations\Battlefield5\Battlefield5Animation.Playback.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Battlefield5\Battlefield5Animation.State.cs" Link="Controls\Animations\Battlefield5\Battlefield5Animation.State.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Battlefield5\Battlefield5Animation.Render.cs" Link="Controls\Animations\Battlefield5\Battlefield5Animation.Render.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Battlefield5\Battlefield5Animation.Money.cs" Link="Controls\Animations\Battlefield5\Battlefield5Animation.Money.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Battlefield5\Battlefield5Animation.Models.cs" Link="Controls\Animations\Battlefield5\Battlefield5Animation.Models.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Battlefield5\Battlefield5Animation.TextOverlay.cs" Link="Controls\Animations\Battlefield5\Battlefield5Animation.TextOverlay.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Battlefield4\Battlefield4Animation.Data.cs" Link="Controls\Animations\Battlefield4\Battlefield4Animation.Data.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Battlefield4\Battlefield4Animation.Playback.cs" Link="Controls\Animations\Battlefield4\Battlefield4Animation.Playback.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Battlefield4\Battlefield4Animation.State.cs" Link="Controls\Animations\Battlefield4\Battlefield4Animation.State.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Battlefield4\Battlefield4Animation.Render.cs" Link="Controls\Animations\Battlefield4\Battlefield4Animation.Render.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Battlefield4\Battlefield4Animation.Drawing.cs" Link="Controls\Animations\Battlefield4\Battlefield4Animation.Drawing.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Battlefield2042\Battlefield2042Animation.Data.cs" Link="Controls\Animations\Battlefield2042\Battlefield2042Animation.Data.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Battlefield2042\Battlefield2042Animation.Playback.cs" Link="Controls\Animations\Battlefield2042\Battlefield2042Animation.Playback.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Battlefield2042\Battlefield2042Animation.KillIcons.cs" Link="Controls\Animations\Battlefield2042\Battlefield2042Animation.KillIcons.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Battlefield2042\Battlefield2042Animation.IconCache.cs" Link="Controls\Animations\Battlefield2042\Battlefield2042Animation.IconCache.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Battlefield2042\Battlefield2042Animation.Feed.cs" Link="Controls\Animations\Battlefield2042\Battlefield2042Animation.Feed.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Battlefield2042\Battlefield2042Animation.FeedLayout.cs" Link="Controls\Animations\Battlefield2042\Battlefield2042Animation.FeedLayout.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Battlefield2042\Battlefield2042Animation.FeedCache.cs" Link="Controls\Animations\Battlefield2042\Battlefield2042Animation.FeedCache.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Battlefield2042\Battlefield2042Animation.Text.cs" Link="Controls\Animations\Battlefield2042\Battlefield2042Animation.Text.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Battlefield2042\Battlefield2042Animation.Drawing.cs" Link="Controls\Animations\Battlefield2042\Battlefield2042Animation.Drawing.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Battlefield2042\Battlefield2042Animation.Models.cs" Link="Controls\Animations\Battlefield2042\Battlefield2042Animation.Models.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Pubg\PubgAnimation.Data.cs" Link="Controls\Animations\Pubg\PubgAnimation.Data.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Pubg\PubgAnimation.Playback.cs" Link="Controls\Animations\Pubg\PubgAnimation.Playback.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Pubg\PubgAnimation.State.cs" Link="Controls\Animations\Pubg\PubgAnimation.State.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Pubg\PubgAnimation.Render.cs" Link="Controls\Animations\Pubg\PubgAnimation.Render.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Pubg\PubgAnimation.Feed.cs" Link="Controls\Animations\Pubg\PubgAnimation.Feed.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Pubg\PubgAnimation.Combo.cs" Link="Controls\Animations\Pubg\PubgAnimation.Combo.cs" />
+    <Compile Include="..\Shared\Controls\Animations\DeltaForce\DeltaForceAnimation.Data.cs" Link="Controls\Animations\DeltaForce\DeltaForceAnimation.Data.cs" />
+    <Compile Include="..\Shared\Controls\Animations\DeltaForce\DeltaForceAnimation.Playback.cs" Link="Controls\Animations\DeltaForce\DeltaForceAnimation.Playback.cs" />
+    <Compile Include="..\Shared\Controls\Animations\DeltaForce\DeltaForceAnimation.Resources.cs" Link="Controls\Animations\DeltaForce\DeltaForceAnimation.Resources.cs" />
+    <Compile Include="..\Shared\Controls\Animations\DeltaForce\DeltaForceAnimation.State.cs" Link="Controls\Animations\DeltaForce\DeltaForceAnimation.State.cs" />
+    <Compile Include="..\Shared\Controls\Animations\DeltaForce\DeltaForceAnimation.Render.cs" Link="Controls\Animations\DeltaForce\DeltaForceAnimation.Render.cs" />
+    <Compile Include="..\Shared\Controls\Animations\DeltaForce\DeltaForceAnimation.Drawing.cs" Link="Controls\Animations\DeltaForce\DeltaForceAnimation.Drawing.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Doubao\DoubaoAnimation.Data.cs" Link="Controls\Animations\Doubao\DoubaoAnimation.Data.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Doubao\DoubaoAnimation.Playback.cs" Link="Controls\Animations\Doubao\DoubaoAnimation.Playback.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Doubao\DoubaoAnimation.Resources.cs" Link="Controls\Animations\Doubao\DoubaoAnimation.Resources.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Doubao\DoubaoAnimation.Render.cs" Link="Controls\Animations\Doubao\DoubaoAnimation.Render.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Overwatch\OverwatchAnimation.Data.cs" Link="Controls\Animations\Overwatch\OverwatchAnimation.Data.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Overwatch\OverwatchAnimation.Playback.cs" Link="Controls\Animations\Overwatch\OverwatchAnimation.Playback.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Overwatch\OverwatchAnimation.Resources.cs" Link="Controls\Animations\Overwatch\OverwatchAnimation.Resources.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Overwatch\OverwatchAnimation.State.cs" Link="Controls\Animations\Overwatch\OverwatchAnimation.State.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Overwatch\OverwatchAnimation.Render.cs" Link="Controls\Animations\Overwatch\OverwatchAnimation.Render.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Overwatch\OverwatchAnimation.Cards.cs" Link="Controls\Animations\Overwatch\OverwatchAnimation.Cards.cs" />
+    <Compile Include="..\Shared\Controls\Animations\ModernWarfare2019\ModernWarfare2019Animation.Data.cs" Link="Controls\Animations\ModernWarfare2019\ModernWarfare2019Animation.Data.cs" />
+    <Compile Include="..\Shared\Controls\Animations\ModernWarfare2019\ModernWarfare2019Animation.Playback.cs" Link="Controls\Animations\ModernWarfare2019\ModernWarfare2019Animation.Playback.cs" />
+    <Compile Include="..\Shared\Controls\Animations\ModernWarfare2019\ModernWarfare2019Animation.Resources.cs" Link="Controls\Animations\ModernWarfare2019\ModernWarfare2019Animation.Resources.cs" />
+    <Compile Include="..\Shared\Controls\Animations\ModernWarfare2019\ModernWarfare2019Animation.Marker.cs" Link="Controls\Animations\ModernWarfare2019\ModernWarfare2019Animation.Marker.cs" />
+    <Compile Include="..\Shared\Controls\Animations\ModernWarfare2019\ModernWarfare2019Animation.MoneyFeed.cs" Link="Controls\Animations\ModernWarfare2019\ModernWarfare2019Animation.MoneyFeed.cs" />
+    <Compile Include="..\Shared\Controls\Animations\ModernWarfare2019\ModernWarfare2019Animation.UpperBanner.cs" Link="Controls\Animations\ModernWarfare2019\ModernWarfare2019Animation.UpperBanner.cs" />
+    <Compile Include="..\Shared\Controls\Animations\ModernWarfare2019\ModernWarfare2019Animation.LowerBanner.cs" Link="Controls\Animations\ModernWarfare2019\ModernWarfare2019Animation.LowerBanner.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Apex\ApexAnimation.Data.cs" Link="Controls\Animations\Apex\ApexAnimation.Data.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Apex\ApexAnimation.Playback.cs" Link="Controls\Animations\Apex\ApexAnimation.Playback.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Apex\ApexAnimation.Resources.cs" Link="Controls\Animations\Apex\ApexAnimation.Resources.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Apex\ApexAnimation.State.cs" Link="Controls\Animations\Apex\ApexAnimation.State.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Apex\ApexAnimation.Render.cs" Link="Controls\Animations\Apex\ApexAnimation.Render.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Apex\ApexAnimation.Crosshair.cs" Link="Controls\Animations\Apex\ApexAnimation.Crosshair.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Apex\ApexAnimation.Cards.cs" Link="Controls\Animations\Apex\ApexAnimation.Cards.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Dagoujiao\DagoujiaoAnimation.Data.cs" Link="Controls\Animations\Dagoujiao\DagoujiaoAnimation.Data.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Dagoujiao\DagoujiaoAnimation.Playback.cs" Link="Controls\Animations\Dagoujiao\DagoujiaoAnimation.Playback.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Dagoujiao\DagoujiaoAnimation.Resources.cs" Link="Controls\Animations\Dagoujiao\DagoujiaoAnimation.Resources.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Dagoujiao\DagoujiaoAnimation.Render.cs" Link="Controls\Animations\Dagoujiao\DagoujiaoAnimation.Render.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Valorant\ValorantAnimation.Data.cs" Link="Controls\Animations\Valorant\ValorantAnimation.Data.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Valorant\ValorantAnimation.Resources.cs" Link="Controls\Animations\Valorant\ValorantAnimation.Resources.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Valorant\ValorantAnimation.Render.cs" Link="Controls\Animations\Valorant\ValorantAnimation.Render.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Valorant\ValorantAnimation.Drawing.cs" Link="Controls\Animations\Valorant\ValorantAnimation.Drawing.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Valorant\ValorantAnimation.Effects.cs" Link="Controls\Animations\Valorant\ValorantAnimation.Effects.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Valorant\ValorantAnimation.Profiles.cs" Link="Controls\Animations\Valorant\ValorantAnimation.Profiles.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Valorant\ValorantAnimation.NativeDrawing.cs" Link="Controls\Animations\Valorant\ValorantAnimation.NativeDrawing.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Valorant\ValorantAnimation.NativeLayers.cs" Link="Controls\Animations\Valorant\ValorantAnimation.NativeLayers.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Valorant\ValorantAnimation.CookedAfterglow.cs" Link="Controls\Animations\Valorant\ValorantAnimation.CookedAfterglow.cs" />
     <Compile Include="Controls\GameStyles\Shared\AdvancedEffectsPanelSupport.cs" />
     <Compile Include="Controls\GameStyles\Shared\KillFeedbackAppearanceEditor.xaml.cs">
       <DependentUpon>KillFeedbackAppearanceEditor.xaml</DependentUpon>
@@ -485,65 +485,69 @@
       <DependentUpon>UpdateOverlayView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\Overlays\Update\UpdateOverlayView.Theme.cs" />
-    <Compile Include="Services\Runtime\KillEventClient.cs" />
-    <Compile Include="Services\Runtime\KillEventModels.cs" />
-    <Compile Include="Services\Runtime\LocalServiceAuth.cs" />
-    <Compile Include="Services\Runtime\LocalServiceEndpoints.cs" />
-    <Compile Include="Services\Settings\General\PortSettingsStore.cs" />
+    <Compile Include="..\Shared\Services\Runtime\KillEventClient.cs" Link="Services\Runtime\KillEventClient.cs" />
+    <Compile Include="..\Shared\Services\Runtime\KillEventConnection.cs" Link="Services\Runtime\KillEventConnection.cs" />
+    <Compile Include="..\Shared\Events\KillEventContract.cs" Link="Services\Runtime\KillEventContract.cs" />
+    <Compile Include="..\Shared\Events\KillEventParser.cs" Link="Services\Runtime\KillEventParser.cs" />
+    <Compile Include="..\Shared\Events\FeedbackRoutingPolicy.cs" Link="Services\Runtime\FeedbackRoutingPolicy.cs" />
+    <Compile Include="..\Shared\Events\LolEventAdapter.cs" Link="Services\Runtime\LolEventAdapter.cs" />
+    <Compile Include="..\Shared\Services\Runtime\LocalServiceAuth.cs" Link="Services\Runtime\LocalServiceAuth.cs" />
+    <Compile Include="..\Shared\Services\Runtime\LocalServiceEndpoints.cs" Link="Services\Runtime\LocalServiceEndpoints.cs" />
+    <Compile Include="..\Shared\Services\Settings\General\PortSettingsStore.cs" Link="Services\Settings\General\PortSettingsStore.cs" />
     <Compile Include="Services\Runtime\ServiceLauncher.cs" />
-    <Compile Include="Services\Settings\Audio\AssistAudioSettingsStore.cs" />
+    <Compile Include="..\Shared\Services\Settings\Audio\AssistAudioSettingsStore.cs" Link="Services\Settings\Audio\AssistAudioSettingsStore.cs" />
     <Compile Include="Services\Settings\Crosshair\CrosshairOffsetSettingsStore.cs" />
-    <Compile Include="Services\Settings\Games\ModernWarfare2019FeedOffsetSettingsStore.cs" />
-    <Compile Include="Services\Settings\Games\ValorantPackSyncSettingsStore.cs" />
-    <Compile Include="Services\Settings\Games\CrossfireGameplaySettingsStore.cs" />
-    <Compile Include="Services\Settings\Games\SanguoshaGameplaySettingsStore.cs" />
-    <Compile Include="Services\Settings\Games\CsolVoiceSettingsStore.cs" />
-    <Compile Include="Services\Settings\Games\DagoujiaoSettingsStore.cs" />
-    <Compile Include="Services\Settings\Games\DagoujiaoSettingsStore.ServiceSync.cs" />
-    <Compile Include="Services\Settings\Audio\BombAudioSettingsStore.cs" />
-    <Compile Include="Services\Settings\Audio\AudioChannelSettingsStore.cs" />
-    <Compile Include="Services\Settings\General\SharedStreakSettingsStore.cs" />
-    <Compile Include="Services\Settings\General\KillFeedbackVisibilitySettingsStore.cs" />
-    <Compile Include="Services\Settings\General\DeveloperModeSettingsStore.cs" />
-    <Compile Include="Services\GameSources\CounterStrike\GsiGameVersionSettingsStore.cs" />
-    <Compile Include="Services\Settings\General\StreakGainSettingsStore.cs" />
+    <Compile Include="..\Shared\Services\Settings\Games\ModernWarfare2019FeedOffsetSettingsStore.cs" Link="Services\Settings\Games\ModernWarfare2019FeedOffsetSettingsStore.cs" />
+    <Compile Include="..\Shared\Services\Settings\Games\ValorantPackSyncSettingsStore.cs" Link="Services\Settings\Games\ValorantPackSyncSettingsStore.cs" />
+    <Compile Include="..\Shared\Services\Settings\Games\CrossfireGameplaySettingsStore.cs" Link="Services\Settings\Games\CrossfireGameplaySettingsStore.cs" />
+    <Compile Include="..\Shared\Services\Settings\Games\SanguoshaGameplaySettingsStore.cs" Link="Services\Settings\Games\SanguoshaGameplaySettingsStore.cs" />
+    <Compile Include="..\Shared\Services\Settings\Games\CsolVoiceSettingsStore.cs" Link="Services\Settings\Games\CsolVoiceSettingsStore.cs" />
+    <Compile Include="..\Shared\Services\Settings\Games\DagoujiaoSettingsStore.cs" Link="Services\Settings\Games\DagoujiaoSettingsStore.cs" />
+    <Compile Include="..\Shared\Services\Settings\Games\DagoujiaoSettingsStore.ServiceSync.cs" Link="Services\Settings\Games\DagoujiaoSettingsStore.ServiceSync.cs" />
+    <Compile Include="..\Shared\Services\Settings\Audio\BombAudioSettingsStore.cs" Link="Services\Settings\Audio\BombAudioSettingsStore.cs" />
+    <Compile Include="..\Shared\Services\Settings\Audio\AudioChannelSettingsStore.cs" Link="Services\Settings\Audio\AudioChannelSettingsStore.cs" />
+    <Compile Include="..\Shared\Services\Settings\General\SharedStreakSettingsStore.cs" Link="Services\Settings\General\SharedStreakSettingsStore.cs" />
+    <Compile Include="..\Shared\Services\Settings\General\KillFeedbackVisibilitySettingsStore.cs" Link="Services\Settings\General\KillFeedbackVisibilitySettingsStore.cs" />
+    <Compile Include="..\Shared\Services\Settings\General\DeveloperModeSettingsStore.cs" Link="Services\Settings\General\DeveloperModeSettingsStore.cs" />
+    <Compile Include="..\Shared\Services\GameSources\CounterStrike\GsiGameVersionSettingsStore.cs" Link="Services\GameSources\CounterStrike\GsiGameVersionSettingsStore.cs" />
+    <Compile Include="..\Shared\Services\Settings\General\StreakGainSettingsStore.cs" Link="Services\Settings\General\StreakGainSettingsStore.cs" />
     <Compile Include="Services\Settings\General\AutoCloseOnGameExitSettingsStore.cs" />
     <Compile Include="Services\Settings\General\GameBarRuntimeStatusStore.cs" />
-    <Compile Include="Services\Settings\Audio\InterruptPreviousKillAudioSettingsStore.cs" />
-    <Compile Include="Services\Styling\GameStyleService.cs" />
+    <Compile Include="..\Shared\Services\Settings\Audio\InterruptPreviousKillAudioSettingsStore.cs" Link="Services\Settings\Audio\InterruptPreviousKillAudioSettingsStore.cs" />
+    <Compile Include="..\Shared\Services\Styling\GameStyleService.cs" Link="Services\Styling\GameStyleService.cs" />
     <Compile Include="Services\Styling\GameSelectorPresentation.cs" />
-    <Compile Include="Services\Styling\KillFeedbackFrameDefinition.cs" />
-    <Compile Include="Services\Styling\GameStyleService.PackMappings.cs" />
+    <Compile Include="..\Shared\Services\Styling\KillFeedbackFrameDefinition.cs" Link="Services\Styling\KillFeedbackFrameDefinition.cs" />
+    <Compile Include="..\Shared\Services\Styling\GameStyleService.PackMappings.cs" Link="Services\Styling\GameStyleService.PackMappings.cs" />
     <Compile Include="Services\Styling\GameThemePalette.cs" />
-    <Compile Include="Services\Catalog\Games\ValorantPackService.cs" />
-    <Compile Include="Services\Catalog\Games\ValorantExternalAssetService.cs" />
-    <Compile Include="Services\Catalog\Games\CrossfireExternalAssetService.cs" />
-    <Compile Include="Services\Localization\LocalizationManager.cs" />
-    <Compile Include="Services\Localization\LocalizationManager.English.Core.cs" />
-    <Compile Include="Services\Localization\LocalizationManager.English.Widget.cs" />
-    <Compile Include="Services\Localization\LocalizationManager.Chinese.Core.cs" />
-    <Compile Include="Services\Localization\LocalizationManager.Chinese.Widget.cs" />
-    <Compile Include="Services\Catalog\PackCatalogModels.cs" />
+    <Compile Include="..\Shared\Services\Catalog\Games\ValorantPackService.cs" Link="Services\Catalog\Games\ValorantPackService.cs" />
+    <Compile Include="..\Shared\Services\Catalog\Games\ValorantExternalAssetService.cs" Link="Services\Catalog\Games\ValorantExternalAssetService.cs" />
+    <Compile Include="..\Shared\Services\Catalog\Games\CrossfireExternalAssetService.cs" Link="Services\Catalog\Games\CrossfireExternalAssetService.cs" />
+    <Compile Include="..\Shared\Services\Localization\LocalizationManager.cs" Link="Services\Localization\LocalizationManager.cs" />
+    <Compile Include="..\Shared\Services\Localization\LocalizationManager.English.Core.cs" Link="Services\Localization\LocalizationManager.English.Core.cs" />
+    <Compile Include="..\Shared\Services\Localization\LocalizationManager.English.Widget.cs" Link="Services\Localization\LocalizationManager.English.Widget.cs" />
+    <Compile Include="..\Shared\Services\Localization\LocalizationManager.Chinese.Core.cs" Link="Services\Localization\LocalizationManager.Chinese.Core.cs" />
+    <Compile Include="..\Shared\Services\Localization\LocalizationManager.Chinese.Widget.cs" Link="Services\Localization\LocalizationManager.Chinese.Widget.cs" />
+    <Compile Include="..\Shared\Services\Catalog\PackCatalogModels.cs" Link="Services\Catalog\PackCatalogModels.cs" />
     <Compile Include="Services\Catalog\PackSelectorItem.cs" />
-    <Compile Include="Services\Catalog\PackCatalogService.cs" />
+    <Compile Include="..\Shared\Services\Catalog\PackCatalogService.cs" Link="Services\Catalog\PackCatalogService.cs" />
     <Compile Include="Services\Catalog\PackCatalogService.Order.cs" />
     <Compile Include="Pages\Main\Packs\MainPage.PackOrder.cs" />
-    <Compile Include="Services\Catalog\PackCatalogService.Icon.cs" />
-    <Compile Include="Services\Catalog\PackCatalogService.Icon.Creation.cs" />
-    <Compile Include="Services\Catalog\CrossfirePackFormat.cs" />
-    <Compile Include="Services\Catalog\PackCatalogService.Storage.cs" />
-    <Compile Include="Services\Catalog\ResourceLibraryPaths.cs" />
+    <Compile Include="..\Shared\Services\Catalog\PackCatalogService.Icon.cs" Link="Services\Catalog\PackCatalogService.Icon.cs" />
+    <Compile Include="..\Shared\Services\Catalog\PackCatalogService.Icon.Creation.cs" Link="Services\Catalog\PackCatalogService.Icon.Creation.cs" />
+    <Compile Include="..\Shared\Services\Catalog\CrossfirePackFormat.cs" Link="Services\Catalog\CrossfirePackFormat.cs" />
+    <Compile Include="..\Shared\Services\Catalog\PackCatalogService.Storage.cs" Link="Services\Catalog\PackCatalogService.Storage.cs" />
+    <Compile Include="..\Shared\Services\Catalog\ResourceLibraryPaths.cs" Link="Services\Catalog\ResourceLibraryPaths.cs" />
     <Compile Include="Controls\Settings\Hub\AdvancedSettingsHub.Storage.cs" />
-    <Compile Include="Services\Catalog\PackCatalogService.GameStorage.cs" />
-    <Compile Include="Services\Catalog\PackCatalogService.Voice.cs" />
-    <Compile Include="Services\Catalog\PackCatalogService.Audio.cs" />
-    <Compile Include="Services\Catalog\PackCatalogService.Voice.Creation.cs" />
+    <Compile Include="..\Shared\Services\Catalog\PackCatalogService.GameStorage.cs" Link="Services\Catalog\PackCatalogService.GameStorage.cs" />
+    <Compile Include="..\Shared\Services\Catalog\PackCatalogService.Voice.cs" Link="Services\Catalog\PackCatalogService.Voice.cs" />
+    <Compile Include="..\Shared\Services\Catalog\PackCatalogService.Audio.cs" Link="Services\Catalog\PackCatalogService.Audio.cs" />
+    <Compile Include="..\Shared\Services\Catalog\PackCatalogService.Voice.Creation.cs" Link="Services\Catalog\PackCatalogService.Voice.Creation.cs" />
     <Compile Include="Services\Catalog\PackCatalogService.ValorantEditing.cs" />
-    <Compile Include="Services\Catalog\Games\PackCatalogService.Overwatch.cs" />
-    <Compile Include="Services\Catalog\Games\PackCatalogService.ModernWarfare2019.cs" />
-    <Compile Include="Services\Settings\Games\DoubaoSettingsStore.cs" />
-    <Compile Include="Helpers\TgaDecoder.cs" />
-    <Compile Include="Helpers\AudioSlotAliases.cs" />
+    <Compile Include="..\Shared\Services\Catalog\Games\PackCatalogService.Overwatch.cs" Link="Services\Catalog\Games\PackCatalogService.Overwatch.cs" />
+    <Compile Include="..\Shared\Services\Catalog\Games\PackCatalogService.ModernWarfare2019.cs" Link="Services\Catalog\Games\PackCatalogService.ModernWarfare2019.cs" />
+    <Compile Include="..\Shared\Services\Settings\Games\DoubaoSettingsStore.cs" Link="Services\Settings\Games\DoubaoSettingsStore.cs" />
+    <Compile Include="..\Shared\Helpers\TgaDecoder.cs" Link="Helpers\TgaDecoder.cs" />
+    <Compile Include="..\Shared\Helpers\AudioSlotAliases.cs" Link="Helpers\AudioSlotAliases.cs" />
     <Compile Include="Services\Catalog\PackLibraryNavigation.cs" />
     <Compile Include="Pages\Main\Packs\MainPage.PackLibrary.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -857,7 +861,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Services\Catalog\PackCatalogService.Battlefield6.cs" />
+    <Compile Include="..\Shared\Services\Catalog\PackCatalogService.Battlefield6.cs" Link="Services\Catalog\PackCatalogService.Battlefield6.cs" />
     <Compile Include="Services\Styling\GameThemePalette.Battlefield6.cs" />
     <Compile Include="Pages\Main\Appearance\MainPage.Battlefield6.cs" />
     <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.Battlefield6.cs" />
@@ -867,26 +871,26 @@
     <Compile Include="Controls\GameStyles\Battlefield6\Battlefield6AdvancedEffectsPanel.xaml.cs" />
     <Page Include="Controls\GameStyles\Battlefield6\Battlefield6StylePanel.xaml"><Generator>MSBuild:Compile</Generator><SubType>Designer</SubType></Page>
     <Compile Include="Controls\GameStyles\Battlefield6\Battlefield6StylePanel.xaml.cs" />
-    <Compile Include="Controls\Animations\Battlefield6\Battlefield6Animation.Assets.cs" />
-    <Compile Include="Controls\Animations\Battlefield6\Battlefield6Animation.Data.cs" />
-    <Compile Include="Controls\Animations\Battlefield6\Battlefield6Animation.Models.cs" />
-    <Compile Include="Controls\Animations\Battlefield6\Battlefield6Animation.Playback.cs" />
-    <Compile Include="Controls\Animations\Battlefield6\Battlefield6Animation.State.cs" />
-    <Compile Include="Controls\Animations\Battlefield6\Battlefield6Animation.TextCache.cs" />
-    <Compile Include="Controls\Animations\Battlefield6\Battlefield6Animation.RasterCache.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Battlefield6\Battlefield6Animation.Assets.cs" Link="Controls\Animations\Battlefield6\Battlefield6Animation.Assets.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Battlefield6\Battlefield6Animation.Data.cs" Link="Controls\Animations\Battlefield6\Battlefield6Animation.Data.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Battlefield6\Battlefield6Animation.Models.cs" Link="Controls\Animations\Battlefield6\Battlefield6Animation.Models.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Battlefield6\Battlefield6Animation.Playback.cs" Link="Controls\Animations\Battlefield6\Battlefield6Animation.Playback.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Battlefield6\Battlefield6Animation.State.cs" Link="Controls\Animations\Battlefield6\Battlefield6Animation.State.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Battlefield6\Battlefield6Animation.TextCache.cs" Link="Controls\Animations\Battlefield6\Battlefield6Animation.TextCache.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Battlefield6\Battlefield6Animation.RasterCache.cs" Link="Controls\Animations\Battlefield6\Battlefield6Animation.RasterCache.cs" />
     <Compile Include="..\CompatibilityHost\Integration\Home\GameStyles\CompatibilityHomeView.GameStyle.Battlefield6.cs" />
     <Page Include="..\CompatibilityHost\Integration\Controls\GameStyles\Battlefield6\Battlefield6AdvancedEffectsPanel.xaml"><Generator>MSBuild:Compile</Generator><SubType>Designer</SubType></Page>
     <Compile Include="..\CompatibilityHost\Integration\Controls\GameStyles\Battlefield6\Battlefield6AdvancedEffectsPanel.xaml.cs" />
     <Page Include="..\CompatibilityHost\Integration\Controls\GameStyles\Battlefield6\Battlefield6StylePanel.xaml"><Generator>MSBuild:Compile</Generator><SubType>Designer</SubType></Page>
     <Compile Include="..\CompatibilityHost\Integration\Controls\GameStyles\Battlefield6\Battlefield6StylePanel.xaml.cs" />
     <Compile Include="Pages\KillConfirmWidget\Animation\KillConfirmWidgetPage.Animation.Battlefield.cs" />
-    <Compile Include="Controls\Animations\Battlefield6\Battlefield6Animation.Drawing.cs" />
-    <Compile Include="Controls\Animations\Battlefield6\Battlefield6Animation.Render.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Battlefield6\Battlefield6Animation.Drawing.cs" Link="Controls\Animations\Battlefield6\Battlefield6Animation.Drawing.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Battlefield6\Battlefield6Animation.Render.cs" Link="Controls\Animations\Battlefield6\Battlefield6Animation.Render.cs" />
     <!-- Sanguosha (三国杀): original Spine broadcast replay, self-contained files -->
     <Compile Include="..\Common\SanguoshaClip.cs" Link="Services\Runtime\SanguoshaClip.cs" />
     <Compile Include="..\Common\SanguoshaLz4Source.cs" Link="Services\Runtime\SanguoshaLz4Source.cs" />
     <Compile Include="..\Common\SanguoshaLz4Playback.cs" Link="Services\Runtime\SanguoshaLz4Playback.cs" />
-    <Compile Include="Services\Styling\GameStyleService.Sanguosha.cs" />
+    <Compile Include="..\Shared\Services\Styling\GameStyleService.Sanguosha.cs" Link="Services\Styling\GameStyleService.Sanguosha.cs" />
     <Compile Include="Services\Styling\GameThemePalette.Sanguosha.cs" />
     <Compile Include="Controls\Animations\Sanguosha\SanguoshaAnimation.Data.cs" />
     <Compile Include="Controls\Animations\Sanguosha\SanguoshaAnimation.Resources.cs" />
@@ -894,7 +898,7 @@
     <Compile Include="Controls\Animations\Sanguosha\SanguoshaAnimation.Render.cs" />
     <Compile Include="Controls\Animations\Sanguosha\SanguoshaAnimation.Lz4.cs" />
     <Compile Include="Controls\Animations\Sanguosha\SanguoshaAnimatedSurface.cs" />
-    <Compile Include="Controls\Animations\Sanguosha\SanguoshaFrameRenderer.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Sanguosha\SanguoshaFrameRenderer.cs" Link="Controls\Animations\Sanguosha\SanguoshaFrameRenderer.cs" />
     <Page Include="Controls\GameStyles\Sanguosha\SanguoshaAdvancedEffectsPanel.xaml"><Generator>MSBuild:Compile</Generator><SubType>Designer</SubType></Page>
     <Compile Include="Controls\GameStyles\Sanguosha\SanguoshaAdvancedEffectsPanel.xaml.cs" />
     <Page Include="Controls\GameStyles\Calabiyau\CalabiyauAdvancedEffectsPanel.xaml"><Generator>MSBuild:Compile</Generator><SubType>Designer</SubType></Page>

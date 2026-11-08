@@ -66,7 +66,8 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay.Controls.Settings
                 return;
             }
 
-            Card.Background = new SolidColorBrush(theme.SubtleField);
+            Card.Background = new SolidColorBrush(Windows.UI.Colors.Transparent);
+            Card.BorderThickness = new Thickness(0);
             Card.BorderBrush = new SolidColorBrush(theme.SoftBorder);
             TitleText.Foreground = new SolidColorBrush(theme.Text);
             DescriptionText.Foreground = new SolidColorBrush(theme.MutedText);

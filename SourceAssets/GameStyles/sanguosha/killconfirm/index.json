@@ -7,7 +7,7 @@
       "animation": "shoupo",
       "files": {
         "shoupo.png": "f44ba30592655829b992026ac10c4047c25d0b97720f81f854efb51bdae6fbb2",
-        "shoupo.sgsd.gz": "964bcbc244e92f2ca4a33117722b8ed4728b7147c4e9b7f05a6dc1353957ddfd",
+        "shoupo.sgsd.gz": "ee561afad9d8850128c720167bcbe607f47726b192bb8e5fc4bed049597d8b1a",
         "shoupo_2.png": "25d81e69c7ddad223ec5d08183e6cf6c713ef19d6ef4a465d851e02cec1ba34a",
         "shoupo_3.png": "47fea2938fe1726f1ab0c3ad4663d63ed3b7d5d062c3e3357b88fcd9174b24d6"
       }
@@ -17,7 +17,7 @@
       "animation": "lianpo",
       "files": {
         "lianpo.png": "0d96782c2e394c0bd788cd2950d5556c37f4a23534f782303bb704e6a6ad879d",
-        "lianpo.sgsd.gz": "439bd09a751f078ffff9a2d3b701d0bced624e635eb3549c046d3ec61dfb732d",
+        "lianpo.sgsd.gz": "3e8af527793213d044baba2b49f582cefa20021445844659134a4ccaa821d883",
         "lianpo_2.png": "bf7a2c7699035bc8129f43f45795c7316445a41a7aaacc377cec1342b5b34cd0",
         "lianpo_3.png": "d8592b2de3ec9ec4a37040c8a857a783fdc1c086302246d11c66e05382276062"
       }
@@ -27,7 +27,7 @@
       "animation": "sanpo",
       "files": {
         "sanpo.png": "09b7d860abecc360a0fae3742e5cda00a4c9bbad8308faa5cb59cc6fc7cb273f",
-        "sanpo.sgsd.gz": "4c7f7e7a912f9659c4fd483dd826e473bac60b5b3f3d0bca5e387c245d0c3d08",
+        "sanpo.sgsd.gz": "d9347195e76f6e9d7f5c801659574950d8f4628f516398776a7a860852330d19",
         "sanpo_2.png": "b10012cc4d6323e6c6bcf75091ec0f78bcb4d326c9f18227da5884d12a47f988",
         "sanpo_3.png": "0a4b73ce3c30412d7ba69433e15eb76304a0ed56a76d838c3be6fecedd477524"
       }
@@ -37,7 +37,7 @@
       "animation": "sipo",
       "files": {
         "sipo.png": "e6c39fc266f907a4c62370af08012077f22269a6cf937187d5c382ad581c02af",
-        "sipo.sgsd.gz": "0bfdefe8426d096b9e4b196716e1db0c06f58740b8dd16f5dd78ad8059cf73d2",
+        "sipo.sgsd.gz": "e9e04db5c01bb32f6da792c85976fd7bafd5a48bb85197cc1bed4e65a3d1548a",
         "sipo_2.png": "1d27e8a9dbec9f02504f70bbb4a0de3dafd14f385aad7ca7b86dfa38119c85ab",
         "sipo_3.png": "c9b5202433846981b6662a11e1da65b08ad4cdcace99d8b4f776adc3776c1edd"
       }
@@ -47,7 +47,7 @@
       "animation": "wupo",
       "files": {
         "wupo.png": "4042a42fcc4c630f24299e8c39367b0758f3e424499bd69c46edd3ebe1d9f248",
-        "wupo.sgsd.gz": "1775afeb0d303efa44490e9a692c122e861515dd9f7c3695316885ef628a5281",
+        "wupo.sgsd.gz": "a30794c1252d1d688db97dd19d10fe3a92d959ad7241a6b7f93d3ae14073d66c",
         "wupo_2.png": "c0b5e03cedf8eb139d5cbf7aa92a619ff0dd0051701adaefc12aedb00ce49c42",
         "wupo_3.png": "3c24b6056eafbbfb24324d987aab2c07bd3afa6a422b233c09b7c9da11d01c6d",
         "wupo_4.png": "208837651a69d73411627614850a395e659b6027d5117c06e8d87948da7b16cd",
@@ -59,7 +59,7 @@
       "animation": "liupo",
       "files": {
         "liupo.png": "75d5833e3d0dbfaa79a2d78b1b238eccd77156f7f6d8d980935a83482afc4bdd",
-        "liupo.sgsd.gz": "f5fb0b974e7aafae6a60eabd1e90151405bcd5d5e27e8fd5bf02dde21a7fbb6f",
+        "liupo.sgsd.gz": "36621e912f8c3be92ccf84837aea3aff304beee6d0114e8180d503e599dce0d4",
         "liupo_2.png": "766bd5225ca034e136de07b706f2d2c431b621ec93063519fd18b9d4affbd870",
         "liupo_3.png": "1bb3cff486f707354f3d92751ba8d2fff5d4838ad5115a87db2116de476a1249",
         "liupo_4.png": "ef9f341b9130d3ccc7aafb5b4deeefe911399f51ab828fdbb6e2de166b8e6274",
@@ -72,7 +72,7 @@
       "animation": "qipo",
       "files": {
         "qipo.png": "e4cf6f8a2e57c871cfc30d916c4caf0a79b57e226ad8d688792824b65dfa84b0",
-        "qipo.sgsd.gz": "3cd9eda20472c60be25fcda86fbe2ee29427ab3ba21a0288940087b8f8551fae",
+        "qipo.sgsd.gz": "9f34dc114e0bb870008ffb8b9e73495e45436bde8d9b2ed95879ed9c443c511c",
         "qipo_2.png": "7c8519b2674c74303116e39329ae5535fe61416ce12d38c7d059b3513ce296bf",
         "qipo_3.png": "4bfad6dfa9557956ca722908da26cc9bcbf878258d87b1b598bdb77e0de80b9c",
         "qipo_4.png": "b45771faaa01b44d372ce9c3281f54957e70d2129eff3d56ed3ff95873c52b3c",
@@ -107,7 +107,7 @@
       "animation": "shenyimiaoshou",
       "files": {
         "shenyimiaoshou.png": "8653899a8f451b54e22ef9b984c08dc8b20c269e11788cca8867dddc8ed6cf63",
-        "shenyimiaoshou.sgsd.gz": "463cd50506a618265760319ca30fa6d053b7b3ded09340eb350d121b2fe8e5bf",
+        "shenyimiaoshou.sgsd.gz": "13aeb7966618a3e93c648edc5b61612d8622625b1e857b2b8719dbc9feee83ab",
         "shenyimiaoshou_2.png": "f2d7426790407fb6eacd4c6c30129c981bcd6f28b17c33348e9d103f79a7783f",
         "shenyimiaoshou_3.png": "ba54edd0464405d30ca85633b14482e4ee62ea7b8949e08fca30bf7774d4e3bf",
         "shenyimiaoshou_hero.png": "6932ef803c617bd0f94985c4e6d640eda8101352f266a5da8809ac803e7a4387"
@@ -118,11 +118,20 @@
       "animation": "qingnangjishi",
       "files": {
         "qingnangjishi.png": "d9dd690f5355e6a3ea66ec476a41e0e7a52983a5749edfb08ceea4630e2a7162",
-        "qingnangjishi.sgsd.gz": "320d353eed3d4f901b158a71ea94b14424914bdadba4fa449957008580c9defa",
+        "qingnangjishi.sgsd.gz": "7e83ec71aeb96fafe5153c893c4f1fdd481d318ae4c3003edbc7df75fa18ce14",
         "qingnangjishi_2.png": "2335488f71f2b4e5180e60fe8fda2f3c58d008c61ac8c1ee0e25613ae4e79284",
         "qingnangjishi_3.png": "508aa5ca21ef31697609cc9e2dc9c7cb01d30db15fec251187800171d09ab5e9",
         "qingnangjishi_4.png": "29f752914e144ecee376bf04963b13bfea31b633a55f9384baa2874139a4040e",
         "qingnangjishi_hero.png": "0894e38d533b07205a5f9f4e3a264c7f810c90d788a609f2364f1d5f45356d71"
+      }
+    },
+    {
+      "tier": 12,
+      "animation": "podi",
+      "files": {
+        "podi.sgsd.gz": "406f7e68af13fad3cece00c16968656de9fdc7f433569b7433c6ca727b49e053",
+        "jisha.png": "b0fcc188cef597fa50b55c474dc22d2762575d5f838a14fdbdfea5bc5ca2e0cf",
+        "SF_guanjie_eff_jisha.png": "47b322207769b834f9172c2a501c77a19f196086461a8a2c80a6174d7044404d"
       }
     }
   ]

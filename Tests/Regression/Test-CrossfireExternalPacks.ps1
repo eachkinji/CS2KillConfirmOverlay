@@ -1,8 +1,9 @@
 param([Parameter(Mandatory=$true)][string]$PackagesPath, [string]$InstallLocalState)
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
-$service = Get-Content -Raw (Join-Path $root 'Widget/Services/Catalog/Games/CrossfireExternalAssetService.cs')
-$models = Get-Content -Raw (Join-Path $root 'Widget/Services/Catalog/PackCatalogModels.cs')
+. (Join-Path $PSScriptRoot '..\Common\SourceView.ps1')
+$service = Get-Content -Raw (Resolve-SourcePath $root 'Widget/Services/Catalog/Games/CrossfireExternalAssetService.cs')
+$models = Get-Content -Raw (Resolve-SourcePath $root 'Widget/Services/Catalog/PackCatalogModels.cs')
 $models = [regex]::Replace($models, '(?m)^using [^;]+;\r?\n', '')
 $shim = @'
 namespace Windows.Storage {

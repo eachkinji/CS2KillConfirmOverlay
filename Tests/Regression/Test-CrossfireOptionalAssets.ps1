@@ -1,6 +1,7 @@
 param([string]$PackageFolder = 'F:\KillConfirm FIX\导入素材\穿越火线\图标包')
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
+. (Join-Path $PSScriptRoot '..\Common\SourceView.ps1')
 function Method([string]$source, [string]$name) {
     $match = [regex]::Match($source, '(?ms)^        private [^\r\n]+\b' + $name + '\([^)]*\).*?^        \}')
     if (!$match.Success) { throw "Method not found: $name" }
@@ -9,7 +10,7 @@ function Method([string]$source, [string]$name) {
 $packages = [string[]](Get-ChildItem -LiteralPath $PackageFolder -Filter '*.zip').FullName
 if ($packages.Count -eq 0) { throw 'No canonical CF packages found' }
 foreach ($renderer in @('Widget','CompatibilityHost/Renderer')) {
-    $base = Join-Path $root "$renderer/Controls/Animations/Core"
+    $base = Resolve-SourceDirectory $root "$renderer/Controls/Animations/Core"
     $assets = Get-Content -Raw "$base/KillConfirmAnimation.Assets.cs"
     $preload = Get-Content -Raw "$base/KillConfirmAnimation.Preloading.cs"
     $overlays = Get-Content -Raw "$base/KillConfirmAnimation.AssetOverlays.cs"
@@ -112,7 +113,7 @@ public class PROBE {
   Reset("selected",fxOnly,null);await MustFail(()=>probe.PreloadCodeKillAnimationsAsync(null),"Overlay without any playable main falsely ready");
  }
 '@
-    $format = Get-Content -Raw (Join-Path $root "$renderer/Services/Catalog/CrossfirePackFormat.cs")
+    $format = Get-Content -Raw (Resolve-SourcePath $root "$renderer/Services/Catalog/CrossfirePackFormat.cs")
     $format = $format.Substring($format.IndexOf('    internal static class CrossfirePackFormat'))
     $format = $format.Substring(0,$format.LastIndexOf('}'))
     $source = $source.Replace('PROBE',$class) + "`n" + ($methods -join "`n") + "`n" + $format + "`n}"

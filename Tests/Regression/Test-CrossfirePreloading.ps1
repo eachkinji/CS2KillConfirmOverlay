@@ -1,12 +1,13 @@
 param()
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
+. (Join-Path $PSScriptRoot '..\Common\SourceView.ps1')
 function Method([string]$text, [string]$name) {
     $m = [regex]::Match($text, '(?ms)^        private [^\r\n]+\b' + $name + '\([^)]*\).*?^        \}')
     if (-not $m.Success) { throw "Method not found: $name" }
     $m.Value
 }
-$core = Join-Path $root 'Widget/Controls/Animations/Core'
+$core = Resolve-SourceDirectory $root 'Widget/Controls/Animations/Core'
 $assets = Get-Content -Raw "$core/KillConfirmAnimation.Assets.cs"
 $preload = Get-Content -Raw "$core/KillConfirmAnimation.Preloading.cs"
 $overlays = Get-Content -Raw "$core/KillConfirmAnimation.AssetOverlays.cs"
@@ -126,7 +127,7 @@ Add-Type -TypeDefinition $playbackSource -WarningAction SilentlyContinue
 [PlaybackProbe]::Verify().GetAwaiter().GetResult()
 Write-Host 'PASS: cached playback runs immediately while preload gate is occupied; cold playback remains serialized; neither CF path displays Loading.'
 
-$format = Get-Content -Raw (Join-Path $root 'Widget/Services/Catalog/CrossfirePackFormat.cs')
+$format = Get-Content -Raw (Resolve-SourcePath $root 'Widget/Services/Catalog/CrossfirePackFormat.cs')
 $format = [regex]::Replace($format, '(?m)^using [^;]+;\r?\n', '')
 $indexSource = @'
 using System;

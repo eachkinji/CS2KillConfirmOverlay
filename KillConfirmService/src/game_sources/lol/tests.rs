@@ -71,12 +71,11 @@ fn first_attachment_skips_history_and_duplicate_ids_emit_once() {
     assert!(tracker.flush_pending().is_empty());
     let next = kill(2, 101.0, "新击杀");
     let events = vec![old, next.clone(), next];
-    assert!(poll(&mut tracker, base, 10, events.clone()).is_empty());
-    assert!(poll(&mut tracker, base, 609, events.clone()).is_empty());
     assert_eq!(
-        poll(&mut tracker, base, 610, events.clone()),
+        poll(&mut tracker, base, 10, events.clone()),
         vec![expected("新击杀", 1)]
     );
+    assert!(poll(&mut tracker, base, 609, events.clone()).is_empty());
     assert!(poll(&mut tracker, base, 1000, events).is_empty());
 }
 
@@ -91,11 +90,11 @@ fn only_uniquely_local_champion_kills_emit() {
         json!({"EventID":5,"EventName":"Multikill","KillerName":LOCAL}),
         kill(6, 103.0, "完整ID击杀"),
     ];
-    assert!(poll(&mut tracker, base, 0, events.clone()).is_empty());
     assert_eq!(
-        poll(&mut tracker, base, 600, events),
+        poll(&mut tracker, base, 0, events.clone()),
         vec![expected("旧名称击杀", 1), expected("完整ID击杀", 1)]
     );
+    assert!(poll(&mut tracker, base, 600, events).is_empty());
 }
 
 #[test]
@@ -109,10 +108,7 @@ fn cn_legacy_name_without_riot_id_is_supported() {
     snap.events.events = sample(100.0, vec![champion(1, 100.0, "旧名称", "敌人")])
         .events
         .events;
-    assert!(tracker.observe_at(&snap, base).unwrap().is_empty());
-    let result = tracker
-        .observe_at(&snap, base + Duration::from_millis(600))
-        .unwrap();
+    let result = tracker.observe_at(&snap, base).unwrap();
     assert_eq!(
         result,
         vec![TrackedKill {
@@ -120,6 +116,12 @@ fn cn_legacy_name_without_riot_id_is_supported() {
             target: "敌人".into(),
             kill_count: 1
         }]
+    );
+    assert!(
+        tracker
+            .observe_at(&snap, base + Duration::from_millis(600))
+            .unwrap()
+            .is_empty()
     );
 }
 
@@ -142,12 +144,15 @@ fn ambiguous_short_name_neither_emits_nor_upgrades_a_kill() {
     )
     .events
     .events;
-    assert!(tracker.observe_at(&snap, base).unwrap().is_empty());
     assert_eq!(
+        tracker.observe_at(&snap, base).unwrap(),
+        vec![expected("唯一名字", 1)]
+    );
+    assert!(
         tracker
             .observe_at(&snap, base + Duration::from_millis(600))
-            .unwrap(),
-        vec![expected("唯一名字", 1)]
+            .unwrap()
+            .is_empty()
     );
 }
 
@@ -176,7 +181,10 @@ fn clock_rewind_id_restart_and_empty_history_discard_pending_and_rebaseline() {
         sample(101.0, vec![]),
     ] {
         let (mut tracker, base) = initialized();
-        assert!(poll(&mut tracker, base, 0, vec![kill(10, 100.0, "旧局未发布")]).is_empty());
+        assert_eq!(
+            poll(&mut tracker, base, 0, vec![kill(10, 100.0, "旧局未发布")]),
+            vec![expected("旧局未发布", 1)]
+        );
         assert!(
             tracker
                 .observe_at(&reset_sample, base + Duration::from_millis(100))
@@ -193,17 +201,17 @@ fn clock_rewind_id_restart_and_empty_history_discard_pending_and_rebaseline() {
             .unwrap_or(0)
             + 1;
         let snap = sample(102.0, vec![kill(next_id, 102.0, "新局击杀")]);
-        assert!(
-            tracker
-                .observe_at(&snap, base + Duration::from_millis(200))
-                .unwrap()
-                .is_empty()
-        );
         assert_eq!(
             tracker
-                .observe_at(&snap, base + Duration::from_millis(800))
+                .observe_at(&snap, base + Duration::from_millis(200))
                 .unwrap(),
             vec![expected("新局击杀", 1)]
+        );
+        assert!(
+            tracker
+                .observe_at(&snap, base + Duration::from_millis(800))
+                .unwrap()
+                .is_empty()
         );
     }
 }
@@ -211,7 +219,10 @@ fn clock_rewind_id_restart_and_empty_history_discard_pending_and_rebaseline() {
 #[test]
 fn switching_local_player_discards_pending_and_baselines_the_other_player() {
     let (mut tracker, base) = initialized();
-    assert!(poll(&mut tracker, base, 0, vec![kill(1, 100.0, "旧玩家未发布")]).is_empty());
+    assert_eq!(
+        poll(&mut tracker, base, 0, vec![kill(1, 100.0, "旧玩家未发布")]),
+        vec![expected("旧玩家未发布", 1)]
+    );
     let mut snap = sample(
         101.0,
         vec![
@@ -233,20 +244,17 @@ fn switching_local_player_discards_pending_and_baselines_the_other_player() {
             .events
             .remove(0),
     );
-    assert!(
+    assert_eq!(
         tracker
             .observe_at(&snap, base + Duration::from_millis(200))
-            .unwrap()
-            .is_empty()
-    );
-    assert_eq!(
-        tracker.flush_pending(),
+            .unwrap(),
         vec![TrackedKill {
             player: "队友#二区".into(),
             target: "新玩家击杀".into(),
             kill_count: 1,
         }]
     );
+    assert!(tracker.flush_pending().is_empty());
 }
 
 #[test]
@@ -258,18 +266,21 @@ fn reconnect_or_source_switch_discards_history_including_multikill_markers() {
     assert!(tracker.flush_pending().is_empty());
     let mut events = history;
     events.push(kill(3, 101.0, "恢复后的新击杀"));
-    assert!(poll(&mut tracker, base, 100, events.clone()).is_empty());
     assert_eq!(
-        poll(&mut tracker, base, 700, events),
+        poll(&mut tracker, base, 100, events.clone()),
         vec![expected("恢复后的新击杀", 1)]
     );
+    assert!(poll(&mut tracker, base, 700, events).is_empty());
 }
 
 #[test]
 fn ordinary_kill_waits_for_monotonic_deadline_even_when_game_time_jumps_or_pauses() {
     let (mut tracker, base) = initialized();
     let mut snap = sample(100.0, vec![kill(1, 100.0, "普通击杀")]);
-    assert!(tracker.observe_at(&snap, base).unwrap().is_empty());
+    assert_eq!(
+        tracker.observe_at(&snap, base).unwrap(),
+        vec![expected("普通击杀", 1)]
+    );
     snap.game_data.time = 10000.0;
     assert!(
         tracker
@@ -277,11 +288,11 @@ fn ordinary_kill_waits_for_monotonic_deadline_even_when_game_time_jumps_or_pause
             .unwrap()
             .is_empty()
     );
-    assert_eq!(
+    assert!(
         tracker
             .observe_at(&snap, base + Duration::from_millis(600))
-            .unwrap(),
-        vec![expected("普通击杀", 1)]
+            .unwrap()
+            .is_empty()
     );
 }
 
@@ -298,11 +309,11 @@ fn official_double_through_pentakill_counts_are_used_without_extra_kills() {
             ));
             events.push(multikill(count as u64 * 2 - 1, 100.0 + count as f64, count));
         }
-        assert!(poll(&mut tracker, base, 0, events.clone()).is_empty());
         let expected: Vec<_> = (1..=last_count)
             .map(|count| expected(&format!("敌人{count}"), count))
             .collect();
-        assert_eq!(poll(&mut tracker, base, 600, events.clone()), expected);
+        assert_eq!(poll(&mut tracker, base, 0, events.clone()), expected);
+        assert!(poll(&mut tracker, base, 600, events.clone()).is_empty());
         assert!(poll(&mut tracker, base, 900, events).is_empty());
     }
 }
@@ -324,13 +335,12 @@ fn authoritative_tier_does_not_require_observing_earlier_kills() {
 #[test]
 fn marker_can_arrive_in_the_next_poll_before_the_deadline() {
     let (mut tracker, base) = initialized();
-    let mut events = vec![kill(1, 101.0, "跨轮询三杀")];
-    assert!(poll(&mut tracker, base, 0, events.clone()).is_empty());
-    events.push(multikill(2, 101.0, 3));
+    let events = vec![kill(1, 101.0, "跨轮询三杀"), multikill(2, 101.0, 3)];
     assert_eq!(
-        poll(&mut tracker, base, 350, events.clone()),
+        poll(&mut tracker, base, 0, events.clone()),
         vec![expected("跨轮询三杀", 3)]
     );
+    assert!(poll(&mut tracker, base, 350, events.clone()).is_empty());
     assert!(poll(&mut tracker, base, 700, events).is_empty());
 }
 
@@ -338,13 +348,16 @@ fn marker_can_arrive_in_the_next_poll_before_the_deadline() {
 fn matched_later_kill_cannot_overtake_an_earlier_unmatched_kill() {
     let (mut tracker, base) = initialized();
     let mut events = vec![kill(1, 101.0, "先发生")];
-    assert!(poll(&mut tracker, base, 0, events.clone()).is_empty());
-    events.extend([kill(2, 102.0, "后发生"), multikill(3, 102.0, 2)]);
-    assert!(poll(&mut tracker, base, 350, events.clone()).is_empty());
     assert_eq!(
-        poll(&mut tracker, base, 600, events),
-        vec![expected("先发生", 1), expected("后发生", 2)]
+        poll(&mut tracker, base, 0, events.clone()),
+        vec![expected("先发生", 1)]
     );
+    events.extend([kill(2, 102.0, "后发生"), multikill(3, 102.0, 2)]);
+    assert_eq!(
+        poll(&mut tracker, base, 350, events.clone()),
+        vec![expected("后发生", 2)]
+    );
+    assert!(poll(&mut tracker, base, 600, events).is_empty());
 }
 
 #[test]
@@ -358,15 +371,15 @@ fn same_timestamp_aoe_assigns_descending_markers_to_descending_kill_ids() {
         multikill(5, 101.0, 3),
         kill(2, 101.0, "第二个"),
     ];
-    assert!(poll(&mut tracker, base, 0, events.clone()).is_empty());
     assert_eq!(
-        poll(&mut tracker, base, 600, events),
+        poll(&mut tracker, base, 0, events.clone()),
         vec![
             expected("第一个", 1),
             expected("第二个", 2),
             expected("第三个", 3)
         ]
     );
+    assert!(poll(&mut tracker, base, 600, events).is_empty());
 }
 
 #[test]
@@ -412,11 +425,11 @@ fn published_first_kill_covered_by_same_group_double_does_not_block_higher_tiers
         kill(2, 101.0, "双杀"),
         multikill(3, 101.0, 2),
     ];
-    assert!(poll(&mut tracker, base, 0, events.clone()).is_empty());
     assert_eq!(
-        poll(&mut tracker, base, 600, events.clone()),
+        poll(&mut tracker, base, 0, events.clone()),
         vec![expected("首杀", 1), expected("双杀", 2)]
     );
+    assert!(poll(&mut tracker, base, 600, events.clone()).is_empty());
     for count in 3..=5 {
         let id = (count as u64 - 3) * 2 + 4;
         let target = format!("敌人{count}");
@@ -436,23 +449,23 @@ fn published_first_kill_covered_by_same_group_double_does_not_block_higher_tiers
 #[test]
 fn same_timestamp_pending_markers_are_reassigned_when_a_higher_tier_arrives() {
     let (mut tracker, base) = initialized();
-    let mut events = vec![
+    let events = vec![
         kill(1, 101.0, "第一个"),
         kill(2, 101.0, "第二个"),
         kill(3, 101.0, "第三个"),
         multikill(4, 101.0, 2),
+        multikill(5, 101.0, 3),
     ];
-    assert!(poll(&mut tracker, base, 0, events.clone()).is_empty());
-    events.push(multikill(5, 101.0, 3));
-    assert!(poll(&mut tracker, base, 350, events.clone()).is_empty());
     assert_eq!(
-        poll(&mut tracker, base, 600, events),
+        poll(&mut tracker, base, 0, events.clone()),
         vec![
             expected("第一个", 1),
             expected("第二个", 2),
             expected("第三个", 3)
         ]
     );
+    assert!(poll(&mut tracker, base, 350, events.clone()).is_empty());
+    assert!(poll(&mut tracker, base, 600, events).is_empty());
 }
 
 #[test]
@@ -464,11 +477,11 @@ fn repeated_marker_with_a_new_id_does_not_upgrade_the_next_kill() {
         vec![expected("已发布双杀", 2)]
     );
     events.extend([kill(3, 101.04, "后续普通杀"), multikill(4, 101.0, 2)]);
-    assert!(poll(&mut tracker, base, 100, events.clone()).is_empty());
     assert_eq!(
-        poll(&mut tracker, base, 700, events.clone()),
+        poll(&mut tracker, base, 100, events.clone()),
         vec![expected("后续普通杀", 1)]
     );
+    assert!(poll(&mut tracker, base, 700, events.clone()).is_empty());
     assert!(poll(&mut tracker, base, 1000, events).is_empty());
 }
 
@@ -476,17 +489,17 @@ fn repeated_marker_with_a_new_id_does_not_upgrade_the_next_kill() {
 fn late_marker_does_not_reemit_or_upgrade_a_nearby_new_kill() {
     let (mut tracker, base) = initialized();
     let mut events = vec![kill(1, 101.0, "已发布普通杀")];
-    assert!(poll(&mut tracker, base, 0, events.clone()).is_empty());
     assert_eq!(
-        poll(&mut tracker, base, 600, events.clone()),
+        poll(&mut tracker, base, 0, events.clone()),
         vec![expected("已发布普通杀", 1)]
     );
+    assert!(poll(&mut tracker, base, 600, events.clone()).is_empty());
     events.extend([kill(2, 101.04, "邻近新杀"), multikill(3, 101.0, 2)]);
-    assert!(poll(&mut tracker, base, 700, events.clone()).is_empty());
     assert_eq!(
-        poll(&mut tracker, base, 1300, events.clone()),
+        poll(&mut tracker, base, 700, events.clone()),
         vec![expected("邻近新杀", 1)]
     );
+    assert!(poll(&mut tracker, base, 1300, events.clone()).is_empty());
     assert!(poll(&mut tracker, base, 1500, events).is_empty());
 }
 
@@ -494,45 +507,47 @@ fn late_marker_does_not_reemit_or_upgrade_a_nearby_new_kill() {
 fn marker_at_the_merge_deadline_cannot_upgrade_an_expired_kill() {
     let (mut tracker, base) = initialized();
     let mut events = vec![kill(1, 101.0, "截止时击杀")];
-    assert!(poll(&mut tracker, base, 0, events.clone()).is_empty());
-    events.push(multikill(2, 101.0, 2));
     assert_eq!(
-        poll(&mut tracker, base, 600, events),
+        poll(&mut tracker, base, 0, events.clone()),
         vec![expected("截止时击杀", 1)]
     );
+    events.push(multikill(2, 101.0, 2));
+    assert!(poll(&mut tracker, base, 600, events).is_empty());
 }
 
 #[test]
 fn late_marker_in_the_expiry_poll_does_not_upgrade_a_nearby_new_kill() {
     let (mut tracker, base) = initialized();
     let mut events = vec![kill(1, 101.0, "本轮过期旧杀")];
-    assert!(poll(&mut tracker, base, 0, events.clone()).is_empty());
+    assert_eq!(
+        poll(&mut tracker, base, 0, events.clone()),
+        vec![expected("本轮过期旧杀", 1)]
+    );
     events.extend([kill(2, 101.04, "邻近新杀"), multikill(3, 101.0, 2)]);
     assert_eq!(
         poll(&mut tracker, base, 600, events.clone()),
-        vec![expected("本轮过期旧杀", 1)]
-    );
-    assert_eq!(
-        poll(&mut tracker, base, 1200, events),
         vec![expected("邻近新杀", 1)]
     );
+    assert!(poll(&mut tracker, base, 1200, events).is_empty());
 }
 
 #[test]
 fn expired_aoe_first_kill_keeps_an_already_paired_tier_and_allows_the_next_tier() {
     let (mut tracker, base) = initialized();
     let mut events = vec![kill(1, 101.0, "首杀")];
-    assert!(poll(&mut tracker, base, 0, events.clone()).is_empty());
+    assert_eq!(
+        poll(&mut tracker, base, 0, events.clone()),
+        vec![expected("首杀", 1)]
+    );
     events.extend([kill(2, 101.0, "双杀"), multikill(3, 101.0, 2)]);
-    assert!(poll(&mut tracker, base, 350, events.clone()).is_empty());
+    assert_eq!(
+        poll(&mut tracker, base, 350, events.clone()),
+        vec![expected("双杀", 2)]
+    );
     events.extend([kill(4, 101.0, "三杀"), multikill(5, 101.0, 3)]);
     assert_eq!(
         poll(&mut tracker, base, 600, events),
-        vec![
-            expected("首杀", 1),
-            expected("双杀", 2),
-            expected("三杀", 3)
-        ]
+        vec![expected("三杀", 3)]
     );
 }
 
@@ -545,16 +560,16 @@ fn an_ordinary_kill_after_a_confirmed_tier_is_not_covered_by_that_earlier_tier()
         vec![expected("已确认双杀", 2)]
     );
     events.push(kill(3, 101.0, "未配对普通杀"));
-    assert!(poll(&mut tracker, base, 100, events.clone()).is_empty());
+    assert_eq!(
+        poll(&mut tracker, base, 100, events.clone()),
+        vec![expected("未配对普通杀", 1)]
+    );
     events.extend([kill(4, 101.04, "新普通杀"), multikill(5, 101.0, 3)]);
     assert_eq!(
         poll(&mut tracker, base, 700, events.clone()),
-        vec![expected("未配对普通杀", 1)]
-    );
-    assert_eq!(
-        poll(&mut tracker, base, 1300, events),
         vec![expected("新普通杀", 1)]
     );
+    assert!(poll(&mut tracker, base, 1300, events).is_empty());
 }
 
 #[test]
@@ -568,11 +583,11 @@ fn baseline_markers_and_baseline_kills_cannot_upgrade_new_kills() {
         }
         assert!(poll(&mut tracker, base, 0, events.clone()).is_empty());
         events.extend([kill(3, 101.04, "新杀"), multikill(4, 101.0, 2)]);
-        assert!(poll(&mut tracker, base, 100, events.clone()).is_empty());
         assert_eq!(
-            poll(&mut tracker, base, 700, events),
+            poll(&mut tracker, base, 100, events.clone()),
             vec![expected("新杀", 1)]
         );
+        assert!(poll(&mut tracker, base, 700, events).is_empty());
     }
 }
 
@@ -580,11 +595,11 @@ fn baseline_markers_and_baseline_kills_cannot_upgrade_new_kills() {
 fn marker_cannot_attach_to_a_champion_kill_with_a_later_event_id() {
     let (mut tracker, base) = initialized();
     let events = vec![multikill(1, 101.0, 2), kill(2, 101.0, "后来的事件")];
-    assert!(poll(&mut tracker, base, 0, events.clone()).is_empty());
     assert_eq!(
-        poll(&mut tracker, base, 600, events),
+        poll(&mut tracker, base, 0, events.clone()),
         vec![expected("后来的事件", 1)]
     );
+    assert!(poll(&mut tracker, base, 600, events).is_empty());
 }
 
 #[test]
@@ -619,22 +634,22 @@ fn across_tick_timestamp_fallback_requires_a_unique_candidate() {
         kill(2, 101.025, "候选二"),
         multikill(3, 101.05, 2),
     ];
-    assert!(poll(&mut tracker, base, 0, events.clone()).is_empty());
     assert_eq!(
-        poll(&mut tracker, base, 600, events),
+        poll(&mut tracker, base, 0, events.clone()),
         vec![expected("候选一", 1), expected("候选二", 1)]
     );
+    assert!(poll(&mut tracker, base, 600, events).is_empty());
 }
 
 #[test]
 fn timestamp_difference_beyond_one_hundred_milliseconds_does_not_upgrade() {
     let (mut tracker, base) = initialized();
     let events = vec![kill(1, 101.0, "无时间关联"), multikill(2, 101.101, 5)];
-    assert!(poll(&mut tracker, base, 0, events.clone()).is_empty());
     assert_eq!(
-        poll(&mut tracker, base, 600, events),
+        poll(&mut tracker, base, 0, events.clone()),
         vec![expected("无时间关联", 1)]
     );
+    assert!(poll(&mut tracker, base, 600, events).is_empty());
 }
 
 #[test]
@@ -654,11 +669,11 @@ fn invalid_or_missing_marker_timestamps_do_not_upgrade() {
             marker.as_object_mut().unwrap().remove("EventTime");
         }
         let events = vec![kill(1, 101.0, "正常击杀"), marker];
-        assert!(poll(&mut tracker, base, 0, events.clone()).is_empty());
         assert_eq!(
-            poll(&mut tracker, base, 600, events),
+            poll(&mut tracker, base, 0, events.clone()),
             vec![expected("正常击杀", 1)]
         );
+        assert!(poll(&mut tracker, base, 600, events).is_empty());
     }
 }
 
@@ -683,11 +698,11 @@ fn invalid_or_missing_official_tiers_do_not_upgrade() {
             marker.as_object_mut().unwrap().remove("KillStreak");
         }
         let events = vec![kill(1, 101.0, "正常击杀"), marker];
-        assert!(poll(&mut tracker, base, 0, events.clone()).is_empty());
         assert_eq!(
-            poll(&mut tracker, base, 600, events),
+            poll(&mut tracker, base, 0, events.clone()),
             vec![expected("正常击杀", 1)]
         );
+        assert!(poll(&mut tracker, base, 600, events).is_empty());
     }
 }
 
@@ -700,12 +715,15 @@ fn missing_champion_time_and_nonfinite_internal_time_remain_ordinary_kills() {
             vec![kill(1, 101.0, "未定时间"), multikill(2, 101.0, 2)],
         );
         snap.events.events[0].event_time = time;
-        assert!(tracker.observe_at(&snap, base).unwrap().is_empty());
         assert_eq!(
+            tracker.observe_at(&snap, base).unwrap(),
+            vec![expected("未定时间", 1)]
+        );
+        assert!(
             tracker
                 .observe_at(&snap, base + Duration::from_millis(600))
-                .unwrap(),
-            vec![expected("未定时间", 1)]
+                .unwrap()
+                .is_empty()
         );
     }
 }
@@ -738,9 +756,8 @@ fn read_failure_flush_contains_only_confirmed_pending_kills_and_retains_matched_
         kill(3, 102.0, "已观察双杀"),
         multikill(4, 102.0, 2),
     ]);
-    assert!(poll(&mut tracker, base, 100, events).is_empty());
     assert_eq!(
-        tracker.flush_pending(),
+        poll(&mut tracker, base, 100, events),
         vec![expected("已观察单杀", 1), expected("已观察双杀", 2)]
     );
     assert!(tracker.flush_pending().is_empty());

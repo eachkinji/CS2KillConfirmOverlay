@@ -1,13 +1,14 @@
 param()
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
+. (Join-Path $PSScriptRoot '..\Common\SourceView.ps1')
 function Method([string]$source, [string]$name) {
     $match = [regex]::Match($source, '(?ms)^        private [^\r\n]+\b' + $name + '\([^)]*\).*?^        \}')
     if (!$match.Success) { throw "Method not found: $name" }
     $match.Value
 }
 foreach ($renderer in @('Widget', 'CompatibilityHost/Renderer')) {
-    $source = Get-Content -Raw (Join-Path $root "$renderer/Controls/Animations/Core/KillConfirmAnimation.Playback.cs")
+    $source = Get-Content -Raw (Resolve-SourcePath $root "$renderer/Controls/Animations/Core/KillConfirmAnimation.Playback.cs")
     $methods = (Method $source 'BeginReplacementPlayback') + "`n" + (Method $source 'PlayInternal')
     $class = if ($renderer -eq 'Widget') { 'WidgetReplacementProbe' } else { 'DesktopReplacementProbe' }
     $harness = @'

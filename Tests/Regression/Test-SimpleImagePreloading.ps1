@@ -1,10 +1,11 @@
 #Requires -Version 7.0
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
+. (Join-Path $PSScriptRoot '..\Common\SourceView.ps1')
 $sources=@()
 foreach($game in @('Dagoujiao','Doubao')) {
-    $sources += [IO.File]::ReadAllText((Join-Path $root "Widget/Controls/Animations/$game/$($game)Animation.Resources.cs"))
-    $play=[IO.File]::ReadAllText((Join-Path $root "Widget/Controls/Animations/$game/$($game)Animation.Playback.cs"))
+    $sources += [IO.File]::ReadAllText((Resolve-SourcePath $root "Widget/Controls/Animations/$game/$($game)Animation.Resources.cs"))
+    $play=[IO.File]::ReadAllText((Resolve-SourcePath $root "Widget/Controls/Animations/$game/$($game)Animation.Playback.cs"))
     $start=$play.IndexOf("        public async void Play$($game)Kill(")
     $end=$play.IndexOf("        private void Prepare$($game)Playback",$start)
     $sources += "namespace KillConfirmGameBar.Controls { public sealed partial class KillConfirmAnimation {`n"+$play.Substring($start,$end-$start)+"`n} }"

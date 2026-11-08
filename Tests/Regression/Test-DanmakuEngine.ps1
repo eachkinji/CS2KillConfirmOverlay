@@ -1,7 +1,8 @@
 #Requires -Version 7.0
 $ErrorActionPreference = 'Stop'
 $RepositoryRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
-$engineRoot = Join-Path $RepositoryRoot 'Widget/Danmaku/Engine'
+. (Join-Path $PSScriptRoot '..\Common\SourceView.ps1')
+$engineRoot = Resolve-SourceDirectory $RepositoryRoot 'Widget/Danmaku/Engine'
 
 $requiredModules = @(
     'DanmakuEvent.cs',
@@ -83,7 +84,7 @@ if ($policy -notmatch 'MinimumVisibleCount\s*=\s*5' -or
     throw 'Danmaku 5–9 ambient / 9 event-visible / 30-second lifetime invariants are missing.'
 }
 
-$settingsSource = Get-Content -Raw -LiteralPath (Join-Path $RepositoryRoot 'Widget/Danmaku/DanmakuSettingsStore.cs')
+$settingsSource = Get-Content -Raw -LiteralPath (Resolve-SourcePath $RepositoryRoot 'Widget/Danmaku/DanmakuSettingsStore.cs')
 $schedulerSource = Get-Content -Raw -LiteralPath (Join-Path $engineRoot 'DanmakuLiveScheduler.cs')
 $motionSource = Get-Content -Raw -LiteralPath (Join-Path $engineRoot 'DanmakuMotion.cs')
 $weightEngineSource = Get-Content -Raw -LiteralPath (Join-Path $engineRoot 'DanmakuWeightEngine.cs')
@@ -159,7 +160,7 @@ foreach ($eventKey in $expectedPoolKeys) {
     }
 }
 
-$overlay = Get-Content -Raw -LiteralPath (Join-Path $RepositoryRoot 'Widget/Danmaku/DanmakuOverlay.xaml.cs')
+$overlay = Get-Content -Raw -LiteralPath (Resolve-SourcePath $RepositoryRoot 'Widget/Danmaku/DanmakuOverlay.xaml.cs')
 if ($overlay -notmatch 'TriggerGameEvent\(KillEvent gameEvent\)' -or
     $overlay -notmatch 'EventTestRequested' -or
     $overlay -notmatch 'TriggerOnRound' -or
@@ -180,7 +181,7 @@ if ($overlay -notmatch 'TriggerGameEvent\(KillEvent gameEvent\)' -or
     throw 'Danmaku overlay no longer guarantees event routing, capacity, single-line text, full flight, and completion-only removal.'
 }
 
-$settingsStore = Get-Content -Raw -LiteralPath (Join-Path $RepositoryRoot 'Widget/Danmaku/DanmakuSettingsStore.cs')
+$settingsStore = Get-Content -Raw -LiteralPath (Resolve-SourcePath $RepositoryRoot 'Widget/Danmaku/DanmakuSettingsStore.cs')
 foreach ($setting in @('TriggerOnRound', 'TriggerOnObjective', 'RequestEventTest')) {
     if ($settingsStore -notmatch $setting) {
         throw "Danmaku advanced setting missing: $setting"
@@ -239,7 +240,7 @@ if ($schedulerSource -notmatch 'SelectEventDanmaku' -or
     throw 'Event tests and live events must share the same large event-only pool selector.'
 }
 
-$repository = Get-Content -Raw -LiteralPath (Join-Path $RepositoryRoot 'Widget/Danmaku/DanmakuRepository.cs')
+$repository = Get-Content -Raw -LiteralPath (Resolve-SourcePath $RepositoryRoot 'Widget/Danmaku/DanmakuRepository.cs')
 $eventPoolRepository = Get-Content -Raw -LiteralPath (Join-Path $engineRoot 'DanmakuEventPoolRepository.cs')
 if ($repository -match 'Fallback(?:Kill|Death|General)?Memes|GetRandom(?:Kill|Death|General)?Batch' -or
     $repository -notmatch 'TryGetByIndex' -or
@@ -247,7 +248,7 @@ if ($repository -match 'Fallback(?:Kill|Death|General)?Memes|GetRandom(?:Kill|De
     throw 'Runtime danmaku must resolve only validated 1-based indices from 6657_memes.json.'
 }
 
-$animation = Get-Content -Raw -LiteralPath (Join-Path $RepositoryRoot 'Widget/Pages/KillConfirmWidget/Animation/KillConfirmWidgetPage.Animation.cs')
+$animation = Get-Content -Raw -LiteralPath (Resolve-SourcePath $RepositoryRoot 'Widget/Pages/KillConfirmWidget/Animation/KillConfirmWidgetPage.Animation.cs')
 if ($animation -notmatch 'DanmakuOverlayControl\?\.TriggerGameEvent\(killEvent\)') {
     throw 'All service events must be routed into the danmaku classifier before style filtering.'
 }

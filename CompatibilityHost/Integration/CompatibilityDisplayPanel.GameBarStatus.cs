@@ -42,6 +42,8 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             if (PinStatusDetail != null) PinStatusDetail.Foreground = theme.Brush(theme.MutedText);
             if (ClickThroughStatusTitle != null) ClickThroughStatusTitle.Foreground = theme.Brush(theme.Text);
             if (ClickThroughStatusDetail != null) ClickThroughStatusDetail.Foreground = theme.Brush(theme.MutedText);
+            if (GameDataStatusTitle != null) GameDataStatusTitle.Foreground = theme.Brush(theme.Text);
+            if (GameDataStatusDetail != null) GameDataStatusDetail.Foreground = theme.Brush(theme.MutedText);
         }
 
         private void RefreshGameBarStatus()
@@ -52,6 +54,29 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             }
 
             bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
+            bool isLol = GameSourceSettingsStore.IsLol;
+            var gsi = GsiStatusMonitor.Instance.CurrentSnapshot;
+            if (GameDataStatusTitle != null)
+            {
+                GameDataStatusTitle.Text = isLol
+                    ? (isChinese ? "英雄联盟对局连接 (LOL)" : "LOL Match Connection")
+                    : (isChinese ? "CS 对局数据 (GSI)" : "CS Game Data (GSI)");
+                SetGameBarStatusRow(
+                    GameDataStatusDot,
+                    GameDataStatusDetail,
+                    GameDataStatusBadge,
+                    gsi.IsGreen ? (bool?)true : null,
+                    isLol
+                        ? (gsi.IsGreen
+                            ? (isChinese ? "对局已连接 · 正在以 50ms 实时采集英雄击杀与目标事件" : "Match connected · 50ms live polling active")
+                            : (isChinese ? "无需安装 CFG · 进入英雄联盟对局或训练营后自动亮绿" : "No CFG needed · turns green automatically in LOL match"))
+                        : (gsi.IsGreen
+                            ? (isChinese ? "正在实时接收 CS 对局数据" : "Receiving live CS match data")
+                            : (isChinese ? "进入 CS 对局后自动接收 GSI 数据" : "Receives GSI data automatically in CS match")),
+                    gsi.IsGreen
+                        ? (isChinese ? "采集中" : "Active")
+                        : (isChinese ? "等待对局" : "Waiting"));
+            }
             GameBarRuntimeStatus status = GameBarRuntimeStatusStore.Read();
             if (!status.IsAvailable)
             {

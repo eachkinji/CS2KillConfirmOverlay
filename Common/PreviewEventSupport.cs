@@ -19,11 +19,14 @@ namespace KillConfirmCompatibility.Contracts
                     return style == "modernwarfare2019" || economy;
                 case "assist":
                     return style == "crossfire" || style == "csol" || style == "overwatch" || style == "modernwarfare2019" || style == "apex" || economy;
-                case "badge_first": case "badge_last":
+                case "badge_first": case "badge_last": case "badge_revenge":
                     return style == "crossfire" || style == "csol" || style == "modernwarfare2019";
                 case "one": case "one_hs": case "one_knife": case "one_grenade": case "one_first": case "one_last":
                 case "gold_first": case "gold_last": case "two": case "three": case "four": case "five":
-                case "six": case "seven": case "eight": case "nine": return true;
+                case "six": case "seven": case "eight": case "nine":
+                case "lol_first_blood": case "lol_shutdown": case "lol_revenge":
+                case "lol_assist": case "lol_dragon": case "lol_steal":
+                case "lol_turret": case "lol_ace": return true;
                 default: return false;
             }
         }

@@ -16,7 +16,8 @@
       "kill_8": "8kill.mp3",
       "headshot": "headshot.mp3",
       "knife": "knife.mp3",
-      "grenade": "grenade.mp3"
+      "grenade": "grenade.mp3",
+      "podi": "podi.mp3"
     },
     "overlay_slots": []
   }

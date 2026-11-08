@@ -1,6 +1,7 @@
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
-$source = Get-Content -Raw (Join-Path $root 'Widget/Pages/Main/Packs/MainPage.PackOrder.cs')
+. (Join-Path $PSScriptRoot '..\Common\SourceView.ps1')
+$source = Get-Content -Raw (Resolve-SourcePath $root 'Widget/Pages/Main/Packs/MainPage.PackOrder.cs')
 [xml]$xaml = Get-Content -Raw (Join-Path $root 'Widget/Pages/Main/MainPage.xaml')
 $ns = New-Object Xml.XmlNamespaceManager($xaml.NameTable)
 $ns.AddNamespace('ui','http://schemas.microsoft.com/winfx/2006/xaml/presentation')

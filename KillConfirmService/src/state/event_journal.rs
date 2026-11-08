@@ -11,6 +11,12 @@ pub struct SequencedKillEvent {
     pub event: KillEvent,
     #[serde(skip_serializing_if = "is_zero_u64")]
     pub published_unix_ms: u64,
+    // Event contract v2 (appended; v1 fields above are unchanged).
+    pub schema: u8,
+    pub source: crate::game_sources::GameSource,
+    pub intent: crate::feedback::FeedbackIntent,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub detail: Option<crate::feedback::SourceDetail>,
 }
 
 fn is_zero_u64(value: &u64) -> bool {
@@ -36,6 +42,8 @@ pub struct EventJournal {
     source_generation: AtomicU64,
     discarded_through: AtomicU64,
     queue: Mutex<VecDeque<SequencedKillEvent>>,
+    // Updated together with the generation while the queue lock is held.
+    source: std::sync::Mutex<crate::game_sources::GameSource>,
     notify: Notify,
 }
 
@@ -46,34 +54,62 @@ impl Default for EventJournal {
             source_generation: AtomicU64::new(0),
             discarded_through: AtomicU64::new(0),
             queue: Mutex::new(VecDeque::with_capacity(EVENT_QUEUE_CAPACITY)),
+            source: std::sync::Mutex::new(crate::game_sources::GameSource::Cs2),
             notify: Notify::new(),
         }
     }
 }
 
 impl EventJournal {
+    /// Keeps the current source; used by callers that only advance generation.
+    #[cfg(test)]
     pub async fn reset_source(&self, generation: u64) {
+        let source = self.current_source();
+        self.reset_source_to(generation, source).await;
+    }
+
+    pub async fn reset_source_to(&self, generation: u64, source: crate::game_sources::GameSource) {
         let mut queue = self.queue.lock().await;
         queue.clear();
         self.discarded_through
             .store(self.latest_cursor(), Ordering::Release);
         self.source_generation.store(generation, Ordering::Release);
+        if let Ok(mut current) = self.source.lock() {
+            *current = source;
+        }
         self.notify.notify_waiters();
+    }
+
+    pub fn current_source(&self) -> crate::game_sources::GameSource {
+        self.source
+            .lock()
+            .map(|source| *source)
+            .unwrap_or(crate::game_sources::GameSource::Cs2)
     }
 
     pub fn latest_cursor(&self) -> u64 {
         self.next_id.load(Ordering::Acquire)
     }
 
+    /// v1 entry point: derives the intent from the event, without source detail.
     pub async fn publish(&self, event: KillEvent) -> u64 {
+        self.publish_envelope(crate::feedback::FeedbackEnvelope::from_event(event))
+            .await
+    }
+
+    pub async fn publish_envelope(&self, envelope: crate::feedback::FeedbackEnvelope) -> u64 {
         let published_unix_ms = unix_time_ms();
         let mut queue = self.queue.lock().await;
         let id = self.next_id.fetch_add(1, Ordering::AcqRel) + 1;
         queue.push_back(SequencedKillEvent {
             id,
             source_generation: self.source_generation.load(Ordering::Acquire),
-            event,
+            event: envelope.event,
             published_unix_ms,
+            schema: crate::feedback::EVENT_SCHEMA,
+            source: self.current_source(),
+            intent: envelope.intent,
+            detail: envelope.detail,
         });
         while queue.len() > EVENT_QUEUE_CAPACITY {
             queue.pop_front();

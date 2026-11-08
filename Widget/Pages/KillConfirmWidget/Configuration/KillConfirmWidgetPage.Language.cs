@@ -80,13 +80,12 @@ namespace KillConfirmGameBar
             UpdateCopyQuarkButton.Content = LocalizationManager.Text("UpdateCopyQuark");
             SetNamedToolTip(HeaderStatusSection.ConnectionStatusBadge, LocalizationManager.Text("ServiceStatusTitle"), LocalizationManager.Text("ServiceStatusTooltip"));
             SetNamedToolTip(HeaderStatusSection.CfgStatusBadge, LocalizationManager.Text("CfgStatusTitle"), LocalizationManager.Text("CfgStatusTooltip"));
-            SetNamedToolTip(HeaderStatusSection.GsiStatusBadge, LocalizationManager.Text("GsiStatusTitle"), LocalizationManager.Text("GsiStatusTooltip"));
             SetNamedToolTip(HeaderStatusSection.AnimationCacheStatusBadge, LocalizationManager.Text("AnimationCacheTitle"), LocalizationManager.Text("AnimationCacheTooltip"));
             SetNamedToolTip(HeaderStatusSection.GameStyleSelector, LocalizationManager.Text("GameStyleTitle"), LocalizationManager.Text("GameStyleTooltip"));
 
             HeaderStatusSection.ServiceBadgeText.Text = "SVC";
             HeaderStatusSection.CfgBadgeText.Text = "CFG";
-            HeaderStatusSection.GsiBadgeText.Text = "GSI";
+            UpdateGsiStatus(_serviceConnectionState == KillEventConnectionState.Connected, _gsiRecentlySeen, _lastGsiPosts, null, _lastGsiParseErrors);
             SetGameStyleItemContent(HeaderStatusSection.CrossfireStyleItem, LocalizationManager.Text("GameStyleCrossfireShort"), "ms-appx:///Assets/GameLogos/crossfire.png");
             SetGameStyleItemContent(HeaderStatusSection.CsolStyleItem, LocalizationManager.Text("GameStyleCsolShort"), "ms-appx:///Assets/GameLogos/csol.png");
             SetGameStyleItemContent(HeaderStatusSection.ValorantStyleItem, LocalizationManager.Text("GameStyleValorantShort"), "ms-appx:///Assets/GameLogos/valorant.png");
@@ -230,6 +229,23 @@ namespace KillConfirmGameBar
                 }
 
                 item.Content = GetTestPresetLabel(tag, isChinese);
+                bool isSharedStreak = tag == "one" || tag == "two" || tag == "three" || tag == "four" || tag == "five" || tag == "six" || tag == "seven" || tag == "eight" || tag == "nine";
+                bool isLolTag = tag.StartsWith("lol_", StringComparison.OrdinalIgnoreCase);
+                bool visible = GameSourceSettingsStore.IsLol ? isLolTag : !isLolTag;
+                item.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+            }
+            if (PackTestSectionView.TestPresetSelector.SelectedItem is ComboBoxItem selectedPreset && selectedPreset.Visibility != Visibility.Visible)
+            {
+            {
+                foreach (object option in PackTestSectionView.TestPresetSelector.Items)
+                {
+                    if (option is ComboBoxItem first && first.Visibility == Visibility.Visible)
+                    {
+                        PackTestSectionView.TestPresetSelector.SelectedItem = first;
+                        break;
+                    }
+                }
+            }
             }
         }
 
@@ -256,6 +272,24 @@ namespace KillConfirmGameBar
                     case "seven": return "7 kills";
                     case "eight": return "8 kills";
                     case "nine": return "9 kills";
+                    case "lol_first_blood": return "First Blood";
+                    case "lol_kill_1": return "1 Kill";
+                    case "lol_kill_2": return "Double Kill (2)";
+                    case "lol_kill_3": return "Triple Kill (3)";
+                    case "lol_kill_4": return "Quadra Kill (4)";
+                    case "lol_kill_5": return "Penta Kill (5)";
+                    case "lol_kill_6": return "Hexa Kill (6)";
+                    case "lol_kill_7": return "7 Kills";
+                    case "lol_kill_8": return "8+ Kills (Legendary)";
+                    case "lol_dragon_control": return "Objective Control";
+                    case "lol_dragon_steal": return "Objective Steal";
+                    case "lol_shutdown": return "Shutdown";
+                    case "lol_revenge": return "Revenge";
+                    case "lol_assist": return "Assist (LOL)";
+                    case "lol_dragon": return "Objective";
+                    case "lol_steal": return "Steal";
+                    case "lol_turret": return "Turret / Inhib";
+                    case "lol_ace": return "Team Ace";
                     case "badge_first": return "First badge";
                     case "badge_last": return "Last badge";
                     case "bomb_plant": return "C4 plant";
@@ -287,6 +321,24 @@ namespace KillConfirmGameBar
                 case "seven": return "7杀";
                 case "eight": return "8杀";
                 case "nine": return "9杀";
+                case "lol_first_blood": return "一血";
+                case "lol_kill_1": return "单杀 (1杀)";
+                case "lol_kill_2": return "双杀 (2杀)";
+                case "lol_kill_3": return "三杀 (3杀)";
+                case "lol_kill_4": return "四杀 (4杀)";
+                case "lol_kill_5": return "五杀 (5杀)";
+                case "lol_kill_6": return "六杀 (6杀)";
+                case "lol_kill_7": return "七杀 (7杀)";
+                case "lol_kill_8": return "八杀+ (超神)";
+                case "lol_dragon_control": return "控龙";
+                case "lol_dragon_steal": return "抢龙";
+                case "lol_shutdown": return "终结";
+                case "lol_revenge": return "复仇";
+                case "lol_assist": return "助攻";
+                case "lol_dragon": return "控龙";
+                case "lol_steal": return "抢龙";
+                case "lol_turret": return "推塔/破水晶";
+                case "lol_ace": return "团灭";
                 case "badge_first": return "首杀徽章";
                 case "badge_last": return "尾杀徽章";
                 case "bomb_plant": return "C4安包";

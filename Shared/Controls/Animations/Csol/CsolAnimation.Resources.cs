@@ -1,0 +1,127 @@
+// Shared by Widget (UWP) and CompatibilityHost; extracted from both former copies.
+// Per-host lines stay inside #if WINDOWS_UWP blocks. See Tools/SharedSource/extract_shared.py.
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+#if WINDOWS_UWP
+using KillConfirmGameBar.Services;
+#else
+using KillConfirmCompatibility.Services;
+#endif
+using Microsoft.Graphics.Canvas;
+using Windows.Foundation;
+using Windows.Storage;
+
+#if WINDOWS_UWP
+namespace KillConfirmGameBar.Controls
+#else
+namespace KillConfirmCompatibility.Controls
+#endif
+{
+    public sealed partial class KillConfirmAnimation
+    {
+        private async Task<AnimationAsset> LoadCsolKillAssetAsync(int killCount, string specialKey, IProgress<int> progress = null, bool requireCached = false)
+        {
+            string normalizedSpecialKey = (specialKey ?? string.Empty).Trim().ToLowerInvariant();
+            string cacheKey = (_iconPack ?? "csol4") + ":csol4";
+            if (!CsolKillCache.TryGetValue(cacheKey, out CsolKillAsset baseAsset))
+            {
+                if (requireCached) throw new InvalidOperationException("CSOL resources were not preloaded.");
+                StorageFolder customFolder = null;
+                if (PackCatalogService.IsImportedIconPackKey(_iconPack))
+                {
+                    customFolder = await PackCatalogService.GetImportedIconFolderAsync(_iconPack);
+                }
+
+                string fallbackFolder = "Assets/KillConfirmCode/" + Csol4CodeFolder + "/";
+                var streak = new CanvasBitmap[10];
+                for (int i = 0; i < 10; i++)
+                {
+                    streak[i] = await LoadCsolBitmapFromFolderOrDefaultAsync(
+                        customFolder,
+                        (i + 1) + "kill.png",
+                        fallbackFolder);
+                }
+
+                progress?.Report(40);
+                baseAsset = new CsolKillAsset
+                {
+                    Streak = streak,
+                    Headshot = await LoadCsolBitmapFromFolderOrDefaultAsync(
+                        customFolder,
+                        "headshot_kill.png",
+                        fallbackFolder),
+                    Melee = await LoadCsolBitmapFromFolderOrDefaultAsync(
+                        customFolder,
+                        "melee_kill.png",
+                        fallbackFolder),
+                    Revenge = await LoadCsolBitmapFromFolderOrDefaultAsync(
+                        customFolder,
+                        "revenge.png",
+                        fallbackFolder),
+                    FirstKill = await LoadCsolBitmapFromFolderOrDefaultAsync(
+                        customFolder,
+                        "firstkill.png",
+                        fallbackFolder),
+                    Assist = await LoadCsolBitmapFromFolderOrDefaultAsync(
+                        customFolder,
+                        "assist.png",
+                        fallbackFolder),
+                    GrenadeKill = await LoadCsolBitmapFromFolderOrDefaultAsync(
+                        customFolder,
+                        "grenade_kill.png",
+                        fallbackFolder)
+                };
+                CsolKillCache[cacheKey] = baseAsset;
+            }
+
+            progress?.Report(90);
+            var playAsset = new CsolKillAsset
+            {
+                Streak = baseAsset.Streak,
+                Headshot = baseAsset.Headshot,
+                Melee = baseAsset.Melee,
+                Revenge = baseAsset.Revenge,
+                FirstKill = baseAsset.FirstKill,
+                Assist = baseAsset.Assist,
+                GrenadeKill = baseAsset.GrenadeKill,
+                KillCount = Math.Max(0, Math.Min(10, killCount)),
+                SpecialKey = GetCsolSpecialFileName(normalizedSpecialKey) == null
+                    ? string.Empty
+                    : normalizedSpecialKey
+            };
+
+            progress?.Report(100);
+            return new AnimationAsset(
+                new SpriteMetadata
+                {
+                    FrameWidth = (int)CsolFrameWidth,
+                    FrameHeight = (int)CsolFrameHeight,
+                    Frames = (int)Math.Ceiling((CsolHoldSeconds + CsolFadeSeconds) * FrameSequenceFps),
+                    Fps = FrameSequenceFps
+                },
+                playAsset);
+        }
+
+        private static async Task<CanvasBitmap> LoadCsolBitmapFromFolderOrDefaultAsync(StorageFolder folder, string fileName, string fallbackFolder)
+        {
+            if (folder != null)
+            {
+                try
+                {
+                    StorageFile file = await folder.GetFileAsync(fileName);
+                    if (file != null)
+                    {
+                        return await LoadBitmapFromStorageFileAsync(file);
+                    }
+                }
+                catch
+                {
+                }
+            }
+
+            return await LoadBitmapFromApplicationUriAsync("ms-appx:///" + fallbackFolder + fileName);
+        }
+
+    }
+}

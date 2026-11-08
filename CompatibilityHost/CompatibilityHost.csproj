@@ -16,6 +16,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../Common/*.cs" Link="Common/%(Filename)%(Extension)" />
+    <!-- Code shared with Widget; each file selects its namespace with WINDOWS_UWP. -->
+    <Compile Include="../Shared/**/*.cs" Link="Shared/%(RecursiveDir)%(Filename)%(Extension)" />
     <Compile Include="../Widget/Validation/CalabiyauDefaultRenderValidation.cs" Link="Validation/CalabiyauDefaultRenderValidation.cs" />
     <Compile Remove="Integration/**/*.cs" />
     <Page Remove="Integration/**/*.xaml" />

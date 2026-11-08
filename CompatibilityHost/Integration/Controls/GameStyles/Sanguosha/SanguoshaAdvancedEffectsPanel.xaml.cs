@@ -14,6 +14,11 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay.Controls.GameStyles
         {
             InitializeComponent();
             Loaded += OnLoaded;
+            Unloaded += (s, e) => GameSourceSettingsStore.Changed -= OnGameSourceChanged;
+        }
+        private void OnGameSourceChanged(object sender, EventArgs e)
+        {
+            _ = Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => ApplyLanguage(LocalizationManager.Current == UiLanguage.SimplifiedChinese));
         }
 
         public event SelectionChangedEventHandler StreakModeSelectionChanged;
@@ -21,7 +26,6 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay.Controls.GameStyles
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
-            RefreshSettings();
         }
 
         internal void RefreshSettings()
@@ -113,9 +117,27 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay.Controls.GameStyles
             GrenadeIconSpecialPriorityItem.Content = GrenadeSpecialPriorityItem.Content;
             HeadshotIconStreakPriorityItem.Content = HeadshotStreakPriorityItem.Content;
             KnifeIconStreakPriorityItem.Content = HeadshotStreakPriorityItem.Content;
+            KnifeIconStreakPriorityItem.Content = HeadshotStreakPriorityItem.Content;
             GrenadeIconStreakPriorityItem.Content = HeadshotStreakPriorityItem.Content;
+            if (GameSourceSettingsStore.IsLol)
+            {
+                TitleText.Text = isChinese ? "三国杀连破播报与优先级 · 英雄联盟模式" : "Sanguosha Broadcast & Priorities · LOL Mode";
+                HintText.Text = isChinese ? "英雄联盟模式：1–7 杀对应首破至七破，8 杀及以上重复神威震乾坤；一血/终结/团灭/复仇播放万夫莫敌；助攻播放神医妙手；控龙/抢龙播放青囊济世；推塔/一血塔/破水晶播放破敌。" : "LOL Mode: 1-7 kills play First Strike..Seven Kills, 8+ kills repeat Tier 8; First Blood/Shutdown/Ace/Revenge play Tier 9; Assist plays 神医妙手; Objective/Steal plays 青囊济世; Turret/Inhibitor plays 破敌.";
+                if (PrioritiesGroupLabel != null) PrioritiesGroupLabel.Text = isChinese ? "助攻、控龙与推塔提示优先级" : "Assist, Objective & Turret Priority";
+                HeadshotAudioPriorityLabel.Text = isChinese ? "助攻（神医妙手）声音" : "Assist audio";
+                KnifeAudioPriorityLabel.Text = isChinese ? "控龙/抢龙（青囊济世）声音" : "Objective/Steal audio";
+                GrenadeAudioPriorityLabel.Text = isChinese ? "推塔/破水晶（破敌）声音" : "Turret/Inhibitor audio";
+                HeadshotSpecialPriorityItem.Content = isChinese ? "神医妙手优先" : "Assist priority";
+                KnifeSpecialPriorityItem.Content = isChinese ? "青囊济世优先" : "Objective priority";
+                GrenadeSpecialPriorityItem.Content = isChinese ? "破敌优先" : "Turret priority";
+                HeadshotIconPriorityLabel.Text = isChinese ? "助攻（神医妙手）动画" : "Assist animation";
+                KnifeIconPriorityLabel.Text = isChinese ? "控龙/抢龙（青囊济世）动画" : "Objective/Steal animation";
+                GrenadeIconPriorityLabel.Text = isChinese ? "推塔/破水晶（破敌）动画" : "Turret/Inhibitor animation";
+                HeadshotIconSpecialPriorityItem.Content = HeadshotSpecialPriorityItem.Content;
+                KnifeIconSpecialPriorityItem.Content = KnifeSpecialPriorityItem.Content;
+                GrenadeIconSpecialPriorityItem.Content = GrenadeSpecialPriorityItem.Content;
+            }
 
-            RefreshSettings();
         }
 
         public string GetSelectedStreakMode(string fallback) => StreakEditor.GetValue(fallback);

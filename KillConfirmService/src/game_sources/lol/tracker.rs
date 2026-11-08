@@ -1,73 +1,16 @@
-use serde::{Deserialize, Deserializer};
+use super::events::{LolDetail, LolEventKind, Roster};
+pub(super) use super::snapshot::Snapshot;
+use super::snapshot::{Event, valid_time};
 use std::{
-    collections::VecDeque,
+    collections::{HashMap, VecDeque},
     time::{Duration, Instant},
 };
 
-const MERGE_WAIT: Duration = Duration::from_millis(600);
+const MERGE_WAIT: Duration = Duration::ZERO;
 const EXACT_TIME_TOLERANCE: f64 = 0.001;
 // Riot does not promise equal timestamps across notification ticks. This is a
 // conservative association tolerance, never a rule for calculating a multikill.
 const UNIQUE_TIME_TOLERANCE: f64 = 0.100;
-
-#[derive(Clone, Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub(super) struct Player {
-    #[serde(default)]
-    pub riot_id: String,
-    #[serde(default)]
-    pub summoner_name: String,
-    #[serde(default)]
-    pub riot_id_game_name: String,
-}
-
-impl Player {
-    fn identity(&self) -> &str {
-        if self.riot_id.is_empty() {
-            &self.summoner_name
-        } else {
-            &self.riot_id
-        }
-    }
-    fn matches(&self, name: &str) -> bool {
-        !name.is_empty()
-            && [&self.riot_id, &self.summoner_name, &self.riot_id_game_name]
-                .iter()
-                .any(|alias| alias.as_str() == name)
-    }
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "PascalCase")]
-pub(super) struct Event {
-    #[serde(rename = "EventID")]
-    pub event_id: u64,
-    pub event_name: String,
-    #[serde(default)]
-    pub killer_name: String,
-    #[serde(default)]
-    pub victim_name: String,
-    #[serde(default, deserialize_with = "optional_time")]
-    pub event_time: Option<f64>,
-    #[serde(default, deserialize_with = "optional_count")]
-    pub kill_streak: Option<u16>,
-}
-
-fn optional_time<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Option<f64>, D::Error> {
-    let value = serde_json::Value::deserialize(deserializer)?;
-    Ok(value
-        .as_f64()
-        .filter(|time| time.is_finite() && *time >= 0.0))
-}
-
-fn optional_count<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Option<u16>, D::Error> {
-    let value = serde_json::Value::deserialize(deserializer)?;
-    Ok(value.as_u64().and_then(|count| u16::try_from(count).ok()))
-}
-
-fn valid_time(time: Option<f64>) -> Option<f64> {
-    time.filter(|time| time.is_finite() && *time >= 0.0)
-}
 
 #[derive(Debug, PartialEq, Eq)]
 pub(super) struct TrackedKill {
@@ -82,6 +25,15 @@ struct PendingKill {
     first_seen: Instant,
     expired: bool,
     marker_id: Option<u64>,
+    streak_kill_count: u16,
+    is_first_kill: bool,
+    is_last_kill: bool,
+    is_shutdown: bool,
+    is_revenge: bool,
+    gold_delta: Option<i32>,
+    weapon_name: String,
+    money_epoch: u32,
+    assisters: Vec<String>,
     kill: TrackedKill,
 }
 
@@ -99,49 +51,115 @@ struct RetiredKill {
     count: u16,
 }
 
-#[derive(Deserialize)]
-pub(super) struct Events {
-    #[serde(rename = "Events")]
-    pub events: Vec<Event>,
-}
-#[derive(Deserialize)]
-pub(super) struct GameData {
-    #[serde(rename = "gameTime")]
-    pub time: f64,
-}
-#[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub(super) struct Snapshot {
-    pub active_player: Player,
-    pub all_players: Vec<Player>,
-    pub events: Events,
-    pub game_data: GameData,
+/// A published local kill plus the Riot facts carried in `detail.lol`.
+#[derive(Debug)]
+pub(super) struct EmittedKill {
+    pub kill: TrackedKill,
+    pub riot_event_id: u64,
+    pub game_time: Option<f64>,
+    pub assisters: Vec<String>,
+    pub is_first_kill: bool,
+    pub is_last_kill: bool,
+    pub is_shutdown: bool,
+    pub is_revenge: bool,
+    pub gold_delta: Option<i32>,
+    pub weapon_name: String,
+    pub money_epoch: u32,
 }
 
-#[derive(Default)]
+/// One poll: local kills ready for feedback plus every other new Riot event.
+#[derive(Debug, Default)]
+pub(super) struct Observed {
+    pub kills: Vec<EmittedKill>,
+    pub observations: Vec<LolDetail>,
+}
+
 pub(super) struct Tracker {
     identity: String,
     last_time: f64,
     last_id: Option<u64>,
     initialized: bool,
+    epoch: u32,
+    require_official_multikill: bool,
+    creep_score_enabled: bool,
+    local_streak_kills: u16,
+    last_gold: Option<f64>,
+    last_creep_score: Option<u32>,
+    enemy_streaks: HashMap<String, u16>,
+    last_killer_of_local: Option<String>,
     pending: VecDeque<PendingKill>,
     markers: Vec<Marker>,
+    first_blood_times: Vec<f64>,
+    ace_times: Vec<f64>,
     // These tombstones belong to this match/local identity, not to EventID.
     // A repeated marker with a new ID must not upgrade another pending kill.
     seen_markers: Vec<(f64, u16)>,
     retired: Vec<RetiredKill>,
 }
 
+impl Default for Tracker {
+    fn default() -> Self {
+        Self {
+            identity: String::new(),
+            last_time: 0.0,
+            last_id: None,
+            initialized: false,
+            epoch: 0,
+            require_official_multikill: true,
+            creep_score_enabled: false,
+            local_streak_kills: 0,
+            last_gold: None,
+            last_creep_score: None,
+            enemy_streaks: HashMap::new(),
+            last_killer_of_local: None,
+            pending: VecDeque::new(),
+            markers: Vec::new(),
+            first_blood_times: Vec::new(),
+            ace_times: Vec::new(),
+            seen_markers: Vec::new(),
+            retired: Vec::new(),
+        }
+    }
+}
+
 impl Tracker {
+    pub fn set_require_official_multikill(&mut self, value: bool) {
+        self.require_official_multikill = value;
+    }
+
+    pub fn set_creep_score_enabled(&mut self, value: bool) {
+        self.creep_score_enabled = value;
+    }
+    #[cfg(test)]
     pub fn observe(&mut self, sample: &Snapshot) -> anyhow::Result<Vec<TrackedKill>> {
         self.observe_at(sample, Instant::now())
     }
 
+    #[cfg(test)]
     pub(super) fn observe_at(
         &mut self,
         sample: &Snapshot,
         now: Instant,
     ) -> anyhow::Result<Vec<TrackedKill>> {
+        Ok(self
+            .observe_detailed_at(sample, now)?
+            .kills
+            .into_iter()
+            .map(|emitted| emitted.kill)
+            .collect())
+    }
+
+    pub fn observe_detailed(&mut self, sample: &Snapshot) -> anyhow::Result<Observed> {
+        self.observe_detailed_at(sample, Instant::now())
+    }
+
+    /// Local kills keep the merge/pairing contract below. Every other new Riot
+    /// event is returned immediately as an observation (never during a baseline).
+    pub(super) fn observe_detailed_at(
+        &mut self,
+        sample: &Snapshot,
+        now: Instant,
+    ) -> anyhow::Result<Observed> {
         let identity = sample.active_player.identity();
         anyhow::ensure!(
             !identity.is_empty() && sample.game_data.time.is_finite(),
@@ -157,16 +175,12 @@ impl Tracker {
             matches.len() == 1,
             "active player is not uniquely identifiable"
         );
-        let local = matches[0];
-        let is_local = |name: &str| {
-            local.matches(name)
-                && sample
-                    .all_players
-                    .iter()
-                    .filter(|p| p.matches(name))
-                    .count()
-                    == 1
+        let roster = Roster {
+            players: &sample.all_players,
+            local: matches[0],
         };
+        let is_local = |name: &str| roster.is_local(name);
+        let mut observations = Vec::new();
         let highest = sample.events.events.iter().map(|e| e.event_id).max();
         let reset = !self.initialized
             || self.identity != identity
@@ -176,13 +190,41 @@ impl Tracker {
         let mut events: Vec<_> = sample.events.events.iter().collect();
         events.sort_by_key(|e| e.event_id);
         if reset {
+            self.epoch = self.epoch.saturating_add(1);
+            self.local_streak_kills = 0;
+            self.last_gold = sample.active_player.current_gold;
+            self.last_creep_score = roster.local.scores.creep_score;
+            self.enemy_streaks.clear();
+            self.last_killer_of_local = None;
             self.pending.clear();
             self.markers.clear();
+            self.first_blood_times.clear();
+            self.ace_times.clear();
             self.seen_markers.clear();
             self.retired.clear();
             // Baseline history never becomes pending. Remember its markers and
             // kill times so a late/replayed notification cannot bind to new work.
             for event in &events {
+                if event.event_name == "ChampionKill" {
+                    self.enemy_streaks.remove(&event.victim_name);
+                    if is_local(&event.victim_name) {
+                        self.local_streak_kills = 0;
+                        if !event.killer_name.is_empty() && !is_local(&event.killer_name) {
+                            self.last_killer_of_local = Some(event.killer_name.clone());
+                        }
+                    } else if is_local(&event.killer_name) {
+                        self.local_streak_kills = self.local_streak_kills.saturating_add(1);
+                        if self
+                            .last_killer_of_local
+                            .as_deref()
+                            .is_some_and(|killer| killer == event.victim_name)
+                        {
+                            self.last_killer_of_local = None;
+                        }
+                    } else if !event.killer_name.is_empty() {
+                        *self.enemy_streaks.entry(event.killer_name.clone()).or_insert(0) += 1;
+                    }
+                }
                 if !is_local(&event.killer_name) {
                     continue;
                 }
@@ -201,11 +243,34 @@ impl Tracker {
         }
         let mut game_ended = false;
         if !reset {
+            let sample_gold_delta = match (self.last_gold, sample.active_player.current_gold) {
+                (Some(prev), Some(curr)) if curr > prev => Some((curr - prev).round() as i32),
+                _ => None,
+            };
+            if sample.active_player.current_gold.is_some() {
+                self.last_gold = sample.active_player.current_gold;
+            }
+            let new_local_kills_count = events
+                .iter()
+                .filter(|e| self.last_id.is_none_or(|id| e.event_id > id))
+                .filter(|e| e.event_name == "ChampionKill" && is_local(&e.killer_name))
+                .count();
+            let per_kill_gold_delta = if new_local_kills_count == 1 {
+                sample_gold_delta
+            } else {
+                None
+            };
             // Once the merge deadline is reached, a newly arriving marker cannot
             // retroactively upgrade the kill, even if this poll itself was slow.
             for pending in &mut self.pending {
                 pending.expired |= now.saturating_duration_since(pending.first_seen) >= MERGE_WAIT;
             }
+            let weapon_name = if roster.local.champion_name.is_empty() {
+                "英雄击杀".to_string()
+            } else {
+                roster.local.champion_name.clone()
+            };
+            let money_epoch = self.epoch.max(1);
             let mut cursor = self.last_id;
             for event in events {
                 if cursor.is_some_and(|id| event.event_id <= id) {
@@ -213,20 +278,74 @@ impl Tracker {
                 }
                 cursor = Some(event.event_id);
                 game_ended |= event.event_name == "GameEnd";
+                let local_kill = event.event_name == "ChampionKill" && is_local(&event.killer_name);
+                let mut victim_streak = 0;
+                if event.event_name == "ChampionKill" {
+                    victim_streak = self.enemy_streaks.remove(&event.victim_name).unwrap_or(0);
+                    if is_local(&event.victim_name) {
+                        self.local_streak_kills = 0;
+                        if !event.killer_name.is_empty() && !is_local(&event.killer_name) {
+                            self.last_killer_of_local = Some(event.killer_name.clone());
+                        }
+                    } else if !local_kill && !event.killer_name.is_empty() {
+                        *self.enemy_streaks.entry(event.killer_name.clone()).or_insert(0) += 1;
+                    }
+                }
+                if !local_kill {
+                    // The local kill itself is published as feedback with detail.
+                    observations.push(LolDetail::from_event(event, &roster));
+                }
+                if event.event_name == "FirstBlood" && is_local(&event.recipient) {
+                    if let Some(time) = valid_time(event.event_time) {
+                        self.first_blood_times.push(time);
+                    }
+                } else if event.event_name == "Ace"
+                    && (is_local(&event.acer)
+                        || roster.team_relation(&event.acing_team)
+                            == super::events::LolRelation::Ally)
+                {
+                    if let Some(time) = valid_time(event.event_time) {
+                        self.ace_times.push(time);
+                    }
+                }
                 if !is_local(&event.killer_name) {
                     continue;
                 }
-                if event.event_name == "ChampionKill" {
+                if local_kill {
+                    self.local_streak_kills = self.local_streak_kills.saturating_add(1);
+                    let is_revenge = self
+                        .last_killer_of_local
+                        .as_deref()
+                        .is_some_and(|killer| killer == event.victim_name);
+                    if is_revenge {
+                        self.last_killer_of_local = None;
+                    }
+                    let is_shutdown =
+                        victim_streak >= 2 || per_kill_gold_delta.is_some_and(|delta| delta >= 450);
+                    let initial_kill_count = if self.require_official_multikill {
+                        1
+                    } else {
+                        self.local_streak_kills.max(1)
+                    };
                     self.pending.push_back(PendingKill {
                         id: event.event_id,
                         time: valid_time(event.event_time),
                         first_seen: now,
                         expired: false,
                         marker_id: None,
+                        streak_kill_count: self.local_streak_kills.max(1),
+                        is_first_kill: false,
+                        is_last_kill: false,
+                        is_shutdown,
+                        is_revenge,
+                        gold_delta: per_kill_gold_delta,
+                        weapon_name: weapon_name.clone(),
+                        money_epoch,
+                        assisters: event.assisters.clone(),
                         kill: TrackedKill {
                             player: identity.to_string(),
                             target: event.victim_name.clone(),
-                            kill_count: 1,
+                            kill_count: initial_kill_count,
                         },
                     });
                 } else if let Some(marker) = Self::marker(event) {
@@ -235,20 +354,59 @@ impl Tracker {
                     }
                 }
             }
+            if let Some(cs) = roster.local.scores.creep_score {
+                if self.creep_score_enabled {
+                    if let Some(prev_cs) = self.last_creep_score {
+                        if cs > prev_cs {
+                            observations.push(LolDetail {
+                                event: LolEventKind::CreepScore,
+                                riot_event_name: "CreepScore".into(),
+                                riot_event_id: highest.unwrap_or(0),
+                                game_time: Some(sample.game_data.time),
+                                relation: super::events::LolRelation::Local,
+                                local_role: super::events::LolLocalRole::Killer,
+                                actor: Some(identity.to_string()),
+                                victim: None,
+                                assisters: Vec::new(),
+                                multikill: None,
+                                acing_team: None,
+                                dragon_type: None,
+                                stolen: None,
+                                structure: None,
+                                result: None,
+                                shutdown: None,
+                                revenge: None,
+                                gold_delta: sample_gold_delta,
+                                creep_score: Some(cs),
+                                extra: None,
+                            });
+                        }
+                    }
+                }
+                self.last_creep_score = Some(cs);
+            }
             self.match_markers();
+            for pending in &mut self.pending {
+                pending.expired |= now.saturating_duration_since(pending.first_seen) >= MERGE_WAIT;
+            }
         }
         self.identity = identity.to_string();
         self.last_time = sample.game_data.time;
         self.last_id = highest;
         self.initialized = true;
-        if game_ended {
-            return Ok(self.flush_pending());
-        }
-        Ok(self.drain_ready())
+        let kills = if game_ended {
+            self.flush_pending_detailed()
+        } else {
+            self.drain_ready()
+        };
+        Ok(Observed {
+            kills,
+            observations,
+        })
     }
 
     fn marker(event: &Event) -> Option<Marker> {
-        if event.event_name != "Multikill" {
+        if LolEventKind::from_riot(&event.event_name) != LolEventKind::Multikill {
             return None;
         }
         let time = valid_time(event.event_time)?;
@@ -317,7 +475,21 @@ impl Tracker {
         for pending in &mut self.pending {
             if !pending.expired {
                 pending.marker_id = None;
-                pending.kill.kill_count = 1;
+                pending.kill.kill_count = if self.require_official_multikill {
+                    1
+                } else {
+                    pending.streak_kill_count.max(1)
+                };
+                if let Some(time) = pending.time {
+                    pending.is_first_kill = self
+                        .first_blood_times
+                        .iter()
+                        .any(|&fb| (time - fb).abs() <= UNIQUE_TIME_TOLERANCE);
+                    pending.is_last_kill = self
+                        .ace_times
+                        .iter()
+                        .any(|&ace| (time - ace).abs() <= UNIQUE_TIME_TOLERANCE);
+                }
             }
         }
         let mut markers = self.markers.clone();
@@ -358,6 +530,17 @@ impl Tracker {
             if kill.count > 1 {
                 return marker.count <= kill.count;
             }
+            if !require_unique
+                && kill.count == 1
+                && marker.count == 2
+                && !settled.iter().any(|other| {
+                    other.id != kill.id
+                        && other.id < marker.id
+                        && (other.time - marker.time).abs() <= EXACT_TIME_TOLERANCE
+                })
+            {
+                return false;
+            }
             // An AOE group may have published [ordinary first kill, double].
             // The later official tier covers that earlier ordinary tombstone;
             // an unpaired ordinary kill after the confirmed tier does not.
@@ -390,10 +573,14 @@ impl Tracker {
         }
         let index = *candidates.last().unwrap();
         self.pending[index].marker_id = Some(marker.id);
-        self.pending[index].kill.kill_count = marker.count;
+        self.pending[index].kill.kill_count = if self.require_official_multikill {
+            marker.count
+        } else {
+            self.pending[index].kill.kill_count.max(marker.count)
+        };
     }
 
-    fn retire(&mut self, pending: PendingKill) -> TrackedKill {
+    fn retire(&mut self, pending: PendingKill) -> EmittedKill {
         if let Some(time) = pending.time {
             self.retired.push(RetiredKill {
                 id: pending.id,
@@ -404,10 +591,22 @@ impl Tracker {
         if let Some(id) = pending.marker_id {
             self.markers.retain(|marker| marker.id != id);
         }
-        pending.kill
+        EmittedKill {
+            kill: pending.kill,
+            riot_event_id: pending.id,
+            game_time: pending.time,
+            assisters: pending.assisters,
+            is_first_kill: pending.is_first_kill,
+            is_last_kill: pending.is_last_kill,
+            is_shutdown: pending.is_shutdown && !pending.is_first_kill,
+            is_revenge: pending.is_revenge,
+            gold_delta: pending.gold_delta,
+            weapon_name: pending.weapon_name,
+            money_epoch: pending.money_epoch,
+        }
     }
 
-    fn drain_ready(&mut self) -> Vec<TrackedKill> {
+    fn drain_ready(&mut self) -> Vec<EmittedKill> {
         let mut result = Vec::new();
         while self
             .pending
@@ -432,7 +631,15 @@ impl Tracker {
 
     /// Flush only new kills already observed after the baseline. The collector
     /// guards source generation before using this on a read failure, then resets.
+    #[cfg(test)]
     pub fn flush_pending(&mut self) -> Vec<TrackedKill> {
+        self.flush_pending_detailed()
+            .into_iter()
+            .map(|emitted| emitted.kill)
+            .collect()
+    }
+
+    pub fn flush_pending_detailed(&mut self) -> Vec<EmittedKill> {
         let mut result = Vec::new();
         while let Some(pending) = self.pending.pop_front() {
             result.push(self.retire(pending));

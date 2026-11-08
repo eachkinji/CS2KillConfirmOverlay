@@ -182,22 +182,9 @@ pub async fn test_event(
         let app_state_clone = app_state.clone();
         let event_clone = event.clone();
         tokio::spawn(async move {
-            let result = crate::soundpack::sound::play_audio_filtered(
-                app_state_clone,
-                event_clone.kill_count,
-                event_clone.is_headshot,
-                event_clone.is_first_kill,
-                event_clone.is_knife_kill,
-                event_clone.is_grenade_kill,
-                event_clone.is_last_kill,
-                event_clone.is_assist,
-                event_clone.money_reward,
-                event_clone.event_kind.clone(),
-                event_clone.event_channel,
-                event_clone.play_main_animation,
-                query.audio_channel.and_then(|channel| channel.filter()),
-            )
-            .await;
+            let result = crate::feedback::AudioRequest::from_event(&event_clone)
+                .play(app_state_clone, query.audio_channel.and_then(|channel| channel.filter()))
+                .await;
 
             if let Err(error) = result {
                 error!("failed to play test audio: {error}");

@@ -1,4 +1,4 @@
-﻿# Compile the existing control-panel sources; Generated is never an independent UI.
+# Compile the existing control-panel sources; Generated is never an independent UI.
 $ErrorActionPreference = 'Stop'
 $taskRepository = Split-Path $PSScriptRoot -Parent
 $taskWidget = Join-Path $taskRepository 'Widget'
@@ -18,6 +18,7 @@ foreach ($taskItem in $taskProject.SelectNodes('//m:Compile|//m:Page', $taskName
     foreach ($taskFile in $taskFiles) {
         $taskRelative = [IO.Path]::GetRelativePath($taskWidget, $taskFile.FullName).Replace('\','/')
         if ($taskRelative.StartsWith('../Common/')) { continue }
+        if ($taskRelative.StartsWith('../Shared/')) { $taskRelative = $taskRelative.Substring('../Shared/'.Length) }
         # Validation items belong to the isolated widget/native test hosts.
         # This XML adapter does not evaluate MSBuild ItemGroup conditions.
         if ($taskRelative.StartsWith('Validation/')) { continue }
@@ -37,6 +38,7 @@ foreach ($taskItem in $taskProject.SelectNodes('//m:Compile|//m:Page', $taskName
         }
         foreach ($taskXamlRoot in @('Pages','Controls','Features')) { $taskText=$taskText.Replace('ms-appx:///'+$taskXamlRoot+'/', 'ms-appx:///Generated/'+$taskXamlRoot+'/') }
         if ($taskFile.Extension -eq '.cs') {
+            $taskText = $taskText.Replace('#if WINDOWS_UWP', '#if WINDOWS_UWP || DESKTOP_CONTROL_PANEL')
             $taskText = $taskText.Replace('Windows.UI.Xaml', 'Microsoft.UI.Xaml')
             $taskText = $taskText.Replace('ApplicationData.Current', 'DesktopPlatform.Data').Replace('Package.Current', 'DesktopPlatform.Package')
             $taskText = $taskText.Replace('Windows.ApplicationModel.DesktopPlatform', 'DesktopPlatform')

@@ -188,6 +188,7 @@ pub(crate) async fn run(mut args: Args) -> Result<()> {
         .cs_version()
         .unwrap_or(GsiGameVersion::DEFAULT);
     let source_generation = selection.generation;
+    let initial_source = selection.source;
     let app_state = Arc::new(AppState {
         mutable: RwLock::new(Mutable {
             active_player: Default::default(),
@@ -268,7 +269,10 @@ pub(crate) async fn run(mut args: Args) -> Result<()> {
 
     service_log(&format!("active audio device: {}", output_device_name));
 
-    app_state.events.reset_source(source_generation).await;
+    app_state
+        .events
+        .reset_source_to(source_generation, initial_source)
+        .await;
     tokio::spawn(crate::game_sources::lol::run(app_state.clone()));
     let watcher_state = app_state.clone();
     tokio::spawn(async move {
@@ -304,6 +308,10 @@ pub(crate) async fn run(mut args: Args) -> Result<()> {
         .route(
             "/game-source/status",
             get(crate::game_sources::source_status),
+        )
+        .route(
+            "/game-source/lol-settings",
+            get(crate::game_sources::get_lol_settings).post(crate::game_sources::set_lol_settings),
         )
         .route(
             "/gsi-game/settings",

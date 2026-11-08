@@ -5,6 +5,8 @@ The service source tree is organized by responsibility instead of collecting dom
 ## Top-level modules
 
 - `api/`: Axum request/response models and HTTP endpoint implementations.
+- `feedback/`: event contract v2 (`docs/event-contract-v2.md`): game-independent `FeedbackIntent`, `SourceDetail`, `AudioRequest`, and the single `emit` path (journal publication, then audio) used by every source.
+- `game_sources/`: source selection plus per-source adapters (`counter_strike/` detail mapping, `lol/` Live Client collector and LOL event contract).
 - `gsi/`: game-state payload parsing, combat detection, and ordered event decisions.
 - `csgo_legacy/`: tolerant Legacy payload adaptation, split into map, player/weapon, and value normalization stages.
 - `state/`: application state, event journal, shared models, and persisted setting types.
@@ -23,6 +25,7 @@ The service source tree is organized by responsibility instead of collecting dom
 - Keep `main.rs` thin; operational behavior belongs in `server` or the matching infrastructure module.
 - Keep public exports narrow; use `pub(crate)` when an item is only shared inside the service.
 - Name ordered GSI stages after their behavior, such as `parsing`, `combat`, and `event_decisions`.
+- Sources publish only through `feedback::emit`; do not call `events.publish` + `play_audio` pairs directly. New game events get a source-specific detail type instead of new CS-shaped `KillEvent` fields.
 - Keep unit tests with their owning module, using a dedicated test file when the block is substantial.
 - `include!` is allowed only for tightly coupled fragments that intentionally share a namespace or function scope. New independent components should use normal Rust modules.
 - Run `cargo fmt --check`, `cargo check`, and relevant tests after structural changes.

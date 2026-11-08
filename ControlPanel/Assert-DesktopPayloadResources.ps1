@@ -44,7 +44,13 @@ if(Test-Path -LiteralPath (Join-Path $assets 'Assets')) {throw 'Desktop payload 
 $expected=@(Get-ChildItem -LiteralPath $source -Recurse -File | Where-Object { [IO.Path]::GetRelativePath($source,$_.FullName).Replace('\','/') -notlike 'GameStyles/sanguosha/killconfirm/lz4/*' })
 if (Test-Path -LiteralPath (Join-Path $assets 'GameStyles/sanguosha/killconfirm/lz4')) { throw 'Retired experimental disk-frame caches leaked into installer.' }
 $actual=@(Get-ChildItem -LiteralPath $assets -Recurse -File)
-if($expected.Count -ne $actual.Count) {throw 'Desktop asset file count does not match the source.'}
+# The desktop window icon is published from Installer rather than Widget/Assets.
+$desktopIcon=Join-Path $assets 'KillConfirmOverlay.ico'
+$sourceIcon=Join-Path $repository 'Installer/Assets/KillConfirmOverlay.ico'
+if(!(Test-Path -LiteralPath $desktopIcon -PathType Leaf) -or (Get-FileHash -LiteralPath $sourceIcon).Hash -ne (Get-FileHash -LiteralPath $desktopIcon).Hash) {
+    throw 'Missing or stale desktop application icon.'
+}
+if(($expected.Count + 1) -ne $actual.Count) {throw 'Desktop asset file count does not match the source.'}
 foreach($file in $expected) {
     $target=Join-Path $assets ([IO.Path]::GetRelativePath($source,$file.FullName))
     if(!(Test-Path -LiteralPath $target -PathType Leaf) -or (Get-FileHash -LiteralPath $file.FullName).Hash -ne (Get-FileHash -LiteralPath $target).Hash) {

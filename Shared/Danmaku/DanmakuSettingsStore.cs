@@ -101,14 +101,13 @@ namespace KillConfirmCompatibility.Danmaku
             get
             {
                 var values = ApplicationData.Current.LocalSettings.Values;
-                object value = values[EnabledSettingKey + "_" + Services.GameSourceSettingsStore.Current] ?? (Services.GameSourceSettingsStore.IsLol ? null : values[EnabledSettingKey]);
+                object value = values[EnabledSettingKey + "_" + Services.GameSourceSettingsStore.Current] ?? (Services.GameSourceSettingsStore.Current == "cs2" ? values[EnabledSettingKey] : null);
                 return value is bool enabled && enabled;
             }
             set
             {
                 bool previous = IsEnabled;
                 ApplicationData.Current.LocalSettings.Values[EnabledSettingKey + "_" + Services.GameSourceSettingsStore.Current] = value;
-                if (!Services.GameSourceSettingsStore.IsLol) ApplicationData.Current.LocalSettings.Values[EnabledSettingKey] = value;
                 if (previous != value)
                 {
                     EnabledChanged?.Invoke(value);

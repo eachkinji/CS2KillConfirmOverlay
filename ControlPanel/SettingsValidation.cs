@@ -48,7 +48,7 @@ namespace KillConfirmGameBar
             await UpdateValidation.CaptureAsync(this, "settings-about");
             SelectCompatibilityWorkspace(); await Task.Delay(200);
             await UpdateValidation.CaptureAsync(this, "settings-home");
-            File.WriteAllText(Path.Combine(DesktopPlatform.Data.LocalFolder.Path, "ui-pass.txt"), "PASS: eight settings rows and inline detail expansion/collapse; audio behavior controls persist independently for CrossFire and Strinova; pack selections, channel volumes and explicit none preserved; game hints, reload and stale-game protection; boolean/slider persistence; colored About actions beside version; removed selectors; Home update navigation; newer/equal/older release comparison; failed/malformed response; in-flight request coalescing and retry; About update instructions and release data. Audio backend delivery is not asserted by this isolated UI fixture.");
+            File.WriteAllText(Path.Combine(DesktopPlatform.Data.LocalFolder.Path, "ui-pass.txt"), "PASS: seven visible settings rows and inline detail expansion/collapse; audio behavior controls persist independently for CrossFire and Strinova; pack selections, channel volumes and explicit none preserved; game hints, reload and stale-game protection; boolean/slider persistence; colored About actions beside version; removed selectors; Home update navigation; newer/equal/older release comparison; failed/malformed response; in-flight request coalescing and retry; About update instructions and release data. Audio backend delivery is not asserted by this isolated UI fixture.");
         }
     }
 }
@@ -105,14 +105,15 @@ namespace KillConfirmGameBar.Controls.Settings
         internal async Task ValidateCompactExperienceAsync()
         {
             RefreshSettings(); UpdateLayout();
-            if (ExperienceRows.Children.Count != 8 || ExperienceRows.Children.OfType<FrameworkElement>().Any(r => r.ActualHeight > 150))
+            if (ExperienceRows.Children.OfType<FrameworkElement>().Count(r => r.Visibility == Visibility.Visible) != 7
+                || ExperienceRows.Children.OfType<FrameworkElement>().Any(r => r.Visibility == Visibility.Visible && r.ActualHeight > 150))
                 throw new Exception("Detail sections should start collapsed.");
             if (DanmakuDetailsButton.Flyout != null || StreakGainDetailsButton.Flyout != null)
                 throw new Exception("Settings still use popup details.");
-            bool original = AutoCloseOnGameExitSettingsStore.Load();
-            AutoCloseOnGameExitToggle.IsOn = !original;
-            if (AutoCloseOnGameExitSettingsStore.Load() == original) throw new Exception("Switch state was not saved.");
-            AutoCloseOnGameExitToggle.IsOn = original;
+            bool original = InterruptPreviousKillAudioSettingsStore.Load();
+            InterruptPreviousKillAudioToggle.IsOn = !original;
+            if (InterruptPreviousKillAudioSettingsStore.Load() == original) throw new Exception("Switch state was not saved.");
+            InterruptPreviousKillAudioToggle.IsOn = original;
             foreach (var button in new[] { DanmakuDetailsButton, StreakGainDetailsButton })
             {
                 var card = FindExperienceCard(button);
@@ -266,7 +267,7 @@ namespace KillConfirmGameBar.Controls.Settings
                 throw new Exception("Audio behavior controls do not match active game: " + style);
             string gameName = LocalizationManager.Current == UiLanguage.SimplifiedChinese
                 ? GameStyleService.ToDisplayName(style) : style == GameStyleMode.Calabiyau ? "Strinova" : style.ToString();
-            if (!LinkIconSoundHintText.Text.Contains(gameName) || !CharacterVoiceInterruptHintText.Text.Contains(gameName))
+            if (!LinkIconSoundHintText.Text.Contains(gameName))
                 throw new Exception("Audio behavior hints do not identify active game: " + style);
         }
 

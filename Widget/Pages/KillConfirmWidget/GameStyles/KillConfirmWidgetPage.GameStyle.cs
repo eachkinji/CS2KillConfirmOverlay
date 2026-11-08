@@ -200,8 +200,7 @@ namespace KillConfirmGameBar
         {
             if (item == null) return;
             GameStyleMode style = GameStyleService.FromKey(item.Tag as string);
-            item.Content = GameSelectorPresentation.CreateMaterialGameSelectorContent(style, GameStyleService.ToDisplayName(style),
-                !HeaderStatusSection.GameStyleSelector.IsDropDownOpen, logoUri);
+            HeaderStatusSection.SetGameChoiceContent(item, GameStyleService.ToDisplayName(style), logoUri);
             ToolTipService.SetToolTip(item, text);
         }
 

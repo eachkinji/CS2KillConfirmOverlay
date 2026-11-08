@@ -24,6 +24,7 @@ namespace KillConfirmGameBar
                 _sanguoshaAdvancedEffectsPanel.RefreshSettings();
             }
 
+            _sanguoshaAdvancedEffectsPanel.RefreshSettings();
             return _sanguoshaAdvancedEffectsPanel;
         }
 

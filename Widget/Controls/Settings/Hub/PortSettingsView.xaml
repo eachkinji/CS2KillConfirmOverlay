@@ -87,49 +87,47 @@
                                 </Border>
                             </StackPanel>
                         </Border>
-                        <Border x:Name="LolPortSectionCard" Style="{StaticResource PanelSectionCardStyle}" Visibility="Collapsed">
-                            <StackPanel Spacing="10">
+                        <StackPanel x:Name="LolPortSectionCard" Spacing="12" Visibility="Collapsed">
+                            <Border Style="{StaticResource PanelSectionCardStyle}">
                                 <Grid ColumnSpacing="12">
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                    <Border Style="{StaticResource PanelIconContainerStyle}"><FontIcon FontFamily="Segoe MDL2 Assets" FontSize="14" Glyph="&#xE8B7;" Foreground="{StaticResource PanelAccentBrush}"/></Border>
+                                    <Border Style="{StaticResource PanelIconContainerStyle}"><FontIcon FontFamily="Segoe MDL2 Assets" FontSize="14" Glyph="&#xE704;" Foreground="{StaticResource PanelAccentBrush}"/></Border>
                                     <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
-                                        <TextBlock x:Name="LolRootTitleText" Style="{StaticResource PanelTitleTextStyle}" Text="英雄联盟游戏根目录与 Live Client 端口"/>
-                                        <TextBlock x:Name="LolRootPathText" Style="{StaticResource PanelCaptionTextStyle}" IsTextSelectionEnabled="True" TextWrapping="Wrap"/>
-                                        <TextBlock x:Name="LolEndpointStatusText" FontFamily="Consolas" Style="{StaticResource PanelCaptionTextStyle}" IsTextSelectionEnabled="True" TextWrapping="Wrap"/>
+                                        <TextBlock x:Name="LolEndpointTitleText" Style="{StaticResource PanelTitleTextStyle}" Text="对局连接"/>
+                                        <TextBlock Text="https://127.0.0.1:2999/liveclientdata/allgamedata" Style="{StaticResource PanelCaptionTextStyle}" IsTextSelectionEnabled="True" TextWrapping="Wrap"/>
+                                        <TextBlock x:Name="LolEndpointStatusText" Style="{StaticResource PanelCaptionTextStyle}" TextWrapping="Wrap"/>
                                     </StackPanel>
-                                    <Button x:Name="LolSelectRootButton" Grid.Column="2" VerticalAlignment="Center" Style="{StaticResource PanelButtonStyle}" Content="选择根目录" Click="OnLolSelectRootClick"/>
+                                    <Button x:Name="LolRefreshButton" Grid.Column="2" Style="{StaticResource PanelButtonStyle}" VerticalAlignment="Center" Click="OnHubPortRefreshClick" Content="重新检测"/>
                                 </Grid>
-                                <Grid ColumnSpacing="12">
+                            </Border>
+                            <Border Style="{StaticResource PanelSectionCardStyle}">
+                                <Grid x:Name="LolPollingRow" ColumnSpacing="12" RowSpacing="12" SizeChanged="OnLolPollingRowSizeChanged">
+                                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                    <Border Style="{StaticResource PanelIconContainerStyle}"><FontIcon FontFamily="Segoe MDL2 Assets" FontSize="14" Glyph="&#xE945;" Foreground="{StaticResource PanelTextSecondaryBrush}"/></Border>
-                                    <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-                                        <TextBlock x:Name="LolPollIntervalLabelText" Style="{StaticResource PanelTitleTextStyle}" Text="端口抓取速度调控 (Polling Interval)"/>
-                                        <TextBlock x:Name="LolPollIntervalHintText" Style="{StaticResource PanelCaptionTextStyle}" Text="默认 50ms 极速采集；支持 20–1000ms 自定义调节。"/>
+                                    <Border Style="{StaticResource PanelIconContainerStyle}"><FontIcon FontFamily="Segoe MDL2 Assets" FontSize="14" Glyph="&#xE945;" Foreground="{StaticResource PanelAccentBrush}"/></Border>
+                                    <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
+                                        <TextBlock x:Name="LolPollIntervalLabelText" Style="{StaticResource PanelTitleTextStyle}" Text="对局数据采集间隔"/>
+                                        <TextBlock x:Name="LolPollIntervalHintText" Style="{StaticResource PanelCaptionTextStyle}" Text="默认 50 ms，可调整为 20–1000 ms。"/>
                                     </StackPanel>
-                                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                        <ComboBox x:Name="LolPollIntervalSelector" Style="{StaticResource PanelComboBoxStyle}" Width="150" SelectionChanged="OnLolPollIntervalSelectionChanged">
-                                            <ComboBoxItem Tag="50" Content="50ms (极速 · 推荐)"/>
-                                            <ComboBoxItem Tag="100" Content="100ms (标准)"/>
-                                            <ComboBoxItem Tag="250" Content="250ms (均衡)"/>
-                                            <ComboBoxItem Tag="500" Content="500ms (省电)"/>
-                                            <ComboBoxItem Tag="custom" Content="自定义 ms"/>
+                                    <Grid x:Name="LolPollControls" Grid.Column="2" Width="280" RowSpacing="8" ColumnSpacing="8" VerticalAlignment="Center">
+                                        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                        <ComboBox x:Name="LolPollIntervalSelector" Grid.ColumnSpan="2" Style="{StaticResource PanelComboBoxStyle}" HorizontalAlignment="Stretch" SelectionChanged="OnLolPollIntervalSelectionChanged">
+                                            <ComboBoxItem Tag="50" Content="50 ms（推荐）"/>
+                                            <ComboBoxItem Tag="100" Content="100 ms（标准）"/>
+                                            <ComboBoxItem Tag="250" Content="250 ms（均衡）"/>
+                                            <ComboBoxItem Tag="500" Content="500 ms（省电）"/>
+                                            <ComboBoxItem Tag="custom" Content="自定义"/>
                                         </ComboBox>
-                                        <TextBox x:Name="LolPollCustomInput" Style="{StaticResource PanelTextBoxStyle}" Width="84" FontFamily="Consolas" InputScope="Number" MaxLength="4" PlaceholderText="20-1000" Visibility="Collapsed"/>
-                                        <Button x:Name="LolPollCustomApplyButton" Style="{StaticResource PanelPrimaryButtonStyle}" Content="应用" Click="OnLolPollCustomApplyClick" Visibility="Collapsed"/>
-                                    </StackPanel>
+                                        <TextBox x:Name="LolPollCustomInput" Grid.Row="1" Style="{StaticResource PanelTextBoxStyle}" HorizontalAlignment="Stretch" InputScope="Number" MaxLength="4" PlaceholderText="20–1000 ms" Visibility="Collapsed"/>
+                                        <Button x:Name="LolPollCustomApplyButton" Grid.Row="1" Grid.Column="1" Style="{StaticResource PanelPrimaryButtonStyle}" Content="应用" Click="OnLolPollCustomApplyClick" Visibility="Collapsed"/>
+                                    </Grid>
                                 </Grid>
-                            </StackPanel>
-                        </Border>
+                            </Border>
+                        </StackPanel>
                     </StackPanel>
-                    <StackPanel Spacing="2" Margin="2,4,2,4">
-                        <TextBlock
-                            x:Name="HubPortTitleTextLegacy" Visibility="Collapsed"
-                            Style="{StaticResource PanelTitleTextStyle}"
-                            Text="LOCAL SERVICE PORT" />
-                        <TextBlock
-                            x:Name="HubPortDescriptionText"
-                            Style="{StaticResource PanelCaptionTextStyle}" />
-                    </StackPanel>
+                    <StackPanel x:Name="CsServicePortSettings" Spacing="12">
+                        <TextBlock x:Name="HubPortDescriptionText" Style="{StaticResource PanelCaptionTextStyle}" Margin="2,4,2,4"/>
 
                     <!-- Hero Card: Active Port & Status -->
                     <Border Style="{StaticResource PanelCardStyle}">
@@ -379,6 +377,7 @@
                             </Border>
                         </StackPanel>
                     </Border>
+                    </StackPanel>
                 </StackPanel>
             </ScrollViewer>
 </UserControl>

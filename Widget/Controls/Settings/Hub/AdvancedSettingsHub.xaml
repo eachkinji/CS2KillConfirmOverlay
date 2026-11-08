@@ -92,10 +92,6 @@
                         <TextBlock Visibility="Collapsed"
                             Style="{StaticResource PanelTitleTextStyle}"
                             Text="" />
-                        <TextBlock
-                            x:Name="HubExperienceCardDescription"
-                            Style="{StaticResource PanelCaptionTextStyle}"
-                            Margin="2,0,2,6" />
                         <settings:GeneralSettingsOptionsPanel x:Name="HubGeneralOptionsPanel" />
                     </StackPanel>
                 </StackPanel>

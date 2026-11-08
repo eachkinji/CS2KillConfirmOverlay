@@ -27,7 +27,7 @@ namespace KillConfirmCompatibility.Services
         internal static bool Load()
         {
             var values = ApplicationData.Current.LocalSettings.Values;
-            object value = values[ScopedKey] ?? (GameSourceSettingsStore.IsLol ? null : values[SettingKey]);
+            object value = values[ScopedKey] ?? (GameSourceSettingsStore.Current == "cs2" ? values[SettingKey] : null);
             if (value is bool enabled)
             {
                 return enabled;
@@ -45,7 +45,6 @@ namespace KillConfirmCompatibility.Services
         internal static void Save(bool enabled)
         {
             ApplicationData.Current.LocalSettings.Values[ScopedKey] = enabled;
-            if (!GameSourceSettingsStore.IsLol) ApplicationData.Current.LocalSettings.Values[SettingKey] = enabled;
         }
 
         internal static async Task SyncAsync()

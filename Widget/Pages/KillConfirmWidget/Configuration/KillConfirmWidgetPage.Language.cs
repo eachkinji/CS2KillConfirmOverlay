@@ -220,32 +220,12 @@ namespace KillConfirmGameBar
                 return;
             }
 
+            PackTestSectionView.SetTestPresetSource(GameSourceSettingsStore.IsLol);
             bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
             foreach (object option in PackTestSectionView.TestPresetSelector.Items)
             {
-                if (!(option is ComboBoxItem item) || !(item.Tag is string tag))
-                {
-                    continue;
-                }
-
-                item.Content = GetTestPresetLabel(tag, isChinese);
-                bool isSharedStreak = tag == "one" || tag == "two" || tag == "three" || tag == "four" || tag == "five" || tag == "six" || tag == "seven" || tag == "eight" || tag == "nine";
-                bool isLolTag = tag.StartsWith("lol_", StringComparison.OrdinalIgnoreCase);
-                bool visible = GameSourceSettingsStore.IsLol ? isLolTag : !isLolTag;
-                item.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
-            }
-            if (PackTestSectionView.TestPresetSelector.SelectedItem is ComboBoxItem selectedPreset && selectedPreset.Visibility != Visibility.Visible)
-            {
-            {
-                foreach (object option in PackTestSectionView.TestPresetSelector.Items)
-                {
-                    if (option is ComboBoxItem first && first.Visibility == Visibility.Visible)
-                    {
-                        PackTestSectionView.TestPresetSelector.SelectedItem = first;
-                        break;
-                    }
-                }
-            }
+                if (option is ComboBoxItem item && item.Tag is string tag)
+                    item.Content = GetTestPresetLabel(tag, isChinese);
             }
         }
 

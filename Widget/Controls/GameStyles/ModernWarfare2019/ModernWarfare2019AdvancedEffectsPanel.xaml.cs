@@ -15,6 +15,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
         public ModernWarfare2019AdvancedEffectsPanel()
         {
             InitializeComponent();
+            AdvancedEffectsPanelSupport.TrackCombatHeader(this, CombatGameLogo, TitleText);
             RefreshVisualEffectSettings();
             SelectAssistAudio(AssistAudioSettingsStore.Load(GameStyleMode.ModernWarfare2019));
             SelectRightFeedOffset(ModernWarfare2019FeedOffsetSettingsStore.Load());
@@ -55,7 +56,8 @@ namespace KillConfirmGameBar.Controls.GameStyles
 
         public void ApplyLanguage(bool isChinese)
         {
-            TitleText.Text = isChinese ? "MW2019 击杀提示设置" : "MW2019 Kill Feedback";
+            AdvancedEffectsPanelSupport.ApplyCombatHeader(CombatGameLogo, TitleText, isChinese);
+
             ResetButtonText.Text = isChinese ? "恢复默认" : "Reset";
             ToolTipService.SetToolTip(ResetButton, isChinese ? "恢复 MW2019 默认设置" : "Restore MW2019 defaults");
             MoneyRewardModeLabel.Text = isChinese ? "金钱计算方式" : "Money calculation";
@@ -145,6 +147,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
 
         public void RefreshVisualEffectSettings()
         {
+            SelectRightFeedOffset(ModernWarfare2019FeedOffsetSettingsStore.Load());
             KillFeedbackVisibilitySettingsValues settings =
                 KillFeedbackVisibilitySettingsStore.Load(GameStyleMode.ModernWarfare2019);
             _suppressVisualEffectChanges = true;

@@ -90,11 +90,11 @@ namespace KillConfirmGameBar
             _ = Dispatcher.RunAsync(
                 Windows.UI.Core.CoreDispatcherPriority.Normal,
                 () => {
-                    _autoCloseGameExitActiveDetected = false;
-                    _autoCloseGameExitSilentChecks = 0;
                     _gsiRecentlySeen = false;
                     _lastGsiPosts = 0;
                     ApplyTestPresetLabels();
+                    MountAdvancedEffectsPanel();
+                    _ = EnsureServiceAvailableAsync();
                     _ = SharedStreakSettingsStore.SyncSpectatedKillEffectsAsync();
                     _ = InterruptPreviousKillAudioSettingsStore.SyncAsync();
                     _ = StreakGainSettingsStore.SyncAsync();

@@ -284,7 +284,7 @@ namespace KillConfirmGameBar
                 _modernWarfare2019AdvancedEffectsPanel.StreakModeSelectionChanged += OnStreakModeSelectionChanged;
                 _modernWarfare2019AdvancedEffectsPanel.AssistAudioToggled += OnGameAssistAudioToggled;
             }
-            string money = ApplicationData.Current.LocalSettings.Values["MoneyRewardMode"] as string;
+            string money = GameSourceSettingsStore.CombatSettings["MoneyRewardMode"] as string;
             string streak = SharedStreakSettingsStore.Load(GameStyleMode.ModernWarfare2019);
             _modernWarfare2019AdvancedEffectsPanel.SelectMoneyRewardMode(money, "delta");
             _modernWarfare2019AdvancedEffectsPanel.SelectStreakMode(streak);
@@ -302,7 +302,7 @@ namespace KillConfirmGameBar
                 _apexAdvancedEffectsPanel.MoneyRewardModeSelectionChanged += OnMoneyRewardModeSelectionChanged;
                 _apexAdvancedEffectsPanel.StreakModeSelectionChanged += OnStreakModeSelectionChanged;
             }
-            string money = ApplicationData.Current.LocalSettings.Values["MoneyRewardMode"] as string;
+            string money = GameSourceSettingsStore.CombatSettings["MoneyRewardMode"] as string;
             string streak = SharedStreakSettingsStore.Load(GameStyleMode.Apex);
             _apexAdvancedEffectsPanel.SelectMoneyRewardMode(money, "delta");
             _apexAdvancedEffectsPanel.SelectStreakMode(streak);
@@ -318,7 +318,7 @@ namespace KillConfirmGameBar
                 _battlefield1AdvancedEffectsPanel.MoneyRewardModeSelectionChanged += OnMoneyRewardModeSelectionChanged;
                 _battlefield1AdvancedEffectsPanel.StreakModeSelectionChanged += OnStreakModeSelectionChanged;
             }
-            string money = ApplicationData.Current.LocalSettings.Values["MoneyRewardMode"] as string;
+            string money = GameSourceSettingsStore.CombatSettings["MoneyRewardMode"] as string;
             string streak = SharedStreakSettingsStore.Load(GameStyleMode.Battlefield1);
             _battlefield1AdvancedEffectsPanel.SelectMoneyRewardMode(money, "delta");
             _battlefield1AdvancedEffectsPanel.SelectStreakMode(streak);
@@ -333,7 +333,7 @@ namespace KillConfirmGameBar
                 _battlefield5AdvancedEffectsPanel.MoneyRewardModeSelectionChanged += OnMoneyRewardModeSelectionChanged;
                 _battlefield5AdvancedEffectsPanel.StreakModeSelectionChanged += OnStreakModeSelectionChanged;
             }
-            string money = ApplicationData.Current.LocalSettings.Values["MoneyRewardMode"] as string;
+            string money = GameSourceSettingsStore.CombatSettings["MoneyRewardMode"] as string;
             string streak = SharedStreakSettingsStore.Load(GameStyleMode.Battlefield5);
             _battlefield5AdvancedEffectsPanel.SelectMoneyRewardMode(money, "delta");
             _battlefield5AdvancedEffectsPanel.SelectStreakMode(streak);
@@ -348,7 +348,7 @@ namespace KillConfirmGameBar
                 _battlefield4AdvancedEffectsPanel.MoneyRewardModeSelectionChanged += OnMoneyRewardModeSelectionChanged;
                 _battlefield4AdvancedEffectsPanel.StreakModeSelectionChanged += OnStreakModeSelectionChanged;
             }
-            string money = ApplicationData.Current.LocalSettings.Values["MoneyRewardMode"] as string;
+            string money = GameSourceSettingsStore.CombatSettings["MoneyRewardMode"] as string;
             string streak = SharedStreakSettingsStore.Load(GameStyleMode.Battlefield4);
             _battlefield4AdvancedEffectsPanel.SelectMoneyRewardMode(money, "delta");
             _battlefield4AdvancedEffectsPanel.SelectStreakMode(streak);
@@ -363,7 +363,7 @@ namespace KillConfirmGameBar
                 _battlefield2042AdvancedEffectsPanel.MoneyRewardModeSelectionChanged += OnMoneyRewardModeSelectionChanged;
                 _battlefield2042AdvancedEffectsPanel.StreakModeSelectionChanged += OnStreakModeSelectionChanged;
             }
-            string money = ApplicationData.Current.LocalSettings.Values["MoneyRewardMode"] as string;
+            string money = GameSourceSettingsStore.CombatSettings["MoneyRewardMode"] as string;
             string streak = SharedStreakSettingsStore.Load(GameStyleMode.Battlefield2042);
             _battlefield2042AdvancedEffectsPanel.SelectMoneyRewardMode(money, "delta");
             _battlefield2042AdvancedEffectsPanel.SelectStreakMode(streak);
@@ -378,7 +378,7 @@ namespace KillConfirmGameBar
                 _pubgAdvancedEffectsPanel.MoneyRewardModeSelectionChanged += OnMoneyRewardModeSelectionChanged;
                 _pubgAdvancedEffectsPanel.StreakModeSelectionChanged += OnStreakModeSelectionChanged;
             }
-            string money = ApplicationData.Current.LocalSettings.Values["MoneyRewardMode"] as string;
+            string money = GameSourceSettingsStore.CombatSettings["MoneyRewardMode"] as string;
             string streak = SharedStreakSettingsStore.Load(GameStyleMode.Pubg);
             _pubgAdvancedEffectsPanel.SelectMoneyRewardMode(money, "delta");
             _pubgAdvancedEffectsPanel.SelectStreakMode(streak);
@@ -393,7 +393,7 @@ namespace KillConfirmGameBar
                 _deltaForceAdvancedEffectsPanel.MoneyRewardModeSelectionChanged += OnMoneyRewardModeSelectionChanged;
                 _deltaForceAdvancedEffectsPanel.StreakModeSelectionChanged += OnStreakModeSelectionChanged;
             }
-            string money = ApplicationData.Current.LocalSettings.Values["MoneyRewardMode"] as string;
+            string money = GameSourceSettingsStore.CombatSettings["MoneyRewardMode"] as string;
             string streak = SharedStreakSettingsStore.Load(GameStyleMode.DeltaForce);
             _deltaForceAdvancedEffectsPanel.SelectMoneyRewardMode(money, "delta");
             _deltaForceAdvancedEffectsPanel.SelectStreakMode(streak);
@@ -465,7 +465,7 @@ namespace KillConfirmGameBar
             else if (sender is ApexAdvancedEffectsPanel pApex) mode = pApex.GetSelectedMoneyRewardMode("delta");
             else if (sender is ModernWarfare2019AdvancedEffectsPanel pMw) mode = pMw.GetSelectedMoneyRewardMode("delta");
 
-            ApplicationData.Current.LocalSettings.Values["MoneyRewardMode"] = mode;
+            GameSourceSettingsStore.CombatSettings["MoneyRewardMode"] = mode;
         }
 
         private async void OnValorantAssistAudioToggled(object sender, RoutedEventArgs e)

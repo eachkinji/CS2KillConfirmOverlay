@@ -23,17 +23,18 @@ namespace KillConfirmGameBar.Services
                 : $"ms-appx:///Assets/GameLogos/{key}.{extension}");
             var image = new Image
             {
-                Width = compact ? 20 : 34,
-                Height = compact ? 16 : 22,
+                Width = compact ? 18 : 34,
+                Height = compact ? 14 : 22,
                 Stretch = Stretch.Uniform,
                 Source = new BitmapImage(new Uri(logoUri))
             };
             bool darkBackdrop = !widgetLogo && style == GameStyleMode.ModernWarfare2019;
             var logo = new Border
             {
-                Width = compact ? 30 : 38,
-                Height = compact ? 22 : 26,
-                Padding = new Thickness(4, 2, 4, 2),
+                // The widget's 72-DIP selector reserves 32 DIPs for its native arrow.
+                Width = compact ? 24 : 38,
+                Height = compact ? 20 : 26,
+                Padding = compact ? new Thickness(3) : new Thickness(4, 2, 4, 2),
                 CornerRadius = new CornerRadius(4),
                 Background = new SolidColorBrush(darkBackdrop ? Color.FromArgb(217, 52, 56, 64) : Colors.Transparent),
                 Child = image
@@ -55,6 +56,27 @@ namespace KillConfirmGameBar.Services
                     TextTrimming = TextTrimming.CharacterEllipsis
                 });
             return content;
+        }
+
+        internal static void UpdateMaterialGameSelectorContent(FrameworkElement element, string name, bool compact)
+        {
+            if (!(element is StackPanel content)) return;
+            var logo = content.Children.OfType<Border>().FirstOrDefault();
+            if (logo?.Child is Image image)
+            {
+                image.Width = compact ? 18 : 34;
+                image.Height = compact ? 14 : 22;
+                logo.Width = compact ? 24 : 38;
+                logo.Height = compact ? 20 : 26;
+                logo.Padding = compact ? new Thickness(3) : new Thickness(4, 2, 4, 2);
+            }
+            content.HorizontalAlignment = compact ? HorizontalAlignment.Center : HorizontalAlignment.Left;
+            content.Spacing = compact ? 0 : 8;
+            foreach (var label in content.Children.OfType<TextBlock>())
+            {
+                label.Text = name;
+                label.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
+            }
         }
 
         internal static string WidgetGameLogoUri(GameStyleMode style)

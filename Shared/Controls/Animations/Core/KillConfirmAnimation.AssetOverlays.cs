@@ -54,7 +54,9 @@ namespace KillConfirmCompatibility.Controls
                 return null;
             }
 
-            if (_mainAnimationStyle != 2 && !assetName.StartsWith("multi", StringComparison.OrdinalIgnoreCase))
+            // Elite wings belong to kill-count badges only. Animation style
+            // changes motion/composition, not which events support the overlay.
+            if (!assetName.StartsWith("multi", StringComparison.OrdinalIgnoreCase))
             {
                 return null;
             }
@@ -262,6 +264,9 @@ namespace KillConfirmCompatibility.Controls
 
         private static async Task<CanvasBitmap> LoadBitmapFromStorageFileAsync(StorageFile file)
         {
+#if WIDGET_SWITCH_VALIDATION
+            ValidationBitmapLoads++;
+#endif
             if (file.FileType.Equals(".tga", StringComparison.OrdinalIgnoreCase))
             {
                 SoftwareBitmap softwareBitmap = await TgaDecoder.GetSoftwareBitmapAsync(file);

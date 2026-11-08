@@ -24,6 +24,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                 _sanguoshaAdvancedEffectsPanel.RefreshSettings();
             }
 
+            _sanguoshaAdvancedEffectsPanel.RefreshSettings();
             return _sanguoshaAdvancedEffectsPanel;
         }
 

@@ -59,6 +59,7 @@ internal static class CalabiyauValidation
             if (animation.IsDesktopPlaying) throw new Exception("Unsupported event rendered: " + kind);
         }
         animation.ReleaseAnimationResourcesForPackChange();
+        await presenter.ApplyConfigurationAsync();
         var appearance = KillFeedbackVisibilitySettingsStore.Load(GameStyleMode.Calabiyau);
         if (!appearance.CrosshairEnabled) throw new Exception("Native Calabiyau crosshair should default to enabled.");
         appearance.LowerEnabled = false;
@@ -81,10 +82,14 @@ internal static class CalabiyauValidation
         await WaitForPlayingAsync(animation);
         if (!animation.IsDesktopPlaying || crosshair.IsDesktopPlaying) throw new Exception("Lower-only route failed.");
         animation.StopDesktopPlayback();
+        animation.ReleaseAnimationResourcesForPackChange();
+        Task stalePreparation = animation.PreloadCurrentPackAnimationsAsync(null);
         animation.PlayCalabiyauKill();
         animation.ReleaseAnimationResourcesForPackChange();
+        try { await stalePreparation; } catch (OperationCanceledException) { }
         await Task.Delay(250);
         if (animation.IsDesktopPlaying) throw new Exception("Stale async load resurrected playback.");
+        await presenter.ApplyConfigurationAsync();
         animation.PlayCalabiyauKill();
         await WaitForPlayingAsync(animation);
         if (!animation.IsDesktopPlaying) throw new Exception("Resources failed to reload.");
@@ -217,6 +222,7 @@ internal static class CalabiyauValidation
         System.IO.Compression.ZipFile.ExtractToDirectory(Directory.EnumerateFiles(packagesRoot, "*.zip").Single(p => Path.GetFileName(p).Contains(CalabiyauPacks.Find("calabiyau_10305205").DisplayName)), chiyoInput);
         await CalabiyauExternalAssetService.InstallAsync(await Windows.Storage.StorageFolder.GetFolderFromPathAsync(chiyoInput));
         KillConfirmAnimation.ConfigureIconPack("calabiyau_10305205");
+        await animation.PreloadCurrentPackAnimationsAsync(null);
         foreach (int count in new[] { 6, 12 })
         {
             animation.PlayCalabiyauKill(count);
@@ -249,6 +255,7 @@ internal static class CalabiyauValidation
         System.IO.Compression.ZipFile.ExtractToDirectory(Directory.EnumerateFiles(packagesRoot, "*.zip").Single(p => Path.GetFileName(p).Contains(CalabiyauPacks.Find("calabiyau_10403205").DisplayName)), audreyInput);
         await CalabiyauExternalAssetService.InstallAsync(await Windows.Storage.StorageFolder.GetFolderFromPathAsync(audreyInput));
         KillConfirmAnimation.ConfigureIconPack("calabiyau_10403205");
+        await animation.PreloadCurrentPackAnimationsAsync(null);
         foreach (string kind in new[] { "normal", "headshot", "knife", "grenade" })
         {
             animation.PlayCalabiyauKill(8, kind == "headshot", kind == "knife", kind == "grenade");

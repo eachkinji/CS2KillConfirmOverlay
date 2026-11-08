@@ -38,23 +38,38 @@ fn main() {
     )
     .expect("copy service icon");
     fs::write(output.join("service.rc"), source).expect("write service resources");
-    let resource = output.join("service.res");
+    fs::write(
+        output.join("bridge.rc"),
+        "LANGUAGE 0x09, 0x01\n1 ICON \"service.ico\"\n",
+    )
+    .expect("write widget bridge icon resource");
     let compiler = find_resource_compiler();
-    let result = Command::new(&compiler)
-        .current_dir(&output)
-        .args(["/nologo", "/fo", "service.res", "service.rc"])
-        .output()
-        .unwrap_or_else(|error| panic!("cannot run {}: {error}", compiler.display()));
-    assert!(
-        result.status.success(),
-        "resource compilation failed: {}{}",
-        String::from_utf8_lossy(&result.stdout),
-        String::from_utf8_lossy(&result.stderr)
-    );
-    println!(
-        "cargo:rustc-link-arg-bin=cskillconfirm={}",
-        resource.display()
-    );
+    for (binary, stem) in [
+        ("cskillconfirm", "service"),
+        ("killconfirm-widget-bridge", "bridge"),
+        ("killconfirm-settings-launcher", "bridge"),
+    ] {
+        let result = Command::new(&compiler)
+            .current_dir(&output)
+            .args([
+                "/nologo",
+                "/fo",
+                &format!("{stem}.res"),
+                &format!("{stem}.rc"),
+            ])
+            .output()
+            .unwrap_or_else(|error| panic!("cannot run {}: {error}", compiler.display()));
+        assert!(
+            result.status.success(),
+            "resource compilation failed for {binary}: {}{}",
+            String::from_utf8_lossy(&result.stdout),
+            String::from_utf8_lossy(&result.stderr)
+        );
+        println!(
+            "cargo:rustc-link-arg-bin={binary}={}",
+            output.join(format!("{stem}.res")).display()
+        );
+    }
 }
 
 fn find_resource_compiler() -> PathBuf {

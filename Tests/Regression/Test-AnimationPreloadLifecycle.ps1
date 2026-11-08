@@ -1,13 +1,15 @@
 param()
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
+. (Join-Path $PSScriptRoot '..\Common\SourceView.ps1')
 function Method([string]$text, [string]$name) {
     $match = [regex]::Match($text, '(?ms)^        (?:private|public) [^\r\n]+\b' + $name + '\([^)]*\).*?^        \}')
     if (!$match.Success) { throw "Missing production method: $name" }
     $match.Value
 }
 foreach ($variant in @('Widget', 'CompatibilityHost/Renderer')) {
-    $text = Get-Content -Raw (Join-Path $root "$variant/Controls/Animations/Core/KillConfirmAnimation.Preloading.cs")
+    $core = Resolve-SourceDirectory $root "$variant/Controls/Animations/Core"
+    $text = Get-Content -Raw (Join-Path $core 'KillConfirmAnimation.Preloading.cs')
     $className = if ($variant -eq 'Widget') { 'WidgetPreparationProbe' } else { 'DesktopPreparationProbe' }
     $members = @()
     foreach ($name in @('WaitForCurrentPackPreloadAsync', 'PreloadCurrentPackAnimationsAsync', 'PreloadCurrentPackAnimationsOnceAsync')) {

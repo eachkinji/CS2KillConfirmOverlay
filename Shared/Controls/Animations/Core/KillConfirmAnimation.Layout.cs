@@ -1,4 +1,4 @@
-﻿// Shared by Widget (UWP) and CompatibilityHost; extracted from both former copies.
+// Shared by Widget (UWP) and CompatibilityHost; extracted from both former copies.
 // Per-host lines stay inside #if WINDOWS_UWP blocks. See Tools/SharedSource/extract_shared.py.
 using System;
 using System.Collections.Generic;
@@ -56,6 +56,7 @@ namespace KillConfirmCompatibility.Controls
         public void RefreshRasterQuality()
         {
             ApplyViewportSize(_logicalFrameWidth, _logicalFrameHeight);
+            RefreshBattlefield2042RasterCaches();
             SpriteCanvas.Invalidate();
         }
 

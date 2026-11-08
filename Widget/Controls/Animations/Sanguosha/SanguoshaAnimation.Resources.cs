@@ -28,10 +28,14 @@ namespace KillConfirmGameBar.Controls
                 for (int tier = 1; tier <= GameStyleService.SanguoshaMaxKillTier; tier++)
                 {
                     if (generation != _resourceGeneration || revision != _sanguoshaPreparationRevision) throw new OperationCanceledException();
-                    await LoadSanguoshaTierAsync(tier);
+                    SanguoshaTierAssets assets = await LoadSanguoshaTierAsync(tier);
+                    if (generation != _resourceGeneration || revision != _sanguoshaPreparationRevision) throw new OperationCanceledException();
+                    await EnsureSanguoshaPagesAsync(assets);
+                    if (generation != _resourceGeneration || revision != _sanguoshaPreparationRevision) throw new OperationCanceledException();
                     progress?.Report(tier * 100 / GameStyleService.SanguoshaMaxKillTier);
                 }
             }
+            catch { ClearSanguoshaCache(); throw; }
             finally { _sanguoshaPreloadPending = false; }
         }
         private void ThrowIfSanguoshaPreparationChanged(int generation, int revision, SanguoshaRasterProfile profile)
@@ -110,31 +114,39 @@ namespace KillConfirmGameBar.Controls
         }
         private static async Task LoadSanguoshaPagesCoreAsync(SanguoshaTierAssets assets)
         {
+            int generation = _resourceGeneration;
             var pages = new CanvasBitmap[assets.Clip.Pages.Length];
             try
             {
                 for (int i = 0; i < pages.Length; i++)
                 {
+                    if (generation != _resourceGeneration) throw new OperationCanceledException();
                     string rel = assets.Clip.Pages[i].File.IndexOf('/') >= 0 ? assets.Clip.Pages[i].File : assets.Name + "/" + assets.Clip.Pages[i].File;
+                    ulong pageBytes = (ulong)assets.Clip.Pages[i].Width * (ulong)assets.Clip.Pages[i].Height * 4;
+                    ulong limit = Windows.System.MemoryManager.AppMemoryUsageLimit;
+                    ulong usage = Windows.System.MemoryManager.AppMemoryUsage;
+                    if (limit > 0 && usage + pageBytes * 2 + 64UL * 1024 * 1024 > limit)
+                        throw new InvalidOperationException("三国杀完整预载所需内存不足，请关闭其他小组件后重新选择图标包。");
                     pages[i] = await LoadBitmapFromStorageFileAsync(await SanguoshaAssetFileAsync(rel));
                     if (pages[i] == null || pages[i].SizeInPixels.Width != assets.Clip.Pages[i].Width || pages[i].SizeInPixels.Height != assets.Clip.Pages[i].Height)
                         throw new InvalidDataException("Sanguosha atlas dimensions differ: " + rel);
                 }
-                lock (assets) { assets.Pages = pages; }
+                lock (SanguoshaTiers)
+                {
+                    if (generation != _resourceGeneration || !SanguoshaTiers.TryGetValue(assets.Tier, out SanguoshaTierAssets resident)
+                        || !ReferenceEquals(resident, assets))
+                        throw new OperationCanceledException("Sanguosha pack changed during atlas preparation.");
+                    lock (assets) { assets.Pages = pages; }
+                }
                 TrimNativeSanguoshaPages();
             }
             catch { foreach (var page in pages) page?.Dispose(); throw; }
             finally { lock (assets) assets.PageLoadTask = null; }
         }
         private static bool IsSanguoshaTierOnScreen(SanguoshaTierAssets tier) { lock (SanguoshaTiersOnScreen) return SanguoshaTiersOnScreen.Contains(tier); }
-        // Keep one warm tier so consecutive events do not decode/upload it again.
-        private static void TrimNativeSanguoshaPages()
-        {
-            SanguoshaTierAssets[] loaded;
-            lock (SanguoshaTiers) loaded = SanguoshaTiers.Values.Where(t => t.Pages != null).OrderByDescending(t => t.LastUsed).ToArray();
-            foreach (var tier in loaded.Skip(1))
-                if (!IsSanguoshaTierOnScreen(tier)) ReleaseSanguoshaPages(tier);
-        }
+        // All tiers of the selected pack stay resident until the pack is released.
+        // Evicting all but the latest tier would turn every new event into a disk/GPU load.
+        private static void TrimNativeSanguoshaPages() { }
         private static void ReleaseSanguoshaPages(SanguoshaTierAssets assets)
         {
             if (assets == null) return;

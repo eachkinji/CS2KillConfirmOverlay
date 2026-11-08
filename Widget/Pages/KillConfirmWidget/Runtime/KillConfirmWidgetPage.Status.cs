@@ -273,7 +273,7 @@ namespace KillConfirmGameBar
                     HeaderStatusSection.GsiStatusBadge,
                     title,
                     isLol
-                        ? (zh ? "等待进入 LOL 对局 · 进入英雄联盟对局或训练营后将自动连接（无需安装 CFG）。" : "Waiting for a LOL match · connects automatically once you enter a match or Practice Tool (no CFG needed).")
+                        ? (zh ? "等待进入 LOL 对局 · 进入英雄联盟对局或训练营后将自动连接。" : "Waiting for a LOL match · connects automatically once you enter a match or Practice Tool.")
                         : LocalizationManager.Text("GsiWaitingTooltip"));
             }
             else

@@ -16,8 +16,6 @@ namespace KillConfirmCompatibility.Services
             {
             ["GeneralSettingsTitle"] = "General settings",
             ["GameEffectsTitle"] = "Game effects",
-            ["AutoCloseOnGameExitLabel"] = "Auto-close after the game exits",
-            ["AutoCloseOnGameExitHint"] = "When enabled, the overlay unpins and closes itself after detecting that CS2 or CS:GO has exited, so you do not have to close it manually.",
             ["InterruptPreviousKillAudioLabel"] = "Interrupt previous kill sound effect",
             ["InterruptPreviousKillAudioHint"] = "A new kill sound effect stops the previous effect. Character dialogue uses its own interruption setting.",
             ["GsiGameVersionLabel"] = "Counter-Strike version",

@@ -39,12 +39,13 @@ namespace KillConfirmCompatibility.Services
         internal static StreakGainSettingsValues Load()
         {
             var values = ApplicationData.Current.LocalSettings.Values;
+            bool useLegacy = GameSourceSettingsStore.Current == "cs2";
             return new StreakGainSettingsValues
             {
-                Enabled = ReadBool(values[Scoped(EnabledKey)] ?? values[EnabledKey], true),
-                StepPercent = Clamp(ReadInt(values[Scoped(StepPercentKey)] ?? values[StepPercentKey], DefaultStepPercent), 0, 100),
+                Enabled = ReadBool(values[Scoped(EnabledKey)] ?? (useLegacy ? values[EnabledKey] : null), true),
+                StepPercent = Clamp(ReadInt(values[Scoped(StepPercentKey)] ?? (useLegacy ? values[StepPercentKey] : null), DefaultStepPercent), 0, 100),
                 MaximumPercent = Clamp(
-                    ReadInt(values[Scoped(MaximumPercentKey)] ?? values[MaximumPercentKey], DefaultMaximumPercent),
+                    ReadInt(values[Scoped(MaximumPercentKey)] ?? (useLegacy ? values[MaximumPercentKey] : null), DefaultMaximumPercent),
                     100,
                     400)
             };

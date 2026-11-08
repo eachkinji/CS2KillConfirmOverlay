@@ -49,8 +49,19 @@ pub async fn set_soundpack(
     {
         let mut channels = app_state.audio_channels.write().await;
         let mut current = app_state.preset.write().await;
-        crate::soundpack::sound::stop_audio_sink_group(&app_state.kill_audio_sinks);
-        crate::soundpack::sound::stop_audio_sink_group(&app_state.character_voice_sinks);
+        let interrupt = app_state.stop_previous_kill_audio.load(Ordering::Relaxed);
+        let previous = channels
+            .clone()
+            .unwrap_or_else(|| AudioChannelPresets::legacy(current.clone(), interrupt));
+        let legacy = AudioChannelPresets::legacy(preset.clone(), interrupt);
+        // Repeated legacy selections are idempotent. Returning from modern mode
+        // still disables its other channel, preserving this API's single-pack mode.
+        stop_changed_audio_channels(
+            &previous,
+            &legacy,
+            &app_state.kill_audio_sinks,
+            &app_state.character_voice_sinks,
+        );
         *current = preset;
         *channels = None;
     }

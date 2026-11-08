@@ -44,9 +44,40 @@ namespace KillConfirmCompatibility.Services
         private const string FirstKillEffectEnabledSettingKey = "CrossfireFirstKillEffectEnabled";
         private const string LastKillEffectEnabledSettingKey = "CrossfireLastKillEffectEnabled";
 
+        public static int ReadKillFxMode(string pack, bool hasOwnFx, int defaultMode)
+        {
+            var values = GameSourceSettingsStore.CombatSettings;
+            object stored = values[KillFxPackKey(pack)];
+            // A legacy choice for another pack must not suppress a new pack's own FX.
+            if (stored == null && !hasOwnFx) stored = values["KillFxEnabled"];
+            if (stored is int number) return NormalizeKillFxMode(number);
+            if (stored is bool flag) return flag ? 1 : 0;
+            if (stored is string text)
+            {
+                if (int.TryParse(text, out int parsed)) return NormalizeKillFxMode(parsed);
+                if (bool.TryParse(text, out bool parsedFlag)) return parsedFlag ? 1 : 0;
+            }
+            return NormalizeKillFxMode(defaultMode);
+        }
+
+        public static void SaveKillFxMode(string pack, int mode)
+        {
+            GameSourceSettingsStore.CombatSettings[KillFxPackKey(pack)] = NormalizeKillFxMode(mode);
+        }
+
+        private static string KillFxPackKey(string pack)
+        {
+            return "KillFxEnabled:" + (string.IsNullOrWhiteSpace(pack) ? "default" : pack.Trim().ToLowerInvariant());
+        }
+
+        private static int NormalizeKillFxMode(int mode)
+        {
+            return mode >= 0 && mode <= 2 ? mode : 1;
+        }
+
         public static CrossfireGameplaySettingsValues Load()
         {
-            var values = ApplicationData.Current.LocalSettings.Values;
+            var values = GameSourceSettingsStore.CombatSettings;
             return new CrossfireGameplaySettingsValues
             {
                 StreakMode = NormalizeStreakMode(values[StreakModeSettingKey] as string),
@@ -71,7 +102,7 @@ namespace KillConfirmCompatibility.Services
                 throw new ArgumentNullException(nameof(settings));
             }
 
-            var values = ApplicationData.Current.LocalSettings.Values;
+            var values = GameSourceSettingsStore.CombatSettings;
             values[StreakModeSettingKey] = NormalizeStreakMode(settings.StreakMode);
             values[FirstKillSpecialAudioSettingKey] = settings.FirstKillSpecialAudio;
             values[LastKillSpecialAudioSettingKey] = settings.LastKillSpecialAudio;

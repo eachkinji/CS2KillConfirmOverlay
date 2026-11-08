@@ -12,8 +12,15 @@ namespace KillConfirmCompatibility.Validation
 {
     internal static class RuntimeValidation
     {
-        internal static async Task RunAsync(string output)
+        internal static async Task RunAsync(string output, string assetsRoot = null)
         {
+            if (assetsRoot != null)
+            {
+                Directory.CreateDirectory(output);
+                DesktopStorage.TestDataRoot = Path.Combine(output, "isolated-profile");
+                DesktopStorage.AssetsRoot = Path.GetFullPath(assetsRoot).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+                DesktopStorage.Current.LocalSettings.Values["Crossfire.BundledRoot"] = Path.Combine(assetsRoot, "DefaultPacks", "crossfire");
+            }
             using var service = new LocalProtocolFixture();
             DesktopStorage.Current.LocalSettings.Values[PortSettingsStore.PortKey] = service.Port;
             var registration = new ServiceSession();
@@ -46,7 +53,10 @@ namespace KillConfirmCompatibility.Validation
                     if (status?.Connected == true && service.Count("/client/register") > 0 && service.Count("/game-source/settings") > 0) break;
                 }
                 if (status?.Connected != true || status.Visible || status.ProcessId != Environment.ProcessId) throw new Exception("Host failed to connect or hide while the game is inactive.");
-                if (service.Count("/client/register") == 0 || service.Count("/soundpack") == 0 || service.Count("/game-source/settings") == 0 || service.MissingAuthentication) throw new Exception("Authenticated service registration/settings failed.");
+                if (service.Count("/client/register") == 0 || service.Count("/audio/channels") == 0
+                    || service.Count("/soundpack") != 0 || service.Count("/audio/device") != 0
+                    || service.Count("/game-source/settings") == 0 || service.MissingAuthentication)
+                    throw new Exception($"Authenticated modern service registration/settings failed: register={service.Count("/client/register")}, channels={service.Count("/audio/channels")}, legacy={service.Count("/soundpack")}, device={service.Count("/audio/device")}, authenticated={!service.MissingAuthentication}.");
                 // Force the status writer to exhaust its retries, then release the
                 // lock. Recovery must clear the I/O fault without poisoning rendering.
                 long previousHeartbeat = status.Timestamp;

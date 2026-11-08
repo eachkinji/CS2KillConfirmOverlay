@@ -15,13 +15,12 @@ namespace KillConfirmCompatibility.Desktop.Runtime
             .Where(pair => !pair.Key.StartsWith("CompatibilityDisplay.", StringComparison.Ordinal))
             .OrderBy(pair => pair.Key).Select(pair => pair.Key + "=" + pair.Value));
         private static string Text(string key, string fallback) => DesktopStorage.Current.LocalSettings.Values[key] as string ?? fallback;
-        private static bool Flag(string key) => DesktopStorage.Current.LocalSettings.Values[key] is bool flag && flag;
         internal static async Task ApplyAsync()
         {
             GameStyleMode style = GameStyleService.Current;
             await DeveloperModeSettingsStore.SyncToServiceAsync();
-            await SendAsync("/money/mode", new JsonObject { ["mode"] = JsonValue.CreateStringValue(Text("MoneyRewardMode", "delta")) });
-            await SendAsync("/audio/device", new JsonObject { ["device"] = JsonValue.CreateStringValue(Text("AudioOutputDevice", "default")) });
+            await SendAsync("/money/mode", new JsonObject { ["mode"] = JsonValue.CreateStringValue((GameSourceSettingsStore.CombatSettings["MoneyRewardMode"] as string ?? "delta")) });
+            await SyncAudioDeviceAsync();
             var choices = DesktopStorage.Current.LocalSettings.Values;
             object volume = choices["AudioVolume." + style] ?? choices["AudioVolume"];
             double percent = volume is double number ? number : volume is int integer ? integer : 100;
@@ -52,7 +51,8 @@ namespace KillConfirmCompatibility.Desktop.Runtime
                 ["grenade_special_audio_priority"] = JsonValue.CreateBooleanValue(sgs.GrenadeSpecialAudioPriority)
             });
             string key = "KillStreakMode_" + GameStyleService.ToStorageValue(style);
-            string streak = Text(key, style == GameStyleMode.CustomModule ? "life" : Text("SharedStreakMode", "life"));
+            var combat = GameSourceSettingsStore.CombatSettings;
+            string streak = combat[key] as string ?? (style == GameStyleMode.CustomModule ? "life" : combat["SharedStreakMode"] as string ?? "life");
             await SendAsync("/streak/settings", new JsonObject
             {
                 ["active"] = JsonValue.CreateBooleanValue(style != GameStyleMode.Crossfire),
@@ -60,12 +60,24 @@ namespace KillConfirmCompatibility.Desktop.Runtime
                 ["assist_audio_enabled"] = JsonValue.CreateBooleanValue(AssistAudioSettingsStore.Load(style)),
                 ["assist_audio_setting_active"] = JsonValue.CreateBooleanValue(AssistAudioSettingsStore.IsSupported(style))
             });
-            await SendAsync("/spectator/settings", new JsonObject { ["enabled"] = JsonValue.CreateBooleanValue(Flag("SpectatedKillEffectsEnabled")) });
+            await SendAsync("/spectator/settings", new JsonObject { ["enabled"] = JsonValue.CreateBooleanValue(SharedStreakSettingsStore.LoadSpectatedKillEffects()) });
             await BombAudioSettingsStore.SyncAsync();
             await StreakGainSettingsStore.SyncAsync();
             await GsiGameVersionSettingsStore.SyncAsync();
             await InterruptPreviousKillAudioSettingsStore.SyncAsync();
             if (style == GameStyleMode.Dagoujiao) await DagoujiaoSettingsStore.SyncServiceAsync();
+            await AudioChannelSettingsStore.SyncAsync(style);
+        }
+        private static async Task SyncAudioDeviceAsync()
+        {
+            string requested = Text("AudioOutputDevice", "default").Trim();
+            if (requested.Length == 0 || string.Equals(requested, "default", StringComparison.OrdinalIgnoreCase)) requested = "default";
+            using var client = await LocalServiceAuth.CreateHttpClientAsync();
+            using var response = await client.GetAsync(LocalServiceEndpoints.Build("/audio/devices"));
+            response.EnsureSuccessStatusCode();
+            var devices = JsonObject.Parse(await response.Content.ReadAsStringAsync());
+            if (string.Equals(devices.GetNamedString("selected", "default"), requested, StringComparison.Ordinal)) return;
+            await SendAsync("/audio/device", new JsonObject { ["device"] = JsonValue.CreateStringValue(requested) });
         }
         private static async Task SendAsync(string path, JsonObject json)
         {

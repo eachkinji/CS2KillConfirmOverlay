@@ -30,7 +30,7 @@ namespace KillConfirmCompatibility.Services
                 return false;
             }
 
-            object value = ApplicationData.Current.LocalSettings.Values[key];
+            object value = GameSourceSettingsStore.CombatSettings[key];
             if (value is bool boolValue)
             {
                 return boolValue;
@@ -44,7 +44,7 @@ namespace KillConfirmCompatibility.Services
             string key = GetSettingKey(style);
             if (key != null)
             {
-                ApplicationData.Current.LocalSettings.Values[key] = enabled;
+                GameSourceSettingsStore.CombatSettings[key] = enabled;
             }
         }
 

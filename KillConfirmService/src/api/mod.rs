@@ -20,7 +20,9 @@ use crate::infrastructure::logging::{
     developer_logging_enabled, local_state_dir, perf_trace, service_log,
     set_developer_logging_enabled,
 };
-use crate::infrastructure::playback::{get_output_stream_with_name, output_device_names};
+use crate::infrastructure::playback::{
+    AudioOutputRequest, get_output_stream_with_name, output_device_names, update_audio_output,
+};
 
 use crate::infrastructure::steam::{detect_counter_strike_root, detect_cs2_root};
 use crate::soundpack::Preset;

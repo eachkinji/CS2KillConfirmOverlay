@@ -48,8 +48,7 @@
             </Grid>
             </StackPanel>
         </Border>
-        <!-- SpectatedKillEffectsCard below -->
-        <Border Style="{StaticResource PanelSectionCardStyle}">
+        <Border x:Name="SpectatedKillEffectsCard" Style="{StaticResource PanelSectionCardStyle}">
             <StackPanel Spacing="8">
             <Grid ColumnSpacing="16" MinHeight="46">
                 <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
@@ -89,19 +88,6 @@
             <StackPanel Spacing="8">
             <Grid ColumnSpacing="16" MinHeight="46">
                 <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                <Border Style="{StaticResource PanelIconContainerStyle}"><FontIcon Glyph="&#xE8BB;" FontSize="16" FontFamily="Segoe MDL2 Assets"/></Border>
-                <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
-                    <TextBlock x:Name="AutoCloseOnGameExitLabelText" Style="{StaticResource PanelTitleTextStyle}"/>
-                    <TextBlock x:Name="AutoCloseOnGameExitHintText" Style="{StaticResource PanelCaptionTextStyle}"/>
-                </StackPanel>
-                <ToggleSwitch x:Name="AutoCloseOnGameExitToggle" Grid.Column="2" MinWidth="0" VerticalAlignment="Center" OffContent="关" OnContent="开" Toggled="OnAutoCloseOnGameExitToggled"/>
-            </Grid>
-            </StackPanel>
-        </Border>
-        <Border Style="{StaticResource PanelSectionCardStyle}">
-            <StackPanel Spacing="8">
-            <Grid ColumnSpacing="16" MinHeight="46">
-                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                 <Border Style="{StaticResource PanelIconContainerStyle}"><FontIcon Glyph="&#xE767;" FontSize="16" FontFamily="Segoe MDL2 Assets"/></Border>
                 <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
                     <TextBlock x:Name="InterruptPreviousKillAudioLabelText" Style="{StaticResource PanelTitleTextStyle}"/>
@@ -115,12 +101,12 @@
             <StackPanel Spacing="8">
             <Grid ColumnSpacing="16" MinHeight="46">
                 <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                <Border Style="{StaticResource PanelIconContainerStyle}"><FontIcon Glyph="&#xE71B;" FontSize="16" FontFamily="Segoe MDL2 Assets"/></Border>
+                <Border Style="{StaticResource PanelIconContainerStyle}"><FontIcon Glyph="&#xE720;" FontSize="16" FontFamily="Segoe MDL2 Assets"/></Border>
                 <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
-                    <TextBlock x:Name="LinkIconSoundLabelText" Style="{StaticResource PanelTitleTextStyle}"/>
-                    <TextBlock x:Name="LinkIconSoundHintText" Style="{StaticResource PanelCaptionTextStyle}"/>
+                    <TextBlock x:Name="CharacterVoiceInterruptLabelText" Style="{StaticResource PanelTitleTextStyle}"/>
+                    <TextBlock x:Name="CharacterVoiceInterruptHintText" Style="{StaticResource PanelCaptionTextStyle}"/>
                 </StackPanel>
-                <ToggleSwitch x:Name="LinkIconSoundToggle" Grid.Column="2" MinWidth="0" VerticalAlignment="Center" OffContent="关" OnContent="开" Toggled="OnAudioBehaviorToggled"/>
+                <ToggleSwitch x:Name="CharacterVoiceInterruptToggle" Grid.Column="2" MinWidth="0" VerticalAlignment="Center" OffContent="关" OnContent="开" Toggled="OnAudioBehaviorToggled"/>
             </Grid>
             </StackPanel>
         </Border>
@@ -128,12 +114,12 @@
             <StackPanel Spacing="8">
             <Grid ColumnSpacing="16" MinHeight="46">
                 <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                <Border Style="{StaticResource PanelIconContainerStyle}"><FontIcon Glyph="&#xE720;" FontSize="16" FontFamily="Segoe MDL2 Assets"/></Border>
+                <Border Style="{StaticResource PanelIconContainerStyle}"><FontIcon Glyph="&#xE71B;" FontSize="16" FontFamily="Segoe MDL2 Assets"/></Border>
                 <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
-                    <TextBlock x:Name="CharacterVoiceInterruptLabelText" Style="{StaticResource PanelTitleTextStyle}"/>
-                    <TextBlock x:Name="CharacterVoiceInterruptHintText" Style="{StaticResource PanelCaptionTextStyle}"/>
+                    <TextBlock x:Name="LinkIconSoundLabelText" Style="{StaticResource PanelTitleTextStyle}"/>
+                    <TextBlock x:Name="LinkIconSoundHintText" Style="{StaticResource PanelCaptionTextStyle}"/>
                 </StackPanel>
-                <ToggleSwitch x:Name="CharacterVoiceInterruptToggle" Grid.Column="2" MinWidth="0" VerticalAlignment="Center" OffContent="关" OnContent="开" Toggled="OnAudioBehaviorToggled"/>
+                <ToggleSwitch x:Name="LinkIconSoundToggle" Grid.Column="2" MinWidth="0" VerticalAlignment="Center" OffContent="关" OnContent="开" Toggled="OnAudioBehaviorToggled"/>
             </Grid>
             </StackPanel>
         </Border>

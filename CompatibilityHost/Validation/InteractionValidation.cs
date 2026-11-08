@@ -23,15 +23,21 @@ internal static class InteractionValidation
         settings["Crossfire.BundledRoot"] = Path.Combine(assets, "DefaultPacks", "crossfire");
         settings[Danmaku.DanmakuSettingsStore.EnabledSettingKey] = false;
         GameStyleService.Current = GameStyleMode.Csol;
+        // Match the control panel's selected-pack state before registration;
+        // the one-time legacy migration is covered by the service audio tests.
+        await GameSourceSettingsStore.RefreshAsync();
+        AudioChannelSettingsStore.Load(GameStyleMode.Csol);
         var registration = new ServiceSession();
         await Task.WhenAll(Enumerable.Range(0, 5).Select(_ => registration.EnsureRegisteredAsync()));
-        if (service.Count("/client/register") != 1 || service.Count("/soundpack") != 1)
-            throw new Exception("Concurrent callers did not share registration/audio preparation.");
+        if (service.Count("/client/register") != 1 || service.Count("/audio/channels") != 1
+            || service.Count("/soundpack") != 0 || service.Count("/audio/device") != 0)
+            throw new Exception($"Concurrent callers did not share modern registration/audio preparation: register={service.Count("/client/register")}, channels={service.Count("/audio/channels")}, legacy={service.Count("/soundpack")}, device={service.Count("/audio/device")}.");
         await registration.EnsureRegisteredAsync();
-        if (service.Count("/client/register") != 1 || service.Count("/soundpack") != 1)
-            throw new Exception("Warm preview repeated unchanged service configuration.");
+        if (service.Count("/client/register") != 1 || service.Count("/audio/channels") != 1
+            || service.Count("/soundpack") != 0 || service.Count("/audio/device") != 0)
+            throw new Exception($"Warm preview repeated unchanged service configuration: register={service.Count("/client/register")}, channels={service.Count("/audio/channels")}, legacy={service.Count("/soundpack")}, device={service.Count("/audio/device")}.");
         await registration.ReleaseAsync();
-        var report = new StringBuilder("PASS: five concurrent registration callers joined one request; warm reuse sent no soundpack/configuration request.\n");
+        var report = new StringBuilder("PASS: five concurrent registration callers joined one registration and one modern audio/channels request; warm reuse sent no configuration request; legacy soundpack and unchanged audio/device requests remained zero.\n");
         string config = Path.Combine(DesktopStorage.Current.LocalFolder.Path, DisplayFiles.FolderName, DisplayFiles.ConfigurationName);
         string statusPath = Path.Combine(Path.GetDirectoryName(config), DisplayFiles.StatusName);
         DisplayFiles.Write(config, new DisplayConfiguration { Enabled = true, FollowGame = false, HideWhenInactive = true, TestAudio = true });

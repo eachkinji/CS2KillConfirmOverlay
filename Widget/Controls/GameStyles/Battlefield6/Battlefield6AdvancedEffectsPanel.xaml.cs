@@ -12,6 +12,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
         public Battlefield6AdvancedEffectsPanel()
         {
             InitializeComponent();
+            AdvancedEffectsPanelSupport.TrackCombatHeader(this, CombatGameLogo, TitleText);
             RefreshKillMarkSetting();
         }
 
@@ -37,7 +38,8 @@ namespace KillConfirmGameBar.Controls.GameStyles
 
         public void ApplyLanguage(bool isChinese)
         {
-            TitleText.Text = isChinese ? "战地 6 高级特效" : "6 Effects";
+            AdvancedEffectsPanelSupport.ApplyCombatHeader(CombatGameLogo, TitleText, isChinese);
+
             ResetButtonText.Text = isChinese ? "恢复默认" : "Reset";
             ToolTipService.SetToolTip(ResetButton, isChinese ? "恢复 6 默认设置" : "Restore 6 defaults");
             HintText.Text = isChinese

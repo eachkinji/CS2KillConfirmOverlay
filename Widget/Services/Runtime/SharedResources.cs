@@ -17,9 +17,13 @@ namespace KillConfirmGameBar.Services
     // FFmpeg and the real service are installed only in the ordinary payload.
     internal static class SharedResources
     {
+#if WIDGET_SWITCH_VALIDATION
+        internal static int ValidationFileRequests;
+#endif
         private static readonly SemaphoreSlim Gate=new SemaphoreSlim(1,1);
         private static readonly SemaphoreSlim RevisionGate=new SemaphoreSlim(1,1);
         private static readonly ConcurrentDictionary<string,Lazy<Task<StorageFolder>>> Folders=new ConcurrentDictionary<string,Lazy<Task<StorageFolder>>>();
+        private static readonly ConcurrentDictionary<string,Lazy<Task<Dictionary<string,string>>>> FileListings=new ConcurrentDictionary<string,Lazy<Task<Dictionary<string,string>>>>();
         public static string RemoteDataRoot { get; set; }
         public static string RemoteInstallRoot { get; set; }
         public static string RemoteLibraryRoot { get; set; }
@@ -38,9 +42,12 @@ namespace KillConfirmGameBar.Services
             }
             catch(Exception error) { App.Log("Widget pack preview: "+error.Message); }
         }
-        public static void Invalidate() { Folders.Clear(); }
+        public static void Invalidate() { Folders.Clear(); FileListings.Clear(); }
         public static async Task<StorageFile> AssetFileAsync(Uri uri)
         {
+#if WIDGET_SWITCH_VALIDATION
+            ValidationFileRequests++;
+#endif
             if(uri.IsFile) return await FileFromPathAsync(uri.LocalPath);
             if(uri.Scheme=="ms-appdata" && uri.AbsolutePath.StartsWith("/local/",StringComparison.OrdinalIgnoreCase))
                 return await FileFromPathAsync(Path.Combine(ApplicationData.Current.LocalFolder.Path,
@@ -53,6 +60,9 @@ namespace KillConfirmGameBar.Services
         }
         public static async Task<StorageFile> FileFromPathAsync(string path)
         {
+#if WIDGET_SWITCH_VALIDATION
+            ValidationFileRequests++;
+#endif
             string local=ApplicationData.Current.LocalFolder.Path;
             if(path.StartsWith(local+Path.DirectorySeparatorChar,StringComparison.OrdinalIgnoreCase))
             {
@@ -214,6 +224,37 @@ namespace KillConfirmGameBar.Services
         }
         [DllImport("kernel32.dll",EntryPoint="MoveFileExW",CharSet=CharSet.Unicode,SetLastError=true)]
         [return:MarshalAs(UnmanagedType.Bool)] private static extern bool MoveFileEx(string from,string to,uint flags);
+        // A fallback icon must not download the original pack's entire directory.
+        // Cache only the remote listing, then transfer the exact matching file.
+        internal static async Task<StorageFile> FindImportedFileAsync(string folderPath, IEnumerable<string> candidates)
+        {
+            var listing = FileListings.GetOrAdd(folderPath, p => new Lazy<Task<Dictionary<string,string>>>(() => ListImportedFilesAsync(p)));
+            Dictionary<string,string> files;
+            try { files = await listing.Value; }
+            catch { FileListings.TryRemove(folderPath, out _); throw; }
+            foreach (string candidate in candidates)
+                if (files.TryGetValue(candidate.Replace('\\', '/'), out string relative))
+                    return await FileFromPathAsync(Path.Combine(folderPath, relative.Replace('/', Path.DirectorySeparatorChar)));
+            return null;
+        }
+        private static async Task<Dictionary<string,string>> ListImportedFilesAsync(string folderPath)
+        {
+            using (var client = await LocalServiceAuth.CreateHttpClientAsync())
+            using (var response = await client.GetAsync(LocalServiceEndpoints.Build("/shared/folder?asset=false&path=" + Uri.EscapeDataString(folderPath))))
+            {
+                response.EnsureSuccessStatusCode();
+                var files = new Dictionary<string,string>(StringComparer.OrdinalIgnoreCase);
+                foreach (var entry in JsonObject.Parse(await response.Content.ReadAsStringAsync())["files"].GetArray())
+                {
+                    string relative = entry.GetString().Replace('\\', '/');
+                    string resolved = Path.GetFullPath(Path.Combine(folderPath, relative.Replace('/', Path.DirectorySeparatorChar)));
+                    if (!resolved.StartsWith(Path.GetFullPath(folderPath).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+                        throw new IOException("Invalid shared folder entry.");
+                    files[relative] = relative;
+                }
+                return files;
+            }
+        }
         public static Task<StorageFolder> ImportedFolderAsync(string path)
         {
             if(path.StartsWith(CacheRoot+Path.DirectorySeparatorChar,StringComparison.OrdinalIgnoreCase)) return StorageFolder.GetFolderFromPathAsync(path).AsTask();

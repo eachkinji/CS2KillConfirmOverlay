@@ -14,6 +14,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
         public OverwatchAdvancedEffectsPanel()
         {
             InitializeComponent();
+            AdvancedEffectsPanelSupport.TrackCombatHeader(this, CombatGameLogo, TitleText);
             RefreshVisualEffectSettings();
             SelectAssistAudio(AssistAudioSettingsStore.Load(GameStyleMode.Overwatch));
         }
@@ -38,7 +39,8 @@ namespace KillConfirmGameBar.Controls.GameStyles
 
         public void ApplyLanguage(bool isChinese)
         {
-            TitleText.Text = isChinese ? "守望先锋击杀提示" : "Overwatch Kill Feedback";
+            AdvancedEffectsPanelSupport.ApplyCombatHeader(CombatGameLogo, TitleText, isChinese);
+
             VisualEffectsTitle.Text = isChinese ? "显示哪些击杀提示" : "Visible kill feedback";
             CrosshairEffectLabel.Text = isChinese ? "中央准心提示" : "Center crosshair feedback";
             LowerEffectLabel.Text = isChinese ? "下方击杀卡片" : "Lower kill card";

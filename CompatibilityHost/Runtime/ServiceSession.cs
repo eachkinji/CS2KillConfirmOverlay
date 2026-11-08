@@ -17,7 +17,6 @@ namespace KillConfirmCompatibility.Desktop.Runtime
         private bool _released;
         private readonly System.Threading.CancellationTokenSource _lifetime = new();
         private DateTimeOffset _lastLaunch = DateTimeOffset.MinValue;
-        private string _lastVoice;
         private int _lastPort;
         private string _lastConfiguration;
         public string Error { get; private set; }
@@ -29,7 +28,7 @@ namespace KillConfirmCompatibility.Desktop.Runtime
             while (!_registration.IsCompleted) await _registration;
             if (_closing) return;
             if (Error == null && DateTimeOffset.UtcNow - _registeredAt < TimeSpan.FromSeconds(2)
-                && _lastPort == LocalServiceEndpoints.Port && _lastVoice == ReadVoice()
+                && _lastPort == LocalServiceEndpoints.Port
                 && _lastConfiguration == ServiceConfiguration.Signature) return;
             await (_registration = RegisterAsync());
         }
@@ -47,19 +46,6 @@ namespace KillConfirmCompatibility.Desktop.Runtime
                 response.EnsureSuccessStatusCode();
                 if (_closing) return;
                 if (_lastPort != LocalServiceEndpoints.Port) _lastConfiguration = null;
-                string voice = ReadVoice();
-                if (_lastVoice != voice || _lastPort != LocalServiceEndpoints.Port)
-                {
-                    var preset = new JsonObject { ["preset"] = JsonValue.CreateStringValue(voice) };
-                    if (PackCatalogService.IsImportedVoicePackKey(voice))
-                    {
-                        var folder = await PackCatalogService.GetImportedVoiceFolderAsync(voice);
-                        if (folder != null) preset["custom_path"] = JsonValue.CreateStringValue(folder.Path);
-                    }
-                    using var presetContent = new HttpStringContent(preset.Stringify(), UnicodeEncoding.Utf8, "application/json");
-                    using var changed = await client.PostAsync(LocalServiceEndpoints.Build("/soundpack"), presetContent).AsTask(timeout.Token);
-                    changed.EnsureSuccessStatusCode(); _lastVoice = voice; _lastPort = LocalServiceEndpoints.Port;
-                }
                 Error = null;
                 string signature = ServiceConfiguration.Signature;
                 if (signature != _lastConfiguration)
@@ -67,7 +53,11 @@ namespace KillConfirmCompatibility.Desktop.Runtime
                     try { await ServiceConfiguration.ApplyAsync(); _lastConfiguration = signature; }
                     catch (Exception error) { Error = "Settings: " + error.Message; }
                 }
-                if (Error == null) _registeredAt = DateTimeOffset.UtcNow;
+                if (Error == null)
+                {
+                    _lastPort = LocalServiceEndpoints.Port;
+                    _registeredAt = DateTimeOffset.UtcNow;
+                }
             }
             catch (Exception error)
             {
@@ -75,16 +65,10 @@ namespace KillConfirmCompatibility.Desktop.Runtime
                 Error = error.Message;
                 if (DateTimeOffset.UtcNow - _lastLaunch > TimeSpan.FromSeconds(15))
                 {
-                    _lastLaunch = DateTimeOffset.UtcNow; _lastVoice = null; _lastConfiguration = null;
+                    _lastLaunch = DateTimeOffset.UtcNow; _lastConfiguration = null;
                     try { LaunchService(); } catch (Exception launchError) { Error = launchError.Message; App.Log("Service launch failed: " + launchError); }
                 }
             }
-        }
-        private static string ReadVoice()
-        {
-            var style = GameStyleService.Current;
-            string voice = DesktopStorage.Current.LocalSettings.Values["VoicePack." + GameStyleService.ToStorageValue(style)] as string;
-            return string.IsNullOrWhiteSpace(voice) ? GameStyleService.DefaultVoicePackKey(style) : GameStyleService.NormalizeRetiredSanguoshaPackKey(voice);
         }
         private static void LaunchService()
         {
@@ -94,7 +78,7 @@ namespace KillConfirmCompatibility.Desktop.Runtime
             start.ArgumentList.Add("--port"); start.ArgumentList.Add(LocalServiceEndpoints.Port.ToString());
             start.Environment["KILLCONFIRM_DATA_ROOT"] = Contracts.RuntimePaths.DataRoot;
             start.Environment["KILLCONFIRM_INSTALL_ROOT"] = root;
-            // Imported ids are selected through /soundpack after startup.
+            // Audio channels, including imported packs, are selected after startup.
             start.ArgumentList.Add("--exit-with-ui"); start.ArgumentList.Add("--preset"); start.ArgumentList.Add("valorant_00000_base");
             using var process = Process.Start(start);
             App.Log("Service started by compatibility host.");

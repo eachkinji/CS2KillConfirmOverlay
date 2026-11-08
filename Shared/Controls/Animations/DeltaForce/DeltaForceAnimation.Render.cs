@@ -62,7 +62,8 @@ namespace KillConfirmCompatibility.Controls
                         centerY - (size / 2.0),
                         size,
                         size),
-                    alpha);
+                    alpha,
+                    CanvasImageInterpolation.HighQualityCubic);
 
                 if (item.IsHeadshot)
                 {

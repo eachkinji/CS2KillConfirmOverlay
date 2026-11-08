@@ -11,6 +11,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
         public PubgAdvancedEffectsPanel()
         {
             InitializeComponent();
+            AdvancedEffectsPanelSupport.TrackCombatHeader(this, CombatGameLogo, TitleText);
             RefreshKillMarkSetting();
         }
 
@@ -36,7 +37,8 @@ namespace KillConfirmGameBar.Controls.GameStyles
 
         public void ApplyLanguage(bool isChinese)
         {
-            TitleText.Text = isChinese ? "PUBG 高级特效" : "PUBG Effects";
+            AdvancedEffectsPanelSupport.ApplyCombatHeader(CombatGameLogo, TitleText, isChinese);
+
             ResetButtonText.Text = isChinese ? "恢复默认" : "Reset";
             ToolTipService.SetToolTip(ResetButton, isChinese ? "恢复 PUBG 默认设置" : "Restore PUBG defaults");
             MoneyRewardModeLabel.Text = isChinese ? "奖励算法" : "Money";

@@ -25,8 +25,8 @@ namespace KillConfirmGameBar.Controls
             return SanguoshaTierAnimations[index];
         }
 
-        // Keep only small clip metadata for the selected pack. Atlas pages are
-        // temporary preparation/fallback resources of the current tier.
+        // Metadata and native atlas pages are prepared for every tier of the
+        // selected pack, then released together on pack changes.
 
         private sealed class SanguoshaTierAssets
         {

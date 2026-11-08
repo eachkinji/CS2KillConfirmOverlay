@@ -21,7 +21,7 @@ namespace KillConfirmCompatibility.Services
 
         public static double Load()
         {
-            object value = ApplicationData.Current.LocalSettings.Values[SettingKey];
+            object value = GameSourceSettingsStore.CombatSettings[SettingKey];
             if (value is double number)
             {
                 return Clamp(number);
@@ -42,7 +42,7 @@ namespace KillConfirmCompatibility.Services
 
         public static void Save(double value)
         {
-            ApplicationData.Current.LocalSettings.Values[SettingKey] = Clamp(value);
+            GameSourceSettingsStore.CombatSettings[SettingKey] = Clamp(value);
         }
 
         private static double Clamp(double value)

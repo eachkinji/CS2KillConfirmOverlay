@@ -1,4 +1,6 @@
-﻿using Windows.UI.Xaml;
+using System;
+using System.Linq;
+using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
 namespace KillConfirmGameBar.Features.CompatibilityDisplay
@@ -26,6 +28,32 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             Grid.SetRow(PlaybackActions, compact ? 1 : 0);
             Grid.SetColumn(PlaybackActions, compact ? 0 : 3);
             Grid.SetColumnSpan(PlaybackActions, compact ? 4 : 1);
+        }
+
+        private ComboBoxItem[] _testPresetOptions;
+        private bool? _testPresetIsLol;
+
+        public void SetTestPresetSource(bool isLol)
+        {
+            if (_testPresetIsLol == isLol) return;
+            if (_testPresetOptions == null)
+                _testPresetOptions = TestPresetSelector.Items.OfType<ComboBoxItem>().ToArray();
+            string selectedTag = (TestPresetSelector.SelectedItem as ComboBoxItem)?.Tag as string;
+            TestPresetSelector.IsDropDownOpen = false;
+            TestPresetSelector.Items.Clear();
+            // CarouselPanel counts item slots even for collapsed containers.
+            // Keep only this source's rows so its extent and last row are real.
+            foreach (var item in _testPresetOptions)
+            {
+                bool isLolItem = ((string)item.Tag).StartsWith("lol_", StringComparison.OrdinalIgnoreCase);
+                if (isLolItem != isLol) continue;
+                item.Visibility = Visibility.Visible;
+                TestPresetSelector.Items.Add(item);
+            }
+            TestPresetSelector.SelectedItem = TestPresetSelector.Items.OfType<ComboBoxItem>()
+                .FirstOrDefault(item => Equals(item.Tag, selectedTag))
+                ?? TestPresetSelector.Items.OfType<ComboBoxItem>().FirstOrDefault();
+            _testPresetIsLol = isLol;
         }
 
         public event SelectionChangedEventHandler CharacterVoicePackSelectionChanged;

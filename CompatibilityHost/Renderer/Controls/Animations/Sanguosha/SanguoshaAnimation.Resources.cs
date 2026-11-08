@@ -23,12 +23,16 @@ namespace KillConfirmCompatibility.Controls
 
         private static async Task PreloadSanguoshaAsync(IProgress<int> progress)
         {
+            int generation = _resourceGeneration;
             progress?.Report(0);
-            // Index all tiers without keeping their atlas pages on the GPU.
-            // Only the current/recent atlas is retained; never bake disk frames.
+            // Prepare every native atlas at selection time; playback never decodes a new tier.
             for (int tier = 1; tier <= GameStyleService.SanguoshaMaxKillTier; tier++)
             {
-                await LoadSanguoshaTierAsync(tier);
+                if (generation != _resourceGeneration) throw new OperationCanceledException();
+                SanguoshaTierAssets assets = await LoadSanguoshaTierAsync(tier);
+                if (generation != _resourceGeneration) throw new OperationCanceledException();
+                await EnsureSanguoshaPagesAsync(assets);
+                if (generation != _resourceGeneration) throw new OperationCanceledException();
                 progress?.Report(tier * 99 / GameStyleService.SanguoshaMaxKillTier);
             }
             progress?.Report(100);
@@ -64,6 +68,7 @@ namespace KillConfirmCompatibility.Controls
 
         private static async Task EnsureSanguoshaPagesAsync(SanguoshaTierAssets assets)
         {
+            int generation = _resourceGeneration;
             assets.LastUsed = ++_sanguoshaUseCounter;
             if (assets.Pages.Length != 0) return;
             string name = GetSanguoshaAnimationName(_iconPack, assets.Tier);
@@ -110,6 +115,11 @@ namespace KillConfirmCompatibility.Controls
                         foreach (var task in loadTasks)
                             if (task.Status == TaskStatus.RanToCompletion) task.Result?.Dispose();
                         throw;
+                    }
+                    if (generation != _resourceGeneration)
+                    {
+                        foreach (CanvasBitmap bitmap in loadedBitmaps) bitmap?.Dispose();
+                        throw new OperationCanceledException("Sanguosha pack changed during atlas preparation.");
                     }
                     lock (SanguoshaPageCache)
                     {
@@ -161,25 +171,8 @@ namespace KillConfirmCompatibility.Controls
             TrimSanguoshaPages();
         }
 
-        private static void TrimSanguoshaPages()
-        {
-            var retained = new HashSet<CanvasBitmap>();
-            SanguoshaTierAssets warm;
-            lock (SanguoshaTiers) warm = SanguoshaTiers.Values.Where(t => t.Pages.Length != 0).OrderByDescending(t => t.LastUsed).FirstOrDefault();
-            if (warm != null) foreach (var page in warm.Pages) retained.Add(page);
-            lock (SanguoshaTiersOnScreen)
-                foreach (var active in SanguoshaTiersOnScreen.Concat(SanguoshaCacheBuilds))
-                    foreach (var page in active.Pages) retained.Add(page);
-            lock (SanguoshaPageCache)
-                foreach (var key in SanguoshaPageCache.Where(pair => !retained.Contains(pair.Value)).Select(pair => pair.Key).ToArray())
-                {
-                    SanguoshaPageCache[key].Dispose();
-                    SanguoshaPageCache.Remove(key);
-                }
-            lock (SanguoshaTiers)
-                foreach (var tier in SanguoshaTiers.Values)
-                    if (tier != warm && !IsSanguoshaTierOnScreen(tier) && !SanguoshaCacheBuilds.Contains(tier)) tier.Pages = Array.Empty<CanvasBitmap>();
-        }
+        // Current-pack pages remain resident; ClearSanguoshaCache owns their release.
+        private static void TrimSanguoshaPages() { }
 
         private static readonly HashSet<SanguoshaTierAssets> SanguoshaTiersOnScreen = new HashSet<SanguoshaTierAssets>();
 

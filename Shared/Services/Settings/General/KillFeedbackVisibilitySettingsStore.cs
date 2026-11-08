@@ -51,7 +51,7 @@ namespace KillConfirmCompatibility.Services
                 return new KillFeedbackVisibilitySettingsValues();
             }
 
-            var values = ApplicationData.Current.LocalSettings.Values;
+            var values = GameSourceSettingsStore.CombatSettings;
             return new KillFeedbackVisibilitySettingsValues
             {
                 CrosshairEnabled = ReadBool(
@@ -82,7 +82,7 @@ namespace KillConfirmCompatibility.Services
                 return;
             }
 
-            var values = ApplicationData.Current.LocalSettings.Values;
+            var values = GameSourceSettingsStore.CombatSettings;
             values[prefix + "CrosshairEnabled"] = settings.CrosshairEnabled;
             values[prefix + "LowerEnabled"] = settings.LowerEnabled;
             if (style == GameStyleMode.ModernWarfare2019)

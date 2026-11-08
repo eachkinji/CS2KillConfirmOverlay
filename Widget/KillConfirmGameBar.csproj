@@ -10,6 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>KillConfirmGameBar</RootNamespace>
     <AssemblyName>KillConfirmGameBar</AssemblyName>
+    <ApplicationIcon>..\Installer\Assets\KillConfirmOverlay.ico</ApplicationIcon>
     <DefaultLanguage>zh-CN</DefaultLanguage>
     <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
     <TargetPlatformVersion>10.0.26100.0</TargetPlatformVersion>
@@ -247,7 +248,6 @@
     <Compile Include="Pages\KillConfirmWidget\Settings\KillConfirmWidgetPage.DagoujiaoSettings.cs" />
     <Compile Include="Pages\KillConfirmWidget\Settings\KillConfirmWidgetPage.DoubaoSettings.cs" />
     <Compile Include="Pages\KillConfirmWidget\Settings\KillConfirmWidgetPage.SharedStreakSettings.cs" />
-    <Compile Include="Pages\KillConfirmWidget\Configuration\KillConfirmWidgetPage.AutoCloseGameExit.cs" />
     <Compile Include="Pages\KillConfirmWidget\Runtime\KillConfirmWidgetPage.Status.cs" />
     <Compile Include="Pages\KillConfirmWidget\Runtime\KillConfirmWidgetPage.SetupGuideAssets.cs" />
     <Compile Include="Pages\KillConfirmWidget\Settings\KillConfirmWidgetPage.VisualSettings.cs" />
@@ -511,7 +511,6 @@
     <Compile Include="..\Shared\Services\Settings\General\DeveloperModeSettingsStore.cs" Link="Services\Settings\General\DeveloperModeSettingsStore.cs" />
     <Compile Include="..\Shared\Services\GameSources\CounterStrike\GsiGameVersionSettingsStore.cs" Link="Services\GameSources\CounterStrike\GsiGameVersionSettingsStore.cs" />
     <Compile Include="..\Shared\Services\Settings\General\StreakGainSettingsStore.cs" Link="Services\Settings\General\StreakGainSettingsStore.cs" />
-    <Compile Include="Services\Settings\General\AutoCloseOnGameExitSettingsStore.cs" />
     <Compile Include="Services\Settings\General\GameBarRuntimeStatusStore.cs" />
     <Compile Include="..\Shared\Services\Settings\Audio\InterruptPreviousKillAudioSettingsStore.cs" Link="Services\Settings\Audio\InterruptPreviousKillAudioSettingsStore.cs" />
     <Compile Include="..\Shared\Services\Styling\GameStyleService.cs" Link="Services\Styling\GameStyleService.cs" />
@@ -936,6 +935,7 @@
   <ItemGroup Condition="'$(WidgetSwitchValidation)' == 'true'">
     <AppxManifest Include="Validation\Package.appxmanifest" />
     <Compile Include="Validation\GameSwitchValidation.cs" />
+    <Compile Include="Validation\NativePreloadValidation.cs" />
     <Compile Include="Validation\Battlefield6Validation.cs" />
     <Compile Include="Validation\CalabiyauRenderValidation.cs" />
       <Compile Include="Validation\CalabiyauDefaultRenderValidation.cs" />

@@ -1,13 +1,44 @@
+using System;
 using KillConfirmGameBar.Services;
 using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
+using Windows.UI.Xaml.Media.Imaging;
 
 namespace KillConfirmGameBar.Features.CompatibilityDisplay.Controls.GameStyles
 {
     internal static class AdvancedEffectsPanelSupport
     {
+        public static void ApplyCombatHeader(Image logo, TextBlock title, bool isChinese)
+        {
+            string source = GameSourceSettingsStore.Current;
+            logo.Source = new BitmapImage(new Uri(GameSourceSettingsStore.LogoUri(source)));
+            title.Text = GameSourceSettingsStore.FullDisplayName(source, isChinese)
+                + (isChinese ? " 战斗与视效" : " Combat & Effects");
+        }
+
+        public static void TrackCombatHeader(UserControl owner, Image logo, TextBlock title)
+        {
+            EventHandler changed = (sender, args) =>
+            {
+#if DESKTOP_CONTROL_PANEL
+                _ = DesktopPlatform.DispatchAsync(Windows.UI.Core.CoreDispatcherPriority.Normal,
+                    () => ApplyCombatHeader(logo, title, LocalizationManager.Current == UiLanguage.SimplifiedChinese));
+#else
+                _ = owner.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal,
+                    () => ApplyCombatHeader(logo, title, LocalizationManager.Current == UiLanguage.SimplifiedChinese));
+#endif
+            };
+            owner.Loaded += (sender, args) =>
+            {
+                GameSourceSettingsStore.Changed -= changed;
+                GameSourceSettingsStore.Changed += changed;
+                ApplyCombatHeader(logo, title, LocalizationManager.Current == UiLanguage.SimplifiedChinese);
+            };
+            owner.Unloaded += (sender, args) => GameSourceSettingsStore.Changed -= changed;
+        }
+
         public static void ApplyHeader(TextBlock title, TextBlock hint, GameThemePalette theme)
         {
             if (title != null)

@@ -41,6 +41,7 @@ namespace KillConfirmCompatibility.Controls
                 return false;
             }
 
+            _resourceGeneration++;
             _brightnessBoost = normalizedBrightness;
             _contrastBoost = normalizedContrast;
             CodeKillCache.Clear();
@@ -219,8 +220,10 @@ namespace KillConfirmCompatibility.Controls
             if (_modernWarfare2019UpperIconBitmap != null) bitmaps.Add(_modernWarfare2019UpperIconBitmap);
             if (_modernWarfare2019MoneyGlowBitmap != null) bitmaps.Add(_modernWarfare2019MoneyGlowBitmap);
 
+            foreach (CanvasBitmap bitmap in CodeKillTextureCache.Values) bitmaps.Add(bitmap);
+            CodeKillTextureCache.Clear();
             CodeKillCache.Clear();
-            ClearCrossfireExtraCache();
+            ClearCrossfireExtraCache(bitmaps);
             ImportedCodeFileIndexes.Clear();
             CsolKillCache.Clear();
             ClearBattlefieldIconCache();

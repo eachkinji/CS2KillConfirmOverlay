@@ -59,7 +59,7 @@ namespace KillConfirmCompatibility.Services
 
         public static DoubaoSettingsValues Load()
         {
-            var values = ApplicationData.Current.LocalSettings.Values;
+            var values = GameSourceSettingsStore.CombatSettings;
             var settings = new DoubaoSettingsValues();
             for (int i = 1; i <= 5; i++)
             {
@@ -75,7 +75,7 @@ namespace KillConfirmCompatibility.Services
         public static void Save(DoubaoSettingsValues settings)
         {
             if (settings == null) return;
-            var values = ApplicationData.Current.LocalSettings.Values;
+            var values = GameSourceSettingsStore.CombatSettings;
             for (int i = 1; i <= 5; i++)
             {
                 if (settings.KillImageKeys.TryGetValue(i, out string img))
@@ -92,7 +92,7 @@ namespace KillConfirmCompatibility.Services
 
         public static void Reset()
         {
-            var values = ApplicationData.Current.LocalSettings.Values;
+            var values = GameSourceSettingsStore.CombatSettings;
             for (int i = 1; i <= 5; i++)
             {
                 values[ImageKeyPrefix + i] = DefaultImageKey(i);
@@ -172,6 +172,7 @@ namespace KillConfirmCompatibility.Services
 
         public static async Task<string> ImportImageAsync(int killCount, StorageFile file)
         {
+            var values = GameSourceSettingsStore.CombatSettings;
             if (file == null) throw new ArgumentNullException(nameof(file));
             string ext = file.FileType?.ToLowerInvariant();
             if (string.IsNullOrEmpty(ext) || Array.IndexOf(SupportedImageExtensions, ext) < 0)
@@ -183,7 +184,6 @@ namespace KillConfirmCompatibility.Services
             string fileName = $"doubao_kill_{killCount}_{Guid.NewGuid():N}{ext}";
             StorageFile copied = await file.CopyAsync(folder, fileName, NameCollisionOption.ReplaceExisting);
 
-            var values = ApplicationData.Current.LocalSettings.Values;
             values[ImageKeyPrefix + killCount] = copied.Path;
             Changed?.Invoke(null, EventArgs.Empty);
             return copied.Path;
@@ -191,6 +191,7 @@ namespace KillConfirmCompatibility.Services
 
         public static async Task<string> ImportAudioAsync(int killCount, StorageFile file)
         {
+            var values = GameSourceSettingsStore.CombatSettings;
             if (file == null) throw new ArgumentNullException(nameof(file));
             string ext = file.FileType?.ToLowerInvariant();
             if (string.IsNullOrEmpty(ext) || Array.IndexOf(SupportedAudioExtensions, ext) < 0)
@@ -202,7 +203,6 @@ namespace KillConfirmCompatibility.Services
             string fileName = $"doubao_audio_{killCount}_{Guid.NewGuid():N}{ext}";
             StorageFile copied = await file.CopyAsync(folder, fileName, NameCollisionOption.ReplaceExisting);
 
-            var values = ApplicationData.Current.LocalSettings.Values;
             values[AudioKeyPrefix + killCount] = copied.Path;
             Changed?.Invoke(null, EventArgs.Empty);
             return copied.Path;
@@ -210,14 +210,14 @@ namespace KillConfirmCompatibility.Services
 
         public static void ClearCustomImage(int killCount)
         {
-            var values = ApplicationData.Current.LocalSettings.Values;
+            var values = GameSourceSettingsStore.CombatSettings;
             values[ImageKeyPrefix + killCount] = DefaultImageKey(killCount);
             Changed?.Invoke(null, EventArgs.Empty);
         }
 
         public static void ClearCustomAudio(int killCount)
         {
-            var values = ApplicationData.Current.LocalSettings.Values;
+            var values = GameSourceSettingsStore.CombatSettings;
             values[AudioKeyPrefix + killCount] = DefaultAudioKey(killCount);
             Changed?.Invoke(null, EventArgs.Empty);
         }

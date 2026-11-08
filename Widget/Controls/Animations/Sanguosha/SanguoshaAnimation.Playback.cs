@@ -42,7 +42,8 @@ namespace KillConfirmGameBar.Controls
                 }
 
                 if (assets == null || generation != _resourceGeneration || token != _playToken) return;
-                await EnsureSanguoshaPagesAsync(assets);
+                if (assets.Pages == null || assets.Pages.Length == 0)
+                    throw new InvalidOperationException("Sanguosha atlas pages were not preloaded: " + tier);
                 if (generation != _resourceGeneration || token != _playToken) { if (!IsSanguoshaTierOnScreen(assets)) ReleaseSanguoshaPages(assets); return; }
                 PrepareSanguoshaPlayback(assets, Math.Min(transportMs + loadingClock.Elapsed.TotalMilliseconds, 1000));
             }

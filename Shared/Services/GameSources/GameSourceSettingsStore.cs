@@ -18,13 +18,40 @@ namespace KillConfirmCompatibility.Services
     // and a one-time migration hint; startup must never overwrite the other UI.
     internal static class GameSourceSettingsStore
     {
+        // Battle rules and visual preferences belong to the selected data source.
+        // Only CS2 may read the original unscoped values; all writes are isolated.
+        internal static CombatSettingsValues CombatSettings => new CombatSettingsValues(Current);
+
+        internal sealed class CombatSettingsValues
+        {
+            private readonly string _source;
+            internal CombatSettingsValues(string source) { _source = source; }
+            private string Key(string key) => "Combat." + _source + "." + key;
+            internal object this[string key]
+            {
+                get
+                {
+                    var values = ApplicationData.Current.LocalSettings.Values;
+                    return values[Key(key)] ?? (_source == "cs2" ? values[key] : null);
+                }
+                set => ApplicationData.Current.LocalSettings.Values[Key(key)] = value;
+            }
+            internal bool ContainsKey(string key) => this[key] != null;
+        }
+
         internal const string Lol = "lol";
         private static readonly SemaphoreSlim Gate = new SemaphoreSlim(1, 1);
         internal static event EventHandler Changed;
         internal static ulong Generation { get; private set; }
         private static string _current;
+#if WINDOWS_UWP
         internal static string Current => _current ?? (_current = ApplicationData.Current.LocalSettings.Values["GameSource"] as string
             ?? GsiGameVersionSettingsStore.Load());
+#else
+        // The desktop renderer follows the service selection mirrored by either UI.
+        internal static string Current => ApplicationData.Current.LocalSettings.Values["GameSource"] as string
+            ?? GsiGameVersionSettingsStore.Load();
+#endif
         internal static bool IsLol => Current == Lol;
         internal static string DisplayName(string source) => source == Lol ? "LOL" : source == "csgo_legacy" ? "CSGO" : "CS2";
         internal static string FullDisplayName(string source, bool zh) => source == Lol ? (zh ? "英雄联盟" : "League of Legends") : source == "csgo_legacy" ? "CS:GO" : "Counter-Strike 2";
@@ -32,7 +59,6 @@ namespace KillConfirmCompatibility.Services
         internal static bool LolDependOnMultikill { get => ApplicationData.Current.LocalSettings.Values["Lol.DependOnMultikill"] is bool b && b; set => ApplicationData.Current.LocalSettings.Values["Lol.DependOnMultikill"] = value; }
         internal static bool LolParseMinionKills { get => ApplicationData.Current.LocalSettings.Values["Lol.ParseMinionKills"] is bool b && b; set => ApplicationData.Current.LocalSettings.Values["Lol.ParseMinionKills"] = value; }
         internal static int LolPollIntervalMs { get => ApplicationData.Current.LocalSettings.Values["Lol.PollIntervalMs"] is int v ? Math.Max(20, Math.Min(1000, v)) : 50; set => ApplicationData.Current.LocalSettings.Values["Lol.PollIntervalMs"] = Math.Max(20, Math.Min(1000, value)); }
-        internal static string LolInstallRootPath { get => ApplicationData.Current.LocalSettings.Values["LolInstallFolderPath"] as string ?? string.Empty; set => ApplicationData.Current.LocalSettings.Values["LolInstallFolderPath"] = value ?? string.Empty; }
         internal static async Task SyncLolSettingsAsync()
         {
             var json = new JsonObject

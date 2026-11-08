@@ -6,6 +6,7 @@
     <UseWPF>true</UseWPF>
     <EnableDefaultApplicationDefinition>false</EnableDefaultApplicationDefinition>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>../Installer/Assets/KillConfirmOverlay.ico</ApplicationIcon>
     <AssemblyName>KillConfirmCompatibility</AssemblyName>
     <Version>$([System.Text.RegularExpressions.Regex]::Match($([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)..\Package\Package.appxmanifest')), 'Version=&quot;([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)&quot;').Groups[1].Value)</Version>
     <RootNamespace>KillConfirmCompatibility</RootNamespace>
@@ -15,6 +16,7 @@
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
   </PropertyGroup>
   <ItemGroup>
+    <Resource Include="../Installer/Assets/KillConfirmOverlay.ico" Link="Assets/KillConfirmOverlay.ico" />
     <Compile Include="../Common/*.cs" Link="Common/%(Filename)%(Extension)" />
     <!-- Code shared with Widget; each file selects its namespace with WINDOWS_UWP. -->
     <Compile Include="../Shared/**/*.cs" Link="Shared/%(RecursiveDir)%(Filename)%(Extension)" />

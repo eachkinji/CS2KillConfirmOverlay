@@ -16,7 +16,7 @@ namespace KillConfirmGameBar
                 _battlefield6AdvancedEffectsPanel.MoneyRewardModeSelectionChanged += OnMoneyRewardModeSelectionChanged;
                 _battlefield6AdvancedEffectsPanel.StreakModeSelectionChanged += OnStreakModeSelectionChanged;
             }
-            string money = ApplicationData.Current.LocalSettings.Values["MoneyRewardMode"] as string;
+            string money = GameSourceSettingsStore.CombatSettings["MoneyRewardMode"] as string;
             string streak = SharedStreakSettingsStore.Load(GameStyleMode.Battlefield6);
             _battlefield6AdvancedEffectsPanel.SelectMoneyRewardMode(money, "delta");
             _battlefield6AdvancedEffectsPanel.SelectStreakMode(streak);

@@ -19,9 +19,11 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <StackPanel Spacing="2">
-                <TextBlock
-                    x:Name="TitleText"
-                    Text="BF1 Effects" Style="{StaticResource PanelSectionTitleTextStyle}" />
+                <Grid ColumnSpacing="8" VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="22"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                    <Image x:Name="CombatGameLogo" Width="22" Height="22" VerticalAlignment="Center" Stretch="Uniform" />
+                    <TextBlock x:Name="TitleText" Grid.Column="1" VerticalAlignment="Center" TextWrapping="WrapWholeWords" Style="{StaticResource PanelTitleTextStyle}" />
+                </Grid>
                 <TextBlock
                     x:Name="HintText"
                     Visibility="Collapsed"

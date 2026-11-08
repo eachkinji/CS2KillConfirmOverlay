@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using KillConfirmGameBar.Services;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -12,6 +12,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay.Controls.GameStyles
         public Battlefield2042AdvancedEffectsPanel()
         {
             InitializeComponent();
+            AdvancedEffectsPanelSupport.TrackCombatHeader(this, CombatGameLogo, TitleText);
             RefreshKillMarkSetting();
         }
 
@@ -37,7 +38,8 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay.Controls.GameStyles
 
         public void ApplyLanguage(bool isChinese)
         {
-            TitleText.Text = isChinese ? "2042 高级特效" : "2042 Effects";
+            AdvancedEffectsPanelSupport.ApplyCombatHeader(CombatGameLogo, TitleText, isChinese);
+
             ResetButtonText.Text = isChinese ? "恢复默认" : "Reset";
             ToolTipService.SetToolTip(ResetButton, isChinese ? "恢复 2042 默认设置" : "Restore 2042 defaults");
             HintText.Text = isChinese

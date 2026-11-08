@@ -55,6 +55,8 @@ public partial class App : Application
                 KillConfirmCompatibility.Contracts.PanelLifetime.PublishCurrent("panel");
             Log("Creating desktop window.");
             _window = new Window { Title = "Kill Confirm Overlay 控制面板" };
+            try { _window.AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, "Assets", "KillConfirmOverlay.ico")); }
+            catch (Exception error) { Log("Window icon unavailable: " + error.Message); }
             Log("Initializing ordinary storage.");
             DesktopPlatform.Initialize(_window);
             if(DesktopPlatform.IsRuntimeValidation)

@@ -1,10 +1,10 @@
 // Shared by Widget (UWP) and CompatibilityHost; extracted from both former copies.
 using System;
 using System.Globalization;
+using Windows.Storage;
 #if WINDOWS_UWP
 using System.Threading.Tasks;
 using Windows.Data.Json;
-using Windows.Storage;
 using Windows.Storage.Streams;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -39,7 +39,9 @@ namespace KillConfirmCompatibility.Services
         private const string SettingPrefix = "KillStreakMode_";
 #if WINDOWS_UWP
         private const string LegacySharedSettingKey = "SharedStreakMode";
+#endif
         private const string SpectatedKillEffectsSettingKey = "SpectatedKillEffectsEnabled";
+#if WINDOWS_UWP
         private static readonly Uri SpectatorSettingsUri =
             LocalServiceEndpoints.Build("/spectator/settings");
 #endif
@@ -49,12 +51,12 @@ namespace KillConfirmCompatibility.Services
             return style != GameStyleMode.Crossfire;
         }
 
-#if WINDOWS_UWP
         private static string CurrentSpectatedKillEffectsKey => SpectatedKillEffectsSettingKey + "_" + GameSourceSettingsStore.Current;
         public static bool LoadSpectatedKillEffects()
         {
+            if (GameSourceSettingsStore.IsLol) return false;
             var values = ApplicationData.Current.LocalSettings.Values;
-            object value = values[CurrentSpectatedKillEffectsKey] ?? (GameSourceSettingsStore.IsLol ? null : values[SpectatedKillEffectsSettingKey]);
+            object value = values[CurrentSpectatedKillEffectsKey] ?? (GameSourceSettingsStore.Current == "cs2" ? values[SpectatedKillEffectsSettingKey] : null);
             if (value is bool enabled)
             {
                 return enabled;
@@ -70,10 +72,11 @@ namespace KillConfirmCompatibility.Services
 
         public static void SaveSpectatedKillEffects(bool enabled)
         {
+            if (GameSourceSettingsStore.IsLol) return;
             ApplicationData.Current.LocalSettings.Values[CurrentSpectatedKillEffectsKey] = enabled;
-            if (!GameSourceSettingsStore.IsLol) ApplicationData.Current.LocalSettings.Values[SpectatedKillEffectsSettingKey] = enabled;
         }
 
+#if WINDOWS_UWP
         public static async Task SyncSpectatedKillEffectsAsync()
         {
             var request = new JsonObject
@@ -99,7 +102,7 @@ namespace KillConfirmCompatibility.Services
                 return LifeMode;
             }
 
-            var settings = ApplicationData.Current.LocalSettings.Values;
+            var settings = GameSourceSettingsStore.CombatSettings;
             string value = settings[SettingKey(style)] as string;
             if (string.IsNullOrWhiteSpace(value))
             {
@@ -117,7 +120,7 @@ namespace KillConfirmCompatibility.Services
             }
 
             string normalized = Normalize(value);
-            var settings = ApplicationData.Current.LocalSettings.Values;
+            var settings = GameSourceSettingsStore.CombatSettings;
             settings[SettingKey(style)] = normalized;
             if (style != GameStyleMode.CustomModule) settings[LegacySharedSettingKey] = normalized;
         }

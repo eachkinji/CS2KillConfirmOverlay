@@ -123,7 +123,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             catch (Exception error) { _lastRefreshError = error.Message; App.Log("Compatibility game refresh: " + error); if (_isPageActive) StatusText.Text = error.Message; }
             finally { _refreshGate.Release(); }
         }
-        private async void OnGameSourceChanged(object sender, EventArgs e) { try { await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => { if (_isPageActive) { ApplyLanguage(); RefreshStatus(); } }); } catch (Exception error) { App.Log("Compatibility source dispatch: " + error); } }
+        private async void OnGameSourceChanged(object sender, EventArgs e) { try { await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => { if (_isPageActive) { MountAdvancedEffectsPanel(); ApplyLanguage(); RefreshStatus(); _ = EnsureServiceAvailableAsync(); } }); } catch (Exception error) { App.Log("Compatibility source dispatch: " + error); } }
         private void ApplyGameStyleUi()
         {
             _suppressGameStyleEvents = true;
@@ -147,12 +147,15 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             PackTestSectionView.TestPresetLabel.Text = zh ? "测试事件" : "Test event"; PackTestSectionView.VolumeLabel.Text = zh ? "播放音量" : "Volume";
             PackTestSectionView.SendTestLabel.Text = zh ? "播放画面与音频" : "Play visuals and audio";
             PackTestSectionView.PackTestHeaderText.Text = zh ? "素材和测试" : "Packs & testing";
-            var presetLabels = new Dictionary<string,string> { ["one"] = "1 杀", ["one_hs"] = "1 杀爆头", ["one_knife"] = "1 杀刀杀", ["one_grenade"] = "1 杀雷杀", ["one_first"] = "首杀", ["one_last"] = "尾杀", ["assist"] = "助攻", ["gold_first"] = "爆头首杀", ["gold_last"] = "爆头尾杀", ["two"] = "2 杀", ["three"] = "3 杀", ["four"] = "4 杀", ["five"] = "5 杀", ["six"] = "6 杀", ["seven"] = "7 杀", ["eight"] = "8 杀", ["nine"] = "9 杀", ["badge_first"] = "首杀徽章", ["badge_last"] = "尾杀徽章", ["bomb_plant"] = "C4 下包", ["bomb_defuse"] = "C4 拆包", ["hostage_interact"] = "人质接触", ["hostage_rescue"] = "人质救出", ["round_win"] = "回合胜利", ["round_loss"] = "回合失败", ["lol_first_blood"] = "一血 (First Blood)", ["lol_shutdown"] = "终结 (Shutdown)", ["lol_kill_1"] = "单杀 (1 杀)", ["lol_kill_2"] = "双杀 (2 杀)", ["lol_kill_3"] = "三杀 (3 杀)", ["lol_kill_4"] = "四杀 (4 杀)", ["lol_kill_5"] = "五杀 (5 杀)", ["lol_kill_6"] = "六杀 (6 杀)", ["lol_kill_7"] = "七杀 (7 杀)", ["lol_kill_8"] = "八杀+ (超神)", ["lol_assist"] = "助攻 (Assist)", ["lol_revenge"] = "复仇击杀 (Revenge)", ["lol_dragon_control"] = "控龙 (小龙/大龙/先锋/巢虫/厄塔汗)", ["lol_dragon_steal"] = "抢龙 (Steal)", ["lol_turret"] = "推塔 / 一血塔 / 破水晶", ["lol_ace"] = "团灭 (ACE)" };
-            var presetLabelsEn = new Dictionary<string,string> { ["lol_first_blood"] = "First Blood", ["lol_shutdown"] = "Shutdown", ["lol_kill_1"] = "1 Kill", ["lol_kill_2"] = "Double Kill (2)", ["lol_kill_3"] = "Triple Kill (3)", ["lol_kill_4"] = "Quadra Kill (4)", ["lol_kill_5"] = "Penta Kill (5)", ["lol_kill_6"] = "Hexa Kill (6)", ["lol_kill_7"] = "7 Kills", ["lol_kill_8"] = "8+ Kills (Legendary)", ["lol_assist"] = "Assist", ["lol_revenge"] = "Revenge Kill", ["lol_dragon_control"] = "Objective Control", ["lol_dragon_steal"] = "Objective Steal", ["lol_turret"] = "Turret / First Brick / Inhibitor", ["lol_ace"] = "Team Ace (ACE)" };
-            bool isLol = GameSourceSettingsStore.IsLol;
-            ComboBoxItem firstVisibleItem = null;
-            foreach (var item in PackTestSectionView.TestPresetSelector.Items.OfType<ComboBoxItem>()) { string key = (string)item.Tag; bool itemIsLol = key != null && key.StartsWith("lol_", StringComparison.OrdinalIgnoreCase); item.Visibility = (isLol == itemIsLol) ? Visibility.Visible : Visibility.Collapsed; if (item.Visibility == Visibility.Visible && firstVisibleItem == null) firstVisibleItem = item; item.Content = zh && presetLabels.ContainsKey(key) ? presetLabels[key] : (!zh && presetLabelsEn.ContainsKey(key) ? presetLabelsEn[key] : key.Replace('_', ' ')); }
-            if (PackTestSectionView.TestPresetSelector.SelectedItem is ComboBoxItem sel && sel.Visibility != Visibility.Visible && firstVisibleItem != null) PackTestSectionView.TestPresetSelector.SelectedItem = firstVisibleItem;
+            var presetLabels = new Dictionary<string,string> { ["one"] = "1 杀", ["one_hs"] = "1 杀爆头", ["one_knife"] = "1 杀刀杀", ["one_grenade"] = "1 杀雷杀", ["one_first"] = "首杀", ["one_last"] = "尾杀", ["assist"] = "助攻", ["gold_first"] = "爆头首杀", ["gold_last"] = "爆头尾杀", ["two"] = "2 杀", ["three"] = "3 杀", ["four"] = "4 杀", ["five"] = "5 杀", ["six"] = "6 杀", ["seven"] = "7 杀", ["eight"] = "8 杀", ["nine"] = "9 杀", ["badge_first"] = "首杀徽章", ["badge_last"] = "尾杀徽章", ["bomb_plant"] = "C4 下包", ["bomb_defuse"] = "C4 拆包", ["hostage_interact"] = "人质接触", ["hostage_rescue"] = "人质救出", ["round_win"] = "回合胜利", ["round_loss"] = "回合失败", ["lol_first_blood"] = "一血 (First Blood)", ["lol_shutdown"] = "终结 (Shutdown)", ["lol_kill_1"] = "单杀 (1 杀)", ["lol_kill_2"] = "双杀 (2 杀)", ["lol_kill_3"] = "三杀 (3 杀)", ["lol_kill_4"] = "四杀 (4 杀)", ["lol_kill_5"] = "五杀 (5 杀)", ["lol_kill_6"] = "六杀 (6 杀)", ["lol_kill_7"] = "七杀 (7 杀)", ["lol_kill_8"] = "八杀+ (超神)", ["lol_assist"] = "助攻 (Assist)", ["lol_revenge"] = "复仇击杀 (Revenge)", ["lol_dragon"] = "控龙", ["lol_steal"] = "抢龙 (Steal)", ["lol_turret"] = "推塔 / 一血塔 / 破水晶", ["lol_ace"] = "团灭 (ACE)" };
+            var presetLabelsEn = new Dictionary<string,string> { ["lol_first_blood"] = "First Blood", ["lol_shutdown"] = "Shutdown", ["lol_kill_1"] = "1 Kill", ["lol_kill_2"] = "Double Kill (2)", ["lol_kill_3"] = "Triple Kill (3)", ["lol_kill_4"] = "Quadra Kill (4)", ["lol_kill_5"] = "Penta Kill (5)", ["lol_kill_6"] = "Hexa Kill (6)", ["lol_kill_7"] = "7 Kills", ["lol_kill_8"] = "8+ Kills (Legendary)", ["lol_assist"] = "Assist", ["lol_revenge"] = "Revenge Kill", ["lol_dragon"] = "Objective Control", ["lol_steal"] = "Objective Steal", ["lol_turret"] = "Turret / Inhibitor", ["lol_ace"] = "Team Ace (ACE)" };
+            PackTestSectionView.SetTestPresetSource(GameSourceSettingsStore.IsLol);
+            foreach (var item in PackTestSectionView.TestPresetSelector.Items.OfType<ComboBoxItem>())
+            {
+                string key = (string)item.Tag;
+                item.Content = zh && presetLabels.ContainsKey(key) ? presetLabels[key]
+                    : (!zh && presetLabelsEn.ContainsKey(key) ? presetLabelsEn[key] : key.Replace('_', ' '));
+            }
             ToolTipService.SetToolTip(PackTestSectionView.VoicePackSelector, LocalizationManager.Text("VoicePackLabel"));
             ToolTipService.SetToolTip(PackTestSectionView.IconPackSelector, LocalizationManager.Text("IconPackLabel"));
             ToolTipService.SetToolTip(PackTestSectionView.SendTestButton, zh ? "播放画面与音频" : "Test visuals and audio");
@@ -313,7 +316,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         private void OnCopyClick(object sender, RoutedEventArgs e) { var data = new DataPackage(); data.SetText("Display=" + _displaySummary + "\nService=" + _serviceSummary + "\n" + LocalServiceEndpoints.BaseUri + "\n" + StatusText.Text + "\n" + _gsiSummary + "\nGame=" + GameStyleService.Current); Clipboard.SetContent(data); ShowRuntimeNotice(LocalizationManager.Current == UiLanguage.SimplifiedChinese ? "诊断信息已复制。" : "Diagnostics copied."); }
         private async void OnInstallCfgClick(object sender, RoutedEventArgs e)
         {
-            if (GameSourceSettingsStore.IsLol) { ShowRuntimeNotice(LocalizationManager.Current == UiLanguage.SimplifiedChinese ? "LOL 无需安装 CFG，进入对局后自动连接。" : "LOL connects in a match without a CFG."); return; }
+            if (GameSourceSettingsStore.IsLol) { ShowRuntimeNotice(LocalizationManager.Current == UiLanguage.SimplifiedChinese ? "LOL 进入对局后自动连接。" : "LOL connects automatically in a match."); return; }
             try
             {
                 await EnsureServiceAvailableAsync();

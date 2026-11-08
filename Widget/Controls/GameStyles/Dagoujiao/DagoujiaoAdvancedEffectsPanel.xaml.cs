@@ -17,6 +17,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
         public DagoujiaoAdvancedEffectsPanel()
         {
             InitializeComponent();
+            AdvancedEffectsPanelSupport.TrackCombatHeader(this, CombatGameLogo, TitleText);
             for (int epic = DagoujiaoSettingsStore.MinimumEpicKillCount;
                 epic <= DagoujiaoSettingsStore.MaximumEpicKillCount;
                 epic++)
@@ -95,8 +96,9 @@ namespace KillConfirmGameBar.Controls.GameStyles
 
         public void ApplyLanguage(bool isChinese)
         {
+            AdvancedEffectsPanelSupport.ApplyCombatHeader(CombatGameLogo, TitleText, isChinese);
             _isChinese = isChinese;
-            TitleText.Text = isChinese ? "大狗叫战斗设置" : "Dagoujiao Combat Settings";
+
             ResetButtonText.Text = isChinese ? "恢复默认" : "Reset";
             ToolTipService.SetToolTip(ResetButton, isChinese ? "恢复大狗叫默认设置" : "Restore Dagoujiao defaults");
             EpicCountLabel.Text = isChinese ? "Epic 击杀数" : "Epic kill count";

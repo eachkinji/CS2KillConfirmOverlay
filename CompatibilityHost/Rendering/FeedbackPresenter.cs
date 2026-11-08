@@ -29,8 +29,9 @@ namespace KillConfirmCompatibility
             UpperFeedbackAnimation.ReleaseAnimationResourcesForPackChange();
             string pack = GetSelectedIconPack();
             var requestStyle = GameStyleService.Current;
+            string requestSource = GameSourceSettingsStore.Current;
             KillConfirmAnimation.ConfigureIconPack(pack);
-            var values = ApplicationData.Current.LocalSettings.Values;
+            var values = GameSourceSettingsStore.CombatSettings;
             KillConfirmAnimation.ConfigureEliteEffectLevel(values["KillEliteEffect"] is int elite ? elite : 0);
             KillConfirmAnimation.ConfigureWeaponBadgeMode(values["KillWeaponBadge"] is int badge ? badge : 0);
             KillConfirmAnimation.ConfigureMainAnimationStyle(values["MainAnimationStyle"] is int style ? style : 1);
@@ -40,9 +41,10 @@ namespace KillConfirmCompatibility
                 await PackCatalogService.ReloadForCompatibilityAsync();
                 bool imported = PackCatalogService.IsImportedIconPackKey(pack);
                 IconPackItem item = imported ? await PackCatalogService.RefreshImportedIconPackCapabilitiesAsync(pack) : null;
-                if (GetSelectedIconPack() != pack || requestStyle != GameStyleService.Current) return;
+                if (GetSelectedIconPack() != pack || requestStyle != GameStyleService.Current || requestSource != GameSourceSettingsStore.Current) return;
                 KillConfirmAnimation.ConfigureCustomPackOverlayCapabilities(item?.HasKillFxOverlay == true, item?.HasEliteOverlay == true, item?.HasWeaponBadgeOverlay == true);
-                KillConfirmAnimation.ConfigureKillFxMode(values["KillFxEnabled"] is int fx ? fx : imported ? (item?.HasKillFxOverlay == true ? 1 : 0) : 1);
+                KillConfirmAnimation.ConfigureKillFxMode(CrossfireGameplaySettingsStore.ReadKillFxMode(pack,
+                    item?.HasKillFxOverlay == true, imported ? (item?.HasKillFxOverlay == true ? 1 : 0) : 1));
                 await LowerFeedbackAnimation.PreloadCurrentPackAnimationsAsync(null);
                 ConfigurationError = KillConfirmAnimation.IsIconFeedbackEnabled && GameStyleService.Current == GameStyleMode.Crossfire && await PackCatalogService.GetImportedIconFolderAsync(pack) == null
                     ? "当前 CF 图标包未安装，请在图标库导入资源包。" : null;

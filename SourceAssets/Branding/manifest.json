@@ -1,0 +1,143 @@
+{
+  "source": "KCF_logo_vector.svg",
+  "source_origin": "E:/Zac/Download/KCF_logo_vector.svg",
+  "source_sha256": "3e51162614b9bf5fadebae3e2f1905ea5fc092b4676beba882fa778d2fbf4cf8",
+  "renderer": "resvg-py 0.5.0 + Pillow 12.3.0",
+  "original_alpha_bounds": [
+    188,
+    200,
+    1049,
+    1083
+  ],
+  "icon_margin_per_side": 0.0625,
+  "ico_sizes": [
+    16,
+    20,
+    24,
+    32,
+    40,
+    48,
+    64,
+    96,
+    128,
+    256
+  ],
+  "png_assets": [
+    {
+      "path": "Widget/Assets/Square44x44Logo.scale-200.png",
+      "size": [
+        88,
+        88
+      ],
+      "alpha_bounds": [
+        6,
+        5,
+        82,
+        83
+      ]
+    },
+    {
+      "path": "Widget/Assets/Square150x150Logo.scale-200.png",
+      "size": [
+        300,
+        300
+      ],
+      "alpha_bounds": [
+        22,
+        18,
+        278,
+        282
+      ]
+    },
+    {
+      "path": "Widget/Assets/Square44x44Logo.targetsize-24_altform-unplated.png",
+      "size": [
+        24,
+        24
+      ],
+      "alpha_bounds": [
+        1,
+        1,
+        23,
+        23
+      ]
+    },
+    {
+      "path": "Widget/Assets/Wide310x150Logo.scale-200.png",
+      "size": [
+        620,
+        300
+      ],
+      "alpha_bounds": [
+        182,
+        18,
+        438,
+        282
+      ]
+    },
+    {
+      "path": "Widget/Assets/StoreLogo.png",
+      "size": [
+        50,
+        50
+      ],
+      "alpha_bounds": [
+        3,
+        3,
+        47,
+        47
+      ]
+    },
+    {
+      "path": "Widget/Assets/LockScreenLogo.scale-200.png",
+      "size": [
+        48,
+        48
+      ],
+      "alpha_bounds": [
+        3,
+        3,
+        45,
+        45
+      ]
+    },
+    {
+      "path": "Widget/Assets/SplashScreen.scale-200.png",
+      "size": [
+        1240,
+        600
+      ],
+      "alpha_bounds": [
+        492,
+        168,
+        748,
+        432
+      ]
+    },
+    {
+      "path": "Widget/GameBar/Square44x44Logo.png",
+      "size": [
+        88,
+        88
+      ],
+      "alpha_bounds": [
+        6,
+        5,
+        82,
+        83
+      ]
+    }
+  ],
+  "sha256": {
+    "SourceAssets/Branding/KCF_logo_icon.svg": "d5369d7678862cc8f72cbc600ef84af08c7693f6d0a08095aed1686913702976",
+    "Widget/Assets/Square44x44Logo.scale-200.png": "57d14388601f3d473f7db3f32cae56b2b9fb8b25a23b4d32f0919ec5a78c8b7f",
+    "Widget/Assets/Square150x150Logo.scale-200.png": "556450c89d076f52647ca7134d2c2a7458d71d294d2fc895497a2b71d808e798",
+    "Widget/Assets/Square44x44Logo.targetsize-24_altform-unplated.png": "b4a25f2707c4db409bfdbbf3c5b2c4e3e54dac2e8bd6f4df74b4de0221827242",
+    "Widget/Assets/Wide310x150Logo.scale-200.png": "6b243c815454b06e8a7d3b114a976f3309a991b4dfde3e8671200626204fec30",
+    "Widget/Assets/StoreLogo.png": "e1744cc03765a34b12ef15b011295548ea61546222325ae304d08c20c7c7f313",
+    "Widget/Assets/LockScreenLogo.scale-200.png": "f6cfb9439e788739488e19ec81e969f3efe5ba2f164e92496d60c3909a05b4af",
+    "Widget/Assets/SplashScreen.scale-200.png": "682246dfec85cce25147c090fe63f1e00c92e3faa53a96e4bab0b2957efe6bc8",
+    "Widget/GameBar/Square44x44Logo.png": "57d14388601f3d473f7db3f32cae56b2b9fb8b25a23b4d32f0919ec5a78c8b7f",
+    "Installer/Assets/KillConfirmOverlay.ico": "a9ad26b33f35fb956dea7216acadd57a20041d47394846a824d885a878ed7343"
+  }
+}

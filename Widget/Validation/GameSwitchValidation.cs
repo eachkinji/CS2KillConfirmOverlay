@@ -28,6 +28,7 @@ namespace KillConfirmGameBar
         internal static Action BeforeSnapshotReturn;
         internal static bool FailNextWrite;
         internal static JsonObject AudioChannels;
+        internal static int FolderRequests, ResourceRequests;
         internal static JsonObject RemoteSettings => _settings;
         public void Dispose() { }
         public IAsyncOperationWithProgress<HttpResponseMessage, HttpProgress> SendRequestAsync(HttpRequestMessage request)
@@ -62,6 +63,7 @@ namespace KillConfirmGameBar
                         : Path.Combine(Root, "Data", source.Substring(RemoteRoot.Length).TrimStart('\\', '/'));
                     if (path == "/shared/folder")
                     {
+                        FolderRequests++;
                         var files = new JsonArray();
                         if (Directory.Exists(local)) foreach (string file in Directory.EnumerateFiles(local, "*", SearchOption.AllDirectories))
                             files.Add(JsonValue.CreateStringValue(file.Substring(local.Length + 1).Replace('\\', '/')));
@@ -69,6 +71,7 @@ namespace KillConfirmGameBar
                     }
                     else if (File.Exists(local))
                     {
+                        ResourceRequests++;
                         response.Content = new HttpBufferContent(File.ReadAllBytes(local).AsBuffer());
                         return response;
                     }
@@ -103,6 +106,24 @@ namespace KillConfirmGameBar
                 stage("initializing widget protocol");
                 PortSettingsStore.SavePort(10095);
                 await SharedRuntime.InitializeValidationAsync();
+                if (File.Exists(Path.Combine(root, "Fixture", "game-selector-only")))
+                {
+                    await ValidateCompactGameSelectorAsync(report);
+                    File.WriteAllText(Path.Combine(root, "switch-pass.txt"), report.ToString());
+                    return;
+                }
+                if (File.Exists(Path.Combine(root, "Fixture", "native-preload-only")))
+                {
+                    var host = new Grid { Width = 768, Height = 768 };
+                    var animation = new Controls.KillConfirmAnimation();
+                    host.Children.Add(animation);
+                    Window.Current.Content = host;
+                    Window.Current.Activate();
+                    await Task.Delay(100);
+                    await animation.ValidateNativePreloadingAsync(report, stage);
+                    File.WriteAllText(Path.Combine(root, "switch-pass.txt"), report.ToString());
+                    return;
+                }
                 if (File.Exists(Path.Combine(root, "Fixture", "calabiyau-render-only")))
                 {
                     var host = new Grid { Width = 452, Height = 360, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
@@ -416,7 +437,135 @@ namespace KillConfirmGameBar
             }
         }
 
-        private static async Task<string> ValidateDropdownAsync(ComboBox selector)
+        private static async Task ValidateCompactGameSelectorAsync(StringBuilder report)
+        {
+            var header = new HeaderStatusView { Width = 444, HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center };
+            Window.Current.Content = header;
+            Window.Current.Activate();
+            var selector = header.GameStyleSelector;
+            var games = selector.Items.OfType<ComboBoxItem>().Where(i => i.IsEnabled).ToArray();
+            foreach (var item in games)
+            {
+                var style = GameStyleService.FromKey(item.Tag as string);
+                header.SetGameChoiceContent(item, GameStyleService.ToDisplayName(style), GameSelectorPresentation.WidgetGameLogoUri(style));
+            }
+            await Task.Delay(150);
+            selector.SelectedItem = header.PubgStyleItem;
+            selector.UpdateLayout();
+            await Task.Delay(100);
+            await SaveCompactGameSelectorScreenshotAsync(header);
+            foreach (var item in games)
+            {
+                selector.SelectedItem = item;
+                await Task.Delay(40);
+                selector.UpdateLayout();
+                ValidateCompactGameSelectorBounds(selector, item);
+            }
+            selector.SelectedItem = header.CrossfireStyleItem;
+            for (int cycle = 0; cycle < 2; cycle++)
+            {
+                var dropdownClosed = new TaskCompletionSource<bool>();
+                EventHandler<object> onDropdownClosed = (sender, args) => dropdownClosed.TrySetResult(true);
+                selector.DropDownClosed += onDropdownClosed;
+                try
+                {
+                    report.AppendLine(await ValidateDropdownAsync(selector, cycle == 0 ? header.PubgStyleItem : null));
+                    if (await Task.WhenAny(dropdownClosed.Task, Task.Delay(3000)) != dropdownClosed.Task)
+                        throw new Exception("Compact game selector did not finish closing its native popup.");
+                    await Task.Delay(50);
+                }
+                finally { selector.DropDownClosed -= onDropdownClosed; }
+                selector.UpdateLayout();
+                ValidateCompactGameSelectorBounds(selector, header.PubgStyleItem);
+            }
+            // Main-page language/theme refresh must resize the same selected visual too.
+            header.SetGameChoiceContent(header.PubgStyleItem, GameStyleService.ToDisplayName(GameStyleMode.Pubg));
+            selector.UpdateLayout();
+            ValidateCompactGameSelectorBounds(selector, header.PubgStyleItem);
+            await SaveCompactGameSelectorScreenshotAsync(header);
+            report.AppendLine("PASS: all " + games.Length + " compact game logos fit the native 72-DIP selector content viewport; arrow remains separate; PUBG remains complete after selecting it in the popup, reopening/closing, and refreshing its label.");
+        }
+
+        private static async Task SaveCompactGameSelectorScreenshotAsync(HeaderStatusView header)
+        {
+            var bitmap = new Windows.UI.Xaml.Media.Imaging.RenderTargetBitmap();
+            await bitmap.RenderAsync(header, 1332, 180);
+            var pixels = await bitmap.GetPixelsAsync();
+            var file = await ApplicationData.Current.LocalFolder.CreateFileAsync("compact-game-selector-pubg.png", CreationCollisionOption.ReplaceExisting);
+            using (var stream = await file.OpenAsync(FileAccessMode.ReadWrite))
+            {
+                var encoder = await Windows.Graphics.Imaging.BitmapEncoder.CreateAsync(Windows.Graphics.Imaging.BitmapEncoder.PngEncoderId, stream);
+                encoder.SetPixelData(Windows.Graphics.Imaging.BitmapPixelFormat.Bgra8, Windows.Graphics.Imaging.BitmapAlphaMode.Premultiplied,
+                    (uint)bitmap.PixelWidth, (uint)bitmap.PixelHeight, 96, 96, pixels.ToArray());
+                await encoder.FlushAsync();
+            }
+        }
+
+        private static void ValidateCompactGameSelectorBounds(ComboBox selector, ComboBoxItem item)
+        {
+            var presenter = FindCompactGameSelectorPart(selector, "ContentPresenter");
+            var arrow = FindCompactGameSelectorPart(selector, "DropDownGlyph");
+            // Native ComboBox reparents selected UIElement content into this presenter;
+            // the selected item's Content is not the rendered tree while it is closed.
+            var image = FindCompactGameSelectorElement<Image>(presenter);
+            var logo = image == null ? null : VisualTreeHelper.GetParent(image) as Border;
+            var diagnostics = new StringBuilder("Game: " + item.Tag + "; selected=" + (selector.SelectedItem as ComboBoxItem)?.Tag + "\n");
+            AppendCompactGameSelectorTree(selector, selector, diagnostics, 0);
+            File.WriteAllText(Path.Combine(ApplicationData.Current.LocalFolder.Path, "compact-game-selector-diagnostics.txt"), diagnostics.ToString());
+            if (presenter == null || arrow == null || image == null || logo == null || presenter.ActualWidth < 24)
+                throw new Exception("Compact game selector parts are missing or too narrow. presenter=" + (presenter?.ActualWidth.ToString() ?? "missing")
+                    + "; arrow=" + (arrow?.Name ?? "missing") + "; image=" + (image?.ActualWidth.ToString() ?? "missing") + "\n" + diagnostics);
+            var imageBounds = image.TransformToVisual(presenter).TransformBounds(new Rect(0, 0, image.ActualWidth, image.ActualHeight));
+            var logoBounds = logo.TransformToVisual(presenter).TransformBounds(new Rect(0, 0, logo.ActualWidth, logo.ActualHeight));
+            var arrowBounds = arrow.TransformToVisual(selector).TransformBounds(new Rect(0, 0, arrow.ActualWidth, arrow.ActualHeight));
+            var contentBounds = presenter.TransformToVisual(selector).TransformBounds(new Rect(0, 0, presenter.ActualWidth, presenter.ActualHeight));
+            if (imageBounds.Left < -.5 || imageBounds.Right > presenter.ActualWidth + .5
+                || logoBounds.Left < -.5 || logoBounds.Right > presenter.ActualWidth + .5
+                || image.ActualWidth > 18.1 || image.ActualHeight > 14.1
+                || image.ActualWidth <= 0 || image.ActualHeight <= 0
+                || arrowBounds.Left < contentBounds.Right - .5 || arrowBounds.Right > selector.ActualWidth + .5)
+                throw new Exception("Clipped compact game logo/arrow: " + item.Tag + "; logo=" + logoBounds + "; image=" + imageBounds + "; arrow=" + arrowBounds);
+        }
+
+        private static T FindCompactGameSelectorElement<T>(DependencyObject parent) where T : DependencyObject
+        {
+            if (parent == null) return null;
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+            {
+                var child = VisualTreeHelper.GetChild(parent, i);
+                if (child is T result) return result;
+                var found = FindCompactGameSelectorElement<T>(child);
+                if (found != null) return found;
+            }
+            return null;
+        }
+
+        private static void AppendCompactGameSelectorTree(DependencyObject node, FrameworkElement root, StringBuilder report, int depth)
+        {
+            if (node is FrameworkElement element)
+            {
+                Rect bounds = element.TransformToVisual(root).TransformBounds(new Rect(0, 0, element.ActualWidth, element.ActualHeight));
+                report.AppendLine(new string(' ', depth * 2) + element.GetType().Name + " " + element.Name + ": " + bounds
+                    + "; visibility=" + element.Visibility + "; margin=" + element.Margin);
+            }
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(node); i++)
+                AppendCompactGameSelectorTree(VisualTreeHelper.GetChild(node, i), root, report, depth + 1);
+        }
+
+        private static FrameworkElement FindCompactGameSelectorPart(DependencyObject parent, string name)
+        {
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+            {
+                DependencyObject child = VisualTreeHelper.GetChild(parent, i);
+                if (child is FrameworkElement element && element.Name == name) return element;
+                var found = FindCompactGameSelectorPart(child, name);
+                if (found != null) return found;
+            }
+            return null;
+        }
+
+        private static async Task<string> ValidateDropdownAsync(ComboBox selector, ComboBoxItem selectBeforeClosing = null)
         {
             selector.StartBringIntoView(new BringIntoViewOptions { AnimationDesired = false });
             await Task.Delay(120);
@@ -459,6 +608,7 @@ namespace KillConfirmGameBar
                     }
                 if (visible == 0 || (selector.Items.Count > 100 && realized >= selector.Items.Count / 2))
                     throw new Exception($"UWP dropdown rows invalid: {selector.Name}; visible={visible}; realized={realized}/{selector.Items.Count}.");
+                if (selectBeforeClosing != null) selector.SelectedItem = selectBeforeClosing;
                 return $"{selector.Name}: popup={bounds.Width:F0}x{bounds.Height:F0}; visible={visible}; realized={realized}/{selector.Items.Count}; settled={clock.ElapsedMilliseconds} ms.";
             }
             finally { selector.IsDropDownOpen = false; }

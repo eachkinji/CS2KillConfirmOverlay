@@ -16,8 +16,6 @@ namespace KillConfirmCompatibility.Services
             {
             ["GeneralSettingsTitle"] = "\u901a\u7528\u8bbe\u7f6e",
             ["GameEffectsTitle"] = "\u6e38\u620f\u7279\u6548",
-            ["AutoCloseOnGameExitLabel"] = "\u9000\u51fa\u6e38\u620f\u540e\u81ea\u52a8\u5173\u95ed",
-            ["AutoCloseOnGameExitHint"] = "\u5f00\u542f\u540e\uff0c\u68c0\u6d4b\u5230 CS2 \u6216 CS:GO \u5df2\u9000\u51fa\u65f6\uff0c\u672c\u63d2\u4ef6\u4f1a\u81ea\u52a8\u53d6\u6d88\u56fa\u5b9a\u5e76\u5173\u95ed\uff0c\u65e0\u9700\u624b\u52a8\u5173\u95ed\u3002",
             ["InterruptPreviousKillAudioLabel"] = "打断上一段击杀音效",
             ["InterruptPreviousKillAudioHint"] = "开启后，新的击杀音效会停止上一段音效；角色语音由独立的语音打断设置控制。",
             ["GsiGameVersionLabel"] = "Counter-Strike 版本",

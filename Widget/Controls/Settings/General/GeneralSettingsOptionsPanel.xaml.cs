@@ -14,7 +14,6 @@ namespace KillConfirmGameBar.Controls.Settings
         private bool _suppressSpectatedKillEffectsEvents;
         private bool _suppressLolOptionsEvents;
         private bool _suppressDanmaku6657Events;
-        private bool _suppressAutoCloseOnGameExitEvents;
         private bool _suppressInterruptPreviousKillAudioEvents;
         private bool _suppressAudioBehaviorEvents = true;
         private GameStyleMode _audioBehaviorStyle;
@@ -76,6 +75,7 @@ namespace KillConfirmGameBar.Controls.Settings
             SpectatedKillEffectsToggle.OnContent = LocalizationManager.Text("On");
             bool isChinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
             bool isLol = GameSourceSettingsStore.IsLol;
+            SpectatedKillEffectsCard.Visibility = isLol ? Visibility.Collapsed : Visibility.Visible;
             if (LolMultikillDependencyCard != null) LolMultikillDependencyCard.Visibility = isLol ? Visibility.Visible : Visibility.Collapsed;
             if (LolMinionKillCard != null) LolMinionKillCard.Visibility = isLol ? Visibility.Visible : Visibility.Collapsed;
             if (BombAudioPanel != null) BombAudioPanel.Visibility = isLol ? Visibility.Collapsed : Visibility.Visible;
@@ -93,12 +93,6 @@ namespace KillConfirmGameBar.Controls.Settings
             Danmaku6657Toggle.OffContent = LocalizationManager.Text("Off");
             Danmaku6657Toggle.OnContent = LocalizationManager.Text("On");
             BombAudioPanel?.ApplyLanguage();
-            AutoCloseOnGameExitLabelText.Text =
-                LocalizationManager.Text("AutoCloseOnGameExitLabel");
-            AutoCloseOnGameExitHintText.Text =
-                isLol ? (isChinese ? "开启后，检测到英雄联盟对局或客户端退出时，本插件会自动取消固定并关闭。" : "Automatically unpins and closes the overlay after League of Legends exits.") : LocalizationManager.Text("AutoCloseOnGameExitHint");
-            AutoCloseOnGameExitToggle.OffContent = LocalizationManager.Text("Off");
-            AutoCloseOnGameExitToggle.OnContent = LocalizationManager.Text("On");
             InterruptPreviousKillAudioLabelText.Text =
                 LocalizationManager.Text("InterruptPreviousKillAudioLabel");
             InterruptPreviousKillAudioHintText.Text =
@@ -130,7 +124,6 @@ namespace KillConfirmGameBar.Controls.Settings
             Danmaku6657HintText.Foreground = new SolidColorBrush(theme.MutedText);
             DanmakuSettingsOptions?.ApplyTheme(theme);
             BombAudioPanel?.ApplyTheme(theme);
-            AutoCloseOnGameExitHintText.Foreground = new SolidColorBrush(theme.MutedText);
             InterruptPreviousKillAudioHintText.Foreground = new SolidColorBrush(theme.MutedText);
             LinkIconSoundHintText.Foreground = new SolidColorBrush(theme.MutedText);
             CharacterVoiceInterruptHintText.Foreground = new SolidColorBrush(theme.MutedText);
@@ -144,7 +137,6 @@ namespace KillConfirmGameBar.Controls.Settings
             SelectSpectatedKillEffects();
             SelectDanmaku6657();
             BombAudioPanel?.RefreshSettings();
-            SelectAutoCloseOnGameExit();
             SelectInterruptPreviousKillAudio();
             SelectAudioBehavior();
             SelectStreakGainSettings();
@@ -219,7 +211,7 @@ namespace KillConfirmGameBar.Controls.Settings
 
         private async void OnSpectatedKillEffectsToggled(object sender, RoutedEventArgs e)
         {
-            if (_suppressSpectatedKillEffectsEvents)
+            if (_suppressSpectatedKillEffectsEvents || GameSourceSettingsStore.IsLol)
             {
                 return;
             }
@@ -234,29 +226,6 @@ namespace KillConfirmGameBar.Controls.Settings
                 // The local value is authoritative and will be synchronized at service startup.
                 App.Log("Set spectated player kill effects failed: " + ex);
             }
-        }
-
-        private void SelectAutoCloseOnGameExit()
-        {
-            _suppressAutoCloseOnGameExitEvents = true;
-            try
-            {
-                AutoCloseOnGameExitToggle.IsOn = AutoCloseOnGameExitSettingsStore.Load();
-            }
-            finally
-            {
-                _suppressAutoCloseOnGameExitEvents = false;
-            }
-        }
-
-        private void OnAutoCloseOnGameExitToggled(object sender, RoutedEventArgs e)
-        {
-            if (_suppressAutoCloseOnGameExitEvents)
-            {
-                return;
-            }
-
-            AutoCloseOnGameExitSettingsStore.Save(AutoCloseOnGameExitToggle.IsOn);
         }
 
         private void SelectInterruptPreviousKillAudio()
@@ -301,10 +270,10 @@ namespace KillConfirmGameBar.Controls.Settings
             LinkIconSoundHintText.Text = zh
                 ? $"当前游戏：{gameName}。切换图标包时同步切换配套音效包；角色语音保持独立。"
                 : $"Current game: {gameName}. Changing an icon pack also selects its matching sound effects; character voices stay independent.";
-            CharacterVoiceInterruptLabelText.Text = zh ? "新语音打断上一句" : "New voice interrupts the previous line";
+            CharacterVoiceInterruptLabelText.Text = zh ? "打断上一段角色语音" : "Interrupt previous character voice";
             CharacterVoiceInterruptHintText.Text = zh
-                ? $"当前游戏：{gameName}。仅当新的角色语音可播放时，才打断上一句；关闭后允许语音重叠。"
-                : $"Current game: {gameName}. A new playable character voice interrupts the previous line. Turn off to allow voices to overlap.";
+                ? "开启后，新的角色语音会停止上一段语音；击杀音效由独立的音效打断设置控制。"
+                : "When enabled, a new character voice stops the previous voice; kill sound effects use their separate interrupt setting.";
             LinkIconSoundToggle.OffContent = LocalizationManager.Text("Off");
             LinkIconSoundToggle.OnContent = LocalizationManager.Text("On");
             CharacterVoiceInterruptToggle.OffContent = LocalizationManager.Text("Off");

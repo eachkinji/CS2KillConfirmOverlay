@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using KillConfirmGameBar.Services;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -14,6 +14,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay.Controls.GameStyles
         public DoubaoAdvancedEffectsPanel()
         {
             InitializeComponent();
+            AdvancedEffectsPanelSupport.TrackCombatHeader(this, CombatGameLogo, TitleText);
             Loaded += OnLoaded;
         }
 
@@ -48,8 +49,9 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay.Controls.GameStyles
 
         public void ApplyLanguage(bool isChinese)
         {
+            AdvancedEffectsPanelSupport.ApplyCombatHeader(CombatGameLogo, TitleText, isChinese);
             _isChinese = isChinese;
-            TitleText.Text = isChinese ? "豆包高级特效" : "Doubao Effects";
+
             ResetButtonText.Text = isChinese ? "恢复默认" : "Reset";
             ToolTipService.SetToolTip(ResetButton, isChinese ? "恢复豆包默认设置" : "Restore Doubao defaults");
 

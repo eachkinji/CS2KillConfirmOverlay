@@ -25,7 +25,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         public static KillFeedbackVisibilitySettingsValues Load(GameStyleMode style)
         {
             var values = KillFeedbackVisibilitySettingsStore.Load(style);
-            var layout = CompatibilityDisplayRuntime.Load().GetLayout(GameStyleService.ToStorageValue(style));
+            var layout = CompatibilityDisplayRuntime.Load().GetLayout(GameStyleService.ToStorageValue(style), GameSourceSettingsStore.Current);
             values.CrosshairEnabled = layout.Crosshair.Visible;
             values.LowerEnabled = layout.Lower.Visible;
             values.UpperEnabled = layout.Upper.Visible;
@@ -34,7 +34,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
         public static void Save(GameStyleMode style, KillFeedbackVisibilitySettingsValues values)
         {
             CompatibilityDisplayRuntime.Update(c => {
-                var layout = c.GetLayout(GameStyleService.ToStorageValue(style));
+                var layout = c.GetLayout(GameStyleService.ToStorageValue(style), GameSourceSettingsStore.Current);
                 layout.Crosshair.Visible = values.CrosshairEnabled; layout.Lower.Visible = values.LowerEnabled; layout.Upper.Visible = values.UpperEnabled;
             });
             var previous = KillFeedbackVisibilitySettingsStore.Load(style);

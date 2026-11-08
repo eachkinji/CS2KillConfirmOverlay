@@ -459,6 +459,14 @@ namespace KillConfirmGameBar
             }
         }
 
+        private void OnCombatGameSourceChanged(object sender, EventArgs e)
+        {
+            _ = Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+            {
+                if (_isSettingsPageLoaded) ApplyGameStyleUi();
+            });
+        }
+
         private void MountGameAdvancedSettingsPanel()
         {
             if (GameAdvancedSettingsPanelHost == null)

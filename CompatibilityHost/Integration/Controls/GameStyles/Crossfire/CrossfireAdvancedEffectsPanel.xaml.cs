@@ -13,6 +13,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay.Controls.GameStyles
         public CrossfireAdvancedEffectsPanel()
         {
             InitializeComponent();
+            AdvancedEffectsPanelSupport.TrackCombatHeader(this, CombatGameLogo, TitleText);
             RefreshKillMarkSetting();
             Loaded += (s, e) => { GameSourceSettingsStore.Changed -= OnGameSourceChanged; GameSourceSettingsStore.Changed += OnGameSourceChanged; };
             Unloaded += (s, e) => { GameSourceSettingsStore.Changed -= OnGameSourceChanged; };
@@ -80,7 +81,8 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay.Controls.GameStyles
 
         public void ApplyLanguage(bool isChinese)
         {
-            TitleText.Text = isChinese ? "CF（穿越火线）战斗与视效" : "CrossFire Combat & Effects";
+            AdvancedEffectsPanelSupport.ApplyCombatHeader(CombatGameLogo, TitleText, isChinese);
+
             HintText.Text = isChinese
                 ? "集中设置 CF 的连杀规则、爆头、刀杀与雷杀提示、首杀与最终击杀，以及画面特效和武器徽章。"
                 : "Centralized control for CrossFire streak triggers, priority resolutions, first/last kills, and visual FX.";
@@ -136,7 +138,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay.Controls.GameStyles
             AdvancedEffectsPanelSupport.ApplyKillMarkLanguage(VisualEffectsTitle, KillMarkEffectLabel, KillMarkEffectToggle, isChinese);
             if (GameSourceSettingsStore.IsLol)
             {
-                TitleText.Text = isChinese ? "CF（穿越火线）战斗与视效 · 英雄联盟模式" : "CrossFire Combat & Effects · LOL Mode";
+
                 HintText.Text = isChinese ? "设置英雄联盟 (LOL) 对局事件触发 CF 反馈时的连杀规则、特殊事件（终结/抢龙/控龙/一血/团灭）提示优先级，以及画面特效和徽章。" : "Configure CrossFire streak rules, LOL special event priorities (Shutdown/Steal/Objective/First Blood/Ace), and visual FX.";
                 if (PrioritiesGroupLabel != null) PrioritiesGroupLabel.Text = isChinese ? "终结、抢龙与控龙提示优先级" : "Shutdown, Steal & Objective Priority";
                 HeadshotAudioPriorityLabel.Text = isChinese ? "终结 (Shutdown) 声音" : "Shutdown audio";

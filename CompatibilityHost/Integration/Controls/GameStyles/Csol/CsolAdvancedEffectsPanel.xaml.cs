@@ -15,6 +15,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay.Controls.GameStyles
         public CsolAdvancedEffectsPanel()
         {
             InitializeComponent();
+            AdvancedEffectsPanelSupport.TrackCombatHeader(this, CombatGameLogo, TitleText);
             RefreshKillMarkSetting();
         }
 
@@ -43,7 +44,8 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay.Controls.GameStyles
 
         public void ApplyLanguage(bool isChinese)
         {
-            TitleText.Text = isChinese ? "CSOL 高级特效" : "CSOL Effects";
+            AdvancedEffectsPanelSupport.ApplyCombatHeader(CombatGameLogo, TitleText, isChinese);
+
             HintText.Text = isChinese
                 ? "集中设置连杀时间、特殊击杀优先级，以及独立的首杀和尾杀效果。"
                 : "Configure kill-streak timing, special-event priority, and separate first/last-kill effects.";

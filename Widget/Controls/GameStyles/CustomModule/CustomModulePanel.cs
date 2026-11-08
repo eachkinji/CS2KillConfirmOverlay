@@ -9,6 +9,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
     public sealed class CustomModulePanel : UserControl
     {
         private readonly TextBlock _title = new TextBlock();
+        private readonly Image _logo = new Image { Width = 22, Height = 22, VerticalAlignment = VerticalAlignment.Center, Stretch = Windows.UI.Xaml.Media.Stretch.Uniform };
         private readonly TextBlock _help = new TextBlock();
         private readonly StreakWindowEditor _streak = new StreakWindowEditor();
         private bool _suppress;
@@ -20,10 +21,19 @@ namespace KillConfirmGameBar.Controls.GameStyles
         public CustomModulePanel()
         {
             Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new System.Uri("ms-appx:///Controls/Settings/PanelDesign.xaml") });
-            _title.Style = (Style)Resources["PanelSectionTitleTextStyle"];
+            _title.Style = (Style)Resources["PanelTitleTextStyle"];
+            _title.VerticalAlignment = VerticalAlignment.Center;
+            _title.TextWrapping = TextWrapping.WrapWholeWords;
+            var header = new Grid { ColumnSpacing = 8 };
+            header.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(22) });
+            header.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            Grid.SetColumn(_title, 1);
+            header.Children.Add(_logo);
+            header.Children.Add(_title);
+            AdvancedEffectsPanelSupport.TrackCombatHeader(this, _logo, _title);
             _help.Style = (Style)Resources["PanelCaptionTextStyle"];
             var root = new StackPanel { Spacing = 12 };
-            foreach (UIElement control in new UIElement[] { _title, _help, _streak })
+            foreach (UIElement control in new UIElement[] { header, _streak })
                 root.Children.Add(control);
             Content = root;
             _streak.SettingsChanged += (s, e) =>
@@ -37,7 +47,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
 
         public void ApplyLanguage(bool chinese)
         {
-            _title.Text = chinese ? "自定义 · 连杀规则" : "Custom · Kill streak";
+            AdvancedEffectsPanelSupport.ApplyCombatHeader(_logo, _title, chinese);
             _help.Text = chinese ? "决定击杀事件使用第 1～5 杀中的哪组素材。帧率与末帧停留在图标包中设置；爆头素材自动优先并回退普通素材。"
                 : "Choose how kill events map to slots 1–5. Set FPS and last-frame hold in the icon pack; headshot variants are selected automatically with normal fallback.";
             _streak.ApplyLanguage(chinese);

@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Windows.Storage;
 using Windows.Web.Http;
+using Windows.Web.Http.Filters;
 
 #if WINDOWS_UWP
 namespace KillConfirmGameBar.Services
@@ -26,7 +27,13 @@ namespace KillConfirmCompatibility.Services
             return new HttpClient(new WidgetProtocolFixture());
 #else
             string token = await GetTokenAsync();
-            var client = new HttpClient();
+            // These authenticated loopback endpoints expose live state. WinRT's
+            // shared HTTP cache can otherwise return the previous game's GET
+            // response even after another client has successfully posted new settings.
+            var filter = new HttpBaseProtocolFilter();
+            filter.CacheControl.ReadBehavior = HttpCacheReadBehavior.MostRecent;
+            filter.CacheControl.WriteBehavior = HttpCacheWriteBehavior.NoCache;
+            var client = new HttpClient(filter);
             if (!client.DefaultRequestHeaders.TryAppendWithoutValidation(HeaderName, token))
             {
                 client.Dispose();

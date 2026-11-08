@@ -19,11 +19,13 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <StackPanel VerticalAlignment="Center" Spacing="2">
-                <TextBlock
-                    x:Name="TitleText"
-                    Text="Sanguosha Kill Broadcast" Style="{StaticResource PanelSectionTitleTextStyle}" />
+                <Grid ColumnSpacing="8" VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="22"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                    <Image x:Name="CombatGameLogo" Width="22" Height="22" VerticalAlignment="Center" Stretch="Uniform" />
+                    <TextBlock x:Name="TitleText" Grid.Column="1" VerticalAlignment="Center" TextWrapping="WrapWholeWords" Style="{StaticResource PanelTitleTextStyle}" />
+                </Grid>
                 <TextBlock Style="{StaticResource PanelCaptionTextStyle}"
-                    x:Name="HintText"
+                    x:Name="HintText" Visibility="Collapsed"
 
                     Opacity="0.78"
                     TextWrapping="WrapWholeWords" />
@@ -56,7 +58,7 @@
                     Text="爆头、刀杀与雷杀提示优先级" Style="{StaticResource PanelCaptionTextStyle}" />
             </StackPanel>
             <TextBlock Style="{StaticResource PanelCaptionTextStyle}"
-                x:Name="PrioritiesHintText"
+                x:Name="PrioritiesHintText" Visibility="Collapsed"
 
                 Opacity="0.75"
                 TextWrapping="WrapWholeWords"

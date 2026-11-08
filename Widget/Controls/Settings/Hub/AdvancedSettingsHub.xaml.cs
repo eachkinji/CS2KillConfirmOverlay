@@ -62,10 +62,6 @@ namespace KillConfirmGameBar.Controls.Settings
             string fullName = GameSourceSettingsStore.FullDisplayName(src, isChinese);
             if (HubExperienceGameLogoBrush != null) HubExperienceGameLogoBrush.ImageSource = new Windows.UI.Xaml.Media.Imaging.BitmapImage(new Uri(GameSourceSettingsStore.LogoUri(src)));
             HubExperienceCardTitle.Text = isChinese ? $"{fullName} 体验增强" : $"{fullName} Experience";
-            HubExperienceCardDescription.Text = GameSourceSettingsStore.IsLol ? (isChinese ? $"当前为 {fullName} 独立体验设置：连杀官方 Multikill 依赖、小兵解析、弹幕、退出自动关闭与语音打断等（与 CS2 / CS:GO 独立保存）。" : $"Independent in-match experience options for {fullName} (saved separately from CS2 / CS:GO).") : (isChinese ? $"当前为 {fullName} 独立体验设置：" : $"Independent in-match experience options for {fullName}: ") + (isChinese
-                ? "观战击杀特效、游戏退出自动关闭、击杀语音打断与 C4 炸弹音效等对局体验选项。"
-                : "In-match experience options: spectated kill effects, auto-close on game exit, kill-voice interrupt, and C4 bomb audio.");
-
             HubGeneralCardTitle.Text = isChinese ? "软件与维护" : "APP & MAINTENANCE";
             HubGeneralCardDescription.Text = isChinese
                 ? "更新游戏数据配置、重启本地服务或查看日志。"
@@ -120,7 +116,6 @@ namespace KillConfirmGameBar.Controls.Settings
         internal void ApplyTheme(GameThemePalette theme)
         {
             if (HubExperienceCardTitle != null) HubExperienceCardTitle.Foreground = new SolidColorBrush(theme.Text);
-            if (HubExperienceCardDescription != null) HubExperienceCardDescription.Foreground = new SolidColorBrush(theme.MutedText);
             if (HubGeneralCardTitle != null) HubGeneralCardTitle.Foreground = new SolidColorBrush(theme.Text);
             if (HubGeneralCardDescription != null) HubGeneralCardDescription.Foreground = new SolidColorBrush(theme.MutedText);
             if (HubGeneralCardSecondaryTitle != null) HubGeneralCardSecondaryTitle.Foreground = new SolidColorBrush(theme.Text);

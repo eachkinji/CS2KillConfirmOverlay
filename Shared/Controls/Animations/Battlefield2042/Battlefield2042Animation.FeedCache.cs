@@ -253,7 +253,33 @@ namespace KillConfirmCompatibility.Controls
             }
         }
 
-        private float GetBattlefield2042GlowCacheDpi() => 96f;
+        // Cache in the selected output raster, not in the small logical HUD.
+        // A fixed 96 DPI surface reduced a 410px skull to 30px before enlargement.
+        private float GetBattlefield2042GlowCacheDpi() => (float)(96.0 * GetRenderResolutionScale());
+
+        private void RefreshBattlefield2042RasterCaches()
+        {
+            if (!_isBattlefield2042HudActive) return;
+            foreach (var cache in _battlefield2042KillIconRenderCaches.Values) cache?.Dispose();
+            _battlefield2042KillIconRenderCaches.Clear();
+            foreach (var item in _battlefield2042HudState.KillIconItems)
+            {
+                item.RenderCache = null;
+                PrepareBattlefield2042KillIconCache(item);
+            }
+            foreach (var item in _battlefield2042HudState.FeedItems)
+            {
+                item.DisposeCachedResources();
+                item.IsCachePrepared = false;
+                PrepareBattlefield2042FeedItemCache(item);
+            }
+            foreach (var item in _battlefield2042HudState.MoneyItems)
+            {
+                item.DisposeCachedResources();
+                item.IsCachePrepared = false;
+                PrepareBattlefield2042MoneyItemCache(item);
+            }
+        }
 
         private static double GetBattlefield2042DisplayDpiScale()
         {

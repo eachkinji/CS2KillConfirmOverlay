@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using KillConfirmGameBar.Services;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -12,6 +12,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay.Controls.GameStyles
         public Battlefield1AdvancedEffectsPanel()
         {
             InitializeComponent();
+            AdvancedEffectsPanelSupport.TrackCombatHeader(this, CombatGameLogo, TitleText);
             RefreshKillMarkSetting();
         }
 
@@ -37,7 +38,8 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay.Controls.GameStyles
 
         public void ApplyLanguage(bool isChinese)
         {
-            TitleText.Text = isChinese ? "BF1 高级特效" : "BF1 Effects";
+            AdvancedEffectsPanelSupport.ApplyCombatHeader(CombatGameLogo, TitleText, isChinese);
+
             ResetButtonText.Text = isChinese ? "恢复默认" : "Reset";
             ToolTipService.SetToolTip(ResetButton, isChinese ? "恢复 BF1 默认设置" : "Restore BF1 defaults");
             HintText.Text = isChinese

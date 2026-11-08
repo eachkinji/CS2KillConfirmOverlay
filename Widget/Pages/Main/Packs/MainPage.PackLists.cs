@@ -24,6 +24,7 @@ namespace KillConfirmGameBar
         {
             _isSettingsPageLoaded = true;
             GameStyleService.Changed += OnGameStyleServiceChanged;
+            GameSourceSettingsStore.Changed += OnCombatGameSourceChanged;
             PackCatalogService.CatalogChanged += OnCatalogChanged;
             await Features.CompatibilityDisplay.CompatibilityDisplayRuntime.EnsureSelectedModeAsync();
             ApplyPendingPackLibraryNavigation();
@@ -35,6 +36,7 @@ namespace KillConfirmGameBar
             _isSettingsPageLoaded = false;
             ResetNativePackDrag();
             GameStyleService.Changed -= OnGameStyleServiceChanged;
+            GameSourceSettingsStore.Changed -= OnCombatGameSourceChanged;
             PackCatalogService.CatalogChanged -= OnCatalogChanged;
             Interlocked.Increment(ref _packListReloadVersion);
             _previewPlayer.Pause();

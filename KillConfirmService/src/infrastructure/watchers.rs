@@ -1,5 +1,8 @@
 use crate::infrastructure::logging::service_log;
-use crate::infrastructure::playback::{default_output_device_name, get_output_stream_with_name};
+use crate::infrastructure::playback::{
+    AudioOutputRequest, default_output_device_name, get_output_stream_with_name,
+    update_audio_output,
+};
 use crate::infrastructure::runtime::is_process_running;
 use crate::state::AppState;
 
@@ -34,34 +37,22 @@ pub(crate) async fn monitor_default_output_device(app_state: Arc<AppState>) {
             }
         };
 
-        let current_name = {
-            let current = app_state.current_output_device_name.read().await;
-            current.clone()
-        };
-
-        if detected_name.eq_ignore_ascii_case(&current_name) {
-            continue;
-        }
-
-        service_log(&format!(
-            "default audio device changed: {} -> {}",
-            current_name, detected_name
-        ));
-
-        match get_output_stream_with_name("default") {
-            Ok((output_stream, resolved_name)) => {
-                {
-                    let mut stream_handle = app_state.stream_handle.write().await;
-                    *stream_handle = output_stream;
+        match update_audio_output(
+            &app_state.stream_handle,
+            &app_state.selected_output_device_name,
+            &app_state.current_output_device_name,
+            AudioOutputRequest::DefaultChanged(&detected_name),
+            get_output_stream_with_name,
+        )
+        .await
+        {
+            Ok(selection) => {
+                if selection.changed {
+                    service_log(&format!(
+                        "default audio device hot reloaded successfully -> {}",
+                        selection.active
+                    ));
                 }
-                {
-                    let mut current = app_state.current_output_device_name.write().await;
-                    *current = resolved_name.clone();
-                }
-                service_log(&format!(
-                    "default audio device hot reloaded successfully -> {}",
-                    resolved_name
-                ));
             }
             Err(error) => {
                 service_log(&format!("default audio device hot reload failed: {error}"));

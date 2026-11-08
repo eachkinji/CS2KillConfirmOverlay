@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Collections.Generic;
 using KillConfirmGameBar.Services;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -7,15 +8,34 @@ namespace KillConfirmGameBar
 {
     public sealed partial class HeaderStatusView : UserControl
     {
+        private readonly Dictionary<ComboBoxItem, FrameworkElement> _gameChoiceContents = new Dictionary<ComboBoxItem, FrameworkElement>();
+
         public HeaderStatusView()
         {
             InitializeComponent();
             GameSelectorPresentation.AddGameCategoryHeaders(GameStyleSelector);
-            GameStyleSelector.DropDownOpened += (s, e) => UpdateGameChoices(true);
-            GameStyleSelector.DropDownClosed += (s, e) => UpdateGameChoices(false);
+            UpdateGameChoices();
+            GameStyleSelector.DropDownOpened += (s, e) => UpdateGameChoices();
+            GameStyleSelector.DropDownClosed += (s, e) => UpdateGameChoices();
         }
 
-        private void UpdateGameChoices(bool expanded)
+        internal void SetGameChoiceContent(ComboBoxItem item, string name, string logoUri = null)
+        {
+            if (!_gameChoiceContents.TryGetValue(item, out var content))
+            {
+                GameStyleMode style = GameStyleService.FromKey(item.Tag as string);
+                content = GameSelectorPresentation.CreateMaterialGameSelectorContent(style, name, false,
+                    logoUri ?? GameSelectorPresentation.WidgetGameLogoUri(style));
+                _gameChoiceContents.Add(item, content);
+                item.Content = content;
+            }
+            // Native ComboBox retains the selected visual while moving it between
+            // popup and toolbar. Resize that same visual instead of replacing it.
+            GameSelectorPresentation.UpdateMaterialGameSelectorContent(content, name, !GameStyleSelector.IsDropDownOpen);
+            ToolTipService.SetToolTip(item, name);
+        }
+
+        private void UpdateGameChoices()
         {
             foreach (ComboBoxItem item in GameStyleSelector.Items.OfType<ComboBoxItem>())
             {
@@ -26,8 +46,7 @@ namespace KillConfirmGameBar
                 }
                 GameStyleMode style = GameStyleService.FromKey(item.Tag as string);
                 string name = GameStyleService.ToDisplayName(style);
-                item.Content = GameSelectorPresentation.CreateMaterialGameSelectorContent(style, name, !expanded, GameSelectorPresentation.WidgetGameLogoUri(style));
-                ToolTipService.SetToolTip(item, name);
+                SetGameChoiceContent(item, name);
             }
         }
 

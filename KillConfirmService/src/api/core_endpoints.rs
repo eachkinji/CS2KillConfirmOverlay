@@ -233,33 +233,26 @@ pub async fn set_audio_device(
     State(app_state): State<Arc<AppState>>,
     Json(request): Json<AudioDeviceRequest>,
 ) -> Result<Json<AudioDevicesResponse>, (axum::http::StatusCode, String)> {
-    let requested = if request.device.trim().is_empty() {
-        "default".to_string()
-    } else {
-        request.device.trim().to_string()
-    };
-    let (output_stream, active) =
-        get_output_stream_with_name(&requested).map_err(internal_server_error)?;
-    {
-        let mut stream = app_state.stream_handle.write().await;
-        *stream = output_stream;
-    }
-    {
-        let mut selected = app_state.selected_output_device_name.write().await;
-        *selected = requested.clone();
-    }
-    {
-        let mut current = app_state.current_output_device_name.write().await;
-        *current = active.clone();
-    }
-    service_log(&format!(
-        "audio output device selected: {requested} -> {active}"
-    ));
     let devices = output_device_names().map_err(internal_server_error)?;
+    let selection = update_audio_output(
+        &app_state.stream_handle,
+        &app_state.selected_output_device_name,
+        &app_state.current_output_device_name,
+        AudioOutputRequest::Select(&request.device),
+        get_output_stream_with_name,
+    )
+    .await
+    .map_err(internal_server_error)?;
+    if selection.changed {
+        service_log(&format!(
+            "audio output device selected: {} -> {}",
+            selection.selected, selection.active
+        ));
+    }
     Ok(Json(AudioDevicesResponse {
         devices,
-        selected: requested,
-        active,
+        selected: selection.selected,
+        active: selection.active,
     }))
 }
 
@@ -274,20 +267,16 @@ pub async fn audio_reload(
     State(app_state): State<Arc<AppState>>,
 ) -> Result<Json<HealthResponse>, (axum::http::StatusCode, String)> {
     service_log("audio reload requested");
-    let requested_device = app_state.selected_output_device_name.read().await.clone();
-    let (output_stream, device_name) =
-        get_output_stream_with_name(&requested_device).map_err(internal_server_error)?;
-
-    {
-        let mut stream_handle = app_state.stream_handle.write().await;
-        *stream_handle = output_stream;
-    }
-    {
-        let mut current_device = app_state.current_output_device_name.write().await;
-        *current_device = device_name.clone();
-    }
-
-    service_log(&format!("audio output stream reloaded -> {device_name}"));
+    let selection = update_audio_output(
+        &app_state.stream_handle,
+        &app_state.selected_output_device_name,
+        &app_state.current_output_device_name,
+        AudioOutputRequest::Reload,
+        get_output_stream_with_name,
+    )
+    .await
+    .map_err(internal_server_error)?;
+    service_log(&format!("audio output stream reloaded -> {}", selection.active));
     Ok(Json(HealthResponse {
         ok: true,
         service: "kill-confirm-gamebar",

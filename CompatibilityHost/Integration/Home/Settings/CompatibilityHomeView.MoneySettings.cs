@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using KillConfirmGameBar.Services;
 using Windows.Data.Json;
@@ -18,7 +18,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
 
         private void LoadMoneyRewardModeSettings()
         {
-            string mode = ApplicationData.Current.LocalSettings.Values[MoneyRewardModeSettingKey] as string;
+            string mode = GameSourceSettingsStore.CombatSettings[MoneyRewardModeSettingKey] as string;
             if (string.IsNullOrWhiteSpace(mode))
             {
                 mode = DefaultMoneyRewardMode;
@@ -31,7 +31,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             }
             _suppressMoneyRewardModeEvents = false;
 
-            ApplicationData.Current.LocalSettings.Values[MoneyRewardModeSettingKey] = mode;
+            GameSourceSettingsStore.CombatSettings[MoneyRewardModeSettingKey] = mode;
         }
 
         private async Task ApplyAndSaveMoneyRewardModeAsync()
@@ -41,7 +41,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                 return;
             }
 
-            ApplicationData.Current.LocalSettings.Values[MoneyRewardModeSettingKey] = GetSelectedMoneyRewardMode();
+            GameSourceSettingsStore.CombatSettings[MoneyRewardModeSettingKey] = GetSelectedMoneyRewardMode();
 
             try
             {
@@ -85,7 +85,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                 return ReadTaggedComboBoxItem(MoneyRewardModeSelector, DefaultMoneyRewardMode);
             }
 
-            string mode = ApplicationData.Current.LocalSettings.Values[MoneyRewardModeSettingKey] as string;
+            string mode = GameSourceSettingsStore.CombatSettings[MoneyRewardModeSettingKey] as string;
             return string.IsNullOrWhiteSpace(mode) ? DefaultMoneyRewardMode : mode;
         }
 

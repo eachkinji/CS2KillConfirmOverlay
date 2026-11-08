@@ -429,7 +429,6 @@ namespace KillConfirmGameBar
             LoadAnimationPlacementSettings();
             _controlPanelStateTimer.Start();
             _statusHintTimer.Start();
-            StartAutoCloseGameExitMonitoring();
             ConfigureWidgetCapabilities();
             _ = InitializePackSelectorsAndServiceAsync();
             _ = LoadSavedCsFolderAsync();
@@ -497,7 +496,6 @@ namespace KillConfirmGameBar
 
             _controlPanelStateTimer.Stop();
             _statusHintTimer.Stop();
-            StopAutoCloseGameExitMonitoring();
             _widget = null;
             if (Window.Current?.Content is UIElement windowRoot)
             {

@@ -1,4 +1,4 @@
-﻿param([string]$Payload='', [string]$CatalogProfile='', [switch]$AudioChannelsOnly, [switch]$CalabiyauRenderOnly, [string]$PackagePath='')
+﻿param([string]$Payload='', [string]$CatalogProfile='', [switch]$AudioChannelsOnly, [switch]$CalabiyauRenderOnly, [switch]$NativePreloadOnly, [switch]$GameSelectorOnly, [string]$PackagePath='')
 $ErrorActionPreference='Stop'
 $repository=Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 if (!$Payload) { $Payload = 'C:\Program Files\Kill Confirm Overlay' }
@@ -8,7 +8,7 @@ if(Get-AppxPackage -Name $name -ErrorAction SilentlyContinue) {throw 'A game-swi
 $output=Join-Path $repository ('Output/WidgetSwitch-'+(Get-Date -Format 'yyyyMMdd-HHmmss'))
 $profile=Join-Path $output 'profile'
 New-Item -ItemType Directory -Path $profile -Force | Out-Null
-if ($AudioChannelsOnly -and !$CatalogProfile) { throw 'Audio UI validation requires an isolated CatalogProfile.' }
+if (($AudioChannelsOnly -or $NativePreloadOnly -or $GameSelectorOnly) -and !$CatalogProfile) { throw 'This validation requires an isolated CatalogProfile.' }
 $source = if ($CatalogProfile) { [IO.Path]::GetFullPath($CatalogProfile) } else { Join-Path $env:LOCALAPPDATA 'KillConfirmOverlay/UserData' }
 foreach($file in @('settings.json','pack-catalog.json')) {Copy-Item -LiteralPath (Join-Path $source $file) -Destination $profile}
 $catalogPath=Join-Path $profile 'pack-catalog.json'
@@ -88,9 +88,13 @@ try {
     New-Item -ItemType Directory -Path $fixture -Force | Out-Null
     if ($AudioChannelsOnly) { [IO.File]::WriteAllText((Join-Path $fixture 'audio-channels-only'),'1') }
     if ($CalabiyauRenderOnly) { [IO.File]::WriteAllText((Join-Path $fixture 'calabiyau-render-only'),'1') }
+    if ($NativePreloadOnly) { [IO.File]::WriteAllText((Join-Path $fixture 'native-preload-only'),'1') }
+    if ($GameSelectorOnly) { [IO.File]::WriteAllText((Join-Path $fixture 'game-selector-only'),'1') }
     & robocopy $profile (Join-Path $fixture 'Data') /E /R:1 /W:1 /NFL /NDL /NJH /NJS /NP | Out-Null
+    if (!$GameSelectorOnly) {
     & robocopy (Join-Path $Payload 'Assets') (Join-Path $fixture 'Payload/Assets') /E /R:1 /W:1 /NFL /NDL /NJH /NJS /NP | Out-Null
-    & robocopy (Join-Path $Payload 'DefaultPacks') (Join-Path $fixture 'Payload/DefaultPacks') /E /R:1 /W:1 /NFL /NDL /NJH /NJS /NP | Out-Null
+    if (!$NativePreloadOnly) { & robocopy (Join-Path $Payload 'DefaultPacks') (Join-Path $fixture 'Payload/DefaultPacks') /E /R:1 /W:1 /NFL /NDL /NJH /NJS /NP | Out-Null }
+    }
     if($LASTEXITCODE -ge 8) {throw 'Could not copy isolated resources.'}
     [IO.File]::WriteAllText((Join-Path $fixture 'settings.json'),[IO.File]::ReadAllText($settingsPath))
     [IO.File]::WriteAllText((Join-Path $fixture 'pack-catalog.json'),[IO.File]::ReadAllText($catalogPath).Replace($profile.Replace('\','\\'),'C:\\FixtureRemote\\UserData'))
@@ -105,7 +109,7 @@ try {
             [IO.File]::WriteAllText((Join-Path $output $file),[IO.File]::ReadAllText((Join-Path $cache $file)))
         }
     }
-    foreach($file in Get-ChildItem -LiteralPath $cache -File | Where-Object {$_.Name -like 'battlefield6-*' -or $_.Name -like 'audio-menu-*' -or $_.Name -like 'calabiyau-*'}) {
+    foreach($file in Get-ChildItem -LiteralPath $cache -File | Where-Object {$_.Name -like 'battlefield6-*' -or $_.Name -like 'audio-menu-*' -or $_.Name -like 'calabiyau-*' -or $_.Name -like 'compact-game-selector-*'}) {
         # AppContainer files can carry EFS metadata unsupported by the artifact drive.
         [IO.File]::WriteAllBytes((Join-Path $output $file.Name), [IO.File]::ReadAllBytes($file.FullName))
     }

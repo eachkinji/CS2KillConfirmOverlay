@@ -75,6 +75,43 @@ fn load_audio_channel(
     }))
 }
 
+// Compare the resolved playback sources, not their wire representation. Legacy
+// built-in packs report Some(base_dir), while modern selection uses custom_path=None.
+// Volume, labels and interruption preferences only affect subsequent events.
+fn audio_channel_source_changed(
+    before: Option<&LoadedAudioChannel>,
+    after: Option<&LoadedAudioChannel>,
+) -> bool {
+    fn source(channel: Option<&LoadedAudioChannel>) -> Option<(&str, &str)> {
+        channel
+            .filter(|channel| channel.selection.enabled)
+            .map(|channel| {
+                (
+                    channel.preset.preset_name.as_str(),
+                    channel.preset.base_dir.as_str(),
+                )
+            })
+    }
+    source(before) != source(after)
+}
+
+fn stop_changed_audio_channels(
+    previous: &AudioChannelPresets,
+    next: &AudioChannelPresets,
+    sound_effect_sinks: &std::sync::Mutex<Vec<Arc<rodio::Sink>>>,
+    character_voice_sinks: &std::sync::Mutex<Vec<Arc<rodio::Sink>>>,
+) {
+    if audio_channel_source_changed(previous.sound_effect.as_ref(), next.sound_effect.as_ref()) {
+        crate::soundpack::sound::stop_audio_sink_group(sound_effect_sinks);
+    }
+    if audio_channel_source_changed(
+        previous.character_voice.as_ref(),
+        next.character_voice.as_ref(),
+    ) {
+        crate::soundpack::sound::stop_audio_sink_group(character_voice_sinks);
+    }
+}
+
 pub async fn set_audio_channels(
     State(app_state): State<Arc<AppState>>,
     Json(request): Json<AudioChannelSelections>,
@@ -96,27 +133,19 @@ pub async fn set_audio_channels(
     let response = loaded.selections();
     {
         let mut channels = app_state.audio_channels.write().await;
-        // Volume/settings refreshes must not cut off a character's current sentence.
-        let previous = channels.as_ref().map(AudioChannelPresets::selections);
-        let changed = |before: Option<&AudioChannelSelection>,
-                       after: Option<&AudioChannelSelection>| {
-            before.map(|s| (&s.preset, &s.custom_path, s.enabled))
-                != after.map(|s| (&s.preset, &s.custom_path, s.enabled))
+        let previous = match channels.as_ref() {
+            Some(channels) => channels.clone(),
+            None => AudioChannelPresets::legacy(
+                app_state.preset.read().await.clone(),
+                app_state.stop_previous_kill_audio.load(Ordering::Relaxed),
+            ),
         };
-        if previous
-            .as_ref()
-            .is_none_or(|old| changed(old.sound_effect.as_ref(), response.sound_effect.as_ref()))
-        {
-            crate::soundpack::sound::stop_audio_sink_group(&app_state.kill_audio_sinks);
-        }
-        if previous.as_ref().is_none_or(|old| {
-            changed(
-                old.character_voice.as_ref(),
-                response.character_voice.as_ref(),
-            )
-        }) {
-            crate::soundpack::sound::stop_audio_sink_group(&app_state.character_voice_sinks);
-        }
+        stop_changed_audio_channels(
+            &previous,
+            &loaded,
+            &app_state.kill_audio_sinks,
+            &app_state.character_voice_sinks,
+        );
         // Legacy status readers and delayed CSOL final-kill routing still use
         // the primary preset. Keep that view consistent without replaying it.
         let primary = loaded
@@ -148,6 +177,165 @@ pub async fn set_audio_channels(
 #[cfg(test)]
 mod audio_channel_api_tests {
     use super::*;
+    use std::sync::Mutex;
+
+    const TEST_RATE: u32 = 48_000;
+    const SENTENCE_SECONDS: usize = 8;
+
+    // The real Rodio sink/mixer runs without an output device. Checking every
+    // sample catches a sentence cut short, rather than only inspecting selection state.
+    struct PlayingSentence {
+        samples: rodio::mixer::MixerSource,
+        sink: Arc<rodio::Sink>,
+        active: Mutex<Vec<Arc<rodio::Sink>>>,
+    }
+
+    impl PlayingSentence {
+        fn new() -> Self {
+            let (mixer, samples) = rodio::mixer::mixer(1, TEST_RATE);
+            let sink = Arc::new(rodio::Sink::connect_new(&mixer));
+            sink.append(rodio::buffer::SamplesBuffer::new(
+                1,
+                TEST_RATE,
+                vec![0.25; TEST_RATE as usize * SENTENCE_SECONDS],
+            ));
+            Self {
+                samples,
+                active: Mutex::new(vec![sink.clone()]),
+                sink,
+            }
+        }
+
+        fn hear_seconds(&mut self, seconds: usize) {
+            for sample in 0..TEST_RATE as usize * seconds {
+                assert_eq!(
+                    self.samples.next(),
+                    Some(0.25),
+                    "sentence cut at sample {sample}"
+                );
+            }
+        }
+
+        fn assert_stopped(&mut self) {
+            assert!(self.active.lock().unwrap().is_empty());
+            // Sink control updates run periodically as the mixer consumes samples.
+            for _ in 0..4096 {
+                let _ = self.samples.next();
+            }
+            assert!(self.sink.empty());
+            assert_eq!(self.samples.next(), Some(0.0));
+        }
+    }
+
+    fn voice_preset() -> Preset {
+        Preset {
+            manifest: None,
+            preset_name: "crossfire_swat_gr".into(),
+            display_name: "SWAT".into(),
+            master_name: "crossfire_swat_gr".into(),
+            variant: None,
+            base_dir: "sounds/crossfire_swat_gr".into(),
+        }
+    }
+
+    fn modern_channels() -> AudioChannelPresets {
+        let mut channels = AudioChannelPresets::legacy(voice_preset(), true);
+        channels
+            .character_voice
+            .as_mut()
+            .unwrap()
+            .selection
+            .custom_path = None;
+        let mut effect = voice_preset();
+        effect.preset_name = "valorant_00000_base".into();
+        effect.base_dir = "sounds/valorant_00000_base".into();
+        channels.sound_effect = AudioChannelPresets::legacy(effect, true).sound_effect;
+        channels
+    }
+
+    #[test]
+    fn first_legacy_migration_and_repeated_settings_preserve_entire_sentence() {
+        let mut voice = PlayingSentence::new();
+        let effects = Mutex::new(Vec::new());
+        let legacy = AudioChannelPresets::legacy(voice_preset(), true);
+        let modern = modern_channels();
+        voice.hear_seconds(2);
+        // Same built-in pack: legacy carries Some(path), modern carries None.
+        stop_changed_audio_channels(&legacy, &modern, &effects, &voice.active);
+        voice.hear_seconds(2);
+        let mut refreshed = modern.clone();
+        let selection = &mut refreshed.character_voice.as_mut().unwrap().selection;
+        selection.display_name = Some("Updated display label".into());
+        selection.volume_percent = 75;
+        selection.interrupt_previous = false;
+        stop_changed_audio_channels(&modern, &refreshed, &effects, &voice.active);
+        voice.hear_seconds(2);
+        stop_changed_audio_channels(&refreshed, &refreshed, &effects, &voice.active);
+        voice.hear_seconds(2);
+        assert_eq!(voice.active.lock().unwrap().len(), 1);
+        for _ in 0..4096 {
+            let _ = voice.samples.next();
+        }
+        assert!(
+            voice.sink.empty(),
+            "all eight seconds must finish naturally"
+        );
+    }
+
+    #[test]
+    fn actual_voice_pack_changes_and_disabling_stop_only_voice() {
+        let current = modern_channels();
+        for change in ["preset", "folder", "disabled", "removed"] {
+            let mut next = current.clone();
+            let voice = next.character_voice.as_mut().unwrap();
+            match change {
+                "preset" => Arc::make_mut(&mut voice.preset).preset_name = "another_voice".into(),
+                "folder" => Arc::make_mut(&mut voice.preset).base_dir = "sounds/other".into(),
+                "disabled" => voice.selection.enabled = false,
+                "removed" => next.character_voice = None,
+                _ => unreachable!(),
+            }
+            let mut voice = PlayingSentence::new();
+            let mut effects = PlayingSentence::new();
+            voice.hear_seconds(1);
+            effects.hear_seconds(1);
+            stop_changed_audio_channels(&current, &next, &effects.active, &voice.active);
+            voice.assert_stopped();
+            effects.hear_seconds(SENTENCE_SECONDS - 1);
+            assert_eq!(effects.active.lock().unwrap().len(), 1, "{change}");
+        }
+    }
+
+    #[test]
+    fn effect_pack_change_does_not_stop_voice() {
+        let current = modern_channels();
+        let mut next = current.clone();
+        Arc::make_mut(&mut next.sound_effect.as_mut().unwrap().preset).base_dir =
+            "sounds/other".into();
+        let mut effects = PlayingSentence::new();
+        let mut voice = PlayingSentence::new();
+        effects.hear_seconds(1);
+        voice.hear_seconds(1);
+        stop_changed_audio_channels(&current, &next, &effects.active, &voice.active);
+        effects.assert_stopped();
+        voice.hear_seconds(SENTENCE_SECONDS - 1);
+    }
+
+    #[test]
+    fn legacy_repeat_keeps_sentence_and_return_to_legacy_stops_other_channel() {
+        let legacy = AudioChannelPresets::legacy(voice_preset(), true);
+        let modern = modern_channels();
+        let mut voice = PlayingSentence::new();
+        let mut effects = PlayingSentence::new();
+        voice.hear_seconds(2);
+        effects.hear_seconds(2);
+        // /soundpack still selects one legacy channel, even if modern mode had two.
+        stop_changed_audio_channels(&modern, &legacy, &effects.active, &voice.active);
+        effects.assert_stopped();
+        voice.hear_seconds(2);
+        stop_changed_audio_channels(&legacy, &legacy, &effects.active, &voice.active);
+        voice.hear_seconds(SENTENCE_SECONDS - 4);
+    }
 
     #[test]
     fn disabled_channel_needs_no_pack_on_disk() {

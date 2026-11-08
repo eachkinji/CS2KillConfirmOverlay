@@ -258,6 +258,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                 LoadSharedStreakMode(GameStyleMode.Valorant);
             }
 
+            _valorantAdvancedEffectsPanel.SelectAssistAudio(AssistAudioSettingsStore.Load(GameStyleMode.Valorant));
             return _valorantAdvancedEffectsPanel;
         }
 
@@ -270,6 +271,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                 LoadSharedStreakMode(GameStyleMode.Calabiyau);
             }
 
+            _calabiyauAdvancedEffectsPanel.RefreshSettings();
             return _calabiyauAdvancedEffectsPanel;
         }
 
@@ -406,6 +408,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                 LoadSharedStreakMode(GameStyleMode.Doubao);
             }
 
+            _doubaoAdvancedEffectsPanel.RefreshSettings();
             return _doubaoAdvancedEffectsPanel;
         }
 
@@ -418,6 +421,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                 _dagoujiaoAdvancedEffectsPanel.DagoujiaoSettingsChanged += OnDagoujiaoSettingsChanged;
                 LoadSharedStreakMode(GameStyleMode.Dagoujiao);
             }
+            _ = _dagoujiaoAdvancedEffectsPanel.RefreshSettingsAsync();
             return _dagoujiaoAdvancedEffectsPanel;
         }
 

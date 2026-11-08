@@ -125,7 +125,7 @@ public class EffectsProbe {
   for(int level=1;level<=3;level++) {
    _eliteEffectLevel=level;
    foreach(string action in new[]{"headshot","knife","grenade","wallshot","c4","firstkill","assist"})
-    { Check(await LoadEliteOverlayBitmapAsync(action)!=null,"Style 2 must warm elite wings: "+action);
+    { Check(await LoadEliteOverlayBitmapAsync(action)==null,"Style 2 must not add elite wings to special events: "+action);
       Check(SupportsWeaponBadgeForAsset(action),"Style 2 must warm weapon badge: "+action); }
   }
   _eliteEffectLevel=0;Check(await LoadEliteOverlayBitmapAsync("multi2")==null,"Elite off");
@@ -141,7 +141,10 @@ Add-Type -TypeDefinition $source
 
 $settings = ReadSource 'Widget/Pages/KillConfirmWidget/Packs/KillConfirmWidgetPage.PackSettings.AdvancedEffects.cs'
 $settingMethods = @('LoadKillFxSetting','OnKillFxSelectionChanged') | ForEach-Object { Method $settings $_ }
-$settingMethods += [regex]::Match($settings, '(?m)^        private string GetPackKillFxSettingKey\(\)[^\r\n]+').Value
+$fxStore = ReadSource 'Shared/Services/Settings/Games/CrossfireGameplaySettingsStore.cs'
+$fxMethods = @('ReadKillFxMode','SaveKillFxMode','KillFxPackKey','NormalizeKillFxMode') | ForEach-Object { Method $fxStore $_ }
+$desktopSettings = ReadSource 'CompatibilityHost/Integration/Home/Packs/CompatibilityHomeView.PackSettings.AdvancedEffects.cs'
+$desktopMethods = @('LoadKillFxSetting','OnKillFxSelectionChanged') | ForEach-Object { Method $desktopSettings $_ }
 $source = @'
 using System;
 using System.Collections.Generic;
@@ -155,6 +158,7 @@ public class ApplicationData {
  public LocalStore LocalSettings=new LocalStore();
  public class LocalStore { public SettingsValues Values=new SettingsValues(); }
 }
+public static class GameSourceSettingsStore { public static SettingsValues CombatSettings => ApplicationData.Current.LocalSettings.Values; }
 namespace Controls {
  public static class KillConfirmAnimation {
   public static bool HasFx;
@@ -190,6 +194,19 @@ public class SettingsProbe {
   probe.LoadKillFxSetting();Check(Controls.KillConfirmAnimation.Mode==2,"Legacy fallback for pack without own FX");
  }
 '@ + ($settingMethods -join "`n") + "`n}"
+$source += "`npublic static class CrossfireGameplaySettingsStore {`n" + ($fxMethods -join "`n") + "`n}"
+$probeStart = $source.IndexOf('public class SettingsProbe')
+$probeEnd = $source.IndexOf('public static class CrossfireGameplaySettingsStore', $probeStart)
+$desktopProbe = $source.Substring($probeStart, $probeEnd - $probeStart).Replace('SettingsProbe','DesktopSettingsProbe')
+foreach ($index in 0..1) { $desktopProbe = $desktopProbe.Replace($settingMethods[$index], $desktopMethods[$index]) }
+$source += @'
+public static class CompatibilityRenderPreferences {
+ public static bool GetCustomPackHasKillFx()=>Controls.KillConfirmAnimation.HasFx;
+ public static void ConfigureKillFxMode(int mode){Controls.KillConfirmAnimation.Mode=mode;}
+}
+'@ + $desktopProbe
 Add-Type -TypeDefinition $source
 [SettingsProbe]::Verify()
+[ApplicationData]::Current.LocalSettings.Values.Clear()
+[DesktopSettingsProbe]::Verify()
 Write-Host 'PASS: pack ordering, persistence, refresh, independent games/types, hidden packs, notifications, elite event filtering and own multiFX.'

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -68,7 +68,20 @@ namespace KillConfirmGameBar
                 if (GameStyleService.Current != style) throw new Exception("Source switch changed material style");
                 var advanced = new Controls.Settings.AdvancedSystemOptionsPanel();
                 if (advanced.FindName("GsiGameVersionSelector") != null) throw new Exception("Old source selector remains");
-                File.WriteAllText(Path.Combine(output, "source-ui-pass.txt"), "PASS: real button confirmation/cancel/confirm, external source synchronization, compact shared selector, unchanged material style, old advanced selector removed.");
+                GameStyleSidebarSelector.SelectedItem = AdvancedSettingsSidebarItem;
+                SelectHomeTab("port");
+                await Task.Delay(150);
+                foreach (string source in new[] { "cs2", "csgo_legacy", "lol" })
+                {
+                    await GameSourceSettingsStore.SwitchAsync(source);
+                    await Task.Delay(200);
+                    await AdvancedSettingsHubControl.ValidateSourcePortPanelAsync(source);
+                }
+                SelectCompatibilityWorkspace();
+                await Task.Delay(200);
+                await _compatibilityWorkspace.ValidateTestEventDropdownsAsync();
+                await ValidateExperienceSourceIsolationAsync();
+                File.WriteAllText(Path.Combine(output, "source-ui-pass.txt"), "PASS: real button confirmation/cancel/confirm, external source synchronization, compact shared selector, unchanged material style, old advanced selector removed; isolated CS/LOL port panels and responsive polling selector; populated test events and fully reachable final item; CS2-only legacy experience migration, independent CS2/CSGO/LOL saves and service API state.");
             }
             catch (Exception error) { File.WriteAllText(Path.Combine(output, "source-ui-failure.txt"), error.ToString()); }
             finally { Application.Current.Exit(); }

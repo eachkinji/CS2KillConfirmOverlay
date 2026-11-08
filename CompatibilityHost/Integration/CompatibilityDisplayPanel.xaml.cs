@@ -147,7 +147,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             CompatibilityDisplayRuntime.Update(c => { if (edit) c.EditRequest = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(); else { c.TestPreset = "three"; c.TestAudio = false; c.TestRequest = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(); } });
             if (!await CompatibilityDisplayRuntime.EnsureStartedAsync()) StatusText.Text = "无法启动兼容显示";
         }
-        private void OnResetClick(object sender, RoutedEventArgs e) => CompatibilityDisplayRuntime.Update(c => c.Layouts.Remove(GameStyleService.ToStorageValue(GameStyleService.Current)));
+        private void OnResetClick(object sender, RoutedEventArgs e) => CompatibilityDisplayRuntime.Update(c => c.Layouts.Remove(KillConfirmCompatibility.Contracts.DisplayConfiguration.LayoutKey(GameStyleService.ToStorageValue(GameStyleService.Current), GameSourceSettingsStore.Current)));
         private void RefreshStatus(bool force = false)
         {
             if (_switching && !force) return;
@@ -188,7 +188,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                     ? (zh ? "LOL 对局已连接 · 正在以 50ms 实时采集英雄联盟对局数据" : "LOL match connected · polling Live Client Data at 50ms")
                     : (gsi.ServiceReachable && gsi.Posts > 0)
                         ? (zh ? "上一局 LOL 对局已结束，等待进入下一场对局" : "Previous LOL match ended, waiting for next match")
-                        : (zh ? "等待进入 LOL 对局 · 进入英雄联盟对局或训练营后自动连接（免 CFG）" : "Waiting for LOL match · connects automatically in-game (no CFG needed)"))
+                        : (zh ? "等待进入 LOL 对局 · 进入英雄联盟对局或训练营后自动连接" : "Waiting for LOL match · connects automatically in-game"))
                 : (gsi.IsGreen
                     ? (zh ? "正在接收 CS 游戏数据 (GSI)" : "Receiving CS game data (GSI)")
                     : (zh ? "等待 CS 游戏数据 (GSI)" : "Waiting for CS game data (GSI)"));

@@ -181,7 +181,7 @@ namespace KillConfirmCompatibility.Controls
                     target,
                     source,
                     (float)Clamp01(opacity),
-                    CanvasImageInterpolation.Linear);
+                    CanvasImageInterpolation.HighQualityCubic);
             }
         }
 
@@ -217,7 +217,7 @@ namespace KillConfirmCompatibility.Controls
                     target,
                     source,
                     (float)Clamp01(opacity),
-                    CanvasImageInterpolation.Linear);
+                    CanvasImageInterpolation.HighQualityCubic);
             }
         }
 

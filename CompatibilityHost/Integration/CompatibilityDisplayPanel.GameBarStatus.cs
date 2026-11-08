@@ -69,7 +69,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                     isLol
                         ? (gsi.IsGreen
                             ? (isChinese ? "对局已连接 · 正在以 50ms 实时采集英雄击杀与目标事件" : "Match connected · 50ms live polling active")
-                            : (isChinese ? "无需安装 CFG · 进入英雄联盟对局或训练营后自动亮绿" : "No CFG needed · turns green automatically in LOL match"))
+                            : (isChinese ? "进入英雄联盟对局或训练营后自动亮绿" : "turns green automatically in LOL match"))
                         : (gsi.IsGreen
                             ? (isChinese ? "正在实时接收 CS 对局数据" : "Receiving live CS match data")
                             : (isChinese ? "进入 CS 对局后自动接收 GSI 数据" : "Receives GSI data automatically in CS match")),

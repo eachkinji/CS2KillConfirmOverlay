@@ -18,6 +18,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay.Controls.GameStyles
         public ValorantAdvancedEffectsPanel()
         {
             InitializeComponent();
+            AdvancedEffectsPanelSupport.TrackCombatHeader(this, CombatGameLogo, TitleText);
             RefreshKillMarkSetting();
             Loaded += (_, __) => RefreshKillMarkSetting();
         }
@@ -38,7 +39,8 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay.Controls.GameStyles
 
         public void ApplyLanguage(bool isChinese)
         {
-            TitleText.Text = isChinese ? "无畏契约击杀设置" : "VALORANT Kill Settings";
+            AdvancedEffectsPanelSupport.ApplyCombatHeader(CombatGameLogo, TitleText, isChinese);
+
             HintText.Text = isChinese
                 ? "设置无畏契约的连杀重置方式、助攻提示和准星反馈。连杀归零后，下一次击杀从一杀重新开始。"
                 : "Configure VALORANT streak reset timing, assist audio, and crosshair feedback.";

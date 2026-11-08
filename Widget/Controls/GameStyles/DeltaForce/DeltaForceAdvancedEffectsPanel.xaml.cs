@@ -11,6 +11,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
         public DeltaForceAdvancedEffectsPanel()
         {
             InitializeComponent();
+            AdvancedEffectsPanelSupport.TrackCombatHeader(this, CombatGameLogo, TitleText);
             RefreshKillMarkSetting();
         }
 
@@ -36,7 +37,8 @@ namespace KillConfirmGameBar.Controls.GameStyles
 
         public void ApplyLanguage(bool isChinese)
         {
-            TitleText.Text = isChinese ? "三角洲行动 高级特效" : "Delta Force Effects";
+            AdvancedEffectsPanelSupport.ApplyCombatHeader(CombatGameLogo, TitleText, isChinese);
+
             ResetButtonText.Text = isChinese ? "恢复默认" : "Reset";
             ToolTipService.SetToolTip(ResetButton, isChinese ? "恢复三角洲默认设置" : "Restore Delta Force defaults");
             MoneyRewardModeLabel.Text = isChinese ? "奖励算法" : "Money";

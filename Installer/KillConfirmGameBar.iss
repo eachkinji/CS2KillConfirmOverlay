@@ -2,7 +2,7 @@
 #define MyAppExeName "Install-KillConfirm.ps1"
 
 #ifndef MyAppVersion
-  #define MyAppVersion "5.9.2.3"
+  #define MyAppVersion "5.9.2.4"
 #endif
 
 #ifndef TransferRoot
@@ -61,6 +61,7 @@ PrivilegesRequired=admin
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 UninstallDisplayName={cm:InstallerDisplayName}
+UninstallDisplayIcon={app}\KillConfirmOverlay.ico
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"

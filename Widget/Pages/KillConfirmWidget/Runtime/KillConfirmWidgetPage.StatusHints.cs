@@ -55,7 +55,7 @@ namespace KillConfirmGameBar
                         : (zh ? "等待 LOL 对局 · 进入对局或训练营自动亮绿" : "Waiting for LOL match · connects automatically"),
                     _gsiRecentlySeen ? Color.FromArgb(255, 5, 122, 85) : Color.FromArgb(255, 180, 90, 0)));
                 hints.Add(new StatusHint(
-                    zh ? "SVC / LOL / ANI 三灯全绿即就绪（LOL 免 CFG）。" : "All 3 lights (SVC / LOL / ANI) green means ready.",
+                    zh ? "SVC / LOL / ANI 三灯全绿即就绪。" : "All 3 lights (SVC / LOL / ANI) green means ready.",
                     Color.FromArgb(255, 5, 122, 85)));
                 hints.Add(new StatusHint(GetServiceStatusHint(), GetServiceHintColor()));
                 hints.Add(new StatusHint(GetAnimationStatusHint(), GetAnimationHintColor()));

@@ -13,6 +13,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
         public SanguoshaAdvancedEffectsPanel()
         {
             InitializeComponent();
+            AdvancedEffectsPanelSupport.TrackCombatHeader(this, CombatGameLogo, TitleText);
             Loaded += OnLoaded;
             Unloaded += (s, e) => GameSourceSettingsStore.Changed -= OnGameSourceChanged;
         }
@@ -85,7 +86,8 @@ namespace KillConfirmGameBar.Controls.GameStyles
 
         public void ApplyLanguage(bool isChinese)
         {
-            TitleText.Text = isChinese ? "三国杀连破播报与优先级" : "Sanguosha Kill Broadcast & Priorities";
+            AdvancedEffectsPanelSupport.ApplyCombatHeader(CombatGameLogo, TitleText, isChinese);
+
             HintText.Text = isChinese
                 ? "原版 Spine 骨骼动画与原版语音：首破至七破、8 杀以上（神威震乾坤）、爆头（神医妙手）、刀杀（青囊济世）、手雷（破敌）。"
                 : "Original Spine animations and voices: First Strike through Seven Kills, 8+ kills, Headshot, Knife, and Grenade.";
@@ -121,7 +123,7 @@ namespace KillConfirmGameBar.Controls.GameStyles
             GrenadeIconStreakPriorityItem.Content = HeadshotStreakPriorityItem.Content;
             if (GameSourceSettingsStore.IsLol)
             {
-                TitleText.Text = isChinese ? "三国杀连破播报与优先级 · 英雄联盟模式" : "Sanguosha Broadcast & Priorities · LOL Mode";
+
                 HintText.Text = isChinese ? "英雄联盟模式：1–7 杀对应首破至七破，8 杀及以上重复神威震乾坤；一血/终结/团灭/复仇播放万夫莫敌；助攻播放神医妙手；控龙/抢龙播放青囊济世；推塔/一血塔/破水晶播放破敌。" : "LOL Mode: 1-7 kills play First Strike..Seven Kills, 8+ kills repeat Tier 8; First Blood/Shutdown/Ace/Revenge play Tier 9; Assist plays 神医妙手; Objective/Steal plays 青囊济世; Turret/Inhibitor plays 破敌.";
                 if (PrioritiesGroupLabel != null) PrioritiesGroupLabel.Text = isChinese ? "助攻、控龙与推塔提示优先级" : "Assist, Objective & Turret Priority";
                 HeadshotAudioPriorityLabel.Text = isChinese ? "助攻（神医妙手）声音" : "Assist audio";

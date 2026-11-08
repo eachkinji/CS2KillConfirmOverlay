@@ -238,7 +238,7 @@ namespace KillConfirmGameBar
 
         private void SelectCurrentBattlefieldMoneyRewardMode()
         {
-            string mode = ApplicationData.Current.LocalSettings.Values[MoneyRewardModeSettingKey] as string;
+            string mode = GameSourceSettingsStore.CombatSettings[MoneyRewardModeSettingKey] as string;
             if (string.IsNullOrWhiteSpace(mode))
             {
                 mode = DefaultMoneyRewardMode;

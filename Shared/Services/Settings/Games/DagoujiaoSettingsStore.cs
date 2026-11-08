@@ -113,7 +113,7 @@ namespace KillConfirmCompatibility.Services
 
         public static DagoujiaoSettingsValues Load()
         {
-            var values = ApplicationData.Current.LocalSettings.Values;
+            var values = GameSourceSettingsStore.CombatSettings;
             int epic = ReadInt(values[Prefix + "EpicKillCount"], 5);
             epic = Math.Max(MinimumEpicKillCount, Math.Min(MaximumEpicKillCount, epic));
             string savedHeadshotAudio = values[Prefix + "HeadshotAudio"] as string;
@@ -163,7 +163,7 @@ namespace KillConfirmCompatibility.Services
         public static void Save(DagoujiaoSettingsValues settings)
         {
             if (settings == null) throw new ArgumentNullException(nameof(settings));
-            var values = ApplicationData.Current.LocalSettings.Values;
+            var values = GameSourceSettingsStore.CombatSettings;
             int epic = Math.Max(MinimumEpicKillCount, Math.Min(MaximumEpicKillCount, settings.EpicKillCount));
             values[Prefix + "EpicKillCount"] = epic;
             values[Prefix + "HeadshotPriority"] = settings.HeadshotPriority;

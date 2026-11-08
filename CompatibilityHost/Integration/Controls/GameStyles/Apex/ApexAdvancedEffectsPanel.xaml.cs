@@ -1,4 +1,4 @@
-﻿using KillConfirmGameBar.Services;
+using KillConfirmGameBar.Services;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
@@ -11,6 +11,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay.Controls.GameStyles
         public ApexAdvancedEffectsPanel()
         {
             InitializeComponent();
+            AdvancedEffectsPanelSupport.TrackCombatHeader(this, CombatGameLogo, TitleText);
             RefreshVisualEffectSettings();
         }
 
@@ -40,7 +41,8 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay.Controls.GameStyles
 
         public void ApplyLanguage(bool isChinese)
         {
-            TitleText.Text = isChinese ? "Apex 击杀提示设置" : "Apex Kill Feedback";
+            AdvancedEffectsPanelSupport.ApplyCombatHeader(CombatGameLogo, TitleText, isChinese);
+
             ResetButtonText.Text = isChinese ? "恢复默认" : "Reset";
             ToolTipService.SetToolTip(ResetButton, isChinese ? "恢复 Apex 默认设置" : "Restore Apex defaults");
             MoneyRewardModeLabel.Text = isChinese ? "金钱计算方式" : "Money calculation";

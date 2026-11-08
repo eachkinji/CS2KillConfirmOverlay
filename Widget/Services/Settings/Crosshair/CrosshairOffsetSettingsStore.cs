@@ -57,7 +57,7 @@ namespace KillConfirmGameBar.Services
                 return 0.0;
             }
 
-            object value = ApplicationData.Current.LocalSettings.Values[key];
+            object value = GameSourceSettingsStore.CombatSettings[key];
             if (value is double number)
             {
                 return number;
@@ -81,7 +81,7 @@ namespace KillConfirmGameBar.Services
             string key = GetKey(style, xAxis);
             if (key != null)
             {
-                ApplicationData.Current.LocalSettings.Values[key] = value;
+                GameSourceSettingsStore.CombatSettings[key] = value;
             }
         }
 

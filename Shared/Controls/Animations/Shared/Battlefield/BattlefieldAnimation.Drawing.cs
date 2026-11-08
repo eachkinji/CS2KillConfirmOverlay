@@ -26,7 +26,7 @@ namespace KillConfirmCompatibility.Controls
 {
     public sealed partial class KillConfirmAnimation
     {
-        private static void DrawBattlefieldImageStretch(CanvasDrawingSession drawingSession, CanvasBitmap image, Rect target, double opacity)
+        private static void DrawBattlefieldImageStretch(CanvasDrawingSession drawingSession, CanvasBitmap image, Rect target, double opacity, CanvasImageInterpolation interpolation = CanvasImageInterpolation.NearestNeighbor)
         {
             if (image == null || opacity <= 0)
             {
@@ -38,7 +38,7 @@ namespace KillConfirmCompatibility.Controls
                 target,
                 new Rect(0, 0, image.SizeInPixels.Width, image.SizeInPixels.Height),
                 (float)Clamp01(opacity),
-                CanvasImageInterpolation.NearestNeighbor);
+                interpolation);
         }
 
         private static double EaseOutCubic(double value)

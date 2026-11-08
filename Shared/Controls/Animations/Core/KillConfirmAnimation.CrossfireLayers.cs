@@ -50,9 +50,10 @@ namespace KillConfirmCompatibility.Controls
             asset.Sequence = any ? sequence : null;
         }
 
-        private static void ClearCrossfireExtraCache()
+        private static void ClearCrossfireExtraCache(HashSet<CanvasBitmap> released = null)
         {
-            foreach (CanvasBitmap bitmap in CrossfireExtraCache.Values) bitmap?.Dispose();
+            foreach (CanvasBitmap bitmap in CrossfireExtraCache.Values)
+                if (released != null) released.Add(bitmap); else bitmap?.Dispose();
             CrossfireExtraCache.Clear();
         }
 

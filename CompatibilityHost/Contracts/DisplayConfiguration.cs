@@ -35,15 +35,19 @@ namespace KillConfirmCompatibility.Contracts
         {
             Version = 1; FollowGame = true; HideWhenInactive = true; FramesPerSecond = 60; ScreenName = "";
         }
-        public LayoutProfile GetLayout(string style)
+        // CS2 retains the original layout keys; other sources start independently.
+        public static string LayoutKey(string style, string source = "cs2") =>
+            source == "lol" || source == "csgo_legacy" ? source + "." + style : style;
+        public LayoutProfile GetLayout(string style, string source = "cs2")
         {
             if (Layouts == null) Layouts = new Dictionary<string, LayoutProfile>();
-            if (!Layouts.TryGetValue(style, out LayoutProfile layout) || layout == null)
+            string key = LayoutKey(style, source);
+            if (!Layouts.TryGetValue(key, out LayoutProfile layout) || layout == null)
             {
                 layout = new LayoutProfile();
                 layout.Crosshair.Visible = style != "crossfire" && style != "custommodule" && style != "pubg" && style != "csol" && style != "valorant";
                 if (style == "overwatch") layout.Crosshair.Scale = 0.6;
-                Layouts[style] = layout;
+                Layouts[key] = layout;
             }
             layout.Normalize();
             return layout;

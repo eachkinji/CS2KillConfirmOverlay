@@ -76,9 +76,9 @@ namespace KillConfirmCompatibility.Controls
                 }
                 if (generation != _resourceGeneration || cacheKey != GetCodeKillCacheKey(normalizedAssetName, normalizedWeaponBadgeKey))
                 {
-                    var owned = new HashSet<CanvasBitmap> { asset.WeaponBadge };
-                    if (baseAsset == null) { owned.Add(asset.Main); owned.Add(asset.Fx); owned.Add(asset.Overlay); }
-                    foreach (CanvasBitmap bitmap in owned) bitmap?.Dispose();
+                    // Texture ownership belongs to CodeKillTextureCache. A setting
+                    // change can invalidate this wrapper while another cached event
+                    // still shares its bitmaps; only pack release disposes them.
                     throw new OperationCanceledException("CF preload settings changed.");
                 }
                 CodeKillCache[cacheKey] = asset;
@@ -307,28 +307,21 @@ namespace KillConfirmCompatibility.Controls
                 }
             }
 
-            StorageFolder original = await PackCatalogService.GetImportedIconFolderAsync("default");
-            StorageFile file = original == null ? null : await TryGetImportedIconFileAsync(original, fileName);
-            if (file == null && allowDefaultFallback && allowGenericKillFallback && original != null)
-                file = await TryGetImportedIconFileAsync(original, "badge_multi1.png");
+            StorageFile file = await TryGetPackCodeFileAsync("default", fileName);
+            if (file == null && allowDefaultFallback && allowGenericKillFallback)
+                file = await TryGetPackCodeFileAsync("default", "badge_multi1.png");
             if (file == null)
             {
                 if (optional) return null;
                 throw new FileNotFoundException("CF 素材未安装：" + fileName);
             }
-            return await LoadBitmapFromStorageFileAsync(file)
+            return await LoadCodeKillTextureAsync(file)
                 ?? throw new InvalidDataException("CF 图标无法解码：" + fileName);
         }
 
         private static async Task<CanvasBitmap> TryLoadImportedIconBitmapAsync(string fileName)
         {
-            StorageFolder folder = await PackCatalogService.GetImportedIconFolderAsync(_iconPack);
-            if (folder == null)
-            {
-                return null;
-            }
-
-            StorageFile file = await TryGetImportedIconFileAsync(folder, fileName);
+            StorageFile file = await TryGetPackCodeFileAsync(_iconPack, fileName);
             if (file == null)
             {
                 return null;
@@ -336,8 +329,43 @@ namespace KillConfirmCompatibility.Controls
 
             // Existence was resolved above. Decode/access/device failures must
             // fail preparation, rather than being mistaken for an absent option.
-            return await LoadBitmapFromStorageFileAsync(file)
+            return await LoadCodeKillTextureAsync(file)
                 ?? throw new InvalidDataException("CF 图标无法解码：" + fileName);
+        }
+
+        private static readonly Dictionary<string, CanvasBitmap> CodeKillTextureCache = new Dictionary<string, CanvasBitmap>(StringComparer.OrdinalIgnoreCase);
+
+        private static async Task<CanvasBitmap> LoadCodeKillTextureAsync(StorageFile file)
+        {
+            int generation = _resourceGeneration;
+            double brightness = _brightnessBoost, contrast = _contrastBoost;
+            string key = file.Path + ":" + brightness + ":" + contrast;
+            if (CodeKillTextureCache.TryGetValue(key, out CanvasBitmap cached)) return cached;
+            CanvasBitmap bitmap = await LoadBitmapFromStorageFileAsync(file);
+            if (generation != _resourceGeneration || brightness != _brightnessBoost || contrast != _contrastBoost)
+            {
+                bitmap?.Dispose();
+                throw new OperationCanceledException("CF texture settings changed during decode.");
+            }
+            if (bitmap != null) CodeKillTextureCache[key] = bitmap;
+            return bitmap;
+        }
+
+        private static async Task<StorageFile> TryGetPackCodeFileAsync(string pack, string canonicalFileName)
+        {
+#if WINDOWS_UWP
+            IconPackItem item = await PackCatalogService.GetIconPackAsync(pack);
+            if (string.IsNullOrWhiteSpace(item?.FolderPath)) return null;
+            var candidates = new List<string>();
+            foreach (string candidate in CrossfirePackFormat.Candidates(canonicalFileName))
+                foreach (string child in new[] { "", "Sprite/", "badgeex/" })
+                    foreach (string extension in ImportedIconImageExtensions)
+                        candidates.Add(child + Path.ChangeExtension(candidate, extension));
+            return await SharedResources.FindImportedFileAsync(item.FolderPath, candidates);
+#else
+            StorageFolder folder = await PackCatalogService.GetImportedIconFolderAsync(pack);
+            return folder == null ? null : await TryGetImportedIconFileAsync(folder, canonicalFileName);
+#endif
         }
 
         private static readonly Dictionary<string, Task<Dictionary<string, StorageFile>>> ImportedCodeFileIndexes

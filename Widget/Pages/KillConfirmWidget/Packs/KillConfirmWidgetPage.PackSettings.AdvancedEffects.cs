@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using KillConfirmGameBar.Services;
 using Windows.Storage;
@@ -11,6 +11,8 @@ namespace KillConfirmGameBar
     {
         private async Task ApplyCustomPackOverlaySupportAsync(string iconPack)
         {
+            string source = GameSourceSettingsStore.Current;
+            ulong generation = GameSourceSettingsStore.Generation;
             if (!PackCatalogService.IsImportedIconPackKey(iconPack))
             {
                 // Built-in pack 鈥?FX handled by built-in logic, no override needed
@@ -21,7 +23,8 @@ namespace KillConfirmGameBar
             }
 
             IconPackItem item = await PackCatalogService.RefreshImportedIconPackCapabilitiesAsync(iconPack);
-            if (!string.Equals(iconPack, GetSelectedIconPack(), StringComparison.OrdinalIgnoreCase)) return;
+            if (!string.Equals(iconPack, GetSelectedIconPack(), StringComparison.OrdinalIgnoreCase)
+                || source != GameSourceSettingsStore.Current || generation != GameSourceSettingsStore.Generation) return;
             bool hasKillFx = item?.HasKillFxOverlay == true;
             bool hasEliteOverlay = item?.HasEliteOverlay == true;
             bool hasWeaponBadgeOverlay = item?.HasWeaponBadgeOverlay == true;
@@ -35,14 +38,14 @@ namespace KillConfirmGameBar
             if (!hasEliteOverlay && currentElite >= 1 && currentElite <= 3)
             {
                 SelectEliteEffectLevel(0);
-                ApplicationData.Current.LocalSettings.Values[EliteEffectSettingKey] = 0;
+                GameSourceSettingsStore.CombatSettings[EliteEffectSettingKey] = 0;
                 Controls.KillConfirmAnimation.ConfigureEliteEffectLevel(0);
             }
             else if (hasEliteOverlay && currentElite == 0)
             {
                 // Default to level 1 when elite assets are present and were previously off.
                 SelectEliteEffectLevel(1);
-                ApplicationData.Current.LocalSettings.Values[EliteEffectSettingKey] = 1;
+                GameSourceSettingsStore.CombatSettings[EliteEffectSettingKey] = 1;
                 Controls.KillConfirmAnimation.ConfigureEliteEffectLevel(1);
             }
 
@@ -50,7 +53,7 @@ namespace KillConfirmGameBar
             if (currentWeaponBadgeMode == 0)
             {
                 SelectWeaponBadgeMode(1);
-                ApplicationData.Current.LocalSettings.Values[WeaponBadgeSettingKey] = 1;
+                GameSourceSettingsStore.CombatSettings[WeaponBadgeSettingKey] = 1;
                 Controls.KillConfirmAnimation.ConfigureWeaponBadgeMode(1);
             }
 
@@ -72,7 +75,7 @@ namespace KillConfirmGameBar
             }
 
             int eliteLevel = GetSelectedEliteEffectLevel();
-            ApplicationData.Current.LocalSettings.Values[EliteEffectSettingKey] = eliteLevel;
+            GameSourceSettingsStore.CombatSettings[EliteEffectSettingKey] = eliteLevel;
             Controls.KillConfirmAnimation.ConfigureEliteEffectLevel(eliteLevel);
             WarmStartupAnimationCacheIfActive();
         }
@@ -85,7 +88,7 @@ namespace KillConfirmGameBar
             }
 
             int mode = GetSelectedKillFxMode();
-            ApplicationData.Current.LocalSettings.Values[GetPackKillFxSettingKey()] = mode;
+            CrossfireGameplaySettingsStore.SaveKillFxMode(GetSelectedIconPack(), mode);
             Controls.KillConfirmAnimation.ConfigureKillFxMode(mode);
             WarmStartupAnimationCacheIfActive();
         }
@@ -98,7 +101,7 @@ namespace KillConfirmGameBar
             }
 
             int mode = GetSelectedWeaponBadgeMode();
-            ApplicationData.Current.LocalSettings.Values[WeaponBadgeSettingKey] = mode;
+            GameSourceSettingsStore.CombatSettings[WeaponBadgeSettingKey] = mode;
             Controls.KillConfirmAnimation.ConfigureWeaponBadgeMode(mode);
             WarmStartupAnimationCacheIfActive();
         }
@@ -111,7 +114,7 @@ namespace KillConfirmGameBar
             }
 
             int style = GetSelectedMainAnimationStyle();
-            ApplicationData.Current.LocalSettings.Values[MainAnimationStyleSettingKey] = style;
+            GameSourceSettingsStore.CombatSettings[MainAnimationStyleSettingKey] = style;
             LowerFeedbackAnimation?.ReleaseAnimationResourcesForPackChange();
             LowerBadgeAnimation?.ReleaseAnimationResourcesForPackChange();
             CrosshairFeedbackAnimation?.ReleaseAnimationResourcesForPackChange();
@@ -122,7 +125,7 @@ namespace KillConfirmGameBar
 
         private void LoadEliteEffectSetting()
         {
-            object stored = ApplicationData.Current.LocalSettings.Values[EliteEffectSettingKey];
+            object stored = GameSourceSettingsStore.CombatSettings[EliteEffectSettingKey];
             int eliteLevel = 0;
             if (stored is int intValue)
             {
@@ -139,35 +142,10 @@ namespace KillConfirmGameBar
             UpdateEliteEffectSelectorState();
         }
 
-        private string GetPackKillFxSettingKey() => KillFxSettingKey + ":" + GetSelectedIconPack();
-
         private void LoadKillFxSetting()
         {
-            int mode = GetDefaultKillFxModeForSelectedPack();
-            // A previous pack's Original setting must not override this pack's own multiFX.
-            object stored = ApplicationData.Current.LocalSettings.Values[GetPackKillFxSettingKey()];
-            if (stored == null && !Controls.KillConfirmAnimation.GetCustomPackHasKillFx())
-                stored = ApplicationData.Current.LocalSettings.Values[KillFxSettingKey];
-            if (stored is int intValue)
-            {
-                mode = NormalizeKillFxMode(intValue);
-            }
-            else if (stored is bool boolValue)
-            {
-                mode = boolValue ? 1 : 0;
-            }
-            else if (stored is string text)
-            {
-                if (int.TryParse(text, out int parsedMode))
-                {
-                    mode = NormalizeKillFxMode(parsedMode);
-                }
-                else if (bool.TryParse(text, out bool parsedBool))
-                {
-                    mode = parsedBool ? 1 : 0;
-                }
-            }
-
+            int mode = CrossfireGameplaySettingsStore.ReadKillFxMode(GetSelectedIconPack(),
+                Controls.KillConfirmAnimation.GetCustomPackHasKillFx(), GetDefaultKillFxModeForSelectedPack());
             SelectKillFxMode(mode);
             Controls.KillConfirmAnimation.ConfigureKillFxMode(mode);
             UpdateKillFxSelectorState();
@@ -175,7 +153,7 @@ namespace KillConfirmGameBar
 
         private void LoadWeaponBadgeSetting()
         {
-            object stored = ApplicationData.Current.LocalSettings.Values[WeaponBadgeSettingKey];
+            object stored = GameSourceSettingsStore.CombatSettings[WeaponBadgeSettingKey];
             int mode = GetDefaultWeaponBadgeModeForSelectedPack();
             if (stored is bool boolValue)
             {
@@ -204,7 +182,7 @@ namespace KillConfirmGameBar
 
         private void LoadMainAnimationStyleSetting()
         {
-            object stored = ApplicationData.Current.LocalSettings.Values[MainAnimationStyleSettingKey];
+            object stored = GameSourceSettingsStore.CombatSettings[MainAnimationStyleSettingKey];
             int style = 1;
             if (stored is int intValue)
             {

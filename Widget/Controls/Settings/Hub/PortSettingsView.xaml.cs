@@ -18,6 +18,7 @@ namespace KillConfirmGameBar.Controls.Settings
             new ObservableCollection<PortButtonBinding>();
 
         private bool _suppressLolPollEvents;
+        private bool _suppressPortEvents;
         public PortSettingsView()
         {
             InitializeComponent();
@@ -34,7 +35,9 @@ namespace KillConfirmGameBar.Controls.Settings
         {
             ApplyLanguage();
             ApplyTheme(GameThemePalette.Current);
-            HubPortAutoSearchToggle.IsOn = PortSettingsStore.AutoSearchEnabled;
+            _suppressPortEvents = true;
+            try { HubPortAutoSearchToggle.IsOn = PortSettingsStore.AutoSearchEnabled; }
+            finally { _suppressPortEvents = false; }
             await RefreshPortStateAsync();
         }
 
@@ -48,14 +51,26 @@ namespace KillConfirmGameBar.Controls.Settings
             HubPortTitleText.Text = isChinese ? $"{fullName} 本地服务与数据源配置" : $"{fullName} Service & Data Source";
             if (CsCfgSectionCard != null) CsCfgSectionCard.Visibility = isLol ? Visibility.Collapsed : Visibility.Visible;
             if (LolPortSectionCard != null) LolPortSectionCard.Visibility = isLol ? Visibility.Visible : Visibility.Collapsed;
+            CsServicePortSettings.Visibility = isLol ? Visibility.Collapsed : Visibility.Visible;
             if (CsRootTitleText != null) CsRootTitleText.Text = isChinese ? $"{fullName} 游戏根目录与 CFG 配置" : $"{fullName} Root & CFG Status";
             if (CsSelectRootButton != null) CsSelectRootButton.Content = isChinese ? "选择根目录" : "Select root";
             if (CsInstallCfgButton != null) CsInstallCfgButton.Content = isChinese ? "一键写入/修复 CFG" : "Install / Repair CFG";
-            if (LolRootTitleText != null) LolRootTitleText.Text = isChinese ? "英雄联盟游戏根目录与检测端口" : "League of Legends Root & Live Client Endpoint";
-            if (LolSelectRootButton != null) LolSelectRootButton.Content = isChinese ? "选择根目录" : "Select root";
-            if (LolPollIntervalLabelText != null) LolPollIntervalLabelText.Text = isChinese ? "端口抓取速度调控 (Polling Interval)" : "Live Client Polling Interval";
-            if (LolPollIntervalHintText != null) LolPollIntervalHintText.Text = isChinese ? "默认 50ms 极速采集（用于金币跳动反算与瞬时连杀）；支持 20–1000ms 自调控。" : "Default 50ms ultra-fast polling; adjustable between 20–1000ms.";
+            LolEndpointTitleText.Text = isChinese ? "对局连接" : "Live match connection";
+            LolRefreshButton.Content = isChinese ? "重新检测" : "Refresh";
+            if (LolPollIntervalLabelText != null) LolPollIntervalLabelText.Text = isChinese ? "对局数据采集间隔" : "Match data polling interval";
+            if (LolPollIntervalHintText != null) LolPollIntervalHintText.Text = isChinese ? "默认 50 ms，可调整为 20–1000 ms。" : "Default: 50 ms. Adjustable from 20 to 1000 ms.";
             if (LolPollCustomApplyButton != null) LolPollCustomApplyButton.Content = isChinese ? "应用" : "Apply";
+            foreach (ComboBoxItem item in LolPollIntervalSelector.Items)
+            {
+                switch (item.Tag as string)
+                {
+                    case "50": item.Content = isChinese ? "50 ms（推荐）" : "50 ms (recommended)"; break;
+                    case "100": item.Content = isChinese ? "100 ms（标准）" : "100 ms (standard)"; break;
+                    case "250": item.Content = isChinese ? "250 ms（均衡）" : "250 ms (balanced)"; break;
+                    case "500": item.Content = isChinese ? "500 ms（省电）" : "500 ms (power saving)"; break;
+                    default: item.Content = isChinese ? "自定义" : "Custom"; break;
+                }
+            }
             SelectLolPollIntervalUi();
             HubPortDescriptionText.Text = isChinese
                 ? "默认端口 10087 与部分用户电脑上的软件冲突，下面提供 5 个备用端口和自定义入口。"
@@ -101,7 +116,7 @@ namespace KillConfirmGameBar.Controls.Settings
 
         private async void OnHubPortAutoSearchToggled(object sender, RoutedEventArgs e)
         {
-            if (HubPortAutoSearchToggle == null)
+            if (HubPortAutoSearchToggle == null || _suppressPortEvents || GameSourceSettingsStore.IsLol)
             {
                 return;
             }
@@ -170,9 +185,10 @@ namespace KillConfirmGameBar.Controls.Settings
 
         internal async Task RefreshPortStateAsync()
         {
+            await RefreshGameSourceDetailsAsync();
+            if (GameSourceSettingsStore.IsLol) return;
             int current = PortSettingsStore.CurrentPort;
             HubPortCurrentValue.Text = current.ToString();
-            await RefreshGameSourceDetailsAsync();
             UpdatePortButtons();
             UpdatePortStatusText();
             int? reported = await TryGetServicePortAsync();
@@ -350,22 +366,23 @@ namespace KillConfirmGameBar.Controls.Settings
             try { await GameSourceSettingsStore.SyncLolSettingsAsync(); } catch { }
             await RefreshGameSourceDetailsAsync();
         }
-        private async void OnLolSelectRootClick(object sender, RoutedEventArgs e)
+        private void OnLolPollingRowSizeChanged(object sender, SizeChangedEventArgs e)
         {
-            var picker = new Windows.Storage.Pickers.FolderPicker { SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.ComputerFolder, ViewMode = Windows.Storage.Pickers.PickerViewMode.List };
-            picker.FileTypeFilter.Add("*");
-            Windows.Storage.StorageFolder folder = await picker.PickSingleFolderAsync();
-            if (folder == null) return;
-            GameSourceSettingsStore.LolInstallRootPath = folder.Path;
-            await RefreshGameSourceDetailsAsync();
+            bool narrow = e.NewSize.Width < 720;
+            Grid.SetRow(LolPollControls, narrow ? 1 : 0);
+            Grid.SetColumn(LolPollControls, narrow ? 1 : 2);
+            Grid.SetColumnSpan(LolPollControls, narrow ? 2 : 1);
+            LolPollControls.Width = narrow ? double.NaN : 280;
         }
         private async void OnCsSelectRootClick(object sender, RoutedEventArgs e)
         {
+            string source = GameSourceSettingsStore.Current;
+            if (source == GameSourceSettingsStore.Lol) return;
             var picker = new Windows.Storage.Pickers.FolderPicker { SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.ComputerFolder, ViewMode = Windows.Storage.Pickers.PickerViewMode.List };
             picker.FileTypeFilter.Add("*");
             Windows.Storage.StorageFolder folder = await picker.PickSingleFolderAsync();
             if (folder == null) return;
-            bool isLegacy = GameSourceSettingsStore.Current == "csgo_legacy";
+            bool isLegacy = source == "csgo_legacy";
             ApplicationData.Current.LocalSettings.Values[isLegacy ? "CsgoLegacyInstallFolderPath" : "CsInstallFolderPath"] = folder.Path;
             await RefreshGameSourceDetailsAsync();
         }
@@ -380,8 +397,6 @@ namespace KillConfirmGameBar.Controls.Settings
             if (GameSourceSettingsStore.IsLol)
             {
                 SelectLolPollIntervalUi();
-                string lolRoot = GameSourceSettingsStore.LolInstallRootPath;
-                if (LolRootPathText != null) LolRootPathText.Text = string.IsNullOrWhiteSpace(lolRoot) ? (zh ? "游戏根目录：未手动指定（LOL 对局通过本地 2999 端口自动连接，无需依赖目录）" : "Game root: Not specified (auto-connects via local port 2999)") : (zh ? $"游戏根目录：{lolRoot}" : $"Game root: {lolRoot}");
                 bool active = false;
                 try
                 {
@@ -391,13 +406,15 @@ namespace KillConfirmGameBar.Controls.Settings
                         if (resp.IsSuccessStatusCode)
                         {
                             var j = JsonObject.Parse(await resp.Content.ReadAsStringAsync());
-                            active = j.GetNamedNumber("posts", 0) > 0 && j.ContainsKey("last_post_age_ms") && j["last_post_age_ms"].ValueType == JsonValueType.Number && j["last_post_age_ms"].GetNumber() <= 120000;
+                            active = j.GetNamedString("source", string.Empty) == GameSourceSettingsStore.Lol && j.GetNamedNumber("posts", 0) > 0 && j.ContainsKey("last_post_age_ms") && j["last_post_age_ms"].ValueType == JsonValueType.Number && j["last_post_age_ms"].GetNumber() <= 120000;
                         }
                     }
                 }
                 catch { }
-                int pollMs = GameSourceSettingsStore.LolPollIntervalMs;
-                if (LolEndpointStatusText != null) LolEndpointStatusText.Text = zh ? $"检测端口：https://127.0.0.1:2999/liveclientdata/allgamedata · 抓取间隔 {pollMs}ms · {(active ? "对局已连接" : "等待进入对局")}" : $"Endpoint: https://127.0.0.1:2999/liveclientdata/allgamedata · {pollMs}ms · {(active ? "Connected" : "Waiting for match")}";
+                if (!GameSourceSettingsStore.IsLol) return;
+                LolEndpointStatusText.Text = active
+                    ? (zh ? "对局已连接" : "Connected to match")
+                    : (zh ? "等待进入对局" : "Waiting for match");
                 return;
             }
             bool isLegacy = GameSourceSettingsStore.Current == "csgo_legacy";
@@ -419,6 +436,7 @@ namespace KillConfirmGameBar.Controls.Settings
                 }
             }
             catch { }
+            if (GameSourceSettingsStore.Current != versionParam) return;
             string cfgSub = isLegacy ? "csgo\\cfg" : "game\\csgo\\cfg";
             string cfgDir = string.IsNullOrWhiteSpace(savedRoot) ? (isLegacy ? "<CS:GO>\\csgo\\cfg" : "<CS2>\\game\\csgo\\cfg") : System.IO.Path.Combine(savedRoot, cfgSub);
             if (CsRootPathText != null) CsRootPathText.Text = string.IsNullOrWhiteSpace(savedRoot) ? (zh ? "游戏根目录：未检测到，请点击右侧“选择根目录”" : "Game root: Not detected, click Select root") : (zh ? $"游戏根目录：{savedRoot}" : $"Game root: {savedRoot}");
@@ -428,11 +446,13 @@ namespace KillConfirmGameBar.Controls.Settings
         }
         private static async Task TryRefreshCounterStrikeCfgAsync()
         {
+            string source = GameSourceSettingsStore.Current;
+            if (source == GameSourceSettingsStore.Lol) return;
             try
             {
                 using (var client = await LocalServiceAuth.CreateHttpClientAsync())
                 {
-                    var uri = LocalServiceEndpoints.Build("/counter-strike/cfg?version=cs2");
+                    var uri = LocalServiceEndpoints.Build("/counter-strike/cfg?version=" + source);
                     await client.PostAsync(uri, new HttpStringContent(string.Empty));
                 }
             }

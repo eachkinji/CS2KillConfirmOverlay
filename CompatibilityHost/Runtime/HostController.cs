@@ -42,6 +42,7 @@ namespace KillConfirmCompatibility.Desktop.Runtime
         private string _danmakuTestError;
         private bool _lastDanmakuEnabled;
         private string _style, _lastSignature, _renderError;
+        private string _layoutSource = "cs2";
         private long _configuredAssetRevision = -1;
         private bool _editing, _hidden, _closing, _visible;
         private bool _statusWriteFailed;
@@ -92,7 +93,7 @@ namespace KillConfirmCompatibility.Desktop.Runtime
             _danmakuTestRequest = now - _configuration.DanmakuTestRequest > 10000 ? _configuration.DanmakuTestRequest : 0;
             KillFeedbackVisibilitySettingsStore.ApplyDesktopVisibility = (style, values) =>
             {
-                var profile = _configuration.GetLayout(GameStyleService.ToStorageValue(style));
+                var profile = _configuration.GetLayout(GameStyleService.ToStorageValue(style), GameSourceSettingsStore.Current);
                 values.CrosshairEnabled = profile.Crosshair.Visible;
                 values.LowerEnabled = profile.Lower.Visible;
                 values.UpperEnabled = profile.Upper.Visible;
@@ -150,6 +151,7 @@ namespace KillConfirmCompatibility.Desktop.Runtime
             // A taskbar entry keeps the selector reachable even when a large
             // overlay covers the panel or the user switches to another app.
             var toolbar = new Window { Title = "兼容显示布局编辑", WindowStyle = WindowStyle.None, ResizeMode = ResizeMode.NoResize, ShowInTaskbar = true, Topmost = true, SizeToContent = SizeToContent.WidthAndHeight, MaxWidth = 640, Background = new SolidColorBrush(Color.FromRgb(24, 31, 44)), Content = panel };
+            toolbar.Icon = System.Windows.Media.Imaging.BitmapFrame.Create(new Uri("pack://application:,,,/Assets/KillConfirmOverlay.ico", UriKind.Absolute));
             toolbar.PreviewKeyDown += (s, e) =>
             {
                 if (e.Key == System.Windows.Input.Key.Escape || e.Key == System.Windows.Input.Key.Enter) { EndEditing(); e.Handled = true; }
@@ -222,14 +224,16 @@ namespace KillConfirmCompatibility.Desktop.Runtime
                     DanmakuSettingsStore.NotifyExternalEnabledChange(_lastDanmakuEnabled);
                 }
                 string style = GameStyleService.ToStorageValue(GameStyleService.Current);
-                if (_style != style)
+                string source = GameSourceSettingsStore.Current;
+                if (_style != style || _layoutSource != source)
                 {
                     if (_editing) EndEditing();
                     _presenter.CrosshairFeedbackAnimation.StopDesktopPlayback(); _presenter.LowerFeedbackAnimation.StopDesktopPlayback();
                     _presenter.LowerBadgeAnimation.StopDesktopPlayback(); _presenter.UpperFeedbackAnimation.StopDesktopPlayback();
                     _style = style;
+                    _layoutSource = source;
                 }
-                if (!_surfaces.Any(surface => surface.IsDragging)) _layout = _configuration.GetLayout(_style);
+                if (!_surfaces.Any(surface => surface.IsDragging)) _layout = _configuration.GetLayout(_style, _layoutSource);
                 int quality = Contracts.AnimationRasterPolicy.ReadForGame(DesktopStorage.Current.LocalSettings.Values, GameStyleService.ToStorageValue(GameStyleService.Current));
                 if (Contracts.AnimationRasterPolicy.MaxEdge != quality)
                 {
@@ -237,7 +241,7 @@ namespace KillConfirmCompatibility.Desktop.Runtime
                     _presenter.LowerFeedbackAnimation.RefreshRasterQuality(); _presenter.LowerBadgeAnimation.RefreshRasterQuality();
                     _presenter.CrosshairFeedbackAnimation.RefreshRasterQuality(); _presenter.UpperFeedbackAnimation.RefreshRasterQuality();
                 }
-                string signature = _style + "|" + _configuration.AssetRevision + "|" + DesktopStorage.Current.LocalSettings.Values["KillIconPack." + _style] + "|" + DesktopStorage.Current.LocalSettings.Values["KillEliteEffect"] + "|" + DesktopStorage.Current.LocalSettings.Values["KillWeaponBadge"] + "|" + DesktopStorage.Current.LocalSettings.Values["KillFxEnabled"] + "|" + DesktopStorage.Current.LocalSettings.Values["MainAnimationStyle"] + "|" + File.GetLastWriteTimeUtc(Path.Combine(DesktopStorage.Current.LocalFolder.Path, "pack-catalog.json")).Ticks;
+                string signature = GameSourceSettingsStore.Current + "|" + _style + "|" + _configuration.AssetRevision + "|" + DesktopStorage.Current.LocalSettings.Values["KillIconPack." + _style] + "|" + GameSourceSettingsStore.CombatSettings["KillEliteEffect"] + "|" + GameSourceSettingsStore.CombatSettings["KillWeaponBadge"] + "|" + GameSourceSettingsStore.CombatSettings["KillFxEnabled"] + "|" + GameSourceSettingsStore.CombatSettings["MainAnimationStyle"] + "|" + File.GetLastWriteTimeUtc(Path.Combine(DesktopStorage.Current.LocalFolder.Path, "pack-catalog.json")).Ticks;
                 if (_lastSignature != signature && _applyingConfiguration.IsCompleted) { _configuredAssetRevision = _configuration.AssetRevision; _applyingConfiguration = _presenter.ApplyConfigurationAsync(); _lastSignature = signature; _renderError = null; }
                 if (_applyingConfiguration.IsCompleted)
                 {
@@ -343,7 +347,7 @@ namespace KillConfirmCompatibility.Desktop.Runtime
         private void SaveLayout()
         {
             if (_layout == null || _style == null) return;
-            string style = _style; LayoutProfile layout = _layout;
+            string style = DisplayConfiguration.LayoutKey(_style, _layoutSource); LayoutProfile layout = _layout;
             DisplayFiles.Update(_configurationPath, config => config.Layouts[style] = layout);
         }
         private void BeginEditing() { _hidden = false; _editing = true; _toolbar.Show(); RefreshEditorSelection(); Preview(); }

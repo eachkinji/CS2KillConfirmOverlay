@@ -30,7 +30,7 @@ namespace KillConfirmCompatibility.Services
 
         public static SanguoshaGameplaySettingsValues Load()
         {
-            var values = ApplicationData.Current.LocalSettings.Values;
+            var values = GameSourceSettingsStore.CombatSettings;
             return new SanguoshaGameplaySettingsValues
             {
                 HeadshotSpecialAudioPriority = ReadBoolean(values[HeadshotSpecialAudioPrioritySettingKey], true),
@@ -49,7 +49,7 @@ namespace KillConfirmCompatibility.Services
                 throw new ArgumentNullException(nameof(settings));
             }
 
-            var values = ApplicationData.Current.LocalSettings.Values;
+            var values = GameSourceSettingsStore.CombatSettings;
             values[HeadshotSpecialAudioPrioritySettingKey] = settings.HeadshotSpecialAudioPriority;
             values[KnifeSpecialAudioPrioritySettingKey] = settings.KnifeSpecialAudioPriority;
             values[GrenadeSpecialAudioPrioritySettingKey] = settings.GrenadeSpecialAudioPriority;

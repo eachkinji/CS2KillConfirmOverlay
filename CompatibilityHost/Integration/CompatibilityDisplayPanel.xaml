@@ -72,21 +72,21 @@
                         <ColumnDefinition x:Name="StatusGsiColumn" Width="50"/>
                         <ColumnDefinition x:Name="StatusAniColumn" Width="50"/>
                     </Grid.ColumnDefinitions>
-                    <StackPanel x:Name="StatusSvcBadge" Orientation="Horizontal" Spacing="5" HorizontalAlignment="Center">
+                    <StackPanel x:Name="StatusSvcBadge" VerticalAlignment="Center" Orientation="Horizontal" Spacing="5" HorizontalAlignment="Center">
                         <Ellipse x:Name="StatusSvcLight" Width="8" Height="8" VerticalAlignment="Center" Fill="{StaticResource PanelTextMutedBrush}"/>
-                        <TextBlock x:Name="StatusSvcLabel" Style="{StaticResource PanelCaptionTextStyle}" Text="SVC" TextLineBounds="Tight" ToolTipService.ToolTip="Service connection / 服务连接" CharacterSpacing="60" Foreground="{StaticResource PanelTextMutedBrush}" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="StatusSvcLabel" LineHeight="0" TextWrapping="NoWrap" Style="{StaticResource PanelCaptionTextStyle}" Text="SVC" TextLineBounds="Tight" ToolTipService.ToolTip="Service connection / 服务连接" CharacterSpacing="60" Foreground="{StaticResource PanelTextMutedBrush}" VerticalAlignment="Center"/>
                     </StackPanel>
-                    <StackPanel x:Name="StatusCfgBadge" Grid.Column="1" Orientation="Horizontal" Spacing="5" HorizontalAlignment="Center">
+                    <StackPanel x:Name="StatusCfgBadge" VerticalAlignment="Center" Grid.Column="1" Orientation="Horizontal" Spacing="5" HorizontalAlignment="Center">
                         <Ellipse x:Name="StatusCfgLight" Width="8" Height="8" VerticalAlignment="Center" Fill="{StaticResource PanelTextMutedBrush}"/>
-                        <TextBlock x:Name="StatusCfgLabel" Style="{StaticResource PanelCaptionTextStyle}" Text="CFG" TextLineBounds="Tight" ToolTipService.ToolTip="Game configuration / 游戏配置" CharacterSpacing="60" Foreground="{StaticResource PanelTextMutedBrush}" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="StatusCfgLabel" LineHeight="0" TextWrapping="NoWrap" Style="{StaticResource PanelCaptionTextStyle}" Text="CFG" TextLineBounds="Tight" ToolTipService.ToolTip="Game configuration / 游戏配置" CharacterSpacing="60" Foreground="{StaticResource PanelTextMutedBrush}" VerticalAlignment="Center"/>
                     </StackPanel>
-                    <StackPanel x:Name="StatusGsiBadge" Grid.Column="2" Orientation="Horizontal" Spacing="5" HorizontalAlignment="Center">
+                    <StackPanel x:Name="StatusGsiBadge" VerticalAlignment="Center" Grid.Column="2" Orientation="Horizontal" Spacing="5" HorizontalAlignment="Center">
                         <Ellipse x:Name="StatusGsiLight" Width="8" Height="8" VerticalAlignment="Center" Fill="{StaticResource PanelTextMutedBrush}"/>
-                        <TextBlock x:Name="StatusGsiLabel" Style="{StaticResource PanelCaptionTextStyle}" Text="GSI" TextLineBounds="Tight" ToolTipService.ToolTip="Game data / 游戏数据" CharacterSpacing="60" Foreground="{StaticResource PanelTextMutedBrush}" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="StatusGsiLabel" LineHeight="0" TextWrapping="NoWrap" Style="{StaticResource PanelCaptionTextStyle}" Text="GSI" TextLineBounds="Tight" ToolTipService.ToolTip="Game data / 游戏数据" CharacterSpacing="60" Foreground="{StaticResource PanelTextMutedBrush}" VerticalAlignment="Center"/>
                     </StackPanel>
-                    <StackPanel x:Name="StatusAniBadge" Grid.Column="3" Orientation="Horizontal" Spacing="5" HorizontalAlignment="Center">
+                    <StackPanel x:Name="StatusAniBadge" VerticalAlignment="Center" Grid.Column="3" Orientation="Horizontal" Spacing="5" HorizontalAlignment="Center">
                         <Ellipse x:Name="StatusAniLight" Width="8" Height="8" VerticalAlignment="Center" Fill="{StaticResource PanelTextMutedBrush}"/>
-                        <TextBlock x:Name="StatusAniLabel" Style="{StaticResource PanelCaptionTextStyle}" Text="ANI" TextLineBounds="Tight" ToolTipService.ToolTip="Effects and packs / 效果与素材" CharacterSpacing="60" Foreground="{StaticResource PanelTextMutedBrush}" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="StatusAniLabel" LineHeight="0" TextWrapping="NoWrap" Style="{StaticResource PanelCaptionTextStyle}" Text="ANI" TextLineBounds="Tight" ToolTipService.ToolTip="Effects and packs / 效果与素材" CharacterSpacing="60" Foreground="{StaticResource PanelTextMutedBrush}" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Grid>
                 <Button x:Name="UpdateStatusButton" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center" Style="{StaticResource PanelButtonStyle}" Background="{StaticResource PanelAccentSoftBrush}" BorderThickness="0" Click="OnUpdateStatusClick" ToolTipService.ToolTip="更新状态与关于本版本">
@@ -186,7 +186,7 @@
                         <FontIcon x:Name="GameDataStatusIcon" HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="Segoe MDL2 Assets" Glyph="&#xE945;" FontSize="15" Foreground="{StaticResource PanelAccentBrush}" />
                         <StackPanel Grid.Column="1" Spacing="4">
                             <TextBlock Style="{StaticResource PanelTitleTextStyle}" x:Name="GameDataStatusTitle" Text="英雄联盟对局连接" />
-                            <TextBlock Style="{StaticResource PanelCaptionTextStyle}" x:Name="GameDataStatusDetail" TextWrapping="Wrap" Text="进入 LOL 对局或训练营后自动连接（免 CFG）" />
+                            <TextBlock Style="{StaticResource PanelCaptionTextStyle}" x:Name="GameDataStatusDetail" TextWrapping="Wrap" Text="进入 LOL 对局或训练营后自动连接" />
                         </StackPanel>
                         <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                             <Ellipse x:Name="GameDataStatusDot" Width="9" Height="9" Fill="{StaticResource PanelTextMutedBrush}" VerticalAlignment="Center"/>

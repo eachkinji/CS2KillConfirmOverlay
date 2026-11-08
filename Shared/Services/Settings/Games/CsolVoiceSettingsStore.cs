@@ -39,7 +39,7 @@ namespace KillConfirmCompatibility.Services
 
         public static CsolVoiceSettingsValues Load()
         {
-            var values = ApplicationData.Current.LocalSettings.Values;
+            var values = GameSourceSettingsStore.CombatSettings;
 
             return new CsolVoiceSettingsValues
             {
@@ -61,7 +61,7 @@ namespace KillConfirmCompatibility.Services
                 throw new ArgumentNullException(nameof(settings));
             }
 
-            var values = ApplicationData.Current.LocalSettings.Values;
+            var values = GameSourceSettingsStore.CombatSettings;
             values[FirstKillIconSettingKey] = NormalizeIcon(settings.FirstKillIcon, FirstKillIcon);
             values[LastKillIconSettingKey] = NormalizeIcon(settings.LastKillIcon, RevengeIcon);
             values[SpecialVoicePrioritySettingKey] = settings.SpecialVoicePriority;

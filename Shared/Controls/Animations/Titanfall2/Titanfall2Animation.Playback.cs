@@ -292,6 +292,7 @@ namespace KillConfirmCompatibility.Controls
             ResetModernWarfare2019State();
             ResetCod2022State();
             ResetRdr2State();
+            ResetWarThunderState();
             ResetLeagueOfLegendsState();
             ResetSanguoshaState();
 

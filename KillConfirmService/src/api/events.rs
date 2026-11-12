@@ -268,6 +268,9 @@ fn resolve_soundpack_alias(value: &str) -> Option<&'static str> {
         "titanfall2" | "titanfall_2" | "titanfall" | "tf2" => Some("titanfall2"),
         "leagueoflegends" | "league_of_legends" | "lol" => Some("leagueoflegends"),
         "rdr2" | "reddeadredemption2" | "red_dead_redemption_2" | "reddead2" => Some("rdr2"),
+        "warthunder" | "war_thunder" | "wt" => Some("warthunder"),
+        "warthunder_zh" | "warthunder_voice_zh" | "wt_zh" => Some("warthunder_voice_zh"),
+        "warthunder_en" | "warthunder_voice_en" | "wt_en" => Some("warthunder_voice_en"),
         _ => None,
     }
 }

@@ -89,6 +89,7 @@ namespace KillConfirmGameBar
                 && SettingsGameStyle != GameStyleMode.Titanfall2
                 && SettingsGameStyle != GameStyleMode.LeagueOfLegends
                 && SettingsGameStyle != GameStyleMode.Rdr2
+                && SettingsGameStyle != GameStyleMode.WarThunder
                 && await GuardIconPackCreationAsync()) return;
             _batchPackImport = batch;
             _packImportNotes.Clear();
@@ -345,6 +346,10 @@ namespace KillConfirmGameBar
             else if (SettingsGameStyle == GameStyleMode.Rdr2)
             {
                 await ShowCreateRdr2IconPackDialogAsync();
+            }
+            else if (SettingsGameStyle == GameStyleMode.WarThunder)
+            {
+                await ShowCreateWarThunderIconPackDialogAsync();
             }
             else
             {

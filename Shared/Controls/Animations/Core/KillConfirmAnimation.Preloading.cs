@@ -140,6 +140,12 @@ namespace KillConfirmCompatibility.Controls
                 return PreloadRdr2AnimationsAsync(progress);
             }
 
+            if (GameStyleService.IsWarThunderKey(_iconPack)
+                || GameStyleService.Current == GameStyleMode.WarThunder)
+            {
+                return PreloadWarThunderAnimationsAsync(progress);
+            }
+
             if (GameStyleService.IsCsolKey(_iconPack)
                 || GameStyleService.Current == GameStyleMode.Csol)
             {

@@ -44,6 +44,7 @@ namespace KillConfirmGameBar
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _titanfall2AdvancedEffectsPanel) return _titanfall2AdvancedEffectsPanel?.MoneyRewardModeSelectorControl;
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _leagueOfLegendsAdvancedEffectsPanel) return _leagueOfLegendsAdvancedEffectsPanel?.MoneyRewardModeSelectorControl;
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _rdr2AdvancedEffectsPanel) return _rdr2AdvancedEffectsPanel?.MoneyRewardModeSelectorControl;
+                if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _warThunderAdvancedEffectsPanel) return _warThunderAdvancedEffectsPanel?.MoneyRewardModeSelectorControl;
                 return null;
             }
         }
@@ -65,6 +66,7 @@ namespace KillConfirmGameBar
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _titanfall2AdvancedEffectsPanel) return _titanfall2AdvancedEffectsPanel?.MoneyRewardModeLabelControl;
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _leagueOfLegendsAdvancedEffectsPanel) return _leagueOfLegendsAdvancedEffectsPanel?.MoneyRewardModeLabelControl;
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _rdr2AdvancedEffectsPanel) return _rdr2AdvancedEffectsPanel?.MoneyRewardModeLabelControl;
+                if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _warThunderAdvancedEffectsPanel) return _warThunderAdvancedEffectsPanel?.MoneyRewardModeLabelControl;
                 return null;
             }
         }
@@ -86,6 +88,7 @@ namespace KillConfirmGameBar
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _titanfall2AdvancedEffectsPanel) return _titanfall2AdvancedEffectsPanel?.MoneyRewardDeltaItemControl;
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _leagueOfLegendsAdvancedEffectsPanel) return _leagueOfLegendsAdvancedEffectsPanel?.MoneyRewardDeltaItemControl;
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _rdr2AdvancedEffectsPanel) return _rdr2AdvancedEffectsPanel?.MoneyRewardDeltaItemControl;
+                if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _warThunderAdvancedEffectsPanel) return _warThunderAdvancedEffectsPanel?.MoneyRewardDeltaItemControl;
                 return null;
             }
         }
@@ -107,6 +110,7 @@ namespace KillConfirmGameBar
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _titanfall2AdvancedEffectsPanel) return _titanfall2AdvancedEffectsPanel?.MoneyRewardRulesItemControl;
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _leagueOfLegendsAdvancedEffectsPanel) return _leagueOfLegendsAdvancedEffectsPanel?.MoneyRewardRulesItemControl;
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _rdr2AdvancedEffectsPanel) return _rdr2AdvancedEffectsPanel?.MoneyRewardRulesItemControl;
+                if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _warThunderAdvancedEffectsPanel) return _warThunderAdvancedEffectsPanel?.MoneyRewardRulesItemControl;
                 return null;
             }
         }
@@ -153,6 +157,12 @@ namespace KillConfirmGameBar
                     _rdr2AdvancedEffectsPanel.SetAssistAudioEnabled(AssistAudioSettingsStore.Load(GameStyleMode.Rdr2));
                     _rdr2AdvancedEffectsPanel.LoadRdr2Settings();
                     panel = _rdr2AdvancedEffectsPanel;
+                    break;
+                case GameStyleMode.WarThunder:
+                    EnsureWarThunderAdvancedEffectsPanel();
+                    _warThunderAdvancedEffectsPanel.SetAssistAudioEnabled(AssistAudioSettingsStore.Load(GameStyleMode.WarThunder));
+                    _warThunderAdvancedEffectsPanel.LoadWarThunderSettings();
+                    panel = _warThunderAdvancedEffectsPanel;
                     break;
                 case GameStyleMode.Valorant:
                     panel = EnsureValorantAdvancedEffectsPanel();

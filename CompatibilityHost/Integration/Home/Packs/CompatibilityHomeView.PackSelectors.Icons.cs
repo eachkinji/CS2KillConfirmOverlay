@@ -89,6 +89,9 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                 case "rdr2":
                 case "rdr2_icon_standard":
                     return "ms-appx:///Assets/GameStyles/rdr2/killconfirm/textures/preview.png";
+                case "warthunder":
+                case "warthunder_icon_standard":
+                    return "ms-appx:///Assets/GameStyles/warthunder/killconfirm/textures/preview.png";
                 case "csol4":
                     return "ms-appx:///Assets/KillConfirmCode/Csol4/headshot_kill.png";
                 case "default":
@@ -135,6 +138,12 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                     return "英雄联盟";
                 case "rdr2":
                     return "荒野大镖客 2";
+                case "warthunder":
+                    return "战争雷霆";
+                case "warthunder_voice_zh":
+                    return "战争雷霆 · 中文乘员组语音";
+                case "warthunder_voice_en":
+                    return "战争雷霆 · 英文乘员组语音";
                 case "crossfire_swat_gr":
                     return "swat GR";
                 case "csol4":
@@ -187,6 +196,9 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                 case "rdr2":
                 case "rdr2_icon_standard":
                     return "荒野大镖客 2 · 亡命之徒荣誉 HUD";
+                case "warthunder":
+                case "warthunder_icon_standard":
+                    return "战争雷霆 · 原版毁伤与战功 HUD";
                 case "default":
                     return "原版";
                 case "csol4":

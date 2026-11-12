@@ -25,6 +25,7 @@ namespace KillConfirmCompatibility.Services
         Battlefield5,
         Battlefield2042,
         Battlefield6,
+        WarThunder,
         ModernWarfare2019,
         Cod2022,
         Sanguosha,
@@ -84,6 +85,8 @@ namespace KillConfirmCompatibility.Services
                     return "battlefield2042";
                 case GameStyleMode.Battlefield6:
                     return "battlefield6";
+                case GameStyleMode.WarThunder:
+                    return "warthunder";
                 case GameStyleMode.Pubg:
                     return "pubg";
                 case GameStyleMode.DeltaForce:
@@ -136,6 +139,8 @@ namespace KillConfirmCompatibility.Services
                     return "战地2042";
                 case GameStyleMode.Battlefield6:
                     return "战地6";
+                case GameStyleMode.WarThunder:
+                    return "战争雷霆";
                 case GameStyleMode.Pubg:
                     return "PUBG";
                 case GameStyleMode.DeltaForce:
@@ -214,6 +219,12 @@ namespace KillConfirmCompatibility.Services
                 case "battlefield_6":
                 case "bf6":
                     return GameStyleMode.Battlefield6;
+                case "warthunder":
+                case "war_thunder":
+                case "wt":
+                case "战争雷霆":
+                case "战雷":
+                    return GameStyleMode.WarThunder;
                 case "pubg":
                     return GameStyleMode.Pubg;
                 case "deltaforce":
@@ -355,6 +366,21 @@ namespace KillConfirmCompatibility.Services
                 || value.StartsWith("custom_rdr2_", System.StringComparison.OrdinalIgnoreCase);
         }
 
+        public static bool IsWarThunderKey(string key)
+        {
+            string value = (key ?? string.Empty).Trim();
+            return string.Equals(value, "warthunder", System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "war_thunder", System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "wt", System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "战争雷霆", System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "战雷", System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "warthunder_icon_standard", System.StringComparison.OrdinalIgnoreCase)
+                || value.StartsWith("warthunder_sfx_", System.StringComparison.OrdinalIgnoreCase)
+                || value.StartsWith("warthunder_voice_", System.StringComparison.OrdinalIgnoreCase)
+                || value.StartsWith("warthunder_icon_", System.StringComparison.OrdinalIgnoreCase)
+                || value.StartsWith("custom_warthunder_", System.StringComparison.OrdinalIgnoreCase);
+        }
+
         public static bool SupportsCrosshairAreaEffect(GameStyleMode mode)
         {
             return mode == GameStyleMode.Overwatch
@@ -364,6 +390,7 @@ namespace KillConfirmCompatibility.Services
                 || mode == GameStyleMode.Titanfall2
                 || mode == GameStyleMode.LeagueOfLegends
                 || mode == GameStyleMode.Rdr2
+                || mode == GameStyleMode.WarThunder
                 || IsAuxiliaryKillMarkStyle(mode);
         }
 
@@ -510,7 +537,8 @@ namespace KillConfirmCompatibility.Services
                 || IsApexKey(key)
                 || IsTitanfall2Key(key)
                 || IsLeagueOfLegendsKey(key)
-                || IsRdr2Key(key);
+                || IsRdr2Key(key)
+                || IsWarThunderKey(key);
         }
 
         public static string ToCategoryKey(GameStyleMode mode)
@@ -535,6 +563,7 @@ namespace KillConfirmCompatibility.Services
                 case GameStyleMode.Battlefield5:
                 case GameStyleMode.Battlefield2042:
                 case GameStyleMode.Battlefield6:
+                case GameStyleMode.WarThunder:
                     return "battlefield";
                 case GameStyleMode.ModernWarfare2019:
                 case GameStyleMode.Cod2022:

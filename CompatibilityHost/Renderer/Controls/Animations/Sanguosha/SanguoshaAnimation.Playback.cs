@@ -69,6 +69,7 @@ namespace KillConfirmCompatibility.Controls
             ResetLeagueOfLegendsState();
             ResetTitanfall2State();
             ResetRdr2State();
+            ResetWarThunderState();
             ResetBattlefield5ScrollingState();
             ResetBattlefield4HudState();
             ResetBattlefield2042HudState();

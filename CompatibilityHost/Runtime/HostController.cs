@@ -162,13 +162,13 @@ namespace KillConfirmCompatibility.Desktop.Runtime
         }
         internal void SelectEditorElement(string key)
         {
-            if (!_editorButtons.ContainsKey(key) || (key == "Upper" && GameStyleService.Current != GameStyleMode.ModernWarfare2019 && GameStyleService.Current != GameStyleMode.Cod2022 && GameStyleService.Current != GameStyleMode.Titanfall2 && GameStyleService.Current != GameStyleMode.LeagueOfLegends && GameStyleService.Current != GameStyleMode.Rdr2)) return;
+            if (!_editorButtons.ContainsKey(key) || (key == "Upper" && GameStyleService.Current != GameStyleMode.ModernWarfare2019 && GameStyleService.Current != GameStyleMode.Cod2022 && GameStyleService.Current != GameStyleMode.Titanfall2 && GameStyleService.Current != GameStyleMode.LeagueOfLegends && GameStyleService.Current != GameStyleMode.Rdr2 && GameStyleService.Current != GameStyleMode.WarThunder)) return;
             _selectedEditKey = key;
             RefreshEditorSelection();
         }
         private void RefreshEditorSelection()
         {
-            bool upperSupported = GameStyleService.Current == GameStyleMode.ModernWarfare2019 || GameStyleService.Current == GameStyleMode.Cod2022 || GameStyleService.Current == GameStyleMode.Titanfall2 || GameStyleService.Current == GameStyleMode.LeagueOfLegends || GameStyleService.Current == GameStyleMode.Rdr2;
+            bool upperSupported = GameStyleService.Current == GameStyleMode.ModernWarfare2019 || GameStyleService.Current == GameStyleMode.Cod2022 || GameStyleService.Current == GameStyleMode.Titanfall2 || GameStyleService.Current == GameStyleMode.LeagueOfLegends || GameStyleService.Current == GameStyleMode.Rdr2 || GameStyleService.Current == GameStyleMode.WarThunder;
             if (!upperSupported && _selectedEditKey == "Upper") _selectedEditKey = "Lower";
             foreach (var pair in _editorButtons)
             {
@@ -278,7 +278,7 @@ namespace KillConfirmCompatibility.Desktop.Runtime
                 {
                     string key = surface.ElementKey;
                     ElementLayout element = _layout.GetElement(key == "Badge" ? "Lower" : key);
-                    bool supported = key != "Upper" || GameStyleService.Current == GameStyleMode.ModernWarfare2019 || GameStyleService.Current == GameStyleMode.Cod2022 || GameStyleService.Current == GameStyleMode.Titanfall2 || GameStyleService.Current == GameStyleMode.LeagueOfLegends || GameStyleService.Current == GameStyleMode.Rdr2;
+                    bool supported = key != "Upper" || GameStyleService.Current == GameStyleMode.ModernWarfare2019 || GameStyleService.Current == GameStyleMode.Cod2022 || GameStyleService.Current == GameStyleMode.Titanfall2 || GameStyleService.Current == GameStyleMode.LeagueOfLegends || GameStyleService.Current == GameStyleMode.Rdr2 || GameStyleService.Current == GameStyleMode.WarThunder;
                     bool enabled = key == "Crosshair" ? visibility.CrosshairEnabled : key == "Upper" ? visibility.UpperEnabled : key == "Danmaku" ? DanmakuSettingsStore.IsEnabled : visibility.LowerEnabled;
                     if (key == "Danmaku")
                     {

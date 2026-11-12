@@ -980,6 +980,25 @@
     <Compile Include="..\CompatibilityHost\Integration\Home\GameStyles\CompatibilityHomeView.GameStyle.Rdr2.cs" />
     <Page Include="..\CompatibilityHost\Integration\Controls\GameStyles\Rdr2\Rdr2AdvancedEffectsPanel.xaml"><Generator>MSBuild:Compile</Generator><SubType>Designer</SubType></Page>
     <Compile Include="..\CompatibilityHost\Integration\Controls\GameStyles\Rdr2\Rdr2AdvancedEffectsPanel.xaml.cs" />
+    <!-- War Thunder (战争雷霆): 1:1 Dagui & DaRg 3-layer HUD feedback -->
+    <Compile Include="..\Shared\Services\Settings\Games\WarThunderSettingsStore.cs" Link="Services\Settings\Games\WarThunderSettingsStore.cs" />
+    <Compile Include="..\Shared\Services\Catalog\PackCatalogService.WarThunder.cs" Link="Services\Catalog\PackCatalogService.WarThunder.cs" />
+    <Compile Include="Services\Styling\GameThemePalette.WarThunder.cs" />
+    <Compile Include="Pages\Main\Appearance\MainPage.WarThunder.cs" />
+    <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.WarThunder.cs" />
+    <Compile Include="Pages\KillConfirmWidget\Animation\KillConfirmWidgetPage.Animation.WarThunder.cs" />
+    <Compile Include="Pages\KillConfirmWidget\GameStyles\KillConfirmWidgetPage.GameStyle.WarThunder.cs" />
+    <Page Include="Controls\GameStyles\WarThunder\WarThunderAdvancedEffectsPanel.xaml"><Generator>MSBuild:Compile</Generator><SubType>Designer</SubType></Page>
+    <Compile Include="Controls\GameStyles\WarThunder\WarThunderAdvancedEffectsPanel.xaml.cs" />
+    <Compile Include="..\Shared\Controls\Animations\WarThunder\WarThunderAnimation.Data.cs" Link="Controls\Animations\WarThunder\WarThunderAnimation.Data.cs" />
+    <Compile Include="..\Shared\Controls\Animations\WarThunder\WarThunderAnimation.Models.cs" Link="Controls\Animations\WarThunder\WarThunderAnimation.Models.cs" />
+    <Compile Include="..\Shared\Controls\Animations\WarThunder\WarThunderAnimation.State.cs" Link="Controls\Animations\WarThunder\WarThunderAnimation.State.cs" />
+    <Compile Include="..\Shared\Controls\Animations\WarThunder\WarThunderAnimation.Assets.cs" Link="Controls\Animations\WarThunder\WarThunderAnimation.Assets.cs" />
+    <Compile Include="..\Shared\Controls\Animations\WarThunder\WarThunderAnimation.Playback.cs" Link="Controls\Animations\WarThunder\WarThunderAnimation.Playback.cs" />
+    <Compile Include="..\Shared\Controls\Animations\WarThunder\WarThunderAnimation.Render.cs" Link="Controls\Animations\WarThunder\WarThunderAnimation.Render.cs" />
+    <Compile Include="..\CompatibilityHost\Integration\Home\GameStyles\CompatibilityHomeView.GameStyle.WarThunder.cs" />
+    <Page Include="..\CompatibilityHost\Integration\Controls\GameStyles\WarThunder\WarThunderAdvancedEffectsPanel.xaml"><Generator>MSBuild:Compile</Generator><SubType>Designer</SubType></Page>
+    <Compile Include="..\CompatibilityHost\Integration\Controls\GameStyles\WarThunder\WarThunderAdvancedEffectsPanel.xaml.cs" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -993,7 +1012,7 @@
     <Compile Include="..\CompatibilityHost\Integration\CompatibilityDisplayRuntime.cs"><Link>Features\CompatibilityDisplay\CompatibilityDisplayRuntime.cs</Link></Compile>
     <Compile Include="..\CompatibilityHost\Integration\KillConfirmWidgetPage.DisplayMode.cs"><Link>Features\CompatibilityDisplay\KillConfirmWidgetPage.DisplayMode.cs</Link></Compile>
     <Content Remove="Assets\**\*;Danmaku\**\*;KillConfirmService\**\*;CompatibilityHost\**\*" />
-    <Content Include="Assets\FluentIcons\*;Assets\PackIcons\*;Assets\GameLogos\*;Assets\CategoryLogos\*;Assets\GameSources\**\*.png;Assets\GameSources\**\*.svg;Assets\Fonts\Cod2022\*.ttf;Assets\Fonts\LeagueOfLegends\*;Assets\*.png;Assets\*.jpg" />
+    <Content Include="Assets\FluentIcons\*;Assets\PackIcons\*;Assets\GameLogos\*;Assets\CategoryLogos\*;Assets\GameSources\**\*.png;Assets\GameSources\**\*.svg;Assets\Fonts\Cod2022\*.ttf;Assets\Fonts\LeagueOfLegends\*;Assets\Fonts\WarThunder\*;Assets\*.png;Assets\*.jpg" />
     <Content Include="Bridge\killconfirm-widget-bridge.exe" />
   </ItemGroup>
   <Import Project="..\Native\Lz4\Lz4.targets" />

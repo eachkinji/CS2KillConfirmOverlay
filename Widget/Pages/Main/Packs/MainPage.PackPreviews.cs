@@ -194,6 +194,8 @@ namespace KillConfirmGameBar
                     return "ms-appx:///Assets/GameLogos/leagueoflegends.png";
                 case "rdr2":
                     return "ms-appx:///Assets/GameLogos/rdr2.png";
+                case "warthunder":
+                    return "ms-appx:///Assets/GameLogos/warthunder.png";
                 case "csol4":
                     return "ms-appx:///Assets/KillConfirmCode/Csol4/headshot_kill.png";
                 default:
@@ -238,6 +240,8 @@ namespace KillConfirmGameBar
                     return "ms-appx:///Assets/GameLogos/leagueoflegends.png";
                 case GameStyleMode.Rdr2:
                     return "ms-appx:///Assets/GameLogos/rdr2.png";
+                case GameStyleMode.WarThunder:
+                    return "ms-appx:///Assets/GameLogos/warthunder.png";
                 default:
                     return CrossfireExternalAssetService.VisualUri("Original", "badge_headshot.PNG");
             }
@@ -302,6 +306,10 @@ namespace KillConfirmGameBar
             {
                 return "ms-appx:///Assets/GameStyles/rdr2/killconfirm/textures/preview.png";
             }
+            if (style == GameStyleMode.WarThunder)
+            {
+                return "ms-appx:///Assets/GameStyles/warthunder/killconfirm/textures/preview.png";
+            }
             if (style == GameStyleMode.Battlefield2042)
             {
                 return "ms-appx:///Assets/GameLogos/battlefield2042.png";
@@ -343,6 +351,9 @@ namespace KillConfirmGameBar
                 case "rdr2":
                 case "rdr2_icon_standard":
                     return "ms-appx:///Assets/GameStyles/rdr2/killconfirm/textures/preview.png";
+                case "warthunder":
+                case "warthunder_icon_standard":
+                    return "ms-appx:///Assets/GameStyles/warthunder/killconfirm/textures/preview.png";
                 case "calabiyau":
                     return "ms-appx:///Assets/GameLogos/calabiyau.png";
                 case "doubao":

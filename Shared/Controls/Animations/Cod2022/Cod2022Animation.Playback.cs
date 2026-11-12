@@ -324,6 +324,7 @@ namespace KillConfirmCompatibility.Controls
             ResetModernWarfare2019State();
             ResetTitanfall2State();
             ResetRdr2State();
+            ResetWarThunderState();
             ResetSanguoshaState();
 
             _isCod2022HudActive = true;

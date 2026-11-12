@@ -94,7 +94,9 @@ namespace KillConfirmCompatibility.Services
                 || key.StartsWith("custom_leagueoflegends_icon_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("leagueoflegends_icon_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_rdr2_icon_", StringComparison.OrdinalIgnoreCase)
-                || key.StartsWith("rdr2_icon_", StringComparison.OrdinalIgnoreCase);
+                || key.StartsWith("rdr2_icon_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("custom_warthunder_icon_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("warthunder_icon_", StringComparison.OrdinalIgnoreCase);
         }
 
         public static bool IsCsolIconPackKey(string key)

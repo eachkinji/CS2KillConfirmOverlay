@@ -148,6 +148,9 @@ fn supports_economy_audio_events(preset_name: &str) -> bool {
             | "titanfall2"
             | "leagueoflegends"
             | "rdr2"
+            | "warthunder"
+            | "warthunder_voice_zh"
+            | "warthunder_voice_en"
             | "csol4"
             | "sanguosha"
     ) || normalized.starts_with("custom_battlefield1_voice_")
@@ -170,6 +173,9 @@ fn supports_economy_audio_events(preset_name: &str) -> bool {
         || normalized.starts_with("rdr2_sfx_")
         || normalized.starts_with("rdr2_voice_")
         || normalized.starts_with("custom_rdr2_")
+        || normalized.starts_with("warthunder_sfx_")
+        || normalized.starts_with("warthunder_voice_")
+        || normalized.starts_with("custom_warthunder_")
         || normalized.starts_with("crossfire_")
         || normalized.starts_with("custom_voice_")
         || normalized.starts_with("custom_csol_voice_")
@@ -197,7 +203,8 @@ fn supports_economy_audio_pack(preset: &crate::soundpack::Preset) -> bool {
                 | "cod2022"
                 | "titanfall2"
                 | "leagueoflegends"
-            | "rdr2"))
+                | "rdr2"
+                | "warthunder"))
 }
 
 fn supports_event_sound_pack(preset: &crate::soundpack::Preset) -> bool {

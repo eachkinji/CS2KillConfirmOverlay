@@ -440,6 +440,7 @@ namespace KillConfirmGameBar
                 : style == GameStyleMode.Cod2022 ? Cod2022CrosshairFrameWidth
                 : style == GameStyleMode.LeagueOfLegends ? LeagueOfLegendsCrosshairFrameWidth
                 : style == GameStyleMode.Rdr2 ? Rdr2CrosshairFrameWidth
+                : style == GameStyleMode.WarThunder ? WarThunderCrosshairFrameWidth
                 : ModernWarfare2019CrosshairFrameWidth;
             double crosshairHeight = style == GameStyleMode.Overwatch ? 320
                 : style == GameStyleMode.Apex ? ApexCrosshairFrameHeight
@@ -447,6 +448,7 @@ namespace KillConfirmGameBar
                 : style == GameStyleMode.Cod2022 ? Cod2022CrosshairFrameHeight
                 : style == GameStyleMode.LeagueOfLegends ? LeagueOfLegendsCrosshairFrameHeight
                 : style == GameStyleMode.Rdr2 ? Rdr2CrosshairFrameHeight
+                : style == GameStyleMode.WarThunder ? WarThunderCrosshairFrameHeight
                 : ModernWarfare2019CrosshairFrameHeight;
             double crosshairFit = Math.Min(1.0, Math.Min(availableWidth / crosshairWidth, availableHeight / crosshairHeight));
             CrosshairDragOutline.Width = Math.Max(40, crosshairWidth * crosshairFit);
@@ -458,11 +460,13 @@ namespace KillConfirmGameBar
                 : style == GameStyleMode.Cod2022 ? Cod2022UpperFrameWidth
                 : style == GameStyleMode.LeagueOfLegends ? LeagueOfLegendsUpperFrameWidth
                 : style == GameStyleMode.Rdr2 ? Rdr2UpperFrameWidth
+                : style == GameStyleMode.WarThunder ? WarThunderUpperFrameWidth
                 : ModernWarfare2019UpperFrameWidth;
             double upperFrameHeight = style == GameStyleMode.Titanfall2 ? Titanfall2UpperFrameHeight
                 : style == GameStyleMode.Cod2022 ? Cod2022UpperFrameHeight
                 : style == GameStyleMode.LeagueOfLegends ? LeagueOfLegendsUpperFrameHeight
                 : style == GameStyleMode.Rdr2 ? Rdr2UpperFrameHeight
+                : style == GameStyleMode.WarThunder ? WarThunderUpperFrameHeight
                 : ModernWarfare2019UpperFrameHeight;
             double upperFit = Math.Min(1.0, Math.Min(availableWidth / upperFrameWidth,
                 availableHeight / upperFrameHeight));
@@ -510,6 +514,10 @@ namespace KillConfirmGameBar
                 case GameStyleMode.Rdr2:
                     width = Rdr2LowerFrameWidth;
                     height = Rdr2LowerFrameHeight;
+                    return;
+                case GameStyleMode.WarThunder:
+                    width = WarThunderLowerFrameWidth;
+                    height = WarThunderLowerFrameHeight;
                     return;
                 case GameStyleMode.Battlefield5:
                     width = LowerFeedbackAnimation?.Battlefield5LowerSelectionViewportWidth ?? 360;

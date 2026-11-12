@@ -34,6 +34,7 @@ namespace KillConfirmCompatibility.Services
                 || style == GameStyleMode.Titanfall2
                 || style == GameStyleMode.LeagueOfLegends
                 || style == GameStyleMode.Rdr2
+                || style == GameStyleMode.WarThunder
                     ? KillFeedbackLayer.Crosshair
                     : KillFeedbackLayer.Lower;
         }
@@ -45,6 +46,7 @@ namespace KillConfirmCompatibility.Services
                 || style == GameStyleMode.Titanfall2
                 || style == GameStyleMode.LeagueOfLegends
                 || style == GameStyleMode.Rdr2
+                || style == GameStyleMode.WarThunder
                 ? KillFeedbackLayer.Upper
                 : KillFeedbackLayer.Crosshair;
         }
@@ -58,7 +60,8 @@ namespace KillConfirmCompatibility.Services
                         || style == GameStyleMode.Cod2022
                         || style == GameStyleMode.Titanfall2
                         || style == GameStyleMode.LeagueOfLegends
-                        || style == GameStyleMode.Rdr2));
+                        || style == GameStyleMode.Rdr2
+                        || style == GameStyleMode.WarThunder));
         }
 
         public static LegacyFeedbackPlacementSlot GetLegacyPlacementSlot(

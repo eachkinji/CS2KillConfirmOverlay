@@ -141,7 +141,13 @@ namespace KillConfirmCompatibility.Controls
                                     : _rdr2LayerRole == Rdr2LayerRole.UpperHonorToast
                                         ? Rdr2UpperFrameWidth
                                         : Rdr2CrosshairFrameWidth)
-                                : InteractionViewportWidth;
+                                : _isWarThunderHudActive
+                                    ? (_warThunderLayerRole == WarThunderLayerRole.LowerTactical
+                                        ? WarThunderLowerFrameWidth
+                                        : _warThunderLayerRole == WarThunderLayerRole.UpperHud
+                                            ? WarThunderUpperFrameWidth
+                                            : WarThunderCrosshairFrameWidth)
+                                    : InteractionViewportWidth;
         public double SelectionViewportHeight => _isOverwatchActive
             ? _overwatchSelectionViewportHeight
             : _isApexFeedActive
@@ -170,7 +176,13 @@ namespace KillConfirmCompatibility.Controls
                                     : _rdr2LayerRole == Rdr2LayerRole.UpperHonorToast
                                         ? Rdr2UpperFrameHeight
                                         : Rdr2CrosshairFrameHeight)
-                                : InteractionViewportHeight;
+                                : _isWarThunderHudActive
+                                    ? (_warThunderLayerRole == WarThunderLayerRole.LowerTactical
+                                        ? WarThunderLowerFrameHeight
+                                        : _warThunderLayerRole == WarThunderLayerRole.UpperHud
+                                            ? WarThunderUpperFrameHeight
+                                            : WarThunderCrosshairFrameHeight)
+                                    : InteractionViewportHeight;
         public double SelectionViewportCenterOffsetX => _isOverwatchActive
             ? _overwatchSelectionViewportCenterOffsetX
             : _isApexFeedActive

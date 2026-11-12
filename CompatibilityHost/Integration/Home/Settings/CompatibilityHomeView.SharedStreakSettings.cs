@@ -97,6 +97,11 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                 style = GameStyleMode.Rdr2;
                 enabled = rdr2Panel.GetAssistAudioEnabled(false);
             }
+            else if (sender is WarThunderAdvancedEffectsPanel warThunderPanel)
+            {
+                style = GameStyleMode.WarThunder;
+                enabled = warThunderPanel.GetAssistAudioEnabled(false);
+            }
             else
             {
                 return;
@@ -159,6 +164,8 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                     return _leagueOfLegendsAdvancedEffectsPanel?.GetSelectedStreakMode(fallback) ?? fallback;
                 case GameStyleMode.Rdr2:
                     return _rdr2AdvancedEffectsPanel?.GetSelectedStreakMode(fallback) ?? fallback;
+                case GameStyleMode.WarThunder:
+                    return _warThunderAdvancedEffectsPanel?.GetSelectedStreakMode(fallback) ?? fallback;
                 case GameStyleMode.ModernWarfare2019:
                     return _modernWarfare2019AdvancedEffectsPanel?.GetSelectedStreakMode(fallback) ?? fallback;
                 case GameStyleMode.DeltaForce:
@@ -219,6 +226,9 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                     break;
                 case GameStyleMode.Rdr2:
                     _rdr2AdvancedEffectsPanel?.SelectStreakMode(value);
+                    break;
+                case GameStyleMode.WarThunder:
+                    _warThunderAdvancedEffectsPanel?.SelectStreakMode(value);
                     break;
                 case GameStyleMode.ModernWarfare2019:
                     _modernWarfare2019AdvancedEffectsPanel?.SelectStreakMode(value);
@@ -294,6 +304,11 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                     else if (style == GameStyleMode.Rdr2)
                     {
                         assistAudioEnabled = _rdr2AdvancedEffectsPanel?.GetAssistAudioEnabled(assistAudioEnabled)
+                            ?? assistAudioEnabled;
+                    }
+                    else if (style == GameStyleMode.WarThunder)
+                    {
+                        assistAudioEnabled = _warThunderAdvancedEffectsPanel?.GetAssistAudioEnabled(assistAudioEnabled)
                             ?? assistAudioEnabled;
                     }
                     AssistAudioSettingsStore.Save(style, assistAudioEnabled);

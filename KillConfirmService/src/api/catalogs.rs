@@ -137,6 +137,18 @@ const SOUND_PACK_OPTIONS: &[SoundPackOption] = &[
         display_name: "Red Dead Redemption 2",
     },
     SoundPackOption {
+        preset: "warthunder",
+        display_name: "War Thunder",
+    },
+    SoundPackOption {
+        preset: "warthunder_voice_zh",
+        display_name: "War Thunder Chinese Crew & Voiceover",
+    },
+    SoundPackOption {
+        preset: "warthunder_voice_en",
+        display_name: "War Thunder English Voiceover",
+    },
+    SoundPackOption {
         preset: "valorant_00000_base",
         display_name: "VALORANT Base",
     },

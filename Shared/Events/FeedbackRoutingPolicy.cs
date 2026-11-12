@@ -54,7 +54,8 @@ namespace KillConfirmCompatibility.Services
                 || style == GameStyleMode.Cod2022
                 || style == GameStyleMode.Titanfall2
                 || style == GameStyleMode.LeagueOfLegends
-                || style == GameStyleMode.Rdr2)
+                || style == GameStyleMode.Rdr2
+                || style == GameStyleMode.WarThunder)
             {
                 string eventKind = killEvent.EventKind ?? killEvent.AnimationKey;
                 if (string.Equals(eventKind, "bomb_plant", StringComparison.OrdinalIgnoreCase)
@@ -89,6 +90,7 @@ namespace KillConfirmCompatibility.Services
                 || (style == GameStyleMode.Titanfall2 && (killEvent.IsCombatEvent || killEvent.IsEconomyEvent))
                 || (style == GameStyleMode.LeagueOfLegends && (killEvent.IsCombatEvent || killEvent.IsEconomyEvent))
                 || (style == GameStyleMode.Rdr2 && (killEvent.IsCombatEvent || killEvent.IsEconomyEvent))
+                || (style == GameStyleMode.WarThunder && (killEvent.IsCombatEvent || killEvent.IsEconomyEvent))
                 || (style == GameStyleMode.Overwatch && killEvent.IsCombatEvent && killEvent.IsAssist)
                 || (style == GameStyleMode.Apex && killEvent.IsCombatEvent && killEvent.IsAssist)
                 || isCrossfireObjective;
@@ -114,7 +116,8 @@ namespace KillConfirmCompatibility.Services
                 || style == GameStyleMode.Cod2022
                 || style == GameStyleMode.Titanfall2
                 || style == GameStyleMode.LeagueOfLegends
-                || style == GameStyleMode.Rdr2;
+                || style == GameStyleMode.Rdr2
+                || style == GameStyleMode.WarThunder;
             if (assistStyle && killEvent.IsAssist)
             {
                 return true;
@@ -125,7 +128,8 @@ namespace KillConfirmCompatibility.Services
                 || (style == GameStyleMode.Cod2022 && killEvent.IsEconomyEvent)
                 || (style == GameStyleMode.Titanfall2 && killEvent.IsEconomyEvent)
                 || (style == GameStyleMode.LeagueOfLegends && killEvent.IsEconomyEvent)
-                || (style == GameStyleMode.Rdr2 && killEvent.IsEconomyEvent);
+                || (style == GameStyleMode.Rdr2 && killEvent.IsEconomyEvent)
+                || (style == GameStyleMode.WarThunder && killEvent.IsEconomyEvent);
         }
 
         public static bool IsBattlefieldObjectiveEvent(string eventKind)
@@ -177,6 +181,7 @@ namespace KillConfirmCompatibility.Services
                 || style == GameStyleMode.Titanfall2
                 || style == GameStyleMode.LeagueOfLegends
                 || style == GameStyleMode.Rdr2
+                || style == GameStyleMode.WarThunder
                 || style == GameStyleMode.Pubg
                 || style == GameStyleMode.DeltaForce;
         }

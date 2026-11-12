@@ -1,0 +1,145 @@
+{
+  "format_version": 1,
+  "package_kind": "audio",
+  "id": "warthunder_voice_en",
+  "name": "战争雷霆 · 英文勋章播报",
+  "display_name": "War Thunder English Streak Voiceover",
+  "display_name_zh_cn": "战争雷霆—英文原版播报—语音包",
+  "game_style": "warthunder",
+  "audio_kind": "character_voice",
+  "version": "1.0.0",
+  "audio": {
+    "base_gain": 1.0,
+    "slots": {
+      "kill_1": [
+        "streak_squad_kill.wav"
+      ],
+      "kill_2": [
+        "double_kill_1.wav",
+        "double_kill_2.wav",
+        "streak_double_kill.wav"
+      ],
+      "kill_3": [
+        "triple_kill_1.wav",
+        "triple_kill_2.wav",
+        "streak_triple_kill.wav"
+      ],
+      "kill_4": [
+        "streak_multi_kill.wav"
+      ],
+      "kill_5": [
+        "godlike_1.wav",
+        "godlike_2.wav"
+      ],
+      "headshot": [
+        "critical_hit_1.wav",
+        "critical_hit_2.wav",
+        "streak_sniper_shot.wav"
+      ],
+      "first_kill": [
+        "streak_first_blood.wav"
+      ],
+      "revenge": [
+        "streak_avenge_self.wav"
+      ],
+      "shutdown": [
+        "streak_higher_rank_20.wav"
+      ],
+      "assist": [
+        "streak_squad_assist.wav"
+      ]
+    }
+  },
+  "files": [
+    {
+      "path": "critical_hit_1.wav",
+      "bytes": 90592,
+      "sha256": "a4029497f4a0bdb01f1f62c539c184f7aa34f7344e9c418d53f1ee5ccc671c96"
+    },
+    {
+      "path": "critical_hit_2.wav",
+      "bytes": 103238,
+      "sha256": "a382dbce4aef4a19eea54e9097c82c92bcc86fe682fdb53c91783884b18972e8"
+    },
+    {
+      "path": "double_kill_1.wav",
+      "bytes": 80776,
+      "sha256": "c12a9b23cdbacb5dfa95f442a0580495b1d97667bff744ad8cef1efadca4c484"
+    },
+    {
+      "path": "double_kill_2.wav",
+      "bytes": 96204,
+      "sha256": "6a18ac0b732fbc593b0683e7888f5152b784484bfca4e75a48f2b7daa362d8e5"
+    },
+    {
+      "path": "godlike_1.wav",
+      "bytes": 102356,
+      "sha256": "15bd12976e025434bda5578e0cec539ea501db728988566649769eb11d1c7703"
+    },
+    {
+      "path": "godlike_2.wav",
+      "bytes": 101546,
+      "sha256": "004b071dae755274061009cc8b374630ee56f68b45828360b914371a83f83313"
+    },
+    {
+      "path": "pack_head.png",
+      "bytes": 88103,
+      "sha256": "e0f39c7fcfc2b8c9d473b1804c2553f4168a04c5e71462e73ddad0baa2aba14d"
+    },
+    {
+      "path": "streak_avenge_self.wav",
+      "bytes": 84544,
+      "sha256": "b35c6dc9c05595a38459d0e53b6826d7fa3fc7d07293882326a8f7fe2fe29910"
+    },
+    {
+      "path": "streak_double_kill.wav",
+      "bytes": 54590,
+      "sha256": "bf587a9051490719a0c84bfc768c6e88ef598d5a6316a5ab748ac11b8ddfea6f"
+    },
+    {
+      "path": "streak_first_blood.wav",
+      "bytes": 55170,
+      "sha256": "988e8d77bece4eaa5f663e116e50acc39489e17a246122a54a864ea56fe252bc"
+    },
+    {
+      "path": "streak_higher_rank_20.wav",
+      "bytes": 47824,
+      "sha256": "088ba11f55d73a696f47e3aa9a0715ca7d12fc3908290796a9e73e8f1d3f73f5"
+    },
+    {
+      "path": "streak_multi_kill.wav",
+      "bytes": 70604,
+      "sha256": "2e22d95784a3b2b10ef9cbdc2ad4deb3d9053d64a9e94bffc54380b1a9a1516d"
+    },
+    {
+      "path": "streak_sniper_shot.wav",
+      "bytes": 48554,
+      "sha256": "b19fb2ea8a527da799b44d281d1b2184a295eecde6b5598eead540a4a5f80e97"
+    },
+    {
+      "path": "streak_squad_assist.wav",
+      "bytes": 68744,
+      "sha256": "15f17ffd65c66ca9a8b3cdd791a123ffef8314a4595c4cc35ff63c6229fbae0f"
+    },
+    {
+      "path": "streak_squad_kill.wav",
+      "bytes": 58928,
+      "sha256": "942137ecd233613a049fd0f47d5052489bd022bb2618c767118bdeb33f40f85d"
+    },
+    {
+      "path": "streak_triple_kill.wav",
+      "bytes": 59182,
+      "sha256": "02f75d2bcd7af6ef013bedbc9716b74184fc90744a6f60fd8781b4060319e168"
+    },
+    {
+      "path": "triple_kill_1.wav",
+      "bytes": 93978,
+      "sha256": "5dd16cba41f46cc7445001203a936d13cf88a443ed5b2a5d56d3ce08335dd9dc"
+    },
+    {
+      "path": "triple_kill_2.wav",
+      "bytes": 116468,
+      "sha256": "423e6299a1fc042fc7b30f898f6971f3a0dc233f6ab13a62eb5af34c79cae4ca"
+    }
+  ]
+}

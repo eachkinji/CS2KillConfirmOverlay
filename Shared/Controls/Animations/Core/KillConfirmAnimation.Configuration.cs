@@ -59,6 +59,7 @@ namespace KillConfirmCompatibility.Controls
             ClearCod2022IconCache();
             ClearLeagueOfLegendsIconCache();
             ClearRdr2IconCache();
+            ClearWarThunderIconCache();
             ClearSanguoshaCache();
             return true;
         }
@@ -182,6 +183,7 @@ namespace KillConfirmCompatibility.Controls
             ResetTitanfall2State();
             ResetLeagueOfLegendsState();
             ResetRdr2State();
+            ResetWarThunderState();
             DisposeSanguoshaRenderer();
             Visibility = Visibility.Collapsed;
             ReleaseAllAnimationResourceCaches();
@@ -253,6 +255,7 @@ namespace KillConfirmCompatibility.Controls
             ClearCod2022IconCache();
             ClearLeagueOfLegendsIconCache();
             ClearRdr2IconCache();
+            ClearWarThunderIconCache();
             ClearSanguoshaCache();
             foreach (CanvasBitmap bitmap in bitmaps)
             {

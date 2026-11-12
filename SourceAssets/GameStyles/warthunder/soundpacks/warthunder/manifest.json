@@ -1,0 +1,164 @@
+{
+  "format_version": 1,
+  "package_kind": "audio",
+  "id": "warthunder",
+  "name": "战争雷霆 · 原生击毁与勋章音效",
+  "display_name": "War Thunder Native Kill & Streak SFX",
+  "display_name_zh_cn": "战争雷霆—原生击毁与勋章—音效包",
+  "game_style": "warthunder",
+  "audio_kind": "sound_effect",
+  "version": "1.0.0",
+  "associated_icon_keys": [
+    "warthunder",
+    "warthunder_icon_standard"
+  ],
+  "audio": {
+    "base_gain": 1.0,
+    "slots": {
+      "hit": [
+        "tank_hit_mid.wav"
+      ],
+      "hit_heavy": [
+        "tank_hit_big.wav"
+      ],
+      "hit_expl": [
+        "hit_expl_mid.wav"
+      ],
+      "hit_helmet": [
+        "helmet_hit.wav"
+      ],
+      "kill_transient": [
+        "enemy_kill_001.wav"
+      ],
+      "kill_1": [
+        "enemy_destroyed.wav"
+      ],
+      "headshot": [
+        "ui_ammo_burn.wav"
+      ],
+      "citadel": [
+        "ui_citadel_breach.wav"
+      ],
+      "assist": [
+        "ui_kill_assist.wav"
+      ],
+      "streak_1": [
+        "streak_1.wav"
+      ],
+      "streak_2": [
+        "streak_2.wav"
+      ],
+      "streak_3": [
+        "streak_3.wav"
+      ],
+      "streak_4": [
+        "streak_4.wav"
+      ],
+      "objective": [
+        "obj_complete.wav"
+      ],
+      "victory": [
+        "battle_win.wav"
+      ]
+    },
+    "slot_gains": {
+      "hit": 0.72,
+      "hit_heavy": 0.82,
+      "hit_expl": 0.8,
+      "hit_helmet": 0.78,
+      "kill_transient": 0.85,
+      "kill_1": 1.0,
+      "headshot": 0.9,
+      "citadel": 0.92,
+      "assist": 0.88,
+      "streak_1": 0.88,
+      "streak_2": 0.92,
+      "streak_3": 0.95,
+      "streak_4": 0.98,
+      "objective": 0.88,
+      "victory": 0.92
+    }
+  },
+  "files": [
+    {
+      "path": "battle_win.wav",
+      "bytes": 630324,
+      "sha256": "0bbae57f4b11ed00402917aa61e1f0b0641defa7b0154f54b76a2e1622c6b875"
+    },
+    {
+      "path": "enemy_destroyed.wav",
+      "bytes": 561948,
+      "sha256": "27441a62bdcfce45447d125ef4f67dad4ecef1fc5603be95b0146f417f6bf1e6"
+    },
+    {
+      "path": "enemy_kill_001.wav",
+      "bytes": 96044,
+      "sha256": "138afbfe5ce31debf758bae734910cd58d2868c16914f1f50bf62576bb992bfc"
+    },
+    {
+      "path": "helmet_hit.wav",
+      "bytes": 192044,
+      "sha256": "5500d847d2488e6fff15f2ba2aa0166a8ac270be33f77fc229718f3b579585ca"
+    },
+    {
+      "path": "hit_expl_mid.wav",
+      "bytes": 384044,
+      "sha256": "286a9a2935f76aa58763859619f6e7a4197ecb53225aa3398c081d0eac9999c9"
+    },
+    {
+      "path": "obj_complete.wav",
+      "bytes": 311996,
+      "sha256": "b2a968f48962f834ae65efd7dfc23ff514ba8c906ffe31ff85523abe8fc8df4d"
+    },
+    {
+      "path": "pack_head.png",
+      "bytes": 88103,
+      "sha256": "e0f39c7fcfc2b8c9d473b1804c2553f4168a04c5e71462e73ddad0baa2aba14d"
+    },
+    {
+      "path": "streak_1.wav",
+      "bytes": 230880,
+      "sha256": "9bde8eec3f33d9c9d1f6ed526ece699fa2f3852c76a9641b2de2d1565c88de55"
+    },
+    {
+      "path": "streak_2.wav",
+      "bytes": 257568,
+      "sha256": "7a7b2f70b5331a31b01ea76ccbeddc919ef11b46ff4fdb1911d07d25314ad2f9"
+    },
+    {
+      "path": "streak_3.wav",
+      "bytes": 249004,
+      "sha256": "787ae18a99f0f3b0ce06c5e9c22b1901039c8899d660c07893be2d9b7a37b517"
+    },
+    {
+      "path": "streak_4.wav",
+      "bytes": 209240,
+      "sha256": "300fb9a2a207e77a1577148ccde64b26c5c66511084e4224ce7482454daf1cc0"
+    },
+    {
+      "path": "tank_hit_big.wav",
+      "bytes": 384044,
+      "sha256": "0bbbb2246e60ac1ba37c7b6c43bd8f76ba51cc33055f03481c41ff5ecfa8d401"
+    },
+    {
+      "path": "tank_hit_mid.wav",
+      "bytes": 288044,
+      "sha256": "ce55da12911edc869a9114000d36f1683871c3e8de6c71ea905534d964d70371"
+    },
+    {
+      "path": "ui_ammo_burn.wav",
+      "bytes": 768044,
+      "sha256": "983a83c5b4cb38d35ea5d2145c19b218d0e237330e630fd0d8fbd008c630626b"
+    },
+    {
+      "path": "ui_citadel_breach.wav",
+      "bytes": 350104,
+      "sha256": "ad1377cbecb7e8eea2278181751b79244ca92dfb83216e932995492d0f204def"
+    },
+    {
+      "path": "ui_kill_assist.wav",
+      "bytes": 384044,
+      "sha256": "9ca45dabf86570e6828e33899cefbe3abf814355317b8d1afe1ad9d557c54af4"
+    }
+  ]
+}

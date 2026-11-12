@@ -52,6 +52,11 @@ namespace KillConfirmGameBar
                 style = GameStyleMode.Rdr2;
                 enabled = rdr2Panel.GetAssistAudioEnabled(false);
             }
+            else if (sender is WarThunderAdvancedEffectsPanel wtPanel)
+            {
+                style = GameStyleMode.WarThunder;
+                enabled = wtPanel.GetAssistAudioEnabled(true);
+            }
             else
             {
                 return;
@@ -83,6 +88,7 @@ namespace KillConfirmGameBar
             else if (sender is SanguoshaAdvancedEffectsPanel pSanguosha) mode = pSanguosha.GetSelectedStreakMode(mode);
             else if (sender is LeagueOfLegendsAdvancedEffectsPanel pLol) mode = pLol.GetSelectedStreakMode(mode);
             else if (sender is Rdr2AdvancedEffectsPanel pRdr2) mode = pRdr2.GetSelectedStreakMode(mode);
+            else if (sender is WarThunderAdvancedEffectsPanel pWt) mode = pWt.GetSelectedStreakMode(mode);
             else if (sender is DagoujiaoAdvancedEffectsPanel pDagoujiao) mode = pDagoujiao.GetSelectedStreakMode(mode);
             else if (sender is CalabiyauAdvancedEffectsPanel pCalabiyau) mode = pCalabiyau.GetSelectedStreakMode(mode);
 
@@ -146,6 +152,7 @@ namespace KillConfirmGameBar
             if (_sanguoshaAdvancedEffectsPanel != null) _sanguoshaAdvancedEffectsPanel.ApplyTheme(theme);
             if (_leagueOfLegendsAdvancedEffectsPanel != null) _leagueOfLegendsAdvancedEffectsPanel.ApplyTheme(theme);
             if (_rdr2AdvancedEffectsPanel != null) _rdr2AdvancedEffectsPanel.ApplyTheme(theme);
+            if (_warThunderAdvancedEffectsPanel != null) _warThunderAdvancedEffectsPanel.ApplyTheme(theme);
             if (_dagoujiaoAdvancedEffectsPanel != null) _dagoujiaoAdvancedEffectsPanel.ApplyTheme(theme);
             if (_calabiyauAdvancedEffectsPanel != null) _calabiyauAdvancedEffectsPanel.ApplyTheme(theme);
             AdvancedEffectsPanelSupport.ApplySoftenedTree(GameAdvancedSettingsPanelHost, theme);
@@ -182,6 +189,7 @@ namespace KillConfirmGameBar
             if (_sanguoshaAdvancedEffectsPanel != null) _sanguoshaAdvancedEffectsPanel.ApplyLanguage(isChinese);
             if (_leagueOfLegendsAdvancedEffectsPanel != null) _leagueOfLegendsAdvancedEffectsPanel.ApplyLanguage(isChinese);
             if (_rdr2AdvancedEffectsPanel != null) _rdr2AdvancedEffectsPanel.ApplyLanguage(isChinese);
+            if (_warThunderAdvancedEffectsPanel != null) _warThunderAdvancedEffectsPanel.ApplyLanguage(isChinese);
             if (_dagoujiaoAdvancedEffectsPanel != null) _dagoujiaoAdvancedEffectsPanel.ApplyLanguage(isChinese);
             if (_calabiyauAdvancedEffectsPanel != null) _calabiyauAdvancedEffectsPanel.ApplyLanguage(isChinese);
         }
@@ -291,6 +299,11 @@ namespace KillConfirmGameBar
                     brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 200, 29, 37), Offset = 0 });
                     brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 122, 20, 25), Offset = 0.58 });
                     brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 36, 20, 18), Offset = 1 });
+                    break;
+                case GameStyleMode.WarThunder:
+                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 224, 37, 0), Offset = 0 });
+                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 92, 42, 36), Offset = 0.58 });
+                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 22, 32, 42), Offset = 1 });
                     break;
                 case GameStyleMode.Doubao:
                     brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 59, 130, 246), Offset = 0 });

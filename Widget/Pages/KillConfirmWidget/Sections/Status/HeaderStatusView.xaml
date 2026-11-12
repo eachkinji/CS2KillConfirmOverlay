@@ -359,6 +359,7 @@
             <ComboBoxItem x:Name="Battlefield5StyleItem" x:FieldModifier="public" Tag="battlefield5">BF5</ComboBoxItem>
             <ComboBoxItem x:Name="Battlefield2042StyleItem" x:FieldModifier="public" Tag="battlefield2042">2042</ComboBoxItem>
             <ComboBoxItem x:Name="Battlefield6StyleItem" x:FieldModifier="public" Tag="battlefield6">6</ComboBoxItem>
+            <ComboBoxItem x:Name="WarThunderStyleItem" x:FieldModifier="public" Tag="warthunder">战雷</ComboBoxItem>
             <ComboBoxItem x:Name="ModernWarfare2019StyleItem" x:FieldModifier="public" Tag="modernwarfare2019">MW19</ComboBoxItem>
             <ComboBoxItem x:Name="Cod2022StyleItem" x:FieldModifier="public" Tag="cod2022">MW22</ComboBoxItem>
             <ComboBoxItem x:Name="SanguoshaStyleItem" x:FieldModifier="public" Tag="sanguosha">三国杀</ComboBoxItem>

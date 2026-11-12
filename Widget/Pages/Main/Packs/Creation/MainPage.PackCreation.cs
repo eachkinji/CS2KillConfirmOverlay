@@ -209,6 +209,11 @@ namespace KillConfirmGameBar
                 await ImportRdr2IconZipAsync();
                 return;
             }
+            if (SettingsGameStyle == GameStyleMode.WarThunder)
+            {
+                await ImportWarThunderIconZipAsync();
+                return;
+            }
             if (await GuardIconPackCreationAsync())
             {
                 return;

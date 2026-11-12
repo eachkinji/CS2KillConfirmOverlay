@@ -214,6 +214,7 @@ namespace KillConfirmGameBar
                     case GameStyleMode.Pubg: return "PUBG · 绝地求生";
                     case GameStyleMode.DeltaForce: return "三角洲行动";
                     case GameStyleMode.Rdr2: return "荒野大镖客：救赎 2";
+                    case GameStyleMode.WarThunder: return "战争雷霆 · War Thunder";
                     default: return GameStyleService.ToDisplayName(mode);
                 }
             }
@@ -235,6 +236,7 @@ namespace KillConfirmGameBar
                 case GameStyleMode.Pubg: return "PUBG: Battlegrounds";
                 case GameStyleMode.DeltaForce: return "Delta Force";
                 case GameStyleMode.Rdr2: return "Red Dead Redemption 2";
+                case GameStyleMode.WarThunder: return "War Thunder";
                 case GameStyleMode.Doubao: return "Doubao";
                 case GameStyleMode.Sanguosha: return "Sanguosha";
                 case GameStyleMode.LeagueOfLegends: return "League of Legends";
@@ -269,6 +271,7 @@ namespace KillConfirmGameBar
                 mode == GameStyleMode.Sanguosha ? Color.FromArgb(255, 240, 205, 140) :
                 mode == GameStyleMode.LeagueOfLegends ? Color.FromArgb(255, 126, 224, 248) :
                 mode == GameStyleMode.Rdr2 ? Color.FromArgb(255, 232, 162, 146) :
+                mode == GameStyleMode.WarThunder ? Color.FromArgb(255, 255, 214, 130) :
                 battlefield4 ? Color.FromArgb(255, 125, 211, 252) :
                 battlefield1 ? Color.FromArgb(255, 255, 218, 166) :
                 valorant ? Color.FromArgb(255, 255, 170, 178) :
@@ -285,6 +288,7 @@ namespace KillConfirmGameBar
                 mode == GameStyleMode.Sanguosha ? Color.FromArgb(255, 128, 28, 22) :
                 mode == GameStyleMode.LeagueOfLegends ? Color.FromArgb(255, 16, 68, 104) :
                 mode == GameStyleMode.Rdr2 ? Color.FromArgb(255, 118, 24, 28) :
+                mode == GameStyleMode.WarThunder ? Color.FromArgb(255, 42, 58, 76) :
                 battlefield4 ? Color.FromArgb(255, 56, 120, 160) :
                 battlefield1 ? Color.FromArgb(255, 88, 110, 126) :
                 valorant ? Color.FromArgb(255, 59, 78, 102) :
@@ -551,6 +555,9 @@ namespace KillConfirmGameBar
                     break;
                 case GameStyleMode.Rdr2:
                     panel = EnsureRdr2AdvancedSettingsPanel();
+                    break;
+                case GameStyleMode.WarThunder:
+                    panel = EnsureWarThunderAdvancedSettingsPanel();
                     break;
                 case GameStyleMode.Dagoujiao:
                     panel = EnsureDagoujiaoAdvancedSettingsPanel();

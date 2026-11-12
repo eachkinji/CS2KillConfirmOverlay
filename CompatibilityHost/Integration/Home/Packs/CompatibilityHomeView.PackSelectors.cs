@@ -284,6 +284,8 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                     return "ms-appx:///Assets/GameLogos/leagueoflegends.png";
                 case "rdr2":
                     return "ms-appx:///Assets/GameLogos/rdr2.png";
+                case "warthunder":
+                    return "ms-appx:///Assets/GameLogos/warthunder.png";
                 case "csol4":
                     return "ms-appx:///Assets/KillConfirmCode/Csol4/headshot_kill.png";
                 default:
@@ -330,6 +332,8 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                     return "ms-appx:///Assets/GameLogos/leagueoflegends.png";
                 case GameStyleMode.Rdr2:
                     return "ms-appx:///Assets/GameLogos/rdr2.png";
+                case GameStyleMode.WarThunder:
+                    return "ms-appx:///Assets/GameLogos/warthunder.png";
                 default:
                     return CrossfireExternalAssetService.VisualUri("Original", "badge_headshot.PNG");
             }

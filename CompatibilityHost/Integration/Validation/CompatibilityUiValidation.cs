@@ -102,7 +102,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                 if (_theme.Accent != GameThemePalette.Home.Accent) throw new Exception("Home palette differs from Advanced settings: " + style);
                 if (HomeView.ScreenLayoutContent != DisplayView || DisplayView.Visibility != Visibility.Visible) throw new Exception("Screen and performance section is not under the mode card");
                 if (ScreenCard.Visibility != Visibility.Visible) throw new Exception("Compact screen and performance section is not visible");
-                if (style == GameStyleMode.Crossfire || style == GameStyleMode.ModernWarfare2019 || style == GameStyleMode.Cod2022)
+                if (style == GameStyleMode.Crossfire || style == GameStyleMode.ModernWarfare2019 || style == GameStyleMode.Cod2022 || style == GameStyleMode.WarThunder)
                 {
                     await CaptureUiAsync(GameStyleService.ToStorageValue(style));
                 }

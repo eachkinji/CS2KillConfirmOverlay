@@ -79,6 +79,12 @@ namespace KillConfirmGameBar
         private const double Rdr2LowerFrameHeight = 136;
         private const double Rdr2UpperFrameWidth = 480;
         private const double Rdr2UpperFrameHeight = 280;
+        private const double WarThunderCrosshairFrameWidth = 360;
+        private const double WarThunderCrosshairFrameHeight = 360;
+        private const double WarThunderLowerFrameWidth = 560;
+        private const double WarThunderLowerFrameHeight = 380;
+        private const double WarThunderUpperFrameWidth = 860;
+        private const double WarThunderUpperFrameHeight = 210;
         private const double ScaleUpFactor = 1.1;
         private const double ScaleDownFactor = 0.9;
         private const double ClickVsDragThresholdPx = 4.0;
@@ -169,6 +175,12 @@ namespace KillConfirmGameBar
         private const string Rdr2UpperHorizontalOffsetSettingKey = "Rdr2UpperHorizontalOffset";
         private const string Rdr2UpperVerticalOffsetSettingKey = "Rdr2UpperVerticalOffset";
         private const string Rdr2UpperScaleSettingKey = "Rdr2UpperScale";
+        private const string WarThunderLowerHorizontalOffsetSettingKey = "WarThunderLowerHorizontalOffset";
+        private const string WarThunderLowerVerticalOffsetSettingKey = "WarThunderLowerVerticalOffset";
+        private const string WarThunderLowerScaleSettingKey = "WarThunderLowerScale";
+        private const string WarThunderUpperHorizontalOffsetSettingKey = "WarThunderUpperHorizontalOffset";
+        private const string WarThunderUpperVerticalOffsetSettingKey = "WarThunderUpperVerticalOffset";
+        private const string WarThunderUpperScaleSettingKey = "WarThunderUpperScale";
         private const string BattlefieldKillMarkHorizontalOffsetSettingKey = "BattlefieldKillMarkHorizontalOffset";
         private const string BattlefieldKillMarkVerticalOffsetSettingKey = "BattlefieldKillMarkVerticalOffset";
         private const string BattlefieldKillMarkScaleSettingKey = "BattlefieldKillMarkScale";

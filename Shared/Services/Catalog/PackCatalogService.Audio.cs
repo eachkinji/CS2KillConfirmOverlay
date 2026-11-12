@@ -54,7 +54,9 @@ namespace KillConfirmCompatibility.Services
                     || (string.Equals(icon.Key, "leagueoflegends", StringComparison.OrdinalIgnoreCase)
                         && (item.AssociatedIconKeys?.Contains("leagueoflegends_icon_standard", StringComparer.OrdinalIgnoreCase) ?? false))
                     || (string.Equals(icon.Key, "rdr2", StringComparison.OrdinalIgnoreCase)
-                        && (item.AssociatedIconKeys?.Contains("rdr2_icon_standard", StringComparer.OrdinalIgnoreCase) ?? false)));
+                        && (item.AssociatedIconKeys?.Contains("rdr2_icon_standard", StringComparer.OrdinalIgnoreCase) ?? false))
+                    || (string.Equals(icon.Key, "warthunder", StringComparison.OrdinalIgnoreCase)
+                        && (item.AssociatedIconKeys?.Contains("warthunder_icon_standard", StringComparer.OrdinalIgnoreCase) ?? false)));
 
         internal static bool TryParseAudioKind(string value, out AudioPackKind kind)
         {
@@ -269,6 +271,8 @@ namespace KillConfirmCompatibility.Services
                     || key.StartsWith("leagueoflegends_voice_", StringComparison.OrdinalIgnoreCase)
                     || key.StartsWith("rdr2_sfx_", StringComparison.OrdinalIgnoreCase)
                     || key.StartsWith("rdr2_voice_", StringComparison.OrdinalIgnoreCase)
+                    || key.StartsWith("warthunder_sfx_", StringComparison.OrdinalIgnoreCase)
+                    || key.StartsWith("warthunder_voice_", StringComparison.OrdinalIgnoreCase)
                     || key.StartsWith("custom_" + gameKey + "_audio_", StringComparison.OrdinalIgnoreCase))) return key;
             return ImportedAudioCopyKey(gameKey, kind, string.IsNullOrWhiteSpace(key) ? name : key);
         }

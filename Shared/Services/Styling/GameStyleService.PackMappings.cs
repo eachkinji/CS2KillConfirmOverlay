@@ -27,6 +27,7 @@ namespace KillConfirmCompatibility.Services
             if (IsCod2022Key(key)) return GameStyleMode.Cod2022;
             if (IsLeagueOfLegendsKey(key)) return GameStyleMode.LeagueOfLegends;
             if (IsRdr2Key(key)) return GameStyleMode.Rdr2;
+            if (IsWarThunderKey(key)) return GameStyleMode.WarThunder;
             if (IsCustomModuleKey(key)) return GameStyleMode.CustomModule;
             if (string.IsNullOrEmpty(key))
             {
@@ -228,6 +229,8 @@ namespace KillConfirmCompatibility.Services
                     return "leagueoflegends";
                 case GameStyleMode.Rdr2:
                     return "rdr2";
+                case GameStyleMode.WarThunder:
+                    return "warthunder";
                 case GameStyleMode.Dagoujiao:
                     return "dagoujiao";
                 case GameStyleMode.Csol:
@@ -280,6 +283,8 @@ namespace KillConfirmCompatibility.Services
                     return "leagueoflegends";
                 case GameStyleMode.Rdr2:
                     return "rdr2";
+                case GameStyleMode.WarThunder:
+                    return "warthunder";
                 case GameStyleMode.Dagoujiao:
                     return "dagoujiao";
                 case GameStyleMode.Csol:

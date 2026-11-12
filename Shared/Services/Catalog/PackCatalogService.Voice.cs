@@ -90,6 +90,11 @@ namespace KillConfirmCompatibility.Services
                 || key.StartsWith("custom_rdr2_voice_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("rdr2_sfx_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("rdr2_voice_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("custom_warthunder_voice_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("warthunder_sfx_", StringComparison.OrdinalIgnoreCase)
+                || (key.StartsWith("warthunder_voice_", StringComparison.OrdinalIgnoreCase)
+                    && !string.Equals(key, "warthunder_voice_zh", StringComparison.OrdinalIgnoreCase)
+                    && !string.Equals(key, "warthunder_voice_en", StringComparison.OrdinalIgnoreCase))
                 || key.StartsWith("valorant_voice_", StringComparison.OrdinalIgnoreCase);
         }
 
@@ -109,7 +114,8 @@ namespace KillConfirmCompatibility.Services
                 || key.StartsWith("custom_titanfall2_voice_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_cod2022_voice_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_leagueoflegends_voice_", StringComparison.OrdinalIgnoreCase)
-                || key.StartsWith("custom_rdr2_voice_", StringComparison.OrdinalIgnoreCase);
+                || key.StartsWith("custom_rdr2_voice_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("custom_warthunder_voice_", StringComparison.OrdinalIgnoreCase);
         }
 
         internal static (string GameKey, string KeyPrefix) GetEventVoicePackConfig(GameStyleMode style)
@@ -140,6 +146,8 @@ namespace KillConfirmCompatibility.Services
                     return ("leagueoflegends", "custom_leagueoflegends_voice_");
                 case GameStyleMode.Rdr2:
                     return ("rdr2", "custom_rdr2_voice_");
+                case GameStyleMode.WarThunder:
+                    return ("warthunder", "custom_warthunder_voice_");
                 default:
                     return ("crossfire", "custom_voice_");
             }

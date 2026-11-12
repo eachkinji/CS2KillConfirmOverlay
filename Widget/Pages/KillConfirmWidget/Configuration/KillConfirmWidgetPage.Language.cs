@@ -99,6 +99,7 @@ namespace KillConfirmGameBar
             SetGameStyleItemContent(HeaderStatusSection.Battlefield4StyleItem, "BF4", "ms-appx:///Assets/GameLogos/battlefield4.png");
             SetGameStyleItemContent(HeaderStatusSection.Battlefield2042StyleItem, "2042", "ms-appx:///Assets/GameLogos/battlefield2042.png");
             SetGameStyleItemContent(HeaderStatusSection.Battlefield6StyleItem, "BF6", "ms-appx:///Assets/GameLogos/battlefield6.png");
+            SetGameStyleItemContent(HeaderStatusSection.WarThunderStyleItem, isChinese ? "战雷" : "WT", "ms-appx:///Assets/GameLogos/warthunder.png");
             SetGameStyleItemContent(HeaderStatusSection.PubgStyleItem, "PUBG", "ms-appx:///Assets/GameLogos/pubg.png");
             SetGameStyleItemContent(HeaderStatusSection.DeltaForceStyleItem, "Delta", "ms-appx:///Assets/GameLogos/deltaforce.png");
             SetGameStyleItemContent(HeaderStatusSection.Rdr2StyleItem, isChinese ? "大镖客2" : "RDR2", "ms-appx:///Assets/GameLogos/rdr2.png");

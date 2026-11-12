@@ -238,6 +238,9 @@ namespace KillConfirmCompatibility.Services
             ["sanguosha"] = "Sanguosha · 10th Anniv. Kill Broadcast",
             ["leagueoflegends"] = "League of Legends · Hextech Broadcast",
             ["rdr2"] = "Red Dead Redemption 2 · Honor & Dead Eye",
+            ["warthunder"] = "War Thunder · Layered Medals & X-Ray Hit Camera",
+            ["warthunder_voice_zh"] = "War Thunder · Chinese Crew & Streak Voiceover",
+            ["warthunder_voice_en"] = "War Thunder · English Streak Voiceover",
             ["dagoujiao"] = "Big Dog Bark",
 
             // Built-in Icon Names

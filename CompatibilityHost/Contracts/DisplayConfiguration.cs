@@ -51,6 +51,7 @@ namespace KillConfirmCompatibility.Contracts
                 if (style == "cod2022") { layout.Crosshair.X = 0.50; layout.Crosshair.Y = 0.50; layout.Upper.X = 0.50; layout.Upper.Y = 0.22; layout.Lower.X = 0.50; layout.Lower.Y = 0.74; }
                 if (style == "leagueoflegends") { layout.Crosshair.X = 0.50; layout.Crosshair.Y = 0.54; layout.Upper.X = 0.50; layout.Upper.Y = 0.16; layout.Lower.X = 0.88; layout.Lower.Y = 0.36; }
                 if (style == "rdr2") { layout.Crosshair.X = 0.50; layout.Crosshair.Y = 0.50; layout.Upper.X = 0.84; layout.Upper.Y = 0.46; layout.Lower.X = 0.50; layout.Lower.Y = 0.84; }
+                if (style == "warthunder") { layout.Crosshair.X = 0.50; layout.Crosshair.Y = 0.50; layout.Upper.X = 0.50; layout.Upper.Y = 0.18; layout.Lower.X = 0.84; layout.Lower.Y = 0.34; }
                 Layouts[key] = layout;
             }
             layout.Normalize();

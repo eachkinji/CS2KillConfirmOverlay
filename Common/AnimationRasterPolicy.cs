@@ -23,7 +23,7 @@ namespace KillConfirmCompatibility.Contracts
                 case "csol": case "valorant": case "overwatch": case "apex":
                 case "calabiyau": case "pubg": case "deltaforce":
                 case "battlefield1": case "battlefield4": case "battlefield5":
-                case "battlefield6": case "battlefield2042": case "titanfall2": case "cod2022": case "leagueoflegends": case "rdr2": return 1920;
+                case "battlefield6": case "battlefield2042": case "titanfall2": case "cod2022": case "leagueoflegends": case "rdr2": case "warthunder": return 1920;
                 default: return 1600;
             }
         }

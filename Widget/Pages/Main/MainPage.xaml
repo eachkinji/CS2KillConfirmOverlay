@@ -141,6 +141,7 @@
                                 <ComboBoxItem x:Name="Battlefield5StyleItem" Tag="battlefield5">Battlefield V (战地5)</ComboBoxItem>
                                 <ComboBoxItem x:Name="Battlefield2042StyleItem" Tag="battlefield2042">Battlefield 2042 (战地2042)</ComboBoxItem>
                                 <ComboBoxItem x:Name="Battlefield6StyleItem" Tag="battlefield6">Battlefield 6 (战地6)</ComboBoxItem>
+                                <ComboBoxItem x:Name="WarThunderStyleItem" Tag="warthunder">War Thunder (战争雷霆)</ComboBoxItem>
                                 <ComboBoxItem x:Name="ModernWarfare2019StyleItem" Tag="modernwarfare2019">Modern Warfare 2019 (使命召唤：现代战争)</ComboBoxItem>
                                 <ComboBoxItem x:Name="Cod2022StyleItem" Tag="cod2022">Modern Warfare II 2022 (使命召唤：现代战争 II)</ComboBoxItem>
                                 <ComboBoxItem x:Name="SanguoshaStyleItem" Tag="sanguosha">Sanguosha (三国杀)</ComboBoxItem>

@@ -109,6 +109,11 @@ namespace KillConfirmCompatibility.Controls
                 DrawRdr2HudFrame(drawingSession);
                 return;
             }
+            if (_isWarThunderHudActive)
+            {
+                DrawWarThunderHudFrame(drawingSession);
+                return;
+            }
             if (_isApexFeedActive)
             {
                 DrawApexFeedFrame(drawingSession);
@@ -407,6 +412,12 @@ namespace KillConfirmCompatibility.Controls
             if (_isRdr2HudActive)
             {
                 UpdateRdr2HudFrame();
+                return;
+            }
+
+            if (_isWarThunderHudActive)
+            {
+                UpdateWarThunderHudFrame();
                 return;
             }
 

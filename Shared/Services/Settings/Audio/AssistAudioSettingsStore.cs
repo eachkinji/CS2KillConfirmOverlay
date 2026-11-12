@@ -18,6 +18,7 @@ namespace KillConfirmCompatibility.Services
         private const string Titanfall2SettingKey = "Titanfall2AssistAudioEnabled";
         private const string LeagueOfLegendsSettingKey = "LeagueOfLegendsAssistAudioEnabled";
         private const string Rdr2SettingKey = "Rdr2AssistAudioEnabled";
+        private const string WarThunderSettingKey = "WarThunderAssistAudioEnabled";
 
         public static bool IsSupported(GameStyleMode style)
         {
@@ -27,7 +28,8 @@ namespace KillConfirmCompatibility.Services
                 || style == GameStyleMode.Cod2022
                 || style == GameStyleMode.Titanfall2
                 || style == GameStyleMode.LeagueOfLegends
-                || style == GameStyleMode.Rdr2;
+                || style == GameStyleMode.Rdr2
+                || style == GameStyleMode.WarThunder;
         }
 
         public static bool Load(GameStyleMode style)
@@ -76,6 +78,8 @@ namespace KillConfirmCompatibility.Services
                     return LeagueOfLegendsSettingKey;
                 case GameStyleMode.Rdr2:
                     return Rdr2SettingKey;
+                case GameStyleMode.WarThunder:
+                    return WarThunderSettingKey;
                 default:
                     return null;
             }

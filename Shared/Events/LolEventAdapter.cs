@@ -686,6 +686,7 @@ namespace KillConfirmCompatibility.Services
                 case GameStyleMode.Apex:
                 case GameStyleMode.Titanfall2:
                 case GameStyleMode.Rdr2:
+                case GameStyleMode.WarThunder:
                     return true;
                 default:
                     return false;

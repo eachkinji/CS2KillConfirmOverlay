@@ -68,6 +68,8 @@ namespace KillConfirmGameBar.Services
                     return DeltaForce;
                 case GameStyleMode.Rdr2:
                     return Rdr2;
+                case GameStyleMode.WarThunder:
+                    return WarThunder;
                 case GameStyleMode.CustomModule:
                     return Home;
                 case GameStyleMode.Doubao:

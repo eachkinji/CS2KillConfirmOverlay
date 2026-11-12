@@ -491,6 +491,11 @@ namespace KillConfirmGameBar
                     var existingFiles = await CollectFilesFromPackFolderAsync(packFolder, Rdr2IconPackImportFiles);
                     await ShowCreateRdr2IconPackDialogAsync(packName, existingFiles, existingHeadImage);
                 }
+                else if (packStyle == GameStyleMode.WarThunder)
+                {
+                    var existingFiles = await CollectFilesFromPackFolderAsync(packFolder, WarThunderIconPackImportFiles);
+                    await ShowCreateWarThunderIconPackDialogAsync(packName, existingFiles, existingHeadImage);
+                }
                 else if (packStyle == GameStyleMode.Valorant)
                 {
                     await ShowValorantIconEditorAsync(item);

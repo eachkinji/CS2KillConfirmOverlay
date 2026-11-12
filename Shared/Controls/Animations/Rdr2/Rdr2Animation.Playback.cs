@@ -362,6 +362,7 @@ namespace KillConfirmCompatibility.Controls
             ResetCod2022State();
             ResetTitanfall2State();
             ResetLeagueOfLegendsState();
+            ResetWarThunderState();
             ResetSanguoshaState();
 
             _isRdr2HudActive = true;

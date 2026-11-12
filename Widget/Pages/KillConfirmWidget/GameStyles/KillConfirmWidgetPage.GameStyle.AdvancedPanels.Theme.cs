@@ -84,6 +84,10 @@ namespace KillConfirmGameBar
             {
                 _rdr2AdvancedEffectsPanel.ApplyTheme(theme);
             }
+            if (_warThunderAdvancedEffectsPanel != null)
+            {
+                _warThunderAdvancedEffectsPanel.ApplyTheme(theme);
+            }
 
             if (_battlefield1AdvancedEffectsPanel != null)
             {
@@ -212,6 +216,10 @@ namespace KillConfirmGameBar
             {
                 _rdr2AdvancedEffectsPanel.ApplyLanguage(isChinese);
             }
+            if (_warThunderAdvancedEffectsPanel != null)
+            {
+                _warThunderAdvancedEffectsPanel.ApplyLanguage(isChinese);
+            }
 
             if (_battlefield1AdvancedEffectsPanel != null)
             {
@@ -324,6 +332,10 @@ namespace KillConfirmGameBar
             else if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _rdr2AdvancedEffectsPanel)
             {
                 _rdr2AdvancedEffectsPanel.SelectMoneyRewardMode(mode, DefaultMoneyRewardMode);
+            }
+            else if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _warThunderAdvancedEffectsPanel)
+            {
+                _warThunderAdvancedEffectsPanel.SelectMoneyRewardMode(mode, DefaultMoneyRewardMode);
             }
             else if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _deltaForceAdvancedEffectsPanel)
             {

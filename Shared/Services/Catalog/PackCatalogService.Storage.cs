@@ -173,7 +173,26 @@ namespace KillConfirmCompatibility.Services
                     CreateBuiltInVoice("custommodule", "瓦默认音效/图标", true),
                     CreateBuiltInVoice("apex", "Apex Legends", true),
                     CreateBuiltInVoice("titanfall2", "泰坦陨落 2 · 铁驭击杀提示音", true),
-                    CreateBuiltInVoice("rdr2", "荒野大镖客 2 · 原生善恶与死神之眼音效", true)
+                    CreateBuiltInVoice("rdr2", "荒野大镖客 2 · 原生善恶与死神之眼音效", true),
+                    CreateBuiltInVoice("warthunder", "战争雷霆 · 原生击毁与勋章音效", true),
+                    new VoicePackItem
+                    {
+                        Key = "warthunder_voice_zh",
+                        DisplayName = "战争雷霆 · 中文车组与勋章播报",
+                        IsBuiltIn = true,
+                        IsVisibleInWidget = true,
+                        AudioKind = AudioPackKind.CharacterVoice,
+                        GameStyle = "warthunder"
+                    },
+                    new VoicePackItem
+                    {
+                        Key = "warthunder_voice_en",
+                        DisplayName = "战争雷霆 · 英文原版勋章播报",
+                        IsBuiltIn = true,
+                        IsVisibleInWidget = true,
+                        AudioKind = AudioPackKind.CharacterVoice,
+                        GameStyle = "warthunder"
+                    }
                 },
                 IconPacks = new List<IconPackItem>
                 {
@@ -198,7 +217,8 @@ namespace KillConfirmCompatibility.Services
                     CreateBuiltInIcon("custommodule", "瓦默认音效/图标", true),
                     CreateBuiltInIcon("apex", "Apex Legends", true),
                     CreateBuiltInIcon("titanfall2", "泰坦陨落 2 · 铁驭与泰坦勋章", true),
-                    CreateBuiltInIcon("rdr2", "荒野大镖客 2 · 亡命之徒荣誉与准星", true)
+                    CreateBuiltInIcon("rdr2", "荒野大镖客 2 · 亡命之徒荣誉与准星", true),
+                    CreateBuiltInIcon("warthunder", "战争雷霆 · 多图层勋章与 X-Ray 毁伤相机", true)
                 }
             };
 
@@ -437,6 +457,51 @@ namespace KillConfirmCompatibility.Services
             if (rdr2Icon != null && rdr2Icon.DisplayName != "荒野大镖客 2 · 亡命之徒荣誉与准星")
             {
                 rdr2Icon.DisplayName = "荒野大镖客 2 · 亡命之徒荣誉与准星";
+                changed = true;
+            }
+
+            var wtAudio = catalog.VoicePacks.FirstOrDefault(item => item.IsBuiltIn
+                && string.Equals(item.Key, "warthunder", StringComparison.OrdinalIgnoreCase));
+            if (wtAudio != null)
+            {
+                if (wtAudio.DisplayName != "战争雷霆 · 原生击毁与勋章音效")
+                { wtAudio.DisplayName = "战争雷霆 · 原生击毁与勋章音效"; changed = true; }
+                if (wtAudio.AudioKind != AudioPackKind.SoundEffect)
+                { wtAudio.AudioKind = AudioPackKind.SoundEffect; changed = true; }
+                if (!string.Equals(wtAudio.GameStyle, "warthunder", StringComparison.OrdinalIgnoreCase))
+                { wtAudio.GameStyle = "warthunder"; changed = true; }
+                if (wtAudio.AssociatedIconKeys == null
+                    || !wtAudio.AssociatedIconKeys.Contains("warthunder")
+                    || !wtAudio.AssociatedIconKeys.Contains("warthunder_icon_standard"))
+                { wtAudio.AssociatedIconKeys = new List<string> { "warthunder", "warthunder_icon_standard" }; changed = true; }
+            }
+            var wtVoiceZh = catalog.VoicePacks.FirstOrDefault(item => item.IsBuiltIn
+                && string.Equals(item.Key, "warthunder_voice_zh", StringComparison.OrdinalIgnoreCase));
+            if (wtVoiceZh != null)
+            {
+                if (wtVoiceZh.DisplayName != "战争雷霆 · 中文车组与勋章播报")
+                { wtVoiceZh.DisplayName = "战争雷霆 · 中文车组与勋章播报"; changed = true; }
+                if (wtVoiceZh.AudioKind != AudioPackKind.CharacterVoice)
+                { wtVoiceZh.AudioKind = AudioPackKind.CharacterVoice; changed = true; }
+                if (!string.Equals(wtVoiceZh.GameStyle, "warthunder", StringComparison.OrdinalIgnoreCase))
+                { wtVoiceZh.GameStyle = "warthunder"; changed = true; }
+            }
+            var wtVoiceEn = catalog.VoicePacks.FirstOrDefault(item => item.IsBuiltIn
+                && string.Equals(item.Key, "warthunder_voice_en", StringComparison.OrdinalIgnoreCase));
+            if (wtVoiceEn != null)
+            {
+                if (wtVoiceEn.DisplayName != "战争雷霆 · 英文原版勋章播报")
+                { wtVoiceEn.DisplayName = "战争雷霆 · 英文原版勋章播报"; changed = true; }
+                if (wtVoiceEn.AudioKind != AudioPackKind.CharacterVoice)
+                { wtVoiceEn.AudioKind = AudioPackKind.CharacterVoice; changed = true; }
+                if (!string.Equals(wtVoiceEn.GameStyle, "warthunder", StringComparison.OrdinalIgnoreCase))
+                { wtVoiceEn.GameStyle = "warthunder"; changed = true; }
+            }
+            var wtIcon = catalog.IconPacks.FirstOrDefault(item => item.IsBuiltIn
+                && string.Equals(item.Key, "warthunder", StringComparison.OrdinalIgnoreCase));
+            if (wtIcon != null && wtIcon.DisplayName != "战争雷霆 · 多图层勋章与 X-Ray 毁伤相机")
+            {
+                wtIcon.DisplayName = "战争雷霆 · 多图层勋章与 X-Ray 毁伤相机";
                 changed = true;
             }
 

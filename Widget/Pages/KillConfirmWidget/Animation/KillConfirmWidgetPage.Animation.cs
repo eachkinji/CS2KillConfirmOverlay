@@ -190,7 +190,8 @@ namespace KillConfirmGameBar
                 || style == GameStyleMode.Apex
                 || style == GameStyleMode.Titanfall2
                 || style == GameStyleMode.LeagueOfLegends
-                || style == GameStyleMode.Rdr2;
+                || style == GameStyleMode.Rdr2
+                || style == GameStyleMode.WarThunder;
             if (!usesDedicatedLayerRouting)
             {
                 ConfigureFeedbackAppearance(
@@ -324,6 +325,9 @@ namespace KillConfirmGameBar
                     return;
                 case GameStyleMode.Rdr2:
                     PlayRdr2PrimaryAnimation(killEvent, visibility);
+                    return;
+                case GameStyleMode.WarThunder:
+                    PlayWarThunderPrimaryAnimation(killEvent, visibility);
                     return;
                 case GameStyleMode.Csol:
                     PlayCsolPrimaryAnimation(killEvent);

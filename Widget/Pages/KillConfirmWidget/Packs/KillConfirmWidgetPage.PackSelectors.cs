@@ -355,6 +355,8 @@ namespace KillConfirmGameBar
                     return SharedResources.CachedAssetUri("Assets/GameLogos/leagueoflegends.png");
                 case "rdr2":
                     return SharedResources.CachedAssetUri("Assets/GameLogos/rdr2.png");
+                case "warthunder":
+                    return SharedResources.CachedAssetUri("Assets/GameLogos/warthunder.png");
                 case "csol4":
                     return SharedResources.CachedAssetUri("Assets/KillConfirmCode/Csol4/headshot_kill.png");
                 default:
@@ -401,6 +403,8 @@ namespace KillConfirmGameBar
                     return SharedResources.CachedAssetUri("Assets/GameLogos/leagueoflegends.png");
                 case GameStyleMode.Rdr2:
                     return SharedResources.CachedAssetUri("Assets/GameLogos/rdr2.png");
+                case GameStyleMode.WarThunder:
+                    return SharedResources.CachedAssetUri("Assets/GameLogos/warthunder.png");
                 default:
                     return CrossfireExternalAssetService.VisualUri("Original", "badge_headshot.PNG");
             }

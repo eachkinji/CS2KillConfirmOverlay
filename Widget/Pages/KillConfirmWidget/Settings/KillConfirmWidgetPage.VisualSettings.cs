@@ -428,7 +428,7 @@ namespace KillConfirmGameBar
             string savedPlacement)
         {
             // This new style has no legacy defaults to migrate; preserve choices made in the main app.
-            if (style == GameStyleMode.CustomModule || style == GameStyleMode.Titanfall2 || style == GameStyleMode.Cod2022 || style == GameStyleMode.LeagueOfLegends || style == GameStyleMode.Rdr2) return;
+            if (style == GameStyleMode.CustomModule || style == GameStyleMode.Titanfall2 || style == GameStyleMode.Cod2022 || style == GameStyleMode.LeagueOfLegends || style == GameStyleMode.Rdr2 || style == GameStyleMode.WarThunder) return;
             string revisionKey = AnimationPlacementDefaultsRevisionKey + "." + GameStyleService.ToStorageValue(style);
             if (localSettings.Values[revisionKey] is bool applied && applied)
             {

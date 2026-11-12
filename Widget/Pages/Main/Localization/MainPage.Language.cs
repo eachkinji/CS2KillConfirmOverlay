@@ -345,6 +345,21 @@ namespace KillConfirmGameBar
                         ? "可直接导入 RDR2 图标包或善恶荣誉音效包 ZIP，也可在面板内自定义各槽位贴图与多变体音效池。"
                         : "Import RDR2 icon or Honor audio ZIP packs directly, or customize individual texture slots and multi-variant audio pools.";
                     break;
+                case GameStyleMode.WarThunder:
+                    body = isChinese
+                        ? "1:1 源码级还原《战争雷霆》(War Thunder) Dagui/DaRg 三层载具战斗 HUD：上方多图层百分比叠加英勇勋章队列 + #AAE02500 鲜红辉光主通知（目标摧毁 / 致命一击 / 助攻）与银狮 € / 研发点 ▉ 闪烁结算、中央 45° 四翼双平行线命中扩散准星与 3D 击杀浮标、右上方 2.5D X-Ray 穿甲破片/弹药架殉爆内构透视毁伤相机与 5 行阵营战报流，完整支持 CS2/CS:GO 与英雄联盟。"
+                        : "1:1 source-accurate War Thunder Dagui/DaRg 3-layer combat HUD: upper multi-layer medal streak queue + #AAE02500 red-glow Target Destroyed banner with Silver Lions / Research Points blink tally, center 45° twin-line hitmarker & 3D killmark, and lower 2.5D X-Ray hitcamera with shrapnel/ammo-rack detonation & 5-row battle kill log for CS2/CS:GO and League of Legends.";
+                    voice = isChinese
+                        ? "内置原版战雷穿甲重击与胜利结算音效包，并自带中文/英文两套车组乘员与无线电语音包（“敌军载具已被摧毁！” / “Enemy vehicle destroyed!”），支持双通道独立混音与自定义导入。"
+                        : "Includes native War Thunder armor-impact & reward SFX pack plus built-in Chinese and English tank crew & radio voice packs on independent concurrent channels.";
+                    iconSummary = isChinese
+                        ? "支持导入 manifest 战雷图标包或新建替换 57 个原版多图层勋章、准星浮标与 X-Ray 模块状态贴图槽位；未设置的槽位保留内置原版高清贴图。"
+                        : "Import manifest War Thunder icon packs or customize any of the 57 native layered streak, killmark, and X-Ray module slots; empty slots keep built-in textures.";
+                    iconFull = "backing_streak1..5.png, garland_streak1..3.png, body_universal_streak1..5.png, top_streak1..3.png,\nicon_multistrike1..3.png, kill_unit_icon.png, kill_crit_icon.png, tank/ship module icons & hitcamera overlays";
+                    fileHint = isChinese
+                        ? "战雷击杀音效包与中/英车组乘员语音包在双通道上并发叠加播放，互不覆盖。"
+                        : "War Thunder combat SFX packs and CN/EN crew voice packs play concurrently on independent audio channels.";
+                    break;
                 case GameStyleMode.LeagueOfLegends:
                     body = isChinese
                         ? "1:1 代码级还原《英雄联盟》召唤师峡谷海克斯科技播报：上方 BannerScene 连杀与史诗级目标横幅（双头像对决 + 五杀鎏金纹章 + Beaufort/方正大黑原版排版）、右侧四槽英雄头像通告栏（海克斯脉冲波纹 + 助攻头像序列）、可选中央海克斯命中纹章与 +300g 跳字，完整支持英雄联盟实时对局与 CS2/CS:GO。"

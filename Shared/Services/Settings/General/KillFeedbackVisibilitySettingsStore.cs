@@ -58,7 +58,7 @@ namespace KillConfirmCompatibility.Services
                     values[prefix + "CrosshairEnabled"],
                     DefaultCrosshairEnabled(style)),
                 LowerEnabled = ReadBool(values[prefix + "LowerEnabled"], true),
-                UpperEnabled = (style != GameStyleMode.ModernWarfare2019 && style != GameStyleMode.Cod2022 && style != GameStyleMode.Titanfall2 && style != GameStyleMode.LeagueOfLegends && style != GameStyleMode.Rdr2)
+                UpperEnabled = (style != GameStyleMode.ModernWarfare2019 && style != GameStyleMode.Cod2022 && style != GameStyleMode.Titanfall2 && style != GameStyleMode.LeagueOfLegends && style != GameStyleMode.Rdr2 && style != GameStyleMode.WarThunder)
                     || ReadBool(values[prefix + "UpperEnabled"], true),
                 CrosshairBrightnessPercent = ReadPercent(values[prefix + "CrosshairBrightnessPercent"], 100, 50, 150),
                 CrosshairContrastPercent = ReadPercent(values[prefix + "CrosshairContrastPercent"], 100, 50, 150),
@@ -85,7 +85,7 @@ namespace KillConfirmCompatibility.Services
             var values = GameSourceSettingsStore.CombatSettings;
             values[prefix + "CrosshairEnabled"] = settings.CrosshairEnabled;
             values[prefix + "LowerEnabled"] = settings.LowerEnabled;
-            if (style == GameStyleMode.ModernWarfare2019 || style == GameStyleMode.Cod2022 || style == GameStyleMode.Titanfall2 || style == GameStyleMode.LeagueOfLegends || style == GameStyleMode.Rdr2)
+            if (style == GameStyleMode.ModernWarfare2019 || style == GameStyleMode.Cod2022 || style == GameStyleMode.Titanfall2 || style == GameStyleMode.LeagueOfLegends || style == GameStyleMode.Rdr2 || style == GameStyleMode.WarThunder)
             {
                 values[prefix + "UpperEnabled"] = settings.UpperEnabled;
             }
@@ -176,6 +176,8 @@ namespace KillConfirmCompatibility.Services
                     return "LeagueOfLegendsKillFeedback";
                 case GameStyleMode.Rdr2:
                     return "Rdr2KillFeedback";
+                case GameStyleMode.WarThunder:
+                    return "WarThunderKillFeedback";
                 case GameStyleMode.Dagoujiao:
                     return "DagoujiaoKillFeedback";
                 default:

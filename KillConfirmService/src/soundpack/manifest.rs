@@ -202,6 +202,9 @@ const STANDARD_SLOT_STEMS: &[(&str, &[&str])] = &[
     ("honor_loss", &["honor_loss", "honor_low_loss"]),
     ("honor_loss_alt", &["honor_loss_alt"]),
     ("dead_eye", &["dead_eye", "dead_eye_sting", "dead_eye_activate"]),
+    ("citadel", &["citadel", "ui_citadel_breach"]),
+    ("objective", &["objective", "obj_complete"]),
+    ("victory", &["victory", "battle_win", "ww_battle_end_win"]),
 ];
 
 fn find_slot_files_in_dir(dir_path: &Path, stems: &[&str]) -> Option<SlotFiles> {
@@ -325,6 +328,14 @@ impl PackManifest {
         if is_leagueoflegends {
             return self.leagueoflegends_voice_audio_slot(ctx);
         }
+        let is_warthunder = self
+            .game_style
+            .as_deref()
+            .is_some_and(|style| style.eq_ignore_ascii_case("warthunder"))
+            && !self.uses_generic_event_audio();
+        if is_warthunder {
+            return self.warthunder_voice_audio_slot(ctx);
+        }
 
         let audio = self.audio.as_ref()?;
         let event_kind = ctx.event_kind.as_deref().unwrap_or_default().trim();
@@ -420,6 +431,87 @@ impl PackManifest {
         }
         if ctx.is_grenade_kill {
             return pick_first(&["grenade", "kill_titan", "kill_1"]);
+        }
+        if ctx.is_last_kill {
+            return pick_first(&["last_kill", "revenge", "kill_1"]);
+        }
+        if ctx.kill_count >= 1 {
+            return pick_first(&["kill_1", "common"]);
+        }
+        None
+    }
+
+    pub fn warthunder_voice_audio_slot(&self, ctx: &SoundContext) -> Option<String> {
+        let audio = self.audio.as_ref()?;
+        let has = |slot: &str| {
+            audio
+                .slots
+                .get(slot)
+                .is_some_and(|files| !files.as_slice().is_empty())
+        };
+        let pick_first = |candidates: &[&str]| -> Option<String> {
+            candidates.iter().copied().find(|s| has(s)).map(str::to_string)
+        };
+        let event_kind = ctx
+            .event_kind
+            .as_deref()
+            .unwrap_or_default()
+            .trim()
+            .to_ascii_lowercase();
+
+        if ctx.event_channel == EventChannel::Economy {
+            return match event_kind.as_str() {
+                "round_loss" | "lol_defeat" | "" => None,
+                "round_win" | "lol_victory" => {
+                    pick_first(&["victory", "round_win", "kill_5", "kill_1"])
+                }
+                "lol_steal" | "lol_objective" => {
+                    pick_first(&["objective", "shutdown", "revenge", "kill_1"])
+                }
+                "podi" | "lol_structure" | "lol_inhib" | "bomb_plant" | "bomb_defuse" => {
+                    pick_first(&["objective", "podi", "kill_1"])
+                }
+                other => pick_first(&[other]),
+            };
+        }
+
+        if ctx.is_assist {
+            return pick_first(&["assist"]);
+        }
+        if !ctx.play_main_audio {
+            return None;
+        }
+
+        match event_kind.as_str() {
+            "revenge" => return pick_first(&["revenge", "kill_1"]),
+            "lol_shutdown" | "lol_steal" => return pick_first(&["shutdown", "revenge", "kill_1"]),
+            "lol_ace" => return pick_first(&["kill_5", "last_kill", "shutdown", "kill_1"]),
+            _ => {}
+        }
+
+        if ctx.kill_count >= 5 {
+            return pick_first(&["kill_5", "kill_4", "kill_1"]);
+        }
+        if ctx.kill_count == 4 {
+            return pick_first(&["kill_4", "kill_3", "kill_1"]);
+        }
+        if ctx.kill_count == 3 {
+            return pick_first(&["kill_3", "kill_2", "kill_1"]);
+        }
+        if ctx.kill_count == 2 {
+            return pick_first(&["kill_2", "kill_1"]);
+        }
+        if ctx.is_first_kill {
+            return pick_first(&["first_kill", "first_blood", "kill_1"]);
+        }
+        if ctx.is_headshot {
+            return pick_first(&["headshot_1", "headshot", "kill_1"]);
+        }
+        if ctx.is_knife_kill {
+            return pick_first(&["knife", "revenge", "kill_1"]);
+        }
+        if ctx.is_grenade_kill {
+            return pick_first(&["grenade", "headshot", "kill_1"]);
         }
         if ctx.is_last_kill {
             return pick_first(&["last_kill", "revenge", "kill_1"]);
@@ -1162,6 +1254,145 @@ impl PackManifest {
             if trigger_dead_eye {
                 push_unique_slot(&mut entries, "dead_eye");
             }
+            return entries;
+        }
+
+        if game_style.eq_ignore_ascii_case("warthunder") && !self.uses_generic_event_audio() {
+            if is_character_voice {
+                if let Some(slot) = self.warthunder_voice_audio_slot(ctx) {
+                    push_slot(&mut entries, &slot, None);
+                }
+                return entries;
+            }
+
+            let push_unique_slot = |entries: &mut Vec<SoundEntry>, slot: &str| -> bool {
+                let before = entries.len();
+                if push_slot(entries, slot, None) && entries.len() > before {
+                    let added_path = entries[before].path.clone();
+                    if entries[..before].iter().any(|item| item.path == added_path) {
+                        entries.pop();
+                    }
+                    return true;
+                }
+                false
+            };
+
+            let event_kind = ctx
+                .event_kind
+                .as_deref()
+                .map(str::trim)
+                .unwrap_or_default()
+                .to_ascii_lowercase();
+
+            if ctx.event_channel == EventChannel::Economy {
+                if event_kind.is_empty() || matches!(event_kind.as_str(), "round_loss" | "lol_defeat") {
+                    return entries;
+                }
+                if push_unique_slot(&mut entries, &event_kind) {
+                    return entries;
+                }
+                if matches!(event_kind.as_str(), "round_win" | "lol_victory") {
+                    if !push_unique_slot(&mut entries, "victory")
+                        && !push_unique_slot(&mut entries, "streak_4")
+                    {
+                        push_unique_slot(&mut entries, "kill_1");
+                    }
+                } else if matches!(event_kind.as_str(), "lol_steal" | "lol_objective") {
+                    push_unique_slot(&mut entries, "citadel");
+                    if !push_unique_slot(&mut entries, "objective") {
+                        push_unique_slot(&mut entries, "streak_1");
+                    }
+                } else {
+                    push_unique_slot(&mut entries, "hit");
+                    if !push_unique_slot(&mut entries, "objective")
+                        && !push_unique_slot(&mut entries, "streak_1")
+                    {
+                        push_unique_slot(&mut entries, "kill_1");
+                    }
+                }
+                return entries;
+            }
+
+            if ctx.is_assist {
+                if !push_unique_slot(&mut entries, "assist")
+                    && !push_unique_slot(&mut entries, "hit")
+                {
+                    push_unique_slot(&mut entries, "kill_1");
+                }
+                return entries;
+            }
+
+            if !ctx.play_main_audio || ctx.kill_count < 1 {
+                return entries;
+            }
+
+            // War Thunder concurrent Dagui/DaRg audio stack:
+            // 1. Armor/ballistic penetration transient (tank_hit_mid / tank_hit_big + helmet_hit / hit_expl_mid)
+            // 2. Kill transient + Target Destroyed sting (enemy_kill_001 + enemy_destroyed)
+            // 3. Ammunition detonation / Citadel breach accent on headshot/grenade/high-value targets
+            // 4. Heroic streak medal chime (streak_mission_complete_1..4)
+            if ctx.is_grenade_kill {
+                if !push_unique_slot(&mut entries, "hit_expl")
+                    && !push_unique_slot(&mut entries, "hit_heavy")
+                {
+                    push_unique_slot(&mut entries, "hit");
+                }
+            } else if ctx.is_headshot {
+                if !push_unique_slot(&mut entries, "hit_heavy") {
+                    push_unique_slot(&mut entries, "hit");
+                }
+                push_unique_slot(&mut entries, "hit_helmet");
+            } else {
+                push_unique_slot(&mut entries, "hit");
+            }
+
+            push_unique_slot(&mut entries, "kill_transient");
+            let numbered = format!("kill_{}", ctx.kill_count.clamp(1, 9));
+            if !push_unique_slot(&mut entries, &numbered) {
+                push_unique_slot(&mut entries, "kill_1");
+            }
+
+            let trigger_ammo_burn = ctx.is_headshot
+                || ctx.is_grenade_kill
+                || ctx.kill_count >= 5
+                || matches!(event_kind.as_str(), "lol_steal" | "lol_ace");
+            if trigger_ammo_burn {
+                push_unique_slot(&mut entries, "headshot");
+            }
+
+            let trigger_citadel = ctx.is_knife_kill
+                || matches!(event_kind.as_str(), "lol_shutdown" | "lol_steal" | "citadel");
+            if trigger_citadel {
+                push_unique_slot(&mut entries, "citadel");
+            }
+
+            let streak_slot = if ctx.kill_count >= 5 || event_kind == "lol_ace" {
+                Some("streak_4")
+            } else if ctx.kill_count == 4 {
+                Some("streak_3")
+            } else if ctx.kill_count == 3 {
+                Some("streak_2")
+            } else if ctx.kill_count == 2
+                || ctx.is_headshot
+                || ctx.is_first_kill
+                || ctx.is_last_kill
+                || ctx.is_knife_kill
+                || ctx.is_grenade_kill
+                || matches!(
+                    event_kind.as_str(),
+                    "revenge" | "lol_steal" | "lol_shutdown" | "lol_objective"
+                )
+            {
+                Some("streak_1")
+            } else {
+                None
+            };
+            if let Some(slot) = streak_slot {
+                if !push_unique_slot(&mut entries, slot) && slot != "streak_1" {
+                    push_unique_slot(&mut entries, "streak_1");
+                }
+            }
+
             return entries;
         }
 

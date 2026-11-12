@@ -68,6 +68,7 @@ mod tests {
     include!("tests/cod2022.rs");
     include!("tests/leagueoflegends.rs");
     include!("tests/rdr2.rs");
+    include!("tests/warthunder.rs");
     include!("tests/valorant.rs");
     include!("tests/custommodule.rs");
     include!("tests/event_styles.rs");

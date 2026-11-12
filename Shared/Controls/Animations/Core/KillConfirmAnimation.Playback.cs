@@ -112,6 +112,7 @@ namespace KillConfirmCompatibility.Controls
             ResetTitanfall2State();
             ResetLeagueOfLegendsState();
             ResetRdr2State();
+            ResetWarThunderState();
             HideLoadingProgress();
             Visibility = Visibility.Collapsed;
             SpriteCanvas.Invalidate();

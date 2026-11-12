@@ -35,7 +35,8 @@ namespace KillConfirmGameBar
                 || GameStyleService.Current == GameStyleMode.Cod2022
                 || GameStyleService.Current == GameStyleMode.Titanfall2
                 || GameStyleService.Current == GameStyleMode.LeagueOfLegends
-                || GameStyleService.Current == GameStyleMode.Rdr2)
+                || GameStyleService.Current == GameStyleMode.Rdr2
+                || GameStyleService.Current == GameStyleMode.WarThunder)
             {
                 ApplyLegacyLowerCardTransform();
             }
@@ -44,6 +45,7 @@ namespace KillConfirmGameBar
                 || GameStyleService.Current == GameStyleMode.Titanfall2
                 || GameStyleService.Current == GameStyleMode.LeagueOfLegends
                 || GameStyleService.Current == GameStyleMode.Rdr2
+                || GameStyleService.Current == GameStyleMode.WarThunder
                 || GameStyleService.IsAuxiliaryKillMarkStyle(GameStyleService.Current))
             {
                 ApplyLegacyAuxiliaryTransform();

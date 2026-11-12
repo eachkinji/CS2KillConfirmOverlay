@@ -10,7 +10,7 @@ namespace KillConfirmCompatibility.Contracts
             style = (style ?? "").ToLowerInvariant();
             preset = (preset ?? "").ToLowerInvariant();
             bool economy = style == "battlefield1" || style == "battlefield5" || style == "battlefield4" || style == "battlefield2042" || style == "battlefield6"
-                || style == "pubg" || style == "deltaforce" || style == "titanfall2" || style == "cod2022" || style == "leagueoflegends" || style == "rdr2";
+                || style == "pubg" || style == "deltaforce" || style == "titanfall2" || style == "cod2022" || style == "leagueoflegends" || style == "rdr2" || style == "warthunder";
             switch (preset)
             {
                 case "bomb_plant": case "bomb_defuse":
@@ -20,7 +20,7 @@ namespace KillConfirmCompatibility.Contracts
                 case "assist":
                     return style == "crossfire" || style == "csol" || style == "overwatch" || style == "modernwarfare2019" || style == "apex" || economy;
                 case "badge_first": case "badge_last": case "badge_revenge":
-                    return style == "crossfire" || style == "csol" || style == "modernwarfare2019" || style == "cod2022" || style == "leagueoflegends" || style == "rdr2";
+                    return style == "crossfire" || style == "csol" || style == "modernwarfare2019" || style == "cod2022" || style == "leagueoflegends" || style == "rdr2" || style == "warthunder";
                 case "one": case "one_hs": case "one_knife": case "one_grenade": case "one_first": case "one_last":
                 case "gold_first": case "gold_last": case "two": case "three": case "four": case "five":
                 case "six": case "seven": case "eight": case "nine":

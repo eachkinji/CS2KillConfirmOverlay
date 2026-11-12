@@ -486,7 +486,7 @@ namespace KillConfirmGameBar
         private void ApplyLegacyAuxiliaryTransform()
         {
             GameStyleMode style = GameStyleService.Current;
-            if (style != GameStyleMode.ModernWarfare2019 && style != GameStyleMode.Cod2022 && style != GameStyleMode.Titanfall2 && style != GameStyleMode.LeagueOfLegends && style != GameStyleMode.Rdr2 && !GameStyleService.IsAuxiliaryKillMarkStyle(style))
+            if (style != GameStyleMode.ModernWarfare2019 && style != GameStyleMode.Cod2022 && style != GameStyleMode.Titanfall2 && style != GameStyleMode.LeagueOfLegends && style != GameStyleMode.Rdr2 && style != GameStyleMode.WarThunder && !GameStyleService.IsAuxiliaryKillMarkStyle(style))
             {
                 return;
             }

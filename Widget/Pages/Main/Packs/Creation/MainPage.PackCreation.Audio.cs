@@ -18,6 +18,7 @@ namespace KillConfirmGameBar
             || SettingsGameStyle == GameStyleMode.Titanfall2
             || SettingsGameStyle == GameStyleMode.LeagueOfLegends
             || SettingsGameStyle == GameStyleMode.Rdr2
+            || SettingsGameStyle == GameStyleMode.WarThunder
             || (ActiveAudioPackKind == AudioPackKind.CharacterVoice && SettingsGameStyle != GameStyleMode.Crossfire)
             || (ActiveAudioPackKind == AudioPackKind.SoundEffect && SettingsGameStyle == GameStyleMode.Crossfire);
 
@@ -28,6 +29,7 @@ namespace KillConfirmGameBar
                 || PackCatalogService.GetAudioPackStyle(item) == GameStyleMode.Titanfall2
                 || PackCatalogService.GetAudioPackStyle(item) == GameStyleMode.LeagueOfLegends
                 || PackCatalogService.GetAudioPackStyle(item) == GameStyleMode.Rdr2
+                || PackCatalogService.GetAudioPackStyle(item) == GameStyleMode.WarThunder
                 || (PackCatalogService.GetAudioPackKind(item) == AudioPackKind.CharacterVoice
                     && PackCatalogService.GetAudioPackStyle(item) != GameStyleMode.Crossfire)
                 || (PackCatalogService.GetAudioPackKind(item) == AudioPackKind.SoundEffect

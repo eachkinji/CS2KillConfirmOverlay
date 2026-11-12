@@ -62,6 +62,7 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay.Controls.GameStyles
                     || style == GameStyleMode.Titanfall2
                     || style == GameStyleMode.LeagueOfLegends
                     || style == GameStyleMode.Rdr2
+                    || style == GameStyleMode.WarThunder
                     ? Visibility.Visible
                     : Visibility.Collapsed;
                 UpperRow.Configure(
@@ -73,7 +74,9 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay.Controls.GameStyles
                                 ? (isChinese ? "上方海克斯连杀与目标播报横幅 (BannerScene)" : "Upper Hextech announcer banner (BannerScene)")
                                 : style == GameStyleMode.Rdr2
                                     ? (isChinese ? "右侧善恶荣誉徽章与西部赏金栈" : "Right Honor medallion & Western XP stack")
-                                    : (isChinese ? "上方连杀提示" : "Upper streak feedback"),
+                                    : style == GameStyleMode.WarThunder
+                                        ? (isChinese ? "上方多图层英勇勋章与鲜红辉光奖励" : "Top layered heroic medals & red-glow reward")
+                                        : (isChinese ? "上方连杀提示" : "Upper streak feedback"),
                     settings.UpperEnabled,
                     settings.UpperBrightnessPercent,
                     settings.UpperContrastPercent,
@@ -210,6 +213,10 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay.Controls.GameStyles
             {
                 return isChinese ? "中央准星命中叉标与死神之眼红叉" : "Center Scaleform hitmarker & Dead Eye X";
             }
+            if (style == GameStyleMode.WarThunder)
+            {
+                return isChinese ? "中央 45° 四翼命中标与 3D 击杀标上浮" : "Center 45° hitmarks & floating 3D killmark";
+            }
 
             return isChinese ? "中央准心 KillMark" : "Center crosshair KillMark";
         }
@@ -233,6 +240,8 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay.Controls.GameStyles
                         return "Right 4-slot champion kill callout";
                     case GameStyleMode.Rdr2:
                         return "Bottom 16-state Honor bar & outlaw banner";
+                    case GameStyleMode.WarThunder:
+                        return "Right 2.5D X-Ray HitCamera & team kill log";
                     case GameStyleMode.Csol:
                         return "Lower streak and special icons";
                     case GameStyleMode.Valorant:
@@ -259,6 +268,8 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay.Controls.GameStyles
                     return "右侧四槽英雄头像击杀通告栏";
                 case GameStyleMode.Rdr2:
                     return "底部 16 档善恶荣誉条与西部淘汰播报";
+                case GameStyleMode.WarThunder:
+                    return "右侧 2.5D X-Ray 穿甲毁伤相机与阵营战报";
                 case GameStyleMode.Csol:
                     return "下方连杀与特殊图标";
                 case GameStyleMode.Valorant:

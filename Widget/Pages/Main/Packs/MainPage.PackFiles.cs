@@ -474,6 +474,10 @@ namespace KillConfirmGameBar
                     {
                         return await installed.GetFolderAsync(@"Assets\GameStyles\rdr2\killconfirm\textures");
                     }
+                    if (string.Equals(key, "warthunder", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return await installed.GetFolderAsync(@"Assets\GameStyles\warthunder\killconfirm\textures");
+                    }
 
                     // Valorant
                     if (key.StartsWith("valorant_", StringComparison.OrdinalIgnoreCase))

@@ -31,6 +31,7 @@ namespace KillConfirmCompatibility.Contracts
                 case "cod2022_icon": inferredGame = "cod2022"; content = PackImportContent.Icon; break;
                 case "leagueoflegends_icon": inferredGame = "leagueoflegends"; content = PackImportContent.Icon; break;
                 case "rdr2_icon": inferredGame = "rdr2"; content = PackImportContent.Icon; break;
+                case "warthunder_icon": inferredGame = "warthunder"; content = PackImportContent.Icon; break;
                 case "audio": content = PackImportContent.Audio; break;
                 case "icon": content = PackImportContent.Icon; break;
             }
@@ -106,6 +107,7 @@ namespace KillConfirmCompatibility.Contracts
                 case "三国杀": case "sgs": return "sanguosha";
                 case "lol": case "league_of_legends": case "英雄联盟": return "leagueoflegends";
                 case "reddeadredemption2": case "reddead2": case "red_dead_redemption_2": case "荒野大镖客2": case "荒野大镖客": case "大表哥2": return "rdr2";
+                case "war_thunder": case "wt": case "战争雷霆": case "战雷": return "warthunder";
                 default: return Normalize(value);
             }
         }

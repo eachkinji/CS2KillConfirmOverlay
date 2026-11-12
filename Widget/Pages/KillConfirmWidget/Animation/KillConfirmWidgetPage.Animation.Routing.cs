@@ -381,10 +381,10 @@ namespace KillConfirmGameBar
 
             string testWeaponName = !string.IsNullOrWhiteSpace(preset.WeaponName)
                 ? preset.WeaponName
-                : (preset.IsKnifeKill ? "Knife" : (preset.IsGrenadeKill ? "HE Grenade" : "AK-47"));
+                : (preset.IsKnifeKill ? "Knife" : (preset.IsGrenadeKill ? "HE Grenade" : (GameSourceSettingsStore.IsLol ? "英雄击杀" : "AK-47")));
             int testMoneyReward = preset.MoneyReward;
             query.Add("player_name=" + Uri.EscapeDataString("玩家"));
-            query.Add("target_name=" + Uri.EscapeDataString("恐怖分子"));
+            query.Add("target_name=" + Uri.EscapeDataString(GameSourceSettingsStore.IsLol ? "敌方英雄" : "恐怖分子"));
             query.Add("weapon_name=" + Uri.EscapeDataString(testWeaponName));
             query.Add("money_reward=" + testMoneyReward);
             query.Add("audio=true");
@@ -486,7 +486,7 @@ namespace KillConfirmGameBar
         private void ApplyLegacyAuxiliaryTransform()
         {
             GameStyleMode style = GameStyleService.Current;
-            if (style != GameStyleMode.ModernWarfare2019 && !GameStyleService.IsAuxiliaryKillMarkStyle(style))
+            if (style != GameStyleMode.ModernWarfare2019 && style != GameStyleMode.Cod2022 && style != GameStyleMode.Titanfall2 && style != GameStyleMode.LeagueOfLegends && style != GameStyleMode.Rdr2 && !GameStyleService.IsAuxiliaryKillMarkStyle(style))
             {
                 return;
             }

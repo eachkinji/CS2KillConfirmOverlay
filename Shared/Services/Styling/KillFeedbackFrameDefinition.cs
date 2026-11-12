@@ -30,6 +30,10 @@ namespace KillConfirmCompatibility.Services
             return style == GameStyleMode.Overwatch
                 || style == GameStyleMode.Apex
                 || style == GameStyleMode.ModernWarfare2019
+                || style == GameStyleMode.Cod2022
+                || style == GameStyleMode.Titanfall2
+                || style == GameStyleMode.LeagueOfLegends
+                || style == GameStyleMode.Rdr2
                     ? KillFeedbackLayer.Crosshair
                     : KillFeedbackLayer.Lower;
         }
@@ -37,6 +41,10 @@ namespace KillConfirmCompatibility.Services
         public static KillFeedbackLayer GetLegacyAuxiliaryLayer(GameStyleMode style)
         {
             return style == GameStyleMode.ModernWarfare2019
+                || style == GameStyleMode.Cod2022
+                || style == GameStyleMode.Titanfall2
+                || style == GameStyleMode.LeagueOfLegends
+                || style == GameStyleMode.Rdr2
                 ? KillFeedbackLayer.Upper
                 : KillFeedbackLayer.Crosshair;
         }
@@ -45,7 +53,12 @@ namespace KillConfirmCompatibility.Services
         {
             return layer == KillFeedbackLayer.Crosshair
                 || layer == KillFeedbackLayer.Lower
-                || (layer == KillFeedbackLayer.Upper && style == GameStyleMode.ModernWarfare2019);
+                || (layer == KillFeedbackLayer.Upper
+                    && (style == GameStyleMode.ModernWarfare2019
+                        || style == GameStyleMode.Cod2022
+                        || style == GameStyleMode.Titanfall2
+                        || style == GameStyleMode.LeagueOfLegends
+                        || style == GameStyleMode.Rdr2));
         }
 
         public static LegacyFeedbackPlacementSlot GetLegacyPlacementSlot(

@@ -11,7 +11,8 @@ namespace KillConfirmCompatibility.Desktop.Runtime
         {
             var counts = new Dictionary<string, int> { ["one"] = 1, ["two"] = 2, ["three"] = 3, ["four"] = 4, ["five"] = 5, ["six"] = 6, ["seven"] = 7, ["eight"] = 8, ["nine"] = 9 };
             key ??= "three";
-            var e = new KillEvent { KillCount = counts.TryGetValue(key, out int count) ? count : 1, PlayMainAnimation = true, EventChannel = "combat", EventKind = "kill", PlayerName = "玩家", TargetName = "恐怖分子", WeaponName = "AK-47", MoneyReward = 300 };
+            bool isLolSource = GameSourceSettingsStore.IsLol || key.StartsWith("lol_", StringComparison.OrdinalIgnoreCase);
+            var e = new KillEvent { KillCount = counts.TryGetValue(key, out int count) ? count : 1, PlayMainAnimation = true, EventChannel = "combat", EventKind = "kill", PlayerName = "玩家", TargetName = isLolSource ? "敌方英雄" : "恐怖分子", WeaponName = isLolSource ? "英雄击杀" : "AK-47", MoneyReward = 300, Source = isLolSource ? "lol" : "cs2" };
             e.IsHeadshot = key == "one_hs" || key.StartsWith("gold_");
             e.IsKnifeKill = key == "one_knife"; e.IsGrenadeKill = key == "one_grenade";
             e.IsFirstKill = key.EndsWith("_first"); e.IsLastKill = key.EndsWith("_last");

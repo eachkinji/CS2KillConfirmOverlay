@@ -27,6 +27,10 @@ namespace KillConfirmCompatibility.Contracts
                 case "valorant_icon": inferredGame = "valorant"; content = PackImportContent.Icon; break;
                 case "crossfire_icon": inferredGame = "crossfire"; content = PackImportContent.Icon; break;
                 case "calabiyau_icon": inferredGame = "calabiyau"; content = PackImportContent.Icon; break;
+                case "titanfall2_icon": inferredGame = "titanfall2"; content = PackImportContent.Icon; break;
+                case "cod2022_icon": inferredGame = "cod2022"; content = PackImportContent.Icon; break;
+                case "leagueoflegends_icon": inferredGame = "leagueoflegends"; content = PackImportContent.Icon; break;
+                case "rdr2_icon": inferredGame = "rdr2"; content = PackImportContent.Icon; break;
                 case "audio": content = PackImportContent.Audio; break;
                 case "icon": content = PackImportContent.Icon; break;
             }
@@ -87,7 +91,9 @@ namespace KillConfirmCompatibility.Contracts
             {
                 case "ow": return "overwatch";
                 case "modernwarfare": case "mw2019": case "mw19": return "modernwarfare2019";
+                case "cod19": case "mw2022": case "mw22": case "mwii": case "modernwarfare2": case "modernwarfare2022": case "现代战争2022": case "使命召唤19": return "cod2022";
                 case "apexlegends": case "apex_legends": return "apex";
+                case "titanfall_2": case "titanfall": case "tf2": case "泰坦陨落": case "泰坦陨落2": return "titanfall2";
                 case "bf1": return "battlefield1";
                 case "bf5": return "battlefield5";
                 case "bf4": return "battlefield4";
@@ -98,6 +104,8 @@ namespace KillConfirmCompatibility.Contracts
                 case "豆包": return "doubao";
                 case "大狗叫": return "dagoujiao";
                 case "三国杀": case "sgs": return "sanguosha";
+                case "lol": case "league_of_legends": case "英雄联盟": return "leagueoflegends";
+                case "reddeadredemption2": case "reddead2": case "red_dead_redemption_2": case "荒野大镖客2": case "荒野大镖客": case "大表哥2": return "rdr2";
                 default: return Normalize(value);
             }
         }

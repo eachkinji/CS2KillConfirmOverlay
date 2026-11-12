@@ -49,12 +49,16 @@ namespace KillConfirmCompatibility.Controls
             ClearBattlefield4IconCache();
             ClearBattlefield2042IconCache();
             ClearBattlefield6IconCache();
+            ClearTitanfall2IconCache();
             ClearPubgIconCache();
             ClearDeltaForceIconCache();
             ClearDoubaoIconCache();
             ClearDagoujiaoImageCache();
             ClearOverwatchIconCache();
             ClearModernWarfare2019IconCache();
+            ClearCod2022IconCache();
+            ClearLeagueOfLegendsIconCache();
+            ClearRdr2IconCache();
             ClearSanguoshaCache();
             return true;
         }
@@ -100,6 +104,10 @@ namespace KillConfirmCompatibility.Controls
                 && !GameStyleService.IsOverwatchKey(normalized)
                 && !GameStyleService.IsApexKey(normalized)
                 && !GameStyleService.IsModernWarfare2019Key(normalized)
+                && !GameStyleService.IsCod2022Key(normalized)
+                && !GameStyleService.IsTitanfall2Key(normalized)
+                && !GameStyleService.IsLeagueOfLegendsKey(normalized)
+                && !GameStyleService.IsRdr2Key(normalized)
                 && !PackCatalogService.IsImportedIconPackKey(normalized))
             {
                 normalized = "default";
@@ -170,6 +178,10 @@ namespace KillConfirmCompatibility.Controls
             ResetOverwatchState();
             ResetApexFeedState();
             ResetModernWarfare2019State();
+            ResetCod2022State();
+            ResetTitanfall2State();
+            ResetLeagueOfLegendsState();
+            ResetRdr2State();
             DisposeSanguoshaRenderer();
             Visibility = Visibility.Collapsed;
             ReleaseAllAnimationResourceCaches();
@@ -230,6 +242,7 @@ namespace KillConfirmCompatibility.Controls
             ClearBattlefield4IconCache();
             ClearBattlefield2042IconCache();
             ClearBattlefield6IconCache();
+            ClearTitanfall2IconCache();
             ClearPubgIconCache();
             ClearDeltaForceIconCache();
             ClearDoubaoIconCache();
@@ -237,6 +250,9 @@ namespace KillConfirmCompatibility.Controls
             ClearOverwatchIconCache();
             ClearApexHitmarkCache();
             ClearModernWarfare2019IconCache();
+            ClearCod2022IconCache();
+            ClearLeagueOfLegendsIconCache();
+            ClearRdr2IconCache();
             ClearSanguoshaCache();
             foreach (CanvasBitmap bitmap in bitmaps)
             {

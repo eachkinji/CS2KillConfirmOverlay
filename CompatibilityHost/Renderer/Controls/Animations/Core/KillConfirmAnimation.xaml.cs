@@ -123,7 +123,25 @@ namespace KillConfirmCompatibility.Controls
                         : _drawModernWarfare2019UpperBanner
                             ? ModernWarfare2019UpperSelectionWidth
                             : ModernWarfare2019SelectionWidth)
-                    : InteractionViewportWidth;
+                    : _isCod2022HudActive
+                        ? (_cod2022LayerRole == Cod2022LayerRole.LowerBanner
+                            ? Cod2022LowerFrameWidth
+                            : _cod2022LayerRole == Cod2022LayerRole.UpperSplash
+                                ? Cod2022UpperFrameWidth
+                                : Cod2022CrosshairFrameWidth)
+                        : _isLeagueOfLegendsHudActive
+                            ? (_leagueOfLegendsLayerRole == LeagueOfLegendsLayerRole.LowerCallout
+                                ? LeagueOfLegendsLowerFrameWidth
+                                : _leagueOfLegendsLayerRole == LeagueOfLegendsLayerRole.UpperBanner
+                                    ? LeagueOfLegendsUpperFrameWidth
+                                    : LeagueOfLegendsCrosshairFrameWidth)
+                            : _isRdr2HudActive
+                                ? (_rdr2LayerRole == Rdr2LayerRole.LowerHonorBar
+                                    ? Rdr2LowerFrameWidth
+                                    : _rdr2LayerRole == Rdr2LayerRole.UpperHonorToast
+                                        ? Rdr2UpperFrameWidth
+                                        : Rdr2CrosshairFrameWidth)
+                                : InteractionViewportWidth;
         public double SelectionViewportHeight => _isOverwatchActive
             ? _overwatchSelectionViewportHeight
             : _isApexFeedActive
@@ -134,7 +152,25 @@ namespace KillConfirmCompatibility.Controls
                         : _drawModernWarfare2019UpperBanner
                             ? ModernWarfare2019UpperSelectionHeight
                             : ModernWarfare2019SelectionHeight)
-                    : InteractionViewportHeight;
+                    : _isCod2022HudActive
+                        ? (_cod2022LayerRole == Cod2022LayerRole.LowerBanner
+                            ? Cod2022LowerFrameHeight
+                            : _cod2022LayerRole == Cod2022LayerRole.UpperSplash
+                                ? Cod2022UpperFrameHeight
+                                : Cod2022CrosshairFrameHeight)
+                        : _isLeagueOfLegendsHudActive
+                            ? (_leagueOfLegendsLayerRole == LeagueOfLegendsLayerRole.LowerCallout
+                                ? LeagueOfLegendsLowerFrameHeight
+                                : _leagueOfLegendsLayerRole == LeagueOfLegendsLayerRole.UpperBanner
+                                    ? LeagueOfLegendsUpperFrameHeight
+                                    : LeagueOfLegendsCrosshairFrameHeight)
+                            : _isRdr2HudActive
+                                ? (_rdr2LayerRole == Rdr2LayerRole.LowerHonorBar
+                                    ? Rdr2LowerFrameHeight
+                                    : _rdr2LayerRole == Rdr2LayerRole.UpperHonorToast
+                                        ? Rdr2UpperFrameHeight
+                                        : Rdr2CrosshairFrameHeight)
+                                : InteractionViewportHeight;
         public double SelectionViewportCenterOffsetX => _isOverwatchActive
             ? _overwatchSelectionViewportCenterOffsetX
             : _isApexFeedActive

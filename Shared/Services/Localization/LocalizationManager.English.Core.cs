@@ -236,6 +236,8 @@ namespace KillConfirmCompatibility.Services
             ["deltaforce"] = "Delta Force",
             ["doubao"] = "Doubao",
             ["sanguosha"] = "Sanguosha · 10th Anniv. Kill Broadcast",
+            ["leagueoflegends"] = "League of Legends · Hextech Broadcast",
+            ["rdr2"] = "Red Dead Redemption 2 · Honor & Dead Eye",
             ["dagoujiao"] = "Big Dog Bark",
 
             // Built-in Icon Names

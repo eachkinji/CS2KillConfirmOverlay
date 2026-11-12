@@ -345,8 +345,16 @@ namespace KillConfirmGameBar
                     return SharedResources.CachedAssetUri("Assets/GameStyles/overwatch/killconfirm/textures/preview.png");
                 case "modernwarfare2019":
                     return SharedResources.CachedAssetUri("Assets/GameLogos/modernwarfare2019.png");
+                case "cod2022":
+                    return SharedResources.CachedAssetUri("Assets/GameLogos/cod2022.png");
                 case "apex":
                     return SharedResources.CachedAssetUri("Assets/GameLogos/apex.png");
+                case "titanfall2":
+                    return SharedResources.CachedAssetUri("Assets/GameLogos/titanfall2.png");
+                case "leagueoflegends":
+                    return SharedResources.CachedAssetUri("Assets/GameLogos/leagueoflegends.png");
+                case "rdr2":
+                    return SharedResources.CachedAssetUri("Assets/GameLogos/rdr2.png");
                 case "csol4":
                     return SharedResources.CachedAssetUri("Assets/KillConfirmCode/Csol4/headshot_kill.png");
                 default:
@@ -383,8 +391,16 @@ namespace KillConfirmGameBar
                     return SharedResources.CachedAssetUri("Assets/GameStyles/overwatch/killconfirm/textures/preview.png");
                 case GameStyleMode.ModernWarfare2019:
                     return SharedResources.CachedAssetUri("Assets/GameLogos/modernwarfare2019.png");
+                case GameStyleMode.Cod2022:
+                    return SharedResources.CachedAssetUri("Assets/GameLogos/cod2022.png");
                 case GameStyleMode.Apex:
                     return SharedResources.CachedAssetUri("Assets/GameLogos/apex.png");
+                case GameStyleMode.Titanfall2:
+                    return SharedResources.CachedAssetUri("Assets/GameLogos/titanfall2.png");
+                case GameStyleMode.LeagueOfLegends:
+                    return SharedResources.CachedAssetUri("Assets/GameLogos/leagueoflegends.png");
+                case GameStyleMode.Rdr2:
+                    return SharedResources.CachedAssetUri("Assets/GameLogos/rdr2.png");
                 default:
                     return CrossfireExternalAssetService.VisualUri("Original", "badge_headshot.PNG");
             }

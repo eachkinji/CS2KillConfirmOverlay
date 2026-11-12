@@ -122,6 +122,24 @@ namespace KillConfirmCompatibility.Controls
                 return PreloadModernWarfare2019AnimationsAsync(progress);
             }
 
+            if (GameStyleService.IsCod2022Key(_iconPack)
+                || GameStyleService.Current == GameStyleMode.Cod2022)
+            {
+                return PreloadCod2022AnimationsAsync(progress);
+            }
+
+            if (GameStyleService.IsLeagueOfLegendsKey(_iconPack)
+                || GameStyleService.Current == GameStyleMode.LeagueOfLegends)
+            {
+                return PreloadLeagueOfLegendsAnimationsAsync(progress);
+            }
+
+            if (GameStyleService.IsRdr2Key(_iconPack)
+                || GameStyleService.Current == GameStyleMode.Rdr2)
+            {
+                return PreloadRdr2AnimationsAsync(progress);
+            }
+
             if (GameStyleService.IsCsolKey(_iconPack)
                 || GameStyleService.Current == GameStyleMode.Csol)
             {
@@ -163,6 +181,11 @@ namespace KillConfirmCompatibility.Controls
             if (GameStyleService.IsBattlefield6Key(_iconPack) || GameStyleService.Current == GameStyleMode.Battlefield6)
             {
                 return PreloadBattlefield6AnimationsAsync(progress);
+            }
+
+            if (GameStyleService.IsTitanfall2Key(_iconPack) || GameStyleService.Current == GameStyleMode.Titanfall2)
+            {
+                return PreloadTitanfall2AnimationsAsync(progress);
             }
 
             if (GameStyleService.IsPubgKey(_iconPack))

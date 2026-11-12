@@ -236,6 +236,8 @@ namespace KillConfirmCompatibility.Services
             ["deltaforce"] = "\u4e09\u89d2\u6d32\u884c\u52a8",
             ["doubao"] = "\u8c46\u5305",
             ["sanguosha"] = "三国杀 · 十周年连破播报",
+            ["leagueoflegends"] = "英雄联盟 · 海克斯科技播报",
+            ["rdr2"] = "荒野大镖客 2 · 善恶荣誉与死神之眼",
             ["dagoujiao"] = "\u5927\u72d7\u53eb",
 
             // Built-in Icon Names

@@ -14,12 +14,20 @@ namespace KillConfirmCompatibility.Services
         private const string ValorantSettingKey = "ValorantAssistAudioEnabled";
         private const string OverwatchSettingKey = "OverwatchAssistAudioEnabled";
         private const string ModernWarfare2019SettingKey = "ModernWarfare2019AssistAudioEnabled";
+        private const string Cod2022SettingKey = "Cod2022AssistAudioEnabled";
+        private const string Titanfall2SettingKey = "Titanfall2AssistAudioEnabled";
+        private const string LeagueOfLegendsSettingKey = "LeagueOfLegendsAssistAudioEnabled";
+        private const string Rdr2SettingKey = "Rdr2AssistAudioEnabled";
 
         public static bool IsSupported(GameStyleMode style)
         {
             return style == GameStyleMode.Valorant
                 || style == GameStyleMode.Overwatch
-                || style == GameStyleMode.ModernWarfare2019;
+                || style == GameStyleMode.ModernWarfare2019
+                || style == GameStyleMode.Cod2022
+                || style == GameStyleMode.Titanfall2
+                || style == GameStyleMode.LeagueOfLegends
+                || style == GameStyleMode.Rdr2;
         }
 
         public static bool Load(GameStyleMode style)
@@ -60,6 +68,14 @@ namespace KillConfirmCompatibility.Services
                     return OverwatchSettingKey;
                 case GameStyleMode.ModernWarfare2019:
                     return ModernWarfare2019SettingKey;
+                case GameStyleMode.Cod2022:
+                    return Cod2022SettingKey;
+                case GameStyleMode.Titanfall2:
+                    return Titanfall2SettingKey;
+                case GameStyleMode.LeagueOfLegends:
+                    return LeagueOfLegendsSettingKey;
+                case GameStyleMode.Rdr2:
+                    return Rdr2SettingKey;
                 default:
                     return null;
             }

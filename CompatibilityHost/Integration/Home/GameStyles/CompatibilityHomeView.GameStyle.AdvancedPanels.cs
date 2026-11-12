@@ -40,6 +40,10 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _pubgAdvancedEffectsPanel) return _pubgAdvancedEffectsPanel?.MoneyRewardModeSelectorControl;
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _apexAdvancedEffectsPanel) return _apexAdvancedEffectsPanel?.MoneyRewardModeSelectorControl;
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _modernWarfare2019AdvancedEffectsPanel) return _modernWarfare2019AdvancedEffectsPanel?.MoneyRewardModeSelectorControl;
+                if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _cod2022AdvancedEffectsPanel) return _cod2022AdvancedEffectsPanel?.MoneyRewardModeSelectorControl;
+                if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _titanfall2AdvancedEffectsPanel) return _titanfall2AdvancedEffectsPanel?.MoneyRewardModeSelectorControl;
+                if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _leagueOfLegendsAdvancedEffectsPanel) return _leagueOfLegendsAdvancedEffectsPanel?.MoneyRewardModeSelectorControl;
+                if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _rdr2AdvancedEffectsPanel) return _rdr2AdvancedEffectsPanel?.MoneyRewardModeSelectorControl;
                 return null;
             }
         }
@@ -57,6 +61,10 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _pubgAdvancedEffectsPanel) return _pubgAdvancedEffectsPanel?.MoneyRewardModeLabelControl;
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _apexAdvancedEffectsPanel) return _apexAdvancedEffectsPanel?.MoneyRewardModeLabelControl;
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _modernWarfare2019AdvancedEffectsPanel) return _modernWarfare2019AdvancedEffectsPanel?.MoneyRewardModeLabelControl;
+                if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _cod2022AdvancedEffectsPanel) return _cod2022AdvancedEffectsPanel?.MoneyRewardModeLabelControl;
+                if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _titanfall2AdvancedEffectsPanel) return _titanfall2AdvancedEffectsPanel?.MoneyRewardModeLabelControl;
+                if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _leagueOfLegendsAdvancedEffectsPanel) return _leagueOfLegendsAdvancedEffectsPanel?.MoneyRewardModeLabelControl;
+                if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _rdr2AdvancedEffectsPanel) return _rdr2AdvancedEffectsPanel?.MoneyRewardModeLabelControl;
                 return null;
             }
         }
@@ -74,6 +82,10 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _pubgAdvancedEffectsPanel) return _pubgAdvancedEffectsPanel?.MoneyRewardDeltaItemControl;
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _apexAdvancedEffectsPanel) return _apexAdvancedEffectsPanel?.MoneyRewardDeltaItemControl;
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _modernWarfare2019AdvancedEffectsPanel) return _modernWarfare2019AdvancedEffectsPanel?.MoneyRewardDeltaItemControl;
+                if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _cod2022AdvancedEffectsPanel) return _cod2022AdvancedEffectsPanel?.MoneyRewardDeltaItemControl;
+                if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _titanfall2AdvancedEffectsPanel) return _titanfall2AdvancedEffectsPanel?.MoneyRewardDeltaItemControl;
+                if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _leagueOfLegendsAdvancedEffectsPanel) return _leagueOfLegendsAdvancedEffectsPanel?.MoneyRewardDeltaItemControl;
+                if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _rdr2AdvancedEffectsPanel) return _rdr2AdvancedEffectsPanel?.MoneyRewardDeltaItemControl;
                 return null;
             }
         }
@@ -91,6 +103,10 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _pubgAdvancedEffectsPanel) return _pubgAdvancedEffectsPanel?.MoneyRewardRulesItemControl;
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _apexAdvancedEffectsPanel) return _apexAdvancedEffectsPanel?.MoneyRewardRulesItemControl;
                 if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _modernWarfare2019AdvancedEffectsPanel) return _modernWarfare2019AdvancedEffectsPanel?.MoneyRewardRulesItemControl;
+                if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _cod2022AdvancedEffectsPanel) return _cod2022AdvancedEffectsPanel?.MoneyRewardRulesItemControl;
+                if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _titanfall2AdvancedEffectsPanel) return _titanfall2AdvancedEffectsPanel?.MoneyRewardRulesItemControl;
+                if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _leagueOfLegendsAdvancedEffectsPanel) return _leagueOfLegendsAdvancedEffectsPanel?.MoneyRewardRulesItemControl;
+                if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _rdr2AdvancedEffectsPanel) return _rdr2AdvancedEffectsPanel?.MoneyRewardRulesItemControl;
                 return null;
             }
         }
@@ -113,6 +129,30 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                     break;
                 case GameStyleMode.Apex:
                     panel = EnsureApexAdvancedEffectsPanel();
+                    break;
+                case GameStyleMode.Cod2022:
+                    EnsureCod2022AdvancedEffectsPanel();
+                    _cod2022AdvancedEffectsPanel.SetAssistAudioEnabled(AssistAudioSettingsStore.Load(GameStyleMode.Cod2022));
+                    _cod2022AdvancedEffectsPanel.LoadCod2022Settings();
+                    panel = _cod2022AdvancedEffectsPanel;
+                    break;
+                case GameStyleMode.Titanfall2:
+                    EnsureTitanfall2AdvancedEffectsPanel();
+                    _titanfall2AdvancedEffectsPanel.SetAssistAudioEnabled(AssistAudioSettingsStore.Load(GameStyleMode.Titanfall2));
+                    _titanfall2AdvancedEffectsPanel.LoadTitanfall2Settings();
+                    panel = _titanfall2AdvancedEffectsPanel;
+                    break;
+                case GameStyleMode.LeagueOfLegends:
+                    EnsureLeagueOfLegendsAdvancedEffectsPanel();
+                    _leagueOfLegendsAdvancedEffectsPanel.SetAssistAudioEnabled(AssistAudioSettingsStore.Load(GameStyleMode.LeagueOfLegends));
+                    _leagueOfLegendsAdvancedEffectsPanel.LoadLeagueOfLegendsSettings();
+                    panel = _leagueOfLegendsAdvancedEffectsPanel;
+                    break;
+                case GameStyleMode.Rdr2:
+                    EnsureRdr2AdvancedEffectsPanel();
+                    _rdr2AdvancedEffectsPanel.SetAssistAudioEnabled(AssistAudioSettingsStore.Load(GameStyleMode.Rdr2));
+                    _rdr2AdvancedEffectsPanel.LoadRdr2Settings();
+                    panel = _rdr2AdvancedEffectsPanel;
                     break;
                 case GameStyleMode.Valorant:
                     panel = EnsureValorantAdvancedEffectsPanel();

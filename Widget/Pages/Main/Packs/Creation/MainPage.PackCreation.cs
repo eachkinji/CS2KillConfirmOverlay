@@ -189,6 +189,26 @@ namespace KillConfirmGameBar
                 await ImportValorantPackageFromZipAsync(ValorantExternalAssetService.IconPackageKind);
                 return;
             }
+            if (SettingsGameStyle == GameStyleMode.Cod2022)
+            {
+                await ImportCod2022IconZipAsync();
+                return;
+            }
+            if (SettingsGameStyle == GameStyleMode.Titanfall2)
+            {
+                await ImportTitanfall2IconZipAsync();
+                return;
+            }
+            if (SettingsGameStyle == GameStyleMode.LeagueOfLegends)
+            {
+                await ImportLeagueOfLegendsIconZipAsync();
+                return;
+            }
+            if (SettingsGameStyle == GameStyleMode.Rdr2)
+            {
+                await ImportRdr2IconZipAsync();
+                return;
+            }
             if (await GuardIconPackCreationAsync())
             {
                 return;

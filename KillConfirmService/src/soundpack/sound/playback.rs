@@ -409,6 +409,8 @@ async fn play_audio_channel(
         return Ok(());
     }
 
+    let is_leagueoflegends_style =
+        is_pack_style(&preset.preset_name, preset.manifest.as_ref(), "leagueoflegends");
     let delay = if is_pack_style(&preset.preset_name, preset.manifest.as_ref(), "calabiyau") {
         let timing = preset.manifest.as_ref().and_then(|manifest| {
             let slot = timing_slot.as_ref()?;
@@ -480,6 +482,17 @@ async fn play_audio_channel(
                 .streak_gain_maximum_percent
                 .load(Ordering::Relaxed),
         );
+        let entry_delay = if is_leagueoflegends_style {
+            let lol_ms = preset
+                .manifest
+                .as_ref()
+                .map(|m| m.entry_delay_ms(&file_path, timing_slot.as_deref()))
+                .unwrap_or(0)
+                .min(30_000);
+            Duration::from_millis(lol_ms)
+        } else {
+            delay
+        };
         let channel_state = app_state_clone.clone();
         tasks.spawn(async move {
             if uses_battlefield2042_rules {
@@ -500,10 +513,13 @@ async fn play_audio_channel(
                     active_sinks,
                     final_gain,
                     dagoujiao_playback_speed,
-                    delay,
+                    entry_delay,
                 )
                 .await
             } else {
+                if !entry_delay.is_zero() {
+                    sleep(entry_delay).await;
+                }
                 add_file_to_mixer(
                     &file_path,
                     &mixer_clone,

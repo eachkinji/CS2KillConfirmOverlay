@@ -162,6 +162,15 @@ namespace KillConfirmCompatibility
                 };
                 application.Run(); return;
             }
+            if (args.Length == 3 && args[0] == "--validate-leagueoflegends-hud")
+            {
+                application.Startup += async (s, e) =>
+                {
+                    try { await Controls.KillConfirmAnimation.ValidateLeagueOfLegendsHudAsync(args[1], args[2]); application.Shutdown(0); }
+                    catch (Exception error) { Directory.CreateDirectory(args[1]); File.WriteAllText(Path.Combine(args[1], "failure.txt"), error.ToString()); application.Shutdown(1); }
+                };
+                application.Run(); return;
+            }
             if (args.Length == 3 && args[0] == "--validate-builtin-preloading")
             {
                 application.Startup += async (s, e) =>

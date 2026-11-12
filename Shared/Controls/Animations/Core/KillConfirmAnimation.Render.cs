@@ -94,6 +94,21 @@ namespace KillConfirmCompatibility.Controls
                 DrawModernWarfare2019Frame(drawingSession);
                 return;
             }
+            if (_isCod2022HudActive)
+            {
+                DrawCod2022HudFrame(drawingSession);
+                return;
+            }
+            if (_isLeagueOfLegendsHudActive)
+            {
+                DrawLeagueOfLegendsHudFrame(drawingSession);
+                return;
+            }
+            if (_isRdr2HudActive)
+            {
+                DrawRdr2HudFrame(drawingSession);
+                return;
+            }
             if (_isApexFeedActive)
             {
                 DrawApexFeedFrame(drawingSession);
@@ -174,6 +189,11 @@ namespace KillConfirmCompatibility.Controls
             if (_isBattlefield6HudActive)
             {
                 DrawBattlefield6HudFrame(drawingSession);
+                return;
+            }
+            if (_isTitanfall2HudActive)
+            {
+                DrawTitanfall2HudFrame(drawingSession);
                 return;
             }
             if (_isPubgHudActive)
@@ -372,6 +392,24 @@ namespace KillConfirmCompatibility.Controls
                 return;
             }
 
+            if (_isCod2022HudActive)
+            {
+                UpdateCod2022HudFrame();
+                return;
+            }
+
+            if (_isLeagueOfLegendsHudActive)
+            {
+                UpdateLeagueOfLegendsHudFrame();
+                return;
+            }
+
+            if (_isRdr2HudActive)
+            {
+                UpdateRdr2HudFrame();
+                return;
+            }
+
             if (_isApexFeedActive)
             {
                 UpdateApexFeedFrame();
@@ -429,6 +467,12 @@ namespace KillConfirmCompatibility.Controls
             if (_isBattlefield6HudActive)
             {
                 UpdateBattlefield6HudFrame();
+                return;
+            }
+
+            if (_isTitanfall2HudActive)
+            {
+                UpdateTitanfall2HudFrame();
                 return;
             }
 

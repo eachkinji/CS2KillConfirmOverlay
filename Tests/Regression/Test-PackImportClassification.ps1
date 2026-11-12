@@ -44,6 +44,7 @@ $aliases=@{
     battlefield1=@('bf1');battlefield5=@('bf5');battlefield4=@('bf4');battlefield2042=@('bf2042','2042')
     battlefield6=@('battlefield_6','bf6');deltaforce=@('delta','df');calabiyau=@('strinova','卡拉彼丘')
     doubao=@('豆包');dagoujiao=@('大狗叫');sanguosha=@('三国杀','sgs')
+    cod2022=@('mw2022','mwii');titanfall2=@('tf2');leagueoflegends=@('lol','英雄联盟');rdr2=@('reddeadredemption2','荒野大镖客2')
 }
 foreach($canonical in $aliases.Keys) {
     foreach($alias in $aliases[$canonical]) {
@@ -65,7 +66,10 @@ Write-Output 'PASS: typed/legacy and case-insensitive classification, known game
 if(!$PackageRoot){return}
 $root=[IO.Path]::GetFullPath($PackageRoot)
 $catalog=Get-Content -LiteralPath (Join-Path $root '素材清单.json') -Raw -Encoding utf8 | ConvertFrom-Json
-$games=@{'卡拉彼丘'='calabiyau';'无畏契约'='valorant';'穿越火线'='crossfire'}
+$games=@{
+    '卡拉彼丘'='calabiyau';'无畏契约'='valorant';'穿越火线'='crossfire'
+    '使命召唤：现代战争II'='cod2022';'泰坦陨落2'='titanfall2';'英雄联盟'='leagueoflegends';'荒野大镖客：救赎2'='rdr2'
+}
 $checked=0
 foreach($entry in $catalog.packages) {
     $archive=[IO.Compression.ZipFile]::OpenRead((Join-Path $root $entry.file))

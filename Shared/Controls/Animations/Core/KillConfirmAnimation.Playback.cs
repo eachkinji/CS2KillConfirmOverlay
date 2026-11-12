@@ -108,6 +108,10 @@ namespace KillConfirmCompatibility.Controls
             ResetOverwatchState();
             ResetApexFeedState();
             ResetModernWarfare2019State();
+            ResetCod2022State();
+            ResetTitanfall2State();
+            ResetLeagueOfLegendsState();
+            ResetRdr2State();
             HideLoadingProgress();
             Visibility = Visibility.Collapsed;
             SpriteCanvas.Invalidate();

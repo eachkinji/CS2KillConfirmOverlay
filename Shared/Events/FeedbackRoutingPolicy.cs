@@ -50,7 +50,11 @@ namespace KillConfirmCompatibility.Services
                 return true;
             }
 
-            if (style == GameStyleMode.ModernWarfare2019)
+            if (style == GameStyleMode.ModernWarfare2019
+                || style == GameStyleMode.Cod2022
+                || style == GameStyleMode.Titanfall2
+                || style == GameStyleMode.LeagueOfLegends
+                || style == GameStyleMode.Rdr2)
             {
                 string eventKind = killEvent.EventKind ?? killEvent.AnimationKey;
                 if (string.Equals(eventKind, "bomb_plant", StringComparison.OrdinalIgnoreCase)
@@ -81,6 +85,10 @@ namespace KillConfirmCompatibility.Services
                 || (IsEconomyPresentationStyle(style) && IsBattlefieldTextEvent(killEvent))
                 || (style == GameStyleMode.Csol && killEvent.IsCombatEvent)
                 || (style == GameStyleMode.ModernWarfare2019 && (killEvent.IsCombatEvent || isModernWarfare2019Objective))
+                || (style == GameStyleMode.Cod2022 && (killEvent.IsCombatEvent || killEvent.IsEconomyEvent))
+                || (style == GameStyleMode.Titanfall2 && (killEvent.IsCombatEvent || killEvent.IsEconomyEvent))
+                || (style == GameStyleMode.LeagueOfLegends && (killEvent.IsCombatEvent || killEvent.IsEconomyEvent))
+                || (style == GameStyleMode.Rdr2 && (killEvent.IsCombatEvent || killEvent.IsEconomyEvent))
                 || (style == GameStyleMode.Overwatch && killEvent.IsCombatEvent && killEvent.IsAssist)
                 || (style == GameStyleMode.Apex && killEvent.IsCombatEvent && killEvent.IsAssist)
                 || isCrossfireObjective;
@@ -102,14 +110,22 @@ namespace KillConfirmCompatibility.Services
             bool assistStyle = style == GameStyleMode.Csol
                 || style == GameStyleMode.Apex
                 || style == GameStyleMode.Overwatch
-                || style == GameStyleMode.ModernWarfare2019;
+                || style == GameStyleMode.ModernWarfare2019
+                || style == GameStyleMode.Cod2022
+                || style == GameStyleMode.Titanfall2
+                || style == GameStyleMode.LeagueOfLegends
+                || style == GameStyleMode.Rdr2;
             if (assistStyle && killEvent.IsAssist)
             {
                 return true;
             }
 
             return (style == GameStyleMode.Crossfire && IsBombObjectiveEvent(killEvent))
-                || (style == GameStyleMode.ModernWarfare2019 && killEvent.IsEconomyEvent);
+                || (style == GameStyleMode.ModernWarfare2019 && killEvent.IsEconomyEvent)
+                || (style == GameStyleMode.Cod2022 && killEvent.IsEconomyEvent)
+                || (style == GameStyleMode.Titanfall2 && killEvent.IsEconomyEvent)
+                || (style == GameStyleMode.LeagueOfLegends && killEvent.IsEconomyEvent)
+                || (style == GameStyleMode.Rdr2 && killEvent.IsEconomyEvent);
         }
 
         public static bool IsBattlefieldObjectiveEvent(string eventKind)
@@ -157,6 +173,10 @@ namespace KillConfirmCompatibility.Services
                 || style == GameStyleMode.Battlefield4
                 || style == GameStyleMode.Battlefield2042
                 || style == GameStyleMode.Battlefield6
+                || style == GameStyleMode.Cod2022
+                || style == GameStyleMode.Titanfall2
+                || style == GameStyleMode.LeagueOfLegends
+                || style == GameStyleMode.Rdr2
                 || style == GameStyleMode.Pubg
                 || style == GameStyleMode.DeltaForce;
         }

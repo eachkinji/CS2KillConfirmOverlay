@@ -76,7 +76,11 @@ namespace KillConfirmGameBar
 
             if (style == GameStyleMode.Overwatch
                 || style == GameStyleMode.Apex
-                || style == GameStyleMode.ModernWarfare2019)
+                || style == GameStyleMode.ModernWarfare2019
+                || style == GameStyleMode.Cod2022
+                || style == GameStyleMode.Titanfall2
+                || style == GameStyleMode.LeagueOfLegends
+                || style == GameStyleMode.Rdr2)
             {
                 _legacyLowerCardHorizontalOffset = GetDefaultCardHorizontalOffset(style);
                 _legacyLowerCardVerticalOffset = GetDefaultCardVerticalOffset(style);
@@ -85,14 +89,29 @@ namespace KillConfirmGameBar
                 ApplyLegacyLowerCardTransform();
             }
 
-            if (style == GameStyleMode.ModernWarfare2019)
+            if (style == GameStyleMode.ModernWarfare2019 || style == GameStyleMode.Cod2022 || style == GameStyleMode.Titanfall2 || style == GameStyleMode.LeagueOfLegends || style == GameStyleMode.Rdr2)
             {
-                _legacyAuxiliaryHorizontalOffset =
-                    GetDefaultModernWarfare2019UpperHorizontalOffset();
-                _legacyAuxiliaryVerticalOffset =
-                    GetDefaultModernWarfare2019UpperVerticalOffset();
-                _legacyAuxiliaryScale =
-                    GetDefaultModernWarfare2019UpperScale();
+                _legacyAuxiliaryHorizontalOffset = style == GameStyleMode.Titanfall2
+                    ? -420.0
+                    : style == GameStyleMode.Rdr2
+                        ? 360.0
+                        : style == GameStyleMode.Cod2022 || style == GameStyleMode.LeagueOfLegends
+                            ? 0.0
+                            : GetDefaultModernWarfare2019UpperHorizontalOffset();
+                _legacyAuxiliaryVerticalOffset = style == GameStyleMode.Titanfall2
+                    ? 190.0
+                    : style == GameStyleMode.Rdr2
+                        ? 150.0
+                        : style == GameStyleMode.Cod2022
+                            ? -116.0
+                            : style == GameStyleMode.LeagueOfLegends
+                                ? -80.0
+                                : GetDefaultModernWarfare2019UpperVerticalOffset();
+                _legacyAuxiliaryScale = style == GameStyleMode.Titanfall2
+                    ? 0.85
+                    : style == GameStyleMode.Cod2022 || style == GameStyleMode.LeagueOfLegends || style == GameStyleMode.Rdr2
+                        ? 0.90
+                        : GetDefaultModernWarfare2019UpperScale();
                 SaveLegacyAuxiliaryPlacementSettings();
                 ApplyLegacyAuxiliaryTransform();
             }
@@ -111,21 +130,49 @@ namespace KillConfirmGameBar
         {
             bool apex = GameStyleService.Current == GameStyleMode.Apex;
             bool modernWarfare2019 = GameStyleService.Current == GameStyleMode.ModernWarfare2019;
+            bool cod2022 = GameStyleService.Current == GameStyleMode.Cod2022;
+            bool titanfall2 = GameStyleService.Current == GameStyleMode.Titanfall2;
+            bool leagueOfLegends = GameStyleService.Current == GameStyleMode.LeagueOfLegends;
+            bool rdr2 = GameStyleService.Current == GameStyleMode.Rdr2;
             string horizontalKey = apex
                 ? ApexCardHorizontalOffsetSettingKey
                 : modernWarfare2019
                     ? ModernWarfare2019LowerHorizontalOffsetSettingKey
-                    : OverwatchCardHorizontalOffsetSettingKey;
+                    : cod2022
+                        ? Cod2022LowerHorizontalOffsetSettingKey
+                        : titanfall2
+                            ? Titanfall2LowerHorizontalOffsetSettingKey
+                            : leagueOfLegends
+                                ? LeagueOfLegendsLowerHorizontalOffsetSettingKey
+                                : rdr2
+                                    ? Rdr2LowerHorizontalOffsetSettingKey
+                                    : OverwatchCardHorizontalOffsetSettingKey;
             string verticalKey = apex
                 ? ApexCardVerticalOffsetSettingKey
                 : modernWarfare2019
                     ? ModernWarfare2019LowerVerticalOffsetSettingKey
-                    : OverwatchCardVerticalOffsetSettingKey;
+                    : cod2022
+                        ? Cod2022LowerVerticalOffsetSettingKey
+                        : titanfall2
+                            ? Titanfall2LowerVerticalOffsetSettingKey
+                            : leagueOfLegends
+                                ? LeagueOfLegendsLowerVerticalOffsetSettingKey
+                                : rdr2
+                                    ? Rdr2LowerVerticalOffsetSettingKey
+                                    : OverwatchCardVerticalOffsetSettingKey;
             string scaleKey = apex
                 ? ApexCardScaleSettingKey
                 : modernWarfare2019
                     ? ModernWarfare2019LowerScaleSettingKey
-                    : OverwatchCardScaleSettingKey;
+                    : cod2022
+                        ? Cod2022LowerScaleSettingKey
+                        : titanfall2
+                            ? Titanfall2LowerScaleSettingKey
+                            : leagueOfLegends
+                                ? LeagueOfLegendsLowerScaleSettingKey
+                                : rdr2
+                                    ? Rdr2LowerScaleSettingKey
+                                    : OverwatchCardScaleSettingKey;
             _legacyLowerCardHorizontalOffset = ReadDoubleSetting(
                 localSettings,
                 horizontalKey,
@@ -186,6 +233,13 @@ namespace KillConfirmGameBar
                     return 0.15251194969974005;
                 case GameStyleMode.Apex:
                     return 0.31381059609000017;
+                case GameStyleMode.Cod2022:
+                    return 0.85;
+                case GameStyleMode.Titanfall2:
+                    return 0.85;
+                case GameStyleMode.LeagueOfLegends:
+                case GameStyleMode.Rdr2:
+                    return 0.90;
                 default:
                     return 1.0;
             }
@@ -203,6 +257,10 @@ namespace KillConfirmGameBar
 
         private static double GetDefaultCardHorizontalOffset(GameStyleMode style)
         {
+            if (style == GameStyleMode.LeagueOfLegends)
+            {
+                return 460.0;
+            }
             return style == GameStyleMode.Apex
                 || style == GameStyleMode.ModernWarfare2019
                     ? 0.79998779296875
@@ -217,6 +275,14 @@ namespace KillConfirmGameBar
                     return -51.5999755859375;
                 case GameStyleMode.ModernWarfare2019:
                     return 72.79998779296875;
+                case GameStyleMode.Cod2022:
+                    return -92.0;
+                case GameStyleMode.Titanfall2:
+                    return -96.0;
+                case GameStyleMode.LeagueOfLegends:
+                    return -220.0;
+                case GameStyleMode.Rdr2:
+                    return -86.0;
                 default:
                     return 0.0;
             }
@@ -224,7 +290,12 @@ namespace KillConfirmGameBar
 
         private static double GetDefaultCardScale(GameStyleMode style)
         {
-            return style == GameStyleMode.Overwatch ? 0.6561000000000001 : 1.0;
+            return style == GameStyleMode.Overwatch ? 0.6561000000000001
+                : style == GameStyleMode.Cod2022 ? 0.90
+                : style == GameStyleMode.Titanfall2 ? 0.85
+                : style == GameStyleMode.LeagueOfLegends ? 0.95
+                : style == GameStyleMode.Rdr2 ? 0.90
+                : 1.0;
         }
 
         private static double GetDefaultModernWarfare2019UpperHorizontalOffset()
@@ -247,21 +318,49 @@ namespace KillConfirmGameBar
             ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
             bool apex = GameStyleService.Current == GameStyleMode.Apex;
             bool modernWarfare2019 = GameStyleService.Current == GameStyleMode.ModernWarfare2019;
+            bool cod2022 = GameStyleService.Current == GameStyleMode.Cod2022;
+            bool titanfall2 = GameStyleService.Current == GameStyleMode.Titanfall2;
+            bool leagueOfLegends = GameStyleService.Current == GameStyleMode.LeagueOfLegends;
+            bool rdr2 = GameStyleService.Current == GameStyleMode.Rdr2;
             string horizontalKey = apex
                 ? ApexCardHorizontalOffsetSettingKey
                 : modernWarfare2019
                     ? ModernWarfare2019LowerHorizontalOffsetSettingKey
-                    : OverwatchCardHorizontalOffsetSettingKey;
+                    : cod2022
+                        ? Cod2022LowerHorizontalOffsetSettingKey
+                        : titanfall2
+                            ? Titanfall2LowerHorizontalOffsetSettingKey
+                            : leagueOfLegends
+                                ? LeagueOfLegendsLowerHorizontalOffsetSettingKey
+                                : rdr2
+                                    ? Rdr2LowerHorizontalOffsetSettingKey
+                                    : OverwatchCardHorizontalOffsetSettingKey;
             string verticalKey = apex
                 ? ApexCardVerticalOffsetSettingKey
                 : modernWarfare2019
                     ? ModernWarfare2019LowerVerticalOffsetSettingKey
-                    : OverwatchCardVerticalOffsetSettingKey;
+                    : cod2022
+                        ? Cod2022LowerVerticalOffsetSettingKey
+                        : titanfall2
+                            ? Titanfall2LowerVerticalOffsetSettingKey
+                            : leagueOfLegends
+                                ? LeagueOfLegendsLowerVerticalOffsetSettingKey
+                                : rdr2
+                                    ? Rdr2LowerVerticalOffsetSettingKey
+                                    : OverwatchCardVerticalOffsetSettingKey;
             string scaleKey = apex
                 ? ApexCardScaleSettingKey
                 : modernWarfare2019
                     ? ModernWarfare2019LowerScaleSettingKey
-                    : OverwatchCardScaleSettingKey;
+                    : cod2022
+                        ? Cod2022LowerScaleSettingKey
+                        : titanfall2
+                            ? Titanfall2LowerScaleSettingKey
+                            : leagueOfLegends
+                                ? LeagueOfLegendsLowerScaleSettingKey
+                                : rdr2
+                                    ? Rdr2LowerScaleSettingKey
+                                    : OverwatchCardScaleSettingKey;
             localSettings.Values[horizontalKey] = _legacyLowerCardHorizontalOffset;
             localSettings.Values[verticalKey] = _legacyLowerCardVerticalOffset;
             localSettings.Values[scaleKey] = _legacyLowerCardScale;
@@ -272,29 +371,61 @@ namespace KillConfirmGameBar
         {
             bool battlefieldKillMark =
                 GameStyleService.IsAuxiliaryKillMarkStyle(GameStyleService.Current);
+            bool cod2022 = GameStyleService.Current == GameStyleMode.Cod2022;
+            bool titanfall2 = GameStyleService.Current == GameStyleMode.Titanfall2;
+            bool leagueOfLegends = GameStyleService.Current == GameStyleMode.LeagueOfLegends;
+            bool rdr2 = GameStyleService.Current == GameStyleMode.Rdr2;
             string horizontalKey = battlefieldKillMark
                 ? GetAnimationStyleSettingKey(BattlefieldKillMarkHorizontalOffsetSettingKey)
-                : ModernWarfare2019UpperHorizontalOffsetSettingKey;
+                : cod2022
+                    ? Cod2022UpperHorizontalOffsetSettingKey
+                    : titanfall2
+                        ? Titanfall2UpperHorizontalOffsetSettingKey
+                        : leagueOfLegends
+                            ? LeagueOfLegendsUpperHorizontalOffsetSettingKey
+                            : rdr2
+                                ? Rdr2UpperHorizontalOffsetSettingKey
+                                : ModernWarfare2019UpperHorizontalOffsetSettingKey;
             string verticalKey = battlefieldKillMark
                 ? GetAnimationStyleSettingKey(BattlefieldKillMarkVerticalOffsetSettingKey)
-                : ModernWarfare2019UpperVerticalOffsetSettingKey;
+                : cod2022
+                    ? Cod2022UpperVerticalOffsetSettingKey
+                    : titanfall2
+                        ? Titanfall2UpperVerticalOffsetSettingKey
+                        : leagueOfLegends
+                            ? LeagueOfLegendsUpperVerticalOffsetSettingKey
+                            : rdr2
+                                ? Rdr2UpperVerticalOffsetSettingKey
+                                : ModernWarfare2019UpperVerticalOffsetSettingKey;
             string scaleKey = battlefieldKillMark
                 ? GetAnimationStyleSettingKey(BattlefieldKillMarkScaleSettingKey)
-                : ModernWarfare2019UpperScaleSettingKey;
+                : cod2022
+                    ? Cod2022UpperScaleSettingKey
+                    : titanfall2
+                        ? Titanfall2UpperScaleSettingKey
+                        : leagueOfLegends
+                            ? LeagueOfLegendsUpperScaleSettingKey
+                            : rdr2
+                                ? Rdr2UpperScaleSettingKey
+                                : ModernWarfare2019UpperScaleSettingKey;
             _legacyAuxiliaryHorizontalOffset = ReadDoubleSetting(
                 localSettings,
                 horizontalKey,
-                battlefieldKillMark ? 0.0 : GetDefaultModernWarfare2019UpperHorizontalOffset());
+                battlefieldKillMark ? 0.0 : rdr2 ? 360.0 : (cod2022 || leagueOfLegends) ? 0.0 : titanfall2 ? -420.0 : GetDefaultModernWarfare2019UpperHorizontalOffset());
             _legacyAuxiliaryVerticalOffset = ReadDoubleSetting(
                 localSettings,
                 verticalKey,
-                battlefieldKillMark ? 0.0 : GetDefaultModernWarfare2019UpperVerticalOffset());
+                battlefieldKillMark ? 0.0 : rdr2 ? 150.0 : cod2022 ? -116.0 : leagueOfLegends ? -80.0 : titanfall2 ? 190.0 : GetDefaultModernWarfare2019UpperVerticalOffset());
             double savedScale = ReadDoubleSetting(
                 localSettings,
                 scaleKey,
                 battlefieldKillMark
                     ? GetDefaultAnimationScale(GameStyleMode.ModernWarfare2019)
-                    : GetDefaultModernWarfare2019UpperScale());
+                    : (cod2022 || leagueOfLegends || rdr2)
+                        ? 0.90
+                        : titanfall2
+                            ? 0.85
+                            : GetDefaultModernWarfare2019UpperScale());
             _legacyAuxiliaryScale = double.IsNaN(savedScale)
                 || double.IsInfinity(savedScale)
                 || savedScale <= 0
@@ -308,15 +439,43 @@ namespace KillConfirmGameBar
             ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
             bool battlefieldKillMark =
                 GameStyleService.IsAuxiliaryKillMarkStyle(GameStyleService.Current);
+            bool cod2022 = GameStyleService.Current == GameStyleMode.Cod2022;
+            bool titanfall2 = GameStyleService.Current == GameStyleMode.Titanfall2;
+            bool leagueOfLegends = GameStyleService.Current == GameStyleMode.LeagueOfLegends;
+            bool rdr2 = GameStyleService.Current == GameStyleMode.Rdr2;
             string horizontalKey = battlefieldKillMark
                 ? GetAnimationStyleSettingKey(BattlefieldKillMarkHorizontalOffsetSettingKey)
-                : ModernWarfare2019UpperHorizontalOffsetSettingKey;
+                : cod2022
+                    ? Cod2022UpperHorizontalOffsetSettingKey
+                    : titanfall2
+                        ? Titanfall2UpperHorizontalOffsetSettingKey
+                        : leagueOfLegends
+                            ? LeagueOfLegendsUpperHorizontalOffsetSettingKey
+                            : rdr2
+                                ? Rdr2UpperHorizontalOffsetSettingKey
+                                : ModernWarfare2019UpperHorizontalOffsetSettingKey;
             string verticalKey = battlefieldKillMark
                 ? GetAnimationStyleSettingKey(BattlefieldKillMarkVerticalOffsetSettingKey)
-                : ModernWarfare2019UpperVerticalOffsetSettingKey;
+                : cod2022
+                    ? Cod2022UpperVerticalOffsetSettingKey
+                    : titanfall2
+                        ? Titanfall2UpperVerticalOffsetSettingKey
+                        : leagueOfLegends
+                            ? LeagueOfLegendsUpperVerticalOffsetSettingKey
+                            : rdr2
+                                ? Rdr2UpperVerticalOffsetSettingKey
+                                : ModernWarfare2019UpperVerticalOffsetSettingKey;
             string scaleKey = battlefieldKillMark
                 ? GetAnimationStyleSettingKey(BattlefieldKillMarkScaleSettingKey)
-                : ModernWarfare2019UpperScaleSettingKey;
+                : cod2022
+                    ? Cod2022UpperScaleSettingKey
+                    : titanfall2
+                        ? Titanfall2UpperScaleSettingKey
+                        : leagueOfLegends
+                            ? LeagueOfLegendsUpperScaleSettingKey
+                            : rdr2
+                                ? Rdr2UpperScaleSettingKey
+                                : ModernWarfare2019UpperScaleSettingKey;
             localSettings.Values[horizontalKey] =
                 _legacyAuxiliaryHorizontalOffset;
             localSettings.Values[verticalKey] =
@@ -341,6 +500,12 @@ namespace KillConfirmGameBar
                     break;
                 case GameStyleMode.Apex:
                     suffix = "Apex";
+                    break;
+                case GameStyleMode.Cod2022:
+                    suffix = "Cod2022";
+                    break;
+                case GameStyleMode.Titanfall2:
+                    suffix = "Titanfall2";
                     break;
                 case GameStyleMode.Battlefield1:
                     suffix = "Battlefield1";
@@ -368,6 +533,12 @@ namespace KillConfirmGameBar
                     break;
                 case GameStyleMode.Sanguosha:
                     suffix = "Sanguosha";
+                    break;
+                case GameStyleMode.LeagueOfLegends:
+                    suffix = "LeagueOfLegends";
+                    break;
+                case GameStyleMode.Rdr2:
+                    suffix = "Rdr2";
                     break;
                 case GameStyleMode.Calabiyau:
                     suffix = "Calabiyau";

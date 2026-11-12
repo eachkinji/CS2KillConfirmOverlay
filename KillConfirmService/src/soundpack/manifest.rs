@@ -197,6 +197,11 @@ const STANDARD_SLOT_STEMS: &[(&str, &[&str])] = &[
     ("podi", &["podi", "audio_podi"]),
     ("epic", &["epic"]),
     ("jiaojiaojiao", &["jiaojiaojiao"]),
+    ("honor_gain", &["honor_gain"]),
+    ("honor_gain_alt", &["honor_gain_alt"]),
+    ("honor_loss", &["honor_loss", "honor_low_loss"]),
+    ("honor_loss_alt", &["honor_loss_alt"]),
+    ("dead_eye", &["dead_eye", "dead_eye_sting", "dead_eye_activate"]),
 ];
 
 fn find_slot_files_in_dir(dir_path: &Path, stems: &[&str]) -> Option<SlotFiles> {
@@ -288,11 +293,48 @@ impl PackManifest {
     }
 
     pub fn character_voice_audio_slot(&self, ctx: &SoundContext) -> Option<String> {
+        let is_titanfall2 = self
+            .game_style
+            .as_deref()
+            .is_some_and(|style| style.eq_ignore_ascii_case("titanfall2"))
+            && !self.uses_generic_event_audio();
+        if is_titanfall2 {
+            return self.titanfall2_voice_audio_slot(ctx);
+        }
+        let is_cod2022 = self
+            .game_style
+            .as_deref()
+            .is_some_and(|style| style.eq_ignore_ascii_case("cod2022"))
+            && !self.uses_generic_event_audio();
+        if is_cod2022 {
+            return self.titanfall2_voice_audio_slot(ctx);
+        }
+        let is_rdr2 = self
+            .game_style
+            .as_deref()
+            .is_some_and(|style| style.eq_ignore_ascii_case("rdr2"))
+            && !self.uses_generic_event_audio();
+        if is_rdr2 {
+            return self.titanfall2_voice_audio_slot(ctx);
+        }
+        let is_leagueoflegends = self
+            .game_style
+            .as_deref()
+            .is_some_and(|style| style.eq_ignore_ascii_case("leagueoflegends"))
+            && !self.uses_generic_event_audio();
+        if is_leagueoflegends {
+            return self.leagueoflegends_voice_audio_slot(ctx);
+        }
+
         let audio = self.audio.as_ref()?;
+        let event_kind = ctx.event_kind.as_deref().unwrap_or_default().trim();
         let count = ctx.kill_count.clamp(1, 6);
         let headshot = format!("headshot_{count}");
         let numbered = format!("kill_{count}");
         let mut candidates = Vec::new();
+        if event_kind.eq_ignore_ascii_case("revenge") {
+            candidates.push("revenge");
+        }
         if ctx.is_grenade_kill {
             candidates.push("grenade");
         }
@@ -303,10 +345,10 @@ impl PackManifest {
             candidates.extend([headshot.as_str(), "headshot"]);
         }
         if ctx.is_last_kill {
-            candidates.push("last_kill");
+            candidates.extend(["last_kill", "revenge"]);
         }
         if ctx.is_first_kill {
-            candidates.push("first_kill");
+            candidates.extend(["first_kill", "first_blood"]);
         }
         candidates.extend([numbered.as_str(), "kill_1", "common"]);
         candidates
@@ -318,6 +360,208 @@ impl PackManifest {
                     .is_some_and(|files| !files.as_slice().is_empty())
             })
             .map(str::to_string)
+    }
+
+    pub fn titanfall2_voice_audio_slot(&self, ctx: &SoundContext) -> Option<String> {
+        let audio = self.audio.as_ref()?;
+        let has = |slot: &str| {
+            audio
+                .slots
+                .get(slot)
+                .is_some_and(|files| !files.as_slice().is_empty())
+        };
+        let pick_first = |candidates: &[&str]| -> Option<String> {
+            candidates.iter().copied().find(|s| has(s)).map(str::to_string)
+        };
+        let event_kind = ctx
+            .event_kind
+            .as_deref()
+            .unwrap_or_default()
+            .trim()
+            .to_ascii_lowercase();
+
+        if ctx.event_channel == EventChannel::Economy {
+            return match event_kind.as_str() {
+                "round_loss" | "" => None,
+                "podi" | "lol_structure" => pick_first(&["podi", "lol_structure", "kill_titan", "kill_1"]),
+                "round_win" => pick_first(&["round_win", "kill_6", "kill_5", "kill_1"]),
+                other => pick_first(&[other]),
+            };
+        }
+
+        if ctx.is_assist {
+            return pick_first(&["assist"]);
+        }
+        if !ctx.play_main_audio {
+            return None;
+        }
+
+        if matches!(event_kind.as_str(), "lol_steal" | "kill_titan") {
+            return pick_first(&["kill_titan", "kill_1"]);
+        }
+        if event_kind == "lol_ace" {
+            return pick_first(&["kill_6", "last_kill", "revenge", "kill_5", "kill_1"]);
+        }
+        if event_kind == "revenge" {
+            return pick_first(&["revenge", "kill_1"]);
+        }
+        if ctx.kill_count >= 2 {
+            let streak = format!("kill_{}", ctx.kill_count.clamp(2, 6));
+            return pick_first(&[streak.as_str(), "kill_1"]);
+        }
+        if ctx.is_first_kill {
+            return pick_first(&["first_kill", "first_blood", "kill_1"]);
+        }
+        if ctx.is_headshot {
+            return pick_first(&["headshot_1", "headshot", "kill_1"]);
+        }
+        if ctx.is_knife_kill {
+            return pick_first(&["knife", "revenge", "kill_1"]);
+        }
+        if ctx.is_grenade_kill {
+            return pick_first(&["grenade", "kill_titan", "kill_1"]);
+        }
+        if ctx.is_last_kill {
+            return pick_first(&["last_kill", "revenge", "kill_1"]);
+        }
+        if ctx.kill_count >= 1 {
+            return pick_first(&["kill_1", "common"]);
+        }
+        None
+    }
+
+    pub fn leagueoflegends_voice_audio_slot(&self, ctx: &SoundContext) -> Option<String> {
+        let audio = self.audio.as_ref()?;
+        let has = |slot: &str| {
+            audio
+                .slots
+                .get(slot)
+                .is_some_and(|files| !files.as_slice().is_empty())
+        };
+        let pick_first = |candidates: &[&str]| -> Option<String> {
+            candidates.iter().copied().find(|s| has(s)).map(str::to_string)
+        };
+        let event_kind = ctx
+            .event_kind
+            .as_deref()
+            .unwrap_or_default()
+            .trim()
+            .to_ascii_lowercase();
+
+        if ctx.event_channel == EventChannel::Economy {
+            return match event_kind.as_str() {
+                "round_loss" | "" => None,
+                "lol_defeat" => pick_first(&["defeat", "enemy_kill"]),
+                "round_win" | "lol_victory" => {
+                    pick_first(&["victory", "round_win", "ace", "kill_5", "kill_1"])
+                }
+                "lol_inhib" => pick_first(&["inhib_destroyed", "turret_destroyed", "podi", "kill_1"]),
+                "lol_executed" => pick_first(&["executed", "kill_1"]),
+                "podi" | "lol_structure" | "bomb_plant" | "bomb_defuse" => {
+                    pick_first(&["turret_destroyed", "podi", "lol_structure", "kill_1"])
+                }
+                other => pick_first(&[other]),
+            };
+        }
+
+        if ctx.is_assist {
+            return pick_first(&["assist"]);
+        }
+        if !ctx.play_main_audio {
+            return None;
+        }
+
+        match event_kind.as_str() {
+            "lol_enemy_kill" => return pick_first(&["enemy_kill", "you_slain"]),
+            "lol_executed" => return pick_first(&["executed", "kill_1"]),
+            "lol_ace" => return pick_first(&["ace", "last_kill", "penta_kill", "kill_5", "kill_1"]),
+            "lol_shutdown" | "revenge" => {
+                return pick_first(&["shutdown", "revenge", "kill_1"]);
+            }
+            "lol_steal" | "lol_objective" => {
+                return pick_first(&["objective_slain", "shutdown", "kill_1"]);
+            }
+            "lol_spree_1" => return pick_first(&["killing_spree", "kill_3", "kill_1"]),
+            "lol_spree_2" => return pick_first(&["rampage", "kill_4", "kill_1"]),
+            "lol_spree_3" => return pick_first(&["unstoppable", "kill_5", "kill_1"]),
+            "lol_spree_4" => return pick_first(&["dominating", "kill_6", "kill_1"]),
+            "lol_spree_5" => return pick_first(&["godlike", "kill_7", "kill_1"]),
+            "lol_spree_6" => return pick_first(&["legendary", "kill_8", "penta_kill", "kill_5", "kill_1"]),
+            _ => {}
+        }
+
+        if ctx.kill_count >= 8 {
+            return pick_first(&["legendary", "kill_8", "penta_kill", "kill_5", "kill_1"]);
+        }
+        if ctx.kill_count == 7 {
+            return pick_first(&["godlike", "legendary", "kill_7", "penta_kill", "kill_5", "kill_1"]);
+        }
+        if ctx.kill_count == 6 {
+            return pick_first(&["dominating", "legendary", "kill_6", "penta_kill", "kill_5", "kill_1"]);
+        }
+        if ctx.kill_count == 5 {
+            return pick_first(&["penta_kill", "kill_5", "unstoppable", "kill_1"]);
+        }
+        if ctx.kill_count == 4 {
+            return pick_first(&["quadra_kill", "kill_4", "rampage", "kill_1"]);
+        }
+        if ctx.kill_count == 3 {
+            return pick_first(&["triple_kill", "kill_3", "killing_spree", "kill_1"]);
+        }
+        if ctx.kill_count == 2 {
+            return pick_first(&["double_kill", "kill_2", "kill_1"]);
+        }
+        if ctx.is_first_kill {
+            return pick_first(&["first_blood", "first_kill", "kill_1"]);
+        }
+        if ctx.is_last_kill {
+            return pick_first(&["ace", "last_kill", "shutdown", "kill_1"]);
+        }
+        if ctx.is_knife_kill {
+            return pick_first(&["shutdown", "knife", "revenge", "kill_1"]);
+        }
+        if ctx.is_headshot {
+            return pick_first(&["headshot_1", "headshot", "kill_1"]);
+        }
+        if ctx.kill_count >= 1 {
+            return pick_first(&["kill_1", "common"]);
+        }
+        None
+    }
+
+    pub fn entry_delay_ms(&self, entry_path: &str, timing_slot: Option<&str>) -> u64 {
+        let Some(audio) = self.audio.as_ref() else {
+            return 0;
+        };
+        if let Some(slot) = timing_slot {
+            if let Some(&ms) = audio.slot_delays_ms.get(slot) {
+                if ms > 0 {
+                    return ms;
+                }
+            }
+        }
+        let Some(file_name) = Path::new(entry_path).file_name().and_then(|n| n.to_str()) else {
+            return 0;
+        };
+        let mut matched_delay = 0u64;
+        for (slot, files) in &audio.slots {
+            if let Some(&ms) = audio.slot_delays_ms.get(slot) {
+                if ms > matched_delay
+                    && files
+                        .as_slice()
+                        .iter()
+                        .any(|candidate| {
+                            Path::new(candidate)
+                                .file_name()
+                                .and_then(|n| n.to_str())
+                                .is_some_and(|n| n.eq_ignore_ascii_case(file_name))
+                        })
+                {
+                    matched_delay = ms;
+                }
+            }
+        }
+        matched_delay
     }
 
     /// Select one complete native event mix; its internal delays stay in the WAV.
@@ -585,6 +829,473 @@ impl PackManifest {
         let is_character_voice = self.audio_kind.as_deref().is_some_and(|kind| {
             kind.eq_ignore_ascii_case("character_voice") || kind.eq_ignore_ascii_case("voice")
         });
+        if game_style.eq_ignore_ascii_case("titanfall2") && !self.uses_generic_event_audio() {
+            if is_character_voice {
+                if let Some(slot) = self.titanfall2_voice_audio_slot(ctx) {
+                    push_slot(&mut entries, &slot, None);
+                }
+                return entries;
+            }
+
+            let push_unique_slot = |entries: &mut Vec<SoundEntry>, slot: &str| -> bool {
+                let before = entries.len();
+                if push_slot(entries, slot, None) && entries.len() > before {
+                    let added_path = entries[before].path.clone();
+                    if entries[..before].iter().any(|item| item.path == added_path) {
+                        entries.pop();
+                    }
+                    return true;
+                }
+                false
+            };
+
+            let push_tf2_kill_slot = |entries: &mut Vec<SoundEntry>, slot: &str| -> bool {
+                if let Some(slot_files) = audio.slots.get(slot) {
+                    let slice = slot_files.as_slice();
+                    let is_layered_pair = slice.len() == 2
+                        && slice.iter().any(|f| {
+                            f.to_ascii_lowercase().contains("pilotkilledindicator")
+                        });
+                    if is_layered_pair {
+                        let gain = get_gain(slot);
+                        for filename in slice {
+                            let path = if Path::new(filename).is_absolute() {
+                                filename.to_string()
+                            } else {
+                                format!("{base}{filename}")
+                            };
+                            if !entries.iter().any(|item| item.path == path) {
+                                entries.push(SoundEntry { path, gain });
+                            }
+                        }
+                        return true;
+                    }
+                }
+                push_unique_slot(entries, slot)
+            };
+
+            if ctx.event_channel == EventChannel::Economy {
+                let kind = ctx
+                    .event_kind
+                    .as_deref()
+                    .map(str::trim)
+                    .unwrap_or_default()
+                    .to_ascii_lowercase();
+                if kind.is_empty() || kind == "round_loss" {
+                    return entries;
+                }
+                if push_unique_slot(&mut entries, &kind) {
+                    return entries;
+                }
+                if kind == "round_win" {
+                    if !push_tf2_kill_slot(&mut entries, "kill_5")
+                        && !push_tf2_kill_slot(&mut entries, "kill_6")
+                    {
+                        push_tf2_kill_slot(&mut entries, "kill_1");
+                    }
+                } else {
+                    push_unique_slot(&mut entries, "hitbeep");
+                    if !push_unique_slot(&mut entries, "grunt_kill") {
+                        push_tf2_kill_slot(&mut entries, "kill_1");
+                    }
+                }
+                return entries;
+            }
+
+            if ctx.is_assist {
+                push_unique_slot(&mut entries, "hitbeep");
+                if !push_unique_slot(&mut entries, "assist")
+                    && !push_unique_slot(&mut entries, "grunt_kill")
+                {
+                    push_tf2_kill_slot(&mut entries, "kill_1");
+                }
+                return entries;
+            }
+
+            if !ctx.play_main_audio || ctx.kill_count < 1 {
+                return entries;
+            }
+
+            push_unique_slot(&mut entries, "hitbeep");
+            let count = ctx.kill_count.clamp(1, 6);
+            let kill_slot = format!("kill_{count}");
+            if !push_tf2_kill_slot(&mut entries, &kill_slot) {
+                push_tf2_kill_slot(&mut entries, "kill_1");
+            }
+            if ctx.is_headshot {
+                push_unique_slot(&mut entries, "headshot");
+            }
+            return entries;
+        }
+
+        if game_style.eq_ignore_ascii_case("cod2022") && !self.uses_generic_event_audio() {
+            if is_character_voice {
+                if let Some(slot) = self.titanfall2_voice_audio_slot(ctx) {
+                    push_slot(&mut entries, &slot, None);
+                }
+                return entries;
+            }
+
+            let push_unique_slot = |entries: &mut Vec<SoundEntry>, slot: &str| -> bool {
+                let before = entries.len();
+                if push_slot(entries, slot, None) && entries.len() > before {
+                    let added_path = entries[before].path.clone();
+                    if entries[..before].iter().any(|item| item.path == added_path) {
+                        entries.pop();
+                    }
+                    return true;
+                }
+                false
+            };
+
+            let event_kind = ctx
+                .event_kind
+                .as_deref()
+                .map(str::trim)
+                .unwrap_or_default()
+                .to_ascii_lowercase();
+
+            if ctx.event_channel == EventChannel::Economy {
+                if event_kind.is_empty() || event_kind == "round_loss" {
+                    return entries;
+                }
+                if push_unique_slot(&mut entries, &event_kind) {
+                    return entries;
+                }
+                if event_kind == "round_win" {
+                    if !push_unique_slot(&mut entries, "splash_multikill_2")
+                        && !push_unique_slot(&mut entries, "splash_medal")
+                    {
+                        push_unique_slot(&mut entries, "kill_1");
+                    }
+                } else {
+                    push_unique_slot(&mut entries, "hit");
+                    if !push_unique_slot(&mut entries, "splash_medal") {
+                        push_unique_slot(&mut entries, "kill_1");
+                    }
+                }
+                return entries;
+            }
+
+            if ctx.is_assist {
+                if !push_unique_slot(&mut entries, "assist")
+                    && !push_unique_slot(&mut entries, "hit_alt")
+                {
+                    push_unique_slot(&mut entries, "hit");
+                }
+                return entries;
+            }
+
+            if !ctx.play_main_audio || ctx.kill_count < 1 {
+                return entries;
+            }
+
+            // MWII (2022) concurrent LUI audio stack:
+            // 1. Hitmarker transient (mp_hit_marker_v2a)
+            // 2. Kill alert sting (iw9_kill_alert)
+            // 3. Headshot crunch + skull impact accent (mrk_headshot_5 + flesh_kill_head_accent)
+            // 4. SkillSplash medal / multikill notification alias chime
+            push_unique_slot(&mut entries, "hit");
+            let numbered = format!("kill_{}", ctx.kill_count.clamp(1, 9));
+            if !push_unique_slot(&mut entries, &numbered) {
+                push_unique_slot(&mut entries, "kill_1");
+            }
+            if ctx.is_headshot {
+                push_unique_slot(&mut entries, "headshot");
+                push_unique_slot(&mut entries, "headshot_accent");
+            }
+
+            let splash_slot = if ctx.kill_count >= 8 {
+                Some("splash_multikill_3")
+            } else if ctx.kill_count >= 6 {
+                Some("splash_multikill_2")
+            } else if ctx.kill_count >= 3 {
+                Some("splash_multikill_1")
+            } else if ctx.kill_count == 2
+                || ctx.is_headshot
+                || ctx.is_first_kill
+                || ctx.is_last_kill
+                || ctx.is_knife_kill
+                || ctx.is_grenade_kill
+                || matches!(
+                    event_kind.as_str(),
+                    "revenge" | "lol_steal" | "lol_ace" | "lol_shutdown"
+                )
+            {
+                Some("splash_medal")
+            } else {
+                None
+            };
+            if let Some(slot) = splash_slot {
+                if !push_unique_slot(&mut entries, slot) && slot != "splash_medal" {
+                    push_unique_slot(&mut entries, "splash_medal");
+                }
+            }
+            return entries;
+        }
+
+        if game_style.eq_ignore_ascii_case("rdr2") && !self.uses_generic_event_audio() {
+            if is_character_voice {
+                if let Some(slot) = self.titanfall2_voice_audio_slot(ctx) {
+                    push_slot(&mut entries, &slot, None);
+                }
+                return entries;
+            }
+
+            let push_unique_slot = |entries: &mut Vec<SoundEntry>, slot: &str| -> bool {
+                let before = entries.len();
+                if push_slot(entries, slot, None) && entries.len() > before {
+                    let added_path = entries[before].path.clone();
+                    if entries[..before].iter().any(|item| item.path == added_path) {
+                        entries.pop();
+                    }
+                    return true;
+                }
+                false
+            };
+
+            let event_kind = ctx
+                .event_kind
+                .as_deref()
+                .map(str::trim)
+                .unwrap_or_default()
+                .to_ascii_lowercase();
+
+            if ctx.event_channel == EventChannel::Economy {
+                if event_kind.is_empty() || event_kind == "round_loss" {
+                    return entries;
+                }
+                if push_unique_slot(&mut entries, &event_kind) {
+                    if event_kind == "round_win" {
+                        push_unique_slot(&mut entries, "dead_eye");
+                    }
+                    return entries;
+                }
+                if event_kind == "round_win" {
+                    if !push_unique_slot(&mut entries, "honor_gain") {
+                        push_unique_slot(&mut entries, "kill_1");
+                    }
+                    push_unique_slot(&mut entries, "dead_eye");
+                } else if matches!(event_kind.as_str(), "bomb_plant" | "lol_steal") {
+                    if !push_unique_slot(&mut entries, "honor_loss_alt")
+                        && !push_unique_slot(&mut entries, "honor_loss")
+                    {
+                        push_unique_slot(&mut entries, "kill_1");
+                    }
+                } else if !push_unique_slot(&mut entries, "honor_gain_alt")
+                    && !push_unique_slot(&mut entries, "honor_gain")
+                {
+                    push_unique_slot(&mut entries, "kill_1");
+                }
+                return entries;
+            }
+
+            if ctx.is_assist {
+                if !push_unique_slot(&mut entries, "assist")
+                    && !push_unique_slot(&mut entries, "honor_gain_alt")
+                    && !push_unique_slot(&mut entries, "honor_gain")
+                {
+                    push_unique_slot(&mut entries, "kill_1");
+                }
+                return entries;
+            }
+
+            if !ctx.play_main_audio || ctx.kill_count < 1 {
+                return entries;
+            }
+
+            // RDR2 combat audio layers:
+            // 1. Primary Honor chime (Outlaw low-honor sting on knife/grenade/steal/3+ massacre,
+            //    High-honor chime on clean duel/headshot/clutch/shutdown, with custom slot fallbacks)
+            // 2. Dead Eye activation sting on headshot, multikill (2+), first/last draw, or key specials
+            let numbered = format!("kill_{}", ctx.kill_count.clamp(1, 9));
+            let is_outlaw_act = ctx.is_knife_kill
+                || ctx.is_grenade_kill
+                || ctx.kill_count >= 3
+                || matches!(event_kind.as_str(), "lol_steal" | "bomb_plant");
+
+            let mut played_primary = false;
+            if ctx.is_knife_kill && push_unique_slot(&mut entries, "knife") {
+                played_primary = true;
+            } else if ctx.is_grenade_kill && push_unique_slot(&mut entries, "grenade") {
+                played_primary = true;
+            } else if (ctx.is_first_kill || ctx.is_last_kill)
+                && push_unique_slot(&mut entries, "first_and_last")
+            {
+                played_primary = true;
+            } else if ctx.is_headshot && push_unique_slot(&mut entries, "headshot") {
+                played_primary = true;
+            } else if ctx.kill_count >= 2 && push_unique_slot(&mut entries, &numbered) {
+                played_primary = true;
+            }
+
+            if !played_primary {
+                if is_outlaw_act {
+                    let prefer_alt = (ctx.is_knife_kill || ctx.is_grenade_kill) && ctx.kill_count < 3;
+                    if prefer_alt {
+                        played_primary = push_unique_slot(&mut entries, "honor_loss_alt")
+                            || push_unique_slot(&mut entries, "honor_loss");
+                    } else {
+                        played_primary = push_unique_slot(&mut entries, "honor_loss")
+                            || push_unique_slot(&mut entries, "honor_loss_alt");
+                    }
+                    if !played_primary {
+                        let _ = push_unique_slot(&mut entries, "kill_1")
+                            || push_unique_slot(&mut entries, "honor_gain");
+                    }
+                } else {
+                    let _ = push_unique_slot(&mut entries, "honor_gain")
+                        || push_unique_slot(&mut entries, "honor_gain_alt")
+                        || push_unique_slot(&mut entries, "kill_1")
+                        || push_unique_slot(&mut entries, "honor_loss");
+                }
+            }
+
+            let trigger_dead_eye = ctx.is_headshot
+                || ctx.kill_count >= 2
+                || ctx.is_first_kill
+                || ctx.is_last_kill
+                || matches!(
+                    event_kind.as_str(),
+                    "revenge" | "lol_steal" | "lol_ace" | "lol_shutdown"
+                );
+            if trigger_dead_eye {
+                push_unique_slot(&mut entries, "dead_eye");
+            }
+            return entries;
+        }
+
+        if game_style.eq_ignore_ascii_case("leagueoflegends") && !self.uses_generic_event_audio() {
+            if is_character_voice {
+                if let Some(slot) = self.leagueoflegends_voice_audio_slot(ctx) {
+                    push_slot(&mut entries, &slot, None);
+                }
+                return entries;
+            }
+
+            let push_unique_slot = |entries: &mut Vec<SoundEntry>, slot: &str| -> bool {
+                let before = entries.len();
+                if push_slot(entries, slot, None) && entries.len() > before {
+                    let added_path = entries[before].path.clone();
+                    if entries[..before].iter().any(|item| item.path == added_path) {
+                        entries.pop();
+                    }
+                    return true;
+                }
+                false
+            };
+
+            let push_pair = |entries: &mut Vec<SoundEntry>, hit_slot: &str, chime_slot: &str| -> bool {
+                let a = push_unique_slot(entries, hit_slot);
+                let b = push_unique_slot(entries, chime_slot);
+                a || b
+            };
+
+            let event_kind = ctx
+                .event_kind
+                .as_deref()
+                .map(str::trim)
+                .unwrap_or_default()
+                .to_ascii_lowercase();
+
+            if ctx.event_channel == EventChannel::Economy {
+                if event_kind.is_empty() || event_kind == "round_loss" {
+                    return entries;
+                }
+                if push_unique_slot(&mut entries, &event_kind) {
+                    return entries;
+                }
+                if matches!(event_kind.as_str(), "round_win" | "lol_victory") {
+                    if !push_pair(&mut entries, "ace_hit", "ace_chime") {
+                        push_unique_slot(&mut entries, "kill_1");
+                    }
+                } else if !push_pair(&mut entries, "objective_hit", "objective_chime") {
+                    push_unique_slot(&mut entries, "kill_1");
+                }
+                return entries;
+            }
+
+            if ctx.is_assist {
+                if !push_unique_slot(&mut entries, "assist") {
+                    push_unique_slot(&mut entries, "kill_1");
+                }
+                return entries;
+            }
+
+            if !ctx.play_main_audio || ctx.kill_count < 1 {
+                return entries;
+            }
+
+            // Riot Wwise MISC_Gameplay_KillStreak_SFX 2-layer architecture:
+            // Layer 1 (0ms): crisp blade/hextech transient impact
+            // Layer 2 (+100ms): rising multi-kill / spree harmonic chime
+            if matches!(event_kind.as_str(), "lol_ace") || (ctx.is_last_kill && ctx.kill_count < 5) {
+                if !push_pair(&mut entries, "ace_hit", "ace_chime") {
+                    push_unique_slot(&mut entries, "kill_1");
+                }
+                return entries;
+            }
+
+            if ctx.kill_count >= 5 {
+                if !push_pair(&mut entries, "kill_5_hit", "kill_5_chime")
+                    && !push_unique_slot(&mut entries, "kill_5")
+                {
+                    push_unique_slot(&mut entries, "kill_1");
+                }
+                return entries;
+            }
+            if ctx.kill_count == 4 {
+                if !push_pair(&mut entries, "kill_4_hit", "kill_4_chime")
+                    && !push_unique_slot(&mut entries, "kill_4")
+                {
+                    push_unique_slot(&mut entries, "kill_1");
+                }
+                return entries;
+            }
+            if ctx.kill_count == 3 {
+                if !push_pair(&mut entries, "kill_3_hit", "kill_3_chime")
+                    && !push_unique_slot(&mut entries, "kill_3")
+                {
+                    push_unique_slot(&mut entries, "kill_1");
+                }
+                return entries;
+            }
+            if ctx.kill_count == 2 {
+                if !push_pair(&mut entries, "kill_2_hit", "kill_2_chime")
+                    && !push_unique_slot(&mut entries, "kill_2")
+                {
+                    push_unique_slot(&mut entries, "kill_1");
+                }
+                return entries;
+            }
+
+            if matches!(event_kind.as_str(), "lol_shutdown" | "revenge" | "lol_steal" | "lol_objective")
+                || ctx.is_knife_kill
+            {
+                if !push_pair(&mut entries, "shutdown_hit", "shutdown_chime") {
+                    push_unique_slot(&mut entries, "kill_1");
+                }
+                return entries;
+            }
+
+            if ctx.is_first_kill {
+                if !push_pair(&mut entries, "first_blood_hit", "first_blood_chime") {
+                    push_unique_slot(&mut entries, "kill_1");
+                }
+                return entries;
+            }
+
+            if ctx.is_headshot || ctx.is_grenade_kill || event_kind.starts_with("lol_spree_") {
+                if !push_pair(&mut entries, "spree_hit", "spree_chime") {
+                    push_unique_slot(&mut entries, "kill_1");
+                }
+                return entries;
+            }
+
+            push_unique_slot(&mut entries, "kill_1");
+            return entries;
+        }
+
         if self.uses_generic_event_audio()
             || (is_character_voice && !game_style.eq_ignore_ascii_case("crossfire"))
         {

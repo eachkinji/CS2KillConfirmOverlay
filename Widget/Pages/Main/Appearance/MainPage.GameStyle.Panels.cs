@@ -464,6 +464,10 @@ namespace KillConfirmGameBar
             else if (sender is PubgAdvancedEffectsPanel pPubg) mode = pPubg.GetSelectedMoneyRewardMode("delta");
             else if (sender is ApexAdvancedEffectsPanel pApex) mode = pApex.GetSelectedMoneyRewardMode("delta");
             else if (sender is ModernWarfare2019AdvancedEffectsPanel pMw) mode = pMw.GetSelectedMoneyRewardMode("delta");
+            else if (sender is Cod2022AdvancedEffectsPanel pMw22) mode = pMw22.GetSelectedMoneyRewardMode("delta");
+            else if (sender is Titanfall2AdvancedEffectsPanel pTf2) mode = pTf2.GetSelectedMoneyRewardMode("delta");
+            else if (sender is LeagueOfLegendsAdvancedEffectsPanel pLol) mode = pLol.GetSelectedMoneyRewardMode("delta");
+            else if (sender is Rdr2AdvancedEffectsPanel pRdr2) mode = pRdr2.GetSelectedMoneyRewardMode("delta");
 
             GameSourceSettingsStore.CombatSettings["MoneyRewardMode"] = mode;
         }

@@ -46,8 +46,12 @@ namespace KillConfirmGameBar.Services
                     return Overwatch;
                 case GameStyleMode.ModernWarfare2019:
                     return ModernWarfare2019;
+                case GameStyleMode.Cod2022:
+                    return Cod2022;
                 case GameStyleMode.Apex:
                     return Apex;
+                case GameStyleMode.Titanfall2:
+                    return Titanfall2;
                 case GameStyleMode.Battlefield1:
                     return Battlefield1;
                 case GameStyleMode.Battlefield5:
@@ -62,12 +66,16 @@ namespace KillConfirmGameBar.Services
                     return Pubg;
                 case GameStyleMode.DeltaForce:
                     return DeltaForce;
+                case GameStyleMode.Rdr2:
+                    return Rdr2;
                 case GameStyleMode.CustomModule:
                     return Home;
                 case GameStyleMode.Doubao:
                     return Doubao;
                 case GameStyleMode.Sanguosha:
                     return Sanguosha;
+                case GameStyleMode.LeagueOfLegends:
+                    return LeagueOfLegends;
                 case GameStyleMode.Dagoujiao:
                     return Dagoujiao;
                 case GameStyleMode.Csol:

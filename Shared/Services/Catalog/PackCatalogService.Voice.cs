@@ -78,6 +78,18 @@ namespace KillConfirmCompatibility.Services
                 || key.StartsWith("custom_overwatch_voice_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_modernwarfare2019_voice_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_apex_voice_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("custom_titanfall2_voice_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("titanfall2_sfx_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("titanfall2_voice_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("custom_cod2022_voice_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("cod2022_sfx_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("cod2022_voice_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("custom_leagueoflegends_voice_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("leagueoflegends_sfx_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("leagueoflegends_voice_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("custom_rdr2_voice_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("rdr2_sfx_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("rdr2_voice_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("valorant_voice_", StringComparison.OrdinalIgnoreCase);
         }
 
@@ -93,7 +105,11 @@ namespace KillConfirmCompatibility.Services
                 || key.StartsWith("custom_battlefield6_voice_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_deltaforce_voice_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_pubg_voice_", StringComparison.OrdinalIgnoreCase)
-                || key.StartsWith("custom_apex_voice_", StringComparison.OrdinalIgnoreCase);
+                || key.StartsWith("custom_apex_voice_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("custom_titanfall2_voice_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("custom_cod2022_voice_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("custom_leagueoflegends_voice_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("custom_rdr2_voice_", StringComparison.OrdinalIgnoreCase);
         }
 
         internal static (string GameKey, string KeyPrefix) GetEventVoicePackConfig(GameStyleMode style)
@@ -116,6 +132,14 @@ namespace KillConfirmCompatibility.Services
                     return ("pubg", "custom_pubg_voice_");
                 case GameStyleMode.Apex:
                     return ("apex", "custom_apex_voice_");
+                case GameStyleMode.Titanfall2:
+                    return ("titanfall2", "custom_titanfall2_voice_");
+                case GameStyleMode.Cod2022:
+                    return ("cod2022", "custom_cod2022_voice_");
+                case GameStyleMode.LeagueOfLegends:
+                    return ("leagueoflegends", "custom_leagueoflegends_voice_");
+                case GameStyleMode.Rdr2:
+                    return ("rdr2", "custom_rdr2_voice_");
                 default:
                     return ("crossfire", "custom_voice_");
             }

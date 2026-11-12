@@ -106,6 +106,9 @@ namespace KillConfirmCompatibility.Controls
             ResetDagoujiaoState();
             ResetOverwatchState();
             ResetModernWarfare2019State();
+            ResetCod2022State();
+            ResetRdr2State();
+            ResetLeagueOfLegendsState();
             _contentSizedViewport = false;
             _isBattlefield1CompactLayoutActive = false;
             _currentCodeAsset = null;

@@ -64,6 +64,10 @@ mod tests {
     include!("tests/battlefield6.rs");
     include!("tests/sanguosha.rs");
     include!("tests/apex.rs");
+    include!("tests/titanfall2.rs");
+    include!("tests/cod2022.rs");
+    include!("tests/leagueoflegends.rs");
+    include!("tests/rdr2.rs");
     include!("tests/valorant.rs");
     include!("tests/custommodule.rs");
     include!("tests/event_styles.rs");

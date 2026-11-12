@@ -91,7 +91,9 @@ namespace KillConfirmGameBar
             SetGameStyleItemContent(HeaderStatusSection.ValorantStyleItem, LocalizationManager.Text("GameStyleValorantShort"), "ms-appx:///Assets/GameLogos/valorant.png");
             SetGameStyleItemContent(HeaderStatusSection.OverwatchStyleItem, LocalizationManager.Text("GameStyleOverwatchShort"), "ms-appx:///Assets/GameLogos/overwatch.png");
             SetGameStyleItemContent(HeaderStatusSection.ModernWarfare2019StyleItem, "MW2019", "ms-appx:///Assets/GameLogos/modernwarfare2019.png");
+            SetGameStyleItemContent(HeaderStatusSection.Cod2022StyleItem, "MWII", "ms-appx:///Assets/GameLogos/cod2022.png");
             SetGameStyleItemContent(HeaderStatusSection.ApexStyleItem, "APEX", "ms-appx:///Assets/GameLogos/apex.png");
+            SetGameStyleItemContent(HeaderStatusSection.Titanfall2StyleItem, isChinese ? "泰坦2" : "TF2", "ms-appx:///Assets/GameLogos/titanfall2.png");
             SetGameStyleItemContent(HeaderStatusSection.Battlefield1StyleItem, "BF1", "ms-appx:///Assets/GameLogos/battlefield1.png");
             SetGameStyleItemContent(HeaderStatusSection.Battlefield5StyleItem, "BF5", "ms-appx:///Assets/GameLogos/battlefield5.png");
             SetGameStyleItemContent(HeaderStatusSection.Battlefield4StyleItem, "BF4", "ms-appx:///Assets/GameLogos/battlefield4.png");
@@ -99,10 +101,12 @@ namespace KillConfirmGameBar
             SetGameStyleItemContent(HeaderStatusSection.Battlefield6StyleItem, "BF6", "ms-appx:///Assets/GameLogos/battlefield6.png");
             SetGameStyleItemContent(HeaderStatusSection.PubgStyleItem, "PUBG", "ms-appx:///Assets/GameLogos/pubg.png");
             SetGameStyleItemContent(HeaderStatusSection.DeltaForceStyleItem, "Delta", "ms-appx:///Assets/GameLogos/deltaforce.png");
+            SetGameStyleItemContent(HeaderStatusSection.Rdr2StyleItem, isChinese ? "大镖客2" : "RDR2", "ms-appx:///Assets/GameLogos/rdr2.png");
             SetGameStyleItemContent(HeaderStatusSection.CustomModuleStyleItem, LocalizationManager.Current == UiLanguage.SimplifiedChinese ? "自定义" : "Custom", "ms-appx:///Assets/Square44x44Logo.scale-200.png");
             SetGameStyleItemContent(HeaderStatusSection.CalabiyauStyleItem, "卡拉彼丘", "ms-appx:///Assets/GameLogos/calabiyau.png");
             SetGameStyleItemContent(HeaderStatusSection.DoubaoStyleItem, "豆包", "ms-appx:///Assets/GameLogos/doubao.png");
             SetGameStyleItemContent(HeaderStatusSection.SanguoshaStyleItem, "三国杀", "ms-appx:///Assets/GameLogos/sanguosha.png");
+            SetGameStyleItemContent(HeaderStatusSection.LeagueOfLegendsStyleItem, isChinese ? "英雄联盟" : "LOL", "ms-appx:///Assets/GameLogos/leagueoflegends.png");
             SetGameStyleItemContent(HeaderStatusSection.DagoujiaoStyleItem, "大狗叫", "ms-appx:///Assets/GameLogos/dagoujiao.jpg");
             PackTestSectionView.PackTestHeaderText.Text = LocalizationManager.Text("PackTestHeader");
             VisualSettingsSectionView.VisualHeaderText.Text = LocalizationManager.Text("VisualHeader");

@@ -95,6 +95,9 @@ namespace KillConfirmCompatibility.Services
         public string Actor { get; set; }
         public string Victim { get; set; }
         public string[] Assisters { get; set; }
+        public string ActorChampion { get; set; }
+        public string VictimChampion { get; set; }
+        public string[] AssisterChampions { get; set; }
         public int Multikill { get; set; }
         public string AcingTeam { get; set; }
         public string DragonType { get; set; }

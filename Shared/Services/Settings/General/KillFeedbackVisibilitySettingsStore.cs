@@ -58,7 +58,7 @@ namespace KillConfirmCompatibility.Services
                     values[prefix + "CrosshairEnabled"],
                     DefaultCrosshairEnabled(style)),
                 LowerEnabled = ReadBool(values[prefix + "LowerEnabled"], true),
-                UpperEnabled = style != GameStyleMode.ModernWarfare2019
+                UpperEnabled = (style != GameStyleMode.ModernWarfare2019 && style != GameStyleMode.Cod2022 && style != GameStyleMode.Titanfall2 && style != GameStyleMode.LeagueOfLegends && style != GameStyleMode.Rdr2)
                     || ReadBool(values[prefix + "UpperEnabled"], true),
                 CrosshairBrightnessPercent = ReadPercent(values[prefix + "CrosshairBrightnessPercent"], 100, 50, 150),
                 CrosshairContrastPercent = ReadPercent(values[prefix + "CrosshairContrastPercent"], 100, 50, 150),
@@ -85,7 +85,7 @@ namespace KillConfirmCompatibility.Services
             var values = GameSourceSettingsStore.CombatSettings;
             values[prefix + "CrosshairEnabled"] = settings.CrosshairEnabled;
             values[prefix + "LowerEnabled"] = settings.LowerEnabled;
-            if (style == GameStyleMode.ModernWarfare2019)
+            if (style == GameStyleMode.ModernWarfare2019 || style == GameStyleMode.Cod2022 || style == GameStyleMode.Titanfall2 || style == GameStyleMode.LeagueOfLegends || style == GameStyleMode.Rdr2)
             {
                 values[prefix + "UpperEnabled"] = settings.UpperEnabled;
             }
@@ -140,8 +140,12 @@ namespace KillConfirmCompatibility.Services
                     return "CustomModuleKillFeedback";
                 case GameStyleMode.ModernWarfare2019:
                     return "ModernWarfare2019KillFeedback";
+                case GameStyleMode.Cod2022:
+                    return "Cod2022KillFeedback";
                 case GameStyleMode.Apex:
                     return "ApexKillFeedback";
+                case GameStyleMode.Titanfall2:
+                    return "Titanfall2KillFeedback";
                 case GameStyleMode.Overwatch:
                     return "OverwatchKillFeedback";
                 case GameStyleMode.Battlefield1:
@@ -168,6 +172,10 @@ namespace KillConfirmCompatibility.Services
                     return "DoubaoKillFeedback";
                 case GameStyleMode.Sanguosha:
                     return "SanguoshaKillFeedback";
+                case GameStyleMode.LeagueOfLegends:
+                    return "LeagueOfLegendsKillFeedback";
+                case GameStyleMode.Rdr2:
+                    return "Rdr2KillFeedback";
                 case GameStyleMode.Dagoujiao:
                     return "DagoujiaoKillFeedback";
                 default:
@@ -181,7 +189,8 @@ namespace KillConfirmCompatibility.Services
                 && style != GameStyleMode.CustomModule
                 && style != GameStyleMode.Pubg
                 && style != GameStyleMode.Csol
-                && style != GameStyleMode.Valorant;
+                && style != GameStyleMode.Valorant
+                && style != GameStyleMode.LeagueOfLegends;
         }
 
         private static bool ReadBool(object value, bool fallback)

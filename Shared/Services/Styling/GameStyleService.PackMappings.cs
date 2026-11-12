@@ -23,6 +23,10 @@ namespace KillConfirmCompatibility.Services
                 }
             }
             if (IsCalabiyauKey(key)) return GameStyleMode.Calabiyau;
+            if (IsTitanfall2Key(key)) return GameStyleMode.Titanfall2;
+            if (IsCod2022Key(key)) return GameStyleMode.Cod2022;
+            if (IsLeagueOfLegendsKey(key)) return GameStyleMode.LeagueOfLegends;
+            if (IsRdr2Key(key)) return GameStyleMode.Rdr2;
             if (IsCustomModuleKey(key)) return GameStyleMode.CustomModule;
             if (string.IsNullOrEmpty(key))
             {
@@ -192,8 +196,12 @@ namespace KillConfirmCompatibility.Services
                     return "overwatch";
                 case GameStyleMode.ModernWarfare2019:
                     return "modernwarfare2019";
+                case GameStyleMode.Cod2022:
+                    return "cod2022";
                 case GameStyleMode.Apex:
                     return "apex";
+                case GameStyleMode.Titanfall2:
+                    return "titanfall2";
                 case GameStyleMode.Battlefield1:
                     return "bf1";
                 case GameStyleMode.Battlefield5:
@@ -216,6 +224,10 @@ namespace KillConfirmCompatibility.Services
                     return "doubao";
                 case GameStyleMode.Sanguosha:
                     return "sanguosha";
+                case GameStyleMode.LeagueOfLegends:
+                    return "leagueoflegends";
+                case GameStyleMode.Rdr2:
+                    return "rdr2";
                 case GameStyleMode.Dagoujiao:
                     return "dagoujiao";
                 case GameStyleMode.Csol:
@@ -236,8 +248,12 @@ namespace KillConfirmCompatibility.Services
                     return "overwatch";
                 case GameStyleMode.ModernWarfare2019:
                     return "modernwarfare2019";
+                case GameStyleMode.Cod2022:
+                    return "cod2022";
                 case GameStyleMode.Apex:
                     return "apex";
+                case GameStyleMode.Titanfall2:
+                    return "titanfall2";
                 case GameStyleMode.Battlefield1:
                     return "bf1";
                 case GameStyleMode.Battlefield5:
@@ -260,6 +276,10 @@ namespace KillConfirmCompatibility.Services
                     return "doubao";
                 case GameStyleMode.Sanguosha:
                     return "sanguosha";
+                case GameStyleMode.LeagueOfLegends:
+                    return "leagueoflegends";
+                case GameStyleMode.Rdr2:
+                    return "rdr2";
                 case GameStyleMode.Dagoujiao:
                     return "dagoujiao";
                 case GameStyleMode.Csol:

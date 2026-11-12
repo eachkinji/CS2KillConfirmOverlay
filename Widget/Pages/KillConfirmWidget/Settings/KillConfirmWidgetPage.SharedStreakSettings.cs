@@ -77,6 +77,26 @@ namespace KillConfirmGameBar
                 style = GameStyleMode.ModernWarfare2019;
                 enabled = modernWarfarePanel.GetAssistAudioEnabled(false);
             }
+            else if (sender is Cod2022AdvancedEffectsPanel cod2022Panel)
+            {
+                style = GameStyleMode.Cod2022;
+                enabled = cod2022Panel.GetAssistAudioEnabled(false);
+            }
+            else if (sender is Titanfall2AdvancedEffectsPanel titanfall2Panel)
+            {
+                style = GameStyleMode.Titanfall2;
+                enabled = titanfall2Panel.GetAssistAudioEnabled(false);
+            }
+            else if (sender is LeagueOfLegendsAdvancedEffectsPanel lolPanel)
+            {
+                style = GameStyleMode.LeagueOfLegends;
+                enabled = lolPanel.GetAssistAudioEnabled(false);
+            }
+            else if (sender is Rdr2AdvancedEffectsPanel rdr2Panel)
+            {
+                style = GameStyleMode.Rdr2;
+                enabled = rdr2Panel.GetAssistAudioEnabled(false);
+            }
             else
             {
                 return;
@@ -131,6 +151,14 @@ namespace KillConfirmGameBar
                     return _pubgAdvancedEffectsPanel?.GetSelectedStreakMode(fallback) ?? fallback;
                 case GameStyleMode.Apex:
                     return _apexAdvancedEffectsPanel?.GetSelectedStreakMode(fallback) ?? fallback;
+                case GameStyleMode.Cod2022:
+                    return _cod2022AdvancedEffectsPanel?.GetSelectedStreakMode(fallback) ?? fallback;
+                case GameStyleMode.Titanfall2:
+                    return _titanfall2AdvancedEffectsPanel?.GetSelectedStreakMode(fallback) ?? fallback;
+                case GameStyleMode.LeagueOfLegends:
+                    return _leagueOfLegendsAdvancedEffectsPanel?.GetSelectedStreakMode(fallback) ?? fallback;
+                case GameStyleMode.Rdr2:
+                    return _rdr2AdvancedEffectsPanel?.GetSelectedStreakMode(fallback) ?? fallback;
                 case GameStyleMode.ModernWarfare2019:
                     return _modernWarfare2019AdvancedEffectsPanel?.GetSelectedStreakMode(fallback) ?? fallback;
                 case GameStyleMode.DeltaForce:
@@ -179,6 +207,18 @@ namespace KillConfirmGameBar
                     break;
                 case GameStyleMode.Apex:
                     _apexAdvancedEffectsPanel?.SelectStreakMode(value);
+                    break;
+                case GameStyleMode.Cod2022:
+                    _cod2022AdvancedEffectsPanel?.SelectStreakMode(value);
+                    break;
+                case GameStyleMode.Titanfall2:
+                    _titanfall2AdvancedEffectsPanel?.SelectStreakMode(value);
+                    break;
+                case GameStyleMode.LeagueOfLegends:
+                    _leagueOfLegendsAdvancedEffectsPanel?.SelectStreakMode(value);
+                    break;
+                case GameStyleMode.Rdr2:
+                    _rdr2AdvancedEffectsPanel?.SelectStreakMode(value);
                     break;
                 case GameStyleMode.ModernWarfare2019:
                     _modernWarfare2019AdvancedEffectsPanel?.SelectStreakMode(value);
@@ -234,6 +274,26 @@ namespace KillConfirmGameBar
                     else if (style == GameStyleMode.ModernWarfare2019)
                     {
                         assistAudioEnabled = _modernWarfare2019AdvancedEffectsPanel?.GetAssistAudioEnabled(assistAudioEnabled)
+                            ?? assistAudioEnabled;
+                    }
+                    else if (style == GameStyleMode.Cod2022)
+                    {
+                        assistAudioEnabled = _cod2022AdvancedEffectsPanel?.GetAssistAudioEnabled(assistAudioEnabled)
+                            ?? assistAudioEnabled;
+                    }
+                    else if (style == GameStyleMode.Titanfall2)
+                    {
+                        assistAudioEnabled = _titanfall2AdvancedEffectsPanel?.GetAssistAudioEnabled(assistAudioEnabled)
+                            ?? assistAudioEnabled;
+                    }
+                    else if (style == GameStyleMode.LeagueOfLegends)
+                    {
+                        assistAudioEnabled = _leagueOfLegendsAdvancedEffectsPanel?.GetAssistAudioEnabled(assistAudioEnabled)
+                            ?? assistAudioEnabled;
+                    }
+                    else if (style == GameStyleMode.Rdr2)
+                    {
+                        assistAudioEnabled = _rdr2AdvancedEffectsPanel?.GetAssistAudioEnabled(assistAudioEnabled)
                             ?? assistAudioEnabled;
                     }
                     AssistAudioSettingsStore.Save(style, assistAudioEnabled);

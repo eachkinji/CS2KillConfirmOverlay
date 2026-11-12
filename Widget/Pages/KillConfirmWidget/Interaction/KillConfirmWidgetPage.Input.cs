@@ -435,19 +435,39 @@ namespace KillConfirmGameBar
             LowerDragOutlineTransform.Y = offsetY * fit;
 
             double crosshairWidth = style == GameStyleMode.Overwatch ? 320
-                : style == GameStyleMode.Apex ? ApexCrosshairFrameWidth : ModernWarfare2019CrosshairFrameWidth;
+                : style == GameStyleMode.Apex ? ApexCrosshairFrameWidth
+                : style == GameStyleMode.Titanfall2 ? Titanfall2CrosshairFrameWidth
+                : style == GameStyleMode.Cod2022 ? Cod2022CrosshairFrameWidth
+                : style == GameStyleMode.LeagueOfLegends ? LeagueOfLegendsCrosshairFrameWidth
+                : style == GameStyleMode.Rdr2 ? Rdr2CrosshairFrameWidth
+                : ModernWarfare2019CrosshairFrameWidth;
             double crosshairHeight = style == GameStyleMode.Overwatch ? 320
-                : style == GameStyleMode.Apex ? ApexCrosshairFrameHeight : ModernWarfare2019CrosshairFrameHeight;
+                : style == GameStyleMode.Apex ? ApexCrosshairFrameHeight
+                : style == GameStyleMode.Titanfall2 ? Titanfall2CrosshairFrameHeight
+                : style == GameStyleMode.Cod2022 ? Cod2022CrosshairFrameHeight
+                : style == GameStyleMode.LeagueOfLegends ? LeagueOfLegendsCrosshairFrameHeight
+                : style == GameStyleMode.Rdr2 ? Rdr2CrosshairFrameHeight
+                : ModernWarfare2019CrosshairFrameHeight;
             double crosshairFit = Math.Min(1.0, Math.Min(availableWidth / crosshairWidth, availableHeight / crosshairHeight));
             CrosshairDragOutline.Width = Math.Max(40, crosshairWidth * crosshairFit);
             CrosshairDragOutline.Height = Math.Max(40, crosshairHeight * crosshairFit);
             CrosshairDragOutlineTransform.X = 0;
             CrosshairDragOutlineTransform.Y = 0;
 
-            double upperFit = Math.Min(1.0, Math.Min(availableWidth / ModernWarfare2019UpperFrameWidth,
-                availableHeight / ModernWarfare2019UpperFrameHeight));
-            UpperDragOutline.Width = Math.Max(40, ModernWarfare2019UpperFrameWidth * upperFit);
-            UpperDragOutline.Height = Math.Max(40, ModernWarfare2019UpperFrameHeight * upperFit);
+            double upperFrameWidth = style == GameStyleMode.Titanfall2 ? Titanfall2UpperFrameWidth
+                : style == GameStyleMode.Cod2022 ? Cod2022UpperFrameWidth
+                : style == GameStyleMode.LeagueOfLegends ? LeagueOfLegendsUpperFrameWidth
+                : style == GameStyleMode.Rdr2 ? Rdr2UpperFrameWidth
+                : ModernWarfare2019UpperFrameWidth;
+            double upperFrameHeight = style == GameStyleMode.Titanfall2 ? Titanfall2UpperFrameHeight
+                : style == GameStyleMode.Cod2022 ? Cod2022UpperFrameHeight
+                : style == GameStyleMode.LeagueOfLegends ? LeagueOfLegendsUpperFrameHeight
+                : style == GameStyleMode.Rdr2 ? Rdr2UpperFrameHeight
+                : ModernWarfare2019UpperFrameHeight;
+            double upperFit = Math.Min(1.0, Math.Min(availableWidth / upperFrameWidth,
+                availableHeight / upperFrameHeight));
+            UpperDragOutline.Width = Math.Max(40, upperFrameWidth * upperFit);
+            UpperDragOutline.Height = Math.Max(40, upperFrameHeight * upperFit);
             UpperDragOutlineTransform.X = 0;
             UpperDragOutlineTransform.Y = 0;
         }
@@ -474,6 +494,22 @@ namespace KillConfirmGameBar
                 case GameStyleMode.ModernWarfare2019:
                     width = ModernWarfare2019LowerFrameWidth;
                     height = ModernWarfare2019LowerFrameHeight;
+                    return;
+                case GameStyleMode.Cod2022:
+                    width = Cod2022LowerFrameWidth;
+                    height = Cod2022LowerFrameHeight;
+                    return;
+                case GameStyleMode.Titanfall2:
+                    width = Titanfall2LowerFrameWidth;
+                    height = Titanfall2LowerFrameHeight;
+                    return;
+                case GameStyleMode.LeagueOfLegends:
+                    width = LeagueOfLegendsLowerFrameWidth;
+                    height = LeagueOfLegendsLowerFrameHeight;
+                    return;
+                case GameStyleMode.Rdr2:
+                    width = Rdr2LowerFrameWidth;
+                    height = Rdr2LowerFrameHeight;
                     return;
                 case GameStyleMode.Battlefield5:
                     width = LowerFeedbackAnimation?.Battlefield5LowerSelectionViewportWidth ?? 360;

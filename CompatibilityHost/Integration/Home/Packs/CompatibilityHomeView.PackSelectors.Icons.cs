@@ -77,6 +77,18 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                     return "ms-appx:///Assets/GameLogos/modernwarfare2019.png";
                 case "apex":
                     return "ms-appx:///Assets/GameLogos/apex.png";
+                case "cod2022":
+                case "cod2022_icon_standard":
+                    return "ms-appx:///Assets/GameStyles/cod2022/killconfirm/textures/preview.png";
+                case "titanfall2":
+                case "titanfall2_icon_standard":
+                    return "ms-appx:///Assets/GameStyles/titanfall2/killconfirm/textures/preview.png";
+                case "leagueoflegends":
+                case "leagueoflegends_icon_standard":
+                    return "ms-appx:///Assets/GameStyles/leagueoflegends/killconfirm/textures/preview.png";
+                case "rdr2":
+                case "rdr2_icon_standard":
+                    return "ms-appx:///Assets/GameStyles/rdr2/killconfirm/textures/preview.png";
                 case "csol4":
                     return "ms-appx:///Assets/KillConfirmCode/Csol4/headshot_kill.png";
                 case "default":
@@ -115,6 +127,14 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                     return "大狗叫";
                 case "overwatch":
                     return "OverWatch";
+                case "cod2022":
+                    return "现代战争 II";
+                case "titanfall2":
+                    return "泰坦陨落 2";
+                case "leagueoflegends":
+                    return "英雄联盟";
+                case "rdr2":
+                    return "荒野大镖客 2";
                 case "crossfire_swat_gr":
                     return "swat GR";
                 case "csol4":
@@ -158,6 +178,15 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                     return "大狗叫";
                 case "overwatch":
                     return "OverWatch";
+                case "cod2022":
+                    return "现代战争 II · 原版战术 HUD";
+                case "titanfall2":
+                    return "泰坦陨落 2 · 原版勋章";
+                case "leagueoflegends":
+                    return "英雄联盟 · 海克斯科技播报";
+                case "rdr2":
+                case "rdr2_icon_standard":
+                    return "荒野大镖客 2 · 亡命之徒荣誉 HUD";
                 case "default":
                     return "原版";
                 case "csol4":

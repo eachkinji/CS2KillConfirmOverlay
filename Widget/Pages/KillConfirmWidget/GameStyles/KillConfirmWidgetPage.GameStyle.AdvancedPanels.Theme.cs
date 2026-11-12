@@ -68,6 +68,22 @@ namespace KillConfirmGameBar
             {
                 _apexAdvancedEffectsPanel.ApplyTheme(theme);
             }
+            if (_cod2022AdvancedEffectsPanel != null)
+            {
+                _cod2022AdvancedEffectsPanel.ApplyTheme(theme);
+            }
+            if (_titanfall2AdvancedEffectsPanel != null)
+            {
+                _titanfall2AdvancedEffectsPanel.ApplyTheme(theme);
+            }
+            if (_leagueOfLegendsAdvancedEffectsPanel != null)
+            {
+                _leagueOfLegendsAdvancedEffectsPanel.ApplyTheme(theme);
+            }
+            if (_rdr2AdvancedEffectsPanel != null)
+            {
+                _rdr2AdvancedEffectsPanel.ApplyTheme(theme);
+            }
 
             if (_battlefield1AdvancedEffectsPanel != null)
             {
@@ -180,6 +196,22 @@ namespace KillConfirmGameBar
             {
                 _apexAdvancedEffectsPanel.ApplyLanguage(isChinese);
             }
+            if (_cod2022AdvancedEffectsPanel != null)
+            {
+                _cod2022AdvancedEffectsPanel.ApplyLanguage(isChinese);
+            }
+            if (_titanfall2AdvancedEffectsPanel != null)
+            {
+                _titanfall2AdvancedEffectsPanel.ApplyLanguage(isChinese);
+            }
+            if (_leagueOfLegendsAdvancedEffectsPanel != null)
+            {
+                _leagueOfLegendsAdvancedEffectsPanel.ApplyLanguage(isChinese);
+            }
+            if (_rdr2AdvancedEffectsPanel != null)
+            {
+                _rdr2AdvancedEffectsPanel.ApplyLanguage(isChinese);
+            }
 
             if (_battlefield1AdvancedEffectsPanel != null)
             {
@@ -276,6 +308,22 @@ namespace KillConfirmGameBar
             else if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _modernWarfare2019AdvancedEffectsPanel)
             {
                 _modernWarfare2019AdvancedEffectsPanel.SelectMoneyRewardMode(mode, DefaultMoneyRewardMode);
+            }
+            else if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _cod2022AdvancedEffectsPanel)
+            {
+                _cod2022AdvancedEffectsPanel.SelectMoneyRewardMode(mode, DefaultMoneyRewardMode);
+            }
+            else if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _titanfall2AdvancedEffectsPanel)
+            {
+                _titanfall2AdvancedEffectsPanel.SelectMoneyRewardMode(mode, DefaultMoneyRewardMode);
+            }
+            else if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _leagueOfLegendsAdvancedEffectsPanel)
+            {
+                _leagueOfLegendsAdvancedEffectsPanel.SelectMoneyRewardMode(mode, DefaultMoneyRewardMode);
+            }
+            else if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _rdr2AdvancedEffectsPanel)
+            {
+                _rdr2AdvancedEffectsPanel.SelectMoneyRewardMode(mode, DefaultMoneyRewardMode);
             }
             else if (PackTestSectionView.AdvancedEffectsPanelHost?.Content == _deltaForceAdvancedEffectsPanel)
             {

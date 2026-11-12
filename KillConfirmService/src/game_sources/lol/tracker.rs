@@ -34,6 +34,9 @@ struct PendingKill {
     weapon_name: String,
     money_epoch: u32,
     assisters: Vec<String>,
+    actor_champion: Option<String>,
+    victim_champion: Option<String>,
+    assister_champions: Vec<String>,
     kill: TrackedKill,
 }
 
@@ -58,6 +61,9 @@ pub(super) struct EmittedKill {
     pub riot_event_id: u64,
     pub game_time: Option<f64>,
     pub assisters: Vec<String>,
+    pub actor_champion: Option<String>,
+    pub victim_champion: Option<String>,
+    pub assister_champions: Vec<String>,
     pub is_first_kill: bool,
     pub is_last_kill: bool,
     pub is_shutdown: bool,
@@ -342,6 +348,13 @@ impl Tracker {
                         weapon_name: weapon_name.clone(),
                         money_epoch,
                         assisters: event.assisters.clone(),
+                        actor_champion: roster.local.canonical_champion(),
+                        victim_champion: roster.champion_for(&event.victim_name),
+                        assister_champions: event
+                            .assisters
+                            .iter()
+                            .map(|name| roster.champion_for(name).unwrap_or_else(|| name.clone()))
+                            .collect(),
                         kill: TrackedKill {
                             player: identity.to_string(),
                             target: event.victim_name.clone(),
@@ -368,6 +381,9 @@ impl Tracker {
                                 actor: Some(identity.to_string()),
                                 victim: None,
                                 assisters: Vec::new(),
+                                actor_champion: roster.local.canonical_champion(),
+                                victim_champion: None,
+                                assister_champions: Vec::new(),
                                 multikill: None,
                                 acing_team: None,
                                 dragon_type: None,
@@ -596,6 +612,9 @@ impl Tracker {
             riot_event_id: pending.id,
             game_time: pending.time,
             assisters: pending.assisters,
+            actor_champion: pending.actor_champion,
+            victim_champion: pending.victim_champion,
+            assister_champions: pending.assister_champions,
             is_first_kill: pending.is_first_kill,
             is_last_kill: pending.is_last_kill,
             is_shutdown: pending.is_shutdown && !pending.is_first_kill,

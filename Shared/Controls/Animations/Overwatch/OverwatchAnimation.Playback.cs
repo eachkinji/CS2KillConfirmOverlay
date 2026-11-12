@@ -83,6 +83,9 @@ namespace KillConfirmCompatibility.Controls
             ResetDoubaoState();
             ResetDagoujiaoState();
             ResetModernWarfare2019State();
+            ResetCod2022State();
+            ResetRdr2State();
+            ResetLeagueOfLegendsState();
             ResetApexFeedState();
             _contentSizedViewport = false;
             _isBattlefield1CompactLayoutActive = false;

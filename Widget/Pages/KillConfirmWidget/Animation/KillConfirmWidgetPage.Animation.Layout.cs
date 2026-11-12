@@ -31,11 +31,19 @@ namespace KillConfirmGameBar
             }
             if (GameStyleService.Current == GameStyleMode.Overwatch
                 || GameStyleService.Current == GameStyleMode.Apex
-                || GameStyleService.Current == GameStyleMode.ModernWarfare2019)
+                || GameStyleService.Current == GameStyleMode.ModernWarfare2019
+                || GameStyleService.Current == GameStyleMode.Cod2022
+                || GameStyleService.Current == GameStyleMode.Titanfall2
+                || GameStyleService.Current == GameStyleMode.LeagueOfLegends
+                || GameStyleService.Current == GameStyleMode.Rdr2)
             {
                 ApplyLegacyLowerCardTransform();
             }
             if (GameStyleService.Current == GameStyleMode.ModernWarfare2019
+                || GameStyleService.Current == GameStyleMode.Cod2022
+                || GameStyleService.Current == GameStyleMode.Titanfall2
+                || GameStyleService.Current == GameStyleMode.LeagueOfLegends
+                || GameStyleService.Current == GameStyleMode.Rdr2
                 || GameStyleService.IsAuxiliaryKillMarkStyle(GameStyleService.Current))
             {
                 ApplyLegacyAuxiliaryTransform();

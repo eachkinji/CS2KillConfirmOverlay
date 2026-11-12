@@ -144,6 +144,10 @@ fn supports_economy_audio_events(preset_name: &str) -> bool {
             | "pubg"
             | "deltaforce"
             | "modernwarfare2019"
+            | "cod2022"
+            | "titanfall2"
+            | "leagueoflegends"
+            | "rdr2"
             | "csol4"
             | "sanguosha"
     ) || normalized.starts_with("custom_battlefield1_voice_")
@@ -154,6 +158,18 @@ fn supports_economy_audio_events(preset_name: &str) -> bool {
         || normalized.starts_with("custom_pubg_voice_")
         || normalized.starts_with("custom_deltaforce_voice_")
         || normalized.starts_with("custom_modernwarfare2019_voice_")
+        || normalized.starts_with("cod2022_sfx_")
+        || normalized.starts_with("cod2022_voice_")
+        || normalized.starts_with("custom_cod2022_")
+        || normalized.starts_with("titanfall2_sfx_")
+        || normalized.starts_with("titanfall2_voice_")
+        || normalized.starts_with("custom_titanfall2_")
+        || normalized.starts_with("leagueoflegends_sfx_")
+        || normalized.starts_with("leagueoflegends_voice_")
+        || normalized.starts_with("custom_leagueoflegends_")
+        || normalized.starts_with("rdr2_sfx_")
+        || normalized.starts_with("rdr2_voice_")
+        || normalized.starts_with("custom_rdr2_")
         || normalized.starts_with("crossfire_")
         || normalized.starts_with("custom_voice_")
         || normalized.starts_with("custom_csol_voice_")
@@ -177,7 +193,11 @@ fn supports_economy_audio_pack(preset: &crate::soundpack::Preset) -> bool {
         || preset.manifest.as_ref().and_then(|manifest| manifest.game_style.as_deref())
             .is_some_and(|style| matches!(style.to_ascii_lowercase().as_str(),
                 "crossfire" | "csol" | "sanguosha" | "battlefield1" | "battlefield4" | "battlefield5"
-                | "battlefield2042" | "battlefield6" | "pubg" | "deltaforce" | "modernwarfare2019"))
+                | "battlefield2042" | "battlefield6" | "pubg" | "deltaforce" | "modernwarfare2019"
+                | "cod2022"
+                | "titanfall2"
+                | "leagueoflegends"
+            | "rdr2"))
 }
 
 fn supports_event_sound_pack(preset: &crate::soundpack::Preset) -> bool {

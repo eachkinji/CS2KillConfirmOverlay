@@ -86,7 +86,15 @@ namespace KillConfirmCompatibility.Services
                 || key.StartsWith("custom_deltaforce_icon_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_overwatch_icon_", StringComparison.OrdinalIgnoreCase)
                 || key.StartsWith("custom_modernwarfare2019_icon_", StringComparison.OrdinalIgnoreCase)
-                || key.StartsWith("custom_apex_icon_", StringComparison.OrdinalIgnoreCase);
+                || key.StartsWith("custom_apex_icon_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("custom_titanfall2_icon_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("titanfall2_icon_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("custom_cod2022_icon_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("cod2022_icon_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("custom_leagueoflegends_icon_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("leagueoflegends_icon_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("custom_rdr2_icon_", StringComparison.OrdinalIgnoreCase)
+                || key.StartsWith("rdr2_icon_", StringComparison.OrdinalIgnoreCase);
         }
 
         public static bool IsCsolIconPackKey(string key)

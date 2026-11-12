@@ -59,9 +59,9 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
             var selector = PackTestSectionView.TestPresetSelector;
             bool isLol = source == "lol";
             var rows = selector.Items.OfType<ComboBoxItem>().ToArray();
-            if (rows.Length != (isLol ? 8 : 25) || rows.Any(row => row.Visibility != Visibility.Visible
+            if (rows.Length != (isLol ? 17 : 25) || rows.Any(row => row.Visibility != Visibility.Visible
                 || string.IsNullOrWhiteSpace(row.Content as string)
-                || ((string)row.Tag).StartsWith("lol_", StringComparison.OrdinalIgnoreCase) != isLol)
+                || !PackTestView.IsPresetSupportedForSource(row.Tag as string, isLol))
                 || rows.Select(row => row.Tag).Distinct().Count() != rows.Length)
                 throw new Exception("Test event dropdown contains hidden, blank, duplicate or wrong-source rows: " + source);
             selector.SelectedIndex = 0;

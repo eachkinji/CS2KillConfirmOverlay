@@ -215,6 +215,26 @@ namespace KillConfirmCompatibility.Services
 
                     if (string.Equals(localRole, "victim", StringComparison.OrdinalIgnoreCase))
                     {
+                        if (style == GameStyleMode.LeagueOfLegends
+                            && LeagueOfLegendsSettingsStore.LoadEnemyEventsEnabled())
+                        {
+                            bool isNeutralExec = string.Equals(relation, "neutral", StringComparison.OrdinalIgnoreCase);
+                            promoted = CreatePromotedEvent(
+                                raw,
+                                eventChannel: "combat",
+                                eventKind: isNeutralExec ? "lol_executed" : "lol_enemy_kill",
+                                animationKey: isNeutralExec ? "executed" : "enemy_kill",
+                                killCount: Math.Max(1, lol.Multikill),
+                                playMainAnimation: true,
+                                isAssist: false,
+                                playerName: lol.Actor ?? raw.PlayerName,
+                                targetName: lol.Victim ?? raw.TargetName,
+                                weaponName: isNeutralExec ? "处决" : "被敌方击杀",
+                                moneyReward: 0,
+                                moneyEpoch: epoch);
+                            return true;
+                        }
+
                         promoted = CreatePromotedEvent(
                             raw,
                             eventChannel: "combat",
@@ -229,6 +249,48 @@ namespace KillConfirmCompatibility.Services
                             moneyReward: 0,
                             moneyEpoch: epoch);
                         return true;
+                    }
+
+                    if (style == GameStyleMode.LeagueOfLegends)
+                    {
+                        if (string.Equals(relation, "ally", StringComparison.OrdinalIgnoreCase))
+                        {
+                            promoted = CreatePromotedEvent(
+                                raw,
+                                eventChannel: "combat",
+                                eventKind: "lol_ally_kill",
+                                animationKey: "ally_kill",
+                                killCount: Math.Max(1, lol.Multikill),
+                                playMainAnimation: true,
+                                isAssist: false,
+                                playerName: lol.Actor ?? raw.PlayerName,
+                                targetName: lol.Victim ?? raw.TargetName,
+                                weaponName: "友军击杀",
+                                moneyReward: 0,
+                                moneyEpoch: epoch);
+                            return true;
+                        }
+
+                        if (LeagueOfLegendsSettingsStore.LoadEnemyEventsEnabled()
+                            && (string.Equals(relation, "enemy", StringComparison.OrdinalIgnoreCase)
+                                || string.Equals(relation, "neutral", StringComparison.OrdinalIgnoreCase)))
+                        {
+                            bool isNeutralExec = string.Equals(relation, "neutral", StringComparison.OrdinalIgnoreCase);
+                            promoted = CreatePromotedEvent(
+                                raw,
+                                eventChannel: "combat",
+                                eventKind: isNeutralExec ? "lol_executed" : "lol_enemy_kill",
+                                animationKey: isNeutralExec ? "executed" : "enemy_kill",
+                                killCount: Math.Max(1, lol.Multikill),
+                                playMainAnimation: true,
+                                isAssist: false,
+                                playerName: lol.Actor ?? raw.PlayerName,
+                                targetName: lol.Victim ?? raw.TargetName,
+                                weaponName: isNeutralExec ? "处决" : "敌方击杀",
+                                moneyReward: 0,
+                                moneyEpoch: epoch);
+                            return true;
+                        }
                     }
 
                     return false;
@@ -620,7 +682,10 @@ namespace KillConfirmCompatibility.Services
                 case GameStyleMode.Pubg:
                 case GameStyleMode.DeltaForce:
                 case GameStyleMode.ModernWarfare2019:
+                case GameStyleMode.Cod2022:
                 case GameStyleMode.Apex:
+                case GameStyleMode.Titanfall2:
+                case GameStyleMode.Rdr2:
                     return true;
                 default:
                     return false;

@@ -274,8 +274,16 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                     return "ms-appx:///Assets/GameStyles/overwatch/killconfirm/textures/preview.png";
                 case "modernwarfare2019":
                     return "ms-appx:///Assets/GameLogos/modernwarfare2019.png";
+                case "cod2022":
+                    return "ms-appx:///Assets/GameLogos/cod2022.png";
                 case "apex":
                     return "ms-appx:///Assets/GameLogos/apex.png";
+                case "titanfall2":
+                    return "ms-appx:///Assets/GameLogos/titanfall2.png";
+                case "leagueoflegends":
+                    return "ms-appx:///Assets/GameLogos/leagueoflegends.png";
+                case "rdr2":
+                    return "ms-appx:///Assets/GameLogos/rdr2.png";
                 case "csol4":
                     return "ms-appx:///Assets/KillConfirmCode/Csol4/headshot_kill.png";
                 default:
@@ -312,8 +320,16 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay
                     return "ms-appx:///Assets/GameStyles/overwatch/killconfirm/textures/preview.png";
                 case GameStyleMode.ModernWarfare2019:
                     return "ms-appx:///Assets/GameLogos/modernwarfare2019.png";
+                case GameStyleMode.Cod2022:
+                    return "ms-appx:///Assets/GameLogos/cod2022.png";
                 case GameStyleMode.Apex:
                     return "ms-appx:///Assets/GameLogos/apex.png";
+                case GameStyleMode.Titanfall2:
+                    return "ms-appx:///Assets/GameLogos/titanfall2.png";
+                case GameStyleMode.LeagueOfLegends:
+                    return "ms-appx:///Assets/GameLogos/leagueoflegends.png";
+                case GameStyleMode.Rdr2:
+                    return "ms-appx:///Assets/GameLogos/rdr2.png";
                 default:
                     return CrossfireExternalAssetService.VisualUri("Original", "badge_headshot.PNG");
             }

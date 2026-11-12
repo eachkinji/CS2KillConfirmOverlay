@@ -46,7 +46,15 @@ namespace KillConfirmCompatibility.Services
                 && (string.Equals(item.Key, icon.Key, StringComparison.OrdinalIgnoreCase)
                     || (!string.IsNullOrWhiteSpace(item.AssociationId)
                         && string.Equals(item.AssociationId, icon.AssociationId, StringComparison.OrdinalIgnoreCase))
-                    || (item.AssociatedIconKeys?.Contains(icon.Key, StringComparer.OrdinalIgnoreCase) ?? false));
+                    || (item.AssociatedIconKeys?.Contains(icon.Key, StringComparer.OrdinalIgnoreCase) ?? false)
+                    || (string.Equals(icon.Key, "titanfall2", StringComparison.OrdinalIgnoreCase)
+                        && (item.AssociatedIconKeys?.Contains("titanfall2_icon_standard", StringComparer.OrdinalIgnoreCase) ?? false))
+                    || (string.Equals(icon.Key, "cod2022", StringComparison.OrdinalIgnoreCase)
+                        && (item.AssociatedIconKeys?.Contains("cod2022_icon_standard", StringComparer.OrdinalIgnoreCase) ?? false))
+                    || (string.Equals(icon.Key, "leagueoflegends", StringComparison.OrdinalIgnoreCase)
+                        && (item.AssociatedIconKeys?.Contains("leagueoflegends_icon_standard", StringComparer.OrdinalIgnoreCase) ?? false))
+                    || (string.Equals(icon.Key, "rdr2", StringComparison.OrdinalIgnoreCase)
+                        && (item.AssociatedIconKeys?.Contains("rdr2_icon_standard", StringComparer.OrdinalIgnoreCase) ?? false)));
 
         internal static bool TryParseAudioKind(string value, out AudioPackKind kind)
         {
@@ -253,6 +261,14 @@ namespace KillConfirmCompatibility.Services
             if (!string.IsNullOrWhiteSpace(key) && key.IndexOfAny(Path.GetInvalidFileNameChars()) < 0
                 && (key.StartsWith("calabiyau_sfx_", StringComparison.OrdinalIgnoreCase)
                     || key.StartsWith("calabiyau_voice_", StringComparison.OrdinalIgnoreCase)
+                    || key.StartsWith("titanfall2_sfx_", StringComparison.OrdinalIgnoreCase)
+                    || key.StartsWith("titanfall2_voice_", StringComparison.OrdinalIgnoreCase)
+                    || key.StartsWith("cod2022_sfx_", StringComparison.OrdinalIgnoreCase)
+                    || key.StartsWith("cod2022_voice_", StringComparison.OrdinalIgnoreCase)
+                    || key.StartsWith("leagueoflegends_sfx_", StringComparison.OrdinalIgnoreCase)
+                    || key.StartsWith("leagueoflegends_voice_", StringComparison.OrdinalIgnoreCase)
+                    || key.StartsWith("rdr2_sfx_", StringComparison.OrdinalIgnoreCase)
+                    || key.StartsWith("rdr2_voice_", StringComparison.OrdinalIgnoreCase)
                     || key.StartsWith("custom_" + gameKey + "_audio_", StringComparison.OrdinalIgnoreCase))) return key;
             return ImportedAudioCopyKey(gameKey, kind, string.IsNullOrWhiteSpace(key) ? name : key);
         }

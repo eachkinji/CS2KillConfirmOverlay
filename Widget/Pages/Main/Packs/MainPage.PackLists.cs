@@ -471,6 +471,26 @@ namespace KillConfirmGameBar
                     var existingFiles = await CollectFilesFromPackFolderAsync(packFolder, "hitmark.png");
                     await ShowCreateApexIconPackDialogAsync(packName, existingFiles, existingHeadImage);
                 }
+                else if (packStyle == GameStyleMode.Cod2022)
+                {
+                    var existingFiles = await CollectFilesFromPackFolderAsync(packFolder, Cod2022IconPackImportFiles);
+                    await ShowCreateCod2022IconPackDialogAsync(packName, existingFiles, existingHeadImage);
+                }
+                else if (packStyle == GameStyleMode.Titanfall2)
+                {
+                    var existingFiles = await CollectFilesFromPackFolderAsync(packFolder, Titanfall2IconPackImportFiles);
+                    await ShowCreateTitanfall2IconPackDialogAsync(packName, existingFiles, existingHeadImage);
+                }
+                else if (packStyle == GameStyleMode.LeagueOfLegends)
+                {
+                    var existingFiles = await CollectFilesFromPackFolderAsync(packFolder, LeagueOfLegendsIconPackImportFiles);
+                    await ShowCreateLeagueOfLegendsIconPackDialogAsync(packName, existingFiles, existingHeadImage);
+                }
+                else if (packStyle == GameStyleMode.Rdr2)
+                {
+                    var existingFiles = await CollectFilesFromPackFolderAsync(packFolder, Rdr2IconPackImportFiles);
+                    await ShowCreateRdr2IconPackDialogAsync(packName, existingFiles, existingHeadImage);
+                }
                 else if (packStyle == GameStyleMode.Valorant)
                 {
                     await ShowValorantIconEditorAsync(item);

@@ -134,7 +134,8 @@ namespace KillConfirmCompatibility.Controls
                 "Battlefield6IconCache", "DeltaForceIconCache", "DoubaoKillCache", "SanguoshaTiers", "SanguoshaPageCache",
                 "CalabiyauTextures", "CalabiyauClips", "CustomSequenceAssets", "CustomSequenceSlots",
                 "_overwatchEffectSheetBitmap", "_overwatchKillIconBitmap", "_apexHitmarkBitmap",
-                "_modernWarfare2019UpperIconBitmap", "_modernWarfare2019MoneyGlowBitmap", "_valorantCachedTextures" };
+                "_modernWarfare2019UpperIconBitmap", "_modernWarfare2019MoneyGlowBitmap", "_valorantCachedTextures",
+                "Cod2022IconCache", "Titanfall2IconCache", "LeagueOfLegendsIconCache", "Rdr2IconCache" };
             foreach (string name in fields)
             {
                 FieldInfo field = typeof(KillConfirmAnimation).GetField(name, BindingFlags.NonPublic | BindingFlags.Static)
@@ -162,6 +163,10 @@ namespace KillConfirmCompatibility.Controls
                 case GameStyleMode.Overwatch: PlayOverwatchLowerThirdKill("Validation " + count); break;
                 case GameStyleMode.ModernWarfare2019: PlayModernWarfare2019CrosshairKill(false, count, 100); break;
                 case GameStyleMode.Apex: PlayApexFeedCard(false, "Validation " + count, 100); break;
+                case GameStyleMode.Cod2022: PlayCod2022Crosshair(count, false, false, false, false, false, false, false, "Validation", "AK47", 100, "kill"); break;
+                case GameStyleMode.Titanfall2: PlayTitanfall2Crosshair(count, false, false, false, false, false, false, false, "kill", "AK47"); break;
+                case GameStyleMode.LeagueOfLegends: PlayLeagueOfLegendsLowerCallout(new KillEvent { Source = KillEventSources.Cs2, EventChannel = "combat", EventKind = "kill", KillCount = count, PlayMainAnimation = true, TargetName = "Validation " + count }); break;
+                case GameStyleMode.Rdr2: PlayRdr2Crosshair(count, false, false, false, false, false, false, false, "Validation", "AK47", 100, "kill"); break;
                 case GameStyleMode.Battlefield1: PlayBattlefield1Kill(count, false, false, false, "Validation", "AK47", 100, "kill", 1, 1); break;
                 case GameStyleMode.Battlefield5: PlayBattlefield5Kill(count, false, false, false, "Validation", "AK47", 100, "kill", 1, 1); break;
                 case GameStyleMode.Battlefield4: PlayBattlefield4Kill(count, false, false, false, "Validation", "AK47", 100, "kill", 1, 1); break;

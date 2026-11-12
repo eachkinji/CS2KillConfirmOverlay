@@ -173,6 +173,38 @@ namespace KillConfirmGameBar
                         : "Voice packs expose 10 events. Empty slots fall back through same-level normal, kill-1 headshot, then kill-1 normal. Import icon packs, or choose New icon pack for one sequence.";
                     break;
 
+                case GameStyleMode.Cod2022:
+                    body = isChinese
+                        ? "1:1 代码级还原《使命召唤：现代战争 II》(2022 / IW9) 原生 LUI 三层反馈：上方切角三切片勋章横幅 (SkillSplash + 001 旋转计数 + 乱码解码 + 双折角扫光)、准星 45° 命中叉标与琥珀微光 +100 XP 跳字词条、下方红底骷髅淘汰铭牌或 KILLED 渐变横幅，完整支持 CS2/CS:GO 与英雄联盟。"
+                        : "1:1 code-level Call of Duty: Modern Warfare II (2022 / IW9) native LUI 3-layer feedback: upper 3-slice notched SkillSplash banner with rotated counter & decode scramble, crosshair 45° hitmarker with amber +100 XP popup & score feed, and lower red nameplate / KILLED gradient bar for CS2/CS:GO and League of Legends.";
+                    voice = isChinese
+                        ? "支持原版 IW9 多轨分层击杀确认音效包（命中层 + 致死爆头重击层 + 经典 MW 铃音 + 切角勋章提示音并发混音），也可导入扩展战术音效包与角色语音包。"
+                        : "Supports native IW9 multi-layer concurrent audio (hitmarker + lethal/headshot impact + classic MW bell + splash stinger) plus custom SFX and character voice packs.";
+                    iconSummary = isChinese
+                        ? "支持导入 manifest 战术 HUD 图标包或新建替换 14 个原版 IW9 LUI 贴图槽位；未设置的槽位保留内置原版高清贴图。"
+                        : "Import manifest HUD icon packs or customize any of the 14 native IW9 LUI texture slots; empty slots keep built-in assets.";
+                    iconFull = "hud_damage_feedback_marker.png, hud_damage_feedback_burst.png, hud_glow.png, hud_splash_accent_diamond.png,\nhud_splash_accent_reticle.png, hud_splash_accent_chevrons_single.png, hud_splash_notched_background_5.png, hud_splash_notched_background_4.png,\nhud_icon_splash_kill.png, hud_icon_obit_kill.png, hud_icon_obit_headshot.png, hud_icon_obit_destroy.png,\nwidg_gradient_center_out.png, widg_gradient_left_to_right.png";
+                    fileHint = isChinese
+                        ? "击杀音效包与战术语音包分轨独立叠加播放，互不打断。"
+                        : "Kill SFX packs and tactical voice packs play concurrently on independent audio channels.";
+                    break;
+
+                case GameStyleMode.Titanfall2:
+                    body = isChinese
+                        ? "还原泰坦陨落 2 原版 RUI 三层反馈：准星 X 命中/弱点闪光、右上角计分勋章堆栈（展开后收缩下移）、下方淘汰横幅与 +20% 泰坦核心槽进度，支持 CS2/CS:GO 与英雄联盟。"
+                        : "1:1 Titanfall 2 RUI three-layer feedback: crosshair hit/crit flash, top-right score medal stack, and lower elimination callout with +20% Titan meter bonus for both CS2/CS:GO and League of Legends.";
+                    voice = isChinese
+                        ? "支持导入官方音效包（铁驭击杀 / 仿生体泰坦）与 6 位指挥官中文语音包（盖兹、巴克、马德、莎拉、艾什、布里斯克），也可通过新建音频包自定义各击杀槽位。"
+                        : "Supports Titanfall 2 SFX packs (Pilot Kill / Android & Titan) and 6 faction commander voice packs, plus custom per-slot audio packs.";
+                    iconSummary = isChinese
+                        ? "支持导入 manifest 勋章图标包或新建替换 12 个原版 RUI 勋章与准星贴图槽位；未设置的槽位保留内置原版贴图。"
+                        : "Import manifest medal packs or customize any of the 12 RUI medal and hit-indicator PNG slots; empty slots keep built-in textures.";
+                    iconFull = "badge_kill_pilot.png, badge_headshot.png, badge_double_kill.png, badge_multi_kill.png,\nbadge_kill_titan.png, badge_first_strike.png, badge_victory.png, badge_wings.png,\nbadge_titanfall.png, badge_eject.png, hit_indicator.png, hit_indicator_crit_bg.png";
+                    fileHint = isChinese
+                        ? "音效包与指挥官语音包可同时启用、分层播放，互不覆盖。"
+                        : "Sound-effect packs and commander voice packs layer simultaneously on independent channels.";
+                    break;
+
                 case GameStyleMode.Apex:
                     body = isChinese
                         ? "击杀时显示目标和金钱，助攻只显示目标。新提示从下方弹入，旧提示依次上移并淡出。"
@@ -297,6 +329,36 @@ namespace KillConfirmGameBar
                     iconSummary = isChinese ? "原始透明贴图与 3.5 秒动画曲线。" : "Original transparent textures and a 3.5-second timeline.";
                     iconFull = "REAC_Main / REAC_Main1 / REAC_Main01–05 / React9";
                     fileHint = isChinese ? "三个素材库分别管理图标、配套音效和角色台词。整包导入保留原始时序；同系列图标变体可共用音效包。" : "Three libraries manage icons, matching sound effects and character voices. Pack imports preserve timing; icon variants can share one sound effect pack.";
+                    break;
+                case GameStyleMode.Rdr2:
+                    body = isChinese
+                        ? "1:1 代码级还原《荒野大镖客：救赎 2》三层西部 HUD：中央 Scaleform 30fps 四臂命中准星（白/击杀猩红/暴击深红/完美金叉）与死神之眼手绘红叉、右侧善恶荣誉徽章（+牛仔 / -骷髅）与线上 +XP 悬赏词条栈、底部 16 档原版配色善恶荣誉条与西部斑驳墨刷播报，完整支持 CS2/CS:GO 与英雄联盟实时对局。"
+                        : "1:1 code-level Red Dead Redemption 2 3-layer Western HUD: center Scaleform 30fps 4-arm hitmarker (white/red/crimson/gold) & Dead Eye painted red X, right Honor medallion (+Cowboy / -Outlaw Skull) & RDO +XP bounty stack, and bottom 16-state Honor bar with distressed Western ink banner for both CS2/CS:GO and League of Legends.";
+                    voice = isChinese
+                        ? "honor_gain / honor_gain_alt = 义举高荣誉钟声\nhonor_loss / honor_loss_alt = 恶行低荣誉低音钟声\ndead_eye = 死神之眼处决 / 连杀重音"
+                        : "honor_gain / honor_gain_alt = High Honor chime\nhonor_loss / honor_loss_alt = Low Honor outlaw sting\ndead_eye = Dead Eye execution / multi-kill sting";
+                    iconSummary = isChinese
+                        ? "支持 20 槽位原版 Scaleform 准星、死神之眼红叉、善恶牛仔/骷髅徽章与西部墨刷横幅整包替换。"
+                        : "Supports 20-slot Scaleform reticles, Dead Eye X, Honor cowboy/skull badges, and Western ink banner packs.";
+                    iconFull = "hitmarker_shot_white / hitmarker_kill_red / hitmarker_critical_crimson / hitmarker_perfect_kill_gold / deadeye_kill_cross_red / honor_cowboy_badge_hd / honor_skull_badge_hd / honor_bg";
+                    fileHint = isChinese
+                        ? "可直接导入 RDR2 图标包或善恶荣誉音效包 ZIP，也可在面板内自定义各槽位贴图与多变体音效池。"
+                        : "Import RDR2 icon or Honor audio ZIP packs directly, or customize individual texture slots and multi-variant audio pools.";
+                    break;
+                case GameStyleMode.LeagueOfLegends:
+                    body = isChinese
+                        ? "1:1 代码级还原《英雄联盟》召唤师峡谷海克斯科技播报：上方 BannerScene 连杀与史诗级目标横幅（双头像对决 + 五杀鎏金纹章 + Beaufort/方正大黑原版排版）、右侧四槽英雄头像通告栏（海克斯脉冲波纹 + 助攻头像序列）、可选中央海克斯命中纹章与 +300g 跳字，完整支持英雄联盟实时对局与 CS2/CS:GO。"
+                        : "1:1 code-level League of Legends Summoner's Rift Hextech HUD: upper BannerScene multi-kill & epic objective banner (two-icon duel rings, Pentakill crest, native Beaufort/FZDHTK typography), right 4-slot champion KillCallout feed with Hextech pulse ripples & assister portraits, and optional center hitmarker +300g popup for both LoL and CS2/CS:GO.";
+                    voice = isChinese
+                        ? "内置召唤师峡谷 Wwise 双层连杀音效（0ms 斩击 + 100ms 延迟海克斯钟鸣），支持导入国服/美服峡谷女播音员全事件语音包（一血、双杀至五杀、大杀特杀至超神、终结、团灭、防御塔/水晶/大小龙/先锋/虚空巢虫/抢龙）。"
+                        : "Built-in Summoner's Rift Wwise 2-layer killstreak SFX (0ms slash + 100ms delayed chime), plus importable CN/EN Female1 announcer voice packs covering First Blood, Double–Penta Kill, Killing Spree–Godlike, Shutdown, Ace, and objectives.";
+                    iconSummary = isChinese
+                        ? "支持导入 manifest 海克斯 HUD 图标包或新建自定义 66 个原版切片与英雄头像贴图槽位；未设置的槽位保留内置原版高清贴图。"
+                        : "Import manifest Hextech HUD icon packs or customize any of the 66 native HUD slice and champion portrait slots; empty slots keep built-in textures.";
+                    iconFull = "AnnouncementText_GoldGradientFill.png, Ripple_NoShadow.png, AnnBannerBlue/Red/Gold_Underline.png,\nDoubleKill..Pentakill Blue/Red BG.png, KillCallout0_Blue/Red_BG.png, 10 built-in champion *_circle.png & *_square.png";
+                    fileHint = isChinese
+                        ? "峡谷连杀音效包与播音员语音包在独立音频通道上并发叠加播放，互不覆盖。"
+                        : "Killstreak SFX packs and announcer voice packs play concurrently on independent audio channels.";
                     break;
                 case GameStyleMode.Sanguosha:
                     body = isChinese ? "三国杀直接回放游戏原版连破播报：首破、连破、三破、四破、五破、六破、七破，第 7 杀以后保持七破。" : "Sanguosha replays the game's original broadcasts: First Strike through Seven Kills; kills beyond 7 keep the seven-kill broadcast.";

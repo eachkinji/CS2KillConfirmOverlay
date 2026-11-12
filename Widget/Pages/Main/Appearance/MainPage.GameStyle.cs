@@ -213,6 +213,7 @@ namespace KillConfirmGameBar
                     case GameStyleMode.Csol: return "CSOL · 反恐精英 Online";
                     case GameStyleMode.Pubg: return "PUBG · 绝地求生";
                     case GameStyleMode.DeltaForce: return "三角洲行动";
+                    case GameStyleMode.Rdr2: return "荒野大镖客：救赎 2";
                     default: return GameStyleService.ToDisplayName(mode);
                 }
             }
@@ -223,7 +224,9 @@ namespace KillConfirmGameBar
                 case GameStyleMode.Valorant: return "VALORANT";
                 case GameStyleMode.Overwatch: return "Overwatch";
                 case GameStyleMode.ModernWarfare2019: return "Call of Duty: Modern Warfare 2019";
+                case GameStyleMode.Cod2022: return "Call of Duty: Modern Warfare II";
                 case GameStyleMode.Apex: return "Apex Legends";
+                case GameStyleMode.Titanfall2: return "Titanfall 2";
                 case GameStyleMode.Battlefield1: return "Battlefield 1";
                 case GameStyleMode.Battlefield5: return "Battlefield V";
                 case GameStyleMode.Battlefield4: return "Battlefield 4";
@@ -231,8 +234,10 @@ namespace KillConfirmGameBar
                 case GameStyleMode.Battlefield6: return "Battlefield 6";
                 case GameStyleMode.Pubg: return "PUBG: Battlegrounds";
                 case GameStyleMode.DeltaForce: return "Delta Force";
+                case GameStyleMode.Rdr2: return "Red Dead Redemption 2";
                 case GameStyleMode.Doubao: return "Doubao";
                 case GameStyleMode.Sanguosha: return "Sanguosha";
+                case GameStyleMode.LeagueOfLegends: return "League of Legends";
                 case GameStyleMode.Dagoujiao: return "Big Dog Bark";
                 case GameStyleMode.Calabiyau: return "Strinova";
                 case GameStyleMode.CustomModule: return "Custom";
@@ -259,7 +264,11 @@ namespace KillConfirmGameBar
                 battlefield5 ? Color.FromArgb(255, 119, 243, 255) :
                 battlefield2042 ? Color.FromArgb(255, 109, 255, 255) :
                 mode == GameStyleMode.Battlefield6 ? Color.FromArgb(255, 238, 175, 126) :
+                mode == GameStyleMode.Cod2022 ? Color.FromArgb(255, 184, 240, 120) :
+                mode == GameStyleMode.Titanfall2 ? Color.FromArgb(255, 255, 186, 148) :
                 mode == GameStyleMode.Sanguosha ? Color.FromArgb(255, 240, 205, 140) :
+                mode == GameStyleMode.LeagueOfLegends ? Color.FromArgb(255, 126, 224, 248) :
+                mode == GameStyleMode.Rdr2 ? Color.FromArgb(255, 232, 162, 146) :
                 battlefield4 ? Color.FromArgb(255, 125, 211, 252) :
                 battlefield1 ? Color.FromArgb(255, 255, 218, 166) :
                 valorant ? Color.FromArgb(255, 255, 170, 178) :
@@ -271,7 +280,11 @@ namespace KillConfirmGameBar
                 battlefield5 ? Color.FromArgb(255, 58, 137, 166) :
                 battlefield2042 ? Color.FromArgb(255, 60, 128, 146) :
                 mode == GameStyleMode.Battlefield6 ? Color.FromArgb(255, 93, 120, 101) :
+                mode == GameStyleMode.Cod2022 ? Color.FromArgb(255, 38, 74, 34) :
+                mode == GameStyleMode.Titanfall2 ? Color.FromArgb(255, 43, 91, 132) :
                 mode == GameStyleMode.Sanguosha ? Color.FromArgb(255, 128, 28, 22) :
+                mode == GameStyleMode.LeagueOfLegends ? Color.FromArgb(255, 16, 68, 104) :
+                mode == GameStyleMode.Rdr2 ? Color.FromArgb(255, 118, 24, 28) :
                 battlefield4 ? Color.FromArgb(255, 56, 120, 160) :
                 battlefield1 ? Color.FromArgb(255, 88, 110, 126) :
                 valorant ? Color.FromArgb(255, 59, 78, 102) :
@@ -486,6 +499,12 @@ namespace KillConfirmGameBar
                 case GameStyleMode.Apex:
                     panel = EnsureApexAdvancedSettingsPanel();
                     break;
+                case GameStyleMode.Cod2022:
+                    panel = EnsureCod2022AdvancedSettingsPanel();
+                    break;
+                case GameStyleMode.Titanfall2:
+                    panel = EnsureTitanfall2AdvancedSettingsPanel();
+                    break;
                 case GameStyleMode.Valorant:
                     panel = EnsureValorantAdvancedSettingsPanel();
                     break;
@@ -526,6 +545,12 @@ namespace KillConfirmGameBar
                     break;
                 case GameStyleMode.Sanguosha:
                     panel = EnsureSanguoshaAdvancedSettingsPanel();
+                    break;
+                case GameStyleMode.LeagueOfLegends:
+                    panel = EnsureLeagueOfLegendsAdvancedSettingsPanel();
+                    break;
+                case GameStyleMode.Rdr2:
+                    panel = EnsureRdr2AdvancedSettingsPanel();
                     break;
                 case GameStyleMode.Dagoujiao:
                     panel = EnsureDagoujiaoAdvancedSettingsPanel();

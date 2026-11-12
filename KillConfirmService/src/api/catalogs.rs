@@ -117,8 +117,24 @@ const SOUND_PACK_OPTIONS: &[SoundPackOption] = &[
         display_name: "Modern Warfare 2019",
     },
     SoundPackOption {
+        preset: "cod2022",
+        display_name: "Modern Warfare II (2022)",
+    },
+    SoundPackOption {
         preset: "apex",
         display_name: "Apex Legends",
+    },
+    SoundPackOption {
+        preset: "titanfall2",
+        display_name: "Titanfall 2",
+    },
+    SoundPackOption {
+        preset: "leagueoflegends",
+        display_name: "League of Legends",
+    },
+    SoundPackOption {
+        preset: "rdr2",
+        display_name: "Red Dead Redemption 2",
     },
     SoundPackOption {
         preset: "valorant_00000_base",

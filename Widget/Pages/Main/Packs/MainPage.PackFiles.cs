@@ -458,6 +458,22 @@ namespace KillConfirmGameBar
                     {
                         return await installed.GetFolderAsync(@"Assets\GameStyles\apex\killconfirm\textures");
                     }
+                    if (string.Equals(key, "cod2022", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return await installed.GetFolderAsync(@"Assets\GameStyles\cod2022\killconfirm\textures");
+                    }
+                    if (string.Equals(key, "titanfall2", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return await installed.GetFolderAsync(@"Assets\GameStyles\titanfall2\killconfirm\textures");
+                    }
+                    if (string.Equals(key, "leagueoflegends", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return await installed.GetFolderAsync(@"Assets\GameStyles\leagueoflegends\killconfirm\textures");
+                    }
+                    if (string.Equals(key, "rdr2", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return await installed.GetFolderAsync(@"Assets\GameStyles\rdr2\killconfirm\textures");
+                    }
 
                     // Valorant
                     if (key.StartsWith("valorant_", StringComparison.OrdinalIgnoreCase))

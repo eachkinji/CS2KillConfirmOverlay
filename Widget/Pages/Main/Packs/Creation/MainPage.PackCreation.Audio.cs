@@ -14,12 +14,20 @@ namespace KillConfirmGameBar
     public sealed partial class MainPage
     {
         private bool UsesGenericAudioEditor => SettingsGameStyle == GameStyleMode.Calabiyau
+            || SettingsGameStyle == GameStyleMode.Cod2022
+            || SettingsGameStyle == GameStyleMode.Titanfall2
+            || SettingsGameStyle == GameStyleMode.LeagueOfLegends
+            || SettingsGameStyle == GameStyleMode.Rdr2
             || (ActiveAudioPackKind == AudioPackKind.CharacterVoice && SettingsGameStyle != GameStyleMode.Crossfire)
             || (ActiveAudioPackKind == AudioPackKind.SoundEffect && SettingsGameStyle == GameStyleMode.Crossfire);
 
         private static bool IsGenericAudioPack(VoicePackItem item)
             => item.Key.IndexOf("_audio_", StringComparison.OrdinalIgnoreCase) >= 0
                 || PackCatalogService.GetAudioPackStyle(item) == GameStyleMode.Calabiyau
+                || PackCatalogService.GetAudioPackStyle(item) == GameStyleMode.Cod2022
+                || PackCatalogService.GetAudioPackStyle(item) == GameStyleMode.Titanfall2
+                || PackCatalogService.GetAudioPackStyle(item) == GameStyleMode.LeagueOfLegends
+                || PackCatalogService.GetAudioPackStyle(item) == GameStyleMode.Rdr2
                 || (PackCatalogService.GetAudioPackKind(item) == AudioPackKind.CharacterVoice
                     && PackCatalogService.GetAudioPackStyle(item) != GameStyleMode.Crossfire)
                 || (PackCatalogService.GetAudioPackKind(item) == AudioPackKind.SoundEffect

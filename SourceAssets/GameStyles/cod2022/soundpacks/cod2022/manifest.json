@@ -1,0 +1,113 @@
+{
+  "format_version": 1,
+  "package_kind": "audio",
+  "id": "cod2022",
+  "name": "使命召唤：现代战争 II (2022) · 原生击杀音效",
+  "display_name": "MWII (2022) Native Kill SFX",
+  "display_name_zh_cn": "现代战争II—原生击杀确认—音效包",
+  "game_style": "cod2022",
+  "audio_kind": "sound_effect",
+  "version": "1.0.0",
+  "associated_icon_keys": [
+    "cod2022"
+  ],
+  "audio": {
+    "base_gain": 1.0,
+    "slots": {
+      "hit": [
+        "hit.wav"
+      ],
+      "hit_alt": [
+        "hit_alt.wav"
+      ],
+      "kill_1": [
+        "kill.wav"
+      ],
+      "headshot": [
+        "headshot.wav"
+      ],
+      "headshot_accent": [
+        "headshot_accent.wav"
+      ],
+      "splash_medal": [
+        "splash_medal.wav"
+      ],
+      "splash_multikill_1": [
+        "splash_multikill_1.wav"
+      ],
+      "splash_multikill_2": [
+        "splash_multikill_2.wav"
+      ],
+      "splash_multikill_3": [
+        "splash_multikill_3.wav"
+      ],
+      "assist": [
+        "hit_alt.wav"
+      ]
+    },
+    "slot_gains": {
+      "hit": 0.92,
+      "hit_alt": 0.88,
+      "kill_1": 1.0,
+      "headshot": 0.96,
+      "headshot_accent": 0.72,
+      "splash_medal": 0.82,
+      "splash_multikill_1": 0.88,
+      "splash_multikill_2": 0.92,
+      "splash_multikill_3": 0.96,
+      "assist": 0.85
+    }
+  },
+  "files": [
+    {
+      "path": "headshot.wav",
+      "bytes": 80684,
+      "sha256": "d5b8c49a8439099f47c8a860c88f0795f23c8c241980fd0d02223eca6f4e3fd3"
+    },
+    {
+      "path": "headshot_accent.wav",
+      "bytes": 94124,
+      "sha256": "357e24dbf01a6d8460cd2c2141bf4db7d6ac8036c7b8c8d19f053b7be5312674"
+    },
+    {
+      "path": "hit.wav",
+      "bytes": 57644,
+      "sha256": "ae401896c71bac5269a6fd17a6f955d0c142630e89e90b71e6345b7955a0f75a"
+    },
+    {
+      "path": "hit_alt.wav",
+      "bytes": 65324,
+      "sha256": "ae56db8b6bfc364208f74a552fd5f4dd9476e84bbbf7f98ec803e32e1bde12a0"
+    },
+    {
+      "path": "kill.wav",
+      "bytes": 245804,
+      "sha256": "b805694953e487bedc508cc2ed9fe19bd2da6c7dcbe4021c2a7de73228393a32"
+    },
+    {
+      "path": "pack_head.png",
+      "bytes": 3964,
+      "sha256": "fbac74e456f77b667ba30072513088548ff548b1569d90eaab7d3ae9aa78c22e"
+    },
+    {
+      "path": "splash_medal.wav",
+      "bytes": 145964,
+      "sha256": "1d5fa191a55a0b57a14ae49a392ade52bddef715674e2ce54ceb3dcfb2081c96"
+    },
+    {
+      "path": "splash_multikill_1.wav",
+      "bytes": 203564,
+      "sha256": "cc912628d1a6f40191debc92a1661513665e340a029ac80e0ea72a28aa142f59"
+    },
+    {
+      "path": "splash_multikill_2.wav",
+      "bytes": 184364,
+      "sha256": "f4d3d7bbe15ce2271545b9177fd08c42527360d88913b179e26d78491aababa3"
+    },
+    {
+      "path": "splash_multikill_3.wav",
+      "bytes": 284204,
+      "sha256": "2cd8a58141fbef6c3c6dddad1a008c50fbb4416e087ab2da00b41db65ffa48f1"
+    }
+  ]
+}

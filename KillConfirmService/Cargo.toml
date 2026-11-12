@@ -1,6 +1,6 @@
 [package]
 name = "cskillconfirm"
-version = "5.9.2"
+version = "5.9.3"
 edition = "2024"
 
 [profile.release]

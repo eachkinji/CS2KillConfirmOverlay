@@ -15,16 +15,20 @@ namespace KillConfirmCompatibility.Services
         Valorant,
         Overwatch,
         Apex,
+        Titanfall2,
         Calabiyau,
         Pubg,
         DeltaForce,
+        Rdr2,
         Battlefield4,
         Battlefield1,
         Battlefield5,
         Battlefield2042,
         Battlefield6,
         ModernWarfare2019,
+        Cod2022,
         Sanguosha,
+        LeagueOfLegends,
         Doubao,
         Dagoujiao,
         CustomModule
@@ -64,8 +68,12 @@ namespace KillConfirmCompatibility.Services
                     return "overwatch";
                 case GameStyleMode.ModernWarfare2019:
                     return "modernwarfare2019";
+                case GameStyleMode.Cod2022:
+                    return "cod2022";
                 case GameStyleMode.Apex:
                     return "apex";
+                case GameStyleMode.Titanfall2:
+                    return "titanfall2";
                 case GameStyleMode.Battlefield1:
                     return "battlefield1";
                 case GameStyleMode.Battlefield5:
@@ -80,6 +88,8 @@ namespace KillConfirmCompatibility.Services
                     return "pubg";
                 case GameStyleMode.DeltaForce:
                     return "deltaforce";
+                case GameStyleMode.Rdr2:
+                    return "rdr2";
                 case GameStyleMode.Calabiyau:
                     return "calabiyau";
                 case GameStyleMode.CustomModule:
@@ -90,6 +100,8 @@ namespace KillConfirmCompatibility.Services
                     return "dagoujiao";
                 case GameStyleMode.Sanguosha:
                     return "sanguosha";
+                case GameStyleMode.LeagueOfLegends:
+                    return "leagueoflegends";
                 case GameStyleMode.Csol:
                     return "csol";
                 case GameStyleMode.Crossfire:
@@ -108,8 +120,12 @@ namespace KillConfirmCompatibility.Services
                     return "守望先锋";
                 case GameStyleMode.ModernWarfare2019:
                     return "使命召唤：现代战争 2019";
+                case GameStyleMode.Cod2022:
+                    return "使命召唤：现代战争 II";
                 case GameStyleMode.Apex:
                     return "Apex 英雄";
+                case GameStyleMode.Titanfall2:
+                    return "泰坦陨落 2";
                 case GameStyleMode.Battlefield1:
                     return "战地1";
                 case GameStyleMode.Battlefield5:
@@ -124,6 +140,8 @@ namespace KillConfirmCompatibility.Services
                     return "PUBG";
                 case GameStyleMode.DeltaForce:
                     return "三角洲";
+                case GameStyleMode.Rdr2:
+                    return "荒野大镖客 2";
                 case GameStyleMode.Calabiyau:
                     return "卡拉彼丘";
                 case GameStyleMode.CustomModule:
@@ -134,6 +152,8 @@ namespace KillConfirmCompatibility.Services
                     return "大狗叫";
                 case GameStyleMode.Sanguosha:
                     return "三国杀";
+                case GameStyleMode.LeagueOfLegends:
+                    return "英雄联盟";
                 case GameStyleMode.Csol:
                     return "CSOL";
                 case GameStyleMode.Crossfire:
@@ -156,10 +176,27 @@ namespace KillConfirmCompatibility.Services
                 case "mw2019":
                 case "mw19":
                     return GameStyleMode.ModernWarfare2019;
+                case "cod2022":
+                case "cod19":
+                case "mw2022":
+                case "mw22":
+                case "mwii":
+                case "modernwarfare2":
+                case "modernwarfare2022":
+                case "现代战争2022":
+                case "使命召唤19":
+                    return GameStyleMode.Cod2022;
                 case "apex":
                 case "apexlegends":
                 case "apex_legends":
                     return GameStyleMode.Apex;
+                case "titanfall2":
+                case "titanfall_2":
+                case "titanfall":
+                case "tf2":
+                case "泰坦陨落":
+                case "泰坦陨落2":
+                    return GameStyleMode.Titanfall2;
                 case "battlefield1":
                 case "bf1":
                     return GameStyleMode.Battlefield1;
@@ -183,6 +220,14 @@ namespace KillConfirmCompatibility.Services
                 case "delta":
                 case "df":
                     return GameStyleMode.DeltaForce;
+                case "rdr2":
+                case "reddeadredemption2":
+                case "reddead2":
+                case "red_dead_redemption_2":
+                case "荒野大镖客2":
+                case "荒野大镖客":
+                case "大表哥2":
+                    return GameStyleMode.Rdr2;
                 case "calabiyau":
                 case "strinova":
                 case "卡拉彼丘":
@@ -199,6 +244,11 @@ namespace KillConfirmCompatibility.Services
                 case "三国杀":
                 case "sgs":
                     return GameStyleMode.Sanguosha;
+                case "leagueoflegends":
+                case "league_of_legends":
+                case "lol":
+                case "英雄联盟":
+                    return GameStyleMode.LeagueOfLegends;
                 case "csol":
                     return GameStyleMode.Csol;
                 case "crossfire":
@@ -233,6 +283,19 @@ namespace KillConfirmCompatibility.Services
                 || value.StartsWith("custom_apex_icon_", System.StringComparison.OrdinalIgnoreCase);
         }
 
+        public static bool IsTitanfall2Key(string key)
+        {
+            string value = (key ?? string.Empty).Trim();
+            return string.Equals(value, "titanfall2", System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "titanfall_2", System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "titanfall", System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "tf2", System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "titanfall2_icon_standard", System.StringComparison.OrdinalIgnoreCase)
+                || value.StartsWith("titanfall2_sfx_", System.StringComparison.OrdinalIgnoreCase)
+                || value.StartsWith("titanfall2_voice_", System.StringComparison.OrdinalIgnoreCase)
+                || value.StartsWith("custom_titanfall2_", System.StringComparison.OrdinalIgnoreCase);
+        }
+
         public static bool IsModernWarfare2019Key(string key)
         {
             string value = (key ?? string.Empty).Trim();
@@ -244,11 +307,63 @@ namespace KillConfirmCompatibility.Services
                 || value.StartsWith("custom_modernwarfare2019_icon_", System.StringComparison.OrdinalIgnoreCase);
         }
 
+        public static bool IsCod2022Key(string key)
+        {
+            string value = (key ?? string.Empty).Trim();
+            return string.Equals(value, "cod2022", System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "cod19", System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "mw2022", System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "mw22", System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "mwii", System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "modernwarfare2", System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "modernwarfare2022", System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "cod2022_icon_standard", System.StringComparison.OrdinalIgnoreCase)
+                || value.StartsWith("cod2022_sfx_", System.StringComparison.OrdinalIgnoreCase)
+                || value.StartsWith("cod2022_voice_", System.StringComparison.OrdinalIgnoreCase)
+                || value.StartsWith("cod2022_icon_", System.StringComparison.OrdinalIgnoreCase)
+                || value.StartsWith("custom_cod2022_", System.StringComparison.OrdinalIgnoreCase);
+        }
+
+        public static bool IsLeagueOfLegendsKey(string key)
+        {
+            string value = (key ?? string.Empty).Trim();
+            return string.Equals(value, "leagueoflegends", System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "league_of_legends", System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "lol", System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "英雄联盟", System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "leagueoflegends_icon_standard", System.StringComparison.OrdinalIgnoreCase)
+                || value.StartsWith("leagueoflegends_sfx_", System.StringComparison.OrdinalIgnoreCase)
+                || value.StartsWith("leagueoflegends_voice_", System.StringComparison.OrdinalIgnoreCase)
+                || value.StartsWith("leagueoflegends_icon_", System.StringComparison.OrdinalIgnoreCase)
+                || value.StartsWith("custom_leagueoflegends_", System.StringComparison.OrdinalIgnoreCase);
+        }
+
+        public static bool IsRdr2Key(string key)
+        {
+            string value = (key ?? string.Empty).Trim();
+            return string.Equals(value, "rdr2", System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "reddeadredemption2", System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "reddead2", System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "red_dead_redemption_2", System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "荒野大镖客2", System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "荒野大镖客", System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "大表哥2", System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "rdr2_icon_standard", System.StringComparison.OrdinalIgnoreCase)
+                || value.StartsWith("rdr2_sfx_", System.StringComparison.OrdinalIgnoreCase)
+                || value.StartsWith("rdr2_voice_", System.StringComparison.OrdinalIgnoreCase)
+                || value.StartsWith("rdr2_icon_", System.StringComparison.OrdinalIgnoreCase)
+                || value.StartsWith("custom_rdr2_", System.StringComparison.OrdinalIgnoreCase);
+        }
+
         public static bool SupportsCrosshairAreaEffect(GameStyleMode mode)
         {
             return mode == GameStyleMode.Overwatch
                 || mode == GameStyleMode.ModernWarfare2019
+                || mode == GameStyleMode.Cod2022
                 || mode == GameStyleMode.Apex
+                || mode == GameStyleMode.Titanfall2
+                || mode == GameStyleMode.LeagueOfLegends
+                || mode == GameStyleMode.Rdr2
                 || IsAuxiliaryKillMarkStyle(mode);
         }
 
@@ -391,7 +506,11 @@ namespace KillConfirmCompatibility.Services
                 || IsSanguoshaKey(key)
                 || IsOverwatchKey(key)
                 || IsModernWarfare2019Key(key)
-                || IsApexKey(key);
+                || IsCod2022Key(key)
+                || IsApexKey(key)
+                || IsTitanfall2Key(key)
+                || IsLeagueOfLegendsKey(key)
+                || IsRdr2Key(key);
         }
 
         public static string ToCategoryKey(GameStyleMode mode)
@@ -404,10 +523,12 @@ namespace KillConfirmCompatibility.Services
                     return "traditional";
                 case GameStyleMode.Overwatch:
                 case GameStyleMode.Apex:
+                case GameStyleMode.Titanfall2:
                 case GameStyleMode.Calabiyau:
                     return "hero";
                 case GameStyleMode.Pubg:
                 case GameStyleMode.DeltaForce:
+                case GameStyleMode.Rdr2:
                     return "survival";
                 case GameStyleMode.Battlefield4:
                 case GameStyleMode.Battlefield1:
@@ -416,8 +537,10 @@ namespace KillConfirmCompatibility.Services
                 case GameStyleMode.Battlefield6:
                     return "battlefield";
                 case GameStyleMode.ModernWarfare2019:
+                case GameStyleMode.Cod2022:
                     return "cod";
                 case GameStyleMode.Sanguosha:
+                case GameStyleMode.LeagueOfLegends:
                     return "cardmoba";
                 default:
                     return "meme";

@@ -32,6 +32,26 @@ namespace KillConfirmGameBar
                 style = GameStyleMode.ModernWarfare2019;
                 enabled = modernWarfarePanel.GetAssistAudioEnabled(false);
             }
+            else if (sender is Cod2022AdvancedEffectsPanel cod2022Panel)
+            {
+                style = GameStyleMode.Cod2022;
+                enabled = cod2022Panel.GetAssistAudioEnabled(false);
+            }
+            else if (sender is Titanfall2AdvancedEffectsPanel titanfall2Panel)
+            {
+                style = GameStyleMode.Titanfall2;
+                enabled = titanfall2Panel.GetAssistAudioEnabled(false);
+            }
+            else if (sender is LeagueOfLegendsAdvancedEffectsPanel lolPanel)
+            {
+                style = GameStyleMode.LeagueOfLegends;
+                enabled = lolPanel.GetAssistAudioEnabled(false);
+            }
+            else if (sender is Rdr2AdvancedEffectsPanel rdr2Panel)
+            {
+                style = GameStyleMode.Rdr2;
+                enabled = rdr2Panel.GetAssistAudioEnabled(false);
+            }
             else
             {
                 return;
@@ -56,9 +76,13 @@ namespace KillConfirmGameBar
             else if (sender is PubgAdvancedEffectsPanel pPubg) mode = pPubg.GetSelectedStreakMode(mode);
             else if (sender is ApexAdvancedEffectsPanel pApex) mode = pApex.GetSelectedStreakMode(mode);
             else if (sender is ModernWarfare2019AdvancedEffectsPanel pMw) mode = pMw.GetSelectedStreakMode(mode);
+            else if (sender is Cod2022AdvancedEffectsPanel pMw22) mode = pMw22.GetSelectedStreakMode(mode);
+            else if (sender is Titanfall2AdvancedEffectsPanel pTf2) mode = pTf2.GetSelectedStreakMode(mode);
             else if (sender is ValorantAdvancedEffectsPanel pVal) mode = pVal.GetSelectedStreakMode(mode);
             else if (sender is DoubaoAdvancedEffectsPanel pDoubao) mode = pDoubao.GetSelectedStreakMode(mode);
             else if (sender is SanguoshaAdvancedEffectsPanel pSanguosha) mode = pSanguosha.GetSelectedStreakMode(mode);
+            else if (sender is LeagueOfLegendsAdvancedEffectsPanel pLol) mode = pLol.GetSelectedStreakMode(mode);
+            else if (sender is Rdr2AdvancedEffectsPanel pRdr2) mode = pRdr2.GetSelectedStreakMode(mode);
             else if (sender is DagoujiaoAdvancedEffectsPanel pDagoujiao) mode = pDagoujiao.GetSelectedStreakMode(mode);
             else if (sender is CalabiyauAdvancedEffectsPanel pCalabiyau) mode = pCalabiyau.GetSelectedStreakMode(mode);
 
@@ -108,7 +132,9 @@ namespace KillConfirmGameBar
             if (_valorantAdvancedEffectsPanel != null) _valorantAdvancedEffectsPanel.ApplyTheme(theme);
             if (_overwatchAdvancedEffectsPanel != null) _overwatchAdvancedEffectsPanel.ApplyTheme(theme);
             if (_modernWarfare2019AdvancedEffectsPanel != null) _modernWarfare2019AdvancedEffectsPanel.ApplyTheme(theme);
+            if (_cod2022AdvancedEffectsPanel != null) _cod2022AdvancedEffectsPanel.ApplyTheme(theme);
             if (_apexAdvancedEffectsPanel != null) _apexAdvancedEffectsPanel.ApplyTheme(theme);
+            if (_titanfall2AdvancedEffectsPanel != null) _titanfall2AdvancedEffectsPanel.ApplyTheme(theme);
             if (_battlefield1AdvancedEffectsPanel != null) _battlefield1AdvancedEffectsPanel.ApplyTheme(theme);
             if (_battlefield5AdvancedEffectsPanel != null) _battlefield5AdvancedEffectsPanel.ApplyTheme(theme);
             if (_battlefield4AdvancedEffectsPanel != null) _battlefield4AdvancedEffectsPanel.ApplyTheme(theme);
@@ -118,6 +144,8 @@ namespace KillConfirmGameBar
             if (_deltaForceAdvancedEffectsPanel != null) _deltaForceAdvancedEffectsPanel.ApplyTheme(theme);
             if (_doubaoAdvancedEffectsPanel != null) _doubaoAdvancedEffectsPanel.ApplyTheme(theme);
             if (_sanguoshaAdvancedEffectsPanel != null) _sanguoshaAdvancedEffectsPanel.ApplyTheme(theme);
+            if (_leagueOfLegendsAdvancedEffectsPanel != null) _leagueOfLegendsAdvancedEffectsPanel.ApplyTheme(theme);
+            if (_rdr2AdvancedEffectsPanel != null) _rdr2AdvancedEffectsPanel.ApplyTheme(theme);
             if (_dagoujiaoAdvancedEffectsPanel != null) _dagoujiaoAdvancedEffectsPanel.ApplyTheme(theme);
             if (_calabiyauAdvancedEffectsPanel != null) _calabiyauAdvancedEffectsPanel.ApplyTheme(theme);
             AdvancedEffectsPanelSupport.ApplySoftenedTree(GameAdvancedSettingsPanelHost, theme);
@@ -140,7 +168,9 @@ namespace KillConfirmGameBar
             if (_valorantAdvancedEffectsPanel != null) _valorantAdvancedEffectsPanel.ApplyLanguage(isChinese);
             if (_overwatchAdvancedEffectsPanel != null) _overwatchAdvancedEffectsPanel.ApplyLanguage(isChinese);
             if (_modernWarfare2019AdvancedEffectsPanel != null) _modernWarfare2019AdvancedEffectsPanel.ApplyLanguage(isChinese);
+            if (_cod2022AdvancedEffectsPanel != null) _cod2022AdvancedEffectsPanel.ApplyLanguage(isChinese);
             if (_apexAdvancedEffectsPanel != null) _apexAdvancedEffectsPanel.ApplyLanguage(isChinese);
+            if (_titanfall2AdvancedEffectsPanel != null) _titanfall2AdvancedEffectsPanel.ApplyLanguage(isChinese);
             if (_battlefield1AdvancedEffectsPanel != null) _battlefield1AdvancedEffectsPanel.ApplyLanguage(isChinese);
             if (_battlefield5AdvancedEffectsPanel != null) _battlefield5AdvancedEffectsPanel.ApplyLanguage(isChinese);
             if (_battlefield4AdvancedEffectsPanel != null) _battlefield4AdvancedEffectsPanel.ApplyLanguage(isChinese);
@@ -150,6 +180,8 @@ namespace KillConfirmGameBar
             if (_deltaForceAdvancedEffectsPanel != null) _deltaForceAdvancedEffectsPanel.ApplyLanguage(isChinese);
             if (_doubaoAdvancedEffectsPanel != null) _doubaoAdvancedEffectsPanel.ApplyLanguage(isChinese);
             if (_sanguoshaAdvancedEffectsPanel != null) _sanguoshaAdvancedEffectsPanel.ApplyLanguage(isChinese);
+            if (_leagueOfLegendsAdvancedEffectsPanel != null) _leagueOfLegendsAdvancedEffectsPanel.ApplyLanguage(isChinese);
+            if (_rdr2AdvancedEffectsPanel != null) _rdr2AdvancedEffectsPanel.ApplyLanguage(isChinese);
             if (_dagoujiaoAdvancedEffectsPanel != null) _dagoujiaoAdvancedEffectsPanel.ApplyLanguage(isChinese);
             if (_calabiyauAdvancedEffectsPanel != null) _calabiyauAdvancedEffectsPanel.ApplyLanguage(isChinese);
         }
@@ -220,6 +252,16 @@ namespace KillConfirmGameBar
                     brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 139, 37, 35), Offset = 0.58 });
                     brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 45, 28, 28), Offset = 1 });
                     break;
+                case GameStyleMode.Cod2022:
+                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 120, 179, 48), Offset = 0 });
+                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 58, 102, 34), Offset = 0.58 });
+                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 24, 34, 28), Offset = 1 });
+                    break;
+                case GameStyleMode.Titanfall2:
+                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 232, 74, 27), Offset = 0 });
+                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 166, 62, 28), Offset = 0.58 });
+                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 34, 58, 84), Offset = 1 });
+                    break;
                 case GameStyleMode.Overwatch:
                     brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 246, 101, 22), Offset = 0 });
                     brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 161, 72, 28), Offset = 0.58 });
@@ -239,6 +281,16 @@ namespace KillConfirmGameBar
                     brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 214, 170, 92), Offset = 0 });
                     brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 176, 38, 32), Offset = 0.58 });
                     brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 48, 14, 12), Offset = 1 });
+                    break;
+                case GameStyleMode.LeagueOfLegends:
+                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 10, 200, 185), Offset = 0 });
+                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 200, 155, 60), Offset = 0.58 });
+                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 9, 20, 40), Offset = 1 });
+                    break;
+                case GameStyleMode.Rdr2:
+                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 200, 29, 37), Offset = 0 });
+                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 122, 20, 25), Offset = 0.58 });
+                    brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 36, 20, 18), Offset = 1 });
                     break;
                 case GameStyleMode.Doubao:
                     brush.GradientStops.Add(new GradientStop { Color = Color.FromArgb(255, 59, 130, 246), Offset = 0 });

@@ -58,10 +58,22 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay.Controls.GameStyles
                     isChinese,
                     theme);
                 UpperRow.Visibility = style == GameStyleMode.ModernWarfare2019
+                    || style == GameStyleMode.Cod2022
+                    || style == GameStyleMode.Titanfall2
+                    || style == GameStyleMode.LeagueOfLegends
+                    || style == GameStyleMode.Rdr2
                     ? Visibility.Visible
                     : Visibility.Collapsed;
                 UpperRow.Configure(
-                    isChinese ? "上方连杀提示" : "Upper streak feedback",
+                    style == GameStyleMode.Titanfall2
+                        ? (isChinese ? "左侧铁驭面甲勋章栈" : "Left cockpit visor medal stack")
+                        : style == GameStyleMode.Cod2022
+                            ? (isChinese ? "上方切角勋章横幅 (SkillSplash)" : "Upper notched splash banner")
+                            : style == GameStyleMode.LeagueOfLegends
+                                ? (isChinese ? "上方海克斯连杀与目标播报横幅 (BannerScene)" : "Upper Hextech announcer banner (BannerScene)")
+                                : style == GameStyleMode.Rdr2
+                                    ? (isChinese ? "右侧善恶荣誉徽章与西部赏金栈" : "Right Honor medallion & Western XP stack")
+                                    : (isChinese ? "上方连杀提示" : "Upper streak feedback"),
                     settings.UpperEnabled,
                     settings.UpperBrightnessPercent,
                     settings.UpperContrastPercent,
@@ -182,6 +194,22 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay.Controls.GameStyles
             {
                 return isChinese ? "中央准心与金钱提示" : "Center marker and money";
             }
+            if (style == GameStyleMode.Cod2022)
+            {
+                return isChinese ? "中央准星命中与 +XP 计分词条" : "Center hitmarker, +XP & score feed";
+            }
+            if (style == GameStyleMode.Titanfall2)
+            {
+                return isChinese ? "中央命中指示器与准星左勋章" : "Center X hit indicator & left medal";
+            }
+            if (style == GameStyleMode.LeagueOfLegends)
+            {
+                return isChinese ? "中央海克斯命中纹章与 +300g 跳字" : "Center Hextech hitmarker & +300g popup";
+            }
+            if (style == GameStyleMode.Rdr2)
+            {
+                return isChinese ? "中央准星命中叉标与死神之眼红叉" : "Center Scaleform hitmarker & Dead Eye X";
+            }
 
             return isChinese ? "中央准心 KillMark" : "Center crosshair KillMark";
         }
@@ -197,6 +225,14 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay.Controls.GameStyles
                         return "Lower kill cards";
                     case GameStyleMode.ModernWarfare2019:
                         return "Lower streak banner";
+                    case GameStyleMode.Cod2022:
+                        return "Lower red kill nameplate / banner";
+                    case GameStyleMode.Titanfall2:
+                        return "Lower red-orange sweep kill banner";
+                    case GameStyleMode.LeagueOfLegends:
+                        return "Right 4-slot champion kill callout";
+                    case GameStyleMode.Rdr2:
+                        return "Bottom 16-state Honor bar & outlaw banner";
                     case GameStyleMode.Csol:
                         return "Lower streak and special icons";
                     case GameStyleMode.Valorant:
@@ -215,6 +251,14 @@ namespace KillConfirmGameBar.Features.CompatibilityDisplay.Controls.GameStyles
                     return "下方击杀卡片";
                 case GameStyleMode.ModernWarfare2019:
                     return "下方连杀横幅";
+                case GameStyleMode.Cod2022:
+                    return "下方红底淘汰铭牌 / 横幅";
+                case GameStyleMode.Titanfall2:
+                    return "中下红橙横扫击杀横幅";
+                case GameStyleMode.LeagueOfLegends:
+                    return "右侧四槽英雄头像击杀通告栏";
+                case GameStyleMode.Rdr2:
+                    return "底部 16 档善恶荣誉条与西部淘汰播报";
                 case GameStyleMode.Csol:
                     return "下方连杀与特殊图标";
                 case GameStyleMode.Valorant:

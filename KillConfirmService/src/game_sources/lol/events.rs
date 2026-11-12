@@ -122,6 +122,12 @@ pub struct LolDetail {
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub assisters: Vec<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub actor_champion: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub victim_champion: Option<String>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub assister_champions: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub multikill: Option<u16>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub acing_team: Option<String>,
@@ -183,6 +189,21 @@ impl Roster<'_> {
             LolRelation::Enemy
         }
     }
+
+    pub fn champion_for(&self, name: &str) -> Option<String> {
+        if name.is_empty() {
+            return None;
+        }
+        if self.is_local(name) {
+            if let Some(champ) = self.local.canonical_champion() {
+                return Some(champ);
+            }
+        }
+        match self.matches(name).as_slice() {
+            [player] => player.canonical_champion(),
+            _ => None,
+        }
+    }
 }
 
 fn non_empty(text: &str) -> Option<String> {
@@ -234,6 +255,13 @@ impl LolDetail {
             actor: non_empty(actor),
             victim: non_empty(&event.victim_name),
             assisters: event.assisters.clone(),
+            actor_champion: roster.champion_for(actor),
+            victim_champion: roster.champion_for(&event.victim_name),
+            assister_champions: event
+                .assisters
+                .iter()
+                .map(|name| roster.champion_for(name).unwrap_or_else(|| name.clone()))
+                .collect(),
             multikill: event
                 .kill_streak
                 .filter(|_| kind == LolEventKind::Multikill),

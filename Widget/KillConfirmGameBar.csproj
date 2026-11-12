@@ -905,6 +905,81 @@
     <Compile Include="Pages\KillConfirmWidget\Animation\KillConfirmWidgetPage.Animation.Sanguosha.cs" />
     <Compile Include="Pages\KillConfirmWidget\GameStyles\KillConfirmWidgetPage.GameStyle.Sanguosha.cs" />
     <Compile Include="Pages\Main\Appearance\MainPage.Sanguosha.cs" />
+    <!-- Titanfall 2 (泰坦陨落 2): 1:1 RUI 3-layer HUD feedback -->
+    <Compile Include="..\Shared\Services\Settings\Games\Titanfall2SettingsStore.cs" Link="Services\Settings\Games\Titanfall2SettingsStore.cs" />
+    <Compile Include="..\Shared\Services\Catalog\PackCatalogService.Titanfall2.cs" Link="Services\Catalog\PackCatalogService.Titanfall2.cs" />
+    <Compile Include="Services\Styling\GameThemePalette.Titanfall2.cs" />
+    <Compile Include="Pages\Main\Appearance\MainPage.Titanfall2.cs" />
+    <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.Titanfall2.cs" />
+    <Compile Include="Pages\KillConfirmWidget\Animation\KillConfirmWidgetPage.Animation.Titanfall2.cs" />
+    <Compile Include="Pages\KillConfirmWidget\GameStyles\KillConfirmWidgetPage.GameStyle.Titanfall2.cs" />
+    <Page Include="Controls\GameStyles\Titanfall2\Titanfall2AdvancedEffectsPanel.xaml"><Generator>MSBuild:Compile</Generator><SubType>Designer</SubType></Page>
+    <Compile Include="Controls\GameStyles\Titanfall2\Titanfall2AdvancedEffectsPanel.xaml.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Titanfall2\Titanfall2Animation.Data.cs" Link="Controls\Animations\Titanfall2\Titanfall2Animation.Data.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Titanfall2\Titanfall2Animation.Models.cs" Link="Controls\Animations\Titanfall2\Titanfall2Animation.Models.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Titanfall2\Titanfall2Animation.State.cs" Link="Controls\Animations\Titanfall2\Titanfall2Animation.State.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Titanfall2\Titanfall2Animation.Assets.cs" Link="Controls\Animations\Titanfall2\Titanfall2Animation.Assets.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Titanfall2\Titanfall2Animation.Playback.cs" Link="Controls\Animations\Titanfall2\Titanfall2Animation.Playback.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Titanfall2\Titanfall2Animation.Render.cs" Link="Controls\Animations\Titanfall2\Titanfall2Animation.Render.cs" />
+    <Compile Include="..\CompatibilityHost\Integration\Home\GameStyles\CompatibilityHomeView.GameStyle.Titanfall2.cs" />
+    <Page Include="..\CompatibilityHost\Integration\Controls\GameStyles\Titanfall2\Titanfall2AdvancedEffectsPanel.xaml"><Generator>MSBuild:Compile</Generator><SubType>Designer</SubType></Page>
+    <Compile Include="..\CompatibilityHost\Integration\Controls\GameStyles\Titanfall2\Titanfall2AdvancedEffectsPanel.xaml.cs" />
+    <!-- Call of Duty: Modern Warfare II (2022 / IW9): 1:1 LUI 3-layer HUD feedback -->
+    <Compile Include="..\Shared\Services\Settings\Games\Cod2022SettingsStore.cs" Link="Services\Settings\Games\Cod2022SettingsStore.cs" />
+    <Compile Include="..\Shared\Services\Catalog\PackCatalogService.Cod2022.cs" Link="Services\Catalog\PackCatalogService.Cod2022.cs" />
+    <Compile Include="Services\Styling\GameThemePalette.Cod2022.cs" />
+    <Compile Include="Pages\Main\Appearance\MainPage.Cod2022.cs" />
+    <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.Cod2022.cs" />
+    <Compile Include="Pages\KillConfirmWidget\Animation\KillConfirmWidgetPage.Animation.Cod2022.cs" />
+    <Compile Include="Pages\KillConfirmWidget\GameStyles\KillConfirmWidgetPage.GameStyle.Cod2022.cs" />
+    <Page Include="Controls\GameStyles\Cod2022\Cod2022AdvancedEffectsPanel.xaml"><Generator>MSBuild:Compile</Generator><SubType>Designer</SubType></Page>
+    <Compile Include="Controls\GameStyles\Cod2022\Cod2022AdvancedEffectsPanel.xaml.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Cod2022\Cod2022Animation.Data.cs" Link="Controls\Animations\Cod2022\Cod2022Animation.Data.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Cod2022\Cod2022Animation.Models.cs" Link="Controls\Animations\Cod2022\Cod2022Animation.Models.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Cod2022\Cod2022Animation.State.cs" Link="Controls\Animations\Cod2022\Cod2022Animation.State.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Cod2022\Cod2022Animation.Assets.cs" Link="Controls\Animations\Cod2022\Cod2022Animation.Assets.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Cod2022\Cod2022Animation.Playback.cs" Link="Controls\Animations\Cod2022\Cod2022Animation.Playback.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Cod2022\Cod2022Animation.Render.cs" Link="Controls\Animations\Cod2022\Cod2022Animation.Render.cs" />
+    <Compile Include="..\CompatibilityHost\Integration\Home\GameStyles\CompatibilityHomeView.GameStyle.Cod2022.cs" />
+    <Page Include="..\CompatibilityHost\Integration\Controls\GameStyles\Cod2022\Cod2022AdvancedEffectsPanel.xaml"><Generator>MSBuild:Compile</Generator><SubType>Designer</SubType></Page>
+    <Compile Include="..\CompatibilityHost\Integration\Controls\GameStyles\Cod2022\Cod2022AdvancedEffectsPanel.xaml.cs" />
+    <!-- League of Legends (英雄联盟): 1:1 Hextech HUD feedback -->
+    <Compile Include="..\Shared\Services\Settings\Games\LeagueOfLegendsSettingsStore.cs" Link="Services\Settings\Games\LeagueOfLegendsSettingsStore.cs" />
+    <Compile Include="..\Shared\Services\Catalog\PackCatalogService.LeagueOfLegends.cs" Link="Services\Catalog\PackCatalogService.LeagueOfLegends.cs" />
+    <Compile Include="Services\Styling\GameThemePalette.LeagueOfLegends.cs" />
+    <Compile Include="Pages\Main\Appearance\MainPage.LeagueOfLegends.cs" />
+    <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.LeagueOfLegends.cs" />
+    <Compile Include="Pages\KillConfirmWidget\Animation\KillConfirmWidgetPage.Animation.LeagueOfLegends.cs" />
+    <Compile Include="Pages\KillConfirmWidget\GameStyles\KillConfirmWidgetPage.GameStyle.LeagueOfLegends.cs" />
+    <Page Include="Controls\GameStyles\LeagueOfLegends\LeagueOfLegendsAdvancedEffectsPanel.xaml"><Generator>MSBuild:Compile</Generator><SubType>Designer</SubType></Page>
+    <Compile Include="Controls\GameStyles\LeagueOfLegends\LeagueOfLegendsAdvancedEffectsPanel.xaml.cs" />
+    <Compile Include="..\Shared\Controls\Animations\LeagueOfLegends\LeagueOfLegendsAnimation.Data.cs" Link="Controls\Animations\LeagueOfLegends\LeagueOfLegendsAnimation.Data.cs" />
+    <Compile Include="..\Shared\Controls\Animations\LeagueOfLegends\LeagueOfLegendsAnimation.Models.cs" Link="Controls\Animations\LeagueOfLegends\LeagueOfLegendsAnimation.Models.cs" />
+    <Compile Include="..\Shared\Controls\Animations\LeagueOfLegends\LeagueOfLegendsAnimation.State.cs" Link="Controls\Animations\LeagueOfLegends\LeagueOfLegendsAnimation.State.cs" />
+    <Compile Include="..\Shared\Controls\Animations\LeagueOfLegends\LeagueOfLegendsAnimation.Assets.cs" Link="Controls\Animations\LeagueOfLegends\LeagueOfLegendsAnimation.Assets.cs" />
+    <Compile Include="..\Shared\Controls\Animations\LeagueOfLegends\LeagueOfLegendsAnimation.Playback.cs" Link="Controls\Animations\LeagueOfLegends\LeagueOfLegendsAnimation.Playback.cs" />
+    <Compile Include="..\Shared\Controls\Animations\LeagueOfLegends\LeagueOfLegendsAnimation.Render.cs" Link="Controls\Animations\LeagueOfLegends\LeagueOfLegendsAnimation.Render.cs" />
+    <Compile Include="..\CompatibilityHost\Integration\Home\GameStyles\CompatibilityHomeView.GameStyle.LeagueOfLegends.cs" />
+    <Page Include="..\CompatibilityHost\Integration\Controls\GameStyles\LeagueOfLegends\LeagueOfLegendsAdvancedEffectsPanel.xaml"><Generator>MSBuild:Compile</Generator><SubType>Designer</SubType></Page>
+    <Compile Include="..\CompatibilityHost\Integration\Controls\GameStyles\LeagueOfLegends\LeagueOfLegendsAdvancedEffectsPanel.xaml.cs" />
+    <!-- Red Dead Redemption 2 (荒野大镖客 2): 1:1 Scaleform & Honor 3-layer HUD feedback -->
+    <Compile Include="..\Shared\Services\Settings\Games\Rdr2SettingsStore.cs" Link="Services\Settings\Games\Rdr2SettingsStore.cs" />
+    <Compile Include="..\Shared\Services\Catalog\PackCatalogService.Rdr2.cs" Link="Services\Catalog\PackCatalogService.Rdr2.cs" />
+    <Compile Include="Services\Styling\GameThemePalette.Rdr2.cs" />
+    <Compile Include="Pages\Main\Appearance\MainPage.Rdr2.cs" />
+    <Compile Include="Pages\Main\Packs\Creation\MainPage.PackCreation.Rdr2.cs" />
+    <Compile Include="Pages\KillConfirmWidget\Animation\KillConfirmWidgetPage.Animation.Rdr2.cs" />
+    <Compile Include="Pages\KillConfirmWidget\GameStyles\KillConfirmWidgetPage.GameStyle.Rdr2.cs" />
+    <Page Include="Controls\GameStyles\Rdr2\Rdr2AdvancedEffectsPanel.xaml"><Generator>MSBuild:Compile</Generator><SubType>Designer</SubType></Page>
+    <Compile Include="Controls\GameStyles\Rdr2\Rdr2AdvancedEffectsPanel.xaml.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Rdr2\Rdr2Animation.Data.cs" Link="Controls\Animations\Rdr2\Rdr2Animation.Data.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Rdr2\Rdr2Animation.Models.cs" Link="Controls\Animations\Rdr2\Rdr2Animation.Models.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Rdr2\Rdr2Animation.Assets.cs" Link="Controls\Animations\Rdr2\Rdr2Animation.Assets.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Rdr2\Rdr2Animation.Playback.cs" Link="Controls\Animations\Rdr2\Rdr2Animation.Playback.cs" />
+    <Compile Include="..\Shared\Controls\Animations\Rdr2\Rdr2Animation.Render.cs" Link="Controls\Animations\Rdr2\Rdr2Animation.Render.cs" />
+    <Compile Include="..\CompatibilityHost\Integration\Home\GameStyles\CompatibilityHomeView.GameStyle.Rdr2.cs" />
+    <Page Include="..\CompatibilityHost\Integration\Controls\GameStyles\Rdr2\Rdr2AdvancedEffectsPanel.xaml"><Generator>MSBuild:Compile</Generator><SubType>Designer</SubType></Page>
+    <Compile Include="..\CompatibilityHost\Integration\Controls\GameStyles\Rdr2\Rdr2AdvancedEffectsPanel.xaml.cs" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -918,7 +993,7 @@
     <Compile Include="..\CompatibilityHost\Integration\CompatibilityDisplayRuntime.cs"><Link>Features\CompatibilityDisplay\CompatibilityDisplayRuntime.cs</Link></Compile>
     <Compile Include="..\CompatibilityHost\Integration\KillConfirmWidgetPage.DisplayMode.cs"><Link>Features\CompatibilityDisplay\KillConfirmWidgetPage.DisplayMode.cs</Link></Compile>
     <Content Remove="Assets\**\*;Danmaku\**\*;KillConfirmService\**\*;CompatibilityHost\**\*" />
-    <Content Include="Assets\FluentIcons\*;Assets\PackIcons\*;Assets\GameLogos\*;Assets\CategoryLogos\*;Assets\GameSources\**\*.png;Assets\GameSources\**\*.svg;Assets\*.png;Assets\*.jpg" />
+    <Content Include="Assets\FluentIcons\*;Assets\PackIcons\*;Assets\GameLogos\*;Assets\CategoryLogos\*;Assets\GameSources\**\*.png;Assets\GameSources\**\*.svg;Assets\Fonts\Cod2022\*.ttf;Assets\Fonts\LeagueOfLegends\*;Assets\*.png;Assets\*.jpg" />
     <Content Include="Bridge\killconfirm-widget-bridge.exe" />
   </ItemGroup>
   <Import Project="..\Native\Lz4\Lz4.targets" />

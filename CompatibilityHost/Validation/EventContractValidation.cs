@@ -126,8 +126,8 @@ internal static class EventContractValidation
         }
 
         if (GameStyleService.SanguoshaTier(fbRaw) != GameStyleService.SanguoshaHeadshotTier
-            || GameStyleService.SanguoshaTier(aceKillRaw) != GameStyleService.SanguoshaGrenadeTier)
-            throw new InvalidDataException("Sanguosha LOL special tiers did not map FirstBlood->9 and Ace->11.");
+            || GameStyleService.SanguoshaTier(aceKillRaw) != GameStyleService.SanguoshaHeadshotTier)
+            throw new InvalidDataException("Sanguosha LOL special tiers did not map FirstBlood->9 and Ace->9.");
 
         // 3. Observation promotions: Assist, Death, Turret, Inhib, Baron Steal, Ally Ace, GameEnd.
         KillEvent MakeObs(LolEventDetail detail) => new KillEvent
@@ -162,7 +162,7 @@ internal static class EventContractValidation
             || stealEco.EventKind != "bomb_defuse" || stealEco.MoneyReward != 500 || stealEco.WeaponName != "抢下纳什男爵")
             throw new InvalidDataException("LOL baron steal economy promotion failed.");
         if (!LolEventAdapter.TryPromoteObservation(stealObs, GameStyleMode.Sanguosha, out KillEvent stealCombat)
-            || !stealCombat.IsCombatEvent || !stealCombat.IsKnifeKill || GameStyleService.SanguoshaTier(stealCombat) != GameStyleService.SanguoshaKnifeTier)
+            || !stealCombat.IsCombatEvent || !stealCombat.IsGrenadeKill || GameStyleService.SanguoshaTier(stealCombat) != GameStyleService.SanguoshaGrenadeTier)
             throw new InvalidDataException("LOL baron steal combat promotion failed.");
 
         var winObs = MakeObs(new LolEventDetail { Event = "game_end", Relation = "self", LocalRole = "none", Result = "Win" });
@@ -170,7 +170,46 @@ internal static class EventContractValidation
             || winEv.EventKind != "round_win" || winEv.MoneyReward != 500 || winEv.WeaponName != "对局胜利")
             throw new InvalidDataException("LOL GameEnd Win promotion failed.");
 
-        report.Add("PASS: all 18 styles + 6657 Danmaku verified for LOL combat kills, bounties, and promoted observations");
+        if (!LolEventAdapter.TryPromoteObservation(assistObs, GameStyleMode.Cod2022, out KillEvent codAssist)
+            || !codAssist.IsAssist || !FeedbackRoutingPolicy.ShouldPlayPrimaryAnimation(GameStyleMode.Cod2022, codAssist)
+            || !LolEventAdapter.TryPromoteObservation(turretObs, GameStyleMode.Cod2022, out KillEvent codTurret)
+            || codTurret.EventKind != "bomb_plant" || !FeedbackRoutingPolicy.ShouldPlayPrimaryAnimation(GameStyleMode.Cod2022, codTurret)
+            || !LolEventAdapter.TryPromoteObservation(stealObs, GameStyleMode.Cod2022, out KillEvent codSteal)
+            || codSteal.EventKind != "bomb_defuse" || !FeedbackRoutingPolicy.ShouldPlayPrimaryAnimation(GameStyleMode.Cod2022, codSteal)
+            || !LolEventAdapter.TryPromoteObservation(winObs, GameStyleMode.Cod2022, out KillEvent codWin)
+            || codWin.EventKind != "round_win" || !FeedbackRoutingPolicy.ShouldPlayPrimaryAnimation(GameStyleMode.Cod2022, codWin))
+            throw new InvalidDataException("Cod2022 LOL observation promotion or routing failed.");
+
+        var allyKillObs = MakeObs(new LolEventDetail { Event = "champion_kill", Relation = "ally", LocalRole = "none", Actor = "队友", Victim = "劫", ActorChampion = "Ahri", VictimChampion = "Zed" });
+        var enemyKillObs = MakeObs(new LolEventDetail { Event = "champion_kill", Relation = "enemy", LocalRole = "none", Actor = "劫", Victim = "队友", ActorChampion = "Zed", VictimChampion = "Ahri" });
+        var executedObs = MakeObs(new LolEventDetail { Event = "champion_kill", Relation = "neutral", LocalRole = "none", Actor = "Turret_T1_L_03_A", Victim = "亚索", VictimChampion = "Yasuo" });
+        if (!LolEventAdapter.TryPromoteObservation(assistObs, GameStyleMode.LeagueOfLegends, out KillEvent lolAssist)
+            || !lolAssist.IsAssist || !FeedbackRoutingPolicy.ShouldPlayPrimaryAnimation(GameStyleMode.LeagueOfLegends, lolAssist)
+            || !LolEventAdapter.TryPromoteObservation(allyKillObs, GameStyleMode.LeagueOfLegends, out KillEvent lolAllyKill)
+            || lolAllyKill.EventKind != "lol_ally_kill" || !FeedbackRoutingPolicy.ShouldPlayPrimaryAnimation(GameStyleMode.LeagueOfLegends, lolAllyKill)
+            || !LolEventAdapter.TryPromoteObservation(enemyKillObs, GameStyleMode.LeagueOfLegends, out KillEvent lolEnemyKill)
+            || lolEnemyKill.EventKind != "lol_enemy_kill" || !FeedbackRoutingPolicy.ShouldPlayPrimaryAnimation(GameStyleMode.LeagueOfLegends, lolEnemyKill)
+            || !LolEventAdapter.TryPromoteObservation(executedObs, GameStyleMode.LeagueOfLegends, out KillEvent lolExecuted)
+            || lolExecuted.EventKind != "lol_executed" || !FeedbackRoutingPolicy.ShouldPlayPrimaryAnimation(GameStyleMode.LeagueOfLegends, lolExecuted)
+            || !LolEventAdapter.TryPromoteObservation(turretObs, GameStyleMode.LeagueOfLegends, out KillEvent lolTurret)
+            || lolTurret.EventKind != "bomb_plant" || !FeedbackRoutingPolicy.ShouldPlayPrimaryAnimation(GameStyleMode.LeagueOfLegends, lolTurret)
+            || !LolEventAdapter.TryPromoteObservation(stealObs, GameStyleMode.LeagueOfLegends, out KillEvent lolSteal)
+            || lolSteal.EventKind != "bomb_defuse" || !FeedbackRoutingPolicy.ShouldPlayPrimaryAnimation(GameStyleMode.LeagueOfLegends, lolSteal)
+            || !LolEventAdapter.TryPromoteObservation(winObs, GameStyleMode.LeagueOfLegends, out KillEvent lolWin)
+            || lolWin.EventKind != "round_win" || !FeedbackRoutingPolicy.ShouldPlayPrimaryAnimation(GameStyleMode.LeagueOfLegends, lolWin))
+            throw new InvalidDataException("LeagueOfLegends LOL observation promotion or routing failed.");
+
+        if (!LolEventAdapter.TryPromoteObservation(assistObs, GameStyleMode.Rdr2, out KillEvent rdr2Assist)
+            || !rdr2Assist.IsAssist || !FeedbackRoutingPolicy.ShouldPlayPrimaryAnimation(GameStyleMode.Rdr2, rdr2Assist)
+            || !LolEventAdapter.TryPromoteObservation(turretObs, GameStyleMode.Rdr2, out KillEvent rdr2Turret)
+            || rdr2Turret.EventKind != "bomb_plant" || !FeedbackRoutingPolicy.ShouldPlayPrimaryAnimation(GameStyleMode.Rdr2, rdr2Turret)
+            || !LolEventAdapter.TryPromoteObservation(stealObs, GameStyleMode.Rdr2, out KillEvent rdr2Steal)
+            || rdr2Steal.EventKind != "bomb_defuse" || !FeedbackRoutingPolicy.ShouldPlayPrimaryAnimation(GameStyleMode.Rdr2, rdr2Steal)
+            || !LolEventAdapter.TryPromoteObservation(winObs, GameStyleMode.Rdr2, out KillEvent rdr2Win)
+            || rdr2Win.EventKind != "round_win" || !FeedbackRoutingPolicy.ShouldPlayPrimaryAnimation(GameStyleMode.Rdr2, rdr2Win))
+            throw new InvalidDataException("Rdr2 LOL observation promotion or routing failed.");
+
+        report.Add("PASS: all 22 styles + 6657 Danmaku verified for LOL combat kills, bounties, and promoted observations");
     }
 
     /// <summary>Verbatim copy of the inline routing removed from both hosts.</summary>
@@ -190,7 +229,7 @@ internal static class EventContractValidation
             if (killEvent == null || (style == GameStyleMode.Csol && IsBombObjectiveEvent(killEvent))) return false;
             if (killEvent.IsCombatEvent) return true;
             if (style == GameStyleMode.Crossfire && IsBombObjectiveEvent(killEvent)) return true;
-            if (style == GameStyleMode.ModernWarfare2019)
+            if (style == GameStyleMode.ModernWarfare2019 || style == GameStyleMode.Cod2022 || style == GameStyleMode.Titanfall2 || style == GameStyleMode.LeagueOfLegends || style == GameStyleMode.Rdr2)
             {
                 string eventKind = killEvent.EventKind ?? killEvent.AnimationKey;
                 if (string.Equals(eventKind, "bomb_plant", StringComparison.OrdinalIgnoreCase)
@@ -210,10 +249,26 @@ internal static class EventContractValidation
             bool isModernWarfare2019Objective = style == GameStyleMode.ModernWarfare2019
                 && killEvent != null
                 && killEvent.IsEconomyEvent;
+            bool isCod2022Objective = style == GameStyleMode.Cod2022
+                && killEvent != null
+                && killEvent.IsEconomyEvent;
+            bool isTitanfall2Objective = style == GameStyleMode.Titanfall2
+                && killEvent != null
+                && killEvent.IsEconomyEvent;
+            bool isLeagueOfLegendsObjective = style == GameStyleMode.LeagueOfLegends
+                && killEvent != null
+                && killEvent.IsEconomyEvent;
+            bool isRdr2Objective = style == GameStyleMode.Rdr2
+                && killEvent != null
+                && killEvent.IsEconomyEvent;
             return (killEvent.IsCombatEvent && killEvent.PlayMainAnimation)
                 || (IsEconomyPresentationStyle(style) && IsBattlefieldTextEvent(killEvent))
                 || (style == GameStyleMode.Csol && killEvent.IsCombatEvent)
                 || (style == GameStyleMode.ModernWarfare2019 && (killEvent.IsCombatEvent || isModernWarfare2019Objective))
+                || (style == GameStyleMode.Cod2022 && (killEvent.IsCombatEvent || isCod2022Objective))
+                || (style == GameStyleMode.Titanfall2 && (killEvent.IsCombatEvent || isTitanfall2Objective))
+                || (style == GameStyleMode.LeagueOfLegends && (killEvent.IsCombatEvent || isLeagueOfLegendsObjective))
+                || (style == GameStyleMode.Rdr2 && (killEvent.IsCombatEvent || isRdr2Objective))
                 || (style == GameStyleMode.Overwatch && killEvent.IsCombatEvent && killEvent.IsAssist)
                 || (style == GameStyleMode.Apex && killEvent.IsCombatEvent && killEvent.IsAssist)
                 || isCrossfireObjective;
@@ -225,8 +280,16 @@ internal static class EventContractValidation
             bool isApexAssist = style == GameStyleMode.Apex && killEvent != null && killEvent.IsAssist;
             bool isOverwatchAssist = style == GameStyleMode.Overwatch && killEvent != null && killEvent.IsAssist;
             bool isModernWarfare2019Assist = style == GameStyleMode.ModernWarfare2019 && killEvent != null && killEvent.IsAssist;
+            bool isCod2022Assist = style == GameStyleMode.Cod2022 && killEvent != null && killEvent.IsAssist;
+            bool isTitanfall2Assist = style == GameStyleMode.Titanfall2 && killEvent != null && killEvent.IsAssist;
+            bool isLeagueOfLegendsAssist = style == GameStyleMode.LeagueOfLegends && killEvent != null && killEvent.IsAssist;
+            bool isRdr2Assist = style == GameStyleMode.Rdr2 && killEvent != null && killEvent.IsAssist;
             bool isCrossfireObjective = style == GameStyleMode.Crossfire && IsBombObjectiveEvent(killEvent);
             bool isModernWarfare2019Objective = style == GameStyleMode.ModernWarfare2019 && killEvent != null && killEvent.IsEconomyEvent;
+            bool isCod2022Objective = style == GameStyleMode.Cod2022 && killEvent != null && killEvent.IsEconomyEvent;
+            bool isTitanfall2Objective = style == GameStyleMode.Titanfall2 && killEvent != null && killEvent.IsEconomyEvent;
+            bool isLeagueOfLegendsObjective = style == GameStyleMode.LeagueOfLegends && killEvent != null && killEvent.IsEconomyEvent;
+            bool isRdr2Objective = style == GameStyleMode.Rdr2 && killEvent != null && killEvent.IsEconomyEvent;
             return !(!CanStyleConsumeEvent(style, killEvent)
                 || (killEvent.KillCount <= 0
                     && !IsBattlefieldTextEvent(killEvent)
@@ -234,8 +297,16 @@ internal static class EventContractValidation
                     && !isApexAssist
                     && !isOverwatchAssist
                     && !isModernWarfare2019Assist
+                    && !isCod2022Assist
+                    && !isTitanfall2Assist
+                    && !isLeagueOfLegendsAssist
+                    && !isRdr2Assist
                     && !isCrossfireObjective
-                    && !isModernWarfare2019Objective));
+                    && !isModernWarfare2019Objective
+                    && !isCod2022Objective
+                    && !isTitanfall2Objective
+                    && !isLeagueOfLegendsObjective
+                    && !isRdr2Objective));
         }
 
         private static bool IsBattlefieldObjectiveEvent(string eventKind)
@@ -269,7 +340,7 @@ internal static class EventContractValidation
             return style == GameStyleMode.Battlefield1 || style == GameStyleMode.Battlefield5
                 || style == GameStyleMode.Battlefield4 || style == GameStyleMode.Battlefield2042
                 || style == GameStyleMode.Battlefield6 || style == GameStyleMode.Pubg
-                || style == GameStyleMode.DeltaForce;
+                || style == GameStyleMode.DeltaForce || style == GameStyleMode.Cod2022 || style == GameStyleMode.Titanfall2 || style == GameStyleMode.LeagueOfLegends || style == GameStyleMode.Rdr2;
         }
     }
 }

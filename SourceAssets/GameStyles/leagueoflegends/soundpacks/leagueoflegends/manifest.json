@@ -1,0 +1,180 @@
+{
+  "format_version": 1,
+  "package_kind": "audio",
+  "id": "leagueoflegends",
+  "name": "英雄联盟 · 召唤师峡谷原生连杀音效",
+  "display_name": "League of Legends Native KillStreak SFX",
+  "display_name_zh_cn": "英雄联盟—召唤师峡谷连杀—音效包",
+  "game_style": "leagueoflegends",
+  "audio_kind": "sound_effect",
+  "version": "1.0.0",
+  "associated_icon_keys": [
+    "leagueoflegends",
+    "leagueoflegends_icon_standard"
+  ],
+  "audio": {
+    "base_gain": 1.0,
+    "slots": {
+      "kill_1": [
+        "1049904609.wav"
+      ],
+      "assist": [
+        "1049904609.wav"
+      ],
+      "spree_hit": [
+        "1049904609.wav"
+      ],
+      "spree_chime": [
+        "835575410.wav"
+      ],
+      "first_blood_hit": [
+        "608198867.wav"
+      ],
+      "first_blood_chime": [
+        "833259854.wav"
+      ],
+      "kill_2_hit": [
+        "608198867.wav"
+      ],
+      "kill_2_chime": [
+        "833259854.wav"
+      ],
+      "kill_3_hit": [
+        "585498902.wav"
+      ],
+      "kill_3_chime": [
+        "917325954.wav"
+      ],
+      "kill_4_hit": [
+        "915399307.wav"
+      ],
+      "kill_4_chime": [
+        "504874202.wav"
+      ],
+      "shutdown_hit": [
+        "648762648.wav"
+      ],
+      "shutdown_chime": [
+        "828454289.wav"
+      ],
+      "kill_5_hit": [
+        "464260730.wav"
+      ],
+      "kill_5_chime": [
+        "832943382.wav"
+      ],
+      "ace_hit": [
+        "648762648.wav"
+      ],
+      "ace_chime": [
+        "828454289.wav"
+      ],
+      "objective_hit": [
+        "608198867.wav"
+      ],
+      "objective_chime": [
+        "835575410.wav"
+      ]
+    },
+    "slot_gains": {
+      "kill_1": 0.92,
+      "assist": 0.78,
+      "spree_hit": 0.92,
+      "spree_chime": 0.9,
+      "first_blood_hit": 0.96,
+      "first_blood_chime": 0.94,
+      "kill_2_hit": 0.95,
+      "kill_2_chime": 0.94,
+      "kill_3_hit": 0.96,
+      "kill_3_chime": 0.95,
+      "kill_4_hit": 0.98,
+      "kill_4_chime": 0.96,
+      "shutdown_hit": 0.98,
+      "shutdown_chime": 0.96,
+      "kill_5_hit": 1.0,
+      "kill_5_chime": 1.0,
+      "ace_hit": 0.98,
+      "ace_chime": 0.98,
+      "objective_hit": 0.9,
+      "objective_chime": 0.88
+    },
+    "slot_delays_ms": {
+      "spree_chime": 100,
+      "first_blood_chime": 100,
+      "kill_2_chime": 100,
+      "kill_3_chime": 100,
+      "kill_4_chime": 100,
+      "shutdown_chime": 100,
+      "kill_5_chime": 100,
+      "ace_chime": 100,
+      "objective_chime": 100
+    }
+  },
+  "files": [
+    {
+      "path": "1049904609.wav",
+      "bytes": 740868,
+      "sha256": "c3120b9f241ad27a97a1b992194487bfce0e610930839c338ba9be4ef3d1e126"
+    },
+    {
+      "path": "464260730.wav",
+      "bytes": 1611164,
+      "sha256": "770fb749139c39813f50ffeb3712eff8581ce52b6b4850013ab74addededa702"
+    },
+    {
+      "path": "504874202.wav",
+      "bytes": 976124,
+      "sha256": "31758be835099762bd5a0a2faaf13ff2679d127fb72839ea077587032a5b4749"
+    },
+    {
+      "path": "585498902.wav",
+      "bytes": 684696,
+      "sha256": "190fc685397700805007af7502067b55c5589a3bb3635bec1c37c8b993b66bb3"
+    },
+    {
+      "path": "608198867.wav",
+      "bytes": 643860,
+      "sha256": "a3c04a48d2bc54db284a33a96159c48be8e9dde466dd73d02641f43c684a5976"
+    },
+    {
+      "path": "648762648.wav",
+      "bytes": 685176,
+      "sha256": "abd6a2742e45c3163a133ca02a1005f4a7551a12e09d8f7f23bcb38ab780b663"
+    },
+    {
+      "path": "828454289.wav",
+      "bytes": 934964,
+      "sha256": "a02df5bc1db6e6a947e3f1d2ed4d9bfcb193dc8b5cb5de4c01f23f0641de3bd2"
+    },
+    {
+      "path": "832943382.wav",
+      "bytes": 692264,
+      "sha256": "c5ed7e34026ae0d95f1a844c21781c5ddfe27454a36724f017b70e060abf3151"
+    },
+    {
+      "path": "833259854.wav",
+      "bytes": 829756,
+      "sha256": "2ccfc3fd5aa6487b3e8db4a14cf3c6e413def1904d1030d1292b0f48274bea61"
+    },
+    {
+      "path": "835575410.wav",
+      "bytes": 829124,
+      "sha256": "591e586f228f2bd08f318a121a85a3c693b6dcf4f27da4a13454a5d8e4477a4e"
+    },
+    {
+      "path": "915399307.wav",
+      "bytes": 664876,
+      "sha256": "e8fdea57a93adbe9e95001c185d3a26f10a02cab00818e47f7b55f4c34557698"
+    },
+    {
+      "path": "917325954.wav",
+      "bytes": 887924,
+      "sha256": "ce63f9cc3ec5fa09c0cc357bac368073729d209e367edf6598ef9e5a8ff42b67"
+    },
+    {
+      "path": "pack_head.png",
+      "bytes": 31809,
+      "sha256": "bdd46ff34d3ffcc3441e8962cf76a7b003378845ac4eb2c51425624a2f7db0a7"
+    }
+  ]
+}

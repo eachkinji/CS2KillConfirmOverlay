@@ -22,6 +22,8 @@ pub(super) struct Player {
     pub riot_id_game_name: String,
     #[serde(default, deserialize_with = "lenient_string")]
     pub champion_name: String,
+    #[serde(default, deserialize_with = "lenient_string")]
+    pub raw_champion_name: String,
     /// `ORDER` / `CHAOS`; absent in some partial responses.
     #[serde(default, deserialize_with = "lenient_string")]
     pub team: String,
@@ -45,6 +47,30 @@ impl Player {
             && [&self.riot_id, &self.summoner_name, &self.riot_id_game_name]
                 .iter()
                 .any(|alias| alias.as_str() == name)
+    }
+
+    pub fn canonical_champion(&self) -> Option<String> {
+        let raw = self.raw_champion_name.trim();
+        for prefix in [
+            "game_character_displayname_",
+            "GeneratedTip_Spec_",
+            "Character_",
+        ] {
+            if let Some(rest) = raw.strip_prefix(prefix) {
+                let trimmed = rest.trim();
+                if !trimmed.is_empty() {
+                    return Some(trimmed.to_string());
+                }
+            }
+        }
+        let display = self.champion_name.trim();
+        if !display.is_empty() {
+            Some(display.to_string())
+        } else if !raw.is_empty() {
+            Some(raw.to_string())
+        } else {
+            None
+        }
     }
 }
 

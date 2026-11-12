@@ -1,0 +1,133 @@
+{
+  "format_version": 1,
+  "package_kind": "audio",
+  "id": "titanfall2",
+  "name": "泰坦陨落 2 · 铁驭击杀提示音",
+  "display_name": "铁驭击杀确认",
+  "display_name_zh_cn": "泰坦陨落2—铁驭击杀确认—音效包",
+  "game_style": "titanfall2",
+  "audio_kind": "sound_effect",
+  "version": "2.0.11.0",
+  "associated_icon_keys": [
+    "titanfall2_icon_standard"
+  ],
+  "audio": {
+    "base_gain": 1.0,
+    "slots": {
+      "kill_1": [
+        "pilotkilledindicator_2ch_v8_01.wav"
+      ],
+      "kill_2": [
+        "pilotkilledindicator_2ch_v8_01.wav",
+        "ui_ingame_starearned_first_2ch_v1_01.wav"
+      ],
+      "kill_3": [
+        "pilotkilledindicator_2ch_v8_01.wav",
+        "ui_ingame_starearned_second_2ch_v1_01.wav"
+      ],
+      "kill_4": [
+        "pilotkilledindicator_2ch_v8_01.wav",
+        "ui_ingame_starearned_third_2ch_v1_01.wav"
+      ],
+      "kill_5": [
+        "pilotkilledindicator_2ch_v8_01.wav",
+        "HUD_MP_Boost_Card_Earned_2ch_V1_01_drn.wav"
+      ],
+      "kill_6": [
+        "pilotkilledindicator_2ch_v8_01.wav",
+        "HUD_Pilot_Level_Up_Stinger_2D_V1_01_drn.wav"
+      ],
+      "headshot": [
+        "imp_bullet_generic_headkillshot_human_1p_vs_3p_2ch_v1_01.wav",
+        "imp_bullet_generic_headkillshot_human_1p_vs_3p_2ch_v1_02.wav",
+        "imp_bullet_generic_headkillshot_human_1p_vs_3p_2ch_v1_03.wav",
+        "imp_bullet_generic_headkillshot_human_1p_vs_3p_2ch_v1_04.wav",
+        "imp_bullet_generic_headkillshot_human_1p_vs_3p_2ch_v1_05.wav"
+      ],
+      "hitbeep": [
+        "hitbeep2.wav"
+      ],
+      "grunt_kill": [
+        "ui_ranksummary_circlefadeout_2ch_v1_01.wav"
+      ],
+      "common_overlay": [
+        "pilotkilledindicator_2ch_v8_01.wav"
+      ]
+    },
+    "overlay_slots": [
+      "common_overlay"
+    ]
+  },
+  "files": [
+    {
+      "path": "HUD_MP_Boost_Card_Earned_2ch_V1_01_drn.wav",
+      "bytes": 601324,
+      "sha256": "da0d01c813659ce6f64cf5046791cecd102cb1684e0ea2cc36ae12de9e0cb9e0"
+    },
+    {
+      "path": "HUD_Pilot_Level_Up_Stinger_2D_V1_01_drn.wav",
+      "bytes": 1755404,
+      "sha256": "38bf001719b917e1ae34465710bbf99374b3ddcbb9b0c4bf636d8062527f413e"
+    },
+    {
+      "path": "hitbeep2.wav",
+      "bytes": 4740,
+      "sha256": "63d1eef32d72715a873eb773ab939b9f13dac702585dab3223833c01e27361fe"
+    },
+    {
+      "path": "imp_bullet_generic_headkillshot_human_1p_vs_3p_2ch_v1_01.wav",
+      "bytes": 132828,
+      "sha256": "4a6dac83c0439ed86580c6e86832e5ef7022d150415571247611b0c6e10d50b0"
+    },
+    {
+      "path": "imp_bullet_generic_headkillshot_human_1p_vs_3p_2ch_v1_02.wav",
+      "bytes": 159008,
+      "sha256": "0ff4b8ed4ad1104a1b0046fdce4e0d3c0853689127047de25375be620f1550b6"
+    },
+    {
+      "path": "imp_bullet_generic_headkillshot_human_1p_vs_3p_2ch_v1_03.wav",
+      "bytes": 135484,
+      "sha256": "73bce779272e3338c1f3033d96307edb591658d86789ca4f7250fc4414fdbcd2"
+    },
+    {
+      "path": "imp_bullet_generic_headkillshot_human_1p_vs_3p_2ch_v1_04.wav",
+      "bytes": 180372,
+      "sha256": "b2f610c448c5e794813acc4a42df71709f8259455a6c3747fbd6fe73b0f6df02"
+    },
+    {
+      "path": "imp_bullet_generic_headkillshot_human_1p_vs_3p_2ch_v1_05.wav",
+      "bytes": 164004,
+      "sha256": "88e58c0c9ef909ef569abd2b08b29f00e69491e1edf35f8599514decb5301dff"
+    },
+    {
+      "path": "pack_head.png",
+      "bytes": 38207,
+      "sha256": "c607666a5e5ba6b835a8a76967cec331948f5571c146268891a62d4891b9050b"
+    },
+    {
+      "path": "pilotkilledindicator_2ch_v8_01.wav",
+      "bytes": 341628,
+      "sha256": "4c7cbd3590bcd5b439f20491a31ba5747909293acc5a5bdec7ad73091ed7445e"
+    },
+    {
+      "path": "ui_ingame_starearned_first_2ch_v1_01.wav",
+      "bytes": 490428,
+      "sha256": "f5a84b3444ef592e6f406320b565db632704bd5a5f02e07f8390993fc5017437"
+    },
+    {
+      "path": "ui_ingame_starearned_second_2ch_v1_01.wav",
+      "bytes": 524452,
+      "sha256": "6256a2146ffdc6151d440ff6d5ab67ed992ac8844d18a2b8dc9b370b4e9f8fc0"
+    },
+    {
+      "path": "ui_ingame_starearned_third_2ch_v1_01.wav",
+      "bytes": 522072,
+      "sha256": "3c30074befc2e33cb8ce3b8f9e2e742cafc091da075bb4cea18e21bf64600983"
+    },
+    {
+      "path": "ui_ranksummary_circlefadeout_2ch_v1_01.wav",
+      "bytes": 143744,
+      "sha256": "29d8b500ed68e6d603bb2bda2a0296db7d1ce8587d9de4fcae6a8b4a2fdf3e46"
+    }
+  ]
+}

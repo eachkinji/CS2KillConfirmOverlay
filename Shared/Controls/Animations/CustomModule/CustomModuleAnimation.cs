@@ -60,6 +60,9 @@ namespace KillConfirmCompatibility.Controls
                 }
                 ResetDoubaoState(); ResetDagoujiaoState(); ResetOverwatchState();
                 ResetApexFeedState(); ResetModernWarfare2019State();
+            ResetCod2022State();
+            ResetRdr2State();
+            ResetLeagueOfLegendsState();
                 ResetBattlefield5ScrollingState(); ResetBattlefield4HudState();
                 ResetBattlefield2042HudState();
             ResetBattlefield6HudState(); ResetSanguoshaState(); ResetPubgHudState(); ResetDeltaForceHudState();

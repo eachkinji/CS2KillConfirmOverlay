@@ -85,6 +85,10 @@ namespace KillConfirmGameBar
             bool chinese = LocalizationManager.Current == UiLanguage.SimplifiedChinese;
             if (!isVoice && SettingsGameStyle != GameStyleMode.CustomModule
                 && SettingsGameStyle != GameStyleMode.Valorant
+                && SettingsGameStyle != GameStyleMode.Cod2022
+                && SettingsGameStyle != GameStyleMode.Titanfall2
+                && SettingsGameStyle != GameStyleMode.LeagueOfLegends
+                && SettingsGameStyle != GameStyleMode.Rdr2
                 && await GuardIconPackCreationAsync()) return;
             _batchPackImport = batch;
             _packImportNotes.Clear();
@@ -325,6 +329,22 @@ namespace KillConfirmGameBar
             else if (SettingsGameStyle == GameStyleMode.Apex)
             {
                 await ShowCreateApexIconPackDialogAsync(null, null, null);
+            }
+            else if (SettingsGameStyle == GameStyleMode.Cod2022)
+            {
+                await ShowCreateCod2022IconPackDialogAsync();
+            }
+            else if (SettingsGameStyle == GameStyleMode.Titanfall2)
+            {
+                await ShowCreateTitanfall2IconPackDialogAsync();
+            }
+            else if (SettingsGameStyle == GameStyleMode.LeagueOfLegends)
+            {
+                await ShowCreateLeagueOfLegendsIconPackDialogAsync();
+            }
+            else if (SettingsGameStyle == GameStyleMode.Rdr2)
+            {
+                await ShowCreateRdr2IconPackDialogAsync();
             }
             else
             {

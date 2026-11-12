@@ -164,12 +164,16 @@ namespace KillConfirmCompatibility.Services
                     CreateBuiltInVoice("calabiyau", "默认击杀", true),
                     CreateBuiltInVoice("doubao", "豆包", true),
                     CreateBuiltInVoice("sanguosha", "三国杀 · 十周年连破播报", true),
+                    CreateBuiltInVoice("leagueoflegends", "英雄联盟 · 召唤师峡谷连杀音效", true),
                     CreateBuiltInVoice("dagoujiao", "大狗叫", true),
                     CreateBuiltInVoice(DagoujiaoAnimalsPackKey, "Animals", true),
                     CreateBuiltInVoice("overwatch", "OverWatch", true),
                     CreateBuiltInVoice("modernwarfare2019", "Modern Warfare 2019", true),
+                    CreateBuiltInVoice("cod2022", "现代战争 II · 原生击杀提示音", true),
                     CreateBuiltInVoice("custommodule", "瓦默认音效/图标", true),
-                    CreateBuiltInVoice("apex", "Apex Legends", true)
+                    CreateBuiltInVoice("apex", "Apex Legends", true),
+                    CreateBuiltInVoice("titanfall2", "泰坦陨落 2 · 铁驭击杀提示音", true),
+                    CreateBuiltInVoice("rdr2", "荒野大镖客 2 · 原生善恶与死神之眼音效", true)
                 },
                 IconPacks = new List<IconPackItem>
                 {
@@ -185,12 +189,16 @@ namespace KillConfirmCompatibility.Services
                     CreateBuiltInIcon("calabiyau", "卡拉彼丘 · 默认击杀", true),
                     CreateBuiltInIcon("doubao", "豆包", true),
                     CreateBuiltInIcon("sanguosha", "三国杀 · 十周年连破播报", true),
+                    CreateBuiltInIcon("leagueoflegends", "英雄联盟 · 海克斯科技播报", true),
                     CreateBuiltInIcon("dagoujiao", "大狗叫", true),
                     CreateBuiltInIcon(DagoujiaoAnimalsPackKey, "Animals", true),
                     CreateBuiltInIcon("overwatch", "OverWatch", true),
                     CreateBuiltInIcon("modernwarfare2019", "Modern Warfare 2019", true),
+                    CreateBuiltInIcon("cod2022", "现代战争 II · 战术 LUI 勋章与反馈", true),
                     CreateBuiltInIcon("custommodule", "瓦默认音效/图标", true),
-                    CreateBuiltInIcon("apex", "Apex Legends", true)
+                    CreateBuiltInIcon("apex", "Apex Legends", true),
+                    CreateBuiltInIcon("titanfall2", "泰坦陨落 2 · 铁驭与泰坦勋章", true),
+                    CreateBuiltInIcon("rdr2", "荒野大镖客 2 · 亡命之徒荣誉与准星", true)
                 }
             };
 
@@ -361,6 +369,75 @@ namespace KillConfirmCompatibility.Services
                 { calabiyauAudio.AudioKind = AudioPackKind.SoundEffect; changed = true; }
                 if (calabiyauAudio.AssociatedIconKeys == null || !calabiyauAudio.AssociatedIconKeys.Contains("calabiyau"))
                 { calabiyauAudio.AssociatedIconKeys = new List<string> { "calabiyau" }; changed = true; }
+            }
+
+            var tf2Audio = catalog.VoicePacks.FirstOrDefault(item => item.IsBuiltIn
+                && string.Equals(item.Key, "titanfall2", StringComparison.OrdinalIgnoreCase));
+            if (tf2Audio != null)
+            {
+                if (tf2Audio.DisplayName != "泰坦陨落 2 · 铁驭击杀提示音")
+                { tf2Audio.DisplayName = "泰坦陨落 2 · 铁驭击杀提示音"; changed = true; }
+                if (tf2Audio.AudioKind != AudioPackKind.SoundEffect)
+                { tf2Audio.AudioKind = AudioPackKind.SoundEffect; changed = true; }
+                if (!string.Equals(tf2Audio.GameStyle, "titanfall2", StringComparison.OrdinalIgnoreCase))
+                { tf2Audio.GameStyle = "titanfall2"; changed = true; }
+                if (tf2Audio.AssociatedIconKeys == null
+                    || !tf2Audio.AssociatedIconKeys.Contains("titanfall2")
+                    || !tf2Audio.AssociatedIconKeys.Contains("titanfall2_icon_standard"))
+                { tf2Audio.AssociatedIconKeys = new List<string> { "titanfall2", "titanfall2_icon_standard" }; changed = true; }
+            }
+            var tf2Icon = catalog.IconPacks.FirstOrDefault(item => item.IsBuiltIn
+                && string.Equals(item.Key, "titanfall2", StringComparison.OrdinalIgnoreCase));
+            if (tf2Icon != null && tf2Icon.DisplayName != "泰坦陨落 2 · 铁驭与泰坦勋章")
+            {
+                tf2Icon.DisplayName = "泰坦陨落 2 · 铁驭与泰坦勋章";
+                changed = true;
+            }
+
+            var lolAudio = catalog.VoicePacks.FirstOrDefault(item => item.IsBuiltIn
+                && string.Equals(item.Key, "leagueoflegends", StringComparison.OrdinalIgnoreCase));
+            if (lolAudio != null)
+            {
+                if (lolAudio.DisplayName != "英雄联盟 · 召唤师峡谷连杀音效")
+                { lolAudio.DisplayName = "英雄联盟 · 召唤师峡谷连杀音效"; changed = true; }
+                if (lolAudio.AudioKind != AudioPackKind.SoundEffect)
+                { lolAudio.AudioKind = AudioPackKind.SoundEffect; changed = true; }
+                if (!string.Equals(lolAudio.GameStyle, "leagueoflegends", StringComparison.OrdinalIgnoreCase))
+                { lolAudio.GameStyle = "leagueoflegends"; changed = true; }
+                if (lolAudio.AssociatedIconKeys == null
+                    || !lolAudio.AssociatedIconKeys.Contains("leagueoflegends")
+                    || !lolAudio.AssociatedIconKeys.Contains("leagueoflegends_icon_standard"))
+                { lolAudio.AssociatedIconKeys = new List<string> { "leagueoflegends", "leagueoflegends_icon_standard" }; changed = true; }
+            }
+            var lolIcon = catalog.IconPacks.FirstOrDefault(item => item.IsBuiltIn
+                && string.Equals(item.Key, "leagueoflegends", StringComparison.OrdinalIgnoreCase));
+            if (lolIcon != null && lolIcon.DisplayName != "英雄联盟 · 海克斯科技播报")
+            {
+                lolIcon.DisplayName = "英雄联盟 · 海克斯科技播报";
+                changed = true;
+            }
+
+            var rdr2Audio = catalog.VoicePacks.FirstOrDefault(item => item.IsBuiltIn
+                && string.Equals(item.Key, "rdr2", StringComparison.OrdinalIgnoreCase));
+            if (rdr2Audio != null)
+            {
+                if (rdr2Audio.DisplayName != "荒野大镖客 2 · 原生善恶与死神之眼音效")
+                { rdr2Audio.DisplayName = "荒野大镖客 2 · 原生善恶与死神之眼音效"; changed = true; }
+                if (rdr2Audio.AudioKind != AudioPackKind.SoundEffect)
+                { rdr2Audio.AudioKind = AudioPackKind.SoundEffect; changed = true; }
+                if (!string.Equals(rdr2Audio.GameStyle, "rdr2", StringComparison.OrdinalIgnoreCase))
+                { rdr2Audio.GameStyle = "rdr2"; changed = true; }
+                if (rdr2Audio.AssociatedIconKeys == null
+                    || !rdr2Audio.AssociatedIconKeys.Contains("rdr2")
+                    || !rdr2Audio.AssociatedIconKeys.Contains("rdr2_icon_standard"))
+                { rdr2Audio.AssociatedIconKeys = new List<string> { "rdr2", "rdr2_icon_standard" }; changed = true; }
+            }
+            var rdr2Icon = catalog.IconPacks.FirstOrDefault(item => item.IsBuiltIn
+                && string.Equals(item.Key, "rdr2", StringComparison.OrdinalIgnoreCase));
+            if (rdr2Icon != null && rdr2Icon.DisplayName != "荒野大镖客 2 · 亡命之徒荣誉与准星")
+            {
+                rdr2Icon.DisplayName = "荒野大镖客 2 · 亡命之徒荣誉与准星";
+                changed = true;
             }
 
             foreach (VoicePackItem valorantVoice in catalog.VoicePacks.Where(item =>

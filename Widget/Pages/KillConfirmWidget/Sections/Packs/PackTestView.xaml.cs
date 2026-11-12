@@ -18,6 +18,15 @@ namespace KillConfirmGameBar
         private ComboBoxItem[] _testPresetOptions;
         private bool? _testPresetIsLol;
 
+        public static bool IsPresetSupportedForSource(string tag, bool isLol)
+        {
+            if (string.IsNullOrWhiteSpace(tag)) return false;
+            bool isLolItem = tag.StartsWith("lol_", StringComparison.OrdinalIgnoreCase);
+            if (!isLol) return !isLolItem;
+            return isLolItem || tag == "one" || tag == "two" || tag == "three" || tag == "four"
+                || tag == "five" || tag == "six" || tag == "seven" || tag == "eight" || tag == "nine";
+        }
+
         public void SetTestPresetSource(bool isLol)
         {
             if (_testPresetIsLol == isLol) return;
@@ -30,8 +39,8 @@ namespace KillConfirmGameBar
             // Keep only this source's rows so its extent and last row are real.
             foreach (var item in _testPresetOptions)
             {
-                bool isLolItem = ((string)item.Tag).StartsWith("lol_", StringComparison.OrdinalIgnoreCase);
-                if (isLolItem != isLol) continue;
+                if (!IsPresetSupportedForSource(item.Tag as string, isLol)) continue;
+
                 item.Visibility = Visibility.Visible;
                 TestPresetSelector.Items.Add(item);
             }

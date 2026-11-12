@@ -261,7 +261,13 @@ fn resolve_soundpack_alias(value: &str) -> Option<&'static str> {
         "csol4" | "csol" => Some("csol4"),
         "overwatch" | "overwatch2" | "overwatch_2" | "ow" | "ow2" => Some("overwatch"),
         "modernwarfare2019" | "modernwarfare" | "mw2019" | "mw19" => Some("modernwarfare2019"),
+        "cod2022" | "cod19" | "mw2022" | "mw22" | "mwii" | "modernwarfare2" | "modernwarfare2022" => {
+            Some("cod2022")
+        }
         "apex" | "apexlegends" | "apex_legends" => Some("apex"),
+        "titanfall2" | "titanfall_2" | "titanfall" | "tf2" => Some("titanfall2"),
+        "leagueoflegends" | "league_of_legends" | "lol" => Some("leagueoflegends"),
+        "rdr2" | "reddeadredemption2" | "red_dead_redemption_2" | "reddead2" => Some("rdr2"),
         _ => None,
     }
 }

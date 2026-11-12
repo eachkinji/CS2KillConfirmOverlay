@@ -1,0 +1,82 @@
+{
+  "format_version": 1,
+  "package_kind": "audio",
+  "id": "rdr2",
+  "name": "荒野大镖客：救赎 2 · 原生荣誉与死神之眼音效",
+  "display_name": "RDR2 Native Honor & Dead Eye SFX",
+  "display_name_zh_cn": "荒野大镖客2—原生善恶荣誉与死神之眼—音效包",
+  "game_style": "rdr2",
+  "audio_kind": "sound_effect",
+  "version": "1.0.0",
+  "associated_icon_keys": [
+    "rdr2",
+    "rdr2_icon_standard"
+  ],
+  "audio": {
+    "base_gain": 1.0,
+    "slots": {
+      "honor_gain": [
+        "honor_gain.wav"
+      ],
+      "honor_gain_alt": [
+        "honor_gain_alt.wav"
+      ],
+      "honor_loss": [
+        "honor_loss.wav"
+      ],
+      "honor_loss_alt": [
+        "honor_loss_alt.wav"
+      ],
+      "dead_eye": [
+        "dead_eye_sting.wav"
+      ],
+      "kill_1": [
+        "honor_gain.wav"
+      ],
+      "assist": [
+        "honor_gain_alt.wav"
+      ]
+    },
+    "slot_gains": {
+      "honor_gain": 0.96,
+      "honor_gain_alt": 0.9,
+      "honor_loss": 0.96,
+      "honor_loss_alt": 0.94,
+      "dead_eye": 0.84,
+      "kill_1": 0.96,
+      "assist": 0.88
+    }
+  },
+  "files": [
+    {
+      "path": "dead_eye_sting.wav",
+      "bytes": 379304,
+      "sha256": "76e0d2d505d64fdef383317e1d534c378afff289f3d1133f7a8ee7a8d0080cba"
+    },
+    {
+      "path": "honor_gain.wav",
+      "bytes": 462910,
+      "sha256": "9c3a75c3aae00139621992df8e5d6a335076a34eb36b871823fe3495a9fb397d"
+    },
+    {
+      "path": "honor_gain_alt.wav",
+      "bytes": 326418,
+      "sha256": "54a7094e7a1e4cd1c166535ced1d4f47d8765c829315a6dd5c7e03acdde5f017"
+    },
+    {
+      "path": "honor_loss.wav",
+      "bytes": 561030,
+      "sha256": "1dee191e41e71baa7c9663dbe09f32a782d1458816d696b7d23c3951541aeb05"
+    },
+    {
+      "path": "honor_loss_alt.wav",
+      "bytes": 401278,
+      "sha256": "04701bcad2aae25a5e749de89fc524531c7f2f2ec53684772b1a1e4aa6d4e225"
+    },
+    {
+      "path": "pack_head.png",
+      "bytes": 24082,
+      "sha256": "0168e0ae7ede55b6f1dff6dddf4bb1c1f2b35f0bdb78afc3c55747c744946969"
+    }
+  ]
+}

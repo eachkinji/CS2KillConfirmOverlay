@@ -60,7 +60,11 @@ namespace KillConfirmCompatibility
                 KillFeedbackVisibilitySettingsStore.Load(style);
             bool usesDedicatedLayerRouting = style == GameStyleMode.Overwatch
                 || style == GameStyleMode.ModernWarfare2019
-                || style == GameStyleMode.Apex;
+                || style == GameStyleMode.Cod2022
+                || style == GameStyleMode.Apex
+                || style == GameStyleMode.Titanfall2
+                || style == GameStyleMode.LeagueOfLegends
+                || style == GameStyleMode.Rdr2;
             if (!usesDedicatedLayerRouting)
             {
                 ConfigureFeedbackAppearance(
@@ -182,6 +186,18 @@ namespace KillConfirmCompatibility
                             GetKillTargetDisplayName(killEvent),
                             killEvent.MoneyReward);
                     }
+                    return;
+                case GameStyleMode.Cod2022:
+                    PlayCod2022PrimaryAnimation(killEvent, visibility);
+                    return;
+                case GameStyleMode.Titanfall2:
+                    PlayTitanfall2PrimaryAnimation(killEvent, visibility);
+                    return;
+                case GameStyleMode.LeagueOfLegends:
+                    PlayLeagueOfLegendsPrimaryAnimation(killEvent, visibility);
+                    return;
+                case GameStyleMode.Rdr2:
+                    PlayRdr2PrimaryAnimation(killEvent, visibility);
                     return;
                 case GameStyleMode.Csol:
                     PlayCsolPrimaryAnimation(killEvent);
